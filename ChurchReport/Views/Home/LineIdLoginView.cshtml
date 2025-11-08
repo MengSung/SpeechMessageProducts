@@ -32,7 +32,7 @@
         .hero-overlay .verse span { display:block; margin-top:.35rem; font-size:.75rem; opacity:.8; }
         /* 名稱/提示區 */
         #displaynamefield { font-weight:600; min-height:48px; }
-        .info-section { margin-top: -60px; }
+        .info-section { margin-top:0; padding-top:32px; }
         /* 卡片樣式 */
         .card-soft { border: none; border-radius: 18px; background: #ffffff; box-shadow: 0 6px 18px rgba(0,0,0,.08); overflow:hidden; }
         .card-soft-header { background: linear-gradient(135deg,#6b8ce3,#4864b8); color:#fff; padding:.75rem 1rem; font-weight:600; letter-spacing:1px; display:flex; align-items:center; gap:.5rem; }
@@ -87,16 +87,19 @@
         <div class="hero-overlay" role="banner">
             <i class="fa-solid fa-dove logo-faith mb-2" aria-hidden="true"></i>
             <h1>聖谷行道會</h1>
-            <div id="displaynamefield" class="mb-2"></div>
-            <p class="verse">
+@*             <div id="displaynamefield" class="mb-2"></div>
+ *@            <p class="verse">
                 我們愛，因為神先愛我們。<span>— 約翰一書 4:19</span>
             </p>
-            <div class="action-buttons">
+@*             <div class="action-buttons">
                 <button type="button" class="btn btn-primary" onclick="Binding()"><i class="fa-link fa-solid me-1"></i>綁定帳號</button>
                 <button type="button" class="btn btn-outline-light" onclick="Login()"><i class="fa-right-to-bracket fa-solid me-1"></i>帳號登入</button>
             </div>
-        </div>
+ *@        </div>
     </section>
+
+    <div id="displaynamefield" class="mb-5"></div>
+
     <!-- 主內容 -->
     <main class="container info-section" role="main">
         <div class="row justify-content-center">
@@ -112,10 +115,10 @@
                             <li><div class="contact-icon"><i class="fa-solid fa-envelope"></i></div><div class="contact-text">sunnyvale.church@gmail.com</div></li>
                             <li><div class="contact-icon"><i class="fa-solid fa-file-invoice"></i></div><div class="contact-text">統一編號：20004335</div></li>
                         </ul>
-                        <div class="small text-muted mt-3">
+@*                         <div class="small text-muted mt-3">
                             若您尚未完成 LINE 綁定，請點選「綁定帳號」；完成後將自動導向您的專屬頁面。
                         </div>
-                    </div>
+ *@                    </div>
                 </div>
             </div>
         </div>
