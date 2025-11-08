@@ -30,7 +30,8 @@
 
     <style>
         /* Hero 橫幅與覆蓋層 */
-        .hero-wrapper { position: relative; width:100%; height: 300px; overflow:hidden; }
+        .hero-wrapper { position: relative; width:100%; height: 340px; overflow:hidden; }
+        .hero-gallery-shift .dx-gallery, .hero-gallery-shift .dx-gallery-wrapper { margin-top:40px; }
         .hero-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:#fff; padding: 1rem; background: linear-gradient(135deg, rgba(0,0,0,.55), rgba(0,0,0,.25)); }
         .hero-overlay h1 { font-size:1.9rem; letter-spacing:2px; font-weight:700; margin-bottom:.35rem; }
         .hero-overlay .sub { font-size:.95rem; opacity:.92; margin-bottom:.5rem; }
@@ -39,15 +40,16 @@
         .logo-faith { font-size:2.2rem; margin-bottom:.35rem; color:#fff; animation: pulse 3.5s infinite; }
         @@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
 
-        /* Gallery 圖片垂直完整可見：以高度為準、水平置中，允許左右留白或裁切 */
+        /* Gallery 圖片垂直完整可見 (調整：改用自適應高度避免上下裁切) */
         .hero-wrapper .dx-gallery, .hero-wrapper .dx-gallery-wrapper { height:100%; }
         .hero-wrapper .dx-gallery-item { display:flex !important; align-items:center; justify-content:center; }
         .hero-wrapper .dx-gallery-item .dx-gallery-item-content { display:flex; align-items:center; justify-content:center; width:100%; height:100%; overflow:hidden; }
-        .hero-wrapper .dx-gallery-item img { height:100%; width:auto; object-fit:contain; object-position:center center; display:block; }
-        /* 窄螢幕維持垂直全見 */
+        .hero-wrapper .dx-gallery-item img { max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; object-position:center center; display:block; }
         @@media (max-width: 575.98px) {
-            .hero-wrapper { height:240px; }
-            .hero-wrapper .dx-gallery-item img { height:100%; width:auto; }
+            /* 小螢幕改為自動高度，確保圖片垂直完整顯示 */
+            .hero-wrapper { height:auto; min-height:240px; }
+            .hero-wrapper .dx-gallery, .hero-wrapper .dx-gallery-wrapper { height:auto; }
+            .hero-wrapper .dx-gallery-item { min-height:240px; }
         }
 
         /* 內容區 */
@@ -94,7 +96,7 @@
 
 <body class="bg-light">
     <!-- Hero：背景 Gallery 疊加經文 -->
-    <section class="hero-wrapper" aria-label="歡迎區">
+    <section class="hero-wrapper hero-gallery-shift" aria-label="歡迎區">
         <div class="position-absolute w-100 h-100" style="z-index:1;">
             @(Html.DevExtreme().Gallery()
                 .ID("gallery")
@@ -185,7 +187,7 @@
                                     .Width(160)
                                 )
                             </div>
-                            <div class="mt-3 small text-muted text-center">
+                            <div class="mt-5 small text-muted text-center">
                                 忘記密碼？請聯絡教會行政同工協助重設。
                             </div>
 
