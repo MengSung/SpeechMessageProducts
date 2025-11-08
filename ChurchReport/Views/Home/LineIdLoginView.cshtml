@@ -31,16 +31,17 @@
         .hero-overlay .verse { font-size:.95rem; line-height:1.4; max-width:620px; }
         .hero-overlay .verse span { display:block; margin-top:.35rem; font-size:.75rem; opacity:.8; }
         /* 名稱/提示區 */
-        #displaynamefield { font-weight:600; min-height:48px; }
+        #displaynamefield { font-weight:600; min-height:48px; text-align:center; font-family:'Poppins','Noto Sans TC','Microsoft JhengHei',Arial,sans-serif; font-size:1.82rem; line-height:1.4; letter-spacing:1px; color:#35507d; margin-top:48px; }
         .info-section { margin-top:0; padding-top:32px; }
         /* 卡片樣式 */
         .card-soft { border: none; border-radius: 18px; background: #ffffff; box-shadow: 0 6px 18px rgba(0,0,0,.08); overflow:hidden; }
-        .card-soft-header { background: linear-gradient(135deg,#6b8ce3,#4864b8); color:#fff; padding:.75rem 1rem; font-weight:600; letter-spacing:1px; display:flex; align-items:center; gap:.5rem; }
+        .card-soft-header { background: linear-gradient(135deg,#6b8ce3,#4864b8); color:#fff; padding:.75rem 1rem; font-weight:600; letter-spacing:1px; display:flex; align-items:center; gap:.5rem; font-size:1.2rem; }
+        #ContactMessage { font-size:1.1rem; }
         .contact-list { list-style:none; padding:0; margin:0; }
-        .contact-list li { display:flex; gap:.75rem; padding:.55rem .35rem; align-items:flex-start; font-size:.95rem; border-bottom:1px dashed #e2e6f0; }
+        .contact-list li { display:flex; gap:.85rem; padding:.7rem .4rem; align-items:flex-start; font-size:1.1rem; border-bottom:1px dashed #e2e6f0; }
         .contact-list li:last-child { border-bottom:none; }
-        .contact-icon { width:30px; text-align:center; font-size:1.05rem; color:#4864b8; }
-        .contact-text { flex:1; line-height:1.35; }
+        .contact-icon { width:36px; text-align:center; font-size:1.25rem; color:#4864b8; }
+        .contact-text { flex:1; line-height:1.55; font-weight:500; }
         .action-buttons { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:1.25rem; justify-content:center; }
         .action-buttons .btn { border-radius:30px; padding:.65rem 1.4rem; font-weight:600; letter-spacing:1px; box-shadow:0 4px 12px rgba(0,0,0,.12); transition:.25s; }
         .action-buttons .btn-primary { background:#4864b8; }
@@ -189,7 +190,7 @@
         async function initializeApp() {
             await liff.getProfile()
                 .then(function (profile) {
-                    document.getElementById('displaynamefield').innerHTML = profile.displayName + " 歡迎回來";
+                    document.getElementById('displaynamefield').innerHTML = "歡迎" +profile.displayName + "登入" + "<br/>" +"願神永遠祝福" + profile.displayName + "<br/>" + "約需10~15秒，感謝您的耐心等候!";
                     loadPanel_show();
                     DisplayName = profile.displayName; UserId = profile.userId; GroupId = profile.aGroupId; RoomId = profile.aRoomId; ViewType = profile.aViewType;
                     UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
