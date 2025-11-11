@@ -354,7 +354,7 @@ namespace ChurchReport.Models
                 // 處理交易服務相關
                 result.ServiceInfo = ProcessServiceInfo();
 
-                // 虞處理定期定額資訊
+                // 處理定期定額資訊
                 result.RecurringInfo = ProcessRecurringPaymentInfo();
 
                 // 處理虛擬帳號/超商代碼資訊
@@ -718,19 +718,33 @@ namespace ChurchReport.Models
     /// </summary>
     public class MyPayProcessingResult
     {
+        /// <summary>處理是否成功</summary>
         public bool IsSuccess { get; set; }
+        /// <summary>錯誤訊息</summary>
         public string ErrorMessage { get; set; }
+        /// <summary>處理時間</summary>
         public DateTime ProcessingTime { get; set; }
+        /// <summary>交易ID</summary>
         public string TransactionId { get; set; }
+        /// <summary>訂單ID</summary>
         public string OrderId { get; set; }
+        /// <summary>核心欄位資訊</summary>
         public CoreFieldsInfo CoreFields { get; set; }
+        /// <summary>交易資訊</summary>
         public TransactionInfo TransactionInfo { get; set; }
+        /// <summary>消費者資訊</summary>
         public ConsumerInfo ConsumerInfo { get; set; }
+        /// <summary>信用卡資訊</summary>
         public CreditCardInfo CreditCardInfo { get; set; }
+        /// <summary>服務資訊</summary>
         public ServiceInfo ServiceInfo { get; set; }
+        /// <summary>定期定額資訊</summary>
         public RecurringInfo RecurringInfo { get; set; }
+        /// <summary>虛擬帳號資訊</summary>
         public VirtualAccountInfo VirtualAccountInfo { get; set; }
+        /// <summary>自訂參數資訊</summary>
         public CustomParametersInfo CustomParameters { get; set; }
+        /// <summary>摘要說明</summary>
         public string Summary { get; set; }
     }
 
@@ -739,10 +753,15 @@ namespace ChurchReport.Models
     /// </summary>
     public class CoreFieldsInfo
     {
+        /// <summary>交易流水號</summary>
         public string Uid { get; set; }
+        /// <summary>驗證碼</summary>
         public string Key { get; set; }
+        /// <summary>交易回傳碼</summary>
         public string Prc { get; set; }
+        /// <summary>訂單編號</summary>
         public string OrderId { get; set; }
+        /// <summary>是否有效</summary>
         public bool IsValid { get; set; }
     }
 
@@ -751,20 +770,35 @@ namespace ChurchReport.Models
     /// </summary>
     public class TransactionInfo
     {
+        /// <summary>完成時間字串</summary>
         public string FinishTime { get; set; }
+        /// <summary>完成時間(解析後)</summary>
         public DateTime? ParsedFinishTime { get; set; }
+        /// <summary>交易金額字串</summary>
         public string Cost { get; set; }
+        /// <summary>交易金額(解析後)</summary>
         public decimal? ParsedCost { get; set; }
+        /// <summary>原幣別</summary>
         public string Currency { get; set; }
+        /// <summary>實際金額字串</summary>
         public string ActualCost { get; set; }
+        /// <summary>實際金額(解析後)</summary>
         public decimal? ParsedActualCost { get; set; }
+        /// <summary>實際幣別</summary>
         public string ActualCurrency { get; set; }
+        /// <summary>請求點數/金額</summary>
         public string Price { get; set; }
+        /// <summary>實際點數/金額</summary>
         public string ActualPrice { get; set; }
+        /// <summary>產品代碼</summary>
         public string RechargeCode { get; set; }
+        /// <summary>愛心捐款金額</summary>
         public string LoveCost { get; set; }
+        /// <summary>回傳訊息</summary>
         public string ReturnMessage { get; set; }
+        /// <summary>付款方式</summary>
         public string PaymentMethod { get; set; }
+        /// <summary>交易類型</summary>
         public int? TransactionType { get; set; }
     }
 
@@ -773,10 +807,15 @@ namespace ChurchReport.Models
     /// </summary>
     public class ConsumerInfo
     {
+        /// <summary>消費者帳號</summary>
         public string UserId { get; set; }
+        /// <summary>付款人姓名</summary>
         public string UserName { get; set; }
+        /// <summary>付款人真實姓名</summary>
         public string UserRealName { get; set; }
+        /// <summary>付款人電話</summary>
         public string UserPhone { get; set; }
+        /// <summary>付款人電子郵件</summary>
         public string UserEmail { get; set; }
     }
 
@@ -785,12 +824,19 @@ namespace ChurchReport.Models
     /// </summary>
     public class CreditCardInfo
     {
+        /// <summary>卡號</summary>
         public string CardNo { get; set; }
+        /// <summary>授權碼</summary>
         public string AuthCode { get; set; }
+        /// <summary>卡別</summary>
         public string CardType { get; set; }
+        /// <summary>發卡行</summary>
         public string IssuingBank { get; set; }
+        /// <summary>發卡銀行代碼</summary>
         public string IssuingBankUid { get; set; }
+        /// <summary>紅利資訊</summary>
         public string RedeemInfo { get; set; }
+        /// <summary>分期資訊</summary>
         public string InstallmentInfo { get; set; }
     }
 
@@ -799,9 +845,13 @@ namespace ChurchReport.Models
     /// </summary>
     public class ServiceInfo
     {
+        /// <summary>是否為經銷商代收費</summary>
         public int? IsAgentCharge { get; set; }
+        /// <summary>交易服務類型</summary>
         public int? TransactionMode { get; set; }
+        /// <summary>金融服務商名稱</summary>
         public string SupplierName { get; set; }
+        /// <summary>金融服務商代碼</summary>
         public string SupplierCode { get; set; }
     }
 
@@ -810,8 +860,11 @@ namespace ChurchReport.Models
     /// </summary>
     public class RecurringInfo
     {
+        /// <summary>扣款名稱</summary>
         public string PaymentName { get; set; }
+        /// <summary>扣繳期數</summary>
         public string NumberOfInstallments { get; set; }
+        /// <summary>群組編號</summary>
         public string GroupId { get; set; }
     }
 
@@ -820,11 +873,17 @@ namespace ChurchReport.Models
     /// </summary>
     public class VirtualAccountInfo
     {
+        /// <summary>銀行代碼</summary>
         public string BankId { get; set; }
+        /// <summary>有效日期字串</summary>
         public string ExpiredDate { get; set; }
+        /// <summary>有效日期(解析後)</summary>
         public DateTime? ParsedExpiredDate { get; set; }
+        /// <summary>資料格式類型</summary>
         public int? ResultType { get; set; }
+        /// <summary>資料內容所屬支付名稱</summary>
         public string ResultContentType { get; set; }
+        /// <summary>資料內容</summary>
         public string ResultContent { get; set; }
     }
 
@@ -833,10 +892,15 @@ namespace ChurchReport.Models
     /// </summary>
     public class CustomParametersInfo
     {
+        /// <summary>自訂參數 0</summary>
         public string Echo0 { get; set; }
+        /// <summary>自訂參數 1</summary>
         public string Echo1 { get; set; }
+        /// <summary>自訂參數 2</summary>
         public string Echo2 { get; set; }
+        /// <summary>自訂參數 3</summary>
         public string Echo3 { get; set; }
+        /// <summary>自訂參數 4</summary>
         public string Echo4 { get; set; }
     }
 
