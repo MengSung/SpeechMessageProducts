@@ -15,32 +15,71 @@ namespace ChurchReport.Controllers
 {
     /// <summary>
     /// 金流 PayPage 回傳處理控制器
-    /// - 接收金流回傳(MyPayReturn)
-    /// - 顯示成功結果(success)
-    /// - 顯示失敗結果(failure)
-    /// 整理為清晰區塊，補充說明註解。
+    /// 負責處理高鋸金流 (MyPay) 的各種回傳通知，包括：
+    /// - 接收金流回傳資料 (MyPayReturn)
+    /// - 顯示成功結果頁面 (success)
+    /// - 顯示失敗結果頁面 (failure)
+    /// 所有處理邏輯都已整理為清晰的區塊，並補充詳細說明註解。
     /// </summary>
     [Route("api/[controller]")]
     public class MyPayController : Controller
     {
         #region 常數定義
-        private const string LINE_CHANNEL_ACCESS_TOKEN = @"OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU="; // 用於 LINE 推播
-        private const string DYNAMICS_CONNECTION_NAME = "DYNAMICS365"; // CRM連線名稱
-        private const int PAYMENT_STATUS_PAID = 100000001; // new_pay_status: 信用卡已繳費
-        private const int PAYMENT_METHOD_CREDIT_CARD = 100000001; // new_pay_way: 信用卡
+
+        /// <summary>
+        /// LINE 推播的存取權杖，用於發送通知訊息
+        /// </summary>
+        private const string LINE_CHANNEL_ACCESS_TOKEN = @"OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU=";
+
+        /// <summary>
+        /// Dynamics 365 CRM 連線名稱，用於資料庫操作
+        /// </summary>
+        private const string DYNAMICS_CONNECTION_NAME = "DYNAMICS365";
+
+        /// <summary>
+        /// 付款狀態：信用卡已繳費，對應 CRM 中的 new_pay_status 欄位值
+        /// </summary>
+        private const int PAYMENT_STATUS_PAID = 100000001;
+
+        /// <summary>
+        /// 付款方式：信用卡，對應 CRM 中的 new_pay_way 欄位值
+        /// </summary>
+        private const int PAYMENT_METHOD_CREDIT_CARD = 100000001;
+
         #endregion
 
+        #region 私有欄位
+
+        /// <summary>
+        /// 日誌記錄器，用於記錄處理過程和錯誤資訊
+        /// </summary>
         private readonly ILogger<MyPayController> _logger;
 
+        #endregion
+
+        #region 建構函式
+
+        /// <summary>
+        /// MyPayController 建構函式
+        /// 注入日誌記錄器以便記錄處理過程
+        /// </summary>
+        /// <param name="logger">日誌記錄器實例</param>
         public MyPayController(ILogger<MyPayController> logger)
         {
             _logger = logger;
         }
+
+        #endregion
+
         #region API: MyPay 回傳
+
         /// <summary>
-        /// 金流伺服器回呼端點。處理後需回傳字串8888代表已接收。
+        /// 金流伺服器回呼端點。處理後需回傳字串 "8888" 代表已接收。
         /// 處理『交易完成回傳資訊』、『非即時交易回傳資訊』、『訂單確認回傳資訊`
+        /// 此方法為金流平台的主要通知入口點，負責驗證資料、更新 CRM 並發送 LINE 通知。
         /// </summary>
+        /// <param name="returnModel">金流回傳的資料模型</param>
+        /// <returns>HTTP 回應，成功時返回 "8888"</returns>
         [HttpPost("MyPayNotify")]
         public async Task<IActionResult> PaymentNotify([FromForm] MyPayReturnModel returnModel)
         {
@@ -62,33 +101,33 @@ namespace ChurchReport.Controllers
                 // 3. 驗證必要欄位 ? 確保被呼叫並記錄詳細資訊
                 _logger.LogInformation("[MyPay回傳] 開始驗證欄位...");
                 var validation = returnModel.ValidateAllFields();
-        
+
                 // 記錄驗證等級
                 _logger.LogInformation($"[MyPay回傳] 驗證等級: {validation.Level}");
-  
+
                 // 記錄警告訊息（非致命錯誤）
                 if (validation.Warnings != null && validation.Warnings.Any())
                 {
                     _logger.LogInformation($"[MyPay回傳] 資料驗證警告 ({validation.Warnings.Count}): {string.Join(", ", validation.Warnings)}");
                 }
-    
+
                 // 檢查驗證結果
                 if (!validation.IsValid)
                 {
                     _logger.LogWarning($"[MyPay回傳] 資料驗證失敗 ({validation.Errors.Count}): {string.Join(", ", validation.Errors)}");
-      // 仍回傳8888避免金流平台重送
+                    // 仍回傳8888避免金流平台重送
                     return Ok("8888");
                 }
-           
+
                 _logger.LogInformation("[MyPay回傳] 欄位驗證通過");
 
                 // 4. 解析交易狀態
                 bool isSuccess = IsSuccessfulPaymentStatus(returnModel.prc);
                 _logger.LogInformation($"[MyPay回傳] 交易狀態判定: PRC={returnModel.prc}, IsSuccess={isSuccess}");
 
-                // 5. 查詢收費單  
+                // 5. 查詢收費單
                 utility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
-                // 高踞金流回傳用此欄位
+                // 高鋸金流回傳用此欄位
                 Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_order_number", returnModel.order_id);
                 //Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", returnModel.order_id);
 
@@ -168,13 +207,22 @@ namespace ChurchReport.Controllers
                 utility?.Dispose();
             }
         }
+
         #endregion
 
         #region LINE 訊息建立
 
         /// <summary>
         /// 建立奉獻成功訊息
+        /// 根據奉獻類型和付款資訊生成完整的成功通知訊息
         /// </summary>
+        /// <param name="fullName">會友全名</param>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="transactionId">交易編號</param>
+        /// <param name="amount">付款金額</param>
+        /// <param name="dedicationCategory">奉獻類別</param>
+        /// <param name="paymentTime">付款時間</param>
+        /// <returns>格式化的 LINE 訊息字串</returns>
         private string BuildDedicationSuccessMessage(string fullName, string orderId, string transactionId, decimal amount, string dedicationCategory, DateTime paymentTime)
         {
             var msg = $"【金流付款成功通知】{Environment.NewLine}{Environment.NewLine}" +
@@ -194,7 +242,16 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 建立奉獻失敗訊息
+        /// 根據奉獻類型和失敗原因生成完整的失敗通知訊息
         /// </summary>
+        /// <param name="fullName">會友全名</param>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="transactionId">交易編號</param>
+        /// <param name="amount">應付金額</param>
+        /// <param name="dedicationCategory">奉獻類別</param>
+        /// <param name="paymentTime">嘗試時間</param>
+        /// <param name="statusMessage">失敗原因訊息</param>
+        /// <returns>格式化的 LINE 訊息字串</returns>
         private string BuildDedicationFailureMessage(string fullName, string orderId, string transactionId, decimal amount, string dedicationCategory, DateTime paymentTime, string statusMessage)
         {
             var msg = $"【金流付款失敗通知】{Environment.NewLine}{Environment.NewLine}" +
@@ -219,7 +276,17 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 建立課程繳費成功訊息
+        /// 根據課程資訊和付款細節生成完整的成功通知訊息
         /// </summary>
+        /// <param name="fullName">會友全名</param>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="transactionId">交易編號</param>
+        /// <param name="amount">繳費金額</param>
+        /// <param name="courseName">課程名稱</param>
+        /// <param name="courseSchedule">上課時間</param>
+        /// <param name="courseLocation">上課地點</param>
+        /// <param name="paymentTime">付款時間</param>
+        /// <returns>格式化的 LINE 訊息字串</returns>
         private string BuildCoursePaymentSuccessMessage(string fullName, string orderId, string transactionId, decimal amount, string courseName, string courseSchedule, string courseLocation, DateTime paymentTime)
         {
             var msg = $"【金流付款成功通知】{Environment.NewLine}{Environment.NewLine}" +
@@ -241,7 +308,18 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 建立課程繳費失敗訊息
+        /// 根據課程資訊和失敗原因生成完整的失敗通知訊息
         /// </summary>
+        /// <param name="fullName">會友全名</param>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="transactionId">交易編號</param>
+        /// <param name="amount">應繳金額</param>
+        /// <param name="courseName">課程名稱</param>
+        /// <param name="courseSchedule">上課時間</param>
+        /// <param name="courseLocation">上課地點</param>
+        /// <param name="paymentTime">嘗試時間</param>
+        /// <param name="statusMessage">失敗原因訊息</param>
+        /// <returns>格式化的 LINE 訊息字串</returns>
         private string BuildCoursePaymentFailureMessage(string fullName, string orderId, string transactionId, decimal amount, string courseName, string courseSchedule, string courseLocation, DateTime paymentTime, string statusMessage)
         {
             var msg = $"【金流付款失敗通知】{Environment.NewLine}{Environment.NewLine}" +
@@ -268,7 +346,15 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 建立一般繳費成功訊息
+        /// 適用於非奉獻、非課程的一般繳費項目
         /// </summary>
+        /// <param name="fullName">會友全名</param>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="transactionId">交易編號</param>
+        /// <param name="amount">付款金額</param>
+        /// <param name="itemName">項目名稱</param>
+        /// <param name="paymentTime">付款時間</param>
+        /// <returns>格式化的 LINE 訊息字串</returns>
         private string BuildGeneralPaymentSuccessMessage(string fullName, string orderId, string transactionId, decimal amount, string itemName, DateTime paymentTime)
         {
             var msg = $"【金流付款成功通知】{Environment.NewLine}{Environment.NewLine}" +
@@ -287,7 +373,16 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 建立一般繳費失敗訊息
+        /// 適用於非奉獻、非課程的一般繳費項目失敗通知
         /// </summary>
+        /// <param name="fullName">會友全名</param>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="transactionId">交易編號</param>
+        /// <param name="amount">應付金額</param>
+        /// <param name="itemName">項目名稱</param>
+        /// <param name="paymentTime">嘗試時間</param>
+        /// <param name="statusMessage">失敗原因訊息</param>
+        /// <returns>格式化的 LINE 訊息字串</returns>
         private string BuildGeneralPaymentFailureMessage(string fullName, string orderId, string transactionId, decimal amount, string itemName, DateTime paymentTime, string statusMessage)
         {
             var msg = $"【金流付款失敗通知】{Environment.NewLine}{Environment.NewLine}" +
@@ -311,7 +406,10 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 發送LINE訊息
+        /// 使用 LINE Messaging API 發送推播訊息給指定用戶
         /// </summary>
+        /// <param name="lineId">接收者的 LINE ID</param>
+        /// <param name="message">要發送的訊息內容</param>
         private void SendLineMessage(string lineId, string message)
         {
             try
@@ -335,7 +433,10 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 付款成功頁面 (供用戶查看結果)
         /// GET /api/MyPay/success
+        /// 舊版成功頁面，較為簡易
         /// </summary>
+        /// <param name="order_id">訂單編號</param>
+        /// <returns>View 結果</returns>
         [HttpGet("success_BACK")]
         public IActionResult PaymentSuccessBACK([FromQuery] string order_id = "")
         {
@@ -346,8 +447,25 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        ///付款成功導向頁。顯示資訊並更新 CRM以及發送 LINE 通知。
+        /// 付款成功導向頁。顯示資訊並更新 CRM 以及發送 LINE 通知。
+        /// 此為主要成功頁面，會查詢 CRM 資料並發送詳細通知
         /// </summary>
+        /// <param name="order_id">訂單編號</param>
+        /// <param name="uid">交易流水號</param>
+        /// <param name="key">交易驗證碼</param>
+        /// <param name="cost">交易金額</param>
+        /// <param name="actual_cost">實際金額</param>
+        /// <param name="prc">交易回傳碼</param>
+        /// <param name="pfn">付費方法</param>
+        /// <param name="finishtime">交易完成時間</param>
+        /// <param name="cardno">卡號</param>
+        /// <param name="acode">授權碼</param>
+        /// <param name="echo_0">自訂參數 0</param>
+        /// <param name="echo_1">自訂參數 1</param>
+        /// <param name="echo_2">自訂參數 2</param>
+        /// <param name="echo_3">自訂參數 3</param>
+        /// <param name="echo_4">自訂參數 4</param>
+        /// <returns>View 結果</returns>
         [HttpGet("success")]
         public IActionResult PaymentSuccess(
             [FromQuery] string order_id = "",
@@ -371,7 +489,7 @@ namespace ChurchReport.Controllers
             {
                 _logger.LogInformation($"進入付款成功頁面 - OrderId: {order_id}, UID: {uid}, Key: {key}, PRC: {prc}, Cost: {cost}, ActualCost: {actual_cost}, PFN: {pfn}, FinishTime: {finishtime}");
 
-                //交易狀態與時間解析
+                // 交易狀態與時間解析
                 bool isPaymentSuccess = IsSuccessfulPaymentStatus(prc);
                 string paymentStatusMessage = GetPaymentStatusMessage(prc);
                 DateTime paymentDateTime = ParseFinishTime(finishtime);
@@ -407,9 +525,9 @@ namespace ChurchReport.Controllers
                     return View("PaymentResult");
                 }
 
-                //取得 CRM 資料
+                // 取得 CRM 資料
                 utility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
-                // 高踞金流回傳用此欄位
+                // 高鋸金流回傳用此欄位
                 Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_order_number", order_id);
                 //Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", order_id);
 
@@ -423,7 +541,7 @@ namespace ChurchReport.Controllers
 
                 _logger.LogInformation($"PaymentSuccess: 找到收費單 - FeeId: {feeEntity.Id}");
 
-                //連絡人
+                // 連絡人
                 var contactId = utility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
                 string fullName = "會友";
                 Entity contactEntity = null;
@@ -489,7 +607,7 @@ namespace ChurchReport.Controllers
             {
                 _logger.LogError(ex, $"PaymentSuccess: 發生異常 - OrderId: {order_id}, UID: {uid}");
 
-                //仍顯示成功訊息（避免影響用戶體驗）
+                // 仍顯示成功訊息（避免影響用戶體驗）
                 ViewBag.OrderId = order_id;
                 ViewBag.Message = "付款成功！感謝您的支持。";
                 ViewBag.IsSuccess = true;
@@ -506,14 +624,19 @@ namespace ChurchReport.Controllers
                 utility?.Dispose();
             }
         }
+
         #endregion
 
-        #region API:失敗頁面
+        #region API: 失敗頁面
 
         /// <summary>
         /// 付款失敗頁面 (供用戶查看結果)
-        /// GET /api/MyPay/failure  
+        /// GET /api/MyPay/failure
+        /// 舊版失敗頁面，較為簡易
         /// </summary>
+        /// <param name="order_id">訂單編號</param>
+        /// <param name="msg">錯誤訊息</param>
+        /// <returns>View 結果</returns>
         [HttpGet("failure_BACK")]
         public IActionResult PaymentFailureBACK([FromQuery] string order_id = "", [FromQuery] string msg = "")
         {
@@ -524,8 +647,14 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        ///付款失敗導向頁。顯示錯誤說明並將失敗紀錄寫回 CRM。
+        /// 付款失敗導向頁。顯示錯誤說明並將失敗紀錄寫回 CRM。
+        /// 此為主要失敗頁面，會查詢 CRM 資料並記錄失敗資訊
         /// </summary>
+        /// <param name="order_id">訂單編號</param>
+        /// <param name="msg">錯誤訊息</param>
+        /// <param name="error_code">錯誤代碼</param>
+        /// <param name="ret_code">返回代碼</param>
+        /// <returns>View 結果</returns>
         [HttpGet("failure")]
         public IActionResult PaymentFailure(
             [FromQuery] string order_id = "",
@@ -553,12 +682,12 @@ namespace ChurchReport.Controllers
                     try
                     {
                         utility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
-                        // 高踞金流回傳用此欄位
+                        // 高鋸金流回傳用此欄位
                         Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_order_number", order_id);
                         //Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", order_id);
                         if (feeEntity != null)
                         {
-                            _logger.LogInformation($"PaymentFailure: 找到對應收費? - FeeId: {feeEntity.Id}");
+                            _logger.LogInformation($"PaymentFailure: 找到對應收費單 - FeeId: {feeEntity.Id}");
 
                             var contactId = utility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
                             if (contactId != Guid.Empty)
@@ -608,13 +737,17 @@ namespace ChurchReport.Controllers
                 utility?.Dispose();
             }
         }
+
         #endregion
 
         #region 狀態/文字/CRM更新輔助方法
 
         /// <summary>
         /// 判斷是否為成功的交易狀態
+        /// 根據高鋸金流官方規格，特定 PRC 碼代表成功
         /// </summary>
+        /// <param name="prc">交易回傳碼</param>
+        /// <returns>true 表示成功，false 表示失敗</returns>
         private bool IsSuccessfulPaymentStatus(string prc)
         {
             if (string.IsNullOrWhiteSpace(prc)) return false;
@@ -631,7 +764,12 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 建立失敗訊息
+        /// 根據錯誤代碼和訊息生成用戶友善的失敗說明
         /// </summary>
+        /// <param name="msg">原始錯誤訊息</param>
+        /// <param name="errorCode">錯誤代碼</param>
+        /// <param name="retCode">返回代碼</param>
+        /// <returns>格式化的失敗訊息</returns>
         private string BuildFailureMessage(string msg, string errorCode, string retCode)
         {
             var message = "付款失敗";
@@ -653,7 +791,11 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 取得友善的錯誤訊息
+        /// 將技術性錯誤代碼轉換為用戶易懂的說明
         /// </summary>
+        /// <param name="errorCode">錯誤代碼</param>
+        /// <param name="retCode">返回代碼</param>
+        /// <returns>友善的錯誤訊息，如果無對應則返回 null</returns>
         private string GetFriendlyErrorMessage(string errorCode, string retCode)
         {
             string code = errorCode ?? retCode ?? "";
@@ -689,7 +831,20 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 更新收費單（成功_success_back用）
+        /// 將成功付款資訊寫入 CRM 收費單
         /// </summary>
+        /// <param name="toolUtility">工具類別實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="uid">交易流水號</param>
+        /// <param name="key">交易驗證碼</param>
+        /// <param name="cost">交易金額</param>
+        /// <param name="actualCost">實際金額</param>
+        /// <param name="prc">交易狀態碼</param>
+        /// <param name="pfn">付款方式</param>
+        /// <param name="paymentTime">付款時間</param>
+        /// <param name="cardno">卡號</param>
+        /// <param name="acode">授權碼</param>
         private void UpdateFeeEntityForSuccessWithMyPay(
             ToolUtilityClass toolUtility,
             Entity feeEntity,
@@ -746,7 +901,14 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 更新收費單（失敗_failure_back用）
+        /// 將失敗付款資訊記錄到 CRM 收費單
         /// </summary>
+        /// <param name="toolUtility">工具類別實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="errorMessage">錯誤訊息</param>
+        /// <param name="errorCode">錯誤代碼</param>
+        /// <param name="retCode">返回代碼</param>
         private void UpdateFeeEntityForFailure(
             ToolUtilityClass toolUtility,
             Entity feeEntity,
@@ -777,7 +939,18 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 發送付款通知（success_back用）
+        /// 根據收費單類型發送對應的 LINE 成功通知
         /// </summary>
+        /// <param name="utility">工具類別實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="transactionId">交易編號</param>
+        /// <param name="cost">交易金額</param>
+        /// <param name="fullName">會友全名</param>
+        /// <param name="itemName">項目名稱</param>
+        /// <param name="feeType">收費單類型</param>
+        /// <param name="amount">付款金額</param>
+        /// <param name="contactEntity">連絡人實體</param>
         private void SendPaymentNotificationByType(
             ToolUtilityClass utility,
             Entity feeEntity,
@@ -847,7 +1020,9 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 記錄完整的回傳資料（用於除錯）
+        /// 將金流回傳的所有欄位記錄到日誌中，便於問題排查
         /// </summary>
+        /// <param name="model">金流回傳模型</param>
         private void LogFullReturnData(MyPayReturnModel model)
         {
             try
@@ -870,7 +1045,12 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 更新收費單欄位（支援所有金流回傳參數）
+        /// 將金流回傳的所有相關資訊寫入 CRM 收費單的描述欄位
         /// </summary>
+        /// <param name="toolUtility">工具類別實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <param name="model">金流回傳模型</param>
+        /// <param name="isSuccess">是否為成功交易</param>
         private void UpdateFeeEntityWithMyPayReturn(
             ToolUtilityClass toolUtility,
             Entity feeEntity,
@@ -986,7 +1166,14 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 根據收費單類型發送不同的LINE通知
+        /// 根據 FeeType 決定發送哪種成功通知訊息
         /// </summary>
+        /// <param name="utility">工具類別實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <param name="model">金流回傳模型</param>
+        /// <param name="fullName">會友全名</param>
+        /// <param name="feeType">收費單類型</param>
+        /// <param name="contactEntity">連絡人實體</param>
         private void SendLineNotificationByType(
             ToolUtilityClass utility,
             Entity feeEntity,
@@ -1060,7 +1247,14 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 根據收費單類型發送不同的LINE失敗通知
+        /// 根據 FeeType 決定發送哪種失敗通知訊息
         /// </summary>
+        /// <param name="utility">工具類別實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <param name="model">金流回傳模型</param>
+        /// <param name="fullName">會友全名</param>
+        /// <param name="feeType">收費單類型</param>
+        /// <param name="contactEntity">連絡人實體</param>
         private void SendLineFailureNotificationByType(
             ToolUtilityClass utility,
             Entity feeEntity,
@@ -1146,12 +1340,32 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 收費單類型枚舉
+        /// 用於區分不同的收費單類型，以便發送對應的通知訊息
         /// </summary>
-        private enum FeeType { Dedication, Course, Other }
+        private enum FeeType
+        {
+            /// <summary>
+            /// 奉獻類型
+            /// </summary>
+            Dedication,
+
+            /// <summary>
+            /// 課程繳費類型
+            /// </summary>
+            Course,
+
+            /// <summary>
+            /// 其他類型
+            /// </summary>
+            Other
+        }
 
         /// <summary>
         /// 取得交易狀態訊息
+        /// 根據高鋸金流官方文檔，將 PRC 代碼轉換為人類可讀的狀態說明
         /// </summary>
+        /// <param name="prc">交易回傳碼</param>
+        /// <returns>狀態訊息說明</returns>
         private string GetPaymentStatusMessage(string prc)
         {
             if (string.IsNullOrWhiteSpace(prc)) return "付款狀態未知";
@@ -1216,7 +1430,10 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 解析交易完成時間
+        /// 將高鋸金流的時間格式 (YYYYMMDDHHmmss) 轉換為 DateTime 物件
         /// </summary>
+        /// <param name="finishtime">交易完成時間字串</param>
+        /// <returns>解析後的 DateTime 物件，解析失敗則返回當前時間</returns>
         private DateTime ParseFinishTime(string finishtime)
         {
             if (string.IsNullOrWhiteSpace(finishtime) || finishtime.Length != 14) return DateTime.Now;
@@ -1239,7 +1456,10 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 取得付款方式名稱（依據高鋸金流規格 附錄一：PFN（支付工具）參數表）
+        /// 將 PFN 代碼轉換為人類可讀的付款方式名稱
         /// </summary>
+        /// <param name="pfn">支付工具代碼</param>
+        /// <returns>付款方式名稱</returns>
         private string GetPaymentMethodName(string pfn)
         {
             if (string.IsNullOrWhiteSpace(pfn)) return "未知支付工具";
@@ -1466,7 +1686,11 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 判斷收費單類型
+        /// 根據收費單的各種欄位資訊判斷是奉獻、課程繳費或其他類型
         /// </summary>
+        /// <param name="utility">工具類別實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <returns>收費單類型</returns>
         private FeeType DetermineFeeType(ToolUtilityClass utility, Entity feeEntity)
         {
             try
@@ -1512,7 +1736,11 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 取得課程名稱
+        /// 從收費單中提取課程相關資訊，優先使用課程實體名稱
         /// </summary>
+        /// <param name="utility">工具類別實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <returns>課程名稱</returns>
         private string GetCourseName(ToolUtilityClass utility, Entity feeEntity)
         {
             try
@@ -1542,7 +1770,10 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 取得奉獻類別名稱
+        /// 將奉獻類別代碼轉換為人類可讀的名稱
         /// </summary>
+        /// <param name="categoryValue">奉獻類別代碼</param>
+        /// <returns>奉獻類別名稱</returns>
         private string GetDedicationCategoryName(int categoryValue)
         {
             switch (categoryValue)
@@ -1564,6 +1795,7 @@ namespace ChurchReport.Controllers
 
     /// <summary>
     /// 金流回傳模型擴充方法
+    /// 提供 MyPayReturnModel 的擴充驗證和處理方法
     /// </summary>
     public static class MyPayReturnModelExtensions
     {
@@ -1572,124 +1804,131 @@ namespace ChurchReport.Controllers
         /// 參考：高鋸金流規格.txt - 交易回傳格式
         /// 整合原有的 ProcessAllReturnFields 功能
         /// </summary>
+        /// <param name="model">金流回傳模型實例</param>
+        /// <returns>驗證結果，包含是否有效、錯誤訊息和警告訊息</returns>
         public static Models.ValidationResult ValidateAllFields(this MyPayReturnModel model)
         {
             var result = new Models.ValidationResult { IsValid = true };
 
-  // ====== 核心必要欄位（所有回傳都需要） ======
-         if (string.IsNullOrEmpty(model.uid))
-  {
-         result.Errors.Add("uid (交易流水號) 是必要欄位");
-          result.IsValid = false;
+            // ====== 核心必要欄位（所有回傳都需要） ======
+            if (string.IsNullOrEmpty(model.uid))
+            {
+                result.Errors.Add("uid (交易流水號) 是必要欄位");
+                result.IsValid = false;
             }
 
             if (string.IsNullOrEmpty(model.key))
-       {
+            {
                 result.Errors.Add("key (交易驗證碼) 是必要欄位");
                 result.IsValid = false;
-         }
-
-      if (string.IsNullOrEmpty(model.prc))
-            {
-          result.Errors.Add("prc (交易回傳碼) 是必要欄位");
-      result.IsValid = false;
             }
 
-     if (string.IsNullOrEmpty(model.order_id))
-{
-       result.Errors.Add("order_id (訂單編號) 是必要欄位");
-        result.IsValid = false;
+            if (string.IsNullOrEmpty(model.prc))
+            {
+                result.Errors.Add("prc (交易回傳碼) 是必要欄位");
+                result.IsValid = false;
             }
 
-          // ====== 交易資訊（即時交易回傳需要） ======
-        if (!string.IsNullOrEmpty(model.prc) && IsImmediateTransaction(model.prc))
+            if (string.IsNullOrEmpty(model.order_id))
             {
-         if (string.IsNullOrEmpty(model.finishtime))
-       {
-     // Warnings 尚未在 Models.ValidationResult 中定義，暫時使用 Errors
-  result.Errors.Add("?? finishtime (交易完成時間) 建議填寫");
-   }
+                result.Errors.Add("order_id (訂單編號) 是必要欄位");
+                result.IsValid = false;
+            }
 
-   if (string.IsNullOrEmpty(model.cost) && string.IsNullOrEmpty(model.actual_cost))
-    {
-       result.Errors.Add("cost 或 actual_cost 至少需要一個");
-        result.IsValid = false;
+            // ====== 交易資訊（即時交易回傳需要） ======
+            if (!string.IsNullOrEmpty(model.prc) && IsImmediateTransaction(model.prc))
+            {
+                if (string.IsNullOrEmpty(model.finishtime))
+                {
+                    // Warnings 尚未在 Models.ValidationResult 中定義，暫時使用 Errors
+                    result.Errors.Add("?? finishtime (交易完成時間) 建議填寫");
                 }
 
-        if (string.IsNullOrEmpty(model.pfn))
-      {
-      result.Errors.Add("?? pfn (付費方法) 建議填寫");
-  }
-    }
+                if (string.IsNullOrEmpty(model.cost) && string.IsNullOrEmpty(model.actual_cost))
+                {
+                    result.Errors.Add("cost 或 actual_cost 至少需要一個");
+                    result.IsValid = false;
+                }
+
+                if (string.IsNullOrEmpty(model.pfn))
+                {
+                    result.Errors.Add("?? pfn (付費方法) 建議填寫");
+                }
+            }
 
             // ====== 虛擬帳號/超商代碼（非即時交易需要） ======
-     if (!string.IsNullOrEmpty(model.result_content_type) &&
-     (model.result_content_type == "E_COLLECTION" || model.result_content_type == "CSTORECODE"))
-      {
-     if (string.IsNullOrEmpty(model.bank_id))
-    {
-       result.Errors.Add("?? bank_id (銀行代碼) 虛擬帳號交易建議填寫");
+            if (!string.IsNullOrEmpty(model.result_content_type) &&
+                (model.result_content_type == "E_COLLECTION" || model.result_content_type == "CSTORECODE"))
+            {
+                if (string.IsNullOrEmpty(model.bank_id))
+                {
+                    result.Errors.Add("?? bank_id (銀行代碼) 虛擬帳號交易建議填寫");
                 }
 
-        if (string.IsNullOrEmpty(model.expired_date))
- {
-         result.Errors.Add("?? expired_date (有效期限) 非即時交易建議填寫");
-    }
-     }
+                if (string.IsNullOrEmpty(model.expired_date))
+                {
+                    result.Errors.Add("?? expired_date (有效期限) 非即時交易建議填寫");
+                }
+            }
 
-        // ====== 舊版相容欄位（向下相容，非必要） ======
-       // 註：這些欄位是為了相容舊版系統，不應列為必要欄位
+            // ====== 舊版相容欄位（向下相容，非必要） ======
+            // 註：這些欄位是為了相容舊版系統，不應列為必要欄位
             if (string.IsNullOrEmpty(model.state))
-         {
-  result.Errors.Add("?? state 是舊版相容欄位，建議填寫");
-        }
-
-       if (string.IsNullOrEmpty(model.transaction_id))
             {
-  result.Errors.Add("?? transaction_id 是舊版相容欄位，建議填寫");
-    }
+                result.Errors.Add("?? state 是舊版相容欄位，建議填寫");
+            }
 
-       if (string.IsNullOrEmpty(model.msg))
- {
-   result.Errors.Add("?? msg 是舊版相容欄位，建議填寫");
-  }
+            if (string.IsNullOrEmpty(model.transaction_id))
+            {
+                result.Errors.Add("?? transaction_id 是舊版相容欄位，建議填寫");
+            }
 
-         if (string.IsNullOrEmpty(model.store_uid))
-       {
-        result.Errors.Add("?? store_uid 是舊版相容欄位，建議填寫");
-         }
+            if (string.IsNullOrEmpty(model.msg))
+            {
+                result.Errors.Add("?? msg 是舊版相容欄位，建議填寫");
+            }
+
+            if (string.IsNullOrEmpty(model.store_uid))
+            {
+                result.Errors.Add("?? store_uid 是舊版相容欄位，建議填寫");
+            }
 
             if (string.IsNullOrEmpty(model.hash))
-  {
-       result.Errors.Add("?? hash 是舊版相容欄位，建議填寫");
-    }
+            {
+                result.Errors.Add("?? hash 是舊版相容欄位，建議填寫");
+            }
 
-     return result;
+            return result;
         }
 
         /// <summary>
         /// 判斷是否為即時交易
+        /// 根據 PRC 代碼判斷交易是否為即時完成類型
         /// </summary>
+        /// <param name="prc">交易回傳碼</param>
+        /// <returns>true 表示為即時交易，false 表示為非即時交易</returns>
         private static bool IsImmediateTransaction(string prc)
         {
- // 250: 付款成功
-         // 290: 交易成功但資訊不符
-  // 600: 結帳完成
-       return prc == "250" || prc == "290" || prc == "600";
+            // 250: 付款成功
+            // 290: 交易成功但資訊不符
+            // 600: 結帳完成
+            return prc == "250" || prc == "290" || prc == "600";
         }
 
         /// <summary>
         /// 整合驗證與處理 - 一次完成驗證和資料處理
         /// </summary>
+        /// <param name="model">金流回傳模型實例</param>
+        /// <returns>驗證結果和處理結果的元組</returns>
         public static (Models.ValidationResult Validation, MyPayProcessingResult Processing) ValidateAndProcess(this MyPayReturnModel model)
         {
-    // 先驗證
-     var validation = model.ValidateAllFields();
-        
-   // 再處理
-        var processing = model.ProcessAllReturnFields();
-  
-         return (validation, processing);
-   }
- }
+            // 先驗證
+            var validation = model.ValidateAllFields();
+
+            // 再處理
+            var processing = model.ProcessAllReturnFields();
+
+            return (validation, processing);
+        }
+    }
 }
