@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 using System.Globalization;
+using System.Linq;
 
 namespace ChurchReport.Models
 {
@@ -844,8 +845,61 @@ namespace ChurchReport.Models
     /// </summary>
     public class ValidationResult
     {
+        /// <summary>
+        /// 是否有效
+        /// </summary>
         public bool IsValid { get; set; }
+        
+        /// <summary>
+        /// 錯誤訊息列表（致命錯誤）
+        /// </summary>
         public List<string> Errors { get; set; } = new List<string>();
+      
+        /// <summary>
+        /// 警告訊息列表（非致命錯誤，以 ⚠️ 開頭的訊息）
+        /// </summary>
+        public List<string> Warnings 
+        { 
+      get 
+ {
+           // 從 Errors 中篩選出以 ⚠️ 開頭的訊息作為警告
+     return Errors.Where(e => e.StartsWith("⚠️")).ToList();
+     }
+ }
+        
+        /// <summary>
+   /// 驗證等級
+  /// </summary>
+   public ValidationLevel Level 
+        { 
+    get 
+            {
+     if (!IsValid) return ValidationLevel.Error;
+         if (Warnings.Any()) return ValidationLevel.Warning;
+       return ValidationLevel.Success;
+            }
+   }
+    }
+
+    /// <summary>
+    /// 驗證等級枚舉
+ /// </summary>
+    public enum ValidationLevel
+    {
+        /// <summary>
+   /// 成功 - 所有欄位都正確且完整
+ /// </summary>
+        Success,
+      
+        /// <summary>
+        /// 警告 - 驗證通過但有建議填寫的欄位
+        /// </summary>
+    Warning,
+        
+        /// <summary>
+        /// 錯誤 - 驗證失敗，缺少必要欄位
+        /// </summary>
+      Error
     }
 
     #endregion

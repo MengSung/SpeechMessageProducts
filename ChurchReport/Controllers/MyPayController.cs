@@ -59,14 +59,28 @@ namespace ChurchReport.Controllers
                 // 2. 記錄完整的回傳資訊
                 LogFullReturnData(returnModel);
 
-                // 3. 驗證必要欄位
+                // 3. 驗證必要欄位 ? 確保被呼叫並記錄詳細資訊
+                _logger.LogInformation("[MyPay回傳] 開始驗證欄位...");
                 var validation = returnModel.ValidateAllFields();
+        
+                // 記錄驗證等級
+                _logger.LogInformation($"[MyPay回傳] 驗證等級: {validation.Level}");
+  
+                // 記錄警告訊息（非致命錯誤）
+                if (validation.Warnings != null && validation.Warnings.Any())
+                {
+                    _logger.LogInformation($"[MyPay回傳] 資料驗證警告 ({validation.Warnings.Count}): {string.Join(", ", validation.Warnings)}");
+                }
+    
+                // 檢查驗證結果
                 if (!validation.IsValid)
                 {
-                    _logger.LogWarning($"[MyPay回傳] 資料驗證失敗: {string.Join(", ", validation.Errors)}");
-                    // 仍回傳8888避免金流平台重送
+                    _logger.LogWarning($"[MyPay回傳] 資料驗證失敗 ({validation.Errors.Count}): {string.Join(", ", validation.Errors)}");
+      // 仍回傳8888避免金流平台重送
                     return Ok("8888");
                 }
+           
+                _logger.LogInformation("[MyPay回傳] 欄位驗證通過");
 
                 // 4. 解析交易狀態
                 bool isSuccess = IsSuccessfulPaymentStatus(returnModel.prc);
@@ -1077,11 +1091,11 @@ namespace ChurchReport.Controllers
                 {
                     amount = shouldPayMoney.Value;
                 }
-                else if (!string.IsNullOrEmpty(model.actual_cost) && decimal.TryParse(model.actual_cost, out var actualCost))
+                else if (!string.IsNullOrWhiteSpace(model.actual_cost) && decimal.TryParse(model.actual_cost, out var actualCost))
                 {
                     amount = actualCost;
                 }
-                else if (!string.IsNullOrEmpty(model.cost) && decimal.TryParse(model.cost, out var cost))
+                else if (!string.IsNullOrWhiteSpace(model.cost) && decimal.TryParse(model.cost, out var cost))
                 {
                     amount = cost;
                 }
@@ -1556,84 +1570,101 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 驗證高鋸金流必要欄位（根據官方規格）
         /// 參考：高鋸金流規格.txt - 交易回傳格式
+        /// 整合原有的 ProcessAllReturnFields 功能
         /// </summary>
-        public static ValidationResult ValidateAllFields(this MyPayReturnModel model)
+        public static Models.ValidationResult ValidateAllFields(this MyPayReturnModel model)
         {
-            var result = new ValidationResult { IsValid = true };
+            var result = new Models.ValidationResult { IsValid = true };
 
-            // ====== 核心必要欄位（所有回傳都需要） ======
-            if (string.IsNullOrEmpty(model.uid))
-            {
-                result.Errors.Add("uid (交易流水號) 是必要欄位");
-                result.IsValid = false;
+  // ====== 核心必要欄位（所有回傳都需要） ======
+         if (string.IsNullOrEmpty(model.uid))
+  {
+         result.Errors.Add("uid (交易流水號) 是必要欄位");
+          result.IsValid = false;
             }
 
             if (string.IsNullOrEmpty(model.key))
-            {
+       {
                 result.Errors.Add("key (交易驗證碼) 是必要欄位");
                 result.IsValid = false;
+         }
+
+      if (string.IsNullOrEmpty(model.prc))
+            {
+          result.Errors.Add("prc (交易回傳碼) 是必要欄位");
+      result.IsValid = false;
             }
 
-            if (string.IsNullOrEmpty(model.prc))
-            {
-                result.Errors.Add("prc (交易回傳碼) 是必要欄位");
-                result.IsValid = false;
+     if (string.IsNullOrEmpty(model.order_id))
+{
+       result.Errors.Add("order_id (訂單編號) 是必要欄位");
+        result.IsValid = false;
             }
 
-            if (string.IsNullOrEmpty(model.order_id))
+          // ====== 交易資訊（即時交易回傳需要） ======
+        if (!string.IsNullOrEmpty(model.prc) && IsImmediateTransaction(model.prc))
             {
-                result.Errors.Add("order_id (訂單編號) 是必要欄位");
-                result.IsValid = false;
-            }
+         if (string.IsNullOrEmpty(model.finishtime))
+       {
+     // Warnings 尚未在 Models.ValidationResult 中定義，暫時使用 Errors
+  result.Errors.Add("?? finishtime (交易完成時間) 建議填寫");
+   }
 
-            // ====== 交易資訊（即時交易回傳需要） ======
-            if (!string.IsNullOrEmpty(model.prc) && IsImmediateTransaction(model.prc))
-            {
-                if (string.IsNullOrEmpty(model.finishtime))
-                {
-                    result.Warnings.Add("finishtime (交易完成時間) 建議填寫");
+   if (string.IsNullOrEmpty(model.cost) && string.IsNullOrEmpty(model.actual_cost))
+    {
+       result.Errors.Add("cost 或 actual_cost 至少需要一個");
+        result.IsValid = false;
                 }
 
-                if (string.IsNullOrEmpty(model.cost) && string.IsNullOrEmpty(model.actual_cost))
-                {
-                    result.Errors.Add("cost 或 actual_cost 至少需要一個");
-                    result.IsValid = false;
-                }
-
-                if (string.IsNullOrEmpty(model.pfn))
-                {
-                    result.Warnings.Add("pfn (付費方法) 建議填寫");
-                }
-            }
+        if (string.IsNullOrEmpty(model.pfn))
+      {
+      result.Errors.Add("?? pfn (付費方法) 建議填寫");
+  }
+    }
 
             // ====== 虛擬帳號/超商代碼（非即時交易需要） ======
-            if (!string.IsNullOrEmpty(model.result_content_type) &&
-                (model.result_content_type == "E_COLLECTION" || model.result_content_type == "CSTORECODE"))
-            {
-                if (string.IsNullOrEmpty(model.bank_id))
-                {
-                    result.Warnings.Add("bank_id (銀行代碼) 虛擬帳號交易建議填寫");
+     if (!string.IsNullOrEmpty(model.result_content_type) &&
+     (model.result_content_type == "E_COLLECTION" || model.result_content_type == "CSTORECODE"))
+      {
+     if (string.IsNullOrEmpty(model.bank_id))
+    {
+       result.Errors.Add("?? bank_id (銀行代碼) 虛擬帳號交易建議填寫");
                 }
 
-                if (string.IsNullOrEmpty(model.expired_date))
-                {
-                    result.Warnings.Add("expired_date (有效期限) 非即時交易建議填寫");
-                }
-            }
+        if (string.IsNullOrEmpty(model.expired_date))
+ {
+         result.Errors.Add("?? expired_date (有效期限) 非即時交易建議填寫");
+    }
+     }
 
-            // ====== 舊版相容欄位（向下相容，非必要） ======
-            // 註：這些欄位是為了相容舊版系統，不應列為必要欄位
+        // ====== 舊版相容欄位（向下相容，非必要） ======
+       // 註：這些欄位是為了相容舊版系統，不應列為必要欄位
             if (string.IsNullOrEmpty(model.state))
-            {
-                result.Warnings.Add("state 是舊版相容欄位，建議填寫");
-            }
+         {
+  result.Errors.Add("?? state 是舊版相容欄位，建議填寫");
+        }
 
-            if (string.IsNullOrEmpty(model.transaction_id))
+       if (string.IsNullOrEmpty(model.transaction_id))
             {
-                result.Warnings.Add("transaction_id 是舊版相容欄位，建議填寫");
-            }
+  result.Errors.Add("?? transaction_id 是舊版相容欄位，建議填寫");
+    }
 
-            return result;
+       if (string.IsNullOrEmpty(model.msg))
+ {
+   result.Errors.Add("?? msg 是舊版相容欄位，建議填寫");
+  }
+
+         if (string.IsNullOrEmpty(model.store_uid))
+       {
+        result.Errors.Add("?? store_uid 是舊版相容欄位，建議填寫");
+         }
+
+            if (string.IsNullOrEmpty(model.hash))
+  {
+       result.Errors.Add("?? hash 是舊版相容欄位，建議填寫");
+    }
+
+     return result;
         }
 
         /// <summary>
@@ -1641,47 +1672,24 @@ namespace ChurchReport.Controllers
         /// </summary>
         private static bool IsImmediateTransaction(string prc)
         {
-            // 250: 付款成功
-            // 290: 交易成功但資訊不符
-            // 600: 結帳完成
-            return prc == "250" || prc == "290" || prc == "600";
+ // 250: 付款成功
+         // 290: 交易成功但資訊不符
+  // 600: 結帳完成
+       return prc == "250" || prc == "290" || prc == "600";
         }
-    }
-
-    /// <summary>
-    /// 驗??果
-    /// </summary>
-    public class ValidationResult
-    {
-        /// <summary>
-        /// 是否有效
-        /// </summary>
-        public bool IsValid { get; set; }
 
         /// <summary>
-        /// 錯誤訊息列表
+        /// 整合驗證與處理 - 一次完成驗證和資料處理
         /// </summary>
-        public List<string> Errors { get; set; } = new List<string>();
+        public static (Models.ValidationResult Validation, MyPayProcessingResult Processing) ValidateAndProcess(this MyPayReturnModel model)
+        {
+    // 先驗證
+     var validation = model.ValidateAllFields();
         
-        // 新增：警告訊息（非致命錯誤）
-        public List<string> Warnings { get; set; } = new List<string>();
-        
-        // 新增：驗證等級
-        public ValidationLevel Level 
-        { 
-            get 
-            {
-                if (!IsValid) return ValidationLevel.Error;
-                if (Warnings.Any()) return ValidationLevel.Warning;
-                return ValidationLevel.Success;
-            }
-        }
-    }
-
-    public enum ValidationLevel
-    {
-        Success,
-        Warning,
-        Error
-    }
+   // 再處理
+        var processing = model.ProcessAllReturnFields();
+  
+         return (validation, processing);
+   }
+ }
 }
