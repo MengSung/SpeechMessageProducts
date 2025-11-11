@@ -111,62 +111,19 @@
                         @if (isSuccess)
                         {
                             <i class="fas fa-check-circle success-icon"></i>
-                            <h4 class="mt-3 text-success">付款成功！</h4>
+                            <h4 class="mt-3 text-success">訂單已建立！</h4>
                             <p class="text-muted">@message</p>
                         }
                         else
                         {
                             <i class="fas fa-times-circle failure-icon"></i>
-                            <h4 class="mt-3 text-danger">付款失敗</h4>
+                                <h4 class="mt-3 text-danger">訂單建立失敗!</h4>
                             <p class="text-muted">@message</p>
                         }
                     </div>
 
                     @if (isSuccess)
                     {
-                        <!-- 奉獻資訊 -->
-                        <div class="card mb-3">
-                            <div class="card-header bg-primary text-white">
-                                <i class="fas fa-gift"></i> 奉獻資訊
-                            </div>
-                            <div class="card-body">
-                                <div class="info-row">
-                                    <span class="info-label"><i class="fas fa-user"></i> 姓名：</span>
-                                    <span class="info-value">@fullName</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label"><i class="fas fa-heart"></i> 奉獻類別：</span>
-                                    <span class="info-value">@dedicationCategory</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label"><i class="fas fa-dollar-sign"></i> 奉獻金額：</span>
-                                    <span class="info-value text-primary font-weight-bold">NT$ @amount</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label"><i class="fas fa-calendar-alt"></i> 奉獻時間：</span>
-                                    <span class="info-value">@paymentTime</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label"><i class="fas fa-credit-card"></i> 付款方式：</span>
-                                    <span class="info-value">信用卡</span>
-                                </div>
-                                @if (!string.IsNullOrWhiteSpace(orderId))
-                                {
-                                    <div class="info-row">
-                                        <span class="info-label"><i class="fas fa-receipt"></i> 訂單編號：</span>
-                                        <span class="info-value"><small>@orderId</small></span>
-                                    </div>
-                                }
-                                @if (!string.IsNullOrWhiteSpace(transactionId))
-                                {
-                                    <div class="info-row">
-                                        <span class="info-label"><i class="fas fa-barcode"></i> 交易編號：</span>
-                                        <span class="info-value"><small>@transactionId</small></span>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-
                         <!-- 溫馨提醒 -->
                         <div class="alert alert-info" role="alert">
                             <h5 class="alert-heading">

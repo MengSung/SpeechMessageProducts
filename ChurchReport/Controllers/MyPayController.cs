@@ -429,7 +429,6 @@ namespace ChurchReport.Controllers
         #endregion
 
         #region API: 成功頁面
-
         /// <summary>
         /// 付款成功頁面 (供用戶查看結果)
         /// GET /api/MyPay/success
@@ -437,198 +436,17 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="order_id">訂單編號</param>
         /// <returns>View 結果</returns>
-        [HttpGet("success_BACK")]
-        public IActionResult PaymentSuccessBACK([FromQuery] string order_id = "")
+        [HttpGet("success")]
+        public IActionResult PaymentSuccess([FromQuery] string order_id = "")
         {
             ViewBag.OrderId = order_id;
-            ViewBag.Message = "付款成功！感謝您的奉獻。";
+            ViewBag.Message = "訂單已建立，會透過LINE另行通知交易狀態，感謝您的支持。";
             ViewBag.IsSuccess = true;
             return View("PaymentResult");
         }
-
-        /// <summary>
-        /// 付款成功導向頁。顯示資訊並更新 CRM 以及發送 LINE 通知。
-        /// 此為主要成功頁面，會查詢 CRM 資料並發送詳細通知
-        /// </summary>
-        /// <param name="order_id">訂單編號</param>
-        /// <param name="uid">交易流水號</param>
-        /// <param name="key">交易驗證碼</param>
-        /// <param name="cost">交易金額</param>
-        /// <param name="actual_cost">實際金額</param>
-        /// <param name="prc">交易回傳碼</param>
-        /// <param name="pfn">付費方法</param>
-        /// <param name="finishtime">交易完成時間</param>
-        /// <param name="cardno">卡號</param>
-        /// <param name="acode">授權碼</param>
-        /// <param name="echo_0">自訂參數 0</param>
-        /// <param name="echo_1">自訂參數 1</param>
-        /// <param name="echo_2">自訂參數 2</param>
-        /// <param name="echo_3">自訂參數 3</param>
-        /// <param name="echo_4">自訂參數 4</param>
-        /// <returns>View 結果</returns>
-        [HttpGet("success")]
-        public IActionResult PaymentSuccess(
-            [FromQuery] string order_id = "",
-            [FromQuery] string uid = "",
-            [FromQuery] string key = "",
-            [FromQuery] string cost = "",
-            [FromQuery] string actual_cost = "",
-            [FromQuery] string prc = "",
-            [FromQuery] string pfn = "",
-            [FromQuery] string finishtime = "",
-            [FromQuery] string cardno = "",
-            [FromQuery] string acode = "",
-            [FromQuery] string echo_0 = "",
-            [FromQuery] string echo_1 = "",
-            [FromQuery] string echo_2 = "",
-            [FromQuery] string echo_3 = "",
-            [FromQuery] string echo_4 = "")
-        {
-            ToolUtilityClass utility = null;
-            try
-            {
-                _logger.LogInformation($"進入付款成功頁面 - OrderId: {order_id}, UID: {uid}, Key: {key}, PRC: {prc}, Cost: {cost}, ActualCost: {actual_cost}, PFN: {pfn}, FinishTime: {finishtime}");
-
-                // 交易狀態與時間解析
-                bool isPaymentSuccess = IsSuccessfulPaymentStatus(prc);
-                string paymentStatusMessage = GetPaymentStatusMessage(prc);
-                DateTime paymentDateTime = ParseFinishTime(finishtime);
-
-                // 基本 ViewBag（即使後續處理失敗也能顯示）
-                ViewBag.OrderId = order_id;
-                ViewBag.UID = uid;
-                ViewBag.TransactionKey = key;
-                ViewBag.Message = isPaymentSuccess ? "付款成功！感謝您的支持。" : paymentStatusMessage;
-                ViewBag.IsSuccess = isPaymentSuccess;
-                ViewBag.TransactionId = uid;
-                ViewBag.Amount = string.IsNullOrWhiteSpace(actual_cost) ? cost : actual_cost;
-                ViewBag.PaymentTime = paymentDateTime.ToString("yyyy/MM/dd HH:mm:ss");
-                ViewBag.PaymentMethod = GetPaymentMethodName(pfn);
-                ViewBag.FeeType = "unknown";
-                ViewBag.CardNo = cardno;
-                ViewBag.AuthCode = acode;
-
-                if (!isPaymentSuccess)
-                {
-                    _logger.LogWarning($"PaymentSuccess: 非成功狀態 - OrderId: {order_id}, PRC: {prc}");
-                    ViewBag.FullName = "會友";
-                    ViewBag.DedicationCategory = "付款";
-                    ViewBag.ErrorCode = prc;
-                    return View("PaymentResult");
-                }
-
-                if (string.IsNullOrWhiteSpace(order_id))
-                {
-                    _logger.LogWarning("PaymentSuccess: 訂單編號為空");
-                    ViewBag.FullName = "會友";
-                    ViewBag.DedicationCategory = "付款";
-                    return View("PaymentResult");
-                }
-
-                // 取得 CRM 資料
-                utility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
-                // 高鋸金流回傳用此欄位
-                Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_order_number", order_id);
-                //Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", order_id);
-
-                if (feeEntity == null)
-                {
-                    _logger.LogWarning($"PaymentSuccess: 找不到對應收費單 - OrderId: {order_id}");
-                    ViewBag.FullName = "會友";
-                    ViewBag.DedicationCategory = "付款";
-                    return View("PaymentResult");
-                }
-
-                _logger.LogInformation($"PaymentSuccess: 找到收費單 - FeeId: {feeEntity.Id}");
-
-                // 連絡人
-                var contactId = utility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
-                string fullName = "會友";
-                Entity contactEntity = null;
-                if (contactId != Guid.Empty)
-                {
-                    contactEntity = utility.RetrieveEntity("contact", contactId);
-                    if (contactEntity != null)
-                        fullName = utility.GetEntityStringAttribute(contactEntity, "fullname") ?? "會友";
-                }
-
-                // 收費單類型
-                FeeType feeType = DetermineFeeType(utility, feeEntity);
-                ViewBag.FeeType = feeType.ToString().ToLower();
-
-                // 金額
-                var shouldPayMoney = utility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
-                decimal amount = shouldPayMoney?.Value ?? 0m;
-                if (!string.IsNullOrWhiteSpace(actual_cost) && decimal.TryParse(actual_cost, out var parsedActual))
-                    amount = parsedActual;
-                else if (!string.IsNullOrWhiteSpace(cost) && decimal.TryParse(cost, out var parsedCost))
-                    amount = parsedCost;
-
-                ViewBag.FullName = fullName;
-                ViewBag.Amount = amount.ToString("N0");
-
-                string itemName;
-                string viewName;
-                if (feeType == FeeType.Dedication)
-                {
-                    int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
-                    itemName = GetDedicationCategoryName(categoryValue);
-                    ViewBag.DedicationCategory = itemName;
-                    ViewBag.Message = "付款成功！感謝您的奉獻。";
-                    viewName = "PaymentResult";
-                }
-                else if (feeType == FeeType.Course)
-                {
-                    itemName = GetCourseName(utility, feeEntity);
-                    ViewBag.CourseName = itemName;
-                    ViewBag.Message = "付款成功！課程繳費已完成。";
-                    viewName = "CoursePaymentResult";
-                    ViewBag.CourseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? "";
-                    ViewBag.CourseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? "";
-                }
-                else
-                {
-                    itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "繳費";
-                    ViewBag.ItemName = itemName;
-                    ViewBag.Message = "付款成功！";
-                    viewName = "PaymentResult";
-                }
-
-                // 更新收費單並儲存
-                UpdateFeeEntityForSuccessWithMyPay(utility, feeEntity, order_id, uid, key, cost, actual_cost, prc, pfn, paymentDateTime, cardno, acode);
-                utility.UpdateEntity(ref feeEntity);
-
-                // 發送 LINE 通知
-                SendPaymentNotificationByType(utility, feeEntity, order_id, uid, cost, fullName, itemName, feeType, amount, contactEntity);
-
-                return View(viewName);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"PaymentSuccess: 發生異常 - OrderId: {order_id}, UID: {uid}");
-
-                // 仍顯示成功訊息（避免影響用戶體驗）
-                ViewBag.OrderId = order_id;
-                ViewBag.Message = "付款成功！感謝您的支持。";
-                ViewBag.IsSuccess = true;
-                ViewBag.TransactionId = uid;
-                ViewBag.Amount = cost;
-                ViewBag.PaymentTime = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
-                ViewBag.FullName = "會友";
-                ViewBag.DedicationCategory = "付款";
-                ViewBag.FeeType = "unknown";
-                return View("PaymentResult");
-            }
-            finally
-            {
-                utility?.Dispose();
-            }
-        }
-
         #endregion
 
         #region API: 失敗頁面
-
         /// <summary>
         /// 付款失敗頁面 (供用戶查看結果)
         /// GET /api/MyPay/failure
@@ -637,107 +455,14 @@ namespace ChurchReport.Controllers
         /// <param name="order_id">訂單編號</param>
         /// <param name="msg">錯誤訊息</param>
         /// <returns>View 結果</returns>
-        [HttpGet("failure_BACK")]
-        public IActionResult PaymentFailureBACK([FromQuery] string order_id = "", [FromQuery] string msg = "")
+        [HttpGet("failure")]
+        public IActionResult PaymentFailure([FromQuery] string order_id = "", [FromQuery] string msg = "")
         {
             ViewBag.OrderId = order_id;
             ViewBag.Message = !string.IsNullOrEmpty(msg) ? $"付款失敗：{msg}" : "付款失敗，請稍後再試或聯繫教會辦公室。";
             ViewBag.IsSuccess = false;
             return View("PaymentResult");
         }
-
-        /// <summary>
-        /// 付款失敗導向頁。顯示錯誤說明並將失敗紀錄寫回 CRM。
-        /// 此為主要失敗頁面，會查詢 CRM 資料並記錄失敗資訊
-        /// </summary>
-        /// <param name="order_id">訂單編號</param>
-        /// <param name="msg">錯誤訊息</param>
-        /// <param name="error_code">錯誤代碼</param>
-        /// <param name="ret_code">返回代碼</param>
-        /// <returns>View 結果</returns>
-        [HttpGet("failure")]
-        public IActionResult PaymentFailure(
-            [FromQuery] string order_id = "",
-            [FromQuery] string msg = "",
-            [FromQuery] string error_code = "",
-            [FromQuery] string ret_code = "")
-        {
-            ToolUtilityClass utility = null;
-            try
-            {
-                _logger.LogWarning($"進入付款失敗頁面 - OrderId: {order_id}, ErrorCode: {error_code}, RetCode: {ret_code}, Message: {msg}");
-
-                ViewBag.OrderId = order_id;
-                ViewBag.IsSuccess = false;
-                ViewBag.PaymentTime = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
-                ViewBag.ErrorCode = error_code;
-                ViewBag.RetCode = ret_code;
-                ViewBag.Message = BuildFailureMessage(msg, error_code, ret_code);
-                ViewBag.FullName = "會友";
-                ViewBag.DedicationCategory = "奉獻";
-                ViewBag.Amount = "0";
-
-                if (!string.IsNullOrWhiteSpace(order_id))
-                {
-                    try
-                    {
-                        utility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
-                        // 高鋸金流回傳用此欄位
-                        Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_order_number", order_id);
-                        //Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", order_id);
-                        if (feeEntity != null)
-                        {
-                            _logger.LogInformation($"PaymentFailure: 找到對應收費單 - FeeId: {feeEntity.Id}");
-
-                            var contactId = utility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
-                            if (contactId != Guid.Empty)
-                            {
-                                var contactEntity = utility.RetrieveEntity("contact", contactId);
-                                if (contactEntity != null)
-                                    ViewBag.FullName = utility.GetEntityStringAttribute(contactEntity, "fullname") ?? "會友";
-                            }
-
-                            int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
-                            ViewBag.DedicationCategory = GetDedicationCategoryName(categoryValue);
-
-                            var shouldPayMoney = utility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
-                            if (shouldPayMoney != null)
-                                ViewBag.Amount = shouldPayMoney.Value.ToString("N0");
-
-                            UpdateFeeEntityForFailure(utility, feeEntity, order_id, msg, error_code, ret_code);
-                        }
-                        else
-                        {
-                            _logger.LogWarning($"PaymentFailure: 找不到對應收費單 - OrderId: {order_id}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"PaymentFailure: 查詢 CRM 發生錯誤 - OrderId: {order_id}");
-                    }
-                }
-
-                return View("PaymentResult");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"PaymentFailure: 發生異常 - OrderId: {order_id}");
-
-                ViewBag.OrderId = order_id;
-                ViewBag.Message = !string.IsNullOrEmpty(msg) ? $"付款失敗：{msg}" : "付款失敗，請稍後再試或聯繫教會辦公室。";
-                ViewBag.IsSuccess = false;
-                ViewBag.PaymentTime = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
-                ViewBag.FullName = "會友";
-                ViewBag.DedicationCategory = "奉獻";
-                ViewBag.Amount = "0";
-                return View("PaymentResult");
-            }
-            finally
-            {
-                utility?.Dispose();
-            }
-        }
-
         #endregion
 
         #region 狀態/文字/CRM更新輔助方法
