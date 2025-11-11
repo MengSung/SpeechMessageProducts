@@ -8,6 +8,8 @@ using ToolUtilityNameSpace;
 using Microsoft.Xrm.Sdk;
 using Line.Messaging;
 using ChurchReport.Tools;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ChurchReport.Controllers
 {
@@ -24,8 +26,8 @@ namespace ChurchReport.Controllers
         #region 常數定義
         private const string LINE_CHANNEL_ACCESS_TOKEN = @"OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU="; // 用於 LINE 推播
         private const string DYNAMICS_CONNECTION_NAME = "DYNAMICS365"; // CRM連線名稱
-        private const int PAYMENT_STATUS_PAID =100000001; // new_pay_status: 信用卡已繳費
-        private const int PAYMENT_METHOD_CREDIT_CARD =100000001; // new_pay_way: 信用卡
+        private const int PAYMENT_STATUS_PAID = 100000001; // new_pay_status: 信用卡已繳費
+        private const int PAYMENT_METHOD_CREDIT_CARD = 100000001; // new_pay_way: 信用卡
         #endregion
 
         private readonly ILogger<MyPayController> _logger;
@@ -424,7 +426,7 @@ namespace ChurchReport.Controllers
 
                 // 金額
                 var shouldPayMoney = utility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
-                decimal amount = shouldPayMoney?.Value ??0m;
+                decimal amount = shouldPayMoney?.Value ?? 0m;
                 if (!string.IsNullOrWhiteSpace(actual_cost) && decimal.TryParse(actual_cost, out var parsedActual))
                     amount = parsedActual;
                 else if (!string.IsNullOrWhiteSpace(cost) && decimal.TryParse(cost, out var parsedCost))
@@ -1142,58 +1144,58 @@ namespace ChurchReport.Controllers
             switch (prc)
             {
                 // 100 系列 - 資料錯誤
-                case "100": 
+                case "100":
                     return "資料錯誤 - MYPAYLINK收到資料，但是格式或資料錯誤";
 
                 // 200 系列 - 處理中/成功狀態
-                case "200": 
+                case "200":
                     return "資料正確 - MYPAYLINK收到正確資料，會接續下一步交易";
-                case "220": 
+                case "220":
                     return "取消成功 - 如申請取消，取消訂單狀態為取消成功";
-                case "230": 
+                case "230":
                     return "退款成功 - 如申請退款，申請退款成功時狀態";
-                case "250": 
+                case "250":
                     return "付款成功 - 此次交易，消費者付款成功";
-                case "260": 
+                case "260":
                     return "交易成功，尚未付款完成 - 超商代碼繳費，請等候消費者繳費入帳完成付款或消費者放棄交易";
-                case "265": 
+                case "265":
                     return "訂單綁定 - 表示訂單編號生效，進入貸款頁面，但尚未註冊";
-                case "270": 
+                case "270":
                     return "交易成功，尚未付款完成 - 虛擬帳號，請等候消費者繳費入帳";
-                case "275": 
+                case "275":
                     return "交易成功，待審核（核貸中） - 無卡分期，請等候審查通過";
-                case "280": 
+                case "280":
                     return "交易成功，尚未付款完成 - 儲值/WEBATM，線上待付款，等待狀態";
-                case "290": 
+                case "290":
                     return "交易成功但資訊不符 - 交易成功，但資訊不符（包含金額不符、已逾期...等），該類型交易請特別注意";
 
                 // 300 系列 - 失敗狀態
-                case "300": 
+                case "300":
                     return "交易失敗 - 金流服務商回傳交易失敗或該筆交易超過風險控管限制規則";
-                case "380": 
+                case "380":
                     return "逾期交易 - 超商代碼或虛擬帳號交易，超過系統設定繳費期限";
 
                 // 400 系列 - 系統錯誤
-                case "400": 
+                case "400":
                     return "系統錯誤訊息 - 若MYPAY LINK或上游服務商系統異常時";
 
                 // 600 系列 - 完成狀態
-                case "600": 
+                case "600":
                     return "結帳完成 - 視為付款完成，此狀態為上游服務商確認訂單後的狀態，表示該筆訂單會撥款";
 
                 // A 系列 - 特殊狀態
-                case "A0001": 
+                case "A0001":
                     return "交易待確認 - MYPAY LINK與金流服務商發生連線異常，待查詢後確認結果";
-                case "A0002": 
+                case "A0002":
                     return "放棄交易 - 畫面導向MYPAY LINK後，消費者即放棄該筆交易，該筆交易視同交易失敗，為最終結果";
 
                 // B 系列 - 執行狀態
-                case "B200": 
+                case "B200":
                     return "執行成功 - 處理成功執行";
-                case "B500": 
+                case "B500":
                     return "執行失敗 - 處理時，資料異常不予以處理";
 
-                default: 
+                default:
                     return $"未知狀態碼：{prc} - 請參考高鋸金流官方文檔或聯繫客服";
             }
         }
@@ -1227,223 +1229,223 @@ namespace ChurchReport.Controllers
         private string GetPaymentMethodName(string pfn)
         {
             if (string.IsNullOrWhiteSpace(pfn)) return "未知支付工具";
-            
+
             // 將 pfn 轉為大寫以便比對
             string pfnUpper = pfn.ToUpper();
-            
+
             switch (pfnUpper)
             {
                 // 0 - 全部支付工具
                 case "0":
-                case "ALL": 
+                case "ALL":
                     return "全部支付工具";
 
                 // 1 - 信用卡
                 case "1":
-                case "CREDITCARD": 
+                case "CREDITCARD":
                     return "信用卡";
 
                 // 2 - WebATM
                 case "2":
-                case "WEBATM": 
+                case "WEBATM":
                     return "WebATM";
 
                 // 3 - 超商代碼
                 case "3":
-                case "CSTORECODE": 
+                case "CSTORECODE":
                     return "超商代碼";
 
                 // 4 - 超商條碼
                 case "4":
-                case "CSTOREBAR": 
+                case "CSTOREBAR":
                     return "超商條碼";
 
                 // 5 - 貨到付款
                 case "5":
-                case "COD": 
+                case "COD":
                     return "貨到付款";
 
                 // 6 - 虛擬帳號
                 case "6":
-                case "E_COLLECTION": 
+                case "E_COLLECTION":
                     return "虛擬帳號";
 
                 // 8 - 分期付款
                 case "8":
-                case "CREDITCARD_INSTALLMENT": 
+                case "CREDITCARD_INSTALLMENT":
                     return "信用卡分期";
 
                 // 10 - 支付寶
                 case "10":
-                case "ALIPAY": 
+                case "ALIPAY":
                     return "支付寶";
 
                 // 11 - 財付通
                 case "11":
-                case "TENPAY": 
+                case "TENPAY":
                     return "財付通";
 
                 // 12 - 銀聯
                 case "12":
-                case "UNIONPAY": 
+                case "UNIONPAY":
                     return "銀聯";
 
                 // 13 - 微信支付
                 case "13":
-                case "WECHAT": 
+                case "WECHAT":
                     return "微信支付";
 
                 // 14 - ezPay電子錢包
                 case "14":
-                case "EZPAY": 
+                case "EZPAY":
                     return "ezPay電子錢包";
 
                 // 15 - LINE Pay
                 case "15":
-                case "LINEPAYON": 
+                case "LINEPAYON":
                     return "LINE Pay";
 
                 // 16 - 玉山Wallet
                 case "16":
-                case "ESUNWALLET": 
+                case "ESUNWALLET":
                     return "玉山Wallet";
 
                 // 17 - Taiwan Pay
                 case "17":
-                case "TAIWANPAY": 
+                case "TAIWANPAY":
                     return "Taiwan Pay";
 
                 // 18 - 街口支付(舊)
                 case "18":
-                case "JKOPAY": 
+                case "JKOPAY":
                     return "街口支付";
 
                 // 19 - 無卡分期
                 case "19":
-                case "BNPL": 
+                case "BNPL":
                     return "無卡分期";
 
                 // 20 - Apple Pay
                 case "20":
-                case "APPLEPAY": 
+                case "APPLEPAY":
                     return "Apple Pay";
 
                 // 21 - Google Pay
                 case "21":
-                case "GOOGLEPAY": 
+                case "GOOGLEPAY":
                     return "Google Pay";
 
                 // 22 - Samsung Pay
                 case "22":
-                case "SAMSUNGPAY": 
+                case "SAMSUNGPAY":
                     return "Samsung Pay";
 
                 // 23 - 定期定額
                 case "23":
-                case "CREDITCARD_REGULAR": 
+                case "CREDITCARD_REGULAR":
                     return "信用卡定期定額";
 
                 // 24 - 信用卡紅利
                 case "24":
-                case "C_REDEEM": 
+                case "C_REDEEM":
                     return "信用卡紅利";
 
                 // 25 - 定期分期
                 case "25":
-                case "CREDITCARD_INSTALLMENT_REGULAR": 
+                case "CREDITCARD_INSTALLMENT_REGULAR":
                     return "信用卡定期分期";
 
                 // 26 - 悠遊付
                 case "26":
-                case "EASYWALLETON": 
+                case "EASYWALLETON":
                     return "悠遊付";
 
                 // 27 - Pi 拍錢包
                 case "27":
-                case "PION": 
+                case "PION":
                     return "Pi 拍錢包";
 
                 // 28 - 全盈+PAY
                 case "28":
-                case "PAYNOW": 
+                case "PAYNOW":
                     return "全盈+PAY";
 
                 // 29 - AFTEE先享後付
                 case "29":
-                case "AFTEE": 
+                case "AFTEE":
                     return "AFTEE先享後付";
 
                 // 30 - 7-11取貨付款
                 case "30":
-                case "C711": 
+                case "C711":
                     return "7-11取貨付款";
 
                 // 31 - 街口支付
                 case "31":
-                case "JKOON": 
+                case "JKOON":
                     return "街口支付";
 
                 // 32 - 橘子支付
                 case "32":
-                case "GASHPAY": 
+                case "GASHPAY":
                     return "橘子支付";
 
                 // 33 - 國泰KOKO
                 case "33":
-                case "KOKO": 
+                case "KOKO":
                     return "國泰KOKO";
 
                 // 34 - icash Pay
                 case "34":
-                case "ICASHPAY": 
+                case "ICASHPAY":
                     return "icash Pay";
 
                 // 35 - 台新PAY
                 case "35":
-                case "TSPAY": 
+                case "TSPAY":
                     return "台新PAY";
 
                 // 36 - 全家取貨付款
                 case "36":
-                case "CFAMILY": 
+                case "CFAMILY":
                     return "全家取貨付款";
 
                 // 37 - 萊爾富取貨付款
                 case "37":
-                case "CHILIFE": 
+                case "CHILIFE":
                     return "萊爾富取貨付款";
 
                 // 38 - OK超商取貨付款
                 case "38":
-                case "COK": 
+                case "COK":
                     return "OK超商取貨付款";
 
                 // 39 - 全支付
                 case "39":
-                case "PXPAY": 
+                case "PXPAY":
                     return "全支付";
 
                 // 40 - 銀行APP
                 case "40":
-                case "BANKAPP": 
+                case "BANKAPP":
                     return "銀行APP";
 
                 // 41 - 悠遊卡
                 case "41":
-                case "EASYCARD": 
+                case "EASYCARD":
                     return "悠遊卡";
 
                 // 42 - 一卡通
                 case "42":
-                case "IPASS": 
+                case "IPASS":
                     return "一卡通";
 
                 // 43 - 信用卡快速結帳
                 case "43":
-                case "CREDITCARD_FAST": 
+                case "CREDITCARD_FAST":
                     return "信用卡快速結帳";
 
-                default: 
+                default:
                     return $"支付工具 {pfn}";
             }
         }
@@ -1544,5 +1546,142 @@ namespace ChurchReport.Controllers
 
         #endregion
 
+    }
+
+    /// <summary>
+    /// 金流回傳模型擴充方法
+    /// </summary>
+    public static class MyPayReturnModelExtensions
+    {
+        /// <summary>
+        /// 驗證高鋸金流必要欄位（根據官方規格）
+        /// 參考：高鋸金流規格.txt - 交易回傳格式
+        /// </summary>
+        public static ValidationResult ValidateAllFields(this MyPayReturnModel model)
+        {
+            var result = new ValidationResult { IsValid = true };
+
+            // ====== 核心必要欄位（所有回傳都需要） ======
+            if (string.IsNullOrEmpty(model.uid))
+            {
+                result.Errors.Add("uid (交易流水號) 是必要欄位");
+                result.IsValid = false;
+            }
+
+            if (string.IsNullOrEmpty(model.key))
+            {
+                result.Errors.Add("key (交易驗證碼) 是必要欄位");
+                result.IsValid = false;
+            }
+
+            if (string.IsNullOrEmpty(model.prc))
+            {
+                result.Errors.Add("prc (交易回傳碼) 是必要欄位");
+                result.IsValid = false;
+            }
+
+            if (string.IsNullOrEmpty(model.order_id))
+            {
+                result.Errors.Add("order_id (訂單編號) 是必要欄位");
+                result.IsValid = false;
+            }
+
+            // ====== 交易資訊（即時交易回傳需要） ======
+            if (!string.IsNullOrEmpty(model.prc) && IsImmediateTransaction(model.prc))
+            {
+                if (string.IsNullOrEmpty(model.finishtime))
+                {
+                    result.Warnings.Add("finishtime (交易完成時間) 建議填寫");
+                }
+
+                if (string.IsNullOrEmpty(model.cost) && string.IsNullOrEmpty(model.actual_cost))
+                {
+                    result.Errors.Add("cost 或 actual_cost 至少需要一個");
+                    result.IsValid = false;
+                }
+
+                if (string.IsNullOrEmpty(model.pfn))
+                {
+                    result.Warnings.Add("pfn (付費方法) 建議填寫");
+                }
+            }
+
+            // ====== 虛擬帳號/超商代碼（非即時交易需要） ======
+            if (!string.IsNullOrEmpty(model.result_content_type) &&
+                (model.result_content_type == "E_COLLECTION" || model.result_content_type == "CSTORECODE"))
+            {
+                if (string.IsNullOrEmpty(model.bank_id))
+                {
+                    result.Warnings.Add("bank_id (銀行代碼) 虛擬帳號交易建議填寫");
+                }
+
+                if (string.IsNullOrEmpty(model.expired_date))
+                {
+                    result.Warnings.Add("expired_date (有效期限) 非即時交易建議填寫");
+                }
+            }
+
+            // ====== 舊版相容欄位（向下相容，非必要） ======
+            // 註：這些欄位是為了相容舊版系統，不應列為必要欄位
+            if (string.IsNullOrEmpty(model.state))
+            {
+                result.Warnings.Add("state 是舊版相容欄位，建議填寫");
+            }
+
+            if (string.IsNullOrEmpty(model.transaction_id))
+            {
+                result.Warnings.Add("transaction_id 是舊版相容欄位，建議填寫");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 判斷是否為即時交易
+        /// </summary>
+        private static bool IsImmediateTransaction(string prc)
+        {
+            // 250: 付款成功
+            // 290: 交易成功但資訊不符
+            // 600: 結帳完成
+            return prc == "250" || prc == "290" || prc == "600";
+        }
+    }
+
+    /// <summary>
+    /// 驗??果
+    /// </summary>
+    public class ValidationResult
+    {
+        /// <summary>
+        /// 是否有效
+        /// </summary>
+        public bool IsValid { get; set; }
+
+        /// <summary>
+        /// 錯誤訊息列表
+        /// </summary>
+        public List<string> Errors { get; set; } = new List<string>();
+        
+        // 新增：警告訊息（非致命錯誤）
+        public List<string> Warnings { get; set; } = new List<string>();
+        
+        // 新增：驗證等級
+        public ValidationLevel Level 
+        { 
+            get 
+            {
+                if (!IsValid) return ValidationLevel.Error;
+                if (Warnings.Any()) return ValidationLevel.Warning;
+                return ValidationLevel.Success;
+            }
+        }
+    }
+
+    public enum ValidationLevel
+    {
+        Success,
+        Warning,
+        Error
     }
 }
