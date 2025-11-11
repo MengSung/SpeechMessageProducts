@@ -586,42 +586,54 @@ namespace ChurchReport.Models
         {
             var result = new ValidationResult { IsValid = true };
 
-            // 驗證核心必要欄位
+            // 核心必要欄位 (依據規格.txt 回傳欄位)
+            if (string.IsNullOrEmpty(this.uid))
+            {
+                result.Errors.Add("uid 是必要欄位，不能為空");
+                result.IsValid = false;
+            }
+            if (string.IsNullOrEmpty(this.key))
+            {
+                result.Errors.Add("key 是必要欄位，不能為空");
+                result.IsValid = false;
+            }
+            if (string.IsNullOrEmpty(this.prc))
+            {
+                result.Errors.Add("prc 是必要欄位，不能為空");
+                result.IsValid = false;
+            }
             if (string.IsNullOrEmpty(this.order_id))
             {
                 result.Errors.Add("order_id 是必要欄位，不能為空");
                 result.IsValid = false;
             }
 
-            // 驗證舊版相容的必要欄位
-            if (string.IsNullOrEmpty(this.state))
+            // 非必要但建議 (存在才可提升溯源能力)
+            if (string.IsNullOrEmpty(this.finishtime))
             {
-                result.Errors.Add("state 是必要欄位，不能為空");
-                result.IsValid = false;
+                result.Errors.Add("⚠️ finishtime 建議提供");
+            }
+            if (string.IsNullOrEmpty(this.cost) && string.IsNullOrEmpty(this.actual_cost))
+            {
+                result.Errors.Add("⚠️ cost 或 actual_cost 建議至少提供一個");
+            }
+            if (string.IsNullOrEmpty(this.pfn))
+            {
+                result.Errors.Add("⚠️ pfn 建議提供以辨識支付工具");
             }
 
-            if (string.IsNullOrEmpty(this.msg))
-            {
-                result.Errors.Add("msg 是必要欄位，不能為空");
-                result.IsValid = false;
-            }
-
+            // 舊版相容欄位：不列為必要（僅記錄）
             if (string.IsNullOrEmpty(this.store_uid))
             {
-                result.Errors.Add("store_uid 是必要欄位，不能為空");
-                result.IsValid = false;
+                result.Errors.Add("⚠️ store_uid 為請求端欄位，回報中缺少可忽略");
             }
-
             if (string.IsNullOrEmpty(this.transaction_id))
             {
-                result.Errors.Add("transaction_id 是必要欄位，不能為空");
-                result.IsValid = false;
+                result.Errors.Add("⚠️ transaction_id 未列於現行回報欄位，缺少可忽略");
             }
-
             if (string.IsNullOrEmpty(this.hash))
             {
-                result.Errors.Add("hash 是必要欄位，不能為空");
-                result.IsValid = false;
+                result.Errors.Add("⚠️ hash 非現行回報必填，缺少可忽略");
             }
 
             return result;
