@@ -44,6 +44,10 @@ namespace Line.Messaging
                     return PostbackTemplateAction.CreateFrom(dynamicObject);
                 case TemplateActionType.Datetimepicker:
                     return DateTimePickerTemplateAction.CreateFrom(dynamicObject);
+                case TemplateActionType.RichMenuSwitch:
+                    return RichMenuSwitchTemplateAction.CreateFrom(dynamicObject);
+                case TemplateActionType.Clipboard:
+                    return ClipboardTemplateAction.CreateFrom(dynamicObject);
                 default:
                     return null;
             }
