@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+ï»¿using Microsoft.AspNetCore.Mvc;
 using ChurchReport.Models;
 using ChurchReport.WebServiceConnector;
 using System;
@@ -14,56 +14,56 @@ using System.Linq;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// ª÷¬y PayPage ¦^¶Ç³B²z±±¨î¾¹
-    /// ­t³d³B²z°ª¿÷ª÷¬y (MyPay) ªº¦UºØ¦^¶Ç³qª¾¡A¥]¬A¡G
-    /// - ±µ¦¬ª÷¬y¦^¶Ç¸ê®Æ (MyPayReturn)
-    /// - Åã¥Ü¦¨¥\µ²ªG­¶­± (success)
-    /// - Åã¥Ü¥¢±Ñµ²ªG­¶­± (failure)
-    /// ©Ò¦³³B²zÅŞ¿è³£¤w¾ã²z¬°²M´·ªº°Ï¶ô¡A¨Ã¸É¥R¸Ô²Ó»¡©úµù¸Ñ¡C
+    /// é‡‘æµ PayPage å›å‚³è™•ç†æ§åˆ¶å™¨
+    /// è² è²¬è™•ç†é«˜é‹¸é‡‘æµ (MyPay) çš„å„ç¨®å›å‚³é€šçŸ¥ï¼ŒåŒ…æ‹¬ï¼š
+    /// - æ¥æ”¶é‡‘æµå›å‚³è³‡æ–™ (MyPayReturn)
+    /// - é¡¯ç¤ºæˆåŠŸçµæœé é¢ (success)
+    /// - é¡¯ç¤ºå¤±æ•—çµæœé é¢ (failure)
+    /// æ‰€æœ‰è™•ç†é‚è¼¯éƒ½å·²æ•´ç†ç‚ºæ¸…æ™°çš„å€å¡Šï¼Œä¸¦è£œå……è©³ç´°èªªæ˜è¨»è§£ã€‚
     /// </summary>
     [Route("api/[controller]")]
     public class MyPayController : Controller
     {
-        #region ±`¼Æ©w¸q
+        #region å¸¸æ•¸å®šç¾©
 
         /// <summary>
-        /// LINE ±À¼½ªº¦s¨úÅv§ú¡A¥Î©óµo°e³qª¾°T®§
+        /// LINE æ¨æ’­çš„å­˜å–æ¬Šæ–ï¼Œç”¨æ–¼ç™¼é€é€šçŸ¥è¨Šæ¯
         /// </summary>
         private const string LINE_CHANNEL_ACCESS_TOKEN = @"OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU=";
 
         /// <summary>
-        /// Dynamics 365 CRM ³s½u¦WºÙ¡A¥Î©ó¸ê®Æ®w¾Ş§@
+        /// Dynamics 365 CRM é€£ç·šåç¨±ï¼Œç”¨æ–¼è³‡æ–™åº«æ“ä½œ
         /// </summary>
         private const string DYNAMICS_CONNECTION_NAME = "DYNAMICS365";
 
         /// <summary>
-        /// ¥I´Úª¬ºA¡G«H¥Î¥d¤wÃº¶O¡A¹ïÀ³ CRM ¤¤ªº new_pay_status Äæ¦ì­È
+        /// ä»˜æ¬¾ç‹€æ…‹ï¼šä¿¡ç”¨å¡å·²ç¹³è²»ï¼Œå°æ‡‰ CRM ä¸­çš„ new_pay_status æ¬„ä½å€¼
         /// </summary>
         private const int PAYMENT_STATUS_PAID = 100000001;
 
         /// <summary>
-        /// ¥I´Ú¤è¦¡¡G«H¥Î¥d¡A¹ïÀ³ CRM ¤¤ªº new_pay_way Äæ¦ì­È
+        /// ä»˜æ¬¾æ–¹å¼ï¼šä¿¡ç”¨å¡ï¼Œå°æ‡‰ CRM ä¸­çš„ new_pay_way æ¬„ä½å€¼
         /// </summary>
         private const int PAYMENT_METHOD_CREDIT_CARD = 100000001;
 
         #endregion
 
-        #region ¨p¦³Äæ¦ì
+        #region ç§æœ‰æ¬„ä½
 
         /// <summary>
-        /// ¤é»x°O¿ı¾¹¡A¥Î©ó°O¿ı³B²z¹Lµ{©M¿ù»~¸ê°T
+        /// æ—¥èªŒè¨˜éŒ„å™¨ï¼Œç”¨æ–¼è¨˜éŒ„è™•ç†éç¨‹å’ŒéŒ¯èª¤è³‡è¨Š
         /// </summary>
         private readonly ILogger<MyPayController> _logger;
 
         #endregion
 
-        #region «Øºc¨ç¦¡
+        #region å»ºæ§‹å‡½å¼
 
         /// <summary>
-        /// MyPayController «Øºc¨ç¦¡
-        /// ª`¤J¤é»x°O¿ı¾¹¥H«K°O¿ı³B²z¹Lµ{
+        /// MyPayController å»ºæ§‹å‡½å¼
+        /// æ³¨å…¥æ—¥èªŒè¨˜éŒ„å™¨ä»¥ä¾¿è¨˜éŒ„è™•ç†éç¨‹
         /// </summary>
-        /// <param name="logger">¤é»x°O¿ı¾¹¹ê¨Ò</param>
+        /// <param name="logger">æ—¥èªŒè¨˜éŒ„å™¨å¯¦ä¾‹</param>
         public MyPayController(ILogger<MyPayController> logger)
         {
             _logger = logger;
@@ -71,141 +71,141 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region API: MyPay ¦^¶Ç
+        #region API: MyPay å›å‚³
 
         /// <summary>
         /// ========================================
-        /// ª÷¬y¦øªA¾¹¦^©IºİÂI (Server-to-Server Callback)
+        /// é‡‘æµä¼ºæœå™¨å›å‘¼ç«¯é» (Server-to-Server Callback)
         /// ========================================
         /// 
-        /// ¡iºİÂI¸ê°T¡j
+        /// ã€ç«¯é»è³‡è¨Šã€‘
         /// - HTTP Method: POST
         /// - Route: /api/MyPay/MyPayNotify
         /// - Content-Type: application/x-www-form-urlencoded
         /// 
-        /// ¡i³B²z¬yµ{¡j
-        /// 1. ±µ¦¬ª÷¬y¥­¥x¦^¶Çªº¥æ©ö¸ê®Æ
-        /// 2. ÅçÃÒ¸ê®Æ§¹¾ã©Ê»P¦³®Ä©Ê
-        /// 3. §PÂ_¥æ©ö¦¨¥\©Î¥¢±Ñ
-        /// 4. ¬d¸ß¨Ã§ó·s CRM ¦¬¶O³æª¬ºA
-        /// 5. µo°e LINE ³qª¾µ¹¨Ï¥ÎªÌ
-        /// 6. ¦^¶Ç "8888" ½T»{±µ¦¬¡]Á×§Kª÷¬y¥­¥x­«°e¡^
+        /// ã€è™•ç†æµç¨‹ã€‘
+        /// 1. æ¥æ”¶é‡‘æµå¹³å°å›å‚³çš„äº¤æ˜“è³‡æ–™
+        /// 2. é©—è­‰è³‡æ–™å®Œæ•´æ€§èˆ‡æœ‰æ•ˆæ€§
+        /// 3. åˆ¤æ–·äº¤æ˜“æˆåŠŸæˆ–å¤±æ•—
+        /// 4. æŸ¥è©¢ä¸¦æ›´æ–° CRM æ”¶è²»å–®ç‹€æ…‹
+        /// 5. ç™¼é€ LINE é€šçŸ¥çµ¦ä½¿ç”¨è€…
+        /// 6. å›å‚³ "8888" ç¢ºèªæ¥æ”¶ï¼ˆé¿å…é‡‘æµå¹³å°é‡é€ï¼‰
         /// 
-        /// ¡i¦^¶Ç¸ê°TÃş«¬¡j
-        /// - ¥æ©ö§¹¦¨¦^¶Ç¸ê°T¡]§Y®É¥æ©ö¡A¦p«H¥Î¥d¡^
-        /// - «D§Y®É¥æ©ö¦^¶Ç¸ê°T¡]µêÀÀ±b¸¹¡B¶W°Ó¥N½X¡^
-        /// - ­q³æ½T»{¦^¶Ç¸ê°T¡]©w´Á©wÃB¡B¤À´Á¥I´Ú¡^
+        /// ã€å›å‚³è³‡è¨Šé¡å‹ã€‘
+        /// - äº¤æ˜“å®Œæˆå›å‚³è³‡è¨Šï¼ˆå³æ™‚äº¤æ˜“ï¼Œå¦‚ä¿¡ç”¨å¡ï¼‰
+        /// - éå³æ™‚äº¤æ˜“å›å‚³è³‡è¨Šï¼ˆè™›æ“¬å¸³è™Ÿã€è¶…å•†ä»£ç¢¼ï¼‰
+        /// - è¨‚å–®ç¢ºèªå›å‚³è³‡è¨Šï¼ˆå®šæœŸå®šé¡ã€åˆ†æœŸä»˜æ¬¾ï¼‰
         /// 
-        /// ¡i¿ù»~³B²z­ì«h¡j
-        /// - ¥ô¦ó¿ù»~³£¦^¶Ç "8888" Á×§Kª÷¬y¥­¥x«ùÄò­«°e
-        /// - ©Ò¦³²§±`³£°O¿ı¨ì¤é»x¨Ñ«áÄò°lÂÜ
-        /// - LINE ³qª¾¥¢±Ñ¤£¼vÅT¥D¬yµ{Ä~Äò°õ¦æ
+        /// ã€éŒ¯èª¤è™•ç†åŸå‰‡ã€‘
+        /// - ä»»ä½•éŒ¯èª¤éƒ½å›å‚³ "8888" é¿å…é‡‘æµå¹³å°æŒçºŒé‡é€
+        /// - æ‰€æœ‰ç•°å¸¸éƒ½è¨˜éŒ„åˆ°æ—¥èªŒä¾›å¾ŒçºŒè¿½è¹¤
+        /// - LINE é€šçŸ¥å¤±æ•—ä¸å½±éŸ¿ä¸»æµç¨‹ç¹¼çºŒåŸ·è¡Œ
         /// 
-        /// ¡i°Ñ¦Ò¤åÀÉ¡j
-        /// - °ª¿÷ª÷¬y©x¤è³W®æ¤åÀÉ
-        /// - ªş¿ı¤@¡GPFN¡]¤ä¥I¤u¨ã¡^°Ñ¼Æªí
-        /// - ªş¿ı¤G¡GPRC¡]¥æ©ö¦^¶Ç½X¡^©w¸q
+        /// ã€åƒè€ƒæ–‡æª”ã€‘
+        /// - é«˜é‹¸é‡‘æµå®˜æ–¹è¦æ ¼æ–‡æª”
+        /// - é™„éŒ„ä¸€ï¼šPFNï¼ˆæ”¯ä»˜å·¥å…·ï¼‰åƒæ•¸è¡¨
+        /// - é™„éŒ„äºŒï¼šPRCï¼ˆäº¤æ˜“å›å‚³ç¢¼ï¼‰å®šç¾©
         /// 
         /// </summary>
-        /// <param name="returnModel">ª÷¬y¦^¶Çªº¸ê®Æ¼Ò«¬¡A¥]§t§¹¾ã¥æ©ö¸ê°T</param>
-        /// <returns>HTTP 200 OK¡A¤º®e¬° "8888" ªí¥Ü¤w¦¨¥\±µ¦¬¨Ã³B²z</returns>
+        /// <param name="returnModel">é‡‘æµå›å‚³çš„è³‡æ–™æ¨¡å‹ï¼ŒåŒ…å«å®Œæ•´äº¤æ˜“è³‡è¨Š</param>
+        /// <returns>HTTP 200 OKï¼Œå…§å®¹ç‚º "8888" è¡¨ç¤ºå·²æˆåŠŸæ¥æ”¶ä¸¦è™•ç†</returns>
         [HttpPost("MyPayNotify")]
         public async Task<IActionResult> PaymentNotify([FromForm] MyPayReturnModel returnModel)
         {
             // ========================================
-            // ¨BÆJ 0¡G°O¿ıªì©l±µ¦¬¸ê°T
+            // æ­¥é©Ÿ 0ï¼šè¨˜éŒ„åˆå§‹æ¥æ”¶è³‡è¨Š
             // ========================================
-            _logger.LogInformation($"[MyPay¦^¶Ç] ¦¬¨ìª÷¬y¦^¶Ç¡AOrderID: {returnModel?.order_id}, UID: {returnModel?.uid}, PRC: {returnModel?.prc}");
+            _logger.LogInformation($"[MyPayå›å‚³] æ”¶åˆ°é‡‘æµå›å‚³ï¼ŒOrderID: {returnModel?.order_id}, UID: {returnModel?.uid}, PRC: {returnModel?.prc}");
 
             ToolUtilityClass utility = null;
 
             try
             {
                 // ========================================
-                // ¨BÆJ 1¡G°ò¥»ÀË¬d - ÅçÃÒ¦^¶Çª«¥ó¦s¦b
+                // æ­¥é©Ÿ 1ï¼šåŸºæœ¬æª¢æŸ¥ - é©—è­‰å›å‚³ç‰©ä»¶å­˜åœ¨
                 // ========================================
                 if (returnModel == null)
                 {
-                    _logger.LogWarning("[MyPay¦^¶Ç] ¦^¶Ç¸ê®Æ¬°ªÅ");
-                    return BadRequest("¦^¶Ç¸ê®Æ¬°ªÅ");
+                    _logger.LogWarning("[MyPayå›å‚³] å›å‚³è³‡æ–™ç‚ºç©º");
+                    return BadRequest("å›å‚³è³‡æ–™ç‚ºç©º");
                 }
 
                 // ========================================
-                // ¨BÆJ 2¡G°O¿ı§¹¾ã¦^¶Ç¸ê°T¡]¥Î©ó°£¿ù¡^
+                // æ­¥é©Ÿ 2ï¼šè¨˜éŒ„å®Œæ•´å›å‚³è³‡è¨Šï¼ˆç”¨æ–¼é™¤éŒ¯ï¼‰
                 // ========================================
                 LogFullReturnData(returnModel);
 
                 // ========================================
-                // ¨BÆJ 3¡GÅçÃÒ¥²­nÄæ¦ì§¹¾ã©Ê
+                // æ­¥é©Ÿ 3ï¼šé©—è­‰å¿…è¦æ¬„ä½å®Œæ•´æ€§
                 // ========================================
-                // ®Ú¾Ú°ª¿÷ª÷¬y©x¤è³W®æÅçÃÒ¥²­nÄæ¦ì
-                // - uid: ¥æ©ö¬y¤ô¸¹¡]¥²­n¡^
-                // - key: ¥æ©öÅçÃÒ½X¡]¥²­n¡^
-                // - prc: ¥æ©ö¦^¶Ç½X¡]¥²­n¡^
-                // - order_id: ­q³æ½s¸¹¡]¥²­n¡^
-                _logger.LogInformation("[MyPay¦^¶Ç] ¶}©lÅçÃÒÄæ¦ì...");
+                // æ ¹æ“šé«˜é‹¸é‡‘æµå®˜æ–¹è¦æ ¼é©—è­‰å¿…è¦æ¬„ä½
+                // - uid: äº¤æ˜“æµæ°´è™Ÿï¼ˆå¿…è¦ï¼‰
+                // - key: äº¤æ˜“é©—è­‰ç¢¼ï¼ˆå¿…è¦ï¼‰
+                // - prc: äº¤æ˜“å›å‚³ç¢¼ï¼ˆå¿…è¦ï¼‰
+                // - order_id: è¨‚å–®ç·¨è™Ÿï¼ˆå¿…è¦ï¼‰
+                _logger.LogInformation("[MyPayå›å‚³] é–‹å§‹é©—è­‰æ¬„ä½...");
                 var validation = returnModel.ValidateAllFields();
 
-                // °O¿ıÅçÃÒµ²ªGµ¥¯Å
-                _logger.LogInformation($"[MyPay¦^¶Ç] ÅçÃÒµ¥¯Å: {validation.Level}");
+                // è¨˜éŒ„é©—è­‰çµæœç­‰ç´š
+                _logger.LogInformation($"[MyPayå›å‚³] é©—è­‰ç­‰ç´š: {validation.Level}");
 
-                // °O¿ıÄµ§i°T®§¡]«D­P©R¿ù»~¡A¦ı»İ­nª`·N¡^
+                // è¨˜éŒ„è­¦å‘Šè¨Šæ¯ï¼ˆéè‡´å‘½éŒ¯èª¤ï¼Œä½†éœ€è¦æ³¨æ„ï¼‰
                 if (validation.Warnings != null && validation.Warnings.Any())
                 {
-                    _logger.LogInformation($"[MyPay¦^¶Ç] ¸ê®ÆÅçÃÒÄµ§i ({validation.Warnings.Count}): {string.Join(", ", validation.Warnings)}");
+                    _logger.LogInformation($"[MyPayå›å‚³] è³‡æ–™é©—è­‰è­¦å‘Š ({validation.Warnings.Count}): {string.Join(", ", validation.Warnings)}");
                 }
 
-                // ÀË¬d¬O§_¦³­P©R¿ù»~
+                // æª¢æŸ¥æ˜¯å¦æœ‰è‡´å‘½éŒ¯èª¤
                 if (!validation.IsValid)
                 {
-                    _logger.LogWarning($"[MyPay¦^¶Ç] ¸ê®ÆÅçÃÒ¥¢±Ñ ({validation.Errors.Count}): {string.Join(", ", validation.Errors)}");
-                    // §Y¨ÏÅçÃÒ¥¢±Ñ¡A¤´¦^¶Ç 8888 Á×§Kª÷¬y¥­¥x«ùÄò­«°e
+                    _logger.LogWarning($"[MyPayå›å‚³] è³‡æ–™é©—è­‰å¤±æ•— ({validation.Errors.Count}): {string.Join(", ", validation.Errors)}");
+                    // å³ä½¿é©—è­‰å¤±æ•—ï¼Œä»å›å‚³ 8888 é¿å…é‡‘æµå¹³å°æŒçºŒé‡é€
                     return Ok("8888");
                 }
 
-                _logger.LogInformation("[MyPay¦^¶Ç] Äæ¦ìÅçÃÒ³q¹L");
+                _logger.LogInformation("[MyPayå›å‚³] æ¬„ä½é©—è­‰é€šé");
 
                 // ========================================
-                // ¨BÆJ 4¡G¸ÑªR¥æ©öª¬ºA¡]¦¨¥\/¥¢±Ñ¡^
+                // æ­¥é©Ÿ 4ï¼šè§£æäº¤æ˜“ç‹€æ…‹ï¼ˆæˆåŠŸ/å¤±æ•—ï¼‰
                 // ========================================
-                // ®Ú¾Ú PRC ¥N½X§PÂ_¥æ©ö¬O§_¦¨¥\
-                // ¦¨¥\¥N½X¡G250¡]¥I´Ú¦¨¥\¡^¡B290¡]¥æ©ö¦¨¥\¦ı¸ê°T¤£²Å¡^¡B600¡]µ²±b§¹¦¨¡^
+                // æ ¹æ“š PRC ä»£ç¢¼åˆ¤æ–·äº¤æ˜“æ˜¯å¦æˆåŠŸ
+                // æˆåŠŸä»£ç¢¼ï¼š250ï¼ˆä»˜æ¬¾æˆåŠŸï¼‰ã€290ï¼ˆäº¤æ˜“æˆåŠŸä½†è³‡è¨Šä¸ç¬¦ï¼‰ã€600ï¼ˆçµå¸³å®Œæˆï¼‰
                 bool isSuccess = IsSuccessfulPaymentStatus(returnModel.prc);
-                _logger.LogInformation($"[MyPay¦^¶Ç] ¥æ©öª¬ºA§P©w: PRC={returnModel.prc}, IsSuccess={isSuccess}");
+                _logger.LogInformation($"[MyPayå›å‚³] äº¤æ˜“ç‹€æ…‹åˆ¤å®š: PRC={returnModel.prc}, IsSuccess={isSuccess}");
 
                 // ========================================
-                // ¨BÆJ 5¡G¬d¸ß¹ïÀ³ªº CRM ¦¬¶O³æ
+                // æ­¥é©Ÿ 5ï¼šæŸ¥è©¢å°æ‡‰çš„ CRM æ”¶è²»å–®
                 // ========================================
                 utility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
                 
-                // ¨Ï¥Î­q³æ½s¸¹¬d¸ß¦¬¶O³æ
-                // ª`·N¡G°ª¿÷ª÷¬y¨Ï¥Î new_q_pay_order_number Äæ¦ì
+                // ä½¿ç”¨è¨‚å–®ç·¨è™ŸæŸ¥è©¢æ”¶è²»å–®
+                // æ³¨æ„ï¼šé«˜é‹¸é‡‘æµä½¿ç”¨ new_q_pay_order_number æ¬„ä½
                 Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_order_number", returnModel.order_id);
                 
-                // ¦pªG§ä¤£¨ì¦¬¶O³æ¡A°O¿ıÄµ§i¨Ãµ²§ô³B²z
+                // å¦‚æœæ‰¾ä¸åˆ°æ”¶è²»å–®ï¼Œè¨˜éŒ„è­¦å‘Šä¸¦çµæŸè™•ç†
                 if (feeEntity == null)
                 {
-                    _logger.LogWarning($"[MyPay¦^¶Ç] §ä¤£¨ì¹ïÀ³¦¬¶O³æ - OrderId: {returnModel.order_id}");
-                    return Ok("8888"); // ¤´¦^¶Ç¦¨¥\Á×§K­«°e
+                    _logger.LogWarning($"[MyPayå›å‚³] æ‰¾ä¸åˆ°å°æ‡‰æ”¶è²»å–® - OrderId: {returnModel.order_id}");
+                    return Ok("8888"); // ä»å›å‚³æˆåŠŸé¿å…é‡é€
                 }
 
-                _logger.LogInformation($"[MyPay¦^¶Ç] §ä¨ì¦¬¶O³æ - FeeId: {feeEntity.Id}");
+                _logger.LogInformation($"[MyPayå›å‚³] æ‰¾åˆ°æ”¶è²»å–® - FeeId: {feeEntity.Id}");
 
                 // ========================================
-                // ¨BÆJ 6¡G§PÂ_¦¬¶O³æÃş«¬
+                // æ­¥é©Ÿ 6ï¼šåˆ¤æ–·æ”¶è²»å–®é¡å‹
                 // ========================================
-                // ®Ú¾Ú¦¬¶O³æÄæ¦ì§PÂ_¬O©^Äm¡B½Òµ{Ãº¶O©Î¨ä¥LÃş«¬
-                // ¤£¦PÃş«¬·|µo°e¤£¦P®æ¦¡ªº LINE ³qª¾
+                // æ ¹æ“šæ”¶è²»å–®æ¬„ä½åˆ¤æ–·æ˜¯å¥‰ç»ã€èª²ç¨‹ç¹³è²»æˆ–å…¶ä»–é¡å‹
+                // ä¸åŒé¡å‹æœƒç™¼é€ä¸åŒæ ¼å¼çš„ LINE é€šçŸ¥
                 FeeType feeType = DetermineFeeType(utility, feeEntity);
-                _logger.LogInformation($"[MyPay¦^¶Ç] ¦¬¶O³æÃş«¬: {feeType}");
+                _logger.LogInformation($"[MyPayå›å‚³] æ”¶è²»å–®é¡å‹: {feeType}");
 
                 // ========================================
-                // ¨BÆJ 7¡G¨ú±o³sµ¸¤H¸ê°T
+                // æ­¥é©Ÿ 7ï¼šå–å¾—é€£çµ¡äººè³‡è¨Š
                 // ========================================
-                // ±q¦¬¶O³æÃöÁpªº³sµ¸¤H¨ú±o LINE ID ¥Î©ó«áÄò³qª¾
+                // å¾æ”¶è²»å–®é—œè¯çš„é€£çµ¡äººå–å¾— LINE ID ç”¨æ–¼å¾ŒçºŒé€šçŸ¥
                 var contactId = utility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
                 Entity contactEntity = null;
-                string fullName = "·|¤Í"; // ¹w³]¦WºÙ
+                string fullName = "æœƒå‹"; // é è¨­åç¨±
                 string lineId = null;
 
                 if (contactId != Guid.Empty)
@@ -213,77 +213,77 @@ namespace ChurchReport.Controllers
                     contactEntity = utility.RetrieveEntity("contact", contactId);
                     if (contactEntity != null)
                     {
-                        fullName = utility.GetEntityStringAttribute(contactEntity, "fullname") ?? "·|¤Í";
+                        fullName = utility.GetEntityStringAttribute(contactEntity, "fullname") ?? "æœƒå‹";
                         lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
-                        _logger.LogInformation($"[MyPay¦^¶Ç] ³sµ¸¤H: {fullName}, LINE ID: {!string.IsNullOrEmpty(lineId)}");
+                        _logger.LogInformation($"[MyPayå›å‚³] é€£çµ¡äºº: {fullName}, LINE ID: {!string.IsNullOrEmpty(lineId)}");
                     }
                 }
 
                 // ========================================
-                // ¨BÆJ 8¡G§ó·s CRM ¦¬¶O³æª¬ºA»P¸ê°T
+                // æ­¥é©Ÿ 8ï¼šæ›´æ–° CRM æ”¶è²»å–®ç‹€æ…‹èˆ‡è³‡è¨Š
                 // ========================================
-                // ®Ú¾Ú¥æ©öµ²ªG§ó·s¦¬¶O³æ
-                // - ¦¨¥\¡G§ó·s¥I´Úª¬ºA¡B¹ê¥Iª÷ÃB¡B¥I´Ú¤é´Áµ¥
-                // - ¥¢±Ñ¡G°O¿ı¥¢±Ñ­ì¦]¨ì´y­zÄæ¦ì
+                // æ ¹æ“šäº¤æ˜“çµæœæ›´æ–°æ”¶è²»å–®
+                // - æˆåŠŸï¼šæ›´æ–°ä»˜æ¬¾ç‹€æ…‹ã€å¯¦ä»˜é‡‘é¡ã€ä»˜æ¬¾æ—¥æœŸç­‰
+                // - å¤±æ•—ï¼šè¨˜éŒ„å¤±æ•—åŸå› åˆ°æè¿°æ¬„ä½
                 UpdateFeeEntityWithMyPayReturn(utility, feeEntity, returnModel, isSuccess);
                 utility.UpdateEntity(ref feeEntity);
-                _logger.LogInformation($"[MyPay¦^¶Ç] ¦¬¶O³æ¤w§ó·s - FeeId: {feeEntity.Id}");
+                _logger.LogInformation($"[MyPayå›å‚³] æ”¶è²»å–®å·²æ›´æ–° - FeeId: {feeEntity.Id}");
 
                 // ========================================
-                // ¨BÆJ 9¡Gµo°e LINE ³qª¾µ¹¨Ï¥ÎªÌ
+                // æ­¥é©Ÿ 9ï¼šç™¼é€ LINE é€šçŸ¥çµ¦ä½¿ç”¨è€…
                 // ========================================
-                // µL½×¦¨¥\©Î¥¢±Ñ³£µo°e³qª¾
-                // ®Ú¾Ú¦¬¶O³æÃş«¬¡]©^Äm/½Òµ{/¨ä¥L¡^µo°e¤£¦P®æ¦¡ªº°T®§
+                // ç„¡è«–æˆåŠŸæˆ–å¤±æ•—éƒ½ç™¼é€é€šçŸ¥
+                // æ ¹æ“šæ”¶è²»å–®é¡å‹ï¼ˆå¥‰ç»/èª²ç¨‹/å…¶ä»–ï¼‰ç™¼é€ä¸åŒæ ¼å¼çš„è¨Šæ¯
                 if (!string.IsNullOrWhiteSpace(lineId))
                 {
                     try
                     {
                         if (isSuccess)
                         {
-                            // µo°e¦¨¥\³qª¾
+                            // ç™¼é€æˆåŠŸé€šçŸ¥
                             SendLineNotificationByType(utility, feeEntity, returnModel, fullName, feeType, contactEntity);
-                            _logger.LogInformation($"[MyPay¦^¶Ç] LINE¦¨¥\³qª¾¤wµo°e - OrderId: {returnModel.order_id}");
+                            _logger.LogInformation($"[MyPayå›å‚³] LINEæˆåŠŸé€šçŸ¥å·²ç™¼é€ - OrderId: {returnModel.order_id}");
                         }
                         else
                         {
-                            // µo°e¥¢±Ñ³qª¾
+                            // ç™¼é€å¤±æ•—é€šçŸ¥
                             SendLineFailureNotificationByType(utility, feeEntity, returnModel, fullName, feeType, contactEntity);
-                            _logger.LogInformation($"[MyPay¦^¶Ç] LINE¥¢±Ñ³qª¾¤wµo°e - OrderId: {returnModel.order_id}");
+                            _logger.LogInformation($"[MyPayå›å‚³] LINEå¤±æ•—é€šçŸ¥å·²ç™¼é€ - OrderId: {returnModel.order_id}");
                         }
                     }
                     catch (Exception ex)
                     {
-                        // LINE ³qª¾¥¢±Ñ¤£¼vÅT¥D¬yµ{
-                        _logger.LogError(ex, $"[MyPay¦^¶Ç] µo°eLINE³qª¾¥¢±Ñ - OrderId: {returnModel.order_id}");
+                        // LINE é€šçŸ¥å¤±æ•—ä¸å½±éŸ¿ä¸»æµç¨‹
+                        _logger.LogError(ex, $"[MyPayå›å‚³] ç™¼é€LINEé€šçŸ¥å¤±æ•— - OrderId: {returnModel.order_id}");
                     }
                 }
                 else
                 {
-                    _logger.LogWarning($"[MyPay¦^¶Ç] LINE ID¬°ªÅ¡AµLªkµo°e³qª¾ - OrderId: {returnModel.order_id}");
+                    _logger.LogWarning($"[MyPayå›å‚³] LINE IDç‚ºç©ºï¼Œç„¡æ³•ç™¼é€é€šçŸ¥ - OrderId: {returnModel.order_id}");
                 }
 
                 // ========================================
-                // ¨BÆJ 10¡G¦^¶Ç½T»{±µ¦¬¥N½X "8888"
+                // æ­¥é©Ÿ 10ï¼šå›å‚³ç¢ºèªæ¥æ”¶ä»£ç¢¼ "8888"
                 // ========================================
-                // °ª¿÷ª÷¬y³W©w¥²¶·¦^¶Ç "8888" ªí¥Ü¤w¦¨¥\±µ¦¬
-                // §_«hª÷¬y¥­¥x·|«ùÄò­«°e³qª¾
-                _logger.LogInformation($"[MyPay¦^¶Ç] ³B²z§¹¦¨ - OrderId: {returnModel.order_id}");
+                // é«˜é‹¸é‡‘æµè¦å®šå¿…é ˆå›å‚³ "8888" è¡¨ç¤ºå·²æˆåŠŸæ¥æ”¶
+                // å¦å‰‡é‡‘æµå¹³å°æœƒæŒçºŒé‡é€é€šçŸ¥
+                _logger.LogInformation($"[MyPayå›å‚³] è™•ç†å®Œæˆ - OrderId: {returnModel.order_id}");
                 return Ok("8888");
             }
             catch (Exception ex)
             {
                 // ========================================
-                // ²§±`³B²z¡G°O¿ı¿ù»~¦ı¤´¦^¶Ç¦¨¥\
+                // ç•°å¸¸è™•ç†ï¼šè¨˜éŒ„éŒ¯èª¤ä½†ä»å›å‚³æˆåŠŸ
                 // ========================================
-                // µo¥Í¥ô¦ó²§±`³£¦^¶Ç "8888" Á×§Kª÷¬y¥­¥xµL­­­«°e
-                // ¿ù»~¸ê°T·|°O¿ı¨ì¤é»x¨Ñ«áÄò°lÂÜ³B²z
-                _logger.LogError(ex, $"[MyPay¦^¶Ç] ³B²z²§±` - OrderId: {returnModel?.order_id}");
+                // ç™¼ç”Ÿä»»ä½•ç•°å¸¸éƒ½å›å‚³ "8888" é¿å…é‡‘æµå¹³å°ç„¡é™é‡é€
+                // éŒ¯èª¤è³‡è¨Šæœƒè¨˜éŒ„åˆ°æ—¥èªŒä¾›å¾ŒçºŒè¿½è¹¤è™•ç†
+                _logger.LogError(ex, $"[MyPayå›å‚³] è™•ç†ç•°å¸¸ - OrderId: {returnModel?.order_id}");
                 return Ok("8888");
             }
             finally
             {
                 // ========================================
-                // ¸ê·½²M²z¡GÄÀ©ñ¸ê®Æ®w³s½u
+                // è³‡æºæ¸…ç†ï¼šé‡‹æ”¾è³‡æ–™åº«é€£ç·š
                 // ========================================
                 utility?.Dispose();
             }
@@ -291,52 +291,52 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region LINE °T®§«Ø¥ß
+        #region LINE è¨Šæ¯å»ºç«‹
 
         // ========================================================================================================
-        // ¡iLINE °T®§«Ø¥ß°Ï¶ô¡j
+        // ã€LINE è¨Šæ¯å»ºç«‹å€å¡Šã€‘
         // 
-        // ¥»°Ï¶ô­t³d¥Í¦¨¦UºØÃş«¬ªº LINE ³qª¾°T®§¡A¥]¬A¡G
-        // 1. ©^ÄmÃş«¬°T®§¡]¦¨¥\/¥¢±Ñ¡^
-        // 2. ½Òµ{Ãº¶O°T®§¡]¦¨¥\/¥¢±Ñ¡^
-        // 3. ¤@¯ëÃº¶O°T®§¡]¦¨¥\/¥¢±Ñ¡^
-        // 4. LINE °T®§µo°e¥\¯à
+        // æœ¬å€å¡Šè² è²¬ç”Ÿæˆå„ç¨®é¡å‹çš„ LINE é€šçŸ¥è¨Šæ¯ï¼ŒåŒ…æ‹¬ï¼š
+        // 1. å¥‰ç»é¡å‹è¨Šæ¯ï¼ˆæˆåŠŸ/å¤±æ•—ï¼‰
+        // 2. èª²ç¨‹ç¹³è²»è¨Šæ¯ï¼ˆæˆåŠŸ/å¤±æ•—ï¼‰
+        // 3. ä¸€èˆ¬ç¹³è²»è¨Šæ¯ï¼ˆæˆåŠŸ/å¤±æ•—ï¼‰
+        // 4. LINE è¨Šæ¯ç™¼é€åŠŸèƒ½
         //
-        // ¡i³]­p­ì«h¡j
-        // - °T®§®æ¦¡²Î¤@¥B©öÅª
-        // - ¥]§t§¹¾ã¥æ©ö¸ê°T
-        // - ®Ú¾Ú¤£¦PÃş«¬«È»s¤Æ¤º®e
-        // - ¥¢±Ñ°T®§´£¨Ñ©ú½Tªº«áÄò³B²z«ØÄ³
+        // ã€è¨­è¨ˆåŸå‰‡ã€‘
+        // - è¨Šæ¯æ ¼å¼çµ±ä¸€ä¸”æ˜“è®€
+        // - åŒ…å«å®Œæ•´äº¤æ˜“è³‡è¨Š
+        // - æ ¹æ“šä¸åŒé¡å‹å®¢è£½åŒ–å…§å®¹
+        // - å¤±æ•—è¨Šæ¯æä¾›æ˜ç¢ºçš„å¾ŒçºŒè™•ç†å»ºè­°
         // ========================================================================================================
 
-        #region ©^ÄmÃş«¬°T®§«Ø¥ß
+        #region å¥‰ç»é¡å‹è¨Šæ¯å»ºç«‹
 
         /// <summary>
         /// ========================================
-        /// «Ø¥ß©^Äm¦¨¥\°T®§
+        /// å»ºç«‹å¥‰ç»æˆåŠŸè¨Šæ¯
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ®Ú¾Ú©^ÄmÃş«¬©M¥I´Ú¸ê°T¥Í¦¨§¹¾ãªº¦¨¥\³qª¾°T®§
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// æ ¹æ“šå¥‰ç»é¡å‹å’Œä»˜æ¬¾è³‡è¨Šç”Ÿæˆå®Œæ•´çš„æˆåŠŸé€šçŸ¥è¨Šæ¯
         /// 
-        /// ¡i°T®§¤º®e¡j
-        /// - ·PÁÂµü»P°İ­Ô»y
-        /// - ©^ÄmÃş§O¡]¤Q¤@©^Äm¡B·P®¦©^Ämµ¥¡^
-        /// - ­q³æ»P¥æ©ö½s¸¹
-        /// - ¥I´Úª÷ÃB»P®É¶¡
-        /// - ¯¬ºÖ»y
+        /// ã€è¨Šæ¯å…§å®¹ã€‘
+        /// - æ„Ÿè¬è©èˆ‡å•å€™èª
+        /// - å¥‰ç»é¡åˆ¥ï¼ˆåä¸€å¥‰ç»ã€æ„Ÿæ©å¥‰ç»ç­‰ï¼‰
+        /// - è¨‚å–®èˆ‡äº¤æ˜“ç·¨è™Ÿ
+        /// - ä»˜æ¬¾é‡‘é¡èˆ‡æ™‚é–“
+        /// - ç¥ç¦èª
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// ·í·|¤Í§¹¦¨©^Äm¥I´Ú¡A¥B¥æ©öª¬ºA¬°¦¨¥\®Éµo°e
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// ç•¶æœƒå‹å®Œæˆå¥‰ç»ä»˜æ¬¾ï¼Œä¸”äº¤æ˜“ç‹€æ…‹ç‚ºæˆåŠŸæ™‚ç™¼é€
         /// 
         /// </summary>
-        /// <param name="fullName">·|¤Í¥ş¦W¡]¥Î©ó­Ó¤H¤Æ°İ­Ô¡^</param>
-        /// <param name="orderId">­q³æ½s¸¹¡]¥Ñ¨t²Î²£¥Íªº°ß¤@ÃÑ§O½X¡^</param>
-        /// <param name="transactionId">¥æ©ö½s¸¹¡]ª÷¬y¥­¥x¦^¶Çªº¥æ©ö¬y¤ô¸¹ uid¡^</param>
-        /// <param name="amount">¥I´Úª÷ÃB¡]¤w§¹¦¨ªº¹ê»Ú¥I´Úª÷ÃB¡^</param>
-        /// <param name="dedicationCategory">©^ÄmÃş§O¦WºÙ¡]¨Ò¦p¡G¤Q¤@©^Äm¡B·P®¦©^Äm¡^</param>
-        /// <param name="paymentTime">¥I´Ú®É¶¡¡]¥æ©ö§¹¦¨ªº¤é´Á®É¶¡¡^</param>
-        /// <returns>®æ¦¡¤Æªº LINE °T®§¦r¦ê¡A¥iª½±µ¥Î©óµo°e</returns>
+        /// <param name="fullName">æœƒå‹å…¨åï¼ˆç”¨æ–¼å€‹äººåŒ–å•å€™ï¼‰</param>
+        /// <param name="orderId">è¨‚å–®ç·¨è™Ÿï¼ˆç”±ç³»çµ±ç”¢ç”Ÿçš„å”¯ä¸€è­˜åˆ¥ç¢¼ï¼‰</param>
+        /// <param name="transactionId">äº¤æ˜“ç·¨è™Ÿï¼ˆé‡‘æµå¹³å°å›å‚³çš„äº¤æ˜“æµæ°´è™Ÿ uidï¼‰</param>
+        /// <param name="amount">ä»˜æ¬¾é‡‘é¡ï¼ˆå·²å®Œæˆçš„å¯¦éš›ä»˜æ¬¾é‡‘é¡ï¼‰</param>
+        /// <param name="dedicationCategory">å¥‰ç»é¡åˆ¥åç¨±ï¼ˆä¾‹å¦‚ï¼šåä¸€å¥‰ç»ã€æ„Ÿæ©å¥‰ç»ï¼‰</param>
+        /// <param name="paymentTime">ä»˜æ¬¾æ™‚é–“ï¼ˆäº¤æ˜“å®Œæˆçš„æ—¥æœŸæ™‚é–“ï¼‰</param>
+        /// <returns>æ ¼å¼åŒ–çš„ LINE è¨Šæ¯å­—ä¸²ï¼Œå¯ç›´æ¥ç”¨æ–¼ç™¼é€</returns>
         private string BuildDedicationSuccessMessage(
             string fullName, 
             string orderId, 
@@ -345,61 +345,61 @@ namespace ChurchReport.Controllers
             string dedicationCategory, 
             DateTime paymentTime)
         {
-            // °T®§¼ĞÃD
-            var msg = $"¡iª÷¬y¥I´Ú¦¨¥\³qª¾¡j{Environment.NewLine}{Environment.NewLine}";
+            // è¨Šæ¯æ¨™é¡Œ
+            var msg = $"ã€é‡‘æµä»˜æ¬¾æˆåŠŸé€šçŸ¥ã€‘{Environment.NewLine}{Environment.NewLine}";
             
-            // °İ­Ô»y»P·PÁÂµü
-            msg += $"¿Ë·Rªº {fullName}¡A±z¦n¡I{Environment.NewLine}{Environment.NewLine}";
-            msg += $"±zªº©^Äm¤w¦¨¥\§¹¦¨¡A·PÁÂ±zªº¤ä«ù¡I{Environment.NewLine}{Environment.NewLine}";
+            // å•å€™èªèˆ‡æ„Ÿè¬è©
+            msg += $"è¦ªæ„›çš„ {fullName}ï¼Œæ‚¨å¥½ï¼{Environment.NewLine}{Environment.NewLine}";
+            msg += $"æ‚¨çš„å¥‰ç»å·²æˆåŠŸå®Œæˆï¼Œæ„Ÿè¬æ‚¨çš„æ”¯æŒï¼{Environment.NewLine}{Environment.NewLine}";
             
-            // ¥I´Ú¸ê°T°Ï¶ô
-            msg += $"¥I´Ú¸ê°T¡G{Environment.NewLine}";
-            msg += $"©m¦W¡G{fullName}{Environment.NewLine}";
-            msg += $"©^ÄmÃş§O¡G{dedicationCategory}{Environment.NewLine}";
-            msg += $"­q³æ½s¸¹¡G{orderId}{Environment.NewLine}";
+            // ä»˜æ¬¾è³‡è¨Šå€å¡Š
+            msg += $"ä»˜æ¬¾è³‡è¨Šï¼š{Environment.NewLine}";
+            msg += $"å§“åï¼š{fullName}{Environment.NewLine}";
+            msg += $"å¥‰ç»é¡åˆ¥ï¼š{dedicationCategory}{Environment.NewLine}";
+            msg += $"è¨‚å–®ç·¨è™Ÿï¼š{orderId}{Environment.NewLine}";
             
-            // ¥æ©ö½s¸¹¡]¿ï¶ñ¡A¦p¦³«hÅã¥Ü¡^
+            // äº¤æ˜“ç·¨è™Ÿï¼ˆé¸å¡«ï¼Œå¦‚æœ‰å‰‡é¡¯ç¤ºï¼‰
             if (!string.IsNullOrWhiteSpace(transactionId))
-                msg += $"¥æ©ö½s¸¹¡G{transactionId}{Environment.NewLine}";
+                msg += $"äº¤æ˜“ç·¨è™Ÿï¼š{transactionId}{Environment.NewLine}";
             
-            // ª÷ÃB»P®É¶¡¸ê°T
-            msg += $"¥I´Úª÷ÃB¡GNT$ {amount:N0}{Environment.NewLine}";
-            msg += $"¥I´Ú®É¶¡¡G{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
-            msg += $"¥I´Ú¤è¦¡¡G«H¥Î¥d{Environment.NewLine}{Environment.NewLine}";
+            // é‡‘é¡èˆ‡æ™‚é–“è³‡è¨Š
+            msg += $"ä»˜æ¬¾é‡‘é¡ï¼šNT$ {amount:N0}{Environment.NewLine}";
+            msg += $"ä»˜æ¬¾æ™‚é–“ï¼š{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
+            msg += $"ä»˜æ¬¾æ–¹å¼ï¼šä¿¡ç”¨å¡{Environment.NewLine}{Environment.NewLine}";
             
-            // ¯¬ºÖ»y
-            msg += $"Ä@¤W«Ò½çºÖ»P±z¡I";
+            // ç¥ç¦èª
+            msg += $"é¡˜ä¸Šå¸è³œç¦èˆ‡æ‚¨ï¼";
             
             return msg;
         }
 
         /// <summary>
         /// ========================================
-        /// «Ø¥ß©^Äm¥¢±Ñ°T®§
+        /// å»ºç«‹å¥‰ç»å¤±æ•—è¨Šæ¯
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ®Ú¾Ú©^ÄmÃş«¬©M¥¢±Ñ­ì¦]¥Í¦¨§¹¾ãªº¥¢±Ñ³qª¾°T®§
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// æ ¹æ“šå¥‰ç»é¡å‹å’Œå¤±æ•—åŸå› ç”Ÿæˆå®Œæ•´çš„å¤±æ•—é€šçŸ¥è¨Šæ¯
         /// 
-        /// ¡i°T®§¤º®e¡j
-        /// - ¹Dºp»P¦w¼¢
-        /// - ¥¢±Ñ­ì¦]»¡©ú
-        /// - ©^ÄmÃş§O»P­q³æ¸ê°T
-        /// - À³¥Iª÷ÃB¡]©|¥¼§¹¦¨ªºª÷ÃB¡^
-        /// - «áÄò³B²z«ØÄ³
+        /// ã€è¨Šæ¯å…§å®¹ã€‘
+        /// - é“æ­‰èˆ‡å®‰æ…°
+        /// - å¤±æ•—åŸå› èªªæ˜
+        /// - å¥‰ç»é¡åˆ¥èˆ‡è¨‚å–®è³‡è¨Š
+        /// - æ‡‰ä»˜é‡‘é¡ï¼ˆå°šæœªå®Œæˆçš„é‡‘é¡ï¼‰
+        /// - å¾ŒçºŒè™•ç†å»ºè­°
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// ·í·|¤Í©^Äm¥I´Ú¥¢±Ñ®Éµo°e¡A¨ó§U·|¤Í¤F¸Ñ­ì¦]¨Ã´£¨Ñ¸Ñ¨M¤è®×
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// ç•¶æœƒå‹å¥‰ç»ä»˜æ¬¾å¤±æ•—æ™‚ç™¼é€ï¼Œå”åŠ©æœƒå‹äº†è§£åŸå› ä¸¦æä¾›è§£æ±ºæ–¹æ¡ˆ
         /// 
         /// </summary>
-        /// <param name="fullName">·|¤Í¥ş¦W</param>
-        /// <param name="orderId">­q³æ½s¸¹</param>
-        /// <param name="transactionId">¥æ©ö½s¸¹¡]¦pªG¦³ªº¸Ü¡^</param>
-        /// <param name="amount">À³¥Iª÷ÃB¡]­ì¥»À³¸Ó¤ä¥Iªºª÷ÃB¡^</param>
-        /// <param name="dedicationCategory">©^ÄmÃş§O¦WºÙ</param>
-        /// <param name="paymentTime">¹Á¸Õ¥I´Ú®É¶¡</param>
-        /// <param name="statusMessage">¥¢±Ñ­ì¦]°T®§¡]¥Ñ¨t²Î¸ÑªR PRC ¥N½X¦Ó¨Ó¡^</param>
-        /// <returns>®æ¦¡¤Æªº LINE °T®§¦r¦ê</returns>
+        /// <param name="fullName">æœƒå‹å…¨å</param>
+        /// <param name="orderId">è¨‚å–®ç·¨è™Ÿ</param>
+        /// <param name="transactionId">äº¤æ˜“ç·¨è™Ÿï¼ˆå¦‚æœæœ‰çš„è©±ï¼‰</param>
+        /// <param name="amount">æ‡‰ä»˜é‡‘é¡ï¼ˆåŸæœ¬æ‡‰è©²æ”¯ä»˜çš„é‡‘é¡ï¼‰</param>
+        /// <param name="dedicationCategory">å¥‰ç»é¡åˆ¥åç¨±</param>
+        /// <param name="paymentTime">å˜—è©¦ä»˜æ¬¾æ™‚é–“</param>
+        /// <param name="statusMessage">å¤±æ•—åŸå› è¨Šæ¯ï¼ˆç”±ç³»çµ±è§£æ PRC ä»£ç¢¼è€Œä¾†ï¼‰</param>
+        /// <returns>æ ¼å¼åŒ–çš„ LINE è¨Šæ¯å­—ä¸²</returns>
         private string BuildDedicationFailureMessage(
             string fullName, 
             string orderId, 
@@ -409,73 +409,73 @@ namespace ChurchReport.Controllers
             DateTime paymentTime, 
             string statusMessage)
         {
-            // °T®§¼ĞÃD
-            var msg = $"¡iª÷¬y¥I´Ú¥¢±Ñ³qª¾¡j{Environment.NewLine}{Environment.NewLine}";
+            // è¨Šæ¯æ¨™é¡Œ
+            var msg = $"ã€é‡‘æµä»˜æ¬¾å¤±æ•—é€šçŸ¥ã€‘{Environment.NewLine}{Environment.NewLine}";
             
-            // °İ«J»y»P¹Dºp
-            msg += $"¿Ë·Rªº {fullName}¡A±z¦n¡I{Environment.NewLine}{Environment.NewLine}";
-            msg += $"«Ü©êºp¡A±zªº©^Äm¥I´Ú¥¼¯à§¹¦¨¡C{Environment.NewLine}{Environment.NewLine}";
+            // å•ä¾¯èªèˆ‡é“æ­‰
+            msg += $"è¦ªæ„›çš„ {fullName}ï¼Œæ‚¨å¥½ï¼{Environment.NewLine}{Environment.NewLine}";
+            msg += $"å¾ˆæŠ±æ­‰ï¼Œæ‚¨çš„å¥‰ç»ä»˜æ¬¾æœªèƒ½å®Œæˆã€‚{Environment.NewLine}{Environment.NewLine}";
             
-            // ¥¢±Ñ­ì¦]»¡©ú
-            msg += $"¥¢±Ñ­ì¦]¡G{statusMessage}{Environment.NewLine}{Environment.NewLine}";
+            // å¤±æ•—åŸå› èªªæ˜
+            msg += $"å¤±æ•—åŸå› ï¼š{statusMessage}{Environment.NewLine}{Environment.NewLine}";
             
-            // ¥I´Ú¸ê°T°Ï¶ô
-            msg += $"¥I´Ú¸ê°T¡G{Environment.NewLine}";
-            msg += $"©m¦W¡G{fullName}{Environment.NewLine}";
-            msg += $"©^ÄmÃş§O¡G{dedicationCategory}{Environment.NewLine}";
-            msg += $"­q³æ½s¸¹¡G{orderId}{Environment.NewLine}";
+            // ä»˜æ¬¾è³‡è¨Šå€å¡Š
+            msg += $"ä»˜æ¬¾è³‡è¨Šï¼š{Environment.NewLine}";
+            msg += $"å§“åï¼š{fullName}{Environment.NewLine}";
+            msg += $"å¥‰ç»é¡åˆ¥ï¼š{dedicationCategory}{Environment.NewLine}";
+            msg += $"è¨‚å–®ç·¨è™Ÿï¼š{orderId}{Environment.NewLine}";
             
-            // ¥æ©ö½s¸¹¡]¿ï¶ñ¡^
+            // äº¤æ˜“ç·¨è™Ÿï¼ˆé¸å¡«ï¼‰
             if (!string.IsNullOrWhiteSpace(transactionId))
-                msg += $"¥æ©ö½s¸¹¡G{transactionId}{Environment.NewLine}";
+                msg += $"äº¤æ˜“ç·¨è™Ÿï¼š{transactionId}{Environment.NewLine}";
             
-            // À³¥Iª÷ÃB»P¹Á¸Õ®É¶¡
-            msg += $"À³¥Iª÷ÃB¡GNT$ {amount:N0}{Environment.NewLine}";
-            msg += $"¹Á¸Õ®É¶¡¡G{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}";
+            // æ‡‰ä»˜é‡‘é¡èˆ‡å˜—è©¦æ™‚é–“
+            msg += $"æ‡‰ä»˜é‡‘é¡ï¼šNT$ {amount:N0}{Environment.NewLine}";
+            msg += $"å˜—è©¦æ™‚é–“ï¼š{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}";
             
-            // «áÄò³B²z«ØÄ³
-            msg += $"±z¥i¥H¡G{Environment.NewLine}";
-            msg += $"1. ­«·s¹Á¸Õ¥I´Ú{Environment.NewLine}";
-            msg += $"2. §ó´«¨ä¥L«H¥Î¥d{Environment.NewLine}";
-            msg += $"3. ÁpÃ´±Ğ·|¿ì¤½«Ç´M¨D¨ó§U{Environment.NewLine}{Environment.NewLine}";
+            // å¾ŒçºŒè™•ç†å»ºè­°
+            msg += $"æ‚¨å¯ä»¥ï¼š{Environment.NewLine}";
+            msg += $"1. é‡æ–°å˜—è©¦ä»˜æ¬¾{Environment.NewLine}";
+            msg += $"2. æ›´æ›å…¶ä»–ä¿¡ç”¨å¡{Environment.NewLine}";
+            msg += $"3. è¯ç¹«æ•™æœƒè¾¦å…¬å®¤å°‹æ±‚å”åŠ©{Environment.NewLine}{Environment.NewLine}";
             
-            // µ²§À¦w¼¢»y
-            msg += $"¦p¦³¥ô¦ó°İÃD¡A½ĞÀH®É»P§Ú­ÌÁpÃ´¡C";
+            // çµå°¾å®‰æ…°èª
+            msg += $"å¦‚æœ‰ä»»ä½•å•é¡Œï¼Œè«‹éš¨æ™‚èˆ‡æˆ‘å€‘è¯ç¹«ã€‚";
             
             return msg;
         }
 
         #endregion
 
-        #region ½Òµ{Ãº¶OÃş«¬°T®§«Ø¥ß
+        #region èª²ç¨‹ç¹³è²»é¡å‹è¨Šæ¯å»ºç«‹
 
         /// <summary>
         /// ========================================
-        /// «Ø¥ß½Òµ{Ãº¶O¦¨¥\°T®§
+        /// å»ºç«‹èª²ç¨‹ç¹³è²»æˆåŠŸè¨Šæ¯
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ®Ú¾Ú½Òµ{¸ê°T©M¥I´Ú²Ó¸`¥Í¦¨§¹¾ãªº¦¨¥\³qª¾°T®§
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// æ ¹æ“šèª²ç¨‹è³‡è¨Šå’Œä»˜æ¬¾ç´°ç¯€ç”Ÿæˆå®Œæ•´çš„æˆåŠŸé€šçŸ¥è¨Šæ¯
         /// 
-        /// ¡i°T®§¤º®e¡j
-        /// - ½Òµ{°ò¥»¸ê°T¡]¦WºÙ¡B®É¶¡¡B¦aÂI¡^
-        /// - Ãº¶O¦¨¥\½T»{
-        /// - ¥I´Úª÷ÃB»P®É¶¡
-        /// - ´Á«İ»y
+        /// ã€è¨Šæ¯å…§å®¹ã€‘
+        /// - èª²ç¨‹åŸºæœ¬è³‡è¨Šï¼ˆåç¨±ã€æ™‚é–“ã€åœ°é»ï¼‰
+        /// - ç¹³è²»æˆåŠŸç¢ºèª
+        /// - ä»˜æ¬¾é‡‘é¡èˆ‡æ™‚é–“
+        /// - æœŸå¾…èª
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// ·í·|¤Í§¹¦¨½Òµ{³ø¦WÃº¶O¡A¥B¥æ©ö¦¨¥\®Éµo°e
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// ç•¶æœƒå‹å®Œæˆèª²ç¨‹å ±åç¹³è²»ï¼Œä¸”äº¤æ˜“æˆåŠŸæ™‚ç™¼é€
         /// 
         /// </summary>
-        /// <param name="fullName">·|¤Í¥ş¦W</param>
-        /// <param name="orderId">­q³æ½s¸¹</param>
-        /// <param name="transactionId">¥æ©ö½s¸¹</param>
-        /// <param name="amount">Ãº¶Oª÷ÃB¡]¹ê»Ú¤ä¥Iªº½Òµ{¶O¥Î¡^</param>
-        /// <param name="courseName">½Òµ{¦WºÙ¡]§¹¾ã½Òµ{¦WºÙ¡^</param>
-        /// <param name="courseSchedule">¤W½Ò®É¶¡¡]½Òµ{®É¬q»¡©ú¡^</param>
-        /// <param name="courseLocation">¤W½Ò¦aÂI¡]±Ğ«Ç©Î³õ¦a¦ì¸m¡^</param>
-        /// <param name="paymentTime">¥I´Ú®É¶¡</param>
-        /// <returns>®æ¦¡¤Æªº LINE °T®§¦r¦ê</returns>
+        /// <param name="fullName">æœƒå‹å…¨å</param>
+        /// <param name="orderId">è¨‚å–®ç·¨è™Ÿ</param>
+        /// <param name="transactionId">äº¤æ˜“ç·¨è™Ÿ</param>
+        /// <param name="amount">ç¹³è²»é‡‘é¡ï¼ˆå¯¦éš›æ”¯ä»˜çš„èª²ç¨‹è²»ç”¨ï¼‰</param>
+        /// <param name="courseName">èª²ç¨‹åç¨±ï¼ˆå®Œæ•´èª²ç¨‹åç¨±ï¼‰</param>
+        /// <param name="courseSchedule">ä¸Šèª²æ™‚é–“ï¼ˆèª²ç¨‹æ™‚æ®µèªªæ˜ï¼‰</param>
+        /// <param name="courseLocation">ä¸Šèª²åœ°é»ï¼ˆæ•™å®¤æˆ–å ´åœ°ä½ç½®ï¼‰</param>
+        /// <param name="paymentTime">ä»˜æ¬¾æ™‚é–“</param>
+        /// <returns>æ ¼å¼åŒ–çš„ LINE è¨Šæ¯å­—ä¸²</returns>
         private string BuildCoursePaymentSuccessMessage(
             string fullName, 
             string orderId, 
@@ -486,72 +486,72 @@ namespace ChurchReport.Controllers
             string courseLocation, 
             DateTime paymentTime)
         {
-            // °T®§¼ĞÃD
-            var msg = $"¡iª÷¬y¥I´Ú¦¨¥\³qª¾¡j{Environment.NewLine}{Environment.NewLine}";
+            // è¨Šæ¯æ¨™é¡Œ
+            var msg = $"ã€é‡‘æµä»˜æ¬¾æˆåŠŸé€šçŸ¥ã€‘{Environment.NewLine}{Environment.NewLine}";
             
-            // °İ­Ô»y»P¦¨¥\½T»{
-            msg += $"¿Ë·Rªº {fullName}¡A±z¦n¡I{Environment.NewLine}{Environment.NewLine}";
-            msg += $"±zªº½Òµ{Ãº¶O¤w¦¨¥\§¹¦¨¡I{Environment.NewLine}{Environment.NewLine}";
+            // å•å€™èªèˆ‡æˆåŠŸç¢ºèª
+            msg += $"è¦ªæ„›çš„ {fullName}ï¼Œæ‚¨å¥½ï¼{Environment.NewLine}{Environment.NewLine}";
+            msg += $"æ‚¨çš„èª²ç¨‹ç¹³è²»å·²æˆåŠŸå®Œæˆï¼{Environment.NewLine}{Environment.NewLine}";
             
-            // ½Òµ{¸ê°T°Ï¶ô
-            msg += $"½Òµ{¸ê°T¡G{Environment.NewLine}";
-            msg += $"©m¦W¡G{fullName}{Environment.NewLine}";
-            msg += $"½Òµ{¦WºÙ¡G{courseName}{Environment.NewLine}";
+            // èª²ç¨‹è³‡è¨Šå€å¡Š
+            msg += $"èª²ç¨‹è³‡è¨Šï¼š{Environment.NewLine}";
+            msg += $"å§“åï¼š{fullName}{Environment.NewLine}";
+            msg += $"èª²ç¨‹åç¨±ï¼š{courseName}{Environment.NewLine}";
             
-            // ¤W½Ò®É¶¡¡]¿ï¶ñ¡^
+            // ä¸Šèª²æ™‚é–“ï¼ˆé¸å¡«ï¼‰
             if (!string.IsNullOrWhiteSpace(courseSchedule)) 
-                msg += $"¤W½Ò®É¶¡¡G{courseSchedule}{Environment.NewLine}";
+                msg += $"ä¸Šèª²æ™‚é–“ï¼š{courseSchedule}{Environment.NewLine}";
             
-            // ¤W½Ò¦aÂI¡]¿ï¶ñ¡^
+            // ä¸Šèª²åœ°é»ï¼ˆé¸å¡«ï¼‰
             if (!string.IsNullOrWhiteSpace(courseLocation)) 
-                msg += $"¤W½Ò¦aÂI¡G{courseLocation}{Environment.NewLine}";
+                msg += $"ä¸Šèª²åœ°é»ï¼š{courseLocation}{Environment.NewLine}";
             
-            // ¥I´Ú¸ê°T°Ï¶ô
-            msg += $"{Environment.NewLine}¥I´Ú¸ê°T¡G{Environment.NewLine}";
-            msg += $"­q³æ½s¸¹¡G{orderId}{Environment.NewLine}";
+            // ä»˜æ¬¾è³‡è¨Šå€å¡Š
+            msg += $"{Environment.NewLine}ä»˜æ¬¾è³‡è¨Šï¼š{Environment.NewLine}";
+            msg += $"è¨‚å–®ç·¨è™Ÿï¼š{orderId}{Environment.NewLine}";
             
-            // ¥æ©ö½s¸¹¡]¿ï¶ñ¡^
-            if (!string.IsNullOrWhiteSpace(transactionId)) msg += $"¥æ©ö½s¸¹¡G{transactionId}{Environment.NewLine}";
+            // äº¤æ˜“ç·¨è™Ÿï¼ˆé¸å¡«ï¼‰
+            if (!string.IsNullOrWhiteSpace(transactionId)) msg += $"äº¤æ˜“ç·¨è™Ÿï¼š{transactionId}{Environment.NewLine}";
             
-            // ª÷ÃB»P®É¶¡
-            msg += $"Ãº¶Oª÷ÃB¡GNT$ {amount:N0}{Environment.NewLine}";
-            msg += $"¥I´Ú®É¶¡¡G{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
-            msg += $"¥I´Ú¤è¦¡¡G«H¥Î¥d{Environment.NewLine}{Environment.NewLine}";
+            // é‡‘é¡èˆ‡æ™‚é–“
+            msg += $"ç¹³è²»é‡‘é¡ï¼šNT$ {amount:N0}{Environment.NewLine}";
+            msg += $"ä»˜æ¬¾æ™‚é–“ï¼š{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
+            msg += $"ä»˜æ¬¾æ–¹å¼ï¼šä¿¡ç”¨å¡{Environment.NewLine}{Environment.NewLine}";
             
-            // ´Á«İ»y
-            msg += $"´Á«İ¦b½Òµ{¤¤»P±z¬Û¨£¡I";
+            // æœŸå¾…èª
+            msg += $"æœŸå¾…åœ¨èª²ç¨‹ä¸­èˆ‡æ‚¨ç›¸è¦‹ï¼";
             
             return msg;
         }
 
         /// <summary>
         /// ========================================
-        /// «Ø¥ß½Òµ{Ãº¶O¥¢±Ñ°T®§
+        /// å»ºç«‹èª²ç¨‹ç¹³è²»å¤±æ•—è¨Šæ¯
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ®Ú¾Ú½Òµ{¸ê°T©M¥¢±Ñ­ì¦]¥Í¦¨§¹¾ãªº¥¢±Ñ³qª¾°T®§
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// æ ¹æ“šèª²ç¨‹è³‡è¨Šå’Œå¤±æ•—åŸå› ç”Ÿæˆå®Œæ•´çš„å¤±æ•—é€šçŸ¥è¨Šæ¯
         /// 
-        /// ¡i°T®§¤º®e¡j
-        /// - ½Òµ{°ò¥»¸ê°T
-        /// - ¥¢±Ñ­ì¦]»¡©ú
-        /// - À³Ãºª÷ÃB¸ê°T
-        /// - «áÄò³B²z«ØÄ³
+        /// ã€è¨Šæ¯å…§å®¹ã€‘
+        /// - èª²ç¨‹åŸºæœ¬è³‡è¨Š
+        /// - å¤±æ•—åŸå› èªªæ˜
+        /// - æ‡‰ç¹³é‡‘é¡è³‡è¨Š
+        /// - å¾ŒçºŒè™•ç†å»ºè­°
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// ·í·|¤Í½Òµ{Ãº¶O¥¢±Ñ®Éµo°e
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// ç•¶æœƒå‹èª²ç¨‹ç¹³è²»å¤±æ•—æ™‚ç™¼é€
         /// 
         /// </summary>
-        /// <param name="fullName">·|¤Í¥ş¦W</param>
-        /// <param name="orderId">­q³æ½s¸¹</param>
-        /// <param name="transactionId">¥æ©ö½s¸¹</param>
-        /// <param name="amount">À³Ãºª÷ÃB</param>
-        /// <param name="courseName">½Òµ{¦WºÙ</param>
-        /// <param name="courseSchedule">¤W½Ò®É¶¡</param>
-        /// <param name="courseLocation">¤W½Ò¦aÂI</param>
-        /// <param name="paymentTime">¹Á¸Õ®É¶¡</param>
-        /// <param name="statusMessage">¥¢±Ñ­ì¦]°T®§</param>
-        /// <returns>®æ¦¡¤Æªº LINE °T®§¦r¦ê</returns>
+        /// <param name="fullName">æœƒå‹å…¨å</param>
+        /// <param name="orderId">è¨‚å–®ç·¨è™Ÿ</param>
+        /// <param name="transactionId">äº¤æ˜“ç·¨è™Ÿ</param>
+        /// <param name="amount">æ‡‰ç¹³é‡‘é¡</param>
+        /// <param name="courseName">èª²ç¨‹åç¨±</param>
+        /// <param name="courseSchedule">ä¸Šèª²æ™‚é–“</param>
+        /// <param name="courseLocation">ä¸Šèª²åœ°é»</param>
+        /// <param name="paymentTime">å˜—è©¦æ™‚é–“</param>
+        /// <param name="statusMessage">å¤±æ•—åŸå› è¨Šæ¯</param>
+        /// <returns>æ ¼å¼åŒ–çš„ LINE è¨Šæ¯å­—ä¸²</returns>
         private string BuildCoursePaymentFailureMessage(
             string fullName, 
             string orderId, 
@@ -563,72 +563,72 @@ namespace ChurchReport.Controllers
             DateTime paymentTime, 
             string statusMessage)
         {
-            // °T®§¼ĞÃD
-            var msg = $"¡iª÷¬y¥I´Ú¥¢±Ñ³qª¾¡j{Environment.NewLine}{Environment.NewLine}";
+            // è¨Šæ¯æ¨™é¡Œ
+            var msg = $"ã€é‡‘æµä»˜æ¬¾å¤±æ•—é€šçŸ¥ã€‘{Environment.NewLine}{Environment.NewLine}";
             
-            // °İ­Ô»y»P¹Dºp
-            msg += $"¿Ë·Rªº {fullName}¡A±z¦n¡I{Environment.NewLine}{Environment.NewLine}";
-            msg += $"«Ü©êºp¡A±zªº½Òµ{Ãº¶O¥¼¯à§¹¦¨¡C{Environment.NewLine}{Environment.NewLine}";
+            // å•å€™èªèˆ‡é“æ­‰
+            msg += $"è¦ªæ„›çš„ {fullName}ï¼Œæ‚¨å¥½ï¼{Environment.NewLine}{Environment.NewLine}";
+            msg += $"å¾ˆæŠ±æ­‰ï¼Œæ‚¨çš„èª²ç¨‹ç¹³è²»æœªèƒ½å®Œæˆã€‚{Environment.NewLine}{Environment.NewLine}";
             
-            // ¥¢±Ñ­ì¦]
-            msg += $"¥¢±Ñ­ì¦]¡G{statusMessage}{Environment.NewLine}{Environment.NewLine}";
+            // å¤±æ•—åŸå› 
+            msg += $"å¤±æ•—åŸå› ï¼š{statusMessage}{Environment.NewLine}{Environment.NewLine}";
             
-            // ½Òµ{¸ê°T°Ï¶ô
-            msg += $"½Òµ{¸ê°T¡G{Environment.NewLine}";
-            msg += $"©m¦W¡G{fullName}{Environment.NewLine}";
-            msg += $"½Òµ{¦WºÙ¡G{courseName}{Environment.NewLine}";
+            // èª²ç¨‹è³‡è¨Šå€å¡Š
+            msg += $"èª²ç¨‹è³‡è¨Šï¼š{Environment.NewLine}";
+            msg += $"å§“åï¼š{fullName}{Environment.NewLine}";
+            msg += $"èª²ç¨‹åç¨±ï¼š{courseName}{Environment.NewLine}";
             
-            // ¥æ©ö½s¸¹¡]¿ï¶ñ¡^
+            // äº¤æ˜“ç·¨è™Ÿï¼ˆé¸å¡«ï¼‰
             if (!string.IsNullOrWhiteSpace(transactionId))
-                msg += $"¥æ©ö½s¸¹¡G{transactionId}{Environment.NewLine}";
+                msg += $"äº¤æ˜“ç·¨è™Ÿï¼š{transactionId}{Environment.NewLine}";
             
-            // À³Ãºª÷ÃB»P¹Á¸Õ®É¶¡
-            msg += $"À³Ãºª÷ÃB¡GNT$ {amount:N0}{Environment.NewLine}";
-            msg += $"¹Á¸Õ®É¶¡¡G{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}";
+            // æ‡‰ç¹³é‡‘é¡èˆ‡å˜—è©¦æ™‚é–“
+            msg += $"æ‡‰ç¹³é‡‘é¡ï¼šNT$ {amount:N0}{Environment.NewLine}";
+            msg += $"å˜—è©¦æ™‚é–“ï¼š{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}";
             
-            // «áÄò³B²z«ØÄ³
-            msg += $"±z¥i¥H¡G{Environment.NewLine}";
-            msg += $"1. ­«·s¹Á¸Õ¥I´Ú{Environment.NewLine}";
-            msg += $"2. §ó´«¨ä¥L«H¥Î¥d{Environment.NewLine}";
-            msg += $"3. ÁpÃ´±Ğ·|¿ì¤½«Ç´M¨D¨ó§U{Environment.NewLine}{Environment.NewLine}";
+            // å¾ŒçºŒè™•ç†å»ºè­°
+            msg += $"æ‚¨å¯ä»¥ï¼š{Environment.NewLine}";
+            msg += $"1. é‡æ–°å˜—è©¦ä»˜æ¬¾{Environment.NewLine}";
+            msg += $"2. æ›´æ›å…¶ä»–ä¿¡ç”¨å¡{Environment.NewLine}";
+            msg += $"3. è¯ç¹«æ•™æœƒè¾¦å…¬å®¤å°‹æ±‚å”åŠ©{Environment.NewLine}{Environment.NewLine}";
             
-            // µ²§À»y
-            msg += $"¦p¦³¥ô¦ó°İÃD¡A½ĞÀH®É»P§Ú­ÌÁpÃ´¡C";
+            // çµå°¾èª
+            msg += $"å¦‚æœ‰ä»»ä½•å•é¡Œï¼Œè«‹éš¨æ™‚èˆ‡æˆ‘å€‘è¯ç¹«ã€‚";
             
             return msg;
         }
 
         #endregion
 
-        #region ¤@¯ëÃº¶OÃş«¬°T®§«Ø¥ß
+        #region ä¸€èˆ¬ç¹³è²»é¡å‹è¨Šæ¯å»ºç«‹
 
         /// <summary>
         /// ========================================
-        /// «Ø¥ß¤@¯ëÃº¶O¦¨¥\°T®§
+        /// å»ºç«‹ä¸€èˆ¬ç¹³è²»æˆåŠŸè¨Šæ¯
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ¾A¥Î©ó«D©^Äm¡B«D½Òµ{ªº¤@¯ëÃº¶O¶µ¥Ø
-        /// ´£¨Ñ°ò¥»¦ı§¹¾ãªº¥I´Ú¦¨¥\¸ê°T
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// é©ç”¨æ–¼éå¥‰ç»ã€éèª²ç¨‹çš„ä¸€èˆ¬ç¹³è²»é …ç›®
+        /// æä¾›åŸºæœ¬ä½†å®Œæ•´çš„ä»˜æ¬¾æˆåŠŸè³‡è¨Š
         /// 
-        /// ¡i°T®§¤º®e¡j
-        /// - ¥I´Ú¦¨¥\½T»{
-        /// - ¶µ¥Ø¦WºÙ
-        /// - ­q³æ»P¥æ©ö½s¸¹
-        /// - ¥I´Úª÷ÃB»P®É¶¡
-        /// - ·PÁÂ»y
+        /// ã€è¨Šæ¯å…§å®¹ã€‘
+        /// - ä»˜æ¬¾æˆåŠŸç¢ºèª
+        /// - é …ç›®åç¨±
+        /// - è¨‚å–®èˆ‡äº¤æ˜“ç·¨è™Ÿ
+        /// - ä»˜æ¬¾é‡‘é¡èˆ‡æ™‚é–“
+        /// - æ„Ÿè¬èª
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// ·í·|¤Í§¹¦¨¤@¯ë©ÊÃ¸¶O¡]¦p¬¡°Ê¶O¥Î¡B¨ä¥LÂø¶O¡^®Éµo°e
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// ç•¶æœƒå‹å®Œæˆä¸€èˆ¬æ€§ç¹ªè²»ï¼ˆå¦‚æ´»å‹•è²»ç”¨ã€å…¶ä»–é›œè²»ï¼‰æ™‚ç™¼é€
         /// 
         /// </summary>
-        /// <param name="fullName">·|¤Í¥ş¦W</param>
-        /// <param name="orderId">­q³æ½s¸¹</param>
-        /// <param name="transactionId">¥æ©ö½s¸¹</param>
-        /// <param name="amount">¥I´Úª÷ÃB</param>
-        /// <param name="itemName">¶µ¥Ø¦WºÙ¡]Ãº¶O¶µ¥Øªº»¡©ú¡^</param>
-        /// <param name="paymentTime">¥I´Ú®É¶¡</param>
-        /// <returns>®æ¦¡¤Æªº LINE °T®§¦r¦ê</returns>
+        /// <param name="fullName">æœƒå‹å…¨å</param>
+        /// <param name="orderId">è¨‚å–®ç·¨è™Ÿ</param>
+        /// <param name="transactionId">äº¤æ˜“ç·¨è™Ÿ</param>
+        /// <param name="amount">ä»˜æ¬¾é‡‘é¡</param>
+        /// <param name="itemName">é …ç›®åç¨±ï¼ˆç¹³è²»é …ç›®çš„èªªæ˜ï¼‰</param>
+        /// <param name="paymentTime">ä»˜æ¬¾æ™‚é–“</param>
+        /// <returns>æ ¼å¼åŒ–çš„ LINE è¨Šæ¯å­—ä¸²</returns>
         private string BuildGeneralPaymentSuccessMessage(
             string fullName, 
             string orderId, 
@@ -637,60 +637,60 @@ namespace ChurchReport.Controllers
             string itemName, 
             DateTime paymentTime)
         {
-            // °T®§¼ĞÃD
-            var msg = $"¡iª÷¬y¥I´Ú¦¨¥\³qª¾¡j{Environment.NewLine}{Environment.NewLine}";
+            // è¨Šæ¯æ¨™é¡Œ
+            var msg = $"ã€é‡‘æµä»˜æ¬¾æˆåŠŸé€šçŸ¥ã€‘{Environment.NewLine}{Environment.NewLine}";
             
-            // °İ­Ô»y»P¦¨¥\½T»{
-            msg += $"¿Ë·Rªº {fullName}¡A±z¦n¡I{Environment.NewLine}{Environment.NewLine}";
-            msg += $"±zªº¥I´Ú¤w¦¨¥\§¹¦¨¡I{Environment.NewLine}{Environment.NewLine}";
+            // å•å€™èªèˆ‡æˆåŠŸç¢ºèª
+            msg += $"è¦ªæ„›çš„ {fullName}ï¼Œæ‚¨å¥½ï¼{Environment.NewLine}{Environment.NewLine}";
+            msg += $"æ‚¨çš„ä»˜æ¬¾å·²æˆåŠŸå®Œæˆï¼{Environment.NewLine}{Environment.NewLine}";
             
-            // ¥I´Ú¸ê°T°Ï¶ô
-            msg += $"¥I´Ú¸ê°T¡G{Environment.NewLine}";
-            msg += $"©m¦W¡G{fullName}{Environment.NewLine}";
-            msg += $"¶µ¥Ø¡G{itemName}{Environment.NewLine}";
-            msg += $"­q³æ½s¸¹¡G{orderId}{Environment.NewLine}";
+            // ä»˜æ¬¾è³‡è¨Šå€å¡Š
+            msg += $"ä»˜æ¬¾è³‡è¨Šï¼š{Environment.NewLine}";
+            msg += $"å§“åï¼š{fullName}{Environment.NewLine}";
+            msg += $"é …ç›®ï¼š{itemName}{Environment.NewLine}";
+            msg += $"è¨‚å–®ç·¨è™Ÿï¼š{orderId}{Environment.NewLine}";
             
-            // ¥æ©ö½s¸¹¡]¿ï¶ñ¡^
-            if (!string.IsNullOrWhiteSpace(transactionId)) msg += $"¥æ©ö½s¸¹¡G{transactionId}{Environment.NewLine}";
+            // äº¤æ˜“ç·¨è™Ÿï¼ˆé¸å¡«ï¼‰
+            if (!string.IsNullOrWhiteSpace(transactionId)) msg += $"äº¤æ˜“ç·¨è™Ÿï¼š{transactionId}{Environment.NewLine}";
             
-            // ª÷ÃB»P®É¶¡
-            msg += $"¥I´Úª÷ÃB¡GNT$ {amount:N0}{Environment.NewLine}";
-            msg += $"¥I´Ú®É¶¡¡G{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
-            msg += $"¥I´Ú¤è¦¡¡G«H¥Î¥d{Environment.NewLine}{Environment.NewLine}";
+            // é‡‘é¡èˆ‡æ™‚é–“
+            msg += $"ä»˜æ¬¾é‡‘é¡ï¼šNT$ {amount:N0}{Environment.NewLine}";
+            msg += $"ä»˜æ¬¾æ™‚é–“ï¼š{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
+            msg += $"ä»˜æ¬¾æ–¹å¼ï¼šä¿¡ç”¨å¡{Environment.NewLine}{Environment.NewLine}";
             
-            // ·PÁÂ»y
-            msg += $"·PÁÂ±zªº¤ä«ù¡I";
+            // æ„Ÿè¬èª
+            msg += $"æ„Ÿè¬æ‚¨çš„æ”¯æŒï¼";
             
             return msg;
         }
 
         /// <summary>
         /// ========================================
-        /// «Ø¥ß¤@¯ëÃº¶O¥¢±Ñ°T®§
+        /// å»ºç«‹ä¸€èˆ¬ç¹³è²»å¤±æ•—è¨Šæ¯
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ¾A¥Î©ó«D©^Äm¡B«D½Òµ{ªº¤@¯ëÃº¶O¶µ¥Ø¥¢±Ñ³qª¾
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// é©ç”¨æ–¼éå¥‰ç»ã€éèª²ç¨‹çš„ä¸€èˆ¬ç¹³è²»é …ç›®å¤±æ•—é€šçŸ¥
         /// 
-        /// ¡i°T®§¤º®e¡j
-        /// - ¥I´Ú¥¢±Ñ»¡©ú
-        /// - ¥¢±Ñ­ì¦]
-        /// - ¶µ¥Ø»P­q³æ¸ê°T
-        /// - À³¥Iª÷ÃB
-        /// - «áÄò³B²z«ØÄ³
+        /// ã€è¨Šæ¯å…§å®¹ã€‘
+        /// - ä»˜æ¬¾å¤±æ•—èªªæ˜
+        /// - å¤±æ•—åŸå› 
+        /// - é …ç›®èˆ‡è¨‚å–®è³‡è¨Š
+        /// - æ‡‰ä»˜é‡‘é¡
+        /// - å¾ŒçºŒè™•ç†å»ºè­°
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// ·í·|¤Í¤@¯ë©ÊÃ¸¶O¥¢±Ñ®Éµo°e
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// ç•¶æœƒå‹ä¸€èˆ¬æ€§ç¹ªè²»å¤±æ•—æ™‚ç™¼é€
         /// 
         /// </summary>
-        /// <param name="fullName">·|¤Í¥ş¦W</param>
-        /// <param name="orderId">­q³æ½s¸¹</param>
-        /// <param name="transactionId">¥æ©ö½s¸¹</param>
-        /// <param name="amount">À³¥Iª÷ÃB</param>
-        /// <param name="itemName">¶µ¥Ø¦WºÙ</param>
-        /// <param name="paymentTime">¹Á¸Õ®É¶¡</param>
-        /// <param name="statusMessage">¥¢±Ñ­ì¦]°T®§</param>
-        /// <returns>®æ¦¡¤Æªº LINE °T®§¦r¦ê</returns>
+        /// <param name="fullName">æœƒå‹å…¨å</param>
+        /// <param name="orderId">è¨‚å–®ç·¨è™Ÿ</param>
+        /// <param name="transactionId">äº¤æ˜“ç·¨è™Ÿ</param>
+        /// <param name="amount">æ‡‰ä»˜é‡‘é¡</param>
+        /// <param name="itemName">é …ç›®åç¨±</param>
+        /// <param name="paymentTime">å˜—è©¦æ™‚é–“</param>
+        /// <param name="statusMessage">å¤±æ•—åŸå› è¨Šæ¯</param>
+        /// <returns>æ ¼å¼åŒ–çš„ LINE è¨Šæ¯å­—ä¸²</returns>
         private string BuildGeneralPaymentFailureMessage(
             string fullName, 
             string orderId, 
@@ -700,267 +700,267 @@ namespace ChurchReport.Controllers
             DateTime paymentTime, 
             string statusMessage)
         {
-            // °T®§¼ĞÃD
-            var msg = $"¡iª÷¬y¥I´Ú¥¢±Ñ³qª¾¡j{Environment.NewLine}{Environment.NewLine}";
+            // è¨Šæ¯æ¨™é¡Œ
+            var msg = $"ã€é‡‘æµä»˜æ¬¾å¤±æ•—é€šçŸ¥ã€‘{Environment.NewLine}{Environment.NewLine}";
             
-            // °İ­Ô»y»P¹Dºp
-            msg += $"¿Ë·Rªº {fullName}¡A±z¦n¡I{Environment.NewLine}{Environment.NewLine}";
-            msg += $"«Ü©êºp¡A±zªº¥I´Ú¥¼¯à§¹¦¨¡C{Environment.NewLine}{Environment.NewLine}";
+            // å•å€™èªèˆ‡é“æ­‰
+            msg += $"è¦ªæ„›çš„ {fullName}ï¼Œæ‚¨å¥½ï¼{Environment.NewLine}{Environment.NewLine}";
+            msg += $"å¾ˆæŠ±æ­‰ï¼Œæ‚¨çš„ä»˜æ¬¾æœªèƒ½å®Œæˆã€‚{Environment.NewLine}{Environment.NewLine}";
             
-            // ¥¢±Ñ­ì¦]
-            msg += $"¥¢±Ñ­ì¦]¡G{statusMessage}{Environment.NewLine}{Environment.NewLine}";
+            // å¤±æ•—åŸå› 
+            msg += $"å¤±æ•—åŸå› ï¼š{statusMessage}{Environment.NewLine}{Environment.NewLine}";
             
-            // ¥I´Ú¸ê°T°Ï¶ô
-            msg += $"¥I´Ú¸ê°T¡G{Environment.NewLine}";
-            msg += $"©m¦W¡G{fullName}{Environment.NewLine}";
-            msg += $"¶µ¥Ø¡G{itemName}{Environment.NewLine}";
-            msg += $"­q³æ½s¸¹¡G{orderId}{Environment.NewLine}";
+            // ä»˜æ¬¾è³‡è¨Šå€å¡Š
+            msg += $"ä»˜æ¬¾è³‡è¨Šï¼š{Environment.NewLine}";
+            msg += $"å§“åï¼š{fullName}{Environment.NewLine}";
+            msg += $"é …ç›®ï¼š{itemName}{Environment.NewLine}";
+            msg += $"è¨‚å–®ç·¨è™Ÿï¼š{orderId}{Environment.NewLine}";
             
-            // ¥æ©ö½s¸¹¡]¿ï¶ñ¡^
-            if (!string.IsNullOrWhiteSpace(transactionId)) msg += $"¥æ©ö½s¸¹¡G{transactionId}{Environment.NewLine}";
+            // äº¤æ˜“ç·¨è™Ÿï¼ˆé¸å¡«ï¼‰
+            if (!string.IsNullOrWhiteSpace(transactionId)) msg += $"äº¤æ˜“ç·¨è™Ÿï¼š{transactionId}{Environment.NewLine}";
             
-            // À³¥Iª÷ÃB»P®É¶¡
-            msg += $"À³¥Iª÷ÃB¡GNT$ {amount:N0}{Environment.NewLine}";
-            msg += $"¹Á¸Õ®É¶¡¡G{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}";
+            // æ‡‰ä»˜é‡‘é¡èˆ‡æ™‚é–“
+            msg += $"æ‡‰ä»˜é‡‘é¡ï¼šNT$ {amount:N0}{Environment.NewLine}";
+            msg += $"å˜—è©¦æ™‚é–“ï¼š{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}";
             
-            // «áÄò³B²z«ØÄ³
-            msg += $"±z¥i¥H¡G{Environment.NewLine}";
-            msg += $"1. ­«·s¹Á¸Õ¥I´Ú{Environment.NewLine}";
-            msg += $"2. §ó´«¨ä¥L«H¥Î¥d{Environment.NewLine}";
-            msg += $"3. ÁpÃ´±Ğ·|¿ì¤½«Ç´M¨D¨ó§U{Environment.NewLine}{Environment.NewLine}";
+            // å¾ŒçºŒè™•ç†å»ºè­°
+            msg += $"æ‚¨å¯ä»¥ï¼š{Environment.NewLine}";
+            msg += $"1. é‡æ–°å˜—è©¦ä»˜æ¬¾{Environment.NewLine}";
+            msg += $"2. æ›´æ›å…¶ä»–ä¿¡ç”¨å¡{Environment.NewLine}";
+            msg += $"3. è¯ç¹«æ•™æœƒè¾¦å…¬å®¤å°‹æ±‚å”åŠ©{Environment.NewLine}{Environment.NewLine}";
             
-            // µ²§À»y
-            msg += $"¦p¦³¥ô¦ó°İÃD¡A½ĞÀH®É»P§Ú­ÌÁpÃ´¡C";
+            // çµå°¾èª
+            msg += $"å¦‚æœ‰ä»»ä½•å•é¡Œï¼Œè«‹éš¨æ™‚èˆ‡æˆ‘å€‘è¯ç¹«ã€‚";
             
             return msg;
         }
 
         #endregion
 
-        #region LINE °T®§µo°e¥\¯à
+        #region LINE è¨Šæ¯ç™¼é€åŠŸèƒ½
 
         /// <summary>
         /// ========================================
-        /// µo°e LINE °T®§
+        /// ç™¼é€ LINE è¨Šæ¯
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ¨Ï¥Î LINE Messaging API µo°e±À¼½°T®§µ¹«ü©w¥Î¤á
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// ä½¿ç”¨ LINE Messaging API ç™¼é€æ¨æ’­è¨Šæ¯çµ¦æŒ‡å®šç”¨æˆ¶
         /// 
-        /// ¡i³B²z¬yµ{¡j
-        /// 1. «Ø¥ß LINE Messaging Client
-        /// 2. ¨Ï¥Î PushUtility µo°e°T®§
-        /// 3. µ¥«İµo°e§¹¦¨
-        /// 4. °O¿ıµo°eµ²ªG
+        /// ã€è™•ç†æµç¨‹ã€‘
+        /// 1. å»ºç«‹ LINE Messaging Client
+        /// 2. ä½¿ç”¨ PushUtility ç™¼é€è¨Šæ¯
+        /// 3. ç­‰å¾…ç™¼é€å®Œæˆ
+        /// 4. è¨˜éŒ„ç™¼é€çµæœ
         /// 
-        /// ¡i¿ù»~³B²z¡j
-        /// - µo°e¥¢±Ñ·|§Û¥X¨Ò¥~
-        /// - ¿ù»~·|°O¿ı¨ì¤é»x
-        /// - ¤W¼h»İ³B²z¨Ò¥~±¡ªp
+        /// ã€éŒ¯èª¤è™•ç†ã€‘
+        /// - ç™¼é€å¤±æ•—æœƒæŠ„å‡ºä¾‹å¤–
+        /// - éŒ¯èª¤æœƒè¨˜éŒ„åˆ°æ—¥èªŒ
+        /// - ä¸Šå±¤éœ€è™•ç†ä¾‹å¤–æƒ…æ³
         /// 
-        /// ¡iª`·N¨Æ¶µ¡j
-        /// - LINE ID ¥²¶·¦³®Ä¥B¤w¥[¤J©x¤è±b¸¹¦n¤Í
-        /// - °T®§¤º®e¤£¥i¶W¹L LINE ªº¦r¼Æ­­¨î
-        /// - µo°e¨Ï¥Î¦P¨Bµ¥«İ¡].Wait()¡^¡Aª`·N°õ¦æºüªı¶ë
+        /// ã€æ³¨æ„äº‹é …ã€‘
+        /// - LINE ID å¿…é ˆæœ‰æ•ˆä¸”å·²åŠ å…¥å®˜æ–¹å¸³è™Ÿå¥½å‹
+        /// - è¨Šæ¯å…§å®¹ä¸å¯è¶…é LINE çš„å­—æ•¸é™åˆ¶
+        /// - ç™¼é€ä½¿ç”¨åŒæ­¥ç­‰å¾…ï¼ˆ.Wait()ï¼‰ï¼Œæ³¨æ„åŸ·è¡Œç·’é˜»å¡
         /// 
         /// </summary>
-        /// <param name="lineId">±µ¦¬ªÌªº LINE ID¡]¨Ï¥ÎªÌ°ß¤@ÃÑ§O½X¡^</param>
-        /// <param name="message">­nµo°eªº°T®§¤º®e¡]¯Â¤å¦r®æ¦¡¡^</param>
-        /// <exception cref="Exception">·íµo°e¥¢±Ñ®É©ß¥X</exception>
+        /// <param name="lineId">æ¥æ”¶è€…çš„ LINE IDï¼ˆä½¿ç”¨è€…å”¯ä¸€è­˜åˆ¥ç¢¼ï¼‰</param>
+        /// <param name="message">è¦ç™¼é€çš„è¨Šæ¯å…§å®¹ï¼ˆç´”æ–‡å­—æ ¼å¼ï¼‰</param>
+        /// <exception cref="Exception">ç•¶ç™¼é€å¤±æ•—æ™‚æ‹‹å‡º</exception>
         private void SendLineMessage(string lineId, string message)
         {
             try
             {
-                // «Ø¥ß LINE Messaging Client¡]¨Ï¥Î¹w³]ªº Channel Access Token¡^
+                // å»ºç«‹ LINE Messaging Clientï¼ˆä½¿ç”¨é è¨­çš„ Channel Access Tokenï¼‰
                 var lineMessagingClient = new LineMessagingClient(LINE_CHANNEL_ACCESS_TOKEN);
                 
-                // «Ø¥ß±À¼½¤u¨ã
+                // å»ºç«‹æ¨æ’­å·¥å…·
                 var pushUtility = new PushUtility(lineMessagingClient);
                 
-                // µo°e°T®§¨Ãµ¥«İ§¹¦¨
+                // ç™¼é€è¨Šæ¯ä¸¦ç­‰å¾…å®Œæˆ
                 pushUtility.SendMessage(lineId, message).Wait();
                 
-                // °O¿ı¦¨¥\¤é»x
-                _logger.LogInformation($"SendLineMessage: ¤wµo°e - LineId: {lineId}");
+                // è¨˜éŒ„æˆåŠŸæ—¥èªŒ
+                _logger.LogInformation($"SendLineMessage: å·²ç™¼é€ - LineId: {lineId}");
             }
             catch (Exception ex)
             {
-                // °O¿ı¿ù»~¤é»x
-                _logger.LogError(ex, $"SendLineMessage: µo°e¥¢±Ñ - LineId: {lineId}");
+                // è¨˜éŒ„éŒ¯èª¤æ—¥èªŒ
+                _logger.LogError(ex, $"SendLineMessage: ç™¼é€å¤±æ•— - LineId: {lineId}");
                 
-                // ­«·s©ß¥X¨Ò¥~¨Ñ¤W¼h³B²z
+                // é‡æ–°æ‹‹å‡ºä¾‹å¤–ä¾›ä¸Šå±¤è™•ç†
                 throw;
             }
         }
 
-        #endregion // LINE °T®§µo°e¥\¯à ¤l°Ï¶ôµ²§ô
-        #endregion // LINE °T®§«Ø¥ß
+        #endregion // LINE è¨Šæ¯ç™¼é€åŠŸèƒ½ å­å€å¡ŠçµæŸ
+        #endregion // LINE è¨Šæ¯å»ºç«‹
 
-        #region API: ¦¨¥\­¶­±
+        #region API: æˆåŠŸé é¢
 
         /// <summary>
-        /// ¥I´Ú¦¨¥\­¶­± (¨Ñ¥Î¤á¬d¬İµ²ªG)
+        /// ä»˜æ¬¾æˆåŠŸé é¢ (ä¾›ç”¨æˆ¶æŸ¥çœ‹çµæœ)
         /// GET /api/MyPay/success
-        /// ÂÂª©¦¨¥\­¶­±¡A¸û¬°Â²©ö
+        /// èˆŠç‰ˆæˆåŠŸé é¢ï¼Œè¼ƒç‚ºç°¡æ˜“
         /// </summary>
-        /// <param name="order_id">­q³æ½s¸¹</param>
-        /// <returns>View µ²ªG</returns>
+        /// <param name="order_id">è¨‚å–®ç·¨è™Ÿ</param>
+        /// <returns>View çµæœ</returns>
         [HttpGet("success")]
         public IActionResult PaymentSuccess([FromQuery] string order_id = "")
         {
             ViewBag.OrderId = order_id;
-            ViewBag.Message = "­q³æ¤w«Ø¥ß¡A·|³z¹LLINE¥t¦æ³qª¾¥æ©öª¬ºA¡A·PÁÂ±zªº¤ä«ù¡C";
+            ViewBag.Message = "è¨‚å–®å·²å»ºç«‹ï¼Œæœƒé€éLINEå¦è¡Œé€šçŸ¥äº¤æ˜“ç‹€æ…‹ï¼Œæ„Ÿè¬æ‚¨çš„æ”¯æŒã€‚";
             ViewBag.IsSuccess = true;
             return View("PaymentResult");
         }
         #endregion
 
-        #region API: ¥¢±Ñ­¶­±
+        #region API: å¤±æ•—é é¢
         /// <summary>
-        /// ¥I´Ú¥¢±Ñ­¶­± (¨Ñ¥Î¤á¬d¬İµ²ªG)
+        /// ä»˜æ¬¾å¤±æ•—é é¢ (ä¾›ç”¨æˆ¶æŸ¥çœ‹çµæœ)
         /// GET /api/MyPay/failure
-        /// ÂÂª©¥¢±Ñ­¶­±¡A¸û¬°Â²©ö
+        /// èˆŠç‰ˆå¤±æ•—é é¢ï¼Œè¼ƒç‚ºç°¡æ˜“
         /// </summary>
-        /// <param name="order_id">­q³æ½s¸¹</param>
-        /// <param name="msg">¿ù»~°T®§</param>
-        /// <returns>View µ²ªG</returns>
+        /// <param name="order_id">è¨‚å–®ç·¨è™Ÿ</param>
+        /// <param name="msg">éŒ¯èª¤è¨Šæ¯</param>
+        /// <returns>View çµæœ</returns>
         [HttpGet("failure")]
         public IActionResult PaymentFailure([FromQuery] string order_id = "", [FromQuery] string msg = "")
         {
             ViewBag.OrderId = order_id;
-            ViewBag.Message = !string.IsNullOrEmpty(msg) ? $"¥I´Ú¥¢±Ñ¡G{msg}" : "¥I´Ú¥¢±Ñ¡A½Ğµy«á¦A¸Õ©ÎÁpÃ´±Ğ·|¿ì¤½«Ç¡C";
+            ViewBag.Message = !string.IsNullOrEmpty(msg) ? $"ä»˜æ¬¾å¤±æ•—ï¼š{msg}" : "ä»˜æ¬¾å¤±æ•—ï¼Œè«‹ç¨å¾Œå†è©¦æˆ–è¯ç¹«æ•™æœƒè¾¦å…¬å®¤ã€‚";
             ViewBag.IsSuccess = false;
             return View("PaymentResult");
         }
         #endregion
 
-        #region ª¬ºA/¤å¦r/CRM§ó·s»²§U¤èªk
+        #region ç‹€æ…‹/æ–‡å­—/CRMæ›´æ–°è¼”åŠ©æ–¹æ³•
 
         // ========================================================================================================
-        // ¡iª¬ºA/¤å¦r/CRM§ó·s»²§U¤èªk°Ï¶ô¡j
+        // ã€ç‹€æ…‹/æ–‡å­—/CRMæ›´æ–°è¼”åŠ©æ–¹æ³•å€å¡Šã€‘
         // 
-        // ¥»°Ï¶ô´£¨Ñ¤ä´©ª÷¬y³B²zªº¦UºØ»²§U¤èªk¡A¤À¬°¥H¤U´X¤jÃş¡G
+        // æœ¬å€å¡Šæä¾›æ”¯æ´é‡‘æµè™•ç†çš„å„ç¨®è¼”åŠ©æ–¹æ³•ï¼Œåˆ†ç‚ºä»¥ä¸‹å¹¾å¤§é¡ï¼š
         // 
-        // 1. ¡i¥æ©öª¬ºA§PÂ_¡j- §PÂ_¥æ©ö¬O§_¦¨¥\
-        // 2. ¡i¿ù»~°T®§³B²z¡j- «Ø¥ß©MÂà´«¿ù»~°T®§
-        // 3. ¡i¤é»x°O¿ı¡j- °O¿ı§¹¾ãªºª÷¬y¦^¶Ç¸ê®Æ
-        // 4. ¡iCRM ¸ê®Æ§ó·s¡j- §ó·s¦¬¶O³æª¬ºA»P¥æ©ö¸ê°T
-        // 5. ¡iLINE ³qª¾µo°e¡j- ®Ú¾ÚÃş«¬µo°e³qª¾°T®§
+        // 1. ã€äº¤æ˜“ç‹€æ…‹åˆ¤æ–·ã€‘- åˆ¤æ–·äº¤æ˜“æ˜¯å¦æˆåŠŸ
+        // 2. ã€éŒ¯èª¤è¨Šæ¯è™•ç†ã€‘- å»ºç«‹å’Œè½‰æ›éŒ¯èª¤è¨Šæ¯
+        // 3. ã€æ—¥èªŒè¨˜éŒ„ã€‘- è¨˜éŒ„å®Œæ•´çš„é‡‘æµå›å‚³è³‡æ–™
+        // 4. ã€CRM è³‡æ–™æ›´æ–°ã€‘- æ›´æ–°æ”¶è²»å–®ç‹€æ…‹èˆ‡äº¤æ˜“è³‡è¨Š
+        // 5. ã€LINE é€šçŸ¥ç™¼é€ã€‘- æ ¹æ“šé¡å‹ç™¼é€é€šçŸ¥è¨Šæ¯
         // 
-        // ¡i³]­p­ì«h¡j
-        // - ³æ¤@Â¾³d¡G¨C­Ó¤èªk¥u­t³d¤@¶µ¯S©w¥ô°È
-        // - ¿ù»~³B²z¡G©Ò¦³¤èªk³£¥]§t§¹¾ãªº²§±`³B²z©M¤é»x°O¿ı
-        // - ¥iºûÅ@©Ê¡G²M´·ªº©R¦W©M§¹¾ãªºµù¸Ñ»¡©ú
+        // ã€è¨­è¨ˆåŸå‰‡ã€‘
+        // - å–®ä¸€è·è²¬ï¼šæ¯å€‹æ–¹æ³•åªè² è²¬ä¸€é …ç‰¹å®šä»»å‹™
+        // - éŒ¯èª¤è™•ç†ï¼šæ‰€æœ‰æ–¹æ³•éƒ½åŒ…å«å®Œæ•´çš„ç•°å¸¸è™•ç†å’Œæ—¥èªŒè¨˜éŒ„
+        // - å¯ç¶­è­·æ€§ï¼šæ¸…æ™°çš„å‘½åå’Œå®Œæ•´çš„è¨»è§£èªªæ˜
         // ========================================================================================================
 
-        #region 1. ¥æ©öª¬ºA§PÂ_
+        #region 1. äº¤æ˜“ç‹€æ…‹åˆ¤æ–·
 
         /// <summary>
         /// ========================================
-        /// §PÂ_¥æ©ö¬O§_¦¨¥\
+        /// åˆ¤æ–·äº¤æ˜“æ˜¯å¦æˆåŠŸ
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ®Ú¾Ú°ª¿÷ª÷¬yªº PRC¡]¥æ©ö¦^¶Ç½X¡^§PÂ_¥æ©ö¬O§_§¹¦¨¦¨¥\
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// æ ¹æ“šé«˜é‹¸é‡‘æµçš„ PRCï¼ˆäº¤æ˜“å›å‚³ç¢¼ï¼‰åˆ¤æ–·äº¤æ˜“æ˜¯å¦å®ŒæˆæˆåŠŸ
         /// 
-        /// ¡i¦¨¥\¥N½X»¡©ú¡j
-        /// - 250: ¥I´Ú¦¨¥\¡]³Ì±`¨£ªº¦¨¥\¥N½X¡Aªí¥Ü§Y®É¥æ©ö§¹¦¨¡^
-        /// - 290: ¥æ©ö¦¨¥\¦ı¸ê°T¤£²Å¡]¥æ©ö§¹¦¨¦ı³¡¤À¸ê°T»İ­n®Ö¹ï¡^
-        /// - 600: µ²±b§¹¦¨¡]ÁÊª«¨®µ²±b¬yµ{§¹¦¨¡^
+        /// ã€æˆåŠŸä»£ç¢¼èªªæ˜ã€‘
+        /// - 250: ä»˜æ¬¾æˆåŠŸï¼ˆæœ€å¸¸è¦‹çš„æˆåŠŸä»£ç¢¼ï¼Œè¡¨ç¤ºå³æ™‚äº¤æ˜“å®Œæˆï¼‰
+        /// - 290: äº¤æ˜“æˆåŠŸä½†è³‡è¨Šä¸ç¬¦ï¼ˆäº¤æ˜“å®Œæˆä½†éƒ¨åˆ†è³‡è¨Šéœ€è¦æ ¸å°ï¼‰
+        /// - 600: çµå¸³å®Œæˆï¼ˆè³¼ç‰©è»Šçµå¸³æµç¨‹å®Œæˆï¼‰
         /// 
-        /// ¡i¨ä¥Lª¬ºA¥N½X¡j
-        /// - 260, 270, 280: ¥æ©ö¦¨¥\¦ı©|¥¼¥I´Ú§¹¦¨¡]µêÀÀ±b¸¹¡B¶W°Ó¥N½Xµ¥¡^
-        /// - 300: ¥æ©ö¥¢±Ñ
-        /// - 400: ¨t²Î¿ù»~
-        /// - ¨ä¥L: °Ñ¦Ò GetPaymentStatusMessage ¤èªk
+        /// ã€å…¶ä»–ç‹€æ…‹ä»£ç¢¼ã€‘
+        /// - 260, 270, 280: äº¤æ˜“æˆåŠŸä½†å°šæœªä»˜æ¬¾å®Œæˆï¼ˆè™›æ“¬å¸³è™Ÿã€è¶…å•†ä»£ç¢¼ç­‰ï¼‰
+        /// - 300: äº¤æ˜“å¤±æ•—
+        /// - 400: ç³»çµ±éŒ¯èª¤
+        /// - å…¶ä»–: åƒè€ƒ GetPaymentStatusMessage æ–¹æ³•
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// ¦b¦¬¨ìª÷¬y¦^¶Ç«á¡A²Ä¤@®É¶¡§PÂ_¥æ©öµ²ªG¡A¨M©w«áÄò³B²z¬yµ{
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// åœ¨æ”¶åˆ°é‡‘æµå›å‚³å¾Œï¼Œç¬¬ä¸€æ™‚é–“åˆ¤æ–·äº¤æ˜“çµæœï¼Œæ±ºå®šå¾ŒçºŒè™•ç†æµç¨‹
         /// 
-        /// ¡i°Ñ¦Ò¤åÀÉ¡j
-        /// °ª¿÷ª÷¬y©x¤è³W®æ - ªş¿ı¤G¡GPRC¡]¥æ©ö¦^¶Ç½X¡^©w¸q
+        /// ã€åƒè€ƒæ–‡æª”ã€‘
+        /// é«˜é‹¸é‡‘æµå®˜æ–¹è¦æ ¼ - é™„éŒ„äºŒï¼šPRCï¼ˆäº¤æ˜“å›å‚³ç¢¼ï¼‰å®šç¾©
         /// 
         /// </summary>
-        /// <param name="prc">ª÷¬y¦^¶Çªº¥æ©öª¬ºA½X¡]PRC¡^</param>
-        /// <returns>true ªí¥Ü¥æ©ö¦¨¥\¡Afalse ªí¥Ü¥æ©ö¥¢±Ñ©Îª¬ºA¥¼ª¾</returns>
+        /// <param name="prc">é‡‘æµå›å‚³çš„äº¤æ˜“ç‹€æ…‹ç¢¼ï¼ˆPRCï¼‰</param>
+        /// <returns>true è¡¨ç¤ºäº¤æ˜“æˆåŠŸï¼Œfalse è¡¨ç¤ºäº¤æ˜“å¤±æ•—æˆ–ç‹€æ…‹æœªçŸ¥</returns>
         private bool IsSuccessfulPaymentStatus(string prc)
         {
-            // ÀË¬dªÅ­È
+            // æª¢æŸ¥ç©ºå€¼
             if (string.IsNullOrWhiteSpace(prc)) return false;
 
-            // ¤ñ¹ï¦¨¥\¥N½X
+            // æ¯”å°æˆåŠŸä»£ç¢¼
             switch (prc)
             {
-                case "250": // ¥I´Ú¦¨¥\¡]«H¥Î¥d§Y®É¥æ©ö¡^
-                case "290": // ¥æ©ö¦¨¥\¦ı¸ê°T¤£²Å
-                case "600": // µ²±b§¹¦¨
+                case "250": // ä»˜æ¬¾æˆåŠŸï¼ˆä¿¡ç”¨å¡å³æ™‚äº¤æ˜“ï¼‰
+                case "290": // äº¤æ˜“æˆåŠŸä½†è³‡è¨Šä¸ç¬¦
+                case "600": // çµå¸³å®Œæˆ
                     return true;
 
-                default: // ¨ä¥L©Ò¦³¥N½Xµø¬°¥¢±Ñ©Î«İ³B²z
+                default: // å…¶ä»–æ‰€æœ‰ä»£ç¢¼è¦–ç‚ºå¤±æ•—æˆ–å¾…è™•ç†
                     return false;
             }
         }
 
         #endregion
 
-        #region 2. ¿ù»~°T®§³B²z
+        #region 2. éŒ¯èª¤è¨Šæ¯è™•ç†
 
         /// <summary>
         /// ========================================
-        /// «Ø¥ß¥¢±Ñ°T®§¤å¦r
+        /// å»ºç«‹å¤±æ•—è¨Šæ¯æ–‡å­—
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ®Ú¾Úª÷¬y¦^¶Çªº¿ù»~¸ê°T¡A«Ø¥ß¨Ï¥ÎªÌ¤Íµ½ªº¥¢±Ñ°T®§
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// æ ¹æ“šé‡‘æµå›å‚³çš„éŒ¯èª¤è³‡è¨Šï¼Œå»ºç«‹ä½¿ç”¨è€…å‹å–„çš„å¤±æ•—è¨Šæ¯
         /// 
-        /// ¡i³B²zÀu¥ı¶¶§Ç¡j
-        /// 1. Àu¥ı¨Ï¥Î msg Äæ¦ì¡]ª÷¬yª½±µ¦^¶Çªº°T®§¡^
-        /// 2. ¨ä¦¸¨Ï¥Î errorCode ©Î retCode¡]Âà´«¬°¤Íµ½°T®§¡^
-        /// 3. ³Ì«á¨Ï¥Î¹w³]¥¢±Ñ°T®§
+        /// ã€è™•ç†å„ªå…ˆé †åºã€‘
+        /// 1. å„ªå…ˆä½¿ç”¨ msg æ¬„ä½ï¼ˆé‡‘æµç›´æ¥å›å‚³çš„è¨Šæ¯ï¼‰
+        /// 2. å…¶æ¬¡ä½¿ç”¨ errorCode æˆ– retCodeï¼ˆè½‰æ›ç‚ºå‹å–„è¨Šæ¯ï¼‰
+        /// 3. æœ€å¾Œä½¿ç”¨é è¨­å¤±æ•—è¨Šæ¯
         /// 
-        /// ¡i°T®§®æ¦¡¡j
-        /// - ¦³©ú½T°T®§¡G¡u¥I´Ú¥¢±Ñ¡G{¨ãÅé­ì¦]}¡v
-        /// - ¦³¿ù»~¥N½X¡G¡u¥I´Ú¥¢±Ñ¡G{¤Íµ½»¡©ú}¡v©Î¡u¥I´Ú¥¢±Ñ (¿ù»~¥N½X: {code})¡v
-        /// - µL¥ô¦ó¸ê°T¡G¡u¥I´Ú¥¢±Ñ¡A½Ğµy«á¦A¸Õ©ÎÁpÃ´±Ğ·|¿ì¤½«Ç¡C¡v
+        /// ã€è¨Šæ¯æ ¼å¼ã€‘
+        /// - æœ‰æ˜ç¢ºè¨Šæ¯ï¼šã€Œä»˜æ¬¾å¤±æ•—ï¼š{å…·é«”åŸå› }ã€
+        /// - æœ‰éŒ¯èª¤ä»£ç¢¼ï¼šã€Œä»˜æ¬¾å¤±æ•—ï¼š{å‹å–„èªªæ˜}ã€æˆ–ã€Œä»˜æ¬¾å¤±æ•— (éŒ¯èª¤ä»£ç¢¼: {code})ã€
+        /// - ç„¡ä»»ä½•è³‡è¨Šï¼šã€Œä»˜æ¬¾å¤±æ•—ï¼Œè«‹ç¨å¾Œå†è©¦æˆ–è¯ç¹«æ•™æœƒè¾¦å…¬å®¤ã€‚ã€
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// ·í¥æ©ö¥¢±Ñ®É¡A±N§Ş³N©Êªº¿ù»~¥N½XÂà´«¬°¤@¯ë¨Ï¥ÎªÌ¯à²z¸Ñªº¤å¦r
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// ç•¶äº¤æ˜“å¤±æ•—æ™‚ï¼Œå°‡æŠ€è¡“æ€§çš„éŒ¯èª¤ä»£ç¢¼è½‰æ›ç‚ºä¸€èˆ¬ä½¿ç”¨è€…èƒ½ç†è§£çš„æ–‡å­—
         /// 
         /// </summary>
-        /// <param name="msg">ª÷¬y¦^¶Çªº¿ù»~°T®§¤å¦r¡]¥i¿ï¡^</param>
-        /// <param name="errorCode">¿ù»~¥N½X¡]¥i¿ï¡^</param>
-        /// <param name="retCode">¦^¶Ç¥N½X¡]¥i¿ï¡^</param>
-        /// <returns>®æ¦¡¤Æªº¥¢±Ñ°T®§¦r¦ê¡A¾A¦XÅã¥Üµ¹¨Ï¥ÎªÌ</returns>
+        /// <param name="msg">é‡‘æµå›å‚³çš„éŒ¯èª¤è¨Šæ¯æ–‡å­—ï¼ˆå¯é¸ï¼‰</param>
+        /// <param name="errorCode">éŒ¯èª¤ä»£ç¢¼ï¼ˆå¯é¸ï¼‰</param>
+        /// <param name="retCode">å›å‚³ä»£ç¢¼ï¼ˆå¯é¸ï¼‰</param>
+        /// <returns>æ ¼å¼åŒ–çš„å¤±æ•—è¨Šæ¯å­—ä¸²ï¼Œé©åˆé¡¯ç¤ºçµ¦ä½¿ç”¨è€…</returns>
         private string BuildFailureMessage(string msg, string errorCode, string retCode)
         {
-            var message = "¥I´Ú¥¢±Ñ";
+            var message = "ä»˜æ¬¾å¤±æ•—";
 
-            // Àu¥ı¶¶§Ç 1¡G¨Ï¥Î msg Äæ¦ì
+            // å„ªå…ˆé †åº 1ï¼šä½¿ç”¨ msg æ¬„ä½
             if (!string.IsNullOrWhiteSpace(msg))
             {
-                message = $"¥I´Ú¥¢±Ñ¡G{msg}";
+                message = $"ä»˜æ¬¾å¤±æ•—ï¼š{msg}";
             }
-            // Àu¥ı¶¶§Ç 2¡G¨Ï¥Î¿ù»~¥N½X
+            // å„ªå…ˆé †åº 2ï¼šä½¿ç”¨éŒ¯èª¤ä»£ç¢¼
             else if (!string.IsNullOrWhiteSpace(errorCode) || !string.IsNullOrWhiteSpace(retCode))
             {
-                // ¹Á¸ÕÂà´«¬°¤Íµ½°T®§
+                // å˜—è©¦è½‰æ›ç‚ºå‹å–„è¨Šæ¯
                 string friendly = GetFriendlyErrorMessage(errorCode, retCode);
 
                 if (!string.IsNullOrWhiteSpace(friendly))
                 {
-                    // ¦³¹ïÀ³ªº¤Íµ½°T®§
-                    message = $"¥I´Ú¥¢±Ñ¡G{friendly}";
+                    // æœ‰å°æ‡‰çš„å‹å–„è¨Šæ¯
+                    message = $"ä»˜æ¬¾å¤±æ•—ï¼š{friendly}";
                 }
                 else
                 {
-                    // µL¹ïÀ³°T®§¡Aª½±µÅã¥Ü¥N½X
-                    message = $"¥I´Ú¥¢±Ñ (¿ù»~¥N½X: {errorCode ?? retCode})";
+                    // ç„¡å°æ‡‰è¨Šæ¯ï¼Œç›´æ¥é¡¯ç¤ºä»£ç¢¼
+                    message = $"ä»˜æ¬¾å¤±æ•— (éŒ¯èª¤ä»£ç¢¼: {errorCode ?? retCode})";
                 }
             }
-            // Àu¥ı¶¶§Ç 3¡G¹w³]°T®§
+            // å„ªå…ˆé †åº 3ï¼šé è¨­è¨Šæ¯
             else
             {
-                message = "¥I´Ú¥¢±Ñ¡A½Ğµy«á¦A¸Õ©ÎÁpÃ´±Ğ·|¿ì¤½«Ç¡C";
+                message = "ä»˜æ¬¾å¤±æ•—ï¼Œè«‹ç¨å¾Œå†è©¦æˆ–è¯ç¹«æ•™æœƒè¾¦å…¬å®¤ã€‚";
             }
 
             return message;
@@ -968,224 +968,224 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// ========================================
-        /// ¨ú±o¤Íµ½ªº¿ù»~°T®§
+        /// å–å¾—å‹å–„çš„éŒ¯èª¤è¨Šæ¯
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ±N»È¦æ©Îª÷¬y¨t²Îªº¿ù»~¥N½XÂà´«¬°¨Ï¥ÎªÌ¯à²z¸Ñªº¤¤¤å»¡©ú
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// å°‡éŠ€è¡Œæˆ–é‡‘æµç³»çµ±çš„éŒ¯èª¤ä»£ç¢¼è½‰æ›ç‚ºä½¿ç”¨è€…èƒ½ç†è§£çš„ä¸­æ–‡èªªæ˜
         /// 
-        /// ¡i¤ä´©ªº¿ù»~¥N½X¡j
-        /// - ¥d¤ùª¬ºA¡G³Q©Úµ´¡B¹L´Á¡B¿ò¥¢/³Qµs
-        /// - ¥d¤ù¸ê®Æ¡G¥d¸¹¿ù»~¡BCVV ¿ù»~
-        /// - ÃB«×°İÃD¡GÃB«×¤£¨¬¡B¶W¹L­­ÃB
-        /// - ¥æ©ö­­¨î¡G¥æ©ö¤£³Q¤¹³\
-        /// - ¨t²Î°İÃD¡G³s½u¹O®É¡Bºô¸ô¿ù»~¡B¨t²Î¿ù»~
-        /// - ¨Ï¥ÎªÌ¾Ş§@¡G¥æ©ö¨ú®ø
-        /// - ¦w¥şÅçÃÒ¡G3D ÅçÃÒ¥¢±Ñ
+        /// ã€æ”¯æ´çš„éŒ¯èª¤ä»£ç¢¼ã€‘
+        /// - å¡ç‰‡ç‹€æ…‹ï¼šè¢«æ‹’çµ•ã€éæœŸã€éºå¤±/è¢«ç›œ
+        /// - å¡ç‰‡è³‡æ–™ï¼šå¡è™ŸéŒ¯èª¤ã€CVV éŒ¯èª¤
+        /// - é¡åº¦å•é¡Œï¼šé¡åº¦ä¸è¶³ã€è¶…éé™é¡
+        /// - äº¤æ˜“é™åˆ¶ï¼šäº¤æ˜“ä¸è¢«å…è¨±
+        /// - ç³»çµ±å•é¡Œï¼šé€£ç·šé€¾æ™‚ã€ç¶²è·¯éŒ¯èª¤ã€ç³»çµ±éŒ¯èª¤
+        /// - ä½¿ç”¨è€…æ“ä½œï¼šäº¤æ˜“å–æ¶ˆ
+        /// - å®‰å…¨é©—è­‰ï¼š3D é©—è­‰å¤±æ•—
         /// 
-        /// ¡i¥N½X¨Ó·½¡j
-        /// - «H¥Î¥d±ÂÅv¦^À³½X¡]¼Ğ·Ç ISO 8583¡^
-        /// - ª÷¬y¥­¥x¦Û­q¿ù»~½X
+        /// ã€ä»£ç¢¼ä¾†æºã€‘
+        /// - ä¿¡ç”¨å¡æˆæ¬Šå›æ‡‰ç¢¼ï¼ˆæ¨™æº– ISO 8583ï¼‰
+        /// - é‡‘æµå¹³å°è‡ªè¨‚éŒ¯èª¤ç¢¼
         /// 
-        /// ¡iÂX¥R»¡©ú¡j
-        /// ¦p»İ·s¼W¿ù»~¥N½X¹ïÀ³¡A½Ğ¦b switch °Ï¶ô¤¤¥[¤J·sªº case
-        /// «O«ù°T®§Â²¼ä¡B¤Íµ½¡B¨ã¦³«ü¤Ş©Ê
+        /// ã€æ“´å……èªªæ˜ã€‘
+        /// å¦‚éœ€æ–°å¢éŒ¯èª¤ä»£ç¢¼å°æ‡‰ï¼Œè«‹åœ¨ switch å€å¡Šä¸­åŠ å…¥æ–°çš„ case
+        /// ä¿æŒè¨Šæ¯ç°¡æ½”ã€å‹å–„ã€å…·æœ‰æŒ‡å¼•æ€§
         /// 
         /// </summary>
-        /// <param name="errorCode">¿ù»~¥N½X¡]­^¤å©Î¼Æ¦r¥N½X¡^</param>
-        /// <param name="retCode">¦^¶Ç¥N½X¡]³Æ¥Î¡^</param>
-        /// <returns>¤Íµ½ªº¤¤¤å¿ù»~°T®§¡A¦pªG¥N½XµL¹ïÀ³«h¦^¶Ç null</returns>
+        /// <param name="errorCode">éŒ¯èª¤ä»£ç¢¼ï¼ˆè‹±æ–‡æˆ–æ•¸å­—ä»£ç¢¼ï¼‰</param>
+        /// <param name="retCode">å›å‚³ä»£ç¢¼ï¼ˆå‚™ç”¨ï¼‰</param>
+        /// <returns>å‹å–„çš„ä¸­æ–‡éŒ¯èª¤è¨Šæ¯ï¼Œå¦‚æœä»£ç¢¼ç„¡å°æ‡‰å‰‡å›å‚³ null</returns>
         private string GetFriendlyErrorMessage(string errorCode, string retCode)
         {
-            // Àu¥ı¨Ï¥Î errorCode¡A­Y¬°ªÅ«h¨Ï¥Î retCode
+            // å„ªå…ˆä½¿ç”¨ errorCodeï¼Œè‹¥ç‚ºç©ºå‰‡ä½¿ç”¨ retCode
             string code = errorCode ?? retCode ?? "";
 
-            // Âà´«¬°¤j¼g¶i¦æ¤ñ¹ï¡]Á×§K¤j¤p¼g°İÃD¡^
+            // è½‰æ›ç‚ºå¤§å¯«é€²è¡Œæ¯”å°ï¼ˆé¿å…å¤§å°å¯«å•é¡Œï¼‰
             switch (code.ToUpper())
             {
-                // ====== ¥d¤ù³Q©Úµ´ ======
+                // ====== å¡ç‰‡è¢«æ‹’çµ• ======
                 case "CARD_DECLINED":
                 case "51":
-                    return "«H¥Î¥d³Q©Úµ´¡A½Ğ½T»{¥d¤ùª¬ºA©ÎÁpÃ´µo¥d»È¦æ";
+                    return "ä¿¡ç”¨å¡è¢«æ‹’çµ•ï¼Œè«‹ç¢ºèªå¡ç‰‡ç‹€æ…‹æˆ–è¯ç¹«ç™¼å¡éŠ€è¡Œ";
 
-                // ====== ÃB«×¤£¨¬ ======
+                // ====== é¡åº¦ä¸è¶³ ======
                 case "INSUFFICIENT_FUNDS":
                 case "05":
-                    return "«H¥Î¥dÃB«×¤£¨¬¡A½Ğ¨Ï¥Î¨ä¥L¥d¤ù©ÎÁpÃ´µo¥d»È¦æ";
+                    return "ä¿¡ç”¨å¡é¡åº¦ä¸è¶³ï¼Œè«‹ä½¿ç”¨å…¶ä»–å¡ç‰‡æˆ–è¯ç¹«ç™¼å¡éŠ€è¡Œ";
 
-                // ====== ¥d¤ù¹L´Á ======
+                // ====== å¡ç‰‡éæœŸ ======
                 case "EXPIRED_CARD":
                 case "54":
-                    return "«H¥Î¥d¤w¹L´Á¡A½Ğ¨Ï¥Î¨ä¥L¦³®Ä¥d¤ù";
+                    return "ä¿¡ç”¨å¡å·²éæœŸï¼Œè«‹ä½¿ç”¨å…¶ä»–æœ‰æ•ˆå¡ç‰‡";
 
-                // ====== ¥d¸¹¿ù»~ ======
+                // ====== å¡è™ŸéŒ¯èª¤ ======
                 case "INVALID_CARD":
                 case "14":
-                    return "«H¥Î¥d¸¹½X¿ù»~¡A½ĞÀË¬d¥d¸¹¬O§_¥¿½T";
+                    return "ä¿¡ç”¨å¡è™Ÿç¢¼éŒ¯èª¤ï¼Œè«‹æª¢æŸ¥å¡è™Ÿæ˜¯å¦æ­£ç¢º";
 
-                // ====== CVV ¿ù»~ ======
+                // ====== CVV éŒ¯èª¤ ======
                 case "INVALID_CVV":
                 case "CVV_ERROR":
-                    return "¦w¥ş½X(CVV)¿ù»~¡A½Ğ­«·s¿é¤J";
+                    return "å®‰å…¨ç¢¼(CVV)éŒ¯èª¤ï¼Œè«‹é‡æ–°è¼¸å…¥";
 
-                // ====== ¥d¤ù¿ò¥¢©Î³Qµs ======
+                // ====== å¡ç‰‡éºå¤±æˆ–è¢«ç›œ ======
                 case "CARD_LOST_STOLEN":
                 case "43":
-                    return "¦¹¥d¤ù¤w³Q¦C¬°¿ò¥¢©Î³Qµs¡A½ĞÁpÃ´µo¥d»È¦æ";
+                    return "æ­¤å¡ç‰‡å·²è¢«åˆ—ç‚ºéºå¤±æˆ–è¢«ç›œï¼Œè«‹è¯ç¹«ç™¼å¡éŠ€è¡Œ";
 
-                // ====== ¥æ©ö¤£³Q¤¹³\ ======
+                // ====== äº¤æ˜“ä¸è¢«å…è¨± ======
                 case "TRANSACTION_NOT_PERMITTED":
                 case "57":
-                    return "¦¹¥æ©ö¤£³Q¤¹³\¡A½ĞÁpÃ´µo¥d»È¦æ";
+                    return "æ­¤äº¤æ˜“ä¸è¢«å…è¨±ï¼Œè«‹è¯ç¹«ç™¼å¡éŠ€è¡Œ";
 
-                // ====== ¶W¹L­­ÃB ======
+                // ====== è¶…éé™é¡ ======
                 case "EXCEEDED_LIMIT":
                 case "61":
-                    return "¶W¹L«H¥Î¥d¥æ©ö­­ÃB¡A½ĞÁpÃ´µo¥d»È¦æ";
+                    return "è¶…éä¿¡ç”¨å¡äº¤æ˜“é™é¡ï¼Œè«‹è¯ç¹«ç™¼å¡éŠ€è¡Œ";
 
-                // ====== ³s½u¹O®É©Îºô¸ô¿ù»~ ======
+                // ====== é€£ç·šé€¾æ™‚æˆ–ç¶²è·¯éŒ¯èª¤ ======
                 case "TIMEOUT":
                 case "NETWORK_ERROR":
-                    return "³s½u¹O®É©Îºô¸ô¿ù»~¡A½Ğµy«á¦A¸Õ";
+                    return "é€£ç·šé€¾æ™‚æˆ–ç¶²è·¯éŒ¯èª¤ï¼Œè«‹ç¨å¾Œå†è©¦";
 
-                // ====== ¨t²Î¿ù»~ ======
+                // ====== ç³»çµ±éŒ¯èª¤ ======
                 case "SYSTEM_ERROR":
                 case "96":
-                    return "¨t²Î¿ù»~¡A½Ğµy«á¦A¸Õ©ÎÁpÃ´«ÈªA";
+                    return "ç³»çµ±éŒ¯èª¤ï¼Œè«‹ç¨å¾Œå†è©¦æˆ–è¯ç¹«å®¢æœ";
 
-                // ====== ¥æ©ö¨ú®ø ======
+                // ====== äº¤æ˜“å–æ¶ˆ ======
                 case "CANCELLED":
                 case "USER_CANCELLED":
-                    return "¥æ©ö¤w³Q¨ú®ø";
+                    return "äº¤æ˜“å·²è¢«å–æ¶ˆ";
 
-                // ====== 3D ÅçÃÒ¥¢±Ñ ======
+                // ====== 3D é©—è­‰å¤±æ•— ======
                 case "3D_SECURE_FAILED":
                 case "3DS_FAILED":
-                    return "3DÅçÃÒ¥¢±Ñ¡A½Ğ­«·s¶i¦æÅçÃÒ";
+                    return "3Dé©—è­‰å¤±æ•—ï¼Œè«‹é‡æ–°é€²è¡Œé©—è­‰";
 
-                // ====== µL¹ïÀ³°T®§ ======
+                // ====== ç„¡å°æ‡‰è¨Šæ¯ ======
                 default:
-                    return null; // ¦^¶Ç null ªí¥ÜµL¹ïÀ³ªº¤Íµ½°T®§
+                    return null; // å›å‚³ null è¡¨ç¤ºç„¡å°æ‡‰çš„å‹å–„è¨Šæ¯
             }
         }
 
         #endregion
 
-        #region 3. ¤é»x°O¿ı
+        #region 3. æ—¥èªŒè¨˜éŒ„
 
         /// <summary>
         /// ========================================
-        /// °O¿ı§¹¾ãªºª÷¬y¦^¶Ç¸ê®Æ
+        /// è¨˜éŒ„å®Œæ•´çš„é‡‘æµå›å‚³è³‡æ–™
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ±Nª÷¬y¥­¥x¦^¶Çªº§¹¾ã¸ê®Æ°O¿ı¨ì¤é»x¨t²Î
-        /// ¥Î©ó°£¿ù¡B½]®Ö©M°İÃD°lÂÜ
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// å°‡é‡‘æµå¹³å°å›å‚³çš„å®Œæ•´è³‡æ–™è¨˜éŒ„åˆ°æ—¥èªŒç³»çµ±
+        /// ç”¨æ–¼é™¤éŒ¯ã€ç¨½æ ¸å’Œå•é¡Œè¿½è¹¤
         /// 
-        /// ¡i°O¿ı¤º®e¤ÀÃş¡j
-        /// 1. ®Ö¤ßÄæ¦ì¡Guid, key, prc, order_id¡]¥æ©öÃÑ§O¸ê°T¡^
-        /// 2. ¥æ©ö¸ê°T¡Gfinishtime, cost, actual_cost¡]ª÷ÃB»P®É¶¡¡^
-        /// 3. ¥I´Ú¸ê°T¡Gpfn, cardno, acode¡]¥I´Ú¤è¦¡»P±ÂÅv¡^
-        /// 4. ®ø¶OªÌ¸ê°T¡Guser_id¡]¨Ï¥ÎªÌÃÑ§O¡^
-        /// 5. ¦Û­q°Ñ¼Æ¡Gecho_0~2¡]°Ó®a¦Û­q¸ê®Æ¡^
-        /// 6. ÂÂª©Äæ¦ì¡Gstate, msg, transaction_id¡]¦V¤U¬Û®e¡^
+        /// ã€è¨˜éŒ„å…§å®¹åˆ†é¡ã€‘
+        /// 1. æ ¸å¿ƒæ¬„ä½ï¼šuid, key, prc, order_idï¼ˆäº¤æ˜“è­˜åˆ¥è³‡è¨Šï¼‰
+        /// 2. äº¤æ˜“è³‡è¨Šï¼šfinishtime, cost, actual_costï¼ˆé‡‘é¡èˆ‡æ™‚é–“ï¼‰
+        /// 3. ä»˜æ¬¾è³‡è¨Šï¼špfn, cardno, acodeï¼ˆä»˜æ¬¾æ–¹å¼èˆ‡æˆæ¬Šï¼‰
+        /// 4. æ¶ˆè²»è€…è³‡è¨Šï¼šuser_idï¼ˆä½¿ç”¨è€…è­˜åˆ¥ï¼‰
+        /// 5. è‡ªè¨‚åƒæ•¸ï¼šecho_0~2ï¼ˆå•†å®¶è‡ªè¨‚è³‡æ–™ï¼‰
+        /// 6. èˆŠç‰ˆæ¬„ä½ï¼šstate, msg, transaction_idï¼ˆå‘ä¸‹ç›¸å®¹ï¼‰
         /// 
-        /// ¡i¤é»x®æ¦¡¡j
-        /// ¨Ï¥Î´«¦æ²Å¸¹¤À¹j¦UÃş¸ê°T¡A«K©ó¾\Åª©M·j´M
+        /// ã€æ—¥èªŒæ ¼å¼ã€‘
+        /// ä½¿ç”¨æ›è¡Œç¬¦è™Ÿåˆ†éš”å„é¡è³‡è¨Šï¼Œä¾¿æ–¼é–±è®€å’Œæœå°‹
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// ¦b±µ¦¬¨ìª÷¬y¦^¶Ç«á¥ß§Y°O¿ı¡AµL½×¥æ©ö¦¨¥\©Î¥¢±Ñ
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// åœ¨æ¥æ”¶åˆ°é‡‘æµå›å‚³å¾Œç«‹å³è¨˜éŒ„ï¼Œç„¡è«–äº¤æ˜“æˆåŠŸæˆ–å¤±æ•—
         /// 
-        /// ¡iª`·N¨Æ¶µ¡j
-        /// - ±Ó·P¸ê°T¡]¦p§¹¾ã¥d¸¹¡^¤w¥Ñª÷¬y¥­¥x°µ¾B¸n³B²z
-        /// - µo¥Í°O¿ı¿ù»~®É¤£¼vÅT¥D¬yµ{¡A¶È°O¿ı¿ù»~
+        /// ã€æ³¨æ„äº‹é …ã€‘
+        /// - æ•æ„Ÿè³‡è¨Šï¼ˆå¦‚å®Œæ•´å¡è™Ÿï¼‰å·²ç”±é‡‘æµå¹³å°åšé®ç½©è™•ç†
+        /// - ç™¼ç”Ÿè¨˜éŒ„éŒ¯èª¤æ™‚ä¸å½±éŸ¿ä¸»æµç¨‹ï¼Œåƒ…è¨˜éŒ„éŒ¯èª¤
         /// 
         /// </summary>
-        /// <param name="model">ª÷¬y¦^¶Çªº¸ê®Æ¼Ò«¬</param>
+        /// <param name="model">é‡‘æµå›å‚³çš„è³‡æ–™æ¨¡å‹</param>
         private void LogFullReturnData(MyPayReturnModel model)
         {
             try
             {
-                // ²Õ¦X§¹¾ãªº¤é»x¸ê®Æ
-                var logData = $"[MyPay§¹¾ã¦^¶Ç¸ê®Æ]\n" +
-                             $"®Ö¤ßÄæ¦ì: uid={model.uid}, key={model.key}, prc={model.prc}, order_id={model.order_id}\n" +
-                             $"¥æ©ö¸ê°T: finishtime={model.finishtime}, cost={model.cost}, actual_cost={model.actual_cost}\n" +
-                             $"¥I´Ú¸ê°T: pfn={model.pfn}, cardno={model.cardno}, acode={model.acode}\n" +
-                             $"®ø¶OªÌ: user_id={model.user_id}\n" +
-                             $"¦Û­q°Ñ¼Æ: echo_0={model.echo_0}, echo_1={model.echo_1}, echo_2={model.echo_2}\n" +
-                             $"ÂÂª©Äæ¦ì: state={model.state}, msg={model.msg}, transaction_id={model.transaction_id}";
+                // çµ„åˆå®Œæ•´çš„æ—¥èªŒè³‡æ–™
+                var logData = $"[MyPayå®Œæ•´å›å‚³è³‡æ–™]\n" +
+                             $"æ ¸å¿ƒæ¬„ä½: uid={model.uid}, key={model.key}, prc={model.prc}, order_id={model.order_id}\n" +
+                             $"äº¤æ˜“è³‡è¨Š: finishtime={model.finishtime}, cost={model.cost}, actual_cost={model.actual_cost}\n" +
+                             $"ä»˜æ¬¾è³‡è¨Š: pfn={model.pfn}, cardno={model.cardno}, acode={model.acode}\n" +
+                             $"æ¶ˆè²»è€…: user_id={model.user_id}\n" +
+                             $"è‡ªè¨‚åƒæ•¸: echo_0={model.echo_0}, echo_1={model.echo_1}, echo_2={model.echo_2}\n" +
+                             $"èˆŠç‰ˆæ¬„ä½: state={model.state}, msg={model.msg}, transaction_id={model.transaction_id}";
 
-                // ¼g¤J¤é»x
+                // å¯«å…¥æ—¥èªŒ
                 _logger.LogInformation(logData);
             }
             catch (Exception ex)
             {
-                // °O¿ı¤é»x¥»¨­µo¥Í¿ù»~¡A°O¿ı¨Ò¥~¦ı¤£¤¤Â_¬yµ{
-                _logger.LogError(ex, "[MyPay¦^¶Ç] °O¿ı¦^¶Ç¸ê®Æ®Éµo¥Í¿ù»~");
+                // è¨˜éŒ„æ—¥èªŒæœ¬èº«ç™¼ç”ŸéŒ¯èª¤ï¼Œè¨˜éŒ„ä¾‹å¤–ä½†ä¸ä¸­æ–·æµç¨‹
+                _logger.LogError(ex, "[MyPayå›å‚³] è¨˜éŒ„å›å‚³è³‡æ–™æ™‚ç™¼ç”ŸéŒ¯èª¤");
             }
         }
 
         #endregion
 
-        #region 4. CRM ¸ê®Æ§ó·s
+        #region 4. CRM è³‡æ–™æ›´æ–°
 
         /// <summary>
         /// ========================================
-        /// §ó·s CRM ¦¬¶O³æ¡]¨Ï¥Î MyPayReturnModel¡^
+        /// æ›´æ–° CRM æ”¶è²»å–®ï¼ˆä½¿ç”¨ MyPayReturnModelï¼‰
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ®Ú¾Úª÷¬y¦^¶Çµ²ªG§ó·s Dynamics 365 CRM ¤¤ªº¦¬¶O³æ°O¿ı
-        /// ¥]§t¥I´Úª¬ºA¡Bª÷ÃB¡B®É¶¡¡B¥æ©ö©ú²Óµ¥§¹¾ã¸ê°T
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// æ ¹æ“šé‡‘æµå›å‚³çµæœæ›´æ–° Dynamics 365 CRM ä¸­çš„æ”¶è²»å–®è¨˜éŒ„
+        /// åŒ…å«ä»˜æ¬¾ç‹€æ…‹ã€é‡‘é¡ã€æ™‚é–“ã€äº¤æ˜“æ˜ç´°ç­‰å®Œæ•´è³‡è¨Š
         /// 
-        /// ¡i§ó·s¤º®e¡j
+        /// ã€æ›´æ–°å…§å®¹ã€‘
         /// 
-        /// ? ¦¨¥\¥æ©ö§ó·s¶µ¥Ø¡G
-        /// - new_pay_status: ³]¬°¡u¤wÃº¶O¡v¡]100000001¡^
-        /// - new_fee_really_paid: ¹ê¥Iª÷ÃB¡]»PÀ³¥Iª÷ÃB¬Û¦P¡^
-        /// - new_difference_fee_paid: ®tÃB¡]³]¬° 0¡^
-        /// - new_pay_date: ¥I´Ú¤é´Á®É¶¡
-        /// - new_pay_way: ¥I´Ú¤è¦¡¡]«H¥Î¥d = 100000001¡^
+        /// â–º æˆåŠŸäº¤æ˜“æ›´æ–°é …ç›®ï¼š
+        /// - new_pay_status: è¨­ç‚ºã€Œå·²ç¹³è²»ã€ï¼ˆ100000001ï¼‰
+        /// - new_fee_really_paid: å¯¦ä»˜é‡‘é¡ï¼ˆèˆ‡æ‡‰ä»˜é‡‘é¡ç›¸åŒï¼‰
+        /// - new_difference_fee_paid: å·®é¡ï¼ˆè¨­ç‚º 0ï¼‰
+        /// - new_pay_date: ä»˜æ¬¾æ—¥æœŸæ™‚é–“
+        /// - new_pay_way: ä»˜æ¬¾æ–¹å¼ï¼ˆä¿¡ç”¨å¡ = 100000001ï¼‰
         /// 
-        /// ? ¦¨¥\»P¥¢±Ñ³£§ó·sªº¶µ¥Ø¡G
-        /// - new_description: ªş¥[¥æ©ö©ú²Ó¡]§¹¾ãªºª÷¬y¦^¶Ç¸ê°T¡^
+        /// â–º æˆåŠŸèˆ‡å¤±æ•—éƒ½æ›´æ–°çš„é …ç›®ï¼š
+        /// - new_description: é™„åŠ äº¤æ˜“æ˜ç´°ï¼ˆå®Œæ•´çš„é‡‘æµå›å‚³è³‡è¨Šï¼‰
         /// 
-        /// ¡i´y­zÄæ¦ì¤º®eµ²ºc¡j
+        /// ã€æè¿°æ¬„ä½å…§å®¹çµæ§‹ã€‘
         /// ```
-        /// [ª÷¬y¦^¶Ç¸ê°T - ®É¶¡ÂW°O]
-        /// ====== ®Ö¤ßÄæ¦ì ======
-        /// ­q³æ¸¹¡B¥æ©ö¬y¤ô¸¹¡BÅçÃÒ½X¡Bª¬ºA½X
-        /// ====== ¥æ©ö¸ê°T ======
-        /// §¹¦¨®É¶¡¡Bª÷ÃB¡B¹ô§O
-        /// ====== ¥I´Ú¸ê°T ======
-        /// ¥I´Ú¤è¦¡¡B¥d¸¹¡B±ÂÅv½X¡B¥d§O¡Bµo¥d¦æ
-        /// ====== ¤À´Á/¬õ§Q¸ê°T ======¡]­Y¦³¡^
-        /// ¤À´Á´Á¼Æ¡B¬õ§QÂI¼Æ
-        /// ====== ªA°È°Ó¸ê°T ======¡]­Y¦³¡^
-        /// ª÷¿ÄªA°È°Ó¦WºÙ»P¥N½X
-        /// ====== ©w´Á©wÃB¸ê°T ======¡]­Y¦³¡^
-        /// ¦©´Ú¦WºÙ¡B´Á¼Æ¡B¸s²Õ½s¸¹
-        /// ====== µêÀÀ±b¸¹¸ê°T ======¡]­Y¦³¡^
-        /// »È¦æ¥N½X¡B¦³®Ä´Á­­
-        /// ====== ¦Û­q°Ñ¼Æ ======¡]­Y¦³¡^
+        /// [é‡‘æµå›å‚³è³‡è¨Š - æ™‚é–“æˆ³è¨˜]
+        /// ====== æ ¸å¿ƒæ¬„ä½ ======
+        /// è¨‚å–®è™Ÿã€äº¤æ˜“æµæ°´è™Ÿã€é©—è­‰ç¢¼ã€ç‹€æ…‹ç¢¼
+        /// ====== äº¤æ˜“è³‡è¨Š ======
+        /// å®Œæˆæ™‚é–“ã€é‡‘é¡ã€å¹£åˆ¥
+        /// ====== ä»˜æ¬¾è³‡è¨Š ======
+        /// ä»˜æ¬¾æ–¹å¼ã€å¡è™Ÿã€æˆæ¬Šç¢¼ã€å¡åˆ¥ã€ç™¼å¡è¡Œ
+        /// ====== åˆ†æœŸ/ç´…åˆ©è³‡è¨Š ======ï¼ˆè‹¥æœ‰ï¼‰
+        /// åˆ†æœŸæœŸæ•¸ã€ç´…åˆ©é»æ•¸
+        /// ====== æœå‹™å•†è³‡è¨Š ======ï¼ˆè‹¥æœ‰ï¼‰
+        /// é‡‘èæœå‹™å•†åç¨±èˆ‡ä»£ç¢¼
+        /// ====== å®šæœŸå®šé¡è³‡è¨Š ======ï¼ˆè‹¥æœ‰ï¼‰
+        /// æ‰£æ¬¾åç¨±ã€æœŸæ•¸ã€ç¾¤çµ„ç·¨è™Ÿ
+        /// ====== è™›æ“¬å¸³è™Ÿè³‡è¨Š ======ï¼ˆè‹¥æœ‰ï¼‰
+        /// éŠ€è¡Œä»£ç¢¼ã€æœ‰æ•ˆæœŸé™
+        /// ====== è‡ªè¨‚åƒæ•¸ ======ï¼ˆè‹¥æœ‰ï¼‰
         /// echo_0 ~ echo_4
-        /// ====== ÂÂª©¬Û®eÄæ¦ì ======
+        /// ====== èˆŠç‰ˆç›¸å®¹æ¬„ä½ ======
         /// state, msg, transaction_id, store_uid, hash
         /// ```
         /// 
-        /// ¡i¿ù»~³B²z¡j
-        /// - §ó·s¥¢±Ñ·|°O¿ı¿ù»~¨Ã©ß¥X¨Ò¥~
-        /// - ¤W¼h»İ­n³B²z¨Ò¥~¨Ã¨M©w«áÄò¬yµ{
+        /// ã€éŒ¯èª¤è™•ç†ã€‘
+        /// - æ›´æ–°å¤±æ•—æœƒè¨˜éŒ„éŒ¯èª¤ä¸¦æ‹‹å‡ºä¾‹å¤–
+        /// - ä¸Šå±¤éœ€è¦è™•ç†ä¾‹å¤–ä¸¦æ±ºå®šå¾ŒçºŒæµç¨‹
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// ¦bÅçÃÒª÷¬y¦^¶Ç¸ê®Æ«á¡AµL½×¦¨¥\©Î¥¢±Ñ³£»İ­n§ó·s CRM °O¿ı
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// åœ¨é©—è­‰é‡‘æµå›å‚³è³‡æ–™å¾Œï¼Œç„¡è«–æˆåŠŸæˆ–å¤±æ•—éƒ½éœ€è¦æ›´æ–° CRM è¨˜éŒ„
         /// 
         /// </summary>
-        /// <param name="toolUtility">CRM ¤u¨ãÃş¹ê¨Ò</param>
-        /// <param name="feeEntity">­n§ó·sªº¦¬¶O³æ¹êÅé</param>
-        /// <param name="model">ª÷¬y¦^¶Ç¸ê®Æ¼Ò«¬</param>
-        /// <param name="isSuccess">¥æ©ö¬O§_¦¨¥\</param>
-        /// <exception cref="Exception">·í§ó·s CRM ¥¢±Ñ®É©ß¥X</exception>
+        /// <param name="toolUtility">CRM å·¥å…·é¡å¯¦ä¾‹</param>
+        /// <param name="feeEntity">è¦æ›´æ–°çš„æ”¶è²»å–®å¯¦é«”</param>
+        /// <param name="model">é‡‘æµå›å‚³è³‡æ–™æ¨¡å‹</param>
+        /// <param name="isSuccess">äº¤æ˜“æ˜¯å¦æˆåŠŸ</param>
+        /// <exception cref="Exception">ç•¶æ›´æ–° CRM å¤±æ•—æ™‚æ‹‹å‡º</exception>
         private void UpdateFeeEntityWithMyPayReturn(
             ToolUtilityClass toolUtility, 
             Entity feeEntity, 
@@ -1195,118 +1195,118 @@ namespace ChurchReport.Controllers
             try
             {
                 // ========================================
-                // ¨BÆJ 1¡G¸ÑªR¥I´Ú®É¶¡
+                // æ­¥é©Ÿ 1ï¼šè§£æä»˜æ¬¾æ™‚é–“
                 // ========================================
                 DateTime paymentTime = ParseFinishTime(model.finishtime);
 
                 // ========================================
-                // ¨BÆJ 2¡G¦pªG¥æ©ö¦¨¥\¡A§ó·s¥I´Úª¬ºA¬ÛÃöÄæ¦ì
+                // æ­¥é©Ÿ 2ï¼šå¦‚æœäº¤æ˜“æˆåŠŸï¼Œæ›´æ–°ä»˜æ¬¾ç‹€æ…‹ç›¸é—œæ¬„ä½
                 // ========================================
                 if (isSuccess)
                 {
-                    // ¨ú±oÀ³¥Iª÷ÃB
+                    // å–å¾—æ‡‰ä»˜é‡‘é¡
                     var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
 
-                    // §ó·s¥I´Úª¬ºA¬°¡u¤wÃº¶O¡v
+                    // æ›´æ–°ä»˜æ¬¾ç‹€æ…‹ç‚ºã€Œå·²ç¹³è²»ã€
                     toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PAYMENT_STATUS_PAID);
 
-                    // ³]©w¹ê¥Iª÷ÃB¡]µ¥©óÀ³¥Iª÷ÃB¡^
+                    // è¨­å®šå¯¦ä»˜é‡‘é¡ï¼ˆç­‰æ–¼æ‡‰ä»˜é‡‘é¡ï¼‰
                     toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_fee_really_paid", shouldPayMoney);
 
-                    // ³]©w®tÃB¬° 0¡]ªí¥Ü¥şÃBÃº²M¡^
+                    // è¨­å®šå·®é¡ç‚º 0ï¼ˆè¡¨ç¤ºå…¨é¡ç¹³æ¸…ï¼‰
                     toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_difference_fee_paid", new Money(0));
 
-                    // ³]©w¥I´Ú¤é´Á
+                    // è¨­å®šä»˜æ¬¾æ—¥æœŸ
                     toolUtility.SetEntityDateTimeAttribute(ref feeEntity, "new_pay_date", paymentTime);
 
-                    // ³]©w¥I´Ú¤è¦¡¬°¡u«H¥Î¥d¡v
+                    // è¨­å®šä»˜æ¬¾æ–¹å¼ç‚ºã€Œä¿¡ç”¨å¡ã€
                     toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PAYMENT_METHOD_CREDIT_CARD);
                 }
 
                 // ========================================
-                // ¨BÆJ 3¡G·Ç³Æ´y­zÄæ¦ì¸ê®Æ¡]¦¨¥\»P¥¢±Ñ³£»İ­n¡^
+                // æ­¥é©Ÿ 3ï¼šæº–å‚™æè¿°æ¬„ä½è³‡æ–™ï¼ˆæˆåŠŸèˆ‡å¤±æ•—éƒ½éœ€è¦ï¼‰
                 // ========================================
                 
-                // ¨ú±o­ì©l´y­z¤º®e
+                // å–å¾—åŸå§‹æè¿°å…§å®¹
                 var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description") ?? string.Empty;
 
-                // Âà´«¥I´Ú¤è¦¡¥N½X¬°¤¤¤å¦WºÙ
+                // è½‰æ›ä»˜æ¬¾æ–¹å¼ä»£ç¢¼ç‚ºä¸­æ–‡åç¨±
                 var paymentMethodName = GetPaymentMethodName(model.pfn);
 
-                // Âà´«¥æ©öª¬ºA¥N½X¬°¤¤¤å»¡©ú
+                // è½‰æ›äº¤æ˜“ç‹€æ…‹ä»£ç¢¼ç‚ºä¸­æ–‡èªªæ˜
                 var statusMessage = GetPaymentStatusMessage(model.prc);
 
                 // ========================================
-                // ¨BÆJ 4¡G«Ø¥ß·sªº´y­z¤º®e¡]ªş¥[¦b­ì´y­z¤§«á¡^
+                // æ­¥é©Ÿ 4ï¼šå»ºç«‹æ–°çš„æè¿°å…§å®¹ï¼ˆé™„åŠ åœ¨åŸæè¿°ä¹‹å¾Œï¼‰
                 // ========================================
                 var newDescription = originalDescription + Environment.NewLine +
-                    $"[ª÷¬y¦^¶Ç¸ê°T - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +
-                    "====== ®Ö¤ßÄæ¦ì ======" + Environment.NewLine +
-                    $"­q³æ¸¹(order_id): {model.order_id}" + Environment.NewLine +
-                    $"¥æ©ö¬y¤ô¸¹(uid): {model.uid}" + Environment.NewLine +
-                    $"¥æ©öÅçÃÒ½X(key): {model.key}" + Environment.NewLine +
-                    $"¥æ©öª¬ºA½X(prc): {model.prc} ({statusMessage})" + Environment.NewLine +
-                    "====== ¥æ©ö¸ê°T ======" + Environment.NewLine +
-                    $"§¹¦¨®É¶¡: {paymentTime:yyyy-MM-dd HH:mm:ss}" + Environment.NewLine +
-                    $"¥æ©öª÷ÃB: {model.cost}" + Environment.NewLine +
-                    $"¹ê»Úª÷ÃB: {model.actual_cost ?? model.cost}" + Environment.NewLine +
-                    $"¥æ©ö¹ô§O: {model.currency ?? "TWD"}" + Environment.NewLine +
-                    "====== ¥I´Ú¸ê°T ======" + Environment.NewLine +
-                    $"¥I´Ú¤è¦¡(pfn): {paymentMethodName}" + Environment.NewLine +
-                    $"¥d¸¹: {model.cardno}" + Environment.NewLine +
-                    $"±ÂÅv½X: {model.acode}" + Environment.NewLine +
-                    $"¥d§O: {model.card_type}" + Environment.NewLine +
-                    $"µo¥d¦æ: {model.issuing_bank}" + Environment.NewLine +
-                    $"µo¥d¦æ¥N½X: {model.issuing_bank_uid}" + Environment.NewLine;
+                    $"[é‡‘æµå›å‚³è³‡è¨Š - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +
+                    "====== æ ¸å¿ƒæ¬„ä½ ======" + Environment.NewLine +
+                    $"è¨‚å–®è™Ÿ(order_id): {model.order_id}" + Environment.NewLine +
+                    $"äº¤æ˜“æµæ°´è™Ÿ(uid): {model.uid}" + Environment.NewLine +
+                    $"äº¤æ˜“é©—è­‰ç¢¼(key): {model.key}" + Environment.NewLine +
+                    $"äº¤æ˜“ç‹€æ…‹ç¢¼(prc): {model.prc} ({statusMessage})" + Environment.NewLine +
+                    "====== äº¤æ˜“è³‡è¨Š ======" + Environment.NewLine +
+                    $"å®Œæˆæ™‚é–“: {paymentTime:yyyy-MM-dd HH:mm:ss}" + Environment.NewLine +
+                    $"äº¤æ˜“é‡‘é¡: {model.cost}" + Environment.NewLine +
+                    $"å¯¦éš›é‡‘é¡: {model.actual_cost ?? model.cost}" + Environment.NewLine +
+                    $"äº¤æ˜“å¹£åˆ¥: {model.currency ?? "TWD"}" + Environment.NewLine +
+                    "====== ä»˜æ¬¾è³‡è¨Š ======" + Environment.NewLine +
+                    $"ä»˜æ¬¾æ–¹å¼(pfn): {paymentMethodName}" + Environment.NewLine +
+                    $"å¡è™Ÿ: {model.cardno}" + Environment.NewLine +
+                    $"æˆæ¬Šç¢¼: {model.acode}" + Environment.NewLine +
+                    $"å¡åˆ¥: {model.card_type}" + Environment.NewLine +
+                    $"ç™¼å¡è¡Œ: {model.issuing_bank}" + Environment.NewLine +
+                    $"ç™¼å¡è¡Œä»£ç¢¼: {model.issuing_bank_uid}" + Environment.NewLine;
 
                 // ========================================
-                // ¨BÆJ 5¡Gªş¥[¿ï¶ñ¸ê°T¡]­Y¦³¸ê®Æ¤~¥[¤J¡^
+                // æ­¥é©Ÿ 5ï¼šé™„åŠ é¸å¡«è³‡è¨Šï¼ˆè‹¥æœ‰è³‡æ–™æ‰åŠ å…¥ï¼‰
                 // ========================================
 
-                // ¤À´Á¸ê°T
+                // åˆ†æœŸè³‡è¨Š
                 if (!string.IsNullOrEmpty(model.installment))
-                    newDescription += $"¤À´Á¸ê°T: {model.installment}" + Environment.NewLine;
+                    newDescription += $"åˆ†æœŸè³‡è¨Š: {model.installment}" + Environment.NewLine;
 
-                // ¬õ§Q¸ê°T
+                // ç´…åˆ©è³‡è¨Š
                 if (!string.IsNullOrEmpty(model.redeem))
-                    newDescription += $"¬õ§Q¸ê°T: {model.redeem}" + Environment.NewLine;
+                    newDescription += $"ç´…åˆ©è³‡è¨Š: {model.redeem}" + Environment.NewLine;
 
-                // ªA°È°Ó¸ê°T
+                // æœå‹™å•†è³‡è¨Š
                 if (!string.IsNullOrEmpty(model.supplier_name))
                 {
-                    newDescription += "====== ªA°È°Ó¸ê°T ======" + Environment.NewLine +
-                                      $"ªA°È°Ó: {model.supplier_name}" + Environment.NewLine +
-                                      $"ªA°È°Ó¥N½X: {model.supplier_code}" + Environment.NewLine;
+                    newDescription += "====== æœå‹™å•†è³‡è¨Š ======" + Environment.NewLine +
+                                      $"æœå‹™å•†: {model.supplier_name}" + Environment.NewLine +
+                                      $"æœå‹™å•†ä»£ç¢¼: {model.supplier_code}" + Environment.NewLine;
                 }
 
-                // ©w´Á©wÃB¸ê°T
+                // å®šæœŸå®šé¡è³‡è¨Š
                 if (!string.IsNullOrEmpty(model.payment_name) || 
                     !string.IsNullOrEmpty(model.nois) || 
                     !string.IsNullOrEmpty(model.group_id))
                 {
-                    newDescription += "====== ©w´Á©wÃB¸ê°T ======" + Environment.NewLine +
-                                      $"¦©´Ú¦WºÙ: {model.payment_name}" + Environment.NewLine +
-                                      $"´Á¼Æ: {model.nois}" + Environment.NewLine +
-                                      $"¸s²Õ½s¸¹: {model.group_id}" + Environment.NewLine;
+                    newDescription += "====== å®šæœŸå®šé¡è³‡è¨Š ======" + Environment.NewLine +
+                                      $"æ‰£æ¬¾åç¨±: {model.payment_name}" + Environment.NewLine +
+                                      $"æœŸæ•¸: {model.nois}" + Environment.NewLine +
+                                      $"ç¾¤çµ„ç·¨è™Ÿ: {model.group_id}" + Environment.NewLine;
                 }
 
-                // µêÀÀ±b¸¹¸ê°T
+                // è™›æ“¬å¸³è™Ÿè³‡è¨Š
                 if (!string.IsNullOrEmpty(model.bank_id) || 
                     !string.IsNullOrEmpty(model.expired_date))
                 {
-                    newDescription += "====== µêÀÀ±b¸¹¸ê°T ======" + Environment.NewLine +
-                                      $"»È¦æ¥N½X: {model.bank_id}" + Environment.NewLine +
-                                      $"¦³®Ä´Á­­: {model.expired_date}" + Environment.NewLine;
+                    newDescription += "====== è™›æ“¬å¸³è™Ÿè³‡è¨Š ======" + Environment.NewLine +
+                                      $"éŠ€è¡Œä»£ç¢¼: {model.bank_id}" + Environment.NewLine +
+                                      $"æœ‰æ•ˆæœŸé™: {model.expired_date}" + Environment.NewLine;
                 }
 
-                // ¦Û­q°Ñ¼Æ
+                // è‡ªè¨‚åƒæ•¸
                 if (!string.IsNullOrEmpty(model.echo_0) || 
                     !string.IsNullOrEmpty(model.echo_1) || 
                     !string.IsNullOrEmpty(model.echo_2) || 
                     !string.IsNullOrEmpty(model.echo_3) || 
                     !string.IsNullOrEmpty(model.echo_4))
                 {
-                    newDescription += "====== ¦Û­q°Ñ¼Æ ======" + Environment.NewLine +
+                    newDescription += "====== è‡ªè¨‚åƒæ•¸ ======" + Environment.NewLine +
                                       $"echo_0: {model.echo_0}" + Environment.NewLine +
                                       $"echo_1: {model.echo_1}" + Environment.NewLine +
                                       $"echo_2: {model.echo_2}" + Environment.NewLine +
@@ -1314,8 +1314,8 @@ namespace ChurchReport.Controllers
                                       $"echo_4: {model.echo_4}" + Environment.NewLine;
                 }
 
-                // ÂÂª©¬Û®eÄæ¦ì
-                newDescription += "====== ÂÂª©¬Û®eÄæ¦ì ======" + Environment.NewLine +
+                // èˆŠç‰ˆç›¸å®¹æ¬„ä½
+                newDescription += "====== èˆŠç‰ˆç›¸å®¹æ¬„ä½ ======" + Environment.NewLine +
                                   $"state: {model.state}" + Environment.NewLine +
                                   $"msg: {model.msg}" + Environment.NewLine +
                                   $"transaction_id: {model.transaction_id}" + Environment.NewLine +
@@ -1323,57 +1323,57 @@ namespace ChurchReport.Controllers
                                   $"hash: {model.hash}" + Environment.NewLine;
 
                 // ========================================
-                // ¨BÆJ 6¡G§ó·s´y­zÄæ¦ì
+                // æ­¥é©Ÿ 6ï¼šæ›´æ–°æè¿°æ¬„ä½
                 // ========================================
                 toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
 
-                // °O¿ı¦¨¥\¤é»x
-                _logger.LogInformation($"[MyPay¦^¶Ç] ¦¬¶O³æÄæ¦ì¤w§ó·s - FeeId: {feeEntity.Id}, OrderId: {model.order_id}");
+                // è¨˜éŒ„æˆåŠŸæ—¥èªŒ
+                _logger.LogInformation($"[MyPayå›å‚³] æ”¶è²»å–®æ¬„ä½å·²æ›´æ–° - FeeId: {feeEntity.Id}, OrderId: {model.order_id}");
             }
             catch (Exception ex)
             {
-                // °O¿ı¿ù»~¨Ã­«·s©ß¥X¨Ò¥~
-                _logger.LogError(ex, $"[MyPay¦^¶Ç] §ó·s¦¬¶O³æ¥¢±Ñ - OrderId: {model.order_id}");
+                // è¨˜éŒ„éŒ¯èª¤ä¸¦é‡æ–°æ‹‹å‡ºä¾‹å¤–
+                _logger.LogError(ex, $"[MyPayå›å‚³] æ›´æ–°æ”¶è²»å–®å¤±æ•— - OrderId: {model.order_id}");
                 throw;
             }
         }
 
         /// <summary>
         /// ========================================
-        /// §ó·s CRM ¦¬¶O³æ¡]¨Ï¥Î­Ó§O°Ñ¼Æ¡^
+        /// æ›´æ–° CRM æ”¶è²»å–®ï¼ˆä½¿ç”¨å€‹åˆ¥åƒæ•¸ï¼‰
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ³o¬OÂÂª©ªº§ó·s¤èªk¡A¨Ï¥Î­Ó§O°Ñ¼Æ¦Ó«D MyPayReturnModel
-        /// ¥D­n¥Î©ó¦V¤U¬Û®e©Î¯S®í±¡ªp³B²z
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// é€™æ˜¯èˆŠç‰ˆçš„æ›´æ–°æ–¹æ³•ï¼Œä½¿ç”¨å€‹åˆ¥åƒæ•¸è€Œé MyPayReturnModel
+        /// ä¸»è¦ç”¨æ–¼å‘ä¸‹ç›¸å®¹æˆ–ç‰¹æ®Šæƒ…æ³è™•ç†
         /// 
-        /// ¡i»P UpdateFeeEntityWithMyPayReturn ªº®t²§¡j
-        /// - °Ñ¼Æ¬°­Ó§OÄæ¦ì¦Ó«D§¹¾ã¼Ò«¬
-        /// - °O¿ıªº¸ê°T¸û¬°ºëÂ²
-        /// - ¯Ê¤Ö¶i¶¥Äæ¦ì¡]¤À´Á¡B¬õ§Q¡BªA°È°Óµ¥¡^
+        /// ã€èˆ‡ UpdateFeeEntityWithMyPayReturn çš„å·®ç•°ã€‘
+        /// - åƒæ•¸ç‚ºå€‹åˆ¥æ¬„ä½è€Œéå®Œæ•´æ¨¡å‹
+        /// - è¨˜éŒ„çš„è³‡è¨Šè¼ƒç‚ºç²¾ç°¡
+        /// - ç¼ºå°‘é€²éšæ¬„ä½ï¼ˆåˆ†æœŸã€ç´…åˆ©ã€æœå‹™å•†ç­‰ï¼‰
         /// 
-        /// ¡i«ØÄ³¡j
-        /// ·s¶}µoÀ³Àu¥ı¨Ï¥Î UpdateFeeEntityWithMyPayReturn ¤èªk
-        /// ¥»¤èªk¶È«O¯d¥Î©ó¯S®í»İ¨D©Î¦V¤U¬Û®e
+        /// ã€å»ºè­°ã€‘
+        /// æ–°é–‹ç™¼æ‡‰å„ªå…ˆä½¿ç”¨ UpdateFeeEntityWithMyPayReturn æ–¹æ³•
+        /// æœ¬æ–¹æ³•åƒ…ä¿ç•™ç”¨æ–¼ç‰¹æ®Šéœ€æ±‚æˆ–å‘ä¸‹ç›¸å®¹
         /// 
-        /// ¡i§ó·s¤º®e¡j
-        /// »P UpdateFeeEntityWithMyPayReturn ¬Û¦Pªº¦¨¥\ª¬ºA§ó·s
-        /// ¦ı´y­zÄæ¦ì¤º®e¸û¬°ºëÂ²
+        /// ã€æ›´æ–°å…§å®¹ã€‘
+        /// èˆ‡ UpdateFeeEntityWithMyPayReturn ç›¸åŒçš„æˆåŠŸç‹€æ…‹æ›´æ–°
+        /// ä½†æè¿°æ¬„ä½å…§å®¹è¼ƒç‚ºç²¾ç°¡
         /// 
         /// </summary>
-        /// <param name="toolUtility">CRM ¤u¨ãÃş¹ê¨Ò</param>
-        /// <param name="feeEntity">­n§ó·sªº¦¬¶O³æ¹êÅé</param>
-        /// <param name="orderId">­q³æ½s¸¹</param>
-        /// <param name="uid">¥æ©ö¬y¤ô¸¹</param>
-        /// <param name="key">¥æ©öÅçÃÒ½X</param>
-        /// <param name="cost">¥æ©öª÷ÃB</param>
-        /// <param name="actualCost">¹ê»Úª÷ÃB</param>
-        /// <param name="prc">¥æ©öª¬ºA½X</param>
-        /// <param name="pfn">¥I´Ú¤è¦¡¥N½X</param>
-        /// <param name="paymentTime">¥I´Ú®É¶¡</param>
-        /// <param name="cardno">«H¥Î¥d¸¹¡]¾B¸n«á¡^</param>
-        /// <param name="acode">±ÂÅv½X</acode>
-        /// <exception cref="Exception">·í§ó·s CRM ¥¢±Ñ®É©ß¥X</exception>
+        /// <param name="toolUtility">CRM å·¥å…·é¡å¯¦ä¾‹</param>
+        /// <param name="feeEntity">è¦æ›´æ–°çš„æ”¶è²»å–®å¯¦é«”</param>
+        /// <param name="orderId">è¨‚å–®ç·¨è™Ÿ</param>
+        /// <param name="uid">äº¤æ˜“æµæ°´è™Ÿ</param>
+        /// <param name="key">äº¤æ˜“é©—è­‰ç¢¼</param>
+        /// <param name="cost">äº¤æ˜“é‡‘é¡</param>
+        /// <param name="actualCost">å¯¦éš›é‡‘é¡</param>
+        /// <param name="prc">äº¤æ˜“ç‹€æ…‹ç¢¼</param>
+        /// <param name="pfn">ä»˜æ¬¾æ–¹å¼ä»£ç¢¼</param>
+        /// <param name="paymentTime">ä»˜æ¬¾æ™‚é–“</param>
+        /// <param name="cardno">ä¿¡ç”¨å¡è™Ÿï¼ˆé®ç½©å¾Œï¼‰</param>
+        /// <param name="acode">æˆæ¬Šç¢¼</acode>
+        /// <exception cref="Exception">ç•¶æ›´æ–° CRM å¤±æ•—æ™‚æ‹‹å‡º</exception>
         private void UpdateFeeEntityForSuccessWithMyPay(
             ToolUtilityClass toolUtility, 
             Entity feeEntity, 
@@ -1391,7 +1391,7 @@ namespace ChurchReport.Controllers
             try
             {
                 // ========================================
-                // ¨BÆJ 1¡G§ó·s¥I´Úª¬ºA¬ÛÃöÄæ¦ì¡]»P¥D¤èªk¬Û¦P¡^
+                // æ­¥é©Ÿ 1ï¼šæ›´æ–°ä»˜æ¬¾ç‹€æ…‹ç›¸é—œæ¬„ä½ï¼ˆèˆ‡ä¸»æ–¹æ³•ç›¸åŒï¼‰
                 // ========================================
                 var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
                 toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PAYMENT_STATUS_PAID);
@@ -1401,101 +1401,101 @@ namespace ChurchReport.Controllers
                 toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PAYMENT_METHOD_CREDIT_CARD);
 
                 // ========================================
-                // ¨BÆJ 2¡G«Ø¥ßºëÂ²ª©´y­z¤º®e
+                // æ­¥é©Ÿ 2ï¼šå»ºç«‹ç²¾ç°¡ç‰ˆæè¿°å…§å®¹
                 // ========================================
                 DateTime transTime = ParseFinishTime(paymentTime.ToString("yyyyMMddHHmmss"));
                 var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description") ?? string.Empty;
 
-                // «Ø¥ßºëÂ²ªº´y­z¤º®e¡]¤£¥]§t¶i¶¥¸ê°T¡^
+                // å»ºç«‹ç²¾ç°¡çš„æè¿°å…§å®¹ï¼ˆä¸åŒ…å«é€²éšè³‡è¨Šï¼‰
                 var newDescription = originalDescription + Environment.NewLine +
-                    $"[ª÷¬y¦^¶Ç¸ê°T - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +
-                    "====== ®Ö¤ßÄæ¦ì ======" + Environment.NewLine +
-                    $"­q³æ¸¹(order_id): {orderId}" + Environment.NewLine +
-                    $"¥æ©ö¬y¤ô¸¹(uid): {uid}" + Environment.NewLine +
-                    $"¥æ©öÅçÃÒ½X(key): {key}" + Environment.NewLine +
-                    $"¥æ©öª¬ºA½X(prc): {prc} ({GetPaymentStatusMessage(prc)})" + Environment.NewLine +
-                    "====== ¥æ©ö¸ê°T ======" + Environment.NewLine +
-                    $"§¹¦¨®É¶¡: {transTime:yyyy-MM-dd HH:mm:ss}" + Environment.NewLine +
-                    $"¥æ©öª÷ÃB: {cost}" + Environment.NewLine +
-                    $"¹ê»Úª÷ÃB: {actualCost ?? cost}" + Environment.NewLine +
-                    $"¥æ©ö¹ô§O: TWD" + Environment.NewLine +
-                    "====== ¥I´Ú¸ê°T ======" + Environment.NewLine +
-                    $"¥I´Ú¤è¦¡(pfn): {pfn}" + Environment.NewLine +
-                    $"¥d¸¹: {cardno}" + Environment.NewLine +
-                    $"±ÂÅv½X: {acode}" + Environment.NewLine;
+                    $"[é‡‘æµå›å‚³è³‡è¨Š - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +
+                    "====== æ ¸å¿ƒæ¬„ä½ ======" + Environment.NewLine +
+                    $"è¨‚å–®è™Ÿ(order_id): {orderId}" + Environment.NewLine +
+                    $"äº¤æ˜“æµæ°´è™Ÿ(uid): {uid}" + Environment.NewLine +
+                    $"äº¤æ˜“é©—è­‰ç¢¼(key): {key}" + Environment.NewLine +
+                    $"äº¤æ˜“ç‹€æ…‹ç¢¼(prc): {prc} ({GetPaymentStatusMessage(prc)})" + Environment.NewLine +
+                    "====== äº¤æ˜“è³‡è¨Š ======" + Environment.NewLine +
+                    $"å®Œæˆæ™‚é–“: {transTime:yyyy-MM-dd HH:mm:ss}" + Environment.NewLine +
+                    $"äº¤æ˜“é‡‘é¡: {cost}" + Environment.NewLine +
+                    $"å¯¦éš›é‡‘é¡: {actualCost ?? cost}" + Environment.NewLine +
+                    $"äº¤æ˜“å¹£åˆ¥: TWD" + Environment.NewLine +
+                    "====== ä»˜æ¬¾è³‡è¨Š ======" + Environment.NewLine +
+                    $"ä»˜æ¬¾æ–¹å¼(pfn): {pfn}" + Environment.NewLine +
+                    $"å¡è™Ÿ: {cardno}" + Environment.NewLine +
+                    $"æˆæ¬Šç¢¼: {acode}" + Environment.NewLine;
 
                 // ========================================
-                // ¨BÆJ 3¡G§ó·s´y­zÄæ¦ì
+                // æ­¥é©Ÿ 3ï¼šæ›´æ–°æè¿°æ¬„ä½
                 // ========================================
                 toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
-                _logger.LogInformation($"[MyPay¦^¶Ç] ¦¬¶O³æÄæ¦ì¤w§ó·s - FeeId: {feeEntity.Id}, OrderId: {orderId}");
+                _logger.LogInformation($"[MyPayå›å‚³] æ”¶è²»å–®æ¬„ä½å·²æ›´æ–° - FeeId: {feeEntity.Id}, OrderId: {orderId}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[MyPay¦^¶Ç] §ó·s¦¬¶O³æ¥¢±Ñ - OrderId: {orderId}");
+                _logger.LogError(ex, $"[MyPayå›å‚³] æ›´æ–°æ”¶è²»å–®å¤±æ•— - OrderId: {orderId}");
                 throw;
             }
         }
 
         #endregion
 
-        #region LINE ³qª¾µo°e
+        #region 5.  LINE é€šçŸ¥ç™¼é€
 
         // ========================================================================================================
-        // ¡iLINE ³qª¾µo°e°Ï¶ô¡j
+        // ã€LINE é€šçŸ¥ç™¼é€å€å¡Šã€‘
         // 
-        // ¥»°Ï¶ô­t³dµo°e¦UÃş LINE ³qª¾¡A¥]¬A¡G
-        // 1. ¥I´Ú¦¨¥\³qª¾
-        // 2. ¥I´Ú¥¢±Ñ³qª¾
-        // 3. ³q¥Îªº°T®§µo°e¤èªk
+        // æœ¬å€å¡Šè² è²¬ç™¼é€å„é¡ LINE é€šçŸ¥ï¼ŒåŒ…æ‹¬ï¼š
+        // 1. ä»˜æ¬¾æˆåŠŸé€šçŸ¥
+        // 2. ä»˜æ¬¾å¤±æ•—é€šçŸ¥
+        // 3. é€šç”¨çš„è¨Šæ¯ç™¼é€æ–¹æ³•
         // 
-        // ¡i³]­p­ì«h¡j
-        // - ³æ¤@Â¾³d¡G¨C­Ó¤èªk¥u­t³d¤@¶µ¯S©w¥ô°È
-        // - ¿ù»~³B²z¡G©Ò¦³¤èªk³£¥]§t§¹¾ãªº²§±`³B²z©M¤é»x°O¿ı
-        // - ¥iºûÅ@©Ê¡G²M´·ªº©R¦W©M§¹¾ãªºµù¸Ñ»¡©ú
+        // ã€è¨­è¨ˆåŸå‰‡ã€‘
+        // - å–®ä¸€è·è²¬ï¼šæ¯å€‹æ–¹æ³•åªè² è²¬ä¸€é …ç‰¹å®šä»»å‹™
+        // - éŒ¯èª¤è™•ç†ï¼šæ‰€æœ‰æ–¹æ³•éƒ½åŒ…å«å®Œæ•´çš„ç•°å¸¸è™•ç†å’Œæ—¥èªŒè¨˜éŒ„
+        // - å¯ç¶­è­·æ€§ï¼šæ¸…æ™°çš„å‘½åå’Œå®Œæ•´çš„è¨»è§£èªªæ˜
         // ========================================================================================================
 
-        #region µo°e LINE ³qª¾
+        #region ç™¼é€ LINE é€šçŸ¥
 
         /// <summary>
         /// ========================================
-        /// µo°e¥I´Ú³qª¾¡]¨Ï¥Î­Ó§O°Ñ¼Æ¡^
+        /// ç™¼é€ä»˜æ¬¾é€šçŸ¥ï¼ˆä½¿ç”¨å€‹åˆ¥åƒæ•¸ï¼‰
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ÂÂª©ªº³qª¾µo°e¤èªk¡A¨Ï¥Î­Ó§O°Ñ¼Æ¦Ó«D MyPayReturnModel
-        /// ®Ú¾Ú¦¬¶O³æÃş«¬¨M©w°T®§®æ¦¡¡A¨Ãµo°e LINE ³qª¾
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// èˆŠç‰ˆçš„é€šçŸ¥ç™¼é€æ–¹æ³•ï¼Œä½¿ç”¨å€‹åˆ¥åƒæ•¸è€Œé MyPayReturnModel
+        /// æ ¹æ“šæ”¶è²»å–®é¡å‹æ±ºå®šè¨Šæ¯æ ¼å¼ï¼Œä¸¦ç™¼é€ LINE é€šçŸ¥
         /// 
-        /// ¡i³B²z¬yµ{¡j
-        /// 1. ±q¦¬¶O³æ¨ú±o³sµ¸¤H¸ê°T
-        /// 2. ÀË¬d³sµ¸¤H¬O§_¦³ LINE ID
-        /// 3. ®Ú¾Ú¦¬¶O³æÃş«¬«Ø¥ß¹ïÀ³®æ¦¡ªº°T®§
-        /// 4. µo°e LINE °T®§
+        /// ã€è™•ç†æµç¨‹ã€‘
+        /// 1. å¾æ”¶è²»å–®å–å¾—é€£çµ¡äººè³‡è¨Š
+        /// 2. æª¢æŸ¥é€£çµ¡äººæ˜¯å¦æœ‰ LINE ID
+        /// 3. æ ¹æ“šæ”¶è²»å–®é¡å‹å»ºç«‹å°æ‡‰æ ¼å¼çš„è¨Šæ¯
+        /// 4. ç™¼é€ LINE è¨Šæ¯
         /// 
-        /// ¡i¤ä´©ªº¦¬¶O³æÃş«¬¡j
-        /// - Dedication¡]©^Äm¡^¡G¨Ï¥Î©^Äm±M¥Î°T®§®æ¦¡
-        /// - Course¡]½Òµ{¡^¡G¨Ï¥Î½Òµ{Ãº¶O°T®§®æ¦¡¡A¥]§t½Òµ{®É¶¡¦aÂI
-        /// - Other¡]¨ä¥L¡^¡G¨Ï¥Î¤@¯ëÃº¶O°T®§®æ¦¡
+        /// ã€æ”¯æ´çš„æ”¶è²»å–®é¡å‹ã€‘
+        /// - Dedicationï¼ˆå¥‰ç»ï¼‰ï¼šä½¿ç”¨å¥‰ç»å°ˆç”¨è¨Šæ¯æ ¼å¼
+        /// - Courseï¼ˆèª²ç¨‹ï¼‰ï¼šä½¿ç”¨èª²ç¨‹ç¹³è²»è¨Šæ¯æ ¼å¼ï¼ŒåŒ…å«èª²ç¨‹æ™‚é–“åœ°é»
+        /// - Otherï¼ˆå…¶ä»–ï¼‰ï¼šä½¿ç”¨ä¸€èˆ¬ç¹³è²»è¨Šæ¯æ ¼å¼
         /// 
-        /// ¡i¿ù»~³B²z¡j
-        /// - §ä¤£¨ì³sµ¸¤H¡Gª½±µªğ¦^¡A¤£µo°e°T®§
-        /// - ¨S¦³ LINE ID¡Gª½±µªğ¦^¡A¤£µo°e°T®§
-        /// - µo°e¥¢±Ñ¡G°O¿ı¿ù»~¦ı¤£¼vÅT¥D¬yµ{
+        /// ã€éŒ¯èª¤è™•ç†ã€‘
+        /// - æ‰¾ä¸åˆ°é€£çµ¡äººï¼šç›´æ¥è¿”å›ï¼Œä¸ç™¼é€è¨Šæ¯
+        /// - æ²’æœ‰ LINE IDï¼šç›´æ¥è¿”å›ï¼Œä¸ç™¼é€è¨Šæ¯
+        /// - ç™¼é€å¤±æ•—ï¼šè¨˜éŒ„éŒ¯èª¤ä½†ä¸å½±éŸ¿ä¸»æµç¨‹
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// ·í¨Ï¥Î­Ó§O°Ñ¼Æ¡]«D MyPayReturnModel¡^¶i¦æ³B²z®É¨Ï¥Î
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// ç•¶ä½¿ç”¨å€‹åˆ¥åƒæ•¸ï¼ˆé MyPayReturnModelï¼‰é€²è¡Œè™•ç†æ™‚ä½¿ç”¨
         /// 
         /// </summary>
-        /// <param name="utility">CRM ¤u¨ãÃş¹ê¨Ò</param>
-        /// <param name="feeEntity">¦¬¶O³æ¹êÅé</param>
-        /// <param name="orderId">­q³æ½s¸¹</param>
-        /// <param name="transactionId">¥æ©ö½s¸¹</param>
-        /// <param name="cost">¥æ©öª÷ÃB¦r¦ê</param>
-        /// <param name="fullName">³sµ¸¤H©m¦W</param>
-        /// <param name="itemName">Ãº¶O¶µ¥Ø¦WºÙ</param>
-        /// <param name="feeType">¦¬¶O³æÃş«¬¡]©^Äm/½Òµ{/¨ä¥L¡^</param>
-        /// <param name="amount">ª÷ÃB¼Æ­È</param>
-        /// <param name="contactEntity">³sµ¸¤H¹êÅé¡]¥i¿ï¡A­Y¬° null ·|­«·s¬d¸ß¡^</param>
+        /// <param name="utility">CRM å·¥å…·é¡å¯¦ä¾‹</param>
+        /// <param name="feeEntity">æ”¶è²»å–®å¯¦é«”</param>
+        /// <param name="orderId">è¨‚å–®ç·¨è™Ÿ</param>
+        /// <param name="transactionId">äº¤æ˜“ç·¨è™Ÿ</param>
+        /// <param name="cost">äº¤æ˜“é‡‘é¡å­—ä¸²</param>
+        /// <param name="fullName">é€£çµ¡äººå§“å</param>
+        /// <param name="itemName">ç¹³è²»é …ç›®åç¨±</param>
+        /// <param name="feeType">æ”¶è²»å–®é¡å‹ï¼ˆå¥‰ç»/èª²ç¨‹/å…¶ä»–ï¼‰</param>
+        /// <param name="amount">é‡‘é¡æ•¸å€¼</param>
+        /// <param name="contactEntity">é€£çµ¡äººå¯¦é«”ï¼ˆå¯é¸ï¼Œè‹¥ç‚º null æœƒé‡æ–°æŸ¥è©¢ï¼‰</param>
         private void SendPaymentNotificationByType(
             ToolUtilityClass utility, 
             Entity feeEntity, 
@@ -1510,45 +1510,45 @@ namespace ChurchReport.Controllers
             try
             {
                 // ========================================
-                // ¨BÆJ 1¡G¨ú±o³sµ¸¤H¸ê°T
+                // æ­¥é©Ÿ 1ï¼šå–å¾—é€£çµ¡äººè³‡è¨Š
                 // ========================================
                 var contactId = utility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
-                if (contactId == Guid.Empty) return; // §ä¤£¨ì³sµ¸¤H¡Aª½±µªğ¦^
+                if (contactId == Guid.Empty) return; // æ‰¾ä¸åˆ°é€£çµ¡äººï¼Œç›´æ¥è¿”å›
 
-                // ¦pªG¨S¦³´£¨Ñ³sµ¸¤H¹êÅé¡A«h¬d¸ß
+                // å¦‚æœæ²’æœ‰æä¾›é€£çµ¡äººå¯¦é«”ï¼Œå‰‡æŸ¥è©¢
                 if (contactEntity == null)
                 {
                     contactEntity = utility.RetrieveEntity("contact", contactId);
                 }
 
-                if (contactEntity == null) return; // §ä¤£¨ì³sµ¸¤H¡Aª½±µªğ¦^
+                if (contactEntity == null) return; // æ‰¾ä¸åˆ°é€£çµ¡äººï¼Œç›´æ¥è¿”å›
 
                 // ========================================
-                // ¨BÆJ 2¡G¨ú±o LINE ID
+                // æ­¥é©Ÿ 2ï¼šå–å¾— LINE ID
                 // ========================================
                 string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
-                if (string.IsNullOrWhiteSpace(lineId)) return; // ¨S¦³ LINE ID¡Aª½±µªğ¦^
+                if (string.IsNullOrWhiteSpace(lineId)) return; // æ²’æœ‰ LINE IDï¼Œç›´æ¥è¿”å›
 
                 // ========================================
-                // ¨BÆJ 3¡G®Ú¾Ú¦¬¶O³æÃş«¬«Ø¥ß°T®§
+                // æ­¥é©Ÿ 3ï¼šæ ¹æ“šæ”¶è²»å–®é¡å‹å»ºç«‹è¨Šæ¯
                 // ========================================
                 string message;
 
                 if (feeType == FeeType.Dedication)
                 {
-                    // ©^ÄmÃş«¬¡G¨Ï¥Î©^Äm±M¥Î®æ¦¡
+                    // å¥‰ç»é¡å‹ï¼šä½¿ç”¨å¥‰ç»å°ˆç”¨æ ¼å¼
                     message = BuildDedicationSuccessMessage(
                         fullName, 
                         orderId, 
                         transactionId, 
                         amount, 
-                        itemName,  // itemName §@¬°©^ÄmÃş§O
+                        itemName,  // itemName ä½œç‚ºå¥‰ç»é¡åˆ¥
                         DateTime.Now
                     );
                 }
                 else if (feeType == FeeType.Course)
                 {
-                    // ½Òµ{Ãş«¬¡G¨ú±o½Òµ{ÃB¥~¸ê°T
+                    // èª²ç¨‹é¡å‹ï¼šå–å¾—èª²ç¨‹é¡å¤–è³‡è¨Š
                     string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? "";
                     string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? "";
 
@@ -1557,7 +1557,7 @@ namespace ChurchReport.Controllers
                         orderId, 
                         transactionId, 
                         amount, 
-                        itemName,  // itemName §@¬°½Òµ{¦WºÙ
+                        itemName,  // itemName ä½œç‚ºèª²ç¨‹åç¨±
                         courseSchedule, 
                         courseLocation, 
                         DateTime.Now
@@ -1565,7 +1565,7 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    // ¨ä¥LÃş«¬¡G¨Ï¥Î¤@¯ë®æ¦¡
+                    // å…¶ä»–é¡å‹ï¼šä½¿ç”¨ä¸€èˆ¬æ ¼å¼
                     message = BuildGeneralPaymentSuccessMessage(
                         fullName, 
                         orderId, 
@@ -1577,60 +1577,60 @@ namespace ChurchReport.Controllers
                 }
 
                 // ========================================
-                // ¨BÆJ 4¡Gµo°e LINE °T®§
+                // æ­¥é©Ÿ 4ï¼šç™¼é€ LINE è¨Šæ¯
                 // ========================================
                 SendLineMessage(lineId, message);
             }
             catch (Exception ex)
             {
-                // µo°e¥¢±Ñ°O¿ı¿ù»~¡A¦ı¤£©ß¥X¨Ò¥~¡]Á×§K¼vÅT¥D¬yµ{¡^
-                _logger.LogError(ex, $"SendNotification: µo°e LINE¥¢±Ñ - OrderId: {orderId}");
+                // ç™¼é€å¤±æ•—è¨˜éŒ„éŒ¯èª¤ï¼Œä½†ä¸æ‹‹å‡ºä¾‹å¤–ï¼ˆé¿å…å½±éŸ¿ä¸»æµç¨‹ï¼‰
+                _logger.LogError(ex, $"SendNotification: ç™¼é€ LINEå¤±æ•— - OrderId: {orderId}");
             }
         }
 
         /// <summary>
         /// ========================================
-        /// µo°e LINE ¦¨¥\³qª¾¡]¨Ï¥Î MyPayReturnModel¡^
+        /// ç™¼é€ LINE æˆåŠŸé€šçŸ¥ï¼ˆä½¿ç”¨ MyPayReturnModelï¼‰
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ®Ú¾Úª÷¬y¦^¶Çªº§¹¾ã¸ê®Æ©M¦¬¶O³æÃş«¬¡Aµo°e¥I´Ú¦¨¥\ªº LINE ³qª¾
-        /// ³o¬O¥D­n¨Ï¥Îªº³qª¾µo°e¤èªk
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// æ ¹æ“šé‡‘æµå›å‚³çš„å®Œæ•´è³‡æ–™å’Œæ”¶è²»å–®é¡å‹ï¼Œç™¼é€ä»˜æ¬¾æˆåŠŸçš„ LINE é€šçŸ¥
+        /// é€™æ˜¯ä¸»è¦ä½¿ç”¨çš„é€šçŸ¥ç™¼é€æ–¹æ³•
         /// 
-        /// ¡i³B²z¬yµ{¡j
-        /// 1. ÀË¬d³sµ¸¤H¹êÅé¬O§_¦s¦b
-        /// 2. ¨ú±o LINE ID
-        /// 3. ¸ÑªR¥I´Úª÷ÃB¡]Àu¥ı¨Ï¥Î actual_cost¡^
-        /// 4. ¸ÑªR¥I´Ú®É¶¡
-        /// 5. ®Ú¾Ú¦¬¶O³æÃş«¬«Ø¥ß¹ïÀ³°T®§
-        /// 6. µo°e LINE °T®§
+        /// ã€è™•ç†æµç¨‹ã€‘
+        /// 1. æª¢æŸ¥é€£çµ¡äººå¯¦é«”æ˜¯å¦å­˜åœ¨
+        /// 2. å–å¾— LINE ID
+        /// 3. è§£æä»˜æ¬¾é‡‘é¡ï¼ˆå„ªå…ˆä½¿ç”¨ actual_costï¼‰
+        /// 4. è§£æä»˜æ¬¾æ™‚é–“
+        /// 5. æ ¹æ“šæ”¶è²»å–®é¡å‹å»ºç«‹å°æ‡‰è¨Šæ¯
+        /// 6. ç™¼é€ LINE è¨Šæ¯
         /// 
-        /// ¡iª÷ÃB¸ÑªRÀu¥ı¶¶§Ç¡j
-        /// 1. actual_cost¡]¹ê»Úª÷ÃB¡A¶×²vÂà´««á¡^
-        /// 2. cost¡]¥æ©öª÷ÃB¡A­ì©l¹ô§O¡^
-        /// 3. 0¡]­Y³£µLªk¸ÑªR¡^
+        /// ã€é‡‘é¡è§£æå„ªå…ˆé †åºã€‘
+        /// 1. actual_costï¼ˆå¯¦éš›é‡‘é¡ï¼ŒåŒ¯ç‡è½‰æ›å¾Œï¼‰
+        /// 2. costï¼ˆäº¤æ˜“é‡‘é¡ï¼ŒåŸå§‹å¹£åˆ¥ï¼‰
+        /// 3. 0ï¼ˆè‹¥éƒ½ç„¡æ³•è§£æï¼‰
         /// 
-        /// ¡i°T®§Ãş«¬¡j
-        /// - ©^Äm¡G¥]§t©^ÄmÃş?¡]¤Q¤@¡B·P®¦µ¥¡^
-        /// - ½Òµ{¡G¥]§t½Òµ{¦WºÙ¡B®É¶¡¡B¦aÂI
-        /// - ¨ä¥L¡G¥]§t¶µ¥Ø¦WºÙ
+        /// ã€è¨Šæ¯é¡å‹ã€‘
+        /// - å¥‰ç»ï¼šåŒ…å«å¥‰ç»é¡åˆ«ï¼ˆåä¸€ã€æ„Ÿæ©ç­‰ï¼‰
+        /// - èª²ç¨‹ï¼šåŒ…å«èª²ç¨‹åç¨±ã€æ™‚é–“ã€åœ°é»
+        /// - å…¶ä»–ï¼šåŒ…å«é …ç›®åç¨±
         /// 
-        /// ¡i¿ù»~³B²z¡j
-        /// - ¨S¦³³sµ¸¤H¡Gª½±µªğ¦^
-        /// - ¨S¦³ LINE ID¡Gª½±µªğ¦^
-        /// - µo°e¥¢±Ñ¡G°O¿ı¿ù»~¨Ã­«·s©ß¥X¨Ò¥~
+        /// ã€éŒ¯èª¤è™•ç†ã€‘
+        /// - æ²’æœ‰é€£çµ¡äººï¼šç›´æ¥è¿”å›
+        /// - æ²’æœ‰ LINE IDï¼šç›´æ¥è¿”å›
+        /// - ç™¼é€å¤±æ•—ï¼šè¨˜éŒ„éŒ¯èª¤ä¸¦é‡æ–°æ‹‹å‡ºä¾‹å¤–
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// ·í¥æ©ö¦¨¥\¥B¦³ MyPayReturnModel §¹¾ã¸ê®Æ®É¨Ï¥Î
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// ç•¶äº¤æ˜“æˆåŠŸä¸”æœ‰ MyPayReturnModel å®Œæ•´è³‡æ–™æ™‚ä½¿ç”¨
         /// 
         /// </summary>
-        /// <param name="utility">CRM ¤u¨ãÃş¹ê¨Ò</param>
-        /// <param name="feeEntity">¦¬¶O³æ¹êÅé</param>
-        /// <param name="model">ª÷¬y¦^¶Ç¸ê®Æ¼Ò«¬</param>
-        /// <param name="fullName">³sµ¸¤H©m¦W</param>
-        /// <param name="feeType">¦¬¶O³æÃş«¬</param>
-        /// <param name="contactEntity">³sµ¸¤H¹êÅé</param>
-        /// <exception cref="Exception">·íµo°e¥¢±Ñ®É©ß¥X</exception>
+        /// <param name="utility">CRM å·¥å…·é¡å¯¦ä¾‹</param>
+        /// <param name="feeEntity">æ”¶è²»å–®å¯¦é«”</param>
+        /// <param name="model">é‡‘æµå›å‚³è³‡æ–™æ¨¡å‹</param>
+        /// <param name="fullName">é€£çµ¡äººå§“å</param>
+        /// <param name="feeType">æ”¶è²»å–®é¡å‹</param>
+        /// <param name="contactEntity">é€£çµ¡äººå¯¦é«”</param>
+        /// <exception cref="Exception">ç•¶ç™¼é€å¤±æ•—æ™‚æ‹‹å‡º</exception>
         private void SendLineNotificationByType(
             ToolUtilityClass utility, 
             Entity feeEntity, 
@@ -1642,18 +1642,18 @@ namespace ChurchReport.Controllers
             try
             {
                 // ========================================
-                // ¨BÆJ 1¡GÀË¬d³sµ¸¤H¹êÅé
+                // æ­¥é©Ÿ 1ï¼šæª¢æŸ¥é€£çµ¡äººå¯¦é«”
                 // ========================================
                 if (contactEntity == null) return;
 
                 // ========================================
-                // ¨BÆJ 2¡G¨ú±o LINE ID
+                // æ­¥é©Ÿ 2ï¼šå–å¾— LINE ID
                 // ========================================
                 string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
                 if (string.IsNullOrWhiteSpace(lineId)) return;
 
                 // ========================================
-                // ¨BÆJ 3¡G¸ÑªR¥I´Úª÷ÃB¡]Àu¥ı¶¶§Ç¡Gactual_cost > cost¡^
+                // æ­¥é©Ÿ 3ï¼šè§£æä»˜æ¬¾é‡‘é¡ï¼ˆå„ªå…ˆé †åºï¼šactual_cost > costï¼‰
                 // ========================================
                 decimal amount = 0m;
                 if (!string.IsNullOrEmpty(model.actual_cost) && 
@@ -1668,18 +1668,18 @@ namespace ChurchReport.Controllers
                 }
 
                 // ========================================
-                // ¨BÆJ 4¡G¸ÑªR¥I´Ú®É¶¡
+                // æ­¥é©Ÿ 4ï¼šè§£æä»˜æ¬¾æ™‚é–“
                 // ========================================
                 DateTime paymentTime = ParseFinishTime(model.finishtime);
 
                 // ========================================
-                // ¨BÆJ 5¡G®Ú¾Ú¦¬¶O³æÃş«¬«Ø¥ß°T®§
+                // æ­¥é©Ÿ 5ï¼šæ ¹æ“šæ”¶è²»å–®é¡å‹å»ºç«‹è¨Šæ¯
                 // ========================================
                 string message;
 
                 if (feeType == FeeType.Dedication)
                 {
-                    // ©^ÄmÃş«¬¡G¨ú±o©^ÄmÃş§O¦WºÙ
+                    // å¥‰ç»é¡å‹ï¼šå–å¾—å¥‰ç»é¡åˆ¥åç¨±
                     int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
                     string dedicationCategory = GetDedicationCategoryName(categoryValue);
 
@@ -1694,7 +1694,7 @@ namespace ChurchReport.Controllers
                 }
                 else if (feeType == FeeType.Course)
                 {
-                    // ½Òµ{Ãş«¬¡G¨ú±o½Òµ{§¹¾ã¸ê°T
+                    // èª²ç¨‹é¡å‹ï¼šå–å¾—èª²ç¨‹å®Œæ•´è³‡è¨Š
                     string courseName = GetCourseName(utility, feeEntity);
                     string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? string.Empty;
                     string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? string.Empty;
@@ -1712,8 +1712,8 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    // ¨ä¥LÃş«¬¡G¨Ï¥Î¦¬¶O³æ¦WºÙ
-                    string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "Ãº¶O";
+                    // å…¶ä»–é¡å‹ï¼šä½¿ç”¨æ”¶è²»å–®åç¨±
+                    string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "ç¹³è²»";
 
                     message = BuildGeneralPaymentSuccessMessage(
                         fullName, 
@@ -1726,63 +1726,63 @@ namespace ChurchReport.Controllers
                 }
 
                 // ========================================
-                // ¨BÆJ 6¡Gµo°e LINE °T®§
+                // æ­¥é©Ÿ 6ï¼šç™¼é€ LINE è¨Šæ¯
                 // ========================================
                 SendLineMessage(lineId, message);
             }
             catch (Exception ex)
             {
-                // °O¿ı¿ù»~¨Ã­«·s©ß¥X¨Ò¥~
-                _logger.LogError(ex, $"[MyPay¦^¶Ç] µo°eLINE³qª¾¥¢±Ñ - OrderId: {model?.order_id}");
+                // è¨˜éŒ„éŒ¯èª¤ä¸¦é‡æ–°æ‹‹å‡ºä¾‹å¤–
+                _logger.LogError(ex, $"[MyPayå›å‚³] ç™¼é€LINEé€šçŸ¥å¤±æ•— - OrderId: {model?.order_id}");
                 throw;
             }
         }
 
         /// <summary>
         /// ========================================
-        /// µo°e LINE ¥¢±Ñ³qª¾¡]¨Ï¥Î MyPayReturnModel¡^
+        /// ç™¼é€ LINE å¤±æ•—é€šçŸ¥ï¼ˆä½¿ç”¨ MyPayReturnModelï¼‰
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ®Ú¾Úª÷¬y¦^¶Çªº¥¢±Ñ¸ê®Æ©M¦¬¶O³æÃş«¬¡Aµo°e¥I´Ú¥¢±Ñªº LINE ³qª¾
-        /// ¨ó§U¨Ï¥ÎªÌ¤F¸Ñ¥¢±Ñ­ì¦]¨Ã´£¨Ñ«áÄò³B²z«ØÄ³
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// æ ¹æ“šé‡‘æµå›å‚³çš„å¤±æ•—è³‡æ–™å’Œæ”¶è²»å–®é¡å‹ï¼Œç™¼é€ä»˜æ¬¾å¤±æ•—çš„ LINE é€šçŸ¥
+        /// å”åŠ©ä½¿ç”¨è€…äº†è§£å¤±æ•—åŸå› ä¸¦æä¾›å¾ŒçºŒè™•ç†å»ºè­°
         /// 
-        /// ¡i³B²z¬yµ{¡j
-        /// 1. ÀË¬d³sµ¸¤H¹êÅé¬O§_¦s¦b
-        /// 2. ¨ú±o LINE ID
-        /// 3. ¸ÑªRÀ³¥Iª÷ÃB¡]Àu¥ı¶¶§Ç¡GCRM > actual_cost > cost¡^
-        /// 4. ¸ÑªR¹Á¸Õ¥I´Ú®É¶¡
-        /// 5. Àò¨ú¥¢±Ñª¬ºA°T®§
-        /// 6. ®Ú¾Ú¦¬¶O³æÃş«¬«Ø¥ß¹ïÀ³ªº¥¢±Ñ°T®§
-        /// 7. µo°e LINE °T®§
+        /// ã€è™•ç†æµç¨‹ã€‘
+        /// 1. æª¢æŸ¥é€£çµ¡äººå¯¦é«”æ˜¯å¦å­˜åœ¨
+        /// 2. å–å¾— LINE ID
+        /// 3. è§£ææ‡‰ä»˜é‡‘é¡ï¼ˆå„ªå…ˆé †åºï¼šCRM > actual_cost > costï¼‰
+        /// 4. è§£æå˜—è©¦ä»˜æ¬¾æ™‚é–“
+        /// 5. ç²å–å¤±æ•—ç‹€æ…‹è¨Šæ¯
+        /// 6. æ ¹æ“šæ”¶è²»å–®é¡å‹å»ºç«‹å°æ‡‰çš„å¤±æ•—è¨Šæ¯
+        /// 7. ç™¼é€ LINE è¨Šæ¯
         /// 
-        /// ¡iª÷ÃB¸ÑªRÀu¥ı¶¶§Ç¡j
-        /// 1. CRM ¤¤ªºÀ³¥Iª÷ÃB¡]new_fee_shoud_pay¡^- ³Ì·Ç½T
-        /// 2. actual_cost¡]ª÷¬y¦^¶Çªº¹ê»Úª÷ÃB¡^
-        /// 3. cost¡]ª÷¬y¦^¶Çªº¥æ©öª÷ÃB¡^
-        /// 4. 0¡]­Y³£µLªk¸ÑªR¡^
+        /// ã€é‡‘é¡è§£æå„ªå…ˆé †åºã€‘
+        /// 1. CRM ä¸­çš„æ‡‰ä»˜é‡‘é¡ï¼ˆnew_fee_shoud_payï¼‰- æœ€æº–ç¢º
+        /// 2. actual_costï¼ˆé‡‘æµå›å‚³çš„å¯¦éš›é‡‘é¡ï¼‰
+        /// 3. costï¼ˆé‡‘æµå›å‚³çš„äº¤æ˜“é‡‘é¡ï¼‰
+        /// 4. 0ï¼ˆè‹¥éƒ½ç„¡æ³•è§£æï¼‰
         /// 
-        /// ¡i°T®§¤º®e¯S¦â¡j
-        /// - ©ú½T»¡©ú¥¢±Ñ­ì¦]¡]¥Ñ PRC ¥N½XÂà´«¦Ó¨Ó¡^
-        /// - ´£¨Ñ«áÄò³B²z«ØÄ³¡]­«¸Õ¡B´«¥d¡BÁpÃ´¿ì¤½«Ç¡^
-        /// - ¥]§t§¹¾ãªº­q³æ»PÀ³¥Iª÷ÃB¸ê°T
+        /// ã€è¨Šæ¯å…§å®¹ç‰¹è‰²ã€‘
+        /// - æ˜ç¢ºèªªæ˜å¤±æ•—åŸå› ï¼ˆç”± PRC ä»£ç¢¼è½‰æ›è€Œä¾†ï¼‰
+        /// - æä¾›å¾ŒçºŒè™•ç†å»ºè­°ï¼ˆé‡è©¦ã€æ›å¡ã€è¯ç¹«è¾¦å…¬å®¤ï¼‰
+        /// - åŒ…å«å®Œæ•´çš„è¨‚å–®èˆ‡æ‡‰ä»˜é‡‘é¡è³‡è¨Š
         /// 
-        /// ¡i¿ù»~³B²z¡j
-        /// - ¨S¦³³sµ¸¤H¡Gª½±µªğ¦^
-        /// - ¨S¦³ LINE ID¡Gª½±µªğ¦^
-        /// - µo°e¥¢±Ñ¡G°O¿ı¿ù»~¨Ã­«·s©ß¥X¨Ò¥~
+        /// ã€éŒ¯èª¤è™•ç†ã€‘
+        /// - æ²’æœ‰é€£çµ¡äººï¼šç›´æ¥è¿”å›
+        /// - æ²’æœ‰ LINE IDï¼šç›´æ¥è¿”å›
+        /// - ç™¼é€å¤±æ•—ï¼šè¨˜éŒ„éŒ¯èª¤ä¸¦é‡æ–°æ‹‹å‡ºä¾‹å¤–
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// ·í¥æ©ö¥¢±Ñ¥B¦³ MyPayReturnModel §¹¾ã¸ê®Æ®É¨Ï¥Î
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// ç•¶äº¤æ˜“å¤±æ•—ä¸”æœ‰ MyPayReturnModel å®Œæ•´è³‡æ–™æ™‚ä½¿ç”¨
         /// 
         /// </summary>
-        /// <param name="utility">CRM ¤u¨ãÃş¹ê¨Ò</param>
-        /// <param name="feeEntity">¦¬¶O³æ¹êÅé</param>
-        /// <param name="model">ª÷¬y¦^¶Ç¸ê®Æ¼Ò«¬</param>
-        /// <param name="fullName">³sµ¸¤H©m¦W</param>
-        /// <param name="feeType">¦¬¶O³æÃş«¬</param>
-        /// <param name="contactEntity">³sµ¸¤H¹êÅé</param>
-        /// <exception cref="Exception">·íµo°e¥¢±Ñ®É©ß¥X</exception>
+        /// <param name="utility">CRM å·¥å…·é¡å¯¦ä¾‹</param>
+        /// <param name="feeEntity">æ”¶è²»å–®å¯¦é«”</param>
+        /// <param name="model">é‡‘æµå›å‚³è³‡æ–™æ¨¡å‹</param>
+        /// <param name="fullName">é€£çµ¡äººå§“å</param>
+        /// <param name="feeType">æ”¶è²»å–®é¡å‹</param>
+        /// <param name="contactEntity">é€£çµ¡äººå¯¦é«”</param>
+        /// <exception cref="Exception">ç•¶ç™¼é€å¤±æ•—æ™‚æ‹‹å‡º</exception>
         private void SendLineFailureNotificationByType(
             ToolUtilityClass utility,
             Entity feeEntity,
@@ -1794,34 +1794,34 @@ namespace ChurchReport.Controllers
             try
             {
                 // ========================================
-                // ¨BÆJ 1¡GÀË¬d³sµ¸¤H¹êÅé
+                // æ­¥é©Ÿ 1ï¼šæª¢æŸ¥é€£çµ¡äººå¯¦é«”
                 // ========================================
                 if (contactEntity == null) return;
 
                 // ========================================
-                // ¨BÆJ 2¡G¨ú±o LINE ID
+                // æ­¥é©Ÿ 2ï¼šå–å¾— LINE ID
                 // ========================================
                 string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
                 if (string.IsNullOrWhiteSpace(lineId)) return;
 
                 // ========================================
-                // ¨BÆJ 3¡G¸ÑªRÀ³¥Iª÷ÃB¡]Àu¥ı¨Ï¥Î CRM ¤¤ªºª÷ÃB¡^
+                // æ­¥é©Ÿ 3ï¼šè§£ææ‡‰ä»˜é‡‘é¡ï¼ˆå„ªå…ˆä½¿ç”¨ CRM ä¸­çš„é‡‘é¡ï¼‰
                 // ========================================
                 decimal amount = 0m;
 
-                // Àu¥ı¨Ï¥Î CRM ¤¤°O¿ıªºÀ³¥Iª÷ÃB¡]³Ì·Ç½T¡^
+                // å„ªå…ˆä½¿ç”¨ CRM ä¸­è¨˜éŒ„çš„æ‡‰ä»˜é‡‘é¡ï¼ˆæœ€æº–ç¢ºï¼‰
                 var shouldPayMoney = utility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
                 if (shouldPayMoney != null && shouldPayMoney.Value > 0)
                 {
                     amount = shouldPayMoney.Value;
                 }
-                // ¨ä¦¸¨Ï¥Îª÷¬y¦^¶Çªº¹ê»Úª÷ÃB
+                // å…¶æ¬¡ä½¿ç”¨é‡‘æµå›å‚³çš„å¯¦éš›é‡‘é¡
                 else if (!string.IsNullOrWhiteSpace(model.actual_cost) && 
                          decimal.TryParse(model.actual_cost, out var parsedActual))
                 {
                     amount = parsedActual;
                 }
-                // ³Ì«á¨Ï¥Îª÷¬y¦^¶Çªº¥æ©öª÷ÃB
+                // æœ€å¾Œä½¿ç”¨é‡‘æµå›å‚³çš„äº¤æ˜“é‡‘é¡
                 else if (!string.IsNullOrWhiteSpace(model.cost) && 
                          decimal.TryParse(model.cost, out var parsedCost))
                 {
@@ -1829,23 +1829,23 @@ namespace ChurchReport.Controllers
                 }
 
                 // ========================================
-                // ¨BÆJ 4¡G¸ÑªR¹Á¸Õ¥I´Ú®É¶¡
+                // æ­¥é©Ÿ 4ï¼šè§£æå˜—è©¦ä»˜æ¬¾æ™‚é–“
                 // ========================================
                 DateTime paymentTime = ParseFinishTime(model.finishtime);
 
                 // ========================================
-                // ¨BÆJ 5¡GÀò¨ú¥¢±Ñª¬ºA°T®§
+                // æ­¥é©Ÿ 5ï¼šç²å–å¤±æ•—ç‹€æ…‹è¨Šæ¯
                 // ========================================
                 string statusMessage = GetPaymentStatusMessage(model.prc);
 
                 // ========================================
-                // ¨BÆJ 6¡G®Ú¾Ú¦¬¶O³æÃş«¬«Ø¥ß¥¢±Ñ°T®§
+                // æ­¥é©Ÿ 6ï¼šæ ¹æ“šæ”¶è²»å–®é¡å‹å»ºç«‹å¤±æ•—è¨Šæ¯
                 // ========================================
                 string message;
 
                 if (feeType == FeeType.Dedication)
                 {
-                    // ©^ÄmÃş«¬¥¢±Ñ°T®§
+                    // å¥‰ç»é¡å‹å¤±æ•—è¨Šæ¯
                     int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
                     string dedicationCategory = GetDedicationCategoryName(categoryValue);
 
@@ -1861,7 +1861,7 @@ namespace ChurchReport.Controllers
                 }
                 else if (feeType == FeeType.Course)
                 {
-                    // ½Òµ{Ãş«¬¥¢±Ñ°T®§
+                    // èª²ç¨‹é¡å‹å¤±æ•—è¨Šæ¯
                     string courseName = GetCourseName(utility, feeEntity);
                     string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? string.Empty;
                     string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? string.Empty;
@@ -1880,8 +1880,8 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    // ¨ä¥LÃş«¬¥¢±Ñ°T®§
-                    string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "Ãº¶O";
+                    // å…¶ä»–é¡å‹å¤±æ•—è¨Šæ¯
+                    string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "ç¹³è²»";
 
                     message = BuildGeneralPaymentFailureMessage(
                         fullName, 
@@ -1895,127 +1895,127 @@ namespace ChurchReport.Controllers
                 }
 
                 // ========================================
-                // ¨BÆJ 7¡Gµo°e LINE °T®§
+                // æ­¥é©Ÿ 7ï¼šç™¼é€ LINE è¨Šæ¯
                 // ========================================
                 SendLineMessage(lineId, message);
             }
             catch (Exception ex)
             {
-                // °O¿ı¿ù»~¨Ã­«·s©ß¥X¨Ò¥~
-                _logger.LogError(ex, $"[MyPay¦^¶Ç] µo°eLINE¥¢±Ñ³qª¾¥¢±Ñ - OrderId: {model?.order_id}");
+                // è¨˜éŒ„éŒ¯èª¤ä¸¦é‡æ–°æ‹‹å‡ºä¾‹å¤–
+                _logger.LogError(ex, $"[MyPayå›å‚³] ç™¼é€LINEå¤±æ•—é€šçŸ¥å¤±æ•— - OrderId: {model?.order_id}");
                 throw;
             }
         }
 
-        #endregion // LINE ³qª¾µo°e
+        #endregion // LINE é€šçŸ¥ç™¼é€
 
-        #region ¦¬¶O³æÃş«¬»Pª¬ºA§PÂ_
+        #region æ”¶è²»å–®é¡å‹èˆ‡ç‹€æ…‹åˆ¤æ–·
 
         /// <summary>
-        /// ¦¬¶O³æÃş«¬¦CÁ|
-        /// ¥Î©ó°Ï¤À¤£¦PÃş«¬ªºÃº¶O¶µ¥Ø¡A¥H«Kµo°e¹ïÀ³®æ¦¡ªº³qª¾
+        /// æ”¶è²»å–®é¡å‹åˆ—èˆ‰
+        /// ç”¨æ–¼å€åˆ†ä¸åŒé¡å‹çš„ç¹³è²»é …ç›®ï¼Œä»¥ä¾¿ç™¼é€å°æ‡‰æ ¼å¼çš„é€šçŸ¥
         /// </summary>
         private enum FeeType
         {
             /// <summary>
-            /// ©^ÄmÃş«¬¡]¤Q¤@©^Äm¡B·P®¦©^Ämµ¥¡^
+            /// å¥‰ç»é¡å‹ï¼ˆåä¸€å¥‰ç»ã€æ„Ÿæ©å¥‰ç»ç­‰ï¼‰
             /// </summary>
             Dedication,
 
             /// <summary>
-            /// ½Òµ{Ãş«¬¡]½Òµ{³ø¦WÃº¶O¡B¬ã²ß¶O¥Îµ¥¡^
+            /// èª²ç¨‹é¡å‹ï¼ˆèª²ç¨‹å ±åç¹³è²»ã€ç ”ç¿’è²»ç”¨ç­‰ï¼‰
             /// </summary>
             Course,
 
             /// <summary>
-            /// ¨ä¥LÃş«¬¡]¤@¯ë©ÊÃ¸¶O¶µ¥Ø¡^
+            /// å…¶ä»–é¡å‹ï¼ˆä¸€èˆ¬æ€§ç¹ªè²»é …ç›®ï¼‰
             /// </summary>
             Other
         }
 
         /// <summary>
         /// ========================================
-        /// ¨ú±o¥æ©öª¬ºA°T®§
+        /// å–å¾—äº¤æ˜“ç‹€æ…‹è¨Šæ¯
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ±N°ª¿÷ª÷¬yªº PRC¡]¥æ©ö¦^¶Ç½X¡^Âà´«¬°¤¤¤å»¡©ú¤å¦r
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// å°‡é«˜é‹¸é‡‘æµçš„ PRCï¼ˆäº¤æ˜“å›å‚³ç¢¼ï¼‰è½‰æ›ç‚ºä¸­æ–‡èªªæ˜æ–‡å­—
         /// 
-        /// ¡i¤ä´©ªºª¬ºA½X¡j
-        /// - ¦¨¥\Ãş¡G250¡]¥I´Ú¦¨¥\¡^¡B290¡]¥æ©ö¦¨¥\¦ı¸ê°T¤£²Å¡^¡B600¡]µ²±b§¹¦¨¡^
-        /// - «İ§¹¦¨Ãş¡G260¡]¶W°Ó¥N½X¡^¡B270¡]µêÀÀ±b¸¹¡^¡B280¡]WebATM¡^
-        /// - ¨ä¥LÃş¡G¨ú®ø¡B°h´Ú¡B¥¢±Ñ¡B¨t²Î¿ù»~µ¥
+        /// ã€æ”¯æ´çš„ç‹€æ…‹ç¢¼ã€‘
+        /// - æˆåŠŸé¡ï¼š250ï¼ˆä»˜æ¬¾æˆåŠŸï¼‰ã€290ï¼ˆäº¤æ˜“æˆåŠŸä½†è³‡è¨Šä¸ç¬¦ï¼‰ã€600ï¼ˆçµå¸³å®Œæˆï¼‰
+        /// - å¾…å®Œæˆé¡ï¼š260ï¼ˆè¶…å•†ä»£ç¢¼ï¼‰ã€270ï¼ˆè™›æ“¬å¸³è™Ÿï¼‰ã€280ï¼ˆWebATMï¼‰
+        /// - å…¶ä»–é¡ï¼šå–æ¶ˆã€é€€æ¬¾ã€å¤±æ•—ã€ç³»çµ±éŒ¯èª¤ç­‰
         /// 
-        /// ¡i°Ñ¦Ò¤åÀÉ¡j
-        /// °ª¿÷ª÷¬y©x¤è³W®æ - ªş¿ı¤G¡GPRC¡]¥æ©ö¦^¶Ç½X¡^©w¸q
+        /// ã€åƒè€ƒæ–‡æª”ã€‘
+        /// é«˜é‹¸é‡‘æµå®˜æ–¹è¦æ ¼ - é™„éŒ„äºŒï¼šPRCï¼ˆäº¤æ˜“å›å‚³ç¢¼ï¼‰å®šç¾©
         /// 
         /// </summary>
-        /// <param name="prc">¥æ©ö¦^¶Ç½X</param>
-        /// <returns>¹ïÀ³ªº¤¤¤åª¬ºA»¡©ú¡A¥¼ª¾¥N½X«h¦^¶Ç¡u¥¼ª¾ª¬ºA½X¡G{prc}¡v</returns>
+        /// <param name="prc">äº¤æ˜“å›å‚³ç¢¼</param>
+        /// <returns>å°æ‡‰çš„ä¸­æ–‡ç‹€æ…‹èªªæ˜ï¼ŒæœªçŸ¥ä»£ç¢¼å‰‡å›å‚³ã€ŒæœªçŸ¥ç‹€æ…‹ç¢¼ï¼š{prc}ã€</returns>
         private string GetPaymentStatusMessage(string prc)
         {
-            if (string.IsNullOrWhiteSpace(prc)) return "¥I´Úª¬ºA¥¼ª¾";
+            if (string.IsNullOrWhiteSpace(prc)) return "ä»˜æ¬¾ç‹€æ…‹æœªçŸ¥";
 
             switch (prc)
             {
-                // ====== ¸ê®Æ¬ÛÃö ======
-                case "100": return "¸ê®Æ¿ù»~ - MYPAYLINK¦¬¨ì¸ê®Æ¡A¦ı¬O®æ¦¡©Î¸ê®Æ¿ù»~";
-                case "200": return "¸ê®Æ¥¿½T - MYPAYLINK¦¬¨ì¥¿½T¸ê®Æ¡A·|±µÄò¤U¤@¨B¥æ©ö";
+                // ====== è³‡æ–™ç›¸é—œ ======
+                case "100": return "è³‡æ–™éŒ¯èª¤ - MYPAYLINKæ”¶åˆ°è³‡æ–™ï¼Œä½†æ˜¯æ ¼å¼æˆ–è³‡æ–™éŒ¯èª¤";
+                case "200": return "è³‡æ–™æ­£ç¢º - MYPAYLINKæ”¶åˆ°æ­£ç¢ºè³‡æ–™ï¼Œæœƒæ¥çºŒä¸‹ä¸€æ­¥äº¤æ˜“";
 
-                // ====== ¥æ©ö¦¨¥\Ãş ======
-                case "220": return "¨ú®ø¦¨¥\";
-                case "230": return "°h´Ú¦¨¥\";
-                case "250": return "¥I´Ú¦¨¥\";
-                case "290": return "¥æ©ö¦¨¥\¦ı¸ê°T¤£²Å";
-                case "600": return "µ²±b§¹¦¨";
+                // ====== äº¤æ˜“æˆåŠŸé¡ ======
+                case "220": return "å–æ¶ˆæˆåŠŸ";
+                case "230": return "é€€æ¬¾æˆåŠŸ";
+                case "250": return "ä»˜æ¬¾æˆåŠŸ";
+                case "290": return "äº¤æ˜“æˆåŠŸä½†è³‡è¨Šä¸ç¬¦";
+                case "600": return "çµå¸³å®Œæˆ";
 
-                // ====== ¥æ©ö¦¨¥\¦ı«İ§¹¦¨Ãş ======
-                case "260": return "¥æ©ö¦¨¥\¡A©|¥¼¥I´Ú§¹¦¨(¶W°Ó¥N½X)";
-                case "265": return "­q³æ¸j©w";
-                case "270": return "¥æ©ö¦¨¥\¡A©|¥¼¥I´Ú§¹¦¨(µêÀÀ±b¸¹)";
-                case "275": return "¥æ©ö¦¨¥\¡A«İ¼f®Ö(µL¥d¤À´Á)";
-                case "280": return "¥æ©ö¦¨¥\¡A©|¥¼¥I´Ú§¹¦¨(WebATM)";
+                // ====== äº¤æ˜“æˆåŠŸä½†å¾…å®Œæˆé¡ ======
+                case "260": return "äº¤æ˜“æˆåŠŸï¼Œå°šæœªä»˜æ¬¾å®Œæˆ(è¶…å•†ä»£ç¢¼)";
+                case "265": return "è¨‚å–®ç¶å®š";
+                case "270": return "äº¤æ˜“æˆåŠŸï¼Œå°šæœªä»˜æ¬¾å®Œæˆ(è™›æ“¬å¸³è™Ÿ)";
+                case "275": return "äº¤æ˜“æˆåŠŸï¼Œå¾…å¯©æ ¸(ç„¡å¡åˆ†æœŸ)";
+                case "280": return "äº¤æ˜“æˆåŠŸï¼Œå°šæœªä»˜æ¬¾å®Œæˆ(WebATM)";
 
-                // ====== ¥æ©ö¥¢±ÑÃş ======
-                case "300": return "¥æ©ö¥¢±Ñ";
-                case "380": return "¹O´Á¥æ©ö";
+                // ====== äº¤æ˜“å¤±æ•—é¡ ======
+                case "300": return "äº¤æ˜“å¤±æ•—";
+                case "380": return "é€¾æœŸäº¤æ˜“";
 
-                // ====== ¨t²Î¿ù»~ ======
-                case "400": return "¨t²Î¿ù»~";
+                // ====== ç³»çµ±éŒ¯èª¤ ======
+                case "400": return "ç³»çµ±éŒ¯èª¤";
 
-                // ====== ¨ä¥Lª¬ºA ======
-                case "A0001": return "¥æ©ö«İ½T»{";
-                case "A0002": return "©ñ±ó¥æ©ö";
-                case "B200": return "°õ¦æ¦¨¥\";
-                case "B500": return "°õ¦æ¥¢±Ñ";
+                // ====== å…¶ä»–ç‹€æ…‹ ======
+                case "A0001": return "äº¤æ˜“å¾…ç¢ºèª";
+                case "A0002": return "æ”¾æ£„äº¤æ˜“";
+                case "B200": return "åŸ·è¡ŒæˆåŠŸ";
+                case "B500": return "åŸ·è¡Œå¤±æ•—";
 
-                // ====== ¥¼ª¾ª¬ºA ======
-                default: return $"¥¼ª¾ª¬ºA½X¡G{prc}";
+                // ====== æœªçŸ¥ç‹€æ…‹ ======
+                default: return $"æœªçŸ¥ç‹€æ…‹ç¢¼ï¼š{prc}";
             }
         }
 
         /// <summary>
         /// ========================================
-        /// ¸ÑªR§¹¦¨®É¶¡¦r¦ê
+        /// è§£æå®Œæˆæ™‚é–“å­—ä¸²
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ±N°ª¿÷ª÷¬y¦^¶Çªº®É¶¡¦r¦ê¡]®æ¦¡¡GyyyyMMddHHmmss¡^¸ÑªR¬° DateTime ª«¥ó
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// å°‡é«˜é‹¸é‡‘æµå›å‚³çš„æ™‚é–“å­—ä¸²ï¼ˆæ ¼å¼ï¼šyyyyMMddHHmmssï¼‰è§£æç‚º DateTime ç‰©ä»¶
         /// 
-        /// ¡i®É¶¡®æ¦¡¡j
-        /// - ¿é¤J®æ¦¡¡GyyyyMMddHHmmss¡]14 ¦ì¼Æ¦r¡^
-        /// - ¨Ò¦p¡G20240315143025 ªí¥Ü 2024¦~3¤ë15¤é 14:30:25
+        /// ã€æ™‚é–“æ ¼å¼ã€‘
+        /// - è¼¸å…¥æ ¼å¼ï¼šyyyyMMddHHmmssï¼ˆ14 ä½æ•¸å­—ï¼‰
+        /// - ä¾‹å¦‚ï¼š20240315143025 è¡¨ç¤º 2024å¹´3æœˆ15æ—¥ 14:30:25
         /// 
-        /// ¡i¿ù»~³B²z¡j
-        /// - ­Y¦r¦ê¬°ªÅ©Îªø«×¤£²Å¡A¦^¶Ç·í«e®É¶¡
-        /// - ­Y¸ÑªR¥¢±Ñ¡A°O¿ı¿ù»~¨Ã¦^¶Ç·í«e®É¶¡
+        /// ã€éŒ¯èª¤è™•ç†ã€‘
+        /// - è‹¥å­—ä¸²ç‚ºç©ºæˆ–é•·åº¦ä¸ç¬¦ï¼Œå›å‚³ç•¶å‰æ™‚é–“
+        /// - è‹¥è§£æå¤±æ•—ï¼Œè¨˜éŒ„éŒ¯èª¤ä¸¦å›å‚³ç•¶å‰æ™‚é–“
         /// 
         /// </summary>
-        /// <param name="finishtime">§¹¦¨®É¶¡¦r¦ê¡]yyyyMMddHHmmss ®æ¦¡¡^</param>
-        /// <returns>¸ÑªR«áªº DateTime ª«¥ó¡A¥¢±Ñ«h¦^¶Ç DateTime.Now</returns>
+        /// <param name="finishtime">å®Œæˆæ™‚é–“å­—ä¸²ï¼ˆyyyyMMddHHmmss æ ¼å¼ï¼‰</param>
+        /// <returns>è§£æå¾Œçš„ DateTime ç‰©ä»¶ï¼Œå¤±æ•—å‰‡å›å‚³ DateTime.Now</returns>
         private DateTime ParseFinishTime(string finishtime)
         {
-            // ÀË¬d¦r¦ê¬O§_²Å¦Xªø«×­n¨D¡]14 ¦ì¡^
+            // æª¢æŸ¥å­—ä¸²æ˜¯å¦ç¬¦åˆé•·åº¦è¦æ±‚ï¼ˆ14 ä½ï¼‰
             if (string.IsNullOrWhiteSpace(finishtime) || finishtime.Length != 14)
             {
                 return DateTime.Now;
@@ -2023,345 +2023,345 @@ namespace ChurchReport.Controllers
 
             try
             {
-                // ¸ÑªR¦~¤ë¤é®É¤À¬í
-                int year = int.Parse(finishtime.Substring(0, 4));    // ¦è¤¸¦~¡]4¦ì¡^
-                int month = int.Parse(finishtime.Substring(4, 2));   // ¤ë¥÷¡]2¦ì¡^
-                int day = int.Parse(finishtime.Substring(6, 2));     // ¤é´Á¡]2¦ì¡^
-                int hour = int.Parse(finishtime.Substring(8, 2));    // ¤p®É¡]2¦ì¡^
-                int minute = int.Parse(finishtime.Substring(10, 2)); // ¤ÀÄÁ¡]2¦ì¡^
-                int second = int.Parse(finishtime.Substring(12, 2)); // ¬í¼Æ¡]2¦ì¡^
+                // è§£æå¹´æœˆæ—¥æ™‚åˆ†ç§’
+                int year = int.Parse(finishtime.Substring(0, 4));    // è¥¿å…ƒå¹´ï¼ˆ4ä½ï¼‰
+                int month = int.Parse(finishtime.Substring(4, 2));   // æœˆä»½ï¼ˆ2ä½ï¼‰
+                int day = int.Parse(finishtime.Substring(6, 2));     // æ—¥æœŸï¼ˆ2ä½ï¼‰
+                int hour = int.Parse(finishtime.Substring(8, 2));    // å°æ™‚ï¼ˆ2ä½ï¼‰
+                int minute = int.Parse(finishtime.Substring(10, 2)); // åˆ†é˜ï¼ˆ2ä½ï¼‰
+                int second = int.Parse(finishtime.Substring(12, 2)); // ç§’æ•¸ï¼ˆ2ä½ï¼‰
 
-                // «Ø¥ß DateTime ª«¥ó
+                // å»ºç«‹ DateTime ç‰©ä»¶
                 return new DateTime(year, month, day, hour, minute, second);
             }
             catch (Exception ex)
             {
-                // ¸ÑªR¥¢±Ñ¡A°O¿ı¿ù»~¨Ã¦^¶Ç·í«e®É¶¡
-                _logger.LogError(ex, $"ParseFinishTime:¸ÑªR®É¶¡¥¢±Ñ - FinishTime: {finishtime}");
+                // è§£æå¤±æ•—ï¼Œè¨˜éŒ„éŒ¯èª¤ä¸¦å›å‚³ç•¶å‰æ™‚é–“
+                _logger.LogError(ex, $"ParseFinishTime:è§£ææ™‚é–“å¤±æ•— - FinishTime: {finishtime}");
                 return DateTime.Now;
             }
         }
 
         /// <summary>
         /// ========================================
-        /// ¨ú±o¥I´Ú¤è¦¡¦WºÙ
+        /// å–å¾—ä»˜æ¬¾æ–¹å¼åç¨±
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ±N°ª¿÷ª÷¬yªº PFN¡]¤ä¥I¤u¨ã¥N½X¡^Âà´«¬°¤¤¤å¦WºÙ
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// å°‡é«˜é‹¸é‡‘æµçš„ PFNï¼ˆæ”¯ä»˜å·¥å…·ä»£ç¢¼ï¼‰è½‰æ›ç‚ºä¸­æ–‡åç¨±
         /// 
-        /// ¡i¤ä´©ªº¥I´Ú¤è¦¡¡j
-        /// - 1 / CREDITCARD: «H¥Î¥d
-        /// - 6 / E_COLLECTION: µêÀÀ±b¸¹
-        /// - 3 / CSTORECODE: ¶W°Ó¥N½X
-        /// - 8 / CREDITCARD_INSTALLMENT: «H¥Î¥d¤À´Á
+        /// ã€æ”¯æ´çš„ä»˜æ¬¾æ–¹å¼ã€‘
+        /// - 1 / CREDITCARD: ä¿¡ç”¨å¡
+        /// - 6 / E_COLLECTION: è™›æ“¬å¸³è™Ÿ
+        /// - 3 / CSTORECODE: è¶…å•†ä»£ç¢¼
+        /// - 8 / CREDITCARD_INSTALLMENT: ä¿¡ç”¨å¡åˆ†æœŸ
         /// 
-        /// ¡i°Ñ¦Ò¤åÀÉ¡j
-        /// °ª¿÷ª÷¬y©x¤è³W®æ - ªş¿ı¤@¡GPFN¡]¤ä¥I¤u¨ã¡^°Ñ¼Æªí
+        /// ã€åƒè€ƒæ–‡æª”ã€‘
+        /// é«˜é‹¸é‡‘æµå®˜æ–¹è¦æ ¼ - é™„éŒ„ä¸€ï¼šPFNï¼ˆæ”¯ä»˜å·¥å…·ï¼‰åƒæ•¸è¡¨
         /// 
         /// </summary>
-        /// <param name="pfn">¤ä¥I¤u¨ã¥N½X¡]¼Æ¦r©Î­^¤å¥N½X¡^</param>
-        /// <returns>¹ïÀ³ªº¤¤¤å¤ä¥I¤è¦¡¦WºÙ¡A¥¼ª¾¥N½X«h¦^¶Ç¡u¤ä¥I¤u¨ã {pfn}¡v</returns>
+        /// <param name="pfn">æ”¯ä»˜å·¥å…·ä»£ç¢¼ï¼ˆæ•¸å­—æˆ–è‹±æ–‡ä»£ç¢¼ï¼‰</param>
+        /// <returns>å°æ‡‰çš„ä¸­æ–‡æ”¯ä»˜æ–¹å¼åç¨±ï¼ŒæœªçŸ¥ä»£ç¢¼å‰‡å›å‚³ã€Œæ”¯ä»˜å·¥å…· {pfn}ã€</returns>
         private string GetPaymentMethodName(string pfn)
         {
-            if (string.IsNullOrWhiteSpace(pfn)) return "¥¼ª¾¤ä¥I¤u¨ã";
+            if (string.IsNullOrWhiteSpace(pfn)) return "æœªçŸ¥æ”¯ä»˜å·¥å…·";
 
-            // Âà´«¬°¤j¼g¶i¦æ¤ñ¹ï
+            // è½‰æ›ç‚ºå¤§å¯«é€²è¡Œæ¯”å°
             string k = pfn.ToUpper();
 
             switch (k)
             {
-                // «H¥Î¥d
+                // ä¿¡ç”¨å¡
                 case "1":
                 case "CREDITCARD":
-                    return "«H¥Î¥d";
+                    return "ä¿¡ç”¨å¡";
 
-                // µêÀÀ±b¸¹
+                // è™›æ“¬å¸³è™Ÿ
                 case "6":
                 case "E_COLLECTION":
-                    return "µêÀÀ±b¸¹";
+                    return "è™›æ“¬å¸³è™Ÿ";
 
-                // ¶W°Ó¥N½X
+                // è¶…å•†ä»£ç¢¼
                 case "3":
                 case "CSTORECODE":
-                    return "¶W°Ó¥N½X";
+                    return "è¶…å•†ä»£ç¢¼";
 
-                // «H¥Î¥d¤À´Á
+                // ä¿¡ç”¨å¡åˆ†æœŸ
                 case "8":
                 case "CREDITCARD_INSTALLMENT":
-                    return "«H¥Î¥d¤À´Á";
+                    return "ä¿¡ç”¨å¡åˆ†æœŸ";
 
-                // ¥¼ª¾¤ä¥I¤u¨ã
+                // æœªçŸ¥æ”¯ä»˜å·¥å…·
                 default:
-                    return $"¤ä¥I¤u¨ã {pfn}";
+                    return $"æ”¯ä»˜å·¥å…· {pfn}";
             }
         }
 
         /// <summary>
         /// ========================================
-        /// §PÂ_¦¬¶O³æÃş«¬
+        /// åˆ¤æ–·æ”¶è²»å–®é¡å‹
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ®Ú¾Ú¦¬¶O³æªºÄæ¦ì¤º®e§PÂ_¨äÃş«¬¡]©^Äm/½Òµ{/¨ä¥L¡^
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// æ ¹æ“šæ”¶è²»å–®çš„æ¬„ä½å…§å®¹åˆ¤æ–·å…¶é¡å‹ï¼ˆå¥‰ç»/èª²ç¨‹/å…¶ä»–ï¼‰
         /// 
-        /// ¡i§PÂ_ÅŞ¿è¡j
-        /// 1. ÀË¬d¬O§_¦³ÃöÁp½Òµ{¡]new_course_id¡^¡÷ ½Òµ{Ãş«¬
-        /// 2. ÀË¬d¦¬¶O³æ¦WºÙ¬O§_¥]§t½Òµ{ÃöÁä¦r ¡÷ ½Òµ{Ãş«¬
-        /// 3. ÀË¬d½Òµ{¦WºÙÄæ¦ì¬O§_¦³­È ¡÷ ½Òµ{Ãş«¬
-        /// 4. ÀË¬d©^ÄmÃş§O¥N½X½d³ò¡]100000000~100000019¡^¡÷ ©^ÄmÃş«¬
-        /// 5. ¹w³]¬°©^ÄmÃş«¬
+        /// ã€åˆ¤æ–·é‚è¼¯ã€‘
+        /// 1. æª¢æŸ¥æ˜¯å¦æœ‰é—œè¯èª²ç¨‹ï¼ˆnew_course_idï¼‰â†’ èª²ç¨‹é¡å‹
+        /// 2. æª¢æŸ¥æ”¶è²»å–®åç¨±æ˜¯å¦åŒ…å«èª²ç¨‹é—œéµå­— â†’ èª²ç¨‹é¡å‹
+        /// 3. æª¢æŸ¥èª²ç¨‹åç¨±æ¬„ä½æ˜¯å¦æœ‰å€¼ â†’ èª²ç¨‹é¡å‹
+        /// 4. æª¢æŸ¥å¥‰ç»é¡åˆ¥ä»£ç¢¼ç¯„åœï¼ˆ100000000~100000019ï¼‰â†’ å¥‰ç»é¡å‹
+        /// 5. é è¨­ç‚ºå¥‰ç»é¡å‹
         /// 
-        /// ¡i½Òµ{ÃöÁä¦r¡j
-        /// - ½Òµ{¡B³ø¦W¡B¾Ç¶O¡B°ö°V¡B¬ã²ß
+        /// ã€èª²ç¨‹é—œéµå­—ã€‘
+        /// - èª²ç¨‹ã€å ±åã€å­¸è²»ã€åŸ¹è¨“ã€ç ”ç¿’
         /// 
-        /// ¡i©^ÄmÃş§O¥N½X½d³ò¡j
-        /// - 100000000 ~ 100000019¡G¦UÃş©^Äm¡]¤Q¤@¡B·P®¦¡B«Ø°óµ¥¡^
+        /// ã€å¥‰ç»é¡åˆ¥ä»£ç¢¼ç¯„åœã€‘
+        /// - 100000000 ~ 100000019ï¼šå„é¡å¥‰ç»ï¼ˆåä¸€ã€æ„Ÿæ©ã€å»ºå ‚ç­‰ï¼‰
         /// 
         /// </summary>
-        /// <param name="utility">CRM ¤u¨ãÃş¹ê¨Ò</param>
-        /// <param name="feeEntity">¦¬¶O³æ¹êÅé</param>
-        /// <returns>¦¬¶O³æÃş«¬¡]Dedication/Course/Other¡^</returns>
+        /// <param name="utility">CRM å·¥å…·é¡å¯¦ä¾‹</param>
+        /// <param name="feeEntity">æ”¶è²»å–®å¯¦é«”</param>
+        /// <returns>æ”¶è²»å–®é¡å‹ï¼ˆDedication/Course/Otherï¼‰</returns>
         private FeeType DetermineFeeType(ToolUtilityClass utility, Entity feeEntity)
         {
             try
             {
                 // ========================================
-                // §PÂ_ 1¡GÀË¬d½Òµ{ÃöÁp
+                // åˆ¤æ–· 1ï¼šæª¢æŸ¥èª²ç¨‹é—œè¯
                 // ========================================
                 var courseId = utility.GetEntityLookupAttribute(feeEntity, "new_course_id");
                 if (courseId != Guid.Empty)
                 {
-                    return FeeType.Course; // ¦³ÃöÁp½Òµ{¡A§P©w¬°½Òµ{Ãş«¬
+                    return FeeType.Course; // æœ‰é—œè¯èª²ç¨‹ï¼Œåˆ¤å®šç‚ºèª²ç¨‹é¡å‹
                 }
 
                 // ========================================
-                // §PÂ_ 2¡GÀË¬d¦¬¶O³æ¦WºÙ¬O§_¥]§t½Òµ{ÃöÁä¦r
+                // åˆ¤æ–· 2ï¼šæª¢æŸ¥æ”¶è²»å–®åç¨±æ˜¯å¦åŒ…å«èª²ç¨‹é—œéµå­—
                 // ========================================
                 string feeName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? string.Empty;
-                if (feeName.Contains("½Òµ{") || 
-                    feeName.Contains("³ø¦W") || 
-                    feeName.Contains("¾Ç¶O") || 
-                    feeName.Contains("°ö°V") || 
-                    feeName.Contains("¬ã²ß"))
+                if (feeName.Contains("èª²ç¨‹") || 
+                    feeName.Contains("å ±å") || 
+                    feeName.Contains("å­¸è²»") || 
+                    feeName.Contains("åŸ¹è¨“") || 
+                    feeName.Contains("ç ”ç¿’"))
                 {
-                    return FeeType.Course; // ¦WºÙ¥]§t½Òµ{ÃöÁä¦r¡A§P©w¬°½Òµ{Ãş«¬
+                    return FeeType.Course; // åç¨±åŒ…å«èª²ç¨‹é—œéµå­—ï¼Œåˆ¤å®šç‚ºèª²ç¨‹é¡å‹
                 }
 
                 // ========================================
-                // §PÂ_ 3¡GÀË¬d½Òµ{¦WºÙÄæ¦ì
+                // åˆ¤æ–· 3ï¼šæª¢æŸ¥èª²ç¨‹åç¨±æ¬„ä½
                 // ========================================
                 string courseName = utility.GetEntityStringAttribute(feeEntity, "new_course_name");
                 if (!string.IsNullOrWhiteSpace(courseName))
                 {
-                    return FeeType.Course; // ¦³½Òµ{¦WºÙ¡A§P©w¬°½Òµ{Ãş«¬
+                    return FeeType.Course; // æœ‰èª²ç¨‹åç¨±ï¼Œåˆ¤å®šç‚ºèª²ç¨‹é¡å‹
                 }
 
                 // ========================================
-                // §PÂ_ 4¡GÀË¬d©^ÄmÃş§O¥N½X
+                // åˆ¤æ–· 4ï¼šæª¢æŸ¥å¥‰ç»é¡åˆ¥ä»£ç¢¼
                 // ========================================
                 int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
                 if (categoryValue >= 100000000 && categoryValue <= 100000019)
                 {
-                    return FeeType.Dedication; // ¦b©^ÄmÃş§O¥N½X½d³ò¤º¡A§P©w¬°©^ÄmÃş«¬
+                    return FeeType.Dedication; // åœ¨å¥‰ç»é¡åˆ¥ä»£ç¢¼ç¯„åœå…§ï¼Œåˆ¤å®šç‚ºå¥‰ç»é¡å‹
                 }
 
                 // ========================================
-                // ¹w³]§PÂ_¡G©^ÄmÃş«¬
+                // é è¨­åˆ¤æ–·ï¼šå¥‰ç»é¡å‹
                 // ========================================
-                // ­YµLªk©ú½T§PÂ_¬°½Òµ{¡A«h¹w³]¬°©^ÄmÃş«¬
+                // è‹¥ç„¡æ³•æ˜ç¢ºåˆ¤æ–·ç‚ºèª²ç¨‹ï¼Œå‰‡é è¨­ç‚ºå¥‰ç»é¡å‹
                 return FeeType.Dedication;
             }
             catch (Exception ex)
             {
-                // µo¥Í¿ù»~®É°O¿ı¤é»x¡A¨Ã¹w³]¬°©^ÄmÃş«¬
-                _logger.LogError(ex, "DetermineFeeType¨Ò¥~¡A¹w³]©^Äm");
+                // ç™¼ç”ŸéŒ¯èª¤æ™‚è¨˜éŒ„æ—¥èªŒï¼Œä¸¦é è¨­ç‚ºå¥‰ç»é¡å‹
+                _logger.LogError(ex, "DetermineFeeTypeä¾‹å¤–ï¼Œé è¨­å¥‰ç»");
                 return FeeType.Dedication;
             }
         }
 
         /// <summary>
         /// ========================================
-        /// ¨ú±o½Òµ{¦WºÙ
+        /// å–å¾—èª²ç¨‹åç¨±
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ±q¦¬¶O³æ¨ú±o¹ïÀ³ªº½Òµ{¦WºÙ
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// å¾æ”¶è²»å–®å–å¾—å°æ‡‰çš„èª²ç¨‹åç¨±
         /// 
-        /// ¡i¨ú±o¶¶§Ç¡j
-        /// 1. ³z¹L½Òµ{ÃöÁp¡]new_course_id¡^¬d¸ß½Òµ{¹êÅéªº¦WºÙ
-        /// 2. ¨Ï¥Î¦¬¶O³æªº½Òµ{¦WºÙÄæ¦ì¡]new_course_name¡^
-        /// 3. ¨Ï¥Î¦¬¶O³æ¥»¨­ªº¦WºÙ¡]new_name¡^
-        /// 4. ¹w³]¦^¶Ç¡u½Òµ{¡v
+        /// ã€å–å¾—é †åºã€‘
+        /// 1. é€éèª²ç¨‹é—œè¯ï¼ˆnew_course_idï¼‰æŸ¥è©¢èª²ç¨‹å¯¦é«”çš„åç¨±
+        /// 2. ä½¿ç”¨æ”¶è²»å–®çš„èª²ç¨‹åç¨±æ¬„ä½ï¼ˆnew_course_nameï¼‰
+        /// 3. ä½¿ç”¨æ”¶è²»å–®æœ¬èº«çš„åç¨±ï¼ˆnew_nameï¼‰
+        /// 4. é è¨­å›å‚³ã€Œèª²ç¨‹ã€
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// «Ø¥ß½Òµ{Ãº¶O¬ÛÃöªº LINE ³qª¾°T®§®É¨Ï¥Î
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// å»ºç«‹èª²ç¨‹ç¹³è²»ç›¸é—œçš„ LINE é€šçŸ¥è¨Šæ¯æ™‚ä½¿ç”¨
         /// 
         /// </summary>
-        /// <param name="utility">CRM ¤u¨ãÃş¹ê¨Ò</param>
-        /// <param name="feeEntity">¦¬¶O³æ¹êÅé</param>
-        /// <returns>½Òµ{¦WºÙ¦r¦ê¡A­YµLªk¨ú±o«h¦^¶Ç¡u½Òµ{¡v</returns>
+        /// <param name="utility">CRM å·¥å…·é¡å¯¦ä¾‹</param>
+        /// <param name="feeEntity">æ”¶è²»å–®å¯¦é«”</param>
+        /// <returns>èª²ç¨‹åç¨±å­—ä¸²ï¼Œè‹¥ç„¡æ³•å–å¾—å‰‡å›å‚³ã€Œèª²ç¨‹ã€</returns>
         private string GetCourseName(ToolUtilityClass utility, Entity feeEntity)
         {
             try
             {
                 // ========================================
-                // ¤èªk 1¡G±q½Òµ{¹êÅé¬d¸ß
+                // æ–¹æ³• 1ï¼šå¾èª²ç¨‹å¯¦é«”æŸ¥è©¢
                 // ========================================
                 var courseId = utility.GetEntityLookupAttribute(feeEntity, "new_course_id");
                 if (courseId != Guid.Empty)
                 {
-                    // ¬d¸ß½Òµ{¹êÅé
+                    // æŸ¥è©¢èª²ç¨‹å¯¦é«”
                     var courseEntity = utility.RetrieveEntity("new_course", courseId);
                     if (courseEntity != null)
                     {
-                        // ¨ú±o½Òµ{¦WºÙ
+                        // å–å¾—èª²ç¨‹åç¨±
                         var name = utility.GetEntityStringAttribute(courseEntity, "new_name");
                         if (!string.IsNullOrWhiteSpace(name))
                         {
-                            return name; // ¦¨¥\¨ú±o½Òµ{¹êÅéªº¦WºÙ
+                            return name; // æˆåŠŸå–å¾—èª²ç¨‹å¯¦é«”çš„åç¨±
                         }
                     }
                 }
 
                 // ========================================
-                // ¤èªk 2¡G±q¦¬¶O³æªº½Òµ{¦WºÙÄæ¦ì
+                // æ–¹æ³• 2ï¼šå¾æ”¶è²»å–®çš„èª²ç¨‹åç¨±æ¬„ä½
                 // ========================================
                 var courseNameField = utility.GetEntityStringAttribute(feeEntity, "new_course_name");
                 if (!string.IsNullOrWhiteSpace(courseNameField))
                 {
-                    return courseNameField; // ¨Ï¥Î¦¬¶O³æ°O¿ıªº½Òµ{¦WºÙ
+                    return courseNameField; // ä½¿ç”¨æ”¶è²»å–®è¨˜éŒ„çš„èª²ç¨‹åç¨±
                 }
 
                 // ========================================
-                // ¤èªk 3¡G±q¦¬¶O³æ¦WºÙ
+                // æ–¹æ³• 3ï¼šå¾æ”¶è²»å–®åç¨±
                 // ========================================
-                return utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "½Òµ{";
+                return utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "èª²ç¨‹";
             }
             catch (Exception ex)
             {
-                // µo¥Í¿ù»~®É°O¿ı¤é»x¡A¨Ã¦^¶Ç¹w³]­È
-                _logger.LogError(ex, "GetCourseName¨Ò¥~");
-                return "½Òµ{";
+                // ç™¼ç”ŸéŒ¯èª¤æ™‚è¨˜éŒ„æ—¥èªŒï¼Œä¸¦å›å‚³é è¨­å€¼
+                _logger.LogError(ex, "GetCourseNameä¾‹å¤–");
+                return "èª²ç¨‹";
             }
         }
 
         /// <summary>
         /// ========================================
-        /// ¨ú±o©^ÄmÃş§O¦WºÙ
+        /// å–å¾—å¥‰ç»é¡åˆ¥åç¨±
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ±N CRM ¤¤ªº©^ÄmÃş§O¥N½XÂà´«¬°¤¤¤å¦WºÙ
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// å°‡ CRM ä¸­çš„å¥‰ç»é¡åˆ¥ä»£ç¢¼è½‰æ›ç‚ºä¸­æ–‡åç¨±
         /// 
-        /// ¡i¤ä´©ªº©^ÄmÃş§O¡j
-        /// - 100000010: ¥D¤é©^Äm
-        /// - 100000000: ¤Q¤@©^Äm
-        /// - 100000002: ·P®¦©^Äm
-        /// - 100000006: «Ø°ó©^Äm
-        /// - 100000007: «Å±Ğ©^Äm
-        /// - 100000019: ·R¤ß©^Äm
-        /// - 100000008: ¯S§OÄmª÷
-        /// - ¨ä¥L: ©^Äm¡]¹w³]¡^
+        /// ã€æ”¯æ´çš„å¥‰ç»é¡åˆ¥ã€‘
+        /// - 100000010: ä¸»æ—¥å¥‰ç»
+        /// - 100000000: åä¸€å¥‰ç»
+        /// - 100000002: æ„Ÿæ©å¥‰ç»
+        /// - 100000006: å»ºå ‚å¥‰ç»
+        /// - 100000007: å®£æ•™å¥‰ç»
+        /// - 100000019: æ„›å¿ƒå¥‰ç»
+        /// - 100000008: ç‰¹åˆ¥ç»é‡‘
+        /// - å…¶ä»–: å¥‰ç»ï¼ˆé è¨­ï¼‰
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// «Ø¥ß©^Äm¬ÛÃöªº LINE ³qª¾°T®§®É¨Ï¥Î
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// å»ºç«‹å¥‰ç»ç›¸é—œçš„ LINE é€šçŸ¥è¨Šæ¯æ™‚ä½¿ç”¨
         /// 
         /// </summary>
-        /// <param name="categoryValue">©^ÄmÃş§O¥N½X¡]OptionSet ­È¡^</param>
-        /// <returns>¹ïÀ³ªº¤¤¤å©^ÄmÃş§O¦WºÙ¡A¥¼ª¾¥N½X«h¦^¶Ç¡u©^Äm¡v</returns>
+        /// <param name="categoryValue">å¥‰ç»é¡åˆ¥ä»£ç¢¼ï¼ˆOptionSet å€¼ï¼‰</param>
+        /// <returns>å°æ‡‰çš„ä¸­æ–‡å¥‰ç»é¡åˆ¥åç¨±ï¼ŒæœªçŸ¥ä»£ç¢¼å‰‡å›å‚³ã€Œå¥‰ç»ã€</returns>
         private string GetDedicationCategoryName(int categoryValue)
         {
             switch (categoryValue)
             {
-                case 100000010: return "¥D¤é©^Äm";
-                case 100000000: return "¤Q¤@©^Äm";
-                case 100000002: return "·P®¦©^Äm";
-                case 100000006: return "«Ø°ó©^Äm";
-                case 100000007: return "«Å±Ğ©^Äm";
-                case 100000019: return "·R¤ß©^Äm";
-                case 100000008: return "¯S§OÄmª÷";
-                default: return "©^Äm"; // ¹w³]Ãş§O¦WºÙ
+                case 100000010: return "ä¸»æ—¥å¥‰ç»";
+                case 100000000: return "åä¸€å¥‰ç»";
+                case 100000002: return "æ„Ÿæ©å¥‰ç»";
+                case 100000006: return "å»ºå ‚å¥‰ç»";
+                case 100000007: return "å®£æ•™å¥‰ç»";
+                case 100000019: return "æ„›å¿ƒå¥‰ç»";
+                case 100000008: return "ç‰¹åˆ¥ç»é‡‘";
+                default: return "å¥‰ç»"; // é è¨­é¡åˆ¥åç¨±
             }
         }
 
-        #endregion // ¦¬¶O³æÃş«¬»Pª¬ºA§PÂ_
-        #endregion // ¦¬¶O³æÃş«¬»Pª¬ºA§PÂ_ (duplicate)
-        #endregion // ª¬ºA/¤å¦r/CRM§ó·s»²§U¤èªk
-    } // MyPayController Ãş§Oµ²§ô
+        #endregion // æ”¶è²»å–®é¡å‹èˆ‡ç‹€æ…‹åˆ¤æ–·
+        #endregion // æ”¶è²»å–®é¡å‹èˆ‡ç‹€æ…‹åˆ¤æ–· (duplicate)
+        #endregion // ç‹€æ…‹/æ–‡å­—/CRMæ›´æ–°è¼”åŠ©æ–¹æ³•
+    } // MyPayController é¡åˆ¥çµæŸ
 
     /// <summary>
-    /// ª÷¬y¦^¶Ç¼Ò«¬ÂX¥R¤èªk
-    /// ´£¨Ñ MyPayReturnModel ªºÂX¥RÅçÃÒ©M³B²z¤èªk
+    /// é‡‘æµå›å‚³æ¨¡å‹æ“´å……æ–¹æ³•
+    /// æä¾› MyPayReturnModel çš„æ“´å……é©—è­‰å’Œè™•ç†æ–¹æ³•
     /// </summary>
     public static class MyPayReturnModelExtensions
     {
         /// <summary>
         /// ========================================
-        /// ÅçÃÒ©Ò¦³Äæ¦ì§¹¾ã©Ê
+        /// é©—è­‰æ‰€æœ‰æ¬„ä½å®Œæ•´æ€§
         /// ========================================
         /// 
-        /// ¡i¥\¯à»¡©ú¡j
-        /// ÅçÃÒ MyPay ¥æ©ö¦^¶Ç¼Ò«¬ªº©Ò¦³¥²­nÄæ¦ì
-        /// ¥]§t®Ö¤ßÄæ¦ì¤Î¨ä®æ¦¡¡Bªø«×¡BÃöÁp©Êµ¥
+        /// ã€åŠŸèƒ½èªªæ˜ã€‘
+        /// é©—è­‰ MyPay äº¤æ˜“å›å‚³æ¨¡å‹çš„æ‰€æœ‰å¿…è¦æ¬„ä½
+        /// åŒ…å«æ ¸å¿ƒæ¬„ä½åŠå…¶æ ¼å¼ã€é•·åº¦ã€é—œè¯æ€§ç­‰
         /// 
-        /// ¡iÅçÃÒ³W«h¡j
-        /// 1. uid¡Bkey¡Bprc¡Border_id ¬°¥²¶ñ¡A¥B¤£¥i¬°ªÅ¦r¦ê
-        /// 2. uid¡Bkey ªø«×¥²¶·¬° 32 ¦r¤¸
-        /// 3. prc °Ñ¼Æ»İ²Å¦X¹w´Áªº¦¨¥\©Î¥¢±Ñ¥N½X
-        /// 4. order_id ¥²¶·¬O¤wª¾ªº­q³æ®æ¦¡
+        /// ã€é©—è­‰è¦å‰‡ã€‘
+        /// 1. uidã€keyã€prcã€order_id ç‚ºå¿…å¡«ï¼Œä¸”ä¸å¯ç‚ºç©ºå­—ä¸²
+        /// 2. uidã€key é•·åº¦å¿…é ˆç‚º 32 å­—å…ƒ
+        /// 3. prc åƒæ•¸éœ€ç¬¦åˆé æœŸçš„æˆåŠŸæˆ–å¤±æ•—ä»£ç¢¼
+        /// 4. order_id å¿…é ˆæ˜¯å·²çŸ¥çš„è¨‚å–®æ ¼å¼
         /// 
-        /// ¡i¦^¶Çµ²ªG¡j
-        /// - ÅçÃÒ³q¹L¡Gªğ¦^ ValidationResult¡AIsValid=true
-        /// - ÅçÃÒ¤£³q¹L¡Gªğ¦^ ValidationResult¡A¥]§t¿ù»~°T®§
+        /// ã€å›å‚³çµæœã€‘
+        /// - é©—è­‰é€šéï¼šè¿”å› ValidationResultï¼ŒIsValid=true
+        /// - é©—è­‰ä¸é€šéï¼šè¿”å› ValidationResultï¼ŒåŒ…å«éŒ¯èª¤è¨Šæ¯
         /// 
-        /// ¡i¨Ï¥Î®É¾÷¡j
-        /// ·í±µ¦¬¨ìª÷¬y¦^¶Ç¸ê®Æ«á¡A²Ä¤@®É¶¡ÅçÃÒ©Ò¦³¥²­nÄæ¦ì
+        /// ã€ä½¿ç”¨æ™‚æ©Ÿã€‘
+        /// ç•¶æ¥æ”¶åˆ°é‡‘æµå›å‚³è³‡æ–™å¾Œï¼Œç¬¬ä¸€æ™‚é–“é©—è­‰æ‰€æœ‰å¿…è¦æ¬„ä½
         /// 
         /// </summary>
-        /// <param name="model">MyPay ¥æ©ö¦^¶Ç¼Ò«¬</param>
-        /// <returns>ÅçÃÒµ²ªG¡A¥]§t¬O§_³q¹LÅçÃÒªº¼Ğ»x¤Î¿ù»~°T®§</returns>
+        /// <param name="model">MyPay äº¤æ˜“å›å‚³æ¨¡å‹</param>
+        /// <returns>é©—è­‰çµæœï¼ŒåŒ…å«æ˜¯å¦é€šéé©—è­‰çš„æ¨™èªŒåŠéŒ¯èª¤è¨Šæ¯</returns>
         public static ValidationResult ValidateAllFields(this MyPayReturnModel model)
         {
             var result = new ValidationResult();
 
             try
             {
-                // 1. uid ¤£±o¬°ªÅ¥Bªø«×¬° 32
+                // 1. uid ä¸å¾—ç‚ºç©ºä¸”é•·åº¦ç‚º 32
                 if (string.IsNullOrWhiteSpace(model.uid) || model.uid.Length != 32)
                 {
                     result.IsValid = false;
-                    result.Errors.Add("uid ®æ¦¡¿ù»~");
+                    result.Errors.Add("uid æ ¼å¼éŒ¯èª¤");
                 }
 
-                // 2. key ¤£±o¬°ªÅ¥Bªø«×¬° 32
+                // 2. key ä¸å¾—ç‚ºç©ºä¸”é•·åº¦ç‚º 32
                 if (string.IsNullOrWhiteSpace(model.key) || model.key.Length != 32)
                 {
                     result.IsValid = false;
-                    result.Errors.Add("key ®æ¦¡¿ù»~");
+                    result.Errors.Add("key æ ¼å¼éŒ¯èª¤");
                 }
 
-                // 3. prc »İ¬°¤wª¾ªº¦¨¥\©Î¥¢±Ñ¥N½X
+                // 3. prc éœ€ç‚ºå·²çŸ¥çš„æˆåŠŸæˆ–å¤±æ•—ä»£ç¢¼
                 if (!new [] {"250", "290", "600", "300", "400", "260", "270", "280"}.Contains(model.prc))
                 {
                     result.IsValid = false;
-                    result.Errors.Add("prc ª¬ºA½X¤£¦b¹w´Á½d³ò¤º");
+                    result.Errors.Add("prc ç‹€æ…‹ç¢¼ä¸åœ¨é æœŸç¯„åœå…§");
                 }
 
-                // 4. order_id ¤£±o¬°ªÅ
+                // 4. order_id ä¸å¾—ç‚ºç©º
                 if (string.IsNullOrWhiteSpace(model.order_id))
                 {
                     result.IsValid = false;
-                    result.Errors.Add("order_id ¬°¥²¶ñÄæ¦ì");
+                    result.Errors.Add("order_id ç‚ºå¿…å¡«æ¬„ä½");
                 }
             }
             catch (Exception ex)
             {
                 result.IsValid = false;
-                result.Errors.Add($"ÅçÃÒ¹Lµ{¤¤µo¥Í¿ù»~¡G{ex.Message}");
+                result.Errors.Add($"é©—è­‰éç¨‹ä¸­ç™¼ç”ŸéŒ¯èª¤ï¼š{ex.Message}");
             }
 
-            // ª`·N¡GValidationResult.Level ¥i¯à¬°°ßÅªÄİ©Ê¡A¶È³]©w IsValid »P Errors
+            // æ³¨æ„ï¼šValidationResult.Level å¯èƒ½ç‚ºå”¯è®€å±¬æ€§ï¼Œåƒ…è¨­å®š IsValid èˆ‡ Errors
             return result;
         }
     }
