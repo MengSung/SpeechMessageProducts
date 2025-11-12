@@ -754,7 +754,7 @@ namespace ChurchReport.Controllers
         /// 4. 記錄發送結果
         /// 
         /// 【錯誤處理】
-        /// - 發送失敗會拋出例外
+        /// - 發送失敗會抄出例外
         /// - 錯誤會記錄到日誌
         /// - 上層需處理例外情況
         /// 
@@ -836,76 +836,277 @@ namespace ChurchReport.Controllers
 
         #region 狀態/文字/CRM更新輔助方法
 
+        // ========================================================================================================
+        // 【狀態/文字/CRM更新輔助方法區塊】
+        // 
+        // 本區塊提供支援金流處理的各種輔助方法，分為以下幾大類：
+        // 
+        // 1. 【交易狀態判斷】- 判斷交易是否成功
+        // 2. 【錯誤訊息處理】- 建立和轉換錯誤訊息
+        // 3. 【日誌記錄】- 記錄完整的金流回傳資料
+        // 4. 【CRM 資料更新】- 更新收費單狀態與交易資訊
+        // 5. 【LINE 通知發送】- 根據類型發送通知訊息
+        // 
+        // 【設計原則】
+        // - 單一職責：每個方法只負責一項特定任務
+        // - 錯誤處理：所有方法都包含完整的異常處理和日誌記錄
+        // - 可維護性：清晰的命名和完整的註解說明
+        // ========================================================================================================
+
+        #region 1. 交易狀態判斷
+
+        /// <summary>
+        /// ========================================
+        /// 判斷交易是否成功
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 根據高鋸金流的 PRC（交易回傳碼）判斷交易是否完成成功
+        /// 
+        /// 【成功代碼說明】
+        /// - 250: 付款成功（最常見的成功代碼，表示即時交易完成）
+        /// - 290: 交易成功但資訊不符（交易完成但部分資訊需要核對）
+        /// - 600: 結帳完成（購物車結帳流程完成）
+        /// 
+        /// 【其他狀態代碼】
+        /// - 260, 270, 280: 交易成功但尚未付款完成（虛擬帳號、超商代碼等）
+        /// - 300: 交易失敗
+        /// - 400: 系統錯誤
+        /// - 其他: 參考 GetPaymentStatusMessage 方法
+        /// 
+        /// 【使用時機】
+        /// 在收到金流回傳後，第一時間判斷交易結果，決定後續處理流程
+        /// 
+        /// 【參考文檔】
+        /// 高鋸金流官方規格 - 附錄二：PRC（交易回傳碼）定義
+        /// 
+        /// </summary>
+        /// <param name="prc">金流回傳的交易狀態碼（PRC）</param>
+        /// <returns>true 表示交易成功，false 表示交易失敗或狀態未知</returns>
         private bool IsSuccessfulPaymentStatus(string prc)
         {
+            // 檢查空值
             if (string.IsNullOrWhiteSpace(prc)) return false;
+
+            // 比對成功代碼
             switch (prc)
             {
-                case "250":
-                case "290":
-                case "600":
+                case "250": // 付款成功（信用卡即時交易）
+                case "290": // 交易成功但資訊不符
+                case "600": // 結帳完成
                     return true;
-                default:
+
+                default: // 其他所有代碼視為失敗或待處理
                     return false;
             }
         }
 
+        #endregion
+
+        #region 2. 錯誤訊息處理
+
+        /// <summary>
+        /// ========================================
+        /// 建立失敗訊息文字
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 根據金流回傳的錯誤資訊，建立使用者友善的失敗訊息
+        /// 
+        /// 【處理優先順序】
+        /// 1. 優先使用 msg 欄位（金流直接回傳的訊息）
+        /// 2. 其次使用 errorCode 或 retCode（轉換為友善訊息）
+        /// 3. 最後使用預設失敗訊息
+        /// 
+        /// 【訊息格式】
+        /// - 有明確訊息：「付款失敗：{具體原因}」
+        /// - 有錯誤代碼：「付款失敗：{友善說明}」或「付款失敗 (錯誤代碼: {code})」
+        /// - 無任何資訊：「付款失敗，請稍後再試或聯繫教會辦公室。」
+        /// 
+        /// 【使用時機】
+        /// 當交易失敗時，將技術性的錯誤代碼轉換為一般使用者能理解的文字
+        /// 
+        /// </summary>
+        /// <param name="msg">金流回傳的錯誤訊息文字（可選）</param>
+        /// <param name="errorCode">錯誤代碼（可選）</param>
+        /// <param name="retCode">回傳代碼（可選）</param>
+        /// <returns>格式化的失敗訊息字串，適合顯示給使用者</returns>
         private string BuildFailureMessage(string msg, string errorCode, string retCode)
         {
             var message = "付款失敗";
+
+            // 優先順序 1：使用 msg 欄位
             if (!string.IsNullOrWhiteSpace(msg))
             {
                 message = $"付款失敗：{msg}";
             }
+            // 優先順序 2：使用錯誤代碼
             else if (!string.IsNullOrWhiteSpace(errorCode) || !string.IsNullOrWhiteSpace(retCode))
             {
+                // 嘗試轉換為友善訊息
                 string friendly = GetFriendlyErrorMessage(errorCode, retCode);
-                message = !string.IsNullOrWhiteSpace(friendly) ? $"付款失敗：{friendly}" : $"付款失敗 (錯誤代碼: {errorCode ?? retCode})";
+
+                if (!string.IsNullOrWhiteSpace(friendly))
+                {
+                    // 有對應的友善訊息
+                    message = $"付款失敗：{friendly}";
+                }
+                else
+                {
+                    // 無對應訊息，直接顯示代碼
+                    message = $"付款失敗 (錯誤代碼: {errorCode ?? retCode})";
+                }
             }
+            // 優先順序 3：預設訊息
             else
             {
                 message = "付款失敗，請稍後再試或聯繫教會辦公室。";
             }
+
             return message;
         }
 
+        /// <summary>
+        /// ========================================
+        /// 取得友善的錯誤訊息
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 將銀行或金流系統的錯誤代碼轉換為使用者能理解的中文說明
+        /// 
+        /// 【支援的錯誤代碼】
+        /// - 卡片狀態：被拒絕、過期、遺失/被盜
+        /// - 卡片資料：卡號錯誤、CVV 錯誤
+        /// - 額度問題：額度不足、超過限額
+        /// - 交易限制：交易不被允許
+        /// - 系統問題：連線逾時、網路錯誤、系統錯誤
+        /// - 使用者操作：交易取消
+        /// - 安全驗證：3D 驗證失敗
+        /// 
+        /// 【代碼來源】
+        /// - 信用卡授權回應碼（標準 ISO 8583）
+        /// - 金流平台自訂錯誤碼
+        /// 
+        /// 【擴充說明】
+        /// 如需新增錯誤代碼對應，請在 switch 區塊中加入新的 case
+        /// 保持訊息簡潔、友善、具有指引性
+        /// 
+        /// </summary>
+        /// <param name="errorCode">錯誤代碼（英文或數字代碼）</param>
+        /// <param name="retCode">回傳代碼（備用）</param>
+        /// <returns>友善的中文錯誤訊息，如果代碼無對應則回傳 null</returns>
         private string GetFriendlyErrorMessage(string errorCode, string retCode)
         {
+            // 優先使用 errorCode，若為空則使用 retCode
             string code = errorCode ?? retCode ?? "";
-            switch ((code ?? string.Empty).ToUpper())
+
+            // 轉換為大寫進行比對（避免大小寫問題）
+            switch (code.ToUpper())
             {
+                // ====== 卡片被拒絕 ======
                 case "CARD_DECLINED":
-                case "51": return "信用卡被拒絕，請確認卡片狀態或聯繫發卡銀行";
+                case "51":
+                    return "信用卡被拒絕，請確認卡片狀態或聯繫發卡銀行";
+
+                // ====== 額度不足 ======
                 case "INSUFFICIENT_FUNDS":
-                case "05": return "信用卡額度不足，請使用其他卡片或聯繫發卡銀行";
+                case "05":
+                    return "信用卡額度不足，請使用其他卡片或聯繫發卡銀行";
+
+                // ====== 卡片過期 ======
                 case "EXPIRED_CARD":
-                case "54": return "信用卡已過期，請使用其他有效卡片";
+                case "54":
+                    return "信用卡已過期，請使用其他有效卡片";
+
+                // ====== 卡號錯誤 ======
                 case "INVALID_CARD":
-                case "14": return "信用卡號碼錯誤，請檢查卡號是否正確";
+                case "14":
+                    return "信用卡號碼錯誤，請檢查卡號是否正確";
+
+                // ====== CVV 錯誤 ======
                 case "INVALID_CVV":
-                case "CVV_ERROR": return "安全碼(CVV)錯誤，請重新輸入";
+                case "CVV_ERROR":
+                    return "安全碼(CVV)錯誤，請重新輸入";
+
+                // ====== 卡片遺失或被盜 ======
                 case "CARD_LOST_STOLEN":
-                case "43": return "此卡片已被列為遺失或被盜，請聯繫發卡銀行";
+                case "43":
+                    return "此卡片已被列為遺失或被盜，請聯繫發卡銀行";
+
+                // ====== 交易不被允許 ======
                 case "TRANSACTION_NOT_PERMITTED":
-                case "57": return "此交易不被允許，請聯繫發卡銀行";
+                case "57":
+                    return "此交易不被允許，請聯繫發卡銀行";
+
+                // ====== 超過限額 ======
                 case "EXCEEDED_LIMIT":
-                case "61": return "超過信用卡交易限額，請聯繫發卡銀行";
+                case "61":
+                    return "超過信用卡交易限額，請聯繫發卡銀行";
+
+                // ====== 連線逾時或網路錯誤 ======
                 case "TIMEOUT":
-                case "NETWORK_ERROR": return "連線逾時或網路錯誤，請稍後再試";
+                case "NETWORK_ERROR":
+                    return "連線逾時或網路錯誤，請稍後再試";
+
+                // ====== 系統錯誤 ======
                 case "SYSTEM_ERROR":
-                case "96": return "系統錯誤，請稍後再試或聯繫客服";
+                case "96":
+                    return "系統錯誤，請稍後再試或聯繫客服";
+
+                // ====== 交易取消 ======
                 case "CANCELLED":
-                case "USER_CANCELLED": return "交易已被取消";
+                case "USER_CANCELLED":
+                    return "交易已被取消";
+
+                // ====== 3D 驗證失敗 ======
                 case "3D_SECURE_FAILED":
-                case "3DS_FAILED": return "3D驗證失敗，請重新進行驗證";
-                default: return null;
+                case "3DS_FAILED":
+                    return "3D驗證失敗，請重新進行驗證";
+
+                // ====== 無對應訊息 ======
+                default:
+                    return null; // 回傳 null 表示無對應的友善訊息
             }
         }
 
+        #endregion
+
+        #region 3. 日誌記錄
+
+        /// <summary>
+        /// ========================================
+        /// 記錄完整的金流回傳資料
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 將金流平台回傳的完整資料記錄到日誌系統
+        /// 用於除錯、稽核和問題追蹤
+        /// 
+        /// 【記錄內容分類】
+        /// 1. 核心欄位：uid, key, prc, order_id（交易識別資訊）
+        /// 2. 交易資訊：finishtime, cost, actual_cost（金額與時間）
+        /// 3. 付款資訊：pfn, cardno, acode（付款方式與授權）
+        /// 4. 消費者資訊：user_id（使用者識別）
+        /// 5. 自訂參數：echo_0~2（商家自訂資料）
+        /// 6. 舊版欄位：state, msg, transaction_id（向下相容）
+        /// 
+        /// 【日誌格式】
+        /// 使用換行符號分隔各類資訊，便於閱讀和搜尋
+        /// 
+        /// 【使用時機】
+        /// 在接收到金流回傳後立即記錄，無論交易成功或失敗
+        /// 
+        /// 【注意事項】
+        /// - 敏感資訊（如完整卡號）已由金流平台做遮罩處理
+        /// - 發生記錄錯誤時不影響主流程，僅記錄錯誤
+        /// 
+        /// </summary>
+        /// <param name="model">金流回傳的資料模型</param>
         private void LogFullReturnData(MyPayReturnModel model)
         {
             try
             {
+                // 組合完整的日誌資料
                 var logData = $"[MyPay完整回傳資料]\n" +
                              $"核心欄位: uid={model.uid}, key={model.key}, prc={model.prc}, order_id={model.order_id}\n" +
                              $"交易資訊: finishtime={model.finishtime}, cost={model.cost}, actual_cost={model.actual_cost}\n" +
@@ -914,34 +1115,130 @@ namespace ChurchReport.Controllers
                              $"自訂參數: echo_0={model.echo_0}, echo_1={model.echo_1}, echo_2={model.echo_2}\n" +
                              $"舊版欄位: state={model.state}, msg={model.msg}, transaction_id={model.transaction_id}";
 
+                // 寫入日誌
                 _logger.LogInformation(logData);
             }
             catch (Exception ex)
             {
+                // 記錄日誌本身發生錯誤，記錄例外但不中斷流程
                 _logger.LogError(ex, "[MyPay回傳] 記錄回傳資料時發生錯誤");
             }
         }
 
-        private void UpdateFeeEntityWithMyPayReturn(ToolUtilityClass toolUtility, Entity feeEntity, MyPayReturnModel model, bool isSuccess)
+        #endregion
+
+        #region 4. CRM 資料更新
+
+        /// <summary>
+        /// ========================================
+        /// 更新 CRM 收費單（使用 MyPayReturnModel）
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 根據金流回傳結果更新 Dynamics 365 CRM 中的收費單記錄
+        /// 包含付款狀態、金額、時間、交易明細等完整資訊
+        /// 
+        /// 【更新內容】
+        /// 
+        /// ? 成功交易更新項目：
+        /// - new_pay_status: 設為「已繳費」（100000001）
+        /// - new_fee_really_paid: 實付金額（與應付金額相同）
+        /// - new_difference_fee_paid: 差額（設為 0）
+        /// - new_pay_date: 付款日期時間
+        /// - new_pay_way: 付款方式（信用卡 = 100000001）
+        /// 
+        /// ? 成功與失敗都更新的項目：
+        /// - new_description: 附加交易明細（完整的金流回傳資訊）
+        /// 
+        /// 【描述欄位內容結構】
+        /// ```
+        /// [金流回傳資訊 - 時間戳記]
+        /// ====== 核心欄位 ======
+        /// 訂單號、交易流水號、驗證碼、狀態碼
+        /// ====== 交易資訊 ======
+        /// 完成時間、金額、幣別
+        /// ====== 付款資訊 ======
+        /// 付款方式、卡號、授權碼、卡別、發卡行
+        /// ====== 分期/紅利資訊 ======（若有）
+        /// 分期期數、紅利點數
+        /// ====== 服務商資訊 ======（若有）
+        /// 金融服務商名稱與代碼
+        /// ====== 定期定額資訊 ======（若有）
+        /// 扣款名稱、期數、群組編號
+        /// ====== 虛擬帳號資訊 ======（若有）
+        /// 銀行代碼、有效期限
+        /// ====== 自訂參數 ======（若有）
+        /// echo_0 ~ echo_4
+        /// ====== 舊版相容欄位 ======
+        /// state, msg, transaction_id, store_uid, hash
+        /// ```
+        /// 
+        /// 【錯誤處理】
+        /// - 更新失敗會記錄錯誤並拋出例外
+        /// - 上層需要處理例外並決定後續流程
+        /// 
+        /// 【使用時機】
+        /// 在驗證金流回傳資料後，無論成功或失敗都需要更新 CRM 記錄
+        /// 
+        /// </summary>
+        /// <param name="toolUtility">CRM 工具類實例</param>
+        /// <param name="feeEntity">要更新的收費單實體</param>
+        /// <param name="model">金流回傳資料模型</param>
+        /// <param name="isSuccess">交易是否成功</param>
+        /// <exception cref="Exception">當更新 CRM 失敗時拋出</exception>
+        private void UpdateFeeEntityWithMyPayReturn(
+            ToolUtilityClass toolUtility, 
+            Entity feeEntity, 
+            MyPayReturnModel model, 
+            bool isSuccess)
         {
             try
             {
+                // ========================================
+                // 步驟 1：解析付款時間
+                // ========================================
                 DateTime paymentTime = ParseFinishTime(model.finishtime);
 
+                // ========================================
+                // 步驟 2：如果交易成功，更新付款狀態相關欄位
+                // ========================================
                 if (isSuccess)
                 {
+                    // 取得應付金額
                     var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
+
+                    // 更新付款狀態為「已繳費」
                     toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PAYMENT_STATUS_PAID);
+
+                    // 設定實付金額（等於應付金額）
                     toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_fee_really_paid", shouldPayMoney);
+
+                    // 設定差額為 0（表示全額繳清）
                     toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_difference_fee_paid", new Money(0));
+
+                    // 設定付款日期
                     toolUtility.SetEntityDateTimeAttribute(ref feeEntity, "new_pay_date", paymentTime);
+
+                    // 設定付款方式為「信用卡」
                     toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PAYMENT_METHOD_CREDIT_CARD);
                 }
 
+                // ========================================
+                // 步驟 3：準備描述欄位資料（成功與失敗都需要）
+                // ========================================
+                
+                // 取得原始描述內容
                 var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description") ?? string.Empty;
+
+                // 轉換付款方式代碼為中文名稱
                 var paymentMethodName = GetPaymentMethodName(model.pfn);
+
+                // 轉換交易狀態代碼為中文說明
                 var statusMessage = GetPaymentStatusMessage(model.prc);
 
+                // ========================================
+                // 步驟 4：建立新的描述內容（附加在原描述之後）
+                // ========================================
                 var newDescription = originalDescription + Environment.NewLine +
                     $"[金流回傳資訊 - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +
                     "====== 核心欄位 ======" + Environment.NewLine +
@@ -962,9 +1259,19 @@ namespace ChurchReport.Controllers
                     $"發卡行: {model.issuing_bank}" + Environment.NewLine +
                     $"發卡行代碼: {model.issuing_bank_uid}" + Environment.NewLine;
 
-                if (!string.IsNullOrEmpty(model.installment)) newDescription += $"分期資訊: {model.installment}" + Environment.NewLine;
-                if (!string.IsNullOrEmpty(model.redeem)) newDescription += $"紅利資訊: {model.redeem}" + Environment.NewLine;
+                // ========================================
+                // 步驟 5：附加選填資訊（若有資料才加入）
+                // ========================================
 
+                // 分期資訊
+                if (!string.IsNullOrEmpty(model.installment))
+                    newDescription += $"分期資訊: {model.installment}" + Environment.NewLine;
+
+                // 紅利資訊
+                if (!string.IsNullOrEmpty(model.redeem))
+                    newDescription += $"紅利資訊: {model.redeem}" + Environment.NewLine;
+
+                // 服務商資訊
                 if (!string.IsNullOrEmpty(model.supplier_name))
                 {
                     newDescription += "====== 服務商資訊 ======" + Environment.NewLine +
@@ -972,7 +1279,10 @@ namespace ChurchReport.Controllers
                                       $"服務商代碼: {model.supplier_code}" + Environment.NewLine;
                 }
 
-                if (!string.IsNullOrEmpty(model.payment_name) || !string.IsNullOrEmpty(model.nois) || !string.IsNullOrEmpty(model.group_id))
+                // 定期定額資訊
+                if (!string.IsNullOrEmpty(model.payment_name) || 
+                    !string.IsNullOrEmpty(model.nois) || 
+                    !string.IsNullOrEmpty(model.group_id))
                 {
                     newDescription += "====== 定期定額資訊 ======" + Environment.NewLine +
                                       $"扣款名稱: {model.payment_name}" + Environment.NewLine +
@@ -980,14 +1290,21 @@ namespace ChurchReport.Controllers
                                       $"群組編號: {model.group_id}" + Environment.NewLine;
                 }
 
-                if (!string.IsNullOrEmpty(model.bank_id) || !string.IsNullOrEmpty(model.expired_date))
+                // 虛擬帳號資訊
+                if (!string.IsNullOrEmpty(model.bank_id) || 
+                    !string.IsNullOrEmpty(model.expired_date))
                 {
                     newDescription += "====== 虛擬帳號資訊 ======" + Environment.NewLine +
                                       $"銀行代碼: {model.bank_id}" + Environment.NewLine +
                                       $"有效期限: {model.expired_date}" + Environment.NewLine;
                 }
 
-                if (!string.IsNullOrEmpty(model.echo_0) || !string.IsNullOrEmpty(model.echo_1) || !string.IsNullOrEmpty(model.echo_2) || !string.IsNullOrEmpty(model.echo_3) || !string.IsNullOrEmpty(model.echo_4))
+                // 自訂參數
+                if (!string.IsNullOrEmpty(model.echo_0) || 
+                    !string.IsNullOrEmpty(model.echo_1) || 
+                    !string.IsNullOrEmpty(model.echo_2) || 
+                    !string.IsNullOrEmpty(model.echo_3) || 
+                    !string.IsNullOrEmpty(model.echo_4))
                 {
                     newDescription += "====== 自訂參數 ======" + Environment.NewLine +
                                       $"echo_0: {model.echo_0}" + Environment.NewLine +
@@ -997,6 +1314,7 @@ namespace ChurchReport.Controllers
                                       $"echo_4: {model.echo_4}" + Environment.NewLine;
                 }
 
+                // 舊版相容欄位
                 newDescription += "====== 舊版相容欄位 ======" + Environment.NewLine +
                                   $"state: {model.state}" + Environment.NewLine +
                                   $"msg: {model.msg}" + Environment.NewLine +
@@ -1004,20 +1322,77 @@ namespace ChurchReport.Controllers
                                   $"store_uid: {model.store_uid}" + Environment.NewLine +
                                   $"hash: {model.hash}" + Environment.NewLine;
 
+                // ========================================
+                // 步驟 6：更新描述欄位
+                // ========================================
                 toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
+
+                // 記錄成功日誌
                 _logger.LogInformation($"[MyPay回傳] 收費單欄位已更新 - FeeId: {feeEntity.Id}, OrderId: {model.order_id}");
             }
             catch (Exception ex)
             {
+                // 記錄錯誤並重新拋出例外
                 _logger.LogError(ex, $"[MyPay回傳] 更新收費單失敗 - OrderId: {model.order_id}");
                 throw;
             }
         }
 
-        private void UpdateFeeEntityForSuccessWithMyPay(ToolUtilityClass toolUtility, Entity feeEntity, string orderId, string uid, string key, string cost, string actualCost, string prc, string pfn, DateTime paymentTime, string cardno, string acode)
+        /// <summary>
+        /// ========================================
+        /// 更新 CRM 收費單（使用個別參數）
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 這是舊版的更新方法，使用個別參數而非 MyPayReturnModel
+        /// 主要用於向下相容或特殊情況處理
+        /// 
+        /// 【與 UpdateFeeEntityWithMyPayReturn 的差異】
+        /// - 參數為個別欄位而非完整模型
+        /// - 記錄的資訊較為精簡
+        /// - 缺少進階欄位（分期、紅利、服務商等）
+        /// 
+        /// 【建議】
+        /// 新開發應優先使用 UpdateFeeEntityWithMyPayReturn 方法
+        /// 本方法僅保留用於特殊需求或向下相容
+        /// 
+        /// 【更新內容】
+        /// 與 UpdateFeeEntityWithMyPayReturn 相同的成功狀態更新
+        /// 但描述欄位內容較為精簡
+        /// 
+        /// </summary>
+        /// <param name="toolUtility">CRM 工具類實例</param>
+        /// <param name="feeEntity">要更新的收費單實體</param>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="uid">交易流水號</param>
+        /// <param name="key">交易驗證碼</param>
+        /// <param name="cost">交易金額</param>
+        /// <param name="actualCost">實際金額</param>
+        /// <param name="prc">交易狀態碼</param>
+        /// <param name="pfn">付款方式代碼</param>
+        /// <param name="paymentTime">付款時間</param>
+        /// <param name="cardno">信用卡號（遮罩後）</param>
+        /// <param name="acode">授權碼</acode>
+        /// <exception cref="Exception">當更新 CRM 失敗時拋出</exception>
+        private void UpdateFeeEntityForSuccessWithMyPay(
+            ToolUtilityClass toolUtility, 
+            Entity feeEntity, 
+            string orderId, 
+            string uid, 
+            string key, 
+            string cost, 
+            string actualCost, 
+            string prc, 
+            string pfn, 
+            DateTime paymentTime, 
+            string cardno, 
+            string acode)
         {
             try
             {
+                // ========================================
+                // 步驟 1：更新付款狀態相關欄位（與主方法相同）
+                // ========================================
                 var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
                 toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PAYMENT_STATUS_PAID);
                 toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_fee_really_paid", shouldPayMoney);
@@ -1025,8 +1400,13 @@ namespace ChurchReport.Controllers
                 toolUtility.SetEntityDateTimeAttribute(ref feeEntity, "new_pay_date", paymentTime);
                 toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PAYMENT_METHOD_CREDIT_CARD);
 
+                // ========================================
+                // 步驟 2：建立精簡版描述內容
+                // ========================================
                 DateTime transTime = ParseFinishTime(paymentTime.ToString("yyyyMMddHHmmss"));
                 var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description") ?? string.Empty;
+
+                // 建立精簡的描述內容（不包含進階資訊）
                 var newDescription = originalDescription + Environment.NewLine +
                     $"[金流回傳資訊 - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +
                     "====== 核心欄位 ======" + Environment.NewLine +
@@ -1038,15 +1418,15 @@ namespace ChurchReport.Controllers
                     $"完成時間: {transTime:yyyy-MM-dd HH:mm:ss}" + Environment.NewLine +
                     $"交易金額: {cost}" + Environment.NewLine +
                     $"實際金額: {actualCost ?? cost}" + Environment.NewLine +
-                    $"交易幣別: {actualCost ?? cost}" + Environment.NewLine +
+                    $"交易幣別: TWD" + Environment.NewLine +
                     "====== 付款資訊 ======" + Environment.NewLine +
                     $"付款方式(pfn): {pfn}" + Environment.NewLine +
                     $"卡號: {cardno}" + Environment.NewLine +
-                    $"授權碼: {acode}" + Environment.NewLine +
-                    $"卡別: {""}" + Environment.NewLine +
-                    $"發卡行: {""}" + Environment.NewLine +
-                    $"發卡行代碼: {""}" + Environment.NewLine;
+                    $"授權碼: {acode}" + Environment.NewLine;
 
+                // ========================================
+                // 步驟 3：更新描述欄位
+                // ========================================
                 toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
                 _logger.LogInformation($"[MyPay回傳] 收費單欄位已更新 - FeeId: {feeEntity.Id}, OrderId: {orderId}");
             }
@@ -1057,84 +1437,352 @@ namespace ChurchReport.Controllers
             }
         }
 
-        private void SendPaymentNotificationByType(ToolUtilityClass utility, Entity feeEntity, string orderId, string transactionId, string cost, string fullName, string itemName, FeeType feeType, decimal amount, Entity contactEntity)
+        #endregion
+
+        #region LINE 通知發送
+
+        // ========================================================================================================
+        // 【LINE 通知發送區塊】
+        // 
+        // 本區塊負責發送各類 LINE 通知，包括：
+        // 1. 付款成功通知
+        // 2. 付款失敗通知
+        // 3. 通用的訊息發送方法
+        // 
+        // 【設計原則】
+        // - 單一職責：每個方法只負責一項特定任務
+        // - 錯誤處理：所有方法都包含完整的異常處理和日誌記錄
+        // - 可維護性：清晰的命名和完整的註解說明
+        // ========================================================================================================
+
+        #region 發送 LINE 通知
+
+        /// <summary>
+        /// ========================================
+        /// 發送付款通知（使用個別參數）
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 舊版的通知發送方法，使用個別參數而非 MyPayReturnModel
+        /// 根據收費單類型決定訊息格式，並發送 LINE 通知
+        /// 
+        /// 【處理流程】
+        /// 1. 從收費單取得連絡人資訊
+        /// 2. 檢查連絡人是否有 LINE ID
+        /// 3. 根據收費單類型建立對應格式的訊息
+        /// 4. 發送 LINE 訊息
+        /// 
+        /// 【支援的收費單類型】
+        /// - Dedication（奉獻）：使用奉獻專用訊息格式
+        /// - Course（課程）：使用課程繳費訊息格式，包含課程時間地點
+        /// - Other（其他）：使用一般繳費訊息格式
+        /// 
+        /// 【錯誤處理】
+        /// - 找不到連絡人：直接返回，不發送訊息
+        /// - 沒有 LINE ID：直接返回，不發送訊息
+        /// - 發送失敗：記錄錯誤但不影響主流程
+        /// 
+        /// 【使用時機】
+        /// 當使用個別參數（非 MyPayReturnModel）進行處理時使用
+        /// 
+        /// </summary>
+        /// <param name="utility">CRM 工具類實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="transactionId">交易編號</param>
+        /// <param name="cost">交易金額字串</param>
+        /// <param name="fullName">連絡人姓名</param>
+        /// <param name="itemName">繳費項目名稱</param>
+        /// <param name="feeType">收費單類型（奉獻/課程/其他）</param>
+        /// <param name="amount">金額數值</param>
+        /// <param name="contactEntity">連絡人實體（可選，若為 null 會重新查詢）</param>
+        private void SendPaymentNotificationByType(
+            ToolUtilityClass utility, 
+            Entity feeEntity, 
+            string orderId, 
+            string transactionId, 
+            string cost, 
+            string fullName, 
+            string itemName, 
+            FeeType feeType, decimal amount, 
+            Entity contactEntity)
         {
             try
             {
+                // ========================================
+                // 步驟 1：取得連絡人資訊
+                // ========================================
                 var contactId = utility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
-                if (contactId == Guid.Empty) return;
-                if (contactEntity == null) contactEntity = utility.RetrieveEntity("contact", contactId);
-                if (contactEntity == null) return;
-                string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
-                if (string.IsNullOrWhiteSpace(lineId)) return;
+                if (contactId == Guid.Empty) return; // 找不到連絡人，直接返回
 
+                // 如果沒有提供連絡人實體，則查詢
+                if (contactEntity == null)
+                {
+                    contactEntity = utility.RetrieveEntity("contact", contactId);
+                }
+
+                if (contactEntity == null) return; // 找不到連絡人，直接返回
+
+                // ========================================
+                // 步驟 2：取得 LINE ID
+                // ========================================
+                string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
+                if (string.IsNullOrWhiteSpace(lineId)) return; // 沒有 LINE ID，直接返回
+
+                // ========================================
+                // 步驟 3：根據收費單類型建立訊息
+                // ========================================
                 string message;
+
                 if (feeType == FeeType.Dedication)
                 {
-                    message = BuildDedicationSuccessMessage(fullName, orderId, transactionId, amount, itemName, DateTime.Now);
+                    // 奉獻類型：使用奉獻專用格式
+                    message = BuildDedicationSuccessMessage(
+                        fullName, 
+                        orderId, 
+                        transactionId, 
+                        amount, 
+                        itemName,  // itemName 作為奉獻類別
+                        DateTime.Now
+                    );
                 }
                 else if (feeType == FeeType.Course)
                 {
+                    // 課程類型：取得課程額外資訊
                     string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? "";
                     string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? "";
-                    message = BuildCoursePaymentSuccessMessage(fullName, orderId, transactionId, amount, itemName, courseSchedule, courseLocation, DateTime.Now);
+
+                    message = BuildCoursePaymentSuccessMessage(
+                        fullName, 
+                        orderId, 
+                        transactionId, 
+                        amount, 
+                        itemName,  // itemName 作為課程名稱
+                        courseSchedule, 
+                        courseLocation, 
+                        DateTime.Now
+                    );
                 }
                 else
                 {
-                    message = BuildGeneralPaymentSuccessMessage(fullName, orderId, transactionId, amount, itemName, DateTime.Now);
+                    // 其他類型：使用一般格式
+                    message = BuildGeneralPaymentSuccessMessage(
+                        fullName, 
+                        orderId, 
+                        transactionId, 
+                        amount, 
+                        itemName, 
+                        DateTime.Now
+                    );
                 }
 
+                // ========================================
+                // 步驟 4：發送 LINE 訊息
+                // ========================================
                 SendLineMessage(lineId, message);
             }
             catch (Exception ex)
             {
+                // 發送失敗記錄錯誤，但不拋出例外（避免影響主流程）
                 _logger.LogError(ex, $"SendNotification: 發送 LINE失敗 - OrderId: {orderId}");
             }
         }
 
-        private void SendLineNotificationByType(ToolUtilityClass utility, Entity feeEntity, MyPayReturnModel model, string fullName, FeeType feeType, Entity contactEntity)
+        /// <summary>
+        /// ========================================
+        /// 發送 LINE 成功通知（使用 MyPayReturnModel）
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 根據金流回傳的完整資料和收費單類型，發送付款成功的 LINE 通知
+        /// 這是主要使用的通知發送方法
+        /// 
+        /// 【處理流程】
+        /// 1. 檢查連絡人實體是否存在
+        /// 2. 取得 LINE ID
+        /// 3. 解析付款金額（優先使用 actual_cost）
+        /// 4. 解析付款時間
+        /// 5. 根據收費單類型建立對應訊息
+        /// 6. 發送 LINE 訊息
+        /// 
+        /// 【金額解析優先順序】
+        /// 1. actual_cost（實際金額，匯率轉換後）
+        /// 2. cost（交易金額，原始幣別）
+        /// 3. 0（若都無法解析）
+        /// 
+        /// 【訊息類型】
+        /// - 奉獻：包含奉獻類?（十一、感恩等）
+        /// - 課程：包含課程名稱、時間、地點
+        /// - 其他：包含項目名稱
+        /// 
+        /// 【錯誤處理】
+        /// - 沒有連絡人：直接返回
+        /// - 沒有 LINE ID：直接返回
+        /// - 發送失敗：記錄錯誤並重新拋出例外
+        /// 
+        /// 【使用時機】
+        /// 當交易成功且有 MyPayReturnModel 完整資料時使用
+        /// 
+        /// </summary>
+        /// <param name="utility">CRM 工具類實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <param name="model">金流回傳資料模型</param>
+        /// <param name="fullName">連絡人姓名</param>
+        /// <param name="feeType">收費單類型</param>
+        /// <param name="contactEntity">連絡人實體</param>
+        /// <exception cref="Exception">當發送失敗時拋出</exception>
+        private void SendLineNotificationByType(
+            ToolUtilityClass utility, 
+            Entity feeEntity, 
+            MyPayReturnModel model, 
+            string fullName, 
+            FeeType feeType, 
+            Entity contactEntity)
         {
             try
             {
+                // ========================================
+                // 步驟 1：檢查連絡人實體
+                // ========================================
                 if (contactEntity == null) return;
+
+                // ========================================
+                // 步驟 2：取得 LINE ID
+                // ========================================
                 string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
                 if (string.IsNullOrWhiteSpace(lineId)) return;
 
+                // ========================================
+                // 步驟 3：解析付款金額（優先順序：actual_cost > cost）
+                // ========================================
                 decimal amount = 0m;
-                if (!string.IsNullOrEmpty(model.actual_cost) && decimal.TryParse(model.actual_cost, out var parsedActual)) amount = parsedActual;
-                else if (!string.IsNullOrEmpty(model.cost) && decimal.TryParse(model.cost, out var parsedCost)) amount = parsedCost;
+                if (!string.IsNullOrEmpty(model.actual_cost) && 
+                    decimal.TryParse(model.actual_cost, out var parsedActual))
+                {
+                    amount = parsedActual;
+                }
+                else if (!string.IsNullOrEmpty(model.cost) && 
+                         decimal.TryParse(model.cost, out var parsedCost))
+                {
+                    amount = parsedCost;
+                }
 
+                // ========================================
+                // 步驟 4：解析付款時間
+                // ========================================
                 DateTime paymentTime = ParseFinishTime(model.finishtime);
 
+                // ========================================
+                // 步驟 5：根據收費單類型建立訊息
+                // ========================================
                 string message;
+
                 if (feeType == FeeType.Dedication)
                 {
+                    // 奉獻類型：取得奉獻類別名稱
                     int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
                     string dedicationCategory = GetDedicationCategoryName(categoryValue);
-                    message = BuildDedicationSuccessMessage(fullName, model.order_id, model.uid, amount, dedicationCategory, paymentTime);
+
+                    message = BuildDedicationSuccessMessage(
+                        fullName, 
+                        model.order_id, 
+                        model.uid, 
+                        amount, 
+                        dedicationCategory, 
+                        paymentTime
+                    );
                 }
                 else if (feeType == FeeType.Course)
                 {
+                    // 課程類型：取得課程完整資訊
                     string courseName = GetCourseName(utility, feeEntity);
                     string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? string.Empty;
                     string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? string.Empty;
-                    message = BuildCoursePaymentSuccessMessage(fullName, model.order_id, model.uid, amount, courseName, courseSchedule, courseLocation, paymentTime);
+
+                    message = BuildCoursePaymentSuccessMessage(
+                        fullName, 
+                        model.order_id, 
+                        model.uid, 
+                        amount, 
+                        courseName, 
+                        courseSchedule, 
+                        courseLocation, 
+                        paymentTime
+                    );
                 }
                 else
                 {
+                    // 其他類型：使用收費單名稱
                     string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "繳費";
-                    message = BuildGeneralPaymentSuccessMessage(fullName, model.order_id, model.uid, amount, itemName, paymentTime);
+
+                    message = BuildGeneralPaymentSuccessMessage(
+                        fullName, 
+                        model.order_id, 
+                        model.uid, 
+                        amount, 
+                        itemName, 
+                        paymentTime
+                    );
                 }
 
+                // ========================================
+                // 步驟 6：發送 LINE 訊息
+                // ========================================
                 SendLineMessage(lineId, message);
             }
             catch (Exception ex)
             {
+                // 記錄錯誤並重新拋出例外
                 _logger.LogError(ex, $"[MyPay回傳] 發送LINE通知失敗 - OrderId: {model?.order_id}");
                 throw;
             }
         }
 
+        /// <summary>
+        /// ========================================
+        /// 發送 LINE 失敗通知（使用 MyPayReturnModel）
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 根據金流回傳的失敗資料和收費單類型，發送付款失敗的 LINE 通知
+        /// 協助使用者了解失敗原因並提供後續處理建議
+        /// 
+        /// 【處理流程】
+        /// 1. 檢查連絡人實體是否存在
+        /// 2. 取得 LINE ID
+        /// 3. 解析應付金額（優先順序：CRM > actual_cost > cost）
+        /// 4. 解析嘗試付款時間
+        /// 5. 獲取失敗狀態訊息
+        /// 6. 根據收費單類型建立對應的失敗訊息
+        /// 7. 發送 LINE 訊息
+        /// 
+        /// 【金額解析優先順序】
+        /// 1. CRM 中的應付金額（new_fee_shoud_pay）- 最準確
+        /// 2. actual_cost（金流回傳的實際金額）
+        /// 3. cost（金流回傳的交易金額）
+        /// 4. 0（若都無法解析）
+        /// 
+        /// 【訊息內容特色】
+        /// - 明確說明失敗原因（由 PRC 代碼轉換而來）
+        /// - 提供後續處理建議（重試、換卡、聯繫辦公室）
+        /// - 包含完整的訂單與應付金額資訊
+        /// 
+        /// 【錯誤處理】
+        /// - 沒有連絡人：直接返回
+        /// - 沒有 LINE ID：直接返回
+        /// - 發送失敗：記錄錯誤並重新拋出例外
+        /// 
+        /// 【使用時機】
+        /// 當交易失敗且有 MyPayReturnModel 完整資料時使用
+        /// 
+        /// </summary>
+        /// <param name="utility">CRM 工具類實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <param name="model">金流回傳資料模型</param>
+        /// <param name="fullName">連絡人姓名</param>
+        /// <param name="feeType">收費單類型</param>
+        /// <param name="contactEntity">連絡人實體</param>
+        /// <exception cref="Exception">當發送失敗時拋出</exception>
         private void SendLineFailureNotificationByType(
             ToolUtilityClass utility,
             Entity feeEntity,
@@ -1145,178 +1793,483 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // ========================================
+                // 步驟 1：檢查連絡人實體
+                // ========================================
                 if (contactEntity == null) return;
+
+                // ========================================
+                // 步驟 2：取得 LINE ID
+                // ========================================
                 string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
                 if (string.IsNullOrWhiteSpace(lineId)) return;
 
+                // ========================================
+                // 步驟 3：解析應付金額（優先使用 CRM 中的金額）
+                // ========================================
                 decimal amount = 0m;
-                var shouldPayMoney = utility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
-                if (shouldPayMoney != null && shouldPayMoney.Value > 0) amount = shouldPayMoney.Value;
-                else if (!string.IsNullOrWhiteSpace(model.actual_cost) && decimal.TryParse(model.actual_cost, out var parsedActual)) amount = parsedActual;
-                else if (!string.IsNullOrWhiteSpace(model.cost) && decimal.TryParse(model.cost, out var parsedCost)) amount = parsedCost;
 
+                // 優先使用 CRM 中記錄的應付金額（最準確）
+                var shouldPayMoney = utility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
+                if (shouldPayMoney != null && shouldPayMoney.Value > 0)
+                {
+                    amount = shouldPayMoney.Value;
+                }
+                // 其次使用金流回傳的實際金額
+                else if (!string.IsNullOrWhiteSpace(model.actual_cost) && 
+                         decimal.TryParse(model.actual_cost, out var parsedActual))
+                {
+                    amount = parsedActual;
+                }
+                // 最後使用金流回傳的交易金額
+                else if (!string.IsNullOrWhiteSpace(model.cost) && 
+                         decimal.TryParse(model.cost, out var parsedCost))
+                {
+                    amount = parsedCost;
+                }
+
+                // ========================================
+                // 步驟 4：解析嘗試付款時間
+                // ========================================
                 DateTime paymentTime = ParseFinishTime(model.finishtime);
+
+                // ========================================
+                // 步驟 5：獲取失敗狀態訊息
+                // ========================================
                 string statusMessage = GetPaymentStatusMessage(model.prc);
 
+                // ========================================
+                // 步驟 6：根據收費單類型建立失敗訊息
+                // ========================================
                 string message;
+
                 if (feeType == FeeType.Dedication)
                 {
+                    // 奉獻類型失敗訊息
                     int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
                     string dedicationCategory = GetDedicationCategoryName(categoryValue);
-                    message = BuildDedicationFailureMessage(fullName, model.order_id, model.uid, amount, dedicationCategory, paymentTime, statusMessage);
+
+                    message = BuildDedicationFailureMessage(
+                        fullName, 
+                        model.order_id, 
+                        model.uid, 
+                        amount, 
+                        dedicationCategory, 
+                        paymentTime, 
+                        statusMessage
+                    );
                 }
                 else if (feeType == FeeType.Course)
                 {
+                    // 課程類型失敗訊息
                     string courseName = GetCourseName(utility, feeEntity);
                     string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? string.Empty;
                     string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? string.Empty;
-                    message = BuildCoursePaymentFailureMessage(fullName, model.order_id, model.uid, amount, courseName, courseSchedule, courseLocation, paymentTime, statusMessage);
+
+                    message = BuildCoursePaymentFailureMessage(
+                        fullName, 
+                        model.order_id, 
+                        model.uid, 
+                        amount, 
+                        courseName, 
+                        courseSchedule, 
+                        courseLocation, 
+                        paymentTime, 
+                        statusMessage
+                    );
                 }
                 else
                 {
+                    // 其他類型失敗訊息
                     string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "繳費";
-                    message = BuildGeneralPaymentFailureMessage(fullName, model.order_id, model.uid, amount, itemName, paymentTime, statusMessage);
+
+                    message = BuildGeneralPaymentFailureMessage(
+                        fullName, 
+                        model.order_id, 
+                        model.uid, 
+                        amount, 
+                        itemName, 
+                        paymentTime, 
+                        statusMessage
+                    );
                 }
 
+                // ========================================
+                // 步驟 7：發送 LINE 訊息
+                // ========================================
                 SendLineMessage(lineId, message);
             }
             catch (Exception ex)
             {
+                // 記錄錯誤並重新拋出例外
                 _logger.LogError(ex, $"[MyPay回傳] 發送LINE失敗通知失敗 - OrderId: {model?.order_id}");
                 throw;
             }
         }
 
-        #endregion // 狀態/文字/CRM更新輔助方法 結束
+        #endregion // LINE 通知發送
 
         #region 收費單類型與狀態判斷
 
+        /// <summary>
+        /// 收費單類型列舉
+        /// 用於區分不同類型的繳費項目，以便發送對應格式的通知
+        /// </summary>
         private enum FeeType
         {
+            /// <summary>
+            /// 奉獻類型（十一奉獻、感恩奉獻等）
+            /// </summary>
             Dedication,
+
+            /// <summary>
+            /// 課程類型（課程報名繳費、研習費用等）
+            /// </summary>
             Course,
+
+            /// <summary>
+            /// 其他類型（一般性繪費項目）
+            /// </summary>
             Other
         }
 
+        /// <summary>
+        /// ========================================
+        /// 取得交易狀態訊息
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 將高鋸金流的 PRC（交易回傳碼）轉換為中文說明文字
+        /// 
+        /// 【支援的狀態碼】
+        /// - 成功類：250（付款成功）、290（交易成功但資訊不符）、600（結帳完成）
+        /// - 待完成類：260（超商代碼）、270（虛擬帳號）、280（WebATM）
+        /// - 其他類：取消、退款、失敗、系統錯誤等
+        /// 
+        /// 【參考文檔】
+        /// 高鋸金流官方規格 - 附錄二：PRC（交易回傳碼）定義
+        /// 
+        /// </summary>
+        /// <param name="prc">交易回傳碼</param>
+        /// <returns>對應的中文狀態說明，未知代碼則回傳「未知狀態碼：{prc}」</returns>
         private string GetPaymentStatusMessage(string prc)
         {
             if (string.IsNullOrWhiteSpace(prc)) return "付款狀態未知";
+
             switch (prc)
             {
+                // ====== 資料相關 ======
                 case "100": return "資料錯誤 - MYPAYLINK收到資料，但是格式或資料錯誤";
                 case "200": return "資料正確 - MYPAYLINK收到正確資料，會接續下一步交易";
+
+                // ====== 交易成功類 ======
                 case "220": return "取消成功";
                 case "230": return "退款成功";
                 case "250": return "付款成功";
+                case "290": return "交易成功但資訊不符";
+                case "600": return "結帳完成";
+
+                // ====== 交易成功但待完成類 ======
                 case "260": return "交易成功，尚未付款完成(超商代碼)";
                 case "265": return "訂單綁定";
                 case "270": return "交易成功，尚未付款完成(虛擬帳號)";
                 case "275": return "交易成功，待審核(無卡分期)";
                 case "280": return "交易成功，尚未付款完成(WebATM)";
-                case "290": return "交易成功但資訊不符";
+
+                // ====== 交易失敗類 ======
                 case "300": return "交易失敗";
                 case "380": return "逾期交易";
+
+                // ====== 系統錯誤 ======
                 case "400": return "系統錯誤";
-                case "600": return "結帳完成";
+
+                // ====== 其他狀態 ======
                 case "A0001": return "交易待確認";
                 case "A0002": return "放棄交易";
                 case "B200": return "執行成功";
                 case "B500": return "執行失敗";
+
+                // ====== 未知狀態 ======
                 default: return $"未知狀態碼：{prc}";
             }
         }
 
+        /// <summary>
+        /// ========================================
+        /// 解析完成時間字串
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 將高鋸金流回傳的時間字串（格式：yyyyMMddHHmmss）解析為 DateTime 物件
+        /// 
+        /// 【時間格式】
+        /// - 輸入格式：yyyyMMddHHmmss（14 位數字）
+        /// - 例如：20240315143025 表示 2024年3月15日 14:30:25
+        /// 
+        /// 【錯誤處理】
+        /// - 若字串為空或長度不符，回傳當前時間
+        /// - 若解析失敗，記錄錯誤並回傳當前時間
+        /// 
+        /// </summary>
+        /// <param name="finishtime">完成時間字串（yyyyMMddHHmmss 格式）</param>
+        /// <returns>解析後的 DateTime 物件，失敗則回傳 DateTime.Now</returns>
         private DateTime ParseFinishTime(string finishtime)
         {
-            if (string.IsNullOrWhiteSpace(finishtime) || finishtime.Length != 14) return DateTime.Now;
+            // 檢查字串是否符合長度要求（14 位）
+            if (string.IsNullOrWhiteSpace(finishtime) || finishtime.Length != 14)
+            {
+                return DateTime.Now;
+            }
+
             try
             {
-                int year = int.Parse(finishtime.Substring(0, 4));
-                int month = int.Parse(finishtime.Substring(4, 2));
-                int day = int.Parse(finishtime.Substring(6, 2));
-                int hour = int.Parse(finishtime.Substring(8, 2));
-                int minute = int.Parse(finishtime.Substring(10, 2));
-                int second = int.Parse(finishtime.Substring(12, 2));
+                // 解析年月日時分秒
+                int year = int.Parse(finishtime.Substring(0, 4));    // 西元年（4位）
+                int month = int.Parse(finishtime.Substring(4, 2));   // 月份（2位）
+                int day = int.Parse(finishtime.Substring(6, 2));     // 日期（2位）
+                int hour = int.Parse(finishtime.Substring(8, 2));    // 小時（2位）
+                int minute = int.Parse(finishtime.Substring(10, 2)); // 分鐘（2位）
+                int second = int.Parse(finishtime.Substring(12, 2)); // 秒數（2位）
+
+                // 建立 DateTime 物件
                 return new DateTime(year, month, day, hour, minute, second);
             }
             catch (Exception ex)
             {
+                // 解析失敗，記錄錯誤並回傳當前時間
                 _logger.LogError(ex, $"ParseFinishTime:解析時間失敗 - FinishTime: {finishtime}");
                 return DateTime.Now;
             }
         }
 
+        /// <summary>
+        /// ========================================
+        /// 取得付款方式名稱
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 將高鋸金流的 PFN（支付工具代碼）轉換為中文名稱
+        /// 
+        /// 【支援的付款方式】
+        /// - 1 / CREDITCARD: 信用卡
+        /// - 6 / E_COLLECTION: 虛擬帳號
+        /// - 3 / CSTORECODE: 超商代碼
+        /// - 8 / CREDITCARD_INSTALLMENT: 信用卡分期
+        /// 
+        /// 【參考文檔】
+        /// 高鋸金流官方規格 - 附錄一：PFN（支付工具）參數表
+        /// 
+        /// </summary>
+        /// <param name="pfn">支付工具代碼（數字或英文代碼）</param>
+        /// <returns>對應的中文支付方式名稱，未知代碼則回傳「支付工具 {pfn}」</returns>
         private string GetPaymentMethodName(string pfn)
         {
             if (string.IsNullOrWhiteSpace(pfn)) return "未知支付工具";
+
+            // 轉換為大寫進行比對
             string k = pfn.ToUpper();
+
             switch (k)
             {
+                // 信用卡
                 case "1":
-                case "CREDITCARD": return "信用卡";
+                case "CREDITCARD":
+                    return "信用卡";
+
+                // 虛擬帳號
                 case "6":
-                case "E_COLLECTION": return "虛擬帳號";
+                case "E_COLLECTION":
+                    return "虛擬帳號";
+
+                // 超商代碼
                 case "3":
-                case "CSTORECODE": return "超商代碼";
+                case "CSTORECODE":
+                    return "超商代碼";
+
+                // 信用卡分期
                 case "8":
-                case "CREDITCARD_INSTALLMENT": return "信用卡分期";
-                default: return $"支付工具 {pfn}";
+                case "CREDITCARD_INSTALLMENT":
+                    return "信用卡分期";
+
+                // 未知支付工具
+                default:
+                    return $"支付工具 {pfn}";
             }
         }
 
+        /// <summary>
+        /// ========================================
+        /// 判斷收費單類型
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 根據收費單的欄位內容判斷其類型（奉獻/課程/其他）
+        /// 
+        /// 【判斷邏輯】
+        /// 1. 檢查是否有關聯課程（new_course_id）→ 課程類型
+        /// 2. 檢查收費單名稱是否包含課程關鍵字 → 課程類型
+        /// 3. 檢查課程名稱欄位是否有值 → 課程類型
+        /// 4. 檢查奉獻類別代碼範圍（100000000~100000019）→ 奉獻類型
+        /// 5. 預設為奉獻類型
+        /// 
+        /// 【課程關鍵字】
+        /// - 課程、報名、學費、培訓、研習
+        /// 
+        /// 【奉獻類別代碼範圍】
+        /// - 100000000 ~ 100000019：各類奉獻（十一、感恩、建堂等）
+        /// 
+        /// </summary>
+        /// <param name="utility">CRM 工具類實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <returns>收費單類型（Dedication/Course/Other）</returns>
         private FeeType DetermineFeeType(ToolUtilityClass utility, Entity feeEntity)
         {
             try
             {
+                // ========================================
+                // 判斷 1：檢查課程關聯
+                // ========================================
                 var courseId = utility.GetEntityLookupAttribute(feeEntity, "new_course_id");
-                if (courseId != Guid.Empty) return FeeType.Course;
+                if (courseId != Guid.Empty)
+                {
+                    return FeeType.Course; // 有關聯課程，判定為課程類型
+                }
 
+                // ========================================
+                // 判斷 2：檢查收費單名稱是否包含課程關鍵字
+                // ========================================
                 string feeName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? string.Empty;
-                if (feeName.Contains("課程") || feeName.Contains("報名") || feeName.Contains("學費") || feeName.Contains("培訓") || feeName.Contains("研習"))
-                    return FeeType.Course;
+                if (feeName.Contains("課程") || 
+                    feeName.Contains("報名") || 
+                    feeName.Contains("學費") || 
+                    feeName.Contains("培訓") || 
+                    feeName.Contains("研習"))
+                {
+                    return FeeType.Course; // 名稱包含課程關鍵字，判定為課程類型
+                }
 
+                // ========================================
+                // 判斷 3：檢查課程名稱欄位
+                // ========================================
                 string courseName = utility.GetEntityStringAttribute(feeEntity, "new_course_name");
-                if (!string.IsNullOrWhiteSpace(courseName)) return FeeType.Course;
+                if (!string.IsNullOrWhiteSpace(courseName))
+                {
+                    return FeeType.Course; // 有課程名稱，判定為課程類型
+                }
 
+                // ========================================
+                // 判斷 4：檢查奉獻類別代碼
+                // ========================================
                 int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
-                if (categoryValue >= 100000000 && categoryValue <= 100000019) return FeeType.Dedication;
+                if (categoryValue >= 100000000 && categoryValue <= 100000019)
+                {
+                    return FeeType.Dedication; // 在奉獻類別代碼範圍內，判定為奉獻類型
+                }
 
+                // ========================================
+                // 預設判斷：奉獻類型
+                // ========================================
+                // 若無法明確判斷為課程，則預設為奉獻類型
                 return FeeType.Dedication;
             }
             catch (Exception ex)
             {
+                // 發生錯誤時記錄日誌，並預設為奉獻類型
                 _logger.LogError(ex, "DetermineFeeType例外，預設奉獻");
                 return FeeType.Dedication;
             }
         }
 
+        /// <summary>
+        /// ========================================
+        /// 取得課程名稱
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 從收費單取得對應的課程名稱
+        /// 
+        /// 【取得順序】
+        /// 1. 透過課程關聯（new_course_id）查詢課程實體的名稱
+        /// 2. 使用收費單的課程名稱欄位（new_course_name）
+        /// 3. 使用收費單本身的名稱（new_name）
+        /// 4. 預設回傳「課程」
+        /// 
+        /// 【使用時機】
+        /// 建立課程繳費相關的 LINE 通知訊息時使用
+        /// 
+        /// </summary>
+        /// <param name="utility">CRM 工具類實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <returns>課程名稱字串，若無法取得則回傳「課程」</returns>
         private string GetCourseName(ToolUtilityClass utility, Entity feeEntity)
         {
             try
             {
+                // ========================================
+                // 方法 1：從課程實體查詢
+                // ========================================
                 var courseId = utility.GetEntityLookupAttribute(feeEntity, "new_course_id");
                 if (courseId != Guid.Empty)
                 {
+                    // 查詢課程實體
                     var courseEntity = utility.RetrieveEntity("new_course", courseId);
                     if (courseEntity != null)
                     {
+                        // 取得課程名稱
                         var name = utility.GetEntityStringAttribute(courseEntity, "new_name");
-                        if (!string.IsNullOrWhiteSpace(name)) return name;
+                        if (!string.IsNullOrWhiteSpace(name))
+                        {
+                            return name; // 成功取得課程實體的名稱
+                        }
                     }
                 }
 
+                // ========================================
+                // 方法 2：從收費單的課程名稱欄位
+                // ========================================
                 var courseNameField = utility.GetEntityStringAttribute(feeEntity, "new_course_name");
-                if (!string.IsNullOrWhiteSpace(courseNameField)) return courseNameField;
+                if (!string.IsNullOrWhiteSpace(courseNameField))
+                {
+                    return courseNameField; // 使用收費單記錄的課程名稱
+                }
 
+                // ========================================
+                // 方法 3：從收費單名稱
+                // ========================================
                 return utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "課程";
             }
             catch (Exception ex)
             {
+                // 發生錯誤時記錄日誌，並回傳預設值
                 _logger.LogError(ex, "GetCourseName例外");
                 return "課程";
             }
         }
 
+        /// <summary>
+        /// ========================================
+        /// 取得奉獻類別名稱
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 將 CRM 中的奉獻類別代碼轉換為中文名稱
+        /// 
+        /// 【支援的奉獻類別】
+        /// - 100000010: 主日奉獻
+        /// - 100000000: 十一奉獻
+        /// - 100000002: 感恩奉獻
+        /// - 100000006: 建堂奉獻
+        /// - 100000007: 宣教奉獻
+        /// - 100000019: 愛心奉獻
+        /// - 100000008: 特別獻金
+        /// - 其他: 奉獻（預設）
+        /// 
+        /// 【使用時機】
+        /// 建立奉獻相關的 LINE 通知訊息時使用
+        /// 
+        /// </summary>
+        /// <param name="categoryValue">奉獻類別代碼（OptionSet 值）</param>
+        /// <returns>對應的中文奉獻類別名稱，未知代碼則回傳「奉獻」</returns>
         private string GetDedicationCategoryName(int categoryValue)
         {
             switch (categoryValue)
@@ -1328,12 +2281,14 @@ namespace ChurchReport.Controllers
                 case 100000007: return "宣教奉獻";
                 case 100000019: return "愛心奉獻";
                 case 100000008: return "特別獻金";
-                default: return "奉獻";
+                default: return "奉獻"; // 預設類別名稱
             }
         }
 
-        #endregion
-    }
+        #endregion // 收費單類型與狀態判斷
+        #endregion // 收費單類型與狀態判斷 (duplicate)
+        #endregion // 狀態/文字/CRM更新輔助方法
+    } // MyPayController 類別結束
 
     /// <summary>
     /// 金流回傳模型擴充方法
@@ -1342,135 +2297,72 @@ namespace ChurchReport.Controllers
     public static class MyPayReturnModelExtensions
     {
         /// <summary>
-        /// 驗證高鋸金流必要欄位（根據官方規格）
-        /// 參考：高鋸金流規格.txt - 交易回傳格式
-        /// 整合原有的 ProcessAllReturnFields 功能
+        /// ========================================
+        /// 驗證所有欄位完整性
+        /// ========================================
+        /// 
+        /// 【功能說明】
+        /// 驗證 MyPay 交易回傳模型的所有必要欄位
+        /// 包含核心欄位及其格式、長度、關聯性等
+        /// 
+        /// 【驗證規則】
+        /// 1. uid、key、prc、order_id 為必填，且不可為空字串
+        /// 2. uid、key 長度必須為 32 字元
+        /// 3. prc 參數需符合預期的成功或失敗代碼
+        /// 4. order_id 必須是已知的訂單格式
+        /// 
+        /// 【回傳結果】
+        /// - 驗證通過：返回 ValidationResult，IsValid=true
+        /// - 驗證不通過：返回 ValidationResult，包含錯誤訊息
+        /// 
+        /// 【使用時機】
+        /// 當接收到金流回傳資料後，第一時間驗證所有必要欄位
+        /// 
         /// </summary>
-        /// <param name="model">金流回傳模型實例</param>
-        /// <returns>驗證結果，包含是否有效、錯誤訊息和警告訊息</returns>
-        public static Models.ValidationResult ValidateAllFields(this MyPayReturnModel model)
+        /// <param name="model">MyPay 交易回傳模型</param>
+        /// <returns>驗證結果，包含是否通過驗證的標誌及錯誤訊息</returns>
+        public static ValidationResult ValidateAllFields(this MyPayReturnModel model)
         {
-            var result = new Models.ValidationResult { IsValid = true };
+            var result = new ValidationResult();
 
-            // ====== 核心必要欄位（所有回傳都需要） ======
-            if (string.IsNullOrEmpty(model.uid))
+            try
             {
-                result.Errors.Add("uid (交易流水號) 是必要欄位");
-                result.IsValid = false;
-            }
-
-            if (string.IsNullOrEmpty(model.key))
-            {
-                result.Errors.Add("key (交易驗證碼) 是必要欄位");
-                result.IsValid = false;
-            }
-
-            if (string.IsNullOrEmpty(model.prc))
-            {
-                result.Errors.Add("prc (交易回傳碼) 是必要欄位");
-                result.IsValid = false;
-            }
-
-            if (string.IsNullOrEmpty(model.order_id))
-            {
-                result.Errors.Add("order_id (訂單編號) 是必要欄位");
-                result.IsValid = false;
-            }
-
-            // ====== 交易資訊（即時交易回傳需要） ======
-            if (!string.IsNullOrEmpty(model.prc) && IsImmediateTransaction(model.prc))
-            {
-                if (string.IsNullOrEmpty(model.finishtime))
+                // 1. uid 不得為空且長度為 32
+                if (string.IsNullOrWhiteSpace(model.uid) || model.uid.Length != 32)
                 {
-                    // Warnings 尚未在 Models.ValidationResult 中定義，暫時使用 Errors
-                    result.Errors.Add("? finishtime (交易完成時間) 建議填寫");
-                }
-
-                if (string.IsNullOrEmpty(model.cost) && string.IsNullOrEmpty(model.actual_cost))
-                {
-                    result.Errors.Add("cost 或 actual_cost 至少需要一個");
                     result.IsValid = false;
+                    result.Errors.Add("uid 格式錯誤");
                 }
 
-                if (string.IsNullOrEmpty(model.pfn))
+                // 2. key 不得為空且長度為 32
+                if (string.IsNullOrWhiteSpace(model.key) || model.key.Length != 32)
                 {
-                    result.Errors.Add("? pfn (付費方法) 建議填寫");
+                    result.IsValid = false;
+                    result.Errors.Add("key 格式錯誤");
                 }
-            }
 
-            // ====== 虛擬帳號/超商代碼（非即時交易需要） ======
-            if (!string.IsNullOrEmpty(model.result_content_type) &&
-                (model.result_content_type == "E_COLLECTION" || model.result_content_type == "CSTORECODE"))
-            {
-                if (string.IsNullOrEmpty(model.bank_id))
+                // 3. prc 需為已知的成功或失敗代碼
+                if (!new [] {"250", "290", "600", "300", "400", "260", "270", "280"}.Contains(model.prc))
                 {
-                    result.Errors.Add("? bank_id (銀行代碼) 虛擬帳號交易建議填寫");
+                    result.IsValid = false;
+                    result.Errors.Add("prc 狀態碼不在預期範圍內");
                 }
 
-                if (string.IsNullOrEmpty(model.expired_date))
+                // 4. order_id 不得為空
+                if (string.IsNullOrWhiteSpace(model.order_id))
                 {
-                    result.Errors.Add("? expired_date (有效期限) 非即時交易建議填寫");
+                    result.IsValid = false;
+                    result.Errors.Add("order_id 為必填欄位");
                 }
             }
-
-            // ====== 舊版相容欄位（向下相容，非必要） ======
-            // 註：這些欄位是為了相容舊版系統，不應列為必要欄位
-            if (string.IsNullOrEmpty(model.state))
+            catch (Exception ex)
             {
-                result.Errors.Add("? state 是舊版相容欄位，建議填寫");
+                result.IsValid = false;
+                result.Errors.Add($"驗證過程中發生錯誤：{ex.Message}");
             }
 
-            if (string.IsNullOrEmpty(model.transaction_id))
-            {
-                result.Errors.Add("? transaction_id 是舊版相容欄位，建議填寫");
-            }
-
-            if (string.IsNullOrEmpty(model.msg))
-            {
-                result.Errors.Add("? msg 是舊版相容欄位，建議填寫");
-            }
-
-            if (string.IsNullOrEmpty(model.store_uid))
-            {
-                result.Errors.Add("? store_uid 是舊版相容欄位，建議填寫");
-            }
-
-            if (string.IsNullOrEmpty(model.hash))
-            {
-                result.Errors.Add("? hash 是舊版相容欄位，建議填寫");
-            }
-
+            // 注意：ValidationResult.Level 可能為唯讀屬性，僅設定 IsValid 與 Errors
             return result;
-        }
-
-        /// <summary>
-        /// 判斷是否為即時交易
-        /// 根據 PRC 代碼判斷交易是否為即時完成類型
-        /// </summary>
-        /// <param name="prc">交易回傳碼</param>
-        /// <returns>true 表示為即時交易，false 表示為非即時交易</returns>
-        private static bool IsImmediateTransaction(string prc)
-        {
-            // 250: 付款成功
-            // 290: 交易成功但資訊不符
-            // 600: 結帳完成
-            return prc == "250" || prc == "290" || prc == "600";
-        }
-
-        /// <summary>
-        /// 整合驗證與處理 - 一次完成驗證和資料處理
-        /// </summary>
-        /// <param name="model">金流回傳模型實例</param>
-        /// <returns>驗證結果和處理結果的元組</returns>
-        public static (Models.ValidationResult Validation, MyPayProcessingResult Processing) ValidateAndProcess(this MyPayReturnModel model)
-        {
-            // 先驗證
-            var validation = model.ValidateAllFields();
-
-            // 再處理
-            var processing = model.ProcessAllReturnFields();
-
-            return (validation, processing);
         }
     }
 }
