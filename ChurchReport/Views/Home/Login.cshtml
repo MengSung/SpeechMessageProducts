@@ -122,23 +122,27 @@
         <div class="row">
             <div class="col-12">
                 <div class="login-card card-soft" aria-labelledby="loginHeader">
+                    <!-- Toast -->
+                    <div id="ToastContainer">
+                        @(Html.DevExtreme().Toast()
+                            .ID("Toast")
+                            .Position(p => p
+                                .At(HorizontalAlignment.Center, VerticalAlignment.Top)
+                                .Of(".card-soft-body")  // 相對於卡片內容區
+                                .Offset(0, 10))
+                            .CloseOnOutsideClick(true)
+                            .DisplayTime(2400)
+                            .MaxWidth("90%")  // 響應式寬度
+                            .Animation(a => a
+                                .Show(s => s.Type(AnimationType.Fade).Duration(300))
+                                .Hide(h => h.Type(AnimationType.Fade).Duration(200)))
+                        )
+                    </div>
+
                     <div class="card-soft-header" id="loginHeader">
                         <i class="fa-solid fa-right-to-bracket"></i><span>會員登入</span>
                     </div>
                     <div class="card-soft-body">
-                        <!-- Toast -->
-                        <div id="ToastContainer">
-                            @(Html.DevExtreme().Toast()
-                                .ID("Toast")
-                                .Position(p => p
-                                    .At(HorizontalAlignment.Center, VerticalAlignment.Top)
-                                    .Offset(0, 90))
-                                .CloseOnOutsideClick(true)
-                                .DisplayTime(2400)
-                                .MaxWidth(320)
-                            )
-                        </div>
-
                         <!-- 登入表單 -->
                         <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLogin" asp-controller="Home" method="post" novalidate>
                             <div id="form-container">
@@ -247,10 +251,18 @@
     <script>
         function ShowToast(LocalToastMessage, Type, DisplayTime) {
             var ToastInstance = $("#Toast").dxToast("instance");
-            ToastInstance.option('message', LocalToastMessage);
-            ToastInstance.option('type', Type);
-            ToastInstance.option('displayTime', DisplayTime);
-            ToastInstance.option('closeOnClick', true);
+            ToastInstance.option({
+                message: LocalToastMessage,
+                type: Type,
+                displayTime: DisplayTime,
+                closeOnClick: true,
+                // 動態調整位置（測試用）
+                position: {
+                    at: 'center center',
+                    of: '.login-card',  // 或 '#form-container'、window
+                    offset: '0 20'
+                }
+            });
             ToastInstance.show();
         }
     </script>
