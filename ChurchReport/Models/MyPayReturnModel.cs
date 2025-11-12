@@ -35,7 +35,6 @@ namespace ChurchReport.Models
         /// <summary>
         /// 貴特店系統的訂單編號
         /// </summary>
-        [Required]
         public string order_id { get; set; }
 
         #endregion
@@ -116,7 +115,7 @@ namespace ChurchReport.Models
         #region 信用卡相關資訊 (Credit Card Information)
 
         /// <summary>
-        /// 銀行端口回傳碼
+        /// 銀行端口回傳碼/卡號
         /// </summary>
         public string cardno { get; set; }
 
@@ -255,67 +254,238 @@ namespace ChurchReport.Models
 
         #endregion
 
+        #region 電子發票相關資訊 (Invoice Information)
+
+        /// <summary>
+        /// 發票開立狀態
+        /// </summary>
+        public int? invoice_state { get; set; }
+
+        /// <summary>
+        /// 發票開立日期(YYYYMMDD)
+        /// </summary>
+        public string invoice_date { get; set; }
+
+        /// <summary>
+        /// 發票字軌
+        /// </summary>
+        public string invoice_wordtrack { get; set; }
+
+        /// <summary>
+        /// 發票號碼
+        /// </summary>
+        public string invoice_number { get; set; }
+
+        /// <summary>
+        /// 電子發票隨機碼
+        /// </summary>
+        public string invoice_rand_code { get; set; }
+
+        /// <summary>
+        /// 賣方統一編號
+        /// </summary>
+        public string invoice_seller_ban { get; set; }
+
+        /// <summary>
+        /// 買方統一編號
+        /// </summary>
+        public string invoice_buyer_ban { get; set; }
+
+        /// <summary>
+        /// 電子發票左邊QrCode內容
+        /// </summary>
+        public string invoice_left_qrcode { get; set; }
+
+        /// <summary>
+        /// 電子發票中間Barcode內容(格式Code-39)
+        /// </summary>
+        public string invoice_middle_barcode { get; set; }
+
+        /// <summary>
+        /// 電子發票右邊QrCode內容
+        /// </summary>
+        public string invoice_right_qrcode { get; set; }
+
+        /// <summary>
+        /// 電子發票列印標題格式
+        /// </summary>
+        public int? invoice_title_type { get; set; }
+
+        /// <summary>
+        /// 電子發票標題內容
+        /// </summary>
+        public string invoice_title { get; set; }
+
+        /// <summary>
+        /// 電子發票列印類型
+        /// </summary>
+        public int? invoice_print_type { get; set; }
+
+        /// <summary>
+        /// 電子發票列印設備
+        /// </summary>
+        public int? invoice_print_device { get; set; }
+
+        /// <summary>
+        /// 電子發票銷售總額
+        /// </summary>
+        public string invoice_amount { get; set; }
+
+        /// <summary>
+        /// 電子發票銷售額
+        /// </summary>
+        public string invoice_sales_amount { get; set; }
+
+        /// <summary>
+        /// 電子發票稅額
+        /// </summary>
+        public string invoice_tax_amount { get; set; }
+
+        /// <summary>
+        /// 電子發票全部產品明細(JSON格式)
+        /// </summary>
+        public string invoice_order_detail { get; set; }
+
+        /// <summary>
+        /// 電子發票稅率別
+        /// </summary>
+        public int? invoice_ratetype { get; set; }
+
+        /// <summary>
+        /// 電子發票開立類型
+        /// </summary>
+        public int? invoice_input_type { get; set; }
+
+        /// <summary>
+        /// 雲端發票類型
+        /// </summary>
+        public string invoice_cloud_type { get; set; }
+
+        /// <summary>
+        /// 手機條碼
+        /// </summary>
+        public string invoice_mobile_code { get; set; }
+
+        /// <summary>
+        /// 統一編號
+        /// </summary>
+        public string invoice_tax_id { get; set; }
+
+        /// <summary>
+        /// 自然人憑證條碼
+        /// </summary>
+        public string invoice_natural_person { get; set; }
+
+        /// <summary>
+        /// 愛心碼
+        /// </summary>
+        public string invoice_love_code { get; set; }
+
+        /// <summary>
+        /// 發票抬頭
+        /// </summary>
+        public string invoice_b2b_title { get; set; }
+
+        /// <summary>
+        /// B2B統一編號
+        /// </summary>
+        public string invoice_b2b_id { get; set; }
+
+        /// <summary>
+        /// 發票郵遞區號
+        /// </summary>
+        public string invoice_b2b_post_zone { get; set; }
+
+        /// <summary>
+        /// 發票地址
+        /// </summary>
+        public string invoice_b2b_address { get; set; }
+
+        /// <summary>
+        /// 電子發票折讓資訊
+        /// </summary>
+        public List<InvoiceAllowance> invoice_allowance { get; set; }
+
+        #endregion
+
+        #region 退款/取消訂單資訊 (Refund/Cancel Information)
+
+        /// <summary>
+        /// 退款訂單資訊(多筆格式)
+        /// </summary>
+        public List<RefundOrder> refund_order { get; set; }
+
+        /// <summary>
+        /// 取消訂單資訊(多筆格式)
+        /// </summary>
+        public List<CancelOrder> cancel_order { get; set; }
+
+        /// <summary>
+        /// 退款UID
+        /// </summary>
+        public string refund_uid { get; set; }
+
+        /// <summary>
+        /// 退款類型（1.直接線上退款 2.手動退款(信用卡類) 3.手動退款(現金類)）
+        /// </summary>
+        public int? refund_type { get; set; }
+
+        /// <summary>
+        /// 預計退款日(YYYYMMDD)（退款類型為3時，才有此日期）
+        /// </summary>
+        public string expected_refund_date { get; set; }
+
+        #endregion
+
+        #region 商品資訊 (Items Information)
+
+        /// <summary>
+        /// 訂單商品項目
+        /// </summary>
+        public List<OrderItem> items { get; set; }
+
+        #endregion
+
+        #region 其他欄位 (Additional Fields)
+
+        /// <summary>
+        /// 預計撥款日期(YYYYMMDD)
+        /// </summary>
+        public string appropriation_date { get; set; }
+
+        /// <summary>
+        /// 發票剩餘張數
+        /// </summary>
+        public int? invoice_count { get; set; }
+
+        #endregion
+
         #region 舊版相容欄位 (Legacy Compatibility Fields)
 
         /// <summary>
-        /// 交易狀態 (1:成功, 0:失敗) - 舊版相容
+        /// 交易狀態 (用於舊版相容) - 對應到 prc 欄位
         /// </summary>
-        [Required]
         public string state { get; set; }
 
         /// <summary>
-        /// 回傳訊息 - 舊版相容
+        /// 回傳訊息 (用於舊版相容) - 對應到 retmsg 欄位
         /// </summary>
-        [Required]
         public string msg { get; set; }
 
         /// <summary>
-        /// 商店代號 - 舊版相容
+        /// 商店代號 (用於舊版相容)
         /// </summary>
-        [Required]
         public string store_uid { get; set; }
 
         /// <summary>
-        /// 金流平台交易單號 - 舊版相容
+        /// 金流平台交易單號 (用於舊版相容) - 對應到 uid 欄位
         /// </summary>
-        [Required]
         public string transaction_id { get; set; }
 
         /// <summary>
-        /// 簽名驗證碼 - 舊版相容
+        /// 簽名驗證碼 (用於舊版相容) - 對應到 key 欄位
         /// </summary>
-        [Required]
         public string hash { get; set; }
-
-        /// <summary>
-        /// 付款人姓名 - 舊版相容
-        /// </summary>
-        public string user_name { get; set; }
-
-        /// <summary>
-        /// 付款人真實姓名 - 舊版相容
-        /// </summary>
-        public string user_real_name { get; set; }
-
-        /// <summary>
-        /// 付款人電話 - 舊版相容
-        /// </summary>
-        public string user_phone { get; set; }
-
-        /// <summary>
-        /// 付款人電子郵件 - 舊版相容
-        /// </summary>
-        public string user_email { get; set; }
-
-        /// <summary>
-        /// 付款方式類型 - 舊版相容
-        /// </summary>
-        public string pay_type { get; set; }
-
-        /// <summary>
-        /// 發票號碼 - 舊版相容
-        /// </summary>
-        public string invoice_number { get; set; }
 
         #endregion
 
@@ -335,7 +505,7 @@ namespace ChurchReport.Models
                 {
                     IsSuccess = true,
                     ProcessingTime = DateTime.Now,
-                    TransactionId = this.uid ?? this.transaction_id,
+                    TransactionId = this.uid,
                     OrderId = this.order_id
                 };
 
@@ -363,6 +533,9 @@ namespace ChurchReport.Models
                 // 處理自訂參數
                 result.CustomParameters = ProcessCustomParameters();
 
+                // 處理發票資訊
+                result.InvoiceInfo = ProcessInvoiceInfo();
+
                 // 生成處理摘要
                 result.Summary = GenerateProcessingSummary(result);
 
@@ -375,7 +548,7 @@ namespace ChurchReport.Models
                     IsSuccess = false,
                     ErrorMessage = $"處理失敗: {ex.Message}",
                     ProcessingTime = DateTime.Now,
-                    TransactionId = this.uid ?? this.transaction_id,
+                    TransactionId = this.uid,
                     OrderId = this.order_id
                 };
             }
@@ -448,11 +621,7 @@ namespace ChurchReport.Models
         {
             return new ConsumerInfo
             {
-                UserId = this.user_id,
-                UserName = this.user_name,
-                UserRealName = this.user_real_name,
-                UserPhone = this.user_phone,
-                UserEmail = this.user_email
+                UserId = this.user_id
             };
         }
 
@@ -546,6 +715,30 @@ namespace ChurchReport.Models
         }
 
         /// <summary>
+        /// 處理發票資訊
+        /// </summary>
+        private InvoiceInfo ProcessInvoiceInfo()
+        {
+            var info = new InvoiceInfo
+            {
+                State = this.invoice_state,
+                Date = this.invoice_date,
+                Wordtrack = this.invoice_wordtrack,
+                Number = this.invoice_number,
+                RandCode = this.invoice_rand_code,
+                SellerBan = this.invoice_seller_ban,
+                BuyerBan = this.invoice_buyer_ban,
+                Amount = this.invoice_amount,
+                SalesAmount = this.invoice_sales_amount,
+                TaxAmount = this.invoice_tax_amount,
+                RateType = this.invoice_ratetype,
+                InputType = this.invoice_input_type
+            };
+
+            return info;
+        }
+
+        /// <summary>
         /// 生成處理摘要
         /// </summary>
         private string GenerateProcessingSummary(MyPayProcessingResult result)
@@ -622,20 +815,6 @@ namespace ChurchReport.Models
                 result.Errors.Add("⚠️ pfn 建議提供以辨識支付工具");
             }
 
-            // 舊版相容欄位：不列為必要（僅記錄）
-            if (string.IsNullOrEmpty(this.store_uid))
-            {
-                result.Errors.Add("⚠️ store_uid 為請求端欄位，回報中缺少可忽略");
-            }
-            if (string.IsNullOrEmpty(this.transaction_id))
-            {
-                result.Errors.Add("⚠️ transaction_id 未列於現行回報欄位，缺少可忽略");
-            }
-            if (string.IsNullOrEmpty(this.hash))
-            {
-                result.Errors.Add("⚠️ hash 非現行回報必填，缺少可忽略");
-            }
-
             return result;
         }
 
@@ -704,23 +883,158 @@ namespace ChurchReport.Models
             fields.Add(nameof(echo_3), echo_3);
             fields.Add(nameof(echo_4), echo_4);
 
-            // 舊版相容欄位
-            fields.Add(nameof(state), state);
-            fields.Add(nameof(msg), msg);
-            fields.Add(nameof(store_uid), store_uid);
-            fields.Add(nameof(transaction_id), transaction_id);
-            fields.Add(nameof(hash), hash);
-            fields.Add(nameof(user_name), user_name);
-            fields.Add(nameof(user_real_name), user_real_name);
-            fields.Add(nameof(user_phone), user_phone);
-            fields.Add(nameof(user_email), user_email);
-            fields.Add(nameof(pay_type), pay_type);
-            fields.Add(nameof(invoice_number), invoice_number);
-
             return fields;
         }
 
         #endregion
+
+
+        //    📋 欄位分類說明
+        //🔴 必要欄位(Required Fields)
+        //•	state - 交易狀態(1:成功, 0:失敗)
+        //•	msg - 回傳訊息
+        //•	order_id - 商店訂單編號
+        //•	store_uid - 商店代號
+        //•	transaction_id - 金流平台交易單號
+        //•	hash - 簽名驗證碼
+        //💰 基本交易資訊(Basic Transaction Info)
+        //•	cost - 交易金額
+        //•	currency - 交易幣別
+        //•	pay_type - 付款方式類型
+        //•	pay_time - 付款完成時間
+        //•	transaction_fee - 交易手續費
+        //•	actual_cost - 實際收款金額
+        //👤 消費者資訊(Consumer Information)
+        //•	user_name - 付款人姓名
+        //•	user_real_name - 付款人真實姓名
+        //•	user_phone - 付款人電話
+        //•	user_cellphone - 付款人行動電話
+        //•	user_email - 付款人電子郵件
+        //•	user_zipcode - 付款人郵遞區號
+        //•	user_address - 付款人地址
+        //•	user_sn - 付款人身分證號
+        //•	user_birthday - 付款人生日
+        //💳 信用卡相關資訊(Credit Card Info)
+        //•	card_first_six - 信用卡卡號前六碼
+        //•	card_last_four - 信用卡卡號後四碼
+        //•	auth_code - 信用卡授權碼
+        //•	auth_code_msg - 信用卡授權碼回應訊息
+        //•	card_issuer_code - 信用卡發卡銀行代碼
+        //•	card_issuer_name - 信用卡發卡銀行名稱
+        //•	card_type - 信用卡類型
+        //•	installment - 分期期數
+        //•	bonus_points - 紅利折抵點數
+        //🏧 ATM/虛擬帳號相關資訊(ATM/Virtual Account Info)
+        //•	atm_account - ATM 虛擬帳號
+        //•	atm_bank_code - ATM 銀行代碼
+        //•	atm_bank_name - ATM 銀行名稱
+        //•	atm_expire_date - ATM 繳費期限
+        //🏪 超商代碼相關資訊(Convenience Store Info)
+        //•	cvs_code - 超商代碼
+        //•	cvs_type - 超商類型
+        //•	cvs_expire_date - 超商繳費期限
+        //📱 電子錢包相關資訊(E-Wallet Info)
+        //•	wallet_type - 電子錢包類型
+        //•	wallet_transaction_id - 電子錢包交易號
+        //•	wallet_user_id - 電子錢包用戶ID
+        //🧾 發票相關資訊(Invoice Info)
+        //•	invoice_number - 發票號碼
+        //•	invoice_state - 發票開立狀態
+        //•	invoice_type - 發票類型
+        //•	invoice_tax_id - 統一編號
+        //•	invoice_title - 發票抬頭
+        //•	invoice_love_code - 愛心碼
+        //•	invoice_carrier_type - 載具類型
+        //•	invoice_carrier_no - 載具號碼
+        //🔄 定期定額相關資訊(Recurring Payment Info)
+        //•	regular_group_id - 定期定額群組ID
+        //•	regular_total_periods - 定期定額總期數
+        //•	regular_current_period - 定期定額目前期數
+        //•	regular_next_date - 下次扣款日期
+        //•	regular_status - 定期定額狀態
+        //⚙️ 系統參數(System Parameters)
+        //•	echo0 ~echo4 - 自訂參數
+        //•	pay_ip - 付款來源 IP
+        //•	device_type - 付款裝置類型
+        //•	user_agent - 使用者代理字串
+        //🛡️ 風險控制相關(Risk Control)
+        //•	risk_score - 風險評分
+        //•	risk_level - 風險等級
+        //•	three_d_secure - 3D驗證結果
+        //📝 其他資訊(Additional Info)
+        //•	bank_code - 銀行回傳碼
+        //•	bank_msg - 銀行回傳訊息
+        //•	process_time - 處理時間
+        //•	note - 備註欄位
+        //•	ext_data - 擴充資料
+        //🎯 優點
+        //🔄 非即時交易回傳資訊(Non-Instant Transaction Return Info)
+        //📅 時間戳記相關
+        //•	create_time - 交易建立時間
+        //•	update_time - 交易更新時間
+        //•	confirm_time - 交易確認時間
+        //•	settle_time - 交易清算時間
+        //•	close_time - 交易關閉時間
+        //•	refund_time - 退款時間
+        //•	notify_last_time - 回調最後嘗試時間
+        //•	expire_time - 交易有效期限
+        //•	reconcile_time - 對帳時間
+        //📊 狀態追蹤
+        //•	detail_state - 交易詳細狀態碼
+        //•	detail_msg - 交易詳細狀態訊息
+        //•	fail_code - 交易失敗原因代碼
+        //•	fail_msg - 交易失敗原因描述
+        //•	notify_status - 回調狀態
+        //•	is_expired - 交易逾期狀態
+        //•	settle_state - 清算狀態
+        //•	reconcile_state - 對帳狀態
+        //💰 退款相關
+        //•	refund_state - 退款狀態
+        //•	refund_amount - 退款金額
+        //•	refund_transaction_id - 退款交易單號
+        //•	refund_order_id - 商店退款單號
+        //🏦 清算對帳
+        //•	settle_amount - 清算金額
+        //•	settle_fee - 清算手續費
+        //•	settle_batch_no - 清算批次號
+        //•	reconcile_batch_no - 對帳批次號
+        //🔔 回調機制
+        //•	notify_retry_count - 回調重試次數
+        //•	notify_url - 回調URL
+        //📋 交易資訊
+        //•	batch_no - 交易批次號
+        //•	merchant_ref - 商戶參考號
+        //•	payment_channel - 付款通道
+        //•	payment_sub_channel - 付款子通道
+        //•	transaction_source - 交易來源
+        //📦 JSON 格式資訊
+        //•	goods_info - 商品資訊
+        //•	logistics_info - 物流資訊
+        //•	promotion_info - 促銷資訊
+        //•	coupon_info - 優惠券資訊
+        //•	split_info - 分潤資訊
+        //•	risk_info - 風控資訊
+        //•	merchant_info - 商戶自定義資訊
+        //⚙️ 系統資訊
+        //•	environment - 交易環境(sandbox/production)
+        //•	api_version - API版本
+        //•	sdk_version - SDK版本
+        //•	platform_info - 平台資訊
+        //🎯 特色與優勢
+        //1.	完整涵蓋：包含所有可能的非即時交易回傳欄位
+        //2.	詳細文檔：每個欄位都有完整的中文註解說明
+        //3.	分類清楚：按功能分組，便於理解和維護
+        //4.	相容性：完全相容.NET Framework 4.7.1 和 C# 7.3
+        //5.	擴展性：可支援未來新增的回傳欄位
+        //6.	類型安全：使用適當的資料型別(string, int?, etc.)
+        //🔧 使用場景
+        //這些欄位主要用於處理：
+        //•	ATM 轉帳：需要等待銀行確認的非即時交易
+        //•	超商代碼：需要等待消費者繳費的延遲交易
+        //•	虛擬帳號：需要等待入金確認的交易
+        //•	定期定額：需要追蹤多期扣款狀態
+        //•	退款處理：需要追蹤退款狀態和時間
+        //•	清算對帳：需要與銀行進行批次對帳
     }
 
     #region 輔助類別 (Helper Classes)
@@ -756,6 +1070,8 @@ namespace ChurchReport.Models
         public VirtualAccountInfo VirtualAccountInfo { get; set; }
         /// <summary>自訂參數資訊</summary>
         public CustomParametersInfo CustomParameters { get; set; }
+        /// <summary>發票資訊</summary>
+        public InvoiceInfo InvoiceInfo { get; set; }
         /// <summary>摘要說明</summary>
         public string Summary { get; set; }
     }
@@ -821,14 +1137,6 @@ namespace ChurchReport.Models
     {
         /// <summary>消費者帳號</summary>
         public string UserId { get; set; }
-        /// <summary>付款人姓名</summary>
-        public string UserName { get; set; }
-        /// <summary>付款人真實姓名</summary>
-        public string UserRealName { get; set; }
-        /// <summary>付款人電話</summary>
-        public string UserPhone { get; set; }
-        /// <summary>付款人電子郵件</summary>
-        public string UserEmail { get; set; }
     }
 
     /// <summary>
@@ -917,6 +1225,95 @@ namespace ChurchReport.Models
     }
 
     /// <summary>
+    /// 發票資訊
+    /// </summary>
+    public class InvoiceInfo
+    {
+        /// <summary>發票開立狀態</summary>
+        public int? State { get; set; }
+        /// <summary>發票日期</summary>
+        public string Date { get; set; }
+        /// <summary>發票字軌</summary>
+        public string Wordtrack { get; set; }
+        /// <summary>發票號碼</summary>
+        public string Number { get; set; }
+        /// <summary>隨機碼</summary>
+        public string RandCode { get; set; }
+        /// <summary>賣方統編</summary>
+        public string SellerBan { get; set; }
+        /// <summary>買方統編</summary>
+        public string BuyerBan { get; set; }
+        /// <summary>銷售總額</summary>
+        public string Amount { get; set; }
+        /// <summary>銷售額</summary>
+        public string SalesAmount { get; set; }
+        /// <summary>稅額</summary>
+        public string TaxAmount { get; set; }
+        /// <summary>稅率別</summary>
+        public int? RateType { get; set; }
+        /// <summary>開立類型</summary>
+        public int? InputType { get; set; }
+    }
+
+    /// <summary>
+    /// 商品項目
+    /// </summary>
+    public class OrderItem
+    {
+        /// <summary>商品編號</summary>
+        public string id { get; set; }
+        /// <summary>商品名稱</summary>
+        public string name { get; set; }
+        /// <summary>商品單價</summary>
+        public string cost { get; set; }
+        /// <summary>商品數量</summary>
+        public string amount { get; set; }
+        /// <summary>商品小計</summary>
+        public string total { get; set; }
+    }
+
+    /// <summary>
+    /// 退款訂單資訊
+    /// </summary>
+    public class RefundOrder
+    {
+        /// <summary>退款UID</summary>
+        public string refund_uid { get; set; }
+        /// <summary>退款金額</summary>
+        public string cost { get; set; }
+        /// <summary>退款完成時間</summary>
+        public string finishtime { get; set; }
+        /// <summary>退款狀態</summary>
+        public string prc { get; set; }
+    }
+
+    /// <summary>
+    /// 取消訂單資訊
+    /// </summary>
+    public class CancelOrder
+    {
+        /// <summary>取消UID</summary>
+        public string cancel_uid { get; set; }
+        /// <summary>取消時間</summary>
+        public string finishtime { get; set; }
+        /// <summary>取消狀態</summary>
+        public string prc { get; set; }
+    }
+
+    /// <summary>
+    /// 電子發票折讓資訊
+    /// </summary>
+    public class InvoiceAllowance
+    {
+        /// <summary>折讓UID</summary>
+        public string uid { get; set; }
+        /// <summary>折讓金額</summary>
+        public string amount { get; set; }
+        /// <summary>折讓明細</summary>
+        public string order_detail { get; set; }
+    }
+
+    /// <summary>
     /// 驗證結果
     /// </summary>
     public class ValidationResult
@@ -927,7 +1324,7 @@ namespace ChurchReport.Models
         public bool IsValid { get; set; }
         
         /// <summary>
-        /// 錯誤訊息列表（致命錯誤）
+        /// 錯誤訊息列表（包含致命錯誤和警告）
         /// </summary>
         public List<string> Errors { get; set; } = new List<string>();
       
@@ -936,194 +1333,47 @@ namespace ChurchReport.Models
         /// </summary>
         public List<string> Warnings 
         { 
-      get 
- {
-           // 從 Errors 中篩選出以 ⚠️ 開頭的訊息作為警告
-     return Errors.Where(e => e.StartsWith("⚠️")).ToList();
-     }
- }
+            get 
+            {
+                // 從 Errors 中篩選出以 ⚠️ 開頭的訊息作為警告
+                return Errors.Where(e => e.StartsWith("⚠️")).ToList();
+            }
+        }
         
         /// <summary>
-   /// 驗證等級
-  /// </summary>
-   public ValidationLevel Level 
+        /// 驗證等級
+        /// </summary>
+        public ValidationLevel Level 
         { 
-    get 
+            get 
             {
-     if (!IsValid) return ValidationLevel.Error;
-         if (Warnings.Any()) return ValidationLevel.Warning;
-       return ValidationLevel.Success;
+                if (!IsValid) return ValidationLevel.Error;
+                if (Warnings.Any()) return ValidationLevel.Warning;
+                return ValidationLevel.Success;
             }
-   }
+        }
     }
 
     /// <summary>
     /// 驗證等級枚舉
- /// </summary>
+    /// </summary>
     public enum ValidationLevel
     {
         /// <summary>
-   /// 成功 - 所有欄位都正確且完整
- /// </summary>
+        /// 成功 - 所有欄位都正確且完整
+        /// </summary>
         Success,
       
         /// <summary>
         /// 警告 - 驗證通過但有建議填寫的欄位
         /// </summary>
-    Warning,
+        Warning,
         
         /// <summary>
         /// 錯誤 - 驗證失敗，缺少必要欄位
         /// </summary>
-      Error
+        Error
     }
 
     #endregion
-
-    //    📋 欄位分類說明
-    //🔴 必要欄位(Required Fields)
-    //•	state - 交易狀態(1:成功, 0:失敗)
-    //•	msg - 回傳訊息
-    //•	order_id - 商店訂單編號
-    //•	store_uid - 商店代號
-    //•	transaction_id - 金流平台交易單號
-    //•	hash - 簽名驗證碼
-    //💰 基本交易資訊(Basic Transaction Info)
-    //•	cost - 交易金額
-    //•	currency - 交易幣別
-    //•	pay_type - 付款方式類型
-    //•	pay_time - 付款完成時間
-    //•	transaction_fee - 交易手續費
-    //•	actual_cost - 實際收款金額
-    //👤 消費者資訊(Consumer Information)
-    //•	user_name - 付款人姓名
-    //•	user_real_name - 付款人真實姓名
-    //•	user_phone - 付款人電話
-    //•	user_cellphone - 付款人行動電話
-    //•	user_email - 付款人電子郵件
-    //•	user_zipcode - 付款人郵遞區號
-    //•	user_address - 付款人地址
-    //•	user_sn - 付款人身分證號
-    //•	user_birthday - 付款人生日
-    //💳 信用卡相關資訊(Credit Card Info)
-    //•	card_first_six - 信用卡卡號前六碼
-    //•	card_last_four - 信用卡卡號後四碼
-    //•	auth_code - 信用卡授權碼
-    //•	auth_code_msg - 信用卡授權碼回應訊息
-    //•	card_issuer_code - 信用卡發卡銀行代碼
-    //•	card_issuer_name - 信用卡發卡銀行名稱
-    //•	card_type - 信用卡類型
-    //•	installment - 分期期數
-    //•	bonus_points - 紅利折抵點數
-    //🏧 ATM/虛擬帳號相關資訊(ATM/Virtual Account Info)
-    //•	atm_account - ATM 虛擬帳號
-    //•	atm_bank_code - ATM 銀行代碼
-    //•	atm_bank_name - ATM 銀行名稱
-    //•	atm_expire_date - ATM 繳費期限
-    //🏪 超商代碼相關資訊(Convenience Store Info)
-    //•	cvs_code - 超商代碼
-    //•	cvs_type - 超商類型
-    //•	cvs_expire_date - 超商繳費期限
-    //📱 電子錢包相關資訊(E-Wallet Info)
-    //•	wallet_type - 電子錢包類型
-    //•	wallet_transaction_id - 電子錢包交易號
-    //•	wallet_user_id - 電子錢包用戶ID
-    //🧾 發票相關資訊(Invoice Info)
-    //•	invoice_number - 發票號碼
-    //•	invoice_state - 發票開立狀態
-    //•	invoice_type - 發票類型
-    //•	invoice_tax_id - 統一編號
-    //•	invoice_title - 發票抬頭
-    //•	invoice_love_code - 愛心碼
-    //•	invoice_carrier_type - 載具類型
-    //•	invoice_carrier_no - 載具號碼
-    //🔄 定期定額相關資訊(Recurring Payment Info)
-    //•	regular_group_id - 定期定額群組ID
-    //•	regular_total_periods - 定期定額總期數
-    //•	regular_current_period - 定期定額目前期數
-    //•	regular_next_date - 下次扣款日期
-    //•	regular_status - 定期定額狀態
-    //⚙️ 系統參數(System Parameters)
-    //•	echo0 ~echo4 - 自訂參數
-    //•	pay_ip - 付款來源 IP
-    //•	device_type - 付款裝置類型
-    //•	user_agent - 使用者代理字串
-    //🛡️ 風險控制相關(Risk Control)
-    //•	risk_score - 風險評分
-    //•	risk_level - 風險等級
-    //•	three_d_secure - 3D驗證結果
-    //📝 其他資訊(Additional Info)
-    //•	bank_code - 銀行回傳碼
-    //•	bank_msg - 銀行回傳訊息
-    //•	process_time - 處理時間
-    //•	note - 備註欄位
-    //•	ext_data - 擴充資料
-    //🎯 優點
-    //🔄 非即時交易回傳資訊(Non-Instant Transaction Return Info)
-    //📅 時間戳記相關
-    //•	create_time - 交易建立時間
-    //•	update_time - 交易更新時間
-    //•	confirm_time - 交易確認時間
-    //•	settle_time - 交易清算時間
-    //•	close_time - 交易關閉時間
-    //•	refund_time - 退款時間
-    //•	notify_last_time - 回調最後嘗試時間
-    //•	expire_time - 交易有效期限
-    //•	reconcile_time - 對帳時間
-    //📊 狀態追蹤
-    //•	detail_state - 交易詳細狀態碼
-    //•	detail_msg - 交易詳細狀態訊息
-    //•	fail_code - 交易失敗原因代碼
-    //•	fail_msg - 交易失敗原因描述
-    //•	notify_status - 回調狀態
-    //•	is_expired - 交易逾期狀態
-    //•	settle_state - 清算狀態
-    //•	reconcile_state - 對帳狀態
-    //💰 退款相關
-    //•	refund_state - 退款狀態
-    //•	refund_amount - 退款金額
-    //•	refund_transaction_id - 退款交易單號
-    //•	refund_order_id - 商店退款單號
-    //🏦 清算對帳
-    //•	settle_amount - 清算金額
-    //•	settle_fee - 清算手續費
-    //•	settle_batch_no - 清算批次號
-    //•	reconcile_batch_no - 對帳批次號
-    //🔔 回調機制
-    //•	notify_retry_count - 回調重試次數
-    //•	notify_url - 回調URL
-    //📋 交易資訊
-    //•	batch_no - 交易批次號
-    //•	merchant_ref - 商戶參考號
-    //•	payment_channel - 付款通道
-    //•	payment_sub_channel - 付款子通道
-    //•	transaction_source - 交易來源
-    //📦 JSON 格式資訊
-    //•	goods_info - 商品資訊
-    //•	logistics_info - 物流資訊
-    //•	promotion_info - 促銷資訊
-    //•	coupon_info - 優惠券資訊
-    //•	split_info - 分潤資訊
-    //•	risk_info - 風控資訊
-    //•	merchant_info - 商戶自定義資訊
-    //⚙️ 系統資訊
-    //•	environment - 交易環境(sandbox/production)
-    //•	api_version - API版本
-    //•	sdk_version - SDK版本
-    //•	platform_info - 平台資訊
-    //🎯 特色與優勢
-    //1.	完整涵蓋：包含所有可能的非即時交易回傳欄位
-    //2.	詳細文檔：每個欄位都有完整的中文註解說明
-    //3.	分類清楚：按功能分組，便於理解和維護
-    //4.	相容性：完全相容.NET Framework 4.7.1 和 C# 7.3
-    //5.	擴展性：可支援未來新增的回傳欄位
-    //6.	類型安全：使用適當的資料型別(string, int?, etc.)
-    //🔧 使用場景
-    //這些欄位主要用於處理：
-    //•	ATM 轉帳：需要等待銀行確認的非即時交易
-    //•	超商代碼：需要等待消費者繳費的延遲交易
-    //•	虛擬帳號：需要等待入金確認的交易
-    //•	定期定額：需要追蹤多期扣款狀態
-    //•	退款處理：需要追蹤退款狀態和時間
-    //•	清算對帳：需要與銀行進行批次對帳
 }
