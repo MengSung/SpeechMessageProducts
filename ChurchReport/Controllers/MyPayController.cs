@@ -329,11 +329,8 @@ namespace ChurchReport.Controllers
                       $"課程資訊：{Environment.NewLine}" +
                       $"姓名：{fullName}{Environment.NewLine}" +
                       $"課程名稱：{courseName}{Environment.NewLine}";
-            if (!string.IsNullOrWhiteSpace(courseSchedule)) msg += $"上課時間：{courseSchedule}{Environment.NewLine}";
-            if (!string.IsNullOrWhiteSpace(courseLocation)) msg += $"上課地點：{courseLocation}{Environment.NewLine}";
-            msg += $"{Environment.NewLine}付款資訊：{Environment.NewLine}" +
-                   $"訂單編號：{orderId}{Environment.NewLine}";
-            if (!string.IsNullOrWhiteSpace(transactionId)) msg += $"交易編號：{transactionId}{Environment.NewLine}";
+            if (!string.IsNullOrWhiteSpace(transactionId))
+                msg += $"交易編號：{transactionId}{Environment.NewLine}";
             msg += $"應繳金額：NT$ {amount:N0}{Environment.NewLine}" +
                    $"嘗試時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}" +
                    $"您可以：{Environment.NewLine}" +
@@ -555,195 +552,6 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 更新收費單（成功_success_back用）
-        /// 將成功付款資訊寫入 CRM 收費單
-        /// </summary>
-        /// <param name="toolUtility">工具類別實例</param>
-        /// <param name="feeEntity">收費單實體</param>
-        /// <param name="orderId">訂單編號</param>
-        /// <param name="uid">交易流水號</param>
-        /// <param name="key">交易驗證碼</param>
-        /// <param name="cost">交易金額</param>
-        /// <param name="actualCost">實際金額</param>
-        /// <param name="prc">交易狀態碼</param>
-        /// <param name="pfn">付款方式</param>
-        /// <param name="paymentTime">付款時間</param>
-        /// <param name="cardno">卡號</param>
-        /// <param name="acode">授權碼</param>
-        private void UpdateFeeEntityForSuccessWithMyPay(
-            ToolUtilityClass toolUtility,
-            Entity feeEntity,
-            string orderId,
-            string uid,
-            string key,
-            string cost,
-            string actualCost,
-            string prc,
-            string pfn,
-            DateTime paymentTime,
-            string cardno,
-            string acode)
-        {
-            try
-            {
-                var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
-                toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PAYMENT_STATUS_PAID);
-                toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_fee_really_paid", shouldPayMoney);
-                toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_difference_fee_paid", new Money(0));
-                toolUtility.SetEntityDateTimeAttribute(ref feeEntity, "new_pay_date", paymentTime);
-                toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PAYMENT_METHOD_CREDIT_CARD);
-
-                var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description") ?? string.Empty;
-                var paymentMethodName = GetPaymentMethodName(pfn);
-                var statusMessage = GetPaymentStatusMessage(prc);
-                var newDescription =
-                    originalDescription + Environment.NewLine +
-                    "[金流付款成功]" + Environment.NewLine +
-                    $"訂單號: {orderId}{Environment.NewLine}" +
-                    $"交易流水號(UID): {uid}{Environment.NewLine}" +
-                    $"交易驗證碼(Key): {key}{Environment.NewLine}" +
-                    $"交易狀態(PRC): {prc} ({statusMessage}){Environment.NewLine}" +
-                    $"====== 付款方式 ======{Environment.NewLine}" +
-                    $"支付工具代碼(PFN): {pfn}{Environment.NewLine}" +
-                    $"支付工具名稱: {paymentMethodName}{Environment.NewLine}" +
-                    $"付款方式編號: {PAYMENT_METHOD_CREDIT_CARD}{Environment.NewLine}" +
-                    $"======================={Environment.NewLine}" +
-                    $"交易金額: {cost}{Environment.NewLine}" +
-                    $"實際金額: {actualCost ?? cost}{Environment.NewLine}" +
-                    $"卡號: {cardno}{Environment.NewLine}" +
-                    $"授權碼: {acode}{Environment.NewLine}" +
-                    $"付款時間: {paymentTime:yyyy-MM-dd HH:mm:ss}";
-
-                toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
-                _logger.LogInformation($"UpdateFeeEntityWithMyPay: 更新完成 - FeeId: {feeEntity.Id}, OrderId: {orderId}, 付款方式: {paymentMethodName}(PFN:{pfn})");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"UpdateFeeEntityWithMyPay: 更新收費單失敗 - OrderId: {orderId}");
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// 更新收費單（失敗_failure_back用）
-        /// 將失敗付款資訊記錄到 CRM 收費單
-        /// </summary>
-        /// <param name="toolUtility">工具類別實例</param>
-        /// <param name="feeEntity">收費單實體</param>
-        /// <param name="orderId">訂單編號</param>
-        /// <param name="errorMessage">錯誤訊息</param>
-        /// <param name="errorCode">錯誤代碼</param>
-        /// <param name="retCode">返回代碼</param>
-        private void UpdateFeeEntityForFailure(
-            ToolUtilityClass toolUtility,
-            Entity feeEntity,
-            string orderId,
-            string errorMessage,
-            string errorCode,
-            string retCode)
-        {
-            try
-            {
-                var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description") ?? string.Empty;
-                var failureInfo =
-                    originalDescription + Environment.NewLine +
-                    $"[金流付款失敗] 訂單號: {orderId}, " +
-                    $"時間: {DateTime.Now:yyyy-MM-dd HH:mm:ss}, " +
-                    $"錯誤訊息: {errorMessage ?? "未提供"}, " +
-                    $"錯誤代碼: {errorCode ?? retCode ?? "未提供"}";
-
-                toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", failureInfo);
-                toolUtility.UpdateEntity(ref feeEntity);
-                _logger.LogInformation($"UpdateFeeEntityForFailure: 已記錄失敗資訊 - FeeId: {feeEntity.Id}, OrderId: {orderId}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"UpdateFeeEntityForFailure: 更新失敗 - OrderId: {orderId}");
-            }
-        }
-
-        /// <summary>
-        /// 發送付款通知（success_back用）
-        /// 根據收費單類型發送對應的 LINE 成功通知
-        /// </summary>
-        /// <param name="utility">工具類別實例</param>
-        /// <param name="feeEntity">收費單實體</param>
-        /// <param name="orderId">訂單編號</param>
-        /// <param name="transactionId">交易編號</param>
-        /// <param name="cost">交易金額</param>
-        /// <param name="fullName">會友全名</param>
-        /// <param name="itemName">項目名稱</param>
-        /// <param name="feeType">收費單類型</param>
-        /// <param name="amount">付款金額</param>
-        /// <param name="contactEntity">連絡人實體</param>
-        private void SendPaymentNotificationByType(
-            ToolUtilityClass utility,
-            Entity feeEntity,
-            string orderId,
-            string transactionId,
-            string cost,
-            string fullName,
-            string itemName,
-            FeeType feeType,
-            decimal amount,
-            Entity contactEntity)
-        {
-            try
-            {
-                var contactId = utility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
-                if (contactId == Guid.Empty)
-                {
-                    _logger.LogWarning($"SendNotification: 無連絡人 - OrderId: {orderId}");
-                    return;
-                }
-
-                if (contactEntity == null)
-                {
-                    contactEntity = utility.RetrieveEntity("contact", contactId);
-                    if (contactEntity == null)
-                    {
-                        _logger.LogWarning($"SendNotification: 找不到連絡人 - ContactId: {contactId}");
-                        return;
-                    }
-                }
-
-                string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
-                if (string.IsNullOrWhiteSpace(lineId))
-                {
-                    _logger.LogWarning($"SendNotification: 無 LINE ID - ContactId: {contactId}");
-                    return;
-                }
-
-                string message;
-                if (feeType == FeeType.Dedication)
-                {
-                    message = BuildDedicationSuccessMessage(fullName, orderId, transactionId, amount, itemName, DateTime.Now);
-                }
-                else if (feeType == FeeType.Course)
-                {
-                    string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? "";
-                    string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? "";
-                    message = BuildCoursePaymentSuccessMessage(fullName, orderId, transactionId, amount, itemName, courseSchedule, courseLocation, DateTime.Now);
-                }
-                else
-                {
-                    message = BuildGeneralPaymentSuccessMessage(fullName, orderId, transactionId, amount, itemName, DateTime.Now);
-                }
-
-                SendLineMessage(lineId, message);
-                _logger.LogInformation($"SendNotification: 已發送 LINE 訊息 - OrderId: {orderId}, LineId: {lineId}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"SendNotification: 發送 LINE失敗 - OrderId: {orderId}");
-            }
-        }
-
-        #endregion
-
-        #region 輔助方法
-
-        /// <summary>
         /// 記錄完整的回傳資料（用於除錯）
         /// 將金流回傳的所有欄位記錄到日誌中，便於問題排查
         /// </summary>
@@ -839,44 +647,45 @@ namespace ChurchReport.Controllers
                 if (!string.IsNullOrEmpty(model.supplier_name))
                 {
                     newDescription += $"====== 服務商資訊 ======" + Environment.NewLine +
-                                    $"服務商: {model.supplier_name}" + Environment.NewLine +
-                                    $"服務商代碼: {model.supplier_code}" + Environment.NewLine;
+                                      $"服務商: {model.supplier_name}" + Environment.NewLine +
+                                      $"服務商代碼: {model.supplier_code}" + Environment.NewLine;
                 }
 
                 // 定期定額資訊
-                if (!string.IsNullOrEmpty(model.payment_name))
+                if (!string.IsNullOrEmpty(model.payment_name) || !string.IsNullOrEmpty(model.nois) || !string.IsNullOrEmpty(model.group_id))
                 {
                     newDescription += $"====== 定期定額資訊 ======" + Environment.NewLine +
-                                    $"扣款名稱: {model.payment_name}" + Environment.NewLine +
-                                    $"期數: {model.nois}" + Environment.NewLine +
-                                    $"群組編號: {model.group_id}" + Environment.NewLine;
+                                      $"扣款名稱: {model.payment_name}" + Environment.NewLine +
+                                      $"期數: {model.nois}" + Environment.NewLine +
+                                      $"群組編號: {model.group_id}" + Environment.NewLine;
                 }
 
                 // 虛擬帳號/超商代碼資訊
-                if (!string.IsNullOrEmpty(model.bank_id))
+                if (!string.IsNullOrEmpty(model.bank_id) || !string.IsNullOrEmpty(model.expired_date))
                 {
                     newDescription += $"====== 虛擬帳號資訊 ======" + Environment.NewLine +
-                                    $"銀行代碼: {model.bank_id}" + Environment.NewLine +
-                                    $"有效期限: {model.expired_date}" + Environment.NewLine;
+                                      $"銀行代碼: {model.bank_id}" + Environment.NewLine +
+                                      $"有效期限: {model.expired_date}" + Environment.NewLine;
                 }
 
                 // 自訂參數
-                if (!string.IsNullOrEmpty(model.echo_0) || !string.IsNullOrEmpty(model.echo_1))
+                if (!string.IsNullOrEmpty(model.echo_0) || !string.IsNullOrEmpty(model.echo_1) || !string.IsNullOrEmpty(model.echo_2) || !string.IsNullOrEmpty(model.echo_3) || !string.IsNullOrEmpty(model.echo_4))
                 {
                     newDescription += $"====== 自訂參數 ======" + Environment.NewLine +
-                                    $"echo_0: {model.echo_0}" + Environment.NewLine +
-                                    $"echo_1: {model.echo_1}" + Environment.NewLine +
-                                    $"echo_2: {model.echo_2}" + Environment.NewLine +
-                                    $"echo_3: {model.echo_3}" + Environment.NewLine +
-                                    $"echo_4: {model.echo_4}" + Environment.NewLine;
+                                      $"echo_0: {model.echo_0}" + Environment.NewLine +
+                                      $"echo_1: {model.echo_1}" + Environment.NewLine +
+                                      $"echo_2: {model.echo_2}" + Environment.NewLine +
+                                      $"echo_3: {model.echo_3}" + Environment.NewLine +
+                                      $"echo_4: {model.echo_4}" + Environment.NewLine;
                 }
 
                 // 舊版欄位（向下相容）
                 newDescription += $"====== 舊版相容欄位 ======" + Environment.NewLine +
-                                $"state: {model.state}" + Environment.NewLine +
-                                $"msg: {model.msg}" + Environment.NewLine +
-                                $"transaction_id: {model.transaction_id}" + Environment.NewLine +
-                                $"store_uid: {model.store_uid}" + Environment.NewLine;
+                                  $"state: {model.state}" + Environment.NewLine +
+                                  $"msg: {model.msg}" + Environment.NewLine +
+                                  $"transaction_id: {model.transaction_id}" + Environment.NewLine +
+                                  $"store_uid: {model.store_uid}" + Environment.NewLine +
+                                  $"hash: {model.hash}" + Environment.NewLine;
 
                 toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
 
@@ -890,15 +699,228 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 根據收費單類型發送不同的LINE通知
-        /// 根據 FeeType 決定發送哪種成功通知訊息
+        /// 更新收費單（成功_success_back用）
+        /// 將成功付款資訊寫入 CRM 收費單
+        /// </summary>
+        /// <param name="toolUtility">工具類別實例</param>
+        /// <param name="feeEntity">收費單實體</param>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="uid">交易流水號</param>
+        /// <param name="key">交易驗證碼</param>
+        /// <param name="cost">交易金額</param>
+        /// <param name="actualCost">實際金額</param>
+        /// <param name="prc">交易狀態碼</param>
+        /// <param name="pfn">付款方式</param>
+        /// <param name="paymentTime">付款時間</param>
+        /// <param name="cardno">卡號</param>
+        /// <param name="acode">授權碼</param>
+        private void UpdateFeeEntityForSuccessWithMyPay(
+            ToolUtilityClass toolUtility,
+            Entity feeEntity,
+            string orderId,
+            string uid,
+            string key,
+            string cost,
+            string actualCost,
+            string prc,
+            string pfn,
+            DateTime paymentTime,
+            string cardno,
+            string acode)
+        {
+            try
+            {
+                var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
+                toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PAYMENT_STATUS_PAID);
+                toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_fee_really_paid", shouldPayMoney);
+                toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_difference_fee_paid", new Money(0));
+                toolUtility.SetEntityDateTimeAttribute(ref feeEntity, "new_pay_date", paymentTime);
+                toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PAYMENT_METHOD_CREDIT_CARD);
+
+                // 解析交易時間
+                DateTime transTime = ParseFinishTime(paymentTime.ToString("yyyyMMddHHmmss"));
+
+                // 組合完整的備註資訊
+                var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description") ?? string.Empty;
+                var newDescription = originalDescription + Environment.NewLine +
+                    $"[金流回傳資訊 - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +
+                    $"====== 核心欄位 ======" + Environment.NewLine +
+                    $"訂單號(order_id): {orderId}" + Environment.NewLine +
+                    $"交易流水號(uid): {uid}" + Environment.NewLine +
+                    $"交易驗證碼(key): {key}" + Environment.NewLine +
+                    $"交易狀態碼(prc): {prc} ({GetPaymentStatusMessage(prc)})" + Environment.NewLine +
+                    $"====== 交易資訊 ======" + Environment.NewLine +
+                    $"完成時間: {transTime:yyyy-MM-dd HH:mm:ss}" + Environment.NewLine +
+                    $"交易金額: {cost}" + Environment.NewLine +
+                    $"實際金額: {actualCost ?? cost}" + Environment.NewLine +
+                    $"交易幣別: {actualCost ?? cost}" + Environment.NewLine +
+                    $"====== 付款資訊 ======" + Environment.NewLine +
+                    $"付款方式(pfn): {pfn}" + Environment.NewLine +
+                    $"卡號: {cardno}" + Environment.NewLine +
+                    $"授權碼: {acode}" + Environment.NewLine +
+                    $"卡別: {""}" + Environment.NewLine +
+                    $"發卡行: {""}" + Environment.NewLine +
+                    $"發卡行代碼: {""}" + Environment.NewLine;
+
+                // 如果有分期資訊
+                if (!string.IsNullOrEmpty(actualCost))
+                {
+                    newDescription += $"分期資訊: {actualCost}" + Environment.NewLine;
+                    try
+                    {
+                        var installmentObj = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(actualCost);
+                        newDescription += $"  └ 詳細內容: {installmentObj}" + Environment.NewLine;
+                    }
+                    catch { /* JSON 解析失敗，忽略 */ }
+                }
+
+                // 如果有紅利資訊
+                if (!string.IsNullOrEmpty(actualCost))
+                {
+                    newDescription += $"紅利資訊: {actualCost}" + Environment.NewLine;
+                    try
+                    {
+                        var redeemObj = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(actualCost);
+                        newDescription += $"  └ 詳細內容: {redeemObj}" + Environment.NewLine;
+                    }
+                    catch { /* JSON 解析失敗，忽略 */ }
+                }
+
+                // 服務商資訊
+                if (!string.IsNullOrEmpty(actualCost))
+                {
+                    newDescription += $"====== 服務商資訊 ======" + Environment.NewLine +
+                                    $"服務商: {actualCost}" + Environment.NewLine +
+                                    $"服務商代碼: {actualCost}" + Environment.NewLine;
+                }
+
+                // 定期定額資訊
+                if (!string.IsNullOrEmpty(actualCost))
+                {
+                    newDescription += $"====== 定期定額資訊 ======" + Environment.NewLine +
+                                    $"扣款名稱: {actualCost}" + Environment.NewLine +
+                                    $"期數: {actualCost}" + Environment.NewLine +
+                                    $"群組編號: {actualCost}" + Environment.NewLine;
+                }
+
+                // 虛擬帳號/超商代碼資訊
+                if (!string.IsNullOrEmpty(actualCost))
+                {
+                    newDescription += $"====== 虛擬帳號資訊 ======" + Environment.NewLine +
+                                    $"銀行代碼: {actualCost}" + Environment.NewLine +
+                                    $"有效期限: {actualCost}" + Environment.NewLine;
+                }
+
+                // 自訂參數
+                if (!string.IsNullOrEmpty(actualCost) || !string.IsNullOrEmpty(actualCost))
+                {
+                    newDescription += $"====== 自訂參數 ======" + Environment.NewLine +
+                                    $"echo_0: {actualCost}" + Environment.NewLine +
+                                    $"echo_1: {actualCost}" + Environment.NewLine +
+                                    $"echo_2: {actualCost}" + Environment.NewLine +
+                                    $"echo_3: {actualCost}" + Environment.NewLine +
+                                    $"echo_4: {actualCost}" + Environment.NewLine;
+                }
+
+                // 舊版欄位（向下相容）
+                newDescription += $"====== 舊版相容欄位 ======" + Environment.NewLine +
+                                $"state: {""}" + Environment.NewLine +
+                                $"msg: {""}" + Environment.NewLine +
+                                $"transaction_id: {""}" + Environment.NewLine +
+                                $"store_uid: {""}" + Environment.NewLine +
+                                $"hash: {""}" + Environment.NewLine;
+
+                toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
+
+                _logger.LogInformation($"[MyPay回傳] 收費單欄位已更新 - FeeId: {feeEntity.Id}, OrderId: {orderId}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[MyPay回傳] 更新收費單失敗 - OrderId: {orderId}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 發送付款通知（success_back用）
+        /// 根據收費單類型發送對應的 LINE 成功通知
         /// </summary>
         /// <param name="utility">工具類別實例</param>
         /// <param name="feeEntity">收費單實體</param>
-        /// <param name="model">金流回傳模型</param>
+        /// <param name="orderId">訂單編號</param>
+        /// <param name="transactionId">交易編號</param>
+        /// <param name="cost">交易金額</param>
         /// <param name="fullName">會友全名</param>
+        /// <param name="itemName">項目名稱</param>
         /// <param name="feeType">收費單類型</param>
+        /// <param name="amount">付款金額</param>
         /// <param name="contactEntity">連絡人實體</param>
+        private void SendPaymentNotificationByType(
+            ToolUtilityClass utility,
+            Entity feeEntity,
+            string orderId,
+            string transactionId,
+            string cost,
+            string fullName,
+            string itemName,
+            FeeType feeType,
+            decimal amount,
+            Entity contactEntity)
+        {
+            try
+            {
+                var contactId = utility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
+                if (contactId == Guid.Empty)
+                {
+                    _logger.LogWarning($"SendNotification: 無連絡人 - OrderId: {orderId}");
+                    return;
+                }
+
+                if (contactEntity == null)
+                {
+                    contactEntity = utility.RetrieveEntity("contact", contactId);
+                    if (contactEntity == null)
+                    {
+                        _logger.LogWarning($"SendNotification: 找不到連絡人 - ContactId: {contactId}");
+                        return;
+                    }
+                }
+
+                string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
+                if (string.IsNullOrWhiteSpace(lineId))
+                {
+                    _logger.LogWarning($"SendNotification: 無 LINE ID - ContactId: {contactId}");
+                    return;
+                }
+
+                string message;
+                if (feeType == FeeType.Dedication)
+                {
+                    message = BuildDedicationSuccessMessage(fullName, orderId, transactionId, amount, itemName, DateTime.Now);
+                }
+                else if (feeType == FeeType.Course)
+                {
+                    string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? "";
+                    string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? "";
+                    message = BuildCoursePaymentSuccessMessage(fullName, orderId, transactionId, amount, itemName, courseSchedule, courseLocation, DateTime.Now);
+                }
+                else
+                {
+                    message = BuildGeneralPaymentSuccessMessage(fullName, orderId, transactionId, amount, itemName, DateTime.Now);
+                }
+
+                SendLineMessage(lineId, message);
+                _logger.LogInformation($"SendNotification: 已發送 LINE 訊息 - OrderId: {orderId}, LineId: {lineId}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"SendNotification: 發送 LINE失敗 - OrderId: {orderId}");
+            }
+        }
+
+        /// <summary>
+        /// 根據收費單類型發送不同的LINE成功通知
+        /// </summary>
         private void SendLineNotificationByType(
             ToolUtilityClass utility,
             Entity feeEntity,
@@ -911,75 +933,60 @@ namespace ChurchReport.Controllers
             {
                 if (contactEntity == null)
                 {
-                    _logger.LogWarning($"[MyPay回傳] ContactEntity為空，無法發送LINE通知");
+                    _logger.LogWarning("[MyPay回傳] ContactEntity為空，無法發送LINE通知");
                     return;
                 }
 
                 string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
                 if (string.IsNullOrWhiteSpace(lineId))
                 {
-                    _logger.LogWarning($"[MyPay回傳] LINE ID為空");
+                    _logger.LogWarning("[MyPay回傳] LINE ID為空");
                     return;
                 }
 
-                // 解析金額
+                // 金額
                 decimal amount = 0m;
-                if (!string.IsNullOrEmpty(model.actual_cost) && decimal.TryParse(model.actual_cost, out var actualCost))
-                {
-                    amount = actualCost;
-                }
-                else if (!string.IsNullOrEmpty(model.cost) && decimal.TryParse(model.cost, out var cost))
-                {
-                    amount = cost;
-                }
+                if (!string.IsNullOrEmpty(model.actual_cost) && decimal.TryParse(model.actual_cost, out var parsedActual))
+                    amount = parsedActual;
+                else if (!string.IsNullOrEmpty(model.cost) && decimal.TryParse(model.cost, out var parsedCost))
+                    amount = parsedCost;
 
-                // 解析時間
+                // 時間
                 DateTime paymentTime = ParseFinishTime(model.finishtime);
 
                 string message;
                 if (feeType == FeeType.Dedication)
                 {
-                    // 奉獻類型
                     int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
                     string dedicationCategory = GetDedicationCategoryName(categoryValue);
                     message = BuildDedicationSuccessMessage(fullName, model.order_id, model.uid, amount, dedicationCategory, paymentTime);
                 }
                 else if (feeType == FeeType.Course)
                 {
-                    // 課程類型
                     string courseName = GetCourseName(utility, feeEntity);
-                    string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? "";
-                    string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? "";
+                    string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? string.Empty;
+                    string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? string.Empty;
                     message = BuildCoursePaymentSuccessMessage(fullName, model.order_id, model.uid, amount, courseName, courseSchedule, courseLocation, paymentTime);
                 }
                 else
                 {
-                    // 其他類型
                     string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "繳費";
                     message = BuildGeneralPaymentSuccessMessage(fullName, model.order_id, model.uid, amount, itemName, paymentTime);
                 }
 
-                // 發送LINE訊息
                 SendLineMessage(lineId, message);
-                _logger.LogInformation($"[MyPay回傳] LINE通知已發送 - LineId: {lineId}, OrderId: {model.order_id}");
+                _logger.LogInformation($"[MyPay回傳] LINE成功通知已發送 - LineId: {lineId}, OrderId: {model.order_id}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[MyPay回傳] 發送LINE通知失敗 - OrderId: {model.order_id}");
+                _logger.LogError(ex, $"[MyPay回傳] 發送LINE通知失敗 - OrderId: {model?.order_id}");
                 throw;
             }
         }
 
         /// <summary>
         /// 根據收費單類型發送不同的LINE失敗通知
-        /// 根據 FeeType 決定發送哪種失敗通知訊息
         /// </summary>
-        /// <param name="utility">工具類別實例</param>
-        /// <param name="feeEntity">收費單實體</param>
-        /// <param name="model">金流回傳模型</param>
-        /// <param name="fullName">會友全名</param>
-        /// <param name="feeType">收費單類型</param>
-        /// <param name="contactEntity">連絡人實體</param>
         private void SendLineFailureNotificationByType(
             ToolUtilityClass utility,
             Entity feeEntity,
@@ -992,69 +999,56 @@ namespace ChurchReport.Controllers
             {
                 if (contactEntity == null)
                 {
-                    _logger.LogWarning($"[MyPay回傳] ContactEntity為空，無法發送LINE失敗通知");
+                    _logger.LogWarning("[MyPay回傳] ContactEntity為空，無法發送LINE失敗通知");
                     return;
                 }
 
                 string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
                 if (string.IsNullOrWhiteSpace(lineId))
                 {
-                    _logger.LogWarning($"[MyPay回傳] LINE ID為空，無法發送失敗通知");
+                    _logger.LogWarning("[MyPay回傳] LINE ID為空，無法發送失敗通知");
                     return;
                 }
 
-                // 解析金額
+                // 金額（先取應繳金額)
                 decimal amount = 0m;
                 var shouldPayMoney = utility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
                 if (shouldPayMoney != null && shouldPayMoney.Value > 0)
-                {
                     amount = shouldPayMoney.Value;
-                }
-                else if (!string.IsNullOrWhiteSpace(model.actual_cost) && decimal.TryParse(model.actual_cost, out var actualCost))
-                {
-                    amount = actualCost;
-                }
-                else if (!string.IsNullOrWhiteSpace(model.cost) && decimal.TryParse(model.cost, out var cost))
-                {
-                    amount = cost;
-                }
+                else if (!string.IsNullOrWhiteSpace(model.actual_cost) && decimal.TryParse(model.actual_cost, out var parsedActual))
+                    amount = parsedActual;
+                else if (!string.IsNullOrWhiteSpace(model.cost) && decimal.TryParse(model.cost, out var parsedCost))
+                    amount = parsedCost;
 
-                // 解析時間
                 DateTime paymentTime = ParseFinishTime(model.finishtime);
-
-                // 取得失敗原因
                 string statusMessage = GetPaymentStatusMessage(model.prc);
 
                 string message;
                 if (feeType == FeeType.Dedication)
                 {
-                    // 奉獻類型失敗訊息
                     int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
                     string dedicationCategory = GetDedicationCategoryName(categoryValue);
                     message = BuildDedicationFailureMessage(fullName, model.order_id, model.uid, amount, dedicationCategory, paymentTime, statusMessage);
                 }
                 else if (feeType == FeeType.Course)
                 {
-                    // 課程類型失敗訊息
                     string courseName = GetCourseName(utility, feeEntity);
-                    string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? "";
-                    string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? "";
+                    string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? string.Empty;
+                    string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? string.Empty;
                     message = BuildCoursePaymentFailureMessage(fullName, model.order_id, model.uid, amount, courseName, courseSchedule, courseLocation, paymentTime, statusMessage);
                 }
                 else
                 {
-                    // 其他類型失敗訊息
                     string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "繳費";
                     message = BuildGeneralPaymentFailureMessage(fullName, model.order_id, model.uid, amount, itemName, paymentTime, statusMessage);
                 }
 
-                // 發送LINE訊息
                 SendLineMessage(lineId, message);
-                _logger.LogInformation($"[MyPay回傳] LINE失敗通知已發送 - LineId: {lineId}, OrderId: {model.order_id}");
+                _logger.LogInformation($"[MyPay回傳] LINE失敗通知已發送 - LineId: {lineId}, OrderId: {model.order_id}, PRC: {model.prc}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[MyPay回傳] 發送LINE失敗通知失敗 - OrderId: {model.order_id}");
+                _logger.LogError(ex, $"[MyPay回傳] 發送LINE失敗通知失敗 - OrderId: {model?.order_id}");
                 throw;
             }
         }
