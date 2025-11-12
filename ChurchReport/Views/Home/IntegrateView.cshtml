@@ -13,7 +13,7 @@
     </div>
 </div>
 
-<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveIntegrate" asp-controller="Home" method="post">
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveIntegrate" asp-controller="SmallGroup" method="post">
     <div id="all-section" class="main-content-wrapper">
 
         @* 小組長專用圖表 *@
@@ -41,12 +41,12 @@
                     .Title(t => t.Text("聚會人數").Font(f => f.Size(12).Weight(300).Color("darkblue")).Margin(m => m.Top(5).Bottom(5)))
                     .Legend(l => l.VerticalAlignment(VerticalEdge.Bottom).HorizontalAlignment(HorizontalAlignment.Center))
                     .OnPointClick(@<text>function(e) { e.target.select(); }</text>)
-                    .DataSource(d => d.WebApi().Controller("Home").LoadAction("GetChartDataList").Key("WeeklyReportEntityId").LoadParams(new { WeeklyReportId = @ViewBag.ListId }))
+                    .DataSource(d => d.WebApi().Controller("SmallGroup").LoadAction("GetChartDataList").Key("WeeklyReportEntityId").LoadParams(new { WeeklyReportId = @ViewBag.ListId }))
                 )
             </div>
         }
 
-        @* 週期時間 喔!*@  
+        @* 週期時間 *@  
         <div class="period-display">@Model.SundayPeriod</div>
 
         @* 控制面板 *@
@@ -67,12 +67,12 @@
                                 function(arg) {
                                     $("#loadPanel").dxLoadPanel("instance").show();
                                     $.ajax({
-                                        url: '@Url.Action("UpdateIntegrateDate", "Home")',
+                                        url: '@Url.Action("UpdateIntegrateDate", "SmallGroup")',
                                         data: { SelectedDate: getODataLocalDateFilter(arg.value) },
                                         type: 'GET',
                                         success: function(response) {
                                             $("#loadPanel").dxLoadPanel("instance").hide();
-                                            window.location.href = "/Home/IntegrateView/" + response.ActiveListId;
+                                            window.location.href = "/SmallGroup/IntegrateView/" + response.ActiveListId;
                                         },
                                         error: function(xhr, status, error) {
                                             $("#loadPanel").dxLoadPanel("instance").hide();
@@ -111,7 +111,7 @@
                                         button.option("disabled", true);
 
                                         $.ajax({
-                                            url: '@Url.Action("SaveIntegrate", "Home")',
+                                            url: '@Url.Action("SaveIntegrate", "SmallGroup")',
                                             data: {
                                                 WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text'),
                                                 CheckBox: $("#CheckBoxId").dxCheckBox("instance").option("value")
@@ -153,7 +153,7 @@
                                         button.option("disabled", true);
 
                                         $.ajax({
-                                            url: '@Url.Action("SavePersonReport", "Home")',
+                                            url: '@Url.Action("SavePersonReport", "Personal")',
                                             data: { WeeklyReportData: "" },
                                             type: 'POST',
                                             success: function(response) {
@@ -213,7 +213,7 @@
                                 function(arg) {
                                     $("#loadPanel").dxLoadPanel("instance").show();
                                     $.ajax({
-                                        url: '@Url.Action("UpdateHappyWeekIndex", "Home")',
+                                        url: '@Url.Action("UpdateHappyWeekIndex", "SmallGroup")',
                                         data: { HappyWeekIndex: arg.value },
                                         type: 'GET',
                                         success: function() { $("#loadPanel").dxLoadPanel("instance").hide(); },
@@ -233,7 +233,7 @@
                                 function(arg) {
                                     $("#loadPanel").dxLoadPanel("instance").show();
                                     $.ajax({
-                                        url: '@Url.Action("UpdateHappyWeekTopic", "Home")',
+                                        url: '@Url.Action("UpdateHappyWeekTopic", "SmallGroup")',
                                         data: { HappyWeekTopic: arg.value },
                                         type: 'GET',
                                         success: function() { $("#loadPanel").dxLoadPanel("instance").hide(); },

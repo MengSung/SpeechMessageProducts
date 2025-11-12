@@ -37,7 +37,7 @@ namespace ChurchReport
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             // ========================================
-            // 註冊 MyPay 相關服務（新增）
+            // 註冊 MyPay 相關服務
             // ========================================
             services.AddScoped<ChurchReport.Services.MyPayMessageBuilder>();
             services.AddScoped<ChurchReport.Services.MyPayStatusHelper>();
@@ -64,18 +64,11 @@ namespace ChurchReport
                 services.AddScoped<IPayment, TspgToolkitWrapper>();
                 services.AddScoped<TSPGWebhookHandler>();
             }
-            //services.AddSession
-            //(
-            //    options => options.IdleTimeout = TimeSpan.FromMinutes(30)
-            //);
 
             services.AddSession(options =>
             {
-                // Set a short timeout for easy testing.
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
-                //options.IdleTimeout = TimeSpan.FromSeconds(30);
                 options.Cookie.HttpOnly = true;
-                // Make the session cookie essential
                 options.Cookie.IsEssential = true;
             });
 
@@ -83,38 +76,16 @@ namespace ChurchReport
             .AddCookie(options =>
             {
                 options.LoginPath = "/Home/Login";
-                //options.LogoutPath = "/Account/LogOff";
                 options.LogoutPath = "/Home/Login";
                 options.Cookie.Expiration = TimeSpan.FromMinutes(30);
-                //options.Cookie.Expiration = TimeSpan.FromSeconds(30);
                 options.CookieName = ".ChurchReport.Session";
-
                 options.Cookie.SameSite = SameSiteMode.None;
                 options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Home/Login");
                 options.AccessDeniedPath = "/Home/Login";
                 options.ReturnUrlParameter = "/Home/Login";
-                //options.AccessDeniedPath = "/Home/AccessDenied";
                 options.LogoutPath = "/Home/Login";
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-                //options.ExpireTimeSpan = TimeSpan.FromSeconds(30);//set it less for testing purpose
             });
-
-            // options.Events.OnRedirectToLogin
-            //services.ConfigureApplicationCookie(options =>
-            //{
-            //    options.Cookie.HttpOnly = true;
-            //    options.Cookie.Expiration = TimeSpan.FromSeconds(60);
-            //    options.LoginPath = "/Account/Login";
-            //    options.LogoutPath = "/Account/Logout";
-            //    options.AccessDeniedPath = "/Account/AccessDenied";
-            //    options.SlidingExpiration = true;
-            //});
-
-            //services.AddAuthenticationCore(CookieAuthenticationDefaults.AuthenticationScheme)
-            //    .AddCookie(options => {
-            //        options.LoginPath = "/login";
-            //        options.AccessDeniedPath = "/login";
-            //    });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -134,13 +105,191 @@ namespace ChurchReport
                 Trace.AutoFlush = true;
             }
 
-            if (env.IsDevelopment()) { app.UseDeveloperExceptionPage(); app.UseBrowserLink(); }
-            else { app.UseExceptionHandler("/Home/Error"); }
+            if (env.IsDevelopment()) 
+            { 
+                app.UseDeveloperExceptionPage(); 
+                app.UseBrowserLink(); 
+            }
+            else 
+            { 
+                app.UseExceptionHandler("/Home/Error"); 
+            }
 
             app.UseStaticFiles();
             app.UseSession();
             app.UseAuthentication();
-            app.UseMvc(routes => { routes.MapRoute("default", "{controller=Home}/{action=Login}/{id?}"); });
+            
+            app.UseMvc(routes => 
+            { 
+                // ========================================
+                // 登入相關路由
+                // ========================================
+                routes.MapRoute(
+                    name: "login",
+                    template: "{controller=Home}/{action=Login}");
+
+                routes.MapRoute(
+                    name: "linelogin",
+                    template: "Home/LineIdLoginView/{LineIdLoginViewPatameter}",
+                    defaults: new { controller = "Home", action = "LineIdLoginView" });
+
+                // ========================================
+                // 小組管理路由
+                // ========================================
+                routes.MapRoute(
+                    name: "multigroup",
+                    template: "SmallGroup/MultiGroupView/{LoginParameter?}",
+                    defaults: new { controller = "SmallGroup", action = "MultiGroupView" });
+
+                routes.MapRoute(
+                    name: "integrate",
+                    template: "SmallGroup/IntegrateView/{LoginParameter?}",
+                    defaults: new { controller = "SmallGroup", action = "IntegrateView" });
+
+                routes.MapRoute(
+                    name: "smallgroupreport",
+                    template: "SmallGroup/SmallGroupReportView/{LoginParameter?}",
+                    defaults: new { controller = "SmallGroup", action = "SmallGroupReportView" });
+
+                // ========================================
+                // 新人管理路由
+                // ========================================
+                routes.MapRoute(
+                    name: "newpersonfollowup",
+                    template: "NewPerson/FollowUpView",
+                    defaults: new { controller = "NewPerson", action = "NewPersonFollowUpView" });
+
+                // ========================================
+                // 個人資訊路由
+                // ========================================
+                routes.MapRoute(
+                    name: "personalreport",
+                    template: "Personal/Report",
+                    defaults: new { controller = "Personal", action = "PersonalReport" });
+
+                routes.MapRoute(
+                    name: "personalinfo",
+                    template: "Personal/InfomationView",
+                    defaults: new { controller = "Personal", action = "PersonalInfomationView" });
+
+                // ========================================
+                // 行事曆路由
+                // ========================================
+                routes.MapRoute(
+                    name: "scheduler",
+                    template: "Scheduler/{ScheduleType}",
+                    defaults: new { controller = "Scheduler", action = "Scheduler" });
+
+                routes.MapRoute(
+                    name: "schedulerview",
+                    template: "Scheduler/SchedulerView/{SchedulerViewPatameter}",
+                    defaults: new { controller = "Scheduler", action = "SchedulerView" });
+
+                // ========================================
+                // 奉獻管理路由
+                // ========================================
+                routes.MapRoute(
+                    name: "qpayview",
+                    template: "Dedication/QPayView/{LineId?}",
+                    defaults: new { controller = "Dedication", action = "QPayView" });
+
+                routes.MapRoute(
+                    name: "dedicationfeeview",
+                    template: "Dedication/DedicationFeeView",
+                    defaults: new { controller = "Dedication", action = "DedicationFeeView" });
+
+                routes.MapRoute(
+                    name: "dedicationfeeviewweb",
+                    template: "Dedication/DedicationFeeViewWeb",
+                    defaults: new { controller = "Dedication", action = "DedicationFeeViewWeb" });
+
+                routes.MapRoute(
+                    name: "keyindedicationfeeview",
+                    template: "Dedication/KeyInDedicationFeeView",
+                    defaults: new { controller = "Dedication", action = "KeyInDedicationFeeView" });
+
+                routes.MapRoute(
+                    name: "dedicationlinelogin",
+                    template: "Dedication/DediationLineLoginView/{LineIdLoginViewPatameter}",
+                    defaults: new { controller = "Dedication", action = "DediationLineLoginView" });
+
+                // ========================================
+                // 奉獻稽核路由
+                // ========================================
+                routes.MapRoute(
+                    name: "auditviewline",
+                    template: "DedicationAudit/AuditViewLine",
+                    defaults: new { controller = "DedicationAudit", action = "DedicationFeeAuditViewLine" });
+
+                routes.MapRoute(
+                    name: "auditviewweb",
+                    template: "DedicationAudit/AuditViewWeb",
+                    defaults: new { controller = "DedicationAudit", action = "DedicationFeeAuditViewWeb" });
+
+                // ========================================
+                // QR Code 路由
+                // ========================================
+                routes.MapRoute(
+                    name: "qrcodeview",
+                    template: "QrCode/CourseView/{QrCodeViewPatameter}",
+                    defaults: new { controller = "QrCode", action = "QrCodeView" });
+
+                routes.MapRoute(
+                    name: "pollqrcodeview",
+                    template: "QrCode/PollView/{PollQrCodeViewPatameter}",
+                    defaults: new { controller = "QrCode", action = "PollQrCodeView" });
+
+                routes.MapRoute(
+                    name: "smallgroupqrcodeview",
+                    template: "QrCode/SmallGroupView/{QrCodeViewPatameter}",
+                    defaults: new { controller = "QrCode", action = "SmallGroupQrCodeView" });
+
+                routes.MapRoute(
+                    name: "sundayqrcodeview",
+                    template: "QrCode/SundayView/{QrCodeViewPatameter}",
+                    defaults: new { controller = "QrCode", action = "SundayQrCodeView" });
+
+                routes.MapRoute(
+                    name: "personalqrcodeview",
+                    template: "QrCode/PersonalView/{QrCodeViewPatameter}",
+                    defaults: new { controller = "QrCode", action = "PersonalQrCodeView" });
+
+                // ========================================
+                // 名單管理路由
+                // ========================================
+                routes.MapRoute(
+                    name: "churchroot",
+                    template: "ListManagement/ChurchRoot",
+                    defaults: new { controller = "ListManagement", action = "ChurchRoot" });
+
+                // ========================================
+                // 付款結果路由
+                // ========================================
+                routes.MapRoute(
+                    name: "paymentsuccess",
+                    template: "payment-success",
+                    defaults: new { controller = "Home", action = "PaymentSuccess" });
+
+                routes.MapRoute(
+                    name: "paymentfailed",
+                    template: "payment-failed",
+                    defaults: new { controller = "Home", action = "PaymentError" });
+
+                // ========================================
+                // 錯誤頁面路由
+                // ========================================
+                routes.MapRoute(
+                    name: "errorview",
+                    template: "Home/DisplayErrorView/{ErrorMessage}",
+                    defaults: new { controller = "Home", action = "DisplayErrorView" });
+
+                // ========================================
+                // 預設路由 (必須放在最後)
+                // ========================================
+                routes.MapRoute(
+                    name: "default", 
+                    template: "{controller=Home}/{action=Login}/{id?}");
+            });
         }
     }
 }

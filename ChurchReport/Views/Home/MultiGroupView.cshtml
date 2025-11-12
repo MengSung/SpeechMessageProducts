@@ -42,12 +42,12 @@
             function(arg) {
                 $("#loadPanel").dxLoadPanel("instance").show();
                 $.ajax({
-                    url: '@Url.Action("UpdateDate", "Home")',
+                    url: '@Url.Action("UpdateDate", "SmallGroup")',
                     data: { SelectedDate: getODataLocalDateFilter(arg.value) },
                     type: 'GET',
                     success: function (arg) {
                         $("#loadPanel").dxLoadPanel("instance").hide();
-                        window.location.href = "/Home/MultiGroupView/MultiGroupView";
+                        window.location.href = "/SmallGroup/MultiGroupView/MultiGroupView";
                     },
                     error: function (obj) {
                         // 錯誤處理
@@ -107,7 +107,7 @@
         </text>)
         .DataSource(d => d
             .WebApi()
-            .Controller("Home")
+            .Controller("SmallGroup")
             .LoadAction("GetMultiGroupChartDataList")
             .Key("ID")
             .LoadParams(new { WeeklyReportId = @ViewBag.ListId })
@@ -169,7 +169,7 @@
             })
             .DataSource(d => d
                 .WebApi()
-                .Controller("Home")
+                .Controller("SmallGroup")
                 .LoadAction("AssignSmallGroupGet")
                 .Key("ListEntityId")
                 .LoadParams(new { id = @ViewBag.ListId })
@@ -318,7 +318,7 @@
     // 單元格模板
     function cellTemplate(cellElement, cellInfo) {
         $('<a/>')
-            .attr({ href: '@Url.RouteUrl("default", new { action = "IntegrateView", controller = "Home" })/' + `${cellInfo.data.ListEntityId}` })
+            .attr({ href: '@Url.RouteUrl("default", new { action = "IntegrateView", controller = "SmallGroup" })/' + `${cellInfo.data.ListEntityId}` })
             .text(`${cellInfo.data.Name}`)
             .appendTo(cellElement);
     }

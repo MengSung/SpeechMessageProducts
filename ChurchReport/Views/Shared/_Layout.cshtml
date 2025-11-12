@@ -279,9 +279,9 @@
                     {
                         @if (@ViewBag.MultiGroupIndex == "SingleMultiGroupView")
                         {
-                            <li><a href="/Home/MultiGroupView/MultiGroup"><i class="fas fa-chart-bar"></i>回報統計</a></li>
-                            <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
-                            <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
+                            <li><a href="/SmallGroup/MultiGroupView/MultiGroup"><i class="fas fa-chart-bar"></i>回報統計</a></li>
+                            <li><a href="/NewPerson/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                            <li><a href="/Personal/InfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
 @*                             <li><a href="/Home/Login"><i class="fas fa-sign-in-alt"></i>登入</a></li>
  *@                            @if (@ViewBag.UserType == "行政同工")
                             {
@@ -308,20 +308,20 @@
                             {
                                 if (@ViewBag.MultiGroupIndex == "IntegrateView")
                                 {
-                                    <li><a href="/Home/IntegrateView/IntegrateView"><i class="fas fa-users"></i>小組回報</a></li>
+                                    <li><a href="/SmallGroup/IntegrateView/IntegrateView"><i class="fas fa-users"></i>小組回報</a></li>
                                 }
                                 if (@ViewBag.MultiGroupIndex == "HybridView")
                                 {
-                                    <li><a href="/Home/MultiGroupView/MultiGroup"><i class="fas fa-chart-bar"></i>回報統計</a></li>
-                                    <li><a href="/Home/IntegrateView/IntegrateView"><i class="fas fa-users"></i>小組回報</a></li>
+                                    <li><a href="/SmallGroup/MultiGroupView/MultiGroup"><i class="fas fa-chart-bar"></i>回報統計</a></li>
+                                    <li><a href="/SmallGroup/IntegrateView/IntegrateView"><i class="fas fa-users"></i>小組回報</a></li>
                                 }
                                 @if (@ViewBag.HappyType == "有幸福小組名單")
                                 {
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                                        <li><a href="/Home/MaintainPersonInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
+                                        <li><a href="/NewPerson/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Personal/InfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
+                                        <li><a href="/Personal/MaintainInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
                                         <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
                                         <li><a href="/Home/FeeManagerView"><i class="fas fa-money-bill"></i>繳費與點名</a></li>
                                         <li><a href="/Home/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
@@ -329,9 +329,9 @@
                                     }
                                     else
                                     {
-                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                                        <li><a href="/Home/MaintainPersonInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
+                                        <li><a href="/NewPerson/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Personal/InfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
+                                        <li><a href="/Personal/MaintainInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
                                     }
                                     @if (@ViewBag.UserType == "行政同工")
                                     {
@@ -344,9 +344,9 @@
                                 {
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                                        <li><a href="/Home/MaintainPersonInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
+                                        <li><a href="/NewPerson/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Personal/InfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
+                                        <li><a href="/Personal/MaintainInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
                                         <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
@@ -356,9 +356,9 @@
                                     }
                                     else
                                     {
-                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                                        <li><a href="/Home/MaintainPersonInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
+                                        <li><a href="/NewPerson/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Personal/InfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
+                                        <li><a href="/Personal/MaintainInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
                                     }
                                 }
                                 @if (@ViewBag.UserType == "行政同工")
@@ -372,14 +372,14 @@
                             {
                                 @if (@ViewBag.MultiGroupIndex == "HybridView")
                                 {
-                                    <li><a href="/Home/MultiGroupView/MultiGroup"><i class="fas fa-chart-bar"></i>回報統計</a></li>
+                                    <li><a href="/SmallGroup/MultiGroupView/MultiGroup"><i class="fas fa-chart-bar"></i>回報統計</a></li>
                                 }
                                 @if (@ViewBag.HappyType == "有幸福小組名單")
                                 {
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
+                                        <li><a href="/NewPerson/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Personal/InfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
                                             <li><a href="/Home/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
@@ -388,16 +388,16 @@
                                     }
                                     else
                                     {
-                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
+                                        <li><a href="/NewPerson/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Personal/InfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                     }
                                 }
                                 else
                                 {
                                     @if (@ViewBag.FeeType == "有繳費點名")
                                     {
-                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
+                                        <li><a href="/NewPerson/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Personal/InfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                         <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
@@ -407,8 +407,8 @@
                                     }
                                     else
                                     {
-                                        <li><a href="/Home/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
-                                        <li><a href="/Home/PersonalInfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
+                                        <li><a href="/NewPerson/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
+                                        <li><a href="/Personal/InfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                     }
                                 }
                                 @if (@ViewBag.UserType == "行政同工")
@@ -419,13 +419,13 @@
                                 }
                             }
                         }
-                        <li><a href="/Home/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
-                        <li><a href="/Home/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
+                        <li><a href="/Dedication/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
+                        <li><a href="/Dedication/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
                         <li><a href="/Home/EquipmentView"><i class="fas fa-tools"></i>裝備狀態</a></li>
                         @if (@ViewBag.IsAOfficeWorker == "是的")
                         {
-                            <li><a href="/Home/KeyInDedicationFeeView"><i class="fas fa-keyboard"></i>奉獻管理</a></li>
-                            <li><a href="/Home/DedicationFeeAuditViewWeb"><i class="fa-solid fa-shield-halved"></i>奉獻稽核</a></li>
+                            <li><a href="/Dedication/KeyInDedicationFeeViewWeb"><i class="fas fa-keyboard"></i>奉獻管理</a></li>
+                            <li><a href="/DedicationAudit/AuditViewWeb"><i class="fa-solid fa-shield-halved"></i>奉獻稽核</a></li>
                         }
 @*                         <li><a href="/Home/Login"><i class="fas fa-sign-in-alt"></i>登入</a></li>
  *@                    }
@@ -444,18 +444,18 @@
                         {
                             @if (@ViewBag.DedicationType == "奉獻管理")
                             {
-                                <li><a href="/Home/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
-                                <li><a href="/Home/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
+                                <li><a href="/Dedication/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
+                                <li><a href="/Dedication/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
                                 @if (@ViewBag.IsAOfficeWorker == "是的")
                                 {
-                                    <li><a href="/Home/KeyInDedicationFeeView"><i class="fas fa-keyboard"></i>奉獻管理</a></li>
-                                    <li><a href="/Home/DedicationFeeAuditViewWeb"><i class="fa-solid fa-shield-halved"></i>奉獻稽核</a></li>
+                                    <li><a href="/Dedication/KeyInDedicationFeeViewWeb"><i class="fas fa-keyboard"></i>奉獻管理</a></li>
+                                    <li><a href="/DedicationAudit/AuditViewWeb"><i class="fa-solid fa-shield-halved"></i>奉獻稽核</a></li>
                                 }
                             }
                             else if (@ViewBag.DedicationFlag == "奉獻")
                             {
-                                <li><a href="/Home/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
-                                <li><a href="/Home/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
+                                <li><a href="/Dedication/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
+                                <li><a href="/Dedication/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
                             }
                             else
                             {
