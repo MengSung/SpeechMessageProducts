@@ -34,32 +34,33 @@ namespace ChurchReport
             services.AddMvc().AddJsonOptions(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver());
             services.AddMemoryCache();
             services.AddDistributedMemoryCache();
-            //services.AddSingleton<ITempDataProvider, CookieTempDataProvider>();
-            //services.AddCookieTempData();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            if (Configuration["PAY_PROVIDER"] == "永豐金流")
+            // ========================================
+            // 註冊 MyPay 相關服務（新增）
+            // ========================================
+            services.AddScoped<ChurchReport.Services.MyPayMessageBuilder>();
+            services.AddScoped<ChurchReport.Services.MyPayStatusHelper>();
+            services.AddScoped<ChurchReport.Services.MyPayFeeTypeHelper>();
+            services.AddScoped<ChurchReport.Services.MyPayLogger>();
+            services.AddScoped<ChurchReport.Services.MyPayCrmService>();
+            services.AddScoped<ChurchReport.Services.MyPayNotificationService>();
+
+            if (Configuration["PAY_PROVIDER"] == "國泰金流")
             {
-                // 註冊付款服務，可透過 DI 容器注入。當需要 IQPayToolkit 時，
-                // 會提供一個 QPayToolkitWrapper 實作來滿足需求。
                 services.AddScoped<IPayment, QPayToolkitWrapper>();
             }
-            else if (Configuration["PAY_PROVIDER"] == "高鉅金流")
+            else if (Configuration["PAY_PROVIDER"] == "高鋸金流")
             {
-                // 註冊高鉅金流服務
                 services.AddScoped<IPayment, MyPayToolkitWrapper>();
             }
             else if (Configuration["PAY_PROVIDER"] == "台新金流")
             {
-                // 註冊高鉅金流服務
                 services.AddScoped<IPayment, TspgToolkitWrapper>();
-
-                // 註冊 TSPG Webhook 處理器
                 services.AddScoped<TSPGWebhookHandler>();
             }
             else
             { 
-                // 預設使用高鉅金流
                 services.AddScoped<IPayment, TspgToolkitWrapper>();
                 services.AddScoped<TSPGWebhookHandler>();
             }
