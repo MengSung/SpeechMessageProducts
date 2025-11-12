@@ -152,10 +152,10 @@
                                    );
                         })
 
-                        @* 資料來源：呼叫 HomeController WebAPI 端點 *@
+                        @* 資料來源：呼叫 SmallGroup Controller WebAPI 端點 *@
                         .DataSource(d => d
                             .WebApi()
-                            .Controller("Home")
+                            .Controller("SmallGroup")
                             .LoadAction("LoadIntegrate")
                             .InsertAction("InsertPresentRecord")
                             .DeleteAction("DeletePresentRecord")
@@ -365,10 +365,10 @@
                                    );
                         })
 
-                        @* 資料來源：呼叫 HomeController WebAPI 端點（新人跟進） *@
+                        @* 資料來源：呼叫 NewPerson Controller WebAPI 端點（新人跟進） *@
                         .DataSource(d => d
                             .WebApi()
-                            .Controller("Home")
+                            .Controller("NewPerson")
                             .LoadAction("LoadNewPersonFollowUp")
                             .InsertAction("InsertNewPresentRecord")
                             .DeleteAction("DeleteNewPresentRecord")

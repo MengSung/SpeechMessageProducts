@@ -255,16 +255,16 @@
             {
                 if (Model.GroupType == "一般小組")
                 {
-                    @Html.Partial("_GeneralGroupGrids", Model)
+                    @Html.Partial("~/Views/Home/_GeneralGroupGrids.cshtml", Model)
                 }
                 else
                 {
-                    @Html.Partial("_HappyGroupGrid", Model)
+                    @Html.Partial("~/Views/Home/_HappyGroupGrid.cshtml", Model)
                 }
             }
             else
             {
-                @Html.Partial("_IndividualReportGrid", Model)
+                @Html.Partial("~/Views/Home/_IndividualReportGrid.cshtml", Model)
             }
         </div>
 

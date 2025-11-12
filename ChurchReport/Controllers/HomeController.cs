@@ -212,6 +212,73 @@ namespace ChurchReport.Controllers
         }
         #endregion
         
+        #region 向後相容路由 (Backward Compatibility Routes)
+        
+        /// <summary>
+        /// 向後相容: 將舊的 /Home/IntegrateView 重導向到 /SmallGroup/IntegrateView
+        /// </summary>
+        [Route("/Home/IntegrateView/{LoginParameter}")]
+        public IActionResult IntegrateViewRedirect(string LoginParameter)
+        {
+            return RedirectToAction("IntegrateView", "SmallGroup", new { LoginParameter = LoginParameter });
+        }
+        
+        /// <summary>
+        /// 向後相容: 將舊的 /Home/MultiGroupView 重導向到 /SmallGroup/MultiGroupView
+        /// </summary>
+        [Route("/Home/MultiGroupView/{LoginParameter}")]
+        public IActionResult MultiGroupViewRedirect(string LoginParameter)
+        {
+            return RedirectToAction("MultiGroupView", "SmallGroup", new { LoginParameter = LoginParameter });
+        }
+        
+        /// <summary>
+        /// 向後相容: 將舊的 /Home/NewPersonFollowUpView 重導向到 /NewPerson/FollowUpView
+        /// </summary>
+        [Route("/Home/NewPersonFollowUpView")]
+        public IActionResult NewPersonFollowUpViewRedirect()
+        {
+            return RedirectToAction("NewPersonFollowUpView", "NewPerson");
+        }
+        
+        /// <summary>
+        /// 向後相容: 將舊的 /Home/PersonalReport 重導向到 /Personal/PersonalReport
+        /// </summary>
+        [Route("/Home/PersonalReport")]
+        public IActionResult PersonalReportRedirect()
+        {
+            return RedirectToAction("PersonalReport", "Personal");
+        }
+        
+        /// <summary>
+        /// 向後相容: 將舊的 /Home/PersonalInfomationView 重導向到 /Personal/PersonalInfomationView
+        /// </summary>
+        [Route("/Home/PersonalInfomationView")]
+        public IActionResult PersonalInfomationViewRedirect()
+        {
+            return RedirectToAction("PersonalInfomationView", "Personal");
+        }
+        
+        /// <summary>
+        /// 向後相容: 將舊的 /Home/QPayView 重導向到 /Dedication/QPayView
+        /// </summary>
+        [Route("/Home/QPayView/{LineId}")]
+        public IActionResult QPayViewRedirect(string LineId)
+        {
+            return RedirectToAction("QPayView", "Dedication", new { LineId = LineId });
+        }
+        
+        /// <summary>
+        /// 向後相容: 將舊的 /Home/ChurchRoot 重導向到 /ListManagement/ChurchRoot
+        /// </summary>
+        [Route("/Home/ChurchRoot")]
+        public IActionResult ChurchRootRedirect()
+        {
+            return RedirectToAction("ChurchRoot", "ListManagement");
+        }
+        
+        #endregion
+        
         #region 單獨換手機號碼
         [Route("/Home/ChangePhoneView/{LineIdLoginViewPatameter}")]
         public IActionResult ChangePhoneView(string LineIdLoginViewPatameter)

@@ -97,7 +97,8 @@ namespace ChurchReport.Controllers
                     InMemoryContext.ListManager.InitialFlag = true;
                 }
 
-                return View(InMemoryContext.ListManager);
+                // 明確指定 View 路徑 (暫時使用 Home 資料夾中的 View)
+                return View("~/Views/Home/MultiGroupView.cshtml", InMemoryContext.ListManager);
             }
             else
             {
@@ -200,7 +201,8 @@ namespace ChurchReport.Controllers
                 return RedirectToAction("PersonalInfomationView", "Personal");
             }
 
-            return View(InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport);
+            // 明確指定 View 路徑 (暫時使用 Home 資料夾中的 View)
+            return View("~/Views/Home/IntegrateView.cshtml", InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport);
         }
 
         #endregion
@@ -567,7 +569,8 @@ namespace ChurchReport.Controllers
 
                     EnsureIntegrateDataLoaded(lineUserId);
 
-                    return View(InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport);
+                    // 明確指定 View 路徑 (暫時使用 Home 資料夾中的 View)
+                    return View("~/Views/Home/IntegrateView.cshtml", InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport);
                 }
             }
             catch (Exception e)
