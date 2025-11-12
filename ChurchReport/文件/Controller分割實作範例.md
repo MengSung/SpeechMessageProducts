@@ -126,7 +126,7 @@ namespace ChurchReport.Controllers.Authentication
             {
                 // 1. 驗證登入資訊
                 var authResult = await ValidateLoginAsync(request);
-                if (!authResult.Success)
+                if (!authResult.IsSuccess)
                 {
                     return Json(new LoginResponse
                     {
@@ -346,15 +346,15 @@ namespace ChurchReport.Services.Authentication
                     // 檢查驗證結果
                     if (contactIdString == "密碼錯誤")
                     {
-                        return AuthResult.Fail("密碼錯誤，請重新輸入");
+                        return AuthResult.CreateFail("密碼錯誤，請重新輸入");
                     }
                     else if (contactIdString == "系統沒有設定密碼")
                     {
-                        return AuthResult.Fail("系統沒有設定密碼，請聯絡管理員");
+                        return AuthResult.CreateFail("系統沒有設定密碼，請聯絡管理員");
                     }
                     else if (contactIdString == "帳號錯誤")
                     {
-                        return AuthResult.Fail("帳號不存在，請確認後再試");
+                        return AuthResult.CreateFail("帳號不存在，請確認後再試");
                     }
 
                     // 取得連絡人實體
@@ -364,14 +364,14 @@ namespace ChurchReport.Services.Authentication
 
                     string fullName = _toolUtility.GetEntityStringAttribute(ref loginContact, "fullname");
 
-                    return AuthResult.Success(
+                    return AuthResult.CreateSuccess(
                         loginContact, 
                         fullName, 
                         LoginType.AccountPassword);
                 }
                 catch (Exception ex)
                 {
-                    return AuthResult.Fail($"驗證過程發生錯誤: {ex.Message}");
+                    return AuthResult.CreateFail($"驗證過程發生錯誤: {ex.Message}");
                 }
             });
         }
@@ -387,7 +387,7 @@ namespace ChurchReport.Services.Authentication
                 {
                     if (string.IsNullOrEmpty(lineUserId))
                     {
-                        return AuthResult.Fail("LINE User ID 不可為空");
+                        return AuthResult.CreateFail("LINE User ID 不可為空");
                     }
 
                     // 透過 LINE ID 查詢連絡人
@@ -395,19 +395,19 @@ namespace ChurchReport.Services.Authentication
 
                     if (loginContact == null)
                     {
-                        return AuthResult.Fail("此 LINE 帳號尚未綁定教會會員資料");
+                        return AuthResult.CreateFail("此 LINE 帳號尚未綁定教會會員資料");
                     }
 
                     string fullName = _toolUtility.GetEntityStringAttribute(ref loginContact, "fullname");
 
-                    return AuthResult.Success(
+                    return AuthResult.CreateSuccess(
                         loginContact, 
                         fullName, 
                         LoginType.LineId);
                 }
                 catch (Exception ex)
                 {
-                    return AuthResult.Fail($"LINE 登入驗證發生錯誤: {ex.Message}");
+                    return AuthResult.CreateFail($"LINE 登入驗證發生錯誤: {ex.Message}");
                 }
             });
         }
@@ -625,28 +625,28 @@ namespace ChurchReport.Models.Authentication
     /// </summary>
     public class AuthResult
     {
-        public bool Success { get; set; }
+        public bool IsSuccess { get; set; }
         public Entity LoginContact { get; set; }
         public string FullName { get; set; }
         public LoginType LoginType { get; set; }
         public string ErrorMessage { get; set; }
 
-        public static AuthResult Success(Entity contact, string fullName, LoginType type)
+        public static AuthResult CreateSuccess(Entity contact, string fullName, LoginType type)
         {
             return new AuthResult
             {
-                Success = true,
+                IsSuccess = true,
                 LoginContact = contact,
                 FullName = fullName,
                 LoginType = type
             };
         }
 
-        public static AuthResult Fail(string errorMessage)
+        public static AuthResult CreateFail(string errorMessage)
         {
             return new AuthResult
             {
-                Success = false,
+                IsSuccess = false,
                 ErrorMessage = errorMessage
             };
         }

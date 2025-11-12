@@ -10,7 +10,7 @@ namespace ChurchReport.Models.Authentication
         /// <summary>
         /// 是否成功
         /// </summary>
-        public bool Success { get; set; }
+        public bool IsSuccess { get; set; }
 
         /// <summary>
         /// 登入的連絡人實體
@@ -35,11 +35,11 @@ namespace ChurchReport.Models.Authentication
         /// <summary>
         /// 建立成功結果
         /// </summary>
-        public static AuthResult Success(Entity contact, string fullName, LoginType type)
+        public static AuthResult CreateSuccess(Entity contact, string fullName, LoginType type)
         {
             return new AuthResult
             {
-                Success = true,
+                IsSuccess = true,
                 LoginContact = contact,
                 FullName = fullName,
                 LoginType = type
@@ -49,11 +49,11 @@ namespace ChurchReport.Models.Authentication
         /// <summary>
         /// 建立失敗結果
         /// </summary>
-        public static AuthResult Fail(string errorMessage)
+        public static AuthResult CreateFail(string errorMessage)
         {
             return new AuthResult
             {
-                Success = false,
+                IsSuccess = false,
                 ErrorMessage = errorMessage
             };
         }
