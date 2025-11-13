@@ -151,6 +151,11 @@ namespace ChurchReport
                     template: "SmallGroup/SmallGroupReportView/{LoginParameter?}",
                     defaults: new { controller = "SmallGroup", action = "SmallGroupReportView" });
 
+                routes.MapRoute(
+                    name: "equipmentview",
+                    template: "Home/EquipmentView",
+                    defaults: new { controller = "Home", action = "EquipmentView" });
+
                 // ========================================
                 // 新人管理路由
                 // ========================================

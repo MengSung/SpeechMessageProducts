@@ -389,5 +389,96 @@ namespace ChurchReport.Controllers
             }
         }
         #endregion
+
+        #region 裝備狀態管理
+
+        /// <summary>
+        /// 裝備狀態檢視頁面
+        /// 顯示小組成員的裝備/訓練狀態
+        /// </summary>
+        [HttpGet]
+        [Route("/Home/EquipmentView")]
+        public IActionResult EquipmentView()
+        {
+            try
+            {
+                SetupBasicViewBag();
+                SetMultiGroupLayoutParameter();
+
+                // 建立裝備資料
+                var equipmentData = new EquipmenSmallGroup
+                {
+                    SmallGroupName = ViewBag.LoginFullName ?? "小組",
+                    LoginUserId = InMemoryContext.ListManager.m_Account,
+                    SmallGroupListEntityId = InMemoryContext.ListManager.ActiveListId,
+                    EquipmentContactList = new List<EquipmentContact>()
+                };
+
+                // 如果有小組資料，填入裝備聯絡人清單
+                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport?.m_SmallGroupDataList?.m_AllMemeberData?.Members != null)
+                {
+                    equipmentData.EquipmentContactList = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                        .m_SmallGroupDataList.m_AllMemeberData.Members
+                        .Select(m => new EquipmentContact
+                        {
+                            ContactFullName = m.FullName,
+                            EquipmentStatus = m.EquipmentStatus,
+                            SmallGroupName = equipmentData.SmallGroupName,
+                            SmallGroupListEntityId = equipmentData.SmallGroupListEntityId,
+                            EquipmentContactId = m.PresentRecordId,
+                            StorLessonsList = new List<EquipmentStorLessons>()
+                        }).ToList();
+                }
+
+                return View(equipmentData);
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "EquipmentView");
+            }
+        }
+
+        /// <summary>
+        /// 載入裝備清單資料
+        /// 用於 DevExtreme DataGrid 的資料來源
+        /// </summary>
+        /// <param name="id">清單ID</param>
+        /// <param name="loadOptions">載入選項(分頁、排序、篩選)</param>
+        [HttpGet]
+        public object LoadEquipmentList(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                // 確保資料已載入
+                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
+                    !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
+                {
+                    InMemoryContext.ListManager.SetupIntegrateData(id);
+                }
+
+                var members = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                    ?.m_SmallGroupDataList?.m_AllMemeberData?.Members 
+                    ?? new List<Member>();
+
+                // 轉換為 EquipmentContact 清單
+                var equipmentList = members.Select(m => new EquipmentContact
+                {
+                    ContactFullName = m.FullName,
+                    EquipmentStatus = m.EquipmentStatus,
+                    EquipmentContactId = m.PresentRecordId,
+                    SmallGroupName = InMemoryContext.ListManager.LoginFullName ?? "",
+                    SmallGroupListEntityId = InMemoryContext.ListManager.ActiveListId,
+                    StorLessonsList = new List<EquipmentStorLessons>()
+                }).ToList();
+
+                return DataSourceLoader.Load(equipmentList, loadOptions);
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "LoadEquipmentList");
+            }
+        }
+
+        #endregion
     }
 }
