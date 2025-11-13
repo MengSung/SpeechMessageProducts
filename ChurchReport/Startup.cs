@@ -46,11 +46,11 @@ namespace ChurchReport
             services.AddScoped<ChurchReport.Services.MyPayCrmService>();
             services.AddScoped<ChurchReport.Services.MyPayNotificationService>();
 
-            if (Configuration["PAY_PROVIDER"] == "國泰金流")
+            if (Configuration["PAY_PROVIDER"] == "永豐金流")
             {
                 services.AddScoped<IPayment, QPayToolkitWrapper>();
             }
-            else if (Configuration["PAY_PROVIDER"] == "高鋸金流")
+            else if (Configuration["PAY_PROVIDER"] == "高鉅金流")
             {
                 services.AddScoped<IPayment, MyPayToolkitWrapper>();
             }
@@ -155,6 +155,11 @@ namespace ChurchReport
                 // 新人管理路由
                 // ========================================
                 routes.MapRoute(
+                    name: "addnewperson",
+                    template: "NewPerson/NewPerson",
+                    defaults: new { controller = "NewPerson", action = "NewPerson" });
+
+                routes.MapRoute(
                     name: "newpersonfollowup",
                     template: "NewPerson/FollowUpView",
                     defaults: new { controller = "NewPerson", action = "NewPersonFollowUpView" });
@@ -171,6 +176,11 @@ namespace ChurchReport
                     name: "personalinfo",
                     template: "Personal/InfomationView",
                     defaults: new { controller = "Personal", action = "PersonalInfomationView" });
+
+                routes.MapRoute(
+                    name: "maintainpersonalinfo",
+                    template: "Personal/MaintainInfomationView",
+                    defaults: new { controller = "Personal", action = "MaintainPersonInfomationView" });
 
                 // ========================================
                 // 行事曆路由

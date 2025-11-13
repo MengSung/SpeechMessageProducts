@@ -1,0 +1,467 @@
+﻿@* 
+    這個視圖用於維護個人資訊，顯示地圖、資料網格，並允許上傳更新。
+    根據登入類型（小組長或個人）顯示不同的資料網格。
+*@
+
+@{
+    String DataStatus = "上傳成功了!";
+    String ReUpload = "請再按一次上傳鈕!";
+}
+
+@model ChurchReport.Models.SmallGroupData
+
+<head>
+    <!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="generator" content="Mobirise v4.0.16, mobirise.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
+    <meta name="description" content="">
+    <title>聖谷行道會</title>
+</head>
+
+@*<br />換行*@
+<br />
+
+<div class="dx-field" style="height:100%; width:100%; overflow: auto;">
+    <!-- Toast 通知容器 -->
+    <div id="ToastContainer">
+        @(Html.DevExtreme().Toast()
+                .ID("toast")
+                .Position(p => p
+                .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                .Offset(0, 50))
+                .Message(DataStatus)
+                .DisplayTime(2000)
+                .MaxWidth(200)
+            )
+    </div>
+
+    <!-- 載入面板 -->
+    <div id="LoadPanel">
+        @(Html.DevExtreme().LoadPanel()
+                .ID("loadPanel")
+                .ShadingColor("rgba(0,0,0,0.4)")
+                .Position(p => p.Of("#data-grid"))
+                .Visible(false)
+                .ShowIndicator(true)
+                .ShowPane(true)
+                .Shading(true)
+                .CloseOnOutsideClick(false)
+                .Message("更新資料中...")
+                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            )
+    </div>
+
+    <!-- 重新上傳 Toast -->
+    <div id="ToastContainer">
+        @(Html.DevExtreme().Toast()
+                    .ID("ToastReUpload")
+                    .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                    .Message(ReUpload)
+                    .DisplayTime(5000)
+                    .Type(ToastType.Error)
+                    .MaxWidth(500)
+            )
+    </div>
+
+    <hr />
+
+    <!-- 個人資料標題 -->
+    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+        <h4>個人資料</h4>
+    </div>
+
+    <!-- 地圖容器 -->
+    <div id="multigroupchart">
+        @(Html.DevExtreme().Map()
+        .ID("map")
+        .Provider(GeoMapProvider.Google)
+        .Center("台南市")
+        .Zoom(11)
+        .Visible(false)
+        .Width("50%")
+        .Height(200)
+        .Controls(true)
+        .Type(GeoMapType.Roadmap)
+        .ApiKey(k => k
+        .Google("AIzaSyBNogx0Ziqd3OIEW5b6b9BTJHXHW_YKDlM")
+        )
+        .MarkerIconSrc(new JS("markerUrl"))
+        .OnReady("onReady")
+        )
+    </div>
+
+    <br />
+
+    <!-- 上傳按鈕 -->
+    <div id="buttonContainer" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
+            .Text("上傳").Height(50).Width(80).Icon("check")
+            .Type(ButtonType.Success)
+            .ID("save-button")
+            .OnClick
+            (@<text>
+                        function(arg)
+                        {
+                        var GroupDataGrid = $("#gridContainer").dxDataGrid("instance");
+                        var ButtonContainer = $("#save-button").dxButton("instance");
+                        var GroupDataGridFlag = GroupDataGrid.hasEditData(); // 是否還有未提交的編輯資料
+
+                        if (!GroupDataGridFlag)
+                        {
+                            // 顯示載入面板
+                            $("#loadPanel").dxLoadPanel("instance").show();
+                            // 禁用按鈕
+                            ButtonContainer.option("disabled", true);
+
+                            // AJAX 上傳資料
+                            $.ajax({
+                                url: '@Url.Action("SavePersonInfomation", "Home")',
+                                data: { aResult: GetResult() }, // 整理資料
+                                type: 'POST',
+                                success: function (arg) {
+                                    // 隱藏載入面板
+                                    $("#loadPanel").dxLoadPanel("instance").hide();
+                                    // 啟用按鈕
+                                    ButtonContainer.option("disabled", false);
+                                    // 顯示成功 Toast
+                                    $("#toast").dxToast("instance").show();
+                                },
+                                error: function (obj) {
+                                    // 錯誤處理
+                                }
+                            });
+                        }
+                        else
+                        {
+                            // 隱藏載入面板
+                            $("#loadPanel").dxLoadPanel("instance").hide();
+                            // 顯示重新上傳提示
+                            $("#ToastReUpload").dxToast("instance").show();
+                        }
+                        }
+            </text>)
+        )
+    </div>
+
+    @if (Model.LoginType == "小組長")
+    {
+        <!-- 小組長資料網格 -->
+        <div id="data-grid">
+            @(Html.DevExtreme().DataGrid()
+            .ID("gridContainer")
+            .ShowBorders(true)
+            .Paging(paging => paging.Enabled(false))
+            .AllowColumnResizing(true)
+            .ColumnResizingMode(ColumnResizingMode.Widget)
+            .ColumnFixing(c => c.Enabled(true))
+            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+            .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+            .Export(e => e.Enabled(false).AllowExportSelectedData(true))
+            .ShowColumnLines(true)
+            .ShowRowLines(true)
+            .RowAlternationEnabled(true)
+            .ShowBorders(true)
+            .TwoWayBindingEnabled(true)
+            .Grouping(g => g
+                .ContextMenuEnabled(true)
+                .ExpandMode(GridGroupingExpandMode.RowClick)
+            )
+            .GroupPanel(p => p
+                .EmptyPanelText("請把小組名稱拉到這裡")
+                .Visible(false)
+                .AllowColumnDragging(true)
+            )
+            .Editing(editing =>
+            {
+                editing.Mode(GridEditMode.Cell);
+                editing.AllowUpdating(true);
+                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+            })
+            .Columns(columns =>
+            {
+                columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
+                columns.Add().DataField("FullName").Caption("姓名").AllowEditing(false).Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
+                columns.Add().DataField("Status")
+                    .Caption("會員身分").Alignment(HorizontalAlignment.Center)
+                    .AllowEditing(true)
+                    .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
+                    .Lookup(lookup => lookup
+                    .DataSource(new string[] { "牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案" })
+                    );
+                columns.Add().DataField("EquipmentStatus").Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
+                columns.Add().DataField("SpiritualIdentity")
+                    .Caption("信仰狀態").Alignment(HorizontalAlignment.Center)
+                    .AllowEditing(true)
+                    .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
+                    .Lookup(lookup => lookup
+                    .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信主" })
+                    );
+                columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
+                columns.Add().DataField("BirthDate").Caption("生日").DataType(GridColumnDataType.Date)
+                    .CalculateCellValue(@<text>
+                                        function(row)
+                                        {
+                                            if (row.BirthDate != null)
+                                            {
+                                                var ParsedDate = ParsingDate(row.BirthDate);
+                                                if (ParsedDate.getFullYear() == 1901)
+                                                {
+                                                    return null;
+                                                }
+                                                else
+                                                {
+                                                    return ParsedDate;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                return null;
+                                            }
+                                        }
+                                    </text>)
+                    .Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80);
+                columns.Add().DataField("Address").Caption("地址").Fixed(false).Width(200).MinWidth(90).Alignment(HorizontalAlignment.Left);
+            })
+            .DataSource(d => d
+                .WebApi()
+                .Controller("Personal")
+                .LoadAction("LoadMaintainPersonInfomation")
+                .InsertAction("InsertPresentRecord")
+                .DeleteAction("DeletePresentRecord")
+                .UpdateAction("UpdateMaintainPersonInfomationPresentRecord")
+                .Key("PresentRecordId")
+                .LoadParams(new { id = @ViewBag.ListId })
+            )
+            .OnContentReady(@<text>
+                            function(e)
+                            {
+                                moveEditColumnToLeft(e.component);
+                            }
+                        </text>)
+            .OnCellPrepared("cell_prepared")
+            )
+        </div>
+    }
+    else
+    {
+        <!-- 個人資料網格 -->
+        <div id="data-personal-grid">
+            @(Html.DevExtreme().DataGrid()
+            .ID("gridContainer")
+            .ShowBorders(true)
+            .Paging(paging => paging.Enabled(false))
+            .AllowColumnResizing(true)
+            .ColumnResizingMode(ColumnResizingMode.Widget)
+            .ColumnFixing(c => c.Enabled(true))
+            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+            .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+            .Export(e => e.Enabled(false).AllowExportSelectedData(true))
+            .DateSerializationFormat("yyyy-MM-dd")
+            .ShowColumnLines(true)
+            .ShowRowLines(true)
+            .RowAlternationEnabled(true)
+            .ShowBorders(true)
+            .TwoWayBindingEnabled(true)
+            .Grouping(g => g
+                .ContextMenuEnabled(true)
+                .ExpandMode(GridGroupingExpandMode.RowClick)
+            )
+            .GroupPanel(p => p
+                .EmptyPanelText("請把小組名稱拉到這裡")
+                .Visible(false)
+                .AllowColumnDragging(true)
+            )
+            .Editing(editing =>
+            {
+                editing.Mode(GridEditMode.Cell);
+                editing.AllowUpdating(true);
+                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+            })
+            .Columns(columns =>
+            {
+                columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10);
+                columns.Add().DataField("FullName").Caption("姓名").AllowEditing(false).Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
+                columns.Add().DataField("Status")
+                    .Caption("會員身分").Alignment(HorizontalAlignment.Center)
+                    .AllowEditing(true)
+                    .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
+                    .Lookup(lookup => lookup
+                    .DataSource(new string[] { "牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案" })
+                    );
+                columns.Add().DataField("EquipmentStatus").Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
+                columns.Add().DataField("SpiritualIdentity")
+                    .Caption("受洗狀態").Alignment(HorizontalAlignment.Center)
+                    .AllowEditing(true)
+                    .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
+                    .Lookup(lookup => lookup
+                    .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信主" })
+                    );
+                columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
+                columns.Add().DataField("BirthDate").Caption("生日").DataType(GridColumnDataType.Date)
+                    .CalculateCellValue(@<text>
+                                        function(row)
+                                        {
+                                            if (row.BirthDate != null)
+                                            {
+                                                var ParsedDate = ParsingDate(row.BirthDate);
+                                                if (ParsedDate.getFullYear() == 1901)
+                                                {
+                                                    return null;
+                                                }
+                                                else
+                                                {
+                                                    return ParsedDate;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                return null;
+                                            }
+                                        }
+                                    </text>)
+                    .Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80);
+                columns.Add().DataField("Address").Caption("地址").Fixed(false).Width(200).MinWidth(90).Alignment(HorizontalAlignment.Left);
+            })
+            .DataSource(d => d
+                .WebApi()
+                .Controller("Personal")
+                .LoadAction("LoadMaintainPersonInfomation")
+                .InsertAction("InsertPresentRecord")
+                .DeleteAction("DeletePresentRecord")
+                .UpdateAction("UpdateMaintainPersonInfomationPresentRecord")
+                .Key("PresentRecordId")
+                .LoadParams(new { id = @ViewBag.ListId })
+            )
+            .OnContentReady(@<text>
+                            function(e)
+                            {
+                                moveEditColumnToLeft(e.component);
+                            }
+                        </text>)
+            .OnCellPrepared("cell_prepared")
+            )
+        </div>
+    }
+</div>
+
+<script>
+    var markerUrl = "https://js.devexpress.com/Demos/RealtorApp/images/map-marker.png";
+    var DataUploadStatus = "尚未上傳喔!";
+
+    // 顯示 Toast 通知
+    function ShowToast(LocalToastMessage, Type, DisplayTime) {
+        var ToastInstance = $("#ToastReUpload").dxToast("instance");
+        ToastInstance.option('message', LocalToastMessage);
+        ToastInstance.option('type', Type);
+        ToastInstance.option('displayTime', DisplayTime);
+        ToastInstance.option('white-space', 'pre-line');
+        ToastInstance.option('closeOnClick', true);
+        ToastInstance.show();
+    }
+
+    // 解析日期
+    function ParsingDate(input) {
+        if (typeof (input) === 'string') {
+            var parts = input.split('-');
+            var DaySplitedArray = parts[2].split('T');
+            var ParsedDate = new Date(parts[0], parts[1] - 1, DaySplitedArray[0]);
+            return ParsedDate;
+        }
+        else {
+            return getLocalDateFilter(input);
+        }
+    }
+
+    // 獲取本地日期過濾器
+    function getLocalDateFilter(date) {
+        var rawMonth = (date.getMonth()).toString();
+        var monthString = rawMonth.length == 1 ? "0" + rawMonth : rawMonth;
+        var rawDate = date.getDate().toString();
+        var dateString = rawDate.length == 1 ? "0" + rawDate : rawDate;
+        return new Date(date.getFullYear(), rawMonth, rawDate);
+    }
+
+    // 地圖準備就緒
+    function onReady(e) {
+        $.ajax({
+            url: '@Url.Action("GetMarkers", "Home")',
+            type: "POST",
+            dataType: "json",
+            success: function (data) {
+                $("#map").dxMap("instance").option("markers", data);
+            }
+        });
+    }
+
+    // 移動編輯欄到左側
+    function moveEditColumnToLeft(dataGrid) {
+        dataGrid.columnOption("command:edit", {
+            visibleIndex: -1,
+            width: 50
+        });
+    }
+
+    // 單元格準備
+    function cell_prepared(e) {
+        if (e.rowType === "data" && e.column.command === "edit") {
+            var isEditing = e.row.isEditing,
+                $links = e.cellElement.find(".dx-link");
+
+            $links.text("");
+
+            if (isEditing) {
+                $links.filter(".dx-link-save").addClass("dx-icon-save");
+                $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
+            }
+            else {
+                $links.filter(".dx-link-edit").addClass("dx-icon-edit");
+                $links.filter(".dx-link-delete").addClass("dx-icon-trash");
+            }
+        }
+    }
+</script>
+
+<!-- 本地中文化 -->
+<script>
+    var dictionary = {
+        "zh-tw": {
+            "dxScheduler-switcherAgenda": "會議內容",
+            "Month": "月",
+            "Subject": "主題",
+            "Company": "Company",
+            "Amount": "Amount",
+            "PaymentDate": "Payment Date"
+        },
+    };
+    DevExpress.localization.loadMessages(dictionary);
+    var formatMessage = DevExpress.localization.formatMessage;
+
+    var locale = getLocale();
+    DevExpress.localization.locale(locale);
+
+    function changeLocale(data) {
+        setLocale(data.value);
+        document.location.reload();
+    }
+
+    function getLocale() {
+        sessionStorage.setItem("locale", 'zh-tw');
+        var locale = sessionStorage.getItem("locale");
+        return locale != null ? locale : "tw";
+    }
+</script>
+
+<!-- 外部腳本和樣式 -->
+<script src="~/js/devextreme/devextreme-intl.min.js"></script>
+<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
+<script src="~/js/DataGridAjax.js"></script>
+<script src="~/js/DropDownBox.js"></script>
+<script src="~/js/DataGridAjax.js"></script>
+<script src="~/js/LoadPanel.js"></script>
+<link href="~/css/SmallGroupReportController.css" rel="stylesheet" />
+

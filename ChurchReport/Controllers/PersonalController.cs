@@ -21,7 +21,7 @@ namespace ChurchReport.Controllers
     /// </summary>
     public class PersonalController : BaseChurchController
     {
-        #region 建構函式
+        #region 幣構函式
 
         public PersonalController(
             IHttpContextAccessor httpContextAccessor,
@@ -133,6 +133,30 @@ namespace ChurchReport.Controllers
             catch (Exception e)
             {
                 return HandleError(e, "LoadPersonReport");
+            }
+        }
+
+        /// <summary>
+        /// 載入維護個人資訊資料
+        /// 用於 MaintainPersonInfomationView 的 DataGrid 資料來源
+        /// </summary>
+        /// <param name="id">清單ID</param>
+        /// <param name="loadOptions">載入選項(分頁、排序、篩選)</param>
+        [HttpGet]
+        public object LoadMaintainPersonInfomation(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                EnsurePersonReportDataLoaded(id);
+
+                var tasks = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                    .m_SmallGroupDataList.m_AllMemeberData.Members;
+
+                return DataSourceLoader.Load(tasks, loadOptions);
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "LoadMaintainPersonInfomation");
             }
         }
 
@@ -314,11 +338,12 @@ namespace ChurchReport.Controllers
         #region 個人資訊管理
 
         /// <summary>
-        /// 個人資訊檢視頁面
-        /// 顯示並編輯個人基本資料
+        /// 個人資料管理畫面
+        /// 顯示與編輯個人基本資料
         /// </summary>
         [HttpGet]
         [Route("/Personal/PersonalInfomationView")]
+        [Route("/Personal/InfomationView")]
         public IActionResult PersonalInfomationView()
         {
             try
@@ -364,6 +389,35 @@ namespace ChurchReport.Controllers
             catch (Exception e)
             {
                 return HandleError(e, "SavePersonalInfomation");
+            }
+        }
+
+        /// <summary>
+        /// 個人資訊維護畫面
+        /// 用於維護個人資訊，顯示地圖、資料網格，並允許上傳更新
+        /// </summary>
+        [HttpGet]
+        [Route("/Personal/MaintainPersonInfomationView")]
+        [Route("/Personal/MaintainInfomationView")]
+        public IActionResult MaintainPersonInfomationView()
+        {
+            try
+            {
+                SetupPersonalInfoViewBag();
+
+                // 根據登入類型設定不同的資料
+                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport != null)
+                {
+                    return View(InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData);
+                }
+                else
+                {
+                    return View(new SmallGroupData());
+                }
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "MaintainPersonInfomationView");
             }
         }
 

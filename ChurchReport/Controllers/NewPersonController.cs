@@ -227,6 +227,7 @@ namespace ChurchReport.Controllers
         /// </summary>
         [HttpGet]
         [Route("/NewPerson/AddNewPerson")]
+        [Route("/NewPerson/NewPerson")]
         public IActionResult NewPerson()
         {
             try

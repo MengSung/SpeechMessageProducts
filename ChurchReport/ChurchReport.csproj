@@ -91,6 +91,9 @@
     <ProjectReference Include="..\LinePayCSharp\LinePayCSharp.csproj" />
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Views\Dedication\" />
+  </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
   </PropertyGroup>
