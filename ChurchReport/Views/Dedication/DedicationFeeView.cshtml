@@ -1,0 +1,358 @@
+﻿@using ChurchReport.Models
+@model QpayModel
+@using Newtonsoft.Json
+<head>
+    <!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="generator" content="Mobirise v4.0.16, mobirise.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
+    <meta name="description" content="">
+    <title>聖谷行道會</title>
+</head>
+
+<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+    <h4 id="displaynamefield">@Model.FullName 奉獻編號:@Model.DedicationNumber</h4>
+    <h4 id="displaynamefield">@Model.Ntbt</h4>
+</div>
+
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="UpdateDedicationFeeView" asp-controller="Dedication" method="post">
+    <div class="dx-field">
+        <div id="buttonContainer" class="dx-button-icon">
+            @(Html.DevExtreme().Button()
+                    .Text("查詢")
+                    .Visible(false)
+                    .Type(ButtonType.Success)
+                    .ID("save-button")
+                    .UseSubmitBehavior(true)
+                    .OnClick("ShowLoadPanel")
+            )
+        </div>
+        <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+                .ID("toast")
+                .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                    .Message("上傳成功了!")
+                    .DisplayTime(20000)
+                    .MaxWidth(200)
+            )
+
+        </div>
+        <div id="LoadPanel">
+            @(Html.DevExtreme().LoadPanel()
+                    .ID("loadPanel")
+                    .ShadingColor("rgba(0,0,0,0.4)")
+                    .Position(p => p.Of("#form-container"))
+                    .Visible(false)
+                    .ShowIndicator(true)
+                    .ShowPane(true)
+                    .Shading(true)
+                    .CloseOnOutsideClick(false)
+                    .Message("上傳資料中...")
+                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            )
+
+        </div>
+    </div>
+    <div id="form-container">
+        @(Html.DevExtreme().Form<QpayModel>()
+        .ID("form")
+        .ColCount(1)
+        .Items
+        (items =>
+        {
+            items.AddSimpleFor
+                (m => m.QueryStartDate)
+                .Label(l => l.Text("開始日期"))
+                .IsRequired(false)
+                .Editor(e => e
+                    .DateBox()
+                    .Width(200)
+                    .DisplayFormat("yyyy/M/d")
+                    .Disabled(false)
+                    .Placeholder("開始日期")
+                    .PickerType(DateBoxPickerType.Calendar)
+                );
+            items.AddSimpleFor
+                (m => m.QueryEndDate)
+                .Label(l => l.Text("結束日期"))
+                .IsRequired(false)
+                .Editor(e => e
+                    .DateBox()
+                    .Width(200)
+                    .DisplayFormat("yyyy/M/d")
+                    .Disabled(false)
+                    .Placeholder("結束日期")
+                    .PickerType(DateBoxPickerType.Calendar)
+                );
+
+        }
+        )
+        .OnContentReady
+        (@<text>
+            function(e)
+            {
+                e.component.validate();
+            }
+        </text>)
+
+        .FormData(Model)
+        )
+
+    </div>
+    <div id="buttonContainer3" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
+                    .Text("查詢")
+                    .Visible(true)
+                    .Type(ButtonType.Success)
+                    .ID("save-button3")
+                    .UseSubmitBehavior(true)
+                    .OnClick("ShowLoadPanel")
+            )
+    </div>
+
+    <div id="data-grid">
+        @(Html.DevExtreme().DataGrid<DedicationFee>()
+            .ID("DedicationFeeGrid")
+            .ShowBorders(true)
+            //.ColumnAutoWidth(true)
+            //.Paging(p => p.PageSize(10))
+            .Paging(paging => paging.Enabled(false))
+            .AllowColumnResizing(true)
+            .ColumnResizingMode(ColumnResizingMode.Widget)
+            .ColumnFixing(c => c.Enabled(true))
+            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+            .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+            .Export(e => e.Enabled(true).AllowExportSelectedData(true))
+            .ShowColumnLines(true)
+            .ShowRowLines(true)
+            .RowAlternationEnabled(true)
+            .ShowBorders(true)
+            .RemoteOperations(false)
+            .TwoWayBindingEnabled(true)
+            .Editing(editing =>
+            {
+                //editing.Mode(GridEditMode.Batch);
+                //editing.Mode(GridEditMode.Row);
+                editing.Mode(GridEditMode.Cell);
+                //editing.Mode(GridEditMode.Batch);
+                //editing.Mode(GridEditMode.Form);
+                //editing.Mode(GridEditMode.Popup);
+                editing.AllowUpdating(true);
+                //editing.AllowAdding(true);
+                //editing.AllowDeleting(true);
+                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
+            })
+
+            .Columns(columns =>
+            {
+                columns.AddFor(m => m.Category).Caption("奉獻類別").Width(50).MinWidth(80).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.DedicationDate).Caption("奉獻日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowEditing(false).AllowSorting(true)
+                            .CalculateCellValue(@<text>
+                                        function(row)
+                                        {
+                                            if( row.DedicationDate != null )
+                                            {
+                                                var ParsedDate = ParsingDate( row.DedicationDate );
+                                                if( ParsedDate.getFullYear() == 1901 )
+                                                {
+                                                    return null;
+                                                }
+                                                else
+                                                {
+                                                    return ParsedDate;
+                                                }
+                                            }
+                                            else
+                                            {return null;}
+                                        }
+                             </text> );
+                columns.AddFor(m => m.PayDate).Caption("付款日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowEditing(false).AllowSorting(true)
+                                .CalculateCellValue(@<text>
+                                        function(row)
+                                        {
+                                            if( row.PayDate != null )
+                                            {
+                                                var ParsedDate = ParsingDate( row.PayDate );
+                                                if( ParsedDate.getFullYear() == 1901 )
+                                                {
+                                                    return null;
+                                                }
+                                                else
+                                                {
+                                                    return ParsedDate;
+                                                }
+                                            }
+                                            else
+                                            {return null;}
+                                        }
+                             </text> );
+
+                columns.AddFor(m => m.PayWay).Caption("付款方式").Alignment(HorizontalAlignment.Center).Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.Amount).Caption("金額").Width(80).MinWidth(80).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.PaidPeriod).Caption("定期定額期數").Alignment(HorizontalAlignment.Center).Width(100).MinWidth(80).AllowEditing(false).AllowSorting(true);
+                columns.AddFor(m => m.Others).Caption("奉獻細項").Alignment(HorizontalAlignment.Left).Width(180).MinWidth(180).AllowEditing(false).AllowSorting(true);
+            })
+            .DataSource
+            (Model.DedicationFeeList)
+
+            )
+    </div>
+
+    <div style="font-family:標楷體;font-size:100%; color:darkred; text-align:left;font-weight:bold">
+        <h4 id="displaynamefield">總金額 = @Model.TotalAmount 元</h4>
+    </div>
+
+    <div id="buttonContainer2" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
+                    .Text("查詢")
+                    .Visible(false)
+                    .Type(ButtonType.Success)
+                    .ID("save-button2")
+                    .UseSubmitBehavior(true)
+                    .OnClick("ShowLoadPanel")
+            )
+    </div>
+
+</form>
+
+<script>
+    function getLoadPanelInstance() {
+        return $("#loadPanel").dxLoadPanel("instance");
+    }
+    function ShowLoadPanel(arg) {
+
+        //debugger;
+        getLoadPanelInstance().show();
+        //$("#toast").dxToast("instance").show();
+        //alert("SaveNewPerson!!!");
+        //alert("OnValueChanged : " + arg.value);
+
+        //alert("OnValueChanged : " + arg.attribute('text'));
+        //alert("OnValueChanged : " + text: arg.attribute("text"));
+
+        //alert( getODataLocalDateFilter(arg.value) );
+    }
+    function ShowToast(LocalToastMessage, Type, DisplayTime) {
+        //debugger;
+        var ToastInstance = $("#toast").dxToast("instance");
+        ToastInstance.option('message', LocalToastMessage);
+        ToastInstance.option('type', Type);
+        ToastInstance.option('displayTime', DisplayTime);
+        ToastInstance.option('white-space', 'pre-line');
+        ToastInstance.option('closeOnClick', true);
+        ToastInstance.show();
+    }
+
+    var GlobalCategory = "";
+
+    function moveEditColumnToLeft(dataGrid) {
+        dataGrid.columnOption("command:edit", {
+            visibleIndex: -1,
+            width: 50
+        });
+    }
+    function cell_prepared(e) {
+        if (e.rowType === "data" && e.column.command === "edit") {
+            var isEditing = e.row.isEditing,
+                $links = e.cellElement.find(".dx-link");
+
+            $links.text("");
+
+            if (isEditing) {
+                $links.filter(".dx-link-save").addClass("dx-icon-save");
+                $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
+            }
+            else {
+                $links.filter(".dx-link-edit").addClass("dx-icon-edit");
+                $links.filter(".dx-link-delete").addClass("dx-icon-trash");
+            }
+        }
+
+    }
+    function ParsingDate(input) {
+
+        var ParsedDate = new Date(input);
+        return ParsedDate;
+    }
+
+</script>
+
+<script type="text/javascript">
+    function onBegin() {
+    }
+
+    function onSuccess(data) {
+
+        getLoadPanelInstance().hide();
+
+        if (data.status == 1) {
+            window.location.href = "/Home/DedicationFeeView/";
+            //ShowToast(data.message, "success", 2000);
+        }
+        else {
+            ShowToast(data.message, "error", 3000);
+        }
+    }
+
+    function onComplete(data) {
+        if (data.status == 1) {
+        }
+        else {
+        }
+    }
+</script>
+
+<link href="~/css/Scheduler.css" rel="stylesheet" />
+<link href="~/css/Site.css" rel="stylesheet" />
+
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+<link href="~/css/Gallery.css" rel="stylesheet" />
+
+<script>var DataUploadStatus = "尚未上傳喔!";</script>
+<script src="~/js/FeeDataGridAjax.js"></script>
+<script src="~/js/SelectDate.js"></script>
+<script src="~/js/DropDownBox.js"></script>
+<script src="~/js/LoadPanel.js"></script>
+
+<script>
+    var dictionary = {
+        "zh-tw": {
+            "dxScheduler-switcherAgenda": "會議內容", // 在這裡可以做最後的字典對應
+            "Month": "月",
+            "Subject": "主題",
+            "Company": "Company",
+            "Amount": "Amount",
+            "PaymentDate": "Payment Date"
+        },
+    };
+    DevExpress.localization.loadMessages(dictionary);
+    var formatMessage = DevExpress.localization.formatMessage;
+
+    var locale = getLocale();
+    //DevExpress.localization.locale(navigator.language || navigator.browserLanguage);
+    DevExpress.localization.locale(locale);
+
+    function changeLocale(data) {
+        setLocale(data.value);
+        document.location.reload();
+    }
+
+    function getLocale() {
+        //debugger;
+        //sessionStorage.setItem("locale", 'zh');
+        sessionStorage.setItem("locale", 'zh-tw');
+        var locale = sessionStorage.getItem("locale");
+        return locale != null ? locale : "tw";
+    }
+
+</script>
+
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+
+<link href="~/css/Scheduler.css" rel="stylesheet" />
+<script src="~/js/devextreme/devextreme-intl.min.js"></script>
+<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
