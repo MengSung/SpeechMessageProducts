@@ -277,6 +277,15 @@ namespace ChurchReport.Controllers
             return RedirectToAction("ChurchRoot", "ListManagement");
         }
         
+        /// <summary>
+        /// 向後相容: 將舊的 /Home/EquipmentView 重導向到 /Equipment/EquipmentView
+        /// </summary>
+        [Route("/Home/EquipmentView")]
+        public IActionResult EquipmentViewRedirect()
+        {
+            return RedirectToAction("EquipmentView", "Equipment");
+        }
+        
         #endregion
         
         #region 單獨換手機號碼
@@ -388,176 +397,6 @@ namespace ChurchReport.Controllers
                 return HandleError(e, "PhoneQrCodeGetLineId");
             }
         }
-        #endregion
-
-        #region 裝備狀態管理
-
-        /// <summary>
-        /// 裝備狀態檢視頁面
-        /// 顯示小組成員的裝備/訓練狀態
-        /// </summary>
-        [HttpGet]
-        [Route("/Home/EquipmentView")]
-        public IActionResult EquipmentView()
-        {
-            try
-            {
-                SetupBasicViewBag();
-                SetMultiGroupLayoutParameter();
-
-                // 建立裝備資料 - 返回包含小組的模型
-                var equipmentData = new EquipmenSmallGroup
-                {
-                    SmallGroupName = ViewBag.LoginFullName ?? "小組",
-                    LoginUserId = InMemoryContext.ListManager.m_Account,
-                    SmallGroupListEntityId = InMemoryContext.ListManager.ActiveListId,
-                    EquipmentContactList = new List<EquipmentContact>()
-                };
-
-                return View(equipmentData);
-            }
-            catch (Exception e)
-            {
-                return HandleError(e, "EquipmentView");
-            }
-        }
-
-        /// <summary>
-        /// 載入裝備小組清單資料
-        /// 用於主 DataGrid - 返回 EquipmenSmallGroup 清單
-        /// </summary>
-        /// <param name="id">清單ID</param>
-        /// <param name="loadOptions">載入選項(分頁、排序、篩選)</param>
-        [HttpGet]
-        public object LoadEquipmentList(string id, DataSourceLoadOptions loadOptions)
-        {
-            try
-            {
-                // 確保資料已載入
-                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
-                    !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
-                {
-                    InMemoryContext.ListManager.SetupIntegrateData(id);
-                }
-
-                // 為每個小組建立 EquipmenSmallGroup 對象
-                var equipmentGroups = new List<EquipmenSmallGroup>();
-
-                // 如果是多小組，為每個小組建立一個項目
-                if (InMemoryContext.ListManager.m_MultiGroupList?.m_WeeklyReportRecordListData != null)
-                {
-                    foreach (var group in InMemoryContext.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData)
-                    {
-                        equipmentGroups.Add(new EquipmenSmallGroup
-                        {
-                            SmallGroupName = group.Name,
-                            SmallGroupListEntityId = group.ListEntityId,
-                            LoginUserId = InMemoryContext.ListManager.m_Account,
-                            EquipmentContactList = new List<EquipmentContact>()
-                        });
-                    }
-                }
-                else
-                {
-                    // 單一小組的情況
-                    equipmentGroups.Add(new EquipmenSmallGroup
-                    {
-                        SmallGroupName = InMemoryContext.ListManager.LoginFullName ?? "小組",
-                        SmallGroupListEntityId = InMemoryContext.ListManager.ActiveListId,
-                        LoginUserId = InMemoryContext.ListManager.m_Account,
-                        EquipmentContactList = new List<EquipmentContact>()
-                    });
-                }
-
-                return DataSourceLoader.Load(equipmentGroups, loadOptions);
-            }
-            catch (Exception e)
-            {
-                return HandleError(e, "LoadEquipmentList");
-            }
-        }
-
-        /// <summary>
-        /// 載入裝備聯絡人清單資料
-        /// 用於 master-detail 的 DataGrid - 返回 EquipmentContact 清單
-        /// </summary>
-        /// <param name="id">小組清單ID</param>
-        /// <param name="loadOptions">載入選項</param>
-        [HttpGet]
-        public object LoadEquipmentContact(string id, DataSourceLoadOptions loadOptions)
-        {
-            try
-            {
-                // 確保資料已載入
-                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
-                    !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
-                {
-                    InMemoryContext.ListManager.SetupIntegrateData(id);
-                }
-
-                var members = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                    ?.m_SmallGroupDataList?.m_AllMemeberData?.Members 
-                    ?? new List<Member>();
-
-                // 轉換為 EquipmentContact 清單
-                var equipmentList = members.Select(m => new EquipmentContact
-                {
-                    ContactFullName = m.FullName,
-                    EquipmentStatus = m.EquipmentStatus,
-                    EquipmentContactId = m.PresentRecordId,
-                    SmallGroupName = InMemoryContext.ListManager.LoginFullName ?? "",
-                    SmallGroupListEntityId = id,
-                    StorLessonsList = new List<EquipmentStorLessons>()
-                }).ToList();
-
-                return DataSourceLoader.Load(equipmentList, loadOptions);
-            }
-            catch (Exception e)
-            {
-                return HandleError(e, "LoadEquipmentContact");
-            }
-        }
-
-        /// <summary>
-        /// 載入裝備課程清單資料
-        /// 用於第三層 master-detail 的 DataGrid - 返回 EquipmentStorLessons 清單
-        /// </summary>
-        /// <param name="id">聯絡人ID</param>
-        /// <param name="loadOptions">載入選項</param>
-        [HttpGet]
-        public object LoadEquipmentStorLessons(string id, DataSourceLoadOptions loadOptions)
-        {
-            try
-            {
-                // 從 CRM 查詢該聯絡人的課程記錄
-                var storLessons = ToolUtility.RetrieveStorLessonsByFetchXml("", "", "", id);
-
-                var lessonsList = new List<EquipmentStorLessons>();
-
-                if (storLessons != null && storLessons.Entities.Count > 0)
-                {
-                    foreach (var lessonEntity in storLessons.Entities)
-                    {
-                        var lesson = lessonEntity; // 建立臨時變數以支援 ref 參數
-                        lessonsList.Add(new EquipmentStorLessons
-                        {
-                            StorLessonsEntityId = lesson.Id.ToString(),
-                            DiscipleLessonsName = ToolUtility.GetEntityStringAttribute(ref lesson, "new_name"),
-                            StageName = ToolUtility.GetEntityStringAttribute(ref lesson, "new_stagename"),
-                            CurrentComplete = ToolUtility.GetEntityBoolAttribute(ref lesson, "new_currentcomplete"),
-                            DiscipleLessonsDateTime = ToolUtility.GetEntityDateTimeAttribute(ref lesson, "new_disciplelessonsdatetime")
-                        });
-                    }
-                }
-
-                return DataSourceLoader.Load(lessonsList, loadOptions);
-            }
-            catch (Exception e)
-            {
-                return HandleError(e, "LoadEquipmentStorLessons");
-            }
-        }
-
         #endregion
     }
 }

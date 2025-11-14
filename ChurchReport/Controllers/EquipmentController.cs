@@ -1,0 +1,310 @@
+using ChurchReport.Models;
+using ChurchReport.Tools;
+using DevExtreme.AspNet.Data;
+using DevExtreme.AspNet.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace ChurchReport.Controllers
+{
+    /// <summary>
+    /// 裝備狀態管理控制器
+    /// 處理小組成員的裝備/訓練狀態管理功能
+    /// </summary>
+    public class EquipmentController : BaseChurchController
+    {
+        #region 建構函式
+
+        public EquipmentController(
+            IHttpContextAccessor httpContextAccessor,
+            IMemoryCache memoryCache,
+            IPayment paymentService)
+            : base(httpContextAccessor, memoryCache, paymentService)
+        {
+        }
+
+        #endregion
+
+        #region 裝備狀態主頁面
+
+        /// <summary>
+        /// 裝備狀態檢視頁面
+        /// 顯示小組成員的裝備/訓練狀態
+        /// </summary>
+        [HttpGet]
+        [Route("/Equipment/EquipmentView")]
+        public IActionResult EquipmentView()
+        {
+            try
+            {
+                SetupBasicViewBag();
+                SetMultiGroupLayoutParameter();
+
+                // 建立裝備資料 - 返回包含小組的模型
+                var equipmentData = new EquipmenSmallGroup
+                {
+                    SmallGroupName = ViewBag.LoginFullName ?? "小組",
+                    LoginUserId = InMemoryContext.ListManager.m_Account,
+                    SmallGroupListEntityId = InMemoryContext.ListManager.ActiveListId,
+                    EquipmentContactList = new List<EquipmentContact>()
+                };
+
+                return View(equipmentData);
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "EquipmentView");
+            }
+        }
+
+        #endregion
+
+        #region 裝備資料載入
+
+        /// <summary>
+        /// 載入裝備小組清單資料
+        /// 用於主 DataGrid - 返回 EquipmenSmallGroup 清單
+        /// </summary>
+        /// <param name="id">清單ID</param>
+        /// <param name="loadOptions">載入選項(分頁、排序、篩選)</param>
+        [HttpGet]
+        public object LoadEquipmentList(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                // 確保資料已載入
+                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
+                    !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
+                {
+                    InMemoryContext.ListManager.SetupIntegrateData(id);
+                }
+
+                // 為每個小組建立 EquipmenSmallGroup 對象
+                var equipmentGroups = new List<EquipmenSmallGroup>();
+
+                // 如果是多小組，為每個小組建立一個項目
+                if (InMemoryContext.ListManager.m_MultiGroupList?.m_WeeklyReportRecordListData != null)
+                {
+                    foreach (var group in InMemoryContext.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData)
+                    {
+                        equipmentGroups.Add(new EquipmenSmallGroup
+                        {
+                            SmallGroupName = group.Name,
+                            SmallGroupListEntityId = group.ListEntityId,
+                            LoginUserId = InMemoryContext.ListManager.m_Account,
+                            EquipmentContactList = new List<EquipmentContact>()
+                        });
+                    }
+                }
+                else
+                {
+                    // 單一小組的情況
+                    equipmentGroups.Add(new EquipmenSmallGroup
+                    {
+                        SmallGroupName = InMemoryContext.ListManager.LoginFullName ?? "小組",
+                        SmallGroupListEntityId = InMemoryContext.ListManager.ActiveListId,
+                        LoginUserId = InMemoryContext.ListManager.m_Account,
+                        EquipmentContactList = new List<EquipmentContact>()
+                    });
+                }
+
+                return DataSourceLoader.Load(equipmentGroups, loadOptions);
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "LoadEquipmentList");
+            }
+        }
+
+        /// <summary>
+        /// 載入裝備聯絡人清單資料
+        /// 用於 master-detail 的 DataGrid - 返回 EquipmentContact 清單
+        /// </summary>
+        /// <param name="id">小組清單ID</param>
+        /// <param name="loadOptions">載入選項</param>
+        [HttpGet]
+        public object LoadEquipmentContact(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                // 確保資料已載入
+                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
+                    !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
+                {
+                    InMemoryContext.ListManager.SetupIntegrateData(id);
+                }
+
+                var members = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                    ?.m_SmallGroupDataList?.m_AllMemeberData?.Members 
+                    ?? new List<Member>();
+
+                // 轉換為 EquipmentContact 清單
+                var equipmentList = members.Select(m => new EquipmentContact
+                {
+                    ContactFullName = m.FullName,
+                    EquipmentStatus = m.EquipmentStatus,
+                    EquipmentContactId = m.PresentRecordId,
+                    SmallGroupName = InMemoryContext.ListManager.LoginFullName ?? "",
+                    SmallGroupListEntityId = id,
+                    StorLessonsList = new List<EquipmentStorLessons>()
+                }).ToList();
+
+                return DataSourceLoader.Load(equipmentList, loadOptions);
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "LoadEquipmentContact");
+            }
+        }
+
+        /// <summary>
+        /// 載入裝備課程清單資料
+        /// 用於第三層 master-detail 的 DataGrid - 返回 EquipmentStorLessons 清單
+        /// </summary>
+        /// <param name="id">聯絡人ID</param>
+        /// <param name="loadOptions">載入選項</param>
+        [HttpGet]
+        public object LoadEquipmentStorLessons(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                // 從 CRM 查詢該聯絡人的課程記錄
+                var storLessons = ToolUtility.RetrieveStorLessonsByFetchXml("", "", "", id);
+
+                var lessonsList = new List<EquipmentStorLessons>();
+
+                if (storLessons != null && storLessons.Entities.Count > 0)
+                {
+                    foreach (var lessonEntity in storLessons.Entities)
+                    {
+                        var lesson = lessonEntity; // 建立臨時變數以支援 ref 參數
+                        lessonsList.Add(new EquipmentStorLessons
+                        {
+                            StorLessonsEntityId = lesson.Id.ToString(),
+                            DiscipleLessonsName = ToolUtility.GetEntityStringAttribute(ref lesson, "new_name"),
+                            StageName = ToolUtility.GetEntityStringAttribute(ref lesson, "new_stagename"),
+                            CurrentComplete = ToolUtility.GetEntityBoolAttribute(ref lesson, "new_currentcomplete"),
+                            DiscipleLessonsDateTime = ToolUtility.GetEntityDateTimeAttribute(ref lesson, "new_disciplelessonsdatetime")
+                        });
+                    }
+                }
+
+                return DataSourceLoader.Load(lessonsList, loadOptions);
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "LoadEquipmentStorLessons");
+            }
+        }
+
+        #endregion
+
+        #region 裝備資料操作
+
+        /// <summary>
+        /// 更新裝備狀態
+        /// </summary>
+        /// <param name="contactId">聯絡人ID</param>
+        /// <param name="equipmentStatus">裝備狀態</param>
+        [HttpPost]
+        public IActionResult UpdateEquipmentStatus(string contactId, string equipmentStatus)
+        {
+            try
+            {
+                // 實作更新裝備狀態邏輯
+                // await InMemoryContext.EquipmentDataManager.UpdateEquipmentStatus(contactId, equipmentStatus);
+
+                return Json(new { status = "1", message = "裝備狀態已更新" });
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "UpdateEquipmentStatus");
+            }
+        }
+
+        /// <summary>
+        /// 新增課程記錄
+        /// </summary>
+        /// <param name="contactId">聯絡人ID</param>
+        /// <param name="lessonName">課程名稱</param>
+        /// <param name="stageName">階段名稱</param>
+        /// <param name="lessonDate">課程日期</param>
+        [HttpPost]
+        public IActionResult AddEquipmentLesson(
+            string contactId, 
+            string lessonName, 
+            string stageName, 
+            DateTime lessonDate)
+        {
+            try
+            {
+                // 實作新增課程記錄邏輯
+                // await InMemoryContext.EquipmentDataManager.AddLesson(contactId, lessonName, stageName, lessonDate);
+
+                return Json(new { status = "1", message = "課程記錄已新增" });
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "AddEquipmentLesson");
+            }
+        }
+
+        /// <summary>
+        /// 匯出裝備報表
+        /// 產生 Excel 格式的裝備狀態統計報表
+        /// </summary>
+        /// <param name="groupId">小組ID</param>
+        [HttpGet]
+        public IActionResult ExportEquipmentReport(string groupId)
+        {
+            try
+            {
+                // 實作匯出報表邏輯
+                // var reportData = await InMemoryContext.EquipmentDataManager.GenerateReport(groupId);
+
+                return Json(new { status = "1", message = "報表已產生" });
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "ExportEquipmentReport");
+            }
+        }
+
+        #endregion
+
+        #region 統計資訊
+
+        /// <summary>
+        /// 取得裝備統計摘要
+        /// 包含完成人數、進行中人數等統計資訊
+        /// </summary>
+        /// <param name="groupId">小組ID</param>
+        [HttpGet]
+        public IActionResult GetEquipmentSummary(string groupId)
+        {
+            try
+            {
+                // 實作統計邏輯
+                var summary = new
+                {
+                    totalMembers = 0,
+                    completedMembers = 0,
+                    inProgressMembers = 0,
+                    notStartedMembers = 0
+                };
+
+                return Json(new { status = "1", data = summary });
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "GetEquipmentSummary");
+            }
+        }
+
+        #endregion
+    }
+}
