@@ -122,11 +122,11 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region 奉獻清單載入
+        #region 奉獻資料載入
 
         /// <summary>
-        /// 載入奉獻收費清單
-        /// 用於 DevExtreme DataGrid 顯示稽核資料
+        /// 載入奉獻費清單
+        /// 用於 DevExtreme DataGrid 顯示捐獻資料
         /// </summary>
         /// <param name="id">查詢ID</param>
         /// <param name="loadOptions">載入選項(分頁、排序、篩選)</param>
@@ -141,6 +141,28 @@ namespace ChurchReport.Controllers
             catch (Exception e)
             {
                 return HandleError(e, "LoadDedicationFeeList");
+            }
+        }
+
+        /// <summary>
+        /// 載入同名連絡人清單
+        /// 當有多位同名連絡人時，用於選擇正確的捐獻者
+        /// </summary>
+        /// <param name="id">查詢參數</param>
+        /// <param name="loadOptions">載入選項</param>
+        [HttpGet]
+        public object LoadSameNameList(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                var sameNameList = InMemoryContext.QpayManager.m_QpayModel.SameNameList 
+                    ?? new System.Collections.Generic.List<SameNameElement>();
+                
+                return DataSourceLoader.Load(sameNameList, loadOptions);
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "LoadSameNameList");
             }
         }
 
