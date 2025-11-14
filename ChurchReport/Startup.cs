@@ -75,15 +75,13 @@ namespace ChurchReport
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options =>
             {
-                options.LoginPath = "/Home/Login";
-                options.LogoutPath = "/Home/Login";
+                options.LoginPath = "/Login";
+                options.LogoutPath = "/Logout";
                 options.Cookie.Expiration = TimeSpan.FromMinutes(30);
                 options.CookieName = ".ChurchReport.Session";
                 options.Cookie.SameSite = SameSiteMode.None;
-                options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Home/Login");
-                options.AccessDeniedPath = "/Home/Login";
-                options.ReturnUrlParameter = "/Home/Login";
-                options.LogoutPath = "/Home/Login";
+                options.AccessDeniedPath = "/Login";
+                options.ReturnUrlParameter = "returnUrl";
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
             });
         }
@@ -122,16 +120,35 @@ namespace ChurchReport
             app.UseMvc(routes => 
             { 
                 // ========================================
+                // 根路由 (顯式對應 / 到登入頁)
+                // ========================================
+                routes.MapRoute(
+                    name: "root",
+                    template: string.Empty,
+                    defaults: new { controller = "Authentication", action = "Login" });
+
+                // ========================================
                 // 登入相關路由
                 // ========================================
                 routes.MapRoute(
                     name: "login",
-                    template: "{controller=Home}/{action=Login}");
+                    template: "Login",
+                    defaults: new { controller = "Authentication", action = "Login" });
+
+                routes.MapRoute(
+                    name: "authlogin",
+                    template: "Authentication/Login",
+                    defaults: new { controller = "Authentication", action = "Login" });
+
+                routes.MapRoute(
+                    name: "logout",
+                    template: "Logout",
+                    defaults: new { controller = "Authentication", action = "Logout" });
 
                 routes.MapRoute(
                     name: "linelogin",
-                    template: "Home/LineIdLoginView/{LineIdLoginViewPatameter}",
-                    defaults: new { controller = "Home", action = "LineIdLoginView" });
+                    template: "Authentication/LineIdLoginView/{LineIdLoginViewPatameter}",
+                    defaults: new { controller = "Authentication", action = "LineIdLoginView" });
 
                 // ========================================
                 // 小組管理路由
@@ -306,7 +323,7 @@ namespace ChurchReport
                 // ========================================
                 routes.MapRoute(
                     name: "default", 
-                    template: "{controller=Home}/{action=Login}/{id?}");
+                    template: "{controller=Authentication}/{action=Login}/{id?}");
             });
         }
     }

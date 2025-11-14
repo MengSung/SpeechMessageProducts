@@ -1,0 +1,275 @@
+﻿@* 
+    登入頁面(改版)：
+    - 行動優先、響應式、基督教風格
+    - Hero 區塊：背景 Gallery 疊加漸層、教會名稱與經文
+    - 卡片式登入表單、載入面板與 Toast 提示
+    - 保留既有 DevExtreme 表單與 AJAX 流程
+*@
+@{
+    Layout = null;
+}
+@model ChurchReport.ViewModel.GalleryViewModel
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="description" content="聖谷行道會 登入" />
+    <meta name="author" content="聖谷行道會" />
+
+    <title>聖谷行道會｜登入</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    <!-- Bootstrap / DevExtreme CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
+    <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        /* Hero 橫幅與覆蓋層 */
+        .hero-wrapper { position: relative; width:100%; height: 340px; overflow:hidden; }
+        .hero-gallery-shift .dx-gallery, .hero-gallery-shift .dx-gallery-wrapper { margin-top:40px; }
+        .hero-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:#fff; padding: 1rem; background: linear-gradient(135deg, rgba(0,0,0,.55), rgba(0,0,0,.25)); }
+        .hero-overlay h1 { font-size:1.9rem; letter-spacing:2px; font-weight:700; margin-bottom:.35rem; }
+        .hero-overlay .sub { font-size:.95rem; opacity:.92; margin-bottom:.5rem; }
+        .hero-overlay .verse { font-size:.95rem; line-height:1.4; max-width:680px; }
+        .hero-overlay .verse span { display:block; margin-top:.25rem; font-size:.78rem; opacity:.85; }
+        .logo-faith { font-size:2.2rem; margin-bottom:.35rem; color:#fff; animation: pulse 3.5s infinite; }
+        @@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+
+        /* Gallery 圖片垂直完整可見 (調整：改用自適應高度避免上下裁切) */
+        .hero-wrapper .dx-gallery, .hero-wrapper .dx-gallery-wrapper { height:100%; }
+        .hero-wrapper .dx-gallery-item { display:flex !important; align-items:center; justify-content:center; }
+        .hero-wrapper .dx-gallery-item .dx-gallery-item-content { display:flex; align-items:center; justify-content:center; width:100%; height:100%; overflow:hidden; }
+        .hero-wrapper .dx-gallery-item img { max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; object-position:center center; display:block; }
+        @@media (max-width: 575.98px) {
+            /* 小螢幕改為自動高度，確保圖片垂直完整顯示 */
+            .hero-wrapper { height:auto; min-height:240px; }
+            .hero-wrapper .dx-gallery, .hero-wrapper .dx-gallery-wrapper { height:auto; }
+            .hero-wrapper .dx-gallery-item { min-height:240px; }
+        }
+
+        /* 內容區 */
+        .main-section { margin-top: 0; padding-top: 32px; }
+        .card-soft { border: none; border-radius: 18px; background:#fff; box-shadow: 0 8px 22px rgba(0,0,0,.09); overflow: hidden; }
+        .card-soft-header { background: linear-gradient(135deg,#6b8ce3,#4864b8); color:#fff; padding:.85rem 1rem; font-weight:600; display:flex; align-items:center; gap:.5rem; letter-spacing:1px; }
+        .card-soft-body { padding:1rem 1rem 1.25rem; }
+        .actions { display:flex; justify-content:center; gap:.75rem; margin-top:.5rem; }
+        .actions .btn { border-radius:30px; padding:.6rem 1.2rem; font-weight:600; letter-spacing:1px; box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+        .login-card { max-width:560px; margin:0 auto; }
+        .login-card .dx-form .dx-texteditor { width:100%; }
+        .login-card .dx-form .dx-field-item-label { text-align:left; width:auto; }
+        .login-card .dx-form .dx-field-item-content { text-align:left; }
+
+        .footer-note { text-align:center; font-size:.8rem; color:#777; margin: 2rem 0 .75rem; }
+        @@media (max-width: 575.98px) {
+            .hero-overlay h1 { font-size:1.6rem; }
+            .login-card { max-width:100%; }
+            .main-section { padding-top:24px; }
+        }
+    </style>
+
+    <!-- jQuery / Bootstrap JS -->
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+
+    <!-- DevExtreme Globalization -->
+    <script src="~/js/devextreme/cldr.js"></script>
+    <script src="~/js/devextreme/cldr/event.js"></script>
+    <script src="~/js/devextreme/cldr/supplemental.js"></script>
+    <script src="~/js/devextreme/cldr/unresolved.js"></script>
+    <script src="~/js/devextreme/globalize.js"></script>
+    <script src="~/js/devextreme/globalize/message.js"></script>
+    <script src="~/js/devextreme/globalize/number.js"></script>
+    <script src="~/js/devextreme/globalize/currency.js"></script>
+    <script src="~/js/devextreme/globalize/date.js"></script>
+
+    <!-- DevExtreme Core -->
+    <script src="~/js/devextreme/dx.all.js"></script>
+    <script src="~/js/devextreme/vectormap-data/world.js"></script>
+    <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
+    <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
+</head>
+
+<body class="bg-light">
+    <!-- Hero：背景 Gallery 疊加經文 -->
+    <section class="hero-wrapper hero-gallery-shift" aria-label="歡迎區">
+        <div class="position-absolute w-100 h-100" style="z-index:1;">
+            @(Html.DevExtreme().Gallery()
+                .ID("gallery")
+                .DataSource(Model.Images)
+                .Height("100%")
+                .StretchImages(true)
+                .Loop(true)
+                .SlideshowDelay(1800)
+                .ShowNavButtons(true)
+                .ShowIndicator(true)
+            )
+        </div>
+        <div class="hero-overlay" role="banner">
+            <i class="fa-solid fa-dove logo-faith" aria-hidden="true"></i>
+            <h1>聖谷行道會</h1>
+            <div class="sub">願恩惠、憐憫、平安從父神與主耶穌基督歸與你們。</div>
+            <div class="verse">我們既因信稱義，就藉著我們的主耶穌基督得與神相和。<span>— 羅馬書 5:1</span></div>
+        </div>
+    </section>
+
+    <!-- 主內容：登入卡片 (已與跑馬燈分離) -->
+    <main class="container main-section" role="main">
+        <div class="row">
+            <div class="col-12">
+                <div class="login-card card-soft" aria-labelledby="loginHeader">
+                    <!-- Toast -->
+                    <div id="ToastContainer">
+                        @(Html.DevExtreme().Toast()
+                            .ID("Toast")
+                            .Position(p => p
+                                .At(HorizontalAlignment.Center, VerticalAlignment.Top)
+                                .Of(".card-soft-body")  // 相對於卡片內容區
+                                .Offset(0, 10))
+                            .CloseOnOutsideClick(true)
+                            .DisplayTime(2400)
+                            .MaxWidth("90%")  // 響應式寬度
+                            .Animation(a => a
+                                .Show(s => s.Type(AnimationType.Fade).Duration(300))
+                                .Hide(h => h.Type(AnimationType.Fade).Duration(200)))
+                        )
+                    </div>
+
+                    <div class="card-soft-header" id="loginHeader">
+                        <i class="fa-solid fa-right-to-bracket"></i><span>會員登入</span>
+                    </div>
+                    <div class="card-soft-body">
+                        <!-- 登入表單 -->
+                        <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLogin" asp-controller="Home" method="post" novalidate>
+                            <div id="form-container">
+                                @(Html.DevExtreme().Form()
+                                    .ID("form")
+                                    .Items(items =>
+                                    {
+                                        items.AddSimple()
+                                            .DataField("Account")
+                                            .Label(l => l.Text("帳號"))
+                                            .Editor(e => e
+                                                .TextBox()
+                                                .Disabled(false)
+                                                .Placeholder("請輸入帳號")
+                                                .ShowClearButton(true)
+                                            );
+                                        items.AddSimple()
+                                            .DataField("Password")
+                                            .Label(l => l.Text("密碼"))
+                                            .Editor(e => e
+                                                .TextBox()
+                                                .Mode(TextBoxMode.Password)
+                                                .Disabled(false)
+                                                .Placeholder("請輸入密碼")
+                                                .ShowClearButton(true)
+                                            );
+                                    })
+                                )
+                            </div>
+                            <div class="actions">
+                                @(Html.DevExtreme().Button()
+                                    .Text("登入")
+                                    .Type(ButtonType.Default)
+                                    .ID("save-button")
+                                    .UseSubmitBehavior(true)
+                                    .OnClick("Login")
+                                    .Width(120)
+                                )
+                                @(Html.DevExtreme().Button()
+                                    .Text("設定帳號密碼")
+                                    .Type(ButtonType.Normal)
+                                    .Visible(false)
+                                    .ID("register-button")
+                                    .UseSubmitBehavior(false)
+                                    .OnClick("Register")
+                                    .Width(160)
+                                )
+                            </div>
+                            <div class="mt-5 small text-muted text-center">
+                                忘記密碼？請聯絡教會行政同工協助重設。
+                            </div>
+
+                            <!-- 載入面板 -->
+                            <div id="LoadPanel">
+                                @(Html.DevExtreme().LoadPanel()
+                                    .ID("loadPanel")
+                                    .ShadingColor("rgba(0,0,0,0.45)")
+                                    .Position(p => p.Of("#form-container"))
+                                    .Visible(false)
+                                    .ShowIndicator(true)
+                                    .ShowPane(true)
+                                    .Shading(true)
+                                    .CloseOnOutsideClick(false)
+                                    .Message("登入中，請稍候…")
+                                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+                                )
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer-note" role="contentinfo">Copyright © @DateTime.Now.Year 聖谷行道會</footer>
+
+    <!-- JS：頁面互動 -->
+    <script>
+        function getLoadPanelInstance() { return $("#loadPanel").dxLoadPanel("instance"); }
+        function Login(arg) { getLoadPanelInstance().show(); }
+        function Register(arg) { window.location.href = "/Home/Register"; }
+    </script>
+
+    <!-- AJAX 事件處理 -->
+    <script>
+        function onBegin() { }
+        function onSuccess(data) {
+            getLoadPanelInstance().hide();
+            if (data.DisplayViewType == "MultiGroupView") {
+                ShowToast(data.message, "success", 2000);
+                window.location.href = "/SmallGroup/MultiGroupView/" + data.ActiveListId;
+            } else if (data.DisplayViewType == "IntegrateView") {
+                ShowToast(data.message, "success", 2000);
+                window.location.href = "/SmallGroup/IntegrateView/" + data.ActiveListId;
+            } else if (data.DisplayViewType == "HappyGroupView") {
+                ShowToast(data.message, "success", 2000);
+                window.location.href = "/Home/HappyGroup";
+            } else {
+                ShowToast(data.message, "error", 4000);
+            }
+        }
+        function onComplete(data) { }
+    </script>
+
+    <!-- Toast 函數 -->
+    <script>
+        function ShowToast(LocalToastMessage, Type, DisplayTime) {
+            var ToastInstance = $("#Toast").dxToast("instance");
+            ToastInstance.option({
+                message: LocalToastMessage,
+                type: Type,
+                displayTime: DisplayTime,
+                closeOnClick: true,
+                // 動態調整位置（測試用）
+                position: {
+                    at: 'center center',
+                    of: '.login-card',  // 或 '#form-container'、window
+                    offset: '0 20'
+                }
+            });
+            ToastInstance.show();
+        }
+    </script>
+
+    <!-- 其他資源 -->
+    <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+    <link href="~/css/Gallery.css" rel="stylesheet" />
+    <link href="~/css/WeeklyReport.css" rel="stylesheet" />
+</body>
+</html>
