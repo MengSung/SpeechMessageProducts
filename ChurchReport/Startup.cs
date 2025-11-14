@@ -319,6 +319,19 @@ namespace ChurchReport
                     defaults: new { controller = "Home", action = "DisplayErrorView" });
 
                 // ========================================
+                // 手機綁定/換號碼 路由
+                // ========================================
+                routes.MapRoute(
+                    name: "changephone",
+                    template: "Phone/ChangePhoneView/{LineIdLoginViewPatameter}",
+                    defaults: new { controller = "PhoneBinding", action = "ChangePhoneView" });
+
+                routes.MapRoute(
+                    name: "phoneqrcode",
+                    template: "Phone/PhoneQrCodeView/{QrCodeViewPatameter}",
+                    defaults: new { controller = "PhoneBinding", action = "PhoneQrCodeView" });
+
+                // ========================================
                 // 預設路由 (必須放在最後)
                 // ========================================
                 routes.MapRoute(
