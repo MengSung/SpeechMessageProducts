@@ -266,6 +266,62 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
+        /// 載入多小組圓餅圖資料
+        /// 用於 MultiGroupView 的 PieChart 資料來源
+        /// </summary>
+        /// <param name="WeeklyReportId">週報ID</param>
+        /// <param name="loadOptions">載入選項</param>
+        [HttpGet]
+        public object GetMultiGroupChartDataList(string WeeklyReportId, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                // 確保多組資料已載入
+                if (InMemoryContext.ListManager.m_MultiGroupChartDataList == null ||
+                    InMemoryContext.ListManager.m_MultiGroupChartDataList.m_MultiGroupChartDataList == null)
+                {
+                    return DataSourceLoader.Load(new List<MultiGroupChartData>(), loadOptions);
+                }
+
+                var chartData = InMemoryContext.ListManager.m_MultiGroupChartDataList.m_MultiGroupChartDataList;
+
+                return DataSourceLoader.Load(chartData, loadOptions);
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "GetMultiGroupChartDataList");
+            }
+        }
+
+        /// <summary>
+        /// 載入多小組列表資料
+        /// 用於 MultiGroupView 的 DataGrid 資料來源
+        /// </summary>
+        /// <param name="id">清單ID</param>
+        /// <param name="loadOptions">載入選項</param>
+        [HttpGet]
+        public object AssignSmallGroupGet(string id, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                // 確保多組資料已載入
+                if (InMemoryContext.ListManager.m_MultiGroupList == null ||
+                    InMemoryContext.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData == null)
+                {
+                    return DataSourceLoader.Load(new List<WeeklyReportRecord>(), loadOptions);
+                }
+
+                var weeklyReportRecords = InMemoryContext.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData;
+
+                return DataSourceLoader.Load(weeklyReportRecords, loadOptions);
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "AssignSmallGroupGet");
+            }
+        }
+
+        /// <summary>
         /// 確保整合資料已載入
         /// </summary>
         private void EnsureIntegrateDataLoaded(string id)
@@ -534,6 +590,49 @@ namespace ChurchReport.Controllers
             catch (Exception e)
             {
                 return HandleError(e, "UpdateHappyWeekTopic");
+            }
+        }
+
+        /// <summary>
+        /// 更新多小組檢視的日期
+        /// 當使用者在 MultiGroupView 中更改日期時調用
+        /// </summary>
+        /// <param name="SelectedDate">選擇的日期 (格式: yyyy/M/d)</param>
+        [HttpGet]
+        public IActionResult UpdateDate(string SelectedDate)
+        {
+            try
+            {
+                // 解析日期
+                if (!DateTime.TryParseExact(SelectedDate, 
+                    new[] { "yyyy/M/d", "yyyy/MM/dd", "yyyy-MM-dd" }, 
+                    CultureInfo.InvariantCulture, 
+                    DateTimeStyles.None, 
+                    out DateTime selectedDateTime))
+                {
+                    return Json(new { success = false, message = "日期格式錯誤" });
+                }
+
+                // 更新選擇的日期
+                InMemoryContext.ListManager.m_SelectDate = selectedDateTime;
+
+                // 重新設置 ListManager 以載入新日期的資料
+                InMemoryContext.ListManager.SetupListManager(
+                    InMemoryContext.ListManager.m_Account,
+                    InMemoryContext.ListManager.m_Password,
+                    selectedDateTime);
+
+                return Json(new { 
+                    success = true, 
+                    message = "日期更新成功" 
+                });
+            }
+            catch (Exception e)
+            {
+                return Json(new { 
+                    success = false, 
+                    message = $"日期更新失敗: {e.Message}" 
+                });
             }
         }
 
