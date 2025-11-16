@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
@@ -467,7 +468,7 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region 幸福小組欄位更新
+        #region 幸福小組週次更新
 
         /// <summary>
         /// 更新幸福小組週次
@@ -502,6 +503,55 @@ namespace ChurchReport.Controllers
             catch (Exception e)
             {
                 return HandleError(e, "UpdateHappyWeekTopic");
+            }
+        }
+
+        /// <summary>
+        /// 更新綜合報表日期
+        /// 當使用者在 IntegrateView 中更改小組日期時調用
+        /// </summary>
+        /// <param name="SelectedDate">選擇的日期 (格式: yyyy/M/d)</param>
+        [HttpGet]
+        public IActionResult UpdateIntegrateDate(string SelectedDate)
+        {
+            try
+            {
+                // 解析日期
+                if (!DateTime.TryParseExact(SelectedDate, 
+                    new[] { "yyyy/M/d", "yyyy/MM/dd", "yyyy-MM-dd" }, 
+                    CultureInfo.InvariantCulture, 
+                    DateTimeStyles.None, 
+                    out DateTime selectedDateTime))
+                {
+                    return Json(new { success = false, message = "日期格式錯誤" });
+                }
+
+                // 更新選擇的日期
+                InMemoryContext.ListManager.m_SelectDate = selectedDateTime;
+
+                // 重新設置 ListManager 以載入新日期的資料
+                InMemoryContext.ListManager.SetupListManager(
+                    InMemoryContext.ListManager.m_Account,
+                    InMemoryContext.ListManager.m_Password,
+                    selectedDateTime);
+
+                // 重新載入綜合報表資料
+                string activeListId = InMemoryContext.ListManager.ActiveListId;
+                InMemoryContext.ListManager.SetupIntegrateData(activeListId);
+
+                // 返回新的 ActiveListId
+                return Json(new { 
+                    success = true, 
+                    ActiveListId = activeListId,
+                    message = "日期更新成功" 
+                });
+            }
+            catch (Exception e)
+            {
+                return Json(new { 
+                    success = false, 
+                    message = $"日期更新失敗: {e.Message}" 
+                });
             }
         }
 
