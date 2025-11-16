@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -231,6 +232,36 @@ namespace ChurchReport.Controllers
             catch (Exception e)
             {
                 return HandleError(e, "LoadIntegrate");
+            }
+        }
+
+        /// <summary>
+        /// 載入圖表資料
+        /// 用於 DevExtreme Chart 的資料來源
+        /// </summary>
+        /// <param name="WeeklyReportId">週報ID</param>
+        /// <param name="loadOptions">載入選項</param>
+        [HttpGet]
+        public object GetChartDataList(string WeeklyReportId, DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                // 確保整合資料已載入
+                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null ||
+                    InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_WeeklyReportChart == null ||
+                    InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList == null)
+                {
+                    return DataSourceLoader.Load(new List<ChartData>(), loadOptions);
+                }
+
+                var chartData = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                    .m_WeeklyReportChart.m_ChartDataList;
+
+                return DataSourceLoader.Load(chartData, loadOptions);
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "GetChartDataList");
             }
         }
 
