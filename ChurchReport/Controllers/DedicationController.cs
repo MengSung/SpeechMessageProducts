@@ -472,11 +472,20 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 膍 LINE 祅
         /// </summary>
-        [Route("/Dedication/DediationLineLoginView/{LineIdLoginViewPatameter}")]
+        [Route("/Dedication/DediationLineLoginView/{LineIdLoginViewPatameter?}")]
+        [Route("/Dedication/DediationLineLoginView")]
+        [Route("/DediationLineLoginView/{LineIdLoginViewPatameter?}")]
+        [Route("/DediationLineLoginView")]
         public IActionResult DediationLineLoginView(string LineIdLoginViewPatameter)
         {
             try
             {
+                // 璝ぶゲ璶把计矗ㄑね到矗ボ
+                if (string.IsNullOrWhiteSpace(LineIdLoginViewPatameter))
+                {
+                    return RedirectToAction("DisplayErrorView", "Home", new { ErrorMessage = "ぶ LIFF 把计叫眖 LINE 秨币" });
+                }
+
                 var images = new System.Collections.Generic.List<string>
                 {
                     Url.Content("~/assets/images/sunnyvalech.jpg")

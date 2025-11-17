@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SetupUserLineId 測試工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+            border-left: 4px solid #764ba2;
+            padding-left: 10px;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px 5px 10px 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button.secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 5px 5px 5px 0;
+        }
+        .status-success {
+            background: #28a745;
+            color: white;
+        }
+        .status-error {
+            background: #dc3545;
+            color: white;
+        }
+        .status-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .status-info {
+            background: #17a2b8;
+            color: white;
+        }
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 5px 0;
+        }
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .log-container {
+            max-height: 400px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px 10px;
+            border-left: 3px solid #667eea;
+            background: white;
+            font-size: 13px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>?? SetupUserLineId API 測試工具</h1>
+        
+        <div class="instructions">
+            <h3>?? 使用說明</h3>
+            <ul>
+                <li>此工具用於測試 <code>/Home/SetupUserLineId</code> API 是否正常運作</li>
+                <li>可以手動輸入參數進行測試，無需通過 LINE LIFF</li>
+                <li>查看詳細的請求和回應資訊</li>
+                <li>診斷 SetupUserLineIdRedirect 是否被正確調用</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>?? 測試配置</h2>
+            
+            <div class="input-group">
+                <label for="baseUrl">伺服器 URL:</label>
+                <input type="text" id="baseUrl" value="https://sunnyvalechback.speechmessage.com.tw:479" placeholder="https://your-domain.com:port">
+            </div>
+            
+            <div class="input-group">
+                <label for="userLineId">LINE User ID:</label>
+                <input type="text" id="userLineId" value="U7638e4ed509708a3573ba6d69970583d" placeholder="例如: U7638e4ed509708a3573ba6d69970583d">
+            </div>
+            
+            <div class="input-group">
+                <label for="groupId">Group ID (選填):</label>
+                <input type="text" id="groupId" value="" placeholder="例如: C1234567890abcdef">
+            </div>
+            
+            <div class="input-group">
+                <label for="roomId">Room ID (選填):</label>
+                <input type="text" id="roomId" value="" placeholder="例如: R1234567890abcdef">
+            </div>
+            
+            <div class="input-group">
+                <label for="viewType">View Type (選填):</label>
+                <input type="text" id="viewType" value="" placeholder="例如: personal, group, room">
+            </div>
+            
+            <button onclick="testSetupUserLineId()">?? 執行測試</button>
+            <button onclick="clearLogs()" class="secondary">??? 清除日誌</button>
+        </div>
+
+        <div class="test-section">
+            <h2>?? 測試結果</h2>
+            <div id="status"></div>
+            <div id="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>?? 執行日誌</h2>
+            <div class="log-container" id="logContainer"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>?? 診斷檢查清單</h2>
+            <div id="diagnostics">
+                <div>準備執行測試...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let logEntries = [];
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+            logEntries.push({ timestamp, message, type });
+            updateLogDisplay();
+        }
+
+        function updateLogDisplay() {
+            const container = document.getElementById('logContainer');
+            container.innerHTML = logEntries.map(entry => 
+                `<div class="log-entry">
+                    <strong>[${entry.timestamp}]</strong> ${entry.message}
+                </div>`
+            ).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearLogs() {
+            logEntries = [];
+            updateLogDisplay();
+            document.getElementById('status').innerHTML = '';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('diagnostics').innerHTML = '<div>日誌已清除，準備執行新測試...</div>';
+        }
+
+        async function testSetupUserLineId() {
+            // 清除之前的結果
+            document.getElementById('status').innerHTML = '<span class="status-badge status-info">測試中...</span>';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('diagnostics').innerHTML = '';
+
+            // 取得輸入值
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const userLineId = document.getElementById('userLineId').value.trim();
+            const groupId = document.getElementById('groupId').value.trim();
+            const roomId = document.getElementById('roomId').value.trim();
+            const viewType = document.getElementById('viewType').value.trim();
+
+            // 驗證輸入
+            if (!baseUrl || !userLineId) {
+                showError('請填寫必要欄位：伺服器 URL 和 LINE User ID');
+                return;
+            }
+
+            addLog('=== 開始測試 SetupUserLineId API ===');
+            addLog(`伺服器 URL: ${baseUrl}`);
+            addLog(`UserLineId: ${userLineId}`);
+            addLog(`GroupId: ${groupId || '(空)'}`);
+            addLog(`RoomId: ${roomId || '(空)'}`);
+            addLog(`ViewType: ${viewType || '(空)'}`);
+
+            // 構建完整 URL
+            const url = `${baseUrl}/Home/SetupUserLineId`;
+            addLog(`完整 API URL: ${url}`);
+
+            // 構建請求資料
+            const data = {
+                UserLineId: userLineId,
+                GroupId: groupId,
+                RoomId: roomId,
+                ViewType: viewType
+            };
+
+            addLog('準備發送 POST 請求...');
+            addLog(`請求資料: ${JSON.stringify(data, null, 2)}`);
+
+            try {
+                const startTime = Date.now();
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(data)
+                });
+
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+
+                addLog(`請求完成，耗時: ${duration}ms`);
+                addLog(`HTTP Status Code: ${response.status} ${response.statusText}`);
+
+                // 診斷檢查
+                const diagnostics = [];
+                
+                if (response.status === 200) {
+                    diagnostics.push('? HTTP 200 OK - SetupUserLineIdRedirect 被成功調用');
+                } else if (response.status === 404) {
+                    diagnostics.push('? HTTP 404 Not Found - 路由未註冊或 IIS 配置問題');
+                } else if (response.status === 500) {
+                    diagnostics.push('? HTTP 500 Internal Server Error - 後端代碼執行錯誤');
+                } else {
+                    diagnostics.push(`?? HTTP ${response.status} - 非預期的狀態碼`);
+                }
+
+                // 解析回應
+                const contentType = response.headers.get('content-type');
+                addLog(`Content-Type: ${contentType}`);
+
+                let responseData;
+                if (contentType && contentType.includes('application/json')) {
+                    responseData = await response.json();
+                    addLog('回應格式: JSON');
+                    addLog(`回應內容: ${JSON.stringify(responseData, null, 2)}`);
+
+                    // 檢查回應內容
+                    if (responseData.status === "1") {
+                        diagnostics.push('? 回應 status = "1" - API 執行成功');
+                    } else if (responseData.status === "0") {
+                        diagnostics.push('?? 回應 status = "0" - API 返回失敗狀態');
+                    } else if (responseData.status === "error") {
+                        diagnostics.push('? 回應包含錯誤訊息');
+                        diagnostics.push(`   錯誤: ${responseData.message}`);
+                    }
+                } else {
+                    responseData = await response.text();
+                    addLog('回應格式: Text/HTML');
+                    addLog(`回應內容 (前 500 字): ${responseData.substring(0, 500)}`);
+                    
+                    if (response.status === 200) {
+                        diagnostics.push('?? 回應不是 JSON 格式 - 可能被重導向或返回 HTML');
+                    }
+                }
+
+                // 顯示結果
+                if (response.status === 200) {
+                    showSuccess(response, responseData, duration, diagnostics);
+                } else {
+                    showError(response, responseData, duration, diagnostics);
+                }
+
+            } catch (error) {
+                const errorMessage = error.message || error.toString();
+                addLog(`? 請求失敗: ${errorMessage}`);
+                
+                const diagnostics = [
+                    '? 無法連線到伺服器',
+                    '可能原因:',
+                    '1. 伺服器未運行或無法訪問',
+                    '2. 網域名稱錯誤',
+                    '3. Port 號碼錯誤',
+                    '4. SSL 憑證問題',
+                    '5. CORS 政策阻擋',
+                    '6. 防火牆或網路問題'
+                ];
+
+                showError({ status: 'Network Error' }, errorMessage, 0, diagnostics);
+            }
+        }
+
+        function showSuccess(response, data, duration, diagnostics) {
+            document.getElementById('status').innerHTML = 
+                '<span class="status-badge status-success">測試成功 ?</span>';
+            
+            document.getElementById('result').innerHTML = `
+                <div class="result success">
+<strong>?? API 調用成功！</strong>
+
+HTTP Status: ${response.status} ${response.statusText}
+回應時間: ${duration}ms
+回應資料:
+${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}
+                </div>
+            `;
+
+            document.getElementById('diagnostics').innerHTML = diagnostics.map(item => 
+                `<div style="margin: 5px 0; padding: 8px; background: #d4edda; border-left: 3px solid #28a745; border-radius: 4px;">${item}</div>`
+            ).join('');
+
+            addLog('=== 測試完成：成功 ===');
+        }
+
+        function showError(response, data, duration, diagnostics) {
+            const statusCode = response.status || 'Unknown';
+            const statusText = response.statusText || '';
+
+            document.getElementById('status').innerHTML = 
+                '<span class="status-badge status-error">測試失敗 ?</span>';
+            
+            document.getElementById('result').innerHTML = `
+                <div class="result error">
+<strong>? API 調用失敗</strong>
+
+HTTP Status: ${statusCode} ${statusText}
+${duration ? `回應時間: ${duration}ms` : ''}
+錯誤資訊:
+${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}
+                </div>
+            `;
+
+            document.getElementById('diagnostics').innerHTML = diagnostics.map(item => 
+                `<div style="margin: 5px 0; padding: 8px; background: #f8d7da; border-left: 3px solid #dc3545; border-radius: 4px;">${item}</div>`
+            ).join('');
+
+            addLog('=== 測試完成：失敗 ===');
+        }
+
+        // 頁面載入時的初始化
+        window.onload = function() {
+            addLog('測試工具已就緒');
+            addLog('請填寫測試參數並點擊「執行測試」按鈕');
+        };
+    </script>
+</body>
+</html>

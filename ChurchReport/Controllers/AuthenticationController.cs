@@ -230,6 +230,217 @@ namespace ChurchReport.Controllers
 
         #endregion
 
+        #region LINE 身分綁定註冊
+
+        /// <summary>
+        /// LINE LIFF 身分綁定註冊頁面
+        /// 用於新用戶透過 LINE 註冊並綁定帳號
+        /// </summary>
+        /// <param name="LineIdLoginViewPatameter">LINE LIFF ID 參數</param>
+        [HttpGet]
+        [Route("/Authentication/LineLiffView/{LineIdLoginViewPatameter?}")]
+        [Route("/LineLiffView/{LineIdLoginViewPatameter?}")]
+        public IActionResult LineLiffView(string LineIdLoginViewPatameter)
+        {
+            try
+            {
+                // 若缺少必要參數，提供友善提示
+                if (string.IsNullOrWhiteSpace(LineIdLoginViewPatameter))
+                {
+                    return RedirectToAction("DisplayErrorView", "Home", new { ErrorMessage = "缺少 LIFF 參數，請從 LINE 入口開啟。" });
+                }
+
+                var images = new List<string>
+                {
+                    Url.Content("~/assets/images/sunnyvalech.jpg")
+                };
+
+                InMemoryContext.LineBindingViewModel.Images = images;
+                TempData["Proponent"] = LineIdLoginViewPatameter;
+
+                return View(InMemoryContext.LineBindingViewModel);
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "LineLiffView");
+            }
+        }
+
+        /// <summary>
+        /// 處理 LINE 身分綁定註冊
+        /// 建立新用戶並綁定 LINE ID
+        /// </summary>
+        /// <param name="model">LINE 綁定資料模型</param>
+        [HttpPost]
+        [Route("/Authentication/ProcessLineBinding")]
+        public async Task<IActionResult> ProcessLineBinding(LineBindingViewModel model)
+        {
+            try
+            {
+                // 驗證必填欄位
+                if (string.IsNullOrWhiteSpace(model.FullName))
+                {
+                    return Json(new { status = "0", message = "主要姓名必填" });
+                }
+
+                if (string.IsNullOrWhiteSpace(model.Mobile))
+                {
+                    return Json(new { status = "0", message = "行動電話必填" });
+                }
+
+                if (string.IsNullOrWhiteSpace(model.LineUserId))
+                {
+                    return Json(new { status = "0", message = "LINE User ID 遺失" });
+                }
+
+                // 檢查 LINE ID 是否已綁定
+                var existingContact = ToolUtility.RetrieveContactByLineId(model.LineUserId);
+                if (existingContact != null)
+                {
+                    return Json(new { 
+                        status = "0", 
+                        message = $"此 LINE 帳號已綁定至 {ToolUtility.GetEntityStringAttribute(existingContact, "fullname")}" 
+                    });
+                }
+
+                // 檢查姓名是否已存在
+                var contactsByName = ToolUtility.RetrieveContactCollectionByName(model.FullName);
+                Entity targetContact = null;
+
+                if (contactsByName != null && contactsByName.Entities.Count > 0)
+                {
+                    // 姓名已存在，嘗試匹配手機號碼
+                    foreach (var contact in contactsByName.Entities)
+                    {
+                        var mobilePhone = ToolUtility.GetEntityStringAttribute(contact, "mobilephone");
+                        if (mobilePhone == model.Mobile)
+                        {
+                            targetContact = contact;
+                            break;
+                        }
+                    }
+
+                    if (targetContact != null)
+                    {
+                        // 找到匹配的聯絡人，綁定 LINE ID
+                        ToolUtility.SetEntityStringAttribute(ref targetContact, "new_lineuserid", model.LineUserId);
+                        
+                        // 更新其他資訊
+                        if (!string.IsNullOrWhiteSpace(model.OtherName))
+                        {
+                            ToolUtility.SetEntityStringAttribute(ref targetContact, "lastname", model.OtherName);
+                        }
+                        
+                        ToolUtility.UpdateEntity(ref targetContact);
+
+                        return Json(new { 
+                            status = "1", 
+                            message = $"已成功綁定 LINE 至現有帳號：{model.FullName}" 
+                        });
+                    }
+                }
+
+                // 建立新聯絡人
+                var newContact = new Entity("contact");
+                ToolUtility.SetEntityStringAttribute(ref newContact, "fullname", model.FullName);
+                ToolUtility.SetEntityStringAttribute(ref newContact, "mobilephone", model.Mobile);
+                ToolUtility.SetEntityStringAttribute(ref newContact, "new_lineuserid", model.LineUserId);
+                
+                if (!string.IsNullOrWhiteSpace(model.OtherName))
+                {
+                    ToolUtility.SetEntityStringAttribute(ref newContact, "lastname", model.OtherName);
+                }
+
+                // 建立聯絡人
+                var newContactId = ToolUtility.CreateEntity(newContact);
+
+                if (newContactId != Guid.Empty)
+                {
+                    return Json(new { 
+                        status = "1", 
+                        message = $"註冊成功！歡迎 {model.FullName} 加入聖谷行道會" 
+                    });
+                }
+                else
+                {
+                    return Json(new { 
+                        status = "0", 
+                        message = "註冊失敗，請稍後再試" 
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "ProcessLineBinding");
+            }
+        }
+
+        /// <summary>
+        /// 儲存 LINE 使用者 ID（用於身分綁定頁面）
+        /// </summary>
+        /// <param name="UserLineId">LINE 使用者 ID</param>
+        /// <param name="GroupId">群組 ID</param>
+        /// <param name="RoomId">聊天室 ID</param>
+        /// <param name="ViewType">視圖類型</param>
+        /// <param name="DisplayName">顯示名稱</param>
+        /// <param name="PictureUrl">頭像 URL</param>
+        /// <param name="StatusMessage">狀態訊息</param>
+        [HttpPost]
+        [Route("/Authentication/SaveUserId")]
+        public async Task<IActionResult> SaveUserId(
+            string UserLineId, 
+            string GroupId, 
+            string RoomId, 
+            string ViewType,
+            string DisplayName = "",
+            string PictureUrl = "",
+            string StatusMessage = "")
+        {
+            try
+            {
+                // 設定 LINE 相關資訊
+                InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
+                InMemoryContext.LineBindingViewModel.RoomId = RoomId ?? "";
+                InMemoryContext.LineBindingViewModel.GroupId = GroupId ?? "";
+                InMemoryContext.LineBindingViewModel.ViewType = ViewType ?? "";
+
+                // 儲存額外資訊
+                if (!string.IsNullOrEmpty(DisplayName))
+                {
+                    InMemoryContext.LineBindingViewModel.FullName = DisplayName;
+                }
+
+                // 檢查用戶是否已綁定
+                var loginContact = ToolUtility.RetrieveContactByLineId(UserLineId);
+                
+                if (loginContact == null)
+                {
+                    // 用戶尚未綁定
+                    return Json(new
+                    {
+                        status = "1",
+                        message = "請完成身分綁定註冊"
+                    });
+                }
+                else
+                {
+                    // 用戶已綁定
+                    var fullName = ToolUtility.GetEntityStringAttribute(loginContact, "fullname");
+                    return Json(new
+                    {
+                        status = "0",
+                        message = $"您已綁定為 {fullName}"
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "SaveUserId");
+            }
+        }
+
+        #endregion
+
         #region 登出
 
         /// <summary>

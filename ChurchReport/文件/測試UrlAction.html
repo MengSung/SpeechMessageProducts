@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AJAX URL 測試</title>
+</head>
+<body>
+    <h1>測試 Url.Action 生成的 URL</h1>
+    <div id="result"></div>
+    
+    <script>
+        // 模擬 Razor 生成的 URL
+        var testUrl = '@Url.Action("SetupUserLineId", "Home")';
+        document.getElementById('result').innerHTML = '<strong>生成的 URL:</strong> ' + testUrl;
+        console.log('Url.Action 生成的 URL:', testUrl);
+    </script>
+</body>
+</html>

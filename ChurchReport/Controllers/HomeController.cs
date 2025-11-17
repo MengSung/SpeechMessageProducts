@@ -199,6 +199,54 @@ namespace ChurchReport.Controllers
             return dedicationController.SetupUserLineId(UserLineId, GroupId, RoomId, ViewType);
         }
         
+        /// <summary>
+        /// 向後相容: 將舊的 /Home/LineLiffView 重導向到 /Authentication/LineLiffView
+        /// </summary>
+        [Route("/Home/LineLiffView/{LineIdLoginViewPatameter?}")]
+        public IActionResult LineLiffViewRedirect(string LineIdLoginViewPatameter)
+        {
+            return RedirectToAction("LineLiffView", "Authentication", new { LineIdLoginViewPatameter });
+        }
+
+        /// <summary>
+        /// 向後相容: 處理舊的 /Home/ProcessLineBinding POST 請求
+        /// </summary>
+        [HttpPost]
+        [Route("/Home/ProcessLineBinding")]
+        public async Task<IActionResult> ProcessLineBindingRedirect(LineBindingViewModel model)
+        {
+            // 直接調用新控制器的方法
+            var authController = new AuthenticationController(
+                HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
+                HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
+                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment);
+            
+            return await authController.ProcessLineBinding(model);
+        }
+
+        /// <summary>
+        /// 向後相容: 處理舊的 /Home/SaveUserId POST 請求
+        /// </summary>
+        [HttpPost]
+        [Route("/Home/SaveUserId")]
+        public async Task<IActionResult> SaveUserIdRedirect(
+            string UserLineId, 
+            string GroupId, 
+            string RoomId, 
+            string ViewType,
+            string DisplayName = "",
+            string PictureUrl = "",
+            string StatusMessage = "")
+        {
+            // 直接調用新控制器的方法
+            var authController = new AuthenticationController(
+                HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
+                HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
+                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment);
+            
+            return await authController.SaveUserId(UserLineId, GroupId, RoomId, ViewType, DisplayName, PictureUrl, StatusMessage);
+        }
+        
         #endregion
     }
 }
