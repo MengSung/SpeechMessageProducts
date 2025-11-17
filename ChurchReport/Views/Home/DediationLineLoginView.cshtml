@@ -257,8 +257,8 @@ font-weight: 600;
         var ViewType = "";
 
         window.onload = function (e) {
-            console.log("=== window.onload 觸發 ===");
-            console.log("LIFF ID:", '@TempData["Proponent"]');
+            // console.log("=== window.onload 觸發 ===");
+            // console.log("LIFF ID:", '@TempData["Proponent"]');
             
             // 檢查 LIFF SDK 是否載入
             if (typeof liff === 'undefined') {
@@ -266,33 +266,33 @@ font-weight: 600;
                 document.getElementById('displaynamefield').innerHTML = "錯誤：LIFF SDK 未載入";
                 return;
             } else {
-                console.log("✅ LIFF SDK 已載入");
+                // console.log("✅ LIFF SDK 已載入");
             }
             
             liff.init({ liffId: '@TempData["Proponent"]' })
                 .then(() => {
-                    console.log("✅ LIFF 初始化成功");
+                    // console.log("✅ LIFF 初始化成功");
                     
                     // 检查用户是否已登录
                     if (!liff.isLoggedIn()) {
-                        console.log("⚠️ 用戶未登入 LINE");
+                        // console.log("⚠️ 用戶未登入 LINE");
                         document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
                         ShowToast("您還沒有登入LINE", "error", 5000);
                         liff.login();
                         return;
                     }
                     else {
-                        console.log("✅ 用戶已登入 LINE");
+                        // console.log("✅ 用戶已登入 LINE");
                         
                         liff.permission.query("profile").then((permissionStatus) => {
-                            console.log("權限狀態:", permissionStatus.state);
+                            // console.log("權限狀態:", permissionStatus.state);
                             
                             if (permissionStatus.state === "granted") {
-                                console.log("✅ 使用者已授權 profile 權限");
+                                // console.log("✅ 使用者已授權 profile 權限");
                                 initializeApp();
                             }
                             else if (permissionStatus.state === "prompt") {
-                                console.log("⚠️ 需要請求授權");
+                                // console.log("⚠️ 需要請求授權");
                                 document.getElementById('displaynamefield').innerHTML = "您並未授權，請先完成授權程序!";
                                 liff.permission.requestAll();
                             }
@@ -310,12 +310,12 @@ font-weight: 600;
         };
 
         async function initializeApp() {
-            console.log("=== initializeApp 開始 ===");
+            // console.log("=== initializeApp 開始 ===");
             
             try {
                 const profile = await liff.getProfile();
-                console.log("✅ liff.getProfile() 成功");
-                console.log("Profile:", profile);
+                // console.log("✅ liff.getProfile() 成功");
+                // console.log("Profile:", profile);
                 
                 document.getElementById('displaynamefield').innerHTML = profile.displayName + "<br/> 登入奉獻中，請稍待......";
 
@@ -325,13 +325,13 @@ font-weight: 600;
                 RoomId = profile.aRoomId || "";
                 ViewType = profile.aViewType || "";
                 
-                console.log("DisplayName:", DisplayName);
-                console.log("UserId:", UserId);
-                console.log("GroupId:", GroupId);
-                console.log("RoomId:", RoomId);
-                console.log("ViewType:", ViewType);
+                // console.log("DisplayName:", DisplayName);
+                // console.log("UserId:", UserId);
+                // console.log("GroupId:", GroupId);
+                // console.log("RoomId:", RoomId);
+                // console.log("ViewType:", ViewType);
                 
-                console.log("準備調用 UpdateLineUserId");
+                // console.log("準備調用 UpdateLineUserId");
                 
                 // 取得 UserId 的Ajax
                 UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
@@ -343,11 +343,11 @@ font-weight: 600;
         }
 
         function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType) {
-            console.log("=== UpdateLineUserId 被調用 ===");
-            console.log("UserLineId:", aUserLineId);
-            console.log("GroupId:", aGroupId);
-            console.log("RoomId:", aRoomId);
-            console.log("ViewType:", aViewType);
+            // console.log("=== UpdateLineUserId 被調用 ===");
+            // console.log("UserLineId:", aUserLineId);
+            // console.log("GroupId:", aGroupId);
+            // console.log("RoomId:", aRoomId);
+            // console.log("ViewType:", aViewType);
             
             // 檢查 jQuery 是否載入
             if (typeof $ === 'undefined') {
@@ -355,22 +355,22 @@ font-weight: 600;
                 document.getElementById('displaynamefield').innerHTML = "錯誤：jQuery 未載入";
                 return;
             } else {
-                console.log("✅ jQuery 已載入，版本:", $.fn.jquery);
+                // console.log("✅ jQuery 已載入，版本:", $.fn.jquery);
             }
             
             // 檢查 URL 是否正確生成
             var ajaxUrl = '@Url.Action("SetupUserLineId", "Home")';
-            console.log("AJAX URL:", ajaxUrl);
-            console.log("AJAX URL Type:", typeof ajaxUrl);
-            console.log("AJAX URL Length:", ajaxUrl.length);
+            // console.log("AJAX URL:", ajaxUrl);
+            // console.log("AJAX URL Type:", typeof ajaxUrl);
+            // console.log("AJAX URL Length:", ajaxUrl.length);
             
             if (!ajaxUrl || ajaxUrl.trim() === '') {
                 console.error("❌ AJAX URL 為空！");
                 ajaxUrl = '/Home/SetupUserLineId';  // 使用備用 URL
-                console.log("使用備用 URL:", ajaxUrl);
+                // console.log("使用備用 URL:", ajaxUrl);
             }
             
-            console.log("準備發送 AJAX 請求...");
+            // console.log("準備發送 AJAX 請求...");
             
             // AJAX 區塊
             $.ajax({
@@ -384,29 +384,29 @@ font-weight: 600;
                 type: 'POST',
                 
                 beforeSend: function(xhr, settings) {
-                    console.log("=== AJAX beforeSend 觸發 ===");
-                    console.log("URL:", settings.url);
-                    console.log("Type:", settings.type);
-                    console.log("Data:", settings.data);
+                    // console.log("=== AJAX beforeSend 觸發 ===");
+                    // console.log("URL:", settings.url);
+                    // console.log("Type:", settings.type);
+                    // console.log("Data:", settings.data);
                 },
                 
                 success: function (data) {
-                    console.log("=== AJAX Success ===");
-                    console.log("Response:", data);
-                    console.log("Response Type:", typeof data);
+                    // console.log("=== AJAX Success ===");
+                    // console.log("Response:", data);
+                    // console.log("Response Type:", typeof data);
                     
-                    if (data && data.status) {
-                        console.log("Status:", data.status);
-                    }
+                    // if (data && data.status) {
+                    //     console.log("Status:", data.status);
+                    // }
                     
-                    console.log("準備重導向到:", "/Home/QPayView/" + aUserLineId);
+                    // console.log("準備重導向到:", "/Home/QPayView/" + aUserLineId);
                     
                     // 用Line自己的網頁瀏覽器，比較快，但是Apple Pay不成功
                     window.location.href = "/Home/QPayView/" + aUserLineId;
                 },
                 
                 error: function (xhr, status, error) {
-                    console.log("=== AJAX Error ===");
+                    // console.log("=== AJAX Error ===");
                     console.error("Status:", status);
                     console.error("Error:", error);
                     console.error("Status Code:", xhr.status);
@@ -428,12 +428,12 @@ font-weight: 600;
                 },
                 
                 complete: function(xhr, status) {
-                    console.log("=== AJAX Complete ===");
-                    console.log("Final Status:", status);
+                    // console.log("=== AJAX Complete ===");
+                    // console.log("Final Status:", status);
                 }
             });
             
-            console.log("AJAX 請求已發送");
+            // console.log("AJAX 請求已發送");
         }
 
         function ShowToast(LocalToastMessage, Type, DisplayTime) {
@@ -445,7 +445,7 @@ font-weight: 600;
                 ToastInstance.option('white-space', 'pre-line');
                 ToastInstance.option('closeOnClick', true);
                 ToastInstance.show();
-                console.log("Toast 顯示:", LocalToastMessage);
+                // console.log("Toast 顯示:", LocalToastMessage);
             } catch (e) {
                 console.error("Toast 顯示失敗:", e);
             }
