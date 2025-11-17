@@ -62,7 +62,7 @@
                                     var DiscipleLessonsDateTime = ParsingDate( row.DiscipleLessonsDateTime );
                                     if( DiscipleLessonsDateTime.getFullYear() == 1901 )
                                     {
-                                         null;
+                                         return null;
                                     }
                                     else
                                     {
@@ -80,7 +80,7 @@
                 //.OnRowInserting("function(e) {  e.data.BestRecordParentId = e.data.key ; }")
                 .OnInitNewRow(string.Format("function(e) {{ onInitNewRow(e, {0}); }}", new JS("data.EquipmentContactId")))
 
-                .DataSource(d => d.WebApi()
+                .DataSource(d => d.Mvc()
                     .Controller("Equipment")
                     .LoadAction("LoadEquipmentStorLessons")
                     .Key("StorLessonsEntityId")
@@ -116,7 +116,7 @@
     }
 
     function onInitNewRow(e, ParentID) {
-        alert(parentID);
+        console.log("onInitNewRow called with ParentID:", ParentID);
         e.data.InsertType = "Best";
         e.data.MasterParentID = ParentID;
     }

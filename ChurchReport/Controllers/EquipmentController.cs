@@ -165,15 +165,42 @@ namespace ChurchReport.Controllers
         /// 載入裝備課程清單資料
         /// 用於第三層 master-detail 的 DataGrid - 返回 EquipmentStorLessons 清單
         /// </summary>
-        /// <param name="id">聯絡人ID</param>
+        /// <param name="id">聯絡人的 PresentRecordId (CRM ContactId)</param>
         /// <param name="loadOptions">載入選項</param>
         [HttpGet]
         public object LoadEquipmentStorLessons(string id, DataSourceLoadOptions loadOptions)
         {
             try
             {
-                // 從 CRM 查詢該聯絡人的課程記錄
-                var storLessons = ToolUtility.RetrieveStorLessonsByFetchXml("", "", "", id);
+                // 確保資料已載入
+                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
+                    !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 資料未載入，id={id}");
+                    return DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions);
+                }
+
+                // 從成員列表中找到對應的聯絡人
+                var members = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                    ?.m_SmallGroupDataList?.m_AllMemeberData?.Members 
+                    ?? new List<Member>();
+
+                var member = members.FirstOrDefault(m => m.PresentRecordId == id);
+                
+                if (member == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 找不到成員，id={id}");
+                    return DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions);
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 查詢課程記錄: ContactName={member.FullName}, ContactId={member.PresentRecordId}");
+
+                // 從 CRM 查詢該聯絡人的所有課程記錄
+                // 使用2參數版本: RetrieveStorLessonsByFetchXml(ContactName, ContactId)
+                // PresentRecordId 即為 CRM 中的 ContactId
+                var storLessons = ToolUtility.RetrieveStorLessonsByFetchXml(member.FullName, member.PresentRecordId);
+
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 查詢結果: storLessons={storLessons != null}, Count={storLessons?.Entities.Count ?? -1}");
 
                 var lessonsList = new List<EquipmentStorLessons>();
 
@@ -182,21 +209,31 @@ namespace ChurchReport.Controllers
                     foreach (var lessonEntity in storLessons.Entities)
                     {
                         var lesson = lessonEntity; // 建立臨時變數以支援 ref 參數
-                        lessonsList.Add(new EquipmentStorLessons
+                        
+                        var lessonItem = new EquipmentStorLessons
                         {
                             StorLessonsEntityId = lesson.Id.ToString(),
                             DiscipleLessonsName = ToolUtility.GetEntityStringAttribute(ref lesson, "new_name"),
                             StageName = ToolUtility.GetEntityStringAttribute(ref lesson, "new_stagename"),
                             CurrentComplete = ToolUtility.GetEntityBoolAttribute(ref lesson, "new_currentcomplete"),
                             DiscipleLessonsDateTime = ToolUtility.GetEntityDateTimeAttribute(ref lesson, "new_disciplelessonsdatetime")
-                        });
+                        };
+                        
+                        System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 課程: {lessonItem.DiscipleLessonsName}, 階段: {lessonItem.StageName}");
+                        lessonsList.Add(lessonItem);
                     }
                 }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 警告: 該聯絡人({member.FullName})沒有課程記錄，或課程的 new_classification 不是 100000000/100000001");
+                }
 
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 最終返回課程數量: {lessonsList.Count}");
                 return DataSourceLoader.Load(lessonsList, loadOptions);
             }
             catch (Exception e)
             {
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 錯誤: {e.Message}");
                 return HandleError(e, "LoadEquipmentStorLessons");
             }
         }
