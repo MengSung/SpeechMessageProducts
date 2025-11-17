@@ -158,6 +158,47 @@ namespace ChurchReport.Controllers
             return RedirectToAction("PhoneQrCodeView", "PhoneBinding", new { QrCodeViewPatameter, QrCodeId });
         }
         
+        /// <summary>
+        /// 向後相容: 將舊的 /Home/DediationLineLoginView 重導向到 /Dedication/DediationLineLoginView
+        /// </summary>
+        [Route("/Home/DediationLineLoginView/{LineIdLoginViewPatameter}")]
+        public IActionResult DediationLineLoginViewRedirect(string LineIdLoginViewPatameter)
+        {
+            return RedirectToAction("DediationLineLoginView", "Dedication", new { LineIdLoginViewPatameter });
+        }
+        
+        /// <summary>
+        /// 向後相容: 處理舊的 /Home/SaveUserLineId POST 請求
+        /// </summary>
+        [HttpPost]
+        [Route("/Home/SaveUserLineId")]
+        public async Task<IActionResult> SaveUserLineIdRedirect(string UserLineId, string GroupId, string RoomId, string ViewType)
+        {
+            // 直接調用新控制器的方法
+            var authController = new AuthenticationController(
+                HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
+                HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
+                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment);
+            
+            return await authController.SaveUserLineId(UserLineId, GroupId, RoomId, ViewType);
+        }
+        
+        /// <summary>
+        /// 向後相容: 處理舊的 /Home/SetupUserLineId POST 請求（奉獻用）
+        /// </summary>
+        [HttpPost]
+        [Route("/Home/SetupUserLineId")]
+        public IActionResult SetupUserLineIdRedirect(string UserLineId, string GroupId, string RoomId, string ViewType)
+        {
+            // 直接調用 DedicationController 的方法
+            var dedicationController = new DedicationController(
+                HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
+                HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
+                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment);
+            
+            return dedicationController.SetupUserLineId(UserLineId, GroupId, RoomId, ViewType);
+        }
+        
         #endregion
     }
 }

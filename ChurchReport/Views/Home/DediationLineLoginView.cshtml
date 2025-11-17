@@ -202,6 +202,18 @@ font-weight: 600;
             .DisplayTime(20000)
             .MaxWidth(220)
         )
+        
+        @(Html.DevExtreme().LoadPanel()
+            .ID("loadPanel")
+            .ShadingColor("rgba(0,0,0,0.4)")
+            .Position(p => p.Of("#LoadPanelSection"))
+            .Visible(false)
+            .ShowIndicator(true)
+            .ShowPane(true)
+            .Shading(true)
+            .CloseOnOutsideClick(false)
+            .Message("登入中，請稍候...")
+        )
     </div>
 
     <script>

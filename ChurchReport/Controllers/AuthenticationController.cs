@@ -141,8 +141,70 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 處理 LINE 登入
-        /// 透過 LINE User ID 進行身份驗證
+        /// ?x?s LINE ???? ID ???i?????n?J
+        /// ?? LIFF ?e???U LINE ??????A?M?J?}?n?J?y?{
+        /// </summary>
+        /// <param name="UserLineId">LINE ???? ID</param>
+        /// <param name="GroupId">?s??</param>
+        /// <param name="RoomId">??????</param>
+        /// <param name="ViewType">?????????</param>
+        [HttpPost]
+        [Route("/Authentication/SaveUserLineId")]
+        public async Task<IActionResult> SaveUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
+        {
+            try
+            {
+                // ?]?w LINE ?????????T
+                InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
+                InMemoryContext.LineBindingViewModel.RoomId = RoomId;
+                InMemoryContext.LineBindingViewModel.GroupId = GroupId;
+                InMemoryContext.LineBindingViewModel.ViewType = ViewType;
+
+                // ?]?w???? ID
+                if (!string.IsNullOrEmpty(GroupId))
+                    InMemoryContext.LineBindingViewModel.DisplayId = GroupId;
+                else if (!string.IsNullOrEmpty(RoomId))
+                    InMemoryContext.LineBindingViewModel.DisplayId = RoomId;
+                else
+                    InMemoryContext.LineBindingViewModel.DisplayId = UserLineId;
+
+                // ??d????O?_?w?N??
+                var loginContact = ToolUtility.RetrieveContactByLineId(UserLineId);
+                
+                if (loginContact == null)
+                {
+                    // ??????|?w?N??
+                    return Json(new
+                    {
+                        DisplayViewType = "???N??",
+                        ActiveListId = "",
+                        message = "???N??",
+                        fullname = ""
+                    });
+                }
+
+                // ??? LINE ?n?J?? ViewModel
+                var lineLoginViewModel = new GalleryViewModel
+                {
+                    Account = "",  // LINE ?n?J????n?b??
+                    Password = UserLineId
+                };
+
+                // ?]?w LINE ?n?J??O
+                InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
+
+                // ??βΤ@???n?J?B?z?y?{
+                return await ProcessLogin(lineLoginViewModel);
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "SaveUserLineId");
+            }
+        }
+
+        /// <summary>
+        /// ?B?z LINE ?n?J
+        /// ?z?L LINE User ID ?i????????
         /// </summary>
         [HttpPost]
         [Route("/Authentication/ProcessLineLogin")]
@@ -150,14 +212,14 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // 建立 LINE 登入的 GalleryViewModel
+                // ??? LINE ?n?J?? GalleryViewModel
                 var lineLoginViewModel = new GalleryViewModel
                 {
-                    Account = "",  // LINE 登入不需要帳號
+                    Account = "",  // LINE ?n?J????n?b??
                     Password = InMemoryContext.LineBindingViewModel.LineUserId
                 };
 
-                // 使用統一的登入處理流程
+                // ??βΤ@???n?J?B?z?y?{
                 return await ProcessLogin(lineLoginViewModel);
             }
             catch (Exception e)
