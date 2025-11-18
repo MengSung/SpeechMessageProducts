@@ -4136,7 +4136,7 @@ namespace ToolUtilityNameSpace
                             <order attribute='new_new_disciple_lessons_new_stor_les' descending='false' />
                             <order attribute='new_contact_new_stor_lessons' descending='false' />
                             <filter type='and'>
-                                <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname='林寬仁' uitype='contact' value='{36E57E1C-900B-F011-8143-00155D006608}' />
+                                <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname=" + ContactName + @" uitype='contact' value=" + ContactId + @" />
                             </filter>
                             <link-entity name='contact' from='contactid' to='new_contact_new_stor_lessons' visible='false' link-type='outer' alias='a_45d999afd4cc4001b091647bb91668ef'>
                               <attribute name='telephone2' />
@@ -4156,7 +4156,8 @@ namespace ToolUtilityNameSpace
                           </entity>
                         </fetch>";
 
-                                                //< condition attribute = 'new_contact_new_stor_lessons' operator= 'eq' uiname = " + ContactName + @" uitype = 'contact' value = " + ContactId + @
+                //<condition attribute = 'new_contact_new_stor_lessons' operator= 'eq' uiname = " + ContactName + @" uitype = 'contact' value = " + ContactId + @
+                //< condition attribute = 'new_contact_new_stor_lessons' operator= 'eq' uiname = " + ContactName + @" uitype = 'contact' value = " + ContactId + @" />
                 //<condition attribute='new_contact_new_stor_lessons' operator='eq' uiname='林寬仁' uitype='contact' value='{36E57E1C-900B-F011-8143-00155D006608}' />
 
 

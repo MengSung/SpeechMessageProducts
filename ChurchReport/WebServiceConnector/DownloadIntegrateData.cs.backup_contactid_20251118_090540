@@ -369,14 +369,12 @@ namespace ChurchReport.WebServiceConnector
                         #region 填寫 MemberInfomation 所需要的每個欄位
                         #region// 出席紀錄組員的全名
                         String FullName = "";
-                        String ContactId = ""; // 聯絡人 ID
                         EntityReference aFullNameEntityReference = new EntityReference();
                         if (PresentRecordEntity.Attributes.Contains("new_contact_new_present_record"))
                         {
                             aFullNameEntityReference = (EntityReference)PresentRecordEntity.Attributes["new_contact_new_present_record"];
 
                             FullName = (string)aFullNameEntityReference.Name;
-                            ContactId = aFullNameEntityReference.Id.ToString(); // 取得 ContactId
                         }
                         else
                         {
@@ -639,7 +637,6 @@ namespace ChurchReport.WebServiceConnector
                                 new Member
                                 {
                                     PresentRecordId = PresentRecordEntity.Id.ToString(),
-                                    ContactId = ContactId, // 聯絡人 ID
                                     Group = GroupName,
                                     FullName = FullName,
                                     #region 個人基本資料
@@ -786,7 +783,6 @@ namespace ChurchReport.WebServiceConnector
             return new Member
             {
                 PresentRecordId = ".......",
-                ContactId = this.m_ContactEntity.Id.ToString(), // 聯絡人 ID
                 Group = GroupName,
                 FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname"),
                 #region 個人基本資料
@@ -1337,8 +1333,6 @@ namespace ChurchReport.WebServiceConnector
                         {
                             FullName = (string)ContactEntity.Attributes["fullname"];
                         }
-                        // 組員的 ContactId
-                        String ContactId = ContactEntity.Id.ToString();
                         // 組員的手機
                         String aMobilePhone = "";
                         if (ContactEntity.Attributes.Contains("mobilephone"))
@@ -1422,7 +1416,6 @@ namespace ChurchReport.WebServiceConnector
                                 new Member
                                 {
                                     PresentRecordId = PresentRecordIdCounter++.ToString(),
-                                    ContactId = ContactId, // 聯絡人 ID
                                     Group = GroupName,
                                     FullName = FullName,
                                     #region 個人基本資料
@@ -1484,8 +1477,6 @@ namespace ChurchReport.WebServiceConnector
             #region// 依據紀錄組員的全名，找到手機號碼、家裡電話、地址、生日、職業及專長
             // 組員的全名
             String FullName = "";
-                        // 組員的 ContactId
-            String ContactId = m_ContactEntity.Id.ToString();
             if ( this.m_ContactEntity.Attributes.Contains("fullname"))
             {
                 FullName = (string)m_ContactEntity.Attributes["fullname"];
@@ -1573,7 +1564,6 @@ namespace ChurchReport.WebServiceConnector
                     new Member
                     {
                         PresentRecordId = DateTime.Now.ToLongTimeString().ToString(),
-                        ContactId = ContactId, // 聯絡人 ID
                         Group = GroupName,
                         FullName = FullName,
                         #region 個人基本資料

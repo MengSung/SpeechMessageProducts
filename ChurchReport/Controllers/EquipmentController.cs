@@ -165,7 +165,7 @@ namespace ChurchReport.Controllers
         /// 載入裝備課程清單資料
         /// 用於第三層 master-detail 的 DataGrid - 返回 EquipmentStorLessons 清單
         /// </summary>
-        /// <param name="id">聯絡人的 PresentRecordId (CRM ContactId)</param>
+        /// <param name="id">聯絡人的 PresentRecordId</param>
         /// <param name="loadOptions">載入選項</param>
         [HttpGet]
         public object LoadEquipmentStorLessons(string id, DataSourceLoadOptions loadOptions)
@@ -193,12 +193,18 @@ namespace ChurchReport.Controllers
                     return DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions);
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 查詢課程記錄: ContactName={member.FullName}, ContactId={member.PresentRecordId}");
+                // 檢查 ContactId 是否存在
+                if (string.IsNullOrEmpty(member.ContactId))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 警告: ContactId 為空，FullName={member.FullName}, PresentRecordId={member.PresentRecordId}");
+                    return DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions);
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 查詢課程記錄: ContactName={member.FullName}, ContactId={member.ContactId}");
 
                 // 從 CRM 查詢該聯絡人的所有課程記錄
                 // 使用2參數版本: RetrieveStorLessonsByFetchXml(ContactName, ContactId)
-                // PresentRecordId 即為 CRM 中的 ContactId
-                var storLessons = ToolUtility.RetrieveStorLessonsByFetchXml(member.FullName, member.PresentRecordId);
+                var storLessons = ToolUtility.RetrieveStorLessonsByFetchXml(member.FullName, member.ContactId);
 
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 查詢結果: storLessons={storLessons != null}, Count={storLessons?.Entities.Count ?? -1}");
 
@@ -215,8 +221,8 @@ namespace ChurchReport.Controllers
                             StorLessonsEntityId = lesson.Id.ToString(),
                             DiscipleLessonsName = ToolUtility.GetEntityLookupDisplayName(ref lesson, "new_new_disciple_lessons_new_stor_les"),
                             StageName = ToolUtility.GetEntityStringAttribute(ref lesson, "new_stagename"),
-                            CurrentComplete = ToolUtility.GetEntityBoolAttribute(ref lesson, "new_currentcomplete"),
-                            DiscipleLessonsDateTime = ToolUtility.GetEntityDateTimeAttribute(ref lesson, "new_disciplelessonsdatetime")
+                            CurrentComplete = ToolUtility.GetEntityBoolAttribute(ref lesson, "new_current_complete"),
+                            DiscipleLessonsDateTime = ToolUtility.GetEntityDateTimeAttribute(ref lesson, "new_class_start_date") // 修正: 使用正確的欄位名稱 new_class_start_date（課程上課開始日期）
                         };
                         
                         System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 課程: {lessonItem.DiscipleLessonsName}, 階段: {lessonItem.StageName}");

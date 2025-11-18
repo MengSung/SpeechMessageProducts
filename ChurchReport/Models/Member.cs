@@ -12,7 +12,10 @@ namespace ChurchReport.Models {
 
         ListSmallGroupWeeklyReport ParentListSmallGroupWeeklyReport { get; set; }
 
-        public String PresentRecordId { get; set; }
+        // CRM 實體 ID
+        public String PresentRecordId { get; set; }  // Present Record ID (出席記錄 ID)
+        public String ContactId { get; set; }        // Contact ID (聯絡人 ID) - 用於查詢課程記錄等功能
+
         public int Id { get; set; }
         public string Group { get; set; }
         public string FullName { get; set; }
