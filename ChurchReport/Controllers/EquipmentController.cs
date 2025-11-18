@@ -213,7 +213,7 @@ namespace ChurchReport.Controllers
                         var lessonItem = new EquipmentStorLessons
                         {
                             StorLessonsEntityId = lesson.Id.ToString(),
-                            DiscipleLessonsName = ToolUtility.GetEntityStringAttribute(ref lesson, "new_name"),
+                            DiscipleLessonsName = ToolUtility.GetEntityLookupDisplayName(ref lesson, "new_new_disciple_lessons_new_stor_les"),
                             StageName = ToolUtility.GetEntityStringAttribute(ref lesson, "new_stagename"),
                             CurrentComplete = ToolUtility.GetEntityBoolAttribute(ref lesson, "new_currentcomplete"),
                             DiscipleLessonsDateTime = ToolUtility.GetEntityDateTimeAttribute(ref lesson, "new_disciplelessonsdatetime")

@@ -1,96 +1,108 @@
 ﻿@using ChurchReport.Models
 
+@{
+    ViewBag.Title = "裝備課程記錄";
+}
+
 <div class="internal-grid-container">
     @(Html.DevExtreme().DataGrid<EquipmentStorLessons>()
         .ElementAttr("class", "internal-grid")
+
+        // 基本配置
         .AllowColumnResizing(false)
-        //.Width(1500)
-        .Grouping(d => d.AutoExpandAll(true))
-        //.AllowColumnReordering(true)
         .ColumnAutoWidth(true)
-        //.ColumnResizingMode( ColumnResizingMode.NextColumn)
-        //.ColumnFixing(c => c.Enabled(true))
-        //.ColumnMinWidth(80)
         .NoDataText("沒有資料")
         .ShowBorders(true)
         .ShowRowLines(true)
         .ShowColumnLines(true)
-        //.Grouping(d => d.AutoExpandAll(true))
 
+        // 排序配置
         .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple).ShowSortIndexes(true))
+
+        // 事件處理
         .OnRowPrepared("OnRowPrepared")
 
+        // 編輯配置
         .Editing(editing =>
         {
-                //editing.Mode(GridEditMode.Row);
-                editing.Mode(GridEditMode.Cell);
-                //editing.Mode(GridEditMode.Batch);
-                //editing.Mode(GridEditMode.Form);
-                //editing.Mode(GridEditMode.Popup);
-                //editing.AllowUpdating(true);
-                //editing.AllowDeleting(true);
-                //editing.AllowAdding(true);
-                editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("確定").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除").ConfirmDeleteTitle("確定要刪除嗎?").ConfirmDeleteMessage("刪除幸福小組組員"));
-                //editing.AllowDeleting(true);
-            })
+            editing.Mode(GridEditMode.Cell);
+            editing.Texts(a => a
+                .SaveAllChanges("上傳檔案")
+                .AddRow("新增")
+                .CancelAllChanges("取消變更")
+                .SaveRowChanges("確定")
+                .CancelRowChanges("取消")
+                .EditRow("編輯")
+                .DeleteRow("刪除")
+                .ConfirmDeleteTitle("確定要刪除嗎?")
+                .ConfirmDeleteMessage("刪除幸福小組組員"));
+        })
 
+        // 欄位配置
         .Columns(columns =>
         {
-                columns.AddFor(m => m.DiscipleLessonsName)
-                        .Width(200)
-                        //.Fixed(true)
-                        .Caption("課程名稱");
+            // 課程名稱
+            columns.AddFor(m => m.DiscipleLessonsName)
+                .Width(200)
+                .Caption("課程名稱");
 
-                columns.AddFor(m => m.StageName)
-                    .Width(80)
-                    //.Fixed(true)
-                    .Caption("階段名稱");
+            // 階段名稱
+            columns.AddFor(m => m.StageName)
+                .Width(80)
+                .Caption("階段名稱");
 
-                columns.AddFor(m => m.CurrentComplete)
-                        .Width(80)
-                        //.GroupIndex(0)
-                        //.Fixed(true)
-                        .Caption("是否結業");
+            // 是否結業
+            columns.AddFor(m => m.CurrentComplete)
+                .Width(80)
+                .Caption("是否結業");
 
-
-                columns.AddFor(m => m.DiscipleLessonsDateTime).Caption("日期").Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Date).Format("yyyy/M/d").Width(100).MinWidth(45).AllowSorting(true)
-                    .CalculateCellValue(@<text>
-                            function(row)
+            // 課程日期
+            columns.AddFor(m => m.DiscipleLessonsDateTime)
+                .Caption("日期")
+                .Alignment(HorizontalAlignment.Center)
+                .DataType(GridColumnDataType.Date)
+                .Format("yyyy/M/d")
+                .Width(100)
+                .MinWidth(45)
+                .AllowSorting(true)
+                .CalculateCellValue(@<text>
+                    function(row)
+                    {
+                        if (row.DiscipleLessonsDateTime != null)
+                        {
+                            var DiscipleLessonsDateTime = ParsingDate(row.DiscipleLessonsDateTime);
+                            if (DiscipleLessonsDateTime.getFullYear() == 1901)
                             {
-                                if( row.DiscipleLessonsDateTime != null )
-                                {
-                                    var DiscipleLessonsDateTime = ParsingDate( row.DiscipleLessonsDateTime );
-                                    if( DiscipleLessonsDateTime.getFullYear() == 1901 )
-                                    {
-                                         return null;
-                                    }
-                                    else
-                                    {
-                                        return DiscipleLessonsDateTime;
-                                    }
-                                }
-                                else
-                                {return null;}
+                                return null;
                             }
-                        </text> );
+                            else
+                            {
+                                return DiscipleLessonsDateTime;
+                            }
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                </text>);
+        })
 
-                    })
+        // 新增行初始化
+        .OnInitNewRow(string.Format("function(e) {{ onInitNewRow(e, {0}); }}", new JS("data.EquipmentContactId")))
 
-
-                //.OnRowInserting("function(e) {  e.data.BestRecordParentId = e.data.key ; }")
-                .OnInitNewRow(string.Format("function(e) {{ onInitNewRow(e, {0}); }}", new JS("data.EquipmentContactId")))
-
-                .DataSource(d => d.Mvc()
-                    .Controller("Equipment")
-                    .LoadAction("LoadEquipmentStorLessons")
-                    .Key("StorLessonsEntityId")
-                    .LoadParams(new { id = new JS("data.EquipmentContactId") })
-                )
+        // 資料來源配置
+        .DataSource(d => d.Mvc()
+            .Controller("Equipment")
+            .LoadAction("LoadEquipmentStorLessons")
+            .Key("StorLessonsEntityId")
+            .LoadParams(new { id = new JS("data.EquipmentContactId") })
+        )
     )
 </div>
 
-
 <script>
+    // 編輯欄位移動到最左側
     function moveEditColumnToLeft(dataGrid) {
         dataGrid.columnOption("command:edit", {
             visibleIndex: -1,
@@ -98,6 +110,7 @@
         });
     }
 
+    // 儲存格準備事件
     function cell_prepared(e) {
         if (e.rowType === "data" && e.column.command === "edit") {
             var isEditing = e.row.isEditing,
@@ -115,23 +128,19 @@
         }
     }
 
+    // 新增行初始化
     function onInitNewRow(e, ParentID) {
         console.log("onInitNewRow called with ParentID:", ParentID);
         e.data.InsertType = "Best";
         e.data.MasterParentID = ParentID;
     }
 
+    // 日期解析函數
     function ParsingDate(input) {
-
-        //debugger;
         if (typeof (input) === 'string') {
-            ////alert("ParseDate 001 : " + input);
             var parts = input.split('-');
-
             var DaySplitedArray = parts[2].split('T');
             var ParsedDate = new Date(parts[0], parts[1] - 1, DaySplitedArray[0]);
-            //var ParsedDate = new Date(parts[0], parts[1], DaySplitedArray[0]);
-
             return ParsedDate;
         }
         else {
@@ -139,50 +148,30 @@
         }
     }
 
+    // OData 本地日期過濾器
     function getODataLocalDateFilter(date) {
-
-        //debugger;
-
-        //alert("getODataLocalDateFilter !" + date);
-        //alert("HELLO 我愛嘟嘟妞妞 006!" + date);
-
-        //-- Description: For converting the date object to local time format
-        //-- You can also convert this to UTC Date format
-        //-- UTC Usage: getUTCMonth(), getUTCFullYear(), getUTCHours() ...
-
         var monthString;
         var rawMonth = (date.getMonth() + 1).toString();
         if (rawMonth.length == 1) {
             monthString = "0" + rawMonth;
         }
-        else { monthString = rawMonth; }
+        else {
+            monthString = rawMonth;
+        }
 
         var dateString;
-        //var rawDate = date.getUTCDate().toString();
         var rawDate = date.getDate().toString();
         if (rawDate.length == 1) {
             dateString = "0" + rawDate;
         }
-        else { dateString = rawDate; }
-
-
-        var DateFilter = "";
-        //DateFilter += date.getFullYear() + "-";
-        //DateFilter += monthString + "-";
-        //DateFilter += dateString;
-        //DateFilter += " T" + date.getHours() + ":";
-        //DateFilter += date.getMinutes() + ":";
-        //DateFilter += date.getSeconds() + ":";
-        //DateFilter += date.getMilliseconds();
-
-        //return DateFilter;
-
-        //return date.getFullYear() + "/" + rawMonth + "/" + rawDate;
+        else {
+            dateString = rawDate;
+        }
 
         return new Date(date.getFullYear(), rawMonth, rawDate);
     }
 
-
+    // 行準備事件
     function OnRowPrepared(e) {
         e.rowElement.css({ height: 25 });
         e.rowElement.css('font-size', '16px');
@@ -190,7 +179,6 @@
         e.rowElement.css('color', 'rgb(0, 80, 0)');
 
         if (e.rowType == 'data') {
-            //e.rowElement.css('background', '#fff2a8');
             e.rowElement[0].addEventListener("mouseover", function () {
                 e.rowElement.css('background', '#fff2a8');
                 e.rowElement.css("transition", "background-color 0.5s");
@@ -200,7 +188,6 @@
             });
         }
     }
-
 </script>
 
 <link href="~/css/MasterDetail.css" rel="stylesheet" />

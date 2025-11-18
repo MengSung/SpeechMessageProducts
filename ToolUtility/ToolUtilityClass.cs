@@ -1,26 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections;
-using System.Linq;
-using System.Text;
-using System.Diagnostics;
-using System.ServiceModel.Description;
-using System.Net;
-using System.IO;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-using TraceNameSpace;
-
+﻿using Line.Messaging.Webhooks;
+using Microsoft.Crm.Sdk.Messages;
+using Microsoft.Extensions.Configuration;
+using Microsoft.SqlServer.Server;
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
 // located in the SDK\bin folder of the SDK download.
 using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Discovery;
-using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Xrm.Sdk.Query;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.ServiceModel.Description;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Xml.Linq;
+using TraceNameSpace;
+using static System.Net.WebRequestMethods;
 
 namespace ToolUtilityNameSpace
 {
@@ -4133,7 +4136,7 @@ namespace ToolUtilityNameSpace
                             <order attribute='new_new_disciple_lessons_new_stor_les' descending='false' />
                             <order attribute='new_contact_new_stor_lessons' descending='false' />
                             <filter type='and'>
-                                <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname=" + ContactName + @" uitype='contact' value=" + ContactId + @" />
+                                <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname='林寬仁' uitype='contact' value='{36E57E1C-900B-F011-8143-00155D006608}' />
                             </filter>
                             <link-entity name='contact' from='contactid' to='new_contact_new_stor_lessons' visible='false' link-type='outer' alias='a_45d999afd4cc4001b091647bb91668ef'>
                               <attribute name='telephone2' />
@@ -4153,6 +4156,33 @@ namespace ToolUtilityNameSpace
                           </entity>
                         </fetch>";
 
+                                                //< condition attribute = 'new_contact_new_stor_lessons' operator= 'eq' uiname = " + ContactName + @" uitype = 'contact' value = " + ContactId + @
+                //<condition attribute='new_contact_new_stor_lessons' operator='eq' uiname='林寬仁' uitype='contact' value='{36E57E1C-900B-F011-8143-00155D006608}' />
+
+
+                //var fetchXml =
+                //    @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                //          <entity name='new_stor_lessons'>
+                //            <attribute name='createdon' />
+                //            <attribute name='new_contact_new_stor_lessons' />
+                //            <attribute name='new_fee' />
+                //            <attribute name='new_pay_date' />
+                //            <attribute name='new_new_disciple_lessons_new_stor_les' />
+                //            <attribute name='new_stor_lessonsid' />
+                //            <order attribute='new_new_disciple_lessons_new_stor_les' descending='false' />
+                //            <order attribute='new_contact_new_stor_lessons' descending='false' />
+                //            <filter type='and'>
+                //              <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname=" + ContactName + @" uitype='contact' value=" + ContactId + @" />
+                //            </filter>
+                //            <link-entity name='contact' from='contactid' to='new_contact_new_stor_lessons' visible='false' link-type='outer' alias='a_45d999afd4cc4001b091647bb91668ef'>
+                //              <attribute name='telephone2' />
+                //              <attribute name='address2_line1' />
+                //              <attribute name='parentcustomerid' />
+                //              <attribute name='mobilephone' />
+                //              <attribute name='emailaddress1' />
+                //            </link-entity>
+                //          </entity>
+                //     </fetch>";
 
                 RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
                 {
