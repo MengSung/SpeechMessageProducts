@@ -131,16 +131,22 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // 確保資料已載入
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 開始載入聯絡人，小組ID={id}");
+
+                // 確保傳入正確的小組 ID 來載入資料
                 if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
-                    !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
+                    !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag ||
+                    InMemoryContext.ListManager.ActiveListId != id)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 需要重新載入資料，目前ActiveListId={InMemoryContext.ListManager.ActiveListId}，請求ID={id}");
                     InMemoryContext.ListManager.SetupIntegrateData(id);
                 }
 
                 var members = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                     ?.m_SmallGroupDataList?.m_AllMemeberData?.Members 
                     ?? new List<Member>();
+
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 取得成員數量={members.Count}");
 
                 // 轉換為 EquipmentContact 清單
                 var equipmentList = members.Select(m => new EquipmentContact
@@ -153,10 +159,13 @@ namespace ChurchReport.Controllers
                     StorLessonsList = new List<EquipmentStorLessons>()
                 }).ToList();
 
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 返回聯絡人數量={equipmentList.Count}，小組名稱={InMemoryContext.ListManager.LoginFullName}");
+
                 return DataSourceLoader.Load(equipmentList, loadOptions);
             }
             catch (Exception e)
             {
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 錯誤: {e.Message}");
                 return HandleError(e, "LoadEquipmentContact");
             }
         }
