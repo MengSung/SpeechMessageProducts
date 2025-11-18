@@ -221,6 +221,10 @@ namespace ChurchReport.Models
 
                 m_ListSmallGroupWeeklyReport.ListEntityId = ListEntityId;
                 m_ListSmallGroupWeeklyReport.LoginType = m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.LoginType = LoginType;
+                
+                // 關鍵修正: 更新 ActiveListId 以確保與當前載入的小組 ID 一致
+                ActiveListId = ListEntityId;
+                
                 m_DownloadIntegrateData.SetupIntegrateData( m_Account, m_Password, LoginType, this.m_SelectDate, ListEntityId, aWeeklyReportRecord.WeeklyReportEntityId, ref m_ListSmallGroupWeeklyReport);
             }
         }

@@ -131,22 +131,66 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 開始載入聯絡人，小組ID={id}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ===== 開始載入聯絡人 =====");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 請求小組ID: {id}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 目前ActiveListId: {InMemoryContext.ListManager.ActiveListId}");
 
-                // 確保傳入正確的小組 ID 來載入資料
-                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
-                    !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag ||
-                    InMemoryContext.ListManager.ActiveListId != id)
+                // 強制重新載入資料以確保正確性
+                // 原因: 多小組切換時，ActiveListId 可能因為非同步請求導致不一致
+                bool needReload = false;
+                
+                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 需要重新載入資料，目前ActiveListId={InMemoryContext.ListManager.ActiveListId}，請求ID={id}");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 原因: m_ListSmallGroupWeeklyReport 為 null");
+                    needReload = true;
+                }
+                else if (!InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 原因: LoadFlag 為 false");
+                    needReload = true;
+                }
+                else if (InMemoryContext.ListManager.ActiveListId != id)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 原因: ActiveListId 不匹配");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   目前: {InMemoryContext.ListManager.ActiveListId}");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   請求: {id}");
+                    needReload = true;
+                }
+
+                if (needReload)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] >>> 執行重新載入資料 <<<");
                     InMemoryContext.ListManager.SetupIntegrateData(id);
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] >>> 載入完成，新的ActiveListId: {InMemoryContext.ListManager.ActiveListId}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 使用現有快取資料");
                 }
 
                 var members = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                     ?.m_SmallGroupDataList?.m_AllMemeberData?.Members 
                     ?? new List<Member>();
 
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 取得成員數量={members.Count}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 取得成員數量: {members.Count}");
+
+                // 額外驗證: 確保載入的資料確實屬於請求的小組
+                if (InMemoryContext.ListManager.ActiveListId != id)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ?? 警告: 載入後 ActiveListId 仍不匹配!");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   目前: {InMemoryContext.ListManager.ActiveListId}");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   預期: {id}");
+                    
+                    // 再次強制載入
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] >>> 再次強制載入資料 <<<");
+                    InMemoryContext.ListManager.SetupIntegrateData(id);
+                    
+                    members = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                        ?.m_SmallGroupDataList?.m_AllMemeberData?.Members 
+                        ?? new List<Member>();
+                    
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 再次載入後成員數量: {members.Count}");
+                }
 
                 // 轉換為 EquipmentContact 清單
                 var equipmentList = members.Select(m => new EquipmentContact
@@ -159,13 +203,27 @@ namespace ChurchReport.Controllers
                     StorLessonsList = new List<EquipmentStorLessons>()
                 }).ToList();
 
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 返回聯絡人數量={equipmentList.Count}，小組名稱={InMemoryContext.ListManager.LoginFullName}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 返回聯絡人數量: {equipmentList.Count}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 小組名稱: {InMemoryContext.ListManager.LoginFullName}");
+                
+                // 輸出前 3 個成員名稱用於驗證
+                if (equipmentList.Count > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 前 3 個成員:");
+                    for (int i = 0; i < Math.Min(3, equipmentList.Count); i++)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   {i + 1}. {equipmentList[i].ContactFullName}");
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ===== 載入聯絡人完成 =====\n");
 
                 return DataSourceLoader.Load(equipmentList, loadOptions);
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 錯誤: {e.Message}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ? 錯誤: {e.Message}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 堆疊追蹤: {e.StackTrace}");
                 return HandleError(e, "LoadEquipmentContact");
             }
         }
