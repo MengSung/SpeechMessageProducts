@@ -216,16 +216,34 @@ namespace ChurchReport.Controllers
                     {
                         var lesson = lessonEntity; // 建立臨時變數以支援 ref 參數
                         
+                        // 取得門徒課程的 ID
+                        var discipleLessonId = ToolUtility.GetEntityLookupAttribute(ref lesson, "new_new_disciple_lessons_new_stor_les");
+                        
+                        // 從門徒課程實體取得上課開始日期
+                        DateTime classStartDate = DateTime.MinValue;
+                        if (discipleLessonId != Guid.Empty)
+                        {
+                            try
+                            {
+                                var discipleLesson = ToolUtility.RetrieveEntity("new_disciple_lessons", discipleLessonId);
+                                classStartDate = ToolUtility.GetEntityDateTimeAttribute(ref discipleLesson, "new_class_start_date");
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 警告: 無法取得門徒課程日期，DiscipleLessonId={discipleLessonId}, 錯誤={ex.Message}");
+                            }
+                        }
+                        
                         var lessonItem = new EquipmentStorLessons
                         {
                             StorLessonsEntityId = lesson.Id.ToString(),
                             DiscipleLessonsName = ToolUtility.GetEntityLookupDisplayName(ref lesson, "new_new_disciple_lessons_new_stor_les"),
                             StageName = ToolUtility.GetEntityStringAttribute(ref lesson, "new_stagename"),
                             CurrentComplete = ToolUtility.GetEntityBoolAttribute(ref lesson, "new_current_complete"),
-                            DiscipleLessonsDateTime = ToolUtility.GetEntityDateTimeAttribute(ref lesson, "new_class_start_date") // 修正: 使用正確的欄位名稱 new_class_start_date（課程上課開始日期）
+                            DiscipleLessonsDateTime = classStartDate // 修正: 從關聯的 new_disciple_lessons 取得 new_class_start_date
                         };
                         
-                        System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 課程: {lessonItem.DiscipleLessonsName}, 階段: {lessonItem.StageName}");
+                        System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 課程: {lessonItem.DiscipleLessonsName}, 階段: {lessonItem.StageName}, 日期: {lessonItem.DiscipleLessonsDateTime:yyyy-MM-dd}");
                         lessonsList.Add(lessonItem);
                     }
                 }
