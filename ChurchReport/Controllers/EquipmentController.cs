@@ -219,18 +219,25 @@ namespace ChurchReport.Controllers
                         // 取得門徒課程的 ID
                         var discipleLessonId = ToolUtility.GetEntityLookupAttribute(ref lesson, "new_new_disciple_lessons_new_stor_les");
                         
-                        // 從門徒課程實體取得上課開始日期
+                        // 從門徒課程實體取得資料
                         DateTime classStartDate = DateTime.MinValue;
+                        string stageName = string.Empty;
+                        
                         if (discipleLessonId != Guid.Empty)
                         {
                             try
                             {
                                 var discipleLesson = ToolUtility.RetrieveEntity("new_disciple_lessons", discipleLessonId);
+                                
+                                // 取得上課開始日期
                                 classStartDate = ToolUtility.GetEntityDateTimeAttribute(ref discipleLesson, "new_class_start_date");
+                                
+                                // 取得階段名稱 (從 new_disciple_lessons 的 new_now_stage_name)
+                                stageName = ToolUtility.GetEntityStringAttribute(ref discipleLesson, "new_now_stage_name");
                             }
                             catch (Exception ex)
                             {
-                                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 警告: 無法取得門徒課程日期，DiscipleLessonId={discipleLessonId}, 錯誤={ex.Message}");
+                                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 警告: 無法取得門徒課程資料，DiscipleLessonId={discipleLessonId}, 錯誤={ex.Message}");
                             }
                         }
                         
@@ -238,9 +245,9 @@ namespace ChurchReport.Controllers
                         {
                             StorLessonsEntityId = lesson.Id.ToString(),
                             DiscipleLessonsName = ToolUtility.GetEntityLookupDisplayName(ref lesson, "new_new_disciple_lessons_new_stor_les"),
-                            StageName = ToolUtility.GetEntityStringAttribute(ref lesson, "new_stagename"),
+                            StageName = stageName, // 修正: 從關聯的 new_disciple_lessons.new_now_stage_name 取得
                             CurrentComplete = ToolUtility.GetEntityBoolAttribute(ref lesson, "new_current_complete"),
-                            DiscipleLessonsDateTime = classStartDate // 修正: 從關聯的 new_disciple_lessons 取得 new_class_start_date
+                            DiscipleLessonsDateTime = classStartDate // 從關聯的 new_disciple_lessons.new_class_start_date 取得
                         };
                         
                         System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 課程: {lessonItem.DiscipleLessonsName}, 階段: {lessonItem.StageName}, 日期: {lessonItem.DiscipleLessonsDateTime:yyyy-MM-dd}");

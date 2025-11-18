@@ -21,6 +21,7 @@
 
         // 事件處理
         .OnRowPrepared("OnRowPrepared")
+        .OnCellPrepared("cell_prepared")  // 添加：儲存格準備事件
 
         // 編輯配置
         .Editing(editing =>
@@ -61,27 +62,36 @@
                 .Caption("日期")
                 .Alignment(HorizontalAlignment.Center)
                 .DataType(GridColumnDataType.Date)
-                .Format("yyyy/M/d")
+                .Format("yyyy/MM/dd")  // 改為標準格式，確保顯示正確
                 .Width(100)
                 .MinWidth(45)
                 .AllowSorting(true)
                 .CalculateCellValue(@<text>
                     function(row)
                     {
-                        if (row.DiscipleLessonsDateTime != null)
-                        {
-                            var DiscipleLessonsDateTime = ParsingDate(row.DiscipleLessonsDateTime);
-                            if (DiscipleLessonsDateTime.getFullYear() == 1901)
-                            {
+                        // 檢查日期欄位是否存在
+                        if (row.DiscipleLessonsDateTime == null || row.DiscipleLessonsDateTime === undefined) {
+                            return null;
+                        }
+
+                        try {
+                            // 解析日期
+                            var parsedDate = ParsingDate(row.DiscipleLessonsDateTime);
+
+                            // 檢查解析結果
+                            if (!parsedDate || isNaN(parsedDate.getTime())) {
                                 return null;
                             }
-                            else
-                            {
-                                return DiscipleLessonsDateTime;
+
+                            // 過濾無效日期（1901 年及之前）
+                            var year = parsedDate.getFullYear();
+                            if (year @Html.Raw("<=") 1901) {
+                                return null;
                             }
-                        }
-                        else
-                        {
+
+                            return parsedDate;
+                        } catch (error) {
+                            console.error("[CalculateCellValue] 日期計算錯誤:", error, "原始值:", row.DiscipleLessonsDateTime);
                             return null;
                         }
                     }
@@ -110,82 +120,147 @@
         });
     }
 
-    // 儲存格準備事件
+    // 儲存格準備事件 - 處理編輯按鈕圖示
     function cell_prepared(e) {
-        if (e.rowType === "data" && e.column.command === "edit") {
-            var isEditing = e.row.isEditing,
-                $links = e.cellElement.find(".dx-link");
+        try {
+            // 只處理資料行的編輯欄位
+            if (e.rowType === "data" && e.column && e.column.command === "edit") {
+                var $cellElement = $(e.cellElement);
+                var $links = $cellElement.find(".dx-link");
 
-            $links.text("");
+                // 如果找不到連結元素，直接返回
+                if ($links.length === 0) {
+                    return;
+                }
 
-            if (isEditing) {
-                $links.filter(".dx-link-save").addClass("dx-icon-save");
-                $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
-            } else {
-                $links.filter(".dx-link-edit").addClass("dx-icon-edit");
-                $links.filter(".dx-link-delete").addClass("dx-icon-trash");
+                // 清除預設文字
+                $links.text("");
+
+                // 根據編輯狀態設定圖示
+                if (e.row && e.row.isEditing) {
+                    // 編輯模式
+                    $links.filter(".dx-link-save").addClass("dx-icon-save").attr("title", "儲存");
+                    $links.filter(".dx-link-cancel").addClass("dx-icon-revert").attr("title", "取消");
+                } else {
+                    // 檢視模式
+                    $links.filter(".dx-link-edit").addClass("dx-icon-edit").attr("title", "編輯");
+                    $links.filter(".dx-link-delete").addClass("dx-icon-trash").attr("title", "刪除");
+                }
+            }
+        } catch (error) {
+            console.error("[cell_prepared] 錯誤:", error);
+        }
+    }
+
+    // 新增行初始化 - 設定新增行的預設值
+    function onInitNewRow(e, ParentID) {
+        try {
+            console.log("[onInitNewRow] 呼叫 - ParentID:", ParentID);
+
+            // 檢查資料物件是否存在
+            if (!e || !e.data) {
+                console.error("[onInitNewRow] 無效的資料物件");
+                return;
+            }
+
+            // 驗證 ParentID
+            if (!ParentID) {
+                console.warn("[onInitNewRow] 警告: ParentID 為空");
+                return;
+            }
+
+            // 設定新增類型
+            e.data.InsertType = "Best";
+
+            // 設定父層級 ID
+            e.data.MasterParentID = ParentID;
+
+            console.log("[onInitNewRow] 設定完成 - InsertType:", e.data.InsertType, ", MasterParentID:", e.data.MasterParentID);
+        } catch (error) {
+            console.error("[onInitNewRow] 錯誤:", error);
+        }
+    }
+
+    // 日期解析函數 - 支援多種日期格式
+    function ParsingDate(input) {
+        // 處理空值
+        if (!input) return null;
+
+        // 如果已經是 Date 物件，直接返回
+        if (input instanceof Date) return input;
+
+        // 字串格式處理
+        if (typeof input === 'string') {
+            // ISO 格式（含 T 符號）：2024-11-18T10:30:00
+            if (input.indexOf('T') > -1) {
+                var isoDate = new Date(input);
+                // 驗證日期有效性
+                if (!isNaN(isoDate.getTime())) {
+                    return isoDate;
+                }
+            }
+
+            // YYYY-MM-DD 格式：2024-11-18
+            var parts = input.split('-');
+            if (parts.length >= 3) {
+                var dayPart = parts[2].split('T')[0]; // 處理 YYYY-MM-DDTHH:mm:ss 格式
+                var year = parseInt(parts[0], 10);
+                var month = parseInt(parts[1], 10);
+                var day = parseInt(dayPart, 10);
+
+                // 驗證日期有效性
+                if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+                    return new Date(year, month - 1, day);
+                }
             }
         }
+
+        // 無法解析的格式
+        console.warn("[ParsingDate] 無法解析日期格式:", input);
+        return null;
     }
 
-    // 新增行初始化
-    function onInitNewRow(e, ParentID) {
-        console.log("onInitNewRow called with ParentID:", ParentID);
-        e.data.InsertType = "Best";
-        e.data.MasterParentID = ParentID;
-    }
-
-    // 日期解析函數
-    function ParsingDate(input) {
-        if (typeof (input) === 'string') {
-            var parts = input.split('-');
-            var DaySplitedArray = parts[2].split('T');
-            var ParsedDate = new Date(parts[0], parts[1] - 1, DaySplitedArray[0]);
-            return ParsedDate;
-        }
-        else {
-            return getODataLocalDateFilter(input);
-        }
-    }
-
-    // OData 本地日期過濾器
+    // OData 本地日期過濾器 - 修正月份計算
     function getODataLocalDateFilter(date) {
-        var monthString;
-        var rawMonth = (date.getMonth() + 1).toString();
-        if (rawMonth.length == 1) {
-            monthString = "0" + rawMonth;
-        }
-        else {
-            monthString = rawMonth;
+        // 驗證輸入是否為有效的 Date 物件
+        if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+            console.warn("[getODataLocalDateFilter] 無效的日期物件:", date);
+            return null;
         }
 
-        var dateString;
-        var rawDate = date.getDate().toString();
-        if (rawDate.length == 1) {
-            dateString = "0" + rawDate;
-        }
-        else {
-            dateString = rawDate;
-        }
-
-        return new Date(date.getFullYear(), rawMonth, rawDate);
+        // 正確使用 getMonth()（已自動返回 0-11）
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
     }
 
-    // 行準備事件
+    // 行準備事件 - 設定行樣式和事件
     function OnRowPrepared(e) {
-        e.rowElement.css({ height: 25 });
-        e.rowElement.css('font-size', '16px');
-        e.rowElement.css('font-family', '標楷體');
-        e.rowElement.css('color', 'rgb(0, 80, 0)');
+        try {
+            // 設定行高和字體樣式
+            var $rowElement = $(e.rowElement);
+            $rowElement.css({
+                'height': '25px',
+                'font-size': '16px',
+                'font-family': '標楷體',
+                'color': 'rgb(0, 80, 0)'
+            });
 
-        if (e.rowType == 'data') {
-            e.rowElement[0].addEventListener("mouseover", function () {
-                e.rowElement.css('background', '#fff2a8');
-                e.rowElement.css("transition", "background-color 0.5s");
-            });
-            e.rowElement[0].addEventListener("mouseleave", function () {
-                e.rowElement[0].style.background = ""
-            });
+            // 只對資料行添加滑鼠事件
+            if (e.rowType === 'data') {
+                // 滑鼠移入事件
+                $rowElement.on("mouseenter", function () {
+                    $(this).css({
+                        'background': '#fff2a8',
+                        'transition': 'background-color 0.5s'
+                    });
+                });
+
+                // 滑鼠移出事件
+                $rowElement.on("mouseleave", function () {
+                    $(this).css('background', '');
+                });
+            }
+        } catch (error) {
+            console.error("[OnRowPrepared] 錯誤:", error);
         }
     }
 </script>
