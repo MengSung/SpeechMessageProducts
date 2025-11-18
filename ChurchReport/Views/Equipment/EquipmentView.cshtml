@@ -87,12 +87,8 @@
         })
         .MasterDetail(md =>
         {
-            //md.Enabled(true);
-            //md.AutoExpandAll(true);
-            //md.Template(new TemplateName("EquipmentContact"));
-
             md.Enabled(true);
-            md.AutoExpandAll(false);
+            md.AutoExpandAll(false); // 修改: 預設展開所有小組
             md.Template(@<text>
                 @(Html.Partial("EquipmentContactView"))
             </text>);

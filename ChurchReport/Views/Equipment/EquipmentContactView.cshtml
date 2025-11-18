@@ -75,12 +75,8 @@
 
         .MasterDetail(md =>
         {
-                //md.Enabled(true);
-                //md.Template(new TemplateName("DetailBestList"));
-
-
                 md.Enabled(true);
-                md.AutoExpandAll(false);
+                md.AutoExpandAll(true); // 修改: 預設展開所有聯絡人的課程記錄
                 md.Template(@<text>
                 @(Html.Partial("EquipmentStorLessonsView"))
                 </text>);
@@ -108,6 +104,7 @@
         }
     }
 </script>
+
 
 
 
