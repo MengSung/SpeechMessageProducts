@@ -9,11 +9,11 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
 using System;
-using System.Globalization;
-using Microsoft.AspNetCore.Localization;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Microsoft.Extensions.Hosting; // for env.IsDevelopment()
+using Microsoft.AspNetCore.Mvc; // 新增這一行
 
 namespace ChurchReport
 {
@@ -30,8 +30,18 @@ namespace ChurchReport
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
+            services
+                .AddMvc(options =>
+                {
+                    // 使用舊的 UseMvc 管線時，需關閉 Endpoint Routing 以消除 MVC1005 警告
+                    options.EnableEndpointRouting = false;
+                })
+                .AddNewtonsoftJson(options =>
+                {
+                    // 沿用原本的 Newtonsoft 契約解析設定
+                    options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+                });
 
-            services.AddMvc().AddJsonOptions(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver());
             services.AddMemoryCache();
             services.AddDistributedMemoryCache();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -60,7 +70,7 @@ namespace ChurchReport
                 services.AddScoped<TSPGWebhookHandler>();
             }
             else
-            { 
+            {
                 services.AddScoped<IPayment, TspgToolkitWrapper>();
                 services.AddScoped<TSPGWebhookHandler>();
             }
@@ -72,30 +82,33 @@ namespace ChurchReport
                 options.Cookie.IsEssential = true;
             });
 
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-            .AddCookie(options =>
-            {
-                options.LoginPath = "/Login";
-                options.LogoutPath = "/Logout";
-                options.Cookie.Expiration = TimeSpan.FromMinutes(30);
-                options.CookieName = ".ChurchReport.Session";
-                options.Cookie.SameSite = SameSiteMode.None;
-                options.AccessDeniedPath = "/Login";
-                options.ReturnUrlParameter = "returnUrl";
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-            });
+            services
+                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Login";
+                    options.LogoutPath = "/Logout";
+
+                    // 新版 API：不要設定 options.Cookie.Expiration，改用 ExpireTimeSpan 控制票證壽命
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+
+                    // 新版 API：CookieName -> Cookie.Name
+                    options.Cookie.Name = ".ChurchReport.Session";
+                    options.Cookie.SameSite = SameSiteMode.None;
+
+                    options.AccessDeniedPath = "/Login";
+                    options.ReturnUrlParameter = "returnUrl";
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            // 移除舊的 loggerFactory 配置，使用依賴注入的 ILoggerFactory
-
             // 創建日誌目錄
             var logsDir = Path.Combine(env.ContentRootPath, "Logs");
             Directory.CreateDirectory(logsDir);
             var tracePath = Path.Combine(logsDir, "Trace.log");
-            
+
             // 添加文件追蹤監聽器
             if (!Trace.Listeners.OfType<TextWriterTraceListener>().Any(l =>
                 (l.Writer as StreamWriter)?.BaseStream is FileStream fs && fs.Name == tracePath))
@@ -105,34 +118,30 @@ namespace ChurchReport
             }
 
             // 異常處理
-            if (env.IsDevelopment()) 
-            { 
-                app.UseDeveloperExceptionPage(); 
-                app.UseBrowserLink(); 
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+                // BrowserLink 在新版 ASP.NET Core 已不支援，移除 app.UseBrowserLink();
             }
-            else 
-            { 
-                app.UseExceptionHandler("/Home/Error"); 
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
             }
 
             // 中間件管道
             app.UseStaticFiles();
             app.UseSession();
             app.UseAuthentication();
-            
-            app.UseMvc(routes => 
-            { 
-                // ========================================
-                // 根路由 (顯式對應 / 到登入頁)
-                // ========================================
+
+            // 使用舊式路由 (已關閉 Endpoint Routing)
+            app.UseMvc(routes =>
+            {
+                // 根路由
                 routes.MapRoute(
                     name: "root",
                     template: string.Empty,
                     defaults: new { controller = "Authentication", action = "Login" });
 
-                // ========================================
-                // 登入相關路由
-                // ========================================
                 routes.MapRoute(
                     name: "login",
                     template: "Login",
@@ -153,9 +162,6 @@ namespace ChurchReport
                     template: "Authentication/LineIdLoginView/{LineIdLoginViewPatameter}",
                     defaults: new { controller = "Authentication", action = "LineIdLoginView" });
 
-                // ========================================
-                // 小組管理路由
-                // ========================================
                 routes.MapRoute(
                     name: "multigroup",
                     template: "SmallGroup/MultiGroupView/{LoginParameter?}",
@@ -171,17 +177,11 @@ namespace ChurchReport
                     template: "SmallGroup/SmallGroupReportView/{LoginParameter?}",
                     defaults: new { controller = "SmallGroup", action = "SmallGroupReportView" });
 
-                // ========================================
-                // 裝備狀態管理路由
-                // ========================================
                 routes.MapRoute(
                     name: "equipmentview",
                     template: "Equipment/EquipmentView",
                     defaults: new { controller = "Equipment", action = "EquipmentView" });
 
-                // ========================================
-                // 新人管理路由
-                // ========================================
                 routes.MapRoute(
                     name: "addnewperson",
                     template: "NewPerson/NewPerson",
@@ -192,9 +192,6 @@ namespace ChurchReport
                     template: "NewPerson/FollowUpView",
                     defaults: new { controller = "NewPerson", action = "NewPersonFollowUpView" });
 
-                // ========================================
-                // 個人資訊路由
-                // ========================================
                 routes.MapRoute(
                     name: "personalreport",
                     template: "Personal/Report",
@@ -210,9 +207,6 @@ namespace ChurchReport
                     template: "Personal/MaintainInfomationView",
                     defaults: new { controller = "Personal", action = "MaintainPersonInfomationView" });
 
-                // ========================================
-                // 行事曆路由
-                // ========================================
                 routes.MapRoute(
                     name: "scheduler",
                     template: "Scheduler/{ScheduleType}",
@@ -223,9 +217,6 @@ namespace ChurchReport
                     template: "Scheduler/SchedulerView/{SchedulerViewPatameter}",
                     defaults: new { controller = "Scheduler", action = "SchedulerView" });
 
-                // ========================================
-                // 奉獻管理路由
-                // ========================================
                 routes.MapRoute(
                     name: "qpayview",
                     template: "Dedication/QPayView/{LineId?}",
@@ -251,9 +242,6 @@ namespace ChurchReport
                     template: "Dedication/DediationLineLoginView/{LineIdLoginViewPatameter}",
                     defaults: new { controller = "Dedication", action = "DediationLineLoginView" });
 
-                // ========================================
-                // 奉獻稽核路由
-                // ========================================
                 routes.MapRoute(
                     name: "auditviewline",
                     template: "DedicationAudit/AuditViewLine",
@@ -264,9 +252,6 @@ namespace ChurchReport
                     template: "DedicationAudit/AuditViewWeb",
                     defaults: new { controller = "DedicationAudit", action = "DedicationFeeAuditViewWeb" });
 
-                // ========================================
-                // QR Code 路由
-                // ========================================
                 routes.MapRoute(
                     name: "qrcodeview",
                     template: "QrCode/CourseView/{QrCodeViewPatameter}",
@@ -292,17 +277,11 @@ namespace ChurchReport
                     template: "QrCode/PersonalView/{QrCodeViewPatameter}",
                     defaults: new { controller = "QrCode", action = "PersonalQrCodeView" });
 
-                // ========================================
-                // 名單管理路由
-                // ========================================
                 routes.MapRoute(
                     name: "churchroot",
                     template: "ListManagement/ChurchRoot",
                     defaults: new { controller = "ListManagement", action = "ChurchRoot" });
 
-                // ========================================
-                // 付款結果路由
-                // ========================================
                 routes.MapRoute(
                     name: "paymentsuccess",
                     template: "payment-success",
@@ -313,17 +292,11 @@ namespace ChurchReport
                     template: "payment-failed",
                     defaults: new { controller = "Home", action = "PaymentError" });
 
-                // ========================================
-                // 錯誤頁面路由
-                // ========================================
                 routes.MapRoute(
                     name: "errorview",
                     template: "Home/DisplayErrorView/{ErrorMessage}",
                     defaults: new { controller = "Home", action = "DisplayErrorView" });
 
-                // ========================================
-                // 手機綁定/換號碼 路由
-                // ========================================
                 routes.MapRoute(
                     name: "changephone",
                     template: "Phone/ChangePhoneView/{LineIdLoginViewPatameter}",
@@ -334,11 +307,8 @@ namespace ChurchReport
                     template: "Phone/PhoneQrCodeView/{QrCodeViewPatameter}",
                     defaults: new { controller = "PhoneBinding", action = "PhoneQrCodeView" });
 
-                // ========================================
-                // 預設路由 (必須放在最後)
-                // ========================================
                 routes.MapRoute(
-                    name: "default", 
+                    name: "default",
                     template: "{controller=Authentication}/{action=Login}/{id?}");
             });
         }
