@@ -1,13 +1,12 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using System.Net;
-using Microsoft.Extensions.Configuration;
 
 namespace ChurchReport
 {
@@ -15,31 +14,40 @@ namespace ChurchReport
     {
         public static void Main(string[] args)
         {
-            BuildWebHost(args).Run();
-        }
+            var builder = WebApplication.CreateBuilder(args);
 
-        public static IWebHost BuildWebHost(string[] args)
-        {
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddEnvironmentVariables()
-                .AddCommandLine(args ?? new string[0])
-                .Build();
+            // 配置 Kestrel
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(30);
+                options.Limits.MaxRequestBufferSize = null;
+                options.Limits.MaxConcurrentConnections = 1000;
+                options.Limits.MaxConcurrentUpgradedConnections = 1000;
+            });
 
-            return new WebHostBuilder()
-                .UseKestrel(options =>
-                {
-                    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(30);
-                    options.Limits.MaxRequestBufferSize = null;
-                    options.Limits.MaxConcurrentConnections = 1000;
-                    options.Limits.MaxConcurrentUpgradedConnections = 1000;
-                })
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseConfiguration(config)
-                .UseIISIntegration()
-                .UseStartup<Startup>()
-                .Build();
+            // 使用 Startup 類別配置服務
+            var startup = new Startup(builder.Configuration);
+            startup.ConfigureServices(builder.Services);
+
+            var app = builder.Build();
+
+            // 創建日誌目錄
+            var logsDir = Path.Combine(app.Environment.ContentRootPath, "Logs");
+            Directory.CreateDirectory(logsDir);
+            var tracePath = Path.Combine(logsDir, "Trace.log");
+
+            // 添加文件追蹤監聽器
+            if (!Trace.Listeners.OfType<TextWriterTraceListener>().Any(l =>
+                (l.Writer as StreamWriter)?.BaseStream is FileStream fs && fs.Name == tracePath))
+            {
+                Trace.Listeners.Add(new TextWriterTraceListener(tracePath));
+                Trace.AutoFlush = true;
+            }
+
+            // 使用 Startup 類別配置中間件
+            startup.Configure(app, app.Environment, app.Services.GetRequiredService<ILoggerFactory>());
+
+            app.Run();
         }
     }
 }
