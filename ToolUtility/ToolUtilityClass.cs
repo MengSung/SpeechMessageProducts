@@ -10,6 +10,7 @@ using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using Newtonsoft.Json.Linq;
+using PowerPlatform.Dataverse.Client;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -136,17 +137,25 @@ namespace ToolUtilityNameSpace
             //SetClaimsBasedAuthenticationOrganizationService();
 
             //SetFederatedOrganizationProxy();
+
+            var adUrl = "https://" + ORGANIZATION + ".speechmessage.com.tw/XRMServices/2011/Organization.svc";
+            var adUsername = @"SPEECHMESSAGE\Administrator";
+            var adPassword = "hu9840";
+
+
+            m_Crm2011OrganizationService = new OnPremiseClient(adUrl, adUsername, adPassword);
+
         }
         public ToolUtilityClass(String DiscoveryServiceType)
         {
             #region 追蹤專用變數
-            m_TraceLogFile = TRACE_DIRECTOR;
-            m_XmlFileStream = new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-            m_XmlFileStreamWriter = new StreamWriter(m_XmlFileStream, Encoding.GetEncoding("big5"));
-            m_Listener = new BugslayerTextWriterTraceListener(m_XmlFileStreamWriter);
+            //m_TraceLogFile = TRACE_DIRECTOR;
+            //m_XmlFileStream = new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            //m_XmlFileStreamWriter = new StreamWriter(m_XmlFileStream, Encoding.GetEncoding("big5"));
+            //m_Listener = new BugslayerTextWriterTraceListener(m_XmlFileStreamWriter);
 
-            Debug.AutoFlush = true;
-            Debug.Listeners.Add(m_Listener);
+            //Debug.AutoFlush = true;
+            //Debug.Listeners.Add(m_Listener);
             #endregion
 
             //SetOrganizationService();
@@ -156,14 +165,23 @@ namespace ToolUtilityNameSpace
             //SetFederatedOrganizationProxy(DiscoveryServiceType);
             m_DiscoveryServiceType = DiscoveryServiceType;
 
-            if (DiscoveryServiceType == "DYNAMICS365")
-            {
-                SetFederatedOrganizationProxy(DiscoveryServiceType);
-            }
-            else
-            {
-                SetOrganizationService();
-            }
+            //if (DiscoveryServiceType == "DYNAMICS365")
+            //{
+            //    SetFederatedOrganizationProxy(DiscoveryServiceType);
+            //}
+            //else
+            //{
+            //    SetOrganizationService();
+            //}
+
+            var adUrl = "https://" + ORGANIZATION + ".speechmessage.com.tw/XRMServices/2011/Organization.svc";
+            //var adUsername = @"SPEECHMESSAGE\Administrator";
+            var adUsername = @"Administrator@speechmessage.com.tw";
+            var adPassword = "hu9840";
+
+
+            m_Crm2011OrganizationService = new OnPremiseClient(adUrl, adUsername, adPassword);
+
 
             CRM_TYPE = DiscoveryServiceType;
         }
@@ -195,7 +213,7 @@ namespace ToolUtilityNameSpace
             if (_disposed) return;
 
             // Free any unmanaged objects here.
-            this.m_OrganizationService.Dispose();
+            //this.m_OrganizationService.Dispose();
 
             _disposed = true;
         }

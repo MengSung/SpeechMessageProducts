@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11205.157 d18.0
+VisualStudioVersion = 18.0.11205.157
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChurchReport", "ChurchReport\ChurchReport.csproj", "{DF317563-C44C-4E69-BA7A-AEF73B49BB73}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Line.Messaging", "Line.Messaging\Line.Messaging.csproj", "{A6A57804-C01F-42BC-94BA-91636AF260E7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinePayCSharp", "LinePayCSharp\LinePayCSharp.csproj", "{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PowerPlatform.Dataverse.Client", "PowerPlatform.Dataverse.Client\PowerPlatform.Dataverse.Client.csproj", "{F7624121-F809-99FA-8591-0F431EB65992}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -84,6 +86,16 @@ Global
 		{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}.Test_Exchange_Service|Any CPU.ActiveCfg = Debug|Any CPU
 		{B4634EB3-F6D3-4F5B-8FBC-1BEB619AD1BC}.Test_Exchange_Service|Any CPU.Build.0 = Debug|Any CPU
+		{F7624121-F809-99FA-8591-0F431EB65992}.Debug_LearnCrm|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7624121-F809-99FA-8591-0F431EB65992}.Debug_LearnCrm|Any CPU.Build.0 = Debug|Any CPU
+		{F7624121-F809-99FA-8591-0F431EB65992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7624121-F809-99FA-8591-0F431EB65992}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7624121-F809-99FA-8591-0F431EB65992}.DebugOracleConnector|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7624121-F809-99FA-8591-0F431EB65992}.DebugOracleConnector|Any CPU.Build.0 = Debug|Any CPU
+		{F7624121-F809-99FA-8591-0F431EB65992}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7624121-F809-99FA-8591-0F431EB65992}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7624121-F809-99FA-8591-0F431EB65992}.Test_Exchange_Service|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7624121-F809-99FA-8591-0F431EB65992}.Test_Exchange_Service|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

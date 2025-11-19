@@ -8,6 +8,8 @@
     <RuntimeIdentifier>win7-x86</RuntimeIdentifier>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <!-- 允許套件降級警告不影響建置 -->
+    <NoWarn>NU1605</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;web.config">

@@ -48,7 +48,8 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Xrm.Sdk, Version=8.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.CrmSdk.CoreAssemblies.8.2.0.2\lib\net452\Microsoft.Xrm.Sdk.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\DevExpressDevExtreme-23.1.5版本\響應式\主要版本\ChurchReport.RazorPages\Dynamics 365 SDK DLL\Microsoft.CrmSdk.CoreAssemblies.9.0.2.52\lib\net462\Microsoft.Xrm.Sdk.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -90,11 +91,17 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="ToolUtilityClass_Dispose_Fix_Report.md" />
+    <None Include="ToolUtilityClass_Dispose_Quick_Reference.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj">
       <Project>{a6a57804-c01f-42bc-94ba-91636af260e7}</Project>
       <Name>Line.Messaging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PowerPlatform.Dataverse.Client\PowerPlatform.Dataverse.Client.csproj">
+      <Project>{f7624121-f809-99fa-8591-0f431eb65992}</Project>
+      <Name>PowerPlatform.Dataverse.Client</Name>
     </ProjectReference>
     <ProjectReference Include="..\Trace\Trace.csproj">
       <Project>{dc1614b1-9b67-4ac8-b7a8-66f5bee26d5e}</Project>

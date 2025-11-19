@@ -1,0 +1,66 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net462;net472;netcoreapp3.1;net7.0;net9.0</TargetFrameworks>
+    <Authors>MarkMpn,Data8 Ltd</Authors>
+    <Copyright>Copyright © 2021 Data8 Limited</Copyright>
+    <RepositoryUrl>https://github.com/Data8/DataverseClient</RepositoryUrl>
+    <PackageReleaseNotes>Added support for AD authentication on Linux using .NET 7</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/Data8/DataverseClient</PackageProjectUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <Description>Provides a WS-Trust compatible client for connecting to on-premise IFD instances of Dynamics 365 from .NET Core.
+
+This package builds on top of Microsoft.PowerPlatform.Dataverse.Client and offers an alternative IOrganizationService implementation using WS-Trust.
+This allows you to connect using the URL of the organization service, username and password without any additional
+configuration.
+
+Because this OnPremiseClient implements the same IOrganizationService as the standard ServiceClient implementation
+your code can work with either as shown in the sample code below.
+
+using Data8.PowerPlatform.Dataverse.Client;
+using Microsoft.PowerPlatform.Dataverse.Client;
+using Microsoft.Xrm.Sdk;
+
+var onPrem = new OnPremiseClient("https://org.crm.contoso.com/XRMServices/2011/Organization.svc", "AD\\username", "password!");
+var online = new ServiceClient("AuthType=ClientSecret;Url=https://contoso.crm.dynamics.com;ClientId=637C79F7-AE71-4E9A-BD5B-1EC5EC9F397A;ClientSecret=p1UiydoIWwUH5AdMbiVBOrEYn8t4RXud");
+
+CreateRecord(onPrem);
+CreateRecord(online);
+
+void CreateRecord(IOrganizationService svc)
+{
+  var entity = new Entity("account")
+  {
+    ["name"] = "Data8"
+  };
+  
+  entity.Id = svc.Create(entity);
+}
+    </Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>Dynamics;CommonDataService;CDS;PowerApps;PowerPlatform;CdsServiceClient;Dataverse;OnPrem;OnPremise;AD;IFD</PackageTags>
+    <PackageIcon>Data8.png</PackageIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.WsTrust" Version="6.8.0" />
+    <PackageReference Include="Microsoft.PowerPlatform.Dataverse.Client" Version="0.6.1" />
+	<PackageReference Include="System.ServiceModel.Security" Version="4.9.0" Aliases="SSS" />
+    <PackageReference Include="System.ServiceModel.Federation" Version="4.9.0" />
+  </ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net462' or '$(TargetFramework)' == 'net472' or '$(TargetFramework)' == 'net48'">
+		<Reference Include="System.ServiceModel" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\Data8.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

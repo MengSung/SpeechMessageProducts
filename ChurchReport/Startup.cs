@@ -89,13 +89,14 @@ namespace ChurchReport
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
+            // 移除舊的 loggerFactory 配置，使用依賴注入的 ILoggerFactory
 
-            // 建立 Logs/Trace.log
+            // 創建日誌目錄
             var logsDir = Path.Combine(env.ContentRootPath, "Logs");
             Directory.CreateDirectory(logsDir);
             var tracePath = Path.Combine(logsDir, "Trace.log");
+            
+            // 添加文件追蹤監聽器
             if (!Trace.Listeners.OfType<TextWriterTraceListener>().Any(l =>
                 (l.Writer as StreamWriter)?.BaseStream is FileStream fs && fs.Name == tracePath))
             {
@@ -103,6 +104,7 @@ namespace ChurchReport
                 Trace.AutoFlush = true;
             }
 
+            // 異常處理
             if (env.IsDevelopment()) 
             { 
                 app.UseDeveloperExceptionPage(); 
@@ -113,6 +115,7 @@ namespace ChurchReport
                 app.UseExceptionHandler("/Home/Error"); 
             }
 
+            // 中間件管道
             app.UseStaticFiles();
             app.UseSession();
             app.UseAuthentication();
