@@ -662,7 +662,7 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+                    m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
                     _memoryCache.Set<ToolUtilityClass>(key, m_ToolUtilityClass, options);
 
                     m_Session.SetInt32("dirty", 1);

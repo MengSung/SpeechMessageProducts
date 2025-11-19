@@ -14,7 +14,7 @@ namespace ToolUtility
         #region 初始化設定
         private LineMessagingClient m_LineMessagingClient { get; }
 
-        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
 
         public PushUtility(LineMessagingClient LineMessagingClient)
         {

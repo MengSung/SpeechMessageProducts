@@ -39,7 +39,7 @@ namespace ChurchReport.Tools
 
             m_QPayProcessor = new QPayProcessor(m_LineMessagingClient, m_PushUtility, m_ReplyUtility);
 
-            m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+            m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
 
         }
 

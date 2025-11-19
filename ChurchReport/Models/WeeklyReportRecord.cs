@@ -35,7 +35,7 @@ namespace ChurchReport.Models
 
         #endregion
         #region 參數資料
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
         #endregion
         #region 類別資料
         public String ListEntityId { get; set; } // 小組 ID

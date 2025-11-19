@@ -23,7 +23,7 @@ namespace ChurchReport.WebServiceConnector
     public class DownloadEquipment
     {
         #region 資料區
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
         #endregion
         #region 下載資料時所需要的參數
         private EquipmentRootClass m_LocalEquipmenRoot;

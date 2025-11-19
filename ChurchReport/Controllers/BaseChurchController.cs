@@ -87,7 +87,7 @@ namespace ChurchReport.Controllers
             IPayment paymentService)
         {
             // 初始化 CRM 連線工具
-            ToolUtility = new ToolUtilityClass("DYNAMICS365");
+            ToolUtility = new ToolUtilityClass("DYNAMICS365-9.0");
 
             // 初始化記憶體資料上下文
             InMemoryContext = new InMemoryDataContextSmallGroup(

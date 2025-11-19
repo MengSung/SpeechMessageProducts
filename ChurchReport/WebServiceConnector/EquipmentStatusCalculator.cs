@@ -16,7 +16,7 @@ namespace ChurchReport.WebServiceConnector
 
         public EquipmentStatusCalculator()
         {
-            m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+            m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
         }
 
         /// <summary>

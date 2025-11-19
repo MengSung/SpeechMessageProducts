@@ -14,7 +14,7 @@ namespace ChurchReport.Models
     public class PollManager : Controller
     {
         #region 資料區
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
 
         public PollModel m_PollModel { get; set; } = new PollModel();
 

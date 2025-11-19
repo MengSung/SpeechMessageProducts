@@ -36,7 +36,7 @@ namespace ChurchReport.Models
 
         public String SmallGroupLeaderContactId { get; set; }
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
 
         FeeDownUpLoader m_FeeDownUpLoader = new FeeDownUpLoader();
 

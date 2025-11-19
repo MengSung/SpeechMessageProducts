@@ -19,7 +19,7 @@ namespace ChurchReport.Tools
         #region 參數資料
         Entity m_Contact;
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
         //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
         private LineMessagingClient m_LineMessagingClient { get; set; }
 

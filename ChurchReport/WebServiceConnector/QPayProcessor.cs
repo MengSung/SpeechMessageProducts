@@ -68,7 +68,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
 
         #region 工具與服務
-        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
         IPayment m_PaymentService;
         #endregion
 

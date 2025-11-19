@@ -328,7 +328,7 @@ namespace ChurchReport.Services.Authentication
 
         public AuthenticationService()
         {
-            _toolUtility = new ToolUtilityClass("DYNAMICS365");
+            _toolUtility = new ToolUtilityClass("DYNAMICS365-9.0");
         }
 
         /// <summary>

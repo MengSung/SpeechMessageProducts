@@ -19,7 +19,7 @@ namespace ChurchReport.Models
 
         public String ListManagementType = "沒管理名單";
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
 
         ChurchListDataProcessor m_ChurchListDataProcessor = new ChurchListDataProcessor();
 

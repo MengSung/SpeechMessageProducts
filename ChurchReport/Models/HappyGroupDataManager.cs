@@ -18,7 +18,7 @@ namespace ChurchReport.Models
 
         public String HappyType = "沒幸福小組名單";
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
         //private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
         DownloadHappyGroup m_DownloadHappyGroup = new DownloadHappyGroup();
 

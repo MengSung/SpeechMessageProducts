@@ -33,7 +33,7 @@ namespace ChurchReport.Models
         //string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
         string m_ShopNo = m_Configuration["Sandbox:ShopNo"];
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
 
         public QpayModel m_QpayModel { get; set; } = new QpayModel();
 

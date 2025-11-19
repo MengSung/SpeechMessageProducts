@@ -27,7 +27,7 @@ namespace ChurchReport.WebServiceConnector
     {
         #region 資料區
         #region 參數資料
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
 
         private LineMessagingClient m_LineMessagingClient { get; set; }
 
@@ -53,7 +53,7 @@ namespace ChurchReport.WebServiceConnector
             // 聖谷行道會(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
-            //m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+            //m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
             //m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
             // 客製化

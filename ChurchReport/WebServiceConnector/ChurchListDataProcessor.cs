@@ -23,7 +23,7 @@ namespace ChurchReport.WebServiceConnector
     public class ChurchListDataProcessor
     {
         #region 資料區
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
 
         Random m_Random = new Random();//亂數種子
         #endregion

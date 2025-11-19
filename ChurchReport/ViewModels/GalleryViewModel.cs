@@ -29,7 +29,7 @@ namespace ChurchReport.ViewModel
     {
         #region 成員資料
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
 
         public Entity m_Contact;
 

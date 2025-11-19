@@ -1081,7 +1081,7 @@ namespace ToolUtilityNameSpace
                     //Console.WriteLine("除錯 002");
                     //  Query passed to the service proxy
                     EntityCollection retrieved;
-                    if (this.m_DiscoveryServiceType == "DYNAMICS365-9.0")
+                    if (this.m_DiscoveryServiceType == "DYNAMICS365")
                     {
                         retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
                     }
