@@ -18,7 +18,7 @@ namespace ChurchReport.Models
 
         public String EquipmentType = "沒裝備小組名單";
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365");
+        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
         //private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
         DownloadEquipment m_DownloadEquipment = new DownloadEquipment();
 

@@ -27,7 +27,7 @@ namespace ChurchReport.Tools
         #region 常數參數
 
         //private const String CRM_TYPE = "CRM2011";
-        private const String CRM_TYPE = "DYNAMICS365";
+        private const String CRM_TYPE = "DYNAMICS365-9.0";
 
         #region 除錯用參數
         private const int TOTAL_LEVEL = 1;//改變這個值，就會改追蹤的階層，值越小越不會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
@@ -223,24 +223,26 @@ namespace ChurchReport.Tools
             if (ListType == false)
             {
                 // 靜態名單
-                if (CRM_TYPE == "DYNAMICS365")
+                if (CRM_TYPE == "DYNAMICS365" || CRM_TYPE == "DYNAMICS365-9.0")
                 {
                     MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ListEntityId);
                 }
                 else
                 {
+                    MemberCollection = new EntityCollection();
                     //MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
                 }
             }
             else
             {
                 // 動態名單
-                if (CRM_TYPE == "DYNAMICS365")
+                if (CRM_TYPE == "DYNAMICS365" || CRM_TYPE == "DYNAMICS365-9.0")
                 {
                     MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ListEntityId);
                 }
                 else
                 {
+                    MemberCollection = new EntityCollection();
                     //MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
                 }
             }
@@ -250,7 +252,6 @@ namespace ChurchReport.Tools
 
             #endregion
         }
-
         #endregion
         #region 處理個人回報
         #endregion
@@ -634,303 +635,6 @@ namespace ChurchReport.Tools
             else
             {
                 return null;
-            }
-        }
-        private Entity UpdateContactInfomationFromList(String ContactName, Guid ListEntityId)
-        {
-            #region // 處理每個小組名單
-            //搜尋名單的組員
-            //EntityCollection Contacts = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntityId.ToString(), "new_cell_list_contact", "contact");
-
-            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", ListEntityId);
-
-            bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
-            EntityCollection MemberCollection;
-            if (ListType == false)
-            {
-                // 靜態名單
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ListEntityId);
-                }
-                else
-                {
-                    //MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
-                }
-            }
-            else
-            {
-                // 動態名單
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ListEntityId);
-                }
-                else
-                {
-                    //MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
-                }
-            }
-
-            foreach (Entity MemberEntity in MemberCollection.Entities)
-            {
-                // 名單中每個組員
-                Entity ContactEntity;
-
-                if (ListType == false)
-                {
-                    // 靜態名單
-                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
-                }
-                else
-                {
-                    // 動態名單
-                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
-                }
-
-                // 必須是使用中的連絡人
-                if (ContactEntity.Attributes.Contains("statecode"))
-                {
-                    OptionSetValue aOptionState = ContactEntity.Attributes["statecode"] as OptionSetValue;
-
-                    if (aOptionState.Value == 0)
-                    {
-                        #region 只回傳使用中的組員
-                        // 組員的全名
-                        String FullName = "";
-                        if (ContactEntity.Attributes.Contains("fullname"))
-                        {
-                            FullName = (string)ContactEntity.Attributes["fullname"];
-
-                            if (FullName == ContactName)
-                                return ContactEntity;
-                        }
-
-                        #endregion
-                    }
-                    else
-                    { //String StateCode = "非使用中";
-                    }
-                }
-            }
-            #endregion
-
-            return null;
-        }
-        private bool VerifyNewComerIdentity(Entity aContact)
-        {
-            try
-            {
-                // 確認是否是新人或是未入組
-                int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
-
-                if (aIdentityNumber == 100000000 || aIdentityNumber == 100000004)
-                {
-                    //    case 100000000:
-                    //        return "8. 新朋友";
-                    //    case 100000004:
-                    //        return "7. 未入組";
-
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-                //switch (Identity)
-                //{
-                //    case 100000000:
-                //        return "8. 新朋友";
-                //    case 100000001:
-                //        return "5. 神學生";
-                //    case 100000002:
-                //        return "4. 小組長";
-                //    case 100000003:
-                //        return "3. 全職同工";
-                //    case 100000004:
-                //        return "7. 未入組";
-                //    case 100000005:
-                //        return "1. 牧師";
-                //    case 100000006:
-                //        return "2, 師母";
-                //    case 100000007:
-                //        return "9. 外教會";
-                //    case 100000008:
-                //        return "10. 未入組結案";
-                //    case 1:
-                //        return "6. 小組組員";
-                //    default:
-                //        return ".";
-                //}
-
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                throw e;
-            }
-        }
-        private String ConvertNumberToFollowUpWeekPicker(int FollowUpWeekIndex)
-        {
-            switch (FollowUpWeekIndex)
-            {
-                case 1:
-                    return "一";
-                case 2:
-                    return "二";
-                case 3:
-                    return "三";
-                case 4:
-                    return "四";
-                case 5:
-                    return "五";
-                case 6:
-                    return "六";
-                case 7:
-                    return "七";
-                case 8:
-                    return "八";
-                case 9:
-                    return "九";
-                case 10:
-                    return "十";
-                case 11:
-                    return "十一";
-                case 12:
-                    return "十二";
-                case 13:
-                    return "十三";
-                case 14:
-                    return "十四";
-                case 15:
-                    return "十五";
-                case 16:
-                    return "十六";
-                case 17:
-                    return "十七";
-                case 18:
-                    return "十八";
-                case 19:
-                    return "十九";
-                case 20:
-                    return "二十";
-                default:
-                    return "二十";
-            }
-        }
-        private int ConvertNumberToWeekIndex(int FollowUpWeekIndex)
-        {
-            switch (FollowUpWeekIndex)
-            {
-                case 1:
-                    return 100000000;
-                case 2:
-                    return 100000001;
-                case 3:
-                    return 100000002;
-                case 4:
-                    return 100000003;
-                case 5:
-                    return 100000004;
-                case 6:
-                    return 100000005;
-                case 7:
-                    return 100000006;
-                case 8:
-                    return 100000007;
-                case 9:
-                    return 100000008;
-                case 10:
-                    return 100000009;
-                case 11:
-                    return 100000010;
-                case 12:
-                    return 100000011;
-                case 13:
-                    return 100000012;
-                case 14:
-                    return 100000013;
-                case 15:
-                    return 100000014;
-                case 16:
-                    return 100000015;
-                case 17:
-                    return 100000016;
-                case 18:
-                    return 100000017;
-                case 19:
-                    return 100000018;
-                case 20:
-                    return 100000019;
-                default:
-                    return 100000007;
-            }
-        }
-        private String ConvertIndexToFollowUpResultPicker(int FollowUpWeekIndex)
-        {
-            switch (FollowUpWeekIndex)
-            {
-                case 100000000:
-                    return "請選擇";
-                case 100000001:
-                    return "熱情回應";
-                case 100000002:
-                    return "渴慕認識信仰";
-                case 100000003:
-                    return "沒聯絡上";
-                case 100000004:
-                    return "反應冷淡";
-                case 100000005:
-                    return "考慮中，繼續跟進";
-                case 100000006:
-                    return "入小組";
-                case 100000007:
-                    return "來主日";
-                case 100000008:
-                    return "轉介";
-                case 100000009:
-                    return "其他";
-                default:
-                    return "";
-            }
-        }
-        private String ConvertIndexToFollowUpNextStepPicker(int FollowUpWeekIndex)
-        {
-            switch (FollowUpWeekIndex)
-            {
-                case 100000000:
-                    return "請選擇";
-                case 100000001:
-                    return "繼續跟進";
-                case 100000002:
-                    return "轉介";
-                default:
-                    return "";
-            }
-        }
-        private String ConvertIndexToFollowUpOptionPicker(int FollowUpWays)
-        {
-            switch (FollowUpWays)
-            {
-                case 100000000:
-                    return "電話";
-                case 100000001:
-                    return "探訪";
-                case 100000002:
-                    return "Line/FB";
-                case 100000003:
-                    return "出遊/吃飯";
-                case 100000004:
-                    return "懷鄉/其他課程";
-                case 100000005:
-                    return "約談";
-                case 100000006:
-                    return "沒跟進";
-                case 100000007:
-                    return "其他";
-                default:
-                    return "";
             }
         }
         private void SetupPresentRecordEntityAttributes(Entity aPresentRecord, Entity aMemberInfomation, ref Entity aContactEntity, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, ref Double aWeeklySundayRate, ref Double aWeeklySmallGroupRate, ref int aWeeklySundayNumber, ref int aWeeklySmallGroupNumber, String HappyWeekIndex, String HappyWeekTopic, bool PauseCheckBox)

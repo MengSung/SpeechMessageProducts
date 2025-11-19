@@ -31,8 +31,8 @@ namespace ToolUtilityNameSpace
     public class ToolUtilityClass
     {
         #region 資料區
-        //private String CRM_TYPE = "CRM2011";
-        private String CRM_TYPE = "DYNAMICS365";
+        //private const String CRM_TYPE = "CRM2011";
+        private const String CRM_TYPE = "DYNAMICS365-9.0";
 
         String m_DiscoveryServiceType = "";
 
@@ -183,7 +183,7 @@ namespace ToolUtilityNameSpace
             m_Crm2011OrganizationService = new OnPremiseClient(adUrl, adUsername, adPassword);
 
 
-            CRM_TYPE = DiscoveryServiceType;
+            //CRM_TYPE = DiscoveryServiceType;
         }
         public ToolUtilityClass(ref bool ValidFlag)
         {
@@ -1081,7 +1081,7 @@ namespace ToolUtilityNameSpace
                     //Console.WriteLine("除錯 002");
                     //  Query passed to the service proxy
                     EntityCollection retrieved;
-                    if (this.m_DiscoveryServiceType == "DYNAMICS365")
+                    if (this.m_DiscoveryServiceType == "DYNAMICS365-9.0")
                     {
                         retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
                     }
@@ -4259,7 +4259,15 @@ namespace ToolUtilityNameSpace
                     Query = new FetchExpression(fetchXml)
                 };
 
-                return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+                else
+                {
+                    return ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+
             }
             catch (System.Exception e)
             {
@@ -4296,7 +4304,15 @@ namespace ToolUtilityNameSpace
                     Query = new FetchExpression(fetchXml)
                 };
 
-                return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+                else
+                {
+                    return ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+
             }
             catch (System.Exception e)
             {
@@ -4417,7 +4433,15 @@ namespace ToolUtilityNameSpace
                     Query = new FetchExpression(fetchXml)
                 };
 
-                return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+                else
+                {
+                    return ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+
             }
             catch (System.Exception e)
             {
@@ -4454,7 +4478,14 @@ namespace ToolUtilityNameSpace
                     Query = new FetchExpression(fetchXml)
                 };
 
-                return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+                else
+                {
+                    return ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
             }
             catch (System.Exception e)
             {
@@ -4771,9 +4802,18 @@ namespace ToolUtilityNameSpace
         {
             try
             {
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    return this.m_OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
+                }
+                else
+                {
+                    return this.m_Crm2011OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
+                }
+
                 //lock (m_EntityLocker)
                 //{
-                    return this.m_OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
+                //return this.m_OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
                 //}
             }
             catch (System.Exception e)
@@ -4786,10 +4826,14 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                //lock (m_EntityLocker)
-                //{
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    return this.m_OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
+                }
+                else
+                {
                     return this.m_Crm2011OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
-                //}
+                }
             }
             catch (System.Exception e)
             {

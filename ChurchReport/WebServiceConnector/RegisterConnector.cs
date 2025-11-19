@@ -34,7 +34,7 @@ namespace ChurchReport.WebServiceConnector
         #region 常數參數
 
         //private const String CRM_TYPE = "CRM2011";
-        private const String CRM_TYPE = "DYNAMICS365";
+        private const String CRM_TYPE = "DYNAMICS365-9.0";
 
 
         #region 除錯用參數

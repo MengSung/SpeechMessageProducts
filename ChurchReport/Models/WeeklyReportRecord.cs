@@ -15,7 +15,7 @@ namespace ChurchReport.Models
         #region 常數參數
 
         //private const String CRM_TYPE = "CRM2011";
-        private const String CRM_TYPE = "DYNAMICS365";
+        private const String CRM_TYPE = "DYNAMICS365-9.0";
 
         private const bool TRANSFER_IDENTITY_FLAG = true;
 

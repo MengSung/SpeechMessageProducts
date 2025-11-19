@@ -39,7 +39,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 常數參數
         //private const String CRM_TYPE = "CRM2011";
-        private const String CRM_TYPE = "DYNAMICS365";
+        private const String CRM_TYPE = "DYNAMICS365-9.0";
 
         // 客製化
         // 聖谷行道會
