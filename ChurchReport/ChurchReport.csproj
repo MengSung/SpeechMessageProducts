@@ -1,11 +1,11 @@
 <Project ToolsVersion="15.0" Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net471</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <EnableDefaultContentItems>false</EnableDefaultContentItems>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>ChurchReport</AssemblyName>
     <OutputType>Exe</OutputType>
-    <RuntimeIdentifier>win7-x86</RuntimeIdentifier>
+    <!-- 移除 RuntimeIdentifier，.NET 10 不支援 win7-x86 -->
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     <!-- 允許套件降級警告不影響建置 -->
@@ -54,20 +54,11 @@
     <Content Include="文件\QPayView_README.md" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Crm.Sdk.Proxy">
-      <HintPath>..\..\Dynamics 365 SDK DLL\Microsoft.Crm.Sdk.Proxy.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xrm.Sdk">
-      <HintPath>..\..\Dynamics 365 SDK DLL\Microsoft.Xrm.Sdk.dll</HintPath>
-    </Reference>
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="DevExtreme.AspNet.Core" Version="21.2.7" />
-    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
+    <PackageReference Include="DevExtreme.AspNet.Core" Version="23.1.5" />
+    <PackageReference Include="DevExtreme.AspNet.Data" Version="5.1.0" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
+    <!-- .NET 10 使用框架引用，不需要明確的 AspNetCore 套件 -->
+    <!--
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
@@ -77,16 +68,19 @@
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
-    <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="8.2.0.2" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink.Loader" Version="14.1.0" />
-    <PackageReference Include="DevExtreme.AspNet.Data" Version="2.8.6" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    -->
+    <!-- BrowserLink 在新版本中已不推薦使用 -->
+    <!-- <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink.Loader" Version="14.1.0" /> -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
+  <!-- DotNetCliToolReference 在 .NET Core 3.0+ 已被移除 -->
+  <!--
   <ItemGroup>
     <DotNetCliToolReference Include="BundlerMinifier.Core">
       <Version>2.2.301</Version>
     </DotNetCliToolReference>
   </ItemGroup>
+  -->
   <ItemGroup>
     <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />
     <ProjectReference Include="..\LineMessagingProcessor\LineMessagingProcessor.csproj" />
@@ -95,6 +89,14 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Views\Dedication\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="DevExtreme.AspNet.Core">
+      <HintPath>C:\Users\Administrator\.nuget\packages\devextreme.aspnet.core\23.1.5\lib\net6.0\DevExtreme.AspNet.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Crm.Sdk.Proxy">
+      <HintPath>..\..\..\..\DevExpressDevExtreme-23.1.5版本\響應式\主要版本\ChurchReport.RazorPages\Dynamics 365 SDK DLL\Microsoft.CrmSdk.CoreAssemblies.9.0.2.52\lib\net462\Microsoft.Crm.Sdk.Proxy.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>

@@ -1,13 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Routing;
-using System.Web.Security;
-using System.Web.SessionState;
 //using Microsoft.AspNetCore.Http;
 
 namespace ChurchReport
