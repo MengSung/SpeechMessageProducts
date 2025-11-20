@@ -6,7 +6,6 @@ using ToolUtilityNameSpace;
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
 // located in the SDK\bin folder of the SDK download.
 using Microsoft.Xrm.Sdk;
-using ToolUtility;
 using Line.Messaging;
 using System.Collections.Generic;
 #endregion

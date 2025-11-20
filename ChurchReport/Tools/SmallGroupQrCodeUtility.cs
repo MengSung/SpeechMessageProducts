@@ -18,7 +18,6 @@ using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace;
 using System.Text.RegularExpressions;
 using ChurchReport.Models;
-using ToolUtility;
 using Line.Messaging;
 #endregion
 

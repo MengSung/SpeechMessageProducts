@@ -422,7 +422,7 @@ namespace ToolUtilityNameSpace
         #endregion
 
         #region Line 訊息（轉發到 LineMessageService）
-        public void CreatePushLineMessage(string userId, string subject, string message)
+        public void CreatePushLineMessage(String userId, String subject, String message)
             => _lineMessageService.Value.CreatePushMessage(userId, subject, message);
         #endregion
 
@@ -878,975 +878,191 @@ ToolUtility/
 
 ---
 
-## ✅ SOLID 原則遵守檢查
+## 🔧 補充執行細節：擴充整合測試、漸進遷移與 CI 設定
 
-### ✅ S - Single Responsibility Principle（單一職責）
-```
-❌ 重構前：ToolUtilityClass 負責 10+ 種操作
-✅ 重構後：每個 Service 只負責 1 種操作
-```
+下面為三項重點的可執行步驟與範例，依文件上 TODO 清單補充，便於立刻實作。
 
-### ✅ O - Open/Closed Principle（開放封閉）
-```
-✅ IContactService 介面固定
-✅ 可新增 ContactServiceV2 而不修改現有程式碼
-```
+A. 擴充整合測試（補齊 Facade 的轉發路徑）
 
-### ✅ L - Liskov Substitution Principle（里氏替換）
-```
-✅ 所有實作類別可替換介面
-✅ Mock 版本可用於測試
-```
+目標：整合測試覆蓋 `ToolUtilityFacade`（或 `ToolUtilityClass` 外殼）轉發的主要方法，確保 Create/Update/Delete、Attachment、List、LineMessage 等行為與既有系統一致。
 
-### ✅ I - Interface Segregation Principle（介面隔離）
-```
-✅ IContactService 只包含連絡人操作
-✅ IListService 只包含名單操作
-✅ 避免「胖介面」
-```
+要點：
+- 每個測試使用 `MockCrmClientFactory` 提供的 `Mock<ICrmClient>`（或 mock IOrganizationService 行為），並使用 `TestEntityFactory` 建立範例實體。
+- 使用 `MockLoggerFactory` 產生 logger mock（不必驗證 log 呼叫，除非測試例外處理路徑）。
+- 整合測試應以 Facade 為 SUT（system under test）；針對 `ToolUtilityClass` 外殼寫同樣的整合測試以做向後相容驗證。
 
-### ✅ D - Dependency Inversion Principle（依賴反轉）
-```
-✅ ToolUtilityClass 依賴 IContactService 介面（不依賴實作）
-✅ 可透過 DI 注入不同實作
-```
+建議加入的整合測試清單（每項至少一個 happy-path）：
+- CreateEntity_ShouldReturnNewGuid
+- UpdateEntity_ShouldCallCrudUpdate
+- DeleteEntity_ShouldCallCrudDelete
+- DownloadAnAttachment_ShouldReturnEmptyCollectionOrAnnotation
+- UploadAnAttachment_ShouldCreateAnnotation
+- AddMembersToMarketingList_ShouldCallListService
+- RemoveMembersToMarketingList_ShouldCallListService
+- CreatePushLineMessage_ShouldCreateLineMessageEntity
 
----
+範例測試（Create / Update / Delete）：
 
-## 🎯 Linus 原則遵守檢查
+```csharp
+[Fact]
+public void Create_Update_Delete_Entity_Via_Facade()
+{
+    // Arrange
+    var mockCrm = MockCrmClientFactory.CreateMock();
+    var mockLogger = MockLoggerFactory.CreateMock<object>();
 
-### ✅ 小而頻繁的變更
-```
-✅ 每個 Service 獨立 PR
-✅ 每個 PR < 500 行變更
-✅ 可獨立測試與回滾
-```
+    var createdId = Guid.NewGuid();
+    mockCrm.Setup(x => x.Create(It.IsAny<Entity>())).Returns(createdId);
 
-### ✅ 簡潔優先
-```
-✅ 每個類別 < 800 行
-✅ 每個方法 < 50 行
-✅ 清楚的命名（ContactService, not Helper）
-```
+    var facade = new ToolUtilityFacade(mockLogger.Object, mockCrm.Object);
 
-### ✅ 可回滾
-```
-✅ 保留 ToolUtilityClass Facade（向後相容）
-✅ 每個 Service 可獨立移除
-✅ 所有變更有單元測試保護
-```
+    var entity = new Entity("account") { ["name"] = "TDD Test" };
 
-### ✅ 以事實為準
-```
-✅ 有效能基準測試
-✅ 有資源洩漏檢測
-✅ 有單元測試驗證行為
+    // Act - Create
+    var id = facade.CreateEntity(entity);
+
+    // Assert
+    id.Should().Be(createdId);
+
+    // Act - Update
+    entity.Id = id;
+    facade.UpdateEntity(entity);
+    mockCrm.Verify(x => x.Update(It.Is<Entity>(e => e.Id == id)), Times.Once);
+
+    // Act - Delete
+    facade.DeleteEntity("account", id);
+    mockCrm.Verify(x => x.Delete("account", id), Times.Once);
+}
 ```
 
----
+範例測試（Attachment Upload）：
 
-## 📈 與 PR-04 的整合
+```csharp
+[Fact]
+public void UploadAttachment_ShouldCallCreateAnnotation()
+{
+    var mockCrm = MockCrmClientFactory.CreateMock();
+    var mockLogger = MockLoggerFactory.CreateMock<object>();
+    var facade = new ToolUtilityFacade(mockLogger.Object, mockCrm.Object);
 
-### PR-04 原始目標
-- [x] 移除 ctor 中的 FileStream / TraceListener
-- [x] 注入 ILogger
-- [x] 修正 Dispose
+    var crmService = (IOrganizationService)null; // facade requires ref param signature; use null as allowed
+    facade.UploadAnAttachment(ref crmService, "contact", "sub", "note", "file.txt", "text/plain", new byte[] { 1,2,3 }, Guid.NewGuid());
 
-### PR-04 + 重構後的目標
-- [x] 完成 PR-04 原始目標
-- [x] 解決檔案過大問題
-- [x] 符合 SOLID 原則
-- [x] 提升可測試性
-- [x] 降低維護成本
+    mockCrm.Verify(x => x.Create(It.Is<Entity>(a => a.LogicalName == "annotation" && a["filename"].ToString() == "file.txt")), Times.Once);
+}
+```
 
----
+備註：將上述測試放於 `ToolUtility.Tests/Core/ToolUtilityFacadeIntegrationTests.cs`，並使用已有的 `MockCrmClientFactory`、`TestEntityFactory`、`MockLoggerFactory`。
 
-## 🎓 學習資源
+B. 漸進遷移策略（分批 PR）
 
-### 設計模式參考
-- [Facade Pattern](https://refactoring.guru/design-patterns/facade)
-- [Service Layer Pattern](https://martinfowler.com/eaaCatalog/serviceLayer.html)
-- [Composite Pattern](https://refactoring.guru/design-patterns/composite)
+目標：把舊的 `ToolUtilityClass` 逐步改為內部呼叫 `ToolUtilityFacade`，每個 PR 小且可回滾，保留舊 constructor 以確保向後相容。
 
-### SOLID 原則參考
-- [SOLID Principles in C#](https://www.c-sharpcorner.com/UploadFile/damubebi/solid-principles-in-C-Sharp/)
-- [Clean Code](https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882)
+策略步驟（每步為一個 PR）：
+1. PR-1：新增 `ToolUtilityFacade` 類別（已完成）與介面（若尚未），並新增整合測試骨架。
+   - 內容：新增檔案，不改動現有 `ToolUtilityClass`。
+2. PR-2：把 `ToolUtilityClass` 改為「薄外殼」但保留所有 public 方法與 constructor。
+   - 實作：`ToolUtilityClass` 的每個 public 方法直接轉發到 `ToolUtilityFacade`。
+   - 標記舊無參數 ctor 為 `[Obsolete]` 並保留。
+   - 新增整合測試以驗證向後相容。
+3. PR-3：為每一個大型功能區（Attributes / Contact / List / Attachment / LineMessage）分別提交小 PR，將該區塊的舊實作改為呼叫對應的 Service，並補上單元 + 整合測試。
+   - 每個 PR 應包含：
+     - 新 Service 的單元測試（綠燈）
+     - Facade 的整合測試（驗證轉發）
+     - 更新的文件說明
+4. PR-4：移除 `ToolUtilityClass` 中已完全轉移且有測試保護的舊內部邏輯，繼續保留外殼直到所有呼叫端改為 DI 注入。
+5. PR-Final：當所有呼叫端都使用新的 Service/Facade，並且 `BackwardCompatibilityTests` 表示沒有遺漏的公開方法後，簡化或移除 `ToolUtilityClass`（視需要保留最簡化的 Facade 以兼容外部整合）。
 
----
+每個 PR 的檢查清單：
+- [ ] 編譯通過
+- [ ] 單元測試通過（改動區域）
+- [ ] 整合測試（Facade）通過
+- [ ] 向後相容測試（BackwardCompatibilityTests）通過
+- [ ] Performance smoke test（針對關鍵 API）通過
 
-## 📝 後續工作
+C. 建立 CI（GitHub Actions 範例）
 
-### 短期（PR-04 完成後）
-- [ ] 建立 CI/CD 管道
-- [ ] 加入效能監控
-- [ ] 建立自動化測試套件
+目標：在 PR 與 main branch 上自動跑 unit + integration tests 並上傳覆蓋率報告。
 
-### 中期（PR-05 完成後）
-- [ ] 轉換為 SDK-style csproj
-- [ ] 支援 multi-target（net462 + net10.0）
+範例 workflow（.github/workflows/test-and-coverage.yml）：
 
-### 長期（PR-06+）
-- [ ] 逐步遷移到 async/await
-- [ ] 整合 Polly（Retry / Circuit Breaker）
-- [ ] 加入 OpenTelemetry（分散式追蹤）
+```yaml
+name: Test and Coverage
+on: [push, pull_request]
 
----
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-## 📋 詳細 TODO 清單（待批准）
+      - name: Restore
+        run: dotnet restore
 
-### 🔧 前置準備（Phase 0）
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
 
-#### TODO-0.1: 建立測試專案結構
-- [ ] 在 Solution 中新增 `ToolUtility.Tests` 專案
-  ```
-  ToolUtility.Tests/
-  ├── ToolUtility.Tests.csproj
-  ├── Core/
-  │   └── ToolUtilityClassTests.cs
-  ├── ContactOperations/
-  │   └── ContactServiceTests.cs
-  ├── AttributeOperations/
-  │   └── BoolAttributeServiceTests.cs
-  └── TestHelpers/
-      ├── MockCrmClientFactory.cs
-      └── TestEntityFactory.cs
-  ```
-- [ ] 安裝測試相關 NuGet 套件
-  ```xml
-  <PackageReference Include="xunit" Version="2.6.6" />
-  <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6" />
-  <PackageReference Include="Moq" Version="4.20.70" />
-  <PackageReference Include="FluentAssertions" Version="6.12.0" />
-  <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-  ```
-- [ ] 設定 CI/CD 測試管道（GitHub Actions 或 Azure DevOps）
-  ```yaml
-  # .github/workflows/test.yml
-  name: Run Tests
-  on: [push, pull_request]
-  jobs:
-    test:
-      runs-on: windows-latest
-      steps:
-        - uses: actions/checkout@v4
-        - name: Setup .NET
-          uses: actions/setup-dotnet@v4
-          with:
-            dotnet-version: '8.0.x'
-        - name: Restore dependencies
-          run: dotnet restore
-        - name: Build
-          run: dotnet build --no-restore
-        - name: Test
-          run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage"
-        - name: Upload coverage
-          uses: codecov/codecov-action@v3
-  ```
+      - name: Run Unit and Integration Tests
+        run: |
+          dotnet test ToolUtility.Tests/ToolUtility.Tests.csproj --no-build --logger:"trx;LogFileName=test_results.trx" --collect:"XPlat Code Coverage"
 
-**驗收標準**：
-- ✅ 測試專案可編譯
-- ✅ CI/CD 管道運行成功（即使沒有測試）
-- ✅ 程式碼覆蓋率報告可產生
+      - name: Publish Test Results
+        if: always()
+        uses: atlassian/generate-test-report@v2
+        with:
+          results: '**/TestResults/*.trx'
 
----
+      - name: Upload code coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: |
+            **/coverage.cobertura.xml
+            **/coverage.opencover.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
 
-#### TODO-0.2: 建立 Mock 基礎設施
-- [ ] 實作 `MockCrmClientFactory`（產生假的 ICrmClient）
-  ```csharp
-  public static class MockCrmClientFactory
-  {
-      public static Mock<ICrmClient> CreateMock()
-      {
-          var mock = new Mock<ICrmClient>();
-          // 預設行為設定
-          return mock;
-      }
-  }
-  ```
-- [ ] 實作 `TestEntityFactory`（快速建立測試用 Entity）
-  ```csharp
-  public static class TestEntityFactory
-  {
-      public static Entity CreateContact(string lineId, string fullName)
-      {
-          return new Entity("contact")
-          {
-              Id = Guid.NewGuid(),
-              ["new_lineid"] = lineId,
-              ["fullname"] = fullName,
-              ["statecode"] = 0
-          };
-      }
-  }
-  ```
-- [ ] 實作 `MockLoggerFactory`（產生假的 ILogger）
-  ```csharp
-  public static class MockLoggerFactory
-  {
-      public static Mock<ILogger<T>> CreateMock<T>()
-      {
-          var mock = new Mock<ILogger<T>>();
-          // 預設不驗證 Log 呼叫
-          return mock;
-      }
-  }
-  ```
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/
+```
 
-**驗收標準**：
-- ✅ Mock 工廠可產生可用的 Mock 物件
-- ✅ 在測試中可重複使用
+說明：
+- `dotnet test` 使用 Coverlet 收集覆蓋率（測試專案已在 csproj 或命令列啟用 Coverlet）。
+- `codecov` action 會上傳報告到 Codecov（請在 repo secrets 加入 `CODECOV_TOKEN`）。
+- 若 CI 需要將 unit/integration tests 分開跑，可在 test command 加上 `--filter FullyQualifiedName!~Integration` 或使用 xUnit Trait（例如 Trait = "Category", "Integration"），在 CI 中以不同步驟執行 Integration tests（可選）。
+
+D. 實作細微注意事項
+
+- Ref/out/ref IOrganizationService 參數：舊 API 若有 `ref` 參數，Facade/Service 也應保留 `ref` 簽章，並在轉發中直接轉交給底層 Service（不要改變參考語意）。
+- 例外行為一致性：若舊方法在某條件會丟出特定例外（例：找不到資料回傳 `null` vs 丟 exception），在轉發初期保持與舊行為一致，之後再評估是否可改進。
+- 日誌（Logging）：在 Service 中使用 `ILogger<T>`，在 Facade 層僅作最小轉發與錯誤彙整；保持舊 log level 行為以便從 log 回溯。
+- 多 target 支援：確保 `ICrmClient` adapter 在 net462 與 net10 等目標上可編譯，CI 針對主要 target 執行測試。
+
+E. 推薦開發流程範例（PR 範例描述）
+
+標題：PR-XX: Migrate Contact retrieval to ContactService + tests
+說明：
+- 新增 `ContactService` 與 `IContactService`（已包含單元測試）
+- 更新 `ToolUtilityClass` `RetrieveContactByLineId` 轉發到 `ToolUtilityFacade`（或直接注入 `ContactService`）
+- 新增整合測試 `ToolUtilityClassIntegrationTests.RetrieveContactByLineId_ShouldDelegateToContactService`
+
+驗收條件（PR checklist）
+- [ ] Unit tests passed
+- [ ] Integration tests passed
+- [ ] BackwardCompatibility tests passed
+- [ ] No performance regression (smoke)
 
 ---
 
-### 📁 Phase 1: 建立基礎架構（TDD 驅動）
-
-#### TODO-1.1: 工具類別（StringUtility）
-
-##### 🔴 RED - 寫測試
-- [ ] 建立 `StringUtilityTests.cs`
-  ```csharp
-  public class StringUtilityTests
-  {
-      [Fact]
-      public void DeleteLastComma_WhenStringEndsWithComma_ShouldRemoveIt()
-      {
-          // Arrange
-          string input = "測試，項目，";
-          
-          // Act
-          StringUtility.DeleteLastComma(ref input);
-          
-          // Assert
-          Assert.Equal("測試，項目", input);
-      }
-      
-      [Fact]
-      public void FilterDigit_WhenMixedString_ShouldReturnOnlyDigits()
-      {
-          // Arrange
-          string input = "電話: 0912-345-678";
-          
-          // Act
-          var result = StringUtility.FilterDigit(input);
-          
-          // Assert
-          Assert.Equal("0912345678", result);
-      }
-  }
-  ```
-- [ ] 執行測試 → 預期 ❌ 失敗（因為 `StringUtility` 還不存在）
-
-##### 🟢 GREEN - 寫實作
-- [ ] 建立 `ToolUtility/Utilities/StringUtility.cs`
-  ```csharp
-  namespace ToolUtilityNameSpace.Utilities
-  {
-      public static class StringUtility
-      {
-          public static void DeleteLastComma(ref string stringToProcess)
-          {
-              if (string.IsNullOrEmpty(stringToProcess)) return;
-              
-              int length = stringToProcess.LastIndexOf("，");
-              if (length > 0)
-              {
-                  stringToProcess = stringToProcess.Substring(0, length);
-              }
-          }
-          
-          public static string FilterDigit(string filteredString)
-          {
-              if (string.IsNullOrEmpty(filteredString)) return string.Empty;
-              
-              return new string(filteredString.Where(char.IsDigit).ToArray());
-          }
-      }
-  }
-  ```
-- [ ] 執行測試 → 預期 ✅ 通過
-
-##### 🔵 REFACTOR - 優化
-- [ ] 加入 `DeleteLastChar` 泛化方法
-- [ ] 加入邊界條件測試（null, empty, 單字元）
-- [ ] 執行測試 → 確保 ✅ 仍通過
-
-**驗收標準**：
-- ✅ 所有測試通過
-- ✅ 測試覆蓋率 > 90%
-- ✅ 程式碼通過 Code Review
-
----
-
-#### TODO-1.2: 工具類別（TraceUtility）
-
-##### 🔴 RED - 寫測試
-- [ ] 建立 `TraceUtilityTests.cs`
-  ```csharp
-  public class TraceUtilityTests
-  {
-      [Fact]
-      public void TraceByLevel_WhenLoggerProvided_ShouldUseILogger()
-      {
-          // Arrange
-          var mockLogger = MockLoggerFactory.CreateMock<object>();
-          int totalLevel = 5;
-          int qualifiedLevel = 3;
-          string message = "測試訊息";
-          
-          // Act
-          TraceUtility.TraceByLevel(mockLogger.Object, totalLevel, qualifiedLevel, message);
-          
-          // Assert
-          mockLogger.Verify(
-              x => x.Log(
-                  LogLevel.Debug,
-                  It.IsAny<EventId>(),
-                  It.Is<It.IsAnyType>((v, t) => v.ToString().Contains(message)),
-                  null,
-                  It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-              Times.Once);
-      }
-      
-      [Fact]
-      public void TraceByLevel_WhenLevelTooLow_ShouldNotLog()
-      {
-          // Arrange
-          var mockLogger = MockLoggerFactory.CreateMock<object>();
-          
-          // Act
-          TraceUtility.TraceByLevel(mockLogger.Object, totalLevel: 2, qualifiedLevel: 5, "不應記錄");
-          
-          // Assert
-          mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Never);
-      }
-  }
-  ```
-- [ ] 執行測試 → 預期 ❌ 失敗
-
-##### 🟢 GREEN - 寫實作
-- [ ] 建立 `ToolUtility/Utilities/TraceUtility.cs`
-  ```csharp
-  namespace ToolUtilityNameSpace.Utilities
-  {
-      public static class TraceUtility
-      {
-          public static void TraceByLevel(ILogger logger, int totalLevel, int qualifiedLevel, string stringToProcess)
-          {
-              if (totalLevel < qualifiedLevel) return;
-              
-              logger?.LogDebug("Time: {Time}, Message: {Message}, StackTrace: {StackTrace}",
-                  DateTime.Now,
-                  stringToProcess,
-                  new StackTrace(new StackFrame(1, true)).ToString());
-          }
-          
-          // 向後相容（Legacy）
-          public static void TraceByLevelLegacy(int totalLevel, int qualifiedLevel, string stringToProcess)
-          {
-              if (totalLevel < qualifiedLevel) return;
-              
-              Debug.WriteLine($"Time: {DateTime.Now}");
-              Debug.WriteLine($"Message: {stringToProcess}");
-              Debug.WriteLine($"StackTrace: {new StackTrace(new StackFrame(1, true))}");
-          }
-      }
-  }
-  ```
-- [ ] 執行測試 → 預期 ✅ 通過
-
-**驗收標準**：
-- ✅ ILogger 版本與 Legacy 版本都有測試
-- ✅ 測試覆蓋率 > 85%
-
----
-
-### 🔌 Phase 2: 屬性服務（Attribute Services）
-
-#### TODO-2.1: BoolAttributeService（TDD 範例）
-
-##### 🔴 RED - 寫測試
-- [ ] 建立 `BoolAttributeServiceTests.cs`
-  ```csharp
-  public class BoolAttributeServiceTests
-  {
-      private readonly Mock<ILogger> _mockLogger;
-      private readonly BoolAttributeService _service;
-      
-      public BoolAttributeServiceTests()
-      {
-          _mockLogger = MockLoggerFactory.CreateMock<BoolAttributeService>();
-          _service = new BoolAttributeService(_mockLogger.Object);
-      }
-      
-      [Fact]
-      public void GetAttribute_WhenAttributeExists_ShouldReturnValue()
-      {
-          // Arrange
-          var entity = new Entity("contact");
-          entity["new_ismember"] = true;
-          
-          // Act
-          var result = _service.GetAttribute(entity, "new_ismember");
-          
-          // Assert
-          result.Should().BeTrue();
-      }
-      
-      [Fact]
-      public void GetAttribute_WhenAttributeNotExists_ShouldReturnFalse()
-      {
-          // Arrange
-          var entity = new Entity("contact");
-          
-          // Act
-          var result = _service.GetAttribute(entity, "new_ismember");
-          
-          // Assert
-          result.Should().BeFalse();
-      }
-      
-      [Fact]
-      public void SetAttribute_WhenAttributeExists_ShouldUpdateValue()
-      {
-          // Arrange
-          var entity = new Entity("contact");
-          entity["new_ismember"] = false;
-          
-          // Act
-          _service.SetAttribute(ref entity, "new_ismember", true);
-          
-          // Assert
-          entity["new_ismember"].Should().Be(true);
-      }
-      
-      [Fact]
-      public void SetAttribute_WhenAttributeNotExists_ShouldAddValue()
-      {
-          // Arrange
-          var entity = new Entity("contact");
-          
-          // Act
-          _service.SetAttribute(ref entity, "new_ismember", true);
-          
-          // Assert
-          entity.Contains("new_ismember").Should().BeTrue();
-          entity["new_ismember"].Should().Be(true);
-      }
-  }
-  ```
-- [ ] 執行測試 → 預期 ❌ 失敗
-
-##### 🟢 GREEN - 寫實作
-- [ ] 建立 `ToolUtility/AttributeOperations/BoolAttributeService.cs`（按照文件中的範例）
-- [ ] 執行測試 → 預期 ✅ 通過
-
-##### 🔵 REFACTOR - 優化
-- [ ] 加入異常測試（InvalidCastException）
-- [ ] 加入 Logging 驗證
-- [ ] 執行測試 → 確保 ✅ 仍通過
-
-**驗收標準**：
-- ✅ 測試覆蓋率 > 90%
-- ✅ 所有邊界條件已測試
-- ✅ Logging 行為已驗證
-
----
-
-#### TODO-2.2 ~ 2.6: 其他屬性服務（依循相同模式）
-
-- [ ] TODO-2.2: `IntAttributeService`（TDD：測試 → 實作 → 重構）
-- [ ] TODO-2.3: `StringAttributeService`（TDD：測試 → 實作 → 重構）
-- [ ] TODO-2.4: `DateTimeAttributeService`（TDD：測試 → 實作 → 重構）
-- [ ] TODO-2.5: `MoneyAttributeService`（TDD：測試 → 實作 → 重構）
-- [ ] TODO-2.6: `LookupAttributeService`（TDD：測試 → 實作 → 重構）
-
-**每個 Service 的驗收標準**：
-- ✅ 完整的單元測試（正常 + 異常 + 邊界）
-- ✅ 測試覆蓋率 > 90%
-- ✅ 程式碼 Review 通過
-
----
-
-#### TODO-2.7: AttributeServiceComposite（整合測試）
-
-##### 🔴 RED - 寫測試
-- [ ] 建立 `AttributeServiceCompositeTests.cs`
-  ```csharp
-  public class AttributeServiceCompositeTests
-  {
-      [Fact]
-      public void GetBoolAttribute_ShouldDelegateToBoolService()
-      {
-          // Arrange
-          var mockLogger = MockLoggerFactory.CreateMock<object>();
-          var composite = new AttributeServiceComposite(mockLogger.Object);
-          var entity = new Entity("contact");
-          entity["new_ismember"] = true;
-          
-          // Act
-          var result = composite.GetBoolAttribute(entity, "new_ismember");
-          
-          // Assert
-          result.Should().BeTrue();
-      }
-      
-      // 測試所有類型的轉發...
-  }
-  ```
-- [ ] 執行測試 → 預期 ❌ 失敗
-
-##### 🟢 GREEN - 寫實作
-- [ ] 實作 `AttributeServiceComposite`（按照文件範例）
-- [ ] 執行測試 → 預期 ✅ 通過
-
-**驗收標準**：
-- ✅ 所有類型的屬性轉發都有測試
-- ✅ 測試覆蓋率 > 85%
-
----
-
-### 🔍 Phase 3: 實體操作服務
-
-#### TODO-3.1: EntityQueryService（TDD）
-
-##### 🔴 RED - 寫測試
-- [ ] 建立 `EntityQueryServiceTests.cs`
-  ```csharp
-  public class EntityQueryServiceTests
-  {
-      [Fact]
-      public void RetrieveEntity_WhenEntityExists_ShouldReturnEntity()
-      {
-          // Arrange
-          var mockCrmClient = MockCrmClientFactory.CreateMock();
-          var expectedEntity = TestEntityFactory.CreateContact("U123", "測試");
-          
-          mockCrmClient
-              .Setup(x => x.Retrieve("contact", expectedEntity.Id, It.IsAny<ColumnSet>()))
-              .Returns(expectedEntity);
-          
-          var mockLogger = MockLoggerFactory.CreateMock<EntityQueryService>();
-          var service = new EntityQueryService(mockLogger.Object, mockCrmClient.Object);
-          
-          // Act
-          var result = service.RetrieveEntity("contact", expectedEntity.Id);
-          
-          // Assert
-          result.Should().NotBeNull();
-          result.Id.Should().Be(expectedEntity.Id);
-      }
-      
-      [Fact]
-      public void RetrieveMultiple_WhenQueryValid_ShouldReturnCollection()
-      {
-          // Arrange
-          var mockCrmClient = MockCrmClientFactory.CreateMock();
-          var expectedCollection = new EntityCollection(new[]
-          {
-              TestEntityFactory.CreateContact("U123", "測試1"),
-              TestEntityFactory.CreateContact("U456", "測試2")
-          });
-          
-          mockCrmClient
-              .Setup(x => x.RetrieveMultiple(It.IsAny<QueryBase>()))
-              .Returns(expectedCollection);
-          
-          var mockLogger = MockLoggerFactory.CreateMock<EntityQueryService>();
-          var service = new EntityQueryService(mockLogger.Object, mockCrmClient.Object);
-          
-          var query = new QueryByAttribute("contact");
-          
-          // Act
-          var result = service.RetrieveMultiple(query);
-          
-          // Assert
-          result.Entities.Count.Should().Be(2);
-      }
-  }
-  ```
-- [ ] 執行測試 → 預期 ❌ 失敗
-
-##### 🟢 GREEN - 寫實作
-- [ ] 建立 `IEntityQueryService` 介面
-  ```csharp
-  public interface IEntityQueryService
-  {
-      Entity RetrieveEntity(string entityName, Guid entityId);
-      EntityCollection RetrieveMultiple(QueryBase query);
-  }
-  ```
-- [ ] 實作 `EntityQueryService`
-- [ ] 執行測試 → 預期 ✅ 通過
-
-**驗收標準**：
-- ✅ 測試覆蓋率 > 85%
-- ✅ 包含異常測試（EntityNotFoundException）
-
----
-
-#### TODO-3.2: EntityCrudService（TDD）
-
-- [ ] 🔴 寫測試：`CreateEntity`, `UpdateEntity`, `DeleteEntity`
-- [ ] 🟢 實作 `IEntityCrudService` + `EntityCrudService`
-- [ ] 🔵 重構與優化
-
-**驗收標準**：
-- ✅ CRUD 操作都有測試
-- ✅ 測試覆蓋率 > 85%
-
----
-
-### 👤 Phase 4: 業務邏輯服務
-
-#### TODO-4.1: ContactService（完整 TDD 示範）
-
-##### 🔴 RED - 寫完整測試套件
-- [ ] 建立 `ContactServiceTests.cs`（包含所有方法）
-  ```csharp
-  public class ContactServiceTests
-  {
-      [Theory]
-      [InlineData("U123456", "測試聯絡人", true)]
-      [InlineData("U999999", null, false)]
-      public void RetrieveByLineId_ShouldReturnCorrectResult(string lineId, string expectedName, bool shouldFind)
-      {
-          // ... 測試實作
-      }
-      
-      [Fact]
-      public void RetrieveByAccountNumber_WhenPasswordCorrect_ShouldReturnEntity()
-      {
-          // ... 測試實作
-      }
-      
-      [Fact]
-      public void RetrieveByAccountNumber_WhenPasswordWrong_ShouldReturnNull()
-      {
-          // ... 測試實作
-      }
-  }
-  ```
-- [ ] 執行測試 → 預期 ❌ 失敗
-
-##### 🟢 GREEN - 實作
-- [ ] 實作 `IContactService` 介面
-- [ ] 實作 `ContactService`（按照文件範例）
-- [ ] 執行測試 → 預期 ✅ 通過
-
-##### 🔵 REFACTOR - 優化
-- [ ] 提取共用邏輯（如 Query 建構）
-- [ ] 加強 Logging
-- [ ] 執行測試 → 確保 ✅ 仍通過
-
-**驗收標準**：
-- ✅ 所有公開方法都有測試
-- ✅ 測試覆蓋率 > 90%
-- ✅ 包含整合測試（與 EntityQueryService 協作）
-
----
-
-#### TODO-4.2 ~ 4.4: 其他業務服務
-
-- [ ] TODO-4.2: `ListService`（TDD：測試 → 實作 → 重構）
-- [ ] TODO-4.3: `AttachmentService`（TDD：測試 → 實作 → 重構）
-- [ ] TODO-4.4: `LineMessageService`（TDD：測試 → 實作 → 重構）
-
----
-
-### 🏢 Phase 5: Facade 重構（向後相容驗證）
-
-#### TODO-5.1: ToolUtilityClass Facade（整合測試）
-
-##### 🔴 RED - 寫整合測試
-- [ ] 建立 `ToolUtilityClassIntegrationTests.cs`
-  ```csharp
-  public class ToolUtilityClassIntegrationTests
-  {
-      [Fact]
-      public void RetrieveContactByLineId_ShouldDelegateToContactService()
-      {
-          // Arrange
-          var mockCrmClient = MockCrmClientFactory.CreateMock();
-          var expectedEntity = TestEntityFactory.CreateContact("U123", "測試");
-          
-          mockCrmClient
-              .Setup(x => x.RetrieveMultiple(It.IsAny<QueryBase>()))
-              .Returns(new EntityCollection(new[] { expectedEntity }));
-          
-          var mockLogger = MockLoggerFactory.CreateMock<ToolUtilityClass>();
-          var utility = new ToolUtilityClass(mockLogger.Object, mockCrmClient.Object, null);
-          
-          // Act
-          var result = utility.RetrieveContactByLineId("U123");
-          
-          // Assert
-          result.Should().NotBeNull();
-          result["new_lineid"].Should().Be("U123");
-      }
-      
-      [Fact]
-      public void SetEntityBoolAttribute_ShouldDelegateToAttributeService()
-      {
-          // ... 測試實作
-      }
-  }
-  ```
-- [ ] 執行測試 → 預期 ❌ 失敗
-
-##### 🟢 GREEN - 重構 ToolUtilityClass
-- [ ] 按照文件範例重構為 Facade
-- [ ] 保留所有公開方法（向後相容）
-- [ ] 執行測試 → 預期 ✅ 通過
-
-##### 🔵 REFACTOR - 向後相容驗證
-- [ ] 建立 `BackwardCompatibilityTests.cs`
-  ```csharp
-  public class BackwardCompatibilityTests
-  {
-      [Fact]
-      public void OldConstructor_ShouldStillWork()
-      {
-          // Act & Assert（不應拋出異常）
-          var utility = new ToolUtilityClass();
-          utility.Dispose();
-      }
-      
-      [Fact]
-      public void AllPublicMethods_ShouldStillExist()
-      {
-          // 使用反射驗證所有舊方法簽章都存在
-          var type = typeof(ToolUtilityClass);
-          
-          type.GetMethod("RetrieveContactByLineId").Should().NotBeNull();
-          type.GetMethod("GetEntityBoolAttribute").Should().NotBeNull();
-          // ... 其他方法
-      }
-  }
-  ```
-- [ ] 執行測試 → 確保 ✅ 所有舊方法仍可用
-
-**驗收標準**：
-- ✅ 所有舊 API 簽章保持不變
-- ✅ 整合測試覆蓋主要使用情境
-- ✅ 向後相容測試全部通過
-
----
-
-### ⚙️ Phase 6: 資源管理與效能驗證
-
-#### TODO-6.1: 資源洩漏測試
-
-- [ ] 建立 `ResourceLeakTests.cs`
-  ```csharp
-  public class ResourceLeakTests
-  {
-      [Fact]
-      public void Dispose_ShouldReleaseAllServices()
-      {
-          // Arrange
-          var utility = new ToolUtilityClass();
-          
-          // 觸發所有 Lazy Service 初始化
-          utility.RetrieveContactByLineId("test");
-          utility.GetEntityBoolAttribute(new Entity(), "test");
-          
-          // Act
-          utility.Dispose();
-          
-          // Assert（使用 dotnet-gcdump 或類似工具驗證）
-          // 手動驗證：無 FileHandle 未釋放
-      }
-  }
-  ```
-- [ ] 整合 CA2000 靜態分析
-- [ ] 在 CI 加入資源洩漏檢測
-
-**驗收標準**：
-- ✅ CA2000 無警告
-- ✅ 手動 Smoke Test 無檔案鎖定
-
----
-
-#### TODO-6.2: 效能基準測試
-
-- [ ] 建立 `PerformanceBenchmarks.cs`（使用 BenchmarkDotNet）
-  ```csharp
-  [MemoryDiagnoser]
-  public class ToolUtilityBenchmarks
-  {
-      [Benchmark]
-      public void OldVersion_RetrieveContact()
-      {
-          // 測試舊版本效能
-      }
-      
-      [Benchmark]
-      public void NewVersion_RetrieveContact()
-      {
-          // 測試新版本效能
-      }
-  }
-  ```
-- [ ] 執行基準測試，記錄結果
-- [ ] 確保效能下降 < 5%
-
-**驗收標準**：
-- ✅ 基準測試結果已記錄
-- ✅ 效能無顯著下降
-- ✅ 記憶體使用未增加
-
----
-
-### 📊 Phase 7: 文檔與 Code Review
-
-#### TODO-7.1: 更新文檔
-
-- [ ] 更新 README.md（加入測試指引）
-- [ ] 為每個 Service 加入 XML 註解
-- [ ] 建立 API 使用範例
-
-#### TODO-7.2: Code Review Checklist
-
-- [ ] 所有測試通過（Unit + Integration）
-- [ ] 程式碼覆蓋率 > 85%
-- [ ] 無 Roslyn 警告
-- [ ] 符合 SOLID 原則
-- [ ] 向後相容驗證通過
-- [ ] 效能基準測試通過
-
----
-
-## 📈 測試覆蓋率目標
-
-| 層級 | 目標覆蓋率 | 驗證工具 |
-|------|----------|---------|
-| **Utilities** (StringUtility, TraceUtility) | **95%+** | Coverlet |
-| **Attribute Services** (BoolAttributeService 等) | **90%+** | Coverlet |
-| **Entity Services** (QueryService, CrudService) | **85%+** | Coverlet |
-| **Business Services** (ContactService 等) | **90%+** | Coverlet |
-| **Facade** (ToolUtilityClass) | **80%+** | Coverlet + 整合測試 |
-| **整體專案** | **85%+** | Codecov |
-
----
-
-## 🎓 TDD 學習資源
-
-### 推薦閱讀
-- [Test Driven Development: By Example (Kent Beck)](https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530)
-- [xUnit Test Patterns](http://xunitpatterns.com/)
-- [Microsoft - Unit testing best practices](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices)
-
-### 推薦工具
-- **測試框架**: xUnit（推薦）/ NUnit / MSTest
-- **Mock 框架**: Moq（推薦）/ NSubstitute
-- **斷言庫**: FluentAssertions（推薦）/ Shouldly
-- **覆蓋率工具**: Coverlet + ReportGenerator
-- **基準測試**: BenchmarkDotNet
-
----
-
-## ✅ 總結檢查清單（批准前確認）
-
-### 架構設計
-- [ ] ✅ Facade Pattern 設計合理
-- [ ] ✅ Service Layer 職責清晰
-- [ ] ✅ Composite Pattern 正確應用
-- [ ] ✅ 依賴注入設計完善
-
-### TDD 流程
-- [ ] ✅ 每個 Service 都遵循 TDD（紅→綠→重構）
-- [ ] ✅ 測試覆蓋率達標（> 85%）
-- [ ] ✅ 測試金字塔比例合理（70% Unit, 20% Integration, 10% E2E）
-
-### 向後相容
-- [ ] ✅ 所有舊 API 簽章保留
-- [ ] ✅ 向後相容測試通過
-- [ ] ✅ 無需修改呼叫端程式碼
-
-### 資源管理
-- [ ] ✅ Dispose 正確實作
-- [ ] ✅ 無資源洩漏（CA2000 通過）
-- [ ] ✅ Lazy 初始化正確使用
-
-### 效能驗證
-- [ ] ✅ 基準測試完成
-- [ ] ✅ 效能下降 < 5%
-- [ ] ✅ 記憶體使用未增加
-
-### CI/CD
-- [ ] ✅ 測試自動化管道建立
-- [ ] ✅ 程式碼覆蓋率報告自動產生
-- [ ] ✅ 靜態分析整合（Roslyn, CA2000）
-
----
-
-**文件版本**: 2.0（新增 TDD 章節）  
-**最後更新**: 2024-01-XX  
-**維護者**: GitHub Copilot  
-**狀態**: 📋 等待批准
-
----
-
-## 🔗 相關文件
-
-- [結論規劃.md](./結論規劃.md) - 主升級計畫
-- [PR-02_高風險掃描報告.md](./PR-02_高風險掃描報告.md) - 問題清單
-- [PR-03_ICrmClient實作說明.md](./PR-03_ICrmClient實作說明.md) - Adapter 模式
-- [PR-04_資源洩漏修正計畫.md](./PR-04_資源洩漏修正計畫.md) - 資源管理
-- [xUnit 官方文件](https://xunit.net/)
-- [Moq 官方文件](https://github.com/moq/moq4)
-- [FluentAssertions 官方文件](https://fluentassertions.com/)
-
----
-
-**⚠️ 重要提醒**：
-1. **務必遵循 TDD 流程**：先寫測試（紅燈），再寫實作（綠燈），最後重構（藍燈）
-2. **不要跳過測試**：即使是簡單的工具方法也要寫測試
-3. **測試應該簡單明瞭**：測試本身不應該需要測試
-4. **Mock 應該最小化**：只 Mock 外部依賴（ICrmClient, ILogger），不 Mock 內部邏輯
-5. **向後相容是首要任務**：所有變更必須通過向後相容測試
-
----
-
-**批准確認事項**（請回覆）:
-- [ ] ✅ 同意採用 TDD 流程
-- [ ] ✅ 同意測試覆蓋率目標（85%+）
-- [ ] ✅ 同意 TODO 清單的執行順序
-- [ ] ✅ 同意使用的測試工具（xUnit + Moq + FluentAssertions）
-- [ ] ✅ 同意 CI/CD 自動化測試管道
-- [ ] ⚠️ 需要調整的項目：______（請說明）
-
-**預估時程**：
-- Phase 0-1（前置準備 + 基礎架構）：**2-3 天**
-- Phase 2-3（屬性 + 實體服務）：**3-4 天**
-- Phase 4-5（業務服務 + Facade）：**2-3 天**
-- Phase 6-7（資源驗證 + 文檔）：**1-2 天**
-- **總計：8-12 個工作天**（視團隊規模與經驗而定）
-
-請批准後，我將開始執行 **TODO-0.1: 建立測試專案結構**。
-
-<!-- 進度更新：自動化實作狀態 -->
-## 🟢 目前進度（簡短提示）
-
-- 已完成（TDD 流程）：
-  - ✅ `ToolUtility.Tests` 測試專案建立（TODO-0.1）
-  - ✅ 工具類別（StringUtility, TraceUtility）與對應測試（TODO-1.1, TODO-1.2）
-  - ✅ 屬性服務初期實作與測試：
-    - `BoolAttributeService`（TODO-2.1）
-    - `IntAttributeService`（TODO-2.2）
-    - `StringAttributeService`（TODO-2.3）
-    - `DateTimeAttributeService`（TODO-2.4）
-  - ✅ 單元測試目前全部通過（範例執行：17 tests 全通）
-
-- 當前檔案位置（對應 TODO）：已完成到 Phase 2 的部分屬性服務（完成到 TODO-2.4）
-
-## ▶️ 下一步（請繼續執行）
-
-- TODO-2.5: 實作 `MoneyAttributeService`（先寫測試 → 實作 → 重構）
-- TODO-2.6: 實作 `LookupAttributeService`（先寫測試 → 實作 → 重構）
-- TODO-2.7: 建立 `AttributeServiceComposite` 並撰寫整合測試
-- 接著：Phase 3（實體操作）→ `IEntityQueryService` / `EntityQueryService`（TDD）
-
----
-
-*說明：以上為簡短進度提示，將自動依 TODO 清單從 TODO-2.5 開始繼續執行。若需調整優先順序或暫停，請回覆說明。*
+以上補充將直接放到 PR-04 遷移手冊中，成為逐步執行與驗證的具體流程。若要我接著：
+- 實際新增整合測試檔案（Create/Update/Delete、Attachment、List、LineMessage）並執行測試；或
+- 將 `ToolUtilityClass` 修改為薄外殼轉發到 `ToolUtilityFacade`（一次性或分批提交 PR）；或
+- 在 repo 新增 GitHub Actions workflow 檔，並執行本地驗證（需要 secrets 設定）。
+
+請選一項我接著替你執行。

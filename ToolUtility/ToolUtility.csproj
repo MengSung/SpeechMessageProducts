@@ -87,15 +87,33 @@
   <ItemGroup>
     <Compile Include="Adapters\DataverseServiceClientAdapter.cs" />
     <Compile Include="Adapters\LegacyOrganizationServiceAdapter.cs" />
+    <Compile Include="AttachmentOperations\AttachmentService.cs" />
+    <Compile Include="AttachmentOperations\IAttachmentService.cs" />
+    <Compile Include="AttributeOperations\AttributeServiceComposite.cs" />
     <Compile Include="AttributeOperations\BoolAttributeService.cs" />
     <Compile Include="AttributeOperations\DateTimeAttributeService.cs" />
+    <Compile Include="AttributeOperations\IAttributeService.cs" />
     <Compile Include="AttributeOperations\IntAttributeService.cs" />
+    <Compile Include="AttributeOperations\LookupAttributeService.cs" />
+    <Compile Include="AttributeOperations\MoneyAttributeService.cs" />
     <Compile Include="AttributeOperations\StringAttributeService.cs" />
+    <Compile Include="ContactOperations\ContactService.cs" />
+    <Compile Include="ContactOperations\IContactService.cs" />
+    <Compile Include="Core\ToolUtilityFacade.cs" />
+    <Compile Include="EntityOperations\EntityCrudService.cs" />
+    <Compile Include="EntityOperations\EntityQueryService.cs" />
+    <Compile Include="EntityOperations\IEntityCrudService.cs" />
+    <Compile Include="EntityOperations\IEntityQueryService.cs" />
     <Compile Include="Factories\CrmClientFactory.cs" />
     <Compile Include="Interfaces\ICrmClient.cs" />
+    <Compile Include="LineMessaging\ILineMessageService.cs" />
+    <Compile Include="LineMessaging\LineMessageService.cs" />
+    <Compile Include="ListOperations\IListService.cs" />
+    <Compile Include="ListOperations\ListService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PushUtility.cs" />
     <Compile Include="ToolUtilityClass.cs" />
+    <Compile Include="ToolUtilityStaticGlobal.cs" />
     <Compile Include="Utilities\StringUtility.cs" />
     <Compile Include="Utilities\TraceUtility.cs" />
   </ItemGroup>
