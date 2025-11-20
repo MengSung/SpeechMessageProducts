@@ -4,89 +4,56 @@ using System.Linq;
 
 namespace ToolUtilityNameSpace.AttributeOperations
 {
-    public class LookupAttributeService
+    public class DoubleAttributeService
     {
         private readonly object _logger;
 
-        public LookupAttributeService(object logger)
+        public DoubleAttributeService(object logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public Guid GetAttribute(Entity entity, string propertyName)
+        public double GetAttribute(Entity entity, string propertyName)
         {
-            if (entity == null) return Guid.Empty;
-            if (string.IsNullOrEmpty(propertyName)) return Guid.Empty;
+            if (entity == null) return -9999.0;
+            if (string.IsNullOrEmpty(propertyName)) return -9999.0;
 
             if (entity.Attributes.Contains(propertyName))
             {
                 var value = entity.Attributes[propertyName];
-                if (value is EntityReference er) return er.Id;
+                if (value is double d) return d;
+                if (value is decimal dec) return (double)dec;
+                if (value is int i) return i;
                 try
                 {
-                    // attempt to parse if value is Guid or string
-                    if (value is Guid g) return g;
-                    var s = value.ToString();
-                    if (Guid.TryParse(s, out var parsed)) return parsed;
+                    return Convert.ToDouble(value);
                 }
                 catch (Exception ex)
                 {
-                    SafeLogError(ex, "GetAttribute lookup invalid cast for {0}", propertyName);
+                    SafeLogError(ex, "GetAttribute double invalid cast for {0}", propertyName);
                     throw;
                 }
             }
 
-            return Guid.Empty;
+            return -9999.0;
         }
 
-        public void SetAttribute(ref Entity entity, string propertyName, string lookupEntityName, Guid guidValue)
-        {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
-            if (string.IsNullOrEmpty(propertyName)) throw new ArgumentNullException(nameof(propertyName));
-            if (string.IsNullOrEmpty(lookupEntityName)) throw new ArgumentNullException(nameof(lookupEntityName));
-
-            var reference = new EntityReference(lookupEntityName, guidValue);
-
-            if (entity.Attributes.Contains(propertyName))
-            {
-                entity.Attributes[propertyName] = reference;
-            }
-            else
-            {
-                entity.Attributes.Add(propertyName, reference);
-            }
-        }
-
-        public string GetDisplayName(Entity entity, string propertyName)
-        {
-            if (entity == null) return string.Empty;
-            if (string.IsNullOrEmpty(propertyName)) return string.Empty;
-
-            if (entity.Attributes.Contains(propertyName))
-            {
-                var value = entity.Attributes[propertyName];
-                if (value is EntityReference er) return er.Name ?? string.Empty;
-            }
-
-            return string.Empty;
-        }
-
-        public void SetAttribute(ref Entity entity, string propertyName, ref EntityReference entityReference)
+        public void SetAttribute(ref Entity entity, string propertyName, double value)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             if (string.IsNullOrEmpty(propertyName)) throw new ArgumentNullException(nameof(propertyName));
 
             if (entity.Attributes.Contains(propertyName))
             {
-                entity.Attributes[propertyName] = entityReference;
+                entity.Attributes[propertyName] = value;
             }
             else
             {
-                entity.Attributes.Add(propertyName, entityReference);
+                entity.Attributes.Add(propertyName, value);
             }
         }
 
-        public void SetToNull(ref Entity entity, string propertyName)
+        public void SetAttributeToNull(Entity entity, string propertyName)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             if (string.IsNullOrEmpty(propertyName)) throw new ArgumentNullException(nameof(propertyName));

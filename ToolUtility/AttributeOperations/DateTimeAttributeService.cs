@@ -51,6 +51,21 @@ namespace ToolUtilityNameSpace.AttributeOperations
             }
         }
 
+        public void SetAttributeToNull(ref Entity entity, string propertyName)
+        {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            if (string.IsNullOrEmpty(propertyName)) throw new ArgumentNullException(nameof(propertyName));
+
+            if (entity.Attributes.Contains(propertyName))
+            {
+                entity.Attributes[propertyName] = null;
+            }
+            else
+            {
+                entity.Attributes.Add(propertyName, null);
+            }
+        }
+
         private void SafeLogError(Exception ex, string format, params object[] args)
         {
             try

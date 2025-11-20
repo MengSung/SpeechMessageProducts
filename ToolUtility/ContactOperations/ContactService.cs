@@ -70,6 +70,32 @@ namespace ToolUtilityNameSpace.ContactOperations
             }
         }
 
+        public Entity RetrieveByAccountNumber(string accountNumber, string password)
+        {
+            try
+            {
+                var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
+                query.Attributes.AddRange("new_app_acount", "statecode");
+                query.Values.AddRange(accountNumber, 0);
+
+                var result = _queryService.RetrieveMultiple(query);
+                if (result.Entities.Count > 0)
+                {
+                    var entity = result.Entities[0];
+                    if (entity.Attributes.Contains("new_app_pass") && entity.GetAttributeValue<string>("new_app_pass") == password)
+                    {
+                        return entity;
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                SafeLogError(ex, "RetrieveByAccountNumber failed for {0}", accountNumber);
+                throw;
+            }
+        }
+
         private void SafeLogError(Exception ex, string format, params object[] args)
         {
             try

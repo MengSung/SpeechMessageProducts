@@ -4,89 +4,55 @@ using System.Linq;
 
 namespace ToolUtilityNameSpace.AttributeOperations
 {
-    public class LookupAttributeService
+    public class OptionSetAttributeService
     {
         private readonly object _logger;
 
-        public LookupAttributeService(object logger)
+        public OptionSetAttributeService(object logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public Guid GetAttribute(Entity entity, string propertyName)
+        public int GetAttribute(Entity entity, string propertyName)
         {
-            if (entity == null) return Guid.Empty;
-            if (string.IsNullOrEmpty(propertyName)) return Guid.Empty;
+            if (entity == null) return -9999;
+            if (string.IsNullOrEmpty(propertyName)) return -9999;
 
             if (entity.Attributes.Contains(propertyName))
             {
                 var value = entity.Attributes[propertyName];
-                if (value is EntityReference er) return er.Id;
+                if (value is OptionSetValue osv) return osv.Value;
                 try
                 {
-                    // attempt to parse if value is Guid or string
-                    if (value is Guid g) return g;
-                    var s = value.ToString();
-                    if (Guid.TryParse(s, out var parsed)) return parsed;
+                    return Convert.ToInt32(value);
                 }
                 catch (Exception ex)
                 {
-                    SafeLogError(ex, "GetAttribute lookup invalid cast for {0}", propertyName);
+                    SafeLogError(ex, "GetAttribute optionset invalid cast for {0}", propertyName);
                     throw;
                 }
             }
 
-            return Guid.Empty;
+            return -9999;
         }
 
-        public void SetAttribute(ref Entity entity, string propertyName, string lookupEntityName, Guid guidValue)
-        {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
-            if (string.IsNullOrEmpty(propertyName)) throw new ArgumentNullException(nameof(propertyName));
-            if (string.IsNullOrEmpty(lookupEntityName)) throw new ArgumentNullException(nameof(lookupEntityName));
-
-            var reference = new EntityReference(lookupEntityName, guidValue);
-
-            if (entity.Attributes.Contains(propertyName))
-            {
-                entity.Attributes[propertyName] = reference;
-            }
-            else
-            {
-                entity.Attributes.Add(propertyName, reference);
-            }
-        }
-
-        public string GetDisplayName(Entity entity, string propertyName)
-        {
-            if (entity == null) return string.Empty;
-            if (string.IsNullOrEmpty(propertyName)) return string.Empty;
-
-            if (entity.Attributes.Contains(propertyName))
-            {
-                var value = entity.Attributes[propertyName];
-                if (value is EntityReference er) return er.Name ?? string.Empty;
-            }
-
-            return string.Empty;
-        }
-
-        public void SetAttribute(ref Entity entity, string propertyName, ref EntityReference entityReference)
+        public void SetAttribute(ref Entity entity, string propertyName, int value)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             if (string.IsNullOrEmpty(propertyName)) throw new ArgumentNullException(nameof(propertyName));
 
+            var osv = new OptionSetValue(value);
             if (entity.Attributes.Contains(propertyName))
             {
-                entity.Attributes[propertyName] = entityReference;
+                entity.Attributes[propertyName] = osv;
             }
             else
             {
-                entity.Attributes.Add(propertyName, entityReference);
+                entity.Attributes.Add(propertyName, osv);
             }
         }
 
-        public void SetToNull(ref Entity entity, string propertyName)
+        public void SetAttributeNull(ref Entity entity, string propertyName)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             if (string.IsNullOrEmpty(propertyName)) throw new ArgumentNullException(nameof(propertyName));

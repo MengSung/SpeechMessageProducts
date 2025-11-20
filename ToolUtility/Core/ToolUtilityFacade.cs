@@ -183,5 +183,114 @@ namespace ToolUtilityNameSpace.Core
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+        public void SetEntityMoneyAttributeToNull(ref Entity entity, string propertyName)
+            => _attributeService.Value.SetMoneyAttributeToNull(ref entity, propertyName);
+
+        public void SetEntityDateTimeAttributeToNull(ref Entity entity, string propertyName)
+            => _attributeService.Value.SetDateTimeAttributeToNull(ref entity, propertyName);
+
+        public void SetEntityLookUpAttribute(ref Entity entity, string propertyName, ref EntityReference entityReference)
+            => _attributeService.Value.SetLookupAttribute(ref entity, propertyName, ref entityReference);
+
+        public void SetEntityLookUpToNull(ref Entity entity, string propertyName)
+            => _attributeService.Value.SetLookupToNull(ref entity, propertyName);
+
+        public string GetEntityLookupDisplayName(Entity entity, string propertyName)
+            => _attributeService.Value.GetLookupDisplayName(entity, propertyName);
+
+        public int GetOptionSetAttribute(Entity entity, string propertyName)
+            => _attributeService.Value.GetOptionSetAttribute(entity, propertyName);
+
+        public void SetOptionSetAttribute(ref Entity entity, string propertyName, int value)
+            => _attributeService.Value.SetOptionSetAttribute(ref entity, propertyName, value);
+
+        public void SetOptionSetAttributeNull(ref Entity entity, string propertyName)
+            => _attributeService.Value.SetOptionSetAttributeNull(ref entity, propertyName);
+
+        public float GetEntityFloatAttribute(Entity entity, string propertyName)
+            => _attributeService.Value.GetFloatAttribute(entity, propertyName);
+
+        public void SetEntityFloatAttribute(ref Entity entity, string propertyName, float value)
+            => _attributeService.Value.SetFloatAttribute(ref entity, propertyName, value);
+
+        public void SetEntityFloatAttributeToNull(Entity entity, string propertyName)
+            => _attributeService.Value.SetFloatAttributeToNull(entity, propertyName);
+
+        public double GetEntityDoubleAttribute(Entity entity, string propertyName)
+            => _attributeService.Value.GetDoubleAttribute(entity, propertyName);
+
+        public void SetEntityDoubleAttribute(ref Entity entity, string propertyName, double value)
+            => _attributeService.Value.SetDoubleAttribute(ref entity, propertyName, value);
+
+        public void SetEntityDoubleAttributeToNull(Entity entity, string propertyName)
+            => _attributeService.Value.SetDoubleAttributeToNull(entity, propertyName);
+
+        // --- Additional legacy methods (stubs or forwards) ---
+        public EntityCollection RetrieveListByFetchXmlContact(string contactName)
+            => new EntityCollection(); // Stub for now
+
+        public EntityCollection RetrievePresentRecordByFetchXmlAndWeeklyReport(string contactName, string contactId, string weeklyReportName, string weeklyReportId)
+            => new EntityCollection(); // Stub
+
+        public EntityCollection RetrieveFeeByFetchXml(string dedicationBookingName, string dedicationBookingId, string paidPeriod)
+            => new EntityCollection(); // Stub
+
+        public EntityCollection RetrievePresentRecordByFetchXml(string weeklyReportName, string weeklyReportId, string contactName, string contactId)
+            => new EntityCollection(); // Stub
+
+        public EntityCollection RetrieveMemberListCollectionByListIdDynamics365(Guid listId)
+            => _listService.Value.RetrieveMemberListCollectionByListId(listId); // Forward to list service
+
+        public EntityCollection RetrieveDynamicMemberListDynamics365(Guid listId)
+            => _listService.Value.RetrieveDynamicMemberList(listId); // Forward
+
+        public EntityCollection QueryListByContactId(Guid contactId, string associationName)
+            => _listService.Value.QueryListByContactId(contactId, associationName); // Forward
+
+        public Entity RetrieveContactEntityByAccountNumber(string accountNumber, string password)
+            => _contactService.Value.RetrieveByAccountNumber(accountNumber, password); // Forward
+
+        public EntityCollection RetrieveAppointmentsByFetchXml(DateTime startDate, DateTime endDate)
+            => new EntityCollection(); // Stub
+
+        public EntityCollection RetrieveAppointmentsByFetchXml(string contactName, string contactId)
+            => new EntityCollection(); // Stub
+
+        public EntityCollection RetrieveAppointmentsByFetchXmlAndScheduleType(DateTime startDate, DateTime endDate, string scheduleType)
+            => new EntityCollection(); // Stub
+
+        public void GetActivityPartyIdList(Entity activityEntity, string fromOrTo, System.Collections.ArrayList fromOrToIdList, System.Collections.ArrayList fromOrToTypeList)
+        {
+            // Stub implementation
+            if (activityEntity == null || fromOrToIdList == null || fromOrToTypeList == null) return;
+            var collection = activityEntity.GetAttributeValue<EntityCollection>(fromOrTo);
+            if (collection != null)
+            {
+                foreach (var party in collection.Entities)
+                {
+                    var er = party.GetAttributeValue<EntityReference>("partyid");
+                    if (er != null)
+                    {
+                        fromOrToIdList.Add(er.Id);
+                        fromOrToTypeList.Add(er.LogicalName);
+                    }
+                }
+            }
+        }
+
+        public System.Collections.ArrayList GetAllMemberDataFromList(Guid listEntityId)
+            => _listService.Value.GetAllMemberDataFromList(listEntityId); // Forward
+
+        public EntityCollection RetrieveLessonsByMonth(DateTime startDate, DateTime endDate)
+            => new EntityCollection(); // Stub
+
+        public EntityCollection RetrieveEnrolledLessonsByFetchXml(DateTime startDate, DateTime endDate, string contactName, string contactId)
+            => new EntityCollection(); // Stub
+
+        public void SetAppointmentStatusToScheduled(Guid appointmentId)
+        {
+            // Stub: would need to execute SetStateRequest
+        }
     }
 }

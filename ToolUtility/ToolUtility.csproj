@@ -92,10 +92,13 @@
     <Compile Include="AttributeOperations\AttributeServiceComposite.cs" />
     <Compile Include="AttributeOperations\BoolAttributeService.cs" />
     <Compile Include="AttributeOperations\DateTimeAttributeService.cs" />
+    <Compile Include="AttributeOperations\DoubleAttributeService.cs" />
+    <Compile Include="AttributeOperations\FloatAttributeService.cs" />
     <Compile Include="AttributeOperations\IAttributeService.cs" />
     <Compile Include="AttributeOperations\IntAttributeService.cs" />
     <Compile Include="AttributeOperations\LookupAttributeService.cs" />
     <Compile Include="AttributeOperations\MoneyAttributeService.cs" />
+    <Compile Include="AttributeOperations\OptionSetAttributeService.cs" />
     <Compile Include="AttributeOperations\StringAttributeService.cs" />
     <Compile Include="ContactOperations\ContactService.cs" />
     <Compile Include="ContactOperations\IContactService.cs" />

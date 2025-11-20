@@ -8,5 +8,6 @@ namespace ToolUtilityNameSpace.ContactOperations
         Entity RetrieveByContactId(string contactId);
         Entity RetrieveByLineId(string lineId);
         EntityCollection RetrieveCollectionByName(string contactFullName);
+        Entity RetrieveByAccountNumber(string accountNumber, string password);
     }
 }

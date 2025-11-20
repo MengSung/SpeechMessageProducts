@@ -8,5 +8,9 @@ namespace ToolUtilityNameSpace.ListOperations
     {
         void AddMembers(Guid listGuid, List<Guid> memberGuidList);
         void RemoveMember(Guid listGuid, Guid memberGuid);
+        EntityCollection RetrieveMemberListCollectionByListId(Guid listId);
+        EntityCollection RetrieveDynamicMemberList(Guid listId);
+        EntityCollection QueryListByContactId(Guid contactId, string associationName);
+        System.Collections.ArrayList GetAllMemberDataFromList(Guid listEntityId);
     }
 }
