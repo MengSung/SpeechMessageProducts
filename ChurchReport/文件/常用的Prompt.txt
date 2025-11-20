@@ -1,2 +1,22 @@
 整理的非常整齊清晰易懂並加入詳細的註解，不要刪除任何功能
 整理的非常整齊清晰易懂並加入詳細的註解，不要改變或刪除任何功能
+
+準備將  ToolUtility   從.Net Framework 4.6.2升級到.Net 10，編寫一個升級計畫說明如何修改，說明升級計劃如何堅守LINUS代碼原則，說明升級計劃如何善用設計模式
+
+Code Review批判我的 X文件，是否符合LINUS代碼原則，是否有達到最好效能，是否有隱藏風險，是否會有Memory Leak
+
+準備將  ToolUtility   從.Net Framework 4.6.2升級到.Net 10，
+做為更優秀的模型批判以下計畫
+(D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\文件\升級ToolUtility\升級ToolUtility規劃.md
+D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\文件\升級ToolUtility\升級計畫.md)
+
+各自是否符合LINUS代碼原則，各自是否有達到最好效能，各自是否有隱藏風險，各自是否會有Memory Leak
+
+按照你的建議重新編寫一份(D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\文件\升級ToolUtility\結論規劃.md)
+
+(預覽專用)
+FOLLOW D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\文件\升級ToolUtility\結論規劃.md，羅列TODO 
+
+準備將  ToolUtility   從.Net Framework 4.6.2升級到.Net 10，編寫一個升級計畫說明如何修改，說明升級計劃如何堅守LINUS代碼原則，說明升級計劃如何善用設計模式
+
+

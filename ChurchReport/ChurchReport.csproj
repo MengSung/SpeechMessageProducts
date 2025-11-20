@@ -89,6 +89,7 @@
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="ChurchReport\" />
     <Folder Include="Views\Dedication\" />
   </ItemGroup>
   <ItemGroup>
