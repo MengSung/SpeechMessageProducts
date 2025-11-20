@@ -87,11 +87,14 @@
   <ItemGroup>
     <Compile Include="Adapters\DataverseServiceClientAdapter.cs" />
     <Compile Include="Adapters\LegacyOrganizationServiceAdapter.cs" />
+    <Compile Include="AttributeOperations\BoolAttributeService.cs" />
     <Compile Include="Factories\CrmClientFactory.cs" />
     <Compile Include="Interfaces\ICrmClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PushUtility.cs" />
     <Compile Include="ToolUtilityClass.cs" />
+    <Compile Include="Utilities\StringUtility.cs" />
+    <Compile Include="Utilities\TraceUtility.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

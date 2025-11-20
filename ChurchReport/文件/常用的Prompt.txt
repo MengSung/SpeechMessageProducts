@@ -19,4 +19,6 @@ FOLLOW D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊�
 
 準備將  ToolUtility   從.Net Framework 4.6.2升級到.Net 10，編寫一個升級計畫說明如何修改，說明升級計劃如何堅守LINUS代碼原則，說明升級計劃如何善用設計模式
 
+計畫文檔: prd 文檔，測試代碼: tdd 測試，這兩個是專有名詞
+
 

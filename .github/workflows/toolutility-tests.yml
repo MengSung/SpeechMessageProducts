@@ -1,0 +1,69 @@
+name: ToolUtility Tests CI
+
+on:
+  push:
+    branches: [ "Sunny_MyPay_2.7_Utility_.Net10", "main" ]
+    paths:
+      - 'ToolUtility/**'
+      - 'ToolUtility.Tests/**'
+  pull_request:
+    branches: [ "Sunny_MyPay_2.7_Utility_.Net10", "main" ]
+    paths:
+      - 'ToolUtility/**'
+      - 'ToolUtility.Tests/**'
+
+jobs:
+  test:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore ToolUtility.Tests/ToolUtility.Tests.csproj
+      
+    - name: Build
+      run: dotnet build ToolUtility.Tests/ToolUtility.Tests.csproj --no-restore --configuration Release
+      
+    - name: Run Tests
+      run: dotnet test ToolUtility.Tests/ToolUtility.Tests.csproj --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+      
+    - name: Generate Coverage Report
+      if: always()
+      run: |
+        dotnet tool install --global dotnet-reportgenerator-globaltool
+        reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:./coverage/report -reporttypes:Html
+      
+    - name: Upload Coverage to Codecov
+      if: always()
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage/**/coverage.cobertura.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: ./coverage
+        
+    - name: Check Code Coverage Threshold
+      if: always()
+      run: |
+        $coverage = Select-String -Path ./coverage/**/coverage.cobertura.xml -Pattern 'line-rate="([0-9.]+)"' | ForEach-Object { [double]$_.Matches.Groups[1].Value * 100 }
+        Write-Host "Code Coverage: $coverage%"
+        if ($coverage -lt 85) {
+          Write-Error "? Code coverage ($coverage%) is below threshold (85%)"
+          exit 1
+        } else {
+          Write-Host "? Code coverage ($coverage%) meets threshold (85%)"
+        }
