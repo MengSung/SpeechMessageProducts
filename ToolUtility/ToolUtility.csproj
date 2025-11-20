@@ -88,6 +88,9 @@
     <Compile Include="Adapters\DataverseServiceClientAdapter.cs" />
     <Compile Include="Adapters\LegacyOrganizationServiceAdapter.cs" />
     <Compile Include="AttributeOperations\BoolAttributeService.cs" />
+    <Compile Include="AttributeOperations\DateTimeAttributeService.cs" />
+    <Compile Include="AttributeOperations\IntAttributeService.cs" />
+    <Compile Include="AttributeOperations\StringAttributeService.cs" />
     <Compile Include="Factories\CrmClientFactory.cs" />
     <Compile Include="Interfaces\ICrmClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

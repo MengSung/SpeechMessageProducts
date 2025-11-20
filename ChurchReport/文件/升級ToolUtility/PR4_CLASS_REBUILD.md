@@ -1824,3 +1824,29 @@ ToolUtility/
 - **總計：8-12 個工作天**（視團隊規模與經驗而定）
 
 請批准後，我將開始執行 **TODO-0.1: 建立測試專案結構**。
+
+<!-- 進度更新：自動化實作狀態 -->
+## 🟢 目前進度（簡短提示）
+
+- 已完成（TDD 流程）：
+  - ✅ `ToolUtility.Tests` 測試專案建立（TODO-0.1）
+  - ✅ 工具類別（StringUtility, TraceUtility）與對應測試（TODO-1.1, TODO-1.2）
+  - ✅ 屬性服務初期實作與測試：
+    - `BoolAttributeService`（TODO-2.1）
+    - `IntAttributeService`（TODO-2.2）
+    - `StringAttributeService`（TODO-2.3）
+    - `DateTimeAttributeService`（TODO-2.4）
+  - ✅ 單元測試目前全部通過（範例執行：17 tests 全通）
+
+- 當前檔案位置（對應 TODO）：已完成到 Phase 2 的部分屬性服務（完成到 TODO-2.4）
+
+## ▶️ 下一步（請繼續執行）
+
+- TODO-2.5: 實作 `MoneyAttributeService`（先寫測試 → 實作 → 重構）
+- TODO-2.6: 實作 `LookupAttributeService`（先寫測試 → 實作 → 重構）
+- TODO-2.7: 建立 `AttributeServiceComposite` 並撰寫整合測試
+- 接著：Phase 3（實體操作）→ `IEntityQueryService` / `EntityQueryService`（TDD）
+
+---
+
+*說明：以上為簡短進度提示，將自動依 TODO 清單從 TODO-2.5 開始繼續執行。若需調整優先順序或暫停，請回覆說明。*
