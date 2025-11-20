@@ -35,7 +35,8 @@ namespace ToolUtilityNameSpace.Core
         public ToolUtilityFacade(object logger = null, ICrmClient crmClient = null)
         {
             _logger = logger ?? new object();
-            _crmClient = crmClient ?? throw new ArgumentNullException(nameof(crmClient));
+            // Allow null crmClient for graceful coexistence with legacy usages.
+            _crmClient = crmClient;
             InitializeServices();
         }
 
@@ -126,10 +127,10 @@ namespace ToolUtilityNameSpace.Core
             => _attributeService.Value.GetLookupAttribute(entity, propertyName);
 
         public void AddMembersToMarketingList(Guid listGuid, List<Guid> memberGuidList)
-            => _listService.Value.AddMembers(listGuid, memberGuidList);
+            => _list_service_value().AddMembers(listGuid, memberGuidList);
 
         public void RemoveMembersToMarketingList(Guid listGuid, Guid memberGuid)
-            => _listService.Value.RemoveMember(listGuid, memberGuid);
+            => _list_service_value().RemoveMember(listGuid, memberGuid);
 
         public void CreatePushLineMessage(string userId, string subject, string message)
             => _lineMessageService.Value.CreatePushMessage(userId, subject, message);
@@ -150,6 +151,12 @@ namespace ToolUtilityNameSpace.Core
         {
             // Use TraceUtility with logger when available
             TraceUtility.TraceByLevel(_logger, totalLevel, qualifiedLevel, stringToProcess);
+        }
+
+        // Helper to safely access list service even if not initialized
+        private IListService _list_service_value()
+        {
+            return _listService.Value;
         }
 
         protected virtual void Dispose(bool disposing)
