@@ -24,11 +24,10 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using ToolUtilityNameSpace.ConnectionOperations;
-using ToolUtilityNameSpace.Core;
 using TraceNameSpace;
 using static System.Net.WebRequestMethods;
 
-namespace ToolUtilityNameSpace
+namespace ToolUtilityClass_Original_NameSpace
 {
     public class ToolUtilityClass
     {
@@ -46,9 +45,6 @@ namespace ToolUtilityNameSpace
 
         // 連接服務專責處理
         private readonly ICrmConnectionService _crmConnectionService;
-
-        // 新架構的 Facade (用於委派複雜業務邏輯)
-        private readonly ToolUtilityFacade _facade;
 
         #region Dynamics 365 新增組織修改區
 
@@ -323,118 +319,1172 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                // 委派給 Facade 處理
-                return _facade.RetrieveEntityByField(EntityName, FieldName, FieldValue);
+                //lock (m_RetrieveContactLocker)
+                //{
+                //  Create query using querybyattribute
+                //Console.WriteLine("除錯 001");
+
+                QueryByAttribute querybyexpression = new QueryByAttribute(EntityName);
+                querybyexpression.ColumnSet = new ColumnSet();
+                querybyexpression.ColumnSet.AllColumns = true;
+                //  Attribute to query
+                querybyexpression.Attributes.AddRange(FieldName, "statecode");
+                //  Value of queried attribute to return
+                querybyexpression.Values.AddRange(FieldValue, 0);
+
+                //Console.WriteLine("除錯 002");
+                //  Query passed to the service proxy
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+                else
+                {
+                    retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+
+                if (retrieved.Entities.Count > 0 && retrieved != null)
+                {
+                    return retrieved.Entities[0];
+                }
+                else { return null; }
             }
-            catch (Exception e)
+            catch (System.Exception e)
             {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_1, "RetrieveEntityByField 錯誤: " + e.Message);
-                throw;
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
             }
         }
-
         public EntityCollection RetrieveEntityCollectionByField(String EntityName, String FieldName, String FieldValue)
         {
             try
             {
-                // 委派給 Facade 處理
-                return _facade.RetrieveEntityCollectionByField(EntityName, FieldName, FieldValue);
+                //lock (m_RetrieveContactLocker)
+                //{
+                //  Create query using querybyattribute
+                //Console.WriteLine("除錯 001");
+
+                QueryByAttribute querybyexpression = new QueryByAttribute(EntityName);
+                querybyexpression.ColumnSet = new ColumnSet();
+                querybyexpression.ColumnSet.AllColumns = true;
+                //  Attribute to query
+                querybyexpression.Attributes.AddRange(FieldName, "statecode");
+                //  Value of queried attribute to return
+                querybyexpression.Values.AddRange(FieldValue, 0);
+
+                //Console.WriteLine("除錯 002");
+                //  Query passed to the service proxy
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+                else
+                {
+                    retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+
+                if (retrieved.Entities.Count > 0 && retrieved != null)
+                {
+                    return retrieved;
+                }
+                else { return null; }
             }
-            catch (Exception e)
+            catch (System.Exception e)
             {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_1, "RetrieveEntityCollectionByField 錯誤: " + e.Message);
-                throw;
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
             }
         }
-        #endregion
-        #region 取得聯絡人 - 委派到 Facade
+        #endregion        
+        #region 取得聯絡人
+        //private readonly object m_RetrieveContactLocker = new object();
         public String RetrieveContactByContactId(String ContactId)
-            => _facade.RetrieveContactByContactId(ContactId);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                    //  Create query using querybyattribute
+                    //Console.WriteLine("除錯 001");
 
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    querybyexpression.Attributes.AddRange("build_customer_id", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(ContactId, 0);
+
+                    //Console.WriteLine("除錯 002");
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+
+                    //Console.WriteLine("除錯 003");
+
+                    String ContactInformation = "";
+
+                    if (retrieved.Entities.Count > 0 && retrieved != null)
+                    {
+                        if (retrieved.Entities[0].Attributes.Contains("fullname"))
+                        {
+                            ContactInformation += "姓名:" + retrieved.Entities[0].Attributes["fullname"].ToString() + Environment.NewLine;
+                        }
+                        if (retrieved.Entities[0].Attributes.Contains("build_customer_id"))
+                        {
+                            ContactInformation += "身分證字號:" + retrieved.Entities[0].Attributes["build_customer_id"].ToString() + Environment.NewLine;
+                        }
+                        if (retrieved.Entities[0].Attributes.Contains("telephone1"))
+                        {
+                            ContactInformation += "電話號碼:" + retrieved.Entities[0].Attributes["telephone1"].ToString() + Environment.NewLine;
+                        }
+                        if (retrieved.Entities[0].Attributes.Contains("emailaddress1"))
+                        {
+                            ContactInformation += "電子郵件:" + retrieved.Entities[0].Attributes["emailaddress1"].ToString() + Environment.NewLine;
+                        }
+                    }
+                    ContactInformation += Environment.NewLine;
+                    //Console.WriteLine("除錯 004");
+
+                    return ContactInformation;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public Entity RetrieveContactByContactId(ref IOrganizationService aOrganizationService, String ContactId, ref int Count)
-            => _facade.RetrieveContactByContactId(ref aOrganizationService, ContactId, ref Count);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                    //  Create query using querybyattribute
+                    //Console.WriteLine("除錯 001");
 
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    querybyexpression.Attributes.AddRange("build_customer_id", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(ContactId, 0);
+
+                    //Console.WriteLine("除錯 002");
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved = aOrganizationService.RetrieveMultiple(querybyexpression);
+
+
+                    if (retrieved.Entities.Count > 0 && retrieved != null)
+                    {
+                        Count = retrieved.Entities.Count;
+                        return retrieved.Entities[0];
+                    }
+                    else
+                    {
+                        Count = retrieved.Entities.Count;
+                        return null;
+                    }
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public String RetrieveContactByName(String ContactFullName)
-            => _facade.RetrieveContactByName(ContactFullName);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                    //  Create query using querybyattribute
+                    //Console.WriteLine("除錯 001");
 
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    querybyexpression.Attributes.AddRange("fullname", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(ContactFullName, 0);
+
+                    //Console.WriteLine("除錯 002");
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+
+                    String ContactInformation = "";
+
+                    //Console.WriteLine("除錯 003");
+                    if (retrieved.Entities.Count > 0 && retrieved != null)
+                    {
+                        Entity aEntity = retrieved.Entities[0];
+
+                        if (retrieved.Entities[0].Attributes.Contains("fullname"))
+                        {
+                            ContactInformation += "姓名:" + retrieved.Entities[0].Attributes["fullname"].ToString() + Environment.NewLine;
+                        }
+                        if (retrieved.Entities[0].Attributes.Contains("build_customer_id"))
+                        {
+                            ContactInformation += "身分證字號:" + retrieved.Entities[0].Attributes["build_customer_id"].ToString() + Environment.NewLine;
+                        }
+                        if (retrieved.Entities[0].Attributes.Contains("telephone1"))
+                        {
+                            ContactInformation += "電話號碼:" + retrieved.Entities[0].Attributes["telephone1"].ToString() + Environment.NewLine;
+                        }
+                        if (retrieved.Entities[0].Attributes.Contains("emailaddress1"))
+                        {
+                            ContactInformation += "電子郵件:" + retrieved.Entities[0].Attributes["emailaddress1"].ToString() + Environment.NewLine;
+                        }
+                    }
+                    ContactInformation += Environment.NewLine;
+                    //Console.WriteLine("除錯 004");
+
+                    return ContactInformation;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public Entity RetrieveContactEntityByName(String ContactFullName)
-            => _facade.RetrieveContactEntityByName(ContactFullName);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                    //  Create query using querybyattribute
+                    //Console.WriteLine("除錯 001");
 
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    querybyexpression.Attributes.AddRange("fullname", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(ContactFullName, 0);
+
+                    //Console.WriteLine("除錯 002");
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+
+                    String ContactInformation = "";
+
+                    //Console.WriteLine("除錯 003");
+                    if (retrieved.Entities.Count > 0 && retrieved != null)
+                    {
+                        return retrieved.Entities[0];
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public Entity RetrieveContactByName(ref IOrganizationService aOrganizationService, String ContactFullName)
-            => _facade.RetrieveContactByName(ref aOrganizationService, ContactFullName);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                    //  Create query using querybyattribute
 
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    querybyexpression.Attributes.AddRange("fullname", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(ContactFullName, 0);
+
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved = aOrganizationService.RetrieveMultiple(querybyexpression);
+
+                    if (retrieved.Entities.Count > 0 && retrieved != null)
+                    {
+                        return retrieved.Entities[0];
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public String RetrieveContactByName_ReturnString(ref IOrganizationService aOrganizationService, String ContactFullName)
-            => _facade.RetrieveContactByName_ReturnString(ref aOrganizationService, ContactFullName);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
 
+                    //  Create query using querybyattribute
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    querybyexpression.Attributes.AddRange("fullname", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(ContactFullName, 0);
+
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved = aOrganizationService.RetrieveMultiple(querybyexpression);
+
+
+                    String ContactInformation = "";
+
+                    foreach (var c in retrieved.Entities)
+                    {
+                        if (c.Attributes["fullname"] != null)
+                        {
+                            ContactInformation += "姓名:" + c.Attributes["fullname"] + Environment.NewLine;
+                        }
+                        if (c.Attributes["telephone1"] != null)
+                        {
+                            ContactInformation += "電話號碼:" + c.Attributes["telephone1"] + Environment.NewLine;
+                        }
+                        if (c.Attributes["emailaddress1"] != null)
+                        {
+                            ContactInformation += "電子郵件:" + c.Attributes["emailaddress1"] + Environment.NewLine;
+                        }
+                    }
+                    ContactInformation += Environment.NewLine;
+
+                    return ContactInformation;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public EntityCollection RetrieveContactCollectionByName(String ContactFullName)
-            => _facade.RetrieveContactCollectionByName(ContactFullName);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                    //  Create query using querybyattribute
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    querybyexpression.Attributes.AddRange("fullname", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(ContactFullName, 0);
 
+                    EntityCollection retrieved;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+
+
+                    return retrieved;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public EntityCollection RetrieveContactCollectionByNationId(String ContactFullName)
-            => _facade.RetrieveContactCollectionByNationId(ContactFullName);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                //  Create query using querybyattribute
+                QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                querybyexpression.ColumnSet = new ColumnSet();
+                querybyexpression.ColumnSet.AllColumns = true;
+                //  Attribute to query
+                querybyexpression.Attributes.AddRange("new_personal_id", "statecode");
+                //  Value of queried attribute to return
+                querybyexpression.Values.AddRange(ContactFullName, 0);
 
+                EntityCollection retrieved;
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+                else
+                {
+                    retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                }
+
+
+                return retrieved;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public Entity RetrieveContactByLineId(String LineId)
-            => _facade.RetrieveContactByLineId(LineId);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                    //  Create query using querybyattribute
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    querybyexpression.Attributes.AddRange("new_lineid", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(LineId, 0);
 
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved;
+                    if (this.m_DiscoveryServiceType == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+
+                    if (retrieved.Entities.Count > 0)
+                    {
+                        return retrieved.Entities[0];
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public String RetrieveContactByAccountNumber(String AccountNumber, String aPassword)
-            => _facade.RetrieveContactByAccountNumber(AccountNumber, aPassword);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                    //  Create query using querybyattribute
+                    //Console.WriteLine("除錯 001");
 
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    //querybyexpression.Attributes.AddRange("new_account", "statecode");
+                    //聖谷行道會小組長帳號
+                    querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(AccountNumber, 0);
+
+                    //Console.WriteLine("除錯 002");
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved;
+                    if (this.m_DiscoveryServiceType == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+
+                    //Console.WriteLine("除錯 003");
+                    if (retrieved.Entities.Count > 0 && retrieved != null)
+                    {
+                        Entity aEntity = retrieved.Entities[0];
+
+                        //if (retrieved.Entities[0].Attributes.Contains("new_password"))
+                        if (retrieved.Entities[0].Attributes.Contains("new_app_pass"))
+                        {
+                            //String aContactPassword = retrieved.Entities[0].Attributes["new_password"].ToString();
+                            String aContactPassword = retrieved.Entities[0].Attributes["new_app_pass"].ToString();
+                            if (aContactPassword == aPassword)
+                            {
+                                this.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "小組長:" + retrieved.Entities[0].Attributes["fullname"].ToString());
+                                //return retrieved.Entities[0].Attributes["fullname"].ToString();
+                                return retrieved.Entities[0].Attributes["contactid"].ToString();
+                            }
+                            else
+                            {
+                                this.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "密碼錯誤");
+                                return "密碼錯誤";
+                            }
+                        }
+                        else
+                        {
+                            this.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "系統沒有設定密碼");
+                            return "系統沒有設定密碼";
+                        }
+                    }
+                    else
+                    {
+                        this.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "帳號錯誤");
+                        return "帳號錯誤";
+                    }
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public Entity DoesAccountExist(String AccountNumber)
-            => _facade.DoesAccountExist(AccountNumber);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                    //  Create query using querybyattribute
+                    //Console.WriteLine("除錯 001");
 
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    //querybyexpression.Attributes.AddRange("new_account", "statecode");
+                    //聖谷行道會小組長帳號
+                    querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(AccountNumber, 0);
+
+                    //Console.WriteLine("除錯 002");
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved;
+                    if (this.m_DiscoveryServiceType == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+
+                    //Console.WriteLine("除錯 003");
+                    if (retrieved.Entities.Count > 0 && retrieved != null)
+                    {
+                        // 已經有帳號
+                        return retrieved[0];
+                    }
+                    else
+                    {
+                        // 帳號還不存在
+                        return null;
+                    }
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public Entity RetrieveContactEntityByAccountNumber(String AccountNumber, String aPassword)
-            => _facade.RetrieveContactEntityByAccountNumber(AccountNumber, aPassword);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                    //  Create query using querybyattribute
+                    //Console.WriteLine("除錯 001");
 
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    //querybyexpression.Attributes.AddRange("new_account", "statecode");
+                    //聖谷行道會小組長帳號
+                    querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(AccountNumber, 0);
+
+                    //Console.WriteLine("除錯 002");
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+
+                    //Console.WriteLine("除錯 003");
+                    if (retrieved.Entities.Count > 0 && retrieved != null)
+                    {
+                        Entity aEntity = retrieved.Entities[0];
+
+                        //if (retrieved.Entities[0].Attributes.Contains("new_password"))
+                        if (retrieved.Entities[0].Attributes.Contains("new_app_pass"))
+                        {
+                            //String aContactPassword = retrieved.Entities[0].Attributes["new_password"].ToString();
+                            String aContactPassword = retrieved.Entities[0].Attributes["new_app_pass"].ToString();
+                            if (aContactPassword == aPassword)
+                            {
+                                return retrieved.Entities[0];
+                            }
+                            else
+                            {
+                                return null;
+                            }
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public Entity RetrieveContactEntityByLineUserId(String LineUserId)
-            => _facade.RetrieveContactEntityByLineUserId(LineUserId);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                    //  Create query using querybyattribute
+                    //Console.WriteLine("除錯 001");
 
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    //querybyexpression.Attributes.AddRange("new_account", "statecode");
+                    //聖谷行道會小組長帳號
+                    querybyexpression.Attributes.AddRange("new_lineid", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(LineUserId, 0);
+
+                    //Console.WriteLine("除錯 002");
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+
+                    //Console.WriteLine("除錯 003");
+                    if (retrieved.Entities.Count > 0 && retrieved != null)
+                    {
+                        Entity aEntity = retrieved.Entities[0];
+
+                        return retrieved.Entities[0];
+                        //if (retrieved.Entities[0].Attributes.Contains("new_password"))
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public Entity RetrieveContactEntityByFullNameAndMobileNumber(String FullName, String MobileNumber)
-            => _facade.RetrieveContactEntityByFullNameAndMobileNumber(FullName, MobileNumber);
+        {   // 依據全名及行動電話找尋連絡人
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
 
+                    //  Create query using querybyattribute
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    //querybyexpression.Attributes.AddRange("new_account", "statecode");
+                    // 
+                    querybyexpression.Attributes.AddRange("fullname", "mobilephone", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(FullName, MobileNumber, 0);
+                    //  Query passed to the service proxy
+                    EntityCollection retrieved;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        retrieved = this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        retrieved = this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+
+                    if (retrieved.Entities.Count > 0 && retrieved != null)
+                    {
+                        return retrieved.Entities[0];
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public EntityCollection RetrieveContactEntityByFullNameCollection(String FullName)
-            => _facade.RetrieveContactEntityByFullNameCollection(FullName);
-
-        public EntityCollection QueryDediccationContatsByFetchXml(String DedicationNumber, String ContactName, String HomePhone, String Mobile, String NationId, String LastSixDigit)
-            => _facade.QueryDediccationContatsByFetchXml(DedicationNumber, ContactName, HomePhone, Mobile, NationId, LastSixDigit);
-
-        public EntityCollection QueryContatsByStartedDedicationNumber(String DedicationStartNumber)
-            => _facade.QueryContatsByStartedDedicationNumber(DedicationStartNumber);
-        #endregion
-        #region 名單相關方法 - 委派到 Facade
+        {   // 依據全名及行動電話找尋連絡人
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
+                    //  Create query using querybyattribute
+                    QueryByAttribute querybyexpression = new QueryByAttribute("contact");
+                    querybyexpression.ColumnSet = new ColumnSet();
+                    querybyexpression.ColumnSet.AllColumns = true;
+                    //  Attribute to query
+                    //querybyexpression.Attributes.AddRange("new_account", "statecode");
+                    // 
+                    querybyexpression.Attributes.AddRange("fullname", "statecode");
+                    //  Value of queried attribute to return
+                    querybyexpression.Values.AddRange(FullName, 0);
+                    //  Query passed to the service proxy
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        return this.m_OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                    else
+                    {
+                        return this.m_Crm2011OrganizationService.RetrieveMultiple(querybyexpression);
+                    }
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public EntityCollection RetrieveMemberListCollectionByListId(Guid aListId)
-            => _facade.RetrieveMemberListCollectionByListId(aListId);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
 
+                    QueryByAttribute query = new QueryByAttribute("listmember");
+                    query.AddAttributeValue("listid", aListId);
+                    query.ColumnSet = new ColumnSet(true);
+
+                    #region// 根據建立時間排序後傳回來
+                    //OrderExpression OrderBySunday = new OrderExpression();
+                    //OrderBySunday.AttributeName = "new_sunday_date";
+                    ////OrderBySunday.OrderType = OrderType.Ascending;
+                    //OrderBySunday.OrderType = OrderType.Descending;
+                    //////OrderBySerial.OrderType = OrderType.Descending;
+                    //query.Orders.Add(OrderBySunday);
+                    #endregion
+
+                    EntityCollection entityCollection;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        entityCollection = m_OrganizationService.RetrieveMultiple(query);
+                    }
+                    else
+                    {
+                        entityCollection = this.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                    }
+                    return entityCollection;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public EntityCollection RetrieveMemberListCollectionByListId(ref IOrganizationService aOrganizationService, Guid aListId)
-            => _facade.RetrieveMemberListCollectionByListId(ref aOrganizationService, aListId);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
 
+                    QueryByAttribute query = new QueryByAttribute("listmember");
+                    query.AddAttributeValue("listid", aListId);
+                    query.ColumnSet = new ColumnSet(true);
+
+                    #region// 根據建立時間排序後傳回來
+                    //OrderExpression OrderBySunday = new OrderExpression();
+                    //OrderBySunday.AttributeName = "new_sunday_date";
+                    ////OrderBySunday.OrderType = OrderType.Ascending;
+                    //OrderBySunday.OrderType = OrderType.Descending;
+                    //////OrderBySerial.OrderType = OrderType.Descending;
+                    //query.Orders.Add(OrderBySunday);
+                    #endregion
+
+                    EntityCollection entityCollection = aOrganizationService.RetrieveMultiple(query);
+
+                    return entityCollection;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public EntityCollection RetrieveMemberListCollectionByListIdDynamics365(ref OrganizationServiceProxy aOrganizationService, Guid aListId)
-            => _facade.RetrieveMemberListCollectionByListIdDynamics365(ref aOrganizationService, aListId);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
 
+                    QueryByAttribute query = new QueryByAttribute("listmember");
+                    query.AddAttributeValue("listid", aListId);
+                    query.ColumnSet = new ColumnSet(true);
+
+                    #region// 根據建立時間排序後傳回來
+                    //OrderExpression OrderBySunday = new OrderExpression();
+                    //OrderBySunday.AttributeName = "new_sunday_date";
+                    ////OrderBySunday.OrderType = OrderType.Ascending;
+                    //OrderBySunday.OrderType = OrderType.Descending;
+                    //////OrderBySerial.OrderType = OrderType.Descending;
+                    //query.Orders.Add(OrderBySunday);
+                    #endregion
+
+                    EntityCollection entityCollection = aOrganizationService.RetrieveMultiple(query);
+                    return entityCollection;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public EntityCollection RetrieveMemberListCollectionByListIdCrm2011(ref IOrganizationService aOrganizationService, Guid aListId)
-            => _facade.RetrieveMemberListCollectionByListIdCrm2011(ref aOrganizationService, aListId);
+        {
+            try
+            {
+                //lock (m_RetrieveContactLocker)
+                //{
 
+                    QueryByAttribute query = new QueryByAttribute("listmember");
+                    query.AddAttributeValue("listid", aListId);
+                    query.ColumnSet = new ColumnSet(true);
+
+                    #region// 根據建立時間排序後傳回來
+                    //OrderExpression OrderBySunday = new OrderExpression();
+                    //OrderBySunday.AttributeName = "new_sunday_date";
+                    ////OrderBySunday.OrderType = OrderType.Ascending;
+                    //OrderBySunday.OrderType = OrderType.Descending;
+                    //////OrderBySerial.OrderType = OrderType.Descending;
+                    //query.Orders.Add(OrderBySunday);
+                    #endregion
+
+                    EntityCollection entityCollection = aOrganizationService.RetrieveMultiple(query);
+                    return entityCollection;
+                //}
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         public EntityCollection RetrieveDynamicMemberList(string strList)
-            => _facade.RetrieveDynamicMemberList(strList);
+        {
+            ColumnSet cols = new ColumnSet(new string[] { "query" });
 
+            // GUID of the Dynamic Marketing List
+            Entity entity;
+            String dynamicQuery;
+            EntityCollection dynamicmemberec;
+            if (CRM_TYPE == "DYNAMICS365")
+            {
+                entity = this.m_OrganizationService.Retrieve("list", new Guid(strList), cols);
+                dynamicQuery = entity.Attributes["query"].ToString();
+                dynamicmemberec = this.m_OrganizationService.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            }
+            else
+            {
+                entity = this.m_Crm2011OrganizationService.Retrieve("list", new Guid(strList), cols);
+                dynamicQuery = entity.Attributes["query"].ToString();
+                dynamicmemberec = this.m_Crm2011OrganizationService.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            }
+
+            return dynamicmemberec;
+        }
         public EntityCollection RetrieveDynamicMemberList(IOrganizationService service, string strList)
-            => _facade.RetrieveDynamicMemberList(service, strList);
+        {
+            ColumnSet cols = new ColumnSet(new string[] { "query" });
 
+            // GUID of the Dynamic Marketing List
+            var entity = service.Retrieve("list", new Guid(strList), cols);
+            var dynamicQuery = entity.Attributes["query"].ToString();
+            EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            return dynamicmemberec;
+        }
         public EntityCollection RetrieveDynamicMemberListDynamics365(OrganizationServiceProxy service, string strList)
-            => _facade.RetrieveDynamicMemberListDynamics365(service, strList);
+        {
+            ColumnSet cols = new ColumnSet(new string[] { "query" });
 
+            // GUID of the Dynamic Marketing List
+            var entity = service.Retrieve("list", new Guid(strList), cols);
+            var dynamicQuery = entity.Attributes["query"].ToString();
+            EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            return dynamicmemberec;
+        }
         public EntityCollection RetrieveDynamicMemberListCrm2011(IOrganizationService service, string strList)
-            => _facade.RetrieveDynamicMemberListCrm2011(service, strList);
+        {
+            ColumnSet cols = new ColumnSet(new string[] { "query" });
 
+            // GUID of the Dynamic Marketing List
+            var entity = service.Retrieve("list", new Guid(strList), cols);
+            var dynamicQuery = entity.Attributes["query"].ToString();
+            EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            return dynamicmemberec;
+        }
         public EntityCollection RetrieveDynamicMemberList(Guid aListId)
-            => _facade.RetrieveDynamicMemberList(aListId);
+        {
+            ColumnSet cols = new ColumnSet(new string[] { "query" });
 
+            // GUID of the Dynamic Marketing List
+            Entity entity;
+            String dynamicQuery;
+
+            EntityCollection dynamicmemberec;
+
+            if (CRM_TYPE == "DYNAMICS365")
+            {
+                entity = m_OrganizationService.Retrieve("list", aListId, cols);
+                dynamicQuery = entity.Attributes["query"].ToString();
+                dynamicmemberec = m_OrganizationService.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            }
+            else
+            {
+                entity = this.m_Crm2011OrganizationService.Retrieve("list", aListId, cols);
+                dynamicQuery = entity.Attributes["query"].ToString();
+                dynamicmemberec = this.m_Crm2011OrganizationService.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            }
+
+            return dynamicmemberec;
+        }
         public EntityCollection RetrieveDynamicMemberList(ref IOrganizationService service, Guid aListId)
-            => _facade.RetrieveDynamicMemberList(ref service, aListId);
+        {
+            ColumnSet cols = new ColumnSet(new string[] { "query" });
 
+            // GUID of the Dynamic Marketing List
+            var entity = service.Retrieve("list", aListId, cols);
+            var dynamicQuery = entity.Attributes["query"].ToString();
+
+            EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            return dynamicmemberec;
+        }
         public EntityCollection RetrieveDynamicMemberListDynamics365(ref OrganizationServiceProxy service, Guid aListId)
-            => _facade.RetrieveDynamicMemberListDynamics365(ref service, aListId);
+        {
+            ColumnSet cols = new ColumnSet(new string[] { "query" });
 
+            // GUID of the Dynamic Marketing List
+            var entity = service.Retrieve("list", aListId, cols);
+            var dynamicQuery = entity.Attributes["query"].ToString();
+
+            EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            return dynamicmemberec;
+        }
         public EntityCollection RetrieveDynamicMemberListCrm2011(ref IOrganizationService service, Guid aListId)
-            => _facade.RetrieveDynamicMemberListCrm2011(ref service, aListId);
+        {
+            ColumnSet cols = new ColumnSet(new string[] { "query" });
+
+            // GUID of the Dynamic Marketing List
+            var entity = service.Retrieve("list", aListId, cols);
+            var dynamicQuery = entity.Attributes["query"].ToString();
+
+            EntityCollection dynamicmemberec = service.RetrieveMultiple(new FetchExpression(dynamicQuery));
+            return dynamicmemberec;
+        }
+        public EntityCollection QueryDediccationContatsByFetchXml(String DedicationNumber, String ContactName, String HomePhone, String Mobile, String NationId, String LastSixDigit)
+        {
+            try
+            {
+                DedicationNumber = "'" + DedicationNumber + "'";
+                ContactName = "'%" + ContactName + "%'";
+                HomePhone = "'%" + HomePhone + "%'";
+                Mobile = "'%" + Mobile + "%'";
+                NationId = "'%" + NationId + "%'";
+                LastSixDigit = "'%" + LastSixDigit + "%'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                              <entity name='contact'>
+                                <attribute name='fullname' />
+                                <attribute name='telephone2' />
+                                <attribute name='address2_line1' />
+                                <attribute name='parentcustomerid' />
+                                <attribute name='new_church_jobtitle' />
+                                <attribute name='mobilephone' />
+                                <attribute name='emailaddress1' />
+                                <attribute name='pager' />
+                                <attribute name='new_cell_list_contact' />
+                                <attribute name='new_personal_id' />
+                                <attribute name='new_last_six_digit' />
+                                <attribute name='contactid' />
+                                <order attribute='fullname' descending='false' />
+                                <filter type='and'>
+                                  <filter type='or'>
+                                    <condition attribute='pager' operator='eq' value=" + DedicationNumber + @" />
+                                    <condition attribute='fullname' operator='like' value=" + ContactName + @"/>
+                                    <condition attribute='telephone2' operator='like' value=" + HomePhone + @" />
+                                    <condition attribute='mobilephone' operator='like' value=" + Mobile + @" />
+                                    <condition attribute='new_personal_id' operator='like' value=" + NationId + @" />
+                                    <condition attribute='new_last_six_digit' operator='like' value=" + LastSixDigit + @" />
+                                  </filter>
+                                    <condition attribute='statuscode' operator='eq' value='1' />
+                                </filter>
+                              </entity>
+                            </fetch>";
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+                else
+                {
+                    return ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+
+
+                //if (CRM_TYPE == "DYNAMICS365")
+                //{
+                //    retrieved = ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                //}
+                //else
+                //{
+                //    retrieved = ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                //}
+
+                //return retrieved;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        public EntityCollection QueryContatsByStartedDedicationNumber(String DedicationStartNumber)
+        {
+            try
+            {
+                DedicationStartNumber = "'" + DedicationStartNumber + "%'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='3'>
+                              <entity name='contact'>
+                                <attribute name='fullname' />
+                                <attribute name='pager' />
+                                <attribute name='telephone2' />
+                                <attribute name='address2_line1' />
+                                <attribute name='parentcustomerid' />
+                                <attribute name='new_church_jobtitle' />
+                                <attribute name='mobilephone' />
+                                <attribute name='emailaddress1' />
+                                <attribute name='contactid' />
+                                <order attribute='pager' descending='true' />
+                                <filter type='and'>
+                                  <condition attribute='pager' operator='like' value=" + DedicationStartNumber + @" />
+                                </filter>
+                              </entity>
+                            </fetch>";
+
+                RetrieveMultipleRequest fetchRequest1 = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    return ((RetrieveMultipleResponse)this.m_OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+                else
+                {
+                    return ((RetrieveMultipleResponse)this.m_Crm2011OrganizationService.Execute(fetchRequest1)).EntityCollection;
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
         #endregion
         #region 取得客戶(Account)組織
         public Guid RetrieveAccountCollectionByName(String AccountName)
