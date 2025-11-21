@@ -436,5 +436,41 @@ namespace ToolUtilityNameSpace.Core
             TraceUtility.TraceByLevel(null, totalLevel, qualifiedLevel, stringToProcess);
         }
         #endregion
+
+        #region 個人聚會與靈修記錄方法 (委派給 MeetingStatisticsService)
+        public EntityCollection RetrievePresentRecordByFetchXml(string weeklyReportName, string weeklyReportId, string contactName, string contactId)
+            => _meetingStatisticsService.Value.RetrieveByWeeklyReportAndContact(weeklyReportName, weeklyReportId, contactName, contactId);
+
+        public EntityCollection RetrievePresentRecordByFetchXmlAndSundayDate(string contactName, string contactId, DateTime sundayDate)
+            => _meetingStatisticsService.Value.RetrieveBySundayDateAndContact(contactName, contactId, sundayDate);
+
+        public EntityCollection RetrievePresentRecordByFetchXmlAndWeeklyReport(string contactName, string contactId, string weeklyReportName, string weeklyReportId)
+            => _meetingStatisticsService.Value.RetrieveByWeeklyReportAndContactAlt(contactName, contactId, weeklyReportName, weeklyReportId);
+
+        public EntityCollection RetrievePresentRecordByFetchXmlAndContainEpiredDate(string contactName, string contactId)
+            => _meetingStatisticsService.Value.RetrieveWithExpiredDateByContact(contactName, contactId);
+
+        public EntityCollection RetrievePresentRecordByFetchXmlAndContact_SmallGroup_SundayDate(string contactName, string contactId, string smallGroupName, string smallGroupId, DateTime sundayDate)
+            => _meetingStatisticsService.Value.RetrieveByContactSmallGroupAndSundayDate(contactName, contactId, smallGroupName, smallGroupId, sundayDate);
+        #endregion
+
+        #region 名單查詢方法 (委派給 ListService)
+        public Entity RetrieveListEntityByName(string listName)
+            => _listService.Value.RetrieveListEntityByName(listName);
+
+        public EntityCollection RetrieveListByFetchXmlContact(string contactName)
+            => _listService.Value.RetrieveListByContact(contactName);
+
+        public EntityCollection RetrieveListByFetchXmlRacerLeader(string contactName, string contactId)
+            => _listService.Value.RetrieveListByRacerLeader(contactName, contactId);
+        #endregion
+
+        #region 收費單查詢方法 (委派給 FeeService)
+        public EntityCollection RetrieveDedicationFeeByFetchXml(string contactName, string contactId)
+            => _feeService.Value.RetrieveDedicationFee(contactName, contactId);
+
+        public EntityCollection RetrieveDedicationFeeByDateFetchXml(string contactName, string contactId, DateTime startDate, DateTime endDate)
+            => _feeService.Value.RetrieveDedicationFeeByDateRange(contactName, contactId, startDate, endDate);
+        #endregion
     }
 }

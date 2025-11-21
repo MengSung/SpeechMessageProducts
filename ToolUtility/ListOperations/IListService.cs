@@ -26,5 +26,20 @@ namespace ToolUtilityNameSpace.ListOperations
 
         EntityCollection QueryListByContactId(Guid contactId, string associationName);
         System.Collections.ArrayList GetAllMemberDataFromList(Guid listEntityId);
+        
+        /// <summary>
+        /// 根據名單名稱查詢名單實體
+        /// </summary>
+        Entity RetrieveListEntityByName(string listName);
+        
+        /// <summary>
+        /// 根據連絡人查詢所屬的名單
+        /// </summary>
+        EntityCollection RetrieveListByContact(string contactName);
+        
+        /// <summary>
+        /// 根據競賽領袖查詢名單
+        /// </summary>
+        EntityCollection RetrieveListByRacerLeader(string contactName, string contactId);
     }
 }

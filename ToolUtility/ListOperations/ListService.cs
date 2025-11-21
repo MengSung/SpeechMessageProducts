@@ -7,7 +7,8 @@ using ToolUtilityNameSpace.Interfaces;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System.Collections;
-using Microsoft.Xrm.Sdk.Client; // Added for OrganizationServiceProxy
+using Microsoft.Xrm.Sdk.Client;
+using Microsoft.Xrm.Sdk.Messages;
 
 namespace ToolUtilityNameSpace.ListOperations
 {
@@ -159,10 +160,78 @@ namespace ToolUtilityNameSpace.ListOperations
                           <condition attribute='new_app_named' operator='eq' value='1' />
                           <condition attribute='statuscode' operator='eq' value='0' />
                           <condition attribute='purpose' operator='eq' value='小組名單' />
-                          <condition attribute='listname' operator='not-like' value='%幸福%' />
+                          <condition attribute='listname' operator='not-like' value='%退出%' />
                         </filter>
                       </entity>
                     </fetch>";
+            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+        }
+
+        /// <summary>
+        /// 根據名單名稱查詢名單實體
+        /// </summary>
+        public Entity RetrieveListEntityByName(string listName)
+        {
+            var query = new QueryByAttribute("list") { ColumnSet = new ColumnSet(true) };
+            query.Attributes.AddRange("listname", "statecode");
+            query.Values.AddRange(listName, 0);
+            var coll = _queryService.RetrieveMultiple(query);
+            return (coll != null && coll.Entities.Count > 0) ? coll.Entities[0] : null;
+        }
+
+        /// <summary>
+        /// 根據連絡人查詢所屬的名單
+        /// </summary>
+        public EntityCollection RetrieveListByContact(string contactName)
+        {
+            contactName = $"'{contactName}'";
+            var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>
+                          <entity name='list'>
+                            <attribute name='listname' />
+                            <attribute name='createdfromcode' />
+                            <attribute name='lastusedon' />
+                            <attribute name='purpose' />
+                            <attribute name='listid' />
+                            <order attribute='listname' descending='true' />
+                            <filter type='and'>
+                              <condition attribute='new_app_named' operator='eq' value='1' />
+                              <condition attribute='purpose' operator='eq' value='小組名單' />
+                            </filter>
+                            <link-entity name='listmember' from='listid' to='listid' visible='false' intersect='true'>
+                              <link-entity name='contact' from='contactid' to='entityid' alias='af'>
+                                <filter type='and'>
+                                  <condition attribute='fullname' operator='eq' value={contactName} />
+                                </filter>
+                              </link-entity>
+                            </link-entity>
+                          </entity>
+                        </fetch>";
+
+            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+        }
+
+        /// <summary>
+        /// 根據競賽領袖查詢名單
+        /// </summary>
+        public EntityCollection RetrieveListByRacerLeader(string contactName, string contactId)
+        {
+            contactName = $"'{contactName}'";
+            contactId = $"'{{{contactId}}}'";
+
+            var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='list'>
+                        <attribute name='listname' />
+                        <attribute name='createdfromcode' />
+                        <attribute name='lastusedon' />
+                        <attribute name='purpose' />
+                        <attribute name='listid' />
+                        <order attribute='listname' descending='true' />
+                        <filter type='and'>
+                            <condition attribute='new_contact_race_leager_list' operator='eq' uiname={contactName} uitype='contact' value={contactId} />
+                        </filter>
+                      </entity>
+                    </fetch>";
+
             return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
     }

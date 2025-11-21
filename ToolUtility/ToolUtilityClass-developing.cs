@@ -171,7 +171,7 @@ namespace ToolUtility_Developing_NameSpace
         }
         #endregion
 
-        #region 透過屬性取得實體 - 完全委派到 Facade
+        #region 實作開發-完全委派到 Facade
 
 
         #endregion
