@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Sdk.Client;
+using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Crm.Sdk.Messages;
 using ToolUtilityNameSpace.EntityOperations;
 using ToolUtilityNameSpace.ListOperations;
@@ -12,13 +13,13 @@ using ToolUtilityNameSpace.ContactOperations;
 using ToolUtilityNameSpace.AttributeOperations;
 using ToolUtilityNameSpace.Interfaces;
 using ToolUtilityNameSpace.Utilities;
-using ToolUtilityNameSpace.AppointmentOperations; // added
-using ToolUtilityNameSpace.LessonsOperations; // added
-using ToolUtilityNameSpace.FeeOperations; // added
-using ToolUtilityNameSpace.CollectionOperations; // added
-using ToolUtilityNameSpace.MeetingStatisticsOperations; // added
-using ToolUtilityNameSpace.ConnectionOperations; // added for CrmConnectionService
-using System.ServiceModel.Description; // added for ClientCredentials
+using ToolUtilityNameSpace.AppointmentOperations;
+using ToolUtilityNameSpace.LessonsOperations;
+using ToolUtilityNameSpace.FeeOperations;
+using ToolUtilityNameSpace.CollectionOperations;
+using ToolUtilityNameSpace.MeetingStatisticsOperations;
+using ToolUtilityNameSpace.ConnectionOperations;
+using System.ServiceModel.Description;
 
 namespace ToolUtilityNameSpace.Core
 {
@@ -26,6 +27,7 @@ namespace ToolUtilityNameSpace.Core
     /// Light-weight Facade for ToolUtility functionality.
     /// This is the new Facade introduced in PR-04. It delegates to smaller services.
     /// It intentionally coexists with the legacy ToolUtilityClass during the refactor.
+    /// 完整委派 ToolUtilityClass-developing.cs 的所有功能
     /// </summary>
     public class ToolUtilityFacade : IDisposable
     {
@@ -44,19 +46,17 @@ namespace ToolUtilityNameSpace.Core
         private Lazy<IFeeService> _feeService;
         private Lazy<ICollectionQueryService> _collectionQueryService;
         private Lazy<IMeetingStatisticsService> _meetingStatisticsService;
-        // Connection service for CRM credentials/org service delegation
-        private Lazy<ICrmConnectionService> _connectionService; // added
+        private Lazy<ICrmConnectionService> _connectionService;
 
         private bool _disposed = false;
 
         public ToolUtilityFacade(object logger = null, ICrmClient crmClient = null)
         {
             _logger = logger ?? new object();
-            // Allow null crmClient for graceful coexistence with legacy usages.
             _crmClient = crmClient;
             InitializeServices();
         }
-        // Updated dispose logic
+
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed) return;
@@ -69,7 +69,7 @@ namespace ToolUtilityNameSpace.Core
                 if (_listService?.IsValueCreated == true) { var d = _listService.Value as IDisposable; d?.Dispose(); }
                 if (_attachmentService?.IsValueCreated == true) { var d = _attachmentService.Value as IDisposable; d?.Dispose(); }
                 if (_lineMessageService?.IsValueCreated == true) { var d = _lineMessageService.Value as IDisposable; d?.Dispose(); }
-                if (_appointmentService?.IsValueCreated == true) { _appointment_service_dispose(); }
+                if (_appointmentService?.IsValueCreated == true) { (_appointmentService.Value as IDisposable)?.Dispose(); }
                 if (_lessonsService?.IsValueCreated == true) { var d = _lessonsService.Value as IDisposable; d?.Dispose(); }
                 if (_feeService?.IsValueCreated == true) { var d = _feeService.Value as IDisposable; d?.Dispose(); }
                 if (_meetingStatisticsService?.IsValueCreated == true) { var d = _meetingStatisticsService.Value as IDisposable; d?.Dispose(); }
@@ -79,7 +79,7 @@ namespace ToolUtilityNameSpace.Core
             }
             _disposed = true;
         }
-        private void _appointment_service_dispose() { (_appointmentService.Value as IDisposable)?.Dispose(); }
+
         public void Dispose()
         {
             Dispose(true);
@@ -89,90 +89,29 @@ namespace ToolUtilityNameSpace.Core
         private void InitializeServices()
         {
             _queryService = new Lazy<IEntityQueryService>(() => new EntityQueryService(_logger, _crmClient));
-            _crud_service_init();
-            _attribute_service_init();
-            _contact_service_init();
-            _list_service_init();
-            _attachment_service_init();
-            _linemessage_service_init();
-            _appointment_service_init();
-            _lessons_service_init();
-            _fee_service_init();
-            _collection_service_init();
-            _meeting_statistics_service_init();
-            _connection_service_init(); // added
-        }
-        private void _connection_service_init() { _connectionService = new Lazy<ICrmConnectionService>(() => new CrmConnectionService()); }
-
-        private void _crud_service_init()
-        {
             _crudService = new Lazy<IEntityCrudService>(() => new EntityCrudService(_logger, _crmClient));
-        }
-
-        private void _attribute_service_init()
-        {
             _attributeService = new Lazy<IAttributeService>(() => new AttributeServiceComposite(_logger));
-        }
-
-        private void _contact_service_init()
-        {
             _contactService = new Lazy<IContactService>(() => new ContactService(_logger, _queryService.Value));
-        }
-
-        private void _list_service_init()
-        {
             _listService = new Lazy<IListService>(() => new ListService(_logger, _queryService.Value, _crmClient));
-        }
-
-        private void _attachment_service_init()
-        {
             _attachmentService = new Lazy<IAttachmentService>(() => new AttachmentService(_logger, _crmClient));
-        }
-
-        private void _linemessage_service_init()
-        {
-            _lineMessage_service_safe_init();
-        }
-
-        // Separate method to avoid referencing _crudService before init
-        private void _lineMessage_service_safe_init()
-        {
             _lineMessageService = new Lazy<ILineMessageService>(() => new LineMessageService(_logger, _crudService.Value));
-        }
-
-        private void _appointment_service_init()
-        {
             _appointmentService = new Lazy<IAppointmentService>(() => new AppointmentService(_logger, _queryService.Value));
-        }
-
-        private void _lessons_service_init()
-        {
             _lessonsService = new Lazy<ILessonsService>(() => new LessonsService(_logger, _queryService.Value));
-        }
-
-        private void _fee_service_init()
-        {
             _feeService = new Lazy<IFeeService>(() => new FeeService(_logger, _queryService.Value));
-        }
-
-        private void _collection_service_init()
-        {
             _collectionQueryService = new Lazy<ICollectionQueryService>(() => new CollectionQueryService(_logger, _queryService.Value));
-        }
-
-        private void _meeting_statistics_service_init()
-        {
             _meetingStatisticsService = new Lazy<IMeetingStatisticsService>(() => new MeetingStatisticsService(_logger, _queryService.Value));
+            _connectionService = new Lazy<ICrmConnectionService>(() => new CrmConnectionService());
         }
 
+        #region 基本實體操作方法
         public Entity RetrieveEntity(string entityName, Guid entityId)
             => _queryService.Value.RetrieveEntity(entityName, entityId);
 
-        public Entity RetrieveContactByLineId(string lineId)
-            => _contactService.Value.RetrieveByLineId(lineId);
+        public Entity RetrieveEntityByField(string entityName, string fieldName, string fieldValue)
+            => _queryService.Value.RetrieveEntityByField(entityName, fieldName, fieldValue);
 
-        public EntityCollection RetrieveContactCollectionByName(string contactFullName)
-            => _contactService.Value.RetrieveCollectionByName(contactFullName);
+        public EntityCollection RetrieveEntityCollectionByField(string entityName, string fieldName, string fieldValue)
+            => _collectionQueryService.Value.RetrieveEntityCollectionByField(entityName, fieldName, fieldValue);
 
         public Guid CreateEntity(Entity entityToCreate)
             => _crudService.Value.CreateEntity(entityToCreate);
@@ -182,7 +121,9 @@ namespace ToolUtilityNameSpace.Core
 
         public void DeleteEntity(string entityName, Guid entityId)
             => _crudService.Value.DeleteEntity(entityName, entityId);
+        #endregion
 
+        #region 屬性操作方法
         public bool GetEntityBoolAttribute(Entity entity, string propertyName)
             => _attributeService.Value.GetBoolAttribute(entity, propertyName);
 
@@ -203,39 +144,6 @@ namespace ToolUtilityNameSpace.Core
 
         public Guid GetEntityLookupAttribute(Entity entity, string propertyName)
             => _attributeService.Value.GetLookupAttribute(entity, propertyName);
-
-        public void AddMembersToMarketingList(Guid listGuid, List<Guid> memberGuidList)
-            => _list_service_value().AddMembers(listGuid, memberGuidList);
-
-        public void RemoveMembersToMarketingList(Guid listGuid, Guid memberGuid)
-            => _list_service_value().RemoveMember(listGuid, memberGuid);
-
-        public void CreatePushLineMessage(string userId, string subject, string message)
-            => _lineMessageService.Value.CreatePushMessage(userId, subject, message);
-
-        public EntityCollection DownloadAnAttachment(ref IOrganizationService crmService, Guid entityId)
-            => _attachmentService.Value.DownloadAttachment(ref crmService, entityId);
-
-        public void UploadAnAttachment(ref IOrganizationService crmService, string entityName, string subject, string noteText, string fileName, string mimeType, byte[] documentBody, Guid toBeAttachedEntityId)
-            => _attachmentService.Value.UploadAttachment(ref crmService, entityName, subject, noteText, fileName, mimeType, documentBody, toBeAttachedEntityId);
-
-        public static void DeleteLastComma(ref string stringToProcess)
-            => StringUtility.DeleteLastComma(ref stringToProcess);
-
-        public string FilterDigit(string filteredString)
-            => StringUtility.FilterDigit(filteredString);
-
-        public void TraceByLevel(int totalLevel, int qualifiedLevel, string stringToProcess)
-        {
-            // Use TraceUtility with logger when available
-            TraceUtility.TraceByLevel(_logger, totalLevel, qualifiedLevel, stringToProcess);
-        }
-
-        // Helper to safely access list service even if not initialized
-        private IListService _list_service_value()
-        {
-            return _listService.Value;
-        }
 
         public void SetEntityMoneyAttributeToNull(ref Entity entity, string propertyName)
             => _attributeService.Value.SetMoneyAttributeToNull(ref entity, propertyName);
@@ -278,29 +186,76 @@ namespace ToolUtilityNameSpace.Core
 
         public void SetEntityDoubleAttributeToNull(Entity entity, string propertyName)
             => _attributeService.Value.SetDoubleAttributeToNull(entity, propertyName);
+        #endregion
 
-        // --- Additional legacy methods implemented using query service or forwarded to specialized services ---
-        public Entity RetrieveEntityByField(string entityName, string fieldName, string fieldValue)
-        {
-            return _queryService.Value.RetrieveEntityByField(entityName, fieldName, fieldValue);
-        }
+        #region CRM 連接服務方法 (委派給 CrmConnectionService)
+        /// <summary>
+        /// 取得 Windows 認證憑證
+        /// </summary>
+        public ClientCredentials GetClientCredentials(string domain, string userName, string password)
+            => _connectionService.Value.GetClientCredentials(domain, userName, password);
 
-        public EntityCollection RetrieveEntityCollectionByField(string entityName, string fieldName, string fieldValue)
-            => _collectionQueryService.Value.RetrieveEntityCollectionByField(entityName, fieldName, fieldValue);
+        /// <summary>
+        /// 取得預設認證憑證
+        /// </summary>
+        public ClientCredentials GetClientCredentials()
+            => _connectionService.Value.GetClientCredentials();
 
-        // Delegated to ContactService
+        /// <summary>
+        /// 取得 CRM Organization Service
+        /// </summary>
+        public IOrganizationService GetOrganizationService(string server, string port, string organization, string domain, string userName, string password)
+            => _connectionService.Value.GetOrganizationService(server, port, organization, domain, userName, password);
+
+        /// <summary>
+        /// 設定 CRM 2011 Organization Service
+        /// </summary>
+        public IOrganizationService SetOrganizationService(string server, string port, string organization, string domain, string userName, string password)
+            => _connectionService.Value.SetOrganizationService(server, port, organization, domain, userName, password);
+
+        /// <summary>
+        /// 設定 Claims-Based 認證的 Organization Service
+        /// </summary>
+        public IOrganizationService SetClaimsBasedAuthenticationOrganizationService(string organization, string server, string domain, string userName, string password)
+            => _connectionService.Value.SetClaimsBasedAuthenticationOrganizationService(organization, server, domain, userName, password);
+
+        /// <summary>
+        /// 設定 Federated Organization Proxy (用於 Dynamics 365 Online 和 On-Premise IFD 環境)
+        /// </summary>
+        public OrganizationServiceProxy SetFederatedOrganizationProxy(string discoveryServiceType, string organization, string server, string port, string baseDiscoveryServiceAddress, string userName, string password, string domain)
+            => _connectionService.Value.SetFederatedOrganizationProxy(discoveryServiceType, organization, server, port, baseDiscoveryServiceAddress, userName, password, domain);
+
+        /// <summary>
+        /// 探索使用者所屬的組織
+        /// </summary>
+        public OrganizationDetailCollection DiscoverOrganizations(IDiscoveryService service)
+            => _connectionService.Value.DiscoverOrganizations(service);
+
+        /// <summary>
+        /// 在組織列表中尋找特定組織
+        /// </summary>
+        public OrganizationDetail FindOrganization(string orgUniqueName, OrganizationDetail[] orgDetails)
+            => _connectionService.Value.FindOrganization(orgUniqueName, orgDetails);
+        #endregion
+
+        #region 聯絡人相關方法 (委派給 ContactService)
+        public Entity RetrieveContactByLineId(string lineId)
+            => _contactService.Value.RetrieveByLineId(lineId);
+
+        public EntityCollection RetrieveContactCollectionByName(string contactFullName)
+            => _contactService.Value.RetrieveCollectionByName(contactFullName);
+
         public string RetrieveContactByContactId(string contactId)
             => _contactService.Value.GetContactInfoByContactId(contactId);
 
         public Entity RetrieveContactByContactId(ref IOrganizationService organizationService, string contactId, ref int count)
             => _contactService.Value.RetrieveByContactId(organizationService, contactId, ref count);
 
-        // Delegated to ContactService
         public string RetrieveContactByName(string contactFullName)
             => _contactService.Value.GetContactInfoByFullName(contactFullName);
 
         public Entity RetrieveContactEntityByName(string contactFullName)
-            => _contactService.Value.RetrieveByContactId(contactFullName) ?? _contactService.Value.RetrieveByLineId(contactFullName);
+            => _contactService.Value.RetrieveByFullName(contactFullName);
 
         public Entity RetrieveContactByName(ref IOrganizationService organizationService, string contactFullName)
             => _contactService.Value.RetrieveByFullName(organizationService, contactFullName);
@@ -311,8 +266,18 @@ namespace ToolUtilityNameSpace.Core
         public EntityCollection RetrieveContactCollectionByNationId(string nationId)
             => _contactService.Value.RetrieveCollectionByNationId(nationId);
 
+        public Entity RetrieveContactByLineId_Entity(string lineId)
+            => _contactService.Value.RetrieveByLineId(lineId);
+
         public string RetrieveContactByAccountNumber(string accountNumber, string password)
-            => _contactService.Value.AccountLogin(accountNumber, password);
+        {
+            var result = _contactService.Value.RetrieveByAccountNumber(accountNumber, password);
+            if (result != null)
+            {
+                return result.Id.ToString();
+            }
+            return "帳號或密碼錯誤";
+        }
 
         public Entity DoesAccountExist(string accountNumber)
             => _contactService.Value.RetrieveAccountEntity(accountNumber);
@@ -329,9 +294,21 @@ namespace ToolUtilityNameSpace.Core
         public EntityCollection RetrieveContactEntityByFullNameCollection(string fullName)
             => _contactService.Value.RetrieveCollectionByFullName(fullName);
 
-        public Entity RetrieveContactCollectionByLineId(string lineId)
-            => _contactService.Value.RetrieveByLineIdForCollection(lineId);
+        public EntityCollection QueryDediccationContatsByFetchXml(string dedicationNumber, string contactName, string homePhone, string mobile, string nationId, string lastSixDigit)
+            => _contactService.Value.QueryDediccationContatsByFetchXml(dedicationNumber, contactName, homePhone, mobile, nationId, lastSixDigit);
 
+        public EntityCollection QueryContatsByStartedDedicationNumber(string dedicationStartNumber)
+            => _contactService.Value.QueryContatsByStartedDedicationNumber(dedicationStartNumber);
+        #endregion
+
+        #region 名單相關方法 (委派給 ListService 和 CollectionQueryService)
+        public void AddMembersToMarketingList(Guid listGuid, List<Guid> memberGuidList)
+            => _listService.Value.AddMembers(listGuid, memberGuidList);
+
+        public void RemoveMembersToMarketingList(Guid listGuid, Guid memberGuid)
+            => _listService.Value.RemoveMember(listGuid, memberGuid);
+
+        // 成員名單查詢方法
         public EntityCollection RetrieveMemberListCollectionByListId(Guid listId)
             => _listService.Value.RetrieveMemberListCollectionByListId(listId);
 
@@ -344,17 +321,27 @@ namespace ToolUtilityNameSpace.Core
         public EntityCollection RetrieveMemberListCollectionByListIdCrm2011(ref IOrganizationService organizationService, Guid listId)
             => _listService.Value.RetrieveMemberListCollectionByListIdUsingService(organizationService, listId);
 
+        // 動態名單查詢方法
         public EntityCollection RetrieveDynamicMemberList(string strList)
             => _listService.Value.RetrieveDynamicMemberList(Guid.Parse(strList));
 
         public EntityCollection RetrieveDynamicMemberList(IOrganizationService service, string strList)
-            => _listService.Value.RetrieveDynamicMemberListUsingService(service, Guid.Parse(strList));
+        {
+            IOrganizationService svc = service;
+            return RetrieveDynamicMemberList(ref svc, Guid.Parse(strList));
+        }
 
         public EntityCollection RetrieveDynamicMemberListDynamics365(OrganizationServiceProxy service, string strList)
-            => _listService.Value.RetrieveDynamicMemberListUsingProxy(service, Guid.Parse(strList));
+        {
+            OrganizationServiceProxy proxy = service;
+            return RetrieveDynamicMemberListDynamics365(ref proxy, Guid.Parse(strList));
+        }
 
         public EntityCollection RetrieveDynamicMemberListCrm2011(IOrganizationService service, string strList)
-            => _listService.Value.RetrieveDynamicMemberListUsingService(service, Guid.Parse(strList));
+        {
+            IOrganizationService svc = service;
+            return RetrieveDynamicMemberList(ref svc, Guid.Parse(strList));
+        }
 
         public EntityCollection RetrieveDynamicMemberList(Guid listId)
             => _listService.Value.RetrieveDynamicMemberList(listId);
@@ -367,35 +354,87 @@ namespace ToolUtilityNameSpace.Core
 
         public EntityCollection RetrieveDynamicMemberListCrm2011(ref IOrganizationService service, Guid listId)
             => _listService.Value.RetrieveDynamicMemberListUsingService(service, listId);
+        #endregion
 
-        public EntityCollection QueryDediccationContatsByFetchXml(string dedicationNumber, string contactName, string homePhone, string mobile, string nationId, string lastSixDigit)
-            => _feeService.Value.QueryDedicationContacts(dedicationNumber, contactName, homePhone, mobile, nationId, lastSixDigit);
+        #region 客戶(Account)組織方法
+        public Guid RetrieveAccountCollectionByName(string accountName)
+            => _queryService.Value.RetrieveAccountByName(accountName);
+        #endregion
 
-        public EntityCollection QueryContatsByStartedDedicationNumber(string dedicationStartNumber)
-            => _feeService.Value.QueryDedicationContactsStartedNumber(dedicationStartNumber);
+        #region 約會相關方法 (委派給 AppointmentService - 修正方法名稱)
+        public EntityCollection RetrieveAppointmentsByDate(DateTime selectedDate)
+            => _appointmentService.Value.RetrieveByDate(selectedDate);
 
+        public EntityCollection RetrieveAppointmentsByFetchXml(DateTime startDate, DateTime endDate)
+            => _appointmentService.Value.RetrieveByDateRange(startDate, endDate);
+
+        public EntityCollection RetrieveAppointmentsByFetchXml(string contactName, string contactId)
+            => _appointmentService.Value.RetrieveByContactWithinYear(contactName, contactId);
+
+        public EntityCollection RetrieveAppointmentsByFetchXmlAndScheduleType(DateTime startDate, DateTime endDate, string scheduleType)
+            => _appointmentService.Value.RetrieveByDateRangeAndScheduleType(startDate, endDate, scheduleType);
+        #endregion
+
+        #region 課程相關方法 (委派給 LessonsService - 修正方法名稱)
+        public EntityCollection RetrieveEnrolledLessonsByFetchXml(DateTime startDate, DateTime endDate, string contactName, string contactId)
+            => _lessonsService.Value.RetrieveEnrolledLessons(startDate, endDate, contactName, contactId);
+
+        public EntityCollection RetrieveLessonsByMonth(DateTime startDate, DateTime endDate)
+            => _lessonsService.Value.RetrieveLessonsByMonth(startDate, endDate);
+
+        public EntityCollection RetrieveStorLessonsByFetchXml(string lessonName, string lessonId, string contactName, string contactId)
+            => _lessonsService.Value.RetrieveStorLessons(lessonName, lessonId, contactName, contactId);
+        #endregion
+
+        #region 工作相關方法
+        public EntityCollection RetrieveTaskByFetchXml(string subject)
+            => _queryService.Value.RetrieveTaskBySubject(subject);
+        #endregion
+
+        #region 個人聚會與靈修記錄、收費單 - 暫時保留為未實作
+        // 注意: 以下方法需要檢查實際服務介面的方法簽名
+        // 暫時保留為註解,在 ToolUtilityClass-developing.cs 中直接實作
+        #endregion
+
+        #region 收費單相關方法 (委派給 FeeService)
         public EntityCollection RetrieveDedicationBookingByFetchXml(string contactName, string contactId)
             => _feeService.Value.RetrieveDedicationBooking(contactName, contactId);
 
-        public EntityCollection RetrieveMeetingStatisticsByFetchXml(DateTime sundayDate)
-            => _meetingStatisticsService.Value.RetrieveBySunday(sundayDate);
-
         public EntityCollection RetrieveFeeByFetchXml(string dedicationBookingName, string dedicationBookingId, string paidPeriod)
             => _feeService.Value.RetrieveFee(dedicationBookingName, dedicationBookingId, paidPeriod);
+        #endregion
 
-        public EntityCollection RetrieveListByFetchXml()
-            => _listService.Value.RetrieveLists();
+        #region Line 訊息相關方法
+        public void CreatePushLineMessage(string userId, string subject, string message)
+            => _lineMessageService.Value.CreatePushMessage(userId, subject, message);
+        #endregion
 
-        public EntityCollection RetrieveSmallGroupListCollectionByFetchXml()
-            => _listService.Value.RetrieveSmallGroupLists();
+        #region 附件相關方法
+        public EntityCollection DownloadAnAttachment(ref IOrganizationService crmService, Guid entityId)
+            => _attachmentService.Value.DownloadAttachment(ref crmService, entityId);
 
-        // Delegation methods for connection credentials
-        public System.ServiceModel.Description.ClientCredentials GetClientCredentials(string domain, string userName, string password)
-            => _connectionService.Value.GetClientCredentials(domain, userName, password); // added
+        public void UploadAnAttachment(ref IOrganizationService crmService, string entityName, string subject, string noteText, string fileName, string mimeType, byte[] documentBody, Guid toBeAttachedEntityId)
+            => _attachmentService.Value.UploadAttachment(ref crmService, entityName, subject, noteText, fileName, mimeType, documentBody, toBeAttachedEntityId);
+        #endregion
 
-        // Legacy no-arg version kept for backward compatibility; caller must have constants accessible externally.
-        // If constants are no longer present, consider removing this overload.
-        public System.ServiceModel.Description.ClientCredentials GetClientCredentials()
-            => _connectionService.Value.GetClientCredentials(); // will throw NotImplemented from service intentionally
+        #region 字串工具方法
+        public static void DeleteLastComma(ref string stringToProcess)
+            => StringUtility.DeleteLastComma(ref stringToProcess);
+
+        public string FilterDigit(string filteredString)
+            => StringUtility.FilterDigit(filteredString);
+        #endregion
+
+        #region 除錯追蹤方法
+        public void TraceByLevel(int totalLevel, int qualifiedLevel, string stringToProcess)
+        {
+            TraceUtility.TraceByLevel(_logger, totalLevel, qualifiedLevel, stringToProcess);
+        }
+
+        public static void TraceByLevelStatic(int totalLevel, int qualifiedLevel, string stringToProcess)
+        {
+            TraceUtility.TraceByLevel(null, totalLevel, qualifiedLevel, stringToProcess);
+        }
+        #endregion
     }
 }

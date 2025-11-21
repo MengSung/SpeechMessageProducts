@@ -25,5 +25,16 @@ namespace ToolUtilityNameSpace.ContactOperations
         Entity RetrieveByFullNameAndMobile(string fullName, string mobileNumber);
         EntityCollection RetrieveCollectionByFullName(string fullName);
         Entity RetrieveByLineIdForCollection(string lineId); // same as RetrieveByLineId kept for backward naming
+
+        // FetchXml 查詢方法 (用於複雜查詢)
+        /// <summary>
+        /// 使用 FetchXML 查詢奉獻聯絡人
+        /// </summary>
+        EntityCollection QueryDediccationContatsByFetchXml(string dedicationNumber, string contactName, string homePhone, string mobile, string nationId, string lastSixDigit);
+
+        /// <summary>
+        /// 根據開頭奉獻編號查詢聯絡人
+        /// </summary>
+        EntityCollection QueryContatsByStartedDedicationNumber(string dedicationStartNumber);
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace.EntityOperations;
 using Microsoft.Xrm.Sdk.Query;
 
@@ -150,6 +151,106 @@ namespace ToolUtilityNameSpace.ContactOperations
             query.Attributes.AddRange("fullname", "statecode");
             query.Values.AddRange(fullName, 0);
             return _queryService.RetrieveMultiple(query);
+        }
+
+        /// <summary>
+        /// 使用 FetchXML 查詢奉獻聯絡人
+        /// 支援多條件模糊查詢(OR條件): 奉獻編號、姓名、家用電話、手機、身分證、末六碼
+        /// </summary>
+        public EntityCollection QueryDediccationContatsByFetchXml(string dedicationNumber, string contactName, string homePhone, string mobile, string nationId, string lastSixDigit)
+        {
+            try
+            {
+                // 格式化查詢參數
+                dedicationNumber = "'" + dedicationNumber + "'";
+                contactName = "'%" + contactName + "%'";
+                homePhone = "'%" + homePhone + "%'";
+                mobile = "'%" + mobile + "%'";
+                nationId = "'%" + nationId + "%'";
+                lastSixDigit = "'%" + lastSixDigit + "%'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                              <entity name='contact'>
+                                <attribute name='fullname' />
+                                <attribute name='telephone2' />
+                                <attribute name='address2_line1' />
+                                <attribute name='parentcustomerid' />
+                                <attribute name='new_church_jobtitle' />
+                                <attribute name='mobilephone' />
+                                <attribute name='emailaddress1' />
+                                <attribute name='pager' />
+                                <attribute name='new_cell_list_contact' />
+                                <attribute name='new_personal_id' />
+                                <attribute name='new_last_six_digit' />
+                                <attribute name='contactid' />
+                                <order attribute='fullname' descending='false' />
+                                <filter type='and'>
+                                  <filter type='or'>
+                                    <condition attribute='pager' operator='eq' value=" + dedicationNumber + @" />
+                                    <condition attribute='fullname' operator='like' value=" + contactName + @"/>
+                                    <condition attribute='telephone2' operator='like' value=" + homePhone + @" />
+                                    <condition attribute='mobilephone' operator='like' value=" + mobile + @" />
+                                    <condition attribute='new_personal_id' operator='like' value=" + nationId + @" />
+                                    <condition attribute='new_last_six_digit' operator='like' value=" + lastSixDigit + @" />
+                                  </filter>
+                                    <condition attribute='statuscode' operator='eq' value='1' />
+                                </filter>
+                              </entity>
+                            </fetch>";
+
+                var fetchRequest = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                return _queryService.ExecuteRetrieveMultiple(fetchRequest);
+            }
+            catch (Exception ex)
+            {
+                SafeLogError(ex, "QueryDediccationContatsByFetchXml 發生錯誤");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 根據開頭奉獻編號查詢聯絡人 (取前3筆,依奉獻編號降序)
+        /// </summary>
+        public EntityCollection QueryContatsByStartedDedicationNumber(string dedicationStartNumber)
+        {
+            try
+            {
+                dedicationStartNumber = "'" + dedicationStartNumber + "%'";
+
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='3'>
+                              <entity name='contact'>
+                                <attribute name='fullname' />
+                                <attribute name='pager' />
+                                <attribute name='telephone2' />
+                                <attribute name='address2_line1' />
+                                <attribute name='parentcustomerid' />
+                                <attribute name='new_church_jobtitle' />
+                                <attribute name='mobilephone' />
+                                <attribute name='emailaddress1' />
+                                <attribute name='contactid' />
+                                <order attribute='pager' descending='true' />
+                                <filter type='and'>
+                                  <condition attribute='pager' operator='like' value=" + dedicationStartNumber + @" />
+                                </filter>
+                              </entity>
+                            </fetch>";
+
+                var fetchRequest = new RetrieveMultipleRequest
+                {
+                    Query = new FetchExpression(fetchXml)
+                };
+
+                return _queryService.ExecuteRetrieveMultiple(fetchRequest);
+            }
+            catch (Exception ex)
+            {
+                SafeLogError(ex, "QueryContatsByStartedDedicationNumber 發生錯誤");
+                throw;
+            }
         }
 
         private string FormatContactInfo(Entity e)
