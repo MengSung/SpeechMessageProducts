@@ -122,5 +122,48 @@ namespace ToolUtilityNameSpace.ListOperations
                 members.Add(e);
             return members;
         }
+
+        public EntityCollection RetrieveLists()
+        {
+            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='list'>
+                        <attribute name='listname' />
+                        <attribute name='createdfromcode' />
+                        <attribute name='lastusedon' />
+                        <attribute name='purpose' />
+                        <attribute name='listid' />
+                        <order attribute='listname' descending='true' />
+                        <filter type='and'>
+                          <condition attribute='statuscode' operator='eq' value='0' />
+                          <condition attribute='purpose' operator='eq' value='小組名單' />
+                          <condition attribute='new_app_named' operator='eq' value='1' />
+                        </filter>
+                      </entity>
+                    </fetch>";
+            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+        }
+
+        public EntityCollection RetrieveSmallGroupLists()
+        {
+            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                      <entity name='list'>
+                        <attribute name='listname' />
+                        <attribute name='createdfromcode' />
+                        <attribute name='lastusedon' />
+                        <attribute name='purpose' />
+                        <attribute name='new_contact_race_leager_list' />
+                        <attribute name='new_contact_family_leader_list' />
+                        <attribute name='listid' />
+                        <order attribute='listname' descending='true' />
+                        <filter type='and'>
+                          <condition attribute='new_app_named' operator='eq' value='1' />
+                          <condition attribute='statuscode' operator='eq' value='0' />
+                          <condition attribute='purpose' operator='eq' value='小組名單' />
+                          <condition attribute='listname' operator='not-like' value='%幸福%' />
+                        </filter>
+                      </entity>
+                    </fetch>";
+            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+        }
     }
 }

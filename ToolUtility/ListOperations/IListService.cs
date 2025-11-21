@@ -20,6 +20,10 @@ namespace ToolUtilityNameSpace.ListOperations
         EntityCollection RetrieveDynamicMemberListUsingService(IOrganizationService externalService, Guid listId);
         EntityCollection RetrieveDynamicMemberListUsingProxy(OrganizationServiceProxy externalProxy, Guid listId);
 
+        // New: list entity fetches
+        EntityCollection RetrieveLists();
+        EntityCollection RetrieveSmallGroupLists();
+
         EntityCollection QueryListByContactId(Guid contactId, string associationName);
         System.Collections.ArrayList GetAllMemberDataFromList(Guid listEntityId);
     }

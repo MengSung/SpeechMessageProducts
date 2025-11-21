@@ -15,6 +15,8 @@ using ToolUtilityNameSpace.Utilities;
 using ToolUtilityNameSpace.AppointmentOperations; // added
 using ToolUtilityNameSpace.LessonsOperations; // added
 using ToolUtilityNameSpace.FeeOperations; // added
+using ToolUtilityNameSpace.CollectionOperations; // added
+using ToolUtilityNameSpace.MeetingStatisticsOperations; // added
 
 namespace ToolUtilityNameSpace.Core
 {
@@ -38,6 +40,8 @@ namespace ToolUtilityNameSpace.Core
         private Lazy<IAppointmentService> _appointmentService;
         private Lazy<ILessonsService> _lessonsService;
         private Lazy<IFeeService> _feeService;
+        private Lazy<ICollectionQueryService> _collectionQueryService;
+        private Lazy<IMeetingStatisticsService> _meetingStatisticsService;
 
         private bool _disposed = false;
 
@@ -64,6 +68,7 @@ namespace ToolUtilityNameSpace.Core
                 if (_appointmentService?.IsValueCreated == true) (_appointmentService.Value as IDisposable)?.Dispose();
                 if (_lessonsService?.IsValueCreated == true) (_lessonsService.Value as IDisposable)?.Dispose();
                 if (_feeService?.IsValueCreated == true) (_feeService.Value as IDisposable)?.Dispose();
+                if (_meetingStatisticsService?.IsValueCreated == true) (_meetingStatisticsService.Value as IDisposable)?.Dispose();
 
                 (_crmClient as IDisposable)?.Dispose();
             }
@@ -87,6 +92,8 @@ namespace ToolUtilityNameSpace.Core
             _appointment_service_init();
             _lessons_service_init();
             _fee_service_init();
+            _collection_service_init();
+            _meeting_statistics_service_init();
         }
 
         private void _crud_service_init()
@@ -138,6 +145,16 @@ namespace ToolUtilityNameSpace.Core
         private void _fee_service_init()
         {
             _feeService = new Lazy<IFeeService>(() => new FeeService(_logger, _queryService.Value));
+        }
+
+        private void _collection_service_init()
+        {
+            _collectionQueryService = new Lazy<ICollectionQueryService>(() => new CollectionQueryService(_logger, _queryService.Value));
+        }
+
+        private void _meeting_statistics_service_init()
+        {
+            _meetingStatisticsService = new Lazy<IMeetingStatisticsService>(() => new MeetingStatisticsService(_logger, _queryService.Value));
         }
 
         public Entity RetrieveEntity(string entityName, Guid entityId)
@@ -212,7 +229,6 @@ namespace ToolUtilityNameSpace.Core
             return _listService.Value;
         }
 
-
         public void SetEntityMoneyAttributeToNull(ref Entity entity, string propertyName)
             => _attributeService.Value.SetMoneyAttributeToNull(ref entity, propertyName);
 
@@ -262,13 +278,7 @@ namespace ToolUtilityNameSpace.Core
         }
 
         public EntityCollection RetrieveEntityCollectionByField(string entityName, string fieldName, string fieldValue)
-        {
-            var query = new QueryByAttribute(entityName) { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange(fieldName, "statecode");
-            query.Values.AddRange(fieldValue, 0);
-
-            return _queryService.Value.RetrieveMultiple(query);
-        }
+            => _collectionQueryService.Value.RetrieveEntityCollectionByField(entityName, fieldName, fieldValue);
 
         // Delegated to ContactService
         public string RetrieveContactByContactId(string contactId)
@@ -360,191 +370,15 @@ namespace ToolUtilityNameSpace.Core
             => _feeService.Value.RetrieveDedicationBooking(contactName, contactId);
 
         public EntityCollection RetrieveMeetingStatisticsByFetchXml(DateTime sundayDate)
-        {
-            string sundayDateString = @"'" + sundayDate.Year + "-" + sundayDate.Month + "-" + sundayDate.Day + "'";
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                          <entity name='new_meeting_statistics'>
-                            <attribute name='new_meeting_statisticsid' />
-                            <attribute name='new_name' />
-                            <attribute name='createdon' />
-                            <order attribute='new_name' descending='false' />
-                            <filter type='and'>
-                              <condition attribute='statuscode' operator='eq' value='1' />
-                             <condition attribute='new_sunday_date' operator='on' value=" + sundayDateString + @" />
-                            </filter>
-                          </entity>
-                        </fetch>";
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(fetchXml));
-        }
+            => _meetingStatisticsService.Value.RetrieveBySunday(sundayDate);
 
         public EntityCollection RetrieveFeeByFetchXml(string dedicationBookingName, string dedicationBookingId, string paidPeriod)
-        {
-            dedicationBookingName = "'" + dedicationBookingName + "'";
-            dedicationBookingId = "'{" + dedicationBookingId + "}'";
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                          <entity name='new_fee'>
-                            <attribute name='new_feeid' />
-                            <attribute name='new_name' />
-                            <attribute name='createdon' />
-                            <order attribute='new_name' descending='false' />
-                            <filter type='and'>
-                              <condition attribute='new_dedication_booking_new_fee' operator='eq' uiname=" + dedicationBookingName + @" uitype ='new_dedication_booking' value=" + dedicationBookingId + @" />
-                              <condition attribute='new_paid_period' operator='eq' value='" + paidPeriod + @"' />
-                            </filter>
-                          </entity>
-                        </fetch>";
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(fetchXml));
-        }
+            => _feeService.Value.RetrieveFee(dedicationBookingName, dedicationBookingId, paidPeriod);
 
         public EntityCollection RetrieveListByFetchXml()
-        {
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                      <entity name='list'>
-                        <attribute name='listname' />
-                        <attribute name='createdfromcode' />
-                        <attribute name='lastusedon' />
-                        <attribute name='purpose' />
-                        <attribute name='listid' />
-                        <order attribute='listname' descending='true' />
-                        <filter type='and'>
-                          <condition attribute='statuscode' operator='eq' value='0' />
-                          <condition attribute='purpose' operator='eq' value='小組名單' />
-                          <condition attribute='new_app_named' operator='eq' value='1' />
-                        </filter>
-                      </entity>
-                    </fetch>";
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(fetchXml));
-        }
+            => _listService.Value.RetrieveLists();
 
         public EntityCollection RetrieveSmallGroupListCollectionByFetchXml()
-        {
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                      <entity name='list'>
-                        <attribute name='listname' />
-                        <attribute name='createdfromcode' />
-                        <attribute name='lastusedon' />
-                        <attribute name='purpose' />
-                        <attribute name='new_contact_race_leager_list' />
-                        <attribute name='new_contact_family_leader_list' />
-                        <attribute name='listid' />
-                        <order attribute='listname' descending='true' />
-                        <filter type='and'>
-                          <condition attribute='new_app_named' operator='eq' value='1' />
-                          <condition attribute='statuscode' operator='eq' value='0' />
-                          <condition attribute='purpose' operator='eq' value='小組名單' />
-                          <condition attribute='listname' operator='not-like' value='%幸福%' />
-                        </filter>
-                      </entity>
-                    </fetch>";
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(fetchXml));
-        }
-
-        public EntityCollection QueryManyToMany(string conditionAttributeName, string entityNameToSearch, string linkFromEntityName, string linkFromAttributeName, string linkToEntityName, string linkToAttributeName, string attributeName, Guid entityIdValue)
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection QueryListOfContactManyToMany(Guid contactId)
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection QueryEntityList(string parentEntityName, string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection RetrieveManyToOneCollection()
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public Entity QueryBloodReportByContactId(Guid contactId)
-        {
-            // Simplified: return null for now
-            return null;
-        }
-
-        public EntityCollection QueryPresentRecordByContactIdAndSunday(Guid aListEntityId, Guid contactId, int monthPeriod)
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection RetrieveManyToOneRelationship(string parentEntityName, string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection QueryPresentRecordSortBySunday(string parentEntityName, string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection QueryPresentRecordSortBySundayFetchXml(int lastWeeks, string contactName, string contactId)
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection QueryPresentRecordSortBySunday_BACKUP(string parentEntityName, string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection QueryPresentRecordInWeeklyReportByContactId(Guid aContactId, Guid aWeeklyReportEntityId)
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection QueryEntityListByDate(string parentEntityName, string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection RetrieveManyToOneRelationship()
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection QueryWeeklyReportBySunday(DateTime aSunday, string parentEntityName, string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection QueryListsAndOrderedByListName(string parentEntityName, string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection QueryWeeklyReportBySunday(DateTime aSunday, Guid aListEntityId)
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection QueryWeeklyReportBeforeTowMonthOfSunday(DateTime aSunday, Guid aListEntityId)
-        {
-            // Simplified: return empty collection for now
-            return new EntityCollection();
-        }
-
-        public EntityCollection RetrieveContactCollectionByLineIdDynamics365(Guid listId)
-            => _listService.Value.RetrieveMemberListCollectionByListId(listId);
-
-        public EntityCollection RetrieveDynamicMemberListDynamics365(Guid listId)
-            => _listService.Value.RetrieveDynamicMemberList(listId);
+            => _listService.Value.RetrieveSmallGroupLists();
     }
 }

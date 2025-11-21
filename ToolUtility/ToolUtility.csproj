@@ -102,6 +102,8 @@
     <Compile Include="AttributeOperations\MoneyAttributeService.cs" />
     <Compile Include="AttributeOperations\OptionSetAttributeService.cs" />
     <Compile Include="AttributeOperations\StringAttributeService.cs" />
+    <Compile Include="CollectionOperations\CollectionQueryService.cs" />
+    <Compile Include="CollectionOperations\ICollectionQueryService.cs" />
     <Compile Include="ContactOperations\ContactService.cs" />
     <Compile Include="ContactOperations\IContactService.cs" />
     <Compile Include="Core\ToolUtilityFacade.cs" />
@@ -119,6 +121,8 @@
     <Compile Include="LineMessaging\LineMessageService.cs" />
     <Compile Include="ListOperations\IListService.cs" />
     <Compile Include="ListOperations\ListService.cs" />
+    <Compile Include="MeetingStatisticsOperations\IMeetingStatisticsService.cs" />
+    <Compile Include="MeetingStatisticsOperations\MeetingStatisticsService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PushUtility.cs" />
     <None Include="ToolUtilityClass.cs-原始檔案.md" />
