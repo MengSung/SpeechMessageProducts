@@ -17,6 +17,8 @@ using ToolUtilityNameSpace.LessonsOperations; // added
 using ToolUtilityNameSpace.FeeOperations; // added
 using ToolUtilityNameSpace.CollectionOperations; // added
 using ToolUtilityNameSpace.MeetingStatisticsOperations; // added
+using ToolUtilityNameSpace.ConnectionOperations; // added for CrmConnectionService
+using System.ServiceModel.Description; // added for ClientCredentials
 
 namespace ToolUtilityNameSpace.Core
 {
@@ -42,6 +44,8 @@ namespace ToolUtilityNameSpace.Core
         private Lazy<IFeeService> _feeService;
         private Lazy<ICollectionQueryService> _collectionQueryService;
         private Lazy<IMeetingStatisticsService> _meetingStatisticsService;
+        // Connection service for CRM credentials/org service delegation
+        private Lazy<ICrmConnectionService> _connectionService; // added
 
         private bool _disposed = false;
 
@@ -52,28 +56,30 @@ namespace ToolUtilityNameSpace.Core
             _crmClient = crmClient;
             InitializeServices();
         }
+        // Updated dispose logic
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed) return;
             if (disposing)
             {
-                // dispose services if they implement IDisposable
-                if (_queryService?.IsValueCreated == true) (_queryService.Value as IDisposable)?.Dispose();
-                if (_crudService?.IsValueCreated == true) (_crudService.Value as IDisposable)?.Dispose();
-                if (_attributeService?.IsValueCreated == true) (_attributeService.Value as IDisposable)?.Dispose();
-                if (_contactService?.IsValueCreated == true) (_contactService.Value as IDisposable)?.Dispose();
-                if (_listService?.IsValueCreated == true) (_listService.Value as IDisposable)?.Dispose();
-                if (_attachmentService?.IsValueCreated == true) (_attachmentService.Value as IDisposable)?.Dispose();
-                if (_lineMessageService?.IsValueCreated == true) (_lineMessageService.Value as IDisposable)?.Dispose();
-                if (_appointmentService?.IsValueCreated == true) (_appointmentService.Value as IDisposable)?.Dispose();
-                if (_lessonsService?.IsValueCreated == true) (_lessonsService.Value as IDisposable)?.Dispose();
-                if (_feeService?.IsValueCreated == true) (_feeService.Value as IDisposable)?.Dispose();
-                if (_meetingStatisticsService?.IsValueCreated == true) (_meetingStatisticsService.Value as IDisposable)?.Dispose();
+                if (_queryService?.IsValueCreated == true) { var d = _queryService.Value as IDisposable; d?.Dispose(); }
+                if (_crudService?.IsValueCreated == true) { var d = _crudService.Value as IDisposable; d?.Dispose(); }
+                if (_attributeService?.IsValueCreated == true) { var d = _attributeService.Value as IDisposable; d?.Dispose(); }
+                if (_contactService?.IsValueCreated == true) { var d = _contactService.Value as IDisposable; d?.Dispose(); }
+                if (_listService?.IsValueCreated == true) { var d = _listService.Value as IDisposable; d?.Dispose(); }
+                if (_attachmentService?.IsValueCreated == true) { var d = _attachmentService.Value as IDisposable; d?.Dispose(); }
+                if (_lineMessageService?.IsValueCreated == true) { var d = _lineMessageService.Value as IDisposable; d?.Dispose(); }
+                if (_appointmentService?.IsValueCreated == true) { _appointment_service_dispose(); }
+                if (_lessonsService?.IsValueCreated == true) { var d = _lessonsService.Value as IDisposable; d?.Dispose(); }
+                if (_feeService?.IsValueCreated == true) { var d = _feeService.Value as IDisposable; d?.Dispose(); }
+                if (_meetingStatisticsService?.IsValueCreated == true) { var d = _meetingStatisticsService.Value as IDisposable; d?.Dispose(); }
+                if (_connectionService?.IsValueCreated == true) { var d = _connectionService.Value as IDisposable; d?.Dispose(); }
 
                 (_crmClient as IDisposable)?.Dispose();
             }
             _disposed = true;
         }
+        private void _appointment_service_dispose() { (_appointmentService.Value as IDisposable)?.Dispose(); }
         public void Dispose()
         {
             Dispose(true);
@@ -94,7 +100,9 @@ namespace ToolUtilityNameSpace.Core
             _fee_service_init();
             _collection_service_init();
             _meeting_statistics_service_init();
+            _connection_service_init(); // added
         }
+        private void _connection_service_init() { _connectionService = new Lazy<ICrmConnectionService>(() => new CrmConnectionService()); }
 
         private void _crud_service_init()
         {
@@ -380,5 +388,14 @@ namespace ToolUtilityNameSpace.Core
 
         public EntityCollection RetrieveSmallGroupListCollectionByFetchXml()
             => _listService.Value.RetrieveSmallGroupLists();
+
+        // Delegation methods for connection credentials
+        public System.ServiceModel.Description.ClientCredentials GetClientCredentials(string domain, string userName, string password)
+            => _connectionService.Value.GetClientCredentials(domain, userName, password); // added
+
+        // Legacy no-arg version kept for backward compatibility; caller must have constants accessible externally.
+        // If constants are no longer present, consider removing this overload.
+        public System.ServiceModel.Description.ClientCredentials GetClientCredentials()
+            => _connectionService.Value.GetClientCredentials(); // will throw NotImplemented from service intentionally
     }
 }
