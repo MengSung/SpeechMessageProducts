@@ -128,6 +128,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PushUtility.cs" />
     <None Include="ToolUtilityClass.cs_原始檔案.md" />
+    <Compile Include="QueryOperations\ComplexQueryService.cs" />
+    <Compile Include="QueryOperations\IComplexQueryService.cs" />
     <Compile Include="ToolUtilityClass_Original.cs" />
     <Compile Include="ToolUtilityClass_Developing.cs" />
     <Compile Include="ToolUtilityClass.cs" />

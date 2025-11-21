@@ -114,5 +114,5 @@ protected virtual void Dispose(bool disposing)
 
 繼續下個小批次：把更多大型區塊（例如所有 Attachment 與 List 的 ref overloads、FetchXml helpers）改為轉發到 facade（每批完成後執行 build 檢查）。
 
-
+將D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ToolUtility\ToolUtilityClass-developing.cs 委派（delegate）到專責 ToolUtilityFacade 如果ToolUtilityFacade沒有Service則實做出或建立新增所需的Service檔案 並且確保Service有真實的實做出程式碼
 將D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ToolUtility\ToolUtilityClass-developing.cs 轉發（delegate）到專責 ToolUtilityFacade 如果ToolUtilityFacade沒有Service則實做出或建立新增所需的檔案Service 並且確保Service有真實的實做出程式碼

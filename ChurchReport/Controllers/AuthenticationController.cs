@@ -73,40 +73,68 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // 記錄登入開始
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 開始處理登入 - 帳號: {aGalleryViewModel?.Account}, 時間: {DateTime.Now}");
+
                 // 步驟 1: 驗證使用者身份
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 步驟 1: 驗證使用者身份");
                 var (isValid, contactIdString, errorMessage) = ValidateUserCredentials(aGalleryViewModel);
 
                 if (!isValid)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 驗證失敗: {errorMessage}");
                     return Json(new
                     {
                         DisplayViewType = "登入錯誤",
-                        ActiveListId = InMemoryContext.ListManager.ActiveListId,
+                        ActiveListId = InMemoryContext?.ListManager?.ActiveListId ?? "",
                         message = errorMessage,
                         fullname = errorMessage
                     });
                 }
 
                 // 步驟 2: 取得使用者資料
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 步驟 2: 取得使用者資料");
                 var (loginContact, fullName) = await RetrieveUserData(contactIdString, aGalleryViewModel);
+                
+                if (loginContact == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 無法取得使用者資料");
+                    return Json(new
+                    {
+                        DisplayViewType = "登入錯誤",
+                        ActiveListId = "",
+                        message = "無法取得使用者資料",
+                        fullname = ""
+                    });
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 使用者: {fullName}");
 
                 // 步驟 3: 初始化使用者 Session
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 步驟 3: 初始化使用者 Session");
                 InitializeUserSession(loginContact, aGalleryViewModel);
 
                 // 步驟 4: 設定系統資料
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 步驟 4: 設定系統資料 - 開始時間: {DateTime.Now}");
                 SetupSystemData(loginContact, aGalleryViewModel);
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 步驟 4: 設定系統資料 - 完成時間: {DateTime.Now}");
 
                 // 步驟 5: 判斷顯示視圖類型
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 步驟 5: 判斷顯示視圖類型");
                 string displayViewType = DetermineDisplayViewType();
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 顯示類型: {displayViewType}");
 
                 // 步驟 6: 設定 ViewBag 參數
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 步驟 6: 設定 ViewBag 參數");
                 SetupViewBagParameters(displayViewType);
 
                 // 步驟 7: 返回登入結果
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 步驟 7: 返回登入結果 - 完成時間: {DateTime.Now}");
                 return CreateLoginResponse(displayViewType, fullName, aGalleryViewModel);
             }
             catch (Exception e)
             {
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 發生錯誤: {e.Message}\n堆疊追蹤: {e.StackTrace}");
                 return HandleError(e, "ProcessLogin");
             }
         }
@@ -476,28 +504,51 @@ namespace ChurchReport.Controllers
         /// </summary>
         private (bool isValid, string contactId, string errorMessage) ValidateUserCredentials(GalleryViewModel viewModel)
         {
-            string contactIdString = "";
-
-            if (viewModel.Account != "")
+            try
             {
-                // 透過帳號密碼登入
-                contactIdString = ToolUtility.RetrieveContactByAccountNumber(viewModel.Account, viewModel.Password);
-            }
-            else
-            {
-                // 透過 Line Id 登入
-                contactIdString = "透過Line Id 登入";
-            }
+                System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] 開始驗證 - 帳號: {viewModel?.Account}");
+                
+                string contactIdString = "";
 
-            // 檢查驗證結果
-            if (contactIdString == "密碼錯誤" || 
-                contactIdString == "系統沒有設定密碼" || 
-                contactIdString == "帳號錯誤")
-            {
-                return (false, "", contactIdString);
-            }
+                if (viewModel.Account != "")
+                {
+                    // 透過帳號密碼登入
+                    System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] 使用帳號密碼登入");
+                    
+                    // 檢查 ToolUtility 是否已初始化
+                    if (ToolUtility == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ToolUtility 未初始化");
+                        return (false, "", "系統初始化錯誤，請重新登入");
+                    }
+                    
+                    contactIdString = ToolUtility.RetrieveContactByAccountNumber(viewModel.Account, viewModel.Password);
+                    System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] 驗證結果: {contactIdString}");
+                }
+                else
+                {
+                    // 透過 Line Id 登入
+                    System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] 使用 LINE ID 登入");
+                    contactIdString = "透過Line Id 登入";
+                }
 
-            return (true, contactIdString, "");
+                // 檢查驗證結果
+                if (contactIdString == "密碼錯誤" || 
+                    contactIdString == "系統沒有設定密碼" || 
+                    contactIdString == "帳號錯誤")
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] 驗證失敗: {contactIdString}");
+                    return (false, "", contactIdString);
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] 驗證成功");
+                return (true, contactIdString, "");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] 發生例外: {ex.Message}");
+                return (false, "", $"驗證過程發生錯誤: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -549,24 +600,72 @@ namespace ChurchReport.Controllers
         /// </summary>
         private void SetupSystemData(Entity loginContact, GalleryViewModel viewModel)
         {
-            // 設定多個組長處理需要的資料
-            InMemoryContext.ListManager.SetupListManager(
-                viewModel.Account, 
-                viewModel.Password, 
-                DateTime.Now);
-
-            // 差勤簽核 OR 場地及資源預約
-            InMemoryContext.AppointmentsListManager.SetupAppointmentList();
-
-            // 設定奉獻金流
-            if (loginContact != null)
+            try
             {
-                InMemoryContext.QpayManager.LoginType = "網頁登入";
-                InMemoryContext.QpayManager.SetQpayModel(loginContact);
-            }
+                // 設定多個組長處理需要的資料
+                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 呼叫 SetupListManager - 開始時間: {DateTime.Now:HH:mm:ss.fff}");
+                try
+                {
+                    InMemoryContext.ListManager.SetupListManager(
+                        viewModel.Account, 
+                        viewModel.Password, 
+                        DateTime.Now);
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupListManager 完成 - 時間: {DateTime.Now:HH:mm:ss.fff}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupListManager 失敗: {ex.Message}");
+                    throw new Exception($"設定小組資料失敗: {ex.Message}", ex);
+                }
 
-            // 設定需要點名的課程清單
-            InMemoryContext.FeeList.SetupLessonList(viewModel.Account, viewModel.Password);
+                // 差勤簽核 OR 場地及資源預約
+                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 呼叫 SetupAppointmentList - 開始時間: {DateTime.Now:HH:mm:ss.fff}");
+                try
+                {
+                    InMemoryContext.AppointmentsListManager.SetupAppointmentList();
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupAppointmentList 完成 - 時間: {DateTime.Now:HH:mm:ss.fff}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupAppointmentList 失敗: {ex.Message}");
+                    // 這個失敗不影響主要登入流程，記錄錯誤但繼續
+                }
+
+                // 設定奉獻金流
+                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 設定奉獻金流 - 開始時間: {DateTime.Now:HH:mm:ss.fff}");
+                try
+                {
+                    if (loginContact != null)
+                    {
+                        InMemoryContext.QpayManager.LoginType = "網頁登入";
+                        InMemoryContext.QpayManager.SetQpayModel(loginContact);
+                    }
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 設定奉獻金流完成 - 時間: {DateTime.Now:HH:mm:ss.fff}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 設定奉獻金流失敗: {ex.Message}");
+                    // 這個失敗不影響主要登入流程
+                }
+
+                // 設定需要點名的課程清單
+                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 設定課程清單 - 開始時間: {DateTime.Now:HH:mm:ss.fff}");
+                try
+                {
+                    InMemoryContext.FeeList.SetupLessonList(viewModel.Account, viewModel.Password);
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 設定課程清單完成 - 時間: {DateTime.Now:HH:mm:ss.fff}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 設定課程清單失敗: {ex.Message}");
+                    // 這個失敗不影響主要登入流程
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 整體失敗: {ex.Message}\n{ex.StackTrace}");
+                throw;
+            }
         }
 
         /// <summary>

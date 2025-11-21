@@ -116,14 +116,34 @@ namespace ChurchReport.Controllers
                                 $"Time = {DateTime.Now}, " +
                                 $"Description = {exception}";
 
-            // 寫入追蹤日誌
-            ToolUtility.TraceByLevel(TOTAL_LEVEL, LEVEL_1, errorMessage);
+            // 寫入追蹤日誌 (加入 null 檢查)
+            try
+            {
+                ToolUtility?.TraceByLevel(TOTAL_LEVEL, LEVEL_1, errorMessage);
+            }
+            catch (Exception traceEx)
+            {
+                // 追蹤失敗不影響錯誤處理流程
+                System.Diagnostics.Debug.WriteLine($"TraceByLevel 失敗: {traceEx.Message}");
+            }
 
             // 發送 LINE 通知
             SendLineErrorNotification(errorMessage);
 
-            // 判斷是否為 AJAX 請求
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            // 判斷是否為 AJAX 請求 (加入 null 檢查)
+            bool isAjaxRequest = false;
+            try
+            {
+                isAjaxRequest = Request?.Headers != null && 
+                               Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+            }
+            catch
+            {
+                // 無法判斷請求類型，預設為非 AJAX
+                isAjaxRequest = false;
+            }
+
+            if (isAjaxRequest)
             {
                 // AJAX 請求返回 JSON
                 return Json(new
@@ -154,8 +174,16 @@ namespace ChurchReport.Controllers
             catch (Exception ex)
             {
                 // LINE 通知失敗不影響主要流程
-                ToolUtility.TraceByLevel(TOTAL_LEVEL, LEVEL_1,
-                    $"LINE 通知發送失敗: {ex.Message}");
+                try
+                {
+                    ToolUtility?.TraceByLevel(TOTAL_LEVEL, LEVEL_1,
+                        $"LINE 通知發送失敗: {ex.Message}");
+                }
+                catch
+                {
+                    // 如果連追蹤都失敗，使用 Debug 輸出
+                    System.Diagnostics.Debug.WriteLine($"LINE 通知發送失敗且追蹤失敗: {ex.Message}");
+                }
             }
         }
 
