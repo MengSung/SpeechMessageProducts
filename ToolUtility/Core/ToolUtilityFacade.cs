@@ -12,6 +12,9 @@ using ToolUtilityNameSpace.ContactOperations;
 using ToolUtilityNameSpace.AttributeOperations;
 using ToolUtilityNameSpace.Interfaces;
 using ToolUtilityNameSpace.Utilities;
+using ToolUtilityNameSpace.AppointmentOperations; // added
+using ToolUtilityNameSpace.LessonsOperations; // added
+using ToolUtilityNameSpace.FeeOperations; // added
 
 namespace ToolUtilityNameSpace.Core
 {
@@ -32,6 +35,9 @@ namespace ToolUtilityNameSpace.Core
         private Lazy<IListService> _listService;
         private Lazy<IAttachmentService> _attachmentService;
         private Lazy<ILineMessageService> _lineMessageService;
+        private Lazy<IAppointmentService> _appointmentService;
+        private Lazy<ILessonsService> _lessonsService;
+        private Lazy<IFeeService> _feeService;
 
         private bool _disposed = false;
 
@@ -55,6 +61,9 @@ namespace ToolUtilityNameSpace.Core
                 if (_listService?.IsValueCreated == true) (_listService.Value as IDisposable)?.Dispose();
                 if (_attachmentService?.IsValueCreated == true) (_attachmentService.Value as IDisposable)?.Dispose();
                 if (_lineMessageService?.IsValueCreated == true) (_lineMessageService.Value as IDisposable)?.Dispose();
+                if (_appointmentService?.IsValueCreated == true) (_appointmentService.Value as IDisposable)?.Dispose();
+                if (_lessonsService?.IsValueCreated == true) (_lessonsService.Value as IDisposable)?.Dispose();
+                if (_feeService?.IsValueCreated == true) (_feeService.Value as IDisposable)?.Dispose();
 
                 (_crmClient as IDisposable)?.Dispose();
             }
@@ -75,6 +84,9 @@ namespace ToolUtilityNameSpace.Core
             _list_service_init();
             _attachment_service_init();
             _linemessage_service_init();
+            _appointment_service_init();
+            _lessons_service_init();
+            _fee_service_init();
         }
 
         private void _crud_service_init()
@@ -111,6 +123,21 @@ namespace ToolUtilityNameSpace.Core
         private void _lineMessage_service_safe_init()
         {
             _lineMessageService = new Lazy<ILineMessageService>(() => new LineMessageService(_logger, _crudService.Value));
+        }
+
+        private void _appointment_service_init()
+        {
+            _appointmentService = new Lazy<IAppointmentService>(() => new AppointmentService(_logger, _queryService.Value));
+        }
+
+        private void _lessons_service_init()
+        {
+            _lessonsService = new Lazy<ILessonsService>(() => new LessonsService(_logger, _queryService.Value));
+        }
+
+        private void _fee_service_init()
+        {
+            _feeService = new Lazy<IFeeService>(() => new FeeService(_logger, _queryService.Value));
         }
 
         public Entity RetrieveEntity(string entityName, Guid entityId)
@@ -231,12 +258,7 @@ namespace ToolUtilityNameSpace.Core
         // --- Additional legacy methods implemented using query service or forwarded to specialized services ---
         public Entity RetrieveEntityByField(string entityName, string fieldName, string fieldValue)
         {
-            var query = new QueryByAttribute(entityName) { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange(fieldName, "statecode");
-            query.Values.AddRange(fieldValue, 0);
-
-            var coll = _queryService.Value.RetrieveMultiple(query);
-            return (coll != null && coll.Entities.Count > 0) ? coll.Entities[0] : null;
+            return _queryService.Value.RetrieveEntityByField(entityName, fieldName, fieldValue);
         }
 
         public EntityCollection RetrieveEntityCollectionByField(string entityName, string fieldName, string fieldValue)
@@ -248,521 +270,98 @@ namespace ToolUtilityNameSpace.Core
             return _queryService.Value.RetrieveMultiple(query);
         }
 
+        // Delegated to ContactService
         public string RetrieveContactByContactId(string contactId)
-        {
-            var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange("build_customer_id", "statecode");
-            query.Values.AddRange(contactId, 0);
-
-            var coll = _queryService.Value.RetrieveMultiple(query);
-            if (coll != null && coll.Entities.Count > 0)
-            {
-                var e = coll.Entities[0];
-                var sb = new System.Text.StringBuilder();
-                if (e.Contains("fullname")) sb.AppendLine("姓名:" + e["fullname"].ToString());
-                if (e.Contains("build_customer_id")) sb.AppendLine("身分證字號:" + e["build_customer_id"].ToString());
-                if (e.Contains("telephone1")) sb.AppendLine("電話號碼:" + e["telephone1"].ToString());
-                if (e.Contains("emailaddress1")) sb.AppendLine("電子郵件:" + e["emailaddress1"].ToString());
-                return sb.ToString();
-            }
-            return string.Empty;
-        }
+            => _contactService.Value.GetContactInfoByContactId(contactId);
 
         public Entity RetrieveContactByContactId(ref IOrganizationService organizationService, string contactId, ref int count)
-        {
-            var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange("build_customer_id", "statecode");
-            query.Values.AddRange(contactId, 0);
+            => _contactService.Value.RetrieveByContactId(organizationService, contactId, ref count);
 
-            var coll = organizationService.RetrieveMultiple(query);
-            count = coll?.Entities?.Count ?? 0;
-            return (coll != null && coll.Entities.Count > 0) ? coll.Entities[0] : null;
-        }
-
+        // Delegated to ContactService
         public string RetrieveContactByName(string contactFullName)
-        {
-            var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange("fullname", "statecode");
-            query.Values.AddRange(contactFullName, 0);
-
-            var coll = _queryService.Value.RetrieveMultiple(query);
-            if (coll != null && coll.Entities.Count > 0)
-            {
-                var e = coll.Entities[0];
-                var sb = new System.Text.StringBuilder();
-                if (e.Contains("fullname")) sb.AppendLine("姓名:" + e["fullname"].ToString());
-                if (e.Contains("build_customer_id")) sb.AppendLine("身分證字號:" + e["build_customer_id"].ToString());
-                if (e.Contains("telephone1")) sb.AppendLine("電話號碼:" + e["telephone1"].ToString());
-                if (e.Contains("emailaddress1")) sb.AppendLine("電子郵件:" + e["emailaddress1"].ToString());
-                return sb.ToString();
-            }
-            return string.Empty;
-        }
+            => _contactService.Value.GetContactInfoByFullName(contactFullName);
 
         public Entity RetrieveContactEntityByName(string contactFullName)
             => _contactService.Value.RetrieveByContactId(contactFullName) ?? _contactService.Value.RetrieveByLineId(contactFullName);
 
         public Entity RetrieveContactByName(ref IOrganizationService organizationService, string contactFullName)
-        {
-            var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange("fullname", "statecode");
-            query.Values.AddRange(contactFullName, 0);
-            var coll = organizationService.RetrieveMultiple(query);
-            return (coll != null && coll.Entities.Count > 0) ? coll.Entities[0] : null;
-        }
+            => _contactService.Value.RetrieveByFullName(organizationService, contactFullName);
 
         public string RetrieveContactByName_ReturnString(ref IOrganizationService organizationService, string contactFullName)
-        {
-            var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange("fullname", "statecode");
-            query.Values.AddRange(contactFullName, 0);
-            var coll = organizationService.RetrieveMultiple(query);
-            var sb = new System.Text.StringBuilder();
-            if (coll != null)
-            {
-                foreach (var c in coll.Entities)
-                {
-                    if (c.Contains("fullname")) sb.AppendLine("姓名:" + c["fullname"].ToString());
-                    if (c.Contains("telephone1")) sb.AppendLine("電話號碼:" + c["telephone1"].ToString());
-                    if (c.Contains("emailaddress1")) sb.AppendLine("電子郵件:" + c["emailaddress1"].ToString());
-                }
-            }
-            return sb.ToString();
-        }
+            => _contactService.Value.GetContactInfoByFullName(organizationService, contactFullName);
 
         public EntityCollection RetrieveContactCollectionByNationId(string nationId)
-        {
-            var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange("new_personal_id", "statecode");
-            query.Values.AddRange(nationId, 0);
-            return _queryService.Value.RetrieveMultiple(query);
-        }
+            => _contactService.Value.RetrieveCollectionByNationId(nationId);
+
         public string RetrieveContactByAccountNumber(string accountNumber, string password)
-        {
-            var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange("new_app_acount", "statecode");
-            query.Values.AddRange(accountNumber, 0);
-            var coll = _queryService.Value.RetrieveMultiple(query);
-            if (coll != null && coll.Entities.Count > 0)
-            {
-                var e = coll.Entities[0];
-                if (e.Contains("new_app_pass") && e.GetAttributeValue<string>("new_app_pass") == password)
-                    return e.Id.ToString();
-                if (!e.Contains("new_app_pass")) return "系統沒有設定密碼";
-                return "密碼錯誤";
-            }
-            return "帳號錯誤";
-        }
+            => _contactService.Value.AccountLogin(accountNumber, password);
 
         public Entity DoesAccountExist(string accountNumber)
-        {
-            var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange("new_app_acount", "statecode");
-            query.Values.AddRange(accountNumber, 0);
-            var coll = _queryService.Value.RetrieveMultiple(query);
-            return (coll != null && coll.Entities.Count > 0) ? coll.Entities[0] : null;
-        }
+            => _contactService.Value.RetrieveAccountEntity(accountNumber);
 
         public Entity RetrieveContactEntityByAccountNumber(string accountNumber, string password)
-        {
-            var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange("new_app_acount", "statecode");
-            query.Values.AddRange(accountNumber, 0);
-            var coll = _queryService.Value.RetrieveMultiple(query);
-            if (coll != null && coll.Entities.Count > 0)
-            {
-                var e = coll.Entities[0];
-                if (e.Contains("new_app_pass") && e.GetAttributeValue<string>("new_app_pass") == password) return e;
-            }
-            return null;
-        }
+            => _contactService.Value.RetrieveByAccountNumber(accountNumber, password);
 
         public Entity RetrieveContactEntityByLineUserId(string lineUserId)
-        {
-            var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange("new_lineid", "statecode");
-            query.Values.AddRange(lineUserId, 0);
-            var coll = _queryService.Value.RetrieveMultiple(query);
-            return (coll != null && coll.Entities.Count > 0) ? coll.Entities[0] : null;
-        }
+            => _contactService.Value.RetrieveByLineId(lineUserId);
 
         public Entity RetrieveContactEntityByFullNameAndMobileNumber(string fullName, string mobileNumber)
-        {
-            var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange("fullname", "mobilephone", "statecode");
-            query.Values.AddRange(fullName, mobileNumber, 0);
-            var coll = _queryService.Value.RetrieveMultiple(query);
-            return (coll != null && coll.Entities.Count > 0) ? coll.Entities[0] : null;
-        }
+            => _contactService.Value.RetrieveByFullNameAndMobile(fullName, mobileNumber);
 
         public EntityCollection RetrieveContactEntityByFullNameCollection(string fullName)
-        {
-            var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange("fullname", "statecode");
-            query.Values.AddRange(fullName, 0);
-            return _queryService.Value.RetrieveMultiple(query);
-        }
+            => _contactService.Value.RetrieveCollectionByFullName(fullName);
+
+        public Entity RetrieveContactCollectionByLineId(string lineId)
+            => _contactService.Value.RetrieveByLineIdForCollection(lineId);
 
         public EntityCollection RetrieveMemberListCollectionByListId(Guid listId)
-        {
-            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet(true) };
-            query.AddAttributeValue("listid", listId);
-            return _queryService.Value.RetrieveMultiple(query);
-        }
+            => _listService.Value.RetrieveMemberListCollectionByListId(listId);
 
         public EntityCollection RetrieveMemberListCollectionByListId(ref IOrganizationService organizationService, Guid listId)
-        {
-            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet(true) };
-            query.AddAttributeValue("listid", listId);
-            return organizationService.RetrieveMultiple(query);
-        }
+            => _listService.Value.RetrieveMemberListCollectionByListIdUsingService(organizationService, listId);
 
         public EntityCollection RetrieveMemberListCollectionByListIdDynamics365(ref OrganizationServiceProxy organizationService, Guid listId)
-        {
-            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet(true) };
-            query.AddAttributeValue("listid", listId);
-            return organizationService.RetrieveMultiple(query);
-        }
+            => _listService.Value.RetrieveMemberListCollectionByListIdUsingProxy(organizationService, listId);
 
         public EntityCollection RetrieveMemberListCollectionByListIdCrm2011(ref IOrganizationService organizationService, Guid listId)
-            => RetrieveMemberListCollectionByListId(ref organizationService, listId);
+            => _listService.Value.RetrieveMemberListCollectionByListIdUsingService(organizationService, listId);
 
         public EntityCollection RetrieveDynamicMemberList(string strList)
-        {
-            var entity = _queryService.Value.RetrieveEntity("list", Guid.Parse(strList));
-            var dynamicQuery = entity.Attributes["query"].ToString();
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(dynamicQuery));
-        }
+            => _listService.Value.RetrieveDynamicMemberList(Guid.Parse(strList));
 
         public EntityCollection RetrieveDynamicMemberList(IOrganizationService service, string strList)
-        {
-            var entity = service.Retrieve("list", new Guid(strList), new ColumnSet("query"));
-            var dynamicQuery = entity.Attributes["query"].ToString();
-            return service.RetrieveMultiple(new FetchExpression(dynamicQuery));
-        }
+            => _listService.Value.RetrieveDynamicMemberListUsingService(service, Guid.Parse(strList));
 
         public EntityCollection RetrieveDynamicMemberListDynamics365(OrganizationServiceProxy service, string strList)
-        {
-            var entity = service.Retrieve("list", new Guid(strList), new ColumnSet("query"));
-            var dynamicQuery = entity.Attributes["query"].ToString();
-            return service.RetrieveMultiple(new FetchExpression(dynamicQuery));
-        }
+            => _listService.Value.RetrieveDynamicMemberListUsingProxy(service, Guid.Parse(strList));
 
         public EntityCollection RetrieveDynamicMemberListCrm2011(IOrganizationService service, string strList)
-            => RetrieveDynamicMemberList(service, strList);
+            => _listService.Value.RetrieveDynamicMemberListUsingService(service, Guid.Parse(strList));
 
         public EntityCollection RetrieveDynamicMemberList(Guid listId)
-        {
-            var entity = _queryService.Value.RetrieveEntity("list", listId);
-            var dynamicQuery = entity.Attributes["query"].ToString();
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(dynamicQuery));
-        }
+            => _listService.Value.RetrieveDynamicMemberList(listId);
 
         public EntityCollection RetrieveDynamicMemberList(ref IOrganizationService service, Guid listId)
-        {
-            var entity = service.Retrieve("list", listId, new ColumnSet("query"));
-            var dynamicQuery = entity.Attributes["query"].ToString();
-            return service.RetrieveMultiple(new FetchExpression(dynamicQuery));
-        }
+            => _listService.Value.RetrieveDynamicMemberListUsingService(service, listId);
 
         public EntityCollection RetrieveDynamicMemberListDynamics365(ref OrganizationServiceProxy service, Guid listId)
-        {
-            return RetrieveDynamicMemberList(service, listId.ToString());
-        }
+            => _listService.Value.RetrieveDynamicMemberListUsingProxy(service, listId);
 
         public EntityCollection RetrieveDynamicMemberListCrm2011(ref IOrganizationService service, Guid listId)
-            => RetrieveDynamicMemberList(ref service, listId);
+            => _listService.Value.RetrieveDynamicMemberListUsingService(service, listId);
 
         public EntityCollection QueryDediccationContatsByFetchXml(string dedicationNumber, string contactName, string homePhone, string mobile, string nationId, string lastSixDigit)
-        {
-            // reuse original fetchXml construction
-            dedicationNumber = "'" + dedicationNumber + "'";
-            contactName = "'%" + contactName + "%'";
-            homePhone = "'%" + homePhone + "%'";
-            mobile = "'%" + mobile + "%'";
-            nationId = "'%" + nationId + "%'";
-            lastSixDigit = "'%" + lastSixDigit + "%'";
-
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                              <entity name='contact'>
-                                <attribute name='fullname' />
-                                <attribute name='telephone2' />
-                                <attribute name='address2_line1' />
-                                <attribute name='parentcustomerid' />
-                                <attribute name='new_church_jobtitle' />
-                                <attribute name='mobilephone' />
-                                <attribute name='emailaddress1' />
-                                <attribute name='pager' />
-                                <attribute name='new_cell_list_contact' />
-                                <attribute name='new_personal_id' />
-                                <attribute name='new_last_six_digit' />
-                                <attribute name='contactid' />
-                                <order attribute='fullname' descending='false' />
-                                <filter type='and'>
-                                  <filter type='or'>
-                                    <condition attribute='pager' operator='eq' value=" + dedicationNumber + @" />
-                                    <condition attribute='fullname' operator='like' value=" + contactName + @"/>
-                                    <condition attribute='telephone2' operator='like' value=" + homePhone + @" />
-                                    <condition attribute='mobilephone' operator='like' value=" + mobile + @" />
-                                    <condition attribute='new_personal_id' operator='like' value=" + nationId + @" />
-                                    <condition attribute='new_last_six_digit' operator='like' value=" + lastSixDigit + @" />
-                                  </filter>
-                                    <condition attribute='statuscode' operator='eq' value='1' />
-                                </filter>
-                              </entity>
-                            </fetch>";
-
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(fetchXml));
-        }
+            => _feeService.Value.QueryDedicationContacts(dedicationNumber, contactName, homePhone, mobile, nationId, lastSixDigit);
 
         public EntityCollection QueryContatsByStartedDedicationNumber(string dedicationStartNumber)
-        {
-            dedicationStartNumber = "'" + dedicationStartNumber + "%'";
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='3'>
-                              <entity name='contact'>
-                                <attribute name='fullname' />
-                                <attribute name='pager' />
-                                <attribute name='telephone2' />
-                                <attribute name='address2_line1' />
-                                <attribute name='parentcustomerid' />
-                                <attribute name='new_church_jobtitle' />
-                                <attribute name='mobilephone' />
-                                <attribute name='emailaddress1' />
-                                <attribute name='contactid' />
-                                <order attribute='pager' descending='true' />
-                                <filter type='and'>
-                                  <condition attribute='pager' operator='like' value=" + dedicationStartNumber + @" />
-                                </filter>
-                              </entity>
-                            </fetch>";
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(fetchXml));
-        }
-
-        public Guid RetrieveAccountCollectionByName(string accountName)
-        {
-            var query = new QueryByAttribute("account") { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange("name", "statecode");
-            query.Values.AddRange(accountName, 0);
-            var coll = _queryService.Value.RetrieveMultiple(query);
-            return (coll != null && coll.Entities.Count > 0) ? coll.Entities[0].Id : Guid.Empty;
-        }
-
-        public EntityCollection RetrieveAppointmentsByDate(DateTime selectedDate)
-        {
-            var query = new QueryByAttribute("appointment") { ColumnSet = new ColumnSet(true) };
-            // original didn't filter by date; keep same behaviour
-            return _queryService.Value.RetrieveMultiple(query);
-        }
-
-        public EntityCollection RetrieveAppointmentsByFetchXml(DateTime startDate, DateTime endDate)
-        {
-            string start = "'" + startDate.Year + "-" + startDate.Month + "-" + startDate.Day + "'";
-            string end = "'" + endDate.Year + "-" + endDate.Month + "-" + endDate.Day + "'";
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                      <entity name='appointment'>
-                        <attribute name='subject' />
-                        <attribute name='statecode' />
-                        <attribute name='scheduledstart' />
-                        <attribute name='scheduledend' />
-                        <attribute name='regardingobjectid' />
-                        <attribute name='ownerid' />
-                        <attribute name='new_meeting_kind' />
-                        <attribute name='new_leave_kind' />
-                        <attribute name='new_location_kind' />
-                        <attribute name='activityid' />
-                        <attribute name='requiredattendees' />
-                        <attribute name='optionalattendees' />
-                        <attribute name='new_list_appointment' />
-                        <attribute name='description' />
-                        <order attribute='subject' descending='false' />
-                        <filter type='and'>
-                          <condition attribute='scheduledstart' operator='on-or-after'  value=" + start + @" />
-                          <condition attribute='scheduledstart' operator='on-or-before' value=" + end + @" />
-                        </filter>
-                      </entity>
-                    </fetch>";
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(fetchXml));
-        }
-
-        public EntityCollection RetrieveAppointmentsByFetchXml(string contactName, string contactId)
-        {
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                      <entity name='appointment'>
-                        <attribute name='subject' />
-                        <attribute name='statecode' />
-                        <attribute name='scheduledstart' />
-                        <attribute name='scheduledend' />
-                        <attribute name='regardingobjectid' />
-                        <attribute name='ownerid' />
-                        <attribute name='new_meeting_kind' />
-                        <attribute name='new_leave_kind' />
-                        <attribute name='new_location_kind' />
-                        <attribute name='new_leave_signing_status' />
-                        <attribute name='activityid' />
-                        <attribute name='requiredattendees' />
-                        <attribute name='optionalattendees' />
-                        <attribute name='new_list_appointment' />
-                        <attribute name='description' />
-                        <attribute name='new_hours' />
-                        <attribute name='new_days' />
-                        <order attribute='subject' descending='false' />
-                        <filter type='and'>
-                          <condition attribute='new_applier_appointment' operator='eq' uiname='" + contactName + @"' uitype='contact' value='{" + contactId + @"}' />
-                          <condition attribute='scheduledstart' operator='this-year' />
-                          <condition attribute='new_leave_signing_status' operator='in'>
-                                <value> 100000004 </value >
-                                <value> 100000001 </value >
-                                <value> 100000007 </value >
-                          </condition >
-                        </filter>
-                      </entity>
-                    </fetch>";
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(fetchXml));
-        }
-
-        public EntityCollection RetrieveAppointmentsByFetchXmlAndScheduleType(DateTime startDate, DateTime endDate, string scheduleType)
-        {
-            string start = "'" + startDate.Year + "-" + startDate.Month + "-" + startDate.Day + "'";
-            string end = "'" + endDate.Year + "-" + endDate.Month + "-" + endDate.Day + "'";
-            string sType = "'" + scheduleType + "'";
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                      <entity name='appointment'>
-                        <attribute name='subject' />
-                        <attribute name='statecode' />
-                        <attribute name='scheduledstart' />
-                        <attribute name='scheduledend' />
-                        <attribute name='regardingobjectid' />
-                        <attribute name='ownerid' />
-                        <attribute name='new_meeting_kind' />
-                        <attribute name='new_leave_kind' />
-                        <attribute name='new_location_kind' />
-                        <attribute name='activityid' />
-                        <attribute name='requiredattendees' />
-                        <attribute name='optionalattendees' />
-                        <attribute name='new_list_appointment' />
-                        <attribute name='description' />
-                        <order attribute='subject' descending='false' />
-                        <filter type='and'>
-                          <condition attribute='scheduledstart' operator='on-or-after'  value=" + start + @" />
-                          <condition attribute='scheduledstart' operator='on-or-before' value=" + end + @" />
-                          <condition attribute='new_meeting_kind' operator='eq' value=" + sType + @" />
-                        </filter>
-                      </entity>
-                    </fetch>";
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(fetchXml));
-        }
-
-        public EntityCollection RetrieveEnrolledLessonsByFetchXml(DateTime startDate, DateTime endDate, string contactName, string contactId)
-        {
-            string s = "'" + startDate.Year + "-" + startDate.Month + "-" + startDate.Day + "'";
-            string e = "'" + endDate.Year + "-" + endDate.Month + "-" + endDate.Day + "'";
-            contactName = "'" + contactName + "'";
-            contactId = "'{" + contactId + "}'";
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>
-                      <entity name='new_disciple_lessons'>
-                        <attribute name='new_name' />
-                        <attribute name='createdon' />
-                        <attribute name='new_class_start_date' />
-                        <attribute name='new_class_end_date' />
-                        <attribute name='new_classification' />
-                        <attribute name='new_disciple_lessonsid' />
-                        <order attribute='new_classification' descending='false' />
-                        <filter type='and'>
-                            <condition attribute='new_class_start_date' operator='on-or-after'  value=" + s + @" />
-                            <condition attribute='new_class_end_date' operator='on-or-before' value=" + e + @" />
-                        </filter>
-                        <link-entity name='new_stor_lessons' from='new_new_disciple_lessons_new_stor_les' to='new_disciple_lessonsid' alias='ab'>
-                          <filter type='and'>
-                            <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname=" + contactName + @" uitype ='contact' value=" + contactId + @" />
-                          </filter>
-                        </link-entity>
-                      </entity>
-                    </fetch>";
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(fetchXml));
-        }
-
-        public EntityCollection RetrieveLessonsByMonth(DateTime startDate, DateTime endDate)
-        {
-            string s = "'" + startDate.Year + "-" + startDate.Month + "-" + startDate.Day + "'";
-            string e = "'" + endDate.Year + "-" + endDate.Month + "-" + endDate.Day + "'";
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>
-                      <entity name='new_disciple_lessons'>
-                        <attribute name='new_name' />
-                        <attribute name='createdon' />
-                        <attribute name='new_class_start_date' />
-                        <attribute name='new_class_end_date' />
-                        <attribute name='new_classification' />
-                        <attribute name='new_disciple_lessonsid' />
-                        <order attribute='new_classification' descending='false' />
-                        <filter type='and'>
-                            <condition attribute='new_class_start_date' operator='on-or-after'  value=" + s + @" />
-                            <condition attribute='new_class_end_date' operator='on-or-before' value=" + e + @" />
-                        </filter>
-                      </entity>
-                    </fetch>";
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(fetchXml));
-        }
-
-        public EntityCollection RetrieveStorLessonsByFetchXml(string lessonName, string lessonId, string contactName, string contactId)
-        {
-            lessonName = "'" + lessonName + "'";
-            lessonId = "'{" + lessonId + "}'";
-            contactName = "'" + contactName + "'";
-            contactId = "'{" + contactId + "}'";
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                      <entity name='new_stor_lessons'>
-                        <attribute name='createdon' />
-                        <attribute name='new_contact_new_stor_lessons' />
-                        <attribute name='new_fee' />
-                        <attribute name='new_pay_date' />
-                        <attribute name='new_new_disciple_lessons_new_stor_les' />
-                        <attribute name='new_stor_lessonsid' />
-                        <order attribute='new_new_disciple_lessons_new_stor_les' descending='false' />
-                        <order attribute='new_contact_new_stor_lessons' descending='false' />
-                        <filter type='and'>
-                          <condition attribute='new_enroll_status' operator='not-in'>
-                            <value>100000007</value>
-                            <value>100000009</value>
-                            <value>100000003</value>
-                          </condition>
-                          <condition attribute='new_new_disciple_lessons_new_stor_les' operator='eq' uiname=" + lessonName + @" uitype='new_disciple_lessons' value=" + lessonId +  @" />
-                          <condition attribute='statuscode' operator='ne' value='2' />
-                          <condition attribute='statecode' operator='eq' value='0' />
-                        </filter>
-                        <link-entity name='contact' from='contactid' to='new_contact_new_stor_lessons' visible='false' link-type='outer' alias='a_45d999afd4cc4001b091647bb91668ef'>
-                          <attribute name='telephone2' />
-                          <attribute name='address2_line1' />
-                          <attribute name='parentcustomerid' />
-                          <attribute name='mobilephone' />
-                          <attribute name='emailaddress1' />
-                        </link-entity>
-                      </entity>
-                    </fetch>";
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(fetchXml));
-        }
+            => _feeService.Value.QueryDedicationContactsStartedNumber(dedicationStartNumber);
 
         public EntityCollection RetrieveDedicationBookingByFetchXml(string contactName, string contactId)
-        {
-            contactName = "'" + contactName + "'";
-            contactId = "'{" + contactId + "}'";
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                          <entity name='new_dedication_booking'>
-                            <attribute name='new_dedication_bookingid' />
-                            <attribute name='new_name' />
-                            <attribute name='createdon' />
-                            <order attribute='new_name' descending='false' />
-                            <filter type='and'>
-                              <condition attribute='new_contact_new_dedication_booking' operator='eq' uiname=" + contactName + @" uitype='contact' value=" + contactId + @" />
-                              <condition attribute='new_dedication_booking_status' operator='eq' value='100000001' />
-                            </filter>
-                          </entity>
-                        </fetch>";
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(fetchXml));
-        }
+            => _feeService.Value.RetrieveDedicationBooking(contactName, contactId);
 
         public EntityCollection RetrieveMeetingStatisticsByFetchXml(DateTime sundayDate)
         {
-            string sundayDateString = @"'" + sundayDate.Year + "-" + sundayDate.Month + "-" + sundayDate.Day + @"'";
+            string sundayDateString = @"'" + sundayDate.Year + "-" + sundayDate.Month + "-" + sundayDate.Day + "'";
             var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                           <entity name='new_meeting_statistics'>
                             <attribute name='new_meeting_statisticsid' />
@@ -942,27 +541,10 @@ namespace ToolUtilityNameSpace.Core
             return new EntityCollection();
         }
 
-        public Entity RetrieveContactCollectionByLineId(string lineId)
-        {
-            var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange("new_lineid", "statecode");
-            query.Values.AddRange(lineId, 0);
-            var coll = _queryService.Value.RetrieveMultiple(query);
-            return (coll != null && coll.Entities.Count > 0) ? coll.Entities[0] : null;
-        }
-
-        public EntityCollection RetrieveMemberListCollectionByListIdDynamics365(Guid listId)
-        {
-            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet(true) };
-            query.AddAttributeValue("listid", listId);
-            return _queryService.Value.RetrieveMultiple(query);
-        }
+        public EntityCollection RetrieveContactCollectionByLineIdDynamics365(Guid listId)
+            => _listService.Value.RetrieveMemberListCollectionByListId(listId);
 
         public EntityCollection RetrieveDynamicMemberListDynamics365(Guid listId)
-        {
-            var entity = _queryService.Value.RetrieveEntity("list", listId);
-            var dynamicQuery = entity.Attributes["query"].ToString();
-            return _queryService.Value.RetrieveMultiple(new FetchExpression(dynamicQuery));
-        }
+            => _listService.Value.RetrieveDynamicMemberList(listId);
     }
 }

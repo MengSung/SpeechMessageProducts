@@ -8,5 +8,6 @@ namespace ToolUtilityNameSpace.EntityOperations
     {
         Entity RetrieveEntity(string entityName, Guid entityId);
         EntityCollection RetrieveMultiple(QueryBase query);
+        Entity RetrieveEntityByField(string entityName, string fieldName, string fieldValue);
     }
 }

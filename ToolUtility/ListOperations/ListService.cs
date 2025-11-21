@@ -4,6 +4,10 @@ using System.Linq;
 using ToolUtilityNameSpace.EntityOperations;
 using ToolUtilityNameSpace.ListOperations;
 using ToolUtilityNameSpace.Interfaces;
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
+using System.Collections;
+using Microsoft.Xrm.Sdk.Client; // Added for OrganizationServiceProxy
 
 namespace ToolUtilityNameSpace.ListOperations
 {
@@ -26,46 +30,97 @@ namespace ToolUtilityNameSpace.ListOperations
 
             foreach (var member in memberGuidList)
             {
-                // For simplicity, create a ListMember entity linking to list and member
-                var entity = new Microsoft.Xrm.Sdk.Entity("listmember")
+                // Marketing list member entity: listmember (listid, entityid)
+                var entity = new Entity("listmember")
                 {
-                    ["listid"] = listGuid,
-                    ["entityid"] = member
+                    ["listid"] = new EntityReference("list", listGuid),
+                    ["entityid"] = new EntityReference("contact", member)
                 };
-
                 _crmClient.Create(entity);
             }
         }
 
         public void RemoveMember(Guid listGuid, Guid memberGuid)
         {
-            // For simplicity assume we can delete by known id - in real impl we would query for the listmember id
-            // Here we'll create a placeholder and call Delete on list entity to simulate
-            _crmClient.Delete("list", listGuid);
+            // Query listmember records matching list + member, then delete
+            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet("listmemberid") };
+            query.AddAttributeValue("listid", listGuid);
+            query.AddAttributeValue("entityid", memberGuid);
+            var coll = _crmClient.RetrieveMultiple(query);
+            if (coll == null || coll.Entities.Count == 0) return;
+            foreach (var lm in coll.Entities)
+            {
+                _crmClient.Delete("listmember", lm.Id);
+            }
         }
 
-        public Microsoft.Xrm.Sdk.EntityCollection RetrieveMemberListCollectionByListId(Guid listId)
+        public EntityCollection RetrieveMemberListCollectionByListId(Guid listId)
         {
-            // Stub implementation
-            return new Microsoft.Xrm.Sdk.EntityCollection();
+            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet(true) };
+            query.AddAttributeValue("listid", listId);
+            return _queryService.RetrieveMultiple(query);
         }
 
-        public Microsoft.Xrm.Sdk.EntityCollection RetrieveDynamicMemberList(Guid listId)
+        public EntityCollection RetrieveMemberListCollectionByListIdUsingService(IOrganizationService externalService, Guid listId)
         {
-            // Stub implementation
-            return new Microsoft.Xrm.Sdk.EntityCollection();
+            if (externalService == null) return new EntityCollection();
+            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet(true) };
+            query.AddAttributeValue("listid", listId);
+            return externalService.RetrieveMultiple(query);
         }
 
-        public Microsoft.Xrm.Sdk.EntityCollection QueryListByContactId(Guid contactId, string associationName)
+        public EntityCollection RetrieveMemberListCollectionByListIdUsingProxy(OrganizationServiceProxy externalProxy, Guid listId)
         {
-            // Stub implementation
-            return new Microsoft.Xrm.Sdk.EntityCollection();
+            if (externalProxy == null) return new EntityCollection();
+            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet(true) };
+            query.AddAttributeValue("listid", listId);
+            return externalProxy.RetrieveMultiple(query);
         }
 
-        public System.Collections.ArrayList GetAllMemberDataFromList(Guid listEntityId)
+        public EntityCollection RetrieveDynamicMemberList(Guid listId)
         {
-            // Stub implementation
-            return new System.Collections.ArrayList();
+            var listEntity = _queryService.RetrieveEntity("list", listId);
+            if (listEntity == null || !listEntity.Attributes.Contains("query")) return new EntityCollection();
+            var fetchXml = listEntity.GetAttributeValue<string>("query");
+            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+        }
+
+        public EntityCollection RetrieveDynamicMemberListUsingService(IOrganizationService externalService, Guid listId)
+        {
+            if (externalService == null) return new EntityCollection();
+            var listEntity = externalService.Retrieve("list", listId, new ColumnSet("query"));
+            if (listEntity == null || !listEntity.Attributes.Contains("query")) return new EntityCollection();
+            var fetchXml = listEntity.GetAttributeValue<string>("query");
+            return externalService.RetrieveMultiple(new FetchExpression(fetchXml));
+        }
+
+        public EntityCollection RetrieveDynamicMemberListUsingProxy(OrganizationServiceProxy externalProxy, Guid listId)
+        {
+            if (externalProxy == null) return new EntityCollection();
+            var listEntity = externalProxy.Retrieve("list", listId, new ColumnSet("query"));
+            if (listEntity == null || !listEntity.Attributes.Contains("query")) return new EntityCollection();
+            var fetchXml = listEntity.GetAttributeValue<string>("query");
+            return externalProxy.RetrieveMultiple(new FetchExpression(fetchXml));
+        }
+
+        public EntityCollection QueryListByContactId(Guid contactId, string associationName)
+        {
+            // associationName (e.g., "contact_list") could be used to build fetch; simplified placeholder
+            var query = new QueryExpression("listmember")
+            {
+                ColumnSet = new ColumnSet(true)
+            };
+            query.Criteria.AddCondition("entityid", ConditionOperator.Equal, contactId);
+            return _queryService.RetrieveMultiple(query);
+        }
+
+        public ArrayList GetAllMemberDataFromList(Guid listEntityId)
+        {
+            var members = new ArrayList();
+            var coll = RetrieveMemberListCollectionByListId(listEntityId);
+            foreach (var e in coll.Entities)
+                members.Add(e);
+            return members;
         }
     }
 }
