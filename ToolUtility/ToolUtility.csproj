@@ -104,6 +104,8 @@
     <Compile Include="AttributeOperations\StringAttributeService.cs" />
     <Compile Include="CollectionOperations\CollectionQueryService.cs" />
     <Compile Include="CollectionOperations\ICollectionQueryService.cs" />
+    <Compile Include="ConnectionOperations\CrmConnectionService.cs" />
+    <Compile Include="ConnectionOperations\ICrmConnectionService.cs" />
     <Compile Include="ContactOperations\ContactService.cs" />
     <Compile Include="ContactOperations\IContactService.cs" />
     <Compile Include="Core\ToolUtilityFacade.cs" />
