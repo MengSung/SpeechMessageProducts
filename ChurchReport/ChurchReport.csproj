@@ -51,7 +51,7 @@
     <None Remove="wwwroot\js\FeeDataGridAjax.js" />
     <Content Include="bower.json" />
     <Content Include="Properties\launchSettings.json" />
-    <Content Include="文件\QPayView_README.md" />
+    <Content Include="文件\歷程記錄\QPayView_README.md" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DevExtreme.AspNet.Core" Version="23.1.5" />
