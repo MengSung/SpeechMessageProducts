@@ -622,9 +622,7 @@ namespace ToolUtility_Developing_NameSpace
 
         #endregion
 
-        #endregion
-
-        #region 一般化屬性
+        #endregion`r`n`r`n        #region 一般化屬性
         private string getAttributeValue(Entity targetEntity, string attributeName)
         {
             if (string.IsNullOrEmpty(attributeName))

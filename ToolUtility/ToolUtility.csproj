@@ -144,6 +144,8 @@
     <Compile Include="ToolUtilityStaticGlobal.cs" />
     <Compile Include="Utilities\StringUtility.cs" />
     <Compile Include="Utilities\TraceUtility.cs" />
+    <None Include="文件\ToolUtilityClass_Developing委派完成驗證報告.md" />
+    <None Include="文件\ToolUtilityClass_Developing委派工作最終總結.md" />
     <None Include="文件\ToolUtilityClass_Developing重構總結.md" />
   </ItemGroup>
   <ItemGroup>

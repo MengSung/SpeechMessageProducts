@@ -151,7 +151,7 @@ namespace ToolUtilityNameSpace
             m_Crm2011OrganizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
 
             // 初始化 Facade (不傳入 organizationService)
-            _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
+            _facade = new ToolUtilityFacade();
             // 透過 Facade 的連接服務方法設定 organizationService
             //_facade.SetOrganizationService(SERVER, PORT, ORGANIZATION, DOMAIN, adUsername, adPassword);
 
@@ -172,7 +172,7 @@ namespace ToolUtilityNameSpace
             m_Crm2011OrganizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
 
             // 初始化 Facade (不傳入 organizationService)
-            _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
+            _facade = new ToolUtilityFacade();
             // 透過 Facade 的連接服務方法設定 organizationService
             //_facade.SetOrganizationService(SERVER, PORT, ORGANIZATION, DOMAIN, adUsername, adPassword);
         }
@@ -643,1456 +643,436 @@ namespace ToolUtilityNameSpace
             => _facade.QueryEntityListByDate(ParentEntityName, ParentEntityIdName, ParentEntityId,
                 AssociationName, ChildEntityName);
         #endregion
-        #region 實體操作區
-        #region 新增、修改、刪除實體
-        //private readonly object m_EntityLocker = new object();
+        #region 實體操作區 - 委派到 Facade
         public Entity RetrieveEntity(String EntityName, Guid EntityId)
-        {
-            try
-            {
-                //lock (m_EntityLocker)
-                //{
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    return this.m_OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
-                }
-                else
-                {
-                    return this.m_Crm2011OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
+            => _facade.RetrieveEntity(EntityName, EntityId);
+
         public Entity RetrieveEntityDynamics365(String EntityName, Guid EntityId)
-        {
-            try
-            {
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    return this.m_OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
-                }
-                else
-                {
-                    // 委派給 Facade 處理
-                    return _facade.RetrieveEntity(EntityName, EntityId);
+            => _facade.RetrieveEntity(EntityName, EntityId);
 
-                    //return this.m_Crm2011OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
-                }
-
-                //lock (m_EntityLocker)
-                //{
-                //return this.m_OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
         public Entity RetrieveEntityCrm2011(String EntityName, Guid EntityId)
-        {
-            try
-            {
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    return this.m_OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
-                }
-                else
-                {
-                    return this.m_Crm2011OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
-                }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
+            => _facade.RetrieveEntity(EntityName, EntityId);
+
         public Guid CreateEntity(Entity aEntityTobeToCreate)
-        {
-            try
-            {
-                //lock (m_EntityLocker)
-                //{
-                if (EXCUTION_FLAG == true)
-                {
-                    if (CRM_TYPE == "DYNAMICS365")
-                    {
-                        return this.m_OrganizationService.Create(aEntityTobeToCreate);
-                    }
-                    else
-                    {
-                        return this.m_Crm2011OrganizationService.Create(aEntityTobeToCreate);
-                    }
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
+            => _facade.CreateEntity(aEntityTobeToCreate);
+
         public Guid CreateEntityDynamics365(ref OrganizationServiceProxy aOrganizationService, Entity aEntityTobeToCreate)
         {
             try
             {
-                //lock (m_EntityLocker)
-                //{
                 if (EXCUTION_FLAG == true)
                 {
                     return aOrganizationService.Create(aEntityTobeToCreate);
                 }
-                //}
+                return Guid.Empty;
             }
             catch (System.Exception e)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
+
         public Guid CreateEntityCrm2011(ref IOrganizationService aCrm2011OrganizationService, Entity aEntityTobeToCreate)
         {
             try
             {
-                //lock (m_EntityLocker)
-                //{
                 if (EXCUTION_FLAG == true)
                 {
                     return aCrm2011OrganizationService.Create(aEntityTobeToCreate);
                 }
-                //}
+                return Guid.Empty;
             }
             catch (System.Exception e)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
+
         public async Task<Guid> CreateEntityAsync(IOrganizationService aOrganizationService, Entity aEntityTobeToCreate)
         {
             try
             {
-                //lock (m_EntityLocker)
-                //{
                 if (EXCUTION_FLAG == true)
                 {
                     return aOrganizationService.Create(aEntityTobeToCreate);
                 }
-                //}
+                return Guid.Empty;
             }
             catch (System.Exception e)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
+
         public void UpdateEntity(ref Entity aEntityTobeUpdated)
-        {
-            try
-            {
-                //lock (m_EntityLocker)
-                //{
-                if (EXCUTION_FLAG == true)
-                {
-                    if (CRM_TYPE == "DYNAMICS365")
-                    {
-                        this.m_OrganizationService.Update(aEntityTobeUpdated);
-                    }
-                    else
-                    {
-                        this.m_Crm2011OrganizationService.Update(aEntityTobeUpdated);
-                    }
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
+            => _facade.UpdateEntity(aEntityTobeUpdated);
+
         public void UpdateEntity(Entity aEntityTobeUpdated)
-        {
-            try
-            {
-                //lock (m_EntityLocker)
-                //{
-                if (EXCUTION_FLAG == true)
-                {
-                    if (CRM_TYPE == "DYNAMICS365")
-                    {
-                        this.m_OrganizationService.Update(aEntityTobeUpdated);
-                    }
-                    else
-                    {
-                        this.m_Crm2011OrganizationService.Update(aEntityTobeUpdated);
-                    }
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
+            => _facade.UpdateEntity(aEntityTobeUpdated);
+
         public void UpdateEntity(ref IOrganizationService aOrganizationService, ref Entity aEntityTobeUpdated)
         {
             try
             {
-                //lock (m_EntityLocker)
-                //{
                 if (EXCUTION_FLAG == true)
                 {
                     aOrganizationService.Update(aEntityTobeUpdated);
                 }
-                //}
             }
             catch (System.Exception e)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
+
         public void UpdateEntity(ref IOrganizationService aOrganizationService, Entity aEntityTobeUpdated)
         {
             try
             {
-                //lock (m_EntityLocker)
-                //{
                 if (EXCUTION_FLAG == true)
                 {
                     aOrganizationService.Update(aEntityTobeUpdated);
                 }
-                //}
             }
             catch (System.Exception e)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
+
         public void UpdateEntityCrm2011(ref IOrganizationService aOrganizationService, ref Entity aEntityTobeUpdated)
         {
             try
             {
-                //lock (m_EntityLocker)
-                //{
                 if (EXCUTION_FLAG == true)
                 {
                     aOrganizationService.Update(aEntityTobeUpdated);
                 }
-                //}
             }
             catch (System.Exception e)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
+
         public void UpdateEntityDynamics365(ref OrganizationServiceProxy aOrganizationService, ref Entity aEntityTobeUpdated)
         {
             try
             {
-                //lock (m_EntityLocker)
-                //{
                 if (EXCUTION_FLAG == true)
                 {
                     aOrganizationService.Update(aEntityTobeUpdated);
                 }
-                //}
             }
             catch (System.Exception e)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
+
         public void UpdateEntityCrm2011(ref IOrganizationService aOrganizationService, Entity aEntityTobeUpdated)
         {
             try
             {
-                //lock (m_EntityLocker)
-                //{
                 if (EXCUTION_FLAG == true)
                 {
                     aOrganizationService.Update(aEntityTobeUpdated);
                 }
-                //}
             }
             catch (System.Exception e)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
+
         public void UpdateEntityDynamics365(ref OrganizationServiceProxy aOrganizationService, Entity aEntityTobeUpdated)
         {
             try
             {
-                //lock (m_EntityLocker)
-                //{
                 if (EXCUTION_FLAG == true)
                 {
                     aOrganizationService.Update(aEntityTobeUpdated);
                 }
-                //}
             }
             catch (System.Exception e)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
+
         public async Task UpdateEntityAsync(IOrganizationService aOrganizationService, Entity aEntityTobeUpdated)
         {
             try
             {
-                //lock (m_EntityLocker)
-                //{
                 if (EXCUTION_FLAG == true)
                 {
                     aOrganizationService.Update(aEntityTobeUpdated);
                 }
-                //}
             }
             catch (System.Exception e)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
+
         public void DeleteEntity(ref IOrganizationService aOrganizationService, String aEntityName, Guid aEntityId)
         {
             try
             {
-                //lock (m_EntityLocker)
-                //{
                 if (EXCUTION_FLAG == true)
                 {
                     aOrganizationService.Delete(aEntityName, aEntityId);
                 }
-                //}
             }
             catch (System.Exception e)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
+
         public void DeleteEntity(String aEntityName, Guid aEntityId)
-        {
-            try
-            {
-                if (EXCUTION_FLAG == true)
-                {
-                    if (CRM_TYPE == "DYNAMICS365")
-                    {
-                        this.m_OrganizationService.Delete(aEntityName, aEntityId);
-                    }
-                    else
-                    {
-                        this.m_Crm2011OrganizationService.Delete(aEntityName, aEntityId);
-                    }
-                }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
+            => _facade.DeleteEntity(aEntityName, aEntityId);
+
         public Guid GetEntityId(Entity aEntity)
-        {
-            try
-            {
-                return aEntity.Id;
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
+            => aEntity.Id;
         #endregion
-        #endregion
-        #region 屬性操作區
+        #region 屬性操作區 - 委派到 Facade
+
         #region 布林屬性
-        //private readonly object m_BooleanAttributeLocker = new object();
-
         public bool GetEntityBoolAttribute(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_BooleanAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    return (bool)aEntity.Attributes[PropertyName];
-                }
-                else
-                {
-                    return false;
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.GetEntityBoolAttribute(aEntity, PropertyName);
 
-                throw e;
-            }
-        }
         public bool GetEntityBoolAttribute(Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_BooleanAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    return (bool)aEntity.Attributes[PropertyName];
-                }
-                else
-                {
-                    return false;
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.GetEntityBoolAttribute(aEntity, PropertyName);
 
-                throw e;
-            }
-        }
         public void SetEntityBoolAttribute(ref Entity aEntity, string PropertyName, bool PropertyValue)
-        {
-            try
-            {
-                //lock (m_BooleanAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = PropertyValue;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, PropertyValue);
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.SetEntityBoolAttribute(ref aEntity, PropertyName, PropertyValue);
 
-                throw e;
-            }
-        }
         public void SetEntityBoolAttributeToNull(ref Entity aEntity, string PropertyName)
         {
-            try
+            if (aEntity.Attributes.Contains(PropertyName))
             {
-                //lock (m_BooleanAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = null;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, null);
-                }
-                //}
+                aEntity.Attributes[PropertyName] = null;
             }
-            catch (System.Exception e)
+            else
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
+                aEntity.Attributes.Add(PropertyName, null);
             }
         }
         #endregion
+
         #region 整數屬性
-        //private readonly object m_IntAttributeLocker = new object();
-
         public int GetEntityIntAttribute(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_IntAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    return (int)aEntity.Attributes[PropertyName];
-                }
-                else
-                {
-                    return -9999;
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.GetEntityIntAttribute(aEntity, PropertyName);
 
-                throw e;
-            }
-        }
         public int GetEntityIntAttribute(Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_IntAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    return (int)aEntity.Attributes[PropertyName];
-                }
-                else
-                {
-                    return -9999;
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.GetEntityIntAttribute(aEntity, PropertyName);
 
-                throw e;
-            }
-        }
         public void SetEntityIntAttribute(ref Entity aEntity, string PropertyName, int PropertyValue)
         {
-            try
+            if (aEntity.Attributes.Contains(PropertyName))
             {
-                //lock (m_IntAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = PropertyValue;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, PropertyValue);
-                }
-                //}
+                aEntity.Attributes[PropertyName] = PropertyValue;
             }
-            catch (System.Exception e)
+            else
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
+                aEntity.Attributes.Add(PropertyName, PropertyValue);
             }
         }
+
         public void SetEntityIntAttributeToNull(ref Entity aEntity, string PropertyName)
         {
-            try
+            if (aEntity.Attributes.Contains(PropertyName))
             {
-                //lock (m_IntAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = null;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, null);
-                }
-                //}
+                aEntity.Attributes[PropertyName] = null;
             }
-            catch (System.Exception e)
+            else
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
+                aEntity.Attributes.Add(PropertyName, null);
             }
         }
         #endregion
+
         #region 浮點屬性
-        //private readonly object m_FloatAttributeLocker = new object();
-
         public float GetEntityFloatAttribute(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_FloatAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    return (float)aEntity.Attributes[PropertyName];
-                }
-                else
-                {
-                    return -9999;
-                    //}
-                }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.GetEntityFloatAttribute(aEntity, PropertyName);
 
-                throw e;
-            }
-        }
         public float GetEntityFloatAttribute(Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_FloatAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    return (float)aEntity.Attributes[PropertyName];
-                }
-                else
-                {
-                    return -9999;
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.GetEntityFloatAttribute(aEntity, PropertyName);
 
-                throw e;
-            }
-        }
         public void SetEntityFloatAttribute(ref Entity aEntity, string PropertyName, float PropertyValue)
-        {
-            try
-            {
-                //lock (m_FloatAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = PropertyValue;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, PropertyValue);
-                    //}
-                }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.SetEntityFloatAttribute(ref aEntity, PropertyName, PropertyValue);
 
-                throw e;
-            }
-        }
         public void SetEntityFloatAttribute(Entity aEntity, string PropertyName, float PropertyValue)
         {
-            try
-            {
-                //lock (m_FloatAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = PropertyValue;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, PropertyValue);
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
+            Entity tempEntity = aEntity;
+            _facade.SetEntityFloatAttribute(ref tempEntity, PropertyName, PropertyValue);
         }
+
         public void SetEntityFloatAttributeToNull(Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_FloatAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = null;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, null);
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
+            => _facade.SetEntityFloatAttributeToNull(aEntity, PropertyName);
         #endregion
+
         #region 金額屬性
-        //private readonly object m_MoneyAttributeLocker = new object();
-
         public Money GetEntityMoneyAttribute(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_MoneyAttributeLocker)
-                {
-                    if (aEntity.Attributes.Contains(PropertyName))
-                    {
-                        return (Money)aEntity.Attributes[PropertyName];
-                    }
-                    else
-                    {
-                        return new Money(-9999);
-                    }
-                }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.GetEntityMoneyAttribute(aEntity, PropertyName);
 
-                throw e;
-            }
-        }
         public Money GetEntityMoneyAttribute(Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_MoneyAttributeLocker)
-                {
-                    if (aEntity.Attributes.Contains(PropertyName))
-                    {
-                        return (Money)aEntity.Attributes[PropertyName];
-                    }
-                    else
-                    {
-                        return new Money(-9999);
-                    }
-                }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.GetEntityMoneyAttribute(aEntity, PropertyName);
 
-                throw e;
-            }
-        }
         public void SetEntityMoneyAttribute(ref Entity aEntity, string PropertyName, Money PropertyValue)
         {
-            try
+            if (PropertyValue.Value != -9999)
             {
-                //lock (m_MoneyAttributeLocker)
+                if (aEntity.Attributes.Contains(PropertyName))
                 {
-                    if (PropertyValue.Value != -9999)
-                    {
-                        if (aEntity.Attributes.Contains(PropertyName))
-                        {
-                            aEntity.Attributes[PropertyName] = PropertyValue;
-                        }
-                        else
-                        {
-                            aEntity.Attributes.Add(PropertyName, PropertyValue);
-                        }
-                    }
+                    aEntity.Attributes[PropertyName] = PropertyValue;
+                }
+                else
+                {
+                    aEntity.Attributes.Add(PropertyName, PropertyValue);
                 }
             }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
         }
+
         public void SetEntityMoneyAttribute(Entity aEntity, string PropertyName, Money PropertyValue)
         {
-            try
+            if (aEntity.Attributes.Contains(PropertyName))
             {
-                //lock (m_MoneyAttributeLocker)
-                {
-                    if (aEntity.Attributes.Contains(PropertyName))
-                    {
-                        aEntity.Attributes[PropertyName] = PropertyValue;
-                    }
-                    else
-                    {
-                        aEntity.Attributes.Add(PropertyName, PropertyValue);
-                    }
-                }
+                aEntity.Attributes[PropertyName] = PropertyValue;
             }
-            catch (System.Exception e)
+            else
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
+                aEntity.Attributes.Add(PropertyName, PropertyValue);
             }
         }
+
         public void SetEntityMoneyAttributeToNull(Entity aEntity, string PropertyName)
         {
-            try
-            {
-                //lock (m_MoneyAttributeLocker)
-                {
-
-                    if (aEntity.Attributes.Contains(PropertyName))
-                    {
-                        aEntity.Attributes[PropertyName] = null;
-                    }
-                    else
-                    {
-                        aEntity.Attributes.Add(PropertyName, null);
-                    }
-                }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
+            Entity tempEntity = aEntity;
+            _facade.SetEntityMoneyAttributeToNull(ref tempEntity, PropertyName);
         }
         #endregion
+
         #region 小數點屬性
-        //private readonly object m_DoubleAttributeLocker = new object();
-
         public Double GetEntityDoubleAttribute(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_FloatAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    return (Double)aEntity.Attributes[PropertyName];
-                }
-                else
-                {
-                    return -9999;
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.GetEntityDoubleAttribute(aEntity, PropertyName);
 
-                throw e;
-            }
-        }
         public Double GetEntityDoubleAttribute(Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_FloatAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    return (Double)aEntity.Attributes[PropertyName];
-                }
-                else
-                {
-                    return -9999;
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.GetEntityDoubleAttribute(aEntity, PropertyName);
 
-                throw e;
-            }
-        }
         public void SetEntityDoubleAttribute(ref Entity aEntity, string PropertyName, Double PropertyValue)
-        {
-            try
-            {
-                //lock (m_FloatAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = PropertyValue;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, PropertyValue);
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.SetEntityDoubleAttribute(ref aEntity, PropertyName, PropertyValue);
 
-                throw e;
-            }
-        }
         public void SetEntityDoubleAttribute(Entity aEntity, string PropertyName, Double PropertyValue)
         {
-            try
-            {
-                //lock (m_FloatAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = PropertyValue;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, PropertyValue);
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
+            Entity tempEntity = aEntity;
+            _facade.SetEntityDoubleAttribute(ref tempEntity, PropertyName, PropertyValue);
         }
+
         public void SetEntityDoubleAttributeToNull(Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_FloatAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = null;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, null);
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
+            => _facade.SetEntityDoubleAttributeToNull(aEntity, PropertyName);
         #endregion
+
         #region 時間屬性
-        //private readonly object m_DateTimeAttributeLocker = new object();
         public DateTime GetEntityDateTimeAttribute(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_DateTimeAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    return (DateTime)aEntity.Attributes[PropertyName];
-                }
-                else
-                {
-                    return new DateTime(1, 1, 1);
-                    //return DateTime.Now.AddYears(-9999);
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.GetEntityDateTimeAttribute(aEntity, PropertyName);
 
-                throw e;
-            }
-        }
         public DateTime GetEntityDateTimeAttribute(Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_DateTimeAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    return (DateTime)aEntity.Attributes[PropertyName];
-                }
-                else
-                {
-                    return new DateTime(1, 1, 1);
-                    //return DateTime.Now.AddYears(-9999);
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.GetEntityDateTimeAttribute(aEntity, PropertyName);
 
-                return new DateTime(1, 1, 1);
-                //return DateTime.Now.AddYears(-9999);
-
-                //throw e;
-            }
-        }
         public void SetEntityDateTimeAttribute(ref Entity aEntity, string PropertyName, DateTime PropertyValue)
         {
-            try
+            if (aEntity.Attributes.Contains(PropertyName))
             {
-                //lock (m_DateTimeAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = PropertyValue;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, PropertyValue);
-                }
-                //}
+                aEntity.Attributes[PropertyName] = PropertyValue;
             }
-            catch (System.Exception e)
+            else
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
+                aEntity.Attributes.Add(PropertyName, PropertyValue);
             }
         }
+
         public void SetEntityDateTimeAttributeToNull(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_DateTimeAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = null;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, null);
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
+            => _facade.SetEntityDateTimeAttributeToNull(ref aEntity, PropertyName);
         #endregion
+
         #region 文字屬性
-        //private readonly object m_StringAttributeLocker = new object();
-
         public String GetEntityStringAttribute(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_StringAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    return (String)aEntity.Attributes[PropertyName];
-                }
-                else
-                {
-                    return "";
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
+            => _facade.GetEntityStringAttribute(aEntity, PropertyName);
 
         public String GetEntityStringAttribute(Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_StringAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    return (String)aEntity.Attributes[PropertyName];
-                }
-                else
-                {
-                    return "";
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
+            => _facade.GetEntityStringAttribute(aEntity, PropertyName);
 
         public void SetEntityStringAttribute(ref Entity aEntity, string PropertyName, String PropertyValue)
         {
-            try
+            if (aEntity.Attributes.Contains(PropertyName))
             {
-                //lock (m_StringAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = PropertyValue;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, PropertyValue);
-                }
-                //}
+                aEntity.Attributes[PropertyName] = PropertyValue;
             }
-            catch (System.Exception e)
+            else
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
+                aEntity.Attributes.Add(PropertyName, PropertyValue);
             }
         }
+
         public void SetEntityStringAttribute(Entity aEntity, string PropertyName, String PropertyValue)
         {
-            try
+            if (aEntity.Attributes.Contains(PropertyName))
             {
-                //lock (m_StringAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = PropertyValue;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, PropertyValue);
-                }
-                //}
+                aEntity.Attributes[PropertyName] = PropertyValue;
             }
-            catch (System.Exception e)
+            else
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
+                aEntity.Attributes.Add(PropertyName, PropertyValue);
             }
         }
         #endregion
+
         #region 選項屬性
-        //private readonly object m_OptionSetAttributeLocker = new object();
         public int GetOptionSetAttribute(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_OptionSetAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    OptionSetValue aOptionSetValue = new OptionSetValue();
+            => _facade.GetOptionSetAttribute(aEntity, PropertyName);
 
-                    aOptionSetValue = (OptionSetValue)aEntity.Attributes[PropertyName];
-
-                    return aOptionSetValue.Value;
-                }
-                else
-                {
-                    return EMPTY_VALUE;
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
         public int GetOptionSetAttribute(Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_OptionSetAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    OptionSetValue aOptionSetValue = new OptionSetValue();
-
-                    aOptionSetValue = (OptionSetValue)aEntity.Attributes[PropertyName];
-
-                    return aOptionSetValue.Value;
-                }
-                else
-                {
-                    return EMPTY_VALUE;
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
+            => _facade.GetOptionSetAttribute(aEntity, PropertyName);
 
         public void SetOptionSetAttribute(ref Entity aEntity, string PropertyName, int PropertyValue)
-        {
-            try
-            {
-                //lock (m_OptionSetAttributeLocker)
-                //{
-                OptionSetValue aOptionSetValue = new OptionSetValue(PropertyValue);
+            => _facade.SetOptionSetAttribute(ref aEntity, PropertyName, PropertyValue);
 
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = aOptionSetValue;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, aOptionSetValue);
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
         public void SetOptionSetAttribute(Entity aEntity, string PropertyName, int PropertyValue)
         {
-            try
-            {
-                //lock (m_OptionSetAttributeLocker)
-                //{
-                OptionSetValue aOptionSetValue = new OptionSetValue(PropertyValue);
-
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = aOptionSetValue;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, aOptionSetValue);
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
+            Entity tempEntity = aEntity;
+            _facade.SetOptionSetAttribute(ref tempEntity, PropertyName, PropertyValue);
         }
+
         public void SetOptionSetAttributeNull(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = null;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, null);
-                }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.SetOptionSetAttributeNull(ref aEntity, PropertyName);
 
-                throw e;
-            }
-        }
         public void SetOptionSetAttributeNull(Entity aEntity, string PropertyName)
         {
-            try
-            {
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = null;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, null);
-                }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
+            Entity tempEntity = aEntity;
+            _facade.SetOptionSetAttributeNull(ref tempEntity, PropertyName);
         }
         #endregion
+
         #region LookUp 屬性
-
-        //private readonly object m_LookupAttributeLocker = new object();
-
         public Guid GetEntityLookupAttribute(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_LookupAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    EntityReference aEntityReference = (EntityReference)aEntity.Attributes[PropertyName];
+            => _facade.GetEntityLookupAttribute(aEntity, PropertyName);
 
-                    return aEntityReference.Id;
-                }
-                else
-                {
-                    return Guid.Empty;
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
         public Guid GetEntityLookupAttribute(Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_LookupAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    EntityReference aEntityReference = (EntityReference)aEntity.Attributes[PropertyName];
+            => _facade.GetEntityLookupAttribute(aEntity, PropertyName);
 
-                    return aEntityReference.Id;
-                }
-                else
-                {
-                    return Guid.Empty;
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
         public String GetEntityLookupDisplayName(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_LookupAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    EntityReference aEntityReference = (EntityReference)aEntity.Attributes[PropertyName];
+            => _facade.GetEntityLookupDisplayName(aEntity, PropertyName);
 
-                    return aEntityReference.Name;
-                }
-                else
-                {
-                    return "";
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
         public String GetEntityLookupDisplayName(Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_LookupAttributeLocker)
-                //{
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    EntityReference aEntityReference = (EntityReference)aEntity.Attributes[PropertyName];
+            => _facade.GetEntityLookupDisplayName(aEntity, PropertyName);
 
-                    return aEntityReference.Name;
-                }
-                else
-                {
-                    return "";
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
         public void SetEntityLookUpAttribute(ref Entity aEntity, string PropertyName, String LookupEntityName, Guid GuidValue)
         {
-            try
+            if (GuidValue != null && GuidValue != Guid.Empty)
             {
-                //lock (m_LookupAttributeLocker)
-                //{
-                if (GuidValue != null && GuidValue != Guid.Empty)
-                {
-                    EntityReference aEntityReference = new EntityReference(LookupEntityName, GuidValue);
-                    if (aEntity.Attributes.Contains(PropertyName))
-                    {
-                        aEntity.Attributes[PropertyName] = aEntityReference;
-                    }
-                    else
-                    {
-                        aEntity.Attributes.Add(PropertyName, aEntityReference);
-                    }
-                }
-                else { return; }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
-        public void SetEntityLookUpAttribute(Entity aEntity, string PropertyName, String LookupEntityName, Guid GuidValue)
-        {
-            try
-            {
-                //lock (m_LookupAttributeLocker)
-                //{
-                if (GuidValue != null && GuidValue != Guid.Empty)
-                {
-                    EntityReference aEntityReference = new EntityReference(LookupEntityName, GuidValue);
-                    if (aEntity.Attributes.Contains(PropertyName))
-                    {
-                        aEntity.Attributes[PropertyName] = aEntityReference;
-                    }
-                    else
-                    {
-                        aEntity.Attributes.Add(PropertyName, aEntityReference);
-                    }
-                }
-                else { return; }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
-        public void SetEntityLookUpAttribute(ref Entity aEntity, string PropertyName, ref EntityReference aEntityReference)
-        {
-            try
-            {
-                //lock (m_LookupAttributeLocker)
-                //{
-
-                // 呼叫者必須透過 : ToEntityReference();
-                // 如下例 :
-                // sample.Attributes["new_projectlocation1"]=projectLoc.ToEntityReference();
+                EntityReference aEntityReference = new EntityReference(LookupEntityName, GuidValue);
                 if (aEntity.Attributes.Contains(PropertyName))
                 {
                     aEntity.Attributes[PropertyName] = aEntityReference;
@@ -2101,99 +1081,32 @@ namespace ToolUtilityNameSpace
                 {
                     aEntity.Attributes.Add(PropertyName, aEntityReference);
                 }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
             }
         }
+
+        public void SetEntityLookUpAttribute(Entity aEntity, string PropertyName, String LookupEntityName, Guid GuidValue)
+        {
+            if (GuidValue != null && GuidValue != Guid.Empty)
+            {
+                EntityReference aEntityReference = new EntityReference(LookupEntityName, GuidValue);
+                if (aEntity.Attributes.Contains(PropertyName))
+                {
+                    aEntity.Attributes[PropertyName] = aEntityReference;
+                }
+                else
+                {
+                    aEntity.Attributes.Add(PropertyName, aEntityReference);
+                }
+            }
+        }
+
+        public void SetEntityLookUpAttribute(ref Entity aEntity, string PropertyName, ref EntityReference aEntityReference)
+            => _facade.SetEntityLookUpAttribute(ref aEntity, PropertyName, ref aEntityReference);
+
         public void SetEntityLookUpToNull(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                //lock (m_LookupAttributeLocker)
-                //{
-
-                // 呼叫者必須透過 : ToEntityReference();
-                // 如下例 :
-                // sample.Attributes["new_projectlocation1"]=projectLoc.ToEntityReference();
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = null;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, null);
-                }
-                //}
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
+            => _facade.SetEntityLookUpToNull(ref aEntity, PropertyName);
         #endregion
-        #region 一般化屬性
-        private string getAttributeValue(Entity targetEntity, string attributeName)
-        {
 
-            if (string.IsNullOrEmpty(attributeName))
-            {
-                return string.Empty;
-            }
-
-            if (targetEntity[attributeName] is AliasedValue)
-            {
-                return (targetEntity[attributeName] as AliasedValue).Value.ToString();
-            }
-            else
-            {
-                return targetEntity[attributeName].ToString();
-            }
-
-        }
-
-        public void RemoveAttribute(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                aEntity.Attributes.Remove(PropertyName);
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
-
-        public void SetEntityAttributeToNull(ref Entity aEntity, string PropertyName)
-        {
-            try
-            {
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = null;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, null);
-                }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
-
-        #endregion
         #endregion
         #region 負責人管理
         public Guid GetOwnerId(Entity aEntity)
