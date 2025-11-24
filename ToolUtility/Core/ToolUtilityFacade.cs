@@ -32,7 +32,7 @@ namespace ToolUtilityNameSpace.Core
     public class ToolUtilityFacade : IDisposable
     {
         private readonly object _logger;
-        private readonly ICrmClient _crmClient;
+        private readonly IOrganizationService _organizationService;
 
         private Lazy<IEntityQueryService> _queryService;
         private Lazy<IEntityCrudService> _crudService;
@@ -50,10 +50,10 @@ namespace ToolUtilityNameSpace.Core
 
         private bool _disposed = false;
 
-        public ToolUtilityFacade(object logger = null, ICrmClient crmClient = null)
+        public ToolUtilityFacade(object logger = null, IOrganizationService organizationService = null)
         {
             _logger = logger ?? new object();
-            _crmClient = crmClient;
+            _organizationService = organizationService;
             InitializeServices();
         }
 
@@ -75,7 +75,7 @@ namespace ToolUtilityNameSpace.Core
                 if (_meetingStatisticsService?.IsValueCreated == true) { var d = _meetingStatisticsService.Value as IDisposable; d?.Dispose(); }
                 if (_connectionService?.IsValueCreated == true) { var d = _connectionService.Value as IDisposable; d?.Dispose(); }
 
-                (_crmClient as IDisposable)?.Dispose();
+                (_organizationService as IDisposable)?.Dispose();
             }
             _disposed = true;
         }
@@ -88,12 +88,12 @@ namespace ToolUtilityNameSpace.Core
 
         private void InitializeServices()
         {
-            _queryService = new Lazy<IEntityQueryService>(() => new EntityQueryService(_logger, _crmClient));
-            _crudService = new Lazy<IEntityCrudService>(() => new EntityCrudService(_logger, _crmClient));
+            _queryService = new Lazy<IEntityQueryService>(() => new EntityQueryService(_logger, _organizationService));
+            _crudService = new Lazy<IEntityCrudService>(() => new EntityCrudService(_logger, _organizationService));
             _attributeService = new Lazy<IAttributeService>(() => new AttributeServiceComposite(_logger));
             _contactService = new Lazy<IContactService>(() => new ContactService(_logger, _queryService.Value));
-            _listService = new Lazy<IListService>(() => new ListService(_logger, _queryService.Value, _crmClient));
-            _attachmentService = new Lazy<IAttachmentService>(() => new AttachmentService(_logger, _crmClient));
+            _listService = new Lazy<IListService>(() => new ListService(_logger, _queryService.Value, _organizationService));
+            _attachmentService = new Lazy<IAttachmentService>(() => new AttachmentService(_logger, _organizationService));
             _lineMessageService = new Lazy<ILineMessageService>(() => new LineMessageService(_logger, _crudService.Value));
             _appointmentService = new Lazy<IAppointmentService>(() => new AppointmentService(_logger, _queryService.Value));
             _lessonsService = new Lazy<ILessonsService>(() => new LessonsService(_logger, _queryService.Value));

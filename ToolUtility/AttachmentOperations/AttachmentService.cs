@@ -7,12 +7,12 @@ namespace ToolUtilityNameSpace.AttachmentOperations
     public class AttachmentService : IAttachmentService
     {
         private readonly object _logger;
-        private readonly ICrmClient _crmClient;
+        private readonly IOrganizationService _organizationService;
 
-        public AttachmentService(object logger, ICrmClient crmClient)
+        public AttachmentService(object logger, IOrganizationService organizationService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _crmClient = crmClient ?? throw new ArgumentNullException(nameof(crmClient));
+            _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
         }
 
         public EntityCollection DownloadAttachment(ref IOrganizationService crmService, Guid entityId)
@@ -33,7 +33,7 @@ namespace ToolUtilityNameSpace.AttachmentOperations
                 ["objectid"] = new EntityReference(entityName, toBeAttachedEntityId)
             };
 
-            _crmClient.Create(annotation);
+            _organizationService.Create(annotation);
         }
     }
 }

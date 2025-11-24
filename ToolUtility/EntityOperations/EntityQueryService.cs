@@ -9,44 +9,44 @@ namespace ToolUtilityNameSpace.EntityOperations
     public class EntityQueryService : IEntityQueryService, IDisposable
     {
         private readonly object _logger;
-        private readonly ICrmClient _crmClient;
+        private readonly IOrganizationService _organizationService;
         private bool _disposed = false;
 
-        public EntityQueryService(object logger = null, ICrmClient crmClient = null)
+        public EntityQueryService(object logger = null, IOrganizationService organizationService = null)
         {
             _logger = logger;
-            _crmClient = crmClient;
+            _organizationService = organizationService;
         }
 
         public Entity RetrieveEntity(string entityName, Guid entityId)
         {
-            if (_crmClient == null) throw new InvalidOperationException("CrmClient is not initialized.");
-            return _crmClient.Retrieve(entityName, entityId, new ColumnSet(true));
+            if (_organizationService == null) throw new InvalidOperationException("OrganizationService is not initialized.");
+            return _organizationService.Retrieve(entityName, entityId, new ColumnSet(true));
         }
 
         public Entity RetrieveEntityByField(string entityName, string fieldName, string fieldValue)
         {
-            if (_crmClient == null) throw new InvalidOperationException("CrmClient is not initialized.");
+            if (_organizationService == null) throw new InvalidOperationException("OrganizationService is not initialized.");
             var query = new QueryByAttribute(entityName) { ColumnSet = new ColumnSet(true) };
             query.Attributes.AddRange(fieldName, "statecode");
             query.Values.AddRange(fieldValue, 0);
-            var collection = _crmClient.RetrieveMultiple(query);
+            var collection = _organizationService.RetrieveMultiple(query);
             return (collection != null && collection.Entities.Count > 0) ? collection.Entities[0] : null;
         }
 
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
-            if (_crmClient == null) throw new InvalidOperationException("CrmClient is not initialized.");
-            return _crmClient.RetrieveMultiple(query);
+            if (_organizationService == null) throw new InvalidOperationException("OrganizationService is not initialized.");
+            return _organizationService.RetrieveMultiple(query);
         }
 
         public Guid RetrieveAccountByName(string accountName)
         {
-            if (_crmClient == null) throw new InvalidOperationException("CrmClient is not initialized.");
+            if (_organizationService == null) throw new InvalidOperationException("OrganizationService is not initialized.");
             var query = new QueryByAttribute("account") { ColumnSet = new ColumnSet(true) };
             query.Attributes.AddRange("name", "statecode");
             query.Values.AddRange(accountName, 0);
-            var collection = _crmClient.RetrieveMultiple(query);
+            var collection = _organizationService.RetrieveMultiple(query);
             if (collection != null && collection.Entities.Count > 0)
             {
                 return collection.Entities[0].Id;
@@ -56,7 +56,7 @@ namespace ToolUtilityNameSpace.EntityOperations
 
         public EntityCollection RetrieveTaskBySubject(string subject)
         {
-            if (_crmClient == null) throw new InvalidOperationException("CrmClient is not initialized.");
+            if (_organizationService == null) throw new InvalidOperationException("OrganizationService is not initialized.");
 
             subject = "'" + subject + "'";
             var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
@@ -81,7 +81,7 @@ namespace ToolUtilityNameSpace.EntityOperations
                 Query = new FetchExpression(fetchXml)
             };
 
-            var response = (RetrieveMultipleResponse)_crmClient.Execute(fetchRequest);
+            var response = (RetrieveMultipleResponse)_organizationService.Execute(fetchRequest);
             return response.EntityCollection;
         }
 
@@ -90,8 +90,8 @@ namespace ToolUtilityNameSpace.EntityOperations
         /// </summary>
         public EntityCollection ExecuteRetrieveMultiple(RetrieveMultipleRequest request)
         {
-            if (_crmClient == null) throw new InvalidOperationException("CrmClient is not initialized.");
-            var response = (RetrieveMultipleResponse)_crmClient.Execute(request);
+            if (_organizationService == null) throw new InvalidOperationException("OrganizationService is not initialized.");
+            var response = (RetrieveMultipleResponse)_organizationService.Execute(request);
             return response.EntityCollection;
         }
 

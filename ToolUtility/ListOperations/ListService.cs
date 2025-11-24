@@ -16,13 +16,13 @@ namespace ToolUtilityNameSpace.ListOperations
     {
         private readonly object _logger;
         private readonly IEntityQueryService _queryService;
-        private readonly ICrmClient _crmClient;
+        private readonly IOrganizationService _organizationService;
 
-        public ListService(object logger, IEntityQueryService queryService, ICrmClient crmClient)
+        public ListService(object logger, IEntityQueryService queryService, IOrganizationService organizationService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _queryService = queryService ?? throw new ArgumentNullException(nameof(queryService));
-            _crmClient = crmClient ?? throw new ArgumentNullException(nameof(crmClient));
+            _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
         }
 
         public void AddMembers(Guid listGuid, List<Guid> memberGuidList)
@@ -37,7 +37,7 @@ namespace ToolUtilityNameSpace.ListOperations
                     ["listid"] = new EntityReference("list", listGuid),
                     ["entityid"] = new EntityReference("contact", member)
                 };
-                _crmClient.Create(entity);
+                _organizationService.Create(entity);
             }
         }
 
@@ -47,11 +47,11 @@ namespace ToolUtilityNameSpace.ListOperations
             var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet("listmemberid") };
             query.AddAttributeValue("listid", listGuid);
             query.AddAttributeValue("entityid", memberGuid);
-            var coll = _crmClient.RetrieveMultiple(query);
+            var coll = _organizationService.RetrieveMultiple(query);
             if (coll == null || coll.Entities.Count == 0) return;
             foreach (var lm in coll.Entities)
             {
-                _crmClient.Delete("listmember", lm.Id);
+                _organizationService.Delete("listmember", lm.Id);
             }
         }
 
