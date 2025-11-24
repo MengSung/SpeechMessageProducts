@@ -4650,7 +4650,10 @@ namespace ToolUtilityNameSpace
                 }
                 else
                 {
-                    return this.m_Crm2011OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
+                    // 委派給 Facade 處理
+                    return _facade.RetrieveEntity(EntityName, EntityId);
+
+                    //return this.m_Crm2011OrganizationService.Retrieve(EntityName, EntityId, new ColumnSet(true));
                 }
 
                 //lock (m_EntityLocker)
