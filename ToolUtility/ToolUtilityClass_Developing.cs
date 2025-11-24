@@ -157,6 +157,79 @@ namespace ToolUtility_Developing_NameSpace
         #endregion
 
         #region 完全委派到 Facade 的方法
+        #region 基本實體操作 (委派到 Facade)
+        public Entity RetrieveEntity(string entityName, Guid entityId)
+            => _facade.RetrieveEntity(entityName, entityId);
+
+        public Guid CreateEntity(Entity entityToCreate)
+            => _facade.CreateEntity(entityToCreate);
+        #endregion
+
+        #region 處理字串 ( 委派到 Facade，委派到 StringUtility)
+        static public void DeleteLastComma(ref String StringToProcess)
+        {
+            try
+            {
+                ToolUtilityFacade.DeleteLastComma(ref StringToProcess);
+            }
+            catch (System.Exception e)
+            {
+                throw e;
+            }
+        }
+
+        static public void DeleteLastChar(ref String StringToProcess)
+        {
+            try
+            {
+                ToolUtilityNameSpace.Utilities.StringUtility.DeleteLastChar(ref StringToProcess);
+            }
+            catch (System.Exception e)
+            {
+                throw e;
+            }
+        }
+
+        static public String DeletePresentRate(String StringToProcess)
+        {
+            try
+            {
+                return ToolUtilityNameSpace.Utilities.StringUtility.DeletePresentRate(StringToProcess);
+            }
+            catch (System.Exception e)
+            {
+                throw e;
+            }
+        }
+
+        public String TrimPresentRate(String StringToProcess)
+        {
+            try
+            {
+                return ToolUtilityNameSpace.Utilities.StringUtility.TrimPresentRate(StringToProcess);
+            }
+            catch (System.Exception e)
+            {
+                throw e;
+            }
+        }
+
+        #region 過濾出數字字串
+        public String FilterDigit(String aFilteredString)
+        {
+            try
+            {
+                return _facade.FilterDigit(aFilteredString);
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                throw e;
+            }
+        }
+        #endregion
+
+        #endregion
 
 
         #region 除錯追蹤區 (委派到 Facade)
