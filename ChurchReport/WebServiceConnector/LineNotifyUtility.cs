@@ -19,6 +19,8 @@ using System.Text.RegularExpressions;
 using ToolUtility;
 using Line.Messaging;
 using ChurchReport.Models;
+using ChurchReport.Tools;
+using PushUtility = ToolUtility.PushUtility;
 #endregion
 
 namespace ChurchReport.WebServiceConnector

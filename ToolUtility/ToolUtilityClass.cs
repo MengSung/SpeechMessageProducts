@@ -24,6 +24,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using ToolUtilityNameSpace.ConnectionOperations;
+using ToolUtilityNameSpace.Core;
 using TraceNameSpace;
 using static System.Net.WebRequestMethods;
 
@@ -45,6 +46,9 @@ namespace ToolUtilityNameSpace
 
         // 連接服務專責處理
         private readonly ICrmConnectionService _crmConnectionService;
+
+        // 新架構的 Facade (用於委派複雜業務邏輯)
+        private readonly ToolUtilityFacade _facade;
 
         #region Dynamics 365 新增組織修改區
 
@@ -145,6 +149,12 @@ namespace ToolUtilityNameSpace
             var adPassword = "hu9840";
 
             m_Crm2011OrganizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
+
+            // 初始化 Facade (不傳入 organizationService)
+            _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
+            // 透過 Facade 的連接服務方法設定 organizationService
+            //_facade.SetOrganizationService(SERVER, PORT, ORGANIZATION, DOMAIN, adUsername, adPassword);
+
         }
 
         public ToolUtilityClass(String DiscoveryServiceType)
@@ -160,6 +170,11 @@ namespace ToolUtilityNameSpace
             var adPassword = "hu9840";
 
             m_Crm2011OrganizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
+
+            // 初始化 Facade (不傳入 organizationService)
+            _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
+            // 透過 Facade 的連接服務方法設定 organizationService
+            //_facade.SetOrganizationService(SERVER, PORT, ORGANIZATION, DOMAIN, adUsername, adPassword);
         }
 
         public ToolUtilityClass(ref bool ValidFlag)

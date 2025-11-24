@@ -32,7 +32,7 @@ namespace ToolUtilityNameSpace.Core
     public class ToolUtilityFacade : IDisposable
     {
         private readonly object _logger;
-        private readonly IOrganizationService _organizationService;
+        private IOrganizationService _organizationService; // 改為可變更,由連接服務方法設定
 
         private Lazy<IEntityQueryService> _queryService;
         private Lazy<IEntityCrudService> _crudService;
@@ -50,10 +50,15 @@ namespace ToolUtilityNameSpace.Core
 
         private bool _disposed = false;
 
-        public ToolUtilityFacade(object logger = null, IOrganizationService organizationService = null)
+        /// <summary>
+        /// 建構式: 僅接受 logger,organizationService 將透過連接服務方法設定
+        /// </summary>
+        public ToolUtilityFacade(object logger = null, IOrganizationService aCrm2011OrganizationService= null)
         {
             _logger = logger ?? new object();
-            _organizationService = organizationService;
+
+            _organizationService = aCrm2011OrganizationService; // 初始為 null,待連接服務方法設定
+
             InitializeServices();
         }
 
@@ -88,6 +93,7 @@ namespace ToolUtilityNameSpace.Core
 
         private void InitializeServices()
         {
+            // 使用 Lazy 延遲載入,確保在使用時 _organizationService 已被設定
             _queryService = new Lazy<IEntityQueryService>(() => new EntityQueryService(_logger, _organizationService));
             _crudService = new Lazy<IEntityCrudService>(() => new EntityCrudService(_logger, _organizationService));
             _attributeService = new Lazy<IAttributeService>(() => new AttributeServiceComposite(_logger));
@@ -101,6 +107,23 @@ namespace ToolUtilityNameSpace.Core
             _collectionQueryService = new Lazy<ICollectionQueryService>(() => new CollectionQueryService(_logger, _organizationService));
             _meetingStatisticsService = new Lazy<IMeetingStatisticsService>(() => new MeetingStatisticsService(_logger, _organizationService));
             _connectionService = new Lazy<ICrmConnectionService>(() => new CrmConnectionService());
+        }
+
+        /// <summary>
+        /// 重新初始化所有服務 (當 _organizationService 更新後呼叫)
+        /// </summary>
+        private void ReinitializeServicesIfNeeded()
+        {
+            // 如果服務已經被初始化過,需要重新建立 Lazy 實例
+            if (_queryService?.IsValueCreated == true || _crudService?.IsValueCreated == true ||
+                _contactService?.IsValueCreated == true || _listService?.IsValueCreated == true ||
+                _attachmentService?.IsValueCreated == true || _lineMessageService?.IsValueCreated == true ||
+                _appointmentService?.IsValueCreated == true || _lessonsService?.IsValueCreated == true ||
+                _feeService?.IsValueCreated == true || _collectionQueryService?.IsValueCreated == true ||
+                _meetingStatisticsService?.IsValueCreated == true)
+            {
+                InitializeServices();
+            }
         }
 
         #region 基本實體操作方法
@@ -188,7 +211,7 @@ namespace ToolUtilityNameSpace.Core
             => _attributeService.Value.SetDoubleAttributeToNull(entity, propertyName);
         #endregion
 
-        #region CRM 連接服務方法 (委派給 CrmConnectionService)
+        #region CRM 連接服務方法 (委派給 CrmConnectionService 並設定 _organizationService)
         /// <summary>
         /// 取得 Windows 認證憑證
         /// </summary>
@@ -202,28 +225,45 @@ namespace ToolUtilityNameSpace.Core
             => _connectionService.Value.GetClientCredentials();
 
         /// <summary>
-        /// 取得 CRM Organization Service
+        /// 取得 CRM Organization Service 並設定為內部服務
         /// </summary>
         public IOrganizationService GetOrganizationService(string server, string port, string organization, string domain, string userName, string password)
-            => _connectionService.Value.GetOrganizationService(server, port, organization, domain, userName, password);
+        {
+            _organizationService = _connectionService.Value.GetOrganizationService(server, port, organization, domain, userName, password);
+            ReinitializeServicesIfNeeded();
+            return _organizationService;
+        }
 
         /// <summary>
-        /// 設定 CRM 2011 Organization Service
+        /// 設定 CRM 2011 Organization Service 並設定為內部服務
         /// </summary>
         public IOrganizationService SetOrganizationService(string server, string port, string organization, string domain, string userName, string password)
-            => _connectionService.Value.SetOrganizationService(server, port, organization, domain, userName, password);
+        {
+            _organizationService = _connectionService.Value.SetOrganizationService(server, port, organization, domain, userName, password);
+            ReinitializeServicesIfNeeded();
+            return _organizationService;
+        }
 
         /// <summary>
-        /// 設定 Claims-Based 認證的 Organization Service
+        /// 設定 Claims-Based 認證的 Organization Service 並設定為內部服務
         /// </summary>
         public IOrganizationService SetClaimsBasedAuthenticationOrganizationService(string organization, string server, string domain, string userName, string password)
-            => _connectionService.Value.SetClaimsBasedAuthenticationOrganizationService(organization, server, domain, userName, password);
+        {
+            _organizationService = _connectionService.Value.SetClaimsBasedAuthenticationOrganizationService(organization, server, domain, userName, password);
+            ReinitializeServicesIfNeeded();
+            return _organizationService;
+        }
 
         /// <summary>
-        /// 設定 Federated Organization Proxy (用於 Dynamics 365 Online 和 On-Premise IFD 環境)
+        /// 設定 Federated Organization Proxy 並設定為內部服務 (用於 Dynamics 365 Online 和 On-Premise IFD 環境)
         /// </summary>
         public OrganizationServiceProxy SetFederatedOrganizationProxy(string discoveryServiceType, string organization, string server, string port, string baseDiscoveryServiceAddress, string userName, string password, string domain)
-            => _connectionService.Value.SetFederatedOrganizationProxy(discoveryServiceType, organization, server, port, baseDiscoveryServiceAddress, userName, password, domain);
+        {
+            var proxy = _connectionService.Value.SetFederatedOrganizationProxy(discoveryServiceType, organization, server, port, baseDiscoveryServiceAddress, userName, password, domain);
+            _organizationService = proxy; // OrganizationServiceProxy 實作 IOrganizationService
+            ReinitializeServicesIfNeeded();
+            return proxy;
+        }
 
         /// <summary>
         /// 探索使用者所屬的組織

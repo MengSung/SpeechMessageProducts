@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Line.Messaging;
 using ToolUtilityNameSpace;
 
-namespace ToolUtilityNameSpace
+namespace ToolUtility
 {
     public class PushUtility
     {
