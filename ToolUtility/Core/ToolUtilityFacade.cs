@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ServiceModel.Description;
+using ToolUtilityNameSpace.ActivityOperations;
 using ToolUtilityNameSpace.AppointmentOperations;
 using ToolUtilityNameSpace.AttachmentOperations;
 using ToolUtilityNameSpace.AttributeOperations;
@@ -76,6 +77,7 @@ namespace ToolUtilityNameSpace.Core
         private Lazy<IFetchXmlQueryService> _fetchXmlQueryService;
         private Lazy<IOwnerManagementService> _ownerManagementService;
         private Lazy<IEntityAttributeUtilityService> _entityAttributeUtilityService;
+        private Lazy<IActivityService> _activityService;
 
         private bool _disposed = false;
 
@@ -113,6 +115,7 @@ namespace ToolUtilityNameSpace.Core
                 if (_fetchXmlQueryService?.IsValueCreated == true) { var d = _fetchXmlQueryService.Value as IDisposable; d?.Dispose(); }
                 if (_ownerManagementService?.IsValueCreated == true) { var d = _ownerManagementService.Value as IDisposable; d?.Dispose(); }
                 if (_entityAttributeUtilityService?.IsValueCreated == true) { var d = _entityAttributeUtilityService.Value as IDisposable; d?.Dispose(); }
+                if (_activityService?.IsValueCreated == true) { var d = _activityService.Value as IDisposable; d?.Dispose(); }
 
                 (_organizationService as IDisposable)?.Dispose();
             }
@@ -146,6 +149,7 @@ namespace ToolUtilityNameSpace.Core
             _fetchXmlQueryService = new Lazy<IFetchXmlQueryService>(() => new FetchXmlQueryService(_logger, _organizationService));
             _ownerManagementService = new Lazy<IOwnerManagementService>(() => new OwnerManagementService(_logger, _organizationService));
             _entityAttributeUtilityService = new Lazy<IEntityAttributeUtilityService>(() => new EntityAttributeUtilityService(_logger));
+            _activityService = new Lazy<IActivityService>(() => new ActivityService(_logger, _organizationService));
         }
 
         /// <summary>
@@ -161,7 +165,8 @@ namespace ToolUtilityNameSpace.Core
                 _feeService?.IsValueCreated == true || _collectionQueryService?.IsValueCreated == true ||
                 _meetingStatisticsService?.IsValueCreated == true || _presentRecordQueryService?.IsValueCreated == true ||
                 _relationshipQueryService?.IsValueCreated == true || _fetchXmlQueryService?.IsValueCreated == true ||
-                _ownerManagementService?.IsValueCreated == true || _entityAttributeUtilityService?.IsValueCreated == true)
+                _ownerManagementService?.IsValueCreated == true || _entityAttributeUtilityService?.IsValueCreated == true ||
+                _activityService?.IsValueCreated == true)
             {
                 InitializeServices();
             }
@@ -755,6 +760,44 @@ namespace ToolUtilityNameSpace.Core
         /// </summary>
         public void SetEntityAttributeToNull(ref Entity entity, string propertyName)
             => _entityAttributeUtilityService.Value.SetEntityAttributeToNull(ref entity, propertyName);
+        #endregion
+
+        #region 活動操作方法 (委派給 ActivityService)
+        /// <summary>
+        /// 取得活動的參與者列表（寄件人或收件人）
+        /// </summary>
+        public void GetActivityPartyList(Entity activityEntity, string fromOrTo, ArrayList partyList, ArrayList partyTypeList)
+            => _activityService.Value.GetActivityPartyList(activityEntity, fromOrTo, partyList, partyTypeList);
+
+        /// <summary>
+        /// 取得活動的參與者 ID 列表（寄件人或收件人）
+        /// </summary>
+        public void GetActivityPartyIdList(Entity activityEntity, string fromOrTo, ArrayList partyIdList, ArrayList partyTypeList)
+            => _activityService.Value.GetActivityPartyIdList(activityEntity, fromOrTo, partyIdList, partyTypeList);
+
+        /// <summary>
+        /// 將活動狀態設為已完成
+        /// </summary>
+        public void SetActivityStatusToCompleted(string activityName, Guid activityId)
+            => _activityService.Value.SetActivityStatusToCompleted(activityName, activityId);
+
+        /// <summary>
+        /// 將活動狀態設為已完成（使用外部服務）
+        /// </summary>
+        public void SetActivityStatusToCompleted(string activityName, Guid activityId, IOrganizationService organizationService)
+            => _activityService.Value.SetActivityStatusToCompleted(activityName, activityId, organizationService);
+
+        /// <summary>
+        /// 將約會狀態設為已排程
+        /// </summary>
+        public void SetAppointmentStatusToScheduled(Guid activityId)
+            => _activityService.Value.SetAppointmentStatusToScheduled(activityId);
+
+        /// <summary>
+        /// 將約會狀態設為已排程（使用外部服務）
+        /// </summary>
+        public void SetAppointmentStatusToScheduled(Guid activityId, IOrganizationService organizationService)
+            => _activityService.Value.SetAppointmentStatusToScheduled(activityId, organizationService);
         #endregion
     }
 }

@@ -1295,69 +1295,29 @@ namespace ToolUtilityNameSpace
         }
 
         #endregion
-        #region 活動相關的收件人或寄件人
+        #region 活動相關的收件人或寄件人，完全委派到 Facade 的方法
         public void GetActivityPartyList(Entity ActivityEntity, String FromOrTo, ArrayList aFromOrToList, ArrayList aFromOrToTypeList)
         {
             try
             {
-                EntityCollection aFromEntityCollection = ActivityEntity.GetAttributeValue<EntityCollection>(FromOrTo);
-
-                for (int i = 0; i < aFromEntityCollection.Entities.Count; i++)
-                {
-                    #region 取得活動寄送者
-                    EntityReference aFromOrToEntityReference = (EntityReference)aFromEntityCollection.Entities[i]["partyid"];
-
-                    Guid aFromOrToEntityId = aFromOrToEntityReference.Id;
-
-                    String EntityName = aFromOrToEntityReference.LogicalName;
-
-                    aFromOrToTypeList.Add(EntityName);
-
-                    Entity aRetrievedFromOrToEntity = this.RetrieveEntity(EntityName, aFromOrToEntityId);
-
-                    aFromOrToList.Add(aRetrievedFromOrToEntity);
-
-
-                    #endregion
-                }
-
-                return;
+                _facade.GetActivityPartyList(ActivityEntity, FromOrTo, aFromOrToList, aFromOrToTypeList);
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
                 throw e;
             }
         }
+
         public void GetActivityPartyIdList(Entity ActivityEntity, String FromOrTo, ArrayList aFromOrToIdList, ArrayList aFromOrToTypeList)
         {
             try
             {
-                EntityCollection aFromEntityCollection = ActivityEntity.GetAttributeValue<EntityCollection>(FromOrTo);
-
-                if (aFromEntityCollection != null)
-                {
-                    for (int i = 0; i < aFromEntityCollection.Entities.Count; i++)
-                    {
-                        #region 取得活動寄送者
-                        EntityReference aFromOrToEntityReference = (EntityReference)aFromEntityCollection.Entities[i]["partyid"];
-
-                        aFromOrToTypeList.Add(aFromOrToEntityReference.LogicalName);
-
-                        aFromOrToIdList.Add(aFromOrToEntityReference.Id);
-
-
-                        #endregion
-                    }
-                }
-
-                return;
+                _facade.GetActivityPartyIdList(ActivityEntity, FromOrTo, aFromOrToIdList, aFromOrToTypeList);
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
                 throw e;
             }
         }
@@ -1366,72 +1326,38 @@ namespace ToolUtilityNameSpace
         {
             try
             {
-                // Create the request object.
-                SetStateRequest aSetStateActivityRequest = new SetStateRequest();
-
-                // Set the properties of the request object.
-                aSetStateActivityRequest.State = new OptionSetValue(1);
-                //aSetStatePhoneActivityRequest.Status = new OptionSetValue(2);
-                aSetStateActivityRequest.Status = new OptionSetValue(4);
-
-                // EntityId is the GUID of the account whose state is being changed.
-                EntityReference EntityMoniker = new EntityReference(ActivityName, aActivityId);
-                aSetStateActivityRequest.EntityMoniker = EntityMoniker;
-
-                // Execute the request.
-                SetStateResponse StateSetResponse;
                 if (CRM_TYPE == "DYNAMICS365")
                 {
-                    StateSetResponse = (SetStateResponse)this.m_OrganizationService.Execute(aSetStateActivityRequest);
+                    _facade.SetActivityStatusToCompleted(ActivityName, aActivityId, this.m_OrganizationService);
                 }
                 else
                 {
-                    StateSetResponse = (SetStateResponse)this.m_Crm2011OrganizationService.Execute(aSetStateActivityRequest);
+                    _facade.SetActivityStatusToCompleted(ActivityName, aActivityId, this.m_Crm2011OrganizationService);
                 }
-
-                return;
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
                 throw e;
             }
         }
+
         public void SetAppointmentStatusToScheduled(Guid aActivityId)
         {
             try
             {
-                // Create the request object.
-                SetStateRequest aSetStateActivityRequest = new SetStateRequest();
-
-                // Set the properties of the request object.
-                aSetStateActivityRequest.State = new OptionSetValue(3);
-                //aSetStatePhoneActivityRequest.Status = new OptionSetValue(2);
-                aSetStateActivityRequest.Status = new OptionSetValue(5);
-
-                // EntityId is the GUID of the account whose state is being changed.
-                EntityReference EntityMoniker = new EntityReference("appointment", aActivityId);
-                aSetStateActivityRequest.EntityMoniker = EntityMoniker;
-
-                // Execute the request.
-
-                SetStateResponse StateSetResponse;
                 if (CRM_TYPE == "DYNAMICS365")
                 {
-                    StateSetResponse = (SetStateResponse)this.m_OrganizationService.Execute(aSetStateActivityRequest);
+                    _facade.SetAppointmentStatusToScheduled(aActivityId, this.m_OrganizationService);
                 }
                 else
                 {
-                    StateSetResponse = (SetStateResponse)this.m_Crm2011OrganizationService.Execute(aSetStateActivityRequest);
+                    _facade.SetAppointmentStatusToScheduled(aActivityId, this.m_Crm2011OrganizationService);
                 }
-
-                return;
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
                 throw e;
             }
         }

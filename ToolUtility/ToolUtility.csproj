@@ -85,6 +85,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActivityOperations\ActivityService.cs" />
+    <Compile Include="ActivityOperations\IActivityService.cs" />
     <Compile Include="Adapters\DataverseServiceClientAdapter.cs" />
     <Compile Include="Adapters\LegacyOrganizationServiceAdapter.cs" />
     <Compile Include="AppointmentOperations\AppointmentService.cs" />

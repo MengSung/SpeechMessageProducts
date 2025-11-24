@@ -158,67 +158,6 @@ namespace ToolUtility_Developing_NameSpace
 
         #region 完全委派到 Facade 的方法
 
-        #region 將連絡人加入或移除至名單，完全委派到 Facade 的方法
-
-        //private readonly object m_MembersToMarketingListLocker = new object();
-        public void AddMembersToMarketingList(Guid thisListGuid, List<Guid> memberGuidList, ref IOrganizationService gCRMService)
-        {
-            try
-            {
-                _facade.AddMembersToMarketingList(thisListGuid, memberGuidList, ref gCRMService);
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
-
-        public void RemoveMembersToMarketingList(Guid aListGuid, Guid MemberGuid, ref IOrganizationService gCRMService)
-        {
-            try
-            {
-                _facade.RemoveMembersToMarketingList(aListGuid, MemberGuid, ref gCRMService);
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
-
-        public void AddMembersToMarketingList(Guid thisListGuid, List<Guid> memberGuidList)
-        {
-            try
-            {
-                _facade.AddMembersToMarketingList(thisListGuid, memberGuidList);
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
-
-        public void RemoveMembersToMarketingList(Guid aListGuid, Guid MemberGuid)
-        {
-            try
-            {
-                _facade.RemoveMembersToMarketingList(aListGuid, MemberGuid);
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
-            }
-        }
-
-        public ArrayList GetAllMemberDataFromList(Guid ListEntityId)
-        {
-            return _facade.GetAllMemberDataFromList(ListEntityId);
-        }
-
-        #endregion
 
         #region 除錯追蹤區 (委派到 Facade)
         public void TraceByLevel(Int32 TotalLevel, Int32 QualifiedLevel, String StringToProcess)
