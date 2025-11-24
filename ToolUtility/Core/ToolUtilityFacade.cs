@@ -91,15 +91,15 @@ namespace ToolUtilityNameSpace.Core
             _queryService = new Lazy<IEntityQueryService>(() => new EntityQueryService(_logger, _organizationService));
             _crudService = new Lazy<IEntityCrudService>(() => new EntityCrudService(_logger, _organizationService));
             _attributeService = new Lazy<IAttributeService>(() => new AttributeServiceComposite(_logger));
-            _contactService = new Lazy<IContactService>(() => new ContactService(_logger, _queryService.Value));
+            _contactService = new Lazy<IContactService>(() => new ContactService(_logger, _organizationService));
             _listService = new Lazy<IListService>(() => new ListService(_logger, _queryService.Value, _organizationService));
             _attachmentService = new Lazy<IAttachmentService>(() => new AttachmentService(_logger, _organizationService));
             _lineMessageService = new Lazy<ILineMessageService>(() => new LineMessageService(_logger, _crudService.Value));
             _appointmentService = new Lazy<IAppointmentService>(() => new AppointmentService(_logger, _queryService.Value));
-            _lessonsService = new Lazy<ILessonsService>(() => new LessonsService(_logger, _queryService.Value));
-            _feeService = new Lazy<IFeeService>(() => new FeeService(_logger, _queryService.Value));
-            _collectionQueryService = new Lazy<ICollectionQueryService>(() => new CollectionQueryService(_logger, _queryService.Value));
-            _meetingStatisticsService = new Lazy<IMeetingStatisticsService>(() => new MeetingStatisticsService(_logger, _queryService.Value));
+            _lessonsService = new Lazy<ILessonsService>(() => new LessonsService(_logger, _organizationService));
+            _feeService = new Lazy<IFeeService>(() => new FeeService(_logger, _organizationService));
+            _collectionQueryService = new Lazy<ICollectionQueryService>(() => new CollectionQueryService(_logger, _organizationService));
+            _meetingStatisticsService = new Lazy<IMeetingStatisticsService>(() => new MeetingStatisticsService(_logger, _organizationService));
             _connectionService = new Lazy<ICrmConnectionService>(() => new CrmConnectionService());
         }
 

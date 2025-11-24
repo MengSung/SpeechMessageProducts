@@ -113,6 +113,7 @@
     <Compile Include="EntityOperations\EntityQueryService.cs" />
     <Compile Include="EntityOperations\IEntityCrudService.cs" />
     <Compile Include="EntityOperations\IEntityQueryService.cs" />
+    <Compile Include="Extensions\OrganizationServiceExtensions.cs" />
     <Compile Include="Factories\CrmClientFactory.cs" />
     <Compile Include="FeeOperations\FeeService.cs" />
     <Compile Include="FeeOperations\IFeeService.cs" />

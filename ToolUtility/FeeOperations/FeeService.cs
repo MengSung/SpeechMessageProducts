@@ -8,12 +8,12 @@ namespace ToolUtilityNameSpace.FeeOperations
     public class FeeService : IFeeService
     {
         private readonly object _logger;
-        private readonly IEntityQueryService _queryService;
+        private readonly IOrganizationService _organizationService;
 
-        public FeeService(object logger, IEntityQueryService queryService)
+        public FeeService(object logger, IOrganizationService organizationService)
         {
             _logger = logger;
-            _queryService = queryService;
+            _organizationService = organizationService;
         }
 
         public EntityCollection RetrieveDedicationBooking(string contactName, string contactId)
@@ -55,7 +55,7 @@ namespace ToolUtilityNameSpace.FeeOperations
                           </entity>
                         </fetch>";
 
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace ToolUtilityNameSpace.FeeOperations
                                   </entity>
                                 </fetch>";
 
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
     }
 }

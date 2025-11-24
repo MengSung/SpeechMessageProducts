@@ -11,12 +11,12 @@ namespace ToolUtilityNameSpace.MeetingStatisticsOperations
     public class MeetingStatisticsService : IMeetingStatisticsService
     {
         private readonly object _logger;
-        private readonly IEntityQueryService _queryService;
+        private readonly IOrganizationService _organizationService;
 
-        public MeetingStatisticsService(object logger, IEntityQueryService queryService)
+        public MeetingStatisticsService(object logger, IOrganizationService organizationService)
         {
             _logger = logger;
-            _queryService = queryService;
+            _organizationService = organizationService;
         }
 
         public EntityCollection RetrieveBySunday(DateTime sundayDate)
@@ -33,7 +33,7 @@ namespace ToolUtilityNameSpace.MeetingStatisticsOperations
                         </filter>
                       </entity>
                     </fetch>";
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace ToolUtilityNameSpace.MeetingStatisticsOperations
                       </entity>
                     </fetch>";
 
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace ToolUtilityNameSpace.MeetingStatisticsOperations
                       </entity>
                     </fetch>";
 
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace ToolUtilityNameSpace.MeetingStatisticsOperations
                       </entity>
                     </fetch>";
 
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace ToolUtilityNameSpace.MeetingStatisticsOperations
                       </entity>
                     </fetch>";
 
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace ToolUtilityNameSpace.MeetingStatisticsOperations
                           </entity>
                         </fetch>";
 
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
     }
 }

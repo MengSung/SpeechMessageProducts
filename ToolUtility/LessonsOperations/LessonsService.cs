@@ -8,12 +8,12 @@ namespace ToolUtilityNameSpace.LessonsOperations
     public class LessonsService : ILessonsService
     {
         private readonly object _logger;
-        private readonly IEntityQueryService _queryService;
+        private readonly IOrganizationService _organizationService;
 
-        public LessonsService(object logger, IEntityQueryService queryService)
+        public LessonsService(object logger, IOrganizationService organizationService)
         {
             _logger = logger;
-            _queryService = queryService;
+            _organizationService = organizationService;
         }
 
         public EntityCollection RetrieveEnrolledLessons(DateTime startDate, DateTime endDate, string contactName, string contactId)
@@ -42,7 +42,7 @@ namespace ToolUtilityNameSpace.LessonsOperations
                         </link-entity>
                       </entity>
                     </fetch>";
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
         public EntityCollection RetrieveLessonsByMonth(DateTime startDate, DateTime endDate)
@@ -64,7 +64,7 @@ namespace ToolUtilityNameSpace.LessonsOperations
                         </filter>
                       </entity>
                     </fetch>";
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
         public EntityCollection RetrieveStorLessons(string lessonName, string lessonId, string contactName, string contactId)
@@ -102,7 +102,7 @@ namespace ToolUtilityNameSpace.LessonsOperations
                         </link-entity>
                       </entity>
                     </fetch>";
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
     }
 }

@@ -4,18 +4,19 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace.EntityOperations;
 using Microsoft.Xrm.Sdk.Query;
+using ToolUtilityNameSpace.Extensions; // added for ExecuteRetrieveMultiple extension
 
 namespace ToolUtilityNameSpace.ContactOperations
 {
     public class ContactService : IContactService
     {
         private readonly object _logger;
-        private readonly IEntityQueryService _queryService;
+        private readonly IOrganizationService _organizationService;
 
-        public ContactService(object logger, IEntityQueryService queryService)
+        public ContactService(object logger, IOrganizationService organizationService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _queryService = queryService ?? throw new ArgumentNullException(nameof(queryService));
+            _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
         }
 
         public Entity RetrieveByContactId(string contactId)
@@ -23,7 +24,7 @@ namespace ToolUtilityNameSpace.ContactOperations
             var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
             query.Attributes.AddRange("build_customer_id", "statecode");
             query.Values.AddRange(contactId, 0);
-            var result = _queryService.RetrieveMultiple(query);
+            var result = _organizationService.RetrieveMultiple(query);
             return result.Entities.Count > 0 ? result.Entities[0] : null;
         }
 
@@ -35,6 +36,7 @@ namespace ToolUtilityNameSpace.ContactOperations
 
         public Entity RetrieveByContactId(IOrganizationService externalService, string contactId, ref int count)
         {
+            if (externalService == null) { count = 0; return null; }
             var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
             query.Attributes.AddRange("build_customer_id", "statecode");
             query.Values.AddRange(contactId, 0);
@@ -48,7 +50,7 @@ namespace ToolUtilityNameSpace.ContactOperations
             var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
             query.Attributes.AddRange("new_lineid", "statecode");
             query.Values.AddRange(lineId, 0);
-            var result = _queryService.RetrieveMultiple(query);
+            var result = _organizationService.RetrieveMultiple(query);
             return result.Entities.Count > 0 ? result.Entities[0] : null;
         }
 
@@ -59,7 +61,7 @@ namespace ToolUtilityNameSpace.ContactOperations
             var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
             query.Attributes.AddRange("fullname", "statecode");
             query.Values.AddRange(contactFullName, 0);
-            return _queryService.RetrieveMultiple(query);
+            return _organizationService.RetrieveMultiple(query);
         }
 
         public string GetContactInfoByFullName(string fullName)
@@ -73,12 +75,13 @@ namespace ToolUtilityNameSpace.ContactOperations
             var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
             query.Attributes.AddRange("fullname", "statecode");
             query.Values.AddRange(fullName, 0);
-            var coll = _queryService.RetrieveMultiple(query);
+            var coll = _organizationService.RetrieveMultiple(query);
             return (coll != null && coll.Entities.Count > 0) ? coll.Entities[0] : null;
         }
 
         public Entity RetrieveByFullName(IOrganizationService externalService, string fullName)
         {
+            if (externalService == null) return null;
             var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
             query.Attributes.AddRange("fullname", "statecode");
             query.Values.AddRange(fullName, 0);
@@ -97,7 +100,7 @@ namespace ToolUtilityNameSpace.ContactOperations
             var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
             query.Attributes.AddRange("new_app_acount", "statecode");
             query.Values.AddRange(accountNumber, 0);
-            var result = _queryService.RetrieveMultiple(query);
+            var result = _organizationService.RetrieveMultiple(query);
             if (result.Entities.Count > 0)
             {
                 var entity = result.Entities[0];
@@ -124,7 +127,7 @@ namespace ToolUtilityNameSpace.ContactOperations
             var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
             query.Attributes.AddRange("new_app_acount", "statecode");
             query.Values.AddRange(accountNumber, 0);
-            var coll = _queryService.RetrieveMultiple(query);
+            var coll = _organizationService.RetrieveMultiple(query);
             return (coll != null && coll.Entities.Count > 0) ? coll.Entities[0] : null;
         }
 
@@ -133,7 +136,7 @@ namespace ToolUtilityNameSpace.ContactOperations
             var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
             query.Attributes.AddRange("new_personal_id", "statecode");
             query.Values.AddRange(nationId, 0);
-            return _queryService.RetrieveMultiple(query);
+            return _organizationService.RetrieveMultiple(query);
         }
 
         public Entity RetrieveByFullNameAndMobile(string fullName, string mobileNumber)
@@ -141,7 +144,7 @@ namespace ToolUtilityNameSpace.ContactOperations
             var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
             query.Attributes.AddRange("fullname", "mobilephone", "statecode");
             query.Values.AddRange(fullName, mobileNumber, 0);
-            var coll = _queryService.RetrieveMultiple(query);
+            var coll = _organizationService.RetrieveMultiple(query);
             return (coll != null && coll.Entities.Count > 0) ? coll.Entities[0] : null;
         }
 
@@ -150,7 +153,7 @@ namespace ToolUtilityNameSpace.ContactOperations
             var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
             query.Attributes.AddRange("fullname", "statecode");
             query.Values.AddRange(fullName, 0);
-            return _queryService.RetrieveMultiple(query);
+            return _organizationService.RetrieveMultiple(query);
         }
 
         /// <summary>
@@ -161,7 +164,6 @@ namespace ToolUtilityNameSpace.ContactOperations
         {
             try
             {
-                // 格式化查詢參數
                 dedicationNumber = "'" + dedicationNumber + "'";
                 contactName = "'%" + contactName + "%'";
                 homePhone = "'%" + homePhone + "%'";
@@ -198,12 +200,9 @@ namespace ToolUtilityNameSpace.ContactOperations
                               </entity>
                             </fetch>";
 
-                var fetchRequest = new RetrieveMultipleRequest
-                {
-                    Query = new FetchExpression(fetchXml)
-                };
-
-                return _queryService.ExecuteRetrieveMultiple(fetchRequest);
+                var fetchRequest = new RetrieveMultipleRequest { Query = new FetchExpression(fetchXml) };
+                var response = (RetrieveMultipleResponse)_organizationService.Execute(fetchRequest);
+                return response.EntityCollection;
             }
             catch (Exception ex)
             {
@@ -239,12 +238,9 @@ namespace ToolUtilityNameSpace.ContactOperations
                               </entity>
                             </fetch>";
 
-                var fetchRequest = new RetrieveMultipleRequest
-                {
-                    Query = new FetchExpression(fetchXml)
-                };
-
-                return _queryService.ExecuteRetrieveMultiple(fetchRequest);
+                var fetchRequest = new RetrieveMultipleRequest { Query = new FetchExpression(fetchXml) };
+                var response = (RetrieveMultipleResponse)_organizationService.Execute(fetchRequest);
+                return response.EntityCollection;
             }
             catch (Exception ex)
             {
