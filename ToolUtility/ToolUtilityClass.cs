@@ -208,7 +208,6 @@ namespace ToolUtilityNameSpace
             GC.SuppressFinalize(this);
         }
         #endregion
-
         #region 連接 CRM 2011 服務
         /// <summary>
         /// 取得 Windows 認證憑證 (委派給 CrmConnectionService)
@@ -290,7 +289,6 @@ namespace ToolUtilityNameSpace
             return DebugString;
         }
         #endregion
-
         #region 連接 Dynamics 365 服務
         /// <summary>
         /// 設定 Federated Organization Proxy (委派給 CrmConnectionService)
