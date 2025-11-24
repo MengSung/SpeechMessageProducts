@@ -56,6 +56,14 @@ namespace ToolUtilityNameSpace.ContactOperations
 
         public Entity RetrieveByLineIdForCollection(string lineId) => RetrieveByLineId(lineId);
 
+        public EntityCollection RetrieveCollectionByLineId(string lineId)
+        {
+            var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
+            query.Attributes.AddRange("new_lineid", "statecode");
+            query.Values.AddRange(lineId, 0);
+            return _organizationService.RetrieveMultiple(query);
+        }
+
         public EntityCollection RetrieveCollectionByName(string contactFullName)
         {
             var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
@@ -168,8 +176,6 @@ namespace ToolUtilityNameSpace.ContactOperations
                 contactName = "'%" + contactName + "%'";
                 homePhone = "'%" + homePhone + "%'";
                 mobile = "'%" + mobile + "%'";
-                nationId = "'%" + nationId + "%'";
-                lastSixDigit = "'%" + lastSixDigit + "%'";
 
                 var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>

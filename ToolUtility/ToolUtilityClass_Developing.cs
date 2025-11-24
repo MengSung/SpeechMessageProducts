@@ -99,7 +99,7 @@ namespace ToolUtility_Developing_NameSpace
 
             m_Crm2011OrganizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
             
-            _facade = new ToolUtilityFacade();
+            _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
         }
 
         public ToolUtilityClass(String DiscoveryServiceType)
@@ -113,7 +113,7 @@ namespace ToolUtility_Developing_NameSpace
 
             m_Crm2011OrganizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
             
-            _facade = new ToolUtilityFacade();
+            _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
         }
 
         public ToolUtilityClass(ref bool ValidFlag)
@@ -124,8 +124,9 @@ namespace ToolUtility_Developing_NameSpace
             {
                 ValidFlag = false;
             }
-            
-            _facade = new ToolUtilityFacade();
+
+            // 初始化 organizationService (即使可能為 null)
+            _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
         }
 
         ~ToolUtilityClass()
@@ -141,6 +142,8 @@ namespace ToolUtility_Developing_NameSpace
             if (disposing)
             {
                 _facade?.Dispose();
+                m_XmlFileStreamWriter?.Dispose();
+                m_XmlFileStream?.Dispose();
             }
 
             _disposed = true;
@@ -155,547 +158,76 @@ namespace ToolUtility_Developing_NameSpace
 
         #region 完全委派到 Facade 的方法
 
-        #region 實體操作區 - 委派到 Facade
-        public Entity RetrieveEntity(String EntityName, Guid EntityId)
-            => _facade.RetrieveEntity(EntityName, EntityId);
+        #region 將連絡人加入或移除至名單，完全委派到 Facade 的方法
 
-        public Entity RetrieveEntityDynamics365(String EntityName, Guid EntityId)
-            => _facade.RetrieveEntity(EntityName, EntityId);
-
-        public Entity RetrieveEntityCrm2011(String EntityName, Guid EntityId)
-            => _facade.RetrieveEntity(EntityName, EntityId);
-
-        public Guid CreateEntity(Entity aEntityTobeToCreate)
-            => _facade.CreateEntity(aEntityTobeToCreate);
-
-        public Guid CreateEntityDynamics365(ref OrganizationServiceProxy aOrganizationService, Entity aEntityTobeToCreate)
+        //private readonly object m_MembersToMarketingListLocker = new object();
+        public void AddMembersToMarketingList(Guid thisListGuid, List<Guid> memberGuidList, ref IOrganizationService gCRMService)
         {
             try
             {
-                if (EXCUTION_FLAG == true)
-                {
-                    return aOrganizationService.Create(aEntityTobeToCreate);
-                }
-                return Guid.Empty;
+                _facade.AddMembersToMarketingList(thisListGuid, memberGuidList, ref gCRMService);
             }
             catch (System.Exception e)
             {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
 
-        public Guid CreateEntityCrm2011(ref IOrganizationService aCrm2011OrganizationService, Entity aEntityTobeToCreate)
+        public void RemoveMembersToMarketingList(Guid aListGuid, Guid MemberGuid, ref IOrganizationService gCRMService)
         {
             try
             {
-                if (EXCUTION_FLAG == true)
-                {
-                    return aCrm2011OrganizationService.Create(aEntityTobeToCreate);
-                }
-                return Guid.Empty;
+                _facade.RemoveMembersToMarketingList(aListGuid, MemberGuid, ref gCRMService);
             }
             catch (System.Exception e)
             {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
 
-        public async Task<Guid> CreateEntityAsync(IOrganizationService aOrganizationService, Entity aEntityTobeToCreate)
+        public void AddMembersToMarketingList(Guid thisListGuid, List<Guid> memberGuidList)
         {
             try
             {
-                if (EXCUTION_FLAG == true)
-                {
-                    return aOrganizationService.Create(aEntityTobeToCreate);
-                }
-                return Guid.Empty;
+                _facade.AddMembersToMarketingList(thisListGuid, memberGuidList);
             }
             catch (System.Exception e)
             {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
 
-        public void UpdateEntity(ref Entity aEntityTobeUpdated)
-            => _facade.UpdateEntity(aEntityTobeUpdated);
-
-        public void UpdateEntity(Entity aEntityTobeUpdated)
-            => _facade.UpdateEntity(aEntityTobeUpdated);
-
-        public void UpdateEntity(ref IOrganizationService aOrganizationService, ref Entity aEntityTobeUpdated)
+        public void RemoveMembersToMarketingList(Guid aListGuid, Guid MemberGuid)
         {
             try
             {
-                if (EXCUTION_FLAG == true)
-                {
-                    aOrganizationService.Update(aEntityTobeUpdated);
-                }
+                _facade.RemoveMembersToMarketingList(aListGuid, MemberGuid);
             }
             catch (System.Exception e)
             {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 throw e;
             }
         }
 
-        public void UpdateEntity(ref IOrganizationService aOrganizationService, Entity aEntityTobeUpdated)
+        public ArrayList GetAllMemberDataFromList(Guid ListEntityId)
         {
-            try
-            {
-                if (EXCUTION_FLAG == true)
-                {
-                    aOrganizationService.Update(aEntityTobeUpdated);
-                }
-            }
-            catch (System.Exception e)
-            {
-                throw e;
-            }
+            return _facade.GetAllMemberDataFromList(ListEntityId);
         }
-
-        public void UpdateEntityCrm2011(ref IOrganizationService aOrganizationService, ref Entity aEntityTobeUpdated)
-        {
-            try
-            {
-                if (EXCUTION_FLAG == true)
-                {
-                    aOrganizationService.Update(aEntityTobeUpdated);
-                }
-            }
-            catch (System.Exception e)
-            {
-                throw e;
-            }
-        }
-
-        public void UpdateEntityDynamics365(ref OrganizationServiceProxy aOrganizationService, ref Entity aEntityTobeUpdated)
-        {
-            try
-            {
-                if (EXCUTION_FLAG == true)
-                {
-                    aOrganizationService.Update(aEntityTobeUpdated);
-                }
-            }
-            catch (System.Exception e)
-            {
-                throw e;
-            }
-        }
-
-        public void UpdateEntityCrm2011(ref IOrganizationService aOrganizationService, Entity aEntityTobeUpdated)
-        {
-            try
-            {
-                if (EXCUTION_FLAG == true)
-                {
-                    aOrganizationService.Update(aEntityTobeUpdated);
-                }
-            }
-            catch (System.Exception e)
-            {
-                throw e;
-            }
-        }
-
-        public void UpdateEntityDynamics365(ref OrganizationServiceProxy aOrganizationService, Entity aEntityTobeUpdated)
-        {
-            try
-            {
-                if (EXCUTION_FLAG == true)
-                {
-                    aOrganizationService.Update(aEntityTobeUpdated);
-                }
-            }
-            catch (System.Exception e)
-            {
-                throw e;
-            }
-        }
-
-        public async Task UpdateEntityAsync(IOrganizationService aOrganizationService, Entity aEntityTobeUpdated)
-        {
-            try
-            {
-                if (EXCUTION_FLAG == true)
-                {
-                    aOrganizationService.Update(aEntityTobeUpdated);
-                }
-            }
-            catch (System.Exception e)
-            {
-                throw e;
-            }
-        }
-
-        public void DeleteEntity(ref IOrganizationService aOrganizationService, String aEntityName, Guid aEntityId)
-        {
-            try
-            {
-                if (EXCUTION_FLAG == true)
-                {
-                    aOrganizationService.Delete(aEntityName, aEntityId);
-                }
-            }
-            catch (System.Exception e)
-            {
-                throw e;
-            }
-        }
-
-        public void DeleteEntity(String aEntityName, Guid aEntityId)
-            => _facade.DeleteEntity(aEntityName, aEntityId);
-
-        public Guid GetEntityId(Entity aEntity)
-            => aEntity.Id;
-        #endregion
-
-        #region 屬性操作區 - 委派到 Facade
-
-        #region 布林屬性
-        public bool GetEntityBoolAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityBoolAttribute(aEntity, PropertyName);
-
-        public bool GetEntityBoolAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityBoolAttribute(aEntity, PropertyName);
-
-        public void SetEntityBoolAttribute(ref Entity aEntity, string PropertyName, bool PropertyValue)
-            => _facade.SetEntityBoolAttribute(ref aEntity, PropertyName, PropertyValue);
-
-        public void SetEntityBoolAttributeToNull(ref Entity aEntity, string PropertyName)
-        {
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = null;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, null);
-            }
-        }
-        #endregion
-
-        #region 整數屬性
-        public int GetEntityIntAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityIntAttribute(aEntity, PropertyName);
-
-        public int GetEntityIntAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityIntAttribute(aEntity, PropertyName);
-
-        public void SetEntityIntAttribute(ref Entity aEntity, string PropertyName, int PropertyValue)
-        {
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = PropertyValue;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, PropertyValue);
-            }
-        }
-
-        public void SetEntityIntAttributeToNull(ref Entity aEntity, string PropertyName)
-        {
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = null;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, null);
-            }
-        }
-        #endregion
-
-        #region 浮點屬性
-        public float GetEntityFloatAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityFloatAttribute(aEntity, PropertyName);
-
-        public float GetEntityFloatAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityFloatAttribute(aEntity, PropertyName);
-
-        public void SetEntityFloatAttribute(ref Entity aEntity, string PropertyName, float PropertyValue)
-            => _facade.SetEntityFloatAttribute(ref aEntity, PropertyName, PropertyValue);
-
-        public void SetEntityFloatAttribute(Entity aEntity, string PropertyName, float PropertyValue)
-        {
-            Entity tempEntity = aEntity;
-            _facade.SetEntityFloatAttribute(ref tempEntity, PropertyName, PropertyValue);
-        }
-
-        public void SetEntityFloatAttributeToNull(Entity aEntity, string PropertyName)
-            => _facade.SetEntityFloatAttributeToNull(aEntity, PropertyName);
-        #endregion
-
-        #region 金額屬性
-        public Money GetEntityMoneyAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityMoneyAttribute(aEntity, PropertyName);
-
-        public Money GetEntityMoneyAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityMoneyAttribute(aEntity, PropertyName);
-
-        public void SetEntityMoneyAttribute(ref Entity aEntity, string PropertyName, Money PropertyValue)
-        {
-            if (PropertyValue.Value != -9999)
-            {
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = PropertyValue;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, PropertyValue);
-                }
-            }
-        }
-
-        public void SetEntityMoneyAttribute(Entity aEntity, string PropertyName, Money PropertyValue)
-        {
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = PropertyValue;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, PropertyValue);
-            }
-        }
-
-        public void SetEntityMoneyAttributeToNull(Entity aEntity, string PropertyName)
-        {
-            Entity tempEntity = aEntity;
-            _facade.SetEntityMoneyAttributeToNull(ref tempEntity, PropertyName);
-        }
-        #endregion
-
-        #region 小數點屬性
-        public Double GetEntityDoubleAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityDoubleAttribute(aEntity, PropertyName);
-
-        public Double GetEntityDoubleAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityDoubleAttribute(aEntity, PropertyName);
-
-        public void SetEntityDoubleAttribute(ref Entity aEntity, string PropertyName, Double PropertyValue)
-            => _facade.SetEntityDoubleAttribute(ref aEntity, PropertyName, PropertyValue);
-
-        public void SetEntityDoubleAttribute(Entity aEntity, string PropertyName, Double PropertyValue)
-        {
-            Entity tempEntity = aEntity;
-            _facade.SetEntityDoubleAttribute(ref tempEntity, PropertyName, PropertyValue);
-        }
-
-        public void SetEntityDoubleAttributeToNull(Entity aEntity, string PropertyName)
-            => _facade.SetEntityDoubleAttributeToNull(aEntity, PropertyName);
-        #endregion
-
-        #region 時間屬性
-        public DateTime GetEntityDateTimeAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityDateTimeAttribute(aEntity, PropertyName);
-
-        public DateTime GetEntityDateTimeAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityDateTimeAttribute(aEntity, PropertyName);
-
-        public void SetEntityDateTimeAttribute(ref Entity aEntity, string PropertyName, DateTime PropertyValue)
-        {
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = PropertyValue;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, PropertyValue);
-            }
-        }
-
-        public void SetEntityDateTimeAttributeToNull(ref Entity aEntity, string PropertyName)
-            => _facade.SetEntityDateTimeAttributeToNull(ref aEntity, PropertyName);
-        #endregion
-
-        #region 文字屬性
-        public String GetEntityStringAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityStringAttribute(aEntity, PropertyName);
-
-        public String GetEntityStringAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityStringAttribute(aEntity, PropertyName);
-
-        public void SetEntityStringAttribute(ref Entity aEntity, string PropertyName, String PropertyValue)
-        {
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = PropertyValue;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, PropertyValue);
-            }
-        }
-
-        public void SetEntityStringAttribute(Entity aEntity, string PropertyName, String PropertyValue)
-        {
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = PropertyValue;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, PropertyValue);
-            }
-        }
-        #endregion
-
-        #region 選項屬性
-        public int GetOptionSetAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetOptionSetAttribute(aEntity, PropertyName);
-
-        public int GetOptionSetAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetOptionSetAttribute(aEntity, PropertyName);
-
-        public void SetOptionSetAttribute(ref Entity aEntity, string PropertyName, int PropertyValue)
-            => _facade.SetOptionSetAttribute(ref aEntity, PropertyName, PropertyValue);
-
-        public void SetOptionSetAttribute(Entity aEntity, string PropertyName, int PropertyValue)
-        {
-            Entity tempEntity = aEntity;
-            _facade.SetOptionSetAttribute(ref tempEntity, PropertyName, PropertyValue);
-        }
-
-        public void SetOptionSetAttributeNull(ref Entity aEntity, string PropertyName)
-            => _facade.SetOptionSetAttributeNull(ref aEntity, PropertyName);
-
-        public void SetOptionSetAttributeNull(Entity aEntity, string PropertyName)
-        {
-            Entity tempEntity = aEntity;
-            _facade.SetOptionSetAttributeNull(ref tempEntity, PropertyName);
-        }
-        #endregion
-
-        #region LookUp 屬性
-        public Guid GetEntityLookupAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityLookupAttribute(aEntity, PropertyName);
-
-        public Guid GetEntityLookupAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityLookupAttribute(aEntity, PropertyName);
-
-        public String GetEntityLookupDisplayName(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityLookupDisplayName(aEntity, PropertyName);
-
-        public String GetEntityLookupDisplayName(Entity aEntity, string PropertyName)
-            => _facade.GetEntityLookupDisplayName(aEntity, PropertyName);
-
-        public void SetEntityLookUpAttribute(ref Entity aEntity, string PropertyName, String LookupEntityName, Guid GuidValue)
-        {
-            if (GuidValue != null && GuidValue != Guid.Empty)
-            {
-                EntityReference aEntityReference = new EntityReference(LookupEntityName, GuidValue);
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = aEntityReference;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, aEntityReference);
-                }
-            }
-        }
-
-        public void SetEntityLookUpAttribute(Entity aEntity, string PropertyName, String LookupEntityName, Guid GuidValue)
-        {
-            if (GuidValue != null && GuidValue != Guid.Empty)
-            {
-                EntityReference aEntityReference = new EntityReference(LookupEntityName, GuidValue);
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = aEntityReference;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, aEntityReference);
-                }
-            }
-        }
-
-        public void SetEntityLookUpAttribute(ref Entity aEntity, string PropertyName, ref EntityReference aEntityReference)
-            => _facade.SetEntityLookUpAttribute(ref aEntity, PropertyName, ref aEntityReference);
-
-        public void SetEntityLookUpToNull(ref Entity aEntity, string PropertyName)
-            => _facade.SetEntityLookUpToNull(ref aEntity, PropertyName);
-        #endregion
 
         #endregion
 
-        #endregion
-
-        #region 一般化屬性
-        private string getAttributeValue(Entity targetEntity, string attributeName)
-        {
-            if (string.IsNullOrEmpty(attributeName))
-            {
-                return string.Empty;
-            }
-
-            if (targetEntity[attributeName] is AliasedValue)
-            {
-                return (targetEntity[attributeName] as AliasedValue).Value.ToString();
-            }
-            else
-            {
-                return targetEntity[attributeName].ToString();
-            }
-        }
-
-        public void RemoveAttribute(ref Entity aEntity, string PropertyName)
-            => aEntity.Attributes.Remove(PropertyName);
-
-        public void SetEntityAttributeToNull(ref Entity aEntity, string PropertyName)
-        {
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = null;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, null);
-            }
-        }
-        #endregion
-
-        #region 除錯追蹤區
+        #region 除錯追蹤區 (委派到 Facade)
         public void TraceByLevel(Int32 TotalLevel, Int32 QualifiedLevel, String StringToProcess)
-        {
-            try
-            {
-                if (TotalLevel >= QualifiedLevel)
-                {
-                    Debug.WriteLine("Time            =" + DateTime.Now.ToString());
-                    Debug.WriteLine("StringToProcess =" + StringToProcess);
-                    StackTrace aStackTraceNextLevel = new StackTrace(new StackFrame(1, true));
-                    Debug.WriteLine("StackTrace      =" + aStackTraceNextLevel.ToString());
-                    Debug.WriteLine("==================================================================");
-                }
-            }
-            catch (Exception e)
-            {
-                // Swallow trace errors
-            }
-        }
+            => _facade.TraceByLevel(TotalLevel, QualifiedLevel, StringToProcess);
 
         static public void TraceByLevelStatic(Int32 TotalLevel, Int32 QualifiedLevel, String StringToProcess)
-        {
-            try
-            {
-                if (TotalLevel >= QualifiedLevel)
-                {
-                    Debug.WriteLine("Time            =" + DateTime.Now.ToString());
-                    Debug.WriteLine("StringToProcess =" + StringToProcess);
-                    StackTrace aStackTraceNextLevel = new StackTrace(new StackFrame(1, true));
-                    Debug.WriteLine("StackTrace      =" + aStackTraceNextLevel.ToString());
-                    Debug.WriteLine("==================================================================");
-                }
-            }
-            catch
-            {
-                // Swallow trace errors
-            }
-        }
+            => ToolUtilityFacade.TraceByLevelStatic(TotalLevel, QualifiedLevel, StringToProcess);
+        #endregion
+
         #endregion
     }
 }

@@ -151,7 +151,7 @@ namespace ToolUtilityNameSpace
             m_Crm2011OrganizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
 
             // 初始化 Facade (不傳入 organizationService)
-            _facade = new ToolUtilityFacade();
+            _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
             // 透過 Facade 的連接服務方法設定 organizationService
             //_facade.SetOrganizationService(SERVER, PORT, ORGANIZATION, DOMAIN, adUsername, adPassword);
 
@@ -172,7 +172,7 @@ namespace ToolUtilityNameSpace
             m_Crm2011OrganizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
 
             // 初始化 Facade (不傳入 organizationService)
-            _facade = new ToolUtilityFacade();
+            _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
             // 透過 Facade 的連接服務方法設定 organizationService
             //_facade.SetOrganizationService(SERVER, PORT, ORGANIZATION, DOMAIN, adUsername, adPassword);
         }
@@ -1108,88 +1108,47 @@ namespace ToolUtilityNameSpace
         #endregion
 
         #endregion
-        #region 負責人管理
+        #region 負責人管理 (委派到 Facade)
         public Guid GetOwnerId(Entity aEntity)
-        {
-            try
-            {
-                return aEntity.GetAttributeValue<EntityReference>("ownerid").Id;
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            => _facade.GetOwnerId(aEntity);
 
-                throw e;
-            }
-        }
         public void AssignOwner(String EntityName, Entity aEntity, Guid OwnerId)
-        {
-            try
-            {
-                AssignRequest assign = new AssignRequest
-                {
-                    Assignee = new EntityReference("systemuser", OwnerId),
-                    Target = new EntityReference(EntityName, aEntity.Id)
-                };
+            => _facade.AssignOwner(EntityName, aEntity, OwnerId);
 
-                // Execute the Request
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    this.m_OrganizationService.Execute(assign);
-                }
-                else
-                {
-                    this.m_Crm2011OrganizationService.Execute(assign);
-                }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
         public String GetOwnerName(Entity aEntity)
-        {
-            try
-            {
-                return aEntity.GetAttributeValue<EntityReference>("ownerid").Name;
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
-        }
+            => _facade.GetOwnerName(aEntity);
         #endregion
-        #region 追蹤及統計用的Line訊息
+        #region 追蹤及統計用的Line訊息，完全委派到 Facade 的方法
         public void CreatePushLineMessage(string UserId, string Subject, string Message)
         {
             try
             {
                 if (EXCUTION_TRACE_LINE == true)
                 {
-                    Entity aContact = RetrieveContactCollectionByLineId(UserId);
+                    EntityCollection contactCollection = _facade.RetrieveContactCollectionByLineId(UserId);
+                    Entity aContact = (contactCollection != null && contactCollection.Entities.Count > 0)
+                        ? contactCollection.Entities[0]
+                        : null;
 
                     if (aContact != null)
                     {
                         Entity aEntity = new Entity("letter");
-                        SetEntityStringAttribute(ref aEntity, "subject", Subject);
-                        SetEntityStringAttribute(ref aEntity, "description", Message);
-                        SetEntityStringAttribute(ref aEntity, "new_displayed_lineid", UserId);
-                        SetEntityLookUpAttribute(ref aEntity, "regardingobjectid", "contact", aContact.Id);
+                        _facade.SetEntityStringAttribute(ref aEntity, "subject", Subject);
+                        _facade.SetEntityStringAttribute(ref aEntity, "description", Message);
+                        _facade.SetEntityStringAttribute(ref aEntity, "new_displayed_lineid", UserId);
+                        EntityReference regardingRef = new EntityReference("contact", aContact.Id);
+                        _facade.SetEntityLookUpAttribute(ref aEntity, "regardingobjectid", ref regardingRef);
 
-                        SetEntityDateTimeAttribute(ref aEntity, "scheduledend", DateTime.Now);
+                        _facade.SetEntityDateTimeAttribute(ref aEntity, "scheduledend", DateTime.Now);
 
                         //方向=>撥出
-                        SetEntityBoolAttribute(ref aEntity, "directioncode", true);
+                        _facade.SetEntityBoolAttribute(ref aEntity, "directioncode", true);
 
                         //計數=>1
-                        SetEntityIntAttribute(ref aEntity, "new_count", 1);
+                        _facade.SetEntityIntAttribute(ref aEntity, "new_count", 1);
 
                         //設定訊息種類為文字 
-                        SetOptionSetAttribute(ref aEntity, "new_message_category", 100000000);
+                        _facade.SetOptionSetAttribute(ref aEntity, "new_message_category", 100000000);
 
                         Entity Fromparty = new Entity("activityparty");
 
@@ -1199,7 +1158,7 @@ namespace ToolUtilityNameSpace
                         aEntity["to"] = new Entity[] { Fromparty };
 
                         // 新增Line訊息
-                        this.CreateEntity(aEntity);
+                        _facade.CreateEntity(aEntity);
 
                         return;
                     }
@@ -1215,6 +1174,7 @@ namespace ToolUtilityNameSpace
                 throw e;
             }
         }
+
         public void CreatePushLineMessage(IList<string> To, string Subject, string Message)
         {
             try
@@ -1223,26 +1183,30 @@ namespace ToolUtilityNameSpace
                 {
                     foreach (String UserId in To)
                     {
-                        Entity aContact = RetrieveContactCollectionByLineId(UserId);
+                        EntityCollection contactCollection = _facade.RetrieveContactCollectionByLineId(UserId);
+                        Entity aContact = (contactCollection != null && contactCollection.Entities.Count > 0)
+                            ? contactCollection.Entities[0]
+                            : null;
 
                         if (aContact != null)
                         {
                             Entity aEntity = new Entity("letter");
-                            SetEntityStringAttribute(ref aEntity, "subject", Subject);
-                            SetEntityStringAttribute(ref aEntity, "description", Message);
-                            SetEntityStringAttribute(ref aEntity, "new_displayed_lineid", UserId);
-                            SetEntityLookUpAttribute(ref aEntity, "regardingobjectid", "contact", aContact.Id);
+                            _facade.SetEntityStringAttribute(ref aEntity, "subject", Subject);
+                            _facade.SetEntityStringAttribute(ref aEntity, "description", Message);
+                            _facade.SetEntityStringAttribute(ref aEntity, "new_displayed_lineid", UserId);
+                            EntityReference regardingRef = new EntityReference("contact", aContact.Id);
+                            _facade.SetEntityLookUpAttribute(ref aEntity, "regardingobjectid", ref regardingRef);
 
-                            SetEntityDateTimeAttribute(ref aEntity, "scheduledend", DateTime.Now);
+                            _facade.SetEntityDateTimeAttribute(ref aEntity, "scheduledend", DateTime.Now);
 
                             //方向=>撥出
-                            SetEntityBoolAttribute(ref aEntity, "directioncode", true);
+                            _facade.SetEntityBoolAttribute(ref aEntity, "directioncode", true);
 
                             //計數=>1
-                            SetEntityIntAttribute(ref aEntity, "new_count", 1);
+                            _facade.SetEntityIntAttribute(ref aEntity, "new_count", 1);
 
                             //設定訊息種類為文字 
-                            SetOptionSetAttribute(ref aEntity, "new_message_category", 100000000);
+                            _facade.SetOptionSetAttribute(ref aEntity, "new_message_category", 100000000);
 
                             Entity Fromparty = new Entity("activityparty");
 
@@ -1252,7 +1216,7 @@ namespace ToolUtilityNameSpace
                             aEntity["to"] = new Entity[] { Fromparty };
 
                             // 新增Line訊息
-                            this.CreateEntity(aEntity);
+                            _facade.CreateEntity(aEntity);
 
                             return;
                         }
@@ -1270,158 +1234,64 @@ namespace ToolUtilityNameSpace
             }
         }
         #endregion
-        #region 將連絡人加入或移除至名單
+        #region 將連絡人加入或移除至名單，完全委派到 Facade 的方法
 
         //private readonly object m_MembersToMarketingListLocker = new object();
         public void AddMembersToMarketingList(Guid thisListGuid, List<Guid> memberGuidList, ref IOrganizationService gCRMService)
         {
             try
             {
-                //lock (m_MembersToMarketingListLocker)
-                //{
-                AddListMembersListRequest orgServiceRequest = new AddListMembersListRequest();
-                orgServiceRequest.ListId = thisListGuid;
-                orgServiceRequest.MemberIds = memberGuidList.ToArray();
-                gCRMService.Execute(orgServiceRequest);
-                //}
+                _facade.AddMembersToMarketingList(thisListGuid, memberGuidList, ref gCRMService);
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
                 throw e;
             }
         }
+
         public void RemoveMembersToMarketingList(Guid aListGuid, Guid MemberGuid, ref IOrganizationService gCRMService)
         {
             try
             {
-                //lock (m_MembersToMarketingListLocker)
-                //{
-                RemoveMemberListRequest orgServiceRequest = new RemoveMemberListRequest();
-                orgServiceRequest.ListId = aListGuid;
-                orgServiceRequest.EntityId = MemberGuid;
-                gCRMService.Execute(orgServiceRequest);
-                //}
+                _facade.RemoveMembersToMarketingList(aListGuid, MemberGuid, ref gCRMService);
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
                 throw e;
             }
         }
+
         public void AddMembersToMarketingList(Guid thisListGuid, List<Guid> memberGuidList)
         {
             try
             {
-                //lock (m_MembersToMarketingListLocker)
-                //{
-                AddListMembersListRequest orgServiceRequest = new AddListMembersListRequest();
-                orgServiceRequest.ListId = thisListGuid;
-                orgServiceRequest.MemberIds = memberGuidList.ToArray();
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    this.m_OrganizationService.Execute(orgServiceRequest);
-                }
-                else
-                {
-                    this.m_Crm2011OrganizationService.Execute(orgServiceRequest);
-                }
-                //}
+                _facade.AddMembersToMarketingList(thisListGuid, memberGuidList);
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
                 throw e;
             }
         }
+
         public void RemoveMembersToMarketingList(Guid aListGuid, Guid MemberGuid)
         {
             try
             {
-                //lock (m_MembersToMarketingListLocker)
-                //{
-                RemoveMemberListRequest orgServiceRequest = new RemoveMemberListRequest();
-                orgServiceRequest.ListId = aListGuid;
-                orgServiceRequest.EntityId = MemberGuid;
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    this.m_OrganizationService.Execute(orgServiceRequest);
-                }
-                else
-                {
-                    this.m_Crm2011OrganizationService.Execute(orgServiceRequest);
-                }
-                //}
+                _facade.RemoveMembersToMarketingList(aListGuid, MemberGuid);
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
                 throw e;
             }
         }
+
         public ArrayList GetAllMemberDataFromList(Guid ListEntityId)
         {
-            #region // 處理每個小組名單
-            //搜尋名單的組員
-            //EntityCollection Contacts = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntityId.ToString(), "new_cell_list_contact", "contact");
-
-            Entity ListEntity = this.RetrieveEntity("list", ListEntityId);
-
-            bool ListType = this.GetEntityBoolAttribute(ListEntity, "type");
-            EntityCollection MemberCollection;
-            if (ListType == false)
-            {
-                // 靜態名單
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    MemberCollection = this.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_OrganizationService, ListEntityId);
-                }
-                else
-                {
-                    MemberCollection = this.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_Crm2011OrganizationService, ListEntityId);
-                }
-            }
-            else
-            {
-                // 動態名單
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    MemberCollection = this.RetrieveDynamicMemberListDynamics365(ref this.m_OrganizationService, ListEntityId);
-                }
-                else
-                {
-                    MemberCollection = this.RetrieveDynamicMemberListCrm2011(ref this.m_Crm2011OrganizationService, ListEntityId);
-                }
-            }
-
-            int PresentRecordIdCounter = 0;
-            ArrayList MemberEntityIdList = new ArrayList();
-            foreach (Entity MemberEntity in MemberCollection.Entities)
-            {
-                // 每個組員
-                Entity ContactEntity;
-
-                if (ListType == false)
-                {
-                    // 靜態名單
-                    MemberEntityIdList.Add(((EntityReference)MemberEntity.Attributes["entityid"]).Id);
-                    //ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
-                }
-                else
-                {
-                    // 動態名單
-                    MemberEntityIdList.Add((Guid)MemberEntity.Attributes["contactid"]);
-                    //ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
-                }
-
-            }
-            #endregion
-
-            return MemberEntityIdList;
+            return _facade.GetAllMemberDataFromList(ListEntityId);
         }
 
         #endregion

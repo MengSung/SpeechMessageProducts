@@ -1,26 +1,29 @@
-using System;
-using System.Collections.Generic;
+using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Discovery;
-using Microsoft.Crm.Sdk.Messages;
-using ToolUtilityNameSpace.EntityOperations;
-using ToolUtilityNameSpace.ListOperations;
-using ToolUtilityNameSpace.AttachmentOperations;
-using ToolUtilityNameSpace.LineMessaging;
-using ToolUtilityNameSpace.ContactOperations;
-using ToolUtilityNameSpace.AttributeOperations;
-using ToolUtilityNameSpace.Interfaces;
-using ToolUtilityNameSpace.Utilities;
-using ToolUtilityNameSpace.AppointmentOperations;
-using ToolUtilityNameSpace.LessonsOperations;
-using ToolUtilityNameSpace.FeeOperations;
-using ToolUtilityNameSpace.CollectionOperations;
-using ToolUtilityNameSpace.MeetingStatisticsOperations;
-using ToolUtilityNameSpace.ConnectionOperations;
-using ToolUtilityNameSpace.QueryOperations;
+using Microsoft.Xrm.Sdk.PluginTelemetry;
+using Microsoft.Xrm.Sdk.Query;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ServiceModel.Description;
+using ToolUtilityNameSpace.AppointmentOperations;
+using ToolUtilityNameSpace.AttachmentOperations;
+using ToolUtilityNameSpace.AttributeOperations;
+using ToolUtilityNameSpace.CollectionOperations;
+using ToolUtilityNameSpace.ConnectionOperations;
+using ToolUtilityNameSpace.ContactOperations;
+using ToolUtilityNameSpace.EntityOperations;
+using ToolUtilityNameSpace.FeeOperations;
+using ToolUtilityNameSpace.Interfaces;
+using ToolUtilityNameSpace.LessonsOperations;
+using ToolUtilityNameSpace.LineMessaging;
+using ToolUtilityNameSpace.ListOperations;
+using ToolUtilityNameSpace.MeetingStatisticsOperations;
+using ToolUtilityNameSpace.OwnerOperations;
+using ToolUtilityNameSpace.QueryOperations;
+using ToolUtilityNameSpace.Utilities;
 
 namespace ToolUtilityNameSpace.Core
 {
@@ -71,25 +74,19 @@ namespace ToolUtilityNameSpace.Core
         private Lazy<IPresentRecordQueryService> _presentRecordQueryService;
         private Lazy<IRelationshipQueryService> _relationshipQueryService;
         private Lazy<IFetchXmlQueryService> _fetchXmlQueryService;
+        private Lazy<IOwnerManagementService> _ownerManagementService;
+        private Lazy<IEntityAttributeUtilityService> _entityAttributeUtilityService;
 
         private bool _disposed = false;
 
         /// <summary>
         /// 建構式: 僅接受 logger,organizationService 將透過連接服務方法設定
         /// </summary>
-        public ToolUtilityFacade(object logger = null)
+        public ToolUtilityFacade( IOrganizationService aOrganizationService, object logger = null)
         {
             _logger = logger ?? new object();
 
-            // 初始化連接服務
-            _crmConnectionService = new CrmConnectionService();
-
-            // 使用連接服務建立 CRM 連接
-            var adUrl = "https://" + ORGANIZATION + ".speechmessage.com.tw/XRMServices/2011/Organization.svc";
-            var adUsername = @"SPEECHMESSAGE\Administrator";
-            var adPassword = "hu9840";
-
-            _organizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
+            _organizationService = aOrganizationService;
 
             InitializeServices();
         }
@@ -114,6 +111,8 @@ namespace ToolUtilityNameSpace.Core
                 if (_presentRecordQueryService?.IsValueCreated == true) { var d = _presentRecordQueryService.Value as IDisposable; d?.Dispose(); }
                 if (_relationshipQueryService?.IsValueCreated == true) { var d = _relationshipQueryService.Value as IDisposable; d?.Dispose(); }
                 if (_fetchXmlQueryService?.IsValueCreated == true) { var d = _fetchXmlQueryService.Value as IDisposable; d?.Dispose(); }
+                if (_ownerManagementService?.IsValueCreated == true) { var d = _ownerManagementService.Value as IDisposable; d?.Dispose(); }
+                if (_entityAttributeUtilityService?.IsValueCreated == true) { var d = _entityAttributeUtilityService.Value as IDisposable; d?.Dispose(); }
 
                 (_organizationService as IDisposable)?.Dispose();
             }
@@ -145,6 +144,8 @@ namespace ToolUtilityNameSpace.Core
             _presentRecordQueryService = new Lazy<IPresentRecordQueryService>(() => new PresentRecordQueryService(_logger, _organizationService));
             _relationshipQueryService = new Lazy<IRelationshipQueryService>(() => new RelationshipQueryService(_logger, _organizationService));
             _fetchXmlQueryService = new Lazy<IFetchXmlQueryService>(() => new FetchXmlQueryService(_logger, _organizationService));
+            _ownerManagementService = new Lazy<IOwnerManagementService>(() => new OwnerManagementService(_logger, _organizationService));
+            _entityAttributeUtilityService = new Lazy<IEntityAttributeUtilityService>(() => new EntityAttributeUtilityService(_logger));
         }
 
         /// <summary>
@@ -159,7 +160,8 @@ namespace ToolUtilityNameSpace.Core
                 _appointmentService?.IsValueCreated == true || _lessonsService?.IsValueCreated == true ||
                 _feeService?.IsValueCreated == true || _collectionQueryService?.IsValueCreated == true ||
                 _meetingStatisticsService?.IsValueCreated == true || _presentRecordQueryService?.IsValueCreated == true ||
-                _relationshipQueryService?.IsValueCreated == true || _fetchXmlQueryService?.IsValueCreated == true)
+                _relationshipQueryService?.IsValueCreated == true || _fetchXmlQueryService?.IsValueCreated == true ||
+                _ownerManagementService?.IsValueCreated == true || _entityAttributeUtilityService?.IsValueCreated == true)
             {
                 InitializeServices();
             }
@@ -195,11 +197,20 @@ namespace ToolUtilityNameSpace.Core
         public int GetEntityIntAttribute(Entity entity, string propertyName)
             => _attributeService.Value.GetIntAttribute(entity, propertyName);
 
+        public void SetEntityIntAttribute(ref Entity entity, string propertyName, int value)
+            => _attributeService.Value.SetIntAttribute(ref entity, propertyName, value);
+
         public string GetEntityStringAttribute(Entity entity, string propertyName)
             => _attributeService.Value.GetStringAttribute(entity, propertyName);
 
+        public void SetEntityStringAttribute(ref Entity entity, string propertyName, string value)
+            => _attributeService.Value.SetStringAttribute(ref entity, propertyName, value);
+
         public DateTime GetEntityDateTimeAttribute(Entity entity, string propertyName)
             => _attributeService.Value.GetDateTimeAttribute(entity, propertyName);
+
+        public void SetEntityDateTimeAttribute(ref Entity entity, string propertyName, DateTime value)
+            => _attributeService.Value.SetDateTimeAttribute(ref entity, propertyName, value);
 
         public Money GetEntityMoneyAttribute(Entity entity, string propertyName)
             => _attributeService.Value.GetMoneyAttribute(entity, propertyName);
@@ -215,6 +226,9 @@ namespace ToolUtilityNameSpace.Core
 
         public void SetEntityLookUpAttribute(ref Entity entity, string propertyName, ref EntityReference entityReference)
             => _attributeService.Value.SetLookupAttribute(ref entity, propertyName, ref entityReference);
+
+        public void SetEntityLookUpAttribute(ref Entity entity, string propertyName, string lookupEntityName, Guid guidValue)
+            => _attributeService.Value.SetLookupAttribute(ref entity, propertyName, lookupEntityName, guidValue);
 
         public void SetEntityLookUpToNull(ref Entity entity, string propertyName)
             => _attributeService.Value.SetLookupToNull(ref entity, propertyName);
@@ -321,6 +335,9 @@ namespace ToolUtilityNameSpace.Core
         public Entity RetrieveContactByLineId(string lineId)
             => _contactService.Value.RetrieveByLineId(lineId);
 
+        public EntityCollection RetrieveContactCollectionByLineId(string lineId)
+            => _contactService.Value.RetrieveCollectionByLineId(lineId);
+
         public EntityCollection RetrieveContactCollectionByName(string contactFullName)
             => _contactService.Value.RetrieveCollectionByName(contactFullName);
 
@@ -376,7 +393,7 @@ namespace ToolUtilityNameSpace.Core
         public EntityCollection QueryDediccationContatsByFetchXml(string dedicationNumber, string contactName, string homePhone, string mobile, string nationId, string lastSixDigit)
             => _contactService.Value.QueryDediccationContatsByFetchXml(dedicationNumber, contactName, homePhone, mobile, nationId, lastSixDigit);
 
-        public EntityCollection QueryContatsByStartedDedicationNumber(string dedicationStartNumber)
+        public EntityCollection QueryContatsByStartedDedicationNumber(String dedicationStartNumber)
             => _contactService.Value.QueryContatsByStartedDedicationNumber(dedicationStartNumber);
         #endregion
 
@@ -384,8 +401,17 @@ namespace ToolUtilityNameSpace.Core
         public void AddMembersToMarketingList(Guid listGuid, List<Guid> memberGuidList)
             => _listService.Value.AddMembers(listGuid, memberGuidList);
 
+        public void AddMembersToMarketingList(Guid listGuid, List<Guid> memberGuidList, ref IOrganizationService gCRMService)
+            => _listService.Value.AddMembersUsingSdk(listGuid, memberGuidList, gCRMService);
+
         public void RemoveMembersToMarketingList(Guid listGuid, Guid memberGuid)
             => _listService.Value.RemoveMember(listGuid, memberGuid);
+
+        public void RemoveMembersToMarketingList(Guid listGuid, Guid memberGuid, ref IOrganizationService gCRMService)
+            => _listService.Value.RemoveMemberUsingSdk(listGuid, memberGuid, gCRMService);
+
+        public ArrayList GetAllMemberDataFromList(Guid listEntityId)
+            => _listService.Value.GetAllMemberDataFromList(listEntityId);
 
         // 成員名單查詢方法
         public EntityCollection RetrieveMemberListCollectionByListId(Guid listId)
@@ -689,6 +715,46 @@ namespace ToolUtilityNameSpace.Core
         /// </summary>
         public EntityCollection RetrieveSmallGroupListCollection()
             => _fetchXmlQueryService.Value.RetrieveSmallGroupListCollectionByFetchXml();
+        #endregion
+
+        #region 負責人管理方法 (委派給 OwnerManagementService)
+        /// <summary>
+        /// 取得實體的負責人 ID
+        /// </summary>
+        public Guid GetOwnerId(Entity entity)
+            => _ownerManagementService.Value.GetOwnerId(entity);
+
+        /// <summary>
+        /// 取得實體的負責人名稱
+        /// </summary>
+        public string GetOwnerName(Entity entity)
+            => _ownerManagementService.Value.GetOwnerName(entity);
+
+        /// <summary>
+        /// 指派負責人給實體
+        /// </summary>
+        public void AssignOwner(string entityName, Entity entity, Guid ownerId)
+            => _ownerManagementService.Value.AssignOwner(entityName, entity, ownerId);
+        #endregion
+
+        #region 實體屬性工具方法 (委派給 EntityAttributeUtilityService)
+        /// <summary>
+        /// 取得屬性值（支援 AliasedValue）
+        /// </summary>
+        public string GetAttributeValue(Entity targetEntity, string attributeName)
+            => _entityAttributeUtilityService.Value.GetAttributeValue(targetEntity, attributeName);
+
+        /// <summary>
+        /// 移除實體的指定屬性
+        /// </summary>
+        public void RemoveAttribute(ref Entity entity, string propertyName)
+            => _entityAttributeUtilityService.Value.RemoveAttribute(ref entity, propertyName);
+
+        /// <summary>
+        /// 將實體的指定屬性設為 null
+        /// </summary>
+        public void SetEntityAttributeToNull(ref Entity entity, string propertyName)
+            => _entityAttributeUtilityService.Value.SetEntityAttributeToNull(ref entity, propertyName);
         #endregion
     }
 }

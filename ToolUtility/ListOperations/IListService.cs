@@ -7,8 +7,11 @@ namespace ToolUtilityNameSpace.ListOperations
 {
     public interface IListService
     {
+        // SDK-based member management (recommended for bulk operations)
         void AddMembers(Guid listGuid, List<Guid> memberGuidList);
+        void AddMembersUsingSdk(Guid listGuid, List<Guid> memberGuidList, IOrganizationService service);
         void RemoveMember(Guid listGuid, Guid memberGuid);
+        void RemoveMemberUsingSdk(Guid listGuid, Guid memberGuid, IOrganizationService service);
 
         // Member list retrieval
         EntityCollection RetrieveMemberListCollectionByListId(Guid listId);
@@ -38,7 +41,7 @@ namespace ToolUtilityNameSpace.ListOperations
         EntityCollection RetrieveListByContact(string contactName);
         
         /// <summary>
-        /// 根據競賽領袖查詢名單
+        /// 根據賽跑領袖查詢名單
         /// </summary>
         EntityCollection RetrieveListByRacerLeader(string contactName, string contactId);
     }

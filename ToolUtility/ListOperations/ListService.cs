@@ -9,6 +9,7 @@ using Microsoft.Xrm.Sdk.Query;
 using System.Collections;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Crm.Sdk.Messages;
 
 namespace ToolUtilityNameSpace.ListOperations
 {
@@ -41,6 +42,29 @@ namespace ToolUtilityNameSpace.ListOperations
             }
         }
 
+        /// <summary>
+        /// 使用 CRM SDK AddListMembersListRequest 批次新增成員到行銷名單
+        /// </summary>
+        public void AddMembersUsingSdk(Guid listGuid, List<Guid> memberGuidList, IOrganizationService service)
+        {
+            if (memberGuidList == null || memberGuidList.Count == 0) return;
+            
+            try
+            {
+                var request = new AddListMembersListRequest
+                {
+                    ListId = listGuid,
+                    MemberIds = memberGuidList.ToArray()
+                };
+                service.Execute(request);
+            }
+            catch (Exception ex)
+            {
+                // Log error and potentially fall back to individual adds
+                throw new InvalidOperationException($"Failed to add members to list {listGuid}", ex);
+            }
+        }
+
         public void RemoveMember(Guid listGuid, Guid memberGuid)
         {
             // Query listmember records matching list + member, then delete
@@ -52,6 +76,26 @@ namespace ToolUtilityNameSpace.ListOperations
             foreach (var lm in coll.Entities)
             {
                 _organizationService.Delete("listmember", lm.Id);
+            }
+        }
+
+        /// <summary>
+        /// 使用 CRM SDK RemoveMemberListRequest 從行銷名單移除成員
+        /// </summary>
+        public void RemoveMemberUsingSdk(Guid listGuid, Guid memberGuid, IOrganizationService service)
+        {
+            try
+            {
+                var request = new RemoveMemberListRequest
+                {
+                    ListId = listGuid,
+                    EntityId = memberGuid
+                };
+                service.Execute(request);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to remove member {memberGuid} from list {listGuid}", ex);
             }
         }
 
@@ -118,9 +162,44 @@ namespace ToolUtilityNameSpace.ListOperations
         public ArrayList GetAllMemberDataFromList(Guid listEntityId)
         {
             var members = new ArrayList();
-            var coll = RetrieveMemberListCollectionByListId(listEntityId);
-            foreach (var e in coll.Entities)
-                members.Add(e);
+            
+            // 先取得名單實體以判斷是靜態或動態名單
+            var listEntity = _queryService.RetrieveEntity("list", listEntityId);
+            if (listEntity == null) return members;
+
+            bool isStaticList = false;
+            if (listEntity.Attributes.Contains("type"))
+            {
+                isStaticList = !listEntity.GetAttributeValue<bool>("type");
+            }
+
+            EntityCollection memberCollection;
+            if (isStaticList)
+            {
+                // 靜態名單
+                memberCollection = RetrieveMemberListCollectionByListId(listEntityId);
+                foreach (Entity memberEntity in memberCollection.Entities)
+                {
+                    if (memberEntity.Attributes.Contains("entityid"))
+                    {
+                        var entityRef = (EntityReference)memberEntity.Attributes["entityid"];
+                        members.Add(entityRef.Id);
+                    }
+                }
+            }
+            else
+            {
+                // 動態名單
+                memberCollection = RetrieveDynamicMemberList(listEntityId);
+                foreach (Entity memberEntity in memberCollection.Entities)
+                {
+                    if (memberEntity.Attributes.Contains("contactid"))
+                    {
+                        members.Add((Guid)memberEntity.Attributes["contactid"]);
+                    }
+                }
+            }
+
             return members;
         }
 

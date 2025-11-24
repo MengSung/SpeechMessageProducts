@@ -9,6 +9,7 @@ namespace ToolUtilityNameSpace.ContactOperations
         // Basic retrievals
         Entity RetrieveByContactId(string contactId);
         Entity RetrieveByLineId(string lineId);
+        EntityCollection RetrieveCollectionByLineId(string lineId);
         EntityCollection RetrieveCollectionByName(string contactFullName);
         Entity RetrieveByAccountNumber(string accountNumber, string password);
 
