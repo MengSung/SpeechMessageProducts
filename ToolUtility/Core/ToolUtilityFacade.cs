@@ -19,6 +19,7 @@ using ToolUtilityNameSpace.FeeOperations;
 using ToolUtilityNameSpace.CollectionOperations;
 using ToolUtilityNameSpace.MeetingStatisticsOperations;
 using ToolUtilityNameSpace.ConnectionOperations;
+using ToolUtilityNameSpace.QueryOperations;
 using System.ServiceModel.Description;
 
 namespace ToolUtilityNameSpace.Core
@@ -31,7 +32,27 @@ namespace ToolUtilityNameSpace.Core
     /// </summary>
     public class ToolUtilityFacade : IDisposable
     {
+        #region 聖谷行道會(雲端機房)
+        private const String SERVER = "speechmessage.com.tw";
+        private const String PORT = "7777";
+        private const String ORGANIZATION = "sunnyvalech";
+        private const String USERNAME = "Administrator@speechmessage.com.tw";
+        private const String PASSWORD = "hu9840";
+        private const String DOMAIN = "DYNAMICS-365";
+        #endregion
+
+        #region 聖谷行道會(公司內部發展)
+        //private const String SERVER = "speechmessage.com.tw";
+        //private const String PORT = "7777";
+        //private const String ORGANIZATION = "sunnyvalechback";
+        //private const String USERNAME = "Administrator@speechmessage.com.tw";
+        //private const String PASSWORD = "hu9840";
+        //private const String DOMAIN = "SPEECHMESSAGE";
+        #endregion
+
         private readonly object _logger;
+        private readonly ICrmConnectionService _crmConnectionService;
+
         private IOrganizationService _organizationService; // 改為可變更,由連接服務方法設定
 
         private Lazy<IEntityQueryService> _queryService;
@@ -47,17 +68,28 @@ namespace ToolUtilityNameSpace.Core
         private Lazy<ICollectionQueryService> _collectionQueryService;
         private Lazy<IMeetingStatisticsService> _meetingStatisticsService;
         private Lazy<ICrmConnectionService> _connectionService;
+        private Lazy<IPresentRecordQueryService> _presentRecordQueryService;
+        private Lazy<IRelationshipQueryService> _relationshipQueryService;
+        private Lazy<IFetchXmlQueryService> _fetchXmlQueryService;
 
         private bool _disposed = false;
 
         /// <summary>
         /// 建構式: 僅接受 logger,organizationService 將透過連接服務方法設定
         /// </summary>
-        public ToolUtilityFacade(object logger = null, IOrganizationService aCrm2011OrganizationService= null)
+        public ToolUtilityFacade(object logger = null)
         {
             _logger = logger ?? new object();
 
-            _organizationService = aCrm2011OrganizationService; // 初始為 null,待連接服務方法設定
+            // 初始化連接服務
+            _crmConnectionService = new CrmConnectionService();
+
+            // 使用連接服務建立 CRM 連接
+            var adUrl = "https://" + ORGANIZATION + ".speechmessage.com.tw/XRMServices/2011/Organization.svc";
+            var adUsername = @"SPEECHMESSAGE\Administrator";
+            var adPassword = "hu9840";
+
+            _organizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
 
             InitializeServices();
         }
@@ -79,6 +111,9 @@ namespace ToolUtilityNameSpace.Core
                 if (_feeService?.IsValueCreated == true) { var d = _feeService.Value as IDisposable; d?.Dispose(); }
                 if (_meetingStatisticsService?.IsValueCreated == true) { var d = _meetingStatisticsService.Value as IDisposable; d?.Dispose(); }
                 if (_connectionService?.IsValueCreated == true) { var d = _connectionService.Value as IDisposable; d?.Dispose(); }
+                if (_presentRecordQueryService?.IsValueCreated == true) { var d = _presentRecordQueryService.Value as IDisposable; d?.Dispose(); }
+                if (_relationshipQueryService?.IsValueCreated == true) { var d = _relationshipQueryService.Value as IDisposable; d?.Dispose(); }
+                if (_fetchXmlQueryService?.IsValueCreated == true) { var d = _fetchXmlQueryService.Value as IDisposable; d?.Dispose(); }
 
                 (_organizationService as IDisposable)?.Dispose();
             }
@@ -107,6 +142,9 @@ namespace ToolUtilityNameSpace.Core
             _collectionQueryService = new Lazy<ICollectionQueryService>(() => new CollectionQueryService(_logger, _organizationService));
             _meetingStatisticsService = new Lazy<IMeetingStatisticsService>(() => new MeetingStatisticsService(_logger, _organizationService));
             _connectionService = new Lazy<ICrmConnectionService>(() => new CrmConnectionService());
+            _presentRecordQueryService = new Lazy<IPresentRecordQueryService>(() => new PresentRecordQueryService(_logger, _organizationService));
+            _relationshipQueryService = new Lazy<IRelationshipQueryService>(() => new RelationshipQueryService(_logger, _organizationService));
+            _fetchXmlQueryService = new Lazy<IFetchXmlQueryService>(() => new FetchXmlQueryService(_logger, _organizationService));
         }
 
         /// <summary>
@@ -120,7 +158,8 @@ namespace ToolUtilityNameSpace.Core
                 _attachmentService?.IsValueCreated == true || _lineMessageService?.IsValueCreated == true ||
                 _appointmentService?.IsValueCreated == true || _lessonsService?.IsValueCreated == true ||
                 _feeService?.IsValueCreated == true || _collectionQueryService?.IsValueCreated == true ||
-                _meetingStatisticsService?.IsValueCreated == true)
+                _meetingStatisticsService?.IsValueCreated == true || _presentRecordQueryService?.IsValueCreated == true ||
+                _relationshipQueryService?.IsValueCreated == true || _fetchXmlQueryService?.IsValueCreated == true)
             {
                 InitializeServices();
             }
@@ -511,6 +550,145 @@ namespace ToolUtilityNameSpace.Core
 
         public EntityCollection RetrieveDedicationFeeByDateFetchXml(string contactName, string contactId, DateTime startDate, DateTime endDate)
             => _feeService.Value.RetrieveDedicationFeeByDateRange(contactName, contactId, startDate, endDate);
+        #endregion
+
+        #region 個人聚會與靈修記錄查詢方法 (委派給 PresentRecordQueryService)
+        /// <summary>
+        /// 搜尋主日日期是最近N週的靈修單
+        /// </summary>
+        public EntityCollection QueryPresentRecordByContactIdAndSunday(Guid listEntityId, Guid contactId, int weekPeriod)
+            => _presentRecordQueryService.Value.QueryPresentRecordByContactIdAndSunday(listEntityId, contactId, weekPeriod);
+
+        /// <summary>
+        /// 根據主日日期排序查詢出席記錄
+        /// </summary>
+        public EntityCollection QueryPresentRecordSortBySunday(string parentEntityName, string parentEntityIdName,
+            string parentEntityId, string associationName, string childEntityName)
+            => _presentRecordQueryService.Value.QueryPresentRecordSortBySunday(parentEntityName, parentEntityIdName, parentEntityId, associationName, childEntityName);
+
+        /// <summary>
+        /// 使用 FetchXML 查詢最近N週的出席記錄
+        /// </summary>
+        public EntityCollection QueryPresentRecordSortBySundayFetchXml(int lastWeeks, string contactName, string contactId)
+            => _presentRecordQueryService.Value.QueryPresentRecordSortBySundayFetchXml(lastWeeks, contactName, contactId);
+
+        /// <summary>
+        /// 根據週報和聯絡人ID查詢出席記錄
+        /// </summary>
+        public EntityCollection QueryPresentRecordInWeeklyReportByContactId(Guid contactId, Guid weeklyReportEntityId)
+            => _presentRecordQueryService.Value.QueryPresentRecordInWeeklyReportByContactId(contactId, weeklyReportEntityId);
+
+        /// <summary>
+        /// 根據日期範圍查詢實體清單
+        /// </summary>
+        public EntityCollection QueryEntityListByDate(string parentEntityName, string parentEntityIdName,
+            string parentEntityId, string associationName, string childEntityName)
+            => _presentRecordQueryService.Value.QueryEntityListByDate(parentEntityName, parentEntityIdName, parentEntityId, associationName, childEntityName);
+
+        /// <summary>
+        /// 查詢週報(根據主日日期)
+        /// </summary>
+        public EntityCollection QueryWeeklyReportBySunday(DateTime sunday, Guid listEntityId)
+            => _presentRecordQueryService.Value.QueryWeeklyReportBySunday(sunday, listEntityId);
+
+        /// <summary>
+        /// 查詢週報(主日日期前兩個月)
+        /// </summary>
+        public EntityCollection QueryWeeklyReportBeforeTwoMonthOfSunday(DateTime sunday, Guid listEntityId)
+            => _presentRecordQueryService.Value.QueryWeeklyReportBeforeTwoMonthOfSunday(sunday, listEntityId);
+
+        /// <summary>
+        /// 根據聯絡人ID查詢名單
+        /// </summary>
+        public EntityCollection QueryListByContactId(Guid contactId, string associationName)
+            => _presentRecordQueryService.Value.QueryListByContactId(contactId, associationName);
+        #endregion
+
+        #region 關聯查詢方法 (委派給 RelationshipQueryService)
+        /// <summary>
+        /// 查詢 N:1 關聯的集合
+        /// </summary>
+        public EntityCollection RetrieveManyToOneRelationship(string parentEntityName, string parentEntityIdName,
+            string parentEntityId, string associationName, string childEntityName)
+            => _relationshipQueryService.Value.RetrieveManyToOneRelationship(parentEntityName, parentEntityIdName, parentEntityId, associationName, childEntityName);
+
+        /// <summary>
+        /// 查詢 N:1 關聯的集合(根據名稱排序)
+        /// </summary>
+        public EntityCollection QueryListsAndOrderedByListName(string parentEntityName, string parentEntityIdName,
+            string parentEntityId, string associationName, string childEntityName)
+            => _relationshipQueryService.Value.QueryListsAndOrderedByListName(parentEntityName, parentEntityIdName, parentEntityId, associationName, childEntityName);
+
+        /// <summary>
+        /// 查詢 N:1 關聯(使用 LinkEntity 取得關聯資料)
+        /// </summary>
+        public EntityCollection RetrieveManyToOneWithLinkEntity()
+            => _relationshipQueryService.Value.RetrieveManyToOneWithLinkEntity();
+
+        /// <summary>
+        /// 查詢週報(根據主日日期和N:1關聯)
+        /// </summary>
+        public EntityCollection QueryWeeklyReportBySunday(DateTime sunday, string parentEntityName,
+            string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
+            => _relationshipQueryService.Value.QueryWeeklyReportBySunday(sunday, parentEntityName, parentEntityIdName, parentEntityId, associationName, childEntityName);
+
+        /// <summary>
+        /// 查詢 N:N (ManyToMany) 的集合
+        /// </summary>
+        public EntityCollection QueryManyToMany(string conditionAttributeName, string entityNameToSearch,
+            string linkFromEntityName, string linkFromAttributeName, string linkToEntityName,
+            string linkToAttributeName, string attributeName, Guid entityIdValue)
+            => _relationshipQueryService.Value.QueryManyToMany(conditionAttributeName, entityNameToSearch, linkFromEntityName, linkFromAttributeName, linkToEntityName, linkToAttributeName, attributeName, entityIdValue);
+
+        /// <summary>
+        /// 連絡人相關的各類名單 (N:N查詢)
+        /// </summary>
+        public EntityCollection QueryListOfContactManyToMany(Guid contactId)
+            => _relationshipQueryService.Value.QueryListOfContactManyToMany(contactId);
+        #endregion
+
+        #region FetchXML 查詢方法 (委派給 FetchXmlQueryService)
+        /// <summary>
+        /// 根據聯絡人查詢學員上課記錄 (使用 FetchXML)
+        /// </summary>
+        public EntityCollection RetrieveStorLessonsByContact(string contactName, string contactId)
+            => _fetchXmlQueryService.Value.RetrieveStorLessonsByFetchXml(contactName, contactId);
+
+        /// <summary>
+        /// 根據課程查詢學員上課記錄 (使用 FetchXML)
+        /// </summary>
+        public EntityCollection RetrieveStorLessonsByDiscipleLessons(string lessonName, string lessonId)
+            => _fetchXmlQueryService.Value.RetrieveStorLessonsByDiscipleLessonsFetchXml(lessonName, lessonId);
+
+        /// <summary>
+        /// 根據聯絡人查詢認獻記錄 (使用 FetchXML)
+        /// </summary>
+        public EntityCollection RetrieveDedicationBooking(string contactName, string contactId)
+            => _fetchXmlQueryService.Value.RetrieveDedicationBookingByFetchXml(contactName, contactId);
+
+        /// <summary>
+        /// 根據主日日期查詢聚會統計記錄 (使用 FetchXML)
+        /// </summary>
+        public EntityCollection RetrieveMeetingStatistics(DateTime sundayDate)
+            => _fetchXmlQueryService.Value.RetrieveMeetingStatisticsByFetchXml(sundayDate);
+
+        /// <summary>
+        /// 根據認獻預約和繳費期間查詢收費單 (使用 FetchXML)
+        /// </summary>
+        public EntityCollection RetrieveFee(string dedicationBookingName, string dedicationBookingId, string paidPeriod)
+            => _fetchXmlQueryService.Value.RetrieveFeeByFetchXml(dedicationBookingName, dedicationBookingId, paidPeriod);
+
+        /// <summary>
+        /// 查詢所有需要點名的小組名單 (使用 FetchXML)
+        /// </summary>
+        public EntityCollection RetrieveAllLists()
+            => _fetchXmlQueryService.Value.RetrieveListByFetchXml();
+
+        /// <summary>
+        /// 查詢所有小組名單集合 (使用 FetchXML)
+        /// </summary>
+        public EntityCollection RetrieveSmallGroupListCollection()
+            => _fetchXmlQueryService.Value.RetrieveSmallGroupListCollectionByFetchXml();
         #endregion
     }
 }

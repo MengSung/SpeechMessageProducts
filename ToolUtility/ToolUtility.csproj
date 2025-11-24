@@ -118,6 +118,9 @@
     <Compile Include="FeeOperations\FeeService.cs" />
     <Compile Include="FeeOperations\IFeeService.cs" />
     <Compile Include="Interfaces\ICrmClient.cs" />
+    <Compile Include="Interfaces\IFetchXmlQueryService.cs" />
+    <Compile Include="Interfaces\IPresentRecordQueryService.cs" />
+    <Compile Include="Interfaces\IRelationshipQueryService.cs" />
     <Compile Include="LessonsOperations\ILessonsService.cs" />
     <Compile Include="LessonsOperations\LessonsService.cs" />
     <Compile Include="LineMessaging\ILineMessageService.cs" />
@@ -130,7 +133,10 @@
     <Compile Include="PushUtility.cs" />
     <None Include="ToolUtilityClass.cs_原始檔案.md" />
     <Compile Include="QueryOperations\ComplexQueryService.cs" />
+    <Compile Include="QueryOperations\FetchXmlQueryService.cs" />
     <Compile Include="QueryOperations\IComplexQueryService.cs" />
+    <Compile Include="QueryOperations\PresentRecordQueryService.cs" />
+    <Compile Include="QueryOperations\RelationshipQueryService.cs" />
     <Compile Include="ToolUtilityClass_Half_Way.cs" />
     <Compile Include="ToolUtilityClass_Original.cs" />
     <Compile Include="ToolUtilityClass_Developing.cs" />
@@ -138,6 +144,7 @@
     <Compile Include="ToolUtilityStaticGlobal.cs" />
     <Compile Include="Utilities\StringUtility.cs" />
     <Compile Include="Utilities\TraceUtility.cs" />
+    <None Include="文件\ToolUtilityClass_Developing重構總結.md" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
