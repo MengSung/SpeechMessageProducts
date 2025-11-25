@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinePayCSharp", "LinePayCSh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PowerPlatform.Dataverse.Client", "PowerPlatform.Dataverse.Client\PowerPlatform.Dataverse.Client.csproj", "{F7624121-F809-99FA-8591-0F431EB65992}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolUtility", "ToolUtility\ToolUtility.csproj", "{A79B2089-1A52-ECA4-4F7A-F366689807C5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_LearnCrm|Any CPU = Debug_LearnCrm|Any CPU
@@ -84,6 +86,16 @@ Global
 		{F7624121-F809-99FA-8591-0F431EB65992}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F7624121-F809-99FA-8591-0F431EB65992}.Test_Exchange_Service|Any CPU.ActiveCfg = Debug|Any CPU
 		{F7624121-F809-99FA-8591-0F431EB65992}.Test_Exchange_Service|Any CPU.Build.0 = Debug|Any CPU
+		{A79B2089-1A52-ECA4-4F7A-F366689807C5}.Debug_LearnCrm|Any CPU.ActiveCfg = Debug|Any CPU
+		{A79B2089-1A52-ECA4-4F7A-F366689807C5}.Debug_LearnCrm|Any CPU.Build.0 = Debug|Any CPU
+		{A79B2089-1A52-ECA4-4F7A-F366689807C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A79B2089-1A52-ECA4-4F7A-F366689807C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A79B2089-1A52-ECA4-4F7A-F366689807C5}.DebugOracleConnector|Any CPU.ActiveCfg = Debug|Any CPU
+		{A79B2089-1A52-ECA4-4F7A-F366689807C5}.DebugOracleConnector|Any CPU.Build.0 = Debug|Any CPU
+		{A79B2089-1A52-ECA4-4F7A-F366689807C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A79B2089-1A52-ECA4-4F7A-F366689807C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A79B2089-1A52-ECA4-4F7A-F366689807C5}.Test_Exchange_Service|Any CPU.ActiveCfg = Debug|Any CPU
+		{A79B2089-1A52-ECA4-4F7A-F366689807C5}.Test_Exchange_Service|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -5,8 +5,8 @@
     <RootNamespace>ToolUtility</RootNamespace>
     <AssemblyName>ToolUtility</AssemblyName>
     <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
