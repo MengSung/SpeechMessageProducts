@@ -15,14 +15,10 @@ using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 using System.Text.RegularExpressions;
 using ToolUtility;
 using Line.Messaging;
-using ChurchReport.Models;
-using ChurchReport.ViewModel;
-using ChurchReport.Tools;
-using PushUtility = ToolUtility.PushUtility;
-#endregion
 
 namespace ChurchReport.WebServiceConnector
 {
@@ -30,7 +26,8 @@ namespace ChurchReport.WebServiceConnector
     {
         #region 資料區
         #region 參數資料
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
+        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
         private LineMessagingClient m_LineMessagingClient { get; set; }
 

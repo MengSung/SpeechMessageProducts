@@ -29,7 +29,7 @@ using static System.Net.WebRequestMethods;
 
 namespace ToolUtilityNameSpace
 {
-    public class ToolUtilityClass
+    public class ToolUtilityClass : IDisposable
     {
         #region 資料區
         //private const String CRM_TYPE = "CRM2011";
@@ -126,8 +126,12 @@ namespace ToolUtilityNameSpace
 
 
         #endregion
-        #region 建構式
-        public ToolUtilityClass()
+        #region 建構式 - 設為 internal，只能通過 Factory 創建
+        
+        /// <summary>
+        /// 內部建構函數 - 只能通過 ToolUtilityFactory 創建實例
+        /// </summary>
+        internal ToolUtilityClass()
         {
             // 初始化連接服務
             _crmConnectionService = new CrmConnectionService();
@@ -164,7 +168,11 @@ namespace ToolUtilityNameSpace
 
         }
 
-        public ToolUtilityClass(String DiscoveryServiceType)
+        /// <summary>
+        /// 內部建構函數 - 只能通過 ToolUtilityFactory 創建實例
+        /// </summary>
+        /// <param name="DiscoveryServiceType">Discovery Service 類型</param>
+        internal ToolUtilityClass(String DiscoveryServiceType)
         {
             // 初始化連接服務
             _crmConnectionService = new CrmConnectionService();
