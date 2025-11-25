@@ -139,6 +139,14 @@ namespace ToolUtilityNameSpace
             #region 追蹤專用變數
             m_TraceLogFile = TRACE_DIRECTOR;
             m_XmlFileStream = new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            
+            // .NET 5+ 需要註冊 CodePages 編碼提供者才能使用 big5
+#if !NET462 && !NETFRAMEWORK
+            // 註冊編碼提供者（僅在 .NET 5+ 需要）
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
+            
+            // 現在可以安全使用 big5 編碼
             m_XmlFileStreamWriter = new StreamWriter(m_XmlFileStream, Encoding.GetEncoding("big5"));
             m_Listener = new BugslayerTextWriterTraceListener(m_XmlFileStreamWriter);
 
@@ -162,10 +170,6 @@ namespace ToolUtilityNameSpace
 
             // 初始化 Facade (不傳入 organizationService)
             _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
-            //_facade = new ToolUtilityFacade();
-            // 透過 Facade 的連接服務方法設定 organizationService
-            //_facade.SetOrganizationService(SERVER, PORT, ORGANIZATION, DOMAIN, adUsername, adPassword);
-
         }
 
         /// <summary>
