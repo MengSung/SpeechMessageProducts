@@ -7,6 +7,7 @@ using Microsoft.Xrm.Sdk;
 using ChurchReport.Models;
 
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 
@@ -16,7 +17,8 @@ namespace ChurchReport.WebServiceConnector
     {
         LinePayClient m_LinePayClient;
 
-        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
+        ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
         // 客製化
         private const String CONFIRM_URL = "https://nankanchurch.speechmessage.com.tw:335/api/callback/Confirm";

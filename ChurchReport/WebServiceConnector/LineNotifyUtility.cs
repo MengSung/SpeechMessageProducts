@@ -44,9 +44,6 @@ namespace ChurchReport.WebServiceConnector
             // 聖谷行道會(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
-            //m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
-            //m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
-
             // 客製化
             m_PushUtility = new PushUtility(m_LineMessagingClient);
             //m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);

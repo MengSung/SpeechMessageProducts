@@ -15,6 +15,7 @@ using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 using System.Text.RegularExpressions;
 using ChurchReport.ViewModels;
 #endregion
@@ -25,7 +26,8 @@ namespace ChurchReport.WebServiceConnector
     {
         #region 資料區
         #region 參數資料
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
+        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
         //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
         private static Regex DigitsOnly = new Regex(@"[^\d]");
@@ -623,7 +625,7 @@ namespace ChurchReport.WebServiceConnector
             aPersonalInfomationViewModel.LastSixDigit = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_last_six_digit");// 銀行帳戶後六碼
             //aPersonalInfomationViewModel.NtbtOrNot = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aContactEntity, "new_ntbt_ornot");// 是否上傳國稅局
             aPersonalInfomationViewModel.Address = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "address2_line1");// 地址
-            aPersonalInfomationViewModel.PersonalId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_personal_id");// 身份證字號
+            aPersonalInfomationViewModel.PersonalId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_personal_id");// 身分證字號
 
             aPersonalInfomationViewModel.NtbtOrNot = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aContactEntity, "new_ntbt_ornot") == true ? "是" : "否";// 是否上傳國稅局
 
