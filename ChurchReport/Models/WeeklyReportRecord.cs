@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 
 namespace ChurchReport.Models
 {
@@ -35,7 +36,8 @@ namespace ChurchReport.Models
 
         #endregion
         #region 參數資料
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
+        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
         #endregion
         #region 類別資料
         public String ListEntityId { get; set; } // 小組 ID

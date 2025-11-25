@@ -59,6 +59,10 @@ FOLLOW D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊�
 將 D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ 及包含子目錄所有包含 new ToolUtilityClass的 *.cs檔案 實現Singleton模式，Factory模式，Dependency Injection模式，ToolUtilityClass 確保只能通過 Factory 創建Instance 一次，善用設計模式、堅守LINUS代碼原則，不要新增任何說明文件.md檔
 將所有包含 new ToolUtilityClass，更改為實現Singleton模式，Factory模式，Dependency Injection模式，ToolUtilityClass 確保只能通過 Factory 創建Instance 一次，善用設計模式、堅守LINUS代碼原則，不可以再有任何new ToolUtilityClass，不要新增任何說明文件.md檔
 
+將D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Tools\及包含子目錄所有的 .cs檔案，
+所有包含 new ToolUtilityClass，更改為實現Singleton模式，Factory模式，Dependency Injection模式，ToolUtilityClass 確保只能通過 Factory 創建Instance 一次，善用設計模式、堅守LINUS代碼原則，不可以再有任何new ToolUtilityClass，不要新增任何說明文件.md檔
+
+
 不可以再有任何new ToolUtilityClass
 
 

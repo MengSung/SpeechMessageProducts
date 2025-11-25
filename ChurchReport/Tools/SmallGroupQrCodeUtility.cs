@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 
 #region Dynamics 365 Microsoft.Xrm.Sdk.dll
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
@@ -15,7 +16,6 @@ using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Messages;
-using ToolUtilityNameSpace;
 using System.Text.RegularExpressions;
 using ChurchReport.Models;
 using Line.Messaging;
@@ -33,7 +33,8 @@ namespace ChurchReport.Tools
         // 小組實體
         Entity m_SmallGroupList;
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
+        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
         //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
         private LineMessagingClient m_LineMessagingClient { get; set; }
 

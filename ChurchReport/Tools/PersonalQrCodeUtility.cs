@@ -1,5 +1,6 @@
 ﻿using System;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 //using ChurchReport.Tools.WeeklyReportProcessor;
 
 #region Dynamics 365 Microsoft.Xrm.Sdk.dll
@@ -19,8 +20,8 @@ namespace ChurchReport.Tools
         Entity m_ScannerContact;// 掃描者
         Entity m_Contact; //被掃描者
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
-        //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
+        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
         private LineMessagingClient m_LineMessagingClient { get; set; }
 
         private PushUtility m_PushUtility { get; set; }

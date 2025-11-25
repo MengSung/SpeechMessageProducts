@@ -6,6 +6,7 @@ using QPay.Domain;
 using System;
 using System.Collections.Generic;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 
 
 namespace ChurchReport.Tools
@@ -21,6 +22,7 @@ namespace ChurchReport.Tools
 
         private QPayProcessor m_QPayProcessor { get; }
 
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
         ToolUtilityClass m_ToolUtilityClass;
 
         // 客製化
@@ -41,7 +43,8 @@ namespace ChurchReport.Tools
 
             m_QPayProcessor = new QPayProcessor(m_LineMessagingClient, m_PushUtility, m_ReplyUtility);
 
-            m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+            // 透過 Factory 取得 ToolUtilityClass 單一實例
+            m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
         }
 

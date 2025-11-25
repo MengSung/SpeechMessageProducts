@@ -1516,6 +1516,224 @@ namespace ChurchReport.WebServiceConnector
                     return "未受洗(籍不在)";
             }
         }
+
+        private String ConvertIndexToClearIdentity(int Identity)
+        {
+            return ConvertIndexToIdentity(Identity);
+        }
+
+        private String ConvertIndexToFollowUpWeekPicker(int OptionValue)
+        {
+            switch (OptionValue)
+            {
+                case 100000000: return "一";
+                case 100000001: return "二";
+                case 100000002: return "三";
+                case 100000003: return "四";
+                case 100000004: return "五";
+                case 100000005: return "六";
+                case 100000006: return "七";
+                case 100000007: return "八";
+                case 100000008: return "九";
+                case 100000009: return "十";
+                case 100000010: return "十一";
+                case 100000011: return "十二";
+                case 100000012: return "十三";
+                case 100000013: return "十四";
+                case 100000014: return "十五";
+                case 100000015: return "十六";
+                case 100000016: return "十七";
+                case 100000017: return "十八";
+                case 100000018: return "十九";
+                case 100000019: return "二十";
+                default: return "未選擇";
+            }
+        }
+
+        private String ConvertIndexToFollowUpResultPicker(int OptionValue)
+        {
+            switch (OptionValue)
+            {
+                case 100000000: return "請選擇";
+                case 100000001: return "熱情回應";
+                case 100000002: return "渴慕認識信仰";
+                case 100000003: return "沒聯絡上";
+                case 100000004: return "反應冷淡";
+                case 100000005: return "考慮中，繼續跟進";
+                case 100000006: return "入小組";
+                case 100000007: return "來主日";
+                case 100000008: return "轉介";
+                case 100000009: return "其他";
+                default: return "請選擇";
+            }
+        }
+
+        private String ConvertIndexToFollowUpNextStepPicker(int OptionValue)
+        {
+            switch (OptionValue)
+            {
+                case 100000000: return "請選擇";
+                case 100000001: return "繼續跟進";
+                case 100000002: return "轉介";
+                default: return "請選擇";
+            }
+        }
+
+        private String ConvertIndexToFollowUpOptionPicker(int OptionValue)
+        {
+            switch (OptionValue)
+            {
+                case 100000000: return "電話";
+                case 100000001: return "探訪";
+                case 100000002: return "Line/FB";
+                case 100000003: return "出遊/吃飯";
+                case 100000004: return "懷鄉/其他課程";
+                case 100000005: return "約談";
+                case 100000006: return "沒跟進";
+                case 100000007: return "其他";
+                default: return "未選擇";
+            }
+        }
+
+        private String GetNewComerFollowupInfo(Guid contactId, ref String followUpWeek)
+        {
+            return "";
+        }
+
+        private void SetSmallGroupData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData = new SmallGroupData();
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members = new List<Member>();
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.LoginType = aListSmallGroupWeeklyReport.LoginType;
+            
+            if (aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData != null && 
+                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members != null)
+            {
+                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members = 
+                    aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members;
+            }
+        }
+
+        private void SetNewPersonFollowUpData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData = new SmallGroupData();
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members = new List<Member>();
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.LoginType = aListSmallGroupWeeklyReport.LoginType;
+            
+            if (aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData != null && 
+                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members != null)
+            {
+                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members = 
+                    aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members
+                    .Where(m => m.Status == "08. 新朋友" || m.Status == "07. 未入組").ToList();
+            }
+        }
+
+        private void SetHappyGroupData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup = new SmallGroupData();
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members = new List<Member>();
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.LoginType = aListSmallGroupWeeklyReport.LoginType;
+            
+            if (aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData != null && 
+                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members != null)
+            {
+                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members = 
+                    aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members;
+            }
+        }
+
+        private void GetAllMemberDataFromList(String listEntityName, Guid listEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", listEntityId);
+            bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
+            
+            EntityCollection MemberCollection;
+            if (ListType == false)
+            {
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, listEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, listEntityId);
+                }
+            }
+            else
+            {
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, listEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, listEntityId);
+                }
+            }
+
+            foreach (Entity MemberEntity in MemberCollection.Entities)
+            {
+                Entity ContactEntity;
+                if (ListType == false)
+                {
+                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                }
+                else
+                {
+                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                }
+
+                if (ContactEntity.Attributes.Contains("statecode"))
+                {
+                    OptionSetValue aOptionState = ContactEntity.Attributes["statecode"] as OptionSetValue;
+                    if (aOptionState.Value == 0)
+                    {
+                        String FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "fullname");
+                        String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref ContactEntity, "customertypecode"));
+                        
+                        if (aIdentity != "10. 結案")
+                        {
+                            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(new Member
+                            {
+                                ContactId = ContactEntity.Id.ToString(),
+                                Group = listEntityName,
+                                FullName = FullName,
+                                Status = aIdentity,
+                                SmallGroupName = listEntityName,
+                                Phone = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "mobilephone"), ""),
+                                Sunday = false,
+                                SmallGroup = false,
+                                Decision = false
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        private void SetAllMemberDataByPersonalReport(String listEntityName, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            if (this.m_ContactEntity != null)
+            {
+                String FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
+                String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref m_ContactEntity, "customertypecode"));
+                
+                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(new Member
+                {
+                    ContactId = this.m_ContactEntity.Id.ToString(),
+                    Group = listEntityName,
+                    FullName = FullName,
+                    Status = aIdentity,
+                    SmallGroupName = listEntityName,
+                    Phone = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "mobilephone"), ""),
+                    Sunday = false,
+                    SmallGroup = false,
+                    Decision = false
+                });
+            }
+        }
+        #endregion
         #endregion
     }
 }
