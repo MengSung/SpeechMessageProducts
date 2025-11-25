@@ -15,6 +15,7 @@ using System.Linq;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using ToolUtilityNameSpace.DependencyInjection;
+using ToolUtilityNameSpace.ConnectionOperations;
 
 namespace ChurchReport
 {
@@ -31,6 +32,28 @@ namespace ChurchReport
         public void ConfigureServices(IServiceCollection services)
         {
             // ========================================
+            // 註冊 CRM 連接池 (Singleton 模式)
+            // ========================================
+            services.AddSingleton<ICrmConnectionPool>(sp =>
+            {
+                var connectionService = new CrmConnectionService();
+                var serverUrl = "https://sunnyvalech.speechmessage.com.tw/XRMServices/2011/Organization.svc";
+                var username = @"SPEECHMESSAGE\Administrator";
+                var password = "hu9840";
+
+                return new CrmConnectionPool(
+                    connectionService,
+                    serverUrl,
+                    username,
+                    password,
+                    minPoolSize: 3,      // 最小連接數：預先創建 3 個連接
+                    maxPoolSize: 20,     // 最大連接數：最多支援 20 個並發連接
+                    connectionTimeout: TimeSpan.FromSeconds(30),  // 連接超時：30 秒
+                    idleTimeout: TimeSpan.FromMinutes(10)         // 閒置超時：10 分鐘
+                );
+            });
+
+            // ========================================
             // 註冊 ToolUtility 服務 (Singleton 模式)
             // ========================================
             services.AddToolUtility();
@@ -39,12 +62,12 @@ namespace ChurchReport
             services
                 .AddMvc(options =>
                 {
-                    // 使用舊的 UseMvc 管線時，需關閉 Endpoint Routing 以消除 MVC1005 警告
+                    // 使用舊版 UseMvc 路由時，需要禁用 Endpoint Routing 以避免 MVC1005 警告
                     options.EnableEndpointRouting = false;
                 })
                 .AddNewtonsoftJson(options =>
                 {
-                    // 沿用原本的 Newtonsoft 契約解析設定
+                    // 保留原本的 Newtonsoft 序列化設定
                     options.SerializerSettings.ContractResolver = new DefaultContractResolver();
                 });
 
@@ -62,15 +85,15 @@ namespace ChurchReport
             services.AddScoped<ChurchReport.Services.MyPayCrmService>();
             services.AddScoped<ChurchReport.Services.MyPayNotificationService>();
 
-            if (Configuration["PAY_PROVIDER"] == "永豐金流")
+            if (Configuration["PAY_PROVIDER"] == "國泰支付")
             {
                 services.AddScoped<IPayment, QPayToolkitWrapper>();
             }
-            else if (Configuration["PAY_PROVIDER"] == "高鉅金流")
+            else if (Configuration["PAY_PROVIDER"] == "綠界支付")
             {
                 services.AddScoped<IPayment, MyPayToolkitWrapper>();
             }
-            else if (Configuration["PAY_PROVIDER"] == "台新金流")
+            else if (Configuration["PAY_PROVIDER"] == "台新支付")
             {
                 services.AddScoped<IPayment, TspgToolkitWrapper>();
                 services.AddScoped<TSPGWebhookHandler>();
@@ -95,7 +118,7 @@ namespace ChurchReport
                     options.LoginPath = "/Login";
                     options.LogoutPath = "/Logout";
 
-                    // 新版 API：不要設定 options.Cookie.Expiration，改用 ExpireTimeSpan 控制票證壽命
+                    // 新版 API：需要設定 options.Cookie.Expiration，但用 ExpireTimeSpan 即可替代
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
 
                     // 新版 API：CookieName -> Cookie.Name

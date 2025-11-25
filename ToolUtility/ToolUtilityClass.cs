@@ -115,11 +115,11 @@ namespace ToolUtilityNameSpace
         #endregion
 
         #endregion
-        #region 追蹤專用變數
+        #region 追蹤專用變數 - 使用 Lazy<T> 延遲初始化以優化記憶體
         private String m_TraceLogFile = "";
-        private BugslayerTextWriterTraceListener m_Listener = new BugslayerTextWriterTraceListener();
-        private FileStream m_XmlFileStream;
-        private StreamWriter m_XmlFileStreamWriter;
+        private Lazy<FileStream> _lazyXmlFileStream;
+        private Lazy<StreamWriter> _lazyXmlFileStreamWriter;
+        private Lazy<BugslayerTextWriterTraceListener> _lazyListener;
         private const String TRACE_DIRECTOR = @"D:\除錯追蹤\" + "CHURCH_REPORT_TRACE.TXT";
         //private const String TRACE_DIRECTOR = @"C:\除錯追蹤\" + "TRACE.TXT";
         #endregion
@@ -136,29 +136,35 @@ namespace ToolUtilityNameSpace
             // 初始化連接服務
             _crmConnectionService = new CrmConnectionService();
 
-            #region 追蹤專用變數
+            #region 追蹤專用變數 - 使用 Lazy<T> 延遲初始化
             m_TraceLogFile = TRACE_DIRECTOR;
-            m_XmlFileStream = new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
             
-            // .NET 5+ 需要註冊 CodePages 編碼提供者才能使用 big5
+            // Lazy 初始化 FileStream
+            _lazyXmlFileStream = new Lazy<FileStream>(() => 
+                new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
+            
+            // Lazy 初始化 StreamWriter
+            _lazyXmlFileStreamWriter = new Lazy<StreamWriter>(() =>
+            {
 #if !NET462 && !NETFRAMEWORK
-            // 註冊編碼提供者（僅在 .NET 5+ 需要）
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                // 註冊編碼提供者（僅在 .NET 5+ 需要）
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 #endif
+                return new StreamWriter(_lazyXmlFileStream.Value, Encoding.GetEncoding("big5"));
+            });
             
-            // 現在可以安全使用 big5 編碼
-            m_XmlFileStreamWriter = new StreamWriter(m_XmlFileStream, Encoding.GetEncoding("big5"));
-            m_Listener = new BugslayerTextWriterTraceListener(m_XmlFileStreamWriter);
-
-            Debug.AutoFlush = true;
-            
-            // Debug.Listeners 在 .NET 5+ 中已被移除，使用條件編譯
+            // Lazy 初始化 TraceListener
+            _lazyListener = new Lazy<BugslayerTextWriterTraceListener>(() =>
+            {
+                var listener = new BugslayerTextWriterTraceListener(_lazyXmlFileStreamWriter.Value);
+                Debug.AutoFlush = true;
 #if NET462 || NETFRAMEWORK
-            Debug.Listeners.Add(m_Listener);
+                Debug.Listeners.Add(listener);
 #else
-            // .NET 5+ 使用 Trace 類別
-            Trace.Listeners.Add(m_Listener);
+                Trace.Listeners.Add(listener);
 #endif
+                return listener;
+            });
             #endregion
 
             // 使用連接服務建立 CRM 連接
@@ -183,6 +189,36 @@ namespace ToolUtilityNameSpace
 
             m_DiscoveryServiceType = DiscoveryServiceType;
 
+            #region 追蹤專用變數 - 使用 Lazy<T> 延遲初始化
+            m_TraceLogFile = TRACE_DIRECTOR;
+            
+            // Lazy 初始化 FileStream
+            _lazyXmlFileStream = new Lazy<FileStream>(() => 
+                new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
+            
+            // Lazy 初始化 StreamWriter
+            _lazyXmlFileStreamWriter = new Lazy<StreamWriter>(() =>
+            {
+#if !NET462 && !NETFRAMEWORK
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
+                return new StreamWriter(_lazyXmlFileStream.Value, Encoding.GetEncoding("big5"));
+            });
+            
+            // Lazy 初始化 TraceListener
+            _lazyListener = new Lazy<BugslayerTextWriterTraceListener>(() =>
+            {
+                var listener = new BugslayerTextWriterTraceListener(_lazyXmlFileStreamWriter.Value);
+                Debug.AutoFlush = true;
+#if NET462 || NETFRAMEWORK
+                Debug.Listeners.Add(listener);
+#else
+                Trace.Listeners.Add(listener);
+#endif
+                return listener;
+            });
+            #endregion
+
             //// 使用連接服務建立 CRM 連接
             var adUrl = "https://" + ORGANIZATION + ".speechmessage.com.tw/XRMServices/2011/Organization.svc";
             var adUsername = @"Administrator@speechmessage.com.tw";
@@ -192,9 +228,6 @@ namespace ToolUtilityNameSpace
 
             // 初始化 Facade (不傳入 organizationService)
             _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
-            //_facade = new ToolUtilityFacade();
-            // 透過 Facade 的連接服務方法設定 organizationService
-            //_facade.SetOrganizationService(SERVER, PORT, ORGANIZATION, DOMAIN, adUsername, adPassword);
         }
 
         public ToolUtilityClass(ref bool ValidFlag)
@@ -210,18 +243,130 @@ namespace ToolUtilityNameSpace
 
         ~ToolUtilityClass()
         {
+            Dispose(false);
         }
         #endregion
-        #region 解構式
+        #region 解構式 - 完整實現 Dispose Pattern 以防止 Memory Leak
+        /// <summary>
+        /// 完整實現 Dispose Pattern，釋放所有 Managed 和 Unmanaged 資源
+        /// 遵循 LINUS 原則：明確的資源管理，防止 Memory Leak
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed) return;
 
-            // Free any unmanaged objects here.
-            //this.m_OrganizationService.Dispose();
+            if (disposing)
+            {
+                // 釋放 Managed 資源
+                
+                // 1. 釋放 Facade
+                try
+                {
+                    _facade?.Dispose();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // 已被釋放，忽略
+                }
+                
+                // 2. 釋放 CRM 連接服務
+                try
+                {
+                    (_crmConnectionService as IDisposable)?.Dispose();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // 已被釋放，忽略
+                }
+                
+                // 3. 釋放 Organization Service
+                try
+                {
+                    (m_Crm2011OrganizationService as IDisposable)?.Dispose();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // 已被釋放，忽略
+                }
+                
+                try
+                {
+                    (m_OrganizationService as IDisposable)?.Dispose();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // 已被釋放，忽略
+                }
+                
+                // 4. 釋放追蹤監聽器（只有在 Lazy 已初始化時才釋放）
+                if (_lazyListener != null && _lazyListener.IsValueCreated)
+                {
+                    try
+                    {
+                        var listener = _lazyListener.Value;
+                        if (listener != null)
+                        {
+#if NET462 || NETFRAMEWORK
+                            Debug.Listeners.Remove(listener);
+#else
+                            Trace.Listeners.Remove(listener);
+#endif
+                            listener.Flush();
+                            listener.Close();
+                            listener.Dispose();
+                        }
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // 已被釋放，忽略
+                    }
+                }
+                
+                // 5. 釋放檔案寫入器（只有在 Lazy 已初始化時才釋放）
+                if (_lazyXmlFileStreamWriter != null && _lazyXmlFileStreamWriter.IsValueCreated)
+                {
+                    try
+                    {
+                        var writer = _lazyXmlFileStreamWriter.Value;
+                        if (writer != null)
+                        {
+                            writer.Flush();
+                            writer.Close();
+                            writer.Dispose();
+                        }
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // 已被釋放，忽略
+                    }
+                }
+                
+                // 6. 釋放檔案串流（只有在 Lazy 已初始化時才釋放）
+                if (_lazyXmlFileStream != null && _lazyXmlFileStream.IsValueCreated)
+                {
+                    try
+                    {
+                        var stream = _lazyXmlFileStream.Value;
+                        if (stream != null)
+                        {
+                            stream.Flush();
+                            stream.Close();
+                            stream.Dispose();
+                        }
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // 已被釋放，忽略
+                    }
+                }
+            }
+
+            // 釋放 Unmanaged 資源（如果有）
+            // ...
 
             _disposed = true;
         }
+
         public void Dispose()
         {
             Dispose(true);
@@ -1369,13 +1514,20 @@ namespace ToolUtilityNameSpace
         #endregion
 
         #endregion
-        #region 除錯追蹤區
+        #region 除錯追蹤區 - 修改為使用 Lazy 初始化的 Listener
+        /// <summary>
+        /// 追蹤方法 - 只在需要時才初始化追蹤資源（Lazy 初始化）
+        /// 優化記憶體使用：如果不使用追蹤功能，不會創建相關資源
+        /// </summary>
         public void TraceByLevel(Int32 TotalLevel, Int32 QualifiedLevel, String StringToProcess)
         {
             try
             {
                 if (TotalLevel >= QualifiedLevel)
                 {
+                    // 只在需要時才初始化追蹤資源
+                    var listener = _lazyListener.Value;
+                    
                     Debug.WriteLine("Time            =" + DateTime.Now.ToString() + Environment.NewLine);
                     Debug.WriteLine("StringToProcess =" + StringToProcess + Environment.NewLine);
                     StackTrace aStackTraceNextLevel = new StackTrace(new StackFrame(1, true));
