@@ -1,10 +1,7 @@
 using ChurchReport.Models;
 using ChurchReport.Tools;
-using ChurchReport.ViewModel;
-using ChurchReport.ViewModels;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
-using LineMessagingProcessor;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -13,7 +10,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.DependencyInjection;
+using LineMessagingProcessor;
 
 namespace ChurchReport.Controllers
 {
@@ -28,8 +26,9 @@ namespace ChurchReport.Controllers
         public SmallGroupController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
-            IPayment paymentService)
-            : base(httpContextAccessor, memoryCache, paymentService)
+            IPayment paymentService,
+            IToolUtilityProvider toolUtilityProvider)
+            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider)
         {
         }
 

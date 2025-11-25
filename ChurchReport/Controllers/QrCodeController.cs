@@ -1,11 +1,11 @@
 using ChurchReport.Models;
 using ChurchReport.Tools;
-using LineMessagingProcessor;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Threading.Tasks;
+using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
 {
@@ -20,8 +20,9 @@ namespace ChurchReport.Controllers
         public QrCodeController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
-            IPayment paymentService)
-            : base(httpContextAccessor, memoryCache, paymentService)
+            IPayment paymentService,
+            IToolUtilityProvider toolUtilityProvider)
+            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider)
         {
         }
 

@@ -15,8 +15,8 @@ using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace;
-using ToolUtilityNameSpace.Factory;
 using System.Text.RegularExpressions;
+using ToolUtilityNameSpace.Factory;
 #endregion
 
 namespace ChurchReport.WebServiceConnector
@@ -46,7 +46,7 @@ namespace ChurchReport.WebServiceConnector
 
         #region 除錯用參數
         private const int TOTAL_LEVEL = 1;//改變這個值，就會改追蹤的階層，值越小越不會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
-                                       //private const int TOTAL_LEVEL = 5;//改變這個值，就會改追蹤的階層，值越大越會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
+        //private const int TOTAL_LEVEL = 5;//改變這個值，就會改追蹤的階層，值越大越會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
         private const int LEVEL_1 = 1; // 比較容易被看到的，可能是比較大範圍的部分
         private const int LEVEL_2 = 2;
         private const int LEVEL_3 = 3;
@@ -1190,10 +1190,10 @@ namespace ChurchReport.WebServiceConnector
                     // 小組長 ID
                     Guid GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref HappyGroupListEntity, "new_contact_family_leader_list");
 
-                    // 上代組長 ID
+                    // 小家長 ID
                     Guid RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref HappyGroupListEntity, "new_contact_race_leager_list");
 
-                    // 區長 ID
+                    // 區牧長 ID
                     Guid ShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref HappyGroupListEntity, "new_contact_list_arealeader");
 
                     // 區名
@@ -1202,7 +1202,7 @@ namespace ChurchReport.WebServiceConnector
                     #endregion
 
                     #region 建立幸福小組 BEST 的出席紀錄單
-                    CreateTheBestPresentRecord(aBestContactEntity, ref aWeeklyReportEntity, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, aListEntity, aHappyGroupWeeklyReportToBeAdded.MeetingDate, HappyGroupStartTime, HappyGroupEndTime, m_SmallGroupPlace, m_SmallGroupTime, ref aHappyGroupWeeklyReportListClassToBeAdded, ref aHappyGroupWeeklyReportToBeAdded, ref aBestRecord);
+                    CreateTheBestPresentRecord(aBestContactEntity, ref aWeeklyReportEntity, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, HappyGroupListEntity, aHappyGroupWeeklyReportToBeAdded.MeetingDate, HappyGroupStartTime, HappyGroupEndTime, m_SmallGroupPlace, m_SmallGroupTime, ref aHappyGroupWeeklyReportListClassToBeAdded, ref aHappyGroupWeeklyReportToBeAdded, ref aBestRecord);
                     #endregion
 
                     #region 取得要加入BEST的幸福小組週報之後要更新有關幸福小組資訊的欄位:Best 名單、出席人數、出席名單、決志人數、決志名單
@@ -1306,10 +1306,10 @@ namespace ChurchReport.WebServiceConnector
                     // 小組長 ID
                     Guid GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref HappyGroupListEntity, "new_contact_family_leader_list");
 
-                    // 上代組長 ID
+                    // 小家長 ID
                     Guid RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref HappyGroupListEntity, "new_contact_race_leager_list");
 
-                    // 區長 ID
+                    // 區牧長 ID
                     Guid ShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref HappyGroupListEntity, "new_contact_list_arealeader");
 
                     // 區名
@@ -1318,7 +1318,7 @@ namespace ChurchReport.WebServiceConnector
                     #endregion
 
                     #region 建立幸福小組 BEST 的出席紀錄單
-                    CreateTheBestPresentRecord(aBestContactEntity, ref aWeeklyReportEntity, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, aListEntity, aHappyGroupWeeklyReportToBeAdded.MeetingDate, HappyGroupStartTime, HappyGroupEndTime, m_SmallGroupPlace, m_SmallGroupTime, ref aHappyGroupWeeklyReportListClassToBeAdded, ref aHappyGroupWeeklyReportToBeAdded, ref aBestRecord);
+                    CreateTheBestPresentRecord(aBestContactEntity, ref aWeeklyReportEntity, FamilyLeaderId, GroupLeaderId, RaceLeaderId, ShepherdLeaderId, HappyGroupListEntity, aHappyGroupWeeklyReportToBeAdded.MeetingDate, HappyGroupStartTime, HappyGroupEndTime, m_SmallGroupPlace, m_SmallGroupTime, ref aHappyGroupWeeklyReportListClassToBeAdded, ref aHappyGroupWeeklyReportToBeAdded, ref aBestRecord);
                     #endregion
 
                     #region 取得要加入BEST的幸福小組週報之後要更新有關幸福小組資訊的欄位:Best 名單、出席人數、出席名單、決志人數、決志名單
@@ -1429,6 +1429,1051 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
+        private void AddNewBestInMemberList(Entity NewBestContactEntity, Entity aListEntity)
+        {
+            try
+            {
+                if (aListEntity != null)
+                {
+                    #region 有找到被關聯的小組名單
+                    bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(aListEntity, "type");
+
+                    if (ListType == false)
+                    {
+                        // 靜態名單
+                        List<Guid> memberGuidList = new List<Guid>();
+                        memberGuidList.Add(NewBestContactEntity.Id);
+                        m_ToolUtilityClass.AddMembersToMarketingList(aListEntity.Id, memberGuidList);
+                    }
+                    else
+                    {
+                        // 動態名單
+                        EntityReference aListEntityReference = new EntityReference("list", aListEntity.Id);
+
+                        // 聖谷行道會
+                        //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", ref aListEntityReference);
+                        // 聖谷行道會
+                        this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref NewBestContactEntity, "new_list_contact", ref aListEntityReference);
+
+                        this.m_ToolUtilityClass.UpdateEntity(ref NewBestContactEntity);
+                    }
+                    #endregion
+                }
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
+        }
+
+        private Entity CreateContactFromBest(ref HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClassToBeAdded, ref HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded, ref BestRecord aBestRecord)
+        {
+            try
+            {
+                Entity aQueryBestContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByName(aBestRecord.FullName);
+
+                if (aQueryBestContactEntity == null)
+                {
+                    #region 系統裡沒有這個姓名的BEST，就直接建立一個新的 BEST
+
+                    // 建立一個新的 BEST
+                    aQueryBestContactEntity = new Entity("contact");
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "lastname", aBestRecord.FullName);
+                    #endregion
+                }
+                else
+                {
+                    #region 系統裡有同名同姓的BEST，要額外處理
+
+                    String aQueryBestContactMobile = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(ref aQueryBestContactEntity, "mobilephone"), "");
+
+                    if (aBestRecord.MobilePhone != "" && aBestRecord.MobilePhone != null)
+                    {
+                        #region// 同名同姓，但是幸福小組長有輸入手機號碼
+                        if (aQueryBestContactMobile != DigitsOnly.Replace(aBestRecord.MobilePhone, ""))
+                        {
+                            #region// 手機不同，建立一個新的 BEST
+                            aQueryBestContactEntity = new Entity("contact");
+                            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "lastname", aBestRecord.FullName);
+                            #endregion
+                        }
+                        else
+                        {
+                            #region// 手機相同，就用系統的姓名
+                            return aQueryBestContactEntity;
+                            #endregion
+                        }
+                        #endregion
+                    }
+                    else
+                    {
+                        #region// 同名同姓，但是幸福小組長沒有輸入手機號碼，就在資料庫新增BEST資料紀錄，但是附加(BEST)字樣
+                        aQueryBestContactEntity = new Entity("contact");
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "lastname", aBestRecord.FullName + "(BEST)");
+                        #endregion
+
+                        //#region// 同名同姓，但是幸福小組長沒有輸入手機號碼，就用系統的姓名
+                        //return aQueryBestContactEntity;
+                        //#endregion
+
+                    }
+                    #endregion
+                }
+
+
+                SetContactSpiritLeader(ref aQueryBestContactEntity, ref aHappyGroupWeeklyReportListClassToBeAdded, ref aBestRecord);
+
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "mobilephone", aBestRecord.MobilePhone);
+
+                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，聖谷行道會=>"幸福小組BEST" = 100000005
+                // 設定成為 BEST 的委身類型
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aQueryBestContactEntity, "customertypecode", 100000005);
+
+                if (this.m_ContactEntity == null)
+                {
+                    this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", new Guid(aHappyGroupWeeklyReportListClassToBeAdded.LoginUserId));
+                }
+                Guid LoginUserParentId = this.m_ToolUtilityClass.GetEntityLookupAttribute(this.m_ContactEntity, "parentcustomerid");
+                if (LoginUserParentId != Guid.Empty) { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aQueryBestContactEntity, "parentcustomerid", "account", LoginUserParentId); }
+
+                if (aBestRecord.Present == true)
+                {
+                    SetContactHappyTimesAndHistory(ref aQueryBestContactEntity, aHappyGroupWeeklyReportToBeAdded.Topic);
+                }
+
+                #region 設定 BEST 介紹人
+                if (aBestRecord.BestIntroducer != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "new_best_introducer", aBestRecord.BestIntroducer);
+                }
+                #endregion
+                #region 設定 BEST 與介紹人關係
+                if (aBestRecord.BestRelationship != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aQueryBestContactEntity, "new_best_relationship", aBestRecord.BestRelationship);
+                }
+                #endregion
+
+                Guid aBestContactEntityId = this.m_ToolUtilityClass.CreateEntity(aQueryBestContactEntity);
+
+                return this.m_ToolUtilityClass.RetrieveEntity("contact", aBestContactEntityId);
+
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+        private void SetContactHappyTimesAndHistory(ref Entity BestContactEntity, String HappyCourse)
+        {
+            try
+            {
+                // 每個組員
+                String OriginalHappyHistory = this.m_ToolUtilityClass.GetEntityStringAttribute(BestContactEntity, "new_happy_history");
+
+                if (OriginalHappyHistory.Contains(HappyCourse) != true)
+                {
+                    OriginalHappyHistory += HappyCourse + ",";
+
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref BestContactEntity, "new_happy_history", OriginalHappyHistory);
+
+                    String[] CourseCounter = OriginalHappyHistory.Split(',');
+
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref BestContactEntity, "new_happy_times", CourseCounter.Length - 1);
+                }
+
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+        private void RemoveContactHappyTimesAndHistory(ref Entity BestContactEntity, String HappyCourse)
+        {
+            try
+            {
+                // 每個組員
+                String OriginalHappyHistory = this.m_ToolUtilityClass.GetEntityStringAttribute(BestContactEntity, "new_happy_history");
+
+                if (OriginalHappyHistory.Contains(HappyCourse) == true)
+                {
+                    OriginalHappyHistory = OriginalHappyHistory.Replace(HappyCourse + ",", "");
+
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref BestContactEntity, "new_happy_history", OriginalHappyHistory);
+
+                    String[] CourseCounter = OriginalHappyHistory.Split(',');
+
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref BestContactEntity, "new_happy_times", CourseCounter.Length - 1);
+                }
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+        private void SetContactSpiritLeader(ref Entity aQueryBestContactEntity, ref HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClassToBeAdded, ref BestRecord aBestRecord)
+        {
+            try
+            {
+
+                Guid aContactSpiritLeaderId = GetContactSpiritLeaderId(ref aHappyGroupWeeklyReportListClassToBeAdded, ref aBestRecord);
+
+                if (aContactSpiritLeaderId != Guid.Empty)
+                {
+                    this.m_ToolUtilityClass.SetEntityLookUpAttribute(aQueryBestContactEntity, "new_contact_contact_spiritleader", "contact", aContactSpiritLeaderId);
+                }
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+
+        private Guid GetContactSpiritLeaderId(ref HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClassToBeAdded, ref BestRecord aBestRecord)
+        {
+            try
+            {
+                // 每個組員
+                bool ListType = false;
+                EntityCollection MemberCollection = GetPersonalSmallGroupLeaderMemberData(new Guid(aHappyGroupWeeklyReportListClassToBeAdded.ListEntityId), ref ListType);
+
+                foreach (Entity MemberEntity in MemberCollection.Entities)
+                {
+                    #region//取得名單中的每個組員
+                    Entity aContactEntity;
+
+                    if (ListType == false)
+                    {
+                        // 靜態名單
+                        aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                    }
+                    else
+                    {
+                        // 動態名單
+                        aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                    }
+                    #endregion
+
+                    if (this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "fullname") == aBestRecord.BestLeader)
+                    {
+                        return aContactEntity.Id;
+                    }
+
+                }
+
+                return Guid.Empty;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+
+        private void CreateTheBestPresentRecord(Entity aBestContactEntity, ref Entity aWeeklyReportEntity, Guid aFamilyLeaderId, Guid aGroupLeaderId, Guid aRaceLeaderId, Guid aShepherdLeaderId, Entity aListEntity, DateTime aMeetingDate, String HappyGroupStartTime, String HappyGroupEndTime, String SmallGroupPlace, String SmallGroupTime, ref HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClassToBeAdded, ref HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded, ref BestRecord aBestRecord)
+        {
+            try
+            {
+                // 每個組員
+                int aWeeklySmallGroupNumber = 0;
+                Entity aPresentRecord = CreatePresentRecord(aBestContactEntity, ref aListEntity, aWeeklyReportEntity.Id, ref aWeeklySmallGroupNumber, aHappyGroupWeeklyReportToBeAdded, ref aBestRecord);
+
+                // 前台網頁要呈現的Best資料
+                //aHappyGroupWeeklyReportToBeAdded.BestRecordList.Add(aBestRecord);
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+
+        private void CreateDefaultBestList(ref Entity aWeeklyReportEntity, String AreaName, Guid aFamilyLeaderId, Guid aGroupLeaderId, Guid aRaceLeaderId, Guid aShepherdLeaderId, Entity aListEntity, DateTime aMeetingDate, String HappyGroupStartTime, String HappyGroupEndTime, String SmallGroupPlace, String SmallGroupTime, ref HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClassToBeAdded, ref HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded, String BestList)
+        {
+            try
+            {
+                bool ListType = false;
+                EntityCollection MemberCollection = GetPersonalSmallGroupLeaderMemberData(aListEntity.Id, ref ListType);
+
+                foreach (Entity MemberEntity in MemberCollection.Entities)
+                {
+                    // 每個組員
+                    Entity aContactEntity;
+
+                    if (ListType == false)
+                    {
+                        // 靜態名單
+                        aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                    }
+                    else
+                    {
+                        // 動態名單
+                        aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                    }
+
+                    int aWeeklySmallGroupNumber = 0;
+                    Entity aPresentRecord = CreateDefaultPresentRecord(aContactEntity, ref aListEntity, aWeeklyReportEntity.Id, ref aWeeklySmallGroupNumber, aHappyGroupWeeklyReportToBeAdded, BestList);
+
+                    BestRecord aBestRecord = new BestRecord
+                    {
+                        BestRecordParentId = aWeeklyReportEntity.Id.ToString(),
+                        BestRecordId = aPresentRecord.Id.ToString(),
+                        FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "fullname"),
+                        MobilePhone = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "mobilephone"),
+                        Present = false,
+                        Decision = false,
+                        Note = "",
+                        BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContactEntity, "new_contact_contact_spiritleader"),// 屬靈認領者
+                        BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_introducer"),
+                        BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_relationship")
+
+                    };
+
+                    // 前台網頁要呈現的新增BEST的資料 
+                    aHappyGroupWeeklyReportToBeAdded.BestRecordList.Add(aBestRecord);
+
+                }
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+
+        private Entity CreateDefaultPresentRecord(Entity aContactEntity, ref Entity aListEntity, Guid aWeeklyReportId, ref int aWeeklySmallGroupNumber, HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded, String BestList)
+        {
+            if (aContactEntity != null)
+            {
+                // 這是新建立的個人聚會與靈修記錄
+                Entity aPresentRecord = new Entity("new_present_record");
+
+                // 設定個人聚會與靈修記錄相關屬性
+                this.SetupDefaultPresentRecordEntityAttributes(aPresentRecord, ref aContactEntity, ref aListEntity, ref aWeeklyReportId, false, false, "", this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "mobilephone"), ref aWeeklySmallGroupNumber, aHappyGroupWeeklyReportToBeAdded, BestList);
+
+                // 新增個人聚會與靈修記錄
+                Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
+
+                //取得並回傳新建的聚會與靈修記錄
+                return this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        private Entity CreatePresentRecord(Entity aContactEntity, ref Entity aListEntity, Guid aWeeklyReportId, ref int aWeeklySmallGroupNumber, HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded, ref BestRecord aBestRecord)
+        {
+            if (aContactEntity != null)
+            {
+                // 這是新建立的個人聚會與靈修記錄
+                Entity aPresentRecord = new Entity("new_present_record");
+
+                // 設定個人聚會與靈修記錄相關屬性
+                this.SetupPresentRecordEntityAttributes(aPresentRecord, ref aContactEntity, ref aListEntity, ref aWeeklyReportId, false, false, "", this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "mobilephone"), ref aWeeklySmallGroupNumber, aHappyGroupWeeklyReportToBeAdded, ref aBestRecord);
+
+                // 新增個人聚會與靈修記錄
+                Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
+
+                aBestRecord.BestRecordEntityId = aBestRecord.BestRecordId = aPresentRecordId.ToString();
+
+                //取得並回傳新建的聚會與靈修記錄
+                return this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private void SetupDefaultPresentRecordEntityAttributes(Entity aPresentRecord, ref Entity aContactEntity, ref Entity aListEntity, ref Guid aWeeklyReportId, bool Present, bool Decision, String Note, String Phone, ref int aWeeklySmallGroupNumber, HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded, String BestList)
+        {
+            try
+            {
+                #region 指派主日小組靈修出席單的負責人
+                //Guid ListOwnerId = aListEntity.GetAttributeValue<EntityReference>("ownerid").Id;
+                //this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, ListOwnerId);
+                #endregion
+                #region 設定姓名
+                // 找到組員ID
+                Guid aContactEntityId = aContactEntity.Id;
+                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_new_present_record", "contact", aContactEntityId);
+                #endregion
+                #region 關聯週報 Lookup
+                if (aWeeklyReportId != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_group_present_weekly_report_prese", "new_group_present_weekly_report", aWeeklyReportId); }
+                #endregion
+                #region 從名單取得 區名、小家長 ID、小組長 ID、小家長、區牧長 ID
+                // 小家長 ID
+                Guid aFamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_familyhead_list");
+
+                // 小組長 ID
+                Guid aGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
+
+                // 小家長 ID
+                Guid aRaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
+
+                // 區牧長 ID
+                Guid aShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
+
+                // 區名
+                String AreaName = "";
+                //String AreaName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_area_name");
+
+                #endregion
+                #region 設定區名
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_area_name", AreaName);
+                #endregion
+                #region 設定一些LOOKUP 關聯
+                #region 關聯小家長屬性
+                if (aFamilyLeaderId != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_familyhead_present_record", "contact", aFamilyLeaderId); }
+                #endregion
+                #region 關聯小組長屬性
+                if (aGroupLeaderId != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_groupleader_present_record", "contact", aGroupLeaderId); }
+                #endregion
+                #region 關聯族系組長屬性
+                if (aRaceLeaderId != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_race_leader_present_record", "contact", aRaceLeaderId); }
+                #endregion
+                #region 關聯區牧長屬性
+                if (aShepherdLeaderId != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_arealeader_present_record", "contact", aShepherdLeaderId); }
+                #endregion
+                #region 關聯小組名單 Lookup
+                if (aListEntity.Id != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_list_new_present_record", "list", aListEntity.Id); }
+                #endregion
+                #endregion
+                #region 設定主日及小組聚會日期
+                int DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek;
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", aHappyGroupWeeklyReportToBeAdded.MeetingDate.AddDays(-DayOfWeek));
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_group_date", aHappyGroupWeeklyReportToBeAdded.MeetingDate);
+                #endregion
+                #region 設定小組聚會地點和時間
+                #region//設定小組聚會地點
+                if (aHappyGroupWeeklyReportToBeAdded.Location != null)
+                {
+                    if (aHappyGroupWeeklyReportToBeAdded.Location != "")
+                    {
+                        m_SmallGroupPlace = aHappyGroupWeeklyReportToBeAdded.Location;
+                    }
+                    else
+                    {
+                        m_SmallGroupPlace = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_group_place");
+                    }
+                }
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_group_place", m_SmallGroupPlace);
+                #endregion
+                #region//設定小組聚會時間
+                String HappyGroupStartTime = "";
+                if (aHappyGroupWeeklyReportToBeAdded.StartTime != null)
+                {
+                    if (aHappyGroupWeeklyReportToBeAdded.StartTime != "")
+                    {
+                        HappyGroupStartTime = this.m_SmallGroupTime = aHappyGroupWeeklyReportToBeAdded.StartTime;
+                    }
+                    else
+                    {
+                        HappyGroupStartTime = this.m_SmallGroupTime = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_group_start_time");
+                    }
+                }
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_group_time", HappyGroupStartTime);
+                #endregion
+                #endregion
+                #region 設定幸福小組出席
+                if (Present == true)
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_present", 1);
+
+                    aWeeklySmallGroupNumber += 1;
+                }
+                else
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_present", 0);
+                }
+                #endregion
+                #region 設定幸福小組決志
+                if (Decision == true)
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_decision", 1);
+                }
+                else
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_decision", 0);
+                }
+                #endregion
+                #region 設定附註或是代禱事項
+
+                // 轉換版本
+                // 聖谷行道會
+
+
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", Note);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", Note);
+
+                // 聖谷行道會
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
+                #endregion
+                #region 設定行動電話
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_cell_hpone", Phone);
+                #endregion
+                #region 設定是否是BEST的出席紀錄單
+                // 找到組員全名
+                String aContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "fullname");
+                if (BestList.Contains(aContactFullName))
+                {
+                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecord, "new_best_flag", true);
+                }
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString() + Environment.NewLine;
+
+                throw e;
+            }
+        }
+        private void SetupPresentRecordEntityAttributes(Entity aPresentRecord, ref Entity aContactEntity, ref Entity aListEntity, ref Guid aWeeklyReportId, bool Present, bool Decision, String Note, String Phone, ref int aWeeklySmallGroupNumber, HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded, ref BestRecord aBestRecord)
+        {
+            try
+            {
+                #region 指派主日小組靈修出席單的負責人
+                //Guid ListOwnerId = aListEntity.GetAttributeValue<EntityReference>("ownerid").Id;
+                //this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, ListOwnerId);
+                #endregion
+                #region 設定姓名
+                // 找到組員ID
+                Guid aContactEntityId = aContactEntity.Id;
+                this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_new_present_record", "contact", aContactEntityId);
+                #endregion
+                #region 關聯週報 Lookup
+                if (aWeeklyReportId != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_group_present_weekly_report_prese", "new_group_present_weekly_report", aWeeklyReportId); }
+                #endregion
+                #region 從名單取得 區名、小家長 ID、小組長 ID、小家長、區牧長 ID
+                // 小家長 ID
+                Guid aFamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_familyhead_list");
+
+                // 小組長 ID
+                Guid aGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
+
+                // 小家長 ID
+                Guid aRaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
+
+                // 區牧長 ID
+                Guid aShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
+
+                // 區名
+                String AreaName = "";
+                //String AreaName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_area_name");
+
+                #endregion
+                #region 設定區名
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_area_name", AreaName);
+                #endregion
+                #region 設定一些LOOKUP 關聯
+                #region 關聯小家長屬性
+                if (aFamilyLeaderId != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_familyhead_present_record", "contact", aFamilyLeaderId); }
+                #endregion
+                #region 關聯小組長屬性
+                if (aGroupLeaderId != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_groupleader_present_record", "contact", aGroupLeaderId); }
+                #endregion
+                #region 關聯族系組長屬性
+                if (aRaceLeaderId != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_race_leader_present_record", "contact", aRaceLeaderId); }
+                #endregion
+                #region 關聯區牧長屬性
+                if (aShepherdLeaderId != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_arealeader_present_record", "contact", aShepherdLeaderId); }
+                #endregion
+                #region 關聯小組名單 Lookup
+                if (aListEntity.Id != Guid.Empty)
+                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_list_new_present_record", "list", aListEntity.Id); }
+                #endregion
+                #endregion
+                #region 設定主日及小組聚會日期
+                int DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek + 1;
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", aHappyGroupWeeklyReportToBeAdded.MeetingDate.AddDays(-DayOfWeek));
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_group_date", aHappyGroupWeeklyReportToBeAdded.MeetingDate);
+                #endregion
+                #region 設定小組聚會地點和時間
+                #region//設定小組聚會地點
+                if (aHappyGroupWeeklyReportToBeAdded.Location != null)
+                {
+                    if (aHappyGroupWeeklyReportToBeAdded.Location != "")
+                    {
+                        m_SmallGroupPlace = aHappyGroupWeeklyReportToBeAdded.Location;
+                    }
+                    else
+                    {
+                        m_SmallGroupPlace = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_group_place");
+                    }
+                }
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_group_place", m_SmallGroupPlace);
+                #endregion
+                #region//設定小組聚會時間
+                String HappyGroupStartTime = "";
+                if (aHappyGroupWeeklyReportToBeAdded.StartTime != null)
+                {
+                    if (aHappyGroupWeeklyReportToBeAdded.StartTime != "")
+                    {
+                        HappyGroupStartTime = this.m_SmallGroupTime = aHappyGroupWeeklyReportToBeAdded.StartTime;
+                    }
+                    else
+                    {
+                        HappyGroupStartTime = this.m_SmallGroupTime = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_group_start_time");
+                    }
+                }
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_group_time", HappyGroupStartTime);
+                #endregion
+                #endregion
+                #region 設定幸福小組出席
+                if (aBestRecord.Present == true)
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_present", 1);
+
+                    aWeeklySmallGroupNumber += 1;
+                }
+                else
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_present", 0);
+                }
+                #endregion
+                #region 設定幸福小組決志
+                if (aBestRecord.Decision == true)
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_decision", 1);
+                }
+                else
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_happy_decision", 0);
+                }
+                #endregion
+                #region 設定附註或是代禱事項
+
+                // 轉換版本
+                // 聖谷行道會
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aBestRecord.Note);
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", Note);
+
+                // 聖谷行道會
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
+                #endregion
+                #region 設定行動電話
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_cell_hpone", Phone);
+                #endregion
+                #region 設定是BEST的出席紀錄單
+                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecord, "new_best_flag", true);
+                #endregion
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString() + Environment.NewLine;
+
+                throw e;
+            }
+        }
+
+        #endregion
+        #region 修改幸福小組週報
+        public void UpdateHappyGroupWeeklyReport(String aHappyWeeklyReportId, ref HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeUpdated)
+        {
+            try
+            {
+                Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", new Guid(aHappyWeeklyReportId));
+
+                #region 幸福小組週報，同時以名單成員作為初始成員
+                this.SetHappyGroupWeeklyReport(ref aHappyGroupWeeklyReportToBeUpdated, ref aWeeklyReportEntity);
+                #endregion
+
+                this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        public void SetHappyGroupWeeklyReport(ref HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeUpdated, ref Entity aWeeklyReportEntity)
+        {
+            try
+            {
+                #region 設定幸福小組週次
+                if (aHappyGroupWeeklyReportToBeUpdated.WeekCounter != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_weekly_index", aHappyGroupWeeklyReportToBeUpdated.WeekCounter);
+                }
+                #endregion
+                #region 設定小組聚會日期
+                if (aHappyGroupWeeklyReportToBeUpdated.MeetingDate.Year != 1)
+                {
+                    //設定主日日期
+                    int DayOfWeek = (int)aHappyGroupWeeklyReportToBeUpdated.MeetingDate.DayOfWeek + 1;
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_sunday_date", aHappyGroupWeeklyReportToBeUpdated.MeetingDate.AddDays(-DayOfWeek));
+                    //設定小組日期
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aHappyGroupWeeklyReportToBeUpdated.MeetingDate);
+                }
+                #endregion
+                #region 設定幸福小組主題
+                if (aHappyGroupWeeklyReportToBeUpdated.Topic != null)
+                {
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_topic", ConvertTopicToIndex(aHappyGroupWeeklyReportToBeUpdated.Topic));
+                }
+                #endregion
+                #region 設定幸福小組日誌回報
+                if (aHappyGroupWeeklyReportToBeUpdated.HappyWeeklyReport != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_memo", aHappyGroupWeeklyReportToBeUpdated.HappyWeeklyReport);
+                }
+                #endregion
+                #region 設定小組聚會地點和時間
+                //設定小組聚會地點
+                if (aHappyGroupWeeklyReportToBeUpdated.Location != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_place", aHappyGroupWeeklyReportToBeUpdated.Location);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_location", aHappyGroupWeeklyReportToBeUpdated.Location);
+                }
+                //設定小組聚會時間
+                if (aHappyGroupWeeklyReportToBeUpdated.StartTime != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_time", aHappyGroupWeeklyReportToBeUpdated.StartTime);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_start_time", aHappyGroupWeeklyReportToBeUpdated.StartTime);
+                }
+                if (aHappyGroupWeeklyReportToBeUpdated.EndTime != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_end_time", aHappyGroupWeeklyReportToBeUpdated.EndTime);
+                }
+                #endregion
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        public void SetHappyGroupWeeklyReport(HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeUpdated, ref Entity aWeeklyReportEntity)
+        {
+            try
+            {
+                #region 設定幸福小組週次
+                if (aHappyGroupWeeklyReportToBeUpdated.WeekCounter != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_weekly_index", aHappyGroupWeeklyReportToBeUpdated.WeekCounter);
+                }
+                #endregion
+                #region 設定小組聚會日期
+                if (aHappyGroupWeeklyReportToBeUpdated.MeetingDate.Year != 1)
+                {
+                    //設定主日日期
+                    int DayOfWeek = (int)aHappyGroupWeeklyReportToBeUpdated.MeetingDate.DayOfWeek + 1;
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_sunday_date", aHappyGroupWeeklyReportToBeUpdated.MeetingDate.AddDays(-DayOfWeek));
+                    //設定小組日期
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aHappyGroupWeeklyReportToBeUpdated.MeetingDate);
+                }
+                #endregion
+                #region 設定幸福小組主題
+                if (aHappyGroupWeeklyReportToBeUpdated.Topic != null)
+                {
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_topic", ConvertTopicToIndex(aHappyGroupWeeklyReportToBeUpdated.Topic));
+                }
+                #endregion
+                #region 設定幸福小組日誌回報
+                if (aHappyGroupWeeklyReportToBeUpdated.HappyWeeklyReport != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_memo", aHappyGroupWeeklyReportToBeUpdated.HappyWeeklyReport);
+                }
+                #endregion
+                #region 設定小組聚會地點和時間
+                //設定小組聚會地點
+                if (aHappyGroupWeeklyReportToBeUpdated.Location != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_place", aHappyGroupWeeklyReportToBeUpdated.Location);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_location", aHappyGroupWeeklyReportToBeUpdated.Location);
+                }
+                //設定小組聚會時間
+                if (aHappyGroupWeeklyReportToBeUpdated.StartTime != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_time", aHappyGroupWeeklyReportToBeUpdated.StartTime);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_start_time", aHappyGroupWeeklyReportToBeUpdated.StartTime);
+                }
+                if (aHappyGroupWeeklyReportToBeUpdated.EndTime != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_end_time", aHappyGroupWeeklyReportToBeUpdated.EndTime);
+                }
+                #endregion
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        #endregion
+        #region 修改幸福小組BEST
+        public void UpdateBestRecord(String aPresentRecordId, ref BestRecord aBestRecord, bool PresentFlag, bool DecisionFlag)
+        {
+            try
+            {
+                #region 幸福小組週報，同時以名單成員作為初始成員
+                // 取得 出席紀錄
+                Entity aPresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", new Guid(aPresentRecordId));
+                // 更新連絡人 幸福小組紀錄:次數及課程
+                UpdateBestContactRecord(aPresentRecordEntity, ref aBestRecord, PresentFlag, DecisionFlag);
+                #endregion
+                #region 幸福小組週報，同時以名單成員作為初始成員
+                this.SetBestPresentRecord(ref aBestRecord, ref aPresentRecordEntity, PresentFlag, DecisionFlag);
+                this.m_ToolUtilityClass.UpdateEntity(ref aPresentRecordEntity);
+                #endregion
+                #region 計算幸福小組週報出席人數
+                CalculateWeeklyReportTotalNumber(ref aPresentRecordEntity);
+                #endregion
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        public void UpdateBestContactRecord(Entity aPresentRecordEntity, ref BestRecord aBestRecord, bool PresentFlag, bool DecisionFlag)
+        {
+            try
+            {
+                // 取得 BEST 連絡人
+                Entity BestContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aPresentRecordEntity, "new_contact_new_present_record"));
+
+                // 設定連絡人參數
+                SetBestContactEntity(ref aPresentRecordEntity, ref aBestRecord, ref BestContactEntity, PresentFlag, DecisionFlag);
+
+                // 更新連絡人
+                this.m_ToolUtilityClass.UpdateEntity(ref BestContactEntity);
+
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        public void SetBestContactEntity(ref Entity aPresentRecordEntity, ref BestRecord aBestRecord, ref Entity BestContactEntity, bool PresentFlag, bool DecisionFlag)
+        {
+            try
+            {
+                #region 設定BEST 姓名
+                if (aBestRecord.FullName != null && aBestRecord.FullName != "")
+                {
+                    Entity aQueryBestContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByName(aBestRecord.FullName);
+
+                    if (aQueryBestContactEntity == null)
+                    {
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref BestContactEntity, "lastname", aBestRecord.FullName);
+                    }
+                    else
+                    {
+                        #region 系統已經有這個人了
+                        #region 比對行動電話是否一致，
+                        //this.m_ToolUtilityClass.SetEntityStringAttribute(ref BestContactEntity, "lastname", aBestRecord.FullName + "(BEST)");
+                        #endregion
+                        #endregion
+                    }
+                }
+                #endregion
+                #region 設定BEST 行動電話
+                if (aBestRecord.MobilePhone != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref BestContactEntity, "mobilephone", aBestRecord.MobilePhone);
+                }
+                #endregion
+                #region 設定屬靈帶領者
+
+                if (aBestRecord.BestLeader != null)
+                {
+                    Entity HappyWeeklyReport = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", this.m_ToolUtilityClass.GetEntityLookupAttribute(aPresentRecordEntity, "new_group_present_weekly_report_prese"));
+
+                    Entity HappyListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", this.m_ToolUtilityClass.GetEntityLookupAttribute(HappyWeeklyReport, "new_list_group_present_weekly_report"));
+                    //GetContactSpiritLeaderId
+
+                    Guid aContactSpiritLeaderId = GetContactSpiritLeaderId(HappyListEntity.Id, aBestRecord.BestLeader);
+
+                    if (aContactSpiritLeaderId != Guid.Empty)
+                    {
+                        this.m_ToolUtilityClass.SetEntityLookUpAttribute(BestContactEntity, "new_contact_contact_spiritleader", "contact", aContactSpiritLeaderId);
+                    }
+                }
+                #endregion
+                #region 設定個人幸福小組出席紀錄次數與課程
+                if (PresentFlag == true)
+                {
+                    // 從出席紀錄取得週報
+                    Entity HappyWeeklyReport = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", this.m_ToolUtilityClass.GetEntityLookupAttribute(aPresentRecordEntity, "new_group_present_weekly_report_prese"));
+                    String HappyCourse = ConvertIndexToTopic(this.m_ToolUtilityClass.GetOptionSetAttribute(HappyWeeklyReport, "new_topic"));
+                    if (aBestRecord.Present == true)
+                    {
+                        SetContactHappyTimesAndHistory(ref BestContactEntity, HappyCourse);
+                    }
+                    else
+                    {
+                        RemoveContactHappyTimesAndHistory(ref BestContactEntity, HappyCourse);
+                    }
+                }
+                #endregion
+                #region 設定 BEST 介紹人
+                if (aBestRecord.BestIntroducer != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref BestContactEntity, "new_best_introducer", aBestRecord.BestIntroducer);
+                }
+                #endregion
+                #region 設定 BEST 與介紹人關係
+                if (aBestRecord.BestRelationship != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref BestContactEntity, "new_best_relationship", aBestRecord.BestRelationship);
+                }
+                #endregion
+
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+        private Guid GetContactSpiritLeaderId(Guid ListEntityId, String BestLeaderName)
+        {
+            try
+            {
+                // 每個組員
+                bool ListType = false;
+                EntityCollection MemberCollection = GetPersonalSmallGroupLeaderMemberData(ListEntityId, ref ListType);
+
+                foreach (Entity MemberEntity in MemberCollection.Entities)
+                {
+                    #region//取得名單中的每個組員
+                    Entity aContactEntity;
+
+                    if (ListType == false)
+                    {
+                        // 靜態名單
+                        aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                    }
+                    else
+                    {
+                        // 動態名單
+                        aContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                    }
+                    #endregion
+
+                    if (this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "fullname") == BestLeaderName)
+                    {
+                        return aContactEntity.Id;
+                    }
+
+                }
+
+                return Guid.Empty;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw Exception;
+            }
+        }
+        public void SetBestPresentRecord(ref BestRecord aBestRecord, ref Entity aPresentRecordEntity, bool PresentFlag, bool DecisionFlag)
+        {
+            try
+            {
+                #region 設定幸福小組出席
+                //if (PresentFlag == true)
+                //{
+                if (aBestRecord.Present == true)
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_present", 1);
+                }
+                else
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_present", 0);
+                }
+                //}
+                #endregion
+                #region 設定幸福小組決志
+                //if (DecisionFlag == true)
+                //{
+                if (aBestRecord.Decision == true)
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_decision", 1);
+                }
+                else
+                {
+                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecordEntity, "new_happy_decision", 0);
+                }
+                //}
+                #endregion
+                #region 設定附註或是代禱事項
+
+                // 轉換版本
+                // 聖谷行道會
+                if (aBestRecord.Note != null)
+                {
+                    //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_name", aBestRecord.Note);
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_explanation", aBestRecord.Note);
+                }
+
+                // 聖谷行道會
+                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
+                #endregion
+                #region 設定行動電話
+                if (aBestRecord.MobilePhone != null)
+                {
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_cell_hpone", aBestRecord.MobilePhone);
+                }
+                #endregion
+                return;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
         #endregion
         #region 上傳幸福小組週報
         public void UpdateHappyGroupListClass(HappyGroupListClass aActiveHappyGroupListClass)
@@ -1568,6 +2613,7 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecordEntity, "new_cell_hpone", aBestRecord.MobilePhone);
                 }
                 #endregion
+                return;
             }
             catch (System.Exception Exception)
             {
@@ -1577,6 +2623,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
         #endregion
+
         #region 計算幸福小組週報出席人數
         public void CalculateWeeklyReportTotalNumber(ref Entity aPresentRecordEntity)
         {

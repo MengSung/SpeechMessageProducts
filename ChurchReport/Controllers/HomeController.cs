@@ -204,11 +204,12 @@ namespace ChurchReport.Controllers
         [Route("/Home/SetupUserLineId")]
         public IActionResult SetupUserLineIdRedirect(string UserLineId, string GroupId, string RoomId, string ViewType)
         {
-            // 直接調用 DedicationController 的方法，透過 DI 容器取得必要的服務
+            // 呼叫奉獻 DedicationController 的方法，透過 DI 取得所需的服務
             var dedicationController = new DedicationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
-                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment);
+                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
+                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider);
             
             return dedicationController.SetupUserLineId(UserLineId, GroupId, RoomId, ViewType);
         }

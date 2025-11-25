@@ -7,12 +7,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Threading.Tasks;
+using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// 膍絔北竟
-    /// 矪瞶︽現膍絔籔琩高
+    /// 膍糵北竟
+    /// 矪瞶絬蹿膍糵籔琩高
     /// </summary>
     public class DedicationAuditController : BaseChurchController
     {
@@ -21,8 +22,9 @@ namespace ChurchReport.Controllers
         public DedicationAuditController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
-            IPayment paymentService)
-            : base(httpContextAccessor, memoryCache, paymentService)
+            IPayment paymentService,
+            IToolUtilityProvider toolUtilityProvider)
+            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider)
         {
         }
 

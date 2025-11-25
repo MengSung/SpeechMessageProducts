@@ -72,7 +72,7 @@ namespace ChurchReport.Controllers
 
             // 初始化記憶體資料上下文
             InMemoryContext = new InMemoryDataContextSmallGroup(
-                httpContextAccessor, memoryCache, paymentService);
+                httpContextAccessor, memoryCache, paymentService, toolUtilityProvider);
 
             // 存放金流服務參考
             PaymentService = paymentService;

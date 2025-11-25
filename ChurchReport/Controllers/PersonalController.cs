@@ -1,17 +1,15 @@
 using ChurchReport.Models;
 using ChurchReport.Tools;
 using ChurchReport.ViewModels;
-using ChurchReport.WebServiceConnector;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Xrm.Sdk;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
 {
@@ -26,8 +24,9 @@ namespace ChurchReport.Controllers
         public PersonalController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
-            IPayment paymentService)
-            : base(httpContextAccessor, memoryCache, paymentService)
+            IPayment paymentService,
+            IToolUtilityProvider toolUtilityProvider)
+            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider)
         {
         }
 

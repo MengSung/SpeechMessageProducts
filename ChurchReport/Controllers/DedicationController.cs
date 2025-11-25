@@ -8,12 +8,13 @@ using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
 {
     /// <summary>
     /// 奉獻管理控制器
-    /// 處理永豐金流(QPay)奉獻相關功能
+    /// 處理線上金流(QPay)奉獻相關功能
     /// </summary>
     public class DedicationController : BaseChurchController
     {
@@ -22,8 +23,9 @@ namespace ChurchReport.Controllers
         public DedicationController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
-            IPayment paymentService)
-            : base(httpContextAccessor, memoryCache, paymentService)
+            IPayment paymentService,
+            IToolUtilityProvider toolUtilityProvider)
+            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider)
         {
         }
 

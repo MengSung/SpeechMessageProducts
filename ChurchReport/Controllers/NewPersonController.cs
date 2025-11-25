@@ -8,12 +8,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Threading.Tasks;
+using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// 新人跟進與關懷控制器
-    /// 處理新人關懷、轉介、指派小組等功能
+    /// 新人關懷與追蹤控制器
+    /// 處理新人追蹤、關懷、指派小組等功能
     /// </summary>
     public class NewPersonController : BaseChurchController
     {
@@ -22,8 +23,9 @@ namespace ChurchReport.Controllers
         public NewPersonController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
-            IPayment paymentService)
-            : base(httpContextAccessor, memoryCache, paymentService)
+            IPayment paymentService,
+            IToolUtilityProvider toolUtilityProvider)
+            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider)
         {
         }
 
