@@ -192,6 +192,9 @@ namespace ToolUtilityNameSpace.Core
         public EntityCollection RetrieveEntityCollectionByField(string entityName, string fieldName, string fieldValue)
             => _collectionQueryService.Value.RetrieveEntityCollectionByField(entityName, fieldName, fieldValue);
 
+        public EntityCollection QueryWeeklyReportBeforeTowMonthOfSunday(DateTime aSunday, Guid aListEntityId)
+            => _collectionQueryService.Value.QueryWeeklyReportBeforeTowMonthOfSunday(aSunday, aListEntityId);
+
         public Guid CreateEntity(Entity entityToCreate)
             => _crudService.Value.CreateEntity(entityToCreate);
 

@@ -245,6 +245,19 @@ namespace ToolUtilityNameSpace
                 throw;
             }
         }
+        public EntityCollection QueryWeeklyReportBeforeTowMonthOfSunday(DateTime aSunday, Guid aListEntityId)
+        {
+            try
+            {
+                // 委派給 Facade 處理
+                return _facade.QueryWeeklyReportBeforeTowMonthOfSunday(aSunday, aListEntityId);
+            }
+            catch (Exception e)
+            {
+                TraceByLevel(TOTAL_LEVEL, LEVEL_1, "RetrieveEntityCollectionByField 錯誤: " + e.Message);
+                throw;
+            }
+        }
         #endregion
         #region 取得聯絡人 - 委派到 Facade
         public String RetrieveContactByContactId(String ContactId)

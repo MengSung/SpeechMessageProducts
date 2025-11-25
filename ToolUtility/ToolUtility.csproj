@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+ï»¿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -50,13 +50,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />
-    <ProjectReference Include="..\Trace\Trace.csproj" />
+    <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />    
+    <ProjectReference Include="..\PowerPlatform.Dataverse.Client\PowerPlatform.Dataverse.Client.csproj" /><ProjectReference Include="..\Trace\Trace.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- ±Æ°£¤å¥ó§¨¤¤ªº markdown ¤å¥ó¡A¦ý«O¯d¦b¶µ¥Ø¤¤ -->
-    <None Include="¤å¥ó\**\*.md" />
+    <!-- ?????????? markdown ???A???O?d?b????? -->
+    <None Include="???\**\*.md" />
     <None Include="ToolUtility_Net10.csproj" />
   </ItemGroup>
 
