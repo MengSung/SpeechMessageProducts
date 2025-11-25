@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ChurchReport.Models;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 
 namespace ChurchReport.WebServiceConnector
 {
@@ -12,11 +13,12 @@ namespace ChurchReport.WebServiceConnector
     /// </summary>
     public class EquipmentStatusCalculator
     {
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
         private readonly ToolUtilityClass m_ToolUtilityClass;
 
         public EquipmentStatusCalculator()
         {
-            m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+            m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
         }
 
         /// <summary>
