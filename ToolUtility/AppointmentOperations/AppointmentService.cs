@@ -8,19 +8,19 @@ namespace ToolUtilityNameSpace.AppointmentOperations
     public class AppointmentService : IAppointmentService
     {
         private readonly object _logger;
-        private readonly IEntityQueryService _queryService;
+        private readonly IOrganizationService _organizationService;
 
-        public AppointmentService(object logger, IEntityQueryService queryService)
+        public AppointmentService(object logger,IOrganizationService organizationService)
         {
             _logger = logger;
-            _queryService = queryService;
+            _organizationService = organizationService;
         }
 
         public EntityCollection RetrieveByDate(DateTime selectedDate)
         {
             // Legacy method did not filter by date; keep behavior
             var query = new QueryByAttribute("appointment") { ColumnSet = new ColumnSet(true) };
-            return _queryService.RetrieveMultiple(query);
+            return _organizationService.RetrieveMultiple(query);
         }
 
         public EntityCollection RetrieveByDateRange(DateTime startDate, DateTime endDate)
@@ -50,7 +50,7 @@ namespace ToolUtilityNameSpace.AppointmentOperations
                         </filter>
                       </entity>
                     </fetch>";
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
         public EntityCollection RetrieveByContactWithinYear(string contactName, string contactId)
@@ -86,7 +86,7 @@ namespace ToolUtilityNameSpace.AppointmentOperations
                         </filter>
                       </entity>
                     </fetch>";
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
         public EntityCollection RetrieveByDateRangeAndScheduleType(DateTime startDate, DateTime endDate, string scheduleType)
@@ -118,7 +118,7 @@ namespace ToolUtilityNameSpace.AppointmentOperations
                         </filter>
                       </entity>
                     </fetch>";
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
     }
 }

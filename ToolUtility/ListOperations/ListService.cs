@@ -16,13 +16,11 @@ namespace ToolUtilityNameSpace.ListOperations
     public class ListService : IListService
     {
         private readonly object _logger;
-        private readonly IEntityQueryService _queryService;
         private readonly IOrganizationService _organizationService;
 
-        public ListService(object logger, IEntityQueryService queryService, IOrganizationService organizationService)
+        public ListService(object logger, IOrganizationService organizationService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _queryService = queryService ?? throw new ArgumentNullException(nameof(queryService));
             _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
         }
 
@@ -103,7 +101,7 @@ namespace ToolUtilityNameSpace.ListOperations
         {
             var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet(true) };
             query.AddAttributeValue("listid", listId);
-            return _queryService.RetrieveMultiple(query);
+            return _organizationService.RetrieveMultiple(query);
         }
 
         public EntityCollection RetrieveMemberListCollectionByListIdUsingService(IOrganizationService externalService, Guid listId)
@@ -124,10 +122,10 @@ namespace ToolUtilityNameSpace.ListOperations
 
         public EntityCollection RetrieveDynamicMemberList(Guid listId)
         {
-            var listEntity = _queryService.RetrieveEntity("list", listId);
+            var listEntity = _organizationService.Retrieve("list", listId, new ColumnSet("query"));
             if (listEntity == null || !listEntity.Attributes.Contains("query")) return new EntityCollection();
             var fetchXml = listEntity.GetAttributeValue<string>("query");
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
         public EntityCollection RetrieveDynamicMemberListUsingService(IOrganizationService externalService, Guid listId)
@@ -156,15 +154,15 @@ namespace ToolUtilityNameSpace.ListOperations
                 ColumnSet = new ColumnSet(true)
             };
             query.Criteria.AddCondition("entityid", ConditionOperator.Equal, contactId);
-            return _queryService.RetrieveMultiple(query);
+            return _organizationService.RetrieveMultiple(query);
         }
 
         public ArrayList GetAllMemberDataFromList(Guid listEntityId)
         {
             var members = new ArrayList();
-            
+
             // 先取得名單實體以判斷是靜態或動態名單
-            var listEntity = _queryService.RetrieveEntity("list", listEntityId);
+            var listEntity = _organizationService.Retrieve("list", listEntityId, new ColumnSet("type", "query"));
             if (listEntity == null) return members;
 
             bool isStaticList = false;
@@ -220,7 +218,7 @@ namespace ToolUtilityNameSpace.ListOperations
                         </filter>
                       </entity>
                     </fetch>";
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
         public EntityCollection RetrieveSmallGroupLists()
@@ -243,7 +241,7 @@ namespace ToolUtilityNameSpace.ListOperations
                         </filter>
                       </entity>
                     </fetch>";
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
         /// <summary>
@@ -254,7 +252,7 @@ namespace ToolUtilityNameSpace.ListOperations
             var query = new QueryByAttribute("list") { ColumnSet = new ColumnSet(true) };
             query.Attributes.AddRange("listname", "statecode");
             query.Values.AddRange(listName, 0);
-            var coll = _queryService.RetrieveMultiple(query);
+            var coll = _organizationService.RetrieveMultiple(query);
             return (coll != null && coll.Entities.Count > 0) ? coll.Entities[0] : null;
         }
 
@@ -286,7 +284,7 @@ namespace ToolUtilityNameSpace.ListOperations
                           </entity>
                         </fetch>";
 
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
         /// <summary>
@@ -311,7 +309,7 @@ namespace ToolUtilityNameSpace.ListOperations
                       </entity>
                     </fetch>";
 
-            return _queryService.RetrieveMultiple(new FetchExpression(fetchXml));
+            return _organizationService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
     }
 }

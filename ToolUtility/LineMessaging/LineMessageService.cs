@@ -1,3 +1,4 @@
+using Microsoft.Xrm.Sdk;
 using System;
 using ToolUtilityNameSpace.EntityOperations;
 
@@ -6,12 +7,12 @@ namespace ToolUtilityNameSpace.LineMessaging
     public class LineMessageService : ILineMessageService
     {
         private readonly object _logger;
-        private readonly IEntityCrudService _crudService;
+        private readonly IOrganizationService _organizationService;
 
-        public LineMessageService(object logger, IEntityCrudService crudService)
+        public LineMessageService(object logger, IOrganizationService organizationService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _crudService = crudService ?? throw new ArgumentNullException(nameof(crudService));
+            _organizationService = organizationService ;
         }
 
         public void CreatePushMessage(string userId, string subject, string message)
@@ -24,7 +25,7 @@ namespace ToolUtilityNameSpace.LineMessaging
                 ["message"] = message
             };
 
-            _crudService.CreateEntity(entity);
+            _organizationService.Create(entity);
         }
     }
 }

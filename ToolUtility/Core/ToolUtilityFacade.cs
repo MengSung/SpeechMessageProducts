@@ -88,6 +88,16 @@ namespace ToolUtilityNameSpace.Core
         {
             _logger = logger ?? new object();
 
+            // 初始化連接服務
+            //_crmConnectionService = new CrmConnectionService();
+
+            // 使用連接服務建立 CRM 連接
+            //var adUrl = "https://" + ORGANIZATION + ".speechmessage.com.tw/XRMServices/2011/Organization.svc";
+            //var adUsername = @"SPEECHMESSAGE\Administrator";
+            //var adPassword = "hu9840";
+
+            //_organizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
+
             _organizationService = aOrganizationService;
 
             InitializeServices();
@@ -135,10 +145,10 @@ namespace ToolUtilityNameSpace.Core
             _crudService = new Lazy<IEntityCrudService>(() => new EntityCrudService(_logger, _organizationService));
             _attributeService = new Lazy<IAttributeService>(() => new AttributeServiceComposite(_logger));
             _contactService = new Lazy<IContactService>(() => new ContactService(_logger, _organizationService));
-            _listService = new Lazy<IListService>(() => new ListService(_logger, _queryService.Value, _organizationService));
+            _listService = new Lazy<IListService>(() => new ListService(_logger, _organizationService));
             _attachmentService = new Lazy<IAttachmentService>(() => new AttachmentService(_logger, _organizationService));
-            _lineMessageService = new Lazy<ILineMessageService>(() => new LineMessageService(_logger, _crudService.Value));
-            _appointmentService = new Lazy<IAppointmentService>(() => new AppointmentService(_logger, _queryService.Value));
+            _lineMessageService = new Lazy<ILineMessageService>(() => new LineMessageService(_logger, _organizationService));
+            _appointmentService = new Lazy<IAppointmentService>(() => new AppointmentService(_logger, _organizationService));
             _lessonsService = new Lazy<ILessonsService>(() => new LessonsService(_logger, _organizationService));
             _feeService = new Lazy<IFeeService>(() => new FeeService(_logger, _organizationService));
             _collectionQueryService = new Lazy<ICollectionQueryService>(() => new CollectionQueryService(_logger, _organizationService));

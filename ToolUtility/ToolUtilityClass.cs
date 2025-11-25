@@ -152,6 +152,7 @@ namespace ToolUtilityNameSpace
 
             // 初始化 Facade (不傳入 organizationService)
             _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
+            //_facade = new ToolUtilityFacade();
             // 透過 Facade 的連接服務方法設定 organizationService
             //_facade.SetOrganizationService(SERVER, PORT, ORGANIZATION, DOMAIN, adUsername, adPassword);
 
@@ -164,7 +165,7 @@ namespace ToolUtilityNameSpace
 
             m_DiscoveryServiceType = DiscoveryServiceType;
 
-            // 使用連接服務建立 CRM 連接
+            //// 使用連接服務建立 CRM 連接
             var adUrl = "https://" + ORGANIZATION + ".speechmessage.com.tw/XRMServices/2011/Organization.svc";
             var adUsername = @"Administrator@speechmessage.com.tw";
             var adPassword = "hu9840";
@@ -180,7 +181,7 @@ namespace ToolUtilityNameSpace
         public ToolUtilityClass(ref bool ValidFlag)
         {
             // 初始化連接服務
-            _crmConnectionService = new CrmConnectionService();
+            //_crmConnectionService = new CrmConnectionService();
 
             if (ExpireDate >= DateTime.Today)
             {
