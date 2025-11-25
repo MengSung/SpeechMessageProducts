@@ -1,5 +1,7 @@
 ﻿using System;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
+using ToolUtilityNameSpace.DependencyInjection;
 
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -19,7 +21,7 @@ namespace ChurchReport.Models
 
         public String ListManagementType = "沒管理名單";
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+        private readonly ToolUtilityClass m_ToolUtilityClass;
 
         ChurchListDataProcessor m_ChurchListDataProcessor = new ChurchListDataProcessor();
 
@@ -40,6 +42,38 @@ namespace ChurchReport.Models
         Random m_Random = new Random();//亂數種子
 
         #endregion
+        
+        #region 建構函數
+        /// <summary>
+        /// 預設建構函數，使用 Factory 模式獲取 ToolUtilityClass 實例
+        /// </summary>
+        public ListManagementDataManager()
+        {
+            m_ToolUtilityClass = ToolUtilityFactory.GetInstance();
+        }
+
+        /// <summary>
+        /// 建構函數，使用 Dependency Injection 模式
+        /// </summary>
+        /// <param name="toolUtilityProvider">ToolUtility 提供者</param>
+        public ListManagementDataManager(IToolUtilityProvider toolUtilityProvider)
+        {
+            if (toolUtilityProvider == null)
+                throw new ArgumentNullException(nameof(toolUtilityProvider));
+            
+            m_ToolUtilityClass = toolUtilityProvider.GetToolUtility();
+        }
+
+        /// <summary>
+        /// 建構函數，使用指定的 DiscoveryServiceType
+        /// </summary>
+        /// <param name="discoveryServiceType">服務類型</param>
+        public ListManagementDataManager(string discoveryServiceType)
+        {
+            m_ToolUtilityClass = ToolUtilityFactory.GetInstance(discoveryServiceType);
+        }
+        #endregion
+        
         #region 初始化成員資料
         public void SetupListManagementData(String Account, String Password)
         {

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
+using ToolUtilityNameSpace.DependencyInjection;
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
 // located in the SDK\bin folder of the SDK download.
 
@@ -14,7 +16,7 @@ namespace ChurchReport.Models
     public class PollManager : Controller
     {
         #region 資料區
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+        private readonly ToolUtilityClass m_ToolUtilityClass;
 
         public PollModel m_PollModel { get; set; } = new PollModel();
 
@@ -28,6 +30,29 @@ namespace ChurchReport.Models
         // 神學生預設費用
         private const decimal GOD_STUDENT_FEE = 400;
         #endregion
+        
+        #region 建構函數
+        /// <summary>
+        /// 預設建構函數，使用 Factory 模式獲取 ToolUtilityClass 實例
+        /// </summary>
+        public PollManager()
+        {
+            m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+        }
+
+        /// <summary>
+        /// 建構函數，使用 Dependency Injection 模式
+        /// </summary>
+        /// <param name="toolUtilityProvider">ToolUtility 提供者</param>
+        public PollManager(IToolUtilityProvider toolUtilityProvider)
+        {
+            if (toolUtilityProvider == null)
+                throw new ArgumentNullException(nameof(toolUtilityProvider));
+            
+            m_ToolUtilityClass = toolUtilityProvider.GetToolUtility();
+        }
+        #endregion
+        
         #region 電腦網頁登入
         public async Task<IActionResult> SavePoll(PollModel PollModel, String QrCodeIdString, String LineUserId)
         {
