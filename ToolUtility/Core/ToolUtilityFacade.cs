@@ -436,13 +436,13 @@ namespace ToolUtilityNameSpace.Core
             => _listService.Value.RetrieveMemberListCollectionByListId(listId);
 
         public EntityCollection RetrieveMemberListCollectionByListId(ref IOrganizationService organizationService, Guid listId)
-            => _listService.Value.RetrieveMemberListCollectionByListIdUsingService(organizationService, listId);
+            => _listService.Value.RetrieveMemberListCollectionByListIdUsingService(_organizationService, listId);
 
         public EntityCollection RetrieveMemberListCollectionByListIdDynamics365(ref OrganizationServiceProxy organizationService, Guid listId)
             => _listService.Value.RetrieveMemberListCollectionByListIdUsingProxy(_organizationService, listId);
 
         public EntityCollection RetrieveMemberListCollectionByListIdCrm2011(ref IOrganizationService organizationService, Guid listId)
-            => _listService.Value.RetrieveMemberListCollectionByListIdUsingService(organizationService, listId);
+            => _listService.Value.RetrieveMemberListCollectionByListIdUsingService(_organizationService, listId);
 
         // 動態名單查詢方法
         public EntityCollection RetrieveDynamicMemberList(string strList)
@@ -450,19 +450,19 @@ namespace ToolUtilityNameSpace.Core
 
         public EntityCollection RetrieveDynamicMemberList(IOrganizationService service, string strList)
         {
-            IOrganizationService svc = service;
+            IOrganizationService svc = _organizationService;
             return RetrieveDynamicMemberList(ref svc, Guid.Parse(strList));
         }
 
-        public EntityCollection RetrieveDynamicMemberListDynamics365(OrganizationServiceProxy service, string strList)
+        public EntityCollection RetrieveDynamicMemberListDynamics365(IOrganizationService service, Guid strList)
         {
-            OrganizationServiceProxy proxy = service;
-            return RetrieveDynamicMemberListDynamics365(ref proxy, Guid.Parse(strList));
+            IOrganizationService proxy = _organizationService;
+            return RetrieveDynamicMemberListDynamics365(ref proxy, strList);
         }
 
         public EntityCollection RetrieveDynamicMemberListCrm2011(IOrganizationService service, string strList)
         {
-            IOrganizationService svc = service;
+            IOrganizationService svc = _organizationService;
             return RetrieveDynamicMemberList(ref svc, Guid.Parse(strList));
         }
 
@@ -472,7 +472,7 @@ namespace ToolUtilityNameSpace.Core
         public EntityCollection RetrieveDynamicMemberList(ref IOrganizationService service, Guid listId)
             => _listService.Value.RetrieveDynamicMemberListUsingService(service, listId);
 
-        public EntityCollection RetrieveDynamicMemberListDynamics365(ref OrganizationServiceProxy service, Guid listId)
+        public EntityCollection RetrieveDynamicMemberListDynamics365(ref IOrganizationService service, Guid listId)
             => _listService.Value.RetrieveDynamicMemberListUsingProxy(service, listId);
 
         public EntityCollection RetrieveDynamicMemberListCrm2011(ref IOrganizationService service, Guid listId)

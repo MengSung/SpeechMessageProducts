@@ -342,7 +342,7 @@ namespace ToolUtilityNameSpace
         public EntityCollection RetrieveDynamicMemberList(IOrganizationService service, string strList)
             => _facade.RetrieveDynamicMemberList(service, strList);
 
-        public EntityCollection RetrieveDynamicMemberListDynamics365(OrganizationServiceProxy service, string strList)
+        public EntityCollection RetrieveDynamicMemberListDynamics365(OrganizationServiceProxy service, Guid strList)
             => _facade.RetrieveDynamicMemberListDynamics365(service, strList);
 
         public EntityCollection RetrieveDynamicMemberListCrm2011(IOrganizationService service, string strList)
@@ -355,7 +355,7 @@ namespace ToolUtilityNameSpace
             => _facade.RetrieveDynamicMemberList(ref service, aListId);
 
         public EntityCollection RetrieveDynamicMemberListDynamics365(ref OrganizationServiceProxy service, Guid aListId)
-            => _facade.RetrieveDynamicMemberListDynamics365(ref service, aListId);
+            => _facade.RetrieveDynamicMemberListDynamics365(service, aListId);
 
         public EntityCollection RetrieveDynamicMemberListCrm2011(ref IOrganizationService service, Guid aListId)
             => _facade.RetrieveDynamicMemberListCrm2011(ref service, aListId);
