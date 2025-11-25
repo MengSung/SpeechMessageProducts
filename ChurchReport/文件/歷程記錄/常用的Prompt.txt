@@ -66,6 +66,9 @@ FOLLOW D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊�
 不可以再有任何new ToolUtilityClass
 
 ==========================================================================================
+規劃將執行速度大幅加快，善用設計模式、堅守LINUS代碼原則，降低記憶體使用量，減少CPU使用率，提升整體效能，不可以有Memory Leak，羅列TODO，建立新增MD檔案
+
+批判D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\文件\效能優化計畫\  所有的 *.md檔案，是否符合LINUS代碼原則，是否有達到最好效能，是否有隱藏風險，是否會有Memory Leak，建立新增MD檔案
 
 
 
