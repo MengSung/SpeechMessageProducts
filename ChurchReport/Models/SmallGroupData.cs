@@ -14,6 +14,7 @@ namespace ChurchReport.Models
         public SmallGroupData()
         {
             ModifyFlag = false;
+            DisplayFlag = true; // 預設為 true，確保資料網格會顯示
         }
         public String LoginType { get; set; }
         public String SmallGroupLeaderContactId { get; set; }
