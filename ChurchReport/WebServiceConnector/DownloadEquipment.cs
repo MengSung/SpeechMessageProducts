@@ -15,6 +15,7 @@ using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 using System.Text.RegularExpressions;
 #endregion
 
@@ -23,7 +24,8 @@ namespace ChurchReport.WebServiceConnector
     public class DownloadEquipment
     {
         #region 資料區
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
+        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
         #endregion
         #region 下載資料時所需要的參數
         private EquipmentRootClass m_LocalEquipmenRoot;
