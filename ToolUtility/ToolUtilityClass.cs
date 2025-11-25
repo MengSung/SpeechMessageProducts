@@ -174,6 +174,7 @@ namespace ToolUtilityNameSpace
 
             // 初始化 Facade (不傳入 organizationService)
             _facade = new ToolUtilityFacade(m_Crm2011OrganizationService);
+            //_facade = new ToolUtilityFacade();
             // 透過 Facade 的連接服務方法設定 organizationService
             //_facade.SetOrganizationService(SERVER, PORT, ORGANIZATION, DOMAIN, adUsername, adPassword);
         }
