@@ -47,4 +47,17 @@ FOLLOW D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊�
 
 直接將  D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ToolUtility\   從.Net Framework 4.6.2升級到.Net 10，不要新增任何說明文件.md檔
 
+將  D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ToolUtility\ 善用設計模式、堅守LINUS代碼原則 ，
+在整個Solution，實現Singleton模式，Factory模式，Dependency Injection模式，ToolUtilityClass只能夠Instance 一次
+
+在整個Solution，實現Singleton模式，Factory模式，Repository模式，Dependency Injection模式，Strategy模式，Observer模式，Decorator模式，Facade模式，Adapter模式，Template Method模式
+
+將  D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ToolUtility\ 善用設計模式、堅守LINUS代碼原則 ， 
+
+將 D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ 及包含子目錄所有的 *.cs檔案 批判下列代碼設計決策：實現Singleton模式，Factory模式，Dependency Injection模式，ToolUtilityClass 確保只能通過 Factory 創建Instance 一次，善用設計模式、堅守LINUS代碼原則
+將 D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ 及包含子目錄所有的 *.cs檔案 實現Singleton模式，Factory模式，Dependency Injection模式，ToolUtilityClass 確保只能通過 Factory 創建Instance 一次，善用設計模式、堅守LINUS代碼原則，不要新增任何說明文件.md檔
+將 D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ 及包含子目錄所有包含 new ToolUtilityClass的 *.cs檔案 實現Singleton模式，Factory模式，Dependency Injection模式，ToolUtilityClass 確保只能通過 Factory 創建Instance 一次，善用設計模式、堅守LINUS代碼原則，不要新增任何說明文件.md檔
+
+
+
 
