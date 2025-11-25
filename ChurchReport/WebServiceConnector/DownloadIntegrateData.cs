@@ -1,4 +1,4 @@
-ï»¿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,18 +15,18 @@ using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace;
-using ToolUtilityNameSpace.Factory;
 using System.Text.RegularExpressions;
 using ChurchReport.Models;
+using ToolUtilityNameSpace.Factory;
 #endregion
 
 namespace ChurchReport.WebServiceConnector
 {
     public class DownloadIntegrateData
     {
-        #region è³‡æ–™å€
-        #region åƒæ•¸è³‡æ–™
-        // é€é Factory å–å¾— ToolUtilityClass å–®ä¸€å¯¦ä¾‹
+        #region ¸ê®Æ°Ï
+        #region °Ñ¼Æ¸ê®Æ
+        // ³z¹L Factory ¨ú±o ToolUtilityClass ³æ¤@¹ê¨Ò
         private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
         private static Regex DigitsOnly = new Regex(@"[^\d]");
@@ -35,89 +35,89 @@ namespace ChurchReport.WebServiceConnector
 
         bool m_SetIdentityFlag = false;
         #endregion
-        #region å¸¸æ•¸åƒæ•¸
+        #region ±`¼Æ°Ñ¼Æ
 
         //private const String CRM_TYPE = "CRM2011";
-        private const String CRM_TYPE = "DYNAMICS365-9.0";
+        private const String CRM_TYPE = "DYNAMICS365";
 
         private const bool TRANSFER_IDENTITY_FLAG = false;
 
-        //private const int MONTH_PERIOD = 2;      //å¹¾å€‹æœˆå…§å‡ºå¸­è¶…éé€™æ¬¡æ•¸å°±æœƒæ”¹è®Šå§”èº«é¡å‹=>å°çµ„çµ„å“¡
-        private const int WEEK_PERIOD = 8;      //éå»å¹¾ã€€WEEK_PERIODã€€å‘¨å…§å‡ºå¸­è¶…éé€™æ¬¡æ•¸å°±æœƒæ”¹è®Šå§”èº«é¡å‹=>å°çµ„çµ„å“¡
-        private const int MINIMUM_THRESHOLD = 4;      //2å€‹æœˆå…§å‡ºå¸­è¶…éé€™æ¬¡æ•¸å°±æœƒæ”¹è®Šå§”èº«é¡å‹=>å°çµ„çµ„å“¡
+        //private const int MONTH_PERIOD = 2;      //´X­Ó¤ë¤º¥X®u¶W¹L³o¦¸¼Æ´N·|§ïÅÜ©e¨­Ãş«¬=>¤p²Õ²Õ­û
+        private const int WEEK_PERIOD = 8;      //¹L¥h´X¡@WEEK_PERIOD¡@©P¤º¥X®u¶W¹L³o¦¸¼Æ´N·|§ïÅÜ©e¨­Ãş«¬=>¤p²Õ²Õ­û
+        private const int MINIMUM_THRESHOLD = 4;      //2­Ó¤ë¤º¥X®u¶W¹L³o¦¸¼Æ´N·|§ïÅÜ©e¨­Ãş«¬=>¤p²Õ²Õ­û
 
-        #region é™¤éŒ¯ç”¨åƒæ•¸
-        private const int TOTAL_LEVEL = 1;//æ”¹è®Šé€™å€‹å€¼ï¼Œå°±æœƒæ”¹è¿½è¹¤çš„éšå±¤ï¼Œå€¼è¶Šå°è¶Šä¸æœƒè¿½è¹¤ï¼Œè‹¥æ˜¯ TOTAL_LEVEL = 3 ï¼Œå‰‡å¤§æ–¼ 3 çš„ LEVELï¼Œä¾‹å¦‚ : LEVEL_4ã€LEVEL_5 å°±ä¸æœƒè¢«è¿½è¹¤
-        //private const int TOTAL_LEVEL = 5;//æ”¹è®Šé€™å€‹å€¼ï¼Œå°±æœƒæ”¹è¿½è¹¤çš„éšå±¤ï¼Œå€¼è¶Šå¤§è¶Šæœƒè¿½è¹¤ï¼Œè‹¥æ˜¯ TOTAL_LEVEL = 3 ï¼Œå‰‡å¤§æ–¼ 3 çš„ LEVELï¼Œä¾‹å¦‚ : LEVEL_4ã€LEVEL_5 å°±ä¸æœƒè¢«è¿½è¹¤
-        private const int LEVEL_1 = 1; // æ¯”è¼ƒå®¹æ˜“è¢«çœ‹åˆ°çš„ï¼Œå¯èƒ½æ˜¯æ¯”è¼ƒå¤§ç¯„åœçš„éƒ¨åˆ†
+        #region °£¿ù¥Î°Ñ¼Æ
+        private const int TOTAL_LEVEL = 1;//§ïÅÜ³o­Ó­È¡A´N·|§ï°lÂÜªº¶¥¼h¡A­È¶V¤p¶V¤£·|°lÂÜ¡A­Y¬O TOTAL_LEVEL = 3 ¡A«h¤j©ó 3 ªº LEVEL¡A¨Ò¦p : LEVEL_4¡BLEVEL_5 ´N¤£·|³Q°lÂÜ
+        //private const int TOTAL_LEVEL = 5;//§ïÅÜ³o­Ó­È¡A´N·|§ï°lÂÜªº¶¥¼h¡A­È¶V¤j¶V·|°lÂÜ¡A­Y¬O TOTAL_LEVEL = 3 ¡A«h¤j©ó 3 ªº LEVEL¡A¨Ò¦p : LEVEL_4¡BLEVEL_5 ´N¤£·|³Q°lÂÜ
+        private const int LEVEL_1 = 1; // ¤ñ¸û®e©ö³Q¬İ¨ìªº¡A¥i¯à¬O¤ñ¸û¤j½d³òªº³¡¤À
         private const int LEVEL_2 = 2;
         private const int LEVEL_3 = 3;
         private const int LEVEL_4 = 4;
-        private const int LEVEL_5 = 5; // æ¯”è¼ƒä¸æœƒè¢«çœ‹åˆ°çš„ï¼Œå¯èƒ½æ˜¯æ¯”è¼ƒç´°ç¯€çš„éƒ¨åˆ†
-        // å¦‚æœ TRACE_LEVEL >= TRACE_LEVEL_GROUND å°±æœƒé€²è¡Œè¿½è¹¤
-        // å¦‚æœ TRACE_LEVEL < TRACE_LEVEL_GROUND å°±ä¸æœƒé€²è¡Œè¿½è¹¤
+        private const int LEVEL_5 = 5; // ¤ñ¸û¤£·|³Q¬İ¨ìªº¡A¥i¯à¬O¤ñ¸û²Ó¸`ªº³¡¤À
+        // ¦pªG TRACE_LEVEL >= TRACE_LEVEL_GROUND ´N·|¶i¦æ°lÂÜ
+        // ¦pªG TRACE_LEVEL < TRACE_LEVEL_GROUND ´N¤£·|¶i¦æ°lÂÜ
         //int TRACE_LEVEL = 5;
         //int TRACE_LEVEL_GROUND = 3;
         #endregion
 
         #endregion
         #endregion
-        #region ä¸‹è¼‰è³‡æ–™æ™‚æ‰€éœ€è¦çš„åƒæ•¸
+        #region ¤U¸ü¸ê®Æ®É©Ò»İ­nªº°Ñ¼Æ
         DateTime m_Sunday;
-        Entity m_ListEntity; //å°çµ„å¯¦é«”ç´€éŒ„
-        Entity m_ContactEntity; //ç™»å…¥è€…åœ¨ç³»çµ±è£¡çš„å¯¦é«”
-        Entity m_WeeklyReportEntity; // é€±å ±å¯¦é«”
+        Entity m_ListEntity; //¤p²Õ¹êÅé¬ö¿ı
+        Entity m_ContactEntity; //µn¤JªÌ¦b¨t²Î¸Ìªº¹êÅé
+        Entity m_WeeklyReportEntity; // ¶g³ø¹êÅé
 
-        Guid m_ContactId; //ç™»å…¥è€…åœ¨ç³»çµ±è£¡çš„ID
-        String m_LoginType = ""; // "å°çµ„é•·" æˆ–æ˜¯ "å€‹äººå›å ±"
+        Guid m_ContactId; //µn¤JªÌ¦b¨t²Î¸ÌªºID
+        String m_LoginType = ""; // "¤p²Õªø" ©Î¬O "­Ó¤H¦^³ø"
 
-        private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // æ—ç³»çµ„é•·èƒ½å¦å¹«å°çµ„é•·å»ºç«‹é€±å ±ï¼Œ trueæ˜¯å¯ä»¥
+        private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true; // ±Ú¨t²Õªø¯à§_À°¤p²Õªø«Ø¥ß¶g³ø¡A true¬O¥i¥H
 
         #endregion
-        #region ä¸‹è¼‰è³‡æ–™å€
-        #region ä¸»ç¨‹å¼å€
+        #region ¤U¸ü¸ê®Æ°Ï
+        #region ¥Dµ{¦¡°Ï
         public void SetupIntegrateData(String Account, String Password, String LoginType, DateTime aDownloadDate, String ListEntityId, String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             this.m_LoginType = LoginType;
 
-            #region å…ˆæ ¹æ“šæ—¥æœŸå°‹æ‰¾ç•¶é€±ä¸»æ—¥æ—¥æœŸ
-            // å…¶å€¼çš„ç¯„åœå¾ 0 (è¡¨ç¤º DayOfWeek.Sunday) ç‚º 6 (è¡¨ç¤º DayOfWeek.Saturday)ã€‚
+            #region ¥ı®Ú¾Ú¤é´Á´M§ä·í¶g¥D¤é¤é´Á
+            // ¨ä­Èªº½d³ò±q 0 (ªí¥Ü DayOfWeek.Sunday) ¬° 6 (ªí¥Ü DayOfWeek.Saturday)¡C
             int DayOfWeek = (int)aDownloadDate.DayOfWeek;
 
-            // ç•¶é€±çš„æ˜ŸæœŸæ—¥ç‚ºèªå®šçš„ä¸»æ—¥
+            // ·í¶gªº¬P´Á¤é¬°»{©wªº¥D¤é
             //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
-            // æ¯å‘¨ä»¥æ˜ŸæœŸå…­ç‚ºç¬¬ä¸€æ—¥
+            // ¨C©P¥H¬P´Á¤»¬°²Ä¤@¤é
             if (DayOfWeek != 6)
             {
-                // å¦‚æœä¸æ˜¯æ˜ŸæœŸå…­å‰‡æ˜¯ä¸Šå€‹æ˜ŸæœŸå¤©
+                // ¦pªG¤£¬O¬P´Á¤»«h¬O¤W­Ó¬P´Á¤Ñ
                 m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
             }
             else
             {
-                // å¦‚æœæ˜¯æ˜ŸæœŸå…­å‰‡æ˜¯ä¸‹å€‹æ˜ŸæœŸå¤©
+                // ¦pªG¬O¬P´Á¤»«h¬O¤U­Ó¬P´Á¤Ñ
                 m_Sunday = aDownloadDate.AddDays(1);
             }
             #endregion
 
-            this.SetupHeaderData( Account, Password, aDownloadDate, ListEntityId, WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
+            this.SetupHeaderData(Account, Password, aDownloadDate, ListEntityId, WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
 
             this.SetupShepherdData(ListEntityId, WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
 
             this.SetupWeeklyReportData(WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
 
-            this.SetupWeeklyReportChartData( ref aListSmallGroupWeeklyReport );
+            this.SetupWeeklyReportChartData(ref aListSmallGroupWeeklyReport);
 
             return;
         }
         public void SetupHeaderData(String Account, String Password, DateTime aDownloadDate, String ListEntityId, String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            #region æ‰¾ç™»å…¥ä½¿ç”¨è€…åŠå…¶ID
-            FindLoginUser(Account, Password); // ä¹Ÿå°±æ˜¯è¨­å®š this.m_ContactEntity
-            if (m_ContactId == Guid.Empty) //æ˜¯å¦æœ‰æ‰¾åˆ°ç™»å…¥ä½¿ç”¨è€…åŠå…¶ID
-            { return; } // æ²’æ‰¾åˆ°å°±å›å‚³ null 
+            #region §äµn¤J¨Ï¥ÎªÌ¤Î¨äID
+            FindLoginUser(Account, Password); // ¤]´N¬O³]©w this.m_ContactEntity
+            if (m_ContactId == Guid.Empty) //¬O§_¦³§ä¨ìµn¤J¨Ï¥ÎªÌ¤Î¨äID
+            { return; } // ¨S§ä¨ì´N¦^¶Ç null 
             else
             {
-                // å–å¾—ç™»å…¥è€…çš„å§“å
+                // ¨ú±oµn¤JªÌªº©m¦W
                 //LoginFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ContactEntity, "fullname");
             }
             #endregion
@@ -127,17 +127,17 @@ namespace ChurchReport.WebServiceConnector
 
             aListSmallGroupWeeklyReport.ListEntityName = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ListEntity, "listname");
 
-            if (aListSmallGroupWeeklyReport.ListEntityName.Contains("å¹¸ç¦") != true)
+            if (aListSmallGroupWeeklyReport.ListEntityName.Contains("©¯ºÖ") != true)
             {
-                aListSmallGroupWeeklyReport.GroupType = "ä¸€èˆ¬å°çµ„";
+                aListSmallGroupWeeklyReport.GroupType = "¤@¯ë¤p²Õ";
             }
             else
             {
-                aListSmallGroupWeeklyReport.GroupType = "å¹¸ç¦å°çµ„";
+                aListSmallGroupWeeklyReport.GroupType = "©¯ºÖ¤p²Õ";
             }
 
             aListSmallGroupWeeklyReport.WeeklyReportEntityId = WeeklyReportEntityId;
-            if ( WeeklyReportEntityId != "" && WeeklyReportEntityId != null )
+            if (WeeklyReportEntityId != "" && WeeklyReportEntityId != null)
             {
                 this.m_WeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", new Guid(WeeklyReportEntityId));
             }
@@ -145,8 +145,8 @@ namespace ChurchReport.WebServiceConnector
             aListSmallGroupWeeklyReport.LoginType = this.m_LoginType;
             aListSmallGroupWeeklyReport.SmallGroupLeaderFullName = m_ToolUtilityClass.GetEntityLookupDisplayName(ref m_ListEntity, "new_contact_family_leader_list");
             aListSmallGroupWeeklyReport.SundayPrayers = aDownloadDate;
-            aListSmallGroupWeeklyReport.SundayPeriod = "å°çµ„æ—¥æœŸå°æ‡‰åˆ°ä¸»æ—¥æœŸé–“æ˜¯: " + m_Sunday.AddDays(-1).ToLocalTime().ToShortDateString() + " ~ " + m_Sunday.AddDays(5).ToLocalTime().ToShortDateString();
-            //aListSmallGroupWeeklyReport.SundayPeriod = "å°çµ„æ—¥æœŸå°æ‡‰åˆ°ä¸»æ—¥æœŸé–“æ˜¯: " + m_Sunday.AddDays(-6).ToLocalTime().ToShortDateString() + " ~ " + m_Sunday.AddDays(0).ToLocalTime().ToShortDateString();
+            aListSmallGroupWeeklyReport.SundayPeriod = "¤p²Õ¤é´Á¹ïÀ³¨ì¥D¤é´Á¶¡¬O: " + m_Sunday.AddDays(-1).ToLocalTime().ToShortDateString() + " ~ " + m_Sunday.AddDays(5).ToLocalTime().ToShortDateString();
+            //aListSmallGroupWeeklyReport.SundayPeriod = "¤p²Õ¤é´Á¹ïÀ³¨ì¥D¤é´Á¶¡¬O: " + m_Sunday.AddDays(-6).ToLocalTime().ToShortDateString() + " ~ " + m_Sunday.AddDays(0).ToLocalTime().ToShortDateString();
             aListSmallGroupWeeklyReport.SmallGroupLeaderContactId = m_ContactId.ToString();
             aListSmallGroupWeeklyReport.SmallGroupLeaderFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ContactEntity, "fullname");
 
@@ -154,22 +154,22 @@ namespace ChurchReport.WebServiceConnector
         }
         public void SetupShepherdData(String ListEntityId, String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            // åŒ…å« 3 å€‹SmallGroupData ( å°çµ„ç‰§é¤Šã€æ–°äººè·Ÿé€²é—œæ‡·ã€åŸºæœ¬è³‡æ–™ç¶­è­·)
-            // è€Œæ¯å€‹åˆåŒ…å«ä¸€å€‹Membersé™£åˆ—
+            // ¥]§t 3 ­ÓSmallGroupData ( ¤p²Õªª¾i¡B·s¤H¸ò¶iÃöÃh¡B°ò¥»¸ê®ÆºûÅ@)
+            // ¦Ó¨C­Ó¤S¥]§t¤@­ÓMembers°}¦C
             aListSmallGroupWeeklyReport.m_SmallGroupDataList = new SmallGroupDataList();
 
-            // å–å¾—åŸºæœ¬è³‡æ–™
+            // ¨ú±o°ò¥»¸ê®Æ
             this.GetAllMemeberDataList(ListEntityId, WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
 
-            // å¾…å®Œæˆ....
+            // «İ§¹¦¨....
             // 
-            if (aListSmallGroupWeeklyReport.GroupType.Contains("å¹¸ç¦") != true)
+            if (aListSmallGroupWeeklyReport.GroupType.Contains("©¯ºÖ") != true)
             {
                 this.SetSmallGroupData(ref aListSmallGroupWeeklyReport);
 
                 this.SetNewPersonFollowUpData(ref aListSmallGroupWeeklyReport);
             }
-            else //"å¹¸ç¦å°çµ„"
+            else //"©¯ºÖ¤p²Õ"
             {
                 this.SetHappyGroupData(ref aListSmallGroupWeeklyReport);
             }
@@ -180,30 +180,30 @@ namespace ChurchReport.WebServiceConnector
             aListSmallGroupWeeklyReport.GroupArray.Clear();
             foreach (Entity aList in aListEntityCollection.Entities)
             {
-                aListSmallGroupWeeklyReport.GroupArray.Add(m_ToolUtilityClass.GetEntityStringAttribute(aList, "listname")); 
+                aListSmallGroupWeeklyReport.GroupArray.Add(m_ToolUtilityClass.GetEntityStringAttribute(aList, "listname"));
             }
-                // }
-                // å¾…å®Œæˆ....
-                // 
-                // if( å°çµ„åç¨±ä¸åŒ…å« "å¹¸ç¦" )
-                // {
-                //this.SetSmallGroupData(ref aListSmallGroupWeeklyReport);
+            // }
+            // «İ§¹¦¨....
+            // 
+            // if( ¤p²Õ¦WºÙ¤£¥]§t "©¯ºÖ" )
+            // {
+            //this.SetSmallGroupData(ref aListSmallGroupWeeklyReport);
 
-                //this.SetNewPersonFollowUpData(ref aListSmallGroupWeeklyReport);
-                // }
-                // else "å¹¸ç¦å°çµ„"
-                // {
+            //this.SetNewPersonFollowUpData(ref aListSmallGroupWeeklyReport);
+            // }
+            // else "©¯ºÖ¤p²Õ"
+            // {
 
-                //this.SetHappyGroupData(ref aListSmallGroupWeeklyReport);
+            //this.SetHappyGroupData(ref aListSmallGroupWeeklyReport);
 
-                // }
-                #region æ’åºå§”èº«é¡å‹ã€ä¸¦ä¸”å»é™¤æ‰æ•¸å­—ã€ç©ºç™½ã€é€—è™Ÿ
-                // æ’åºå§”èº«é¡å‹
-                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members !=null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.OrderBy(o => o.Status).ToList() : null;
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members != null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.OrderBy(o => o.Status).ToList():null;
+            // }
+            #region ±Æ§Ç©e¨­Ãş«¬¡B¨Ã¥B¥h°£±¼¼Æ¦r¡BªÅ¥Õ¡B³r¸¹
+            // ±Æ§Ç©e¨­Ãş«¬
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members != null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.OrderBy(o => o.Status).ToList() : null;
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members != null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.OrderBy(o => o.Status).ToList() : null;
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members != null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.OrderBy(o => o.Status).ToList() : null;
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members != null ? aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members.OrderBy(o => o.Status).ToList() : null;
-            // å»é™¤æ‰æ•¸å­—ã€ç©ºç™½ã€é€—è™Ÿ
+            // ¥h°£±¼¼Æ¦r¡BªÅ¥Õ¡B³r¸¹
             RemoveNumericAndBlank(aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members);
             RemoveNumericAndBlank(aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members);
             RemoveNumericAndBlank(aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members);
@@ -213,9 +213,9 @@ namespace ChurchReport.WebServiceConnector
         }
         public void SetupWeeklyReportData(String WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            if (aListSmallGroupWeeklyReport.GroupType == "å¹¸ç¦å°çµ„")
+            if (aListSmallGroupWeeklyReport.GroupType == "©¯ºÖ¤p²Õ")
             {
-                #region é€™æ˜¯å¹¸ç¦å°çµ„ï¼Œæ‰€ä»¥è¦è¨­å®šé€±æ¬¡åŠä¸»é¡Œ
+                #region ³o¬O©¯ºÖ¤p²Õ¡A©Ò¥H­n³]©w¶g¦¸¤Î¥DÃD
                 if (WeeklyReportEntityId != "" && WeeklyReportEntityId != null)
                 {
                     aListSmallGroupWeeklyReport.HappyWeekIndex = m_ToolUtilityClass.GetEntityStringAttribute(this.m_WeeklyReportEntity, "new_weekly_index");
@@ -229,19 +229,19 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
             }
 
-            #region ç„¡è«–æ˜¯ä¸€èˆ¬å°çµ„æˆ–æ˜¯å¹¸ç¦å°çµ„ï¼Œéƒ½è¦è¨­å®šå°çµ„æ—¥èªŒã€åˆ†æåŠæš«åœ
-            if ( WeeklyReportEntityId != "" && WeeklyReportEntityId != null)
+            #region µL½×¬O¤@¯ë¤p²Õ©Î¬O©¯ºÖ¤p²Õ¡A³£­n³]©w¤p²Õ¤é»x¡B¤ÀªR¤Î¼È°±
+            if (WeeklyReportEntityId != "" && WeeklyReportEntityId != null)
             {
                 aListSmallGroupWeeklyReport.WeeklyReportData = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_WeeklyReportEntity, "new_memo");
                 aListSmallGroupWeeklyReport.WeeklyReportAnalysis = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_WeeklyReportEntity, "new_sunday_present_report");
-                //å–å¾—"é€±å ±ç‹€æ…‹"çš„æš«åœå€¼
-                aListSmallGroupWeeklyReport.PauseCheckBox = this.m_ToolUtilityClass.GetOptionSetAttribute(ref this.m_WeeklyReportEntity, "new_weekly_report_status") == 100000002 ? true:false ;
+                //¨ú±o"¶g³øª¬ºA"ªº¼È°±­È
+                aListSmallGroupWeeklyReport.PauseCheckBox = this.m_ToolUtilityClass.GetOptionSetAttribute(ref this.m_WeeklyReportEntity, "new_weekly_report_status") == 100000002 ? true : false;
             }
             else
             {
                 aListSmallGroupWeeklyReport.WeeklyReportData = "";
                 aListSmallGroupWeeklyReport.WeeklyReportAnalysis = "";
-                // //å–å¾—"é€±å ±ç‹€æ…‹"çš„æš«åœå€¼ï¼Œå› ç‚ºé‚„æ²’æœ‰æ­¤é€±å ±ï¼Œæ‰€ä»¥å…ˆå‚³å›æ²’æš«åœ
+                // //¨ú±o"¶g³øª¬ºA"ªº¼È°±­È¡A¦]¬°ÁÙ¨S¦³¦¹¶g³ø¡A©Ò¥H¥ı¶Ç¦^¨S¼È°±
                 aListSmallGroupWeeklyReport.PauseCheckBox = false;
             }
             #endregion
@@ -300,16 +300,16 @@ namespace ChurchReport.WebServiceConnector
             //if (WeeklyReportEntityId != Guid.Empty.ToString())
             if (WeeklyReportEntityId != "")
             {
-                #region é€™å€‹é»ååå–®æœ‰æ‰¾åˆ°ä¸»æ—¥å‘¨å ±ï¼Œå»æ‰¾å€‹äººèšæœƒèˆ‡éˆä¿®è¨˜éŒ„é›†åˆ
-                // åœ¨ APP ä¸­æœƒå‘ˆç¾çš„å°çµ„åç¨±
+                #region ³o­ÓÂI¦W¦W³æ¦³§ä¨ì¥D¤é©P³ø¡A¥h§ä­Ó¤H»E·|»PÆF­×°O¿ı¶°¦X
+                // ¦b APP ¤¤·|§e²{ªº¤p²Õ¦WºÙ
                 GetAllMemberDataFromPresentRecord(aListSmallGroupWeeklyReport.ListEntityName, new Guid(WeeklyReportEntityId), ref aListSmallGroupWeeklyReport);
                 #endregion
 
             }
             else
             {
-                #region é€™å€‹é»ååå–®æ²’æœ‰æ‰¾åˆ°ä¸»æ—¥å‘¨å ±ï¼Œ æ‰¾é»ååå–®çš„å°çµ„çµ„å“¡åšç‚ºè¦é»åçš„æ¸…å–®
-                if (m_LoginType == "å°çµ„é•·")
+                #region ³o­ÓÂI¦W¦W³æ¨S¦³§ä¨ì¥D¤é©P³ø¡A §äÂI¦W¦W³æªº¤p²Õ²Õ­û°µ¬°­nÂI¦Wªº²M³æ
+                if (m_LoginType == "¤p²Õªø")
                 {
                     GetAllMemberDataFromList(aListSmallGroupWeeklyReport.ListEntityName, new Guid(ListEntityId), ref aListSmallGroupWeeklyReport);
                     //GetSmallGroupLeaderMemberData(DisplayedGroupName, ListEntity.Id);
@@ -323,144 +323,144 @@ namespace ChurchReport.WebServiceConnector
             return;
         }
         #endregion
-        #region å‰¯ç¨‹å¼å‘¼å«
+        #region °Æµ{¦¡©I¥s
         private void FindLoginUser(String Account, String Password)
-    {
-        // æ‰¾ç™»å…¥ä½¿ç”¨è€…åŠå…¶ID
-        if (Account != "LineIdLogin")
         {
-            this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(Account, Password);
-        }
-        else
-        {
-            this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(Password);
-        }
+            // §äµn¤J¨Ï¥ÎªÌ¤Î¨äID
+            if (Account != "LineIdLogin")
+            {
+                this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(Account, Password);
+            }
+            else
+            {
+                this.m_ContactEntity = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(Password);
+            }
 
-        this.m_ContactId = m_ContactEntity.Id;
-    }
-        private void RemoveNumericAndBlank( List<Member> aMemberList)
+            this.m_ContactId = m_ContactEntity.Id;
+        }
+        private void RemoveNumericAndBlank(List<Member> aMemberList)
         {
             if (aMemberList != null)
             {
                 foreach (Member aMember in aMemberList)
                 {
-                    // å»é™¤æ‰æ•¸å­—ã€ç©ºç™½ã€é€—è™Ÿ
-                    aMember.Status = Regex.Replace(aMember.Status, "[0-9]", "");//éæ¿¾æ‰æ•¸å­—
-                    aMember.Status = aMember.Status.Replace(" ", ""); // //éæ¿¾æ‰ç©ºç™½
-                    aMember.Status = aMember.Status.Replace(".", ""); // //éæ¿¾æ‰é€—è™Ÿ
+                    // ¥h°£±¼¼Æ¦r¡BªÅ¥Õ¡B³r¸¹
+                    aMember.Status = Regex.Replace(aMember.Status, "[0-9]", "");//¹LÂo±¼¼Æ¦r
+                    aMember.Status = aMember.Status.Replace(" ", ""); // //¹LÂo±¼ªÅ¥Õ
+                    aMember.Status = aMember.Status.Replace(".", ""); // //¹LÂo±¼³r¸¹
                 }
             }
         }
         private void GetAllMemberDataFromPresentRecord(String GroupName, Guid WeeklyReportId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            // æœå°‹é€™å€‹é€±å ±è£¡çš„æ‰€æœ‰å€‹äººèšæœƒèˆ‡éˆä¿®è¨˜éŒ„é›†åˆ
-            EntityCollection PresentRecordCollection = GetPresentRecordByLoginType( GroupName,  WeeklyReportId, ref aListSmallGroupWeeklyReport);
+            // ·j´M³o­Ó¶g³ø¸Ìªº©Ò¦³­Ó¤H»E·|»PÆF­×°O¿ı¶°¦X
+            EntityCollection PresentRecordCollection = GetPresentRecordByLoginType(GroupName, WeeklyReportId, ref aListSmallGroupWeeklyReport);
 
-            #region// è™•ç†æ¯å€‹å‡ºå¸­ç´€éŒ„(å€‹äººèšæœƒèˆ‡éˆä¿®è¨˜éŒ„é›†åˆ)
+            #region// ³B²z¨C­Ó¥X®u¬ö¿ı(­Ó¤H»E·|»PÆF­×°O¿ı¶°¦X)
             foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
             {
-                // æ¯å€‹å‡ºå¸­ç´€éŒ„(å€‹äººèšæœƒèˆ‡éˆä¿®è¨˜éŒ„é›†åˆ)
+                // ¨C­Ó¥X®u¬ö¿ı(­Ó¤H»E·|»PÆF­×°O¿ı¶°¦X)
                 if (PresentRecordEntity.Attributes.Contains("statecode"))
                 {
                     OptionSetValue aOptionState = PresentRecordEntity.Attributes["statecode"] as OptionSetValue;
 
-                    if ( aOptionState.Value == 0 && this.m_ToolUtilityClass.GetEntityBoolAttribute(PresentRecordEntity, "new_not_display") == false )
+                    if (aOptionState.Value == 0 && this.m_ToolUtilityClass.GetEntityBoolAttribute(PresentRecordEntity, "new_not_display") == false)
                     {
-                        #region åªå›å‚³ä½¿ç”¨ä¸­çš„æ¯å€‹å‡ºå¸­ç´€éŒ„
-                        #region å¡«å¯« MemberInfomation æ‰€éœ€è¦çš„æ¯å€‹æ¬„ä½
-                        #region// å‡ºå¸­ç´€éŒ„çµ„å“¡çš„å…¨å
+                        #region ¥u¦^¶Ç¨Ï¥Î¤¤ªº¨C­Ó¥X®u¬ö¿ı
+                        #region ¶ñ¼g MemberInfomation ©Ò»İ­nªº¨C­ÓÄæ¦ì
+                        #region// ¥X®u¬ö¿ı²Õ­ûªº¥ş¦W
                         String FullName = "";
-                        String ContactId = ""; // è¯çµ¡äºº ID
+                        String ContactId = ""; // Ápµ¸¤H ID
                         EntityReference aFullNameEntityReference = new EntityReference();
                         if (PresentRecordEntity.Attributes.Contains("new_contact_new_present_record"))
                         {
                             aFullNameEntityReference = (EntityReference)PresentRecordEntity.Attributes["new_contact_new_present_record"];
 
                             FullName = (string)aFullNameEntityReference.Name;
-                            ContactId = aFullNameEntityReference.Id.ToString(); // å–å¾— ContactId
+                            ContactId = aFullNameEntityReference.Id.ToString(); // ¨ú±o ContactId
                         }
                         else
                         {
                             continue;
                         }
                         #endregion
-                        #region// ä¾æ“šç´€éŒ„çµ„å“¡çš„å…¨åï¼Œæ‰¾åˆ°æ‰‹æ©Ÿè™Ÿç¢¼ã€å®¶è£¡é›»è©±ã€åœ°å€ã€ç”Ÿæ—¥ã€è·æ¥­åŠå°ˆé•·
+                        #region// ¨Ì¾Ú¬ö¿ı²Õ­ûªº¥ş¦W¡A§ä¨ì¤â¾÷¸¹½X¡B®a¸Ì¹q¸Ü¡B¦a§}¡B¥Í¤é¡BÂ¾·~¤Î±Mªø
                         Entity aContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aFullNameEntityReference.Id);
-                        // çµ„å“¡çš„æ‰‹æ©Ÿ
+                        // ²Õ­ûªº¤â¾÷
                         String aMobilePhone = "";
                         if (aContactEntity.Attributes.Contains("mobilephone"))
                         {
                             aMobilePhone = (string)aContactEntity.Attributes["mobilephone"];
                         }
-                        // çµ„å“¡çš„å®¶è£¡é›»è©±
+                        // ²Õ­ûªº®a¸Ì¹q¸Ü
                         String aHomePhone = "";
                         if (aContactEntity.Attributes.Contains("telephone2"))
                         {
                             aHomePhone = (string)aContactEntity.Attributes["telephone2"];
                         }
-                        // çµ„å“¡çš„åœ°å€
+                        // ²Õ­ûªº¦a§}
                         String aAddress = "";
                         if (aContactEntity.Attributes.Contains("address2_line1"))
                         {
                             aAddress = (string)aContactEntity.Attributes["address2_line1"];
                         }
 
-                        // çµ„å“¡çš„ç”Ÿæ—¥
+                        // ²Õ­ûªº¥Í¤é
                         DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContactEntity, "birthdate").ToLocalTime();
 
-                        // çµ„å“¡çš„è·æ¥­åŠå°ˆé•·
+                        // ²Õ­ûªºÂ¾·~¤Î±Mªø
                         String aIndustry = "";
                         if (aContactEntity.Attributes.Contains("new_industry"))
                         {
                             aIndustry = (string)aContactEntity.Attributes["new_industry"];
                         }
 
-                        // çµ„å“¡çš„è£å‚™ç‹€æ…‹
+                        // ²Õ­ûªº¸Ë³Æª¬ºA
                         String aEquipmentStatus = "";
                         if (aContactEntity.Attributes.Contains("new_equipment_status"))
                         {
                             aEquipmentStatus = (string)aContactEntity.Attributes["new_equipment_status"];
                         }
 
-                        // çµ„å“¡çš„å—æ´—ç‹€æ…‹
+                        // ²Õ­ûªº¨ü¬~ª¬ºA
                         String aSpiritualIdentity = "";
                         if (aContactEntity.Attributes.Contains("new_spiriitual_identity"))
                         {
                             aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(aContactEntity, "new_spiriitual_identity"));
                         }
 
-                        // çµ„å“¡çš„å—æ´—ç¦®ç‹€æ…‹(é•·è€æ•™æœƒå°ˆç”¨)
+                        // ²Õ­ûªº¨ü¬~Â§ª¬ºA(ªø¦Ñ±Ğ·|±M¥Î)
                         String aBaptizedSituation = "";
                         if (aContactEntity.Attributes.Contains("new_baptized_situation"))
                         {
                             aBaptizedSituation = ConvertIndexToBaptizedSituation(this.m_ToolUtilityClass.GetOptionSetAttribute(aContactEntity, "new_baptized_situation"));
                         }
 
-                        // çµ„å“¡çš„å€‹äººé™„è¨»
+                        // ²Õ­ûªº­Ó¤Hªşµù
                         String aDescription = "";
                         if (aContactEntity.Attributes.Contains("description"))
                         {
                             aDescription = (string)aContactEntity.Attributes["description"];
                         }
                         #endregion
-                        #region// å§”èº«é¡å‹
+                        #region// ©e¨­Ãş«¬
                         String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode"));
 
-                        //aIdentity = Regex.Replace(aIdentity, "[0-9]", "");//éæ¿¾æ‰æ•¸å­—
-                        //aIdentity = aIdentity.Replace(" ", ""); // //éæ¿¾æ‰ç©ºç™½
-                        //aIdentity = aIdentity.Replace(".", ""); // //éæ¿¾æ‰é€—è™Ÿ
+                        //aIdentity = Regex.Replace(aIdentity, "[0-9]", "");//¹LÂo±¼¼Æ¦r
+                        //aIdentity = aIdentity.Replace(" ", ""); // //¹LÂo±¼ªÅ¥Õ
+                        //aIdentity = aIdentity.Replace(".", ""); // //¹LÂo±¼³r¸¹
 
                         #endregion
-                        #region// å‡ºå¸­ç´€éŒ„çµ„å“¡çš„æ‰‹æ©Ÿ
+                        #region// ¥X®u¬ö¿ı²Õ­ûªº¤â¾÷
                         String Telephone = "";
                         if (PresentRecordEntity.Attributes.Contains("new_cell_hpone"))
                         {
                             Telephone = (string)PresentRecordEntity.Attributes["new_cell_hpone"];
                         }
                         #endregion
-                        #region// å‡ºå¸­ç´€éŒ„çµ„å“¡çš„é™„è¨»
+                        #region// ¥X®u¬ö¿ı²Õ­ûªºªşµù
 
-                        // è–è°·è¡Œé“æœƒ
+                        // ¸t¨¦¦æ¹D·|
                         String aNote = "";
                         //if (PresentRecordEntity.Attributes.Contains("new_name"))
                         //{
@@ -470,93 +470,93 @@ namespace ChurchReport.WebServiceConnector
                         {
                             aNote = (string)PresentRecordEntity.Attributes["new_explanation"];
                         }
-                        // è–è°·è¡Œé“æœƒ
+                        // ¸t¨¦¦æ¹D·|
                         //String aNote = "";
                         //if (PresentRecordEntity.Attributes.Contains("new_memo"))
                         //{
                         //    aNote = (string)PresentRecordEntity.Attributes["new_memo"];
                         //}
                         #endregion
-                        #region// ä¸»æ—¥é»å
+                        #region// ¥D¤éÂI¦W
                         bool aSundayPresent = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_sunday_present_this_week") > 0 ? true : false;
                         #endregion
-                        #region// å°çµ„é»å
+                        #region// ¤p²ÕÂI¦W
                         bool aSmallGroupPresent = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_group_present_this_week") > 0 ? true : false;
                         #endregion
-                        #region// ç¦±å‘Šæœƒæ¬¡æ•¸
+                        #region// Ã«§i·|¦¸¼Æ
                         bool aPrayerMeeting = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_prayer_meeting_number") > 0 ? true : false;
                         #endregion
-                        #region// é–€å¾’è¨“ç·´ç­æ¬¡æ•¸
+                        #region// ªù®{°V½m¯Z¦¸¼Æ
                         bool aChild = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_child_number") > 0 ? true : false;
                         #endregion
-                        #region// é–€å¾’å¤§èšæ¬¡æ•¸
+                        #region// ªù®{¤j»E¦¸¼Æ
                         bool aBigDisciple = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_big_disciple_number") > 0 ? true : false;
                         #endregion
-                        #region// å°çµ„é•·å°è¬›å ‚æ¬¡æ•¸
+                        #region// ¤p²Õªø¤pÁ¿°ó¦¸¼Æ
                         bool aLeadershipSmallLecture = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_leadership_small_lecture_number") > 0 ? true : false;
                         #endregion
-                        #region// å°çµ„é•·å¤§èšæ¬¡æ•¸
+                        #region// ¤p²Õªø¤j»E¦¸¼Æ
                         bool aLeadersGather = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_leaders_gather_number") > 0 ? true : false;
                         #endregion
-                        #region// æ±ºå¿—
+                        #region// ¨M§Ó
                         bool aDecision = this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_happy_decision") > 0 ? true : false;
                         #endregion
-                        #region// ç¦±å‘Šæ¬¡æ•¸ï¼Œè®€ç¶“æ¬¡æ•¸
-                        // ç¦±å‘Šæ¬¡æ•¸
+                        #region// Ã«§i¦¸¼Æ¡AÅª¸g¦¸¼Æ
+                        // Ã«§i¦¸¼Æ
                         int aPrayNumber = 0;
                         if (PresentRecordEntity.Attributes.Contains("new_general_care"))
                         {
                             aPrayNumber = (int)PresentRecordEntity.Attributes["new_general_care"];
                         }
-                        // è®€ç¶“æ¬¡æ•¸
+                        // Åª¸g¦¸¼Æ
                         int aSpiritNumber = 0;
                         if (PresentRecordEntity.Attributes.Contains("new_spiritual_work"))
                         {
                             aSpiritNumber = (int)PresentRecordEntity.Attributes["new_spiritual_work"];
                         }
-                        // æ—©ç¦±
+                        // ¦­Ã«
                         int aFamilyNumber = 0;
                         if (PresentRecordEntity.Attributes.Contains("new_morning_pray"))
                         {
                             aFamilyNumber = (int)PresentRecordEntity.Attributes["new_morning_pray"];
                         }
-                        // æ™šç¦±
+                        // ±ßÃ«
                         int aWorkAndCampusNumber = 0;
                         if (PresentRecordEntity.Attributes.Contains("new_evening_pray"))
                         {
                             aWorkAndCampusNumber = (int)PresentRecordEntity.Attributes["new_evening_pray"];
                         }
                         #endregion
-                        #region// æœ¬é€±ç‰§é¤Šç‹€æ…‹
-                        // æœ¬é€±ç‰§é¤Šç‹€æ…‹(è–è°·è¡Œé“æœƒå°ˆç”¨)
+                        #region// ¥»¶gªª¾iª¬ºA
+                        // ¥»¶gªª¾iª¬ºA(¸t¨¦¦æ¹D·|±M¥Î)
                         String aShepherdStatus = "";
                         if (PresentRecordEntity.Attributes.Contains("new_shepherd_situation"))
                         {
                             aShepherdStatus = (String)PresentRecordEntity.Attributes["new_shepherd_situation"];
                         }
-                        //ä¸€å°ä¸€ç‰§é¤Šææ–™(è–è°·è¡Œé“æœƒå°ˆç”¨)
+                        //¤@¹ï¤@ªª¾i§÷®Æ(¸t¨¦¦æ¹D·|±M¥Î)
                         String aOneOnOne = "";
                         if (PresentRecordEntity.Attributes.Contains("new_onebyone_situation"))
                         {
                             aOneOnOne = (String)PresentRecordEntity.Attributes["new_onebyone_situation"];
                         }
-                        // åŸ¹è¨“ç³»çµ±é¸é …(è–è°·è¡Œé“æœƒå°ˆç”¨)
+                        // °ö°V¨t²Î¿ï¶µ(¸t¨¦¦æ¹D·|±M¥Î)
                         String aTraining = "";
                         if (PresentRecordEntity.Attributes.Contains("new_training_system"))
                         {
                             aTraining = (String)PresentRecordEntity.Attributes["new_training_system"];
                         }
-                        // è£å‚™èª²ç¨‹çš„è‹±æ–‡åå­—å¯èƒ½æ˜¯æœ‰é»å–éŒ¯äº†å¯æ˜¯å› ç‚ºè¡¨å–®å·²ç¶“å–äº†ï¼Œå°±å…ˆå°‡éŒ¯å°±éŒ¯å…ˆäº†
-                        // è£å‚™èª²ç¨‹(è–è°·è¡Œé“æœƒå°ˆç”¨)
+                        // ¸Ë³Æ½Òµ{ªº­^¤å¦W¦r¥i¯à¬O¦³ÂI¨ú¿ù¤F¥i¬O¦]¬°ªí³æ¤w¸g¨ú¤F¡A´N¥ı±N¿ù´N¿ù¥ı¤F
+                        // ¸Ë³Æ½Òµ{(¸t¨¦¦æ¹D·|±M¥Î)
                         String aIncubate = "";
                         if (PresentRecordEntity.Attributes.Contains("new_equipment_class"))
                         {
                             aIncubate = (String)PresentRecordEntity.Attributes["new_equipment_class"];
                         }
                         #endregion
-                        #region// æ–°äººè·Ÿé€²é€±æ¬¡ã€çµæœã€ä¸‹ä¸€æ­¥é©Ÿã€æ­·ç¨‹è¨˜éŒ„
+                        #region// ·s¤H¸ò¶i¶g¦¸¡Bµ²ªG¡B¤U¤@¨BÆJ¡B¾úµ{°O¿ı
 
-                        //æ–°äººè·Ÿé€²é€±æ¬¡
+                        //·s¤H¸ò¶i¶g¦¸
                         String aFollowUpWeek = "";
                         if (PresentRecordEntity.Attributes.Contains("new_weeks"))
                         {
@@ -564,7 +564,7 @@ namespace ChurchReport.WebServiceConnector
                             aFollowUpWeek = ConvertIndexToFollowUpWeekPicker(OptionValue);
                         }
 
-                        //æ–°äººè·Ÿé€²çµæœ
+                        //·s¤H¸ò¶iµ²ªG
                         String aFollowUpResult = "";
                         if (PresentRecordEntity.Attributes.Contains("new_conclusion_choise"))
                         {
@@ -572,7 +572,7 @@ namespace ChurchReport.WebServiceConnector
                             aFollowUpResult = ConvertIndexToFollowUpResultPicker(OptionValue);
                         }
 
-                        //æ–°äººè·Ÿé€²ä¸‹ä¸€æ­¥é©Ÿ
+                        //·s¤H¸ò¶i¤U¤@¨BÆJ
                         String aFollowUpNextStep = "";
                         if (PresentRecordEntity.Attributes.Contains("new_next_step"))
                         {
@@ -580,7 +580,7 @@ namespace ChurchReport.WebServiceConnector
                             aFollowUpNextStep = ConvertIndexToFollowUpNextStepPicker(OptionValue);
                         }
 
-                        // è·Ÿé€²æ–¹å¼é¸é …
+                        // ¸ò¶i¤è¦¡¿ï¶µ
                         String aFollowUpOption = "";
                         if (PresentRecordEntity.Attributes.Contains("new_followup_ways"))
                         {
@@ -588,14 +588,14 @@ namespace ChurchReport.WebServiceConnector
                             aFollowUpOption = ConvertIndexToFollowUpOptionPicker(OptionValue);
                         }
 
-                        // è·Ÿé€²æ–¹å¼
+                        // ¸ò¶i¤è¦¡
                         String aFollowUp = "";
                         if (PresentRecordEntity.Attributes.Contains("new_follow_up"))
                         {
                             aFollowUp = (String)PresentRecordEntity.Attributes["new_follow_up"];
                         }
 
-                        // å‚™è¨»
+                        // ³Æµù
                         String aFollowUpNote = "";
                         if (PresentRecordEntity.Attributes.Contains("new_explanation"))
                         {
@@ -603,25 +603,25 @@ namespace ChurchReport.WebServiceConnector
                         }
 
 
-                        // å–å¾—æ–°äººè·Ÿé€²é€±æ¬¡ï¼ŒåŠè·Ÿé€²æ­·ç¨‹è¨˜éŒ„
+                        // ¨ú±o·s¤H¸ò¶i¶g¦¸¡A¤Î¸ò¶i¾úµ{°O¿ı
                         String aNewComerNote = GetNewComerFollowupInfo(aFullNameEntityReference.Id, ref aFollowUpWeek);
 
                         #endregion
 
-                        #region éˆä¿®ã€æ™¨ã€æ™šç¦±
-                        // è®€ç¶“æ¬¡æ•¸
+                        #region ÆF­×¡B±á¡B±ßÃ«
+                        // Åª¸g¦¸¼Æ
                         int aSpiritualWork = 0;
                         if (PresentRecordEntity.Attributes.Contains("new_spiritual_work"))
                         {
                             aSpiritualWork = (int)PresentRecordEntity.Attributes["new_spiritual_work"];
                         }
-                        // æ™¨ç¦±
+                        // ±áÃ«
                         int aMorningPray = 0;
                         if (PresentRecordEntity.Attributes.Contains("new_morning_pray"))
                         {
                             aMorningPray = (int)PresentRecordEntity.Attributes["new_morning_pray"];
                         }
-                        // æ™šç¦±æ¬¡æ•¸
+                        // ±ßÃ«¦¸¼Æ
                         int aGeneralCare = 0;
                         if (PresentRecordEntity.Attributes.Contains("new_general_care"))
                         {
@@ -631,19 +631,19 @@ namespace ChurchReport.WebServiceConnector
                         #endregion
                         #endregion
 
-                        #region å‚³å›çµ¦æ‰‹æ©Ÿçš„è³‡æ–™
-                        //10.æœªå…¥çµ„çµæ¡ˆ" ä¸ç”¨é€²å…¥ APP
-                        if (aIdentity != "10. æœªå…¥çµ„çµæ¡ˆ")
+                        #region ¶Ç¦^µ¹¤â¾÷ªº¸ê®Æ
+                        //10.¥¼¤J²Õµ²®×" ¤£¥Î¶i¤J APP
+                        if (aIdentity != "10. ¥¼¤J²Õµ²®×")
                         {
                             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add
                             (
                                 new Member
                                 {
                                     PresentRecordId = PresentRecordEntity.Id.ToString(),
-                                    ContactId = ContactId, // è¯çµ¡äºº ID
+                                    ContactId = ContactId, // Ápµ¸¤H ID
                                     Group = GroupName,
                                     FullName = FullName,
-                                    #region å€‹äººåŸºæœ¬è³‡æ–™
+                                    #region ­Ó¤H°ò¥»¸ê®Æ
                                     Phone = DigitsOnly.Replace(aMobilePhone, ""),
                                     HomePhone = DigitsOnly.Replace(aHomePhone, ""),
                                     Address = aAddress,
@@ -652,24 +652,24 @@ namespace ChurchReport.WebServiceConnector
                                     EquipmentStatus = aEquipmentStatus,
                                     SpiritualIdentity = aSpiritualIdentity,
                                     BaptizedSituation = aBaptizedSituation,
-                                    BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContactEntity, "new_contact_contact_spiritleader"),// å±¬éˆèªé ˜è€…
+                                    BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContactEntity, "new_contact_contact_spiritleader"),// ÄİÆF»{»âªÌ
                                     BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_introducer"),
                                     BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_relationship"),
                                     #endregion
-                                    Status = aIdentity, // å§”èº«é¡å‹
+                                    Status = aIdentity, // ©e¨­Ãş«¬
                                     SmallGroupName = GroupName,
                                     SectionName = GroupName,
                                     PrayItem = aNote,
-                                    Sunday = aSundayPresent, //ä¸»æ—¥å‡ºå¸­
-                                    SmallGroup = aSmallGroupPresent,//å°çµ„å‡ºå¸­
-                                    PrayerMeeting = aPrayerMeeting,// ç¦±å‘Šæœƒæ¬¡æ•¸
-                                    Child = aChild,// é–€å¾’è¨“ç·´ç­æ¬¡æ•¸
-                                    BigDisciple = aBigDisciple,// é–€å¾’å¤§èšæ¬¡æ•¸
-                                    LeadershipSmallLecture = aLeadershipSmallLecture,// å°çµ„é•·å°è¬›å ‚æ¬¡æ•¸
-                                    LeadersGather = aLeadersGather,// å°çµ„é•·å¤§èšæ¬¡æ•¸
-                                    Decision = aDecision, //æ±ºå¿—
+                                    Sunday = aSundayPresent, //¥D¤é¥X®u
+                                    SmallGroup = aSmallGroupPresent,//¤p²Õ¥X®u
+                                    PrayerMeeting = aPrayerMeeting,// Ã«§i·|¦¸¼Æ
+                                    Child = aChild,// ªù®{°V½m¯Z¦¸¼Æ
+                                    BigDisciple = aBigDisciple,// ªù®{¤j»E¦¸¼Æ
+                                    LeadershipSmallLecture = aLeadershipSmallLecture,// ¤p²Õªø¤pÁ¿°ó¦¸¼Æ
+                                    LeadersGather = aLeadersGather,// ¤p²Õªø¤j»E¦¸¼Æ
+                                    Decision = aDecision, //¨M§Ó
                                     Description = aDescription,
-                                    #region æ–°äººè·Ÿé€²é—œæ‡·
+                                    #region ·s¤H¸ò¶iÃöÃh
                                     FollowUpWeek = aFollowUpWeek,
                                     FollowUpResult = aFollowUpResult,
                                     FollowUpOption = aFollowUpOption,
@@ -678,10 +678,10 @@ namespace ChurchReport.WebServiceConnector
                                     FollowUpNote = aFollowUpNote,
                                     NewComerNote = aNewComerNote,
                                     #endregion
-                                    #region éˆä¿®ã€æ™¨ã€æ™šç¦±
-                                    SpiritualWork = aSpiritualWork, // è®€ç¶“æ¬¡æ•¸
-                                    MorningPray = aMorningPray, // æ™¨ç¦±(å®¶åº­ç¥­å£‡)
-                                    GeneralCare = aGeneralCare, // æ™šç¦±(ç¦±å‘Šæœƒæ¬¡æ•¸)
+                                    #region ÆF­×¡B±á¡B±ßÃ«
+                                    SpiritualWork = aSpiritualWork, // Åª¸g¦¸¼Æ
+                                    MorningPray = aMorningPray, // ±áÃ«(®a®x²½¾Â)
+                                    GeneralCare = aGeneralCare, // ±ßÃ«(Ã«§i·|¦¸¼Æ)
                                     #endregion
                                 }
                             );
@@ -692,7 +692,7 @@ namespace ChurchReport.WebServiceConnector
                     }
                     else
                     {
-                        //String StateCode = "éä½¿ç”¨ä¸­";
+                        //String StateCode = "«D¨Ï¥Î¤¤";
                     }
                 }
             }
@@ -702,18 +702,18 @@ namespace ChurchReport.WebServiceConnector
         }
         private EntityCollection GetPresentRecordByLoginType(String GroupName, Guid WeeklyReportId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            // æœå°‹é€™å€‹é€±å ±è£¡çš„æ‰€æœ‰å€‹äººèšæœƒèˆ‡éˆä¿®è¨˜éŒ„é›†åˆ
+            // ·j´M³o­Ó¶g³ø¸Ìªº©Ò¦³­Ó¤H»E·|»PÆF­×°O¿ı¶°¦X
             EntityCollection PresentRecordCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("new_group_present_weekly_report", "new_group_present_weekly_reportid", WeeklyReportId.ToString(), "new_group_present_weekly_report_prese", "new_present_record");
-            if (this.m_LoginType == "å°çµ„é•·")
+            if (this.m_LoginType == "¤p²Õªø")
             {
                 return PresentRecordCollection;
             }
             else
             {
-                //å€‹äººå›å ±æ‰€ä»¥åƒ…å‚³å›å°æ‡‰åˆ°å€‹äººå›å ±çš„å‡ºå¸­ç´€éŒ„å–®å³å¯
+                //­Ó¤H¦^³ø©Ò¥H¶È¶Ç¦^¹ïÀ³¨ì­Ó¤H¦^³øªº¥X®u¬ö¿ı³æ§Y¥i
                 foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
                 {
-                    if( this.m_ContactId == this.m_ToolUtilityClass.GetEntityLookupAttribute(PresentRecordEntity, "new_contact_new_present_record"))
+                    if (this.m_ContactId == this.m_ToolUtilityClass.GetEntityLookupAttribute(PresentRecordEntity, "new_contact_new_present_record"))
                     {
                         EntityCollection LocalPresentRecordCollection = new EntityCollection();
 
@@ -724,7 +724,7 @@ namespace ChurchReport.WebServiceConnector
                 }
             }
 
-            // å€‹äººå›å ±ï¼Œæ²’æœ‰æ‰¾åˆ°å°æ‡‰çš„å‡ºå¸­ç´€éŒ„å–®ï¼Œé‚£å°±æ–°å¢ä¸€å€‹
+            // ­Ó¤H¦^³ø¡A¨S¦³§ä¨ì¹ïÀ³ªº¥X®u¬ö¿ı³æ¡A¨º´N·s¼W¤@­Ó
             return CreatePresentRecordList(GroupName, ref this.m_ListEntity, ref WeeklyReportId, 0, 0, 0, 0, 0);
         }
         private EntityCollection CreatePresentRecordList(String GroupName, ref Entity aListEntity, ref Guid aWeeklyReportId, Double ValidNumber, Double aWeeklySundayRate, Double aWeeklySmallGroupRate, int aWeeklySundayNumber, int aWeeklySmallGroupNumber)
@@ -748,7 +748,7 @@ namespace ChurchReport.WebServiceConnector
         {
             EntityCollection PresentRecordEntityCollection = new EntityCollection();
 
-            // å¿…é ˆæ˜¯åå–®è£¡çš„äººï¼Œä¸èƒ½æ˜¯åªæœ‰ä¾æ“šå§“åæ›´æ–°
+            // ¥²¶·¬O¦W³æ¸Ìªº¤H¡A¤£¯à¬O¥u¦³¨Ì¾Ú©m¦W§ó·s
             Entity aContactEntity = UpdateContactInfomationFromList(aMemberInfomation.FullName, aListEntity.Id);
             //Entity aContactEntity = m_ToolUtilityClass.RetrieveContactEntityByName(aMemberInfomation.Name);
             //Entity aSearchedContactEntity = m_ToolUtilityClass.RetrieveContactByNameAndMobile(ref m_ToolUtilityClass.m_OrganizationService, aMemberInfomation.Name, aMemberInfomation.Phone );
@@ -758,20 +758,20 @@ namespace ChurchReport.WebServiceConnector
 
             if (aContactEntity != null)
             {
-                // é€™æ˜¯æ–°å»ºç«‹çš„å€‹äººèšæœƒèˆ‡éˆä¿®è¨˜éŒ„
+                // ³o¬O·s«Ø¥ßªº­Ó¤H»E·|»PÆF­×°O¿ı
                 Entity aPresentRecord = new Entity("new_present_record");
 
-                // è¨­å®šå€‹äººèšæœƒèˆ‡éˆä¿®è¨˜éŒ„ç›¸é—œå±¬æ€§
+                // ³]©w­Ó¤H»E·|»PÆF­×°O¿ı¬ÛÃöÄİ©Ê
                 this.SetupPresentRecordEntityAttributes(aPresentRecord, aMemberInfomation, ref aContactEntity, ref aListEntity, ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber);
 
-                // æ–°å¢å€‹äººèšæœƒèˆ‡éˆä¿®è¨˜éŒ„
+                // ·s¼W­Ó¤H»E·|»PÆF­×°O¿ı
                 Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
                 Entity aRetrievedPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
 
-                //æŒ‡æ´¾è² è²¬äºº
-                this.m_ToolUtilityClass.AssignOwner("new_present_record", aRetrievedPresentRecord, this.m_ToolUtilityClass.GetOwnerId( aContactEntity ));
+                //«ü¬£­t³d¤H
+                this.m_ToolUtilityClass.AssignOwner("new_present_record", aRetrievedPresentRecord, this.m_ToolUtilityClass.GetOwnerId(aContactEntity));
 
-                //å–å¾—ä¸¦å›å‚³æ–°å»ºçš„èšæœƒèˆ‡éˆä¿®è¨˜éŒ„
+                //¨ú±o¨Ã¦^¶Ç·s«Øªº»E·|»PÆF­×°O¿ı
                 return aRetrievedPresentRecord;
 
             }
@@ -787,10 +787,10 @@ namespace ChurchReport.WebServiceConnector
             return new Member
             {
                 PresentRecordId = ".......",
-                ContactId = this.m_ContactEntity.Id.ToString(), // è¯çµ¡äºº ID
+                ContactId = this.m_ContactEntity.Id.ToString(), // Ápµ¸¤H ID
                 Group = GroupName,
                 FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname"),
-                #region å€‹äººåŸºæœ¬è³‡æ–™
+                #region ­Ó¤H°ò¥»¸ê®Æ
 
                 Phone = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "mobilephone"), ""),
                 HomePhone = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "telephone2"), ""),
@@ -802,15 +802,15 @@ namespace ChurchReport.WebServiceConnector
                 BaptizedSituation = ConvertIndexToBaptizedSituation(this.m_ToolUtilityClass.GetOptionSetAttribute(this.m_ContactEntity, "new_baptized_situation")),
 
                 #endregion
-                Status = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref m_ContactEntity, "customertypecode")), // å§”èº«é¡å‹
+                Status = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref m_ContactEntity, "customertypecode")), // ©e¨­Ãş«¬
                 SmallGroupName = GroupName,
                 SectionName = GroupName,
                 PrayItem = "",
-                Sunday = false, //ä¸»æ—¥å‡ºå¸­
-                SmallGroup = false,//å°çµ„å‡ºå¸­
-                Decision = false, //æ±ºå¿—
-                #region æ–°äººè·Ÿé€²é—œæ‡·
-                FollowUpWeek = "æœªé¸æ“‡",
+                Sunday = false, //¥D¤é¥X®u
+                SmallGroup = false,//¤p²Õ¥X®u
+                Decision = false, //¨M§Ó
+                #region ·s¤H¸ò¶iÃöÃh
+                FollowUpWeek = "¥¼¿ï¾Ü",
                 FollowUpResult = "",
                 FollowUpOption = "",
                 FollowUp = "",
@@ -818,18 +818,18 @@ namespace ChurchReport.WebServiceConnector
                 FollowUpNote = "",
                 NewComerNote = "",
                 #endregion
-                #region éˆä¿®ã€æ™¨ã€æ™šç¦±
-                SpiritualWork = 0, // è®€ç¶“æ¬¡æ•¸
-                MorningPray = 0, // æ™¨ç¦±(å®¶åº­ç¥­å£‡)
-                GeneralCare = 0, // æ™šç¦±(ç¦±å‘Šæœƒæ¬¡æ•¸)
+                #region ÆF­×¡B±á¡B±ßÃ«
+                SpiritualWork = 0, // Åª¸g¦¸¼Æ
+                MorningPray = 0, // ±áÃ«(®a®x²½¾Â)
+                GeneralCare = 0, // ±ßÃ«(Ã«§i·|¦¸¼Æ)
                 #endregion
             };
 
         }
         private Entity UpdateContactInfomationFromList(String ContactName, Guid ListEntityId)
         {
-            #region // è™•ç†æ¯å€‹å°çµ„åå–®
-            //æœå°‹åå–®çš„çµ„å“¡
+            #region // ³B²z¨C­Ó¤p²Õ¦W³æ
+            //·j´M¦W³æªº²Õ­û
             //EntityCollection Contacts = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntityId.ToString(), "new_cell_list_contact", "contact");
 
             Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", ListEntityId);
@@ -838,7 +838,7 @@ namespace ChurchReport.WebServiceConnector
             EntityCollection MemberCollection;
             if (ListType == false)
             {
-                // éœæ…‹åå–®
+                // ÀRºA¦W³æ
                 if (CRM_TYPE == "DYNAMICS365")
                 {
                     MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
@@ -850,7 +850,7 @@ namespace ChurchReport.WebServiceConnector
             }
             else
             {
-                // å‹•æ…‹åå–®
+                // °ÊºA¦W³æ
                 if (CRM_TYPE == "DYNAMICS365")
                 {
                     MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
@@ -863,29 +863,29 @@ namespace ChurchReport.WebServiceConnector
 
             foreach (Entity MemberEntity in MemberCollection.Entities)
             {
-                // åå–®ä¸­æ¯å€‹çµ„å“¡
+                // ¦W³æ¤¤¨C­Ó²Õ­û
                 Entity ContactEntity;
 
                 if (ListType == false)
                 {
-                    // éœæ…‹åå–®
+                    // ÀRºA¦W³æ
                     ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
                 }
                 else
                 {
-                    // å‹•æ…‹åå–®
+                    // °ÊºA¦W³æ
                     ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
                 }
 
-                // å¿…é ˆæ˜¯ä½¿ç”¨ä¸­çš„é€£çµ¡äºº
+                // ¥²¶·¬O¨Ï¥Î¤¤ªº³sµ¸¤H
                 if (ContactEntity.Attributes.Contains("statecode"))
                 {
                     OptionSetValue aOptionState = ContactEntity.Attributes["statecode"] as OptionSetValue;
 
                     if (aOptionState.Value == 0)
                     {
-                        #region åªå›å‚³ä½¿ç”¨ä¸­çš„çµ„å“¡
-                        // çµ„å“¡çš„å…¨å
+                        #region ¥u¦^¶Ç¨Ï¥Î¤¤ªº²Õ­û
+                        // ²Õ­ûªº¥ş¦W
                         String FullName = "";
                         if (ContactEntity.Attributes.Contains("fullname"))
                         {
@@ -898,7 +898,7 @@ namespace ChurchReport.WebServiceConnector
                         #endregion
                     }
                     else
-                    { //String StateCode = "éä½¿ç”¨ä¸­";
+                    { //String StateCode = "«D¨Ï¥Î¤¤";
                     }
                 }
             }
@@ -911,83 +911,83 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                #region è¨­å®šåç¨±
-                String PresentRecordName = aMemberInfomation.FullName + String.Format("-{0:00}/{1:00}/{2:00} å‡ºå¸­ç´€éŒ„", this.m_Sunday.Year, this.m_Sunday.Month, this.m_Sunday.Day);
+                #region ³]©w¦WºÙ
+                String PresentRecordName = aMemberInfomation.FullName + String.Format("-{0:00}/{1:00}/{2:00} ¥X®u¬ö¿ı", this.m_Sunday.Year, this.m_Sunday.Month, this.m_Sunday.Day);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", PresentRecordName);
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", PresentRecordName);
                 #endregion
-                #region æŒ‡æ´¾ä¸»æ—¥å°çµ„éˆä¿®å‡ºå¸­å–®çš„è² è²¬äºº
+                #region «ü¬£¥D¤é¤p²ÕÆF­×¥X®u³æªº­t³d¤H
                 //Guid ListOwnerId = aListEntity.GetAttributeValue<EntityReference>("ownerid").Id;
                 //this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, ListOwnerId);
                 #endregion
-                #region è¨­å®šå§“å
-                // æ‰¾åˆ°çµ„å“¡ID
+                #region ³]©w©m¦W
+                // §ä¨ì²Õ­ûID
                 Guid aContactEntityId = aContactEntity.Id;
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_new_present_record", "contact", aContactEntityId);
                 #endregion
-                #region é—œè¯é€±å ± Lookup
+                #region ÃöÁp¶g³ø Lookup
                 if (aWeeklyReportId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_group_present_weekly_report_prese", "new_group_present_weekly_report", aWeeklyReportId); }
                 #endregion
-                #region å¾åå–®å–å¾— å€åã€å°å®¶é•· IDã€å°çµ„é•· IDã€å°å®¶é•·ã€å€ç‰§é•· ID
-                // å°å®¶é•· ID
+                #region ±q¦W³æ¨ú±o °Ï¦W¡B¤p®aªø ID¡B¤p²Õªø ID¡B¤p®aªø¡B°Ïªªªø ID
+                // ¤p®aªø ID
                 Guid aFamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_familyhead_list");
 
-                // å°çµ„é•· ID
+                // ¤p²Õªø ID
                 Guid aGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
 
-                // å°å®¶é•· ID
+                // ¤p®aªø ID
                 Guid aRaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
 
-                // å€ç‰§é•· ID
+                // °Ïªªªø ID
                 Guid aShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
 
-                // å€å
+                // °Ï¦W
                 //String AreaName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aListEntity, "new_area_name");
 
                 #endregion
-                #region è¨­å®šå€å
+                #region ³]©w°Ï¦W
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_area_name", AreaName);
                 #endregion
-                #region é—œè¯å°å®¶é•·å±¬æ€§
+                #region ÃöÁp¤p®aªøÄİ©Ê
                 if (aFamilyLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_familyhead_present_record", "contact", aFamilyLeaderId); }
                 #endregion
-                #region é—œè¯å°çµ„é•·å±¬æ€§
+                #region ÃöÁp¤p²ÕªøÄİ©Ê
                 if (aGroupLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_groupleader_present_record", "contact", aGroupLeaderId); }
                 #endregion
-                #region é—œè¯æ—ç³»çµ„é•·å±¬æ€§
+                #region ÃöÁp±Ú¨t²ÕªøÄİ©Ê
                 if (aRaceLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_race_leader_present_record", "contact", aRaceLeaderId); }
                 #endregion
-                #region é—œè¯å€ç‰§é•·å±¬æ€§
+                #region ÃöÁp°ÏªªªøÄİ©Ê
                 if (aShepherdLeaderId != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_arealeader_present_record", "contact", aShepherdLeaderId); }
                 #endregion
-                #region é—œè¯å°çµ„åå–® Lookup
+                #region ÃöÁp¤p²Õ¦W³æ Lookup
                 if (aListEntity.Id != Guid.Empty)
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_list_new_present_record", "list", aListEntity.Id); }
                 #endregion
-                #region è¨­å®šä¸»æ—¥åŠå°çµ„èšæœƒæ—¥æœŸ
+                #region ³]©w¥D¤é¤Î¤p²Õ»E·|¤é´Á
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", this.m_Sunday);
 
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_group_date", this.m_Sunday);
                 #endregion
-                #region è¨­å®šå°çµ„èšæœƒåœ°é»å’Œæ™‚é–“
+                #region ³]©w¤p²Õ»E·|¦aÂI©M®É¶¡
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_group_place", this.m_ToolUtilityClass.GetEntityStringAttribute(aListEntity, "new_group_place"));
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_group_time", this.m_ToolUtilityClass.GetEntityStringAttribute(aListEntity, "new_group_time"));
                 #endregion
-                #region å–å¾—æ¯”è¼ƒæ˜“æ‡‚çš„å§”èº«é¡å‹
-                // æ‰¾åˆ°è©²çµ„å“¡çš„å±¬æ€§
+                #region ¨ú±o¤ñ¸û©öÀ´ªº©e¨­Ãş«¬
+                // §ä¨ì¸Ó²Õ­ûªºÄİ©Ê
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
                 int OptionSetNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
-                // å–å¾—æ¯”è¼ƒæ˜“æ‡‚çš„å§”èº«é¡å‹
+                // ¨ú±o¤ñ¸û©öÀ´ªº©e¨­Ãş«¬
                 //String ClearIdentity = this.ConvertIndexToClearIdentity(aCustomerTypeCode.Value);
                 String ClearIdentity = this.ConvertIndexToClearIdentity(OptionSetNumber);
                 #endregion
-                #region è¨­å®šä¸»æ—¥å‡ºå¸­
+                #region ³]©w¥D¤é¥X®u
                 if (aMemberInfomation.Sunday == true)
                 {
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_sunday_present_this_week", 1);
@@ -997,7 +997,7 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_sunday_present_this_week", 0);
                 }
                 #endregion
-                #region è¨­å®šä¸»æ—¥å‡ºå¸­ç‡
+                #region ³]©w¥D¤é¥X®u²v
                 if (aMemberInfomation.Sunday == true)
                 {
                     if (ValidNumber > 0)
@@ -1010,7 +1010,7 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aPresentRecord, "new_sunday_rate", 0);
                 }
                 #endregion
-                #region è¨­å®šå°çµ„å‡ºå¸­
+                #region ³]©w¤p²Õ¥X®u
                 if (aMemberInfomation.SmallGroup == true)
                 {
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_group_present_this_week", 1);
@@ -1022,7 +1022,7 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_group_present_this_week", 0);
                 }
                 #endregion
-                #region è¨­å®šå°çµ„å‡ºå¸­ç‡
+                #region ³]©w¤p²Õ¥X®u²v
                 if (aMemberInfomation.SmallGroup == true)
                 {
                     if (ValidNumber > 0)
@@ -1040,7 +1040,7 @@ namespace ChurchReport.WebServiceConnector
 
 
 
-                #region ç¦±å‘Šæœƒæ¬¡æ•¸
+                #region Ã«§i·|¦¸¼Æ
                 if (aMemberInfomation.PrayerMeeting == true)
                 {
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_prayer_meeting_number", 1);
@@ -1051,7 +1051,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 #endregion
 
-                #region é–€å¾’è¨“ç·´ç­æ¬¡æ•¸
+                #region ªù®{°V½m¯Z¦¸¼Æ
                 if (aMemberInfomation.Child == true)
                 {
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_child_number", 1);
@@ -1062,7 +1062,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 #endregion
 
-                #region é–€å¾’å¤§èšæ¬¡æ•¸
+                #region ªù®{¤j»E¦¸¼Æ
                 if (aMemberInfomation.BigDisciple == true)
                 {
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_big_disciple_number", 1);
@@ -1073,7 +1073,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 #endregion
 
-                #region å°çµ„é•·å°è¬›å ‚æ¬¡æ•¸
+                #region ¤p²Õªø¤pÁ¿°ó¦¸¼Æ
                 if (aMemberInfomation.LeadershipSmallLecture == true)
                 {
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leadership_small_lecture_number", 1);
@@ -1084,7 +1084,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 #endregion
 
-                #region å°çµ„é•·å¤§èšæ¬¡æ•¸
+                #region ¤p²Õªø¤j»E¦¸¼Æ
                 if (aMemberInfomation.Sunday == true)
                 {
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leaders_gather_number", 1);
@@ -1095,29 +1095,29 @@ namespace ChurchReport.WebServiceConnector
                 }
                 #endregion
 
-                #region è¨­å®šé™„è¨»æˆ–æ˜¯ä»£ç¦±äº‹é …
+                #region ³]©wªşµù©Î¬O¥NÃ«¨Æ¶µ
 
-                // è–è°·è¡Œé“æœƒ
+                // ¸t¨¦¦æ¹D·|
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.PrayItem);
 
-                // è–è°·è¡Œé“æœƒ
+                // ¸t¨¦¦æ¹D·|
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
-                #region// æ–°äººè·Ÿé€²
+                #region// ·s¤H¸ò¶i
 
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_weeks", ConvertFollowUpWeekPickerToIndex(aMemberInfomation.FollowUpWeek));
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_conclusion_choise", ConvertFollowUpResultPickerToIndex(aMemberInfomation.FollowUpResult));
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_next_step", ConvertFollowUpNextStepPickerToIndex(aMemberInfomation.FollowUpNextStep));
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_follow_up", aMemberInfomation.FollowUpOption);
 
-                // å› ç‚ºä¹‹å‰APPç„¡æ³•ç›´æ¥æŠŠä»£ç¦±äº‹é …å’Œæ–°äººè·Ÿé€²é—œæ‡·ç”¨åœ¨è¡¨å–®ä¸­
-                // ä½†æ˜¯ç¶²é ç¾åœ¨å¯ä»¥äº†
+                // ¦]¬°¤§«eAPPµLªkª½±µ§â¥NÃ«¨Æ¶µ©M·s¤H¸ò¶iÃöÃh¥Î¦bªí³æ¤¤
+                // ¦ı¬Oºô­¶²{¦b¥i¥H¤F
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMemberInfomation.FollowUpNote);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.PrayItem);
 
                 #endregion
-                #region// è®€ç¶“æ¬¡æ•¸
+                #region// Åª¸g¦¸¼Æ
 
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_spiritual_work", aMemberInfomation.SpiritualWork);
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_morning_pray", aMemberInfomation.MorningPray);
@@ -1128,7 +1128,7 @@ namespace ChurchReport.WebServiceConnector
                 //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_morning_pray", aMemberInfomation.FamilyNumber);
                 //this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_evening_pray", aMemberInfomation.WorkAndCampusNumber);
                 #endregion
-                #region è¨­å®šè¡Œå‹•é›»è©±
+                #region ³]©w¦æ°Ê¹q¸Ü
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_cell_hpone", aMemberInfomation.Phone);
                 #endregion
             }
@@ -1143,45 +1143,45 @@ namespace ChurchReport.WebServiceConnector
         {
             switch (FollowUpWeek)
             {
-                case "ä¸€":
+                case "¤@":
                     return 100000000;
-                case "äºŒ":
+                case "¤G":
                     return 100000001;
-                case "ä¸‰":
+                case "¤T":
                     return 100000002;
-                case "å››":
+                case "¥|":
                     return 100000003;
-                case "äº”":
+                case "¤­":
                     return 100000004;
-                case "å…­":
+                case "¤»":
                     return 100000005;
-                case "ä¸ƒ":
+                case "¤C":
                     return 100000006;
-                case "å…«":
+                case "¤K":
                     return 100000007;
-                case "ä¹":
+                case "¤E":
                     return 100000008;
-                case "å":
+                case "¤Q":
                     return 100000009;
-                case "åä¸€":
+                case "¤Q¤@":
                     return 100000010;
-                case "åäºŒ":
+                case "¤Q¤G":
                     return 100000011;
-                case "åä¸‰":
+                case "¤Q¤T":
                     return 100000012;
-                case "åå››":
+                case "¤Q¥|":
                     return 100000013;
-                case "åäº”":
+                case "¤Q¤­":
                     return 100000014;
-                case "åå…­":
+                case "¤Q¤»":
                     return 100000015;
-                case "åä¸ƒ":
+                case "¤Q¤C":
                     return 100000016;
-                case "åå…«":
+                case "¤Q¤K":
                     return 100000017;
-                case "åä¹":
+                case "¤Q¤E":
                     return 100000018;
-                case "äºŒå":
+                case "¤G¤Q":
                     return 100000019;
                 default:
                     return 100000008;
@@ -1191,25 +1191,25 @@ namespace ChurchReport.WebServiceConnector
         {
             switch (FollowUpResult)
             {
-                case "è«‹é¸æ“‡":
+                case "½Ğ¿ï¾Ü":
                     return 100000000;
-                case "ç†±æƒ…å›æ‡‰":
+                case "¼ö±¡¦^À³":
                     return 100000001;
-                case "æ¸´æ…•èªè­˜ä¿¡ä»°":
+                case "´÷¼}»{ÃÑ«H¥õ":
                     return 100000002;
-                case "æ²’è¯çµ¡ä¸Š":
+                case "¨SÁpµ¸¤W":
                     return 100000003;
-                case "åæ‡‰å†·æ·¡":
+                case "¤ÏÀ³§N²H":
                     return 100000004;
-                case "è€ƒæ…®ä¸­ï¼Œç¹¼çºŒè·Ÿé€²":
+                case "¦Ò¼{¤¤¡AÄ~Äò¸ò¶i":
                     return 100000005;
-                case "å…¥å°çµ„":
+                case "¤J¤p²Õ":
                     return 100000006;
-                case "ä¾†ä¸»æ—¥":
+                case "¨Ó¥D¤é":
                     return 100000007;
-                case "è½‰ä»‹":
+                case "Âà¤¶":
                     return 100000008;
-                case "å…¶ä»–":
+                case "¨ä¥L":
                     return 100000009;
                 default:
                     return 100000000;
@@ -1219,11 +1219,11 @@ namespace ChurchReport.WebServiceConnector
         {
             switch (FollowUpNextStep)
             {
-                case "è«‹é¸æ“‡":
+                case "½Ğ¿ï¾Ü":
                     return 100000000;
-                case "ç¹¼çºŒè·Ÿé€²":
+                case "Ä~Äò¸ò¶i":
                     return 100000001;
-                case "è½‰ä»‹":
+                case "Âà¤¶":
                     return 100000002;
                 default:
                     return 100000000;
@@ -1233,74 +1233,1019 @@ namespace ChurchReport.WebServiceConnector
         {
             switch (FollowUpNextStep)
             {
-                case "é›»è©±":
+                case "¹q¸Ü":
                     return 100000000;
-                case "æ¢è¨ª":
+                case "±´³X":
                     return 100000001;
                 case "Line/FB":
                     return 100000002;
-                case "å‡ºéŠ/åƒé£¯":
+                case "¥X¹C/¦Y¶º":
                     return 100000003;
-                case "æ‡·é„‰/å…¶ä»–èª²ç¨‹":
+                case "Ãh¶m/¨ä¥L½Òµ{":
                     return 100000004;
-                case "ç´„è«‡":
+                case "¬ù½Í":
                     return 100000005;
-                case "æ²’è·Ÿé€²":
+                case "¨S¸ò¶i":
                     return 100000006;
-                case "å…¶ä»–":
+                case "¨ä¥L":
                     return 100000007;
                 default:
                     return 100000000;
             }
         }
-
-        private String ConvertIndexToTopic(int FollowUpWeekIndex)
+        private String ConvertIndexToClearIdentity(int Identity)
         {
-            switch (FollowUpWeekIndex)
+            // ¨ú±o¤ñ¸û©öÀ´ªº©e¨­Ãş«¬
+            switch (Identity)
             {
                 case 100000000:
-                    return "é å‚™é€±";
-                case 100000001:
-                    return "çœŸå¹¸ç¦";
-                case 100000002:
-                    return "çœŸç›¸å¤§ç™½";
-                case 100000003:
-                    return "è¬ä¸–å·¨æ˜Ÿ";
+                    return "·sªB¤Í";
                 case 100000004:
-                    return "å¹¸ç¦é€£ç·š";
-                case 100000005:
-                    return "ç•¶ä¸Šå¸ä¾†æ•²é–€";
-                case 100000006:
-                    return "åå­—æ¶çš„å‹åˆ©";
-                case 100000007:
-                    return "é‡‹æ”¾èˆ‡è‡ªç”±";
-                case 100000008:
-                    return "å¹¸ç¦çš„æ•™æœƒ";
+                    return "¥¼¤J²Õ";
+                case 100000007://¨ä¹ê¬O¥~±Ğ·|¡A¤£¹L§Ú§â¥LÂkÃş¬°¥¼¤J²Õ
+                    return "¥¼¤J²Õ";
+                case 1:
+                    return "¤p²Õ²Õ­û";
                 default:
-                    return "";
+                    return "¤p²Õ²Õ­û";
             }
         }
 
-        #endregion
-        #region è¨­å®šå§”èº«é¡å‹
+        private void GetAllMemberDataFromList(String GroupName, Guid ListEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            #region // ³B²z¨C­Ó¤p²Õ¦W³æ
+            //·j´M¦W³æªº²Õ­û
+            //EntityCollection Contacts = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntityId.ToString(), "new_cell_list_contact", "contact");
 
-        public void SetIdentity(Guid aListEntityId, ref Entity aContact, ref MemberInfomation aMemberInfomation)
+            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", ListEntityId);
+
+            bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
+            EntityCollection MemberCollection;
+            if (ListType == false)
+            {
+                // ÀRºA¦W³æ
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+            else
+            {
+                // °ÊºA¦W³æ
+                if (CRM_TYPE == "DYNAMICS365")
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                }
+                else
+                {
+                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                }
+            }
+
+            int PresentRecordIdCounter = 0;
+            foreach (Entity MemberEntity in MemberCollection.Entities)
+            {
+                // ¨C­Ó²Õ­û
+                Entity ContactEntity;
+
+                if (ListType == false)
+                {
+                    // ÀRºA¦W³æ
+                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                }
+                else
+                {
+                    // °ÊºA¦W³æ
+                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                }
+
+                if (ContactEntity.Attributes.Contains("statecode"))
+                {
+                    OptionSetValue aOptionState = ContactEntity.Attributes["statecode"] as OptionSetValue;
+
+                    if (aOptionState.Value == 0)
+                    {
+                        #region ¥u¦^¶Ç¨Ï¥Î¤¤ªº²Õ­û
+
+                        #region// ¨Ì¾Ú¬ö¿ı²Õ­ûªº¥ş¦W¡A§ä¨ì¤â¾÷¸¹½X¡B®a¸Ì¹q¸Ü¡B¦a§}¡B¥Í¤é¡BÂ¾·~¤Î±Mªø
+                        // ²Õ­ûªº¥ş¦W
+                        String FullName = "";
+                        if (ContactEntity.Attributes.Contains("fullname"))
+                        {
+                            FullName = (string)ContactEntity.Attributes["fullname"];
+                        }
+                        // ²Õ­ûªº ContactId
+                        String ContactId = ContactEntity.Id.ToString();
+                        // ²Õ­ûªº¤â¾÷
+                        String aMobilePhone = "";
+                        if (ContactEntity.Attributes.Contains("mobilephone"))
+                        {
+                            aMobilePhone = (string)ContactEntity.Attributes["mobilephone"];
+                        }
+                        // ²Õ­ûªº®a¸Ì¹q¸Ü
+                        String aHomePhone = "";
+                        if (ContactEntity.Attributes.Contains("telephone2"))
+                        {
+                            aHomePhone = (string)ContactEntity.Attributes["telephone2"];
+                        }
+                        // ²Õ­ûªº¦a§}
+                        String aAddress = "";
+                        if (ContactEntity.Attributes.Contains("address2_line1"))
+                        {
+                            aAddress = (string)ContactEntity.Attributes["address2_line1"];
+                        }
+
+                        // ²Õ­ûªº¥Í¤é
+                        DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref ContactEntity, "birthdate").ToLocalTime();
+
+                        // ²Õ­ûªºÂ¾·~¤Î±Mªø
+                        String aIndustry = "";
+                        if (ContactEntity.Attributes.Contains("new_industry"))
+                        {
+                            aIndustry = (string)ContactEntity.Attributes["new_industry"];
+                        }
+
+                        // ²Õ­ûªº¸Ë³Æª¬ºA
+                        String aEquipmentStatus = "";
+                        if (ContactEntity.Attributes.Contains("new_equipment_status"))
+                        {
+                            aEquipmentStatus = (string)ContactEntity.Attributes["new_equipment_status"];
+                        }
+
+                        // ²Õ­ûªº¨ü¬~ª¬ºA
+                        String aSpiritualIdentity = "";
+                        if (ContactEntity.Attributes.Contains("new_spiriitual_identity"))
+                        {
+                            aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ContactEntity, "new_spiriitual_identity"));
+                        }
+
+                        // ²Õ­ûªº¨ü¬~Â§ª¬ºA(ªø¦Ñ±Ğ·|±M¥Î)
+                        String aBaptizedSituation = "";
+                        if (ContactEntity.Attributes.Contains("new_baptized_situation"))
+                        {
+                            aBaptizedSituation = ConvertIndexToBaptizedSituation(this.m_ToolUtilityClass.GetOptionSetAttribute(ContactEntity, "new_baptized_situation"));
+                        }
+
+                        // ²Õ­ûªº­Ó¤Hªşµù
+                        String aDescription = "";
+                        if (ContactEntity.Attributes.Contains("description"))
+                        {
+                            aDescription = (string)ContactEntity.Attributes["description"];
+                        }
+                        #endregion
+
+                        #region// ©e¨­Ãş«¬
+                        String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref ContactEntity, "customertypecode"));
+
+                        // ¥h°£±¼¼Æ¦r¡BªÅ¥Õ¡B³r¸¹
+                        //aIdentity = Regex.Replace(aIdentity, "[0-9]", "");//¹LÂo±¼¼Æ¦r
+                        //aIdentity = aIdentity.Replace(" ", ""); // //¹LÂo±¼ªÅ¥Õ
+                        //aIdentity = aIdentity.Replace(".", ""); // //¹LÂo±¼³r¸¹
+
+                        #endregion
+
+
+                        // ¨ú±o·s¤H¸ò¶i¶g¦¸¡A¤Î¸ò¶i¾úµ{°O¿ı
+                        String aFollowUpWeek = "¥¼¿ï¾Ü";
+                        String aNewComerNote = GetNewComerFollowupInfo(ContactEntity.Id, ref aFollowUpWeek);
+
+
+                        #region ¶Ç¦^µ¹ºô­¶ªº¸ê®Æ
+                        //10.¥¼¤J²Õµ²®×" ¤£¥Î¶i¤J APP
+                        if (aIdentity != "10. ¥¼¤J²Õµ²®×")
+                        {
+                            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add
+                            (
+                                new Member
+                                {
+                                    PresentRecordId = PresentRecordIdCounter++.ToString(),
+                                    ContactId = ContactId, // Ápµ¸¤H ID
+                                    Group = GroupName,
+                                    FullName = FullName,
+                                    #region ­Ó¤H°ò¥»¸ê®Æ
+
+                                    Phone = DigitsOnly.Replace(aMobilePhone, ""),
+                                    HomePhone = DigitsOnly.Replace(aHomePhone, ""),
+                                    Address = aAddress,
+                                    BirthDate = aBirthDate,
+                                    Industry = aIndustry,
+                                    EquipmentStatus = aEquipmentStatus,
+                                    SpiritualIdentity = aSpiritualIdentity,
+                                    BaptizedSituation = aBaptizedSituation,
+                                    BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ContactEntity, "new_contact_contact_spiritleader"),// ÄİÆF»{»âªÌ
+                                    BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_introducer"),
+                                    BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_relationship"),
+                                    #endregion
+                                    Status = aIdentity, // ©e¨­Ãş«¬
+                                    SmallGroupName = GroupName,
+                                    SectionName = GroupName,
+                                    PrayItem = "",
+                                    Sunday = false, //¥D¤é¥X®u
+                                    SmallGroup = false,//¤p²Õ¥X®u
+                                    Decision = false, //¨M§Ó
+                                    Description = aDescription,
+                                    #region ·s¤H¸ò¶iÃöÃh
+                                    FollowUpWeek = aFollowUpWeek,
+                                    FollowUpResult = "",
+                                    FollowUpOption = "",
+                                    FollowUp = "",
+                                    FollowUpNextStep = "",
+                                    FollowUpNote = "",
+                                    NewComerNote = aNewComerNote,
+                                    #endregion
+                                    #region ÆF­×¡B±á¡B±ßÃ«
+                                    SpiritualWork = 0, // Åª¸g¦¸¼Æ
+                                    MorningPray = 0, // ±áÃ«(®a®x²½¾Â)
+                                    GeneralCare = 0, // ±ßÃ«(Ã«§i·|¦¸¼Æ)
+                                    #endregion
+                                }
+                            );
+                        }
+                        #endregion
+
+                        #endregion
+                    }
+                    else
+                    { //String StateCode = "«D¨Ï¥Î¤¤";
+                    }
+                }
+            }
+            #endregion
+
+            return;
+        }
+        private void SetAllMemberDataByPersonalReport(String GroupName, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            #region ¥u¦^¶Ç¨Ï¥Î¤¤ªº²Õ­û
+
+            #region// ¨Ì¾Ú¬ö¿ı²Õ­ûªº¥ş¦W¡A§ä¨ì¤â¾÷¸¹½X¡B®a¸Ì¹q¸Ü¡B¦a§}¡B¥Í¤é¡BÂ¾·~¤Î±Mªø
+            // ²Õ­ûªº¥ş¦W
+            String FullName = "";
+            // ²Õ­ûªº ContactId
+            String ContactId = m_ContactEntity.Id.ToString();
+            if (this.m_ContactEntity.Attributes.Contains("fullname"))
+            {
+                FullName = (string)m_ContactEntity.Attributes["fullname"];
+            }
+            // ²Õ­ûªº¤â¾÷
+            String aMobilePhone = "";
+            if (m_ContactEntity.Attributes.Contains("mobilephone"))
+            {
+                aMobilePhone = (string)m_ContactEntity.Attributes["mobilephone"];
+            }
+            // ²Õ­ûªº®a¸Ì¹q¸Ü
+            String aHomePhone = "";
+            if (m_ContactEntity.Attributes.Contains("telephone2"))
+            {
+                aHomePhone = (string)m_ContactEntity.Attributes["telephone2"];
+            }
+            // ²Õ­ûªº¦a§}
+            String aAddress = "";
+            if (m_ContactEntity.Attributes.Contains("address2_line1"))
+            {
+                aAddress = (string)m_ContactEntity.Attributes["address2_line1"];
+            }
+
+            // ²Õ­ûªº¥Í¤é
+            DateTime aBirthDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref m_ContactEntity, "birthdate").ToLocalTime();
+
+            // ²Õ­ûªºÂ¾·~¤Î±Mªø
+            String aIndustry = "";
+            if (m_ContactEntity.Attributes.Contains("new_industry"))
+            {
+                aIndustry = (string)m_ContactEntity.Attributes["new_industry"];
+            }
+
+            // ²Õ­ûªº¸Ë³Æª¬ºA
+            String aEquipmentStatus = "";
+            if (m_ContactEntity.Attributes.Contains("new_equipment_status"))
+            {
+                aEquipmentStatus = (string)m_ContactEntity.Attributes["new_equipment_status"];
+            }
+
+            // ²Õ­ûªº¨ü¬~ª¬ºA
+            String aSpiritualIdentity = "";
+            if (m_ContactEntity.Attributes.Contains("new_spiriitual_identity"))
+            {
+                aSpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(this.m_ContactEntity, "new_spiriitual_identity"));
+            }
+
+            // ²Õ­ûªº¨ü¬~Â§ª¬ºA(ªø¦Ñ±Ğ·|±M¥Î)
+            String aBaptizedSituation = "";
+            if (m_ContactEntity.Attributes.Contains("new_baptized_situation"))
+            {
+                aBaptizedSituation = ConvertIndexToBaptizedSituation(this.m_ToolUtilityClass.GetOptionSetAttribute(m_ContactEntity, "new_baptized_situation"));
+            }
+
+            // ²Õ­ûªº­Ó¤Hªşµù
+            String aDescription = "";
+            if (m_ContactEntity.Attributes.Contains("description"))
+            {
+                aDescription = (string)m_ContactEntity.Attributes["description"];
+            }
+            #endregion
+
+            #region// ©e¨­Ãş«¬
+            String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref m_ContactEntity, "customertypecode"));
+
+            // ¥h°£±¼¼Æ¦r¡BªÅ¥Õ¡B³r¸¹
+            //aIdentity = Regex.Replace(aIdentity, "[0-9]", "");//¹LÂo±¼¼Æ¦r
+            //aIdentity = aIdentity.Replace(" ", ""); // //¹LÂo±¼ªÅ¥Õ
+            //aIdentity = aIdentity.Replace(".", ""); // //¹LÂo±¼³r¸¹
+
+            #endregion
+
+
+            // ¨ú±o·s¤H¸ò¶i¶g¦¸¡A¤Î¸ò¶i¾úµ{°O¿ı
+            String aFollowUpWeek = "¥¼¿ï¾Ü";
+            String aNewComerNote = GetNewComerFollowupInfo(m_ContactEntity.Id, ref aFollowUpWeek);
+
+
+            #region ¶Ç¦^µ¹ºô­¶ªº¸ê®Æ
+            //10.¥¼¤J²Õµ²®×" ¤£¥Î¶i¤J APP
+            if (aIdentity != "10. ¥¼¤J²Õµ²®×")
+            {
+                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add
+                (
+                    new Member
+                    {
+                        PresentRecordId = DateTime.Now.ToLongTimeString().ToString(),
+                        ContactId = ContactId, // Ápµ¸¤H ID
+                        Group = GroupName,
+                        FullName = FullName,
+                        #region ­Ó¤H°ò¥»¸ê®Æ
+
+                        Phone = DigitsOnly.Replace(aMobilePhone, ""),
+                        HomePhone = DigitsOnly.Replace(aHomePhone, ""),
+                        Address = aAddress,
+                        BirthDate = aBirthDate,
+                        Industry = aIndustry,
+                        EquipmentStatus = aEquipmentStatus,
+                        SpiritualIdentity = aSpiritualIdentity,
+                        BaptizedSituation = aBaptizedSituation,
+                        BestLeader = this.m_ToolUtilityClass.GetEntityLookupDisplayName(m_ContactEntity, "new_contact_contact_spiritleader"),// ÄİÆF»{»âªÌ
+                        BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ContactEntity, "new_best_introducer"),
+                        BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ContactEntity, "new_best_relationship"),
+
+                        #endregion
+                        Status = aIdentity, // ©e¨­Ãş«¬
+                        SmallGroupName = GroupName,
+                        SectionName = GroupName,
+                        PrayItem = "",
+                        Sunday = false, //¥D¤é¥X®u
+                        SmallGroup = false,//¤p²Õ¥X®u
+                        Decision = false, //¨M§Ó
+                        Description = aDescription,
+                        #region ·s¤H¸ò¶iÃöÃh
+                        FollowUpWeek = aFollowUpWeek,
+                        FollowUpResult = "",
+                        FollowUpOption = "",
+                        FollowUp = "",
+                        FollowUpNextStep = "",
+                        FollowUpNote = "",
+                        NewComerNote = aNewComerNote,
+                        #endregion
+                        #region ÆF­×¡B±á¡B±ßÃ«
+                        SpiritualWork = 0, // Åª¸g¦¸¼Æ
+                        MorningPray = 0, // ±áÃ«(®a®x²½¾Â)
+                        GeneralCare = 0, // ±ßÃ«(Ã«§i·|¦¸¼Æ)
+                        #endregion
+                    }
+                );
+            }
+            #endregion
+
+            #endregion
+        }
+        private void SetSmallGroupData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData = new SmallGroupData();
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members = new List<Member>();
+
+            foreach (Member aMember in aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members)
+            {
+                if (aMember.Status.Contains("ªª®v®v¥À") || aMember.Status.Contains("°Ïªª") || aMember.Status.Contains("¤p°Ïªø") || aMember.Status.Contains("¤p²Õªø") || aMember.Status.Contains("°Æ¤p²Õªø") || aMember.Status.Contains("®Ö¤ß¦P¤u") || aMember.Status.Contains("¤p²Õ²Õ­û"))
+                {
+                    aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Add(aMember);
+                }
+            }
+
+            // DisplayFlag ¤w¦b¤èªk¶}ÀY³]©w¬° true
+            //aListSmallGroupWeeklyReport.SmallGroupDisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count > 0 ? true : false;
+        }
+        private void SetNewPersonFollowUpData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData = new SmallGroupData();
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members = new List<Member>();
+
+            foreach (Member aMember in aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members)
+            {
+                if (aMember.Status.Contains("·sªB¤Í") || aMember.Status.Contains("¥¼¤J²Õ"))
+                {
+                    aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Add(aMember);
+                }
+            }
+            // DisplayFlag ¤w¦b¤èªk¶}ÀY³]©w¬° true
+            //aListSmallGroupWeeklyReport.NewPersonFollowUpDisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count > 0 ? true : false;
+        }
+        private void SetHappyGroupData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup = new SmallGroupData();
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members = new List<Member>();
+
+            foreach (Member aMember in aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members)
+            {
+                //if (aMember.Status.Contains("·sªB¤Í") || aMember.Status.Contains("¥¼¤J²Õ"))
+                //{
+                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members.Add(aMember);
+                //}
+            }
+            // DisplayFlag ¤w¦b¤èªk¶}ÀY³]©w¬° true
+            //aListSmallGroupWeeklyReport.NewPersonFollowUpDisplayFlag = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Count > 0 ? true : false;
+        }
+        private String GetNewComerFollowupInfo(Guid aNewComerId, ref String aFollowUpWeek)
         {
             try
             {
-                // å…ˆæ‰¾åˆ°å§”èº«é¡å‹
-                int aIdentity = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "customertypecode");
+                // ¨ú±o·s¤Hªº¹êÅé
+                Entity aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aNewComerId);
 
-                String aIdentityType = ConvertIndexToIdentity(aIdentity);
-                if (aIdentityType == "07. æœªå…¥çµ„" || aIdentityType == "08. æ–°æœ‹å‹")
+                String aFollowUpHistoryReport = "";
+
+                if (VerifyNewComerIdentity(aContact))
                 {
-                    // å¦‚æœå§”èº«å‹æ…‹æ˜¯"æœªå…¥çµ„"æˆ–æ˜¯"æ–°æœ‹å‹"
-                    // å…ˆæœå°‹éå»2å€‹æœˆçš„éˆä¿®å‡ºå¸­ç´€éŒ„
-                    // å¦‚æœä¸»æ—¥æ¬¡æ•¸+å°çµ„æ¬¡æ•¸ å¤§æ–¼ç­‰æ–¼ 8 æ¬¡ï¼Œå‰‡å§”èº«é¡å‹è¨­å®šç‚º"å°çµ„çµ„å“¡"
-                    if (PassOrFail(aListEntityId, ref aContact) == true)
+                    // ½T»{¬O·s¤H©Î¬O¥¼¤J²Õ¤~­n³B²z
+
+                    // ½T»{¬O§_¬O·s¤H©Î¬O¥¼¤J²Õ
+                    int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
+
+                    if (aIdentityNumber == 100000004)
                     {
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 1);
-                        // æ›´æ–°é€£çµ¡äºº
+                        #region// ¥¼¤J²Õ
+
+                        String aStartTracking = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_start_tracking_date");
+                        if (aStartTracking != "")
+                        {
+                            // ¦pªG¬O¥¼¤J²Õ´N¦³¥i¯à¬O¦º¦Ç´_¿U¡A©Ò¥H­n¨Ì¾Ú"¶}©lÃöÃh¤é´Á"¬O§_­n­«¿UÃöÃhªº¹Lµ{
+                            DateTime aStartTrackingDate = DateTime.Parse(aStartTracking);
+
+                            #region ¥ı®Ú¾Ú¤é´Á´M§ä·í¶g¥D¤é¤é´Á
+                            // ¨ä­Èªº½d³ò±q 0 (ªí¥Ü DayOfWeek.Sunday) ¬° 6 (ªí¥Ü DayOfWeek.Saturday)¡C
+                            int DayOfWeek = (int)aStartTrackingDate.DayOfWeek;
+
+                            // ·í¶gªº¬P´Á¤é¬°»{©wªº¥D¤é
+                            //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
+                            DateTime aSunday;
+                            // ¨C©P¥H¬P´Á¤»¬°²Ä¤@¤é
+                            if (DayOfWeek != 6)
+                            {
+                                // ¦pªG¤£¬O¬P´Á¤»«h¬O¤W­Ó¬P´Á¤Ñ
+                                aSunday = DateTime.Now.AddDays(-DayOfWeek);
+                            }
+                            else
+                            {
+                                // ¦pªG¬O¬P´Á¤»«h¬O¤U­Ó¬P´Á¤Ñ
+                                aSunday = DateTime.Now.AddDays(1);
+                            }
+                            #endregion
+
+                            aFollowUpHistoryReport = GetFollowUpWeekForUnGroup(aContact, ref aFollowUpWeek, aSunday);
+                        }
+                        else
+                        {
+                            // ¤£¬O¦º¦Ç´_¿Uªº¥¼¤J²Õ¡A©Ò¥H´N«ö·Ó¥¿±`µ{§ÇÃöÃh
+                            aFollowUpHistoryReport = GetFollowUpWeek(aContact, ref aFollowUpWeek);
+                        }
+                        #endregion
+                    }
+                    else
+                    {
+                        #region// ·sªB¤Í
+
+                        // ¦pªG¬O·sªB¤Í´N«ö¥¿±`µ{§Ç¨ÓÃöÃh¡A¤£·|¦³¦º¦Ç´_¿Uªº°İÃD¡A¦]¬°®Ú¥»´N¬O·s¤H
+                        // ³B²z¹ïÀ³ªº¶g¦¸¤ÎÅwªï¬ö¿ı©M¨C¶g¸ò¶i¾úµ{
+                        aFollowUpHistoryReport = GetFollowUpWeek(aContact, ref aFollowUpWeek);
+                        #endregion
+                    }
+                }
+                else
+                {
+
+                }
+                return aFollowUpHistoryReport;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "¿ù»~°T®§ : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
+        }
+        private bool VerifyNewComerIdentity(Entity aContact)
+        {
+            try
+            {
+                // ©e¨­Ãş«¬«È»s¤Æ
+                // ½T»{¬O§_¬O·s¤H©Î¬O¥¼¤J²Õ
+                int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
+
+                //case 100000006:
+                //    return "01. ªª®v®v¥À";
+                //case 100000009:
+                //    return "02. °Ïªª";
+                //case 100000003:
+                //    return "03. ¤p®aªø";
+                //case 100000008:
+                //    return "04. ¤p²Õªø";
+                //case 100000002:
+                //    return "05. ¹ê²ß¤p²Õªø";
+                //case 1:
+                //    return "06. ¤p²Õ²Õ­û";
+                //case 100000005:
+                //    return "07. ©¯ºÖBEST";
+                //case 100000004:
+                //    return "08. ¥¼¤J²Õ";
+                //case 100000000:
+                //    return "09. ·sªB¤Í";
+                //case 100000007:
+                //    return "10. ¥~±Ğ·|";
+                //case 100000001:
+                //    return "11. µ²®×";
+
+                // ©e¨­Ãş«¬«È»s¤Æ
+                if (aIdentityNumber == 100000000 || aIdentityNumber == 100000004)
+                {
+                    //    case 100000000:
+                    //        return "8. ·sªB¤Í";
+                    //    case 100000004:
+                    //        return "7. ¥¼¤J²Õ";
+
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+                //switch (Identity)
+                //{
+                //    case 100000000:
+                //        return "8. ·sªB¤Í";
+                //    case 100000001:
+                //        return "5. ¯«¾Ç¥Í";
+                //    case 100000002:
+                //        return "4. ¤p²Õªø";
+                //    case 100000003:
+                //        return "3. ¥şÂ¾¦P¤u";
+                //    case 100000004:
+                //        return "7. ¥¼¤J²Õ";
+                //    case 100000005:
+                //        return "1. ªª®v";
+                //    case 100000006:
+                //        return "2, ®v¥À";
+                //    case 100000007:
+                //        return "9. ¥~±Ğ·|";
+                //    case 100000008:
+                //        return "10. ¥¼¤J²Õµ²®×";
+                //    case 1:
+                //        return "6. ¤p²Õ²Õ­û";
+                //    default:
+                //        return ".";
+                //}
+
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "¿ù»~°T®§ : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
+        }
+        private String GetFollowUpWeek(Entity aContact, ref String MatchedWeekDay)
+        {
+            try
+            {
+                String aFollowUpHistoryReport = "";
+
+                #region ¾úµ{°O¿ıªºªíÀY
+                #region// ©Ê§O
+                int Gender = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "gendercode");
+                if (Gender == 200000)
+                {
+                    aFollowUpHistoryReport += "©Ê§O:¨k©Ê" + Environment.NewLine;
+                }
+                else
+                {
+                    aFollowUpHistoryReport += "©Ê§O:¤k©Ê" + Environment.NewLine;
+
+                }
+                #endregion
+                #region// ­º¦¸¶i¤J±Ğ·|¤é´Á
+                try
+                {
+                    DateTime FirstDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContact, "new_enter_church_date").ToLocalTime();
+                    if (FirstDate.Year > 0)
+                    {
+                        aFollowUpHistoryReport += "­º¦¸¶i¤J±Ğ·|¤é´Á:" + this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContact, "new_enter_church_date").ToLocalTime().ToShortDateString() + Environment.NewLine;
+                    }
+                }
+                catch (System.Exception Exception)
+                {
+                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                }
+                #endregion
+                #region// ¨ú±oÅwªï¬ö¿ı
+                String WelcomeRecord = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "description");
+                if (WelcomeRecord != "")
+                {
+                    aFollowUpHistoryReport += "Åwªï¬ö¿ı:" + Environment.NewLine + WelcomeRecord + Environment.NewLine + Environment.NewLine;
+                }
+                #endregion
+                #endregion
+
+                // ¨ú±o»P¦¹·s¤H¬ÛÃöªº¥X®u¬ö¿ı³æ
+                //EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySunday("contact", "contactid", aContact.Id.ToString(), "new_contact_new_present_record", "new_present_record");
+                EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(10, this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"), aContact.Id.ToString());
+
+                #region ÃöÃh¾úµ{°O¿ı
+                if (PresentRecordCollection.Entities.Count > 0)
+                {
+                    aFollowUpHistoryReport += "ÃöÃh¾úµ{°O¿ı:" + Environment.NewLine;
+                }
+                else
+                {
+                    aFollowUpHistoryReport += "¨S¦³ÃöÃh¾úµ{°O¿ı!" + Environment.NewLine;
+                }
+                #endregion
+
+                int WeekCounter = 1;
+                MatchedWeekDay = "";
+                foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
+                {
+                    #region ³B²z¤@­Ó¤@­Óªº¥X®u¬ö¿ı
+
+                    //Entity PresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordEntity.Id);
+
+                    #region ¨M©w¥»¶gªº¶g¦¸
+                    DateTime aSundayDate = DateTime.Now;
+                    try
+                    {
+                        aSundayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(PresentRecordEntity, "new_sunday_date");
+                        if (aSundayDate.Date == this.m_Sunday.Date)
+                        {
+                            // Âà¤Æ¦¨¬°¤¤¤åªº¶g¦¸¡A³o¬O­nSHOWµ¹APP¬İªº
+                            MatchedWeekDay = ConvertNumberToFollowUpWeekPicker(WeekCounter);
+                        }
+                    }
+                    catch (System.Exception Exception)
+                    {
+                        String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                    }
+                    #endregion
+
+                    #region ·s¤H¸ò¶i¬ÛÃö¸ê°T
+                    //aFollowUpHistoryReport += aSundayDate.Date.ToShortDateString() + "¡A ²Ä" + ConvertNumberToFollowUpWeekPicker(WeekCounter) + "¶g¡A";
+                    aFollowUpHistoryReport += "²Ä" + ConvertNumberToFollowUpWeekPicker(WeekCounter) + "¶g¡A" + aSundayDate.Date.ToShortDateString() + "¡A";
+                    aFollowUpHistoryReport += "¤p²Õªø:" + this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_groupleader_present_record") + "¡A";
+
+                    //if (aSundayDate != DateTime.Now)
+                    //{
+                    //    aFollowUpHistoryReport += "¸ò¶i¤é´Á:" + aSundayDate.ToShortDateString() + "¡A";
+                    //}
+
+                    #region //¸ò¶i¤è¦¡
+                    int FollowUpOptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_followup_ways");
+                    String aFollowUpOption = ConvertIndexToFollowUpOptionPicker(FollowUpOptionValue);
+                    String aFollowUpMethod = this.m_ToolUtilityClass.GetEntityStringAttribute(PresentRecordEntity, "new_follow_up");
+                    if (aFollowUpMethod != "")
+                    {
+                        aFollowUpHistoryReport += "¸ò¶i¤è¦¡:" + aFollowUpOption + aFollowUpMethod + "¡A";
+                    }
+                    #endregion
+                    #region//·s¤H¸ò¶iµ²ªG
+                    String aFollowUpResult = "";
+                    if (PresentRecordEntity.Attributes.Contains("new_conclusion_choise"))
+                    {
+                        int OptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_conclusion_choise");
+                        aFollowUpResult = ConvertIndexToFollowUpResultPicker(OptionValue);
+                    }
+                    if (aFollowUpResult != "" && aFollowUpResult != "½Ğ¿ï¾Ü")
+                    {
+                        aFollowUpHistoryReport += "¸ò¶iµ²ªG:" + aFollowUpResult + "¡A";
+                    }
+                    #endregion
+                    #region//·s¤H¸ò¶i¤U¤@¨BÆJ
+                    String aFollowUpNextStep = "";
+                    if (PresentRecordEntity.Attributes.Contains("new_next_step"))
+                    {
+                        int OptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_next_step");
+                        aFollowUpNextStep = ConvertIndexToFollowUpNextStepPicker(OptionValue);
+                    }
+                    if (aFollowUpNextStep != "" && aFollowUpNextStep != "½Ğ¿ï¾Ü")
+                    {
+                        aFollowUpHistoryReport += "¸ò¶i¤U¤@¨BÆJ:" + aFollowUpNextStep + "¡A";
+                    }
+                    #endregion
+                    #region//¸ò¶i´y­z
+                    String aExplanation = this.m_ToolUtilityClass.GetEntityStringAttribute(PresentRecordEntity, "new_explanation");
+                    if (aExplanation != "")
+                    {
+                        aFollowUpHistoryReport += "¸ò¶i´y­z:" + aExplanation + Environment.NewLine + Environment.NewLine;
+                    }
+                    else
+                    {
+                        aFollowUpHistoryReport += Environment.NewLine + Environment.NewLine;
+                    }
+                    #endregion
+                    #endregion
+
+                    #region ¦Û°ÊÀ°¦£­«·s³]©wÃöÃh¶g¦¸
+
+                    try
+                    {
+                        int WeekIndex = ConvertNumberToWeekIndex(WeekCounter);
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(PresentRecordEntity, "new_weeks", WeekIndex);
+                        //Entity aRetrievedPresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", PresentRecordEntity.Id);
+                        //this.m_ToolUtilityClass.UpdateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, PresentRecordEntity);
+                        if (CRM_TYPE == "DYNAMICS365")
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, PresentRecordEntity);
+                        }
+                        else
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, PresentRecordEntity);
+                        }
+                        //this.m_ToolUtilityClass.UpdateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, ref aRetrievedPresentRecordEntity);
+                    }
+                    catch (System.Exception Exception)
+                    {
+                        String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                    }
+                    #endregion
+
+                    // ¦Û°Ê§â·sªB¤Í­Y¬O¶W¹L10¶gªºÃöÃh«h³]¬°¥¼¤J²Õ¡A§â¥¼¤J²Õ­Y¬O¶W¹L©Îµ¥©ó18¶gªºÃöÃh«h³]¬°¥¼¤J²Õµ²®×
+                    TransferIdentity(aContact, WeekCounter, 10, 18);
+
+                    WeekCounter++;
+                    #endregion
+                }
+
+                return aFollowUpHistoryReport;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "¿ù»~°T®§ : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
+        }
+        private String GetFollowUpWeekForUnGroup(Entity aContact, ref String MatchedWeekDay, DateTime aStartTrackingSunday)
+        {
+            try
+            {
+                String aFollowUpHistoryReport = "";
+
+                #region ¾úµ{°O¿ıªºªíÀY
+                #region// ©Ê§O
+                int Gender = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "gendercode");
+                if (Gender == 200000)
+                {
+                    aFollowUpHistoryReport += "©Ê§O:¨k©Ê" + Environment.NewLine;
+                }
+                else
+                {
+                    aFollowUpHistoryReport += "©Ê§O:¤k©Ê" + Environment.NewLine;
+
+                }
+                #endregion
+                #region// ­º¦¸¶i¤J±Ğ·|¤é´Á
+                try
+                {
+                    DateTime FirstDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContact, "new_enter_church_date").ToLocalTime();
+                    if (FirstDate.Year > 0)
+                    {
+                        aFollowUpHistoryReport += "­º¦¸¶i¤J±Ğ·|¤é´Á:" + this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContact, "new_enter_church_date").ToLocalTime().ToShortDateString() + Environment.NewLine;
+                    }
+                }
+                catch (System.Exception Exception)
+                {
+                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                }
+                #endregion
+                #region// ¨ú±oÅwªï¬ö¿ı
+                String WelcomeRecord = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "description");
+                if (WelcomeRecord != "")
+                {
+                    aFollowUpHistoryReport += "Åwªï¬ö¿ı:" + Environment.NewLine + WelcomeRecord + Environment.NewLine + Environment.NewLine;
+                }
+                #endregion
+                #endregion
+
+                // ¨ú±o»P¦¹·s¤H¬ÛÃöªº¥X®u¬ö¿ı³æ
+                //EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySunday("contact", "contactid", aContact.Id.ToString(), "new_contact_new_present_record", "new_present_record");
+                EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(10, this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"), aContact.Id.ToString());
+
+                #region ÃöÃh¾úµ{°O¿ı
+                if (PresentRecordCollection.Entities.Count > 0)
+                {
+                    aFollowUpHistoryReport += "ÃöÃh¾úµ{°O¿ı:" + Environment.NewLine;
+                }
+                else
+                {
+                    aFollowUpHistoryReport += "¨S¦³ÃöÃh¾úµ{°O¿ı!" + Environment.NewLine;
+                }
+                #endregion
+
+                int WeekCounter = 1;
+                MatchedWeekDay = "";
+                bool FoundFlag = false;
+                foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
+                {
+                    #region ³B²z¤@­Ó¤@­Óªº¥X®u¬ö¿ı
+
+                    DateTime aPresentRecordSundayDate = DateTime.Now;
+
+                    aPresentRecordSundayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(PresentRecordEntity, "new_sunday_date");
+
+                    if (FoundFlag == false)
+                    {
+                        if (aPresentRecordSundayDate.ToShortDateString() == aStartTrackingSunday.ToShortDateString())
+                        {
+                            // §ä¨ì¤F¦º¦Ç´_¿Uªº¨º­Ó¥D¤é¤é´Á
+                            WeekCounter = 1; // ³]©w¬°²Ä¤@©P
+                            FoundFlag = true; // ¶}©l´`§Ç²Ö¥[©P¦¸
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+
+                    #region ¨M©w¥»¶gªº¶g¦¸
+                    DateTime aSundayDate = DateTime.Now;
+                    try
+                    {
+                        aSundayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(PresentRecordEntity, "new_sunday_date");
+                        if (aSundayDate.Date == this.m_Sunday.Date)
+                        {
+                            // Âà¤Æ¦¨¬°¤¤¤åªº¶g¦¸¡A³o¬O­nSHOWµ¹APP¬İªº
+                            MatchedWeekDay = ConvertNumberToFollowUpWeekPicker(WeekCounter);
+                        }
+                    }
+                    catch (System.Exception Exception)
+                    {
+                        String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                    }
+                    #endregion
+
+                    #region ·s¤H¸ò¶i¬ÛÃö¸ê°T
+                    //aFollowUpHistoryReport += aSundayDate.Date.ToShortDateString() + "¡A ²Ä" + ConvertNumberToFollowUpWeekPicker(WeekCounter) + "¶g¡A";
+                    aFollowUpHistoryReport += "²Ä" + ConvertNumberToFollowUpWeekPicker(WeekCounter) + "¶g¡A" + aSundayDate.Date.ToShortDateString() + "¡A";
+                    aFollowUpHistoryReport += "¤p²Õªø:" + this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_groupleader_present_record") + "¡A";
+
+                    //if (aSundayDate != DateTime.Now)
+                    //{
+                    //    aFollowUpHistoryReport += "¸ò¶i¤é´Á:" + aSundayDate.ToShortDateString() + "¡A";
+                    //}
+
+                    #region //¸ò¶i¤è¦¡
+                    String aFollowUpMethod = this.m_ToolUtilityClass.GetEntityStringAttribute(PresentRecordEntity, "new_follow_up");
+                    if (aFollowUpMethod != "")
+                    {
+                        aFollowUpHistoryReport += "¸ò¶i¤è¦¡:" + aFollowUpMethod + "¡A";
+                    }
+                    #endregion
+                    #region//·s¤H¸ò¶iµ²ªG
+                    String aFollowUpResult = "";
+                    if (PresentRecordEntity.Attributes.Contains("new_conclusion_choise"))
+                    {
+                        int OptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_conclusion_choise");
+                        aFollowUpResult = ConvertIndexToFollowUpResultPicker(OptionValue);
+                    }
+                    if (aFollowUpResult != "" && aFollowUpResult != "½Ğ¿ï¾Ü")
+                    {
+                        aFollowUpHistoryReport += "¸ò¶iµ²ªG:" + aFollowUpResult + "¡A";
+                    }
+                    #endregion
+                    #region//·s¤H¸ò¶i¤U¤@¨BÆJ
+                    String aFollowUpNextStep = "";
+                    if (PresentRecordEntity.Attributes.Contains("new_next_step"))
+                    {
+                        int OptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_next_step");
+                        aFollowUpNextStep = ConvertIndexToFollowUpNextStepPicker(OptionValue);
+                    }
+                    if (aFollowUpNextStep != "" && aFollowUpNextStep != "½Ğ¿ï¾Ü")
+                    {
+                        aFollowUpHistoryReport += "¸ò¶i¤U¤@¨BÆJ:" + aFollowUpNextStep + "¡A";
+                    }
+                    #endregion
+                    #region//¸ò¶i´y­z
+                    String aExplanation = this.m_ToolUtilityClass.GetEntityStringAttribute(PresentRecordEntity, "new_explanation");
+                    if (aExplanation != "")
+                    {
+                        aFollowUpHistoryReport += "¸ò¶i´y­z:" + aExplanation + Environment.NewLine + Environment.NewLine;
+                    }
+                    else
+                    {
+                        aFollowUpHistoryReport += Environment.NewLine + Environment.NewLine;
+                    }
+                    #endregion
+                    #endregion
+
+                    #region ¦Û°ÊÀ°¦£­«·s³]©wÃöÃh¶g¦¸
+
+                    try
+                    {
+                        int WeekIndex = ConvertNumberToWeekIndex(WeekCounter);
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(PresentRecordEntity, "new_weeks", WeekIndex);
+                        //Entity aRetrievedPresentRecordEntity = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", PresentRecordEntity.Id);
+                        if (CRM_TYPE == "DYNAMICS365")
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, PresentRecordEntity);
+                        }
+                        else
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, PresentRecordEntity);
+                        }
+                        //this.m_ToolUtilityClass.UpdateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, ref aRetrievedPresentRecordEntity);
+                    }
+                    catch (System.Exception Exception)
+                    {
+                        String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+                    }
+                    #endregion
+
+                    // ¦]¬°³o¬O¥¼¤J²Õ¦º¦Ç´_¿U¡A§â¥¼¤J²Õ­Y¬O¶W¹L©Îµ¥©ó10¶gªºÃöÃh«h³]¬°¥¼¤J²Õµ²®×
+                    TransferIdentity(aContact, WeekCounter, 10, 10);
+
+                    WeekCounter++;
+                    #endregion
+                }
+
+                return aFollowUpHistoryReport;
+            }
+            catch (System.Exception e)
+            {
+                String ErrorString = "¿ù»~°T®§ : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                throw e;
+            }
+        }
+        private void TransferIdentity(Entity aContact, int Counter, int NewComeMaxiNumber, int UnGroupMaxiNumber)
+        {
+            //switch (Identity)
+            //{
+            //    case 100000000:
+            //        return "8. ·sªB¤Í";
+            //    case 100000001:
+            //        return "5. ¯«¾Ç¥Í";
+            //    case 100000002:
+            //        return "4. ¤p²Õªø";
+            //    case 100000003:
+            //        return "3. ¥şÂ¾¦P¤u";
+            //    case 100000004:
+            //        return "7. ¥¼¤J²Õ";
+            //    case 100000005:
+            //        return "1. ªª®v";
+            //    case 100000006:
+            //        return "2, ®v¥À";
+            //    case 100000007:
+            //        return "9. ¥~±Ğ·|";
+            //    case 100000008:
+            //        return "10. ¥¼¤J²Õµ²®×";
+            //    case 1:
+            //        return "6. ¤p²Õ²Õ­û";
+            //    default:
+            //        return ".";
+            //}
+
+
+            // ½T»{¬O§_¬O·s¤H©Î¬O¥¼¤J²Õ
+            int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
+
+            // ¦]¬°·sªB¤Í¡B¥¼¤J²Õ·|ÅÜ§ó©e¨­Ãş«¬¡AºX¼Ğ¨¾¤î³]©w¤Ó¦h¦¸¡Afalseªí¥Ü©|¥¼³]©w
+            if (aIdentityNumber == 100000000)
+            {
+
+                //m_SetIdentityFlag = false; // ¦]¬°·sªB¤Í¡B¥¼¤J²Õ·|ÅÜ§ó©e¨­Ãş«¬¡AºX¼Ğ¨¾¤î³]©w¤Ó¦h¦¸¡Afalseªí¥Ü©|¥¼³]©w
+
+                // ·sªB¤Í
+                if (Counter >= NewComeMaxiNumber && m_SetIdentityFlag == false)
+                {
+                    // ¥u­n³]©w¤@¦¸´N¦n
+                    m_SetIdentityFlag = true;
+
+                    if (TRANSFER_IDENTITY_FLAG == true)
+                    {
+                        // ·sªB¤ÍÅÜ¬°¥¼¤J²Õ
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000004);
                         if (CRM_TYPE == "DYNAMICS365")
                         {
                             this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact);
@@ -1311,13 +2256,318 @@ namespace ChurchReport.WebServiceConnector
                         }
                     }
                 }
-                else if (aIdentityType == "05. å°çµ„çµ„å“¡")
+                else { }
+            }
+            else if (aIdentityNumber == 100000004)
+            {
+                //¥¼¤J²Õ
+                if (Counter >= UnGroupMaxiNumber && m_SetIdentityFlag == false)
                 {
-                    // å¦‚æœä¸»æ—¥æ¬¡æ•¸+å°çµ„æ¬¡æ•¸ å°æ–¼ 8 æ¬¡ï¼Œå‰‡å§”èº«é¡å‹è¨­å®šç‚º"æœªå…¥çµ„"
+                    // ¥u­n³]©w¤@¦¸´N¦n
+                    m_SetIdentityFlag = true;
+
+                    if (TRANSFER_IDENTITY_FLAG == true)
+                    {
+                        // ¥¼¤J²ÕÅÜ¬°¥¼¤J²Õµ²®×(¶W¹L©Î¬Oµ¥©ó)
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000001);
+
+                        if (CRM_TYPE == "DYNAMICS365")
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact);
+                        }
+                        else
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ref aContact);
+                        }
+                    }
+
+                }
+                else { }
+            }
+            else
+            {
+
+            }
+
+        }
+        private String ConvertNumberToFollowUpWeekPicker(int FollowUpWeekIndex)
+        {
+            switch (FollowUpWeekIndex)
+            {
+                case 1:
+                    return "¤@";
+                case 2:
+                    return "¤G";
+                case 3:
+                    return "¤T";
+                case 4:
+                    return "¥|";
+                case 5:
+                    return "¤­";
+                case 6:
+                    return "¤»";
+                case 7:
+                    return "¤C";
+                case 8:
+                    return "¤K";
+                case 9:
+                    return "¤E";
+                case 10:
+                    return "¤Q";
+                case 11:
+                    return "¤Q¤@";
+                case 12:
+                    return "¤Q¤G";
+                case 13:
+                    return "¤Q¤T";
+                case 14:
+                    return "¤Q¥|";
+                case 15:
+                    return "¤Q¤­";
+                case 16:
+                    return "¤Q¤»";
+                case 17:
+                    return "¤Q¤C";
+                case 18:
+                    return "¤Q¤K";
+                case 19:
+                    return "¤Q¤E";
+                case 20:
+                    return "¤G¤Q";
+                default:
+                    return "¤G¤Q";
+            }
+        }
+        private int ConvertNumberToWeekIndex(int FollowUpWeekIndex)
+        {
+            switch (FollowUpWeekIndex)
+            {
+                case 1:
+                    return 100000000;
+                case 2:
+                    return 100000001;
+                case 3:
+                    return 100000002;
+                case 4:
+                    return 100000003;
+                case 5:
+                    return 100000004;
+                case 6:
+                    return 100000005;
+                case 7:
+                    return 100000006;
+                case 8:
+                    return 100000007;
+                case 9:
+                    return 100000008;
+                case 10:
+                    return 100000009;
+                case 11:
+                    return 100000010;
+                case 12:
+                    return 100000011;
+                case 13:
+                    return 100000012;
+                case 14:
+                    return 100000013;
+                case 15:
+                    return 100000014;
+                case 16:
+                    return 100000015;
+                case 17:
+                    return 100000016;
+                case 18:
+                    return 100000017;
+                case 19:
+                    return 100000018;
+                case 20:
+                    return 100000019;
+                default:
+                    return 100000007;
+            }
+        }
+        private String ConvertIndexToFollowUpWeekPicker(int FollowUpWeekIndex)
+        {
+            switch (FollowUpWeekIndex)
+            {
+                case 100000000:
+                    return "¤@";
+                case 100000001:
+                    return "¤G";
+                case 100000002:
+                    return "¤T";
+                case 100000003:
+                    return "¥|";
+                case 100000004:
+                    return "¤­";
+                case 100000005:
+                    return "¤»";
+                case 100000006:
+                    return "¤C";
+                case 100000007:
+                    return "¤K";
+                case 100000009:
+                    return "¤E";
+                case 100000010:
+                    return "¤Q";
+                case 100000011:
+                    return "¤Q¤@";
+                case 100000012:
+                    return "¤Q¤G";
+                case 100000013:
+                    return "¤Q¤T";
+                case 100000014:
+                    return "¤Q¥|";
+                case 100000015:
+                    return "¤Q¤­";
+                case 100000016:
+                    return "¤Q¤»";
+                case 100000017:
+                    return "¤Q¤C";
+                case 100000018:
+                    return "¤Q¤K";
+                case 100000019:
+                    return "¤Q¤E";
+                case 100000020:
+                    return "¤G¤Q";
+                case 100000008:
+                    return "¥¼¿ï¾Ü";
+                default:
+                    return ".";
+            }
+        }
+        private String ConvertIndexToFollowUpResultPicker(int FollowUpWeekIndex)
+        {
+            switch (FollowUpWeekIndex)
+            {
+                case 100000000:
+                    return "½Ğ¿ï¾Ü";
+                case 100000001:
+                    return "¼ö±¡¦^À³";
+                case 100000002:
+                    return "´÷¼}»{ÃÑ«H¥õ";
+                case 100000003:
+                    return "¨SÁpµ¸¤W";
+                case 100000004:
+                    return "¤ÏÀ³§N²H";
+                case 100000005:
+                    return "¦Ò¼{¤¤¡AÄ~Äò¸ò¶i";
+                case 100000006:
+                    return "¤J¤p²Õ";
+                case 100000007:
+                    return "¨Ó¥D¤é";
+                case 100000008:
+                    return "Âà¤¶";
+                case 100000009:
+                    return "¨ä¥L";
+                default:
+                    return "";
+            }
+        }
+        private String ConvertIndexToFollowUpNextStepPicker(int FollowUpWeekIndex)
+        {
+            switch (FollowUpWeekIndex)
+            {
+                case 100000000:
+                    return "½Ğ¿ï¾Ü";
+                case 100000001:
+                    return "Ä~Äò¸ò¶i";
+                case 100000002:
+                    return "Âà¤¶";
+                default:
+                    return "";
+            }
+        }
+        private String ConvertIndexToFollowUpOptionPicker(int FollowUpWays)
+        {
+            switch (FollowUpWays)
+            {
+                case 100000000:
+                    return "¹q¸Ü";
+                case 100000001:
+                    return "±´³X";
+                case 100000002:
+                    return "Line/FB";
+                case 100000003:
+                    return "¥X¹C/¦Y¶º";
+                case 100000004:
+                    return "Ãh¶m/¨ä¥L½Òµ{";
+                case 100000005:
+                    return "¬ù½Í";
+                case 100000006:
+                    return "¨S¸ò¶i";
+                case 100000007:
+                    return "¨ä¥L";
+                default:
+                    return "";
+            }
+        }
+
+        private String ConvertIndexToTopic(int FollowUpWeekIndex)
+        {
+            switch (FollowUpWeekIndex)
+            {
+                case 100000000:
+                    return "¹w³Æ¶g";
+                case 100000001:
+                    return "¯u©¯ºÖ";
+                case 100000002:
+                    return "¯u¬Û¤j¥Õ";
+                case 100000003:
+                    return "¸U¥@¥¨¬P";
+                case 100000004:
+                    return "©¯ºÖ³s½u";
+                case 100000005:
+                    return "·í¤W«Ò¨ÓºVªù";
+                case 100000006:
+                    return "¤Q¦r¬[ªº³Ó§Q";
+                case 100000007:
+                    return "ÄÀ©ñ»P¦Û¥Ñ";
+                case 100000008:
+                    return "©¯ºÖªº±Ğ·|";
+                default:
+                    return "";
+            }
+        }
+
+        #endregion
+        #endregion
+        #region ³]©w©e¨­Ãş«¬
+
+        public void SetIdentity(Guid aListEntityId, ref Entity aContact, ref MemberInfomation aMemberInfomation)
+        {
+            try
+            {
+                // ¥ı§ä¨ì©e¨­Ãş«¬
+                int aIdentity = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "customertypecode");
+
+                String aIdentityType = ConvertIndexToIdentity(aIdentity);
+                if (aIdentityType == "07. ¥¼¤J²Õ" || aIdentityType == "08. ·sªB¤Í")
+                {
+                    // ¦pªG©e¨­«¬ºA¬O"¥¼¤J²Õ"©Î¬O"·sªB¤Í"
+                    // ¥ı·j´M¹L¥h2­Ó¤ëªºÆF­×¥X®u¬ö¿ı
+                    // ¦pªG¥D¤é¦¸¼Æ+¤p²Õ¦¸¼Æ ¤j©óµ¥©ó 8 ¦¸¡A«h©e¨­Ãş«¬³]©w¬°"¤p²Õ²Õ­û"
+                    if (PassOrFail(aListEntityId, ref aContact) == true)
+                    {
+                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 1);
+                        // §ó·s³sµ¸¤H
+                        if (CRM_TYPE == "DYNAMICS365")
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact);
+                        }
+                        else
+                        {
+                            this.m_ToolUtilityClass.UpdateEntityCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ref aContact);
+                        }
+                    }
+                }
+                else if (aIdentityType == "05. ¤p²Õ²Õ­û")
+                {
+                    // ¦pªG¥D¤é¦¸¼Æ+¤p²Õ¦¸¼Æ ¤p©ó 8 ¦¸¡A«h©e¨­Ãş«¬³]©w¬°"¥¼¤J²Õ"
                     if (PassOrFail(aListEntityId, ref aContact) == false)
                     {
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContact, "customertypecode", 100000004);
-                        // æ›´æ–°é€£çµ¡äºº
+                        // §ó·s³sµ¸¤H
                         //this.m_ToolUtilityClass.UpdateEntity(ref this.m_ToolUtilityClass.m_OrganizationService, ref aContact);
                     }
                 }
@@ -1334,27 +2584,27 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // éå»å¹¾é€±çš„éˆä¿®å‡ºå¸­ç´€éŒ„
+                // ¹L¥h´X¶gªºÆF­×¥X®u¬ö¿ı
                 EntityCollection PresentRecordCollection = this.m_ToolUtilityClass.QueryPresentRecordByContactIdAndSunday(WeeklyReportId, aContact.Id, WEEK_PERIOD);
 
                 int TotalNumber = 0;
 
-                if (Type == "ä¸»æ—¥")
+                if (Type == "¥D¤é")
                 {
                     foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
                     {
-                        // ä¸»æ—¥æ¬¡æ•¸
+                        // ¥D¤é¦¸¼Æ
                         TotalNumber += this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_sunday_present_this_week");
                     }
 
                     return TotalNumber;
 
                 }
-                else if (Type == "å°çµ„")
+                else if (Type == "¤p²Õ")
                 {
                     foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
                     {
-                        // å°çµ„æ¬¡æ•¸
+                        // ¤p²Õ¦¸¼Æ
                         TotalNumber += this.m_ToolUtilityClass.GetEntityIntAttribute(PresentRecordEntity, "new_group_present_this_week");
                     }
 
@@ -1376,9 +2626,9 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                int TotalNumber = GetPresentNumber(aListEntityId, "å°çµ„", ref aContact);
+                int TotalNumber = GetPresentNumber(aListEntityId, "¤p²Õ", ref aContact);
 
-                // å¦‚æœä¸»æ—¥æ¬¡æ•¸+å°çµ„æ¬¡æ•¸ å¤§æ–¼ç­‰æ–¼ MINIMUM_THRESHOLD æ¬¡ï¼Œå‰‡å§”èº«é¡å‹è¨­å®šç‚º"å°çµ„çµ„å“¡"
+                // ¦pªG¥D¤é¦¸¼Æ+¤p²Õ¦¸¼Æ ¤j©óµ¥©ó MINIMUM_THRESHOLD ¦¸¡A«h©e¨­Ãş«¬³]©w¬°"¤p²Õ²Õ­û"
                 if (TotalNumber >= MINIMUM_THRESHOLD)
                 {
                     return true;
@@ -1401,61 +2651,61 @@ namespace ChurchReport.WebServiceConnector
         //    switch (Identity)
         //    {
         //        case 100000000:
-        //            return "8. æ–°æœ‹å‹";
+        //            return "8. ·sªB¤Í";
         //        case 100000001:
-        //            return "5. ç¥å­¸ç”Ÿ";
+        //            return "5. ¯«¾Ç¥Í";
         //        case 100000002:
-        //            return "4. å°çµ„é•·";
+        //            return "4. ¤p²Õªø";
         //        case 100000003:
-        //            return "3. å…¨è·åŒå·¥";
+        //            return "3. ¥şÂ¾¦P¤u";
         //        case 100000004:
-        //            return "7. æœªå…¥çµ„";
+        //            return "7. ¥¼¤J²Õ";
         //        case 100000005:
-        //            return "1. ç‰§å¸«";
+        //            return "1. ªª®v";
         //        case 100000006:
-        //            return "2, å¸«æ¯";
+        //            return "2, ®v¥À";
         //        case 100000007:
-        //            return "9. å¤–æ•™æœƒ";
+        //            return "9. ¥~±Ğ·|";
         //        case 100000008:
-        //            return "10. æœªå…¥çµ„çµæ¡ˆ";
+        //            return "10. ¥¼¤J²Õµ²®×";
         //        case 1:
-        //            return "6. å°çµ„çµ„å“¡";
+        //            return "6. ¤p²Õ²Õ­û";
         //        default:
         //            return ".";
         //    }
         //}
 
 
-        // å§”èº«é¡å‹å®¢è£½åŒ–ï¼Œå§”èº«é¡å‹å®¢è£½åŒ–
-        //è–è°·è¡Œé“æœƒ
+        // ©e¨­Ãş«¬«È»s¤Æ¡A©e¨­Ãş«¬«È»s¤Æ
+        //¸t¨¦¦æ¹D·|
         private String ConvertIndexToIdentity(int Identity)
         {
             switch (Identity)
             {
                 case 100000006:
-                    return "01. ç‰§å¸«å¸«æ¯";
+                    return "01. ªª®v®v¥À";
                 case 100000002:
-                    return "02. å€ç‰§";
+                    return "02. °Ïªª";
                 case 100000003:
-                    return "03. å°å€é•·";
+                    return "03. ¤p°Ïªø";
                 case 100000008:
-                    return "04. å°çµ„é•·";
+                    return "04. ¤p²Õªø";
                 case 100000009:
-                    return "05. å‰¯å°çµ„é•·";
+                    return "05. °Æ¤p²Õªø";
                 case 100000012:
-                    return "06. æ ¸å¿ƒåŒå·¥";
+                    return "06. ®Ö¤ß¦P¤u";
                 case 1:
-                    return "05. å°çµ„çµ„å“¡";
+                    return "05. ¤p²Õ²Õ­û";
                 case 100000005:
-                    return "06. å¹¸ç¦BEST";
+                    return "06. ©¯ºÖBEST";
                 case 100000004:
-                    return "07. æœªå…¥çµ„";
+                    return "07. ¥¼¤J²Õ";
                 case 100000000:
-                    return "08. æ–°æœ‹å‹";
+                    return "08. ·sªB¤Í";
                 case 100000007:
-                    return "09. å¤–æ•™æœƒ";
+                    return "09. ¥~±Ğ·|";
                 case 100000001:
-                    return "10. çµæ¡ˆ";
+                    return "10. µ²®×";
 
                 default:
                     return ".";
@@ -1466,15 +2716,15 @@ namespace ChurchReport.WebServiceConnector
             switch (SpiritualIdentity)
             {
                 case 100000004:
-                    return "-æœªçŸ¥-";
+                    return "-¥¼ª¾-";
                 case 100000001:
-                    return "åŸºç£å¾’";
+                    return "°ò·ş®{";
                 case 100000002:
-                    return "å·²æ±ºå¿—";
+                    return "¤w¨M§Ó";
                 case 100000005:
-                    return "æ…•é“å‹";
+                    return "¼}¹D¤Í";
                 case 100000003:
-                    return "æœªä¿¡ä¸»";
+                    return "¥¼«H¥D";
                 default:
                     return ".";
             }
@@ -1484,256 +2734,38 @@ namespace ChurchReport.WebServiceConnector
             switch (SpiritualIdentity)
             {
                 case 100000004:
-                    return "-æœªçŸ¥-";
+                    return "-¥¼ª¾-";
                 case 100000001:
-                    return "åŸºç£å¾’";
+                    return "°ò·ş®{";
                 case 100000002:
-                    return "å·²æ±ºå¿—";
+                    return "¤w¨M§Ó";
                 case 100000005:
-                    return "æ…•é“å‹";
+                    return "¼}¹D¤Í";
                 case 100000003:
-                    return "æœªä¿¡ä¸»";
+                    return "¥¼«H¥D";
                 default:
-                    return "-æœªçŸ¥-";
+                    return "-¥¼ª¾-";
             }
         }
 
-        private String ConvertIndexToBaptizedSituation(int BaptizedSituation)// æ´—ç¦®ç‹€æ…‹(é•·è€æ•™æœƒå°ˆç”¨)
+        private String ConvertIndexToBaptizedSituation(int BaptizedSituation)// ¬~Â§ª¬ºA(ªø¦Ñ±Ğ·|±M¥Î)
         {
             switch (BaptizedSituation)
             {
                 case 100000000:
-                    return "å …ä¿¡ç¦®(ç±åœ¨)";
+                    return "°í«HÂ§(Äy¦b)";
                 case 100000001:
-                    return "æˆäººç¦®(ç±åœ¨)";
+                    return "¦¨¤HÂ§(Äy¦b)";
                 case 100000002:
-                    return "æˆäººç¦®(ç±åœ¨)";
+                    return "¦¨¤HÂ§(Äy¦b)";
                 case 100000003:
-                    return "å°å…’ç¦®(ç±ä¸åœ¨)";
+                    return "¤p¨àÂ§(Äy¤£¦b)";
                 case 100000004:
-                    return "æœªå—æ´—(ç±ä¸åœ¨)";
+                    return "¥¼¨ü¬~(Äy¤£¦b)";
                 default:
-                    return "æœªå—æ´—(ç±ä¸åœ¨)";
+                    return "¥¼¨ü¬~(Äy¤£¦b)";
             }
         }
-
-        private String ConvertIndexToClearIdentity(int Identity)
-        {
-            return ConvertIndexToIdentity(Identity);
-        }
-
-        private String ConvertIndexToFollowUpWeekPicker(int OptionValue)
-        {
-            switch (OptionValue)
-            {
-                case 100000000: return "ä¸€";
-                case 100000001: return "äºŒ";
-                case 100000002: return "ä¸‰";
-                case 100000003: return "å››";
-                case 100000004: return "äº”";
-                case 100000005: return "å…­";
-                case 100000006: return "ä¸ƒ";
-                case 100000007: return "å…«";
-                case 100000008: return "ä¹";
-                case 100000009: return "å";
-                case 100000010: return "åä¸€";
-                case 100000011: return "åäºŒ";
-                case 100000012: return "åä¸‰";
-                case 100000013: return "åå››";
-                case 100000014: return "åäº”";
-                case 100000015: return "åå…­";
-                case 100000016: return "åä¸ƒ";
-                case 100000017: return "åå…«";
-                case 100000018: return "åä¹";
-                case 100000019: return "äºŒå";
-                default: return "æœªé¸æ“‡";
-            }
-        }
-
-        private String ConvertIndexToFollowUpResultPicker(int OptionValue)
-        {
-            switch (OptionValue)
-            {
-                case 100000000: return "è«‹é¸æ“‡";
-                case 100000001: return "ç†±æƒ…å›æ‡‰";
-                case 100000002: return "æ¸´æ…•èªè­˜ä¿¡ä»°";
-                case 100000003: return "æ²’è¯çµ¡ä¸Š";
-                case 100000004: return "åæ‡‰å†·æ·¡";
-                case 100000005: return "è€ƒæ…®ä¸­ï¼Œç¹¼çºŒè·Ÿé€²";
-                case 100000006: return "å…¥å°çµ„";
-                case 100000007: return "ä¾†ä¸»æ—¥";
-                case 100000008: return "è½‰ä»‹";
-                case 100000009: return "å…¶ä»–";
-                default: return "è«‹é¸æ“‡";
-            }
-        }
-
-        private String ConvertIndexToFollowUpNextStepPicker(int OptionValue)
-        {
-            switch (OptionValue)
-            {
-                case 100000000: return "è«‹é¸æ“‡";
-                case 100000001: return "ç¹¼çºŒè·Ÿé€²";
-                case 100000002: return "è½‰ä»‹";
-                default: return "è«‹é¸æ“‡";
-            }
-        }
-
-        private String ConvertIndexToFollowUpOptionPicker(int OptionValue)
-        {
-            switch (OptionValue)
-            {
-                case 100000000: return "é›»è©±";
-                case 100000001: return "æ¢è¨ª";
-                case 100000002: return "Line/FB";
-                case 100000003: return "å‡ºéŠ/åƒé£¯";
-                case 100000004: return "æ‡·é„‰/å…¶ä»–èª²ç¨‹";
-                case 100000005: return "ç´„è«‡";
-                case 100000006: return "æ²’è·Ÿé€²";
-                case 100000007: return "å…¶ä»–";
-                default: return "æœªé¸æ“‡";
-            }
-        }
-
-        private String GetNewComerFollowupInfo(Guid contactId, ref String followUpWeek)
-        {
-            return "";
-        }
-
-        private void SetSmallGroupData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
-        {
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData = new SmallGroupData();
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members = new List<Member>();
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.LoginType = aListSmallGroupWeeklyReport.LoginType;
-            
-            if (aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData != null && 
-                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members != null)
-            {
-                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members = 
-                    aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members;
-            }
-        }
-
-        private void SetNewPersonFollowUpData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
-        {
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData = new SmallGroupData();
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members = new List<Member>();
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.LoginType = aListSmallGroupWeeklyReport.LoginType;
-            
-            if (aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData != null && 
-                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members != null)
-            {
-                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members = 
-                    aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members
-                    .Where(m => m.Status == "08. æ–°æœ‹å‹" || m.Status == "07. æœªå…¥çµ„").ToList();
-            }
-        }
-
-        private void SetHappyGroupData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
-        {
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup = new SmallGroupData();
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members = new List<Member>();
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.LoginType = aListSmallGroupWeeklyReport.LoginType;
-            
-            if (aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData != null && 
-                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members != null)
-            {
-                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_HappyGroup.Members = 
-                    aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members;
-            }
-        }
-
-        private void GetAllMemberDataFromList(String listEntityName, Guid listEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
-        {
-            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", listEntityId);
-            bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
-            
-            EntityCollection MemberCollection;
-            if (ListType == false)
-            {
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, listEntityId);
-                }
-                else
-                {
-                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, listEntityId);
-                }
-            }
-            else
-            {
-                if (CRM_TYPE == "DYNAMICS365")
-                {
-                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, listEntityId);
-                }
-                else
-                {
-                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, listEntityId);
-                }
-            }
-
-            foreach (Entity MemberEntity in MemberCollection.Entities)
-            {
-                Entity ContactEntity;
-                if (ListType == false)
-                {
-                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
-                }
-                else
-                {
-                    ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
-                }
-
-                if (ContactEntity.Attributes.Contains("statecode"))
-                {
-                    OptionSetValue aOptionState = ContactEntity.Attributes["statecode"] as OptionSetValue;
-                    if (aOptionState.Value == 0)
-                    {
-                        String FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "fullname");
-                        String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref ContactEntity, "customertypecode"));
-                        
-                        if (aIdentity != "10. çµæ¡ˆ")
-                        {
-                            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(new Member
-                            {
-                                ContactId = ContactEntity.Id.ToString(),
-                                Group = listEntityName,
-                                FullName = FullName,
-                                Status = aIdentity,
-                                SmallGroupName = listEntityName,
-                                Phone = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "mobilephone"), ""),
-                                Sunday = false,
-                                SmallGroup = false,
-                                Decision = false
-                            });
-                        }
-                    }
-                }
-            }
-        }
-
-        private void SetAllMemberDataByPersonalReport(String listEntityName, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
-        {
-            if (this.m_ContactEntity != null)
-            {
-                String FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname");
-                String aIdentity = this.ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref m_ContactEntity, "customertypecode"));
-                
-                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(new Member
-                {
-                    ContactId = this.m_ContactEntity.Id.ToString(),
-                    Group = listEntityName,
-                    FullName = FullName,
-                    Status = aIdentity,
-                    SmallGroupName = listEntityName,
-                    Phone = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "mobilephone"), ""),
-                    Sunday = false,
-                    SmallGroup = false,
-                    Decision = false
-                });
-            }
-        }
-        #endregion
         #endregion
     }
 }

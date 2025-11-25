@@ -112,7 +112,7 @@ namespace ToolUtilityNameSpace.ListOperations
             return externalService.RetrieveMultiple(query);
         }
 
-        public EntityCollection RetrieveMemberListCollectionByListIdUsingProxy(OrganizationServiceProxy externalProxy, Guid listId)
+        public EntityCollection RetrieveMemberListCollectionByListIdUsingProxy(IOrganizationService externalProxy, Guid listId)
         {
             if (externalProxy == null) return new EntityCollection();
             var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet(true) };
@@ -137,7 +137,7 @@ namespace ToolUtilityNameSpace.ListOperations
             return externalService.RetrieveMultiple(new FetchExpression(fetchXml));
         }
 
-        public EntityCollection RetrieveDynamicMemberListUsingProxy(OrganizationServiceProxy externalProxy, Guid listId)
+        public EntityCollection RetrieveDynamicMemberListUsingProxy(IOrganizationService externalProxy, Guid listId)
         {
             if (externalProxy == null) return new EntityCollection();
             var listEntity = externalProxy.Retrieve("list", listId, new ColumnSet("query"));

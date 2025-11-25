@@ -16,12 +16,12 @@ namespace ToolUtilityNameSpace.ListOperations
         // Member list retrieval
         EntityCollection RetrieveMemberListCollectionByListId(Guid listId);
         EntityCollection RetrieveMemberListCollectionByListIdUsingService(IOrganizationService externalService, Guid listId);
-        EntityCollection RetrieveMemberListCollectionByListIdUsingProxy(OrganizationServiceProxy externalProxy, Guid listId);
+        EntityCollection RetrieveMemberListCollectionByListIdUsingProxy(IOrganizationService externalService, Guid listId);
 
         // Dynamic member list retrieval
         EntityCollection RetrieveDynamicMemberList(Guid listId);
         EntityCollection RetrieveDynamicMemberListUsingService(IOrganizationService externalService, Guid listId);
-        EntityCollection RetrieveDynamicMemberListUsingProxy(OrganizationServiceProxy externalProxy, Guid listId);
+        EntityCollection RetrieveDynamicMemberListUsingProxy(IOrganizationService externalService, Guid listId);
 
         // New: list entity fetches
         EntityCollection RetrieveLists();

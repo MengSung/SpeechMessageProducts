@@ -439,7 +439,7 @@ namespace ToolUtilityNameSpace.Core
             => _listService.Value.RetrieveMemberListCollectionByListIdUsingService(organizationService, listId);
 
         public EntityCollection RetrieveMemberListCollectionByListIdDynamics365(ref OrganizationServiceProxy organizationService, Guid listId)
-            => _listService.Value.RetrieveMemberListCollectionByListIdUsingProxy(organizationService, listId);
+            => _listService.Value.RetrieveMemberListCollectionByListIdUsingProxy(_organizationService, listId);
 
         public EntityCollection RetrieveMemberListCollectionByListIdCrm2011(ref IOrganizationService organizationService, Guid listId)
             => _listService.Value.RetrieveMemberListCollectionByListIdUsingService(organizationService, listId);
