@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net462;net472;netcoreapp3.1;net7.0;net9.0;net10.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
     <Authors>MarkMpn,Data8 Ltd</Authors>
     <Copyright>Copyright © 2021 Data8 Limited</Copyright>
     <RepositoryUrl>https://github.com/Data8/DataverseClient</RepositoryUrl>
-    <PackageReleaseNotes>Added support for AD authentication on Linux using .NET 7</PackageReleaseNotes>
+    <PackageReleaseNotes>Updated to support .NET 10 with latest WCF packages</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/Data8/DataverseClient</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	  <Description>Provides a WS-Trust compatible client for connecting to on-premise IFD instances of Dynamics 365 from .NET Core.
+	  <Description>Provides a WS-Trust compatible client for connecting to on-premise IFD instances of Dynamics 365 from .NET 10.
 
 This package builds on top of Microsoft.PowerPlatform.Dataverse.Client and offers an alternative IOrganizationService implementation using WS-Trust.
 This allows you to connect using the URL of the organization service, username and password without any additional
@@ -47,31 +47,10 @@ void CreateRecord(IOrganizationService svc)
   <ItemGroup>
     <PackageReference Include="Microsoft.IdentityModel.Protocols.WsTrust" Version="6.8.0" />
     <PackageReference Include="Microsoft.PowerPlatform.Dataverse.Client" Version="1.1.32" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net462' or '$(TargetFramework)' == 'net472'">
-	<PackageReference Include="System.ServiceModel.Security" Version="4.10.3" Aliases="SSS" />
-    <PackageReference Include="System.ServiceModel.Federation" Version="4.10.3" />
-    <PackageReference Include="System.ServiceModel.Http" Version="4.10.3" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="4.10.3" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-	<PackageReference Include="System.ServiceModel.Security" Version="4.10.3" Aliases="SSS" />
-    <PackageReference Include="System.ServiceModel.Federation" Version="4.10.3" />
-    <PackageReference Include="System.ServiceModel.Http" Version="4.10.3" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="4.10.3" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0' or '$(TargetFramework)' == 'net9.0' or '$(TargetFramework)' == 'net10.0'">
     <PackageReference Include="System.ServiceModel.Federation" Version="10.0.652802" />
     <PackageReference Include="System.ServiceModel.Http" Version="10.0.652802" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="10.0.652802" />
   </ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'net462' or '$(TargetFramework)' == 'net472' or '$(TargetFramework)' == 'net48'">
-		<Reference Include="System.ServiceModel" />
-	</ItemGroup>
 
   <ItemGroup>
     <None Include="..\Data8.png">
