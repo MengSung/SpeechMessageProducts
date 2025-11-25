@@ -28,7 +28,6 @@ namespace ChurchReport.WebServiceConnector
         #region 參數資料
         // 透過 Factory 取得 ToolUtilityClass 單一實例
         private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
-        //ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
 
         private static Regex DigitsOnly = new Regex(@"[^\d]");
 
