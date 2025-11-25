@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
+using ToolUtilityNameSpace.DependencyInjection;
 
 
 namespace ChurchReport.Tools
@@ -21,8 +22,8 @@ namespace ChurchReport.Tools
 
         private QPayProcessor m_QPayProcessor { get; }
 
-        // 透過 Factory 取得 ToolUtilityClass 單一實例
-        ToolUtilityClass m_ToolUtilityClass;
+        // 透過建構函數注入取得 ToolUtilityClass
+        private readonly ToolUtilityClass m_ToolUtilityClass;
 
         // 客製化
         // 聖谷行道會 2.0
@@ -31,6 +32,10 @@ namespace ChurchReport.Tools
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
 
+        #region 建構函數
+        /// <summary>
+        /// 預設建構函數，使用 Factory 模式獲取 ToolUtilityClass 實例
+        /// </summary>
         public QPayFeeProcessor()
         {
             this.m_LineMessagingClient = new LineMessagingClient(SPEECHMESSAGE_CHANNEL_ACCESS_TOKEN);
@@ -43,8 +48,27 @@ namespace ChurchReport.Tools
 
             // 使用 Factory 模式取得 ToolUtilityClass 單例
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
-
         }
+
+        /// <summary>
+        /// 建構函數，使用 Dependency Injection 模式
+        /// </summary>
+        /// <param name="toolUtilityProvider">ToolUtility 提供者</param>
+        public QPayFeeProcessor(IToolUtilityProvider toolUtilityProvider)
+        {
+            if (toolUtilityProvider == null)
+                throw new ArgumentNullException(nameof(toolUtilityProvider));
+
+            this.m_LineMessagingClient = new LineMessagingClient(SPEECHMESSAGE_CHANNEL_ACCESS_TOKEN);
+
+            m_PushUtility = new PushUtility(m_LineMessagingClient);
+            m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
+
+            m_QPayProcessor = new QPayProcessor(m_LineMessagingClient, m_PushUtility, m_ReplyUtility);
+
+            m_ToolUtilityClass = toolUtilityProvider.GetToolUtility();
+        }
+        #endregion
 
         #region 釋放記憶體
         private bool _disposed = false;

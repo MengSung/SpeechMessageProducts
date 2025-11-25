@@ -1,6 +1,7 @@
 ﻿using System;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
+using ToolUtilityNameSpace.DependencyInjection;
 
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -19,14 +20,37 @@ namespace ChurchReport.Models
 
         public String EquipmentType = "沒裝備小組名單";
 
-        // 透過 Factory 取得 ToolUtilityClass 單一實例
-        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+        // 透過建構函數注入取得 ToolUtilityClass
+        private readonly ToolUtilityClass m_ToolUtilityClass;
         DownloadEquipment m_DownloadEquipment = new DownloadEquipment();
 
         // 裝備樹狀根
         public EquipmentRootClass m_EquipmenRoot = new EquipmentRootClass();
 
         #endregion
+        
+        #region 建構函數
+        /// <summary>
+        /// 預設建構函數，使用 Factory 模式獲取 ToolUtilityClass 實例
+        /// </summary>
+        public EquipmentDataManager()
+        {
+            m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+        }
+
+        /// <summary>
+        /// 建構函數，使用 Dependency Injection 模式
+        /// </summary>
+        /// <param name="toolUtilityProvider">ToolUtility 提供者</param>
+        public EquipmentDataManager(IToolUtilityProvider toolUtilityProvider)
+        {
+            if (toolUtilityProvider == null)
+                throw new ArgumentNullException(nameof(toolUtilityProvider));
+            
+            m_ToolUtilityClass = toolUtilityProvider.GetToolUtility();
+        }
+        #endregion
+        
         #region 初始化幸福小組
         public void SetupEquipmentData(String Account, String Password)
         {

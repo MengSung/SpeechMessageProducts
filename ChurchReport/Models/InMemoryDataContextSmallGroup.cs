@@ -411,7 +411,8 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    m_EquipmentDataManager = new EquipmentDataManager();
+                    // 使用 DI 模式注入 ToolUtilityProvider
+                    m_EquipmentDataManager = new EquipmentDataManager(_toolUtilityProvider);
                     _memoryCache.Set<EquipmentDataManager>(key, m_EquipmentDataManager, options);
 
                     m_Session.SetInt32("dirty", 1);
