@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
+using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Models
 {
@@ -34,10 +36,15 @@ namespace ChurchReport.Models
         private ISession m_Session;
 
         private readonly IPayment m_PamentService;
+        private readonly IToolUtilityProvider _toolUtilityProvider;
 
         #endregion
         #region 初始化
-        public InMemoryDataContextSmallGroup(IHttpContextAccessor contextAccessor, IMemoryCache memoryCache, IPayment PamentService)
+        public InMemoryDataContextSmallGroup(
+            IHttpContextAccessor contextAccessor, 
+            IMemoryCache memoryCache, 
+            IPayment PamentService,
+            IToolUtilityProvider toolUtilityProvider)
         {
             _memoryCache = memoryCache;
 
@@ -46,6 +53,7 @@ namespace ChurchReport.Models
             m_Session = m_ContextAccessor.HttpContext.Session;
 
             m_PamentService = PamentService;
+            _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
         }
         #endregion
         #region 多個組長處理區
@@ -316,7 +324,8 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    m_HappyGroupDataManager = new HappyGroupDataManager();
+                    // 使用 DI 模式注入 ToolUtilityProvider
+                    m_HappyGroupDataManager = new HappyGroupDataManager(_toolUtilityProvider);
                     _memoryCache.Set<HappyGroupDataManager>(key, m_HappyGroupDataManager, options);
 
                     m_Session.SetInt32("dirty", 1);
@@ -446,7 +455,8 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    m_FeeList = new FeeList();
+                    // 使用 DI 模式注入 ToolUtilityProvider
+                    m_FeeList = new FeeList(_toolUtilityProvider);
                     _memoryCache.Set<FeeList>(key, m_FeeList, options);
 
                     m_Session.SetInt32("dirty", 1);
@@ -662,7 +672,8 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+                    // 使用 Factory 模式取得 ToolUtilityClass 單例
+                    m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
                     _memoryCache.Set<ToolUtilityClass>(key, m_ToolUtilityClass, options);
 
                     m_Session.SetInt32("dirty", 1);

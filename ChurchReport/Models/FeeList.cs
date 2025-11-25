@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.DependencyInjection;
 
-
-// These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
-// located in the SDK\bin folder of the SDK download.
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Sdk.Client;
@@ -20,6 +18,11 @@ using Newtonsoft.Json;
 
 namespace ChurchReport.Models
 {
+    /// <summary>
+    /// 繳費與點名清單管理類別
+    /// 負責處理課程繳費、點名相關的業務邏輯
+    /// 使用 Dependency Injection 模式注入 ToolUtilityClass
+    /// </summary>
     public class FeeList
     {
         #region 成員資料
@@ -36,11 +39,40 @@ namespace ChurchReport.Models
 
         public String SmallGroupLeaderContactId { get; set; }
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+        private readonly IToolUtilityProvider _toolUtilityProvider;
+        
+        /// <summary>
+        /// 工具類單例 (透過 Provider 取得)
+        /// </summary>
+        private ToolUtilityClass ToolUtility => _toolUtilityProvider?.GetToolUtility();
 
         FeeDownUpLoader m_FeeDownUpLoader = new FeeDownUpLoader();
 
         public ClassName m_ClassName = new ClassName();
+
+        #endregion
+
+        #region 建構函式
+        
+        /// <summary>
+        /// 無參數建構函式 (向後相容，但不建議使用)
+        /// 此建構函式為了相容舊程式碼而保留，新程式碼應使用帶參數的建構函式
+        /// </summary>
+        [Obsolete("請使用帶有 IToolUtilityProvider 參數的建構函式")]
+        public FeeList()
+        {
+            // 向後相容：如果沒有提供 Provider，則不使用 ToolUtility
+            _toolUtilityProvider = null;
+        }
+
+        /// <summary>
+        /// 依賴注入建構函式 (建議使用)
+        /// </summary>
+        /// <param name="toolUtilityProvider">ToolUtility 提供者實例 (透過 DI 注入)</param>
+        public FeeList(IToolUtilityProvider toolUtilityProvider)
+        {
+            _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
+        }
 
         #endregion
 

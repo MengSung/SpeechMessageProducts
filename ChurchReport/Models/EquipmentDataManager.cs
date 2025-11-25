@@ -1,5 +1,6 @@
 ﻿using System;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -18,8 +19,8 @@ namespace ChurchReport.Models
 
         public String EquipmentType = "沒裝備小組名單";
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
-        //private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
+        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
         DownloadEquipment m_DownloadEquipment = new DownloadEquipment();
 
         // 裝備樹狀根

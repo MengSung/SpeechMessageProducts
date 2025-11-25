@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
 {
@@ -26,7 +27,7 @@ namespace ChurchReport.Controllers
     ///
     /// 架構特點：
     /// - 使用 ASP.NET Core Web API
-    /// - 依賴注入 (TSPGWebhookHandler)
+    /// - 依賴注入 (TSPGWebhookHandler, IToolUtilityProvider)
     /// - 統一的錯誤處理和日誌記錄
     /// - 支援前台通知 (post_back_url) 和後台通知 (result_url)
     /// - 完整的 DCC (動態貨幣轉換) 支援
@@ -38,7 +39,7 @@ namespace ChurchReport.Controllers
     ///
     /// 依賴服務：
     /// - TspgToolkit: 台新金流 SDK
-    /// - ToolUtilityClass: CRM 操作工具
+    /// - ToolUtilityClass: CRM 操作工具 (透過 IToolUtilityProvider 注入)
     /// - Line.Messaging: LINE Bot API
     /// - TSPGWebhookHandler: Webhook 處理服務
     /// </remarks>
@@ -47,35 +48,35 @@ namespace ChurchReport.Controllers
     public class TSPGController : ControllerBase
     {
         #region 常數定義
-        // LINE Channel Access Token (用於發送 LINE 通知)
-        // 此 Token 用於驗證 LINE Bot API 呼叫，應妥善保管避免洩露
         private const string LINE_CHANNEL_ACCESS_TOKEN = @"OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU=";
-        // Dynamics365連線名稱 (用於 CRM 操作)
-        // 指定 CRM 連線配置名稱，對應 appsettings.json 中的連線字串
         private const string DYNAMICS_CONNECTION_NAME = "DYNAMICS365";
-        // 狀態常數: 信用卡已繳費
-        // CRM 中 new_pay_status 欄位的選項集值，表示付款已完成
         private const int PAYMENT_STATUS_PAID = 100000001;
-        //付款方式常數: 信用卡
-        // CRM 中 new_pay_way 欄位的選項集值，表示使用信用卡付款
         private const int PAYMENT_METHOD_CREDIT_CARD = 100000001;
         #endregion
 
         #region 私有欄位
-        // Webhook 處理器 (依賴注入)
-        // 用於處理 TSPG Webhook 通知的服務類別
         private readonly TSPGWebhookHandler _webhookHandler;
+        private readonly IToolUtilityProvider _toolUtilityProvider;
+        
+        /// <summary>
+        /// 工具類單例 (透過 Provider 取得)
+        /// </summary>
+        private ToolUtilityClass ToolUtility => _toolUtilityProvider.GetToolUtility();
         #endregion
 
         #region 建構函式
         /// <summary>
-        /// 建構子，注入 Webhook Handler
-        /// ASP.NET Core 依賴注入容器會自動提供 TSPGWebhookHandler 實例
+        /// 建構子，注入 Webhook Handler 和 ToolUtility Provider
+        /// ASP.NET Core 依賴注入容器會自動提供實例
         /// </summary>
         /// <param name="webhookHandler">TSPG Webhook 處理器實例</param>
-        public TSPGController(TSPGWebhookHandler webhookHandler)
+        /// <param name="toolUtilityProvider">ToolUtility 提供者實例 (DI)</param>
+        public TSPGController(
+            TSPGWebhookHandler webhookHandler,
+            IToolUtilityProvider toolUtilityProvider)
         {
-            _webhookHandler = webhookHandler;
+            _webhookHandler = webhookHandler ?? throw new ArgumentNullException(nameof(webhookHandler));
+            _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
         }
         #endregion
 
@@ -105,22 +106,20 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var notification = ParsePostBackNotification(); //解析前台通知所有參數
-                LogPostBackNotification(notification); // 記錄日誌
+                var notification = ParsePostBackNotification();
+                LogPostBackNotification(notification);
 
-                bool isSuccess = IsPaymentSuccess(notification.RetCode, notification.State); // 判斷付款是否成功
-                //isSuccess = false;//測試用，強制失敗
+                bool isSuccess = IsPaymentSuccess(notification.RetCode, notification.State);
 
                 if(isSuccess )
                 {
-                    // 根據付款狀態導向對應頁面
-                    return HandleSuccessfulPaymentReturn(notification);// 修正：成功時導向成功處理
+                    return HandleSuccessfulPaymentReturn(notification);
                 }
                 else 
                 {                    
                     return QueryOrderStatus(notification.OrderNo)
-                        ? HandleSuccessfulPaymentReturn(notification)// 修正：成功時導向成功處理
-                        : HandleFailedPaymentReturn(notification); // 修正：失敗時導向失敗處理
+                        ? HandleSuccessfulPaymentReturn(notification)
+                        : HandleFailedPaymentReturn(notification);
                 }
             }
             catch (Exception ex)
@@ -169,15 +168,15 @@ namespace ChurchReport.Controllers
             string requestBody = null;
             try
             {
-                requestBody = await ReadRequestBodyAsync(); //讀取 JSON內容
+                requestBody = await ReadRequestBodyAsync();
                 LogInfo("PaymentNotify", $"收到後台通知: {requestBody}");
 
-                var notification = ParseBackendNotification(requestBody); //解析所有參數
+                var notification = ParseBackendNotification(requestBody);
                 bool isSuccess = notification.RetCode == "00";
 
                 if (isSuccess)
                 {
-                    UpdateFeeEntityByOrderNo(notification); // 更新收費單與發送通知
+                    UpdateFeeEntityByOrderNo(notification);
                     LogInfo("PaymentNotify", $"付款成功處理完成 - 訂單: {notification.OrderNo}");
                     return Ok(new { status = "success", message = "通知已接收並處理" });
                 }
@@ -388,7 +387,6 @@ namespace ChurchReport.Controllers
         [HttpGet("query-order-detail/{orderId}")]
         public IActionResult QueryOrderDetail(string orderId, [FromQuery] bool includeHistory = false)
         {
-            ToolUtilityClass toolUtility = null;
             try
             {
                 // 1. 驗證訂單編號
@@ -423,16 +421,15 @@ namespace ChurchReport.Controllers
 
                 try
                 {
-                    toolUtility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
-                    feeEntity = toolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", orderId);
+                    feeEntity = ToolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", orderId);
 
                     if (feeEntity != null)
                     {
-                        var payStatus = toolUtility.GetOptionSetAttribute(feeEntity, "new_pay_status");
-                        var payWay = toolUtility.GetOptionSetAttribute(feeEntity, "new_pay_way");
-                        var shouldPay = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
-                        var reallyPaid = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_really_paid");
-                        var payDate = toolUtility.GetEntityDateTimeAttribute(feeEntity, "new_pay_date");
+                        var payStatus = ToolUtility.GetOptionSetAttribute(feeEntity, "new_pay_status");
+                        var payWay = ToolUtility.GetOptionSetAttribute(feeEntity, "new_pay_way");
+                        var shouldPay = ToolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
+                        var reallyPaid = ToolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_really_paid");
+                        var payDate = ToolUtility.GetEntityDateTimeAttribute(feeEntity, "new_pay_date");
 
                         crmInfo = new
                         {
@@ -484,10 +481,6 @@ namespace ChurchReport.Controllers
             {
                 LogError("QueryOrderDetail", $"查詢訂單詳情發生例外 - OrderId: {orderId}", ex);
                 return HandleApiError("查詢訂單詳情", ex);
-            }
-            finally
-            {
-                toolUtility?.Dispose();
             }
         }
 
@@ -1040,7 +1033,6 @@ namespace ChurchReport.Controllers
         /// </remarks>
         private void UpdateFeeEntityByOrderNo(TSPGPaymentNotification notification)
         {
-            ToolUtilityClass toolUtility = null;
             try
             {
                 var orderNo = notification.OrderNo ?? notification.OrderId;
@@ -1049,34 +1041,31 @@ namespace ChurchReport.Controllers
                     LogWarning("UpdateFeeEntity", "訂單編號為空，無法更新收費單");
                     return;
                 }
-                toolUtility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
-                Entity feeEntity = toolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", orderNo);
+                
+                Entity feeEntity = ToolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", orderNo);
                 if (feeEntity == null)
                 {
                     LogWarning("UpdateFeeEntity", $"找不到對應的收費單 - OrderNo: {orderNo}");
                     return;
                 }
-                UpdateFeeEntityFields(toolUtility, feeEntity, notification);
-                toolUtility.UpdateEntity(ref feeEntity);
+                
+                UpdateFeeEntityFields(feeEntity, notification);
+                ToolUtility.UpdateEntity(ref feeEntity);
                 LogInfo("UpdateFeeEntity", $"成功更新收費單 - OrderNo: {orderNo}, FeeId: {feeEntity.Id}");
+                
                 // 發送 LINE 通知
-                var amount = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
-                SendPaymentNotificationToContact(toolUtility, feeEntity, notification, amount.Value);
+                var amount = ToolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
+                SendPaymentNotificationToContact(feeEntity, notification, amount.Value);
             }
             catch (Exception ex)
             {
                 LogError("UpdateFeeEntity", "更新收費單失敗", ex);
-            }
-            finally
-            {
-                toolUtility?.Dispose();
             }
         }
 
         /// <summary>
         /// 更新收費單欄位 (付款狀態、金額、日期、說明)
         /// </summary>
-        /// <param name="toolUtility">CRM 工具實例</param>
         /// <param name="feeEntity">收費單 Entity 物件</param>
         /// <param name="notification">TSPGPaymentNotification物件</param>
         /// <remarks>
@@ -1090,31 +1079,30 @@ namespace ChurchReport.Controllers
         ///
         /// 注意：目前實作中實收金額使用應收金額，這可能不正確
         /// </remarks>
-        private void UpdateFeeEntityFields(ToolUtilityClass toolUtility, Entity feeEntity, TSPGPaymentNotification notification)
+        private void UpdateFeeEntityFields(Entity feeEntity, TSPGPaymentNotification notification)
         {
-            var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
+            var shouldPayMoney = ToolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
             var orderNo = notification.OrderNo ?? notification.OrderId;
             // 更新付款狀態
-            toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PAYMENT_STATUS_PAID);
+            ToolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PAYMENT_STATUS_PAID);
             // 更新實收金額（TODO: 應該使用實際金額而非應收金額）
-            toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_fee_really_paid", shouldPayMoney);
+            ToolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_fee_really_paid", shouldPayMoney);
             // 計算差額
-            toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_difference_fee_paid", new Money(0));
+            ToolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_difference_fee_paid", new Money(0));
             // 設定付款日期和方式
-            toolUtility.SetEntityDateTimeAttribute(ref feeEntity, "new_pay_date", DateTime.Now);
-            toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PAYMENT_METHOD_CREDIT_CARD);
+            ToolUtility.SetEntityDateTimeAttribute(ref feeEntity, "new_pay_date", DateTime.Now);
+            ToolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PAYMENT_METHOD_CREDIT_CARD);
             // 更新說明
-            var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description");
+            var originalDescription = ToolUtility.GetEntityStringAttribute(feeEntity, "new_description");
             var newDescription = $"{originalDescription}{Environment.NewLine}" +
                 $"[TSPG付款成功] 訂單號:{orderNo},交易號:{notification.TransactionId}, " +
                 $"金額:{shouldPayMoney}, 授權碼:{notification.AuthIdResp}, 時間:{DateTime.Now}";
-            toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
+            ToolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
         }
 
         /// <summary>
         /// 發送付款通知給連絡人 (LINE)
         /// </summary>
-        /// <param name="toolUtility">CRM 工具實例</param>
         /// <param name="feeEntity">收費單 Entity 物件</param>
         /// <param name="notification">TSPGPaymentNotification物件</param>
         /// <param name="amount">付款金額</param>
@@ -1131,30 +1119,33 @@ namespace ChurchReport.Controllers
         ///
         /// 異常處理：記錄錯誤但不拋出例外，避免影響主要付款流程
         /// </remarks>
-        private void SendPaymentNotificationToContact(ToolUtilityClass toolUtility, Entity feeEntity,
+        private void SendPaymentNotificationToContact(Entity feeEntity,
             TSPGPaymentNotification notification, decimal amount)
         {
             try
             {
-                var contactId = toolUtility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
+                var contactId = ToolUtility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
                 if (contactId == Guid.Empty)
                 {
                     LogWarning("SendNotification", "收費單沒有關聯的連絡人");
                     return;
                 }
-                Entity contactEntity = toolUtility.RetrieveEntity("contact", contactId);
+                
+                Entity contactEntity = ToolUtility.RetrieveEntity("contact", contactId);
                 if (contactEntity == null)
                 {
                     LogWarning("SendNotification", $"找不到連絡人 - ContactId: {contactId}");
                     return;
                 }
-                string lineId = toolUtility.GetEntityStringAttribute(contactEntity, "new_lineid");
+                
+                string lineId = ToolUtility.GetEntityStringAttribute(contactEntity, "new_lineid");
                 if (string.IsNullOrEmpty(lineId))
                 {
                     LogWarning("SendNotification", $"連絡人沒有 LINE ID - ContactId: {contactId}");
                     return;
                 }
-                string fullName = toolUtility.GetEntityStringAttribute(contactEntity, "fullname");
+                
+                string fullName = ToolUtility.GetEntityStringAttribute(contactEntity, "fullname");
                 var orderNo = notification.OrderNo ?? notification.OrderId;
                 var message = BuildPaymentSuccessMessage(fullName, orderNo, amount, notification);
                 SendLineMessage(lineId, message);
@@ -1267,25 +1258,20 @@ namespace ChurchReport.Controllers
         /// </remarks>
         private IActionResult HandleSuccessfulPaymentReturn(TSPGPaymentNotification notification)
         {
-            ToolUtilityClass toolUtility = null;
             try
             {
                 LogInfo("PaymentReturn", $"付款成功 - 訂單: {notification.OrderNo}, 授權碼: {notification.AuthIdResp}");
                 UpdateFeeEntityByOrderNo(notification);
+                
                 var orderNo = notification.OrderNo ?? notification.OrderId;
-                toolUtility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
-                Entity feeEntity = toolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", orderNo);
-                var queryString = BuildSuccessQueryString(notification, toolUtility, feeEntity);
+                Entity feeEntity = ToolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", orderNo);
+                var queryString = BuildSuccessQueryString(notification, feeEntity);
                 return Redirect($"/payment-success?{queryString}");
             }
             catch (Exception ex)
             {
                 LogError("PaymentReturn", "處理付款成功返回失敗", ex);
                 return Redirect("/payment-error");
-            }
-            finally
-            {
-                toolUtility?.Dispose();
             }
         }
 
@@ -1322,7 +1308,6 @@ namespace ChurchReport.Controllers
         /// 建立成功頁面查詢字串 (包含 DCC 資訊)
         /// </summary>
         /// <param name="notification">TSPGPaymentNotification物件</param>
-        /// <param name="toolUtility">CRM 工具</param>
         /// <param name="feeEntity">收費單 Entity</param>
         /// <returns>查詢字串</returns>
         /// <remarks>
@@ -1341,12 +1326,11 @@ namespace ChurchReport.Controllers
         ///
         /// 使用 Uri.EscapeDataString 進行 URL 編碼
         /// </remarks>
-        private string BuildSuccessQueryString(TSPGPaymentNotification notification,
-            ToolUtilityClass toolUtility, Entity feeEntity)
+        private string BuildSuccessQueryString(TSPGPaymentNotification notification, Entity feeEntity)
         {
             var orderId = notification.OrderNo ?? notification.OrderId;
             var txnId = notification.TransactionId ?? "";
-            var amount = Convert.ToInt32(toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay").Value).ToString();
+            var amount = Convert.ToInt32(ToolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay").Value).ToString();
             var authCode = notification.AuthIdResp ?? "";
             var txType = notification.TxType ?? "";
             var queryString = $"order_id={Uri.EscapeDataString(orderId)}" +
@@ -1354,6 +1338,7 @@ namespace ChurchReport.Controllers
                 $"&amount={amount}" +
                 $"&auth_code={Uri.EscapeDataString(authCode)}" +
                 $"&tx_type={Uri.EscapeDataString(txType)}";
+            
             // DCC 資訊
             if (notification.ChAmt.HasValue)
             {

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.DependencyInjection;
 using Microsoft.Xrm.Sdk;
 using static ChurchReport.Services.MyPayFeeTypeHelper;
 
@@ -23,6 +24,11 @@ namespace ChurchReport.Controllers
     /// - MyPayStatusHelper: 狀態判斷與訊息轉換
     /// - MyPayFeeTypeHelper: 收費單類型判斷
     /// - MyPayLogger: 日誌記錄
+    /// 
+    /// 【設計模式】
+    /// - Dependency Injection: 通過 IToolUtilityProvider 注入 ToolUtility
+    /// - Singleton: ToolUtilityClass 由 Factory 管理單一實例
+    /// - Factory: 所有實例化統一通過 ToolUtilityFactory
     /// </summary>
     [Route("api/[controller]")]
     public class MyPayController : Controller
@@ -42,6 +48,16 @@ namespace ChurchReport.Controllers
         private readonly MyPayStatusHelper _statusHelper;
         private readonly MyPayFeeTypeHelper _feeTypeHelper;
         private readonly MyPayLogger _myPayLogger;
+        
+        /// <summary>
+        /// ToolUtility 提供者 (透過 Dependency Injection 注入)
+        /// </summary>
+        private readonly IToolUtilityProvider _toolUtilityProvider;
+        
+        /// <summary>
+        /// ToolUtility 實例 (透過 Provider 獲取 Singleton 實例)
+        /// </summary>
+        private ToolUtilityClass ToolUtility => _toolUtilityProvider.GetToolUtility();
 
         #endregion
 
@@ -49,7 +65,7 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// MyPayController 建構函式
-        /// 注入所有需要的服務
+        /// 注入所有需要的服務，包括 IToolUtilityProvider
         /// </summary>
         public MyPayController(
             ILogger<MyPayController> logger,
@@ -58,15 +74,17 @@ namespace ChurchReport.Controllers
             MyPayNotificationService notificationService,
             MyPayStatusHelper statusHelper,
             MyPayFeeTypeHelper feeTypeHelper,
-            MyPayLogger myPayLogger)
+            MyPayLogger myPayLogger,
+            IToolUtilityProvider toolUtilityProvider)
         {
-            _logger = logger;
-            _messageBuilder = messageBuilder;
-            _crmService = crmService;
-            _notificationService = notificationService;
-            _statusHelper = statusHelper;
-            _feeTypeHelper = feeTypeHelper;
-            _myPayLogger = myPayLogger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _messageBuilder = messageBuilder ?? throw new ArgumentNullException(nameof(messageBuilder));
+            _crmService = crmService ?? throw new ArgumentNullException(nameof(crmService));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+            _statusHelper = statusHelper ?? throw new ArgumentNullException(nameof(statusHelper));
+            _feeTypeHelper = feeTypeHelper ?? throw new ArgumentNullException(nameof(feeTypeHelper));
+            _myPayLogger = myPayLogger ?? throw new ArgumentNullException(nameof(myPayLogger));
+            _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
         }
 
         #endregion
@@ -85,13 +103,16 @@ namespace ChurchReport.Controllers
         /// 4. 查詢並更新 CRM 收費單狀態
         /// 5. 發送 LINE 通知給使用者
         /// 6. 回傳 "8888" 確認接收（避免金流平台重送）
+        /// 
+        /// 【設計模式改進】
+        /// - 移除手動 new ToolUtilityClass()
+        /// - 使用注入的 IToolUtilityProvider 獲取 Singleton 實例
+        /// - 不需要手動 Dispose，由 DI 容器管理生命週期
         /// </summary>
         [HttpPost("MyPayNotify")]
         public async Task<IActionResult> PaymentNotify([FromForm] MyPayReturnModel returnModel)
         {
             _logger.LogInformation($"[MyPay回傳] 收到金流回傳，OrderID: {returnModel?.order_id}, UID: {returnModel?.uid}, PRC: {returnModel?.prc}");
-
-            ToolUtilityClass utility = null;
 
             try
             {
@@ -128,9 +149,8 @@ namespace ChurchReport.Controllers
                 bool isSuccess = _statusHelper.IsSuccessfulPaymentStatus(returnModel.prc);
                 _logger.LogInformation($"[MyPay回傳] 交易狀態判定: PRC={returnModel.prc}, IsSuccess={isSuccess}");
 
-                // 步驟 5：查詢對應的 CRM 收費單
-                utility = new ToolUtilityClass(DYNAMICS_CONNECTION_NAME);
-                Entity feeEntity = utility.RetrieveEntityByField("new_fee", "new_q_pay_order_number", returnModel.order_id);
+                // 步驟 5：查詢對應的 CRM 收費單 (使用 DI 注入的 ToolUtility)
+                Entity feeEntity = ToolUtility.RetrieveEntityByField("new_fee", "new_q_pay_order_number", returnModel.order_id);
 
                 if (feeEntity == null)
                 {
@@ -141,29 +161,29 @@ namespace ChurchReport.Controllers
                 _logger.LogInformation($"[MyPay回傳] 找到收費單 - FeeId: {feeEntity.Id}");
 
                 // 步驟 6：判斷收費單類型
-                FeeType feeType = _feeTypeHelper.DetermineFeeType(utility, feeEntity);
+                FeeType feeType = _feeTypeHelper.DetermineFeeType(ToolUtility, feeEntity);
                 _logger.LogInformation($"[MyPay回傳] 收費單類型: {feeType}");
 
                 // 步驟 7：取得連絡人資訊
-                var contactId = utility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
+                var contactId = ToolUtility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
                 Entity contactEntity = null;
                 string fullName = "會友";
                 string lineId = null;
 
                 if (contactId != Guid.Empty)
                 {
-                    contactEntity = utility.RetrieveEntity("contact", contactId);
+                    contactEntity = ToolUtility.RetrieveEntity("contact", contactId);
                     if (contactEntity != null)
                     {
-                        fullName = utility.GetEntityStringAttribute(contactEntity, "fullname") ?? "會友";
-                        lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
+                        fullName = ToolUtility.GetEntityStringAttribute(contactEntity, "fullname") ?? "會友";
+                        lineId = ToolUtility.GetEntityStringAttribute(contactEntity, "new_lineid");
                         _logger.LogInformation($"[MyPay回傳] 連絡人: {fullName}, LINE ID: {!string.IsNullOrEmpty(lineId)}");
                     }
                 }
 
                 // 步驟 8：更新 CRM 收費單狀態與資訊
-                _crmService.UpdateFeeEntityWithMyPayReturn(utility, feeEntity, returnModel, isSuccess);
-                utility.UpdateEntity(ref feeEntity);
+                _crmService.UpdateFeeEntityWithMyPayReturn(ToolUtility, feeEntity, returnModel, isSuccess);
+                ToolUtility.UpdateEntity(ref feeEntity);
                 _logger.LogInformation($"[MyPay回傳] 收費單已更新 - FeeId: {feeEntity.Id}");
 
                 // 步驟 9：發送 LINE 通知給使用者
@@ -173,12 +193,12 @@ namespace ChurchReport.Controllers
                     {
                         if (isSuccess)
                         {
-                            _notificationService.SendLineNotificationByType(utility, feeEntity, returnModel, fullName, feeType, contactEntity);
+                            _notificationService.SendLineNotificationByType(ToolUtility, feeEntity, returnModel, fullName, feeType, contactEntity);
                             _logger.LogInformation($"[MyPay回傳] LINE成功通知已發送 - OrderId: {returnModel.order_id}");
                         }
                         else
                         {
-                            _notificationService.SendLineFailureNotificationByType(utility, feeEntity, returnModel, fullName, feeType, contactEntity);
+                            _notificationService.SendLineFailureNotificationByType(ToolUtility, feeEntity, returnModel, fullName, feeType, contactEntity);
                             _logger.LogInformation($"[MyPay回傳] LINE失敗通知已發送 - OrderId: {returnModel.order_id}");
                         }
                     }
@@ -201,10 +221,7 @@ namespace ChurchReport.Controllers
                 _logger.LogError(ex, $"[MyPay回傳] 處理異常 - OrderId: {returnModel?.order_id}");
                 return Ok("8888");
             }
-            finally
-            {
-                utility?.Dispose();
-            }
+            // 不需要 finally 區塊手動 Dispose，DI 容器會自動管理 Singleton 生命週期
         }
 
         #endregion

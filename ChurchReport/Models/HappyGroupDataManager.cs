@@ -1,5 +1,6 @@
 ﻿using System;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.DependencyInjection;
 
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -8,6 +9,11 @@ using Newtonsoft.Json.Linq;
 
 namespace ChurchReport.Models
 {
+    /// <summary>
+    /// 幸福小組資料管理類別
+    /// 負責處理幸福小組相關的業務邏輯
+    /// 使用 Dependency Injection 模式注入 ToolUtilityClass
+    /// </summary>
     public class HappyGroupDataManager
     {
         #region 成員資料
@@ -18,8 +24,13 @@ namespace ChurchReport.Models
 
         public String HappyType = "沒幸福小組名單";
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
-        //private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("CRM2011");
+        private readonly IToolUtilityProvider _toolUtilityProvider;
+        
+        /// <summary>
+        /// 工具類單例 (透過 Provider 取得)
+        /// </summary>
+        private ToolUtilityClass ToolUtility => _toolUtilityProvider?.GetToolUtility();
+
         DownloadHappyGroup m_DownloadHappyGroup = new DownloadHappyGroup();
 
 
@@ -27,17 +38,39 @@ namespace ChurchReport.Models
         public HappyGroupListClass m_ActiveHappyGroupListClass = new HappyGroupListClass();
 
         // 進行中的幸福小組
-        //public DataGridEmployees m_ActiveDataGridEmployees = new DataGridEmployees();
         public HappyGroupWeeklyReportListClass m_ActiveHappyGroupWeeklyReportList = new HappyGroupWeeklyReportListClass();
 
         // 已完成的幸福小組
-        //public DataGridEmployees m_CompletedDataGridEmployees = new DataGridEmployees();
         public HappyGroupWeeklyReportListClass m_CompletedHappyGroupWeeklyReportList = new HappyGroupWeeklyReportListClass();
         #endregion
+        
+        #region 建構函式
+        
+        /// <summary>
+        /// 無參數建構函式 (向後相容，但不建議使用)
+        /// 此建構函式為了相容舊程式碼而保留，新程式碼應使用帶參數的建構函式
+        /// </summary>
+        [Obsolete("請使用帶有 IToolUtilityProvider 參數的建構函式")]
+        public HappyGroupDataManager()
+        {
+            // 向後相容：如果沒有提供 Provider，則不使用 ToolUtility
+            _toolUtilityProvider = null;
+        }
+
+        /// <summary>
+        /// 依賴注入建構函式 (建議使用)
+        /// </summary>
+        /// <param name="toolUtilityProvider">ToolUtility 提供者實例 (透過 DI 注入)</param>
+        public HappyGroupDataManager(IToolUtilityProvider toolUtilityProvider)
+        {
+            _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
+        }
+
+        #endregion
+        
         #region 初始化幸福小組
         public void SetupHappyGroupData(String Account, String Password)
         {
-            //m_ActiveHappyGroupWeeklyReportList = m_DownloadHappyGroup.GetHappyGroupWeeklyReportList(Account, Password);
             m_ActiveHappyGroupListClass = m_DownloadHappyGroup.GetHappyGroupList(Account, Password);
 
             if (m_ActiveHappyGroupListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass != null && m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Count > 0)
@@ -48,8 +81,6 @@ namespace ChurchReport.Models
             {
                 HappyType = "沒幸福小組名單";
             }
-            //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass = new List<HappyGroupWeeklyReportListClass>();
-            //m_ActiveHappyGroupListClass.HappyGroupWeeklyReportListClass.Add(m_ActiveHappyGroupWeeklyReportList);
         }
         public void InitialHappyGroupData(ref HappyGroupListClass aActiveHappyGroupListClass)
         {
@@ -74,23 +105,16 @@ namespace ChurchReport.Models
         public void AddActiveHappyGroup(string values)
         {
             #region 先判斷是新增週報還是BEST
-            //String AddType = WeeklyReportOrBest(values);
-            //JObject o = JObject.Parse(values);
-            //String InsertType = (String)o["InsertType"];
             String InsertType = (String)JObject.Parse(values).GetValue("InsertType");
 
             if (InsertType == "WeeklyReport")
             {
                 #region 新增週報
-                // 轉換(反序列)從網頁有改變的欄位成為C# Weekly Report的結構
-                //HappyGroupWeeklyReport aToAddHappyGroupWeeklyReport = JsonConvert.DeserializeObject<HappyGroupWeeklyReport>(values);
                 HappyGroupWeeklyReport aToAddHappyGroupWeeklyReport = new HappyGroupWeeklyReport();
                 JsonConvert.PopulateObject(values, aToAddHappyGroupWeeklyReport);
 
                 String ParentListId = (String)JObject.Parse(values).GetValue("MasterParentID");
 
-                // 不知為何反序列會差一天
-                //aToAddHappyGroupWeeklyReport.MeetingDate = aToAddHappyGroupWeeklyReport.MeetingDate.AddDays(1);
                 aToAddHappyGroupWeeklyReport.MeetingDate = aToAddHappyGroupWeeklyReport.MeetingDate.ToLocalTime();
 
                 // 是否有輸入週次 WeekCounter， 因為如果沒有改變整數，但是反序列之後仍然會有值，而不會是 null，所以要靠旗標來幫忙
@@ -111,8 +135,6 @@ namespace ChurchReport.Models
             {
                 #region 新增BEST
 
-                // 轉換(反序列)從網頁有改變的欄位成為C# Best 的結構
-                //BestRecord aBestRecord = JsonConvert.DeserializeObject<BestRecord>(values);
                 var aNewBestRecord = new BestRecord();
                 JsonConvert.PopulateObject(values, aNewBestRecord );
 
@@ -146,13 +168,9 @@ namespace ChurchReport.Models
             HappyGroupWeeklyReportListClass aHappyGroupWeeklyReportListClass  = GetHappyGroupWeeklyReportListClassByWeeklyReportId(WeeklyReportId); 
 
             // 新增幸福小組BEST
-            //m_DownloadHappyGroup.CreateBest(ref m_ActiveHappyGroupWeeklyReportList, ref aBestRecord);
             m_DownloadHappyGroup.CreateBest(ref aHappyGroupWeeklyReportListClass, WeeklyReportId, ref aBestRecord);
 
             #region 前台網頁要呈現的Best資料
-            //int WeeklyReportListCount = m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList.Count;
-            //Guid aWeeklyReportId = new Guid(m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportListCount - 1].HappyGroupWeeklyReportId);
-            //HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded = m_ActiveHappyGroupWeeklyReportList.HappyGroupWeeklyReportList[WeeklyReportListCount - 1];
             HappyGroupWeeklyReport aHappyGroupWeeklyReportToBeAdded = m_DownloadHappyGroup.GetHappyGroupWeeklyReportToBeAdded ( ref aHappyGroupWeeklyReportListClass, WeeklyReportId);
             aHappyGroupWeeklyReportToBeAdded.BestRecordList.Add(aBestRecord);
             #endregion
@@ -203,7 +221,6 @@ namespace ChurchReport.Models
             int ListIndex = -1;     // 哪個幸福小組?
             int MasterIndex = -1;   // 哪一週?
             int DetailIndex = -1;   // 哪個Best?
-            //GetMasterDetailIndex(ref m_ActiveHappyGroupWeeklyReportList, key, ref MasterIndex, ref DetailIndex);
             GetMasterDetailIndex(ref m_ActiveHappyGroupListClass, key, ref ListIndex, ref MasterIndex, ref DetailIndex);
 
             if (MasterIndex >= 0 && DetailIndex < 0)
@@ -213,9 +230,6 @@ namespace ChurchReport.Models
 
                 // 設定前端傳來週報有被修改過的旗標
                 aUpdatedHappyGroupWeeklyReport.ModifiedFlag = true;
-
-                // 修改系統的幸福小組週報
-                //m_DownloadHappyGroup.UpdateHappyGroupWeeklyReport(key, ref aUpdatedHappyGroupWeeklyReport);
 
                 // 從前端傳來有更改過的週報去更新網頁端的幸福小組週報內容
                 bool WeekCounterFlag = values.Contains("WeekCounter") ? true : false;
@@ -232,9 +246,6 @@ namespace ChurchReport.Models
 
                 // 設定幸福小組個人出席紀錄有被修改過的旗標
                 aBestRecord.ModifiedFlag = true;
-
-                // 修改系統的幸福小組個人出席紀錄
-                //m_DownloadHappyGroup.UpdateBestRecord(key, ref aBestRecord, PresentFlag, DecisionFlag);
 
                 // 更新網頁端的幸福小組個人出席紀錄內容
                 UpdateDetailActiveHappyGroup(ref m_ActiveHappyGroupListClass, ListIndex, MasterIndex, DetailIndex, aBestRecord, PresentFlag, DecisionFlag);
@@ -365,7 +376,6 @@ namespace ChurchReport.Models
         public void SaveActiveHappyGroup()
         {
             #region 上傳幸福小組週報
-            //m_DownloadHappyGroup.UpdateHappyGroupWeeklyReportList(m_ActiveHappyGroupWeeklyReportList);
             m_DownloadHappyGroup.UpdateHappyGroupListClass(m_ActiveHappyGroupListClass);
             #endregion
         }
@@ -400,27 +410,6 @@ namespace ChurchReport.Models
             }
 
         }
-        //private void GetMasterDetailIndex(string Key, ref int MasterIndex, ref int DetailIndex)
-        //{
-        //    String[] KeyArray = Key.Split('-');
-        //    if (KeyArray.Length == 1)
-        //    {
-        //        // 修改週報
-        //        MasterIndex = Convert.ToInt32(KeyArray[0]);
-        //        DetailIndex = -1;
-        //    }
-        //    else if (KeyArray.Length == 2)
-        //    {
-        //        // 修改BEST
-        //        MasterIndex = Convert.ToInt32(KeyArray[0]);
-        //        DetailIndex = Convert.ToInt32(KeyArray[1]);
-        //    }
-        //    else
-        //    {
-        //        MasterIndex = -1;
-        //        DetailIndex = -1;
-        //    }
-        //}
 
         #endregion
 
