@@ -76,7 +76,7 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         /// <summary>
         /// 取得 CRM 2011 組織服務（HTTP 連線）
         /// </summary>
-        /// <param name="server">伺服器位址</param>
+        /// <param name="server">伺服器名稱</param>
         /// <param name="port">連接埠</param>
         /// <param name="organization">組織名稱</param>
         /// <param name="domain">網域</param>
@@ -101,8 +101,13 @@ namespace ToolUtilityNameSpace.ConnectionOperations
                 
                 using (var serviceProxy = new OrganizationServiceProxy(orgConfigInfo, credentials))
                 {
-                    // 啟用早期繫結類型支援
+                    // 啟用泛型型別代理支援
+#if NET462 || NETFRAMEWORK
                     serviceProxy.ServiceConfiguration.CurrentServiceEndpoint.Behaviors.Add(new ProxyTypesBehavior());
+#else
+                    // .NET 10+ 使用 EnableProxyTypes
+                    serviceProxy.EnableProxyTypes();
+#endif
                     return serviceProxy;
                 }
             }
@@ -134,10 +139,10 @@ namespace ToolUtilityNameSpace.ConnectionOperations
 
         /// <summary>
         /// 設定 Claims-Based 驗證的組織服務（HTTPS 連線）
-        /// 用於內部部署的 Dynamics 365
+        /// 適用內部部署版 Dynamics 365
         /// </summary>
         /// <param name="organization">組織名稱</param>
-        /// <param name="server">伺服器位址</param>
+        /// <param name="server">伺服器名稱</param>
         /// <param name="domain">網域</param>
         /// <param name="userName">使用者名稱</param>
         /// <param name="password">密碼</param>
@@ -159,7 +164,12 @@ namespace ToolUtilityNameSpace.ConnectionOperations
                 
                 using (var serviceProxy = new OrganizationServiceProxy(orgConfigInfo, credentials))
                 {
+#if NET462 || NETFRAMEWORK
                     serviceProxy.ServiceConfiguration.CurrentServiceEndpoint.Behaviors.Add(new ProxyTypesBehavior());
+#else
+                    // .NET 10+ 使用 EnableProxyTypes
+                    serviceProxy.EnableProxyTypes();
+#endif
                     return serviceProxy;
                 }
             }

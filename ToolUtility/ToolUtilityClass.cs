@@ -139,7 +139,14 @@ namespace ToolUtilityNameSpace
             m_Listener = new BugslayerTextWriterTraceListener(m_XmlFileStreamWriter);
 
             Debug.AutoFlush = true;
+            
+            // Debug.Listeners 在 .NET 5+ 中已被移除，使用條件編譯
+#if NET462 || NETFRAMEWORK
             Debug.Listeners.Add(m_Listener);
+#else
+            // .NET 5+ 使用 Trace 類別
+            Trace.Listeners.Add(m_Listener);
+#endif
             #endregion
 
             // 使用連接服務建立 CRM 連接
@@ -475,7 +482,7 @@ namespace ToolUtilityNameSpace
         public EntityCollection QueryWeeklyReportBySunday(DateTime aSunday, Guid aListEntityId)
             => _facade.QueryWeeklyReportBySunday(aSunday, aListEntityId);
 
-        public EntityCollection QueryWeeklyReportBeforeTowMonthOfSunday(DateTime aSunday, Guid aListEntityId)
+        public EntityCollection QueryWeeklyReportBeforeTwoMonthOfSunday(DateTime aSunday, Guid aListEntityId)
             => _facade.QueryWeeklyReportBeforeTwoMonthOfSunday(aSunday, aListEntityId);
 
         public Entity RetrieveContactCollectionByLineId(String LineId)

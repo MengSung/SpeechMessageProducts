@@ -4,7 +4,7 @@
 
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
-using PowerPlatform.Dataverse.Client;
+using Microsoft.PowerPlatform.Dataverse.Client;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +15,7 @@ namespace ToolUtilityNameSpace.Adapters
     /// <summary>
     /// Dataverse ServiceClient Adapter（.NET Core / .NET 10 適用）
     /// 設計模式：Adapter Pattern
-    /// 用途：將新的 PowerPlatform.Dataverse.Client.ServiceClient 包裝成 ICrmClient
+    /// 用途：將新的 Microsoft.PowerPlatform.Dataverse.Client.ServiceClient 包裝成 ICrmClient
     /// </summary>
     /// <remarks>
     /// ?? 此 Adapter 僅在 .NET Core 3.1+ 或 .NET 5+ 環境下編譯
