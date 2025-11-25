@@ -7,7 +7,7 @@ using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Crm.Sdk.Messages;
 using System.ServiceModel.Description;
-using PowerPlatform.Dataverse.Client;
+using Microsoft.PowerPlatform.Dataverse.Client;
 
 namespace ToolUtilityNameSpace.ConnectionOperations
 {
@@ -20,6 +20,11 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         #region 常數定義
         private const string CRM_TYPE_DYNAMICS365 = "DYNAMICS365";
         private const int DEFAULT_TIMEOUT_HOURS = 3;
+        
+        // ServiceClient 連線字串參數常數
+        private const string AUTH_TYPE_OAUTH = "OAuth";
+        private const string LOGIN_PROMPT_AUTO = "Auto";
+        private const string REQUIRE_NEW_INSTANCE_TRUE = "True";
         #endregion
 
         #region 基本憑證方法
@@ -398,21 +403,70 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         #region 額外實用方法
 
         /// <summary>
-        /// 建立使用 OnPremiseClient 的連線（推薦用於新專案）
+        /// 建立連線到 Dynamics 365 / Dataverse（支援 Online 和 On-Premise）
         /// </summary>
-        /// <param name="url">組織服務 URL</param>
-        /// <param name="userName">使用者名稱（格式: DOMAIN\Username 或 username@domain.com）</param>
+        /// <param name="url">組織服務 URL（例如：https://yourorg.crm.dynamics.com 或 https://server/org/XRMServices/2011/Organization.svc）</param>
+        /// <param name="userName">使用者名稱（Online: username@domain.com, On-Premise: DOMAIN\username 或 username@domain.com）</param>
         /// <param name="password">密碼</param>
         /// <returns>IOrganizationService 實例</returns>
+        /// <remarks>
+        /// 此方法會自動偵測環境類型並使用適當的驗證方式：
+        /// - Online (*.crm.dynamics.com): 使用 OAuth 驗證
+        /// - On-Premise: 使用 AD 或 IFD 驗證
+        /// 
+        /// 設計模式應用：
+        /// 1. Strategy Pattern - 根據環境自動選擇驗證策略
+        /// 2. Factory Pattern - 透過工廠方法建立實例
+        /// 3. Guard Clause Pattern - 參數驗證
+        /// 4. Fail-Fast Pattern - 立即驗證連線狀態
+        /// 
+        /// SOLID 原則：
+        /// - Single Responsibility: 方法只負責建立連線
+        /// - Open/Closed: 可擴展新驗證方式
+        /// - Liskov Substitution: 返回 IOrganizationService 介面
+        /// - Dependency Inversion: 依賴抽象而非具體實作
+        /// </remarks>
         public IOrganizationService CreateOnPremiseClient(string url, string userName, string password)
         {
+            // 參數驗證（Guard Clause Pattern）
+            ValidateConnectionParameters(url, userName, password);
+
             try
             {
-                return new OnPremiseClient(url, userName, password);
+                // 偵測環境類型並選擇適當的驗證方式
+                bool isOnline = IsOnlineEnvironment(url);
+                
+                string connectionString;
+                if (isOnline)
+                {
+                    // Dynamics 365 Online - 使用 OAuth
+                    connectionString = BuildOnlineConnectionString(url, userName, password);
+                }
+                else
+                {
+                    // On-Premise - 使用 AD 或 IFD
+                    connectionString = BuildOnPremiseConnectionString(url, userName, password);
+                }
+
+                // 使用 Factory Pattern 建立 ServiceClient
+                var serviceClient = CreateServiceClient(connectionString);
+
+                // 驗證連線狀態（Fail-Fast Pattern）
+                ValidateServiceClientConnection(serviceClient, url);
+
+                return serviceClient;
             }
             catch (Exception ex)
             {
-                throw new Exception($"建立 OnPremiseClient 連線時發生錯誤 (URL: {url}): {ex.Message}", ex);
+                var errorMessage = $"建立 ServiceClient 連線時發生錯誤 (URL: {url}, User: {userName}): {ex.Message}";
+                
+                // 如果有內部例外，包含詳細資訊
+                if (ex.InnerException != null)
+                {
+                    errorMessage += $"\n內部錯誤: {ex.InnerException.Message}";
+                }
+                
+                throw new InvalidOperationException(errorMessage, ex);
             }
         }
 
@@ -506,6 +560,298 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             catch (Exception ex)
             {
                 throw new Exception($"取得當前組織 ID 時發生錯誤: {ex.Message}", ex);
+            }
+        }
+
+        #endregion
+
+        #region 私有輔助方法 - 連線建立相關
+
+        /// <summary>
+        /// 驗證連線參數（Guard Clause Pattern）
+        /// </summary>
+        private void ValidateConnectionParameters(string url, string userName, string password)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                throw new ArgumentNullException(nameof(url), "組織服務 URL 不可為空");
+            }
+
+            if (string.IsNullOrWhiteSpace(userName))
+            {
+                throw new ArgumentNullException(nameof(userName), "使用者名稱不可為空");
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                throw new ArgumentNullException(nameof(password), "密碼不可為空");
+            }
+
+            // 驗證 URL 格式
+            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri uriResult) || 
+                (uriResult.Scheme != Uri.UriSchemeHttp && uriResult.Scheme != Uri.UriSchemeHttps))
+            {
+                throw new ArgumentException("URL 格式不正確，必須是有效的 HTTP 或 HTTPS 位址", nameof(url));
+            }
+        }
+
+        /// <summary>
+        /// 判斷是否為 Dynamics 365 Online 環境
+        /// </summary>
+        private bool IsOnlineEnvironment(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return false;
+
+            var uri = new Uri(url);
+            var host = uri.Host.ToLowerInvariant();
+
+            // Dynamics 365 Online 的網域模式
+            return host.Contains(".crm.dynamics.com") ||
+                   host.Contains(".crm2.dynamics.com") ||
+                   host.Contains(".crm3.dynamics.com") ||
+                   host.Contains(".crm4.dynamics.com") ||
+                   host.Contains(".crm5.dynamics.com") ||
+                   host.Contains(".crm6.dynamics.com") ||
+                   host.Contains(".crm7.dynamics.com") ||
+                   host.Contains(".crm8.dynamics.com") ||
+                   host.Contains(".crm9.dynamics.com") ||
+                   host.Contains(".crm11.dynamics.com") ||
+                   host.Contains(".crm12.dynamics.com");
+        }
+
+        /// <summary>
+        /// 建立 Online 環境的連線字串（使用 OAuth）
+        /// </summary>
+        private string BuildOnlineConnectionString(string url, string userName, string password)
+        {
+            var connectionStringBuilder = new ConnectionStringBuilder()
+                .WithAuthType(AUTH_TYPE_OAUTH)
+                .WithUrl(url)
+                .WithUserName(userName)
+                .WithPassword(password)
+                .WithLoginPrompt(LOGIN_PROMPT_AUTO)
+                .WithRequireNewInstance(REQUIRE_NEW_INSTANCE_TRUE);
+
+            return connectionStringBuilder.Build();
+        }
+
+        /// <summary>
+        /// 建立 On-Premise 環境的連線字串（使用 AD 或 IFD）
+        /// </summary>
+        private string BuildOnPremiseConnectionString(string url, string userName, string password)
+        {
+            // 解析使用者名稱格式
+            string domain = string.Empty;
+            string user = userName;
+
+            // 如果是 DOMAIN\username 格式
+            if (userName.Contains("\\"))
+            {
+                var parts = userName.Split('\\');
+                if (parts.Length == 2)
+                {
+                    domain = parts[0];
+                    user = parts[1];
+                }
+            }
+            // 如果是 username@domain 格式，提取 domain
+            else if (userName.Contains("@"))
+            {
+                var parts = userName.Split('@');
+                if (parts.Length == 2)
+                {
+                    user = parts[0];
+                    domain = parts[1];
+                }
+            }
+
+            // 建立 AD 驗證的連線字串
+            var connectionStringBuilder = new ConnectionStringBuilder()
+                .WithAuthType("AD")  // Active Directory 驗證
+                .WithUrl(url)
+                .WithUserName(userName)  // 使用原始格式
+                .WithPassword(password)
+                .WithRequireNewInstance(REQUIRE_NEW_INSTANCE_TRUE);
+
+            // 如果有 domain，加入 Domain 參數
+            if (!string.IsNullOrWhiteSpace(domain))
+            {
+                connectionStringBuilder.WithDomain(domain);
+            }
+
+            return connectionStringBuilder.Build();
+        }
+
+        /// <summary>
+        /// 建立 ServiceClient 實例（Factory Pattern）
+        /// </summary>
+        /// <remarks>
+        /// 使用 Microsoft.PowerPlatform.Dataverse.Client.ServiceClient
+        /// 這是官方推薦的現代化連線方式，支援：
+        /// 1. OAuth 驗證 (Online)
+        /// 2. AD 驗證 (On-Premise)
+        /// 3. IFD 驗證 (On-Premise)
+        /// 4. ClientSecret 驗證
+        /// 5. Certificate 驗證
+        /// 6. 自動重試機制
+        /// 7. 連線池管理
+        /// </remarks>
+        private ServiceClient CreateServiceClient(string connectionString)
+        {
+            return new ServiceClient(connectionString);
+        }
+
+        /// <summary>
+        /// 驗證 ServiceClient 連線狀態（Fail-Fast Pattern）
+        /// </summary>
+        private void ValidateServiceClientConnection(ServiceClient serviceClient, string url)
+        {
+            if (serviceClient == null)
+            {
+                throw new InvalidOperationException("ServiceClient 建立失敗，返回 null");
+            }
+
+            if (!serviceClient.IsReady)
+            {
+                var errorMessage = $"ServiceClient 連線失敗 (URL: {url})";
+                var lastError = serviceClient.LastError;
+                
+                if (!string.IsNullOrEmpty(lastError))
+                {
+                    errorMessage += $"\n錯誤訊息: {lastError}";
+                }
+
+                // 如果有 LastException，也包含進來
+                if (serviceClient.LastException != null)
+                {
+                    errorMessage += $"\n例外詳情: {serviceClient.LastException.Message}";
+                    
+                    if (serviceClient.LastException.InnerException != null)
+                    {
+                        errorMessage += $"\n內部例外: {serviceClient.LastException.InnerException.Message}";
+                    }
+                }
+
+                throw new InvalidOperationException(errorMessage);
+            }
+        }
+
+        #endregion
+
+        #region 內部類別 - ConnectionStringBuilder (Builder Pattern)
+
+        /// <summary>
+        /// 連線字串建構器（Builder Pattern）
+        /// 用於以流暢介面方式建立 Dataverse 連線字串
+        /// 
+        /// 優點：
+        /// 1. 提供流暢的 API 介面
+        /// 2. 封裝連線字串建立邏輯
+        /// 3. 支援方法鏈式呼叫
+        /// 4. 易於擴展新的連線參數
+        /// </summary>
+        private class ConnectionStringBuilder
+        {
+            private string _authType;
+            private string _url;
+            private string _userName;
+            private string _password;
+            private string _domain;
+            private string _clientId;
+            private string _redirectUri;
+            private string _loginPrompt;
+            private string _requireNewInstance;
+
+            public ConnectionStringBuilder WithAuthType(string authType)
+            {
+                _authType = authType;
+                return this;
+            }
+
+            public ConnectionStringBuilder WithUrl(string url)
+            {
+                _url = url;
+                return this;
+            }
+
+            public ConnectionStringBuilder WithUserName(string userName)
+            {
+                _userName = userName;
+                return this;
+            }
+
+            public ConnectionStringBuilder WithPassword(string password)
+            {
+                _password = password;
+                return this;
+            }
+
+            public ConnectionStringBuilder WithDomain(string domain)
+            {
+                _domain = domain;
+                return this;
+            }
+
+            public ConnectionStringBuilder WithClientId(string clientId)
+            {
+                _clientId = clientId;
+                return this;
+            }
+
+            public ConnectionStringBuilder WithRedirectUri(string redirectUri)
+            {
+                _redirectUri = redirectUri;
+                return this;
+            }
+
+            public ConnectionStringBuilder WithLoginPrompt(string loginPrompt)
+            {
+                _loginPrompt = loginPrompt;
+                return this;
+            }
+
+            public ConnectionStringBuilder WithRequireNewInstance(string requireNewInstance)
+            {
+                _requireNewInstance = requireNewInstance;
+                return this;
+            }
+
+            /// <summary>
+            /// 建立最終的連線字串
+            /// </summary>
+            public string Build()
+            {
+                var connectionParts = new System.Collections.Generic.List<string>();
+
+                if (!string.IsNullOrWhiteSpace(_authType))
+                    connectionParts.Add($"AuthType={_authType}");
+
+                if (!string.IsNullOrWhiteSpace(_url))
+                    connectionParts.Add($"Url={_url}");
+
+                if (!string.IsNullOrWhiteSpace(_userName))
+                    connectionParts.Add($"UserName={_userName}");
+
+                if (!string.IsNullOrWhiteSpace(_password))
+                    connectionParts.Add($"Password={_password}");
+
+                if (!string.IsNullOrWhiteSpace(_domain))
+                    connectionParts.Add($"Domain={_domain}");
+
+                if (!string.IsNullOrWhiteSpace(_clientId))
+                    connectionParts.Add($"ClientId={_clientId}");
+
+                if (!string.IsNullOrWhiteSpace(_redirectUri))
+                    connectionParts.Add($"RedirectUri={_redirectUri}");
+
+                if (!string.IsNullOrWhiteSpace(_loginPrompt))
+                    connectionParts.Add($"LoginPrompt={_loginPrompt}");
+
+                if (!string.IsNullOrWhiteSpace(_requireNewInstance))
+                    connectionParts.Add($"RequireNewInstance={_requireNewInstance}");
+
+                return string.Join(";", connectionParts);
             }
         }
 

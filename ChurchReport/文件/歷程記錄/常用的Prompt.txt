@@ -3,6 +3,22 @@
 
 準備將  ToolUtility   從.Net Framework 4.6.2升級到.Net 10，編寫一個升級計畫說明如何修改，說明升級計劃如何堅守LINUS代碼原則，說明升級計劃如何善用設計模式
 
+========================================================================================
+
+參考 D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ToolUtility\文件\改用：Microsoft.PowerPlatform.Dataverse.Client.md
+https://learn.microsoft.com/en-us/dotnet/api/microsoft.powerplatform.dataverse.client?view=dataverse-sdk-latest
+https://learn.microsoft.com/en-us/dotnet/api/microsoft.powerplatform.dataverse.client.serviceclient?view=dataverse-sdk-latest
+https://learn.microsoft.com/en-us/dotnet/api/microsoft.crm.sdk?view=dataverse-sdk-latest
+https://learn.microsoft.com/en-us/dotnet/api/microsoft.crm.sdk.messages?view=dataverse-sdk-latest
+https://learn.microsoft.com/en-us/power-apps/developer/data-platform/xrm-tooling/use-service-client-sdk
+
+
+不要再使用PowerPlatform.Dataverse.Client
+改為Microsoft.PowerPlatform.Dataverse.Client
+
+==========================================================================================
+
+
 Code Review批判我的 X文件，是否符合LINUS代碼原則，是否有達到最好效能，是否有隱藏風險，是否會有Memory Leak
 
 準備將  ToolUtility   從.Net Framework 4.6.2升級到.Net 10，
@@ -13,6 +29,8 @@ D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版
 各自是否符合LINUS代碼原則，各自是否有達到最好效能，各自是否有隱藏風險，各自是否會有Memory Leak
 
 按照你的建議重新編寫一份(D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\文件\升級ToolUtility\結論規劃.md)
+
+
 
 (預覽專用)
 FOLLOW D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\文件\升級ToolUtility\結論規劃.md，羅列TODO 

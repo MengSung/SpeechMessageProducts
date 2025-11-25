@@ -10,7 +10,6 @@ using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using Newtonsoft.Json.Linq;
-using PowerPlatform.Dataverse.Client;
 using System;
 using System.Collections;
 using System.Collections.Generic;

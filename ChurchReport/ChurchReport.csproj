@@ -58,6 +58,7 @@
     <PackageReference Include="DevExtreme.AspNet.Data" Version="5.1.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.0" />
+    <PackageReference Include="Microsoft.PowerPlatform.Dataverse.Client" Version="1.2.10" />
     <!-- .NET 10 使用框架引用，不需要明確的 AspNetCore 套件 -->
     <!--
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
