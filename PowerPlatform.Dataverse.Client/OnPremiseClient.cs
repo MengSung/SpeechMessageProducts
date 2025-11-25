@@ -195,11 +195,47 @@ namespace PowerPlatform.Dataverse.Client
                 .Where(p => p.Binding == "tns:" + usernameWsTrust13Binding.Name)
                 .FirstOrDefault();
 
-            // Create the SOAP client to authenticate against the STS
-            var client = new ClaimsBasedAuthClient(url, usernameWsTrust13Port.Address.Location);
-            client.ChannelFactory.Credentials.UserName.UserName = credentials.UserName.UserName;
-            client.ChannelFactory.Credentials.UserName.Password = credentials.UserName.Password;
-            return client.ChannelFactory.CreateChannel();
+            try
+            {
+                // Create the SOAP client to authenticate against the STS
+                var client = new ClaimsBasedAuthClient(url, usernameWsTrust13Port.Address.Location);
+                
+                // Configure credentials
+                if (client.ChannelFactory?.Credentials == null)
+                    throw new InvalidOperationException("Channel factory credentials are not available");
+                
+                client.ChannelFactory.Credentials.UserName.UserName = credentials.UserName.UserName;
+                client.ChannelFactory.Credentials.UserName.Password = credentials.UserName.Password;
+                
+                // Create and return the channel
+                var channel = client.ChannelFactory.CreateChannel();
+                
+                if (channel == null)
+                    throw new InvalidOperationException("Failed to create communication channel");
+                
+                return channel;
+            }
+            catch (ExecutionEngineException ex)
+            {
+                // ExecutionEngineException is a critical error that usually indicates
+                // serious runtime issues or corrupted state
+                throw new InvalidOperationException(
+                    "Critical error occurred while establishing federated authentication connection. " +
+                    "This may be caused by WS-Trust binding configuration issues, assembly version conflicts, " +
+                    "or runtime corruption. Consider restarting the application.", ex);
+            }
+            catch (InvalidOperationException)
+            {
+                // Re-throw our own InvalidOperationExceptions
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to establish federated authentication connection to '{url}' " +
+                    $"using issuer endpoint '{usernameWsTrust13Port.Address.Location}'. " +
+                    "Verify that the credentials are correct and the endpoints are accessible.", ex);
+            }
         }
 
         private IOrganizationService ConnectAD(string url, ClientCredentials credentials, string identity)
