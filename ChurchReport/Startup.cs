@@ -66,7 +66,7 @@ namespace ChurchReport
             {
                 services.AddScoped<IPayment, QPayToolkitWrapper>();
             }
-            else if (Configuration["PAY_PROVIDER"] == "綠界金流")
+            else if (Configuration["PAY_PROVIDER"] == "高鉅金流")
             {
                 services.AddScoped<IPayment, MyPayToolkitWrapper>();
             }
