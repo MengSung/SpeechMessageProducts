@@ -7,7 +7,7 @@ using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Crm.Sdk.Messages;
 using System.ServiceModel.Description;
-using PowerPlatform.Dataverse.Client;
+using PowerPlatform.Dataverse.Client; // 使用自定義專案
 
 namespace ToolUtilityNameSpace.ConnectionOperations
 {
@@ -94,12 +94,15 @@ namespace ToolUtilityNameSpace.ConnectionOperations
 
                 var credentials = GetClientCredentials(domain, userName, password);
 
-                using (var serviceProxy = new OrganizationServiceProxy(orgConfigInfo, credentials))
-                {
-                    // 啟用早期繫結類型支援
-                    serviceProxy.ServiceConfiguration.CurrentServiceEndpoint.EndpointBehaviors.Add(new ProxyTypesBehavior());
-                    return serviceProxy;
-                }
+                var serviceProxy = new OrganizationServiceProxy(orgConfigInfo, credentials);
+#if NET462 || NETFRAMEWORK
+                // .NET Framework 使用 Behaviors
+                serviceProxy.ServiceConfiguration.CurrentServiceEndpoint.EndpointBehaviors.Add(new ProxyTypesBehavior());
+#else
+                // .NET 10 使用 EnableProxyTypes
+                serviceProxy.EnableProxyTypes();
+#endif
+                return serviceProxy;
             }
             catch (Exception ex)
             {
@@ -152,11 +155,13 @@ namespace ToolUtilityNameSpace.ConnectionOperations
 
                 var credentials = GetClientCredentials(domain, userName, password);
 
-                using (var serviceProxy = new OrganizationServiceProxy(orgConfigInfo, credentials))
-                {
-                    serviceProxy.ServiceConfiguration.CurrentServiceEndpoint.EndpointBehaviors.Add(new ProxyTypesBehavior());
-                    return serviceProxy;
-                }
+                var serviceProxy = new OrganizationServiceProxy(orgConfigInfo, credentials);
+#if NET462 || NETFRAMEWORK
+                serviceProxy.ServiceConfiguration.CurrentServiceEndpoint.EndpointBehaviors.Add(new ProxyTypesBehavior());
+#else
+                serviceProxy.EnableProxyTypes();
+#endif
+                return serviceProxy;
             }
             catch (Exception ex)
             {
@@ -399,15 +404,21 @@ namespace ToolUtilityNameSpace.ConnectionOperations
 
         /// <summary>
         /// 建立使用 OnPremiseClient 的連線（推薦用於新專案）
+        /// 使用自定義的 PowerPlatform.Dataverse.Client.OnPremiseClient
         /// </summary>
-        /// <param name="url">組織服務 URL</param>
+        /// <param name="url">組織服務 URL（例如：https://org.crm.contoso.com/XRMServices/2011/Organization.svc）</param>
         /// <param name="userName">使用者名稱（格式: DOMAIN\Username 或 username@domain.com）</param>
         /// <param name="password">密碼</param>
         /// <returns>IOrganizationService 實例</returns>
+        /// <remarks>
+        /// 此方法使用自定義的 PowerPlatform.Dataverse.Client 專案中的 OnPremiseClient 類別，
+        /// 支援 WS-Trust 驗證，適用於 On-Premise IFD 和 AD 環境。
+        /// </remarks>
         public IOrganizationService CreateOnPremiseClient(string url, string userName, string password)
         {
             try
             {
+                // 使用自定義 PowerPlatform.Dataverse.Client.OnPremiseClient
                 return new OnPremiseClient(url, userName, password);
             }
             catch (Exception ex)
