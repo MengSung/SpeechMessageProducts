@@ -11,8 +11,10 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
 // located in the SDK\bin folder of the SDK download.
 
@@ -33,7 +35,8 @@ namespace ChurchReport.Models
         //string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
         string m_ShopNo = m_Configuration["Sandbox:ShopNo"];
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
+        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
         public QpayModel m_QpayModel { get; set; } = new QpayModel();
 

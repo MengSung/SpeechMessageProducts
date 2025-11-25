@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 
 namespace ChurchReport.ViewModel
 {
@@ -29,7 +30,8 @@ namespace ChurchReport.ViewModel
     {
         #region 成員資料
 
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
+        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
         public Entity m_Contact;
 

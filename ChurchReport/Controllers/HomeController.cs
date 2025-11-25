@@ -62,11 +62,12 @@ namespace ChurchReport.Controllers
         [Route("/Home/ProcessLogin")]
         public async Task<IActionResult> ProcessLoginRedirect(GalleryViewModel aGalleryViewModel)
         {
-            // 直接調用新控制器的方法
+            // 直接調用新控制器的方法，透過 DI 容器取得必要的服務
             var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
-                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment);
+                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
+                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider);
             
             return await authController.ProcessLogin(aGalleryViewModel);
         }
@@ -171,7 +172,7 @@ namespace ChurchReport.Controllers
         }
         
         /// <summary>
-        /// 向後相容: 將舊的 /Home/DediationLineLoginView 重導向到 /Dedication/DediationLineLoginView
+        /// 向後相容: 將舊的 /Home/DediationLineLoginView 重導向到 /Dedication/DedianLineLoginView
         /// </summary>
         [Route("/Home/DediationLineLoginView/{LineIdLoginViewPatameter}")]
         public IActionResult DediationLineLoginViewRedirect(string LineIdLoginViewPatameter)
@@ -186,11 +187,12 @@ namespace ChurchReport.Controllers
         [Route("/Home/SaveUserLineId")]
         public async Task<IActionResult> SaveUserLineIdRedirect(string UserLineId, string GroupId, string RoomId, string ViewType)
         {
-            // 直接調用新控制器的方法
+            // 直接調用新控制器的方法，透過 DI 容器取得必要的服務
             var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
-                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment);
+                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
+                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider);
             
             return await authController.SaveUserLineId(UserLineId, GroupId, RoomId, ViewType);
         }
@@ -202,7 +204,7 @@ namespace ChurchReport.Controllers
         [Route("/Home/SetupUserLineId")]
         public IActionResult SetupUserLineIdRedirect(string UserLineId, string GroupId, string RoomId, string ViewType)
         {
-            // 直接調用 DedicationController 的方法
+            // 直接調用 DedicationController 的方法，透過 DI 容器取得必要的服務
             var dedicationController = new DedicationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
@@ -227,11 +229,12 @@ namespace ChurchReport.Controllers
         [Route("/Home/ProcessLineBinding")]
         public async Task<IActionResult> ProcessLineBindingRedirect(LineBindingViewModel model)
         {
-            // 直接調用新控制器的方法
+            // 直接調用新控制器的方法，透過 DI 容器取得必要的服務
             var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
-                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment);
+                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
+                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider);
             
             return await authController.ProcessLineBinding(model);
         }
@@ -250,11 +253,12 @@ namespace ChurchReport.Controllers
             string PictureUrl = "",
             string StatusMessage = "")
         {
-            // 直接調用新控制器的方法
+            // 直接調用新控制器的方法，透過 DI 容器取得必要的服務
             var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
-                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment);
+                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
+                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider);
             
             return await authController.SaveUserId(UserLineId, GroupId, RoomId, ViewType, DisplayName, PictureUrl, StatusMessage);
         }

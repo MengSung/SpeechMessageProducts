@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ToolUtility;
 using ChurchReport.Models.CrmTransmitModule;
+using ChurchReport.ViewModel;
 
 #region Dynamics 365 Microsoft.Xrm.Sdk.dll
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
