@@ -8,6 +8,7 @@ using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
 {
@@ -19,11 +20,19 @@ namespace ChurchReport.Controllers
     {
         #region 建構函式
 
+        /// <summary>
+        /// EquipmentController 建構函數 (使用 Dependency Injection)
+        /// </summary>
+        /// <param name="httpContextAccessor">HTTP 上下文存取器</param>
+        /// <param name="memoryCache">記憶體快取</param>
+        /// <param name="paymentService">金流服務</param>
+        /// <param name="toolUtilityProvider">ToolUtility 提供者 (DI 注入)</param>
         public EquipmentController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
-            IPayment paymentService)
-            : base(httpContextAccessor, memoryCache, paymentService)
+            IPayment paymentService,
+            IToolUtilityProvider toolUtilityProvider)
+            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider)
         {
         }
 

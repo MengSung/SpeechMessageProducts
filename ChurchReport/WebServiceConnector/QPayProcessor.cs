@@ -16,6 +16,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 using UserProfile = Line.Messaging.UserProfile;
 
 namespace ChurchReport.WebServiceConnector
@@ -29,60 +30,32 @@ namespace ChurchReport.WebServiceConnector
         #endregion
 
         #region 商店設定
-        // 商店編號
-        // SANDBOX 測試用
-        //string m_ShopNo = "NA0149_001";
         private string m_ShopNo = m_Configuration["Sandbox:ShopNo"];
-
-        // 永豐金流正式環境
-        //string m_ShopNo = "DA4195_001";
-        //private string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
         #endregion
 
         #region 環境設定
-        #region 公司內部開發
-        // 使用 ChurchReport 當作 WebHook
-        //private const String RETURN_URL = "https://nankanchurchback.speechmessage.com.tw:480/api/QPayCard/QPayReturnUrl";
-        //private const String BACKEND_URL = "http://QPbackendback.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl";// 公司內部開發
-        #endregion
-        #region 雲端機房
-        //private const String RETURN_URL = "https://nankanchurchback.speechmessage.com.tw:335/api/QPayCard/QPayReturnUrl";
-        //private const String BACKEND_URL = "http://QPaybackend.speechmessage.com.tw/api/QPayAtm/QPayBackendUrl"; // 雲端機房
-        #endregion
-
         private readonly String RETURN_URL = m_Configuration["RETURN_URL"];
-        private readonly String BACKEND_URL = m_Configuration["BACKEND_URL"];// 公司內部開發
+        private readonly String BACKEND_URL = m_Configuration["BACKEND_URL"];
         #endregion
 
         #region LINE Bot 設定
-        // 聖谷行道會
         private const String CHANNEL_ACCESS_TOKEN = @"OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU=";
-
-        //private LinePayClient m_LinePayClient { get; }
-
         private LineMessagingClient m_LineMessagingClient { get; }
         private PushUtility m_PushUtility { get; }
         private ReplyUtility m_ReplyUtility { get; }
-
-        //private LineNotifyUtility m_LineNotifyUtility = new LineNotifyUtility();
         #endregion
 
         #region 工具與服務
-        ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
+        ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
         IPayment m_PaymentService;
         #endregion
 
         #region 業務資料
-        //private String m_LocalCardOrderNo = "";
-        //private String m_LocalAtmOrderNo = "";
-        //private DateTime m_AtmExpireDate;
-
-        // 登入的連絡人
         public Entity m_LoginContact;
         #endregion
 
         #region 客製化設定
-        // 客製化
         private readonly String QPAY_ORGANIZATION = m_Configuration["QPAY_ORGANIZATION"];
         #endregion
         #endregion
@@ -657,7 +630,7 @@ namespace ChurchReport.WebServiceConnector
                 #region 建立收費單所需要的參數
                 // 取得報名者的全名
                 String FullName = "";
-                FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname");
+                FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname") ?? "";
 
                 // 收費單名稱
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_name", FullName + "奉獻");
@@ -822,10 +795,10 @@ namespace ChurchReport.WebServiceConnector
                 #region 建立認獻單所需要的參數
                 // 取得報名者的全名
                 String FullName = "";
-                FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname");
+                FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname") + "奉獻";
 
                 // 認獻單名稱
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_name", FullName + "奉獻");
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_name", FullName);
 
                 // 認獻單姓名關聯 LOOKUP
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aDedicationBookingToCreated, "new_contact_new_dedication_booking", "contact", aContact.Id);

@@ -20,14 +20,26 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
 {
     public class HomeController : BaseChurchController
     {
-        #region 初始化
-        public HomeController(IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache, IPayment qpayService)
-            : base(httpContextAccessor, memoryCache, qpayService)
+        #region 建構式
+        /// <summary>
+        /// HomeController 建構函數 (使用 Dependency Injection)
+        /// </summary>
+        /// <param name="httpContextAccessor">HTTP 上下文存取器</param>
+        /// <param name="memoryCache">記憶體快取</param>
+        /// <param name="qpayService">金流服務</param>
+        /// <param name="toolUtilityProvider">ToolUtility 提供者 (DI 注入)</param>
+        public HomeController(
+            IHttpContextAccessor httpContextAccessor, 
+            IMemoryCache memoryCache, 
+            IPayment qpayService,
+            IToolUtilityProvider toolUtilityProvider)
+            : base(httpContextAccessor, memoryCache, qpayService, toolUtilityProvider)
         {
         }
         #endregion

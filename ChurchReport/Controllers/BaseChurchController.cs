@@ -6,63 +6,42 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// 教會系統控制器基礎類別
-    /// 提供共用的功能和錯誤處理機制
+    /// 教會報表基底控制器
+    /// 提供共用功能與錯誤處理邏輯
     /// </summary>
     public abstract class BaseChurchController : Controller, IDisposable
     {
         #region 常數定義
 
-        /// <summary>
-        /// 追蹤層級總數 (1-5, 數字越小越重要)
-        /// </summary>
         protected const int TOTAL_LEVEL = 1;
-
-        /// <summary>
-        /// 最高層級追蹤 (最容易被看到的大範圍部分)
-        /// </summary>
         protected const int LEVEL_1 = 1;
-
-        /// <summary>
-        /// 次高層級追蹤
-        /// </summary>
         protected const int LEVEL_2 = 2;
-
-        /// <summary>
-        /// 中等層級追蹤
-        /// </summary>
         protected const int LEVEL_3 = 3;
-
-        /// <summary>
-        /// 次低層級追蹤
-        /// </summary>
         protected const int LEVEL_4 = 4;
-
-        /// <summary>
-        /// 最低層級追蹤 (最不會被看到的細節部分)
-        /// </summary>
         protected const int LEVEL_5 = 5;
-
-        /// <summary>
-        /// LINE 錯誤通知接收者 ID
-        /// </summary>
         protected const string LINE_ERROR_RECEIVER_ID = "U7638e4ed509708a3573ba6d69970583d";
 
         #endregion
 
-        #region 受保護欄位
+        #region 服務實例
 
         /// <summary>
-        /// 工具類別實例 (用於 CRM 操作)
+        /// ToolUtility 提供者 (使用 Dependency Injection)
         /// </summary>
-        protected readonly ToolUtilityClass ToolUtility;
+        protected readonly IToolUtilityProvider _toolUtilityProvider;
 
         /// <summary>
-        /// 記憶體內資料上下文 (儲存 Session 資料)
+        /// 工具類別實例 (透過 DI 取得 Singleton 實例)
+        /// </summary>
+        protected ToolUtilityClass ToolUtility => _toolUtilityProvider.GetToolUtility();
+
+        /// <summary>
+        /// 記憶體資料上下文 (存放 Session 資料)
         /// </summary>
         protected readonly InMemoryDataContextSmallGroup InMemoryContext;
 
@@ -76,24 +55,26 @@ namespace ChurchReport.Controllers
         #region 建構函式
 
         /// <summary>
-        /// 初始化基礎控制器
+        /// 初始化基底控制器
         /// </summary>
         /// <param name="httpContextAccessor">HTTP 上下文存取器</param>
         /// <param name="memoryCache">記憶體快取</param>
         /// <param name="paymentService">金流服務</param>
+        /// <param name="toolUtilityProvider">ToolUtility 提供者 (透過 DI 注入)</param>
         protected BaseChurchController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
-            IPayment paymentService)
+            IPayment paymentService,
+            IToolUtilityProvider toolUtilityProvider)
         {
-            // 初始化 CRM 連線工具
-            ToolUtility = new ToolUtilityClass("DYNAMICS365-9.0");
+            // 透過 DI 注入 ToolUtility 提供者
+            _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
 
             // 初始化記憶體資料上下文
             InMemoryContext = new InMemoryDataContextSmallGroup(
                 httpContextAccessor, memoryCache, paymentService);
 
-            // 儲存金流服務參考
+            // 存放金流服務參考
             PaymentService = paymentService;
         }
 

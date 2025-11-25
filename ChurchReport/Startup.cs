@@ -12,8 +12,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Microsoft.Extensions.Hosting; // for env.IsDevelopment()
-using Microsoft.AspNetCore.Mvc; // 新增這一行
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport
 {
@@ -29,6 +30,11 @@ namespace ChurchReport
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // ========================================
+            // 註冊 ToolUtility 服務 (Singleton 模式)
+            // ========================================
+            services.AddToolUtility();
+
             // Add framework services.
             services
                 .AddMvc(options =>
@@ -60,7 +66,7 @@ namespace ChurchReport
             {
                 services.AddScoped<IPayment, QPayToolkitWrapper>();
             }
-            else if (Configuration["PAY_PROVIDER"] == "高鉅金流")
+            else if (Configuration["PAY_PROVIDER"] == "綠界金流")
             {
                 services.AddScoped<IPayment, MyPayToolkitWrapper>();
             }

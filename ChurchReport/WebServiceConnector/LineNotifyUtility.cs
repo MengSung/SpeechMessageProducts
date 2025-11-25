@@ -2,12 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
 using ChurchReport.Models.CrmTransmitModule;
-
-#region Dynamics 365 Microsoft.Xrm.Sdk.dll
-// These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
-// located in the SDK\bin folder of the SDK download.
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Sdk.Client;
@@ -15,13 +10,13 @@ using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 using System.Text.RegularExpressions;
 using ToolUtility;
 using Line.Messaging;
 using ChurchReport.Models;
 using ChurchReport.Tools;
 using PushUtility = ToolUtility.PushUtility;
-#endregion
 
 namespace ChurchReport.WebServiceConnector
 {
@@ -29,21 +24,15 @@ namespace ChurchReport.WebServiceConnector
     {
         #region 資料區
         #region 參數資料
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass("DYNAMICS365-9.0");
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
+        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
         private LineMessagingClient m_LineMessagingClient { get; set; }
-
         private PushUtility m_PushUtility { get; set; }
         #endregion
         #region 常數參數
-        //private const String CRM_TYPE = "CRM2011";
         private const String CRM_TYPE = "DYNAMICS365-9.0";
-
-        // 客製化
-        // 聖谷行道會
         private const String CHANNEL_ACCESS_TOKEN = @"OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU=";
-
-        // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
         #endregion
         #endregion
