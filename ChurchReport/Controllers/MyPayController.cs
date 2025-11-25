@@ -105,7 +105,6 @@ namespace ChurchReport.Controllers
         /// 6. 回傳 "8888" 確認接收（避免金流平台重送）
         /// 
         /// 【設計模式改進】
-        /// - 移除手動 new ToolUtilityClass()
         /// - 使用注入的 IToolUtilityProvider 獲取 Singleton 實例
         /// - 不需要手動 Dispose，由 DI 容器管理生命週期
         /// </summary>
