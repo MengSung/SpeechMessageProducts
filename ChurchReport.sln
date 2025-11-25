@@ -5,8 +5,6 @@ VisualStudioVersion = 18.0.11205.157
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChurchReport", "ChurchReport\ChurchReport.csproj", "{DF317563-C44C-4E69-BA7A-AEF73B49BB73}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolUtility", "ToolUtility\ToolUtility.csproj", "{377E7CC4-320A-48ED-ACA9-E3BC718F150F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineMessagingProcessor", "LineMessagingProcessor\LineMessagingProcessor.csproj", "{49A3E352-8564-4A14-9814-B655B2A6B202}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trace", "Trace\Trace.csproj", "{DC1614B1-9B67-4AC8-B7A8-66F5BEE26D5E}"
@@ -36,16 +34,6 @@ Global
 		{DF317563-C44C-4E69-BA7A-AEF73B49BB73}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DF317563-C44C-4E69-BA7A-AEF73B49BB73}.Test_Exchange_Service|Any CPU.ActiveCfg = Release|Any CPU
 		{DF317563-C44C-4E69-BA7A-AEF73B49BB73}.Test_Exchange_Service|Any CPU.Build.0 = Release|Any CPU
-		{377E7CC4-320A-48ED-ACA9-E3BC718F150F}.Debug_LearnCrm|Any CPU.ActiveCfg = Debug|Any CPU
-		{377E7CC4-320A-48ED-ACA9-E3BC718F150F}.Debug_LearnCrm|Any CPU.Build.0 = Debug|Any CPU
-		{377E7CC4-320A-48ED-ACA9-E3BC718F150F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{377E7CC4-320A-48ED-ACA9-E3BC718F150F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{377E7CC4-320A-48ED-ACA9-E3BC718F150F}.DebugOracleConnector|Any CPU.ActiveCfg = Debug|Any CPU
-		{377E7CC4-320A-48ED-ACA9-E3BC718F150F}.DebugOracleConnector|Any CPU.Build.0 = Debug|Any CPU
-		{377E7CC4-320A-48ED-ACA9-E3BC718F150F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{377E7CC4-320A-48ED-ACA9-E3BC718F150F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{377E7CC4-320A-48ED-ACA9-E3BC718F150F}.Test_Exchange_Service|Any CPU.ActiveCfg = Release|Any CPU
-		{377E7CC4-320A-48ED-ACA9-E3BC718F150F}.Test_Exchange_Service|Any CPU.Build.0 = Release|Any CPU
 		{49A3E352-8564-4A14-9814-B655B2A6B202}.Debug_LearnCrm|Any CPU.ActiveCfg = Debug|Any CPU
 		{49A3E352-8564-4A14-9814-B655B2A6B202}.Debug_LearnCrm|Any CPU.Build.0 = Debug|Any CPU
 		{49A3E352-8564-4A14-9814-B655B2A6B202}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
