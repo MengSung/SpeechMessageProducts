@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.Factory;
 
 
 
@@ -13,7 +14,8 @@ namespace ChurchReport.WebServiceConnector
     {
         #region 資料區
         #region 參數資料
-        private ToolUtilityClass m_ToolUtilityClass = new ToolUtilityClass();
+        // 透過 Factory 取得 ToolUtilityClass 單一實例
+        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
         private static Regex DigitsOnly = new Regex(@"[^\d]");
 
