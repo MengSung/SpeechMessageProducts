@@ -862,28 +862,79 @@ namespace ChurchReport.Controllers
         /// </summary>
         private string DetermineDisplayViewType()
         {
-            // 控制 Navigation 下拉項目
-            ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "不是單純行事曆";
-            ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "顯示牧養回報項目";
-            ViewBag.UserType = InMemoryContext.ListManager.UserType = InMemoryContext.AppointmentsListManager.UserType;
-
-            // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一小組長的回報
-            string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
-            
-            if (displayViewType == "IntegrateView")
+            try
             {
-                // 得知這是單一小組長的回報，所以就直接下載整合式網頁所需的資料
-                InMemoryContext.ListManager.SetupIntegrateData(InMemoryContext.ListManager.ActiveListId);
-            }
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 開始判斷顯示視圖類型");
+                
+                // 控制 Navigation 下拉項目
+                ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "不是單純行事曆";
+                ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "顯示牧養回報項目";
+                ViewBag.UserType = InMemoryContext.ListManager.UserType = InMemoryContext.AppointmentsListManager.UserType;
 
-            // 根據登入類型和幸福小組狀態調整顯示類型
-            if (InMemoryContext.ListManager.LoginType != "小組長" && 
-                InMemoryContext.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] UserType={ViewBag.UserType}");
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] LoginType={InMemoryContext.ListManager.LoginType}");
+
+                // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一小組長的回報
+                string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
+                
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] GetDisplayViewType() 回傳值: '{displayViewType ?? "null"}'");
+                
+                // ? 保護性檢查: 如果 displayViewType 是 null 或空字串，設定預設值
+                if (string.IsNullOrEmpty(displayViewType))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 警告: displayViewType 為空，使用預設值");
+                    
+                    // 根據 LoginType 決定預設值
+                    if (InMemoryContext.ListManager.LoginType == "小組長")
+                    {
+                        displayViewType = "IntegrateView";
+                        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 小組長預設值: IntegrateView");
+                    }
+                    else
+                    {
+                        displayViewType = "MultiGroupView";
+                        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 非小組長預設值: MultiGroupView");
+                    }
+                }
+                
+                if (displayViewType == "IntegrateView")
+                {
+                    System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 視圖類型為 IntegrateView，開始設定整合資料");
+                    // 得知這是單一小組長的回報，所以就直接下載整合式網頁所需的資料
+                    try
+                    {
+                        InMemoryContext.ListManager.SetupIntegrateData(InMemoryContext.ListManager.ActiveListId);
+                        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] SetupIntegrateData 完成");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] SetupIntegrateData 失敗: {ex.Message}");
+                        // 即使失敗也繼續，不影響登入
+                    }
+                }
+
+                // 根據登入類型和幸福小組狀態調整顯示類型
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] HappyType={InMemoryContext.HappyGroupDataManager.HappyType}");
+                
+                if (InMemoryContext.ListManager.LoginType != "小組長" && 
+                    InMemoryContext.HappyGroupDataManager.HappyType == "有幸福小組名單")
+                {
+                    System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 調整為 HappyGroupView");
+                    displayViewType = "HappyGroupView";
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 最終視圖類型: {displayViewType}");
+                
+                return displayViewType;
+            }
+            catch (Exception ex)
             {
-                displayViewType = "HappyGroupView";
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 發生異常: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 堆疊追蹤: {ex.StackTrace}");
+                
+                // 發生異常時，返回安全的預設值
+                return "IntegrateView";
             }
-
-            return displayViewType;
         }
 
         /// <summary>
