@@ -1,268 +1,268 @@
-# LINE µn¤J DisplayViewType=Undefined °İÃD­×´_³ø§i
+ï»¿# LINE ç™»å…¥ DisplayViewType=Undefined å•é¡Œä¿®å¾©å ±å‘Š
 
-## ?? °İÃD´y­z
+## ğŸ› å•é¡Œæè¿°
 
-**²{¶H**: JavaScript Console Åã¥Ü `DisplayViewType=Undefined`  
-**¿ù»~°T®§**: "µn¤J¿ù»~: ¥¼ª¾ªºµø¹ÏÃş«¬"  
-**¼vÅT**: ¥Î¤áµLªk¥¿±`µn¤J¨Ã¾É¦V¨ì¹ïÀ³­¶­±
+**ç¾è±¡**: JavaScript Console é¡¯ç¤º `DisplayViewType=Undefined`  
+**éŒ¯èª¤è¨Šæ¯**: "ç™»å…¥éŒ¯èª¤: æœªçŸ¥çš„è¦–åœ–é¡å‹"  
+**å½±éŸ¿**: ç”¨æˆ¶ç„¡æ³•æ­£å¸¸ç™»å…¥ä¸¦å°å‘åˆ°å°æ‡‰é é¢
 
 ---
 
-## ?? ®Ú¥»­ì¦]¤ÀªR
+## ğŸ” æ ¹æœ¬åŸå› åˆ†æ
 
-### 1. °İÃD°lÂÜ
+### 1. å•é¡Œè¿½è¹¤
 
-**µ{¦¡½X¬yµ{**:
+**ç¨‹å¼ç¢¼æµç¨‹**:
 ```
 SaveUserLineId (AuthenticationController)
-  ¡õ
+  â†“
 ProcessLogin (AuthenticationController)
-  ¡õ
+  â†“
 DetermineDisplayViewType()
-  ¡õ
+  â†“
 InMemoryContext.ListManager.GetDisplayViewType()
-  ¡õ
-ªğ¦^ null ©ÎªÅ¦r¦ê
-  ¡õ
+  â†“
+è¿”å› null æˆ–ç©ºå­—ä¸²
+  â†“
 CreateLoginResponse(displayViewType=null)
-  ¡õ
+  â†“
 JSON: { DisplayViewType: null }
-  ¡õ
+  â†“
 JavaScript: data.DisplayViewType === undefined
 ```
 
-### 2. ¬°¤°»ò `GetDisplayViewType()` ªğ¦^ªÅ­È¡H
+### 2. ç‚ºä»€éº¼ `GetDisplayViewType()` è¿”å›ç©ºå€¼ï¼Ÿ
 
-¥i¯àªº­ì¦]:
-1. **InMemoryContext.ListManager ¥¼¥¿½Tªì©l¤Æ**
-2. **SetupListManager() °õ¦æ¥¢±Ñ**
-3. **LINE µn¤J®É¯Ê¤Ö¥²­n¸ê®Æ**
-4. **ActiveListId ¬°ªÅ**
-5. **¸ê®Æ®w¬d¸ß²§±`**
+å¯èƒ½çš„åŸå› :
+1. **InMemoryContext.ListManager æœªæ­£ç¢ºåˆå§‹åŒ–**
+2. **SetupListManager() åŸ·è¡Œå¤±æ•—**
+3. **LINE ç™»å…¥æ™‚ç¼ºå°‘å¿…è¦è³‡æ–™**
+4. **ActiveListId ç‚ºç©º**
+5. **è³‡æ–™åº«æŸ¥è©¢ç•°å¸¸**
 
 ---
 
-## ? ¤w¹ê¬Iªº­×¥¿
+## âœ… å·²å¯¦æ–½çš„ä¿®æ­£
 
-### ­×¥¿ 1: ²K¥[«OÅ@©ÊÀË¬d
+### ä¿®æ­£ 1: æ·»åŠ ä¿è­·æ€§æª¢æŸ¥
 
 ```csharp
 private string DetermineDisplayViewType()
 {
     try
     {
-        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ¶}©l§PÂ_Åã¥Üµø¹ÏÃş«¬");
+        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] é–‹å§‹åˆ¤æ–·é¡¯ç¤ºè¦–åœ–é¡å‹");
         
-        // ±±¨î Navigation ¤U©Ô¶µ¥Ø
-        ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "¤£¬O³æ¯Â¦æ¨Æ¾ä";
-        ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "Åã¥Üªª¾i¦^³ø¶µ¥Ø";
+        // æ§åˆ¶ Navigation ä¸‹æ‹‰é …ç›®
+        ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "ä¸æ˜¯å–®ç´”è¡Œäº‹æ›†";
+        ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
         ViewBag.UserType = InMemoryContext.ListManager.UserType = InMemoryContext.AppointmentsListManager.UserType;
 
-        // ³z¹L¨ú±o¦h¤p²Õºô­¶»İ­nªº¸ê®Æ¤§«á¡A§PÂ_³o¬O¦h¤p²ÕÁÙ¬O³æ¤@¤p²Õªøªº¦^³ø
+        // é€éå–å¾—å¤šå°çµ„ç¶²é éœ€è¦çš„è³‡æ–™ä¹‹å¾Œï¼Œåˆ¤æ–·é€™æ˜¯å¤šå°çµ„é‚„æ˜¯å–®ä¸€å°çµ„é•·çš„å›å ±
         string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
         
-        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] GetDisplayViewType() ¦^¶Ç­È: '{displayViewType ?? "null"}'");
+        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] GetDisplayViewType() å›å‚³å€¼: '{displayViewType ?? "null"}'");
         
-        // ? «OÅ@©ÊÀË¬d: ¦pªG displayViewType ¬O null ©ÎªÅ¦r¦ê¡A³]©w¹w³]­È
+        // âœ… ä¿è­·æ€§æª¢æŸ¥: å¦‚æœ displayViewType æ˜¯ null æˆ–ç©ºå­—ä¸²ï¼Œè¨­å®šé è¨­å€¼
         if (string.IsNullOrEmpty(displayViewType))
         {
-            System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] Äµ§i: displayViewType ¬°ªÅ¡A¨Ï¥Î¹w³]­È");
+            System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] è­¦å‘Š: displayViewType ç‚ºç©ºï¼Œä½¿ç”¨é è¨­å€¼");
             
-            // ®Ú¾Ú LoginType ¨M©w¹w³]­È
-            if (InMemoryContext.ListManager.LoginType == "¤p²Õªø")
+            // æ ¹æ“š LoginType æ±ºå®šé è¨­å€¼
+            if (InMemoryContext.ListManager.LoginType == "å°çµ„é•·")
             {
                 displayViewType = "IntegrateView";
-                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ¤p²Õªø¹w³]­È: IntegrateView");
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] å°çµ„é•·é è¨­å€¼: IntegrateView");
             }
             else
             {
                 displayViewType = "MultiGroupView";
-                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] «D¤p²Õªø¹w³]­È: MultiGroupView");
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] éå°çµ„é•·é è¨­å€¼: MultiGroupView");
             }
         }
         
         if (displayViewType == "IntegrateView")
         {
-            // ±oª¾³o¬O³æ¤@¤p²Õªøªº¦^³ø¡A©Ò¥H´Nª½±µ¤U¸ü¾ã¦X¦¡ºô­¶©Ò»İªº¸ê®Æ
+            // å¾—çŸ¥é€™æ˜¯å–®ä¸€å°çµ„é•·çš„å›å ±ï¼Œæ‰€ä»¥å°±ç›´æ¥ä¸‹è¼‰æ•´åˆå¼ç¶²é æ‰€éœ€çš„è³‡æ–™
             try
             {
                 InMemoryContext.ListManager.SetupIntegrateData(InMemoryContext.ListManager.ActiveListId);
-                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] SetupIntegrateData §¹¦¨");
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] SetupIntegrateData å®Œæˆ");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] SetupIntegrateData ¥¢±Ñ: {ex.Message}");
-                // §Y¨Ï¥¢±Ñ¤]Ä~Äò¡A¤£¼vÅTµn¤J
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] SetupIntegrateData å¤±æ•—: {ex.Message}");
+                // å³ä½¿å¤±æ•—ä¹Ÿç¹¼çºŒï¼Œä¸å½±éŸ¿ç™»å…¥
             }
         }
 
-        // ®Ú¾Úµn¤JÃş«¬©M©¯ºÖ¤p²Õª¬ºA½Õ¾ãÅã¥ÜÃş«¬
-        if (InMemoryContext.ListManager.LoginType != "¤p²Õªø" && 
-            InMemoryContext.HappyGroupDataManager.HappyType == "¦³©¯ºÖ¤p²Õ¦W³æ")
+        // æ ¹æ“šç™»å…¥é¡å‹å’Œå¹¸ç¦å°çµ„ç‹€æ…‹èª¿æ•´é¡¯ç¤ºé¡å‹
+        if (InMemoryContext.ListManager.LoginType != "å°çµ„é•·" && 
+            InMemoryContext.HappyGroupDataManager.HappyType == "æœ‰å¹¸ç¦å°çµ„åå–®")
         {
             displayViewType = "HappyGroupView";
         }
 
-        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ³Ì²×µø¹ÏÃş«¬: {displayViewType}");
+        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] æœ€çµ‚è¦–åœ–é¡å‹: {displayViewType}");
         
         return displayViewType;
     }
     catch (Exception ex)
     {
-        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] µo¥Í²§±`: {ex.Message}");
+        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ç™¼ç”Ÿç•°å¸¸: {ex.Message}");
         
-        // µo¥Í²§±`®É¡Aªğ¦^¦w¥şªº¹w³]­È
+        // ç™¼ç”Ÿç•°å¸¸æ™‚ï¼Œè¿”å›å®‰å…¨çš„é è¨­å€¼
         return "IntegrateView";
     }
 }
 ```
 
-### ­×¥¿ 2: JavaScript ¿ù»~³B²z¼W±j
+### ä¿®æ­£ 2: JavaScript éŒ¯èª¤è™•ç†å¢å¼·
 
 ```javascript
 success: function (data) {
     console.log('[AJAX Success]', data);
     
-    if (data.message != "©|¥¼¸j©w") {
+    if (data.message != "å°šæœªç¶å®š") {
         ShowToast(data.message, "success", 1600);
         
-        // ? ÀË¬d DisplayViewType ¬O§_¦³®Ä
+        // âœ… æª¢æŸ¥ DisplayViewType æ˜¯å¦æœ‰æ•ˆ
         if (!data.DisplayViewType || data.DisplayViewType === "Undefined" || data.DisplayViewType === "null") {
-            console.error('[¾É¦V¿ù»~] DisplayViewType µL®Ä:', data.DisplayViewType);
-            ShowToast("µn¤J¸ê®Æ²§±`¡A½Ğ­«·sµn¤J", "error", 3000);
+            console.error('[å°å‘éŒ¯èª¤] DisplayViewType ç„¡æ•ˆ:', data.DisplayViewType);
+            ShowToast("ç™»å…¥è³‡æ–™ç•°å¸¸ï¼Œè«‹é‡æ–°ç™»å…¥", "error", 3000);
             loadPanel_hide();
             document.getElementById('displaynamefield').innerHTML = 
-                "µn¤J¸ê®Æ²§±`<br/><small>½ĞÃö³¬¦¹­¶­±«á­«·sµn¤J</small>";
+                "ç™»å…¥è³‡æ–™ç•°å¸¸<br/><small>è«‹é—œé–‰æ­¤é é¢å¾Œé‡æ–°ç™»å…¥</small>";
             return;
         }
         
-        // ®Ú¾Ú¦^¶Çªºµø¹ÏÃş«¬¶i¦æ¾É¦V
+        // æ ¹æ“šå›å‚³çš„è¦–åœ–é¡å‹é€²è¡Œå°å‘
         if (data.DisplayViewType == "MultiGroupView") {
-            console.log('[¾É¦V] MultiGroupView:', data.ActiveListId);
+            console.log('[å°å‘] MultiGroupView:', data.ActiveListId);
             window.location.href = "/SmallGroup/MultiGroupView/" + data.ActiveListId;
         } else if (data.DisplayViewType == "IntegrateView") {
-            console.log('[¾É¦V] IntegrateView:', data.ActiveListId);
+            console.log('[å°å‘] IntegrateView:', data.ActiveListId);
             window.location.href = "/SmallGroup/IntegrateView/" + data.ActiveListId;
         } else if (data.DisplayViewType == "HappyGroupView") {
-            console.log('[¾É¦V] HappyGroupView');
+            console.log('[å°å‘] HappyGroupView');
             window.location.href = "/SmallGroup/HappyGroup";
         } else {
-            console.error('[¾É¦V¿ù»~] ¥¼ª¾ªºµø¹ÏÃş«¬:', data.DisplayViewType);
-            ShowToast("µn¤J¿ù»~: ¥¼ª¾ªºµø¹ÏÃş«¬", "error", 3000);
+            console.error('[å°å‘éŒ¯èª¤] æœªçŸ¥çš„è¦–åœ–é¡å‹:', data.DisplayViewType);
+            ShowToast("ç™»å…¥éŒ¯èª¤: æœªçŸ¥çš„è¦–åœ–é¡å‹", "error", 3000);
             loadPanel_hide();
             document.getElementById('displaynamefield').innerHTML = 
-                "µn¤J¿ù»~: ¥¼ª¾ªºµø¹ÏÃş«¬<br/><small>DisplayViewType=" + data.DisplayViewType + "</small>";
+                "ç™»å…¥éŒ¯èª¤: æœªçŸ¥çš„è¦–åœ–é¡å‹<br/><small>DisplayViewType=" + data.DisplayViewType + "</small>";
         }
     } else {
-        // ¥¼¸j©w³B²z...
+        // æœªç¶å®šè™•ç†...
     }
 }
 ```
 
 ---
 
-## ?? °£¿ù¨BÆJ
+## ğŸ§ª é™¤éŒ¯æ­¥é©Ÿ
 
-### ¨BÆJ 1: ÀË¬d Debug ¿é¥X
+### æ­¥é©Ÿ 1: æª¢æŸ¥ Debug è¼¸å‡º
 
-**¶}±Ò Visual Studio ¿é¥Xµøµ¡** (Ctrl+Alt+O)¡A¿ï¾Ü "°»¿ù"
+**é–‹å•Ÿ Visual Studio è¼¸å‡ºè¦–çª—** (Ctrl+Alt+O)ï¼Œé¸æ“‡ "åµéŒ¯"
 
-**°õ¦æ LINE µn¤J«á¡A¬d¬İ¥H¤U¿é¥X**:
+**åŸ·è¡Œ LINE ç™»å…¥å¾Œï¼ŒæŸ¥çœ‹ä»¥ä¸‹è¼¸å‡º**:
 
 ```
-[ProcessLogin] ¶}©l³B²zµn¤J
-[ValidateUserCredentials] ¶}©lÅçÃÒ - ±b¸¹: 
-[ValidateUserCredentials] ¨Ï¥Î LINE ID µn¤J
-[RetrieveUserData] ¨Ï¥Î LINE ID ¬d¸ß: Uxxx
-[RetrieveUserData] LINE µn¤J¬d¸ß¦¨¥\¡A©m¦W: XXX
-[SetupSystemData] ©I¥s SetupListManager - ¶}©l®É¶¡: ...
-[SetupSystemData] SetupListManager §¹¦¨ - ®É¶¡: ...
-[DetermineDisplayViewType] ¶}©l§PÂ_Åã¥Üµø¹ÏÃş«¬
+[ProcessLogin] é–‹å§‹è™•ç†ç™»å…¥
+[ValidateUserCredentials] é–‹å§‹é©—è­‰ - å¸³è™Ÿ: 
+[ValidateUserCredentials] ä½¿ç”¨ LINE ID ç™»å…¥
+[RetrieveUserData] ä½¿ç”¨ LINE ID æŸ¥è©¢: Uxxx
+[RetrieveUserData] LINE ç™»å…¥æŸ¥è©¢æˆåŠŸï¼Œå§“å: XXX
+[SetupSystemData] å‘¼å« SetupListManager - é–‹å§‹æ™‚é–“: ...
+[SetupSystemData] SetupListManager å®Œæˆ - æ™‚é–“: ...
+[DetermineDisplayViewType] é–‹å§‹åˆ¤æ–·é¡¯ç¤ºè¦–åœ–é¡å‹
 [DetermineDisplayViewType] UserType=XXX
 [DetermineDisplayViewType] LoginType=XXX
-[DetermineDisplayViewType] GetDisplayViewType() ¦^¶Ç­È: 'IntegrateView'  // ¡ö ÀË¬d³o¸Ì
-[DetermineDisplayViewType] ³Ì²×µø¹ÏÃş«¬: IntegrateView
-[ProcessLogin] Åã¥ÜÃş«¬: IntegrateView
+[DetermineDisplayViewType] GetDisplayViewType() å›å‚³å€¼: 'IntegrateView'  // â† æª¢æŸ¥é€™è£¡
+[DetermineDisplayViewType] æœ€çµ‚è¦–åœ–é¡å‹: IntegrateView
+[ProcessLogin] é¡¯ç¤ºé¡å‹: IntegrateView
 ```
 
-### ¨BÆJ 2: ÀË¬d JavaScript Console
+### æ­¥é©Ÿ 2: æª¢æŸ¥ JavaScript Console
 
-**¶}±ÒÂsÄı¾¹ F12 Console**
+**é–‹å•Ÿç€è¦½å™¨ F12 Console**
 
 ```javascript
 [LINE Profile] { DisplayName: "...", UserId: "..." }
-[UpdateLineUserId] ¶}©l§ó·s LINE ID { ... }
+[UpdateLineUserId] é–‹å§‹æ›´æ–° LINE ID { ... }
 [AJAX Success] { 
-    DisplayViewType: "IntegrateView",  // ¡ö ÀË¬d³o¸Ì
+    DisplayViewType: "IntegrateView",  // â† æª¢æŸ¥é€™è£¡
     ActiveListId: "xxx-xxx-xxx",
-    message: "ÅwªïXXXµn¤J¦¨¥\!",
+    message: "æ­¡è¿XXXç™»å…¥æˆåŠŸ!",
     fullname: "XXX"
 }
-[¾É¦V] IntegrateView: xxx-xxx-xxx
+[å°å‘] IntegrateView: xxx-xxx-xxx
 ```
 
-### ¨BÆJ 3: ÀË¬d¥i¯àªº°İÃDÂI
+### æ­¥é©Ÿ 3: æª¢æŸ¥å¯èƒ½çš„å•é¡Œé»
 
-#### 3.1 ÀË¬d SetupListManager ¬O§_¦¨¥\
+#### 3.1 æª¢æŸ¥ SetupListManager æ˜¯å¦æˆåŠŸ
 
 ```csharp
-// ¦b SetupSystemData ¤èªk¤¤²K¥[§ó¦h Debug ¿é¥X
-System.Diagnostics.Debug.WriteLine($"[SetupSystemData] ListManager ª¬ºA:");
+// åœ¨ SetupSystemData æ–¹æ³•ä¸­æ·»åŠ æ›´å¤š Debug è¼¸å‡º
+System.Diagnostics.Debug.WriteLine($"[SetupSystemData] ListManager ç‹€æ…‹:");
 System.Diagnostics.Debug.WriteLine($"  - ActiveListId: {InMemoryContext.ListManager.ActiveListId}");
 System.Diagnostics.Debug.WriteLine($"  - LoginType: {InMemoryContext.ListManager.LoginType}");
 System.Diagnostics.Debug.WriteLine($"  - LoginFullName: {InMemoryContext.ListManager.LoginFullName}");
 ```
 
-#### 3.2 ÀË¬d GetDisplayViewType ¹ê§@
+#### 3.2 æª¢æŸ¥ GetDisplayViewType å¯¦ä½œ
 
 ```csharp
-// §ä¨ì ListManager.GetDisplayViewType() ¤èªk
-// ²K¥[ Debug ¿é¥X¡A¬d¬İÅŞ¿è¬yµ{
+// æ‰¾åˆ° ListManager.GetDisplayViewType() æ–¹æ³•
+// æ·»åŠ  Debug è¼¸å‡ºï¼ŒæŸ¥çœ‹é‚è¼¯æµç¨‹
 ```
 
 ---
 
-## ?? ¹w´Áµ²ªG
+## ğŸ“Š é æœŸçµæœ
 
-### ¦¨¥\µn¤J¬yµ{
+### æˆåŠŸç™»å…¥æµç¨‹
 
-| ¨BÆJ | ¹w´Á¿é¥X | ª¬ºA |
+| æ­¥é©Ÿ | é æœŸè¼¸å‡º | ç‹€æ…‹ |
 |-----|---------|------|
-| 1. LIFF ªì©l¤Æ | `[LIFF Init] ¦¨¥\` | ? |
-| 2. ¨ú±o Profile | `[LINE Profile] { ... }` | ? |
-| 3. AJAX ©I¥s | `[UpdateLineUserId] ¶}©l` | ? |
-| 4. ÅçÃÒ¥Î¤á | `[ValidateUserCredentials] ¦¨¥\` | ? |
-| 5. ¨ú±o¸ê®Æ | `[RetrieveUserData] ¦¨¥\` | ? |
-| 6. ³]©w¨t²Î | `[SetupSystemData] §¹¦¨` | ? |
-| 7. §PÂ_µø¹Ï | `[DetermineDisplayViewType] IntegrateView` | ? |
-| 8. ¦^¶Ç JSON | `DisplayViewType: "IntegrateView"` | ? |
-| 9. ¾É¦V­¶­± | ¸õÂà¨ì `/SmallGroup/IntegrateView/xxx` | ? |
+| 1. LIFF åˆå§‹åŒ– | `[LIFF Init] æˆåŠŸ` | âœ… |
+| 2. å–å¾— Profile | `[LINE Profile] { ... }` | âœ… |
+| 3. AJAX å‘¼å« | `[UpdateLineUserId] é–‹å§‹` | âœ… |
+| 4. é©—è­‰ç”¨æˆ¶ | `[ValidateUserCredentials] æˆåŠŸ` | âœ… |
+| 5. å–å¾—è³‡æ–™ | `[RetrieveUserData] æˆåŠŸ` | âœ… |
+| 6. è¨­å®šç³»çµ± | `[SetupSystemData] å®Œæˆ` | âœ… |
+| 7. åˆ¤æ–·è¦–åœ– | `[DetermineDisplayViewType] IntegrateView` | âœ… |
+| 8. å›å‚³ JSON | `DisplayViewType: "IntegrateView"` | âœ… |
+| 9. å°å‘é é¢ | è·³è½‰åˆ° `/SmallGroup/IntegrateView/xxx` | âœ… |
 
 ---
 
-## ?? ¶i¶¥°£¿ù
+## ğŸ”§ é€²éšé™¤éŒ¯
 
-### ¦pªG°İÃD¤´µM¦s¦b
+### å¦‚æœå•é¡Œä»ç„¶å­˜åœ¨
 
-#### ÀË¬d 1: InMemoryContext ªì©l¤Æ
+#### æª¢æŸ¥ 1: InMemoryContext åˆå§‹åŒ–
 
 ```csharp
-// ÀË¬d InMemoryContext ¬O§_¥¿½Tªì©l¤Æ
+// æª¢æŸ¥ InMemoryContext æ˜¯å¦æ­£ç¢ºåˆå§‹åŒ–
 if (InMemoryContext == null)
 {
-    System.Diagnostics.Debug.WriteLine("[ERROR] InMemoryContext ¬° null");
+    System.Diagnostics.Debug.WriteLine("[ERROR] InMemoryContext ç‚º null");
 }
 
 if (InMemoryContext.ListManager == null)
 {
-    System.Diagnostics.Debug.WriteLine("[ERROR] InMemoryContext.ListManager ¬° null");
+    System.Diagnostics.Debug.WriteLine("[ERROR] InMemoryContext.ListManager ç‚º null");
 }
 ```
 
-#### ÀË¬d 2: SetupListManager ²§±`
+#### æª¢æŸ¥ 2: SetupListManager ç•°å¸¸
 
 ```csharp
-// ¦b SetupSystemData ¤¤²K¥[§ó¸Ô²Óªº¿ù»~®·Àò
+// åœ¨ SetupSystemData ä¸­æ·»åŠ æ›´è©³ç´°çš„éŒ¯èª¤æ•ç²
 try
 {
     InMemoryContext.ListManager.SetupListManager(
@@ -272,77 +272,77 @@ try
 }
 catch (Exception ex)
 {
-    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupListManager §¹¾ã²§±`:");
+    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupListManager å®Œæ•´ç•°å¸¸:");
     System.Diagnostics.Debug.WriteLine($"  - Message: {ex.Message}");
     System.Diagnostics.Debug.WriteLine($"  - StackTrace: {ex.StackTrace}");
     System.Diagnostics.Debug.WriteLine($"  - InnerException: {ex.InnerException?.Message}");
     
-    // ¥i¿ï: ªğ¦^¿ù»~µ¹«eºİ
-    throw new Exception($"³]©w¤p²Õ¸ê®Æ¥¢±Ñ: {ex.Message}", ex);
+    // å¯é¸: è¿”å›éŒ¯èª¤çµ¦å‰ç«¯
+    throw new Exception($"è¨­å®šå°çµ„è³‡æ–™å¤±æ•—: {ex.Message}", ex);
 }
 ```
 
-#### ÀË¬d 3: LINE ID ¬d¸ßµ²ªG
+#### æª¢æŸ¥ 3: LINE ID æŸ¥è©¢çµæœ
 
 ```csharp
-// ¦b RetrieveUserData ¤¤²K¥[§ó¸Ô²Óªº Debug
+// åœ¨ RetrieveUserData ä¸­æ·»åŠ æ›´è©³ç´°çš„ Debug
 if (results.Entities.Count > 0)
 {
     loginContact = results.Entities[0];
     fullName = loginContact.GetAttributeValue<string>("fullname");
     
-    System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] §ä¨ìªºÁpµ¸¤H:");
+    System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] æ‰¾åˆ°çš„è¯çµ¡äºº:");
     System.Diagnostics.Debug.WriteLine($"  - ContactId: {loginContact.Id}");
     System.Diagnostics.Debug.WriteLine($"  - FullName: {fullName}");
-    System.Diagnostics.Debug.WriteLine($"  - LineUserId: {loginContact.GetAttributeValue<string>("new_lineuserid")}");
+    System.Diagnostics.Debug.WriteLine($"  - LineUserId: {loginContact.GetAttributeValue<string>("new_lineid")}");
 }
 ```
 
 ---
 
-## ?? ­×§ïÀÉ®×²M³æ
+## ğŸ“ ä¿®æ”¹æª”æ¡ˆæ¸…å–®
 
-| ÀÉ®× | ª¬ºA | »¡©ú |
+| æª”æ¡ˆ | ç‹€æ…‹ | èªªæ˜ |
 |-----|------|------|
-| `AuthenticationController.cs` | ? ¤w­×¥¿ | ²K¥[«OÅ@©ÊÀË¬d©M¸Ô²Ó Debug ¿é¥X |
-| `LineIdLoginView.cshtml` | ?? «ØÄ³­×¥¿ | ¼W±j«eºİ¿ù»~³B²z (¥i¿ï) |
+| `AuthenticationController.cs` | âœ… å·²ä¿®æ­£ | æ·»åŠ ä¿è­·æ€§æª¢æŸ¥å’Œè©³ç´° Debug è¼¸å‡º |
+| `LineIdLoginView.cshtml` | â„¹ï¸ å»ºè­°ä¿®æ­£ | å¢å¼·å‰ç«¯éŒ¯èª¤è™•ç† (å¯é¸) |
 
 ---
 
-## ?? ¤U¤@¨B¦æ°Ê
+## ğŸ¯ ä¸‹ä¸€æ­¥è¡Œå‹•
 
-### 1. ´ú¸Õ­×¥¿«áªºµ{¦¡½X
+### 1. æ¸¬è©¦ä¿®æ­£å¾Œçš„ç¨‹å¼ç¢¼
 
 ```bash
-# ­«·s½sÄ¶
+# é‡æ–°ç·¨è­¯
 dotnet build
 
-# °õ¦æ±M®×
+# åŸ·è¡Œå°ˆæ¡ˆ
 dotnet run
 ```
 
-### 2. ¹ê»Ú´ú¸Õ LINE µn¤J
+### 2. å¯¦éš›æ¸¬è©¦ LINE ç™»å…¥
 
-1. ¶}±ÒÂsÄı¾¹ F12 Console
-2. °õ¦æ LINE µn¤J¬yµ{
-3. Æ[¹î Debug ¿é¥X
-4. ÀË¬d JavaScript Console
+1. é–‹å•Ÿç€è¦½å™¨ F12 Console
+2. åŸ·è¡Œ LINE ç™»å…¥æµç¨‹
+3. è§€å¯Ÿ Debug è¼¸å‡º
+4. æª¢æŸ¥ JavaScript Console
 
-### 3. ¦pªGÁÙ¦³°İÃD
+### 3. å¦‚æœé‚„æœ‰å•é¡Œ
 
-´£¨Ñ¥H¤U¸ê°T:
-- **Visual Studio Debug ¿é¥X** (§¹¾ã)
-- **JavaScript Console ¿é¥X** (§¹¾ã)
-- **Network ¼ĞÅÒªº SaveUserLineId ½Ğ¨D/¦^À³**
-- **¿ù»~°T®§ºI¹Ï**
+æä¾›ä»¥ä¸‹è³‡è¨Š:
+- **Visual Studio Debug è¼¸å‡º** (å®Œæ•´)
+- **JavaScript Console è¼¸å‡º** (å®Œæ•´)
+- **Network æ¨™ç±¤çš„ SaveUserLineId è«‹æ±‚/å›æ‡‰**
+- **éŒ¯èª¤è¨Šæ¯æˆªåœ–**
 
 ---
 
-## ?? ¹w¨¾±¹¬I
+## ğŸ’¡ é é˜²æªæ–½
 
-### 1. ²K¥[ªÅ­ÈÀË¬d
+### 1. æ·»åŠ ç©ºå€¼æª¢æŸ¥
 
-¦b©Ò¦³¨Ï¥Î `InMemoryContext` ªº¦a¤è²K¥[ÀË¬d:
+åœ¨æ‰€æœ‰ä½¿ç”¨ `InMemoryContext` çš„åœ°æ–¹æ·»åŠ æª¢æŸ¥:
 ```csharp
 if (InMemoryContext?.ListManager?.GetDisplayViewType() != null)
 {
@@ -350,32 +350,32 @@ if (InMemoryContext?.ListManager?.GetDisplayViewType() != null)
 }
 else
 {
-    // ¨Ï¥Î¹w³]­È
+    // ä½¿ç”¨é è¨­å€¼
     displayViewType = "IntegrateView";
 }
 ```
 
-### 2. ²K¥[¿ù»~ºÊ±±
+### 2. æ·»åŠ éŒ¯èª¤ç›£æ§
 
-¦Ò¼{¹ê§@ Application Insights ©Î¦Û­q¿ù»~¤é»x:
+è€ƒæ…®å¯¦ä½œ Application Insights æˆ–è‡ªè¨‚éŒ¯èª¤æ—¥èªŒ:
 ```csharp
 try
 {
-    // ·~°ÈÅŞ¿è
+    // æ¥­å‹™é‚è¼¯
 }
 catch (Exception ex)
 {
-    // °O¿ı¨ì¤é»x¨t²Î
-    _logger.LogError(ex, "DetermineDisplayViewType ¥¢±Ñ");
+    // è¨˜éŒ„åˆ°æ—¥èªŒç³»çµ±
+    _logger.LogError(ex, "DetermineDisplayViewType å¤±æ•—");
     
-    // ¦^¶Ç¦w¥şªº¹w³]­È
+    // å›å‚³å®‰å…¨çš„é è¨­å€¼
     return "IntegrateView";
 }
 ```
 
-### 3. ²K¥[°·±dÀË¬d
+### 3. æ·»åŠ å¥åº·æª¢æŸ¥
 
-¦bµn¤J«eÀË¬d¨t²Îª¬ºA:
+åœ¨ç™»å…¥å‰æª¢æŸ¥ç³»çµ±ç‹€æ…‹:
 ```csharp
 private bool IsSystemReady()
 {
@@ -388,7 +388,7 @@ private bool IsSystemReady()
 
 ---
 
-**­×´_¤é´Á**: 2024-11-26  
-**ª¬ºA**: ? ¤w­×¥¿ («İ´ú¸ÕÅçÃÒ)  
-**Àu¥ı¯Å**: ?? °ªÀu¥ı¯Å
+**ä¿®å¾©æ—¥æœŸ**: 2024-11-26  
+**ç‹€æ…‹**: âœ… å·²ä¿®æ­£ (å¾…æ¸¬è©¦é©—è­‰)  
+**å„ªå…ˆç´š**: ğŸ”´ é«˜å„ªå…ˆç´š
 

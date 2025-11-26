@@ -1,13 +1,13 @@
-# LINE µn¤J°İÃD - DisplayViewType=Undefined ³Ì²×¸Ñ¨M¤è®×
+ï»¿# LINE ç™»å…¥å•é¡Œ - DisplayViewType=Undefined æœ€çµ‚è§£æ±ºæ–¹æ¡ˆ
 
-## ?? °İÃD®Ú¥»­ì¦]
+## ğŸ¯ å•é¡Œæ ¹æœ¬åŸå› 
 
-¸g¹L²`¤J¤ÀªRµ{¦¡½X«á¡Aµo²{°İÃDªº®Ú¥»­ì¦]¦b©ó¡G
+ç¶“éæ·±å…¥åˆ†æç¨‹å¼ç¢¼å¾Œï¼Œç™¼ç¾å•é¡Œçš„æ ¹æœ¬åŸå› åœ¨æ–¼ï¼š
 
-### 1. `ListManager.GetDisplayViewType()` ªº¹ê§@
+### 1. `ListManager.GetDisplayViewType()` çš„å¯¦ä½œ
 
 ```csharp
-// ChurchReport/Models/ListManager.cs ²Ä 234 ¦æ
+// ChurchReport/Models/ListManager.cs ç¬¬ 234 è¡Œ
 public String GetDisplayViewType()
 {
     if (m_MultiGroupList != null)
@@ -25,15 +25,15 @@ public String GetDisplayViewType()
     }
     else
     {
-        return "IntegrateView";  // ? ³o¸Ì·|ªğ¦^ "IntegrateView"
+        return "IntegrateView";  // âœ… é€™è£¡æœƒè¿”å› "IntegrateView"
     }
 }
 ```
 
-### 2. `SetupListManager` ¥i¯à¥¢±Ñªº±¡ªp
+### 2. `SetupListManager` å¯èƒ½å¤±æ•—çš„æƒ…æ³
 
 ```csharp
-// ChurchReport/Models/ListManager.cs ²Ä 51 ¦æ
+// ChurchReport/Models/ListManager.cs ç¬¬ 51 è¡Œ
 public void SetupListManager(String Account, String Password, DateTime aSelectDate)
 {
     try
@@ -42,7 +42,7 @@ public void SetupListManager(String Account, String Password, DateTime aSelectDa
         m_Password = Password;
         m_SelectDate = aSelectDate;
 
-        // ? ¦pªG³o­Ó¤èªk©ß¥X²§±`©Î¨S¦³¥¿½T³]©w m_MultiGroupList
+        // âŒ å¦‚æœé€™å€‹æ–¹æ³•æ‹‹å‡ºç•°å¸¸æˆ–æ²’æœ‰æ­£ç¢ºè¨­å®š m_MultiGroupList
         m_DownloadListManager.GetListManager(
             Account, Password, aSelectDate, 
             ref m_MultiGroupList, 
@@ -54,163 +54,163 @@ public void SetupListManager(String Account, String Password, DateTime aSelectDa
     }
     catch (System.Exception e)
     {
-        // ²§±`³Q©ß¥X¡A¦ı m_MultiGroupList ¥i¯àÁÙ¬O null
+        // ç•°å¸¸è¢«æ‹‹å‡ºï¼Œä½† m_MultiGroupList å¯èƒ½é‚„æ˜¯ null
         throw e;
     }
 }
 ```
 
-### 3. LINE µn¤J¬yµ{¤¤ªº°İÃD
+### 3. LINE ç™»å…¥æµç¨‹ä¸­çš„å•é¡Œ
 
-LINE µn¤J®É¡A`Account` ¬OªÅ¦r¦ê `""`¡A`Password` ¬O `UserLineId`¡G
+LINE ç™»å…¥æ™‚ï¼Œ`Account` æ˜¯ç©ºå­—ä¸² `""`ï¼Œ`Password` æ˜¯ `UserLineId`ï¼š
 
 ```csharp
 // ChurchReport/Controllers/AuthenticationController.cs
 var lineLoginViewModel = new GalleryViewModel
 {
-    Account = "",  // ? ªÅ¦r¦ê
+    Account = "",  // âŒ ç©ºå­—ä¸²
     Password = UserLineId
 };
 ```
 
-³o¾É­P `SetupListManager` ¥i¯à¡G
-1. µLªk¥¿½T¬d¸ß¸ê®Æ®w
-2. `m_MultiGroupList` «O«ù¬° null ©ÎªÅ
-3. `GetDisplayViewType()` ªğ¦^ "IntegrateView"¡]¥¿½T¡^©Î¥i¯à¦b¬Y¨Ç±¡ªp¤Uªğ¦^¨ä¥L­È
+é€™å°è‡´ `SetupListManager` å¯èƒ½ï¼š
+1. ç„¡æ³•æ­£ç¢ºæŸ¥è©¢è³‡æ–™åº«
+2. `m_MultiGroupList` ä¿æŒç‚º null æˆ–ç©º
+3. `GetDisplayViewType()` è¿”å› "IntegrateView"ï¼ˆæ­£ç¢ºï¼‰æˆ–å¯èƒ½åœ¨æŸäº›æƒ…æ³ä¸‹è¿”å›å…¶ä»–å€¼
 
-### 4. ¬°¤°»òÅã¥Ü "Undefined"¡H
+### 4. ç‚ºä»€éº¼é¡¯ç¤º "Undefined"ï¼Ÿ
 
-®Ú¾Ú±zªº¿ù»~°T®§ **`DisplayViewType=Undefined`**¡A³oªí¥Ü¡G
-- C# «áºİ¥i¯à¦b¬Y­Ó¦a¤è³]©w¤F `displayViewType = "Undefined"`
-- ©ÎªÌ `GetDisplayViewType()` ªğ¦^¤F null/ªÅ¦r¦ê¡A¦Ó«eºİ JavaScript ±N¨ä¸ÑÄÀ¬° "Undefined"
+æ ¹æ“šæ‚¨çš„éŒ¯èª¤è¨Šæ¯ **`DisplayViewType=Undefined`**ï¼Œé€™è¡¨ç¤ºï¼š
+- C# å¾Œç«¯å¯èƒ½åœ¨æŸå€‹åœ°æ–¹è¨­å®šäº† `displayViewType = "Undefined"`
+- æˆ–è€… `GetDisplayViewType()` è¿”å›äº† null/ç©ºå­—ä¸²ï¼Œè€Œå‰ç«¯ JavaScript å°‡å…¶è§£é‡‹ç‚º "Undefined"
 
-##¤w¹ê¬Iªº­×¥¿¤è®×
+##å·²å¯¦æ–½çš„ä¿®æ­£æ–¹æ¡ˆ
 
-§Ú­Ì¤w¸g¦b `DetermineDisplayViewType()` ¤èªk¤¤²K¥[¤F«OÅ@©ÊÀË¬d¡G
+æˆ‘å€‘å·²ç¶“åœ¨ `DetermineDisplayViewType()` æ–¹æ³•ä¸­æ·»åŠ äº†ä¿è­·æ€§æª¢æŸ¥ï¼š
 
 ```csharp
 private string DetermineDisplayViewType()
 {
     try
     {
-        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ¶}©l§PÂ_Åã¥Üµø¹ÏÃş«¬");
+        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] é–‹å§‹åˆ¤æ–·é¡¯ç¤ºè¦–åœ–é¡å‹");
         
-        // ±±¨î Navigation ¤U©Ô¶µ¥Ø
-        ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "¤£¬O³æ¯Â¦æ¨Æ¾ä";
-        ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "Åã¥Üªª¾i¦^³ø¶µ¥Ø";
+        // æ§åˆ¶ Navigation ä¸‹æ‹‰é …ç›®
+        ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "ä¸æ˜¯å–®ç´”è¡Œäº‹æ›†";
+        ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
         ViewBag.UserType = InMemoryContext.ListManager.UserType = InMemoryContext.AppointmentsListManager.UserType;
 
         System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] UserType={ViewBag.UserType}");
         System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] LoginType={InMemoryContext.ListManager.LoginType}");
 
-        // ³z¹L¨ú±o¦h¤p²Õºô­¶»İ­nªº¸ê®Æ¤§«á¡A§PÂ_³o¬O¦h¤p²ÕÁÙ¬O³æ¤@¤p²Õªøªº¦^³ø
+        // é€éå–å¾—å¤šå°çµ„ç¶²é éœ€è¦çš„è³‡æ–™ä¹‹å¾Œï¼Œåˆ¤æ–·é€™æ˜¯å¤šå°çµ„é‚„æ˜¯å–®ä¸€å°çµ„é•·çš„å›å ±
         string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
         
-        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] GetDisplayViewType() ¦^¶Ç­È: '{displayViewType ?? "null"}'");
+        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] GetDisplayViewType() å›å‚³å€¼: '{displayViewType ?? "null"}'");
         
-        // ? «OÅ@©ÊÀË¬d: ¦pªG displayViewType ¬O null ©ÎªÅ¦r¦ê¡A³]©w¹w³]­È
+        // âœ… ä¿è­·æ€§æª¢æŸ¥: å¦‚æœ displayViewType æ˜¯ null æˆ–ç©ºå­—ä¸²ï¼Œè¨­å®šé è¨­å€¼
         if (string.IsNullOrEmpty(displayViewType))
         {
-            System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] Äµ§i: displayViewType ¬°ªÅ¡A¨Ï¥Î¹w³]­È");
+            System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] è­¦å‘Š: displayViewType ç‚ºç©ºï¼Œä½¿ç”¨é è¨­å€¼");
             
-            // ®Ú¾Ú LoginType ¨M©w¹w³]­È
-            if (InMemoryContext.ListManager.LoginType == "¤p²Õªø")
+            // æ ¹æ“š LoginType æ±ºå®šé è¨­å€¼
+            if (InMemoryContext.ListManager.LoginType == "å°çµ„é•·")
             {
                 displayViewType = "IntegrateView";
-                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ¤p²Õªø¹w³]­È: IntegrateView");
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] å°çµ„é•·é è¨­å€¼: IntegrateView");
             }
             else
             {
                 displayViewType = "MultiGroupView";
-                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] «D¤p²Õªø¹w³]­È: MultiGroupView");
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] éå°çµ„é•·é è¨­å€¼: MultiGroupView");
             }
         }
         
-        // «áÄò³B²z...
+        // å¾ŒçºŒè™•ç†...
         
         return displayViewType;
     }
     catch (Exception ex)
     {
-        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] µo¥Í²§±`: {ex.Message}");
+        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ç™¼ç”Ÿç•°å¸¸: {ex.Message}");
         
-        // µo¥Í²§±`®É¡Aªğ¦^¦w¥şªº¹w³]­È
+        // ç™¼ç”Ÿç•°å¸¸æ™‚ï¼Œè¿”å›å®‰å…¨çš„é è¨­å€¼
         return "IntegrateView";
     }
 }
 ```
 
-## ?? °£¿ù¨BÆJ
+## ğŸ” é™¤éŒ¯æ­¥é©Ÿ
 
-### ¨BÆJ 1: ÀË¬d Visual Studio ¿é¥Xµøµ¡
+### æ­¥é©Ÿ 1: æª¢æŸ¥ Visual Studio è¼¸å‡ºè¦–çª—
 
-1. ¶}±Ò Visual Studio
-2. ÂI¿ï¥\¯àªí **[°»¿ù]** ¡÷ **[µøµ¡]** ¡÷ **[¿é¥X]** (©Î«ö **Ctrl+Alt+O**)
-3. ¦b¿é¥Xµøµ¡ªº¤U©Ô¿ï³æ¤¤¡A¿ï¾Ü **¡u°»¿ù¡v**
-4. °õ¦æ LINE µn¤J¬yµ{
+1. é–‹å•Ÿ Visual Studio
+2. é»é¸åŠŸèƒ½è¡¨ **[åµéŒ¯]** â†’ **[è¦–çª—]** â†’ **[è¼¸å‡º]** (æˆ–æŒ‰ **Ctrl+Alt+O**)
+3. åœ¨è¼¸å‡ºè¦–çª—çš„ä¸‹æ‹‰é¸å–®ä¸­ï¼Œé¸æ“‡ **ã€ŒåµéŒ¯ã€**
+4. åŸ·è¡Œ LINE ç™»å…¥æµç¨‹
 
-### ¨BÆJ 2: ¬d¬İ Debug ¿é¥X
+### æ­¥é©Ÿ 2: æŸ¥çœ‹ Debug è¼¸å‡º
 
-±zÀ³¸Ó·|¬İ¨ì¥H¤U¿é¥X¡G
+æ‚¨æ‡‰è©²æœƒçœ‹åˆ°ä»¥ä¸‹è¼¸å‡ºï¼š
 
 ```
-[ProcessLogin] ¶}©l³B²zµn¤J - ±b¸¹: , ®É¶¡: 2024-11-26 ...
-[ValidateUserCredentials] ¶}©lÅçÃÒ - ±b¸¹: 
-[ValidateUserCredentials] ¨Ï¥Î LINE ID µn¤J
-[ValidateUserCredentials] ÅçÃÒ¦¨¥\
-[RetrieveUserData] ¨Ï¥Î LINE ID ¬d¸ß: Uxxx...
-[RetrieveUserData] LINE µn¤J¬d¸ß¦¨¥\¡A©m¦W: XXX
-[SetupSystemData] ©I¥s SetupListManager - ¶}©l®É¶¡: ...
-[SetupSystemData] SetupListManager §¹¦¨ - ®É¶¡: ...
-[DetermineDisplayViewType] ¶}©l§PÂ_Åã¥Üµø¹ÏÃş«¬
+[ProcessLogin] é–‹å§‹è™•ç†ç™»å…¥ - å¸³è™Ÿ: , æ™‚é–“: 2024-11-26 ...
+[ValidateUserCredentials] é–‹å§‹é©—è­‰ - å¸³è™Ÿ: 
+[ValidateUserCredentials] ä½¿ç”¨ LINE ID ç™»å…¥
+[ValidateUserCredentials] é©—è­‰æˆåŠŸ
+[RetrieveUserData] ä½¿ç”¨ LINE ID æŸ¥è©¢: Uxxx...
+[RetrieveUserData] LINE ç™»å…¥æŸ¥è©¢æˆåŠŸï¼Œå§“å: XXX
+[SetupSystemData] å‘¼å« SetupListManager - é–‹å§‹æ™‚é–“: ...
+[SetupSystemData] SetupListManager å®Œæˆ - æ™‚é–“: ...
+[DetermineDisplayViewType] é–‹å§‹åˆ¤æ–·é¡¯ç¤ºè¦–åœ–é¡å‹
 [DetermineDisplayViewType] UserType=...
 [DetermineDisplayViewType] LoginType=...
-[DetermineDisplayViewType] GetDisplayViewType() ¦^¶Ç­È: 'IntegrateView'  // ¡ö ÀË¬d³o¸Ì
-[DetermineDisplayViewType] ³Ì²×µø¹ÏÃş«¬: IntegrateView
-[ProcessLogin] Åã¥ÜÃş«¬: IntegrateView
+[DetermineDisplayViewType] GetDisplayViewType() å›å‚³å€¼: 'IntegrateView'  // â† æª¢æŸ¥é€™è£¡
+[DetermineDisplayViewType] æœ€çµ‚è¦–åœ–é¡å‹: IntegrateView
+[ProcessLogin] é¡¯ç¤ºé¡å‹: IntegrateView
 ```
 
-**ÃöÁäÀË¬dÂI**:
-- **¦pªG¬İ¨ì `GetDisplayViewType() ¦^¶Ç­È: 'null'`** ¡÷ `ListManager` ¨S¦³¥¿½Tªì©l¤Æ
-- **¦pªG¬İ¨ì `SetupListManager ¥¢±Ñ`** ¡÷ ¸ê®Æ®w¬d¸ß²§±`
-- **¦pªG¬İ¨ì `GetDisplayViewType() ¦^¶Ç­È: ''` (ªÅ¦r¦ê)** ¡÷ `GetDisplayViewType()` ¦³ÅŞ¿è¿ù»~
+**é—œéµæª¢æŸ¥é»**:
+- **å¦‚æœçœ‹åˆ° `GetDisplayViewType() å›å‚³å€¼: 'null'`** â†’ `ListManager` æ²’æœ‰æ­£ç¢ºåˆå§‹åŒ–
+- **å¦‚æœçœ‹åˆ° `SetupListManager å¤±æ•—`** â†’ è³‡æ–™åº«æŸ¥è©¢ç•°å¸¸
+- **å¦‚æœçœ‹åˆ° `GetDisplayViewType() å›å‚³å€¼: ''` (ç©ºå­—ä¸²)** â†’ `GetDisplayViewType()` æœ‰é‚è¼¯éŒ¯èª¤
 
-### ¨BÆJ 3: ÀË¬d JavaScript Console
+### æ­¥é©Ÿ 3: æª¢æŸ¥ JavaScript Console
 
-1. ¶}±ÒÂsÄı¾¹ F12 ¶}µoªÌ¤u¨ã
-2. ¤Á´«¨ì **Console** ¼ĞÅÒ
-3. °õ¦æ LINE µn¤J¬yµ{
+1. é–‹å•Ÿç€è¦½å™¨ F12 é–‹ç™¼è€…å·¥å…·
+2. åˆ‡æ›åˆ° **Console** æ¨™ç±¤
+3. åŸ·è¡Œ LINE ç™»å…¥æµç¨‹
 
-±zÀ³¸Ó·|¬İ¨ì¡G
+æ‚¨æ‡‰è©²æœƒçœ‹åˆ°ï¼š
 
 ```javascript
 [LINE Profile] { DisplayName: "XXX", UserId: "Uxxx..." }
-[UpdateLineUserId] ¶}©l§ó·s LINE ID { ... }
+[UpdateLineUserId] é–‹å§‹æ›´æ–° LINE ID { ... }
 [AJAX Success] {
-    DisplayViewType: "IntegrateView",  // ¡ö ÀË¬d³o¸Ì
+    DisplayViewType: "IntegrateView",  // â† æª¢æŸ¥é€™è£¡
     ActiveListId: "xxx-xxx-xxx",
-    message: "ÅwªïXXXµn¤J¦¨¥\!",
+    message: "æ­¡è¿XXXç™»å…¥æˆåŠŸ!",
     fullname: "XXX"
 }
-[¾É¦V] IntegrateView: xxx-xxx-xxx
+[å°å‘] IntegrateView: xxx-xxx-xxx
 ```
 
-**¦pªG¬İ¨ì `DisplayViewType: null` ©Î `DisplayViewType: undefined`**:
-- ªí¥Ü C# «áºİ¦^¶Ç¤F null ­È
-- »İ­nÀË¬d `SetupSystemData` ¬O§_¦¨¥\°õ¦æ
+**å¦‚æœçœ‹åˆ° `DisplayViewType: null` æˆ– `DisplayViewType: undefined`**:
+- è¡¨ç¤º C# å¾Œç«¯å›å‚³äº† null å€¼
+- éœ€è¦æª¢æŸ¥ `SetupSystemData` æ˜¯å¦æˆåŠŸåŸ·è¡Œ
 
-## ?? ¥i¯àªº°İÃD©M¸Ñ¨M¤è®×
+## ğŸ’¡ å¯èƒ½çš„å•é¡Œå’Œè§£æ±ºæ–¹æ¡ˆ
 
-### °İÃD 1: `SetupListManager` ©ß¥X²§±`
+### å•é¡Œ 1: `SetupListManager` æ‹‹å‡ºç•°å¸¸
 
-**¯gª¬**: 
+**ç—‡ç‹€**: 
 ```
-[SetupSystemData] SetupListManager ¥¢±Ñ: ...
+[SetupSystemData] SetupListManager å¤±æ•—: ...
 ```
 
-**¸Ñ¨M¤è®×**:
+**è§£æ±ºæ–¹æ¡ˆ**:
 ```csharp
-// ¦b SetupSystemData ¤èªk¤¤²K¥[§ó¸Ô²Óªº¿ù»~³B²z
+// åœ¨ SetupSystemData æ–¹æ³•ä¸­æ·»åŠ æ›´è©³ç´°çš„éŒ¯èª¤è™•ç†
 try
 {
     InMemoryContext.ListManager.SetupListManager(
@@ -220,57 +220,57 @@ try
 }
 catch (Exception ex)
 {
-    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupListManager ¥¢±Ñ:");
+    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupListManager å¤±æ•—:");
     System.Diagnostics.Debug.WriteLine($"  - Message: {ex.Message}");
     System.Diagnostics.Debug.WriteLine($"  - StackTrace: {ex.StackTrace}");
     
-    // ³]©w¹w³]­È¥HÁ×§K±Y¼ì
-    InMemoryContext.ListManager.LoginType = "¤p²Õªø";
+    // è¨­å®šé è¨­å€¼ä»¥é¿å…å´©æ½°
+    InMemoryContext.ListManager.LoginType = "å°çµ„é•·";
     InMemoryContext.ListManager.LoginFullName = viewModel.Account;
     InMemoryContext.ListManager.ActiveListId = Guid.NewGuid().ToString();
 }
 ```
 
-### °İÃD 2: LINE µn¤J®É `Account` ¬°ªÅ
+### å•é¡Œ 2: LINE ç™»å…¥æ™‚ `Account` ç‚ºç©º
 
-**¯gª¬**:
+**ç—‡ç‹€**:
 ```
-[SetupListManager] ±b¸¹¬°ªÅ¡AµLªk¬d¸ß¸ê®Æ
+[SetupListManager] å¸³è™Ÿç‚ºç©ºï¼Œç„¡æ³•æŸ¥è©¢è³‡æ–™
 ```
 
-**¸Ñ¨M¤è®×**:
-LINE µn¤J®ÉÀ³¸Ó¨Ï¥ÎÁpµ¸¤Hªº¸ê®Æ¡A¦Ó¤£¬OªÅ±b¸¹¡G
+**è§£æ±ºæ–¹æ¡ˆ**:
+LINE ç™»å…¥æ™‚æ‡‰è©²ä½¿ç”¨è¯çµ¡äººçš„è³‡æ–™ï¼Œè€Œä¸æ˜¯ç©ºå¸³è™Ÿï¼š
 
 ```csharp
-// ¦b RetrieveUserData ¤èªk¤¤¡ALINE µn¤J¦¨¥\«á
+// åœ¨ RetrieveUserData æ–¹æ³•ä¸­ï¼ŒLINE ç™»å…¥æˆåŠŸå¾Œ
 if (loginContact != null)
 {
-    // ¨Ï¥ÎÁpµ¸¤Hªº¹ê»Ú¸ê®Æ§ó·s viewModel
+    // ä½¿ç”¨è¯çµ¡äººçš„å¯¦éš›è³‡æ–™æ›´æ–° viewModel
     string fullName = loginContact.GetAttributeValue<string>("fullname");
     
-    // ³]©w±b¸¹¬° "LineIdLogin" ©ÎÁpµ¸¤HID
+    // è¨­å®šå¸³è™Ÿç‚º "LineIdLogin" æˆ–è¯çµ¡äººID
     viewModel.Account = "LineIdLogin";
     viewModel.Password = InMemoryContext.LineBindingViewModel.LineUserId;
 }
 ```
 
-### °İÃD 3: `m_MultiGroupList` ¬° null
+### å•é¡Œ 3: `m_MultiGroupList` ç‚º null
 
-**¯gª¬**:
+**ç—‡ç‹€**:
 ```
-[DetermineDisplayViewType] GetDisplayViewType() ¦^¶Ç­È: 'null'
+[DetermineDisplayViewType] GetDisplayViewType() å›å‚³å€¼: 'null'
 ```
 
-**¸Ñ¨M¤è®×**:
-¦b `ListManager.GetDisplayViewType()` ¤¤¤w¸g¦³«OÅ@©ÊÀË¬d¡A¦ı¦pªGÁÙ¬Oªğ¦^ null¡A¥i¯à»İ­nÀË¬d¡G
+**è§£æ±ºæ–¹æ¡ˆ**:
+åœ¨ `ListManager.GetDisplayViewType()` ä¸­å·²ç¶“æœ‰ä¿è­·æ€§æª¢æŸ¥ï¼Œä½†å¦‚æœé‚„æ˜¯è¿”å› nullï¼Œå¯èƒ½éœ€è¦æª¢æŸ¥ï¼š
 
 ```csharp
-// ¦b DownloadListManager.GetListManager ¤èªk¤¤
+// åœ¨ DownloadListManager.GetListManager æ–¹æ³•ä¸­
 public void GetListManager(...)
 {
     try
     {
-        // ½T«O m_MultiGroupList ¦Ü¤Ö³Qªì©l¤Æ
+        // ç¢ºä¿ m_MultiGroupList è‡³å°‘è¢«åˆå§‹åŒ–
         if (m_MultiGroupList == null)
         {
             m_MultiGroupList = new MultiGroupList
@@ -279,13 +279,13 @@ public void GetListManager(...)
             };
         }
         
-        // ¬d¸ß¸ê®Æ®w...
+        // æŸ¥è©¢è³‡æ–™åº«...
     }
     catch (Exception ex)
     {
-        System.Diagnostics.Debug.WriteLine($"[GetListManager] ²§±`: {ex.Message}");
+        System.Diagnostics.Debug.WriteLine($"[GetListManager] ç•°å¸¸: {ex.Message}");
         
-        // ½T«O¦Ü¤Ö¦³ªÅªº¶°¦X
+        // ç¢ºä¿è‡³å°‘æœ‰ç©ºçš„é›†åˆ
         if (m_MultiGroupList == null)
         {
             m_MultiGroupList = new MultiGroupList
@@ -297,83 +297,83 @@ public void GetListManager(...)
 }
 ```
 
-## ?? ²×·¥¸Ñ¨M¤è®×
+## ğŸ¯ çµ‚æ¥µè§£æ±ºæ–¹æ¡ˆ
 
-¦pªG¤W­z©Ò¦³¤èªk³£µLªk¸Ñ¨M°İÃD¡A¥i¥H¦Ò¼{¡G
+å¦‚æœä¸Šè¿°æ‰€æœ‰æ–¹æ³•éƒ½ç„¡æ³•è§£æ±ºå•é¡Œï¼Œå¯ä»¥è€ƒæ…®ï¼š
 
-### ¿ï¶µ 1: ¬° LINE µn¤J«Ø¥ß±M¥Î¬yµ{
+### é¸é … 1: ç‚º LINE ç™»å…¥å»ºç«‹å°ˆç”¨æµç¨‹
 
 ```csharp
 private string DetermineDisplayViewType()
 {
     try
     {
-        // ? ¯S®í³B²z LINE µn¤J
+        // âœ… ç‰¹æ®Šè™•ç† LINE ç™»å…¥
         if (InMemoryContext.LineBindingViewModel?.LineUserId != null)
         {
-            System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ÀË´ú¨ì LINE µn¤J");
+            System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] æª¢æ¸¬åˆ° LINE ç™»å…¥");
             
-            // LINE µn¤J®É¡Aª½±µªğ¦^ IntegrateView
+            // LINE ç™»å…¥æ™‚ï¼Œç›´æ¥è¿”å› IntegrateView
             return "IntegrateView";
         }
         
-        // ¥¿±`µn¤J¬yµ{...
+        // æ­£å¸¸ç™»å…¥æµç¨‹...
         string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
         
-        // «áÄò³B²z...
+        // å¾ŒçºŒè™•ç†...
     }
     catch (Exception ex)
     {
-        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ²§±`: {ex.Message}");
+        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ç•°å¸¸: {ex.Message}");
         return "IntegrateView";
     }
 }
 ```
 
-### ¿ï¶µ 2: Â²¤Æ LINE µn¤J¦^À³
+### é¸é … 2: ç°¡åŒ– LINE ç™»å…¥å›æ‡‰
 
 ```csharp
-// ¦b SaveUserLineId ¤èªk¤¤
+// åœ¨ SaveUserLineId æ–¹æ³•ä¸­
 if (results.Entities.Count > 0)
 {
-    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ¥Î¤á¤w¸j©w¡A·Ç³Æµn¤J");
+    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ç”¨æˆ¶å·²ç¶å®šï¼Œæº–å‚™ç™»å…¥");
     
-    // ? ª½±µªğ¦^ IntegrateView¡A¤£½Õ¥Î ProcessLogin
+    // âœ… ç›´æ¥è¿”å› IntegrateViewï¼Œä¸èª¿ç”¨ ProcessLogin
     return Json(new
     {
         DisplayViewType = "IntegrateView",
         ActiveListId = results.Entities[0].Id.ToString(),
-        message = $"Åwªï {fullName} µn¤J¦¨¥\!",
+        message = $"æ­¡è¿ {fullName} ç™»å…¥æˆåŠŸ!",
         fullname = fullName
     });
 }
 ```
 
-## ?? ÀË¬d²M³æ
+## ğŸ“ æª¢æŸ¥æ¸…å–®
 
-¦b¹ê»Ú´ú¸Õ«e¡A½Ğ½T»{¡G
+åœ¨å¯¦éš›æ¸¬è©¦å‰ï¼Œè«‹ç¢ºèªï¼š
 
-- [ ] Visual Studio ¿é¥Xµøµ¡¤w¶}±Ò¨Ã³]©w¬°¡u°»¿ù¡v
-- [ ] ÂsÄı¾¹ F12 Console ¤w¶}±Ò
-- [ ] ¤w­«·s½sÄ¶±M®× (`dotnet build`)
-- [ ] ¤w­«·s±Ò°ÊÀ³¥Îµ{¦¡
-- [ ] LINE LIFF ID ¥¿½T³]©w¦b `TempData["Proponent"]`
-- [ ] LINE ±b¸¹¤w¥¿½T¸j©w¨ì¸ê®Æ®w
+- [ ] Visual Studio è¼¸å‡ºè¦–çª—å·²é–‹å•Ÿä¸¦è¨­å®šç‚ºã€ŒåµéŒ¯ã€
+- [ ] ç€è¦½å™¨ F12 Console å·²é–‹å•Ÿ
+- [ ] å·²é‡æ–°ç·¨è­¯å°ˆæ¡ˆ (`dotnet build`)
+- [ ] å·²é‡æ–°å•Ÿå‹•æ‡‰ç”¨ç¨‹å¼
+- [ ] LINE LIFF ID æ­£ç¢ºè¨­å®šåœ¨ `TempData["Proponent"]`
+- [ ] LINE å¸³è™Ÿå·²æ­£ç¢ºç¶å®šåˆ°è³‡æ–™åº«
 
-## ?? ¦pªG°İÃD«ùÄò¦s¦b
+## ğŸ”§ å¦‚æœå•é¡ŒæŒçºŒå­˜åœ¨
 
-½Ğ´£¨Ñ¥H¤U¸ê°T¡G
+è«‹æä¾›ä»¥ä¸‹è³‡è¨Šï¼š
 
-1. **Visual Studio ¿é¥Xµøµ¡ªº§¹¾ã¤º®e** (±q `[ProcessLogin]` ¶}©l¨ìµ²§ô)
-2. **ÂsÄı¾¹ Console ªº§¹¾ã¿é¥X**
-3. **Network ¼ĞÅÒ¤¤ `SaveUserLineId` ªº Request ©M Response**
-4. **¸ê®Æ®w¤¤¸Ó¨Ï¥ÎªÌªº `new_lineuserid` Äæ¦ì­È**
+1. **Visual Studio è¼¸å‡ºè¦–çª—çš„å®Œæ•´å…§å®¹** (å¾ `[ProcessLogin]` é–‹å§‹åˆ°çµæŸ)
+2. **ç€è¦½å™¨ Console çš„å®Œæ•´è¼¸å‡º**
+3. **Network æ¨™ç±¤ä¸­ `SaveUserLineId` çš„ Request å’Œ Response**
+4. **è³‡æ–™åº«ä¸­è©²ä½¿ç”¨è€…çš„ `new_lineid` æ¬„ä½å€¼**
 
-³o¨Ç¸ê°T±NÀ°§U§Ú­Ì·Ç½T©w¦ì°İÃD©Ò¦b¡C
+é€™äº›è³‡è¨Šå°‡å¹«åŠ©æˆ‘å€‘æº–ç¢ºå®šä½å•é¡Œæ‰€åœ¨ã€‚
 
 ---
 
-**ª¬ºA**: ? ¤w¹ê¬I«OÅ@©Ê­×¥¿  
-**«İÅçÃÒ**: ?? »İ­n¹ê»Ú´ú¸Õ  
-**Àu¥ı¯Å**: ?? °ªÀu¥ı¯Å
+**ç‹€æ…‹**: âœ… å·²å¯¦æ–½ä¿è­·æ€§ä¿®æ­£  
+**å¾…é©—è­‰**: ğŸ§ª éœ€è¦å¯¦éš›æ¸¬è©¦  
+**å„ªå…ˆç´š**: ğŸ”´ é«˜å„ªå…ˆç´š
 

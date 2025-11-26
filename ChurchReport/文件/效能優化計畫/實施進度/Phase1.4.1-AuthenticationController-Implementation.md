@@ -281,7 +281,7 @@ private async Task<(Entity loginContact, string fullName)> RetrieveUserData(
                 {
                     Conditions =
                     {
-                        new ConditionExpression("new_lineuserid", ConditionOperator.Equal, 
+                        new ConditionExpression("new_lineid", ConditionOperator.Equal, 
                             InMemoryContext.LineBindingViewModel.LineUserId),
                         new ConditionExpression("statecode", ConditionOperator.Equal, 0)
                     }
@@ -388,7 +388,7 @@ public async Task<IActionResult> ProcessLineBinding(LineBindingViewModel model)
                 {
                     Conditions =
                     {
-                        new ConditionExpression("new_lineuserid", ConditionOperator.Equal, model.LineUserId),
+                        new ConditionExpression("new_lineid", ConditionOperator.Equal, model.LineUserId),
                         new ConditionExpression("statecode", ConditionOperator.Equal, 0)
                     }
                 },
@@ -452,7 +452,7 @@ public async Task<IActionResult> ProcessLineBinding(LineBindingViewModel model)
                     // 找到匹配的聯絡人，綁定 LINE ID
                     System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 更新現有聯絡人的 LINE ID");
                     
-                    targetContact["new_lineuserid"] = model.LineUserId;
+                    targetContact["new_lineid"] = model.LineUserId;
                     
                     // 更新其他資訊
                     if (!string.IsNullOrWhiteSpace(model.OtherName))
@@ -477,7 +477,7 @@ public async Task<IActionResult> ProcessLineBinding(LineBindingViewModel model)
             var newContact = new Entity("contact");
             newContact["fullname"] = model.FullName;
             newContact["mobilephone"] = model.Mobile;
-            newContact["new_lineuserid"] = model.LineUserId;
+            newContact["new_lineid"] = model.LineUserId;
             
             if (!string.IsNullOrWhiteSpace(model.OtherName))
             {

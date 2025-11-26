@@ -360,7 +360,7 @@ namespace ChurchReport.Controllers
                     if (targetContact != null)
                     {
                         // 找到匹配的聯絡人，綁定 LINE ID
-                        ToolUtility.SetEntityStringAttribute(ref targetContact, "new_lineuserid", model.LineUserId);
+                        ToolUtility.SetEntityStringAttribute(ref targetContact, "new_lineid", model.LineUserId);
                         
                         // 更新其他資訊
                         if (!string.IsNullOrWhiteSpace(model.OtherName))
@@ -381,7 +381,7 @@ namespace ChurchReport.Controllers
                 var newContact = new Entity("contact");
                 ToolUtility.SetEntityStringAttribute(ref newContact, "fullname", model.FullName);
                 ToolUtility.SetEntityStringAttribute(ref newContact, "mobilephone", model.Mobile);
-                ToolUtility.SetEntityStringAttribute(ref newContact, "new_lineuserid", model.LineUserId);
+                ToolUtility.SetEntityStringAttribute(ref newContact, "new_lineid", model.LineUserId);
                 
                 if (!string.IsNullOrWhiteSpace(model.OtherName))
                 {

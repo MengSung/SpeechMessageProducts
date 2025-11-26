@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using ChurchReport.ViewModels;
@@ -17,21 +17,21 @@ using ToolUtilityNameSpace.DependencyInjection;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// »{ÃÒ±±¨î¾¹
-    /// ³B²z¨Ï¥ÎªÌµn¤J¡Bµn¥X¤Î¨­¥÷ÅçÃÒ¬ÛÃö¥\¯à
+    /// èªè­‰æ§åˆ¶å™¨
+    /// è™•ç†ä½¿ç”¨è€…ç™»å…¥ã€ç™»å‡ºåŠèº«ä»½é©—è­‰ç›¸é—œåŠŸèƒ½
     /// </summary>
     public class AuthenticationController : BaseChurchController
     {
-        #region «Øºc¨ç¦¡
+        #region å»ºæ§‹å‡½å¼
 
         /// <summary>
-        /// AuthenticationController «Øºc¨ç¼Æ (¨Ï¥Î Dependency Injection)
+        /// AuthenticationController å»ºæ§‹å‡½æ•¸ (ä½¿ç”¨ Dependency Injection)
         /// </summary>
-        /// <param name="httpContextAccessor">HTTP ¤W¤U¤å¦s¨ú¾¹</param>
-        /// <param name="memoryCache">°O¾ĞÅé§Ö¨ú</param>
-        /// <param name="paymentService">ª÷¬yªA°È</param>
-        /// <param name="toolUtilityProvider">ToolUtility ´£¨ÑªÌ (DI ª`¤J)</param>
-        /// <param name="connectionPool">CRM ³s½u¦À</param>
+        /// <param name="httpContextAccessor">HTTP ä¸Šä¸‹æ–‡å­˜å–å™¨</param>
+        /// <param name="memoryCache">è¨˜æ†¶é«”å¿«å–</param>
+        /// <param name="paymentService">é‡‘æµæœå‹™</param>
+        /// <param name="toolUtilityProvider">ToolUtility æä¾›è€… (DI æ³¨å…¥)</param>
+        /// <param name="connectionPool">CRM é€£ç·šæ± </param>
         public AuthenticationController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
@@ -44,11 +44,11 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region µn¤J­¶­±
+        #region ç™»å…¥é é¢
 
         /// <summary>
-        /// µn¤J­¶­±
-        /// Åã¥Ü±b¸¹±K½Xµn¤Jªí³æ
+        /// ç™»å…¥é é¢
+        /// é¡¯ç¤ºå¸³è™Ÿå¯†ç¢¼ç™»å…¥è¡¨å–®
         /// </summary>
         [HttpGet]
         [Route("/Authentication/Login")]
@@ -74,94 +74,94 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ³B²zµn¤J
+        #region è™•ç†ç™»å…¥
 
         /// <summary>
-        /// ³B²zµn¤J½Ğ¨D
-        /// ÅçÃÒ±b¸¹±K½X¨Ã«Ø¥ß¨Ï¥ÎªÌ Session
+        /// è™•ç†ç™»å…¥è«‹æ±‚
+        /// é©—è­‰å¸³è™Ÿå¯†ç¢¼ä¸¦å»ºç«‹ä½¿ç”¨è€… Session
         /// </summary>
-        /// <param name="aGalleryViewModel">µn¤Jªí³æ¸ê®Æ</param>
+        /// <param name="aGalleryViewModel">ç™»å…¥è¡¨å–®è³‡æ–™</param>
         [HttpPost]
         [Route("/Authentication/ProcessLogin")]
         public async Task<IActionResult> ProcessLogin(GalleryViewModel aGalleryViewModel)
         {
             try
             {
-                // °O¿ıµn¤J¶}©l
-                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] ¶}©l³B²zµn¤J - ±b¸¹: {aGalleryViewModel?.Account}, ®É¶¡: {DateTime.Now}");
+                // è¨˜éŒ„ç™»å…¥é–‹å§‹
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] é–‹å§‹è™•ç†ç™»å…¥ - å¸³è™Ÿ: {aGalleryViewModel?.Account}, æ™‚é–“: {DateTime.Now}");
 
-                // ¨BÆJ 1: ÅçÃÒ¨Ï¥ÎªÌ¨­¥÷
-                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] ¨BÆJ 1: ÅçÃÒ¨Ï¥ÎªÌ¨­¥÷");
+                // æ­¥é©Ÿ 1: é©—è­‰ä½¿ç”¨è€…èº«ä»½
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] æ­¥é©Ÿ 1: é©—è­‰ä½¿ç”¨è€…èº«ä»½");
                 var (isValid, contactIdString, errorMessage) = ValidateUserCredentials(aGalleryViewModel);
 
                 if (!isValid)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLogin] ÅçÃÒ¥¢±Ñ: {errorMessage}");
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLogin] é©—è­‰å¤±æ•—: {errorMessage}");
                     return Json(new
                     {
-                        DisplayViewType = "µn¤J¿ù»~",
+                        DisplayViewType = "ç™»å…¥éŒ¯èª¤",
                         ActiveListId = InMemoryContext?.ListManager?.ActiveListId ?? "",
                         message = errorMessage,
                         fullname = errorMessage
                     });
                 }
 
-                // ¨BÆJ 2: ¨ú±o¨Ï¥ÎªÌ¸ê®Æ
-                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] ¨BÆJ 2: ¨ú±o¨Ï¥ÎªÌ¸ê®Æ");
+                // æ­¥é©Ÿ 2: å–å¾—ä½¿ç”¨è€…è³‡æ–™
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] æ­¥é©Ÿ 2: å–å¾—ä½¿ç”¨è€…è³‡æ–™");
                 var (loginContact, fullName) = await RetrieveUserData(contactIdString, aGalleryViewModel);
                 
                 if (loginContact == null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLogin] µLªk¨ú±o¨Ï¥ÎªÌ¸ê®Æ");
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLogin] ç„¡æ³•å–å¾—ä½¿ç”¨è€…è³‡æ–™");
                     return Json(new
                     {
-                        DisplayViewType = "µn¤J¿ù»~",
+                        DisplayViewType = "ç™»å…¥éŒ¯èª¤",
                         ActiveListId = "",
-                        message = "µLªk¨ú±o¨Ï¥ÎªÌ¸ê®Æ",
+                        message = "ç„¡æ³•å–å¾—ä½¿ç”¨è€…è³‡æ–™",
                         fullname = ""
                     });
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] ¨Ï¥ÎªÌ: {fullName}");
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] ä½¿ç”¨è€…: {fullName}");
 
-                // ¨BÆJ 3: ªì©l¤Æ¨Ï¥ÎªÌ Session
-                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] ¨BÆJ 3: ªì©l¤Æ¨Ï¥ÎªÌ Session");
+                // æ­¥é©Ÿ 3: åˆå§‹åŒ–ä½¿ç”¨è€… Session
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] æ­¥é©Ÿ 3: åˆå§‹åŒ–ä½¿ç”¨è€… Session");
                 InitializeUserSession(loginContact, aGalleryViewModel);
 
-                // ¨BÆJ 4: ³]©w¨t²Î¸ê®Æ
-                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] ¨BÆJ 4: ³]©w¨t²Î¸ê®Æ - ¶}©l®É¶¡: {DateTime.Now}");
+                // æ­¥é©Ÿ 4: è¨­å®šç³»çµ±è³‡æ–™
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] æ­¥é©Ÿ 4: è¨­å®šç³»çµ±è³‡æ–™ - é–‹å§‹æ™‚é–“: {DateTime.Now}");
                 SetupSystemData(loginContact, aGalleryViewModel);
-                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] ¨BÆJ 4: ³]©w¨t²Î¸ê®Æ - §¹¦¨®É¶¡: {DateTime.Now}");
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] æ­¥é©Ÿ 4: è¨­å®šç³»çµ±è³‡æ–™ - å®Œæˆæ™‚é–“: {DateTime.Now}");
 
-                // ¨BÆJ 5: §PÂ_Åã¥Üµø¹ÏÃş«¬
-                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] ¨BÆJ 5: §PÂ_Åã¥Üµø¹ÏÃş«¬");
+                // æ­¥é©Ÿ 5: åˆ¤æ–·é¡¯ç¤ºè¦–åœ–é¡å‹
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] æ­¥é©Ÿ 5: åˆ¤æ–·é¡¯ç¤ºè¦–åœ–é¡å‹");
                 string displayViewType = DetermineDisplayViewType();
-                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] Åã¥ÜÃş«¬: {displayViewType}");
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] é¡¯ç¤ºé¡å‹: {displayViewType}");
 
-                // ¨BÆJ 6: ³]©w ViewBag °Ñ¼Æ
-                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] ¨BÆJ 6: ³]©w ViewBag °Ñ¼Æ");
+                // æ­¥é©Ÿ 6: è¨­å®š ViewBag åƒæ•¸
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] æ­¥é©Ÿ 6: è¨­å®š ViewBag åƒæ•¸");
                 SetupViewBagParameters(displayViewType);
 
-                // ¨BÆJ 7: ªğ¦^µn¤Jµ²ªG
-                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] ¨BÆJ 7: ªğ¦^µn¤Jµ²ªG - §¹¦¨®É¶¡: {DateTime.Now}");
+                // æ­¥é©Ÿ 7: è¿”å›ç™»å…¥çµæœ
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] æ­¥é©Ÿ 7: è¿”å›ç™»å…¥çµæœ - å®Œæˆæ™‚é–“: {DateTime.Now}");
                 return CreateLoginResponse(displayViewType, fullName, aGalleryViewModel);
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] µo¥Í¿ù»~: {e.Message}\n°ïÅ|°lÂÜ: {e.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[ProcessLogin] ç™¼ç”ŸéŒ¯èª¤: {e.Message}\nå †ç–Šè¿½è¹¤: {e.StackTrace}");
                 return HandleError(e, "ProcessLogin");
             }
         }
 
         #endregion
 
-        #region LINE µn¤J
+        #region LINE ç™»å…¥
 
         /// <summary>
-        /// LINE ID µn¤J­¶­±
-        /// Åã¥Ü LINE µn¤Jªí³æ
+        /// LINE ID ç™»å…¥é é¢
+        /// é¡¯ç¤º LINE ç™»å…¥è¡¨å–®
         /// </summary>
-        /// <param name="LineIdLoginViewPatameter">LINE µn¤J°Ñ¼Æ</param>
+        /// <param name="LineIdLoginViewPatameter">LINE ç™»å…¥åƒæ•¸</param>
         [HttpGet]
         [Route("/Authentication/LineIdLoginView/{LineIdLoginViewPatameter}")]
         public IActionResult LineIdLoginView(string LineIdLoginViewPatameter)
@@ -196,81 +196,202 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ³]©w LINE ¬ÛÃö¸ê°T
+                // ===== æ­¥é©Ÿ 1: è¨˜éŒ„è«‹æ±‚é–‹å§‹ =====
+                System.Diagnostics.Debug.WriteLine($"========================================");
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ===== é–‹å§‹è™•ç† LINE ç™»å…¥è«‹æ±‚ =====");
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] æ™‚é–“: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] è«‹æ±‚åƒæ•¸:");
+                System.Diagnostics.Debug.WriteLine($"  - UserLineId: {UserLineId}");
+                System.Diagnostics.Debug.WriteLine($"  - GroupId: {GroupId ?? "(null)"}");
+                System.Diagnostics.Debug.WriteLine($"  - RoomId: {RoomId ?? "(null)"}");
+                System.Diagnostics.Debug.WriteLine($"  - ViewType: {ViewType ?? "(null)"}");
+                System.Diagnostics.Debug.WriteLine($"========================================");
+
+                // ===== æ­¥é©Ÿ 2: è¨­å®š LINE ç›¸é—œè³‡è¨Š =====
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] æ­¥é©Ÿ 2: è¨­å®š LINE ç›¸é—œè³‡è¨Šåˆ° InMemoryContext");
+                
                 InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
                 InMemoryContext.LineBindingViewModel.RoomId = RoomId;
                 InMemoryContext.LineBindingViewModel.GroupId = GroupId;
                 InMemoryContext.LineBindingViewModel.ViewType = ViewType;
+                
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] InMemoryContext è¨­å®šå®Œæˆ:");
+                System.Diagnostics.Debug.WriteLine($"  - LineUserId: {InMemoryContext.LineBindingViewModel.LineUserId}");
+                System.Diagnostics.Debug.WriteLine($"  - RoomId: {InMemoryContext.LineBindingViewModel.RoomId}");
+                System.Diagnostics.Debug.WriteLine($"  - GroupId: {InMemoryContext.LineBindingViewModel.GroupId}");
+                System.Diagnostics.Debug.WriteLine($"  - ViewType: {InMemoryContext.LineBindingViewModel.ViewType}");
 
-                // ³]©wÅã¥Ü ID
+                // ===== æ­¥é©Ÿ 3: è¨­å®šé¡¯ç¤º ID =====
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] æ­¥é©Ÿ 3: è¨­å®š DisplayId");
+                
                 if (!string.IsNullOrEmpty(GroupId))
+                {
                     InMemoryContext.LineBindingViewModel.DisplayId = GroupId;
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] DisplayId è¨­å®šç‚º GroupId: {GroupId}");
+                }
                 else if (!string.IsNullOrEmpty(RoomId))
+                {
                     InMemoryContext.LineBindingViewModel.DisplayId = RoomId;
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] DisplayId è¨­å®šç‚º RoomId: {RoomId}");
+                }
                 else
+                {
                     InMemoryContext.LineBindingViewModel.DisplayId = UserLineId;
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] DisplayId è¨­å®šç‚º UserLineId: {UserLineId}");
+                }
 
-                // ÀË¬d¥Î¤á¬O§_¤w¸j©w - ¨Ï¥Î³s±µ¦ÀÀu¤Æ
+                // ===== æ­¥é©Ÿ 4: æª¢æŸ¥ç”¨æˆ¶æ˜¯å¦å·²ç¶å®š =====
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] æ­¥é©Ÿ 4: æª¢æŸ¥ç”¨æˆ¶æ˜¯å¦å·²åœ¨è³‡æ–™åº«ä¸­ç¶å®š");
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] æº–å‚™å¾é€£æ¥æ± ç²å– CRM é€£æ¥...");
+                
                 IOrganizationService service = null;
                 try
                 {
+                    var connectionStartTime = DateTime.Now;
                     service = GetConnection();
+                    var connectionEndTime = DateTime.Now;
+                    var connectionDuration = (connectionEndTime - connectionStartTime).TotalMilliseconds;
                     
-                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ÀË¬d LINE ID ¬O§_¤w¸j©w: {UserLineId}");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] âœ… æˆåŠŸå¾é€£æ¥æ± ç²å–é€£æ¥");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ç²å–é€£æ¥è€—æ™‚: {connectionDuration:F2} ms");
+                    
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] é–‹å§‹æŸ¥è©¢è³‡æ–™åº«ï¼Œæª¢æŸ¥ LINE ID: {UserLineId}");
                     
                     var query = new QueryExpression("contact")
                     {
-                        ColumnSet = new ColumnSet("contactid"),
+                        ColumnSet = new ColumnSet("contactid", "fullname"),
                         Criteria = new FilterExpression
                         {
                             FilterOperator = LogicalOperator.And,
                             Conditions =
                             {
-                                new ConditionExpression("new_lineuserid", ConditionOperator.Equal, UserLineId),
+                                new ConditionExpression("new_lineid", ConditionOperator.Equal, UserLineId),
                                 new ConditionExpression("statecode", ConditionOperator.Equal, 0)
                             }
                         },
                         TopCount = 1
                     };
                     
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] QueryExpression è¨­å®š:");
+                    System.Diagnostics.Debug.WriteLine($"  - Entity: contact");
+                    System.Diagnostics.Debug.WriteLine($"  - Columns: contactid, fullname");
+                    System.Diagnostics.Debug.WriteLine($"  - Criteria: new_lineid = '{UserLineId}' AND statecode = 0");
+                    System.Diagnostics.Debug.WriteLine($"  - TopCount: 1");
+                    
+                    var queryStartTime = DateTime.Now;
                     var results = service.RetrieveMultiple(query);
+                    var queryEndTime = DateTime.Now;
+                    var queryDuration = (queryEndTime - queryStartTime).TotalMilliseconds;
+                    
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] âœ… è³‡æ–™åº«æŸ¥è©¢å®Œæˆ");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] æŸ¥è©¢è€—æ™‚: {queryDuration:F2} ms");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] æŸ¥è©¢çµæœæ•¸é‡: {results.Entities.Count}");
                     
                     if (results.Entities.Count == 0)
                     {
-                        // ¥Î¤á©|¥¼¸j©w
-                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ¥Î¤á©|¥¼¸j©w");
+                        // ===== æƒ…æ³ A: ç”¨æˆ¶å°šæœªç¶å®š =====
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] âŒ ç”¨æˆ¶å°šæœªç¶å®š");
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] æº–å‚™è¿”å›ã€Œå°šæœªç¶å®šã€å›æ‡‰");
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] å›æ‡‰å…§å®¹:");
+                        System.Diagnostics.Debug.WriteLine($"  - DisplayViewType: 'å°šæœªç¶å®š'");
+                        System.Diagnostics.Debug.WriteLine($"  - ActiveListId: ''");
+                        System.Diagnostics.Debug.WriteLine($"  - message: 'å°šæœªç¶å®š'");
+                        System.Diagnostics.Debug.WriteLine($"  - fullname: ''");
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ===== è™•ç†çµæŸ (å°šæœªç¶å®š) =====");
+                        System.Diagnostics.Debug.WriteLine($"========================================\n");
+                        
                         return Json(new
                         {
-                            DisplayViewType = "©|¥¼¸j©w",
+                            DisplayViewType = "å°šæœªç¶å®š",
                             ActiveListId = "",
-                            message = "©|¥¼¸j©w",
+                            message = "å°šæœªç¶å®š",
                             fullname = ""
                         });
                     }
                     
-                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ¥Î¤á¤w¸j©w¡A·Ç³Æµn¤J");
+                    // ===== æƒ…æ³ B: ç”¨æˆ¶å·²ç¶å®š =====
+                    var contactId = results.Entities[0].Id;
+                    var fullName = results.Entities[0].Contains("fullname") 
+                        ? results.Entities[0].GetAttributeValue<string>("fullname") 
+                        : "";
+                    
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] âœ… ç”¨æˆ¶å·²ç¶å®šï¼Œæ‰¾åˆ°åŒ¹é…çš„è¯çµ¡äºº");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] è¯çµ¡äººè³‡è¨Š:");
+                    System.Diagnostics.Debug.WriteLine($"  - ContactId: {contactId}");
+                    System.Diagnostics.Debug.WriteLine($"  - FullName: {fullName}");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] æº–å‚™é€²å…¥ç™»å…¥æµç¨‹");
+                }
+                catch (FaultException<OrganizationServiceFault> ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] âŒ CRM æœå‹™ç•°å¸¸");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ç•°å¸¸é¡å‹: FaultException<OrganizationServiceFault>");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ç•°å¸¸è¨Šæ¯: {ex.Detail?.Message ?? ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] å †ç–Šè¿½è¹¤: {ex.StackTrace}");
+                    throw;
+                }
+                catch (TimeoutException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] âŒ é€£æ¥è¶…æ™‚");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ç•°å¸¸é¡å‹: TimeoutException");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ç•°å¸¸è¨Šæ¯: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] å †ç–Šè¿½è¹¤: {ex.StackTrace}");
+                    throw;
                 }
                 finally
                 {
-                    ReleaseConnection(service);
+                    if (service != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] æ­¸é‚„ CRM é€£æ¥åˆ°é€£æ¥æ± ");
+                        ReleaseConnection(service);
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] âœ… é€£æ¥å·²æ­¸é‚„");
+                    }
                 }
 
-                // «Ø¥ß LINE µn¤Jªº ViewModel
+                // ===== æ­¥é©Ÿ 5: å»ºç«‹ LINE ç™»å…¥çš„ ViewModel =====
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] æ­¥é©Ÿ 5: å»ºç«‹ LINE ç™»å…¥çš„ ViewModel");
+                
                 var lineLoginViewModel = new GalleryViewModel
                 {
-                    Account = "",  // LINE µn¤J¤£»İ­n±b¸¹
+                    Account = "",  // LINE ç™»å…¥ä¸éœ€è¦å¸³è™Ÿ
                     Password = UserLineId
                 };
+                
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] GalleryViewModel å»ºç«‹å®Œæˆ:");
+                System.Diagnostics.Debug.WriteLine($"  - Account: '{lineLoginViewModel.Account}' (ç©ºå­—ä¸²)");
+                System.Diagnostics.Debug.WriteLine($"  - Password: {lineLoginViewModel.Password}");
 
-                // ³]©w LINE µn¤J¼Ğ°O
+                // ===== æ­¥é©Ÿ 6: é‡æ–°è¨­å®š LINE ç™»å…¥æ¨™è¨˜ (ç¢ºä¿) =====
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] æ­¥é©Ÿ 6: é‡æ–°è¨­å®š LINE ç™»å…¥æ¨™è¨˜");
                 InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] LineUserId å·²é‡æ–°è¨­å®š: {UserLineId}");
 
-                // ¨Ï¥Î²Î¤@ªºµn¤J³B²z¬yµ{
+                // ===== æ­¥é©Ÿ 7: å‘¼å«çµ±ä¸€çš„ç™»å…¥è™•ç†æµç¨‹ =====
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] æ­¥é©Ÿ 7: æº–å‚™å‘¼å« ProcessLogin æ–¹æ³•");
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ===== è½‰å‘ ProcessLogin è™•ç†ç™»å…¥ =====");
+                System.Diagnostics.Debug.WriteLine($"========================================\n");
+                
                 return await ProcessLogin(lineLoginViewModel);
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] µo¥Í¿ù»~: {e.Message}");
+                System.Diagnostics.Debug.WriteLine($"========================================");
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] âŒâŒâŒ ç™¼ç”Ÿæœªé æœŸçš„éŒ¯èª¤ âŒâŒâŒ");
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ç•°å¸¸é¡å‹: {e.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ç•°å¸¸è¨Šæ¯: {e.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] å †ç–Šè¿½è¹¤:");
+                System.Diagnostics.Debug.WriteLine(e.StackTrace);
+                
+                if (e.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] å…§éƒ¨ç•°å¸¸é¡å‹: {e.InnerException.GetType().Name}");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] å…§éƒ¨ç•°å¸¸è¨Šæ¯: {e.InnerException.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] å…§éƒ¨ç•°å¸¸å †ç–Šè¿½è¹¤:");
+                    System.Diagnostics.Debug.WriteLine(e.InnerException.StackTrace);
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ===== è™•ç†çµæŸ (ç•°å¸¸) =====");
+                System.Diagnostics.Debug.WriteLine($"========================================\n");
+                
                 return HandleError(e, "SaveUserLineId");
             }
         }
@@ -292,7 +413,7 @@ namespace ChurchReport.Controllers
                     Password = InMemoryContext.LineBindingViewModel.LineUserId
                 };
 
-                // ??£]£V@???n?J?B?z?y?{
+                // ??Î²Î¤@???n?J?B?z?y?{
                 return await ProcessLogin(lineLoginViewModel);
             }
             catch (Exception e)
@@ -303,13 +424,13 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region LINE ¨­¤À¸j©wµù¥U
+        #region LINE èº«åˆ†ç¶å®šè¨»å†Š
 
         /// <summary>
-        /// LINE LIFF ¨­¤À¸j©wµù¥U­¶­±
-        /// ¥Î©ó·s¥Î¤á³z¹L LINE µù¥U¨Ã¸j©w±b¸¹
+        /// LINE LIFF èº«åˆ†ç¶å®šè¨»å†Šé é¢
+        /// ç”¨æ–¼æ–°ç”¨æˆ¶é€é LINE è¨»å†Šä¸¦ç¶å®šå¸³è™Ÿ
         /// </summary>
-        /// <param name="LineIdLoginViewPatameter">LINE LIFF ID °Ñ¼Æ</param>
+        /// <param name="LineIdLoginViewPatameter">LINE LIFF ID åƒæ•¸</param>
         [HttpGet]
         [Route("/Authentication/LineLiffView/{LineIdLoginViewPatameter?}")]
         [Route("/LineLiffView/{LineIdLoginViewPatameter?}")]
@@ -317,10 +438,10 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ­Y¯Ê¤Ö¥²­n°Ñ¼Æ¡A´£¨Ñ¤Íµ½´£¥Ü
+                // è‹¥ç¼ºå°‘å¿…è¦åƒæ•¸ï¼Œæä¾›å‹å–„æç¤º
                 if (string.IsNullOrWhiteSpace(LineIdLoginViewPatameter))
                 {
-                    return RedirectToAction("DisplayErrorView", "Home", new { ErrorMessage = "¯Ê¤Ö LIFF °Ñ¼Æ¡A½Ğ±q LINE ¤J¤f¶}±Ò¡C" });
+                    return RedirectToAction("DisplayErrorView", "Home", new { ErrorMessage = "ç¼ºå°‘ LIFF åƒæ•¸ï¼Œè«‹å¾ LINE å…¥å£é–‹å•Ÿã€‚" });
                 }
 
                 var images = new List<string>
@@ -340,41 +461,41 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³B²z LINE ¨­¤À¸j©wµù¥U
-        /// «Ø¥ß·s¥Î¤á¨Ã¸j©w LINE ID
-        /// ¨Ï¥Î³s±µ¦ÀÀu¤Æ¡A³æ¤@³s±µ§¹¦¨©Ò¦³¾Ş§@
+        /// è™•ç† LINE èº«åˆ†ç¶å®šè¨»å†Š
+        /// å»ºç«‹æ–°ç”¨æˆ¶ä¸¦ç¶å®š LINE ID
+        /// ä½¿ç”¨é€£æ¥æ± å„ªåŒ–ï¼Œå–®ä¸€é€£æ¥å®Œæˆæ‰€æœ‰æ“ä½œ
         /// </summary>
-        /// <param name="model">LINE ¸j©w¸ê®Æ¼Ò«¬</param>
+        /// <param name="model">LINE ç¶å®šè³‡æ–™æ¨¡å‹</param>
         [HttpPost]
         [Route("/Authentication/ProcessLineBinding")]
         public async Task<IActionResult> ProcessLineBinding(LineBindingViewModel model)
         {
             try
             {
-                // ÅçÃÒ¥²¶ñÄæ¦ì
+                // é©—è­‰å¿…å¡«æ¬„ä½
                 if (string.IsNullOrWhiteSpace(model.FullName))
                 {
-                    return Json(new { status = "0", message = "¥D­n©m¦W¥²¶ñ" });
+                    return Json(new { status = "0", message = "ä¸»è¦å§“åå¿…å¡«" });
                 }
 
                 if (string.IsNullOrWhiteSpace(model.Mobile))
                 {
-                    return Json(new { status = "0", message = "¦æ°Ê¹q¸Ü¥²¶ñ" });
+                    return Json(new { status = "0", message = "è¡Œå‹•é›»è©±å¿…å¡«" });
                 }
 
                 if (string.IsNullOrWhiteSpace(model.LineUserId))
                 {
-                    return Json(new { status = "0", message = "LINE User ID ¿ò¥¢" });
+                    return Json(new { status = "0", message = "LINE User ID éºå¤±" });
                 }
 
                 IOrganizationService service = null;
                 try
                 {
-                    // ±q³s±µ¦ÀÀò¨ú³s±µ
+                    // å¾é€£æ¥æ± ç²å–é€£æ¥
                     service = GetConnection();
                     
-                    // ¨BÆJ 1: ÀË¬d LINE ID ¬O§_¤w¸j©w
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] ÀË¬d LINE ID ¬O§_¤w¸j©w: {model.LineUserId}");
+                    // æ­¥é©Ÿ 1: æª¢æŸ¥ LINE ID æ˜¯å¦å·²ç¶å®š
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] æª¢æŸ¥ LINE ID æ˜¯å¦å·²ç¶å®š: {model.LineUserId}");
                     
                     var lineIdQuery = new QueryExpression("contact")
                     {
@@ -384,7 +505,7 @@ namespace ChurchReport.Controllers
                             FilterOperator = LogicalOperator.And,
                             Conditions =
                             {
-                                new ConditionExpression("new_lineuserid", ConditionOperator.Equal, model.LineUserId),
+                                new ConditionExpression("new_lineid", ConditionOperator.Equal, model.LineUserId),
                                 new ConditionExpression("statecode", ConditionOperator.Equal, 0)
                             }
                         },
@@ -396,16 +517,16 @@ namespace ChurchReport.Controllers
                     if (lineIdResults.Entities.Count > 0)
                     {
                         var existingName = lineIdResults.Entities[0].GetAttributeValue<string>("fullname");
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] LINE ID ¤w¸j©w¦Ü: {existingName}");
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] LINE ID å·²ç¶å®šè‡³: {existingName}");
                         
                         return Json(new { 
                             status = "0", 
-                            message = $"¦¹ LINE ±b¸¹¤w¸j©w¦Ü {existingName}" 
+                            message = $"æ­¤ LINE å¸³è™Ÿå·²ç¶å®šè‡³ {existingName}" 
                         });
                     }
                     
-                    // ¨BÆJ 2: ÀË¬d©m¦W¬O§_¤w¦s¦b
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] ÀË¬d©m¦W¬O§_¤w¦s¦b: {model.FullName}");
+                    // æ­¥é©Ÿ 2: æª¢æŸ¥å§“åæ˜¯å¦å·²å­˜åœ¨
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] æª¢æŸ¥å§“åæ˜¯å¦å·²å­˜åœ¨: {model.FullName}");
                     
                     var nameQuery = new QueryExpression("contact")
                     {
@@ -427,9 +548,9 @@ namespace ChurchReport.Controllers
                     
                     if (nameResults.Entities.Count > 0)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] §ä¨ì {nameResults.Entities.Count} ­Ó¦P¦WÁpµ¸¤H");
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] æ‰¾åˆ° {nameResults.Entities.Count} å€‹åŒåè¯çµ¡äºº");
                         
-                        // ©m¦W¤w¦s¦b¡A¹Á¸Õ¤Ç°t¤â¾÷¸¹½X
+                        // å§“åå·²å­˜åœ¨ï¼Œå˜—è©¦åŒ¹é…æ‰‹æ©Ÿè™Ÿç¢¼
                         foreach (var contact in nameResults.Entities)
                         {
                             var mobilePhone = contact.Contains("mobilephone") 
@@ -439,19 +560,19 @@ namespace ChurchReport.Controllers
                             if (mobilePhone == model.Mobile)
                             {
                                 targetContact = contact;
-                                System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] §ä¨ì¤Ç°tªºÁpµ¸¤H¡A¤â¾÷: {mobilePhone}");
+                                System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] æ‰¾åˆ°åŒ¹é…çš„è¯çµ¡äººï¼Œæ‰‹æ©Ÿ: {mobilePhone}");
                                 break;
                             }
                         }
                         
                         if (targetContact != null)
                         {
-                            // ¨BÆJ 3: §ä¨ì¤Ç°tªºÁpµ¸¤H¡A§ó·s LINE ID
-                            System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] §ó·s²{¦³Ápµ¸¤Hªº LINE ID");
+                            // æ­¥é©Ÿ 3: æ‰¾åˆ°åŒ¹é…çš„è¯çµ¡äººï¼Œæ›´æ–° LINE ID
+                            System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] æ›´æ–°ç¾æœ‰è¯çµ¡äººçš„ LINE ID");
                             
-                            targetContact["new_lineuserid"] = model.LineUserId;
+                            targetContact["new_lineid"] = model.LineUserId;
                             
-                            // §ó·s¨ä¥L¸ê°T
+                            // æ›´æ–°å…¶ä»–è³‡è¨Š
                             if (!string.IsNullOrWhiteSpace(model.OtherName))
                             {
                                 targetContact["lastname"] = model.OtherName;
@@ -459,22 +580,22 @@ namespace ChurchReport.Controllers
                             
                             service.Update(targetContact);
                             
-                            System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] ¸j©w¦¨¥\");
+                            System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] ç¶å®šæˆåŠŸ");
                             
                             return Json(new { 
                                 status = "1", 
-                                message = $"¤w¦¨¥\¸j©w LINE ¦Ü²{¦³±b¸¹¡G{model.FullName}" 
+                                message = $"å·²æˆåŠŸç¶å®š LINE è‡³ç¾æœ‰å¸³è™Ÿï¼š{model.FullName}" 
                             });
                         }
                     }
                     
-                    // ¨BÆJ 4: «Ø¥ß·sÁpµ¸¤H
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] «Ø¥ß·sÁpµ¸¤H");
+                    // æ­¥é©Ÿ 4: å»ºç«‹æ–°è¯çµ¡äºº
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] å»ºç«‹æ–°è¯çµ¡äºº");
                     
                     var newContact = new Entity("contact");
                     newContact["fullname"] = model.FullName;
                     newContact["mobilephone"] = model.Mobile;
-                    newContact["new_lineuserid"] = model.LineUserId;
+                    newContact["new_lineid"] = model.LineUserId;
                     
                     if (!string.IsNullOrWhiteSpace(model.OtherName))
                     {
@@ -485,61 +606,61 @@ namespace ChurchReport.Controllers
                     
                     if (newContactId != Guid.Empty)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] ·sÁpµ¸¤H«Ø¥ß¦¨¥\¡AID: {newContactId}");
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] æ–°è¯çµ¡äººå»ºç«‹æˆåŠŸï¼ŒID: {newContactId}");
                         
                         return Json(new { 
                             status = "1", 
-                            message = $"µù¥U¦¨¥\¡IÅwªï {model.FullName} ¥[¤J¸t¨¦¦æ¹D·|" 
+                            message = $"è¨»å†ŠæˆåŠŸï¼æ­¡è¿ {model.FullName} åŠ å…¥è–è°·è¡Œé“æœƒ" 
                         });
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] «Ø¥ßÁpµ¸¤H¥¢±Ñ");
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] å»ºç«‹è¯çµ¡äººå¤±æ•—");
                         
                         return Json(new { 
                             status = "0", 
-                            message = "µù¥U¥¢±Ñ¡A½Ğµy«á¦A¸Õ" 
+                            message = "è¨»å†Šå¤±æ•—ï¼Œè«‹ç¨å¾Œå†è©¦" 
                         });
                     }
                 }
                 catch (FaultException<OrganizationServiceFault> ex)
                 {
-                    // CRM ªA°È²§±`
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] CRM ªA°È²§±`: {ex.Detail?.Message ?? ex.Message}");
+                    // CRM æœå‹™ç•°å¸¸
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] CRM æœå‹™ç•°å¸¸: {ex.Detail?.Message ?? ex.Message}");
                     return Json(new { 
                         status = "0", 
-                        message = $"¨t²ÎªA°È²§±`: {ex.Detail?.Message ?? ex.Message}" 
+                        message = $"ç³»çµ±æœå‹™ç•°å¸¸: {ex.Detail?.Message ?? ex.Message}" 
                     });
                 }
                 catch (TimeoutException ex)
                 {
-                    // ³s±µ¶W®É
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] ³s±µ¶W®É: {ex.Message}");
+                    // é€£æ¥è¶…æ™‚
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] é€£æ¥è¶…æ™‚: {ex.Message}");
                     return Json(new { 
                         status = "0", 
-                        message = "¨t²Î³s±µ¶W®É¡A½Ğµy«á¦A¸Õ" 
+                        message = "ç³»çµ±é€£æ¥è¶…æ™‚ï¼Œè«‹ç¨å¾Œå†è©¦" 
                     });
                 }
                 finally
                 {
-                    // ÂkÁÙ³s±µ¨ì¦À¡]«D±`­«­n¡I½T«O³s±µ­«¥Î¡^
+                    // æ­¸é‚„é€£æ¥åˆ°æ± ï¼ˆéå¸¸é‡è¦ï¼ç¢ºä¿é€£æ¥é‡ç”¨ï¼‰
                     ReleaseConnection(service);
                 }
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] µo¥Í¥¼¹w´Áªº¿ù»~: {e.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] ç™¼ç”Ÿæœªé æœŸçš„éŒ¯èª¤: {e.Message}");
                 return HandleError(e, "ProcessLineBinding");
             }
         }
 
         #endregion
 
-        #region µn¥X
+        #region ç™»å‡º
 
         /// <summary>
-        /// µn¥X¥\¯à
-        /// ²M°£¨Ï¥ÎªÌ Session ¨Ã¾É¦Vµn¤J­¶­±
+        /// ç™»å‡ºåŠŸèƒ½
+        /// æ¸…é™¤ä½¿ç”¨è€… Session ä¸¦å°å‘ç™»å…¥é é¢
         /// </summary>
         [HttpGet]
         [HttpPost]
@@ -549,10 +670,10 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ²M°£ Session
+                // æ¸…é™¤ Session
                 HttpContext.Session.Clear();
 
-                // ­«©w¦V¨ìµn¤J­¶­±
+                // é‡å®šå‘åˆ°ç™»å…¥é é¢
                 return RedirectToAction("Login");
             }
             catch (Exception e)
@@ -563,32 +684,32 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¨p¦³»²§U¤èªk
+        #region ç§æœ‰è¼”åŠ©æ–¹æ³•
 
         /// <summary>
-        /// ÅçÃÒ¨Ï¥ÎªÌ¾ÌÃÒ
-        /// ¨Ï¥Î³s±µ¦ÀÀu¤Æ®Ä¯à¡A´î¤Ö³s±µ³Ğ«Ø®É¶¡
+        /// é©—è­‰ä½¿ç”¨è€…æ†‘è­‰
+        /// ä½¿ç”¨é€£æ¥æ± å„ªåŒ–æ•ˆèƒ½ï¼Œæ¸›å°‘é€£æ¥å‰µå»ºæ™‚é–“
         /// </summary>
         private (bool isValid, string contactId, string errorMessage) ValidateUserCredentials(GalleryViewModel viewModel)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ¶}©lÅçÃÒ - ±b¸¹: {viewModel?.Account}");
+                System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] é–‹å§‹é©—è­‰ - å¸³è™Ÿ: {viewModel?.Account}");
                 
                 string contactIdString = "";
 
                 if (viewModel.Account != "")
                 {
-                    // ³z¹L±b¸¹±K½Xµn¤J - ¨Ï¥Î³s±µ¦ÀÀu¤Æ
-                    System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ¨Ï¥Î±b¸¹±K½Xµn¤J");
+                    // é€éå¸³è™Ÿå¯†ç¢¼ç™»å…¥ - ä½¿ç”¨é€£æ¥æ± å„ªåŒ–
+                    System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ä½¿ç”¨å¸³è™Ÿå¯†ç¢¼ç™»å…¥");
                     
                     IOrganizationService service = null;
                     try
                     {
-                        // ±q³s±µ¦ÀÀò¨ú³s±µ¡]¯Ó®É¬ù 5ms¡A¬Û¤ñ³Ğ«Ø·s³s±µªº 500ms ¤j´T´£¤É¡^
+                        // å¾é€£æ¥æ± ç²å–é€£æ¥ï¼ˆè€—æ™‚ç´„ 5msï¼Œç›¸æ¯”å‰µå»ºæ–°é€£æ¥çš„ 500ms å¤§å¹…æå‡ï¼‰
                         service = GetConnection();
                         
-                        // ª½±µ¨Ï¥Î CRM SDK ¬d¸ß¡]Á×§K³z¹L ToolUtility ³Ğ«Ø·s³s±µ¡^
+                        // ç›´æ¥ä½¿ç”¨ CRM SDK æŸ¥è©¢ï¼ˆé¿å…é€é ToolUtility å‰µå»ºæ–°é€£æ¥ï¼‰
                         var query = new QueryExpression("contact")
                         {
                             ColumnSet = new ColumnSet("contactid", "new_app_pass"),
@@ -598,19 +719,19 @@ namespace ChurchReport.Controllers
                                 Conditions =
                                 {
                                     new ConditionExpression("new_app_acount", ConditionOperator.Equal, viewModel.Account),
-                                    new ConditionExpression("statecode", ConditionOperator.Equal, 0) // ¥u¬d¸ß±Ò¥ÎªºÁpµ¸¤H
+                                    new ConditionExpression("statecode", ConditionOperator.Equal, 0) // åªæŸ¥è©¢å•Ÿç”¨çš„è¯çµ¡äºº
                                 }
                             },
-                            TopCount = 1 // ¥u»İ­n¤@µ§µ²ªG
+                            TopCount = 1 // åªéœ€è¦ä¸€ç­†çµæœ
                         };
                         
                         var results = service.RetrieveMultiple(query);
                         
                         if (results.Entities.Count == 0)
                         {
-                            // ±b¸¹¤£¦s¦b
-                            System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ±b¸¹¿ù»~");
-                            return (false, "", "±b¸¹¿ù»~");
+                            // å¸³è™Ÿä¸å­˜åœ¨
+                            System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] å¸³è™ŸéŒ¯èª¤");
+                            return (false, "", "å¸³è™ŸéŒ¯èª¤");
                         }
                         
                         var contact = results.Entities[0];
@@ -618,61 +739,61 @@ namespace ChurchReport.Controllers
                             ? contact.GetAttributeValue<string>("new_app_pass") 
                             : null;
                         
-                        // ÀË¬d±K½X
+                        // æª¢æŸ¥å¯†ç¢¼
                         if (string.IsNullOrEmpty(storedPassword))
                         {
-                            System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ¨t²Î¨S¦³³]©w±K½X");
-                            return (false, "", "¨t²Î¨S¦³³]©w±K½X");
+                            System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ç³»çµ±æ²’æœ‰è¨­å®šå¯†ç¢¼");
+                            return (false, "", "ç³»çµ±æ²’æœ‰è¨­å®šå¯†ç¢¼");
                         }
                         
                         if (storedPassword != viewModel.Password)
                         {
-                            System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ±K½X¿ù»~");
-                            return (false, "", "±K½X¿ù»~");
+                            System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] å¯†ç¢¼éŒ¯èª¤");
+                            return (false, "", "å¯†ç¢¼éŒ¯èª¤");
                         }
                         
-                        // ÅçÃÒ¦¨¥\
+                        // é©—è­‰æˆåŠŸ
                         contactIdString = contact.Id.ToString();
-                        System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ÅçÃÒ¦¨¥\¡AContact ID: {contactIdString}");
+                        System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] é©—è­‰æˆåŠŸï¼ŒContact ID: {contactIdString}");
                     }
                     catch (FaultException<OrganizationServiceFault> ex)
                     {
-                        // CRM ªA°È²§±`
-                        System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] CRM ªA°È²§±`: {ex.Detail?.Message ?? ex.Message}");
-                        return (false, "", $"¨t²ÎªA°È²§±`: {ex.Detail?.Message ?? ex.Message}");
+                        // CRM æœå‹™ç•°å¸¸
+                        System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] CRM æœå‹™ç•°å¸¸: {ex.Detail?.Message ?? ex.Message}");
+                        return (false, "", $"ç³»çµ±æœå‹™ç•°å¸¸: {ex.Detail?.Message ?? ex.Message}");
                     }
                     catch (TimeoutException ex)
                     {
-                        // ³s±µ¶W®É
-                        System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ³s±µ¶W®É: {ex.Message}");
-                        return (false, "", "¨t²Î³s±µ¶W®É¡A½Ğµy«á¦A¸Õ");
+                        // é€£æ¥è¶…æ™‚
+                        System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] é€£æ¥è¶…æ™‚: {ex.Message}");
+                        return (false, "", "ç³»çµ±é€£æ¥è¶…æ™‚ï¼Œè«‹ç¨å¾Œå†è©¦");
                     }
                     finally
                     {
-                        // ÂkÁÙ³s±µ¨ì¦À¡]«D±`­«­n¡I½T«O³s±µ­«¥Î¡^
+                        // æ­¸é‚„é€£æ¥åˆ°æ± ï¼ˆéå¸¸é‡è¦ï¼ç¢ºä¿é€£æ¥é‡ç”¨ï¼‰
                         ReleaseConnection(service);
                     }
                 }
                 else
                 {
-                    // ³z¹L LINE ID µn¤J
-                    System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ¨Ï¥Î LINE ID µn¤J");
-                    contactIdString = "³z¹LLine Id µn¤J";
+                    // é€é LINE ID ç™»å…¥
+                    System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ä½¿ç”¨ LINE ID ç™»å…¥");
+                    contactIdString = "é€éLine Id ç™»å…¥";
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ÅçÃÒ¦¨¥\");
+                System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] é©—è­‰æˆåŠŸ");
                 return (true, contactIdString, "");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] µo¥Í¨Ò¥~: {ex.Message}");
-                return (false, "", $"ÅçÃÒ¹Lµ{µo¥Í¿ù»~: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ç™¼ç”Ÿä¾‹å¤–: {ex.Message}");
+                return (false, "", $"é©—è­‰éç¨‹ç™¼ç”ŸéŒ¯èª¤: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// ¨ú±o¨Ï¥ÎªÌ¸ê®Æ
-        /// ¨Ï¥Î³s±µ¦ÀÀu¤Æ®Ä¯à¡A´î¤Ö³s±µ³Ğ«Ø®É¶¡
+        /// å–å¾—ä½¿ç”¨è€…è³‡æ–™
+        /// ä½¿ç”¨é€£æ¥æ± å„ªåŒ–æ•ˆèƒ½ï¼Œæ¸›å°‘é€£æ¥å‰µå»ºæ™‚é–“
         /// </summary>
         private async Task<(Entity loginContact, string fullName)> RetrieveUserData(
             string contactIdString, 
@@ -684,42 +805,42 @@ namespace ChurchReport.Controllers
             IOrganizationService service = null;
             try
             {
-                // ±q³s±µ¦ÀÀò¨ú³s±µ
+                // å¾é€£æ¥æ± ç²å–é€£æ¥
                 service = GetConnection();
                 
-                if (contactIdString != "³z¹LLine Id µn¤J")
+                if (contactIdString != "é€éLine Id ç™»å…¥")
                 {
-                    // ¨Ï¥ÎªÌ³z¹Lºô­¶ªº±b¸¹±K½Xµn¤J
-                    System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] ¨Ï¥Î Contact ID ¬d¸ß: {contactIdString}");
+                    // ä½¿ç”¨è€…é€éç¶²é çš„å¸³è™Ÿå¯†ç¢¼ç™»å…¥
+                    System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] ä½¿ç”¨ Contact ID æŸ¥è©¢: {contactIdString}");
                     
-                    // ª½±µ¨Ï¥Î CRM SDK ¬d¸ß¡AÀò¨ú§¹¾ãªºÁpµ¸¤H¸ê®Æ
+                    // ç›´æ¥ä½¿ç”¨ CRM SDK æŸ¥è©¢ï¼Œç²å–å®Œæ•´çš„è¯çµ¡äººè³‡æ–™
                     loginContact = service.Retrieve("contact", new Guid(contactIdString), new ColumnSet(true));
                     fullName = loginContact.Contains("fullname") 
                         ? loginContact.GetAttributeValue<string>("fullname") 
                         : "";
                     
-                    System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] ¬d¸ß¦¨¥\¡A©m¦W: {fullName}");
+                    System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] æŸ¥è©¢æˆåŠŸï¼Œå§“å: {fullName}");
                 }
                 else
                 {
-                    // ¨Ï¥ÎªÌ³z¹L LINE ID µn¤J
-                    System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] ¨Ï¥Î LINE ID ¬d¸ß: {InMemoryContext.LineBindingViewModel.LineUserId}");
+                    // ä½¿ç”¨è€…é€é LINE ID ç™»å…¥
+                    System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] ä½¿ç”¨ LINE ID æŸ¥è©¢: {InMemoryContext.LineBindingViewModel.LineUserId}");
                     
-                    // ¨Ï¥Î QueryExpression ¬d¸ß LINE ID ¸j©wªºÁpµ¸¤H
+                    // ä½¿ç”¨ QueryExpression æŸ¥è©¢ LINE ID ç¶å®šçš„è¯çµ¡äºº
                     var query = new QueryExpression("contact")
                     {
-                        ColumnSet = new ColumnSet(true), // »İ­n§¹¾ã¸ê®Æ¨Ñ«áÄò¨Ï¥Î
+                        ColumnSet = new ColumnSet(true), // éœ€è¦å®Œæ•´è³‡æ–™ä¾›å¾ŒçºŒä½¿ç”¨
                         Criteria = new FilterExpression
                         {
                             FilterOperator = LogicalOperator.And,
                             Conditions =
                             {
-                                new ConditionExpression("new_lineuserid", ConditionOperator.Equal, 
+                                new ConditionExpression("new_lineid", ConditionOperator.Equal, 
                                     InMemoryContext.LineBindingViewModel.LineUserId),
-                                new ConditionExpression("statecode", ConditionOperator.Equal, 0) // ¥u¬d¸ß±Ò¥ÎªºÁpµ¸¤H
+                                new ConditionExpression("statecode", ConditionOperator.Equal, 0) // åªæŸ¥è©¢å•Ÿç”¨çš„è¯çµ¡äºº
                             }
                         },
-                        TopCount = 1 // ¥u»İ­n¤@µ§µ²ªG
+                        TopCount = 1 // åªéœ€è¦ä¸€ç­†çµæœ
                     };
                     
                     var results = service.RetrieveMultiple(query);
@@ -731,39 +852,39 @@ namespace ChurchReport.Controllers
                             ? loginContact.GetAttributeValue<string>("fullname") 
                             : "";
                         
-                        // ³]©w LINE µn¤Jªº±b±K
+                        // è¨­å®š LINE ç™»å…¥çš„å¸³å¯†
                         viewModel.Account = "LineIdLogin";
                         viewModel.Password = InMemoryContext.LineBindingViewModel.LineUserId;
                         
-                        System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] LINE µn¤J¬d¸ß¦¨¥\¡A©m¦W: {fullName}");
+                        System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] LINE ç™»å…¥æŸ¥è©¢æˆåŠŸï¼Œå§“å: {fullName}");
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] §ä¤£¨ì¹ïÀ³ªº LINE ¨Ï¥ÎªÌ");
+                        System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] æ‰¾ä¸åˆ°å°æ‡‰çš„ LINE ä½¿ç”¨è€…");
                     }
                 }
             }
             catch (FaultException<OrganizationServiceFault> ex)
             {
-                // CRM ªA°È²§±`
-                System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] CRM ªA°È²§±`: {ex.Detail?.Message ?? ex.Message}");
-                throw new Exception($"¨ú±o¨Ï¥ÎªÌ¸ê®Æ¥¢±Ñ: {ex.Detail?.Message ?? ex.Message}", ex);
+                // CRM æœå‹™ç•°å¸¸
+                System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] CRM æœå‹™ç•°å¸¸: {ex.Detail?.Message ?? ex.Message}");
+                throw new Exception($"å–å¾—ä½¿ç”¨è€…è³‡æ–™å¤±æ•—: {ex.Detail?.Message ?? ex.Message}", ex);
             }
             catch (TimeoutException ex)
             {
-                // ³s±µ¶W®É
-                System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] ³s±µ¶W®É: {ex.Message}");
-                throw new Exception("¨ú±o¨Ï¥ÎªÌ¸ê®Æ¶W®É¡A½Ğµy«á¦A¸Õ", ex);
+                // é€£æ¥è¶…æ™‚
+                System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] é€£æ¥è¶…æ™‚: {ex.Message}");
+                throw new Exception("å–å¾—ä½¿ç”¨è€…è³‡æ–™è¶…æ™‚ï¼Œè«‹ç¨å¾Œå†è©¦", ex);
             }
             catch (Exception ex)
             {
-                // ¤@¯ë²§±`
-                System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] µo¥Í²§±`: {ex.Message}");
+                // ä¸€èˆ¬ç•°å¸¸
+                System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] ç™¼ç”Ÿç•°å¸¸: {ex.Message}");
                 throw;
             }
             finally
             {
-                // ÂkÁÙ³s±µ¨ì¦À¡]«D±`­«­n¡I½T«O³s±µ­«¥Î¡^
+                // æ­¸é‚„é€£æ¥åˆ°æ± ï¼ˆéå¸¸é‡è¦ï¼ç¢ºä¿é€£æ¥é‡ç”¨ï¼‰
                 ReleaseConnection(service);
             }
 
@@ -771,174 +892,174 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ªì©l¤Æ¨Ï¥ÎªÌ Session
+        /// åˆå§‹åŒ–ä½¿ç”¨è€… Session
         /// </summary>
         private void InitializeUserSession(Entity loginContact, GalleryViewModel viewModel)
         {
-            // ³]©w¦æ¨Æ¾äªº±b±K
+            // è¨­å®šè¡Œäº‹æ›†çš„å¸³å¯†
             InMemoryContext.AppointmentsListManager.m_Account = viewModel.Account;
             InMemoryContext.AppointmentsListManager.m_Password = viewModel.Password;
             InMemoryContext.AppointmentsListManager.m_LoginContact = loginContact;
 
-            // Àx¦sµn¤JªÌ¹êÅé¬ö¿ı
+            // å„²å­˜ç™»å…¥è€…å¯¦é«”ç´€éŒ„
             InMemoryContext.PersonalInfomationModel.m_LoginContact = loginContact;
         }
 
         /// <summary>
-        /// ³]©w¨t²Î¸ê®Æ
+        /// è¨­å®šç³»çµ±è³‡æ–™
         /// </summary>
         private void SetupSystemData(Entity loginContact, GalleryViewModel viewModel)
         {
             try
             {
-                // ³]©w¦h­Ó²Õªø³B²z»İ­nªº¸ê®Æ
-                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] ©I¥s SetupListManager - ¶}©l®É¶¡: {DateTime.Now:HH:mm:ss.fff}");
+                // è¨­å®šå¤šå€‹çµ„é•·è™•ç†éœ€è¦çš„è³‡æ–™
+                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] å‘¼å« SetupListManager - é–‹å§‹æ™‚é–“: {DateTime.Now:HH:mm:ss.fff}");
                 try
                 {
                     InMemoryContext.ListManager.SetupListManager(
                         viewModel.Account, 
                         viewModel.Password, 
                         DateTime.Now);
-                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupListManager §¹¦¨ - ®É¶¡: {DateTime.Now:HH:mm:ss.fff}");
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupListManager å®Œæˆ - æ™‚é–“: {DateTime.Now:HH:mm:ss.fff}");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupListManager ¥¢±Ñ: {ex.Message}");
-                    throw new Exception($"³]©w¤p²Õ¸ê®Æ¥¢±Ñ: {ex.Message}", ex);
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupListManager å¤±æ•—: {ex.Message}");
+                    throw new Exception($"è¨­å®šå°çµ„è³‡æ–™å¤±æ•—: {ex.Message}", ex);
                 }
 
-                // ®t¶ÔÃ±®Ö OR ³õ¦a¤Î¸ê·½¹w¬ù
-                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] ©I¥s SetupAppointmentList - ¶}©l®É¶¡: {DateTime.Now:HH:mm:ss.fff}");
+                // å·®å‹¤ç°½æ ¸ OR å ´åœ°åŠè³‡æºé ç´„
+                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] å‘¼å« SetupAppointmentList - é–‹å§‹æ™‚é–“: {DateTime.Now:HH:mm:ss.fff}");
                 try
                 {
                     InMemoryContext.AppointmentsListManager.SetupAppointmentList();
-                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupAppointmentList §¹¦¨ - ®É¶¡: {DateTime.Now:HH:mm:ss.fff}");
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupAppointmentList å®Œæˆ - æ™‚é–“: {DateTime.Now:HH:mm:ss.fff}");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupAppointmentList ¥¢±Ñ: {ex.Message}");
-                    // ³o­Ó¥¢±Ñ¤£¼vÅT¥D­nµn¤J¬yµ{¡A°O¿ı¿ù»~¦ıÄ~Äò
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupAppointmentList å¤±æ•—: {ex.Message}");
+                    // é€™å€‹å¤±æ•—ä¸å½±éŸ¿ä¸»è¦ç™»å…¥æµç¨‹ï¼Œè¨˜éŒ„éŒ¯èª¤ä½†ç¹¼çºŒ
                 }
 
-                // ³]©w©^Ämª÷¬y
-                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] ³]©w©^Ämª÷¬y - ¶}©l®É¶¡: {DateTime.Now:HH:mm:ss.fff}");
+                // è¨­å®šå¥‰ç»é‡‘æµ
+                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] è¨­å®šå¥‰ç»é‡‘æµ - é–‹å§‹æ™‚é–“: {DateTime.Now:HH:mm:ss.fff}");
                 try
                 {
                     if (loginContact != null)
                     {
-                        InMemoryContext.QpayManager.LoginType = "ºô­¶µn¤J";
+                        InMemoryContext.QpayManager.LoginType = "ç¶²é ç™»å…¥";
                         InMemoryContext.QpayManager.SetQpayModel(loginContact);
                     }
-                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] ³]©w©^Ämª÷¬y§¹¦¨ - ®É¶¡: {DateTime.Now:HH:mm:ss.fff}");
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] è¨­å®šå¥‰ç»é‡‘æµå®Œæˆ - æ™‚é–“: {DateTime.Now:HH:mm:ss.fff}");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] ³]©w©^Ämª÷¬y¥¢±Ñ: {ex.Message}");
-                    // ³o­Ó¥¢±Ñ¤£¼vÅT¥D­nµn¤J¬yµ{
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] è¨­å®šå¥‰ç»é‡‘æµå¤±æ•—: {ex.Message}");
+                    // é€™å€‹å¤±æ•—ä¸å½±éŸ¿ä¸»è¦ç™»å…¥æµç¨‹
                 }
 
-                // ³]©w»İ­nÂI¦Wªº½Òµ{²M³æ
-                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] ³]©w½Òµ{²M³æ - ¶}©l®É¶¡: {DateTime.Now:HH:mm:ss.fff}");
+                // è¨­å®šéœ€è¦é»åçš„èª²ç¨‹æ¸…å–®
+                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] è¨­å®šèª²ç¨‹æ¸…å–® - é–‹å§‹æ™‚é–“: {DateTime.Now:HH:mm:ss.fff}");
                 try
                 {
                     InMemoryContext.FeeList.SetupLessonList(viewModel.Account, viewModel.Password);
-                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] ³]©w½Òµ{²M³æ§¹¦¨ - ®É¶¡: {DateTime.Now:HH:mm:ss.fff}");
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] è¨­å®šèª²ç¨‹æ¸…å–®å®Œæˆ - æ™‚é–“: {DateTime.Now:HH:mm:ss.fff}");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] ³]©w½Òµ{²M³æ¥¢±Ñ: {ex.Message}");
-                    // ³o­Ó¥¢±Ñ¤£¼vÅT¥D­nµn¤J¬yµ{
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] è¨­å®šèª²ç¨‹æ¸…å–®å¤±æ•—: {ex.Message}");
+                    // é€™å€‹å¤±æ•—ä¸å½±éŸ¿ä¸»è¦ç™»å…¥æµç¨‹
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] ¾ãÅé¥¢±Ñ: {ex.Message}\n{ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] æ•´é«”å¤±æ•—: {ex.Message}\n{ex.StackTrace}");
                 throw;
             }
         }
 
         /// <summary>
-        /// §PÂ_Åã¥Üµø¹ÏÃş«¬
+        /// åˆ¤æ–·é¡¯ç¤ºè¦–åœ–é¡å‹
         /// </summary>
         private string DetermineDisplayViewType()
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ¶}©l§PÂ_Åã¥Üµø¹ÏÃş«¬");
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] é–‹å§‹åˆ¤æ–·é¡¯ç¤ºè¦–åœ–é¡å‹");
                 
-                // ±±¨î Navigation ¤U©Ô¶µ¥Ø
-                ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "¤£¬O³æ¯Â¦æ¨Æ¾ä";
-                ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "Åã¥Üªª¾i¦^³ø¶µ¥Ø";
+                // æ§åˆ¶ Navigation ä¸‹æ‹‰é …ç›®
+                ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "ä¸æ˜¯å–®ç´”è¡Œäº‹æ›†";
+                ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
                 ViewBag.UserType = InMemoryContext.ListManager.UserType = InMemoryContext.AppointmentsListManager.UserType;
 
                 System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] UserType={ViewBag.UserType}");
                 System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] LoginType={InMemoryContext.ListManager.LoginType}");
 
-                // ³z¹L¨ú±o¦h¤p²Õºô­¶»İ­nªº¸ê®Æ¤§«á¡A§PÂ_³o¬O¦h¤p²ÕÁÙ¬O³æ¤@¤p²Õªøªº¦^³ø
+                // é€éå–å¾—å¤šå°çµ„ç¶²é éœ€è¦çš„è³‡æ–™ä¹‹å¾Œï¼Œåˆ¤æ–·é€™æ˜¯å¤šå°çµ„é‚„æ˜¯å–®ä¸€å°çµ„é•·çš„å›å ±
                 string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
                 
-                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] GetDisplayViewType() ¦^¶Ç­È: '{displayViewType ?? "null"}'");
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] GetDisplayViewType() å›å‚³å€¼: '{displayViewType ?? "null"}'");
                 
-                // ? «OÅ@©ÊÀË¬d: ¦pªG displayViewType ¬O null ©ÎªÅ¦r¦ê¡A³]©w¹w³]­È
+                // âœ… ä¿è­·æ€§æª¢æŸ¥: å¦‚æœ displayViewType æ˜¯ null æˆ–ç©ºå­—ä¸²ï¼Œè¨­å®šé è¨­å€¼
                 if (string.IsNullOrEmpty(displayViewType))
                 {
-                    System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] Äµ§i: displayViewType ¬°ªÅ¡A¨Ï¥Î¹w³]­È");
+                    System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] è­¦å‘Š: displayViewType ç‚ºç©ºï¼Œä½¿ç”¨é è¨­å€¼");
                     
-                    // ®Ú¾Ú LoginType ¨M©w¹w³]­È
-                    if (InMemoryContext.ListManager.LoginType == "¤p²Õªø")
+                    // æ ¹æ“š LoginType æ±ºå®šé è¨­å€¼
+                    if (InMemoryContext.ListManager.LoginType == "å°çµ„é•·")
                     {
                         displayViewType = "IntegrateView";
-                        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ¤p²Õªø¹w³]­È: IntegrateView");
+                        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] å°çµ„é•·é è¨­å€¼: IntegrateView");
                     }
                     else
                     {
                         displayViewType = "MultiGroupView";
-                        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] «D¤p²Õªø¹w³]­È: MultiGroupView");
+                        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] éå°çµ„é•·é è¨­å€¼: MultiGroupView");
                     }
                 }
                 
                 if (displayViewType == "IntegrateView")
                 {
-                    System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] µø¹ÏÃş«¬¬° IntegrateView¡A¶}©l³]©w¾ã¦X¸ê®Æ");
-                    // ±oª¾³o¬O³æ¤@¤p²Õªøªº¦^³ø¡A©Ò¥H´Nª½±µ¤U¸ü¾ã¦X¦¡ºô­¶©Ò»İªº¸ê®Æ
+                    System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] è¦–åœ–é¡å‹ç‚º IntegrateViewï¼Œé–‹å§‹è¨­å®šæ•´åˆè³‡æ–™");
+                    // å¾—çŸ¥é€™æ˜¯å–®ä¸€å°çµ„é•·çš„å›å ±ï¼Œæ‰€ä»¥å°±ç›´æ¥ä¸‹è¼‰æ•´åˆå¼ç¶²é æ‰€éœ€çš„è³‡æ–™
                     try
                     {
                         InMemoryContext.ListManager.SetupIntegrateData(InMemoryContext.ListManager.ActiveListId);
-                        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] SetupIntegrateData §¹¦¨");
+                        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] SetupIntegrateData å®Œæˆ");
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] SetupIntegrateData ¥¢±Ñ: {ex.Message}");
-                        // §Y¨Ï¥¢±Ñ¤]Ä~Äò¡A¤£¼vÅTµn¤J
+                        System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] SetupIntegrateData å¤±æ•—: {ex.Message}");
+                        // å³ä½¿å¤±æ•—ä¹Ÿç¹¼çºŒï¼Œä¸å½±éŸ¿ç™»å…¥
                     }
                 }
 
-                // ®Ú¾Úµn¤JÃş«¬©M©¯ºÖ¤p²Õª¬ºA½Õ¾ãÅã¥ÜÃş«¬
+                // æ ¹æ“šç™»å…¥é¡å‹å’Œå¹¸ç¦å°çµ„ç‹€æ…‹èª¿æ•´é¡¯ç¤ºé¡å‹
                 System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] HappyType={InMemoryContext.HappyGroupDataManager.HappyType}");
                 
-                if (InMemoryContext.ListManager.LoginType != "¤p²Õªø" && 
-                    InMemoryContext.HappyGroupDataManager.HappyType == "¦³©¯ºÖ¤p²Õ¦W³æ")
+                if (InMemoryContext.ListManager.LoginType != "å°çµ„é•·" && 
+                    InMemoryContext.HappyGroupDataManager.HappyType == "æœ‰å¹¸ç¦å°çµ„åå–®")
                 {
-                    System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ½Õ¾ã¬° HappyGroupView");
+                    System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] èª¿æ•´ç‚º HappyGroupView");
                     displayViewType = "HappyGroupView";
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ³Ì²×µø¹ÏÃş«¬: {displayViewType}");
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] æœ€çµ‚è¦–åœ–é¡å‹: {displayViewType}");
                 
                 return displayViewType;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] µo¥Í²§±`: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] °ïÅ|°lÂÜ: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] ç™¼ç”Ÿç•°å¸¸: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] å †ç–Šè¿½è¹¤: {ex.StackTrace}");
                 
-                // µo¥Í²§±`®É¡Aªğ¦^¦w¥şªº¹w³]­È
+                // ç™¼ç”Ÿç•°å¸¸æ™‚ï¼Œè¿”å›å®‰å…¨çš„é è¨­å€¼
                 return "IntegrateView";
             }
         }
 
         /// <summary>
-        /// ³]©w ViewBag °Ñ¼Æ
+        /// è¨­å®š ViewBag åƒæ•¸
         /// </summary>
         private void SetupViewBagParameters(string displayViewType)
         {
@@ -947,15 +1068,15 @@ namespace ChurchReport.Controllers
             ViewBag.HappyType = InMemoryContext.HappyGroupDataManager.HappyType;
             ViewBag.FeeType = InMemoryContext.FeeList.FeeType;
 
-            // ³]©wÃº¶O»PÂI¦W¸ê®Æª¬ºA
+            // è¨­å®šç¹³è²»èˆ‡é»åè³‡æ–™ç‹€æ…‹
             SetupFeeDataListCount();
 
-            // ³]©w¦h¤p²Õ¥¬§½°Ñ¼Æ
+            // è¨­å®šå¤šå°çµ„å¸ƒå±€åƒæ•¸
             SetMultiGroupLayoutParameter();
         }
 
         /// <summary>
-        /// «Ø¥ßµn¤J¦^À³
+        /// å»ºç«‹ç™»å…¥å›æ‡‰
         /// </summary>
         private IActionResult CreateLoginResponse(
             string displayViewType, 
@@ -966,7 +1087,7 @@ namespace ChurchReport.Controllers
             {
                 DisplayViewType = displayViewType,
                 ActiveListId = InMemoryContext.ListManager.ActiveListId,
-                message = "Åwªï" + fullName + "µn¤J¦¨¥\!",
+                message = "æ­¡è¿" + fullName + "ç™»å…¥æˆåŠŸ!",
                 fullname = fullName,
                 account = viewModel.Account,
                 password = viewModel.Password
@@ -975,10 +1096,10 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ±K½XºŞ²z (¹w¯d¥\¯à)
+        #region å¯†ç¢¼ç®¡ç† (é ç•™åŠŸèƒ½)
 
         /// <summary>
-        /// §Ñ°O±K½X­¶­±
+        /// å¿˜è¨˜å¯†ç¢¼é é¢
         /// </summary>
         [HttpGet]
         [Route("/Authentication/ForgotPassword")]
@@ -986,7 +1107,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ¹ê§@§Ñ°O±K½XÅŞ¿è
+                // å¯¦ä½œå¿˜è¨˜å¯†ç¢¼é‚è¼¯
                 return View();
             }
             catch (Exception e)
@@ -996,7 +1117,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ­«³]±K½X
+        /// é‡è¨­å¯†ç¢¼
         /// </summary>
         [HttpPost]
         [Route("/Authentication/ResetPassword")]
@@ -1004,10 +1125,10 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ¹ê§@­«³]±K½XÅŞ¿è
+                // å¯¦ä½œé‡è¨­å¯†ç¢¼é‚è¼¯
                 // await SendPasswordResetEmail(email);
 
-                return Json(new { status = "1", message = "±K½X­«³]¶l¥ó¤wµo°e" });
+                return Json(new { status = "1", message = "å¯†ç¢¼é‡è¨­éƒµä»¶å·²ç™¼é€" });
             }
             catch (Exception e)
             {
@@ -1016,7 +1137,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ÅÜ§ó±K½X
+        /// è®Šæ›´å¯†ç¢¼
         /// </summary>
         [HttpPost]
         [Route("/Authentication/ChangePassword")]
@@ -1024,10 +1145,10 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ¹ê§@ÅÜ§ó±K½XÅŞ¿è
+                // å¯¦ä½œè®Šæ›´å¯†ç¢¼é‚è¼¯
                 // await UpdatePassword(oldPassword, newPassword);
 
-                return Json(new { status = "1", message = "±K½X¤w¦¨¥\ÅÜ§ó" });
+                return Json(new { status = "1", message = "å¯†ç¢¼å·²æˆåŠŸè®Šæ›´" });
             }
             catch (Exception e)
             {
@@ -1037,10 +1158,10 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region Session ºŞ²z
+        #region Session ç®¡ç†
 
         /// <summary>
-        /// ÀË¬d Session ¬O§_¦³®Ä
+        /// æª¢æŸ¥ Session æ˜¯å¦æœ‰æ•ˆ
         /// </summary>
         [HttpGet]
         [Route("/Authentication/CheckSession")]
@@ -1064,7 +1185,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ©µªø Session ®É¶¡
+        /// å»¶é•· Session æ™‚é–“
         /// </summary>
         [HttpPost]
         [Route("/Authentication/ExtendSession")]
@@ -1072,8 +1193,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // Session ·|¦Û°Ê©µªø¡A³o¸Ì¥u»İ­nªğ¦^¦¨¥\§Y¥i
-                return Json(new { status = "1", message = "Session ¤w©µªø" });
+                // Session æœƒè‡ªå‹•å»¶é•·ï¼Œé€™è£¡åªéœ€è¦è¿”å›æˆåŠŸå³å¯
+                return Json(new { status = "1", message = "Session å·²å»¶é•·" });
             }
             catch (Exception e)
             {
@@ -1083,20 +1204,20 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region LINE ID Àx¦s
+        #region LINE ID å„²å­˜
 
         /// <summary>
-        /// Àx¦s LINE ¨Ï¥ÎªÌ ID¡]¥Î©ó¨­¤À¸j©w­¶­±¡^
-        /// ÀË¬d¥Î¤á¬O§_¤w¸j©w¡A¨Ãªğ¦^¸j©wª¬ºA
-        /// ¨Ï¥Î³s±µ¦ÀÀu¤Æ®Ä¯à
+        /// å„²å­˜ LINE ä½¿ç”¨è€… IDï¼ˆç”¨æ–¼èº«åˆ†ç¶å®šé é¢ï¼‰
+        /// æª¢æŸ¥ç”¨æˆ¶æ˜¯å¦å·²ç¶å®šï¼Œä¸¦è¿”å›ç¶å®šç‹€æ…‹
+        /// ä½¿ç”¨é€£æ¥æ± å„ªåŒ–æ•ˆèƒ½
         /// </summary>
-        /// <param name="UserLineId">LINE ¨Ï¥ÎªÌ ID</param>
-        /// <param name="GroupId">¸s²Õ ID</param>
-        /// <param name="RoomId">²á¤Ñ«Ç ID</param>
-        /// <param name="ViewType">µø¹ÏÃş«¬</param>
-        /// <param name="DisplayName">Åã¥Ü¦WºÙ</param>
-        /// <param name="PictureUrl">ÀY¹³ URL</param>
-        /// <param name="StatusMessage">ª¬ºA°T®§</param>
+        /// <param name="UserLineId">LINE ä½¿ç”¨è€… ID</param>
+        /// <param name="GroupId">ç¾¤çµ„ ID</param>
+        /// <param name="RoomId">èŠå¤©å®¤ ID</param>
+        /// <param name="ViewType">è¦–åœ–é¡å‹</param>
+        /// <param name="DisplayName">é¡¯ç¤ºåç¨±</param>
+        /// <param name="PictureUrl">é ­åƒ URL</param>
+        /// <param name="StatusMessage">ç‹€æ…‹è¨Šæ¯</param>
         [HttpPost]
         [Route("/Authentication/SaveUserId")]
         public async Task<IActionResult> SaveUserId(
@@ -1110,35 +1231,35 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ³]©w LINE ¬ÛÃö¸ê°T
+                // è¨­å®š LINE ç›¸é—œè³‡è¨Š
                 InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
                 InMemoryContext.LineBindingViewModel.RoomId = RoomId ?? "";
                 InMemoryContext.LineBindingViewModel.GroupId = GroupId ?? "";
                 InMemoryContext.LineBindingViewModel.ViewType = ViewType ?? "";
 
-                // Àx¦sÃB¥~¸ê°T
+                // å„²å­˜é¡å¤–è³‡è¨Š
                 if (!string.IsNullOrEmpty(DisplayName))
                 {
                     InMemoryContext.LineBindingViewModel.FullName = DisplayName;
                 }
 
-                // ÀË¬d¥Î¤á¬O§_¤w¸j©w - ¨Ï¥Î³s±µ¦ÀÀu¤Æ
+                // æª¢æŸ¥ç”¨æˆ¶æ˜¯å¦å·²ç¶å®š - ä½¿ç”¨é€£æ¥æ± å„ªåŒ–
                 IOrganizationService service = null;
                 try
                 {
                     service = GetConnection();
                     
-                    System.Diagnostics.Debug.WriteLine($"[SaveUserId] ÀË¬d LINE ID ¬O§_¤w¸j©w: {UserLineId}");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserId] æª¢æŸ¥ LINE ID æ˜¯å¦å·²ç¶å®š: {UserLineId}");
                     
                     var query = new QueryExpression("contact")
                     {
-                        ColumnSet = new ColumnSet("fullname"), // ¥u»İ­n©m¦WÄæ¦ì
+                        ColumnSet = new ColumnSet("fullname"), // åªéœ€è¦å§“åæ¬„ä½
                         Criteria = new FilterExpression
                         {
                             FilterOperator = LogicalOperator.And,
                             Conditions =
                             {
-                                new ConditionExpression("new_lineuserid", ConditionOperator.Equal, UserLineId),
+                                new ConditionExpression("new_lineid", ConditionOperator.Equal, UserLineId),
                                 new ConditionExpression("statecode", ConditionOperator.Equal, 0)
                             }
                         },
@@ -1149,24 +1270,24 @@ namespace ChurchReport.Controllers
                     
                     if (results.Entities.Count == 0)
                     {
-                        // ¥Î¤á©|¥¼¸j©w
-                        System.Diagnostics.Debug.WriteLine($"[SaveUserId] ¥Î¤á©|¥¼¸j©w");
+                        // ç”¨æˆ¶å°šæœªç¶å®š
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserId] ç”¨æˆ¶å°šæœªç¶å®š");
                         return Json(new
                         {
                             status = "1",
-                            message = "½Ğ§¹¦¨¨­¤À¸j©wµù¥U"
+                            message = "è«‹å®Œæˆèº«åˆ†ç¶å®šè¨»å†Š"
                         });
                     }
                     else
                     {
-                        // ¥Î¤á¤w¸j©w
+                        // ç”¨æˆ¶å·²ç¶å®š
                         var fullName = results.Entities[0].GetAttributeValue<string>("fullname");
-                        System.Diagnostics.Debug.WriteLine($"[SaveUserId] ¥Î¤á¤w¸j©w: {fullName}");
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserId] ç”¨æˆ¶å·²ç¶å®š: {fullName}");
                         
                         return Json(new
                         {
                             status = "0",
-                            message = $"±z¤w¸j©w¬° {fullName}"
+                            message = $"æ‚¨å·²ç¶å®šç‚º {fullName}"
                         });
                     }
                 }
@@ -1177,7 +1298,7 @@ namespace ChurchReport.Controllers
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"[SaveUserId] µo¥Í¿ù»~: {e.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SaveUserId] ç™¼ç”ŸéŒ¯èª¤: {e.Message}");
                 return HandleError(e, "SaveUserId");
             }
         }
