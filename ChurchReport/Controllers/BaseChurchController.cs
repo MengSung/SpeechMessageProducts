@@ -4,6 +4,7 @@ using LineMessagingProcessor;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Xrm.Sdk;
 using System;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.ConnectionOperations;
@@ -246,6 +247,133 @@ namespace ChurchReport.Controllers
                             InMemoryContext.FeeList.FeeDataList.Count > 0;
 
             ViewBag.FeeDataListCount = hasFeeData ? "繳費與點名已有資料" : "繳費與點名尚無資料";
+        }
+
+        #endregion
+
+        #region 連接池操作
+
+        /// <summary>
+        /// 從連接池獲取 CRM 連接
+        /// </summary>
+        /// <returns>IOrganizationService 實例</returns>
+        /// <exception cref="TimeoutException">連接池已滿且等待超時</exception>
+        /// <exception cref="InvalidOperationException">連接池未正確初始化</exception>
+        protected IOrganizationService GetConnection()
+        {
+            try
+            {
+                if (_connectionPool == null)
+                {
+                    throw new InvalidOperationException("連接池未初始化");
+                }
+
+                var connection = _connectionPool.AcquireConnection();
+                
+                if (connection == null)
+                {
+                    throw new InvalidOperationException("無法從連接池獲取有效連接");
+                }
+
+                return connection;
+            }
+            catch (TimeoutException)
+            {
+                // 連接池已滿，記錄日誌
+                System.Diagnostics.Debug.WriteLine($"[GetConnection] 連接池已滿，等待超時");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // 其他異常
+                System.Diagnostics.Debug.WriteLine($"[GetConnection] 獲取連接失敗: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 歸還連接到連接池
+        /// </summary>
+        /// <param name="connection">要歸還的連接</param>
+        protected void ReleaseConnection(IOrganizationService connection)
+        {
+            try
+            {
+                if (connection == null)
+                {
+                    // 連接為 null，不需要歸還
+                    return;
+                }
+
+                if (_connectionPool == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ReleaseConnection] 連接池未初始化，無法歸還連接");
+                    return;
+                }
+
+                _connectionPool.ReleaseConnection(connection);
+            }
+            catch (Exception ex)
+            {
+                // 歸還連接失敗不應該中斷業務邏輯
+                System.Diagnostics.Debug.WriteLine($"[ReleaseConnection] 歸還連接失敗: {ex.Message}");
+                
+                // 記錄到追蹤日誌
+                try
+                {
+                    ToolUtility?.TraceByLevel(TOTAL_LEVEL, LEVEL_1, 
+                        $"歸還連接失敗: {ex.Message}");
+                }
+                catch
+                {
+                    // 追蹤失敗也不影響流程
+                }
+            }
+        }
+
+        /// <summary>
+        /// 獲取連接池統計資訊
+        /// 用於監控和除錯
+        /// </summary>
+        /// <returns>連接池統計資訊</returns>
+        protected ConnectionPoolStats GetConnectionPoolStats()
+        {
+            try
+            {
+                if (_connectionPool == null)
+                {
+                    return new ConnectionPoolStats
+                    {
+                        TotalConnections = 0,
+                        ActiveConnections = 0,
+                        IdleConnections = 0,
+                        WaitingRequests = 0,
+                        TotalAcquireCount = 0,
+                        TotalReleaseCount = 0,
+                        TimeoutCount = 0,
+                        ValidationFailureCount = 0
+                    };
+                }
+
+                return _connectionPool.GetStats();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetConnectionPoolStats] 獲取統計資訊失敗: {ex.Message}");
+                
+                // 返回空統計資訊
+                return new ConnectionPoolStats
+                {
+                    TotalConnections = 0,
+                    ActiveConnections = 0,
+                    IdleConnections = 0,
+                    WaitingRequests = 0,
+                    TotalAcquireCount = 0,
+                    TotalReleaseCount = 0,
+                    TimeoutCount = 0,
+                    ValidationFailureCount = 0
+                };
+            }
         }
 
         #endregion
