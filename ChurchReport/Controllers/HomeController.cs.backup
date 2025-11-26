@@ -20,7 +20,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
-using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
@@ -35,14 +34,12 @@ namespace ChurchReport.Controllers
         /// <param name="memoryCache">記憶體快取</param>
         /// <param name="qpayService">金流服務</param>
         /// <param name="toolUtilityProvider">ToolUtility 提供者 (DI 注入)</param>
-        /// <param name="connectionPool">CRM 連線池</param>
         public HomeController(
             IHttpContextAccessor httpContextAccessor, 
             IMemoryCache memoryCache, 
             IPayment qpayService,
-            IToolUtilityProvider toolUtilityProvider,
-            ICrmConnectionPool connectionPool)
-        : base(httpContextAccessor, memoryCache, qpayService, toolUtilityProvider, connectionPool)
+            IToolUtilityProvider toolUtilityProvider)
+            : base(httpContextAccessor, memoryCache, qpayService, toolUtilityProvider)
         {
         }
         #endregion
@@ -70,8 +67,7 @@ namespace ChurchReport.Controllers
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
-                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool);
+                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider);
             
             return await authController.ProcessLogin(aGalleryViewModel);
         }
@@ -196,8 +192,7 @@ namespace ChurchReport.Controllers
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
-                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool);
+                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider);
             
             return await authController.SaveUserLineId(UserLineId, GroupId, RoomId, ViewType);
         }
@@ -214,8 +209,7 @@ namespace ChurchReport.Controllers
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
-                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool);
+                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider);
             
             return dedicationController.SetupUserLineId(UserLineId, GroupId, RoomId, ViewType);
         }
@@ -241,8 +235,7 @@ namespace ChurchReport.Controllers
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
-                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool);
+                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider);
             
             return await authController.ProcessLineBinding(model);
         }
@@ -266,8 +259,7 @@ namespace ChurchReport.Controllers
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
-                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool);
+                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider);
             
             return await authController.SaveUserId(UserLineId, GroupId, RoomId, ViewType, DisplayName, PictureUrl, StatusMessage);
         }

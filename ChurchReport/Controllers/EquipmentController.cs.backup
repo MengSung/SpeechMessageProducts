@@ -8,7 +8,6 @@ using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
@@ -28,14 +27,12 @@ namespace ChurchReport.Controllers
         /// <param name="memoryCache">記憶體快取</param>
         /// <param name="paymentService">金流服務</param>
         /// <param name="toolUtilityProvider">ToolUtility 提供者 (DI 注入)</param>
-        /// <param name="connectionPool">CRM 連線池</param>
         public EquipmentController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             IPayment paymentService,
-            IToolUtilityProvider toolUtilityProvider,
-            ICrmConnectionPool connectionPool)
-            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool)
+            IToolUtilityProvider toolUtilityProvider)
+            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider)
         {
         }
 

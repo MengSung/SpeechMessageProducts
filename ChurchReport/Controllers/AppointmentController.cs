@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using System;
 using System.Globalization;
 using System.Linq;
+using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
@@ -25,8 +26,9 @@ namespace ChurchReport.Controllers
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             IPayment paymentService,
-            IToolUtilityProvider toolUtilityProvider)
-            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider)
+            IToolUtilityProvider toolUtilityProvider,
+            ICrmConnectionPool connectionPool)
+            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool)
         {
         }
 

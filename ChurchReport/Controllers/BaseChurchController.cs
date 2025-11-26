@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
@@ -36,6 +37,11 @@ namespace ChurchReport.Controllers
         protected readonly IToolUtilityProvider _toolUtilityProvider;
 
         /// <summary>
+        /// CRM 連線池
+        /// </summary>
+        protected readonly ICrmConnectionPool _connectionPool;
+
+        /// <summary>
         /// 工具類別實例 (透過 DI 取得 Singleton 實例)
         /// </summary>
         protected ToolUtilityClass ToolUtility => _toolUtilityProvider.GetToolUtility();
@@ -61,14 +67,17 @@ namespace ChurchReport.Controllers
         /// <param name="memoryCache">記憶體快取</param>
         /// <param name="paymentService">金流服務</param>
         /// <param name="toolUtilityProvider">ToolUtility 提供者 (透過 DI 注入)</param>
+        /// <param name="connectionPool">CRM 連線池</param>
         protected BaseChurchController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             IPayment paymentService,
-            IToolUtilityProvider toolUtilityProvider)
+            IToolUtilityProvider toolUtilityProvider,
+            ICrmConnectionPool connectionPool)
         {
             // 透過 DI 注入 ToolUtility 提供者
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
+            _connectionPool = connectionPool ?? throw new ArgumentNullException(nameof(connectionPool));
 
             // 初始化記憶體資料上下文
             InMemoryContext = new InMemoryDataContextSmallGroup(
