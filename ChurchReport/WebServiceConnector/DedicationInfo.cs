@@ -1,6 +1,4 @@
-﻿using Line.Pay;
-using Line.Pay.Models;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Xrm.Sdk;
 

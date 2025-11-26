@@ -1,8 +1,6 @@
 ﻿using ChurchReport.Models;
 using ChurchReport.Tools;
 using Line.Messaging;
-using Line.Pay;
-using Line.Pay.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using QPay.Domain;
