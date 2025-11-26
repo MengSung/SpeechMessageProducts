@@ -155,8 +155,8 @@
         function getLoadPanelInstance() { return $("#loadPanel").dxLoadPanel("instance"); }
         function loadPanel_show() { getLoadPanelInstance().show(); }
         function loadPanel_hide() { getLoadPanelInstance().hide(); }
-        function Binding() { window.location.href = "/Home/LineLiffView/1653819697-YkPyPkr6"; }
-        function Login() { window.location.href = "/Home/Login"; }
+        function Binding() { window.location.href = "/Authentication/LineLiffView/1653819697-YkPyPkr6"; }
+        function Login() { window.location.href = "/Authentication/Login"; }
     </script>
     <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -183,45 +183,148 @@
                     }
                 })
                 .catch(error => {
-                    document.getElementById('displaynamefield').innerHTML = "錯誤: " + error;
+                    console.error('[LIFF Init Error]', error);
+                    document.getElementById('displaynamefield').innerHTML = "LIFF 初始化錯誤: " + error.message;
+                    ShowToast("LIFF 初始化失敗", "error", 3000);
                 });
         };
+        
         var UserId = ""; var GroupId = ""; var RoomId = ""; var DisplayName = ""; var ViewType = "";
+        
         async function initializeApp() {
-            await liff.getProfile()
-                .then(function (profile) {
-                    document.getElementById('displaynamefield').innerHTML = "歡迎" +profile.displayName + "登入" + "<br/>" +"願神永遠祝福" + profile.displayName + "<br/>" + "約需10~15秒，感謝您的耐心等候!";
-                    loadPanel_show();
-                    DisplayName = profile.displayName; UserId = profile.userId; GroupId = profile.aGroupId; RoomId = profile.aRoomId; ViewType = profile.aViewType;
-                    UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
-                })
-                .catch(error => { document.getElementById('displaynamefield').innerHTML = "錯誤:" + error; });
+            try {
+                const profile = await liff.getProfile();
+                
+                document.getElementById('displaynamefield').innerHTML = 
+                    "歡迎 " + profile.displayName + " 登入<br/>" +
+                    "願神永遠祝福 " + profile.displayName + "<br/>" +
+                    "約需10~15秒，感謝您的耐心等候!";
+                
+                loadPanel_show();
+                
+                DisplayName = profile.displayName;
+                UserId = profile.userId;
+                GroupId = profile.aGroupId || "";
+                RoomId = profile.aRoomId || "";
+                ViewType = profile.aViewType || "";
+                
+                console.log('[LINE Profile]', { DisplayName, UserId, GroupId, RoomId, ViewType });
+                
+                UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+            } catch (error) {
+                console.error('[Get Profile Error]', error);
+                document.getElementById('displaynamefield').innerHTML = "取得個人資料錯誤: " + error.message;
+                ShowToast("取得個人資料失敗", "error", 3000);
+                loadPanel_hide();
+            }
         }
+        
         function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType) {
+            console.log('[UpdateLineUserId] 開始更新 LINE ID', {
+                UserLineId: aUserLineId,
+                GroupId: aGroupId,
+                RoomId: aRoomId,
+                ViewType: aViewType
+            });
+            
             $.ajax({
-                url: '@Url.Action("SaveUserLineId", "Home")',
-                data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType },
+                // ✅ 使用正確的 Controller 路徑
+                url: '@Url.Action("SaveUserLineId", "Authentication")',
+                data: { 
+                    UserLineId: aUserLineId, 
+                    GroupId: aGroupId, 
+                    RoomId: aRoomId, 
+                    ViewType: aViewType 
+                },
                 type: 'POST',
+                dataType: 'json',
+                timeout: 30000, // 30 秒超時
                 success: function (data) {
+                    console.log('[AJAX Success]', data);
+                    
+                    // ✅ 重要修正: 使用 PascalCase (因為 Startup.cs 使用 DefaultContractResolver)
+                    // C# 回傳: DisplayViewType, ActiveListId (大寫開頭)
+                    // JavaScript 存取: data.DisplayViewType, data.ActiveListId (大寫開頭)
+                    
                     if (data.message != "尚未綁定") {
                         ShowToast(data.message, "success", 1600);
+                        
+                        // ✅ 使用 PascalCase 存取屬性
                         if (data.DisplayViewType == "MultiGroupView") {
-                            window.location.href = "/Home/MultiGroupView/" + data.ActiveListId;
+                            console.log('[導向] MultiGroupView:', data.ActiveListId);
+                            window.location.href = "/SmallGroup/MultiGroupView/" + data.ActiveListId;
                         } else if (data.DisplayViewType == "IntegrateView") {
-                            window.location.href = "/Home/IntegrateView/" + data.ActiveListId;
+                            console.log('[導向] IntegrateView:', data.ActiveListId);
+                            window.location.href = "/SmallGroup/IntegrateView/" + data.ActiveListId;
                         } else if (data.DisplayViewType == "HappyGroupView") {
-                            window.location.href = "/Home/HappyGroup";
+                            console.log('[導向] HappyGroupView');
+                            window.location.href = "/SmallGroup/HappyGroup";
                         } else {
-                            ShowToast("登入錯誤!", "error", 3000); loadPanel_hide(); document.getElementById('displaynamefield').innerHTML = "登入錯誤";
+                            console.error('[導向錯誤] 未知的視圖類型:', data.DisplayViewType);
+                            ShowToast("登入錯誤: 未知的視圖類型", "error", 3000);
+                            loadPanel_hide();
+                            document.getElementById('displaynamefield').innerHTML = "登入錯誤: 未知的視圖類型<br/><small>DisplayViewType=" + data.DisplayViewType + "</small>";
                         }
                     } else {
-                        ShowToast(data.message, "error", 2200); loadPanel_hide(); document.getElementById('displaynamefield').innerHTML = "尚未綁定";
+                        console.warn('[未綁定]', data.message);
+                        ShowToast(data.message, "warning", 2200);
+                        loadPanel_hide();
+                        document.getElementById('displaynamefield').innerHTML = "尚未綁定帳號<br/>請先完成綁定程序";
+                        
+                        // 3 秒後導向綁定頁面
+                        setTimeout(function() {
+                            window.location.href = "/Authentication/LineLiffView/1653819697-YkPyPkr6";
+                        }, 3000);
                     }
                 },
-                error: function () { loadPanel_hide(); window.location.href = "/Home/Login"; }
+                error: function (xhr, status, error) {
+                    console.error('[AJAX Error]', {
+                        status: status,
+                        error: error,
+                        statusCode: xhr.status,
+                        responseText: xhr.responseText,
+                        readyState: xhr.readyState
+                    });
+                    
+                    loadPanel_hide();
+                    
+                    var errorMessage = "登入失敗";
+                    
+                    if (xhr.status === 0) {
+                        errorMessage = "網路連線失敗，請檢查網路設定";
+                    } else if (xhr.status === 404) {
+                        errorMessage = "找不到登入頁面 (404)";
+                    } else if (xhr.status === 500) {
+                        errorMessage = "伺服器錯誤 (500)";
+                    } else if (status === 'timeout') {
+                        errorMessage = "連線逾時，請稍後再試";
+                    } else if (xhr.responseText) {
+                        try {
+                            var errorData = JSON.parse(xhr.responseText);
+                            errorMessage = errorData.message || errorMessage;
+                        } catch (e) {
+                            errorMessage = "伺服器回應錯誤";
+                        }
+                    }
+                    
+                    ShowToast(errorMessage, "error", 4000);
+                    document.getElementById('displaynamefield').innerHTML = 
+                        errorMessage + "<br/><small>錯誤代碼: " + xhr.status + "</small>";
+                    
+                    // 5 秒後導向登入頁
+                    setTimeout(function() {
+                        window.location.href = "/Authentication/Login";
+                    }, 5000);
+                }
             });
         }
-        function ShowLoadPanel(LocalLoadPanelMessage) { var lp = $("#loadPanel").dxLoadPanel("instance"); lp.option('message', LocalLoadPanelMessage); lp.show(); }
+        
+        function ShowLoadPanel(LocalLoadPanelMessage) { 
+            var lp = $("#loadPanel").dxLoadPanel("instance"); 
+            lp.option('message', LocalLoadPanelMessage); 
+            lp.show(); 
+        }
+        
         function ShowToast(LocalToastMessage, Type, DisplayTime) {
             var ToastInstance = $("#Toast").dxToast("instance");
             ToastInstance.option('message', LocalToastMessage);
