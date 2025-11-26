@@ -5,9 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 using RestSharp;
-
-using RestSharp.Serializers;
-using RestSharp.Deserializers;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace LineMessagingProcessor
 {
@@ -50,6 +49,14 @@ namespace LineMessagingProcessor
         public String m_UserId = "";
         public String m_Message = "";
 
+        private readonly RestClient _restClient;
+
+        public LineMessagingProcessorClass()
+        {
+            var options = new RestClientOptions("https://api.line.me/v2/bot");
+            _restClient = new RestClient(options);
+        }
+
         #region 釋放記憶體
         private bool _disposed = false;
 
@@ -59,7 +66,7 @@ namespace LineMessagingProcessor
 
             if (disposing)
             {
-                //m_Crm2011ProcessorClass.Dispose();
+                // RestClient in v112.x doesn't implement IDisposable
             }
 
             _disposed = true;
@@ -73,9 +80,6 @@ namespace LineMessagingProcessor
 
         ~LineMessagingProcessorClass()
         {
-            // Do not re-create Dispose clean-up code here.
-            // Calling Dispose(false) is optimal in terms of
-            // readability and maintainability.
             Dispose(false);
         }
         #endregion
@@ -102,12 +106,8 @@ namespace LineMessagingProcessor
 
                 m_UserId = aEvent["source"]["userId"];
 
-                //SendMessage(m_UserId, "歡迎加入音訊科技粉絲團");
-                SendMessage(m_UserId, "歡迎加入聖谷行道會");
-                //SendMessage(m_UserId, "歡迎加入樹林教會");
-                //await SendMessage(m_UserId, "順風美醫診所");
+                await SendMessage(m_UserId, "歡迎加入聖谷行道會");
 
-                //await m_Crm2011ProcessorClass.ProcessFollow(this.m_UserId);
                 #endregion
             }
             else if (EventType == "unfollow")
@@ -115,13 +115,7 @@ namespace LineMessagingProcessor
                 #region unfollow
 
                 m_UserId = aEvent["source"]["userId"];
-                //SendMessage(m_UserId, "期待您隨時回來音訊科技粉絲團");
-                SendMessage(m_UserId, "期待您隨時回來聖谷行道會粉絲團");
-                //SendMessage(m_UserId, "期待您隨時回來樹林教會");
-                //await SendMessage(m_UserId, "期待您隨時回來順風美醫診所");
-
-
-                //await m_Crm2011ProcessorClass.ProcessUnFollow(this.m_UserId);
+                await SendMessage(m_UserId, "期待您隨時回來聖谷行道會粉絲團");
 
                 #endregion
             }
@@ -140,10 +134,6 @@ namespace LineMessagingProcessor
                 if (MessageType == "模板" || MessageType == "確認")
                 {
                     await SendMessage(UserId, "您選擇了 : " + Selection + Environment.NewLine + "正在處理中....");
-                    //SendMessage(UserId, "LetterEntityId = " + LetterEntityId + Environment.NewLine );
-                    //await m_Crm2011ProcessorClass.SetLetterEntitySelection(UserId, LetterEntityId, Selection);
-
-                    //SendMessage(UserId, "處理已完成了!");
                 }
                 #endregion
             }
@@ -157,23 +147,18 @@ namespace LineMessagingProcessor
                 if (MessageType == "text")
                 {
                     m_Message = aEvent["message"]["text"];
-                    //await m_Crm2011ProcessorClass.ProcessLineMessage(this.m_UserId, this.m_Message);
-                    //this.SendMessage(this.m_UserId, "您輸入了 : " + m_Message);
                 }
                 else if (MessageType == "image")
                 {
                     String MessageId = aEvent["message"]["id"];
-                    //await m_Crm2011ProcessorClass.GetMessageContent(this.m_UserId, MessageId);
                 }
                 else if (MessageType == "video")
                 {
                     String MessageId = aEvent["message"]["id"];
-                    //await m_Crm2011ProcessorClass.GetMessageContent(this.m_UserId, MessageId);
                 }
                 else if (MessageType == "audio")
                 {
                     String MessageId = aEvent["message"]["id"];
-                    //await m_Crm2011ProcessorClass.GetMessageContent(this.m_UserId, MessageId);
                 }
                 else if (MessageType == "location")
                 {
@@ -182,14 +167,12 @@ namespace LineMessagingProcessor
                     String Address = aEvent["message"]["address"];
                     String Latitude = aEvent["message"]["latitude"];
                     String Longitude = aEvent["message"]["longitude"];
-                    //await m_Crm2011ProcessorClass.CreateLineLocationMessage(this.m_UserId, MessageId, Title, Address, Latitude, Longitude);
                 }
                 else if (MessageType == "sticker")
                 {
                     String MessageId = aEvent["message"]["id"];
                     String PackageId = aEvent["message"]["packageId"];
                     String StickerId = aEvent["message"]["stickerId"];
-                    //await m_Crm2011ProcessorClass.CreateLineStickerMessage(this.m_UserId, MessageId, PackageId, StickerId);
                 }
                 else { }
 
@@ -200,176 +183,107 @@ namespace LineMessagingProcessor
 
         public async Task SendMessage(string UserId, string Message)
         {
-            //Uri aUri = new Uri(@"https://api.line.me/v2/bot/message/push");
-
-            //var client = new HttpClient();
-            //client.Po
-            //
-            //           client.BaseAddress = newUri("http://localhost:55587/"); 
-            //
-            //           //isRock.LineBot.Utility.PushMessage("U4a2271a6d741feb88d70be27f6aaca63", "不斷的歌唱", "whZPARvpPAe3VMkCGdasb0ITlJCDncda2StsfAKso8kgWMyDhewAjc5sey0j1RUIer+IqARAc4B02aRzXCjrs+cI/VV7Gw2c3MsbhGlTJRROI4+I+e1Uk3WYshxidk9R+8bS9lNrBy/VJCrbBh4ryAdB04t89/1O/w1cDnyilFU=");
-            //
-            //           //         //XDocument xml = XDocument.Load(Server.MapPath("~/App_Data/confidential.xml"));
-            //           //
-            //           //         // https://api.line.me/v2/bot/message/push
-            //           //         //RestClient restClient = new RestClient(@"https://trialbot-api.line.me/v1/events");
-            RestClient restClient = new RestClient(@"https://api.line.me/v2/bot/message/push");
-            RestRequest restRequest = new RestRequest(Method.POST);
-            //           //
-            restRequest.AddHeader("Content-Type", "application/json; charset=UTF-8");
-            restRequest.AddHeader("Authorization", m_ChannelAccessToken );
-
-
+            var request = new RestRequest("message/push");
+            
+            request.AddHeader("Content-Type", "application/json; charset=UTF-8");
+            request.AddHeader("Authorization", m_ChannelAccessToken);
 
             if (Message == "顯示認證")
             {
-                var locations = new Dictionary<string, object>();
-                locations.Add("type", "text");
-                //locations.Add("text", "JESUS IS A SAVIOR");
-                locations.Add("text", "認證:" + UserId);
-
-                JsonObject o = new JsonObject();
-
-                foreach (var kvp in locations)
+                var messageData = new
                 {
-                    o.Add(kvp);
-                }
-
-                JsonArray arr = new JsonArray();
-                arr.Add(o);
-
-
-                restRequest.AddJsonBody
-                (
-                    new
+                    to = UserId,
+                    messages = new[]
                     {
-                        //to = "U4a2271a6d741feb88d70be27f6aaca63",
-                        to = UserId,
-                        messages = arr
+                        new
+                        {
+                            type = "text",
+                            text = "認證:" + UserId
+                        }
                     }
-                );
+                };
 
-
-                restClient.PostAsync(restRequest, (response, handle) =>
-                {
-                    //Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                });
-                //var restResponse = await restClient.ExecuteTaskAsync(restRequest, cancellationTokenSource.Token);
+                request.AddJsonBody(messageData);
             }
             else
             {
-                var locations = new Dictionary<string, object>();
-                locations.Add("type", "text");
-                //locations.Add("text", "JESUS IS A SAVIOR");
-                locations.Add("text", Message);
-
-                JsonObject o = new JsonObject();
-
-                foreach (var kvp in locations)
+                var messageData = new
                 {
-                    o.Add(kvp);
-                }
-
-                JsonArray arr = new JsonArray();
-                arr.Add(o);
-
-
-                restRequest.AddJsonBody
-                (
-                    new
+                    to = UserId,
+                    messages = new[]
                     {
-                            //to = "U4a2271a6d741feb88d70be27f6aaca63",
-                            to = UserId,
-                            messages = arr
+                        new
+                        {
+                            type = "text",
+                            text = Message
+                        }
                     }
-                );
+                };
 
-                restClient.PostAsync(restRequest, (response, handle) =>
-                {
-                    //Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                });
-                //var restResponse = await restClient.ExecuteTaskAsync(restRequest, cancellationTokenSource.Token);
-
+                request.AddJsonBody(messageData);
             }
+
+            await _restClient.PostAsync(request);
         }
 
-        public List<UserProfile> GetUserProfile(string UserId)
+        public async Task<UserProfile> GetUserProfile(string UserId)
         {
-            RestClient restClient = new RestClient(@"https://api.line.me/v2/bot/profile/" + UserId);
-            RestRequest restRequest = new RestRequest(Method.GET);
-            restRequest.AddHeader("Content-Type", "application/json; charset=UTF-8");
-            restRequest.AddHeader("Authorization", m_ChannelAccessToken );
+            var request = new RestRequest($"profile/{UserId}");
+            request.AddHeader("Content-Type", "application/json; charset=UTF-8");
+            request.AddHeader("Authorization", m_ChannelAccessToken);
 
-            var restResponse = restClient.Get(restRequest);
+            var response = await _restClient.GetAsync(request);
 
-            var deserializer = new JsonDeserializer();
+            if (response != null && response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
+            {
+                return JsonConvert.DeserializeObject<UserProfile>(response.Content);
+            }
 
-            return deserializer.Deserialize<List<UserProfile>>(restResponse);
-
-            //List<UserProfile> aList = deserializer.Deserialize<List<UserProfile>>(restResponse);
-
-            //JsonConvert.DeserializeObject<T>(restResponse.Content);
-            //JO aJObject = restResponse.Content;
-            //
-            //
-            //dynamic json = Newtonsoft.Json.Linq.JObject.Parse(response.Content);
-            //restClient.GetAsyncPostAsync(restRequest, (response, handle) =>
-            //{
-            //    //Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-            //});
-            //var restResponse = await restClient.ExecuteTaskAsync(restRequest, cancellationTokenSource.Token);
+            return null;
         }
 
-        public String GetUserDisplayName(string UserId)
+        public async Task<String> GetUserDisplayName(string UserId)
         {
             try
             {
-                List<UserProfile> aList = this.GetUserProfile(UserId);
+                var profile = await GetUserProfile(UserId);
 
-                return aList[0].DisplayName;
-
+                return profile?.DisplayName ?? "";
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                SendMessage(UserId, ErrorString);
+                await SendMessage(UserId, ErrorString);
 
-                //Monitor.Exit(this);
-                throw e;
+                throw;
             }
         }
 
-        public void NotifyLineBinding(string UserId)
+        public async Task NotifyLineBinding(string UserId)
         {
             try
             {
                 #region 通知住綁定的輸入格式
-                String EncodeName = System.Net.WebUtility.UrlEncode(GetUserDisplayName(UserId)) + "," + System.Net.WebUtility.UrlEncode(UserId);
+                String displayName = await GetUserDisplayName(UserId);
+                String EncodeName = System.Net.WebUtility.UrlEncode(displayName) + "," + System.Net.WebUtility.UrlEncode(UserId);
                 String CombineEncodeName = "https://tpehoc.speechmessage.com.tw:200/Home/LineBindingView/" + EncodeName;
 
-                //string DeCoded = System.Net.WebUtility.UrlDecode(CombineEncodeName);
-
-                //SendMessage(UserId,  "請點擊以下網址進行牧養系統與Line的註冊:");
-
-                SendMessage(
+                await SendMessage(
                     UserId,
                     "請點擊以下網址進行牧養系統與Line的註冊:" + Environment.NewLine + CombineEncodeName
-                    );
+                );
                 #endregion
-
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                SendMessage(UserId, ErrorString);
+                await SendMessage(UserId, ErrorString);
 
-                //Monitor.Exit(this);
-                throw e;
+                throw;
             }
         }
-
 
         #region 工具區
         public void ParsePostBackString(String PostBackString, ref String MessageType, ref String Selection, ref String LetterEntityId)
@@ -391,14 +305,16 @@ namespace LineMessagingProcessor
 
     public class UserProfile
     {
-        //"displayName":"LINE taro",
-        //"userId":"Uxxxxxxxxxxxxxx...",
-        //"pictureUrl":"http://obs.line-apps.com/...",
-        //"statusMessage":"Hello, LINE!"
-        public string DisplayName { get; set; }
-        public string UserId { get; set; }
-        public string PictureUrl { get; set; }
-        public string StatusMessage { get; set; }
-    }
+        [JsonProperty("displayName")]
+        public string DisplayName { get; set; } = "";
 
+        [JsonProperty("userId")]
+        public string UserId { get; set; } = "";
+
+        [JsonProperty("pictureUrl")]
+        public string PictureUrl { get; set; } = "";
+
+        [JsonProperty("statusMessage")]
+        public string StatusMessage { get; set; } = "";
+    }
 }
