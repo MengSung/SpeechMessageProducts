@@ -152,8 +152,8 @@ public class BugslayerTextWriterTraceListener :
     /// <param name="detailMessage">
     /// A detailed message to emit.
     /// </param>
-    public override void Fail ( string message       ,
-                                string detailMessage  )
+    public override void Fail ( string? message       ,
+                                string? detailMessage  )
     {
         Writer.WriteLine ( "---- DEBUG ASSERTION FAILED ----" ) ;
         Writer.WriteLine ( "---- Assert Short Message ----" ) ;

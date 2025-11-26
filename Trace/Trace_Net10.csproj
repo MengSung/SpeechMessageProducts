@@ -71,10 +71,14 @@
     <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
   </PropertyGroup>
 
-  <!-- ========================================
-       ? SDK-Style 專案會自動包含所有 .cs 檔案
-       不需要手動指定 <Compile Include="...">
-       ======================================== -->
+  <ItemGroup>
+    <!-- ========================================
+         編譯檔案
+         ======================================== -->
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="BSUStackTrace.cs" />
+    <Compile Include="BSUTextWriterTraceListener.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- ========================================

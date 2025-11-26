@@ -96,12 +96,21 @@ public class BugslayerStackTrace : StackTrace
     /// <param name="targetThread">
     /// The thread whose stack trace is requested.
     /// </param>
+    /// <remarks>
+    /// ?? Warning: This constructor is obsolete in .NET Core and .NET 10.
+    /// The StackTrace(Thread, bool) constructor has been removed from .NET Core/.NET 10.
+    /// Use the parameterless constructor to capture the current thread's stack trace instead.
+    /// </remarks>
+    [Obsolete("StackTrace(Thread) is not supported in .NET Core and .NET 10. Use the parameterless constructor instead.")]
     public BugslayerStackTrace ( Thread targetThread  )
-            : base ( targetThread , true )
+            : base ( true ) // ? 修正：使用 base(true) 而不是 base(targetThread, true)
     {
         m_sLineEnd = DefaultLineEnd ;
         m_sSourceIndentString = null ;
         FunctionIndent = DefaultFunctionIndent ;
+        
+        // ?? Note: In .NET Core/.NET 10, capturing stack traces from other threads
+        // is not supported. This constructor now captures the current thread's stack trace.
     }
 
     
