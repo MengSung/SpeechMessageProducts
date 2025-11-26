@@ -196,13 +196,13 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ?]?w LINE ?????????T
+                // 設定 LINE 相關資訊
                 InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
                 InMemoryContext.LineBindingViewModel.RoomId = RoomId;
                 InMemoryContext.LineBindingViewModel.GroupId = GroupId;
                 InMemoryContext.LineBindingViewModel.ViewType = ViewType;
 
-                // ?]?w???? ID
+                // 設定顯示 ID
                 if (!string.IsNullOrEmpty(GroupId))
                     InMemoryContext.LineBindingViewModel.DisplayId = GroupId;
                 else if (!string.IsNullOrEmpty(RoomId))
@@ -210,36 +210,67 @@ namespace ChurchReport.Controllers
                 else
                     InMemoryContext.LineBindingViewModel.DisplayId = UserLineId;
 
-                // ??d????O?_?w?N??
-                var loginContact = ToolUtility.RetrieveContactByLineId(UserLineId);
-                
-                if (loginContact == null)
+                // 檢查用戶是否已綁定 - 使用連接池優化
+                IOrganizationService service = null;
+                try
                 {
-                    // ??????|?w?N??
-                    return Json(new
+                    service = GetConnection();
+                    
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 檢查 LINE ID 是否已綁定: {UserLineId}");
+                    
+                    var query = new QueryExpression("contact")
                     {
-                        DisplayViewType = "???N??",
-                        ActiveListId = "",
-                        message = "???N??",
-                        fullname = ""
-                    });
+                        ColumnSet = new ColumnSet("contactid"),
+                        Criteria = new FilterExpression
+                        {
+                            FilterOperator = LogicalOperator.And,
+                            Conditions =
+                            {
+                                new ConditionExpression("new_lineuserid", ConditionOperator.Equal, UserLineId),
+                                new ConditionExpression("statecode", ConditionOperator.Equal, 0)
+                            }
+                        },
+                        TopCount = 1
+                    };
+                    
+                    var results = service.RetrieveMultiple(query);
+                    
+                    if (results.Entities.Count == 0)
+                    {
+                        // 用戶尚未綁定
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 用戶尚未綁定");
+                        return Json(new
+                        {
+                            DisplayViewType = "尚未綁定",
+                            ActiveListId = "",
+                            message = "尚未綁定",
+                            fullname = ""
+                        });
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 用戶已綁定，準備登入");
+                }
+                finally
+                {
+                    ReleaseConnection(service);
                 }
 
-                // ??? LINE ?n?J?? ViewModel
+                // 建立 LINE 登入的 ViewModel
                 var lineLoginViewModel = new GalleryViewModel
                 {
-                    Account = "",  // LINE ?n?J????n?b??
+                    Account = "",  // LINE 登入不需要帳號
                     Password = UserLineId
                 };
 
-                // ?]?w LINE ?n?J??O
+                // 設定 LINE 登入標記
                 InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
 
-                // ??βΤ@???n?J?B?z?y?{
+                // 使用統一的登入處理流程
                 return await ProcessLogin(lineLoginViewModel);
             }
             catch (Exception e)
             {
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 發生錯誤: {e.Message}");
                 return HandleError(e, "SaveUserLineId");
             }
         }
@@ -311,6 +342,7 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 處理 LINE 身分綁定註冊
         /// 建立新用戶並綁定 LINE ID
+        /// 使用連接池優化，單一連接完成所有操作
         /// </summary>
         /// <param name="model">LINE 綁定資料模型</param>
         [HttpPost]
@@ -335,149 +367,169 @@ namespace ChurchReport.Controllers
                     return Json(new { status = "0", message = "LINE User ID 遺失" });
                 }
 
-                // 檢查 LINE ID 是否已綁定
-                var existingContact = ToolUtility.RetrieveContactByLineId(model.LineUserId);
-                if (existingContact != null)
+                IOrganizationService service = null;
+                try
                 {
-                    return Json(new { 
-                        status = "0", 
-                        message = $"此 LINE 帳號已綁定至 {ToolUtility.GetEntityStringAttribute(existingContact, "fullname")}" 
-                    });
-                }
-
-                // 檢查姓名是否已存在
-                var contactsByName = ToolUtility.RetrieveContactCollectionByName(model.FullName);
-                Entity targetContact = null;
-
-                if (contactsByName != null && contactsByName.Entities.Count > 0)
-                {
-                    // 姓名已存在，嘗試匹配手機號碼
-                    foreach (var contact in contactsByName.Entities)
+                    // 從連接池獲取連接
+                    service = GetConnection();
+                    
+                    // 步驟 1: 檢查 LINE ID 是否已綁定
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 檢查 LINE ID 是否已綁定: {model.LineUserId}");
+                    
+                    var lineIdQuery = new QueryExpression("contact")
                     {
-                        var mobilePhone = ToolUtility.GetEntityStringAttribute(contact, "mobilephone");
-                        if (mobilePhone == model.Mobile)
+                        ColumnSet = new ColumnSet("fullname"),
+                        Criteria = new FilterExpression
                         {
-                            targetContact = contact;
-                            break;
+                            FilterOperator = LogicalOperator.And,
+                            Conditions =
+                            {
+                                new ConditionExpression("new_lineuserid", ConditionOperator.Equal, model.LineUserId),
+                                new ConditionExpression("statecode", ConditionOperator.Equal, 0)
+                            }
+                        },
+                        TopCount = 1
+                    };
+                    
+                    var lineIdResults = service.RetrieveMultiple(lineIdQuery);
+                    
+                    if (lineIdResults.Entities.Count > 0)
+                    {
+                        var existingName = lineIdResults.Entities[0].GetAttributeValue<string>("fullname");
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] LINE ID 已綁定至: {existingName}");
+                        
+                        return Json(new { 
+                            status = "0", 
+                            message = $"此 LINE 帳號已綁定至 {existingName}" 
+                        });
+                    }
+                    
+                    // 步驟 2: 檢查姓名是否已存在
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 檢查姓名是否已存在: {model.FullName}");
+                    
+                    var nameQuery = new QueryExpression("contact")
+                    {
+                        ColumnSet = new ColumnSet("contactid", "fullname", "mobilephone"),
+                        Criteria = new FilterExpression
+                        {
+                            FilterOperator = LogicalOperator.And,
+                            Conditions =
+                            {
+                                new ConditionExpression("fullname", ConditionOperator.Equal, model.FullName),
+                                new ConditionExpression("statecode", ConditionOperator.Equal, 0)
+                            }
+                        }
+                    };
+                    
+                    var nameResults = service.RetrieveMultiple(nameQuery);
+                    
+                    Entity targetContact = null;
+                    
+                    if (nameResults.Entities.Count > 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 找到 {nameResults.Entities.Count} 個同名聯絡人");
+                        
+                        // 姓名已存在，嘗試匹配手機號碼
+                        foreach (var contact in nameResults.Entities)
+                        {
+                            var mobilePhone = contact.Contains("mobilephone") 
+                                ? contact.GetAttributeValue<string>("mobilephone") 
+                                : "";
+                            
+                            if (mobilePhone == model.Mobile)
+                            {
+                                targetContact = contact;
+                                System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 找到匹配的聯絡人，手機: {mobilePhone}");
+                                break;
+                            }
+                        }
+                        
+                        if (targetContact != null)
+                        {
+                            // 步驟 3: 找到匹配的聯絡人，更新 LINE ID
+                            System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 更新現有聯絡人的 LINE ID");
+                            
+                            targetContact["new_lineuserid"] = model.LineUserId;
+                            
+                            // 更新其他資訊
+                            if (!string.IsNullOrWhiteSpace(model.OtherName))
+                            {
+                                targetContact["lastname"] = model.OtherName;
+                            }
+                            
+                            service.Update(targetContact);
+                            
+                            System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 綁定成功");
+                            
+                            return Json(new { 
+                                status = "1", 
+                                message = $"已成功綁定 LINE 至現有帳號：{model.FullName}" 
+                            });
                         }
                     }
-
-                    if (targetContact != null)
+                    
+                    // 步驟 4: 建立新聯絡人
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 建立新聯絡人");
+                    
+                    var newContact = new Entity("contact");
+                    newContact["fullname"] = model.FullName;
+                    newContact["mobilephone"] = model.Mobile;
+                    newContact["new_lineuserid"] = model.LineUserId;
+                    
+                    if (!string.IsNullOrWhiteSpace(model.OtherName))
                     {
-                        // 找到匹配的聯絡人，綁定 LINE ID
-                        ToolUtility.SetEntityStringAttribute(ref targetContact, "new_lineuserid", model.LineUserId);
+                        newContact["lastname"] = model.OtherName;
+                    }
+                    
+                    var newContactId = service.Create(newContact);
+                    
+                    if (newContactId != Guid.Empty)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 新聯絡人建立成功，ID: {newContactId}");
                         
-                        // 更新其他資訊
-                        if (!string.IsNullOrWhiteSpace(model.OtherName))
-                        {
-                            ToolUtility.SetEntityStringAttribute(ref targetContact, "lastname", model.OtherName);
-                        }
-                        
-                        ToolUtility.UpdateEntity(ref targetContact);
-
                         return Json(new { 
                             status = "1", 
-                            message = $"已成功綁定 LINE 至現有帳號：{model.FullName}" 
+                            message = $"註冊成功！歡迎 {model.FullName} 加入聖谷行道會" 
+                        });
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 建立聯絡人失敗");
+                        
+                        return Json(new { 
+                            status = "0", 
+                            message = "註冊失敗，請稍後再試" 
                         });
                     }
                 }
-
-                // 建立新聯絡人
-                var newContact = new Entity("contact");
-                ToolUtility.SetEntityStringAttribute(ref newContact, "fullname", model.FullName);
-                ToolUtility.SetEntityStringAttribute(ref newContact, "mobilephone", model.Mobile);
-                ToolUtility.SetEntityStringAttribute(ref newContact, "new_lineuserid", model.LineUserId);
-                
-                if (!string.IsNullOrWhiteSpace(model.OtherName))
+                catch (FaultException<OrganizationServiceFault> ex)
                 {
-                    ToolUtility.SetEntityStringAttribute(ref newContact, "lastname", model.OtherName);
-                }
-
-                // 建立聯絡人
-                var newContactId = ToolUtility.CreateEntity(newContact);
-
-                if (newContactId != Guid.Empty)
-                {
-                    return Json(new { 
-                        status = "1", 
-                        message = $"註冊成功！歡迎 {model.FullName} 加入聖谷行道會" 
-                    });
-                }
-                else
-                {
+                    // CRM 服務異常
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] CRM 服務異常: {ex.Detail?.Message ?? ex.Message}");
                     return Json(new { 
                         status = "0", 
-                        message = "註冊失敗，請稍後再試" 
+                        message = $"系統服務異常: {ex.Detail?.Message ?? ex.Message}" 
                     });
+                }
+                catch (TimeoutException ex)
+                {
+                    // 連接超時
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 連接超時: {ex.Message}");
+                    return Json(new { 
+                        status = "0", 
+                        message = "系統連接超時，請稍後再試" 
+                    });
+                }
+                finally
+                {
+                    // 歸還連接到池（非常重要！確保連接重用）
+                    ReleaseConnection(service);
                 }
             }
             catch (Exception e)
             {
+                System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 發生未預期的錯誤: {e.Message}");
                 return HandleError(e, "ProcessLineBinding");
-            }
-        }
-
-        /// <summary>
-        /// 儲存 LINE 使用者 ID（用於身分綁定頁面）
-        /// </summary>
-        /// <param name="UserLineId">LINE 使用者 ID</param>
-        /// <param name="GroupId">群組 ID</param>
-        /// <param name="RoomId">聊天室 ID</param>
-        /// <param name="ViewType">視圖類型</param>
-        /// <param name="DisplayName">顯示名稱</param>
-        /// <param name="PictureUrl">頭像 URL</param>
-        /// <param name="StatusMessage">狀態訊息</param>
-        [HttpPost]
-        [Route("/Authentication/SaveUserId")]
-        public async Task<IActionResult> SaveUserId(
-            string UserLineId, 
-            string GroupId, 
-            string RoomId, 
-            string ViewType,
-            string DisplayName = "",
-            string PictureUrl = "",
-            string StatusMessage = "")
-        {
-            try
-            {
-                // 設定 LINE 相關資訊
-                InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
-                InMemoryContext.LineBindingViewModel.RoomId = RoomId ?? "";
-                InMemoryContext.LineBindingViewModel.GroupId = GroupId ?? "";
-                InMemoryContext.LineBindingViewModel.ViewType = ViewType ?? "";
-
-                // 儲存額外資訊
-                if (!string.IsNullOrEmpty(DisplayName))
-                {
-                    InMemoryContext.LineBindingViewModel.FullName = DisplayName;
-                }
-
-                // 檢查用戶是否已綁定
-                var loginContact = ToolUtility.RetrieveContactByLineId(UserLineId);
-                
-                if (loginContact == null)
-                {
-                    // 用戶尚未綁定
-                    return Json(new
-                    {
-                        status = "1",
-                        message = "請完成身分綁定註冊"
-                    });
-                }
-                else
-                {
-                    // 用戶已綁定
-                    var fullName = ToolUtility.GetEntityStringAttribute(loginContact, "fullname");
-                    return Json(new
-                    {
-                        status = "0",
-                        message = $"您已綁定為 {fullName}"
-                    });
-                }
-            }
-            catch (Exception e)
-            {
-                return HandleError(e, "SaveUserId");
             }
         }
 
@@ -620,29 +672,99 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 取得使用者資料
+        /// 使用連接池優化效能，減少連接創建時間
         /// </summary>
         private async Task<(Entity loginContact, string fullName)> RetrieveUserData(
             string contactIdString, 
             GalleryViewModel viewModel)
         {
-            Entity loginContact;
-            string fullName;
-
-            if (contactIdString != "透過Line Id 登入")
+            Entity loginContact = null;
+            string fullName = "";
+            
+            IOrganizationService service = null;
+            try
             {
-                // 使用者透過網頁的帳號密碼登入
-                loginContact = ToolUtility.RetrieveEntityDynamics365("contact", new Guid(contactIdString));
-                fullName = ToolUtility.GetEntityStringAttribute(ref loginContact, "fullname");
-            }
-            else
-            {
-                // 使用者透過 Line Id 登入
-                loginContact = ToolUtility.RetrieveContactEntityByLineUserId(InMemoryContext.LineBindingViewModel.LineUserId);
-                fullName = ToolUtility.GetEntityStringAttribute(ref loginContact, "fullname");
+                // 從連接池獲取連接
+                service = GetConnection();
                 
-                // 設定 LINE 登入的帳密
-                viewModel.Account = "LineIdLogin";
-                viewModel.Password = InMemoryContext.LineBindingViewModel.LineUserId;
+                if (contactIdString != "透過Line Id 登入")
+                {
+                    // 使用者透過網頁的帳號密碼登入
+                    System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] 使用 Contact ID 查詢: {contactIdString}");
+                    
+                    // 直接使用 CRM SDK 查詢，獲取完整的聯絡人資料
+                    loginContact = service.Retrieve("contact", new Guid(contactIdString), new ColumnSet(true));
+                    fullName = loginContact.Contains("fullname") 
+                        ? loginContact.GetAttributeValue<string>("fullname") 
+                        : "";
+                    
+                    System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] 查詢成功，姓名: {fullName}");
+                }
+                else
+                {
+                    // 使用者透過 LINE ID 登入
+                    System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] 使用 LINE ID 查詢: {InMemoryContext.LineBindingViewModel.LineUserId}");
+                    
+                    // 使用 QueryExpression 查詢 LINE ID 綁定的聯絡人
+                    var query = new QueryExpression("contact")
+                    {
+                        ColumnSet = new ColumnSet(true), // 需要完整資料供後續使用
+                        Criteria = new FilterExpression
+                        {
+                            FilterOperator = LogicalOperator.And,
+                            Conditions =
+                            {
+                                new ConditionExpression("new_lineuserid", ConditionOperator.Equal, 
+                                    InMemoryContext.LineBindingViewModel.LineUserId),
+                                new ConditionExpression("statecode", ConditionOperator.Equal, 0) // 只查詢啟用的聯絡人
+                            }
+                        },
+                        TopCount = 1 // 只需要一筆結果
+                    };
+                    
+                    var results = service.RetrieveMultiple(query);
+                    
+                    if (results.Entities.Count > 0)
+                    {
+                        loginContact = results.Entities[0];
+                        fullName = loginContact.Contains("fullname") 
+                            ? loginContact.GetAttributeValue<string>("fullname") 
+                            : "";
+                        
+                        // 設定 LINE 登入的帳密
+                        viewModel.Account = "LineIdLogin";
+                        viewModel.Password = InMemoryContext.LineBindingViewModel.LineUserId;
+                        
+                        System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] LINE 登入查詢成功，姓名: {fullName}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] 找不到對應的 LINE 使用者");
+                    }
+                }
+            }
+            catch (FaultException<OrganizationServiceFault> ex)
+            {
+                // CRM 服務異常
+                System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] CRM 服務異常: {ex.Detail?.Message ?? ex.Message}");
+                throw new Exception($"取得使用者資料失敗: {ex.Detail?.Message ?? ex.Message}", ex);
+            }
+            catch (TimeoutException ex)
+            {
+                // 連接超時
+                System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] 連接超時: {ex.Message}");
+                throw new Exception("取得使用者資料超時，請稍後再試", ex);
+            }
+            catch (Exception ex)
+            {
+                // 一般異常
+                System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] 發生異常: {ex.Message}");
+                throw;
+            }
+            finally
+            {
+                // 歸還連接到池（非常重要！確保連接重用）
+                ReleaseConnection(service);
             }
 
             return (loginContact, fullName);
@@ -905,6 +1027,107 @@ namespace ChurchReport.Controllers
             catch (Exception e)
             {
                 return HandleError(e, "ExtendSession");
+            }
+        }
+
+        #endregion
+
+        #region LINE ID 儲存
+
+        /// <summary>
+        /// 儲存 LINE 使用者 ID（用於身分綁定頁面）
+        /// 檢查用戶是否已綁定，並返回綁定狀態
+        /// 使用連接池優化效能
+        /// </summary>
+        /// <param name="UserLineId">LINE 使用者 ID</param>
+        /// <param name="GroupId">群組 ID</param>
+        /// <param name="RoomId">聊天室 ID</param>
+        /// <param name="ViewType">視圖類型</param>
+        /// <param name="DisplayName">顯示名稱</param>
+        /// <param name="PictureUrl">頭像 URL</param>
+        /// <param name="StatusMessage">狀態訊息</param>
+        [HttpPost]
+        [Route("/Authentication/SaveUserId")]
+        public async Task<IActionResult> SaveUserId(
+            string UserLineId, 
+            string GroupId, 
+            string RoomId, 
+            string ViewType,
+            string DisplayName = "",
+            string PictureUrl = "",
+            string StatusMessage = "")
+        {
+            try
+            {
+                // 設定 LINE 相關資訊
+                InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
+                InMemoryContext.LineBindingViewModel.RoomId = RoomId ?? "";
+                InMemoryContext.LineBindingViewModel.GroupId = GroupId ?? "";
+                InMemoryContext.LineBindingViewModel.ViewType = ViewType ?? "";
+
+                // 儲存額外資訊
+                if (!string.IsNullOrEmpty(DisplayName))
+                {
+                    InMemoryContext.LineBindingViewModel.FullName = DisplayName;
+                }
+
+                // 檢查用戶是否已綁定 - 使用連接池優化
+                IOrganizationService service = null;
+                try
+                {
+                    service = GetConnection();
+                    
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserId] 檢查 LINE ID 是否已綁定: {UserLineId}");
+                    
+                    var query = new QueryExpression("contact")
+                    {
+                        ColumnSet = new ColumnSet("fullname"), // 只需要姓名欄位
+                        Criteria = new FilterExpression
+                        {
+                            FilterOperator = LogicalOperator.And,
+                            Conditions =
+                            {
+                                new ConditionExpression("new_lineuserid", ConditionOperator.Equal, UserLineId),
+                                new ConditionExpression("statecode", ConditionOperator.Equal, 0)
+                            }
+                        },
+                        TopCount = 1
+                    };
+                    
+                    var results = service.RetrieveMultiple(query);
+                    
+                    if (results.Entities.Count == 0)
+                    {
+                        // 用戶尚未綁定
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserId] 用戶尚未綁定");
+                        return Json(new
+                        {
+                            status = "1",
+                            message = "請完成身分綁定註冊"
+                        });
+                    }
+                    else
+                    {
+                        // 用戶已綁定
+                        var fullName = results.Entities[0].GetAttributeValue<string>("fullname");
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserId] 用戶已綁定: {fullName}");
+                        
+                        return Json(new
+                        {
+                            status = "0",
+                            message = $"您已綁定為 {fullName}"
+                        });
+                    }
+                }
+                finally
+                {
+                    ReleaseConnection(service);
+                }
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SaveUserId] 發生錯誤: {e.Message}");
+                return HandleError(e, "SaveUserId");
             }
         }
 
