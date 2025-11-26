@@ -85,15 +85,15 @@ namespace ChurchReport
             services.AddScoped<ChurchReport.Services.MyPayCrmService>();
             services.AddScoped<ChurchReport.Services.MyPayNotificationService>();
 
-            if (Configuration["PAY_PROVIDER"] == "國泰支付")
+            if (Configuration["PAY_PROVIDER"] == "永豐金流")
             {
                 services.AddScoped<IPayment, QPayToolkitWrapper>();
             }
-            else if (Configuration["PAY_PROVIDER"] == "綠界支付")
+            else if (Configuration["PAY_PROVIDER"] == "高鉅金流")
             {
                 services.AddScoped<IPayment, MyPayToolkitWrapper>();
             }
-            else if (Configuration["PAY_PROVIDER"] == "台新支付")
+            else if (Configuration["PAY_PROVIDER"] == "台新金流")
             {
                 services.AddScoped<IPayment, TspgToolkitWrapper>();
                 services.AddScoped<TSPGWebhookHandler>();

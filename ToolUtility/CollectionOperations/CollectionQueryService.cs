@@ -2,10 +2,19 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using ToolUtilityNameSpace.EntityOperations;
 
 namespace ToolUtilityNameSpace.CollectionOperations
 {
+    /// <summary>
+    /// 集合查詢服務實作
+    /// 遵循 LINUS 原則: 簡潔、高效、可測試
+    /// 支援同步與非同步操作
+    /// </summary>
     public class CollectionQueryService : ICollectionQueryService
     {
         private readonly object _logger;
@@ -14,9 +23,14 @@ namespace ToolUtilityNameSpace.CollectionOperations
         public CollectionQueryService(object logger, IOrganizationService organizationService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _organizationService = organizationService ?? throw new ArgumentNullException(nameof(_organizationService));
+            _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
         }
 
+        #region 同步方法 (保留向下相容)
+
+        /// <summary>
+        /// 根據欄位查詢實體集合 (同步)
+        /// </summary>
         public EntityCollection RetrieveEntityCollectionByField(string entityName, string fieldName, string fieldValue)
         {
             var query = new QueryByAttribute(entityName) { ColumnSet = new ColumnSet(true) };
@@ -25,88 +39,305 @@ namespace ToolUtilityNameSpace.CollectionOperations
             return _organizationService.RetrieveMultiple(query);
         }
 
+        /// <summary>
+        /// 查詢週報資料 (同步)
+        /// </summary>
         public EntityCollection QueryWeeklyReportBeforeTowMonthOfSunday(DateTime aSunday, Guid aListEntityId)
         {
             try
             {
-                #region // Create the ConditionExpression.
-                ConditionExpression condition = new ConditionExpression();
-
-                // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
-                condition.AttributeName = "new_list_group_present_weekly_report";
-                condition.Operator = ConditionOperator.Equal;
-                condition.Values.Add(aListEntityId);
-
-                ConditionExpression StateCondidtion = new ConditionExpression();
-                // Set the condition to be when the account owner's last name is not Cannon. new_new_receive_drugs_prescribed_new_
-                //StateCondidtion.AttributeName = "statuscode";
-                StateCondidtion.AttributeName = "statecode";
-                StateCondidtion.Operator = ConditionOperator.Equal;
-                //StateCondidtion.Values.Add("Inactive");
-                //StateCondidtion.Values.Add("Active");
-                StateCondidtion.Values.Add(0);
-                //StateCondidtion.Values.Add("使用中");
-
-                //ConditionExpression DateTimeConditionPrincipal = new ConditionExpression("new_sunday_date", ConditionOperator.Equal, aSunday);
-                //ConditionExpression DateTimeConditionPrincipal = new ConditionExpression("new_sunday_date", ConditionOperator.Equal, aSunday.ToShortDateString());
-                ConditionExpression DateTimeAfterConditionPrincipal = new ConditionExpression();
-                DateTimeAfterConditionPrincipal.AttributeName = "new_sunday_date";
-                DateTimeAfterConditionPrincipal.Operator = ConditionOperator.OnOrAfter;
-                DateTimeAfterConditionPrincipal.Values.Add(aSunday.AddMonths(-2));
-
-
-                ConditionExpression DateTimeBeforeConditionPrincipal = new ConditionExpression();
-                DateTimeBeforeConditionPrincipal.AttributeName = "new_sunday_date";
-                DateTimeBeforeConditionPrincipal.Operator = ConditionOperator.OnOrBefore;
-                DateTimeBeforeConditionPrincipal.Values.Add(aSunday);
-
-                // Build the filter that is based on the condition.
-                FilterExpression filter = new FilterExpression();
-                filter.FilterOperator = LogicalOperator.And;
-                filter.Conditions.Add(condition);
-                filter.Conditions.Add(StateCondidtion);
-                filter.Conditions.Add(DateTimeAfterConditionPrincipal);
-                filter.Conditions.Add(DateTimeBeforeConditionPrincipal);
-                #endregion
-
-                #region// Create an instance of the query expression class.
-                OrderExpression OrderByDate = new OrderExpression();
-                OrderByDate.AttributeName = "new_sunday_date";
-                //OrderByDate.OrderType = OrderType.Descending;
-                OrderByDate.OrderType = OrderType.Ascending;
-
-                QueryExpression query = new QueryExpression();
-
-                // Set the query properties.
-                query.EntityName = "new_group_present_weekly_report";
-                query.ColumnSet.AllColumns = true;
-                query.Criteria = filter;
-                query.Orders.Add(OrderByDate);
-                #endregion
-
-                #region // 執行 Query 的Request
-                // Create the request.
-                RetrieveMultipleRequest retrieve = new RetrieveMultipleRequest();
-
-                // Set the request properties.
-                retrieve.Query = query;
-                //retrieve.ReturnDynamicEntities = true;
-
-                // Execute the request.
-                RetrieveMultipleResponse request;
-
-                request = (RetrieveMultipleResponse)this._organizationService.Execute(retrieve);
-                #endregion
-
+                var query = BuildWeeklyReportQuery(aSunday, aListEntityId);
+                
+                var retrieve = new RetrieveMultipleRequest { Query = query };
+                var request = (RetrieveMultipleResponse)_organizationService.Execute(retrieve);
+                
                 return request.EntityCollection;
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                //Monitor.Exit(this);
-                throw e;
+                string errorString = $"ERROR: FullName={GetType().FullName}, Time={DateTime.Now}, Description={e}";
+                throw new InvalidOperationException(errorString, e);
             }
         }
+
+        #endregion
+
+        #region 非同步方法 (新增)
+
+        /// <summary>
+        /// 根據欄位查詢實體集合 (非同步)
+        /// </summary>
+        public async Task<EntityCollection> RetrieveEntityCollectionByFieldAsync(
+            string entityName, 
+            string fieldName, 
+            string fieldValue,
+            CancellationToken cancellationToken = default)
+        {
+            return await Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                
+                var query = new QueryByAttribute(entityName) { ColumnSet = new ColumnSet(true) };
+                query.Attributes.AddRange(fieldName, "statecode");
+                query.Values.AddRange(fieldValue, 0);
+                
+                return _organizationService.RetrieveMultiple(query);
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 根據單一條件查詢實體集合 (非同步)
+        /// </summary>
+        public async Task<EntityCollection> RetrieveEntityCollectionByConditionAsync(
+            string entityName,
+            string fieldName,
+            ConditionOperator conditionOperator,
+            object value,
+            CancellationToken cancellationToken = default)
+        {
+            return await Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                
+                var query = new QueryExpression(entityName)
+                {
+                    ColumnSet = new ColumnSet(true),
+                    Criteria = new FilterExpression
+                    {
+                        FilterOperator = LogicalOperator.And,
+                        Conditions =
+                        {
+                            new ConditionExpression(fieldName, conditionOperator, value),
+                            new ConditionExpression("statecode", ConditionOperator.Equal, 0)
+                        }
+                    }
+                };
+                
+                return _organizationService.RetrieveMultiple(query);
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 根據多重條件查詢實體集合 (非同步)
+        /// </summary>
+        public async Task<EntityCollection> RetrieveEntityCollectionByConditionsAsync(
+            string entityName,
+            Dictionary<string, object> conditions,
+            CancellationToken cancellationToken = default)
+        {
+            return await Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                
+                var query = new QueryExpression(entityName)
+                {
+                    ColumnSet = new ColumnSet(true),
+                    Criteria = new FilterExpression
+                    {
+                        FilterOperator = LogicalOperator.And
+                    }
+                };
+                
+                foreach (var condition in conditions)
+                {
+                    query.Criteria.Conditions.Add(
+                        new ConditionExpression(condition.Key, ConditionOperator.Equal, condition.Value));
+                }
+                
+                // 預設只查詢啟用的記錄
+                query.Criteria.Conditions.Add(
+                    new ConditionExpression("statecode", ConditionOperator.Equal, 0));
+                
+                return _organizationService.RetrieveMultiple(query);
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 查詢週報資料 (非同步)
+        /// </summary>
+        public async Task<EntityCollection> QueryWeeklyReportBeforeTowMonthOfSundayAsync(
+            DateTime aSunday, 
+            Guid aListEntityId,
+            CancellationToken cancellationToken = default)
+        {
+            return await Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                
+                try
+                {
+                    var query = BuildWeeklyReportQuery(aSunday, aListEntityId);
+                    
+                    var retrieve = new RetrieveMultipleRequest { Query = query };
+                    var request = (RetrieveMultipleResponse)_organizationService.Execute(retrieve);
+                    
+                    return request.EntityCollection;
+                }
+                catch (Exception e)
+                {
+                    string errorString = $"ERROR: FullName={GetType().FullName}, Time={DateTime.Now}, Description={e}";
+                    throw new InvalidOperationException(errorString, e);
+                }
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 分頁查詢實體集合 (非同步)
+        /// </summary>
+        public async Task<PagedResult<Entity>> RetrievePagedEntitiesAsync(
+            string entityName,
+            FilterExpression filter = null,
+            ColumnSet columnSet = null,
+            int pageSize = 100,
+            string pagingCookie = null,
+            CancellationToken cancellationToken = default)
+        {
+            return await Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                
+                var query = new QueryExpression(entityName)
+                {
+                    ColumnSet = columnSet ?? new ColumnSet(true),
+                    PageInfo = new PagingInfo
+                    {
+                        Count = pageSize,
+                        PageNumber = string.IsNullOrEmpty(pagingCookie) ? 1 : 2,
+                        PagingCookie = pagingCookie
+                    }
+                };
+                
+                if (filter != null)
+                {
+                    query.Criteria = filter;
+                }
+                else
+                {
+                    // 預設只查詢啟用的記錄
+                    query.Criteria = new FilterExpression
+                    {
+                        Conditions =
+                        {
+                            new ConditionExpression("statecode", ConditionOperator.Equal, 0)
+                        }
+                    };
+                }
+                
+                var result = _organizationService.RetrieveMultiple(query);
+                
+                return new PagedResult<Entity>
+                {
+                    Entities = result.Entities.ToList(),
+                    TotalCount = result.TotalRecordCount,
+                    MoreRecords = result.MoreRecords,
+                    PagingCookie = result.PagingCookie
+                };
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 批量查詢實體 (使用 IN 條件，非同步)
+        /// </summary>
+        public async Task<EntityCollection> RetrieveBatchByIdsAsync(
+            string entityName,
+            string idFieldName,
+            IEnumerable<Guid> ids,
+            ColumnSet columnSet = null,
+            CancellationToken cancellationToken = default)
+        {
+            return await Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                
+                var query = new QueryExpression(entityName)
+                {
+                    ColumnSet = columnSet ?? new ColumnSet(true),
+                    Criteria = new FilterExpression
+                    {
+                        FilterOperator = LogicalOperator.And,
+                        Conditions =
+                        {
+                            new ConditionExpression(idFieldName, ConditionOperator.In, ids.ToArray()),
+                            new ConditionExpression("statecode", ConditionOperator.Equal, 0)
+                        }
+                    }
+                };
+                
+                return _organizationService.RetrieveMultiple(query);
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
+        #endregion
+
+        #region 私有輔助方法
+
+        /// <summary>
+        /// 建立週報查詢表達式
+        /// 重構共用邏輯，避免程式碼重複
+        /// </summary>
+        private QueryExpression BuildWeeklyReportQuery(DateTime aSunday, Guid aListEntityId)
+        {
+            // 建立條件表達式
+            var listCondition = new ConditionExpression
+            {
+                AttributeName = "new_list_group_present_weekly_report",
+                Operator = ConditionOperator.Equal,
+                Values = { aListEntityId }
+            };
+
+            var stateCondition = new ConditionExpression
+            {
+                AttributeName = "statecode",
+                Operator = ConditionOperator.Equal,
+                Values = { 0 }
+            };
+
+            var dateAfterCondition = new ConditionExpression
+            {
+                AttributeName = "new_sunday_date",
+                Operator = ConditionOperator.OnOrAfter,
+                Values = { aSunday.AddMonths(-2) }
+            };
+
+            var dateBeforeCondition = new ConditionExpression
+            {
+                AttributeName = "new_sunday_date",
+                Operator = ConditionOperator.OnOrBefore,
+                Values = { aSunday }
+            };
+
+            // 建立篩選條件
+            var filter = new FilterExpression
+            {
+                FilterOperator = LogicalOperator.And,
+                Conditions =
+                {
+                    listCondition,
+                    stateCondition,
+                    dateAfterCondition,
+                    dateBeforeCondition
+                }
+            };
+
+            // 建立排序
+            var orderByDate = new OrderExpression
+            {
+                AttributeName = "new_sunday_date",
+                OrderType = OrderType.Ascending
+            };
+
+            // 建立查詢表達式
+            var query = new QueryExpression
+            {
+                EntityName = "new_group_present_weekly_report",
+                ColumnSet = new ColumnSet(true),
+                Criteria = filter,
+                Orders = { orderByDate }
+            };
+
+            return query;
+        }
+
+        #endregion
     }
 }
