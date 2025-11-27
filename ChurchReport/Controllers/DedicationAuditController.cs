@@ -307,6 +307,29 @@ namespace ChurchReport.Controllers
             }
         }
 
+        /// <summary>
+        /// 以 contact Id 取得該聯絡人的奉獻清單 (AJAX)
+        /// </summary>
+        /// <param name="id">contact Id (GUID)</param>
+        [HttpGet]
+        public IActionResult GetFeesByContactId(string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                    return Json(new { status = "0", message = "missing id", DedicationFeeList = new object[] { } });
+
+                var feeList = InMemoryContext.QpayManager.GetDedicationFeesByContactId(id);
+
+                return Json(new { status = "1", DedicationFeeList = feeList });
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetFeesByContactId 錯誤: {e.Message}");
+                return Json(new { status = "0", message = e.Message, DedicationFeeList = new object[] { } });
+            }
+        }
+
         #endregion
     }
 }

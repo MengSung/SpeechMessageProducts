@@ -365,24 +365,108 @@
         function OnRowClick(selectedItems) {
             var data = selectedItems.selectedRowsData[0];
             if (data) {
+                // 更新表單基本欄位
                 $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber || "");
                 $("#form").dxForm("instance").updateData('NationId', data.NationId || "");
                 $("#form").dxForm("instance").updateData('FullName', data.FullName || "");
                 $("#form").dxForm("instance").updateData('Mobile', data.Mobile || "");
 
+                // 取消 SameNameList 選取
                 $("#SameNameList").dxDataGrid("instance").deselectAll();
+
+                // 顯示載入訊息
+                ShowToast("正在載入 " + (data.FullName || "") + " 的奉獻記錄...", "info", 2000);
+                getLoadPanelInstance().show();
+
+                // 從後端取該 contact 的收費單清單 (使用 contact id: SameNameElementId)
+                var contactId = data.SameNameElementId;
+                if (contactId) {
+                    $.ajax({
+                        url: '/DedicationAudit/GetFeesByContactId',
+                        method: 'GET',
+                        data: { id: contactId },
+                        success: function(resp) {
+                            getLoadPanelInstance().hide();
+                            if (resp && (String(resp.status) === '1') && Array.isArray(resp.DedicationFeeList)) {
+                                var fees = resp.DedicationFeeList.map(function(item) {
+                                    try { item.DedicationDate = new Date(item.DedicationDate); } catch(e) {}
+                                    try { item.PayDate = new Date(item.PayDate); } catch(e) {}
+                                    return item;
+                                });
+                                var grid = $("#DedicationFeeGrid").dxDataGrid("instance");
+                                if (grid) {
+                                    grid.option('dataSource', fees);
+                                    grid.refresh();
+                                    grid.repaint();
+                                }
+                                document.getElementById('displayamountfield').innerHTML = (data.FullName || '') + '  ' + (resp.TotalAmount || '');
+                                document.getElementById("samenamecontainer").style.display = "none";
+                                document.getElementById("data-grid").style.display = "";
+                                document.getElementById("displayamountfield").style.display = "";
+                            } else {
+                                ShowToast('未找到奉獻清單', 'warning', 3000);
+                            }
+                        },
+                        error: function(err) {
+                            getLoadPanelInstance().hide();
+                            console.error('GetFeesByContactId error', err);
+                            ShowToast('載入失敗，請查看 console', 'error', 5000);
+                        }
+                    });
+                }
             }
         }
-        
+
         function OnRowSelectionChanged(selectedItems) {
             var data = selectedItems.selectedRowsData[0];
             if (data) {
+                // 更新表單基本欄位
                 $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber || "");
                 $("#form").dxForm("instance").updateData('NationId', data.NationId || "");
                 $("#form").dxForm("instance").updateData('FullName', data.FullName || "");
                 $("#form").dxForm("instance").updateData('Mobile', data.Mobile || "");
 
                 $("#SameNameList").dxDataGrid("instance").deselectAll();
+
+                // 與 OnRowClick 相同的行為：載入並顯示該聯絡人的奉獻清單
+                ShowToast("正在載入 " + (data.FullName || "") + " 的奉獻記錄...", "info", 2000);
+                getLoadPanelInstance().show();
+
+                var contactId = data.SameNameElementId;
+                if (contactId) {
+                    $.ajax({
+                        url: '/DedicationAudit/GetFeesByContactId',
+                        method: 'GET',
+                        data: { id: contactId },
+                        success: function(resp) {
+                            getLoadPanelInstance().hide();
+                            if (resp && (String(resp.status) === '1') && Array.isArray(resp.DedicationFeeList)) {
+                                var fees = resp.DedicationFeeList.map(function(item) {
+                                    try { item.DedicationDate = new Date(item.DedicationDate); } catch(e) {}
+                                    try { item.PayDate = new Date(item.PayDate); } catch(e) {}
+                                    return item;
+                                });
+                                var grid = $("#DedicationFeeGrid").dxDataGrid("instance");
+                                if (grid) {
+                                    grid.option('dataSource', fees);
+                                    grid.refresh();
+                                    grid.repaint();
+                                }
+                                document.getElementById('displayamountfield').innerHTML = (data.FullName || '') + '  ' + (resp.TotalAmount || '');
+                                document.getElementById("samenamecontainer").style.display = "none";
+                                document.getElementById("data-grid").style.display = "";
+                                document.getElementById("displayamountfield").style.display = "";
+                            } else {
+                                ShowToast('未找到奉獻清單', 'warning', 3000);
+                            }
+                        },
+                        error: function(err) {
+                            getLoadPanelInstance().hide();
+                            console.error('GetFeesByContactId error', err);
+                            ShowToast('載入失敗，請查看 console', 'error', 5000);
+                        }
+                    });
+                }
             }
         }
     </script>
@@ -394,7 +478,12 @@
         function onSuccess(data) {
             getLoadPanelInstance().hide();
 
-            if (data.status == 1) {
+            console.log('AuditQueryDedication onSuccess:', data);
+
+            // Normalize status to string because server may return numbers as strings
+            var status = (data && data.status !== undefined) ? String(data.status) : null;
+
+            if (status === "1") {
                 // 查詢成功
                 $("#form").dxForm("instance").updateData('DedicationNumber', "");
                 $("#form").dxForm("instance").updateData('NationId', "");
@@ -407,11 +496,77 @@
                 document.getElementById("data-grid").style.display = "";
                 document.getElementById("displayamountfield").style.display = "";
 
-                document.getElementById('displayamountfield').innerHTML = data.FullName + "  " + data.TotalAmount;
+                document.getElementById('displayamountfield').innerHTML = (data.FullName || "") + "  " + (data.TotalAmount || 0);
 
-                $("#DedicationFeeGrid").dxDataGrid("instance").refresh();
+                var grid = $("#DedicationFeeGrid").dxDataGrid("instance");
+                if (grid) {
+                    try {
+                        if (data.DedicationFeeList && Array.isArray(data.DedicationFeeList)) {
+                            console.log('Binding DedicationFeeList to grid, count=', data.DedicationFeeList.length);
+
+                            // Normalize dates robustly to JS Date objects
+                            function parseServerDate(value) {
+                                if (!value) return null;
+                                // If it's already a Date
+                                if (value instanceof Date) return value;
+                                // If it's a number (ticks)
+                                if (typeof value === 'number') return new Date(value);
+                                // If it's a string like "/Date(1620000000000)/"
+                                var msDateMatch = /\/Date\((\d+)(?:[+-]\d+)?\)\//.exec(value);
+                                if (msDateMatch) {
+                                    return new Date(parseInt(msDateMatch[1], 10));
+                                }
+                                // ISO8601 or other parseable string
+                                var d = new Date(value);
+                                if (!isNaN(d.getTime())) return d;
+                                // fallback: try parseInt
+                                var n = parseInt(value, 10);
+                                if (!isNaN(n)) return new Date(n);
+                                return null;
+                            }
+
+                            var normalized = data.DedicationFeeList.map(function(item) {
+                                var copy = Object.assign({}, item);
+                                try { copy.DedicationDate = parseServerDate(copy.DedicationDate); } catch (e) { copy.DedicationDate = null; }
+                                try { copy.PayDate = parseServerDate(copy.PayDate); } catch (e) { copy.PayDate = null; }
+                                return copy;
+                            });
+
+                            // Bind using DevExtreme DataSource for reliability
+                            var ds = new DevExpress.data.DataSource({
+                                store: new DevExpress.data.ArrayStore({ data: normalized, key: 'DedicationDate' }),
+                                paginate: false
+                            });
+
+                            grid.option('dataSource', ds);
+
+                            ds.load().done(function() {
+                                try {
+                                    grid.refresh();
+                                    grid.repaint();
+                                    console.log('Local DataSource loaded and grid refreshed');
+                                } catch (rerr) {
+                                    console.warn('Refresh after ds.load() failed', rerr);
+                                    try { grid.repaint(); } catch(e) {}
+                                }
+                            }).fail(function(err){
+                                console.error('DataSource load failed', err);
+                                ShowToast('載入奉獻清單失敗，請查看 console', 'error', 5000);
+                            });
+
+                        } else {
+                            console.log('No DedicationFeeList in response, calling grid.refresh() to trigger LoadAction');
+                            setTimeout(function() { try { grid.refresh(); grid.repaint(); } catch(e) { console.error(e); } }, 50);
+                        }
+                    } catch (err) {
+                        console.error('Error updating DedicationFeeGrid datasource', err);
+                        ShowToast('載入奉獻清單失敗，請查看 console', 'error', 5000);
+                    }
+                } else {
+                    console.warn('DedicationFeeGrid instance not found');
+                }
             }
-            else if (data.status == 2) {
+            else if (status === "2") {
                 // 找到多筆同名連絡人
                 $("#form").dxForm("instance").updateData('DedicationNumber', "");
                 $("#form").dxForm("instance").updateData('NationId', "");
@@ -439,7 +594,7 @@
                         }
                     }
                 }
-                
+
                 document.getElementById("samenamecontainer").style.display = "none";
                 document.getElementById("data-grid").style.display = "none";
                 document.getElementById("displayamountfield").style.display = "none";

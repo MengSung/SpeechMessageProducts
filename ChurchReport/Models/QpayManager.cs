@@ -262,7 +262,32 @@ namespace ChurchReport.Models
 
                     String TotalAmount = "總金額 = " + m_QpayModel.TotalAmount + "元";
 
-                    return Json(new { status = "1", clicktype = "查詢", DedicationNumber = DedicationNumber, NationId = NationId, FullName = FullName, Mobile = PhoneNumber, LastSixDigit = LastSixDigit, TotalAmount = TotalAmount, message = DedicationResult, DedicationResult = DedicationResult });
+                    // 回傳同時包含奉獻清單資料，讓前端可直接繫結
+                    var feeList = m_QpayModel.DedicationFeeList.Select(f => new
+                    {
+                        Category = f.Category,
+                        DedicationDate = f.DedicationDate,
+                        PayDate = f.PayDate,
+                        PayWay = f.PayWay,
+                        Amount = f.Amount,
+                        PaidPeriod = f.PaidPeriod,
+                        Others = f.Others
+                    }).ToList();
+
+                    return Json(new
+                    {
+                        status = "1",
+                        clicktype = "查詢",
+                        DedicationNumber = DedicationNumber,
+                        NationId = NationId,
+                        FullName = FullName,
+                        Mobile = PhoneNumber,
+                        LastSixDigit = LastSixDigit,
+                        TotalAmount = m_QpayModel.TotalAmount,
+                        DedicationFeeList = feeList,
+                        message = DedicationResult,
+                        DedicationResult = DedicationResult
+                    });
                 }
                 else if (DedicationContacts.Entities.Count > 1)
                 {
@@ -1415,5 +1440,44 @@ namespace ChurchReport.Models
             return retObj;
         }
         #endregion
+
+        /// <summary>
+        /// 取得指定 contact 的奉獻清單（供 AJAX 使用）
+        /// </summary>
+        /// <param name="contactId">contact 實體 Id (string GUID)</param>
+        /// <returns>List of anonymous objects serializable to JSON</returns>
+        public List<object> GetDedicationFeesByContactId(string contactId)
+        {
+            try
+            {
+                if (String.IsNullOrEmpty(contactId)) return new List<object>();
+
+                Guid id;
+                if (!Guid.TryParse(contactId, out id)) return new List<object>();
+
+                Entity contactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", id);
+                if (contactEntity == null) return new List<object>();
+
+                // Fill model's dedication list for this contact
+                SetDedicationFeeList(contactEntity);
+
+                var feeList = m_QpayModel.DedicationFeeList.Select(f => new
+                {
+                    Category = f.Category,
+                    DedicationDate = f.DedicationDate,
+                    PayDate = f.PayDate,
+                    PayWay = f.PayWay,
+                    Amount = f.Amount,
+                    PaidPeriod = f.PaidPeriod,
+                    Others = f.Others
+                }).ToList<object>();
+
+                return feeList;
+            }
+            catch (Exception)
+            {
+                return new List<object>();
+            }
+        }
     }
 }
