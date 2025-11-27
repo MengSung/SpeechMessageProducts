@@ -61,19 +61,26 @@ namespace ChurchReport
             services.AddSingleton<ICrmConnectionPool>(sp =>
             {
                 var connectionService = new CrmConnectionService();
-                var serverUrl = "https://sunnyvalech.speechmessage.com.tw/XRMServices/2011/Organization.svc";
-                var username = @"SPEECHMESSAGE\Administrator";
-                var password = "hu9840";
+                var crmConfig = Configuration.GetSection("CrmConnection");
+
+                var serverUrl = crmConfig["ServerUrl"] ?? "https://sunnyvalech.speechmessage.com.tw/XRMServices/2011/Organization.svc";
+                var username = crmConfig["Username"] ?? @"SPEECHMESSAGE\Administrator";
+                var password = crmConfig["Password"] ?? "hu9840";
+
+                var minPoolSize = int.TryParse(crmConfig["MinPoolSize"], out var minSize) ? minSize : 3;
+                var maxPoolSize = int.TryParse(crmConfig["MaxPoolSize"], out var maxSize) ? maxSize : 20;
+                var connectionTimeoutSeconds = int.TryParse(crmConfig["ConnectionTimeoutSeconds"], out var connTimeout) ? connTimeout : 30;
+                var idleTimeoutMinutes = int.TryParse(crmConfig["IdleTimeoutMinutes"], out var idleTimeout) ? idleTimeout : 10;
 
                 return new CrmConnectionPool(
                     connectionService,
                     serverUrl,
                     username,
                     password,
-                    minPoolSize: 3,      // 最小連接數：預先創建 3 個連接
-                    maxPoolSize: 20,     // 最大連接數：最多支援 20 個並發連接
-                    connectionTimeout: TimeSpan.FromSeconds(30),  // 連接超時：30 秒
-                    idleTimeout: TimeSpan.FromMinutes(10)         // 閒置超時：10 分鐘
+                    minPoolSize: minPoolSize,      // 最小連接數：從配置讀取
+                    maxPoolSize: maxPoolSize,     // 最大連接數：從配置讀取
+                    connectionTimeout: TimeSpan.FromSeconds(connectionTimeoutSeconds),  // 連接超時：從配置讀取
+                    idleTimeout: TimeSpan.FromMinutes(idleTimeoutMinutes)         // 閒置超時：從配置讀取
                 );
             });
 
