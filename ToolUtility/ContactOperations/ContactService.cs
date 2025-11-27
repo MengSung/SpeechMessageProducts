@@ -4,7 +4,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace.EntityOperations;
 using Microsoft.Xrm.Sdk.Query;
-using ToolUtilityNameSpace.Extensions; // added for ExecuteRetrieveMultiple extension
+using ToolUtilityNameSpace.Extensions;
 
 namespace ToolUtilityNameSpace.ContactOperations
 {
@@ -165,19 +165,49 @@ namespace ToolUtilityNameSpace.ContactOperations
         }
 
         /// <summary>
-        /// 使用 FetchXML 查詢奉獻聯絡人
-        /// 支援多條件模糊查詢(OR條件): 奉獻編號、姓名、家用電話、手機、身分證、末六碼
+        /// 使用 FetchXML 查詢奉獻者連絡人
+        /// 支援多個條件組合查詢(OR邏輯): 奉獻編號、姓名、住家電話、手機、身分證字號、帳戶後六碼
         /// </summary>
         public EntityCollection QueryDediccationContatsByFetchXml(string dedicationNumber, string contactName, string homePhone, string mobile, string nationId, string lastSixDigit)
         {
             try
             {
-                dedicationNumber = "'" + dedicationNumber + "'";
-                contactName = "'%" + contactName + "%'";
-                homePhone = "'%" + homePhone + "%'";
-                mobile = "'%" + mobile + "%'";
+                // 過濾無效的查詢條件
+                bool hasDedicationNumber = !string.IsNullOrWhiteSpace(dedicationNumber) && !dedicationNumber.StartsWith("未填");
+                bool hasContactName = !string.IsNullOrWhiteSpace(contactName) && !contactName.StartsWith("未填");
+                bool hasHomePhone = !string.IsNullOrWhiteSpace(homePhone) && !homePhone.StartsWith("未填");
+                bool hasMobile = !string.IsNullOrWhiteSpace(mobile) && !mobile.StartsWith("未填");
+                bool hasNationId = !string.IsNullOrWhiteSpace(nationId) && !nationId.StartsWith("未填");
+                bool hasLastSixDigit = !string.IsNullOrWhiteSpace(lastSixDigit) && !lastSixDigit.StartsWith("未填");
 
-                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                // 如果沒有任何有效的查詢條件,返回空集合
+                if (!hasDedicationNumber && !hasContactName && !hasHomePhone && !hasMobile && !hasNationId && !hasLastSixDigit)
+                {
+                    return new EntityCollection();
+                }
+
+                // 構建條件子句
+                var conditions = new System.Text.StringBuilder();
+                
+                if (hasDedicationNumber)
+                    conditions.AppendLine($"                    <condition attribute='pager' operator='eq' value='{System.Security.SecurityElement.Escape(dedicationNumber)}' />");
+                
+                if (hasContactName)
+                    conditions.AppendLine($"                    <condition attribute='fullname' operator='like' value='%{System.Security.SecurityElement.Escape(contactName)}%' />");
+                
+                if (hasHomePhone)
+                    conditions.AppendLine($"                    <condition attribute='telephone2' operator='like' value='%{System.Security.SecurityElement.Escape(homePhone)}%' />");
+                
+                if (hasMobile)
+                    conditions.AppendLine($"                    <condition attribute='mobilephone' operator='like' value='%{System.Security.SecurityElement.Escape(mobile)}%' />");
+                
+                if (hasNationId)
+                    conditions.AppendLine($"                    <condition attribute='new_personal_id' operator='like' value='%{System.Security.SecurityElement.Escape(nationId)}%' />");
+                
+                if (hasLastSixDigit)
+                    conditions.AppendLine($"                    <condition attribute='new_last_six_digit' operator='like' value='%{System.Security.SecurityElement.Escape(lastSixDigit)}%' />");
+
+                var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                 <attribute name='fullname' />
                                 <attribute name='telephone2' />
@@ -194,14 +224,9 @@ namespace ToolUtilityNameSpace.ContactOperations
                                 <order attribute='fullname' descending='false' />
                                 <filter type='and'>
                                   <filter type='or'>
-                                    <condition attribute='pager' operator='eq' value=" + dedicationNumber + @" />
-                                    <condition attribute='fullname' operator='like' value=" + contactName + @"/>
-                                    <condition attribute='telephone2' operator='like' value=" + homePhone + @" />
-                                    <condition attribute='mobilephone' operator='like' value=" + mobile + @" />
-                                    <condition attribute='new_personal_id' operator='like' value=" + nationId + @" />
-                                    <condition attribute='new_last_six_digit' operator='like' value=" + lastSixDigit + @" />
+{conditions}
                                   </filter>
-                                    <condition attribute='statuscode' operator='eq' value='1' />
+                                  <condition attribute='statuscode' operator='eq' value='1' />
                                 </filter>
                               </entity>
                             </fetch>";
