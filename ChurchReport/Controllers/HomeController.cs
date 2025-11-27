@@ -65,15 +65,16 @@ namespace ChurchReport.Controllers
         [Route("/Home/ProcessLogin")]
         public async Task<IActionResult> ProcessLoginRedirect(GalleryViewModel aGalleryViewModel)
         {
-            // 直接調用新控制器的方法，透過 DI 容器取得必要的服務
-            var authController = new AuthenticationController(
+            // ? 使用 using 確保 Controller 被正確釋放，避免記憶體洩漏
+            using (var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool);
-            
-            return await authController.ProcessLogin(aGalleryViewModel);
+                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool))
+            {
+                return await authController.ProcessLogin(aGalleryViewModel);
+            }
         }
         
         /// <summary>
@@ -191,15 +192,16 @@ namespace ChurchReport.Controllers
         [Route("/Home/SaveUserLineId")]
         public async Task<IActionResult> SaveUserLineIdRedirect(string UserLineId, string GroupId, string RoomId, string ViewType)
         {
-            // 直接調用新控制器的方法，透過 DI 容器取得必要的服務
-            var authController = new AuthenticationController(
+            // ? 使用 using 確保 Controller 被正確釋放，避免記憶體洩漏
+            using (var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool);
-            
-            return await authController.SaveUserLineId(UserLineId, GroupId, RoomId, ViewType);
+                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool))
+            {
+                return await authController.SaveUserLineId(UserLineId, GroupId, RoomId, ViewType);
+            }
         }
         
         /// <summary>
@@ -209,15 +211,16 @@ namespace ChurchReport.Controllers
         [Route("/Home/SetupUserLineId")]
         public IActionResult SetupUserLineIdRedirect(string UserLineId, string GroupId, string RoomId, string ViewType)
         {
-            // 呼叫奉獻 DedicationController 的方法，透過 DI 取得所需的服務
-            var dedicationController = new DedicationController(
+            // ? 使用 using 確保 Controller 被正確釋放，避免記憶體洩漏
+            using (var dedicationController = new DedicationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool);
-            
-            return dedicationController.SetupUserLineId(UserLineId, GroupId, RoomId, ViewType);
+                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool))
+            {
+                return dedicationController.SetupUserLineId(UserLineId, GroupId, RoomId, ViewType);
+            }
         }
         
         /// <summary>
@@ -236,15 +239,16 @@ namespace ChurchReport.Controllers
         [Route("/Home/ProcessLineBinding")]
         public async Task<IActionResult> ProcessLineBindingRedirect(LineBindingViewModel model)
         {
-            // 直接調用新控制器的方法，透過 DI 容器取得必要的服務
-            var authController = new AuthenticationController(
+            // ? 使用 using 確保 Controller 被正確釋放，避免記憶體洩漏
+            using (var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool);
-            
-            return await authController.ProcessLineBinding(model);
+                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool))
+            {
+                return await authController.ProcessLineBinding(model);
+            }
         }
 
         /// <summary>
@@ -261,15 +265,16 @@ namespace ChurchReport.Controllers
             string PictureUrl = "",
             string StatusMessage = "")
         {
-            // 直接調用新控制器的方法，透過 DI 容器取得必要的服務
-            var authController = new AuthenticationController(
+            // ? 使用 using 確保 Controller 被正確釋放，避免記憶體洩漏
+            using (var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool);
-            
-            return await authController.SaveUserId(UserLineId, GroupId, RoomId, ViewType, DisplayName, PictureUrl, StatusMessage);
+                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool))
+            {
+                return await authController.SaveUserId(UserLineId, GroupId, RoomId, ViewType, DisplayName, PictureUrl, StatusMessage);
+            }
         }
         
         #endregion
