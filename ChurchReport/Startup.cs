@@ -1,4 +1,4 @@
-using ChurchReport.Tools;
+ï»¿using ChurchReport.Tools;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -33,12 +33,30 @@ namespace ChurchReport
         public void ConfigureServices(IServiceCollection services)
         {
             // ========================================
-            // µù¥U HttpClientFactory (­×´_°O¾ĞÅé¬ªº|)
+            // è¨»å†Š HttpClientFactory (ä¿®å¾©è¨˜æ†¶é«”æ´©æ¼)
             // ========================================
             services.AddHttpClient();
 
             // ========================================
-            // µù¥U CRM ³s±µ¦À (Singleton ¼Ò¦¡)
+            // ğŸ”§ ä¿®å¾©ï¼šMemoryCache æ·»åŠ éæœŸç­–ç•¥ï¼ˆä¸é™åˆ¶å¤§å°ï¼Œé¿å…ç™»å…¥å¡ä½ï¼‰
+            // ========================================
+            services.AddMemoryCache(options =>
+            {
+                // ä¸è¨­å®š SizeLimitï¼Œè®“ç³»çµ±æ ¹æ“šè¨˜æ†¶é«”å£“åŠ›è‡ªå‹•ç®¡ç†
+                // é€™æ¨£å¯ä»¥é¿å…å› å¿«å–å¤§å°é™åˆ¶å°è‡´çš„ç™»å…¥å•é¡Œ
+
+                // è¨­å®šå£“ç¸®ç™¾åˆ†æ¯”ï¼ˆç•¶è¨˜æ†¶é«”å£“åŠ›é”åˆ° 90% æ™‚æ‰é–‹å§‹æ¸…ç†ï¼‰
+                options.CompactionPercentage = 0.10;
+
+                // è¨­å®šæƒæé »ç‡ï¼ˆæ¯ 5 åˆ†é˜æƒæä¸€æ¬¡éæœŸé …ç›®ï¼‰
+                options.ExpirationScanFrequency = TimeSpan.FromMinutes(5);
+            });
+
+            services.AddDistributedMemoryCache();
+
+
+            // ========================================
+            // è¨»å†Š CRM é€£æ¥æ±  (Singleton æ¨¡å¼)
             // ========================================
             services.AddSingleton<ICrmConnectionPool>(sp =>
             {
@@ -52,15 +70,15 @@ namespace ChurchReport
                     serverUrl,
                     username,
                     password,
-                    minPoolSize: 3,      // ³Ì¤p³s±µ¼Æ¡G¹w¥ı³Ğ«Ø 3 ­Ó³s±µ
-                    maxPoolSize: 20,     // ³Ì¤j³s±µ¼Æ¡G³Ì¦h¤ä´© 20 ­Ó¨Ãµo³s±µ
-                    connectionTimeout: TimeSpan.FromSeconds(30),  // ³s±µ¶W®É¡G30 ¬í
-                    idleTimeout: TimeSpan.FromMinutes(10)         // ¶¢¸m¶W®É¡G10 ¤ÀÄÁ
+                    minPoolSize: 3,      // æœ€å°é€£æ¥æ•¸ï¼šé å…ˆå‰µå»º 3 å€‹é€£æ¥
+                    maxPoolSize: 20,     // æœ€å¤§é€£æ¥æ•¸ï¼šæœ€å¤šæ”¯æ´ 20 å€‹ä¸¦ç™¼é€£æ¥
+                    connectionTimeout: TimeSpan.FromSeconds(30),  // é€£æ¥è¶…æ™‚ï¼š30 ç§’
+                    idleTimeout: TimeSpan.FromMinutes(10)         // é–’ç½®è¶…æ™‚ï¼š10 åˆ†é˜
                 );
             });
 
             // ========================================
-            // µù¥U ToolUtility ªA°È (Singleton ¼Ò¦¡)
+            // è¨»å†Š ToolUtility æœå‹™ (Singleton æ¨¡å¼)
             // ========================================
             services.AddToolUtility();
 
@@ -68,21 +86,52 @@ namespace ChurchReport
             services
                 .AddMvc(options =>
                 {
-                    // ¨Ï¥ÎÂÂª© UseMvc ¸ô¥Ñ®É¡A»İ­n¸T¥Î Endpoint Routing ¥HÁ×§K MVC1005 Äµ§i
+                    // ä½¿ç”¨èˆŠç‰ˆ UseMvc è·¯ç”±æ™‚ï¼Œéœ€è¦ç¦ç”¨ Endpoint Routing ä»¥é¿å… MVC1005 è­¦å‘Š
                     options.EnableEndpointRouting = false;
                 })
                 .AddNewtonsoftJson(options =>
                 {
-                    // «O¯d­ì¥»ªº Newtonsoft §Ç¦C¤Æ³]©w
+                    // ä¿ç•™åŸæœ¬çš„ Newtonsoft åºåˆ—åŒ–è¨­å®š
                     options.SerializerSettings.ContractResolver = new DefaultContractResolver();
                 });
 
-            services.AddMemoryCache();
-            services.AddDistributedMemoryCache();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            // ========================================
+            // ğŸ†• æ–°å¢ï¼šHealth Checksï¼ˆå¥åº·æª¢æŸ¥ï¼‰
+            // ========================================
+            //services.AddHealthChecks()
+            //    .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Application is running"))
+            //    .AddCheck("memory", () =>
+            //    {
+            //        var process = Process.GetCurrentProcess();
+            //        var memoryMB = process.PrivateMemorySize64 / 1024 / 1024;
+            //        var maxMemoryMB = 2048; // 2 GB
+
+            //        if (memoryMB > maxMemoryMB)
+            //        {
+            //            return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy(
+            //                $"Memory usage too high: {memoryMB} MB");
+            //        }
+
+            //        return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(
+            //            $"Memory usage normal: {memoryMB} MB");
+            //    });
+
+            //services
+            //    .AddMvc(options =>
+            //    {
+            //        options.EnableEndpointRouting = false;
+            //    })
+            //    .AddNewtonsoftJson(options =>
+            //    {
+            //        options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+            //    });
+
+            //services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
 
             // ========================================
-            // µù¥U MyPay ¬ÛÃöªA°È
+            // è¨»å†Š MyPay ç›¸é—œæœå‹™
             // ========================================
             services.AddScoped<ChurchReport.Services.MyPayMessageBuilder>();
             services.AddScoped<ChurchReport.Services.MyPayStatusHelper>();
@@ -91,15 +140,15 @@ namespace ChurchReport
             services.AddScoped<ChurchReport.Services.MyPayCrmService>();
             services.AddScoped<ChurchReport.Services.MyPayNotificationService>();
 
-            if (Configuration["PAY_PROVIDER"] == "¥ÃÂ×ª÷¬y")
+            if (Configuration["PAY_PROVIDER"] == "æ°¸è±é‡‘æµ")
             {
                 services.AddScoped<IPayment, QPayToolkitWrapper>();
             }
-            else if (Configuration["PAY_PROVIDER"] == "°ª¹dª÷¬y")
+            else if (Configuration["PAY_PROVIDER"] == "é«˜é‰…é‡‘æµ")
             {
                 services.AddScoped<IPayment, MyPayToolkitWrapper>();
             }
-            else if (Configuration["PAY_PROVIDER"] == "¥x·sª÷¬y")
+            else if (Configuration["PAY_PROVIDER"] == "å°æ–°é‡‘æµ")
             {
                 services.AddScoped<IPayment, TspgToolkitWrapper>();
                 services.AddScoped<TSPGWebhookHandler>();
@@ -110,11 +159,15 @@ namespace ChurchReport
                 services.AddScoped<TSPGWebhookHandler>();
             }
 
+            // ========================================
+            // ğŸ”§ ä¿®å¾©ï¼šSession æ·»åŠ æ›´å®Œæ•´çš„é…ç½®
+            // ========================================
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
+                options.IOTimeout = TimeSpan.FromSeconds(30);
             });
 
             services
@@ -124,10 +177,10 @@ namespace ChurchReport
                     options.LoginPath = "/Login";
                     options.LogoutPath = "/Logout";
 
-                    // ·sª© API¡G»İ­n³]©w options.Cookie.Expiration¡A¦ı¥Î ExpireTimeSpan §Y¥i´À¥N
+                    // æ–°ç‰ˆ APIï¼šéœ€è¦è¨­å®š options.Cookie.Expirationï¼Œä½†ç”¨ ExpireTimeSpan å³å¯æ›¿ä»£
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
 
-                    // ·sª© API¡GCookieName -> Cookie.Name
+                    // æ–°ç‰ˆ APIï¼šCookieName -> Cookie.Name
                     options.Cookie.Name = ".ChurchReport.Session";
                     options.Cookie.SameSite = SameSiteMode.None;
 
@@ -139,39 +192,31 @@ namespace ChurchReport
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            // ³Ğ«Ø¤é»x¥Ø¿ı
-            var logsDir = Path.Combine(env.ContentRootPath, "Logs");
-            Directory.CreateDirectory(logsDir);
-            var tracePath = Path.Combine(logsDir, "Trace.log");
-
-            // ²K¥[¤å¥ó°lÂÜºÊÅ¥¾¹
-            if (!Trace.Listeners.OfType<TextWriterTraceListener>().Any(l =>
-                (l.Writer as StreamWriter)?.BaseStream is FileStream fs && fs.Name == tracePath))
-            {
-                Trace.Listeners.Add(new TextWriterTraceListener(tracePath));
-                Trace.AutoFlush = true;
-            }
-
-            // ²§±`³B²z
+            // ç•°å¸¸è™•ç†
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                // BrowserLink ¦b·sª© ASP.NET Core ¤w¤£¤ä´©¡A²¾°£ app.UseBrowserLink();
+                // BrowserLink åœ¨æ–°ç‰ˆ ASP.NET Core å·²ä¸æ”¯æ´ï¼Œç§»é™¤ app.UseBrowserLink();
             }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
             }
 
-            // ¤¤¶¡¥óºŞ¹D
+            // ========================================
+            // ğŸ†• æ–°å¢ï¼šHealth Check ç«¯é»
+            // ========================================
+            //app.UseHealthChecks("/health");
+
+            // ä¸­é–“ä»¶ç®¡é“
             app.UseStaticFiles();
             app.UseSession();
             app.UseAuthentication();
 
-            // ¨Ï¥ÎÂÂ¦¡¸ô¥Ñ (¤wÃö³¬ Endpoint Routing)
+            // ä½¿ç”¨èˆŠå¼è·¯ç”± (å·²é—œé–‰ Endpoint Routing)
             app.UseMvc(routes =>
             {
-                // ®Ú¸ô¥Ñ
+                // æ ¹è·¯ç”±
                 routes.MapRoute(
                     name: "root",
                     template: string.Empty,

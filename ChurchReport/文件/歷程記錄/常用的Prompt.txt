@@ -99,6 +99,9 @@ Dispose Pattern
 將  D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\Line.Messaging\Line.Messaging.csproj 從 netstandard1.6 升級到 .Net 10
 
 ==========================================================================================
+我希望你扮演一位擁有15年以上經驗的 .NET Core 效能優化工程師與 記憶體洩漏審計師 (Memory Leak Auditor)。 記憶體使用量保持穩定，絕對不能出現記憶體洩漏或持續性、不可回收的記憶體增長
+修復 Startup.cs - 重複添加 TextWriterTraceListener 記憶體洩漏
+不要新增任何說明文件.md檔
 
 嚴格詳細確保執行時不會造成記憶體洩漏，不會一直增加記憶體的使用量
 
