@@ -201,7 +201,7 @@ namespace ChurchReport.Tools
             string
                 sha256,
                 iv,
-                //1.分別將 雜湊A1 XOR 雜湊A2, 雜湊B1 XOR 雜湊B2
+                //1.分別將 雜湊A1 XOR 雜湤A2, 雜湯B1 XOR 雜湯B2
                 //2.將步驟1的兩個結果各自轉為16進制字串 S1, S2
                 //3.AESKey = S1 + S2
                 aesKey = Hex.ToString(QPayCommon.XOR(keyList[0], keyList[1])) + Hex.ToString(QPayCommon.XOR(keyList[2], keyList[3])),
@@ -294,7 +294,7 @@ namespace ChurchReport.Tools
             string
                 sha256,
                 iv,
-                //1.分別將 雜湊A1 XOR 雜湊A2, 雜湊B1 XOR 雜湊B2
+                //1.分別將 雜湊A1 XOR 雜湤A2, 雜湯B1 XOR 雜湯B2
                 //2.將步驟1的兩個結果各自轉為16進制字串 S1, S2
                 //3.AESKey = S1 + S2
                 aesKey = Hex.ToString(QPayCommon.XOR(keyList[0], keyList[1])) + Hex.ToString(QPayCommon.XOR(keyList[2], keyList[3])),
@@ -362,11 +362,8 @@ namespace ChurchReport.Tools
 
             HttpResponseMessage responce;
 
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("X-KeyID", X_KEY_ID);
-                responce = client.PostAsJsonAsync(url, req).Result;
-            }
+            // ✅ 使用靜態 HttpClient 單例
+            responce = await SharedHttpClient.PostAsJsonAsync(url, req);
 
             NonceRes res = new NonceRes();
 
@@ -391,11 +388,8 @@ namespace ChurchReport.Tools
 
             HttpResponseMessage response;
 
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("X-KeyID", X_KEY_ID);
-                response = client.PostAsJsonAsync(url, req).Result;
-            }
+            // ✅ 使用靜態 HttpClient 單例
+            response = await SharedHttpClient.PostAsJsonAsync(url, req);
 
             T res;
             if (response.IsSuccessStatusCode)
@@ -413,6 +407,20 @@ namespace ChurchReport.Tools
         #endregion
         #endregion
         #endregion
+
+        // ========================================
+        // 🔧 修復記憶體洩漏：使用靜態 HttpClient 單例
+        // ========================================
+        private static readonly Lazy<System.Net.Http.HttpClient> _lazyHttpClient = new Lazy<System.Net.Http.HttpClient>(() =>
+        {
+            var client = new System.Net.Http.HttpClient();
+            client.DefaultRequestHeaders.Add("X-KeyID", X_KEY_ID);
+            // 設定合理的 Timeout
+            client.Timeout = TimeSpan.FromSeconds(30);
+            return client;
+        });
+
+        private static System.Net.Http.HttpClient SharedHttpClient => _lazyHttpClient.Value;
     }
 
     public static class QPayCommon

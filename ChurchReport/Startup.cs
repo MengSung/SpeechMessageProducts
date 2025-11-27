@@ -33,6 +33,11 @@ namespace ChurchReport
         public void ConfigureServices(IServiceCollection services)
         {
             // ========================================
+            // µù¥U HttpClientFactory (­×´_°O¾ÐÅé¬ªº|)
+            // ========================================
+            services.AddHttpClient();
+
+            // ========================================
             // µù¥U CRM ³s±µ¦À (Singleton ¼Ò¦¡)
             // ========================================
             services.AddSingleton<ICrmConnectionPool>(sp =>
