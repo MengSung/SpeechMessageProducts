@@ -78,6 +78,39 @@ namespace ChurchReport
             });
 
             // ========================================
+            // 🆕 新增：Health Checks（健康檢查）
+            // ========================================
+            services.AddHealthChecks()
+                .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Application is running"))
+                .AddCheck("memory", () =>
+                {
+                    var process = Process.GetCurrentProcess();
+                    var memoryMB = process.PrivateMemorySize64 / 1024 / 1024;
+                    var maxMemoryMB = 2048; // 2 GB
+
+                    if (memoryMB > maxMemoryMB)
+                    {
+                        return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy(
+                            $"Memory usage too high: {memoryMB} MB");
+                    }
+
+                    return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(
+                        $"Memory usage normal: {memoryMB} MB");
+                });
+
+            services
+                .AddMvc(options =>
+                {
+                    options.EnableEndpointRouting = false;
+                })
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+                });
+
+            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            // ========================================
             // 註冊 ToolUtility 服務 (Singleton 模式)
             // ========================================
             services.AddToolUtility();
@@ -96,39 +129,6 @@ namespace ChurchReport
                 });
 
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            // ========================================
-            // 🆕 新增：Health Checks（健康檢查）
-            // ========================================
-            //services.AddHealthChecks()
-            //    .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Application is running"))
-            //    .AddCheck("memory", () =>
-            //    {
-            //        var process = Process.GetCurrentProcess();
-            //        var memoryMB = process.PrivateMemorySize64 / 1024 / 1024;
-            //        var maxMemoryMB = 2048; // 2 GB
-
-            //        if (memoryMB > maxMemoryMB)
-            //        {
-            //            return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy(
-            //                $"Memory usage too high: {memoryMB} MB");
-            //        }
-
-            //        return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(
-            //            $"Memory usage normal: {memoryMB} MB");
-            //    });
-
-            //services
-            //    .AddMvc(options =>
-            //    {
-            //        options.EnableEndpointRouting = false;
-            //    })
-            //    .AddNewtonsoftJson(options =>
-            //    {
-            //        options.SerializerSettings.ContractResolver = new DefaultContractResolver();
-            //    });
-
-            //services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
 
             // ========================================
             // 註冊 MyPay 相關服務
@@ -206,7 +206,7 @@ namespace ChurchReport
             // ========================================
             // 🆕 新增：Health Check 端點
             // ========================================
-            //app.UseHealthChecks("/health");
+            app.UseHealthChecks("/health");
 
             // 中間件管道
             app.UseStaticFiles();
