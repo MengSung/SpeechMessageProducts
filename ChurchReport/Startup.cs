@@ -20,26 +20,45 @@ using ToolUtilityNameSpace.ConnectionOperations;
 
 namespace ChurchReport
 {
+    /// <summary>
+    /// 應用程式啟動類別，負責配置服務和 HTTP 請求管道。
+    /// 此類別定義了 ASP.NET Core 應用程式的啟動邏輯，包括依賴注入、路由配置等。
+    /// </summary>
     public class Startup
     {
+        /// <summary>
+        /// 建構函式，注入配置物件。
+        /// </summary>
+        /// <param name="configuration">應用程式配置物件，用於讀取 appsettings.json 或其他配置來源。</param>
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
+        /// <summary>
+        /// 應用程式配置屬性，提供對配置資料的存取。
+        /// </summary>
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        /// <summary>
+        /// 配置服務的方法。此方法由運行時呼叫，用於將服務添加到依賴注入容器中。
+        /// 包括 HTTP 客戶端、快取、CRM 連接池、健康檢查、MVC 配置、身份驗證等服務的註冊。
+        /// </summary>
+        /// <param name="services">服務集合，用於註冊應用程式所需的服務。</param>
         public void ConfigureServices(IServiceCollection services)
         {
             // ========================================
             // 註冊 HttpClientFactory (修復記憶體洩漏)
             // ========================================
+            // 使用 HttpClientFactory 來管理 HttpClient 實例，避免記憶體洩漏問題。
+            // 這是最佳實務，能夠重用連接並自動處理資源清理。
             services.AddHttpClient();
 
             // ========================================
             // 🔧 修復：MemoryCache 添加過期策略（不限制大小，避免登入卡住）
             // ========================================
+            // 配置記憶體快取，設定壓縮百分比和掃描頻率，以避免因快取大小限制導致的登入問題。
+            // 不設定 SizeLimit，讓系統根據記憶體壓力自動管理。
             services.AddMemoryCache(options =>
             {
                 // 不設定 SizeLimit，讓系統根據記憶體壓力自動管理
@@ -52,26 +71,45 @@ namespace ChurchReport
                 options.ExpirationScanFrequency = TimeSpan.FromMinutes(5);
             });
 
+            // 註冊分散式記憶體快取，用於支援 Session 等功能。
             services.AddDistributedMemoryCache();
 
 
             // ========================================
             // 註冊 CRM 連接池 (Singleton 模式)
             // ========================================
+            // 註冊 CRM 連接池服務，使用 Singleton 模式確保全應用程式共用一個連接池實例。
+            // 從配置中讀取 CRM 連接參數，包括伺服器 URL、認證資訊和連接池設定。
             services.AddSingleton<ICrmConnectionPool>(sp =>
             {
+                // 建立 CRM 連接服務實例。
                 var connectionService = new CrmConnectionService();
+
+                // 從配置中取得 CRM 連接相關設定區段。
                 var crmConfig = Configuration.GetSection("CrmConnection");
 
+                // 讀取伺服器 URL，若配置中未設定則使用預設值。
                 var serverUrl = crmConfig["ServerUrl"] ?? "https://sunnyvalech.speechmessage.com.tw/XRMServices/2011/Organization.svc";
+
+                // 讀取使用者名稱，若配置中未設定則使用預設值。
                 var username = crmConfig["Username"] ?? @"SPEECHMESSAGE\Administrator";
+
+                // 讀取密碼，若配置中未設定則使用預設值。
                 var password = crmConfig["Password"] ?? "hu9840";
 
+                // 讀取最小連接池大小，若配置中未設定則使用預設值 3。
                 var minPoolSize = int.TryParse(crmConfig["MinPoolSize"], out var minSize) ? minSize : 3;
+
+                // 讀取最大連接池大小，若配置中未設定則使用預設值 20。
                 var maxPoolSize = int.TryParse(crmConfig["MaxPoolSize"], out var maxSize) ? maxSize : 20;
+
+                // 讀取連接超時秒數，若配置中未設定則使用預設值 30。
                 var connectionTimeoutSeconds = int.TryParse(crmConfig["ConnectionTimeoutSeconds"], out var connTimeout) ? connTimeout : 30;
+
+                // 讀取閒置超時分鐘數，若配置中未設定則使用預設值 10。
                 var idleTimeoutMinutes = int.TryParse(crmConfig["IdleTimeoutMinutes"], out var idleTimeout) ? idleTimeout : 10;
 
+                // 建立並返回 CRM 連接池實例，使用讀取到的配置參數。
                 return new CrmConnectionPool(
                     connectionService,
                     serverUrl,
@@ -87,13 +125,15 @@ namespace ChurchReport
             // ========================================
             // 🆕 新增：Health Checks（健康檢查）
             // ========================================
+            // 註冊健康檢查服務，用於監控應用程式的健康狀態。
+            // 包括自我檢查和記憶體使用檢查。
             services.AddHealthChecks()
-                .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Application is running"))
-                .AddCheck("memory", () =>
+                .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Application is running"))  // 應用程式運行檢查
+                .AddCheck("memory", () =>  // 記憶體使用檢查
                 {
                     var process = Process.GetCurrentProcess();
                     var memoryMB = process.PrivateMemorySize64 / 1024 / 1024;
-                    var maxMemoryMB = 2048; // 2 GB
+                    var maxMemoryMB = 2048; // 2 GB 最大記憶體限制
 
                     if (memoryMB > maxMemoryMB)
                     {
@@ -105,6 +145,8 @@ namespace ChurchReport
                         $"Memory usage normal: {memoryMB} MB");
                 });
 
+            // 配置 MVC 服務，禁用端點路由以使用傳統 MVC 路由。
+            // 並設定 Newtonsoft.Json 序列化選項。
             services
                 .AddMvc(options =>
                 {
@@ -118,9 +160,11 @@ namespace ChurchReport
             // ========================================
             // 註冊 ToolUtility 服務 (Singleton 模式)
             // ========================================
+            // 註冊 ToolUtility 相關服務，使用擴充方法進行批量註冊。
             services.AddToolUtility();
 
             // Add framework services.
+            // 再次配置 MVC 服務（注意：這似乎是重複配置，可能需要檢查是否必要）。
             services
                 .AddMvc(options =>
                 {
@@ -133,11 +177,13 @@ namespace ChurchReport
                     options.SerializerSettings.ContractResolver = new DefaultContractResolver();
                 });
 
+            // 註冊 HttpContext 存取器服務，用於在非控制器類別中存取 HTTP 上下文。
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             // ========================================
             // 註冊 MyPay 相關服務
             // ========================================
+            // 註冊 MyPay 相關的服務類別，使用 Scoped 生命週期（每個請求一個實例）。
             services.AddScoped<ChurchReport.Services.MyPayMessageBuilder>();
             services.AddScoped<ChurchReport.Services.MyPayStatusHelper>();
             services.AddScoped<ChurchReport.Services.MyPayFeeTypeHelper>();
@@ -145,6 +191,7 @@ namespace ChurchReport
             services.AddScoped<ChurchReport.Services.MyPayCrmService>();
             services.AddScoped<ChurchReport.Services.MyPayNotificationService>();
 
+            // 根據配置中的 PAY_PROVIDER 設定，註冊對應的支付服務。
             if (Configuration["PAY_PROVIDER"] == "永豐金流")
             {
                 services.AddScoped<IPayment, QPayToolkitWrapper>();
@@ -160,6 +207,7 @@ namespace ChurchReport
             }
             else
             {
+                // 預設使用台新金流。
                 services.AddScoped<IPayment, TspgToolkitWrapper>();
                 services.AddScoped<TSPGWebhookHandler>();
             }
@@ -167,6 +215,7 @@ namespace ChurchReport
             // ========================================
             // 🔧 修復：Session 添加更完整的配置
             // ========================================
+            // 配置 Session 服務，設定閒置超時、Cookie 選項等。
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -175,6 +224,7 @@ namespace ChurchReport
                 options.IOTimeout = TimeSpan.FromSeconds(30);
             });
 
+            // 配置身份驗證服務，使用 Cookie 身份驗證方案。
             services
                 .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
@@ -194,10 +244,16 @@ namespace ChurchReport
                 });
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// <summary>
+        /// 配置 HTTP 請求管道的方法。此方法由運行時呼叫，用於設定中間件管道。
+        /// 包括異常處理、健康檢查、靜態檔案、Session、身份驗證和路由配置。
+        /// </summary>
+        /// <param name="app">應用程式建構器，用於配置中間件。</param>
+        /// <param name="env">Web 主機環境，用於判斷開發或生產環境。</param>
+        /// <param name="loggerFactory">日誌工廠，用於建立日誌記錄器。</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            // 異常處理
+            // 異常處理中間件
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -211,22 +267,24 @@ namespace ChurchReport
             // ========================================
             // 🆕 新增：Health Check 端點
             // ========================================
+            // 啟用健康檢查端點，路徑為 /health。
             app.UseHealthChecks("/health");
 
-            // 中間件管道
-            app.UseStaticFiles();
-            app.UseSession();
-            app.UseAuthentication();
+            // 中間件管道配置
+            app.UseStaticFiles();  // 啟用靜態檔案服務
+            app.UseSession();      // 啟用 Session 中間件
+            app.UseAuthentication();  // 啟用身份驗證中間件
 
             // 使用舊式路由 (已關閉 Endpoint Routing)
             app.UseMvc(routes =>
             {
-                // 根路由
+                // 根路由：預設導向登入頁面
                 routes.MapRoute(
                     name: "root",
                     template: string.Empty,
                     defaults: new { controller = "Authentication", action = "Login" });
 
+                // 登入相關路由
                 routes.MapRoute(
                     name: "login",
                     template: "Login",
@@ -237,16 +295,19 @@ namespace ChurchReport
                     template: "Authentication/Login",
                     defaults: new { controller = "Authentication", action = "Login" });
 
+                // 登出路由
                 routes.MapRoute(
                     name: "logout",
                     template: "Logout",
                     defaults: new { controller = "Authentication", action = "Logout" });
 
+                // Line 登入路由
                 routes.MapRoute(
                     name: "linelogin",
                     template: "Authentication/LineIdLoginView/{LineIdLoginViewPatameter}",
                     defaults: new { controller = "Authentication", action = "LineIdLoginView" });
 
+                // 小組相關路由
                 routes.MapRoute(
                     name: "multigroup",
                     template: "SmallGroup/MultiGroupView/{LoginParameter?}",
@@ -262,11 +323,13 @@ namespace ChurchReport
                     template: "SmallGroup/SmallGroupReportView/{LoginParameter?}",
                     defaults: new { controller = "SmallGroup", action = "SmallGroupReportView" });
 
+                // 設備路由
                 routes.MapRoute(
                     name: "equipmentview",
                     template: "Equipment/EquipmentView",
                     defaults: new { controller = "Equipment", action = "EquipmentView" });
 
+                // 新人相關路由
                 routes.MapRoute(
                     name: "addnewperson",
                     template: "NewPerson/NewPerson",
@@ -277,6 +340,7 @@ namespace ChurchReport
                     template: "NewPerson/FollowUpView",
                     defaults: new { controller = "NewPerson", action = "NewPersonFollowUpView" });
 
+                // 個人相關路由
                 routes.MapRoute(
                     name: "personalreport",
                     template: "Personal/Report",
@@ -292,6 +356,7 @@ namespace ChurchReport
                     template: "Personal/MaintainInfomationView",
                     defaults: new { controller = "Personal", action = "MaintainPersonInfomationView" });
 
+                // 排程相關路由
                 routes.MapRoute(
                     name: "scheduler",
                     template: "Scheduler/{ScheduleType}",
@@ -302,6 +367,7 @@ namespace ChurchReport
                     template: "Scheduler/SchedulerView/{SchedulerViewPatameter}",
                     defaults: new { controller = "Scheduler", action = "SchedulerView" });
 
+                // 奉獻相關路由
                 routes.MapRoute(
                     name: "qpayview",
                     template: "Dedication/QPayView/{LineId?}",
@@ -327,6 +393,7 @@ namespace ChurchReport
                     template: "Dedication/DediationLineLoginView/{LineIdLoginViewPatameter}",
                     defaults: new { controller = "Dedication", action = "DediationLineLoginView" });
 
+                // 奉獻審核路由
                 routes.MapRoute(
                     name: "auditviewline",
                     template: "DedicationAudit/AuditViewLine",
@@ -337,6 +404,7 @@ namespace ChurchReport
                     template: "DedicationAudit/AuditViewWeb",
                     defaults: new { controller = "DedicationAudit", action = "DedicationFeeAuditViewWeb" });
 
+                // QR 碼相關路由
                 routes.MapRoute(
                     name: "qrcodeview",
                     template: "QrCode/CourseView/{QrCodeViewPatameter}",
@@ -362,11 +430,13 @@ namespace ChurchReport
                     template: "QrCode/PersonalView/{QrCodeViewPatameter}",
                     defaults: new { controller = "QrCode", action = "PersonalQrCodeView" });
 
+                // 列表管理路由
                 routes.MapRoute(
                     name: "churchroot",
                     template: "ListManagement/ChurchRoot",
                     defaults: new { controller = "ListManagement", action = "ChurchRoot" });
 
+                // 支付結果路由
                 routes.MapRoute(
                     name: "paymentsuccess",
                     template: "payment-success",
@@ -377,11 +447,13 @@ namespace ChurchReport
                     template: "payment-failed",
                     defaults: new { controller = "Home", action = "PaymentError" });
 
+                // 錯誤顯示路由
                 routes.MapRoute(
                     name: "errorview",
                     template: "Home/DisplayErrorView/{ErrorMessage}",
                     defaults: new { controller = "Home", action = "DisplayErrorView" });
 
+                // 手機綁定相關路由
                 routes.MapRoute(
                     name: "changephone",
                     template: "Phone/ChangePhoneView/{LineIdLoginViewPatameter}",
@@ -392,6 +464,7 @@ namespace ChurchReport
                     template: "Phone/PhoneQrCodeView/{QrCodeViewPatameter}",
                     defaults: new { controller = "PhoneBinding", action = "PhoneQrCodeView" });
 
+                // 預設路由：若無匹配，導向 Authentication/Login
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Authentication}/{action=Login}/{id?}");
