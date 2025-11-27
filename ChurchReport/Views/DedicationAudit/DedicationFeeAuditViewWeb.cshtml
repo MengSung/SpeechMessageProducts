@@ -356,6 +356,26 @@
         };
     </script>
     <script>
+        // 清空表單基本欄位的 helper
+        function clearFormBasicFields() {
+            var form = $("#form").dxForm("instance");
+            if (!form) return;
+            try {
+                form.updateData('DedicationNumber', '');
+                form.updateData('NationId', '');
+                form.updateData('FullName', '');
+                form.updateData('Mobile', '');
+                form.updateData('LastSixDigit', '');
+                form.updateData('ClickType', '');
+                //form.updateData('QueryStartDate', null);
+                //form.updateData('QueryEndDate', null);
+                // 將焦點移回奉獻編號欄位
+                try { form.getEditor('DedicationNumber').focus(); } catch (e) { }
+            } catch (e) {
+                console.warn('clearFormBasicFields error', e);
+            }
+        }
+
         // 觸發事件管理
         function OnClickQuery(arg) {
             $("#form").dxForm("instance").getEditor("ClickType").option("value", '查詢');
@@ -365,7 +385,7 @@
         function OnRowClick(selectedItems) {
             var data = selectedItems.selectedRowsData[0];
             if (data) {
-                // 更新表單基本欄位
+                // 更新表單基本欄位（暫時顯示給使用者）
                 $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber || "");
                 $("#form").dxForm("instance").updateData('NationId', data.NationId || "");
                 $("#form").dxForm("instance").updateData('FullName', data.FullName || "");
@@ -399,10 +419,14 @@
                                     grid.refresh();
                                     grid.repaint();
                                 }
+
                                 document.getElementById('displayamountfield').innerHTML = (data.FullName || '') + '  ' + (resp.TotalAmount || '');
                                 document.getElementById("samenamecontainer").style.display = "none";
                                 document.getElementById("data-grid").style.display = "";
                                 document.getElementById("displayamountfield").style.display = "";
+
+                                // 在顯示完清單後清空表單基本欄位
+                                clearFormBasicFields();
                             } else {
                                 ShowToast('未找到奉獻清單', 'warning', 3000);
                             }
@@ -420,7 +444,7 @@
         function OnRowSelectionChanged(selectedItems) {
             var data = selectedItems.selectedRowsData[0];
             if (data) {
-                // 更新表單基本欄位
+                // 更新表單基本欄位（暫時顯示給使用者）
                 $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber || "");
                 $("#form").dxForm("instance").updateData('NationId', data.NationId || "");
                 $("#form").dxForm("instance").updateData('FullName', data.FullName || "");
@@ -452,10 +476,14 @@
                                     grid.refresh();
                                     grid.repaint();
                                 }
+
                                 document.getElementById('displayamountfield').innerHTML = (data.FullName || '') + '  ' + (resp.TotalAmount || '');
                                 document.getElementById("samenamecontainer").style.display = "none";
                                 document.getElementById("data-grid").style.display = "";
                                 document.getElementById("displayamountfield").style.display = "";
+
+                                // 在顯示完清單後清空表單基本欄位
+                                clearFormBasicFields();
                             } else {
                                 ShowToast('未找到奉獻清單', 'warning', 3000);
                             }
