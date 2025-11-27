@@ -358,40 +358,29 @@
     <script>
         // 觸發事件管理
         function OnClickQuery(arg) {
-            //alert("查詢001");
             $("#form").dxForm("instance").getEditor("ClickType").option("value", '查詢');
-            //alert("查詢002");
-           getLoadPanelInstance().show();
-        }
-        function OnClickUpdate(arg) {
-            //alert("上傳001");
-            $("#form").dxForm("instance").getEditor("ClickType").option("value", '上傳');
-            ///alert("上傳002");
             getLoadPanelInstance().show();
         }
+        
         function OnRowClick(selectedItems) {
-            //alert("選了同名同姓");
             var data = selectedItems.selectedRowsData[0];
             if (data) {
-                //alert("姓名:" + data.FullName + "，電話" + data.Mobile);
-                $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
-                $("#form").dxForm("instance").updateData('NationId', data.NationId);
-                $("#form").dxForm("instance").updateData('FullName', data.FullName);
-                $("#form").dxForm("instance").updateData('Mobile', data.Mobile);
+                $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber || "");
+                $("#form").dxForm("instance").updateData('NationId', data.NationId || "");
+                $("#form").dxForm("instance").updateData('FullName', data.FullName || "");
+                $("#form").dxForm("instance").updateData('Mobile', data.Mobile || "");
 
                 $("#SameNameList").dxDataGrid("instance").deselectAll();
-
             }
         }
+        
         function OnRowSelectionChanged(selectedItems) {
-            //alert("更換同名同姓");
             var data = selectedItems.selectedRowsData[0];
             if (data) {
-                //alert("姓名:" + data.FullName + "，電話" + data.Mobile);
-                $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
-                $("#form").dxForm("instance").updateData('NationId', data.NationId);
-                $("#form").dxForm("instance").updateData('FullName', data.FullName);
-                $("#form").dxForm("instance").updateData('Mobile', data.Mobile);
+                $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber || "");
+                $("#form").dxForm("instance").updateData('NationId', data.NationId || "");
+                $("#form").dxForm("instance").updateData('FullName', data.FullName || "");
+                $("#form").dxForm("instance").updateData('Mobile', data.Mobile || "");
 
                 $("#SameNameList").dxDataGrid("instance").deselectAll();
             }
@@ -403,52 +392,10 @@
         }
 
         function onSuccess(data) {
-
             getLoadPanelInstance().hide();
 
             if (data.status == 1) {
-                if (data.clicktype == "上傳") {
-                    // 按上傳
-                    //ShowToast(data.message, "success", 2000);
-                    $("#form").dxForm("instance").updateData('DedicationNumber', "");
-                    $("#form").dxForm("instance").updateData('NationId', "");
-                    $("#form").dxForm("instance").updateData('FullName', "");
-                    $("#form").dxForm("instance").updateData('Mobile', "");
-                    $("#form").dxForm("instance").updateData('LastSixDigit', "");
-                    $("#form").dxForm("instance").getEditor('DedicationNumber').focus();
-                    document.getElementById("samenamecontainer").style.display = "none";//隱藏
-
-                    //$("#popup").dxPopup("instance").show();
-
-                    document.getElementById('resultfield').innerHTML = data.DedicationResult;
-                }
-                else {
-                    // 按查詢
-                    //$("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);
-                    //$("#form").dxForm("instance").updateData('NationId', data.NationId);
-                    //$("#form").dxForm("instance").updateData('FullName', data.FullName);
-                    //$("#form").dxForm("instance").updateData('Mobile', data.Mobile);
-                    //$("#form").dxForm("instance").updateData('LastSixDigit', data.LastSixDigit);
-                    //$("#DedicationFeeGrid").dxDataGrid("instance").refresh();
-
-                    $("#form").dxForm("instance").updateData('DedicationNumber', "");
-                    $("#form").dxForm("instance").updateData('NationId', "");
-                    $("#form").dxForm("instance").updateData('FullName', "");
-                    $("#form").dxForm("instance").updateData('Mobile', "");
-                    $("#form").dxForm("instance").updateData('LastSixDigit', "");
-                    $("#form").dxForm("instance").getEditor('DedicationNumber').focus();
-
-                    document.getElementById("samenamecontainer").style.display = "none";//隱藏
-                    document.getElementById("data-grid").style.display = "";//顯示
-                    document.getElementById("displayamountfield").style.display = "";//顯示
-
-                    document.getElementById('displayamountfield').innerHTML = data.FullName + "  " + data.TotalAmount;
-
-                    //$("#DedicationFeeGrid").dxDataGrid("instance").reload();
-                    $("#DedicationFeeGrid").dxDataGrid("instance").refresh();
-               }
-            }
-            else if (data.status == 2) {
+                // 查詢成功
                 $("#form").dxForm("instance").updateData('DedicationNumber', "");
                 $("#form").dxForm("instance").updateData('NationId', "");
                 $("#form").dxForm("instance").updateData('FullName', "");
@@ -456,39 +403,52 @@
                 $("#form").dxForm("instance").updateData('LastSixDigit', "");
                 $("#form").dxForm("instance").getEditor('DedicationNumber').focus();
 
-                //document.getElementById("samenamecontainer").style.display = "none";//隱藏
-                document.getElementById("samenamecontainer").style.display = "";//顯示
-                document.getElementById("data-grid").style.display = "none";//隱藏
-                document.getElementById("displayamountfield").style.display = "none";//隱藏
+                document.getElementById("samenamecontainer").style.display = "none";
+                document.getElementById("data-grid").style.display = "";
+                document.getElementById("displayamountfield").style.display = "";
+
+                document.getElementById('displayamountfield').innerHTML = data.FullName + "  " + data.TotalAmount;
+
+                $("#DedicationFeeGrid").dxDataGrid("instance").refresh();
+            }
+            else if (data.status == 2) {
+                // 找到多筆同名連絡人
+                $("#form").dxForm("instance").updateData('DedicationNumber', "");
+                $("#form").dxForm("instance").updateData('NationId', "");
+                $("#form").dxForm("instance").updateData('FullName', "");
+                $("#form").dxForm("instance").updateData('Mobile', "");
+                $("#form").dxForm("instance").updateData('LastSixDigit', "");
+                $("#form").dxForm("instance").getEditor('DedicationNumber').focus();
+
+                document.getElementById("samenamecontainer").style.display = "";
+                document.getElementById("data-grid").style.display = "none";
+                document.getElementById("displayamountfield").style.display = "none";
 
                 $("#SameNameList").dxDataGrid("instance").refresh();
-
-                //document.getElementById('resultfield').innerHTML = data.DedicationResult;
             }
             else {
+                // 查詢失敗或沒找到
                 if (data.message == "沒找到這個連絡人") {
-
                     ShowToast("沒找到\"" + data.fullname + "\"!", "error", 3000);
 
                     if (data.clicktype == "查詢") {
                         var PopupInstance = $("#popup").dxPopup("instance");
-                        PopupInstance.option('title', "沒找到\"" + data.fullname + "\"，是否要新增?");
-                        PopupInstance.show();
+                        if (PopupInstance) {
+                            PopupInstance.option('title', "沒找到\"" + data.fullname + "\"，是否要新增?");
+                            PopupInstance.show();
+                        }
                     }
                 }
-                document.getElementById("samenamecontainer").style.display = "none";//隱藏
-                document.getElementById("data-grid").style.display = "none";//隱藏
-                document.getElementById("displayamountfield").style.display = "none";//隱藏
+                
+                document.getElementById("samenamecontainer").style.display = "none";
+                document.getElementById("data-grid").style.display = "none";
+                document.getElementById("displayamountfield").style.display = "none";
 
-                document.getElementById('resultfield').innerHTML = data.DedicationResult;
+                document.getElementById('resultfield').innerHTML = data.DedicationResult || data.message;
             }
         }
 
         function onComplete(data) {
-            if (data.status == 1) {
-            }
-            else {
-            }
         }
     </script>
     <script>
