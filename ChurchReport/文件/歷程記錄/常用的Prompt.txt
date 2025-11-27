@@ -95,7 +95,8 @@ Dispose Pattern
 ==========================================================================================
 
 將  D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\Trace\Trace.csproj   從.Net Framework 4.6.2升級到.Net 10 善用設計模式、堅守LINUS代碼原則 
-將  D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\LineMessagingProcessor\LineMessagingProcessor.csproj   從.Net Framework 4.6.2升級到.Net 10 善用設計模式、堅守LINUS代碼原則 
+將  D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\LineMessagingProcessor\LineMessagingProcessor.csproj 從.Net Framework 4.6.2升級到.Net 10 善用設計模式、堅守LINUS代碼原則 
+將  D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\Line.Messaging\Line.Messaging.csproj 從 netstandard1.6 升級到 .Net 10
 
 ==========================================================================================
 
