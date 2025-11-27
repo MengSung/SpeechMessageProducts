@@ -108,8 +108,6 @@ namespace ChurchReport
                     options.SerializerSettings.ContractResolver = new DefaultContractResolver();
                 });
 
-            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
             // ========================================
             // 註冊 ToolUtility 服務 (Singleton 模式)
             // ========================================
