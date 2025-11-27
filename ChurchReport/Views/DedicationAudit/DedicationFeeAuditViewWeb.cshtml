@@ -1,12 +1,21 @@
 ﻿@using ChurchReport.Models
 @model QpayModel
 
+@{
+    // 頁面標題：奉獻稽核頁面
+    ViewData["Title"] = "奉獻稽核";
+}
+
+<!-- 頁面標題區域 -->
 <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
     <h4 id="displaynamefield">奉獻稽核</h4>
 </div>
 
+<!-- 主表單：處理奉獻稽核查詢 -->
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="AuditQueryDedication" asp-controller="DedicationAudit" method="post">
+    <!-- 隱藏按鈕與UI元件容器 -->
     <div class="dx-field">
+        <!-- 隱藏查詢按鈕（由JavaScript觸發） -->
         <div id="buttonContainer" class="dx-button-icon">
             @(Html.DevExtreme().Button()
                     .Text("查詢")
@@ -17,6 +26,8 @@
                     .OnClick("ShowLoadPanel")
             )
         </div>
+
+        <!-- Toast通知元件：顯示成功/錯誤訊息 -->
         <div id="ToastContainer">
             @(Html.DevExtreme().Toast()
                 .ID("toast")
@@ -27,8 +38,9 @@
                     .DisplayTime(20000)
                     .MaxWidth(200)
             )
-
         </div>
+
+        <!-- 載入面板：顯示載入狀態 -->
         <div id="LoadPanel">
             @(Html.DevExtreme().LoadPanel()
                     .ID("loadPanel")
@@ -42,9 +54,10 @@
                     .Message("上傳資料中...")
                     .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
             )
-
         </div>
     </div>
+
+    <!-- 表單容器：包含查詢條件輸入欄位 -->
     <div id="form-container_Date">
         @(Html.DevExtreme().Form<QpayModel>()
         .ID("form")
@@ -52,6 +65,7 @@
         .Items
         (items =>
         {
+            // 開始日期選擇器
             items.AddSimpleFor
                 (m => m.QueryStartDate)
                 .Label(l => l.Text("開始日期"))
@@ -64,6 +78,8 @@
                     .Placeholder("開始日期")
                     .PickerType(DateBoxPickerType.Calendar)
                 );
+
+            // 結束日期選擇器
             items.AddSimpleFor
                 (m => m.QueryEndDate)
                 .Label(l => l.Text("結束日期"))
@@ -77,19 +93,19 @@
                     .PickerType(DateBoxPickerType.Calendar)
                 );
 
+            // 奉獻編號輸入框
             items.AddSimpleFor(m => m.DedicationNumber)
-       //.DataField("LastName")
-       .Label(l => l.Text("奉獻編號"))
-       .Editor(e => e
-           .TextBox()
-           .Width(120)
-           .Disabled(false)
-           .Placeholder("輸入奉獻編號")
-           .FocusStateEnabled(true)
-      );
+                 .Label(l => l.Text("奉獻編號"))
+                 .Editor(e => e
+                     .TextBox()
+                     .Width(120)
+                     .Disabled(false)
+                     .Placeholder("輸入奉獻編號")
+                     .FocusStateEnabled(true)
+                );
 
+            // 身份證字號輸入框
             items.AddSimpleFor(m => m.NationId)
-                  //.DataField("LastName")
                   .Label(l => l.Text("身份證字號"))
                   .Editor(e => e
                       .TextBox()
@@ -99,48 +115,46 @@
                       .FocusStateEnabled(true)
                  );
 
+            // 姓名輸入框
             items.AddSimpleFor(m => m.FullName)
-               //.DataField("LastName")
-               .Label(l => l.Text("姓名"))
-               .Editor(e => e
-                   .TextBox()
-                   .Width(120)
-                   .Disabled(false)
-                   .Placeholder("輸入姓名")
-              );
+                 .Label(l => l.Text("姓名"))
+                 .Editor(e => e
+                     .TextBox()
+                     .Width(120)
+                     .Disabled(false)
+                     .Placeholder("輸入姓名")
+                  );
 
+            // 電話號碼輸入框（含遮罩驗證）
             items.AddSimpleFor(m => m.Mobile)
                    .Label(l => l.Text("電話號碼"))
                    .Editor(e => e
                        .TextBox()
                        .Width(120)
-                       //.Mask("(X000) 000-000")
                        .MaskRules(new { X = new JS("/[02-9]/") })
                        .Placeholder("輸入電話號碼")
                    );
 
+            // 帳戶後六碼輸入框（含遮罩驗證）
             items.AddSimpleFor(m => m.LastSixDigit)
                    .Label(l => l.Text("帳戶後六碼"))
                    .Editor(e => e
                        .TextBox()
                        .Width(120)
-                       //.Mask("(X000) 000-000")
                        .MaskRules(new { X = new JS("/[02-9]/") })
                        .Placeholder("輸入帳戶後六碼")
                    );
 
+            // 隱藏的點擊類型欄位（用於區分查詢或上傳）
             items.AddSimpleFor(m => m.ClickType)
-               //.DataField("LastName")
                .Label(l => l.Text("查詢或上傳").Visible(false))
                .Editor(e => e
                    .TextBox()
                    .Width(120).Visible(false)
-                   //.Disabled(true)
                    .Placeholder("查詢或上傳")
               );
-
-        }
-        )
+        })
+        // 表單內容準備完成後驗證
         .OnContentReady
         (@<text>
             function(e)
@@ -148,11 +162,12 @@
                 e.component.validate();
             }
         </text>)
-
+        // 綁定模型資料
         .FormData(Model)
         )
-
     </div>
+
+    <!-- 查詢按鈕 -->
     <div id="buttonContainer3" class="dx-button-icon">
         @(Html.DevExtreme().Button()
                     .Text("查詢")
@@ -163,48 +178,31 @@
                     .OnClick("OnClickQuery")
             )
     </div>
+
+    <!-- 同名連絡人清單容器 -->
     <div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
         <h5 id="samenamefield">查詢結果</h5>
 
         @(Html.DevExtreme().DataGrid<SameNameElement>()
                             .ID("SameNameList")
                             .ShowBorders(true)
-                            //.ColumnAutoWidth(true)
-                            //.Paging(p => p.PageSize(10))
                             .Paging(paging => paging.Enabled(false))
                             .AllowColumnResizing(true)
                             .ColumnResizingMode(ColumnResizingMode.Widget)
                             .ColumnFixing(c => c.Enabled(true))
                             .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
-                            //.SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
-                            //.Export(e=>e.Enabled(false).AllowExportSelectedData(true))
                             .ShowColumnLines(true)
                             .ShowRowLines(true)
-                            //.RowAlternationEnabled(true)
                             .ShowBorders(true)
-                            //.RemoteOperations(false)
-                            //.TwoWayBindingEnabled(true)
                             .Selection(selection => selection.Mode(SelectionMode.Single))
-                            //.Selection(selection => selection.Mode(SelectionMode.Multiple))
-                            //.Selection(selection => selection.Mode(SelectionMode.None))
                             .OnRowClick("OnRowClick")
                             .OnSelectionChanged("OnRowSelectionChanged")
                             .HoverStateEnabled(true)
-                            //.OnContentReady("onCreditCardGridContentReady")
                             .Editing(editing =>
                             {
-                                //editing.Mode(GridEditMode.Batch);
-                                //editing.Mode(GridEditMode.Row);
-                                //editing.Mode(GridEditMode.Cell);
-                                //editing.Mode(GridEditMode.Batch);
-                                //editing.Mode(GridEditMode.Form);
-                                //editing.Mode(GridEditMode.Popup);
-                                //editing.AllowUpdating(true);
-                                //editing.AllowAdding(true);
                                 editing.AllowDeleting(true);
                                 editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("選擇").DeleteRow("刪除"));
                             })
-
                             .Columns(columns =>
                             {
                                 columns.AddFor(m => m.DedicationNumber).Caption("奉獻編號").Width(100).MinWidth(100).Fixed(true);
@@ -217,37 +215,26 @@
                             .WebApi()
                             .Controller("DedicationAudit")
                             .LoadAction("LoadSameNameList")
-                            //.InsertAction("InsertPresentRecord")
                             .DeleteAction("DeleteSameNameContact")
-                            //.UpdateAction("UpdatePresentRecord")
                             .Key("SameNameElementId")
-                            //.LoadParams(new { id = @ViewBag.ListId }))
                             )
-
-                            //.OnContentReady("onCreditCardGridContentReady")
-                            // 此處設定是讓選項偏左邊一排
-                            // 此處設定是讓選項偏左邊一排
                             .OnContentReady(
                             @<text>
                                 function(e)
                                 {
-                                    //moveEditColumnToLeft(e.component);
-                                    //ShowToast( ReMindMessage , 'warning' , 20000)
-                                    @*$("#loadPanel").dxLoadPanel("instance").hide();*@
+                                    // 編輯欄位移至左側（若需要）
                                 }
                             </text>
                             )
-                            //此處設定是鉛筆形狀還是"編輯"字樣
                             .OnCellPrepared("cell_prepared")
-                            //.OnCellPrepared("cell_prepared_background_color")
                             )
     </div>
+
+    <!-- 奉獻清單顯示容器 -->
     <div id="data-grid">
         @(Html.DevExtreme().DataGrid<DedicationFee>()
             .ID("DedicationFeeGrid")
             .ShowBorders(true)
-            //.ColumnAutoWidth(true)
-            //.Paging(p => p.PageSize(10))
             .Paging(paging => paging.Enabled(false))
             .AllowColumnResizing(true)
             .ColumnResizingMode(ColumnResizingMode.Widget)
@@ -263,18 +250,10 @@
             .TwoWayBindingEnabled(true)
             .Editing(editing =>
             {
-                //editing.Mode(GridEditMode.Batch);
-                //editing.Mode(GridEditMode.Row);
                 editing.Mode(GridEditMode.Cell);
-                //editing.Mode(GridEditMode.Batch);
-                //editing.Mode(GridEditMode.Form);
-                //editing.Mode(GridEditMode.Popup);
                 editing.AllowUpdating(true);
-                //editing.AllowAdding(true);
-                //editing.AllowDeleting(true);
                 editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
             })
-
             .Columns(columns =>
             {
                 columns.AddFor(m => m.Category).Caption("奉獻類別").Width(50).MinWidth(80).AllowEditing(false).AllowSorting(true);
@@ -327,22 +306,25 @@
                             .WebApi()
                             .Controller("DedicationAudit")
                             .LoadAction("LoadDedicationFeeList")
-                            //.Key("SameNameElementId")
-                            //.LoadParams(new { id = @ViewBag.ListId }))
                             )
-
             )
     </div>
+
+    <!-- 總金額顯示區域 -->
     <div style="font-family:標楷體;font-size:100%; color:darkred; text-align:left;font-weight:bold">
         <h4 id="displayamountfield"></h4>
     </div>
 </form>
 
+<!-- 腳本區域 -->
 <div id="samenamecontainer_script" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold">
     <h5 id="resultfield"></h5>
+
+    <!-- 頁面初始化腳本 -->
     <script>
-        //網頁初始化
+        // 頁面載入完成後初始化
         window.onload = function (e) {
+            // 清空表單欄位並聚焦到奉獻編號
             $("#form").dxForm("instance").updateData('DedicationNumber', "");
             $("#form").dxForm("instance").updateData('NationId', "");
             $("#form").dxForm("instance").updateData('FullName', "");
@@ -350,295 +332,274 @@
             $("#form").dxForm("instance").updateData('LastSixDigit', "");
             $("#form").dxForm("instance").getEditor('DedicationNumber').focus();
 
-            document.getElementById("samenamecontainer").style.display = "none";//隱藏
-            document.getElementById("data-grid").style.display = "none";//隱藏
-            document.getElementById("displayamountfield").style.display = "none";//隱藏
+            // 隱藏同名清單與奉獻清單
+            document.getElementById("samenamecontainer").style.display = "none";
+            document.getElementById("data-grid").style.display = "none";
+            document.getElementById("displayamountfield").style.display = "none";
         };
     </script>
+
+    <!-- 共用函式與事件處理 -->
     <script>
-        // 清空表單基本欄位的 helper
+        // ========== 共用函式與設定 (已加註解，勿刪功能) ==========
+        // 快取常用 DOM 與 DevExtreme 實例，減少重複查詢以提升效能
+        var $formSelector = "#form";
+        var $sameNameGridSelector = "#SameNameList";
+        var $feeGridSelector = "#DedicationFeeGrid";
+        var $loadPanelSelector = "#loadPanel";
+        var $toastSelector = "#toast";
+
+        // 取得 LoadPanel 實例（短函式以方便使用）
+        function getLoadPanelInstance() {
+            return $($loadPanelSelector).dxLoadPanel("instance");
+        }
+
+        // 簡化 Toast 顯示：接收訊息、類型與顯示時間
+        function ShowToast(message, type, displayTime) {
+            var toast = $($toastSelector).dxToast("instance");
+            if (!toast) return;
+            toast.option({
+                message: message,
+                type: type,
+                displayTime: displayTime || 3000,
+                closeOnClick: true
+            });
+            toast.show();
+        }
+
+        // 將伺服器可能回傳的日期格式統一解析為 JS Date
+        function parseServerDate(value) {
+            if (!value) return null;
+            if (value instanceof Date) return value;
+            if (typeof value === 'number') return new Date(value);
+            var msDateMatch = /\/Date\((\d+)(?:[+-]\d+)?\)\//.exec(value);
+            if (msDateMatch) {
+                return new Date(parseInt(msDateMatch[1], 10));
+            }
+            var d = new Date(value);
+            if (!isNaN(d.getTime())) return d;
+            var n = parseInt(value, 10);
+            if (!isNaN(n)) return new Date(n);
+            return null;
+        }
+
+        // 清空表單基本欄位（呼叫於顯示完 DedicationFeeGrid 之後）
         function clearFormBasicFields() {
-            var form = $("#form").dxForm("instance");
+            var form = $($formSelector).dxForm("instance");
             if (!form) return;
             try {
+                // 明確列出要清空的欄位，避免不必要影響其他欄位
                 form.updateData('DedicationNumber', '');
                 form.updateData('NationId', '');
                 form.updateData('FullName', '');
                 form.updateData('Mobile', '');
                 form.updateData('LastSixDigit', '');
                 form.updateData('ClickType', '');
-                //form.updateData('QueryStartDate', null);
-                //form.updateData('QueryEndDate', null);
-                // 將焦點移回奉獻編號欄位
+                // 將焦點放回奉獻編號，提高使用者操作效率
                 try { form.getEditor('DedicationNumber').focus(); } catch (e) { }
             } catch (e) {
                 console.warn('clearFormBasicFields error', e);
             }
         }
 
-        // 觸發事件管理
+        // 更新 DedicationFeeGrid 的資料與顯示，接收已解析過日期的陣列
+        function updateFeeGrid(fees) {
+            var grid = $($feeGridSelector).dxDataGrid("instance");
+            if (!grid) {
+                console.warn('DedicationFeeGrid instance not found');
+                return;
+            }
+
+            try {
+                // 直接設定 dataSource 為陣列，DevExtreme 會自動處理
+                grid.option('dataSource', fees || []);
+
+                // 嘗試刷新與 repaint，確保 UI 更新
+                try { grid.refresh(); } catch (e) { console.warn('grid.refresh() failed', e); }
+                try { grid.repaint(); } catch (e) { console.warn('grid.repaint() failed', e); }
+            } catch (e) {
+                console.error('updateFeeGrid error', e);
+                ShowToast('更新清單失敗，請查看 console', 'error', 5000);
+            }
+        }
+
+        // 從後端取得指定 contact 的奉獻清單（回傳 Promise）
+        function fetchFeesByContactId(contactId) {
+            return $.ajax({
+                url: '/DedicationAudit/GetFeesByContactId',
+                method: 'GET',
+                data: { id: contactId },
+                dataType: 'json'
+            });
+        }
+
+        // 共用：處理使用者在同名清單選擇一筆後的流程
+        function handleSameNameSelection(data) {
+            if (!data) return;
+
+            // 先在表單顯示選中的欄位（短暫顯示，之後會被 clearFormBasicFields 清空）
+            var form = $($formSelector).dxForm("instance");
+            if (form) {
+                form.updateData('DedicationNumber', data.DedicationNumber || "");
+                form.updateData('NationId', data.NationId || "");
+                form.updateData('FullName', data.FullName || "");
+                form.updateData('Mobile', data.Mobile || "");
+            }
+
+            // 取消 SameNameList 選取，以免 UI 卡住
+            try { $($sameNameGridSelector).dxDataGrid("instance").deselectAll(); } catch (e) { }
+
+            // 顯示載入訊息
+            ShowToast('正在載入 ' + (data.FullName || '') + ' 的奉獻記錄...', 'info', 2000);
+            getLoadPanelInstance().show();
+
+            var contactId = data.SameNameElementId;
+            if (!contactId) {
+                getLoadPanelInstance().hide();
+                ShowToast('缺少聯絡人 Id', 'error', 3000);
+                return;
+            }
+
+            // 取得清單，並在成功後顯示於 grid，最後清空表單欄位（依使用者要求）
+            fetchFeesByContactId(contactId).done(function (resp) {
+                getLoadPanelInstance().hide();
+                if (!resp || String(resp.status) !== '1' || !Array.isArray(resp.DedicationFeeList)) {
+                    ShowToast('未找到奉獻清單', 'warning', 3000);
+                    return;
+                }
+
+                // 將伺服器返回的日期欄位解析成 JS Date，避免格式化問題
+                var fees = resp.DedicationFeeList.map(function(item) {
+                    var copy = Object.assign({}, item);
+                    try { copy.DedicationDate = parseServerDate(copy.DedicationDate); } catch(e) { copy.DedicationDate = null; }
+                    try { copy.PayDate = parseServerDate(copy.PayDate); } catch(e) { copy.PayDate = null; }
+                    return copy;
+                });
+
+                // 更新 grid 與 UI 顯示
+                updateFeeGrid(fees);
+
+                // 顯示總金額（如果後端有提供）
+                try { document.getElementById('displayamountfield').innerHTML = (data.FullName || '') + '  ' + (resp.TotalAmount || ''); } catch(e) { }
+                document.getElementById('samenamecontainer').style.display = 'none';
+                document.getElementById('data-grid').style.display = '';
+                document.getElementById('displayamountfield').style.display = '';
+
+                // 根據需求：在顯示完清單後清空表單基本欄位
+                clearFormBasicFields();
+
+            }).fail(function (err) {
+                getLoadPanelInstance().hide();
+                console.error('fetchFeesByContactId error', err);
+                ShowToast('載入失敗，請查看 console', 'error', 5000);
+            });
+        }
+
+        // ========== 事件處理器（保留既有行為，但呼叫共用函式） ==========
         function OnClickQuery(arg) {
-            $("#form").dxForm("instance").getEditor("ClickType").option("value", '查詢');
+            // 標記使用者動作並顯示載入
+            try { $($formSelector).dxForm("instance").getEditor('ClickType').option('value', '查詢'); } catch(e) { }
             getLoadPanelInstance().show();
         }
-        
+
         function OnRowClick(selectedItems) {
-            var data = selectedItems.selectedRowsData[0];
-            if (data) {
-                // 更新表單基本欄位（暫時顯示給使用者）
-                $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber || "");
-                $("#form").dxForm("instance").updateData('NationId', data.NationId || "");
-                $("#form").dxForm("instance").updateData('FullName', data.FullName || "");
-                $("#form").dxForm("instance").updateData('Mobile', data.Mobile || "");
-
-                // 取消 SameNameList 選取
-                $("#SameNameList").dxDataGrid("instance").deselectAll();
-
-                // 顯示載入訊息
-                ShowToast("正在載入 " + (data.FullName || "") + " 的奉獻記錄...", "info", 2000);
-                getLoadPanelInstance().show();
-
-                // 從後端取該 contact 的收費單清單 (使用 contact id: SameNameElementId)
-                var contactId = data.SameNameElementId;
-                if (contactId) {
-                    $.ajax({
-                        url: '/DedicationAudit/GetFeesByContactId',
-                        method: 'GET',
-                        data: { id: contactId },
-                        success: function(resp) {
-                            getLoadPanelInstance().hide();
-                            if (resp && (String(resp.status) === '1') && Array.isArray(resp.DedicationFeeList)) {
-                                var fees = resp.DedicationFeeList.map(function(item) {
-                                    try { item.DedicationDate = new Date(item.DedicationDate); } catch(e) {}
-                                    try { item.PayDate = new Date(item.PayDate); } catch(e) {}
-                                    return item;
-                                });
-                                var grid = $("#DedicationFeeGrid").dxDataGrid("instance");
-                                if (grid) {
-                                    grid.option('dataSource', fees);
-                                    grid.refresh();
-                                    grid.repaint();
-                                }
-
-                                document.getElementById('displayamountfield').innerHTML = (data.FullName || '') + '  ' + (resp.TotalAmount || '');
-                                document.getElementById("samenamecontainer").style.display = "none";
-                                document.getElementById("data-grid").style.display = "";
-                                document.getElementById("displayamountfield").style.display = "";
-
-                                // 在顯示完清單後清空表單基本欄位
-                                clearFormBasicFields();
-                            } else {
-                                ShowToast('未找到奉獻清單', 'warning', 3000);
-                            }
-                        },
-                        error: function(err) {
-                            getLoadPanelInstance().hide();
-                            console.error('GetFeesByContactId error', err);
-                            ShowToast('載入失敗，請查看 console', 'error', 5000);
-                        }
-                    });
-                }
-            }
+            var data = selectedItems && selectedItems.selectedRowsData ? selectedItems.selectedRowsData[0] : null;
+            if (!data) return;
+            handleSameNameSelection(data);
         }
 
         function OnRowSelectionChanged(selectedItems) {
-            var data = selectedItems.selectedRowsData[0];
-            if (data) {
-                // 更新表單基本欄位（暫時顯示給使用者）
-                $("#form").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber || "");
-                $("#form").dxForm("instance").updateData('NationId', data.NationId || "");
-                $("#form").dxForm("instance").updateData('FullName', data.FullName || "");
-                $("#form").dxForm("instance").updateData('Mobile', data.Mobile || "");
-
-                $("#SameNameList").dxDataGrid("instance").deselectAll();
-
-                // 與 OnRowClick 相同的行為：載入並顯示該聯絡人的奉獻清單
-                ShowToast("正在載入 " + (data.FullName || "") + " 的奉獻記錄...", "info", 2000);
-                getLoadPanelInstance().show();
-
-                var contactId = data.SameNameElementId;
-                if (contactId) {
-                    $.ajax({
-                        url: '/DedicationAudit/GetFeesByContactId',
-                        method: 'GET',
-                        data: { id: contactId },
-                        success: function(resp) {
-                            getLoadPanelInstance().hide();
-                            if (resp && (String(resp.status) === '1') && Array.isArray(resp.DedicationFeeList)) {
-                                var fees = resp.DedicationFeeList.map(function(item) {
-                                    try { item.DedicationDate = new Date(item.DedicationDate); } catch(e) {}
-                                    try { item.PayDate = new Date(item.PayDate); } catch(e) {}
-                                    return item;
-                                });
-                                var grid = $("#DedicationFeeGrid").dxDataGrid("instance");
-                                if (grid) {
-                                    grid.option('dataSource', fees);
-                                    grid.refresh();
-                                    grid.repaint();
-                                }
-
-                                document.getElementById('displayamountfield').innerHTML = (data.FullName || '') + '  ' + (resp.TotalAmount || '');
-                                document.getElementById("samenamecontainer").style.display = "none";
-                                document.getElementById("data-grid").style.display = "";
-                                document.getElementById("displayamountfield").style.display = "";
-
-                                // 在顯示完清單後清空表單基本欄位
-                                clearFormBasicFields();
-                            } else {
-                                ShowToast('未找到奉獻清單', 'warning', 3000);
-                            }
-                        },
-                        error: function(err) {
-                            getLoadPanelInstance().hide();
-                            console.error('GetFeesByContactId error', err);
-                            ShowToast('載入失敗，請查看 console', 'error', 5000);
-                        }
-                    });
-                }
-            }
+            var data = selectedItems && selectedItems.selectedRowsData ? selectedItems.selectedRowsData[0] : null;
+            if (!data) return;
+            handleSameNameSelection(data);
         }
-    </script>
-    <script type="text/javascript">
-        // 按下查詢後回傳結果處理區塊
+
+        // ========== Ajax 回呼 onSuccess（整理與註解） ==========
         function onBegin() {
+            // Ajax 開始前可以加入驗證或預處理，保留空實作以免影響現有流程
         }
 
         function onSuccess(data) {
-            getLoadPanelInstance().hide();
+            // 隱藏載入面板（若有）
+            try { getLoadPanelInstance().hide(); } catch (e) { }
 
+            // 記錄回應以利除錯：不會在生產環境大量 log
             console.log('AuditQueryDedication onSuccess:', data);
 
-            // Normalize status to string because server may return numbers as strings
             var status = (data && data.status !== undefined) ? String(data.status) : null;
 
-            if (status === "1") {
-                // 查詢成功
-                $("#form").dxForm("instance").updateData('DedicationNumber', "");
-                $("#form").dxForm("instance").updateData('NationId', "");
-                $("#form").dxForm("instance").updateData('FullName', "");
-                $("#form").dxForm("instance").updateData('Mobile', "");
-                $("#form").dxForm("instance").updateData('LastSixDigit', "");
-                $("#form").dxForm("instance").getEditor('DedicationNumber').focus();
+            if (status === '1') {
+                // 查詢成功：清空搜尋欄位並顯示奉獻清單（若後端直接回傳 DedicationFeeList）
+                var form = $($formSelector).dxForm("instance");
+                if (form) {
+                    form.updateData('DedicationNumber', '');
+                    form.updateData('NationId', '');
+                    form.updateData('FullName', '');
+                    form.updateData('Mobile', '');
+                    form.updateData('LastSixDigit', '');
+                    try { form.getEditor('DedicationNumber').focus(); } catch(e) {}
+                }
 
-                document.getElementById("samenamecontainer").style.display = "none";
-                document.getElementById("data-grid").style.display = "";
-                document.getElementById("displayamountfield").style.display = "";
+                document.getElementById('samenamecontainer').style.display = 'none';
+                document.getElementById('data-grid').style.display = '';
+                document.getElementById('displayamountfield').style.display = '';
+                try { document.getElementById('displayamountfield').innerHTML = (data.FullName || '') + '  ' + (data.TotalAmount || 0); } catch(e) {}
 
-                document.getElementById('displayamountfield').innerHTML = (data.FullName || "") + "  " + (data.TotalAmount || 0);
-
-                var grid = $("#DedicationFeeGrid").dxDataGrid("instance");
-                if (grid) {
-                    try {
-                        if (data.DedicationFeeList && Array.isArray(data.DedicationFeeList)) {
-                            console.log('Binding DedicationFeeList to grid, count=', data.DedicationFeeList.length);
-
-                            // Normalize dates robustly to JS Date objects
-                            function parseServerDate(value) {
-                                if (!value) return null;
-                                // If it's already a Date
-                                if (value instanceof Date) return value;
-                                // If it's a number (ticks)
-                                if (typeof value === 'number') return new Date(value);
-                                // If it's a string like "/Date(1620000000000)/"
-                                var msDateMatch = /\/Date\((\d+)(?:[+-]\d+)?\)\//.exec(value);
-                                if (msDateMatch) {
-                                    return new Date(parseInt(msDateMatch[1], 10));
-                                }
-                                // ISO8601 or other parseable string
-                                var d = new Date(value);
-                                if (!isNaN(d.getTime())) return d;
-                                // fallback: try parseInt
-                                var n = parseInt(value, 10);
-                                if (!isNaN(n)) return new Date(n);
-                                return null;
-                            }
-
-                            var normalized = data.DedicationFeeList.map(function(item) {
-                                var copy = Object.assign({}, item);
-                                try { copy.DedicationDate = parseServerDate(copy.DedicationDate); } catch (e) { copy.DedicationDate = null; }
-                                try { copy.PayDate = parseServerDate(copy.PayDate); } catch (e) { copy.PayDate = null; }
-                                return copy;
-                            });
-
-                            // Bind using DevExtreme DataSource for reliability
-                            var ds = new DevExpress.data.DataSource({
-                                store: new DevExpress.data.ArrayStore({ data: normalized, key: 'DedicationDate' }),
-                                paginate: false
-                            });
-
-                            grid.option('dataSource', ds);
-
-                            ds.load().done(function() {
-                                try {
-                                    grid.refresh();
-                                    grid.repaint();
-                                    console.log('Local DataSource loaded and grid refreshed');
-                                } catch (rerr) {
-                                    console.warn('Refresh after ds.load() failed', rerr);
-                                    try { grid.repaint(); } catch(e) {}
-                                }
-                            }).fail(function(err){
-                                console.error('DataSource load failed', err);
-                                ShowToast('載入奉獻清單失敗，請查看 console', 'error', 5000);
-                            });
-
-                        } else {
-                            console.log('No DedicationFeeList in response, calling grid.refresh() to trigger LoadAction');
-                            setTimeout(function() { try { grid.refresh(); grid.repaint(); } catch(e) { console.error(e); } }, 50);
-                        }
-                    } catch (err) {
-                        console.error('Error updating DedicationFeeGrid datasource', err);
-                        ShowToast('載入奉獻清單失敗，請查看 console', 'error', 5000);
-                    }
+                // 若後端回傳奉獻清單，直接顯示；否則讓原本的 WebApi LoadAction 繼續運作
+                if (data.DedicationFeeList && Array.isArray(data.DedicationFeeList)) {
+                    var normalized = data.DedicationFeeList.map(function(item) {
+                        var copy = Object.assign({}, item);
+                        try { copy.DedicationDate = parseServerDate(copy.DedicationDate); } catch(e) { copy.DedicationDate = null; }
+                        try { copy.PayDate = parseServerDate(copy.PayDate); } catch(e) { copy.PayDate = null; }
+                        return copy;
+                    });
+                    updateFeeGrid(normalized);
                 } else {
-                    console.warn('DedicationFeeGrid instance not found');
+                    // 保留舊有行為：觸發 grid refresh 以讓 WebApi LoadAction 取得資料
+                    try { $($feeGridSelector).dxDataGrid('instance').refresh(); } catch (e) { }
                 }
-            }
-            else if (status === "2") {
-                // 找到多筆同名連絡人
-                $("#form").dxForm("instance").updateData('DedicationNumber', "");
-                $("#form").dxForm("instance").updateData('NationId', "");
-                $("#form").dxForm("instance").updateData('FullName', "");
-                $("#form").dxForm("instance").updateData('Mobile', "");
-                $("#form").dxForm("instance").updateData('LastSixDigit', "");
-                $("#form").dxForm("instance").getEditor('DedicationNumber').focus();
 
-                document.getElementById("samenamecontainer").style.display = "";
-                document.getElementById("data-grid").style.display = "none";
-                document.getElementById("displayamountfield").style.display = "none";
-
-                $("#SameNameList").dxDataGrid("instance").refresh();
-            }
-            else {
-                // 查詢失敗或沒找到
-                if (data.message == "沒找到這個連絡人") {
-                    ShowToast("沒找到\"" + data.fullname + "\"!", "error", 3000);
-
-                    if (data.clicktype == "查詢") {
-                        var PopupInstance = $("#popup").dxPopup("instance");
-                        if (PopupInstance) {
-                            PopupInstance.option('title', "沒找到\"" + data.fullname + "\"，是否要新增?");
-                            PopupInstance.show();
-                        }
+            } else if (status === '2') {
+                // 多筆同名：顯示同名清單並隱藏奉獻清單
+                var form = $($formSelector).dxForm("instance");
+                if (form) {
+                    form.updateData('DedicationNumber', '');
+                    form.updateData('NationId', '');
+                    form.updateData('FullName', '');
+                    form.updateData('Mobile', '');
+                    try { form.getEditor('DedicationNumber').focus(); } catch(e) {}
+                }
+                document.getElementById('samenamecontainer').style.display = '';
+                document.getElementById('data-grid').style.display = 'none';
+                document.getElementById('displayamountfield').style.display = 'none';
+                try { $($sameNameGridSelector).dxDataGrid('instance').refresh(); } catch(e) {}
+            } else {
+                // 查無結果或發生錯誤
+                if (data && data.message === '沒找到這個連絡人') {
+                    ShowToast('沒找到"' + (data.fullname || '') + '"!', 'error', 3000);
+                    if (data.clicktype === '查詢') {
+                        var PopupInstance = $('#popup') && $('#popup').dxPopup ? $('#popup').dxPopup('instance') : null;
+                        if (PopupInstance) { PopupInstance.option('title', '沒找到"' + (data.fullname || '') + '"，是否要新增?'); PopupInstance.show(); }
                     }
                 }
-
-                document.getElementById("samenamecontainer").style.display = "none";
-                document.getElementById("data-grid").style.display = "none";
-                document.getElementById("displayamountfield").style.display = "none";
-
-                document.getElementById('resultfield').innerHTML = data.DedicationResult || data.message;
+                document.getElementById('samenamecontainer').style.display = 'none';
+                document.getElementById('data-grid').style.display = 'none';
+                document.getElementById('displayamountfield').style.display = 'none';
+                try { document.getElementById('resultfield').innerHTML = data.DedicationResult || data.message; } catch(e) {}
             }
         }
 
         function onComplete(data) {
+            // Ajax 完成後可做的清理工作，保留空實作
         }
     </script>
+
+    <!-- 中文化設定 -->
     <script>
-        //中文化
+        // DevExpress 中文化字典
         var dictionary = {
             "zh-tw": {
-                "dxScheduler-switcherAgenda": "會議內容", // 在這裡可以做最後的字典對應
+                "dxScheduler-switcherAgenda": "會議內容",
                 "Month": "月",
                 "Subject": "主題",
                 "Company": "Company",
@@ -650,43 +611,39 @@
         DevExpress.localization.loadMessages(dictionary);
         var formatMessage = DevExpress.localization.formatMessage;
 
+        // 設定本地化語言
         var locale = getLocale();
-        //DevExpress.localization.locale(navigator.language || navigator.browserLanguage);
         DevExpress.localization.locale(locale);
 
+        // 語言切換函式（若需要）
         function changeLocale(data) {
             setLocale(data.value);
             document.location.reload();
         }
 
+        // 取得當前語言設定
         function getLocale() {
-            //debugger;
-            //sessionStorage.setItem("locale", 'zh');
             sessionStorage.setItem("locale", 'zh-tw');
             var locale = sessionStorage.getItem("locale");
             return locale != null ? locale : "tw";
         }
     </script>
 </div>
+
+<!-- 全域函式與工具 -->
 <script>
+    // 取得 LoadPanel 實例（重複定義以相容舊代碼）
     function getLoadPanelInstance() {
         return $("#loadPanel").dxLoadPanel("instance");
     }
+
+    // 顯示 LoadPanel（舊函式，保留相容性）
     function ShowLoadPanel(arg) {
-
-        //debugger;
         getLoadPanelInstance().show();
-        //$("#toast").dxToast("instance").show();
-        //alert("SaveNewPerson!!!");
-        //alert("OnValueChanged : " + arg.value);
-
-        //alert("OnValueChanged : " + arg.attribute('text'));
-        //alert("OnValueChanged : " + text: arg.attribute("text"));
-
-        //alert( getODataLocalDateFilter(arg.value) );
     }
+
+    // Toast 顯示（舊函式，保留相容性）
     function ShowToast(LocalToastMessage, Type, DisplayTime) {
-        //debugger;
         var ToastInstance = $("#toast").dxToast("instance");
         ToastInstance.option('message', LocalToastMessage);
         ToastInstance.option('type', Type);
@@ -696,14 +653,18 @@
         ToastInstance.show();
     }
 
+    // 全域變數（若需要）
     var GlobalCategory = "";
 
+    // 編輯欄位移動函式（若使用）
     function moveEditColumnToLeft(dataGrid) {
         dataGrid.columnOption("command:edit", {
             visibleIndex: -1,
             width: 50
         });
     }
+
+    // 儲存格準備函式（用於編輯按鈕樣式）
     function cell_prepared(e) {
         if (e.rowType === "data" && e.column.command === "edit") {
             var isEditing = e.row.isEditing,
@@ -722,13 +683,14 @@
         }
 
     }
+    // 日期解析函式（用於 DataGrid 欄位計算）
     function ParsingDate(input) {
-
         var ParsedDate = new Date(input);
         return ParsedDate;
     }
 </script>
 
+<!-- 外部資源連結 -->
 <link href="~/css/Scheduler.css" rel="stylesheet" />
 <link href="~/css/Site.css" rel="stylesheet" />
 
