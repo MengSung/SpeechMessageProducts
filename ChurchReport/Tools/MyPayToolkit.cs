@@ -42,11 +42,11 @@ namespace ChurchReport.Tools
         /// <summary>
         /// 特約商店商務代號
         /// </summary>
-        public string storeUid = "130544850001";
+        public string storeUid = "200043350001";
         /// <summary>
         /// 特約商店金鑰或認證碼
         /// </summary>
-        public string storeKey = "m4KNdB8NtuIc6mJa1XAYX3W1jWoHQCgy";
+        public string storeKey = "iFDYTvaj6AfsEYzA8oA1EdtGQwkLLbR5";
         /// <summary>
         /// 串接交易位置
         /// </summary>
@@ -102,7 +102,69 @@ namespace ChurchReport.Tools
             return rawData;
         }
         /// <summary>
-        /// 取得送出欄位資料
+        /// 嘗試從 Encrypt 的輸出（Base64 組合：IV + Cipher）還原明文
+        /// 若解密失敗，會拋出例外以便定位問題
+        /// </summary>
+        /// <param name="combinedBase64">由 Encrypt() 回傳的 Base64 字串（IV + cipher）</param>
+        /// <param name="key">storeKey 或 agentKey 原始字串</param>
+        /// <returns>還原的明文字串</returns>
+        private static string DecryptFromCombinedBase64(string combinedBase64, string key)
+        {
+            if (string.IsNullOrEmpty(combinedBase64))
+                throw new ArgumentException("payload 為空", nameof(combinedBase64));
+
+            byte[] combinedBytes;
+            try
+            {
+                combinedBytes = Convert.FromBase64String(combinedBase64);
+            }
+            catch (FormatException fe)
+            {
+                throw new FormatException("payload 不是合法的 Base64 字串", fe);
+            }
+
+            if (combinedBytes.Length <= 16)
+                throw new InvalidOperationException("payload 長度不足以包含 IV 與 cipher 資料");
+
+            // 前 16 bytes 為 IV，餘下為 cipher
+            byte[] iv = combinedBytes.Take(16).ToArray();
+            byte[] cipher = combinedBytes.Skip(16).ToArray();
+
+            // 取得 32 bytes 的 key：若原始 key bytes 不是 32，使用 SHA256 派生
+            byte[] keyBytes = Encoding.UTF8.GetBytes(key ?? string.Empty);
+            if (keyBytes.Length != 32)
+            {
+                using (var sha = SHA256.Create())
+                {
+                    keyBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(key ?? string.Empty));
+                }
+            }
+
+            try
+            {
+                using (var aes = Aes.Create())
+                {
+                    aes.KeySize = 256;
+                    aes.Mode = CipherMode.CBC;
+                    aes.Padding = PaddingMode.PKCS7;
+                    aes.Key = keyBytes;
+                    aes.IV = iv;
+
+                    using (var decryptor = aes.CreateDecryptor())
+                    {
+                        var plainBytes = decryptor.TransformFinalBlock(cipher, 0, cipher.Length);
+                        return Encoding.UTF8.GetString(plainBytes);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new CryptographicException("解密失敗，可能是 key/IV/模式或填充不一致: " + ex.Message, ex);
+            }
+        }
+
+        /// <summary>
+        /// 取得送出欄位資料（含本地自檢，若自檢失敗會拋出例外）
         /// </summary>
         public NameValueCollection GetPostData(ExpandoObject customData, ServiceRequest Service)
         {
@@ -117,6 +179,22 @@ namespace ChurchReport.Tools
             var data_encode = Encrypt(data_json, this.storeKey, IV);
             var svr_encode = Encrypt(svr_json, this.storeKey, IV);
 
+            // ========== 本地自檢：嘗試還原剛剛加密的內容，若失敗則拋出清楚錯誤 ==========
+            try
+            {
+                // 若無法還原，會拋出例外，供呼叫端檢查
+                var decodedData = DecryptFromCombinedBase64(data_encode, this.storeKey);
+                var decodedService = DecryptFromCombinedBase64(svr_encode, this.storeKey);
+
+                // 可選：在開發或偵錯模式下記錄（此處不寫入日誌以避免洩漏）
+                // System.Diagnostics.Debug.WriteLine($"DecryptedData: {decodedData}");
+            }
+            catch (Exception ex)
+            {
+                // 將錯誤包裝並拋出，讓上層能夠取得更明確的錯誤訊息
+                throw new InvalidOperationException("本地加密自檢失敗: " + ex.Message + "。請確認 storeKey、IV 生成與 URL encode 流程是否與 MyPay 規格相符。", ex);
+            }
+
             //請注意使用的 Http Post 套件是否會自動加上UrlEncode，本Post範例為原始方式，故須加上UrlEncode
             //若自行使用的套件會自動補上UrlEncode，則請忽略下面的UrlEncode，避免做了兩次UrlEncode
             string data_toUrlEncode = HttpUtility.UrlEncode(data_encode);
@@ -124,6 +202,7 @@ namespace ChurchReport.Tools
 
             NameValueCollection postData = new NameValueCollection();
             postData["store_uid"] = this.storeUid;
+            postData["agent_uid"] = this.storeUid;  // 添加必填的 agent_uid 欄位
             postData["service"] = svr_toUrlEncode;
             postData["encry_data"] = data_toUrlEncode;
             return postData;
@@ -185,10 +264,12 @@ namespace ChurchReport.Tools
         /// <returns></returns>
         private static byte[] GetBytesIV()
         {
-            var aes = System.Security.Cryptography.AesCryptoServiceProvider.Create();
-            aes.KeySize = 256;
-            aes.GenerateIV();
-            return aes.IV;
+            using (var aes = Aes.Create())
+            {
+                aes.KeySize = 256;
+                aes.GenerateIV();
+                return aes.IV;
+            }
         }
         /// <summary>
         /// 資料 POST 到主機
