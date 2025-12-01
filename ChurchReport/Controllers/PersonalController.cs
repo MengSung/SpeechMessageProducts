@@ -117,6 +117,7 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 載入個人回報資料
         /// 用於 DevExtreme DataGrid 的資料來源
+        /// ? 修復 NullReferenceException：添加完整的 null 檢查
         /// </summary>
         /// <param name="id">清單ID</param>
         /// <param name="loadOptions">載入選項(分頁、排序、篩選)</param>
@@ -125,22 +126,60 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // ? 完整的 null 檢查鏈
+                if (InMemoryContext.ListManager == null)
+                {
+                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
+                }
+
+                // 確保資料已載入
                 EnsurePersonReportDataLoaded(id);
 
-                var tasks = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                    .m_SmallGroupDataList.m_AllMemeberData.Members;
+                // ? 檢查 WeeklyReport 是否存在
+                var weeklyReport = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
+                if (weeklyReport == null)
+                {
+                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
+                }
 
-                return DataSourceLoader.Load(tasks, loadOptions);
+                // ? 檢查 SmallGroupDataList 是否存在
+                var dataList = weeklyReport.m_SmallGroupDataList;
+                if (dataList == null)
+                {
+                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
+                }
+
+                // ? 檢查 AllMemeberData 是否存在
+                var allMemberData = dataList.m_AllMemeberData;
+                if (allMemberData == null)
+                {
+                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
+                }
+
+                // ? 檢查 Members 是否存在
+                var members = allMemberData.Members;
+                if (members == null)
+                {
+                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
+                }
+
+                return DataSourceLoader.Load(members, loadOptions);
             }
             catch (Exception e)
             {
-                return HandleError(e, "LoadPersonReport");
+                // 記錄詳細錯誤資訊
+                var errorDetails = new System.Text.StringBuilder();
+                errorDetails.AppendLine($"LoadPersonReport 錯誤: {e.Message}");
+                errorDetails.AppendLine($"請求 ID: {id}");
+                
+                return HandleError(e, errorDetails.ToString());
             }
         }
 
         /// <summary>
         /// 載入維護個人資訊資料
         /// 用於 MaintainPersonInfomationView 的 DataGrid 資料來源
+        /// ? 修復 NullReferenceException：添加完整的 null 檢查
         /// </summary>
         /// <param name="id">清單ID</param>
         /// <param name="loadOptions">載入選項(分頁、排序、篩選)</param>
@@ -149,29 +188,92 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // ? 完整的 null 檢查鏈
+                if (InMemoryContext.ListManager == null)
+                {
+                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
+                }
+
+                // 確保資料已載入
                 EnsurePersonReportDataLoaded(id);
 
-                var tasks = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                    .m_SmallGroupDataList.m_AllMemeberData.Members;
+                // ? 檢查 WeeklyReport 是否存在
+                var weeklyReport = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
+                if (weeklyReport == null)
+                {
+                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
+                }
 
-                return DataSourceLoader.Load(tasks, loadOptions);
+                // ? 檢查 SmallGroupDataList 是否存在
+                var dataList = weeklyReport.m_SmallGroupDataList;
+                if (dataList == null)
+                {
+                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
+                }
+
+                // ? 檢查 AllMemeberData 是否存在
+                var allMemberData = dataList.m_AllMemeberData;
+                if (allMemberData == null)
+                {
+                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
+                }
+
+                // ? 檢查 Members 是否存在
+                var members = allMemberData.Members;
+                if (members == null)
+                {
+                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
+                }
+
+                return DataSourceLoader.Load(members, loadOptions);
             }
             catch (Exception e)
             {
-                return HandleError(e, "LoadMaintainPersonInfomation");
+                // 記錄詳細錯誤資訊
+                var errorDetails = new System.Text.StringBuilder();
+                errorDetails.AppendLine($"LoadMaintainPersonInfomation 錯誤: {e.Message}");
+                errorDetails.AppendLine($"ListManager is null: {InMemoryContext.ListManager == null}");
+                
+                if (InMemoryContext.ListManager != null)
+                {
+                    errorDetails.AppendLine($"WeeklyReport is null: {InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null}");
+                    
+                    if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport != null)
+                    {
+                        errorDetails.AppendLine($"SmallGroupDataList is null: {InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList == null}");
+                    }
+                }
+
+                return HandleError(e, errorDetails.ToString());
             }
         }
 
         /// <summary>
         /// 確保個人回報資料已載入
+        /// ? 添加 null 檢查，防止連鎖失敗
         /// </summary>
         private void EnsurePersonReportDataLoaded(string id)
         {
+            // ? 檢查 ListManager 是否存在
+            if (InMemoryContext.ListManager == null)
+            {
+                return;
+            }
+
             var weeklyReport = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
 
+            // ? 如果資料未載入，嘗試載入
             if (weeklyReport == null || !weeklyReport.LoadFlag)
             {
-                InMemoryContext.ListManager.SetupIntegrateData(id);
+                try
+                {
+                    InMemoryContext.ListManager.SetupIntegrateData(id);
+                }
+                catch (Exception ex)
+                {
+                    // 記錄但不拋出異常，讓調用者處理空資料
+                    System.Diagnostics.Debug.WriteLine($"SetupIntegrateData 失敗: {ex.Message}");
+                }
             }
         }
 
@@ -439,6 +541,7 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 個人資訊維護畫面
         /// 用於維護個人資訊，顯示地圖、資料網格，並允許上傳更新
+        /// ? 修復 NullReferenceException：添加 null 檢查
         /// </summary>
         [HttpGet]
         [Route("/Personal/MaintainPersonInfomationView")]
@@ -449,13 +552,17 @@ namespace ChurchReport.Controllers
             {
                 SetupPersonalInfoViewBag();
 
-                // 根據登入類型設定不同的資料
-                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport != null)
+                // ? 根據登入類型設定不同的資料，添加 null 檢查
+                if (InMemoryContext.ListManager != null &&
+                    InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport != null &&
+                    InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList != null &&
+                    InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData != null)
                 {
                     return View(InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData);
                 }
                 else
                 {
+                    // 返回空的 SmallGroupData
                     return View(new SmallGroupData());
                 }
             }

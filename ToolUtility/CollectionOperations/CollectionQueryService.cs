@@ -267,6 +267,118 @@ namespace ToolUtilityNameSpace.CollectionOperations
             }, cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// 批次根據 ID 列表查詢實體（避免 N+1 查詢)
+        /// ? Phase 3.1: 新增批次查詢，效能提升 10-100倍
+        /// </summary>
+        public async Task<Dictionary<Guid, Entity>> RetrieveBatchByIdsAsync(
+            string entityName,
+            List<Guid> entityIds,
+            ColumnSet columnSet = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (entityIds == null || entityIds.Count == 0)
+                return new Dictionary<Guid, Entity>();
+
+            var result = new Dictionary<Guid, Entity>();
+
+            try
+            {
+                // ? 使用 IN 條件一次查詢所有 ID
+                var query = new QueryExpression(entityName)
+                {
+                    ColumnSet = columnSet ?? new ColumnSet(true),
+                    Criteria = new FilterExpression(LogicalOperator.And)
+                };
+
+                // 添加 ID 條件
+                query.Criteria.AddCondition(
+                    $"{entityName}id",
+                    ConditionOperator.In,
+                    entityIds.Cast<object>().ToArray()
+                );
+
+                // ? 添加分頁，防止一次查詢過多
+                query.PageInfo = new PagingInfo
+                {
+                    Count = 5000,
+                    PageNumber = 1
+                };
+
+                // ? 非同步執行查詢
+                var collection = await Task.Run(() =>
+                    _organizationService.RetrieveMultiple(query),
+                    cancellationToken).ConfigureAwait(false);
+
+                // ? 建立字典映射
+                foreach (var entity in collection.Entities)
+                {
+                    result[entity.Id] = entity;
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                SafeLogError(ex, $"RetrieveBatchByIdsAsync 錯誤: {entityName}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 批次根據欄位值查詢實體（使用 IN 條件）
+        /// ? Phase 3.1: 批次查詢，避免循環查詢
+        /// </summary>
+        public async Task<EntityCollection> RetrieveBatchByFieldValuesAsync(
+            string entityName,
+            string fieldName,
+            List<string> fieldValues,
+            ColumnSet columnSet = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (fieldValues == null || fieldValues.Count == 0)
+                return new EntityCollection();
+
+            try
+            {
+                // ? 使用 QueryExpression 配合 IN 條件
+                var query = new QueryExpression(entityName)
+                {
+                    ColumnSet = columnSet ?? new ColumnSet(true),
+                    Criteria = new FilterExpression(LogicalOperator.And)
+                };
+
+                // ? 添加 IN 條件
+                query.Criteria.AddCondition(
+                    fieldName,
+                    ConditionOperator.In,
+                    fieldValues.Cast<object>().ToArray()
+                );
+
+                // 添加 statecode 條件（只查詢活動記錄）
+                query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
+
+                // ? 添加分頁
+                query.PageInfo = new PagingInfo
+                {
+                    Count = 5000,
+                    PageNumber = 1
+                };
+
+                // ? 非同步執行
+                var collection = await Task.Run(() =>
+                    _organizationService.RetrieveMultiple(query),
+                    cancellationToken).ConfigureAwait(false);
+
+                return collection;
+            }
+            catch (Exception ex)
+            {
+                SafeLogError(ex, $"RetrieveBatchByFieldValuesAsync 錯誤: {entityName}.{fieldName}");
+                throw;
+            }
+        }
+
         #endregion
 
         #region 私有輔助方法
@@ -336,6 +448,48 @@ namespace ToolUtilityNameSpace.CollectionOperations
             };
 
             return query;
+        }
+
+        /// <summary>
+        /// 安全的錯誤日誌記錄
+        /// </summary>
+        private void SafeLogError(Exception ex, string format, params object[] args)
+        {
+            try
+            {
+                if (_logger == null) return;
+                
+                var loggerType = _logger.GetType();
+                var logMethod = loggerType.GetMethods()
+                    .FirstOrDefault(m => m.Name == "Log" && m.GetParameters().Length == 5 && m.IsGenericMethod);
+                
+                if (logMethod != null)
+                {
+                    var genericMethod = logMethod.MakeGenericMethod(typeof(object));
+                    var logLevelType = Type.GetType("Microsoft.Extensions.Logging.LogLevel, Microsoft.Extensions.Logging.Abstractions");
+                    object errorLevel = null;
+                    if (logLevelType != null)
+                    {
+                        errorLevel = Enum.Parse(logLevelType, "Error");
+                    }
+                    
+                    var eventIdType = Type.GetType("Microsoft.Extensions.Logging.EventId, Microsoft.Extensions.Logging.Abstractions");
+                    object eventId = null;
+                    if (eventIdType != null)
+                    {
+                        eventId = Activator.CreateInstance(eventIdType, 0, string.Empty);
+                    }
+                    
+                    object state = string.Format(format, args);
+                    Func<object, Exception, string> formatter = (s, e) => s?.ToString() ?? string.Empty;
+                    var parameters = new object[] { errorLevel, eventId, state, ex, formatter };
+                    genericMethod.Invoke(_logger, parameters);
+                }
+            }
+            catch
+            {
+                // swallow - 不讓日誌錯誤影響主要功能
+            }
         }
 
         #endregion

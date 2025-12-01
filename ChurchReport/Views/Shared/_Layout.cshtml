@@ -282,8 +282,10 @@
                             <li><a href="/SmallGroup/MultiGroupView/MultiGroup"><i class="fas fa-chart-bar"></i>回報統計</a></li>
                             <li><a href="/NewPerson/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                             <li><a href="/Personal/InfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-@*                             <li><a href="/Home/Login"><i class="fas fa-sign-in-alt"></i>登入</a></li>
- *@                            @if (@ViewBag.UserType == "行政同工")
+                            @* ✅ 修復：在多小組模式下也要顯示組員資訊 *@
+                            <li><a href="/Personal/MaintainInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
+                            
+                            @if (@ViewBag.UserType == "行政同工")
                             {
                             }
                             else

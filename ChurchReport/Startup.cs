@@ -163,6 +163,17 @@ namespace ChurchReport
             // 註冊 ToolUtility 相關服務，使用擴充方法進行批量註冊。
             services.AddToolUtility();
 
+            // ========================================
+            // ✅ Phase 3.2: 註冊 CRM 快取服務
+            // ========================================
+            // 註冊 CRM 快取服務為 Singleton，全應用程式共用一個快取實例
+            services.AddSingleton<ToolUtilityNameSpace.Caching.ICrmCacheService>(sp =>
+            {
+                var memoryCache = sp.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
+                var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<ToolUtilityNameSpace.Caching.CrmCacheService>>();
+                return new ToolUtilityNameSpace.Caching.CrmCacheService(memoryCache, logger);
+            });
+
             // Add framework services.
             // 再次配置 MVC 服務（注意：這似乎是重複配置，可能需要檢查是否必要）。
             services

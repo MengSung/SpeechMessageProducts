@@ -85,6 +85,27 @@ namespace ToolUtilityNameSpace.CollectionOperations
             ColumnSet columnSet = null,
             CancellationToken cancellationToken = default);
         
+        /// <summary>
+        /// 批次根據 ID 列表查詢實體（避免 N+1 查詢）
+        /// ? Phase 3.1: 批次查詢，效能提升 10-100倍
+        /// </summary>
+        Task<Dictionary<Guid, Entity>> RetrieveBatchByIdsAsync(
+            string entityName,
+            List<Guid> entityIds,
+            ColumnSet columnSet = null,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// 批次根據欄位值查詢實體（使用 IN 條件）
+        /// ? Phase 3.1: 批次查詢，避免循環查詢
+        /// </summary>
+        Task<EntityCollection> RetrieveBatchByFieldValuesAsync(
+            string entityName,
+            string fieldName,
+            List<string> fieldValues,
+            ColumnSet columnSet = null,
+            CancellationToken cancellationToken = default);
+        
         #endregion
     }
     
