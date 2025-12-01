@@ -176,7 +176,7 @@
         .ShowRowLines(true)
         .RowAlternationEnabled(true)
         .ShowBorders(true)
-        .TwoWayBindingEnabled(true)
+        .RemoteOperations(false)
         .Grouping(g => g
             .ContextMenuEnabled(true)
             .ExpandMode(GridGroupingExpandMode.RowClick)
@@ -192,6 +192,7 @@
             editing.AllowUpdating(true);
             editing.AllowAdding(false);
             editing.AllowDeleting(false);
+            editing.RefreshMode(GridEditRefreshMode.Repaint);
             editing.Texts(a => a.SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯"));
         })
         .Columns(columns =>
@@ -200,42 +201,15 @@
             columns.Add().DataField("FullName").Caption("姓名").AllowEditing(false).Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
             columns.Add().DataField("Status")
                 .Caption("會員身分").Alignment(HorizontalAlignment.Center)
-                .AllowEditing(true)
-                .Width(70).MinWidth(30).DataType(GridColumnDataType.String)
-                .Lookup(lookup => lookup
-                .DataSource(new string[] { "牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案" })
-                );
+                .AllowEditing(false)
+                .Width(70).MinWidth(30).DataType(GridColumnDataType.String);
             columns.Add().DataField("EquipmentStatus").Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
             columns.Add().DataField("SpiritualIdentity")
                 .Caption("信仰狀態").Alignment(HorizontalAlignment.Center)
-                .AllowEditing(true)
-                .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
-                .Lookup(lookup => lookup
-                .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信主" })
-                );
+                .AllowEditing(false)
+                .Width(110).MinWidth(100).DataType(GridColumnDataType.String);
             columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left).AllowEditing(true);
             columns.Add().DataField("BirthDate").Caption("生日").DataType(GridColumnDataType.Date)
-                .CalculateCellValue(@<text>
-                                    function(row)
-                                    {
-                                        if (row.BirthDate != null)
-                                        {
-                                            var ParsedDate = ParsingDate(row.BirthDate);
-                                            if (ParsedDate.getFullYear() == 1901)
-                                            {
-                                                return null;
-                                            }
-                                            else
-                                            {
-                                                return ParsedDate;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            return null;
-                                        }
-                                    }
-                                </text>)
                 .Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80).AllowEditing(true);
             columns.Add().DataField("Address").Caption("地址").Fixed(false).Width(200).MinWidth(90).Alignment(HorizontalAlignment.Left).AllowEditing(true);
         })
@@ -246,7 +220,12 @@
             .UpdateAction("UpdateMaintainPersonInfomation")
             .Key("ContactId")
             .LoadParams(new { id = @ViewBag.ListId })
+            .OnBeforeSend("dataSource_onBeforeSend")
         )
+        .OnRowUpdating("onRowUpdating")
+        .OnRowUpdated("onRowUpdated")
+        .OnEditingStart("onEditingStart")
+        .OnInitialized("onDataGridInitialized")
         .OnContentReady(@<text>
                         function(e)
                         {
@@ -261,21 +240,70 @@
 <script>
     var markerUrl = "https://js.devexpress.com/Demos/RealtorApp/images/map-marker.png";
     var DataUploadStatus = "尚未上傳喔!";
+    var dataGridInstance = null;
+
+    // DataGrid 初始化完成
+    function onDataGridInitialized(e) {
+        dataGridInstance = e.component;
+        console.log("[onDataGridInitialized] DataGrid 已初始化");
+    }
+
+    // DataSource 發送請求前
+    function dataSource_onBeforeSend(method, ajaxOptions) {
+        console.log("[dataSource_onBeforeSend] Method:", method);
+        console.log("[dataSource_onBeforeSend] URL:", ajaxOptions.url);
+    }
+
+    // 開始編輯
+    function onEditingStart(e) {
+        console.log("[onEditingStart] 開始編輯");
+        console.log("[onEditingStart] Key:", e.key);
+        console.log("[onEditingStart] Column:", e.column.dataField);
+        console.log("[onEditingStart] Current Value:", e.data[e.column.dataField]);
+    }
+
+    // 正在更新列
+    function onRowUpdating(e) {
+        console.log("[onRowUpdating] 開始更新列資料");
+        console.log("[onRowUpdating] Key:", e.key);
+        console.log("[onRowUpdating] Old Data:", e.oldData);
+        console.log("[onRowUpdating] New Data:", e.newData);
+        
+        // 確保新資料不為空
+        if (!e.newData || Object.keys(e.newData).length === 0) {
+            console.warn("[onRowUpdating] 沒有變更的資料");
+            e.cancel = true;
+            return;
+        }
+    }
+
+    // 列更新完成
+    function onRowUpdated(e) {
+        console.log("[onRowUpdated] 列資料已更新");
+        console.log("[onRowUpdated] Key:", e.key);
+        console.log("[onRowUpdated] Updated Data:", e.data);
+        
+        // 顯示成功訊息
+        ShowToast("資料已儲存", "success", 2000);
+    }
 
     // 收集 DataGrid 資料
     function GetResult() {
         try {
             console.log("[GetResult] 開始收集資料...");
             
-            var dataGrid = $("#gridContainer").dxDataGrid("instance");
-            if (!dataGrid) {
+            if (!dataGridInstance) {
+                dataGridInstance = $("#gridContainer").dxDataGrid("instance");
+            }
+            
+            if (!dataGridInstance) {
                 console.error("[GetResult] DataGrid instance not found");
                 return "[]";
             }
 
             console.log("[GetResult] DataGrid instance found");
 
-            var dataSource = dataGrid.getDataSource();
+            var dataSource = dataGridInstance.getDataSource();
             if (!dataSource) {
                 console.error("[GetResult] DataSource not found");
                 return "[]";
@@ -294,25 +322,11 @@
             // 記錄第一筆資料的結構
             if (items.length > 0) {
                 console.log("[GetResult] 第一筆資料範例:", items[0]);
-                console.log("[GetResult] ContactId:", items[0].ContactId);
-                console.log("[GetResult] FullName:", items[0].FullName);
             }
             
-            // ? 使用 JSON.stringify 確保正確的 JSON 格式
+            // 使用 JSON.stringify 確保正確的 JSON 格式
             var jsonString = JSON.stringify(items);
-            
-            // 檢查 JSON 字串的開頭
-            console.log("[GetResult] JSON 開頭 (前50字元):", jsonString.substring(0, 50));
-            console.log("[GetResult] JSON 結尾 (後50字元):", jsonString.substring(Math.max(0, jsonString.length - 50)));
-            
-            // 驗證 JSON 格式
-            try {
-                JSON.parse(jsonString);
-                console.log("[GetResult] JSON 格式驗證通過");
-            } catch (parseError) {
-                console.error("[GetResult] JSON 格式驗證失敗:", parseError);
-                console.error("[GetResult] 錯誤的 JSON:", jsonString);
-            }
+            console.log("[GetResult] JSON 長度:", jsonString.length);
             
             return jsonString;
         }

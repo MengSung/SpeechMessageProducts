@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using ChurchReport.Tools;
 using ChurchReport.ViewModels;
 using DevExtreme.AspNet.Data;
@@ -16,12 +16,12 @@ using ToolUtilityNameSpace.DependencyInjection;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// ­Ó¤H¸ê°TºŞ²z±±¨î¾¹
-    /// ³B²z­Ó¤H¸ê®ÆºûÅ@¡B­Ó¤H¦^³øµ¥¥\¯à
+    /// å€‹äººè³‡è¨Šç®¡ç†æ§åˆ¶å™¨
+    /// è™•ç†å€‹äººè³‡æ–™ç¶­è­·ã€å€‹äººå›å ±ç­‰åŠŸèƒ½
     /// </summary>
     public class PersonalController : BaseChurchController
     {
-        #region ¹ôºc¨ç¦¡
+        #region å¹£æ§‹å‡½å¼
 
         public PersonalController(
             IHttpContextAccessor httpContextAccessor,
@@ -35,11 +35,11 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ­Ó¤H¦^³ø¥D­¶­±
+        #region å€‹äººå›å ±ä¸»é é¢
 
         /// <summary>
-        /// ­Ó¤H¦^³ø¥D­¶­±
-        /// Åã¥Ü­Ó¤H¥X®u°O¿ı©M¥NÃ«¨Æ¶µªí³æ
+        /// å€‹äººå›å ±ä¸»é é¢
+        /// é¡¯ç¤ºå€‹äººå‡ºå¸­è¨˜éŒ„å’Œä»£ç¦±äº‹é …è¡¨å–®
         /// </summary>
         [HttpGet]
         [Route("/Personal/PersonalReport")]
@@ -59,11 +59,11 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³]©w­Ó¤H¦^³ø­¶­±ªº ViewModel
+        /// è¨­å®šå€‹äººå›å ±é é¢çš„ ViewModel
         /// </summary>
         private void SetupPersonalReportViewModel()
         {
-            // «Ø¥ß§½³¡ÅÜ¼Æ¥H¤ä´© ref °Ñ¼Æ
+            // å»ºç«‹å±€éƒ¨è®Šæ•¸ä»¥æ”¯æ´ ref åƒæ•¸
             var toolUtility = ToolUtility;
             InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.SetPersonalReportViewModel(
                 ref toolUtility,
@@ -71,19 +71,19 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³]©w­Ó¤H¦^³ø­¶­±ªº ViewBag
+        /// è¨­å®šå€‹äººå›å ±é é¢çš„ ViewBag
         /// </summary>
         private void SetupPersonalReportViewBag()
         {
             SetupBasicViewBag();
             SetMultiGroupLayoutParameter();
 
-            // ³]©w¤p²Õ¿ï¾Ü¦ì¸m
+            // è¨­å®šå°çµ„é¸æ“‡ä½ç½®
             SetupPersonalGroupPosition();
         }
 
         /// <summary>
-        /// ³]©w­Ó¤H©ÒÄİ¤p²Õ¦ì¸m
+        /// è¨­å®šå€‹äººæ‰€å±¬å°çµ„ä½ç½®
         /// </summary>
         private void SetupPersonalGroupPosition()
         {
@@ -112,14 +112,14 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¸ê®Æ¸ü¤J
+        #region è³‡æ–™è¼‰å…¥
 
         /// <summary>
-        /// ¸ü¤J­Ó¤H¦^³ø¸ê®Æ
-        /// ¥Î©ó DevExtreme DataGrid ªº¸ê®Æ¨Ó·½
+        /// è¼‰å…¥å€‹äººå›å ±è³‡æ–™
+        /// ç”¨æ–¼ DevExtreme DataGrid çš„è³‡æ–™ä¾†æº
         /// </summary>
-        /// <param name="id">²M³æID</param>
-        /// <param name="loadOptions">¸ü¤J¿ï¶µ(¤À­¶¡B±Æ§Ç¡B¿z¿ï)</param>
+        /// <param name="id">æ¸…å–®ID</param>
+        /// <param name="loadOptions">è¼‰å…¥é¸é …(åˆ†é ã€æ’åºã€ç¯©é¸)</param>
         [HttpGet]
         public object LoadPersonReport(string id, DataSourceLoadOptions loadOptions)
         {
@@ -139,20 +139,20 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¸ü¤JºûÅ@­Ó¤H¸ê°T¸ê®Æ
-        /// ¥Î©ó MaintainPersonInfomationView ªº DataGrid ¸ê®Æ¨Ó·½
-        /// ? ­×´_¡G¤ä´©¦h¤p²Õ¼Ò¦¡¡A«ö¦U¤p²Õ¤À§OÅã¥Ü²Õ­û¸ê°T
-        /// ? ­×´_¡GÁ×§KÂĞ»\ WeeklyReport¡A§ï¥Îª½±µ¬d¸ß
-        /// ? ²K¥[¸Ô²Ó½Õ¸Õ¿é¥X
+        /// è¼‰å…¥ç¶­è­·å€‹äººè³‡è¨Šè³‡æ–™
+        /// ç”¨æ–¼ MaintainPersonInfomationView çš„ DataGrid è³‡æ–™ä¾†æº
+        /// ? ä¿®å¾©ï¼šæ”¯æ´å¤šå°çµ„æ¨¡å¼ï¼ŒæŒ‰å„å°çµ„åˆ†åˆ¥é¡¯ç¤ºçµ„å“¡è³‡è¨Š
+        /// ? ä¿®å¾©ï¼šé¿å…è¦†è“‹ WeeklyReportï¼Œæ”¹ç”¨ç›´æ¥æŸ¥è©¢
+        /// ? æ·»åŠ è©³ç´°èª¿è©¦è¼¸å‡º
         /// </summary>
-        /// <param name="id">²M³æID</param>
-        /// <param name="loadOptions">¸ü¤J¿ï¶µ(¤À­¶¡B±Æ§Ç¡B¿z¿ï)</param>
+        /// <param name="id">æ¸…å–®ID</param>
+        /// <param name="loadOptions">è¼‰å…¥é¸é …(åˆ†é ã€æ’åºã€ç¯©é¸)</param>
         [HttpGet]
         public object LoadMaintainPersonInfomation(string id, DataSourceLoadOptions loadOptions)
         {
             try
             {
-                // ? §¹¾ãªº null ÀË¬dÃì
+                // ? å®Œæ•´çš„ null æª¢æŸ¥éˆ
                 if (InMemoryContext.ListManager == null)
                 {
                     System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] ListManager is null");
@@ -161,7 +161,7 @@ namespace ChurchReport.Controllers
 
                 var allMembers = new System.Collections.Generic.List<Member>();
 
-                // ? ÀË¬d¬O§_¬°¦h¤p²Õ¼Ò¦¡
+                // ? æª¢æŸ¥æ˜¯å¦ç‚ºå¤šå°çµ„æ¨¡å¼
                 string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
                 bool integrateFlag = IsIntegrateDataLoaded();
 
@@ -169,38 +169,38 @@ namespace ChurchReport.Controllers
 
                 if (displayViewType == "MultiGroupView" && !integrateFlag)
                 {
-                    // ? ¦h¤p²Õ¼Ò¦¡¡G±q¦U¤p²Õ¸ü¤J¸ê®Æ¡]¤£ÂĞ»\­ì¦³¸ê®Æ¡^
+                    // ? å¤šå°çµ„æ¨¡å¼ï¼šå¾å„å°çµ„è¼‰å…¥è³‡æ–™ï¼ˆä¸è¦†è“‹åŸæœ‰è³‡æ–™ï¼‰
                     var multiGroupList = InMemoryContext.ListManager.m_MultiGroupList;
                     
-                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ¶i¤J¦h¤p²Õ¼Ò¦¡");
+                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] é€²å…¥å¤šå°çµ„æ¨¡å¼");
                     
                     if (multiGroupList != null && multiGroupList.m_WeeklyReportRecordListData != null)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ¤p²Õ¼Æ¶q: {multiGroupList.m_WeeklyReportRecordListData.Count}");
+                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] å°çµ„æ•¸é‡: {multiGroupList.m_WeeklyReportRecordListData.Count}");
                         
-                        // ¨ú±o ToolUtility ¹ê¨Ò
+                        // å–å¾— ToolUtility å¯¦ä¾‹
                         var toolUtility = ToolUtility;
                         
                         int groupIndex = 0;
                         foreach (var groupRecord in multiGroupList.m_WeeklyReportRecordListData)
                         {
                             groupIndex++;
-                            System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ³B²z²Ä {groupIndex} ­Ó¤p²Õ: {groupRecord.Name}, ListId: {groupRecord.ListEntityId}");
+                            System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] è™•ç†ç¬¬ {groupIndex} å€‹å°çµ„: {groupRecord.Name}, ListId: {groupRecord.ListEntityId}");
                         
                             try
                             {
-                                // ? ª½±µ±q CRM ¬d¸ß¸Ó¤p²Õªº¦¨­û¡A¤£¨Ï¥Î SetupIntegrateData
+                                // ? ç›´æ¥å¾ CRM æŸ¥è©¢è©²å°çµ„çš„æˆå“¡ï¼Œä¸ä½¿ç”¨ SetupIntegrateData
                                 System.Guid listGuid;
                                 if (System.Guid.TryParse(groupRecord.ListEntityId, out listGuid))
                                 {
-                                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ¶}©l¬d¸ß¤p²Õ {groupRecord.Name} ªº¦¨­û...");
+                                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] é–‹å§‹æŸ¥è©¢å°çµ„ {groupRecord.Name} çš„æˆå“¡...");
                                     
-                                    // ¬d¸ß¦W³æ¦¨­û
+                                    // æŸ¥è©¢åå–®æˆå“¡
                                     var memberCollection = toolUtility.RetrieveMemberListCollectionByListId(listGuid);
                                     
                                     if (memberCollection != null && memberCollection.Entities != null)
                                     {
-                                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ¤p²Õ {groupRecord.Name} §ä¨ì {memberCollection.Entities.Count} ­Ó¦¨­û");
+                                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] å°çµ„ {groupRecord.Name} æ‰¾åˆ° {memberCollection.Entities.Count} å€‹æˆå“¡");
                                         
                                         int memberIndex = 0;
                                         foreach (var memberEntity in memberCollection.Entities)
@@ -208,20 +208,20 @@ namespace ChurchReport.Controllers
                                             memberIndex++;
                                             try
                                             {
-                                                // ¨ú±oÁpµ¸¤H ID
+                                                // å–å¾—è¯çµ¡äºº ID
                                                 var contactId = toolUtility.GetEntityLookupAttribute(memberEntity, "entityid");
                                                 
                                                 if (contactId != System.Guid.Empty)
                                                 {
-                                                    // ¬d¸ßÁpµ¸¤H¸Ô²Ó¸ê°T
+                                                    // æŸ¥è©¢è¯çµ¡äººè©³ç´°è³‡è¨Š
                                                     var contactEntity = toolUtility.RetrieveEntity("contact", contactId);
                                                 
                                                     if (contactEntity != null)
                                                     {
                                                         var fullName = toolUtility.GetEntityStringAttribute(contactEntity, "fullname");
-                                                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]   ¦¨­û {memberIndex}: {fullName}");
+                                                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]   æˆå“¡ {memberIndex}: {fullName}");
                                                         
-                                                        // «Ø¥ß Member ª«¥ó
+                                                        // å»ºç«‹ Member ç‰©ä»¶
                                                         var member = new Member
                                                         {
                                                             SmallGroupName = groupRecord.Name,
@@ -231,27 +231,27 @@ namespace ChurchReport.Controllers
                                                             ContactId = contactId.ToString()
                                                         };
                                                 
-                                                        // ¨ú±o·|­û¨­¤À
+                                                        // å–å¾—æœƒå“¡èº«åˆ†
                                                         if (contactEntity.Contains("new_membership_status"))
                                                         {
                                                             var statusValue = toolUtility.GetOptionSetAttribute(contactEntity, "new_membership_status");
                                                             member.Status = GetMembershipStatusText(statusValue);
                                                         }
                                                 
-                                                        // ¨ú±o«H¥õª¬ºA
+                                                        // å–å¾—ä¿¡ä»°ç‹€æ…‹
                                                         if (contactEntity.Contains("new_spiritual_identity"))
                                                         {
                                                             var spiritualIdentity = toolUtility.GetOptionSetAttribute(contactEntity, "new_spiritual_identity");
                                                             member.SpiritualIdentity = GetSpiritualIdentityText(spiritualIdentity);
                                                         }
                                                 
-                                                        // ¨ú±o¥Í¤é
+                                                        // å–å¾—ç”Ÿæ—¥
                                                         if (contactEntity.Contains("birthdate"))
                                                         {
                                                             member.BirthDate = toolUtility.GetEntityDateTimeAttribute(contactEntity, "birthdate");
                                                         }
                                                 
-                                                        // ¨ú±o¸Ë³Æª¬ºA
+                                                        // å–å¾—è£å‚™ç‹€æ…‹
                                                         if (contactEntity.Contains("new_equipment_status"))
                                                         {
                                                             member.EquipmentStatus = toolUtility.GetEntityStringAttribute(contactEntity, "new_equipment_status");
@@ -263,31 +263,31 @@ namespace ChurchReport.Controllers
                                             }
                                             catch (Exception memberEx)
                                             {
-                                                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ³B²z¦¨­û®Éµo¥Í¿ù»~: {memberEx.Message}");
+                                                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] è™•ç†æˆå“¡æ™‚ç™¼ç”ŸéŒ¯èª¤: {memberEx.Message}");
                                             }
                                         }
                                         
-                                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ¤p²Õ {groupRecord.Name} ³B²z§¹¦¨¡A²Ö­p¦¨­û¼Æ: {allMembers.Count}");
+                                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] å°çµ„ {groupRecord.Name} è™•ç†å®Œæˆï¼Œç´¯è¨ˆæˆå“¡æ•¸: {allMembers.Count}");
                                     }
                                     else
                                     {
-                                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ¤p²Õ {groupRecord.Name} ¨S¦³¦¨­û¸ê®Æ");
+                                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] å°çµ„ {groupRecord.Name} æ²’æœ‰æˆå“¡è³‡æ–™");
                                     }
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] µLªk¸ÑªR ListEntityId: {groupRecord.ListEntityId}");
+                                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ç„¡æ³•è§£æ ListEntityId: {groupRecord.ListEntityId}");
                                 }
                             }
                             catch (Exception ex)
                             {
-                                // °O¿ı¸Ó¤p²Õ¸ü¤J¥¢±Ñ¡A¦ıÄ~Äò³B²z¨ä¥L¤p²Õ
-                                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ¸ü¤J¤p²Õ {groupRecord.Name} ¥¢±Ñ: {ex.Message}");
-                                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ¿ù»~°ïÅ|: {ex.StackTrace}");
+                                // è¨˜éŒ„è©²å°çµ„è¼‰å…¥å¤±æ•—ï¼Œä½†ç¹¼çºŒè™•ç†å…¶ä»–å°çµ„
+                                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] è¼‰å…¥å°çµ„ {groupRecord.Name} å¤±æ•—: {ex.Message}");
+                                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] éŒ¯èª¤å †ç–Š: {ex.StackTrace}");
                             }
                         }
                         
-                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ©Ò¦³¤p²Õ³B²z§¹¦¨¡AÁ`¦¨­û¼Æ: {allMembers.Count}");
+                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] æ‰€æœ‰å°çµ„è™•ç†å®Œæˆï¼Œç¸½æˆå“¡æ•¸: {allMembers.Count}");
                     }
                     else
                     {
@@ -296,30 +296,30 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ¨Ï¥Î³æ¤@¤p²Õ¼Ò¦¡");
+                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ä½¿ç”¨å–®ä¸€å°çµ„æ¨¡å¼");
                     
-                    // ? ³æ¤@¤p²Õ¼Ò¦¡©Î IntegrateView ¼Ò¦¡¡G­ì¦³ÅŞ¿è
+                    // ? å–®ä¸€å°çµ„æ¨¡å¼æˆ– IntegrateView æ¨¡å¼ï¼šåŸæœ‰é‚è¼¯
                     EnsurePersonReportDataLoaded(id);
 
                     var weeklyReport = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
                     if (weeklyReport?.m_SmallGroupDataList?.m_AllMemeberData?.Members != null)
                     {
                         allMembers = weeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members;
-                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ³æ¤@¤p²Õ¼Ò¦¡¸ü¤J {allMembers.Count} ­Ó¦¨­û");
+                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] å–®ä¸€å°çµ„æ¨¡å¼è¼‰å…¥ {allMembers.Count} å€‹æˆå“¡");
                     }
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ³Ì²×ªğ¦^ {allMembers.Count} ­Ó¦¨­û");
+                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] æœ€çµ‚è¿”å› {allMembers.Count} å€‹æˆå“¡");
                 
-                // ªğ¦^¸ê®Æ
+                // è¿”å›è³‡æ–™
                 return DataSourceLoader.Load(allMembers, loadOptions);
             }
             catch (Exception e)
             {
-                // °O¿ı¸Ô²Ó¿ù»~¸ê°T
+                // è¨˜éŒ„è©³ç´°éŒ¯èª¤è³‡è¨Š
                 var errorDetails = new System.Text.StringBuilder();
-                errorDetails.AppendLine($"LoadMaintainPersonInfomation ¿ù»~: {e.Message}");
-                errorDetails.AppendLine($"¿ù»~°ïÅ|: {e.StackTrace}");
+                errorDetails.AppendLine($"LoadMaintainPersonInfomation éŒ¯èª¤: {e.Message}");
+                errorDetails.AppendLine($"éŒ¯èª¤å †ç–Š: {e.StackTrace}");
                 errorDetails.AppendLine($"ListManager is null: {InMemoryContext.ListManager == null}");
                 
                 if (InMemoryContext.ListManager != null)
@@ -328,69 +328,69 @@ namespace ChurchReport.Controllers
                     errorDetails.AppendLine($"IntegrateFlag: {IsIntegrateDataLoaded()}");
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] µo¥Í¿ù»~:\n{errorDetails}");
+                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ç™¼ç”ŸéŒ¯èª¤:\n{errorDetails}");
 
                 return HandleError(e, errorDetails.ToString());
             }
         }
 
         /// <summary>
-        /// ±N«H¥õª¬ºA¿ï¶µ­ÈÂà´«¬°¤å¦r
+        /// å°‡ä¿¡ä»°ç‹€æ…‹é¸é …å€¼è½‰æ›ç‚ºæ–‡å­—
         /// </summary>
         private string GetSpiritualIdentityText(int optionValue)
         {
             switch (optionValue)
             {
                 case 100000000:
-                    return "°ò·ş®{";
+                    return "åŸºç£å¾’";
                 case 100000001:
-                    return "¤w¨M§Ó";
+                    return "å·²æ±ºå¿—";
                 case 100000002:
-                    return "¼}¹D¤Í";
+                    return "æ…•é“å‹";
                 case 100000003:
-                    return "¥¼«H¥D";
+                    return "æœªä¿¡ä¸»";
                 default:
-                    return "-¥¼ª¾-";
+                    return "-æœªçŸ¥-";
             }
         }
 
         /// <summary>
-        /// ±N·|­û¨­¤À¿ï¶µ­ÈÂà´«¬°¤å¦r
+        /// å°‡æœƒå“¡èº«åˆ†é¸é …å€¼è½‰æ›ç‚ºæ–‡å­—
         /// </summary>
         private string GetMembershipStatusText(int optionValue)
         {
             switch (optionValue)
             {
                 case 100000000:
-                    return "ªª®v®v¥À";
+                    return "ç‰§å¸«å¸«æ¯";
                 case 100000001:
-                    return "°Ïªª";
+                    return "å€ç‰§";
                 case 100000002:
-                    return "¤p°Ïªø";
+                    return "å°å€é•·";
                 case 100000003:
-                    return "¤p²Õªø";
+                    return "å°çµ„é•·";
                 case 100000004:
-                    return "°Æ¤p²Õªø";
+                    return "å‰¯å°çµ„é•·";
                 case 100000005:
-                    return "®Ö¤ß¦P¤u";
+                    return "æ ¸å¿ƒåŒå·¥";
                 case 100000006:
-                    return "¤p²Õ²Õ­û";
+                    return "å°çµ„çµ„å“¡";
                 case 100000007:
-                    return "¥¼¤J²Õ";
+                    return "æœªå…¥çµ„";
                 case 100000008:
-                    return "·sªB¤Í";
+                    return "æ–°æœ‹å‹";
                 case 100000009:
-                    return "¥~±Ğ·|";
+                    return "å¤–æ•™æœƒ";
                 case 100000010:
-                    return "µ²®×";
+                    return "çµæ¡ˆ";
                 default:
                     return "";
             }
         }
 
         /// <summary>
-        /// ½T«O­Ó¤H¦^³ø¸ê®Æ¤w¸ü¤J
-        /// ? ²K¥[ null ÀË¬d¡A¨¾¤î³sÂê¥¢±Ñ
+        /// ç¢ºä¿å€‹äººå›å ±è³‡æ–™å·²è¼‰å…¥
+        /// ? æ·»åŠ  null æª¢æŸ¥ï¼Œé˜²æ­¢é€£é–å¤±æ•—
         /// </summary>
         private void EnsurePersonReportDataLoaded(string id)
         {
@@ -404,12 +404,12 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region CRUD ¾Ş§@
+        #region CRUD æ“ä½œ
 
         /// <summary>
-        /// ·s¼W­Ó¤H¦^³ø°O¿ı
+        /// æ–°å¢å€‹äººå›å ±è¨˜éŒ„
         /// </summary>
-        /// <param name="values">JSON ®æ¦¡ªº¸ê®Æ</param>
+        /// <param name="values">JSON æ ¼å¼çš„è³‡æ–™</param>
         [HttpPost]
         public IActionResult InsertPersonReport(string values)
         {
@@ -427,10 +427,10 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §ó·s­Ó¤H¦^³ø°O¿ı
+        /// æ›´æ–°å€‹äººå›å ±è¨˜éŒ„
         /// </summary>
-        /// <param name="key">°O¿ıÃÑ§O½X</param>
-        /// <param name="values">§ó·sªºÄæ¦ì­È(JSON)</param>
+        /// <param name="key">è¨˜éŒ„è­˜åˆ¥ç¢¼</param>
+        /// <param name="values">æ›´æ–°çš„æ¬„ä½å€¼(JSON)</param>
         [HttpPut]
         public IActionResult UpdatePersonReport(string key, string values)
         {
@@ -448,9 +448,9 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §R°£­Ó¤H¦^³ø°O¿ı
+        /// åˆªé™¤å€‹äººå›å ±è¨˜éŒ„
         /// </summary>
-        /// <param name="key">°O¿ıÃÑ§O½X</param>
+        /// <param name="key">è¨˜éŒ„è­˜åˆ¥ç¢¼</param>
         [HttpDelete]
         public IActionResult DeletePersonReport(string key)
         {
@@ -469,12 +469,12 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¸ê®ÆÀx¦s
+        #region è³‡æ–™å„²å­˜
 
         /// <summary>
-        /// Àx¦s­Ó¤H¦^³ø¸ê®Æ (DataGrid ¤è¦¡)
+        /// å„²å­˜å€‹äººå›å ±è³‡æ–™ (DataGrid æ–¹å¼)
         /// </summary>
-        /// <param name="WeeklyReportData">¶g³ø¸ê®Æ(JSON)</param>
+        /// <param name="WeeklyReportData">é€±å ±è³‡æ–™(JSON)</param>
         [HttpPost]
         public IActionResult SavePersonReport(string WeeklyReportData)
         {
@@ -491,7 +491,7 @@ namespace ChurchReport.Controllers
                         "", "", false
                     ), TaskCreationOptions.LongRunning);
 
-                return Json(new { status = "1", message = "¦¨¥\¤W¶Ç¤F...." });
+                return Json(new { status = "1", message = "æˆåŠŸä¸Šå‚³äº†...." });
             }
             catch (Exception e)
             {
@@ -500,10 +500,10 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// Àx¦s­Ó¤H¦^³øªí³æ¸ê®Æ (Form ¤è¦¡)
-        /// ¥Î©ó­Ó¤H¥X®u¡B¥NÃ«¨Æ¶µªºªí³æ´£¥æ
+        /// å„²å­˜å€‹äººå›å ±è¡¨å–®è³‡æ–™ (Form æ–¹å¼)
+        /// ç”¨æ–¼å€‹äººå‡ºå¸­ã€ä»£ç¦±äº‹é …çš„è¡¨å–®æäº¤
         /// </summary>
-        /// <param name="aPersonalReportViewModel">­Ó¤H¦^³ø ViewModel</param>
+        /// <param name="aPersonalReportViewModel">å€‹äººå›å ± ViewModel</param>
         [HttpPost]
         public IActionResult SavePersonalReportForm(PersonalReportViewModel aPersonalReportViewModel)
         {
@@ -514,16 +514,16 @@ namespace ChurchReport.Controllers
 
                 if (allMemberData?.Members != null)
                 {
-                    // ­Ó¤H¦^³ø¥B¤w¥[¤J¤p²Õ
+                    // å€‹äººå›å ±ä¸”å·²åŠ å…¥å°çµ„
                     SavePersonalReportWithSmallGroup(aPersonalReportViewModel);
                 }
                 else
                 {
-                    // ­Ó¤H¦^³ø¦ı¥¼¥[¤J¤p²Õ
+                    // å€‹äººå›å ±ä½†æœªåŠ å…¥å°çµ„
                     SavePersonalReportWithoutSmallGroup(aPersonalReportViewModel);
                 }
 
-                return Json(new { status = "1", message = "¦¨¥\¤W¶Ç¤F...." });
+                return Json(new { status = "1", message = "æˆåŠŸä¸Šå‚³äº†...." });
             }
             catch (Exception e)
             {
@@ -532,7 +532,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// Àx¦s¤w¥[¤J¤p²Õªº­Ó¤H¦^³ø
+        /// å„²å­˜å·²åŠ å…¥å°çµ„çš„å€‹äººå›å ±
         /// </summary>
         private void SavePersonalReportWithSmallGroup(PersonalReportViewModel viewModel)
         {
@@ -546,17 +546,17 @@ namespace ChurchReport.Controllers
                     InMemoryContext.ListManager.m_Password,
                     InMemoryContext.ListManager.LoginType,
                     InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
-                    "¤£»İ§ó·s¤p²Õ¤é»x",
+                    "ä¸éœ€æ›´æ–°å°çµ„æ—¥èªŒ",
                     "", "", false
                 ), TaskCreationOptions.LongRunning);
         }
 
         /// <summary>
-        /// Àx¦s¥¼¥[¤J¤p²Õªº­Ó¤H¦^³ø
+        /// å„²å­˜æœªåŠ å…¥å°çµ„çš„å€‹äººå›å ±
         /// </summary>
         private void SavePersonalReportWithoutSmallGroup(PersonalReportViewModel viewModel)
         {
-            // «Ø¥ß§½³¡ÅÜ¼Æ¥H¤ä´© ref °Ñ¼Æ
+            // å»ºç«‹å±€éƒ¨è®Šæ•¸ä»¥æ”¯æ´ ref åƒæ•¸
             var toolUtility = ToolUtility;
             InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                 .SavePersonalReportForm(ref toolUtility, viewModel);
@@ -564,36 +564,36 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ­Ó¤H¸ê°TºŞ²z
+        #region å€‹äººè³‡è¨Šç®¡ç†
 
         /// <summary>
-        /// ±N·|­û¨­¤À¤å¦rÂà´«¬°¿ï¶µ­È
+        /// å°‡æœƒå“¡èº«åˆ†æ–‡å­—è½‰æ›ç‚ºé¸é …å€¼
         /// </summary>
         private int GetMembershipStatusValue(string statusText)
         {
             switch (statusText)
             {
-                case "ªª®v®v¥À":
+                case "ç‰§å¸«å¸«æ¯":
                     return 100000000;
-                case "°Ïªª":
+                case "å€ç‰§":
                     return 100000001;
-                case "¤p°Ïªø":
+                case "å°å€é•·":
                     return 100000002;
-                case "¤p²Õªø":
+                case "å°çµ„é•·":
                     return 100000003;
-                case "°Æ¤p²Õªø":
+                case "å‰¯å°çµ„é•·":
                     return 100000004;
-                case "®Ö¤ß¦P¤u":
+                case "æ ¸å¿ƒåŒå·¥":
                     return 100000005;
-                case "¤p²Õ²Õ­û":
+                case "å°çµ„çµ„å“¡":
                     return 100000006;
-                case "¥¼¤J²Õ":
+                case "æœªå…¥çµ„":
                     return 100000007;
-                case "·sªB¤Í":
+                case "æ–°æœ‹å‹":
                     return 100000008;
-                case "¥~±Ğ·|":
+                case "å¤–æ•™æœƒ":
                     return 100000009;
-                case "µ²®×":
+                case "çµæ¡ˆ":
                     return 100000010;
                 default:
                     return -1;
@@ -601,19 +601,19 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ±N«H¥õª¬ºA¤å¦rÂà´«¬°¿ï¶µ­È
+        /// å°‡ä¿¡ä»°ç‹€æ…‹æ–‡å­—è½‰æ›ç‚ºé¸é …å€¼
         /// </summary>
         private int GetSpiritualIdentityValue(string spiritualText)
         {
             switch (spiritualText)
             {
-                case "°ò·ş®{":
+                case "åŸºç£å¾’":
                     return 100000000;
-                case "¤w¨M§Ó":
+                case "å·²æ±ºå¿—":
                     return 100000001;
-                case "¼}¹D¤Í":
+                case "æ…•é“å‹":
                     return 100000002;
-                case "¥¼«H¥D":
+                case "æœªä¿¡ä¸»":
                     return 100000003;
                 default:
                     return -1;
@@ -621,8 +621,8 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ­Ó¤H¸ê®ÆºŞ²zµe­±
-        /// Åã¥Ü»P½s¿è­Ó¤H°ò¥»¸ê®Æ
+        /// å€‹äººè³‡æ–™ç®¡ç†ç•«é¢
+        /// é¡¯ç¤ºèˆ‡ç·¨è¼¯å€‹äººåŸºæœ¬è³‡æ–™
         /// </summary>
         [HttpGet]
         [Route("/Personal/PersonalInfomationView")]
@@ -644,7 +644,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³]©w­Ó¤H¸ê°T­¶­±ªº ViewBag
+        /// è¨­å®šå€‹äººè³‡è¨Šé é¢çš„ ViewBag
         /// </summary>
         private void SetupPersonalInfoViewBag()
         {
@@ -654,9 +654,9 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// Àx¦s­Ó¤H¸ê°T
+        /// å„²å­˜å€‹äººè³‡è¨Š
         /// </summary>
-        /// <param name="aPersonalInfomationViewModel">­Ó¤H¸ê°T ViewModel</param>
+        /// <param name="aPersonalInfomationViewModel">å€‹äººè³‡è¨Š ViewModel</param>
         [HttpPost]
         public IActionResult SavePersonalInfomation(PersonalInfomationViewModel aPersonalInfomationViewModel)
         {
@@ -676,195 +676,186 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// Àx¦sºûÅ@­Ó¤H¸ê°T¡]²Õ­û¸ê®Æ¡^
-        /// ¥Î©ó MaintainPersonInfomationView ªº¤W¶Ç«ö¶s
+        /// å„²å­˜ç¶­è­·å€‹äººè³‡è¨Šï¼ˆçµ„å“¡è³‡æ–™ï¼‰
+        /// ç”¨æ–¼ MaintainPersonInfomationView çš„ä¸Šå‚³æŒ‰éˆ•
         /// </summary>
-        /// <param name="aResult">²Õ­û¸ê®Æ JSON ¦r¦ê</param>
+        /// <param name="aResult">çµ„å“¡è³‡æ–™ JSON å­—ä¸²</param>
         [HttpPost]
         public IActionResult SaveMaintainPersonInfomation(string aResult)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ¶}©l³B²z");
-                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ¸ê®Æªø«×: {aResult?.Length ?? 0}");
+                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] é–‹å§‹è™•ç†");
+                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] è³‡æ–™é•·åº¦: {aResult?.Length ?? 0}");
                 
                 if (!string.IsNullOrWhiteSpace(aResult) && aResult.Length > 0)
                 {
-                    // °O¿ı«e200­Ó¦r¤¸¥H¨Ñ½Õ¸Õ
+                    // è¨˜éŒ„å‰200å€‹å­—å…ƒä»¥ä¾›èª¿è©¦
                     var preview = aResult.Length > 200 ? aResult.Substring(0, 200) : aResult;
-                    System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ¸ê®Æ¹wÄı: {preview}");
+                    System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] è³‡æ–™é è¦½: {preview}");
                 }
 
                 if (string.IsNullOrWhiteSpace(aResult))
                 {
-                    return Json(new { status = "0", message = "¨S¦³¸ê®Æ»İ­n¤W¶Ç" });
+                    return Json(new { status = "0", message = "æ²’æœ‰è³‡æ–™éœ€è¦ä¸Šå‚³" });
                 }
 
-                // ¸ÑªR JSON ¸ê®Æ
+                // è§£æ JSON è³‡æ–™
                 System.Collections.Generic.List<Member> members = null;
                 
                 try
                 {
-                    // ? §ï¥Î Newtonsoft.Json¡A®e¿ù©Ê§ó¦n
                     members = Newtonsoft.Json.JsonConvert.DeserializeObject<System.Collections.Generic.List<Member>>(aResult);
                 }
                 catch (Newtonsoft.Json.JsonException jsonEx)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] JSON ¸ÑªR¿ù»~: {jsonEx.Message}");
-                    System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] JSON ¤º®e: {aResult}");
+                    System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] JSON è§£æéŒ¯èª¤: {jsonEx.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] JSON å…§å®¹: {aResult}");
                     
-                    // ¹Á¸Õ­×´_±`¨£ªº JSON ®æ¦¡°İÃD
+                    // å˜—è©¦ä¿®å¾©å¸¸è¦‹çš„ JSON æ ¼å¼å•é¡Œ
                     try
                     {
-                        // ´À´«³æ¤Ş¸¹¬°Âù¤Ş¸¹
+                        // æ›¿æ›å–®å¼•è™Ÿç‚ºé›™å¼•è™Ÿ
                         var fixedJson = aResult.Replace("'", "\"");
-                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ¹Á¸Õ­×´_ JSON...");
+                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] å˜—è©¦ä¿®å¾© JSON...");
                         members = Newtonsoft.Json.JsonConvert.DeserializeObject<System.Collections.Generic.List<Member>>(fixedJson);
-                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] JSON ­×´_¦¨¥\");
+                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] JSON ä¿®å¾©æˆåŠŸ");
                     }
                     catch (Exception retryEx)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] JSON ­×´_¥¢±Ñ: {retryEx.Message}");
-                        return Json(new { status = "0", message = $"JSON ®æ¦¡¿ù»~: {jsonEx.Message}" });
+                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] JSON ä¿®å¾©å¤±æ•—: {retryEx.Message}");
+                        return Json(new { status = "0", message = $"JSON æ ¼å¼éŒ¯èª¤: {jsonEx.Message}" });
                     }
                 }
 
                 if (members == null || members.Count == 0)
                 {
-                    return Json(new { status = "0", message = "¨S¦³¦³®Äªº¸ê®Æ»İ­n¤W¶Ç" });
+                    return Json(new { status = "0", message = "æ²’æœ‰æœ‰æ•ˆçš„è³‡æ–™éœ€è¦ä¸Šå‚³" });
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ¦¨¥\¸ÑªR¨ì {members.Count} µ§¸ê®Æ");
+                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] æˆåŠŸè§£æåˆ° {members.Count} ç­†è³‡æ–™");
 
-                // ¨ú±o ToolUtility ¹ê¨Ò
+                // å–å¾— ToolUtility å¯¦ä¾‹
                 var toolUtility = ToolUtility;
 
                 int successCount = 0;
                 int errorCount = 0;
+                int skippedCount = 0;
                 var errors = new System.Collections.Generic.List<string>();
 
-                // ³vµ§§ó·s¦¨­û¸ê®Æ
+                // é€ç­†æ›´æ–°æˆå“¡è³‡æ–™
                 foreach (var member in members)
                 {
                     try
                     {
                         if (string.IsNullOrWhiteSpace(member.ContactId))
                         {
-                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ¸õ¹LµL ContactId ªº¦¨­û: {member.FullName}");
+                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] è·³éç„¡ ContactId çš„æˆå“¡: {member.FullName}");
+                            skippedCount++;
                             continue;
                         }
 
                         System.Guid contactGuid;
                         if (!System.Guid.TryParse(member.ContactId, out contactGuid))
                         {
-                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] µL®Äªº ContactId: {member.ContactId}");
+                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ç„¡æ•ˆçš„ ContactId: {member.ContactId}");
                             errorCount++;
-                            errors.Add($"{member.FullName}: µL®ÄªºÁpµ¸¤H ID");
+                            errors.Add($"{member.FullName}: ç„¡æ•ˆçš„è¯çµ¡äºº ID");
                             continue;
                         }
 
-                        // ¨ú±o²{¦³ªºÁpµ¸¤H¹êÅé
+                        // å–å¾—ç¾æœ‰çš„è¯çµ¡äººå¯¦é«”
                         var contactEntity = toolUtility.RetrieveEntity("contact", contactGuid);
 
                         if (contactEntity == null)
                         {
-                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] §ä¤£¨ìÁpµ¸¤H: {contactGuid}");
+                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] æ‰¾ä¸åˆ°è¯çµ¡äºº: {contactGuid}");
                             errorCount++;
-                            errors.Add($"{member.FullName}: §ä¤£¨ìÁpµ¸¤H°O¿ı");
+                            errors.Add($"{member.FullName}: æ‰¾ä¸åˆ°è¯çµ¡äººè¨˜éŒ„");
                             continue;
                         }
 
-                        // §ó·sÄæ¦ì
+                        // å»ºç«‹è¦æ›´æ–°çš„å¯¦é«”ï¼ˆåªåŒ…å«è¦è®Šæ›´çš„æ¬„ä½ï¼‰
+                        var entityToUpdate = new Microsoft.Xrm.Sdk.Entity("contact", contactGuid);
                         bool hasChanges = false;
 
-                        // §ó·s¦æ°Ê¹q¸Ü
-                        if (!string.IsNullOrWhiteSpace(member.Phone) && 
-                            toolUtility.GetEntityStringAttribute(contactEntity, "mobilephone") != member.Phone)
+                        // æ›´æ–°è¡Œå‹•é›»è©±
+                        if (!string.IsNullOrWhiteSpace(member.Phone))
                         {
-                            contactEntity["mobilephone"] = member.Phone;
-                            hasChanges = true;
+                            var currentPhone = toolUtility.GetEntityStringAttribute(contactEntity, "mobilephone");
+                            if (currentPhone != member.Phone)
+                            {
+                                entityToUpdate["mobilephone"] = member.Phone;
+                                hasChanges = true;
+                                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {member.FullName}: æ›´æ–°é›»è©± {currentPhone} -> {member.Phone}");
+                            }
                         }
 
-                        // §ó·s¦a§}
-                        if (!string.IsNullOrWhiteSpace(member.Address) && 
-                            toolUtility.GetEntityStringAttribute(contactEntity, "address2_line1") != member.Address)
+                        // æ›´æ–°åœ°å€
+                        if (!string.IsNullOrWhiteSpace(member.Address))
                         {
-                            contactEntity["address2_line1"] = member.Address;
-                            hasChanges = true;
+                            var currentAddress = toolUtility.GetEntityStringAttribute(contactEntity, "address2_line1");
+                            if (currentAddress != member.Address)
+                            {
+                                entityToUpdate["address2_line1"] = member.Address;
+                                hasChanges = true;
+                                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {member.FullName}: æ›´æ–°åœ°å€");
+                            }
                         }
 
-                        // §ó·s¥Í¤é
+                        // æ›´æ–°ç”Ÿæ—¥
                         if (member.BirthDate != DateTime.MinValue && member.BirthDate.Year > 1900)
                         {
-                            var currentBirthDate = toolUtility.GetEntityDateTimeAttribute(contactEntity, "birthdate");
+                            var currentBirthDate = toolUtility.GetEntityDateTimeAttribute(contactEntity, "birthdate").ToLocalTime();
                             if (currentBirthDate == DateTime.MinValue || currentBirthDate.Date != member.BirthDate.Date)
                             {
-                                contactEntity["birthdate"] = member.BirthDate;
+                                entityToUpdate["birthdate"] = member.BirthDate;
                                 hasChanges = true;
+                                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {member.FullName}: æ›´æ–°ç”Ÿæ—¥");
                             }
                         }
 
-                        // §ó·s·|­û¨­¤À
-                        if (!string.IsNullOrWhiteSpace(member.Status))
-                        {
-                            int statusValue = GetMembershipStatusValue(member.Status);
-                            if (statusValue >= 0)
-                            {
-                                var currentStatus = toolUtility.GetOptionSetAttribute(contactEntity, "new_membership_status");
-                                if (currentStatus != statusValue)
-                                {
-                                    contactEntity["new_membership_status"] = new Microsoft.Xrm.Sdk.OptionSetValue(statusValue);
-                                    hasChanges = true;
-                                }
-                            }
-                        }
+                        // âœ… è·³éæœƒå“¡èº«åˆ†å’Œä¿¡ä»°ç‹€æ…‹çš„æ›´æ–°ï¼ˆæ¬„ä½ä¸å­˜åœ¨ï¼‰
+                        // é€™äº›æ¬„ä½å¯èƒ½åœ¨æ‚¨çš„ CRM ç³»çµ±ä¸­ä¸å­˜åœ¨æˆ–ä½¿ç”¨ä¸åŒçš„æ¬„ä½åç¨±
+                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {member.FullName}: è·³éæœƒå“¡èº«åˆ†å’Œä¿¡ä»°ç‹€æ…‹æ›´æ–°ï¼ˆæ¬„ä½å¯èƒ½ä¸å­˜åœ¨ï¼‰");
 
-                        // §ó·s«H¥õª¬ºA
-                        if (!string.IsNullOrWhiteSpace(member.SpiritualIdentity))
-                        {
-                            int spiritualValue = GetSpiritualIdentityValue(member.SpiritualIdentity);
-                            if (spiritualValue >= 0)
-                            {
-                                var currentSpiritual = toolUtility.GetOptionSetAttribute(contactEntity, "new_spiritual_identity");
-                                if (currentSpiritual != spiritualValue)
-                                {
-                                    contactEntity["new_spiritual_identity"] = new Microsoft.Xrm.Sdk.OptionSetValue(spiritualValue);
-                                    hasChanges = true;
-                                }
-                            }
-                        }
-
-                        // ¦pªG¦³ÅÜ§ó¡A«h§ó·s
+                        // å¦‚æœæœ‰è®Šæ›´ï¼Œå‰‡æ›´æ–°
                         if (hasChanges)
                         {
-                            toolUtility.UpdateEntity(contactEntity);
+                            toolUtility.UpdateEntity(entityToUpdate);
                             successCount++;
-                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ¦¨¥\§ó·s: {member.FullName}");
+                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] æˆåŠŸæ›´æ–°: {member.FullName}");
                         }
                         else
                         {
-                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] µLÅÜ§ó: {member.FullName}");
+                            skippedCount++;
+                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ç„¡è®Šæ›´: {member.FullName}");
                         }
                     }
                     catch (Exception ex)
                     {
                         errorCount++;
-                        errors.Add($"{member.FullName}: {ex.Message}");
-                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] §ó·s¥¢±Ñ: {member.FullName}, ¿ù»~: {ex.Message}");
+                        var errorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                        errors.Add($"{member.FullName}: {errorMsg}");
+                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] æ›´æ–°å¤±æ•—: {member.FullName}, éŒ¯èª¤: {errorMsg}");
                     }
                 }
 
-                // ²Õ¦X¦^À³°T®§
-                var message = $"§ó·s§¹¦¨¡I¦¨¥\: {successCount} µ§";
+                // çµ„åˆå›æ‡‰è¨Šæ¯
+                var message = $"è™•ç†å®Œæˆï¼æˆåŠŸæ›´æ–°: {successCount} ç­†";
+                if (skippedCount > 0)
+                {
+                    message += $", ç„¡è®Šæ›´: {skippedCount} ç­†";
+                }
                 if (errorCount > 0)
                 {
-                    message += $", ¥¢±Ñ: {errorCount} µ§";
+                    message += $", å¤±æ•—: {errorCount} ç­†";
                     if (errors.Count > 0)
                     {
-                        message += "\n¿ù»~¸Ô±¡:\n" + string.Join("\n", errors.Take(5));
+                        message += "\néŒ¯èª¤è©³æƒ…:\n" + string.Join("\n", errors.Take(5));
                         if (errors.Count > 5)
                         {
-                            message += $"\n...¥H¤Î¨ä¥L {errors.Count - 5} ­Ó¿ù»~";
+                            message += $"\n...ä»¥åŠå…¶ä»– {errors.Count - 5} å€‹éŒ¯èª¤";
                         }
                     }
                 }
@@ -875,14 +866,14 @@ namespace ChurchReport.Controllers
             }
             catch (Exception e)
             {
-                var errorMessage = $"¤W¶Ç¥¢±Ñ: {e.Message}";
-                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] µo¥Í¿ù»~: {e.Message}");
-                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ¿ù»~°ïÅ|:\n{e.StackTrace}");
+                var errorMessage = $"ä¸Šå‚³å¤±æ•—: {e.Message}";
+                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ç™¼ç”ŸéŒ¯èª¤: {e.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] éŒ¯èª¤å †ç–Š:\n{e.StackTrace}");
                 
                 if (e.InnerException != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ¤º³¡¿ù»~: {e.InnerException.Message}");
-                    errorMessage += $" (¤º³¡¿ù»~: {e.InnerException.Message})";
+                    System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] å…§éƒ¨éŒ¯èª¤: {e.InnerException.Message}");
+                    errorMessage += $" (å…§éƒ¨éŒ¯èª¤: {e.InnerException.Message})";
                 }
                 
                 return Json(new { status = "0", message = errorMessage });
@@ -890,11 +881,11 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §ó·s³æµ§ºûÅ@­Ó¤H¸ê°T
-        /// ¥Î©ó DataGrid ªºÀx¦s«ö¶s¡]³æµ§§ó·s¡^
+        /// æ›´æ–°å–®ç­†ç¶­è­·å€‹äººè³‡è¨Š
+        /// ç”¨æ–¼ DataGrid çš„å„²å­˜æŒ‰éˆ•ï¼ˆå–®ç­†æ›´æ–°ï¼‰
         /// </summary>
         /// <param name="key">ContactId</param>
-        /// <param name="values">§ó·sªºÄæ¦ì­È(JSON)</param>
+        /// <param name="values">æ›´æ–°çš„æ¬„ä½å€¼(JSON)</param>
         [HttpPut]
         public IActionResult UpdateMaintainPersonInfomation(string key, string values)
         {
@@ -904,118 +895,100 @@ namespace ChurchReport.Controllers
 
                 if (string.IsNullOrWhiteSpace(key))
                 {
-                    return BadRequest("¯Ê¤Ö ContactId");
+                    return BadRequest("ç¼ºå°‘ ContactId");
                 }
 
                 System.Guid contactGuid;
                 if (!System.Guid.TryParse(key, out contactGuid))
                 {
-                    return BadRequest("µL®Äªº ContactId");
+                    return BadRequest("ç„¡æ•ˆçš„ ContactId");
                 }
 
-                // ¸ÑªR§ó·sªºÄæ¦ì
-                var updateValues = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, object>>(values);
+                // è§£ææ›´æ–°çš„æ¬„ä½
+                var updateValues = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, System.Text.Json.JsonElement>>(values);
 
                 if (updateValues == null || updateValues.Count == 0)
                 {
-                    return Ok(); // ¨S¦³ÅÜ§ó
+                    return Ok(); // æ²’æœ‰è®Šæ›´
                 }
 
-                // ¨ú±o ToolUtility ¹ê¨Ò
+                // å–å¾— ToolUtility å¯¦ä¾‹
                 var toolUtility = ToolUtility;
 
-                // ¨ú±o²{¦³ªºÁpµ¸¤H¹êÅé
-                var contactEntity = toolUtility.RetrieveEntity("contact", contactGuid);
-
-                if (contactEntity == null)
-                {
-                    return NotFound($"§ä¤£¨ìÁpµ¸¤H: {contactGuid}");
-                }
-
+                // å»ºç«‹è¦æ›´æ–°çš„å¯¦é«”ï¼ˆåªåŒ…å«è¦è®Šæ›´çš„æ¬„ä½ï¼‰
+                var entityToUpdate = new Microsoft.Xrm.Sdk.Entity("contact", contactGuid);
                 bool hasChanges = false;
 
-                // §ó·s¦æ°Ê¹q¸Ü
-                if (updateValues.ContainsKey("Phone") && updateValues["Phone"] != null)
+                // æ›´æ–°è¡Œå‹•é›»è©±
+                if (updateValues.ContainsKey("Phone"))
                 {
-                    var phoneValue = updateValues["Phone"].ToString();
+                    var phoneValue = updateValues["Phone"].GetString();
                     if (!string.IsNullOrWhiteSpace(phoneValue))
                     {
-                        contactEntity["mobilephone"] = phoneValue;
+                        entityToUpdate["mobilephone"] = phoneValue;
                         hasChanges = true;
+                        System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] æ›´æ–°é›»è©±: {phoneValue}");
                     }
                 }
 
-                // §ó·s¦a§}
-                if (updateValues.ContainsKey("Address") && updateValues["Address"] != null)
+                // æ›´æ–°åœ°å€
+                if (updateValues.ContainsKey("Address"))
                 {
-                    var addressValue = updateValues["Address"].ToString();
+                    var addressValue = updateValues["Address"].GetString();
                     if (!string.IsNullOrWhiteSpace(addressValue))
                     {
-                        contactEntity["address2_line1"] = addressValue;
+                        entityToUpdate["address2_line1"] = addressValue;
                         hasChanges = true;
+                        System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] æ›´æ–°åœ°å€: {addressValue}");
                     }
                 }
 
-                // §ó·s¥Í¤é
-                if (updateValues.ContainsKey("BirthDate") && updateValues["BirthDate"] != null)
+                // æ›´æ–°ç”Ÿæ—¥
+                if (updateValues.ContainsKey("BirthDate"))
                 {
-                    if (DateTime.TryParse(updateValues["BirthDate"].ToString(), out DateTime birthDate))
+                    var birthDateString = updateValues["BirthDate"].GetString();
+                    if (!string.IsNullOrWhiteSpace(birthDateString) && DateTime.TryParse(birthDateString, out DateTime birthDate))
                     {
                         if (birthDate.Year > 1900)
                         {
-                            contactEntity["birthdate"] = birthDate;
+                            entityToUpdate["birthdate"] = birthDate;
                             hasChanges = true;
+                            System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] æ›´æ–°ç”Ÿæ—¥: {birthDate:yyyy-MM-dd}");
                         }
                     }
                 }
 
-                // §ó·s·|­û¨­¤À
-                if (updateValues.ContainsKey("Status") && updateValues["Status"] != null)
+                // âœ… è·³éæœƒå“¡èº«åˆ†å’Œä¿¡ä»°ç‹€æ…‹çš„æ›´æ–°ï¼ˆæ¬„ä½ä¸å­˜åœ¨ï¼‰
+                if (updateValues.ContainsKey("Status") || updateValues.ContainsKey("SpiritualIdentity"))
                 {
-                    var statusText = updateValues["Status"].ToString();
-                    int statusValue = GetMembershipStatusValue(statusText);
-                    if (statusValue >= 0)
-                    {
-                        contactEntity["new_membership_status"] = new Microsoft.Xrm.Sdk.OptionSetValue(statusValue);
-                        hasChanges = true;
-                    }
+                    System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] è·³éæœƒå“¡èº«åˆ†/ä¿¡ä»°ç‹€æ…‹æ›´æ–°ï¼ˆæ¬„ä½ä¸å­˜åœ¨ï¼‰");
                 }
 
-                // §ó·s«H¥õª¬ºA
-                if (updateValues.ContainsKey("SpiritualIdentity") && updateValues["SpiritualIdentity"] != null)
-                {
-                    var spiritualText = updateValues["SpiritualIdentity"].ToString();
-                    int spiritualValue = GetSpiritualIdentityValue(spiritualText);
-                    if (spiritualValue >= 0)
-                    {
-                        contactEntity["new_spiritual_identity"] = new Microsoft.Xrm.Sdk.OptionSetValue(spiritualValue);
-                        hasChanges = true;
-                    }
-                }
-
-                // ¦pªG¦³ÅÜ§ó¡A«h§ó·s
+                // å¦‚æœæœ‰è®Šæ›´ï¼Œå‰‡æ›´æ–°
                 if (hasChanges)
                 {
-                    toolUtility.UpdateEntity(contactEntity);
-                    System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] ¦¨¥\§ó·s: {contactGuid}");
+                    toolUtility.UpdateEntity(entityToUpdate);
+                    System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] æˆåŠŸæ›´æ–°: {contactGuid}");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] µLÅÜ§ó: {contactGuid}");
+                    System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] ç„¡è®Šæ›´: {contactGuid}");
                 }
 
                 return Ok();
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] µo¥Í¿ù»~: {e.Message}\n{e.StackTrace}");
-                return StatusCode(500, $"§ó·s¥¢±Ñ: {e.Message}");
+                var errorMsg = e.InnerException != null ? e.InnerException.Message : e.Message;
+                System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] ç™¼ç”ŸéŒ¯èª¤: {errorMsg}");
+                System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] éŒ¯èª¤å †ç–Š:\n{e.StackTrace}");
+                return StatusCode(500, $"æ›´æ–°å¤±æ•—: {errorMsg}");
             }
         }
 
         /// <summary>
-        /// ­Ó¤H¸ê°TºûÅ@µe­±
-        /// ¥Î©óºûÅ@­Ó¤H¸ê°T¡AÅã¥Ü¦a¹Ï¡B¸ê®Æºô®æ¡A¨Ã¤¹³\¤W¶Ç§ó·s
+        /// å€‹äººè³‡è¨Šç¶­è­·ç•«é¢
+        /// ç”¨æ–¼ç¶­è­·å€‹äººè³‡è¨Šï¼Œé¡¯ç¤ºåœ°åœ–ã€è³‡æ–™ç¶²æ ¼ï¼Œä¸¦å…è¨±ä¸Šå‚³æ›´æ–°
         /// </summary>
         [HttpGet]
         [Route("/Personal/MaintainPersonInfomationView")]
@@ -1026,8 +999,8 @@ namespace ChurchReport.Controllers
             {
                 SetupPersonalInfoViewBag();
 
-                // ? ³]©w ViewBag.ListId - ¥Î©ó¦h¤p²Õ¼Ò¦¡¤Uªº¸ê®Æ¸ü¤J
-                // ¦b¦h¤p²Õ¼Ò¦¡¤U¡A»İ­n¶Ç»¼¯S®íªºÃÑ§O½X
+                // ? è¨­å®š ViewBag.ListId - ç”¨æ–¼å¤šå°çµ„æ¨¡å¼ä¸‹çš„è³‡æ–™è¼‰å…¥
+                // åœ¨å¤šå°çµ„æ¨¡å¼ä¸‹ï¼Œéœ€è¦å‚³éç‰¹æ®Šçš„è­˜åˆ¥ç¢¼
                 if (InMemoryContext.ListManager != null)
                 {
                     var displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
@@ -1035,12 +1008,12 @@ namespace ChurchReport.Controllers
 
                     if (displayViewType == "MultiGroupView" && !integrateFlag)
                     {
-                        // ¦h¤p²Õ¼Ò¦¡¡G¨Ï¥Î¯S®íÃÑ§O½X
+                        // å¤šå°çµ„æ¨¡å¼ï¼šä½¿ç”¨ç‰¹æ®Šè­˜åˆ¥ç¢¼
                         ViewBag.ListId = "MULTIGROUP_MODE";
                     }
                     else
                     {
-                        // ³æ¤@¤p²Õ¼Ò¦¡¡G¨Ï¥Î¹ê»Úªº ListId
+                        // å–®ä¸€å°çµ„æ¨¡å¼ï¼šä½¿ç”¨å¯¦éš›çš„ ListId
                         ViewBag.ListId = InMemoryContext.ListManager.ActiveListId ?? "";
                     }
                 }
@@ -1049,7 +1022,7 @@ namespace ChurchReport.Controllers
                     ViewBag.ListId = "";
                 }
 
-                // ? ®Ú¾Úµn¤JÃş«¬³]©w¤£¦Pªº¸ê®Æ¡A²K¥[ null ÀË¬d
+                // ? æ ¹æ“šç™»å…¥é¡å‹è¨­å®šä¸åŒçš„è³‡æ–™ï¼Œæ·»åŠ  null æª¢æŸ¥
                 if (InMemoryContext.ListManager != null &&
                     InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport != null &&
                     InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList != null &&
@@ -1059,7 +1032,7 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    // ªğ¦^ªÅªº SmallGroupData
+                    // è¿”å›ç©ºçš„ SmallGroupData
                     return View(new SmallGroupData());
                 }
             }
