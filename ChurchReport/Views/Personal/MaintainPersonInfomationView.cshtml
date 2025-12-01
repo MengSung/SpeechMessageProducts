@@ -107,54 +107,62 @@
             (@<text>
                         function(arg)
                         {
-                        var GroupDataGrid = $("#gridContainer").dxDataGrid("instance");
-                        var ButtonContainer = $("#save-button").dxButton("instance");
-                        var GroupDataGridFlag = GroupDataGrid.hasEditData();
+                            var grid = $("#gridContainer").dxDataGrid("instance");
+                            var btn  = $("#save-button").dxButton("instance");
+                            var lp   = $("#loadPanel").dxLoadPanel("instance");
 
-                        if (!GroupDataGridFlag)
-                        {
-                            $("#loadPanel").dxLoadPanel("instance").show();
-                            ButtonContainer.option("disabled", true);
+                            // 先關閉當前編輯儲存格並提交變更
+                            try { grid.closeEditCell(); } catch(e) { /* ignore */ }
+                            var savePromise = grid.saveEditData(); // dxPromise
 
-                            $.ajax({
-                                url: '@Url.Action("SaveMaintainPersonInfomation", "Personal")',
-                                data: { aResult: GetResult() },
-                                type: 'POST',
-                                success: function (response) {
-                                    $("#loadPanel").dxLoadPanel("instance").hide();
-                                    ButtonContainer.option("disabled", false);
-                                    
-                                    if (response.status === "1") {
-                                        ShowToast(response.message || "上傳成功！", "success", 3000);
-                                    } else {
-                                        ShowToast(response.message || "上傳失敗", "error", 5000);
-                                    }
-                                },
-                                error: function (xhr, status, error) {
-                                    $("#loadPanel").dxLoadPanel("instance").hide();
-                                    ButtonContainer.option("disabled", false);
-                                    var errorMessage = "上傳失敗";
-                                    if (xhr.status === 404) {
-                                        errorMessage = "找不到上傳功能 (404)";
-                                    } else if (xhr.responseText) {
-                                        try {
-                                            var errorResponse = JSON.parse(xhr.responseText);
-                                            errorMessage = errorResponse.message || errorMessage;
-                                        } catch (e) {
-                                            errorMessage += ": " + xhr.responseText.substring(0, 100);
+                            lp.show();
+                            btn.option("disabled", true);
+
+                            // 僅在提交成功後才收集資料與上傳，避免值尚未寫回而消失
+                            savePromise.done(function(){
+                                var payload = GetResult();
+
+                                $.ajax({
+                                    url: '@Url.Action("SaveMaintainPersonInfomation", "Personal")',
+                                    type: 'POST',
+                                    data: { aResult: payload },
+                                    success: function (response) {
+                                        lp.hide();
+                                        btn.option("disabled", false);
+
+                                        if (response.status === "1") {
+                                            ShowToast(response.message || "上傳成功！", "success", 3000);
+                                            // 成功後保留目前畫面資料，避免覆蓋剛輸入值
+                                            // 如需重新撈資料，再由使用者手動觸發或延後處理
+                                        } else {
+                                            ShowToast(response.message || "上傳失敗", "error", 5000);
                                         }
-                                    } else if (error) {
-                                        errorMessage += ": " + error;
+                                    },
+                                    error: function (xhr, status, error) {
+                                        lp.hide();
+                                        btn.option("disabled", false);
+                                        var errorMessage = "上傳失敗";
+                                        if (xhr.status === 404) {
+                                            errorMessage = "找不到上傳功能 (404)";
+                                        } else if (xhr.responseText) {
+                                            try {
+                                                var errorResponse = JSON.parse(xhr.responseText);
+                                                errorMessage = errorResponse.message || errorMessage;
+                                            } catch (e) {
+                                                errorMessage += ": " + xhr.responseText.substring(0, 100);
+                                            }
+                                        } else if (error) {
+                                            errorMessage += ": " + error;
+                                        }
+                                        ShowToast(errorMessage, "error", 5000);
                                     }
-                                    ShowToast(errorMessage, "error", 5000);
-                                }
+                                });
+                            }).fail(function(){
+                                // 提交失敗（驗證未通過或其他原因），不要上傳，提示使用者
+                                lp.hide();
+                                btn.option("disabled", false);
+                                ShowToast("請先修正編輯欄位的錯誤後再上傳", "warning", 4000);
                             });
-                        }
-                        else
-                        {
-                            $("#loadPanel").dxLoadPanel("instance").hide();
-                            ShowToast("請先儲存未提交的編輯資料", "warning", 3000);
-                        }
                         }
             </text>)
         )
@@ -287,52 +295,28 @@
         ShowToast("資料已儲存", "success", 2000);
     }
 
-    // 收集 DataGrid 資料
+    // 收集 DataGrid 資料（僅資料列，排除群組/摘要列）
     function GetResult() {
         try {
-            console.log("[GetResult] 開始收集資料...");
-            
             if (!dataGridInstance) {
                 dataGridInstance = $("#gridContainer").dxDataGrid("instance");
             }
-            
-            if (!dataGridInstance) {
-                console.error("[GetResult] DataGrid instance not found");
-                return "[]";
+            var grid = dataGridInstance;
+            if (!grid) { return "[]"; }
+
+            // 使用可見資料列可避免群組列混入
+            var rows = grid.getVisibleRows() || [];
+            var items = [];
+            for (var i = 0; i < rows.length; i++) {
+                var r = rows[i];
+                if (r && r.rowType === "data" && r.data) {
+                    items.push(r.data);
+                }
             }
 
-            console.log("[GetResult] DataGrid instance found");
-
-            var dataSource = dataGridInstance.getDataSource();
-            if (!dataSource) {
-                console.error("[GetResult] DataSource not found");
-                return "[]";
-            }
-
-            console.log("[GetResult] DataSource found");
-
-            var items = dataSource.items();
-            if (!items || items.length === 0) {
-                console.warn("[GetResult] No items in DataSource");
-                return "[]";
-            }
-
-            console.log("[GetResult] Found " + items.length + " items");
-            
-            // 記錄第一筆資料的結構
-            if (items.length > 0) {
-                console.log("[GetResult] 第一筆資料範例:", items[0]);
-            }
-            
-            // 使用 JSON.stringify 確保正確的 JSON 格式
-            var jsonString = JSON.stringify(items);
-            console.log("[GetResult] JSON 長度:", jsonString.length);
-            
-            return jsonString;
-        }
-        catch (error) {
-            console.error("[GetResult] 發生錯誤:", error);
-            console.error("[GetResult] 錯誤堆疊:", error.stack);
+            return JSON.stringify(items);
+        } catch (err) {
+            console.error("[GetResult] 發生錯誤:", err);
             return "[]";
         }
     }
