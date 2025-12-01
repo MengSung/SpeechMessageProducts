@@ -466,7 +466,7 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 儲存整合視圖週報資料
         /// 包含出席狀況、快樂小組資訊、計劃暫停等資料
-        /// ? 已改造為正確的非同步模式
+        /// ? 改為 Fire-and-Forget 模式，立即回應使用者，在背景處理上傳
         /// </summary>
         /// <param name="WeeklyReportData">週報資料(JSON)</param>
         /// <param name="HappyWeekIndex">快樂小組第幾週</param>
@@ -474,7 +474,7 @@ namespace ChurchReport.Controllers
         /// <param name="CheckBox">計劃是否暫停</param>
         /// <param name="cancellationToken">取消標記</param>
         [HttpPost]
-        public async Task<IActionResult> SaveIntegrate(
+        public IActionResult SaveIntegrate(
             string WeeklyReportData,
             string HappyWeekIndex,
             string HappyWeekTopic,
@@ -492,24 +492,56 @@ namespace ChurchReport.Controllers
 
                 bool pauseCheckBox = CheckBox == "true";
 
-                // ? 使用 await 等待上傳完成
-                await Task.Run(() =>
-                    InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData(
-                        InMemoryContext.ListManager.m_SelectDate,
-                        InMemoryContext.ListManager.m_Account,
-                        InMemoryContext.ListManager.m_Password,
-                        InMemoryContext.ListManager.LoginType,
-                        InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
-                        WeeklyReportData,
-                        HappyWeekIndex,
-                        HappyWeekTopic,
-                        pauseCheckBox
-                    ), cancellationToken).ConfigureAwait(false);
+                // ? Fire-and-Forget：在背景執行上傳，不等待完成
+                // 立即回應使用者，避免長時間等待
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 開始背景上傳...");
+                        
+                        // 在背景執行上傳
+                        InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData(
+                            InMemoryContext.ListManager.m_SelectDate,
+                            InMemoryContext.ListManager.m_Account,
+                            InMemoryContext.ListManager.m_Password,
+                            InMemoryContext.ListManager.LoginType,
+                            InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
+                            WeeklyReportData,
+                            HappyWeekIndex,
+                            HappyWeekTopic,
+                            pauseCheckBox
+                        );
 
-                // ? 上傳完成後才清理
-                CleanupTransferredMembers();
+                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 背景上傳完成");
 
-                return Json(new { status = "1", message = "資料成功上傳了.... !謝謝了!" });
+                        // 上傳完成後才清理
+                        CleanupTransferredMembers();
+                        
+                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 清理完成");
+                    }
+                    catch (Exception ex)
+                    {
+                        // 背景任務的錯誤記錄到 Debug 輸出
+                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 背景上傳失敗: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 錯誤堆疊:\n{ex.StackTrace}");
+                        
+                        // 記錄到追蹤日誌
+                        try
+                        {
+                            ToolUtility?.TraceByLevel(1, 1, 
+                                $"SaveIntegrate 背景上傳失敗: {ex.Message}\n{ex.StackTrace}");
+                        }
+                        catch
+                        {
+                            // 追蹤失敗不影響
+                        }
+                    }
+                }, cancellationToken);
+
+                // ? 立即回應使用者，不等待上傳完成
+                System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 立即回應使用者，背景處理中...");
+                return Json(new { status = "1", message = "資料已送出，正在背景上傳中..." });
             }
             catch (OperationCanceledException)
             {
@@ -517,6 +549,8 @@ namespace ChurchReport.Controllers
             }
             catch (Exception e)
             {
+                // 僅在啟動背景任務失敗時才返回錯誤
+                System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 啟動失敗: {e.Message}");
                 return HandleError(e, "SaveIntegrate");
             }
         }
