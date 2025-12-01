@@ -21,7 +21,7 @@ namespace ChurchReport.Controllers
     /// </summary>
     public class PersonalController : BaseChurchController
     {
-        #region 建構函式
+        #region 幣構函式
 
         public PersonalController(
             IHttpContextAccessor httpContextAccessor,
@@ -29,7 +29,7 @@ namespace ChurchReport.Controllers
             IPayment paymentService,
             IToolUtilityProvider toolUtilityProvider,
             ICrmConnectionPool connectionPool)
-        : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool)
+            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool)
         {
         }
 
@@ -117,7 +117,6 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 載入個人回報資料
         /// 用於 DevExtreme DataGrid 的資料來源
-        /// ? 修復 NullReferenceException：添加完整的 null 檢查
         /// </summary>
         /// <param name="id">清單ID</param>
         /// <param name="loadOptions">載入選項(分頁、排序、篩選)</param>
@@ -126,60 +125,25 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ? 完整的 null 檢查鏈
-                if (InMemoryContext.ListManager == null)
-                {
-                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
-                }
-
-                // 確保資料已載入
                 EnsurePersonReportDataLoaded(id);
 
-                // ? 檢查 WeeklyReport 是否存在
-                var weeklyReport = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
-                if (weeklyReport == null)
-                {
-                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
-                }
+                var tasks = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                    .m_SmallGroupDataList.m_AllMemeberData.Members;
 
-                // ? 檢查 SmallGroupDataList 是否存在
-                var dataList = weeklyReport.m_SmallGroupDataList;
-                if (dataList == null)
-                {
-                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
-                }
-
-                // ? 檢查 AllMemeberData 是否存在
-                var allMemberData = dataList.m_AllMemeberData;
-                if (allMemberData == null)
-                {
-                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
-                }
-
-                // ? 檢查 Members 是否存在
-                var members = allMemberData.Members;
-                if (members == null)
-                {
-                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
-                }
-
-                return DataSourceLoader.Load(members, loadOptions);
+                return DataSourceLoader.Load(tasks, loadOptions);
             }
             catch (Exception e)
             {
-                // 記錄詳細錯誤資訊
-                var errorDetails = new System.Text.StringBuilder();
-                errorDetails.AppendLine($"LoadPersonReport 錯誤: {e.Message}");
-                errorDetails.AppendLine($"請求 ID: {id}");
-                
-                return HandleError(e, errorDetails.ToString());
+                return HandleError(e, "LoadPersonReport");
             }
         }
 
         /// <summary>
         /// 載入維護個人資訊資料
         /// 用於 MaintainPersonInfomationView 的 DataGrid 資料來源
-        /// ? 修復 NullReferenceException：添加完整的 null 檢查
+        /// ? 修復：支援多小組模式，按各小組分別顯示組員資訊
+        /// ? 修復：避免覆蓋 WeeklyReport，改用直接查詢
+        /// ? 添加詳細調試輸出
         /// </summary>
         /// <param name="id">清單ID</param>
         /// <param name="loadOptions">載入選項(分頁、排序、篩選)</param>
@@ -191,60 +155,236 @@ namespace ChurchReport.Controllers
                 // ? 完整的 null 檢查鏈
                 if (InMemoryContext.ListManager == null)
                 {
+                    System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] ListManager is null");
                     return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
                 }
 
-                // 確保資料已載入
-                EnsurePersonReportDataLoaded(id);
+                var allMembers = new System.Collections.Generic.List<Member>();
 
-                // ? 檢查 WeeklyReport 是否存在
-                var weeklyReport = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
-                if (weeklyReport == null)
+                // ? 檢查是否為多小組模式
+                string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
+                bool integrateFlag = IsIntegrateDataLoaded();
+
+                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] id={id}, displayViewType={displayViewType}, integrateFlag={integrateFlag}");
+
+                if (displayViewType == "MultiGroupView" && !integrateFlag)
                 {
-                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
+                    // ? 多小組模式：從各小組載入資料（不覆蓋原有資料）
+                    var multiGroupList = InMemoryContext.ListManager.m_MultiGroupList;
+                    
+                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 進入多小組模式");
+                    
+                    if (multiGroupList != null && multiGroupList.m_WeeklyReportRecordListData != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 小組數量: {multiGroupList.m_WeeklyReportRecordListData.Count}");
+                        
+                        // 取得 ToolUtility 實例
+                        var toolUtility = ToolUtility;
+                        
+                        int groupIndex = 0;
+                        foreach (var groupRecord in multiGroupList.m_WeeklyReportRecordListData)
+                        {
+                            groupIndex++;
+                            System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 處理第 {groupIndex} 個小組: {groupRecord.Name}, ListId: {groupRecord.ListEntityId}");
+                            
+                            try
+                            {
+                                // ? 直接從 CRM 查詢該小組的成員，不使用 SetupIntegrateData
+                                System.Guid listGuid;
+                                if (System.Guid.TryParse(groupRecord.ListEntityId, out listGuid))
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 開始查詢小組 {groupRecord.Name} 的成員...");
+                                    
+                                    // 查詢名單成員
+                                    var memberCollection = toolUtility.RetrieveMemberListCollectionByListId(listGuid);
+                                    
+                                    if (memberCollection != null && memberCollection.Entities != null)
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 小組 {groupRecord.Name} 找到 {memberCollection.Entities.Count} 個成員");
+                                        
+                                        int memberIndex = 0;
+                                        foreach (var memberEntity in memberCollection.Entities)
+                                        {
+                                            memberIndex++;
+                                            try
+                                            {
+                                                // 取得聯絡人 ID
+                                                var contactId = toolUtility.GetEntityLookupAttribute(memberEntity, "entityid");
+                                                
+                                                if (contactId != System.Guid.Empty)
+                                                {
+                                                    // 查詢聯絡人詳細資訊
+                                                    var contactEntity = toolUtility.RetrieveEntity("contact", contactId);
+                                                    
+                                                    if (contactEntity != null)
+                                                    {
+                                                        var fullName = toolUtility.GetEntityStringAttribute(contactEntity, "fullname");
+                                                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]   成員 {memberIndex}: {fullName}");
+                                                        
+                                                        // 建立 Member 物件
+                                                        var member = new Member
+                                                        {
+                                                            SmallGroupName = groupRecord.Name,
+                                                            FullName = fullName,
+                                                            Phone = toolUtility.GetEntityStringAttribute(contactEntity, "mobilephone"),
+                                                            Address = toolUtility.GetEntityStringAttribute(contactEntity, "address2_line1"),
+                                                            ContactId = contactId.ToString()
+                                                        };
+                                                
+                                                        // 取得會員身分
+                                                        if (contactEntity.Contains("new_membership_status"))
+                                                        {
+                                                            var statusValue = toolUtility.GetOptionSetAttribute(contactEntity, "new_membership_status");
+                                                            member.Status = GetMembershipStatusText(statusValue);
+                                                        }
+                                                
+                                                        // 取得信仰狀態
+                                                        if (contactEntity.Contains("new_spiritual_identity"))
+                                                        {
+                                                            var spiritualIdentity = toolUtility.GetOptionSetAttribute(contactEntity, "new_spiritual_identity");
+                                                            member.SpiritualIdentity = GetSpiritualIdentityText(spiritualIdentity);
+                                                        }
+                                                
+                                                        // 取得生日
+                                                        if (contactEntity.Contains("birthdate"))
+                                                        {
+                                                            member.BirthDate = toolUtility.GetEntityDateTimeAttribute(contactEntity, "birthdate");
+                                                        }
+                                                
+                                                        // 取得裝備狀態
+                                                        if (contactEntity.Contains("new_equipment_status"))
+                                                        {
+                                                            member.EquipmentStatus = toolUtility.GetEntityStringAttribute(contactEntity, "new_equipment_status");
+                                                        }
+                                                
+                                                        allMembers.Add(member);
+                                                    }
+                                                }
+                                            }
+                                            catch (Exception memberEx)
+                                            {
+                                                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 處理成員時發生錯誤: {memberEx.Message}");
+                                            }
+                                        }
+                                        
+                                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 小組 {groupRecord.Name} 處理完成，累計成員數: {allMembers.Count}");
+                                    }
+                                    else
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 小組 {groupRecord.Name} 沒有成員資料");
+                                    }
+                                }
+                                else
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 無法解析 ListEntityId: {groupRecord.ListEntityId}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                // 記錄該小組載入失敗，但繼續處理其他小組
+                                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 載入小組 {groupRecord.Name} 失敗: {ex.Message}");
+                                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 錯誤堆疊: {ex.StackTrace}");
+                            }
+                        }
+                        
+                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 所有小組處理完成，總成員數: {allMembers.Count}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] multiGroupList or m_WeeklyReportRecordListData is null");
+                    }
                 }
-
-                // ? 檢查 SmallGroupDataList 是否存在
-                var dataList = weeklyReport.m_SmallGroupDataList;
-                if (dataList == null)
+                else
                 {
-                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
+                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 使用單一小組模式");
+                    
+                    // ? 單一小組模式或 IntegrateView 模式：原有邏輯
+                    EnsurePersonReportDataLoaded(id);
+
+                    var weeklyReport = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
+                    if (weeklyReport?.m_SmallGroupDataList?.m_AllMemeberData?.Members != null)
+                    {
+                        allMembers = weeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members;
+                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 單一小組模式載入 {allMembers.Count} 個成員");
+                    }
                 }
 
-                // ? 檢查 AllMemeberData 是否存在
-                var allMemberData = dataList.m_AllMemeberData;
-                if (allMemberData == null)
-                {
-                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
-                }
-
-                // ? 檢查 Members 是否存在
-                var members = allMemberData.Members;
-                if (members == null)
-                {
-                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
-                }
-
-                return DataSourceLoader.Load(members, loadOptions);
+                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 最終返回 {allMembers.Count} 個成員");
+                
+                // 返回資料
+                return DataSourceLoader.Load(allMembers, loadOptions);
             }
             catch (Exception e)
             {
                 // 記錄詳細錯誤資訊
                 var errorDetails = new System.Text.StringBuilder();
                 errorDetails.AppendLine($"LoadMaintainPersonInfomation 錯誤: {e.Message}");
+                errorDetails.AppendLine($"錯誤堆疊: {e.StackTrace}");
                 errorDetails.AppendLine($"ListManager is null: {InMemoryContext.ListManager == null}");
                 
                 if (InMemoryContext.ListManager != null)
                 {
-                    errorDetails.AppendLine($"WeeklyReport is null: {InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null}");
-                    
-                    if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport != null)
-                    {
-                        errorDetails.AppendLine($"SmallGroupDataList is null: {InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList == null}");
-                    }
+                    errorDetails.AppendLine($"DisplayViewType: {InMemoryContext.ListManager.GetDisplayViewType()}");
+                    errorDetails.AppendLine($"IntegrateFlag: {IsIntegrateDataLoaded()}");
                 }
 
+                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 發生錯誤:\n{errorDetails}");
+
                 return HandleError(e, errorDetails.ToString());
+            }
+        }
+
+        /// <summary>
+        /// 將信仰狀態選項值轉換為文字
+        /// </summary>
+        private string GetSpiritualIdentityText(int optionValue)
+        {
+            switch (optionValue)
+            {
+                case 100000000:
+                    return "基督徒";
+                case 100000001:
+                    return "已決志";
+                case 100000002:
+                    return "慕道友";
+                case 100000003:
+                    return "未信主";
+                default:
+                    return "-未知-";
+            }
+        }
+
+        /// <summary>
+        /// 將會員身分選項值轉換為文字
+        /// </summary>
+        private string GetMembershipStatusText(int optionValue)
+        {
+            switch (optionValue)
+            {
+                case 100000000:
+                    return "牧師師母";
+                case 100000001:
+                    return "區牧";
+                case 100000002:
+                    return "小區長";
+                case 100000003:
+                    return "小組長";
+                case 100000004:
+                    return "副小組長";
+                case 100000005:
+                    return "核心同工";
+                case 100000006:
+                    return "小組組員";
+                case 100000007:
+                    return "未入組";
+                case 100000008:
+                    return "新朋友";
+                case 100000009:
+                    return "外教會";
+                case 100000010:
+                    return "結案";
+                default:
+                    return "";
             }
         }
 
@@ -254,26 +394,11 @@ namespace ChurchReport.Controllers
         /// </summary>
         private void EnsurePersonReportDataLoaded(string id)
         {
-            // ? 檢查 ListManager 是否存在
-            if (InMemoryContext.ListManager == null)
-            {
-                return;
-            }
-
             var weeklyReport = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
 
-            // ? 如果資料未載入，嘗試載入
             if (weeklyReport == null || !weeklyReport.LoadFlag)
             {
-                try
-                {
-                    InMemoryContext.ListManager.SetupIntegrateData(id);
-                }
-                catch (Exception ex)
-                {
-                    // 記錄但不拋出異常，讓調用者處理空資料
-                    System.Diagnostics.Debug.WriteLine($"SetupIntegrateData 失敗: {ex.Message}");
-                }
+                InMemoryContext.ListManager.SetupIntegrateData(id);
             }
         }
 
@@ -303,30 +428,18 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 更新個人回報記錄
-        /// ? 已改造為非同步模式
         /// </summary>
         /// <param name="key">記錄識別碼</param>
-        /// <param name="values">更新數據(JSON)</param>
-        /// <param name="cancellationToken">取消標記</param>
+        /// <param name="values">更新的欄位值(JSON)</param>
         [HttpPut]
-        public async Task<IActionResult> UpdatePersonReport(
-            string key, 
-            string values,
-            CancellationToken cancellationToken = default)
+        public IActionResult UpdatePersonReport(string key, string values)
         {
             try
             {
-                // ? 使用非同步更新
-                await Task.Run(() =>
-                    InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                        .m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values),
-                    cancellationToken).ConfigureAwait(false);
+                InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                    .m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values);
 
                 return Ok();
-            }
-            catch (OperationCanceledException)
-            {
-                return StatusCode(499);
             }
             catch (Exception e)
             {
@@ -359,20 +472,15 @@ namespace ChurchReport.Controllers
         #region 資料儲存
 
         /// <summary>
-        /// 儲存個人回報資料 (DataGrid 模式)
-        /// ? 已改造為正確的非同步模式
+        /// 儲存個人回報資料 (DataGrid 方式)
         /// </summary>
         /// <param name="WeeklyReportData">週報資料(JSON)</param>
-        /// <param name="cancellationToken">取消標記</param>
         [HttpPost]
-        public async Task<IActionResult> SavePersonReport(
-            string WeeklyReportData,
-            CancellationToken cancellationToken = default)
+        public IActionResult SavePersonReport(string WeeklyReportData)
         {
             try
             {
-                // ? 使用 await 等待上傳完成
-                await Task.Run(() =>
+                Task.Factory.StartNew(() =>
                     InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData(
                         InMemoryContext.ListManager.m_SelectDate,
                         InMemoryContext.ListManager.m_Account,
@@ -381,13 +489,9 @@ namespace ChurchReport.Controllers
                         InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
                         WeeklyReportData,
                         "", "", false
-                    ), cancellationToken).ConfigureAwait(false);
+                    ), TaskCreationOptions.LongRunning);
 
-                return Json(new { status = "1", message = "資料成功上傳了...." });
-            }
-            catch (OperationCanceledException)
-            {
-                return Json(new { status = "0", message = "操作已取消" });
+                return Json(new { status = "1", message = "成功上傳了...." });
             }
             catch (Exception e)
             {
@@ -396,16 +500,12 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 儲存個人回報資料表單 (Form 模式)
-        /// 用於個人出席、代禱事項等資料的表單提交
-        /// ? 已改造為正確的非同步模式
+        /// 儲存個人回報表單資料 (Form 方式)
+        /// 用於個人出席、代禱事項的表單提交
         /// </summary>
         /// <param name="aPersonalReportViewModel">個人回報 ViewModel</param>
-        /// <param name="cancellationToken">取消標記</param>
         [HttpPost]
-        public async Task<IActionResult> SavePersonalReportForm(
-            PersonalReportViewModel aPersonalReportViewModel,
-            CancellationToken cancellationToken = default)
+        public IActionResult SavePersonalReportForm(PersonalReportViewModel aPersonalReportViewModel)
         {
             try
             {
@@ -415,19 +515,15 @@ namespace ChurchReport.Controllers
                 if (allMemberData?.Members != null)
                 {
                     // 個人回報且已加入小組
-                    await SavePersonalReportWithSmallGroupAsync(aPersonalReportViewModel, cancellationToken);
+                    SavePersonalReportWithSmallGroup(aPersonalReportViewModel);
                 }
                 else
                 {
                     // 個人回報但未加入小組
-                    await SavePersonalReportWithoutSmallGroupAsync(aPersonalReportViewModel, cancellationToken);
+                    SavePersonalReportWithoutSmallGroup(aPersonalReportViewModel);
                 }
 
-                return Json(new { status = "1", message = "資料成功上傳了...." });
-            }
-            catch (OperationCanceledException)
-            {
-                return Json(new { status = "0", message = "操作已取消" });
+                return Json(new { status = "1", message = "成功上傳了...." });
             }
             catch (Exception e)
             {
@@ -437,46 +533,33 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 儲存已加入小組的個人回報
-        /// ? 已改造為非同步模式
         /// </summary>
-        private async Task SavePersonalReportWithSmallGroupAsync(
-            PersonalReportViewModel viewModel,
-            CancellationToken cancellationToken)
+        private void SavePersonalReportWithSmallGroup(PersonalReportViewModel viewModel)
         {
-            // 處理 ViewModel 結果
-            await Task.Run(() =>
-                InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                    .GetPersonalReportViewModelResult(viewModel),
-                cancellationToken).ConfigureAwait(false);
+            InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                .GetPersonalReportViewModelResult(viewModel);
 
-            // ? 使用 await 等待上傳完成
-            await Task.Run(() =>
+            Task.Factory.StartNew(() =>
                 InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData(
                     InMemoryContext.ListManager.m_SelectDate,
                     InMemoryContext.ListManager.m_Account,
                     InMemoryContext.ListManager.m_Password,
                     InMemoryContext.ListManager.LoginType,
                     InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
-                    "個人更新小組回報",
+                    "不需更新小組日誌",
                     "", "", false
-                ), cancellationToken).ConfigureAwait(false);
+                ), TaskCreationOptions.LongRunning);
         }
 
         /// <summary>
         /// 儲存未加入小組的個人回報
-        /// ? 已改造為非同步模式
         /// </summary>
-        private async Task SavePersonalReportWithoutSmallGroupAsync(
-            PersonalReportViewModel viewModel,
-            CancellationToken cancellationToken)
+        private void SavePersonalReportWithoutSmallGroup(PersonalReportViewModel viewModel)
         {
-            // 建立臨時變數以避免 ref 參數
+            // 建立局部變數以支援 ref 參數
             var toolUtility = ToolUtility;
-            
-            await Task.Run(() =>
-                InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                    .SavePersonalReportForm(ref toolUtility, viewModel),
-                cancellationToken).ConfigureAwait(false);
+            InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                .SavePersonalReportForm(ref toolUtility, viewModel);
         }
 
         #endregion
@@ -541,7 +624,6 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 個人資訊維護畫面
         /// 用於維護個人資訊，顯示地圖、資料網格，並允許上傳更新
-        /// ? 修復 NullReferenceException：添加 null 檢查
         /// </summary>
         [HttpGet]
         [Route("/Personal/MaintainPersonInfomationView")]
@@ -551,6 +633,29 @@ namespace ChurchReport.Controllers
             try
             {
                 SetupPersonalInfoViewBag();
+
+                // ? 設定 ViewBag.ListId - 用於多小組模式下的資料載入
+                // 在多小組模式下，需要傳遞特殊的識別碼
+                if (InMemoryContext.ListManager != null)
+                {
+                    var displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
+                    bool integrateFlag = IsIntegrateDataLoaded();
+
+                    if (displayViewType == "MultiGroupView" && !integrateFlag)
+                    {
+                        // 多小組模式：使用特殊識別碼
+                        ViewBag.ListId = "MULTIGROUP_MODE";
+                    }
+                    else
+                    {
+                        // 單一小組模式：使用實際的 ListId
+                        ViewBag.ListId = InMemoryContext.ListManager.ActiveListId ?? "";
+                    }
+                }
+                else
+                {
+                    ViewBag.ListId = "";
+                }
 
                 // ? 根據登入類型設定不同的資料，添加 null 檢查
                 if (InMemoryContext.ListManager != null &&
