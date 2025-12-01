@@ -118,22 +118,27 @@
                             lp.show();
                             btn.option("disabled", true);
 
-                            // 僅在提交成功後才收集資料與上傳，避免值尚未寫回而消失
+                            // 僅在提交成功後才收集資料與上傳
                             savePromise.done(function(){
                                 var payload = GetResult();
 
+                                // ? 設定 3 秒超時，不讓使用者等太久
                                 $.ajax({
                                     url: '@Url.Action("SaveMaintainPersonInfomation", "Personal")',
                                     type: 'POST',
                                     data: { aResult: payload },
+                                    timeout: 3000, // ? 3 秒超時
                                     success: function (response) {
                                         lp.hide();
                                         btn.option("disabled", false);
 
                                         if (response.status === "1") {
-                                            ShowToast(response.message || "上傳成功！", "success", 3000);
-                                            // 成功後保留目前畫面資料，避免覆蓋剛輸入值
-                                            // 如需重新撈資料，再由使用者手動觸發或延後處理
+                                            // ? 顯示背景上傳訊息
+                                            ShowToast(response.message || "資料已送出，正在背景上傳中...", "success", 3000);
+                                            
+                                            // ? 移除自動重新整理，保留使用者的編輯
+                                            // 讓使用者可以繼續編輯其他欄位
+                                            console.log("[Upload] 資料已送出，保留當前編輯內容");
                                         } else {
                                             ShowToast(response.message || "上傳失敗", "error", 5000);
                                         }
@@ -141,20 +146,32 @@
                                     error: function (xhr, status, error) {
                                         lp.hide();
                                         btn.option("disabled", false);
-                                        var errorMessage = "上傳失敗";
-                                        if (xhr.status === 404) {
-                                            errorMessage = "找不到上傳功能 (404)";
-                                        } else if (xhr.responseText) {
-                                            try {
-                                                var errorResponse = JSON.parse(xhr.responseText);
-                                                errorMessage = errorResponse.message || errorMessage;
-                                            } catch (e) {
-                                                errorMessage += ": " + xhr.responseText.substring(0, 100);
+
+                                        // ? 如果超時，視為成功（因為已經開始處理）
+                                        if (status === "timeout") {
+                                            ShowToast("資料已送出，正在背景上傳中...", "info", 3000);
+                                            
+                                            // ? 移除自動重新整理，保留使用者的編輯
+                                            console.log("[Upload] 資料已送出（超時），保留當前編輯內容");
+                                        } else {
+                                            // ? 其他錯誤才顯示錯誤訊息
+                                            var errorMessage = "上傳失敗";
+                                            if (xhr.status === 404) {
+                                                errorMessage = "找不到上傳功能 (404)";
+                                            } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                                                errorMessage = xhr.responseJSON.message;
+                                            } else if (xhr.responseText) {
+                                                try {
+                                                    var errorResponse = JSON.parse(xhr.responseText);
+                                                    errorMessage = errorResponse.message || errorMessage;
+                                                } catch (e) {
+                                                    errorMessage += ": " + xhr.responseText.substring(0, 100);
+                                                }
+                                            } else if (error) {
+                                                errorMessage += ": " + error;
                                             }
-                                        } else if (error) {
-                                            errorMessage += ": " + error;
+                                            ShowToast(errorMessage, "error", 5000);
                                         }
-                                        ShowToast(errorMessage, "error", 5000);
                                     }
                                 });
                             }).fail(function(){
@@ -302,21 +319,48 @@
                 dataGridInstance = $("#gridContainer").dxDataGrid("instance");
             }
             var grid = dataGridInstance;
-            if (!grid) { return "[]"; }
+            if (!grid) { 
+                console.error("[GetResult] DataGrid instance not found");
+                return "[]"; 
+            }
 
-            // 使用可見資料列可避免群組列混入
+            // ? 確保所有編輯都已儲存到資料來源
+            // 注意：saveEditData() 已在上傳按鈕中執行，這裡只是雙重確認
+            try {
+                grid.closeEditCell();
+            } catch(e) {
+                console.warn("[GetResult] closeEditCell error:", e);
+            }
+
+            // ? 使用 getVisibleRows() 取得所有可見資料列
             var rows = grid.getVisibleRows() || [];
             var items = [];
+            
+            console.log("[GetResult] 開始收集資料，總行數:", rows.length);
+            
             for (var i = 0; i < rows.length; i++) {
                 var r = rows[i];
+                // ? 只收集資料列，排除群組列和摘要列
                 if (r && r.rowType === "data" && r.data) {
+                    // ? 記錄每筆資料以供調試
+                    console.log("[GetResult] 收集第", i + 1, "筆:", r.data.FullName, 
+                        "Phone:", r.data.Phone, 
+                        "Address:", r.data.Address,
+                        "BirthDate:", r.data.BirthDate);
+                    
                     items.push(r.data);
                 }
             }
 
-            return JSON.stringify(items);
+            console.log("[GetResult] 收集完成，總共", items.length, "筆資料");
+            
+            var jsonResult = JSON.stringify(items);
+            console.log("[GetResult] JSON 長度:", jsonResult.length);
+            
+            return jsonResult;
         } catch (err) {
             console.error("[GetResult] 發生錯誤:", err);
+            console.error("[GetResult] 錯誤堆疊:", err.stack);
             return "[]";
         }
     }
