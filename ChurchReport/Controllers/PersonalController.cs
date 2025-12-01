@@ -141,9 +141,7 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 載入維護個人資訊資料
         /// 用於 MaintainPersonInfomationView 的 DataGrid 資料來源
-        /// ? 修復：支援多小組模式，按各小組分別顯示組員資訊
-        /// ? 修復：避免覆蓋 WeeklyReport，改用直接查詢
-        /// ? 添加詳細調試輸出
+        /// ✅ 修復：多小組模式下，無論是從「回報統計」還是「小組回報」點擊「組員資訊」，都顯示所有小組成員
         /// </summary>
         /// <param name="id">清單ID</param>
         /// <param name="loadOptions">載入選項(分頁、排序、篩選)</param>
@@ -152,7 +150,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ? 完整的 null 檢查鏈
+                // ✅ 完整的 null 檢查鏈
                 if (InMemoryContext.ListManager == null)
                 {
                     System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] ListManager is null");
@@ -161,15 +159,17 @@ namespace ChurchReport.Controllers
 
                 var allMembers = new System.Collections.Generic.List<Member>();
 
-                // ? 檢查是否為多小組模式
+                // ✅ 檢查是否為多小組模式
                 string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
                 bool integrateFlag = IsIntegrateDataLoaded();
 
                 System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] id={id}, displayViewType={displayViewType}, integrateFlag={integrateFlag}");
 
-                if (displayViewType == "MultiGroupView" && !integrateFlag)
+                // ✅ 關鍵修復：只要是多小組環境（displayViewType == "MultiGroupView"），
+                // 就應該載入所有小組的成員，不管 integrateFlag 的值
+                if (displayViewType == "MultiGroupView")
                 {
-                    // ? 多小組模式：從各小組載入資料（不覆蓋原有資料）
+                    // ✅ 多小組模式：從各小組載入資料
                     var multiGroupList = InMemoryContext.ListManager.m_MultiGroupList;
                     
                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 進入多小組模式");
@@ -189,7 +189,7 @@ namespace ChurchReport.Controllers
                         
                             try
                             {
-                                // ? 直接從 CRM 查詢該小組的成員，不使用 SetupIntegrateData
+                                // ✅ 直接從 CRM 查詢該小組的成員
                                 System.Guid listGuid;
                                 if (System.Guid.TryParse(groupRecord.ListEntityId, out listGuid))
                                 {
@@ -298,7 +298,7 @@ namespace ChurchReport.Controllers
                 {
                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 使用單一小組模式");
                     
-                    // ? 單一小組模式或 IntegrateView 模式：原有邏輯
+                    // ✅ 單一小組模式：原有邏輯
                     EnsurePersonReportDataLoaded(id);
 
                     var weeklyReport = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
