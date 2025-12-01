@@ -186,7 +186,7 @@ namespace ChurchReport.Controllers
                         {
                             groupIndex++;
                             System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 處理第 {groupIndex} 個小組: {groupRecord.Name}, ListId: {groupRecord.ListEntityId}");
-                            
+                        
                             try
                             {
                                 // ? 直接從 CRM 查詢該小組的成員，不使用 SetupIntegrateData
@@ -215,7 +215,7 @@ namespace ChurchReport.Controllers
                                                 {
                                                     // 查詢聯絡人詳細資訊
                                                     var contactEntity = toolUtility.RetrieveEntity("contact", contactId);
-                                                    
+                                                
                                                     if (contactEntity != null)
                                                     {
                                                         var fullName = toolUtility.GetEntityStringAttribute(contactEntity, "fullname");
@@ -567,6 +567,60 @@ namespace ChurchReport.Controllers
         #region 個人資訊管理
 
         /// <summary>
+        /// 將會員身分文字轉換為選項值
+        /// </summary>
+        private int GetMembershipStatusValue(string statusText)
+        {
+            switch (statusText)
+            {
+                case "牧師師母":
+                    return 100000000;
+                case "區牧":
+                    return 100000001;
+                case "小區長":
+                    return 100000002;
+                case "小組長":
+                    return 100000003;
+                case "副小組長":
+                    return 100000004;
+                case "核心同工":
+                    return 100000005;
+                case "小組組員":
+                    return 100000006;
+                case "未入組":
+                    return 100000007;
+                case "新朋友":
+                    return 100000008;
+                case "外教會":
+                    return 100000009;
+                case "結案":
+                    return 100000010;
+                default:
+                    return -1;
+            }
+        }
+
+        /// <summary>
+        /// 將信仰狀態文字轉換為選項值
+        /// </summary>
+        private int GetSpiritualIdentityValue(string spiritualText)
+        {
+            switch (spiritualText)
+            {
+                case "基督徒":
+                    return 100000000;
+                case "已決志":
+                    return 100000001;
+                case "慕道友":
+                    return 100000002;
+                case "未信主":
+                    return 100000003;
+                default:
+                    return -1;
+            }
+        }
+
+        /// <summary>
         /// 個人資料管理畫面
         /// 顯示與編輯個人基本資料
         /// </summary>
@@ -618,6 +672,344 @@ namespace ChurchReport.Controllers
             catch (Exception e)
             {
                 return HandleError(e, "SavePersonalInfomation");
+            }
+        }
+
+        /// <summary>
+        /// 儲存維護個人資訊（組員資料）
+        /// 用於 MaintainPersonInfomationView 的上傳按鈕
+        /// </summary>
+        /// <param name="aResult">組員資料 JSON 字串</param>
+        [HttpPost]
+        public IActionResult SaveMaintainPersonInfomation(string aResult)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 開始處理");
+                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 資料長度: {aResult?.Length ?? 0}");
+                
+                if (!string.IsNullOrWhiteSpace(aResult) && aResult.Length > 0)
+                {
+                    // 記錄前200個字元以供調試
+                    var preview = aResult.Length > 200 ? aResult.Substring(0, 200) : aResult;
+                    System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 資料預覽: {preview}");
+                }
+
+                if (string.IsNullOrWhiteSpace(aResult))
+                {
+                    return Json(new { status = "0", message = "沒有資料需要上傳" });
+                }
+
+                // 解析 JSON 資料
+                System.Collections.Generic.List<Member> members = null;
+                
+                try
+                {
+                    // ? 改用 Newtonsoft.Json，容錯性更好
+                    members = Newtonsoft.Json.JsonConvert.DeserializeObject<System.Collections.Generic.List<Member>>(aResult);
+                }
+                catch (Newtonsoft.Json.JsonException jsonEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] JSON 解析錯誤: {jsonEx.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] JSON 內容: {aResult}");
+                    
+                    // 嘗試修復常見的 JSON 格式問題
+                    try
+                    {
+                        // 替換單引號為雙引號
+                        var fixedJson = aResult.Replace("'", "\"");
+                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 嘗試修復 JSON...");
+                        members = Newtonsoft.Json.JsonConvert.DeserializeObject<System.Collections.Generic.List<Member>>(fixedJson);
+                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] JSON 修復成功");
+                    }
+                    catch (Exception retryEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] JSON 修復失敗: {retryEx.Message}");
+                        return Json(new { status = "0", message = $"JSON 格式錯誤: {jsonEx.Message}" });
+                    }
+                }
+
+                if (members == null || members.Count == 0)
+                {
+                    return Json(new { status = "0", message = "沒有有效的資料需要上傳" });
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 成功解析到 {members.Count} 筆資料");
+
+                // 取得 ToolUtility 實例
+                var toolUtility = ToolUtility;
+
+                int successCount = 0;
+                int errorCount = 0;
+                var errors = new System.Collections.Generic.List<string>();
+
+                // 逐筆更新成員資料
+                foreach (var member in members)
+                {
+                    try
+                    {
+                        if (string.IsNullOrWhiteSpace(member.ContactId))
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 跳過無 ContactId 的成員: {member.FullName}");
+                            continue;
+                        }
+
+                        System.Guid contactGuid;
+                        if (!System.Guid.TryParse(member.ContactId, out contactGuid))
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 無效的 ContactId: {member.ContactId}");
+                            errorCount++;
+                            errors.Add($"{member.FullName}: 無效的聯絡人 ID");
+                            continue;
+                        }
+
+                        // 取得現有的聯絡人實體
+                        var contactEntity = toolUtility.RetrieveEntity("contact", contactGuid);
+
+                        if (contactEntity == null)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 找不到聯絡人: {contactGuid}");
+                            errorCount++;
+                            errors.Add($"{member.FullName}: 找不到聯絡人記錄");
+                            continue;
+                        }
+
+                        // 更新欄位
+                        bool hasChanges = false;
+
+                        // 更新行動電話
+                        if (!string.IsNullOrWhiteSpace(member.Phone) && 
+                            toolUtility.GetEntityStringAttribute(contactEntity, "mobilephone") != member.Phone)
+                        {
+                            contactEntity["mobilephone"] = member.Phone;
+                            hasChanges = true;
+                        }
+
+                        // 更新地址
+                        if (!string.IsNullOrWhiteSpace(member.Address) && 
+                            toolUtility.GetEntityStringAttribute(contactEntity, "address2_line1") != member.Address)
+                        {
+                            contactEntity["address2_line1"] = member.Address;
+                            hasChanges = true;
+                        }
+
+                        // 更新生日
+                        if (member.BirthDate != DateTime.MinValue && member.BirthDate.Year > 1900)
+                        {
+                            var currentBirthDate = toolUtility.GetEntityDateTimeAttribute(contactEntity, "birthdate");
+                            if (currentBirthDate == DateTime.MinValue || currentBirthDate.Date != member.BirthDate.Date)
+                            {
+                                contactEntity["birthdate"] = member.BirthDate;
+                                hasChanges = true;
+                            }
+                        }
+
+                        // 更新會員身分
+                        if (!string.IsNullOrWhiteSpace(member.Status))
+                        {
+                            int statusValue = GetMembershipStatusValue(member.Status);
+                            if (statusValue >= 0)
+                            {
+                                var currentStatus = toolUtility.GetOptionSetAttribute(contactEntity, "new_membership_status");
+                                if (currentStatus != statusValue)
+                                {
+                                    contactEntity["new_membership_status"] = new Microsoft.Xrm.Sdk.OptionSetValue(statusValue);
+                                    hasChanges = true;
+                                }
+                            }
+                        }
+
+                        // 更新信仰狀態
+                        if (!string.IsNullOrWhiteSpace(member.SpiritualIdentity))
+                        {
+                            int spiritualValue = GetSpiritualIdentityValue(member.SpiritualIdentity);
+                            if (spiritualValue >= 0)
+                            {
+                                var currentSpiritual = toolUtility.GetOptionSetAttribute(contactEntity, "new_spiritual_identity");
+                                if (currentSpiritual != spiritualValue)
+                                {
+                                    contactEntity["new_spiritual_identity"] = new Microsoft.Xrm.Sdk.OptionSetValue(spiritualValue);
+                                    hasChanges = true;
+                                }
+                            }
+                        }
+
+                        // 如果有變更，則更新
+                        if (hasChanges)
+                        {
+                            toolUtility.UpdateEntity(contactEntity);
+                            successCount++;
+                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 成功更新: {member.FullName}");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 無變更: {member.FullName}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        errorCount++;
+                        errors.Add($"{member.FullName}: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 更新失敗: {member.FullName}, 錯誤: {ex.Message}");
+                    }
+                }
+
+                // 組合回應訊息
+                var message = $"更新完成！成功: {successCount} 筆";
+                if (errorCount > 0)
+                {
+                    message += $", 失敗: {errorCount} 筆";
+                    if (errors.Count > 0)
+                    {
+                        message += "\n錯誤詳情:\n" + string.Join("\n", errors.Take(5));
+                        if (errors.Count > 5)
+                        {
+                            message += $"\n...以及其他 {errors.Count - 5} 個錯誤";
+                        }
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {message}");
+
+                return Json(new { status = "1", message = message });
+            }
+            catch (Exception e)
+            {
+                var errorMessage = $"上傳失敗: {e.Message}";
+                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 發生錯誤: {e.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 錯誤堆疊:\n{e.StackTrace}");
+                
+                if (e.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 內部錯誤: {e.InnerException.Message}");
+                    errorMessage += $" (內部錯誤: {e.InnerException.Message})";
+                }
+                
+                return Json(new { status = "0", message = errorMessage });
+            }
+        }
+
+        /// <summary>
+        /// 更新單筆維護個人資訊
+        /// 用於 DataGrid 的儲存按鈕（單筆更新）
+        /// </summary>
+        /// <param name="key">ContactId</param>
+        /// <param name="values">更新的欄位值(JSON)</param>
+        [HttpPut]
+        public IActionResult UpdateMaintainPersonInfomation(string key, string values)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] key={key}, values={values}");
+
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    return BadRequest("缺少 ContactId");
+                }
+
+                System.Guid contactGuid;
+                if (!System.Guid.TryParse(key, out contactGuid))
+                {
+                    return BadRequest("無效的 ContactId");
+                }
+
+                // 解析更新的欄位
+                var updateValues = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, object>>(values);
+
+                if (updateValues == null || updateValues.Count == 0)
+                {
+                    return Ok(); // 沒有變更
+                }
+
+                // 取得 ToolUtility 實例
+                var toolUtility = ToolUtility;
+
+                // 取得現有的聯絡人實體
+                var contactEntity = toolUtility.RetrieveEntity("contact", contactGuid);
+
+                if (contactEntity == null)
+                {
+                    return NotFound($"找不到聯絡人: {contactGuid}");
+                }
+
+                bool hasChanges = false;
+
+                // 更新行動電話
+                if (updateValues.ContainsKey("Phone") && updateValues["Phone"] != null)
+                {
+                    var phoneValue = updateValues["Phone"].ToString();
+                    if (!string.IsNullOrWhiteSpace(phoneValue))
+                    {
+                        contactEntity["mobilephone"] = phoneValue;
+                        hasChanges = true;
+                    }
+                }
+
+                // 更新地址
+                if (updateValues.ContainsKey("Address") && updateValues["Address"] != null)
+                {
+                    var addressValue = updateValues["Address"].ToString();
+                    if (!string.IsNullOrWhiteSpace(addressValue))
+                    {
+                        contactEntity["address2_line1"] = addressValue;
+                        hasChanges = true;
+                    }
+                }
+
+                // 更新生日
+                if (updateValues.ContainsKey("BirthDate") && updateValues["BirthDate"] != null)
+                {
+                    if (DateTime.TryParse(updateValues["BirthDate"].ToString(), out DateTime birthDate))
+                    {
+                        if (birthDate.Year > 1900)
+                        {
+                            contactEntity["birthdate"] = birthDate;
+                            hasChanges = true;
+                        }
+                    }
+                }
+
+                // 更新會員身分
+                if (updateValues.ContainsKey("Status") && updateValues["Status"] != null)
+                {
+                    var statusText = updateValues["Status"].ToString();
+                    int statusValue = GetMembershipStatusValue(statusText);
+                    if (statusValue >= 0)
+                    {
+                        contactEntity["new_membership_status"] = new Microsoft.Xrm.Sdk.OptionSetValue(statusValue);
+                        hasChanges = true;
+                    }
+                }
+
+                // 更新信仰狀態
+                if (updateValues.ContainsKey("SpiritualIdentity") && updateValues["SpiritualIdentity"] != null)
+                {
+                    var spiritualText = updateValues["SpiritualIdentity"].ToString();
+                    int spiritualValue = GetSpiritualIdentityValue(spiritualText);
+                    if (spiritualValue >= 0)
+                    {
+                        contactEntity["new_spiritual_identity"] = new Microsoft.Xrm.Sdk.OptionSetValue(spiritualValue);
+                        hasChanges = true;
+                    }
+                }
+
+                // 如果有變更，則更新
+                if (hasChanges)
+                {
+                    toolUtility.UpdateEntity(contactEntity);
+                    System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] 成功更新: {contactGuid}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] 無變更: {contactGuid}");
+                }
+
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine($"[UpdateMaintainPersonInfomation] 發生錯誤: {e.Message}\n{e.StackTrace}");
+                return StatusCode(500, $"更新失敗: {e.Message}");
             }
         }
 

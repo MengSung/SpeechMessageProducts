@@ -1,11 +1,11 @@
-ï»¿@* 
-    é€™å€‹è¦–åœ–ç”¨æ–¼ç¶­è­·å€‹äººè³‡è¨Šï¼Œé¡¯ç¤ºåœ°åœ–ã€è³‡æ–™ç¶²æ ¼ï¼Œä¸¦å…è¨±ä¸Šå‚³æ›´æ–°ã€‚
-    æ ¹æ“šç™»å…¥é¡å‹ï¼ˆå°çµ„é•·æˆ–å€‹äººï¼‰é¡¯ç¤ºä¸åŒçš„è³‡æ–™ç¶²æ ¼ã€‚
+@* 
+    ³o­Óµø¹Ï¥Î©óºûÅ@­Ó¤H¸ê°T¡AÅã¥Ü¦a¹Ï¡B¸ê®Æºô®æ¡A¨Ã¤¹³\¤W¶Ç§ó·s¡C
+    ®Ú¾Úµn¤JÃş«¬¡]¤p²Õªø©Î­Ó¤H¡^Åã¥Ü¤£¦Pªº¸ê®Æºô®æ¡C
 *@
 
 @{
-    String DataStatus = "ä¸Šå‚³æˆåŠŸäº†!";
-    String ReUpload = "è«‹å†æŒ‰ä¸€æ¬¡ä¸Šå‚³éˆ•!";
+    String DataStatus = "¤W¶Ç¦¨¥\¤F!";
+    String ReUpload = "½Ğ¦A«ö¤@¦¸¤W¶Ç¶s!";
 }
 
 @model ChurchReport.Models.SmallGroupData
@@ -18,14 +18,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
     <meta name="description" content="">
-    <title>è–è°·è¡Œé“æœƒ</title>
+    <title>¸t¨¦¦æ¹D·|</title>
 </head>
 
-@*<br />æ›è¡Œ*@
+@*<br />´«¦æ*@
 <br />
 
 <div class="dx-field" style="height:100%; width:100%; overflow: auto;">
-    <!-- Toast é€šçŸ¥å®¹å™¨ -->
+    <!-- Toast ³qª¾®e¾¹ -->
     <div id="ToastContainer">
         @(Html.DevExtreme().Toast()
                 .ID("toast")
@@ -38,7 +38,7 @@
             )
     </div>
 
-    <!-- è¼‰å…¥é¢æ¿ -->
+    <!-- ¸ü¤J­±ªO -->
     <div id="LoadPanel">
         @(Html.DevExtreme().LoadPanel()
                 .ID("loadPanel")
@@ -49,12 +49,12 @@
                 .ShowPane(true)
                 .Shading(true)
                 .CloseOnOutsideClick(false)
-                .Message("æ›´æ–°è³‡æ–™ä¸­...")
+                .Message("§ó·s¸ê®Æ¤¤...")
                 .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
             )
     </div>
 
-    <!-- é‡æ–°ä¸Šå‚³ Toast -->
+    <!-- ­«·s¤W¶Ç Toast -->
     <div id="ToastContainer">
         @(Html.DevExtreme().Toast()
                     .ID("ToastReUpload")
@@ -70,17 +70,17 @@
 
     <hr />
 
-    <!-- å€‹äººè³‡æ–™æ¨™é¡Œ -->
-    <div style="font-family:æ¨™æ¥·é«”;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-        <h4>å€‹äººè³‡æ–™</h4>
+    <!-- ­Ó¤H¸ê®Æ¼ĞÃD -->
+    <div style="font-family:¼Ğ·¢Åé;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+        <h4>­Ó¤H¸ê®Æ</h4>
     </div>
 
-    <!-- åœ°åœ–å®¹å™¨ -->
+    <!-- ¦a¹Ï®e¾¹ -->
     <div id="multigroupchart">
         @(Html.DevExtreme().Map()
         .ID("map")
         .Provider(GeoMapProvider.Google)
-        .Center("å°å—å¸‚")
+        .Center("¥x«n¥«")
         .Zoom(11)
         .Visible(false)
         .Width("50%")
@@ -97,10 +97,10 @@
 
     <br />
 
-    <!-- ä¸Šå‚³æŒ‰éˆ• -->
+    <!-- ¤W¶Ç«ö¶s -->
     <div id="buttonContainer" class="dx-button-icon">
         @(Html.DevExtreme().Button()
-            .Text("ä¸Šå‚³").Height(50).Width(80).Icon("check")
+            .Text("¤W¶Ç").Height(50).Width(80).Icon("check")
             .Type(ButtonType.Success)
             .ID("save-button")
             .OnClick
@@ -109,253 +109,228 @@
                         {
                         var GroupDataGrid = $("#gridContainer").dxDataGrid("instance");
                         var ButtonContainer = $("#save-button").dxButton("instance");
-                        var GroupDataGridFlag = GroupDataGrid.hasEditData(); // æ˜¯å¦é‚„æœ‰æœªæäº¤çš„ç·¨è¼¯è³‡æ–™
+                        var GroupDataGridFlag = GroupDataGrid.hasEditData();
 
                         if (!GroupDataGridFlag)
                         {
-                            // é¡¯ç¤ºè¼‰å…¥é¢æ¿
                             $("#loadPanel").dxLoadPanel("instance").show();
-                            // ç¦ç”¨æŒ‰éˆ•
                             ButtonContainer.option("disabled", true);
 
-                            // AJAX ä¸Šå‚³è³‡æ–™
                             $.ajax({
-                                url: '@Url.Action("SavePersonInfomation", "Home")',
-                                data: { aResult: GetResult() }, // æ•´ç†è³‡æ–™
+                                url: '@Url.Action("SaveMaintainPersonInfomation", "Personal")',
+                                data: { aResult: GetResult() },
                                 type: 'POST',
-                                success: function (arg) {
-                                    // éš±è—è¼‰å…¥é¢æ¿
+                                success: function (response) {
                                     $("#loadPanel").dxLoadPanel("instance").hide();
-                                    // å•Ÿç”¨æŒ‰éˆ•
                                     ButtonContainer.option("disabled", false);
-                                    // é¡¯ç¤ºæˆåŠŸ Toast
-                                    $("#toast").dxToast("instance").show();
+                                    
+                                    if (response.status === "1") {
+                                        ShowToast(response.message || "¤W¶Ç¦¨¥\¡I", "success", 3000);
+                                    } else {
+                                        ShowToast(response.message || "¤W¶Ç¥¢±Ñ", "error", 5000);
+                                    }
                                 },
-                                error: function (obj) {
-                                    // éŒ¯èª¤è™•ç†
+                                error: function (xhr, status, error) {
+                                    $("#loadPanel").dxLoadPanel("instance").hide();
+                                    ButtonContainer.option("disabled", false);
+                                    var errorMessage = "¤W¶Ç¥¢±Ñ";
+                                    if (xhr.status === 404) {
+                                        errorMessage = "§ä¤£¨ì¤W¶Ç¥\¯à (404)";
+                                    } else if (xhr.responseText) {
+                                        try {
+                                            var errorResponse = JSON.parse(xhr.responseText);
+                                            errorMessage = errorResponse.message || errorMessage;
+                                        } catch (e) {
+                                            errorMessage += ": " + xhr.responseText.substring(0, 100);
+                                        }
+                                    } else if (error) {
+                                        errorMessage += ": " + error;
+                                    }
+                                    ShowToast(errorMessage, "error", 5000);
                                 }
                             });
                         }
                         else
                         {
-                            // éš±è—è¼‰å…¥é¢æ¿
                             $("#loadPanel").dxLoadPanel("instance").hide();
-                            // é¡¯ç¤ºé‡æ–°ä¸Šå‚³æç¤º
-                            $("#ToastReUpload").dxToast("instance").show();
+                            ShowToast("½Ğ¥ıÀx¦s¥¼´£¥æªº½s¿è¸ê®Æ", "warning", 3000);
                         }
                         }
             </text>)
         )
     </div>
 
-    @if (Model.LoginType == "å°çµ„é•·")
-    {
-        <!-- å°çµ„é•·è³‡æ–™ç¶²æ ¼ -->
-        <div id="data-grid">
-            @(Html.DevExtreme().DataGrid()
-            .ID("gridContainer")
-            .ShowBorders(true)
-            .Paging(paging => paging.Enabled(false))
-            .AllowColumnResizing(true)
-            .ColumnResizingMode(ColumnResizingMode.Widget)
-            .ColumnFixing(c => c.Enabled(true))
-            .LoadPanel(l => l.Text("æ›´æ–°è³‡æ–™ä¸­...").Enabled(false))
-            .SearchPanel(s => s.Visible(false).Placeholder("æœå°‹.."))
-            .Export(e => e.Enabled(false).AllowExportSelectedData(true))
-            .ShowColumnLines(true)
-            .ShowRowLines(true)
-            .RowAlternationEnabled(true)
-            .ShowBorders(true)
-            .TwoWayBindingEnabled(true)
-            .Grouping(g => g
-                .ContextMenuEnabled(true)
-                .ExpandMode(GridGroupingExpandMode.RowClick)
-            )
-            .GroupPanel(p => p
-                .EmptyPanelText("è«‹æŠŠå°çµ„åç¨±æ‹‰åˆ°é€™è£¡")
-                .Visible(false)
-                .AllowColumnDragging(true)
-            )
-            .Editing(editing =>
-            {
-                editing.Mode(GridEditMode.Cell);
-                editing.AllowUpdating(true);
-                editing.Texts(a => a.SaveAllChanges("ä¸Šå‚³æª”æ¡ˆ").AddRow("æ–°å¢").CancelAllChanges("å–æ¶ˆè®Šæ›´").SaveRowChanges("å„²å­˜").CancelRowChanges("å–æ¶ˆ").EditRow("ç·¨è¼¯").DeleteRow("åˆªé™¤"));
-            })
-            .Columns(columns =>
-            {
-                columns.Add().DataField("SmallGroupName").Caption("å°çµ„").GroupIndex(0).MinWidth(10);
-                columns.Add().DataField("FullName").Caption("å§“å").AllowEditing(false).Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-                columns.Add().DataField("Status")
-                    .Caption("æœƒå“¡èº«åˆ†").Alignment(HorizontalAlignment.Center)
-                    .AllowEditing(true)
-                    .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
-                    .Lookup(lookup => lookup
-                    .DataSource(new string[] { "ç‰§å¸«å¸«æ¯", "å€ç‰§", "å°å€é•·", "å°çµ„é•·", "å‰¯å°çµ„é•·", "æ ¸å¿ƒåŒå·¥", "å°çµ„çµ„å“¡", "æœªå…¥çµ„", "æ–°æœ‹å‹", "å¤–æ•™æœƒ", "çµæ¡ˆ" })
-                    );
-                columns.Add().DataField("EquipmentStatus").Caption("è£å‚™ç‹€æ…‹").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
-                columns.Add().DataField("SpiritualIdentity")
-                    .Caption("ä¿¡ä»°ç‹€æ…‹").Alignment(HorizontalAlignment.Center)
-                    .AllowEditing(true)
-                    .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
-                    .Lookup(lookup => lookup
-                    .DataSource(new string[] { "-æœªçŸ¥-", "åŸºç£å¾’", "å·²æ±ºå¿—", "æ…•é“å‹", "æœªä¿¡ä¸»" })
-                    );
-                columns.Add().DataField("Phone").Caption("è¡Œå‹•é›»è©±").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
-                columns.Add().DataField("BirthDate").Caption("ç”Ÿæ—¥").DataType(GridColumnDataType.Date)
-                    .CalculateCellValue(@<text>
-                                        function(row)
+    <!-- ¸ê®Æºô®æ -->
+    <div id="data-grid">
+        @(Html.DevExtreme().DataGrid()
+        .ID("gridContainer")
+        .ShowBorders(true)
+        .Paging(paging => paging.Enabled(false))
+        .AllowColumnResizing(true)
+        .ColumnResizingMode(ColumnResizingMode.Widget)
+        .ColumnFixing(c => c.Enabled(true))
+        .LoadPanel(l => l.Text("§ó·s¸ê®Æ¤¤...").Enabled(false))
+        .SearchPanel(s => s.Visible(false).Placeholder("·j´M.."))
+        .Export(e => e.Enabled(false).AllowExportSelectedData(true))
+        .ShowColumnLines(true)
+        .ShowRowLines(true)
+        .RowAlternationEnabled(true)
+        .ShowBorders(true)
+        .TwoWayBindingEnabled(true)
+        .Grouping(g => g
+            .ContextMenuEnabled(true)
+            .ExpandMode(GridGroupingExpandMode.RowClick)
+        )
+        .GroupPanel(p => p
+            .EmptyPanelText("½Ğ§â¤p²Õ¦WºÙ©Ô¨ì³o¸Ì")
+            .Visible(false)
+            .AllowColumnDragging(true)
+        )
+        .Editing(editing =>
+        {
+            editing.Mode(GridEditMode.Cell);
+            editing.AllowUpdating(true);
+            editing.AllowAdding(false);
+            editing.AllowDeleting(false);
+            editing.Texts(a => a.SaveRowChanges("Àx¦s").CancelRowChanges("¨ú®ø").EditRow("½s¿è"));
+        })
+        .Columns(columns =>
+        {
+            columns.Add().DataField("SmallGroupName").Caption("¤p²Õ").GroupIndex(0).MinWidth(10).AllowEditing(false);
+            columns.Add().DataField("FullName").Caption("©m¦W").AllowEditing(false).Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
+            columns.Add().DataField("Status")
+                .Caption("·|­û¨­¤À").Alignment(HorizontalAlignment.Center)
+                .AllowEditing(true)
+                .Width(70).MinWidth(30).DataType(GridColumnDataType.String)
+                .Lookup(lookup => lookup
+                .DataSource(new string[] { "ªª®v®v¥À", "°Ïªª", "¤p°Ïªø", "¤p²Õªø", "°Æ¤p²Õªø", "®Ö¤ß¦P¤u", "¤p²Õ²Õ­û", "¥¼¤J²Õ", "·sªB¤Í", "¥~±Ğ·|", "µ²®×" })
+                );
+            columns.Add().DataField("EquipmentStatus").Caption("¸Ë³Æª¬ºA").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
+            columns.Add().DataField("SpiritualIdentity")
+                .Caption("«H¥õª¬ºA").Alignment(HorizontalAlignment.Center)
+                .AllowEditing(true)
+                .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
+                .Lookup(lookup => lookup
+                .DataSource(new string[] { "-¥¼ª¾-", "°ò·ş®{", "¤w¨M§Ó", "¼}¹D¤Í", "¥¼«H¥D" })
+                );
+            columns.Add().DataField("Phone").Caption("¦æ°Ê¹q¸Ü").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left).AllowEditing(true);
+            columns.Add().DataField("BirthDate").Caption("¥Í¤é").DataType(GridColumnDataType.Date)
+                .CalculateCellValue(@<text>
+                                    function(row)
+                                    {
+                                        if (row.BirthDate != null)
                                         {
-                                            if (row.BirthDate != null)
-                                            {
-                                                var ParsedDate = ParsingDate(row.BirthDate);
-                                                if (ParsedDate.getFullYear() == 1901)
-                                                {
-                                                    return null;
-                                                }
-                                                else
-                                                {
-                                                    return ParsedDate;
-                                                }
-                                            }
-                                            else
+                                            var ParsedDate = ParsingDate(row.BirthDate);
+                                            if (ParsedDate.getFullYear() == 1901)
                                             {
                                                 return null;
                                             }
-                                        }
-                                    </text>)
-                    .Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80);
-                columns.Add().DataField("Address").Caption("åœ°å€").Fixed(false).Width(200).MinWidth(90).Alignment(HorizontalAlignment.Left);
-            })
-            .DataSource(d => d
-                .WebApi()
-                .Controller("Personal")
-                .LoadAction("LoadMaintainPersonInfomation")
-                .InsertAction("InsertPresentRecord")
-                .DeleteAction("DeletePresentRecord")
-                .UpdateAction("UpdateMaintainPersonInfomationPresentRecord")
-                .Key("PresentRecordId")
-                .LoadParams(new { id = @ViewBag.ListId })
-            )
-            .OnContentReady(@<text>
-                            function(e)
-                            {
-                                moveEditColumnToLeft(e.component);
-                            }
-                        </text>)
-            .OnCellPrepared("cell_prepared")
-            )
-        </div>
-    }
-    else
-    {
-        <!-- å€‹äººè³‡æ–™ç¶²æ ¼ -->
-        <div id="data-personal-grid">
-            @(Html.DevExtreme().DataGrid()
-            .ID("gridContainer")
-            .ShowBorders(true)
-            .Paging(paging => paging.Enabled(false))
-            .AllowColumnResizing(true)
-            .ColumnResizingMode(ColumnResizingMode.Widget)
-            .ColumnFixing(c => c.Enabled(true))
-            .LoadPanel(l => l.Text("æ›´æ–°è³‡æ–™ä¸­...").Enabled(false))
-            .SearchPanel(s => s.Visible(false).Placeholder("æœå°‹.."))
-            .Export(e => e.Enabled(false).AllowExportSelectedData(true))
-            .DateSerializationFormat("yyyy-MM-dd")
-            .ShowColumnLines(true)
-            .ShowRowLines(true)
-            .RowAlternationEnabled(true)
-            .ShowBorders(true)
-            .TwoWayBindingEnabled(true)
-            .Grouping(g => g
-                .ContextMenuEnabled(true)
-                .ExpandMode(GridGroupingExpandMode.RowClick)
-            )
-            .GroupPanel(p => p
-                .EmptyPanelText("è«‹æŠŠå°çµ„åç¨±æ‹‰åˆ°é€™è£¡")
-                .Visible(false)
-                .AllowColumnDragging(true)
-            )
-            .Editing(editing =>
-            {
-                editing.Mode(GridEditMode.Cell);
-                editing.AllowUpdating(true);
-                editing.Texts(a => a.SaveAllChanges("ä¸Šå‚³æª”æ¡ˆ").AddRow("æ–°å¢").CancelAllChanges("å–æ¶ˆè®Šæ›´").SaveRowChanges("å„²å­˜").CancelRowChanges("å–æ¶ˆ").EditRow("ç·¨è¼¯").DeleteRow("åˆªé™¤"));
-            })
-            .Columns(columns =>
-            {
-                columns.Add().DataField("SmallGroupName").Caption("å°çµ„").GroupIndex(0).MinWidth(10);
-                columns.Add().DataField("FullName").Caption("å§“å").AllowEditing(false).Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-                columns.Add().DataField("Status")
-                    .Caption("æœƒå“¡èº«åˆ†").Alignment(HorizontalAlignment.Center)
-                    .AllowEditing(true)
-                    .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
-                    .Lookup(lookup => lookup
-                    .DataSource(new string[] { "ç‰§å¸«å¸«æ¯", "å€ç‰§", "å°å€é•·", "å°çµ„é•·", "å‰¯å°çµ„é•·", "æ ¸å¿ƒåŒå·¥", "å°çµ„çµ„å“¡", "æœªå…¥çµ„", "æ–°æœ‹å‹", "å¤–æ•™æœƒ", "çµæ¡ˆ" })
-                    );
-                columns.Add().DataField("EquipmentStatus").Caption("è£å‚™ç‹€æ…‹").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
-                columns.Add().DataField("SpiritualIdentity")
-                    .Caption("å—æ´—ç‹€æ…‹").Alignment(HorizontalAlignment.Center)
-                    .AllowEditing(true)
-                    .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
-                    .Lookup(lookup => lookup
-                    .DataSource(new string[] { "-æœªçŸ¥-", "åŸºç£å¾’", "å·²æ±ºå¿—", "æ…•é“å‹", "æœªä¿¡ä¸»" })
-                    );
-                columns.Add().DataField("Phone").Caption("è¡Œå‹•é›»è©±").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
-                columns.Add().DataField("BirthDate").Caption("ç”Ÿæ—¥").DataType(GridColumnDataType.Date)
-                    .CalculateCellValue(@<text>
-                                        function(row)
-                                        {
-                                            if (row.BirthDate != null)
-                                            {
-                                                var ParsedDate = ParsingDate(row.BirthDate);
-                                                if (ParsedDate.getFullYear() == 1901)
-                                                {
-                                                    return null;
-                                                }
-                                                else
-                                                {
-                                                    return ParsedDate;
-                                                }
-                                            }
                                             else
                                             {
-                                                return null;
+                                                return ParsedDate;
                                             }
                                         }
-                                    </text>)
-                    .Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80);
-                columns.Add().DataField("Address").Caption("åœ°å€").Fixed(false).Width(200).MinWidth(90).Alignment(HorizontalAlignment.Left);
-            })
-            .DataSource(d => d
-                .WebApi()
-                .Controller("Personal")
-                .LoadAction("LoadMaintainPersonInfomation")
-                .InsertAction("InsertPresentRecord")
-                .DeleteAction("DeletePresentRecord")
-                .UpdateAction("UpdateMaintainPersonInfomationPresentRecord")
-                .Key("PresentRecordId")
-                .LoadParams(new { id = @ViewBag.ListId })
-            )
-            .OnContentReady(@<text>
-                            function(e)
-                            {
-                                moveEditColumnToLeft(e.component);
-                            }
-                        </text>)
-            .OnCellPrepared("cell_prepared")
-            )
-        </div>
-    }
+                                        else
+                                        {
+                                            return null;
+                                        }
+                                    }
+                                </text>)
+                .Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80).AllowEditing(true);
+            columns.Add().DataField("Address").Caption("¦a§}").Fixed(false).Width(200).MinWidth(90).Alignment(HorizontalAlignment.Left).AllowEditing(true);
+        })
+        .DataSource(d => d
+            .WebApi()
+            .Controller("Personal")
+            .LoadAction("LoadMaintainPersonInfomation")
+            .UpdateAction("UpdateMaintainPersonInfomation")
+            .Key("ContactId")
+            .LoadParams(new { id = @ViewBag.ListId })
+        )
+        .OnContentReady(@<text>
+                        function(e)
+                        {
+                            moveEditColumnToLeft(e.component);
+                        }
+                    </text>)
+        .OnCellPrepared("cell_prepared")
+        )
+    </div>
 </div>
 
 <script>
     var markerUrl = "https://js.devexpress.com/Demos/RealtorApp/images/map-marker.png";
-    var DataUploadStatus = "å°šæœªä¸Šå‚³å–”!";
+    var DataUploadStatus = "©|¥¼¤W¶Ç³á!";
 
-    // é¡¯ç¤º Toast é€šçŸ¥
+    // ¦¬¶° DataGrid ¸ê®Æ
+    function GetResult() {
+        try {
+            console.log("[GetResult] ¶}©l¦¬¶°¸ê®Æ...");
+            
+            var dataGrid = $("#gridContainer").dxDataGrid("instance");
+            if (!dataGrid) {
+                console.error("[GetResult] DataGrid instance not found");
+                return "[]";
+            }
+
+            console.log("[GetResult] DataGrid instance found");
+
+            var dataSource = dataGrid.getDataSource();
+            if (!dataSource) {
+                console.error("[GetResult] DataSource not found");
+                return "[]";
+            }
+
+            console.log("[GetResult] DataSource found");
+
+            var items = dataSource.items();
+            if (!items || items.length === 0) {
+                console.warn("[GetResult] No items in DataSource");
+                return "[]";
+            }
+
+            console.log("[GetResult] Found " + items.length + " items");
+            
+            // °O¿ı²Ä¤@µ§¸ê®Æªºµ²ºc
+            if (items.length > 0) {
+                console.log("[GetResult] ²Ä¤@µ§¸ê®Æ½d¨Ò:", items[0]);
+                console.log("[GetResult] ContactId:", items[0].ContactId);
+                console.log("[GetResult] FullName:", items[0].FullName);
+            }
+            
+            // ? ¨Ï¥Î JSON.stringify ½T«O¥¿½Tªº JSON ®æ¦¡
+            var jsonString = JSON.stringify(items);
+            
+            // ÀË¬d JSON ¦r¦êªº¶}ÀY
+            console.log("[GetResult] JSON ¶}ÀY («e50¦r¤¸):", jsonString.substring(0, 50));
+            console.log("[GetResult] JSON µ²§À («á50¦r¤¸):", jsonString.substring(Math.max(0, jsonString.length - 50)));
+            
+            // ÅçÃÒ JSON ®æ¦¡
+            try {
+                JSON.parse(jsonString);
+                console.log("[GetResult] JSON ®æ¦¡ÅçÃÒ³q¹L");
+            } catch (parseError) {
+                console.error("[GetResult] JSON ®æ¦¡ÅçÃÒ¥¢±Ñ:", parseError);
+                console.error("[GetResult] ¿ù»~ªº JSON:", jsonString);
+            }
+            
+            return jsonString;
+        }
+        catch (error) {
+            console.error("[GetResult] µo¥Í¿ù»~:", error);
+            console.error("[GetResult] ¿ù»~°ïÅ|:", error.stack);
+            return "[]";
+        }
+    }
+
+    // Åã¥Ü Toast ³qª¾
     function ShowToast(LocalToastMessage, Type, DisplayTime) {
         var ToastInstance = $("#ToastReUpload").dxToast("instance");
+        if (!ToastInstance) {
+            console.error("Toast instance not found");
+            return;
+        }
+        
         ToastInstance.option('message', LocalToastMessage);
         ToastInstance.option('type', Type);
         ToastInstance.option('displayTime', DisplayTime);
@@ -364,20 +339,26 @@
         ToastInstance.show();
     }
 
-    // è§£ææ—¥æœŸ
+    // ¸ÑªR¤é´Á
     function ParsingDate(input) {
         if (typeof (input) === 'string') {
             var parts = input.split('-');
+            if (parts.length < 3) {
+                return new Date();
+            }
             var DaySplitedArray = parts[2].split('T');
             var ParsedDate = new Date(parts[0], parts[1] - 1, DaySplitedArray[0]);
             return ParsedDate;
         }
-        else {
+        else if (input instanceof Date) {
             return getLocalDateFilter(input);
+        }
+        else {
+            return new Date();
         }
     }
 
-    // ç²å–æœ¬åœ°æ—¥æœŸéæ¿¾å™¨
+    // Àò¨ú¥»¦a¤é´Á¹LÂo¾¹
     function getLocalDateFilter(date) {
         var rawMonth = (date.getMonth()).toString();
         var monthString = rawMonth.length == 1 ? "0" + rawMonth : rawMonth;
@@ -386,7 +367,7 @@
         return new Date(date.getFullYear(), rawMonth, rawDate);
     }
 
-    // åœ°åœ–æº–å‚™å°±ç·’
+    // ¦a¹Ï·Ç³Æ´Nºü
     function onReady(e) {
         $.ajax({
             url: '@Url.Action("GetMarkers", "Home")',
@@ -394,11 +375,14 @@
             dataType: "json",
             success: function (data) {
                 $("#map").dxMap("instance").option("markers", data);
+            },
+            error: function(xhr, status, error) {
+                console.error("Failed to load map markers:", error);
             }
         });
     }
 
-    // ç§»å‹•ç·¨è¼¯æ¬„åˆ°å·¦å´
+    // ²¾°Ê½s¿èÄæ¨ì¥ª°¼
     function moveEditColumnToLeft(dataGrid) {
         dataGrid.columnOption("command:edit", {
             visibleIndex: -1,
@@ -406,7 +390,7 @@
         });
     }
 
-    // å–®å…ƒæ ¼æº–å‚™
+    // ³æ¤¸®æ·Ç³Æ
     function cell_prepared(e) {
         if (e.rowType === "data" && e.column.command === "edit") {
             var isEditing = e.row.isEditing,
@@ -426,13 +410,13 @@
     }
 </script>
 
-<!-- æœ¬åœ°ä¸­æ–‡åŒ– -->
+<!-- ¥»¦a¤¤¤å¤Æ -->
 <script>
     var dictionary = {
         "zh-tw": {
-            "dxScheduler-switcherAgenda": "æœƒè­°å…§å®¹",
-            "Month": "æœˆ",
-            "Subject": "ä¸»é¡Œ",
+            "dxScheduler-switcherAgenda": "·|Ä³¤º®e",
+            "Month": "¤ë",
+            "Subject": "¥DÃD",
             "Company": "Company",
             "Amount": "Amount",
             "PaymentDate": "Payment Date"
@@ -456,12 +440,10 @@
     }
 </script>
 
-<!-- å¤–éƒ¨è…³æœ¬å’Œæ¨£å¼ -->
+<!-- ¥~³¡¸}¥»©M¼Ë¦¡ -->
 <script src="~/js/devextreme/devextreme-intl.min.js"></script>
 <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
 <script src="~/js/DataGridAjax.js"></script>
 <script src="~/js/DropDownBox.js"></script>
-<script src="~/js/DataGridAjax.js"></script>
 <script src="~/js/LoadPanel.js"></script>
 <link href="~/css/SmallGroupReportController.css" rel="stylesheet" />
-
