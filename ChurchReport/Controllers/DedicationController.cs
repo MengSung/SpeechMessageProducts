@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -435,13 +436,19 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 設定 LINE 使用者 ID
         /// 用於 LINE LIFF 奉獻頁面
+        /// ? 已改造為非同步模式
         /// </summary>
         [HttpPost]
-        public IActionResult SetupUserLineId(string UserLineId, string GroupId, string RoomId, string ViewType)
+        public async Task<IActionResult> SetupUserLineId(
+            string UserLineId, 
+            string GroupId, 
+            string RoomId, 
+            string ViewType,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                // 設定 LINE 相關資訊
+                // 設定 LINE 綁定資訊
                 InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
                 InMemoryContext.LineBindingViewModel.RoomId = RoomId;
                 InMemoryContext.LineBindingViewModel.GroupId = GroupId;
@@ -456,16 +463,27 @@ namespace ChurchReport.Controllers
                     InMemoryContext.LineBindingViewModel.DisplayId = UserLineId;
 
                 // 設定奉獻管理器
-                InMemoryContext.QpayManager.LoginType = "Line單獨登入";
+                InMemoryContext.QpayManager.LoginType = "Line線上登入";
 
-                // 載入登入使用者資料
-                var loginContact = ToolUtility.RetrieveContactByLineId(UserLineId);
+                // ? 使用非同步查詢載入登入使用者資料
+                var loginContactTask = Task.Run(() => 
+                    ToolUtility.RetrieveContactByLineId(UserLineId),
+                    cancellationToken);
+
+                var loginContact = await loginContactTask.ConfigureAwait(false);
+                
                 if (loginContact != null)
                 {
-                    InMemoryContext.QpayManager.SetQpayModel(loginContact);
+                    await Task.Run(() => 
+                        InMemoryContext.QpayManager.SetQpayModel(loginContact),
+                        cancellationToken).ConfigureAwait(false);
                 }
 
                 return Json(new { status = "1" });
+            }
+            catch (OperationCanceledException)
+            {
+                return Json(new { status = "0", message = "操作已取消" });
             }
             catch (Exception e)
             {

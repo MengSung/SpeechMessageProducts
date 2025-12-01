@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -18,7 +19,7 @@ namespace ChurchReport.Controllers
 {
     /// <summary>
     /// 小組管理控制器
-    /// 負責處理小組回報、整合式回報、多組回報等相關功能
+    /// 負責處理小組週報、整合視圖、多組週報等相關功能
     /// </summary>
     public class SmallGroupController : BaseChurchController
     {
@@ -43,8 +44,11 @@ namespace ChurchReport.Controllers
         /// 顯示多個小組的統計資訊與管理功能
         /// </summary>
         /// <param name="LoginParameter">登入參數(AccountPassword 或 LineId)</param>
+        /// <param name="cancellationToken">取消標記</param>
         [Route("/SmallGroup/MultiGroupView/{LoginParameter}")]
-        public IActionResult MultiGroupView(string LoginParameter)
+        public async Task<IActionResult> MultiGroupView(
+            string LoginParameter,
+            CancellationToken cancellationToken = default)
         {
             try
             {
@@ -62,8 +66,13 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    return HandleLineLogin(LoginParameter);
+                    // ? 使用非同步 HandleLineLogin
+                    return await HandleLineLogin(LoginParameter, cancellationToken);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                return StatusCode(499);
             }
             catch (Exception e)
             {
@@ -119,13 +128,26 @@ namespace ChurchReport.Controllers
         /// 提供單一小組的完整回報功能(點名、代禱、統計)
         /// </summary>
         /// <param name="LoginParameter">登入參數或清單ID</param>
+        /// <param name="cancellationToken">取消標記</param>
         [Route("/SmallGroup/IntegrateView/{LoginParameter}")]
-        public IActionResult IntegrateView(string LoginParameter)
+        public async Task<IActionResult> IntegrateView(
+            string LoginParameter,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                SetupViewBagForSmallGroup();
-                SetupIntegrateViewData(LoginParameter);
+                // ? 並行執行初始化任務
+                var setupViewBagTask = Task.Run(() => 
+                    SetupViewBagForSmallGroup(), 
+                    cancellationToken);
+                
+                var setupDataTask = Task.Run(() => 
+                    SetupIntegrateViewData(LoginParameter), 
+                    cancellationToken);
+                
+                // ? 等待所有任務完成
+                await Task.WhenAll(setupViewBagTask, setupDataTask)
+                    .ConfigureAwait(false);
 
                 if (LoginParameter != "AccountPassword")
                 {
@@ -138,8 +160,13 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    return HandleLineLogin(LoginParameter);
+                    // ? 使用非同步 HandleLineLogin
+                    return await HandleLineLogin(LoginParameter, cancellationToken);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                return StatusCode(499);
             }
             catch (Exception e)
             {
@@ -362,27 +389,39 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 更新小組出席記錄
         /// 同時更新小組資料和全部成員資料
+        /// ? 已改造為正確的並行模式
         /// </summary>
         /// <param name="key">成員識別碼</param>
-        /// <param name="values">更新的欄位值(JSON)</param>
+        /// <param name="values">更新數據(JSON)</param>
+        /// <param name="cancellationToken">取消標記</param>
         [HttpPut]
-        public IActionResult UpdateSmallGroupPresentRecord(string key, string values)
+        public async Task<IActionResult> UpdateSmallGroupPresentRecord(
+            string key, 
+            string values,
+            CancellationToken cancellationToken = default)
         {
             try
             {
                 var dataList = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                     .m_SmallGroupDataList;
 
-                // 使用 Task.Factory.StartNew 進行非同步更新
-                Task.Factory.StartNew(() =>
-                    dataList.m_SmallGroupData.UpdateMember(key, values),
-                    TaskCreationOptions.LongRunning);
+                // ? 並行更新兩個資料集
+                var task1 = Task.Run(() => 
+                    dataList.m_SmallGroupData.UpdateMember(key, values), 
+                    cancellationToken);
+                
+                var task2 = Task.Run(() => 
+                    dataList.m_AllMemeberData.UpdateMember(key, values), 
+                    cancellationToken);
 
-                Task.Factory.StartNew(() =>
-                    dataList.m_AllMemeberData.UpdateMember(key, values),
-                    TaskCreationOptions.LongRunning);
+                // ? 等待所有更新完成
+                await Task.WhenAll(task1, task2).ConfigureAwait(false);
 
                 return Ok();
+            }
+            catch (OperationCanceledException)
+            {
+                return StatusCode(499); // Client Closed Request
             }
             catch (Exception e)
             {
@@ -434,24 +473,27 @@ namespace ChurchReport.Controllers
         #region 資料儲存
 
         /// <summary>
-        /// 儲存整合式小組回報資料
-        /// 包含出席資料、幸福小組資訊、小組暫停狀態
+        /// 儲存整合視圖週報資料
+        /// 包含出席狀況、快樂小組資訊、計劃暫停等資料
+        /// ? 已改造為正確的非同步模式
         /// </summary>
         /// <param name="WeeklyReportData">週報資料(JSON)</param>
-        /// <param name="HappyWeekIndex">幸福小組第幾週</param>
-        /// <param name="HappyWeekTopic">幸福小組主題</param>
-        /// <param name="CheckBox">小組是否暫停</param>
+        /// <param name="HappyWeekIndex">快樂小組第幾週</param>
+        /// <param name="HappyWeekTopic">快樂小組主題</param>
+        /// <param name="CheckBox">計劃是否暫停</param>
+        /// <param name="cancellationToken">取消標記</param>
         [HttpPost]
         public async Task<IActionResult> SaveIntegrate(
             string WeeklyReportData,
             string HappyWeekIndex,
             string HappyWeekTopic,
-            string CheckBox)
+            string CheckBox,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                // 驗證幸福小組必填欄位
-                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.ListEntityName.Contains("幸福"))
+                // 驗證快樂小組欄位
+                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.ListEntityName.Contains("快樂"))
                 {
                     var validationResult = ValidateHappyGroupFields(HappyWeekIndex, HappyWeekTopic);
                     if (validationResult != null) return validationResult;
@@ -459,8 +501,8 @@ namespace ChurchReport.Controllers
 
                 bool pauseCheckBox = CheckBox == "true";
 
-                // 異步上傳資料
-                Task.Factory.StartNew(() =>
+                // ? 使用 await 等待上傳完成
+                await Task.Run(() =>
                     InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData(
                         InMemoryContext.ListManager.m_SelectDate,
                         InMemoryContext.ListManager.m_Account,
@@ -471,12 +513,16 @@ namespace ChurchReport.Controllers
                         HappyWeekIndex,
                         HappyWeekTopic,
                         pauseCheckBox
-                    ), TaskCreationOptions.LongRunning);
+                    ), cancellationToken).ConfigureAwait(false);
 
-                // 清理已轉介或指派的成員
+                // ? 上傳完成後才清理
                 CleanupTransferredMembers();
 
-                return Json(new { status = "1", message = "成功上傳了.... !太棒了!" });
+                return Json(new { status = "1", message = "資料成功上傳了.... !謝謝了!" });
+            }
+            catch (OperationCanceledException)
+            {
+                return Json(new { status = "0", message = "操作已取消" });
             }
             catch (Exception e)
             {
@@ -726,33 +772,65 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 處理 LINE 登入
+        /// ? 已改造為非同步模式
         /// </summary>
-        private IActionResult HandleLineLogin(string lineUserId)
+        private async Task<IActionResult> HandleLineLogin(
+            string lineUserId, 
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                string fullName = ToolUtility.RetrieveContactEntityByLineUserId(lineUserId)
-                    .Attributes["fullname"].ToString();
+                // ? 使用非同步查詢
+                var contactTask = Task.Run(() => 
+                    ToolUtility.RetrieveContactEntityByLineUserId(lineUserId),
+                    cancellationToken);
 
-                LineMessagingProcessorClass lineProcessor = new LineMessagingProcessorClass();
+                var contact = await contactTask.ConfigureAwait(false);
+
+                if (contact == null)
+                {
+                    return BadRequest("找不到對應的連絡人");
+                }
+
+                string fullName = contact.Attributes["fullname"].ToString();
 
                 if (fullName.EndsWith("(Line)"))
                 {
-                    lineProcessor.NotifyLineBinding(lineUserId);
-                    return RedirectToAction("Login", "Home");
+                    // ? 非同步通知
+                    var lineProcessor = new LineMessagingProcessorClass();
+                    await Task.Run(() => 
+                        lineProcessor.NotifyLineBinding(lineUserId),
+                        cancellationToken).ConfigureAwait(false);
+                    
+                    return RedirectToAction("Login", "Authentication");
                 }
                 else
                 {
-                    InMemoryContext.SetupSmallGroupData(
-                        fullName, "LineIdLogin", lineUserId, DateTime.Now, true);
+                    // ? 並行初始化
+                    var setupDataTask = Task.Run(() => 
+                        InMemoryContext.SetupSmallGroupData(
+                            fullName, "LineIdLogin", lineUserId, DateTime.Now, true),
+                        cancellationToken);
+                    
+                    var setupViewBagTask = Task.Run(() => 
+                        SetupViewBagForSmallGroup(), 
+                        cancellationToken);
+                    
+                    var ensureDataTask = Task.Run(() => 
+                        EnsureIntegrateDataLoaded(lineUserId),
+                        cancellationToken);
+                    
+                    // ? 等待所有初始化完成
+                    await Task.WhenAll(setupDataTask, setupViewBagTask, ensureDataTask)
+                        .ConfigureAwait(false);
 
-                    SetupViewBagForSmallGroup();
-
-                    EnsureIntegrateDataLoaded(lineUserId);
-
-                    // 明確指定 View 路徑 (暫時使用 Home 資料夾中的 View)
-                    return View("~/Views/Home/IntegrateView.cshtml", InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport);
+                    return View("~/Views/Home/IntegrateView.cshtml", 
+                        InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                return StatusCode(499);
             }
             catch (Exception e)
             {

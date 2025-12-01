@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -20,7 +21,7 @@ namespace ChurchReport.Controllers
     /// </summary>
     public class PersonalController : BaseChurchController
     {
-        #region 幣構函式
+        #region 建構函式
 
         public PersonalController(
             IHttpContextAccessor httpContextAccessor,
@@ -200,18 +201,30 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 更新個人回報記錄
+        /// ? 已改造為非同步模式
         /// </summary>
         /// <param name="key">記錄識別碼</param>
-        /// <param name="values">更新的欄位值(JSON)</param>
+        /// <param name="values">更新數據(JSON)</param>
+        /// <param name="cancellationToken">取消標記</param>
         [HttpPut]
-        public IActionResult UpdatePersonReport(string key, string values)
+        public async Task<IActionResult> UpdatePersonReport(
+            string key, 
+            string values,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                    .m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values);
+                // ? 使用非同步更新
+                await Task.Run(() =>
+                    InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                        .m_SmallGroupDataList.m_AllMemeberData.UpdateMember(key, values),
+                    cancellationToken).ConfigureAwait(false);
 
                 return Ok();
+            }
+            catch (OperationCanceledException)
+            {
+                return StatusCode(499);
             }
             catch (Exception e)
             {
@@ -244,15 +257,20 @@ namespace ChurchReport.Controllers
         #region 資料儲存
 
         /// <summary>
-        /// 儲存個人回報資料 (DataGrid 方式)
+        /// 儲存個人回報資料 (DataGrid 模式)
+        /// ? 已改造為正確的非同步模式
         /// </summary>
         /// <param name="WeeklyReportData">週報資料(JSON)</param>
+        /// <param name="cancellationToken">取消標記</param>
         [HttpPost]
-        public IActionResult SavePersonReport(string WeeklyReportData)
+        public async Task<IActionResult> SavePersonReport(
+            string WeeklyReportData,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                Task.Factory.StartNew(() =>
+                // ? 使用 await 等待上傳完成
+                await Task.Run(() =>
                     InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData(
                         InMemoryContext.ListManager.m_SelectDate,
                         InMemoryContext.ListManager.m_Account,
@@ -261,9 +279,13 @@ namespace ChurchReport.Controllers
                         InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
                         WeeklyReportData,
                         "", "", false
-                    ), TaskCreationOptions.LongRunning);
+                    ), cancellationToken).ConfigureAwait(false);
 
-                return Json(new { status = "1", message = "成功上傳了...." });
+                return Json(new { status = "1", message = "資料成功上傳了...." });
+            }
+            catch (OperationCanceledException)
+            {
+                return Json(new { status = "0", message = "操作已取消" });
             }
             catch (Exception e)
             {
@@ -272,12 +294,16 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 儲存個人回報表單資料 (Form 方式)
-        /// 用於個人出席、代禱事項的表單提交
+        /// 儲存個人回報資料表單 (Form 模式)
+        /// 用於個人出席、代禱事項等資料的表單提交
+        /// ? 已改造為正確的非同步模式
         /// </summary>
         /// <param name="aPersonalReportViewModel">個人回報 ViewModel</param>
+        /// <param name="cancellationToken">取消標記</param>
         [HttpPost]
-        public IActionResult SavePersonalReportForm(PersonalReportViewModel aPersonalReportViewModel)
+        public async Task<IActionResult> SavePersonalReportForm(
+            PersonalReportViewModel aPersonalReportViewModel,
+            CancellationToken cancellationToken = default)
         {
             try
             {
@@ -287,15 +313,19 @@ namespace ChurchReport.Controllers
                 if (allMemberData?.Members != null)
                 {
                     // 個人回報且已加入小組
-                    SavePersonalReportWithSmallGroup(aPersonalReportViewModel);
+                    await SavePersonalReportWithSmallGroupAsync(aPersonalReportViewModel, cancellationToken);
                 }
                 else
                 {
                     // 個人回報但未加入小組
-                    SavePersonalReportWithoutSmallGroup(aPersonalReportViewModel);
+                    await SavePersonalReportWithoutSmallGroupAsync(aPersonalReportViewModel, cancellationToken);
                 }
 
-                return Json(new { status = "1", message = "成功上傳了...." });
+                return Json(new { status = "1", message = "資料成功上傳了...." });
+            }
+            catch (OperationCanceledException)
+            {
+                return Json(new { status = "0", message = "操作已取消" });
             }
             catch (Exception e)
             {
@@ -305,33 +335,46 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 儲存已加入小組的個人回報
+        /// ? 已改造為非同步模式
         /// </summary>
-        private void SavePersonalReportWithSmallGroup(PersonalReportViewModel viewModel)
+        private async Task SavePersonalReportWithSmallGroupAsync(
+            PersonalReportViewModel viewModel,
+            CancellationToken cancellationToken)
         {
-            InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                .GetPersonalReportViewModelResult(viewModel);
+            // 處理 ViewModel 結果
+            await Task.Run(() =>
+                InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                    .GetPersonalReportViewModelResult(viewModel),
+                cancellationToken).ConfigureAwait(false);
 
-            Task.Factory.StartNew(() =>
+            // ? 使用 await 等待上傳完成
+            await Task.Run(() =>
                 InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData(
                     InMemoryContext.ListManager.m_SelectDate,
                     InMemoryContext.ListManager.m_Account,
                     InMemoryContext.ListManager.m_Password,
                     InMemoryContext.ListManager.LoginType,
                     InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
-                    "不需更新小組日誌",
+                    "個人更新小組回報",
                     "", "", false
-                ), TaskCreationOptions.LongRunning);
+                ), cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
         /// 儲存未加入小組的個人回報
+        /// ? 已改造為非同步模式
         /// </summary>
-        private void SavePersonalReportWithoutSmallGroup(PersonalReportViewModel viewModel)
+        private async Task SavePersonalReportWithoutSmallGroupAsync(
+            PersonalReportViewModel viewModel,
+            CancellationToken cancellationToken)
         {
-            // 建立局部變數以支援 ref 參數
+            // 建立臨時變數以避免 ref 參數
             var toolUtility = ToolUtility;
-            InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                .SavePersonalReportForm(ref toolUtility, viewModel);
+            
+            await Task.Run(() =>
+                InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
+                    .SavePersonalReportForm(ref toolUtility, viewModel),
+                cancellationToken).ConfigureAwait(false);
         }
 
         #endregion
