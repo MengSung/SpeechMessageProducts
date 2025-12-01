@@ -677,6 +677,7 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 更新綜合報表日期
         /// 當使用者在 IntegrateView 中更改小組日期時調用
+        /// ? 修復：確保更新日期後，保持載入當前選擇的小組，而不是跳回第一個小組
         /// </summary>
         /// <param name="SelectedDate">選擇的日期 (格式: yyyy/M/d)</param>
         [HttpGet]
@@ -694,28 +695,54 @@ namespace ChurchReport.Controllers
                     return Json(new { success = false, message = "日期格式錯誤" });
                 }
 
+                // ? 關鍵修復：先保存當前選擇的小組 ID
+                // 避免 SetupListManager 重設為第一個小組
+                string currentListId = InMemoryContext.ListManager.ActiveListId;
+                
+                System.Diagnostics.Debug.WriteLine($"[UpdateIntegrateDate] 當前小組 ID: {currentListId}");
+                System.Diagnostics.Debug.WriteLine($"[UpdateIntegrateDate] 更新日期: {selectedDateTime:yyyy/M/d}");
+
                 // 更新選擇的日期
                 InMemoryContext.ListManager.m_SelectDate = selectedDateTime;
 
-                // 重新設置 ListManager 以載入新日期的資料
+                // ? 重要：SetupListManager 會重新載入多小組列表
+                // 但可能會重設 ActiveListId 為第一個小組
                 InMemoryContext.ListManager.SetupListManager(
                     InMemoryContext.ListManager.m_Account,
                     InMemoryContext.ListManager.m_Password,
                     selectedDateTime);
 
-                // 重新載入綜合報表資料
-                string activeListId = InMemoryContext.ListManager.ActiveListId;
-                InMemoryContext.ListManager.SetupIntegrateData(activeListId);
+                // ? 修復：恢復之前選擇的小組 ID
+                // 確保不會跳回第一個小組
+                if (!string.IsNullOrEmpty(currentListId))
+                {
+                    InMemoryContext.ListManager.ActiveListId = currentListId;
+                    System.Diagnostics.Debug.WriteLine($"[UpdateIntegrateDate] 恢復小組 ID: {currentListId}");
+                }
+                else
+                {
+                    // 如果沒有保存的 ID，使用當前的 ActiveListId
+                    currentListId = InMemoryContext.ListManager.ActiveListId;
+                    System.Diagnostics.Debug.WriteLine($"[UpdateIntegrateDate] 使用新的小組 ID: {currentListId}");
+                }
 
-                // 返回新的 ActiveListId
+                // ? 重新載入當前選擇的小組的資料（不是第一個小組）
+                InMemoryContext.ListManager.SetupIntegrateData(currentListId);
+
+                System.Diagnostics.Debug.WriteLine($"[UpdateIntegrateDate] 完成載入小組: {currentListId}");
+
+                // 返回當前小組的 ID（不是第一個小組）
                 return Json(new { 
                     success = true, 
-                    ActiveListId = activeListId,
+                    ActiveListId = currentListId,
                     message = "日期更新成功" 
                 });
             }
             catch (Exception e)
             {
+                System.Diagnostics.Debug.WriteLine($"[UpdateIntegrateDate] 錯誤: {e.Message}");
+                System.Diagnostics.Debug.WriteLine($"[UpdateIntegrateDate] 堆疊: {e.StackTrace}");
+                
                 return Json(new { 
                     success = false, 
                     message = $"日期更新失敗: {e.Message}" 
