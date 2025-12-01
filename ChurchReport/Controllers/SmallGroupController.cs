@@ -125,10 +125,10 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 整合式小組回報頁面
-        /// 提供單一小組的完整回報功能(點名、代禱、統計)
+        /// 提供單一小組的詳細回報功能(點名、禱告、統計)
         /// </summary>
         /// <param name="LoginParameter">登入參數或清單ID</param>
-        /// <param name="cancellationToken">取消標記</param>
+        /// <param name="cancellationToken">取消權杖</param>
         [Route("/SmallGroup/IntegrateView/{LoginParameter}")]
         public async Task<IActionResult> IntegrateView(
             string LoginParameter,
@@ -136,18 +136,12 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ? 並行執行初始化任務
-                var setupViewBagTask = Task.Run(() => 
-                    SetupViewBagForSmallGroup(), 
-                    cancellationToken);
+                // ? 先設置資料，再設置 ViewBag
+                SetupIntegrateViewData(LoginParameter);
                 
-                var setupDataTask = Task.Run(() => 
-                    SetupIntegrateViewData(LoginParameter), 
-                    cancellationToken);
-                
-                // ? 等待所有任務完成
-                await Task.WhenAll(setupViewBagTask, setupDataTask)
-                    .ConfigureAwait(false);
+                // ? 關鍵修復：確保從 MultiGroupView 點擊小組後，ViewBag.MultiGroupIndex 保持為 HybridView
+                // 這樣「回報統計」和「小組回報」選項都會顯示
+                SetupViewBagForSmallGroup();
 
                 if (LoginParameter != "AccountPassword")
                 {
@@ -155,7 +149,7 @@ namespace ChurchReport.Controllers
                 }
                 else if (LoginParameter == "jquery.js")
                 {
-                    ViewBag.LoginType = "個人登入";
+                    ViewBag.LoginType = "個人回報";
                     return Ok();
                 }
                 else
@@ -175,7 +169,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 設定整合式頁面資料
+        /// 設定整合視圖資料
         /// </summary>
         private void SetupIntegrateViewData(string loginParameter)
         {
@@ -185,7 +179,14 @@ namespace ChurchReport.Controllers
             if (shouldLoadData)
             {
                 string listId = DetermineListId(loginParameter);
+                
+                // ? 關鍵：載入指定小組的資料
+                // 這會設置 InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag = true
+                // 讓 IsIntegrateDataLoaded() 返回 true
                 InMemoryContext.ListManager.SetupIntegrateData(listId);
+                
+                // ? 更新 ActiveListId 為當前選擇的小組
+                InMemoryContext.ListManager.ActiveListId = listId;
             }
 
             ViewBag.ListId = InMemoryContext.ListManager.ActiveListId;
@@ -200,25 +201,15 @@ namespace ChurchReport.Controllers
             var displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
             var weeklyReport = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
 
-            // 多小組統計點擊進入
+            // ? 修正：當從多小組統計進入時，或是資料尚未載入時，都需要重新載入
             if (displayViewType == "MultiGroupView")
             {
-                return weeklyReport == null || !weeklyReport.LoadFlag;
+                // 多小組模式：總是需要載入指定小組的資料
+                return true;
             }
 
-            return false;
-        }
-
-        /// <summary>
-        /// 決定要載入的清單ID
-        /// </summary>
-        private string DetermineListId(string loginParameter)
-        {
-            if (loginParameter == "undefined" || loginParameter == "IntegrateView")
-            {
-                return InMemoryContext.ListManager.ActiveListId;
-            }
-            return loginParameter;
+            // 其他情況：檢查是否已載入
+            return weeklyReport == null || !weeklyReport.LoadFlag;
         }
 
         /// <summary>
@@ -768,6 +759,18 @@ namespace ChurchReport.Controllers
             {
                 ViewBag.FeeDataListCount = "繳費與點名尚無資料";
             }
+        }
+
+        /// <summary>
+        /// 確定要載入的清單ID
+        /// </summary>
+        private string DetermineListId(string loginParameter)
+        {
+            if (loginParameter == "undefined" || loginParameter == "IntegrateView")
+            {
+                return InMemoryContext.ListManager.ActiveListId;
+            }
+            return loginParameter;
         }
 
         /// <summary>

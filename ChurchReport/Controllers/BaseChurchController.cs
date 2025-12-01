@@ -191,25 +191,32 @@ namespace ChurchReport.Controllers
             string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
             bool integrateFlag = IsIntegrateDataLoaded();
 
-            // 決定多小組索引類型
+            // ? 修正：確保從 MultiGroupView 點擊小組後，保持 HybridView 模式
+            // 讓「回報統計」和「小組回報」選項都顯示
             if (displayViewType == "MultiGroupView" && !integrateFlag)
             {
+                // 純多小組模式（尚未點擊任何小組）
                 ViewBag.MultiGroupIndex = "SingleMultiGroupView";
             }
             else if (displayViewType == "IntegrateView" && integrateFlag)
             {
+                // 單一小組模式（只有一個小組）
                 ViewBag.MultiGroupIndex = "IntegrateView";
             }
             else if (displayViewType == "MultiGroupView" && integrateFlag)
             {
+                // ? 混合模式：有多個小組且已點擊其中一個
+                // 此時應該顯示「回報統計」和「小組回報」兩個選項
                 ViewBag.MultiGroupIndex = "HybridView";
             }
             else
             {
-                ViewBag.MultiGroupIndex = "IntegrateView";
+                // ? 預設為 IntegrateView 或 HybridView
+                // 如果有載入整合資料，就使用 HybridView，確保選項不消失
+                ViewBag.MultiGroupIndex = integrateFlag ? "HybridView" : "IntegrateView";
             }
 
-            // 設定會計權限
+            // 設定是否為行政同工
             ViewBag.IsAOfficeWorker = InMemoryContext.QpayManager.m_QpayModel.IsAOfficeWorker
                 ? "是的" : "否";
         }

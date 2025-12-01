@@ -308,11 +308,8 @@
                         {
                             @if (@ViewBag.LoginType == "小組長")
                             {
-                                if (@ViewBag.MultiGroupIndex == "IntegrateView")
-                                {
-                                    <li><a href="/SmallGroup/IntegrateView/IntegrateView"><i class="fas fa-users"></i>小組回報</a></li>
-                                }
-                                if (@ViewBag.MultiGroupIndex == "HybridView")
+                                @* ✅ 修復：確保 HybridView 或 IntegrateView 都顯示回報統計和小組回報 *@
+                                if (@ViewBag.MultiGroupIndex == "IntegrateView" || @ViewBag.MultiGroupIndex == "HybridView")
                                 {
                                     <li><a href="/SmallGroup/MultiGroupView/MultiGroup"><i class="fas fa-chart-bar"></i>回報統計</a></li>
                                     <li><a href="/SmallGroup/IntegrateView/IntegrateView"><i class="fas fa-users"></i>小組回報</a></li>
