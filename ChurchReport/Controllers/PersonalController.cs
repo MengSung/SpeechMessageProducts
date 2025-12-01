@@ -764,7 +764,7 @@ namespace ChurchReport.Controllers
                             continue;
                         }
 
-                        // 取得現有的聯絡人實體
+                        // ✅ 重新從 CRM 取得最新的聯絡人實體
                         var contactEntity = toolUtility.RetrieveEntity("contact", contactGuid);
 
                         if (contactEntity == null)
@@ -775,38 +775,60 @@ namespace ChurchReport.Controllers
                             continue;
                         }
 
-                        // 建立要更新的實體（只包含要變更的欄位）
+                        // ✅ 建立要更新的實體（只包含要變更的欄位）
                         var entityToUpdate = new Microsoft.Xrm.Sdk.Entity("contact", contactGuid);
                         bool hasChanges = false;
 
-                        // 更新行動電話
+                        // ✅ 更新行動電話（重新取得並比較）
                         if (!string.IsNullOrWhiteSpace(member.Phone))
                         {
-                            var currentPhone = toolUtility.GetEntityStringAttribute(contactEntity, "mobilephone");
-                            if (currentPhone != member.Phone)
+                            var currentPhone = contactEntity.Contains("mobilephone") 
+                                ? contactEntity.GetAttributeValue<string>("mobilephone") ?? ""
+                                : "";
+                            
+                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {member.FullName}: 電話比較 - 當前: '{currentPhone}', 新值: '{member.Phone}'");
+                            
+                            if (!string.Equals(currentPhone, member.Phone, StringComparison.Ordinal))
                             {
                                 entityToUpdate["mobilephone"] = member.Phone;
                                 hasChanges = true;
-                                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {member.FullName}: 更新電話 {currentPhone} -> {member.Phone}");
+                                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {member.FullName}: 更新電話 '{currentPhone}' -> '{member.Phone}'");
                             }
                         }
 
-                        // 更新地址
+                        // ✅ 更新地址（重新取得並比較）
                         if (!string.IsNullOrWhiteSpace(member.Address))
                         {
-                            var currentAddress = toolUtility.GetEntityStringAttribute(contactEntity, "address2_line1");
-                            if (currentAddress != member.Address)
+                            var currentAddress = contactEntity.Contains("address2_line1") 
+                                ? contactEntity.GetAttributeValue<string>("address2_line1") ?? ""
+                                : "";
+                            
+                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {member.FullName}: 地址比較 - 當前: '{currentAddress}', 新值: '{member.Address}'");
+                            
+                            if (!string.Equals(currentAddress, member.Address, StringComparison.Ordinal))
                             {
                                 entityToUpdate["address2_line1"] = member.Address;
                                 hasChanges = true;
-                                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {member.FullName}: 更新地址");
+                                System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {member.FullName}: 更新地址 '{currentAddress}' -> '{member.Address}'");
                             }
                         }
 
-                        // 更新生日
+                        // ✅ 更新生日（重新取得並比較）
                         if (member.BirthDate != DateTime.MinValue && member.BirthDate.Year > 1900)
                         {
-                            var currentBirthDate = toolUtility.GetEntityDateTimeAttribute(contactEntity, "birthdate").ToLocalTime();
+                            var currentBirthDate = contactEntity.Contains("birthdate") 
+                                ? contactEntity.GetAttributeValue<DateTime?>("birthdate") ?? DateTime.MinValue
+                                : DateTime.MinValue;
+                            
+
+                            // 轉換為本地時間進行比較
+                            if (currentBirthDate != DateTime.MinValue)
+                            {
+                                currentBirthDate = currentBirthDate.ToLocalTime();
+                            }
+                            
+                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {member.FullName}: 生日比較 - 當前: {currentBirthDate:yyyy-MM-dd}, 新值: {member.BirthDate:yyyy-MM-dd}");
+                            
                             if (currentBirthDate == DateTime.MinValue || currentBirthDate.Date != member.BirthDate.Date)
                             {
                                 entityToUpdate["birthdate"] = member.BirthDate;
@@ -816,12 +838,12 @@ namespace ChurchReport.Controllers
                         }
 
                         // ✅ 跳過會員身分和信仰狀態的更新（欄位不存在）
-                        // 這些欄位可能在您的 CRM 系統中不存在或使用不同的欄位名稱
-                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {member.FullName}: 跳過會員身分和信仰狀態更新（欄位可能不存在）");
+                        System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {member.FullName}: 跳過會員身分和信仰狀態更新（欄位不存在）");
 
-                        // 如果有變更，則更新
+                        // ✅ 如果有變更，則更新
                         if (hasChanges)
                         {
+                            System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] {member.FullName}: 準備更新到 CRM...");
                             toolUtility.UpdateEntity(entityToUpdate);
                             successCount++;
                             System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 成功更新: {member.FullName}");
