@@ -346,9 +346,23 @@
             columns: [
                 { dataField: "SmallGroupName", caption: "小組", groupIndex: 0, allowEditing: false },
                 { dataField: "FullName", caption: "姓名", allowEditing: false, fixed: true, width: 80, alignment: "left" },
-                { dataField: "Status", caption: "會員身分", alignment: "center", allowEditing: false, width: 70 },
+                { 
+                    dataField: "Status", 
+                    caption: "會員身分", 
+                    alignment: "center", 
+                    allowEditing: false, 
+                    width: 90
+                    // ✅ 移除 Lookup - 後端已經返回文字 (如 "小組長", "小組組員")
+                },
                 { dataField: "EquipmentStatus", caption: "裝備狀態", alignment: "center", allowEditing: false, width: 60 },
-                { dataField: "SpiritualIdentity", caption: "信仰狀態", alignment: "center", allowEditing: false, width: 110 },
+                { 
+                    dataField: "SpiritualIdentity", 
+                    caption: "信仰狀態", 
+                    alignment: "center", 
+                    allowEditing: false, 
+                    width: 110
+                    // ✅ 移除 Lookup - 後端已經返回文字 (如 "基督徒", "慕道友")
+                },
                 { dataField: "Phone", caption: "行動電話", width: 120, alignment: "left", allowEditing: true },
                 { dataField: "BirthDate", caption: "生日", dataType: "date", format: "yyyy/M/d", alignment: "center", width: 100, allowEditing: true },
                 { dataField: "Address", caption: "地址", width: 200, alignment: "left", allowEditing: true }

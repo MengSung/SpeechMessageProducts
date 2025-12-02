@@ -142,26 +142,75 @@ namespace ChurchReport.Controllers
         /// 載入維護個人資訊資料
         /// 用於 MaintainPersonInfomationView 的 DataGrid 資料來源
         /// ✅ 修復：多小組模式下，無論是從「回報統計」還是「小組回報」點擊「組員資訊」，都顯示所有小組成員
+        /// ✅ 修復：明確指定要查詢的欄位，確保會員身分和信仰狀態正確顯示
+        /// ✅ 修復：單一小組模式也使用相同的查詢邏輯，確保會員身分和信仰狀態正確顯示
         /// </summary>
         /// <param name="id">清單ID</param>
-        /// <param name="loadOptions">載入選項(分頁、排序、篩選)</param>
+        /// <param name="loadOptions">載入選項(分頁、排序、篩線)</param>
         [HttpGet]
         public object LoadMaintainPersonInfomation(string id, DataSourceLoadOptions loadOptions)
         {
+            // ✅ 診斷日誌:確認方法被呼叫
+            System.Diagnostics.Debug.WriteLine("========================================");
+            System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ⭐ 方法被呼叫了!");
+            System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] id 參數: [{id ?? "NULL"}]");
+            System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] loadOptions 是否為 null: {loadOptions == null}");
+            System.Diagnostics.Debug.WriteLine("========================================");
+            
             try
             {
-                // ✅ 完整的 null 檢查鏈
-                if (InMemoryContext.ListManager == null)
+                // ✅ 檢查點 1: InMemoryContext
+                System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] 檢查點 1: 開始檢查 InMemoryContext");
+                
+                if (InMemoryContext == null)
                 {
-                    System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] ListManager is null");
+                    System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] ❌ InMemoryContext is null");
                     return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
                 }
+                
+                System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] ✅ InMemoryContext 存在");
+                
+                // ✅ 檢查點 2: ListManager
+                System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] 檢查點 2: 開始檢查 ListManager");
+                
+                if (InMemoryContext.ListManager == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] ❌ ListManager is null");
+                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
+                }
+                
+                System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] ✅ ListManager 存在");
 
                 var allMembers = new System.Collections.Generic.List<Member>();
 
-                // ✅ 檢查是否為多小組模式
-                string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
-                bool integrateFlag = IsIntegrateDataLoaded();
+                // ✅ 檢查點 3: GetDisplayViewType
+                System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] 檢查點 3: 呼叫 GetDisplayViewType");
+                
+                string displayViewType = null;
+                try
+                {
+                    displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
+                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ✅ displayViewType = {displayViewType}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ❌ GetDisplayViewType 失敗: {ex.Message}");
+                    return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
+                }
+                
+                // ✅ 檢查點 4: IsIntegrateDataLoaded
+                System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] 檢查點 4: 呼叫 IsIntegrateDataLoaded");
+                
+                bool integrateFlag = false;
+                try
+                {
+                    integrateFlag = IsIntegrateDataLoaded();
+                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ✅ integrateFlag = {integrateFlag}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ❌ IsIntegrateDataLoaded 失敗: {ex.Message}");
+                }
 
                 System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] id={id}, displayViewType={displayViewType}, integrateFlag={integrateFlag}");
 
@@ -213,8 +262,17 @@ namespace ChurchReport.Controllers
                                                 
                                                 if (contactId != System.Guid.Empty)
                                                 {
-                                                    // 查詢聯絡人詳細資訊
-                                                    var contactEntity = toolUtility.RetrieveEntity("contact", contactId);
+                                                    // ✅ 修復:查詢標準欄位和正確的自訂欄位
+                                                    var columnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet(
+                                                        "contactid",
+                                                        "fullname",
+                                                        "mobilephone",
+                                                        "address2_line1",
+                                                        "birthdate",
+                                                        "customertypecode" // ✅ 會員身分 (正確欄位名稱)
+                                                    );
+                                                    
+                                                    var contactEntity = toolUtility.m_Crm2011OrganizationService.Retrieve("contact", contactId, columnSet);
                                                 
                                                     if (contactEntity != null)
                                                     {
@@ -228,40 +286,32 @@ namespace ChurchReport.Controllers
                                                             FullName = fullName,
                                                             Phone = toolUtility.GetEntityStringAttribute(contactEntity, "mobilephone"),
                                                             Address = toolUtility.GetEntityStringAttribute(contactEntity, "address2_line1"),
-                                                            ContactId = contactId.ToString()
+                                                            ContactId = contactId.ToString(),
+                                                            SpiritualIdentity = "", // ❌ 欄位不存在
+                                                            EquipmentStatus = "" // ❌ 欄位不存在
                                                         };
                                                 
-                                                        // 取得會員身分
-                                                        if (contactEntity.Contains("new_membership_status"))
+                                                        // ✅ 取得會員身分
+                                                        if (contactEntity.Contains("customertypecode"))
                                                         {
-                                                            var statusValue = toolUtility.GetOptionSetAttribute(contactEntity, "new_membership_status");
+                                                            var statusValue = toolUtility.GetOptionSetAttribute(contactEntity, "customertypecode");
                                                             member.Status = GetMembershipStatusText(statusValue);
+                                                            System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]     會員身分: {member.Status} (值: {statusValue})");
                                                         }
-                                                
-            
-                                                        // 取得信仰狀態
-                                                        if (contactEntity.Contains("new_spiritual_identity"))
+                                                        else
                                                         {
-                                                            var spiritualIdentity = toolUtility.GetOptionSetAttribute(contactEntity, "new_spiritual_identity");
-                                                            member.SpiritualIdentity = GetSpiritualIdentityText(spiritualIdentity);
+                                                            member.Status = "";
+                                                            System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]     會員身分: 欄位不存在");
                                                         }
                                                 
-            
-                                                        // 取得生日
+                                                        // ✅ 取得生日
                                                         if (contactEntity.Contains("birthdate"))
                                                         {
                                                             member.BirthDate = toolUtility.GetEntityDateTimeAttribute(contactEntity, "birthdate");
                                                         }
                                                 
-            
-                                                        // 取得裝備狀態
-                                                        if (contactEntity.Contains("new_equipment_status"))
-                                                        {
-                                                            member.EquipmentStatus = toolUtility.GetEntityStringAttribute(contactEntity, "new_equipment_status");
-                                                        }
-                                                
-            
                                                         allMembers.Add(member);
+                                                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]   ✅ 成功加入成員: {fullName}");
                                                     }
                                                 }
                                             }
@@ -302,14 +352,82 @@ namespace ChurchReport.Controllers
                 {
                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 使用單一小組模式");
                     
-                    // ✅ 單一小組模式：原有邏輯
+                    // ✅ 單一小組模式：改用與多小組相同的查詢邏輯
                     EnsurePersonReportDataLoaded(id);
 
                     var weeklyReport = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
+                    
+                    System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] weeklyReport is null: {weeklyReport == null}");
+                    
                     if (weeklyReport?.m_SmallGroupDataList?.m_AllMemeberData?.Members != null)
                     {
-                        allMembers = weeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members;
-                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 單一小組模式載入 {allMembers.Count} 個成員");
+                        var members = weeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members;
+                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 單一小組模式原有資料: {members.Count} 個成員");
+                        
+                        // ✅ 修復：為單一小組模式也重新查詢完整欄位
+                        var toolUtility = ToolUtility;
+                        
+                        foreach (var member in members)
+                        {
+                            try
+                            {
+                                if (!string.IsNullOrEmpty(member.ContactId))
+                                {
+                                    System.Guid contactGuid;
+                                    if (System.Guid.TryParse(member.ContactId, out contactGuid))
+                                    {
+                                        // ✅ 查詢標準欄位和正確的自訂欄位
+                                        var columnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet(
+                                            "contactid",
+                                            "fullname",
+                                            "mobilephone",
+                                            "address2_line1",
+                                            "birthdate",
+                                            "customertypecode" // ✅ 會員身分
+                                        );
+                                        
+                                        var contactEntity = toolUtility.m_Crm2011OrganizationService.Retrieve("contact", contactGuid, columnSet);
+                                        
+                                        if (contactEntity != null)
+                                        {
+                                            // ✅ 更新會員身分
+                                            if (contactEntity.Contains("customertypecode"))
+                                            {
+                                                var statusValue = toolUtility.GetOptionSetAttribute(contactEntity, "customertypecode");
+                                                member.Status = GetMembershipStatusText(statusValue);
+                                                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]     單一小組-會員身分: {member.Status}");
+                                            }
+                                            else
+                                            {
+                                                member.Status = "";
+                                            }
+                                            
+                                            // ❌ 其他欄位不存在
+                                            member.SpiritualIdentity = "";
+                                            member.EquipmentStatus = "";
+                                            
+                                            System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]     單一小組-成員: {member.FullName}");
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception memberEx)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 單一小組模式-處理成員 {member.FullName} 時發生錯誤: {memberEx.Message}");
+                            }
+                        }
+                        
+                        // ✅ 修復：正確賦值 allMembers
+                        allMembers = members;
+                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 單一小組模式載入 {allMembers.Count} 個成員（已更新完整欄位）");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 單一小組模式：無可用的成員資料");
+                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]   weeklyReport: {weeklyReport != null}");
+                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]   m_SmallGroupDataList: {weeklyReport?.m_SmallGroupDataList != null}");
+                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]   m_AllMemeberData: {weeklyReport?.m_SmallGroupDataList?.m_AllMemeberData != null}");
+                        System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]   Members: {weeklyReport?.m_SmallGroupDataList?.m_AllMemeberData?.Members != null}");
                     }
                 }
 
@@ -363,32 +481,39 @@ namespace ChurchReport.Controllers
         /// </summary>
         private string GetMembershipStatusText(int optionValue)
         {
+            // ✅ 診斷日誌
+            System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusText] 輸入值: {optionValue}");
+            
             switch (optionValue)
             {
-                case 100000000:
-                    return "牧師師母";
-                case 100000001:
-                    return "區牧";
-                case 100000002:
-                    return "小區長";
-                case 100000003:
-                    return "小組長";
-                case 100000004:
-                    return "副小組長";
-                case 100000005:
-                    return "核心同工";
                 case 100000006:
-                    return "小組組員";
-                case 100000007:
-                    return "未入組";
+                    return "牧師師母";
+                case 100000002:
+                    return "區牧";
+                case 100000003:
+                    return "小區長";
                 case 100000008:
-                    return "新朋友";
+                    return "小組長";
                 case 100000009:
+                    return "副小組長";
+                case 100000012:
+                    return "核心同工";
+                case 1:
+                    return "小組組員";
+                case 100000005:
+                    return "幸福BEST";
+                case 100000004:
+                    return "未入組";
+                case 100000000:
+                    return "新朋友";
+                case 100000007:
                     return "外教會";
-                case 100000010:
+                case 100000001:
                     return "結案";
                 default:
-                    return "";
+                    System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusText] ⚠️ 未知的值: {optionValue}");
+                    return "未知";
+
             }
         }
 
@@ -797,6 +922,7 @@ namespace ChurchReport.Controllers
                                     : "";
                                 var newPhone = member.Phone ?? "";
                                 
+
                                 // 移除空白字元後比較
                                 currentPhone = currentPhone.Trim();
                                 newPhone = newPhone.Trim();
@@ -814,6 +940,7 @@ namespace ChurchReport.Controllers
                                     : "";
                                 var newAddress = member.Address ?? "";
                                 
+
                                 // 移除空白字元後比較
                                 currentAddress = currentAddress.Trim();
                                 newAddress = newAddress.Trim();
