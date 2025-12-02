@@ -168,72 +168,91 @@
 </div>
 
 <script>
-    // ? 立即執行的測試日誌
-    console.log("========================================");
-    console.log("[Script] JavaScript 檔案已載入");
-    console.log("[Script] jQuery 版本:", typeof $ !== 'undefined' ? $.fn.jquery : "未載入");
-    console.log("[Script] DevExpress 版本:", typeof DevExpress !== 'undefined' ? "已載入" : "未載入");
-    console.log("========================================");
+    // ? 條件式日誌函數
+    var isDevelopment = '@(System.Diagnostics.Debugger.IsAttached ? "true" : "false")' === 'true';
+    
+    function log(message, ...args) {
+        if (isDevelopment && typeof console !== 'undefined') {
+            console.log.apply(console, [message].concat(args));
+        }
+    }
+    
+    function logWarn(message, ...args) {
+        if (typeof console !== 'undefined') {
+            console.warn.apply(console, [message].concat(args));
+        }
+    }
+    
+    function logError(message, ...args) {
+        if (typeof console !== 'undefined') {
+            console.error.apply(console, [message].concat(args));
+        }
+    }
+
+    // ? 立即執行的測試日誌（僅開發環境）
+    if (isDevelopment) {
+        log("========================================");
+        log("[Script] JavaScript 檔案已載入");
+        log("[Script] jQuery 版本:", typeof $ !== 'undefined' ? $.fn.jquery : "未載入");
+        log("[Script] DevExpress 版本:", typeof DevExpress !== 'undefined' ? "已載入" : "未載入");
+        log("========================================");
+    }
 
     var markerUrl = "https://js.devexpress.com/Demos/RealtorApp/images/map-marker.png";
     var dataGridInstance = null;
     var modifiedRecords = new Set();
-    var cachedData = []; // ? 移到全域作用域
+    var cachedData = [];
 
     $(function() {
-        console.log("[PageLoad] ? jQuery document.ready 已觸發");
-        console.log("[PageLoad] 開始載入頁面");
-        console.log("[PageLoad] ViewBag.ListId:", '@ViewBag.ListId');
+        log("[PageLoad] ? jQuery document.ready 已觸發");
+        log("[PageLoad] 開始載入頁面");
+        log("[PageLoad] ViewBag.ListId:", '@ViewBag.ListId');
         
-        // ? 先載入資料
         $.ajax({
             url: '@Url.Action("LoadMaintainPersonInfomation", "Personal")',
             type: 'GET',
             data: { id: '@ViewBag.ListId' },
             dataType: 'json',
             beforeSend: function() {
-                console.log("[DataLoad] 開始載入資料...");
-                console.log("[DataLoad] URL:", '@Url.Action("LoadMaintainPersonInfomation", "Personal")');
-                console.log("[DataLoad] ListId:", '@ViewBag.ListId');
+                log("[DataLoad] 開始載入資料...");
+                log("[DataLoad] URL:", '@Url.Action("LoadMaintainPersonInfomation", "Personal")');
+                log("[DataLoad] ListId:", '@ViewBag.ListId');
             },
             success: function(data) {
-                console.log("[DataLoad] ? 載入成功");
-                console.log("[DataLoad] 資料類型:", typeof data);
-                console.log("[DataLoad] 是否為陣列:", Array.isArray(data));
-                console.log("[DataLoad] 完整資料:", data);
+                log("[DataLoad] ? 載入成功");
+                log("[DataLoad] 資料類型:", typeof data);
+                log("[DataLoad] 是否為陣列:", Array.isArray(data));
+                log("[DataLoad] 完整資料:", data);
                 
-                // ? DevExtreme DataSourceLoader 返回的格式：{ data: [...], totalCount: N }
                 var actualData = [];
                 
                 if (Array.isArray(data)) {
-                    // 如果直接是陣列
                     actualData = data;
                 } else if (data && Array.isArray(data.data)) {
-                    // 如果是 DevExtreme 格式：{ data: [...] }
                     actualData = data.data;
-                    console.log("[DataLoad] 從 data.data 取得資料");
+                    log("[DataLoad] 從 data.data 取得資料");
                 } else {
-                    console.warn("[DataLoad] ?? 未知的資料格式");
+                    logWarn("[DataLoad] ?? 未知的資料格式");
                 }
                 
-                console.log("[DataLoad] 實際資料筆數:", actualData.length);
+                log("[DataLoad] 實際資料筆數:", actualData.length);
                 
                 if (actualData.length > 0) {
-                    console.log("[DataLoad] 第一筆資料:", actualData[0]);
+                    log("[DataLoad] 第一筆資料:", actualData[0]);
                     cachedData = actualData;
                     initializeGrid();
                 } else {
-                    console.warn("[DataLoad] ?? 資料為空");
+                    logWarn("[DataLoad] ?? 資料為空");
                     cachedData = [];
                     initializeGrid();
                 }
             },
             error: function(xhr, status, error) {
-                console.error("[DataLoad] ? 載入失敗");
-                console.error("[DataLoad] Status:", status);
-                console.error("[DataLoad] Error:", error);
-                console.error("[DataLoad] Response:", xhr.responseText);
-                console.error("[DataLoad] Status Code:", xhr.status);
+                logError("[DataLoad] ? 載入失敗");
+                logError("[DataLoad] Status:", status);
+                logError("[DataLoad] Error:", error);
+                logError("[DataLoad] Response:", xhr.responseText);
+                logError("[DataLoad] Status Code:", xhr.status);
                 
                 cachedData = [];
                 initializeGrid();
@@ -244,30 +263,27 @@
     });
     
     function initializeGrid() {
-        console.log("[InitGrid] 開始初始化，資料數:", cachedData.length);
+        log("[InitGrid] 開始初始化，資料數:", cachedData.length);
         
-        // ? 使用 CustomStore 管理本地資料
         $("#gridContainer").dxDataGrid({
             dataSource: new DevExpress.data.CustomStore({
                 key: "ContactId",
                 load: function() {
-                    console.log("[CustomStore] Load - 返回", cachedData.length, "筆資料");
+                    log("[CustomStore] Load - 返回", cachedData.length, "筆資料");
                     return cachedData;
                 },
                 update: function(key, values) {
-                    console.log("[CustomStore] Update - Key:", key, "Values:", values);
+                    log("[CustomStore] Update - Key:", key, "Values:", values);
                     
-                    // ? 更新本地快取資料
                     var index = cachedData.findIndex(function(item) { 
                         return item.ContactId === key; 
                     });
                     
                     if (index >= 0) {
-                        // ? 合併新值到現有資料
                         for (var prop in values) {
                             cachedData[index][prop] = values[prop];
                         }
-                        console.log("[CustomStore] 已更新本地資料:", cachedData[index]);
+                        log("[CustomStore] 已更新本地資料:", cachedData[index]);
                     }
                     
                     return $.Deferred().resolve().promise();
@@ -310,17 +326,17 @@
             onInitialized: function(e) {
                 dataGridInstance = e.component;
                 modifiedRecords.clear();
-                console.log("[DataGrid] 已初始化");
+                log("[DataGrid] 已初始化");
             },
             onRowUpdating: function(e) {
-                console.log("[DataGrid] 更新中 - Key:", e.key, "NewData:", e.newData);
+                log("[DataGrid] 更新中 - Key:", e.key, "NewData:", e.newData);
                 if (e.key && e.newData && Object.keys(e.newData).length > 0) {
                     modifiedRecords.add(e.key);
-                    console.log("[DataGrid] 已記錄修改，總共", modifiedRecords.size, "筆");
+                    log("[DataGrid] 已記錄修改，總共", modifiedRecords.size, "筆");
                 }
             },
             onRowUpdated: function(e) {
-                console.log("[DataGrid] 已更新 - Key:", e.key, "Data:", e.data);
+                log("[DataGrid] 已更新 - Key:", e.key, "Data:", e.data);
                 var modifiedCount = modifiedRecords.size;
                 updateUploadButtonText(modifiedCount);
                 ShowToast("資料已暫存（" + modifiedCount + " 筆待上傳）", "info", 2000);
@@ -333,7 +349,7 @@
                 }
             },
             onEditingStart: function(e) {
-                console.log("[DataGrid] 開始編輯 - Column:", e.column.dataField, "Key:", e.key, "Current:", e.data[e.column.dataField]);
+                log("[DataGrid] 開始編輯 - Column:", e.column.dataField, "Key:", e.key, "Current:", e.data[e.column.dataField]);
             }
         });
     }
