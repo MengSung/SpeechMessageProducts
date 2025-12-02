@@ -387,22 +387,36 @@
     function GetResult() {
         try {
             var grid = dataGridInstance || $("#gridContainer").dxDataGrid("instance");
-            if (!grid) return "[]";
+            if (!grid) {
+                log("[GetResult] Grid 實例不存在");
+                return "[]";
+            }
 
             try { grid.closeEditCell(); } catch(e) {}
 
-            var rows = grid.getVisibleRows() || [];
+            // ✅ 只返回已修改的資料
             var items = [];
+            var rows = grid.getVisibleRows() || [];
+            
+            log("[GetResult] 總可見行數:", rows.length);
+            log("[GetResult] 已修改的 ContactId 數量:", modifiedRecords.size);
+            log("[GetResult] 已修改的 ContactId 清單:", Array.from(modifiedRecords));
             
             for (var i = 0; i < rows.length; i++) {
                 var r = rows[i];
-                if (r && r.rowType === "data" && r.data) {
-                    items.push(r.data);
+                if (r && r.rowType === "data" && r.data && r.data.ContactId) {
+                    // ✅ 只收集已修改的資料
+                    if (modifiedRecords.has(r.data.ContactId)) {
+                        items.push(r.data);
+                        log("[GetResult] 加入已修改的資料:", r.data.FullName, r.data.ContactId);
+                    }
                 }
             }
 
+            log("[GetResult] 最終返回", items.length, "筆已修改的資料");
             return JSON.stringify(items);
         } catch (err) {
+            logError("[GetResult] 發生錯誤:", err);
             return "[]";
         }
     }
