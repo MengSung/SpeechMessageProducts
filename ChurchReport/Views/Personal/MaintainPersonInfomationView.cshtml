@@ -318,6 +318,16 @@
             showRowLines: true,
             rowAlternationEnabled: true,
             remoteOperations: false,
+            // ✅ 停用分頁，顯示所有資料
+            paging: {
+                enabled: false
+            },
+            // ✅ 啟用虛擬捲動以提升效能
+            scrolling: {
+                mode: "virtual",
+                rowRenderingMode: "virtual",
+                showScrollbar: "always"
+            },
             grouping: {
                 contextMenuEnabled: true,
                 expandMode: "rowClick"
