@@ -262,14 +262,16 @@ namespace ChurchReport.Controllers
                                                 
                                                 if (contactId != System.Guid.Empty)
                                                 {
-                                                    // ✅ 修復:查詢標準欄位和正確的自訂欄位
+                                                    // ✅ 查詢標準欄位和正確的自訂欄位
                                                     var columnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet(
                                                         "contactid",
                                                         "fullname",
                                                         "mobilephone",
                                                         "address2_line1",
                                                         "birthdate",
-                                                        "customertypecode" // ✅ 會員身分 (正確欄位名稱)
+                                                        "customertypecode", // ✅ 會員身分
+                                                        "new_spiriitual_identity", // ✅ 信仰狀態 (注意拼字)
+                                                        "new_equipment_status" // ✅ 裝備狀態欄位
                                                     );
                                                     
                                                     var contactEntity = toolUtility.m_Crm2011OrganizationService.Retrieve("contact", contactId, columnSet);
@@ -287,7 +289,6 @@ namespace ChurchReport.Controllers
                                                             Phone = toolUtility.GetEntityStringAttribute(contactEntity, "mobilephone"),
                                                             Address = toolUtility.GetEntityStringAttribute(contactEntity, "address2_line1"),
                                                             ContactId = contactId.ToString(),
-                                                            SpiritualIdentity = "", // ❌ 欄位不存在
                                                             EquipmentStatus = "" // ❌ 欄位不存在
                                                         };
                                                 
@@ -303,7 +304,23 @@ namespace ChurchReport.Controllers
                                                             member.Status = "";
                                                             System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]     會員身分: 欄位不存在");
                                                         }
-                                                
+                                                        
+                                                        // ✅ 取得信仰狀態
+                                                        if (contactEntity.Contains("new_spiriitual_identity"))
+                                                        {
+                                                            var spiritualValue = toolUtility.GetOptionSetAttribute(contactEntity, "new_spiriitual_identity");
+                                                            member.SpiritualIdentity = GetSpiritualIdentityText(spiritualValue);
+                                                            System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]     信仰狀態: {member.SpiritualIdentity} (值: {spiritualValue})");
+                                                        }
+                                                        else
+                                                        {
+                                                            member.SpiritualIdentity = "";
+                                                            System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]     信仰狀態: 欄位不存在");
+                                                        }
+
+                                                        // ✅裝備狀態
+                                                        member.EquipmentStatus = toolUtility.GetEntityStringAttribute(contactEntity, "new_equipment_status");
+
                                                         // ✅ 取得生日
                                                         if (contactEntity.Contains("birthdate"))
                                                         {
@@ -383,7 +400,9 @@ namespace ChurchReport.Controllers
                                             "mobilephone",
                                             "address2_line1",
                                             "birthdate",
-                                            "customertypecode" // ✅ 會員身分
+                                            "customertypecode", // ✅ 會員身分
+                                            "new_spiriitual_identity", // ✅ 信仰狀態 (注意拼字)
+                                            "new_equipment_status" // ✅ 裝備狀態欄位
                                         );
                                         
                                         var contactEntity = toolUtility.m_Crm2011OrganizationService.Retrieve("contact", contactGuid, columnSet);
@@ -402,10 +421,29 @@ namespace ChurchReport.Controllers
                                                 member.Status = "";
                                             }
                                             
-                                            // ❌ 其他欄位不存在
-                                            member.SpiritualIdentity = "";
-                                            member.EquipmentStatus = "";
+
                                             
+                                            // ✅ 更新信仰狀態
+                                            if (contactEntity.Contains("new_spiriitual_identity"))
+                                            {
+                                                var spiritualValue = toolUtility.GetOptionSetAttribute(contactEntity, "new_spiriitual_identity");
+                                                member.SpiritualIdentity = GetSpiritualIdentityText(spiritualValue);
+                                                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]     單一小組-信仰狀態: {member.SpiritualIdentity}");
+                                            }
+                                            else
+                                            {
+                                                member.SpiritualIdentity = "";
+                                            }
+
+                                            // ✅裝備狀態
+                                            member.EquipmentStatus = toolUtility.GetEntityStringAttribute(contactEntity, "new_equipment_status");
+
+                                            // ✅ 取得生日
+                                            if (contactEntity.Contains("birthdate"))
+                                            {
+                                                member.BirthDate = toolUtility.GetEntityDateTimeAttribute(contactEntity, "birthdate");
+                                            }
+
                                             System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]     單一小組-成員: {member.FullName}");
                                         }
                                     }
@@ -463,11 +501,13 @@ namespace ChurchReport.Controllers
         {
             switch (optionValue)
             {
-                case 100000000:
-                    return "基督徒";
+                case 100000004:
+                    return "-未知-";
                 case 100000001:
-                    return "已決志";
+                    return "基督徒";
                 case 100000002:
+                    return "已決志";
+                case 100000005:
                     return "慕道友";
                 case 100000003:
                     return "未信主";
@@ -1058,7 +1098,7 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 更新單筆維護個人資訊
-        /// 用於 DataGrid 的儲存按鈕（單筆更新）
+        /// 用於 DataGrid 的儲存按鈕（單筆更新）        
         /// </summary>
         /// <param name="key">ContactId</param>
         /// <param name="values">更新的欄位值(JSON)</param>
