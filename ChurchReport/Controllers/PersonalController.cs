@@ -313,7 +313,7 @@ namespace ChurchReport.Controllers
                     }
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 最終返回 {allMembers.Count} 個成員");
+                System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 總計返回 {allMembers.Count} 筆資料");
                 
                 // 返回資料
                 return DataSourceLoader.Load(allMembers, loadOptions);
@@ -1034,30 +1034,57 @@ namespace ChurchReport.Controllers
             {
                 SetupPersonalInfoViewBag();
 
-                // ? 設定 ViewBag.ListId - 用於多小組模式下的資料載入
-                // 在多小組模式下，需要傳遞特殊的識別碼
+                // ✅ 設定 ViewBag.ListId - 用於多小組模式下的資料載入
                 if (InMemoryContext.ListManager != null)
                 {
                     var displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
                     bool integrateFlag = IsIntegrateDataLoaded();
 
-                    if (displayViewType == "MultiGroupView" && !integrateFlag)
+                    System.Diagnostics.Debug.WriteLine($"[MaintainPersonInfomationView] displayViewType={displayViewType}, integrateFlag={integrateFlag}");
+
+                    if (displayViewType == "MultiGroupView")
                     {
-                        // 多小組模式：使用特殊識別碼
+                        // ✅ 多小組模式：使用特殊識別碼
                         ViewBag.ListId = "MULTIGROUP_MODE";
+                        System.Diagnostics.Debug.WriteLine($"[MaintainPersonInfomationView] 設定 ListId = MULTIGROUP_MODE");
                     }
                     else
                     {
-                        // 單一小組模式：使用實際的 ListId
-                        ViewBag.ListId = InMemoryContext.ListManager.ActiveListId ?? "";
+                        // ✅ 單一小組模式：使用實際的 ListId
+                        var activeListId = InMemoryContext.ListManager.ActiveListId;
+                        
+                        if (!string.IsNullOrWhiteSpace(activeListId))
+                        {
+                            ViewBag.ListId = activeListId;
+                            System.Diagnostics.Debug.WriteLine($"[MaintainPersonInfomationView] 設定 ListId = {activeListId}");
+                        }
+                        else
+                        {
+                            // ✅ 如果 ActiveListId 為空，嘗試從 MultiGroupList 取得第一個小組的 ListId
+                            var multiGroupList = InMemoryContext.ListManager.m_MultiGroupList;
+                            if (multiGroupList != null && 
+                                multiGroupList.m_WeeklyReportRecordListData != null && 
+                                multiGroupList.m_WeeklyReportRecordListData.Count > 0)
+                            {
+                                ViewBag.ListId = multiGroupList.m_WeeklyReportRecordListData[0].ListEntityId;
+                                System.Diagnostics.Debug.WriteLine($"[MaintainPersonInfomationView] 從 MultiGroupList 取得 ListId = {ViewBag.ListId}");
+                            }
+                            else
+                            {
+                                // ✅ 最後的備選方案：使用 MULTIGROUP_MODE
+                                ViewBag.ListId = "MULTIGROUP_MODE";
+                                System.Diagnostics.Debug.WriteLine($"[MaintainPersonInfomationView] 使用備選方案 ListId = MULTIGROUP_MODE");
+                            }
+                        }
                     }
                 }
                 else
                 {
                     ViewBag.ListId = "";
+                    System.Diagnostics.Debug.WriteLine($"[MaintainPersonInfomationView] ListManager is null, 設定 ListId = 空字串");
                 }
 
-                // ? 根據登入類型設定不同的資料，添加 null 檢查
+                // ✅ 根據登入類型設定不同的資料，添加 null 檢查
                 if (InMemoryContext.ListManager != null &&
                     InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport != null &&
                     InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList != null &&
