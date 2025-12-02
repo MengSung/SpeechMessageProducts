@@ -1,10 +1,10 @@
-@* 
-    ³o­Óµø¹Ï¥Î©óºûÅ@­Ó¤H¸ê°T¡AÅã¥Ü¦a¹Ï¡B¸ê®Æºô®æ¡A¨Ã¤¹³\¤W¶Ç§ó·s¡C
+ï»¿@* 
+    é€™å€‹è¦–åœ–ç”¨æ–¼ç¶­è­·å€‹äººè³‡è¨Šï¼Œé¡¯ç¤ºåœ°åœ–ã€è³‡æ–™ç¶²æ ¼ï¼Œä¸¦å…è¨±ä¸Šå‚³æ›´æ–°ã€‚
 *@
 
 @{
-    String DataStatus = "¤W¶Ç¦¨¥\¤F!";
-    String ReUpload = "½Ğ¦A«ö¤@¦¸¤W¶Ç¶s!";
+    String DataStatus = "ä¸Šå‚³æˆåŠŸäº†!";
+    String ReUpload = "è«‹å†æŒ‰ä¸€æ¬¡ä¸Šå‚³éˆ•!";
 }
 
 @model ChurchReport.Models.SmallGroupData
@@ -14,13 +14,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
-    <title>¸t¨¦¦æ¹D·|</title>
+    <title>è–è°·è¡Œé“æœƒ</title>
 </head>
 
 <br />
 
 <div class="dx-field" style="height:100%; width:100%; overflow: auto;">
-    <!-- Toast ³qª¾®e¾¹ -->
+    <!-- Toast é€šçŸ¥å®¹å™¨ -->
     <div id="ToastContainer">
         @(Html.DevExtreme().Toast()
                 .ID("toast")
@@ -31,7 +31,7 @@
             )
     </div>
 
-    <!-- ¸ü¤J­±ªO -->
+    <!-- è¼‰å…¥é¢æ¿ -->
     <div id="LoadPanel">
         @(Html.DevExtreme().LoadPanel()
                 .ID("loadPanel")
@@ -42,11 +42,11 @@
                 .ShowPane(true)
                 .Shading(true)
                 .CloseOnOutsideClick(false)
-                .Message("§ó·s¸ê®Æ¤¤...")
+                .Message("æ›´æ–°è³‡æ–™ä¸­...")
             )
     </div>
 
-    <!-- ­«·s¤W¶Ç Toast -->
+    <!-- é‡æ–°ä¸Šå‚³ Toast -->
     <div id="ToastReUploadContainer">
         @(Html.DevExtreme().Toast()
                     .ID("ToastReUpload")
@@ -60,17 +60,17 @@
 
     <hr />
 
-    <!-- ­Ó¤H¸ê®Æ¼ĞÃD -->
-    <div style="font-family:¼Ğ·¢Åé;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-        <h4>­Ó¤H¸ê®Æ</h4>
+    <!-- å€‹äººè³‡æ–™æ¨™é¡Œ -->
+    <div style="font-family:æ¨™æ¥·é«”;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+        <h4>å€‹äººè³‡æ–™</h4>
     </div>
 
-    <!-- ¦a¹Ï®e¾¹ -->
+    <!-- åœ°åœ–å®¹å™¨ -->
     <div id="multigroupchart">
         @(Html.DevExtreme().Map()
         .ID("map")
         .Provider(GeoMapProvider.Google)
-        .Center("¥x«n¥«")
+        .Center("æ–°åŒ—å¸‚å®‰å‘")
         .Zoom(11)
         .Visible(false)
         .Width("50%")
@@ -85,10 +85,10 @@
 
     <br />
 
-    <!-- ¤W¶Ç«ö¶s -->
+    <!-- ä¸Šå‚³æŒ‰éˆ• -->
     <div id="buttonContainer" class="dx-button-icon">
         @(Html.DevExtreme().Button()
-            .Text("¤W¶Ç").Height(50).Width(80).Icon("check")
+            .Text("ä¸Šå‚³").Height(50).Width(80).Icon("check")
             .Type(ButtonType.Success)
             .ID("save-button")
             .OnClick
@@ -100,7 +100,7 @@
                             var lp   = $("#loadPanel").dxLoadPanel("instance");
 
                             if (modifiedRecords.size === 0) {
-                                ShowToast("¨S¦³»İ­n¤W¶Çªº¸ê®Æ", "warning", 2000);
+                                ShowToast("æ²’æœ‰éœ€è¦ä¸Šå‚³çš„è³‡æ–™", "warning", 2000);
                                 return;
                             }
 
@@ -114,7 +114,7 @@
                                 var payload = GetResult();
                                 var modifiedCount = modifiedRecords.size;
 
-                                console.log("[Upload] ·Ç³Æ¤W¶Ç", modifiedCount, "µ§¤w­×§ïªº¸ê®Æ");
+                                log("[Upload] æº–å‚™ä¸Šå‚³", modifiedCount, "ç­†å·²ä¿®æ”¹çš„è³‡æ–™");
 
                                 $.ajax({
                                     url: '@Url.Action("SaveMaintainPersonInfomation", "Personal")',
@@ -126,13 +126,13 @@
                                         btn.option("disabled", false);
 
                                         if (response.status === "1") {
-                                            ShowToast(response.message || "¸ê®Æ¤w°e¥X¡A¥¿¦b­I´º¤W¶Ç¤¤...", "success", 3000);
+                                            ShowToast(response.message || "è³‡æ–™å·²é€å‡ºï¼Œæ­£åœ¨èƒŒæ™¯ä¸Šå‚³ä¸­...", "success", 3000);
                                             modifiedRecords.clear();
                                             updateUploadButtonText(0);
-                                            try { grid.repaint(); } catch(e) { console.warn("[Upload] Grid repaint error:", e); }
-                                            console.log("[Upload] ¸ê®Æ¤w°e¥X¡A«O¯d·í«e½s¿è¤º®e");
+                                            try { grid.repaint(); } catch(e) { logWarn("[Upload] Grid repaint error:", e); }
+                                            log("[Upload] è³‡æ–™å·²é€å‡ºï¼Œä¿ç•™ç•¶å‰ç·¨è¼¯å…§å®¹");
                                         } else {
-                                            ShowToast(response.message || "¤W¶Ç¥¢±Ñ", "error", 5000);
+                                            ShowToast(response.message || "ä¸Šå‚³å¤±æ•—", "error", 5000);
                                         }
                                     },
                                     error: function (xhr, status, error) {
@@ -140,13 +140,13 @@
                                         btn.option("disabled", false);
 
                                         if (status === "timeout") {
-                                            ShowToast("¸ê®Æ¤w°e¥X¡A¥¿¦b­I´º¤W¶Ç¤¤...", "info", 3000);
+                                            ShowToast("è³‡æ–™å·²é€å‡ºï¼Œæ­£åœ¨èƒŒæ™¯ä¸Šå‚³ä¸­...", "info", 3000);
                                             modifiedRecords.clear();
                                             updateUploadButtonText(0);
-                                            try { grid.repaint(); } catch(e) { console.warn("[Upload] Grid repaint error:", e); }
+                                            try { grid.repaint(); } catch(e) { logWarn("[Upload] Grid repaint error:", e); }
                                         } else {
-                                            var errorMessage = "¤W¶Ç¥¢±Ñ";
-                                            if (xhr.status === 404) errorMessage = "§ä¤£¨ì¤W¶Ç¥\¯à (404)";
+                                            var errorMessage = "ä¸Šå‚³å¤±æ•—";
+                                            if (xhr.status === 404) errorMessage = "æ‰¾ä¸åˆ°ä¸Šå‚³åŠŸèƒ½ (404)";
                                             else if (xhr.responseJSON && xhr.responseJSON.message) errorMessage = xhr.responseJSON.message;
                                             ShowToast(errorMessage, "error", 5000);
                                         }
@@ -155,20 +155,20 @@
                             }).fail(function(){
                                 lp.hide();
                                 btn.option("disabled", false);
-                                ShowToast("½Ğ¥ı­×¥¿½s¿èÄæ¦ìªº¿ù»~«á¦A¤W¶Ç", "warning", 4000);
+                                ShowToast("è«‹å…ˆä¿®æ­£ç·¨è¼¯æ¬„ä½çš„éŒ¯èª¤å¾Œå†ä¸Šå‚³", "warning", 4000);
                             });
                         }
             </text>)
         )
     </div>
 
-    <!-- ¸ê®Æºô®æ -->
+    <!-- è³‡æ–™ç¶²æ ¼ -->
     <div id="gridContainer"></div>
 
 </div>
 
 <script>
-    // ? ±ø¥ó¦¡¤é»x¨ç¼Æ
+    // âœ… æ¢ä»¶å¼æ—¥èªŒå‡½æ•¸
     var isDevelopment = '@(System.Diagnostics.Debugger.IsAttached ? "true" : "false")' === 'true';
     
     function log(message, ...args) {
@@ -189,12 +189,12 @@
         }
     }
 
-    // ? ¥ß§Y°õ¦æªº´ú¸Õ¤é»x¡]¶È¶}µoÀô¹Ò¡^
+    // âœ… ç«‹å³åŸ·è¡Œçš„æ¸¬è©¦æ—¥èªŒï¼ˆåƒ…é–‹ç™¼ç’°å¢ƒï¼‰
     if (isDevelopment) {
         log("========================================");
-        log("[Script] JavaScript ÀÉ®×¤w¸ü¤J");
-        log("[Script] jQuery ª©¥»:", typeof $ !== 'undefined' ? $.fn.jquery : "¥¼¸ü¤J");
-        log("[Script] DevExpress ª©¥»:", typeof DevExpress !== 'undefined' ? "¤w¸ü¤J" : "¥¼¸ü¤J");
+        log("[Script] JavaScript æª”æ¡ˆå·²è¼‰å…¥");
+        log("[Script] jQuery ç‰ˆæœ¬:", typeof $ !== 'undefined' ? $.fn.jquery : "æœªè¼‰å…¥");
+        log("[Script] DevExpress ç‰ˆæœ¬:", typeof DevExpress !== 'undefined' ? "å·²è¼‰å…¥" : "æœªè¼‰å…¥");
         log("========================================");
     }
 
@@ -204,8 +204,8 @@
     var cachedData = [];
 
     $(function() {
-        log("[PageLoad] ? jQuery document.ready ¤wÄ²µo");
-        log("[PageLoad] ¶}©l¸ü¤J­¶­±");
+        log("[PageLoad] âœ… jQuery document.ready å·²è§¸ç™¼");
+        log("[PageLoad] é–‹å§‹è¼‰å…¥é é¢");
         log("[PageLoad] ViewBag.ListId:", '@ViewBag.ListId');
         
         $.ajax({
@@ -214,15 +214,15 @@
             data: { id: '@ViewBag.ListId' },
             dataType: 'json',
             beforeSend: function() {
-                log("[DataLoad] ¶}©l¸ü¤J¸ê®Æ...");
+                log("[DataLoad] é–‹å§‹è¼‰å…¥è³‡æ–™...");
                 log("[DataLoad] URL:", '@Url.Action("LoadMaintainPersonInfomation", "Personal")');
                 log("[DataLoad] ListId:", '@ViewBag.ListId');
             },
             success: function(data) {
-                log("[DataLoad] ? ¸ü¤J¦¨¥\");
-                log("[DataLoad] ¸ê®ÆÃş«¬:", typeof data);
-                log("[DataLoad] ¬O§_¬°°}¦C:", Array.isArray(data));
-                log("[DataLoad] §¹¾ã¸ê®Æ:", data);
+                log("[DataLoad] âœ… è¼‰å…¥æˆåŠŸ");
+                log("[DataLoad] è³‡æ–™é¡å‹:", typeof data);
+                log("[DataLoad] æ˜¯å¦ç‚ºé™£åˆ—:", Array.isArray(data));
+                log("[DataLoad] å®Œæ•´è³‡æ–™:", data);
                 
                 var actualData = [];
                 
@@ -230,25 +230,25 @@
                     actualData = data;
                 } else if (data && Array.isArray(data.data)) {
                     actualData = data.data;
-                    log("[DataLoad] ±q data.data ¨ú±o¸ê®Æ");
+                    log("[DataLoad] å¾ data.data å–å¾—è³‡æ–™");
                 } else {
-                    logWarn("[DataLoad] ?? ¥¼ª¾ªº¸ê®Æ®æ¦¡");
+                    logWarn("[DataLoad] âš ï¸ æœªçŸ¥çš„è³‡æ–™æ ¼å¼");
                 }
                 
-                log("[DataLoad] ¹ê»Ú¸ê®Æµ§¼Æ:", actualData.length);
+                log("[DataLoad] å¯¦éš›è³‡æ–™ç­†æ•¸:", actualData.length);
                 
                 if (actualData.length > 0) {
-                    log("[DataLoad] ²Ä¤@µ§¸ê®Æ:", actualData[0]);
+                    log("[DataLoad] ç¬¬ä¸€ç­†è³‡æ–™:", actualData[0]);
                     cachedData = actualData;
                     initializeGrid();
                 } else {
-                    logWarn("[DataLoad] ?? ¸ê®Æ¬°ªÅ");
+                    logWarn("[DataLoad] âš ï¸ è³‡æ–™ç‚ºç©º");
                     cachedData = [];
                     initializeGrid();
                 }
             },
             error: function(xhr, status, error) {
-                logError("[DataLoad] ? ¸ü¤J¥¢±Ñ");
+                logError("[DataLoad] âŒ è¼‰å…¥å¤±æ•—");
                 logError("[DataLoad] Status:", status);
                 logError("[DataLoad] Error:", error);
                 logError("[DataLoad] Response:", xhr.responseText);
@@ -257,19 +257,19 @@
                 cachedData = [];
                 initializeGrid();
                 
-                ShowToast("¸ê®Æ¸ü¤J¥¢±Ñ: " + error, "error", 5000);
+                ShowToast("è³‡æ–™è¼‰å…¥å¤±æ•—: " + error, "error", 5000);
             }
         });
     });
     
     function initializeGrid() {
-        log("[InitGrid] ¶}©lªì©l¤Æ¡A¸ê®Æ¼Æ:", cachedData.length);
+        log("[InitGrid] é–‹å§‹åˆå§‹åŒ–ï¼Œè³‡æ–™æ•¸:", cachedData.length);
         
         $("#gridContainer").dxDataGrid({
             dataSource: new DevExpress.data.CustomStore({
                 key: "ContactId",
                 load: function() {
-                    log("[CustomStore] Load - ªğ¦^", cachedData.length, "µ§¸ê®Æ");
+                    log("[CustomStore] Load - è¿”å›", cachedData.length, "ç­†è³‡æ–™");
                     return cachedData;
                 },
                 update: function(key, values) {
@@ -283,7 +283,7 @@
                         for (var prop in values) {
                             cachedData[index][prop] = values[prop];
                         }
-                        log("[CustomStore] ¤w§ó·s¥»¦a¸ê®Æ:", cachedData[index]);
+                        log("[CustomStore] å·²æ›´æ–°æœ¬åœ°è³‡æ–™:", cachedData[index]);
                     }
                     
                     return $.Deferred().resolve().promise();
@@ -303,7 +303,7 @@
                 expandMode: "rowClick"
             },
             groupPanel: {
-                emptyPanelText: "½Ğ§â¤p²Õ¦WºÙ©Ô¨ì³o¸Ì",
+                emptyPanelText: "è«‹æŠŠå°çµ„åç¨±æ‹‰åˆ°é€™è£¡",
                 visible: false,
                 allowColumnDragging: true
             },
@@ -314,32 +314,32 @@
                 allowDeleting: false
             },
             columns: [
-                { dataField: "SmallGroupName", caption: "¤p²Õ", groupIndex: 0, allowEditing: false },
-                { dataField: "FullName", caption: "©m¦W", allowEditing: false, fixed: true, width: 80, alignment: "left" },
-                { dataField: "Status", caption: "·|­û¨­¤À", alignment: "center", allowEditing: false, width: 70 },
-                { dataField: "EquipmentStatus", caption: "¸Ë³Æª¬ºA", alignment: "center", allowEditing: false, width: 60 },
-                { dataField: "SpiritualIdentity", caption: "«H¥õª¬ºA", alignment: "center", allowEditing: false, width: 110 },
-                { dataField: "Phone", caption: "¦æ°Ê¹q¸Ü", width: 120, alignment: "left", allowEditing: true },
-                { dataField: "BirthDate", caption: "¥Í¤é", dataType: "date", format: "yyyy/M/d", alignment: "center", width: 100, allowEditing: true },
-                { dataField: "Address", caption: "¦a§}", width: 200, alignment: "left", allowEditing: true }
+                { dataField: "SmallGroupName", caption: "å°çµ„", groupIndex: 0, allowEditing: false },
+                { dataField: "FullName", caption: "å§“å", allowEditing: false, fixed: true, width: 80, alignment: "left" },
+                { dataField: "Status", caption: "æœƒå“¡èº«åˆ†", alignment: "center", allowEditing: false, width: 70 },
+                { dataField: "EquipmentStatus", caption: "è£å‚™ç‹€æ…‹", alignment: "center", allowEditing: false, width: 60 },
+                { dataField: "SpiritualIdentity", caption: "ä¿¡ä»°ç‹€æ…‹", alignment: "center", allowEditing: false, width: 110 },
+                { dataField: "Phone", caption: "è¡Œå‹•é›»è©±", width: 120, alignment: "left", allowEditing: true },
+                { dataField: "BirthDate", caption: "ç”Ÿæ—¥", dataType: "date", format: "yyyy/M/d", alignment: "center", width: 100, allowEditing: true },
+                { dataField: "Address", caption: "åœ°å€", width: 200, alignment: "left", allowEditing: true }
             ],
             onInitialized: function(e) {
                 dataGridInstance = e.component;
                 modifiedRecords.clear();
-                log("[DataGrid] ¤wªì©l¤Æ");
+                log("[DataGrid] å·²åˆå§‹åŒ–");
             },
             onRowUpdating: function(e) {
-                log("[DataGrid] §ó·s¤¤ - Key:", e.key, "NewData:", e.newData);
+                log("[DataGrid] æ›´æ–°ä¸­ - Key:", e.key, "NewData:", e.newData);
                 if (e.key && e.newData && Object.keys(e.newData).length > 0) {
                     modifiedRecords.add(e.key);
-                    log("[DataGrid] ¤w°O¿ı­×§ï¡AÁ`¦@", modifiedRecords.size, "µ§");
+                    log("[DataGrid] å·²è¨˜éŒ„ä¿®æ”¹ï¼Œç¸½å…±", modifiedRecords.size, "ç­†");
                 }
             },
             onRowUpdated: function(e) {
-                log("[DataGrid] ¤w§ó·s - Key:", e.key, "Data:", e.data);
+                log("[DataGrid] å·²æ›´æ–° - Key:", e.key, "Data:", e.data);
                 var modifiedCount = modifiedRecords.size;
                 updateUploadButtonText(modifiedCount);
-                ShowToast("¸ê®Æ¤w¼È¦s¡]" + modifiedCount + " µ§«İ¤W¶Ç¡^", "info", 2000);
+                ShowToast("è³‡æ–™å·²æš«å­˜ï¼ˆ" + modifiedCount + " ç­†å¾…ä¸Šå‚³ï¼‰", "info", 2000);
             },
             onCellPrepared: function(e) {
                 if (e.rowType === "data" && e.data && e.data.ContactId) {
@@ -349,7 +349,7 @@
                 }
             },
             onEditingStart: function(e) {
-                log("[DataGrid] ¶}©l½s¿è - Column:", e.column.dataField, "Key:", e.key, "Current:", e.data[e.column.dataField]);
+                log("[DataGrid] é–‹å§‹ç·¨è¼¯ - Column:", e.column.dataField, "Key:", e.key, "Current:", e.data[e.column.dataField]);
             }
         });
     }
@@ -358,7 +358,7 @@
         try {
             var btn = $("#save-button").dxButton("instance");
             if (btn) {
-                btn.option("text", count > 0 ? "¤W¶Ç (" + count + ")" : "¤W¶Ç");
+                btn.option("text", count > 0 ? "ä¸Šå‚³ (" + count + ")" : "ä¸Šå‚³");
                 btn.option("type", count > 0 ? "default" : "success");
             }
         } catch(e) {}
@@ -411,20 +411,20 @@
     }
 </script>
 
-<!-- ¥»¦a¤¤¤å¤Æ -->
+<!-- æœ¬åœ°ä¸­æ–‡åŒ– -->
 <script>
     var dictionary = {
         "zh-tw": {
-            "dxScheduler-switcherAgenda": "·|Ä³¤º®e",
-            "Month": "¤ë",
-            "Subject": "¥DÃD"
+            "dxScheduler-switcherAgenda": "æœƒè­°å…§å®¹",
+            "Month": "æœˆ",
+            "Subject": "ä¸»é¡Œ"
         },
     };
     DevExpress.localization.loadMessages(dictionary);
     DevExpress.localization.locale('zh-tw');
 </script>
 
-<!-- ¥~³¡¸}¥»©M¼Ë¦¡ -->
+<!-- å¤–éƒ¨è…³æœ¬å’Œæ¨£å¼ -->
 <script src="~/js/devextreme/devextreme-intl.min.js"></script>
 <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
 <link href="~/css/SmallGroupReportController.css" rel="stylesheet" />
