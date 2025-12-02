@@ -1,6 +1,5 @@
 @* 
     這個視圖用於維護個人資訊，顯示地圖、資料網格，並允許上傳更新。
-    根據登入類型（小組長或個人）顯示不同的資料網格。
 *@
 
 @{
@@ -11,17 +10,13 @@
 @model ChurchReport.Models.SmallGroupData
 
 <head>
-    <!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="generator" content="Mobirise v4.0.16, mobirise.com">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
-    <meta name="description" content="">
     <title>聖谷行道會</title>
 </head>
 
-@*<br />換行*@
 <br />
 
 <div class="dx-field" style="height:100%; width:100%; overflow: auto;">
@@ -29,9 +24,7 @@
     <div id="ToastContainer">
         @(Html.DevExtreme().Toast()
                 .ID("toast")
-                .Position(p => p
-                .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                .Offset(0, 50))
+                .Position(p => p.At(HorizontalAlignment.Center, VerticalAlignment.Center).Offset(0, 50))
                 .Message(DataStatus)
                 .DisplayTime(2000)
                 .MaxWidth(200)
@@ -50,17 +43,14 @@
                 .Shading(true)
                 .CloseOnOutsideClick(false)
                 .Message("更新資料中...")
-                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
             )
     </div>
 
     <!-- 重新上傳 Toast -->
-    <div id="ToastContainer">
+    <div id="ToastReUploadContainer">
         @(Html.DevExtreme().Toast()
                     .ID("ToastReUpload")
-                    .Position(p => p
-                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
-                    .Offset(0, 50))
+                    .Position(p => p.At(HorizontalAlignment.Center, VerticalAlignment.Center).Offset(0, 50))
                     .Message(ReUpload)
                     .DisplayTime(5000)
                     .Type(ToastType.Error)
@@ -87,9 +77,7 @@
         .Height(200)
         .Controls(true)
         .Type(GeoMapType.Roadmap)
-        .ApiKey(k => k
-        .Google("AIzaSyBNogx0Ziqd3OIEW5b6b9BTJHXHW_YKDlM")
-        )
+        .ApiKey(k => k.Google("AIzaSyBNogx0Ziqd3OIEW5b6b9BTJHXHW_YKDlM"))
         .MarkerIconSrc(new JS("markerUrl"))
         .OnReady("onReady")
         )
@@ -111,33 +99,37 @@
                             var btn  = $("#save-button").dxButton("instance");
                             var lp   = $("#loadPanel").dxLoadPanel("instance");
 
-                            // 先關閉當前編輯儲存格並提交變更
+                            if (modifiedRecords.size === 0) {
+                                ShowToast("沒有需要上傳的資料", "warning", 2000);
+                                return;
+                            }
+
                             try { grid.closeEditCell(); } catch(e) { /* ignore */ }
-                            var savePromise = grid.saveEditData(); // dxPromise
+                            var savePromise = grid.saveEditData();
 
                             lp.show();
                             btn.option("disabled", true);
 
-                            // 僅在提交成功後才收集資料與上傳
                             savePromise.done(function(){
                                 var payload = GetResult();
+                                var modifiedCount = modifiedRecords.size;
 
-                                // ? 設定 3 秒超時，不讓使用者等太久
+                                console.log("[Upload] 準備上傳", modifiedCount, "筆已修改的資料");
+
                                 $.ajax({
                                     url: '@Url.Action("SaveMaintainPersonInfomation", "Personal")',
                                     type: 'POST',
                                     data: { aResult: payload },
-                                    timeout: 3000, // ? 3 秒超時
+                                    timeout: 3000,
                                     success: function (response) {
                                         lp.hide();
                                         btn.option("disabled", false);
 
                                         if (response.status === "1") {
-                                            // ? 顯示背景上傳訊息
                                             ShowToast(response.message || "資料已送出，正在背景上傳中...", "success", 3000);
-                                            
-                                            // ? 移除自動重新整理，保留使用者的編輯
-                                            // 讓使用者可以繼續編輯其他欄位
+                                            modifiedRecords.clear();
+                                            updateUploadButtonText(0);
+                                            try { grid.repaint(); } catch(e) { console.warn("[Upload] Grid repaint error:", e); }
                                             console.log("[Upload] 資料已送出，保留當前編輯內容");
                                         } else {
                                             ShowToast(response.message || "上傳失敗", "error", 5000);
@@ -147,35 +139,20 @@
                                         lp.hide();
                                         btn.option("disabled", false);
 
-                                        // ? 如果超時，視為成功（因為已經開始處理）
                                         if (status === "timeout") {
                                             ShowToast("資料已送出，正在背景上傳中...", "info", 3000);
-                                            
-                                            // ? 移除自動重新整理，保留使用者的編輯
-                                            console.log("[Upload] 資料已送出（超時），保留當前編輯內容");
+                                            modifiedRecords.clear();
+                                            updateUploadButtonText(0);
+                                            try { grid.repaint(); } catch(e) { console.warn("[Upload] Grid repaint error:", e); }
                                         } else {
-                                            // ? 其他錯誤才顯示錯誤訊息
                                             var errorMessage = "上傳失敗";
-                                            if (xhr.status === 404) {
-                                                errorMessage = "找不到上傳功能 (404)";
-                                            } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                                                errorMessage = xhr.responseJSON.message;
-                                            } else if (xhr.responseText) {
-                                                try {
-                                                    var errorResponse = JSON.parse(xhr.responseText);
-                                                    errorMessage = errorResponse.message || errorMessage;
-                                                } catch (e) {
-                                                    errorMessage += ": " + xhr.responseText.substring(0, 100);
-                                                }
-                                            } else if (error) {
-                                                errorMessage += ": " + error;
-                                            }
+                                            if (xhr.status === 404) errorMessage = "找不到上傳功能 (404)";
+                                            else if (xhr.responseJSON && xhr.responseJSON.message) errorMessage = xhr.responseJSON.message;
                                             ShowToast(errorMessage, "error", 5000);
                                         }
                                     }
                                 });
                             }).fail(function(){
-                                // 提交失敗（驗證未通過或其他原因），不要上傳，提示使用者
                                 lp.hide();
                                 btn.option("disabled", false);
                                 ShowToast("請先修正編輯欄位的錯誤後再上傳", "warning", 4000);
@@ -186,230 +163,144 @@
     </div>
 
     <!-- 資料網格 -->
-    <div id="data-grid">
-        @(Html.DevExtreme().DataGrid()
-        .ID("gridContainer")
-        .ShowBorders(true)
-        .Paging(paging => paging.Enabled(false))
-        .AllowColumnResizing(true)
-        .ColumnResizingMode(ColumnResizingMode.Widget)
-        .ColumnFixing(c => c.Enabled(true))
-        .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
-        .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
-        .Export(e => e.Enabled(false).AllowExportSelectedData(true))
-        .ShowColumnLines(true)
-        .ShowRowLines(true)
-        .RowAlternationEnabled(true)
-        .ShowBorders(true)
-        .RemoteOperations(false)
-        .Grouping(g => g
-            .ContextMenuEnabled(true)
-            .ExpandMode(GridGroupingExpandMode.RowClick)
-        )
-        .GroupPanel(p => p
-            .EmptyPanelText("請把小組名稱拉到這裡")
-            .Visible(false)
-            .AllowColumnDragging(true)
-        )
-        .Editing(editing =>
-        {
-            editing.Mode(GridEditMode.Cell);
-            editing.AllowUpdating(true);
-            editing.AllowAdding(false);
-            editing.AllowDeleting(false);
-            editing.RefreshMode(GridEditRefreshMode.Repaint);
-            editing.Texts(a => a.SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯"));
-        })
-        .Columns(columns =>
-        {
-            columns.Add().DataField("SmallGroupName").Caption("小組").GroupIndex(0).MinWidth(10).AllowEditing(false);
-            columns.Add().DataField("FullName").Caption("姓名").AllowEditing(false).Fixed(true).Width(80).MinWidth(20).Alignment(HorizontalAlignment.Left);
-            columns.Add().DataField("Status")
-                .Caption("會員身分").Alignment(HorizontalAlignment.Center)
-                .AllowEditing(false)
-                .Width(70).MinWidth(30).DataType(GridColumnDataType.String);
-            columns.Add().DataField("EquipmentStatus").Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
-            columns.Add().DataField("SpiritualIdentity")
-                .Caption("信仰狀態").Alignment(HorizontalAlignment.Center)
-                .AllowEditing(false)
-                .Width(110).MinWidth(100).DataType(GridColumnDataType.String);
-            columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left).AllowEditing(true);
-            columns.Add().DataField("BirthDate").Caption("生日").DataType(GridColumnDataType.Date)
-                .Format("yyyy/M/d").Alignment(HorizontalAlignment.Center).Fixed(false).Width(100).MinWidth(80).AllowEditing(true);
-            columns.Add().DataField("Address").Caption("地址").Fixed(false).Width(200).MinWidth(90).Alignment(HorizontalAlignment.Left).AllowEditing(true);
-        })
-        .DataSource(d => d
-            .WebApi()
-            .Controller("Personal")
-            .LoadAction("LoadMaintainPersonInfomation")
-            .UpdateAction("UpdateMaintainPersonInfomation")
-            .Key("ContactId")
-            .LoadParams(new { id = @ViewBag.ListId })
-            .OnBeforeSend("dataSource_onBeforeSend")
-        )
-        .OnRowUpdating("onRowUpdating")
-        .OnRowUpdated("onRowUpdated")
-        .OnEditingStart("onEditingStart")
-        .OnInitialized("onDataGridInitialized")
-        .OnContentReady(@<text>
-                        function(e)
-                        {
-                            moveEditColumnToLeft(e.component);
-                        }
-                    </text>)
-        .OnCellPrepared("cell_prepared")
-        )
-    </div>
+    <div id="gridContainer"></div>
+
 </div>
 
 <script>
     var markerUrl = "https://js.devexpress.com/Demos/RealtorApp/images/map-marker.png";
-    var DataUploadStatus = "尚未上傳喔!";
     var dataGridInstance = null;
+    var modifiedRecords = new Set();
 
-    // DataGrid 初始化完成
-    function onDataGridInitialized(e) {
-        dataGridInstance = e.component;
-        console.log("[onDataGridInitialized] DataGrid 已初始化");
+    $(function() {
+        // ? 使用純 JavaScript 初始化 DataGrid
+        $("#gridContainer").dxDataGrid({
+            dataSource: {
+                load: function() {
+                    return $.ajax({
+                        url: '@Url.Action("LoadMaintainPersonInfomation", "Personal")',
+                        type: 'GET',
+                        data: { id: '@ViewBag.ListId' },
+                        dataType: 'json'
+                    });
+                },
+                update: function(key, values) {
+                    // ? 本地更新，不發送到伺服器
+                    console.log("[DataSource] Update - Key:", key, "Values:", values);
+                    return $.Deferred().resolve().promise();
+                },
+                key: "ContactId"
+            },
+            showBorders: true,
+            allowColumnResizing: true,
+            columnResizingMode: "widget",
+            columnFixing: { enabled: true },
+            loadPanel: { enabled: false },
+            showColumnLines: true,
+            showRowLines: true,
+            rowAlternationEnabled: true,
+            remoteOperations: false,
+            grouping: {
+                contextMenuEnabled: true,
+                expandMode: "rowClick"
+            },
+            groupPanel: {
+                emptyPanelText: "請把小組名稱拉到這裡",
+                visible: false,
+                allowColumnDragging: true
+            },
+            editing: {
+                mode: "cell",
+                allowUpdating: true,
+                allowAdding: false,
+                allowDeleting: false
+            },
+            columns: [
+                { dataField: "SmallGroupName", caption: "小組", groupIndex: 0, allowEditing: false },
+                { dataField: "FullName", caption: "姓名", allowEditing: false, fixed: true, width: 80, alignment: "left" },
+                { dataField: "Status", caption: "會員身分", alignment: "center", allowEditing: false, width: 70 },
+                { dataField: "EquipmentStatus", caption: "裝備狀態", alignment: "center", allowEditing: false, width: 60 },
+                { dataField: "SpiritualIdentity", caption: "信仰狀態", alignment: "center", allowEditing: false, width: 110 },
+                { dataField: "Phone", caption: "行動電話", width: 120, alignment: "left", allowEditing: true },
+                { dataField: "BirthDate", caption: "生日", dataType: "date", format: "yyyy/M/d", alignment: "center", width: 100, allowEditing: true },
+                { dataField: "Address", caption: "地址", width: 200, alignment: "left", allowEditing: true }
+            ],
+            onInitialized: function(e) {
+                dataGridInstance = e.component;
+                modifiedRecords.clear();
+                console.log("[DataGrid] 已初始化");
+            },
+            onRowUpdating: function(e) {
+                console.log("[DataGrid] 更新中 - Key:", e.key, "NewData:", e.newData);
+                if (e.key && e.newData && Object.keys(e.newData).length > 0) {
+                    modifiedRecords.add(e.key);
+                    console.log("[DataGrid] 已記錄修改，總共", modifiedRecords.size, "筆");
+                }
+            },
+            onRowUpdated: function(e) {
+                console.log("[DataGrid] 已更新 - Key:", e.key);
+                var modifiedCount = modifiedRecords.size;
+                updateUploadButtonText(modifiedCount);
+                ShowToast("資料已暫存（" + modifiedCount + " 筆待上傳）", "info", 2000);
+            },
+            onCellPrepared: function(e) {
+                if (e.rowType === "data" && e.data && e.data.ContactId) {
+                    if (modifiedRecords.has(e.data.ContactId)) {
+                        e.cellElement.css("background-color", "#fff8dc");
+                    }
+                }
+            },
+            onEditingStart: function(e) {
+                console.log("[DataGrid] 開始編輯 - Column:", e.column.dataField, "Key:", e.key);
+            }
+        });
+    });
+
+    function updateUploadButtonText(count) {
+        try {
+            var btn = $("#save-button").dxButton("instance");
+            if (btn) {
+                btn.option("text", count > 0 ? "上傳 (" + count + ")" : "上傳");
+                btn.option("type", count > 0 ? "default" : "success");
+            }
+        } catch(e) {}
     }
 
-    // DataSource 發送請求前
-    function dataSource_onBeforeSend(method, ajaxOptions) {
-        console.log("[dataSource_onBeforeSend] Method:", method);
-        console.log("[dataSource_onBeforeSend] URL:", ajaxOptions.url);
-    }
-
-    // 開始編輯
-    function onEditingStart(e) {
-        console.log("[onEditingStart] 開始編輯");
-        console.log("[onEditingStart] Key:", e.key);
-        console.log("[onEditingStart] Column:", e.column.dataField);
-        console.log("[onEditingStart] Current Value:", e.data[e.column.dataField]);
-    }
-
-    // 正在更新列
-    function onRowUpdating(e) {
-        console.log("[onRowUpdating] 開始更新列資料");
-        console.log("[onRowUpdating] Key:", e.key);
-        console.log("[onRowUpdating] Old Data:", e.oldData);
-        console.log("[onRowUpdating] New Data:", e.newData);
-        
-        // 確保新資料不為空
-        if (!e.newData || Object.keys(e.newData).length === 0) {
-            console.warn("[onRowUpdating] 沒有變更的資料");
-            e.cancel = true;
-            return;
-        }
-    }
-
-    // 列更新完成
-    function onRowUpdated(e) {
-        console.log("[onRowUpdated] 列資料已更新");
-        console.log("[onRowUpdated] Key:", e.key);
-        console.log("[onRowUpdated] Updated Data:", e.data);
-        
-        // 顯示成功訊息
-        ShowToast("資料已儲存", "success", 2000);
-    }
-
-    // 收集 DataGrid 資料（僅資料列，排除群組/摘要列）
     function GetResult() {
         try {
-            if (!dataGridInstance) {
-                dataGridInstance = $("#gridContainer").dxDataGrid("instance");
-            }
-            var grid = dataGridInstance;
-            if (!grid) { 
-                console.error("[GetResult] DataGrid instance not found");
-                return "[]"; 
-            }
+            var grid = dataGridInstance || $("#gridContainer").dxDataGrid("instance");
+            if (!grid) return "[]";
 
-            // ? 確保所有編輯都已儲存到資料來源
-            // 注意：saveEditData() 已在上傳按鈕中執行，這裡只是雙重確認
-            try {
-                grid.closeEditCell();
-            } catch(e) {
-                console.warn("[GetResult] closeEditCell error:", e);
-            }
+            try { grid.closeEditCell(); } catch(e) {}
 
-            // ? 使用 getVisibleRows() 取得所有可見資料列
             var rows = grid.getVisibleRows() || [];
             var items = [];
             
-            console.log("[GetResult] 開始收集資料，總行數:", rows.length);
-            
             for (var i = 0; i < rows.length; i++) {
                 var r = rows[i];
-                // ? 只收集資料列，排除群組列和摘要列
                 if (r && r.rowType === "data" && r.data) {
-                    // ? 記錄每筆資料以供調試
-                    console.log("[GetResult] 收集第", i + 1, "筆:", r.data.FullName, 
-                        "Phone:", r.data.Phone, 
-                        "Address:", r.data.Address,
-                        "BirthDate:", r.data.BirthDate);
-                    
                     items.push(r.data);
                 }
             }
 
-            console.log("[GetResult] 收集完成，總共", items.length, "筆資料");
-            
-            var jsonResult = JSON.stringify(items);
-            console.log("[GetResult] JSON 長度:", jsonResult.length);
-            
-            return jsonResult;
+            return JSON.stringify(items);
         } catch (err) {
-            console.error("[GetResult] 發生錯誤:", err);
-            console.error("[GetResult] 錯誤堆疊:", err.stack);
             return "[]";
         }
     }
 
-    // 顯示 Toast 通知
     function ShowToast(LocalToastMessage, Type, DisplayTime) {
-        var ToastInstance = $("#ToastReUpload").dxToast("instance");
-        if (!ToastInstance) {
-            console.error("Toast instance not found");
-            return;
-        }
-        
-        ToastInstance.option('message', LocalToastMessage);
-        ToastInstance.option('type', Type);
-        ToastInstance.option('displayTime', DisplayTime);
-        ToastInstance.option('white-space', 'pre-line');
-        ToastInstance.option('closeOnClick', true);
-        ToastInstance.show();
-    }
-
-    // 解析日期
-    function ParsingDate(input) {
-        if (typeof (input) === 'string') {
-            var parts = input.split('-');
-            if (parts.length < 3) {
-                return new Date();
+        try {
+            var ToastInstance = $("#ToastReUpload").dxToast("instance");
+            if (ToastInstance) {
+                ToastInstance.option('message', LocalToastMessage);
+                ToastInstance.option('type', Type);
+                ToastInstance.option('displayTime', DisplayTime);
+                ToastInstance.show();
             }
-            var DaySplitedArray = parts[2].split('T');
-            var ParsedDate = new Date(parts[0], parts[1] - 1, DaySplitedArray[0]);
-            return ParsedDate;
-        }
-        else if (input instanceof Date) {
-            return getLocalDateFilter(input);
-        }
-        else {
-            return new Date();
-        }
+        } catch(e) {}
     }
 
-    // 獲取本地日期過濾器
-    function getLocalDateFilter(date) {
-        var rawMonth = (date.getMonth()).toString();
-        var monthString = rawMonth.length == 1 ? "0" + rawMonth : rawMonth;
-        var rawDate = date.getDate().toString();
-        var dateString = rawDate.length == 1 ? "0" + rawDate : rawDate;
-        return new Date(date.getFullYear(), rawMonth, rawDate);
-    }
-
-    // 地圖準備就緒
     function onReady(e) {
         $.ajax({
             url: '@Url.Action("GetMarkers", "Home")',
@@ -417,38 +308,8 @@
             dataType: "json",
             success: function (data) {
                 $("#map").dxMap("instance").option("markers", data);
-            },
-            error: function(xhr, status, error) {
-                console.error("Failed to load map markers:", error);
             }
         });
-    }
-
-    // 移動編輯欄到左側
-    function moveEditColumnToLeft(dataGrid) {
-        dataGrid.columnOption("command:edit", {
-            visibleIndex: -1,
-            width: 50
-        });
-    }
-
-    // 單元格準備
-    function cell_prepared(e) {
-        if (e.rowType === "data" && e.column.command === "edit") {
-            var isEditing = e.row.isEditing,
-                $links = e.cellElement.find(".dx-link");
-
-            $links.text("");
-
-            if (isEditing) {
-                $links.filter(".dx-link-save").addClass("dx-icon-save");
-                $links.filter(".dx-link-cancel").addClass("dx-icon-revert");
-            }
-            else {
-                $links.filter(".dx-link-edit").addClass("dx-icon-edit");
-                $links.filter(".dx-link-delete").addClass("dx-icon-trash");
-            }
-        }
     }
 </script>
 
@@ -458,34 +319,14 @@
         "zh-tw": {
             "dxScheduler-switcherAgenda": "會議內容",
             "Month": "月",
-            "Subject": "主題",
-            "Company": "Company",
-            "Amount": "Amount",
-            "PaymentDate": "Payment Date"
+            "Subject": "主題"
         },
     };
     DevExpress.localization.loadMessages(dictionary);
-    var formatMessage = DevExpress.localization.formatMessage;
-
-    var locale = getLocale();
-    DevExpress.localization.locale(locale);
-
-    function changeLocale(data) {
-        setLocale(data.value);
-        document.location.reload();
-    }
-
-    function getLocale() {
-        sessionStorage.setItem("locale", 'zh-tw');
-        var locale = sessionStorage.getItem("locale");
-        return locale != null ? locale : "tw";
-    }
+    DevExpress.localization.locale('zh-tw');
 </script>
 
 <!-- 外部腳本和樣式 -->
 <script src="~/js/devextreme/devextreme-intl.min.js"></script>
 <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
-<script src="~/js/DataGridAjax.js"></script>
-<script src="~/js/DropDownBox.js"></script>
-<script src="~/js/LoadPanel.js"></script>
 <link href="~/css/SmallGroupReportController.css" rel="stylesheet" />
