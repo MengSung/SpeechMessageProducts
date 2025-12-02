@@ -683,7 +683,7 @@ namespace ChurchReport.Controllers
         /// 儲存維護個人資訊（組員資料）
         /// 用於 MaintainPersonInfomationView 的上傳按鈕
         /// ✅ 改為 Fire-and-Forget 模式，立即回應使用者，在背景處理上傳
-        /// ✅ 改進欄位比對邏輯，只更新真正有變更的欄位
+        /// ✅ 修復：在進入背景任務前先取得 ToolUtility 實例
         /// </summary>
         /// <param name="aResult">組員資料 JSON 字串</param>
         [HttpPost]
@@ -731,6 +731,16 @@ namespace ChurchReport.Controllers
 
                 System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 成功解析到 {members.Count} 筆資料");
 
+                // ✅ 關鍵修復：在進入背景任務前先取得 ToolUtility 實例
+                // 因為在背景執行緒中無法安全訪問 Controller 的實例成員
+                var toolUtility = ToolUtility;
+                
+                if (toolUtility == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ToolUtility 為 null，無法執行上傳");
+                    return Json(new { status = "0", message = "系統錯誤：ToolUtility 未初始化" });
+                }
+
                 // ✅ Fire-and-Forget：在背景執行上傳，不等待完成
                 // 立即回應使用者，避免長時間等待
                 var memberCount = members.Count;
@@ -739,9 +749,6 @@ namespace ChurchReport.Controllers
                     try
                     {
                         System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 開始背景上傳 {memberCount} 筆資料...");
-                        
-                        // 取得 ToolUtility 實例
-                        var toolUtility = ToolUtility;
 
                         int successCount = 0;
                         int errorCount = 0;
@@ -892,7 +899,7 @@ namespace ChurchReport.Controllers
                         // 記錄到追蹤日誌
                         try
                         {
-                            ToolUtility?.TraceByLevel(1, 1, 
+                            toolUtility?.TraceByLevel(1, 1, 
                                 $"SaveMaintainPersonInfomation 背景上傳失敗: {ex.Message}\n{ex.StackTrace}");
                         }
                         catch
