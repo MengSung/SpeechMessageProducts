@@ -318,13 +318,26 @@ namespace ChurchReport.Controllers
                                                             System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]     信仰狀態: 欄位不存在");
                                                         }
 
-                                                        // ✅裝備狀態
+                                                        // ✅ 裝備狀態
                                                         member.EquipmentStatus = toolUtility.GetEntityStringAttribute(contactEntity, "new_equipment_status");
 
-                                                        // ✅ 取得生日
+                                                        // ✅ 取得生日 (過濾無效日期)
                                                         if (contactEntity.Contains("birthdate"))
                                                         {
-                                                            member.BirthDate = toolUtility.GetEntityDateTimeAttribute(contactEntity, "birthdate");
+                                                            var birthDate = toolUtility.GetEntityDateTimeAttribute(contactEntity, "birthdate");
+                                                            // ✅ 如果是 MinValue 或年份 <= 1,設為 MinValue (前端會顯示空白)
+                                                            if (birthDate != DateTime.MinValue && birthDate.Year > 1)
+                                                            {
+                                                                member.BirthDate = birthDate;
+                                                            }
+                                                            else
+                                                            {
+                                                                member.BirthDate = DateTime.MinValue;
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            member.BirthDate = DateTime.MinValue;
                                                         }
                                                 
                                                         allMembers.Add(member);
@@ -435,13 +448,26 @@ namespace ChurchReport.Controllers
                                                 member.SpiritualIdentity = "";
                                             }
 
-                                            // ✅裝備狀態
+                                            // ✅ 裝備狀態
                                             member.EquipmentStatus = toolUtility.GetEntityStringAttribute(contactEntity, "new_equipment_status");
 
-                                            // ✅ 取得生日
+                                            // ✅ 取得生日 (過濾無效日期)
                                             if (contactEntity.Contains("birthdate"))
                                             {
-                                                member.BirthDate = toolUtility.GetEntityDateTimeAttribute(contactEntity, "birthdate");
+                                                var birthDate = toolUtility.GetEntityDateTimeAttribute(contactEntity, "birthdate");
+                                                // ✅ 如果是 MinValue 或年份 <= 1,設為 MinValue (前端會顯示空白)
+                                                if (birthDate != DateTime.MinValue && birthDate.Year > 1)
+                                                {
+                                                    member.BirthDate = birthDate;
+                                                }
+                                                else
+                                                {
+                                                    member.BirthDate = DateTime.MinValue;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                member.BirthDate = DateTime.MinValue;
                                             }
 
                                             System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation]     單一小組-成員: {member.FullName}");

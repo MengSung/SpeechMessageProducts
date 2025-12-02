@@ -364,7 +364,29 @@
                     // ✅ 移除 Lookup - 後端已經返回文字 (如 "基督徒", "慕道友")
                 },
                 { dataField: "Phone", caption: "行動電話", width: 120, alignment: "left", allowEditing: true },
-                { dataField: "BirthDate", caption: "生日", dataType: "date", format: "yyyy/M/d", alignment: "center", width: 100, allowEditing: true },
+                { 
+                    dataField: "BirthDate", 
+                    caption: "生日", 
+                    dataType: "date", 
+                    format: "yyyy/M/d", 
+                    alignment: "center", 
+                    width: 100, 
+                    allowEditing: true,
+                    // ✅ 自訂顯示：年份為 0001 時顯示空白
+                    customizeText: function(cellInfo) {
+                        if (!cellInfo.value) {
+                            return "";
+                        }
+                        var date = new Date(cellInfo.value);
+                        var year = date.getFullYear();
+                        // 如果年份是 0001 或 1，視為無效日期，顯示空白
+                        if (year <= 1) {
+                            return "";
+                        }
+                        // 否則顯示格式化的日期
+                        return year + "/" + (date.getMonth() + 1) + "/" + date.getDate();
+                    }
+                },
                 { dataField: "Address", caption: "地址", width: 200, alignment: "left", allowEditing: true }
             ],
             onInitialized: function(e) {
