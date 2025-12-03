@@ -146,7 +146,7 @@
                             .Editor(e => e
                                 .SelectBox()
                                 .Width(200)
-                                .DataSource(new string[] { "信用卡" })
+                                .DataSource(new string[] { "信用卡","ATM轉帳/匯款", "信用卡定期定額(每個月)","LinePay" })
                                 .OnValueChanged("OnPayWaySelectBoxValueChanged")
                             );
 
@@ -272,6 +272,65 @@
                     )
                 </div>
             </div>
+            
+            <!-- ==================== ATM資訊區域 ==================== -->
+            <div id="atm-info" class="atm-info" style="display: none;">
+                <h5 id="atmfield"></h5>
+            </div>
+
+                        <!-- ==================== 定期定額清單 ==================== -->
+            <div id="dedicationbookinglistcontainer" class="booking-list">
+                <h5>
+                    <i class="mbri-timer" style="margin-right: 10px;"></i>
+                    定期定額奉獻清單
+                </h5>
+                <p style="color: #666; margin-bottom: 20px; font-size: 0.95rem;">
+                    <i class="mbri-info" style="margin-right: 5px;"></i>
+                    您可以在此查看和管理您的定期定額奉獻項目
+                </p>
+                
+                @(Html.DevExtreme().DataGrid<DedicationBooking>()
+                    .ID("DedicationBookingGrid")
+                    .Width("auto")
+                    .ColumnWidth(5)
+                    .LoadPanel(l => l.Text("Loading...").Enabled(false))
+                    .ShowColumnLines(true)
+                    .ShowRowLines(true)
+                    .ShowBorders(true)
+                    .Selection(selection => selection.Mode(SelectionMode.Single))
+                    .OnSelectionChanged("OnRowSelectionChanged")
+                    .OnContentReady("onDedicationBookingGridContentReady")
+                    .Editing(editing => {
+                        editing.Mode(GridEditMode.Cell);
+                        editing.RefreshMode(GridEditRefreshMode.Reshape);
+                        editing.AllowDeleting(true);
+                        editing.Texts(a => a
+                            .DeleteRow("Cancel")
+                            .ConfirmDeleteMessage("Are you sure to cancel this subscription?")
+                            .ConfirmDeleteTitle("Cancel Subscription")
+                        );
+                    })
+                    .Columns(columns => {
+                        columns.AddFor(m => m.DedicationCategory).Caption("奉獻類別").Width(70).MinWidth(75).Alignment(HorizontalAlignment.Center).Fixed(true);
+                        columns.AddFor(m => m.DedicationBookingStatus).Caption("狀態").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                        columns.AddFor(m => m.AmountPerStage).Caption("每期金額").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                        columns.AddFor(m => m.TotalStages).Caption("總期數").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                        columns.AddFor(m => m.DedicationAmount).Caption("應付總金額").Width(85).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                        columns.AddFor(m => m.PaidPeriod).Caption("目前期數").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                        columns.AddFor(m => m.RollupPaidFee).Caption("已付金額").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                        columns.AddFor(m => m.StartDate).Caption("開始日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                        columns.AddFor(m => m.EndDate).Caption("結束日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
+                    })
+                    .DataSource(d => d
+                        .WebApi()
+                        .Controller("Dedication")
+                        .LoadAction("LoadDedicationBookingList")
+                        .DeleteAction("DeleteDedicationBooking")
+                        .Key("EntityId")
+                    )
+                    .SelectedRowKeys(new int[] { 1 })
+                )
+            </div>
 
             <!-- ==================== 教會資訊與奉獻說明 ==================== -->
             <section class="church-info" id="church-info">
@@ -355,65 +414,6 @@
                     </div>
                 </div>
             </section>
-
-            <!-- ==================== ATM資訊區域 ==================== -->
-            <div class="atm-info" style="display: none;">
-                <h5 id="atmfield"></h5>
-            </div>
-
-            <!-- ==================== 定期定額清單 ==================== -->
-            <div id="dedicationbookinglistcontainer" class="booking-list">
-                <h5>
-                    <i class="mbri-timer" style="margin-right: 10px;"></i>
-                    定期定額奉獻清單
-                </h5>
-                <p style="color: #666; margin-bottom: 20px; font-size: 0.95rem;">
-                    <i class="mbri-info" style="margin-right: 5px;"></i>
-                    您可以在此查看和管理您的定期定額奉獻項目
-                </p>
-                
-                @(Html.DevExtreme().DataGrid<DedicationBooking>()
-                    .ID("DedicationBookingGrid")
-                    .Width("auto")
-                    .ColumnWidth(5)
-                    .LoadPanel(l => l.Text("Loading...").Enabled(false))
-                    .ShowColumnLines(true)
-                    .ShowRowLines(true)
-                    .ShowBorders(true)
-                    .Selection(selection => selection.Mode(SelectionMode.Single))
-                    .OnSelectionChanged("OnRowSelectionChanged")
-                    .OnContentReady("onDedicationBookingGridContentReady")
-                    .Editing(editing => {
-                        editing.Mode(GridEditMode.Cell);
-                        editing.RefreshMode(GridEditRefreshMode.Reshape);
-                        editing.AllowDeleting(true);
-                        editing.Texts(a => a
-                            .DeleteRow("Cancel")
-                            .ConfirmDeleteMessage("Are you sure to cancel this subscription?")
-                            .ConfirmDeleteTitle("Cancel Subscription")
-                        );
-                    })
-                    .Columns(columns => {
-                        columns.AddFor(m => m.DedicationCategory).Caption("奉獻類別").Width(70).MinWidth(75).Alignment(HorizontalAlignment.Center).Fixed(true);
-                        columns.AddFor(m => m.DedicationBookingStatus).Caption("狀態").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                        columns.AddFor(m => m.AmountPerStage).Caption("每期金額").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                        columns.AddFor(m => m.TotalStages).Caption("總期數").Width(70).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                        columns.AddFor(m => m.DedicationAmount).Caption("應付總金額").Width(85).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                        columns.AddFor(m => m.PaidPeriod).Caption("目前期數").Width(75).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                        columns.AddFor(m => m.RollupPaidFee).Caption("已付金額").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                        columns.AddFor(m => m.StartDate).Caption("開始日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                        columns.AddFor(m => m.EndDate).Caption("結束日期").Width(80).MinWidth(50).Alignment(HorizontalAlignment.Center);
-                    })
-                    .DataSource(d => d
-                        .WebApi()
-                        .Controller("Dedication")
-                        .LoadAction("LoadDedicationBookingList")
-                        .DeleteAction("DeleteDedicationBooking")
-                        .Key("EntityId")
-                    )
-                    .SelectedRowKeys(new int[] { 1 })
-                )
-            </div>
         </form>
 
         <!-- ==================== 通知元件 ==================== -->

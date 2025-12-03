@@ -145,7 +145,7 @@
                             .Editor(e => e
                                 .SelectBox()
                                 .Width(200)
-                                .DataSource(new string[] { "信用卡" })
+                                .DataSource(new string[] { "信用卡","ATM轉帳/匯款", "信用卡定期定額(每個月)","LinePay" })
                                 .OnValueChanged("OnPayWaySelectBoxValueChanged")
                             );
 
@@ -273,7 +273,7 @@
             </div>
 
             <!-- ==================== ATM資訊區域 ==================== -->
-            <div class="atm-info" style="display: none;">
+            <div id="atm-info" class="atm-info" style="display: none;">
                 <h5 id="atmfield"></h5>
             </div>
 
@@ -636,19 +636,35 @@
     // AJAX 成功事件
     function onSuccess(data) {
         getLoadPanelInstance().hide();
-        if (data.status == 1) {
-            if (data.PayWay == "信用卡") {
+        if (data.status == 1)
+        {
+            // ✅ 信用卡：導向付款頁
+            if (data.PayWay === "信用卡") {
                 ShowToast(data.message, "success", 2000);
                 window.location.href = data.DedicationResult;
-            } else {
-                ShowToast(data.message, "success", 2000);
-                document.getElementById('atmfield').innerHTML = data.DedicationResult;
-                document.getElementById('atm-info').style.display = 'block';  // 顯示 ATM 資訊
+                return;
             }
-        } else {
+
+            // ✅ 虛擬帳號：顯示 DedicationResult 於 ATM 資訊區
+            if (data.PayWay === "虛擬帳號" || data.PayWay === "ATM轉帳/匯款") {
+                ShowToast(data.message || "已產生虛擬帳號", "success", 2000);
+                document.getElementById('atmfield').innerHTML = data.DedicationResult || "";
+                document.getElementById('atm-info').style.display = 'block';
+                return;
+            }
+
+            // 其他付款方式：一般成功訊息
+            ShowToast(data.message, "success", 2000);
+            document.getElementById('atmfield').innerHTML = data.DedicationResult || "";
+            document.getElementById('atm-info').style.display = 'block';
+            return;
+
+        } 
+        else 
+        {
             ShowToast(data.message, "error", 3000);
             document.getElementById('atmfield').innerHTML = data.message;
-            document.getElementById('atm-info').style.display = 'block';  // 顯示錯誤訊息
+            document.getElementById('atm-info').style.display = 'block';
         }
     }
 
