@@ -14,7 +14,7 @@
     <link rel="shortcut icon" href="~/assets/images/logo4.png" type="image/x-icon">
     
     <!-- 外部 CSS 庫（只保留不影響 navbar 的 icon） -->
-    <link rel="stylesheet" href="~/assets/web/assets/mobirise-icons/mobirise-icons.css">
+    <link rel="stylesheet" href="~/assets/web-assets/mobirise-icons/mobirise-icons.css">
     
     <!-- DevExtreme & 自定義 CSS -->
     <link href="~/css/devextreme/dx.generic.custom-scheme.css" rel="stylesheet">
@@ -261,6 +261,9 @@
                     .OnSelectionChanged("OnRowSelectionChanged")
                     .OnInitialized("DataGridOnInitialized")
                     .OnContentReady("onCreditCardGridContentReady")
+                    .OnRowRemoving("onCreditCardRowRemoving")
+                    .OnRowRemoved("onCreditCardRowRemoved")
+                    .OnDataErrorOccurred("onCreditCardDataError")
                     .HoverStateEnabled(true)
                     .Editing(editing => {
                         editing.AllowDeleting(true);
@@ -675,6 +678,22 @@
     // 奉獻預訂網格內容準備事件
     function onDedicationBookingGridContentReady(e) {
         e.component.columnOption("command:edit", { visibleIndex: -1, width: 50 });
+    }
+
+    // 刪除信用卡時顯示/隱藏 LoadPanel
+    function onCreditCardRowRemoving(e) {
+        // 開始刪除時顯示載入面板
+        ShowLoadPanel();
+    }
+    function onCreditCardRowRemoved(e) {
+        // 刪除完成後隱藏載入面板
+        getLoadPanelInstance().hide();
+        ShowToast("已刪除信用卡", "success", 1500);
+    }
+    function onCreditCardDataError(e) {
+        // 發生錯誤時隱藏載入面板並提示
+        getLoadPanelInstance().hide();
+        ShowToast("刪除信用卡發生錯誤: " + (e.error && e.error.message ? e.error.message : ''), "error", 3000);
     }
 
     // ==================== AJAX 回調處理 ====================
