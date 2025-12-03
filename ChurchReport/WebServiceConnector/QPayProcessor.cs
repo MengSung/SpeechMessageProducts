@@ -3,6 +3,7 @@ using ChurchReport.Tools;
 using Line.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
+using PowerPlatform.Dataverse.Client.Wsdl;
 using QPay.Domain;
 using System;
 using System.Collections;
@@ -402,28 +403,28 @@ namespace ChurchReport.WebServiceConnector
             switch (Value)
             {
                 case "主日奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000010);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000010);
                     break;
                 case "十一奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000000);
                     break;
                 case "感恩奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000002);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000002);
                     break;
                 case "建堂奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000006);
                     break;
                 case "宣教奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000007);
                     break;
                 case "愛心奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000019);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000019);
                     break;
                 case "特別獻金":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000008);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000008);
                     break;
                 default:
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000000);
                     break;
             }
         }
@@ -459,8 +460,12 @@ namespace ChurchReport.WebServiceConnector
 
                     // 信用卡訂單編號
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_q_pay_card_order_no", CardOrderNo);
-                    // 信用卡訂單編號，高踞金流回傳用此欄位
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_q_pay_order_number", OrderId);
+
+                    if (m_Configuration["PAY_PROVIDER"] == "高鉅金流")
+                    {
+                        // 信用卡訂單編號，高鉅金流回傳用此欄位
+                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_q_pay_order_number", OrderId);
+                    }
                 }
                 if (AtmOrderNo != "")
                 {
