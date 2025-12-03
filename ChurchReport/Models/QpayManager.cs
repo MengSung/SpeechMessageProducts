@@ -999,7 +999,7 @@ namespace ChurchReport.Models
 
                 foreach (CreditCard aCreditCard in m_QpayModel.CreditCardList)
                 {
-                    VisaInfo += aCreditCard.CCToken + "，" + aCreditCard.LeftCardNumber + "，" + aCreditCard.RightCardNumber + "，" + aCreditCard.ExpireDate + "|";
+                    VisaInfo += aCreditCard.CCToken + "，" + aCreditCard.LeftCardNumber + "，" + aCreditCard.RightCardNumber + "，" + aCreditCard.ExpireDate.Replace("/","") + "|";
                 }
 
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_visa_info", VisaInfo);
