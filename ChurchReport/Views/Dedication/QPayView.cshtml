@@ -1,4 +1,5 @@
 ﻿@using ChurchReport.Models
+@using DevExtreme.AspNet.Mvc
 @model QpayModel
 
 @{
@@ -29,6 +30,45 @@
 <style>
   /* 放大 ATM 資訊區域字體 */
   #atmfield { font-size: 150%; }
+    /* 信用卡列表區域重新設計 */
+  .card-list {
+    background: #ffffff;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-top: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .card-list h5 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 8px 0;
+    font-weight: 600;
+    color: #2f4f4f;
+  }
+  .card-list .section-subtitle {
+    color: #666;
+    margin: 0 0 16px 0;
+    font-size: 0.95rem;
+  }
+  .card-list .grid-wrapper {
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 8px;
+    background: #fafafa;
+  }
+  /* DevExtreme Grid 視覺優化 */
+  #CreditCardGrid.dx-datagrid {
+    --row-height: 42px;
+  }
+  #CreditCardGrid .dx-data-row > td {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  #CreditCardGrid .dx-datagrid-headers {
+    background: #f4f7fa;
+  }
 </style>
 
 <!-- ==================== 頁面主容器 ==================== -->
@@ -195,17 +235,17 @@
             <!-- ==================== 信用卡列表 ==================== -->
             <div id="creditcardlistcontainer" class="card-list">
                 <h5>
-                    <i class="mbri-credit-card" style="margin-right: 10px;"></i>
+                    <i class="mbri-credit-card" style="margin-right: 15px;"></i>
                     我的信用卡
                 </h5>
-                <p style="color: #666; margin-bottom: 20px; font-size: 0.95rem;">
+                <p style="color: #666; margin-bottom: 20px; font-size: 1.2rem;">
                     <i class="mbri-info" style="margin-right: 5px;"></i>
                     您可以刪除不想使用的信用卡，並選擇本次要使用的信用卡進行奉獻
                 </p>
                 
                 @(Html.DevExtreme().DataGrid<CreditCard>()
                     .ID("CreditCardGrid")
-                    .Width("auto")
+                    .Width("50%")
                     .ShowBorders(true)
                     .ColumnWidth(20)
                     .Paging(paging => paging.Enabled(false))
@@ -226,20 +266,20 @@
                         editing.AllowDeleting(true);
                         editing.Texts(a => a
                             .DeleteRow("Delete")
-                            .ConfirmDeleteMessage("Are you sure to delete this card?")
+                            .ConfirmDeleteMessage("您是否確定要刪除此信用卡?")
                         );
                     })
                     .Columns(columns => {
                         columns.AddFor(m => m.CreditCardNumber)
                             .Caption("信用卡號")
-                            .Width(150)
-                            .MinWidth(80)
+                            .Width("60%")
+                            //.MinWidth(80)
                             .Alignment(HorizontalAlignment.Center)
                             .Fixed(true);
                         columns.AddFor(m => m.ExpireDate)
                             .Caption("到期日")
-                            .Width(80)
-                            .MinWidth(50)
+                            .Width("30%")
+                            //.MinWidth(50)
                             .Alignment(HorizontalAlignment.Center);
                     })
                     .DataSource(d => d
