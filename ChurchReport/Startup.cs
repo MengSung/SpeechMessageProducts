@@ -230,9 +230,11 @@ namespace ChurchReport
             }
             else
             {
+                // 預設使用永豐金流。
+                services.AddScoped<IPayment, QPayToolkitWrapper>();
                 // 預設使用台新金流。
-                services.AddScoped<IPayment, TspgToolkitWrapper>();
-                services.AddScoped<TSPGWebhookHandler>();
+                //services.AddScoped<IPayment, TspgToolkitWrapper>();
+                //services.AddScoped<TSPGWebhookHandler>();
             }
 
             // ========================================
