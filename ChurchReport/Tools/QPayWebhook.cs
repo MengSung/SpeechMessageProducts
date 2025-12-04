@@ -87,12 +87,40 @@ namespace ChurchReport.Tools
         {
             try
             {
-                QryOrderPay aQryOrderPay = new QryOrderPay();
+                // 記錄開始處理
+                System.Diagnostics.Trace.WriteLine($"[QPayCardWebhook] QPayReturnUrl started");
+                System.Diagnostics.Trace.WriteLine($"  - ShopNo: {ShopNo}");
+                System.Diagnostics.Trace.WriteLine($"  - PayToken: {PayToken}");
 
-                aQryOrderPay = m_QPayProcessor.OrderPayQuery(ShopNo, PayToken);
+                QryOrderPay aQryOrderPay = null;
 
-                if (aQryOrderPay != null)
+                try
                 {
+                    aQryOrderPay = m_QPayProcessor.OrderPayQuery(ShopNo, PayToken);
+                    System.Diagnostics.Trace.WriteLine($"[QPayCardWebhook] OrderPayQuery completed");
+                }
+                catch (Exception queryEx)
+                {
+                    String queryError = $"查詢訂單失敗: {queryEx.Message}";
+                    System.Diagnostics.Trace.WriteLine($"[QPayCardWebhook] Error: {queryError}");
+                    System.Diagnostics.Trace.WriteLine($"  - StackTrace: {queryEx.StackTrace}");
+                    
+                    // 發送錯誤通知
+                    try { m_PushUtility.SendMessage(MENGSUNG_LINE_ID, queryError); } catch { }
+                    
+                    // 返回錯誤視圖而不是拋出例外
+                    return new ContentResult
+                    {
+                        Content = $"<html><body><h1>付款查詢失敗</h1><p>無法查詢付款狀態，請稍後再試或聯繫客服</p><p>錯誤: {queryEx.Message}</p></body></html>",
+                        ContentType = "text/html",
+                        StatusCode = 200
+                    };
+                }
+
+                if (aQryOrderPay != null && aQryOrderPay.TSResultContent != null)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[QPayCardWebhook] Processing payment type: {aQryOrderPay.TSResultContent.Param3}");
+                    
                     if (aQryOrderPay.TSResultContent.Param3 == "收費單")
                     {
                         QPayFeeProcessor aQPayFeeProcessor = new QPayFeeProcessor();
@@ -105,22 +133,42 @@ namespace ChurchReport.Tools
                     }
                     else
                     {
+                        // 預設處理為收費單
+                        System.Diagnostics.Trace.WriteLine($"[QPayCardWebhook] Unknown Param3, defaulting to fee processor");
                         QPayFeeProcessor aQPayFeeProcessor = new QPayFeeProcessor();
                         return aQPayFeeProcessor.QPayFeeProcessorReturnUrl(ShopNo, PayToken, aQryOrderPay);
                     }
                 }
                 else
                 {
-                    return new OkObjectResult("信用卡付款結果失敗!" + Environment.NewLine + aQryOrderPay.Description);
+                    string errorMsg = aQryOrderPay?.Description ?? "查詢結果為空";
+                    System.Diagnostics.Trace.WriteLine($"[QPayCardWebhook] Query result is null or invalid: {errorMsg}");
+                    
+                    return new ContentResult
+                    {
+                        Content = $"<html><body><h1>信用卡付款結果失敗</h1><p>{errorMsg}</p><p>請稍後再試或聯繫客服</p></body></html>",
+                        ContentType = "text/html",
+                        StatusCode = 200
+                    };
                 }
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                m_PushUtility.SendMessage(MENGSUNG_LINE_ID, ErrorString);
-                //Monitor.Exit(this);
-                throw e;
+                System.Diagnostics.Trace.WriteLine(ErrorString);
+                System.Diagnostics.Trace.WriteLine($"StackTrace: {e.StackTrace}");
+                
+                // 發送錯誤通知但不中斷執行
+                try { m_PushUtility.SendMessage(MENGSUNG_LINE_ID, ErrorString); } catch { }
+                
+                // 返回錯誤頁面而不是拋出例外
+                return new ContentResult
+                {
+                    Content = $"<html><body><h1>處理付款時發生錯誤</h1><p>系統處理時發生錯誤，請稍後再試或聯繫客服</p><p>錯誤詳情: {e.Message}</p></body></html>",
+                    ContentType = "text/html",
+                    StatusCode = 200
+                };
             }
         }
     }
