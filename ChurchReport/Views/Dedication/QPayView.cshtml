@@ -1,9 +1,27 @@
 ﻿@using ChurchReport.Models
 @using DevExtreme.AspNet.Mvc
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 @model QpayModel
 
 @{
     ViewBag.Title = "線上奉獻 - 聖谷行道會";
+    
+    // 讀取金流提供商設定
+    var payProvider = Configuration["PAY_PROVIDER"] ?? "永豐金流";
+    
+    // 根據金流提供商設定不同的付款方式選項
+    string[] payWayOptions;
+    if (payProvider == "高鉅金流")
+    {
+        // 高鉅金流支援的付款方式
+        payWayOptions = new string[] { "信用卡" };
+    }
+    else
+    {
+        // 永豐金流或其他金流支援的付款方式（包含信用卡定期定額）
+        payWayOptions = new string[] { "信用卡", "ATM轉帳/匯款", "信用卡定期定額(每個月)", "LinePay", "行動支付" };
+    }
 }
 
 <!-- ==================== 頁面頭部 ==================== -->
@@ -191,7 +209,7 @@
                             .Editor(e => e
                                 .SelectBox()
                                 .Width(200)
-                                .DataSource(new string[] { "信用卡","ATM轉帳/匯款", "信用卡定期定額(每個月)","LinePay","行動支付" })
+                                .DataSource(payWayOptions)
                                 .OnValueChanged("OnPayWaySelectBoxValueChanged")
                             );
 
