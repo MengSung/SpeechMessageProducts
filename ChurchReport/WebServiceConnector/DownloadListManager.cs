@@ -18,6 +18,8 @@ using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
 using System.Text.RegularExpressions;
 using ChurchReport.Models;
+using ToolUtilityNameSpace.EntityOperations;
+using ToolUtilityNameSpace.Constants;
 #endregion
 
 namespace ChurchReport.WebServiceConnector
@@ -326,17 +328,15 @@ namespace ChurchReport.WebServiceConnector
         {
             #region // 初始化每個小組名單，建立原始的 Member Data
 
-            #region 取得小組名單，一個一個的連絡人實體
-            //搜尋名單的組員
-            //EntityCollection Contacts = m_ToolUtilityClass.RetrieveManyToOneRelationship("list", "listid", ListEntityId.ToString(), "new_cell_list_contact", "contact");
+            // 明確欄位取得 list，避免 ColumnSet(true)
+            var optimizedQuery = new EntityOptimizedQueryService(new object(), this.m_ToolUtilityClass.m_OrganizationService);
+            var listEntity = optimizedQuery.RetrieveEntity("list", ListEntityId, CrmEntityColumns.List.Extended);
 
-            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", ListEntityId);
-
-            bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
+            bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(listEntity, "type");
             EntityCollection MemberCollection;
             if (ListType == false)
             {
-                // 靜態名單
+                // 靜態名單：批量取得成員（使用既有方法，但避免對 list 再次 Retrieve）
                 if (CRM_TYPE == "DYNAMICS365")
                 {
                     MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
@@ -358,10 +358,8 @@ namespace ChurchReport.WebServiceConnector
                     MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
                 }
             }
-            #endregion
 
             return MemberCollection.Entities.Count;
-
             #endregion
         }
 

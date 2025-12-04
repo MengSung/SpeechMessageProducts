@@ -16,6 +16,8 @@ using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace;
 using System.Text.RegularExpressions;
 using ToolUtilityNameSpace.Factory;
+using ToolUtilityNameSpace.EntityOperations;
+using ToolUtilityNameSpace.Constants;
 #endregion
 
 namespace ChurchReport.WebServiceConnector
@@ -438,20 +440,32 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // 處理每個點名名單
-                DateTime GroupWeeklyReportSunday;
-                foreach (Entity GroupWeeklyReportEntity in GroupWeeklyReportEntityCollection.Entities)
-                {
-                    // 尋找週報的星期天的日期
-                    //DateTime GroupWeeklyReportSunday = aToolUtilityClass.GetEntityDateTimeAttribute(GroupWeeklyReportEntity, "new_sunday_date").ToUniversalTime();
-                    GroupWeeklyReportSunday = m_ToolUtilityClass.GetEntityDateTimeAttribute(GroupWeeklyReportEntity, "new_sunday_date").ToLocalTime();
+                // 改為一次條件查詢 + 分頁，避免逐筆比對
+                var optimizedQuery = new EntityOptimizedQueryService(new object(), this.m_ToolUtilityClass.m_OrganizationService);
+                var filter = new FilterExpression(LogicalOperator.And);
+                filter.AddCondition("new_sunday_date", ConditionOperator.Equal, this.m_Sunday.Date);
+                // 只取活躍
+                filter.AddCondition("statecode", ConditionOperator.Equal, 0);
 
-                    if (GroupWeeklyReportSunday.ToShortDateString() == this.m_Sunday.ToShortDateString())
+                var paged = optimizedQuery.RetrieveByCondition(
+                    "new_group_present_weekly_report",
+                    filter,
+                    topCount: 50,
+                    CrmEntityColumns.WeeklyReport.Extended
+                );
+
+                // 原本方法依照集合過濾，這裡優先回傳集合中符合日期者
+                foreach (var e in paged.Entities)
+                {
+                    // 若需要限定於目前集合的 list，可以比對 listid
+                    // 回退到原集合中相同 id 的實體
+                    var matched = GroupWeeklyReportEntityCollection.Entities.FirstOrDefault(x => x.Id == e.Id);
+                    if (matched != null)
                     {
-                        // 有找到主日周報，去找個人聚會與靈修記錄集合
-                        return GroupWeeklyReportEntity; // 回傳個人聚會與靈修記錄集合
+                        return matched;
                     }
                 }
+
                 return null;
             }
             catch (System.Exception Exception)
