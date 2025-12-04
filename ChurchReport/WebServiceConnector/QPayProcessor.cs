@@ -76,6 +76,31 @@ namespace ChurchReport.WebServiceConnector
 
             m_PushUtility = aPushUtility;
             m_ReplyUtility = aReplyUtility;
+            
+            // ✅ 初始化 m_PaymentService - 這是缺少的關鍵初始化
+            // 根據配置選擇正確的金流服務
+            string payProvider = m_Configuration["PAY_PROVIDER"];
+            System.Diagnostics.Trace.WriteLine($"[QPayProcessor] Initializing payment service for provider: {payProvider}");
+            
+            if (payProvider == "永豐金流")
+            {
+                m_PaymentService = new QPayToolkitWrapper();
+            }
+            else if (payProvider == "高鉅金流")
+            {
+                m_PaymentService = new MyPayToolkitWrapper();
+            }
+            else if (payProvider == "台新金流")
+            {
+                // 台新金流目前使用 TspgToolkit 靜態方法，暫時使用 QPayToolkitWrapper
+                m_PaymentService = new QPayToolkitWrapper();
+            }
+            else
+            {
+                // 預設使用永豐金流
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] Unknown payment provider: {payProvider}, defaulting to 永豐金流");
+                m_PaymentService = new QPayToolkitWrapper();
+            }
         }
         #endregion
         #region 建立收費單
@@ -1587,12 +1612,33 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         public QryOrderPay OrderPayQuery(String aPayToken)
         {
-            QryOrderPayReq orderPayQueryReq = new QryOrderPayReq()
+            try
             {
-                ShopNo = m_ShopNo,
-                PayToken = aPayToken
-            };
-            return m_PaymentService.OrderPayQuery(orderPayQueryReq);
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] OrderPayQuery (single param) called");
+                System.Diagnostics.Trace.WriteLine($"  - PayToken: {aPayToken}");
+                System.Diagnostics.Trace.WriteLine($"  - Config ShopNo: {m_ShopNo}");
+                
+                QryOrderPayReq orderPayQueryReq = new QryOrderPayReq()
+                {
+                    ShopNo = m_ShopNo,
+                    PayToken = aPayToken
+                };
+                
+                QryOrderPay result = m_PaymentService.OrderPayQuery(orderPayQueryReq);
+                
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] OrderPayQuery result:");
+                System.Diagnostics.Trace.WriteLine($"  - Status: {result?.Status ?? "(null)"}");
+                System.Diagnostics.Trace.WriteLine($"  - Description: {result?.Description ?? "(null)"}");
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                String errorMsg = $"[QPayProcessor] OrderPayQuery failed: {ex.Message}";
+                System.Diagnostics.Trace.WriteLine(errorMsg);
+                System.Diagnostics.Trace.WriteLine($"  - StackTrace: {ex.StackTrace}");
+                throw new Exception($"查詢付款結果失敗: {ex.Message}", ex);
+            }
         }
 
         /// <summary>
@@ -1600,12 +1646,36 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         public QryOrderPay OrderPayQuery(String aShopNo, String aPayToken)
         {
-            QryOrderPayReq orderPayQueryReq = new QryOrderPayReq()
+            try
             {
-                ShopNo = aShopNo,
-                PayToken = aPayToken
-            };
-            return m_PaymentService.OrderPayQuery(orderPayQueryReq, ConvertShopNoToHashCodeAndSite(aShopNo));
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] OrderPayQuery (two params) called");
+                System.Diagnostics.Trace.WriteLine($"  - ShopNo: {aShopNo}");
+                System.Diagnostics.Trace.WriteLine($"  - PayToken: {aPayToken}");
+                
+                string hashCode = ConvertShopNoToHashCodeAndSite(aShopNo);
+                System.Diagnostics.Trace.WriteLine($"  - HashCode: {hashCode?.Substring(0, Math.Min(20, hashCode?.Length ?? 0))}...");
+                
+                QryOrderPayReq orderPayQueryReq = new QryOrderPayReq()
+                {
+                    ShopNo = aShopNo,
+                    PayToken = aPayToken
+                };
+                
+                QryOrderPay result = m_PaymentService.OrderPayQuery(orderPayQueryReq, hashCode);
+                
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] OrderPayQuery result:");
+                System.Diagnostics.Trace.WriteLine($"  - Status: {result?.Status ?? "(null)"}");
+                System.Diagnostics.Trace.WriteLine($"  - Description: {result?.Description ?? "(null)"}");
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                String errorMsg = $"[QPayProcessor] OrderPayQuery failed: {ex.Message}";
+                System.Diagnostics.Trace.WriteLine(errorMsg);
+                System.Diagnostics.Trace.WriteLine($"  - StackTrace: {ex.StackTrace}");
+                throw new Exception($"查詢付款結果失敗 (ShopNo: {aShopNo}): {ex.Message}", ex);
+            }
         }
 
         /// <summary>

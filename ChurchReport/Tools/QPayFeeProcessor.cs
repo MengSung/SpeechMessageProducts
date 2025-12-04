@@ -309,9 +309,26 @@ namespace ChurchReport.Tools
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                m_PushUtility.SendMessage(MENGSUNG_LINE_ID, ErrorString);
-                //Monitor.Exit(this);
-                throw e;
+                System.Diagnostics.Trace.WriteLine(ErrorString);
+                System.Diagnostics.Trace.WriteLine($"StackTrace: {e.StackTrace}");
+                
+                // 發送錯誤通知但不中斷執行
+                try { m_PushUtility.SendMessage(MENGSUNG_LINE_ID, ErrorString); } catch { }
+                
+                // 返回錯誤內容而不是拋出例外
+                return new ContentResult
+                {
+                    Content = $"<html><body>" +
+                             $"<h1>處理付款時發生錯誤</h1>" +
+                             $"<p>系統處理時發生錯誤，請稍後再試或聯繫客服</p>" +
+                             $"<p>ShopNo: {ShopNo}</p>" +
+                             $"<p>PayToken: {PayToken}</p>" +
+                             $"<p>錯誤訊息: {e.Message}</p>" +
+                             $"<p>時間: {DateTime.Now}</p>" +
+                             $"</body></html>",
+                    ContentType = "text/html",
+                    StatusCode = 200
+                };
             }
         }
 
