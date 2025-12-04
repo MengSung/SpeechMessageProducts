@@ -2,13 +2,20 @@ dotnet publish -c Release -r win-x64 --self-contained false ^
   /p:PublishSingleFile=false ^
   /p:IncludeNativeLibrariesForSelfExtract=false ^
   /p:PublishReadyToRun=true ^
-  /p:PublishTrimmed=false ^
-  /p:PublishAot=false ^
   /p:PublishReadyToRunComposite=true ^
+  /p:PublishTrimmed=true ^
+  /p:PublishAot=false ^
+  /p:TrimMode=full ^
+  /p:TrimmerSingleWarn=false ^
+  /p:TieredCompilationQuickJit=false ^
   /p:TieredPGO=true ^
+  /p:ReadyToRunUseCrossgen2=true ^
   /p:OptimizationPreference=Speed ^
   /p:DebugType=None ^
+  /p:StripSymbols=true ^
+  /p:IlcOptimizationPreference=Speed ^
+  /p:IlcInstructionSet=native ^
   /p:DebugSymbols=false ^
-  -o "./bin/Output-Release-PublishReadyToRun"
+  -o "./bin/Output-Ultimate-JIT-Speed"
 
 pause

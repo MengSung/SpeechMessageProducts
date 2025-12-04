@@ -1,0 +1,114 @@
+dotnet publish -c Release -r win-x64 --self-contained false ^
+  /p:PublishSingleFile=false ^
+  /p:IncludeNativeLibrariesForSelfExtract=false ^
+  /p:PublishReadyToRun=true ^
+  /p:PublishTrimmed=false ^
+  /p:TrimMode=full ^
+  /p:IlcDisableReflection=false ^   
+  /p:PublishAot=false ^
+  /p:PublishReadyToRunComposite=true ^
+  /p:TieredPGO=true ^
+  /p:TieredCompilation=0 ^
+  /p:StripSymbols=true ^
+  /p:IlcOptimizationPreference=Speed ^
+  /p:IlcInstructionSet=native ^
+  /p:OptimizationPreference=Speed ^
+  /p:DebugType=None ^
+  /p:DebugSymbols=false ^
+  -o "./bin/Output-Release-PublishReadyToRun"
+
+pause
+
+
+-------------------------------------------------------
+
+dotnet publish -c Release -r win-x64 --self-contained true ^
+/p:PublishAot=true ^
+/p:PublishSingleFile=true ^
+/p:TrimMode=full ^
+/p:StripSymbols=true ^
+/p:IlcOptimizationPreference=Speed ^
+/p:IlcInstructionSet=native ^
+/p:OptimizationPreference=Speed ^
+/p:DebugType=None ^
+/p:DebugSymbols=false ^
+-o "./bin/Output-Release-NativeAotMaxSpeed"
+
+-------------------------------------------------------
+
+dotnet publish -c Release -r win-x64 --self-contained false ^
+  /p:PublishSingleFile=false ^
+  /p:IncludeNativeLibrariesForSelfExtract=false ^
+  /p:PublishReadyToRun=true ^
+  /p:PublishTrimmed=true ^
+  /p:TrimMode=full ^
+  /p:PublishAot=true ^
+  /p:PublishReadyToRunComposite=true ^
+  /p:TieredPGO=true ^
+  /p:TieredCompilation=0 ^
+  /p:StripSymbols=true ^
+  /p:IlcOptimizationPreference=Speed ^
+  /p:IlcInstructionSet=native ^
+  /p:OptimizationPreference=Speed ^
+  /p:DebugType=None ^
+  /p:DebugSymbols=false ^
+  -o "./bin/Output-Release-PublishReadyToRun"
+
+pause
+
+-------------------------------------------------------
+
+
+dotnet publish -c Release -r win-x64 --self-contained true ^
+  /p:PublishAot=true ^
+  /p:StripSymbols=true ^
+  /p:PublishTrimmed=true ^
+  /p:TrimMode=full ^
+  /p:IlcOptimizationPreference=Speed ^
+  /p:IlcInstructionSet=x64 ^
+  /p:DebugType=None ^
+  /p:DebugSymbols=false ^
+  -o "./bin/Output-Release-PublishReadyToRun"
+
+
+
+-------------------------------------------------------
+
+
+dotnet publish -c Release -r win-x64 --self-contained false ^
+  /p:PublishSingleFile=false ^
+  /p:IncludeNativeLibrariesForSelfExtract=false ^
+  /p:PublishReadyToRun=true ^
+  /p:PublishTrimmed=true ^
+  /p:TrimMode=full ^
+  /p:PublishAot=false ^
+  /p:PublishReadyToRunComposite=true ^
+  /p:TieredPGO=true ^
+  /p:TieredCompilation=0 ^
+  /p:StripSymbols=true ^
+  /p:IlcOptimizationPreference=Speed ^
+  /p:IlcInstructionSet=native ^
+  /p:OptimizationPreference=Speed ^
+  /p:DebugType=None ^
+  /p:DebugSymbols=false ^
+  -o "./bin/Output-Release-PublishReadyToRun"
+
+-------------------------------------------------------
+
+dotnet publish -c Release -r win-x64 --self-contained false ^
+  /p:PublishSingleFile=false ^
+  /p:IncludeNativeLibrariesForSelfExtract=false ^
+  /p:PublishReadyToRun=true ^
+  /p:PublishReadyToRunComposite=true ^
+  /p:PublishTrimmed=true ^
+  /p:TrimMode=full ^
+  /p:TrimmerSingleWarn=false ^                 # 關掉一堆 IL2026 警告，建置乾淨
+  /p:TieredCompilationQuickJit=false ^         # 強制連 Tier 0 都不走（比 TieredCompilation=0 更徹底）
+  /p:TieredPGO=true ^
+  /p:ReadyToRunUseCrossgen2=true ^             # .NET 9+ Crossgen2 產生的 R2R 比舊版更快
+  /p:OptimizationPreference=Speed ^
+  /p:DebugType=None ^
+  /p:StripSymbols=true ^
+  -o "./bin/Output-Ultimate-JIT-Speed"
+
+pause
