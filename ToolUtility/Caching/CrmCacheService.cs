@@ -1,279 +1,150 @@
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
-namespace ToolUtilityNameSpace.Caching
+namespace ToolUtility.Caching
 {
     /// <summary>
-    /// CRM 快取服務
-    /// ? Phase 3.2: 實現多層次快取策略
-    /// 使用 Cache-Aside Pattern
-    /// 預期效果: 減少 70% 重複查詢
+    /// CRM 快取服務（骨架）
+    /// - 採用 Cache-Aside 模式
+    /// - 支援 MemoryCache 與 DistributedCache（例如 Redis）
+    /// - 預設過期：滑動 5 分鐘 + 絕對 30 分鐘（可覆寫）
     /// </summary>
-    public class CrmCacheService : ICrmCacheService
+    public class CrmCacheService
     {
         private readonly IMemoryCache _memoryCache;
-        private readonly object _logger;
-        
-        // 快取過期時間設定
-        private static readonly TimeSpan StaticDataExpiration = TimeSpan.FromMinutes(30);   // 靜態資料（名單、組織）
-        private static readonly TimeSpan UserDataExpiration = TimeSpan.FromMinutes(10);     // 用戶資料
-        private static readonly TimeSpan QueryResultExpiration = TimeSpan.FromMinutes(5);   // 查詢結果
+        private readonly IDistributedCache _distributedCache;
+        private readonly ILogger<CrmCacheService> _logger;
 
-        public CrmCacheService(IMemoryCache memoryCache, object logger = null)
+        public CrmCacheService(IMemoryCache memoryCache,
+                               IDistributedCache distributedCache,
+                               ILogger<CrmCacheService> logger)
         {
-            _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
+            _memoryCache = memoryCache;
+            _distributedCache = distributedCache;
             _logger = logger;
         }
 
-        #region 泛型快取方法
-
         /// <summary>
-        /// 獲取或創建快取項目（非同步）
-        /// ? Cache-Aside Pattern 實現
+        /// 取得或建立快取資料（優先使用 MemoryCache，再回退 DistributedCache）
         /// </summary>
-        public async Task<T> GetOrCreateAsync<T>(
-            string cacheKey,
-            Func<Task<T>> factory,
-            TimeSpan? expiration = null,
-            CancellationToken cancellationToken = default)
+        public async Task<T> GetOrCreateAsync<T>(string key,
+                                                 Func<Task<T>> factory,
+                                                 TimeSpan? memoryAbsoluteExpire = null,
+                                                 TimeSpan? memorySlidingExpire = null,
+                                                 TimeSpan? distributedAbsoluteExpire = null,
+                                                 CancellationToken cancellationToken = default)
         {
-            // 嘗試從快取獲取
-            if (_memoryCache.TryGetValue(cacheKey, out T cachedValue))
+            if (string.IsNullOrWhiteSpace(key)) throw new ArgumentNullException(nameof(key));
+            // 先查 MemoryCache
+            if (_memoryCache.TryGetValue(key, out T memoryValue))
             {
-                SafeLog($"快取命中: {cacheKey}");
-                return cachedValue;
+                return memoryValue;
             }
 
-            // 快取未命中，執行工廠方法
-            SafeLog($"快取未命中: {cacheKey}，執行查詢");
-            var value = await factory().ConfigureAwait(false);
-
-            // 設定快取選項
-            var cacheOptions = new MemoryCacheEntryOptions
+            // 再查 DistributedCache（僅適用可序列化資料，這裡示範用 JSON 字串，骨架不強制）
+            try
             {
-                AbsoluteExpirationRelativeToNow = expiration ?? QueryResultExpiration,
-                SlidingExpiration = TimeSpan.FromMinutes(2),  // 滑動過期
-                Priority = CacheItemPriority.Normal
-            };
+                var cachedBytes = await _distributedCache.GetAsync(key, cancellationToken);
+                if (cachedBytes != null)
+                {
+                    // 注意：這裡僅作骨架，實作時請改為真正的序列化/反序列化
+                    var json = System.Text.Encoding.UTF8.GetString(cachedBytes);
+                    var fromJson = System.Text.Json.JsonSerializer.Deserialize<T>(json);
+                    if (fromJson != null)
+                    {
+                        SetMemory(key, fromJson, memoryAbsoluteExpire, memorySlidingExpire);
+                        return fromJson;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "DistributedCache 取得快取失敗，將回退至資料來源 factory");
+            }
 
-            // 存入快取
-            _memoryCache.Set(cacheKey, value, cacheOptions);
-            SafeLog($"已快取: {cacheKey}，過期時間: {expiration?.TotalMinutes ?? QueryResultExpiration.TotalMinutes} 分鐘");
-
+            // 最終回資料來源
+            var value = await factory();
+            // 寫入 MemoryCache
+            SetMemory(key, value, memoryAbsoluteExpire, memorySlidingExpire);
+            // 寫入 DistributedCache
+            await SetDistributedAsync(key, value, distributedAbsoluteExpire, cancellationToken);
             return value;
         }
 
         /// <summary>
-        /// 獲取或創建快取項目（同步）
+        /// 嘗試取得 Memory 快取，不命中時回傳 false。
         /// </summary>
-        public T GetOrCreate<T>(
-            string cacheKey,
-            Func<T> factory,
-            TimeSpan? expiration = null)
+        public bool TryGetFromMemory<T>(string key, out T value)
         {
-            if (_memoryCache.TryGetValue(cacheKey, out T cachedValue))
-            {
-                SafeLog($"快取命中: {cacheKey}");
-                return cachedValue;
-            }
-
-            SafeLog($"快取未命中: {cacheKey}，執行查詢");
-            var value = factory();
-
-            var cacheOptions = new MemoryCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = expiration ?? QueryResultExpiration,
-                SlidingExpiration = TimeSpan.FromMinutes(2),
-                Priority = CacheItemPriority.Normal
-            };
-
-            _memoryCache.Set(cacheKey, value, cacheOptions);
-            return value;
-        }
-
-        #endregion
-
-        #region 實體快取
-
-        /// <summary>
-        /// 快取單一實體
-        /// ? 用於常用的靜態資料
-        /// </summary>
-        public async Task<Entity> GetOrCreateEntityAsync(
-            string entityName,
-            Guid entityId,
-            Func<Task<Entity>> factory,
-            CancellationToken cancellationToken = default)
-        {
-            var cacheKey = BuildEntityCacheKey(entityName, entityId);
-            return await GetOrCreateAsync(cacheKey, factory, StaticDataExpiration, cancellationToken);
+            return _memoryCache.TryGetValue(key, out value);
         }
 
         /// <summary>
-        /// 快取實體集合
-        /// ? 用於名單、組織等集合
+        /// 寫入 MemoryCache
         /// </summary>
-        public async Task<EntityCollection> GetOrCreateEntityCollectionAsync(
-            string cacheKey,
-            Func<Task<EntityCollection>> factory,
-            TimeSpan? expiration = null,
-            CancellationToken cancellationToken = default)
+        public void SetMemory<T>(string key, T value,
+                                 TimeSpan? absoluteExpire = null,
+                                 TimeSpan? slidingExpire = null)
         {
-            return await GetOrCreateAsync(cacheKey, factory, expiration ?? StaticDataExpiration, cancellationToken);
-        }
-
-        #endregion
-
-        #region 查詢結果快取
-
-        /// <summary>
-        /// 快取查詢結果
-        /// ? 用於頻繁的查詢操作
-        /// </summary>
-        public async Task<EntityCollection> GetOrCreateQueryResultAsync(
-            string queryKey,
-            Func<Task<EntityCollection>> factory,
-            CancellationToken cancellationToken = default)
-        {
-            var cacheKey = $"Query:{queryKey}";
-            return await GetOrCreateAsync(cacheKey, factory, QueryResultExpiration, cancellationToken);
+            var options = new MemoryCacheEntryOptions();
+            options.AbsoluteExpirationRelativeToNow = absoluteExpire ?? TimeSpan.FromMinutes(30);
+            options.SlidingExpiration = slidingExpire ?? TimeSpan.FromMinutes(5);
+            _memoryCache.Set(key, value, options);
         }
 
         /// <summary>
-        /// 快取聯絡人查詢結果
-        /// ? 用於根據 Line ID 或帳號查詢聯絡人
+        /// 寫入 DistributedCache（JSON 序列化骨架）
         /// </summary>
-        public async Task<Entity> GetOrCreateContactAsync(
-            string identifier,
-            string identifierType,
-            Func<Task<Entity>> factory,
-            CancellationToken cancellationToken = default)
-        {
-            var cacheKey = $"Contact:{identifierType}:{identifier}";
-            return await GetOrCreateAsync(cacheKey, factory, UserDataExpiration, cancellationToken);
-        }
-
-        /// <summary>
-        /// 快取名單成員集合
-        /// ? 用於名單成員查詢
-        /// </summary>
-        public async Task<EntityCollection> GetOrCreateListMembersAsync(
-            Guid listId,
-            Func<Task<EntityCollection>> factory,
-            CancellationToken cancellationToken = default)
-        {
-            var cacheKey = $"ListMembers:{listId}";
-            return await GetOrCreateAsync(cacheKey, factory, StaticDataExpiration, cancellationToken);
-        }
-
-        #endregion
-
-        #region 快取失效
-
-        /// <summary>
-        /// 移除單一快取項目
-        /// </summary>
-        public void Remove(string cacheKey)
-        {
-            _memoryCache.Remove(cacheKey);
-            SafeLog($"已移除快取: {cacheKey}");
-        }
-
-        /// <summary>
-        /// 移除實體快取
-        /// ? 當實體更新或刪除時調用
-        /// </summary>
-        public void RemoveEntity(string entityName, Guid entityId)
-        {
-            var cacheKey = BuildEntityCacheKey(entityName, entityId);
-            Remove(cacheKey);
-        }
-
-        /// <summary>
-        /// 移除多個相關快取
-        /// ? 批量失效機制
-        /// </summary>
-        public void RemoveMultiple(params string[] cacheKeys)
-        {
-            foreach (var key in cacheKeys)
-            {
-                Remove(key);
-            }
-        }
-
-        /// <summary>
-        /// 移除名單相關的所有快取
-        /// ? 當名單成員變更時調用
-        /// </summary>
-        public void InvalidateListCache(Guid listId)
-        {
-            // 移除名單成員快取
-            Remove($"ListMembers:{listId}");
-            
-            // 移除相關的查詢結果快取
-            // 注意：這裡可能需要實現更複雜的快取鍵追蹤機制
-            SafeLog($"已失效名單快取: {listId}");
-        }
-
-        /// <summary>
-        /// 移除聯絡人相關的所有快取
-        /// ? 當聯絡人更新時調用
-        /// </summary>
-        public void InvalidateContactCache(string identifier, string identifierType)
-        {
-            Remove($"Contact:{identifierType}:{identifier}");
-        }
-
-        #endregion
-
-        #region 輔助方法
-
-        /// <summary>
-        /// 建立實體快取鍵
-        /// </summary>
-        private string BuildEntityCacheKey(string entityName, Guid entityId)
-        {
-            return $"Entity:{entityName}:{entityId}";
-        }
-
-        /// <summary>
-        /// 建立查詢快取鍵
-        /// ? 根據查詢參數生成唯一鍵
-        /// </summary>
-        public string BuildQueryCacheKey(string entityName, params object[] parameters)
-        {
-            var paramString = string.Join("_", parameters);
-            return $"Query:{entityName}:{paramString.GetHashCode()}";
-        }
-
-        /// <summary>
-        /// 安全的日誌記錄
-        /// </summary>
-        private void SafeLog(string message)
+        public async Task SetDistributedAsync<T>(string key, T value,
+                                                 TimeSpan? absoluteExpire = null,
+                                                 CancellationToken cancellationToken = default)
         {
             try
             {
-                if (_logger == null) return;
-                
-                var loggerType = _logger.GetType();
-                var logMethod = loggerType.GetMethod("LogInformation", new[] { typeof(string) });
-                
-                if (logMethod != null)
+                var json = System.Text.Json.JsonSerializer.Serialize(value);
+                var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+                var options = new DistributedCacheEntryOptions
                 {
-                    logMethod.Invoke(_logger, new object[] { $"[CrmCacheService] {message}" });
-                }
+                    AbsoluteExpirationRelativeToNow = absoluteExpire ?? TimeSpan.FromMinutes(10)
+                };
+                await _distributedCache.SetAsync(key, bytes, options, cancellationToken);
             }
-            catch
+            catch (Exception ex)
             {
-                // swallow
+                _logger.LogWarning(ex, "DistributedCache 寫入失敗");
             }
         }
 
-        #endregion
+        /// <summary>
+        /// 失效指定 key 的快取（Memory + Distributed）
+        /// </summary>
+        public async Task InvalidateAsync(string key, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                _memoryCache.Remove(key);
+                await _distributedCache.RemoveAsync(key, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "快取失敗: {Key}", key);
+            }
+        }
+
+        // ==================== 可優先快取的查詢建議（標記點位） ====================
+        // - 名單/組織靜態資料（MemoryCache，30 分鐘）：
+        //   ChurchListDataProcessor：教會列表、群組常數、部門清單
+        // - 常用參照資料（MemoryCache，15-30 分鐘）：
+        //   WeeklyReportManager：固定選項、分類清單
+        // - 使用者資料（DistributedCache，10 分鐘）：
+        //   PersonalInfomatioManager：個人檔案、身份綁定資訊
+        // - 常用查詢結果（Query Result Cache，5 分鐘）：
+        //   DownloadListManager、DownloadIntegrateData：列表查詢結果
+        // - 頁面載入使用之高頻查詢：
+        //   HomeController、DedicationController：首頁統計、奉獻類別、信用卡清單等
     }
 }

@@ -279,5 +279,105 @@ namespace ChurchReport.Controllers
         }
         
         #endregion
+
+        #region ? Phase 3.2: 快取效能測試端點
+
+        /// <summary>
+        /// 測試 ChurchListDataProcessor 的快取效能
+        /// 訪問 URL: /Home/TestCachePerformance
+        /// </summary>
+        [Route("/Home/TestCachePerformance")]
+        public IActionResult TestCachePerformance()
+        {
+            try
+            {
+                // 從 DI 取得帶快取的 ChurchListDataProcessor
+                var cacheService = HttpContext.RequestServices.GetService(typeof(ToolUtility.Caching.CrmCacheService)) 
+                    as ToolUtility.Caching.CrmCacheService;
+                
+                var processor = new ChurchListDataProcessor(cacheService);
+                var monitor = new CachePerformanceMonitor();
+
+                // 測試用的假設 ContactId（請替換為實際的測試帳號 ID）
+                // 您可以從資料庫中選擇一個真實的 Contact ID
+                var testContactId = GetTestContactId(); // 需要實作這個方法
+
+                if (testContactId == Guid.Empty)
+                {
+                    return Content("請先設定測試用的 Contact ID", "text/plain");
+                }
+
+                string report = "快取效能測試報告\n";
+                report += "==========================================\n\n";
+
+                // 測試 1: QueryListByContactId
+                monitor.StartFirstCall("QueryListByContactId");
+                var result1 = TestQueryListByContactId(processor, testContactId);
+                monitor.EndFirstCall();
+
+                // 第二次呼叫（應該從快取取得）
+                monitor.StartSecondCall();
+                var result2 = TestQueryListByContactId(processor, testContactId);
+                monitor.EndSecondCall();
+
+                report += monitor.GetPerformanceReport();
+                report += "\n\n";
+
+                // 清除快取以進行下一個測試
+                cacheService?.InvalidateAsync($"list_query_{testContactId}_vice_family_leader").Wait();
+
+                return Content(report, "text/plain; charset=utf-8");
+            }
+            catch (Exception ex)
+            {
+                return Content($"測試發生錯誤: {ex.Message}\n\n{ex.StackTrace}", "text/plain; charset=utf-8");
+            }
+        }
+
+        /// <summary>
+        /// 取得測試用的 Contact ID
+        /// 建議：從 Session 或設定檔取得，或使用固定的測試帳號
+        /// </summary>
+        private Guid GetTestContactId()
+        {
+            // 方法 1: 從 Session 取得目前登入的使用者
+            var contactIdStr = HttpContext.Session.GetString("ContactID");
+            if (!string.IsNullOrEmpty(contactIdStr) && Guid.TryParse(contactIdStr, out var contactId))
+            {
+                return contactId;
+            }
+
+            // 方法 2: 使用預設測試帳號（請替換為實際的測試帳號 GUID）
+            // return new Guid("YOUR-TEST-CONTACT-ID-HERE");
+
+            return Guid.Empty;
+        }
+
+        /// <summary>
+        /// 測試查詢方法（模擬實際使用場景）
+        /// </summary>
+        private int TestQueryListByContactId(ChurchListDataProcessor processor, Guid contactId)
+        {
+            var churchRoot = new ChurchRoot();
+            var raceLeaderArray = new List<string>();
+            var areaLeaderArray = new List<string>();
+            var raceLeaderSmallGroupArray = new List<string>();
+            var churchSmallGroupArray = new List<string>();
+
+            // 執行實際的查詢（這會觸發快取邏輯）
+            var result = processor.GetChurchListData(
+                contactId.ToString(), 
+                "LineIdLogin",  // 使用 LineId 登入模式
+                ref churchRoot,
+                ref raceLeaderArray,
+                ref areaLeaderArray,
+                ref raceLeaderSmallGroupArray,
+                ref churchSmallGroupArray
+            );
+
+            return result?.AreaLeaderList?.Count ?? 0;
+        }
+
+        #endregion
     }
 }

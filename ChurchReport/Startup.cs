@@ -17,6 +17,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using ToolUtilityNameSpace.DependencyInjection;
 using ToolUtilityNameSpace.ConnectionOperations;
+using ChurchReport.WebServiceConnector;
 
 namespace ChurchReport
 {
@@ -24,7 +25,7 @@ namespace ChurchReport
     /// 應用程式啟動類別，負責配置服務和 HTTP 請求管道。
     /// 此類別定義了 ASP.NET Core 應用程式的啟動邏輯，包括依賴注入、路由配置等。
     /// </summary>
-    public class Startup
+    public partial class Startup
     {
         /// <summary>
         /// 建構函式，注入配置物件。
@@ -167,12 +168,23 @@ namespace ChurchReport
             // ✅ Phase 3.2: 註冊 CRM 快取服務
             // ========================================
             // 註冊 CRM 快取服務為 Singleton，全應用程式共用一個快取實例
-            services.AddSingleton<ToolUtilityNameSpace.Caching.ICrmCacheService>(sp =>
+            services.AddSingleton<ToolUtility.Caching.CrmCacheService>(sp =>
             {
                 var memoryCache = sp.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
-                var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<ToolUtilityNameSpace.Caching.CrmCacheService>>();
-                return new ToolUtilityNameSpace.Caching.CrmCacheService(memoryCache, logger);
+                var distributedCache = sp.GetRequiredService<Microsoft.Extensions.Caching.Distributed.IDistributedCache>();
+                var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<ToolUtility.Caching.CrmCacheService>>();
+                return new ToolUtility.Caching.CrmCacheService(memoryCache, distributedCache, logger);
             });
+
+            // ========================================
+            // ✅ Phase 3.2: 註冊 ChurchListDataProcessor（使用快取）
+            // ========================================
+            services.AddScoped<ChurchReport.WebServiceConnector.ChurchListDataProcessor>(sp =>
+            {
+                var cacheService = sp.GetRequiredService<ToolUtility.Caching.CrmCacheService>();
+                return new ChurchReport.WebServiceConnector.ChurchListDataProcessor(cacheService);
+            });
+
 
             // Add framework services.
             // 再次配置 MVC 服務（注意：這似乎是重複配置，可能需要檢查是否必要）。
@@ -253,6 +265,12 @@ namespace ChurchReport
                     options.AccessDeniedPath = "/Login";
                     options.ReturnUrlParameter = "returnUrl";
                 });
+
+            // 📁 Startup.cs - ConfigureServices 方法
+            services.AddScoped<ChurchListDataProcessor>();
+            services.AddScoped<PersonalInfomatioManager>();
+            services.AddScoped<DownloadListManager>();
+            services.AddScoped<WeeklyReportManager>();
         }
 
         /// <summary>

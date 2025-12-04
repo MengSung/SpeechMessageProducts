@@ -277,9 +277,20 @@
 3. ? 批量操作並行化
 
 ### Phase 3: 快取優化 (Week 5-6)
-1. ? 實現多層次快取
-2. ? FetchXML 查詢優化
-3. ? 批量查詢重構
+1. ? 實現多層次快取（已完成 CrmCacheService）
+2. ? Phase 3.2: ChurchListDataProcessor 快取化（已完成）
+   - ? 加入 CrmCacheService 依賴注入
+   - ? QueryListByContactId 快取化（10 分鐘）
+   - ? RetrieveMemberList 快取化（5 分鐘）
+   - ? RetrieveSmallGroupList 快取化（30 分鐘）
+   - ? 建立效能監控工具
+   - ? 建立測試端點
+3. ? FetchXML 查詢優化（待處理）
+4. ? 批量查詢重構（待處理）
+5. ? 其他高頻類別快取化（待處理）
+   - ? PersonalInfomatioManager
+   - ? DownloadListManager
+   - ? WeeklyReportManager
 
 ### Phase 4: 設計模式重構 (Week 7-8)
 1. ? Repository Pattern 實現

@@ -17,17 +17,46 @@ using Microsoft.Xrm.Sdk.Messages;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
 using System.Text.RegularExpressions;
+using ToolUtility.Caching;
 #endregion
 
 namespace ChurchReport.WebServiceConnector
 {
+    /// <summary>
+    /// ✅ Phase 3.2: 教會名單資料處理器 - 加入快取支援
+    /// 高頻查詢類別，使用快取減少 CRM 查詢次數
+    /// </summary>
     public class ChurchListDataProcessor
     {
         #region 資料區
         // 透過 Factory 取得 ToolUtilityClass 單一實例
         private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
+        // ✅ Phase 3.2: 快取服務（選擇性注入，保持向後相容）
+        private readonly CrmCacheService _cacheService;
+
         Random m_Random = new Random();//亂數種子
+        #endregion
+
+        #region 建構函式
+        
+        /// <summary>
+        /// 預設建構函式（向後相容）
+        /// </summary>
+        public ChurchListDataProcessor()
+        {
+            _cacheService = null; // 沒有快取服務時仍可運作
+        }
+
+        /// <summary>
+        /// ✅ Phase 3.2: 建構函式 - 支援依賴注入快取服務
+        /// </summary>
+        /// <param name="cacheService">快取服務（可選）</param>
+        public ChurchListDataProcessor(CrmCacheService cacheService)
+        {
+            _cacheService = cacheService;
+        }
+
         #endregion
         #region 下載資料時所需要的參數
         private ChurchRoot m_LocalChurchRoot;
@@ -114,6 +143,7 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 取得區長或是小長
         /// 所有的名單包括小組點名及幸福小組
+        /// ✅ Phase 3.2: 加入快取支援（30 分鐘快取）
         /// </summary>
         private void FindListCollection()
         {
@@ -121,35 +151,45 @@ namespace ChurchReport.WebServiceConnector
             {
                 // 初始化 m_Lists
                 // 小組同工 new_contact_list_vice_family_leader
-                //this.m_Lists = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_vice_family_leader", "list");  // 小組同工
-                //this.m_Lists = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_vice_family_leader");  // 小組同工
-                //MergeCollectionSmallGroupAhead(ref this.m_Lists);
-                EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_vice_family_leader");  // 小組同工
+                EntityCollection aListEntityCollection = QueryListByContactIdWithCache(
+                    m_ContactId, 
+                    "new_contact_list_vice_family_leader",
+                    "vice_family_leader");
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 小組長/小組同工 new_contact_family_leader_list
-                //EntityCollection aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_family_leader_list", "list");  // 小組長/小組同工
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/小組同工
-                //aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_family_leader_list");  // 小組長/小組同工
+                aListEntityCollection = QueryListByContactIdWithCache(
+                    m_ContactId, 
+                    "new_contact_family_leader_list",
+                    "family_leader");
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 共同區長 new_contact_co_race_leager_list
-                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_co_race_leager_list", "list");  // 共同區長
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_co_race_leager_list");  // 共同區長
+                aListEntityCollection = QueryListByContactIdWithCache(
+                    m_ContactId, 
+                    "new_contact_co_race_leager_list",
+                    "co_race_leader");
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 上代組長 new_contact_race_leager_list
-                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_race_leager_list", "list");  // 上代組長
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_race_leager_list");  // 上代組長
+                aListEntityCollection = QueryListByContactIdWithCache(
+                    m_ContactId, 
+                    "new_contact_race_leager_list",
+                    "race_leader");
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 區長 new_contact_list_arealeader
-                //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_contact_list_arealeader", "list");  // 區長
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_arealeader");  // 區長
+                aListEntityCollection = QueryListByContactIdWithCache(
+                    m_ContactId, 
+                    "new_contact_list_arealeader",
+                    "area_leader");
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 共同區牧 new_contact_list_co_arealeader
-                aListEntityCollection = m_ToolUtilityClass.QueryListByContactId(m_ContactId, "new_contact_list_co_arealeader");  // 共同區牧
+                aListEntityCollection = QueryListByContactIdWithCache(
+                    m_ContactId, 
+                    "new_contact_list_co_arealeader",
+                    "co_area_leader");
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 return;
@@ -160,6 +200,41 @@ namespace ChurchReport.WebServiceConnector
 
                 throw Exception;
             }
+        }
+
+        /// <summary>
+        /// ✅ Phase 3.2: 帶快取的名單查詢方法
+        /// 快取策略: 10 分鐘快取（使用者相關資料）
+        /// </summary>
+        private EntityCollection QueryListByContactIdWithCache(Guid contactId, string relationshipName, string cacheKeySuffix)
+        {
+            // 如果沒有注入快取服務，直接查詢
+            if (_cacheService == null)
+            {
+                return m_ToolUtilityClass.QueryListByContactId(contactId, relationshipName);
+            }
+
+            // 使用快取
+            string cacheKey = $"list_query_{contactId}_{cacheKeySuffix}";
+            
+            // 先嘗試從記憶體快取取得
+            if (_cacheService.TryGetFromMemory<EntityCollection>(cacheKey, out var cachedResult))
+            {
+                return cachedResult;
+            }
+
+            // Cache Miss: 執行實際查詢
+            var result = m_ToolUtilityClass.QueryListByContactId(contactId, relationshipName);
+
+            // 儲存到快取（10 分鐘絕對過期，2 分鐘滑動過期）
+            _cacheService.SetMemory(
+                cacheKey, 
+                result,
+                absoluteExpire: TimeSpan.FromMinutes(10),
+                slidingExpire: TimeSpan.FromMinutes(2)
+            );
+
+            return result;
         }
         private void MergeCollectionSmallGroupAhead(ref EntityCollection aListEntityCollection)
         {
@@ -483,7 +558,8 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                EntityCollection MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(aListEntity.Id);
+                // ✅ Phase 3.2: 帶快取的成員查詢
+                EntityCollection MemberCollection = RetrieveMemberListWithCache(aListEntity.Id);
 
                 foreach (Entity aMemberEntity in MemberCollection.Entities)
                 {
@@ -517,6 +593,41 @@ namespace ChurchReport.WebServiceConnector
 
                 throw Exception;
             }
+        }
+
+        /// <summary>
+        /// ✅ Phase 3.2: 帶快取的成員列表查詢
+        /// 快取策略: 5 分鐘快取（查詢結果快取）
+        /// </summary>
+        private EntityCollection RetrieveMemberListWithCache(Guid listId)
+        {
+            // 如果沒有注入快取服務，直接查詢
+            if (_cacheService == null)
+            {
+                return m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(listId);
+            }
+
+            // 使用快取
+            string cacheKey = $"member_list_{listId}";
+            
+            // 先嘗試從記憶體快取取得
+            if (_cacheService.TryGetFromMemory<EntityCollection>(cacheKey, out var cachedResult))
+            {
+                return cachedResult;
+            }
+
+            // Cache Miss: 執行實際查詢
+            var result = m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(listId);
+
+            // 儲存到快取（5 分鐘絕對過期，2 分鐘滑動過期）
+            _cacheService.SetMemory(
+                cacheKey, 
+                result,
+                absoluteExpire: TimeSpan.FromMinutes(5),
+                slidingExpire: TimeSpan.FromMinutes(2)
+            );
+
+            return result;
         }
         private void SetChangeSmalllGroupAndRaceList(ref List<String> aRaceLeaderArray, ref List<String> aRaceLeaderSmallGroupArray)
         {
@@ -570,7 +681,8 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                EntityCollection aSmallGroupEntityCollection = this.m_ToolUtilityClass.RetrieveSmallGroupListCollectionByFetchXml();
+                // ✅ Phase 3.2: 帶快取的小組列表查詢
+                EntityCollection aSmallGroupEntityCollection = RetrieveSmallGroupListWithCache();
 
                 foreach (Entity aSmallGroupEntity in aSmallGroupEntityCollection.Entities)
                 {
@@ -616,6 +728,41 @@ namespace ChurchReport.WebServiceConnector
 
                 throw Exception;
             }
+        }
+        /// <summary>
+        /// ✅ Phase 3.2: 帶快取的全教會小組列表查詢
+        /// 快取策略: 30 分鐘快取（靜態資料）
+        /// </summary>
+        private EntityCollection RetrieveSmallGroupListWithCache()
+        {
+            // 如果沒有注入快取服務，直接查詢
+            if (_cacheService == null)
+            {
+                return m_ToolUtilityClass.RetrieveSmallGroupListCollectionByFetchXml();
+            }
+
+            // 使用快取
+            string cacheKey = "all_small_groups_list";
+            
+            // 先嘗試從記憶體快取取得
+            if (_cacheService.TryGetFromMemory<EntityCollection>(cacheKey, out var cachedResult))
+            {
+                return cachedResult;
+            }
+
+            // Cache Miss: 執行實際查詢
+            var result = m_ToolUtilityClass.RetrieveSmallGroupListCollectionByFetchXml();
+
+            // 儲存到快取（30 分鐘絕對過期，10 分鐘滑動過期）
+            // 這是靜態資料，可以快取較長時間
+            _cacheService.SetMemory(
+                cacheKey, 
+                result,
+                absoluteExpire: TimeSpan.FromMinutes(30),
+                slidingExpire: TimeSpan.FromMinutes(10)
+            );
+
+            return result;
         }
         #endregion
         #region 新增小組
