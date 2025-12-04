@@ -89,14 +89,14 @@ namespace ChurchReport.WebServiceConnector
                 QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
                 String OrderDate = DateTime.Now.ToString("yyyyMMddhhmmssfff");
 
-                if (QpayModel.PayWay == "信用卡" || QpayModel.PayWay == "銀聯卡")
+                if (QpayModel.PayWay == "信用卡" || QpayModel.PayWay == "銀聯卡" || QpayModel.PayWay == null )
                 {
                     Guid aCreatedFeeId = CreateFee(LineLoginContact, QpayModel, false);
                     Entity aFeeToUpdate = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aCreatedFeeId);
 
                     CreOrder CreatedCardOrder;
 
-                    if (QpayModel.PayWay == "信用卡")
+                    if (QpayModel.PayWay == "信用卡" || QpayModel.PayWay == null)
                     {
                         // 信用卡
                         CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, OrderDate, aCreatedFeeId.ToString(), "C", "ONE", "", 0, "M", 1, "收費單", LineLoginContact, QpayModel.SelectedCreditCard);
@@ -106,6 +106,7 @@ namespace ChurchReport.WebServiceConnector
                         // 銀聯卡
                         CreatedCardOrder = await CreOrderCard(QpayModel.Amount, QpayModel.Category + "-" + QpayModel.FullName, OrderDate, aCreatedFeeId.ToString(), "C", "CUP", "", 0, "M", 1, "收費單", LineLoginContact, QpayModel.SelectedCreditCard);
                     }
+
                     if (CreatedCardOrder.CardParam != null && CreatedCardOrder.CardParam.CardPayURL != null)
                     {
                         // 用剛剛建立的收費單，填寫訂單編號
@@ -660,7 +661,7 @@ namespace ChurchReport.WebServiceConnector
                     // 收費單付款狀態，銀行轉帳已繳費
                     SetPayStatus("銀行轉帳已繳費", ref aFeeToCreated);
                 }
-                else if (QpayModel.PayWay == "信用卡")
+                else if (QpayModel.PayWay == "信用卡" || QpayModel.PayWay == null)
                 {
                     if (KeyinMode == true) // 是否是會計輸入的
                     {
@@ -935,7 +936,7 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000005);
                     break;
                 default:
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000000);
                     break;
 
             }

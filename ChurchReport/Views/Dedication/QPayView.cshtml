@@ -10,11 +10,14 @@
     // 讀取金流提供商設定
     var payProvider = Configuration["PAY_PROVIDER"] ?? "永豐金流";
     
+    // 判斷是否為高鉅金流（高鉅金流時隱藏付款方式選項）
+    var isMyPay = payProvider == "高鉅金流";
+    
     // 根據金流提供商設定不同的付款方式選項
     string[] payWayOptions;
-    if (payProvider == "高鉅金流")
+    if (isMyPay)
     {
-        // 高鉅金流支援的付款方式
+        // 高鉅金流只支援信用卡
         payWayOptions = new string[] { "信用卡" };
     }
     else
@@ -202,10 +205,11 @@
                                 .Placeholder("請輸入奉獻金額")
                             );
 
-                        // 付款方式
+                        // 付款方式 - 高鉅金流時隱藏此欄位
                         items.AddSimpleFor(m => m.PayWay)
                             .Label(l => l.Text("付款方式"))
                             .Name("PayWaySelectBox")
+                            .Visible(!isMyPay)
                             .Editor(e => e
                                 .SelectBox()
                                 .Width(200)
@@ -213,7 +217,7 @@
                                 .OnValueChanged("OnPayWaySelectBoxValueChanged")
                             );
 
-                        // 定期定額總期數
+                        // 定期定額總期數 - 高鉅金流時隱藏此欄位
                         items.AddSimpleFor(m => m.DeductTotalNumber)
                             .Label(l => l.Text("總期數"))
                             .Visible(false)
