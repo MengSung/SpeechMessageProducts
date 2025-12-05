@@ -43,12 +43,37 @@ namespace ChurchReport.Tools
 
         public QryOrderPay OrderPayQuery(QryOrderPayReq req)
         {
-            return QPayToolkit.OrderPayQuery(req);
+            try
+            {
+                System.Diagnostics.Trace.WriteLine($"[QPayToolkitWrapper] OrderPayQuery (single param) called");
+                System.Diagnostics.Trace.WriteLine($"  - ShopNo: {req?.ShopNo ?? "(null)"}");
+                System.Diagnostics.Trace.WriteLine($"  - PayToken: {req?.PayToken ?? "(null)"}");
+                
+                return QPayToolkit.OrderPayQuery(req);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[QPayToolkitWrapper] OrderPayQuery failed: {ex.Message}");
+                throw;
+            }
         }
 
         public QryOrderPay OrderPayQuery(QryOrderPayReq req, string hashCode)
         {
-            return QPayToolkit.OrderPayQuery(req, hashCode);
+            try
+            {
+                System.Diagnostics.Trace.WriteLine($"[QPayToolkitWrapper] OrderPayQuery (with hashCode) called");
+                System.Diagnostics.Trace.WriteLine($"  - ShopNo: {req?.ShopNo ?? "(null)"}");
+                System.Diagnostics.Trace.WriteLine($"  - PayToken: {req?.PayToken ?? "(null)"}");
+                System.Diagnostics.Trace.WriteLine($"  - HashCode length: {hashCode?.Length ?? 0}");
+                
+                return QPayToolkit.OrderPayQuery(req, hashCode);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[QPayToolkitWrapper] OrderPayQuery (with hashCode) failed: {ex.Message}");
+                throw;
+            }
         }
 
         public QryBill BillQuery(QryBillReq req)
@@ -59,47 +84,6 @@ namespace ChurchReport.Tools
         public QryAllot AllotQuery(QryAllotReq req)
         {
             return QPayToolkit.AllotQuery(req);
-        }
-
-        CreOrder IPayment.OrderCreate(CreOrderReq req)
-        {
-            return QPayToolkit.OrderCreate(req);
-            //throw new System.NotImplementedException();
-        }
-
-        QryOrderUnCaptured IPayment.OrderUnCapturedQuery(QryOrderUnCapturedReq req)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        OrderMaintain IPayment.OrderMaintain(OrderMaintainReq req)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        QryOrder IPayment.OrderQuery(QryOrderReq req)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        QryOrderPay IPayment.OrderPayQuery(QryOrderPayReq req)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        QryOrderPay IPayment.OrderPayQuery(QryOrderPayReq req, string hashCode)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        QryBill IPayment.BillQuery(QryBillReq req)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        QryAllot IPayment.AllotQuery(QryAllotReq req)
-        {
-            throw new System.NotImplementedException();
         }
 
         #endregion
