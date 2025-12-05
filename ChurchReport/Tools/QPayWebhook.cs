@@ -108,13 +108,12 @@ namespace ChurchReport.Tools
                     // 發送錯誤通知
                     try { m_PushUtility.SendMessage(MENGSUNG_LINE_ID, queryError); } catch { }
                     
-                    // 返回錯誤視圖而不是拋出例外
-                    return new ContentResult
-                    {
-                        Content = $"<html><body><h1>付款查詢失敗</h1><p>無法查詢付款狀態，請稍後再試或聯繫客服</p><p>錯誤: {queryEx.Message}</p></body></html>",
-                        ContentType = "text/html",
-                        StatusCode = 200
-                    };
+                    // 返回美觀的錯誤視圖
+                    ViewBag.IsSuccess = false;
+                    ViewBag.Message = "付款查詢失敗，無法查詢付款狀態，請稍後再試或聯繫教會辦公室。";
+                    ViewBag.OrderId = PayToken;
+                    ViewBag.ErrorDetails = $"錯誤訊息: {queryEx.Message}";
+                    return View("~/Views/QPayCard/PaymentResult.cshtml");
                 }
 
                 if (aQryOrderPay != null && aQryOrderPay.TSResultContent != null)
@@ -144,12 +143,11 @@ namespace ChurchReport.Tools
                     string errorMsg = aQryOrderPay?.Description ?? "查詢結果為空";
                     System.Diagnostics.Trace.WriteLine($"[QPayCardWebhook] Query result is null or invalid: {errorMsg}");
                     
-                    return new ContentResult
-                    {
-                        Content = $"<html><body><h1>信用卡付款結果失敗</h1><p>{errorMsg}</p><p>請稍後再試或聯繫客服</p></body></html>",
-                        ContentType = "text/html",
-                        StatusCode = 200
-                    };
+                    ViewBag.IsSuccess = false;
+                    ViewBag.Message = "信用卡付款結果失敗，請稍後再試或聯繫教會辦公室。";
+                    ViewBag.OrderId = PayToken;
+                    ViewBag.ErrorDetails = errorMsg;
+                    return View("~/Views/QPayCard/PaymentResult.cshtml");
                 }
             }
             catch (System.Exception e)
@@ -162,13 +160,12 @@ namespace ChurchReport.Tools
                 // 發送錯誤通知但不中斷執行
                 try { m_PushUtility.SendMessage(MENGSUNG_LINE_ID, ErrorString); } catch { }
                 
-                // 返回錯誤頁面而不是拋出例外
-                return new ContentResult
-                {
-                    Content = $"<html><body><h1>處理付款時發生錯誤</h1><p>系統處理時發生錯誤，請稍後再試或聯繫客服</p><p>錯誤詳情: {e.Message}</p></body></html>",
-                    ContentType = "text/html",
-                    StatusCode = 200
-                };
+                // 返回美觀的錯誤頁面
+                ViewBag.IsSuccess = false;
+                ViewBag.Message = "處理付款時發生錯誤，系統處理時發生錯誤，請稍後再試或聯繫教會辦公室。";
+                ViewBag.OrderId = PayToken ?? "";
+                ViewBag.ErrorDetails = $"錯誤詳情: {e.Message}\n時間: {DateTime.Now}";
+                return View("~/Views/QPayCard/PaymentResult.cshtml");
             }
         }
     }

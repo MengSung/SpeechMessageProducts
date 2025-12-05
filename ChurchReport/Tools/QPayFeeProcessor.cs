@@ -119,13 +119,20 @@ namespace ChurchReport.Tools
                 {
                     if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
                     {
-                        //return Json(new Dictionary<string, string>() { { "Status", "S" } });
-                        return new OkObjectResult("信用卡付款結果成功!" + Environment.NewLine + aQryOrderPay.Description);
+                        ViewBag.IsSuccess = true;
+                        ViewBag.Message = "訂單已建立，會透過LINE另行通知交易狀態，感謝您的支持。";
+                        ViewBag.OrderId = aQryOrderPay.TSResultContent.OrderNo;
+                        ViewBag.PaymentMethod = "信用卡";
+                        ViewBag.ErrorDetails = aQryOrderPay.Description;
+                        return View("~/Views/QPayCard/PaymentResult.cshtml");
                     }
                     else
                     {
-                        //return Json(new Dictionary<string, string>() { { "Status", "S" } });
-                        return new OkObjectResult("信用卡付款結果失敗!" + Environment.NewLine + aQryOrderPay.Description);
+                        ViewBag.IsSuccess = false;
+                        ViewBag.Message = "付款失敗，請稍後再試或聯繫教會辦公室。";
+                        ViewBag.OrderId = aQryOrderPay.TSResultContent.OrderNo;
+                        ViewBag.ErrorDetails = aQryOrderPay.Description;
+                        return View("~/Views/QPayCard/PaymentResult.cshtml");
                     }
                 }
                 else { }
@@ -278,20 +285,47 @@ namespace ChurchReport.Tools
                         }
                         #endregion
 
-                        //return Json(new Dictionary<string, string>() { { "Status", "S" } });
-                        return new OkObjectResult("已經完成了信用卡付款!" + Environment.NewLine + Description + "收到" + aFullName + "的費用!");
+                        // 設定 ViewBag 並返回美觀的結果頁面
+                        ViewBag.IsSuccess = true;
+                        ViewBag.Message = "訂單已建立，會透過LINE另行通知交易狀態，感謝您的支持。";
+                        ViewBag.FullName = aFullName;
+                        ViewBag.Amount = ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString();
+                        ViewBag.PaymentTime = DateTime.Now.ToLocalTime().ToString("yyyy/MM/dd HH:mm:ss");
+                        ViewBag.OrderId = aQryOrderPay.TSResultContent.OrderNo;
+                        ViewBag.TransactionId = aQryOrderPay.TSResultContent.OrderNo;
+                        ViewBag.PaymentMethod = "信用卡";
+                        
+                        // 取得奉獻類別
+                        int categoryOption = this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category");
+                        string dedicationCategory = GetDedicationCategoryText(categoryOption);
+                        ViewBag.DedicationCategory = dedicationCategory;
+                        
+                        return View("~/Views/QPayCard/PaymentResult.cshtml");
 
                         #endregion
                     }
                     else
                     {
-                        //return Json(new Dictionary<string, string>() { { "Status", "S" } });
-                        return new OkObjectResult("信用卡付款結果成功!" + Environment.NewLine + Description + "收到" + aFullName + "的費用!");
+                        // 設定 ViewBag 並返回美觀的結果頁面
+                        ViewBag.IsSuccess = true;
+                        ViewBag.Message = "訂單已建立，會透過LINE另行通知交易狀態，感謝您的支持。";
+                        ViewBag.FullName = aFullName;
+                        ViewBag.Amount = ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString();
+                        ViewBag.PaymentTime = DateTime.Now.ToLocalTime().ToString("yyyy/MM/dd HH:mm:ss");
+                        ViewBag.OrderId = aQryOrderPay.TSResultContent.OrderNo;
+                        ViewBag.TransactionId = aQryOrderPay.TSResultContent.OrderNo;
+                        ViewBag.PaymentMethod = "信用卡";
+                        
+                        // 取得奉獻類別
+                        int categoryOption = this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category");
+                        string dedicationCategory = GetDedicationCategoryText(categoryOption);
+                        ViewBag.DedicationCategory = dedicationCategory;
+                        
+                        return View("~/Views/QPayCard/PaymentResult.cshtml");
                     }
                 }
                 else
                 {
-                    //return Json(new Dictionary<string, string>() { { "Status", "S" } });
                     // 收費單說明
                     String aOriginalDescription = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aFeeEntity, "new_description");
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeEntity, "new_description", aOriginalDescription + "信用卡付款結果失敗!" + Environment.NewLine + Description);
@@ -302,7 +336,14 @@ namespace ChurchReport.Tools
                     // LINE 通知付款人
                     this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果失敗!" + Environment.NewLine + Description);
 
-                    return new OkObjectResult("信用卡付款結果失敗!" + Environment.NewLine + Description);
+                    // 設定 ViewBag 並返回美觀的錯誤頁面
+                    ViewBag.IsSuccess = false;
+                    ViewBag.Message = "付款失敗，請稍後再試或聯繫教會辦公室。";
+                    ViewBag.FullName = aFullName;
+                    ViewBag.OrderId = aQryOrderPay.TSResultContent.OrderNo;
+                    ViewBag.ErrorDetails = Description;
+                    
+                    return View("~/Views/QPayCard/PaymentResult.cshtml");
                 }
             }
             catch (System.Exception e)
@@ -726,6 +767,23 @@ namespace ChurchReport.Tools
             return false;
 
             #endregion
+        }
+
+        /// <summary>
+        /// 取得奉獻類別文字
+        /// </summary>
+        private string GetDedicationCategoryText(int categoryOption)
+        {
+            switch (categoryOption)
+            {
+                case 100000000: return "什一奉獻";
+                case 100000001: return "感恩奉獻";
+                case 100000002: return "宣教奉獻";
+                case 100000003: return "建堂奉獻";
+                case 100000004: return "愛心奉獻";
+                case 100000005: return "其他奉獻";
+                default: return "奉獻";
+            }
         }
 
         #endregion
