@@ -46,11 +46,13 @@ namespace ChurchReport.Controllers
                     string errorMsg = $"參數不完整: ShopNo={ShopNo ?? "(null)"}, PayToken={PayToken ?? "(null)"}";
                     System.Diagnostics.Trace.WriteLine($"[QPayCardController] Error: {errorMsg}");
                     
-                    ViewBag.ErrorTitle = "付款參數錯誤";
-                    ViewBag.ErrorMessage = "缺少必要的付款資訊，請重新嘗試或聯繫客服";
-                    ViewBag.Details = errorMsg;
+                    // 返回美觀的付款失敗頁面
+                    ViewBag.IsSuccess = false;
+                    ViewBag.Message = "缺少必要的付款資訊，請重新嘗試或聯繫教會辦公室。";
+                    ViewBag.ErrorDetails = errorMsg;
+                    ViewBag.OrderId = "";
                     
-                    return View("~/Views/Home/DisplayErrorView.cshtml");
+                    return View("PaymentResult");
                 }
                 
                 using (QPayCardWebhook aQPayCardWebhook = new QPayCardWebhook())
@@ -72,12 +74,13 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Trace.WriteLine(errorDetail);
                 Console.WriteLine(errorDetail);
                 
-                // 返回錯誤視圖而不是拋出例外
-                ViewBag.ErrorTitle = "付款處理失敗";
-                ViewBag.ErrorMessage = "處理付款結果時發生錯誤，請稍後再試或聯繫客服";
-                ViewBag.Details = ex.Message;
+                // 返回美觀的付款失敗頁面
+                ViewBag.IsSuccess = false;
+                ViewBag.Message = "處理付款結果時發生系統錯誤，請稍後再試或聯繫教會辦公室。";
+                ViewBag.ErrorDetails = $"{ex.Message}\n\n{ex.StackTrace}";
+                ViewBag.OrderId = "";
                 
-                return View("~/Views/Home/DisplayErrorView.cshtml");
+                return View("PaymentResult");
             }
         }
     }
