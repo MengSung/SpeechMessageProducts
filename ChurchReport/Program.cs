@@ -15,7 +15,7 @@ namespace ChurchReport
     public class Program
     {
         // ========================================
-        // ?? 修復：使用靜態變數保存 TraceListener，確保單例且可釋放
+        // 靜態成員變數用來保存 TraceListener，確保單例且可釋放
         // ========================================
         private static TextWriterTraceListener _traceListener;
         private static readonly object _traceLock = new object();
@@ -24,7 +24,7 @@ namespace ChurchReport
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // 配置 Kestrel
+            // 設定 Kestrel
             builder.WebHost.ConfigureKestrel(options =>
             {
                 options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(30);
@@ -33,44 +33,51 @@ namespace ChurchReport
                 options.Limits.MaxConcurrentUpgradedConnections = 1000;
             });
 
-            // 使用 Startup 類別配置服務
+            // 使用 Startup 類別設定服務
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
 
             var app = builder.Build();
 
             // ========================================
-            // ?? 修復：正確初始化 Trace Listener（線程安全，單例模式）
+            // 修改：只在 Development 環境下初始化 Trace Listener
+            // Release 模式下不寫入 Trace.log，減少 I/O 開銷
             // ========================================
-            InitializeTraceListener(app.Environment.ContentRootPath);
+            if (app.Environment.IsDevelopment())
+            {
+                InitializeTraceListener(app.Environment.ContentRootPath);
+            }
 
             // ========================================
-            // ?? 新增：GC 監控（僅 Development 環境）
-            // 每 10 分鐘記錄一次 GC 統計，監控記憶體使用情況
+            // GC 監控設定（Development 模式）
+            // 每 10 分鐘記錄一次 GC 統計，幫助監控記憶體使用
             // ========================================
             if (app.Environment.IsDevelopment())
             {
                 StartGCMonitoring();
             }
 
-            // 使用 Startup 類別配置中間件
+            // 使用 Startup 類別設定中介層
             startup.Configure(app, app.Environment, app.Services.GetRequiredService<ILoggerFactory>());
 
             // ========================================
-            // ?? 新增：註冊應用程式關閉事件，確保資源正確釋放
+            // 註冊應用程式停止事件，確保資源正確釋放
             // ========================================
             var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
             lifetime.ApplicationStopping.Register(() =>
             {
-                CleanupTraceListener();
+                if (app.Environment.IsDevelopment())
+                {
+                    CleanupTraceListener();
+                }
             });
 
             app.Run();
         }
 
         /// <summary>
-        /// 初始化 Trace Listener（線程安全，單例模式）
-        /// 確保 TextWriterTraceListener 只創建一次，並且可以在應用程式關閉時正確釋放
+        /// 初始化 Trace Listener（僅在 Development 環境下執行）
+        /// 確保 TextWriterTraceListener 只建立一次，並且可以在應用程式停止時正確釋放
         /// </summary>
         private static void InitializeTraceListener(string contentRootPath)
         {
@@ -84,18 +91,18 @@ namespace ChurchReport
 
                 try
                 {
-                    // 創建日誌目錄
+                    // 建立日誌目錄
                     var logsDir = Path.Combine(contentRootPath, "Logs");
                     Directory.CreateDirectory(logsDir);
                     var tracePath = Path.Combine(logsDir, "Trace.log");
 
-                    // ? 創建 TextWriterTraceListener 並保存引用（確保可以釋放）
+                    // 建立 TextWriterTraceListener 並保存參考（確保可以釋放）
                     _traceListener = new TextWriterTraceListener(tracePath)
                     {
                         Name = "ChurchReportTraceListener"
                     };
 
-                    // 檢查是否已存在相同名稱的 Listener（防止重複添加）
+                    // 檢查是否已存在相同名稱的 Listener（避免重複新增）
                     var existingListener = Trace.Listeners.Cast<TraceListener>()
                         .FirstOrDefault(l => l.Name == "ChurchReportTraceListener");
 
@@ -103,7 +110,7 @@ namespace ChurchReport
                     {
                         Trace.Listeners.Add(_traceListener);
                         Trace.AutoFlush = true;
-                        Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Trace listener initialized successfully.");
+                        Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Trace listener initialized successfully (Development mode).");
                     }
                 }
                 catch (Exception ex)
@@ -116,7 +123,7 @@ namespace ChurchReport
 
         /// <summary>
         /// 清理 Trace Listener（確保資源正確釋放）
-        /// 在應用程式關閉時調用，釋放 FileStream 和 StreamWriter
+        /// 在應用程式停止時呼叫，關閉 FileStream 和 StreamWriter
         /// </summary>
         private static void CleanupTraceListener()
         {
@@ -128,13 +135,13 @@ namespace ChurchReport
                     {
                         Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Application shutting down. Cleaning up trace listener.");
 
-                        // ? 從 Listeners 集合中移除
+                        // 從 Listeners 集合移除
                         Trace.Listeners.Remove(_traceListener);
 
-                        // ? 確保 Flush（將緩衝區數據寫入文件）
+                        // 確保 Flush（將緩衝資料寫入檔案）
                         _traceListener.Flush();
 
-                        // ? 釋放資源（FileStream, StreamWriter）
+                        // 釋放資源（FileStream, StreamWriter）
                         _traceListener.Dispose();
                         _traceListener = null;
                     }
@@ -147,9 +154,9 @@ namespace ChurchReport
         }
 
         /// <summary>
-        /// ?? 啟動 GC 監控（Development 環境）
+        /// 啟動 GC 監控（Development 模式）
         /// 每 10 分鐘記錄一次 GC 統計，幫助診斷記憶體問題
-        /// 記錄內容：Gen0/Gen1/Gen2 收集次數、GC Memory、Private Memory
+        /// 記錄內容：Gen0/Gen1/Gen2 回收次數、GC Memory、Private Memory
         /// </summary>
         private static void StartGCMonitoring()
         {
