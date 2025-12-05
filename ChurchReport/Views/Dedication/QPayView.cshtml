@@ -84,16 +84,24 @@
     background: #fafafa;
   }
   
-  /* DevExtreme Grid 視覺優化 */
+  /* DevExtreme Grid 視覺優化 - 響應式設計 */
   #CreditCardGrid.dx-datagrid {
     --row-height: 48px;
     border-radius: 8px;
     overflow: hidden;
+    width: 100% !important;
+    max-width: 100%;
+  }
+  
+  /* 確保 Grid 容器不會溢出 */
+  #CreditCardGrid .dx-datagrid-rowsview {
+    overflow-x: auto !important;
   }
   
   #CreditCardGrid .dx-data-row > td {
     padding: 12px 16px;
     vertical-align: middle;
+    white-space: nowrap;
   }
   
   #CreditCardGrid .dx-datagrid-headers {
@@ -104,20 +112,21 @@
   #CreditCardGrid .dx-header-row > td {
     padding: 12px 16px;
     border-bottom: 2px solid #dee2e6;
+    white-space: nowrap;
   }
   
-  /* 信用卡號欄位樣式 */
+  /* 信用卡號欄位樣式 - 響應式字體 */
   #CreditCardGrid .card-number-column {
     font-family: 'Courier New', monospace;
-    font-size: 1.4rem;
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
     font-weight: 600;
     letter-spacing: 0.8px;
     color: #2c3e50;
   }
   
-  /* 到期日欄位樣式 */
+  /* 到期日欄位樣式 - 響應式字體 */
   #CreditCardGrid .expire-date-column {
-    font-size: 1.3rem;
+    font-size: clamp(1rem, 2.2vw, 1.3rem);
     font-weight: 600;
     color: #2c3e50;
   }
@@ -129,6 +138,7 @@
     padding: 6px 12px;
     border-radius: 4px;
     transition: all 0.2s ease;
+    font-size: clamp(0.85rem, 1.8vw, 1rem);
   }
   
   #CreditCardGrid .dx-link-delete:hover {
@@ -146,7 +156,7 @@
     cursor: pointer;
   }
   
-  /* 響應式設計 */
+  /* 響應式設計 - 平板尺寸 (768px) */
   @@media (max-width: 768px) {
     .card-list {
       padding: 12px 15px;
@@ -158,31 +168,76 @@
     }
     
     #CreditCardGrid .card-number-column {
-      font-size: 1.25rem;
+      font-size: clamp(1rem, 3vw, 1.25rem);
       font-weight: 600;
+      letter-spacing: 0.6px;
     }
     
     #CreditCardGrid .expire-date-column {
-      font-size: 1.15rem;
+      font-size: clamp(0.95rem, 2.8vw, 1.15rem);
       font-weight: 600;
+    }
+    
+    #CreditCardGrid .dx-link-delete {
+      padding: 5px 10px;
+      font-size: clamp(0.8rem, 2vw, 0.95rem);
     }
   }
   
+  /* 響應式設計 - 手機尺寸 (576px) */
   @@media (max-width: 576px) {
     #CreditCardGrid .dx-data-row > td,
     #CreditCardGrid .dx-header-row > td {
-      padding: 8px 10px;
+      padding: 8px 8px;
     }
     
     #CreditCardGrid .card-number-column {
-      font-size: 1.15rem;
+      font-size: clamp(0.9rem, 3.5vw, 1.15rem);
       font-weight: 600;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
     }
     
     #CreditCardGrid .expire-date-column {
-      font-size: 1.05rem;
+      font-size: clamp(0.85rem, 3.2vw, 1.05rem);
       font-weight: 600;
+    }
+    
+    #CreditCardGrid .dx-link-delete {
+      padding: 4px 8px;
+      font-size: clamp(0.75rem, 2.5vw, 0.9rem);
+    }
+    
+    /* 減少表格高度以適應小螢幕 */
+    #CreditCardGrid.dx-datagrid {
+      --row-height: 42px;
+    }
+  }
+  
+  /* 響應式設計 - 極小螢幕 (400px) */
+  @@media (max-width: 400px) {
+    #CreditCardGrid .dx-data-row > td,
+    #CreditCardGrid .dx-header-row > td {
+      padding: 6px 6px;
+    }
+    
+    #CreditCardGrid .card-number-column {
+      font-size: clamp(0.8rem, 4vw, 1rem);
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    
+    #CreditCardGrid .expire-date-column {
+      font-size: clamp(0.75rem, 3.8vw, 0.95rem);
+      font-weight: 600;
+    }
+    
+    #CreditCardGrid .dx-link-delete {
+      padding: 3px 6px;
+      font-size: clamp(0.7rem, 3vw, 0.85rem);
+    }
+    
+    #CreditCardGrid.dx-datagrid {
+      --row-height: 38px;
     }
   }
 </style>
@@ -364,7 +419,7 @@
                     .ID("CreditCardGrid")
                     .Width("100%")
                     .ShowBorders(true)
-                    .ColumnAutoWidth(true)
+                    .ColumnAutoWidth(false)
                     .Paging(paging => paging.Enabled(false))
                     .AllowColumnResizing(true)
                     .ColumnResizingMode(ColumnResizingMode.Widget)
@@ -392,13 +447,12 @@
                     .Columns(columns => {
                         columns.AddFor(m => m.CreditCardNumber)
                             .Caption("信用卡號")
-                            .MinWidth(180)
+                            .Width("60%")
                             .Alignment(HorizontalAlignment.Left)
                             .CssClass("card-number-column");
                         columns.AddFor(m => m.ExpireDate)
                             .Caption("到期日")
-                            .Width(100)
-                            .MinWidth(80)
+                            .Width("25%")
                             .Alignment(HorizontalAlignment.Center)
                             .CssClass("expire-date-column");
                     })
