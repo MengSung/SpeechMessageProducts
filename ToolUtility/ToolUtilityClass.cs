@@ -24,7 +24,9 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.Core;
+#if DEBUG && ENABLE_BUGSLAYER
 using TraceNameSpace;
+#endif
 using static System.Net.WebRequestMethods;
 
 namespace ToolUtilityNameSpace
@@ -119,7 +121,11 @@ namespace ToolUtilityNameSpace
         private String m_TraceLogFile = "";
         private Lazy<FileStream> _lazyXmlFileStream;
         private Lazy<StreamWriter> _lazyXmlFileStreamWriter;
+#if DEBUG && ENABLE_BUGSLAYER
         private Lazy<BugslayerTextWriterTraceListener> _lazyListener;
+#else
+        private Lazy<TextWriterTraceListener> _lazyListener;
+#endif
         private const String TRACE_DIRECTOR = @"D:\除錯追蹤\" + "CHURCH_REPORT_TRACE.TXT";
         //private const String TRACE_DIRECTOR = @"C:\除錯追蹤\" + "TRACE.TXT";
         #endregion
@@ -154,6 +160,7 @@ namespace ToolUtilityNameSpace
             });
             
             // Lazy 初始化 TraceListener
+#if DEBUG && ENABLE_BUGSLAYER
             _lazyListener = new Lazy<BugslayerTextWriterTraceListener>(() =>
             {
                 var listener = new BugslayerTextWriterTraceListener(_lazyXmlFileStreamWriter.Value);
@@ -165,6 +172,19 @@ namespace ToolUtilityNameSpace
 #endif
                 return listener;
             });
+#else
+            _lazyListener = new Lazy<TextWriterTraceListener>(() =>
+            {
+                var listener = new TextWriterTraceListener(_lazyXmlFileStreamWriter.Value);
+                Debug.AutoFlush = true;
+#if NET462 || NETFRAMEWORK
+                Debug.Listeners.Add(listener);
+#else
+                Trace.Listeners.Add(listener);
+#endif
+                return listener;
+            });
+#endif
             #endregion
 
             // 使用連接服務建立 CRM 連接
@@ -206,6 +226,7 @@ namespace ToolUtilityNameSpace
             });
             
             // Lazy 初始化 TraceListener
+#if DEBUG && ENABLE_BUGSLAYER
             _lazyListener = new Lazy<BugslayerTextWriterTraceListener>(() =>
             {
                 var listener = new BugslayerTextWriterTraceListener(_lazyXmlFileStreamWriter.Value);
@@ -217,6 +238,19 @@ namespace ToolUtilityNameSpace
 #endif
                 return listener;
             });
+#else
+            _lazyListener = new Lazy<TextWriterTraceListener>(() =>
+            {
+                var listener = new TextWriterTraceListener(_lazyXmlFileStreamWriter.Value);
+                Debug.AutoFlush = true;
+#if NET462 || NETFRAMEWORK
+                Debug.Listeners.Add(listener);
+#else
+                Trace.Listeners.Add(listener);
+#endif
+                return listener;
+            });
+#endif
             #endregion
 
             //// 使用連接服務建立 CRM 連接

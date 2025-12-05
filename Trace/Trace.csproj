@@ -52,8 +52,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <!-- ========================================
          Debug 設定
+         新增 ENABLE_BUGSLAYER 定義
          ======================================== -->
-    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE;ENABLE_BUGSLAYER</DefineConstants>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
@@ -63,6 +64,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <!-- ========================================
          Release 設定
+         不定義 ENABLE_BUGSLAYER，Bugslayer 類別不會被編譯
          ======================================== -->
     <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
     <DebugType>pdbonly</DebugType>
@@ -72,9 +74,18 @@
   </PropertyGroup>
 
   <!-- ========================================
-       ? SDK-Style 專案會自動包含所有 .cs 檔案
-       不需要手動指定 <Compile Include="...">
+       條件編譯：只在 Debug 模式下包含 Bugslayer 類別
+       Release 模式下這些檔案不會被編譯到 DLL 中
        ======================================== -->
+  <ItemGroup Condition="'$(Configuration)'=='Debug'">
+    <Compile Include="BSUTextWriterTraceListener.cs" />
+    <Compile Include="BSUStackTrace.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)'=='Release'">
+    <Compile Remove="BSUTextWriterTraceListener.cs" />
+    <Compile Remove="BSUStackTrace.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- ========================================
