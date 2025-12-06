@@ -280,6 +280,275 @@ namespace ChurchReport.Controllers
         
         #endregion
 
+        #region 課程繳費點名視圖
+
+        /// <summary>
+        /// 顯示課程繳費點名清單視圖
+        /// 路徑: /Home/PresentFeeListView
+        /// </summary>
+        /// <param name="DiscipleLessonsId">課程ID (選填)</param>
+        [Route("/Home/PresentFeeListView")]
+        [Route("/Home/PresentFeeListView/{DiscipleLessonsId}")]
+        public IActionResult PresentFeeListView(string DiscipleLessonsId = null)
+        {
+            try
+            {
+                // 設定需要點名的課程清單
+                if (!string.IsNullOrEmpty(DiscipleLessonsId))
+                {
+                    InMemoryContext.FeeList.SetupPresentFeeList(DiscipleLessonsId);
+                }
+                else
+                {
+                    // 如果沒有指定課程ID，使用當前登入者的帳密設定繳費清單
+                    InMemoryContext.FeeList.SetupFeeDataList(
+                        InMemoryContext.FeeList.m_Account, 
+                        InMemoryContext.FeeList.m_Password
+                    );
+                }
+
+                // 設定 ViewBag 參數
+                ViewBag.Result = InMemoryContext.FeeList.Result;
+                ViewBag.FeeType = InMemoryContext.FeeList.FeeType;
+                
+                // ? 修復：將整數轉換為字串，以符合 _Layout.cshtml 中的字串比較
+                var feeDataCount = InMemoryContext.FeeList.FeeDataList?.Count ?? 0;
+                ViewBag.FeeDataListCount = feeDataCount > 0 ? "繳費與點名已有資料" : "繳費與點名無資料";
+
+                return View(InMemoryContext.FeeList);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PresentFeeListView] 發生錯誤: {ex.Message}");
+                return HandleError(ex, "PresentFeeListView");
+            }
+        }
+
+        /// <summary>
+        /// 顯示課程繳費視圖 (支援特定課程ID)
+        /// 路徑: /Home/FeeView/{DiscipleLessonsId}
+        /// </summary>
+        /// <param name="DiscipleLessonsId">課程ID</param>
+        [Route("/Home/FeeView")]
+        [Route("/Home/FeeView/{DiscipleLessonsId}")]
+        public IActionResult FeeView(string DiscipleLessonsId = null)
+        {
+            try
+            {
+                // 如果有指定課程ID，載入該課程的繳費資料
+                if (!string.IsNullOrEmpty(DiscipleLessonsId))
+                {
+                    InMemoryContext.FeeList.SetupPresentFeeList(DiscipleLessonsId);
+                }
+                else
+                {
+                    // 否則使用當前登入者的帳密設定繳費清單
+                    InMemoryContext.FeeList.SetupFeeDataList(
+                        InMemoryContext.FeeList.m_Account,
+                        InMemoryContext.FeeList.m_Password
+                    );
+                }
+
+                // 設定 ViewBag 參數
+                ViewBag.FeeResult = InMemoryContext.FeeList.Result;
+                ViewBag.DiscipleLessonsId = DiscipleLessonsId;
+
+                return View(InMemoryContext.FeeList);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[FeeView] 發生錯誤: {ex.Message}");
+                return HandleError(ex, "FeeView");
+            }
+        }
+
+        /// <summary>
+        /// 顯示課程點名視圖
+        /// 路徑: /Home/PresentView/{DiscipleLessonsId}
+        /// </summary>
+        /// <param name="DiscipleLessonsId">課程ID</param>
+        [Route("/Home/PresentView")]
+        [Route("/Home/PresentView/{DiscipleLessonsId}")]
+        public IActionResult PresentView(string DiscipleLessonsId = null)
+        {
+            try
+            {
+                // 如果有指定課程ID，載入該課程的繳費資料
+                if (!string.IsNullOrEmpty(DiscipleLessonsId))
+                {
+                    InMemoryContext.FeeList.SetupPresentFeeList(DiscipleLessonsId);
+                }
+                else
+                {
+                    // 否則使用當前登入者的帳密設定繳費清單
+                    InMemoryContext.FeeList.SetupFeeDataList(
+                        InMemoryContext.FeeList.m_Account,
+                        InMemoryContext.FeeList.m_Password
+                    );
+                }
+
+                // 設定 ViewBag 參數
+                ViewBag.PresentResult = InMemoryContext.FeeList.Result;
+                ViewBag.DiscipleLessonsId = DiscipleLessonsId;
+
+                return View(InMemoryContext.FeeList);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PresentView] 發生錯誤: {ex.Message}");
+                return HandleError(ex, "PresentView");
+            }
+        }
+
+        #endregion
+
+        #region 課程繳費點名 API
+
+        /// <summary>
+        /// 載入課程清單 (DevExtreme DataGrid API)
+        /// 路徑: /Home/LoadLessonList
+        /// </summary>
+        [HttpGet]
+        [Route("/Home/LoadLessonList")]
+        public IActionResult LoadLessonList(DataSourceLoadOptions loadOptions)
+        {
+            try
+            {
+                // 確保課程清單已載入
+                if (InMemoryContext.FeeList.LessonList == null || InMemoryContext.FeeList.LessonList.Count == 0)
+                {
+                    // 重新載入課程清單
+                    InMemoryContext.FeeList.SetupLessonList(
+                        InMemoryContext.FeeList.m_Account,
+                        InMemoryContext.FeeList.m_Password
+                    );
+                }
+
+                // 使用 DevExtreme DataSourceLoader 處理資料
+                var result = DataSourceLoader.Load(InMemoryContext.FeeList.LessonList, loadOptions);
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LoadLessonList] 發生錯誤: {ex.Message}");
+                
+                // 返回空結果而不是錯誤，避免前端顯示異常
+                return Json(new
+                {
+                    data = new List<Lesson>(),
+                    totalCount = 0
+                });
+            }
+        }
+
+        /// <summary>
+        /// 載入繳費資料清單 (DevExtreme DataGrid API)
+        /// 路徑: /Home/LoadFeeDataList
+        /// </summary>
+        [HttpGet]
+        [Route("/Home/LoadFeeDataList")]
+        public IActionResult LoadFeeDataList(DataSourceLoadOptions loadOptions, string DiscipleLessonsId = null)
+        {
+            try
+            {
+                // 如果有指定課程ID，載入該課程的繳費資料
+                if (!string.IsNullOrEmpty(DiscipleLessonsId))
+                {
+                    InMemoryContext.FeeList.SetupPresentFeeList(DiscipleLessonsId);
+                }
+                else if (InMemoryContext.FeeList.FeeDataList == null || InMemoryContext.FeeList.FeeDataList.Count == 0)
+                {
+                    // 否則重新載入繳費清單
+                    InMemoryContext.FeeList.SetupFeeDataList(
+                        InMemoryContext.FeeList.m_Account,
+                        InMemoryContext.FeeList.m_Password
+                    );
+                }
+
+                // 使用 DevExtreme DataSourceLoader 處理資料
+                var result = DataSourceLoader.Load(InMemoryContext.FeeList.FeeDataList, loadOptions);
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LoadFeeDataList] 發生錯誤: {ex.Message}");
+                
+                // 返回空結果
+                return Json(new
+                {
+                    data = new List<Fee>(),
+                    totalCount = 0
+                });
+            }
+        }
+
+        /// <summary>
+        /// 更新繳費資料 (DevExtreme DataGrid API)
+        /// 路徑: /Home/UpdateFeeDataList
+        /// </summary>
+        [HttpPut]
+        [Route("/Home/UpdateFeeDataList")]
+        public IActionResult UpdateFeeDataList(string key, string values)
+        {
+            try
+            {
+                // 找到要更新的 Fee 記錄
+                var fee = InMemoryContext.FeeList.FeeDataList?.FirstOrDefault(f => f.StorLessonsId == key);
+                
+                if (fee == null)
+                {
+                    return BadRequest("找不到指定的繳費記錄");
+                }
+
+                // 使用 FeeList 的 PopulateObjectAndUpdateEntity 方法更新實體
+                InMemoryContext.FeeList.PopulateObjectAndUpdateEntity(values, fee);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[UpdateFeeDataList] 發生錯誤: {ex.Message}");
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 儲存繳費管理資料
+        /// 路徑: /Home/SaveFeeManager
+        /// </summary>
+        [HttpPost]
+        [Route("/Home/SaveFeeManager")]
+        public IActionResult SaveFeeManager(string aResult)
+        {
+            try
+            {
+                // 記錄儲存操作
+                System.Diagnostics.Debug.WriteLine($"[SaveFeeManager] 儲存繳費資料: {aResult}");
+
+                // 這裡可以添加額外的業務邏輯，例如發送通知或記錄日誌
+                // 目前 UpdateFeeDataList 已經處理了實際的資料更新
+
+                return Json(new
+                {
+                    status = "success",
+                    message = "繳費資料已成功儲存"
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SaveFeeManager] 發生錯誤: {ex.Message}");
+                return Json(new
+                {
+                    status = "error",
+                    message = ex.Message
+                });
+            }
+        }
+
+        #endregion
+
         #region ? Phase 3.2: 快取效能測試端點
 
         /// <summary>
