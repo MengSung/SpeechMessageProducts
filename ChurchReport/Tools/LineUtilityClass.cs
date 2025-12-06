@@ -32,12 +32,12 @@ namespace ChurchReport.Tools
             #region Channel Access Token 設定
 
             // 客製化
-            // 聖谷行道會 Line 2.0
-            private const String SUNNYVALECH_CHANNEL_ACCESS_TOKEN = "OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU=";
-            private const String SUNNYVALECH_BACK_CHANNEL_ACCESS_TOKEN = "OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU=";
+            // 好牧人 Line 2.0
+            private const String JESUS_CHANNEL_ACCESS_TOKEN = "g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
+            private const String JESUS_BACK_CHANNEL_ACCESS_TOKEN = "g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
             #endregion
 
-            String m_ChannelAccessToken = SUNNYVALECH_CHANNEL_ACCESS_TOKEN;
+            String m_ChannelAccessToken = JESUS_CHANNEL_ACCESS_TOKEN;
 
             LineMessagingClient m_LineMessagingClient;
 
@@ -53,7 +53,7 @@ namespace ChurchReport.Tools
             private const String m_Default_ThumbnailImageUrl = "https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1";
             // 楊梅靈糧堂模板預設的圖片
             private const String m_Yangmeillc_ThumbnailImageUrl = "https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1";
-            // 聖谷行道會模板預設的圖片
+            // 好牧人模板預設的圖片
             private const String m_TpeHoc_ThumbnailImageUrl = "https://od.lk/s/ODdfNTg5ODc5OF8/2017_06_sermon_6-18.jpg";
 
             #endregion
@@ -103,17 +103,17 @@ namespace ChurchReport.Tools
                 {
                     // 客製化，請選擇
                     // 先取得組織名稱
-                    if (this.m_OrganizationName == "sunnyvalech")
+                    if (this.m_OrganizationName == "jesus")
                     {
-                        m_ChannelAccessToken = SUNNYVALECH_CHANNEL_ACCESS_TOKEN;
+                        m_ChannelAccessToken = JESUS_CHANNEL_ACCESS_TOKEN;
                     }
-                    else if (this.m_OrganizationName == "sunnyvalechback")
+                    else if (this.m_OrganizationName == "jesusback")
                     {
-                        m_ChannelAccessToken = SUNNYVALECH_BACK_CHANNEL_ACCESS_TOKEN;
+                        m_ChannelAccessToken = JESUS_BACK_CHANNEL_ACCESS_TOKEN;
                     }
                     else
                     {
-                        m_ChannelAccessToken = SUNNYVALECH_CHANNEL_ACCESS_TOKEN;
+                        m_ChannelAccessToken = JESUS_CHANNEL_ACCESS_TOKEN;
                     }
                 }
                 catch (System.Exception e)

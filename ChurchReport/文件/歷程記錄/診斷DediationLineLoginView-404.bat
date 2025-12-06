@@ -56,7 +56,7 @@ if exist "Logs\Trace.log" (
 echo.
 
 echo [9/10] 檢查 DNS 解析...
-nslookup sunnyvalechback.speechmessage.com.tw
+nslookup jesusback.speechmessage.com.tw
 echo.
 
 echo [10/10] 測試本機連線...

@@ -4,15 +4,15 @@
 
 ### 發生的錯誤
 ```
-URL: https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+URL: https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 HTTP ERROR 404
-This sunnyvalechback.speechmessage.com.tw page can't be found
+This jesusback.speechmessage.com.tw page can't be found
 ```
 
 ### 關鍵觀察
 1. **使用的 Port**: 479
 2. **使用的協議**: HTTPS
-3. **域名**: sunnyvalechback.speechmessage.com.tw
+3. **域名**: jesusback.speechmessage.com.tw
 4. **路徑**: `/Dedication/DediationLineLoginView/2007156647-OYnN8BKy`
 5. **LIFF ID**: 2007156647-OYnN8BKy
 
@@ -148,7 +148,7 @@ netsh http add sslcert ipport=0.0.0.0:479 certhash=[憑證指紋] appid={[GUID]}
 ```nginx
 server {
     listen 479 ssl;
-    server_name sunnyvalechback.speechmessage.com.tw;
+    server_name jesusback.speechmessage.com.tw;
     
     location / {
         proxy_pass http://localhost:5000;
@@ -194,7 +194,7 @@ Get-IISAppPool
 3. 右鍵點擊網站 → Bindings
 4. 確認有以下綁定：
    - Type: https
-   - Host name: sunnyvalechback.speechmessage.com.tw
+   - Host name: jesusback.speechmessage.com.tw
    - Port: 479
    - SSL certificate: [有效的憑證]
 ```
@@ -231,19 +231,19 @@ Get-EventLog -LogName System -Newest 20 | Where-Object { $_.Source -like "*IIS*"
 
 #### 4.1 測試根路徑
 ```
-https://sunnyvalechback.speechmessage.com.tw:479/
+https://jesusback.speechmessage.com.tw:479/
 預期: 重導向到登入頁面
 ```
 
 #### 4.2 測試其他已知路徑
 ```
-https://sunnyvalechback.speechmessage.com.tw:479/Home/Login
+https://jesusback.speechmessage.com.tw:479/Home/Login
 預期: 顯示登入頁面或重導向
 ```
 
 #### 4.3 測試 DediationLineLoginView
 ```
-https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/test
+https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/test
 預期: 顯示奉獻 LINE 登入頁面
 ```
 
@@ -264,13 +264,13 @@ Start-Sleep -Seconds 30
 
 ```powershell
 # 1. 檢查 DNS 解析
-nslookup sunnyvalechback.speechmessage.com.tw
+nslookup jesusback.speechmessage.com.tw
 
 # 2. Ping 測試
-ping sunnyvalechback.speechmessage.com.tw
+ping jesusback.speechmessage.com.tw
 
 # 3. Traceroute
-tracert sunnyvalechback.speechmessage.com.tw
+tracert jesusback.speechmessage.com.tw
 ```
 
 ---
@@ -386,9 +386,9 @@ Get-Acl $path | Format-List
    - Type: https
    - IP address: All Unassigned
    - Port: 443
-   - Host name: sunnyvalechback.speechmessage.com.tw
+   - Host name: jesusback.speechmessage.com.tw
    - SSL certificate: [選擇有效憑證]
-3. 更新 LIFF URL 為: https://sunnyvalechback.speechmessage.com.tw/...
+3. 更新 LIFF URL 為: https://jesusback.speechmessage.com.tw/...
 ```
 
 ### 臨時方案 2: 重新部署應用程式
@@ -419,7 +419,7 @@ Start-Sleep -Seconds 30
 ```
 日期時間: _________________
 問題描述: DediationLineLoginView 404 錯誤
-錯誤 URL: https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+錯誤 URL: https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 
 執行的診斷步驟:
 1. [ ] 檢查 IIS 服務狀態
@@ -460,7 +460,7 @@ _______________________________________
 ## ?? 支援聯絡
 
 ### 技術支援
-- Email: tech@sunnyvalech.org
+- Email: tech@jesus.org
 - 緊急電話: [填入]
 
 ### 伺服器管理員

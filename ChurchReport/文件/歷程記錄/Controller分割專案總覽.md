@@ -323,7 +323,7 @@
 
 ## ?? 成功案例
 
-### Case 1: 聖谷行道會專案
+### Case 1: 好牧人專案
 **背景：**
 - HomeController 超過 500 行
 - ProcessLogin 方法 150+ 行

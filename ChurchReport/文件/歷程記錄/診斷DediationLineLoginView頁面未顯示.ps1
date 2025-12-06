@@ -400,7 +400,7 @@ Write-Host @"
 
 4. 測試 URL:
    本機: https://localhost:479/Dedication/DediationLineLoginView/test
-   實際: https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+   實際: https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 
 5. 使用瀏覽器開發者工具:
    - F12 → Console (查看 JavaScript 錯誤)

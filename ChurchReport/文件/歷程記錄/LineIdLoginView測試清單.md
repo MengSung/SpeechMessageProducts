@@ -223,5 +223,5 @@ curl -X POST http://localhost:5000/Home/SaveUserLineId \
 
 **支援聯絡**
 
-- 技術支援: tech@sunnyvalech.org
-- LINE 官方帳號: @sunnyvalech
+- 技術支援: tech@jesus.org
+- LINE 官方帳號: @jesus

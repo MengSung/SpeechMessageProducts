@@ -237,7 +237,7 @@ using ToolUtilityNameSpace.ConnectionOperations;
 services.AddSingleton<ICrmConnectionPool>(sp =>
 {
     var connectionService = new CrmConnectionService();
-    var serverUrl = "https://sunnyvalech.speechmessage.com.tw/XRMServices/2011/Organization.svc";
+    var serverUrl = "https://jesus.speechmessage.com.tw/XRMServices/2011/Organization.svc";
     var username = @"SPEECHMESSAGE\Administrator";
     var password = "hu9840";
     

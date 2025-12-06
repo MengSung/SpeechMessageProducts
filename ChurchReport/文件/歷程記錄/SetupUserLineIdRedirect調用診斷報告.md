@@ -45,14 +45,14 @@ public IActionResult SetupUserLineIdRedirect(string UserLineId, string GroupId, 
 1. 開啟 Chrome DevTools (F12)
 2. 切換到 Network 標籤
 3. 開啟 LIFF URL: 
-   https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+   https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 4. 完成 LINE 登入授權
 5. 查找 SetupUserLineId 請求
 ```
 
 **預期結果**:
 ```
-Request URL: https://sunnyvalechback.speechmessage.com.tw:479/Home/SetupUserLineId
+Request URL: https://jesusback.speechmessage.com.tw:479/Home/SetupUserLineId
 Request Method: POST
 Status Code: 200 OK
 Response: {"status":"1"}

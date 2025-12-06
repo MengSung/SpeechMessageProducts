@@ -56,7 +56,7 @@ namespace ToolUtilityNameSpace
         // 從 appsettings.json 讀取設定，使用 Lazy 初始化提升性能
         private string SERVER => _configuration?["CrmConnection:Server"] ?? "speechmessage.com.tw";
         private string PORT => _configuration?["CrmConnection:Port"] ?? "7777";
-        private string ORGANIZATION => _configuration?["CrmConnection:Organization"] ?? "sunnyvalech";
+        private string ORGANIZATION => _configuration?["CrmConnection:Organization"] ?? "jesus";
         private string USERNAME => _configuration?["CrmConnection:Username"] ?? "Administrator@speechmessage.com.tw";
         private string PASSWORD => _configuration?["CrmConnection:Password"] ?? "hu9840";
         private string DOMAIN => _configuration?["CrmConnection:Domain"] ?? "DYNAMICS-365";

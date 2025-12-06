@@ -115,7 +115,7 @@ echo    開啟瀏覽器訪問:
 echo    https://localhost:479/Dedication/DediationLineLoginView/test
 echo.
 echo 2. 實際 LIFF URL 測試（在 LINE 中）:
-echo    https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+echo    https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 echo.
 echo 3. 開啟 Chrome DevTools (F12):
 echo    - Console 標籤: 查看 JavaScript 錯誤

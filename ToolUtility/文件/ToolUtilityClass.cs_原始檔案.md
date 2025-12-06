@@ -45,19 +45,19 @@ namespace ToolUtilityNameSpace
         #region Dynamics 365 新增組織修改區
 
         // 客製化
-        #region 聖谷行道會(雲端機房)
+        #region 好牧人(雲端機房)
         private const String SERVER = "speechmessage.com.tw";
         private const String PORT = "7777";
-        private const String ORGANIZATION = "sunnyvalech";
+        private const String ORGANIZATION = "jesus";
         private const String USERNAME = "Administrator@speechmessage.com.tw";
         private const String PASSWORD = "hu9840";
         private const String DOMAIN = "DYNAMICS-365";
         #endregion
 
-        #region 聖谷行道會(公司內部發展)
+        #region 好牧人(公司內部發展)
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
-        //private const String ORGANIZATION = "sunnyvalechback";
+        //private const String ORGANIZATION = "jesusback";
         //private const String USERNAME = "Administrator@speechmessage.com.tw";
         //private const String PASSWORD = "hu9840";
         //private const String DOMAIN = "SPEECHMESSAGE";
@@ -1073,7 +1073,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //聖谷行道會小組長帳號
+                    //好牧人小組長帳號
                     querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(AccountNumber, 0);
@@ -1145,7 +1145,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //聖谷行道會小組長帳號
+                    //好牧人小組長帳號
                     querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(AccountNumber, 0);
@@ -1195,7 +1195,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //聖谷行道會小組長帳號
+                    //好牧人小組長帳號
                     querybyexpression.Attributes.AddRange("new_app_acount", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(AccountNumber, 0);
@@ -1262,7 +1262,7 @@ namespace ToolUtilityNameSpace
                     querybyexpression.ColumnSet.AllColumns = true;
                     //  Attribute to query
                     //querybyexpression.Attributes.AddRange("new_account", "statecode");
-                    //聖谷行道會小組長帳號
+                    //好牧人小組長帳號
                     querybyexpression.Attributes.AddRange("new_lineid", "statecode");
                     //  Value of queried attribute to return
                     querybyexpression.Values.AddRange(LineUserId, 0);

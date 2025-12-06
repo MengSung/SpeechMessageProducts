@@ -278,7 +278,7 @@ namespace ChurchReport.WebServiceConnector
                 //}
                 #endregion
 
-                // 聖谷行道會版本是只有差勤簽核及場地預約，所以就"全部"都要顯示
+                // 好牧人版本是只有差勤簽核及場地預約，所以就"全部"都要顯示
                 Appointment aAppointment = SetupAppointment(aAppointmentEntity, AppointmentType, CategoryId, LeaveId, LocationId);
                 aAppointmentsList.Add(aAppointment);
 

@@ -90,18 +90,18 @@ public ActionResult QPayReturnUrl(
 
 #### 使用瀏覽器測試 GET 請求
 ```
-https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?ShopNo=DA4272_001&PayToken=test123
+https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?ShopNo=DA4272_001&PayToken=test123
 ```
 
 #### 使用 Postman 測試
 **GET 請求**:
-- URL: `https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl`
+- URL: `https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl`
 - Params: 
   - `ShopNo`: DA4272_001
   - `PayToken`: test123
 
 **POST 請求**:
-- URL: `https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl`
+- URL: `https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl`
 - Body (x-www-form-urlencoded):
   - `ShopNo`: DA4272_001
   - `PayToken`: test123
@@ -109,10 +109,10 @@ https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?Sho
 #### 使用 curl 測試
 ```bash
 # GET 請求
-curl -v "https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?ShopNo=DA4272_001&PayToken=test123"
+curl -v "https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?ShopNo=DA4272_001&PayToken=test123"
 
 # POST 請求
-curl -v -X POST "https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl" \
+curl -v -X POST "https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "ShopNo=DA4272_001&PayToken=test123"
 ```

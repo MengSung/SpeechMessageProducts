@@ -43,8 +43,8 @@ namespace ChurchReport.Tools
         static readonly object m_UpdateSundayWeeklyReportLocker = new object();//避免多人同時輸入"小組出席"，會產生2個週報或是改變"委身類型"、"裝備狀態"                                                                 //private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = false; // 族系組長能否幫小組長建立週報，false 不可以
 
         // 客製化
-        // 聖谷行道會
-        private const String CHANNEL_ACCESS_TOKEN = @"OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU=";
+        // 好牧人
+        private const String CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
 
         // 掃描 QR CODE之後是否發送 LINE通知
         private const bool SEND_LINE_NOTIFICATION = false;
@@ -55,7 +55,7 @@ namespace ChurchReport.Tools
         public SundayQrCodeUtility()
         {
             // 客製化，請選擇
-            // 聖谷行道會(免費版)
+            // 好牧人(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
@@ -79,7 +79,7 @@ namespace ChurchReport.Tools
                     // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
                     //this.AddNewFriend(DisplayName, UserLineId);
 
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入聖谷行道會的 Line@";
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入好牧人的 Line@";
 
                     return;
                 }

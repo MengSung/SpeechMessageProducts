@@ -160,7 +160,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var lineProcessor = new LineMessagingProcessorClass();
-                lineProcessor.SendMessage(LINE_ERROR_RECEIVER_ID, $"聖谷行道會: 錯誤 => {errorMessage}");
+                lineProcessor.SendMessage(LINE_ERROR_RECEIVER_ID, $"好牧人: 錯誤 => {errorMessage}");
             }
             catch (Exception ex)
             {

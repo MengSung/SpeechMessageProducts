@@ -235,8 +235,8 @@ API: /Home/SetupUserLineId  ? 已修復
 ## ?? 支援聯絡
 
 ### 技術支援
-- Email: tech@sunnyvalech.org
-- LINE 官方帳號: @sunnyvalech
+- Email: tech@jesus.org
+- LINE 官方帳號: @jesus
 
 ### 相關文件
 - 完整修復報告: `DediationLineLoginView登入失敗修復報告.md`

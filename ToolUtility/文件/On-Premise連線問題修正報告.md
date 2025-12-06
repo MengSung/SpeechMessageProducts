@@ -5,7 +5,7 @@
 ### 錯誤訊息
 ```
 System.InvalidOperationException: 建立 ServiceClient 連線時發生錯誤 
-(URL: https://sunnyvalech.speechmessage.com.tw/XRMServices/2011/Organization.svc, 
+(URL: https://jesus.speechmessage.com.tw/XRMServices/2011/Organization.svc, 
  User: Administrator@speechmessage.com.tw): Failed to connect to Dataverse
 
 內部例外狀況 1: DataverseConnectionException: Failed to connect to Dataverse
@@ -48,7 +48,7 @@ private bool IsOnlineEnvironment(string url)
 
 **判斷邏輯**：
 - ? `https://yourorg.crm.dynamics.com` → Online
-- ? `https://sunnyvalech.speechmessage.com.tw/XRMServices/...` → On-Premise
+- ? `https://jesus.speechmessage.com.tw/XRMServices/...` → On-Premise
 
 ### 2. 使用正確的驗證方式
 
@@ -165,7 +165,7 @@ RequireNewInstance=True
 ### On-Premise 環境 (AD)
 ```
 AuthType=AD;
-Url=https://sunnyvalech.speechmessage.com.tw/XRMServices/2011/Organization.svc;
+Url=https://jesus.speechmessage.com.tw/XRMServices/2011/Organization.svc;
 UserName=Administrator@speechmessage.com.tw;
 Password=yourPassword;
 Domain=speechmessage.com.tw;
@@ -199,7 +199,7 @@ var service = connectionService.CreateOnPremiseClient(
 ```csharp
 var connectionService = new CrmConnectionService();
 var service = connectionService.CreateOnPremiseClient(
-    "https://sunnyvalech.speechmessage.com.tw/XRMServices/2011/Organization.svc",
+    "https://jesus.speechmessage.com.tw/XRMServices/2011/Organization.svc",
     "SPEECHMESSAGE\\Administrator",  // DOMAIN\username 格式
     "password"
 );
@@ -210,7 +210,7 @@ var service = connectionService.CreateOnPremiseClient(
 ```csharp
 var connectionService = new CrmConnectionService();
 var service = connectionService.CreateOnPremiseClient(
-    "https://sunnyvalech.speechmessage.com.tw/XRMServices/2011/Organization.svc",
+    "https://jesus.speechmessage.com.tw/XRMServices/2011/Organization.svc",
     "Administrator@speechmessage.com.tw",  // username@domain 格式
     "password"
 );

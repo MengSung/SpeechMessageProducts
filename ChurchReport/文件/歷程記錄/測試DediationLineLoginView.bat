@@ -96,10 +96,10 @@ echo 1. 在伺服器上測試 (本機):
 echo    https://localhost:479/Dedication/DediationLineLoginView/test
 echo.
 echo 2. 實際 LIFF URL:
-echo    https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+echo    https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 echo.
 echo 3. 向後相容路徑:
-echo    https://sunnyvalechback.speechmessage.com.tw:479/Home/DediationLineLoginView/2007156647-OYnN8BKy
+echo    https://jesusback.speechmessage.com.tw:479/Home/DediationLineLoginView/2007156647-OYnN8BKy
 echo.
 
 echo 【瀏覽器測試步驟】

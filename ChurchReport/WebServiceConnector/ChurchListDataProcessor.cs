@@ -1255,7 +1255,7 @@ namespace ChurchReport.WebServiceConnector
             };
 
         }
-        // 聖谷行道會
+        // 好牧人
         // 委身類型客製化
         private String ConvertIndexToIdentity(int Identity)
         {

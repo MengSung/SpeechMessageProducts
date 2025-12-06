@@ -107,14 +107,14 @@ public IActionResult SetupUserLineId(string UserLineId, string GroupId, string R
 1. 開啟 Chrome 並按 F12
 2. 切換到 Network 標籤
 3. 開啟 LIFF URL: 
-   https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+   https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 4. 完成 LINE 登入授權
 5. 在 Network 中查找 SetupUserLineId
 ```
 
 **預期結果**:
 ```
-Request URL: https://sunnyvalechback.speechmessage.com.tw:479/Home/SetupUserLineId
+Request URL: https://jesusback.speechmessage.com.tw:479/Home/SetupUserLineId
 Request Method: POST
 Status Code: 200 OK
 Response: {"status":"1"}
@@ -350,7 +350,7 @@ Restart-WebAppPool "ChurchReport"
 
 ```
 1. 在 LINE 應用程式中開啟 LIFF URL:
-   https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+   https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 
 2. 完成 LINE 登入授權
 

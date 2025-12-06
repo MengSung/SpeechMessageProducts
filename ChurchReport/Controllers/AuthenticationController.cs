@@ -59,7 +59,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/sunnyvalech.jpg"));
+                images.Add(Url.Content("~/assets/images/jesus.jpg"));
 
                 return View(new GalleryViewModel
                 {
@@ -169,7 +169,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/sunnyvalech.jpg"));
+                images.Add(Url.Content("~/assets/images/jesus.jpg"));
 
                 InMemoryContext.LineBindingViewModel.Images = images;
                 TempData["Proponent"] = LineIdLoginViewPatameter;
@@ -446,7 +446,7 @@ namespace ChurchReport.Controllers
 
                 var images = new List<string>
                 {
-                    Url.Content("~/assets/images/sunnyvalech.jpg")
+                    Url.Content("~/assets/images/jesus.jpg")
                 };
 
                 InMemoryContext.LineBindingViewModel.Images = images;
@@ -610,7 +610,7 @@ namespace ChurchReport.Controllers
                         
                         return Json(new { 
                             status = "1", 
-                            message = $"註冊成功！歡迎 {model.FullName} 加入聖谷行道會" 
+                            message = $"註冊成功！歡迎 {model.FullName} 加入好牧人" 
                         });
                     }
                     else

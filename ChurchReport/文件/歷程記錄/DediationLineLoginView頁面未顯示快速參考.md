@@ -124,7 +124,7 @@ https://localhost:479/Dedication/DediationLineLoginView/test
 
 ### 實際 LIFF URL（在 LINE 中）
 ```
-https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 ```
 
 ### 簡化測試（不需參數）
@@ -256,7 +256,7 @@ Startup:
 
 ```
 ? 頁面正常顯示
-? 可以看到「聖谷行道會」標題
+? 可以看到「好牧人」標題
 ? 可以看到相片輪播
 ? 可以看到聯絡資訊
 ? Console 沒有錯誤

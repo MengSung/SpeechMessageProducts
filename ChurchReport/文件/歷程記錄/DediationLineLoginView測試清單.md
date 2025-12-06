@@ -28,7 +28,7 @@ URL: http://localhost:5000/Home/DediationLineLoginView/U7638e4ed509708a3573ba6d6
 - [x] 參數名稱一致 (LineIdLoginViewPatameter)
 - [x] RedirectToAction 指向正確的控制器和動作
 - [ ] View 檔案存在於 Views/Home/ 目錄
-- [ ] 圖片檔案 sunnyvalech.jpg 存在
+- [ ] 圖片檔案 jesus.jpg 存在
 - [ ] 實際瀏覽器測試通過
 
 ## 快速驗證命令
@@ -39,7 +39,7 @@ URL: http://localhost:5000/Home/DediationLineLoginView/U7638e4ed509708a3573ba6d6
 Test-Path "ChurchReport\Views\Home\DediationLineLoginView.cshtml"
 
 # 檢查圖片檔案
-Test-Path "ChurchReport\wwwroot\assets\images\sunnyvalech.jpg"
+Test-Path "ChurchReport\wwwroot\assets\images\jesus.jpg"
 ```
 
 ### 測試路由

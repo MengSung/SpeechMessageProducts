@@ -275,7 +275,7 @@ Write-Host "5. 開啟 F12 → Network 查看請求狀態"
 
 Write-Host "`n測試 URL:"
 Write-Host "本機: https://localhost:479/Dedication/DediationLineLoginView/test"
-Write-Host "實際: https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy"
+Write-Host "實際: https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy"
 ```
 
 ---
@@ -295,7 +295,7 @@ Write-Host "實際: https://sunnyvalechback.speechmessage.com.tw:479/Dedication/De
 
 ```
 訪問:
-https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 
 觀察 Network 標籤:
 - 有沒有看到 DediationLineLoginView 請求？
@@ -366,7 +366,7 @@ public IActionResult DediationLineLoginView(string LineIdLoginViewPatameter)
 
         var images = new System.Collections.Generic.List<string>
         {
-            Url.Content("~/assets/images/sunnyvalech.jpg")
+            Url.Content("~/assets/images/jesus.jpg")
         };
 
         InMemoryContext.LineBindingViewModel.Images = images;
@@ -489,7 +489,7 @@ echo 本機測試:
 echo https://localhost:479/Dedication/DediationLineLoginView/test
 echo.
 echo 實際 URL:
-echo https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+echo https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 echo.
 
 pause
@@ -516,7 +516,7 @@ URL: https://localhost:479/Dedication/DediationLineLoginView/test
 
 ### 測試 2: 實際 URL 測試
 ```
-URL: https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+URL: https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 
 結果:
 □ 頁面顯示

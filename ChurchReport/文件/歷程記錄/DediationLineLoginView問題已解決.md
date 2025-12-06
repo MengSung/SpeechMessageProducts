@@ -51,7 +51,7 @@ https://localhost:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 
 **實際 LIFF URL**:
 ```
-https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 ```
 
 ### 步驟 3: 驗證頁面顯示
@@ -59,7 +59,7 @@ https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginVi
 預期結果：
 ```
 ? 頁面正常顯示
-? 看到「聖谷行道會」標題
+? 看到「好牧人」標題
 ? 看到相片輪播
 ? 看到聯絡資訊
 ? 看到「奉獻登入」區塊
@@ -173,7 +173,7 @@ https://localhost:479/Dedication/DediationLineLoginView/test
 
 ### 步驟 2: 在 LINE 中開啟 LIFF URL
 ```
-https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 ```
 
 ### 步驟 3: 觀察 Console 輸出

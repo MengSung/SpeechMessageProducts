@@ -47,7 +47,7 @@ iisreset /restart
 ### 步驟 3: 測試並觀察
 ```
 在 LINE 中開啟:
-https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 
 觀察 Console 輸出
 ```

@@ -2,11 +2,11 @@
 
 ## ?? 問題描述
 
-訪問 `https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl` 時出現 HTTP 500 錯誤。
+訪問 `https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl` 時出現 HTTP 500 錯誤。
 
 **配置資訊：**
 - PAY_PROVIDER: "永豐金流"
-- RETURN_URL: `https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl`
+- RETURN_URL: `https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl`
 
 ## ?? 根本原因分析
 
@@ -342,28 +342,28 @@ catch (System.Exception e)
 ### 1. 測試不同的 HTTP 方法
 ```bash
 # GET 請求
-curl -v "https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?ShopNo=DA4272_001&PayToken=test123"
+curl -v "https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?ShopNo=DA4272_001&PayToken=test123"
 
 # POST 請求
-curl -v -X POST "https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl" \
+curl -v -X POST "https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl" \
   -d "ShopNo=DA4272_001&PayToken=test123"
 ```
 
 ### 2. 測試參數缺失情況
 ```bash
 # 缺少所有參數
-curl -v "https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl"
+curl -v "https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl"
 
 # 只有 ShopNo
-curl -v "https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?ShopNo=DA4272_001"
+curl -v "https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?ShopNo=DA4272_001"
 
 # 只有 PayToken
-curl -v "https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?PayToken=test123"
+curl -v "https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?PayToken=test123"
 ```
 
 ### 3. 測試無效 PayToken
 ```bash
-curl -v "https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?ShopNo=DA4272_001&PayToken=invalid_token"
+curl -v "https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?ShopNo=DA4272_001&PayToken=invalid_token"
 ```
 
 ### 4. 檢查日誌輸出

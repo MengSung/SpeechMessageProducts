@@ -47,7 +47,7 @@ namespace ToolUtility_Developing_NameSpace
         #region Dynamics 365 組織設定
         private const String SERVER = "speechmessage.com.tw";
         private const String PORT = "7777";
-        private const String ORGANIZATION = "sunnyvalech";
+        private const String ORGANIZATION = "jesus";
         private const String USERNAME = "Administrator@speechmessage.com.tw";
         private const String PASSWORD = "hu9840";
         private const String DOMAIN = "DYNAMICS-365";

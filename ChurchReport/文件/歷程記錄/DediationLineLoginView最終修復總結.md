@@ -73,7 +73,7 @@ routes.MapRoute(
 ```
 用戶開啟 LIFF URL
     ↓
-https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
     ↓
 DedicationController.DediationLineLoginView
     ├─ 設定 Images
@@ -137,9 +137,9 @@ URL: https://localhost:479/Dedication/DediationLineLoginView/test
 
 #### 測試 2: 實際 LIFF URL（LINE 應用程式中）
 ```
-URL: https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+URL: https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 預期: 
-1. 顯示「聖谷行道會」標題
+1. 顯示「好牧人」標題
 2. 顯示輪播圖片
 3. LIFF 初始化成功
 4. 取得使用者資料
@@ -149,7 +149,7 @@ URL: https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLo
 
 #### 測試 3: 向後相容路徑
 ```
-URL: https://sunnyvalechback.speechmessage.com.tw:479/Home/DediationLineLoginView/2007156647-OYnN8BKy
+URL: https://jesusback.speechmessage.com.tw:479/Home/DediationLineLoginView/2007156647-OYnN8BKy
 預期: 重導向到 Dedication/DediationLineLoginView
 ```
 
@@ -236,7 +236,7 @@ Network 標籤 → SetupUserLineId
 3. 選擇 LIFF App
 4. 確認:
    - Status: Published
-   - Endpoint URL: https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+   - Endpoint URL: https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
    - Scope: profile (checked)
 ```
 
@@ -258,7 +258,7 @@ success: function (data) {
 **驗證 QPayView**:
 ```
 手動訪問:
-https://sunnyvalechback.speechmessage.com.tw:479/Home/QPayView/test
+https://jesusback.speechmessage.com.tw:479/Home/QPayView/test
 ```
 
 ---
@@ -354,7 +354,7 @@ Get-EventLog -LogName Application -EntryType Error -Newest 20
 
 ---
 
-**技術支援**: tech@sunnyvalech.org
+**技術支援**: tech@jesus.org
 
 **緊急聯絡**: [填入緊急聯絡方式]
 

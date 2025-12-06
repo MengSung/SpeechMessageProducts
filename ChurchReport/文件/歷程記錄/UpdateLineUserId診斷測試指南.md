@@ -32,7 +32,7 @@ iisreset /restart
 
 ```
 在 LINE 應用程式中開啟 LIFF URL:
-https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 ```
 
 ### 步驟 5: 觀察 Console 輸出
@@ -213,7 +213,7 @@ https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginVi
 3. bootstrap.js                                → 200 OK (Script)
 4. dx.all.js                                   → 200 OK (Script)
 5. liff SDK                                    → 200 OK (Script)
-6. sunnyvalech.jpg                            → 200 OK (Image)
+6. jesus.jpg                            → 200 OK (Image)
 7. SetupUserLineId                            → 200 OK (XHR/AJAX)
    - Request Method: POST
    - Request Payload: UserLineId=U...&GroupId=&RoomId=&ViewType=

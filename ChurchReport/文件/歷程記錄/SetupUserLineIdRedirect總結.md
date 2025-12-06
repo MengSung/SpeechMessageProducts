@@ -172,7 +172,7 @@ Get-WebAppPoolState "ChurchReport"
    ```
 
 2. 輸入參數：
-   - 伺服器 URL: `https://sunnyvalechback.speechmessage.com.tw:479`
+   - 伺服器 URL: `https://jesusback.speechmessage.com.tw:479`
    - LINE User ID: `U7638e4ed509708a3573ba6d69970583d`
 
 3. 點擊「執行測試」

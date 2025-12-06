@@ -1,7 +1,7 @@
 # HTTP 500 錯誤修正 - QPayReturnUrl 端點
 
 ## 問題描述
-在訪問 `https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl` 時發生 HTTP 500 錯誤。
+在訪問 `https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl` 時發生 HTTP 500 錯誤。
 
 ## 原因分析
 1. **HTTP 方法限制**: 原本控制器只接受 `[HttpPost]`，但金流系統可能使用 GET 或 POST 方式回傳
@@ -130,20 +130,20 @@ public ActionResult QPayReturnUrl(string ShopNo, string PayToken)
 ### 1. 測試各種請求方式
 ```bash
 # GET 請求測試
-curl "https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?ShopNo=DA4272_001&PayToken=test123"
+curl "https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?ShopNo=DA4272_001&PayToken=test123"
 
 # POST 請求測試
-curl -X POST "https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl" \
+curl -X POST "https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl" \
   -d "ShopNo=DA4272_001&PayToken=test123"
 ```
 
 ### 2. 測試錯誤情況
 ```bash
 # 缺少參數
-curl "https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl"
+curl "https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl"
 
 # 無效的 PayToken
-curl "https://sunnyvalechback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?ShopNo=DA4272_001&PayToken=invalid"
+curl "https://jesusback.speechmessage.com.tw:8888/api/QPayCard/QPayReturnUrl?ShopNo=DA4272_001&PayToken=invalid"
 ```
 
 ### 3. 檢查日誌

@@ -76,7 +76,7 @@ echo 修復完成
 echo ========================================
 echo.
 echo 請測試以下 URL：
-echo https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+echo https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 echo.
 echo 如果仍然失敗，請：
 echo 1. 執行「診斷DediationLineLoginView-404.bat」進行詳細診斷

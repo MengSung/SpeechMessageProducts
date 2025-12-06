@@ -96,7 +96,7 @@ namespace ChurchReport
                 var crmConfig = Configuration.GetSection("CrmConnection");
 
                 // 讀取伺服器 URL，若配置中未設定則使用預設值。
-                var serverUrl = crmConfig["ServerUrl"] ?? "https://sunnyvalech.speechmessage.com.tw/XRMServices/2011/Organization.svc";
+                var serverUrl = crmConfig["ServerUrl"] ?? "https://jesus.speechmessage.com.tw/XRMServices/2011/Organization.svc";
 
                 // 讀取使用者名稱，若配置中未設定則使用預設值。
                 var username = crmConfig["Username"] ?? @"SPEECHMESSAGE\Administrator";

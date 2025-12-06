@@ -103,7 +103,7 @@ Test-Path "ChurchReport\Views\Dedication\DediationLineLoginView.cshtml"
 
 ```
 Endpoint URL (LIFF 設定中):
-https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 ```
 
 ### 步驟 4: 瀏覽器開發者工具檢查
@@ -327,7 +327,7 @@ netstat -ano | findstr :479
 
 修改 LIFF 設定，直接開啟：
 ```
-https://sunnyvalechback.speechmessage.com.tw:479/Dedication/QPayView/{LineUserId}
+https://jesusback.speechmessage.com.tw:479/Dedication/QPayView/{LineUserId}
 ```
 
 繞過 DediationLineLoginView。
@@ -361,4 +361,4 @@ https://sunnyvalechback.speechmessage.com.tw:479/Dedication/QPayView/{LineUserId
 3. 執行完整測試
 4. 監控錯誤日誌
 
-**技術支援**: tech@sunnyvalech.org
+**技術支援**: tech@jesus.org

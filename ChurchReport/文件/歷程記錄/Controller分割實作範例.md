@@ -97,7 +97,7 @@ namespace ChurchReport.Controllers.Authentication
             {
                 var images = new List<string>
                 {
-                    Url.Content("~/assets/images/sunnyvalech.jpg")
+                    Url.Content("~/assets/images/jesus.jpg")
                 };
 
                 return View(new GalleryViewModel
@@ -229,7 +229,7 @@ namespace ChurchReport.Controllers.Authentication
             {
                 var images = new List<string>
                 {
-                    Url.Content("~/assets/images/sunnyvalech.jpg")
+                    Url.Content("~/assets/images/jesus.jpg")
                 };
 
                 InMemoryContext.LineBindingViewModel.Images = images;

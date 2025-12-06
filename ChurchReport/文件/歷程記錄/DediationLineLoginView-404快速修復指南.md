@@ -193,23 +193,23 @@ Get-EventLog -LogName System -Newest 20 | Where-Object { $_.Source -like "*IIS*"
 
 ```
 1. 根路徑
-   https://sunnyvalechback.speechmessage.com.tw:479/
+   https://jesusback.speechmessage.com.tw:479/
    預期: 重導向到登入頁面
 
 2. 登入頁面
-   https://sunnyvalechback.speechmessage.com.tw:479/Home/Login
+   https://jesusback.speechmessage.com.tw:479/Home/Login
    預期: 顯示登入頁面
 
 3. 向後相容路徑
-   https://sunnyvalechback.speechmessage.com.tw:479/Home/DediationLineLoginView/test
+   https://jesusback.speechmessage.com.tw:479/Home/DediationLineLoginView/test
    預期: 重導向到 Dedication 控制器
 
 4. 直接路徑
-   https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/test
+   https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/test
    預期: 顯示奉獻 LINE 登入頁面
 
 5. 實際 LIFF URL
-   https://sunnyvalechback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
+   https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
    預期: 顯示奉獻 LINE 登入頁面
 ```
 
@@ -318,4 +318,4 @@ foreach($test in $tests) {
 - 如果失敗，執行 `診斷DediationLineLoginView-404.bat`
 - 根據診斷結果查看詳細報告
 
-**技術支援**: tech@sunnyvalech.org
+**技術支援**: tech@jesus.org
