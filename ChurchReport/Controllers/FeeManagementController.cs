@@ -64,10 +64,49 @@ namespace ChurchReport.Controllers
 
                 // 設定 ViewBag 參數
                 ViewBag.Result = InMemoryContext.FeeList.Result;
-                ViewBag.FeeDataListCount = "繳費與點名無資料";  // 課程清單頁面不顯示「繳費」和「點名」選單
                 ViewBag.DisplayNavigation = "顯示牧養回報項目";
 
-                System.Diagnostics.Debug.WriteLine($"[LessonList] 課程清單載入完成 - 課程數量: {InMemoryContext.FeeList.LessonList?.Count ?? 0}");
+                var lessonCount = InMemoryContext.FeeList.LessonList?.Count ?? 0;
+                
+                System.Diagnostics.Debug.WriteLine($"[LessonList] 課程數量: {lessonCount}");
+
+                // ? 智能判斷：根據課程數量決定顯示邏輯
+                if (lessonCount == 1)
+                {
+                    // 只有一門課程：自動載入該課程資料，並顯示「點名」、「繳費」按鈕
+                    var singleLesson = InMemoryContext.FeeList.LessonList[0];
+                    var discipleLessonsId = singleLesson.DiscipleLessonsId;
+                    
+                    System.Diagnostics.Debug.WriteLine($"[LessonList] 只有一門課程，自動載入 - DiscipleLessonsId={discipleLessonsId}");
+                    
+                    // 載入該課程的繳費資料
+                    InMemoryContext.FeeList.SetupPresentFeeList(discipleLessonsId);
+                    
+                    // 設定 DiscipleLessonsId，讓側邊欄能正確生成連結
+                    ViewBag.DiscipleLessonsId = discipleLessonsId;
+                    
+                    // 設定為「已有資料」，讓「繳費」和「點名」選單顯示
+                    var feeDataCount = InMemoryContext.FeeList.FeeDataList?.Count ?? 0;
+                    ViewBag.FeeDataListCount = feeDataCount > 0 ? "繳費與點名已有資料" : "繳費與點名無資料";
+                    
+                    System.Diagnostics.Debug.WriteLine($"[LessonList] 單一課程模式 - 學員數={feeDataCount}, FeeDataListCount={ViewBag.FeeDataListCount}");
+                }
+                else if (lessonCount > 1)
+                {
+                    // 多門課程：只顯示「課程清單」按鈕，隱藏「點名」、「繳費」按鈕
+                    ViewBag.FeeDataListCount = "繳費與點名無資料";
+                    ViewBag.DiscipleLessonsId = null;
+                    
+                    System.Diagnostics.Debug.WriteLine($"[LessonList] 多課程模式 - 只顯示課程清單按鈕");
+                }
+                else
+                {
+                    // 沒有課程
+                    ViewBag.FeeDataListCount = "繳費與點名無資料";
+                    ViewBag.DiscipleLessonsId = null;
+                    
+                    System.Diagnostics.Debug.WriteLine($"[LessonList] 無課程");
+                }
 
                 return View(InMemoryContext.FeeList);
             }

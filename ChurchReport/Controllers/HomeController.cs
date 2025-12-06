@@ -285,11 +285,7 @@ namespace ChurchReport.Controllers
         [Route("/Home/PresentFeeListView/{DiscipleLessonsId}")]
         public IActionResult PresentFeeListViewRedirect(string DiscipleLessonsId = null)
         {
-            if (!string.IsNullOrEmpty(DiscipleLessonsId))
-            {
-                // 如果有指定課程ID，直接導向到繳費頁面
-                return RedirectToAction("Fee", "FeeManagement", new { discipleLessonsId = DiscipleLessonsId });
-            }
+            // ? 統一重導向到 LessonList，由 LessonList 自動判斷顯示邏輯
             return RedirectToAction("LessonList", "FeeManagement");
         }
         
