@@ -811,7 +811,7 @@ public IActionResult Login()
     {
         var images = new List<string>
         {
-            Url.Content("~/assets/images/jesus.jpg")
+            Url.Content("~/assets/images/church-001.jpg")
         };
 
         return View(new GalleryViewModel { Images = images });

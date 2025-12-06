@@ -124,7 +124,7 @@ public IActionResult DediationLineLoginView(string LineIdLoginViewPatameter)
     {
         var images = new System.Collections.Generic.List<string>
         {
-            Url.Content("~/assets/images/jesus.jpg")
+            Url.Content("~/assets/images/church-001.jpg")
         };
 
         InMemoryContext.LineBindingViewModel.Images = images;
@@ -140,7 +140,7 @@ public IActionResult DediationLineLoginView(string LineIdLoginViewPatameter)
 ```
 
 ### 關鍵特性
-1. **設定背景圖片**: 使用教會圖片 `jesus.jpg`
+1. **設定背景圖片**: 使用教會圖片 `church-001.jpg`
 2. **儲存參數**: 透過 `TempData` 傳遞 `Proponent` 參數
 3. **返回視圖**: 使用 `LineBindingViewModel` 作為模型
 
@@ -208,7 +208,7 @@ public IActionResult DediationLineLoginView(string LineIdLoginViewPatameter)
 
 ### ?? 除錯檢查清單
 - [ ] 檢查 View 檔案是否存在
-- [ ] 確認圖片檔案 `jesus.jpg` 存在
+- [ ] 確認圖片檔案 `church-001.jpg` 存在
 - [ ] 驗證 `LineBindingViewModel` 結構
 - [ ] 測試 TempData 是否正確傳遞
 - [ ] 確認 LINE LIFF SDK 已載入

@@ -213,7 +213,7 @@ https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/200
 3. bootstrap.js                                ¡÷ 200 OK (Script)
 4. dx.all.js                                   ¡÷ 200 OK (Script)
 5. liff SDK                                    ¡÷ 200 OK (Script)
-6. jesus.jpg                            ¡÷ 200 OK (Image)
+6. church-001.jpg                            ¡÷ 200 OK (Image)
 7. SetupUserLineId                            ¡÷ 200 OK (XHR/AJAX)
    - Request Method: POST
    - Request Payload: UserLineId=U...&GroupId=&RoomId=&ViewType=

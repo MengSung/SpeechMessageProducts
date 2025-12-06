@@ -59,7 +59,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/jesus.jpg"));
+                images.Add(Url.Content("~/assets/images/church-001.jpg"));
 
                 return View(new GalleryViewModel
                 {
@@ -169,7 +169,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/jesus.jpg"));
+                images.Add(Url.Content("~/assets/images/church-001.jpg"));
 
                 InMemoryContext.LineBindingViewModel.Images = images;
                 TempData["Proponent"] = LineIdLoginViewPatameter;
@@ -446,7 +446,7 @@ namespace ChurchReport.Controllers
 
                 var images = new List<string>
                 {
-                    Url.Content("~/assets/images/jesus.jpg")
+                    Url.Content("~/assets/images/church-001.jpg")
                 };
 
                 InMemoryContext.LineBindingViewModel.Images = images;

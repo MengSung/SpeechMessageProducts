@@ -510,7 +510,7 @@ namespace ChurchReport.Controllers
 
                 var images = new System.Collections.Generic.List<string>
                 {
-                    Url.Content("~/assets/images/jesus.jpg")
+                    Url.Content("~/assets/images/church-001.jpg")
                 };
 
                 InMemoryContext.LineBindingViewModel.Images = images;
