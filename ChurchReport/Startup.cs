@@ -49,6 +49,12 @@ namespace ChurchReport
         public void ConfigureServices(IServiceCollection services)
         {
             // ========================================
+            // ✅ 初始化 ToolUtilityFactory 配置 (必須最先執行)
+            // ========================================
+            // 設定 ToolUtilityFactory 的配置物件，確保後續使用 ToolUtility 時能正確讀取 appsettings.json
+            ToolUtilityNameSpace.Factory.ToolUtilityFactory.SetConfiguration(Configuration);
+
+            // ========================================
             // 註冊 HttpClientFactory (修復記憶體洩漏)
             // ========================================
             // 使用 HttpClientFactory 來管理 HttpClient 實例，避免記憶體洩漏問題。

@@ -48,30 +48,23 @@ namespace ToolUtilityNameSpace
         // 新架構的 Facade (用於委派複雜業務邏輯)
         private readonly ToolUtilityFacade _facade;
 
+        // 設定物件
+        private readonly IConfiguration _configuration;
+
         #region Dynamics 365 新增組織修改區
 
-        // 客製化
-        #region 好牧人(雲端機房)
-        private const String SERVER = "speechmessage.com.tw";
-        private const String PORT = "7777";
-        private const String ORGANIZATION = "sunnyvalech";
-        private const String USERNAME = "Administrator@speechmessage.com.tw";
-        private const String PASSWORD = "hu9840";
-        private const String DOMAIN = "DYNAMICS-365";
-        #endregion
+        // 從 appsettings.json 讀取設定，使用 Lazy 初始化提升性能
+        private string SERVER => _configuration?["CrmConnection:Server"] ?? "speechmessage.com.tw";
+        private string PORT => _configuration?["CrmConnection:Port"] ?? "7777";
+        private string ORGANIZATION => _configuration?["CrmConnection:Organization"] ?? "sunnyvalech";
+        private string USERNAME => _configuration?["CrmConnection:Username"] ?? "Administrator@speechmessage.com.tw";
+        private string PASSWORD => _configuration?["CrmConnection:Password"] ?? "hu9840";
+        private string DOMAIN => _configuration?["CrmConnection:Domain"] ?? "DYNAMICS-365";
 
-        #region 好牧人(公司內部發展)
-        //private const String SERVER = "speechmessage.com.tw";
-        //private const String PORT = "7777";
-        //private const String ORGANIZATION = "jesusback";
-        //private const String USERNAME = "Administrator@speechmessage.com.tw";
-        //private const String PASSWORD = "hu9840";
-        //private const String DOMAIN = "SPEECHMESSAGE";
         #endregion
 
         #region 僅供參考區塊
         //private String _discoveryServiceAddress = "https://tpehoc.speechmessage.com.tw/XRMServices/2011/Discovery.svc";
-        private String BASE_DISCOVERY_SERVICE_ADDRESS = "/XRMServices/2011/Discovery.svc";
         //private String _organizationUniqueName = "tpehoc";
         // Provide your user name and password.
         //private String _userName = "administrator@speechmessage.com.tw";
@@ -123,15 +116,16 @@ namespace ToolUtilityNameSpace
         //private const String TRACE_DIRECTOR = @"C:\除錯追蹤\" + "TRACE.TXT";
         #endregion
 
-
-        #endregion
         #region 建構式 - 設為 internal，只能通過 Factory 創建
 
         /// <summary>
         /// 內部建構函數 - 只能通過 ToolUtilityFactory 創建實例
         /// </summary>
-        internal ToolUtilityClass()
+        internal ToolUtilityClass(IConfiguration configuration)
         {
+            // 保存設定物件
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+
             // 初始化連接服務
             _crmConnectionService = new CrmConnectionService();
 
@@ -165,7 +159,7 @@ namespace ToolUtilityNameSpace
             // 使用連接服務建立 CRM 連接
             var adUrl = "https://" + ORGANIZATION + ".speechmessage.com.tw/XRMServices/2011/Organization.svc";
             var adUsername = @"SPEECHMESSAGE\Administrator";
-            var adPassword = "hu9840";
+            var adPassword = PASSWORD;
 
             m_Crm2011OrganizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
 
@@ -177,8 +171,11 @@ namespace ToolUtilityNameSpace
         /// 內部建構函數 - 只能通過 ToolUtilityFactory 創建實例
         /// </summary>
         /// <param name="DiscoveryServiceType">Discovery Service 類型</param>
-        internal ToolUtilityClass(String DiscoveryServiceType)
+        internal ToolUtilityClass(String DiscoveryServiceType, IConfiguration configuration)
         {
+            // 保存設定物件
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+
             // 初始化連接服務
             _crmConnectionService = new CrmConnectionService();
 
@@ -213,7 +210,7 @@ namespace ToolUtilityNameSpace
             //// 使用連接服務建立 CRM 連接
             var adUrl = "https://" + ORGANIZATION + ".speechmessage.com.tw/XRMServices/2011/Organization.svc";
             var adUsername = @"Administrator@speechmessage.com.tw";
-            var adPassword = "hu9840";
+            var adPassword = PASSWORD;
 
             m_Crm2011OrganizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
 

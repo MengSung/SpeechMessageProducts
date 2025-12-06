@@ -2,6 +2,7 @@ using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ToolUtilityNameSpace.Factory;
 
 namespace ToolUtility
 {
@@ -9,66 +10,79 @@ namespace ToolUtility
     // Backward-compatible static facade used across the legacy solution.
     public static class ToolUtility
     {
-        private static readonly ToolUtilityNameSpace.ToolUtilityClass _instance = new ToolUtilityNameSpace.ToolUtilityClass();
+        private static ToolUtilityNameSpace.ToolUtilityClass _instance;
+
+        // 延遲初始化，透過 Factory 獲取實例
+        private static ToolUtilityNameSpace.ToolUtilityClass Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = ToolUtilityFactory.GetInstance();
+                }
+                return _instance;
+            }
+        }
 
         public static void SetEntityStringAttribute(ref Entity aEntity, string PropertyName, string PropertyValue)
         {
-            _instance.SetEntityStringAttribute(ref aEntity, PropertyName, PropertyValue);
+            Instance.SetEntityStringAttribute(ref aEntity, PropertyName, PropertyValue);
         }
 
         public static void SetEntityStringAttribute(Entity aEntity, string PropertyName, string PropertyValue)
         {
-            _instance.SetEntityStringAttribute(aEntity, PropertyName, PropertyValue);
+            Instance.SetEntityStringAttribute(aEntity, PropertyName, PropertyValue);
         }
 
         public static string GetEntityStringAttribute(ref Entity aEntity, string PropertyName)
         {
-            return _instance.GetEntityStringAttribute(ref aEntity, PropertyName);
+            return Instance.GetEntityStringAttribute(ref aEntity, PropertyName);
         }
 
         public static string GetEntityStringAttribute(Entity aEntity, string PropertyName)
         {
-            return _instance.GetEntityStringAttribute(aEntity, PropertyName);
+            return Instance.GetEntityStringAttribute(aEntity, PropertyName);
         }
 
         public static void UpdateEntity(ref Entity aEntity)
         {
-            _instance.UpdateEntity(ref aEntity);
+            Instance.UpdateEntity(ref aEntity);
         }
 
         public static Guid CreateEntity(Entity aEntity)
         {
-            return _instance.CreateEntity(aEntity);
+            return Instance.CreateEntity(aEntity);
         }
 
         public static Entity RetrieveContactByLineId(string lineId)
         {
-            return _instance.RetrieveContactByLineId(lineId);
+            return Instance.RetrieveContactByLineId(lineId);
         }
 
         public static EntityCollection RetrieveContactCollectionByName(string name)
         {
-            return _instance.RetrieveContactCollectionByName(name);
+            return Instance.RetrieveContactCollectionByName(name);
         }
 
         public static string RetrieveContactByAccountNumber(string accountNumber, string password)
         {
-            return _instance.RetrieveContactByAccountNumber(accountNumber, password);
+            return Instance.RetrieveContactByAccountNumber(accountNumber, password);
         }
 
         public static Entity RetrieveEntityDynamics365(string entityName, Guid id)
         {
-            return _instance.RetrieveEntityDynamics365(entityName, id);
+            return Instance.RetrieveEntityDynamics365(entityName, id);
         }
 
         public static Entity RetrieveContactEntityByLineUserId(string lineUserId)
         {
-            return _instance.RetrieveContactEntityByLineUserId(lineUserId);
+            return Instance.RetrieveContactEntityByLineUserId(lineUserId);
         }
 
         public static EntityCollection RetrieveStorLessonsByFetchXml(string contactName, string contactId)
         {
-            return _instance.RetrieveStorLessonsByFetchXml(contactName, contactId);
+            return Instance.RetrieveStorLessonsByFetchXml(contactName, contactId);
         }
 
         // Overload used in PollManager
@@ -79,73 +93,73 @@ namespace ToolUtility
 
         public static string RetrieveEntityByField(string EntityName, string FieldName, string FieldValue)
         {
-            var e = _instance.RetrieveEntityByField(EntityName, FieldName, FieldValue);
+            var e = Instance.RetrieveEntityByField(EntityName, FieldName, FieldValue);
             return e == null ? string.Empty : e.Id.ToString();
         }
 
         public static int GetOptionSetAttribute(Entity aEntity, string PropertyName)
         {
-            return _instance.GetOptionSetAttribute(aEntity, PropertyName);
+            return Instance.GetOptionSetAttribute(aEntity, PropertyName);
         }
 
         public static int GetOptionSetAttribute(ref Entity aEntity, string PropertyName)
         {
-            return _instance.GetOptionSetAttribute(ref aEntity, PropertyName);
+            return Instance.GetOptionSetAttribute(ref aEntity, PropertyName);
         }
 
         public static void SetOptionSetAttribute(ref Entity aEntity, string PropertyName, int PropertyValue)
         {
-            _instance.SetOptionSetAttribute(ref aEntity, PropertyName, PropertyValue);
+            Instance.SetOptionSetAttribute(ref aEntity, PropertyName, PropertyValue);
         }
 
         public static void SetEntityMoneyAttribute(ref Entity aEntity, string PropertyName, Money PropertyValue)
         {
-            _instance.SetEntityMoneyAttribute(ref aEntity, PropertyName, PropertyValue);
+            Instance.SetEntityMoneyAttribute(ref aEntity, PropertyName, PropertyValue);
         }
 
         public static void SetEntityDateTimeAttribute(ref Entity aEntity, string PropertyName, DateTime PropertyValue)
         {
-            _instance.SetEntityDateTimeAttribute(ref aEntity, PropertyName, PropertyValue);
+            Instance.SetEntityDateTimeAttribute(ref aEntity, PropertyName, PropertyValue);
         }
 
         public static void SetEntityIntAttribute(ref Entity aEntity, string PropertyName, int PropertyValue)
         {
-            _instance.SetEntityIntAttribute(ref aEntity, PropertyName, PropertyValue);
+            Instance.SetEntityIntAttribute(ref aEntity, PropertyName, PropertyValue);
         }
 
         public static void SetEntityLookUpAttribute(ref Entity aEntity, string PropertyName, string LookupEntityName, Guid GuidValue)
         {
-            _instance.SetEntityLookUpAttribute(ref aEntity, PropertyName, LookupEntityName, GuidValue);
+            Instance.SetEntityLookUpAttribute(ref aEntity, PropertyName, LookupEntityName, GuidValue);
         }
 
         public static void SetEntityLookUpToNull(ref Entity aEntity, string PropertyName)
         {
-            _instance.SetEntityLookUpToNull(ref aEntity, PropertyName);
+            Instance.SetEntityLookUpToNull(ref aEntity, PropertyName);
         }
 
         public static void SetEntityLookUpAttribute(Entity aEntity, string PropertyName, string LookupEntityName, Guid GuidValue)
         {
-            _instance.SetEntityLookUpAttribute(aEntity, PropertyName, LookupEntityName, GuidValue);
+            Instance.SetEntityLookUpAttribute(aEntity, PropertyName, LookupEntityName, GuidValue);
         }
 
         public static Entity RetrieveListEntityByName(string name)
         {
-            return _instance.RetrieveListEntityByName(name);
+            return Instance.RetrieveListEntityByName(name);
         }
 
         public static Entity RetrieveContactEntityByName(string name)
         {
-            return _instance.RetrieveContactEntityByName(name);
+            return Instance.RetrieveContactEntityByName(name);
         }
 
         public static Guid GetOwnerId(Entity aEntity)
         {
-            return _instance.GetOwnerId(aEntity);
+            return Instance.GetOwnerId(aEntity);
         }
 
         public static void TraceByLevel(int totalLevel, int qualifiedLevel, string s)
         {
-            _instance.TraceByLevel(totalLevel, qualifiedLevel, s);
+            Instance.TraceByLevel(totalLevel, qualifiedLevel, s);
         }
 
         // Additional helpers referenced in many places
