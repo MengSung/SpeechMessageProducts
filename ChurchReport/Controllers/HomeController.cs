@@ -300,8 +300,8 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    // 如果沒有指定課程ID，使用當前登入者的帳密設定繳費清單
-                    InMemoryContext.FeeList.SetupFeeDataList(
+                    // 如果沒有指定課程ID，使用當前登入者的帳密設定課程清單
+                    InMemoryContext.FeeList.SetupLessonList(
                         InMemoryContext.FeeList.m_Account, 
                         InMemoryContext.FeeList.m_Password
                     );
@@ -311,9 +311,9 @@ namespace ChurchReport.Controllers
                 ViewBag.Result = InMemoryContext.FeeList.Result;
                 ViewBag.FeeType = InMemoryContext.FeeList.FeeType;
                 
-                // ? 修復：將整數轉換為字串，以符合 _Layout.cshtml 中的字串比較
-                var feeDataCount = InMemoryContext.FeeList.FeeDataList?.Count ?? 0;
-                ViewBag.FeeDataListCount = feeDataCount > 0 ? "繳費與點名已有資料" : "繳費與點名無資料";
+                // ? 課程清單頁面：不顯示「繳費」和「點名」選單
+                // 因為這裡只是課程列表，還沒有載入具體的繳費資料
+                ViewBag.FeeDataListCount = "繳費與點名無資料";
 
                 return View(InMemoryContext.FeeList);
             }
@@ -352,6 +352,12 @@ namespace ChurchReport.Controllers
                 // 設定 ViewBag 參數
                 ViewBag.FeeResult = InMemoryContext.FeeList.Result;
                 ViewBag.DiscipleLessonsId = DiscipleLessonsId;
+                
+                // ? 修復：進入特定課程後，設定為「已有資料」，讓「繳費」和「點名」選單顯示
+                var feeDataCount = InMemoryContext.FeeList.FeeDataList?.Count ?? 0;
+                ViewBag.FeeDataListCount = feeDataCount > 0 ? "繳費與點名已有資料" : "繳費與點名無資料";
+                
+                System.Diagnostics.Debug.WriteLine($"[FeeView] DiscipleLessonsId={DiscipleLessonsId}, FeeDataCount={feeDataCount}, FeeDataListCount={ViewBag.FeeDataListCount}");
 
                 return View(InMemoryContext.FeeList);
             }
@@ -390,6 +396,12 @@ namespace ChurchReport.Controllers
                 // 設定 ViewBag 參數
                 ViewBag.PresentResult = InMemoryContext.FeeList.Result;
                 ViewBag.DiscipleLessonsId = DiscipleLessonsId;
+                
+                // ? 修復：進入特定課程後，設定為「已有資料」，讓「繳費」和「點名」選單顯示
+                var feeDataCount = InMemoryContext.FeeList.FeeDataList?.Count ?? 0;
+                ViewBag.FeeDataListCount = feeDataCount > 0 ? "繳費與點名已有資料" : "繳費與點名無資料";
+                
+                System.Diagnostics.Debug.WriteLine($"[PresentView] DiscipleLessonsId={DiscipleLessonsId}, FeeDataCount={feeDataCount}, FeeDataListCount={ViewBag.FeeDataListCount}");
 
                 return View(InMemoryContext.FeeList);
             }
