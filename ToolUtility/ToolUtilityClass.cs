@@ -24,9 +24,6 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.Core;
-#if DEBUG && ENABLE_BUGSLAYER
-using TraceNameSpace;
-#endif
 using static System.Net.WebRequestMethods;
 
 namespace ToolUtilityNameSpace
@@ -54,7 +51,7 @@ namespace ToolUtilityNameSpace
         #region Dynamics 365 新增組織修改區
 
         // 客製化
-        #region 聖谷行道會(雲端機房)
+        #region 好牧人(雲端機房)
         private const String SERVER = "speechmessage.com.tw";
         private const String PORT = "7777";
         private const String ORGANIZATION = "sunnyvalech";
@@ -63,10 +60,10 @@ namespace ToolUtilityNameSpace
         private const String DOMAIN = "DYNAMICS-365";
         #endregion
 
-        #region 聖谷行道會(公司內部發展)
+        #region 好牧人(公司內部發展)
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
-        //private const String ORGANIZATION = "sunnyvalechback";
+        //private const String ORGANIZATION = "jesusback";
         //private const String USERNAME = "Administrator@speechmessage.com.tw";
         //private const String PASSWORD = "hu9840";
         //private const String DOMAIN = "SPEECHMESSAGE";
@@ -121,11 +118,7 @@ namespace ToolUtilityNameSpace
         private String m_TraceLogFile = "";
         private Lazy<FileStream> _lazyXmlFileStream;
         private Lazy<StreamWriter> _lazyXmlFileStreamWriter;
-#if DEBUG && ENABLE_BUGSLAYER
-        private Lazy<BugslayerTextWriterTraceListener> _lazyListener;
-#else
         private Lazy<TextWriterTraceListener> _lazyListener;
-#endif
         private const String TRACE_DIRECTOR = @"D:\除錯追蹤\" + "CHURCH_REPORT_TRACE.TXT";
         //private const String TRACE_DIRECTOR = @"C:\除錯追蹤\" + "TRACE.TXT";
         #endregion
@@ -133,7 +126,7 @@ namespace ToolUtilityNameSpace
 
         #endregion
         #region 建構式 - 設為 internal，只能通過 Factory 創建
-        
+
         /// <summary>
         /// 內部建構函數 - 只能通過 ToolUtilityFactory 創建實例
         /// </summary>
@@ -144,11 +137,11 @@ namespace ToolUtilityNameSpace
 
             #region 追蹤專用變數 - 使用 Lazy<T> 延遲初始化
             m_TraceLogFile = TRACE_DIRECTOR;
-            
+
             // Lazy 初始化 FileStream
-            _lazyXmlFileStream = new Lazy<FileStream>(() => 
+            _lazyXmlFileStream = new Lazy<FileStream>(() =>
                 new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
-            
+
             // Lazy 初始化 StreamWriter
             _lazyXmlFileStreamWriter = new Lazy<StreamWriter>(() =>
             {
@@ -158,33 +151,15 @@ namespace ToolUtilityNameSpace
 #endif
                 return new StreamWriter(_lazyXmlFileStream.Value, Encoding.GetEncoding("big5"));
             });
-            
-            // Lazy 初始化 TraceListener
-#if DEBUG && ENABLE_BUGSLAYER
-            _lazyListener = new Lazy<BugslayerTextWriterTraceListener>(() =>
-            {
-                var listener = new BugslayerTextWriterTraceListener(_lazyXmlFileStreamWriter.Value);
-                Debug.AutoFlush = true;
-#if NET462 || NETFRAMEWORK
-                Debug.Listeners.Add(listener);
-#else
-                Trace.Listeners.Add(listener);
-#endif
-                return listener;
-            });
-#else
+
+            // Lazy 初始化 TraceListener - 統一使用標準的 TextWriterTraceListener
             _lazyListener = new Lazy<TextWriterTraceListener>(() =>
             {
                 var listener = new TextWriterTraceListener(_lazyXmlFileStreamWriter.Value);
-                Debug.AutoFlush = true;
-#if NET462 || NETFRAMEWORK
-                Debug.Listeners.Add(listener);
-#else
+                Trace.AutoFlush = true;
                 Trace.Listeners.Add(listener);
-#endif
                 return listener;
             });
-#endif
             #endregion
 
             // 使用連接服務建立 CRM 連接
@@ -211,11 +186,11 @@ namespace ToolUtilityNameSpace
 
             #region 追蹤專用變數 - 使用 Lazy<T> 延遲初始化
             m_TraceLogFile = TRACE_DIRECTOR;
-            
+
             // Lazy 初始化 FileStream
-            _lazyXmlFileStream = new Lazy<FileStream>(() => 
+            _lazyXmlFileStream = new Lazy<FileStream>(() =>
                 new FileStream(m_TraceLogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
-            
+
             // Lazy 初始化 StreamWriter
             _lazyXmlFileStreamWriter = new Lazy<StreamWriter>(() =>
             {
@@ -224,33 +199,15 @@ namespace ToolUtilityNameSpace
 #endif
                 return new StreamWriter(_lazyXmlFileStream.Value, Encoding.GetEncoding("big5"));
             });
-            
-            // Lazy 初始化 TraceListener
-#if DEBUG && ENABLE_BUGSLAYER
-            _lazyListener = new Lazy<BugslayerTextWriterTraceListener>(() =>
-            {
-                var listener = new BugslayerTextWriterTraceListener(_lazyXmlFileStreamWriter.Value);
-                Debug.AutoFlush = true;
-#if NET462 || NETFRAMEWORK
-                Debug.Listeners.Add(listener);
-#else
-                Trace.Listeners.Add(listener);
-#endif
-                return listener;
-            });
-#else
+
+            // Lazy 初始化 TraceListener - 統一使用標準的 TextWriterTraceListener
             _lazyListener = new Lazy<TextWriterTraceListener>(() =>
             {
                 var listener = new TextWriterTraceListener(_lazyXmlFileStreamWriter.Value);
-                Debug.AutoFlush = true;
-#if NET462 || NETFRAMEWORK
-                Debug.Listeners.Add(listener);
-#else
+                Trace.AutoFlush = true;
                 Trace.Listeners.Add(listener);
-#endif
                 return listener;
             });
-#endif
             #endregion
 
             //// 使用連接服務建立 CRM 連接
@@ -292,7 +249,7 @@ namespace ToolUtilityNameSpace
             if (disposing)
             {
                 // 釋放 Managed 資源
-                
+
                 // 1. 釋放 Facade
                 try
                 {
@@ -302,7 +259,7 @@ namespace ToolUtilityNameSpace
                 {
                     // 已被釋放，忽略
                 }
-                
+
                 // 2. 釋放 CRM 連接服務
                 try
                 {
@@ -312,7 +269,7 @@ namespace ToolUtilityNameSpace
                 {
                     // 已被釋放，忽略
                 }
-                
+
                 // 3. 釋放 Organization Service
                 try
                 {
@@ -322,7 +279,7 @@ namespace ToolUtilityNameSpace
                 {
                     // 已被釋放，忽略
                 }
-                
+
                 try
                 {
                     (m_OrganizationService as IDisposable)?.Dispose();
@@ -331,7 +288,7 @@ namespace ToolUtilityNameSpace
                 {
                     // 已被釋放，忽略
                 }
-                
+
                 // 4. 釋放追蹤監聽器（只有在 Lazy 已初始化時才釋放）
                 if (_lazyListener != null && _lazyListener.IsValueCreated)
                 {
@@ -340,11 +297,7 @@ namespace ToolUtilityNameSpace
                         var listener = _lazyListener.Value;
                         if (listener != null)
                         {
-#if NET462 || NETFRAMEWORK
-                            Debug.Listeners.Remove(listener);
-#else
                             Trace.Listeners.Remove(listener);
-#endif
                             listener.Flush();
                             listener.Close();
                             listener.Dispose();
@@ -355,7 +308,7 @@ namespace ToolUtilityNameSpace
                         // 已被釋放，忽略
                     }
                 }
-                
+
                 // 5. 釋放檔案寫入器（只有在 Lazy 已初始化時才釋放）
                 if (_lazyXmlFileStreamWriter != null && _lazyXmlFileStreamWriter.IsValueCreated)
                 {
@@ -374,7 +327,7 @@ namespace ToolUtilityNameSpace
                         // 已被釋放，忽略
                     }
                 }
-                
+
                 // 6. 釋放檔案串流（只有在 Lazy 已初始化時才釋放）
                 if (_lazyXmlFileStream != null && _lazyXmlFileStream.IsValueCreated)
                 {
@@ -1662,12 +1615,12 @@ namespace ToolUtilityNameSpace
                 {
                     // 只在需要時才初始化追蹤資源
                     var listener = _lazyListener.Value;
-                    
-                    Debug.WriteLine("Time            =" + DateTime.Now.ToString() + Environment.NewLine);
-                    Debug.WriteLine("StringToProcess =" + StringToProcess + Environment.NewLine);
+
+                    Trace.WriteLine("Time            =" + DateTime.Now.ToString() + Environment.NewLine);
+                    Trace.WriteLine("StringToProcess =" + StringToProcess + Environment.NewLine);
                     StackTrace aStackTraceNextLevel = new StackTrace(new StackFrame(1, true));
-                    Debug.WriteLine("StackTrace      =" + aStackTraceNextLevel.ToString() + Environment.NewLine);
-                    Debug.WriteLine("================================================================== " + Environment.NewLine);
+                    Trace.WriteLine("StackTrace      =" + aStackTraceNextLevel.ToString() + Environment.NewLine);
+                    Trace.WriteLine("================================================================== " + Environment.NewLine);
                 }
             }
             catch (System.Exception e)
@@ -1683,11 +1636,11 @@ namespace ToolUtilityNameSpace
             {
                 if (TotalLevel >= QualifiedLevel)
                 {
-                    Debug.WriteLine("Time            =" + DateTime.Now.ToString() + Environment.NewLine);
-                    Debug.WriteLine("StringToProcess =" + StringToProcess + Environment.NewLine);
+                    Trace.WriteLine("Time            =" + DateTime.Now.ToString() + Environment.NewLine);
+                    Trace.WriteLine("StringToProcess =" + StringToProcess + Environment.NewLine);
                     StackTrace aStackTraceNextLevel = new StackTrace(new StackFrame(1, true));
-                    Debug.WriteLine("StackTrace      =" + aStackTraceNextLevel.ToString() + Environment.NewLine);
-                    Debug.WriteLine("================================================================== " + Environment.NewLine);
+                    Trace.WriteLine("StackTrace      =" + aStackTraceNextLevel.ToString() + Environment.NewLine);
+                    Trace.WriteLine("================================================================== " + Environment.NewLine);
                 }
             }
             catch (System.Exception e)

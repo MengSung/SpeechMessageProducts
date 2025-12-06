@@ -51,13 +51,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />    
-    <ProjectReference Include="..\PowerPlatform.Dataverse.Client\PowerPlatform.Dataverse.Client.csproj" /><ProjectReference Include="..\Trace\Trace.csproj" />
+    <ProjectReference Include="..\PowerPlatform.Dataverse.Client\PowerPlatform.Dataverse.Client.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- ?????????? markdown ???A???O?d?b????? -->
     <None Include="???\**\*.md" />
-    <None Include="ToolUtility_Net10.csproj" />
   </ItemGroup>
 
 </Project>

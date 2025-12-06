@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChurchReport", "ChurchRepor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineMessagingProcessor", "LineMessagingProcessor\LineMessagingProcessor.csproj", "{49A3E352-8564-4A14-9814-B655B2A6B202}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trace", "Trace\Trace.csproj", "{DC1614B1-9B67-4AC8-B7A8-66F5BEE26D5E}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Line.Messaging", "Line.Messaging\Line.Messaging.csproj", "{A6A57804-C01F-42BC-94BA-91636AF260E7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PowerPlatform.Dataverse.Client", "PowerPlatform.Dataverse.Client\PowerPlatform.Dataverse.Client.csproj", "{F7624121-F809-99FA-8591-0F431EB65992}"
@@ -44,16 +42,6 @@ Global
 		{49A3E352-8564-4A14-9814-B655B2A6B202}.Release|Any CPU.Build.0 = Release|Any CPU
 		{49A3E352-8564-4A14-9814-B655B2A6B202}.Test_Exchange_Service|Any CPU.ActiveCfg = Release|Any CPU
 		{49A3E352-8564-4A14-9814-B655B2A6B202}.Test_Exchange_Service|Any CPU.Build.0 = Release|Any CPU
-		{DC1614B1-9B67-4AC8-B7A8-66F5BEE26D5E}.Debug_LearnCrm|Any CPU.ActiveCfg = Debug_LearnCrm|Any CPU
-		{DC1614B1-9B67-4AC8-B7A8-66F5BEE26D5E}.Debug_LearnCrm|Any CPU.Build.0 = Debug_LearnCrm|Any CPU
-		{DC1614B1-9B67-4AC8-B7A8-66F5BEE26D5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DC1614B1-9B67-4AC8-B7A8-66F5BEE26D5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DC1614B1-9B67-4AC8-B7A8-66F5BEE26D5E}.DebugOracleConnector|Any CPU.ActiveCfg = DebugOracleConnector|Any CPU
-		{DC1614B1-9B67-4AC8-B7A8-66F5BEE26D5E}.DebugOracleConnector|Any CPU.Build.0 = DebugOracleConnector|Any CPU
-		{DC1614B1-9B67-4AC8-B7A8-66F5BEE26D5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DC1614B1-9B67-4AC8-B7A8-66F5BEE26D5E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DC1614B1-9B67-4AC8-B7A8-66F5BEE26D5E}.Test_Exchange_Service|Any CPU.ActiveCfg = Test_Exchange_Service|Any CPU
-		{DC1614B1-9B67-4AC8-B7A8-66F5BEE26D5E}.Test_Exchange_Service|Any CPU.Build.0 = Test_Exchange_Service|Any CPU
 		{A6A57804-C01F-42BC-94BA-91636AF260E7}.Debug_LearnCrm|Any CPU.ActiveCfg = Debug|Any CPU
 		{A6A57804-C01F-42BC-94BA-91636AF260E7}.Debug_LearnCrm|Any CPU.Build.0 = Debug|Any CPU
 		{A6A57804-C01F-42BC-94BA-91636AF260E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
