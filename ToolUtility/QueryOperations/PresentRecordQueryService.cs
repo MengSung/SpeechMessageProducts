@@ -157,6 +157,7 @@ namespace ToolUtilityNameSpace.QueryOperations
 
         /// <summary>
         /// 根據日期範圍查詢實體清單
+        /// 修復：new_class_end_date 是父實體的欄位，需要使用 LinkEntity 關聯
         /// </summary>
         public EntityCollection QueryEntityListByDate(string parentEntityName, string parentEntityIdName,
             string parentEntityId, string associationName, string childEntityName)
@@ -172,8 +173,28 @@ namespace ToolUtilityNameSpace.QueryOperations
                 var filter = new FilterExpression(LogicalOperator.And);
                 filter.AddCondition(associationName, ConditionOperator.Equal, parentEntityId);
                 filter.AddCondition("statecode", ConditionOperator.Equal, 0);
-                filter.AddCondition("new_class_end_date", ConditionOperator.OnOrAfter, DateTime.UtcNow.AddDays(-7));
                 query.Criteria = filter;
+
+                // ? 修復：new_class_end_date 是父實體 (new_disciple_lessons) 的欄位
+                // 需要透過 LinkEntity 關聯到父實體，並在父實體上添加日期過濾條件
+                if (parentEntityName == "new_disciple_lessons")
+                {
+                    var linkEntity = new LinkEntity
+                    {
+                        LinkFromEntityName = childEntityName,
+                        LinkToEntityName = parentEntityName,
+                        LinkFromAttributeName = associationName,
+                        LinkToAttributeName = parentEntityIdName,
+                        JoinOperator = JoinOperator.Inner
+                    };
+
+                    // 在父實體 (課程) 上添加日期過濾：課程結束日期在最近7天內或之後
+                    var linkFilter = new FilterExpression(LogicalOperator.And);
+                    linkFilter.AddCondition("new_class_end_date", ConditionOperator.OnOrAfter, DateTime.UtcNow.AddDays(-7));
+                    linkEntity.LinkCriteria = linkFilter;
+
+                    query.LinkEntities.Add(linkEntity);
+                }
 
                 return _organizationService.RetrieveMultiple(query);
             }
