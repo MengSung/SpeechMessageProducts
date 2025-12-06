@@ -307,13 +307,18 @@ namespace ChurchReport.Controllers
                     );
                 }
 
+                // ? 設定所有必要的 ViewBag 參數
+                SetupBasicViewBag();
+                SetMultiGroupLayoutParameter();
+                
                 // 設定 ViewBag 參數
                 ViewBag.Result = InMemoryContext.FeeList.Result;
-                ViewBag.FeeType = InMemoryContext.FeeList.FeeType;
                 
                 // ? 課程清單頁面：不顯示「繳費」和「點名」選單
                 // 因為這裡只是課程列表，還沒有載入具體的繳費資料
                 ViewBag.FeeDataListCount = "繳費與點名無資料";
+                
+                ViewBag.DisplayNavigation = "顯示牧養回報項目";  // 確保顯示導航
 
                 return View(InMemoryContext.FeeList);
             }
@@ -349,6 +354,10 @@ namespace ChurchReport.Controllers
                     );
                 }
 
+                // ? 設定所有必要的 ViewBag 參數
+                SetupBasicViewBag();
+                SetMultiGroupLayoutParameter();
+                
                 // 設定 ViewBag 參數
                 ViewBag.FeeResult = InMemoryContext.FeeList.Result;
                 ViewBag.DiscipleLessonsId = DiscipleLessonsId;
@@ -357,7 +366,9 @@ namespace ChurchReport.Controllers
                 var feeDataCount = InMemoryContext.FeeList.FeeDataList?.Count ?? 0;
                 ViewBag.FeeDataListCount = feeDataCount > 0 ? "繳費與點名已有資料" : "繳費與點名無資料";
                 
-                System.Diagnostics.Debug.WriteLine($"[FeeView] DiscipleLessonsId={DiscipleLessonsId}, FeeDataCount={feeDataCount}, FeeDataListCount={ViewBag.FeeDataListCount}");
+                ViewBag.DisplayNavigation = "顯示牧養回報項目";  // 確保顯示導航
+                
+                System.Diagnostics.Debug.WriteLine($"[FeeView] DiscipleLessonsId={DiscipleLessonsId}, FeeDataCount={feeDataCount}, FeeDataListCount={ViewBag.FeeDataListCount}, LoginType={ViewBag.LoginType}, FeeType={ViewBag.FeeType}");
 
                 return View(InMemoryContext.FeeList);
             }
@@ -393,6 +404,10 @@ namespace ChurchReport.Controllers
                     );
                 }
 
+                // ? 設定所有必要的 ViewBag 參數
+                SetupBasicViewBag();
+                SetMultiGroupLayoutParameter();
+                
                 // 設定 ViewBag 參數
                 ViewBag.PresentResult = InMemoryContext.FeeList.Result;
                 ViewBag.DiscipleLessonsId = DiscipleLessonsId;
@@ -401,7 +416,9 @@ namespace ChurchReport.Controllers
                 var feeDataCount = InMemoryContext.FeeList.FeeDataList?.Count ?? 0;
                 ViewBag.FeeDataListCount = feeDataCount > 0 ? "繳費與點名已有資料" : "繳費與點名無資料";
                 
-                System.Diagnostics.Debug.WriteLine($"[PresentView] DiscipleLessonsId={DiscipleLessonsId}, FeeDataCount={feeDataCount}, FeeDataListCount={ViewBag.FeeDataListCount}");
+                ViewBag.DisplayNavigation = "顯示牧養回報項目";  // 確保顯示導航
+                
+                System.Diagnostics.Debug.WriteLine($"[PresentView] DiscipleLessonsId={DiscipleLessonsId}, FeeDataCount={feeDataCount}, FeeDataListCount={ViewBag.FeeDataListCount}, LoginType={ViewBag.LoginType}, FeeType={ViewBag.FeeType}");
 
                 return View(InMemoryContext.FeeList);
             }
@@ -464,13 +481,17 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"[LoadFeeDataList] 開始載入 - DiscipleLessonsId={DiscipleLessonsId}");
+                
                 // 如果有指定課程ID，載入該課程的繳費資料
                 if (!string.IsNullOrEmpty(DiscipleLessonsId))
                 {
+                    System.Diagnostics.Debug.WriteLine($"[LoadFeeDataList] 呼叫 SetupPresentFeeList({DiscipleLessonsId})");
                     InMemoryContext.FeeList.SetupPresentFeeList(DiscipleLessonsId);
                 }
                 else if (InMemoryContext.FeeList.FeeDataList == null || InMemoryContext.FeeList.FeeDataList.Count == 0)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[LoadFeeDataList] FeeDataList 為空，重新載入");
                     // 否則重新載入繳費清單
                     InMemoryContext.FeeList.SetupFeeDataList(
                         InMemoryContext.FeeList.m_Account,
@@ -478,14 +499,20 @@ namespace ChurchReport.Controllers
                     );
                 }
 
+                var feeDataCount = InMemoryContext.FeeList.FeeDataList?.Count ?? 0;
+                System.Diagnostics.Debug.WriteLine($"[LoadFeeDataList] FeeDataList.Count={feeDataCount}");
+
                 // 使用 DevExtreme DataSourceLoader 處理資料
                 var result = DataSourceLoader.Load(InMemoryContext.FeeList.FeeDataList, loadOptions);
+                
+                System.Diagnostics.Debug.WriteLine($"[LoadFeeDataList] 回傳結果 - totalCount={result.totalCount}, data count={((IEnumerable<object>)result.data).Count()}");
 
                 return Json(result);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[LoadFeeDataList] 發生錯誤: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[LoadFeeDataList] 錯誤堆疊: {ex.StackTrace}");
                 
                 // 返回空結果
                 return Json(new

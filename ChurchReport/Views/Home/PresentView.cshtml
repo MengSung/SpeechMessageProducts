@@ -1,5 +1,12 @@
 ﻿@using ChurchReport.Models
 @using Newtonsoft.Json
+
+@model ChurchReport.Models.FeeList
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
 <head>
     <!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
     <meta charset="UTF-8">
@@ -8,7 +15,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
     <meta name="description" content="">
-    <title>好牧人</title>
+    <title>好牧人 - 課程點名</title>
 
 </head>
 
@@ -264,7 +271,7 @@
             columns.Add().DataField("Lesson18").Caption("第十八課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
             columns.Add().DataField("Lesson19").Caption("第十九課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
             columns.Add().DataField("Lesson20").Caption("第二十課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
-            columns.Add().DataField("Lesson21").Caption("第二十一課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
+            columns.Add().DataField("Lesson21"). Caption("第二十一課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
             columns.Add().DataField("Lesson22").Caption("第二十二課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
             columns.Add().DataField("Lesson23").Caption("第二十三課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
             columns.Add().DataField("Lesson24").Caption("第二十四課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
@@ -415,13 +422,14 @@
 
     .DataSource(d => d
     .WebApi()
-    //.Mvc()
     .Controller("Home")
     .LoadAction("LoadFeeDataList")
-    //.InsertAction("AddClassSheet")
     .UpdateAction("UpdateFeeDataList")
     .Key("StorLessonsId")
-    .LoadParams(new { ActiveType = "Active!" })
+    .LoadParams(new { 
+        DiscipleLessonsId = @ViewBag.DiscipleLessonsId,
+        ActiveType = "Active!" 
+    })
     )
 
 //.DataSource(Model.FeeDataList)
@@ -433,6 +441,14 @@
 <script src="~/js/DropDownBox.js"></script>
 <script src="~/js/LoadPanel.js"></script>
 <script>
+    // ✅ Debug: 顯示當前課程ID和資料來源參數
+    console.log('[PresentView] DiscipleLessonsId:', '@ViewBag.DiscipleLessonsId');
+    console.log('[PresentView] Model.FeeDataList Count:', @(Model.FeeDataList?.Count ?? 0));
+    console.log('[PresentView] DataSource LoadParams:', {
+        DiscipleLessonsId: '@ViewBag.DiscipleLessonsId',
+        ActiveType: 'Active!'
+    });
+
     function moveEditColumnToLeft(dataGrid) {
         dataGrid.columnOption("command:edit", {
             visibleIndex: -1,
@@ -485,7 +501,7 @@
 
         //-- Description: For converting the date object to local time format
         //-- You can also convert this to UTC Date format
-        //-- UTC Usage: getUTCMonth(), getUTCFullYear(), getUTCHours() ...
+        //-- UTC Usage: getUTCMonth(), getUTCFullYear(), getUTCHours() ... 
 
         var monthString;
         var rawMonth = (date.getMonth() + 1).toString();
@@ -837,7 +853,6 @@ function onCustomizeColumns(columns)
 
     columns[8].caption = Colume8;
     columns[8].width = Colume8.length * 25;
-
 
 
 
