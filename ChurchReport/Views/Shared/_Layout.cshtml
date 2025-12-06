@@ -295,19 +295,19 @@
                             }
                             @if (@ViewBag.FeeType == "有繳費點名")
                             {
-                                <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
+                                <li><a href="/FeeManagement/LessonList"><i class="fas fa-list"></i>課程清單</a></li>
                                 @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                 {
                                     @* ✅ 修復：動態帶上課程ID *@
                                     @if (!string.IsNullOrEmpty(ViewBag.DiscipleLessonsId))
                                     {
-                                        <li><a href="/Home/FeeView/@ViewBag.DiscipleLessonsId"><i class="fas fa-credit-card"></i>繳費</a></li>
-                                        <li><a href="/Home/PresentView/@ViewBag.DiscipleLessonsId"><i class="fas fa-clipboard-check"></i>點名</a></li>
+                                        <li><a href="/FeeManagement/Fee/@ViewBag.DiscipleLessonsId"><i class="fas fa-credit-card"></i>繳費</a></li>
+                                        <li><a href="/FeeManagement/Present/@ViewBag.DiscipleLessonsId"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                     }
                                     else
                                     {
-                                        <li><a href="/Home/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
-                                        <li><a href="/Home/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
+                                        <li><a href="/FeeManagement/LessonList"><i class="fas fa-credit-card"></i>繳費</a></li>
+                                        <li><a href="/FeeManagement/LessonList"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                     }
                                 }
                             }
@@ -336,18 +336,18 @@
                                         <li><a href="/NewPerson/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Personal/InfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                         <li><a href="/Personal/MaintainInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
-                                        <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
-                                        <li><a href="/Home/FeeManagerView"><i class="fas fa-money-bill"></i>繳費與點名</a></li>
+                                        <li><a href="/FeeManagement/LessonList"><i class="fas fa-list"></i>課程清單</a></li>
+                                        <li><a href="/FeeManagement/FeeManagerView"><i class="fas fa-money-bill"></i>繳費與點名</a></li>
                                         @* ✅ 修復：動態帶上課程ID *@
                                         @if (!string.IsNullOrEmpty(ViewBag.DiscipleLessonsId))
                                         {
-                                            <li><a href="/Home/FeeView/@ViewBag.DiscipleLessonsId"><i class="fas fa-credit-card"></i>繳費</a></li>
-                                            <li><a href="/Home/PresentView/@ViewBag.DiscipleLessonsId"><i class="fas fa-clipboard-check"></i>點名</a></li>
+                                            <li><a href="/FeeManagement/Fee/@ViewBag.DiscipleLessonsId"><i class="fas fa-credit-card"></i>繳費</a></li>
+                                            <li><a href="/FeeManagement/Present/@ViewBag.DiscipleLessonsId"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                         }
                                         else
                                         {
-                                            <li><a href="/Home/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
-                                            <li><a href="/Home/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
+                                            <li><a href="/FeeManagement/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
+                                            <li><a href="/FeeManagement/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                         }
                                     }
                                     else
@@ -370,19 +370,19 @@
                                         <li><a href="/NewPerson/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Personal/InfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                         <li><a href="/Personal/MaintainInfomationView"><i class="fas fa-address-book"></i>組員資訊</a></li>
-                                        <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
+                                        <li><a href="/FeeManagement/LessonList"><i class="fas fa-list"></i>課程清單</a></li>
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
                                             @* ✅ 修復：動態帶上課程ID *@
                                             @if (!string.IsNullOrEmpty(ViewBag.DiscipleLessonsId))
                                             {
-                                                <li><a href="/Home/FeeView/@ViewBag.DiscipleLessonsId"><i class="fas fa-credit-card"></i>繳費</a></li>
-                                                <li><a href="/Home/PresentView/@ViewBag.DiscipleLessonsId"><i class="fas fa-clipboard-check"></i>點名</a></li>
+                                                <li><a href="/FeeManagement/Fee/@ViewBag.DiscipleLessonsId"><i class="fas fa-credit-card"></i>繳費</a></li>
+                                                <li><a href="/FeeManagement/Present/@ViewBag.DiscipleLessonsId"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                             }
                                             else
                                             {
-                                                <li><a href="/Home/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
-                                                <li><a href="/Home/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
+                                                <li><a href="/FeeManagement/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
+                                                <li><a href="/FeeManagement/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                             }
                                         }
                                     }
@@ -414,8 +414,8 @@
                                         <li><a href="/Personal/InfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
-                                            <li><a href="/Home/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
-                                            <li><a href="/Home/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
+                                            <li><a href="/FeeManagement/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
+                                            <li><a href="/FeeManagement/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                         }
                                     }
                                     else
@@ -430,19 +430,19 @@
                                     {
                                         <li><a href="/NewPerson/NewPerson"><i class="fas fa-user-plus"></i>新增新人</a></li>
                                         <li><a href="/Personal/InfomationView"><i class="fas fa-user"></i>個人相關資料</a></li>
-                                        <li><a href="/Home/PresentFeeListView"><i class="fas fa-list"></i>課程清單</a></li>
+                                        <li><a href="/FeeManagement/LessonList"><i class="fas fa-list"></i>課程清單</a></li>
                                         @if (@ViewBag.FeeDataListCount == "繳費與點名已有資料")
                                         {
                                             @* ✅ 修復：動態帶上課程ID *@
                                             @if (!string.IsNullOrEmpty(ViewBag.DiscipleLessonsId))
                                             {
-                                                <li><a href="/Home/FeeView/@ViewBag.DiscipleLessonsId"><i class="fas fa-credit-card"></i>繳費</a></li>
-                                                <li><a href="/Home/PresentView/@ViewBag.DiscipleLessonsId"><i class="fas fa-clipboard-check"></i>點名</a></li>
+                                                <li><a href="/FeeManagement/Fee/@ViewBag.DiscipleLessonsId"><i class="fas fa-credit-card"></i>繳費</a></li>
+                                                <li><a href="/FeeManagement/Present/@ViewBag.DiscipleLessonsId"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                             }
                                             else
                                             {
-                                                <li><a href="/Home/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
-                                                <li><a href="/Home/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
+                                                <li><a href="/FeeManagement/FeeView"><i class="fas fa-credit-card"></i>繳費</a></li>
+                                                <li><a href="/FeeManagement/PresentView"><i class="fas fa-clipboard-check"></i>點名</a></li>
                                             }
                                         }
                                     }
