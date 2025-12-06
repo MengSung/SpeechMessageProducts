@@ -1,9 +1,9 @@
-ï»¿@* 
-    ç™»å…¥é é¢(æ”¹ç‰ˆ)ï¼š
-    - è¡Œå‹•å„ªå…ˆã€éŸ¿æ‡‰å¼ã€åŸºç£æ•™é¢¨æ ¼
-    - Hero å€å¡Šï¼šèƒŒæ™¯ Gallery ç–ŠåŠ æ¼¸å±¤ã€æ•™æœƒåç¨±èˆ‡ç¶“æ–‡
-    - å¡ç‰‡å¼ç™»å…¥è¡¨å–®ã€è¼‰å…¥é¢æ¿èˆ‡ Toast æç¤º
-    - ä¿ç•™æ—¢æœ‰ DevExtreme è¡¨å–®èˆ‡ AJAX æµç¨‹
+@* 
+    µn¤J­¶­±(§ïª©)¡G
+    - ¦æ°ÊÀu¥ı¡BÅTÀ³¦¡¡B°ò·ş±Ğ­·®æ
+    - Hero °Ï¶ô¡G­I´º¯Â HTML5 ¤Û¿O¤ù + º¥¼hÂĞ»\
+    - ¥d¤ù¦¡µn¤Jªí³æ¡B¸ü¤J­±ªO»P Toast ´£¥Ü
+    - «O¯d¬J¦³ DevExtreme ªí³æ»P AJAX ¬yµ{
 *@
 @{
     Layout = null;
@@ -15,10 +15,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="description" content="å¥½ç‰§äºº ç™»å…¥" />
-    <meta name="author" content="å¥½ç‰§äºº" />
+    <meta name="description" content="¦nªª¤H µn¤J" />
+    <meta name="author" content="¦nªª¤H" />
 
-    <title>å¥½ç‰§äººï½œç™»å…¥</title>
+    <title>¦nªª¤H¡Uµn¤J</title>
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
 
     <!-- Bootstrap / DevExtreme CSS -->
@@ -29,46 +29,188 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
-        /* Hero æ©«å¹…èˆ‡è¦†è“‹å±¤ */
-        .hero-wrapper { position: relative; width:100%; height: 340px; overflow:hidden; }
-        .hero-gallery-shift .dx-gallery, .hero-gallery-shift .dx-gallery-wrapper { margin-top:40px; }
-        .hero-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:#fff; padding: 1rem; background: linear-gradient(135deg, rgba(0,0,0,.55), rgba(0,0,0,.25)); }
-        .hero-overlay h1 { font-size:1.9rem; letter-spacing:2px; font-weight:700; margin-bottom:.35rem; }
-        .hero-overlay .sub { font-size:.95rem; opacity:.92; margin-bottom:.5rem; }
-        .hero-overlay .verse { font-size:.95rem; line-height:1.4; max-width:680px; }
-        .hero-overlay .verse span { display:block; margin-top:.25rem; font-size:.78rem; opacity:.85; }
-        .logo-faith { font-size:2.2rem; margin-bottom:.35rem; color:#fff; animation: pulse 3.5s infinite; }
-        @@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
-
-        /* Gallery åœ–ç‰‡å‚ç›´å®Œæ•´å¯è¦‹ (èª¿æ•´ï¼šæ”¹ç”¨è‡ªé©æ‡‰é«˜åº¦é¿å…ä¸Šä¸‹è£åˆ‡) */
-        .hero-wrapper .dx-gallery, .hero-wrapper .dx-gallery-wrapper { height:100%; }
-        .hero-wrapper .dx-gallery-item { display:flex !important; align-items:center; justify-content:center; }
-        .hero-wrapper .dx-gallery-item .dx-gallery-item-content { display:flex; align-items:center; justify-content:center; width:100%; height:100%; overflow:hidden; }
-        .hero-wrapper .dx-gallery-item img { max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; object-position:center center; display:block; }
-        @@media (max-width: 575.98px) {
-            /* å°è¢å¹•æ”¹ç‚ºè‡ªå‹•é«˜åº¦ï¼Œç¢ºä¿åœ–ç‰‡å‚ç›´å®Œæ•´é¡¯ç¤º */
-            .hero-wrapper { height:auto; min-height:240px; }
-            .hero-wrapper .dx-gallery, .hero-wrapper .dx-gallery-wrapper { height:auto; }
-            .hero-wrapper .dx-gallery-item { min-height:240px; }
+        /* Hero ¾î´T»PÂĞ»\¼h */
+        .hero-wrapper {
+            position: relative;
+            width: 100%;
+            height: 340px;
+            overflow: hidden;
         }
 
-        /* å…§å®¹å€ */
-        .main-section { margin-top: 0; padding-top: 32px; }
-        .card-soft { border: none; border-radius: 18px; background:#fff; box-shadow: 0 8px 22px rgba(0,0,0,.09); overflow: hidden; }
-        .card-soft-header { background: linear-gradient(135deg,#6b8ce3,#4864b8); color:#fff; padding:.85rem 1rem; font-weight:600; display:flex; align-items:center; gap:.5rem; letter-spacing:1px; }
-        .card-soft-body { padding:1rem 1rem 1.25rem; }
-        .actions { display:flex; justify-content:center; gap:.75rem; margin-top:.5rem; }
-        .actions .btn { border-radius:30px; padding:.6rem 1.2rem; font-weight:600; letter-spacing:1px; box-shadow: 0 4px 12px rgba(0,0,0,.12); }
-        .login-card { max-width:560px; margin:0 auto; }
-        .login-card .dx-form .dx-texteditor { width:100%; }
-        .login-card .dx-form .dx-field-item-label { text-align:left; width:auto; }
-        .login-card .dx-form .dx-field-item-content { text-align:left; }
+        /* ? ¯Â HTML5 ¤Û¿O¤ù®e¾¹ */
+        .slideshow-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: #000;
+        }
 
-        .footer-note { text-align:center; font-size:.8rem; color:#777; margin: 2rem 0 .75rem; }
+        .slide {
+            display: none;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 1200ms ease-in-out;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            display: block;
+        }
+
+        .slide.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* ÂĞ»\¼h */
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(0,0,0,.55), rgba(0,0,0,.25));
+            z-index: 10;
+        }
+
+        .hero-overlay h1 {
+            font-size: 1.9rem;
+            letter-spacing: 2px;
+            font-weight: 700;
+            margin-bottom: .35rem;
+        }
+
+        .hero-overlay .sub {
+            font-size: .95rem;
+            opacity: .92;
+            margin-bottom: .5rem;
+        }
+
+        .hero-overlay .verse {
+            font-size: .95rem;
+            line-height: 1.4;
+            max-width: 680px;
+        }
+
+        .hero-overlay .verse span {
+            display: block;
+            margin-top: .25rem;
+            font-size: .78rem;
+            opacity: .85;
+        }
+
+        .logo-faith {
+            font-size: 2.2rem;
+            margin-bottom: .35rem;
+            color: #fff;
+            animation: pulse 3.5s infinite;
+        }
+
+        @@keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        /* ¤º®e°Ï */
+        .main-section {
+            margin-top: 0;
+            padding-top: 32px;
+        }
+
+        .card-soft {
+            border: none;
+            border-radius: 18px;
+            background: #fff;
+            box-shadow: 0 8px 22px rgba(0,0,0,.09);
+            overflow: hidden;
+        }
+
+        .card-soft-header {
+            background: linear-gradient(135deg,#6b8ce3,#4864b8);
+            color: #fff;
+            padding: .85rem 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            letter-spacing: 1px;
+        }
+
+        .card-soft-body {
+            padding: 1rem 1rem 1.25rem;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: .75rem;
+            margin-top: .5rem;
+        }
+
+        .actions .btn {
+            border-radius: 30px;
+            padding: .6rem 1.2rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.12);
+        }
+
+        .login-card {
+            max-width: 560px;
+            margin: 0 auto;
+        }
+
+        .login-card .dx-form .dx-texteditor {
+            width: 100%;
+        }
+
+        .login-card .dx-form .dx-field-item-label {
+            text-align: left;
+            width: auto;
+        }
+
+        .login-card .dx-form .dx-field-item-content {
+            text-align: left;
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: .8rem;
+            color: #777;
+            margin: 2rem 0 .75rem;
+        }
+
         @@media (max-width: 575.98px) {
-            .hero-overlay h1 { font-size:1.6rem; }
-            .login-card { max-width:100%; }
-            .main-section { padding-top:24px; }
+            .hero-overlay h1 {
+                font-size: 1.6rem;
+            }
+
+            .login-card {
+                max-width: 100%;
+            }
+
+            .main-section {
+                padding-top: 24px;
+            }
+
+            .hero-wrapper {
+                height: auto;
+                min-height: 240px;
+            }
         }
     </style>
 
@@ -95,29 +237,31 @@
 </head>
 
 <body class="bg-light">
-    <!-- Heroï¼šèƒŒæ™¯ Gallery ç–ŠåŠ ç¶“æ–‡ -->
-    <section class="hero-wrapper hero-gallery-shift" aria-label="æ­¡è¿å€">
-        <div class="position-absolute w-100 h-100" style="z-index:1;">
-            @(Html.DevExtreme().Gallery()
-                .ID("gallery")
-                .DataSource(Model.Images)
-                .Height("100%")
-                .StretchImages(true)
-                .Loop(true)
-                .SlideshowDelay(1800)
-                .ShowNavButtons(true)
-                .ShowIndicator(true)
-            )
+    <!-- Hero¡G­I´º¯Â HTML5 ¤Û¿O¤ù + ÂĞ»\¼h¸g¤å -->
+    <section class="hero-wrapper" aria-label="Åwªï°Ï">
+        <!-- ? ¯Â HTML5 ¤Û¿O¤ù -->
+        <div class="slideshow-container">
+            @if (Model?.Images != null && Model.Images.Any())
+            {
+                @foreach (var image in Model.Images)
+                {
+                    <div class="slide">
+                        <img src="@image" alt="±Ğ·|¹Ï¤ù" />
+                    </div>
+                }
+            }
         </div>
+
+        <!-- ÂĞ»\¼h -->
         <div class="hero-overlay" role="banner">
             <i class="fa-solid fa-dove logo-faith" aria-hidden="true"></i>
-            <h1>å¥½ç‰§äºº</h1>
-            <div class="sub">é¡˜æ©æƒ ã€æ†æ†«ã€å¹³å®‰å¾çˆ¶ç¥èˆ‡ä¸»è€¶ç©ŒåŸºç£æ­¸èˆ‡ä½ å€‘ã€‚</div>
-            <div class="verse">æˆ‘å€‘æ—¢å› ä¿¡ç¨±ç¾©ï¼Œå°±è—‰è‘—æˆ‘å€‘çš„ä¸»è€¶ç©ŒåŸºç£å¾—èˆ‡ç¥ç›¸å’Œã€‚<span>â€” ç¾…é¦¬æ›¸ 5:1</span></div>
+            <h1>¦nªª¤H</h1>
+            <div class="sub">Ä@®¦´f¡B¼¦¼§¡B¥­¦w±q¤÷¯«»P¥D­C¿q°ò·şÂk»P§A­Ì¡C</div>
+            <div class="verse">§Ú­Ì¬J¦]«HºÙ¸q¡A´NÂÇµÛ§Ú­Ìªº¥D­C¿q°ò·ş±o»P¯«¬Û©M¡C<span>¡X Ã¹°¨®Ñ 5:1</span></div>
         </div>
     </section>
 
-    <!-- ä¸»å…§å®¹ï¼šç™»å…¥å¡ç‰‡ (å·²èˆ‡è·‘é¦¬ç‡ˆåˆ†é›¢) -->
+    <!-- ¥D¤º®e¡Gµn¤J¥d¤ù -->
     <main class="container main-section" role="main">
         <div class="row">
             <div class="col-12">
@@ -128,11 +272,11 @@
                             .ID("Toast")
                             .Position(p => p
                                 .At(HorizontalAlignment.Center, VerticalAlignment.Top)
-                                .Of(".card-soft-body")  // ç›¸å°æ–¼å¡ç‰‡å…§å®¹å€
+                                .Of(".card-soft-body")
                                 .Offset(0, 10))
                             .CloseOnOutsideClick(true)
                             .DisplayTime(2400)
-                            .MaxWidth("90%")  // éŸ¿æ‡‰å¼å¯¬åº¦
+                            .MaxWidth("90%")
                             .Animation(a => a
                                 .Show(s => s.Type(AnimationType.Fade).Duration(300))
                                 .Hide(h => h.Type(AnimationType.Fade).Duration(200)))
@@ -140,10 +284,10 @@
                     </div>
 
                     <div class="card-soft-header" id="loginHeader">
-                        <i class="fa-solid fa-right-to-bracket"></i><span>æœƒå“¡ç™»å…¥</span>
+                        <i class="fa-solid fa-right-to-bracket"></i><span>·|­ûµn¤J</span>
                     </div>
                     <div class="card-soft-body">
-                        <!-- ç™»å…¥è¡¨å–® -->
+                        <!-- µn¤Jªí³æ -->
                         <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLogin" asp-controller="Home" method="post" novalidate>
                             <div id="form-container">
                                 @(Html.DevExtreme().Form()
@@ -152,21 +296,21 @@
                                     {
                                         items.AddSimple()
                                             .DataField("Account")
-                                            .Label(l => l.Text("å¸³è™Ÿ"))
+                                            .Label(l => l.Text("±b¸¹"))
                                             .Editor(e => e
                                                 .TextBox()
                                                 .Disabled(false)
-                                                .Placeholder("è«‹è¼¸å…¥å¸³è™Ÿ")
+                                                .Placeholder("½Ğ¿é¤J±b¸¹")
                                                 .ShowClearButton(true)
                                             );
                                         items.AddSimple()
                                             .DataField("Password")
-                                            .Label(l => l.Text("å¯†ç¢¼"))
+                                            .Label(l => l.Text("±K½X"))
                                             .Editor(e => e
                                                 .TextBox()
                                                 .Mode(TextBoxMode.Password)
                                                 .Disabled(false)
-                                                .Placeholder("è«‹è¼¸å…¥å¯†ç¢¼")
+                                                .Placeholder("½Ğ¿é¤J±K½X")
                                                 .ShowClearButton(true)
                                             );
                                     })
@@ -174,7 +318,7 @@
                             </div>
                             <div class="actions">
                                 @(Html.DevExtreme().Button()
-                                    .Text("ç™»å…¥")
+                                    .Text("µn¤J")
                                     .Type(ButtonType.Default)
                                     .ID("save-button")
                                     .UseSubmitBehavior(true)
@@ -182,7 +326,7 @@
                                     .Width(120)
                                 )
                                 @(Html.DevExtreme().Button()
-                                    .Text("è¨­å®šå¸³è™Ÿå¯†ç¢¼")
+                                    .Text("³]©w±b¸¹±K½X")
                                     .Type(ButtonType.Normal)
                                     .Visible(false)
                                     .ID("register-button")
@@ -192,10 +336,10 @@
                                 )
                             </div>
                             <div class="mt-5 small text-muted text-center">
-                                å¿˜è¨˜å¯†ç¢¼ï¼Ÿè«‹è¯çµ¡æ•™æœƒè¡Œæ”¿åŒå·¥å”åŠ©é‡è¨­ã€‚
+                                §Ñ°O±K½X¡H½ĞÁpµ¸±Ğ·|¦æ¬F¦P¤u¨ó§U­«³]¡C
                             </div>
 
-                            <!-- è¼‰å…¥é¢æ¿ -->
+                            <!-- ¸ü¤J­±ªO -->
                             <div id="LoadPanel">
                                 @(Html.DevExtreme().LoadPanel()
                                     .ID("loadPanel")
@@ -206,7 +350,7 @@
                                     .ShowPane(true)
                                     .Shading(true)
                                     .CloseOnOutsideClick(false)
-                                    .Message("ç™»å…¥ä¸­ï¼Œè«‹ç¨å€™â€¦")
+                                    .Message("µn¤J¤¤¡A½Ğµy­Ô¡K")
                                     .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
                                 )
                             </div>
@@ -217,16 +361,65 @@
         </div>
     </main>
 
-    <footer class="footer-note" role="contentinfo">Copyright Â© @DateTime.Now.Year å¥½ç‰§äºº</footer>
+    <footer class="footer-note" role="contentinfo">Copyright ? @DateTime.Now.Year ¦nªª¤H</footer>
 
-    <!-- JSï¼šé é¢äº’å‹• -->
+    <!-- JS¡G­¶­±¤¬°Ê -->
     <script>
         function getLoadPanelInstance() { return $("#loadPanel").dxLoadPanel("instance"); }
         function Login(arg) { getLoadPanelInstance().show(); }
         function Register(arg) { window.location.href = "/Home/Register"; }
+
+        // ? ¯Â Vanilla JS ¤Û¿O¤ù±±¨î - §¹¥ş¿W¥ß
+        $(function() {
+            console.log('[Login.cshtml] Initializing pure HTML5 slideshow');
+
+            var slides = document.querySelectorAll('.slide');
+            var currentSlideIndex = 0;
+            var slideshowInterval = null;
+
+            console.log('[Login.cshtml] Total slides:', slides.length);
+
+            // ªì©l¤Æ¡GÅã¥Ü²Ä¤@±i¹Ï
+            if (slides.length > 0) {
+                slides[0].classList.add('active');
+                console.log('[Login.cshtml] First slide activated');
+
+                // ¦pªG¦³¦h±i¹Ï¡A±Ò°Ê¤Û¿O¤ù
+                if (slides.length > 1) {
+                    var showNextSlide = function() {
+                        // ÁôÂÃ·í«e¹Ï¤ù
+                        slides[currentSlideIndex].classList.remove('active');
+
+                        // ²¾°Ê¨ì¤U¤@±i
+                        currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+
+                        // Åã¥Ü¤U¤@±i
+                        slides[currentSlideIndex].classList.add('active');
+
+                        console.log('[Login.cshtml] Showing slide:', currentSlideIndex + 1, 'of', slides.length);
+                    };
+
+                    // ¨C 5000ms ¤Á´«¤@±i (5¬í°±¯d + 1.2¬í¹L³õ = 6.2¬í¶g´Á)
+                    slideshowInterval = setInterval(showNextSlide, 5000);
+                    console.log('[Login.cshtml] Slideshow started - interval: 5000ms');
+                } else {
+                    console.log('[Login.cshtml] Only one slide, no need for interval');
+                }
+            } else {
+                console && console.warn && console.warn('[Login.cshtml] No slides found');
+            }
+
+            // ²M²z¡G­¶­±¨ø¸ü®É°±¤î¤Û¿O¤ù
+            $(window).on('beforeunload', function() {
+                if (slideshowInterval) {
+                    clearInterval(slideshowInterval);
+                    console.log('[Login.cshtml] Slideshow cleared');
+                }
+            });
+        });
     </script>
 
-    <!-- AJAX äº‹ä»¶è™•ç† -->
+    <!-- AJAX ¨Æ¥ó³B²z -->
     <script>
         function onBegin() { }
         function onSuccess(data) {
@@ -247,7 +440,7 @@
         function onComplete(data) { }
     </script>
 
-    <!-- Toast å‡½æ•¸ -->
+    <!-- Toast ¨ç¼Æ -->
     <script>
         function ShowToast(LocalToastMessage, Type, DisplayTime) {
             var ToastInstance = $("#Toast").dxToast("instance");
@@ -256,10 +449,9 @@
                 type: Type,
                 displayTime: DisplayTime,
                 closeOnClick: true,
-                // å‹•æ…‹èª¿æ•´ä½ç½®ï¼ˆæ¸¬è©¦ç”¨ï¼‰
                 position: {
                     at: 'center center',
-                    of: '.login-card',  // æˆ– '#form-container'ã€window
+                    of: '.login-card',
                     offset: '0 20'
                 }
             });
@@ -267,7 +459,7 @@
         }
     </script>
 
-    <!-- å…¶ä»–è³‡æº -->
+    <!-- ¨ä¥L¸ê·½ -->
     <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
     <link href="~/css/Gallery.css" rel="stylesheet" />
     <link href="~/css/WeeklyReport.css" rel="stylesheet" />
