@@ -910,16 +910,23 @@ namespace ChurchReport.Controllers
         /// </summary>
         private void SetupSystemData(Entity loginContact, GalleryViewModel viewModel)
         {
+            IOrganizationService service = null;
             try
             {
+                // 從連接池獲取連接
+                service = GetConnection();
+                System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 已從連接池獲取 IOrganizationService");
+                
                 // 設定多個組長處理需要的資料
                 System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 呼叫 SetupListManager - 開始時間: {DateTime.Now:HH:mm:ss.fff}");
                 try
                 {
+                    // ✅ 傳入 organizationService 避免內部為 null
                     InMemoryContext.ListManager.SetupListManager(
                         viewModel.Account, 
                         viewModel.Password, 
-                        DateTime.Now);
+                        DateTime.Now,
+                        service); // 傳入連接池中的服務
                     System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupListManager 完成 - 時間: {DateTime.Now:HH:mm:ss.fff}");
                 }
                 catch (Exception ex)
@@ -975,6 +982,15 @@ namespace ChurchReport.Controllers
             {
                 System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 整體失敗: {ex.Message}\n{ex.StackTrace}");
                 throw;
+            }
+            finally
+            {
+                // 歸還連接到池（非常重要！確保連接重用）
+                if (service != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 歸還 IOrganizationService 到連接池");
+                    ReleaseConnection(service);
+                }
             }
         }
 

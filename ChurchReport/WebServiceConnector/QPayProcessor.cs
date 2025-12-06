@@ -29,6 +29,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
 
         #region 商店設定
+        //private string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
         private string m_ShopNo = m_Configuration["Sandbox:ShopNo"];
         #endregion
 

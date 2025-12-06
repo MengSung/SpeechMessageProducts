@@ -1,5 +1,6 @@
 ﻿using ChurchReport.WebServiceConnector;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Xrm.Sdk;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -45,7 +46,7 @@ namespace ChurchReport.Models
 
         DownloadIntegrateData m_DownloadIntegrateData = new DownloadIntegrateData();
 
-        public void SetupListManager(String Account, String Password, DateTime aSelectDate )
+        public void SetupListManager(String Account, String Password, DateTime aSelectDate, IOrganizationService organizationService = null)
         {
             try
             {
@@ -55,7 +56,7 @@ namespace ChurchReport.Models
 
                 m_SelectDate = aSelectDate;
 
-                m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_MultiGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref UserType, ref LoginFullName, ref ActiveListId );
+                m_DownloadListManager.GetListManager(Account, Password, aSelectDate, ref m_MultiGroupList, ref m_MultiGroupChartDataList, ref LoginType, ref UserType, ref LoginFullName, ref ActiveListId, organizationService);
             }
             catch (System.Exception e)
             {

@@ -4,5 +4,271 @@
         <name>Trace</name>
     </assembly>
     <members>
+        <member name="T:TraceNameSpace.BugslayerStackTrace">
+            <summary>
+            A stack trace class that actually works to get the source and line
+            information when you call ToString.  The <see cref="T:System.Diagnostics.StackTrace"/>
+            class in the VS.NET V1 bits never seems to include the source and
+            line even though the documentation says it does.
+            If you don't care about getting the source and line with a stack
+            trace, use the StackTrace class directly.
+            </summary>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerStackTrace.#ctor">
+            <summary>
+            Initializes a new instance of the
+            <see cref="T:TraceNameSpace.BugslayerStackTrace"/> class
+            from the current location, in a caller's frame.
+            </summary>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerStackTrace.#ctor(System.Exception)">
+            <summary>
+            Initializes a new instance of the
+            <see cref="T:TraceNameSpace.BugslayerStackTrace"/> class.
+            </summary>
+            <param name="e">
+            The exception object from which to construct the stack trace.
+            </param>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerStackTrace.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the
+            <see cref="T:TraceNameSpace.BugslayerStackTrace"/> class from the current
+            location, in a caller's frame, optionally skipping the given
+            number of frames.
+            </summary>
+            <param name="skipFrames">
+            The number of frames up the stack from which to start the trace.
+            </param>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerStackTrace.#ctor(System.Exception,System.Int32)">
+            <summary>
+            Initializes a new instance of the
+            <see cref="T:TraceNameSpace.BugslayerStackTrace"/> class using the provided
+            exception object, optionally skipping the given number of
+            frames.
+            </summary>
+            <param name="e">
+            The exception object from which to construct the stack trace.
+            </param>
+            <param name="skipFrames">
+            The number of frames up the stack from which to start the trace.
+            </param>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerStackTrace.#ctor(System.Threading.Thread)">
+            <summary>
+            Initializes a new instance of the
+            <see cref="T:TraceNameSpace.BugslayerStackTrace"/> class for another thread,
+            optionally capturing source information.
+            </summary>
+            <param name="targetThread">
+            The thread whose stack trace is requested.
+            </param>
+            <remarks>
+            ?? Warning: This constructor is obsolete in .NET Core and .NET 10.
+            The StackTrace(Thread, bool) constructor has been removed from .NET Core/.NET 10.
+            Use the parameterless constructor to capture the current thread's stack trace instead.
+            </remarks>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerStackTrace.ToString">
+            <summary>
+            Builds a readable representation of the stack trace.
+            </summary>
+            <remarks>
+            This includes, method name, source and source line.
+            </remarks>
+            <returns>
+            A readable representation of the stack trace.
+            </returns>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerStackTrace.BuildFrameInfo(System.Text.StringBuilder,System.Diagnostics.StackFrame)">
+            <summary>
+            Takes care of the scut work to convert a frame into a string
+            and to plop it into a string builder.
+            </summary>
+            <param name="StrBld">
+            The StringBuilder to append the results to.
+            </param>
+            <param name="StkFrame">
+            The stack frame to convert.
+            </param>
+        </member>
+        <member name="F:TraceNameSpace.BugslayerStackTrace.m_sLineEnd">
+            <summary>
+            The private string for the line ending characters.
+            </summary>
+        </member>
+        <member name="P:TraceNameSpace.BugslayerStackTrace.LineEnd">
+            <summary>
+            Sets the characters to use for the end of the line.
+            </summary>
+        </member>
+        <member name="F:TraceNameSpace.BugslayerStackTrace.m_sSourceIndentString">
+            <summary>
+            The private string for holding the indent characters.
+            </summary>
+        </member>
+        <member name="P:TraceNameSpace.BugslayerStackTrace.SourceIndentString">
+            <summary>
+            Holds the string to use for indenting sourse code.  If this is
+            null, the default, the source and line is place on the same
+            line as the function name.
+            </summary>
+        </member>
+        <member name="F:TraceNameSpace.BugslayerStackTrace.m_sFunctionIndent">
+            <summary>
+            The private string for holding the indent to put on the front
+            of the function.
+            </summary>
+        </member>
+        <member name="P:TraceNameSpace.BugslayerStackTrace.FunctionIndent">
+            <summary>
+            The string to put at the beginning of all functions.  This is
+            \t\t\t to mimic the default StackTrace.ToString().
+            </summary>
+        </member>
+        <member name="F:TraceNameSpace.BugslayerStackTrace.DefaultLineEnd">
+            <summary>
+            The default line ending, "\r\n".
+            </summary>
+        </member>
+        <member name="F:TraceNameSpace.BugslayerStackTrace.DefaultFunctionIndent">
+            <summary>
+            The default function indent, "\t".
+            </summary>
+        </member>
+        <member name="T:TraceNameSpace.BugslayerTextWriterTraceListener">
+            <summary>
+            It's sad, but the default
+            <seealso cref="T:System.Diagnostics.TextWriterTraceListener"/> does not write out
+            the full stack trace on assertions.  Why, I'll never know.
+            Use this class as a drop in replacement as it will do the
+            stack trace you expect.
+            </summary>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerTextWriterTraceListener.#ctor">
+            <summary>
+            Initializes a new instance of the
+            <see cref="T:TraceNameSpace.BugslayerTextWriterTraceListener"/> class with
+            <see cref="T:System.IO.TextWriter"/> as the output recipient.
+            </summary>
+            <remarks>
+            See <see cref="T:System.Diagnostics.TextWriterTraceListener"/>
+            </remarks>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerTextWriterTraceListener.#ctor(System.IO.Stream)">
+            <summary>
+            Initializes a new instance of the
+            <see cref="T:TraceNameSpace.BugslayerTextWriterTraceListener"/> class using the
+            stream as the recipient of the debugging and tracing output.
+            </summary>
+            <remarks>
+            See <see cref="T:System.Diagnostics.TextWriterTraceListener"/>
+            </remarks>
+            <param name="stream">
+            A that represents the stream the
+             writes to.
+            </param>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerTextWriterTraceListener.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the
+            <see cref="T:TraceNameSpace.BugslayerTextWriterTraceListener"/> class using the
+            file as the recipient of the debugging and tracing output.
+            </summary>
+            <remarks>
+            See <see cref="T:System.Diagnostics.TextWriterTraceListener"/>
+            </remarks>
+            <param name="fileName">
+            The name of the file the
+             writes to.
+            </param>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerTextWriterTraceListener.#ctor(System.IO.TextWriter)">
+            <summary>
+            Initializes a new instance of the
+            <see cref="T:TraceNameSpace.BugslayerTextWriterTraceListener"/> class using the
+            writer as the recipient of the debugging and tracing output.
+            </summary>
+            <remarks>
+            See <see cref="T:System.Diagnostics.TextWriterTraceListener"/>
+            </remarks>
+            <param name="writer">
+            A  that receives the output from the
+            </param>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerTextWriterTraceListener.#ctor(System.IO.Stream,System.String)">
+            <summary>
+            Initializes a new instance of the
+            <see cref="T:TraceNameSpace.BugslayerTextWriterTraceListener"/> class with the
+            specified name, using the stream as the recipient of the
+            debugging and tracing output.
+            </summary>
+            <remarks>
+            See <see cref="T:System.Diagnostics.TextWriterTraceListener"/>
+            </remarks>
+            <param name="stream">
+            A  that represents the stream the
+             writes to.
+            </param>
+            <param name="name">
+            The name of the new instance.
+            </param>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerTextWriterTraceListener.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the
+            <see cref="T:TraceNameSpace.BugslayerTextWriterTraceListener"/> class with the
+            specified name, using the file as the recipient of the
+            debugging and tracing output.
+            </summary>
+            <remarks>
+            See <see cref="T:System.Diagnostics.TextWriterTraceListener"/>
+            </remarks>
+            <param name="fileName">
+            The name of the file the
+             writes to.
+            </param>
+            <param name="name">
+            The name of the new instance.
+            </param>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerTextWriterTraceListener.#ctor(System.IO.TextWriter,System.String)">
+            <summary>
+            Initializes a new instance of the
+            <see cref="T:TraceNameSpace.BugslayerTextWriterTraceListener"/> class with the
+            specified writer, using the file as the recipient of the
+            debugging and tracing output.
+            </summary>
+            <remarks>
+            See <see cref="T:System.Diagnostics.TextWriterTraceListener"/>
+            </remarks>
+            <param name="writer">
+            A  that receives the output from the
+            .
+            </param>
+            <param name="name">
+            The name of the new instance.
+            </param>
+        </member>
+        <member name="M:TraceNameSpace.BugslayerTextWriterTraceListener.Fail(System.String,System.String)">
+            <summary>
+            Overrides the <see cref="T:System.Diagnostics.TextWriterTraceListener"/> so that
+            the stack trace is written to the text file.  An assertion
+            without a stack trace is pretty worthless.  While there are
+            two Fail methods, the 
+            <see cref="T:System.Diagnostics.TextWriterTraceListener"/>.Fail
+            version simply calls this version.
+            </summary>
+            <remarks>
+            See <see cref="T:System.Diagnostics.TextWriterTraceListener"/>
+            </remarks>
+            <param name="message">
+            A message to emit.
+            </param>
+            <param name="detailMessage">
+            A detailed message to emit.
+            </param>
+        </member>
     </members>
 </doc>

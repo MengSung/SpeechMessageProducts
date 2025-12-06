@@ -74,14 +74,11 @@
   </PropertyGroup>
 
   <!-- ========================================
-       條件編譯：只在 Debug 模式下包含 Bugslayer 類別
-       Release 模式下這些檔案不會被編譯到 DLL 中
+       條件編譯：Release 模式下排除 Bugslayer 類別
+       SDK 樣式專案會自動包含所有 .cs 檔案，
+       所以只需要在 Release 模式下移除即可
+       Debug 模式下不需要明確 Include，會自動包含
        ======================================== -->
-  <ItemGroup Condition="'$(Configuration)'=='Debug'">
-    <Compile Include="BSUTextWriterTraceListener.cs" />
-    <Compile Include="BSUStackTrace.cs" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(Configuration)'=='Release'">
     <Compile Remove="BSUTextWriterTraceListener.cs" />
     <Compile Remove="BSUStackTrace.cs" />

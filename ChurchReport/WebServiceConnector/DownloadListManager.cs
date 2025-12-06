@@ -87,10 +87,27 @@ namespace ChurchReport.WebServiceConnector
         #endregion
         #region 下載資料區
         #region 主程式區
-        public void GetListManager( String Account, String Password, DateTime aDownloadDate, ref MultiGroupList aMultiGroupList, ref MultiGroupChartDataList aMultiGroupChartDataList, ref String LoginType, ref String UserType, ref String LoginFullName, ref String ActiveListId )
+        public void GetListManager( String Account, String Password, DateTime aDownloadDate, ref MultiGroupList aMultiGroupList, ref MultiGroupChartDataList aMultiGroupChartDataList, ref String LoginType, ref String UserType, ref String LoginFullName, ref String ActiveListId, IOrganizationService organizationService = null )
         {
             try
             {
+                // ✅ 如果傳入了 organizationService 且 m_ToolUtilityClass 的服務為 null，則設定它
+                if (organizationService != null && this.m_ToolUtilityClass != null)
+                {
+                    if (this.m_ToolUtilityClass.m_Crm2011OrganizationService == null)
+                    {
+                        this.m_ToolUtilityClass.m_Crm2011OrganizationService = organizationService;
+                    }
+                    if (this.m_ToolUtilityClass.m_OrganizationService == null)
+                    {
+                        // 如果是 OrganizationServiceProxy 類型才設定
+                        if (organizationService is OrganizationServiceProxy)
+                        {
+                            this.m_ToolUtilityClass.m_OrganizationService = organizationService as OrganizationServiceProxy;
+                        }
+                    }
+                }
+                
                 #region 多小組需要的資料結構，在此配置記憶體，並回傳給上層呼叫者
                 m_MultiGroupList.m_WeeklyReportRecordListData = new List<WeeklyReportRecord>();
 
@@ -210,7 +227,6 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-
         #endregion
         #region 處理小組名單
         private void ProcessListEntity()
@@ -328,9 +344,25 @@ namespace ChurchReport.WebServiceConnector
         {
             #region // 初始化每個小組名單，建立原始的 Member Data
 
-            // 明確欄位取得 list，避免 ColumnSet(true)
-            var optimizedQuery = new EntityOptimizedQueryService(new object(), this.m_ToolUtilityClass.m_OrganizationService);
-            var listEntity = optimizedQuery.RetrieveEntity("list", ListEntityId, CrmEntityColumns.List.Extended);
+            // ✅ 確保使用正確的 organizationService
+            IOrganizationService serviceToUse = null;
+            if (this.m_ToolUtilityClass.m_Crm2011OrganizationService != null)
+            {
+                serviceToUse = this.m_ToolUtilityClass.m_Crm2011OrganizationService;
+            }
+            else if (this.m_ToolUtilityClass.m_OrganizationService != null)
+            {
+                serviceToUse = this.m_ToolUtilityClass.m_OrganizationService;
+            }
+            
+            if (serviceToUse == null)
+            {
+                throw new ArgumentNullException(nameof(serviceToUse), "organizationService 為 null，無法查詢小組成員數量");
+            }
+
+            // ✅ 只查詢必要的欄位（避免查詢不存在的欄位）
+            // 只需要 type 欄位來判斷名單類型（靜態/動態）
+            var listEntity = serviceToUse.Retrieve("list", ListEntityId, new ColumnSet("type"));
 
             bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(listEntity, "type");
             EntityCollection MemberCollection;
@@ -339,7 +371,14 @@ namespace ChurchReport.WebServiceConnector
                 // 靜態名單：批量取得成員（使用既有方法，但避免對 list 再次 Retrieve）
                 if (CRM_TYPE == "DYNAMICS365")
                 {
-                    MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                    if (this.m_ToolUtilityClass.m_OrganizationService != null)
+                    {
+                        MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                    }
+                    else
+                    {
+                        MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                    }
                 }
                 else
                 {
@@ -351,7 +390,14 @@ namespace ChurchReport.WebServiceConnector
                 // 動態名單
                 if (CRM_TYPE == "DYNAMICS365")
                 {
-                    MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                    if (this.m_ToolUtilityClass.m_OrganizationService != null)
+                    {
+                        MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId);
+                    }
+                    else
+                    {
+                        MemberCollection = this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
+                    }
                 }
                 else
                 {

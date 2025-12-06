@@ -33,7 +33,7 @@ namespace ChurchReport.Tools
         //private static string _site = m_Configuration["Sandbox:Site_Xkey"];
         private static string _site = m_Configuration["Sandbox:Site"];
 
-        //// SANDBOX 測試用
+        // SANDBOX 測試用
         private static String A1 = m_Configuration["Sandbox:A1"];
         private static String A2 = m_Configuration["Sandbox:A2"];
         private static String B1 = m_Configuration["Sandbox:B1"];
@@ -47,6 +47,7 @@ namespace ChurchReport.Tools
 
         //永豐金流正式環境
         //永豐金流寄給聖谷行道會的HASH CODE
+        //private static string _site = m_Configuration["Sinopac:Site"];
         //private static String A1 = m_Configuration["Sinopac:A1"];
         //private static String A2 = m_Configuration["Sinopac:A2"];
         //private static String B1 = m_Configuration["Sinopac:B1"];
