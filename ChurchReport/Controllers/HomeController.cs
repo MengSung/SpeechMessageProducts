@@ -418,6 +418,44 @@ namespace ChurchReport.Controllers
                 
                 ViewBag.DisplayNavigation = "顯示牧養回報項目";  // 確保顯示導航
                 
+                // ? 修復：設定欄位標題參數（用於 onCustomizeColumns 函數）
+                // 初始化所有欄位標題為空字串，避免 JavaScript 錯誤
+                ViewBag.Colume9 = "";
+                ViewBag.Colume10 = "";
+                ViewBag.Colume11 = "";
+                ViewBag.Colume12 = "";
+                ViewBag.Colume13 = "";
+                ViewBag.Colume14 = "";
+                ViewBag.Colume15 = "";
+                ViewBag.Colume16 = "";
+                ViewBag.Colume17 = "";
+                ViewBag.Colume18 = "";
+                ViewBag.Colume19 = "";
+                ViewBag.Colume20 = "";
+                ViewBag.Colume21 = "";
+                ViewBag.Colume22 = "";
+                ViewBag.Colume23 = "";
+                ViewBag.Colume24 = "";
+                ViewBag.Colume25 = "";
+                ViewBag.Colume26 = "";
+                ViewBag.Colume27 = "";
+                ViewBag.Colume28 = "";
+                ViewBag.Colume29 = "";
+                ViewBag.Colume30 = "";
+                ViewBag.Colume31 = "";
+                ViewBag.Colume32 = "";
+                ViewBag.Colume33 = "";
+                ViewBag.Colume34 = "";
+                ViewBag.Colume35 = "";
+                ViewBag.Colume36 = "";
+                ViewBag.Colume37 = "";
+                ViewBag.Colume38 = "";
+                ViewBag.Colume39 = "";
+                ViewBag.Colume40 = "";
+                ViewBag.Colume41 = "";
+                ViewBag.Colume42 = "";
+                ViewBag.Colume43 = "";
+                
                 System.Diagnostics.Debug.WriteLine($"[PresentView] DiscipleLessonsId={DiscipleLessonsId}, FeeDataCount={feeDataCount}, FeeDataListCount={ViewBag.FeeDataListCount}, LoginType={ViewBag.LoginType}, FeeType={ViewBag.FeeType}");
 
                 return View(InMemoryContext.FeeList);
