@@ -1,0 +1,19 @@
+@* ===========================================
+   Login 頁面載入面板組件
+   =========================================== *@
+
+<!-- 載入面板 -->
+<div id="LoadPanel">
+    @(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")                 // 載入面板識別碼
+        .ShadingColor("rgba(0,0,0,0.45)") // 遮罩顏色
+        .Position(p => p.Of("#form-container")) // 相對於表單容器
+        .Visible(false)                  // 預設隱藏
+        .ShowIndicator(true)             // 顯示指示器
+        .ShowPane(true)                  // 顯示面板
+        .Shading(true)                   // 啟用遮罩
+        .CloseOnOutsideClick(false)      // 不允許點擊外部關閉
+        .Message("登入中，請稍候…")      // 訊息文字
+        .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing))) // 顯示動畫
+    )
+</div>

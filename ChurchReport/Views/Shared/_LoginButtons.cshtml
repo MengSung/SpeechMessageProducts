@@ -1,0 +1,29 @@
+@* ===========================================
+   Login 頁面按鈕區域
+   =========================================== *@
+
+<!-- 按鈕區域 -->
+<div class="actions">
+    @(Html.DevExtreme().Button()
+        .Text("登入")                    // 按鈕文字
+        .Type(ButtonType.Default)        // 預設樣式
+        .ID("save-button")               // 按鈕識別碼
+        .UseSubmitBehavior(true)         // 提交表單
+        .OnClick("Login")                // 點擊事件
+        .Width(120)                      // 寬度
+    )
+    @(Html.DevExtreme().Button()
+        .Text("設定帳號密碼")            // 按鈕文字
+        .Type(ButtonType.Normal)         // 普通樣式
+        .Visible(false)                  // 預設隱藏
+        .ID("register-button")           // 按鈕識別碼
+        .UseSubmitBehavior(false)        // 不提交表單
+        .OnClick("Register")             // 點擊事件
+        .Width(160)                      // 寬度
+    )
+</div>
+
+<!-- 忘記密碼提示 -->
+<div class="mt-5 small text-muted text-center">
+    忘記密碼？請聯絡教會行政同工協助重設。
+</div>

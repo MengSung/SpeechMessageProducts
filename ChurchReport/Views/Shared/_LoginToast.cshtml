@@ -1,0 +1,20 @@
+@* ===========================================
+   Login 頁面 Toast 通知組件
+   =========================================== *@
+
+<!-- Toast 通知容器 -->
+<div id="ToastContainer">
+    @(Html.DevExtreme().Toast()
+        .ID("Toast")                                    // Toast 唯一識別碼
+        .Position(p => p
+            .At(HorizontalAlignment.Center, VerticalAlignment.Top)  // 位置：居中上方
+            .Of(".card-soft-body")                         // 相對於卡片內容區
+            .Offset(0, 10))                                // 偏移量
+        .CloseOnOutsideClick(true)                      // 點擊外部關閉
+        .DisplayTime(2400)                              // 顯示時間 2.4 秒
+        .MaxWidth("90%")                                // 最大寬度 90%
+        .Animation(a => a
+            .Show(s => s.Type(AnimationType.Fade).Duration(300))  // 顯示動畫
+            .Hide(h => h.Type(AnimationType.Fade).Duration(200))) // 隱藏動畫
+    )
+</div>

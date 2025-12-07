@@ -66,22 +66,8 @@
         <div class="row">
             <div class="col-12">
                 <div class="login-card card-soft" aria-labelledby="loginHeader">
-                    <!-- Toast 通知容器 -->
-                    <div id="ToastContainer">
-                        @(Html.DevExtreme().Toast()
-                            .ID("Toast")                                    // Toast 唯一識別碼
-                            .Position(p => p
-                                .At(HorizontalAlignment.Center, VerticalAlignment.Top)  // 位置：居中上方
-                                .Of(".card-soft-body")                         // 相對於卡片內容區
-                                .Offset(0, 10))                                // 偏移量
-                            .CloseOnOutsideClick(true)                      // 點擊外部關閉
-                            .DisplayTime(2400)                              // 顯示時間 2.4 秒
-                            .MaxWidth("90%")                                // 最大寬度 90%
-                            .Animation(a => a
-                                .Show(s => s.Type(AnimationType.Fade).Duration(300))  // 顯示動畫
-                                .Hide(h => h.Type(AnimationType.Fade).Duration(200))) // 隱藏動畫
-                        )
-                    </div>
+                    <!-- 載入 Login 頁面 Toast 組件 -->
+                    @await Html.PartialAsync("_LoginToast")
 
                     <!-- 卡片標題 -->
                     <div class="card-soft-header" id="loginHeader">
@@ -123,47 +109,11 @@
                                 )
                             </div>
 
-                            <!-- 按鈕區域 -->
-                            <div class="actions">
-                                @(Html.DevExtreme().Button()
-                                    .Text("登入")                    // 按鈕文字
-                                    .Type(ButtonType.Default)        // 預設樣式
-                                    .ID("save-button")               // 按鈕識別碼
-                                    .UseSubmitBehavior(true)         // 提交表單
-                                    .OnClick("Login")                // 點擊事件
-                                    .Width(120)                      // 寬度
-                                )
-                                @(Html.DevExtreme().Button()
-                                    .Text("設定帳號密碼")            // 按鈕文字
-                                    .Type(ButtonType.Normal)         // 普通樣式
-                                    .Visible(false)                  // 預設隱藏
-                                    .ID("register-button")           // 按鈕識別碼
-                                    .UseSubmitBehavior(false)        // 不提交表單
-                                    .OnClick("Register")             // 點擊事件
-                                    .Width(160)                      // 寬度
-                                )
-                            </div>
+                            <!-- 載入 Login 頁面按鈕區域 -->
+                            @await Html.PartialAsync("_LoginButtons")
 
-                            <!-- 忘記密碼提示 -->
-                            <div class="mt-5 small text-muted text-center">
-                                忘記密碼？請聯絡教會行政同工協助重設。
-                            </div>
-
-                            <!-- 載入面板 -->
-                            <div id="LoadPanel">
-                                @(Html.DevExtreme().LoadPanel()
-                                    .ID("loadPanel")                 // 載入面板識別碼
-                                    .ShadingColor("rgba(0,0,0,0.45)") // 遮罩顏色
-                                    .Position(p => p.Of("#form-container")) // 相對於表單容器
-                                    .Visible(false)                  // 預設隱藏
-                                    .ShowIndicator(true)             // 顯示指示器
-                                    .ShowPane(true)                  // 顯示面板
-                                    .Shading(true)                   // 啟用遮罩
-                                    .CloseOnOutsideClick(false)      // 不允許點擊外部關閉
-                                    .Message("登入中，請稍候…")      // 訊息文字
-                                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing))) // 顯示動畫
-                                )
-                            </div>
+                            <!-- 載入 Login 頁面載入面板 -->
+                            @await Html.PartialAsync("_LoginLoadPanel")
                         </form>
                     </div>
                 </div>
