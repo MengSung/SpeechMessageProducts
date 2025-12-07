@@ -60,9 +60,9 @@ namespace ChurchReport.Controllers
             {
                 var images = new List<string>();
                 images.Add(Url.Content("~/assets/images/church-001.jpg"));
-                images.Add(Url.Content("~/assets/images/church-002.jpg"));
-                images.Add(Url.Content("~/assets/images/church-001.jpg"));
-                images.Add(Url.Content("~/assets/images/church-002.jpg"));
+                //images.Add(Url.Content("~/assets/images/church-002.jpg"));
+                //images.Add(Url.Content("~/assets/images/church-001.jpg"));
+                //images.Add(Url.Content("~/assets/images/church-002.jpg"));
 
                 return View(new GalleryViewModel
                 {

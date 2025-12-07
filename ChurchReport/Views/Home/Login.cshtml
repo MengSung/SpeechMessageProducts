@@ -1,35 +1,47 @@
-@* 
-    �n�J����(�睊)�G
-    - ����u���B�T�����B����Э���
-    - Hero �϶��G�I���� HTML5 �ۿO�� + ���h�л\
-    - �d�����n�J����B���J���O�P Toast ����
-    - �O�d�J�� DevExtreme ����P AJAX �y�{
+﻿@* 
+    登入頁面(改版)：
+    - 行動優先、響應式、基督教風格
+    - Hero 區塊：背景 Gallery 疊加漸層、教會名稱與經文
+    - 卡片式登入表單、載入面板與 Toast 提示
+    - 保留既有 DevExtreme 表單與 AJAX 流程
 *@
+
 @{
+    // 設定頁面不使用 Layout，獨立渲染
     Layout = null;
 }
+
 @model ChurchReport.ViewModel.GalleryViewModel
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
+    <!-- 頁面基本資訊 -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="description" content="�n���H �n�J" />
-    <meta name="author" content="�n���H" />
+    <meta name="description" content="好牧人 登入" />
+    <meta name="author" content="好牧人" />
 
-    <title>�n���H�U�n�J</title>
+    <title>好牧人｜登入</title>
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
 
-    <!-- Bootstrap / DevExtreme CSS -->
+    <!-- CSS 資源載入 -->
+    <!-- Bootstrap 框架樣式 -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <!-- 網站通用樣式 -->
     <link rel="stylesheet" href="~/css/site.css" />
+    <!-- DevExtreme 通用樣式 -->
     <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
+    <!-- DevExtreme 淺色主題 -->
     <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
+    <!-- Font Awesome 圖標 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
-        /* Hero ��T�P�л\�h */
+        /* ===========================================
+           Hero 橫幅與覆蓋層樣式
+           =========================================== */
         .hero-wrapper {
             position: relative;
             width: 100%;
@@ -37,41 +49,12 @@
             overflow: hidden;
         }
 
-        /* ? �� HTML5 �ۿO���e�� */
-        .slideshow-container {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            background: #000;
+        /* Gallery 容器偏移調整 */
+        .hero-gallery-shift .dx-gallery, .hero-gallery-shift .dx-gallery-wrapper {
+            margin-top: 40px;
         }
 
-        .slide {
-            display: none;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            opacity: 0;
-            transition: opacity 1200ms ease-in-out;
-        }
-
-        .slide img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            object-position: center;
-            display: block;
-        }
-
-        .slide.active {
-            display: block;
-            opacity: 1;
-        }
-
-        /* �л\�h */
+        /* Hero 覆蓋層：顯示教會名稱與經文 */
         .hero-overlay {
             position: absolute;
             inset: 0;
@@ -83,9 +66,9 @@
             color: #fff;
             padding: 1rem;
             background: linear-gradient(135deg, rgba(0,0,0,.55), rgba(0,0,0,.25));
-            z-index: 10;
         }
 
+        /* 教會名稱樣式 */
         .hero-overlay h1 {
             font-size: 1.9rem;
             letter-spacing: 2px;
@@ -93,12 +76,14 @@
             margin-bottom: .35rem;
         }
 
+        /* 副標題樣式 */
         .hero-overlay .sub {
             font-size: .95rem;
             opacity: .92;
             margin-bottom: .5rem;
         }
 
+        /* 經文樣式 */
         .hero-overlay .verse {
             font-size: .95rem;
             line-height: 1.4;
@@ -112,6 +97,7 @@
             opacity: .85;
         }
 
+        /* 信仰圖標動畫 */
         .logo-faith {
             font-size: 2.2rem;
             margin-bottom: .35rem;
@@ -119,18 +105,103 @@
             animation: pulse 3.5s infinite;
         }
 
+        /* 脈衝動畫定義 */
         @@keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.08); }
             100% { transform: scale(1); }
         }
 
-        /* ���e�� */
+        /* ===========================================
+           Gallery 圖片樣式
+           =========================================== */
+        /* Gallery 容器高度設定 */
+        .hero-wrapper .dx-gallery, .hero-wrapper .dx-gallery-wrapper {
+            height: 100%;
+        }
+
+        /* Gallery 項目樣式：強制絕對定位，避免兩張圖同時可見 */
+        .hero-wrapper .dx-gallery-item {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            position: absolute !important;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 800ms ease-in-out !important;
+            pointer-events: none;
+        }
+
+        /* 選中的 Gallery 項目：顯示並啟用互動 */
+        .hero-wrapper .dx-gallery-item.dx-gallery-item-selected {
+            opacity: 1 !important;
+            pointer-events: auto;
+            z-index: 2;
+        }
+
+        /* 非選中的 Gallery 項目：隱藏 */
+        .hero-wrapper .dx-gallery-item:not(.dx-gallery-item-selected) {
+            opacity: 0 !important;
+            z-index: 1;
+        }
+
+        /* Gallery 項目內容樣式 */
+        .hero-wrapper .dx-gallery-item .dx-gallery-item-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* 圖片樣式：保持比例，居中顯示 */
+        .hero-wrapper .dx-gallery-item img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            object-position: center center;
+            display: block;
+        }
+
+        /* ===========================================
+           響應式設計：小螢幕調整
+           =========================================== */
+        @@media (max-width: 575.98px) {
+            /* 小螢幕：自動高度，確保圖片完整顯示 */
+            .hero-wrapper {
+                height: auto;
+                min-height: 240px;
+            }
+
+            .hero-wrapper .dx-gallery, .hero-wrapper .dx-gallery-wrapper {
+                height: auto;
+            }
+
+            .hero-wrapper .dx-gallery-item {
+                min-height: 240px;
+            }
+
+            /* 調整覆蓋層標題大小 */
+            .hero-overlay h1 {
+                font-size: 1.6rem;
+            }
+        }
+
+        /* ===========================================
+           內容區樣式
+           =========================================== */
         .main-section {
             margin-top: 0;
             padding-top: 32px;
         }
 
+        /* 卡片樣式：柔和陰影 */
         .card-soft {
             border: none;
             border-radius: 18px;
@@ -139,6 +210,7 @@
             overflow: hidden;
         }
 
+        /* 卡片標題樣式 */
         .card-soft-header {
             background: linear-gradient(135deg,#6b8ce3,#4864b8);
             color: #fff;
@@ -150,10 +222,12 @@
             letter-spacing: 1px;
         }
 
+        /* 卡片內容樣式 */
         .card-soft-body {
             padding: 1rem 1rem 1.25rem;
         }
 
+        /* 按鈕區域樣式 */
         .actions {
             display: flex;
             justify-content: center;
@@ -169,11 +243,13 @@
             box-shadow: 0 4px 12px rgba(0,0,0,.12);
         }
 
+        /* 登入卡片樣式 */
         .login-card {
             max-width: 560px;
             margin: 0 auto;
         }
 
+        /* DevExtreme 表單樣式調整 */
         .login-card .dx-form .dx-texteditor {
             width: 100%;
         }
@@ -187,6 +263,7 @@
             text-align: left;
         }
 
+        /* 頁腳樣式 */
         .footer-note {
             text-align: center;
             font-size: .8rem;
@@ -194,11 +271,8 @@
             margin: 2rem 0 .75rem;
         }
 
+        /* 小螢幕：調整登入卡片和間距 */
         @@media (max-width: 575.98px) {
-            .hero-overlay h1 {
-                font-size: 1.6rem;
-            }
-
             .login-card {
                 max-width: 100%;
             }
@@ -206,19 +280,28 @@
             .main-section {
                 padding-top: 24px;
             }
+        }
 
-            .hero-wrapper {
-                height: auto;
-                min-height: 240px;
-            }
+        /* 幻燈片樣式（備用） */
+        .slide {
+            display: none;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 600ms ease-in-out;
         }
     </style>
 
-    <!-- jQuery / Bootstrap JS -->
+    <!-- JavaScript 資源載入 -->
+    <!-- jQuery 核心 -->
     <script src="~/lib/jquery/dist/jquery.js"></script>
+    <!-- Bootstrap JavaScript -->
     <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
 
-    <!-- DevExtreme Globalization -->
+    <!-- DevExtreme 全球化支援 -->
     <script src="~/js/devextreme/cldr.js"></script>
     <script src="~/js/devextreme/cldr/event.js"></script>
     <script src="~/js/devextreme/cldr/supplemental.js"></script>
@@ -229,129 +312,147 @@
     <script src="~/js/devextreme/globalize/currency.js"></script>
     <script src="~/js/devextreme/globalize/date.js"></script>
 
-    <!-- DevExtreme Core -->
+    <!-- DevExtreme 核心 -->
     <script src="~/js/devextreme/dx.all.js"></script>
+    <!-- 地圖資料 -->
     <script src="~/js/devextreme/vectormap-data/world.js"></script>
+    <!-- ASP.NET MVC 整合 -->
     <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
     <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
 </head>
 
 <body class="bg-light">
-    <!-- Hero�G�I���� HTML5 �ۿO�� + �л\�h�g�� -->
-    <section class="hero-wrapper" aria-label="�w���">
-        <!-- ? �� HTML5 �ۿO�� -->
-        <div class="slideshow-container">
-            @if (Model?.Images != null && Model.Images.Any())
-            {
-                @foreach (var image in Model.Images)
-                {
-                    <div class="slide">
-                        <img src="@image" alt="�з|�Ϥ�" />
-                    </div>
-                }
-            }
+    <!-- ===========================================
+         Hero 區塊：背景 Gallery + 覆蓋層經文
+         =========================================== -->
+    <section class="hero-wrapper hero-gallery-shift" aria-label="歡迎區">
+        <!-- DevExtreme Gallery 容器 -->
+        <div class="position-absolute w-100 h-100" style="z-index:1;">
+            @(Html.DevExtreme().Gallery()
+                .ID("gallery")                    // Gallery 唯一識別碼
+                .DataSource(Model.Images)         // 圖片資料來源
+                .Height("100%")                   // 高度設定
+                .StretchImages(false)             // 不拉伸圖片，保持比例
+                .Loop(true)                       // 循環播放
+                .SlideshowDelay(6000)             // 每張圖停留 6 秒
+                .AnimationDuration(800)           // 過場動畫 800ms
+                .ShowNavButtons(true)             // 顯示導航按鈕
+                .ShowIndicator(true)              // 顯示指示器
+            )
         </div>
 
-        <!-- �л\�h -->
+        <!-- 覆蓋層：顯示教會資訊 -->
         <div class="hero-overlay" role="banner">
             <i class="fa-solid fa-dove logo-faith" aria-hidden="true"></i>
-            <h1>�n���H</h1>
-            <div class="sub">�@���f�B�����B���w�q�����P�D�C�q����k�P�A�̡C</div>
-            <div class="verse">�ڭ̬J�]�H�ٸq�A�N�ǵۧڭ̪��D�C�q����o�P���۩M�C<span>�X ù���� 5:1</span></div>
+            <h1>好牧人</h1>
+            <div class="sub">願恩惠、憐憫、平安從父神與主耶穌基督歸與你們。</div>
+            <div class="verse">我們既因信稱義，就藉著我們的主耶穌基督得與神相和。<span>— 羅馬書 5:1</span></div>
         </div>
     </section>
 
-    <!-- �D���e�G�n�J�d�� -->
+    <!-- ===========================================
+         主內容區：登入卡片
+         =========================================== -->
     <main class="container main-section" role="main">
         <div class="row">
             <div class="col-12">
                 <div class="login-card card-soft" aria-labelledby="loginHeader">
-                    <!-- Toast -->
+                    <!-- Toast 通知容器 -->
                     <div id="ToastContainer">
                         @(Html.DevExtreme().Toast()
-                            .ID("Toast")
+                            .ID("Toast")                                    // Toast 唯一識別碼
                             .Position(p => p
-                                .At(HorizontalAlignment.Center, VerticalAlignment.Top)
-                                .Of(".card-soft-body")
-                                .Offset(0, 10))
-                            .CloseOnOutsideClick(true)
-                            .DisplayTime(2400)
-                            .MaxWidth("90%")
+                                .At(HorizontalAlignment.Center, VerticalAlignment.Top)  // 位置：居中上方
+                                .Of(".card-soft-body")                         // 相對於卡片內容區
+                                .Offset(0, 10))                                // 偏移量
+                            .CloseOnOutsideClick(true)                      // 點擊外部關閉
+                            .DisplayTime(2400)                              // 顯示時間 2.4 秒
+                            .MaxWidth("90%")                                // 最大寬度 90%
                             .Animation(a => a
-                                .Show(s => s.Type(AnimationType.Fade).Duration(300))
-                                .Hide(h => h.Type(AnimationType.Fade).Duration(200)))
+                                .Show(s => s.Type(AnimationType.Fade).Duration(300))  // 顯示動畫
+                                .Hide(h => h.Type(AnimationType.Fade).Duration(200))) // 隱藏動畫
                         )
                     </div>
 
+                    <!-- 卡片標題 -->
                     <div class="card-soft-header" id="loginHeader">
-                        <i class="fa-solid fa-right-to-bracket"></i><span>�|���n�J</span>
+                        <i class="fa-solid fa-right-to-bracket"></i><span>會員登入</span>
                     </div>
+
+                    <!-- 卡片內容 -->
                     <div class="card-soft-body">
-                        <!-- �n�J���� -->
+                        <!-- AJAX 登入表單 -->
                         <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessLogin" asp-controller="Home" method="post" novalidate>
+                            <!-- 表單容器 -->
                             <div id="form-container">
                                 @(Html.DevExtreme().Form()
-                                    .ID("form")
+                                    .ID("form")                      // 表單唯一識別碼
                                     .Items(items =>
                                     {
+                                        // 帳號欄位
                                         items.AddSimple()
                                             .DataField("Account")
-                                            .Label(l => l.Text("�b��"))
+                                            .Label(l => l.Text("帳號"))
                                             .Editor(e => e
                                                 .TextBox()
                                                 .Disabled(false)
-                                                .Placeholder("�п�J�b��")
+                                                .Placeholder("請輸入帳號")
                                                 .ShowClearButton(true)
                                             );
+                                        // 密碼欄位
                                         items.AddSimple()
                                             .DataField("Password")
-                                            .Label(l => l.Text("�K�X"))
+                                            .Label(l => l.Text("密碼"))
                                             .Editor(e => e
                                                 .TextBox()
                                                 .Mode(TextBoxMode.Password)
                                                 .Disabled(false)
-                                                .Placeholder("�п�J�K�X")
+                                                .Placeholder("請輸入密碼")
                                                 .ShowClearButton(true)
                                             );
                                     })
                                 )
                             </div>
+
+                            <!-- 按鈕區域 -->
                             <div class="actions">
                                 @(Html.DevExtreme().Button()
-                                    .Text("�n�J")
-                                    .Type(ButtonType.Default)
-                                    .ID("save-button")
-                                    .UseSubmitBehavior(true)
-                                    .OnClick("Login")
-                                    .Width(120)
+                                    .Text("登入")                    // 按鈕文字
+                                    .Type(ButtonType.Default)        // 預設樣式
+                                    .ID("save-button")               // 按鈕識別碼
+                                    .UseSubmitBehavior(true)         // 提交表單
+                                    .OnClick("Login")                // 點擊事件
+                                    .Width(120)                      // 寬度
                                 )
                                 @(Html.DevExtreme().Button()
-                                    .Text("�]�w�b���K�X")
-                                    .Type(ButtonType.Normal)
-                                    .Visible(false)
-                                    .ID("register-button")
-                                    .UseSubmitBehavior(false)
-                                    .OnClick("Register")
-                                    .Width(160)
+                                    .Text("設定帳號密碼")            // 按鈕文字
+                                    .Type(ButtonType.Normal)         // 普通樣式
+                                    .Visible(false)                  // 預設隱藏
+                                    .ID("register-button")           // 按鈕識別碼
+                                    .UseSubmitBehavior(false)        // 不提交表單
+                                    .OnClick("Register")             // 點擊事件
+                                    .Width(160)                      // 寬度
                                 )
                             </div>
+
+                            <!-- 忘記密碼提示 -->
                             <div class="mt-5 small text-muted text-center">
-                                �ѰO�K�X�H���p���з|��F�P�u��U���]�C
+                                忘記密碼？請聯絡教會行政同工協助重設。
                             </div>
 
-                            <!-- ���J���O -->
+                            <!-- 載入面板 -->
                             <div id="LoadPanel">
                                 @(Html.DevExtreme().LoadPanel()
-                                    .ID("loadPanel")
-                                    .ShadingColor("rgba(0,0,0,0.45)")
-                                    .Position(p => p.Of("#form-container"))
-                                    .Visible(false)
-                                    .ShowIndicator(true)
-                                    .ShowPane(true)
-                                    .Shading(true)
-                                    .CloseOnOutsideClick(false)
-                                    .Message("�n�J���A�еy�ԡK")
-                                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+                                    .ID("loadPanel")                 // 載入面板識別碼
+                                    .ShadingColor("rgba(0,0,0,0.45)") // 遮罩顏色
+                                    .Position(p => p.Of("#form-container")) // 相對於表單容器
+                                    .Visible(false)                  // 預設隱藏
+                                    .ShowIndicator(true)             // 顯示指示器
+                                    .ShowPane(true)                  // 顯示面板
+                                    .Shading(true)                   // 啟用遮罩
+                                    .CloseOnOutsideClick(false)      // 不允許點擊外部關閉
+                                    .Message("登入中，請稍候…")      // 訊息文字
+                                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing))) // 顯示動畫
                                 )
                             </div>
                         </form>
@@ -361,69 +462,100 @@
         </div>
     </main>
 
-    <footer class="footer-note" role="contentinfo">Copyright ? @DateTime.Now.Year �n���H</footer>
+    <!-- 頁腳 -->
+    <footer class="footer-note" role="contentinfo">Copyright © @DateTime.Now.Year 好牧人</footer>
 
-    <!-- JS�G�������� -->
+    <!-- ===========================================
+         JavaScript 頁面互動
+         =========================================== -->
     <script>
+        // 基礎診斷：確認 JavaScript 執行環境
+        console.log('=== JavaScript 開始執行 ===');
+        console.log('jQuery 版本:', typeof $ !== 'undefined' ? $.fn.jquery : '未載入');
+        console.log('DevExtreme 版本:', typeof DevExpress !== 'undefined' ? 'loaded' : '未載入');
+        
+        // 載入面板實例取得函數
         function getLoadPanelInstance() { return $("#loadPanel").dxLoadPanel("instance"); }
+        
+        // 登入按鈕點擊事件：顯示載入面板
         function Login(arg) { getLoadPanelInstance().show(); }
+        
+        // 註冊按鈕點擊事件：跳轉到註冊頁面
         function Register(arg) { window.location.href = "/Home/Register"; }
 
-        // ? �� Vanilla JS �ۿO������ - �����W��
+        // Gallery 初始化：使用輪詢機制等待實例創建
         $(function() {
-            console.log('[Login.cshtml] Initializing pure HTML5 slideshow');
-
-            var slides = document.querySelectorAll('.slide');
-            var currentSlideIndex = 0;
-            var slideshowInterval = null;
-
-            console.log('[Login.cshtml] Total slides:', slides.length);
-
-            // ��l�ơG��ܲĤ@�i��
-            if (slides.length > 0) {
-                slides[0].classList.add('active');
-                console.log('[Login.cshtml] First slide activated');
-
-                // �p�G���h�i�ϡA�ҰʤۿO��
-                if (slides.length > 1) {
-                    var showNextSlide = function() {
-                        // ���÷��e�Ϥ�
-                        slides[currentSlideIndex].classList.remove('active');
-
-                        // ���ʨ�U�@�i
-                        currentSlideIndex = (currentSlideIndex + 1) % slides.length;
-
-                        // ��ܤU�@�i
-                        slides[currentSlideIndex].classList.add('active');
-
-                        console.log('[Login.cshtml] Showing slide:', currentSlideIndex + 1, 'of', slides.length);
-                    };
-
-                    // �C 5000ms �����@�i (5�����d + 1.2���L�� = 6.2���g��)
-                    slideshowInterval = setInterval(showNextSlide, 5000);
-                    console.log('[Login.cshtml] Slideshow started - interval: 5000ms');
-                } else {
-                    console.log('[Login.cshtml] Only one slide, no need for interval');
+            console.log('[Gallery] 開始初始化流程');
+            console.log('[Gallery] #gallery 元素數量:', $('#gallery').length);
+            
+            var attemptCount = 0;      // 嘗試次數計數器
+            var maxAttempts = 20;      // 最大嘗試次數
+            var intervalMs = 200;      // 每次間隔 200ms
+            
+            // 輪詢檢查 Gallery 實例是否已創建
+            var pollGallery = setInterval(function() {
+                attemptCount++;
+                console.log('[Gallery] 嘗試第 ' + attemptCount + ' 次獲取實例...');
+                
+                try {
+                    var gallery = $("#gallery").dxGallery("instance");
+                    
+                    if (gallery) {
+                        // 成功獲取實例，停止輪詢
+                        clearInterval(pollGallery);
+                        console.log('[Gallery] ✅ 成功獲取實例！');
+                        console.log('[Gallery] 當前選項:', gallery.option());
+                        
+                        // 強制設定 Gallery 選項
+                        gallery.option({
+                            slideshowDelay: 6000,     // 每張圖停留 6 秒
+                            animationDuration: 800,    // 過場動畫 800ms
+                            animationEnabled: true,    // 啟用動畫
+                            swipeEnabled: true,        // 啟用手勢滑動
+                            loop: true,                // 循環播放
+                            stretchImages: false       // 不拉伸圖片
+                        });
+                        
+                        console.log('[Gallery] 設定完成:', gallery.option());
+                        
+                        // 檢查圖片數量並決定是否啟動自動播放
+                        var dataSource = gallery.option("dataSource");
+                        console.log('[Gallery] 圖片數量:', dataSource ? dataSource.length : 0);
+                        
+                        if (dataSource && dataSource.length > 1) {
+                            console.log('[Gallery] 啟動自動播放');
+                        } else {
+                            console.warn('[Gallery] 只有一張圖或無圖片');
+                        }
+                    } else if (attemptCount >= maxAttempts) {
+                        // 超過最大嘗試次數，停止輪詢並記錄錯誤
+                        clearInterval(pollGallery);
+                        console.error('[Gallery] ❌ 無法獲取實例');
+                        console.log('[Gallery] #gallery 存在:', $('#gallery').length > 0);
+                    }
+                } catch (e) {
+                    // 捕獲異常並記錄
+                    console.error('[Gallery] 錯誤:', e);
+                    if (attemptCount >= maxAttempts) {
+                        clearInterval(pollGallery);
+                    }
                 }
-            } else {
-                console && console.warn && console.warn('[Login.cshtml] No slides found');
-            }
-
-            // �M�z�G���������ɰ���ۿO��
-            $(window).on('beforeunload', function() {
-                if (slideshowInterval) {
-                    clearInterval(slideshowInterval);
-                    console.log('[Login.cshtml] Slideshow cleared');
-                }
-            });
+            }, intervalMs);
         });
     </script>
 
-    <!-- AJAX �ƥ�B�z -->
+    <!-- ===========================================
+         AJAX 事件處理
+         =========================================== -->
     <script>
+        // AJAX 請求開始事件
         function onBegin() { }
+        
+        // AJAX 請求成功事件：處理登入結果
         function onSuccess(data) {
-            getLoadPanelInstance().hide();
+            getLoadPanelInstance().hide();  // 隱藏載入面板
+            
+            // 根據回傳的顯示類型跳轉到對應頁面
             if (data.DisplayViewType == "MultiGroupView") {
                 ShowToast(data.message, "success", 2000);
                 window.location.href = "/SmallGroup/MultiGroupView/" + data.ActiveListId;
@@ -434,34 +566,45 @@
                 ShowToast(data.message, "success", 2000);
                 window.location.href = "/Home/HappyGroup";
             } else {
+                // 登入失敗，顯示錯誤訊息
                 ShowToast(data.message, "error", 4000);
             }
         }
+        
+        // AJAX 請求完成事件
         function onComplete(data) { }
     </script>
 
-    <!-- Toast ��� -->
+    <!-- ===========================================
+         Toast 通知函數
+         =========================================== -->
     <script>
+        // 顯示 Toast 通知
         function ShowToast(LocalToastMessage, Type, DisplayTime) {
             var ToastInstance = $("#Toast").dxToast("instance");
             ToastInstance.option({
-                message: LocalToastMessage,
-                type: Type,
-                displayTime: DisplayTime,
-                closeOnClick: true,
-                position: {
+                message: LocalToastMessage,     // 訊息內容
+                type: Type,                     // 訊息類型 (success/error 等)
+                displayTime: DisplayTime,       // 顯示時間 (毫秒)
+                closeOnClick: true,             // 允許點擊關閉
+                position: {                     // 位置設定
                     at: 'center center',
                     of: '.login-card',
                     offset: '0 20'
                 }
             });
-            ToastInstance.show();
+            ToastInstance.show();  // 顯示 Toast
         }
     </script>
 
-    <!-- ��L�귽 -->
+    <!-- ===========================================
+         其他資源載入
+         =========================================== -->
+    <!-- jQuery AJAX 非侵入式支援 -->
     <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+    <!-- Gallery 相關樣式 -->
     <link href="~/css/Gallery.css" rel="stylesheet" />
+    <!-- 週報相關樣式 -->
     <link href="~/css/WeeklyReport.css" rel="stylesheet" />
 </body>
 </html>
