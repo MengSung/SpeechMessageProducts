@@ -29,8 +29,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
 
         #region 商店設定
-        //private string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
-        private string m_ShopNo = m_Configuration["Sandbox:ShopNo"];
+        private string m_ShopNo = "";
         #endregion
 
         #region 環境設定
@@ -69,6 +68,19 @@ namespace ChurchReport.WebServiceConnector
             m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
 
             m_PaymentService = aPaymentService;
+
+            // 商店編號
+            if (m_Configuration["Cash_Environment"] == "正式環境")
+            {
+                // 永豐金流正式環境
+                m_ShopNo = m_Configuration["Sinopac:ShopNo"];
+            }
+            else
+            {
+                // SANDBOX 測試用
+                m_ShopNo = m_Configuration["Sandbox:ShopNo"];
+            }
+
         }
         public QPayProcessor(LineMessagingClient aLineMessagingClient, PushUtility aPushUtility, ReplyUtility aReplyUtility)
         {
@@ -102,6 +114,19 @@ namespace ChurchReport.WebServiceConnector
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] Unknown payment provider: {payProvider}, defaulting to 永豐金流");
                 m_PaymentService = new QPayToolkitWrapper();
             }
+
+            // 商店編號
+            if (m_Configuration["Cash_Environment"] == "正式環境")
+            {
+                // 永豐金流正式環境
+                m_ShopNo = m_Configuration["Sinopac:ShopNo"];
+            }
+            else
+            {
+                // SANDBOX 測試用
+                m_ShopNo = m_Configuration["Sandbox:ShopNo"];
+            }
+
         }
         #endregion
         #region 建立收費單

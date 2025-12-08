@@ -33,7 +33,7 @@ namespace ChurchReport.Models
         // 永豐金流正式環境
         //string m_ShopNo = "DA4195_001";
         //string m_ShopNo = m_Configuration["Sinopac:ShopNo"];
-        string m_ShopNo = m_Configuration["Sandbox:ShopNo"];
+        string m_ShopNo = "";
 
         // 透過 Factory 取得 ToolUtilityClass 單一實例
         private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
@@ -60,6 +60,18 @@ namespace ChurchReport.Models
         #region 初始化
         public QpayManager(IPayment aPaymentService)
         {
+            // 商店編號
+            if( m_Configuration["Cash_Environment"] == "正式環境" )
+            {
+                // 永豐金流正式環境
+                m_ShopNo = m_Configuration["Sinopac:ShopNo"];
+            }
+            else
+            {
+                // SANDBOX 測試用
+                m_ShopNo = m_Configuration["Sandbox:ShopNo"]; 
+            }
+
             // 客製化，請選擇
             // 好牧人(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
