@@ -489,6 +489,22 @@ namespace ChurchReport
                     template: "QrCode/SmallGroupView/{QrCodeViewPatameter}",
                     defaults: new { controller = "QrCode", action = "SmallGroupQrCodeView" });
 
+                // 主日 QR Code 路由（支援多種 URL 格式）
+                routes.MapRoute(
+                    name: "sundayqrcodeview_short",
+                    template: "SundayQrCodeView",
+                    defaults: new { controller = "QrCode", action = "SundayQrCodeView" });
+
+                routes.MapRoute(
+                    name: "sundayqrcodeview_home",
+                    template: "Home/SundayQrCodeView",
+                    defaults: new { controller = "QrCode", action = "SundayQrCodeView" });
+
+                routes.MapRoute(
+                    name: "sundayqrcodeview_home_param",
+                    template: "Home/SundayQrCodeView/{QrCodeViewPatameter}",
+                    defaults: new { controller = "QrCode", action = "SundayQrCodeView" });
+
                 routes.MapRoute(
                     name: "sundayqrcodeview",
                     template: "QrCode/SundayView/{QrCodeViewPatameter}",

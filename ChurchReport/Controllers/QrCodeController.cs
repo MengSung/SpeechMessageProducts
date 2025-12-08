@@ -278,6 +278,9 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 主日 QR Code 簽到退頁面
         /// </summary>
+        [Route("/SundayQrCodeView")]
+        [Route("/Home/SundayQrCodeView")]
+        [Route("/Home/SundayQrCodeView/{QrCodeViewPatameter}")]
         [Route("/QrCode/SundayView/{QrCodeViewPatameter}")]
         public IActionResult SundayQrCodeView(string QrCodeId, string QrCodeViewPatameter)
         {
@@ -291,7 +294,7 @@ namespace ChurchReport.Controllers
                 TempData["QrCodeId"] = QrCodeId;
                 TempData["ClassName"] = " ";
 
-                return View();
+                return View("~/Views/QrCode/SundayQrCodeView.cshtml");
             }
             catch (Exception e)
             {
