@@ -43,7 +43,7 @@ namespace ChurchReport
             // 修改：只在 Development 環境下初始化 Trace Listener
             // Release 模式下不寫入 Trace.log，減少 I/O 開銷
             // ========================================
-            //if (app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment())
             {
                 // 🔍 輸出路徑資訊以便診斷
                 Console.WriteLine("=".PadRight(80, '='));
@@ -74,7 +74,7 @@ namespace ChurchReport
             var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
             lifetime.ApplicationStopping.Register(() =>
             {
-                //if (app.Environment.IsDevelopment())
+                if (app.Environment.IsDevelopment())
                 {
                     CleanupTraceListener();
                 }
