@@ -1,4 +1,4 @@
-ï»¿
+
 <div class="long-title"><h3 id="classnamefield"></h3></div>
 <div class="long-title"><h3 id="usernamefield"></h3></div>
 <div class="long-title"><h3 id="classindexfield"></h3></div>
@@ -11,7 +11,7 @@
                         .Position(p => p
                         .At(HorizontalAlignment.Center, VerticalAlignment.Center)
                         .Offset(0, 50))
-                        .Message("ä»¥åˆ©äº")
+                        .Message("¥H§Q¨È")
                         .DisplayTime(2000)
                         .MaxWidth(200)
         )
@@ -26,9 +26,9 @@
 <script>
     var dictionary = {
         "zh-tw": {
-            "dxScheduler-switcherAgenda": "æœƒè­°å…§å®¹", // åœ¨é€™è£¡å¯ä»¥åšæœ€å¾Œçš„å­—å…¸å°æ‡‰
-            "Month": "æœˆ",
-            "Subject": "ä¸»é¡Œ",
+            "dxScheduler-switcherAgenda": "·|Ä³¤º®e", // ¦b³o¸Ì¥i¥H°µ³Ì«áªº¦r¨å¹ïÀ³
+            "Month": "¤ë",
+            "Subject": "¥DÃD",
             "Company": "Company",
             "Amount": "Amount",
             "PaymentDate": "Payment Date"
@@ -66,12 +66,12 @@
             liff.init({ liffId:  '@TempData["Proponent"]' })
                 .then(() =>
                 {
-                // æ£€æŸ¥ç”¨æˆ·æ˜¯å¦å·²ç™»å½•
+                // ?¬d¥Î?¬O§_¤wµn?
                   if (!liff.isLoggedIn())
                   {
-                      document.getElementById('displaynamefield').innerHTML = "æ‚¨é‚„æ²’æœ‰ç™»å…¥LINE";
+                      document.getElementById('displaynamefield').innerHTML = "±zÁÙ¨S¦³µn¤JLINE";
 
-                      ShowToast("æ‚¨é‚„æ²’æœ‰ç™»å…¥LINE", "error", 5000);
+                      ShowToast("±zÁÙ¨S¦³µn¤JLINE", "error", 5000);
 
                       liff.login();
 
@@ -81,22 +81,22 @@
                   {
                       liff.permission.query("profile").then((permissionStatus) => {
                           if (permissionStatus.state === "granted") {
-                              //ä½¿ç”¨è€…å·²æˆæ¬Š
+                              //¨Ï¥ÎªÌ¤w±ÂÅv
                               initializeApp();
                           }
                           else if (permissionStatus.state === "prompt") {
-                              document.getElementById('displaynamefield').innerHTML = "æ‚¨ä¸¦æœªæˆæ¬Šï¼Œè«‹å…ˆå®Œæˆæˆæ¬Šç¨‹åº!";
+                              document.getElementById('displaynamefield').innerHTML = "±z¨Ã¥¼±ÂÅv¡A½Ğ¥ı§¹¦¨±ÂÅvµ{§Ç!";
                               liff.permission.requestAll();
                           }
                           else {
-                              document.getElementById('displaynamefield').innerHTML = "Liff Scopeæ²’æœ‰è¨­å®šï¼Œæ‰€ä»¥ç„¡æ³•æ“ä½œ!";
+                              document.getElementById('displaynamefield').innerHTML = "Liff Scope¨S¦³³]©w¡A©Ò¥HµLªk¾Ş§@!";
                           }
                       });
                   }
                 })
                 .catch(error => {
-                    // éŒ¯èª¤è™•ç† Liff LLogin
-                    document.getElementById('displaynamefield').innerHTML = "éŒ¯èª¤:" + error;
+                    // ¿ù»~³B²z Liff LLogin
+                    document.getElementById('displaynamefield').innerHTML = "¿ù»~:" + error;
                 });
         };
 
@@ -112,43 +112,43 @@
     async function initializeApp() {
         await liff.getProfile()
             .then(function (profile) {
-                document.getElementById('displaynamefield').innerHTML = "è¦ªæ„›çš„" + profile.displayName + "<br />æ‚¨å·²æƒæäº†QR Code" + "è«‹æ‚¨è€å¿ƒç­‰å€™ç´„15~30ç§’ï¼Œä¸è¦é—œé–‰ç¶²é !";
+                document.getElementById('displaynamefield').innerHTML = "¿Ë·Rªº" + profile.displayName + "<br />±z¤w±½´y¤FQR Code" + "½Ğ±z­@¤ßµ¥­Ô¬ù15~30¬í¡A¤£­nÃö³¬ºô­¶!";
                 DisplayName = profile.displayName;
                 UserId = profile.userId;
-                //alert("æ¸¬è©¦ UserId =" + UserId);
+                //alert("´ú¸Õ UserId =" + UserId);
                 GroupId = profile.aGroupId;
                 RoomId = profile.aRoomId;
                 ViewType = profile.aViewType;
-                //alert("æ¸¬è©¦004!" + DisplayName);
+                //alert("´ú¸Õ004!" + DisplayName);
 
-                // å–å¾— UserId çš„Ajax
+                // ¨ú±o UserId ªºAjax
                 UpdateLineUserId(DisplayName, UserId, GroupId, RoomId, ViewType);
             })
             .catch(error => {
-                // éŒ¯èª¤è™•ç† Liff LLogin
-                document.getElementById('displaynamefield').innerHTML = "éŒ¯èª¤:" + error;
+                // ¿ù»~³B²z Liff LLogin
+                document.getElementById('displaynamefield').innerHTML = "¿ù»~:" + error;
             });
 
     }
 
     function UpdateLineUserId(aDisplayName, aUserLineId, aGroupId, aRoomId, aViewType)
     {
-                    // AJAX å€å¡Š
+                    // AJAX °Ï¶ô
                     return $.ajax
                     (
                         {
                             url: '@Url.Action("QrCodeGetLineId", "QrCode")',
-                            data: { DisplayName: aDisplayName, UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // æ•´ç†å›å‚³çµ¦ Server çš„é»åè³‡æ–™
+                            data: { DisplayName: aDisplayName, UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // ¾ã²z¦^¶Çµ¹ Server ªºÂI¦W¸ê®Æ
                             type: 'POST', //POST if you want to save, GET if you want to fetch data from server
                             //async: false,
                             success: function (data)
                             {
-                                if (data.result.includes("éŒ¯èª¤") != true) {
-                                    // æ­£ç¢ºæƒæ
-                                    document.getElementById('classnamefield').innerHTML = "åç¨±: " + data.classname;
-                                    document.getElementById('usernamefield').innerHTML = "å§“å: " + data.username;
-                                    document.getElementById('classindexfield').innerHTML = "è³‡è¨Š: " + data.classindex;
-                                    //document.getElementById('onboardtypefield').innerHTML   = "ç°½åˆ°é€€æ™‚é–“: "  + data.onboardtype;
+                                if (data.result.includes("¿ù»~") != true) {
+                                    // ¥¿½T±½´y
+                                    document.getElementById('classnamefield').innerHTML = "¦WºÙ: " + data.classname;
+                                    document.getElementById('usernamefield').innerHTML = "©m¦W: " + data.username;
+                                    document.getElementById('classindexfield').innerHTML = "¸ê°T: " + data.classindex;
+                                    //document.getElementById('onboardtypefield').innerHTML   = "Ã±¨ì°h®É¶¡: "  + data.onboardtype;
                                     document.getElementById('onboardtypefield').innerHTML = data.onboardtype;
                                     document.getElementById('displaynamefield').innerHTML = "";
                                 }
@@ -166,7 +166,7 @@
                             }
                         }
                     );
-                    // AJAX å€å¡Š
+                    // AJAX °Ï¶ô
         }
 
         function ShowToast(LocalToastMessage, Type, DisplayTime) {

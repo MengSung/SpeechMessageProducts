@@ -442,6 +442,22 @@ namespace ChurchReport
                     defaults: new { controller = "DedicationAudit", action = "DedicationFeeAuditViewWeb" });
 
                 // QR 碼相關路由
+                // 課程 QR Code 路由（支援多種 URL 格式）
+                routes.MapRoute(
+                    name: "qrcodeview_short",
+                    template: "QrCodeView",
+                    defaults: new { controller = "QrCode", action = "QrCodeView" });
+
+                routes.MapRoute(
+                    name: "qrcodeview_home",
+                    template: "Home/QrCodeView",
+                    defaults: new { controller = "QrCode", action = "QrCodeView" });
+
+                routes.MapRoute(
+                    name: "qrcodeview_home_param",
+                    template: "Home/QrCodeView/{QrCodeViewPatameter}",
+                    defaults: new { controller = "QrCode", action = "QrCodeView" });
+
                 routes.MapRoute(
                     name: "qrcodeview",
                     template: "QrCode/CourseView/{QrCodeViewPatameter}",

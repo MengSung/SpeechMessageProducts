@@ -38,6 +38,9 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="QrCodeId">QR Code 識別碼</param>
         /// <param name="QrCodeViewPatameter">頁面參數</param>
+        [Route("/QrCodeView")]
+        [Route("/Home/QrCodeView")]
+        [Route("/Home/QrCodeView/{QrCodeViewPatameter}")]
         [Route("/QrCode/CourseView/{QrCodeViewPatameter}")]
         public IActionResult QrCodeView(string QrCodeId, string QrCodeViewPatameter)
         {
@@ -53,7 +56,7 @@ namespace ChurchReport.Controllers
                 TempData["QrCodeId"] = QrCodeId;
                 TempData["ClassName"] = " ";
 
-                return View();
+                return View("~/Views/QrCode/QrCodeView.cshtml");
             }
             catch (Exception e)
             {
