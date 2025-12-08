@@ -484,6 +484,22 @@ namespace ChurchReport
                     template: "QrCode/PollView/{PollQrCodeViewPatameter}",
                     defaults: new { controller = "QrCode", action = "PollQrCodeView" });
 
+                // 小組聚會 QR Code 路由（支援多種 URL 格式）
+                routes.MapRoute(
+                    name: "smallgroupqrcodeview_short",
+                    template: "SmallGroupQrCodeView",
+                    defaults: new { controller = "QrCode", action = "SmallGroupQrCodeView" });
+
+                routes.MapRoute(
+                    name: "smallgroupqrcodeview_home",
+                    template: "Home/SmallGroupQrCodeView",
+                    defaults: new { controller = "QrCode", action = "SmallGroupQrCodeView" });
+
+                routes.MapRoute(
+                    name: "smallgroupqrcodeview_home_param",
+                    template: "Home/SmallGroupQrCodeView/{QrCodeViewPatameter}",
+                    defaults: new { controller = "QrCode", action = "SmallGroupQrCodeView" });
+
                 routes.MapRoute(
                     name: "smallgroupqrcodeview",
                     template: "QrCode/SmallGroupView/{QrCodeViewPatameter}",
@@ -509,6 +525,22 @@ namespace ChurchReport
                     name: "sundayqrcodeview",
                     template: "QrCode/SundayView/{QrCodeViewPatameter}",
                     defaults: new { controller = "QrCode", action = "SundayQrCodeView" });
+
+                // 個人 QR Code 路由（支援多種 URL 格式）
+                routes.MapRoute(
+                    name: "personalqrcodeview_short",
+                    template: "PersonalQrCodeView",
+                    defaults: new { controller = "QrCode", action = "PersonalQrCodeView" });
+
+                routes.MapRoute(
+                    name: "personalqrcodeview_home",
+                    template: "Home/PersonalQrCodeView",
+                    defaults: new { controller = "QrCode", action = "PersonalQrCodeView" });
+
+                routes.MapRoute(
+                    name: "personalqrcodeview_home_param",
+                    template: "Home/PersonalQrCodeView/{QrCodeViewPatameter}",
+                    defaults: new { controller = "QrCode", action = "PersonalQrCodeView" });
 
                 routes.MapRoute(
                     name: "personalqrcodeview",

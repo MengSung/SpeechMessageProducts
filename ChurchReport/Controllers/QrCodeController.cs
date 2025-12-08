@@ -207,6 +207,9 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 小組聚會 QR Code 簽到退頁面
         /// </summary>
+        [Route("/SmallGroupQrCodeView")]
+        [Route("/Home/SmallGroupQrCodeView")]
+        [Route("/Home/SmallGroupQrCodeView/{QrCodeViewPatameter}")]
         [Route("/QrCode/SmallGroupView/{QrCodeViewPatameter}")]
         public IActionResult SmallGroupQrCodeView(string QrCodeId, string QrCodeViewPatameter)
         {
@@ -220,7 +223,7 @@ namespace ChurchReport.Controllers
                 TempData["QrCodeId"] = QrCodeId;
                 TempData["ClassName"] = " ";
 
-                return View();
+                return View("~/Views/QrCode/SmallGroupQrCodeView.cshtml");
             }
             catch (Exception e)
             {
@@ -355,6 +358,9 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 工作人員主動掃描聯絡人 QR Code 頁面
         /// </summary>
+        [Route("/PersonalQrCodeView")]
+        [Route("/Home/PersonalQrCodeView")]
+        [Route("/Home/PersonalQrCodeView/{QrCodeViewPatameter}")]
         [Route("/QrCode/PersonalView/{QrCodeViewPatameter}")]
         public IActionResult PersonalQrCodeView(string QrCodeId, string QrCodeViewPatameter)
         {
@@ -368,7 +374,7 @@ namespace ChurchReport.Controllers
                 TempData["QrCodeId"] = QrCodeId;
                 TempData["ClassName"] = " ";
 
-                return View();
+                return View("~/Views/QrCode/PersonalQrCodeView.cshtml");
             }
             catch (Exception e)
             {
