@@ -118,6 +118,9 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 問卷調查 QR Code 頁面
         /// </summary>
+        [Route("/PollQrCodeView")]
+        [Route("/Home/PollQrCodeView")]
+        [Route("/Home/PollQrCodeView/{PollQrCodeViewPatameter}")]
         [Route("/QrCode/PollView/{PollQrCodeViewPatameter}")]
         public IActionResult PollQrCodeView(string QrCodeId, string PollQrCodeViewPatameter)
         {
@@ -132,7 +135,7 @@ namespace ChurchReport.Controllers
                 TempData["ClassName"] = " ";
 
                 PollManager pollManager = new PollManager();
-                return View(pollManager.SetDisplayFlag(QrCodeId));
+                return View("~/Views/QrCode/PollQrCodeView.cshtml", pollManager.SetDisplayFlag(QrCodeId));
             }
             catch (Exception e)
             {

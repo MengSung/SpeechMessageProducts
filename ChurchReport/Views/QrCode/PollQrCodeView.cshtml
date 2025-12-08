@@ -1,0 +1,438 @@
+
+@using ChurchReport.Models
+@model PollModel
+@*<div class="long-title"><h3>奉獻資訊</h3></div>*@
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="generator" content="Mobirise v4.5.2, mobirise.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+    <link rel="shortcut icon" href="~/assets/images/logo4.png" type="image/x-icon">
+    <meta name="description" content="">
+
+    <link rel="stylesheet" href="~/assets/web/assets/mobirise-icons/mobirise-icons.css">
+    <link rel="stylesheet" href="~/assets/tether/tether.min.css">
+
+    <link rel="stylesheet" href="~/assets/theme/css/style.css">
+    <link rel="stylesheet" href="~/assets/mobirise/css/mbr-additional.css" type="text/css">
+</head>
+
+<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+    <h4 id="displaynamefield"></h4>
+</div>
+
+<div id="ToastContainer">
+    @(Html.DevExtreme().Toast()
+                            .ID("Toast")
+                            .Position(p => p
+                            .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                            .Offset(0, 50))
+                            //.Shading(true)
+                            //.ShadingColor("red")
+                            //.CloseOnOutsideClick(true)
+                            //.DisplayTime(2000)
+                            .MaxWidth(350)
+            )
+
+</div>
+<div id="LoadPanel">
+    @(Html.DevExtreme().LoadPanel()
+                    .ID("loadPanel")
+                    .ShadingColor("rgba(0,0,0,0.4)")
+                    .Position(p => p.Of("#form-container"))
+                    .Visible(false)
+                    .ShowIndicator(true)
+                    .ShowPane(true)
+                    .Shading(true)
+                    .CloseOnOutsideClick(false)
+                    .Message("上傳資料中...")
+                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            )
+
+</div>
+
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SavePoll" asp-controller="QrCode" method="post">
+
+    <div id="form-container">
+        @(Html.DevExtreme().Form<PollModel> ()
+        .ID("form")
+        .ColCount(3)
+
+        .Items(items =>
+        {
+
+            items.AddGroup()
+            .Caption("A、成?班結業者建議可參與之服事項目")
+            .ColSpan(1)
+            .Visible(Model.DisplayGrowFlag)
+            .Items(groupItems =>
+            {
+                groupItems.AddSimpleFor(m => m.SundayTreat)
+                   //.DataField("LastName")
+                   .Label(l => l.Text("主日招待同工"))
+                   .Editor(e => e
+                       .CheckBox()
+                       .Disabled(false)
+                   );
+
+            });
+
+            items.AddGroup()
+            .Caption("B、門徒班結業者建議可參與之服事項目《可複選》")
+            .ColSpan(1)
+            .Visible(Model.DisplayDecipleFlag)
+            .Items(groupItems =>
+            {
+                groupItems.AddSimpleFor(m => m.SaturdayChild)
+                   //.DataField("LastName")
+                   .Label(l => l.Text("週六兒主服事同工"))
+                   .Editor(e => e
+                       .CheckBox()
+                       .Disabled(false)
+                   );
+
+                groupItems.AddSimpleFor(m => m.SundaydayChild)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("主日兒主同工"))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.SundayNewFriend)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("主日新人接待同工").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.DisplayPpt)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("主日控台同工").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.WorshipVocal)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("主日敬拜團(人聲)").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.WorshipInstrument)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("主日敬拜團(樂器)").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.Instrument)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("樂器名稱").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .TextBox()
+                        .Placeholder("樂器名稱")
+                        .Disabled(false)
+                    );
+
+
+                groupItems.AddSimpleFor(m => m.CommunityProfit)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("社區福音行動(益人學苑)").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.CommunityFlower)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("社區福音行動(恩朵協會)").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.IncubateCampaign)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("培育營會行政同工").Location(FormLabelLocation.Left))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+            });
+
+            items.AddGroup()
+            .Caption("C、小組長班結業者建議可參與服事項目《可複選》")
+            .Visible(Model.DisplayLeaderFlag)
+            .ColSpan(1)
+            .Items(groupItems =>
+            {
+                groupItems.AddSimpleFor(m => m.SundayPrayer)
+                   //.DataField("LastName")
+                   .Label(l => l.Text("主日禱告服事"))
+                   .Editor(e => e
+                       .CheckBox()
+                       .Disabled(false)
+                   );
+
+                groupItems.AddSimpleFor(m => m.IncubateCampaignLeader)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("培育營會帶組同工"))
+                    .Editor(e => e
+                        .CheckBox()
+                        .Disabled(false)
+                    );
+
+                groupItems.AddSimpleFor(m => m.Others)
+                    //.DataField("LastName")
+                    .Label(l => l.Text("其他").Location(FormLabelLocation.Top))
+                    .Editor(e => e
+                        .TextBox()
+                        .Placeholder("其他")
+                        .Disabled(false)
+                    );
+            });
+
+            items.AddSimpleFor(m => m.PollContent)
+                .Label(l => l.Text("課程意見回饋調查").Location(FormLabelLocation.Top))
+                .ColSpan(3)
+                .Editor(e => e
+                    .TextArea()
+                    .Disabled(false)
+                    //.Width(400)
+                    .Height(100)
+                    .Placeholder("課程意見回饋調查")
+                );
+
+        })
+
+
+        .OnContentReady
+        (@<text>
+            function(e)
+            {
+                e.component.validate();
+            }
+        </text>)
+
+        .FormData(Model)
+        )
+
+    </div>
+
+    <br />
+    <div id="buttonContainer2" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
+                    .Text("上傳")
+                    .Type(ButtonType.Success)
+                    .ID("save-button2")
+                    .UseSubmitBehavior(true)
+                    .OnClick("OnClickQuery")
+            )
+    </div>
+
+</form>
+
+<script>
+    // 觸發事件管理
+    function OnClickQuery(arg) {
+        //alert("查詢");
+        getLoadPanelInstance().show();
+    }
+
+    function getLoadPanelInstance() {
+        return $("#loadPanel").dxLoadPanel("instance");
+    }
+
+    var GlobalCategory = "";
+</script>
+<script type="text/javascript">
+    function onBegin() {
+    }
+
+    function onSuccess(data) {
+
+        getLoadPanelInstance().hide();
+
+        if (data.status == 1) {
+            ShowToast(data.message, "success", 3000);
+        }
+        else {
+        }
+    }
+
+    function onComplete(data) {
+        if (data.status == 1) {
+        }
+        else {
+        }
+    }
+</script>
+
+<script>
+    var dictionary = {
+        "zh-tw": {
+            "dxScheduler-switcherAgenda": "會議內容", // 在這裡可以做最後的字典對應
+            "Month": "月",
+            "Subject": "主題",
+            "Company": "Company",
+            "Amount": "Amount",
+            "PaymentDate": "Payment Date"
+        },
+    };
+    DevExpress.localization.loadMessages(dictionary);
+    var formatMessage = DevExpress.localization.formatMessage;
+
+    var locale = getLocale();
+    //DevExpress.localization.locale(navigator.language || navigator.browserLanguage);
+    DevExpress.localization.locale(locale);
+
+    function changeLocale(data) {
+        setLocale(data.value);
+        document.location.reload();
+    }
+
+    function getLocale() {
+        //debugger;
+        //sessionStorage.setItem("locale", 'zh');
+        sessionStorage.setItem("locale", 'zh-tw');
+        var locale = sessionStorage.getItem("locale");
+        return locale != null ? locale : "tw";
+    }
+
+</script>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+<script>
+
+
+        window.onload = function (e)
+        {
+            liff.init({ liffId:  '@TempData["Proponent"]' })
+                .then(() =>
+                {
+                // ?查用?是否已登?
+                  if (!liff.isLoggedIn())
+                  {
+                      document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
+
+                      //ShowToast("您還沒有登入LINE", "error", 5000);
+
+                      liff.login();
+
+                      return;
+                  }
+                  else
+                  {
+                      liff.permission.query("profile").then((permissionStatus) => {
+                          if (permissionStatus.state === "granted") {
+                              //使用者已授權
+                              initializeApp();
+                          }
+                          else if (permissionStatus.state === "prompt") {
+                              document.getElementById('displaynamefield').innerHTML = "您並未授權，請先完成授權程序!";
+                              liff.permission.requestAll();
+                          }
+                          else {
+                              document.getElementById('displaynamefield').innerHTML = "Liff Scope沒有設定，所以無法操作!";
+                          }
+                      });
+                  }
+                })
+                .catch(error => {
+                    // 錯誤處理 Liff LLogin
+                    document.getElementById('displaynamefield').innerHTML = "錯誤:" + error;
+                });
+        };
+
+        var UserId = "";
+        var GroupId = "";
+        var RoomId = "";
+        var DisplayName = "";
+        var ViewType = "";
+
+        var ClassName = "";
+
+    async function initializeApp() {
+        await liff.getProfile()
+            .then(function (profile) {
+                document.getElementById('displaynamefield').innerHTML = "正在處理中......";
+                DisplayName = profile.displayName;
+                UserId = profile.userId;
+                //alert("測試 UserId =" + UserId);
+                GroupId = profile.aGroupId;
+                RoomId = profile.aRoomId;
+                ViewType = profile.aViewType;
+                //alert("測試004!" + DisplayName);
+                // 取得 UserId 的Ajax
+                UpdateLineUserId( DisplayName, UserId, GroupId, RoomId, ViewType);
+            })
+            .catch(error => {
+                // 錯誤處理 Liff LLogin
+                document.getElementById('displaynamefield').innerHTML = "錯誤:" + error;
+            });
+
+    }
+
+    function UpdateLineUserId(aDisplayName, aUserLineId, aGroupId, aRoomId, aViewType)
+    {
+                    // AJAX 區塊
+                    return $.ajax
+                    (
+                        {
+                            url: '@Url.Action("PollQrCodeGetLineId", "QrCode")',
+                            data: { DisplayName: aDisplayName, UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
+                            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+                            //async: false,
+                            success: function (data)
+                            {
+                                if (data.result.includes("錯誤") != true) {
+                                    // 正確掃描
+                                    //document.getElementById('classnamefield').innerHTML = "課程名稱: " + data.classname;
+                                    //document.getElementById('displaynamefield').innerHTML = "請 " + data.username + " 完成 <br/>" + data.classname + " 服事意願及意見回饋調查" + "<br/>謝謝" + data.username + "的參與，牧區及事工單位的同工將主動與" + data.username + "接洽！";
+                                    document.getElementById('displaynamefield').innerHTML = "服事意願調查表<br/>" + "請 " + data.username + " 完成 <br/>" + data.classname + " 服事意願及意見回饋調查" ;
+                                    //document.getElementById('classindexfield').innerHTML = "課堂資訊: " + data.classindex;
+                                }
+                                else
+                                {
+                                    document.getElementById('displaynamefield').innerHTML = data.result;
+                                }
+                            },
+
+                            error: function (obj)
+                            {
+                                //getLoadPanelInstance().hide();
+                                window.location.href = "/Home/Login";
+                            }
+                        }
+                    );
+                    // AJAX 區塊
+        }
+
+    function ShowToast(LocalToastMessage, Type, DisplayTime) {
+            //debugger;
+            var ToastInstance = $("#Toast").dxToast("instance");
+            ToastInstance.option('message', LocalToastMessage);
+            ToastInstance.option('type', Type);
+            ToastInstance.option('displayTime', DisplayTime);
+            ToastInstance.option('white-space', 'pre-line');
+            ToastInstance.option('closeOnClick', true);
+            ToastInstance.show();
+        }
+
+</script>
+
+<link href="~/css/Scheduler.css" rel="stylesheet" />
+<link href="~/css/Site.css" rel="stylesheet" />
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+
+<script src="~/js/devextreme/devextreme-intl.min.js"></script>
+<script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>

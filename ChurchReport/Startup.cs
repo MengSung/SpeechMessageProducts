@@ -463,6 +463,22 @@ namespace ChurchReport
                     template: "QrCode/CourseView/{QrCodeViewPatameter}",
                     defaults: new { controller = "QrCode", action = "QrCodeView" });
 
+                // 問卷調查 QR Code 路由（支援多種 URL 格式）
+                routes.MapRoute(
+                    name: "pollqrcodeview_short",
+                    template: "PollQrCodeView",
+                    defaults: new { controller = "QrCode", action = "PollQrCodeView" });
+
+                routes.MapRoute(
+                    name: "pollqrcodeview_home",
+                    template: "Home/PollQrCodeView",
+                    defaults: new { controller = "QrCode", action = "PollQrCodeView" });
+
+                routes.MapRoute(
+                    name: "pollqrcodeview_home_param",
+                    template: "Home/PollQrCodeView/{PollQrCodeViewPatameter}",
+                    defaults: new { controller = "QrCode", action = "PollQrCodeView" });
+
                 routes.MapRoute(
                     name: "pollqrcodeview",
                     template: "QrCode/PollView/{PollQrCodeViewPatameter}",
