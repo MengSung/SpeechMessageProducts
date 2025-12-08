@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+ï»¿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +15,7 @@ namespace ChurchReport
     public class Program
     {
         // ========================================
-        // ÀRºA¦¨­ûÅÜ¼Æ¥Î¨Ó«O¦s TraceListener¡A½T«O³æ¨Ò¥B¥iÄÀ©ñ
+        // éœæ…‹æˆå“¡è®Šæ•¸ç”¨ä¾†ä¿å­˜ TraceListenerï¼Œç¢ºä¿å–®ä¾‹ä¸”å¯é‡‹æ”¾
         // ========================================
         private static TextWriterTraceListener _traceListener;
         private static readonly object _traceLock = new object();
@@ -24,7 +24,7 @@ namespace ChurchReport
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // ³]©w Kestrel
+            // è¨­å®š Kestrel
             builder.WebHost.ConfigureKestrel(options =>
             {
                 options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(30);
@@ -33,40 +33,48 @@ namespace ChurchReport
                 options.Limits.MaxConcurrentUpgradedConnections = 1000;
             });
 
-            // ¨Ï¥Î Startup Ãş§O³]©wªA°È
+            // ä½¿ç”¨ Startup é¡åˆ¥è¨­å®šæœå‹™
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
 
             var app = builder.Build();
 
             // ========================================
-            // ­×§ï¡G¥u¦b Development Àô¹Ò¤Uªì©l¤Æ Trace Listener
-            // Release ¼Ò¦¡¤U¤£¼g¤J Trace.log¡A´î¤Ö I/O ¶}¾P
+            // ä¿®æ”¹ï¼šåªåœ¨ Development ç’°å¢ƒä¸‹åˆå§‹åŒ– Trace Listener
+            // Release æ¨¡å¼ä¸‹ä¸å¯«å…¥ Trace.logï¼Œæ¸›å°‘ I/O é–‹éŠ·
             // ========================================
-            if (app.Environment.IsDevelopment())
+            //if (app.Environment.IsDevelopment())
             {
+                // ğŸ” è¼¸å‡ºè·¯å¾‘è³‡è¨Šä»¥ä¾¿è¨ºæ–·
+                Console.WriteLine("=".PadRight(80, '='));
+                Console.WriteLine("ğŸ“‚ æ‡‰ç”¨ç¨‹å¼è·¯å¾‘è³‡è¨Š:");
+                Console.WriteLine($"   ContentRootPath: {app.Environment.ContentRootPath}");
+                Console.WriteLine($"   WebRootPath: {app.Environment.WebRootPath}");
+                Console.WriteLine($"   ç’°å¢ƒåç¨±: {app.Environment.EnvironmentName}");
+                Console.WriteLine("=".PadRight(80, '='));
+                
                 InitializeTraceListener(app.Environment.ContentRootPath);
             }
 
             // ========================================
-            // GC ºÊ±±³]©w¡]Development ¼Ò¦¡¡^
-            // ¨C 10 ¤ÀÄÁ°O¿ı¤@¦¸ GC ²Î­p¡AÀ°§UºÊ±±°O¾ĞÅé¨Ï¥Î
+            // GC ç›£æ§è¨­å®šï¼ˆDevelopment æ¨¡å¼ï¼‰
+            // æ¯ 10 åˆ†é˜è¨˜éŒ„ä¸€æ¬¡ GC çµ±è¨ˆï¼Œå¹«åŠ©ç›£æ§è¨˜æ†¶é«”ä½¿ç”¨
             // ========================================
             if (app.Environment.IsDevelopment())
             {
                 StartGCMonitoring();
             }
 
-            // ¨Ï¥Î Startup Ãş§O³]©w¤¤¤¶¼h
+            // ä½¿ç”¨ Startup é¡åˆ¥è¨­å®šä¸­ä»‹å±¤
             startup.Configure(app, app.Environment, app.Services.GetRequiredService<ILoggerFactory>());
 
             // ========================================
-            // µù¥UÀ³¥Îµ{¦¡°±¤î¨Æ¥ó¡A½T«O¸ê·½¥¿½TÄÀ©ñ
+            // è¨»å†Šæ‡‰ç”¨ç¨‹å¼åœæ­¢äº‹ä»¶ï¼Œç¢ºä¿è³‡æºæ­£ç¢ºé‡‹æ”¾
             // ========================================
             var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
             lifetime.ApplicationStopping.Register(() =>
             {
-                if (app.Environment.IsDevelopment())
+                //if (app.Environment.IsDevelopment())
                 {
                     CleanupTraceListener();
                 }
@@ -76,8 +84,8 @@ namespace ChurchReport
         }
 
         /// <summary>
-        /// ªì©l¤Æ Trace Listener¡]¶È¦b Development Àô¹Ò¤U°õ¦æ¡^
-        /// ½T«O TextWriterTraceListener ¥u«Ø¥ß¤@¦¸¡A¨Ã¥B¥i¥H¦bÀ³¥Îµ{¦¡°±¤î®É¥¿½TÄÀ©ñ
+        /// åˆå§‹åŒ– Trace Listenerï¼ˆåƒ…åœ¨ Development ç’°å¢ƒä¸‹åŸ·è¡Œï¼‰
+        /// ç¢ºä¿ TextWriterTraceListener åªå»ºç«‹ä¸€æ¬¡ï¼Œä¸¦ä¸”å¯ä»¥åœ¨æ‡‰ç”¨ç¨‹å¼åœæ­¢æ™‚æ­£ç¢ºé‡‹æ”¾
         /// </summary>
         private static void InitializeTraceListener(string contentRootPath)
         {
@@ -85,24 +93,34 @@ namespace ChurchReport
             {
                 if (_traceListener != null)
                 {
-                    // ¤w¸gªì©l¤Æ¡Aª½±µªğ¦^
+                    // å·²ç¶“åˆå§‹åŒ–ï¼Œç›´æ¥è¿”å›
+                    Console.WriteLine("âš ï¸  Trace Listener å·²ç¶“åˆå§‹åŒ–ï¼Œè·³éé‡è¤‡åˆå§‹åŒ–");
                     return;
                 }
 
                 try
                 {
-                    // «Ø¥ß¤é»x¥Ø¿ı
+                    // å»ºç«‹æ—¥èªŒç›®éŒ„
                     var logsDir = Path.Combine(contentRootPath, "Logs");
+                    
+                    Console.WriteLine("ğŸ”§ åˆå§‹åŒ– Trace Listener...");
+                    Console.WriteLine($"   ç›®æ¨™ç›®éŒ„: {logsDir}");
+                    Console.WriteLine($"   ç›®éŒ„å­˜åœ¨(å»ºç«‹å‰): {Directory.Exists(logsDir)}");
+                    
                     Directory.CreateDirectory(logsDir);
+                    
+                    Console.WriteLine($"   ç›®éŒ„å­˜åœ¨(å»ºç«‹å¾Œ): {Directory.Exists(logsDir)}");
+                    
                     var tracePath = Path.Combine(logsDir, "Trace.log");
+                    Console.WriteLine($"   Trace æª”æ¡ˆå®Œæ•´è·¯å¾‘: {tracePath}");
 
-                    // «Ø¥ß TextWriterTraceListener ¨Ã«O¦s°Ñ¦Ò¡]½T«O¥i¥HÄÀ©ñ¡^
+                    // å»ºç«‹ TextWriterTraceListener ä¸¦ä¿å­˜åƒè€ƒï¼ˆç¢ºä¿å¯ä»¥é‡‹æ”¾ï¼‰
                     _traceListener = new TextWriterTraceListener(tracePath)
                     {
                         Name = "ChurchReportTraceListener"
                     };
 
-                    // ÀË¬d¬O§_¤w¦s¦b¬Û¦P¦WºÙªº Listener¡]Á×§K­«½Æ·s¼W¡^
+                    // æª¢æŸ¥æ˜¯å¦å·²å­˜åœ¨ç›¸åŒåç¨±çš„ Listenerï¼ˆé¿å…é‡è¤‡æ–°å¢ï¼‰
                     var existingListener = Trace.Listeners.Cast<TraceListener>()
                         .FirstOrDefault(l => l.Name == "ChurchReportTraceListener");
 
@@ -111,19 +129,30 @@ namespace ChurchReport
                         Trace.Listeners.Add(_traceListener);
                         Trace.AutoFlush = true;
                         Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Trace listener initialized successfully (Development mode).");
+                        Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Trace file location: {tracePath}");
+                        
+                        Console.WriteLine($"âœ… Trace Listener åˆå§‹åŒ–æˆåŠŸï¼");
+                        Console.WriteLine($"   æª”æ¡ˆä½ç½®: {tracePath}");
+                        Console.WriteLine($"   AutoFlush: å·²å•Ÿç”¨");
+                    }
+                    else
+                    {
+                        Console.WriteLine("âš ï¸  ç™¼ç¾å·²å­˜åœ¨åŒåçš„ Listenerï¼Œè·³éæ·»åŠ ");
                     }
                 }
                 catch (Exception ex)
                 {
-                    // ªì©l¤Æ¥¢±Ñ¡A°O¿ı¨ì±±¨î¥x¡]Á×§K¼vÅTÀ³¥Îµ{¦¡±Ò°Ê¡^
-                    Console.WriteLine($"Failed to initialize trace listener: {ex.Message}");
+                    // åˆå§‹åŒ–å¤±æ•—ï¼Œè¨˜éŒ„åˆ°æ§åˆ¶å°ï¼ˆé¿å…å½±éŸ¿æ‡‰ç”¨ç¨‹å¼å•Ÿå‹•ï¼‰
+                    Console.WriteLine($"âŒ åˆå§‹åŒ– Trace Listener å¤±æ•—: {ex.Message}");
+                    Console.WriteLine($"   éŒ¯èª¤é¡å‹: {ex.GetType().Name}");
+                    Console.WriteLine($"   å †ç–Šè¿½è¹¤: {ex.StackTrace}");
                 }
             }
         }
 
         /// <summary>
-        /// ²M²z Trace Listener¡]½T«O¸ê·½¥¿½TÄÀ©ñ¡^
-        /// ¦bÀ³¥Îµ{¦¡°±¤î®É©I¥s¡AÃö³¬ FileStream ©M StreamWriter
+        /// æ¸…ç† Trace Listenerï¼ˆç¢ºä¿è³‡æºæ­£ç¢ºé‡‹æ”¾ï¼‰
+        /// åœ¨æ‡‰ç”¨ç¨‹å¼åœæ­¢æ™‚å‘¼å«ï¼Œé—œé–‰ FileStream å’Œ StreamWriter
         /// </summary>
         private static void CleanupTraceListener()
         {
@@ -135,13 +164,13 @@ namespace ChurchReport
                     {
                         Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Application shutting down. Cleaning up trace listener.");
 
-                        // ±q Listeners ¶°¦X²¾°£
+                        // å¾ Listeners é›†åˆç§»é™¤
                         Trace.Listeners.Remove(_traceListener);
 
-                        // ½T«O Flush¡]±N½w½Ä¸ê®Æ¼g¤JÀÉ®×¡^
+                        // ç¢ºä¿ Flushï¼ˆå°‡ç·©è¡è³‡æ–™å¯«å…¥æª”æ¡ˆï¼‰
                         _traceListener.Flush();
 
-                        // ÄÀ©ñ¸ê·½¡]FileStream, StreamWriter¡^
+                        // é‡‹æ”¾è³‡æºï¼ˆFileStream, StreamWriterï¼‰
                         _traceListener.Dispose();
                         _traceListener = null;
                     }
@@ -154,9 +183,9 @@ namespace ChurchReport
         }
 
         /// <summary>
-        /// ±Ò°Ê GC ºÊ±±¡]Development ¼Ò¦¡¡^
-        /// ¨C 10 ¤ÀÄÁ°O¿ı¤@¦¸ GC ²Î­p¡AÀ°§U¶EÂ_°O¾ĞÅé°İÃD
-        /// °O¿ı¤º®e¡GGen0/Gen1/Gen2 ¦^¦¬¦¸¼Æ¡BGC Memory¡BPrivate Memory
+        /// å•Ÿå‹• GC ç›£æ§ï¼ˆDevelopment æ¨¡å¼ï¼‰
+        /// æ¯ 10 åˆ†é˜è¨˜éŒ„ä¸€æ¬¡ GC çµ±è¨ˆï¼Œå¹«åŠ©è¨ºæ–·è¨˜æ†¶é«”å•é¡Œ
+        /// è¨˜éŒ„å…§å®¹ï¼šGen0/Gen1/Gen2 å›æ”¶æ¬¡æ•¸ã€GC Memoryã€Private Memory
         /// </summary>
         private static void StartGCMonitoring()
         {
