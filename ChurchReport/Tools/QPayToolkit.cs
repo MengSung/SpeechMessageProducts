@@ -27,13 +27,8 @@ namespace ChurchReport.Tools
         private static string _currentVersion = "1.0.0";
 
         // SANDBOX 測試用
-        //private static string _site = "https://sandbox.sinopac.com/QPay.WebAPI/api/";
-        //private static string _site = "https://apisbx.sinopac.com/funBIZ-Sbx/QPay.WebAPI/api/";
-        //private static string _site = m_Configuration["Sinopac:Site"];
-        //private static string _site = m_Configuration["Sandbox:Site_Xkey"];
         private static string _site = m_Configuration["Sandbox:Site"];
 
-        // SANDBOX 測試用
         private static String A1 = m_Configuration["Sandbox:A1"];
         private static String A2 = m_Configuration["Sandbox:A2"];
         private static String B1 = m_Configuration["Sandbox:B1"];
@@ -42,19 +37,37 @@ namespace ChurchReport.Tools
 
         private static String X_KEY_ID = m_Configuration["Sandbox:XKeyID"];
 
-        // 永豐金流正式環境
-        //m_LinePayClient = new LinePayClient(configuration["LinePay:ChannelId"], configuration["LinePay:ChannelSecret"], bool.Parse(configuration["LinePay:IsSandbox"]));
+        #region Static Constructor
+        static QPayToolkit()
+        {
+            // 根據 Cash_Environment 配置決定使用正式環境還是測試環境
+            string cashEnvironment = m_Configuration["Cash_Environment"];
 
-        //永豐金流正式環境
-        //永豐金流寄給好牧人的HASH CODE
-        //private static string _site = m_Configuration["Sinopac:Site"];
-        //private static String A1 = m_Configuration["Sinopac:A1"];
-        //private static String A2 = m_Configuration["Sinopac:A2"];
-        //private static String B1 = m_Configuration["Sinopac:B1"];
-        //private static String B2 = m_Configuration["Sinopac:B2"];
-        //private static String HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
+            if (cashEnvironment == "正式環境")
+            {
+                // 永豐金流正式環境
+                _site = m_Configuration["Sinopac:Site"];
+                A1 = m_Configuration["Sinopac:A1"];
+                A2 = m_Configuration["Sinopac:A2"];
+                B1 = m_Configuration["Sinopac:B1"];
+                B2 = m_Configuration["Sinopac:B2"];
+                X_KEY_ID = m_Configuration["Sinopac:XKeyID"];
+            }
+            else
+            {
+                // SANDBOX 測試用
+                _site = m_Configuration["Sandbox:Site"];
+                A1 = m_Configuration["Sandbox:A1"];
+                A2 = m_Configuration["Sandbox:A2"];
+                B1 = m_Configuration["Sandbox:B1"];
+                B2 = m_Configuration["Sandbox:B2"];
+                X_KEY_ID = m_Configuration["Sandbox:XKeyID"];
+            }
 
-        //private static String X_KEY_ID = m_Configuration["Sinopac:XKeyID"];
+            // 重新計算 HASH_CODE
+            HASH_CODE = A1 + "," + A2 + "," + B1 + "," + B2;
+        }
+        #endregion
 
         #region Public method
         #region 訂單建立 (虛擬帳號、信用卡)
@@ -288,7 +301,7 @@ namespace ChurchReport.Tools
 
             int i;
             //1.移除雜湊中的"-"
-            //2.取得雜湊的前16碼
+            //2.取得雜湯的前16碼
             //3.將步驟2結果轉為16進制byte陣列
             List<byte[]> keyList = apiKeys.ToList().Select(x => Hex.GetBytes(x.Replace("-", "").Substring(0, 16), out i)).ToList();
 
