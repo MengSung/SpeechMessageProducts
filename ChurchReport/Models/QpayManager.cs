@@ -1325,46 +1325,86 @@ namespace ChurchReport.Models
         }
         public String ConvertToCategory(Entity aFeeEntity)
         {
-            switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category"))
+            try
             {
-                case 100000010:
-                    return "主日奉獻";
-                case 100000000:
-                    return "十一奉獻";
-                case 100000002:
-                    return "感恩奉獻";
-                case 100000006:
-                    return "建堂奉獻";
-                case 100000007:
-                    return "宣教奉獻";
-                case 100000019:
-                    return "愛心奉獻";
-                case 100000008:
-                    return "特別獻金";
-                default:
-                    return "十一奉獻";
+                // 方法 1: 優先使用 FormattedValues（最快速且最可靠）
+                if (aFeeEntity.FormattedValues.Contains("new_category"))
+                {
+                    string displayText = aFeeEntity.FormattedValues["new_category"];
+                    if (!string.IsNullOrEmpty(displayText))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ConvertToCategory] 使用 FormattedValues: {displayText}");
+                        return displayText;
+                    }
+                }
+                
+                // 方法 2: 如果 FormattedValues 不存在，從 OptionSetValue 取值後查表
+                if (aFeeEntity.Contains("new_category") && aFeeEntity["new_category"] is OptionSetValue)
+                {
+                    var optionSetValue = (OptionSetValue)aFeeEntity["new_category"];
+                    System.Diagnostics.Debug.WriteLine($"[ConvertToCategory] OptionSet Value: {optionSetValue.Value}");
+                    
+                    // 使用 ConvertToCategory(int) 方法處理
+                    return ConvertToCategory(optionSetValue.Value);
+                }
+                
+                // 預設值（當無法取得顯示文字時）
+                System.Diagnostics.Debug.WriteLine($"[ConvertToCategory] 使用預設值");
+                return "十一奉獻";
+            }
+            catch (Exception ex)
+            {
+                // 記錄錯誤並返回預設值
+                System.Diagnostics.Debug.WriteLine($"[ConvertToCategory] 錯誤: {ex.Message}");
+                return "十一奉獻";
             }
         }
+        
         public String ConvertToCategory(int OptionSetValue)
         {
-            switch (OptionSetValue)
+            try
             {
-                case 100000010:
-                    return "主日奉獻";
-                case 100000000:
-                    return "十一奉獻";
-                case 100000002:
-                    return "感恩奉獻";
-                case 100000006:
-                    return "建堂奉獻";
-                case 100000007:
-                    return "宣教奉獻";
-                case 100000019:
-                    return "愛心奉獻";
-                case 100000008:
-                    return "特別獻金";
-                default:
-                    return "十一奉獻";
+                System.Diagnostics.Debug.WriteLine($"[ConvertToCategory(int)] 輸入值: {OptionSetValue}");
+                
+                // 使用硬編碼對應表（維持原有邏輯）
+                string result;
+                switch (OptionSetValue)
+                {
+                    case 100000010:
+                        result = "主日奉獻";
+                        break;
+                    case 100000000:
+                        result = "十一奉獻";
+                        break;
+                    case 100000002:
+                        result = "感恩奉獻";
+                        break;
+                    case 100000006:
+                        result = "建堂奉獻";
+                        break;
+                    case 100000007:
+                        result = "宣教奉獻";
+                        break;
+                    case 100000019:
+                        result = "愛心奉獻";
+                        break;
+                    case 100000008:
+                        result = "特別獻金";
+                        break;
+                    default:
+                        result = "十一奉獻";
+                        System.Diagnostics.Debug.WriteLine($"[ConvertToCategory(int)] 未知的 OptionSet 值: {OptionSetValue}，使用預設值");
+                        break;
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"[ConvertToCategory(int)] 回傳值: {result}");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // 記錄錯誤並返回預設值
+                System.Diagnostics.Debug.WriteLine($"[ConvertToCategory(int)] 錯誤: {ex.Message}");
+                return "十一奉獻";
             }
         }
         public String ConvertToDedicationBookingStatus(int OptionSetValue)
@@ -1414,25 +1454,6 @@ namespace ChurchReport.Models
             else
             {
                 return "";
-            }
-        }
-        #endregion
-        #region 副程式
-        private DateTime ParseDateTime(String strDateOrTime)
-        {
-            try
-            {
-                CultureInfo provider = CultureInfo.InvariantCulture;
-                DateTimeStyles style = DateTimeStyles.None;  //default is None
-
-                //return DateTime.ParseExact(strDateOrTime, "yyyy/MM/dd", provider, style);
-                return DateTime.Parse(strDateOrTime);
-            }
-            catch (Exception e)  //ParseException
-            {
-                Console.WriteLine("*** ERROR in _GetDateTime(" + strDateOrTime + ") => 改為現在時間 [" + e.Message + "]");
-
-                return DateTime.Now;
             }
         }
         #endregion
@@ -1490,6 +1511,23 @@ namespace ChurchReport.Models
             {
                 return new List<object>();
             }
+        }
+        private DateTime ParseDateTime(string dateString)
+        {
+            // 嘗試以多種格式解析日期字串
+            DateTime result;
+            string[] formats = { "yyyy/MM/dd", "yyyy-MM-dd", "yyyyMMdd" };
+            if (DateTime.TryParseExact(dateString, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+            {
+                return result;
+            }
+            // 若無法解析則嘗試一般解析
+            if (DateTime.TryParse(dateString, out result))
+            {
+                return result;
+            }
+            // 若解析失敗則回傳現在時間
+            return DateTime.Now;
         }
     }
 }
