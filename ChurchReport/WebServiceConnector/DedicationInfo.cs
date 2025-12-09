@@ -8,6 +8,8 @@ using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ChurchReport.WebServiceConnector
 {
@@ -24,6 +26,115 @@ namespace ChurchReport.WebServiceConnector
         public DedicationInfo()
         {
         }
+        
+        /// <summary>
+        /// 初始化 DedicationInfoModel，動態取得奉獻類別清單
+        /// </summary>
+        public DedicationInfoModel InitializeDedicationInfoModel()
+        {
+            try
+            {
+                var model = new DedicationInfoModel();
+                
+                // ✅ 從 Dynamics 365 OptionSet 動態取得奉獻類別清單
+                try
+                {
+                    var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                        this.m_ToolUtilityClass.m_Crm2011OrganizationService,
+                        null, // Logger (可選)
+                        new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                            new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                    );
+
+                    // 取得 new_fee 實體的 new_category OptionSet 對應表
+                    var categoryMapping = optionSetService.GetOptionSetMapping("new_fee", "new_category");
+                    
+                    // 將 Dictionary 的 Key (顯示文字) 轉換為 List<string>
+                    model.DedicationCategoryList = categoryMapping.Keys.ToList();
+
+                    System.Diagnostics.Debug.WriteLine($"[InitializeDedicationInfoModel] 成功取得 {model.DedicationCategoryList.Count} 個奉獻類別");
+                }
+                catch (Exception ex)
+                {
+                    // 如果動態取得失敗，使用備用的硬編碼清單
+                    System.Diagnostics.Debug.WriteLine($"[InitializeDedicationInfoModel] 動態取得奉獻類別失敗，使用備用清單: {ex.Message}");
+                    model.DedicationCategoryList = new List<String> {
+                        "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
+                        "宣教奉獻", "愛心奉獻", "特別獻金"
+                    };
+                }
+                
+                return model;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[InitializeDedicationInfoModel] 發生錯誤: {ex.Message}");
+                
+                // 返回空的 Model（至少包含備用清單）
+                return new DedicationInfoModel
+                {
+                    DedicationCategoryList = new List<String> {
+                        "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
+                        "宣教奉獻", "愛心奉獻", "特別獻金"
+                    }
+                };
+            }
+        }
+        
+        /// <summary>
+        /// 初始化 DedicationModel，動態取得奉獻類別清單
+        /// </summary>
+        public DedicationModel InitializeDedicationModel()
+        {
+            try
+            {
+                var model = new DedicationModel();
+                
+                // ✅ 從 Dynamics 365 OptionSet 動態取得奉獻類別清單
+                try
+                {
+                    var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                        this.m_ToolUtilityClass.m_Crm2011OrganizationService,
+                        null, // Logger (可選)
+                        new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                            new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                    );
+
+                    // 取得 new_fee 實體的 new_category OptionSet 對應表
+                    var categoryMapping = optionSetService.GetOptionSetMapping("new_fee", "new_category");
+                    
+                    // 將 Dictionary 的 Key (顯示文字) 轉換為 List<string>
+                    model.DedicationCategoryList = categoryMapping.Keys.ToList();
+
+                    System.Diagnostics.Debug.WriteLine($"[InitializeDedicationModel] 成功取得 {model.DedicationCategoryList.Count} 個奉獻類別");
+                }
+                catch (Exception ex)
+                {
+                    // 如果動態取得失敗，使用備用的硬編碼清單
+                    System.Diagnostics.Debug.WriteLine($"[InitializeDedicationModel] 動態取得奉獻類別失敗，使用備用清單: {ex.Message}");
+                    model.DedicationCategoryList = new List<String> {
+                        "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
+                        "宣教奉獻", "愛心奉獻", "特別獻金"
+                    };
+                }
+                
+                return model;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[InitializeDedicationModel] 發生錯誤: {ex.Message}");
+                
+                // 返回空的 Model（至少包含備用清單）
+                return new DedicationModel
+                {
+                    DedicationCategoryList = new List<String> {
+                        "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
+                        "宣教奉獻", "愛心奉獻", "特別獻金"
+                    }
+                };
+            }
+        }
+        
         public async Task<string> CreateFeeAsync(String LineId, DedicationInfoModel DedicationInfoModel)
         {
             try

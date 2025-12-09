@@ -1112,7 +1112,7 @@ namespace ChurchReport.Models
                 // 實體 ID
                 aDedicationBooking.EntityId = aRetrievedDedicationBookingEntity.Id.ToString();
                 // 類別
-                aDedicationBooking.DedicationCategory = ConvertToCategory(this.m_ToolUtilityClass.GetOptionSetAttribute(aRetrievedDedicationBookingEntity, "new_dedication_category"));
+                aDedicationBooking.DedicationCategory = ConvertToCategory(aRetrievedDedicationBookingEntity);
                 // 認獻單狀態
                 aDedicationBooking.DedicationBookingStatus = ConvertToDedicationBookingStatus(this.m_ToolUtilityClass.GetOptionSetAttribute(aRetrievedDedicationBookingEntity, "new_dedication_booking_status"));
                 // 每期金額
@@ -1367,18 +1367,7 @@ namespace ChurchReport.Models
                         return displayText;
                     }
                 }
-                
-                // 方法 2: 如果 FormattedValues 不存在，從 OptionSetValue 取值後查表
-                if (aFeeEntity.Contains("new_category") && aFeeEntity["new_category"] is OptionSetValue)
-                {
-                    var optionSetValue = (OptionSetValue)aFeeEntity["new_category"];
-                    System.Diagnostics.Debug.WriteLine($"[ConvertToCategory] OptionSet Value: {optionSetValue.Value}");
-                    
-                    // 使用 ConvertToCategory(int) 方法處理
-                    return ConvertToCategory(optionSetValue.Value);
-                }
-                
-                // 預設值（當無法取得顯示文字時）
+                                // 預設值（當無法取得顯示文字時）
                 System.Diagnostics.Debug.WriteLine($"[ConvertToCategory] 使用預設值");
                 return "十一奉獻";
             }
@@ -1389,55 +1378,7 @@ namespace ChurchReport.Models
                 return "十一奉獻";
             }
         }
-        
-        public String ConvertToCategory(int OptionSetValue)
-        {
-            try
-            {
-                System.Diagnostics.Debug.WriteLine($"[ConvertToCategory(int)] 輸入值: {OptionSetValue}");
-                
-                // 使用硬編碼對應表（維持原有邏輯）
-                string result;
-                switch (OptionSetValue)
-                {
-                    case 100000010:
-                        result = "主日奉獻";
-                        break;
-                    case 100000000:
-                        result = "十一奉獻";
-                        break;
-                    case 100000002:
-                        result = "感恩奉獻";
-                        break;
-                    case 100000006:
-                        result = "建堂奉獻";
-                        break;
-                    case 100000007:
-                        result = "宣教奉獻";
-                        break;
-                    case 100000019:
-                        result = "愛心奉獻";
-                        break;
-                    case 100000008:
-                        result = "特別獻金";
-                        break;
-                    default:
-                        result = "十一奉獻";
-                        System.Diagnostics.Debug.WriteLine($"[ConvertToCategory(int)] 未知的 OptionSet 值: {OptionSetValue}，使用預設值");
-                        break;
-                }
-                
-                System.Diagnostics.Debug.WriteLine($"[ConvertToCategory(int)] 回傳值: {result}");
-                return result;
-            }
-            catch (Exception ex)
-            {
-                // 記錄錯誤並返回預設值
-                System.Diagnostics.Debug.WriteLine($"[ConvertToCategory(int)] 錯誤: {ex.Message}");
-                return "十一奉獻";
-            }
-        }
-        public String ConvertToDedicationBookingStatus(int OptionSetValue)
+                public String ConvertToDedicationBookingStatus(int OptionSetValue)
         {
             switch (OptionSetValue)
             {

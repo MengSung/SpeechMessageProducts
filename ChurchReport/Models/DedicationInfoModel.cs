@@ -16,6 +16,8 @@ namespace ChurchReport.Models
         public int Amount { get; set; }                 //奉獻金額
         public String Category { get; set; }            //奉獻類別
         public String Others { get; set; }              //其他奉獻
-
+        
+        // ✅ 新增：動態奉獻類別清單（從 Dynamics 365 OptionSet 取得）
+        public List<String> DedicationCategoryList { get; set; } = new List<String>();
     }
 }
