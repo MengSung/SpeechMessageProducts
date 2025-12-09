@@ -5,6 +5,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions; // ? 新增
 using Microsoft.Extensions.Caching.Memory;
 
 namespace ChurchReport.Services
@@ -22,12 +23,16 @@ namespace ChurchReport.Services
 
         public OptionSetMetadataService(
             IOrganizationService organizationService,
-            ILogger<OptionSetMetadataService> logger,
-            IMemoryCache cache)
+            ILogger<OptionSetMetadataService> logger = null,
+            IMemoryCache cache = null)
         {
             _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            
+            // ? 允許 logger 為 null，使用 NullLogger 作為預設值
+            _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<OptionSetMetadataService>.Instance;
+            
+            // ? 允許 cache 為 null，使用 MemoryCache 作為預設值
+            _cache = cache ?? new MemoryCache(new MemoryCacheOptions());
         }
 
         /// <summary>
