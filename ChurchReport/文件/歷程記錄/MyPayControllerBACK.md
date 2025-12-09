@@ -561,7 +561,7 @@ namespace ChurchReport.文件
                 case 100000006: return "建堂奉獻";
                 case 100000007: return "宣教奉獻";
                 case 100000019: return "愛心奉獻";
-                case 100000008: return "特別獻金";
+                case 100000008: return "特別奉獻";
                 default: return "奉獻";
             }
         }

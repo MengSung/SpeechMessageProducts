@@ -434,16 +434,16 @@ namespace ChurchReport.WebServiceConnector
         }
         public void SetIncomeCategory(String Value, ref Entity aFeeEntity)
         {
-            if (Value == "十一奉獻" || Value == "主日奉獻" || Value == "聖餐獻金" || Value == "節期獻金" || Value == "感恩奉獻" || Value == "特別獻金" || Value == "利息收入" || Value == "對內獻金" || Value == "其他收入")
+            if (Value == "十一奉獻" || Value == "主日奉獻" || Value == "聖餐獻金" || Value == "節期獻金" || Value == "感恩奉獻" || Value == "特別奉獻" || Value == "利息收入" || Value == "對內獻金" || Value == "其他收入")
             {
-                if (Value != "特別獻金")
+                if (Value != "特別奉獻")
                 {
-                    // 不是特別獻金，則是經常費收入
+                    // 不是特別奉獻，則是經常費收入
                     this.m_ToolUtilityClass.SetEntityStringAttribute(aFeeEntity, "new_income_category", "經常費收入");
                 }
                 else
                 {
-                    // 處理特別獻金
+                    // 處理特別奉獻
                     if (this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeEntity, "new_others") != "")
                      {
                         // 奉獻其他類別有資料則是專帳收入
@@ -487,7 +487,7 @@ namespace ChurchReport.WebServiceConnector
                 case "慈惠奉獻":
                     this.m_ToolUtilityClass.SetEntityStringAttribute(aFeeEntity, "new_accounting_code", "4116100");
                     break;
-                case "特別獻金":
+                case "特別奉獻":
                     this.m_ToolUtilityClass.SetEntityStringAttribute(aFeeEntity, "new_accounting_code", "4117100");
                     break;
                 default:

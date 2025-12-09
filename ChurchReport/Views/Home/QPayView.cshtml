@@ -86,16 +86,16 @@
                                 .Placeholder("請選擇宣教對象")
                             );
 
-                        // 特別獻金項目
+                        // 特別奉獻項目
                         items.AddSimpleFor(m => m.Others)
-                            .Label(l => l.Text("特別獻金項目"))
+                            .Label(l => l.Text("特別奉獻項目"))
                             .Visible(false)
                             .Name("SpecialDedicationSelectionBox")
                             .Editor(e => e
                                 .SelectBox()
                                 .Width(200)
                                 .DataSource(Model.SpecialCategoryArray)
-                                .Placeholder("請選擇特別獻金項目")
+                                .Placeholder("請選擇特別奉獻項目")
                             );
 
                         // 其他奉獻內容
@@ -501,7 +501,7 @@
         var form = getFormInstance();
         if (e.value == "節期獻金") {
             form.itemOption("HolidayDedicationSelectionBox", 'visible', true);
-        } else if (e.value == "特別獻金") {
+        } else if (e.value == "特別奉獻") {
             form.itemOption("SpecialDedicationSelectionBox", 'visible', true);
         }
         form.itemOption('DedicationAmount', { editorOptions: { width: 200 } });

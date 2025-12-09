@@ -646,7 +646,7 @@ namespace ChurchReport.Models
                     System.Diagnostics.Debug.WriteLine($"[SetQpayModel] 動態取得奉獻類別失敗，使用備用清單: {ex.Message}");
                     m_QpayModel.DedicationCategoryList = new List<String> {
                         "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
-                        "宣教奉獻", "愛心奉獻", "特別獻金"
+                        "宣教奉獻", "愛心奉獻", "特別奉獻"
                     };
                 }
                 #endregion
@@ -674,12 +674,12 @@ namespace ChurchReport.Models
                     }
                 }
 
-                //控管特別獻金
-                if (QpayModel.Category != null && QpayModel.Category == "特別獻金")
+                //控管特別奉獻
+                if (QpayModel.Category != null && QpayModel.Category == "特別奉獻")
                 {
                     if (QpayModel.Others == null || QpayModel.Others == "")
                     {
-                        return Json(new { status = "2", message = "錯誤:沒有選擇特別獻金的項目!" });
+                        return Json(new { status = "2", message = "錯誤:沒有選擇特別奉獻的項目!" });
                     }
                 }
 

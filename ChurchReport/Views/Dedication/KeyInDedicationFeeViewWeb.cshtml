@@ -428,7 +428,7 @@
 
             items.AddSimpleFor
                     (m => m.Others)
-                        .Label(l => l.Text("特別獻金項目"))
+                        .Label(l => l.Text("特別奉獻項目"))
                         .Visible(false)
                         .Name("SpecialDedicationSelectionBox")
                         .Editor
@@ -437,7 +437,7 @@
                             .SelectBox()
                             .Width(200)
                             .DataSource(Model.SpecialCategoryArray)
-                            .Placeholder("請選擇特別獻金項目")
+                            .Placeholder("請選擇特別奉獻項目")
                         //.Value("特別")
                         );
 
@@ -625,7 +625,7 @@
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
 
             }
-            else if (e.value == "特別獻金") {
+            else if (e.value == "特別奉獻") {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', true);
                 $("#form2").dxForm("instance").updateData("SpecialDedicationSelectionBox", "");

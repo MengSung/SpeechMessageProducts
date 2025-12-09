@@ -63,7 +63,7 @@ private int GetCategoryValueByDisplayText(string displayText)
         { "建堂奉獻", 100000006 },
         { "宣教奉獻", 100000007 },
         { "愛心奉獻", 100000019 },
-        { "特別獻金", 100000008 }
+        { "特別奉獻", 100000008 }
     };
 
     if (categoryMapping.TryGetValue(displayText.Trim(), out int categoryValue))

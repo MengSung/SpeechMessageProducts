@@ -148,7 +148,7 @@ namespace ChurchReport.Services
         /// - 100000006: 建堂奉獻
         /// - 100000007: 宣教奉獻
         /// - 100000019: 愛心奉獻
-        /// - 100000008: 特別獻金
+        /// - 100000008: 特別奉獻
         /// 
         /// 【支援多種輸入方式】
         /// 1. 傳入 Entity：從 FormattedValues 或 OptionSetValue 取得

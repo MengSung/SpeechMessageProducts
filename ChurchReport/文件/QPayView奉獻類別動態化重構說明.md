@@ -16,7 +16,7 @@ items.AddSimpleFor(m => m.Category)
         .Width(200)
         .DataSource(new string[] {
             "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
-            "宣教奉獻", "愛心奉獻", "特別獻金"
+            "宣教奉獻", "愛心奉獻", "特別奉獻"
         }) // ? 硬編碼在 View 中
         .OnValueChanged("OnCategorySelectBoxValueChanged")
     );
@@ -100,7 +100,7 @@ public QpayModel SetQpayModel(Entity aContact)
             System.Diagnostics.Debug.WriteLine($"[SetQpayModel] 動態取得奉獻類別失敗，使用備用清單: {ex.Message}");
             m_QpayModel.DedicationCategoryList = new List<String> {
                 "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
-                "宣教奉獻", "愛心奉獻", "特別獻金"
+                "宣教奉獻", "愛心奉獻", "特別奉獻"
             };
         }
         #endregion
@@ -197,7 +197,7 @@ catch (Exception ex)
     // ? 使用備用的硬編碼清單，確保系統可正常運作
     m_QpayModel.DedicationCategoryList = new List<String> {
         "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
-        "宣教奉獻", "愛心奉獻", "特別獻金"
+        "宣教奉獻", "愛心奉獻", "特別奉獻"
     };
 }
 ```

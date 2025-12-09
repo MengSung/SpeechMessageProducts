@@ -60,7 +60,7 @@ namespace ChurchReport.WebServiceConnector
                     System.Diagnostics.Debug.WriteLine($"[InitializeDedicationInfoModel] 動態取得奉獻類別失敗，使用備用清單: {ex.Message}");
                     model.DedicationCategoryList = new List<String> {
                         "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
-                        "宣教奉獻", "愛心奉獻", "特別獻金"
+                        "宣教奉獻", "愛心奉獻", "特別奉獻"
                     };
                 }
                 
@@ -75,7 +75,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     DedicationCategoryList = new List<String> {
                         "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
-                        "宣教奉獻", "愛心奉獻", "特別獻金"
+                        "宣教奉獻", "愛心奉獻", "特別奉獻"
                     }
                 };
             }
@@ -114,7 +114,7 @@ namespace ChurchReport.WebServiceConnector
                     System.Diagnostics.Debug.WriteLine($"[InitializeDedicationModel] 動態取得奉獻類別失敗，使用備用清單: {ex.Message}");
                     model.DedicationCategoryList = new List<String> {
                         "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
-                        "宣教奉獻", "愛心奉獻", "特別獻金"
+                        "宣教奉獻", "愛心奉獻", "特別奉獻"
                     };
                 }
                 
@@ -129,7 +129,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     DedicationCategoryList = new List<String> {
                         "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
-                        "宣教奉獻", "愛心奉獻", "特別獻金"
+                        "宣教奉獻", "愛心奉獻", "特別奉獻"
                     }
                 };
             }
