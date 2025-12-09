@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
 using UserProfile = Line.Messaging.UserProfile;
+using ChurchReport.Services; // 新增命名空間
 
 namespace ChurchReport.WebServiceConnector
 {
@@ -48,6 +49,9 @@ namespace ChurchReport.WebServiceConnector
         // 透過 Factory 取得 ToolUtilityClass 單一實例
         ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
         IPayment m_PaymentService;
+        
+        // ✅ 新增 OptionSetMetadataService 實例
+        private readonly OptionSetMetadataService _optionSetMetadataService;
         #endregion
 
         #region 業務資料
@@ -68,6 +72,14 @@ namespace ChurchReport.WebServiceConnector
             m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
 
             m_PaymentService = aPaymentService;
+
+            // ✅ 初始化 OptionSetMetadataService
+            _optionSetMetadataService = new OptionSetMetadataService(
+                m_ToolUtilityClass.m_Crm2011OrganizationService,
+                // TODO: 注入 ILogger 和 IMemoryCache，目前暫時使用 null
+                null,
+                new Microsoft.Extensions.Caching.Memory.MemoryCache(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+            );
 
             // 商店編號
             if (m_Configuration["Cash_Environment"] == "正式環境")
@@ -114,6 +126,13 @@ namespace ChurchReport.WebServiceConnector
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] Unknown payment provider: {payProvider}, defaulting to 永豐金流");
                 m_PaymentService = new QPayToolkitWrapper();
             }
+
+            // ✅ 初始化 OptionSetMetadataService
+            _optionSetMetadataService = new OptionSetMetadataService(
+                m_ToolUtilityClass.m_Crm2011OrganizationService,
+                null,
+                new Microsoft.Extensions.Caching.Memory.MemoryCache(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+            );
 
             // 商店編號
             if (m_Configuration["Cash_Environment"] == "正式環境")
@@ -357,33 +376,60 @@ namespace ChurchReport.WebServiceConnector
         }
         public void SetFeePayCategory(String Value, ref Entity aFeeEntity)
         {
-
-            switch (Value)
+            try
             {
-                case "主日奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000010);
-                    break;
-                case "十一奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
-                    break;
-                case "感恩奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000002);
-                    break;
-                case "建堂奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000006);
-                    break;
-                case "宣教奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000007);
-                    break;
-                case "愛心奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000019);
-                    break;
-                case "特別獻金":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000008);
-                    break;
-                default:
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
-                    break;
+                // 使用統一的方法進行轉換
+                int categoryValue = GetCategoryValueByDisplayText(Value);
+                
+                this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", categoryValue);
+                
+                System.Diagnostics.Debug.WriteLine($"[SetFeePayCategory] 設定奉獻類別: {Value} -> {categoryValue}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SetFeePayCategory] 錯誤: {ex.Message}，使用預設值（十一奉獻）");
+                // 發生錯誤時使用預設值（十一奉獻）
+                this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
+            }
+        }
+
+        /// <summary>
+        /// 根據顯示文字取得對應的 OptionSet 值
+        /// ✅ 改為動態從 Dynamics 365 取得完整的 OptionSet 清單
+        /// 與 MyPayFeeTypeHelper.GetDedicationCategoryName 方法互為反向對應
+        /// </summary>
+        private int GetCategoryValueByDisplayText(string displayText)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(displayText))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[GetCategoryValueByDisplayText] 輸入為空，使用預設值（十一奉獻 = 100000000）");
+                    return 100000000; // 預設為十一奉獻
+                }
+
+                // ✅ 使用 OptionSetMetadataService 動態查詢
+                int categoryValue = _optionSetMetadataService.GetOptionSetValue(
+                    entityName: "new_fee",
+                    attributeName: "new_category",
+                    displayText: displayText.Trim(),
+                    defaultValue: 100000000 // 預設為十一奉獻
+                );
+
+                System.Diagnostics.Debug.WriteLine($"[GetCategoryValueByDisplayText] {displayText} → {categoryValue}");
+                return categoryValue;
+            }
+            catch (KeyNotFoundException)
+            {
+                // 找不到對應的顯示文字時，使用預設值（十一奉獻）
+                System.Diagnostics.Debug.WriteLine($"[GetCategoryValueByDisplayText] 找不到對應的奉獻類別: {displayText}，使用預設值（十一奉獻 = 100000000）");
+                return 100000000;
+            }
+            catch (Exception ex)
+            {
+                // 發生其他錯誤時，記錄錯誤並使用預設值
+                System.Diagnostics.Debug.WriteLine($"[GetCategoryValueByDisplayText] 錯誤: {ex.Message}，使用預設值（十一奉獻 = 100000000）");
+                return 100000000;
             }
         }
         public void SetIncomeCategory(String Value, ref Entity aFeeEntity)
@@ -451,33 +497,20 @@ namespace ChurchReport.WebServiceConnector
         }
         public void SetPayCategory(String Value, String AttributeName, ref Entity aFeeEntity)
         {
-
-            switch (Value)
+            try
             {
-                case "主日奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000010);
-                    break;
-                case "十一奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000000);
-                    break;
-                case "感恩奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000002);
-                    break;
-                case "建堂奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000006);
-                    break;
-                case "宣教奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000007);
-                    break;
-                case "愛心奉獻":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000019);
-                    break;
-                case "特別獻金":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000008);
-                    break;
-                default:
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000000);
-                    break;
+                // 使用統一的方法進行轉換
+                int categoryValue = GetCategoryValueByDisplayText(Value);
+                
+                this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, categoryValue);
+                
+                System.Diagnostics.Debug.WriteLine($"[SetPayCategory] 設定 {AttributeName}: {Value} -> {categoryValue}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SetPayCategory] 錯誤: {ex.Message}，使用預設值（十一奉獻）");
+                // 發生錯誤時使用預設值（十一奉獻）
+                this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, AttributeName, 100000000);
             }
         }
         public void UpdateFee(ref Entity aFeeToUpdate, String CardOrderNo, String OrderId, String AtmOrderNo, String AtmPayNo)
@@ -1333,28 +1366,26 @@ namespace ChurchReport.WebServiceConnector
                 try 
                 { 
                     // 姓名
-                    //cardholderName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") ?? string.Empty;
-                    
+                    //cardholderName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname") ?? "";                    
                     // Email
-                    //cardholderEmail = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "emailaddress1") ?? string.Empty;
-                    
+                    //cardholderEmail = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "emailaddress1") ?? "";                    
                     // 手機
-                    //mobilePhone = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone") ?? string.Empty;
+                    //mobilePhone = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone") ?? "";
                     // 移除手機號碼的非數字字元
                     //mobilePhone = System.Text.RegularExpressions.Regex.Replace(mobilePhone, @"[^\d]", "");
                     // 若開頭是 0，移除 0（因為要搭配國碼 886）
                     //if (mobilePhone.StartsWith("0")) mobilePhone = mobilePhone.Substring(1);
                     
                     // 居家電話
-                    //homeTel = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "telephone1") ?? string.Empty;
+                    //homeTel = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "telephone1") ?? "";
                     //homeTel = System.Text.RegularExpressions.Regex.Replace(homeTel, @"[^\d]", "");
                     
                     // 公司電話
-                    //officeTel = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "telephone2") ?? string.Empty;
+                    //officeTel = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "telephone2") ?? "";
                     //officeTel = System.Text.RegularExpressions.Regex.Replace(officeTel, @"[^\d]", "");
                     
                     // 身分證號
-                    //custId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_personal_id") ?? string.Empty;
+                    //custId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_personal_id") ?? "";
                     //if (!string.IsNullOrEmpty(custId) && custId.Length > 0)
                     //{
                     //    // 確保首字母大寫
@@ -1376,7 +1407,7 @@ namespace ChurchReport.WebServiceConnector
                 }
             }
 
-            // ===== 回傳網址設定 ===== POST_BACK_URL
+            // ===== 回傳網址設定 =====
             string postBackUrl = m_Configuration["TSPG:POST_BACK_URL"] ?? string.Empty; // 使用者完成付款後的導向頁面
             string resultUrl = m_Configuration["TSPG:RESULT_URL"] ?? string.Empty; // 接收交易結果的後端網址
             

@@ -621,6 +621,36 @@ namespace ChurchReport.Models
                 // 教會職稱是否是會計
                 m_QpayModel.IsAOfficeWorker = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_church_jobtitle") == "會計" ? true : false;
 
+                #region ✅ 動態取得奉獻類別清單
+                // 從 Dynamics 365 OptionSet 動態取得奉獻類別清單
+                try
+                {
+                    var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                        this.m_ToolUtilityClass.m_Crm2011OrganizationService,
+                        null, // Logger (可選)
+                        new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                            new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                    );
+
+                    // 取得 new_fee 實體的 new_category OptionSet 對應表
+                    var categoryMapping = optionSetService.GetOptionSetMapping("new_fee", "new_category");
+                    
+                    // 將 Dictionary 的 Key (顯示文字) 轉換為 List<string>
+                    m_QpayModel.DedicationCategoryList = categoryMapping.Keys.ToList();
+
+                    System.Diagnostics.Debug.WriteLine($"[SetQpayModel] 成功取得 {m_QpayModel.DedicationCategoryList.Count} 個奉獻類別");
+                }
+                catch (Exception ex)
+                {
+                    // 如果動態取得失敗，使用備用的硬編碼清單
+                    System.Diagnostics.Debug.WriteLine($"[SetQpayModel] 動態取得奉獻類別失敗，使用備用清單: {ex.Message}");
+                    m_QpayModel.DedicationCategoryList = new List<String> {
+                        "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
+                        "宣教奉獻", "愛心奉獻", "特別獻金"
+                    };
+                }
+                #endregion
+
                 return m_QpayModel;
             }
             catch (System.Exception e)

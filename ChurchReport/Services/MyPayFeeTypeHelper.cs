@@ -149,20 +149,36 @@ namespace ChurchReport.Services
         /// - 100000007: 宣教奉獻
         /// - 100000019: 愛心奉獻
         /// - 100000008: 特別獻金
+        /// 
+        /// 【支援多種輸入方式】
+        /// 1. 傳入 Entity：從 FormattedValues 或 OptionSetValue 取得
+        /// 2. 傳入 int：直接對應類別代碼
         /// </summary>
-        public string GetDedicationCategoryName(int categoryValue)
+        public string GetDedicationCategoryName(Entity aFeeEntity)
         {
-            switch (categoryValue)
+            try
             {
-                case 100000010: return "主日奉獻";
-                case 100000000: return "十一奉獻";
-                case 100000002: return "感恩奉獻";
-                case 100000006: return "建堂奉獻";
-                case 100000007: return "宣教奉獻";
-                case 100000019: return "愛心奉獻";
-                case 100000008: return "特別獻金";
-                default: return "奉獻";
+                // 方法 1: 優先使用 FormattedValues（最快速且最可靠）
+                if (aFeeEntity.FormattedValues.Contains("new_category"))
+                {
+                    string displayText = aFeeEntity.FormattedValues["new_category"];
+                    if (!string.IsNullOrEmpty(displayText))
+                    {
+                        _logger.LogDebug("使用 FormattedValues 取得奉獻類別: {Category}", displayText);
+                        return displayText;
+                    }
+                }
+                
+                // 預設值
+                _logger.LogWarning("無法從 Entity 取得奉獻類別，使用預設值");
+                return "十一奉獻";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetDedicationCategoryName(Entity) 發生錯誤");
+                return "十一奉獻";
             }
         }
+
     }
 }

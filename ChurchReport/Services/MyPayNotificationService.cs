@@ -100,8 +100,7 @@ namespace ChurchReport.Services
 
                 if (feeType == FeeType.Dedication)
                 {
-                    int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
-                    string dedicationCategory = _feeTypeHelper.GetDedicationCategoryName(categoryValue);
+                    string dedicationCategory = _feeTypeHelper.GetDedicationCategoryName(feeEntity);
 
                     message = _messageBuilder.BuildDedicationSuccessMessage(
                         fullName,
@@ -202,8 +201,7 @@ namespace ChurchReport.Services
 
                 if (feeType == FeeType.Dedication)
                 {
-                    int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
-                    string dedicationCategory = _feeTypeHelper.GetDedicationCategoryName(categoryValue);
+                    string dedicationCategory = _feeTypeHelper.GetDedicationCategoryName(feeEntity);
 
                     message = _messageBuilder.BuildDedicationFailureMessage(
                         fullName,
