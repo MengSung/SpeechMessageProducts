@@ -617,7 +617,7 @@
         var GlobalCategory = "";
 
         function OnCategorySelectBoxValueChanged(e) {
-            if (e.value == "其他" || e.value == "節期獻金" || e.value == "對內獻金" || e.value == "建堂奉獻" || e.value == "主日奉獻" || e.value == "對外獻金-本宗" || e.value == "對外獻金-非本宗") 
+            if (e.value != "特別奉獻")
             {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
                 $("#form2").dxForm("instance").updateData("OtherDedication", "");
