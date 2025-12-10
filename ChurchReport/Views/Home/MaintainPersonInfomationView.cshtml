@@ -191,7 +191,7 @@
                     .AllowEditing(true)
                     .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
                     .Lookup(lookup => lookup
-                    .DataSource(new string[] { "牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案" })
+                    .DataSource(new JS("membershipStatusDataSource")) // ✅ 改為動態 DataSource
                     );
                 columns.Add().DataField("EquipmentStatus").Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
                 columns.Add().DataField("SpiritualIdentity")
@@ -199,7 +199,7 @@
                     .AllowEditing(true)
                     .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
                     .Lookup(lookup => lookup
-                    .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信主" })
+                    .DataSource(new JS("spiritualIdentityDataSource")) // ✅ 改為動態 DataSource
                     );
                 columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
                 columns.Add().DataField("BirthDate").Caption("生日").DataType(GridColumnDataType.Date)
@@ -291,7 +291,7 @@
                     .AllowEditing(true)
                     .Width(70).MinWidth(30).DataType(GridColumnDataType.Number)
                     .Lookup(lookup => lookup
-                    .DataSource(new string[] { "牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案" })
+                    .DataSource(new JS("membershipStatusDataSource")) // ✅ 改為動態 DataSource
                     );
                 columns.Add().DataField("EquipmentStatus").Caption("裝備狀態").Alignment(HorizontalAlignment.Center).Fixed(false).Width(60).MinWidth(90).AllowEditing(false);
                 columns.Add().DataField("SpiritualIdentity")
@@ -299,7 +299,7 @@
                     .AllowEditing(true)
                     .Width(110).MinWidth(100).DataType(GridColumnDataType.String)
                     .Lookup(lookup => lookup
-                    .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信主" })
+                    .DataSource(new JS("spiritualIdentityDataSource")) // ✅ 改為動態 DataSource
                     );
                 columns.Add().DataField("Phone").Caption("行動電話").Fixed(false).Width(120).MinWidth(90).Alignment(HorizontalAlignment.Left);
                 columns.Add().DataField("BirthDate").Caption("生日").DataType(GridColumnDataType.Date)
@@ -352,6 +352,51 @@
 <script>
     var markerUrl = "https://js.devexpress.com/Demos/RealtorApp/images/map-marker.png";
     var DataUploadStatus = "尚未上傳喔!";
+
+    // ✅ 全域變數：會員身分和信仰狀態 DataSource
+    var membershipStatusDataSource = [];
+    var spiritualIdentityDataSource = [];
+
+    // ✅ 頁面載入時從 API 取得動態選項清單
+    $(document).ready(function() {
+        // 載入會員身分清單
+        $.ajax({
+            url: '/Personal/Api/GetMembershipStatusList',
+            type: 'GET',
+            dataType: 'json',
+            async: false, // 同步載入確保 DataGrid 初始化前完成
+            success: function(response) {
+                if (response.success && response.data) {
+                    membershipStatusDataSource = response.data;
+                    console.log('✅ 成功載入會員身分清單:', membershipStatusDataSource);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ 載入會員身分清單失敗:', error);
+                // 使用備用清單
+                membershipStatusDataSource = ["牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案"];
+            }
+        });
+
+        // 載入信仰狀態清單
+        $.ajax({
+            url: '/Personal/Api/GetSpiritualIdentityList',
+            type: 'GET',
+            dataType: 'json',
+            async: false, // 同步載入確保 DataGrid 初始化前完成
+            success: function(response) {
+                if (response.success && response.data) {
+                    spiritualIdentityDataSource = response.data;
+                    console.log('✅ 成功載入信仰狀態清單:', spiritualIdentityDataSource);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ 載入信仰狀態清單失敗:', error);
+                // 使用備用清單
+                spiritualIdentityDataSource = ["-未知-", "基督徒", "已決志", "慕道友", "未信主"];
+            }
+        });
+    });
 
     // 顯示 Toast 通知
     function ShowToast(LocalToastMessage, Type, DisplayTime) {

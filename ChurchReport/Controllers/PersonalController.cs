@@ -1293,5 +1293,116 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+
+        #region API - 取得會員身分清單 (動態從 OptionSet 取得)
+
+        /// <summary>
+        /// 取得會員身分清單 (從 contact.customertypecode OptionSet 動態取得)
+        /// URL: /Personal/Api/GetMembershipStatusList
+        /// </summary>
+        [HttpGet]
+        [Route("/Personal/Api/GetMembershipStatusList")]
+        public IActionResult GetMembershipStatusList()
+        {
+            try
+            {
+                // ✅ 使用 OptionSetMetadataService 動態取得會員身分清單
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    ToolUtility.m_Crm2011OrganizationService,
+                    null, // Logger (可選)
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
+
+                // 從 Dynamics 365 取得所有選項的對應表
+                var mapping = optionSetService.GetOptionSetMapping("contact", "customertypecode");
+                
+                // 提取顯示文字清單
+                var statusList = mapping.Keys.ToList();
+                
+                System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusList] 取得 {statusList.Count} 個會員身分選項");
+
+                return Json(new 
+                { 
+                    success = true, 
+                    data = statusList,
+                    count = statusList.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusList] 錯誤: {ex.Message}");
+                
+                // 備用硬編碼清單
+                var fallbackList = new System.Collections.Generic.List<string> 
+                { 
+                    "牧師師母", "區牧", "小區長", "小組長", "副小組長", 
+                    "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案" 
+                };
+                
+                return Json(new 
+                { 
+                    success = true, 
+                    data = fallbackList,
+                    count = fallbackList.Count,
+                    warning = "使用備用清單"
+                });
+            }
+        }
+
+        /// <summary>
+        /// 取得信仰狀態清單 (從 contact.new_spiriitual_identity OptionSet 動態取得)
+        /// URL: /Personal/Api/GetSpiritualIdentityList
+        /// </summary>
+        [HttpGet]
+        [Route("/Personal/Api/GetSpiritualIdentityList")]
+        public IActionResult GetSpiritualIdentityList()
+        {
+            try
+            {
+                // ✅ 使用 OptionSetMetadataService 動態取得信仰狀態清單
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    ToolUtility.m_Crm2011OrganizationService,
+                    null, // Logger (可選)
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
+
+                // 從 Dynamics 365 取得所有選項的對應表
+                var mapping = optionSetService.GetOptionSetMapping("contact", "new_spiriitual_identity");
+                
+                // 提取顯示文字清單
+                var identityList = mapping.Keys.ToList();
+                
+                System.Diagnostics.Debug.WriteLine($"[GetSpiritualIdentityList] 取得 {identityList.Count} 個信仰狀態選項");
+
+                return Json(new 
+                { 
+                    success = true, 
+                    data = identityList,
+                    count = identityList.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetSpiritualIdentityList] 錯誤: {ex.Message}");
+                
+                // 備用硬編碼清單
+                var fallbackList = new System.Collections.Generic.List<string> 
+                { 
+                    "-未知-", "基督徒", "已決志", "慕道友", "未信主" 
+                };
+                
+                return Json(new 
+                { 
+                    success = true, 
+                    data = fallbackList,
+                    count = fallbackList.Count,
+                    warning = "使用備用清單"
+                });
+            }
+        }
+
+        #endregion
     }
 }

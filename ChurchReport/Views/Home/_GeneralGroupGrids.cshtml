@@ -3,6 +3,7 @@
     一般小組資料網格集合
     功能：包含「小組是否暫停」選項、「小組牧養」資料網格以及「新人跟進關懷」資料網格
     注意：本檔案僅整理排版與加入說明註解，不變更原有邏輯與功能
+    ✅ 改進：會員身分和信仰狀態改為動態從 API 載入
     ===================================================================
 *@
 @using ChurchReport.Models
@@ -113,7 +114,7 @@
                                    .MinWidth(45)
                                    .AllowSorting(false);
 
-                            // 客製 - 委身類型：以 Lookup 顯示清單文字
+                            // ✅ 客製 - 委身類型：改為動態 DataSource
                             columns.Add().DataField("Status")
                                    .Caption("會員身分")
                                    .Alignment(HorizontalAlignment.Center)
@@ -122,11 +123,11 @@
                                    .MinWidth(30)
                                    .DataType(GridColumnDataType.Number)
                                    .Lookup(lookup => lookup
-                                       .DataSource(new string[] { "牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案" })
+                                       .DataSource(new JS("membershipStatusDataSource")) // ✅ 動態 DataSource
                                    );
 
-                            // 洗禮狀態：唯讀
-                                columns.AddFor(m => m.SpiritualIdentity)
+                            // ✅ 信仰狀態：改為動態 DataSource
+                            columns.AddFor(m => m.SpiritualIdentity)
                                    .Caption("信仰狀態")
                                    .Alignment(HorizontalAlignment.Center)
                                    .AllowEditing(false)
@@ -134,8 +135,9 @@
                                    .MinWidth(100)
                                    .DataType(GridColumnDataType.String)
                                    .Lookup(lookup => lookup
-                            .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信主" })
+                                       .DataSource(new JS("spiritualIdentityDataSource")) // ✅ 動態 DataSource
                                    );
+
                             // 代禱事項：可輸入欄位
                             columns.AddFor(m => m.PrayItem)
                                    .Caption("代禱事項")
@@ -274,7 +276,7 @@
                                    .Width(45)
                                    .MinWidth(45);
 
-                            // 會員身分（委身類型）
+                            // ✅ 會員身分（委身類型）：改為動態 DataSource
                             columns.Add().DataField("Status")
                                    .Caption("會員身分")
                                    .Alignment(HorizontalAlignment.Center)
@@ -283,10 +285,10 @@
                                    .MinWidth(30)
                                    .DataType(GridColumnDataType.Number)
                                    .Lookup(lookup => lookup
-                                       .DataSource(new string[] { "牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案" })
+                                       .DataSource(new JS("membershipStatusDataSource")) // ✅ 動態 DataSource
                                    );
 
-                            // 洗禮狀態：唯讀
+                            // ✅ 洗禮狀態：改為動態 DataSource
                             columns.AddFor(m => m.SpiritualIdentity)
                                    .Caption("信仰狀態")
                                    .Alignment(HorizontalAlignment.Center)
@@ -295,8 +297,9 @@
                                    .MinWidth(100)
                                    .DataType(GridColumnDataType.String)
                                    .Lookup(lookup => lookup
-                                   .DataSource(new string[] { "-未知-", "基督徒", "已決志", "慕道友", "未信主" })
+                                       .DataSource(new JS("spiritualIdentityDataSource")) // ✅ 動態 DataSource
                                    );
+
                             // 跟進相關欄位
                             columns.AddFor(m => m.FollowUpOption)
                                    .Caption("跟進方式")
@@ -391,3 +394,51 @@
         </div>
     }
 </div>
+
+@* ✅ JavaScript：動態載入會員身分和信仰狀態清單 *@
+<script>
+    // 全域變數：會員身分和信仰狀態 DataSource
+    var membershipStatusDataSource = [];
+    var spiritualIdentityDataSource = [];
+
+    // ✅ 頁面載入時從 API 取得動態選項清單
+    $(document).ready(function() {
+        // 載入會員身分清單
+        $.ajax({
+            url: '/Personal/Api/GetMembershipStatusList',
+            type: 'GET',
+            dataType: 'json',
+            async: false, // 同步載入確保 DataGrid 初始化前完成
+            success: function(response) {
+                if (response.success && response.data) {
+                    membershipStatusDataSource = response.data;
+                    console.log('✅ [_GeneralGroupGrids] 成功載入會員身分清單:', membershipStatusDataSource);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ [_GeneralGroupGrids] 載入會員身分清單失敗:', error);
+                // 使用備用清單
+                membershipStatusDataSource = ["牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案"];
+            }
+        });
+
+        // 載入信仰狀態清單
+        $.ajax({
+            url: '/Personal/Api/GetSpiritualIdentityList',
+            type: 'GET',
+            dataType: 'json',
+            async: false, // 同步載入確保 DataGrid 初始化前完成
+            success: function(response) {
+                if (response.success && response.data) {
+                    spiritualIdentityDataSource = response.data;
+                    console.log('✅ [_GeneralGroupGrids] 成功載入信仰狀態清單:', spiritualIdentityDataSource);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ [_GeneralGroupGrids] 載入信仰狀態清單失敗:', error);
+                // 使用備用清單
+                spiritualIdentityDataSource = ["-未知-", "基督徒", "已決志", "慕道友", "未信主"];
+            }
+        });
+    });
+</script>
