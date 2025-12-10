@@ -5014,60 +5014,34 @@ namespace ChurchReport.WebServiceConnector
 
         // 好牧人
         // 委身類型客製化
+        // ✅ 改為使用 OptionSetMetadataService 動態查詢 (反向查詢: 文字 -> 數值)
         private int ConvertIdentityToIndex(String Identity)
         {
-            switch (Identity)
+            try
             {
-                case "牧師師母":
-                    return 100000006;
-                case "01. 牧師師母":
-                    return 100000006;
-                case "區牧":
-                    return 100000002;
-                case "02. 區牧":
-                    return 100000002;
-                case "小區長":
-                    return 100000003;
-                case "03. 小區長":
-                    return 100000003;
-                case "小組長":
-                    return 100000008;
-                case "04. 小組長":
-                    return 100000008;
-                case "副小組長":
-                    return 100000009;
-                case "05. 副小組長":
-                    return 100000009;
-                case "核心同工":
-                    return 100000012;
-                case "06. 核心同工":
-                    return 100000012;
-                case "小組組員":
-                    return 1;
-                case "07. 小組組員":
-                    return 1;
-                case "幸福BEST":
-                    return 100000005;
-                case "08. 幸福BEST":
-                    return 100000005;
-                case "未入組":
-                    return 100000004;
-                case "09. 未入組":
-                    return 100000004;
-                case "新朋友":
-                    return 100000000;
-                case "10. 新朋友":
-                    return 100000000;
-                case "外教會":
-                    return 100000007;
-                case "11. 外教會":
-                    return 100000007;
-                case "結案":
-                    return 100000001;
-                case "12. 結案":
-                    return 100000001;
-                default:
-                    return 100000000;
+                // ✅ 使用 OptionSetMetadataService 動態反向查詢
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    m_ToolUtilityClass.m_Crm2011OrganizationService,
+                    null, // Logger (可選)
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
+
+                // 移除前綴數字 (例如: "01. 牧師師母" -> "牧師師母")
+                string cleanedIdentity = System.Text.RegularExpressions.Regex.Replace(Identity, @"^\d+\.\s*", "");
+
+                // 從 Dynamics 365 取得對應的數值 (反向查詢)
+                int optionValue = optionSetService.GetOptionSetValue("contact", "customertypecode", cleanedIdentity);
+
+                System.Diagnostics.Debug.WriteLine($"[RegisterConnector.ConvertIdentityToIndex] 輸入文字: {Identity}, 清理後: {cleanedIdentity}, 回傳值: {optionValue}");
+
+                return optionValue;
+            }
+            catch (Exception ex)
+            {
+                // 如果動態查詢失敗，使用備用的硬編碼對應表
+                System.Diagnostics.Debug.WriteLine($"[RegisterConnector.ConvertIdentityToIndex] 動態查詢失敗，使用備用對應表: {ex.Message}");
+                return 100000000;
             }
         }
         // 委身類型客製化

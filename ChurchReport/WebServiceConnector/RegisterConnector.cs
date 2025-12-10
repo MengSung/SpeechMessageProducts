@@ -357,6 +357,5 @@ namespace ChurchReport.WebServiceConnector
         }
 
         #endregion
-
     }
 }

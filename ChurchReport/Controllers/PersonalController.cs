@@ -594,36 +594,7 @@ namespace ChurchReport.Controllers
                 // 如果動態查詢失敗，使用備用的硬編碼對應表
                 System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusText] 動態查詢失敗，使用備用對應表: {ex.Message}");
                 
-                switch (optionValue)
-                {
-                    case 100000006:
-                        return "牧師師母";
-                    case 100000002:
-                        return "區牧";
-                    case 100000003:
-                        return "小區長";
-                    case 100000008:
-                        return "小組長";
-                    case 100000009:
-                        return "副小組長";
-                    case 100000012:
-                        return "核心同工";
-                    case 1:
-                        return "小組組員";
-                    case 100000005:
-                        return "幸福BEST";
-                    case 100000004:
-                        return "未入組";
-                    case 100000000:
-                        return "新朋友";
-                    case 100000007:
-                        return "外教會";
-                    case 100000001:
-                        return "結案";
-                    default:
-                        System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusText] ⚠️ 未知的值: {optionValue}");
-                        return "未知";
-                }
+                return "-未知-";
             }
         }
 

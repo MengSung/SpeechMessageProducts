@@ -1754,28 +1754,6 @@ namespace ChurchReport.WebServiceConnector
                 // 確認是否是新人或是未入組
                 int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
 
-                //case 100000006:
-                //    return "01. 牧師師母";
-                //case 100000009:
-                //    return "02. 區牧";
-                //case 100000003:
-                //    return "03. 小家長";
-                //case 100000008:
-                //    return "04. 小組長";
-                //case 100000002:
-                //    return "05. 實習小組長";
-                //case 1:
-                //    return "06. 小組組員";
-                //case 100000005:
-                //    return "07. 幸福BEST";
-                //case 100000004:
-                //    return "08. 未入組";
-                //case 100000000:
-                //    return "09. 新朋友";
-                //case 100000007:
-                //    return "10. 外教會";
-                //case 100000001:
-                //    return "11. 結案";
 
                 // 委身類型客製化
                 if (aIdentityNumber == 100000000 || aIdentityNumber == 100000004)
@@ -1791,32 +1769,6 @@ namespace ChurchReport.WebServiceConnector
                 {
                     return false;
                 }
-                //switch (Identity)
-                //{
-                //    case 100000000:
-                //        return "8. 新朋友";
-                //    case 100000001:
-                //        return "5. 神學生";
-                //    case 100000002:
-                //        return "4. 小組長";
-                //    case 100000003:
-                //        return "3. 全職同工";
-                //    case 100000004:
-                //        return "7. 未入組";
-                //    case 100000005:
-                //        return "1. 牧師";
-                //    case 100000006:
-                //        return "2, 師母";
-                //    case 100000007:
-                //        return "9. 外教會";
-                //    case 100000008:
-                //        return "10. 未入組結案";
-                //    case 1:
-                //        return "6. 小組組員";
-                //    default:
-                //        return ".";
-                //}
-
             }
             catch (System.Exception e)
             {
@@ -2200,33 +2152,6 @@ namespace ChurchReport.WebServiceConnector
         }
         private void TransferIdentity(Entity aContact, int Counter, int NewComeMaxiNumber, int UnGroupMaxiNumber)
         {
-            //switch (Identity)
-            //{
-            //    case 100000000:
-            //        return "8. 新朋友";
-            //    case 100000001:
-            //        return "5. 神學生";
-            //    case 100000002:
-            //        return "4. 小組長";
-            //    case 100000003:
-            //        return "3. 全職同工";
-            //    case 100000004:
-            //        return "7. 未入組";
-            //    case 100000005:
-            //        return "1. 牧師";
-            //    case 100000006:
-            //        return "2, 師母";
-            //    case 100000007:
-            //        return "9. 外教會";
-            //    case 100000008:
-            //        return "10. 未入組結案";
-            //    case 1:
-            //        return "6. 小組組員";
-            //    default:
-            //        return ".";
-            //}
-
-
             // 確認是否是新人或是未入組
             int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
 
