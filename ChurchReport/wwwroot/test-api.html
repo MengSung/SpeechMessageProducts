@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>測試 API</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>測試信仰狀態 API</h1>
+    <button id="testBtn">測試 API</button>
+    <div id="result"></div>
+
+    <script>
+        $(document).ready(function() {
+            console.log('? 頁面載入完成');
+            
+            $('#testBtn').click(function() {
+                console.log('? 開始測試 API...');
+                
+                $.ajax({
+                    url: '/Personal/Api/GetSpiritualIdentityList',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        console.log('? API 成功回應:', response);
+                        $('#result').html('<pre>' + JSON.stringify(response, null, 2) + '</pre>');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('? API 失敗');
+                        console.error('Status:', status);
+                        console.error('Error:', error);
+                        console.error('Response:', xhr.responseText);
+                        $('#result').html('<pre style="color:red;">錯誤: ' + status + '\n' + xhr.responseText + '</pre>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

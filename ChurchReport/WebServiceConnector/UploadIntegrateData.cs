@@ -5113,22 +5113,52 @@ namespace ChurchReport.WebServiceConnector
                 throw e;
             }
         }
+        /// <summary>
+        /// 將信仰狀態文字轉換為 OptionSet 數值
+        /// ✅ 改為使用 OptionSetMetadataService 動態反向查詢 (文字 -> 數值)
+        /// </summary>
         private int ConvertSpiritualIdentityToIndex(String SpiritualIdentity)
         {
-            switch (SpiritualIdentity)
+            try
             {
-                case "-未知-":
-                    return 100000004;
-                case "基督徒":
-                    return 100000001;
-                case "已決志":
-                    return 100000002;
-                case "慕道友":
-                    return 100000005;
-                case "未信主":
-                    return 100000003;
-                default:
-                    return 100000004;
+                // 如果輸入為空，返回預設值 "-未知-"
+                if (string.IsNullOrWhiteSpace(SpiritualIdentity))
+                {
+                    return 100000004; // -未知-
+                }
+
+                // ✅ 使用 OptionSetMetadataService 動態反向查詢
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    m_ToolUtilityClass.m_Crm2011OrganizationService,
+                    null, // Logger (可選)
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
+
+                // 從 Dynamics 365 取得對應的數值 (反向查詢: 文字 -> 數值)
+                int optionValue = optionSetService.GetOptionSetValue(
+                    "contact",
+                    "new_spiriitual_identity",
+                    SpiritualIdentity
+                );
+
+                System.Diagnostics.Debug.WriteLine($"[RegisterConnector.ConvertSpiritualIdentityToIndex] 輸入文字: {SpiritualIdentity}, 回傳值: {optionValue}");
+
+                return optionValue;
+            }
+            catch (KeyNotFoundException)
+            {
+                // 找不到對應的選項，使用備用硬編碼邏輯
+                System.Diagnostics.Debug.WriteLine($"[RegisterConnector.ConvertSpiritualIdentityToIndex] 找不到對應選項: {SpiritualIdentity}, 使用備用對應表");
+
+                return 100000004; // -未知-
+            }
+            catch (Exception ex)
+            {
+                // 如果動態查詢失敗，使用備用的硬編碼對應表
+                System.Diagnostics.Debug.WriteLine($"[RegisterConnector.ConvertSpiritualIdentityToIndex] 動態查詢失敗，使用備用對應表: {ex.Message}");
+
+                return 100000004; // -未知-
             }
         }
         #endregion
