@@ -21,11 +21,8 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <None Remove="Views\Home\BindingResultView.cshtml" />
-    <None Remove="Views\Home\DediationLineLoginView.cshtml" />
     <None Remove="Views\Home\DedicationFeeAuditViewLine.cshtml" />
     <None Remove="Views\Home\DedicationFeeAuditViewWeb.cshtml" />
-    <None Remove="Views\Home\DedicationFeeView.cshtml" />
-    <None Remove="Views\Home\DedicationFeeViewWeb.cshtml" />
     <None Remove="Views\Home\DedicationInofView.cshtml" />
     <None Remove="Views\Home\DedicationView.cshtml" />
     <None Remove="Views\Home\DisplayErrorView.cshtml" />
@@ -33,12 +30,9 @@
     <None Remove="Views\Home\FeeView.cshtml" />
     <None Remove="Views\Home\HappyGroupWeeklyReport.cshtml" />
     <None Remove="Views\Home\IntegrateView.cshtml" />
-    <None Remove="Views\Home\KeyInDedicationFeeView.cshtml" />
-    <None Remove="Views\Home\KeyInDedicationFeeViewWeb.cshtml" />
     <None Remove="Views\Home\LineIdLoginView.cshtml" />
     <None Remove="Views\Home\LineLiffView.cshtml" />
     <None Remove="Views\Home\MultiGroupView.cshtml" />
-    <None Remove="Views\Home\PersonalReport.cshtml" />
     <None Remove="Views\Home\PresentView.cshtml" />
     <None Remove="Views\Home\QPayLogin.cshtml" />
     <None Remove="Views\Home\QualificationView.cshtml" />
