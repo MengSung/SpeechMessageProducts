@@ -801,6 +801,17 @@ namespace ToolUtilityNameSpace
         {
             try
             {
+                // ✅ 加入 null 檢查
+                if (aOrganizationService == null)
+                {
+                    throw new ArgumentNullException(nameof(aOrganizationService), "OrganizationServiceProxy 不能為 null");
+                }
+                
+                if (aEntityTobeUpdated == null)
+                {
+                    throw new ArgumentNullException(nameof(aEntityTobeUpdated), "Entity 不能為 null");
+                }
+                
                 if (EXCUTION_FLAG == true)
                 {
                     aOrganizationService.Update(aEntityTobeUpdated);
@@ -808,7 +819,8 @@ namespace ToolUtilityNameSpace
             }
             catch (System.Exception e)
             {
-                throw e;
+                TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"UpdateEntityDynamics365 錯誤: {e.Message}");
+                throw;
             }
         }
 
@@ -831,6 +843,17 @@ namespace ToolUtilityNameSpace
         {
             try
             {
+                // ✅ 加入 null 檢查
+                if (aOrganizationService == null)
+                {
+                    throw new ArgumentNullException(nameof(aOrganizationService), "OrganizationServiceProxy 不能為 null");
+                }
+                
+                if (aEntityTobeUpdated == null)
+                {
+                    throw new ArgumentNullException(nameof(aEntityTobeUpdated), "Entity 不能為 null");
+                }
+                
                 if (EXCUTION_FLAG == true)
                 {
                     aOrganizationService.Update(aEntityTobeUpdated);
@@ -838,7 +861,8 @@ namespace ToolUtilityNameSpace
             }
             catch (System.Exception e)
             {
-                throw e;
+                TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"UpdateEntityDynamics365 錯誤: {e.Message}");
+                throw;
             }
         }
 

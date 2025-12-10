@@ -522,64 +522,108 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 將信仰狀態選項值轉換為文字
+        /// ✅ 改為使用 OptionSetMetadataService 動態查詢
         /// </summary>
         private string GetSpiritualIdentityText(int optionValue)
         {
-            switch (optionValue)
+            try
             {
-                case 100000004:
-                    return "-未知-";
-                case 100000001:
-                    return "基督徒";
-                case 100000002:
-                    return "已決志";
-                case 100000005:
-                    return "慕道友";
-                case 100000003:
-                    return "未信主";
-                default:
-                    return "-未知-";
+                // ✅ 使用 OptionSetMetadataService 動態查詢
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    ToolUtility.m_Crm2011OrganizationService,
+                    null, // Logger (可選)
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
+
+                // 從 Dynamics 365 取得顯示文字
+                string displayText = optionSetService.GetOptionSetText("contact", "new_spiriitual_identity", optionValue);
+                
+                System.Diagnostics.Debug.WriteLine($"[GetSpiritualIdentityText] 輸入值: {optionValue}, 回傳文字: {displayText}");
+                
+                return displayText;
+            }
+            catch (Exception ex)
+            {
+                // 如果動態查詢失敗，使用備用的硬編碼對應表
+                System.Diagnostics.Debug.WriteLine($"[GetSpiritualIdentityText] 動態查詢失敗，使用備用對應表: {ex.Message}");
+                
+                switch (optionValue)
+                {
+                    case 100000004:
+                        return "-未知-";
+                    case 100000001:
+                        return "基督徒";
+                    case 100000002:
+                        return "已決志";
+                    case 100000005:
+                        return "慕道友";
+                    case 100000003:
+                        return "未信主";
+                    default:
+                        return "-未知-";
+                }
             }
         }
 
         /// <summary>
         /// 將會員身分選項值轉換為文字
+        /// ✅ 改為使用 OptionSetMetadataService 動態查詢
         /// </summary>
         private string GetMembershipStatusText(int optionValue)
         {
-            // ✅ 診斷日誌
-            System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusText] 輸入值: {optionValue}");
-            
-            switch (optionValue)
+            try
             {
-                case 100000006:
-                    return "牧師師母";
-                case 100000002:
-                    return "區牧";
-                case 100000003:
-                    return "小區長";
-                case 100000008:
-                    return "小組長";
-                case 100000009:
-                    return "副小組長";
-                case 100000012:
-                    return "核心同工";
-                case 1:
-                    return "小組組員";
-                case 100000005:
-                    return "幸福BEST";
-                case 100000004:
-                    return "未入組";
-                case 100000000:
-                    return "新朋友";
-                case 100000007:
-                    return "外教會";
-                case 100000001:
-                    return "結案";
-                default:
-                    System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusText] ⚠️ 未知的值: {optionValue}");
-                    return "未知";
+                // ✅ 使用 OptionSetMetadataService 動態查詢
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    ToolUtility.m_Crm2011OrganizationService,
+                    null, // Logger (可選)
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
 
+                // 從 Dynamics 365 取得顯示文字
+                string displayText = optionSetService.GetOptionSetText("contact", "customertypecode", optionValue);
+                
+                System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusText] 輸入值: {optionValue}, 回傳文字: {displayText}");
+                
+                return displayText;
+            }
+            catch (Exception ex)
+            {
+                // 如果動態查詢失敗，使用備用的硬編碼對應表
+                System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusText] 動態查詢失敗，使用備用對應表: {ex.Message}");
+                
+                switch (optionValue)
+                {
+                    case 100000006:
+                        return "牧師師母";
+                    case 100000002:
+                        return "區牧";
+                    case 100000003:
+                        return "小區長";
+                    case 100000008:
+                        return "小組長";
+                    case 100000009:
+                        return "副小組長";
+                    case 100000012:
+                        return "核心同工";
+                    case 1:
+                        return "小組組員";
+                    case 100000005:
+                        return "幸福BEST";
+                    case 100000004:
+                        return "未入組";
+                    case 100000000:
+                        return "新朋友";
+                    case 100000007:
+                        return "外教會";
+                    case 100000001:
+                        return "結案";
+                    default:
+                        System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusText] ⚠️ 未知的值: {optionValue}");
+                        return "未知";
+                }
             }
         }
 
@@ -760,40 +804,6 @@ namespace ChurchReport.Controllers
         #endregion
 
         #region 個人資訊管理
-
-        /// <summary>
-        /// 將會員身分文字轉換為選項值
-        /// </summary>
-        private int GetMembershipStatusValue(string statusText)
-        {
-            switch (statusText)
-            {
-                case "牧師師母":
-                    return 100000000;
-                case "區牧":
-                    return 100000001;
-                case "小區長":
-                    return 100000002;
-                case "小組長":
-                    return 100000003;
-                case "副小組長":
-                    return 100000004;
-                case "核心同工":
-                    return 100000005;
-                case "小組組員":
-                    return 100000006;
-                case "未入組":
-                    return 100000007;
-                case "新朋友":
-                    return 100000008;
-                case "外教會":
-                    return 100000009;
-                case "結案":
-                    return 100000010;
-                default:
-                    return -1;
-            }
-        }
 
         /// <summary>
         /// 將信仰狀態文字轉換為選項值

@@ -5122,38 +5122,33 @@ namespace ChurchReport.WebServiceConnector
                     return 100000000;
             }
         }
-        // 好牧人
         // 委身類型客製化
+        // ✅ 改為使用 OptionSetMetadataService 動態查詢
         private String ConvertIndexToIdentity(int Identity)
         {
-            switch (Identity)
+            try
             {
-                case 100000006:
-                    return "01. 牧師師母";
-                case 100000002:
-                    return "02. 區牧";
-                case 100000003:
-                    return "03. 小區長";
-                case 100000008:
-                    return "04. 小組長";
-                case 100000009:
-                    return "05. 副小組長";
-                case 100000012:
-                    return "06. 核心同工";
-                case 1:
-                    return "05. 小組組員";
-                case 100000005:
-                    return "06. 幸福BEST";
-                case 100000004:
-                    return "07. 未入組";
-                case 100000000:
-                    return "08. 新朋友";
-                case 100000007:
-                    return "09. 外教會";
-                case 100000001:
-                    return "10. 結案";
-                default:
-                    return ".";
+                // ✅ 使用 OptionSetMetadataService 動態查詢
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    m_ToolUtilityClass.m_Crm2011OrganizationService,
+                    null, // Logger (可選)
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
+
+                // 從 Dynamics 365 取得顯示文字
+                string displayText = optionSetService.GetOptionSetText("contact", "customertypecode", Identity);
+
+                System.Diagnostics.Debug.WriteLine($"[ConvertIndexToIdentity] 輸入值: {Identity}, 回傳文字: {displayText}");
+
+                return displayText;
+            }
+            catch (Exception ex)
+            {
+                // 如果動態查詢失敗，使用備用的硬編碼對應表
+                System.Diagnostics.Debug.WriteLine($"[ConvertIndexToIdentity] 動態查詢失敗，使用備用對應表: {ex.Message}");
+
+                return "未知類型"; // 或其他適當的預設值";
             }
         }
         #endregion
