@@ -337,20 +337,14 @@
             //    .IsRequired(false);
 
 
+            // ✅ 信仰狀態 - 改為動態從 API 載入
             items.AddSimple()
                 .DataField("Status")
                 .Label(l => l.Text("信仰狀態"))
                 .Editor(e => e
                     .SelectBox()
-                    .DataSource(new string[] {
-                            "-未知-",
-                            "未信主",
-                            "基督徒",
-                            "慕道友",
-                            "已決志",
-                        }
-                    //.DisplayExpr("Name")
-                    )
+                    .ID("spiritualIdentitySelectBox") // ✅ 新增 ID 以便 JavaScript 控制
+                    .DataSource(new JS("spiritualIdentityDataSource")) // ✅ 使用動態 DataSource
                     //.OnValueChanged("OnSelectStatusBoxValueChanged")
                     );
 
@@ -438,6 +432,30 @@
 </form>
 
 <script>
+    // ✅ 全域變數：信仰狀態 DataSource
+    var spiritualIdentityDataSource = [];
+
+    // ✅ 頁面載入時從 API 取得信仰狀態清單
+    $(document).ready(function() {
+        $.ajax({
+            url: '/Personal/Api/GetSpiritualIdentityList',
+            type: 'GET',
+            dataType: 'json',
+            async: false, // 同步載入確保 Form 初始化前完成
+            success: function(response) {
+                if (response.success && response.data) {
+                    spiritualIdentityDataSource = response.data;
+                    console.log('✅ [PersonalInfomationView] 成功載入信仰狀態清單:', spiritualIdentityDataSource);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ [PersonalInfomationView] 載入信仰狀態清單失敗:', error);
+                // 使用備用清單
+                spiritualIdentityDataSource = ["-未知-"];
+            }
+        });
+    });
+
     function getLoadPanelInstance() {
         return $("#loadPanel").dxLoadPanel("instance");
     }

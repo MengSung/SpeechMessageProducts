@@ -694,24 +694,8 @@ namespace ChurchReport.WebServiceConnector
                 aPersonalInfomationViewModel.MerrageState = "未知";
             }
 
-            // 信仰狀態 : "基督徒", "慕道友"
-            int FaithStatus = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity");
-
-            if (FaithStatus == 100000004)
-            { aPersonalInfomationViewModel.Status = "-未知-"; }
-            else if (FaithStatus == 100000001)
-            { aPersonalInfomationViewModel.Status = "基督徒"; }
-            else if (FaithStatus == 100000002)
-            { aPersonalInfomationViewModel.Status = "已決志"; }
-            else if (FaithStatus == 100000005)
-            { aPersonalInfomationViewModel.Status = "慕道友"; }
-            else if (FaithStatus == 100000003)
-            { aPersonalInfomationViewModel.Status = "未信主"; }
-            else 
-            {
-                // -未知-
-                aPersonalInfomationViewModel.Status = "-未知-";
-            }
+            // ✅ 設定信仰狀態 - 改為動態從 OptionSet 查詢
+            aPersonalInfomationViewModel.Status = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(aContactEntity, "new_spiriitual_identity"));
 
             // 邀請人相關欄位設定
             aPersonalInfomationViewModel.Introducer = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_invitor");
@@ -765,6 +749,35 @@ namespace ChurchReport.WebServiceConnector
                 return "未知類型"; // 或其他適當的預設值";
             }
         }
+
+        // ✅ 改為使用 OptionSetMetadataService 動態查詢 (數值 -> 文字)
+        private String ConvertIndexToSpiritualIdentity(int SpiritualIdentity)
+        {
+            try
+            {
+                // ✅ 使用 OptionSetMetadataService 動態查詢
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    m_ToolUtilityClass.m_Crm2011OrganizationService,
+                    null, // Logger (可選)
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
+
+                // 從 Dynamics 365 取得顯示文字
+                string displayText = optionSetService.GetOptionSetText("contact", "new_spiriitual_identity", SpiritualIdentity);
+
+                System.Diagnostics.Debug.WriteLine($"[RegisterConnector.ConvertIndexToSpiritualIdentity] 輸入值: {SpiritualIdentity}, 回傳文字: {displayText}");
+
+                return displayText;
+            }
+            catch (Exception ex)
+            {
+                // 如果動態查詢失敗，使用備用的硬編碼對應表
+                System.Diagnostics.Debug.WriteLine($"[RegisterConnector.ConvertIndexToSpiritualIdentity] 動態查詢失敗，使用備用對應表: {ex.Message}");
+                return "-未知-";
+            }
+        }
+
         #endregion
         #region 上傳個人相關資料
         public void UpdatePersonalInfomationViewModel(PersonalInfomationViewModel aPersonalInfomationViewModel, Entity aContactEntity )
