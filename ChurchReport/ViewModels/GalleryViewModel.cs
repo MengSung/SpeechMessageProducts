@@ -100,46 +100,74 @@ namespace ChurchReport.ViewModel
         }
 
 
+        // ✅ 改為使用 OptionSetMetadataService 動態查詢 (數值 -> 文字)
         public String GetFaithStatus(Entity aContact)
         {
             int FaithStatusIndex = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "new_spiriitual_identity");
 
-            switch (FaithStatusIndex)
+            try
             {
-                case 100000001:
-                    return "基督徒";
-                case 100000003:
-                    return "未信主";
-                case 100000002:
-                    return "已決志";
-                case 100000005:
-                    return "慕道友";
-                case 100000004:
-                    return "-未知-";
-                default:
-                    return "基督徒";
-            }
+                // ✅ 使用 OptionSetMetadataService 動態查詢
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    m_ToolUtilityClass.m_Crm2011OrganizationService,
+                    null, // Logger (可選)
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
 
+                // 從 Dynamics 365 取得顯示文字
+                string displayText = optionSetService.GetOptionSetText("contact", "new_spiriitual_identity", FaithStatusIndex);
+                
+                System.Diagnostics.Debug.WriteLine($"[GalleryViewModel.GetFaithStatus] 輸入值: {FaithStatusIndex}, 回傳文字: {displayText}");
+                
+                return displayText;
+            }
+            catch (Exception ex)
+            {
+                // 如果動態查詢失敗，使用備用的硬編碼對應表
+                System.Diagnostics.Debug.WriteLine($"[GalleryViewModel.GetFaithStatus] 動態查詢失敗，使用備用對應表: {ex.Message}");
+
+                return "-未知-";
+            }
         }
 
+        // ✅ 改為使用 OptionSetMetadataService 動態反向查詢 (文字 -> 數值)
         public int GetFaithStatusIndex(String FaithStatus)
         {
-            switch (FaithStatus)
+            try
             {
-                case "-未知-":
-                    return 100000004;
-                case "基督徒":
-                    return 100000001;
-                case "已決志":
-                    return 100000002;
-                case "未信主":
-                    return 100000003;
-                case "慕道友":
-                    return 100000005;
-                default:
-                    return 100000001;
-            }
+                // ✅ 使用 OptionSetMetadataService 動態反向查詢
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    m_ToolUtilityClass.m_Crm2011OrganizationService,
+                    null, // Logger (可選)
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
 
+                // 從 Dynamics 365 取得對應的數值
+                int faithStatusValue = optionSetService.GetOptionSetValue(
+                    "contact", 
+                    "new_spiriitual_identity", 
+                    FaithStatus
+                );
+                
+                System.Diagnostics.Debug.WriteLine($"[GalleryViewModel.GetFaithStatusIndex] 輸入文字: {FaithStatus}, 回傳值: {faithStatusValue}");
+                
+                return faithStatusValue;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                // 找不到對應的選項，使用備用硬編碼邏輯
+                System.Diagnostics.Debug.WriteLine($"[GalleryViewModel.GetFaithStatusIndex] 動態查詢失敗，使用備用對應表: {ex.Message}");
+
+                return 100000004; //-未知- 對應到"-未知-"
+            }
+            catch (Exception ex)
+            {
+                // 其他錯誤，記錄並使用預設值
+                System.Diagnostics.Debug.WriteLine($"[GalleryViewModel.GetFaithStatusIndex] 發生錯誤: {ex.Message}");
+                return 100000001; // 預設為"基督徒"
+            }
         }
 
         public String GetGenderCode(Entity aContact)
