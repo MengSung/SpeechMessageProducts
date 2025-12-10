@@ -2605,24 +2605,6 @@ namespace ChurchReport.WebServiceConnector
                 return "未知類型"; // 或其他適當的預設值";
             }
         }
-        private String ConvertIndexToSpiritualIdentity_BACKUP(int SpiritualIdentity)
-        {
-            switch (SpiritualIdentity)
-            {
-                case 100000004:
-                    return "-未知-";
-                case 100000001:
-                    return "基督徒";
-                case 100000002:
-                    return "已決志";
-                case 100000005:
-                    return "慕道友";
-                case 100000003:
-                    return "未信主";
-                default:
-                    return ".";
-            }
-        }
         // ✅ 改為使用 OptionSetMetadataService 動態查詢 (數值 -> 文字)
         private String ConvertIndexToSpiritualIdentity(int SpiritualIdentity)
         {

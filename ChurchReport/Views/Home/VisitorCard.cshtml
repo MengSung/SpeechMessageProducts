@@ -120,14 +120,9 @@
                             .Label(l => l.Text("信仰狀態"))
                             .Editor(e => e
                             .SelectBox()
+                            .ID("spiritualIdentitySelectBox") // ✅ 新增 ID 以便 JavaScript 控制
                             .Placeholder("選擇信仰狀態...")
-                           .DataSource(new string[] {
-                                "未信主",
-                                "基督徒",
-                                "已決志",
-                            }
-                            //.DisplayExpr("Name")
-                            )
+                            .DataSource(new string[] { "-未知-" }) // ✅ 預設值
                             //.OnValueChanged("OnSelectStatusBoxValueChanged")
                             );
 
@@ -383,6 +378,76 @@
     <script src="~/js/liff-starter.js"></script>
 
     <script>
+        // ✅ 全域變數：信仰狀態 DataSource
+        var spiritualIdentityDataSource = ["-未知-", "基督徒", "已決志", "慕道友", "未信主"]; // 預設值
+
+        // ✅ 頁面載入後，動態載入信仰狀態清單
+        $(document).ready(function() {
+            console.log('========================================');
+            console.log('✅ [VisitorCard] Script 已載入');
+            console.log('========================================');
+            
+            // 載入信仰狀態清單
+            loadSpiritualIdentityList();
+        });
+
+        // ✅ 載入信仰狀態清單的函數
+        function loadSpiritualIdentityList() {
+            console.log('✅ [VisitorCard] 開始載入信仰狀態清單');
+            
+            $.ajax({
+                url: '/Personal/Api/GetSpiritualIdentityList',
+                type: 'GET',
+                dataType: 'json',
+                timeout: 10000, // 10秒超時
+                success: function(response) {
+                    console.log('✅ [VisitorCard] API 回應:', response);
+                    
+                    if (response && response.success && response.data && response.data.length > 0) {
+                        spiritualIdentityDataSource = response.data;
+                        console.log('✅ [VisitorCard] 成功載入信仰狀態清單:', spiritualIdentityDataSource);
+                        
+                        // ✅ 動態更新 SelectBox 的 DataSource
+                        updateSpiritualIdentitySelectBox();
+                    } else {
+                        console.warn('⚠️ [VisitorCard] API 回應格式異常，使用預設清單');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('❌ [VisitorCard] 載入信仰狀態清單失敗:', error);
+                    console.error('❌ [VisitorCard] 使用預設清單');
+                }
+            });
+        }
+
+        // ✅ 更新 SelectBox 的函數
+        function updateSpiritualIdentitySelectBox() {
+            try {
+                var selectBox = $("#spiritualIdentitySelectBox").dxSelectBox("instance");
+                
+                if (selectBox) {
+                    console.log('✅ [VisitorCard] 找到 SelectBox 實例');
+                    selectBox.option("dataSource", spiritualIdentityDataSource);
+                    console.log('✅ [VisitorCard] 成功更新 SelectBox DataSource');
+                } else {
+                    console.warn('⚠️ [VisitorCard] 找不到 SelectBox 實例，嘗試延遲更新...');
+                    
+                    // 延遲 500ms 後重試
+                    setTimeout(function() {
+                        var retrySelectBox = $("#spiritualIdentitySelectBox").dxSelectBox("instance");
+                        if (retrySelectBox) {
+                            console.log('✅ [VisitorCard] 重試成功');
+                            retrySelectBox.option("dataSource", spiritualIdentityDataSource);
+                        } else {
+                            console.error('❌ [VisitorCard] 重試後仍找不到 SelectBox 實例');
+                        }
+                    }, 500);
+                }
+            } catch (ex) {
+                console.error('❌ [VisitorCard] 更新 SelectBox 失敗:', ex);
+            }
+        }
+
         function getLoadPanelInstance() {
             return $("#loadPanel").dxLoadPanel("instance");
         }
