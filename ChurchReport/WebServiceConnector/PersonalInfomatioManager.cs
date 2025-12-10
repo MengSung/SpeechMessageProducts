@@ -312,24 +312,40 @@ namespace ChurchReport.WebServiceConnector
             else
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000001); }
 
-
-            // "基督徒", "慕道友"
-            if (aNewContact.FaithStatus == "-未知-")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000004); }
-            else if (aNewContact.FaithStatus == "基督徒")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000001); }
-            else if (aNewContact.FaithStatus == "已決志")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000002); }
-            else if (aNewContact.FaithStatus == "慕道友")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000005); }
-            else if (aNewContact.FaithStatus == "未信主")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000003); }
-            else
+            // ✅ 設定信仰狀態 - 改為動態從 OptionSet 查詢
+            if (aNewContact.FaithStatus != null && !string.IsNullOrWhiteSpace(aNewContact.FaithStatus))
             {
-                // -未知-
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000004);
-            }
+                try
+                {
+                    // ✅ 使用 OptionSetMetadataService 動態反向查詢 (文字 -> 數值)
+                    var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                        m_ToolUtilityClass.m_Crm2011OrganizationService,
+                        null,
+                        new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                            new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                    );
 
+                    int spiritualIdentityValue = optionSetService.GetOptionSetValue(
+                        "contact",
+                        "new_spiriitual_identity",
+                        aNewContact.FaithStatus
+                    );
+
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", spiritualIdentityValue);
+
+                    System.Diagnostics.Debug.WriteLine($"[LineBindingUtility.CopyVistorCardInfo] 成功設定信仰狀態: {aNewContact.FaithStatus} -> {spiritualIdentityValue}");
+                }
+                catch (KeyNotFoundException)
+                {
+                    // 找不到對應的選項，使用備用硬編碼邏輯 = >-未知- 100000004
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000004);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LineBindingUtility.CopyVistorCardInfo] 設定信仰狀態失敗: {ex.Message}");
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "new_spiriitual_identity", 100000004);
+                }
+            }
 
             // 來源
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewContactEntity, "new_coming_reason", aNewContact.Source);
@@ -835,23 +851,39 @@ namespace ChurchReport.WebServiceConnector
             else//"未知"
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "familystatuscode", 100000001); }
 
-
-
-            // 信仰狀態 : "基督徒", "慕道友"
-            if (aPersonalInfomationViewModel.Status == "-未知-")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000004); }
-            else if (aPersonalInfomationViewModel.Status == "基督徒")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000001); }
-            else if (aPersonalInfomationViewModel.Status == "已決志")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000002); }
-            else if (aPersonalInfomationViewModel.Status == "慕道友")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000005); }
-            else if (aPersonalInfomationViewModel.Status == "未信主")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000003); }
-            else
+            // ✅ 設定信仰狀態 - 改為動態從 OptionSet 查詢
+            if (aPersonalInfomationViewModel.Status != null && !string.IsNullOrWhiteSpace(aPersonalInfomationViewModel.Status))
             {
-                // -未知-
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000004);
+                try
+                {
+                    // ✅ 使用 OptionSetMetadataService 動態反向查詢 (文字 -> 數值)
+                    var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                        m_ToolUtilityClass.m_Crm2011OrganizationService,
+                        null,
+                        new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                            new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                    );
+
+                    int spiritualIdentityValue = optionSetService.GetOptionSetValue(
+                        "contact",
+                        "new_spiriitual_identity",
+                        aPersonalInfomationViewModel.Status
+                    );
+
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", spiritualIdentityValue);
+
+                    System.Diagnostics.Debug.WriteLine($"[LineBindingUtility.CopyVistorCardInfo] 成功設定信仰狀態: {aPersonalInfomationViewModel.Status} -> {spiritualIdentityValue}");
+                }
+                catch (KeyNotFoundException)
+                {
+                    // 找不到對應的選項，使用備用硬編碼邏輯 = >-未知- 100000004
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000004);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LineBindingUtility.CopyVistorCardInfo] 設定信仰狀態失敗: {ex.Message}");
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactEntity, "new_spiriitual_identity", 100000004);
+                }
             }
 
             // 邀請人相關欄位設定

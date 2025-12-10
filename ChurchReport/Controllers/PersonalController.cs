@@ -547,22 +547,7 @@ namespace ChurchReport.Controllers
             {
                 // 如果動態查詢失敗，使用備用的硬編碼對應表
                 System.Diagnostics.Debug.WriteLine($"[GetSpiritualIdentityText] 動態查詢失敗，使用備用對應表: {ex.Message}");
-                
-                switch (optionValue)
-                {
-                    case 100000004:
-                        return "-未知-";
-                    case 100000001:
-                        return "基督徒";
-                    case 100000002:
-                        return "已決志";
-                    case 100000005:
-                        return "慕道友";
-                    case 100000003:
-                        return "未信主";
-                    default:
-                        return "-未知-";
-                }
+                return "-未知-";
             }
         }
 
@@ -775,27 +760,6 @@ namespace ChurchReport.Controllers
         #endregion
 
         #region 個人資訊管理
-
-        /// <summary>
-        /// 將信仰狀態文字轉換為選項值
-        /// </summary>
-        private int GetSpiritualIdentityValue(string spiritualText)
-        {
-            switch (spiritualText)
-            {
-                case "基督徒":
-                    return 100000000;
-                case "已決志":
-                    return 100000001;
-                case "慕道友":
-                    return 100000002;
-                case "未信主":
-                    return 100000003;
-                default:
-                    return -1;
-            }
-        }
-
         /// <summary>
         /// 個人資料管理畫面
         /// 顯示與編輯個人基本資料

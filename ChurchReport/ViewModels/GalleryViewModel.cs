@@ -99,6 +99,7 @@ namespace ChurchReport.ViewModel
             }
         }
 
+
         public String GetFaithStatus(Entity aContact)
         {
             int FaithStatusIndex = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "new_spiriitual_identity");

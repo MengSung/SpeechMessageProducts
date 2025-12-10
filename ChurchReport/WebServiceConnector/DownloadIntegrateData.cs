@@ -2623,22 +2623,31 @@ namespace ChurchReport.WebServiceConnector
                     return ".";
             }
         }
+        // ✅ 改為使用 OptionSetMetadataService 動態查詢 (數值 -> 文字)
         private String ConvertIndexToSpiritualIdentity(int SpiritualIdentity)
         {
-            switch (SpiritualIdentity)
+            try
             {
-                case 100000004:
-                    return "-未知-";
-                case 100000001:
-                    return "基督徒";
-                case 100000002:
-                    return "已決志";
-                case 100000005:
-                    return "慕道友";
-                case 100000003:
-                    return "未信主";
-                default:
-                    return "-未知-";
+                // ✅ 使用 OptionSetMetadataService 動態查詢
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    m_ToolUtilityClass.m_Crm2011OrganizationService,
+                    null, // Logger (可選)
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
+
+                // 從 Dynamics 365 取得顯示文字
+                string displayText = optionSetService.GetOptionSetText("contact", "new_spiriitual_identity", SpiritualIdentity);
+
+                System.Diagnostics.Debug.WriteLine($"[RegisterConnector.ConvertIndexToSpiritualIdentity] 輸入值: {SpiritualIdentity}, 回傳文字: {displayText}");
+
+                return displayText;
+            }
+            catch (Exception ex)
+            {
+                // 如果動態查詢失敗，使用備用的硬編碼對應表
+                System.Diagnostics.Debug.WriteLine($"[RegisterConnector.ConvertIndexToSpiritualIdentity] 動態查詢失敗，使用備用對應表: {ex.Message}");
+                return "-未知-";
             }
         }
 
