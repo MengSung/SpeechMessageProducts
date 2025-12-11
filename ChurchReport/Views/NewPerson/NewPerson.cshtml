@@ -219,19 +219,14 @@
                     );
 
             items.AddSimple()
-                    .DataField("CustomerTypeCode")
-                    .Label(l => l.Text("委身類型"))
-                    .Editor(e => e
-                        .SelectBox()
-                        .DataSource(new string[] {
-                                        "新朋友",
-                                        "小組組員",
-                            }
-                        //.DisplayExpr("Name")
-                        )
-                        .Value("新朋友")
-                        //.Value("小組組員")
-                        );
+                .DataField("CustomerTypeCode")
+                .Label(l => l.Text("委身類型"))
+                .Editor(e => e
+                    .SelectBox()
+                    .ID("customerTypeCodeSelectBox") // ✅ 新增 ID 以便 JavaScript 控制
+                    .DataSource(new string[] { "新朋友" }) // ✅ 先設定預設值
+                    .Value("新朋友")
+                    );
 
             items.AddSimpleFor(m => m.Introducer)
                 //.DataField("Introducer")
@@ -324,6 +319,9 @@
     
     // ✅ 全域變數：婚姻狀態 DataSource
     var familyStatusDataSource = ["未知", "已婚", "未婚", "離異", "喪偶", "單身", "單親", "失婚", "婚姻", "離婚"]; // 預設值
+    
+    // ✅ 全域變數：委身類型 DataSource
+    var customerTypeCodeDataSource = ["新朋友", "小組組員"]; // 預設值
 
     // ✅ 立即執行測試
     console.log('========================================');
@@ -343,6 +341,9 @@
         
         // ✅ 載入婚姻狀態清單
         loadFamilyStatusList();
+        
+        // ✅ 載入委身類型清單
+        loadCustomerTypeCodeList();
     });
 
     // ✅ 載入信仰狀態清單的函數
@@ -429,7 +430,7 @@
             }
         } catch (ex) {
             console.error('❌ [NewPerson] 更新 SelectBox 失敗:', ex);
-            console.error('❌ [NewPerson] 錯誤堆疊:', ex.stack);
+            console.error('❌ [NewPerson] 藏誤堆疊:', ex.stack);
         }
     }
 
@@ -510,6 +511,87 @@
             }
         } catch (ex) {
             console.error('❌ [NewPerson] 更新婚姻狀態 SelectBox 失敗:', ex);
+            console.error('❌ [NewPerson] 錯誤堆疊:', ex.stack);
+        }
+    }
+
+    // ✅ 載入委身類型清單的函數
+    function loadCustomerTypeCodeList() {
+        console.log('========================================');
+        console.log('✅ [NewPerson] loadCustomerTypeCodeList 被呼叫');
+        console.log('✅ [NewPerson] 準備發送 AJAX 請求到: /Personal/Api/GetMembershipStatusList');
+        console.log('========================================');
+        
+        $.ajax({
+            url: '/Personal/Api/GetMembershipStatusList',
+            type: 'GET',
+            dataType: 'json',
+            timeout: 10000, // 10秒超時
+            beforeSend: function() {
+                console.log('✅ [NewPerson] AJAX beforeSend - 委身類型請求即將發送');
+            },
+            success: function(response) {
+                console.log('========================================');
+                console.log('✅ [NewPerson] 委身類型 AJAX Success!');
+                console.log('✅ [NewPerson] API 回應:', response);
+                console.log('========================================');
+                
+                if (response && response.success && response.data && response.data.length > 0) {
+                    customerTypeCodeDataSource = response.data;
+                    console.log('✅ [NewPerson] 成功載入委身類型清單:', customerTypeCodeDataSource);
+                    console.log('✅ [NewPerson] 清單長度:', customerTypeCodeDataSource.length);
+                    
+                    // ✅ 動態更新 SelectBox 的 DataSource
+                    updateCustomerTypeCodeSelectBox();
+                } else {
+                    console.warn('⚠️ [NewPerson] 委身類型 API 回應格式異常，使用預設清單');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('========================================');
+                console.error('❌ [NewPerson] 委身類型 AJAX Error!');
+                console.error('❌ [NewPerson] Status:', status);
+                console.error('❌ [NewPerson] Error:', error);
+                console.error('❌ [NewPerson] 使用預設清單');
+                console.log('========================================');
+            },
+            complete: function() {
+                console.log('✅ [NewPerson] 委身類型 AJAX Complete');
+            }
+        });
+    }
+
+    // ✅ 更新委身類型 SelectBox 的函數
+    function updateCustomerTypeCodeSelectBox() {
+        console.log('========================================');
+        console.log('✅ [NewPerson] updateCustomerTypeCodeSelectBox 被呼叫');
+        console.log('========================================');
+        
+        try {
+            var selectBox = $("#customerTypeCodeSelectBox").dxSelectBox("instance");
+            
+            if (selectBox) {
+                console.log('✅ [NewPerson] 找到委身類型 SelectBox 實例');
+                selectBox.option("dataSource", customerTypeCodeDataSource);
+                console.log('✅ [NewPerson] 成功更新委身類型 SelectBox DataSource');
+                console.log('✅ [NewPerson] 新 DataSource:', selectBox.option("dataSource"));
+            } else {
+                console.warn('⚠️ [NewPerson] 找不到委身類型 SelectBox 實例，嘗試再次查找...');
+                
+                // 延遲 1 秒後重試
+                setTimeout(function() {
+                    var retrySelectBox = $("#customerTypeCodeSelectBox").dxSelectBox("instance");
+                    if (retrySelectBox) {
+                        console.log('✅ [NewPerson] 重試成功，找到委身類型 SelectBox 實例');
+                        retrySelectBox.option("dataSource", customerTypeCodeDataSource);
+                        console.log('✅ [NewPerson] 成功更新委身類型 SelectBox DataSource (重試)');
+                    } else {
+                        console.error('❌ [NewPerson] 重試後仍找不到委身類型 SelectBox 實例');
+                    }
+                }, 1000);
+            }
+        } catch (ex) {
+            console.error('❌ [NewPerson] 更新委身類型 SelectBox 失敗:', ex);
             console.error('❌ [NewPerson] 錯誤堆疊:', ex.stack);
         }
     }
