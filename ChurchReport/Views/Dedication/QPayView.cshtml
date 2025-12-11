@@ -241,6 +241,67 @@
       --row-height: 38px;
     }
   }
+
+  /* Button responsive fixes for mobile */
+  /* Make the button container wrap and stack buttons on small screens */
+  #buttonContainer {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  @@media (max-width: 576px) {
+    /* Stack buttons vertically and ensure full width */
+    #buttonContainer {
+      flex-direction: column !important;
+      align-items: center !important;
+      gap: 8px;
+    }
+    /* DevExtreme buttons render inside elements with the given ID; reduce width to 70% and center */
+    #save-button3, #save-button2 {
+      width: 70% !important;
+      min-width: 0 !important;
+      margin: 0 auto !important;
+    }
+    /* Ensure the button text wraps and doesn't overflow */
+    #save-button3 .dx-button-content, #save-button2 .dx-button-content {
+      white-space: normal !important;
+      overflow: visible !important;
+    }
+  }
+
+  /* Button corner rounding for save buttons */
+#save-button2 .dx-button-content,
+#save-button3 .dx-button-content,
+#save-button2 .dx-button,
+#save-button3 .dx-button,
+#save-button2,
+#save-button3 {
+  border-radius: 10px !important;
+}
+
+/* Ensure inner clickable area follows rounded corners */
+#save-button2 .dx-button-content,
+#save-button3 .dx-button-content {
+  overflow: hidden;
+  border-radius: 10px !important;
+}
+
+/* Slight shadow to match visual style */
+#save-button2 .dx-button,
+#save-button3 .dx-button {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* Maintain roundedness on small screens */
+@@media (max-width: 576px) {
+  #save-button2, #save-button3 {
+    border-radius: 10px !important;
+  }
+  #save-button2 .dx-button-content, #save-button3 .dx-button-content {
+    border-radius: 10px !important;
+  }
+}
 </style>
 
 <!-- ==================== 頁面主容器 ==================== -->
@@ -748,6 +809,26 @@
         form.itemOption("DeductTotalNumberSelectionBox", 'visible', false);
     }
     
+    // 更新 save-button2 文字，根據是否有信用卡決定顯示內容
+    function updateSaveButtonTextForCardAvailability() {
+        try {
+            var grid = $("#CreditCardGrid").dxDataGrid("instance");
+            var hasCards = false;
+            if (grid && grid.getDataSource) {
+                var items = grid.getDataSource().items();
+                hasCards = items && items.length > 0;
+            }
+            if (hasCards) {
+                try { $("#save-button2").dxButton("instance").option("text", "透過選擇的信用卡奉獻"); } catch(e) {}
+            } else {
+                try { $("#save-button2").dxButton("instance").option("text", "奉獻"); } catch(e) {}
+            }
+        } catch (ex) {
+            // fallback
+            try { $("#save-button2").dxButton("instance").option("text", "奉獻"); } catch(e) {}
+        }
+    }
+
     // 處理信用卡付款
     function handleCreditCardPayment() {
         var creditcards = $("#CreditCardGrid").dxDataGrid("instance").getDataSource().items();
@@ -758,17 +839,18 @@
             creditCardContainer.style.display = "";
             $("#CreditCardGrid").dxDataGrid("instance").selectRows('@(Model.SelectedCreditCard)', true);
             $("#save-button3").dxButton("instance").option("visible", true);
-            $("#save-button2").dxButton("instance").option("text", "確認奉獻");
         } else {
             creditCardContainer.style.display = "none";
             $("#save-button3").dxButton("instance").option("visible", false);
-            $("#save-button2").dxButton("instance").option("text", "確認奉獻");
         }
+        // 更新按鈕文字（有信用卡則顯示透過選擇的信用卡奉獻，否則顯示奉獻）
+        updateSaveButtonTextForCardAvailability();
         bookingContainer.style.display = "none";
     }
     
     // 處理信用卡定期定額
     function handleCreditCardSubscription() {
+        // 對於定期定額，按鈕文字與信用卡相同規則
         handleCreditCardPayment();
         var form = getFormInstance();
         var bookings = $("#DedicationBookingGrid").dxDataGrid("instance").getDataSource().items();
@@ -785,7 +867,8 @@
         document.getElementById("creditcardlistcontainer").style.display = "none";
         document.getElementById("dedicationbookinglistcontainer").style.display = "none";
         $("#save-button3").dxButton("instance").option("visible", false);
-        $("#save-button2").dxButton("instance").option("text", "確認奉獻");
+        // 非信用卡付款一律顯示「奉獻」
+        try { $("#save-button2").dxButton("instance").option("text", "奉獻"); } catch(e) {}
     }
 
     // 付款方式選擇變更事件
@@ -804,6 +887,24 @@
         }
     }
 
+    // 頁面載入時，根據表單目前的付款方式初始化按鈕文字
+    $(function(){
+        try {
+            var form = getFormInstance();
+            if (form) {
+                var formData = form.option('formData') || {};
+                var payWayVal = formData.PayWay;
+                // 如果 editor 已初始化，使用 editor 值以保證一致
+                try {
+                    var editor = form.getEditor('PayWay');
+                    if (editor) payWayVal = editor.option('value');
+                } catch(ex) {}
+
+                OnPayWaySelectBoxValueChanged({ value: payWayVal });
+            }
+        } catch(err) {}
+    });
+    
     // ==================== 資料網格事件處理 ====================
     // 資料網格初始化事件
     function DataGridOnInitialized(e) { 
@@ -841,12 +942,14 @@
             creditCardContainer.style.display = "";
             bookingContainer.style.display = "none";
             e.component.selectRows('@(Model.SelectedCreditCard)', true);
+            try { $("#save-button3").dxButton("instance").option("visible", true); } catch(e) {}
         } else {
             creditCardContainer.style.display = "none";
             bookingContainer.style.display = "none";
-            $("#save-button3").dxButton("instance").option("visible", false);
-            $("#save-button2").dxButton("instance").option("text", "確認奉獻");
+            try { $("#save-button3").dxButton("instance").option("visible", false); } catch(e) {}
         }
+        // 更新按鈕文字，適用於信用卡或定期定額情境
+        updateSaveButtonTextForCardAvailability();
     }
 
     // 奉獻預訂網格內容準備事件
