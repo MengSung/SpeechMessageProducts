@@ -246,30 +246,14 @@
             //        .Message("Hire date is required")
             //    );
 
-            items.AddSimple()
-                .DataField("MerrageState")
+            // ✅ 婚姻狀態 - 使用 AddSimpleFor 正確綁定值
+            items.AddSimpleFor(m => m.MerrageState)
                 .Label(l => l.Text("婚姻狀態"))
                 .Editor(e => e
                     .SelectBox()
                     .ID("familyStatusSelectBox") // ✅ 新增 ID 以便 JavaScript 控制
                     .DataSource(new JS("familyStatusDataSource")) // ✅ 使用動態 DataSource
-                    //.Value("未知")
                     );
-
-            //items.AddSimple()
-            //        .DataField("CustomerTypeCode")
-            //        .Label(l => l.Text("委身類型"))
-            //        .Editor(e => e
-            //            .SelectBox()
-            //            .DataSource(new string[] {
-            //                            "新朋友",
-            //                            "小組組員",
-            //                }
-            //            //.DisplayExpr("Name")
-            //            )
-            //            //.Value("新朋友")
-            //            //.Value("小組組員")
-            //            );
 
             items.AddSimpleFor(m => m.CustomerTypeCode)
                  //.DataField("EquipmentStatus ")
@@ -278,7 +262,6 @@
                     .TextBox()
                     .Disabled(true))
                  ;
-
 
             items.AddSimpleFor(m => m.Introducer)
                 //.DataField("Introducer")
@@ -309,9 +292,8 @@
             //    .IsRequired(false);
 
 
-            // ✅ 信仰狀態 - 改為動態從 API 載入
-            items.AddSimple()
-                .DataField("Status")
+            // ✅ 信仰狀態 - 使用 AddSimpleFor 正確綁定值
+            items.AddSimpleFor(m => m.Status)
                 .Label(l => l.Text("信仰狀態"))
                 .Editor(e => e
                     .SelectBox()
@@ -401,6 +383,12 @@
 
     // ✅ 頁面載入時從 API 取得信仰狀態清單
     $(document).ready(function() {
+        console.log('========================================');
+        console.log('✅ [PersonalInfomationView] 頁面載入');
+        console.log('✅ [PersonalInfomationView] Model.Status:', '@Model.Status');
+        console.log('✅ [PersonalInfomationView] Model.MerrageState:', '@Model.MerrageState');
+        console.log('========================================');
+        
         // ✅ 載入信仰狀態清單
         $.ajax({
             url: '/Personal/Api/GetSpiritualIdentityList',

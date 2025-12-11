@@ -1,0 +1,290 @@
+@{
+    var priorities = new[] { "Low", "Normal", "Urgent", "High" };
+}
+
+@using ChurchReport.ViewModels
+@model PersonalInfomationViewModel
+
+<div class="long-title"><h4>  @Model.FullName 個人相關資料</h4></div>
+
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SavePersonalInfomation" asp-controller="Personal" method="post">
+    <div class="dx-field">
+        <div id="buttonContainer" class="dx-button-icon">
+            @(Html.DevExtreme().Button()
+                    .Text("上傳").Icon("check")
+                    .Type(ButtonType.Success)
+                    .ID("save-button")
+                    .UseSubmitBehavior(true)
+                    .OnClick("SaveNewPerson")
+            )
+        </div>
+        <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+                .ID("toast")
+                .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                    .Message("上傳成功了!")
+                    .DisplayTime(20000)
+                    .MaxWidth(200)
+            )
+        </div>
+        <div id="LoadPanel">
+            @(Html.DevExtreme().LoadPanel()
+                    .ID("loadPanel")
+                    .ShadingColor("rgba(0,0,0,0.4)")
+                    .Position(p => p.Of("#form-container"))
+                    .Visible(false)
+                    .ShowIndicator(true)
+                    .ShowPane(true)
+                    .Shading(true)
+                    .CloseOnOutsideClick(false)
+                    .Message("上傳資料中...")
+                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            )
+        </div>
+    </div>
+    
+    <div id="form-container">
+        @{
+            var NtbtOrNotPriorities = new[] { "是", "否", };
+        }
+
+        @(Html.DevExtreme().Form<PersonalInfomationViewModel>()
+        .ID("form")
+        .ColCount(3)
+        .Items(items =>
+        {
+            items.AddSimpleFor(m => m.LastName)
+                .Label(l => l.Text("姓名"))
+                .Visible(false)
+                .Editor(e => e.TextBox().Disabled(false).Placeholder("輸入姓名"));
+
+            items.AddSimpleFor(m => m.Phone)
+                .Label(l => l.Text("行動電話"))
+                .Editor(e => e.TextBox()
+                    .Mask("(X000) 000-000")
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入手機號碼"))
+                .ValidationRules(r => r.AddRequired().Message("行動電話為必填"));
+
+            items.AddSimpleFor(m => m.HomePhone)
+                .Label(l => l.Text("住家電話"))
+                .Editor(e => e.TextBox()
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入電話號碼"));
+
+            items.AddSimpleFor(m => m.OfficePhone)
+                .Label(l => l.Text("公司電話"))
+                .Editor(e => e.TextBox()
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入電話號碼"));
+
+            items.AddSimpleFor(m => m.Address)
+                .Label(l => l.Text("地址"))
+                .ValidationRules(r => r.AddRequired().Message("地址為必填"));
+
+            items.AddSimpleFor(m => m.Email)
+                .Label(l => l.Text("電子郵件"));
+
+            items.AddSimpleFor(m => m.Facebook)
+                .Label(l => l.Text("Facebook帳號"));
+
+            items.AddSimpleFor(m => m.Instagram)
+                .Label(l => l.Text("Instagram帳號"));
+
+            items.AddSimpleFor(m => m.LastSixDigit)
+                .Label(l => l.Text("銀行帳戶後六碼"));
+
+            items.AddSimpleFor(m => m.NtbtOrNot)
+                .Label(l => l.Text("是否上傳國稅局"))
+                .Editor(e => e.RadioGroup()
+                    .Items(NtbtOrNotPriorities)
+                    .Layout(Orientation.Horizontal));
+
+            items.AddSimpleFor(m => m.PersonalId)
+                .Label(l => l.Text("身份證字號"));
+
+            items.AddSimpleFor(m => m.Gender)
+                .Label(l => l.Text("性別"))
+                .Editor(e => e.SelectBox()
+                    .DataSource(new string[] { "未知", "男性", "女性" }));
+
+            items.AddSimpleFor(m => m.Position)
+                .Label(l => l.Text("所屬小組"))
+                .Visible(false)
+                .Editor(e => e.SelectBox()
+                    .DataSource(Model.GroupArray)
+                    .Value(Model.Position));
+
+            items.AddSimpleFor(m => m.BirthDate)
+                .Label(l => l.Text("生日"))
+                .IsRequired(false)
+                .Editor(e => e.DateBox()
+                    .DisplayFormat("yyyy/M/d")
+                    .Disabled(false)
+                    .Placeholder("生日")
+                    .PickerType(DateBoxPickerType.Calendar));
+
+            items.AddSimpleFor(m => m.HireDate)
+                .IsRequired(false)
+                .Label(l => l.Text("進教會日期"))
+                .Editor(e => e.DateBox()
+                    .Placeholder("進教會日期")
+                    .PickerType(DateBoxPickerType.Calendar)
+                    .DisplayFormat("yyyy/M/d"));
+
+            // ? 婚姻狀態 - 使用 AddSimpleFor 正確綁定值
+            items.AddSimpleFor(m => m.MerrageState)
+                .Label(l => l.Text("婚姻狀態"))
+                .Editor(e => e.SelectBox()
+                    .ID("familyStatusSelectBox")
+                    .DataSource(new JS("familyStatusDataSource")));
+
+            items.AddSimpleFor(m => m.CustomerTypeCode)
+                .Label(l => l.Text("委身類型"))
+                .Editor(e => e.TextBox().Disabled(true));
+
+            items.AddSimpleFor(m => m.Introducer)
+                .Label(l => l.Text("邀請人"));
+
+            items.AddSimpleFor(m => m.IntroducerRelation)
+                .Label(l => l.Text("與邀請人關係"));
+
+            // ? 信仰狀態 - 使用 AddSimpleFor 正確綁定值
+            items.AddSimpleFor(m => m.Status)
+                .Label(l => l.Text("信仰狀態"))
+                .Editor(e => e.SelectBox()
+                    .ID("spiritualIdentitySelectBox")
+                    .DataSource(new JS("spiritualIdentityDataSource")));
+
+            items.AddSimpleFor(m => m.Industry)
+                .Name("Industry")
+                .Label(l => l.Text("職業及專長"));
+
+            items.AddSimpleFor(m => m.EquipmentStatus)
+                .Name("EquipmentStatus")
+                .Label(l => l.Text("裝備狀態"))
+                .Editor(e => e.TextBox().Disabled(true));
+
+            items.AddSimpleFor(m => m.Notes)
+                .Name("Notes")
+                .ColSpan(2)
+                .Label(l => l.Text("附註"))
+                .Editor(e => e.TextArea().Disabled(true).Height(200));
+        })
+        .OnContentReady(@<text>
+            function(e) {
+                e.component.validate();
+            }
+        </text>)
+        .FormData(Model)
+        )
+    </div>
+
+    <div id="buttonContainer" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
+                    .Text("上傳").Icon("check")
+                    .Type(ButtonType.Success)
+                    .ID("save-button_bottom")
+                    .UseSubmitBehavior(true)
+                    .OnClick("SaveNewPerson")
+            )
+    </div>
+</form>
+
+<script>
+    // ? 全域變數：信仰狀態 DataSource
+    var spiritualIdentityDataSource = [];
+    
+    // ? 全域變數：婚姻狀態 DataSource
+    var familyStatusDataSource = [];
+
+    // ? 頁面載入時從 API 取得清單
+    $(document).ready(function() {
+        console.log('========================================');
+        console.log('? [PersonalInfomationView] 頁面載入');
+        console.log('? [PersonalInfomationView] Model.Status:', '@Model.Status');
+        console.log('? [PersonalInfomationView] Model.MerrageState:', '@Model.MerrageState');
+        console.log('========================================');
+        
+        // ? 載入信仰狀態清單
+        $.ajax({
+            url: '/Personal/Api/GetSpiritualIdentityList',
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            success: function(response) {
+                if (response.success && response.data) {
+                    spiritualIdentityDataSource = response.data;
+                    console.log('? [PersonalInfomationView] 成功載入信仰狀態清單:', spiritualIdentityDataSource);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('? [PersonalInfomationView] 載入信仰狀態清單失敗:', error);
+                spiritualIdentityDataSource = ["-未知-"];
+            }
+        });
+
+        // ? 載入婚姻狀態清單
+        $.ajax({
+            url: '/Personal/Api/GetFamilyStatusList',
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            success: function(response) {
+                if (response.success && response.data) {
+                    familyStatusDataSource = response.data;
+                    console.log('? [PersonalInfomationView] 成功載入婚姻狀態清單:', familyStatusDataSource);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('? [PersonalInfomationView] 載入婚姻狀態清單失敗:', error);
+                familyStatusDataSource = ["未知"];
+            }
+        });
+        
+        console.log('? [PersonalInfomationView] API 載入完成，準備初始化 Form');
+    });
+
+    function getLoadPanelInstance() {
+        return $("#loadPanel").dxLoadPanel("instance");
+    }
+
+    function SaveNewPerson(arg) {
+        getLoadPanelInstance().show();
+    }
+
+    function OnSelectStatusBoxValueChanged(e) {
+        if (e.value == "未信主") {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+        }
+        else {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
+        }
+    }
+</script>
+
+<script type="text/javascript">
+    function onBegin() {
+        // 開始處理
+    }
+
+    function onSuccess(data) {
+        getLoadPanelInstance().hide();
+
+        if (data.status == 1) {
+            DevExpress.ui.notify(data.message, "success", 2000);
+        }
+        else {
+            DevExpress.ui.notify(data.message, "error", 5000);
+        }
+    }
+
+    function onComplete(data) {
+        // 處理完成
+    }
+</script>
+
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+<link href="~/css/NewPerson.css" rel="stylesheet" />

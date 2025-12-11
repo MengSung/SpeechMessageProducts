@@ -1367,6 +1367,59 @@ namespace ChurchReport.Controllers
             }
         }
 
+        /// <summary>
+        /// 取得婚姻狀態清單 (從 contact.familystatuscode OptionSet 動態取得)
+        /// URL: /Personal/Api/GetFamilyStatusList
+        /// </summary>
+        [HttpGet]
+        [Route("/Personal/Api/GetFamilyStatusList")]
+        public IActionResult GetFamilyStatusList()
+        {
+            try
+            {
+                // ✅ 使用 OptionSetMetadataService 動態取得婚姻狀態清單
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    ToolUtility.m_Crm2011OrganizationService,
+                    null, // Logger (可選)
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
+
+                // 從 Dynamics 365 取得所有選項的對應表
+                var mapping = optionSetService.GetOptionSetMapping("contact", "familystatuscode");
+                
+                // 提取顯示文字清單
+                var statusList = mapping.Keys.ToList();
+                
+                System.Diagnostics.Debug.WriteLine($"[GetFamilyStatusList] 取得 {statusList.Count} 個婚姻狀態選項");
+
+                return Json(new 
+                { 
+                    success = true, 
+                    data = statusList,
+                    count = statusList.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetFamilyStatusList] 錯誤: {ex.Message}");
+                
+                // 備用硬編碼清單
+                var fallbackList = new System.Collections.Generic.List<string> 
+                { 
+                    "未知", "已婚", "未婚", "離異", "喪偶", "單身", "單親", "失婚", "婚姻", "離婚" 
+                };
+                
+                return Json(new 
+                { 
+                    success = true, 
+                    data = fallbackList,
+                    count = fallbackList.Count,
+                    warning = "使用備用清單"
+                });
+            }
+        }
+
         #endregion
     }
 }
