@@ -213,20 +213,8 @@
                 .Label(l => l.Text("婚姻狀態"))
                 .Editor(e => e
                     .SelectBox()
-                    .DataSource(new string[] {
-                                        "未知",
-                                        "已婚",
-                                        "未婚",
-                                        "離異",
-                                        "喪偶",
-                                        "單身",
-                                        "單親",
-                                        "失婚",
-                                        "婚姻",
-                                        "離婚",
-                        }
-                    //.DisplayExpr("Name")
-                    )
+                    .ID("familyStatusSelectBox") // ✅ 新增 ID 以便 JavaScript 控制
+                    .DataSource(new string[] { "未知" }) // ✅ 先設定預設值
                     .Value("未知")
                     );
 
@@ -333,6 +321,9 @@
 <script>
     // ✅ 全域變數：信仰狀態 DataSource
     var spiritualIdentityDataSource = ["-未知-", "基督徒", "已決志", "慕道友", "未信主"]; // 預設值
+    
+    // ✅ 全域變數：婚姻狀態 DataSource
+    var familyStatusDataSource = ["未知", "已婚", "未婚", "離異", "喪偶", "單身", "單親", "失婚", "婚姻", "離婚"]; // 預設值
 
     // ✅ 立即執行測試
     console.log('========================================');
@@ -347,8 +338,11 @@
         console.log('✅ [NewPerson] 當前 URL:', window.location.href);
         console.log('========================================');
         
-        // 立即呼叫，不延遲
+        // 載入信仰狀態清單
         loadSpiritualIdentityList();
+        
+        // ✅ 載入婚姻狀態清單
+        loadFamilyStatusList();
     });
 
     // ✅ 載入信仰狀態清單的函數
@@ -435,6 +429,87 @@
             }
         } catch (ex) {
             console.error('❌ [NewPerson] 更新 SelectBox 失敗:', ex);
+            console.error('❌ [NewPerson] 錯誤堆疊:', ex.stack);
+        }
+    }
+
+    // ✅ 載入婚姻狀態清單的函數
+    function loadFamilyStatusList() {
+        console.log('========================================');
+        console.log('✅ [NewPerson] loadFamilyStatusList 被呼叫');
+        console.log('✅ [NewPerson] 準備發送 AJAX 請求到: /Personal/Api/GetFamilyStatusList');
+        console.log('========================================');
+        
+        $.ajax({
+            url: '/Personal/Api/GetFamilyStatusList',
+            type: 'GET',
+            dataType: 'json',
+            timeout: 10000, // 10秒超時
+            beforeSend: function() {
+                console.log('✅ [NewPerson] AJAX beforeSend - 婚姻狀態請求即將發送');
+            },
+            success: function(response) {
+                console.log('========================================');
+                console.log('✅ [NewPerson] 婚姻狀態 AJAX Success!');
+                console.log('✅ [NewPerson] API 回應:', response);
+                console.log('========================================');
+                
+                if (response && response.success && response.data && response.data.length > 0) {
+                    familyStatusDataSource = response.data;
+                    console.log('✅ [NewPerson] 成功載入婚姻狀態清單:', familyStatusDataSource);
+                    console.log('✅ [NewPerson] 清單長度:', familyStatusDataSource.length);
+                    
+                    // ✅ 動態更新 SelectBox 的 DataSource
+                    updateFamilyStatusSelectBox();
+                } else {
+                    console.warn('⚠️ [NewPerson] 婚姻狀態 API 回應格式異常，使用預設清單');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('========================================');
+                console.error('❌ [NewPerson] 婚姻狀態 AJAX Error!');
+                console.error('❌ [NewPerson] Status:', status);
+                console.error('❌ [NewPerson] Error:', error);
+                console.error('❌ [NewPerson] 使用預設清單');
+                console.log('========================================');
+            },
+            complete: function() {
+                console.log('✅ [NewPerson] 婚姻狀態 AJAX Complete');
+            }
+        });
+    }
+
+    // ✅ 更新婚姻狀態 SelectBox 的函數
+    function updateFamilyStatusSelectBox() {
+        console.log('========================================');
+        console.log('✅ [NewPerson] updateFamilyStatusSelectBox 被呼叫');
+        console.log('========================================');
+        
+        try {
+            var selectBox = $("#familyStatusSelectBox").dxSelectBox("instance");
+            
+            if (selectBox) {
+                console.log('✅ [NewPerson] 找到婚姻狀態 SelectBox 實例');
+                selectBox.option("dataSource", familyStatusDataSource);
+                console.log('✅ [NewPerson] 成功更新婚姻狀態 SelectBox DataSource');
+                console.log('✅ [NewPerson] 新 DataSource:', selectBox.option("dataSource"));
+            } else {
+                console.warn('⚠️ [NewPerson] 找不到婚姻狀態 SelectBox 實例，嘗試再次查找...');
+                
+                // 延遲 1 秒後重試
+                setTimeout(function() {
+                    var retrySelectBox = $("#familyStatusSelectBox").dxSelectBox("instance");
+                    if (retrySelectBox) {
+                        console.log('✅ [NewPerson] 重試成功，找到婚姻狀態 SelectBox 實例');
+                        retrySelectBox.option("dataSource", familyStatusDataSource);
+                        console.log('✅ [NewPerson] 成功更新婚姻狀態 SelectBox DataSource (重試)');
+                    } else {
+                        console.error('❌ [NewPerson] 重試後仍找不到婚姻狀態 SelectBox 實例');
+                    }
+                }, 1000);
+            }
+        } catch (ex) {
+            console.error('❌ [NewPerson] 更新婚姻狀態 SelectBox 失敗:', ex);
             console.error('❌ [NewPerson] 錯誤堆疊:', ex.stack);
         }
     }

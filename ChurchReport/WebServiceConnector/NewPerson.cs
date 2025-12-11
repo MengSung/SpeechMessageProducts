@@ -561,28 +561,46 @@ namespace ChurchReport.WebServiceConnector
             //else
             //{ this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 100000000); }
 
-            // "未知", "已婚", "未婚", "離異", "喪偶","單身"
-            if (aNewContact.MerrageState == "已婚")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 1); }
-           else if (aNewContact.MerrageState == "未婚")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 2); }
-            else if (aNewContact.MerrageState == "離異")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 3); }
-            else if (aNewContact.MerrageState == "喪偶")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 4); }
-            else if (aNewContact.MerrageState == "單身")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000000); }
-            else if (aNewContact.MerrageState == "未知")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000001); }
-            else if (aNewContact.MerrageState == "失婚")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000002); }
-            else if (aNewContact.MerrageState == "單親")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000003); }
-            else if (aNewContact.MerrageState == "婚姻")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000004); }
-            else if (aNewContact.MerrageState == "離婚")
-            { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000005); }
-            else { }
+            // 設定婚姻狀態 - 改為動態從 OptionSet 查詢
+            if (aNewContact.MerrageState != null && !string.IsNullOrWhiteSpace(aNewContact.MerrageState))
+            {
+                try
+                {
+                    // ? 使用 OptionSetMetadataService 動態反向查詢 (文字 -> 數值)
+                    var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                        m_ToolUtilityClass.m_Crm2011OrganizationService,
+                        null,
+                        new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                            new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                    );
+
+                    int familyStatusValue = optionSetService.GetOptionSetValue(
+                        "contact",
+                        "familystatuscode",
+                        aNewContact.MerrageState
+                    );
+
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", familyStatusValue);
+
+                    System.Diagnostics.Debug.WriteLine($"[PersonalInfomatioManager.SetupNewContactParameter] 成功設定婚姻狀態: {aNewContact.MerrageState} -> {familyStatusValue}");
+                }
+                catch (KeyNotFoundException)
+                {
+                    // 找不到對應的選項，使用備用硬編碼邏輯 => 未知 100000001
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000001);
+                    System.Diagnostics.Debug.WriteLine($"[PersonalInfomatioManager.SetupNewContactParameter] 找不到婚姻狀態對應值，使用預設值: 未知");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[PersonalInfomatioManager.SetupNewContactParameter] 設定婚姻狀態失敗: {ex.Message}");
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000001);
+                }
+            }
+            else
+            {
+                // 如果沒有提供婚姻狀態，設定為未知
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "familystatuscode", 100000001);
+            }
 
             // ✅ 設定信仰狀態 - 改為動態從 OptionSet 查詢
             if (aNewContact.FaithStatus != null && !string.IsNullOrWhiteSpace(aNewContact.FaithStatus))
@@ -656,6 +674,32 @@ namespace ChurchReport.WebServiceConnector
             }
 
             #endregion
+        }
+        private String ConvertIndexToDisplayContext(String aEntityName, String Attribute, int Value)
+        {
+            try
+            {
+                // ✅ 使用 OptionSetMetadataService 動態查詢
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    m_ToolUtilityClass.m_Crm2011OrganizationService,
+                    null, // Logger (可選)
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
+
+                // 從 Dynamics 365 取得顯示文字
+                string displayText = optionSetService.GetOptionSetText(aEntityName, Attribute, Value);
+
+                System.Diagnostics.Debug.WriteLine($"[RegisterConnector.ConvertIndexToSpiritualIdentity] 輸入值: {Value}, 回傳文字: {displayText}");
+
+                return displayText;
+            }
+            catch (Exception ex)
+            {
+                // 如果動態查詢失敗，使用備用的硬編碼對應表
+                System.Diagnostics.Debug.WriteLine($"[RegisterConnector.ConvertIndexToSpiritualIdentity] 動態查詢失敗，使用備用對應表: {ex.Message}");
+                return "-未知-";
+            }
         }
 
         private Entity GetRelatedList(AccountPasswordData aAccountPasswordData, String GroupName)

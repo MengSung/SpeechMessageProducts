@@ -18,6 +18,7 @@ using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
 using System.Text.RegularExpressions;
 using ChurchReport.ViewModels;
+using Newtonsoft.Json.Linq;
 #endregion
 
 namespace ChurchReport.WebServiceConnector
@@ -685,32 +686,7 @@ namespace ChurchReport.WebServiceConnector
             else { aPersonalInfomationViewModel.Gender = "女性"; }
 
             // 婚姻狀態 : "未知", "已婚", "未婚", "離異", "喪偶","單身"
-            int MerrageState = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "familystatuscode");
-            if (MerrageState == 1)
-            { aPersonalInfomationViewModel.MerrageState = "已婚"; }
-            else if (MerrageState == 2)
-            { aPersonalInfomationViewModel.MerrageState = "未婚"; }
-            else if (MerrageState == 3)
-            { aPersonalInfomationViewModel.MerrageState = "離異"; }
-            else if (MerrageState == 4)
-            { aPersonalInfomationViewModel.MerrageState = "喪偶"; }
-            else if (MerrageState == 100000000)
-            { aPersonalInfomationViewModel.MerrageState = "單身"; }
-            else if (MerrageState == 100000001)
-            { aPersonalInfomationViewModel.MerrageState = "未知"; }
-            else if (MerrageState == 100000002)
-            { aPersonalInfomationViewModel.MerrageState = "失婚"; }
-            else if (MerrageState == 100000003)
-            { aPersonalInfomationViewModel.MerrageState = "單親"; }
-            else if (MerrageState == 100000004)
-            { aPersonalInfomationViewModel.MerrageState = "婚姻"; }
-            else if (MerrageState == 100000005)
-            { aPersonalInfomationViewModel.MerrageState = "離婚"; }
-            else
-            {
-                //未知
-                aPersonalInfomationViewModel.MerrageState = "未知";
-            }
+            aPersonalInfomationViewModel.MerrageState = ConvertIndexToDisplayContext("contact", "familystatuscode", this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "familystatuscode"));
 
             // ✅ 設定信仰狀態 - 改為動態從 OptionSet 查詢
             aPersonalInfomationViewModel.Status = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(aContactEntity, "new_spiriitual_identity"));
@@ -785,6 +761,32 @@ namespace ChurchReport.WebServiceConnector
                 string displayText = optionSetService.GetOptionSetText("contact", "new_spiriitual_identity", SpiritualIdentity);
 
                 System.Diagnostics.Debug.WriteLine($"[RegisterConnector.ConvertIndexToSpiritualIdentity] 輸入值: {SpiritualIdentity}, 回傳文字: {displayText}");
+
+                return displayText;
+            }
+            catch (Exception ex)
+            {
+                // 如果動態查詢失敗，使用備用的硬編碼對應表
+                System.Diagnostics.Debug.WriteLine($"[RegisterConnector.ConvertIndexToSpiritualIdentity] 動態查詢失敗，使用備用對應表: {ex.Message}");
+                return "-未知-";
+            }
+        }
+        private String ConvertIndexToDisplayContext(String aEntityName, String Attribute, int Value)
+        {
+            try
+            {
+                // ✅ 使用 OptionSetMetadataService 動態查詢
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    m_ToolUtilityClass.m_Crm2011OrganizationService,
+                    null, // Logger (可選)
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
+
+                // 從 Dynamics 365 取得顯示文字
+                string displayText = optionSetService.GetOptionSetText(aEntityName, Attribute, Value);
+
+                System.Diagnostics.Debug.WriteLine($"[RegisterConnector.ConvertIndexToSpiritualIdentity] 輸入值: {Value}, 回傳文字: {displayText}");
 
                 return displayText;
             }

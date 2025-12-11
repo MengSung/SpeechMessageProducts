@@ -209,22 +209,6 @@
                     .Editor(e => e
                     .SelectBox()
                             .DataSource(Model.GroupArray)
-
-                            //.DataSource(d => d.WebApi().Controller("Home").LoadAction("AssignSmallGroupGet").Key("ListEntityId"))
-                            //.DataSource(new string[] {
-                            //"未知",
-                            //"已婚",
-                            //"未婚",
-                            //"離異",
-                            //"喪偶",
-                            //"單身",
-                            //}
-
-                            //.DataSource(d => d.Mvc().Controller("AssignSmallGroup").LoadAction("GetType").Key("ID"))
-                            //.ValueExpr("Name")
-                            //.ValueExpr(Model.GroupName)
-                            //.DisplayExpr("Name")
-                            //.Value(Model.Position)
                             .Value(Model.Position)
                         )
                         //.ValidationRules
@@ -267,20 +251,8 @@
                 .Label(l => l.Text("婚姻狀態"))
                 .Editor(e => e
                     .SelectBox()
-                    .DataSource(new string[] {
-                                        "未知",
-                                        "已婚",
-                                        "未婚",
-                                        "離異",
-                                        "喪偶",
-                                        "單身",
-                                        "單親",
-                                        "失婚",
-                                        "婚姻",
-                                        "離婚",
-                        }
-                    //.DisplayExpr("Name")
-                    )
+                    .ID("familyStatusSelectBox") // ✅ 新增 ID 以便 JavaScript 控制
+                    .DataSource(new JS("familyStatusDataSource")) // ✅ 使用動態 DataSource
                     //.Value("未知")
                     );
 
@@ -423,9 +395,13 @@
 <script>
     // ✅ 全域變數：信仰狀態 DataSource
     var spiritualIdentityDataSource = [];
+    
+    // ✅ 全域變數：婚姻狀態 DataSource
+    var familyStatusDataSource = [];
 
     // ✅ 頁面載入時從 API 取得信仰狀態清單
     $(document).ready(function() {
+        // ✅ 載入信仰狀態清單
         $.ajax({
             url: '/Personal/Api/GetSpiritualIdentityList',
             type: 'GET',
@@ -441,6 +417,25 @@
                 console.error('❌ [PersonalInfomationView] 載入信仰狀態清單失敗:', error);
                 // 使用備用清單
                 spiritualIdentityDataSource = ["-未知-"];
+            }
+        });
+
+        // ✅ 載入婚姻狀態清單
+        $.ajax({
+            url: '/Personal/Api/GetFamilyStatusList',
+            type: 'GET',
+            dataType: 'json',
+            async: false, // 同步載入確保 Form 初始化前完成
+            success: function(response) {
+                if (response.success && response.data) {
+                    familyStatusDataSource = response.data;
+                    console.log('✅ [PersonalInfomationView] 成功載入婚姻狀態清單:', familyStatusDataSource);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ [PersonalInfomationView] 載入婚姻狀態清單失敗:', error);
+                // 使用備用清單
+                familyStatusDataSource = ["未知"];
             }
         });
     });
