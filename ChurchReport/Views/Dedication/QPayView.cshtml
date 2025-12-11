@@ -25,6 +25,13 @@
         // 永豐金流或其他金流支援的付款方式（包含信用卡定期定額）
         payWayOptions = new string[] { "信用卡", "ATM轉帳/匯款", "信用卡定期定額(每個月)", "LinePay", "行動支付" };
     }
+
+    // 讀取教會聯絡資訊（來自 appsettings.json: ChurchInfo）
+    var churchAddress = Configuration["ChurchInfo:Address"] ?? "231 新北市新店區安興路91 巷5 號4 樓";
+    var churchPhone = Configuration["ChurchInfo:Phone"] ?? "02-2211-1556";
+    var churchEmail = Configuration["ChurchInfo:Email"] ?? "sunnyvale.church@gmail.com";
+    var churchTaxId = Configuration["ChurchInfo:TaxId"] ?? "20004335";
+    var churchContactPerson = Configuration["ChurchInfo:ContactPerson"] ?? "曾淑芬姊妹";
 }
 
 <!-- ==================== 頁面頭部 ==================== -->
@@ -618,11 +625,11 @@
                         <div class="info-card contact-card">
                             <h5><i class="fas fa-church" aria-hidden="true"></i> 教會聯絡資訊</h5>
                             <ul class="contact-list">
-                                <li><i class="fas fa-map-marker-alt" aria-hidden="true"></i><span>地址：231 新北市新店區安興路91 巷5 號4 樓</span></li>
-                                <li><i class="fas fa-phone" aria-hidden="true"></i><span>電話：02-2211-1556</span></li>
-                                <li><i class="fas fa-envelope" aria-hidden="true"></i><span>信箱：sunnyvale.church@gmail.com</span></li>
-                                <li><i class="fas fa-id-card" aria-hidden="true"></i><span>統編：20004335</span></li>
-                                <li><i class="fas fa-info-circle" aria-hidden="true"></i><span>若有任何奉獻問題，請洽詢曾淑芬姊妹</span></li>
+                                <li><i class="fas fa-map-marker-alt" aria-hidden="true"></i><span>地址：@churchAddress</span></li>
+                                <li><i class="fas fa-phone" aria-hidden="true"></i><span>電話：@churchPhone</span></li>
+                                <li><i class="fas fa-envelope" aria-hidden="true"></i><span>信箱：@churchEmail</span></li>
+                                <li><i class="fas fa-id-card" aria-hidden="true"></i><span>統編：@churchTaxId</span></li>
+                                <li><i class="fas fa-info-circle" aria-hidden="true"></i><span>若有任何奉獻問題，請洽詢 @churchContactPerson</span></li>
                             </ul>
                         </div>
 

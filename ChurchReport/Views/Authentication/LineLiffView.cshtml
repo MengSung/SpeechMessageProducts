@@ -10,6 +10,8 @@
 }
 
 @using ChurchReport.ViewModel
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 
 @model LineBindingViewModel
 
@@ -228,19 +230,19 @@
                         <ul class="info-list">
                             <li>
                                 <span class="info-label">地址</span>
-                                <span class="info-value">新北市新店區安興路91巷5號</span>
+                                <span class="info-value">@Configuration["ChurchInfo:Address"]</span>
                             </li>
                             <li>
                                 <span class="info-label">電話</span>
-                                <span class="info-value">02-2211-1556 (代表號)</span>
+                                <span class="info-value">@Configuration["ChurchInfo:Phone"]</span>
                             </li>
                             <li>
                                 <span class="info-label">信箱</span>
-                                <span class="info-value">sunnyvale.church@gmail.com</span>
+                                <span class="info-value">@Configuration["ChurchInfo:Email"]</span>
                             </li>
                             <li>
                                 <span class="info-label">統編</span>
-                                <span class="info-value">20004335</span>
+                                <span class="info-value">@Configuration["ChurchInfo:TaxId"]</span>
                             </li>
                         </ul>
                     </div>
