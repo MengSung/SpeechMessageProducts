@@ -430,7 +430,7 @@
             }
         } catch (ex) {
             console.error('❌ [NewPerson] 更新 SelectBox 失敗:', ex);
-            console.error('❌ [NewPerson] 藏誤堆疊:', ex.stack);
+            console.error('❌ [NewPerson] 錯誤堆疊:', ex.stack);
         }
     }
 
@@ -573,8 +573,29 @@
             if (selectBox) {
                 console.log('✅ [NewPerson] 找到委身類型 SelectBox 實例');
                 selectBox.option("dataSource", customerTypeCodeDataSource);
+                
+                // ✅ 設定預設值為包含"新朋友"的選項（對應 OptionSet 值 100000000）
+                // 從動態載入的清單中尋找包含"新朋友"的選項（支援"08. 新朋友"或"新朋友"）
+                var defaultValue = null;
+                for (var i = 0; i < customerTypeCodeDataSource.length; i++) {
+                    if (customerTypeCodeDataSource[i].includes("新朋友")) {
+                        defaultValue = customerTypeCodeDataSource[i];
+                        break;
+                    }
+                }
+                
+                if (defaultValue) {
+                    selectBox.option("value", defaultValue);
+                    console.log('✅ [NewPerson] 成功設定委身類型預設值為:', defaultValue);
+                } else if (customerTypeCodeDataSource.length > 0) {
+                    // 如果找不到包含"新朋友"的選項，使用第一個選項
+                    selectBox.option("value", customerTypeCodeDataSource[0]);
+                    console.log('⚠️ [NewPerson] 找不到"新朋友"，使用第一個選項:', customerTypeCodeDataSource[0]);
+                }
+                
                 console.log('✅ [NewPerson] 成功更新委身類型 SelectBox DataSource');
                 console.log('✅ [NewPerson] 新 DataSource:', selectBox.option("dataSource"));
+                console.log('✅ [NewPerson] 當前值:', selectBox.option("value"));
             } else {
                 console.warn('⚠️ [NewPerson] 找不到委身類型 SelectBox 實例，嘗試再次查找...');
                 
@@ -584,6 +605,24 @@
                     if (retrySelectBox) {
                         console.log('✅ [NewPerson] 重試成功，找到委身類型 SelectBox 實例');
                         retrySelectBox.option("dataSource", customerTypeCodeDataSource);
+                        
+                        // ✅ 設定預設值為包含"新朋友"的選項
+                        var defaultValue = null;
+                        for (var i = 0; i < customerTypeCodeDataSource.length; i++) {
+                            if (customerTypeCodeDataSource[i].includes("新朋友")) {
+                                defaultValue = customerTypeCodeDataSource[i];
+                                break;
+                            }
+                        }
+                        
+                        if (defaultValue) {
+                            retrySelectBox.option("value", defaultValue);
+                            console.log('✅ [NewPerson] (重試) 成功設定委身類型預設值為:', defaultValue);
+                        } else if (customerTypeCodeDataSource.length > 0) {
+                            retrySelectBox.option("value", customerTypeCodeDataSource[0]);
+                            console.log('⚠️ [NewPerson] (重試) 找不到"新朋友"，使用第一個選項:', customerTypeCodeDataSource[0]);
+                        }
+                        
                         console.log('✅ [NewPerson] 成功更新委身類型 SelectBox DataSource (重試)');
                     } else {
                         console.error('❌ [NewPerson] 重試後仍找不到委身類型 SelectBox 實例');
@@ -706,8 +745,27 @@
                 $("#form").dxForm("instance").updateData('LastName', "");
                 $("#form").dxForm("instance").updateData('Phone', "");
                 $("#form").dxForm("instance").updateData('HomePhone', "");
-                $("#form").dxForm("instance").updateData('Status', "未信主");
-                $("#form").dxForm("instance").updateData('CustomerTypeCode', "新朋友");
+                // ✅ 信仰狀態重置為第一個選項（通常是"-未知-"）
+                if (spiritualIdentityDataSource.length > 0) {
+                    $("#form").dxForm("instance").updateData('Status', spiritualIdentityDataSource[0]);
+                }
+                // ✅ 委身類型重置為"新朋友"（對應 OptionSet 值 100000000）
+                // 從動態載入的清單中尋找包含"新朋友"的選項
+                var defaultCustomerType = null;
+                for (var i = 0; i < customerTypeCodeDataSource.length; i++) {
+                    if (customerTypeCodeDataSource[i].includes("新朋友")) {
+                        defaultCustomerType = customerTypeCodeDataSource[i];
+                        break;
+                    }
+                }
+                // 如果找到包含"新朋友"的選項，使用它；否則使用第一個選項
+                if (defaultCustomerType) {
+                    $("#form").dxForm("instance").updateData('CustomerTypeCode', defaultCustomerType);
+                    console.log('✅ [onSuccess] 委身類型重置為:', defaultCustomerType);
+                } else if (customerTypeCodeDataSource.length > 0) {
+                    $("#form").dxForm("instance").updateData('CustomerTypeCode', customerTypeCodeDataSource[0]);
+                    console.log('⚠️ [onSuccess] 找不到"新朋友"，使用第一個選項:', customerTypeCodeDataSource[0]);
+                }
                 $("#form").dxForm("instance").updateData('MerrageState', "未知");
                 $("#form").dxForm("instance").updateData('Address', "");
                 $("#form").dxForm("instance").updateData('Gender', "");

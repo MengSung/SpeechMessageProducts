@@ -498,12 +498,12 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    if (aNewContact.CustomerTypeCode == "小組組員")
+                    if (aNewContact.CustomerTypeCode.Contains("小組組員"))
                     {
                         // 一般小組新增的新人，委身類型設為"小組組員"
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 1);
                     }
-                    else if (aNewContact.CustomerTypeCode == "新朋友")
+                    else if (aNewContact.CustomerTypeCode.Contains("新朋友"))
                     {
                         // 一般小組新增的新人，委身類型設為"新朋友"
                         this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
@@ -517,12 +517,12 @@ namespace ChurchReport.WebServiceConnector
             }
             else
             {
-                if (aNewContact.CustomerTypeCode == "小組組員")
+                if (aNewContact.CustomerTypeCode.Contains("小組組員"))
                 {
                     // 一般小組新增的新人，委身類型設為"小組組員"
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 1);
                 }
-                else if (aNewContact.CustomerTypeCode == "新朋友")
+                else if (aNewContact.CustomerTypeCode.Contains("新朋友"))
                 {
                     // 一般小組新增的新人，委身類型設為"新朋友"
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
