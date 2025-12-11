@@ -140,4 +140,8 @@ Dispose Pattern
 不要新增任何說明文件.md檔
 
 ==========================================================================================
+信仰狀態的DataSource不要寫死在.cshtml 而是透過entity contact 的  OptionSet欄位顯示的文字來取得陣列清單
+婚姻狀態的DataSource不要寫死在.cshtml 而是透過entity contact 的  OptionSet欄位顯示的文字來取得陣列清單
+我不要寫死程式，aNewContact.MerrageState要自動對應entity contact的"familystatuscode" OptionSet 
+
 
