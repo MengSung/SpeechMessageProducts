@@ -6,6 +6,8 @@
     Layout = null;
 }
 @model ChurchReport.ViewModel.LineBindingViewModel
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -111,10 +113,10 @@
                     </div>
                     <div class="p-3 p-md-4">
                         <ul class="contact-list" aria-label="教會聯絡資訊">
-                            <li><div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div><div class="contact-text">新北市新店區安興路91巷5號</div></li>
-                            <li><div class="contact-icon"><i class="fa-solid fa-phone"></i></div><div class="contact-text">02-2211-1556 (代表號)</div></li>
-                            <li><div class="contact-icon"><i class="fa-solid fa-envelope"></i></div><div class="contact-text">sunnyvale.church@gmail.com</div></li>
-                            <li><div class="contact-icon"><i class="fa-solid fa-file-invoice"></i></div><div class="contact-text">統一編號：20004335</div></li>
+                            <li><div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div><div class="contact-text">@Configuration["ChurchInfo:Address"]</div></li>
+                            <li><div class="contact-icon"><i class="fa-solid fa-phone"></i></div><div class="contact-text">@Configuration["ChurchInfo:Phone"]</div></li>
+                            <li><div class="contact-icon"><i class="fa-solid fa-envelope"></i></div><div class="contact-text">@Configuration["ChurchInfo:Email"]</div></li>
+                            <li><div class="contact-icon"><i class="fa-solid fa-file-invoice"></i></div><div class="contact-text">統一編號：@Configuration["ChurchInfo:TaxId"]</div></li>
                         </ul>
 @*                         <div class="small text-muted mt-3">
                             若您尚未完成 LINE 綁定，請點選「綁定帳號」；完成後將自動導向您的專屬頁面。
