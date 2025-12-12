@@ -66,3 +66,44 @@
 最後，提供一個檢查清單（Checklist），讓開發者能一步步驗證應用程式是否已優化。
 
 輸出語言為繁體中文，內容基於 Microsoft Learn 官方文件和 2025 年最新最佳實務，保持實用且可立即應用。
+-------------------------------------------------------------------------------------
+
+請提供一個詳細的、多階段的策略，目標是將 ASP.NET Core Web API 應用程式的 平均回應時間 (Average Response Time, ART) 降低 30%，並將 每秒請求數 (Requests Per Second, RPS) 提高 30%。
+
+該策略應著重於以下幾個關鍵領域，並包含可比較的指標和具體的實作建議：
+
+1. 記憶體與快取 (Caching and Memory)
+問題診斷： 使用 dotnet-counters 監控應用程式的 GC 暫停時間 (GC Pause Time) 和 記憶體使用量 (Working Set)。
+
+實作建議：
+
+實作 分散式記憶體快取 (Distributed In-Memory Caching)，例如使用 Redis 作為後端，針對不常變動的資料，設定 絕對過期時間 (Absolute Expiration) 與 滑動過期時間 (Sliding Expiration)。
+
+在高流量的控制器動作 (Action) 上使用 [OutputCache] 屬性（適用於 .NET 7+），並設定不同的快取策略（例如，依據查詢字串或使用者 ID 變更）。
+
+2. 資料庫互動與非同步 (Database & Async)
+問題診斷： 使用 EF Core 效能分析工具（如 MiniProfiler 或自行撰寫的攔截器）識別 執行時間最長的 5 個 SQL 查詢 (Top 5 Slowest Queries)。
+
+實作建議：
+
+確保所有 I/O 操作（包括 EF Core 查詢）都使用 async/await 模式，以釋放執行緒並避免 執行緒飢餓 (Thread Starvation)。
+
+對於複雜的報表或大量資料讀取，考慮使用 EF Core 的編譯查詢 (Compiled Queries) 或直接使用 Dapper 執行輕量級的 SQL 查詢。
+
+3. HTTP 傳輸與序列化 (HTTP & Serialization)
+問題診斷： 確認應用程式是否已啟用並正確配置 HTTP/2 或 HTTP/3 (QUIC) 協定。
+
+實作建議：
+
+啟用並優化 Gzip 或 Brotli 壓縮，減少回應酬載大小。
+
+在 appsettings.json 中配置 System.Text.Json 序列化器，使用 源代碼生成 (Source Generators) 功能，以消除執行時反射 (Runtime Reflection) 開銷（適用於 .NET 6+）。
+
+4. 最新的 .NET 效能功能
+實作建議：
+
+審查並使用 IAsyncEnumerable<T> 介面來串流 (Streaming) 大量資料回應，而不是一次性將所有資料載入記憶體。
+
+針對關鍵的業務邏輯，如果可行，考慮使用 Span<T> 和 Memory<T> 來優化字串和陣列操作，減少記憶體分配。
+
+您的回覆應包含每個領域的 基準指標 (Before) 和 目標指標 (Target)，以及實作這些建議後的 預期成效分析 (Expected Impact Analysis)。
