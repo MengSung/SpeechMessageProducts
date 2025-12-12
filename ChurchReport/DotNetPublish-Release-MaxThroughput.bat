@@ -11,6 +11,8 @@ dotnet publish -c Release -r win-x64 --self-contained false ^
     /p:DebugType=None ^
     /p:ReadyToRunUseCrossgen2=true ^
     /p:DebugSymbols=false ^
+    /p:IlcOptimizationPreference=Speed ^
+    /p:IlcOptimizationData=true ^
 -o "./bin/Output-Release-MaxThroughput"
 
 pause
