@@ -14,11 +14,14 @@ namespace ChurchReport
 {
     public class Program
     {
+#if DEBUG
         // ========================================
         // 靜態成員變數用來保存 TraceListener，確保單例且可釋放
+        // 僅在 Debug 組態下編譯此區塊
         // ========================================
         private static TextWriterTraceListener _traceListener;
         private static readonly object _traceLock = new object();
+#endif
 
         public static void Main(string[] args)
         {
@@ -39,53 +42,48 @@ namespace ChurchReport
 
             var app = builder.Build();
 
+#if DEBUG
             // ========================================
-            // 修改：只在 Development 環境下初始化 Trace Listener
-            // Release 模式下不寫入 Trace.log，減少 I/O 開銷
+            // 僅在 Debug 組態下初始化 Trace Listener
+            // 使用條件編譯確保 Release 組態完全移除此程式碼
+            // 命令： dotnet publish -c Debug   → 會寫入 Trace.log
+            //       dotnet publish -c Release → 不會寫入 Trace.log（程式碼被移除）
             // ========================================
-            if (app.Environment.IsDevelopment())
-            {
-                // 🔍 輸出路徑資訊以便診斷
-                Console.WriteLine("=".PadRight(80, '='));
-                Console.WriteLine("📂 應用程式路徑資訊:");
-                Console.WriteLine($"   ContentRootPath: {app.Environment.ContentRootPath}");
-                Console.WriteLine($"   WebRootPath: {app.Environment.WebRootPath}");
-                Console.WriteLine($"   環境名稱: {app.Environment.EnvironmentName}");
-                Console.WriteLine("=".PadRight(80, '='));
-                
-                InitializeTraceListener(app.Environment.ContentRootPath);
-            }
+            InitializeTraceListener(app.Environment.ContentRootPath);
 
             // ========================================
-            // GC 監控設定（Development 模式）
+            // GC 監控設定（僅 Debug 組態）
             // 每 10 分鐘記錄一次 GC 統計，幫助監控記憶體使用
             // ========================================
-            if (app.Environment.IsDevelopment())
-            {
-                StartGCMonitoring();
-            }
+            StartGCMonitoring();
+#endif
 
             // 使用 Startup 類別設定中介層
             startup.Configure(app, app.Environment, app.Services.GetRequiredService<ILoggerFactory>());
 
+#if DEBUG
             // ========================================
-            // 註冊應用程式停止事件，確保資源正確釋放
+            // 註冊應用程式停止事件，確保資源正確釋放（僅 Debug 組態）
             // ========================================
             var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
             lifetime.ApplicationStopping.Register(() =>
             {
-                if (app.Environment.IsDevelopment())
-                {
-                    CleanupTraceListener();
-                }
+                CleanupTraceListener();
             });
+#endif
 
             app.Run();
         }
 
+#if DEBUG
         /// <summary>
-        /// 初始化 Trace Listener（僅在 Development 環境下執行）
+        /// 初始化 Trace Listener（僅在 Debug 組態下編譯）
         /// 確保 TextWriterTraceListener 只建立一次，並且可以在應用程式停止時正確釋放
+        /// 
+        /// 【自動建立機制】
+        /// - 若 Logs 目錄不存在，會自動建立
+        /// - 若 Trace.log 檔案不存在，會自動建立
+        /// - 若檔案已存在，會以 Append 模式追加寫入
         /// </summary>
         private static void InitializeTraceListener(string contentRootPath)
         {
@@ -94,32 +92,44 @@ namespace ChurchReport
                 if (_traceListener != null)
                 {
                     // 已經初始化，直接返回
-                    Console.WriteLine("⚠️  Trace Listener 已經初始化，跳過重複初始化");
                     return;
                 }
 
                 try
                 {
-                    // 建立日誌目錄
+                    // ========================================
+                    // 步驟 1：確保 Logs 目錄存在（自動建立）
+                    // ========================================
                     var logsDir = Path.Combine(contentRootPath, "Logs");
-                    
-                    Console.WriteLine("🔧 初始化 Trace Listener...");
-                    Console.WriteLine($"   目標目錄: {logsDir}");
-                    Console.WriteLine($"   目錄存在(建立前): {Directory.Exists(logsDir)}");
-                    
-                    Directory.CreateDirectory(logsDir);
-                    
-                    Console.WriteLine($"   目錄存在(建立後): {Directory.Exists(logsDir)}");
-                    
-                    var tracePath = Path.Combine(logsDir, "Trace.log");
-                    Console.WriteLine($"   Trace 檔案完整路徑: {tracePath}");
 
-                    // 建立 TextWriterTraceListener 並保存參考（確保可以釋放）
+                    // Directory.CreateDirectory 特性：
+                    // - 若目錄已存在，不會拋出例外
+                    // - 若目錄不存在，會自動建立（包含所有必要的父目錄）
+                    var dirInfo = Directory.CreateDirectory(logsDir);
+
+                    Console.WriteLine($"[Trace Init] Logs directory: {dirInfo.FullName}");
+
+                    // ========================================
+                    // 步驟 2：建立或開啟 Trace.log 檔案
+                    // ========================================
+                    var tracePath = Path.Combine(logsDir, "Trace.log");
+
+                    // 檢查檔案是否已存在（用於日誌記錄）
+                    bool fileExists = File.Exists(tracePath);
+
+                    // TextWriterTraceListener 建構函式特性：
+                    // - 若檔案不存在，會自動建立
+                    // - 若檔案已存在，會以 Append 模式開啟（追加寫入，不會覆蓋）
                     _traceListener = new TextWriterTraceListener(tracePath)
                     {
                         Name = "ChurchReportTraceListener"
                     };
 
+                    Console.WriteLine($"[Trace Init] Trace file: {tracePath} (Exists: {fileExists})");
+
+                    // ========================================
+                    // 步驟 3：註冊 Trace Listener
+                    // ========================================
                     // 檢查是否已存在相同名稱的 Listener（避免重複新增）
                     var existingListener = Trace.Listeners.Cast<TraceListener>()
                         .FirstOrDefault(l => l.Name == "ChurchReportTraceListener");
@@ -128,30 +138,31 @@ namespace ChurchReport
                     {
                         Trace.Listeners.Add(_traceListener);
                         Trace.AutoFlush = true;
-                        Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Trace listener initialized successfully (Development mode).");
-                        Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Trace file location: {tracePath}");
-                        
-                        Console.WriteLine($"✅ Trace Listener 初始化成功！");
-                        Console.WriteLine($"   檔案位置: {tracePath}");
-                        Console.WriteLine($"   AutoFlush: 已啟用");
+
+                        // 寫入初始化成功訊息
+                        var initMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Trace listener initialized successfully (Debug build).";
+                        Trace.WriteLine(initMessage);
+                        Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Log file: {tracePath}");
+                        Trace.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] File mode: {(fileExists ? "Append" : "Create New")}");
+
+                        Console.WriteLine("[Trace Init] ? Initialization complete");
                     }
                     else
                     {
-                        Console.WriteLine("⚠️  發現已存在同名的 Listener，跳過添加");
+                        Console.WriteLine("[Trace Init] ?? Listener already exists, skipping registration");
                     }
                 }
                 catch (Exception ex)
                 {
                     // 初始化失敗，記錄到控制台（避免影響應用程式啟動）
-                    Console.WriteLine($"❌ 初始化 Trace Listener 失敗: {ex.Message}");
-                    Console.WriteLine($"   錯誤類型: {ex.GetType().Name}");
-                    Console.WriteLine($"   堆疊追蹤: {ex.StackTrace}");
+                    Console.WriteLine($"[Trace Init] ? Failed to initialize trace listener: {ex.Message}");
+                    Console.WriteLine($"[Trace Init] Stack trace: {ex.StackTrace}");
                 }
             }
         }
 
         /// <summary>
-        /// 清理 Trace Listener（確保資源正確釋放）
+        /// 清理 Trace Listener（確保資源正確釋放，僅 Debug 組態）
         /// 在應用程式停止時呼叫，關閉 FileStream 和 StreamWriter
         /// </summary>
         private static void CleanupTraceListener()
@@ -183,7 +194,7 @@ namespace ChurchReport
         }
 
         /// <summary>
-        /// 啟動 GC 監控（Development 模式）
+        /// 啟動 GC 監控（僅 Debug 組態）
         /// 每 10 分鐘記錄一次 GC 統計，幫助診斷記憶體問題
         /// 記錄內容：Gen0/Gen1/Gen2 回收次數、GC Memory、Private Memory
         /// </summary>
@@ -219,5 +230,6 @@ namespace ChurchReport
                 }
             });
         }
+#endif
     }
 }

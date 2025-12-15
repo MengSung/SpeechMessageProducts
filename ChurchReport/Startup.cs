@@ -290,6 +290,51 @@ namespace ChurchReport
         /// <param name="loggerFactory">日誌工廠，用於建立日誌記錄器。</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            // ========================================
+            // 🆕 在 Development 環境或啟用 Trace 設定時註冊 Trace Logger Provider
+            // 讓 ILogger 的輸出也能寫入 Trace.log
+            // ========================================
+            var enableTrace = Configuration.GetValue<bool>("EnableTrace", env.IsDevelopment());
+            if (enableTrace)
+            {
+                try
+                {
+                    loggerFactory.AddProvider(new ChurchReport.Logging.TraceLoggerProvider());
+                    Console.WriteLine("[Startup] ✅ TraceLoggerProvider 已註冊");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Startup] ❌ TraceLoggerProvider 註冊失敗: {ex.Message}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("[Startup] ⚠️ TraceLoggerProvider 未啟用（Release 或 EnableTrace=false）");
+            }
+
+            // ========================================
+            // 🆕 全域請求日誌中間件（診斷用）
+            // ========================================
+            //if (enableTrace)
+            //{
+            //app.Use(async (context, next) =>
+            //{
+            //    var logger = context.RequestServices.GetRequiredService<ILogger<Startup>>();
+            //    logger.LogInformation("========================================");
+            //    logger.LogInformation("[全域請求] {Method} {Path} - 時間: {Time}", 
+            //        context.Request.Method, 
+            //        context.Request.Path, 
+            //        DateTime.Now);
+            //    logger.LogInformation("[全域請求] ContentType: {ContentType}, ContentLength: {Length}", 
+            //        context.Request.ContentType, 
+            //        context.Request.ContentLength);
+
+            //    await next();
+
+            //    logger.LogInformation("[全域回應] StatusCode: {StatusCode}", context.Response.StatusCode);
+            //});
+            //}
+
             // 異常處理中間件
             if (env.IsDevelopment())
             {
