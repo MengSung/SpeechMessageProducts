@@ -768,7 +768,7 @@ namespace ChurchReport.Controllers
             if (!string.IsNullOrWhiteSpace(model.Mobile))
             {
                 // 儲存原始輸入的手機號碼到 CRM 的 mobilephone 欄位
-                contact["mobilephone"] = model.Mobile.Trim();
+                contact["mobilephone"] = ExtractDigits(model.Mobile.Trim());
                 System.Diagnostics.Debug.WriteLine($"[UpdateExistingContactWithLineBinding] 更新 mobilephone: {model.Mobile}");
             }
 
@@ -818,7 +818,7 @@ namespace ChurchReport.Controllers
 
             var newContact = new Entity("contact");
             newContact["lastname"] = model.FullName;
-            newContact["mobilephone"] = model.Mobile;
+            newContact["mobilephone"] = ExtractDigits(model.Mobile);
             newContact["new_lineid"] = model.LineUserId;
 
             // 寫入 LINE Profile 的其他欄位
