@@ -10,6 +10,7 @@ using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
 using System.ServiceModel;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -1482,6 +1483,16 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[SaveUserId] 發生錯誤: {e.Message}");
                 return HandleError(e, "SaveUserId");
             }
+        }
+        /// <summary>
+        /// 只保留字串中的數字字元 (0-9)，用於比較手機號碼一致性
+        /// </summary>
+        private string ExtractDigits(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return string.Empty;
+
+            return Regex.Replace(input, "\\D", string.Empty);
         }
 
         #endregion
