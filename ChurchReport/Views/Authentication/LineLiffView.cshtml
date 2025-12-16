@@ -184,6 +184,40 @@
                                                        .Value(Model.LineUserId)
                                                        .Visible(false)
                                                   );
+
+
+
+
+                                                            // DisplayName 欄位 (隱藏)
+                                                            items.AddSimpleFor(m => m.DisplayName)
+                                                            .Label(l => l.Text("Display Name").Visible(false))
+                                                            .Editor(e => e
+                                                            .TextBox()
+                                                            .Mode(TextBoxMode.Text)
+                                                            .Disabled(false)
+                                                            .Visible(false)
+                                                            );
+
+                                                            // PictureUrl 欄位 (隱藏)
+                                                            items.AddSimpleFor(m => m.PictureUrl)
+                                                            .Label(l => l.Text("Picture Url").Visible(false))
+                                                            .Editor(e => e
+                                                            .TextBox()
+                                                            .Mode(TextBoxMode.Text)
+                                                            .Disabled(false)
+                                                            .Visible(false)
+                                                            );
+
+                                                            // StatusMessage 欄位 (隱藏)
+                                                            items.AddSimpleFor(m => m.StatusMessage)
+                                                            .Label(l => l.Text("Status Message").Visible(false))
+                                                            .Editor(e => e
+                                                            .TextBox()
+                                                            .Mode(TextBoxMode.Text)
+                                                            .Disabled(false)
+                                                            .Visible(false)
+                                                            );
+
                                            })
                             )
                         </div>
@@ -395,8 +429,21 @@
                     GroupId = profile.aGroupId;
                     RoomId = profile.aRoomId;
                     ViewType = profile.aViewType;
-                    PictureUrl = profile.pictureUrl;
-                    StatusMessage = profile.statusMessage;
+                    PictureUrl = profile.pictureUrl || "";
+                    StatusMessage = profile.statusMessage || "";
+
+                    // 將 LINE Profile 資料填入隱藏欄位
+                    var formInstance = $("#form").dxForm("instance");
+                    formInstance.updateData("LineUserId", UserId);
+                    formInstance.updateData("DisplayName", DisplayName);
+                    formInstance.updateData("PictureUrl", PictureUrl);
+                    formInstance.updateData("StatusMessage", StatusMessage);
+
+                    console.log("[LIFF Profile] DisplayName:", DisplayName);
+                    console.log("[LIFF Profile] UserId:", UserId);
+                    console.log("[LIFF Profile] PictureUrl:", PictureUrl);
+                    console.log("[LIFF Profile] StatusMessage:", StatusMessage);
+
                     UpdateLineUserId(UserId, GroupId, RoomId, ViewType, DisplayName, PictureUrl, StatusMessage);
                 })
                 .catch(error => {

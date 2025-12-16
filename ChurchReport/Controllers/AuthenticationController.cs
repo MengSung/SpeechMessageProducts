@@ -10,10 +10,10 @@ using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
 using System.ServiceModel;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
+using System.Text.RegularExpressions;
 
 namespace ChurchReport.Controllers
 {
@@ -60,8 +60,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/church-001.jpg"));
-                //images.Add(Url.Content("~/assets/images/church-002.jpg"));
+                images.Add(Url.Content("~/assets/images/sunnyvalech.jpg"));
 
                 return View(new GalleryViewModel
                 {
@@ -111,7 +110,7 @@ namespace ChurchReport.Controllers
                 // 步驟 2: 取得使用者資料
                 System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 步驟 2: 取得使用者資料");
                 var (loginContact, fullName) = await RetrieveUserData(contactIdString, aGalleryViewModel);
-                
+
                 if (loginContact == null)
                 {
                     System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 無法取得使用者資料");
@@ -211,12 +210,12 @@ namespace ChurchReport.Controllers
 
                 // ===== 步驟 2: 設定 LINE 相關資訊 =====
                 System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 步驟 2: 設定 LINE 相關資訊到 InMemoryContext");
-                
+
                 InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
                 InMemoryContext.LineBindingViewModel.RoomId = RoomId;
                 InMemoryContext.LineBindingViewModel.GroupId = GroupId;
                 InMemoryContext.LineBindingViewModel.ViewType = ViewType;
-                
+
                 System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] InMemoryContext 設定完成:");
                 System.Diagnostics.Debug.WriteLine($"  - LineUserId: {InMemoryContext.LineBindingViewModel.LineUserId}");
                 System.Diagnostics.Debug.WriteLine($"  - RoomId: {InMemoryContext.LineBindingViewModel.RoomId}");
@@ -225,7 +224,7 @@ namespace ChurchReport.Controllers
 
                 // ===== 步驟 3: 設定顯示 ID =====
                 System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 步驟 3: 設定 DisplayId");
-                
+
                 if (!string.IsNullOrEmpty(GroupId))
                 {
                     InMemoryContext.LineBindingViewModel.DisplayId = GroupId;
@@ -245,7 +244,7 @@ namespace ChurchReport.Controllers
                 // ===== 步驟 4: 檢查用戶是否已綁定 =====
                 System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 步驟 4: 檢查用戶是否已在資料庫中綁定");
                 System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 準備從連接池獲取 CRM 連接...");
-                
+
                 IOrganizationService service = null;
                 try
                 {
@@ -253,12 +252,12 @@ namespace ChurchReport.Controllers
                     service = GetConnection();
                     var connectionEndTime = DateTime.Now;
                     var connectionDuration = (connectionEndTime - connectionStartTime).TotalMilliseconds;
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ✅ 成功從連接池獲取連接");
                     System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 獲取連接耗時: {connectionDuration:F2} ms");
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 開始查詢資料庫，檢查 LINE ID: {UserLineId}");
-                    
+
                     var query = new QueryExpression("contact")
                     {
                         ColumnSet = new ColumnSet("contactid", "fullname"),
@@ -273,22 +272,22 @@ namespace ChurchReport.Controllers
                         },
                         TopCount = 1
                     };
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] QueryExpression 設定:");
                     System.Diagnostics.Debug.WriteLine($"  - Entity: contact");
                     System.Diagnostics.Debug.WriteLine($"  - Columns: contactid, fullname");
                     System.Diagnostics.Debug.WriteLine($"  - Criteria: new_lineid = '{UserLineId}' AND statecode = 0");
                     System.Diagnostics.Debug.WriteLine($"  - TopCount: 1");
-                    
+
                     var queryStartTime = DateTime.Now;
                     var results = service.RetrieveMultiple(query);
                     var queryEndTime = DateTime.Now;
                     var queryDuration = (queryEndTime - queryStartTime).TotalMilliseconds;
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ✅ 資料庫查詢完成");
                     System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 查詢耗時: {queryDuration:F2} ms");
                     System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 查詢結果數量: {results.Entities.Count}");
-                    
+
                     if (results.Entities.Count == 0)
                     {
                         // ===== 情況 A: 用戶尚未綁定 =====
@@ -301,7 +300,7 @@ namespace ChurchReport.Controllers
                         System.Diagnostics.Debug.WriteLine($"  - fullname: ''");
                         System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ===== 處理結束 (尚未綁定) =====");
                         System.Diagnostics.Debug.WriteLine($"========================================\n");
-                        
+
                         return Json(new
                         {
                             DisplayViewType = "尚未綁定",
@@ -310,13 +309,13 @@ namespace ChurchReport.Controllers
                             fullname = ""
                         });
                     }
-                    
+
                     // ===== 情況 B: 用戶已綁定 =====
                     var contactId = results.Entities[0].Id;
-                    var fullName = results.Entities[0].Contains("fullname") 
-                        ? results.Entities[0].GetAttributeValue<string>("fullname") 
+                    var fullName = results.Entities[0].Contains("fullname")
+                        ? results.Entities[0].GetAttributeValue<string>("fullname")
                         : "";
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ✅ 用戶已綁定，找到匹配的聯絡人");
                     System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 聯絡人資訊:");
                     System.Diagnostics.Debug.WriteLine($"  - ContactId: {contactId}");
@@ -351,13 +350,13 @@ namespace ChurchReport.Controllers
 
                 // ===== 步驟 5: 建立 LINE 登入的 ViewModel =====
                 System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 步驟 5: 建立 LINE 登入的 ViewModel");
-                
+
                 var lineLoginViewModel = new GalleryViewModel
                 {
                     Account = "",  // LINE 登入不需要帳號
                     Password = UserLineId
                 };
-                
+
                 System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] GalleryViewModel 建立完成:");
                 System.Diagnostics.Debug.WriteLine($"  - Account: '{lineLoginViewModel.Account}' (空字串)");
                 System.Diagnostics.Debug.WriteLine($"  - Password: {lineLoginViewModel.Password}");
@@ -371,7 +370,7 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 步驟 7: 準備呼叫 ProcessLogin 方法");
                 System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ===== 轉向 ProcessLogin 處理登入 =====");
                 System.Diagnostics.Debug.WriteLine($"========================================\n");
-                
+
                 return await ProcessLogin(lineLoginViewModel);
             }
             catch (Exception e)
@@ -382,7 +381,7 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 異常訊息: {e.Message}");
                 System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 堆疊追蹤:");
                 System.Diagnostics.Debug.WriteLine(e.StackTrace);
-                
+
                 if (e.InnerException != null)
                 {
                     System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 內部異常類型: {e.InnerException.GetType().Name}");
@@ -390,10 +389,10 @@ namespace ChurchReport.Controllers
                     System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] 內部異常堆疊追蹤:");
                     System.Diagnostics.Debug.WriteLine(e.InnerException.StackTrace);
                 }
-                
+
                 System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ===== 處理結束 (異常) =====");
                 System.Diagnostics.Debug.WriteLine($"========================================\n");
-                
+
                 return HandleError(e, "SaveUserLineId");
             }
         }
@@ -472,6 +471,17 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // 步驟 0: 從 InMemoryContext 同步 LINE Profile 資料到 model
+                SyncLineProfileToModel(model);
+
+                System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 最終 model 資料:");
+                System.Diagnostics.Debug.WriteLine($"  - FullName: {model.FullName}");
+                System.Diagnostics.Debug.WriteLine($"  - Mobile: {model.Mobile}");
+                System.Diagnostics.Debug.WriteLine($"  - LineUserId: {model.LineUserId}");
+                System.Diagnostics.Debug.WriteLine($"  - DisplayName: {model.DisplayName ?? "(null)"}");
+                System.Diagnostics.Debug.WriteLine($"  - PictureUrl: {model.PictureUrl ?? "(null)"}");
+                System.Diagnostics.Debug.WriteLine($"  - StatusMessage: {model.StatusMessage ?? "(null)"}");
+
                 // 步驟 1: 驗證必填欄位
                 var validationResult = ValidateLineBindingModel(model);
                 if (validationResult != null)
@@ -497,8 +507,8 @@ namespace ChurchReport.Controllers
                         return await UpdateExistingContactWithLineBinding(service, matchedContact, model);
                     }
 
-                    // 步驟 5b: 建立新聯絡人
-                    return await CreateNewContactWithLineBinding(service, model);
+                    // 步驟 5b: 無法找到確定要綁定的聯絡人，交由輔助方法處理（包含錯誤回覆或建立新聯絡人）
+                    return await HandleNoMatchAndMaybeCreateAsync(service, model);
                 }
                 catch (FaultException<OrganizationServiceFault> ex)
                 {
@@ -521,6 +531,55 @@ namespace ChurchReport.Controllers
         }
 
         #region ProcessLineBinding 輔助方法
+        /// <summary>
+        /// 將 InMemoryContext.LineBindingViewModel 的 LINE profile 資料同步至傳入的 model（若 model 未填寫）
+        /// </summary>
+        private void SyncLineProfileToModel(LineBindingViewModel model)
+        {
+            if (model == null) return;
+
+            var src = InMemoryContext?.LineBindingViewModel;
+            if (src == null) return;
+
+            // 同步 DisplayName、PictureUrl、StatusMessage、LineUserId
+            if (string.IsNullOrWhiteSpace(model.DisplayName) && !string.IsNullOrWhiteSpace(src.DisplayName))
+            {
+                model.DisplayName = src.DisplayName;
+                System.Diagnostics.Debug.WriteLine($"[SyncLineProfileToModel] 同步 DisplayName: {model.DisplayName}");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.PictureUrl) && !string.IsNullOrWhiteSpace(src.PictureUrl))
+            {
+                model.PictureUrl = src.PictureUrl;
+                System.Diagnostics.Debug.WriteLine($"[SyncLineProfileToModel] 同步 PictureUrl: {model.PictureUrl}");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.StatusMessage) && !string.IsNullOrWhiteSpace(src.StatusMessage))
+            {
+                model.StatusMessage = src.StatusMessage;
+                System.Diagnostics.Debug.WriteLine($"[SyncLineProfileToModel] 同步 StatusMessage: {model.StatusMessage}");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.LineUserId) && !string.IsNullOrWhiteSpace(src.LineUserId))
+            {
+                model.LineUserId = src.LineUserId;
+                System.Diagnostics.Debug.WriteLine($"[SyncLineProfileToModel] 同步 LineUserId: {model.LineUserId}");
+            }
+
+            // 若 model.FullName 未帶值，且 InMemoryContext 有 FullName，則優先填入
+            if (string.IsNullOrWhiteSpace(model.FullName) && !string.IsNullOrWhiteSpace(src.FullName))
+            {
+                model.FullName = src.FullName;
+                System.Diagnostics.Debug.WriteLine($"[SyncLineProfileToModel] 同步 FullName: {model.FullName}");
+            }
+
+            // 若 model.Mobile 未帶值，且 InMemoryContext 有 Mobile，則優先填入
+            if (string.IsNullOrWhiteSpace(model.Mobile) && !string.IsNullOrWhiteSpace(src.Mobile))
+            {
+                model.Mobile = src.Mobile;
+                System.Diagnostics.Debug.WriteLine($"[SyncLineProfileToModel] 同步 Mobile: {model.Mobile}");
+            }
+        }
 
         /// <summary>
         /// 驗證 LINE 綁定模型的必填欄位
@@ -613,8 +672,12 @@ namespace ChurchReport.Controllers
             var results = await Task.Run(() => service.RetrieveMultiple(query));
 
             if (results.Entities.Count == 0)
+            {
+                // 透過全名搜尋，系統沒有這個名字
                 return null;
+            }
 
+            // 透過全名搜尋，系統有這個名字
             System.Diagnostics.Debug.WriteLine($"[FindMatchingContactByNameAndMobile] 找到 {results.Entities.Count} 個同名聯絡人");
 
             // 嘗試以手機號碼匹配（只比對數字）
@@ -635,11 +698,25 @@ namespace ChurchReport.Controllers
             foreach (var contact in results.Entities)
             {
                 var mobilePhone = contact.Contains("mobilephone") ? contact.GetAttributeValue<string>("mobilephone") : string.Empty;
-                if (string.IsNullOrEmpty(ExtractDigits(mobilePhone)))
+                if (string.IsNullOrEmpty(mobilePhone))
                 {
                     System.Diagnostics.Debug.WriteLine($"[FindMatchingContactByNameAndMobile] 找到沒有手機號碼的聯絡人，ID: {contact.Id}");
                     return contact;
                 }
+            }
+
+            // 若找不到完全匹配的手機，且每個同名聯絡人都有手機號碼，則無法確定要綁定哪一個
+            // 回傳 null 以便上層方法提示使用者手機號碼不匹配
+            System.Diagnostics.Debug.WriteLine($"[FindMatchingContactByNameAndMobile] ⚠️ 找到 {results.Entities.Count} 個同名聯絡人，但手機號碼均不匹配");
+            System.Diagnostics.Debug.WriteLine($"[FindMatchingContactByNameAndMobile] 輸入的手機號碼（僅數字）: {normalizedInputMobile}");
+
+            // 記錄所有同名聯絡人的手機號碼供診斷
+            for (int i = 0; i < results.Entities.Count; i++)
+            {
+                var contact = results.Entities[i];
+                var mobilePhone = contact.Contains("mobilephone") ? contact.GetAttributeValue<string>("mobilephone") : string.Empty;
+                var normalizedDbMobile = ExtractDigits(mobilePhone);
+                System.Diagnostics.Debug.WriteLine($"[FindMatchingContactByNameAndMobile]   聯絡人 {i + 1}: 手機={mobilePhone}, 僅數字={normalizedDbMobile}");
             }
 
             return null;
@@ -686,6 +763,14 @@ namespace ChurchReport.Controllers
 
             // 綁定 LINE ID
             contact["new_lineid"] = model.LineUserId;
+
+            // 更新聯絡人手機號碼（若提供）
+            if (!string.IsNullOrWhiteSpace(model.Mobile))
+            {
+                // 儲存原始輸入的手機號碼到 CRM 的 mobilephone 欄位
+                contact["mobilephone"] = model.Mobile.Trim();
+                System.Diagnostics.Debug.WriteLine($"[UpdateExistingContactWithLineBinding] 更新 mobilephone: {model.Mobile}");
+            }
 
             // 同步 LINE Profile 的其他欄位到 Contact
             if (!string.IsNullOrWhiteSpace(model.DisplayName))
@@ -799,6 +884,50 @@ namespace ChurchReport.Controllers
             return Json(new { status = "0", message = "註冊失敗，請稍後再試" });
         }
 
+        /// <summary>
+        /// 當找不到匹配的聯絡人時，處理可能的情境：
+        /// - 若系統存在同名聯絡人但手機不匹配，提醒使用者確認手機或聯絡管理員
+        /// - 否則建立新聯絡人
+        /// </summary>
+        private async Task<IActionResult> HandleNoMatchAndMaybeCreateAsync(IOrganizationService service, LineBindingViewModel model)
+        {
+            // 重新查詢同名聯絡人數量以判斷是否存在同名但手機不匹配的情況
+            var nameCheckQuery = new QueryExpression("contact")
+            {
+                ColumnSet = new ColumnSet("contactid"),
+                Criteria = new FilterExpression
+                {
+                    FilterOperator = LogicalOperator.And,
+                    Conditions =
+                    {
+                        new ConditionExpression("fullname", ConditionOperator.Equal, model.FullName),
+                        new ConditionExpression("statecode", ConditionOperator.Equal, 0)
+                    }
+                }
+            };
+
+            var nameCheckResults = await Task.Run(() => service.RetrieveMultiple(nameCheckQuery));
+
+            if (nameCheckResults.Entities.Count > 0)
+            {
+                // 有同名聯絡人但手機不匹配，提示使用者採取後續動作
+                System.Diagnostics.Debug.WriteLine($"[HandleNoMatchAndMaybeCreateAsync] 找到 {nameCheckResults.Entities.Count} 個同名聯絡人，但手機號碼不匹配");
+
+                return Json(new
+                {
+                    status = "0",
+                    message = $"系統找到 {nameCheckResults.Entities.Count} 位名為「{model.FullName}」的聯絡人，但您輸入的手機號碼與系統中的紀錄不符。\n\n" +
+                             "請確認：\n" +
+                             "1. 您輸入的手機號碼是否正確\n" +
+                             "2. 若您的手機號碼已更換，請聯絡系統管理員更新資料庫中的手機號碼\n" +
+                             "3. 若您是新註冊會員，請使用不同的姓名以避免重複"
+                });
+            }
+
+            // 若沒有同名聯絡人，則建立新聯絡人並綁定
+            return await CreateNewContactWithLineBinding(service, model);
+        }
+
 
         #endregion
 
@@ -861,20 +990,20 @@ namespace ChurchReport.Controllers
             try
             {
                 System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] 開始驗證 - 帳號: {viewModel?.Account}");
-                
+
                 string contactIdString = "";
 
                 if (viewModel.Account != "")
                 {
                     // 透過帳號密碼登入 - 使用連接池優化
                     System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] 使用帳號密碼登入");
-                    
+
                     IOrganizationService service = null;
                     try
                     {
                         // 從連接池獲取連接（耗時約 5ms，相比創建新連接的 500ms 大幅提升）
                         service = GetConnection();
-                        
+
                         // 直接使用 CRM SDK 查詢（避免透過 ToolUtility 創建新連接）
                         var query = new QueryExpression("contact")
                         {
@@ -890,34 +1019,34 @@ namespace ChurchReport.Controllers
                             },
                             TopCount = 1 // 只需要一筆結果
                         };
-                        
+
                         var results = service.RetrieveMultiple(query);
-                        
+
                         if (results.Entities.Count == 0)
                         {
                             // 帳號不存在
                             System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] 帳號錯誤");
                             return (false, "", "帳號錯誤");
                         }
-                        
+
                         var contact = results.Entities[0];
-                        var storedPassword = contact.Contains("new_app_pass") 
-                            ? contact.GetAttributeValue<string>("new_app_pass") 
+                        var storedPassword = contact.Contains("new_app_pass")
+                            ? contact.GetAttributeValue<string>("new_app_pass")
                             : null;
-                        
+
                         // 檢查密碼
                         if (string.IsNullOrEmpty(storedPassword))
                         {
                             System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] 系統沒有設定密碼");
                             return (false, "", "系統沒有設定密碼");
                         }
-                        
+
                         if (storedPassword != viewModel.Password)
                         {
                             System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] 密碼錯誤");
                             return (false, "", "密碼錯誤");
                         }
-                        
+
                         // 驗證成功
                         contactIdString = contact.Id.ToString();
                         System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] 驗證成功，Contact ID: {contactIdString}");
@@ -962,36 +1091,36 @@ namespace ChurchReport.Controllers
         /// 使用連接池優化效能，減少連接創建時間
         /// </summary>
         private async Task<(Entity loginContact, string fullName)> RetrieveUserData(
-            string contactIdString, 
+            string contactIdString,
             GalleryViewModel viewModel)
         {
             Entity loginContact = null;
             string fullName = "";
-            
+
             IOrganizationService service = null;
             try
             {
                 // 從連接池獲取連接
                 service = GetConnection();
-                
+
                 if (contactIdString != "透過Line Id 登入")
                 {
                     // 使用者透過網頁的帳號密碼登入
                     System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] 使用 Contact ID 查詢: {contactIdString}");
-                    
+
                     // 直接使用 CRM SDK 查詢，獲取完整的聯絡人資料
                     loginContact = service.Retrieve("contact", new Guid(contactIdString), new ColumnSet(true));
-                    fullName = loginContact.Contains("fullname") 
-                        ? loginContact.GetAttributeValue<string>("fullname") 
+                    fullName = loginContact.Contains("fullname")
+                        ? loginContact.GetAttributeValue<string>("fullname")
                         : "";
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] 查詢成功，姓名: {fullName}");
                 }
                 else
                 {
                     // 使用者透過 LINE ID 登入
                     System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] 使用 LINE ID 查詢: {InMemoryContext.LineBindingViewModel.LineUserId}");
-                    
+
                     // 使用 QueryExpression 查詢 LINE ID 綁定的聯絡人
                     var query = new QueryExpression("contact")
                     {
@@ -1001,27 +1130,27 @@ namespace ChurchReport.Controllers
                             FilterOperator = LogicalOperator.And,
                             Conditions =
                             {
-                                new ConditionExpression("new_lineid", ConditionOperator.Equal, 
+                                new ConditionExpression("new_lineid", ConditionOperator.Equal,
                                     InMemoryContext.LineBindingViewModel.LineUserId),
                                 new ConditionExpression("statecode", ConditionOperator.Equal, 0) // 只查詢啟用的聯絡人
                             }
                         },
                         TopCount = 1 // 只需要一筆結果
                     };
-                    
+
                     var results = service.RetrieveMultiple(query);
-                    
+
                     if (results.Entities.Count > 0)
                     {
                         loginContact = results.Entities[0];
-                        fullName = loginContact.Contains("fullname") 
-                            ? loginContact.GetAttributeValue<string>("fullname") 
+                        fullName = loginContact.Contains("fullname")
+                            ? loginContact.GetAttributeValue<string>("fullname")
                             : "";
-                        
+
                         // 設定 LINE 登入的帳密
                         viewModel.Account = "LineIdLogin";
                         viewModel.Password = InMemoryContext.LineBindingViewModel.LineUserId;
-                        
+
                         System.Diagnostics.Debug.WriteLine($"[RetrieveUserData] LINE 登入查詢成功，姓名: {fullName}");
                     }
                     else
@@ -1082,15 +1211,15 @@ namespace ChurchReport.Controllers
                 // 從連接池獲取連接
                 service = GetConnection();
                 System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 已從連接池獲取 IOrganizationService");
-                
+
                 // 設定多個組長處理需要的資料
                 System.Diagnostics.Debug.WriteLine($"[SetupSystemData] 呼叫 SetupListManager - 開始時間: {DateTime.Now:HH:mm:ss.fff}");
                 try
                 {
                     // ✅ 傳入 organizationService 避免內部為 null
                     InMemoryContext.ListManager.SetupListManager(
-                        viewModel.Account, 
-                        viewModel.Password, 
+                        viewModel.Account,
+                        viewModel.Password,
                         DateTime.Now,
                         service); // 傳入連接池中的服務
                     System.Diagnostics.Debug.WriteLine($"[SetupSystemData] SetupListManager 完成 - 時間: {DateTime.Now:HH:mm:ss.fff}");
@@ -1168,7 +1297,7 @@ namespace ChurchReport.Controllers
             try
             {
                 System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 開始判斷顯示視圖類型");
-                
+
                 // 控制 Navigation 下拉項目
                 ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "不是單純行事曆";
                 ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "顯示牧養回報項目";
@@ -1179,14 +1308,14 @@ namespace ChurchReport.Controllers
 
                 // 透過取得多小組網頁需要的資料之後，判斷這是多小組還是單一小組長的回報
                 string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
-                
+
                 System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] GetDisplayViewType() 回傳值: '{displayViewType ?? "null"}'");
-                
+
                 // ✅ 保護性檢查: 如果 displayViewType 是 null 或空字串，設定預設值
                 if (string.IsNullOrEmpty(displayViewType))
                 {
                     System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 警告: displayViewType 為空，使用預設值");
-                    
+
                     // 根據 LoginType 決定預設值
                     if (InMemoryContext.ListManager.LoginType == "小組長")
                     {
@@ -1199,7 +1328,7 @@ namespace ChurchReport.Controllers
                         System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 非小組長預設值: MultiGroupView");
                     }
                 }
-                
+
                 if (displayViewType == "IntegrateView")
                 {
                     System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 視圖類型為 IntegrateView，開始設定整合資料");
@@ -1218,8 +1347,8 @@ namespace ChurchReport.Controllers
 
                 // 根據登入類型和幸福小組狀態調整顯示類型
                 System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] HappyType={InMemoryContext.HappyGroupDataManager.HappyType}");
-                
-                if (InMemoryContext.ListManager.LoginType != "小組長" && 
+
+                if (InMemoryContext.ListManager.LoginType != "小組長" &&
                     InMemoryContext.HappyGroupDataManager.HappyType == "有幸福小組名單")
                 {
                     System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 調整為 HappyGroupView");
@@ -1227,14 +1356,14 @@ namespace ChurchReport.Controllers
                 }
 
                 System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 最終視圖類型: {displayViewType}");
-                
+
                 return displayViewType;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 發生異常: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"[DetermineDisplayViewType] 堆疊追蹤: {ex.StackTrace}");
-                
+
                 // 發生異常時，返回安全的預設值
                 return "IntegrateView";
             }
@@ -1261,8 +1390,8 @@ namespace ChurchReport.Controllers
         /// 建立登入回應
         /// </summary>
         private IActionResult CreateLoginResponse(
-            string displayViewType, 
-            string fullName, 
+            string displayViewType,
+            string fullName,
             GalleryViewModel viewModel)
         {
             return Json(new
@@ -1403,9 +1532,9 @@ namespace ChurchReport.Controllers
         [HttpPost]
         [Route("/Authentication/SaveUserId")]
         public async Task<IActionResult> SaveUserId(
-            string UserLineId, 
-            string GroupId, 
-            string RoomId, 
+            string UserLineId,
+            string GroupId,
+            string RoomId,
             string ViewType,
             string DisplayName = "",
             string PictureUrl = "",
@@ -1430,46 +1559,24 @@ namespace ChurchReport.Controllers
                 try
                 {
                     service = GetConnection();
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[SaveUserId] 檢查 LINE ID 是否已綁定: {UserLineId}");
-                    
-                    var query = new QueryExpression("contact")
+
+                    // 步驟 3: 檢查 LINE ID 是否已綁定
+                    var existingBindingResult = await CheckExistingLineBinding(service, UserLineId);
+                    if (existingBindingResult != null)
                     {
-                        ColumnSet = new ColumnSet("fullname"), // 只需要姓名欄位
-                        Criteria = new FilterExpression
-                        {
-                            FilterOperator = LogicalOperator.And,
-                            Conditions =
-                            {
-                                new ConditionExpression("new_lineid", ConditionOperator.Equal, UserLineId),
-                                new ConditionExpression("statecode", ConditionOperator.Equal, 0)
-                            }
-                        },
-                        TopCount = 1
-                    };
-                    
-                    var results = service.RetrieveMultiple(query);
-                    
-                    if (results.Entities.Count == 0)
+                        // 用戶已綁定
+                        return existingBindingResult;
+                    }
+                    else
                     {
-                        // 用戶尚未綁定
+                        // 用戶尚未綁定 
                         System.Diagnostics.Debug.WriteLine($"[SaveUserId] 用戶尚未綁定");
                         return Json(new
                         {
                             status = "1",
                             message = "請完成身分綁定註冊"
-                        });
-                    }
-                    else
-                    {
-                        // 用戶已綁定
-                        var fullName = results.Entities[0].GetAttributeValue<string>("fullname");
-                        System.Diagnostics.Debug.WriteLine($"[SaveUserId] 用戶已綁定: {fullName}");
-                        
-                        return Json(new
-                        {
-                            status = "0",
-                            message = $"您已綁定為 {fullName}"
                         });
                     }
                 }
@@ -1484,6 +1591,7 @@ namespace ChurchReport.Controllers
                 return HandleError(e, "SaveUserId");
             }
         }
+
         /// <summary>
         /// 只保留字串中的數字字元 (0-9)，用於比較手機號碼一致性
         /// </summary>
@@ -1494,7 +1602,6 @@ namespace ChurchReport.Controllers
 
             return Regex.Replace(input, "\\D", string.Empty);
         }
-
         #endregion
     }
 }
