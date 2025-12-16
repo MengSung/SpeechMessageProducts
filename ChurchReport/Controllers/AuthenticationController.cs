@@ -447,7 +447,7 @@ namespace ChurchReport.Controllers
 
                 var images = new List<string>
                 {
-                    Url.Content("~/assets/images/church-001.jpg")
+                    Url.Content("~/assets/images/sunnyvalech.jpg")
                 };
 
                 InMemoryContext.LineBindingViewModel.Images = images;
@@ -463,188 +463,52 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 處理 LINE 身分綁定註冊
-        /// 建立新用戶並綁定 LINE ID
-        /// 使用連接池優化，單一連接完成所有操作
+        /// 使用連接池優化，委派給輔助方法執行各步驟
         /// </summary>
-        /// <param name="model">LINE 綁定資料模型</param>
         [HttpPost]
         [Route("/Authentication/ProcessLineBinding")]
         public async Task<IActionResult> ProcessLineBinding(LineBindingViewModel model)
         {
             try
             {
-                // 驗證必填欄位
-                if (string.IsNullOrWhiteSpace(model.FullName))
-                {
-                    return Json(new { status = "0", message = "主要姓名必填" });
-                }
-
-                if (string.IsNullOrWhiteSpace(model.Mobile))
-                {
-                    return Json(new { status = "0", message = "行動電話必填" });
-                }
-
-                if (string.IsNullOrWhiteSpace(model.LineUserId))
-                {
-                    return Json(new { status = "0", message = "LINE User ID 遺失" });
-                }
+                // 步驟 1: 驗證必填欄位
+                var validationResult = ValidateLineBindingModel(model);
+                if (validationResult != null)
+                    return validationResult;
 
                 IOrganizationService service = null;
                 try
                 {
-                    // 從連接池獲取連接
+                    // 步驟 2: 從連接池獲取連接
                     service = GetConnection();
-                    
-                    // 步驟 1: 檢查 LINE ID 是否已綁定
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 檢查 LINE ID 是否已綁定: {model.LineUserId}");
-                    
-                    var lineIdQuery = new QueryExpression("contact")
+
+                    // 步驟 3: 檢查 LINE ID 是否已綁定
+                    var existingBindingResult = await CheckExistingLineBinding(service, model.LineUserId);
+                    if (existingBindingResult != null)
+                        return existingBindingResult;
+
+                    // 步驟 4: 查詢並匹配現有聯絡人
+                    var matchedContact = await FindMatchingContactByNameAndMobile(service, model.FullName, model.Mobile);
+
+                    if (matchedContact != null)
                     {
-                        ColumnSet = new ColumnSet("fullname"),
-                        Criteria = new FilterExpression
-                        {
-                            FilterOperator = LogicalOperator.And,
-                            Conditions =
-                            {
-                                new ConditionExpression("new_lineid", ConditionOperator.Equal, model.LineUserId),
-                                new ConditionExpression("statecode", ConditionOperator.Equal, 0)
-                            }
-                        },
-                        TopCount = 1
-                    };
-                    
-                    var lineIdResults = service.RetrieveMultiple(lineIdQuery);
-                    
-                    if (lineIdResults.Entities.Count > 0)
-                    {
-                        var existingName = lineIdResults.Entities[0].GetAttributeValue<string>("fullname");
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] LINE ID 已綁定至: {existingName}");
-                        
-                        return Json(new { 
-                            status = "0", 
-                            message = $"此 LINE 帳號已綁定至 {existingName}" 
-                        });
+                        // 步驟 5a: 更新現有聯絡人
+                        return await UpdateExistingContactWithLineBinding(service, matchedContact, model);
                     }
-                    
-                    // 步驟 2: 檢查姓名是否已存在
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 檢查姓名是否已存在: {model.FullName}");
-                    
-                    var nameQuery = new QueryExpression("contact")
-                    {
-                        ColumnSet = new ColumnSet("contactid", "fullname", "mobilephone"),
-                        Criteria = new FilterExpression
-                        {
-                            FilterOperator = LogicalOperator.And,
-                            Conditions =
-                            {
-                                new ConditionExpression("fullname", ConditionOperator.Equal, model.FullName),
-                                new ConditionExpression("statecode", ConditionOperator.Equal, 0)
-                            }
-                        }
-                    };
-                    
-                    var nameResults = service.RetrieveMultiple(nameQuery);
-                    
-                    Entity targetContact = null;
-                    
-                    if (nameResults.Entities.Count > 0)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 找到 {nameResults.Entities.Count} 個同名聯絡人");
-                        
-                        // 姓名已存在，嘗試匹配手機號碼
-                        foreach (var contact in nameResults.Entities)
-                        {
-                            var mobilePhone = contact.Contains("mobilephone") 
-                                ? contact.GetAttributeValue<string>("mobilephone") 
-                                : "";
-                            
-                            if (mobilePhone == model.Mobile)
-                            {
-                                targetContact = contact;
-                                System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 找到匹配的聯絡人，手機: {mobilePhone}");
-                                break;
-                            }
-                        }
-                        
-                        if (targetContact != null)
-                        {
-                            // 步驟 3: 找到匹配的聯絡人，更新 LINE ID
-                            System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 更新現有聯絡人的 LINE ID");
-                            
-                            targetContact["new_lineid"] = model.LineUserId;
-                            
-                            // 更新其他資訊
-                            if (!string.IsNullOrWhiteSpace(model.OtherName))
-                            {
-                                targetContact["lastname"] = model.OtherName;
-                            }
-                            
-                            service.Update(targetContact);
-                            
-                            System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 綁定成功");
-                            
-                            return Json(new { 
-                                status = "1", 
-                                message = $"已成功綁定 LINE 至現有帳號：{model.FullName}" 
-                            });
-                        }
-                    }
-                    
-                    // 步驟 4: 建立新聯絡人
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 建立新聯絡人");
-                    
-                    var newContact = new Entity("contact");
-                    newContact["fullname"] = model.FullName;
-                    newContact["mobilephone"] = model.Mobile;
-                    newContact["new_lineid"] = model.LineUserId;
-                    
-                    if (!string.IsNullOrWhiteSpace(model.OtherName))
-                    {
-                        newContact["lastname"] = model.OtherName;
-                    }
-                    
-                    var newContactId = service.Create(newContact);
-                    
-                    if (newContactId != Guid.Empty)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 新聯絡人建立成功，ID: {newContactId}");
-                        
-                        return Json(new { 
-                            status = "1", 
-                            message = $"註冊成功！歡迎 {model.FullName} 加入好牧人" 
-                        });
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 建立聯絡人失敗");
-                        
-                        return Json(new { 
-                            status = "0", 
-                            message = "註冊失敗，請稍後再試" 
-                        });
-                    }
+
+                    // 步驟 5b: 建立新聯絡人
+                    return await CreateNewContactWithLineBinding(service, model);
                 }
                 catch (FaultException<OrganizationServiceFault> ex)
                 {
-                    // CRM 服務異常
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] CRM 服務異常: {ex.Detail?.Message ?? ex.Message}");
-                    return Json(new { 
-                        status = "0", 
-                        message = $"系統服務異常: {ex.Detail?.Message ?? ex.Message}" 
-                    });
+                    return HandleCrmServiceException(ex);
                 }
                 catch (TimeoutException ex)
                 {
-                    // 連接超時
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 連接超時: {ex.Message}");
-                    return Json(new { 
-                        status = "0", 
-                        message = "系統連接超時，請稍後再試" 
-                    });
+                    return HandleTimeoutException(ex);
                 }
                 finally
                 {
-                    // 歸還連接到池（非常重要！確保連接重用）
                     ReleaseConnection(service);
                 }
             }
@@ -655,7 +519,307 @@ namespace ChurchReport.Controllers
             }
         }
 
+        #region ProcessLineBinding 輔助方法
+
+        /// <summary>
+        /// 驗證 LINE 綁定模型的必填欄位
+        /// </summary>
+        private IActionResult ValidateLineBindingModel(LineBindingViewModel model)
+        {
+            if (string.IsNullOrWhiteSpace(model.FullName))
+                return Json(new { status = "0", message = "主要姓名必填" });
+
+            if (string.IsNullOrWhiteSpace(model.Mobile))
+                return Json(new { status = "0", message = "行動電話必填" });
+
+            if (string.IsNullOrWhiteSpace(model.LineUserId))
+                return Json(new { status = "0", message = "LINE User ID 遺失" });
+
+            return null; // 驗證通過
+        }
+
+        // 若在檢查 LINE ID 時找到僅為 (Line) 標記的佔位聯絡人，
+        // 暫存該 Entity 以便在後續把資料合併後將佔位聯絡人設為 Inactive
+        private Entity _placeholderLineContact = null;
+
+        /// <summary>
+        /// 確認現有綁定
+        /// </summary>
+        private async Task<IActionResult> CheckExistingLineBinding(IOrganizationService service, string lineUserId)
+        {
+            System.Diagnostics.Debug.WriteLine($"[CheckExistingLineBinding] 檢查 LINE ID 是否已綁定: {lineUserId}");
+
+            var query = new QueryExpression("contact")
+            {
+                ColumnSet = new ColumnSet("contactid", "fullname"),
+                Criteria = new FilterExpression
+                {
+                    FilterOperator = LogicalOperator.And,
+                    Conditions =
+                    {
+                        new ConditionExpression("new_lineid", ConditionOperator.Equal, lineUserId),
+                        new ConditionExpression("statecode", ConditionOperator.Equal, 0)
+                    }
+                },
+                TopCount = 1
+            };
+
+            var results = await Task.Run(() => service.RetrieveMultiple(query));
+
+            if (results.Entities.Count > 0)
+            {
+                var found = results.Entities[0];
+                var existingName = found.GetAttributeValue<string>("fullname");
+                System.Diagnostics.Debug.WriteLine($"[CheckExistingLineBinding] LINE ID 已綁定至: {existingName}");
+
+                // 決策：若 existingName 非空且不包含 "(Line)"，拒絕綁定
+                if (!string.IsNullOrWhiteSpace(existingName) && !existingName.Contains("(Line)"))
+                {
+                    return Json(new { status = "0", message = $"此 LINE 帳號已綁定至 {existingName}" });
+                }
+
+                // 若姓名包含 (Line) 表示為系統建立的佔位聯絡人，暫存以便之後停用
+                if (!string.IsNullOrWhiteSpace(existingName) && existingName.Contains("(Line)"))
+                {
+                    _placeholderLineContact = found;
+                    System.Diagnostics.Debug.WriteLine($"[CheckExistingLineBinding] 找到佔位聯絡人 (Line)，ID: {_placeholderLineContact.Id}");
+                }
+            }
+
+            return null; // 未找到已綁定的帳號或找到可替換的佔位聯絡人，繼續後續處理
+        }
+        /// <summary>
+        /// 根據姓名和手機號碼查詢並匹配現有聯絡人
+        /// </summary>
+        private async Task<Entity> FindMatchingContactByNameAndMobile(IOrganizationService service, string fullName, string mobile)
+        {
+            System.Diagnostics.Debug.WriteLine($"[FindMatchingContactByNameAndMobile] 檢查姓名是否已存在: {fullName}");
+
+            var query = new QueryExpression("contact")
+            {
+                ColumnSet = new ColumnSet("contactid", "fullname", "mobilephone"),
+                Criteria = new FilterExpression
+                {
+                    FilterOperator = LogicalOperator.And,
+                    Conditions =
+                    {
+                        new ConditionExpression("fullname", ConditionOperator.Equal, fullName),
+                        new ConditionExpression("statecode", ConditionOperator.Equal, 0)
+                    }
+                }
+            };
+
+            var results = await Task.Run(() => service.RetrieveMultiple(query));
+
+            if (results.Entities.Count == 0)
+                return null;
+
+            System.Diagnostics.Debug.WriteLine($"[FindMatchingContactByNameAndMobile] 找到 {results.Entities.Count} 個同名聯絡人");
+
+            // 嘗試以手機號碼匹配（只比對數字）
+            var normalizedInputMobile = ExtractDigits(mobile);
+            foreach (var contact in results.Entities)
+            {
+                var mobilePhone = contact.Contains("mobilephone") ? contact.GetAttributeValue<string>("mobilephone") : string.Empty;
+                var normalizedMobilePhone = ExtractDigits(mobilePhone);
+
+                if (!string.IsNullOrEmpty(normalizedInputMobile) && normalizedMobilePhone == normalizedInputMobile)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[FindMatchingContactByNameAndMobile] 找到匹配的聯絡人，手機: {mobilePhone}");
+                    return contact;
+                }
+            }
+
+            // 若找不到完全匹配的手機，優先回傳沒有手機號碼的聯絡人（可能為佔位或未填寫）
+            foreach (var contact in results.Entities)
+            {
+                var mobilePhone = contact.Contains("mobilephone") ? contact.GetAttributeValue<string>("mobilephone") : string.Empty;
+                if (string.IsNullOrEmpty(ExtractDigits(mobilePhone)))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[FindMatchingContactByNameAndMobile] 找到沒有手機號碼的聯絡人，ID: {contact.Id}");
+                    return contact;
+                }
+            }
+
+            return null;
+        }
+        /// <summary>
+        /// 更新現有聯絡人，綁定 LINE ID
+        /// 若之前存在同一 LINE ID 的佔位聯絡人（fullname 含 (Line)），
+        /// 會將該佔位聯絡人設為 Inactive（停用）以避免重複紀錄
+        /// </summary>
+        private async Task<IActionResult> UpdateExistingContactWithLineBinding(
+            IOrganizationService service,
+            Entity contact,
+            LineBindingViewModel model)
+        {
+            System.Diagnostics.Debug.WriteLine($"[UpdateExistingContactWithLineBinding] 更新現有聯絡人的 LINE ID");
+
+            // 若先前檢查到佔位聯絡人且與欲更新的 contact 不同，將佔位聯絡人停用
+            if (_placeholderLineContact != null && _placeholderLineContact.Id != contact.Id)
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine($"[UpdateExistingContactWithLineBinding] 停用佔位聯絡人，ID: {_placeholderLineContact.Id}");
+
+                    var inactiveEntity = new Entity("contact") { Id = _placeholderLineContact.Id };
+                    // statecode = 1 (Inactive)
+                    inactiveEntity["statecode"] = new OptionSetValue(1);
+                    // statuscode: 2 為一般 Inactive 狀態
+                    inactiveEntity["statuscode"] = new OptionSetValue(2);
+
+                    await Task.Run(() => service.Update(inactiveEntity));
+
+                    System.Diagnostics.Debug.WriteLine($"[UpdateExistingContactWithLineBinding] 佔位聯絡人已停用");
+                }
+                catch (Exception ex)
+                {
+                    // 停用失敗不應阻斷主要綁定流程，記錄錯誤並繼續
+                    System.Diagnostics.Debug.WriteLine($"[UpdateExistingContactWithLineBinding] 停用佔位聯絡人失敗: {ex.Message}");
+                }
+                finally
+                {
+                    _placeholderLineContact = null; // 清除暫存
+                }
+            }
+
+            // 綁定 LINE ID
+            contact["new_lineid"] = model.LineUserId;
+
+            // 同步 LINE Profile 的其他欄位到 Contact
+            if (!string.IsNullOrWhiteSpace(model.DisplayName))
+            {
+                contact["new_line_displayname"] = model.DisplayName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.PictureUrl))
+            {
+                contact["new_line_picture_url"] = model.PictureUrl;
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.StatusMessage))
+            {
+                contact["new_line_status_message"] = model.StatusMessage;
+            }
+
+            // 備份 LINE ID
+            contact["new_lineid_backup"] = model.LineUserId;
+
+            // 設定 LINE 類型為個人（維持與其他模組一致的欄位值）
+            contact["new_line_type"] = "個人";
+
+            // 標記為尚未透過系統註冊（依照既有邏輯可視情況調整）
+            contact["new_line_register"] = false;
+
+            if (!string.IsNullOrWhiteSpace(model.OtherName))
+                contact["new_other_name"] = model.OtherName;
+
+            await Task.Run(() => service.Update(contact));
+
+            System.Diagnostics.Debug.WriteLine($"[UpdateExistingContactWithLineBinding] 綁定成功");
+
+            return Json(new { status = "1", message = $"已成功綁定 LINE 至現有帳號:{model.FullName}" });
+        }
+
+        /// <summary>
+        /// 建立新聯絡人並綁定 LINE ID
+        /// </summary>
+        private async Task<IActionResult> CreateNewContactWithLineBinding(
+            IOrganizationService service,
+            LineBindingViewModel model)
+        {
+            System.Diagnostics.Debug.WriteLine($"[CreateNewContactWithLineBinding] 建立新聯絡人");
+
+            var newContact = new Entity("contact");
+            newContact["lastname"] = model.FullName;
+            newContact["mobilephone"] = model.Mobile;
+            newContact["new_lineid"] = model.LineUserId;
+
+            // 寫入 LINE Profile 的其他欄位
+            if (!string.IsNullOrWhiteSpace(model.DisplayName))
+                newContact["new_line_displayname"] = model.DisplayName;
+
+            if (!string.IsNullOrWhiteSpace(model.PictureUrl))
+                newContact["new_line_picture_url"] = model.PictureUrl;
+
+            if (!string.IsNullOrWhiteSpace(model.StatusMessage))
+                newContact["new_line_status_message"] = model.StatusMessage;
+
+            // 備份 LINE ID
+            newContact["new_lineid_backup"] = model.LineUserId;
+
+            // LINE 類型與註冊狀態
+            newContact["new_line_type"] = "個人";
+            newContact["new_line_register"] = false;
+
+            if (!string.IsNullOrWhiteSpace(model.OtherName))
+                newContact["new_other_name"] = model.OtherName;
+
+            var newContactId = await Task.Run(() => service.Create(newContact));
+
+            System.Diagnostics.Debug.WriteLine($"[UpdateExistingContactWithLineBinding] 更新現有聯絡人的 LINE ID");
+
+            // 若先前檢查到佔位聯絡人且與欲更新的 contact 不同，將佔位聯絡人停用
+            if (_placeholderLineContact != null && _placeholderLineContact.Id != newContactId)
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine($"[UpdateExistingContactWithLineBinding] 停用佔位聯絡人，ID: {_placeholderLineContact.Id}");
+
+                    var inactiveEntity = new Entity("contact") { Id = _placeholderLineContact.Id };
+                    // statecode = 1 (Inactive)
+                    inactiveEntity["statecode"] = new OptionSetValue(1);
+                    // statuscode: 2 為一般 Inactive 狀態
+                    inactiveEntity["statuscode"] = new OptionSetValue(2);
+
+                    await Task.Run(() => service.Update(inactiveEntity));
+
+                    System.Diagnostics.Debug.WriteLine($"[UpdateExistingContactWithLineBinding] 佔位聯絡人已停用");
+                }
+                catch (Exception ex)
+                {
+                    // 停用失敗不應阻斷主要綁定流程，記錄錯誤並繼續
+                    System.Diagnostics.Debug.WriteLine($"[UpdateExistingContactWithLineBinding] 停用佔位聯絡人失敗: {ex.Message}");
+                }
+                finally
+                {
+                    _placeholderLineContact = null; // 清除暫存
+                }
+            }
+
+
+            if (newContactId != Guid.Empty)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CreateNewContactWithLineBinding] 新聯絡人建立成功，ID: {newContactId}");
+                return Json(new { status = "1", message = $"註冊成功！歡迎 {model.FullName} 加入聖谷行道會" });
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[CreateNewContactWithLineBinding] 建立聯絡人失敗");
+            return Json(new { status = "0", message = "註冊失敗，請稍後再試" });
+        }
+
+
         #endregion
+
+        /// <summary>
+        /// 處理 CRM 服務異常
+        /// </summary>
+        private IActionResult HandleCrmServiceException(FaultException<OrganizationServiceFault> ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] CRM 服務異常: {ex.Detail?.Message ?? ex.Message}");
+            return Json(new { status = "0", message = $"系統服務異常: {ex.Detail?.Message ?? ex.Message}" });
+        }
+
+        /// <summary>
+        /// 處理連接超時異常
+        /// </summary>
+        private IActionResult HandleTimeoutException(TimeoutException ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ProcessLineBinding] 連接超時: {ex.Message}");
+            return Json(new { status = "0", message = "系統連接超時，請稍後再試" });
+        }
+
+        #endregion 
 
         #region 登出
 
