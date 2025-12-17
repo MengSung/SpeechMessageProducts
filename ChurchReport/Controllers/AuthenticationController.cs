@@ -447,7 +447,7 @@ namespace ChurchReport.Controllers
 
                 var images = new List<string>
                 {
-                    Url.Content("~/assets/images/sunnyvalech.jpg")
+                    Url.Content("~/assets/images/church-001.jpg")
                 };
 
                 InMemoryContext.LineBindingViewModel.Images = images;
@@ -877,7 +877,7 @@ namespace ChurchReport.Controllers
             if (newContactId != Guid.Empty)
             {
                 System.Diagnostics.Debug.WriteLine($"[CreateNewContactWithLineBinding] 新聯絡人建立成功，ID: {newContactId}");
-                return Json(new { status = "1", message = $"註冊成功！歡迎 {model.FullName} 加入聖谷行道會" });
+                return Json(new { status = "1", message = $"註冊成功！歡迎 {model.FullName} 加入好牧人" });
             }
 
             System.Diagnostics.Debug.WriteLine($"[CreateNewContactWithLineBinding] 建立聯絡人失敗");
