@@ -94,9 +94,10 @@ namespace ChurchReport.Controllers
             {
                 var images = BuildHeroImages(
                     "~/assets/images/church-001.jpg",
-                    "~/assets/images/church-002.jpg",
-                    "~/assets/images/mbr-1631x1080.jpg",
-                    "~/assets/images/SunnyLogo.png");
+                    "~/assets/images/church-002.jpg"
+                    //"~/assets/images/mbr-1631x1080.jpg",
+                    //"~/assets/images/SunnyLogo.png"
+                 );
 
                 return View(new GalleryViewModel
                 {
@@ -205,10 +206,12 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var images = BuildHeroImages(
-                    "~/assets/images/church-001.jpg",
-                    "~/assets/images/church-002.jpg",
-                    "~/assets/images/mbr-1631x1080.jpg");
+                var images = BuildHeroImages
+                    (
+                        "~/assets/images/church-001.jpg"
+                        //"~/assets/images/church-002.jpg",
+                        //"~/assets/images/mbr-1631x1080.jpg"
+                    );
 
                 InMemoryContext.LineBindingViewModel.Images = images;
                 TempData["Proponent"] = LineIdLoginViewPatameter;
