@@ -208,8 +208,8 @@ namespace ChurchReport.Controllers
             {
                 var images = BuildHeroImages
                     (
-                        "~/assets/images/church-001.jpg"
-                        //"~/assets/images/church-002.jpg",
+                        "~/assets/images/church-001.jpg",
+                        "~/assets/images/church-002.jpg"
                         //"~/assets/images/mbr-1631x1080.jpg"
                     );
 
@@ -488,7 +488,8 @@ namespace ChurchReport.Controllers
 
                 var images = new List<string>
                 {
-                    Url.Content("~/assets/images/church-001.jpg")
+                    Url.Content("~/assets/images/church-001.jpg"),
+                    Url.Content("~/assets/images/church-002.jpg")
                 };
 
                 InMemoryContext.LineBindingViewModel.Images = images;

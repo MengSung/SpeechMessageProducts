@@ -33,6 +33,7 @@ namespace ChurchReport.Controllers
             {
                 var images = new System.Collections.Generic.List<string>();
                 images.Add(Url.Content("~/assets/images/church-001.jpg"));
+                images.Add(Url.Content("~/assets/images/church-002.jpg"));
 
                 InMemoryContext.LineBindingViewModel.Images = images;
                 TempData["Proponent"] = LineIdLoginViewPatameter;

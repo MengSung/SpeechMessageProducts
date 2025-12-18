@@ -38,8 +38,6 @@ namespace ChurchReport.Controllers
             {
                 Url.Content("~/assets/images/church-001.jpg"),
                 Url.Content("~/assets/images/church-002.jpg"),
-                Url.Content("~/assets/images/mbr-1631x1080.jpg"),
-                Url.Content("~/assets/images/SunnyLogo.png"),
             };
 
             return View("~/Views/Home/QPayLogin.cshtml", new GalleryViewModel { Images = images });
