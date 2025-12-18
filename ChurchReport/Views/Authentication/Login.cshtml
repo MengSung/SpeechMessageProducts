@@ -9,6 +9,17 @@
     Layout = null;
 }
 @model ChurchReport.ViewModel.GalleryViewModel
+@{
+    var heroImages = (Model?.Images != null && Model.Images.Any())
+        ? Model.Images
+        : new List<string>
+        {
+            Url.Content("~/assets/images/church-001.jpg"),
+            Url.Content("~/assets/images/church-002.jpg"),
+            Url.Content("~/assets/images/mbr-1631x1080.jpg"),
+            Url.Content("~/assets/images/SunnyLogo.png"),
+        };
+}
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -42,9 +53,10 @@
 
         /* Gallery 圖片垂直完整可見 (調整：改用自適應高度避免上下裁切) */
         .hero-wrapper .dx-gallery, .hero-wrapper .dx-gallery-wrapper { height:100%; }
-        .hero-wrapper .dx-gallery-item { display:flex !important; align-items:center; justify-content:center; }
-        .hero-wrapper .dx-gallery-item .dx-gallery-item-content { display:flex; align-items:center; justify-content:center; width:100%; height:100%; overflow:hidden; }
-        .hero-wrapper .dx-gallery-item img { max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; object-position:center center; display:block; }
+/* 調整：保留高度但不覆蓋 item 的 display，以免多張同時顯示 */
+        .hero-wrapper .dx-gallery-item { height:100%; }
+        .hero-wrapper .dx-gallery-item .dx-gallery-item-content { height:100%; width:100%; overflow:hidden; text-align:center; }
+        .hero-wrapper .dx-gallery-item img { max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; object-position:center center; display:block; margin:0 auto; }
         @@media (max-width: 575.98px) {
             /* 小螢幕改為自動高度，確保圖片垂直完整顯示 */
             .hero-wrapper { height:auto; min-height:240px; }
@@ -100,7 +112,7 @@
         <div class="position-absolute w-100 h-100" style="z-index:1;">
             @(Html.DevExtreme().Gallery()
                 .ID("gallery")
-                .DataSource(Model.Images)
+                .DataSource(heroImages)
                 .Height("100%")
                 .StretchImages(true)
                 .Loop(true)

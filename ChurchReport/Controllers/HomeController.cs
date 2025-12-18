@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
+using Microsoft.AspNetCore.Hosting;
 
 namespace ChurchReport.Controllers
 {
@@ -65,13 +66,14 @@ namespace ChurchReport.Controllers
         [Route("/Home/ProcessLogin")]
         public async Task<IActionResult> ProcessLoginRedirect(GalleryViewModel aGalleryViewModel)
         {
-            // ? 使用 using 確保 Controller 被正確釋放，避免記憶體洩漏
+            var env = HttpContext.RequestServices.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
             using (var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool))
+                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool,
+                env))
             {
                 return await authController.ProcessLogin(aGalleryViewModel);
             }
@@ -183,13 +185,14 @@ namespace ChurchReport.Controllers
         [Route("/Home/SaveUserLineId")]
         public async Task<IActionResult> SaveUserLineIdRedirect(string UserLineId, string GroupId, string RoomId, string ViewType)
         {
-            // ? 使用 using 確保 Controller 被正確釋放，避免記憶體洩漏
+            var env = HttpContext.RequestServices.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
             using (var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool))
+                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool,
+                env))
             {
                 return await authController.SaveUserLineId(UserLineId, GroupId, RoomId, ViewType);
             }
@@ -231,13 +234,14 @@ namespace ChurchReport.Controllers
         [Route("/Home/ProcessLineBinding")]
         public async Task<IActionResult> ProcessLineBindingRedirect(LineBindingViewModel model)
         {
-            // ? 使用 using 確保 Controller 被正確釋放，避免記憶體洩漏
+            var env = HttpContext.RequestServices.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
             using (var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool))
+                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool,
+                env))
             {
                 return await authController.ProcessLineBinding(model);
             }
@@ -257,13 +261,14 @@ namespace ChurchReport.Controllers
             string PictureUrl = "",
             string StatusMessage = "")
         {
-            // ? 使用 using 確保 Controller 被正確釋放，避免記憶體洩漏
+            var env = HttpContext.RequestServices.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
             using (var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool))
+                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool,
+                env))
             {
                 return await authController.SaveUserId(UserLineId, GroupId, RoomId, ViewType, DisplayName, PictureUrl, StatusMessage);
             }

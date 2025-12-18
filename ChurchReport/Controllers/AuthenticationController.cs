@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
 
 namespace ChurchReport.Controllers
 {
@@ -23,6 +25,8 @@ namespace ChurchReport.Controllers
     /// </summary>
     public class AuthenticationController : BaseChurchController
     {
+        private readonly IWebHostEnvironment _env;
+
         #region 建構函式
 
         /// <summary>
@@ -33,14 +37,43 @@ namespace ChurchReport.Controllers
         /// <param name="paymentService">金流服務</param>
         /// <param name="toolUtilityProvider">ToolUtility 提供者 (DI 注入)</param>
         /// <param name="connectionPool">CRM 連線池</param>
+        /// <param name="env"></param>
         public AuthenticationController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             IPayment paymentService,
             IToolUtilityProvider toolUtilityProvider,
-            ICrmConnectionPool connectionPool)
+            ICrmConnectionPool connectionPool,
+            IWebHostEnvironment env)
         : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool)
         {
+            _env = env;
+        }
+
+        private List<string> BuildHeroImages(params string[] relativePaths)
+        {
+            var list = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var path in relativePaths)
+            {
+                if (string.IsNullOrWhiteSpace(path)) continue;
+
+                var webPath = Url.Content(path);
+                if (!seen.Add(webPath)) continue;
+
+                var physicalPath = Path.Combine(_env.WebRootPath ?? string.Empty, path.TrimStart('~','/').Replace('/', Path.DirectorySeparatorChar));
+                if (System.IO.File.Exists(physicalPath))
+                {
+                    list.Add(webPath);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[BuildHeroImages] 找不到檔案: {physicalPath}");
+                }
+            }
+
+            return list;
         }
 
         #endregion
@@ -59,8 +92,11 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/church-001.jpg"));
+                var images = BuildHeroImages(
+                    "~/assets/images/church-001.jpg",
+                    "~/assets/images/church-002.jpg",
+                    "~/assets/images/mbr-1631x1080.jpg",
+                    "~/assets/images/SunnyLogo.png");
 
                 return View(new GalleryViewModel
                 {
@@ -169,8 +205,10 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var images = new List<string>();
-                images.Add(Url.Content("~/assets/images/church-001.jpg"));
+                var images = BuildHeroImages(
+                    "~/assets/images/church-001.jpg",
+                    "~/assets/images/church-002.jpg",
+                    "~/assets/images/mbr-1631x1080.jpg");
 
                 InMemoryContext.LineBindingViewModel.Images = images;
                 TempData["Proponent"] = LineIdLoginViewPatameter;
