@@ -366,6 +366,17 @@ namespace ChurchReport
                     template: string.Empty,
                     defaults: new { controller = "Authentication", action = "Login" });
 
+                // QPay 登入路由
+                routes.MapRoute(
+                    name: "qpaylogin",
+                    template: "Home/QPayLogin",
+                    defaults: new { controller = "Home", action = "QPayLogin" });
+
+                routes.MapRoute(
+                    name: "processqpaylogin",
+                    template: "Home/ProcessQPayLogin",
+                    defaults: new { controller = "Home", action = "ProcessQPayLogin" });
+
                 // 登入相關路由
                 routes.MapRoute(
                     name: "login",

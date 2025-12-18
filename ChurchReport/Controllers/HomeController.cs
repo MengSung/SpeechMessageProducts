@@ -170,6 +170,15 @@ namespace ChurchReport.Controllers
         }
                 
         /// <summary>
+        /// 向後相容: 繞過驗證直接導向首頁
+        /// </summary>
+        [Route("/Home/SkipAuth")]
+        public IActionResult SkipAuth()
+        {
+            return RedirectToAction("Index", "Home");
+        }
+
+        /// <summary>
         /// 向後相容: 將舊的 /Home/DediationLineLoginView 重導向到 /Dedication/DedianLineLoginView
         /// </summary>
         [Route("/Home/DediationLineLoginView/{LineIdLoginViewPatameter}")]
@@ -451,6 +460,50 @@ namespace ChurchReport.Controllers
             );
 
             return result?.AreaLeaderList?.Count ?? 0;
+        }
+
+        #endregion
+
+        #region QPay 登入
+
+        /// <summary>
+        /// 顯示 QPay 登入頁面
+        /// </summary>
+        [HttpGet]
+        [Route("/Home/QPayLogin")]
+        public IActionResult QPayLogin()
+        {
+            var images = new List<string>
+            {
+                Url.Content("~/assets/images/church-001.jpg"),
+                Url.Content("~/assets/images/church-002.jpg"),
+                Url.Content("~/assets/images/mbr-1631x1080.jpg"),
+                Url.Content("~/assets/images/SunnyLogo.png"),
+            };
+
+            return View(new GalleryViewModel { Images = images });
+        }
+
+        /// <summary>
+        /// 處理 QPay 登入表單提交
+        /// </summary>
+        [HttpPost]
+        [Route("/Home/ProcessQPayLogin")]
+        public IActionResult ProcessQPayLogin(GalleryViewModel model)
+        {
+            if (model == null)
+                return Json(new { status = 0, message = "請輸入資料" });
+
+            if (string.IsNullOrWhiteSpace(model.FullName))
+                return Json(new { status = 0, message = "請輸入姓名" });
+
+            if (string.IsNullOrWhiteSpace(model.NationId))
+                return Json(new { status = 0, message = "請輸入身分證字號" });
+
+            if (string.IsNullOrWhiteSpace(model.Mobile))
+                return Json(new { status = 0, message = "請輸入行動電話" });
+
+            return Json(new { status = 1, message = "登入成功" });
         }
 
         #endregion
