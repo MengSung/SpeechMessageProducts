@@ -473,15 +473,7 @@ namespace ChurchReport.Controllers
         [Route("/Home/QPayLogin")]
         public IActionResult QPayLogin()
         {
-            var images = new List<string>
-            {
-                Url.Content("~/assets/images/church-001.jpg"),
-                Url.Content("~/assets/images/church-002.jpg"),
-                Url.Content("~/assets/images/mbr-1631x1080.jpg"),
-                Url.Content("~/assets/images/SunnyLogo.png"),
-            };
-
-            return View(new GalleryViewModel { Images = images });
+            return RedirectToAction("Index", "QPayLogin");
         }
 
         /// <summary>
@@ -491,19 +483,20 @@ namespace ChurchReport.Controllers
         [Route("/Home/ProcessQPayLogin")]
         public IActionResult ProcessQPayLogin(GalleryViewModel model)
         {
-            if (model == null)
-                return Json(new { status = 0, message = "請輸入資料" });
+            using (var controller = new QPayLoginController(
+                HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
+                HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
+                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
+                HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
+                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool))
+            {
+                controller.ControllerContext = new ControllerContext
+                {
+                    HttpContext = this.HttpContext
+                };
 
-            if (string.IsNullOrWhiteSpace(model.FullName))
-                return Json(new { status = 0, message = "請輸入姓名" });
-
-            if (string.IsNullOrWhiteSpace(model.NationId))
-                return Json(new { status = 0, message = "請輸入身分證字號" });
-
-            if (string.IsNullOrWhiteSpace(model.Mobile))
-                return Json(new { status = 0, message = "請輸入行動電話" });
-
-            return Json(new { status = 1, message = "登入成功" });
+                return controller.ProcessQPayLogin(model);
+            }
         }
 
         #endregion
