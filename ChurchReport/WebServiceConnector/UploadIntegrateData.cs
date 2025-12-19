@@ -5028,7 +5028,8 @@ namespace ChurchReport.WebServiceConnector
                 );
 
                 // 移除前綴數字 (例如: "01. 牧師師母" -> "牧師師母")
-                string cleanedIdentity = System.Text.RegularExpressions.Regex.Replace(Identity, @"^\d+\.\s*", "");
+                //string cleanedIdentity = System.Text.RegularExpressions.Regex.Replace(Identity, @"^\d+\.\s*", "");
+                string cleanedIdentity = Identity;
 
                 // 從 Dynamics 365 取得對應的數值 (反向查詢)
                 int optionValue = optionSetService.GetOptionSetValue("contact", "customertypecode", cleanedIdentity);
