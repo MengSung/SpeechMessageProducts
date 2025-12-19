@@ -1,12 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions; // ? 新增
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions; // ? 新增
-using Microsoft.Extensions.Caching.Memory;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace ChurchReport.Services
 {
@@ -127,6 +128,21 @@ namespace ChurchReport.Services
                 if (mapping.TryGetValue(displayText?.Trim() ?? string.Empty, out int value))
                 {
                     return value;
+                }
+
+                // Fuzzy matching: strip numeric prefixes/symbols (e.g., "01.", "01 ", "01-") then compare
+                string Normalize(string text)
+                {
+                    if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+                    return Regex.Replace(text.Trim(), "^\\d+\\s*[\\.、．-]?\\s*", string.Empty);
+                }
+
+                var normalizedInput = Normalize(displayText);
+                var fuzzy = mapping.FirstOrDefault(kvp => string.Equals(Normalize(kvp.Key), normalizedInput, StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrEmpty(fuzzy.Key))
+                {
+                    _logger.LogInformation($"[OptionSetMetadataService] Fuzzy matched '{displayText}' -> '{fuzzy.Key}'");
+                    return fuzzy.Value;
                 }
 
                 _logger.LogWarning($"[OptionSetMetadataService] 找不到對應值: {entityName}.{attributeName} = '{displayText}'");
