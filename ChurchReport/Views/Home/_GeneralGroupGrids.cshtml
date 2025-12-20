@@ -119,9 +119,9 @@
                                    .Caption("會員身分")
                                    .Alignment(HorizontalAlignment.Center)
                                    .AllowEditing(true)
-                                   .Width(70)
+                                   .Width(120)
                                    .MinWidth(30)
-                                   .DataType(GridColumnDataType.Number)
+                                   .DataType(GridColumnDataType.String)
                                    .Lookup(lookup => lookup
                                        .DataSource(new JS("membershipStatusDataSource")) // ✅ 動態 DataSource
                                    );
@@ -130,7 +130,7 @@
                             columns.AddFor(m => m.SpiritualIdentity)
                                    .Caption("信仰狀態")
                                    .Alignment(HorizontalAlignment.Center)
-                                   .AllowEditing(false)
+                                   .AllowEditing(true)
                                    .Width(110)
                                    .MinWidth(100)
                                    .DataType(GridColumnDataType.String)
@@ -283,7 +283,7 @@
                                    .AllowEditing(true)
                                    .Width(70)
                                    .MinWidth(30)
-                                   .DataType(GridColumnDataType.Number)
+                                   .DataType(GridColumnDataType.String)
                                    .Lookup(lookup => lookup
                                        .DataSource(new JS("membershipStatusDataSource")) // ✅ 動態 DataSource
                                    );
@@ -292,7 +292,7 @@
                             columns.AddFor(m => m.SpiritualIdentity)
                                    .Caption("信仰狀態")
                                    .Alignment(HorizontalAlignment.Center)
-                                   .AllowEditing(false)
+                                   .AllowEditing(true)
                                    .Width(110)
                                    .MinWidth(100)
                                    .DataType(GridColumnDataType.String)
