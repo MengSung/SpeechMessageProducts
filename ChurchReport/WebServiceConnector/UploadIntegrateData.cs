@@ -2282,60 +2282,60 @@ namespace ChurchReport.WebServiceConnector
                 }
                 #endregion
 
-                #region 禱告會次數
-                if (aMemberInfomation.PrayerMeeting == true)
-                {
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_prayer_meeting_number", 1);
-                }
-                else
-                {
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_prayer_meeting_number", 0);
-                }
-                #endregion
+                //#region 禱告會次數
+                //if (aMemberInfomation.PrayerMeeting == true)
+                //{
+                //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_prayer_meeting_number", 1);
+                //}
+                //else
+                //{
+                //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_prayer_meeting_number", 0);
+                //}
+                //#endregion
 
-                #region 門徒訓練班次數
-                if (aMemberInfomation.Child == true)
-                {
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_child_number", 1);
-                }
-                else
-                {
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_child_number", 0);
-                }
-                #endregion
+                //#region 門徒訓練班次數
+                //if (aMemberInfomation.Child == true)
+                //{
+                //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_child_number", 1);
+                //}
+                //else
+                //{
+                //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_child_number", 0);
+                //}
+                //#endregion
 
-                #region 門徒大聚次數
-                if (aMemberInfomation.BigDisciple == true)
-                {
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_big_disciple_number", 1);
-                }
-                else
-                {
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_big_disciple_number", 0);
-                }
-                #endregion
+                //#region 門徒大聚次數
+                //if (aMemberInfomation.BigDisciple == true)
+                //{
+                //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_big_disciple_number", 1);
+                //}
+                //else
+                //{
+                //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_big_disciple_number", 0);
+                //}
+                //#endregion
 
-                #region 小組長小講堂次數
-                if (aMemberInfomation.LeadershipSmallLecture == true)
-                {
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leadership_small_lecture_number", 1);
-                }
-                else
-                {
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leadership_small_lecture_number", 0);
-                }
-                #endregion
+                //#region 小組長小講堂次數
+                //if (aMemberInfomation.LeadershipSmallLecture == true)
+                //{
+                //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leadership_small_lecture_number", 1);
+                //}
+                //else
+                //{
+                //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leadership_small_lecture_number", 0);
+                //}
+                //#endregion
 
-                #region 小組長大聚次數
-                if (aMemberInfomation.Sunday == true)
-                {
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leaders_gather_number", 1);
-                }
-                else
-                {
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leaders_gather_number", 0);
-                }
-                #endregion
+                //#region 小組長大聚次數
+                //if (aMemberInfomation.Sunday == true)
+                //{
+                //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leaders_gather_number", 1);
+                //}
+                //else
+                //{
+                //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leaders_gather_number", 0);
+                //}
+                //#endregion
 
 
                 #region 設定幸福小組出席
@@ -3187,60 +3187,60 @@ namespace ChurchReport.WebServiceConnector
                         }
                         #endregion
 
-                        #region 禱告會次數
-                        if (aMember.PrayerMeeting == true)
-                        {
-                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_prayer_meeting_number", 1);
-                        }
-                        else
-                        {
-                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_prayer_meeting_number", 0);
-                        }
-                        #endregion
+                        //#region 禱告會次數
+                        //if (aMember.PrayerMeeting == true)
+                        //{
+                        //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_prayer_meeting_number", 1);
+                        //}
+                        //else
+                        //{
+                        //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_prayer_meeting_number", 0);
+                        //}
+                        //#endregion
 
-                        #region 門徒訓練班次數
-                        if (aMember.Child == true)
-                        {
-                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_child_number", 1);
-                        }
-                        else
-                        {
-                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_child_number", 0);
-                        }
-                        #endregion
+                        //#region 門徒訓練班次數
+                        //if (aMember.Child == true)
+                        //{
+                        //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_child_number", 1);
+                        //}
+                        //else
+                        //{
+                        //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_child_number", 0);
+                        //}
+                        //#endregion
 
-                        #region 門徒大聚次數
-                        if (aMember.BigDisciple == true)
-                        {
-                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_big_disciple_number", 1);
-                        }
-                        else
-                        {
-                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_big_disciple_number", 0);
-                        }
-                        #endregion
+                        //#region 門徒大聚次數
+                        //if (aMember.BigDisciple == true)
+                        //{
+                        //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_big_disciple_number", 1);
+                        //}
+                        //else
+                        //{
+                        //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_big_disciple_number", 0);
+                        //}
+                        //#endregion
 
-                        #region 小組長小講堂次數
-                        if (aMember.LeadershipSmallLecture == true)
-                        {
-                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_leadership_small_lecture_number", 1);
-                        }
-                        else
-                        {
-                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_leadership_small_lecture_number", 0);
-                        }
-                        #endregion
+                        //#region 小組長小講堂次數
+                        //if (aMember.LeadershipSmallLecture == true)
+                        //{
+                        //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_leadership_small_lecture_number", 1);
+                        //}
+                        //else
+                        //{
+                        //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_leadership_small_lecture_number", 0);
+                        //}
+                        //#endregion
 
-                        #region 小組長大聚次數
-                        if (aMember.Sunday == true)
-                        {
-                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_leaders_gather_number", 1);
-                        }
-                        else
-                        {
-                            this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_leaders_gather_number", 0);
-                        }
-                        #endregion
+                        //#region 小組長大聚次數
+                        //if (aMember.Sunday == true)
+                        //{
+                        //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_leaders_gather_number", 1);
+                        //}
+                        //else
+                        //{
+                        //    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_leaders_gather_number", 0);
+                        //}
+                        //#endregion
 
                         #region 設定幸福小組出席
 
@@ -3321,7 +3321,7 @@ namespace ChurchReport.WebServiceConnector
                         #endregion
                         #region//設定個人聚會與靈修記錄"停止提醒"為"是" + 設定個人聚會與靈修記錄"不要顯示在回報網頁"為"是"
                         //設定個人聚會與靈修記錄"停止提醒"為"是"
-                        m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_stop_notify", true);
+                        //m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_stop_notify", true);
 
                         if ( aMember.AssignedGroup != "" && aMember.AssignedGroup != null )
                         {
@@ -4687,7 +4687,7 @@ namespace ChurchReport.WebServiceConnector
                         Entity aRetrievedPresentRecord = this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecord.Id);
 
                         //設定個人聚會與靈修記錄"停止提醒"為"是"
-                        m_ToolUtilityClass.SetEntityBoolAttribute(ref aRetrievedPresentRecord, "new_stop_notify", true);
+                        //m_ToolUtilityClass.SetEntityBoolAttribute(ref aRetrievedPresentRecord, "new_stop_notify", true);
 
                         //設定個人聚會與靈修記錄"不要顯示在回報網頁"為"是"
                         m_ToolUtilityClass.SetEntityBoolAttribute(ref aRetrievedPresentRecord, "new_not_display", true);
@@ -4721,7 +4721,7 @@ namespace ChurchReport.WebServiceConnector
                 //this.m_ContactEntity = aLoginContact;
 
                 //設定個人聚會與靈修記錄"停止提醒"為"是"
-                m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecordEntity, "new_stop_notify", true);
+                //m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecordEntity, "new_stop_notify", true);
 
                 //設定個人聚會與靈修記錄"不要顯示在回報網頁"為"是"
                 m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecordEntity, "new_not_display", true);
