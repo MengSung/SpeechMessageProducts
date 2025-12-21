@@ -1628,7 +1628,7 @@ namespace ChurchReport.WebServiceConnector
 
             foreach (Member aMember in aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members)
             {
-                if (aMember.Status.Contains("牧師師母") || aMember.Status.Contains("區牧") || aMember.Status.Contains("小區長") || aMember.Status.Contains("小組長") || aMember.Status.Contains("副小組長") || aMember.Status.Contains("核心同工") || aMember.Status.Contains("小組組員"))
+                if (!aMember.Status.Contains("新朋友") && !aMember.Status.Contains("未入組") && !aMember.Status.Contains("外教會") && !aMember.Status.Contains("結案"))
                 {
                     aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Add(aMember);
                 }
