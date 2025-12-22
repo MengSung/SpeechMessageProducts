@@ -5,6 +5,7 @@ using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
 using System.Threading;
@@ -20,6 +21,12 @@ namespace ChurchReport.Controllers
     /// </summary>
     public class DedicationController : BaseChurchController
     {
+        #region 私有欄位
+
+        private readonly IConfiguration _configuration;
+
+        #endregion
+
         #region 建構函式
 
         public DedicationController(
@@ -27,9 +34,11 @@ namespace ChurchReport.Controllers
             IMemoryCache memoryCache,
             IPayment paymentService,
             IToolUtilityProvider toolUtilityProvider,
-            ICrmConnectionPool connectionPool)
+            ICrmConnectionPool connectionPool,
+            IConfiguration configuration)
             : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool)
         {
+            _configuration = configuration;
         }
 
         #endregion
