@@ -220,13 +220,14 @@ namespace ChurchReport.Controllers
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
-                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool))
+                HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool,
+                HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration))
             {
                 // ? 使用 await 調用非同步方法
                 return await dedicationController.SetupUserLineId(UserLineId, GroupId, RoomId, ViewType);
             }
         }
-        
+
         /// <summary>
         /// 向後相容: 將舊的 /Home/LineLiffView 重導向到 /Authentication/LineLiffView
         /// </summary>
