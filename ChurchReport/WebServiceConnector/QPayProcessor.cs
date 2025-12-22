@@ -1335,7 +1335,7 @@ namespace ChurchReport.WebServiceConnector
         {
             ArrayList items = CreateProductItems(FeeId, ProductName, Amount);
             dynamic rawData = new ExpandoObject();
-            SetRawDataProperties(rawData, Amount, FeeId, OrderId, items, LineLoginContact);
+            SetRawDataProperties(rawData, Amount, FeeId, OrderId, items, LineLoginContact, ProductName);
             return rawData;
         }
 
@@ -1594,7 +1594,7 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 設定高鉅金流原始資料屬性
         /// </summary>
-        private void SetRawDataProperties(dynamic rawData, int Amount, String FeeId, String OrderId, ArrayList items, Entity LineLoginContact)
+        private void SetRawDataProperties(dynamic rawData, int Amount, String FeeId, String OrderId, ArrayList items, Entity LineLoginContact, String ProductName)
         {
             // 組織代碼
             rawData.echo_0 = QPAY_ORGANIZATION;
@@ -1603,7 +1603,7 @@ namespace ChurchReport.WebServiceConnector
             rawData.store_uid = m_Configuration["MyPay:Store_Id"];
             
             // 使用者 ID
-            rawData.user_id = LineLoginContact != null ? LineLoginContact.Id.ToString() : Guid.Empty.ToString();
+            rawData.user_id = LineLoginContact != null ? ProductName + ":" + LineLoginContact.Id.ToString() : Guid.Empty.ToString();
             
             // 姓名 / 真實姓名
             string fullName = string.Empty;
