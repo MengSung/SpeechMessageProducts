@@ -1645,8 +1645,14 @@ namespace ChurchReport.WebServiceConnector
             rawData.notify_url = m_Configuration["MyPay:NotifyUrl"] ?? "";
             rawData.limit_pay_days = Convert.ToInt32(m_Configuration["MyPay:LimitPayDays"] ?? "7");
             rawData.shipping_fee = m_Configuration["MyPay:ShippingFee"] ?? "0";
+
+            // ✅ 建議補充其他 echo 參數用於追蹤
+            rawData.echo_1 = "收費單 ID : " + FeeId;                                    // 收費單 ID
+            rawData.echo_2 = ProductName;                                               // 產品名稱
+            rawData.echo_3 = "金額 : " + Amount.ToString();                             // 金額
+            rawData.echo_4 = "建單時間 : " + DateTime.Now.ToString("yyyyMMddHHmmss");   // 建單時間
         }
-        
+
         #endregion
         #region 高鉅金流 PayPage 回傳處理
         // TODO: 實作高鉅金流(MyPay) PayPage 回傳與驗證邏輯 (目前僅為佔位區塊)
