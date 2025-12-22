@@ -192,7 +192,21 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var tasks = InMemoryContext.QpayManager.m_QpayModel.DedicationBookingList;
+                // ✅ 檢查金流提供商 - 高鉅金流不需要載入認獻清單（不支援定期定額功能）
+                var payProvider = _configuration["PAY_PROVIDER"];
+                if (payProvider == "高鉅金流")
+                {
+                    // 高鉅金流不支援定期定額扣款功能，返回空集合
+                    return DataSourceLoader.Load(
+                        System.Linq.Enumerable.Empty<object>().AsQueryable(),
+                        loadOptions
+                    );
+                }
+
+                // 永豐金流或台新金流 - 載入認獻清單
+                var tasks = InMemoryContext.QpayManager.m_QpayModel.DedicationBookingList
+                    ?? System.Linq.Enumerable.Empty<object>();
+
                 return DataSourceLoader.Load(tasks, loadOptions);
             }
             catch (Exception e)
