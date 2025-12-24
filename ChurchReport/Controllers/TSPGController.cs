@@ -1,6 +1,7 @@
 using ChurchReport.Tools;
 using Line.Messaging;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace ChurchReport.Controllers
     ///
     /// 架構特點：
     /// - 使用 ASP.NET Core Web API
-    /// - 依賴注入 (TSPGWebhookHandler, IToolUtilityProvider)
+    /// - 依賴注入 (TSPGWebhookHandler, IToolUtilityProvider, IConfiguration)
     /// - 統一的錯誤處理和日誌記錄
     /// - 支援前台通知 (post_back_url) 和後台通知 (result_url)
     /// - 完整的 DCC (動態貨幣轉換) 支援
@@ -36,19 +37,20 @@ namespace ChurchReport.Controllers
     /// - 敏感資料 (如卡號) 只記錄部分資訊
     /// - 使用 HTTPS 確保資料傳輸安全
     /// - 驗證請求來源和參數完整性
+    /// - LINE Channel Access Token 從配置讀取，不再硬編碼
     ///
     /// 依賴服務：
     /// - TspgToolkit: 台新金流 SDK
     /// - ToolUtilityClass: CRM 操作工具 (透過 IToolUtilityProvider 注入)
     /// - Line.Messaging: LINE Bot API
     /// - TSPGWebhookHandler: Webhook 處理服務
+    /// - IConfiguration: 配置管理服務
     /// </remarks>
     [Route("api/[controller]")]
     [ApiController]
     public class TSPGController : ControllerBase
     {
         #region 常數定義
-        private const string LINE_CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
         private const string DYNAMICS_CONNECTION_NAME = "DYNAMICS365";
         private const int PAYMENT_STATUS_PAID = 100000001;
         private const int PAYMENT_METHOD_CREDIT_CARD = 100000001;
@@ -57,26 +59,89 @@ namespace ChurchReport.Controllers
         #region 私有欄位
         private readonly TSPGWebhookHandler _webhookHandler;
         private readonly IToolUtilityProvider _toolUtilityProvider;
+        private readonly IConfiguration _configuration;
         
         /// <summary>
         /// 工具類單例 (透過 Provider 取得)
         /// </summary>
         private ToolUtilityClass ToolUtility => _toolUtilityProvider.GetToolUtility();
+
+        /// <summary>
+        /// LINE Channel Access Token (從配置讀取)
+        /// </summary>
+        private string LineChannelAccessToken => GetLineChannelAccessToken();
         #endregion
 
         #region 建構函式
         /// <summary>
-        /// 建構子，注入 Webhook Handler 和 ToolUtility Provider
+        /// 建構子，注入 Webhook Handler、ToolUtility Provider 和 Configuration
         /// ASP.NET Core 依賴注入容器會自動提供實例
         /// </summary>
         /// <param name="webhookHandler">TSPG Webhook 處理器實例</param>
         /// <param name="toolUtilityProvider">ToolUtility 提供者實例 (DI)</param>
+        /// <param name="configuration">配置管理服務實例 (DI)</param>
         public TSPGController(
             TSPGWebhookHandler webhookHandler,
-            IToolUtilityProvider toolUtilityProvider)
+            IToolUtilityProvider toolUtilityProvider,
+            IConfiguration configuration)
         {
             _webhookHandler = webhookHandler ?? throw new ArgumentNullException(nameof(webhookHandler));
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        }
+        #endregion
+
+        #region 配置讀取方法
+        /// <summary>
+        /// 從配置讀取 LINE Channel Access Token
+        /// 根據組織名稱讀取對應的 Token，若找不到則使用預設組織
+        /// </summary>
+        /// <returns>LINE Channel Access Token</returns>
+        /// <remarks>
+        /// 讀取順序：
+        /// 1. 嘗試從 CRM 連接配置讀取組織名稱
+        /// 2. 根據組織名稱讀取對應的 Token (LineMessaging:{Organization}:ChannelAccessToken)
+        /// 3. 若找不到，使用預設組織的 Token
+        /// 4. 若預設組織也找不到，返回空字串
+        /// 
+        /// 配置結構範例：
+        /// "LineMessaging": {
+        ///   "Jesus": { "ChannelAccessToken": "xxx" },
+        ///   "JesusBack": { "ChannelAccessToken": "xxx" },
+        ///   "DefaultOrganization": "jesus"
+        /// }
+        /// </remarks>
+        private string GetLineChannelAccessToken()
+        {
+            try
+            {
+                // 從 CRM 連接配置取得組織名稱
+                string organization = _configuration["CrmConnection:Organization"];
+                
+                if (!string.IsNullOrEmpty(organization))
+                {
+                    // 將組織名稱轉換為配置鍵格式 (首字母大寫)
+                    string configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
+                    
+                    // 嘗試讀取指定組織的 Token
+                    string token = _configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        return token;
+                    }
+                }
+                
+                // 若找不到指定組織的設定，使用預設組織
+                string defaultOrg = _configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+                string defaultToken = _configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
+                
+                return defaultToken ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                LogError("GetLineChannelAccessToken", "讀取 LINE Token 配置失敗", ex);
+                return string.Empty;
+            }
         }
         #endregion
 
@@ -1207,10 +1272,11 @@ namespace ChurchReport.Controllers
         /// <remarks>
         /// 使用 Line.Messaging 套件發送推播訊息
         /// 處理流程：
-        /// 1. 建立 LineMessagingClient 實例 (使用 Channel Access Token)
-        /// 2. 建立 PushUtility 實例
-        /// 3. 同步發送訊息 (Wait())
-        /// 4. 記錄發送結果
+        /// 1. 從配置讀取 Channel Access Token (不再使用硬編碼常數)
+        /// 2. 建立 LineMessagingClient 實例
+        /// 3. 建立 PushUtility 實例
+        /// 4. 同步發送訊息 (Wait())
+        /// 5. 記錄發送結果
         ///
         /// 異常處理：記錄錯誤並重新拋出，確保上層知道發送失敗
         /// </remarks>
@@ -1218,7 +1284,14 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var lineMessagingClient = new LineMessagingClient(LINE_CHANNEL_ACCESS_TOKEN);
+                var token = LineChannelAccessToken;
+                if (string.IsNullOrEmpty(token))
+                {
+                    LogWarning("SendLineMessage", "LINE Channel Access Token 未設定或為空");
+                    throw new InvalidOperationException("LINE Channel Access Token 未設定");
+                }
+
+                var lineMessagingClient = new LineMessagingClient(token);
                 var pushUtility = new PushUtility(lineMessagingClient);
                 pushUtility.SendMessage(lineId, message).Wait();
                 LogInfo("SendLineMessage", $"LINE 訊息已發送 - LineId: {lineId}");
