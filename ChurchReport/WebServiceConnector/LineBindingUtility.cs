@@ -38,17 +38,6 @@ namespace ChurchReport.WebServiceConnector
         LineBindingViewModel m_LineBindingViewModel;
 
         #endregion
-        #region 常數參數
-        //private const String CRM_TYPE = "CRM2011";
-        private const String CRM_TYPE = "DYNAMICS365-9.0";
-
-        // 客製化
-        // 新莊靈糧堂
-        private const String CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
-
-        // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
-        private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
-        #endregion
         #endregion
         #region 綁定
         public LineBindingUtility()

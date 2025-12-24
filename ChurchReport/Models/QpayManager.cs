@@ -50,9 +50,6 @@ namespace ChurchReport.Models
 
         public String LoginType { get; set; } = "網頁登入";   //登入方式
 
-        // 客製化
-        // 新莊靈糧堂
-        private const String CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
         private LineMessagingClient m_LineMessagingClient { get; set; }
         private PushUtility m_PushUtility { get; set; }
 
@@ -72,15 +69,50 @@ namespace ChurchReport.Models
                 m_ShopNo = m_Configuration["Sandbox:ShopNo"]; 
             }
 
-            // 客製化，請選擇
-            // 新莊靈糧堂(免費版)
-            this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
-
-            // 客製化
+            // 初始化 LINE Messaging Client (從 appsettings.json 取得 Token)
+            string channelAccessToken = GetLineChannelAccessToken();
+            this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
             m_PushUtility = new PushUtility(m_LineMessagingClient);
 
             m_QPayProcessor = new QPayProcessor(aPaymentService);
 
+        }
+        #endregion
+
+        #region 配置讀取方法
+        /// <summary>
+        /// 從 appsettings.json 讀取 LINE Channel Access Token
+        /// 優先依 CrmConnection:Organization 選擇 LineMessaging:{Org}:ChannelAccessToken
+        /// 若無則使用 LineMessaging:DefaultOrganization
+        /// </summary>
+        private static string GetLineChannelAccessToken()
+        {
+            try
+            {
+                string organization = m_Configuration["CrmConnection:Organization"];
+                if (!string.IsNullOrEmpty(organization))
+                {
+                    string configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
+                    string token = m_Configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        return token;
+                    }
+                }
+
+                string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+                string defaultToken = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
+                if (string.IsNullOrEmpty(defaultToken))
+                {
+                    System.Diagnostics.Trace.WriteLine("[QpayManager] 警告: LINE Channel Access Token 未設定");
+                }
+                return defaultToken ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[QpayManager] 錯誤: 讀取 LINE Token 配置失敗 - {ex.Message}");
+                return string.Empty;
+            }
         }
         #endregion
         #region Line 單獨登入

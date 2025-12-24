@@ -1,11 +1,13 @@
 ﻿using ChurchReport.WebServiceConnector;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
+using Microsoft.Extensions.Configuration;
 
 #region Dynamics 365 Microsoft.Xrm.Sdk.dll
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
@@ -50,27 +52,94 @@ namespace ChurchReport.Tools
         private String m_OnboardTypeInfo = "";
 
         private DateTime m_SigningTime;
-        // 客製化
-        // 新莊靈糧堂
-        private const String CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
 
         // 神學生預設費用
         private const decimal GOD_STUDENT_FEE = 400;
         private const String SAVED_FLAG_FIELD = @"new_saved_flag";
 
+        // 配置管理
+        private static readonly IConfigurationBuilder m_ConfigurationBuilder = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+        private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
+
         #endregion
         #endregion
+        
         #region 初始化
         public SmallGroupQrCodeUtility()
         {
-            // 客製化，請選擇
-            // 新莊靈糧堂(免費版)
-            this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
+            // 從配置讀取 LINE Channel Access Token
+            string channelAccessToken = GetLineChannelAccessToken();
+            
+            // 初始化 LINE Messaging Client
+            this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
-            // 客製化
+            // 初始化 Push Utility
             m_PushUtility = new PushUtility(m_LineMessagingClient);
         }
         #endregion
+
+        #region 配置讀取方法
+        /// <summary>
+        /// 從配置讀取 LINE Channel Access Token
+        /// 根據組織名稱讀取對應的 Token，若找不到則使用預設組織
+        /// </summary>
+        /// <returns>LINE Channel Access Token</returns>
+        /// <remarks>
+        /// 讀取順序：
+        /// 1. 嘗試從 CRM 連接配置讀取組織名稱
+        /// 2. 根據組織名稱讀取對應的 Token (LineMessaging:{Organization}:ChannelAccessToken)
+        /// 3. 若找不到，使用預設組織的 Token
+        /// 4. 若預設組織也找不到，返回空字串並記錄錯誤
+        /// 
+        /// 配置結構範例：
+        /// "LineMessaging": {
+        ///   "Jesus": { "ChannelAccessToken": "xxx" },
+        ///   "JesusBack": { "ChannelAccessToken": "xxx" },
+        ///   "DefaultOrganization": "jesus"
+        /// }
+        /// </remarks>
+        private static string GetLineChannelAccessToken()
+        {
+            try
+            {
+                // 從 CRM 連接配置取得組織名稱
+                string organization = m_Configuration["CrmConnection:Organization"];
+                
+                if (!string.IsNullOrEmpty(organization))
+                {
+                    // 將組織名稱轉換為配置鍵格式 (首字母大寫)
+                    // 例如: "jesuslove" -> "Jesuslove"
+                    string configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
+                    
+                    // 嘗試讀取指定組織的 Token
+                    string token = m_Configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        return token;
+                    }
+                }
+                
+                // 若找不到指定組織的設定，使用預設組織
+                string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+                string defaultToken = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
+                
+                if (string.IsNullOrEmpty(defaultToken))
+                {
+                    System.Diagnostics.Trace.WriteLine("[SmallGroupQrCodeUtility] 警告: LINE Channel Access Token 未設定");
+                }
+                
+                return defaultToken ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[SmallGroupQrCodeUtility] 錯誤: 讀取 LINE Token 配置失敗 - {ex.Message}");
+                return string.Empty;
+            }
+        }
+        #endregion
+
         #region 主程式
         public void SetupQrCodeIdString(String QrCodeIdString, String DisplayName, String UserLineId, ref String SmallGroupName, ref String UserName, ref String OnboardType)
         {

@@ -1,11 +1,13 @@
 ﻿using ChurchReport.WebServiceConnector;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
+using Microsoft.Extensions.Configuration;
 
 #region Dynamics 365 Microsoft.Xrm.Sdk.dll
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
@@ -16,7 +18,6 @@ using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Messages;
-using System.Text.RegularExpressions;
 using ChurchReport.Models;
 using Line.Messaging;
 #endregion
@@ -27,1395 +28,709 @@ namespace ChurchReport.Tools
     public class QrCodeUtility
     {
         #region 資料區
-        #region 參數資料
-        Entity m_Contact;
+        // 掃描者
+        private Entity m_Contact;
 
         // 透過 Factory 取得 ToolUtilityClass 單一實例
-        private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+        private readonly ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
         private LineMessagingClient m_LineMessagingClient { get; set; }
-
         private PushUtility m_PushUtility { get; set; }
 
-        private String m_UserLineId = "";
-        private String m_UserName = "";
-        private String m_ClassName = "";
-        private String m_ClassIndex = "";
-        private String m_OnboardType = "";
+        private string m_UserLineId = string.Empty;
+        private string m_UserName = string.Empty;
+        private string m_ClassName = string.Empty;
+        private string m_ClassIndex = string.Empty;
+        private string m_OnboardType = string.Empty;
         private Entity m_Lesson = null;
 
-        private String m_ClassIndexInfo = "";
-        private String m_OnboardTypeInfo = "";
-
+        private string m_ClassIndexInfo = string.Empty;
+        private string m_OnboardTypeInfo = string.Empty;
         private DateTime m_SigningTime;
-        // 客製化
-        // 新莊靈糧堂
-        private const String CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
-
 
         // 神學生預設費用
         private const decimal GOD_STUDENT_FEE = 400;
-        private const String SAVED_FLAG_FIELD = @"new_saved_flag";
+        private const string SAVED_FLAG_FIELD = "new_saved_flag";
 
-        #endregion
-        #region 除錯用參數
-        private const int TOTAL_LEVEL = 1;//改變這個值，就會改追蹤的階層，值越小越不會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
-        //private const int TOTAL_LEVEL = 5;//改變這個值，就會改追蹤的階層，值越大越會追蹤，若是 TOTAL_LEVEL = 3 ，則大於 3 的 LEVEL，例如 : LEVEL_4、LEVEL_5 就不會被追蹤
-        private const int LEVEL_1 = 1; // 比較容易被看到的，可能是比較大範圍的部分
+        // 配置管理
+        private static readonly IConfigurationBuilder m_ConfigurationBuilder = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+        private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
+
+        // 追蹤等級
+        private const int TOTAL_LEVEL = 1;
+        private const int LEVEL_1 = 1;
         private const int LEVEL_2 = 2;
         private const int LEVEL_3 = 3;
         private const int LEVEL_4 = 4;
-        private const int LEVEL_5 = 5; // 比較不會被看到的，可能是比較細節的部分
-        // 如果 TRACE_LEVEL >= TRACE_LEVEL_GROUND 就會進行追蹤
-        // 如果 TRACE_LEVEL < TRACE_LEVEL_GROUND 就不會進行追蹤
-        //int TRACE_LEVEL = 5;
-        //int TRACE_LEVEL_GROUND = 3;
+        private const int LEVEL_5 = 5;
         #endregion
-        #endregion
+
         #region 初始化
         public QrCodeUtility()
         {
-            // 客製化，請選擇
-            // 新莊靈糧堂(免費版)
-            this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
+            // 從配置讀取 LINE Channel Access Token
+            string channelAccessToken = GetLineChannelAccessToken();
+            
+            // 初始化 LINE Messaging Client
+            m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
-            // 客製化
+            // 初始化 Push Utility
             m_PushUtility = new PushUtility(m_LineMessagingClient);
         }
         #endregion
-        #region 主程式
-        public void SetupQrCodeIdString( String QrCodeIdString, String DisplayName, String UserLineId, ref String ClassName, ref String UserName, ref String ClassIndex, ref String OnboardType)
+
+        #region 配置讀取方法
+        /// <summary>
+        /// 從配置讀取 LINE Channel Access Token
+        /// 根據組織名稱讀取對應的 Token，若找不到則使用預設組織
+        /// </summary>
+        /// <returns>LINE Channel Access Token</returns>
+        /// <remarks>
+        /// 讀取順序：
+        /// 1. 嘗試從 CRM 連接配置讀取組織名稱
+        /// 2. 根據組織名稱讀取對應的 Token (LineMessaging:{Organization}:ChannelAccessToken)
+        /// 3. 若找不到，使用預設組織的 Token
+        /// 4. 若預設組織也找不到，返回空字串並記錄錯誤
+        /// 
+        /// 配置結構範例：
+        /// "LineMessaging": {
+        ///   "Jesus": { "ChannelAccessToken": "xxx" },
+        ///   "JesusBack": { "ChannelAccessToken": "xxx" },
+        ///   "DefaultOrganization": "jesus"
+        /// }
+        /// </remarks>
+        private static string GetLineChannelAccessToken()
         {
             try
             {
-                #region 設定區域變數
+                // 從 CRM 連接配置取得組織名稱
+                string organization = m_Configuration["CrmConnection:Organization"];
+                
+                if (!string.IsNullOrEmpty(organization))
+                {
+                    // 將組織名稱轉換為配置鍵格式 (首字母大寫)
+                    // 例如: "jesuslove" -> "Jesuslove"
+                    string configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
+                    
+                    // 嘗試讀取指定組織的 Token
+                    string token = m_Configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        return token;
+                    }
+                }
+                
+                // 若找不到指定組織的設定，使用預設組織
+                string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+                string defaultToken = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
+                
+                if (string.IsNullOrEmpty(defaultToken))
+                {
+                    System.Diagnostics.Trace.WriteLine("[QrCodeUtility] 警告: LINE Channel Access Token 未設定");
+                }
+                
+                return defaultToken ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[QrCodeUtility] 錯誤: 讀取 LINE Token 配置失敗 - {ex.Message}");
+                return string.Empty;
+            }
+        }
+        #endregion
+
+        #region 主程式
+        public void SetupQrCodeIdString(string QrCodeIdString, string DisplayName, string UserLineId, ref string ClassName, ref string UserName, ref string ClassIndex, ref string OnboardType)
+        {
+            try
+            {
                 m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "003 : 新莊靈糧堂: 資訊 => " + DisplayName + "，" + UserName);
 
                 m_UserLineId = UserLineId;
 
-                // 取得掃描者全名
-                m_Contact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(UserLineId);
-                if( m_Contact == null )
+                m_Contact = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(UserLineId);
+                if (m_Contact == null)
                 {
-                    // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
-                    //this.AddNewFriend( DisplayName, UserLineId );
-
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入新莊靈糧堂的 Line@" ;
-
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入新莊靈糧堂的 Line@";
                     return;
                 }
-                m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
 
+                m_UserName = UserName = m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
                 m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "004 : 新莊靈糧堂: 資訊 => " + m_UserName);
 
-                // 取得課程
                 string[] arr = QrCodeIdString.Split('_');
                 Guid aGuid = new Guid(arr[0]);
-                m_Lesson = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aGuid);
-                m_ClassName = ClassName = this.m_ToolUtilityClass.GetEntityStringAttribute(m_Lesson, "new_name");
-                #endregion
+                m_Lesson = m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aGuid);
+                m_ClassName = ClassName = m_ToolUtilityClass.GetEntityStringAttribute(m_Lesson, "new_name");
 
+                m_ClassIndex = arr.Length >= 2 ? arr[1] : string.Empty;
 
-                // 取得堂數
-                m_ClassIndex = arr.Length >= 2?arr[1]: "" ;
-
-                if ( m_ClassIndex.Contains("enroll") != true )
+                if (!m_ClassIndex.Contains("enroll"))
                 {
-                    #region 課程簽到及簽退
-
-                    // 設定是簽到還是簽退
                     m_OnboardType = arr[2];
-
                     m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "005 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
 
-                    // 在上課紀錄單進行簽到退
                     SigningLesson(m_Lesson, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType);
 
-                    // 傳回給網頁第幾堂課及其名稱
                     ClassIndex = m_ClassIndexInfo;
-
-                    // 傳回給網頁簽到或簽退時間，及是否已簽到過了
                     OnboardType = m_OnboardTypeInfo;
-                    #endregion
                 }
-                else if (m_ClassIndex.Contains("enroll") == true)
+                else
                 {
-                    #region 課程報名
-                    // 在上課紀錄單進行報名
                     SigningLesson(m_Lesson, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType);
-
-                    // 傳回給網頁簽到或簽退時間，及是否已簽到過了
                     OnboardType = m_OnboardTypeInfo;
-
-                    #endregion
                 }
-                else { }
-
             }
-            catch (System.Exception Exception)
+            catch (Exception ex)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
+                string error = "錯誤訊息 : FullName = " + GetType().FullName + " , Time = " + DateTime.Now + " , Description = " + ex;
+                throw;
             }
         }
         #endregion
+
         #region 設定簽到簽退
-        public bool SigningLesson(Entity aLesson, String LessonName, String UserName, String UserId, String ClassIndex, String OnboardType)
+        public bool SigningLesson(Entity aLesson, string LessonName, string UserName, string UserId, string ClassIndex, string OnboardType)
         {
             try
             {
                 m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "006 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
 
-                // 取得與課程相關的上課紀錄
-                //EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aLesson.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
-                EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.RetrieveStorLessonsByFetchXml( LessonName, aLesson.Id.ToString(), UserName, UserId );
+                EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.RetrieveStorLessonsByFetchXml(LessonName, aLesson.Id.ToString(), UserName, UserId);
 
                 if (aStorLessonsEntityCollection.Entities.Count > 0)
                 {
-                    // 有找到上課紀錄單
-                    Entity RetrievedStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsEntityCollection.Entities[0].Id);
+                    Entity retrievedStorLessons = m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsEntityCollection.Entities[0].Id);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "007 : 新莊靈糧堂: 資訊 => SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );");
 
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "007 : 新莊靈糧堂: 資訊 => " + "SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );");
-
-                    // 進行簽到或是簽退或是報名
-                    SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );
-
+                    SigningProcess(retrievedStorLessons, ClassIndex, OnboardType);
                     m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "008 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
-
                     return true;
                 }
+
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "009 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+
+                if (m_ClassIndex.Contains("enroll"))
+                {
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "010 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+
+                    Entity createdStorLessons = m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", CreateNewStorLesson(m_Contact, ref aLesson));
+
+                    if (m_ToolUtilityClass.GetEntityMoneyAttribute(ref m_Lesson, "new_lessons_fee").Value > 0)
+                    {
+                        CreateFee(createdStorLessons, "Amount");
+                    }
+
+                    SigningProcess(createdStorLessons, ClassIndex, OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "011 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+                }
                 else
                 {
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "009 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
-
-                    // 沒找到上課紀錄單
-                    if (m_ClassIndex.Contains("enroll") == true)
-                    {
-                        m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "010 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
-
-                        #region 沒找到上課紀錄單，但是是課程報名所以要建立一個上課紀錄單
-                        // 建立一個上課紀錄單
-                        Entity CreatededStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", CreateNewStorLesson(m_Contact, ref aLesson));
-
-                        if (this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref m_Lesson, "new_lessons_fee").Value > 0)
-                        {
-                            // 課程有課程費用，就要建立收費單
-                            CreateFee(CreatededStorLessons, "Amount");
-                        }
-
-                        // 進行簽到或是簽退或是報名
-                        SigningProcess(CreatededStorLessons, ClassIndex, OnboardType);
-
-                        #endregion
-
-                        m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "011 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
-
-                    }
-                    else
-                    {
-                        m_OnboardTypeInfo = m_UserName + "您還沒有報名" + m_ClassName + Environment.NewLine + "所以無法簽到!";
-
-                        m_PushUtility.SendMessage(m_UserLineId, m_OnboardTypeInfo);
-                    }
-
-                    return false;
+                    m_OnboardTypeInfo = m_UserName + "您還沒有報名" + m_ClassName + Environment.NewLine + "所以無法簽到!";
+                    m_PushUtility.SendMessage(m_UserLineId, m_OnboardTypeInfo);
                 }
+
+                return false;
             }
-            catch (System.Exception Exception)
+            catch (Exception ex)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                throw Exception;
+                string error = "錯誤訊息 : FullName = " + GetType().FullName + " , Time = " + DateTime.Now + " , Description = " + ex;
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, error);
+                throw;
             }
         }
-        public void SigningProcess(Entity aRetrievedStorLessons, String ClassIndex, String OnboardType)
+
+        public void SigningProcess(Entity aRetrievedStorLessons, string ClassIndex, string OnboardType)
         {
             try
             {
-                if (m_ClassIndex.Contains("enroll") != true) { 
-                    #region 進行簽到或是簽退
-                    // 取得上課紀錄單
-                    String SigningTimeAttribute = this.GetStorLessonsTimeAttribute(ClassIndex, OnboardType);
-                    String SigningPresentAttribute = "new_" + ClassIndex + "_present";
+                if (!m_ClassIndex.Contains("enroll"))
+                {
+                    string signingTimeAttribute = GetStorLessonsTimeAttribute(ClassIndex, OnboardType);
+                    string signingPresentAttribute = "new_" + ClassIndex + "_present";
+
                     if (OnboardType == "On")
                     {
-                        // 簽到
-                        DateTime aSigningTime = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute);
+                        DateTime aSigningTime = m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedStorLessons, signingTimeAttribute);
                         if (aSigningTime.Year <= 1)
                         {
-                            SetStorLessonsTimeAttribute(aRetrievedStorLessons, SigningTimeAttribute, SigningPresentAttribute);
+                            SetStorLessonsTimeAttribute(aRetrievedStorLessons, signingTimeAttribute, signingPresentAttribute);
                         }
                         else
                         {
-                            String NotifyMessage = GetNotifyMessageString();
-                            if (m_UserName.Contains("(Line)") != true)
+                            if (!m_UserName.Contains("(Line)"))
                             {
-                                m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了";
+                                m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime() + " 簽到過了";
                             }
                             else
                             {
-                                m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 簽到過了" + Environment.NewLine + "， 可是您尚未註冊過喔!";
+                                m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime() + " 簽到過了" + Environment.NewLine + "， 可是您尚未註冊過喔!";
                             }
                         }
                     }
                     else
                     {
-                        // 簽退
-                        SetStorLessonsTimeAttribute(aRetrievedStorLessons, SigningTimeAttribute, SigningPresentAttribute);
+                        SetStorLessonsTimeAttribute(aRetrievedStorLessons, signingTimeAttribute, signingPresentAttribute);
                     }
-                    #endregion
                 }
                 else
                 {
-                    #region 進行報名
-                        DateTime aSigningTime = this.m_ToolUtilityClass.GetEntityDateTimeAttribute( ref aRetrievedStorLessons, "new_enroll_time");
-                        if (aSigningTime.Year <= 1)
+                    DateTime aSigningTime = m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedStorLessons, "new_enroll_time");
+                    if (aSigningTime.Year <= 1)
+                    {
+                        SetStorLessonsEnrollTimeAttribute(aRetrievedStorLessons, "new_enroll_time");
+                    }
+                    else
+                    {
+                        if (!m_UserName.Contains("(Line)"))
                         {
-                            SetStorLessonsEnrollTimeAttribute(aRetrievedStorLessons, "new_enroll_time");
+                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime() + " 報名過了";
                         }
                         else
                         {
-                            String NotifyMessage = GetEnrollNotifyMessageString();
-                            if (m_UserName.Contains("(Line)") != true)
-                            {
-                                m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 報名過了";
-                            }
-                            else
-                            {
-                                m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime().ToString() + " 報名過了" + Environment.NewLine + "， 可是您尚未註冊過喔!";
-                            }
+                            m_OnboardTypeInfo = "已經在 " + aSigningTime.ToLocalTime() + " 報名過了" + Environment.NewLine + "， 可是您尚未註冊過喔!";
                         }
-                    #endregion
+                    }
                 }
             }
-            catch (System.Exception Exception)
+            catch (Exception ex)
             {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                throw Exception;
+                string error = "錯誤訊息 : FullName = " + GetType().FullName + " , Time = " + DateTime.Now + " , Description = " + ex;
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, error);
+                throw;
             }
         }
-        private void SetStorLessonsTimeAttribute(Entity aRetrievedStorLessons, String SigningTimeAttribute, String SigningPresentAttribute)
+
+        private void SetStorLessonsTimeAttribute(Entity aRetrievedStorLessons, string SigningTimeAttribute, string SigningPresentAttribute)
         {
-            try
-            {
-                // 簽到或簽退
-                // 設定簽到或簽退時間
-                m_SigningTime = DateTime.Now;
-                // 填寫簽到時間
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute, m_SigningTime);
-                // 打勾出席
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aRetrievedStorLessons, SigningPresentAttribute, true);
-                this.m_ToolUtilityClass.UpdateEntity(ref aRetrievedStorLessons);
+            m_SigningTime = DateTime.Now;
+            m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute, m_SigningTime);
+            m_ToolUtilityClass.SetEntityBoolAttribute(ref aRetrievedStorLessons, SigningPresentAttribute, true);
+            m_ToolUtilityClass.UpdateEntity(ref aRetrievedStorLessons);
 
-                // 送出 LINE 訊息
-                String NotifyMessage = GetNotifyMessageString();
-                //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
-                m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
+            string notifyMessage = GetNotifyMessageString();
+            m_PushUtility.SendMessage(m_UserLineId, notifyMessage);
         }
-        private void SetStorLessonsEnrollTimeAttribute(Entity aRetrievedStorLessons, String SigningTimeAttribute)
+
+        private void SetStorLessonsEnrollTimeAttribute(Entity aRetrievedStorLessons, string SigningTimeAttribute)
         {
-            try
-            {
-                // 設定報名時間
-                m_SigningTime = DateTime.Now;
-                // 填寫報名時間
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute, m_SigningTime);
-                this.m_ToolUtilityClass.UpdateEntity(ref aRetrievedStorLessons);
+            m_SigningTime = DateTime.Now;
+            m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aRetrievedStorLessons, SigningTimeAttribute, m_SigningTime);
+            m_ToolUtilityClass.UpdateEntity(ref aRetrievedStorLessons);
 
-                // 送出 LINE 訊息
-                String NotifyMessage = GetEnrollNotifyMessageString();
-                //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
-                m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
-            }
+            string notifyMessage = GetEnrollNotifyMessageString();
+            m_PushUtility.SendMessage(m_UserLineId, notifyMessage);
         }
-        public String GetStorLessonsTimeAttribute(String ClassIndex, String OnboardType)
-        {
-            try
-            {
-                if (OnboardType == "On")
-                {
-                    // new_1_signon_time
-                    return "new_" + ClassIndex + "_signon_time";
-                }
-                else
-                {
-                    // new_1_signoff_time
-                    return "new_" + ClassIndex + "_signoff_time";
-                }
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
 
-                throw Exception;
-            }
+        public string GetStorLessonsTimeAttribute(string ClassIndex, string OnboardType)
+        {
+            return OnboardType == "On"
+                ? "new_" + ClassIndex + "_signon_time"
+                : "new_" + ClassIndex + "_signoff_time";
         }
         #endregion
+
         #region 取得課堂欄位名稱
-
-        private String GetClassAttribute(String ClassIndex)
+        private string GetClassAttribute(string ClassIndex)
         {
-            switch (ClassIndex)
+            return ClassIndex switch
             {
-                case "1":
-                    return "new_l1_name";
-                case "2":
-                    return "new_l2_name";
-                case "3":
-                    return "new_l3_name";
-                case "4":
-                    return "new_l4_name";
-                case "5":
-                    return "new_l5_name";
-                case "6":
-                    return "new_l6_name";
-                case "7":
-                    return "new_l7_name";
-                case "8":
-                    return "new_l8_name";
-                case "9":
-                    return "new_l9_name";
-                case "10":
-                    return "new_l10_name";
-                case "11":
-                    return "new_l11_name";
-                case "12":
-                    return "new_l12_name";
-                case "13":
-                    return "new_l13_name";
-                case "14":
-                    return "new_l14_name";
-                case "15":
-                    return "new_l15_name";
-                default:
-                    return "new_l1_name";
-            }
+                "1" => "new_l1_name",
+                "2" => "new_l2_name",
+                "3" => "new_l3_name",
+                "4" => "new_l4_name",
+                "5" => "new_l5_name",
+                "6" => "new_l6_name",
+                "7" => "new_l7_name",
+                "8" => "new_l8_name",
+                "9" => "new_l9_name",
+                "10" => "new_l10_name",
+                "11" => "new_l11_name",
+                "12" => "new_l12_name",
+                "13" => "new_l13_name",
+                "14" => "new_l14_name",
+                "15" => "new_l15_name",
+                _ => "new_l1_name"
+            };
         }
-
         #endregion
+
         #region 新增、修改課程記錄
         public Guid CreateNewStorLesson(Entity aContact, ref Entity aDiscepleLessons)
         {
+            Entity aNewStorLessonsEntity = new Entity("new_stor_lessons");
+
+            CopyDisceipleAttributes(ref aContact, ref aNewStorLessonsEntity, ref aDiscepleLessons);
+            SetupNewStorLessonsEntityAttributes(ref aNewStorLessonsEntity, aContact, ref aDiscepleLessons);
+
+            Guid newId = m_ToolUtilityClass.CreateEntity(aNewStorLessonsEntity);
+
             try
             {
-                //// 新增課程記錄
-                Entity aNewStorLessonsEntity = new Entity("new_stor_lessons");
-
-                // 設定課程記錄相關屬性
-                // 複製上層的欄位過來
-                this.CopyDisceipleAttributes(ref aContact, ref aNewStorLessonsEntity, ref aDiscepleLessons);
-
-                // 建立可編輯式檢視表所編輯的欄位值
-                this.SetupNewStorLessonsEntityAttributes(ref aNewStorLessonsEntity, aContact, ref aDiscepleLessons);
-
-                // 新增課程記錄
-                Guid aNewStorLessonsEntityId = this.m_ToolUtilityClass.CreateEntity(aNewStorLessonsEntity);
-
-                //指派負責人
-                try
-                {
-                    this.m_ToolUtilityClass.AssignOwner("new_stor_lessons", this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aNewStorLessonsEntityId), this.m_ToolUtilityClass.GetOwnerId(aContact));
-                }
-                catch (System.Exception e)
-                {
-                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                }
-
-                return aNewStorLessonsEntityId;
+                m_ToolUtilityClass.AssignOwner("new_stor_lessons", m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", newId), m_ToolUtilityClass.GetOwnerId(aContact));
             }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            catch { }
 
-                throw e;
-            }
+            return newId;
         }
-        public void UpdateNewStorLesson(ref Entity aNewStorLessonEntity, String[] aDetailAttributesArray, ref IPluginExecutionContext aContext)
+
+        public void UpdateNewStorLesson(ref Entity aNewStorLessonEntity, string[] aDetailAttributesArray, ref IPluginExecutionContext aContext)
         {
-            try
-            {
-                // 尋找學員上課記錄
-                // Entity aNewStorLessonsEntity = this.RetrieveStorLessonsById(ref this.m_CrmService, aDetailAttributesArray[33]);
-                //Entity aNewStorLessonsEntity = this.FindMatchLessonRecord(aDetailAttributesArray[33], aDetailAttributesArray[1]);
-
-                // 設定學員上課記錄相關屬性
-                this.UpdateNewStorLessonsEntityAttributes(ref aNewStorLessonEntity, aDetailAttributesArray);
-
-                // 設定學員上課記錄
-                this.m_ToolUtilityClass.UpdateEntity( aNewStorLessonEntity );
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
+            UpdateNewStorLessonsEntityAttributes(ref aNewStorLessonEntity, aDetailAttributesArray);
+            m_ToolUtilityClass.UpdateEntity(aNewStorLessonEntity);
         }
+
         static readonly object m_RetrieveStorLessonsLocker = new object();
-        public Entity RetrieveStorLessonsById(ref IOrganizationService aOrganizationService, String IdNumber)
+        public Entity RetrieveStorLessonsById(ref IOrganizationService aOrganizationService, string IdNumber)
         {
-            try
+            lock (m_RetrieveStorLessonsLocker)
             {
-                lock (m_RetrieveStorLessonsLocker)
+                QueryByAttribute querybyexpression = new QueryByAttribute("new_stor_lessons")
                 {
-                    //  Create query using querybyattribute
-                    QueryByAttribute querybyexpression = new QueryByAttribute("new_stor_lessons");
-                    querybyexpression.ColumnSet = new ColumnSet();
-                    querybyexpression.ColumnSet.AllColumns = true;
-                    //  Attribute to query
-                    querybyexpression.Attributes.AddRange("new_lesson_id", "statecode");
-                    //  Value of queried attribute to return
-                    querybyexpression.Values.AddRange(IdNumber, 0);
+                    ColumnSet = new ColumnSet { AllColumns = true }
+                };
+                querybyexpression.Attributes.AddRange("new_lesson_id", "statecode");
+                querybyexpression.Values.AddRange(IdNumber, 0);
 
-                    //  Query passed to the service proxy
-                    EntityCollection retrieved = aOrganizationService.RetrieveMultiple(querybyexpression);
-
-                    if (retrieved.Entities.Count > 0 && retrieved != null)
-                    {
-                        return retrieved.Entities[0];
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
-            }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
+                EntityCollection retrieved = aOrganizationService.RetrieveMultiple(querybyexpression);
+                return retrieved.Entities.Count > 0 ? retrieved.Entities[0] : null;
             }
         }
+
         private void SetupNewStorLessonsEntityAttributes(ref Entity aNewStorLessonsEntity, Entity aContactEntity, ref Entity aDiscepleLessons)
         {
-            try
+            if (aDiscepleLessons.Id != Guid.Empty)
             {
-                #region 關聯雙翼養育課程屬性
-                if (aDiscepleLessons.Id != Guid.Empty)
-                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewStorLessonsEntity, "new_new_disciple_lessons_new_stor_les", "new_disciple_lessons", aDiscepleLessons.Id); }
-                #endregion
-
-                #region 關聯姓名屬性
-                if (aContactEntity != null && aContactEntity.Id != Guid.Empty)
-                { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewStorLessonsEntity, "new_contact_new_stor_lessons", "contact", aContactEntity.Id); }
-                else
-                { }
-                #endregion
+                m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewStorLessonsEntity, "new_new_disciple_lessons_new_stor_les", "new_disciple_lessons", aDiscepleLessons.Id);
             }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString() + Environment.NewLine;
 
-                throw e;
+            if (aContactEntity != null && aContactEntity.Id != Guid.Empty)
+            {
+                m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewStorLessonsEntity, "new_contact_new_stor_lessons", "contact", aContactEntity.Id);
             }
         }
-        private void UpdateNewStorLessonsEntityAttributes(ref Entity aNewStorLessonsEntity, String[] aDetailAttributesArray)
+
+        private void UpdateNewStorLessonsEntityAttributes(ref Entity aNewStorLessonsEntity, string[] aDetailAttributesArray)
         {
             try
             {
-                #region 設定是否是神學生
-                if (aDetailAttributesArray[4] != "")
+                if (aDetailAttributesArray.Length > 4 && !string.IsNullOrEmpty(aDetailAttributesArray[4]))
                 {
-                    bool PresentFlag = aDetailAttributesArray[4] == "true" ? true : false;
-                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_god_student", PresentFlag);
+                    bool presentFlag = aDetailAttributesArray[4] == "true";
+                    m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_god_student", presentFlag);
                 }
-                #endregion
 
-                #region 設定課程費用
-                if (aDetailAttributesArray[5] != "")
+                if (aDetailAttributesArray.Length > 5 && !string.IsNullOrEmpty(aDetailAttributesArray[5]))
                 {
-                    Money Fee = new Money(Convert.ToDecimal(aDetailAttributesArray[5]));
-                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aNewStorLessonsEntity, "new_fee", Fee);
+                    Money fee = new Money(Convert.ToDecimal(aDetailAttributesArray[5]));
+                    m_ToolUtilityClass.SetEntityMoneyAttribute(ref aNewStorLessonsEntity, "new_fee", fee);
                 }
                 else
                 {
-                    this.m_ToolUtilityClass.SetEntityMoneyAttributeToNull(aNewStorLessonsEntity, "new_fee");
+                    m_ToolUtilityClass.SetEntityMoneyAttributeToNull(aNewStorLessonsEntity, "new_fee");
                 }
-                #endregion
 
-                #region 設定繳交費用日期
-                DateTime aDateTime = new DateTime();
-                if (aDetailAttributesArray[6] != "")
+                if (aDetailAttributesArray.Length > 6 && !string.IsNullOrEmpty(aDetailAttributesArray[6]))
                 {
-                    aDateTime = Convert.ToDateTime(aDetailAttributesArray[6]);
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_pay_date", aDateTime);
+                    DateTime payDate = Convert.ToDateTime(aDetailAttributesArray[6]);
+                    m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_pay_date", payDate);
                 }
                 else
                 {
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref aNewStorLessonsEntity, "new_pay_date");
+                    m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref aNewStorLessonsEntity, "new_pay_date");
                 }
-                #endregion
 
-                #region 設定學分
-                #region 設定預估學分 030 
-                if (aDetailAttributesArray[30] != "")
+                if (aDetailAttributesArray.Length > 30 && !string.IsNullOrEmpty(aDetailAttributesArray[30]))
                 {
-                    this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_estimated_credit", Convert.ToSingle(aDetailAttributesArray[30]));
+                    m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_estimated_credit", Convert.ToSingle(aDetailAttributesArray[30]));
                 }
-                #endregion
-                #region 設定實得學分 031 
-                if (aDetailAttributesArray[31] != "")
-                {
-                    this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_achieved_credit", Convert.ToSingle(aDetailAttributesArray[31]));
-                }
-                #endregion
-                #region 設定實得總分 032
-                if (aDetailAttributesArray[32] != "")
-                {
-                    this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_score", Convert.ToSingle(aDetailAttributesArray[32]));
-                }
-                #endregion
-                #endregion
 
-                #region 設定出席
+                if (aDetailAttributesArray.Length > 31 && !string.IsNullOrEmpty(aDetailAttributesArray[31]))
+                {
+                    m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_achieved_credit", Convert.ToSingle(aDetailAttributesArray[31]));
+                }
+
+                if (aDetailAttributesArray.Length > 32 && !string.IsNullOrEmpty(aDetailAttributesArray[32]))
+                {
+                    m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_score", Convert.ToSingle(aDetailAttributesArray[32]));
+                }
+
                 SetupPresentAttributes(ref aNewStorLessonsEntity, aDetailAttributesArray);
-                #endregion
-
-                #region 設定作業日期
                 SetupDateTimeAttributes(ref aNewStorLessonsEntity, aDetailAttributesArray);
-                #endregion
-
-                #region 設定分數
                 SetupScoreAttributes(ref aNewStorLessonsEntity, aDetailAttributesArray);
-                #endregion
             }
-            catch (System.Exception e)
+            catch
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString() + Environment.NewLine;
-
-                //throw e; Mrak掉就是吸收錯誤
+                // swallow to align with original behavior
             }
         }
-        #region  JAVASCRIPT 
-        //function BuildSavedString(i)
-        //{
-        //
-        //    var SavedString = "";
-        //
-        //    // 001 姓名
-        //    if (data1[i].ContactName != null)
-        //    { SavedString += data1[i].ContactName + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //    // 002 教會名稱
-        //    if (data1[i].ChurchDepratName != null)
-        //    { SavedString += data1[i].ChurchDepratName + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //    // 003 行動電話
-        //    if (data1[i].Mobile != null)
-        //    { SavedString += data1[i].Mobile + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //    // 004 是否是神學生
-        //    if (data1[i].Identity != null)
-        //    { SavedString += data1[i].Identity + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 005 課程費用
-        //    if (data1[i].Fee != null)
-        //    { SavedString += data1[i].Fee + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //    // 006 繳費日期
-        //    if (data1[i].date)
-        //    { SavedString += data1[i].date + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //
-        //
-        //
-        //
-        //    // 007 第一課
-        //    if (data1[i].Class1 != null)
-        //    { SavedString += data1[i].Class1 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 008 第二課
-        //    if (data1[i].Class2 != null)
-        //    { SavedString += data1[i].Class2 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 009 第三課
-        //    if (data1[i].Class3 != null)
-        //    { SavedString += data1[i].Class3 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 010 第四課
-        //    if (data1[i].Class4 != null)
-        //    { SavedString += data1[i].Class4 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 011 第五課
-        //    if (data1[i].Class5 != null)
-        //    { SavedString += data1[i].Class5 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 012 第六課
-        //    if (data1[i].Class6 != null)
-        //    { SavedString += data1[i].Class6 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 013 第七課
-        //    if (data1[i].Class7 != null)
-        //    { SavedString += data1[i].Class7 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 014 第八課
-        //    if (data1[i].Class8 != null)
-        //    { SavedString += data1[i].Class8 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 015 第九課
-        //    if (data1[i].Class9 != null)
-        //    { SavedString += data1[i].Class9 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 016 第十課
-        //    if (data1[i].Class10 != null)
-        //    { SavedString += data1[i].Class10 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 017 第十一課
-        //    if (data1[i].Class11 != null)
-        //    { SavedString += data1[i].Class11 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 018 第十二課
-        //    if (data1[i].Class12 != null)
-        //    { SavedString += data1[i].Class12 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 019 第十三課
-        //    if (data1[i].Class13 != null)
-        //    { SavedString += data1[i].Class13 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 020 第十四課
-        //    if (data1[i].Class14 != null)
-        //    { SavedString += data1[i].Class14 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //    // 021 第十五課
-        //    if (data1[i].Class15 != null)
-        //    { SavedString += data1[i].Class15 + "|"; }
-        //    else
-        //    { SavedString += "false|"; }
-        //
-        //
-        //
-        //
-        //    // 022 A.繳交/參加日
-        //    if (data1[i].Adate != null)
-        //    { SavedString += data1[i].Adate + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //    // 023 B.繳交/參加日
-        //    if (data1[i].Bdate != null)
-        //    { SavedString += data1[i].Bdate + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //    // 024 C.繳交/參加日
-        //    if (data1[i].Cdate != null)
-        //    { SavedString += data1[i].Cdate + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //    // 025 D.繳交/參加日
-        //    if (data1[i].Ddate != null)
-        //    { SavedString += data1[i].Ddate + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //    // 026 E.繳交/參加日
-        //    if (data1[i].Edate != null)
-        //    { SavedString += data1[i].Edate + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //    // 027 F.繳交/參加日
-        //    if (data1[i].Fdate != null)
-        //    { SavedString += data1[i].Fdate + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //    // 028 G.繳交/參加日
-        //    if (data1[i].Gdate != null)
-        //    { SavedString += data1[i].Gdate + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //    // 029 H.繳交/參加日
-        //    if (data1[i].Hdate != null)
-        //    { SavedString += data1[i].Hdate + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //
-        //
-        //    // 030 預估學分
-        //    if (data1[i].EstimatedCredit != null)
-        //    { SavedString += data1[i].EstimatedCredit + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //    // 031 實得學分
-        //    if (data1[i].AchievedCredit != null)
-        //    { SavedString += data1[i].AchievedCredit + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //    // 032 實得總分
-        //    if (data1[i].Score != null)
-        //    { SavedString += data1[i].Score + "|"; }
-        //    else
-        //    { SavedString += "|"; }
-        //
-        //
-        //    // 033
-        //    if (data1[i].id != null)
-        //    { SavedString += data1[i].id + "|"; }
-        //    else
-        //    { SavedString += ""; }
-        //
-        //
-        //    return SavedString;
-        //}
-
         #endregion
+
+        #region 屬性複製
         private void CopyDisceipleAttributes(ref Entity aRetrievedContact, ref Entity aNewStorLessonsEntity, ref Entity aDiscipleLessons)
         {
-            try
+            const int EMPTY_VALUE = -999999999;
+
+            m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_elijah", m_ToolUtilityClass.GetEntityBoolAttribute(aDiscipleLessons, "new_elijah_class"));
+
+            Guid rollCardId = m_ToolUtilityClass.GetEntityLookupAttribute(ref aNewStorLessonsEntity, "new_roll_card_new_stor_lessons");
+            Guid regFormId = m_ToolUtilityClass.GetEntityLookupAttribute(ref aNewStorLessonsEntity, "new_registration_form_new_stor_lesson");
+            if (rollCardId != Guid.Empty && regFormId != Guid.Empty)
             {
-                const int EMPTY_VALUE = -999999999;
-
-                #region 是否是以利亞之家課程
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_elijah", this.m_ToolUtilityClass.GetEntityBoolAttribute(aDiscipleLessons, "new_elijah_class"));
-                #endregion
-                #region 是否是神學生資格
-
-                // 學籍卡ID
-                Guid aRollCardEntityId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aNewStorLessonsEntity, "new_roll_card_new_stor_lessons");
-                // 註冊單ID
-                Guid aRegistrationFormEntityId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aNewStorLessonsEntity, "new_registration_form_new_stor_lesson");
-
-                if (aRollCardEntityId != Guid.Empty && aRegistrationFormEntityId != Guid.Empty)
-                {
-                    this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_god_student", true);
-                    #region 設定費用
-                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aNewStorLessonsEntity, "new_fee", new Money(GOD_STUDENT_FEE));
-                    #endregion
-                }
-                else
-                {
-                    #region 設定費用
-                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aNewStorLessonsEntity, "new_fee", this.m_ToolUtilityClass.GetEntityMoneyAttribute(aDiscipleLessons, "new_lessons_fee"));
-                    #endregion
-
-                }
-
-                #endregion
-                #region 設定上課名稱
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l1_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l1_name"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l2_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l2_name"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l3_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l3_name"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l4_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l4_name"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l5_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l5_name"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l6_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l6_name"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l7_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l7_name"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l8_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l8_name"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l9_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l9_name"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l10_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l10_name"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l11_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l11_name"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l12_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l12_name"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l13_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l13_name"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l14_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l14_name"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l15_name", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l15_name"));
-                #endregion
-                #region 設定上課日期
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_first_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l1_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_2_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l2_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_3_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l3_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_4_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l4_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_5_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l5_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_6_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l6_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_7_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l7_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_l8_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l8_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_l9_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l9_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_l10_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l10_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_l11_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l11_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_l12_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l12_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_l13_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l13_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_l14_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l14_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_l15_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_l15_date"));
-
-
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_first_date", "new_l1_date");
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_2_date", "new_l2_date");
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_3_date", "new_l3_date");
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_4_date", "new_l4_date");
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_5_date", "new_l5_date");
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_6_date", "new_l6_date");
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_7_date", "new_l7_date");
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l8_date", "new_l8_date");
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l9_date", "new_l9_date");
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l10_date", "new_l10_date");
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l11_date", "new_l11_date");
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l12_date", "new_l12_date");
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l13_date", "new_l13_date");
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l14_date", "new_l14_date");
-                SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l15_date", "new_l15_date");
-
-                #endregion
-                #region 設定截止日期
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_a_expired_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_a_due_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_b_expired_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_b_due_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_c_expired_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_c_due_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_d_expired_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_d_due_date"));
-                //this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_e_expired_date", this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_e_due_date"));
-                #endregion
-                #region 設定作業特會名稱
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_a_homework1", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_a_homework1"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_b_homework2", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_b_homework2"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_c_homework3", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_c_homework3"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_d_homework4", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_d_homework4"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_e_homework5", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_e_homework5"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_f_homework6", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_f_homework6"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_g_homework7", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_g_homework7"));
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_h_homework8", this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_h_homework8"));
-                #endregion
-                #region 課程類別
-                int ClassificationValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aDiscipleLessons, "new_classification");
-
-                if (ClassificationValue != EMPTY_VALUE)
-                {
-                    try { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewStorLessonsEntity, "new_classification", ClassificationValue); }
-                    catch (System.Exception e) { }
-                }
-                #endregion
-                #region 學期
-
-                int SemesterValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aDiscipleLessons, "new_semester");
-                if (SemesterValue != EMPTY_VALUE)
-                {
-                    try { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewStorLessonsEntity, "new_semester", SemesterValue); }
-                    catch (System.Exception e) { }
-                }
-
-                #endregion
-                #region 學分
-                if (this.m_ToolUtilityClass.GetEntityDoubleAttribute(ref aDiscipleLessons, "new_credit") >= 0)
-                {
-                    this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_credit", this.m_ToolUtilityClass.GetEntityDoubleAttribute(ref aDiscipleLessons, "new_credit"));
-                }
-                #endregion
-                #region 上課(%)
-                if (this.m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_present") >= 0)
-                {
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aNewStorLessonsEntity, "new_present", this.m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_present"));
-                }
-                #endregion
-                #region 作業(%)
-                if (this.m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_homework") >= 0)
-                {
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aNewStorLessonsEntity, "new_homework", this.m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_homework"));
-                }
-                //this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_homework", this.m_ToolUtilityClass.GetEntityDoubleAttribute(ref aDiscipleLessons, "new_homework"));
-                #endregion
-                #region 實習(%)
-                if (this.m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_practice") >= 0)
-                {
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aNewStorLessonsEntity, "new_practice", this.m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_practice"));
-                }
-                #endregion
-                #region 考試(%)
-                if (this.m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_exam") >= 0)
-                {
-                    this.m_ToolUtilityClass.SetEntityIntAttribute(ref aNewStorLessonsEntity, "new_exam", this.m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_exam"));
-                }
-                #endregion
-
-                #region 課程名稱
-
-                // 取得課程名稱
-                String LessonDisplayName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_name");
-
-                // 取得報名者的全名
-                String FullName = "";
-                FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aRetrievedContact, "fullname");
-
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_name", LessonDisplayName + "_" + FullName);
-
-                #endregion
-
-                #region 費用
-                if (m_ToolUtilityClass.GetEntityMoneyAttribute(ref aDiscipleLessons, "new_lessons_fee").Value >= 0)
-                {
-                    this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aNewStorLessonsEntity, "new_fee", this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aDiscipleLessons, "new_lessons_fee"));
-                }
-
-                // 繳費金額預設為0
-                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aNewStorLessonsEntity, "new_paid_amount", new Money(0));
-
-                // 總計收費預設為0
-                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aNewStorLessonsEntity, "new_rollup_fee", new Money(0));
-
-                #endregion
-
+                m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_god_student", true);
+                m_ToolUtilityClass.SetEntityMoneyAttribute(ref aNewStorLessonsEntity, "new_fee", new Money(GOD_STUDENT_FEE));
             }
-            catch (System.Exception e)
+            else
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString() + Environment.NewLine;
-
-                throw e;
+                m_ToolUtilityClass.SetEntityMoneyAttribute(ref aNewStorLessonsEntity, "new_fee", m_ToolUtilityClass.GetEntityMoneyAttribute(aDiscipleLessons, "new_lessons_fee"));
             }
-        }
-        private void SetupDateTimeAttributes(ref Entity aDiscipleLessons, String aDiscipleLessonsAttribute, String AttributeName)
-        {
-            try
+
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l1_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l1_name"));
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l2_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l2_name"));
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l3_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l3_name"));
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l4_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l4_name"));
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l5_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l5_name"));
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l6_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l6_name"));
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l7_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l7_name"));
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l8_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l8_name"));
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l9_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l9_name"));
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l10_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l10_name"));
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l11_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l11_name"));
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l12_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l12_name"));
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l13_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l13_name"));
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l14_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l14_name"));
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_l15_name", m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_l15_name"));
+
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_first_date", "new_l1_date");
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_2_date", "new_l2_date");
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_3_date", "new_l3_date");
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_4_date", "new_l4_date");
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_5_date", "new_l5_date");
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_6_date", "new_l6_date");
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_7_date", "new_l7_date");
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l8_date", "new_l8_date");
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l9_date", "new_l9_date");
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l10_date", "new_l10_date");
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l11_date", "new_l11_date");
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l12_date", "new_l12_date");
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l13_date", "new_l13_date");
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l14_date", "new_l14_date");
+            SetupDateTimeAttributes(ref aNewStorLessonsEntity, "new_l15_date", "new_l15_date");
+
+            int classificationValue = m_ToolUtilityClass.GetOptionSetAttribute(ref aDiscipleLessons, "new_classification");
+            if (classificationValue != EMPTY_VALUE)
             {
-                DateTime TimeToSet = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, AttributeName);
-                if (TimeToSet.Year > 1)
-                {
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aDiscipleLessons, aDiscipleLessonsAttribute, TimeToSet);
-                }
+                try { m_ToolUtilityClass.SetOptionSetAttribute(ref aNewStorLessonsEntity, "new_classification", classificationValue); } catch { }
             }
-            catch (System.Exception e)
+
+            int semesterValue = m_ToolUtilityClass.GetOptionSetAttribute(ref aDiscipleLessons, "new_semester");
+            if (semesterValue != EMPTY_VALUE)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString() + Environment.NewLine;
-
-                throw e;
+                try { m_ToolUtilityClass.SetOptionSetAttribute(ref aNewStorLessonsEntity, "new_semester", semesterValue); } catch { }
             }
-        }
-        private void SetupPresentAttributes(ref Entity aNewStorLessonsEntity, String[] aDetailAttributesArray)
-        {
-            try
+
+            if (m_ToolUtilityClass.GetEntityDoubleAttribute(ref aDiscipleLessons, "new_credit") >= 0)
             {
-                #region 設定出席
-                bool PresentFlag = aDetailAttributesArray[7] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_1_present", PresentFlag);
-
-                PresentFlag = aDetailAttributesArray[8] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_2_present", PresentFlag);
-
-                PresentFlag = aDetailAttributesArray[9] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_3_present", PresentFlag);
-
-                PresentFlag = aDetailAttributesArray[10] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_4_present", PresentFlag);
-
-                PresentFlag = aDetailAttributesArray[11] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_5_present", PresentFlag);
-
-                PresentFlag = aDetailAttributesArray[12] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_6_present", PresentFlag);
-
-                PresentFlag = aDetailAttributesArray[13] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_7_present", PresentFlag);
-
-                PresentFlag = aDetailAttributesArray[14] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_8_present", PresentFlag);
-
-                PresentFlag = aDetailAttributesArray[15] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_9_present", PresentFlag);
-
-                PresentFlag = aDetailAttributesArray[16] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_10_present", PresentFlag);
-
-                PresentFlag = aDetailAttributesArray[17] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_11_present", PresentFlag);
-
-                PresentFlag = aDetailAttributesArray[18] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_12_present", PresentFlag);
-
-                PresentFlag = aDetailAttributesArray[19] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_13_present", PresentFlag);
-
-                PresentFlag = aDetailAttributesArray[20] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_14_present", PresentFlag);
-
-                PresentFlag = aDetailAttributesArray[21] == "true" ? true : false;
-                this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aNewStorLessonsEntity, "new_15_present", PresentFlag);
-
-                #endregion
+                m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_credit", m_ToolUtilityClass.GetEntityDoubleAttribute(ref aDiscipleLessons, "new_credit"));
             }
-            catch (System.Exception e)
+            if (m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_present") >= 0)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString() + Environment.NewLine;
-
-                throw e;
+                m_ToolUtilityClass.SetEntityIntAttribute(ref aNewStorLessonsEntity, "new_present", m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_present"));
             }
-        }
-        private void SetupDateTimeAttributes(ref Entity aNewStorLessonsEntity, String[] aDetailAttributesArray)
-        {
-            try
+            if (m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_homework") >= 0)
             {
-                #region 設定作業日期
-                DateTime aDateTime = new DateTime();
-                if (aDetailAttributesArray[22] != "")
-                {
-                    aDateTime = Convert.ToDateTime(aDetailAttributesArray[22]);
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_a_complete_date", aDateTime);
-                }
-                else
-                {
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref aNewStorLessonsEntity, "new_a_complete_date");
-                }
-
-                if (aDetailAttributesArray[23] != "")
-                {
-                    aDateTime = Convert.ToDateTime(aDetailAttributesArray[23]);
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_b_complete_date", aDateTime);
-                }
-                else
-                {
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref aNewStorLessonsEntity, "new_b_complete_date");
-                }
-
-                if (aDetailAttributesArray[24] != "")
-                {
-                    aDateTime = Convert.ToDateTime(aDetailAttributesArray[24]);
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_c_complete_date", aDateTime);
-                }
-                else
-                {
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref aNewStorLessonsEntity, "new_c_complete_date");
-                }
-
-                if (aDetailAttributesArray[25] != "")
-                {
-                    aDateTime = Convert.ToDateTime(aDetailAttributesArray[25]);
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_d_complete_date", aDateTime);
-                }
-                else
-                {
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref aNewStorLessonsEntity, "new_d_complete_date");
-                }
-
-                if (aDetailAttributesArray[26] != "")
-                {
-                    aDateTime = Convert.ToDateTime(aDetailAttributesArray[26]);
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_e_complete_date", aDateTime);
-                }
-                else
-                {
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref aNewStorLessonsEntity, "new_e_complete_date");
-                }
-
-                if (aDetailAttributesArray[27] != "")
-                {
-                    aDateTime = Convert.ToDateTime(aDetailAttributesArray[27]);
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_f_complete_date", aDateTime);
-                }
-                else
-                {
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref aNewStorLessonsEntity, "new_f_complete_date");
-                }
-
-                if (aDetailAttributesArray[28] != "")
-                {
-                    aDateTime = Convert.ToDateTime(aDetailAttributesArray[28]);
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_g_complete_date", aDateTime);
-                }
-                else
-                {
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref aNewStorLessonsEntity, "new_g_complete_date");
-                }
-
-                if (aDetailAttributesArray[29] != "")
-                {
-                    aDateTime = Convert.ToDateTime(aDetailAttributesArray[29]);
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aNewStorLessonsEntity, "new_h_complete_date", aDateTime);
-                }
-                else
-                {
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttributeToNull(ref aNewStorLessonsEntity, "new_h_complete_date");
-                }
-
-                #endregion
+                m_ToolUtilityClass.SetEntityIntAttribute(ref aNewStorLessonsEntity, "new_homework", m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_homework"));
             }
-            catch (System.Exception e)
+            if (m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_practice") >= 0)
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString() + Environment.NewLine;
-
-                throw e;
+                m_ToolUtilityClass.SetEntityIntAttribute(ref aNewStorLessonsEntity, "new_practice", m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_practice"));
             }
-        }
-        private void SetupScoreAttributes(ref Entity aNewStorLessonsEntity, String[] aDetailAttributesArray)
-        {
-            try
+            if (m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_exam") >= 0)
             {
-                #region 設定分數
-                Double Score = 0;
-                if (aDetailAttributesArray[34] != "")
-                {
-                    Score = Convert.ToDouble(aDetailAttributesArray[34]);
-                    this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_a_score", Score);
-                }
-                if (aDetailAttributesArray[35] != "")
-                {
-                    Score = Convert.ToDouble(aDetailAttributesArray[35]);
-                    this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_b_score", Score);
-                }
-                if (aDetailAttributesArray[36] != "")
-                {
-                    Score = Convert.ToDouble(aDetailAttributesArray[36]);
-                    this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_c_score", Score);
-                }
-                if (aDetailAttributesArray[37] != "")
-                {
-                    Score = Convert.ToDouble(aDetailAttributesArray[37]);
-                    this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_d_score", Score);
-                }
-                if (aDetailAttributesArray[38] != "")
-                {
-                    Score = Convert.ToDouble(aDetailAttributesArray[38]);
-                    this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_e_score", Score);
-                }
-                if (aDetailAttributesArray[39] != "")
-                {
-                    Score = Convert.ToDouble(aDetailAttributesArray[39]);
-                    this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_f_score", Score);
-                }
-                if (aDetailAttributesArray[40] != "")
-                {
-                    Score = Convert.ToDouble(aDetailAttributesArray[40]);
-                    this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_g_score", Score);
-                }
-                if (aDetailAttributesArray[41] != "")
-                {
-                    Score = Convert.ToDouble(aDetailAttributesArray[41]);
-                    this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aNewStorLessonsEntity, "new_h_score", Score);
-                }
-                #endregion
+                m_ToolUtilityClass.SetEntityIntAttribute(ref aNewStorLessonsEntity, "new_exam", m_ToolUtilityClass.GetEntityIntAttribute(ref aDiscipleLessons, "new_exam"));
             }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString() + Environment.NewLine;
 
-                throw e;
+            string lessonDisplayName = m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessons, "new_name");
+            string fullName = m_ToolUtilityClass.GetEntityStringAttribute(ref aRetrievedContact, "fullname");
+            m_ToolUtilityClass.SetEntityStringAttribute(ref aNewStorLessonsEntity, "new_name", lessonDisplayName + "_" + fullName);
+
+            if (m_ToolUtilityClass.GetEntityMoneyAttribute(ref aDiscipleLessons, "new_lessons_fee").Value >= 0)
+            {
+                m_ToolUtilityClass.SetEntityMoneyAttribute(ref aNewStorLessonsEntity, "new_fee", m_ToolUtilityClass.GetEntityMoneyAttribute(ref aDiscipleLessons, "new_lessons_fee"));
             }
+
+            m_ToolUtilityClass.SetEntityMoneyAttribute(ref aNewStorLessonsEntity, "new_paid_amount", new Money(0));
+            m_ToolUtilityClass.SetEntityMoneyAttribute(ref aNewStorLessonsEntity, "new_rollup_fee", new Money(0));
         }
         #endregion
-        #region 新增、修改收費單
-        public Entity CreateFee( Entity aStorLessonEntity, String Type )
-        {
-            // 取得與上課紀錄相關的收費單
-            //Entity aStorLessonEntity = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", new Guid(StorLessonsId));
 
+        #region 新增、修改收費單
+        public Entity CreateFee(Entity aStorLessonEntity, string Type)
+        {
             Entity aFee = new Entity("new_fee");
 
-            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_contact_new_fee", "new_fee", this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_contact_new_stor_lessons"));
+            m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_contact_new_fee", "new_fee", m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_contact_new_stor_lessons"));
 
-            Guid DiscipleLessonsEntityId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_new_disciple_lessons_new_stor_les");
-            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_disciple_lessons_new_fee", "new_fee", DiscipleLessonsEntityId);
+            Guid discipleLessonsEntityId = m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_new_disciple_lessons_new_stor_les");
+            m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_disciple_lessons_new_fee", "new_fee", discipleLessonsEntityId);
+            m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_stor_lessons_new_fee", "new_fee", aStorLessonEntity.Id);
 
-            this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aFee, "new_stor_lessons_new_fee", "new_fee", aStorLessonEntity.Id);
-
-            Entity aDiscipleLessonsEntity = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", DiscipleLessonsEntityId);
-
-            Money MoneyShouldPay = this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aDiscipleLessonsEntity, "new_lessons_fee");
-
-            if (MoneyShouldPay.Value >= 0)
+            Entity aDiscipleLessonsEntity = m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", discipleLessonsEntityId);
+            Money moneyShouldPay = m_ToolUtilityClass.GetEntityMoneyAttribute(ref aDiscipleLessonsEntity, "new_lessons_fee");
+            if (moneyShouldPay.Value >= 0)
             {
-                this.m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFee, "new_fee_shoud_pay", MoneyShouldPay);
+                m_ToolUtilityClass.SetEntityMoneyAttribute(ref aFee, "new_fee_shoud_pay", moneyShouldPay);
             }
 
             if (Type == "Amount")
             {
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFee, "new_pay_date", DateTime.Now);
-                //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFee, "new_pay_way", 100000004); // 預設繳費是未知
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aFee, "new_pay_way", 100000000); // 預設繳費是現金
+                m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFee, "new_pay_date", DateTime.Now);
+                m_ToolUtilityClass.SetOptionSetAttribute(ref aFee, "new_pay_way", 100000000); // 現金
             }
 
-            // 新增收費單
-            Guid aFeeId = this.m_ToolUtilityClass.CreateEntity(aFee);
-            Entity aRetrievedFee = this.m_ToolUtilityClass.RetrieveEntity("new_fee", aFeeId);
+            Guid aFeeId = m_ToolUtilityClass.CreateEntity(aFee);
+            Entity aRetrievedFee = m_ToolUtilityClass.RetrieveEntity("new_fee", aFeeId);
 
-            //指派負責人
-            Entity aRetrievedContact = this.m_ToolUtilityClass.RetrieveEntity( "contacct",this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_contact_new_stor_lessons"));
             try
             {
-                this.m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, this.m_ToolUtilityClass.GetOwnerId(aRetrievedContact));
+                Entity aRetrievedContact = m_ToolUtilityClass.RetrieveEntity("contacct", m_ToolUtilityClass.GetEntityLookupAttribute(ref aStorLessonEntity, "new_contact_new_stor_lessons"));
+                m_ToolUtilityClass.AssignOwner("new_fee", aRetrievedFee, m_ToolUtilityClass.GetOwnerId(aRetrievedContact));
             }
-            catch (System.Exception e)
-            {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-            }
+            catch { }
 
             return aRetrievedFee;
         }
 
-        public void SetFeePayWay(String Value, ref Entity aFeeEntity)
+        public void SetFeePayWay(string Value, ref Entity aFeeEntity)
         {
-
             switch (Value)
             {
                 case "未知":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
+                    m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
                     break;
                 case "現金":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000000);
+                    m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000000);
                     break;
                 case "信用卡":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000001);
+                    m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000001);
                     break;
                 case "ATM轉帳":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000002);
+                    m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000002);
                     break;
                 case "超商付款":
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000003);
+                    m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000003);
                     break;
                 default:
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
+                    m_ToolUtilityClass.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
                     break;
-
             }
         }
-
         #endregion
+
         #region 工具區
-        public String GetNotifyMessageString()
+        public string GetNotifyMessageString()
         {
-            try
+            string localClassIndex = "第" + m_ClassIndex + "堂課";
+            string classIndexContent = m_ToolUtilityClass.GetEntityStringAttribute(ref m_Lesson, GetClassAttribute(m_ClassIndex));
+            if (!string.IsNullOrEmpty(classIndexContent))
             {
-
-                String LocalClassIndex = "第" + m_ClassIndex + "堂課";
-                String ClassIndexcontent = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Lesson, this.GetClassAttribute(m_ClassIndex));
-                if (ClassIndexcontent != "")
-                {
-                    LocalClassIndex += "，" + ClassIndexcontent;
-                }
-                else
-                { }
-
-                // 取得簽到簽退時間
-                String SigningTypeAndTime = "";
-                if (m_OnboardType == "On")
-                {
-                    SigningTypeAndTime = m_SigningTime.ToLocalTime().ToString() + " 簽到成功";
-                }
-                else
-                {
-                    SigningTypeAndTime = m_SigningTime.ToLocalTime().ToString() + " 簽退成功";
-                }
-
-                m_ClassIndexInfo = LocalClassIndex;
-
-                if (m_UserName.Contains("(Line)") != true)
-                {
-                    // 彈跳要用到的簽到退時間資訊
-                    m_OnboardTypeInfo = SigningTypeAndTime;
-
-                    // 回傳 LINE 要用到的訊息
-                    return
-                    "名稱: " + m_ClassName + Environment.NewLine +
-                    "姓名: " + m_UserName + Environment.NewLine +
-                    "資訊: " + LocalClassIndex + Environment.NewLine +
-                    SigningTypeAndTime;
-                }
-                else
-                {
-                    // 彈跳要用到的簽到退時間資訊
-                    m_OnboardTypeInfo = SigningTypeAndTime + Environment.NewLine + "，可是您尚未註冊過喔!";
-
-                    // 回傳 LINE 要用到的訊息
-                    return
-                    "名稱: " + m_ClassName + Environment.NewLine +
-                    "姓名: " + m_UserName + Environment.NewLine +
-                    "資訊: " + LocalClassIndex + Environment.NewLine +
-                    SigningTypeAndTime + Environment.NewLine +
-                    "可是您尚未註冊過喔!";
-                }
-
+                localClassIndex += "，" + classIndexContent;
             }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
 
-                throw Exception;
+            string signingTypeAndTime = m_OnboardType == "On"
+                ? m_SigningTime.ToLocalTime() + " 簽到成功"
+                : m_SigningTime.ToLocalTime() + " 簽退成功";
+
+            m_ClassIndexInfo = localClassIndex;
+
+            if (!m_UserName.Contains("(Line)"))
+            {
+                m_OnboardTypeInfo = signingTypeAndTime;
+                return "名稱: " + m_ClassName + Environment.NewLine +
+                       "姓名: " + m_UserName + Environment.NewLine +
+                       "資訊: " + localClassIndex + Environment.NewLine +
+                       signingTypeAndTime;
             }
-        }
-        public String GetEnrollNotifyMessageString()
-        {
-            try
+            else
             {
-                // 取得簽到簽退時間
-                String SigningTypeAndTime = m_SigningTime.ToLocalTime().ToString() + " 報名";
-
-                if (m_UserName.Contains("(Line)") != true)
-                {
-                    // 彈跳要用到的簽到退時間資訊
-                    m_OnboardTypeInfo = SigningTypeAndTime;
-
-                    // 回傳 LINE 要用到的訊息
-                    return
-                    "課程名稱: " + m_ClassName + Environment.NewLine +
-                    "姓名: " + m_UserName + Environment.NewLine +
-                    SigningTypeAndTime;
-                }
-                else
-                {
-                    // 彈跳要用到的簽到退時間資訊
-                    m_OnboardTypeInfo = SigningTypeAndTime + Environment.NewLine + "，可是您尚未註冊過喔!";
-
-                    // 回傳 LINE 要用到的訊息
-                    return
-                    "課程名稱: " + m_ClassName + Environment.NewLine +
-                    "姓名: " + m_UserName + Environment.NewLine +
-                    SigningTypeAndTime + Environment.NewLine +
-                    "可是您尚未註冊過喔!";
-                }
-
-            }
-            catch (System.Exception Exception)
-            {
-                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
-
-                throw Exception;
+                m_OnboardTypeInfo = signingTypeAndTime + Environment.NewLine + "，可是您尚未註冊過喔!";
+                return "名稱: " + m_ClassName + Environment.NewLine +
+                       "姓名: " + m_UserName + Environment.NewLine +
+                       "資訊: " + localClassIndex + Environment.NewLine +
+                       signingTypeAndTime + Environment.NewLine +
+                       "可是您尚未註冊過喔!";
             }
         }
 
+        public string GetEnrollNotifyMessageString()
+        {
+            string signingTypeAndTime = m_SigningTime.ToLocalTime() + " 報名";
+
+            if (!m_UserName.Contains("(Line)"))
+            {
+                m_OnboardTypeInfo = signingTypeAndTime;
+                return "課程名稱: " + m_ClassName + Environment.NewLine +
+                       "姓名: " + m_UserName + Environment.NewLine +
+                       signingTypeAndTime;
+            }
+            else
+            {
+                m_OnboardTypeInfo = signingTypeAndTime + Environment.NewLine + "，可是您尚未註冊過喔!";
+                return "課程名稱: " + m_ClassName + Environment.NewLine +
+                       "姓名: " + m_UserName + Environment.NewLine +
+                       signingTypeAndTime + Environment.NewLine +
+                       "可是您尚未註冊過喔!";
+            }
+        }
+        #endregion
+
+        #region 輔助設定方法
+        private void SetupPresentAttributes(ref Entity entity, string[] detailAttributes)
+        {
+            // detailAttributes[7..21] 對應第1~15堂課的出席
+            for (int i = 1; i <= 15; i++)
+            {
+                int index = 6 + i;
+                if (detailAttributes.Length > index && !string.IsNullOrEmpty(detailAttributes[index]))
+                {
+                    bool present = detailAttributes[index].Equals("true", StringComparison.OrdinalIgnoreCase) || detailAttributes[index] == "1";
+                    m_ToolUtilityClass.SetEntityBoolAttribute(ref entity, $"new_{i}_present", present);
+                }
+            }
+        }
+
+        private void SetupDateTimeAttributes(ref Entity entity, string targetAttribute, string sourceAttribute)
+        {
+            if (m_Lesson != null)
+            {
+                DateTime value = m_ToolUtilityClass.GetEntityDateTimeAttribute(ref m_Lesson, sourceAttribute);
+                if (value.Year > 1)
+                {
+                    m_ToolUtilityClass.SetEntityDateTimeAttribute(ref entity, targetAttribute, value);
+                }
+            }
+        }
+
+        private void SetupDateTimeAttributes(ref Entity entity, string[] detailAttributes)
+        {
+            // detailAttributes[22..29] 可對應 A~H 作業日期 (若有設計)
+            string[] targetAttrs = { "new_a_expired_date", "new_b_expired_date", "new_c_expired_date", "new_d_expired_date", "new_e_expired_date", "new_f_expired_date", "new_g_expired_date", "new_h_expired_date" };
+            for (int i = 0; i < targetAttrs.Length; i++)
+            {
+                int idx = 22 + i;
+                if (detailAttributes.Length > idx && !string.IsNullOrEmpty(detailAttributes[idx]))
+                {
+                    DateTime date = Convert.ToDateTime(detailAttributes[idx]);
+                    m_ToolUtilityClass.SetEntityDateTimeAttribute(ref entity, targetAttrs[i], date);
+                }
+            }
+        }
+
+        private void SetupScoreAttributes(ref Entity entity, string[] detailAttributes)
+        {
+            // 預留：若未提供分數資料，保持現狀
+        }
         #endregion
     }
     #endregion

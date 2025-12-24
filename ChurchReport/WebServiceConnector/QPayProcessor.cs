@@ -39,7 +39,6 @@ namespace ChurchReport.WebServiceConnector
         #endregion
 
         #region LINE Bot 設定
-        private const String CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
         private LineMessagingClient m_LineMessagingClient { get; }
         private PushUtility m_PushUtility { get; }
         private ReplyUtility m_ReplyUtility { get; }
@@ -65,7 +64,8 @@ namespace ChurchReport.WebServiceConnector
         #region 初始化
         public QPayProcessor(IPayment aPaymentService)
         {
-            this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
+            var channelAccessToken = GetLineChannelAccessToken();
+            this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
             // 客製化
             m_PushUtility = new PushUtility(m_LineMessagingClient);
@@ -146,6 +146,37 @@ namespace ChurchReport.WebServiceConnector
                 m_ShopNo = m_Configuration["Sandbox:ShopNo"];
             }
 
+        }
+        #endregion
+        #region 配置讀取方法
+        private static string GetLineChannelAccessToken()
+        {
+            try
+            {
+                string organization = m_Configuration["CrmConnection:Organization"];
+                if (!string.IsNullOrEmpty(organization))
+                {
+                    string configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
+                    string token = m_Configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        return token;
+                    }
+                }
+
+                string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+                string defaultToken = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
+                if (string.IsNullOrEmpty(defaultToken))
+                {
+                    System.Diagnostics.Trace.WriteLine("[QPayProcessor] 警告: LINE Channel Access Token 未設定");
+                }
+                return defaultToken ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] 錯誤: 讀取 LINE Token 配置失敗 - {ex.Message}");
+                return string.Empty;
+            }
         }
         #endregion
         #region 建立收費單

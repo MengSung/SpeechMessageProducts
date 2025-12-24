@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
 using ChurchReport.Models.CrmTransmitModule;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
@@ -16,6 +17,7 @@ using ToolUtility;
 using Line.Messaging;
 using ChurchReport.Models;
 using ChurchReport.Tools;
+using Microsoft.Extensions.Configuration;
 using PushUtility = ToolUtility.PushUtility;
 
 namespace ChurchReport.WebServiceConnector
@@ -29,10 +31,15 @@ namespace ChurchReport.WebServiceConnector
 
         private LineMessagingClient m_LineMessagingClient { get; set; }
         private PushUtility m_PushUtility { get; set; }
+
+        // 配置管理
+        private static readonly IConfigurationBuilder m_ConfigurationBuilder = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+        private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
         #endregion
         #region 常數參數
         private const String CRM_TYPE = "DYNAMICS365-9.0";
-        private const String CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
         #endregion
         #endregion
@@ -40,19 +47,42 @@ namespace ChurchReport.WebServiceConnector
 
         public LineNotifyUtility()
         {
-            // 客製化，請選擇
-            // 新莊靈糧堂(免費版)
-            this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
+            // 從配置讀取 LINE Channel Access Token
+            string channelAccessToken = GetLineChannelAccessToken();
+            this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
-            // 客製化
             m_PushUtility = new PushUtility(m_LineMessagingClient);
-            //m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
-            //m_LiffClient = new LiffClient(JESUS_CHANNEL_ACCESS_TOKEN);
-
-            //m_PushUtility.SendMessage(MENGSUNG_LINE_ID, "我主掌管天地萬有!");
-
         }
 
+        private static string GetLineChannelAccessToken()
+        {
+            try
+            {
+                string organization = m_Configuration["CrmConnection:Organization"];
+                if (!string.IsNullOrEmpty(organization))
+                {
+                    string configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
+                    string token = m_Configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        return token;
+                    }
+                }
+
+                string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+                string defaultToken = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
+                if (string.IsNullOrEmpty(defaultToken))
+                {
+                    System.Diagnostics.Trace.WriteLine("[LineNotifyUtility] 警告: LINE Channel Access Token 未設定");
+                }
+                return defaultToken ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[LineNotifyUtility] 錯誤: 讀取 LINE Token 配置失敗 - {ex.Message}");
+                return string.Empty;
+            }
+        }
 
         public void SendSmallGroupResultLine(Entity LoginContact, String SmallGroupResult, GroupWeeklyReportGuid aGroupWeeklyReportGuid, Guid aWeeklyReportId, ref Entity aListEntity, ref SmallGroupData aSmallGroupData, String WeeklyReportData, bool PauseCheckBox)
         {
