@@ -306,6 +306,8 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 更新繳費資料 (DevExtreme DataGrid API)
         /// 路徑: /FeeManagement/Api/UpdateFeeData
+        /// 注意: 此方法只更新記憶體中的資料，不會立即提交到資料庫
+        /// 需要按下「上傳」按鈕觸發 SaveBatch 才會批次提交
         /// </summary>
         [HttpPut]
         [Route("/FeeManagement/Api/UpdateFeeData")]
@@ -324,10 +326,13 @@ namespace ChurchReport.Controllers
                     return BadRequest("找不到指定的繳費記錄");
                 }
 
-                // 使用 FeeList 的 PopulateObjectAndUpdateEntity 方法更新實體
+                // ? 使用 FeeList 的 PopulateObjectAndUpdateEntity 方法
+                // 此方法會更新記憶體中的 Fee 物件，並記錄修改歷程，但不會立即提交到資料庫
                 InMemoryContext.FeeList.PopulateObjectAndUpdateEntity(values, fee);
 
-                System.Diagnostics.Debug.WriteLine($"[UpdateFeeData] 更新成功 - key={key}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[UpdateFeeData] 修改已記錄 - key={key}, " +
+                    $"待處理修改數: {InMemoryContext.FeeList.ChangeHistory.GetPendingCount()}");
 
                 return Ok();
             }
@@ -350,17 +355,18 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[SaveBatch] 開始儲存 - aResult={aResult}");
+                System.Diagnostics.Debug.WriteLine($"[SaveBatch] 開始批次儲存");
 
-                // 這裡可以添加額外的業務邏輯，例如發送通知或記錄日誌
-                // 目前 UpdateFeeData 已經處理了實際的資料更新
+                // ? 執行批次提交所有待處理的修改
+                int successCount = InMemoryContext.FeeList.CommitPendingChanges();
 
-                System.Diagnostics.Debug.WriteLine("[SaveBatch] 儲存成功");
+                System.Diagnostics.Debug.WriteLine($"[SaveBatch] 批次儲存完成 - 成功更新 {successCount} 筆記錄");
 
                 return Json(new
                 {
                     status = "success",
-                    message = "繳費資料已成功儲存"
+                    message = $"繳費資料已成功儲存 ({successCount} 筆記錄已更新)",
+                    count = successCount
                 });
             }
             catch (Exception ex)

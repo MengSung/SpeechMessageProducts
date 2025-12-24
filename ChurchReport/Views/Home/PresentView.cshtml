@@ -32,44 +32,82 @@
                     var dataGrid = $("#FeeGridContainer").dxDataGrid("instance");
                     var ButtonContainer = $("#save-button").dxButton("instance");
 
+                    // ? 先儲存 DataGrid 的所有編輯變更到本地
                     $("#FeeGridContainer").dxDataGrid("instance").saveEditData();
 
-                    if (true) {
-                        // 顯示旋轉載入面板
-                        $("#loadPanel").dxLoadPanel("instance").show();
-
-                        // 禁用上傳按鈕
-                        ButtonContainer.option("disabled", true);
-
-                        // AJAX 請求上傳數據
-                        $.ajax({
-                            url: '@Url.Action("SaveFeeManager", "Home")',
-                            data: { aResult: GetFeeResult() },
-                            type: 'POST',
-                            success: function (arg) {
-                                // 隱藏載入面板
-                                $("#loadPanel").dxLoadPanel("instance").hide();
-
-                                // 啟用上傳按鈕
-                                ButtonContainer.option("disabled", false);
-
-                                // 顯示成功提示
-                                $("#toast").dxToast("instance").show();
-                            },
-                            error: function (obj) {
-                                // 錯誤處理（可添加日誌或提示）
-                            }
-                        });
-                    } else {
-                        // 隱藏載入面板
-                        $("#loadPanel").dxLoadPanel("instance").hide();
-
-                        // 顯示重新上傳提示
-                        $("#ToastReUpload").dxToast("instance").show();
+                    // ? 檢查是否有待處理的變更
+                    var pendingChangesCount = dataGrid.hasEditData();
+                    
+                    if (!pendingChangesCount) {
+                        // 沒有待處理的變更，顯示提示
+                        DevExpress.ui.notify("目前沒有需要上傳的資料變更", "info", 2000);
+                        return;
                     }
+
+                    // 顯示旋轉載入面板
+                    $("#loadPanel").dxLoadPanel("instance").show();
+
+                    // 禁用上傳按鈕
+                    ButtonContainer.option("disabled", true);
+
+                    // AJAX 請求批次上傳數據
+                    $.ajax({
+                        url: '@Url.Action("SaveBatch", "FeeManagement")',
+                        data: { aResult: "" }, // aResult 參數保留以維持相容性
+                        type: 'POST',
+                        success: function (response) {
+                            // 隱藏載入面板
+                            $("#loadPanel").dxLoadPanel("instance").hide();
+
+                            // 啟用上傳按鈕
+                            ButtonContainer.option("disabled", false);
+
+                            // 檢查回應狀態
+                            if (response.status === "success") {
+                                // 顯示成功提示，包含更新筆數
+                                var message = response.count > 0 
+                                    ? "上傳成功! 已更新 " + response.count + " 筆記錄" 
+                                    : "上傳成功!";
+                                
+                                DevExpress.ui.notify(message, "success", 3000);
+                                
+                                // ? 清除待上傳修改記錄
+                                clearPendingChanges();
+                                
+                                // ? 重新載入資料以確保與資料庫同步
+                                dataGrid.refresh();
+                            } else {
+                                // 顯示錯誤提示
+                                DevExpress.ui.notify("上傳失敗: " + response.message, "error", 5000);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            // 隱藏載入面板
+                            $("#loadPanel").dxLoadPanel("instance").hide();
+
+                            // 啟用上傳按鈕
+                            ButtonContainer.option("disabled", false);
+
+                            // 顯示錯誤提示
+                            var errorMessage = "上傳時發生錯誤";
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage += ": " + xhr.responseJSON.message;
+                            }
+                            DevExpress.ui.notify(errorMessage, "error", 5000);
+                            
+                            console.error("上傳錯誤:", error);
+                        }
+                    });
                 }
             </text>)
         )
+    </div>
+
+    <!-- ? 待上傳修改數量提示 -->
+    <div id="pendingChangesIndicator" style="float: left; margin-left: 10px; margin-top: 15px; display: none;">
+        <span class="dx-icon dx-icon-warning" style="color: #ff9800; font-size: 20px;"></span>
+        <span id="pendingChangesCount" style="color: #ff9800; font-weight: bold; margin-left: 5px;">0</span>
+        <span style="color: #666; margin-left: 5px;">筆待上傳</span>
     </div>
 
     <!-- 成功提示 Toast -->
@@ -150,6 +188,26 @@
             editing.Texts(a => a.SaveAllChanges("上傳檔案").AddRow("新增").CancelAllChanges("取消變更").SaveRowChanges("儲存").CancelRowChanges("取消").EditRow("編輯").DeleteRow("刪除"));
             editing.RefreshMode(GridEditRefreshMode.Repaint);
         })
+        .OnRowUpdated(@<text>
+            function(e) {
+                // ? 當資料列更新時，記錄修改
+                var storLessonsId = e.key;
+                var changedFields = Object.keys(e.data);
+                
+                console.log('[PresentView] 資料列已更新:', storLessonsId, '修改欄位:', changedFields);
+                
+                // 記錄每個修改的欄位
+                changedFields.forEach(function(fieldName) {
+                    recordDataChange(storLessonsId, fieldName);
+                });
+            }
+        </text>)
+        .OnSaved(@<text>
+            function(e) {
+                // ? 當 DataGrid 儲存所有變更後觸發
+                console.log('[PresentView] DataGrid 變更已儲存到本地');
+            }
+        </text>)
         .CustomizeColumns("onCustomizeColumns")
         .Columns(columns =>
         {
@@ -193,7 +251,7 @@
             columns.Add().DataField("Lesson15").Caption("第十五課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
             columns.Add().DataField("Lesson16").Caption("第十六課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
             columns.Add().DataField("Lesson17").Caption("第十七課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
-            columns.Add().DataField("Lesson18").Caption("第十八課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
+            columns.Add().DataField("Lesson18"). Caption("第十八課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
             columns.Add().DataField("Lesson19").Caption("第十九課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
             columns.Add().DataField("Lesson20").Caption("第二十課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
             columns.Add().DataField("Lesson21").Caption("第二十一課").DataType(GridColumnDataType.Boolean).Width(75).MinWidth(45).AllowSorting(false);
@@ -320,6 +378,40 @@
         DiscipleLessonsId: '@ViewBag.DiscipleLessonsId',
         ActiveType: 'Active!'
     });
+
+    // ? 追蹤待上傳的修改數量
+    var pendingChangesMap = {}; // Key: StorLessonsId, Value: 修改的欄位集合
+
+    // ? 更新待上傳修改數量的顯示
+    function updatePendingChangesIndicator() {
+        var count = Object.keys(pendingChangesMap).length;
+        var indicator = $("#pendingChangesIndicator");
+        var countSpan = $("#pendingChangesCount");
+
+        countSpan.text(count);
+
+        if (count > 0) {
+            indicator.show();
+            console.log('[PendingChanges] 目前有 ' + count + ' 筆待上傳的修改');
+        } else {
+            indicator.hide();
+        }
+    }
+
+    // ? 記錄資料修改
+    function recordDataChange(storLessonsId, fieldName) {
+        if (!pendingChangesMap[storLessonsId]) {
+            pendingChangesMap[storLessonsId] = new Set();
+        }
+        pendingChangesMap[storLessonsId].add(fieldName);
+        updatePendingChangesIndicator();
+    }
+
+    // ? 清除所有待處理的修改記錄
+    function clearPendingChanges() {
+        pendingChangesMap = {};
+        updatePendingChangesIndicator();
+    }
 
     // 移動編輯列到左側
     function moveEditColumnToLeft(dataGrid) {
