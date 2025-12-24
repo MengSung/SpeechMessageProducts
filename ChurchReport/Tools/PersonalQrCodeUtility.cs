@@ -46,7 +46,7 @@ namespace ChurchReport.Tools
         bool m_NotifyLineFlag = false;
 
         // 客製化
-        // 好牧人
+        // 新莊靈糧堂
         private const String CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
 
         #endregion
@@ -55,7 +55,7 @@ namespace ChurchReport.Tools
         public PersonalQrCodeUtility()
         {
             // 客製化，請選擇
-            // 好牧人(免費版)
+            // 新莊靈糧堂(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化

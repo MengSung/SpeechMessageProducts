@@ -59,7 +59,7 @@ https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/200
 預期結果：
 ```
 ? 頁面正常顯示
-? 看到「好牧人」標題
+? 看到「新莊靈糧堂」標題
 ? 看到相片輪播
 ? 看到聯絡資訊
 ? 看到「奉獻登入」區塊

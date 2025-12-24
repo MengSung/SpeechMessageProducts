@@ -36,7 +36,7 @@ namespace ToolUtilityNameSpace.Core
     /// </summary>
     public class ToolUtilityFacade : IDisposable
     {
-        #region 好牧人(雲端機房)
+        #region 新莊靈糧堂(雲端機房)
         private const String SERVER = "speechmessage.com.tw";
         private const String PORT = "7777";
         private const String ORGANIZATION = "jesus";
@@ -45,7 +45,7 @@ namespace ToolUtilityNameSpace.Core
         private const String DOMAIN = "DYNAMICS-365";
         #endregion
 
-        #region 好牧人(公司內部發展)
+        #region 新莊靈糧堂(公司內部發展)
         //private const String SERVER = "speechmessage.com.tw";
         //private const String PORT = "7777";
         //private const String ORGANIZATION = "jesusback";

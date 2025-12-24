@@ -183,7 +183,7 @@ namespace ChurchReport.WebServiceConnector
                                 ClearIdentity = this.ConvertIndexToClearIdentity(aCustomerTypeCode.Value);
 
                                 // 版本轉換
-                                //// 如果是新朋友、未入組、外教會則不列入累積，好牧人
+                                //// 如果是新朋友、未入組、外教會則不列入累積，新莊靈糧堂
                                 if (aCustomerTypeCode.Value != 100000004 && aCustomerTypeCode.Value != 100000000 && aCustomerTypeCode.Value != 100000007)
                                 {
                                     return true;
@@ -193,7 +193,7 @@ namespace ChurchReport.WebServiceConnector
                                     return false;
                                 }
 
-                                // 如果是新朋友或是未入組則不列入累積，好牧人
+                                // 如果是新朋友或是未入組則不列入累積，新莊靈糧堂
                                 // 10.不穩定組員   =   100,000,008
                                 // 11.新朋友       =   100,000,009
                                 // 12.未入組       =   100,000,010
@@ -250,7 +250,7 @@ namespace ChurchReport.WebServiceConnector
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是新朋友或是未入組則不列入累積，好牧人
+                // 如果是新朋友或是未入組則不列入累積，新莊靈糧堂
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;
@@ -261,7 +261,7 @@ namespace ChurchReport.WebServiceConnector
                 }
 
 
-                // 如果是新朋友或是未入組則不列入累積，好牧人
+                // 如果是新朋友或是未入組則不列入累積，新莊靈糧堂
                 // 10.不穩定組員   =   100,000,008
                 // 11.新朋友       =   100,000,009
                 // 12.未入組       =   100,000,010
@@ -449,7 +449,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
 
-        // 好牧人
+        // 新莊靈糧堂
         // 委身類型客製化
         // ✅ 改為使用 OptionSetMetadataService 動態查詢
         private String ConvertIndexToIdentity(int Identity)

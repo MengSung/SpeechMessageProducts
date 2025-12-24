@@ -41,7 +41,7 @@ namespace ChurchReport.WebServiceConnector
         public LineNotifyUtility()
         {
             // 客製化，請選擇
-            // 好牧人(免費版)
+            // 新莊靈糧堂(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化

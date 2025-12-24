@@ -141,7 +141,7 @@ namespace ChurchReport.WebServiceConnector
                 // 去除掉主日出席率及小組出席率之後的小組名稱
                 String FilteredGroupName = ToolUtilityClass.DeletePresentRate(GroupName);
 
-                //好牧人小組名稱含有數字
+                //新莊靈糧堂小組名稱含有數字
                 //String FilteredOutDigitGroupName = Regex.Replace(FilteredGroupName, "[0-9]", "");//過濾掉數字
                 String FilteredOutDigitGroupName = FilteredGroupName.Replace(" ", ""); // //過濾掉空白
                 //AddToDictionary(ref this.m_FeedBackReport, "主日出席統計表頭", FilteredOutDigitGroupName + Environment.NewLine + "主日出席紀錄:");
@@ -698,7 +698,7 @@ namespace ChurchReport.WebServiceConnector
                     #region// 有找到吻合的名單
                     #region 先找到"小家長"、"小組長"、區長/小家長"
 
-                    // 先找到這個名單的小家長 ID，好牧人專用
+                    // 先找到這個名單的小家長 ID，新莊靈糧堂專用
                     //Guid aThisListFamilyHeadId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ListEntity, "new_familyhead_list");
 
                     // 找到這個名單的門徒 ID
@@ -2361,11 +2361,11 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #region 設定附註或是代禱事項
 
-                // 好牧人
+                // 新莊靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.PrayItem);
 
-                // 好牧人
+                // 新莊靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region// 新人跟進
@@ -2460,13 +2460,13 @@ namespace ChurchReport.WebServiceConnector
                         {
                             OptionSetValue aCustomerTypeCode = ContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                            // 如果是新朋友或是未入組則不列入累積，好牧人
+                            // 如果是新朋友或是未入組則不列入累積，新莊靈糧堂
                             if (aCustomerTypeCode.Value != 100000004 && aCustomerTypeCode.Value != 100000000 && aCustomerTypeCode.Value != 100000007)
                             {
                                 EffectiveNumber++;
                             }
 
-                            // 如果是新朋友或是未入組則不列入累積，好牧人
+                            // 如果是新朋友或是未入組則不列入累積，新莊靈糧堂
                             // 10.不穩定組員   =   100,000,008
                             // 11.新朋友       =   100,000,009
                             // 12.未入組       =   100,000,010
@@ -2638,7 +2638,7 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
             }
-            // 組員的職業及專長(好牧人)
+            // 組員的職業及專長(新莊靈糧堂)
             if (aMember.Industry != null)
             {
                 if (aMember.Industry != this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "new_industry"))
@@ -3265,14 +3265,14 @@ namespace ChurchReport.WebServiceConnector
                         }
                         #endregion
                         #region 設定附註或是代禱事項
-                        // 好牧人
+                        // 新莊靈糧堂
                         //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_name", aMemberInfomation.Note);
                         this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMember.PrayItem);
 
-                        // 好牧人
+                        // 新莊靈糧堂
                         //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_memo", aMemberInfomation.Note);
                         #endregion
-                        #region 好牧人的欄位
+                        #region 新莊靈糧堂的欄位
 
                         #region// 牧養狀態
                         //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_shepherd_situation", aMemberInfomation.ShepherdStatus);
@@ -3813,7 +3813,7 @@ namespace ChurchReport.WebServiceConnector
                                 ClearIdentity = this.ConvertIndexToClearIdentity(aCustomerTypeCode.Value);
 
                                 // 版本轉換
-                                //// 如果是新朋友、未入組、外教會則不列入累積，好牧人
+                                //// 如果是新朋友、未入組、外教會則不列入累積，新莊靈糧堂
                                 //if (aCustomerTypeCode.Value != 100000004 && aCustomerTypeCode.Value != 100000000 && aCustomerTypeCode.Value != 100000007)
                                 //{
                                 //    return true;
@@ -3827,7 +3827,7 @@ namespace ChurchReport.WebServiceConnector
                                 // 所有的委身類型都是要列入計算統計的
                                 //return true;
 
-                                //如果是新朋友或是未入組則不列入累積，好牧人
+                                //如果是新朋友或是未入組則不列入累積，新莊靈糧堂
                                 // 08. 幸福BEST = 100,000,005
                                 // 11. 外教會 = 100,000,007
                                 // 10.不穩定組員 = 100,000,008
@@ -3887,7 +3887,7 @@ namespace ChurchReport.WebServiceConnector
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是新朋友或是未入組則不列入累積，好牧人
+                // 如果是新朋友或是未入組則不列入累積，新莊靈糧堂
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;
@@ -3898,7 +3898,7 @@ namespace ChurchReport.WebServiceConnector
                 }
 
 
-                // 如果是新朋友或是未入組則不列入累積，好牧人
+                // 如果是新朋友或是未入組則不列入累積，新莊靈糧堂
                 // 10.不穩定組員   =   100,000,008
                 // 11.新朋友       =   100,000,009
                 // 12.未入組       =   100,000,010
@@ -4436,9 +4436,9 @@ namespace ChurchReport.WebServiceConnector
                         Entity aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
                         EntityReference aListEntityReference = new EntityReference("list", aListEntity.Id);
 
-                        // 好牧人
+                        // 新莊靈糧堂
                         //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", ref aListEntityReference);
-                        // 好牧人
+                        // 新莊靈糧堂
                         this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_list_contact", ref aListEntityReference);
 
                         this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
@@ -4582,11 +4582,11 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #region 設定附註或是代禱事項
 
-                // 好牧人
+                // 新莊靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.Note);
 
-                // 好牧人
+                // 新莊靈糧堂
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region// 新人跟進
@@ -5012,7 +5012,7 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        // 好牧人
+        // 新莊靈糧堂
         // 委身類型客製化
         // ✅ 改為使用 OptionSetMetadataService 動態查詢 (反向查詢: 文字 -> 數值)
         private int ConvertIdentityToIndex(String Identity)

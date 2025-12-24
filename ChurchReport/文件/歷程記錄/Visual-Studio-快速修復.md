@@ -63,7 +63,7 @@ Application started. Press Ctrl+C to shut down.
 ### 瀏覽器行為
 ```
 1. 自動開啟到 http://localhost:43371/
-2. 顯示好牧人登入頁面
+2. 顯示新莊靈糧堂登入頁面
 3. 看到帳號/密碼輸入框
 ```
 
@@ -336,7 +336,7 @@ info: Microsoft.AspNetCore.Mvc.Internal.ControllerActionInvoker[1]
 
 ### 瀏覽器
 ```
-? 顯示: 好牧人登入頁面
+? 顯示: 新莊靈糧堂登入頁面
 ? 看到: 背景圖片 + 登入表單
 ? 可以: 輸入帳號密碼
 ```

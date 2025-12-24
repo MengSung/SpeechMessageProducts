@@ -32,7 +32,7 @@ namespace ChurchReport.Tools
             #region Channel Access Token 設定
 
             // 客製化
-            // 好牧人 Line 2.0
+            // 新莊靈糧堂 Line 2.0
             private const String JESUS_CHANNEL_ACCESS_TOKEN = "g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
             private const String JESUS_BACK_CHANNEL_ACCESS_TOKEN = "g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
             #endregion
@@ -53,7 +53,7 @@ namespace ChurchReport.Tools
             private const String m_Default_ThumbnailImageUrl = "https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1";
             // 楊梅靈糧堂模板預設的圖片
             private const String m_Yangmeillc_ThumbnailImageUrl = "https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1";
-            // 好牧人模板預設的圖片
+            // 新莊靈糧堂模板預設的圖片
             private const String m_TpeHoc_ThumbnailImageUrl = "https://od.lk/s/ODdfNTg5ODc5OF8/2017_06_sermon_6-18.jpg";
 
             #endregion

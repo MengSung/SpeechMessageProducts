@@ -51,7 +51,7 @@ namespace ChurchReport.Tools
 
         private DateTime m_SigningTime;
         // 客製化
-        // 好牧人
+        // 新莊靈糧堂
         private const String CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
 
         // 神學生預設費用
@@ -64,7 +64,7 @@ namespace ChurchReport.Tools
         public SmallGroupQrCodeUtility()
         {
             // 客製化，請選擇
-            // 好牧人(免費版)
+            // 新莊靈糧堂(免費版)
             this.m_LineMessagingClient = new LineMessagingClient(CHANNEL_ACCESS_TOKEN);
 
             // 客製化
@@ -88,7 +88,7 @@ namespace ChurchReport.Tools
                     // 如果好友不存在，則新增好友，新加入好友
                     AddNewFriend(DisplayName, UserLineId);
 
-                    //OnboardType = "錯誤 : " + DisplayName + "還沒有加入好牧人的 Line@";
+                    //OnboardType = "錯誤 : " + DisplayName + "還沒有加入新莊靈糧堂的 Line@";
 
                     //return;
                 }
@@ -346,7 +346,7 @@ namespace ChurchReport.Tools
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_line_status_message", aUserProfile.StatusMessage);
                 this.m_ToolUtilityClass.SetEntityBoolAttribute(ref m_Contact, "new_line_register", false);
 
-                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，好牧人豐富教會=>"新朋友" = 100000000
+                // 委身類型客製化，客製委身類型欄位，每間教會委身類型都不一樣，新莊靈糧堂豐富教會=>"新朋友" = 100000000
                 // 設定成為 新朋友 的委身類型
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref m_Contact, "customertypecode", 100000000);
 
@@ -400,7 +400,7 @@ namespace ChurchReport.Tools
                         Entity aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
                         EntityReference aListEntityReference = new EntityReference("list", aListEntity.Id);
 
-                        // 好牧人
+                        // 新莊靈糧堂
                         this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_list_contact", ref aListEntityReference);
 
                         this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
