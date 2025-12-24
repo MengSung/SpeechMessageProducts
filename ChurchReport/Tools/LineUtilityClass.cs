@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Line.Messaging;
 using System.IO;
 using ToolUtilityNameSpace;
+using Microsoft.Extensions.Configuration;
 
 namespace ChurchReport.Tools
 {
@@ -31,13 +32,28 @@ namespace ChurchReport.Tools
 
             #region Channel Access Token 設定
 
-            // 客製化
-            // 新莊靈糧堂 Line 2.0
-            private const String JESUS_CHANNEL_ACCESS_TOKEN = "g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
-            private const String JESUS_BACK_CHANNEL_ACCESS_TOKEN = "g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
+            // 配置建構器與實例
+            private static readonly IConfigurationBuilder m_ConfigurationBuilder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+            private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
+
+            // 從配置讀取 Channel Access Token
+            private static string GetChannelAccessToken(string organization)
+            {
+                string token = m_Configuration[$"LineMessaging:{organization}:ChannelAccessToken"];
+                if (string.IsNullOrEmpty(token))
+                {
+                    // 如果找不到指定組織的設定，使用預設組織
+                    string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+                    token = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
+                }
+                return token ?? string.Empty;
+            }
+
             #endregion
 
-            String m_ChannelAccessToken = JESUS_CHANNEL_ACCESS_TOKEN;
+            String m_ChannelAccessToken = string.Empty;
 
             LineMessagingClient m_LineMessagingClient;
 
@@ -92,6 +108,10 @@ namespace ChurchReport.Tools
 
             public LineUtilityClass( ToolUtilityClass aToolUtilityClass)
             {
+                // 初始化時使用預設組織的 Token
+                string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+                m_ChannelAccessToken = GetChannelAccessToken(defaultOrg);
+                
                 m_LineMessagingClient = new LineMessagingClient(m_ChannelAccessToken);
 
                 m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
@@ -101,20 +121,25 @@ namespace ChurchReport.Tools
             {
                 try
                 {
-                    // 客製化，請選擇
-                    // 先取得組織名稱
+                    // 根據組織名稱從配置檔讀取對應的 Channel Access Token
                     if (this.m_OrganizationName == "jesus")
                     {
-                        m_ChannelAccessToken = JESUS_CHANNEL_ACCESS_TOKEN;
+                        m_ChannelAccessToken = GetChannelAccessToken("Jesus");
                     }
                     else if (this.m_OrganizationName == "jesusback")
                     {
-                        m_ChannelAccessToken = JESUS_BACK_CHANNEL_ACCESS_TOKEN;
+                        m_ChannelAccessToken = GetChannelAccessToken("JesusBack");
                     }
                     else
                     {
-                        m_ChannelAccessToken = JESUS_CHANNEL_ACCESS_TOKEN;
+                        // 使用預設組織
+                        string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+                        m_ChannelAccessToken = GetChannelAccessToken(defaultOrg);
                     }
+
+                    // 重新初始化 LineMessagingClient
+                    m_LineMessagingClient = new LineMessagingClient(m_ChannelAccessToken);
+                    m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
                 }
                 catch (System.Exception e)
                 {
