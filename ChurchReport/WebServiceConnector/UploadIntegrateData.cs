@@ -2281,7 +2281,6 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aPresentRecord, "new_small_group_rate", 0);
                 }
                 #endregion
-
                 #region 禱告會次數
                 if (aMemberInfomation.PrayerMeeting == true)
                 {
@@ -2292,7 +2291,6 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_prayer_meeting_number", 0);
                 }
                 #endregion
-
                 #region 門徒訓練班次數
                 if (aMemberInfomation.Child == true)
                 {
@@ -2303,7 +2301,6 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_child_number", 0);
                 }
                 #endregion
-
                 #region 門徒大聚次數
                 if (aMemberInfomation.BigDisciple == true)
                 {
@@ -2314,7 +2311,6 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_big_disciple_number", 0);
                 }
                 #endregion
-
                 #region 小組長小講堂次數
                 if (aMemberInfomation.LeadershipSmallLecture == true)
                 {
@@ -2325,7 +2321,6 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leadership_small_lecture_number", 0);
                 }
                 #endregion
-
                 #region 小組長大聚次數
                 if (aMemberInfomation.Sunday == true)
                 {
@@ -2336,8 +2331,6 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leaders_gather_number", 0);
                 }
                 #endregion
-
-
                 #region 設定幸福小組出席
 
                 if (aMemberInfomation.SmallGroup == true)
