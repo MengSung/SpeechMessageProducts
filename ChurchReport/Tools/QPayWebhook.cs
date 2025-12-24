@@ -25,7 +25,7 @@ namespace ChurchReport.Tools
         ToolUtilityClass m_ToolUtilityClass;
 
         // 客製化
-        // 新莊靈糧堂 2.0
+        // 好牧人 2.0
         private const String SPEECHMESSAGE_CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ

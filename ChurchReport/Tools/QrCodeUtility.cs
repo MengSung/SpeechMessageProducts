@@ -145,19 +145,19 @@ namespace ChurchReport.Tools
         {
             try
             {
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "003 : 新莊靈糧堂: 資訊 => " + DisplayName + "，" + UserName);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "003 : 好牧人: 資訊 => " + DisplayName + "，" + UserName);
 
                 m_UserLineId = UserLineId;
 
                 m_Contact = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(UserLineId);
                 if (m_Contact == null)
                 {
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入新莊靈糧堂的 Line@";
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入好牧人的 Line@";
                     return;
                 }
 
                 m_UserName = UserName = m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "004 : 新莊靈糧堂: 資訊 => " + m_UserName);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "004 : 好牧人: 資訊 => " + m_UserName);
 
                 string[] arr = QrCodeIdString.Split('_');
                 Guid aGuid = new Guid(arr[0]);
@@ -169,7 +169,7 @@ namespace ChurchReport.Tools
                 if (!m_ClassIndex.Contains("enroll"))
                 {
                     m_OnboardType = arr[2];
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "005 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "005 : 好牧人: 資訊 => " + m_OnboardType);
 
                     SigningLesson(m_Lesson, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType);
 
@@ -195,25 +195,25 @@ namespace ChurchReport.Tools
         {
             try
             {
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "006 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "006 : 好牧人: 資訊 => " + m_OnboardType);
 
                 EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.RetrieveStorLessonsByFetchXml(LessonName, aLesson.Id.ToString(), UserName, UserId);
 
                 if (aStorLessonsEntityCollection.Entities.Count > 0)
                 {
                     Entity retrievedStorLessons = m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsEntityCollection.Entities[0].Id);
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "007 : 新莊靈糧堂: 資訊 => SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );");
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "007 : 好牧人: 資訊 => SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );");
 
                     SigningProcess(retrievedStorLessons, ClassIndex, OnboardType);
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "008 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "008 : 好牧人: 資訊 => " + m_OnboardType);
                     return true;
                 }
 
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "009 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "009 : 好牧人: 資訊 => " + m_OnboardType);
 
                 if (m_ClassIndex.Contains("enroll"))
                 {
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "010 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "010 : 好牧人: 資訊 => " + m_OnboardType);
 
                     Entity createdStorLessons = m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", CreateNewStorLesson(m_Contact, ref aLesson));
 
@@ -223,7 +223,7 @@ namespace ChurchReport.Tools
                     }
 
                     SigningProcess(createdStorLessons, ClassIndex, OnboardType);
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "011 : 新莊靈糧堂: 資訊 => " + m_OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "011 : 好牧人: 資訊 => " + m_OnboardType);
                 }
                 else
                 {
