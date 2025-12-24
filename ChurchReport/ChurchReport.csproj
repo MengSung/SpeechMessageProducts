@@ -30,7 +30,6 @@
     <None Remove="Views\Home\HappyGroupWeeklyReport.cshtml" />
     <None Remove="Views\Home\IntegrateView.cshtml" />
     <None Remove="Views\Home\MultiGroupView.cshtml" />
-    <None Remove="Views\Home\PresentView.cshtml" />
     <None Remove="Views\Home\QPayLogin.cshtml" />
     <None Remove="Views\Home\QualificationView.cshtml" />
     <None Remove="Views\Home\SchedulerView.cshtml" />
