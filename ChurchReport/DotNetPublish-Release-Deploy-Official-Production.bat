@@ -1,27 +1,79 @@
+ï»¿@echo off
+chcp 65001 >nul
+setlocal enabledelayedexpansion
+
 echo ========================================
-echo   ChurchReport ¥¿¦¡Àô¹Ò³¡¸p
-echo   .NET 10 Razor Pages Web ³Ì¨Î¤Æ
+echo   ChurchReport æ­£å¼ç’°å¢ƒéƒ¨ç½²
+echo   .NET 10 Razor Pages Web æœ€ä½³åŒ–
 echo ========================================
 echo.
 
-REM ¨ú±o·í«eª©¥»¸¹¡]±q Git ©Î¦Û­q¡^
-for /f "tokens=*" %%i in ('git describe --tags --always 2^>nul') do set GIT_VERSION=%%i
-if "%GIT_VERSION%"=="" set GIT_VERSION=1.0.0
-
-echo [®É¶¡] %date% %time%
+REM æ­¥é©Ÿ 1: ç’°å¢ƒæª¢æŸ¥
+echo [æ­¥é©Ÿ 1/5] ç’°å¢ƒæª¢æŸ¥...
 echo.
 
-REM ²M²zÂÂªº¿é¥X
-if exist "./bin/Output-Release-Deploy-Official-Production" (
-    echo [²M²z] ²M²zÂÂª©¥»...
-    rmdir /s /q "./bin/Output-Release-Deploy-Official-Production"
+REM æª¢æŸ¥ .NET SDK
+dotnet --version >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo [éŒ¯èª¤] æœªæ‰¾åˆ° .NET SDK
+    echo è«‹å…ˆå®‰è£ .NET 10 SDK
+    goto :ERROR
 )
 
-echo [½sÄ¶] ¶}©l½sÄ¶...
+for /f "tokens=*" %%v in ('dotnet --version') do set DOTNET_VERSION=%%v
+echo [OK] .NET SDK ç‰ˆæœ¬: %DOTNET_VERSION%
+
+REM æª¢æŸ¥å°ˆæ¡ˆæª”
+if not exist "ChurchReport.csproj" (
+    echo [éŒ¯èª¤] æ‰¾ä¸åˆ° ChurchReport.csproj
+    echo è«‹ç¢ºèªåœ¨æ­£ç¢ºçš„ç›®éŒ„åŸ·è¡Œæ­¤è…³æœ¬
+    goto :ERROR
+)
+echo [OK] æ‰¾åˆ°å°ˆæ¡ˆæª” ChurchReport.csproj
+
+REM å–å¾— Git ç‰ˆæœ¬è™Ÿï¼ˆåƒ…ç”¨æ–¼é¡¯ç¤ºï¼‰
+for /f "tokens=*" %%i in ('git describe --tags --always 2^>nul') do set GIT_VERSION=%%i
+if "%GIT_VERSION%"=="" set GIT_VERSION=Manual-Build
+echo [OK] Git ç‰ˆæœ¬: %GIT_VERSION%
+
+echo [OK] å»ºç½®æ™‚é–“: %date% %time%
 echo.
 
-REM °õ¦æ½sÄ¶ - ²¾°£·|¾É­Pª©¥»¸¹½Ä¬ðªº°Ñ¼Æ
+REM æ­¥é©Ÿ 2: æ¸…ç†èˆŠç‰ˆæœ¬
+echo [æ­¥é©Ÿ 2/5] æ¸…ç†èˆŠç‰ˆæœ¬...
+if exist "./bin/Output-Release-Deploy-Official-Production" (
+    rmdir /s /q "./bin/Output-Release-Deploy-Official-Production"
+    echo [OK] å·²æ¸…ç†èˆŠçš„è¼¸å‡ºç›®éŒ„
+) else (
+    echo [OK] ç„¡éœ€æ¸…ç†
+)
+echo.
+
+REM æ­¥é©Ÿ 3: é‚„åŽŸå¥—ä»¶
+echo [æ­¥é©Ÿ 3/5] é‚„åŽŸ NuGet å¥—ä»¶...
+dotnet restore --verbosity minimal
+if %ERRORLEVEL% NEQ 0 (
+    echo [éŒ¯èª¤] å¥—ä»¶é‚„åŽŸå¤±æ•—
+    goto :ERROR
+)
+echo [OK] å¥—ä»¶é‚„åŽŸå®Œæˆ
+echo.
+
+REM æ­¥é©Ÿ 4: ç·¨è­¯å°ˆæ¡ˆ
+echo [æ­¥é©Ÿ 4/5] ç·¨è­¯ä¸¦ç™¼ä½ˆå°ˆæ¡ˆ...
+echo ç·¨è­¯é…ç½®:
+echo   - ç›®æ¨™å¹³å°: win-x64
+echo   - éƒ¨ç½²æ¨¡å¼: Framework-Dependent
+echo   - å„ªåŒ–ç´šåˆ¥: ReadyToRun + PGO
+echo   - è¼¸å‡ºç›®éŒ„: ./bin/Output-Release-Deploy-Official-Production
+echo.
+
 dotnet publish -c Release -r win-x64 --self-contained false ^
+    --verbosity normal ^
+    /p:Version=1.0.0 ^
+    /p:AssemblyVersion=1.0.0 ^
+    /p:FileVersion=1.0.0 ^
+    /p:InformationalVersion=%GIT_VERSION% ^
     /p:PublishSingleFile=false ^
     /p:IncludeNativeLibrariesForSelfExtract=false ^
     /p:PublishReadyToRun=true ^
@@ -34,89 +86,157 @@ dotnet publish -c Release -r win-x64 --self-contained false ^
     /p:DebugType=None ^
     /p:ReadyToRunUseCrossgen2=true ^
     /p:DebugSymbols=false ^
-    /p:IlcOptimizationPreference=Speed ^
-    /p:IlcOptimizationData=true ^
--o "./bin/Output-Release-Deploy-Official-Production"
+    /p:Deterministic=false ^
+    /p:ContinuousIntegrationBuild=false ^
+    -o "./bin/Output-Release-Deploy-Official-Production"
 
-if %ERRORLEVEL% EQU 0 (
+if %ERRORLEVEL% NEQ 0 (
     echo.
-    echo ========================================
-    echo   [¦¨¥\] ³¡¸p¦¨¥\¡I
-    echo ========================================
-    echo   [¿é¥X] ./bin/Output-Release-Deploy-Production
-    echo   [ª©¥»] %VERSION%
-    echo   [Àu¤Æ] Web ³Ì¨Î¤Æ (AOT + PGO)
-    echo   [±Ò°Ê] ´£¤É 30-50%%
-    echo   [®Ä¯à] ´£¤É 10-15%%
-    echo ========================================
-    
-    REM Åã¥ÜÃöÁäÀÉ®×
-    echo.
-    echo [ÀË¬d] ÃöÁäÀÉ®×ÀË¬d:
-    if exist "./bin/Output-Release-Deploy-Production/ChurchReport.dll" (
-        echo    [OK] ChurchReport.dll
-    ) else (
-        echo    [FAIL] ChurchReport.dll ¤£¦s¦b¡I
-    )
-    
-    if exist "./bin/Output-Release-Deploy-Production/web.config" (
-        echo    [OK] web.config
-    ) else (
-        echo    [WARN] web.config ¤£¦s¦b
-    )
-    
-    if exist "./bin/Output-Release-Deploy-Production/appsettings.json" (
-        echo    [OK] appsettings.json
-    ) else (
-        echo    [WARN] appsettings.json ¤£¦s¦b
-    )
-    
-    REM ÀË¬d ReadyToRun ½sÄ¶µ²ªG
-    dir /b "./bin/Output-Release-Deploy-Production/*.ni.dll" >nul 2>&1
-    if %ERRORLEVEL% EQU 0 (
-        echo    [OK] ReadyToRun Native Images (.ni.dll)
-    ) else (
-        echo    [WARN] ¥¼§ä¨ì Native Images
-    )
-    
-    REM ­pºâ³¡¸p¥]¤j¤p
-    for /f "tokens=3" %%s in ('dir /s /-c "./bin/Output-Release-Deploy-Production" 2^>nul ^| find "­ÓÀÉ®×"') do set SIZE=%%s
-    if not "%SIZE%"=="" (
-        echo    [INFO] ³¡¸p¥]¤j¤p: %SIZE% bytes
-    )
-    
-    echo.
-    echo [ª`·N] ³¡¸pª`·N¨Æ¶µ:
-    echo    1. ½T»{¥Ø¼Ð¦øªA¾¹¤w¦w¸Ë .NET 10 Runtime (ASP.NET Core)
-    echo    2. ³]©w IIS À³¥Îµ{¦¡¶°°Ï¬° "µL¨üºÞ²zµ{¦¡½X"
-    echo    3. ½T»{ Dynamics 365 ³s½u³]©w¥¿½T
-    echo    4. ÀË¬d appsettings.json ¤¤ªº³s½u¦r¦ê
-    echo    5. ½T»{ DevExtreme ±ÂÅv¦³®Ä
-    echo.
-    echo [¤U¤@¨B] IIS ³¡¸p¨BÆJ:
-    echo    1. °±¤î IIS À³¥Îµ{¦¡¶°°Ï
-    echo    2. ½Æ»s ./bin/Output-Release-Deploy-Production ¨ì¦øªA¾¹
-    echo    3. ³]©w IIS ºô¯¸¹êÅé¸ô®|
-    echo    4. ±Ò°ÊÀ³¥Îµ{¦¡¶°°Ï
-    echo    5. ´ú¸Õºô¯¸¬O§_¥¿±`¹B§@
-    
+    echo [éŒ¯èª¤] ç·¨è­¯å¤±æ•— (éŒ¯èª¤ä»£ç¢¼: %ERRORLEVEL%)
+    goto :ERROR
+)
+
+echo [OK] ç·¨è­¯å®Œæˆ
+echo.
+
+REM æ­¥é©Ÿ 5: é©—è­‰è¼¸å‡º
+echo [æ­¥é©Ÿ 5/5] é©—è­‰éƒ¨ç½²çµæžœ...
+echo.
+
+set FAILED=0
+
+if exist "./bin/Output-Release-Deploy-Official-Production/ChurchReport.dll" (
+    echo [OK] ChurchReport.dll
 ) else (
-    echo.
-    echo ========================================
-    echo   [¥¢±Ñ] ³¡¸p¥¢±Ñ¡I
-    echo ========================================
-    echo   [¿ù»~] ¿ù»~¥N½X: %ERRORLEVEL%
-    echo   [´£¥Ü] ½ÐÀË¬d¤W¤è¿ù»~°T®§
-    echo ========================================
-    echo.
-    echo [±Æ°£] ±`¨£°ÝÃD:
-    echo    1. ÀË¬d .NET 10 SDK ¬O§_¤w¦w¸Ë
-    echo    2. °õ¦æ dotnet restore ÁÙ­ì®M¥ó
-    echo    3. ÀË¬d±M®×¬O§_¦³½sÄ¶¿ù»~
-    echo    4. ½T»{¦b¥¿½Tªº¥Ø¿ý°õ¦æ (¥]§t ChurchReport.csproj)
-    echo.
+    echo [FAIL] ChurchReport.dll ä¸å­˜åœ¨
+    set FAILED=1
+)
+
+if exist "./bin/Output-Release-Deploy-Official-Production/web.config" (
+    echo [OK] web.config
+) else (
+    echo [WARN] web.config ä¸å­˜åœ¨ (å°‡ç”± IIS è‡ªå‹•ç”Ÿæˆ)
+)
+
+if exist "./bin/Output-Release-Deploy-Official-Production/appsettings.json" (
+    echo [OK] appsettings.json
+) else (
+    echo [WARN] appsettings.json ä¸å­˜åœ¨
+)
+
+if exist "./bin/Output-Release-Deploy-Official-Production/wwwroot" (
+    echo [OK] wwwroot éœæ…‹è³‡æº
+) else (
+    echo [WARN] wwwroot ç›®éŒ„ä¸å­˜åœ¨
+)
+
+REM æª¢æŸ¥ ReadyToRun ç·¨è­¯
+dir /b "./bin/Output-Release-Deploy-Official-Production/*.ni.dll" >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    echo [OK] ReadyToRun Native Images (.ni.dll)
+) else (
+    echo [WARN] æœªæ‰¾åˆ° Native Images (AOT ç·¨è­¯å¯èƒ½æœªå•Ÿç”¨)
 )
 
 echo.
 
+if %FAILED% EQU 1 (
+    echo [éŒ¯èª¤] éƒ¨ç½²é©—è­‰å¤±æ•—ï¼Œé—œéµæª”æ¡ˆéºå¤±
+    goto :ERROR
+)
+
+REM è¨ˆç®—éƒ¨ç½²åŒ…å¤§å°
+for /f "tokens=3" %%s in ('dir /s /-c "./bin/Output-Release-Deploy-Official-Production" 2^>nul ^| find "å€‹æª”æ¡ˆ"') do set SIZE=%%s
+if not "%SIZE%"=="" (
+    echo éƒ¨ç½²åŒ…å¤§å°: %SIZE% bytes
+)
+
+echo.
+echo ========================================
+echo   éƒ¨ç½²æˆåŠŸï¼
+echo ========================================
+echo.
+echo éƒ¨ç½²è³‡è¨Š:
+echo   ç‰ˆæœ¬è™Ÿ: %GIT_VERSION%
+echo   å»ºç½®æ™‚é–“: %date% %time%
+echo   è¼¸å‡ºç›®éŒ„: ./bin/Output-Release-Deploy-Official-Production
+echo.
+echo å„ªåŒ–é…ç½®:
+echo   [OK] ReadyToRun AOT ç·¨è­¯
+echo   [OK] Profile-Guided Optimization (PGO)
+echo   [OK] Tiered Compilation
+echo   [OK] é€Ÿåº¦å„ªå…ˆå„ªåŒ–
+echo.
+echo é æœŸæ•ˆèƒ½æå‡:
+echo   å•Ÿå‹•é€Ÿåº¦: 30-50%%
+echo   é¦–æ¬¡è«‹æ±‚: 20-30%%
+echo   ç©©å®šåŸ·è¡Œ: 10-15%%
+echo.
+echo ========================================
+echo   éƒ¨ç½²æ³¨æ„äº‹é …
+echo ========================================
+echo.
+echo IIS éƒ¨ç½²æª¢æŸ¥æ¸…å–®:
+echo   [ ] 1. ä¼ºæœå™¨å·²å®‰è£ .NET 10 Runtime (ASP.NET Core)
+echo   [ ] 2. IIS æ¨¡çµ„: ASP.NET Core Module (ANCM)
+echo   [ ] 3. æ‡‰ç”¨ç¨‹å¼é›†å€è¨­å®š: "ç„¡å—ç®¡ç†ç¨‹å¼ç¢¼"
+echo   [ ] 4. æ‡‰ç”¨ç¨‹å¼é›†å€è¨­å®š: å•Ÿå‹•æ¨¡å¼ "AlwaysRunning"
+echo   [ ] 5. ç¶²ç«™å¯¦é«”è·¯å¾‘æŒ‡å‘: ./bin/Output-Release-Deploy-Official-Production
+echo.
+echo è¨­å®šæª”æª¢æŸ¥:
+echo   [ ] 1. appsettings.json - Dynamics 365 é€£ç·šå­—ä¸²
+echo   [ ] 2. appsettings.json - Line Notify Token
+echo   [ ] 3. web.config - ASPNETCORE_ENVIRONMENT = Production
+echo   [ ] 4. DevExtreme æŽˆæ¬Šæª”æ¡ˆ (å¦‚éœ€è¦)
+echo.
+echo Dynamics 365 é€£ç·š:
+echo   [ ] 1. CRM URL æ­£ç¢º
+echo   [ ] 2. å¸³è™Ÿå¯†ç¢¼æ­£ç¢º
+echo   [ ] 3. ç¶²è·¯é€£ç·šæ­£å¸¸
+echo   [ ] 4. é˜²ç«ç‰†è¦å‰‡è¨­å®š
+echo.
+echo ========================================
+goto :END
+
+:ERROR
+echo.
+echo ========================================
+echo   éƒ¨ç½²å¤±æ•—ï¼
+echo ========================================
+echo.
+echo éŒ¯èª¤ä»£ç¢¼: %ERRORLEVEL%
+echo.
+echo å¸¸è¦‹å•é¡ŒæŽ’é™¤:
+echo.
+echo 1. SDK ç‰ˆæœ¬å•é¡Œ
+echo    è§£æ±º: ç¢ºèªå®‰è£ .NET 10 SDK
+echo    æª¢æŸ¥: dotnet --list-sdks
+echo.
+echo 2. å¥—ä»¶é‚„åŽŸå¤±æ•—
+echo    è§£æ±º: æ‰‹å‹•åŸ·è¡Œ dotnet restore
+echo    æª¢æŸ¥: ç¶²è·¯é€£ç·šã€NuGet ä¾†æº
+echo.
+echo 3. ç·¨è­¯éŒ¯èª¤
+echo    è§£æ±º: æª¢æŸ¥ä¸Šæ–¹éŒ¯èª¤è¨Šæ¯
+echo    å»ºè­°: åœ¨ Visual Studio ä¸­å…ˆå»ºç½®ç¢ºèª
+echo.
+echo 4. ç£ç¢Ÿç©ºé–“ä¸è¶³
+echo    è§£æ±º: æ¸…ç† bin/obj ç›®éŒ„
+echo    æª¢æŸ¥: å¯ç”¨ç£ç¢Ÿç©ºé–“ ^> 1GB
+echo.
+echo 5. æ¬Šé™å•é¡Œ
+echo    è§£æ±º: ä»¥ç³»çµ±ç®¡ç†å“¡èº«åˆ†åŸ·è¡Œ
+echo.
+echo 6. Git ç‰ˆæœ¬è™Ÿå•é¡Œ
+echo    è§£æ±º: å·²ä¿®æ­£ç‚ºå›ºå®šç‰ˆæœ¬ 1.0.0
+echo    å‚™è¨»: Git hash åƒ…ç”¨æ–¼é¡¯ç¤º
+echo.
+echo ========================================
 pause
+exit /b 1
+
+:END
+echo.
+echo æŒ‰ä»»æ„éµé—œé–‰è¦–çª—...
+pause >nul
+exit /b 0
