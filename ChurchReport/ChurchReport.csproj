@@ -81,6 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Views\Dedication\" />
+    <Folder Include="文件\佈署規劃\" />
     <Folder Include="文件\修正官網奉獻網頁\" />
   </ItemGroup>
   <ItemGroup>
