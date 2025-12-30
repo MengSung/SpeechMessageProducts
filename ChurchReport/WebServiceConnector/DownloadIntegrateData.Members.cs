@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using ChurchReport.Models;
 using ChurchReport.Models.CrmTransmitModule;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
+using ToolUtilityNameSpace.Extensions;
 
 namespace ChurchReport.WebServiceConnector
 {
@@ -30,8 +34,8 @@ namespace ChurchReport.WebServiceConnector
 
             if (!string.IsNullOrEmpty(WeeklyReportEntityId))
             {
-                // 有週報 -> 從出席紀錄取得成員
-                GetAllMemberDataFromPresentRecord(
+                // 有週報 -> 從出席紀錄取得成員 (使用批次查詢優化)
+                GetAllMemberDataFromPresentRecordOptimized(
                     aListSmallGroupWeeklyReport.ListEntityName, 
                     new Guid(WeeklyReportEntityId), 
                     ref aListSmallGroupWeeklyReport);
@@ -41,7 +45,7 @@ namespace ChurchReport.WebServiceConnector
                 // 無週報 -> 從名單取得成員
                 if (m_LoginType == "小組長")
                 {
-                    GetAllMemberDataFromList(
+                    GetAllMemberDataFromListOptimized(
                         aListSmallGroupWeeklyReport.ListEntityName, 
                         new Guid(ListEntityId), 
                         ref aListSmallGroupWeeklyReport);
@@ -57,26 +61,212 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region 從出席紀錄取得成員
+        #region 從出席紀錄取得成員 (優化版 - 批次查詢)
 
         /// <summary>
-        /// 從出席紀錄取得所有成員資料
+        /// 從出席紀錄取得所有成員資料 (批次查詢優化版)
+        /// 解決 N+1 查詢問題：原本每個出席紀錄都會查詢一次 Contact
+        /// 優化後：批次查詢所有 Contact，減少 98% 的 CRM 查詢次數
+        /// </summary>
+        private void GetAllMemberDataFromPresentRecordOptimized(
+            string GroupName, 
+            Guid WeeklyReportId, 
+            ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            // 1. 取得所有出席紀錄
+            EntityCollection PresentRecordCollection = GetPresentRecordByLoginType(GroupName, WeeklyReportId, ref aListSmallGroupWeeklyReport);
+
+            if (PresentRecordCollection.Entities.Count == 0)
+                return;
+
+            // 2. 提取所有需要查詢的 Contact ID
+            var contactIds = ExtractContactIdsFromPresentRecords(PresentRecordCollection);
+
+            if (!contactIds.Any())
+                return;
+
+            // 3. 批次查詢所有 Contact (解決 N+1 問題)
+            var contactCache = BatchRetrieveContacts(contactIds);
+
+            // 4. 處理每筆出席紀錄 (從快取取得 Contact)
+            foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
+            {
+                ProcessPresentRecordEntityWithCache(
+                    GroupName, 
+                    PresentRecordEntity, 
+                    contactCache,
+                    ref aListSmallGroupWeeklyReport);
+            }
+        }
+
+        /// <summary>
+        /// 從出席紀錄集合中提取所有 Contact ID
+        /// </summary>
+        private List<Guid> ExtractContactIdsFromPresentRecords(EntityCollection presentRecordCollection)
+        {
+            var contactIds = new List<Guid>();
+
+            foreach (Entity entity in presentRecordCollection.Entities)
+            {
+                // 檢查狀態碼
+                if (!entity.Attributes.Contains("statecode"))
+                    continue;
+
+                OptionSetValue stateCode = entity.Attributes["statecode"] as OptionSetValue;
+                if (stateCode.Value != 0)
+                    continue;
+
+                // 檢查是否隱藏
+                if (this.m_ToolUtilityClass.GetEntityBoolAttribute(entity, "new_not_display"))
+                    continue;
+
+                // 提取 Contact ID
+                if (entity.Attributes.Contains("new_contact_new_present_record"))
+                {
+                    EntityReference contactRef = (EntityReference)entity.Attributes["new_contact_new_present_record"];
+                    contactIds.Add(contactRef.Id);
+                }
+            }
+
+            return contactIds.Distinct().ToList();
+        }
+
+        /// <summary>
+        /// 批次查詢 Contact 實體
+        /// 使用 CRM 的 IN 條件一次查詢所有 Contact，避免 N+1 問題
+        /// </summary>
+        private Dictionary<Guid, Entity> BatchRetrieveContacts(List<Guid> contactIds)
+        {
+            if (!contactIds.Any())
+                return new Dictionary<Guid, Entity>();
+
+            const int BATCH_SIZE = 50; // CRM 建議每批最多 50 筆
+            var result = new Dictionary<Guid, Entity>();
+
+            // 分批處理
+            var batches = SplitIntoBatches(contactIds, BATCH_SIZE);
+
+            foreach (var batch in batches)
+            {
+                var query = new QueryExpression("contact")
+                {
+                    ColumnSet = new ColumnSet(true),
+                    Criteria = new FilterExpression
+                    {
+                        Conditions =
+                        {
+                            new ConditionExpression("contactid", ConditionOperator.In, batch.Cast<object>().ToArray())
+                        }
+                    }
+                };
+
+                try
+                {
+                    EntityCollection contacts;
+                    if (CRM_TYPE == "DYNAMICS365")
+                    {
+                        contacts = this.m_ToolUtilityClass.m_OrganizationService.RetrieveMultiple(query);
+                    }
+                    else
+                    {
+                        contacts = this.m_ToolUtilityClass.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                    }
+
+                    foreach (Entity contact in contacts.Entities)
+                    {
+                        result[contact.Id] = contact;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[BatchRetrieveContacts] 批次查詢失敗: {ex.Message}");
+                    // 降級處理：逐筆查詢
+                    foreach (var id in batch)
+                    {
+                        try
+                        {
+                            var contact = this.m_ToolUtilityClass.RetrieveEntity("contact", id);
+                            if (contact != null)
+                                result[contact.Id] = contact;
+                        }
+                        catch { }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 將 ID 列表分割成批次
+        /// </summary>
+        private IEnumerable<List<Guid>> SplitIntoBatches(List<Guid> source, int batchSize)
+        {
+            for (int i = 0; i < source.Count; i += batchSize)
+            {
+                yield return source.Skip(i).Take(batchSize).ToList();
+            }
+        }
+
+        /// <summary>
+        /// 處理單筆出席紀錄 (使用快取的 Contact)
+        /// </summary>
+        private void ProcessPresentRecordEntityWithCache(
+            string GroupName, 
+            Entity PresentRecordEntity, 
+            Dictionary<Guid, Entity> contactCache,
+            ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            if (!PresentRecordEntity.Attributes.Contains("statecode"))
+                return;
+
+            OptionSetValue aOptionState = PresentRecordEntity.Attributes["statecode"] as OptionSetValue;
+
+            // 只處理使用中且未隱藏的紀錄
+            if (aOptionState.Value != 0 || this.m_ToolUtilityClass.GetEntityBoolAttribute(PresentRecordEntity, "new_not_display"))
+                return;
+
+            // 取得聯絡人參照
+            if (!PresentRecordEntity.Attributes.Contains("new_contact_new_present_record"))
+                return;
+
+            EntityReference aFullNameEntityReference = (EntityReference)PresentRecordEntity.Attributes["new_contact_new_present_record"];
+            string FullName = (string)aFullNameEntityReference.Name;
+            string ContactId = aFullNameEntityReference.Id.ToString();
+
+            // 從快取取得聯絡人詳細資料 (不再個別查詢 CRM)
+            if (!contactCache.TryGetValue(aFullNameEntityReference.Id, out Entity aContactEntity))
+            {
+                // 快取中沒有，降級處理：單筆查詢
+                aContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aFullNameEntityReference.Id);
+                if (aContactEntity == null)
+                    return;
+            }
+
+            // 建立成員物件
+            Member member = CreateMemberFromPresentRecord(GroupName, PresentRecordEntity, aContactEntity, FullName, ContactId);
+
+            // 排除結案成員
+            if (member.Status != "10. 未入組結案")
+            {
+                aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(member);
+            }
+        }
+
+        /// <summary>
+        /// 從出席紀錄取得所有成員資料 (原始版本，保留相容性)
         /// </summary>
         private void GetAllMemberDataFromPresentRecord(
             string GroupName, 
             Guid WeeklyReportId, 
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            EntityCollection PresentRecordCollection = GetPresentRecordByLoginType(GroupName, WeeklyReportId, ref aListSmallGroupWeeklyReport);
-
-            foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
-            {
-                ProcessPresentRecordEntity(GroupName, PresentRecordEntity, ref aListSmallGroupWeeklyReport);
-            }
+            // 呼叫優化版本
+            GetAllMemberDataFromPresentRecordOptimized(GroupName, WeeklyReportId, ref aListSmallGroupWeeklyReport);
         }
 
         /// <summary>
-        /// 處理單筆出席紀錄
+        /// 處理單筆出席紀錄 (原始版本，保留相容性)
         /// </summary>
         private void ProcessPresentRecordEntity(
             string GroupName, 
@@ -187,12 +377,12 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region 從名單取得成員
+        #region 從名單取得成員 (優化版 - 批次查詢)
 
         /// <summary>
-        /// 從名單取得所有成員資料
+        /// 從名單取得所有成員資料 (批次查詢優化版)
         /// </summary>
-        private void GetAllMemberDataFromList(
+        private void GetAllMemberDataFromListOptimized(
             string GroupName, 
             Guid ListEntityId, 
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
@@ -202,21 +392,92 @@ namespace ChurchReport.WebServiceConnector
 
             EntityCollection MemberCollection = GetMemberCollection(ListEntityId, ListType);
 
+            if (MemberCollection.Entities.Count == 0)
+                return;
+
+            // 提取所有 Contact ID
+            var contactIds = ExtractContactIdsFromMembers(MemberCollection, ListType);
+
+            if (!contactIds.Any())
+                return;
+
+            // 批次查詢所有 Contact
+            var contactCache = BatchRetrieveContacts(contactIds);
+
             int PresentRecordIdCounter = 0;
             foreach (Entity MemberEntity in MemberCollection.Entities)
             {
-                Entity ContactEntity = GetContactFromMember(MemberEntity, ListType);
+                Guid contactId = GetContactIdFromMember(MemberEntity, ListType);
 
-                if (IsActiveContact(ContactEntity))
+                if (contactCache.TryGetValue(contactId, out Entity ContactEntity))
                 {
-                    Member member = CreateMemberFromContact(GroupName, ContactEntity, PresentRecordIdCounter++);
-                    
-                    if (member.Status != "10. 未入組結案")
+                    if (IsActiveContact(ContactEntity))
                     {
-                        aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(member);
+                        Member member = CreateMemberFromContact(GroupName, ContactEntity, PresentRecordIdCounter++);
+                        
+                        if (member.Status != "10. 未入組結案")
+                        {
+                            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(member);
+                        }
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// 從成員集合中提取所有 Contact ID
+        /// </summary>
+        private List<Guid> ExtractContactIdsFromMembers(EntityCollection memberCollection, bool listType)
+        {
+            var contactIds = new List<Guid>();
+
+            foreach (Entity member in memberCollection.Entities)
+            {
+                Guid contactId = GetContactIdFromMember(member, listType);
+                if (contactId != Guid.Empty)
+                {
+                    contactIds.Add(contactId);
+                }
+            }
+
+            return contactIds.Distinct().ToList();
+        }
+
+        /// <summary>
+        /// 從成員實體取得 Contact ID
+        /// </summary>
+        private Guid GetContactIdFromMember(Entity memberEntity, bool listType)
+        {
+            try
+            {
+                if (listType == false)
+                {
+                    // 靜態名單
+                    if (memberEntity.Attributes.Contains("entityid"))
+                        return ((EntityReference)memberEntity.Attributes["entityid"]).Id;
+                }
+                else
+                {
+                    // 動態名單
+                    if (memberEntity.Attributes.Contains("contactid"))
+                        return (Guid)memberEntity.Attributes["contactid"];
+                }
+            }
+            catch { }
+
+            return Guid.Empty;
+        }
+
+        /// <summary>
+        /// 從名單取得所有成員資料 (原始版本，保留相容性)
+        /// </summary>
+        private void GetAllMemberDataFromList(
+            string GroupName, 
+            Guid ListEntityId, 
+            ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        {
+            // 呼叫優化版本
+            GetAllMemberDataFromListOptimized(GroupName, ListEntityId, ref aListSmallGroupWeeklyReport);
         }
 
         /// <summary>
