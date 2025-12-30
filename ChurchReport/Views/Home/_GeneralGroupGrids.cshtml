@@ -4,6 +4,7 @@
     功能：包含「小組是否暫停」選項、「小組牧養」資料網格以及「新人跟進關懷」資料網格
     注意：本檔案僅整理排版與加入說明註解，不變更原有邏輯與功能
     ✅ 改進：會員身分和信仰狀態改為動態從 API 載入
+    ✅ 改進：小組牧養和新人跟進關懷資料網格在無資料時自動隱藏
     ===================================================================
 *@
 @using ChurchReport.Models
@@ -22,10 +23,10 @@
         )
     </div>
 
-    @* 2) 小組牧養資料網格：在 DisplayFlag 為 true 時顯示 *@
-        @if (Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag == true)  
-        {
-        <div class="small-group-section">
+    @* 2) 小組牧養資料網格：在 DisplayFlag 為 true 時顯示，無資料時自動隱藏 *@
+    @if (Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag == true)  
+    {
+        <div class="small-group-section" id="smallGroupSection">
             <div style="font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
                 <h5>小組牧養:</h5>
             </div>
@@ -171,7 +172,20 @@
                             function(e) {
                                 // 將編輯欄位移至左側，維持既有使用體驗
                                 moveEditColumnToLeft(e.component);
-                                // ShowToast(ReMindMessage, 'warning', 20000);
+                                
+                                // ✅ 檢查資料筆數，若無資料則隱藏整個區塊
+                                var dataSource = e.component.getDataSource();
+                                var totalCount = dataSource.totalCount();
+                                
+                                if (totalCount === 0) {
+                                    // 隱藏整個小組牧養區塊
+                                    $('#smallGroupSection').hide();
+                                    console.log('✅ [SmallGroupGrid] 無資料，隱藏小組牧養區塊');
+                                } else {
+                                    // 有資料則顯示
+                                    $('#smallGroupSection').show();
+                                    console.log('✅ [SmallGroupGrid] 資料筆數:', totalCount);
+                                }
                             }
                         </text>)
                         .OnCellPrepared("cell_prepared")        @* 鉛筆圖示/文字等自訂顯示 *@
@@ -180,10 +194,10 @@
         </div>
     }
 
-    @* 3) 新人跟進關懷資料網格：在 DisplayFlag 為 true 時顯示 *@
+    @* 3) 新人跟進關懷資料網格：在 DisplayFlag 為 true 時顯示，無資料時自動隱藏 *@
     @if (Model.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag == true)
     {
-        <div class="new-person-follow-up-section">
+        <div class="new-person-follow-up-section" id="newPersonFollowUpSection">
             <div style="font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
                 <h5>新人跟進關懷:</h5>
             </div>
@@ -385,7 +399,20 @@
                             function(e) {
                                 // 將編輯欄位移至左側，維持既有使用體驗
                                 moveEditColumnToLeft(e.component);
-                                // ShowToast(ReMindMessage, 'warning', 20000);
+                                
+                                // ✅ 檢查資料筆數，若無資料則隱藏整個區塊
+                                var dataSource = e.component.getDataSource();
+                                var totalCount = dataSource.totalCount();
+                                
+                                if (totalCount === 0) {
+                                    // 隱藏整個新人跟進關懷區塊
+                                    $('#newPersonFollowUpSection').hide();
+                                    console.log('✅ [NewPersonGrid] 無資料，隱藏新人跟進關懷區塊');
+                                } else {
+                                    // 有資料則顯示
+                                    $('#newPersonFollowUpSection').show();
+                                    console.log('✅ [NewPersonGrid] 資料筆數:', totalCount);
+                                }
                             }
                         </text>)
                         .OnCellPrepared("cell_prepared")        @* 鉛筆圖示/文字等自訂顯示 *@
