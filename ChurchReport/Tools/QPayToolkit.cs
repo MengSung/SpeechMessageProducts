@@ -72,161 +72,189 @@ namespace ChurchReport.Tools
         #region Public method
         #region 訂單建立 (虛擬帳號、信用卡)
         /// <summary>
-        /// 訂單建立 (虛擬帳號、信用卡)
+        /// 訂單建立 (虛擬帳號、信用卡) - 同步版本
         /// </summary>
-        /// <param name="req"></param>
-        /// <example>
-        /// 串接範例如下:
-        /// CreOrder retObj = QPayToolkit.OrderCreate(new CreOrderReq() { ... });
-        /// </example>
+        /// <remarks>
+        /// ⚠️ 建議使用 OrderCreateAsync 非同步版本以避免執行緒阻塞
+        /// </remarks>
         public static CreOrder OrderCreate(CreOrderReq req)
         {
-            return GetQPayResponse<CreOrderReq, CreOrder>(req, APIService.OrderCreate);
+            return GetQPayResponseAsync<CreOrderReq, CreOrder>(req, APIService.OrderCreate).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 訂單建立 (虛擬帳號、信用卡) - 非同步版本
+        /// ✅ Phase 7: 新增非同步 API
+        /// </summary>
+        public static async Task<CreOrder> OrderCreateAsync(CreOrderReq req)
+        {
+            return await GetQPayResponseAsync<CreOrderReq, CreOrder>(req, APIService.OrderCreate);
         }
         #endregion
 
         #region 待請款訂單查詢
         /// <summary>
-        /// 待請款訂單查詢
+        /// 待請款訂單查詢 - 同步版本
         /// </summary>
-        /// <param name="req"></param>
-        /// <example>
-        /// 串接範例如下:
-        /// QryOrderUnCaptured retObj = QPayToolkit.OrderUnCapturedQuery(new QryOrderUnCapturedReq() { ... });
-        /// </example>
         public static QryOrderUnCaptured OrderUnCapturedQuery(QryOrderUnCapturedReq req)
         {
-            return GetQPayResponse<QryOrderUnCapturedReq, QryOrderUnCaptured>(req, APIService.OrderUnCapturedQuery);
+            return GetQPayResponseAsync<QryOrderUnCapturedReq, QryOrderUnCaptured>(req, APIService.OrderUnCapturedQuery).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 待請款訂單查詢 - 非同步版本
+        /// ✅ Phase 7: 新增非同步 API
+        /// </summary>
+        public static async Task<QryOrderUnCaptured> OrderUnCapturedQueryAsync(QryOrderUnCapturedReq req)
+        {
+            return await GetQPayResponseAsync<QryOrderUnCapturedReq, QryOrderUnCaptured>(req, APIService.OrderUnCapturedQuery);
         }
         #endregion
 
         #region 信用卡訂單維護
         /// <summary>
-        /// 信用卡訂單維護
+        /// 信用卡訂單維護 - 同步版本
         /// </summary>
-        /// <param name="req"></param>
-        /// <example>
-        /// 串接範例如下:
-        /// OrderMaintain retObj = QPayToolkit.OrderMaintain(new OrderMaintainReq() { ... });
-        /// </example>
         public static OrderMaintain OrderMaintain(OrderMaintainReq req)
         {
-            return GetQPayResponse<OrderMaintainReq, OrderMaintain>(req, APIService.OrderMaintain);
+            return GetQPayResponseAsync<OrderMaintainReq, OrderMaintain>(req, APIService.OrderMaintain).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 信用卡訂單維護 - 非同步版本
+        /// ✅ Phase 7: 新增非同步 API
+        /// </summary>
+        public static async Task<OrderMaintain> OrderMaintainAsync(OrderMaintainReq req)
+        {
+            return await GetQPayResponseAsync<OrderMaintainReq, OrderMaintain>(req, APIService.OrderMaintain);
         }
         #endregion
 
         #region 訂單查詢
         /// <summary>
-        /// 訂單查詢
+        /// 訂單查詢 - 同步版本
         /// </summary>
-        /// <param name="req"></param>
-        /// <example>
-        /// 串接範例如下:
-        /// QryOrder retObj = QPayToolkit.OrderQuery(new QryOrderReq() { ... });
-        /// </example>
         public static QryOrder OrderQuery(QryOrderReq req)
         {
-            return GetQPayResponse<QryOrderReq, QryOrder>(req, APIService.OrderQuery);
+            return GetQPayResponseAsync<QryOrderReq, QryOrder>(req, APIService.OrderQuery).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 訂單查詢 - 非同步版本
+        /// ✅ Phase 7: 新增非同步 API
+        /// </summary>
+        public static async Task<QryOrder> OrderQueryAsync(QryOrderReq req)
+        {
+            return await GetQPayResponseAsync<QryOrderReq, QryOrder>(req, APIService.OrderQuery);
         }
         #endregion
 
         #region 付款結果查詢服務
         /// <summary>
-        /// 付款結果查詢服務
+        /// 付款結果查詢服務 - 同步版本
         /// </summary>
-        /// <param name="req"></param>
-        /// <example>
-        /// 串接範例如下:
-        /// QryOrderPay retObj = QPayToolkit.OrderPayQuery(new QryOrderPayReq() { ... });
-        /// </example>
         public static QryOrderPay OrderPayQuery(QryOrderPayReq req)
         {
-            return GetQPayResponse<QryOrderPayReq, QryOrderPay>(req, APIService.OrderPayQuery);
+            return GetQPayResponseAsync<QryOrderPayReq, QryOrderPay>(req, APIService.OrderPayQuery).GetAwaiter().GetResult();
         }
+
+        /// <summary>
+        /// 付款結果查詢服務 - 非同步版本
+        /// ✅ Phase 7: 新增非同步 API
+        /// </summary>
+        public static async Task<QryOrderPay> OrderPayQueryAsync(QryOrderPayReq req)
+        {
+            return await GetQPayResponseAsync<QryOrderPayReq, QryOrderPay>(req, APIService.OrderPayQuery);
+        }
+
+        /// <summary>
+        /// 付款結果查詢服務（指定 HashCode）- 同步版本
+        /// </summary>
         public static QryOrderPay OrderPayQuery(QryOrderPayReq req, String HashCode)
         {
-            return GetQPayResponse<QryOrderPayReq, QryOrderPay>(req, APIService.OrderPayQuery, HashCode);
+            return GetQPayResponseAsync<QryOrderPayReq, QryOrderPay>(req, APIService.OrderPayQuery, HashCode).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 付款結果查詢服務（指定 HashCode）- 非同步版本
+        /// ✅ Phase 7: 新增非同步 API
+        /// </summary>
+        public static async Task<QryOrderPay> OrderPayQueryAsync(QryOrderPayReq req, String HashCode)
+        {
+            return await GetQPayResponseAsync<QryOrderPayReq, QryOrderPay>(req, APIService.OrderPayQuery, HashCode);
         }
         #endregion
 
         #region 每日收(退)款查詢服務
         /// <summary>
-        /// 每日收(退)款查詢服務
+        /// 每日收(退)款查詢服務 - 同步版本
         /// </summary>
-        /// <param name="req"></param>
-        /// <example>
-        /// 串接範例如下:
-        /// QryBill retObj = QPayToolkit.BillQuery(new QryBillReq() { ... });
-        /// </example>
         public static QryBill BillQuery(QryBillReq req)
         {
-            return GetQPayResponse<QryBillReq, QryBill>(req, APIService.BillQuery);
+            return GetQPayResponseAsync<QryBillReq, QryBill>(req, APIService.BillQuery).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 每日收(退)款查詢服務 - 非同步版本
+        /// ✅ Phase 7: 新增非同步 API
+        /// </summary>
+        public static async Task<QryBill> BillQueryAsync(QryBillReq req)
+        {
+            return await GetQPayResponseAsync<QryBillReq, QryBill>(req, APIService.BillQuery);
         }
         #endregion
 
         #region 撥款檔查詢服務
         /// <summary>
-        /// 撥款檔查詢服務
+        /// 撥款檔查詢服務 - 同步版本
         /// </summary>
-        /// <param name="req"></param>
-        /// <example>
-        /// 串接範例如下:
-        /// QryAllot retObj = QPayToolkit.AllotQuery(new QryAllotReq() { ... });
-        /// </example>
         public static QryAllot AllotQuery(QryAllotReq req)
         {
-            return GetQPayResponse<QryAllotReq, QryAllot>(req, APIService.AllotQuery);
+            return GetQPayResponseAsync<QryAllotReq, QryAllot>(req, APIService.AllotQuery).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 撥款檔查詢服務 - 非同步版本
+        /// ✅ Phase 7: 新增非同步 API
+        /// </summary>
+        public static async Task<QryAllot> AllotQueryAsync(QryAllotReq req)
+        {
+            return await GetQPayResponseAsync<QryAllotReq, QryAllot>(req, APIService.AllotQuery);
         }
         #endregion
         #endregion
 
         #region Private method
-        #region 取得QPay Web API response
-        private static TResult GetQPayResponse<TReq, TResult>(TReq request, APIService apiService) where TReq : IQPayReq
+        #region 取得QPay Web API response (非同步版本)
+        /// <summary>
+        /// 取得 QPay Web API Response - 非同步版本
+        /// ✅ Phase 7: 核心方法改為完全非同步
+        /// </summary>
+        private static async Task<TResult> GetQPayResponseAsync<TReq, TResult>(TReq request, APIService apiService) where TReq : IQPayReq
         {
-            //string shopNo = request.ShopNo;
             string shopNo = request.ShopNo;
-            //由appSettings取得指定商店雜湊值  ex <add key="AA0001" value="...,...,...,..."/>
-            //string apiKeyData = ConfigurationManager.AppSettings.Get(shopNo);
-            //if (string.IsNullOrEmpty(apiKeyData))
-            //    throw new Exception("AppSettings.config 中不存在指定商店API Keys");
-
-            //將取得雜湊值以逗號(,)分隔並轉小寫，產生string陣列
-            //string[] apiKeys = apiKeyData.ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             string[] apiKeys = HASH_CODE.ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            //string[] apiKeys = "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399".ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            //string[] apiKeys = "D1695F439A69448F,7E460E920A184845,DEA83EFB714943F3,DC237C5C69914F0C".ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
             //產生取Nonce Request
             NonceReq nonceReq = new NonceReq(shopNo);
 
-            //發送Request並取得Nonce Responce
-            NonceRes nonceRes = GetNonce(nonceReq).Result;
+            //發送Request並取得Nonce Responce - 使用 await
+            NonceRes nonceRes = await GetNonce(nonceReq);
 
             if (string.IsNullOrEmpty(nonceRes.Nonce))
                 throw new Exception("Nonce值為null或空值");
 
             int i;
-            //1.移除雜湊中的"-"
-            //2.取得雜湊的前16碼
-            //3.將步驟2結果轉為16進制byte陣列
             List<byte[]> keyList = apiKeys.ToList().Select(x => Hex.GetBytes(x.Replace("-", "").Substring(0, 16), out i)).ToList();
 
             string
                 sha256,
                 iv,
-                //1.分別將 雜湊A1 XOR 雜湤A2, 雜湯B1 XOR 雜湯B2
-                //2.將步驟1的兩個結果各自轉為16進制字串 S1, S2
-                //3.AESKey = S1 + S2
                 aesKey = Hex.ToString(QPayCommon.XOR(keyList[0], keyList[1])) + Hex.ToString(QPayCommon.XOR(keyList[2], keyList[3])),
-                //之前取得之Nonce
                 nonce = nonceRes.Nonce,
-                //序列化之Request物件
                 innerJson = QPayCommon.SerializeToJson(request),
-                //利用 AESKey, Nonce進行AESCBC加密，加密內文(提供out SHA256及 out iv可供後續驗證)
                 msg = QPayCommon.EncryptAesData(aesKey, innerJson, nonce, out sha256, out iv);
 
-            //產生WebAPIMessage
             WebAPIMessage req = new WebAPIMessage()
             {
                 Version = _currentVersion,
@@ -234,7 +262,6 @@ namespace ChurchReport.Tools
                 APIService = apiService.ToString(),
                 Nonce = nonce,
                 Message = msg,
-                //利用Request物件, AESKey及Nonce組成Sign值
                 Sign = request.GenerateSign(aesKey, nonce)
             };
 
@@ -242,20 +269,17 @@ namespace ChurchReport.Tools
             {
                 QPayCommon.InfoLog(string.Format("呼叫商業收付API Order/{0} , Request:{1}", req.APIService, QPayCommon.SerializeToJson(req)));
 
-                //呼叫商業收付Web API
-                WebAPIMessage result = NewAPI<WebAPIMessage>("Order", req).Result;
+                //呼叫商業收付Web API - 使用 await
+                WebAPIMessage result = await NewAPI<WebAPIMessage>("Order", req);
 
                 QPayCommon.InfoLog(string.Format("呼叫商業收付API Order/{0} , Response:{1}", req.APIService, QPayCommon.SerializeToJson(result)));
 
-                //利用 AESKey, Nonce進行AESCBC解密，解密內文(提供out SHA256及 out iv可供後續驗證)
                 string decodedMsg = QPayCommon.DecryptAesData(aesKey, result.Message, result.Nonce, out sha256, out iv);
 
                 QPayCommon.InfoLog("Response Message:" + decodedMsg);
 
-                //反序列化取得Response物件
                 TResult innerResult = JsonConvert.DeserializeObject<TResult>(decodedMsg);
 
-                //Sign值驗證
                 string responseSign = innerResult.GenerateSign(aesKey, result.Nonce);
                 if (responseSign != result.Sign)
                 {
@@ -270,56 +294,38 @@ namespace ChurchReport.Tools
             catch (Exception ex)
             {
                 QPayCommon.ExceptionLog(null, ex);
-                throw ex;
+                throw;
             }
         }
-        private static TResult GetQPayResponse<TReq, TResult>(TReq request, APIService apiService, String HashCode) where TReq : IQPayReq
+
+        /// <summary>
+        /// 取得 QPay Web API Response（指定 HashCode）- 非同步版本
+        /// ✅ Phase 7: 核心方法改為完全非同步
+        /// </summary>
+        private static async Task<TResult> GetQPayResponseAsync<TReq, TResult>(TReq request, APIService apiService, String HashCode) where TReq : IQPayReq
         {
-            //string shopNo = request.ShopNo;
             string shopNo = request.ShopNo;
-            //由appSettings取得指定商店雜湊值  ex <add key="AA0001" value="...,...,...,..."/>
-            //string apiKeyData = ConfigurationManager.AppSettings.Get(shopNo);
-            //if (string.IsNullOrEmpty(apiKeyData))
-            //    throw new Exception("AppSettings.config 中不存在指定商店API Keys");
-
-            //將取得雜湊值以逗號(,)分隔並轉小寫，產生string陣列
-            //string[] apiKeys = apiKeyData.ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            //string[] apiKeys = "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399".ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            //string[] apiKeys = apiKeyData.ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             string[] apiKeys = HashCode.ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            //string[] apiKeys = "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399".ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            //string[] apiKeys = "D1695F439A69448F,7E460E920A184845,DEA83EFB714943F3,DC237C5C69914F0C".ToLower().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-            //產生取Nonce Request
             NonceReq nonceReq = new NonceReq(shopNo);
 
-            //發送Request並取得Nonce Responce
-            NonceRes nonceRes = GetNonce(nonceReq).Result;
+            //發送Request並取得Nonce Responce - 使用 await
+            NonceRes nonceRes = await GetNonce(nonceReq);
 
             if (string.IsNullOrEmpty(nonceRes.Nonce))
                 throw new Exception("Nonce值為null或空值");
 
             int i;
-            //1.移除雜湊中的"-"
-            //2.取得雜湯的前16碼
-            //3.將步驟2結果轉為16進制byte陣列
             List<byte[]> keyList = apiKeys.ToList().Select(x => Hex.GetBytes(x.Replace("-", "").Substring(0, 16), out i)).ToList();
 
             string
                 sha256,
                 iv,
-                //1.分別將 雜湊A1 XOR 雜湤A2, 雜湯B1 XOR 雜湯B2
-                //2.將步驟1的兩個結果各自轉為16進制字串 S1, S2
-                //3.AESKey = S1 + S2
                 aesKey = Hex.ToString(QPayCommon.XOR(keyList[0], keyList[1])) + Hex.ToString(QPayCommon.XOR(keyList[2], keyList[3])),
-                //之前取得之Nonce
                 nonce = nonceRes.Nonce,
-                //序列化之Request物件
                 innerJson = QPayCommon.SerializeToJson(request),
-                //利用 AESKey, Nonce進行AESCBC加密，加密內文(提供out SHA256及 out iv可供後續驗證)
                 msg = QPayCommon.EncryptAesData(aesKey, innerJson, nonce, out sha256, out iv);
 
-            //產生WebAPIMessage
             WebAPIMessage req = new WebAPIMessage()
             {
                 Version = _currentVersion,
@@ -327,7 +333,6 @@ namespace ChurchReport.Tools
                 APIService = apiService.ToString(),
                 Nonce = nonce,
                 Message = msg,
-                //利用Request物件, AESKey及Nonce組成Sign值
                 Sign = request.GenerateSign(aesKey, nonce)
             };
 
@@ -335,20 +340,17 @@ namespace ChurchReport.Tools
             {
                 QPayCommon.InfoLog(string.Format("呼叫商業收付API Order/{0} , Request:{1}", req.APIService, QPayCommon.SerializeToJson(req)));
 
-                //呼叫商業收付Web API
-                WebAPIMessage result = NewAPI<WebAPIMessage>("Order", req).Result;
+                //呼叫商業收付Web API - 使用 await
+                WebAPIMessage result = await NewAPI<WebAPIMessage>("Order", req);
 
                 QPayCommon.InfoLog(string.Format("呼叫商業收付API Order/{0} , Response:{1}", req.APIService, QPayCommon.SerializeToJson(result)));
 
-                //利用 AESKey, Nonce進行AESCBC解密，解密內文(提供out SHA256及 out iv可供後續驗證)
                 string decodedMsg = QPayCommon.DecryptAesData(aesKey, result.Message, result.Nonce, out sha256, out iv);
 
                 QPayCommon.InfoLog("Response Message:" + decodedMsg);
 
-                //反序列化取得Response物件
                 TResult innerResult = JsonConvert.DeserializeObject<TResult>(decodedMsg);
 
-                //Sign值驗證
                 string responseSign = innerResult.GenerateSign(aesKey, result.Nonce);
                 if (responseSign != result.Sign)
                 {
@@ -363,7 +365,7 @@ namespace ChurchReport.Tools
             catch (Exception ex)
             {
                 QPayCommon.ExceptionLog(null, ex);
-                throw ex;
+                throw;
             }
         }
         #endregion
@@ -413,7 +415,9 @@ namespace ChurchReport.Tools
             else
             {
                 QPayCommon.ExceptionLog(string.Format("Call API {0} failed. StatusCode : {1}", req.APIService, response.StatusCode));
-                throw new Exception(response.Content.ReadAsStringAsync().Result);
+                // ✅ 修復：使用 await 而非 .Result
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception(errorContent);
             }
 
             return res;
@@ -1237,7 +1241,7 @@ namespace QPay.Domain
     {
         /// <summary>
         /// 會員編號，例如AA0001
-        /// </summary>
+        /// </summary>        
         [DataMember]
         public string ShopNo { get; set; }
 

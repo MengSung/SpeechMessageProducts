@@ -368,7 +368,11 @@ namespace ToolUtility
         #endregion
         #region 練習區
 
-        public void ConfirmMessage(string UserId)
+        /// <summary>
+        /// 確認訊息範例 (已改為非同步)
+        /// ✅ Phase 7: 移除 .Wait() 阻塞，改為 async/await
+        /// </summary>
+        public async Task ConfirmMessageAsync(string UserId)
         {
             ISendMessage replyMessage = new TemplateMessage("確認按鈕",
                     new ConfirmTemplate("耶和華", new List<ITemplateAction> {
@@ -382,12 +386,14 @@ namespace ToolUtility
                 new StickerMessage("1", "2")
             };
 
-            this.m_LineMessagingClient.PushMessageAsync(UserId, actions1).Wait();
-
-            return;
-
+            await this.m_LineMessagingClient.PushMessageAsync(UserId, actions1);
         }
-        public void CarouselMessage(string UserId)
+
+        /// <summary>
+        /// 輪播訊息範例 (已改為非同步)
+        /// ✅ Phase 7: 移除 .Wait() 阻塞，改為 async/await
+        /// </summary>
+        public async Task CarouselMessageAsync(string UserId)
         {
             List<ITemplateAction> actions1 = new List<ITemplateAction>();
             List<ITemplateAction> actions2 = new List<ITemplateAction>();
@@ -419,8 +425,6 @@ namespace ToolUtility
                         "Casousel 1-5 Title", actions1),
                         new CarouselColumn("Casousel 6 Text", "https://github.com/apple-touch-icon.png",
                         "Casousel 1-6 Title", actions1),
-                        //new CarouselColumn("Casousel 6 Text", "https://github.com/apple-touch-icon.png",
-                        //"Casousel 1-6 Title", actions1),
 
 
                         new CarouselColumn("Casousel 7 Text", "https://github.com/apple-touch-icon.png",
@@ -431,10 +435,6 @@ namespace ToolUtility
                         "Casousel 2-3 Title", actions2),
                         new CarouselColumn("Casousel 10 Text", "https://github.com/apple-touch-icon.png",
                         "Casousel 2-4 Title", actions2),
-                        //new CarouselColumn("Casousel A Text", "https://github.com/apple-touch-icon.png",
-                        //"Casousel 2-4 Title", actions2),
-                        //new CarouselColumn("Casousel B Text", "https://github.com/apple-touch-icon.png",
-                        //"Casousel 2-5 Title", actions2)
                 }));
 
             List<ISendMessage> MessageToSend = new List<ISendMessage>
@@ -443,38 +443,27 @@ namespace ToolUtility
                 new StickerMessage("1", "14")
             };
 
-            this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend).Wait();
-
-            return;
-
+            await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
         }
-        public void ChurchCarouselMessage(string UserId)
+
+        /// <summary>
+        /// 教會輪播訊息範例 (已改為非同步)
+        /// ✅ Phase 7: 移除 .Wait() 阻塞，改為 async/await
+        /// </summary>
+        public async Task ChurchCarouselMessageAsync(string UserId)
         {
             List<ITemplateAction> actions1 = new List<ITemplateAction>();
             // Add actions.
             actions1.Add(new MessageTemplateAction("報名", "簡如牧師邀請您"));
-            //actions1.Add(new PostbackTemplateAction("Postback Label", "sample data", "sample data"));
             actions1.Add(new UriTemplateAction("說明網頁", "https://www.blccym.org/single-post/2018/05/16/2018520-%E4%B8%BB%E6%97%A5"));
 
             List<ITemplateAction> actions2 = new List<ITemplateAction>();
             actions2.Add(new MessageTemplateAction("報名", "簡如牧師邀請您"));
-            //actions1.Add(new PostbackTemplateAction("Postback Label", "sample data", "sample data"));
             actions2.Add(new UriTemplateAction("說明網頁", "https://www.blccym.org/single-post/2018/05/09/2018512%E9%9D%92%E5%B4%87"));
 
             List<ITemplateAction> actions3 = new List<ITemplateAction>();
             actions3.Add(new MessageTemplateAction("報名", "簡如牧師邀請您"));
-            //actions1.Add(new PostbackTemplateAction("Postback Label", "sample data", "sample data"));
             actions3.Add(new UriTemplateAction("說明網頁", "https://www.blccym.org/single-post/2018/05/16/2018520-%E4%B8%BB%E6%97%A5"));
-
-            // Add datetime picker actions
-            //actions2.Add(new DateTimePickerTemplateAction("DateTime Picker", "DateTime",
-            //    DateTimePickerMode.Datetime, "2017-07-21T13:00", null, null));
-            //actions2.Add(new DateTimePickerTemplateAction("Date Picker", "Date",
-            //    DateTimePickerMode.Date, "2017-07-21", null, null));
-            //actions2.Add(new DateTimePickerTemplateAction("Time Picker", "Time",
-            //    DateTimePickerMode.Time, "13:00", null, null));
-
-
 
             ISendMessage replyMessage = new TemplateMessage("Button Template",
                 new CarouselTemplate(new List<CarouselColumn>
@@ -487,20 +476,6 @@ namespace ToolUtility
 
                         new CarouselColumn("時間：每週二至週五，早上7：40～9：20", "https://od.lk/s/ODdfOTA4MTYyM18/%E6%99%A8%E7%A6%B1.jpg",
                         "晨禱", actions3),
-
-
-                        //new CarouselColumn("Casousel 7 Text", "https://github.com/apple-touch-icon.png",
-                        //"Casousel 2-1 Title", actions2),
-                        //new CarouselColumn("Casousel 8 Text", "https://github.com/apple-touch-icon.png",
-                        //"Casousel 2-2 Title", actions2),
-                        //new CarouselColumn("Casousel 9 Text", "https://github.com/apple-touch-icon.png",
-                        //"Casousel 2-3 Title", actions2),
-                        //new CarouselColumn("Casousel 10 Text", "https://github.com/apple-touch-icon.png",
-                        //"Casousel 2-4 Title", actions2),
-                        //new CarouselColumn("Casousel A Text", "https://github.com/apple-touch-icon.png",
-                        //"Casousel 2-4 Title", actions2),
-                        //new CarouselColumn("Casousel B Text", "https://github.com/apple-touch-icon.png",
-                        //"Casousel 2-5 Title", actions2)
                 }));
 
             List<ISendMessage> MessageToSend = new List<ISendMessage>
@@ -509,12 +484,38 @@ namespace ToolUtility
                 new StickerMessage("1", "14")
             };
 
-            this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend).Wait();
+            await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+        }
 
-            return;
+        #region 向後相容 - 已標記過時的同步方法
+        /// <summary>
+        /// 確認訊息範例 (已過時)
+        /// </summary>
+        [Obsolete("請使用 ConfirmMessageAsync 非同步方法")]
+        public void ConfirmMessage(string UserId)
+        {
+            ConfirmMessageAsync(UserId).GetAwaiter().GetResult();
+        }
 
+        /// <summary>
+        /// 輪播訊息範例 (已過時)
+        /// </summary>
+        [Obsolete("請使用 CarouselMessageAsync 非同步方法")]
+        public void CarouselMessage(string UserId)
+        {
+            CarouselMessageAsync(UserId).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// 教會輪播訊息範例 (已過時)
+        /// </summary>
+        [Obsolete("請使用 ChurchCarouselMessageAsync 非同步方法")]
+        public void ChurchCarouselMessage(string UserId)
+        {
+            ChurchCarouselMessageAsync(UserId).GetAwaiter().GetResult();
         }
         #endregion
 
+        #endregion
     }
 }
