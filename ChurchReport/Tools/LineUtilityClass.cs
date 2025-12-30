@@ -15,8 +15,12 @@ using Microsoft.Extensions.Configuration;
 
 namespace ChurchReport.Tools
 {
-        public class LineUtilityClass
-        {
+    /// <summary>
+    /// LINE 訊息工具類別
+    /// ✅ Phase 5: 正確實現 IDisposable Pattern 以防止記憶體洩漏
+    /// </summary>
+    public class LineUtilityClass : IDisposable
+    {
             #region 系統參數
             //IServiceProvider m_ServiceProvider;
             //ITracingService m_TracingService;
@@ -454,7 +458,6 @@ namespace ChurchReport.Tools
             }
 
             #endregion
-
             #endregion
 
             #region 設定通知格式
@@ -791,5 +794,6 @@ namespace ChurchReport.Tools
             public string PictureUrl { get; set; }
             public string StatusMessage { get; set; }
         }
-        #endregion
+
+    #endregion
 }
