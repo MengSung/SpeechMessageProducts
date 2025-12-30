@@ -81,6 +81,11 @@ namespace ChurchReport
             // 註冊分散式記憶體快取，用於支援 Session 等功能。
             services.AddDistributedMemoryCache();
 
+            // ========================================
+            // ✅ Phase 2.2: 註冊應用程式快取服務
+            // ========================================
+            // 註冊 ICacheService 為 Singleton，全應用程式共用一個快取服務實例
+            services.AddSingleton<ChurchReport.Services.Caching.ICacheService, ChurchReport.Services.Caching.CacheService>();
 
             // ========================================
             // 註冊 CRM 連接池 (Singleton 模式)
