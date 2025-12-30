@@ -8,25 +8,51 @@ using System.Threading.Tasks;
 namespace Line.Pay
 {
     /// <summary>
-    /// LINE Messaging API client, which handles request/response to LINE server.
+    /// LINE Pay API client, which handles request/response to LINE Pay server.
     /// </summary>
     public class LinePayClient : IDisposable
     {
-        private HttpClient client;
+        private readonly HttpClient client;
+        private readonly bool _disposeClient;
         static private Uri realUri = new Uri("https://api-pay.line.me");
-        static private Uri sandboxUri = new Uri( "https://sandbox-api-pay.line.me");
+        static private Uri sandboxUri = new Uri("https://sandbox-api-pay.line.me");
         private string version;
        
         static private JsonSerializerSettings serializerSettings = new JsonSerializerSettings() {
             DefaultValueHandling = DefaultValueHandling.Ignore
         };
+
         /// <summary>
-        /// Create LINE Pay client.
+        /// Create LINE Pay client - 使用外部提供的 HttpClient（建議用於 DI 情境）
+        /// </summary>
+        /// <param name="httpClient">外部提供的 HttpClient 實例（不會被 Dispose）</param>
+        /// <param name="channelId">Payment Integration Information - Channel ID</param>
+        /// <param name="channelSecret">Payment Integration Information - ChannelSecret Key</param>
+        /// <param name="isSandbox">Specify true if sandbox</param>
+        /// <param name="version">Specify version</param>
+        public LinePayClient(HttpClient httpClient, string channelId, string channelSecret, bool isSandbox = false, string version = "v2")
+        {
+            if (httpClient == null) { throw new ArgumentNullException(nameof(httpClient)); }
+            if (string.IsNullOrEmpty(channelId)) { throw new ArgumentNullException(nameof(channelId)); }
+            if (string.IsNullOrEmpty(channelSecret)) { throw new ArgumentNullException(nameof(channelSecret)); }
+
+            this.version = version;
+            this.client = httpClient;
+            this._disposeClient = false;
+            client.BaseAddress = isSandbox ? sandboxUri : realUri;
+            client.DefaultRequestHeaders.TryAddWithoutValidation("X-LINE-ChannelId", channelId);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("X-LINE-ChannelSecret", channelSecret);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json");
+        }
+
+        /// <summary>
+        /// Create LINE Pay client - 建立內部 HttpClient（向後相容，但不建議用於生產環境）
         /// </summary>
         /// <param name="channelId">Payment Integration Information - Channel ID</param>
         /// <param name="channelSecret">Payment Integration Information - ChannelSecret Key</param>
         /// <param name="isSandbox">Specify true if sandbox</param>
         /// <param name="version">Specify version</param>
+        [Obsolete("建議使用接受 HttpClient 參數的建構函式，以避免 Socket 耗盡問題")]
         public LinePayClient(string channelId, string channelSecret, bool isSandbox = false, string version = "v2")
         {
             if (string.IsNullOrEmpty(channelId)) { throw new ArgumentNullException(nameof(channelId)); }
@@ -34,6 +60,7 @@ namespace Line.Pay
 
             this.version = version;
             client = new HttpClient();
+            _disposeClient = true;
             client.BaseAddress = isSandbox ? sandboxUri : realUri;
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-LINE-ChannelId", channelId);
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-LINE-ChannelSecret", channelSecret);
@@ -268,7 +295,10 @@ namespace Line.Pay
         /// </summary>
         public void Dispose()
         {
-            client?.Dispose();
+            if (_disposeClient)
+            {
+                client?.Dispose();
+            }
         }
     }
 }

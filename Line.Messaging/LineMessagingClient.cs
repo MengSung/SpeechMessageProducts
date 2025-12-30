@@ -67,7 +67,13 @@ namespace Line.Messaging
         /// HTTP 客戶端，用於發送 API 請求
         /// HTTP client for sending API requests
         /// </summary>
-        private HttpClient _client;
+        private readonly HttpClient _client;
+
+        /// <summary>
+        /// 是否由此類別負責釋放 HttpClient
+        /// Whether this class is responsible for disposing HttpClient
+        /// </summary>
+        private readonly bool _disposeClient;
 
         /// <summary>
         /// JSON 序列化設定（使用 Camel Case 命名）
@@ -82,42 +88,32 @@ namespace Line.Messaging
         private string _uri;
 
         /// <summary>
-        /// 初始化 LineMessagingClient 的新執行個體
-        /// Initializes a new instance of the LineMessagingClient class
+        /// 初始化 LineMessagingClient - 使用外部提供的 HttpClient（建議用於 DI 情境）
+        /// Initializes LineMessagingClient using externally provided HttpClient (recommended for DI scenarios)
         /// </summary>
-        /// <param name="channelAccessToken">
-        /// Channel Access Token，可從 LINE Developers Console 取得
-        /// Channel Access Token, obtainable from LINE Developers Console
-        /// </param>
-        /// <param name="uri">
-        /// LINE API 的基礎 URI（選用），預設為 "https://api.line.me/v2"
-        /// Base URI for LINE API (optional), defaults to "https://api.line.me/v2"
-        /// </param>
-        /// <remarks>
-        /// 建構函式會自動設定：
-        /// - HTTP 授權標頭（Bearer Token）
-        /// - JSON 序列化設定（Camel Case）
-        /// <para>
-        /// Constructor automatically configures:
-        /// - HTTP authorization header (Bearer Token)
-        /// - JSON serialization settings (Camel Case)
-        /// </para>
-        /// </remarks>
-        /// <example>
-        /// <code>
-        /// // 使用預設 URI
-        /// var client = new LineMessagingClient("YOUR_CHANNEL_ACCESS_TOKEN");
-        /// 
-        /// // 使用自訂 URI（如測試環境）
-        /// var testClient = new LineMessagingClient(
-        ///     "YOUR_CHANNEL_ACCESS_TOKEN", 
-        ///     "https://api-test.line.me/v2"
-        /// );
-        /// </code>
-        /// </example>
+        /// <param name="httpClient">外部提供的 HttpClient 實例（不會被 Dispose）</param>
+        /// <param name="channelAccessToken">Channel Access Token</param>
+        /// <param name="uri">LINE API 的基礎 URI（選用）</param>
+        public LineMessagingClient(HttpClient httpClient, string channelAccessToken, string uri = DEFAULT_URI)
+        {
+            _client = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _disposeClient = false;
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", channelAccessToken);
+            _jsonSerializerSettings = new CamelCaseJsonSerializerSettings();
+            _uri = uri;
+        }
+
+        /// <summary>
+        /// 初始化 LineMessagingClient - 建立內部 HttpClient（向後相容，但不建議用於生產環境）
+        /// Initializes LineMessagingClient with internal HttpClient (backward compatible, not recommended for production)
+        /// </summary>
+        /// <param name="channelAccessToken">Channel Access Token</param>
+        /// <param name="uri">LINE API 的基礎 URI（選用）</param>
+        [Obsolete("建議使用接受 HttpClient 參數的建構函式，以避免 Socket 耗盡問題。Use constructor with HttpClient parameter to avoid socket exhaustion.")]
         public LineMessagingClient(string channelAccessToken, string uri = DEFAULT_URI)
         {
             _client = new HttpClient();
+            _disposeClient = true;
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", channelAccessToken);
             _jsonSerializerSettings = new CamelCaseJsonSerializerSettings();
             _uri = uri;
@@ -283,6 +279,20 @@ namespace Line.Messaging
         /// await client.PushMessageAsync(userId, new TextMessage("Hello!"));
         /// </code>
         /// </example>
+        public static async Task<LineMessagingClient> CreateAsync(HttpClient httpClient, string channelId, string channelSecret, string uri = DEFAULT_URI)
+        {
+            if (httpClient == null) throw new ArgumentNullException(nameof(httpClient));
+            if (string.IsNullOrEmpty(channelId)) throw new ArgumentNullException(nameof(channelId));
+            if (string.IsNullOrEmpty(channelSecret)) throw new ArgumentNullException(nameof(channelSecret));
+            
+            var accessToken = await IssueChannelAccessTokenAsync(httpClient, channelId, channelSecret, uri).ConfigureAwait(false);
+            return new LineMessagingClient(httpClient, accessToken.AccessToken, uri);
+        }
+
+        /// <summary>
+        /// 建立 LineMessagingClient 實例（向後相容版本，不建議用於生產環境）
+        /// </summary>
+        [Obsolete("建議使用接受 HttpClient 參數的 CreateAsync 方法，以避免 Socket 耗盡問題")]
         public static async Task<LineMessagingClient> CreateAsync(string channelId, string channelSecret, string uri = DEFAULT_URI)
         {
             if (string.IsNullOrEmpty(channelId)) throw new ArgumentNullException(nameof(channelId));
@@ -290,7 +300,9 @@ namespace Line.Messaging
             using (var client = new HttpClient())
             {
                 var accessToken = await IssueChannelAccessTokenAsync(client, channelId, channelSecret, uri).ConfigureAwait(false);
+#pragma warning disable CS0618 // 使用過時的建構函式（向後相容）
                 return new LineMessagingClient(accessToken.AccessToken, uri);
+#pragma warning restore CS0618
             }
         }
         #endregion
@@ -2744,7 +2756,10 @@ namespace Line.Messaging
         /// </summary>
         public void Dispose()
         {
-            _client?.Dispose();
+            if (_disposeClient)
+            {
+                _client?.Dispose();
+            }
         }
         #endregion
     }

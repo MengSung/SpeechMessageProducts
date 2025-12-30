@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -10,24 +11,38 @@ namespace Line.Messaging.Liff
     /// <summary>
     /// HTTP Client for the LINE Front-end Framework (LIFF) API
     /// </summary>
-    public class LiffClient
+    public class LiffClient : IDisposable
     {
-        private HttpClient _client;
+        private readonly HttpClient _client;
+        private readonly bool _disposeClient;
         private JsonSerializerSettings _jsonSerializerSettings;
         private string _requestUri;
 
         /// <summary>
-        /// Constructor
+        /// Constructor - 使用外部提供的 HttpClient（建議用於 DI 情境）
         /// </summary>
-        /// <param name="channelAccessToken">
-        /// Channel access token
-        /// </param>
-        /// <param name="requestUri">
-        /// Request base URL
-        /// </param>
+        /// <param name="httpClient">外部提供的 HttpClient 實例（不會被 Dispose）</param>
+        /// <param name="channelAccessToken">Channel access token</param>
+        /// <param name="requestUri">Request base URL</param>
+        public LiffClient(HttpClient httpClient, string channelAccessToken, string requestUri = "https://api.line.me/liff/v1/apps")
+        {
+            _client = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _disposeClient = false;
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", channelAccessToken);
+            _jsonSerializerSettings = new CamelCaseJsonSerializerSettings();
+            _requestUri = requestUri;
+        }
+
+        /// <summary>
+        /// Constructor - 建立內部 HttpClient（向後相容，但不建議用於生產環境）
+        /// </summary>
+        /// <param name="channelAccessToken">Channel access token</param>
+        /// <param name="requestUri">Request base URL</param>
+        [Obsolete("建議使用接受 HttpClient 參數的建構函式，以避免 Socket 耗盡問題")]
         public LiffClient(string channelAccessToken, string requestUri = "https://api.line.me/liff/v1/apps")
         {
             _client = new HttpClient();
+            _disposeClient = true;
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", channelAccessToken);
             _jsonSerializerSettings = new CamelCaseJsonSerializerSettings();
             _requestUri = requestUri;
@@ -94,6 +109,17 @@ namespace Line.Messaging.Liff
         public Task DeleteLiffAppAsync(string liffId)
         {
             return _client.DeleteAsync($"{_requestUri}/{liffId}");
+        }
+
+        /// <summary>
+        /// 釋放資源
+        /// </summary>
+        public void Dispose()
+        {
+            if (_disposeClient)
+            {
+                _client?.Dispose();
+            }
         }
     }
 }
