@@ -3,6 +3,7 @@ using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ChurchReport.Services.Performance;
+using ChurchReport.Services.Monitoring;
 
 namespace ChurchReport.Controllers
 {
@@ -16,13 +17,16 @@ namespace ChurchReport.Controllers
     public class PerformanceController : ControllerBase
     {
         private readonly IPerformanceMonitor _performanceMonitor;
+        private readonly ISessionMonitorService _sessionMonitor;
         private readonly ILogger<PerformanceController> _logger;
 
         public PerformanceController(
             IPerformanceMonitor performanceMonitor,
+            ISessionMonitorService sessionMonitor,
             ILogger<PerformanceController> logger)
         {
             _performanceMonitor = performanceMonitor;
+            _sessionMonitor = sessionMonitor;
             _logger = logger;
         }
 
@@ -41,6 +45,40 @@ namespace ChurchReport.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "取得效能報告失敗");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 取得 Session 統計資訊
+        /// GET /api/performance/sessions
+        /// ? Phase 8: 新增 Session 監控端點
+        /// </summary>
+        [HttpGet("sessions")]
+        public IActionResult GetSessionStatistics()
+        {
+            try
+            {
+                var stats = _sessionMonitor.GetStatistics();
+                return Ok(new
+                {
+                    timestamp = stats.Timestamp,
+                    activeSessions = stats.ActiveSessionCount,
+                    idleSessions = stats.IdleSessionCount,
+                    totalTracked = stats.TotalTrackedSessions,
+                    totalCreated = stats.TotalSessionsCreated,
+                    peakActive = stats.PeakActiveSessions,
+                    avgRequestsPerSession = $"{stats.AverageRequestsPerSession:F2}",
+                    estimatedMemoryKB = $"{stats.EstimatedMemoryUsageKB:F2}",
+                    uptimeMinutes = $"{stats.UptimeMinutes:F2}",
+                    sessionTimeoutMinutes = stats.SessionTimeoutMinutes,
+                    oldestSessionAgeMinutes = $"{stats.OldestSessionAge:F2}",
+                    newestSessionAgeMinutes = $"{stats.NewestSessionAge:F2}"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "取得 Session 統計資訊失敗");
                 return StatusCode(500, new { error = ex.Message });
             }
         }
@@ -103,6 +141,7 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 取得系統狀態摘要
         /// GET /api/performance/summary
+        /// ? Phase 8: 更新摘要包含 Session 資訊
         /// </summary>
         [HttpGet("summary")]
         public IActionResult GetSummary()
@@ -110,6 +149,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var report = _performanceMonitor.GetReport();
+                var sessionStats = _sessionMonitor.GetStatistics();
                 
                 var summary = new
                 {
@@ -135,7 +175,16 @@ namespace ChurchReport.Controllers
                     threads = report.SystemInfo.ThreadCount,
                     averageResponseTime = report.Metrics.TryGetValue("RequestDuration", out var metric)
                         ? $"{metric.Average:F2} ms"
-                        : "N/A"
+                        : "N/A",
+                    // ? Phase 8: 新增 Session 統計
+                    sessions = new
+                    {
+                        active = sessionStats.ActiveSessionCount,
+                        idle = sessionStats.IdleSessionCount,
+                        peak = sessionStats.PeakActiveSessions,
+                        totalCreated = sessionStats.TotalSessionsCreated,
+                        estimatedMemoryKB = $"{sessionStats.EstimatedMemoryUsageKB:F2}"
+                    }
                 };
 
                 return Ok(summary);

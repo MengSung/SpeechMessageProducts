@@ -139,7 +139,16 @@ namespace ChurchReport
             // 用於監控應用程式效能指標和驗證效能目標
             // ⚠️ Release 版本不會包含此服務
             services.AddSingleton<ChurchReport.Services.Performance.IPerformanceMonitor, ChurchReport.Services.Performance.PerformanceMonitor>();
+            
+            // ========================================
+            // ✅ Phase 8: 註冊 Session 監控服務（僅 DEBUG 模式）
+            // ========================================
+            // 追蹤活躍 Session 數量和記憶體使用
+            services.AddSingleton<ChurchReport.Services.Monitoring.ISessionMonitorService, ChurchReport.Services.Monitoring.SessionMonitorService>();
+            services.AddHostedService(sp => (ChurchReport.Services.Monitoring.SessionMonitorService)sp.GetRequiredService<ChurchReport.Services.Monitoring.ISessionMonitorService>());
+            
             Console.WriteLine("[Startup] ✅ 效能監控服務已註冊（DEBUG 模式）");
+            Console.WriteLine("[Startup] ✅ Session 監控服務已註冊（DEBUG 模式）");
 #endif
 
             // ========================================
@@ -454,6 +463,16 @@ namespace ChurchReport
             app.UseResponseCaching();
             
             app.UseSession();      // 啟用 Session 中間件
+
+#if DEBUG
+            // ========================================
+            // ✅ Phase 8: 啟用 Session 監控中介軟體（僅 DEBUG 模式）
+            // ========================================
+            // 必須在 UseSession 之後加入，以確保 Session 已可用
+            app.UseMiddleware<ChurchReport.Middleware.SessionMonitoringMiddleware>();
+            Console.WriteLine("[Startup] ✅ Session 監控中介軟體已啟用（DEBUG 模式）");
+#endif
+
             app.UseAuthentication();  // 啟用身份驗證中間件
 
             // 使用舊式路由 (已關閉 Endpoint Routing)
