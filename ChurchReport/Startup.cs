@@ -11,10 +11,12 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.ResponseCompression;
 using ToolUtilityNameSpace.DependencyInjection;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ChurchReport.WebServiceConnector;
@@ -88,10 +90,47 @@ namespace ChurchReport
             services.AddResponseCaching();
 
             // ========================================
+            // ✅ Phase 4.1: 註冊 Response Compression 服務
+            // ========================================
+            // 啟用 Brotli 和 Gzip 壓縮，減少傳輸量約 60-80%
+            services.AddResponseCompression(options =>
+            {
+                options.EnableForHttps = true;
+                options.Providers.Add<BrotliCompressionProvider>();
+                options.Providers.Add<GzipCompressionProvider>();
+                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+                    new[] { 
+                        "application/json", 
+                        "text/html", 
+                        "application/javascript",
+                        "text/css",
+                        "image/svg+xml"
+                    });
+            });
+
+            // 設定 Brotli 壓縮等級（Optimal 平衡壓縮率和速度）
+            services.Configure<BrotliCompressionProviderOptions>(options =>
+            {
+                options.Level = CompressionLevel.Optimal;
+            });
+
+            // 設定 Gzip 壓縮等級
+            services.Configure<GzipCompressionProviderOptions>(options =>
+            {
+                options.Level = CompressionLevel.Optimal;
+            });
+
+            // ========================================
             // ✅ Phase 2.2: 註冊應用程式快取服務
             // ========================================
             // 註冊 ICacheService 為 Singleton，全應用程式共用一個快取服務實例
             services.AddSingleton<ChurchReport.Services.Caching.ICacheService, ChurchReport.Services.Caching.CacheService>();
+
+            // ========================================
+            // ✅ Phase 5.2: 註冊 StringBuilder 物件池
+            // ========================================
+            // 減少字串處理時的記憶體分配
+            services.AddSingleton<ChurchReport.Services.Performance.IStringBuilderPool, ChurchReport.Services.Performance.StringBuilderPool>();
 
             // ========================================
             // 註冊 CRM 連接池 (Singleton 模式)
@@ -363,8 +402,27 @@ namespace ChurchReport
             // 啟用健康檢查端點，路徑為 /health。
             app.UseHealthChecks("/health");
 
-            // 中間件管道配置
-            app.UseStaticFiles();  // 啟用靜態檔案服務
+            // ========================================
+            // ✅ Phase 4.1: 啟用 Response Compression 中介軟體
+            // ========================================
+            // 必須在其他中介軟體之前加入，以確保所有回應都能被壓縮
+            app.UseResponseCompression();
+
+            // ========================================
+            // ✅ Phase 4.4: 靜態檔案快取優化
+            // ========================================
+            // 為靜態檔案加入長期快取標頭，減少重複請求
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                OnPrepareResponse = ctx =>
+                {
+                    // 設定靜態檔案快取 1 年（對於有版本控制的檔案）
+                    // 瀏覽器將快取這些檔案，減少伺服器負載
+                    const int durationInSeconds = 60 * 60 * 24 * 365; // 1 年
+                    ctx.Context.Response.Headers.Append(
+                        "Cache-Control", $"public,max-age={durationInSeconds}");
+                }
+            });
             
             // ========================================
             // ✅ Phase 2.4: 啟用 Response Caching 中介軟體

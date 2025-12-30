@@ -6,15 +6,22 @@
     <AssemblyName>ChurchReport</AssemblyName>
     <OutputType>Exe</OutputType>
     <!-- 移除 RuntimeIdentifier，.NET 10 不支援 win7-x86 -->
+    
+    <!-- ✅ Phase 5.1: GC 優化設定 -->
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <RetainVMGarbageCollection>true</RetainVMGarbageCollection>
     
     <!-- 允許套件降級警告不影響建置 -->
     <NoWarn>NU1605</NoWarn>
     
+    <!-- ✅ Phase 5: .NET 10 效能優化設定 -->
     <TieredPGO>true</TieredPGO>
     <OptimizationPreference>Speed</OptimizationPreference>
     <EnableAVX>true</EnableAVX>
+    
+    <!-- ✅ 啟用 Ready to Run 編譯，加速冷啟動 -->
+    <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;web.config">
