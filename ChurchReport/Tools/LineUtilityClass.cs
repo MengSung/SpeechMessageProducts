@@ -79,33 +79,40 @@ namespace ChurchReport.Tools
             #endregion
 
             #region 釋放記憶體
-            private bool _disposed = false;
+        private bool _disposed = false;
 
-            protected virtual void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+
+            if (disposing)
             {
-                if (_disposed) return;
-
-                if (disposing)
-                {
-                    m_ToolUtilityClass.Dispose();
-                }
-
-                _disposed = true;
+                // ✅ 釋放 ToolUtilityClass
+                m_ToolUtilityClass?.Dispose();
+                
+                // ✅ 釋放 LineMessagingClient
+                m_LineMessagingClient?.Dispose();
+                
+                // ✅ 釋放 ReplyUtility
+                (m_ReplyUtility as IDisposable)?.Dispose();
             }
 
-            public void Dispose()
-            {
-                Dispose(true);
-                GC.SuppressFinalize(this);
-            }
+            _disposed = true;
+        }
 
-            ~LineUtilityClass()
-            {
-                // Do not re-create Dispose clean-up code here.
-                // Calling Dispose(false) is optimal in terms of
-                // readability and maintainability.
-                Dispose(false);
-            }
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~LineUtilityClass()
+        {
+            // Do not re-create Dispose clean-up code here.
+            // Calling Dispose(false) is optimal in terms of
+            // readability and maintainability.
+            Dispose(false);
+        }
             #endregion
 
             ToolUtilityClass m_ToolUtilityClass;
