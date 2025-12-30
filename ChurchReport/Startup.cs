@@ -82,6 +82,12 @@ namespace ChurchReport
             services.AddDistributedMemoryCache();
 
             // ========================================
+            // ✅ Phase 2.4: 註冊 Response Caching 服務
+            // ========================================
+            // 啟用 Response Caching 以支援 [ResponseCache] 屬性的 VaryByQueryKeys
+            services.AddResponseCaching();
+
+            // ========================================
             // ✅ Phase 2.2: 註冊應用程式快取服務
             // ========================================
             // 註冊 ICacheService 為 Singleton，全應用程式共用一個快取服務實例
@@ -359,6 +365,13 @@ namespace ChurchReport
 
             // 中間件管道配置
             app.UseStaticFiles();  // 啟用靜態檔案服務
+            
+            // ========================================
+            // ✅ Phase 2.4: 啟用 Response Caching 中介軟體
+            // ========================================
+            // 必須在 UseSession 之前加入，以支援 [ResponseCache] 的 VaryByQueryKeys
+            app.UseResponseCaching();
+            
             app.UseSession();      // 啟用 Session 中間件
             app.UseAuthentication();  // 啟用身份驗證中間件
 

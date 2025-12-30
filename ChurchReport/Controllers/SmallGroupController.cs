@@ -261,6 +261,7 @@ namespace ChurchReport.Controllers
         /// <param name="WeeklyReportId">週報ID</param>
         /// <param name="loadOptions">載入選項</param>
         [HttpGet]
+        [ResponseCache(Duration = 300, VaryByQueryKeys = new[] { "WeeklyReportId" })]
         public object GetChartDataList(string WeeklyReportId, DataSourceLoadOptions loadOptions)
         {
             try
@@ -291,6 +292,7 @@ namespace ChurchReport.Controllers
         /// <param name="WeeklyReportId">週報ID</param>
         /// <param name="loadOptions">載入選項</param>
         [HttpGet]
+        [ResponseCache(Duration = 300, VaryByQueryKeys = new[] { "WeeklyReportId" })]
         public object GetMultiGroupChartDataList(string WeeklyReportId, DataSourceLoadOptions loadOptions)
         {
             try
@@ -319,6 +321,7 @@ namespace ChurchReport.Controllers
         /// <param name="id">清單ID</param>
         /// <param name="loadOptions">載入選項</param>
         [HttpGet]
+        [ResponseCache(Duration = 60, VaryByQueryKeys = new[] { "id" })]
         public object AssignSmallGroupGet(string id, DataSourceLoadOptions loadOptions)
         {
             try
