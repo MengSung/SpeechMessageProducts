@@ -132,6 +132,16 @@ namespace ChurchReport
             // 減少字串處理時的記憶體分配
             services.AddSingleton<ChurchReport.Services.Performance.IStringBuilderPool, ChurchReport.Services.Performance.StringBuilderPool>();
 
+#if DEBUG
+            // ========================================
+            // ✅ 最終驗證: 註冊效能監控服務（僅 DEBUG 模式）
+            // ========================================
+            // 用於監控應用程式效能指標和驗證效能目標
+            // ⚠️ Release 版本不會包含此服務
+            services.AddSingleton<ChurchReport.Services.Performance.IPerformanceMonitor, ChurchReport.Services.Performance.PerformanceMonitor>();
+            Console.WriteLine("[Startup] ✅ 效能監控服務已註冊（DEBUG 模式）");
+#endif
+
             // ========================================
             // 註冊 CRM 連接池 (Singleton 模式)
             // ========================================
@@ -402,9 +412,22 @@ namespace ChurchReport
             // 啟用健康檢查端點，路徑為 /health。
             app.UseHealthChecks("/health");
 
+#if DEBUG
+            // ========================================
+            // ✅ 最終驗證: 啟用效能監控中介軟體（僅 DEBUG 模式）
+            // ========================================
+            // 追蹤每個請求的效能指標
+            // ⚠️ Release 版本不會包含此中介軟體
+            app.UseMiddleware<ChurchReport.Middleware.PerformanceMonitoringMiddleware>();
+            Console.WriteLine("[Startup] ✅ 效能監控中介軟體已啟用（DEBUG 模式）");
+#else
+            Console.WriteLine("[Startup] ⚠️ 效能監控功能已排除（RELEASE 模式）");
+#endif
+
             // ========================================
             // ✅ Phase 4.1: 啟用 Response Compression 中介軟體
             // ========================================
+
             // 必須在其他中介軟體之前加入，以確保所有回應都能被壓縮
             app.UseResponseCompression();
 
