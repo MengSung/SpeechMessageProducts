@@ -2,6 +2,7 @@ using ChurchReport.Models;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
+using LineMessagingProcessor;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -193,7 +194,8 @@ namespace ChurchReport.Controllers
                 ViewBag.DisplayNavigation = "顯示牧養回報項目";
 
                 // ? 設定欄位標題參數（用於 onCustomizeColumns 函數）
-                InitializeColumnHeaders();
+                //InitializeColumnHeaders();
+                SetFeeManagerViewBag();
 
                 System.Diagnostics.Debug.WriteLine($"[Present] 課程點名載入完成 - DiscipleLessonsId={discipleLessonsId}, 學員數={feeDataCount}");
 
@@ -427,6 +429,80 @@ namespace ChurchReport.Controllers
             ViewBag.Colume41 = "";
             ViewBag.Colume42 = "";
             ViewBag.Colume43 = "";
+        }
+        public void SetFeeManagerViewBag()
+        {
+            try
+            {
+                // 確保 m_ClassName 已初始化
+                if (InMemoryContext?.FeeList?.m_ClassName == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[SetFeeManagerViewBag] m_ClassName 未初始化，使用預設值");
+
+                    // 如果 m_ClassName 為 null，建立新的 ClassName 實例（會使用預設值）
+                    if (InMemoryContext?.FeeList != null)
+                    {
+                        InMemoryContext.FeeList.m_ClassName = new ClassName();
+                    }
+                    else
+                    {
+                        // 如果連 FeeList 都沒有，初始化所有欄位為預設值
+                        InitializeColumnHeaders();
+                        return;
+                    }
+                }
+
+                ViewBag.Colume9 = InMemoryContext.FeeList.m_ClassName.Lesson1;
+                ViewBag.Colume10 = InMemoryContext.FeeList.m_ClassName.Lesson2;
+                ViewBag.Colume11 = InMemoryContext.FeeList.m_ClassName.Lesson3;
+                ViewBag.Colume12 = InMemoryContext.FeeList.m_ClassName.Lesson4;
+                ViewBag.Colume13 = InMemoryContext.FeeList.m_ClassName.Lesson5;
+                ViewBag.Colume14 = InMemoryContext.FeeList.m_ClassName.Lesson6;
+                ViewBag.Colume15 = InMemoryContext.FeeList.m_ClassName.Lesson7;
+                ViewBag.Colume16 = InMemoryContext.FeeList.m_ClassName.Lesson8;
+                ViewBag.Colume17 = InMemoryContext.FeeList.m_ClassName.Lesson9;
+                ViewBag.Colume18 = InMemoryContext.FeeList.m_ClassName.Lesson10;
+                ViewBag.Colume19 = InMemoryContext.FeeList.m_ClassName.Lesson11;
+                ViewBag.Colume20 = InMemoryContext.FeeList.m_ClassName.Lesson12;
+                ViewBag.Colume21 = InMemoryContext.FeeList.m_ClassName.Lesson13;
+                ViewBag.Colume22 = InMemoryContext.FeeList.m_ClassName.Lesson14;
+                ViewBag.Colume23 = InMemoryContext.FeeList.m_ClassName.Lesson15;
+
+                ViewBag.Colume24 = InMemoryContext.FeeList.m_ClassName.Lesson16;
+                ViewBag.Colume25 = InMemoryContext.FeeList.m_ClassName.Lesson17;
+                ViewBag.Colume26 = InMemoryContext.FeeList.m_ClassName.Lesson18;
+                ViewBag.Colume27 = InMemoryContext.FeeList.m_ClassName.Lesson19;
+                ViewBag.Colume28 = InMemoryContext.FeeList.m_ClassName.Lesson20;
+                ViewBag.Colume29 = InMemoryContext.FeeList.m_ClassName.Lesson21;
+                ViewBag.Colume30 = InMemoryContext.FeeList.m_ClassName.Lesson22;
+                ViewBag.Colume31 = InMemoryContext.FeeList.m_ClassName.Lesson23;
+                ViewBag.Colume32 = InMemoryContext.FeeList.m_ClassName.Lesson24;
+                ViewBag.Colume33 = InMemoryContext.FeeList.m_ClassName.Lesson25;
+                ViewBag.Colume34 = InMemoryContext.FeeList.m_ClassName.Lesson26;
+                ViewBag.Colume35 = InMemoryContext.FeeList.m_ClassName.Lesson27;
+                ViewBag.Colume36 = InMemoryContext.FeeList.m_ClassName.Lesson28;
+                ViewBag.Colume37 = InMemoryContext.FeeList.m_ClassName.Lesson29;
+                ViewBag.Colume38 = InMemoryContext.FeeList.m_ClassName.Lesson30;
+
+                ViewBag.Colume39 = InMemoryContext.FeeList.m_ClassName.HomeWorkA;
+                ViewBag.Colume40 = InMemoryContext.FeeList.m_ClassName.HomeWorkB;
+                ViewBag.Colume41 = InMemoryContext.FeeList.m_ClassName.HomeWorkC;
+                ViewBag.Colume42 = InMemoryContext.FeeList.m_ClassName.HomeWorkD;
+                ViewBag.Colume43 = InMemoryContext.FeeList.m_ClassName.HomeWorkE;
+            }
+            catch (System.Exception e)
+            {
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                ToolUtility.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+
+                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
+
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "新莊靈糧堂: 錯誤 => " + ErrorString);
+
+                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
+
+                throw e;
+            }
         }
 
         #endregion
