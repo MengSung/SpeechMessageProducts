@@ -52,37 +52,40 @@
                 $("#popup").dxPopup("instance").hide();
 
                 // AJAX 區塊
-                    $.ajax
-                    (
+                $.ajax
+                (
+                    {
+                        url: '@Url.Action("CreateContact", "Dedication")',  // ✅ 修正：改為 Dedication 控制器
+                        data:
                         {
-                            url: '@Url.Action("CreateContact", "Home")',
-                            data:
+                            FullName: $("#form1").dxForm("instance").getEditor('FullName').option('value'),
+                        }, // 整理回傳給 Server 的點名資料
+                        type: 'POST', //POST if you want to save, GET if you want to fetch data from server
+
+                        success: function (arg)
                             {
-                                FullName: $("#form1").dxForm("instance").getEditor('FullName').option('value'),
-                            }, // 整理回傳給 Server 的點名資料
-                            type: 'POST', //POST if you want to save, GET if you want to fetch data from server
-
-                            success: function (arg)
+                                if (arg.status == 1)
                                 {
-                                    if (arg.status == 1)
+                                    // 顯示上傳成功
+                                    ShowToast(arg.message, "success", 2000);
+                                }
+                                else{
+                                    ShowToast(arg.message, "error", 5000);
+                                }
+
+                                document.getElementById('resultfield').innerHTML = arg.message;
+                            },
+
+                        error: function (obj)
                                     {
-                                        // 顯示上傳成功
-                                        ShowToast(arg.message, "success", 2000);
+                                        // 顯示錯誤訊息
+                                        var errorMsg = obj.responseText || '新增失敗，請稍後再試';
+                                        ShowToast(errorMsg, "error", 5000);
+                                        console.error('CreateContact Error:', obj);
                                     }
-                                    else{
-                                        ShowToast(arg.message, "error", 5000);
-                                    }
 
-                                    document.getElementById('resultfield').innerHTML = arg.message;
-                                },
-
-                            error: function (obj)
-                                        {
-                                        //alert('Something happened');
-                                        }
-
-                        }
-                    );
+                    }
+                );
                 // AJAX 區塊
 
             }
