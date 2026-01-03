@@ -356,7 +356,15 @@ namespace ChurchReport
             // 避免靜態依賴，提升可測試性和可維護性
             services.AddScoped<ChurchReport.Models.IInMemoryDataContext, ChurchReport.Models.InMemoryDataContextSmallGroup>();
 
+            // ========================================
+            // ✅ 註冊 SmallGroupCacheManager (Scoped 生命週期)
+            // ========================================
+            // 註冊小組快取管理服務，用於管理小組相關資料的快取
+            // 提供統一的快取清除和查詢介面，方便單元測試模擬
+            services.AddScoped<ChurchReport.Services.Caching.ISmallGroupCacheManager, ChurchReport.Services.Caching.SmallGroupCacheManager>();
+
             Console.WriteLine("[Startup] ✅ IInMemoryDataContext 已註冊為 Scoped 服務");
+            Console.WriteLine("[Startup] ✅ ISmallGroupCacheManager 已註冊為 Scoped 服務");
         }
 
         /// <summary>

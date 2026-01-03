@@ -43,16 +43,23 @@ namespace ChurchReport.Controllers
         /// </summary>
         private readonly IMemoryCache _memoryCache;
 
+        /// <summary>
+        /// 小組快取管理服務（透過 DI 注入）
+        /// </summary>
+        private readonly ChurchReport.Services.Caching.ISmallGroupCacheManager _cacheManager;
+
         public SmallGroupController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             IPayment paymentService,
             IToolUtilityProvider toolUtilityProvider,
             ICrmConnectionPool connectionPool,
-            IInMemoryDataContext inMemoryContext)
+            IInMemoryDataContext inMemoryContext,
+            ChurchReport.Services.Caching.ISmallGroupCacheManager cacheManager)
             : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool, inMemoryContext)
         {
             _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
+            _cacheManager = cacheManager ?? throw new ArgumentNullException(nameof(cacheManager));
         }
 
         #endregion

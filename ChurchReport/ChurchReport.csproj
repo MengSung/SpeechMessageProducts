@@ -87,6 +87,7 @@
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Tests\Services\Caching\" />
     <Folder Include="Views\Dedication\" />
     <Folder Include="文件\佈署規劃\" />
     <Folder Include="文件\修正官網奉獻網頁\" />
