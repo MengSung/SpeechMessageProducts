@@ -348,6 +348,15 @@ namespace ChurchReport
             services.AddScoped<PersonalInfomatioManager>();
             services.AddScoped<DownloadListManager>();
             services.AddScoped<WeeklyReportManager>();
+
+            // ========================================
+            // ✅ 註冊 InMemoryDataContext (Scoped 生命週期)
+            // ========================================
+            // 註冊為 Scoped，確保每個請求有獨立的記憶體上下文
+            // 避免靜態依賴，提升可測試性和可維護性
+            services.AddScoped<ChurchReport.Models.IInMemoryDataContext, ChurchReport.Models.InMemoryDataContextSmallGroup>();
+
+            Console.WriteLine("[Startup] ✅ IInMemoryDataContext 已註冊為 Scoped 服務");
         }
 
         /// <summary>

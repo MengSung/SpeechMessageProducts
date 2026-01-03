@@ -37,13 +37,15 @@ namespace ChurchReport.Controllers
         /// <param name="qpayService">金流服務</param>
         /// <param name="toolUtilityProvider">ToolUtility 提供者 (DI 注入)</param>
         /// <param name="connectionPool">CRM 連線池</param>
+        /// <param name="inMemoryContext">記憶體資料上下文 (DI 注入)</param>
         public HomeController(
             IHttpContextAccessor httpContextAccessor, 
             IMemoryCache memoryCache, 
             IPayment qpayService,
             IToolUtilityProvider toolUtilityProvider,
-            ICrmConnectionPool connectionPool)
-        : base(httpContextAccessor, memoryCache, qpayService, toolUtilityProvider, connectionPool)
+            ICrmConnectionPool connectionPool,
+            IInMemoryDataContext inMemoryContext)
+        : base(httpContextAccessor, memoryCache, qpayService, toolUtilityProvider, connectionPool, inMemoryContext)
         {
         }
         #endregion
@@ -361,6 +363,42 @@ namespace ChurchReport.Controllers
         public IActionResult SaveFeeManagerRedirect(string aResult)
         {
             return RedirectToAction("SaveBatch", "FeeManagement", new { aResult });
+        }
+
+        /// <summary>
+        /// 向後相容: 將舊的 /Home/DedicationFeeView 重導向到 /Dedication/DedicationFeeView
+        /// </summary>
+        [Route("/Home/DedicationFeeView")]
+        public IActionResult DedicationFeeViewRedirect()
+        {
+            return RedirectToAction("DedicationFeeView", "Dedication");
+        }
+
+        /// <summary>
+        /// 向後相容: 將舊的 /Home/DedicationFeeViewWeb 重導向到 /Dedication/DedicationFeeViewWeb
+        /// </summary>
+        [Route("/Home/DedicationFeeViewWeb")]
+        public IActionResult DedicationFeeViewWebRedirect()
+        {
+            return RedirectToAction("DedicationFeeViewWeb", "Dedication");
+        }
+
+        /// <summary>
+        /// 向後相容: 將舊的 /Home/KeyInDedicationFeeView 重導向到 /Dedication/KeyInDedicationFeeView
+        /// </summary>
+        [Route("/Home/KeyInDedicationFeeView")]
+        public IActionResult KeyInDedicationFeeViewRedirect()
+        {
+            return RedirectToAction("KeyInDedicationFeeView", "Dedication");
+        }
+
+        /// <summary>
+        /// 向後相容: 將舊的 /Home/KeyInDedicationFeeViewWeb 重導向到 /Dedication/KeyInDedicationFeeViewWeb
+        /// </summary>
+        [Route("/Home/KeyInDedicationFeeViewWeb")]
+        public IActionResult KeyInDedicationFeeViewWebRedirect()
+        {
+            return RedirectToAction("KeyInDedicationFeeViewWeb", "Dedication");
         }
         
         #endregion

@@ -48,9 +48,9 @@ namespace ChurchReport.Controllers
         protected ToolUtilityClass ToolUtility => _toolUtilityProvider.GetToolUtility();
 
         /// <summary>
-        /// 記憶體資料上下文 (存放 Session 資料)
+        /// 記憶體資料上下文 (透過 DI 注入，避免靜態依賴)
         /// </summary>
-        protected readonly InMemoryDataContextSmallGroup InMemoryContext;
+        protected readonly IInMemoryDataContext InMemoryContext;
 
         /// <summary>
         /// 金流服務介面
@@ -69,20 +69,35 @@ namespace ChurchReport.Controllers
         /// <param name="paymentService">金流服務</param>
         /// <param name="toolUtilityProvider">ToolUtility 提供者 (透過 DI 注入)</param>
         /// <param name="connectionPool">CRM 連線池</param>
+        /// <param name="inMemoryContext">記憶體資料上下文 (透過 DI 注入，可選參數以保持向後兼容)</param>
         protected BaseChurchController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             IPayment paymentService,
             IToolUtilityProvider toolUtilityProvider,
-            ICrmConnectionPool connectionPool)
+            ICrmConnectionPool connectionPool,
+            IInMemoryDataContext inMemoryContext = null)
         {
             // 透過 DI 注入 ToolUtility 提供者
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
             _connectionPool = connectionPool ?? throw new ArgumentNullException(nameof(connectionPool));
 
-            // 初始化記憶體資料上下文
-            InMemoryContext = new InMemoryDataContextSmallGroup(
-                httpContextAccessor, memoryCache, paymentService, toolUtilityProvider);
+            // ? 支援兩種方式：
+            // 1. 新方式：透過 DI 注入記憶體資料上下文（推薦，避免靜態依賴）
+            // 2. 舊方式：直接 new 實例（向後兼容，逐步淘汰）
+            if (inMemoryContext != null)
+            {
+                // 使用 DI 注入的實例（推薦）
+                InMemoryContext = inMemoryContext;
+                System.Diagnostics.Debug.WriteLine("[BaseChurchController] 使用 DI 注入的 InMemoryContext");
+            }
+            else
+            {
+                // 向後兼容：直接建立實例（將逐步淘汰）
+                InMemoryContext = new InMemoryDataContextSmallGroup(
+                    httpContextAccessor, memoryCache, paymentService, toolUtilityProvider);
+                System.Diagnostics.Debug.WriteLine("[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）");
+            }
 
             // 存放金流服務參考
             PaymentService = paymentService;

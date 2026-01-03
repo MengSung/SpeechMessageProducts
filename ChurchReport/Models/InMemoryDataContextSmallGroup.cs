@@ -11,7 +11,11 @@ using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Models
 {
-    public class InMemoryDataContextSmallGroup
+    /// <summary>
+    /// 記憶體資料上下文實作
+    /// 透過 Session 和 MemoryCache 管理使用者資料
+    /// </summary>
+    public class InMemoryDataContextSmallGroup : IInMemoryDataContext
     {
         #region 資料區
         IMemoryCache _memoryCache;

@@ -48,8 +48,9 @@ namespace ChurchReport.Controllers
             IMemoryCache memoryCache,
             IPayment paymentService,
             IToolUtilityProvider toolUtilityProvider,
-            ICrmConnectionPool connectionPool)
-            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool)
+            ICrmConnectionPool connectionPool,
+            IInMemoryDataContext inMemoryContext)
+            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool, inMemoryContext)
         {
             _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
         }
