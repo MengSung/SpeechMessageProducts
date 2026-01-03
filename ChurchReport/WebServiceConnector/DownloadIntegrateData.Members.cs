@@ -165,10 +165,52 @@ namespace ChurchReport.WebServiceConnector
                     EntityCollection contacts;
                     if (CRM_TYPE == "DYNAMICS365")
                     {
+                        // 檢查 m_OrganizationService 是否為 null
+                        if (this.m_ToolUtilityClass?.m_OrganizationService == null)
+                        {
+                            System.Diagnostics.Debug.WriteLine("[BatchRetrieveContacts] m_OrganizationService is null, falling back to individual queries");
+                            // 降級處理：逐筆查詢
+                            foreach (var id in batch)
+                            {
+                                try
+                                {
+                                    var contact = this.m_ToolUtilityClass.RetrieveEntity("contact", id);
+                                    if (contact != null)
+                                        result[contact.Id] = contact;
+                                }
+                                catch (Exception ex)
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"[BatchRetrieveContacts] Failed to retrieve contact {id}: {ex.Message}");
+                                }
+                            }
+                            continue;
+                        }
+
                         contacts = this.m_ToolUtilityClass.m_OrganizationService.RetrieveMultiple(query);
                     }
                     else
                     {
+                        // 檢查 m_Crm2011OrganizationService 是否為 null
+                        if (this.m_ToolUtilityClass?.m_Crm2011OrganizationService == null)
+                        {
+                            System.Diagnostics.Debug.WriteLine("[BatchRetrieveContacts] m_Crm2011OrganizationService is null, falling back to individual queries");
+                            // 降級處理：逐筆查詢
+                            foreach (var id in batch)
+                            {
+                                try
+                                {
+                                    var contact = this.m_ToolUtilityClass.RetrieveEntity("contact", id);
+                                    if (contact != null)
+                                        result[contact.Id] = contact;
+                                }
+                                catch (Exception ex)
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"[BatchRetrieveContacts] Failed to retrieve contact {id}: {ex.Message}");
+                                }
+                            }
+                            continue;
+                        }
+
                         contacts = this.m_ToolUtilityClass.m_Crm2011OrganizationService.RetrieveMultiple(query);
                     }
 
@@ -189,7 +231,10 @@ namespace ChurchReport.WebServiceConnector
                             if (contact != null)
                                 result[contact.Id] = contact;
                         }
-                        catch { }
+                        catch (Exception innerEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[BatchRetrieveContacts] Failed to retrieve contact {id}: {innerEx.Message}");
+                        }
                     }
                 }
             }

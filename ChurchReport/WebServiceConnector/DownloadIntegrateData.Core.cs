@@ -29,7 +29,7 @@ namespace ChurchReport.WebServiceConnector
         private bool m_SetIdentityFlag = false;
 
         // CRM 類型常數
-        private const string CRM_TYPE = "DYNAMICS365";
+        private const string CRM_TYPE = "DYNAMICS365-9.0";
 
         // 委身類型自動轉換旗標
         private const bool TRANSFER_IDENTITY_FLAG = false;
