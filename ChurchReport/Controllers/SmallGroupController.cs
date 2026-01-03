@@ -20,10 +20,36 @@ namespace ChurchReport.Controllers
     /// <summary>
     /// 小組管理控制器
     /// 負責處理小組週報、整合視圖、多組週報等相關功能
+    /// 
+    /// 快取策略（混合式）：
+    /// - 資料層：使用 IMemoryCache 快取 CRM 查詢結果（15分鐘TTL）
+    /// - HTTP 層：不快取回應（NoStore），確保每次都從最新記憶體取得資料
+    /// - 清理機制：日期變更時清除相關快取，確保資料一致性
     /// </summary>
     public class SmallGroupController : BaseChurchController
     {
+        #region 快取設定常數
+
+        // 快取鍵前綴
+        private const string CACHE_KEY_PREFIX = "SmallGroup_";
+        private const string CACHE_KEY_MULTI_CHART = CACHE_KEY_PREFIX + "MultiChart_";
+        private const string CACHE_KEY_MULTI_GRID = CACHE_KEY_PREFIX + "MultiGrid_";
+        private const string CACHE_KEY_INTEGRATE = CACHE_KEY_PREFIX + "Integrate_";
+        
+        // 快取過期時間（分鐘）
+        private const int CACHE_DURATION_MINUTES = 15;
+        
+        // 快取優先順序
+        private static readonly CacheItemPriority CACHE_PRIORITY = CacheItemPriority.Normal;
+
+        #endregion
+
         #region 建構函式
+
+        /// <summary>
+        /// 記憶體快取服務（用於混合式快取策略）
+        /// </summary>
+        private readonly IMemoryCache _memoryCache;
 
         public SmallGroupController(
             IHttpContextAccessor httpContextAccessor,
@@ -33,6 +59,7 @@ namespace ChurchReport.Controllers
             ICrmConnectionPool connectionPool)
             : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool)
         {
+            _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
         }
 
         #endregion
@@ -288,6 +315,11 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 載入多小組圓餅圖資料
         /// 用於 MultiGroupView 的 PieChart 資料來源
+        /// 
+        /// 快取策略：
+        /// - 使用 IMemoryCache 快取查詢結果（15分鐘TTL）
+        /// - HTTP 回應不快取（NoStore），確保每次從最新記憶體快取讀取
+        /// - 快取鍵：日期 + 使用者帳號
         /// </summary>
         /// <param name="WeeklyReportId">週報ID</param>
         /// <param name="loadOptions">載入選項</param>
@@ -297,6 +329,20 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // 建立快取鍵（包含日期與使用者）
+                var selectedDate = InMemoryContext.ListManager.m_SelectDate;
+                var account = InMemoryContext.ListManager.m_Account ?? "guest";
+                var cacheKey = $"{CACHE_KEY_MULTI_CHART}{selectedDate:yyyyMMdd}_{account}";
+                
+                // 嘗試從快取取得資料
+                if (_memoryCache?.TryGetValue(cacheKey, out List<MultiGroupChartData> cachedChartData) == true)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[GetMultiGroupChartDataList] 從快取讀取: {cacheKey}");
+                    return DataSourceLoader.Load(cachedChartData, loadOptions);
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"[GetMultiGroupChartDataList] 快取未命中，查詢 InMemoryContext: {cacheKey}");
+
                 // 確保多組資料已載入
                 if (InMemoryContext.ListManager.m_MultiGroupChartDataList == null ||
                     InMemoryContext.ListManager.m_MultiGroupChartDataList.m_MultiGroupChartDataList == null)
@@ -305,6 +351,13 @@ namespace ChurchReport.Controllers
                 }
 
                 var chartData = InMemoryContext.ListManager.m_MultiGroupChartDataList.m_MultiGroupChartDataList;
+
+                // 將查詢結果存入快取
+                if (chartData != null && chartData.Any())
+                {
+                    _memoryCache?.Set(cacheKey, chartData, CreateCacheOptions());
+                    System.Diagnostics.Debug.WriteLine($"[GetMultiGroupChartDataList] 已快取 {chartData.Count} 筆資料: {cacheKey}");
+                }
 
                 return DataSourceLoader.Load(chartData, loadOptions);
             }
@@ -317,6 +370,11 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 載入多小組列表資料
         /// 用於 MultiGroupView 的 DataGrid 資料來源
+        /// 
+        /// 快取策略：
+        /// - 使用 IMemoryCache 快取查詢結果（15分鐘TTL）
+        /// - HTTP 回應不快取（NoStore）
+        /// - 快取鍵：日期 + 使用者帳號
         /// </summary>
         /// <param name="id">清單ID</param>
         /// <param name="loadOptions">載入選項</param>
@@ -326,6 +384,20 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // 建立快取鍵
+                var selectedDate = InMemoryContext.ListManager.m_SelectDate;
+                var account = InMemoryContext.ListManager.m_Account ?? "guest";
+                var cacheKey = $"{CACHE_KEY_MULTI_GRID}{selectedDate:yyyyMMdd}_{account}";
+                
+                // 嘗試從快取取得資料
+                if (_memoryCache?.TryGetValue(cacheKey, out List<WeeklyReportRecord> cachedRecords) == true)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AssignSmallGroupGet] 從快取讀取: {cacheKey}");
+                    return DataSourceLoader.Load(cachedRecords, loadOptions);
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"[AssignSmallGroupGet] 快取未命中，查詢 InMemoryContext: {cacheKey}");
+
                 // 確保多組資料已載入
                 if (InMemoryContext.ListManager.m_MultiGroupList == null ||
                     InMemoryContext.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData == null)
@@ -334,6 +406,13 @@ namespace ChurchReport.Controllers
                 }
 
                 var weeklyReportRecords = InMemoryContext.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData;
+
+                // 將查詢結果存入快取
+                if (weeklyReportRecords != null && weeklyReportRecords.Any())
+                {
+                    _memoryCache?.Set(cacheKey, weeklyReportRecords, CreateCacheOptions());
+                    System.Diagnostics.Debug.WriteLine($"[AssignSmallGroupGet] 已快取 {weeklyReportRecords.Count} 筆資料: {cacheKey}");
+                }
 
                 return DataSourceLoader.Load(weeklyReportRecords, loadOptions);
             }
@@ -470,6 +549,8 @@ namespace ChurchReport.Controllers
         /// 儲存整合視圖週報資料
         /// 包含出席狀況、快樂小組資訊、計劃暫停等資料
         /// ? 改為 Fire-and-Forget 模式，立即回應使用者，在背景處理上傳
+        /// 
+        /// 快取清理：上傳成功後清除相關快取
         /// </summary>
         /// <param name="WeeklyReportData">週報資料(JSON)</param>
         /// <param name="HappyWeekIndex">快樂小組第幾週</param>
@@ -520,6 +601,10 @@ namespace ChurchReport.Controllers
 
                         // 上傳完成後才清理
                         CleanupTransferredMembers();
+                        
+                        // ? 清除快取以確保下次查詢取得最新資料
+                        ClearMultiGroupCache();
+                        ClearIntegrateCache(InMemoryContext.ListManager.ActiveListId);
                         
                         System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 清理完成");
                     }
@@ -580,34 +665,73 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 清理已轉介或指派到其他小組的成員
+        /// ? 修正：加入完整的 null 檢查，避免 NullReferenceException
         /// </summary>
         private void CleanupTransferredMembers()
         {
-            var smallGroupMembers = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                .m_SmallGroupDataList.m_SmallGroupData.Members;
-
-            if (smallGroupMembers != null)
+            try
             {
+                // ? 完整的 null 檢查鏈
+                var weeklyReport = InMemoryContext?.ListManager?.m_ListSmallGroupWeeklyReport;
+                if (weeklyReport == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[CleanupTransferredMembers] weeklyReport 為 null，跳過清理");
+                    return;
+                }
+
+                var dataList = weeklyReport.m_SmallGroupDataList;
+                if (dataList == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[CleanupTransferredMembers] m_SmallGroupDataList 為 null，跳過清理");
+                    return;
+                }
+
                 // 清理小組資料
-                RemoveTransferredMembers(smallGroupMembers);
+                var smallGroupData = dataList.m_SmallGroupData;
+                if (smallGroupData?.Members != null)
+                {
+                    RemoveTransferredMembers(smallGroupData.Members);
+                    System.Diagnostics.Debug.WriteLine($"[CleanupTransferredMembers] 已清理小組資料，剩餘 {smallGroupData.Members.Count} 筆");
+                }
 
                 // 清理新人跟進資料
-                var newPersonMembers = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                    .m_SmallGroupDataList.m_NewPersonFollowUpData.Members;
-                RemoveTransferredMembers(newPersonMembers);
+                var newPersonData = dataList.m_NewPersonFollowUpData;
+                if (newPersonData?.Members != null)
+                {
+                    RemoveTransferredMembers(newPersonData.Members);
+                    System.Diagnostics.Debug.WriteLine($"[CleanupTransferredMembers] 已清理新人跟進資料，剩餘 {newPersonData.Members.Count} 筆");
+                }
+            }
+            catch (Exception ex)
+            {
+                // 清理失敗不應該影響主流程
+                System.Diagnostics.Debug.WriteLine($"[CleanupTransferredMembers] 清理失敗: {ex.Message}");
             }
         }
 
         /// <summary>
         /// 從清單中移除已轉介的成員
+        /// ? 修正：加入 null 檢查
         /// </summary>
-        private void RemoveTransferredMembers(System.Collections.Generic.List<Member> members)
+        private void RemoveTransferredMembers(List<Member> members)
         {
+            // ? null 檢查
+            if (members == null || members.Count == 0)
+            {
+                return;
+            }
+
             int count = members.Count;
             int index = 0;
 
             for (int i = 0; i < count; i++)
             {
+                // ? 檢查索引是否有效
+                if (index >= members.Count)
+                {
+                    break;
+                }
+
                 if (ShouldRemoveMember(members[index]))
                 {
                     members.RemoveAt(index);
@@ -621,9 +745,16 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 判斷成員是否應該被移除
+        /// ? 修正：加入 null 檢查
         /// </summary>
         private bool ShouldRemoveMember(Member member)
         {
+            // ? null 檢查
+            if (member == null)
+            {
+                return false;
+            }
+
             return (!string.IsNullOrEmpty(member.AssignedGroup)) ||
                    (member.FollowUpNextStep == "轉介");
         }
@@ -671,6 +802,8 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 更新多小組檢視的日期
         /// 當使用者在 MultiGroupView 中更改日期時調用
+        /// 
+        /// 快取清理：變更日期時清除所有多小組相關的快取
         /// </summary>
         /// <param name="SelectedDate">選擇的日期 (格式: yyyy/M/d)</param>
         [HttpGet]
@@ -687,6 +820,10 @@ namespace ChurchReport.Controllers
                 {
                     return Json(new { success = false, message = "日期格式錯誤" });
                 }
+
+                // ? 清除多小組相關的快取（日期變更時）
+                ClearMultiGroupCache();
+                System.Diagnostics.Debug.WriteLine($"[UpdateDate] 已清除多小組快取，新日期: {selectedDateTime:yyyy/M/d}");
 
                 // 更新選擇的日期
                 InMemoryContext.ListManager.m_SelectDate = selectedDateTime;
@@ -715,6 +852,8 @@ namespace ChurchReport.Controllers
         /// 更新綜合報表日期
         /// 當使用者在 IntegrateView 中更改小組日期時調用
         /// ? 修復：確保更新日期後，保持載入當前選擇的小組，而不是跳回第一個小組
+        /// 
+        /// 快取清理：變更日期時清除相關快取
         /// </summary>
         /// <param name="SelectedDate">選擇的日期 (格式: yyyy/M/d)</param>
         [HttpGet]
@@ -739,11 +878,16 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[UpdateIntegrateDate] 當前小組 ID: {currentListId}");
                 System.Diagnostics.Debug.WriteLine($"[UpdateIntegrateDate] 更新日期: {selectedDateTime:yyyy/M/d}");
 
+                // ? 清除多小組與整合視圖的快取
+                ClearMultiGroupCache();
+                ClearIntegrateCache(currentListId);
+                System.Diagnostics.Debug.WriteLine($"[UpdateIntegrateDate] 已清除快取");
+                
                 // 更新選擇的日期
                 InMemoryContext.ListManager.m_SelectDate = selectedDateTime;
 
                 // ? 重要：SetupListManager 會重新載入多小組列表
-                // 但可能會重設 ActiveListId 為第一個小組
+                // 但可能會重設 ActiveListId 卻為第一個小組
                 InMemoryContext.ListManager.SetupListManager(
                     InMemoryContext.ListManager.m_Account,
                     InMemoryContext.ListManager.m_Password,
@@ -785,6 +929,69 @@ namespace ChurchReport.Controllers
                     message = $"日期更新失敗: {e.Message}" 
                 });
             }
+        }
+
+        #endregion
+
+        #region 快取管理輔助方法
+
+        /// <summary>
+        /// 清除多小組相關的所有快取
+        /// 用於日期變更或資料更新後確保快取一致性
+        /// </summary>
+        private void ClearMultiGroupCache()
+        {
+            try
+            {
+                // 移除多小組圖表快取
+                var chartCacheKey = $"{CACHE_KEY_MULTI_CHART}{InMemoryContext.ListManager.m_SelectDate:yyyyMMdd}";
+                _memoryCache?.Remove(chartCacheKey);
+                
+                // 移除多小組列表快取
+                var gridCacheKey = $"{CACHE_KEY_MULTI_GRID}{InMemoryContext.ListManager.m_SelectDate:yyyyMMdd}";
+                _memoryCache?.Remove(gridCacheKey);
+                
+                System.Diagnostics.Debug.WriteLine($"[ClearMultiGroupCache] 已清除快取鍵: {chartCacheKey}, {gridCacheKey}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ClearMultiGroupCache] 清除快取失敗: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 清除整合視圖相關的快取
+        /// 用於小組資料更新後確保快取一致性
+        /// </summary>
+        private void ClearIntegrateCache(string listId = null)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(listId))
+                {
+                    var cacheKey = $"{CACHE_KEY_INTEGRATE}{listId}_{InMemoryContext.ListManager.m_SelectDate:yyyyMMdd}";
+                    _memoryCache?.Remove(cacheKey);
+                    System.Diagnostics.Debug.WriteLine($"[ClearIntegrateCache] 已清除快取鍵: {cacheKey}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ClearIntegrateCache] 清除快取失敗: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 建立快取選項
+        /// 設定過期時間與優先順序
+        /// </summary>
+        private MemoryCacheEntryOptions CreateCacheOptions()
+        {
+            return new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(CACHE_DURATION_MINUTES),
+                Priority = CACHE_PRIORITY,
+                Size = 1 // 用於 SizeLimit 控制
+            };
         }
 
         #endregion
