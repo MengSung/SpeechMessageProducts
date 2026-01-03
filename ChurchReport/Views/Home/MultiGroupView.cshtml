@@ -19,7 +19,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
     <meta name="description" content="">
-    <title>好牧人</title>
+    <title>神住611靈糧堂</title>
 </head>
 
 <!-- 用戶名稱顯示 -->
@@ -45,12 +45,22 @@
                     url: '@Url.Action("UpdateDate", "SmallGroup")',
                     data: { SelectedDate: getODataLocalDateFilter(arg.value) },
                     type: 'GET',
-                    success: function (arg) {
-                        $("#loadPanel").dxLoadPanel("instance").hide();
-                        window.location.href = "/SmallGroup/MultiGroupView/MultiGroupView";
+                    success: function (result) {
+                        if (result.success) {
+                            // 後端資料已更新，重新載入頁面以確保資料一致性
+                            window.location.reload();
+                        } else {
+                            $("#loadPanel").dxLoadPanel("instance").hide();
+                            $("#toast").dxToast("instance").option("message", result.message || "日期更新失敗");
+                            $("#toast").dxToast("instance").option("type", "error");
+                            $("#toast").dxToast("instance").show();
+                        }
                     },
                     error: function (obj) {
-                        // 錯誤處理
+                        $("#loadPanel").dxLoadPanel("instance").hide();
+                        $("#toast").dxToast("instance").option("message", "日期更新失敗，請稍後再試");
+                        $("#toast").dxToast("instance").option("type", "error");
+                        $("#toast").dxToast("instance").show();
                     }
                 });
             }
@@ -208,6 +218,7 @@
             .ID("toast")
             .Position(p => p.At(HorizontalAlignment.Center, VerticalAlignment.Center).Offset(0, 50))
             .Message(DataStatus)
+            .Type(ToastType.Success)
             .DisplayTime(2000)
             .MaxWidth(200)
         )
