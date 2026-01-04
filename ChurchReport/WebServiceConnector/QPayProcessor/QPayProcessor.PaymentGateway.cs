@@ -28,6 +28,16 @@ namespace ChurchReport.WebServiceConnector
     /// </summary>
     public partial class QPayProcessor
     {
+        #region ===== 私有靜態欄位 =====
+        
+        /// <summary>
+        /// HashCode 快取字典（避免重複解析配置檔）
+        /// </summary>
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _shopNoHashCodeCache
+            = new System.Collections.Concurrent.ConcurrentDictionary<string, string>();
+        
+        #endregion
+
         #region ===== 建立訂單（統一介面）=====
 
         /// <summary>
