@@ -1,8 +1,9 @@
-using ChurchReport.Models;
-using ChurchReport.Tools;  // ¥[¤J¥H¤ä´© IPayment, ServiceRequest µ¥Ãş«¬
+ï»¿using ChurchReport.Models;
+using ChurchReport.Tools;  // åŠ å…¥ä»¥æ”¯æ´ IPayment, ServiceRequest ç­‰é¡å‹
+using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
-using QPay.Domain;
 using PowerPlatform.Dataverse.Client.Wsdl;
+using QPay.Domain;
 using System;
 using System.Collections;
 using System.Dynamic;
@@ -11,42 +12,42 @@ using System.Threading.Tasks;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ª÷¬y³B²z¾¹ - ª÷¬y¹h¹D¾ã¦X¼Ò²Õ
+    /// é‡‘æµè™•ç†å™¨ - é‡‘æµé–˜é“æ•´åˆæ¨¡çµ„
     ///
-    /// ¡iÂ¾³d¡j
-    /// - ¥ÃÂ×ª÷¬y(QPay)¾ã¦X
-    /// - °ª¹dª÷¬y(MyPay)¾ã¦X
-    /// - ¥x·sª÷¬y(TSPG)¾ã¦X
-    /// - ­q³æ«Ø¥ß»P¬d¸ß
-    /// - ª÷¬y¦^¶Ç³B²z
+    /// ã€è·è²¬ã€‘
+    /// - æ°¸è±é‡‘æµ(QPay)æ•´åˆ
+    /// - é«˜é‰…é‡‘æµ(MyPay)æ•´åˆ
+    /// - å°æ–°é‡‘æµ(TSPG)æ•´åˆ
+    /// - è¨‚å–®å»ºç«‹èˆ‡æŸ¥è©¢
+    /// - é‡‘æµå›å‚³è™•ç†
     ///
-    /// ¡i³]­p¼Ò¦¡¡j
-    /// - ¾A°t¾¹¼Ò¦¡¡G²Î¤@¤£¦Pª÷¬y¤¶­±
-    /// - ¤u¼t¼Ò¦¡¡G®Ú¾Ú°t¸m¿ï¾Üª÷¬y
-    /// - µ¦²¤¼Ò¦¡¡G°ÊºA¿ï¾Üª÷¬y´£¨Ñ°Ó
+    /// ã€è¨­è¨ˆæ¨¡å¼ã€‘
+    /// - é©é…å™¨æ¨¡å¼ï¼šçµ±ä¸€ä¸åŒé‡‘æµä»‹é¢
+    /// - å·¥å» æ¨¡å¼ï¼šæ ¹æ“šé…ç½®é¸æ“‡é‡‘æµ
+    /// - ç­–ç•¥æ¨¡å¼ï¼šå‹•æ…‹é¸æ“‡é‡‘æµæä¾›å•†
     /// </summary>
     public partial class QPayProcessor
     {
-        #region ===== «Ø¥ß­q³æ¡]²Î¤@¤¶­±¡^=====
+        #region ===== å»ºç«‹è¨‚å–®ï¼ˆçµ±ä¸€ä»‹é¢ï¼‰=====
 
         /// <summary>
-        /// «Ø¥ß«H¥Î¥d/¦æ°Ê¤ä¥I­q³æ¡]¦hª÷¬y¤ä´©¡^
-        /// ®Ú¾Ú°t¸mªº PAY_PROVIDER °ÊºA¿ï¾Üª÷¬y´£¨Ñ°Ó
+        /// å»ºç«‹ä¿¡ç”¨å¡/è¡Œå‹•æ”¯ä»˜è¨‚å–®ï¼ˆå¤šé‡‘æµæ”¯æ´ï¼‰
+        /// æ ¹æ“šé…ç½®çš„ PAY_PROVIDER å‹•æ…‹é¸æ“‡é‡‘æµæä¾›å•†
         /// </summary>
-        /// <param name="Amount">ª÷ÃB¡]¤¸¡^</param>
-        /// <param name="ProductName">²£«~¦WºÙ</param>
-        /// <param name="OrderDate">­q³æ¤é´Á¦r¦ê</param>
-        /// <param name="FeeId">¦¬¶O³æ ID</param>
-        /// <param name="PayType">¥I´ÚÃş«¬ (C=«H¥Î¥d, M=¦æ°Ê¤ä¥I, L=LinePay)</param>
-        /// <param name="PayTypeSub">¥I´Ú¤lÃş«¬ (ONE=¤@¦¸¥I²M, STAGING=¤À´Á, REGULAR=©w´Á©wÃB)</param>
-        /// <param name="Staging">¤À´Á¸ê°T</param>
-        /// <param name="DeductTotalNum">¦©´ÚÁ`´Á¼Æ</param>
-        /// <param name="PeriodType">¶g´ÁÃş«¬</param>
-        /// <param name="DeductFreq">¦©´ÚÀW²v</param>
-        /// <param name="CreditCategory">«H¥Î¥dÃş§O</param>
-        /// <param name="LineLoginContact">µn¤J³sµ¸¤H¹êÅé</param>
-        /// <param name="CCToken">«H¥Î¥d Token¡]¥i¿ï¡^</param>
-        /// <returns>²Î¤@ªº CreOrder ª«¥ó</returns>
+        /// <param name="Amount">é‡‘é¡ï¼ˆå…ƒï¼‰</param>
+        /// <param name="ProductName">ç”¢å“åç¨±</param>
+        /// <param name="OrderDate">è¨‚å–®æ—¥æœŸå­—ä¸²</param>
+        /// <param name="FeeId">æ”¶è²»å–® ID</param>
+        /// <param name="PayType">ä»˜æ¬¾é¡å‹ (C=ä¿¡ç”¨å¡, M=è¡Œå‹•æ”¯ä»˜, L=LinePay)</param>
+        /// <param name="PayTypeSub">ä»˜æ¬¾å­é¡å‹ (ONE=ä¸€æ¬¡ä»˜æ¸…, STAGING=åˆ†æœŸ, REGULAR=å®šæœŸå®šé¡)</param>
+        /// <param name="Staging">åˆ†æœŸè³‡è¨Š</param>
+        /// <param name="DeductTotalNum">æ‰£æ¬¾ç¸½æœŸæ•¸</param>
+        /// <param name="PeriodType">é€±æœŸé¡å‹</param>
+        /// <param name="DeductFreq">æ‰£æ¬¾é »ç‡</param>
+        /// <param name="CreditCategory">ä¿¡ç”¨å¡é¡åˆ¥</param>
+        /// <param name="LineLoginContact">ç™»å…¥é€£çµ¡äººå¯¦é«”</param>
+        /// <param name="CCToken">ä¿¡ç”¨å¡ Tokenï¼ˆå¯é¸ï¼‰</param>
+        /// <returns>çµ±ä¸€çš„ CreOrder ç‰©ä»¶</returns>
         public async Task<CreOrder> CreOrderCard(
             int Amount,
             string ProductName,
@@ -62,73 +63,73 @@ namespace ChurchReport.WebServiceConnector
             Entity LineLoginContact,
             string CCToken = null)
         {
-            // ±q°t¸m¨ú±oª÷¬y´£¨Ñ°Ó
+            // å¾é…ç½®å–å¾—é‡‘æµæä¾›å•†
             var payProvider = Configuration["PAY_PROVIDER"];
 
-            // ¨Ï¥Îµ¦²¤¼Ò¦¡®Ú¾Ú´£¨Ñ°Ó¿ï¾Ü«Ø¥ß¤èªk
+            // ä½¿ç”¨ç­–ç•¥æ¨¡å¼æ ¹æ“šæä¾›å•†é¸æ“‡å»ºç«‹æ–¹æ³•
             return payProvider switch
             {
-                "¥ÃÂ×ª÷¬y" => await CreateQPayOrder(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, Staging, DeductTotalNum, PeriodType, DeductFreq, CreditCategory, CCToken),
-                "°ª¹dª÷¬y" => await CreateMyPayOrder(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact),
-                "¥x·sª÷¬y" => await CreateTspgOrder(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact),
-                _ => await CreateMyPayOrder(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact) // ¹w³]¨Ï¥Î°ª¹dª÷¬y
+                "æ°¸è±é‡‘æµ" => await CreateQPayOrder(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, Staging, DeductTotalNum, PeriodType, DeductFreq, CreditCategory, CCToken),
+                "é«˜é‰…é‡‘æµ" => await CreateMyPayOrder(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact),
+                "å°æ–°é‡‘æµ" => await CreateTspgOrder(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact),
+                _ => await CreateMyPayOrder(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact) // é è¨­ä½¿ç”¨é«˜é‰…é‡‘æµ
             };
         }
 
         /// <summary>
-        /// «Ø¥ß ATM ­q³æ¡]¥ÃÂ×ª÷¬y±M¥Î¡^
+        /// å»ºç«‹ ATM è¨‚å–®ï¼ˆæ°¸è±é‡‘æµå°ˆç”¨ï¼‰
         /// </summary>
-        /// <param name="Amount">ª÷ÃB¡]¤¸¡^</param>
-        /// <param name="ProductName">²£«~¦WºÙ</param>
-        /// <param name="OrderDate">­q³æ¤é´Á¦r¦ê</param>
-        /// <param name="FeeId">¦¬¶O³æ ID</param>
-        /// <returns>CreOrder ª«¥ó¡A¥]§t ATM ¥I´Ú¸ê°T</returns>
+        /// <param name="Amount">é‡‘é¡ï¼ˆå…ƒï¼‰</param>
+        /// <param name="ProductName">ç”¢å“åç¨±</param>
+        /// <param name="OrderDate">è¨‚å–®æ—¥æœŸå­—ä¸²</param>
+        /// <param name="FeeId">æ”¶è²»å–® ID</param>
+        /// <returns>CreOrder ç‰©ä»¶ï¼ŒåŒ…å« ATM ä»˜æ¬¾è³‡è¨Š</returns>
         public async Task<CreOrder> CreateOrderATM(int Amount, string ProductName, string OrderDate, string FeeId)
         {
-            // «Ø¥ß¥ÃÂ×ª÷¬y ATM ­q³æ½Ğ¨D
+            // å»ºç«‹æ°¸è±é‡‘æµ ATM è¨‚å–®è«‹æ±‚
             var creOrderReq = new CreOrderReq
             {
-                ShopNo = ShopNo,                    // °Ó©±½s¸¹
-                OrderNo = "A" + OrderDate,          // ATM ­q³æ½s¸¹®æ¦¡¡GA + ¤é´Á
-                Amount = Amount * 100,              // ª÷ÃBÂà´«¬°¤À
-                CurrencyID = "TWD",                 // ³f¹ô¡G·s¥x¹ô
-                PrdtName = ProductName,             // ²£«~¦WºÙ
-                ReturnURL = ReturnUrl,              // ªğ¦^ URL
-                BackendURL = BackendUrl,            // «áºİ³qª¾ URL
-                PayType = "A",                      // ¥I´ÚÃş«¬¡GATM
-                Param1 = FeeId,                     // ¦Û­q°Ñ¼Æ1¡G¦¬¶O³æ ID
-                Param2 = QPayOrganization,          // ¦Û­q°Ñ¼Æ2¡G²ÕÂ´¥N½X
-                Param3 = "¦¬¶O³æ",                  // ¦Û­q°Ñ¼Æ3¡GÃş§O
+                ShopNo = ShopNo,                    // å•†åº—ç·¨è™Ÿ
+                OrderNo = "A" + OrderDate,          // ATM è¨‚å–®ç·¨è™Ÿæ ¼å¼ï¼šA + æ—¥æœŸ
+                Amount = Amount * 100,              // é‡‘é¡è½‰æ›ç‚ºåˆ†
+                CurrencyID = "TWD",                 // è²¨å¹£ï¼šæ–°å°å¹£
+                PrdtName = ProductName,             // ç”¢å“åç¨±
+                ReturnURL = ReturnUrl,              // è¿”å› URL
+                BackendURL = BackendUrl,            // å¾Œç«¯é€šçŸ¥ URL
+                PayType = "A",                      // ä»˜æ¬¾é¡å‹ï¼šATM
+                Param1 = FeeId,                     // è‡ªè¨‚åƒæ•¸1ï¼šæ”¶è²»å–® ID
+                Param2 = QPayOrganization,          // è‡ªè¨‚åƒæ•¸2ï¼šçµ„ç¹”ä»£ç¢¼
+                Param3 = "æ”¶è²»å–®",                  // è‡ªè¨‚åƒæ•¸3ï¼šé¡åˆ¥
                 ATMParam = new CreOrderATMParamReq
                 {
-                    ExpireDate = DateTime.Now.AddDays(10).ToLocalTime().ToString("yyyyMMdd") // ¨ì´Á¤é¡G10¤Ñ«á
+                    ExpireDate = DateTime.Now.AddDays(10).ToLocalTime().ToString("yyyyMMdd") // åˆ°æœŸæ—¥ï¼š10å¤©å¾Œ
                 }
             };
 
-            // ©I¥sª÷¬yªA°È«Ø¥ß­q³æ
+            // å‘¼å«é‡‘æµæœå‹™å»ºç«‹è¨‚å–®
             return PaymentService.OrderCreate(creOrderReq);
         }
 
         #endregion
 
-        #region ===== ¥ÃÂ×ª÷¬y (QPay) =====
+        #region ===== æ°¸è±é‡‘æµ (QPay) =====
 
         /// <summary>
-        /// «Ø¥ß¥ÃÂ×ª÷¬y­q³æ
+        /// å»ºç«‹æ°¸è±é‡‘æµè¨‚å–®
         /// </summary>
-        /// <param name="Amount">ª÷ÃB¡]¤¸¡^</param>
-        /// <param name="ProductName">²£«~¦WºÙ</param>
-        /// <param name="OrderDate">­q³æ¤é´Á¦r¦ê</param>
-        /// <param name="FeeId">¦¬¶O³æ ID</param>
-        /// <param name="PayType">¥I´ÚÃş«¬</param>
-        /// <param name="PayTypeSub">¥I´Ú¤lÃş«¬</param>
-        /// <param name="Staging">¤À´Á¸ê°T</param>
-        /// <param name="DeductTotalNum">¦©´ÚÁ`´Á¼Æ</param>
-        /// <param name="PeriodType">¶g´ÁÃş«¬</param>
-        /// <param name="DeductFreq">¦©´ÚÀW²v</param>
-        /// <param name="CreditCategory">«H¥Î¥dÃş§O</param>
-        /// <param name="CCToken">«H¥Î¥d Token</param>
-        /// <returns>CreOrder ª«¥ó</returns>
+        /// <param name="Amount">é‡‘é¡ï¼ˆå…ƒï¼‰</param>
+        /// <param name="ProductName">ç”¢å“åç¨±</param>
+        /// <param name="OrderDate">è¨‚å–®æ—¥æœŸå­—ä¸²</param>
+        /// <param name="FeeId">æ”¶è²»å–® ID</param>
+        /// <param name="PayType">ä»˜æ¬¾é¡å‹</param>
+        /// <param name="PayTypeSub">ä»˜æ¬¾å­é¡å‹</param>
+        /// <param name="Staging">åˆ†æœŸè³‡è¨Š</param>
+        /// <param name="DeductTotalNum">æ‰£æ¬¾ç¸½æœŸæ•¸</param>
+        /// <param name="PeriodType">é€±æœŸé¡å‹</param>
+        /// <param name="DeductFreq">æ‰£æ¬¾é »ç‡</param>
+        /// <param name="CreditCategory">ä¿¡ç”¨å¡é¡åˆ¥</param>
+        /// <param name="CCToken">ä¿¡ç”¨å¡ Token</param>
+        /// <returns>CreOrder ç‰©ä»¶</returns>
         private async Task<CreOrder> CreateQPayOrder(
             int Amount,
             string ProductName,
@@ -143,156 +144,271 @@ namespace ChurchReport.WebServiceConnector
             string CreditCategory,
             string CCToken)
         {
-            // «Ø¥ß¥ÃÂ×ª÷¬y­q³æ½Ğ¨Dª«¥ó
+            // å»ºç«‹æ°¸è±é‡‘æµè¨‚å–®è«‹æ±‚ç‰©ä»¶
             var creOrderReq = new CreOrderReq
             {
-                ShopNo = ShopNo,                    // °Ó©±½s¸¹
-                OrderNo = PayType + OrderDate,      // ­q³æ½s¸¹¡G¥I´ÚÃş«¬ + ¤é´Á
-                Amount = Amount * 100,              // ª÷ÃBÂà´«¬°¤À
-                CurrencyID = "TWD",                 // ³f¹ô¡G·s¥x¹ô
-                PrdtName = ProductName,             // ²£«~¦WºÙ
-                ReturnURL = ReturnUrl,              // ¥Î¤á¥I´Ú§¹¦¨«áªğ¦^ªº URL
-                BackendURL = BackendUrl,            // ª÷¬y«áºİ³qª¾ªº URL
-                PayType = PayType,                  // ¥I´ÚÃş«¬
-                Param1 = FeeId,                     // ¦Û­q°Ñ¼Æ1¡G¦¬¶O³æ ID
-                Param2 = QPayOrganization,          // ¦Û­q°Ñ¼Æ2¡G²ÕÂ´¥N½X
-                Param3 = CreditCategory,            // ¦Û­q°Ñ¼Æ3¡G«H¥Î¥dÃş§O
+                ShopNo = ShopNo,                    // å•†åº—ç·¨è™Ÿ
+                OrderNo = PayType + OrderDate,      // è¨‚å–®ç·¨è™Ÿï¼šä»˜æ¬¾é¡å‹ + æ—¥æœŸ
+                Amount = Amount * 100,              // é‡‘é¡è½‰æ›ç‚ºåˆ†
+                CurrencyID = "TWD",                 // è²¨å¹£ï¼šæ–°å°å¹£
+                PrdtName = ProductName,             // ç”¢å“åç¨±
+                ReturnURL = ReturnUrl,              // ç”¨æˆ¶ä»˜æ¬¾å®Œæˆå¾Œè¿”å›çš„ URL
+                BackendURL = BackendUrl,            // é‡‘æµå¾Œç«¯é€šçŸ¥çš„ URL
+                PayType = PayType,                  // ä»˜æ¬¾é¡å‹
+                Param1 = FeeId,                     // è‡ªè¨‚åƒæ•¸1ï¼šæ”¶è²»å–® ID
+                Param2 = QPayOrganization,          // è‡ªè¨‚åƒæ•¸2ï¼šçµ„ç¹”ä»£ç¢¼
+                Param3 = CreditCategory,            // è‡ªè¨‚åƒæ•¸3ï¼šä¿¡ç”¨å¡é¡åˆ¥
                 CardParam = new CreOrderCardParamReq
                 {
-                    AutoBilling = "Y",              // ¦Û°Ê¦©´Ú¡G¬O
-                    PayTypeSub = PayTypeSub,        // ¥I´Ú¤lÃş«¬
-                    Staging = Staging,              // ¤À´Á¸ê°T
-                    DeductTotalNum = DeductTotalNum,// ¦©´ÚÁ`´Á¼Æ
-                    PeriodType = PeriodType,        // ¶g´ÁÃş«¬
-                    DeductFreq = DeductFreq,        // ¦©´ÚÀW²v
-                    CCToken = CCToken               // «H¥Î¥d Token
+                    AutoBilling = "Y",              // è‡ªå‹•æ‰£æ¬¾ï¼šæ˜¯
+                    PayTypeSub = PayTypeSub,        // ä»˜æ¬¾å­é¡å‹
+                    Staging = Staging,              // åˆ†æœŸè³‡è¨Š
+                    DeductTotalNum = DeductTotalNum,// æ‰£æ¬¾ç¸½æœŸæ•¸
+                    PeriodType = PeriodType,        // é€±æœŸé¡å‹
+                    DeductFreq = DeductFreq,        // æ‰£æ¬¾é »ç‡
+                    CCToken = CCToken               // ä¿¡ç”¨å¡ Token
                 }
             };
 
-            // ©I¥sª÷¬yªA°È«Ø¥ß­q³æ
+            // å‘¼å«é‡‘æµæœå‹™å»ºç«‹è¨‚å–®
             return PaymentService.OrderCreate(creOrderReq);
         }
 
         /// <summary>
-        /// ¬d¸ß¥ÃÂ×ª÷¬y¥I´Úµ²ªG¡]¨Ï¥Î¥Ø«e³]©w°Ó©±¸¹¡^
+        /// æŸ¥è©¢æ°¸è±é‡‘æµä»˜æ¬¾çµæœï¼ˆä½¿ç”¨ç›®å‰è¨­å®šå•†åº—è™Ÿï¼‰
         /// </summary>
-        /// <param name="aPayToken">¥I´Ú Token</param>
-        /// <returns>¬d¸ßµ²ªGª«¥ó</returns>
+        /// <param name="aPayToken">ä»˜æ¬¾ Token</param>
+        /// <returns>æŸ¥è©¢çµæœç‰©ä»¶</returns>
         public QryOrderPay OrderPayQuery(string aPayToken)
         {
             try
             {
-                // °O¿ı¬d¸ß°Ñ¼Æ
+                // è¨˜éŒ„æŸ¥è©¢åƒæ•¸
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] OrderPayQuery: PayToken={aPayToken}, ShopNo={ShopNo}");
 
-                // «Ø¥ß¬d¸ß½Ğ¨D
+                // å»ºç«‹æŸ¥è©¢è«‹æ±‚
                 var orderPayQueryReq = new QryOrderPayReq
                 {
-                    ShopNo = ShopNo,        // °Ó©±½s¸¹
-                    PayToken = aPayToken    // ¥I´Ú Token
+                    ShopNo = ShopNo,        // å•†åº—ç·¨è™Ÿ
+                    PayToken = aPayToken    // ä»˜æ¬¾ Token
                 };
 
-                // °õ¦æ¬d¸ß
+                // åŸ·è¡ŒæŸ¥è©¢
                 var result = PaymentService.OrderPayQuery(orderPayQueryReq);
 
-                // °O¿ı¬d¸ßµ²ªG
+                // è¨˜éŒ„æŸ¥è©¢çµæœ
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] OrderPayQuery result: Status={result?.Status}, Description={result?.Description}");
 
                 return result;
             }
             catch (Exception ex)
             {
-                // °O¿ı¿ù»~¨Ã­«·s©ß¥X
+                // è¨˜éŒ„éŒ¯èª¤ä¸¦é‡æ–°æ‹‹å‡º
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] OrderPayQuery failed: {ex.Message}");
-                throw new Exception($"¬d¸ß¥I´Úµ²ªG¥¢±Ñ: {ex.Message}", ex);
+                throw new Exception($"æŸ¥è©¢ä»˜æ¬¾çµæœå¤±æ•—: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// ¬d¸ß¥ÃÂ×ª÷¬y¥I´Úµ²ªG¡]«ü©w°Ó©±¸¹¨Ã±a¤J¹ïÀ³ HashCode/Site ¸ê°T¡^
+        /// æŸ¥è©¢æ°¸è±é‡‘æµä»˜æ¬¾çµæœï¼ˆæŒ‡å®šå•†åº—è™Ÿä¸¦å¸¶å…¥å°æ‡‰ HashCode/Site è³‡è¨Šï¼‰
         /// </summary>
-        /// <param name="aShopNo">°Ó©±½s¸¹</param>
-        /// <param name="aPayToken">¥I´Ú Token</param>
-        /// <returns>¬d¸ßµ²ªGª«¥ó</returns>
+        /// <param name="aShopNo">å•†åº—ç·¨è™Ÿ</param>
+        /// <param name="aPayToken">ä»˜æ¬¾ Token</param>
+        /// <returns>æŸ¥è©¢çµæœç‰©ä»¶</returns>
         public QryOrderPay OrderPayQuery(string aShopNo, string aPayToken)
         {
             try
             {
-                // °O¿ı¬d¸ß°Ñ¼Æ
+                // è¨˜éŒ„æŸ¥è©¢åƒæ•¸
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] OrderPayQuery: ShopNo={aShopNo}, PayToken={aPayToken}");
 
-                // ¨ú±o°Ó©±¹ïÀ³ªº»{ÃÒ¸ê°T
+                // å–å¾—å•†åº—å°æ‡‰çš„èªè­‰è³‡è¨Š
                 var hashCode = ConvertShopNoToHashCodeAndSite(aShopNo);
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] HashCode: {hashCode?.Substring(0, Math.Min(20, hashCode?.Length ?? 0))}...");
 
-                // «Ø¥ß¬d¸ß½Ğ¨D
+                // å»ºç«‹æŸ¥è©¢è«‹æ±‚
                 var orderPayQueryReq = new QryOrderPayReq
                 {
-                    ShopNo = aShopNo,       // «ü©w°Ó©±½s¸¹
-                    PayToken = aPayToken    // ¥I´Ú Token
+                    ShopNo = aShopNo,       // æŒ‡å®šå•†åº—ç·¨è™Ÿ
+                    PayToken = aPayToken    // ä»˜æ¬¾ Token
                 };
 
-                // °õ¦æ¬d¸ß¡]±a¤J HashCode¡^
+                // åŸ·è¡ŒæŸ¥è©¢ï¼ˆå¸¶å…¥ HashCodeï¼‰
                 var result = PaymentService.OrderPayQuery(orderPayQueryReq, hashCode);
 
-                // °O¿ı¬d¸ßµ²ªG
+                // è¨˜éŒ„æŸ¥è©¢çµæœ
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] OrderPayQuery result: Status={result?.Status}");
 
                 return result;
             }
             catch (Exception ex)
             {
-                // °O¿ı¿ù»~¨Ã­«·s©ß¥X
+                // è¨˜éŒ„éŒ¯èª¤ä¸¦é‡æ–°æ‹‹å‡º
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] OrderPayQuery failed: {ex.Message}");
-                throw new Exception($"¬d¸ß¥I´Úµ²ªG¥¢±Ñ (ShopNo: {aShopNo}): {ex.Message}", ex);
+                throw new Exception($"æŸ¥è©¢ä»˜æ¬¾çµæœå¤±æ•— (ShopNo: {aShopNo}): {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// ¨Ì°Ó©±¥N¸¹¨ú±o HashCode/Site »{ÃÒ¦r¦ê
-        /// ¥Î©ó¤£¦P°Ó©±ªº»{ÃÒ¸ê°T¬M®g
+        /// ä¾å•†åº—ä»£è™Ÿå–å¾— HashCode/Site èªè­‰å­—ä¸²
+        /// âœ… æ”¹ç‚ºå¾ appsettings.json å‹•æ…‹è®€å–ï¼Œæ”¯æ´å¤šå•†åº—é…ç½®
         /// </summary>
-        /// <param name="aShopNo">°Ó©±½s¸¹</param>
-        /// <returns>HashCode/Site ¦r¦ê</returns>
-        private string ConvertShopNoToHashCodeAndSite(string aShopNo)
+        /// <param name="aShopNo">å•†åº—ä»£è™Ÿï¼ˆä¾‹å¦‚ï¼šDA3009_001ï¼‰</param>
+        /// <returns>HashCode å­—ä¸²ï¼ˆæ ¼å¼ï¼šA1,A2,B1,B2ï¼‰</returns>
+        private string ConvertShopNoToHashCodeAndSite(String aShopNo)
         {
-            // ¨Ï¥Î switch expression ¶i¦æ°Ó©±½s¸¹¨ì»{ÃÒ¸ê°Tªº¬M®g
-            return aShopNo switch
+            try
             {
-                "DA1626_001" => "D1695F439A69448F,7E460E920A184845,DEA83EFB714943F3,DC237C5C69914F0C",
-                "DA1626_003" => "2C5D55945FCF4767,76052054D7054EA6,13F282F8A0F5475D,D782B4F1893A4334",
-                "DA2424_001" => "9825732578154B95,C89A75CD59D0430F,DAB73CB2A41E47FF,B09695CE58FA4774",
-                "DA2659_001" => "C8DAEA50FFB64CF4,F141E5BBE21B4D47,A922E0C106D14C35,CA22A88D1032412F",
-                "NA0149_001" => "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399",
-                "DA2890_001" => "BDC962CCC8AB4AE2,946D46DBDDDE43E0,6038DFB03B4342AE,B1F64046CB2E44FC",
-                "DA3033_001" => "4B1657DE6F3547A3,3AB478872D0A49C7,0748F400DD834C07,6506CD86B0174396",
-                "DA3190_001" => "1E582BECE43F421A,8F6ACB29B8EF4C67,8C06D1D49C544C51,041D9136AA9647F2",
-                "DA3189_001" => "A88FB80292D6420D,3844DD3B214D487C,27BC1983D2914C11,32D5A23910734C93",
-                "DA3412_001" => "2B27264C1D794727,7C91CB903482427D,7360D573A5A34184,3C85541425624385",
-                "DA3806_001" => "81F5DAFEAFD343EC,80BA10061E59467B,B5F2CBA592004D2D,D6D805E2CF514E12",
-                "DA3855_002" => "08B9715C313F4ABB,E8AC362AB9174D3C,81D71D28D7E04414,927ADFBE9F854C81",
-                "DA4001_001" => "B2FC3849C9F6487C,6ADDD7D7CCFC48BA,2F83CE17C6044E3D,48737E77D6864915",
-                "DA4195_001" => "B83DCBFA2D994F19,6ED32787DA504871,13E56D7A39AB4768,163EC08BC1624854",
-                "DA4272_001" => "00DC1BDACCB645C6,185B6F59F737462E,6F9C2936E8524F76,8BB48C2260304E29",
-                _ => "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399" // ¹w³]­È
-            };
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] Converting ShopNo to HashCode: {aShopNo}");
+
+                // âœ… å„ªå…ˆå¾å¿«å–ä¸­è®€å–ï¼ˆé¿å…é‡è¤‡è§£æ JSONï¼‰
+                string cacheKey = $"ShopNo_HashCode_{aShopNo}";
+                if (_shopNoHashCodeCache.TryGetValue(cacheKey, out string cachedHashCode))
+                {
+                    System.Diagnostics.Trace.WriteLine($"[QPayProcessor] Using cached HashCode for {aShopNo}");
+                    return cachedHashCode;
+                }
+
+                // âœ… å¾ appsettings.json å‹•æ…‹è®€å–
+                string hashCode = GetHashCodeFromConfiguration(aShopNo);
+
+                if (!string.IsNullOrEmpty(hashCode))
+                {
+                    // å¿«å–çµæœ
+                    _shopNoHashCodeCache[cacheKey] = hashCode;
+                    System.Diagnostics.Trace.WriteLine($"[QPayProcessor] HashCode loaded from config: {hashCode.Substring(0, Math.Min(20, hashCode.Length))}...");
+                    return hashCode;
+                }
+
+                // âœ… å¦‚æœé…ç½®æª”ä¸­æ‰¾ä¸åˆ°ï¼Œä½¿ç”¨å‚™ç”¨çš„ Fallback å°ç…§è¡¨
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] ShopNo {aShopNo} not found in config, using fallback");
+                return GetFallbackHashCode(aShopNo);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] Error converting ShopNo: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"  - Using default fallback HashCode");
+                return GetFallbackHashCode(aShopNo);
+            }
+        }
+
+        /// <summary>
+        /// å¾ appsettings.json è®€å–æŒ‡å®šå•†åº—çš„ HashCode
+        /// </summary>
+        private string GetHashCodeFromConfiguration(string shopNo)
+        {
+            try
+            {
+                // âœ… å…ˆæª¢æŸ¥æ˜¯å¦ç‚ºç•¶å‰è¨­å®šçš„å•†åº—
+                string currentShopNo = m_Configuration["Sinopac:ShopNo"];
+                if (shopNo == currentShopNo)
+                {
+                    // å¾ Sinopac å€æ®µè®€å–
+                    string a1 = m_Configuration["Sinopac:A1"];
+                    string a2 = m_Configuration["Sinopac:A2"];
+                    string b1 = m_Configuration["Sinopac:B1"];
+                    string b2 = m_Configuration["Sinopac:B2"];
+
+                    if (!string.IsNullOrEmpty(a1) && !string.IsNullOrEmpty(a2) &&
+                        !string.IsNullOrEmpty(b1) && !string.IsNullOrEmpty(b2))
+                    {
+                        return $"{a1},{a2},{b1},{b2}";
+                    }
+                }
+
+                // âœ… æª¢æŸ¥ Sandbox ç’°å¢ƒ
+                string sandboxShopNo = m_Configuration["Sandbox:ShopNo"];
+                if (shopNo == sandboxShopNo)
+                {
+                    string a1 = m_Configuration["Sandbox:A1"];
+                    string a2 = m_Configuration["Sandbox:A2"];
+                    string b1 = m_Configuration["Sandbox:B1"];
+                    string b2 = m_Configuration["Sandbox:B2"];
+
+                    if (!string.IsNullOrEmpty(a1) && !string.IsNullOrEmpty(a2) &&
+                        !string.IsNullOrEmpty(b1) && !string.IsNullOrEmpty(b2))
+                    {
+                        return $"{a1},{a2},{b1},{b2}";
+                    }
+                }
+
+                // âœ… æ”¯æ´å¤šå•†åº—é…ç½®ï¼ˆæœªä¾†æ“´å……ï¼‰
+                // å¯ä»¥åœ¨ appsettings.json ä¸­æ–°å¢ "AdditionalShops" å€æ®µ
+                var additionalShopsSection = m_Configuration.GetSection("AdditionalShops");
+                if (additionalShopsSection.Exists())
+                {
+                    var shopConfig = additionalShopsSection.GetSection(shopNo);
+                    if (shopConfig.Exists())
+                    {
+                        string a1 = shopConfig["A1"];
+                        string a2 = shopConfig["A2"];
+                        string b1 = shopConfig["B1"];
+                        string b2 = shopConfig["B2"];
+
+                        if (!string.IsNullOrEmpty(a1) && !string.IsNullOrEmpty(a2) &&
+                            !string.IsNullOrEmpty(b1) && !string.IsNullOrEmpty(b2))
+                        {
+                            return $"{a1},{a2},{b1},{b2}";
+                        }
+                    }
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] Error reading config: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// å‚™ç”¨çš„ HashCode å°ç…§è¡¨ï¼ˆç•¶é…ç½®æª”è®€å–å¤±æ•—æ™‚ä½¿ç”¨ï¼‰
+        /// âš ï¸ å»ºè­°å°‡é€™äº›å€¼ç§»è‡³ appsettings.json çš„ AdditionalShops å€æ®µ
+        /// </summary>
+        private string GetFallbackHashCode(string shopNo)
+        {
+            System.Diagnostics.Trace.WriteLine($"[QPayProcessor] Using fallback HashCode for: {shopNo}");
+
+            switch (shopNo)
+            {
+                case "DA1626_001": return "D1695F439A69448F,7E460E920A184845,DEA83EFB714943F3,DC237C5C69914F0C";
+                case "DA1626_003": return "2C5D55945FCF4767,76052054D7054EA6,13F282F8A0F5475D,D782B4F1893A4334";
+                case "DA2424_001": return "9825732578154B95,C89A75CD59D0430F,DAB73CB2A41E47FF,B09695CE58FA4774";
+                case "DA2659_001": return "C8DAEA50FFB64CF4,F141E5BBE21B4D47,A922E0C106D14C35,CA22A88D1032412F";
+                case "NA0149_001": return "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399";
+                case "DA2890_001": return "BDC962CCC8AB4AE2,946D46DBDDDE43E0,6038DFB03B4342AE,B1F64046CB2E44FC";
+                case "DA3033_001": return "4B1657DE6F3547A3,3AB478872D0A49C7,0748F400DD834C07,6506CD86B0174396";
+                case "DA3190_001": return "1E582BECE43F421A,8F6ACB29B8EF4C67,8C06D1D49C544C51,041D9136AA9647F2";
+                case "DA3189_001": return "A88FB80292D6420D,3844DD3B214D487C,27BC1983D2914C11,32D5A23910734C93";
+                case "DA3412_001": return "2B27264C1D794727,7C91CB903482427D,7360D573A5A34184,3C85541425624385";
+                case "DA3806_001": return "81F5DAFEAFD343EC,80BA10061E59467B,B5F2CBA592004D2D,D6D805E2CF514E12";
+                case "DA3855_002": return "08B9715C313F4ABB,E8AC362AB9174D3C,81D71D28D7E04414,927ADFBE9F854C81";
+                case "DA4001_001": return "B2FC3849C9F6487C,6ADDD7D7CCFC48BA,2F83CE17C6044E3D,48737E77D6864915";
+                case "DA4195_001": return "B83DCBFA2D994F19,6ED32787DA504871,13E56D7A39AB4768,163EC08BC1624854";
+                case "DA4272_001": return "00DC1BDACCB645C6,185B6F59F737462E,6F9C2936E8524F76,8BB48C2260304E29";
+                case "DA3009_001": return "D3AA59886C7041B2,4519D42101984D8E,93BCEDA52A8C45D9,F983B7D4C9154484";
+                default:
+                    System.Diagnostics.Trace.WriteLine($"[QPayProcessor] Unknown ShopNo: {shopNo}, using default HashCode");
+                    return "5E854757C751413F,D743D0EB06904837,08169D5445644513,8E52B5A180EE4399";
+            }
         }
 
         #endregion
 
-        #region ===== °ª¹dª÷¬y (MyPay) =====
+        #region ===== é«˜é‰…é‡‘æµ (MyPay) =====
 
         /// <summary>
-        /// «Ø¥ß°ª¹dª÷¬y­q³æ
+        /// å»ºç«‹é«˜é‰…é‡‘æµè¨‚å–®
         /// </summary>
-        /// <param name="Amount">ª÷ÃB¡]¤¸¡^</param>
-        /// <param name="ProductName">²£«~¦WºÙ</param>
-        /// <param name="OrderDate">­q³æ¤é´Á¦r¦ê</param>
-        /// <param name="FeeId">¦¬¶O³æ ID</param>
-        /// <param name="PayType">¥I´ÚÃş«¬</param>
-        /// <param name="PayTypeSub">¥I´Ú¤lÃş«¬</param>
-        /// <param name="LineLoginContact">µn¤J³sµ¸¤H¹êÅé</param>
-        /// <returns>CreOrder ª«¥ó</returns>
+        /// <param name="Amount">é‡‘é¡ï¼ˆå…ƒï¼‰</param>
+        /// <param name="ProductName">ç”¢å“åç¨±</param>
+        /// <param name="OrderDate">è¨‚å–®æ—¥æœŸå­—ä¸²</param>
+        /// <param name="FeeId">æ”¶è²»å–® ID</param>
+        /// <param name="PayType">ä»˜æ¬¾é¡å‹</param>
+        /// <param name="PayTypeSub">ä»˜æ¬¾å­é¡å‹</param>
+        /// <param name="LineLoginContact">ç™»å…¥é€£çµ¡äººå¯¦é«”</param>
+        /// <returns>CreOrder ç‰©ä»¶</returns>
         private async Task<CreOrder> CreateMyPayOrder(
             int Amount,
             string ProductName,
@@ -302,41 +418,41 @@ namespace ChurchReport.WebServiceConnector
             string PayTypeSub,
             Entity LineLoginContact)
         {
-            // ¨ú±o°ª¹dª÷¬y©Ò»İªº­ì©l¸ê®Æ
+            // å–å¾—é«˜é‰…é‡‘æµæ‰€éœ€çš„åŸå§‹è³‡æ–™
             var rawData = GetMyPayRawData(Amount, ProductName, OrderDate, FeeId, PayType + OrderDate, PayType, PayTypeSub, LineLoginContact);
 
-            // ¨ú±o°ª¹dª÷¬yªA°È³]©w
+            // å–å¾—é«˜é‰…é‡‘æµæœå‹™è¨­å®š
             var service = GetMyPayService();
 
-            // ©I¥sª÷¬yªA°È«Ø¥ß­q³æ
+            // å‘¼å«é‡‘æµæœå‹™å»ºç«‹è¨‚å–®
             return PaymentService.CreateOrder(rawData, service);
         }
 
         /// <summary>
-        /// ¨ú±o°ª¹dª÷¬yªA°È³]©w
+        /// å–å¾—é«˜é‰…é‡‘æµæœå‹™è¨­å®š
         /// </summary>
-        /// <returns>ServiceRequest ª«¥ó¡A¥]§tªA°È¦WºÙ©M©R¥O</returns>
+        /// <returns>ServiceRequest ç‰©ä»¶ï¼ŒåŒ…å«æœå‹™åç¨±å’Œå‘½ä»¤</returns>
         private ServiceRequest GetMyPayService()
         {
             return new ServiceRequest
             {
-                service_name = Configuration["MyPay:ServiceName"],  // ªA°È¦WºÙ
-                cmd = Configuration["MyPay:CMD"]                     // ©R¥O
+                service_name = Configuration["MyPay:ServiceName"],  // æœå‹™åç¨±
+                cmd = Configuration["MyPay:CMD"]                     // å‘½ä»¤
             };
         }
 
         /// <summary>
-        /// ¨ú±o°ª¹dª÷¬y­ì©l¸ê®Æ
+        /// å–å¾—é«˜é‰…é‡‘æµåŸå§‹è³‡æ–™
         /// </summary>
-        /// <param name="Amount">ª÷ÃB</param>
-        /// <param name="ProductName">²£«~¦WºÙ</param>
-        /// <param name="OrderDate">­q³æ¤é´Á</param>
-        /// <param name="FeeId">¦¬¶O³æ ID</param>
-        /// <param name="OrderId">­q³æ ID</param>
-        /// <param name="PayType">¥I´ÚÃş«¬</param>
-        /// <param name="PayTypeSub">¥I´Ú¤lÃş«¬</param>
-        /// <param name="LineLoginContact">³sµ¸¤H¹êÅé</param>
-        /// <returns>°ÊºAª«¥ó¡A¥]§t©Ò¦³¥²­nÄæ¦ì</returns>
+        /// <param name="Amount">é‡‘é¡</param>
+        /// <param name="ProductName">ç”¢å“åç¨±</param>
+        /// <param name="OrderDate">è¨‚å–®æ—¥æœŸ</param>
+        /// <param name="FeeId">æ”¶è²»å–® ID</param>
+        /// <param name="OrderId">è¨‚å–® ID</param>
+        /// <param name="PayType">ä»˜æ¬¾é¡å‹</param>
+        /// <param name="PayTypeSub">ä»˜æ¬¾å­é¡å‹</param>
+        /// <param name="LineLoginContact">é€£çµ¡äººå¯¦é«”</param>
+        /// <returns>å‹•æ…‹ç‰©ä»¶ï¼ŒåŒ…å«æ‰€æœ‰å¿…è¦æ¬„ä½</returns>
         private dynamic GetMyPayRawData(
             int Amount,
             string ProductName,
@@ -347,39 +463,39 @@ namespace ChurchReport.WebServiceConnector
             string PayTypeSub,
             Entity LineLoginContact)
         {
-            // «Ø¥ß°Ó«~¶µ¥Ø¦Cªí
+            // å»ºç«‹å•†å“é …ç›®åˆ—è¡¨
             var items = CreateProductItems(FeeId, ProductName, Amount);
 
-            // «Ø¥ß°ÊºAª«¥ó
+            // å»ºç«‹å‹•æ…‹ç‰©ä»¶
             dynamic rawData = new ExpandoObject();
 
-            // ³]©w°ª¹dª÷¬y©Ò»İªº¦UºØÄİ©Ê
+            // è¨­å®šé«˜é‰…é‡‘æµæ‰€éœ€çš„å„ç¨®å±¬æ€§
             SetMyPayRawDataProperties(rawData, Amount, FeeId, OrderId, items, LineLoginContact, ProductName);
 
             return rawData;
         }
 
         /// <summary>
-        /// «Ø¥ß°ª¹dª÷¬y°Ó«~¶µ¥Ø¦Cªí
+        /// å»ºç«‹é«˜é‰…é‡‘æµå•†å“é …ç›®åˆ—è¡¨
         /// </summary>
-        /// <param name="FeeId">¦¬¶O³æ ID</param>
-        /// <param name="ProductName">²£«~¦WºÙ</param>
-        /// <param name="Amount">ª÷ÃB</param>
-        /// <param name="imageUrl">¹Ï¤ù URL¡]¥i¿ï¡^</param>
-        /// <returns>ArrayList ¥]§t°Ó«~¶µ¥Ø</returns>
+        /// <param name="FeeId">æ”¶è²»å–® ID</param>
+        /// <param name="ProductName">ç”¢å“åç¨±</param>
+        /// <param name="Amount">é‡‘é¡</param>
+        /// <param name="imageUrl">åœ–ç‰‡ URLï¼ˆå¯é¸ï¼‰</param>
+        /// <returns>ArrayList åŒ…å«å•†å“é …ç›®</returns>
         private ArrayList CreateProductItems(string FeeId, string ProductName, int Amount, string imageUrl = null)
         {
             var items = new ArrayList();
 
-            // «Ø¥ß°Ó«~¶µ¥Ø¡]¨Ï¥Î°ÊºAª«¥ó¥H¤ä´©°ª¹dª÷¬y®æ¦¡¡^
+            // å»ºç«‹å•†å“é …ç›®ï¼ˆä½¿ç”¨å‹•æ…‹ç‰©ä»¶ä»¥æ”¯æ´é«˜é‰…é‡‘æµæ ¼å¼ï¼‰
             dynamic productItem = new ExpandoObject();
-            productItem.id = FeeId;         // °Ó«~ ID
-            productItem.name = ProductName; // °Ó«~¦WºÙ
-            productItem.cost = Amount;      // ³æ»ù
-            productItem.amount = 1;         // ¼Æ¶q
-            productItem.total = Amount;     // Á`»ù
+            productItem.id = FeeId;         // å•†å“ ID
+            productItem.name = ProductName; // å•†å“åç¨±
+            productItem.cost = Amount;      // å–®åƒ¹
+            productItem.amount = 1;         // æ•¸é‡
+            productItem.total = Amount;     // ç¸½åƒ¹
 
-            // ¦pªG¦³¹Ï¤ù URL¡A¥[¤J¹Ï¤ùÄæ¦ì
+            // å¦‚æœæœ‰åœ–ç‰‡ URLï¼ŒåŠ å…¥åœ–ç‰‡æ¬„ä½
             if (!string.IsNullOrEmpty(imageUrl))
             {
                 productItem.image_url = imageUrl;
@@ -390,15 +506,15 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ³]©w°ª¹dª÷¬y­ì©l¸ê®ÆÄİ©Ê
+        /// è¨­å®šé«˜é‰…é‡‘æµåŸå§‹è³‡æ–™å±¬æ€§
         /// </summary>
-        /// <param name="rawData">°ÊºAª«¥ó</param>
-        /// <param name="Amount">ª÷ÃB</param>
-        /// <param name="FeeId">¦¬¶O³æ ID</param>
-        /// <param name="OrderId">­q³æ ID</param>
-        /// <param name="items">°Ó«~¶µ¥Ø¦Cªí</param>
-        /// <param name="LineLoginContact">³sµ¸¤H¹êÅé</param>
-        /// <param name="ProductName">²£«~¦WºÙ</param>
+        /// <param name="rawData">å‹•æ…‹ç‰©ä»¶</param>
+        /// <param name="Amount">é‡‘é¡</param>
+        /// <param name="FeeId">æ”¶è²»å–® ID</param>
+        /// <param name="OrderId">è¨‚å–® ID</param>
+        /// <param name="items">å•†å“é …ç›®åˆ—è¡¨</param>
+        /// <param name="LineLoginContact">é€£çµ¡äººå¯¦é«”</param>
+        /// <param name="ProductName">ç”¢å“åç¨±</param>
         private void SetMyPayRawDataProperties(
             dynamic rawData,
             int Amount,
@@ -408,91 +524,91 @@ namespace ChurchReport.WebServiceConnector
             Entity LineLoginContact,
             string ProductName)
         {
-            // ===== ²ÕÂ´»P°Ó©±¸ê°T =====
-            rawData.echo_0 = QPayOrganization;                           // ²ÕÂ´¥N½X
-            rawData.store_uid = Configuration["MyPay:Store_Id"];        // °Ó©±¥N¸¹
+            // ===== çµ„ç¹”èˆ‡å•†åº—è³‡è¨Š =====
+            rawData.echo_0 = QPayOrganization;                           // çµ„ç¹”ä»£ç¢¼
+            rawData.store_uid = Configuration["MyPay:Store_Id"];        // å•†åº—ä»£è™Ÿ
 
-            // ===== ¨Ï¥ÎªÌ¸ê°T =====
-            // ¨Ï¥ÎªÌ ID¡G²£«~¦WºÙ + ³sµ¸¤H ID
+            // ===== ä½¿ç”¨è€…è³‡è¨Š =====
+            // ä½¿ç”¨è€… IDï¼šç”¢å“åç¨± + é€£çµ¡äºº ID
             rawData.user_id = LineLoginContact != null
                 ? $"{ProductName}:{LineLoginContact.Id}"
                 : Guid.Empty.ToString();
 
-            // ©m¦W¸ê°T
+            // å§“åè³‡è¨Š
             string fullName = string.Empty;
             try
             {
                 fullName = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "fullname") ?? "";
             }
             catch { }
-            rawData.user_name = fullName;       // ©m¦W
-            rawData.user_real_name = fullName;  // ¯u¹ê©m¦W
+            rawData.user_name = fullName;       // å§“å
+            rawData.user_real_name = fullName;  // çœŸå¯¦å§“å
 
-            // ===== ¦a§}¸ê°T =====
+            // ===== åœ°å€è³‡è¨Š =====
             var address1_line1 = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "address1_line1") ?? "";
             var address1_line2 = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "address1_line2") ?? "";
             var address1_line3 = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "address1_line3") ?? "";
-            rawData.user_address = (address1_line1 + address1_line2 + address1_line3).Trim(); // §¹¾ã¦a§}
+            rawData.user_address = (address1_line1 + address1_line2 + address1_line3).Trim(); // å®Œæ•´åœ°å€
 
-            // ===== ¨­¤À»PÁpµ¸¸ê°T =====
-            rawData.user_sn = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "new_personal_id") ?? "";     // ¨­¤ÀÃÒ¸¹
-            rawData.user_cellphone = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "mobilephone") ?? ""; // ¤â¾÷
+            // ===== èº«åˆ†èˆ‡è¯çµ¡è³‡è¨Š =====
+            rawData.user_sn = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "new_personal_id") ?? "";     // èº«åˆ†è­‰è™Ÿ
+            rawData.user_cellphone = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "mobilephone") ?? ""; // æ‰‹æ©Ÿ
             rawData.user_email = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "emailaddress1") ?? "";   // Email
 
-            // ===== ­q³æ°ò¥»¸ê°T =====
-            rawData.cost = Amount;                                              // Á`ª÷ÃB
-            rawData.currency = Configuration["MyPay:Currency"] ?? "TWD";       // ³f¹ô
-            rawData.enable_dcc = Convert.ToInt32(Configuration["MyPay:EnableDcc"] ?? "0"); // ¬O§_±Ò¥Î DCC
-            rawData.order_id = OrderId;                                         // ­q³æ ID
-            rawData.ip = Configuration["MyPay:IP"];                            // IP ¦ì§}
-            rawData.item = items.Count.ToString();                             // °Ó«~¶µ¥Ø¼Æ¶q
-            rawData.items = items;                                             // °Ó«~¶µ¥Ø¦Cªí
+            // ===== è¨‚å–®åŸºæœ¬è³‡è¨Š =====
+            rawData.cost = Amount;                                              // ç¸½é‡‘é¡
+            rawData.currency = Configuration["MyPay:Currency"] ?? "TWD";       // è²¨å¹£
+            rawData.enable_dcc = Convert.ToInt32(Configuration["MyPay:EnableDcc"] ?? "0"); // æ˜¯å¦å•Ÿç”¨ DCC
+            rawData.order_id = OrderId;                                         // è¨‚å–® ID
+            rawData.ip = Configuration["MyPay:IP"];                            // IP ä½å€
+            rawData.item = items.Count.ToString();                             // å•†å“é …ç›®æ•¸é‡
+            rawData.items = items;                                             // å•†å“é …ç›®åˆ—è¡¨
 
-            // ===== ¥I´Ú³]©w =====
-            rawData.pfn = "0";                                                 // ¥I´Ú¤è¦¡¡]0=¤@¯ë¥I´Ú¡^
-            rawData.interface_type = Configuration["MyPay:InterfaceType"] ?? "app"; // ¤¶­±Ãş«¬
-            rawData.discount = Configuration["MyPay:Discount"] ?? "0";         // §é¦©
-            rawData.success_returl = Configuration["MyPay:SuccessReturl"] ?? ""; // ¦¨¥\ªğ¦^ URL
-            rawData.failure_returl = Configuration["MyPay:FailureReturl"] ?? ""; // ¥¢±Ñªğ¦^ URL
-            rawData.notify_url = Configuration["MyPay:NotifyUrl"] ?? "";       // ³qª¾ URL
-            rawData.limit_pay_days = Convert.ToInt32(Configuration["MyPay:LimitPayDays"] ?? "7"); // ¥I´Ú´Á­­¡]¤Ñ¡^
-            rawData.shipping_fee = Configuration["MyPay:ShippingFee"] ?? "0";  // ¹B¶O
+            // ===== ä»˜æ¬¾è¨­å®š =====
+            rawData.pfn = "0";                                                 // ä»˜æ¬¾æ–¹å¼ï¼ˆ0=ä¸€èˆ¬ä»˜æ¬¾ï¼‰
+            rawData.interface_type = Configuration["MyPay:InterfaceType"] ?? "app"; // ä»‹é¢é¡å‹
+            rawData.discount = Configuration["MyPay:Discount"] ?? "0";         // æŠ˜æ‰£
+            rawData.success_returl = Configuration["MyPay:SuccessReturl"] ?? ""; // æˆåŠŸè¿”å› URL
+            rawData.failure_returl = Configuration["MyPay:FailureReturl"] ?? ""; // å¤±æ•—è¿”å› URL
+            rawData.notify_url = Configuration["MyPay:NotifyUrl"] ?? "";       // é€šçŸ¥ URL
+            rawData.limit_pay_days = Convert.ToInt32(Configuration["MyPay:LimitPayDays"] ?? "7"); // ä»˜æ¬¾æœŸé™ï¼ˆå¤©ï¼‰
+            rawData.shipping_fee = Configuration["MyPay:ShippingFee"] ?? "0";  // é‹è²»
 
-            // ===== Echo °Ñ¼Æ¡]°lÂÜ¥Î¡^=====
-            rawData.echo_1 = $"¦¬¶O³æ ID : {FeeId}";                                    // ¦¬¶O³æ ID
-            rawData.echo_2 = ProductName;                                               // ²£«~¦WºÙ
-            rawData.echo_3 = $"ª÷ÃB : {Amount.ToString()}";                             // ª÷ÃB
-            rawData.echo_4 = $"«Ø³æ®É¶¡ : {DateTime.Now:yyyyMMddHHmmss}";               // «Ø³æ®É¶¡
+            // ===== Echo åƒæ•¸ï¼ˆè¿½è¹¤ç”¨ï¼‰=====
+            rawData.echo_1 = $"æ”¶è²»å–® ID : {FeeId}";                                    // æ”¶è²»å–® ID
+            rawData.echo_2 = ProductName;                                               // ç”¢å“åç¨±
+            rawData.echo_3 = $"é‡‘é¡ : {Amount.ToString()}";                             // é‡‘é¡
+            rawData.echo_4 = $"å»ºå–®æ™‚é–“ : {DateTime.Now:yyyyMMddHHmmss}";               // å»ºå–®æ™‚é–“
         }
 
         /// <summary>
-        /// ³B²z°ª¹dª÷¬y¦^¶Çµ²ªG¡]¦û¦ì¤èªk¡A¥Ø«e¶È¦^¶Ç¦¨¥\¡^
+        /// è™•ç†é«˜é‰…é‡‘æµå›å‚³çµæœï¼ˆä½”ä½æ–¹æ³•ï¼Œç›®å‰åƒ…å›å‚³æˆåŠŸï¼‰
         /// </summary>
-        /// <param name="returnModel">°ª¹dª÷¬y¦^¶Ç¼Ò«¬</param>
-        /// <returns>³B²z¬O§_¦¨¥\</returns>
+        /// <param name="returnModel">é«˜é‰…é‡‘æµå›å‚³æ¨¡å‹</param>
+        /// <returns>è™•ç†æ˜¯å¦æˆåŠŸ</returns>
         public async Task<bool> ProcessMyPayReturn(MyPayReturnModel returnModel)
         {
-            // TODO: ¹ê§@Ã±³¹ÅçÃÒ¡B§ó·s¦¬¶O³æª¬ºA¡B¼g¤J¤é»x¡B±À¼½³qª¾µ¥ÅŞ¿è
-            // ¥Ø«e¶È¬°¦û¦ì¡A¥Ã»·¦^¶Ç true
+            // TODO: å¯¦ä½œç°½ç« é©—è­‰ã€æ›´æ–°æ”¶è²»å–®ç‹€æ…‹ã€å¯«å…¥æ—¥èªŒã€æ¨æ’­é€šçŸ¥ç­‰é‚è¼¯
+            // ç›®å‰åƒ…ç‚ºä½”ä½ï¼Œæ°¸é å›å‚³ true
             await Task.Yield();
             return true;
         }
 
         #endregion
 
-        #region ===== ¥x·sª÷¬y (TSPG) =====
+        #region ===== å°æ–°é‡‘æµ (TSPG) =====
 
         /// <summary>
-        /// «Ø¥ß¥x·sª÷¬y­q³æ
+        /// å»ºç«‹å°æ–°é‡‘æµè¨‚å–®
         /// </summary>
-        /// <param name="Amount">ª÷ÃB¡]¤¸¡^</param>
-        /// <param name="ProductName">²£«~¦WºÙ</param>
-        /// <param name="OrderDate">­q³æ¤é´Á¦r¦ê</param>
-        /// <param name="FeeId">¦¬¶O³æ ID</param>
-        /// <param name="PayType">¥I´ÚÃş«¬</param>
-        /// <param name="PayTypeSub">¥I´Ú¤lÃş«¬</param>
-        /// <param name="LineLoginContact">µn¤J³sµ¸¤H¹êÅé</param>
-        /// <returns>CreOrder ª«¥ó</returns>
+        /// <param name="Amount">é‡‘é¡ï¼ˆå…ƒï¼‰</param>
+        /// <param name="ProductName">ç”¢å“åç¨±</param>
+        /// <param name="OrderDate">è¨‚å–®æ—¥æœŸå­—ä¸²</param>
+        /// <param name="FeeId">æ”¶è²»å–® ID</param>
+        /// <param name="PayType">ä»˜æ¬¾é¡å‹</param>
+        /// <param name="PayTypeSub">ä»˜æ¬¾å­é¡å‹</param>
+        /// <param name="LineLoginContact">ç™»å…¥é€£çµ¡äººå¯¦é«”</param>
+        /// <returns>CreOrder ç‰©ä»¶</returns>
         private async Task<CreOrder> CreateTspgOrder(
             int Amount,
             string ProductName,
@@ -502,31 +618,31 @@ namespace ChurchReport.WebServiceConnector
             string PayTypeSub,
             Entity LineLoginContact)
         {
-            // «Ø¥ß¥x·sª÷¬y½Ğ¨D¸ê®Æ
+            // å»ºç«‹å°æ–°é‡‘æµè«‹æ±‚è³‡æ–™
             var tspgRequest = GetTSPGPaymentRequestData(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, LineLoginContact);
 
-            // ¨M©w¬O§_±Ò¥Î 3D ÅçÃÒ¡]¥Ø«e©T©w¬° false¡A¥i¨Ì»İ¨D½Õ¾ã¡^
+            // æ±ºå®šæ˜¯å¦å•Ÿç”¨ 3D é©—è­‰ï¼ˆç›®å‰å›ºå®šç‚º falseï¼Œå¯ä¾éœ€æ±‚èª¿æ•´ï¼‰
             bool enable3D = false;
 
-            // ©I¥s¥x·sª÷¬y API «Ø¥ß­q³æ¡]´ú¸ÕÀô¹Ò¡^
+            // å‘¼å«å°æ–°é‡‘æµ API å»ºç«‹è¨‚å–®ï¼ˆæ¸¬è©¦ç’°å¢ƒï¼‰
             PayPageResponse payPageResponse = TspgToolkit.OrderCreateTest(tspgRequest, enable3D);
 
-            // ±N PayPageResponse Âà´«¬°²Î¤@ªº CreOrder ®æ¦¡¡]¾A°t¾¹¼Ò¦¡¡^
+            // å°‡ PayPageResponse è½‰æ›ç‚ºçµ±ä¸€çš„ CreOrder æ ¼å¼ï¼ˆé©é…å™¨æ¨¡å¼ï¼‰
             return ConvertPayPageResponseToCreOrder(payPageResponse, PayType, PayType + OrderDate);
         }
 
         /// <summary>
-        /// «Ø¥ß¥x·sª÷¬y½Ğ¨D¸ê®Æ
-        /// °Ñ¦Ò GetRawData °Ñ¼Æ«Ø¥ß TSPGPaymentRequest
+        /// å»ºç«‹å°æ–°é‡‘æµè«‹æ±‚è³‡æ–™
+        /// åƒè€ƒ GetRawData åƒæ•¸å»ºç«‹ TSPGPaymentRequest
         /// </summary>
-        /// <param name="Amount">ª÷ÃB¡]¤¸¡^</param>
-        /// <param name="ProductName">²£«~¦WºÙ</param>
-        /// <param name="OrderDate">­q³æ¤é´Á¦r¦ê</param>
-        /// <param name="FeeId">¦¬¶O³æ ID</param>
-        /// <param name="PayType">¥I´ÚÃş«¬</param>
-        /// <param name="PayTypeSub">¥I´Ú¤lÃş«¬</param>
-        /// <param name="LineLoginContact">³sµ¸¤H¹êÅé</param>
-        /// <returns>TSPGPaymentRequest ª«¥ó</returns>
+        /// <param name="Amount">é‡‘é¡ï¼ˆå…ƒï¼‰</param>
+        /// <param name="ProductName">ç”¢å“åç¨±</param>
+        /// <param name="OrderDate">è¨‚å–®æ—¥æœŸå­—ä¸²</param>
+        /// <param name="FeeId">æ”¶è²»å–® ID</param>
+        /// <param name="PayType">ä»˜æ¬¾é¡å‹</param>
+        /// <param name="PayTypeSub">ä»˜æ¬¾å­é¡å‹</param>
+        /// <param name="LineLoginContact">é€£çµ¡äººå¯¦é«”</param>
+        /// <returns>TSPGPaymentRequest ç‰©ä»¶</returns>
         private TSPGPaymentRequest GetTSPGPaymentRequestData(
             int Amount,
             string ProductName,
@@ -536,48 +652,48 @@ namespace ChurchReport.WebServiceConnector
             string PayTypeSub,
             Entity LineLoginContact)
         {
-            // ===== °ò¥»­q³æ¸ê°T =====
-            string orderNo = (PayType ?? string.Empty) + OrderDate;        // ­q³æ½s¸¹
-            string amtInMinorUnit = (Amount * 100).ToString();             // ª÷ÃBÂà´«¬°¤À
+            // ===== åŸºæœ¬è¨‚å–®è³‡è¨Š =====
+            string orderNo = (PayType ?? string.Empty) + OrderDate;        // è¨‚å–®ç·¨è™Ÿ
+            string amtInMinorUnit = (Amount * 100).ToString();             // é‡‘é¡è½‰æ›ç‚ºåˆ†
 
-            // ===== ±q³]©wÀÉÅª¨ú°Ó©±¸ê°T =====
-            string mid = Configuration["TSPG:MerchanID"] ?? string.Empty;   // ¯S©±¥N¸¹
-            string tid = Configuration["TSPG:TerminaID"] ?? string.Empty;   // ºİ¥½¥N¸¹
-            string sMid = Configuration["TSPG:S_Mid"] ?? string.Empty;      // ¤l¯S©±¥N¸¹
+            // ===== å¾è¨­å®šæª”è®€å–å•†åº—è³‡è¨Š =====
+            string mid = Configuration["TSPG:MerchanID"] ?? string.Empty;   // ç‰¹åº—ä»£è™Ÿ
+            string tid = Configuration["TSPG:TerminaID"] ?? string.Empty;   // ç«¯æœ«ä»£è™Ÿ
+            string sMid = Configuration["TSPG:S_Mid"] ?? string.Empty;      // å­ç‰¹åº—ä»£è™Ÿ
 
-            // ===== ¦^¶Çºô§}³]©w =====
-            string postBackUrl = Configuration["TSPG:POST_BACK_URL"] ?? string.Empty; // ¥Î¤á§¹¦¨¥I´Ú«áªº¾É¦V­¶­±
-            string resultUrl = Configuration["TSPG:RESULT_URL"] ?? string.Empty;      // ±µ¦¬¥æ©öµ²ªGªº«áºİºô§}
+            // ===== å›å‚³ç¶²å€è¨­å®š =====
+            string postBackUrl = Configuration["TSPG:POST_BACK_URL"] ?? string.Empty; // ç”¨æˆ¶å®Œæˆä»˜æ¬¾å¾Œçš„å°å‘é é¢
+            string resultUrl = Configuration["TSPG:RESULT_URL"] ?? string.Empty;      // æ¥æ”¶äº¤æ˜“çµæœçš„å¾Œç«¯ç¶²å€
 
-            // ===== ¥æ©ö°Ñ¼Æ³]©w =====
-            string captFlag = "0"; // ¹w³]¤£¦Û°Ê½Ğ´Ú¡]0: ¤£¦P¨B½Ğ´Ú, 1: ¦P¨B½Ğ´Ú¡^
-            string layout = Configuration["TSPG:Layout"]; // «È¤áºİª©­±Ãş«¬¡]1: ¤@¯ëºô­¶, 2: ¦æ°Ê¸Ë¸mºô­¶¡^
+            // ===== äº¤æ˜“åƒæ•¸è¨­å®š =====
+            string captFlag = "0"; // é è¨­ä¸è‡ªå‹•è«‹æ¬¾ï¼ˆ0: ä¸åŒæ­¥è«‹æ¬¾, 1: åŒæ­¥è«‹æ¬¾ï¼‰
+            string layout = Configuration["TSPG:Layout"]; // å®¢æˆ¶ç«¯ç‰ˆé¢é¡å‹ï¼ˆ1: ä¸€èˆ¬ç¶²é , 2: è¡Œå‹•è£ç½®ç¶²é ï¼‰
 
-            // ===== «Ø¥ß TSPGPaymentRequest ª«¥ó =====
+            // ===== å»ºç«‹ TSPGPaymentRequest ç‰©ä»¶ =====
             var request = new TSPGPaymentRequest
             {
-                // --- REST API v2.14 µ²ºc ---
-                Sender = "rest",     // ©T©w­È¡GREST API
-                Ver = "1.0.0",       // ©T©w­È¡Gª©¥»¸¹
-                Mid = mid,           // ¯S©±¥N¸¹¡]¥²¶ñ¡^
-                S_Mid = !string.IsNullOrEmpty(sMid) ? sMid : null, // ¤l¯S©±¥N¸¹¡]¿ï¶ñ¡^
-                Tid = tid,           // ºİ¥½¥N¸¹¡]¥²¶ñ¡^
-                PayType = 1,         // ¥I´ÚÃş§O¡]1: «H¥Î¥d¡^
-                TxType = 1,          // ¥æ©öÃş§O¡]1: ±ÂÅv¡^
+                // --- REST API v2.14 çµæ§‹ ---
+                Sender = "rest",     // å›ºå®šå€¼ï¼šREST API
+                Ver = "1.0.0",       // å›ºå®šå€¼ï¼šç‰ˆæœ¬è™Ÿ
+                Mid = mid,           // ç‰¹åº—ä»£è™Ÿï¼ˆå¿…å¡«ï¼‰
+                S_Mid = !string.IsNullOrEmpty(sMid) ? sMid : null, // å­ç‰¹åº—ä»£è™Ÿï¼ˆé¸å¡«ï¼‰
+                Tid = tid,           // ç«¯æœ«ä»£è™Ÿï¼ˆå¿…å¡«ï¼‰
+                PayType = 1,         // ä»˜æ¬¾é¡åˆ¥ï¼ˆ1: ä¿¡ç”¨å¡ï¼‰
+                TxType = 1,          // äº¤æ˜“é¡åˆ¥ï¼ˆ1: æˆæ¬Šï¼‰
 
-                // --- ¥æ©ö°Ñ¼Æ²M³æ ---
+                // --- äº¤æ˜“åƒæ•¸æ¸…å–® ---
                 Params = new TSPGPaymentParams
                 {
-                    // === ¥²¶ñÄæ¦ì ===
-                    Layout = layout,                     // «È¤áºİª©­±Ãş«¬
-                    OrderNo = orderNo,                   // ­q³æ¸¹½X
-                    Amt = amtInMinorUnit,                // ¥æ©öª÷ÃB¡]¥]§t¨â¦ì¤p¼Æ¡^
-                    Cur = "NTD",                         // ¹ô§O¡]·s¥x¹ô¡^
-                    OrderDesc = ProductName ?? "©^Äm",   // ­q³æ»¡©ú
-                    PostBackUrl = postBackUrl,           // «ü©w±µÄòºô§}
-                    ResultUrl = resultUrl,               // ¥æ©öµ²ªG¦^¶Çºô§}
-                    CaptFlag = captFlag,                 // ±ÂÅv¦P¨B½Ğ´Ú¼Ğ°O
-                    ResultFlag = "1"                     // ¦^¶Ç°T®§¼Ğ°O¡]1: ¬d¸ß¥æ©ö¸Ô±¡¡^
+                    // === å¿…å¡«æ¬„ä½ ===
+                    Layout = layout,                     // å®¢æˆ¶ç«¯ç‰ˆé¢é¡å‹
+                    OrderNo = orderNo,                   // è¨‚å–®è™Ÿç¢¼
+                    Amt = amtInMinorUnit,                // äº¤æ˜“é‡‘é¡ï¼ˆåŒ…å«å…©ä½å°æ•¸ï¼‰
+                    Cur = "NTD",                         // å¹£åˆ¥ï¼ˆæ–°å°å¹£ï¼‰
+                    OrderDesc = ProductName ?? "å¥‰ç»",   // è¨‚å–®èªªæ˜
+                    PostBackUrl = postBackUrl,           // æŒ‡å®šæ¥çºŒç¶²å€
+                    ResultUrl = resultUrl,               // äº¤æ˜“çµæœå›å‚³ç¶²å€
+                    CaptFlag = captFlag,                 // æˆæ¬ŠåŒæ­¥è«‹æ¬¾æ¨™è¨˜
+                    ResultFlag = "1"                     // å›å‚³è¨Šæ¯æ¨™è¨˜ï¼ˆ1: æŸ¥è©¢äº¤æ˜“è©³æƒ…ï¼‰
                 }
             };
 
@@ -585,84 +701,84 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ±N PayPageResponse Âà´«¬° CreOrder¡]¾A°t¾¹¼Ò¦¡¡^
-        /// ¥Î©ó²Î¤@¥x·sª÷¬y(TSPG)»P¨ä¥Lª÷¬y¨t²Îªº¦^¶Ç®æ¦¡
+        /// å°‡ PayPageResponse è½‰æ›ç‚º CreOrderï¼ˆé©é…å™¨æ¨¡å¼ï¼‰
+        /// ç”¨æ–¼çµ±ä¸€å°æ–°é‡‘æµ(TSPG)èˆ‡å…¶ä»–é‡‘æµç³»çµ±çš„å›å‚³æ ¼å¼
         /// </summary>
-        /// <param name="payPageResponse">¥x·sª÷¬y¦^À³ª«¥ó</param>
-        /// <param name="payType">¥I´ÚÃş«¬ (C=«H¥Î¥d, A=ATM, M=¦æ°Ê¤ä¥I, L=LinePay)</param>
-        /// <param name="orderNo">­q³æ½s¸¹¡]¦pªG PayPageResponse ¨S¦³´£¨Ñ¡A«h¨Ï¥Î¦¹­È¡^</param>
-        /// <returns>²Î¤@ªº CreOrder ®æ¦¡ª«¥ó</returns>
+        /// <param name="payPageResponse">å°æ–°é‡‘æµå›æ‡‰ç‰©ä»¶</param>
+        /// <param name="payType">ä»˜æ¬¾é¡å‹ (C=ä¿¡ç”¨å¡, A=ATM, M=è¡Œå‹•æ”¯ä»˜, L=LinePay)</param>
+        /// <param name="orderNo">è¨‚å–®ç·¨è™Ÿï¼ˆå¦‚æœ PayPageResponse æ²’æœ‰æä¾›ï¼Œå‰‡ä½¿ç”¨æ­¤å€¼ï¼‰</param>
+        /// <returns>çµ±ä¸€çš„ CreOrder æ ¼å¼ç‰©ä»¶</returns>
         private CreOrder ConvertPayPageResponseToCreOrder(PayPageResponse payPageResponse, string payType = "C", string orderNo = null)
         {
             try
             {
-                // ÀË¬d¦^À³¬O§_¬°ªÅ
+                // æª¢æŸ¥å›æ‡‰æ˜¯å¦ç‚ºç©º
                 if (payPageResponse == null)
                 {
                     return new CreOrder
                     {
                         OrderNo = orderNo ?? string.Empty,
-                        Status = "F",    // ¥¢±Ñ
-                        Description = "PayPageResponse ¬° null",
+                        Status = "F",    // å¤±æ•—
+                        Description = "PayPageResponse ç‚º null",
                         CardParam = new CreOrderCardParamRes
                         {
-                            CardPayURL = GetErrorPageUrl("¨t²Î¿ù»~", "ª÷¬y¦^À³¬°ªÅ­È¡A½Ğµy«á¦A¸Õ©ÎÁpÃ´«ÈªA")
+                            CardPayURL = GetErrorPageUrl("ç³»çµ±éŒ¯èª¤", "é‡‘æµå›æ‡‰ç‚ºç©ºå€¼ï¼Œè«‹ç¨å¾Œå†è©¦æˆ–è¯ç¹«å®¢æœ")
                         },
                         ATMParam = null,
                         MobileParam = null
                     };
                 }
 
-                // §PÂ_¥æ©ö¬O§_¦¨¥\
-                // TSPG: code="0000" ªí¥Ü¦¨¥\
-                // ¥ÃÂ×: Status="S" ªí¥Ü¦¨¥\
+                // åˆ¤æ–·äº¤æ˜“æ˜¯å¦æˆåŠŸ
+                // TSPG: code="0000" è¡¨ç¤ºæˆåŠŸ
+                // æ°¸è±: Status="S" è¡¨ç¤ºæˆåŠŸ
                 bool isSuccess = payPageResponse.code == "0000" || payPageResponse.code == "00";
-                string status = isSuccess ? "S" : "F"; // S=¦¨¥\, F=¥¢±Ñ
+                string status = isSuccess ? "S" : "F"; // S=æˆåŠŸ, F=å¤±æ•—
 
-                // «Ø¥ß°ò¥»ªº CreOrder ª«¥ó
+                // å»ºç«‹åŸºæœ¬çš„ CreOrder ç‰©ä»¶
                 var creOrder = new CreOrder
                 {
                     OrderNo = !string.IsNullOrEmpty(payPageResponse.order_no)
                         ? payPageResponse.order_no
-                        : (payPageResponse.uid ?? orderNo ?? string.Empty), // ­q³æ½s¸¹
-                    Status = status,                                        // ¥æ©öª¬ºA
-                    Description = payPageResponse.msg ?? "¥¼ª¾¿ù»~",       // ´y­z°T®§
-                    PayType = payType                                      // ¥I´ÚÃş«¬
+                        : (payPageResponse.uid ?? orderNo ?? string.Empty), // è¨‚å–®ç·¨è™Ÿ
+                    Status = status,                                        // äº¤æ˜“ç‹€æ…‹
+                    Description = payPageResponse.msg ?? "æœªçŸ¥éŒ¯èª¤",       // æè¿°è¨Šæ¯
+                    PayType = payType                                      // ä»˜æ¬¾é¡å‹
                 };
 
-                // ®Ú¾Ú¥I´ÚÃş«¬³]©w¹ïÀ³ªº°Ñ¼Æª«¥ó
+                // æ ¹æ“šä»˜æ¬¾é¡å‹è¨­å®šå°æ‡‰çš„åƒæ•¸ç‰©ä»¶
                 switch (payType?.ToUpper())
                 {
-                    case "C": // «H¥Î¥d
+                    case "C": // ä¿¡ç”¨å¡
                         creOrder.CardParam = new CreOrderCardParamRes
                         {
                             CardPayURL = isSuccess
-                                ? (payPageResponse.url ?? string.Empty)    // ¦¨¥\¡Gªğ¦^¥I´Ú URL
-                                : GetErrorPageUrl("¥Ø«e¼È®ÉµLªk¨Ï¥Î«H¥Î¥d¤ä¥I!", payPageResponse.msg ?? "¡A·PÁÂ±z!") // ¥¢±Ñ¡Gªğ¦^¿ù»~­¶­±
+                                ? (payPageResponse.url ?? string.Empty)    // æˆåŠŸï¼šè¿”å›ä»˜æ¬¾ URL
+                                : GetErrorPageUrl("ç›®å‰æš«æ™‚ç„¡æ³•ä½¿ç”¨ä¿¡ç”¨å¡æ”¯ä»˜!", payPageResponse.msg ?? "ï¼Œæ„Ÿè¬æ‚¨!") // å¤±æ•—ï¼šè¿”å›éŒ¯èª¤é é¢
                         };
                         break;
 
-                    case "A": // ATM Âà±b
+                    case "A": // ATM è½‰å¸³
                         creOrder.ATMParam = new CreOrderATMParamRes
                         {
-                            AtmPayNo = isSuccess ? (payPageResponse.key ?? string.Empty) : string.Empty // ATM ±b¸¹
+                            AtmPayNo = isSuccess ? (payPageResponse.key ?? string.Empty) : string.Empty // ATM å¸³è™Ÿ
                         };
-                        // ATM ¥¢±Ñ®É¤]¥i¥H´£¨Ñ¿ù»~­¶­± URL
+                        // ATM å¤±æ•—æ™‚ä¹Ÿå¯ä»¥æä¾›éŒ¯èª¤é é¢ URL
                         if (!isSuccess)
                         {
                             creOrder.CardParam = new CreOrderCardParamRes
                             {
-                                CardPayURL = GetErrorPageUrl("ATMÂà±b«Ø¥ß¥¢±Ñ", payPageResponse.msg ?? "¥¼ª¾¿ù»~")
+                                CardPayURL = GetErrorPageUrl("ATMè½‰å¸³å»ºç«‹å¤±æ•—", payPageResponse.msg ?? "æœªçŸ¥éŒ¯èª¤")
                             };
                         }
                         break;
 
-                    case "M": // ¦æ°Ê¤ä¥I
+                    case "M": // è¡Œå‹•æ”¯ä»˜
                         creOrder.MobileParam = new CreOrderMobileParamRes
                         {
                             MobilePayURL = isSuccess
-                                ? (payPageResponse.url ?? string.Empty)    // ¦¨¥\¡Gªğ¦^¦æ°Ê¤ä¥I URL
-                                : GetErrorPageUrl("¦æ°Ê¤ä¥I¥¢±Ñ", payPageResponse.msg ?? "¥¼ª¾¿ù»~") // ¥¢±Ñ¡Gªğ¦^¿ù»~­¶­±
+                                ? (payPageResponse.url ?? string.Empty)    // æˆåŠŸï¼šè¿”å›è¡Œå‹•æ”¯ä»˜ URL
+                                : GetErrorPageUrl("è¡Œå‹•æ”¯ä»˜å¤±æ•—", payPageResponse.msg ?? "æœªçŸ¥éŒ¯èª¤") // å¤±æ•—ï¼šè¿”å›éŒ¯èª¤é é¢
                         };
                         break;
 
@@ -670,23 +786,23 @@ namespace ChurchReport.WebServiceConnector
                         creOrder.MobileParam = new CreOrderMobileParamRes
                         {
                             MobilePayURL = isSuccess
-                                ? (payPageResponse.url ?? string.Empty)    // ¦¨¥\¡Gªğ¦^ LinePay URL
-                                : GetErrorPageUrl("LinePay¥I´Ú¥¢±Ñ", payPageResponse.msg ?? "¥¼ª¾¿ù»~") // ¥¢±Ñ¡Gªğ¦^¿ù»~­¶­±
+                                ? (payPageResponse.url ?? string.Empty)    // æˆåŠŸï¼šè¿”å› LinePay URL
+                                : GetErrorPageUrl("LinePayä»˜æ¬¾å¤±æ•—", payPageResponse.msg ?? "æœªçŸ¥éŒ¯èª¤") // å¤±æ•—ï¼šè¿”å›éŒ¯èª¤é é¢
                         };
                         break;
 
                     default:
-                        // ¹w³]·í§@«H¥Î¥d³B²z
+                        // é è¨­ç•¶ä½œä¿¡ç”¨å¡è™•ç†
                         creOrder.CardParam = new CreOrderCardParamRes
                         {
                             CardPayURL = isSuccess
                                 ? (payPageResponse.url ?? string.Empty)
-                                : GetErrorPageUrl("¥I´Ú¥¢±Ñ", payPageResponse.msg ?? "¥¼ª¾¿ù»~")
+                                : GetErrorPageUrl("ä»˜æ¬¾å¤±æ•—", payPageResponse.msg ?? "æœªçŸ¥éŒ¯èª¤")
                         };
                         break;
                 }
 
-                // °O¿ıÂà´«¤é»x
+                // è¨˜éŒ„è½‰æ›æ—¥èªŒ
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] ConvertPayPageResponseToCreOrder:");
                 System.Diagnostics.Trace.WriteLine($"  - PayType: {payType}");
                 System.Diagnostics.Trace.WriteLine($"  - OrderNo: {creOrder.OrderNo}");
@@ -706,16 +822,16 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (Exception ex)
             {
-                // °O¿ıÂà´«¿ù»~¨Ãªğ¦^¥¢±Ñµ²ªG
+                // è¨˜éŒ„è½‰æ›éŒ¯èª¤ä¸¦è¿”å›å¤±æ•—çµæœ
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] ConvertPayPageResponseToCreOrder Error: {ex.Message}");
                 return new CreOrder
                 {
                     OrderNo = orderNo ?? string.Empty,
                     Status = "F",
-                    Description = $"Âà´«¥¢±Ñ: {ex.Message}",
+                    Description = $"è½‰æ›å¤±æ•—: {ex.Message}",
                     CardParam = new CreOrderCardParamRes
                     {
-                        CardPayURL = GetErrorPageUrl("¨t²Î¿ù»~", $"Âà´«¥¢±Ñ: {ex.Message}")
+                        CardPayURL = GetErrorPageUrl("ç³»çµ±éŒ¯èª¤", $"è½‰æ›å¤±æ•—: {ex.Message}")
                     },
                     ATMParam = null,
                     MobileParam = null
@@ -724,26 +840,26 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ²£¥Í¿ù»~­¶­± URL¡A¥]§t¿ù»~¼ĞÃD©M¿ù»~°T®§
+        /// ç”¢ç”ŸéŒ¯èª¤é é¢ URLï¼ŒåŒ…å«éŒ¯èª¤æ¨™é¡Œå’ŒéŒ¯èª¤è¨Šæ¯
         /// </summary>
-        /// <param name="errorTitle">¿ù»~¼ĞÃD</param>
-        /// <param name="errorMessage">¿ù»~¸Ô²Ó°T®§</param>
-        /// <returns>¿ù»~­¶­± URL</returns>
+        /// <param name="errorTitle">éŒ¯èª¤æ¨™é¡Œ</param>
+        /// <param name="errorMessage">éŒ¯èª¤è©³ç´°è¨Šæ¯</param>
+        /// <returns>éŒ¯èª¤é é¢ URL</returns>
         private string GetErrorPageUrl(string errorTitle, string errorMessage)
         {
             try
             {
-                // ±q³]©wÀÉ¨ú±o¿ù»~­¶­±°òÂ¦ URL
+                // å¾è¨­å®šæª”å–å¾—éŒ¯èª¤é é¢åŸºç¤ URL
                 string baseErrorUrl = Configuration["ERROR_PAGE_URL"] ?? "error-page";
 
-                // URL ½s½X¿ù»~°T®§¡AÁ×§K¯S®í¦r¤¸°İÃD
-                string encodedTitle = Uri.EscapeDataString(errorTitle ?? "¥I´Ú¥¢±Ñ");
-                string encodedMessage = Uri.EscapeDataString(errorMessage ?? "¥¼ª¾¿ù»~");
+                // URL ç·¨ç¢¼éŒ¯èª¤è¨Šæ¯ï¼Œé¿å…ç‰¹æ®Šå­—å…ƒå•é¡Œ
+                string encodedTitle = Uri.EscapeDataString(errorTitle ?? "ä»˜æ¬¾å¤±æ•—");
+                string encodedMessage = Uri.EscapeDataString(errorMessage ?? "æœªçŸ¥éŒ¯èª¤");
 
-                // ²Õ¦X§¹¾ãªº¿ù»~­¶­± URL
+                // çµ„åˆå®Œæ•´çš„éŒ¯èª¤é é¢ URL
                 string errorPageUrl = $"{baseErrorUrl}?title={encodedTitle}&message={encodedMessage}&timestamp={DateTime.Now:yyyyMMddHHmmss}";
 
-                // °O¿ı¿ù»~­¶­± URL ²£¥Í
+                // è¨˜éŒ„éŒ¯èª¤é é¢ URL ç”¢ç”Ÿ
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] Generated Error Page URL:");
                 System.Diagnostics.Trace.WriteLine($"  - Title: {errorTitle}");
                 System.Diagnostics.Trace.WriteLine($"  - Message: {errorMessage}");
@@ -753,9 +869,9 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (Exception ex)
             {
-                // ¦pªG²£¥Í¿ù»~­¶­± URL ®Éµo¥Í¨Ò¥~¡A¦^¶Ç°ò¥»ªº¿ù»~­¶­±
+                // å¦‚æœç”¢ç”ŸéŒ¯èª¤é é¢ URL æ™‚ç™¼ç”Ÿä¾‹å¤–ï¼Œå›å‚³åŸºæœ¬çš„éŒ¯èª¤é é¢
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] GetErrorPageUrl Exception: {ex.Message}");
-                return "/payment-error?title=¨t²Î¿ù»~&message=µLªk²£¥Í¿ù»~­¶­±";
+                return "/payment-error?title=ç³»çµ±éŒ¯èª¤&message=ç„¡æ³•ç”¢ç”ŸéŒ¯èª¤é é¢";
             }
         }
 
