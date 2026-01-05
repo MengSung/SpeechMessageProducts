@@ -164,7 +164,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 "永豐金流" => new QPayToolkitWrapper(),
                 "高鉅金流" => new MyPayToolkitWrapper(),
-                "台新金流" => new QPayToolkitWrapper(), // 暫時使用 QPay Wrapper
+                "台新金流" => new TspgToolkitWrapper(),
                 _ => CreateDefaultPaymentProvider(payProvider)
             };
         }

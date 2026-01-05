@@ -67,7 +67,8 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                if (string.IsNullOrEmpty(displayText))
+                // ? 修復：檢查 null 或空白字串
+                if (string.IsNullOrWhiteSpace(displayText))
                 {
                     System.Diagnostics.Debug.WriteLine("[GetCategoryValueByDisplayText] 輸入為空，使用預設值（十一奉獻 = 100000000）");
                     return 100000000;
@@ -81,7 +82,7 @@ namespace ChurchReport.WebServiceConnector
                     defaultValue: 100000000
                 );
 
-                System.Diagnostics.Debug.WriteLine($"[GetCategoryValueByDisplayText] {displayText} → {categoryValue}");
+                System.Diagnostics.Debug.WriteLine($"[GetCategoryValueByDisplayText] {displayText} => {categoryValue}");
                 return categoryValue;
             }
             catch (KeyNotFoundException)
@@ -105,6 +106,14 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         public void SetIncomeCategory(string value, ref Entity aFeeEntity)
         {
+            // ? 修復：檢查 null 或空白字串
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                System.Diagnostics.Debug.WriteLine("[SetIncomeCategory] 奉獻類別為空，使用預設值（經常費收入）");
+                ToolUtility.SetEntityStringAttribute(aFeeEntity, "new_income_category", "經常費收入");
+                return;
+            }
+
             var regularIncomeTypes = new HashSet<string>
             {
                 "十一奉獻", "主日奉獻", "聖餐獻金", "節期獻金",
@@ -140,6 +149,14 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         public void SetAccountingCode(string value, ref Entity aFeeEntity)
         {
+            // ? 修復：檢查 null 或空白字串
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                System.Diagnostics.Debug.WriteLine("[SetAccountingCode] 奉獻類別為空，使用預設值（十一奉獻 = 4111100）");
+                ToolUtility.SetEntityStringAttribute(aFeeEntity, "new_accounting_code", "4111100");
+                return;
+            }
+
             var accountingCodeMap = new Dictionary<string, string>
             {
                 { "十一奉獻", "4111100" },
@@ -168,6 +185,14 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         public void SetPayMethod(string value, ref Entity aFeeEntity)
         {
+            // ? 修復：檢查 null 或空白字串，避免 Dictionary.ContainsKey(null) 拋出異常
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                System.Diagnostics.Debug.WriteLine("[SetPayMethod] 付款方式為空，使用預設值（未知 = 100000004）");
+                ToolUtility.SetOptionSetAttribute(aFeeEntity, "new_pay_way", 100000004);
+                return;
+            }
+
             var payMethodMap = new Dictionary<string, int>
             {
                 { "現金", 100000000 },
@@ -183,8 +208,9 @@ namespace ChurchReport.WebServiceConnector
 
             var payMethod = payMethodMap.ContainsKey(value) 
                 ? payMethodMap[value] 
-                : 100000000; // 預設為現金
+                : 100000004; // 預設為未知
 
+            System.Diagnostics.Debug.WriteLine($"[SetPayMethod] 設定付款方式: {value} -> {payMethod}");
             ToolUtility.SetOptionSetAttribute(aFeeEntity, "new_pay_way", payMethod);
         }
 
@@ -197,6 +223,14 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         public void SetPayStatus(string value, ref Entity aFeeEntity)
         {
+            // ? 修復：檢查 null 或空白字串，避免 Dictionary.ContainsKey(null) 拋出異常
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                System.Diagnostics.Debug.WriteLine("[SetPayStatus] 付款狀態為空，使用預設值（新建立 = 100000000）");
+                ToolUtility.SetOptionSetAttribute(aFeeEntity, "new_pay_status", 100000000);
+                return;
+            }
+
             var payStatusMap = new Dictionary<string, int>
             {
                 { "新建立", 100000000 },
@@ -210,6 +244,7 @@ namespace ChurchReport.WebServiceConnector
                 ? payStatusMap[value] 
                 : 100000000; // 預設為新建立
 
+            System.Diagnostics.Debug.WriteLine($"[SetPayStatus] 設定付款狀態: {value} -> {payStatus}");
             ToolUtility.SetOptionSetAttribute(aFeeEntity, "new_pay_status", payStatus);
         }
 
