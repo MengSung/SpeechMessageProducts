@@ -69893,3 +69893,236 @@ Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Una
 [SetFeePayCategory] 設定奉獻類別: 十一奉獻 -> 100000000
 ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Dedication/SaveQPayDedication - 114958ms - Status: 200
 [2026-01-05 12:33:34.472] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Dedication/SaveQPayDedication - 114958ms - Status: 200
+[2026-01-05 12:35:20] Trace listener initialized successfully (Debug build).
+[2026-01-05 12:35:20] Log file: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Logs\Trace.log
+[2026-01-05 12:35:20] File mode: Append
+ChurchReport.Services.Monitoring.SessionMonitorService: Information: [Session Monitor] Session 監控服務已啟動
+[2026-01-05 12:35:20.722] [Information] [ChurchReport.Services.Monitoring.SessionMonitorService] [Session Monitor] Session 監控服務已啟動
+Microsoft.AspNetCore.Watch.BrowserRefresh.BlazorWasmHotReloadMiddleware: Debug: Middleware loaded
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16509 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=debug, __ASPNETCORE_BROWSER_TOOLS=true
+Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
+[2026-01-05 12:35:21.067] [Information] [Microsoft.Hosting.Lifetime] Application started. Press Ctrl+C to shut down.
+Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
+[2026-01-05 12:35:21.069] [Information] [Microsoft.Hosting.Lifetime] Hosting environment: Development
+Microsoft.Hosting.Lifetime: Information: Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[2026-01-05 12:35:21.072] [Information] [Microsoft.Hosting.Lifetime] Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET / - 1735ms - Status: 200
+[2026-01-05 12:35:22.768] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET / - 1735ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:35:22.779] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:35:22.786] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[ProcessLogin] 開始處理登入 - 帳號: zz, 時間: 2026/1/5 下午 12:35:24
+[ProcessLogin] 步驟 1: 驗證使用者身份
+[ValidateUserCredentials] 開始驗證 - 帳號: zz
+[ProcessLogin] 步驟 2: 取得使用者資料
+[ProcessLogin] 使用者: 胡夢嵩
+[ProcessLogin] 步驟 3: 初始化使用者 Session
+[ProcessLogin] 步驟 4: 設定系統資料 - 開始時間: 2026/1/5 下午 12:35:25
+[QPayProcessor] LINE Token loaded for organization: jesus
+[QPayProcessor] ShopNo initialized: NA0149_001 (Environment: 測試環境)
+[ConvertToCategory] 使用預設值
+[SetQpayModel] 成功取得 8 個奉獻類別
+[ProcessLogin] 步驟 4: 設定系統資料 - 完成時間: 2026/1/5 下午 12:35:33
+[ProcessLogin] 步驟 5: 判斷顯示視圖類型
+[ProcessLogin] 顯示類型: MultiGroupView
+[ProcessLogin] 步驟 6: 設定 ViewBag 參數
+[ProcessLogin] 步驟 7: 返回登入結果 - 完成時間: 2026/1/5 下午 12:35:33
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Home/ProcessLogin - 9294ms - Status: 200
+[2026-01-05 12:35:33.554] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Home/ProcessLogin - 9294ms - Status: 200
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:35:33.763] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:35:33.768] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[GetMultiGroupChartDataList] 快取未命中: SmallGroup_MultiChart_20260105_zz
+[GetMultiGroupChartDataList] 已快取 3 筆
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[AssignSmallGroupGet] 快取未命中: SmallGroup_MultiGrid_20260105_zz
+[AssignSmallGroupGet] 已快取 4 筆
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:35:36.249] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:35:36.254] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[SetPayMethod] 付款方式為空，使用預設值（未知 = 100000004）
+[SetPayStatus] 設定付款狀態: 新建立 -> 100000000
+[GetCategoryValueByDisplayText] 十一奉獻 => 100000000
+[SetFeePayCategory] 設定奉獻類別: 十一奉獻 -> 100000000
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Dedication/SaveQPayDedication - 5548ms - Status: 200
+[2026-01-05 12:35:46.911] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Dedication/SaveQPayDedication - 5548ms - Status: 200
+[2026-01-05 12:36:24] Trace listener initialized successfully (Debug build).
+[2026-01-05 12:36:24] Log file: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Logs\Trace.log
+[2026-01-05 12:36:24] File mode: Append
+ChurchReport.Services.Monitoring.SessionMonitorService: Information: [Session Monitor] Session 監控服務已啟動
+[2026-01-05 12:36:24.515] [Information] [ChurchReport.Services.Monitoring.SessionMonitorService] [Session Monitor] Session 監控服務已啟動
+Microsoft.AspNetCore.Watch.BrowserRefresh.BlazorWasmHotReloadMiddleware: Debug: Middleware loaded
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16509 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=debug, __ASPNETCORE_BROWSER_TOOLS=true
+Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
+[2026-01-05 12:36:24.876] [Information] [Microsoft.Hosting.Lifetime] Application started. Press Ctrl+C to shut down.
+Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
+[2026-01-05 12:36:24.880] [Information] [Microsoft.Hosting.Lifetime] Hosting environment: Development
+Microsoft.Hosting.Lifetime: Information: Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[2026-01-05 12:36:24.883] [Information] [Microsoft.Hosting.Lifetime] Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET / - 2266ms - Status: 200
+[2026-01-05 12:36:27.106] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET / - 2266ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:36:27.117] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:36:27.124] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[ProcessLogin] 開始處理登入 - 帳號: zz, 時間: 2026/1/5 下午 12:36:29
+[ProcessLogin] 步驟 1: 驗證使用者身份
+[ValidateUserCredentials] 開始驗證 - 帳號: zz
+[ProcessLogin] 步驟 2: 取得使用者資料
+[ProcessLogin] 使用者: 胡夢嵩
+[ProcessLogin] 步驟 3: 初始化使用者 Session
+[ProcessLogin] 步驟 4: 設定系統資料 - 開始時間: 2026/1/5 下午 12:36:37
+[QPayProcessor] LINE Token loaded for organization: jesus
+[QPayProcessor] ShopNo initialized: NA0149_001 (Environment: 測試環境)
+[ConvertToCategory] 使用預設值
+[SetQpayModel] 成功取得 8 個奉獻類別
+[ProcessLogin] 步驟 4: 設定系統資料 - 完成時間: 2026/1/5 下午 12:36:45
+[ProcessLogin] 步驟 5: 判斷顯示視圖類型
+[ProcessLogin] 顯示類型: MultiGroupView
+[ProcessLogin] 步驟 6: 設定 ViewBag 參數
+[ProcessLogin] 步驟 7: 返回登入結果 - 完成時間: 2026/1/5 下午 12:36:45
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Home/ProcessLogin - 16655ms - Status: 200
+[2026-01-05 12:36:45.828] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Home/ProcessLogin - 16655ms - Status: 200
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:36:46.044] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:36:46.049] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[GetMultiGroupChartDataList] 快取未命中: SmallGroup_MultiChart_20260105_zz
+[GetMultiGroupChartDataList] 已快取 3 筆
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[AssignSmallGroupGet] 快取未命中: SmallGroup_MultiGrid_20260105_zz
+[AssignSmallGroupGet] 已快取 4 筆
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:37:05.544] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:37:05.549] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[SetPayMethod] 付款方式為空，使用預設值（未知 = 100000004）
+[SetPayStatus] 設定付款狀態: 新建立 -> 100000000
+[GetCategoryValueByDisplayText] 十一奉獻 => 100000000
+[SetFeePayCategory] 設定奉獻類別: 十一奉獻 -> 100000000
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Dedication/SaveQPayDedication - 16988ms - Status: 200
+[2026-01-05 12:37:26.278] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Dedication/SaveQPayDedication - 16988ms - Status: 200
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:37:29.286] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:37:29.290] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[SetPayMethod] 付款方式為空，使用預設值（未知 = 100000004）
+[SetPayStatus] 設定付款狀態: 新建立 -> 100000000
+[GetCategoryValueByDisplayText] 十一奉獻 => 100000000
+[SetFeePayCategory] 設定奉獻類別: 十一奉獻 -> 100000000
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Dedication/SaveQPayDedication - 69949ms - Status: 200
+[2026-01-05 12:38:44.221] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Dedication/SaveQPayDedication - 69949ms - Status: 200
+[2026-01-05 12:38:59] Trace listener initialized successfully (Debug build).
+[2026-01-05 12:38:59] Log file: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Logs\Trace.log
+[2026-01-05 12:38:59] File mode: Append
+ChurchReport.Services.Monitoring.SessionMonitorService: Information: [Session Monitor] Session 監控服務已啟動
+[2026-01-05 12:38:59.982] [Information] [ChurchReport.Services.Monitoring.SessionMonitorService] [Session Monitor] Session 監控服務已啟動
+Microsoft.AspNetCore.Watch.BrowserRefresh.BlazorWasmHotReloadMiddleware: Debug: Middleware loaded
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16509 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=debug, __ASPNETCORE_BROWSER_TOOLS=true
+Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
+[2026-01-05 12:39:00.251] [Information] [Microsoft.Hosting.Lifetime] Application started. Press Ctrl+C to shut down.
+Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
+[2026-01-05 12:39:00.253] [Information] [Microsoft.Hosting.Lifetime] Hosting environment: Development
+Microsoft.Hosting.Lifetime: Information: Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[2026-01-05 12:39:00.255] [Information] [Microsoft.Hosting.Lifetime] Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET / - 1923ms - Status: 200
+[2026-01-05 12:39:02.145] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET / - 1923ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:39:02.157] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:39:02.166] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[ProcessLogin] 開始處理登入 - 帳號: zz, 時間: 2026/1/5 下午 12:39:05
+[ProcessLogin] 步驟 1: 驗證使用者身份
+[ValidateUserCredentials] 開始驗證 - 帳號: zz
+[ProcessLogin] 步驟 2: 取得使用者資料
+[ProcessLogin] 使用者: 胡夢嵩
+[ProcessLogin] 步驟 3: 初始化使用者 Session
+[ProcessLogin] 步驟 4: 設定系統資料 - 開始時間: 2026/1/5 下午 12:39:06
+[QPayProcessor] LINE Token loaded for organization: jesus
+[QPayProcessor] ShopNo initialized: NA0149_001 (Environment: 測試環境)
+[ConvertToCategory] 使用預設值
+[SetQpayModel] 成功取得 8 個奉獻類別
+[ProcessLogin] 步驟 4: 設定系統資料 - 完成時間: 2026/1/5 下午 12:39:14
+[ProcessLogin] 步驟 5: 判斷顯示視圖類型
+[ProcessLogin] 顯示類型: MultiGroupView
+[ProcessLogin] 步驟 6: 設定 ViewBag 參數
+[ProcessLogin] 步驟 7: 返回登入結果 - 完成時間: 2026/1/5 下午 12:39:14
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Home/ProcessLogin - 9447ms - Status: 200
+[2026-01-05 12:39:14.740] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Home/ProcessLogin - 9447ms - Status: 200
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:39:14.953] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:39:14.957] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[GetMultiGroupChartDataList] 快取未命中: SmallGroup_MultiChart_20260105_zz
+[GetMultiGroupChartDataList] 已快取 3 筆
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[AssignSmallGroupGet] 快取未命中: SmallGroup_MultiGrid_20260105_zz
+[AssignSmallGroupGet] 已快取 4 筆
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:39:16.620] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:39:16.624] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[SetPayMethod] 設定付款方式: 信用卡 -> 100000001
+[SetPayStatus] 設定付款狀態: 新建立 -> 100000000
+[GetCategoryValueByDisplayText] 十一奉獻 => 100000000
+[SetFeePayCategory] 設定奉獻類別: 十一奉獻 -> 100000000
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Dedication/SaveQPayDedication - 17256ms - Status: 200
+[2026-01-05 12:39:39.671] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Dedication/SaveQPayDedication - 17256ms - Status: 200
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:39:43.373] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-05 12:39:43.377] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
