@@ -274,7 +274,7 @@ namespace ChurchReport.WebServiceConnector
                     // 已經有週報
 
                     // 聚會人數就以當時上傳的人數為準
-                    String TotalMemberNumber = m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_small_group_member_number").ToString();
+                    //String TotalMemberNumber = m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_small_group_member_number").ToString();
                     aWeeklyReportRecordListData.Add
                     (
                          new WeeklyReportRecord
@@ -286,7 +286,7 @@ namespace ChurchReport.WebServiceConnector
                              // 小組名稱
                              Name = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname"),
                              // 小組總人數
-                             TotalNumber = TotalMemberNumber != "-9999"? TotalMemberNumber : GetSmallGroupMemberNumber(ListEntity.Id).ToString(),
+                             TotalNumber = GetSmallGroupMemberNumber(ListEntity.Id).ToString(),
                              // 主日出席人數
                              SundayNumber = m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_sunday_present_number").ToString(),
                              // 主日出席率
@@ -304,7 +304,7 @@ namespace ChurchReport.WebServiceConnector
 
                     // 圓餅圖所需的數據
                     // 成員人數:萬一不知怎麼的週報的應該聚會人數不存在，就只好以現在的成員人數為準
-                    int aTotalMemberNumber = TotalMemberNumber != "-9999" ? Convert.ToInt32(TotalMemberNumber) : GetSmallGroupMemberNumber(ListEntity.Id);
+                    int aTotalMemberNumber = GetSmallGroupMemberNumber(ListEntity.Id);
                     this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "001").First().Number += aTotalMemberNumber;
                     this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "002").First().Number += m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_sunday_present_number");
                     this.m_MultiGroupChartDataList.m_MultiGroupChartDataList.Where(e => e.ID == "003").First().Number += m_ToolUtilityClass.GetEntityIntAttribute(GroupWeeklyReportEntity, "new_small_group_number");
