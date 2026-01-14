@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -82,6 +83,29 @@ namespace ChurchReport
 
             // 註冊分散式記憶體快取，用於支援 Session 等功能。
             services.AddDistributedMemoryCache();
+
+            // ========================================
+            // ✅ Phase 5: 配置 ForwardedHeaders (Session Bleeding 防護 - 第五層)
+            // ========================================
+            // 配置轉發標頭中間件，確保在反向代理或負載平衡器後方能正確識別客戶端真實 IP
+            // 這對於 Wi-Fi 環境下的身份追蹤至關重要
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                // 配置要處理的標頭類型
+                options.ForwardedHeaders = 
+                    Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | 
+                    Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+                
+                // 清除已知網路和代理的預設限制，信任所有代理
+                // ⚠️ 注意：在生產環境中，應該只信任特定的代理 IP
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+                
+                // 限制處理的轉發標頭數量，防止標頭偽造攻擊
+                options.ForwardLimit = 2;
+            });
+            
+            Console.WriteLine("[Startup] ✅ ForwardedHeaders 已配置（支援反向代理和負載平衡器）");
 
             // ========================================
             // ✅ Phase 2.4: 註冊 Response Caching 服務
@@ -438,6 +462,13 @@ namespace ChurchReport
         /// <param name="loggerFactory">日誌工廠，用於建立日誌記錄器。</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            // ========================================
+            // ✅ Phase 5: 使用 ForwardedHeaders 中間件（必須最先執行）
+            // ========================================
+            // 必須在所有其他中間件之前執行，以確保後續中間件能正確取得客戶端真實 IP
+            app.UseForwardedHeaders();
+            Console.WriteLine("[Startup] ✅ ForwardedHeaders 中間件已啟用（識別真實客戶端 IP）");
+
             // ========================================
             // 🆕 在 Development 環境或啟用 Trace 設定時註冊 Trace Logger Provider
             // 讓 ILogger 的輸出也能寫入 Trace.log
