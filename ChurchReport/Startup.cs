@@ -91,27 +91,40 @@ namespace ChurchReport
             // 這對於 Wi-Fi 環境下的身份追蹤至關重要
             services.Configure<ForwardedHeadersOptions>(options =>
             {
-                // 配置要處理的標頭類型
-                options.ForwardedHeaders = 
-                    Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | 
-                    Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
-                
-                // 清除已知網路和代理的預設限制，信任所有代理
-                // ⚠️ 注意：在生產環境中，應該只信任特定的代理 IP
-                options.KnownNetworks.Clear();
-                options.KnownProxies.Clear();
-                
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
                 // 限制處理的轉發標頭數量，防止標頭偽造攻擊
                 options.ForwardLimit = 2;
+
+                // ========================================
+                // ✅ P0: 生產環境不要無條件信任所有 Proxy
+                // ========================================
+                // 預設行為：保留 KnownNetworks/KnownProxies 的限制（較安全）。
+                // 若部署在反向代理/負載平衡器後方，請在 appsettings.json 設定：
+                //   ForwardedHeaders:TrustAllProxies = true
+                // 或改成提供明確的已知代理 IP 清單（較推薦）。
+                var trustAllProxies = Configuration.GetValue<bool>("ForwardedHeaders:TrustAllProxies", false);
+                if (trustAllProxies)
+                {
+                    options.KnownNetworks.Clear();
+                    options.KnownProxies.Clear();
+                }
             });
             
             Console.WriteLine("[Startup] ✅ ForwardedHeaders 已配置（支援反向代理和負載平衡器）");
 
             // ========================================
-            // ✅ Phase 2.4: 註冊 Response Caching 服務
+            // ✅ P0: Response Caching（預設停用）
             // ========================================
-            // 啟用 Response Caching 以支援 [ResponseCache] 屬性的 VaryByQueryKeys
-            services.AddResponseCaching();
+            // Session Bleeding 的根因之一常見是「錯誤的代理/伺服器快取」。
+            // 此專案已對動態頁面採取最嚴格 no-store，因此預設不啟用 ResponseCaching。
+            // 若未來確實需要針對『匿名且不含使用者資料』的端點快取，才開啟下列設定並以路徑隔離。
+            var enableResponseCaching = Configuration.GetValue<bool>("SessionBleeding:EnableResponseCaching", false);
+            if (enableResponseCaching)
+            {
+                services.AddResponseCaching();
+                Console.WriteLine("[Startup] ⚠️ ResponseCaching 已啟用（請僅用於匿名/公共資料端點）");
+            }
 
             // ========================================
             // ✅ Phase 4.1: 註冊 Response Compression 服務
@@ -393,7 +406,13 @@ namespace ChurchReport
                 // ✅ Phase 3.3: 強化 Session Cookie 安全性 (Session Bleeding 防護)
                 // ========================================
                 // 防止 Session Cookie 被 Proxy 共用或竊取
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;  // 只能在 HTTPS 下傳輸
+                // ✅ P1: SecurePolicy 依環境調整，避免開發環境（HTTP）無法正常工作
+#if DEBUG
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+#else
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+#endif
+
                 options.Cookie.SameSite = SameSiteMode.Strict;           // 防止跨站請求偽造 (CSRF)
                 
                 options.IOTimeout = TimeSpan.FromSeconds(30);
@@ -421,9 +440,23 @@ namespace ChurchReport
                     // 新版 API：需要設定 options.Cookie.Expiration，但用 ExpireTimeSpan 即可替代
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
 
-                    // 新版 API：CookieName -> Cookie.Name
-                    options.Cookie.Name = ".ChurchReport.Session";
-                    options.Cookie.SameSite = SameSiteMode.None;
+                    // ========================================
+                    // ✅ P0: 強化 Authentication Cookie（避免與 Session Cookie 混淆）
+                    // ========================================
+                    // Session Cookie 與 Authentication Cookie 不能同名。
+                    // 否則會造成 Cookie 覆蓋/混淆，進而引發身份錯亂風險。
+                    options.Cookie.Name = ".ChurchReport.Auth";
+                    options.Cookie.HttpOnly = true;
+
+#if DEBUG
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+#else
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+#endif
+
+                    // SameSite 設為 Lax：兼顧安全與常見第三方登入/回跳流程相容性。
+                    // 若確定沒有跨站登入流程，可改 Strict。
+                    options.Cookie.SameSite = SameSiteMode.Lax;
 
                     options.AccessDeniedPath = "/Login";
                     options.ReturnUrlParameter = "returnUrl";
@@ -505,7 +538,19 @@ namespace ChurchReport
                 
                 // ⚠️ 重要：告訴所有 Proxy「不同 Cookie = 不同內容，不准共用」
                 // 這是解決 Session Bleeding 的關鍵設定！
-                context.Response.Headers["Vary"] = "Cookie";
+                // ✅ P1: 不覆蓋既有 Vary（例如 Accept-Encoding），改用合併策略
+                if (context.Response.Headers.TryGetValue("Vary", out var varyValues))
+                {
+                    var vary = varyValues.ToString();
+                    if (!vary.Contains("Cookie", StringComparison.OrdinalIgnoreCase))
+                    {
+                        context.Response.Headers["Vary"] = string.IsNullOrWhiteSpace(vary) ? "Cookie" : $"{vary}, Cookie";
+                    }
+                }
+                else
+                {
+                    context.Response.Headers["Vary"] = "Cookie";
+                }
 
                 await next();
             });
@@ -574,7 +619,12 @@ namespace ChurchReport
             // ✅ Phase 2.4: 啟用 Response Caching 中介軟體
             // ========================================
             // 必須在 UseSession 之前加入，以支援 [ResponseCache] 的 VaryByQueryKeys
-            app.UseResponseCaching();
+            var enableResponseCaching = Configuration.GetValue<bool>("SessionBleeding:EnableResponseCaching", false);
+            if (enableResponseCaching)
+            {
+                app.UseResponseCaching();
+                Console.WriteLine("[Startup] ⚠️ ResponseCaching 中介軟體已啟用（請僅用於匿名/公共資料端點）");
+            }
             
             app.UseSession();      // 啟用 Session 中間件
 
