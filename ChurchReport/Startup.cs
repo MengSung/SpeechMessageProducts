@@ -227,6 +227,38 @@ namespace ChurchReport
                 .AddMvc(options =>
                 {
                     options.EnableEndpointRouting = false;
+                    
+                    // ========================================
+                    // ✅ Phase 3.1: 註冊全域無快取過濾器 (Session Bleeding 防護)
+                    // ========================================
+                    // 防止 Session Bleeding（會話串連）問題
+                    // 確保所有 Controller Action 都不會被中間層代理伺服器或瀏覽器快取
+                    options.Filters.Add<ChurchReport.Filters.StrictNoCacheFilter>();
+                    
+                    // ========================================
+                    // ✅ Phase 3.2: 註冊全域 ResponseCache 屬性 (Session Bleeding 防護 - Step 2)
+                    // ========================================
+                    // 雙重防護：除了 StrictNoCacheFilter，再加上 ResponseCacheAttribute
+                    // 確保從 MVC 層面也禁止快取
+                    options.Filters.Add(new ResponseCacheAttribute
+                    {
+                        NoStore = true,
+                        Location = ResponseCacheLocation.None,
+                        Duration = 0
+                    });
+                    
+                    Console.WriteLine("[Startup] ✅ StrictNoCacheFilter 已註冊為全域過濾器");
+                    Console.WriteLine("[Startup] ✅ ResponseCacheAttribute 已註冊為全域過濾器 (NoStore=true)");
+                    System.Diagnostics.Debug.WriteLine($"[Startup] ========================================");
+                    System.Diagnostics.Debug.WriteLine($"[Startup] ✅ Session Bleeding 雙重防護已啟用");
+                    System.Diagnostics.Debug.WriteLine($"[Startup] 第一層: 全站無快取中介軟體 (Middleware 層)");
+                    System.Diagnostics.Debug.WriteLine($"[Startup] 第二層: ResponseCacheAttribute (MVC 層)");
+                    System.Diagnostics.Debug.WriteLine($"[Startup] 第三層: StrictNoCacheFilter (Action 層)");
+                    System.Diagnostics.Debug.WriteLine($"[Startup] 所有 Controller Action 將套用:");
+                    System.Diagnostics.Debug.WriteLine($"[Startup]   - Cache-Control: no-store, no-cache");
+                    System.Diagnostics.Debug.WriteLine($"[Startup]   - Pragma: no-cache");
+                    System.Diagnostics.Debug.WriteLine($"[Startup]   - Expires: -1");
+                    System.Diagnostics.Debug.WriteLine($"[Startup] ========================================");
                 })
                 .AddNewtonsoftJson(options =>
                 {
@@ -289,6 +321,17 @@ namespace ChurchReport
             services.AddScoped<ChurchReport.Services.MyPayCrmService>();
             services.AddScoped<ChurchReport.Services.MyPayNotificationService>();
 
+#if DEBUG
+            // ========================================
+            // ✅ Phase 4: 註冊身份審計清理服務 (Session Bleeding 防護 - 記憶體管理)
+            // ========================================
+            // 定期清理 IdentityAuditMiddleware 的追蹤資料，防止記憶體洩漏
+            // 僅在 DEBUG 模式下啟用
+            services.AddHostedService<ChurchReport.Middleware.IdentityAuditCleanupService>();
+            Console.WriteLine("[Startup] ✅ IdentityAuditCleanupService 已註冊（定期清理追蹤資料）");
+#endif
+
+
             // 根據配置中的 PAY_PROVIDER 設定，註冊對應的支付服務。
             if (Configuration["PAY_PROVIDER"] == "永豐金流")
             {
@@ -313,16 +356,35 @@ namespace ChurchReport
             }
 
             // ========================================
-            // 🔧 修復：Session 添加更完整的配置
+            // ✅ Phase 3.3: Session 配置與安全性強化 (Session Bleeding 防護 - Step 3)
             // ========================================
-            // 配置 Session 服務，設定閒置超時、Cookie 選項等。
+            // 配置 Session 服務，設定閒置超時、Cookie 選項等
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
+                
+                // ========================================
+                // ✅ Phase 3.3: 強化 Session Cookie 安全性 (Session Bleeding 防護)
+                // ========================================
+                // 防止 Session Cookie 被 Proxy 共用或竊取
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;  // 只能在 HTTPS 下傳輸
+                options.Cookie.SameSite = SameSiteMode.Strict;           // 防止跨站請求偽造 (CSRF)
+                
                 options.IOTimeout = TimeSpan.FromSeconds(30);
             });
+            
+            Console.WriteLine("[Startup] ✅ Session Cookie 安全性已強化（Session Bleeding 防護）");
+            Console.WriteLine("[Startup]   - HttpOnly: true (防 XSS)");
+            Console.WriteLine("[Startup]   - SecurePolicy: Always (防 MITM，需 HTTPS)");
+            Console.WriteLine("[Startup]   - SameSite: Strict (防 CSRF)");
+            System.Diagnostics.Debug.WriteLine($"[Startup] ========================================");
+            System.Diagnostics.Debug.WriteLine($"[Startup] ✅ Session Cookie 三層安全防護");
+            System.Diagnostics.Debug.WriteLine($"[Startup]   1. HttpOnly → JavaScript 無法存取");
+            System.Diagnostics.Debug.WriteLine($"[Startup]   2. Secure → 只能在 HTTPS 傳輸");
+            System.Diagnostics.Debug.WriteLine($"[Startup]   3. SameSite.Strict → 不會在跨站請求中發送");
+            System.Diagnostics.Debug.WriteLine($"[Startup] ========================================");
 
             // 配置身份驗證服務，使用 Cookie 身份驗證方案。
             services
@@ -399,27 +461,31 @@ namespace ChurchReport
             }
 
             // ========================================
-            // 🆕 全域請求日誌中間件（診斷用）
+            // ✅ Phase 3.0: 全站無快取中介軟體（Session Bleeding 防護 - 最優先執行）
             // ========================================
-            //if (enableTrace)
-            //{
-            //app.Use(async (context, next) =>
-            //{
-            //    var logger = context.RequestServices.GetRequiredService<ILogger<Startup>>();
-            //    logger.LogInformation("========================================");
-            //    logger.LogInformation("[全域請求] {Method} {Path} - 時間: {Time}", 
-            //        context.Request.Method, 
-            //        context.Request.Path, 
-            //        DateTime.Now);
-            //    logger.LogInformation("[全域請求] ContentType: {ContentType}, ContentLength: {Length}", 
-            //        context.Request.ContentType, 
-            //        context.Request.ContentLength);
+            // 這是防止 Session Bleeding 的第一道也是最重要的防線
+            // 必須在所有其他中介軟體之前執行，確保每個回應都帶有正確的快取控制標頭
+            app.Use(async (context, next) =>
+            {
+                // 設定最嚴格的快取策略：禁止瀏覽器與任何中間代理伺服器存儲內容
+                context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
+                context.Response.Headers["Pragma"] = "no-cache";
+                context.Response.Headers["Expires"] = "0";
+                
+                // ⚠️ 重要：告訴所有 Proxy「不同 Cookie = 不同內容，不准共用」
+                // 這是解決 Session Bleeding 的關鍵設定！
+                context.Response.Headers["Vary"] = "Cookie";
 
-            //    await next();
-
-            //    logger.LogInformation("[全域回應] StatusCode: {StatusCode}", context.Response.StatusCode);
-            //});
-            //}
+                await next();
+            });
+            
+            Console.WriteLine("[Startup] ========================================");
+            Console.WriteLine("[Startup] ✅ 全站無快取中介軟體已啟用（Session Bleeding 防護）");
+            Console.WriteLine("[Startup]   - Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+            Console.WriteLine("[Startup]   - Pragma: no-cache");
+            Console.WriteLine("[Startup]   - Expires: 0");
+            Console.WriteLine("[Startup]   - Vary: Cookie (防止 Proxy 共用不同使用者的回應)");
+            Console.WriteLine("[Startup] ========================================");
 
             // 異常處理中間件
             if (env.IsDevelopment())
@@ -491,6 +557,17 @@ namespace ChurchReport
 #endif
 
             app.UseAuthentication();  // 啟用身份驗證中間件
+
+#if DEBUG
+            // ========================================
+            // ✅ Phase 4: 啟用身份審計中介軟體（Session Bleeding 防護 - 監控層）
+            // ========================================
+            // 即時偵測並記錄身份混淆問題
+            // 必須在 UseAuthentication 之後，以確保身份驗證資訊可用
+            app.UseMiddleware<ChurchReport.Middleware.IdentityAuditMiddleware>();
+            Console.WriteLine("[Startup] ✅ 身份審計中介軟體已啟用（Session Bleeding 監控）");
+#endif
+
 
             // 使用舊式路由 (已關閉 Endpoint Routing)
             app.UseMvc(routes =>
