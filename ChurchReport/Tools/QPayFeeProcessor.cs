@@ -144,17 +144,25 @@ namespace ChurchReport.Tools
                 // 取得付款人 Line Id
                 String UserLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
 
-                // 收費單描述說明
-                String Description =
-                                     "姓名     : " + aFullName + Environment.NewLine +
-                                     "訂單編號 : " + aQryOrderPay.TSResultContent.OrderNo + Environment.NewLine +
-                                     "日期     : " + DateTime.Now.ToLocalTime().ToString() + Environment.NewLine +
-                                     "實收金額 : " + ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString() + Environment.NewLine +
-                                     "付款方式 : " + "信用卡" + Environment.NewLine +
-                                     "程式呼叫 : " + aQryOrderPay.Description + Environment.NewLine +
-                                     "交易結果 : " + aQryOrderPay.TSResultContent.Description + Environment.NewLine +
-                                     //"這是 ChurcchReport Webhook!!" + Environment.NewLine +
-                                     "--------------------" + Environment.NewLine;
+                // 收費單描述說明 - 美化版本
+                var paymentAmount = ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString("N0");
+                var paymentTime = DateTime.Now.ToLocalTime().ToString("yyyy/MM/dd HH:mm:ss");
+                
+                String Description = 
+                    "━━━━━━━━━━━━━━━━━━━━━━" + Environment.NewLine +
+                    "💳 信用卡交易通知" + Environment.NewLine +
+                    "━━━━━━━━━━━━━━━━━━━━━━" + Environment.NewLine +
+                    Environment.NewLine +
+                    $"👤 姓名：{aFullName}" + Environment.NewLine +
+                    $"📋 訂單編號：{aQryOrderPay.TSResultContent.OrderNo}" + Environment.NewLine +
+                    $"📅 交易時間：{paymentTime}" + Environment.NewLine +
+                    $"💰 交易金額：NT$ {paymentAmount}" + Environment.NewLine +
+                    $"💳 付款方式：信用卡" + Environment.NewLine +
+                    Environment.NewLine +
+                    "📝 交易詳情" + Environment.NewLine +
+                    "─────────────────────" + Environment.NewLine +
+                    $"• 處理狀態：{aQryOrderPay.Description}" + Environment.NewLine +
+                    $"• 交易結果：{aQryOrderPay.TSResultContent.Description}" + Environment.NewLine;
 
                 if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
                 {
