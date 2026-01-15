@@ -156,28 +156,27 @@ namespace ChurchReport.Tools
                     categoryText = GetDedicationCategoryText(categoryOption);
                 }
                 catch { categoryText = "奉獻"; }
-                
-                String Description = 
-                    "╔══════════════════════╗" + Environment.NewLine +
+
+                String Description =
+                    "╔════════════╗" + Environment.NewLine +
                     "║   💳 信用卡交易通知   ║" + Environment.NewLine +
-                    "╚══════════════════════╝" + Environment.NewLine +
+                    "╚════════════╝" + Environment.NewLine +
                     Environment.NewLine +
                     "📌 交易資訊" + Environment.NewLine +
-                    "┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
+                    "┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
                     $"  👤 姓名：{aFullName}" + Environment.NewLine +
                     $"  🏷️  類別：{categoryText}" + Environment.NewLine +
                     $"  💰 金額：NT$ {paymentAmount}" + Environment.NewLine +
                     $"  📅 時間：{paymentTime}" + Environment.NewLine +
                     Environment.NewLine +
                     "📋 訂單資訊" + Environment.NewLine +
-                    "┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
+                    "┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
                     $"  訂單編號：{aQryOrderPay.TSResultContent.OrderNo}" + Environment.NewLine +
                     $"  付款方式：💳 信用卡" + Environment.NewLine +
                     Environment.NewLine +
                     "📝 處理狀態" + Environment.NewLine +
-                    "┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
-                    $"  ✓ {aQryOrderPay.Description}" + Environment.NewLine +
-                    $"  ✓ {aQryOrderPay.TSResultContent.Description}" + Environment.NewLine;
+                    "┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
+                    $"  ✓ {aQryOrderPay.Description}" + Environment.NewLine;
 
                 if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
                 {
@@ -268,18 +267,18 @@ namespace ChurchReport.Tools
                         #endregion
 
                         #region LINE 通知付款人
+
                         // 建立成功訊息
-                        string successMessage = 
-                            "✨═══════════════════✨" + Environment.NewLine +
+                        string successMessage =
+                            "✨════════════✨" + Environment.NewLine +
                             "🎉 交易成功通知 🎉" + Environment.NewLine +
-                            "✨═══════════════════✨" + Environment.NewLine +
+                            "✨════════════✨" + Environment.NewLine +
                             Environment.NewLine +
-                            Description + 
+                            Description +
                             Environment.NewLine +
-                            "┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
+                            "┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
                             "💝 感謝您的奉獻！" + Environment.NewLine +
-                            "願神賜福與您！" + Environment.NewLine +
-                            "═══════════════════════" + Environment.NewLine;
+                            "願神賜福與您！" + Environment.NewLine;
                         
                         // 取得收費單的課程Lookup是否有值
                         Guid aDiscipleLessonsId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aFeeEntity, "new_disciple_lessons_new_fee");
