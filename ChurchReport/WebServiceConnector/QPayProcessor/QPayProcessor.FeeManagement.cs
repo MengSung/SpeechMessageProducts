@@ -242,7 +242,7 @@ namespace ChurchReport.WebServiceConnector
         private string BuildDedicationNotificationMessage(Entity contact, QpayModel qpayModel)
         {
             var message = "🙏 奉獻確認通知\n" +
-                         "━━━━━━━━━━━━━━━\n" +
+                         "━━━━━━━━━\n" +
                          $"✨ 感謝您的奉獻！\n\n" +
                          $"📅 日期：{qpayModel.DedicationDate:yyyy/MM/dd}\n" +
                          $"👤 姓名：{qpayModel.FullName}\n" +
@@ -269,7 +269,7 @@ namespace ChurchReport.WebServiceConnector
                 message += $"\n💬 備註：{qpayModel.Explain}\n";
             }
 
-            message += "\n━━━━━━━━━━━━━━━\n" +
+            message += "\n━━━━━━━━━\n" +
                       "願神賜福與您！\n" +
                       "您的奉獻已完成登記";
 

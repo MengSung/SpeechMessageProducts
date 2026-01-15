@@ -73199,3 +73199,1481 @@ ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] T
     * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
     * Pragma: no-cache
     * Expires: -1
+[2026-01-16 07:26:17] Trace listener initialized successfully (Debug build).
+[2026-01-16 07:26:17] Log file: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Logs\Trace.log
+[2026-01-16 07:26:17] File mode: Append
+[Startup] ========================================
+[Startup] ✅ Session Bleeding 雙重防護已啟用
+[Startup] 第一層: 全站無快取中介軟體 (Middleware 層)
+[Startup] 第二層: ResponseCacheAttribute (MVC 層)
+[Startup] 第三層: StrictNoCacheFilter (Action 層)
+[Startup] 所有 Controller Action 將套用:
+[Startup]   - Cache-Control: no-store, no-cache
+[Startup]   - Pragma: no-cache
+[Startup]   - Expires: -1
+[Startup] ========================================
+ChurchReport.Services.Monitoring.SessionMonitorService: Information: [Session Monitor] Session 監控服務已啟動
+[2026-01-16 07:26:17.724] [Information] [ChurchReport.Services.Monitoring.SessionMonitorService] [Session Monitor] Session 監控服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 服務已啟動
+[2026-01-16 07:26:17.751] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 清理間隔: 30 分鐘
+[2026-01-16 07:26:17.754] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 清理間隔: 30 分鐘
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 資料保留: 1 小時
+[2026-01-16 07:26:17.756] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 資料保留: 1 小時
+Microsoft.AspNetCore.Watch.BrowserRefresh.BlazorWasmHotReloadMiddleware: Debug: Middleware loaded
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16509 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=debug, __ASPNETCORE_BROWSER_TOOLS=true
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000006-000e-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+[2026-01-16 07:26:17.959] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000006-000e-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
+[2026-01-16 07:26:17.984] [Information] [Microsoft.Hosting.Lifetime] Application started. Press Ctrl+C to shut down.
+Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
+[2026-01-16 07:26:17.986] [Information] [Microsoft.Hosting.Lifetime] Hosting environment: Development
+Microsoft.Hosting.Lifetime: Information: Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[2026-01-16 07:26:17.988] [Information] [Microsoft.Hosting.Lifetime] Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /
+  - Method: GET
+  - TraceId: 40000006-000e-ff00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET / - 1585ms - Status: 200
+[2026-01-16 07:26:19.536] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET / - 1585ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:26:19.546] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:26:19.552] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400001bf-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[2026-01-16 07:26:21.253] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400001bf-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[ProcessLogin] 開始處理登入 - 帳號: zz, 時間: 2026/1/16 上午 07:26:21
+[ProcessLogin] 步驟 1: 驗證使用者身份
+[ValidateUserCredentials] 開始驗證 - 帳號: zz
+[ProcessLogin] 步驟 2: 取得使用者資料
+[ProcessLogin] 使用者: 胡夢嵩
+[ProcessLogin] 步驟 3: 初始化使用者 Session
+[ProcessLogin] 步驟 4: 設定系統資料 - 開始時間: 2026/1/16 上午 07:26:22
+[QPayProcessor] LINE Token loaded for organization: jesus
+[QPayProcessor] ShopNo initialized: NA0149_001 (Environment: 測試環境)
+[ConvertToCategory] 使用預設值
+[SetQpayModel] 成功取得 8 個奉獻類別
+[ProcessLogin] 步驟 4: 設定系統資料 - 完成時間: 2026/1/16 上午 07:26:30
+[ProcessLogin] 步驟 5: 判斷顯示視圖類型
+[ProcessLogin] 顯示類型: MultiGroupView
+[ProcessLogin] 步驟 6: 設定 ViewBag 參數
+[ProcessLogin] 步驟 7: 返回登入結果 - 完成時間: 2026/1/16 上午 07:26:30
+[StrictNoCacheFilter] Action 完成
+  - Path: /Home/ProcessLogin
+  - Method: POST
+  - TraceId: 400001bf-000a-fd00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Home/ProcessLogin - 9778ms - Status: 200
+[2026-01-16 07:26:31.030] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Home/ProcessLogin - 9778ms - Status: 200
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b5-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601 | Method:GET
+[2026-01-16 07:26:31.065] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b5-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601 | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601
+  - Method: GET
+  - TraceId: 400000b5-000b-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:26:31.276] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:26:31.310] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000005a-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+[2026-01-16 07:26:31.386] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000005a-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000006e-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+[2026-01-16 07:26:31.448] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000006e-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000091-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+[2026-01-16 07:26:31.511] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000091-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000a8-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b6-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-01-16 07:26:31.576] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b6-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-01-16 07:26:31.573] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000a8-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000125-0000-f700-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+[2026-01-16 07:26:31.582] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000125-0000-f700-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000a9-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+[2026-01-16 07:26:31.593] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000a9-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000006f-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+[2026-01-16 07:26:31.622] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000006f-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000092-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+[2026-01-16 07:26:31.683] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000092-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b7-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+[2026-01-16 07:26:31.714] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b7-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000070-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000126-0000-f700-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000aa-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+[2026-01-16 07:26:31.745] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000070-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+[2026-01-16 07:26:31.749] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000aa-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+[2026-01-16 07:26:31.747] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000126-0000-f700-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000005b-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+[2026-01-16 07:26:31.792] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000005b-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000005c-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/GetMultiGroupChartDataList | Method:GET
+[2026-01-16 07:26:31.870] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000005c-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/GetMultiGroupChartDataList | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[GetMultiGroupChartDataList] 快取未命中: SmallGroup_MultiChart_20260116_zz
+[GetMultiGroupChartDataList] 已快取 3 筆
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/GetMultiGroupChartDataList
+  - Method: GET
+  - TraceId: 4000005c-0000-f900-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000071-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/AssignSmallGroupGet | Method:GET
+[2026-01-16 07:26:31.944] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000071-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/AssignSmallGroupGet | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[AssignSmallGroupGet] 快取未命中: SmallGroup_MultiGrid_20260116_zz
+[AssignSmallGroupGet] 已快取 4 筆
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/AssignSmallGroupGet
+  - Method: GET
+  - TraceId: 40000071-000b-f900-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000072-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/IntegrateView/9d225730-aa4c-ea11-8113-00155d006601 | Method:GET
+[2026-01-16 07:26:33.897] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000072-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/IntegrateView/9d225730-aa4c-ea11-8113-00155d006601 | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[IdentityConverter.IndexToSpiritualIdentity] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[IdentityConverter.IndexToIdentity] 輸入值: 100000002, 回傳文字: 011. 區牧
+[IdentityConverter.IndexToSpiritualIdentity] 輸入值: 100000003, 回傳文字: 已受洗(其他教會)
+[IdentityConverter.IndexToIdentity] 輸入值: 1, 回傳文字: 05. 小組組員
+[IdentityConverter.IndexToSpiritualIdentity] 輸入值: 100000005, 回傳文字: 未受洗
+[IdentityConverter.IndexToIdentity] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[IdentityConverter.IndexToSpiritualIdentity] 輸入值: 100000003, 回傳文字: 已受洗(其他教會)
+[IdentityConverter.IndexToIdentity] 輸入值: 1, 回傳文字: 05. 小組組員
+[IdentityConverter.IndexToSpiritualIdentity] 輸入值: 100000003, 回傳文字: 已受洗(其他教會)
+[IdentityConverter.IndexToIdentity] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[IdentityConverter.IndexToSpiritualIdentity] 輸入值: 100000003, 回傳文字: 已受洗(其他教會)
+[IdentityConverter.IndexToIdentity] 輸入值: 1, 回傳文字: 05. 小組組員
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/IntegrateView/9d225730-aa4c-ea11-8113-00155d006601
+  - Method: GET
+  - TraceId: 40000072-000b-f900-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET /SmallGroup/IntegrateView/9d225730-aa4c-ea11-8113-00155d006601 - 2111ms - Status: 200
+[2026-01-16 07:26:36.010] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET /SmallGroup/IntegrateView/9d225730-aa4c-ea11-8113-00155d006601 - 2111ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:26:36.016] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:26:36.022] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000005d-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b8-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000ab-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000093-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+[2026-01-16 07:26:36.067] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b8-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+[2026-01-16 07:26:36.070] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000093-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+[2026-01-16 07:26:36.069] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000ab-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+[2026-01-16 07:26:36.065] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000005d-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000073-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-01-16 07:26:36.079] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000073-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000127-0000-f700-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+[2026-01-16 07:26:36.108] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000127-0000-f700-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b9-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+[2026-01-16 07:26:36.114] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b9-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000094-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+[2026-01-16 07:26:36.117] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000094-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000ac-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+[2026-01-16 07:26:36.140] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000ac-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000005e-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+[2026-01-16 07:26:36.169] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000005e-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000128-0000-f700-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+[2026-01-16 07:26:36.205] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000128-0000-f700-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000074-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+[2026-01-16 07:26:36.210] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000074-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000ba-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+[2026-01-16 07:26:36.218] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000ba-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000ad-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+[2026-01-16 07:26:36.224] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000ad-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000ae-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Personal/Api/GetMembershipStatusList | Method:GET
+[2026-01-16 07:26:36.257] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000ae-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Personal/Api/GetMembershipStatusList | Method:GET
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[GetMembershipStatusList] 取得 12 個會員身分選項
+[StrictNoCacheFilter] Action 完成
+  - Path: /Personal/Api/GetMembershipStatusList
+  - Method: GET
+  - TraceId: 400000ae-0001-fb00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000af-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Personal/Api/GetSpiritualIdentityList | Method:GET
+[2026-01-16 07:26:36.370] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000af-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Personal/Api/GetSpiritualIdentityList | Method:GET
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[GetSpiritualIdentityList] 取得 6 個信仰狀態選項
+[StrictNoCacheFilter] Action 完成
+  - Path: /Personal/Api/GetSpiritualIdentityList
+  - Method: GET
+  - TraceId: 400000af-0001-fb00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b0-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/GetChartDataList | Method:GET
+[2026-01-16 07:26:36.502] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b0-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/GetChartDataList | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/GetChartDataList
+  - Method: GET
+  - TraceId: 400000b0-0001-fb00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b1-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/LoadIntegrate | Method:GET
+[2026-01-16 07:26:36.607] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b1-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/LoadIntegrate | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000bb-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/NewPerson/LoadNewPersonFollowUp | Method:GET
+[2026-01-16 07:26:36.644] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000bb-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/NewPerson/LoadNewPersonFollowUp | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/LoadIntegrate
+  - Method: GET
+  - TraceId: 400000b1-0001-fb00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+[StrictNoCacheFilter] Action 完成
+  - Path: /NewPerson/LoadNewPersonFollowUp
+  - Method: GET
+  - TraceId: 400000bb-000b-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b2-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Personal/MaintainInfomationView | Method:GET
+[2026-01-16 07:26:39.785] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b2-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Personal/MaintainInfomationView | Method:GET
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[MaintainPersonInfomationView] displayViewType=MultiGroupView, integrateFlag=True
+[MaintainPersonInfomationView] 設定 ListId = MULTIGROUP_MODE
+[StrictNoCacheFilter] Action 完成
+  - Path: /Personal/MaintainInfomationView
+  - Method: GET
+  - TraceId: 400000b2-0001-fb00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:26:39.850] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:26:39.855] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b3-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+[2026-01-16 07:26:39.862] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b3-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000075-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000095-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000bc-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+[2026-01-16 07:26:39.902] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000095-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+[2026-01-16 07:26:39.903] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000bc-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000005f-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-01-16 07:26:39.908] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000005f-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-01-16 07:26:39.900] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000075-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b4-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+[2026-01-16 07:26:39.977] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b4-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000129-0000-f700-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000bd-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+[2026-01-16 07:26:40.043] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000bd-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000096-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+[2026-01-16 07:26:40.048] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000096-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+[2026-01-16 07:26:40.040] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000129-0000-f700-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000076-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+[2026-01-16 07:26:40.055] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000076-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000060-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+[2026-01-16 07:26:40.059] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000060-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b5-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+[2026-01-16 07:26:40.088] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b5-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000097-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+[2026-01-16 07:26:40.120] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000097-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000be-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+[2026-01-16 07:26:40.152] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000be-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b6-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Personal/LoadMaintainPersonInfomation | Method:GET
+[2026-01-16 07:26:40.169] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b6-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Personal/LoadMaintainPersonInfomation | Method:GET
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+========================================
+[LoadMaintainPersonInfomation] ⭐ 方法被呼叫了!
+[LoadMaintainPersonInfomation] id 參數: [MULTIGROUP_MODE]
+[LoadMaintainPersonInfomation] loadOptions 是否為 null: False
+========================================
+[LoadMaintainPersonInfomation] 檢查點 1: 開始檢查 InMemoryContext
+[LoadMaintainPersonInfomation] ✅ InMemoryContext 存在
+[LoadMaintainPersonInfomation] 檢查點 2: 開始檢查 ListManager
+[LoadMaintainPersonInfomation] ✅ ListManager 存在
+[LoadMaintainPersonInfomation] 檢查點 3: 呼叫 GetDisplayViewType
+[LoadMaintainPersonInfomation] ✅ displayViewType = MultiGroupView
+[LoadMaintainPersonInfomation] 檢查點 4: 呼叫 IsIntegrateDataLoaded
+[LoadMaintainPersonInfomation] ✅ integrateFlag = True
+[LoadMaintainPersonInfomation] id=MULTIGROUP_MODE, displayViewType=MultiGroupView, integrateFlag=True
+[LoadMaintainPersonInfomation] 進入多小組模式
+[LoadMaintainPersonInfomation] 小組數量: 4
+[LoadMaintainPersonInfomation] 處理第 1 個小組: _夢嵩大大發旺小組(研發專用), ListId: c9361662-1576-ea11-8115-00155d006601
+[LoadMaintainPersonInfomation] 開始查詢小組 _夢嵩大大發旺小組(研發專用) 的成員...
+[LoadMaintainPersonInfomation] 小組 _夢嵩大大發旺小組(研發專用) 找到 19 個成員
+[LoadMaintainPersonInfomation]   成員 1: 吳連碧_音訊科技
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000003, 回傳文字: 已受洗(其他教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(其他教會) (值: 100000003)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 吳連碧_音訊科技
+[LoadMaintainPersonInfomation]   成員 2: MengSung Hu
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
+[LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: MengSung Hu
+[LoadMaintainPersonInfomation]   成員 3: 林紀彥-牧師
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
+[LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 林紀彥-牧師
+[LoadMaintainPersonInfomation]   成員 4: 顧先鋒
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
+[LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 顧先鋒
+[LoadMaintainPersonInfomation]   成員 5: 花蓮市
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
+[LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 花蓮市
+[LoadMaintainPersonInfomation]   成員 6: 中壢棒
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
+[LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 中壢棒
+[LoadMaintainPersonInfomation]   成員 7: 好牧人
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
+[LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 好牧人
+[LoadMaintainPersonInfomation]   成員 8: 胡夢嵩
+[GetMembershipStatusText] 輸入值: 100000008, 回傳文字: 03. 小組長
+[LoadMaintainPersonInfomation]     會員身分: 03. 小組長 (值: 100000008)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 胡夢嵩
+[LoadMaintainPersonInfomation]   成員 9: 張可可
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000004, 回傳文字: -未知-
+[LoadMaintainPersonInfomation]     信仰狀態: -未知- (值: 100000004)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 張可可
+[LoadMaintainPersonInfomation]   成員 10: 美金多
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[LoadMaintainPersonInfomation]     信仰狀態: 欄位不存在
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 美金多
+[LoadMaintainPersonInfomation]   成員 11: 好火熱
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000004, 回傳文字: -未知-
+[LoadMaintainPersonInfomation]     信仰狀態: -未知- (值: 100000004)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 好火熱
+[LoadMaintainPersonInfomation]   成員 12: 大家庭
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
+[LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 大家庭
+[LoadMaintainPersonInfomation]   成員 13: 洪天氣
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000004, 回傳文字: -未知-
+[LoadMaintainPersonInfomation]     信仰狀態: -未知- (值: 100000004)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 洪天氣
+[LoadMaintainPersonInfomation]   成員 14: 陳大同牧師
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
+[LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 陳大同牧師
+[LoadMaintainPersonInfomation]   成員 15: 范閒
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000004, 回傳文字: -未知-
+[LoadMaintainPersonInfomation]     信仰狀態: -未知- (值: 100000004)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 范閒
+[LoadMaintainPersonInfomation]   成員 16: 蔡傳道
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 蔡傳道
+[LoadMaintainPersonInfomation]   成員 17: 大公主
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000002, 回傳文字: 已決志
+[LoadMaintainPersonInfomation]     信仰狀態: 已決志 (值: 100000002)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 大公主
+[LoadMaintainPersonInfomation]   成員 18: 桃花園
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[LoadMaintainPersonInfomation]     信仰狀態: 欄位不存在
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 桃花園
+[LoadMaintainPersonInfomation]   成員 19: 四季好
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
+[LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 四季好
+[LoadMaintainPersonInfomation] 小組 _夢嵩大大發旺小組(研發專用) 處理完成，累計成員數: 19
+[LoadMaintainPersonInfomation] 處理第 2 個小組: 長江組, ListId: 9d225730-aa4c-ea11-8113-00155d006601
+[LoadMaintainPersonInfomation] 開始查詢小組 長江組 的成員...
+[LoadMaintainPersonInfomation] 小組 長江組 找到 6 個成員
+[LoadMaintainPersonInfomation]   成員 1: 梅長江
+[GetMembershipStatusText] 輸入值: 100000002, 回傳文字: 011. 區牧
+[LoadMaintainPersonInfomation]     會員身分: 011. 區牧 (值: 100000002)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 梅長江
+[LoadMaintainPersonInfomation]   成員 2: 莊美人
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000003, 回傳文字: 已受洗(其他教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(其他教會) (值: 100000003)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 莊美人
+[LoadMaintainPersonInfomation]   成員 3: 楊世軒
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000005, 回傳文字: 未受洗
+[LoadMaintainPersonInfomation]     信仰狀態: 未受洗 (值: 100000005)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 楊世軒
+[LoadMaintainPersonInfomation]   成員 4: 楊美麗
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000003, 回傳文字: 已受洗(其他教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(其他教會) (值: 100000003)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 楊美麗
+[LoadMaintainPersonInfomation]   成員 5: 馬影
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000003, 回傳文字: 已受洗(其他教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(其他教會) (值: 100000003)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 馬影
+[LoadMaintainPersonInfomation]   成員 6: 太可愛
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000003, 回傳文字: 已受洗(其他教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(其他教會) (值: 100000003)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 太可愛
+[LoadMaintainPersonInfomation] 小組 長江組 處理完成，累計成員數: 25
+[LoadMaintainPersonInfomation] 處理第 3 個小組: 摩西組, ListId: 9c3ddea4-8849-ea11-8113-00155d006601
+[LoadMaintainPersonInfomation] 開始查詢小組 摩西組 的成員...
+[LoadMaintainPersonInfomation] 小組 摩西組 找到 19 個成員
+[LoadMaintainPersonInfomation]   成員 1: MengSung Hu
+[GetMembershipStatusText] 輸入值: 100000008, 回傳文字: 03. 小組長
+[LoadMaintainPersonInfomation]     會員身分: 03. 小組長 (值: 100000008)
+[GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
+[LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: MengSung Hu
+[LoadMaintainPersonInfomation]   成員 2: 廖政俊
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 廖政俊
+[LoadMaintainPersonInfomation]   成員 3: 小朋友
+[GetMembershipStatusText] 輸入值: 100000008, 回傳文字: 03. 小組長
+[LoadMaintainPersonInfomation]     會員身分: 03. 小組長 (值: 100000008)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 小朋友
+[LoadMaintainPersonInfomation]   成員 4: 王李滌穠
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 王李滌穠
+[LoadMaintainPersonInfomation]   成員 5: 楊志端
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 楊志端
+[LoadMaintainPersonInfomation]   成員 6: 陳劉富美
+[GetMembershipStatusText] 輸入值: 100000012, 回傳文字: 04. 小組同工
+[LoadMaintainPersonInfomation]     會員身分: 04. 小組同工 (值: 100000012)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 陳劉富美
+[LoadMaintainPersonInfomation]   成員 7: 黑馬
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000004, 回傳文字: -未知-
+[LoadMaintainPersonInfomation]     信仰狀態: -未知- (值: 100000004)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 黑馬
+[LoadMaintainPersonInfomation]   成員 8: 朱翔景
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 朱翔景
+[LoadMaintainPersonInfomation]   成員 9: 徐富美
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 徐富美
+[LoadMaintainPersonInfomation]   成員 10: 劉人和
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 劉人和
+[LoadMaintainPersonInfomation]   成員 11: 顏玉燕
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 顏玉燕
+[LoadMaintainPersonInfomation]   成員 12: 曾秀妹
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 曾秀妹
+[LoadMaintainPersonInfomation]   成員 13: 易樹林
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 易樹林
+[LoadMaintainPersonInfomation]   成員 14: 吳麗雄
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000002, 回傳文字: 已決志
+[LoadMaintainPersonInfomation]     信仰狀態: 已決志 (值: 100000002)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 吳麗雄
+[LoadMaintainPersonInfomation]   成員 15: 陳廣介
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 陳廣介
+[LoadMaintainPersonInfomation]   成員 16: 吳金者
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 吳金者
+[LoadMaintainPersonInfomation]   成員 17: 鍾辰真
+[GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
+[LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
+[GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
+[LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 鍾辰真
+[LoadMaintainPersonInfomation]   成員 18: 吳儀萍
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 吳儀萍
+[LoadMaintainPersonInfomation]   成員 19: 高方修
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 高方修
+[LoadMaintainPersonInfomation] 小組 摩西組 處理完成，累計成員數: 44
+[LoadMaintainPersonInfomation] 處理第 4 個小組: 讚美組, ListId: 6fa6db6d-254a-ea11-8113-00155d006601
+[LoadMaintainPersonInfomation] 開始查詢小組 讚美組 的成員...
+[LoadMaintainPersonInfomation] 小組 讚美組 找到 10 個成員
+[LoadMaintainPersonInfomation]   成員 1: 高與人
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000004, 回傳文字: -未知-
+[LoadMaintainPersonInfomation]     信仰狀態: -未知- (值: 100000004)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 高與人
+[LoadMaintainPersonInfomation]   成員 2: 追求者
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000003, 回傳文字: 已受洗(其他教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(其他教會) (值: 100000003)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 追求者
+[LoadMaintainPersonInfomation]   成員 3: 熱愛主
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 熱愛主
+[LoadMaintainPersonInfomation]   成員 4: 悔改者
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000004, 回傳文字: -未知-
+[LoadMaintainPersonInfomation]     信仰狀態: -未知- (值: 100000004)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 悔改者
+[LoadMaintainPersonInfomation]   成員 5: 聖潔者
+[GetMembershipStatusText] 輸入值: 100000012, 回傳文字: 04. 小組同工
+[LoadMaintainPersonInfomation]     會員身分: 04. 小組同工 (值: 100000012)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 聖潔者
+[LoadMaintainPersonInfomation]   成員 6: 火熱者
+[GetMembershipStatusText] 輸入值: 100000012, 回傳文字: 04. 小組同工
+[LoadMaintainPersonInfomation]     會員身分: 04. 小組同工 (值: 100000012)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 火熱者
+[LoadMaintainPersonInfomation]   成員 7: 深愛主
+[GetMembershipStatusText] 輸入值: 100000012, 回傳文字: 04. 小組同工
+[LoadMaintainPersonInfomation]     會員身分: 04. 小組同工 (值: 100000012)
+[GetSpiritualIdentityText] 輸入值: 100000000, 回傳文字: 已受洗(本教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(本教會) (值: 100000000)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 深愛主
+[LoadMaintainPersonInfomation]   成員 8: 敬虔者
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000003, 回傳文字: 已受洗(其他教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(其他教會) (值: 100000003)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 敬虔者
+[LoadMaintainPersonInfomation]   成員 9: 禱告者
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000003, 回傳文字: 已受洗(其他教會)
+[LoadMaintainPersonInfomation]     信仰狀態: 已受洗(其他教會) (值: 100000003)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 禱告者
+[LoadMaintainPersonInfomation]   成員 10: 領導者
+[GetMembershipStatusText] 輸入值: 1, 回傳文字: 05. 小組組員
+[LoadMaintainPersonInfomation]     會員身分: 05. 小組組員 (值: 1)
+[GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
+[LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 領導者
+[LoadMaintainPersonInfomation] 小組 讚美組 處理完成，累計成員數: 54
+[LoadMaintainPersonInfomation] 所有小組處理完成，總成員數: 54
+[LoadMaintainPersonInfomation] 總計返回 54 筆資料
+[StrictNoCacheFilter] Action 完成
+  - Path: /Personal/LoadMaintainPersonInfomation
+  - Method: GET
+  - TraceId: 400000b6-0001-fb00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET /Personal/LoadMaintainPersonInfomation - 10262ms - Status: 200
+[2026-01-16 07:26:50.431] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET /Personal/LoadMaintainPersonInfomation - 10262ms - Status: 200
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b7-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/KeyInDedicationFeeViewWeb | Method:GET
+[2026-01-16 07:26:53.906] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b7-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/KeyInDedicationFeeViewWeb | Method:GET
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/KeyInDedicationFeeViewWeb
+  - Method: GET
+  - TraceId: 400000b7-0001-fb00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:26:53.991] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:26:53.995] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b8-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000061-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000012a-0000-f700-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-01-16 07:26:54.039] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000061-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+[2026-01-16 07:26:54.041] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000012a-0000-f700-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000bf-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000077-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+[2026-01-16 07:26:54.046] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000bf-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+[2026-01-16 07:26:54.047] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000077-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+[2026-01-16 07:26:54.038] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b8-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000098-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+[2026-01-16 07:26:54.054] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000098-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000062-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+[2026-01-16 07:26:54.058] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000062-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000c0-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+[2026-01-16 07:26:54.098] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000c0-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000012b-0000-f700-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+[2026-01-16 07:26:54.102] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000012b-0000-f700-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000b9-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+[2026-01-16 07:26:54.105] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000b9-0001-fb00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000078-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+[2026-01-16 07:26:54.109] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000078-000b-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000099-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+[2026-01-16 07:26:54.112] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000099-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000063-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+[2026-01-16 07:26:54.115] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000063-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000c1-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+[2026-01-16 07:26:54.122] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000c1-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000c2-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/LoadSameNameList | Method:GET
+[2026-01-16 07:26:54.245] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000c2-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/LoadSameNameList | Method:GET
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/LoadSameNameList
+  - Method: GET
+  - TraceId: 400000c2-000b-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000c3-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[2026-01-16 07:27:09.200] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000c3-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/SaveKeyInDedication
+  - Method: POST
+  - TraceId: 400000c3-000b-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000c4-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[2026-01-16 07:27:17.480] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000c4-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[SetPayMethod] 設定付款方式: 現金 -> 100000000
+[SetPayStatus] 設定付款狀態: 現金已繳費 -> 100000003
+[GetCategoryValueByDisplayText] 十一奉獻 => 100000000
+[SetFeePayCategory] 設定奉獻類別: 十一奉獻 -> 100000000
+[QPayProcessor] 建立收費單實體失敗: 'new_fee' entity doesn't contain attribute with Name = 'new_keyin_contact_new_fee'.
+[QPayProcessor] 儲存手動奉獻失敗: 建立收費單實體失敗: 'new_fee' entity doesn't contain attribute with Name = 'new_keyin_contact_new_fee'.
+Time            =2026/1/16 上午 07:27:18
+
+StringToProcess =錯誤訊息 : FullName = ChurchReport.Controllers.DedicationController, Method = SaveKeyInDedication, Time = 2026/1/16 上午 07:27:18, Description = System.InvalidOperationException: 儲存手動奉獻失敗: 建立收費單實體失敗: 'new_fee' entity doesn't contain attribute with Name = 'new_keyin_contact_new_fee'.
+ ---> System.InvalidOperationException: 建立收費單實體失敗: 'new_fee' entity doesn't contain attribute with Name = 'new_keyin_contact_new_fee'.
+ ---> System.ServiceModel.FaultException`1[Microsoft.Xrm.Sdk.OrganizationServiceFault]: 'new_fee' entity doesn't contain attribute with Name = 'new_keyin_contact_new_fee'. (錯誤詳細資料等於 Exception details: 
+ErrorCode: 0x80041103
+Message: 'new_fee' entity doesn't contain attribute with Name = 'new_keyin_contact_new_fee'.
+TimeStamp: 2026-01-15T23:27:18.3802942Z
+--
+)。
+   --- End of inner exception stack trace ---
+   at ChurchReport.WebServiceConnector.QPayProcessor.CreateFee(Entity aContact, QpayModel QpayModel, Boolean KeyinMode) in D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\WebServiceConnector\QPayProcessor\QPayProcessor.FeeManagement.cs:line 85
+   at ChurchReport.WebServiceConnector.QPayProcessor.SaveKeyInDedication(QpayModel QpayModel) in D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\WebServiceConnector\QPayProcessor\QPayProcessor.FeeManagement.cs:line 193
+   --- End of inner exception stack trace ---
+   at ChurchReport.Models.QpayManager.SaveKeyInDedication(QpayModel QpayModel, Entity aLoginContact) in D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Models\QpayManager.cs:line 173
+   at ChurchReport.Controllers.DedicationController.SaveKeyInDedication(QpayModel QpayModel) in D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Controllers\DedicationController.cs:line 401
+
+StackTrace      =   at ChurchReport.Controllers.BaseChurchController.HandleError(Exception exception, String methodName) in D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Controllers\BaseChurchController.cs:line 128
+
+
+================================================================== 
+
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/SaveKeyInDedication
+  - Method: POST
+  - TraceId: 400000c4-000b-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+[2026-01-16 07:29:04] Trace listener initialized successfully (Debug build).
+[2026-01-16 07:29:04] Log file: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Logs\Trace.log
+[2026-01-16 07:29:04] File mode: Append
+[Startup] ========================================
+[Startup] ✅ Session Bleeding 雙重防護已啟用
+[Startup] 第一層: 全站無快取中介軟體 (Middleware 層)
+[Startup] 第二層: ResponseCacheAttribute (MVC 層)
+[Startup] 第三層: StrictNoCacheFilter (Action 層)
+[Startup] 所有 Controller Action 將套用:
+[Startup]   - Cache-Control: no-store, no-cache
+[Startup]   - Pragma: no-cache
+[Startup]   - Expires: -1
+[Startup] ========================================
+ChurchReport.Services.Monitoring.SessionMonitorService: Information: [Session Monitor] Session 監控服務已啟動
+[2026-01-16 07:29:04.808] [Information] [ChurchReport.Services.Monitoring.SessionMonitorService] [Session Monitor] Session 監控服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 服務已啟動
+[2026-01-16 07:29:04.836] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 清理間隔: 30 分鐘
+[2026-01-16 07:29:04.839] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 清理間隔: 30 分鐘
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 資料保留: 1 小時
+[2026-01-16 07:29:04.841] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 資料保留: 1 小時
+Microsoft.AspNetCore.Watch.BrowserRefresh.BlazorWasmHotReloadMiddleware: Debug: Middleware loaded
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16509 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=debug, __ASPNETCORE_BROWSER_TOOLS=true
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000021-0007-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+[2026-01-16 07:29:05.086] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000021-0007-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
+[2026-01-16 07:29:05.143] [Information] [Microsoft.Hosting.Lifetime] Application started. Press Ctrl+C to shut down.
+Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
+[2026-01-16 07:29:05.146] [Information] [Microsoft.Hosting.Lifetime] Hosting environment: Development
+Microsoft.Hosting.Lifetime: Information: Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[2026-01-16 07:29:05.149] [Information] [Microsoft.Hosting.Lifetime] Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /
+  - Method: GET
+  - TraceId: 40000021-0007-ff00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET / - 1742ms - Status: 200
+[2026-01-16 07:29:06.798] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET / - 1742ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:29:06.803] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:29:06.807] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000092-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[2026-01-16 07:29:08.363] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000092-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[ProcessLogin] 開始處理登入 - 帳號: zz, 時間: 2026/1/16 上午 07:29:08
+[ProcessLogin] 步驟 1: 驗證使用者身份
+[ValidateUserCredentials] 開始驗證 - 帳號: zz
+[ProcessLogin] 步驟 2: 取得使用者資料
+[ProcessLogin] 使用者: 胡夢嵩
+[ProcessLogin] 步驟 3: 初始化使用者 Session
+[ProcessLogin] 步驟 4: 設定系統資料 - 開始時間: 2026/1/16 上午 07:29:09
+[QPayProcessor] LINE Token loaded for organization: jesus
+[QPayProcessor] ShopNo initialized: NA0149_001 (Environment: 測試環境)
+[ConvertToCategory] 使用預設值
+[SetQpayModel] 成功取得 8 個奉獻類別
+[ProcessLogin] 步驟 4: 設定系統資料 - 完成時間: 2026/1/16 上午 07:29:17
+[ProcessLogin] 步驟 5: 判斷顯示視圖類型
+[ProcessLogin] 顯示類型: MultiGroupView
+[ProcessLogin] 步驟 6: 設定 ViewBag 參數
+[ProcessLogin] 步驟 7: 返回登入結果 - 完成時間: 2026/1/16 上午 07:29:18
+[StrictNoCacheFilter] Action 完成
+  - Path: /Home/ProcessLogin
+  - Method: POST
+  - TraceId: 40000092-000c-ff00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Home/ProcessLogin - 9713ms - Status: 200
+[2026-01-16 07:29:18.074] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Home/ProcessLogin - 9713ms - Status: 200
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400001c1-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601 | Method:GET
+[2026-01-16 07:29:18.105] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400001c1-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601 | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601
+  - Method: GET
+  - TraceId: 400001c1-000a-fd00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:29:18.307] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:29:18.313] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400001c2-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000030-000a-f600-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+[2026-01-16 07:29:18.327] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000030-000a-f600-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000097-0016-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+[2026-01-16 07:29:18.338] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000097-0016-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+[2026-01-16 07:29:18.325] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400001c2-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000015c-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+[2026-01-16 07:29:18.344] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000015c-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000120-0001-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-01-16 07:29:18.352] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000120-0001-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000173-0016-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+[2026-01-16 07:29:18.360] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000173-0016-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000015d-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+[2026-01-16 07:29:18.398] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000015d-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000098-0016-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+[2026-01-16 07:29:18.446] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000098-0016-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000121-0001-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+[2026-01-16 07:29:18.488] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000121-0001-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400001c3-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+[2026-01-16 07:29:18.516] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400001c3-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000031-000a-f600-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000174-0016-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+[2026-01-16 07:29:18.524] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000174-0016-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+[2026-01-16 07:29:18.522] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000031-000a-f600-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000099-0016-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000015e-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+[2026-01-16 07:29:18.555] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000099-0016-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+[2026-01-16 07:29:18.557] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000015e-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000015f-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/GetMultiGroupChartDataList | Method:GET
+[2026-01-16 07:29:18.636] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000015f-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/GetMultiGroupChartDataList | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[GetMultiGroupChartDataList] 快取未命中: SmallGroup_MultiChart_20260116_zz
+[GetMultiGroupChartDataList] 已快取 3 筆
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/GetMultiGroupChartDataList
+  - Method: GET
+  - TraceId: 4000015f-0016-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000160-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/AssignSmallGroupGet | Method:GET
+[2026-01-16 07:29:18.724] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000160-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/AssignSmallGroupGet | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[AssignSmallGroupGet] 快取未命中: SmallGroup_MultiGrid_20260116_zz
+[AssignSmallGroupGet] 已快取 4 筆
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/AssignSmallGroupGet
+  - Method: GET
+  - TraceId: 40000160-0016-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000161-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/KeyInDedicationFeeViewWeb | Method:GET
+[2026-01-16 07:29:21.786] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000161-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/KeyInDedicationFeeViewWeb | Method:GET
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/KeyInDedicationFeeViewWeb
+  - Method: GET
+  - TraceId: 40000161-0016-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:29:21.878] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:29:21.884] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000162-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+[2026-01-16 07:29:21.938] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000162-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000032-000a-f600-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+[2026-01-16 07:29:21.992] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000032-000a-f600-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000009a-0016-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+[2026-01-16 07:29:22.015] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000009a-0016-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400001c4-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+[2026-01-16 07:29:22.019] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400001c4-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000122-0001-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-01-16 07:29:22.066] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000122-0001-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000175-0016-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000033-000a-f600-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+[2026-01-16 07:29:22.099] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000033-000a-f600-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000163-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+[2026-01-16 07:29:22.105] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000163-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+[2026-01-16 07:29:22.097] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000175-0016-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000009b-0016-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+[2026-01-16 07:29:22.112] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000009b-0016-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400001c5-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+[2026-01-16 07:29:22.116] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400001c5-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000034-000a-f600-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+[2026-01-16 07:29:22.121] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000034-000a-f600-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000123-0001-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+[2026-01-16 07:29:22.126] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000123-0001-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000176-0016-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+[2026-01-16 07:29:22.162] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000176-0016-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000164-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+[2026-01-16 07:29:22.195] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000164-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000165-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/LoadSameNameList | Method:GET
+[2026-01-16 07:29:22.353] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000165-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/LoadSameNameList | Method:GET
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/LoadSameNameList
+  - Method: GET
+  - TraceId: 40000165-0016-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000166-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[2026-01-16 07:29:27.436] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000166-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/SaveKeyInDedication
+  - Method: POST
+  - TraceId: 40000166-0016-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Dedication/SaveKeyInDedication - 19219ms - Status: 200
+[2026-01-16 07:29:46.657] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Dedication/SaveKeyInDedication - 19219ms - Status: 200
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000167-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[2026-01-16 07:29:51.858] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000167-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[SetPayMethod] 設定付款方式: 現金 -> 100000000
+[SetPayStatus] 設定付款狀態: 現金已繳費 -> 100000003
+[GetCategoryValueByDisplayText] 十一奉獻 => 100000000
+[SetFeePayCategory] 設定奉獻類別: 十一奉獻 -> 100000000
+[2026-01-16 07:34:07] Trace listener initialized successfully (Debug build).
+[2026-01-16 07:34:07] Log file: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Logs\Trace.log
+[2026-01-16 07:34:07] File mode: Append
+[Startup] ========================================
+[Startup] ✅ Session Bleeding 雙重防護已啟用
+[Startup] 第一層: 全站無快取中介軟體 (Middleware 層)
+[Startup] 第二層: ResponseCacheAttribute (MVC 層)
+[Startup] 第三層: StrictNoCacheFilter (Action 層)
+[Startup] 所有 Controller Action 將套用:
+[Startup]   - Cache-Control: no-store, no-cache
+[Startup]   - Pragma: no-cache
+[Startup]   - Expires: -1
+[Startup] ========================================
+ChurchReport.Services.Monitoring.SessionMonitorService: Information: [Session Monitor] Session 監控服務已啟動
+[2026-01-16 07:34:08.080] [Information] [ChurchReport.Services.Monitoring.SessionMonitorService] [Session Monitor] Session 監控服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 服務已啟動
+[2026-01-16 07:34:08.108] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 清理間隔: 30 分鐘
+[2026-01-16 07:34:08.115] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 清理間隔: 30 分鐘
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 資料保留: 1 小時
+[2026-01-16 07:34:08.118] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 資料保留: 1 小時
+Microsoft.AspNetCore.Watch.BrowserRefresh.BlazorWasmHotReloadMiddleware: Debug: Middleware loaded
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16509 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=debug, __ASPNETCORE_BROWSER_TOOLS=true
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000065-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+[2026-01-16 07:34:08.339] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000065-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
+[2026-01-16 07:34:08.368] [Information] [Microsoft.Hosting.Lifetime] Application started. Press Ctrl+C to shut down.
+Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
+[2026-01-16 07:34:08.371] [Information] [Microsoft.Hosting.Lifetime] Hosting environment: Development
+Microsoft.Hosting.Lifetime: Information: Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[2026-01-16 07:34:08.373] [Information] [Microsoft.Hosting.Lifetime] Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /
+  - Method: GET
+  - TraceId: 40000065-0000-f900-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET / - 1930ms - Status: 200
+[2026-01-16 07:34:10.259] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET / - 1930ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:34:10.271] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:34:10.280] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000066-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[2026-01-16 07:34:11.722] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000066-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[ProcessLogin] 開始處理登入 - 帳號: zz, 時間: 2026/1/16 上午 07:34:11
+[ProcessLogin] 步驟 1: 驗證使用者身份
+[ValidateUserCredentials] 開始驗證 - 帳號: zz
+[ProcessLogin] 步驟 2: 取得使用者資料
+[ProcessLogin] 使用者: 胡夢嵩
+[ProcessLogin] 步驟 3: 初始化使用者 Session
+[ProcessLogin] 步驟 4: 設定系統資料 - 開始時間: 2026/1/16 上午 07:34:12
+[QPayProcessor] LINE Token loaded for organization: jesus
+[QPayProcessor] ShopNo initialized: NA0149_001 (Environment: 測試環境)
+[ConvertToCategory] 使用預設值
+[SetQpayModel] 成功取得 8 個奉獻類別
+[ProcessLogin] 步驟 4: 設定系統資料 - 完成時間: 2026/1/16 上午 07:34:28
+[ProcessLogin] 步驟 5: 判斷顯示視圖類型
+[ProcessLogin] 顯示類型: MultiGroupView
+[ProcessLogin] 步驟 6: 設定 ViewBag 參數
+[ProcessLogin] 步驟 7: 返回登入結果 - 完成時間: 2026/1/16 上午 07:34:28
+[StrictNoCacheFilter] Action 完成
+  - Path: /Home/ProcessLogin
+  - Method: POST
+  - TraceId: 40000066-0000-f900-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Home/ProcessLogin - 16568ms - Status: 200
+[2026-01-16 07:34:28.289] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Home/ProcessLogin - 16568ms - Status: 200
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000067-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601 | Method:GET
+[2026-01-16 07:34:28.319] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000067-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601 | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601
+  - Method: GET
+  - TraceId: 40000067-0000-f900-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:34:28.517] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:34:28.524] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000c7-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000068-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+[2026-01-16 07:34:28.532] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000c7-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+[2026-01-16 07:34:28.535] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000068-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000009b-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+[2026-01-16 07:34:28.564] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000009b-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000f6-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400001c7-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-01-16 07:34:28.633] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400001c7-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-01-16 07:34:28.614] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000f6-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000014e-000d-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+[2026-01-16 07:34:28.641] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000014e-000d-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000014f-000d-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000069-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+[2026-01-16 07:34:28.679] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000014f-000d-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+[2026-01-16 07:34:28.680] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000069-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000f7-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000009c-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+[2026-01-16 07:34:28.685] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000f7-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+[2026-01-16 07:34:28.687] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000009c-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000c8-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400001c8-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+[2026-01-16 07:34:28.692] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000c8-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+[2026-01-16 07:34:28.693] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400001c8-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000006a-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000150-000d-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+[2026-01-16 07:34:28.725] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000006a-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+[2026-01-16 07:34:28.727] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000150-000d-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000151-000d-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/GetMultiGroupChartDataList | Method:GET
+[2026-01-16 07:34:28.797] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000151-000d-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/GetMultiGroupChartDataList | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[GetMultiGroupChartDataList] 快取未命中: SmallGroup_MultiChart_20260116_zz
+[GetMultiGroupChartDataList] 已快取 3 筆
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/GetMultiGroupChartDataList
+  - Method: GET
+  - TraceId: 40000151-000d-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000006b-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/AssignSmallGroupGet | Method:GET
+[2026-01-16 07:34:28.876] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000006b-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/AssignSmallGroupGet | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[AssignSmallGroupGet] 快取未命中: SmallGroup_MultiGrid_20260116_zz
+[AssignSmallGroupGet] 已快取 4 筆
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/AssignSmallGroupGet
+  - Method: GET
+  - TraceId: 4000006b-0000-f900-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000006c-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/KeyInDedicationFeeViewWeb | Method:GET
+[2026-01-16 07:34:31.067] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000006c-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/KeyInDedicationFeeViewWeb | Method:GET
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/KeyInDedicationFeeViewWeb
+  - Method: GET
+  - TraceId: 4000006c-0000-f900-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:34:31.160] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:34:31.165] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400001c9-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000006d-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000152-000d-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+[2026-01-16 07:34:31.225] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400001c9-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+[2026-01-16 07:34:31.228] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000152-000d-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+[2026-01-16 07:34:31.226] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000006d-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000f8-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000009d-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+[2026-01-16 07:34:31.283] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000f8-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-01-16 07:34:31.285] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000009d-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000c9-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+[2026-01-16 07:34:31.310] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000c9-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000006e-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+[2026-01-16 07:34:31.317] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000006e-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000153-000d-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+[2026-01-16 07:34:31.352] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000153-000d-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400001ca-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+[2026-01-16 07:34:31.382] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400001ca-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000ca-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000009e-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+[2026-01-16 07:34:31.459] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000009e-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000006f-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+[2026-01-16 07:34:31.493] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000006f-0000-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000f9-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+[2026-01-16 07:34:31.497] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000f9-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000154-000d-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+[2026-01-16 07:34:31.501] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000154-000d-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+[2026-01-16 07:34:31.436] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000ca-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000cb-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/LoadSameNameList | Method:GET
+[2026-01-16 07:34:31.670] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000cb-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/LoadSameNameList | Method:GET
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/LoadSameNameList
+  - Method: GET
+  - TraceId: 400000cb-000b-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000cc-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[2026-01-16 07:34:37.259] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000cc-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/SaveKeyInDedication
+  - Method: POST
+  - TraceId: 400000cc-000b-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Dedication/SaveKeyInDedication - 2356ms - Status: 200
+[2026-01-16 07:34:39.614] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Dedication/SaveKeyInDedication - 2356ms - Status: 200
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000cd-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[2026-01-16 07:34:44.749] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000cd-000b-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[SetPayMethod] 設定付款方式: 現金 -> 100000000
+[SetPayStatus] 設定付款狀態: 現金已繳費 -> 100000003
+[GetCategoryValueByDisplayText] 十一奉獻 => 100000000
+[SetFeePayCategory] 設定奉獻類別: 十一奉獻 -> 100000000
+[QPayProcessor] 已成功發送奉獻通知給 胡夢嵩
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/SaveKeyInDedication
+  - Method: POST
+  - TraceId: 400000cd-000b-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Dedication/SaveKeyInDedication - 24108ms - Status: 200
+[2026-01-16 07:35:08.857] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Dedication/SaveKeyInDedication - 24108ms - Status: 200
+[2026-01-16 07:36:22] Trace listener initialized successfully (Debug build).
+[2026-01-16 07:36:22] Log file: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Logs\Trace.log
+[2026-01-16 07:36:22] File mode: Append
+[Startup] ========================================
+[Startup] ✅ Session Bleeding 雙重防護已啟用
+[Startup] 第一層: 全站無快取中介軟體 (Middleware 層)
+[Startup] 第二層: ResponseCacheAttribute (MVC 層)
+[Startup] 第三層: StrictNoCacheFilter (Action 層)
+[Startup] 所有 Controller Action 將套用:
+[Startup]   - Cache-Control: no-store, no-cache
+[Startup]   - Pragma: no-cache
+[Startup]   - Expires: -1
+[Startup] ========================================
+ChurchReport.Services.Monitoring.SessionMonitorService: Information: [Session Monitor] Session 監控服務已啟動
+[2026-01-16 07:36:22.549] [Information] [ChurchReport.Services.Monitoring.SessionMonitorService] [Session Monitor] Session 監控服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 服務已啟動
+[2026-01-16 07:36:22.598] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 清理間隔: 30 分鐘
+[2026-01-16 07:36:22.602] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 清理間隔: 30 分鐘
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 資料保留: 1 小時
+[2026-01-16 07:36:22.605] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 資料保留: 1 小時
+Microsoft.AspNetCore.Watch.BrowserRefresh.BlazorWasmHotReloadMiddleware: Debug: Middleware loaded
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16509 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=debug, __ASPNETCORE_BROWSER_TOOLS=true
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000140-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+[2026-01-16 07:36:22.895] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000140-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
+[2026-01-16 07:36:22.944] [Information] [Microsoft.Hosting.Lifetime] Application started. Press Ctrl+C to shut down.
+Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
+[2026-01-16 07:36:22.947] [Information] [Microsoft.Hosting.Lifetime] Hosting environment: Development
+Microsoft.Hosting.Lifetime: Information: Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[2026-01-16 07:36:22.951] [Information] [Microsoft.Hosting.Lifetime] Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /
+  - Method: GET
+  - TraceId: 40000140-000a-fc00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET / - 1716ms - Status: 200
+[2026-01-16 07:36:24.585] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET / - 1716ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:36:24.595] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:36:24.603] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000141-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[2026-01-16 07:36:34.918] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000141-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[ProcessLogin] 開始處理登入 - 帳號: zz, 時間: 2026/1/16 上午 07:36:34
+[ProcessLogin] 步驟 1: 驗證使用者身份
+[ValidateUserCredentials] 開始驗證 - 帳號: zz
+[ProcessLogin] 步驟 2: 取得使用者資料
+[ProcessLogin] 使用者: 胡夢嵩
+[ProcessLogin] 步驟 3: 初始化使用者 Session
+[ProcessLogin] 步驟 4: 設定系統資料 - 開始時間: 2026/1/16 上午 07:36:43
+[QPayProcessor] LINE Token loaded for organization: jesus
+[QPayProcessor] ShopNo initialized: NA0149_001 (Environment: 測試環境)
+[ConvertToCategory] 使用預設值
+[SetQpayModel] 成功取得 8 個奉獻類別
+[ProcessLogin] 步驟 4: 設定系統資料 - 完成時間: 2026/1/16 上午 07:36:52
+[ProcessLogin] 步驟 5: 判斷顯示視圖類型
+[ProcessLogin] 顯示類型: MultiGroupView
+[ProcessLogin] 步驟 6: 設定 ViewBag 參數
+[ProcessLogin] 步驟 7: 返回登入結果 - 完成時間: 2026/1/16 上午 07:36:52
+[StrictNoCacheFilter] Action 完成
+  - Path: /Home/ProcessLogin
+  - Method: POST
+  - TraceId: 40000141-000a-fc00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Home/ProcessLogin - 17555ms - Status: 200
+[2026-01-16 07:36:52.473] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Home/ProcessLogin - 17555ms - Status: 200
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000142-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601 | Method:GET
+[2026-01-16 07:36:52.505] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000142-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601 | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601
+  - Method: GET
+  - TraceId: 40000142-000a-fc00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:36:52.711] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:36:52.715] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000143-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000eb-0017-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000e7-000a-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+[2026-01-16 07:36:52.850] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000e7-000a-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000094-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+[2026-01-16 07:36:52.848] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000eb-0017-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-01-16 07:36:52.853] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000094-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000fb-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+[2026-01-16 07:36:52.858] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000fb-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+[2026-01-16 07:36:52.846] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000143-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000a0-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+[2026-01-16 07:36:52.956] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000a0-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000095-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+[2026-01-16 07:36:52.966] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000095-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000e8-000a-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000144-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+[2026-01-16 07:36:53.008] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000144-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+[2026-01-16 07:36:53.006] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000e8-000a-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000fc-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000a1-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+[2026-01-16 07:36:53.097] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000a1-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000ec-0017-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+[2026-01-16 07:36:53.065] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000fc-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+[2026-01-16 07:36:53.101] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000ec-0017-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000096-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+[2026-01-16 07:36:53.159] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000096-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000145-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+[2026-01-16 07:36:53.222] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000145-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000146-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/GetMultiGroupChartDataList | Method:GET
+[2026-01-16 07:36:53.295] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000146-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/GetMultiGroupChartDataList | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[GetMultiGroupChartDataList] 快取未命中: SmallGroup_MultiChart_20260116_zz
+[GetMultiGroupChartDataList] 已快取 3 筆
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/GetMultiGroupChartDataList
+  - Method: GET
+  - TraceId: 40000146-000a-fc00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000147-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/AssignSmallGroupGet | Method:GET
+[2026-01-16 07:36:53.363] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000147-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/AssignSmallGroupGet | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[AssignSmallGroupGet] 快取未命中: SmallGroup_MultiGrid_20260116_zz
+[AssignSmallGroupGet] 已快取 4 筆
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/AssignSmallGroupGet
+  - Method: GET
+  - TraceId: 40000147-000a-fc00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000148-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/KeyInDedicationFeeViewWeb | Method:GET
+[2026-01-16 07:36:56.347] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000148-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/KeyInDedicationFeeViewWeb | Method:GET
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/KeyInDedicationFeeViewWeb
+  - Method: GET
+  - TraceId: 40000148-000a-fc00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:36:56.441] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-16 07:36:56.448] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000097-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+[2026-01-16 07:36:56.480] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000097-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000149-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+[2026-01-16 07:36:56.511] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000149-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000a2-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+[2026-01-16 07:36:56.545] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000a2-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000e9-000a-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-01-16 07:36:56.573] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000e9-000a-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000fd-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+[2026-01-16 07:36:56.604] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000fd-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000ed-0017-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+[2026-01-16 07:36:56.636] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000ed-0017-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000098-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+[2026-01-16 07:36:56.640] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000098-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000014a-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+[2026-01-16 07:36:56.684] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000014a-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000a3-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+[2026-01-16 07:36:56.719] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000a3-0017-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000fe-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+[2026-01-16 07:36:56.724] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000fe-0017-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000ee-0017-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+[2026-01-16 07:36:56.731] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000ee-0017-f900-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000014b-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+[2026-01-16 07:36:56.734] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000014b-000a-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:400000ea-000a-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+[2026-01-16 07:36:56.763] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:400000ea-000a-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000099-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+[2026-01-16 07:36:56.792] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000099-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000009a-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/LoadSameNameList | Method:GET
+[2026-01-16 07:36:56.954] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000009a-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/LoadSameNameList | Method:GET
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/LoadSameNameList
+  - Method: GET
+  - TraceId: 4000009a-000c-ff00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000009b-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[2026-01-16 07:37:01.439] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000009b-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/SaveKeyInDedication
+  - Method: POST
+  - TraceId: 4000009b-000c-ff00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Dedication/SaveKeyInDedication - 2586ms - Status: 200
+[2026-01-16 07:37:04.025] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Dedication/SaveKeyInDedication - 2586ms - Status: 200
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000009c-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[2026-01-16 07:37:20.328] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000009c-000c-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Dedication/SaveKeyInDedication | Method:POST
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[SetPayMethod] 設定付款方式: 現金 -> 100000000
+[SetPayStatus] 設定付款狀態: 現金已繳費 -> 100000003
+[GetCategoryValueByDisplayText] 建堂奉獻 => 100000003
+[SetFeePayCategory] 設定奉獻類別: 建堂奉獻 -> 100000003
+[QPayProcessor] 已成功發送奉獻通知給 胡夢嵩
+[StrictNoCacheFilter] Action 完成
+  - Path: /Dedication/SaveKeyInDedication
+  - Method: POST
+  - TraceId: 4000009c-000c-ff00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Dedication/SaveKeyInDedication - 2881ms - Status: 200
+[2026-01-16 07:37:23.210] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Dedication/SaveKeyInDedication - 2881ms - Status: 200
