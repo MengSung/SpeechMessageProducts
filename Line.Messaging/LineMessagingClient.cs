@@ -2744,6 +2744,18 @@ namespace Line.Messaging
         private async Task<string> GetStringAsync(string url)
         {
             var response = await _client.GetAsync(url).ConfigureAwait(false);
+
+            // Enhanced error handling for authentication issues
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                throw new UnauthorizedAccessException(
+                    $"LINE API authentication failed. Status: 401 Unauthorized. " +
+                    $"Error: {errorContent}. " +
+                    $"Please verify your Channel Access Token is valid and not expired. " +
+                    $"URL: {url}");
+            }
+
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
             return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }
