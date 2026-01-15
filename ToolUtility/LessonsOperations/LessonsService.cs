@@ -73,7 +73,7 @@ namespace ToolUtilityNameSpace.LessonsOperations
             lessonId = $"'{{{lessonId}}}'";
             contactName = $"'{contactName}'";
             contactId = $"'{{{contactId}}}'";
-            var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+            var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='5'>
                       <entity name='new_stor_lessons'>
                         <attribute name='createdon' />
                         <attribute name='new_contact_new_stor_lessons' />
@@ -81,8 +81,7 @@ namespace ToolUtilityNameSpace.LessonsOperations
                         <attribute name='new_pay_date' />
                         <attribute name='new_new_disciple_lessons_new_stor_les' />
                         <attribute name='new_stor_lessonsid' />
-                        <order attribute='new_new_disciple_lessons_new_stor_les' descending='false' />
-                        <order attribute='new_contact_new_stor_lessons' descending='false' />
+                        <order attribute='createdon' descending='true' />
                         <filter type='and'>
                           <condition attribute='new_enroll_status' operator='not-in'>
                             <value>100000007</value>
@@ -90,6 +89,7 @@ namespace ToolUtilityNameSpace.LessonsOperations
                             <value>100000003</value>
                           </condition>
                           <condition attribute='new_new_disciple_lessons_new_stor_les' operator='eq' uiname={lessonName} uitype='new_disciple_lessons' value={lessonId} />
+                          <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname={contactName} uitype='contact' value={contactId} />
                           <condition attribute='statuscode' operator='ne' value='2' />
                           <condition attribute='statecode' operator='eq' value='0' />
                         </filter>

@@ -5,9 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
 using Microsoft.Extensions.Configuration;
+using ChurchReport.Services;
 
 #region Dynamics 365 Microsoft.Xrm.Sdk.dll
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
@@ -71,7 +73,7 @@ namespace ChurchReport.Tools
         {
             // 從配置讀取 LINE Channel Access Token
             string channelAccessToken = GetLineChannelAccessToken();
-            
+
             // 初始化 LINE Messaging Client
             m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
@@ -106,13 +108,13 @@ namespace ChurchReport.Tools
             {
                 // 從 CRM 連接配置取得組織名稱
                 string organization = m_Configuration["CrmConnection:Organization"];
-                
+
                 if (!string.IsNullOrEmpty(organization))
                 {
                     // 將組織名稱轉換為配置鍵格式 (首字母大寫)
                     // 例如: "jesuslove" -> "Jesuslove"
                     string configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
-                    
+
                     // 嘗試讀取指定組織的 Token
                     string token = m_Configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
                     if (!string.IsNullOrEmpty(token))
@@ -120,16 +122,16 @@ namespace ChurchReport.Tools
                         return token;
                     }
                 }
-                
+
                 // 若找不到指定組織的設定，使用預設組織
                 string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
                 string defaultToken = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
-                
+
                 if (string.IsNullOrEmpty(defaultToken))
                 {
                     System.Diagnostics.Trace.WriteLine("[QrCodeUtility] 警告: LINE Channel Access Token 未設定");
                 }
-                
+
                 return defaultToken ?? string.Empty;
             }
             catch (Exception ex)
@@ -141,6 +143,7 @@ namespace ChurchReport.Tools
         #endregion
 
         #region 主程式
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public void SetupQrCodeIdString(string QrCodeIdString, string DisplayName, string UserLineId, ref string ClassName, ref string UserName, ref string ClassIndex, ref string OnboardType)
         {
             try
@@ -191,20 +194,26 @@ namespace ChurchReport.Tools
         #endregion
 
         #region 設定簽到簽退
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public bool SigningLesson(Entity aLesson, string LessonName, string UserName, string UserId, string ClassIndex, string OnboardType)
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] >>> SigningLesson 開始 - Line 177");
                 m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "006 : 好牧人: 資訊 => " + m_OnboardType);
 
                 EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.RetrieveStorLessonsByFetchXml(LessonName, aLesson.Id.ToString(), UserName, UserId);
+                System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] 查詢到 {aStorLessonsEntityCollection.Entities.Count} 筆課程記錄");
 
                 if (aStorLessonsEntityCollection.Entities.Count > 0)
                 {
                     Entity retrievedStorLessons = m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsEntityCollection.Entities[0].Id);
                     m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "007 : 好牧人: 資訊 => SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );");
 
+                    System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] >>> 準備調用 SigningProcess - Line 182 前");
                     SigningProcess(retrievedStorLessons, ClassIndex, OnboardType);
+                    System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] <<< SigningProcess 返回 - Line 182 後");
+
                     m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "008 : 好牧人: 資訊 => " + m_OnboardType);
                     return true;
                 }
@@ -237,12 +246,19 @@ namespace ChurchReport.Tools
             {
                 string error = "錯誤訊息 : FullName = " + GetType().FullName + " , Time = " + DateTime.Now + " , Description = " + ex;
                 m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, error);
+                System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] !!! 例外發生: {ex.Message}");
                 throw;
             }
         }
 
+
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public void SigningProcess(Entity aRetrievedStorLessons, string ClassIndex, string OnboardType)
         {
+            System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] >>> SigningProcess 開始 - Line 234");
+            System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] 參數: ClassIndex={ClassIndex}, OnboardType={OnboardType}");
+
             try
             {
                 if (!m_ClassIndex.Contains("enroll"))
@@ -293,11 +309,14 @@ namespace ChurchReport.Tools
                         }
                     }
                 }
+
+                System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] <<< SigningProcess 結束");
             }
             catch (Exception ex)
             {
                 string error = "錯誤訊息 : FullName = " + GetType().FullName + " , Time = " + DateTime.Now + " , Description = " + ex;
                 m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, error);
+                System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] !!! SigningProcess 例外: {ex.Message}");
                 throw;
             }
         }
@@ -521,13 +540,55 @@ namespace ChurchReport.Tools
             int classificationValue = m_ToolUtilityClass.GetOptionSetAttribute(ref aDiscipleLessons, "new_classification");
             if (classificationValue != EMPTY_VALUE)
             {
-                try { m_ToolUtilityClass.SetOptionSetAttribute(ref aNewStorLessonsEntity, "new_classification", classificationValue); } catch { }
+                try
+                {
+                    var optionSetService = new OptionSetMetadataService(m_ToolUtilityClass.m_Crm2011OrganizationService);
+                    var validValues = optionSetService
+                        .GetOptionSetMapping("new_stor_lessons", "new_classification")
+                        .Values
+                        .ToHashSet();
+
+                    if (validValues.Contains(classificationValue))
+                    {
+                        m_ToolUtilityClass.SetOptionSetAttribute(ref aNewStorLessonsEntity, "new_classification", classificationValue);
+                        System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] 設定分類值: {classificationValue}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] 忽略設定 new_classification，值 {classificationValue} 不在 new_stor_lessons 的有效選項中");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] 取得 new_classification 選項集失敗，忽略此欄位設定 - {ex.Message}");
+                }
             }
 
             int semesterValue = m_ToolUtilityClass.GetOptionSetAttribute(ref aDiscipleLessons, "new_semester");
             if (semesterValue != EMPTY_VALUE)
             {
-                try { m_ToolUtilityClass.SetOptionSetAttribute(ref aNewStorLessonsEntity, "new_semester", semesterValue); } catch { }
+                try
+                {
+                    var optionSetService = new OptionSetMetadataService(m_ToolUtilityClass.m_Crm2011OrganizationService);
+                    var validValues = optionSetService
+                        .GetOptionSetMapping("new_stor_lessons", "new_semester")
+                        .Values
+                        .ToHashSet();
+
+                    if (validValues.Contains(semesterValue))
+                    {
+                        m_ToolUtilityClass.SetOptionSetAttribute(ref aNewStorLessonsEntity, "new_semester", semesterValue);
+                        System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] 設定學期值: {semesterValue}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] 忽略設定 new_semester，值 {semesterValue} 不在 new_stor_lessons 的有效選項中");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] 取得 new_semester 選項集失敗，忽略此欄位設定 - {ex.Message}");
+                }
             }
 
             if (m_ToolUtilityClass.GetEntityDoubleAttribute(ref aDiscipleLessons, "new_credit") >= 0)
