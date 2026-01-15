@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
 using System;
 using System.Threading.Tasks;
@@ -6,48 +6,48 @@ using System.Threading.Tasks;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ª÷¬y³B²z¾¹ - ¦¬¶O³æºŞ²z¼Ò²Õ
+    /// é‡‘æµè™•ç†å™¨ - æ”¶è²»å–®ç®¡ç†æ¨¡çµ„
     /// 
-    /// ¡iÂ¾³d¡j
-    /// - «Ø¥ß¦¬¶O³æ
-    /// - ³]©w¦¬¶O³æ°Ñ¼Æ
-    /// - §ó·s¦¬¶O³æª¬ºA
-    /// - ³B²z ATM Âà±b
-    /// - ¤â°Ê¿é¤J©^Äm
+    /// ã€è·è²¬ã€‘
+    /// - å»ºç«‹æ”¶è²»å–®
+    /// - è¨­å®šæ”¶è²»å–®åƒæ•¸
+    /// - æ›´æ–°æ”¶è²»å–®ç‹€æ…‹
+    /// - è™•ç† ATM è½‰å¸³
+    /// - æ‰‹å‹•è¼¸å…¥å¥‰ç»
     /// 
-    /// ¡i³]­p­ì«h¡j
-    /// - ³æ¤@Â¾³d¡G±Mª`©ó¦¬¶O³æ¥Í©R¶g´ÁºŞ²z
-    /// - ¶}©ñ«Ê³¬¡G©ö©óÂX®i·sªº¥I´Ú¤è¦¡
+    /// ã€è¨­è¨ˆåŸå‰‡ã€‘
+    /// - å–®ä¸€è·è²¬ï¼šå°ˆæ³¨æ–¼æ”¶è²»å–®ç”Ÿå‘½é€±æœŸç®¡ç†
+    /// - é–‹æ”¾å°é–‰ï¼šæ˜“æ–¼æ“´å±•æ–°çš„ä»˜æ¬¾æ–¹å¼
     /// </summary>
     public partial class QPayProcessor
     {
-        #region ===== «Ø¥ß¦¬¶O³æ¡]¥D­n¤J¤f¡^=====
+        #region ===== å»ºç«‹æ”¶è²»å–®ï¼ˆä¸»è¦å…¥å£ï¼‰=====
 
         /// <summary>
-        /// «D¦P¨B«Ø¥ß¦¬¶O³æ¨Ã³B²z¥I´Ú¬yµ{
+        /// éåŒæ­¥å»ºç«‹æ”¶è²»å–®ä¸¦è™•ç†ä»˜æ¬¾æµç¨‹
         /// </summary>
         public async Task<string> CreateFeeAsync(Entity LineLoginContact, QpayModel QpayModel)
         {
             try
             {
-                // ³]©w²£«~¦WºÙ
+                // è¨­å®šç”¢å“åç¨±
                 QpayModel.FullName = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "fullname");
                 var orderDate = DateTime.Now.ToString("yyyyMMddhhmmssfff");
 
-                // ®Ú¾Ú¥I´Ú¤è¦¡¸ô¥Ñ¨ì¹ïÀ³³B²z¤èªk
+                // æ ¹æ“šä»˜æ¬¾æ–¹å¼è·¯ç”±åˆ°å°æ‡‰è™•ç†æ–¹æ³•
                 return QpayModel.PayWay switch
                 {
-                    "«H¥Î¥d" or "»ÈÁp¥d" or null => await ProcessCreditCardPayment(LineLoginContact, QpayModel, orderDate),
-                    "«H¥Î¥d©w´Á©wÃB(¨C­Ó¤ë)" => await ProcessRecurringPayment(LineLoginContact, QpayModel, orderDate),
-                    "¦æ°Ê¤ä¥I" => await ProcessMobilePayment(LineLoginContact, QpayModel, orderDate),
+                    "ä¿¡ç”¨å¡" or "éŠ€è¯å¡" or null => await ProcessCreditCardPayment(LineLoginContact, QpayModel, orderDate),
+                    "ä¿¡ç”¨å¡å®šæœŸå®šé¡(æ¯å€‹æœˆ)" => await ProcessRecurringPayment(LineLoginContact, QpayModel, orderDate),
+                    "è¡Œå‹•æ”¯ä»˜" => await ProcessMobilePayment(LineLoginContact, QpayModel, orderDate),
                     "LinePay" => await ProcessLinePayPayment(LineLoginContact, QpayModel, orderDate),
-                    "ATMÂà±b/¶×´Ú" => await ProcessAtmPayment(LineLoginContact, QpayModel, orderDate),
-                    _ => "¤£¤ä´©ªº¥I´Ú¤è¦¡!"
+                    "ATMè½‰å¸³/åŒ¯æ¬¾" => await ProcessAtmPayment(LineLoginContact, QpayModel, orderDate),
+                    _ => "ä¸æ”¯æ´çš„ä»˜æ¬¾æ–¹å¼!"
                 };
             }
             catch (Exception ex)
             {
-                var errorMsg = $"«Ø¥ß¦¬¶O³æ¥¢±Ñ: {ex.Message}";
+                var errorMsg = $"å»ºç«‹æ”¶è²»å–®å¤±æ•—: {ex.Message}";
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] {errorMsg}\n{ex.StackTrace}");
                 throw new InvalidOperationException(errorMsg, ex);
             }
@@ -55,73 +55,73 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ===== «Ø¥ß¦¬¶O³æ®Ö¤ß¤èªk =====
+        #region ===== å»ºç«‹æ”¶è²»å–®æ ¸å¿ƒæ–¹æ³• =====
 
         /// <summary>
-        /// «Ø¥ß¦¬¶O³æ¹êÅé
+        /// å»ºç«‹æ”¶è²»å–®å¯¦é«”
         /// </summary>
         public Guid CreateFee(Entity aContact, QpayModel QpayModel, bool KeyinMode)
         {
             try
             {
                 var feeEntity = new Entity("new_fee");
-                
-                // ³]©w¦¬¶O³æ°Ñ¼Æ
+
+                // è¨­å®šæ”¶è²»å–®åƒæ•¸
                 SetFeeParameter(aContact, feeEntity, QpayModel, KeyinMode);
 
-                // «Ø¥ß¦¬¶O³æ
+                // å»ºç«‹æ”¶è²»å–®
                 var feeId = ToolUtility.CreateEntity(feeEntity);
                 var retrievedFee = ToolUtility.RetrieveEntity("new_fee", feeId);
 
-                // «ü¬£­t³d¤H
+                // æŒ‡æ´¾è² è²¬äºº
                 AssignFeeOwner(retrievedFee, aContact);
 
                 return feeId;
             }
             catch (Exception ex)
             {
-                var errorMsg = $"«Ø¥ß¦¬¶O³æ¹êÅé¥¢±Ñ: {ex.Message}";
+                var errorMsg = $"å»ºç«‹æ”¶è²»å–®å¯¦é«”å¤±æ•—: {ex.Message}";
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] {errorMsg}");
                 throw new InvalidOperationException(errorMsg, ex);
             }
         }
 
         /// <summary>
-        /// ³]©w¦¬¶O³æ°Ñ¼Æ
+        /// è¨­å®šæ”¶è²»å–®åƒæ•¸
         /// </summary>
         public void SetFeeParameter(Entity aContact, Entity aFeeToCreated, QpayModel QpayModel, bool KeyinMode)
         {
             try
             {
-                // °ò¥»¸ê°T
+                // åŸºæœ¬è³‡è¨Š
                 var fullName = ToolUtility.GetEntityStringAttribute(ref aContact, "fullname") ?? "";
-                ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_name", fullName + "©^Äm");
+                ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_name", fullName + "å¥‰ç»");
                 ToolUtility.SetEntityLookUpAttribute(ref aFeeToCreated, "new_contact_new_fee", "contact", aContact.Id);
 
-                // ª÷ÃB³]©w
+                // é‡‘é¡è¨­å®š
                 SetFeeAmounts(ref aFeeToCreated, QpayModel, KeyinMode);
 
-                // ¥I´Ú¸ê°T
+                // ä»˜æ¬¾è³‡è¨Š
                 SetFeePaymentInfo(ref aFeeToCreated, QpayModel, KeyinMode);
 
-                // ©^Äm¤ÀÃş
+                // å¥‰ç»åˆ†é¡
                 SetFeeCategoryInfo(ref aFeeToCreated, QpayModel);
 
-                // ¨ä¥L¸ê°T
+                // å…¶ä»–è³‡è¨Š
                 SetFeeAdditionalInfo(ref aFeeToCreated, aContact, QpayModel);
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"³]©w¦¬¶O³æ°Ñ¼Æ¥¢±Ñ: {ex.Message}", ex);
+                throw new InvalidOperationException($"è¨­å®šæ”¶è²»å–®åƒæ•¸å¤±æ•—: {ex.Message}", ex);
             }
         }
 
         #endregion
 
-        #region ===== §ó·s¦¬¶O³æ =====
+        #region ===== æ›´æ–°æ”¶è²»å–® =====
 
         /// <summary>
-        /// §ó·s¦¬¶O³æ©Î»{Äm³æ
+        /// æ›´æ–°æ”¶è²»å–®æˆ–èªç»å–®
         /// </summary>
         public void UpdateFee(ref Entity aFeeToUpdate, string CardOrderNo, string OrderId, string AtmOrderNo, string AtmPayNo)
         {
@@ -132,53 +132,53 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"§ó·s¦¬¶O³æ¥¢±Ñ: {ex.Message}", ex);
+                throw new InvalidOperationException($"æ›´æ–°æ”¶è²»å–®å¤±æ•—: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// ³]©w§ó·s¦¬¶O³æ©Ò»İªº°Ñ¼Æ
+        /// è¨­å®šæ›´æ–°æ”¶è²»å–®æ‰€éœ€çš„åƒæ•¸
         /// </summary>
         public void SetFeeUpdateParameter(Entity aFeeToCreated, string CardOrderNo, string OrderId, string AtmOrderNo, string AtmPayNo)
         {
             try
             {
-                // «H¥Î¥d­q³æ½s¸¹
+                // ä¿¡ç”¨å¡è¨‚å–®ç·¨è™Ÿ
                 if (!string.IsNullOrEmpty(CardOrderNo))
                 {
                     ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_q_pay_card_order_no", CardOrderNo);
 
-                    if (Configuration["PAY_PROVIDER"] == "°ª¹dª÷¬y")
+                    if (Configuration["PAY_PROVIDER"] == "é«˜é‰…é‡‘æµ")
                     {
                         ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_q_pay_order_number", OrderId);
                     }
                 }
 
-                // ATM ­q³æ½s¸¹
+                // ATM è¨‚å–®ç·¨è™Ÿ
                 if (!string.IsNullOrEmpty(AtmOrderNo))
                 {
                     ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_q_pay_order_atm_no", AtmOrderNo);
-                    
+
                     var atmPayNumber = ToolUtility.GetEntityStringAttribute(aFeeToCreated, "new_atm_pay_number") +
                                       DateTime.Now.ToString() + " = " + AtmOrderNo + " : " + AtmPayNo + Environment.NewLine;
                     ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_atm_pay_number", atmPayNumber);
                     ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_atm_pay_no", AtmPayNo);
-                    ToolUtility.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_atm_expire_date", 
+                    ToolUtility.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_atm_expire_date",
                         DateTime.Now.AddDays(10).ToLocalTime());
                 }
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"³]©w§ó·s°Ñ¼Æ¥¢±Ñ: {ex.Message}", ex);
+                throw new InvalidOperationException($"è¨­å®šæ›´æ–°åƒæ•¸å¤±æ•—: {ex.Message}", ex);
             }
         }
 
         #endregion
 
-        #region ===== ¤â°Ê¿é¤J©^Äm =====
+        #region ===== æ‰‹å‹•è¼¸å…¥å¥‰ç» =====
 
         /// <summary>
-        /// Àx¦s¤â°Ê¿é¤Jªº©^Äm¸ê®Æ
+        /// å„²å­˜æ‰‹å‹•è¼¸å…¥çš„å¥‰ç»è³‡æ–™
         /// </summary>
         public async Task<string> SaveKeyInDedication(QpayModel QpayModel)
         {
@@ -187,131 +187,205 @@ namespace ChurchReport.WebServiceConnector
                 var contact = GetContact(QpayModel);
                 if (contact == null)
                 {
-                    return "¿ù»~:§ä¤£¨ì·|¤Í!";
+                    return "éŒ¯èª¤:æ‰¾ä¸åˆ°æœƒå‹!";
                 }
 
                 var feeId = CreateFee(contact, QpayModel, true);
+
+                // ç™¼é€ LINE é€šçŸ¥çµ¦å¥‰ç»è€…
+                await SendDedicationNotificationAsync(contact, QpayModel);
 
                 return BuildSuccessMessage(contact, QpayModel);
             }
             catch (Exception ex)
             {
-                var errorMsg = $"Àx¦s¤â°Ê©^Äm¥¢±Ñ: {ex.Message}";
+                var errorMsg = $"å„²å­˜æ‰‹å‹•å¥‰ç»å¤±æ•—: {ex.Message}";
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] {errorMsg}");
                 throw new InvalidOperationException(errorMsg, ex);
             }
         }
 
-        #endregion
+        /// <summary>
+        /// ç™¼é€å¥‰ç»ç¢ºèª LINE é€šçŸ¥çµ¦å¥‰ç»è€…
+        /// </summary>
+        private async Task SendDedicationNotificationAsync(Entity contact, QpayModel qpayModel)
+        {
+            try
+            {
+                // å–å¾—å¥‰ç»è€…çš„ LINE User ID
+                var lineUserId = ToolUtility.GetEntityStringAttribute(ref contact, "new_lineid");
 
-        #region ===== ¨p¦³»²§U¤èªk =====
+                if (string.IsNullOrEmpty(lineUserId))
+                {
+                    System.Diagnostics.Trace.WriteLine($"[QPayProcessor] æœƒå‹æ²’æœ‰ç¶å®š LINEï¼Œç„¡æ³•ç™¼é€é€šçŸ¥");
+                    return;
+                }
+
+                // å»ºç«‹å¥‰ç»ç¢ºèªè¨Šæ¯
+                var message = BuildDedicationNotificationMessage(contact, qpayModel);
+
+                // ç™¼é€ LINE è¨Šæ¯
+                await m_PushUtility.SendMessage(lineUserId, message);
+
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] å·²æˆåŠŸç™¼é€å¥‰ç»é€šçŸ¥çµ¦ {qpayModel.FullName}");
+            }
+            catch (Exception ex)
+            {
+                // ç™¼é€å¤±æ•—ä¸å½±éŸ¿å¥‰ç»è¨˜éŒ„ï¼Œåªè¨˜éŒ„éŒ¯èª¤
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] ç™¼é€ LINE é€šçŸ¥å¤±æ•—: {ex.Message}");
+            }
+        }
 
         /// <summary>
-        /// ³]©w¦¬¶O³æª÷ÃB
+        /// å»ºç«‹å¥‰ç»ç¢ºèª LINE è¨Šæ¯å…§å®¹
+        /// </summary>
+        private string BuildDedicationNotificationMessage(Entity contact, QpayModel qpayModel)
+        {
+            var message = "ğŸ™ å¥‰ç»ç¢ºèªé€šçŸ¥\n" +
+                         "â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n" +
+                         $"âœ¨ æ„Ÿè¬æ‚¨çš„å¥‰ç»ï¼\n\n" +
+                         $"ğŸ“… æ—¥æœŸï¼š{qpayModel.DedicationDate:yyyy/MM/dd}\n" +
+                         $"ğŸ‘¤ å§“åï¼š{qpayModel.FullName}\n" +
+                         $"ğŸ·ï¸ é¡åˆ¥ï¼š{qpayModel.Category}\n";
+
+            // å¦‚æœæœ‰å…¶ä»–é¡åˆ¥èªªæ˜
+            if (!string.IsNullOrEmpty(qpayModel.Others))
+            {
+                message += $"ğŸ“ å…¶ä»–é¡åˆ¥ï¼š{qpayModel.Others}\n";
+            }
+
+            message += $"ğŸ’° é‡‘é¡ï¼šNT$ {qpayModel.Amount:N0}\n" +
+                      $"ğŸ’³ æ–¹å¼ï¼š{qpayModel.PayWay}\n";
+
+            // å¦‚æœæœ‰å¥‰ç»åœ°é»
+            if (!string.IsNullOrEmpty(qpayModel.DedicateLocation))
+            {
+                message += $"ğŸ“ åœ°é»ï¼š{qpayModel.DedicateLocation}\n";
+            }
+
+            // å¦‚æœæœ‰å‚™è¨»
+            if (!string.IsNullOrEmpty(qpayModel.Explain))
+            {
+                message += $"\nğŸ’¬ å‚™è¨»ï¼š{qpayModel.Explain}\n";
+            }
+
+            message += "\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n" +
+                      "é¡˜ç¥è³œç¦èˆ‡æ‚¨ï¼\n" +
+                      "æ‚¨çš„å¥‰ç»å·²å®Œæˆç™»è¨˜";
+
+            return message;
+        }
+
+        #endregion
+
+        #region ===== ç§æœ‰è¼”åŠ©æ–¹æ³• =====
+
+        /// <summary>
+        /// è¨­å®šæ”¶è²»å–®é‡‘é¡
         /// </summary>
         private void SetFeeAmounts(ref Entity aFeeToCreated, QpayModel QpayModel, bool KeyinMode)
         {
-            // À³¦¬ª÷ÃB
+            // æ‡‰æ”¶é‡‘é¡
             ToolUtility.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", new Money(QpayModel.Amount));
 
-            // ¹ê¦¬ª÷ÃB¡]®Ú¾Ú¥I´Ú¤è¦¡©M¿é¤J¼Ò¦¡¨M©w¡^
+            // å¯¦æ”¶é‡‘é¡ï¼ˆæ ¹æ“šä»˜æ¬¾æ–¹å¼å’Œè¼¸å…¥æ¨¡å¼æ±ºå®šï¼‰
             var reallyPaidAmount = ShouldSetFullAmount(QpayModel.PayWay, KeyinMode) ? QpayModel.Amount : 0;
             ToolUtility.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(reallyPaidAmount));
 
-            // ¤j¼gª÷ÃB
-            ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_big_chinese_number", 
+            // å¤§å¯«é‡‘é¡
+            ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_big_chinese_number",
                 MoneyToChinese(QpayModel.Amount.ToString()));
         }
 
         /// <summary>
-        /// §PÂ_¬O§_À³¸Ó³]©w¨¬ÃB¹ê¦¬
+        /// åˆ¤æ–·æ˜¯å¦æ‡‰è©²è¨­å®šè¶³é¡å¯¦æ”¶
         /// </summary>
         private bool ShouldSetFullAmount(string payWay, bool keyinMode)
         {
             return payWay switch
             {
-                "²{ª÷" or "»È¦æÂà±b" => true,
-                "«H¥Î¥d" when keyinMode => true,
+                "ç¾é‡‘" or "éŠ€è¡Œè½‰å¸³" => true,
+                "ä¿¡ç”¨å¡" when keyinMode => true,
                 _ => false
             };
         }
 
         /// <summary>
-        /// ³]©w¦¬¶O³æ¥I´Ú¸ê°T
+        /// è¨­å®šæ”¶è²»å–®ä»˜æ¬¾è³‡è¨Š
         /// </summary>
         private void SetFeePaymentInfo(ref Entity aFeeToCreated, QpayModel QpayModel, bool KeyinMode)
         {
-            // ¥I´Ú¤è¦¡
+            // ä»˜æ¬¾æ–¹å¼
             SetPayMethod(QpayModel.PayWay, ref aFeeToCreated);
 
-            // ¥I´Úª¬ºA
+            // ä»˜æ¬¾ç‹€æ…‹
             var payStatus = DeterminePayStatus(QpayModel.PayWay, KeyinMode);
             SetPayStatus(payStatus, ref aFeeToCreated);
 
-            // ±b¤á«á¤»½X
+            // å¸³æˆ¶å¾Œå…­ç¢¼
             ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_last_six_digit", QpayModel.LastSixDigit);
 
-            // ¦¬¶O¤é´Á
+            // æ”¶è²»æ—¥æœŸ
             ToolUtility.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_pay_date", QpayModel.DedicationDate.ToLocalTime());
         }
 
         /// <summary>
-        /// §PÂ_¥I´Úª¬ºA
+        /// åˆ¤æ–·ä»˜æ¬¾ç‹€æ…‹
         /// </summary>
         private string DeterminePayStatus(string payWay, bool keyinMode)
         {
             return payWay switch
             {
-                "²{ª÷" => "²{ª÷¤wÃº¶O",
-                "»È¦æÂà±b" => "»È¦æÂà±b¤wÃº¶O",
-                "«H¥Î¥d" when keyinMode => "«H¥Î¥d¤wÃº¶O",
-                _ => "·s«Ø¥ß"
+                "ç¾é‡‘" => "ç¾é‡‘å·²ç¹³è²»",
+                "éŠ€è¡Œè½‰å¸³" => "éŠ€è¡Œè½‰å¸³å·²ç¹³è²»",
+                "ä¿¡ç”¨å¡" when keyinMode => "ä¿¡ç”¨å¡å·²ç¹³è²»",
+                _ => "æ–°å»ºç«‹"
             };
         }
 
         /// <summary>
-        /// ³]©w¦¬¶O³æ¤ÀÃş¸ê°T
+        /// è¨­å®šæ”¶è²»å–®åˆ†é¡è³‡è¨Š
         /// </summary>
         private void SetFeeCategoryInfo(ref Entity aFeeToCreated, QpayModel QpayModel)
         {
-            // ©^ÄmÃş§O
+            // å¥‰ç»é¡åˆ¥
             SetFeePayCategory(QpayModel.Category, ref aFeeToCreated);
 
-            // ©^Äm¨ä¥LÃş§O
+            // å¥‰ç»å…¶ä»–é¡åˆ¥
             if (QpayModel.Others != "" && QpayModel.Others != null)
             {
                 ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_others", QpayModel.Others);
             }
 
-            // ¦¬¤JÃş§O
+            // æ”¶å…¥é¡åˆ¥
             SetIncomeCategory(QpayModel.Category, ref aFeeToCreated);
         }
 
         /// <summary>
-        /// ³]©w¦¬¶O³æÃB¥~¸ê°T
+        /// è¨­å®šæ”¶è²»å–®é¡å¤–è³‡è¨Š
         /// </summary>
         private void SetFeeAdditionalInfo(ref Entity aFeeToCreated, Entity aContact, QpayModel QpayModel)
         {
-            // ³]©w¿é¤J©^Äm¤H­û
+            // è¨­å®šè¼¸å…¥å¥‰ç»äººå“¡
             if (m_LoginContact != null)
             {
                 ToolUtility.SetEntityLookUpAttribute(ref aFeeToCreated, "new_keyin_contact_new_fee", "contact", m_LoginContact.Id);
             }
 
-            // ©^Äm¦aÂI
-            var dedicateLocation = QpayModel.DedicateLocation 
+            // å¥‰ç»åœ°é»
+            var dedicateLocation = QpayModel.DedicateLocation
                 ?? ToolUtility.GetEntityLookupDisplayName(ref aContact, "parentcustomerid");
             ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_dedicate_location", dedicateLocation);
 
-            // ©^Äm³Æµù
+            // å¥‰ç»å‚™è¨»
             ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_explain", QpayModel.Explain);
 
-            // ¶g³ø±M¥Î³Æµù
+            // é€±å ±å°ˆç”¨å‚™è¨»
             ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_weekly_note", QpayModel.WeeklyNote);
         }
 
         /// <summary>
-        /// «ü¬£¦¬¶O³æ­t³d¤H
+        /// æŒ‡æ´¾æ”¶è²»å–®è² è²¬äºº
         /// </summary>
         private void AssignFeeOwner(Entity retrievedFee, Entity aContact)
         {
@@ -323,28 +397,28 @@ namespace ChurchReport.WebServiceConnector
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Trace.WriteLine($"[QPayProcessor] «ü¬£­t³d¤H¥¢±Ñ: {ex.Message}");
+                    System.Diagnostics.Trace.WriteLine($"[QPayProcessor] æŒ‡æ´¾è² è²¬äººå¤±æ•—: {ex.Message}");
                 }
             }
         }
 
         /// <summary>
-        /// «Ø¥ß¦¨¥\°T®§
+        /// å»ºç«‹æˆåŠŸè¨Šæ¯
         /// </summary>
         private string BuildSuccessMessage(Entity aContact, QpayModel QpayModel)
         {
-            return "¤W¶Ç¦¨¥\<br/>" +
+            return "ä¸Šå‚³æˆåŠŸ<br/>" +
                    "--------------------<br/>" +
-                   $"¤é´Á    : {QpayModel.DedicationDate.ToShortDateString()}<br/>" +
-                   $"©m¦W    : {QpayModel.FullName}<br/>" +
-                   $"©^Äm½s¸¹: {ToolUtility.GetEntityStringAttribute(ref aContact, "pager")}<br/>" +
-                   $"¨­¤ÀÃÒ¦r¸¹: {ToolUtility.GetEntityStringAttribute(ref aContact, "new_personal_id")}<br/>" +
-                   $"¹q¸Ü    : {QpayModel.Mobile}<br/>" +
-                   $"Ãş§O    : {QpayModel.Category}<br/>" +
-                   $"©^Äm¦aÂI: {QpayModel.DedicateLocation}<br/>" +
-                   $"¥I´Ú¤è¦¡: {QpayModel.PayWay}<br/>" +
-                   $"ª÷ÃB    : {QpayModel.Amount}<br/>" +
-                   $"³Æµù    : {QpayModel.Explain}<br/>";
+                   $"æ—¥æœŸ    : {QpayModel.DedicationDate.ToShortDateString()}<br/>" +
+                   $"å§“å    : {QpayModel.FullName}<br/>" +
+                   $"å¥‰ç»ç·¨è™Ÿ: {ToolUtility.GetEntityStringAttribute(ref aContact, "pager")}<br/>" +
+                   $"èº«åˆ†è­‰å­—è™Ÿ: {ToolUtility.GetEntityStringAttribute(ref aContact, "new_personal_id")}<br/>" +
+                   $"é›»è©±    : {QpayModel.Mobile}<br/>" +
+                   $"é¡åˆ¥    : {QpayModel.Category}<br/>" +
+                   $"å¥‰ç»åœ°é»: {QpayModel.DedicateLocation}<br/>" +
+                   $"ä»˜æ¬¾æ–¹å¼: {QpayModel.PayWay}<br/>" +
+                   $"é‡‘é¡    : {QpayModel.Amount}<br/>" +
+                   $"å‚™è¨»    : {QpayModel.Explain}<br/>";
         }
 
         #endregion
