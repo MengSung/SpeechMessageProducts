@@ -902,561 +902,86 @@ namespace ToolUtilityNameSpace
         public Guid GetEntityId(Entity aEntity)
             => aEntity.Id;
         #endregion
-        #region 屬性存在性檢查 - 新增健壯性檢查方法
-        
-        /// <summary>
-        /// 檢查實體是否包含指定的屬性
-        /// ✅ Phase 2.4: 提升程式碼健壯性,防止設定不存在的屬性導致錯誤
-        /// </summary>
-        /// <param name="entityName">實體邏輯名稱</param>
-        /// <param name="attributeName">屬性邏輯名稱</param>
-        /// <returns>如果屬性存在回傳 true,否則回傳 false</returns>
-        private bool AttributeExists(string entityName, string attributeName)
-        {
-            try
-            {
-                var request = new RetrieveAttributeRequest
-                {
-                    EntityLogicalName = entityName,
-                    LogicalName = attributeName,
-                    RetrieveAsIfPublished = false
-                };
-
-                var response = (RetrieveAttributeResponse)m_Crm2011OrganizationService.Execute(request);
-                return response.AttributeMetadata != null;
-            }
-            catch (Exception)
-            {
-                // 如果屬性不存在,會拋出例外
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// 安全地檢查實體是否包含指定的屬性 (不拋出例外)
-        /// ✅ Phase 2.4: 使用快取提升效能,避免重複查詢 metadata
-        /// </summary>
-        private readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _attributeCache 
-            = new System.Collections.Concurrent.ConcurrentDictionary<string, bool>();
-
-        private bool SafeAttributeExists(string entityName, string attributeName)
-        {
-            try
-            {
-                string cacheKey = $"{entityName}.{attributeName}";
-                
-                // 先檢查快取
-                if (_attributeCache.TryGetValue(cacheKey, out bool cachedResult))
-                {
-                    return cachedResult;
-                }
-
-                // 如果快取中沒有,才查詢 metadata
-                bool exists = AttributeExists(entityName, attributeName);
-                
-                // 加入快取
-                _attributeCache.TryAdd(cacheKey, exists);
-                
-                return exists;
-            }
-            catch (Exception ex)
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_1, 
-                    $"SafeAttributeExists 錯誤: EntityName={entityName}, AttributeName={attributeName}, Error={ex.Message}");
-                return false;
-            }
-        }
-
-        #endregion
         #region 屬性操作區 - 委派到 Facade
 
         #region 布林屬性
-        public bool GetEntityBoolAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityBoolAttribute(aEntity, PropertyName);
-
-        public bool GetEntityBoolAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityBoolAttribute(aEntity, PropertyName);
-
-        public void SetEntityBoolAttribute(ref Entity aEntity, string PropertyName, bool PropertyValue)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
-            _facade.SetEntityBoolAttribute(ref aEntity, PropertyName, PropertyValue);
-        }
-
-        public void SetEntityBoolAttributeToNull(ref Entity aEntity, string PropertyName)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定為 null");
-                return;
-            }
-            
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = null;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, null);
-            }
-        }
+        public bool GetEntityBoolAttribute(ref Entity aEntity, string PropertyName) => _facade.GetEntityBoolAttribute(aEntity, PropertyName);
+        public bool GetEntityBoolAttribute(Entity aEntity, string PropertyName) => _facade.GetEntityBoolAttribute(aEntity, PropertyName);
+        public void SetEntityBoolAttribute(ref Entity aEntity, string PropertyName, bool PropertyValue) => _facade.SetEntityBoolAttribute(ref aEntity, PropertyName, PropertyValue);
+        public void SetEntityBoolAttributeToNull(ref Entity aEntity, string PropertyName) => aEntity[PropertyName] = null;
         #endregion
 
         #region 整數屬性
-        public int GetEntityIntAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityIntAttribute(aEntity, PropertyName);
-
-        public int GetEntityIntAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityIntAttribute(aEntity, PropertyName);
-
-        public void SetEntityIntAttribute(ref Entity aEntity, string PropertyName, int PropertyValue)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = PropertyValue;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, PropertyValue);
-            }
-        }
-
-        public void SetEntityIntAttributeToNull(ref Entity aEntity, string PropertyName)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定為 null");
-                return;
-            }
-            
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = null;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, null);
-            }
-        }
+        public int GetEntityIntAttribute(ref Entity aEntity, string PropertyName) => _facade.GetEntityIntAttribute(aEntity, PropertyName);
+        public int GetEntityIntAttribute(Entity aEntity, string PropertyName) => _facade.GetEntityIntAttribute(aEntity, PropertyName);
+        public void SetEntityIntAttribute(ref Entity aEntity, string PropertyName, int PropertyValue) => aEntity[PropertyName] = PropertyValue;
+        public void SetEntityIntAttributeToNull(ref Entity aEntity, string PropertyName) => aEntity[PropertyName] = null;
         #endregion
 
         #region 浮點屬性
-        public float GetEntityFloatAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityFloatAttribute(aEntity, PropertyName);
-
-        public float GetEntityFloatAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityFloatAttribute(aEntity, PropertyName);
-
-        public void SetEntityFloatAttribute(ref Entity aEntity, string PropertyName, float PropertyValue)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
-            _facade.SetEntityFloatAttribute(ref aEntity, PropertyName, PropertyValue);
-        }
-
-        public void SetEntityFloatAttribute(Entity aEntity, string PropertyName, float PropertyValue)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
-            Entity tempEntity = aEntity;
-            _facade.SetEntityFloatAttribute(ref tempEntity, PropertyName, PropertyValue);
-        }
-
-        public void SetEntityFloatAttributeToNull(Entity aEntity, string PropertyName)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定為 null");
-                return;
-            }
-            
-            _facade.SetEntityFloatAttributeToNull(aEntity, PropertyName);
-        }
+        public float GetEntityFloatAttribute(ref Entity aEntity, string PropertyName) => _facade.GetEntityFloatAttribute(aEntity, PropertyName);
+        public float GetEntityFloatAttribute(Entity aEntity, string PropertyName) => _facade.GetEntityFloatAttribute(aEntity, PropertyName);
+        public void SetEntityFloatAttribute(ref Entity aEntity, string PropertyName, float PropertyValue) => _facade.SetEntityFloatAttribute(ref aEntity, PropertyName, PropertyValue);
+        public void SetEntityFloatAttribute(Entity aEntity, string PropertyName, float PropertyValue) { Entity temp = aEntity; _facade.SetEntityFloatAttribute(ref temp, PropertyName, PropertyValue); }
+        public void SetEntityFloatAttributeToNull(Entity aEntity, string PropertyName) => _facade.SetEntityFloatAttributeToNull(aEntity, PropertyName);
         #endregion
 
         #region 金額屬性
-        public Money GetEntityMoneyAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityMoneyAttribute(aEntity, PropertyName);
-
-        public Money GetEntityMoneyAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityMoneyAttribute(aEntity, PropertyName);
-
-        public void SetEntityMoneyAttribute(ref Entity aEntity, string PropertyName, Money PropertyValue)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
-            if (PropertyValue.Value != -9999)
-            {
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = PropertyValue;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, PropertyValue);
-                }
-            }
-        }
-
-        public void SetEntityMoneyAttribute(Entity aEntity, string PropertyName, Money PropertyValue)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = PropertyValue;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, PropertyValue);
-            }
-        }
-
-        public void SetEntityMoneyAttributeToNull(Entity aEntity, string PropertyName)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定為 null");
-                return;
-            }
-            
-            Entity tempEntity = aEntity;
-            _facade.SetEntityMoneyAttributeToNull(ref tempEntity, PropertyName);
-        }
+        public Money GetEntityMoneyAttribute(ref Entity aEntity, string PropertyName) => _facade.GetEntityMoneyAttribute(aEntity, PropertyName);
+        public Money GetEntityMoneyAttribute(Entity aEntity, string PropertyName) => _facade.GetEntityMoneyAttribute(aEntity, PropertyName);
+        public void SetEntityMoneyAttribute(ref Entity aEntity, string PropertyName, Money PropertyValue) { if (PropertyValue.Value != -9999) aEntity[PropertyName] = PropertyValue; }
+        public void SetEntityMoneyAttribute(Entity aEntity, string PropertyName, Money PropertyValue) => aEntity[PropertyName] = PropertyValue;
+        public void SetEntityMoneyAttributeToNull(Entity aEntity, string PropertyName) { Entity temp = aEntity; _facade.SetEntityMoneyAttributeToNull(ref temp, PropertyName); }
         #endregion
 
         #region 小數點屬性
-        public Double GetEntityDoubleAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityDoubleAttribute(aEntity, PropertyName);
-
-        public Double GetEntityDoubleAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityDoubleAttribute(aEntity, PropertyName);
-
-        public void SetEntityDoubleAttribute(ref Entity aEntity, string PropertyName, Double PropertyValue)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
-            _facade.SetEntityDoubleAttribute(ref aEntity, PropertyName, PropertyValue);
-        }
-
-        public void SetEntityDoubleAttribute(Entity aEntity, string PropertyName, Double PropertyValue)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
-            Entity tempEntity = aEntity;
-            _facade.SetEntityDoubleAttribute(ref tempEntity, PropertyName, PropertyValue);
-        }
-
-        public void SetEntityDoubleAttributeToNull(Entity aEntity, string PropertyName)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定為 null");
-                return;
-            }
-            
-            _facade.SetEntityDoubleAttributeToNull(aEntity, PropertyName);
-        }
+        public Double GetEntityDoubleAttribute(ref Entity aEntity, string PropertyName) => _facade.GetEntityDoubleAttribute(aEntity, PropertyName);
+        public Double GetEntityDoubleAttribute(Entity aEntity, string PropertyName) => _facade.GetEntityDoubleAttribute(aEntity, PropertyName);
+        public void SetEntityDoubleAttribute(ref Entity aEntity, string PropertyName, Double PropertyValue) => _facade.SetEntityDoubleAttribute(ref aEntity, PropertyName, PropertyValue);
+        public void SetEntityDoubleAttribute(Entity aEntity, string PropertyName, Double PropertyValue) { Entity temp = aEntity; _facade.SetEntityDoubleAttribute(ref temp, PropertyName, PropertyValue); }
+        public void SetEntityDoubleAttributeToNull(Entity aEntity, string PropertyName) => _facade.SetEntityDoubleAttributeToNull(aEntity, PropertyName);
         #endregion
 
         #region 時間屬性
-        public DateTime GetEntityDateTimeAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityDateTimeAttribute(aEntity, PropertyName);
-
-        public DateTime GetEntityDateTimeAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityDateTimeAttribute(aEntity, PropertyName);
-
-        public void SetEntityDateTimeAttribute(ref Entity aEntity, string PropertyName, DateTime PropertyValue)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = PropertyValue;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, PropertyValue);
-            }
-        }
-
-        public void SetEntityDateTimeAttributeToNull(ref Entity aEntity, string PropertyName)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定為 null");
-                return;
-            }
-            
-            _facade.SetEntityDateTimeAttributeToNull(ref aEntity, PropertyName);
-        }
+        public DateTime GetEntityDateTimeAttribute(ref Entity aEntity, string PropertyName) => _facade.GetEntityDateTimeAttribute(aEntity, PropertyName);
+        public DateTime GetEntityDateTimeAttribute(Entity aEntity, string PropertyName) => _facade.GetEntityDateTimeAttribute(aEntity, PropertyName);
+        public void SetEntityDateTimeAttribute(ref Entity aEntity, string PropertyName, DateTime PropertyValue) => aEntity[PropertyName] = PropertyValue;
+        public void SetEntityDateTimeAttributeToNull(ref Entity aEntity, string PropertyName) => _facade.SetEntityDateTimeAttributeToNull(ref aEntity, PropertyName);
         #endregion
 
         #region 文字屬性
-        public String GetEntityStringAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityStringAttribute(aEntity, PropertyName);
-
-        public String GetEntityStringAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityStringAttribute(aEntity, PropertyName);
-
-        public void SetEntityStringAttribute(ref Entity aEntity, string PropertyName, String PropertyValue)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = PropertyValue;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, PropertyValue);
-            }
-        }
-
-        public void SetEntityStringAttribute(Entity aEntity, string PropertyName, String PropertyValue)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
-            if (aEntity.Attributes.Contains(PropertyName))
-            {
-                aEntity.Attributes[PropertyName] = PropertyValue;
-            }
-            else
-            {
-                aEntity.Attributes.Add(PropertyName, PropertyValue);
-            }
-        }
+        public String GetEntityStringAttribute(ref Entity aEntity, string PropertyName) => _facade.GetEntityStringAttribute(aEntity, PropertyName);
+        public String GetEntityStringAttribute(Entity aEntity, string PropertyName) => _facade.GetEntityStringAttribute(aEntity, PropertyName);
+        public void SetEntityStringAttribute(ref Entity aEntity, string PropertyName, String PropertyValue) => aEntity[PropertyName] = PropertyValue;
+        public void SetEntityStringAttribute(Entity aEntity, string PropertyName, String PropertyValue) => aEntity[PropertyName] = PropertyValue;
         #endregion
 
         #region 選項屬性
-        public int GetOptionSetAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetOptionSetAttribute(aEntity, PropertyName);
-
-        public int GetOptionSetAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetOptionSetAttribute(aEntity, PropertyName);
-
-        public void SetOptionSetAttribute(ref Entity aEntity, string PropertyName, int PropertyValue)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
-            _facade.SetOptionSetAttribute(ref aEntity, PropertyName, PropertyValue);
-        }
-
-        public void SetOptionSetAttribute(Entity aEntity, string PropertyName, int PropertyValue)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
-            Entity tempEntity = aEntity;
-            _facade.SetOptionSetAttribute(ref tempEntity, PropertyName, PropertyValue);
-        }
-
-        public void SetOptionSetAttributeNull(ref Entity aEntity, string PropertyName)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定為 null");
-                return;
-            }
-            
-            _facade.SetOptionSetAttributeNull(ref aEntity, PropertyName);
-        }
-
-        public void SetOptionSetAttributeNull(Entity aEntity, string PropertyName)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定為 null");
-                return;
-            }
-            
-            Entity tempEntity = aEntity;
-            _facade.SetOptionSetAttributeNull(ref tempEntity, PropertyName);
-        }
+        public int GetOptionSetAttribute(ref Entity aEntity, string PropertyName) => _facade.GetOptionSetAttribute(aEntity, PropertyName);
+        public int GetOptionSetAttribute(Entity aEntity, string PropertyName) => _facade.GetOptionSetAttribute(aEntity, PropertyName);
+        public void SetOptionSetAttribute(ref Entity aEntity, string PropertyName, int PropertyValue) => _facade.SetOptionSetAttribute(ref aEntity, PropertyName, PropertyValue);
+        public void SetOptionSetAttribute(Entity aEntity, string PropertyName, int PropertyValue) { Entity temp = aEntity; _facade.SetOptionSetAttribute(ref temp, PropertyName, PropertyValue); }
+        public void SetOptionSetAttributeNull(ref Entity aEntity, string PropertyName) => _facade.SetOptionSetAttributeNull(ref aEntity, PropertyName);
+        public void SetOptionSetAttributeNull(Entity aEntity, string PropertyName) { Entity temp = aEntity; _facade.SetOptionSetAttributeNull(ref temp, PropertyName); }
         #endregion
 
         #region LookUp 屬性
-        public Guid GetEntityLookupAttribute(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityLookupAttribute(aEntity, PropertyName);
-
-        public Guid GetEntityLookupAttribute(Entity aEntity, string PropertyName)
-            => _facade.GetEntityLookupAttribute(aEntity, PropertyName);
-
-        public String GetEntityLookupDisplayName(ref Entity aEntity, string PropertyName)
-            => _facade.GetEntityLookupDisplayName(aEntity, PropertyName);
-
-        public String GetEntityLookupDisplayName(Entity aEntity, string PropertyName)
-            => _facade.GetEntityLookupDisplayName(aEntity, PropertyName);
-
+        public Guid GetEntityLookupAttribute(ref Entity aEntity, string PropertyName) => _facade.GetEntityLookupAttribute(aEntity, PropertyName);
+        public Guid GetEntityLookupAttribute(Entity aEntity, string PropertyName) => _facade.GetEntityLookupAttribute(aEntity, PropertyName);
+        public String GetEntityLookupDisplayName(ref Entity aEntity, string PropertyName) => _facade.GetEntityLookupDisplayName(aEntity, PropertyName);
+        public String GetEntityLookupDisplayName(Entity aEntity, string PropertyName) => _facade.GetEntityLookupDisplayName(aEntity, PropertyName);
         public void SetEntityLookUpAttribute(ref Entity aEntity, string PropertyName, String LookupEntityName, Guid GuidValue)
         {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
             if (GuidValue != null && GuidValue != Guid.Empty)
-            {
-                EntityReference aEntityReference = new EntityReference(LookupEntityName, GuidValue);
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = aEntityReference;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, aEntityReference);
-                }
-            }
+                aEntity[PropertyName] = new EntityReference(LookupEntityName, GuidValue);
         }
-
         public void SetEntityLookUpAttribute(Entity aEntity, string PropertyName, String LookupEntityName, Guid GuidValue)
         {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
             if (GuidValue != null && GuidValue != Guid.Empty)
-            {
-                EntityReference aEntityReference = new EntityReference(LookupEntityName, GuidValue);
-                if (aEntity.Attributes.Contains(PropertyName))
-                {
-                    aEntity.Attributes[PropertyName] = aEntityReference;
-                }
-                else
-                {
-                    aEntity.Attributes.Add(PropertyName, aEntityReference);
-                }
-            }
+                aEntity[PropertyName] = new EntityReference(LookupEntityName, GuidValue);
         }
-
-        public void SetEntityLookUpAttribute(ref Entity aEntity, string PropertyName, ref EntityReference aEntityReference)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定");
-                return;
-            }
-            
-            _facade.SetEntityLookUpAttribute(ref aEntity, PropertyName, ref aEntityReference);
-        }
-
-        public void SetEntityLookUpToNull(ref Entity aEntity, string PropertyName)
-        {
-            // ✅ 新增健壯性檢查
-            if (!SafeAttributeExists(aEntity.LogicalName, PropertyName))
-            {
-                TraceByLevel(TOTAL_LEVEL, LEVEL_3, 
-                    $"警告: 實體 '{aEntity.LogicalName}' 不包含屬性 '{PropertyName}',已略過設定為 null");
-                return;
-            }
-            
-            _facade.SetEntityLookUpToNull(ref aEntity, PropertyName);
-        }
+        public void SetEntityLookUpAttribute(ref Entity aEntity, string PropertyName, ref EntityReference aEntityReference) => _facade.SetEntityLookUpAttribute(ref aEntity, PropertyName, ref aEntityReference);
+        public void SetEntityLookUpToNull(ref Entity aEntity, string PropertyName) => _facade.SetEntityLookUpToNull(ref aEntity, PropertyName);
         #endregion
 
         #endregion
