@@ -144,25 +144,40 @@ namespace ChurchReport.Tools
                 // 取得付款人 Line Id
                 String UserLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
 
-                // 收費單描述說明 - 美化版本
+                // 收費單描述說明 - 精緻美化版本
                 var paymentAmount = ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString("N0");
                 var paymentTime = DateTime.Now.ToLocalTime().ToString("yyyy/MM/dd HH:mm:ss");
                 
+                // 取得奉獻類別（如果有的話）
+                string categoryText = "";
+                try 
+                {
+                    int categoryOption = this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category");
+                    categoryText = GetDedicationCategoryText(categoryOption);
+                }
+                catch { categoryText = "奉獻"; }
+                
                 String Description = 
-                    "━━━━━━━━━━━━━━━━━━━━━━" + Environment.NewLine +
-                    "💳 信用卡交易通知" + Environment.NewLine +
-                    "━━━━━━━━━━━━━━━━━━━━━━" + Environment.NewLine +
+                    "╔══════════════════════╗" + Environment.NewLine +
+                    "║   💳 信用卡交易通知   ║" + Environment.NewLine +
+                    "╚══════════════════════╝" + Environment.NewLine +
                     Environment.NewLine +
-                    $"👤 姓名：{aFullName}" + Environment.NewLine +
-                    $"📋 訂單編號：{aQryOrderPay.TSResultContent.OrderNo}" + Environment.NewLine +
-                    $"📅 交易時間：{paymentTime}" + Environment.NewLine +
-                    $"💰 交易金額：NT$ {paymentAmount}" + Environment.NewLine +
-                    $"💳 付款方式：信用卡" + Environment.NewLine +
+                    "📌 交易資訊" + Environment.NewLine +
+                    "┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
+                    $"  👤 姓名：{aFullName}" + Environment.NewLine +
+                    $"  🏷️  類別：{categoryText}" + Environment.NewLine +
+                    $"  💰 金額：NT$ {paymentAmount}" + Environment.NewLine +
+                    $"  📅 時間：{paymentTime}" + Environment.NewLine +
                     Environment.NewLine +
-                    "📝 交易詳情" + Environment.NewLine +
-                    "─────────────────────" + Environment.NewLine +
-                    $"• 處理狀態：{aQryOrderPay.Description}" + Environment.NewLine +
-                    $"• 交易結果：{aQryOrderPay.TSResultContent.Description}" + Environment.NewLine;
+                    "📋 訂單資訊" + Environment.NewLine +
+                    "┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
+                    $"  訂單編號：{aQryOrderPay.TSResultContent.OrderNo}" + Environment.NewLine +
+                    $"  付款方式：💳 信用卡" + Environment.NewLine +
+                    Environment.NewLine +
+                    "📝 處理狀態" + Environment.NewLine +
+                    "┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
+                    $"  ✓ {aQryOrderPay.Description}" + Environment.NewLine +
+                    $"  ✓ {aQryOrderPay.TSResultContent.Description}" + Environment.NewLine;
 
                 if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
                 {
@@ -253,43 +268,52 @@ namespace ChurchReport.Tools
                         #endregion
 
                         #region LINE 通知付款人
+                        // 建立成功訊息
+                        string successMessage = 
+                            "✨═══════════════════✨" + Environment.NewLine +
+                            "🎉 交易成功通知 🎉" + Environment.NewLine +
+                            "✨═══════════════════✨" + Environment.NewLine +
+                            Environment.NewLine +
+                            Description + 
+                            Environment.NewLine +
+                            "┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
+                            "💝 感謝您的奉獻！" + Environment.NewLine +
+                            "願神賜福與您！" + Environment.NewLine +
+                            "═══════════════════════" + Environment.NewLine;
+                        
                         // 取得收費單的課程Lookup是否有值
                         Guid aDiscipleLessonsId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aFeeEntity, "new_disciple_lessons_new_fee");
 
                         if (aDiscipleLessonsId == Guid.Empty)
                         {
                             // 收費單的課程Lookup沒有值
-                            this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description);
+                            this.m_PushUtility.SendMessage(UserLineId, successMessage);
                         }
                         else
                         {
-                            // 收費單的課程Lookup有值
-                            // 取得該課程
+                            // 收費單的課程Lookup有值 - 取得該課程
                             Entity aDiscipleLessonsEntity = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aDiscipleLessonsId);
 
                             if (aDiscipleLessonsEntity != null)
                             {
-                                // 有取得該課程
-
                                 // 取得Line群組邀請網址
                                 String LineGroupInviteAddress = this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessonsEntity, "new_line_group_invite_address");
 
-                                if (LineGroupInviteAddress == "")
-                                {
-                                    // 沒有Line群組邀請網址
-                                    this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description);
-                                }
-                                else
+                                if (!string.IsNullOrEmpty(LineGroupInviteAddress))
                                 {
                                     // 有Line群組邀請網址
-                                    this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description + Environment.NewLine + "並且請點擊連結，加入Line群組" + Environment.NewLine + LineGroupInviteAddress);
+                                    successMessage += Environment.NewLine +
+                                        "🔔 課程通知" + Environment.NewLine +
+                                        "┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
+                                        "📱 請點擊以下連結" + Environment.NewLine +
+                                        "   加入課程 LINE 群組：" + Environment.NewLine +
+                                        Environment.NewLine +
+                                        LineGroupInviteAddress + Environment.NewLine +
+                                        "═══════════════════════" + Environment.NewLine;
                                 }
                             }
-                            else
-                            {
-                                // 沒有取得該課程
-                                this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description);
-                            }
+                            
+                            this.m_PushUtility.SendMessage(UserLineId, successMessage);
                         }
                         #endregion
 
@@ -341,8 +365,25 @@ namespace ChurchReport.Tools
                     // 更新收費單
                     this.m_ToolUtilityClass.UpdateEntity(ref aFeeEntity);
 
-                    // LINE 通知付款人
-                    this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果失敗!" + Environment.NewLine + Description);
+                    // LINE 通知付款人 - 失敗訊息美化版
+                    string failureMessage = 
+                        "⚠️═══════════════════⚠️" + Environment.NewLine +
+                        "❌ 交易失敗通知" + Environment.NewLine +
+                        "⚠️═══════════════════⚠️" + Environment.NewLine +
+                        Environment.NewLine +
+                        Description +
+                        Environment.NewLine +
+                        "┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
+                        "🔄 建議處理方式：" + Environment.NewLine +
+                        "  • 請檢查信用卡資訊" + Environment.NewLine +
+                        "  • 確認信用額度是否足夠" + Environment.NewLine +
+                        "  • 稍後重新嘗試付款" + Environment.NewLine +
+                        Environment.NewLine +
+                        "📞 需要協助？" + Environment.NewLine +
+                        "  請聯繫教會辦公室" + Environment.NewLine +
+                        "═══════════════════════" + Environment.NewLine;
+                    
+                    this.m_PushUtility.SendMessage(UserLineId, failureMessage);
 
                     // 設定 ViewBag 並返回美觀的錯誤頁面
                     ViewBag.IsSuccess = false;
