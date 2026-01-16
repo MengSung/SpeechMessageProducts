@@ -207,8 +207,15 @@ namespace ChurchReport
                 // 讀取使用者名稱，若配置中未設定則使用預設值。
                 var username = crmConfig["Username"] ?? @"SPEECHMESSAGE\Administrator";
 
-                // 讀取密碼，若配置中未設定則使用預設值。
-                var password = crmConfig["Password"] ?? "hu9840";
+                // 讀取密碼：避免硬編碼預設密碼（Hardcoded secret）。
+                // 建議來源：Environment Variables / Secret Manager / Key Vault
+                var password = crmConfig["Password"]
+                               ?? Environment.GetEnvironmentVariable("CRM_PASSWORD");
+                if (string.IsNullOrWhiteSpace(password))
+                {
+                    throw new InvalidOperationException(
+                        "CRM password is not configured. Set CrmConnection:Password or environment variable CRM_PASSWORD.");
+                }
 
                 // 讀取最小連接池大小，若配置中未設定則使用預設值 3。
                 var minPoolSize = int.TryParse(crmConfig["MinPoolSize"], out var minSize) ? minSize : 3;
@@ -329,20 +336,6 @@ namespace ChurchReport
                 return new ChurchReport.WebServiceConnector.ChurchListDataProcessor(cacheService);
             });
 
-
-            // Add framework services.
-            // 再次配置 MVC 服務（注意：這似乎是重複配置，可能需要檢查是否必要）。
-            services
-                .AddMvc(options =>
-                {
-                    // 使用舊版 UseMvc 路由時，需要禁用 Endpoint Routing 以避免 MVC1005 警告
-                    options.EnableEndpointRouting = false;
-                })
-                .AddNewtonsoftJson(options =>
-                {
-                    // 保留原本的 Newtonsoft 序列化設定
-                    options.SerializerSettings.ContractResolver = new DefaultContractResolver();
-                });
 
             // 註冊 HttpContext 存取器服務，用於在非控制器類別中存取 HTTP 上下文。
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
