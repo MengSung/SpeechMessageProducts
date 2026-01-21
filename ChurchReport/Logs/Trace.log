@@ -75878,3 +75878,425 @@ ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] T
 [ProcessLogin] 步驟 2: 取得使用者資料
 [ProcessLogin] 使用者: 胡夢嵩
 [ProcessLogin] 步驟 3: 初始化使用者 Session
+[2026-01-21 11:27:27] Trace listener initialized successfully (Debug build).
+[2026-01-21 11:27:27] Log file: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Logs\Trace.log
+[2026-01-21 11:27:27] File mode: Append
+[Startup] ========================================
+[Startup] ✅ Session Bleeding 雙重防護已啟用
+[Startup] 第一層: 全站無快取中介軟體 (Middleware 層)
+[Startup] 第二層: ResponseCacheAttribute (MVC 層)
+[Startup] 第三層: StrictNoCacheFilter (Action 層)
+[Startup] 所有 Controller Action 將套用:
+[Startup]   - Cache-Control: no-store, no-cache
+[Startup]   - Pragma: no-cache
+[Startup]   - Expires: -1
+[Startup] ========================================
+ChurchReport.Services.Monitoring.SessionMonitorService: Information: [Session Monitor] Session 監控服務已啟動
+[2026-01-21 11:27:27.456] [Information] [ChurchReport.Services.Monitoring.SessionMonitorService] [Session Monitor] Session 監控服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 服務已啟動
+[2026-01-21 11:27:27.494] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 清理間隔: 30 分鐘
+[2026-01-21 11:27:27.498] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 清理間隔: 30 分鐘
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 資料保留: 1 小時
+[2026-01-21 11:27:27.501] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 資料保留: 1 小時
+Microsoft.AspNetCore.Watch.BrowserRefresh.BlazorWasmHotReloadMiddleware: Debug: Middleware loaded
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16509 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=debug, __ASPNETCORE_BROWSER_TOOLS=true
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000002-0014-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+[2026-01-21 11:27:27.730] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000002-0014-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
+[2026-01-21 11:27:27.773] [Information] [Microsoft.Hosting.Lifetime] Application started. Press Ctrl+C to shut down.
+Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
+[2026-01-21 11:27:27.775] [Information] [Microsoft.Hosting.Lifetime] Hosting environment: Development
+Microsoft.Hosting.Lifetime: Information: Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[2026-01-21 11:27:27.778] [Information] [Microsoft.Hosting.Lifetime] Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /
+  - Method: GET
+  - TraceId: 40000002-0014-ff00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET / - 1898ms - Status: 200
+[2026-01-21 11:27:29.616] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET / - 1898ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-21 11:27:29.727] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-21 11:27:29.764] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000007-0016-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[2026-01-21 11:27:31.705] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000007-0016-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[ProcessLogin] 開始處理登入 - 帳號: zz, 時間: 2026/1/21 上午 11:27:31
+[ProcessLogin] 步驟 1: 驗證使用者身份
+[ValidateUserCredentials] 開始驗證 - 帳號: zz
+[ProcessLogin] 步驟 2: 取得使用者資料
+[ProcessLogin] 使用者: 胡夢嵩
+[ProcessLogin] 步驟 3: 初始化使用者 Session
+[2026-01-21 11:28:34] Trace listener initialized successfully (Debug build).
+[2026-01-21 11:28:34] Log file: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Logs\Trace.log
+[2026-01-21 11:28:34] File mode: Append
+[Startup] ========================================
+[Startup] ✅ Session Bleeding 雙重防護已啟用
+[Startup] 第一層: 全站無快取中介軟體 (Middleware 層)
+[Startup] 第二層: ResponseCacheAttribute (MVC 層)
+[Startup] 第三層: StrictNoCacheFilter (Action 層)
+[Startup] 所有 Controller Action 將套用:
+[Startup]   - Cache-Control: no-store, no-cache
+[Startup]   - Pragma: no-cache
+[Startup]   - Expires: -1
+[Startup] ========================================
+ChurchReport.Services.Monitoring.SessionMonitorService: Information: [Session Monitor] Session 監控服務已啟動
+[2026-01-21 11:28:34.535] [Information] [ChurchReport.Services.Monitoring.SessionMonitorService] [Session Monitor] Session 監控服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 服務已啟動
+[2026-01-21 11:28:34.562] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 清理間隔: 30 分鐘
+[2026-01-21 11:28:34.565] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 清理間隔: 30 分鐘
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 資料保留: 1 小時
+[2026-01-21 11:28:34.567] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 資料保留: 1 小時
+Microsoft.AspNetCore.Watch.BrowserRefresh.BlazorWasmHotReloadMiddleware: Debug: Middleware loaded
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16509 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=debug, __ASPNETCORE_BROWSER_TOOLS=true
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000005-0005-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+[2026-01-21 11:28:34.806] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000005-0005-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
+[2026-01-21 11:28:34.837] [Information] [Microsoft.Hosting.Lifetime] Application started. Press Ctrl+C to shut down.
+Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
+[2026-01-21 11:28:34.874] [Information] [Microsoft.Hosting.Lifetime] Hosting environment: Development
+Microsoft.Hosting.Lifetime: Information: Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[2026-01-21 11:28:34.877] [Information] [Microsoft.Hosting.Lifetime] Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /
+  - Method: GET
+  - TraceId: 40000005-0005-ff00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET / - 2001ms - Status: 200
+[2026-01-21 11:28:36.796] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET / - 2001ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-21 11:28:36.914] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-21 11:28:36.955] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000009-0016-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[2026-01-21 11:28:39.258] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000009-0016-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[ProcessLogin] 開始處理登入 - 帳號: zz, 時間: 2026/1/21 上午 11:28:39
+[ProcessLogin] 步驟 1: 驗證使用者身份
+[ValidateUserCredentials] 開始驗證 - 帳號: zz
+[ProcessLogin] 步驟 2: 取得使用者資料
+[ProcessLogin] 使用者: 胡夢嵩
+[ProcessLogin] 步驟 3: 初始化使用者 Session
+[2026-01-21 11:35:14] Trace listener initialized successfully (Debug build).
+[2026-01-21 11:35:14] Log file: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Logs\Trace.log
+[2026-01-21 11:35:14] File mode: Append
+[Startup] ========================================
+[Startup] ✅ Session Bleeding 雙重防護已啟用
+[Startup] 第一層: 全站無快取中介軟體 (Middleware 層)
+[Startup] 第二層: ResponseCacheAttribute (MVC 層)
+[Startup] 第三層: StrictNoCacheFilter (Action 層)
+[Startup] 所有 Controller Action 將套用:
+[Startup]   - Cache-Control: no-store, no-cache
+[Startup]   - Pragma: no-cache
+[Startup]   - Expires: -1
+[Startup] ========================================
+ChurchReport.Services.Monitoring.SessionMonitorService: Information: [Session Monitor] Session 監控服務已啟動
+[2026-01-21 11:35:15.045] [Information] [ChurchReport.Services.Monitoring.SessionMonitorService] [Session Monitor] Session 監控服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 服務已啟動
+[2026-01-21 11:35:15.073] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 清理間隔: 30 分鐘
+[2026-01-21 11:35:15.076] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 清理間隔: 30 分鐘
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 資料保留: 1 小時
+[2026-01-21 11:35:15.078] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 資料保留: 1 小時
+Microsoft.AspNetCore.Watch.BrowserRefresh.BlazorWasmHotReloadMiddleware: Debug: Middleware loaded
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16509 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=debug, __ASPNETCORE_BROWSER_TOOLS=true
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000002-0011-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+[2026-01-21 11:35:15.303] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000002-0011-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
+[2026-01-21 11:35:15.337] [Information] [Microsoft.Hosting.Lifetime] Application started. Press Ctrl+C to shut down.
+Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
+[2026-01-21 11:35:15.339] [Information] [Microsoft.Hosting.Lifetime] Hosting environment: Development
+Microsoft.Hosting.Lifetime: Information: Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[2026-01-21 11:35:15.341] [Information] [Microsoft.Hosting.Lifetime] Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /
+  - Method: GET
+  - TraceId: 40000002-0011-ff00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET / - 1876ms - Status: 200
+[2026-01-21 11:35:17.137] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET / - 1876ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-21 11:35:17.191] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-21 11:35:17.257] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000005-0012-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[2026-01-21 11:35:18.626] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000005-0012-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[ProcessLogin] 開始處理登入 - 帳號: zz, 時間: 2026/1/21 上午 11:35:18
+[ProcessLogin] 步驟 1: 驗證使用者身份
+[ValidateUserCredentials] 開始驗證 - 帳號: zz
+[ProcessLogin] 步驟 2: 取得使用者資料
+[ProcessLogin] 使用者: 胡夢嵩
+[ProcessLogin] 步驟 3: 初始化使用者 Session
+[InitializeUserSession] ? HttpContext 為 null，無法初始化 Session
+[ProcessLogin] 發生錯誤: HttpContext 未初始化，無法設定 Session。請確保此方法從有效的 HTTP 請求上下文中調用。
+堆疊追蹤:    at ChurchReport.Controllers.AuthenticationController.InitializeUserSession(Entity loginContact, GalleryViewModel viewModel) in D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Controllers\AuthenticationController\AuthenticationController.Private.cs:line 161
+   at ChurchReport.Controllers.AuthenticationController.ProcessLogin(GalleryViewModel aGalleryViewModel) in D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Controllers\AuthenticationController\AuthenticationController.Login.cs:line 92
+Time            =2026/1/21 上午 11:35:27
+
+StringToProcess =錯誤訊息 : FullName = ChurchReport.Controllers.AuthenticationController, Method = ProcessLogin, Time = 2026/1/21 上午 11:35:27, Description = System.InvalidOperationException: HttpContext 未初始化，無法設定 Session。請確保此方法從有效的 HTTP 請求上下文中調用。
+   at ChurchReport.Controllers.AuthenticationController.InitializeUserSession(Entity loginContact, GalleryViewModel viewModel) in D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Controllers\AuthenticationController\AuthenticationController.Private.cs:line 161
+   at ChurchReport.Controllers.AuthenticationController.ProcessLogin(GalleryViewModel aGalleryViewModel) in D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Controllers\AuthenticationController\AuthenticationController.Login.cs:line 92
+
+StackTrace      =   at ChurchReport.Controllers.BaseChurchController.HandleError(Exception exception, String methodName) in D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Controllers\BaseChurchController.cs:line 128
+
+
+================================================================== 
+
+[StrictNoCacheFilter] Action 完成
+  - Path: /Home/ProcessLogin
+  - Method: POST
+  - TraceId: 40000005-0012-ff00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Home/ProcessLogin - 8826ms - Status: 302
+[2026-01-21 11:35:27.452] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Home/ProcessLogin - 8826ms - Status: 302
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000006-0012-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/DisplayErrorView/HttpContext%20%E6%9C%AA%E5%88%9D%E5%A7%8B%E5%8C%96%EF%BC%8C%E7%84%A1%E6%B3%95%E8%A8%AD%E5%AE%9A%20Session%E3%80%82%E8%AB%8B%E7%A2%BA%E4%BF%9D%E6%AD%A4%E6%96%B9%E6%B3%95%E5%BE%9E%E6%9C%89%E6%95%88%E7%9A%84%20HTTP%20%E8%AB%8B%E6%B1%82%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%AD%E8%AA%BF%E7%94%A8%E3%80%82 | Method:GET
+[2026-01-21 11:35:27.463] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000006-0012-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/DisplayErrorView/HttpContext%20%E6%9C%AA%E5%88%9D%E5%A7%8B%E5%8C%96%EF%BC%8C%E7%84%A1%E6%B3%95%E8%A8%AD%E5%AE%9A%20Session%E3%80%82%E8%AB%8B%E7%A2%BA%E4%BF%9D%E6%AD%A4%E6%96%B9%E6%B3%95%E5%BE%9E%E6%9C%89%E6%95%88%E7%9A%84%20HTTP%20%E8%AB%8B%E6%B1%82%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%AD%E8%AA%BF%E7%94%A8%E3%80%82 | Method:GET
+[2026-01-21 11:37:31] Trace listener initialized successfully (Debug build).
+[2026-01-21 11:37:31] Log file: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Logs\Trace.log
+[2026-01-21 11:37:31] File mode: Append
+[Startup] ========================================
+[Startup] ✅ Session Bleeding 雙重防護已啟用
+[Startup] 第一層: 全站無快取中介軟體 (Middleware 層)
+[Startup] 第二層: ResponseCacheAttribute (MVC 層)
+[Startup] 第三層: StrictNoCacheFilter (Action 層)
+[Startup] 所有 Controller Action 將套用:
+[Startup]   - Cache-Control: no-store, no-cache
+[Startup]   - Pragma: no-cache
+[Startup]   - Expires: -1
+[Startup] ========================================
+ChurchReport.Services.Monitoring.SessionMonitorService: Information: [Session Monitor] Session 監控服務已啟動
+[2026-01-21 11:37:31.275] [Information] [ChurchReport.Services.Monitoring.SessionMonitorService] [Session Monitor] Session 監控服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 服務已啟動
+[2026-01-21 11:37:31.305] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 清理間隔: 30 分鐘
+[2026-01-21 11:37:31.309] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 清理間隔: 30 分鐘
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 資料保留: 1 小時
+[2026-01-21 11:37:31.311] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 資料保留: 1 小時
+Microsoft.AspNetCore.Watch.BrowserRefresh.BlazorWasmHotReloadMiddleware: Debug: Middleware loaded
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16509 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=debug, __ASPNETCORE_BROWSER_TOOLS=true
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000005-0003-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+[2026-01-21 11:37:31.620] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000005-0003-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
+[2026-01-21 11:37:31.673] [Information] [Microsoft.Hosting.Lifetime] Application started. Press Ctrl+C to shut down.
+Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
+[2026-01-21 11:37:31.676] [Information] [Microsoft.Hosting.Lifetime] Hosting environment: Development
+Microsoft.Hosting.Lifetime: Information: Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[2026-01-21 11:37:31.716] [Information] [Microsoft.Hosting.Lifetime] Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /
+  - Method: GET
+  - TraceId: 40000005-0003-ff00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET / - 1558ms - Status: 200
+[2026-01-21 11:37:33.149] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET / - 1558ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-21 11:37:33.225] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-21 11:37:33.235] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000010-000b-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[2026-01-21 11:37:34.573] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000010-000b-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[ProcessLogin] 開始處理登入 - 帳號: zz, 時間: 2026/1/21 上午 11:37:40
+[ProcessLogin] 步驟 1: 驗證使用者身份
+[ValidateUserCredentials] 開始驗證 - 帳號: zz
+[ProcessLogin] 步驟 2: 取得使用者資料
+[ProcessLogin] 使用者: 胡夢嵩
+[ProcessLogin] 步驟 3: 初始化使用者 Session
+[InitializeUserSession] ? HttpContext 為 null，無法初始化 Session
+[2026-01-21 11:41:13] Trace listener initialized successfully (Debug build).
+[2026-01-21 11:41:13] Log file: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Logs\Trace.log
+[2026-01-21 11:41:13] File mode: Append
+[Startup] ========================================
+[Startup] ✅ Session Bleeding 雙重防護已啟用
+[Startup] 第一層: 全站無快取中介軟體 (Middleware 層)
+[Startup] 第二層: ResponseCacheAttribute (MVC 層)
+[Startup] 第三層: StrictNoCacheFilter (Action 層)
+[Startup] 所有 Controller Action 將套用:
+[Startup]   - Cache-Control: no-store, no-cache
+[Startup]   - Pragma: no-cache
+[Startup]   - Expires: -1
+[Startup] ========================================
+ChurchReport.Services.Monitoring.SessionMonitorService: Information: [Session Monitor] Session 監控服務已啟動
+[2026-01-21 11:41:13.165] [Information] [ChurchReport.Services.Monitoring.SessionMonitorService] [Session Monitor] Session 監控服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 服務已啟動
+[2026-01-21 11:41:13.198] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 清理間隔: 30 分鐘
+[2026-01-21 11:41:13.202] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 清理間隔: 30 分鐘
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 資料保留: 1 小時
+[2026-01-21 11:41:13.205] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 資料保留: 1 小時
+Microsoft.AspNetCore.Watch.BrowserRefresh.BlazorWasmHotReloadMiddleware: Debug: Middleware loaded
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16509 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=debug, __ASPNETCORE_BROWSER_TOOLS=true
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000000b-0017-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+[2026-01-21 11:41:13.496] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000000b-0017-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
+[2026-01-21 11:41:13.554] [Information] [Microsoft.Hosting.Lifetime] Application started. Press Ctrl+C to shut down.
+Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
+[2026-01-21 11:41:13.556] [Information] [Microsoft.Hosting.Lifetime] Hosting environment: Development
+Microsoft.Hosting.Lifetime: Information: Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[2026-01-21 11:41:13.559] [Information] [Microsoft.Hosting.Lifetime] Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /
+  - Method: GET
+  - TraceId: 4000000b-0017-ff00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET / - 1960ms - Status: 200
+[2026-01-21 11:41:15.430] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET / - 1960ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-21 11:41:15.549] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-21 11:41:15.632] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000012-000c-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[2026-01-21 11:41:17.399] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000012-000c-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[ProcessLogin] 開始處理登入 - 帳號: zz, 時間: 2026/1/21 上午 11:41:22
+[ProcessLogin] 步驟 1: 驗證使用者身份
+[ValidateUserCredentials] 開始驗證 - 帳號: zz
+[ProcessLogin] 步驟 2: 取得使用者資料
+[ProcessLogin] 使用者: 胡夢嵩
+[ProcessLogin] 步驟 3: 初始化使用者 Session
+[InitializeUserSession] ? 已清除舊 Session
+[InitializeUserSession] ? 已強制重新生成 Session ID
+[InitializeUserSession] ? 已綁定用戶身份: UserId=489c938e-3430-ea11-8112-00155d006601, IP=::1
+[InitializeUserSession] ========================================
+[InitializeUserSession] ? Session 初始化完成
+[InitializeUserSession]   - 用戶: zz
+[InitializeUserSession]   - Session ID: 已重新生成（新的唯一 ID）
+[InitializeUserSession]   - 用戶綁定: 489c938e-3430-ea11-8112-00155d006601_639045636889874414
+[InitializeUserSession] ========================================
+[ProcessLogin] 步驟 4: 設定系統資料 - 開始時間: 2026/1/21 上午 11:41:29
+[QPayProcessor] LINE Token loaded for organization: jesus
+[QPayProcessor] ShopNo initialized: NA0149_001 (Environment: 測試環境)
+[ConvertToCategory] 使用預設值
+[SetQpayModel] 成功取得 8 個奉獻類別
+[ProcessLogin] 步驟 4: 設定系統資料 - 完成時間: 2026/1/21 上午 11:41:42
+[ProcessLogin] 步驟 5: 判斷顯示視圖類型
+[ProcessLogin] 顯示類型: MultiGroupView
+[ProcessLogin] 步驟 6: 設定 ViewBag 參數
+[ProcessLogin] 步驟 7: 返回登入結果 - 完成時間: 2026/1/21 上午 11:41:45
+[StrictNoCacheFilter] Action 完成
+  - Path: /Home/ProcessLogin
+  - Method: POST
+  - TraceId: 40000012-000c-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Home/ProcessLogin - 27681ms - Status: 200
+[2026-01-21 11:41:45.079] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Home/ProcessLogin - 27681ms - Status: 200
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000013-000c-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601 | Method:GET
+[2026-01-21 11:41:45.116] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000013-000c-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601 | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/MultiGroupView/c9361662-1576-ea11-8115-00155d006601
+  - Method: GET
+  - TraceId: 40000013-000c-fe00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-21 11:41:45.325] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-01-21 11:41:45.330] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000015-000c-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+[2026-01-21 11:41:45.345] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000015-000c-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000008-0000-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000012-0000-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+[2026-01-21 11:41:45.351] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000012-0000-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+[2026-01-21 11:41:45.349] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000008-0000-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000017-000c-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+[2026-01-21 11:41:45.410] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000017-000c-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000000b-0000-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+[2026-01-21 11:41:45.415] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000000b-0000-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000000c-0000-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000014-0000-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+[2026-01-21 11:41:45.582] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000000c-0000-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-01-21 11:41:45.584] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000014-0000-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000018-000c-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+[2026-01-21 11:41:45.591] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000018-000c-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000000d-0000-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+[2026-01-21 11:41:45.604] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000000d-0000-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000019-000c-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000015-0000-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+[2026-01-21 11:41:45.609] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000015-0000-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+[2026-01-21 11:41:45.608] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000019-000c-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000001a-000c-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+[2026-01-21 11:41:45.623] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000001a-000c-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000000e-0000-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000016-0000-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+[2026-01-21 11:41:45.655] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000000e-0000-fc00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+[2026-01-21 11:41:45.657] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000016-0000-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000019-0001-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/GetMultiGroupChartDataList | Method:GET
+[2026-01-21 11:41:45.771] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000019-0001-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/GetMultiGroupChartDataList | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[GetMultiGroupChartDataList] 快取未命中: SmallGroup_MultiChart_20260121_zz
+[GetMultiGroupChartDataList] 已快取 3 筆
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/GetMultiGroupChartDataList
+  - Method: GET
+  - TraceId: 40000019-0001-fd00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000001a-0001-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/AssignSmallGroupGet | Method:GET
+[2026-01-21 11:41:46.056] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000001a-0001-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/AssignSmallGroupGet | Method:GET
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[AssignSmallGroupGet] 快取未命中: SmallGroup_MultiGrid_20260121_zz
+[AssignSmallGroupGet] 已快取 4 筆
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/AssignSmallGroupGet
+  - Method: GET
+  - TraceId: 4000001a-0001-fd00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1

@@ -1,4 +1,4 @@
-ï»¿using ChurchReport.Tools;
+using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
@@ -12,12 +12,12 @@ using ToolUtilityNameSpace.DependencyInjection;
 namespace ChurchReport.Models
 {
     /// <summary>
-    /// è¨˜æ†¶é«”è³‡æ–™ä¸Šä¸‹æ–‡å¯¦ä½œ
-    /// é€é Session å’Œ MemoryCache ç®¡ç†ä½¿ç”¨è€…è³‡æ–™
+    /// °O¾ĞÅé¸ê®Æ¤W¤U¤å¹ê§@
+    /// ³z¹L Session ©M MemoryCache ºŞ²z¨Ï¥ÎªÌ¸ê®Æ
     /// </summary>
     public class InMemoryDataContextSmallGroup : IInMemoryDataContext
     {
-        #region è³‡æ–™å€
+        #region ¸ê®Æ°Ï
         IMemoryCache _memoryCache;
 
         private ToolUtilityClass m_ToolUtilityClass;
@@ -36,14 +36,13 @@ namespace ChurchReport.Models
         public PollManager m_PollManager;
 
         private HttpContextAccessor m_ContextAccessor;
-        private HttpContext m_HttpContext;
-        private ISession m_Session;
+        // ? ¤w²¾°£ m_HttpContext ©M m_Session Äæ¦ì¡A§ï¬°¨Ï¥Î©µ¿ğ¨ú±oªºÄİ©Ê
 
         private readonly IPayment m_PamentService;
         private readonly IToolUtilityProvider _toolUtilityProvider;
 
         #endregion
-        #region åˆå§‹åŒ–
+        #region ªì©l¤Æ
         public InMemoryDataContextSmallGroup(
             IHttpContextAccessor contextAccessor, 
             IMemoryCache memoryCache, 
@@ -52,20 +51,60 @@ namespace ChurchReport.Models
         {
             _memoryCache = memoryCache;
 
-            m_ContextAccessor = (HttpContextAccessor)contextAccessor;
-            m_HttpContext = m_ContextAccessor.HttpContext;
-            m_Session = m_ContextAccessor.HttpContext.Session;
+            // ========================================
+            // ? ­×´_¡G©µ¿ğ¨ú±o HttpContext ©M Session
+            // ========================================
+            // ¤£­n¦b«Øºc¨ç¦¡¤¤ª½±µ¦s¨ú HttpContext¡A¦]¬°¦¹®É¥i¯àÁÙ¥¼ªì©l¤Æ
+            // §ï¬°Àx¦s IHttpContextAccessor¡A¦b¹ê»Ú¨Ï¥Î®É¤~¨ú±o
+            m_ContextAccessor = (HttpContextAccessor)contextAccessor ?? throw new ArgumentNullException(nameof(contextAccessor));
+            
+            // ?? ¤£­n¦b¦¹³B¨ú±o HttpContext ©M Session
+            // HttpContext = m_ContextAccessor.HttpContext;  // ¡ö ¿ù»~¡G¦¹®É¥i¯à¬° null
+            // Session = m_ContextAccessor.HttpContext.Session;  // ¡ö ¿ù»~¡G·|©ß¥X NullReferenceException
 
             m_PamentService = PamentService;
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
         }
         #endregion
-        #region å¤šå€‹çµ„é•·è™•ç†å€
+        #region HttpContext ©M Session Äİ©Ê¡]©µ¿ğ¨ú±o¡^
+        
+        /// <summary>
+        /// HttpContext Äİ©Ê¡]©µ¿ğ¨ú±o¡A½T«O¦b¨Ï¥Î®É¤~¦s¨ú¡^
+        /// </summary>
+        private HttpContext HttpContext
+        {
+            get
+            {
+                if (m_ContextAccessor?.HttpContext == null)
+                {
+                    throw new InvalidOperationException("HttpContext ¥¼ªì©l¤Æ¡C½Ğ½T«O¦b¦³®Äªº HTTP ½Ğ¨D¤W¤U¤å¤¤¨Ï¥Î¦¹Ãş§O¡C");
+                }
+                return m_ContextAccessor.HttpContext;
+            }
+        }
+
+        /// <summary>
+        /// Session Äİ©Ê¡]©µ¿ğ¨ú±o¡A½T«O¦b¨Ï¥Î®É¤~¦s¨ú¡^
+        /// </summary>
+        private ISession Session
+        {
+            get
+            {
+                if (HttpContext?.Session == null)
+                {
+                    throw new InvalidOperationException("Session ¥¼±Ò¥Î¡C½Ğ½T«O Startup.cs ¤¤¤w½Õ¥Î app.UseSession()¡C");
+                }
+                return HttpContext.Session;
+            }
+        }
+
+        #endregion
+        #region ¦h­Ó²Õªø³B²z°Ï
         public ListManager ListManager
         {
             get
             {
-                var key = m_Session.Id + "_ListManager";
+                var key = Session.Id + "_ListManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_ListManager))
@@ -75,7 +114,7 @@ namespace ChurchReport.Models
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
-                            // é€™è£¡åŸ·è¡ŒæŸä¸€å€‹å‹•ä½œ
+                            // ³o¸Ì°õ¦æ¬Y¤@­Ó°Ê§@
                             // ....
                             if (state != null)
                             {
@@ -96,14 +135,14 @@ namespace ChurchReport.Models
                     m_ListManager = new ListManager();
                     _memoryCache.Set<ListManager>(key, m_ListManager, options);
 
-                    m_Session.SetInt32("dirty", 1);
+                    Session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get<ListManager>(key);
             }
         }
         #endregion
-        #region å°çµ„é•·è™•ç†å€
+        #region ¤p²Õªø³B²z°Ï
 
         public void SetupSmallGroupData(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
         {
@@ -126,7 +165,7 @@ namespace ChurchReport.Models
         {
             get
             {
-                var key = m_Session.Id + "_SmallGroupDataList";
+                var key = Session.Id + "_SmallGroupDataList";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_SmallGroupDataList))
@@ -136,7 +175,7 @@ namespace ChurchReport.Models
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
-                            // é€™è£¡åŸ·è¡ŒæŸä¸€å€‹å‹•ä½œ
+                            // ³o¸Ì°õ¦æ¬Y¤@­Ó°Ê§@
                             // ....
                             if (state != null)
                             {
@@ -158,19 +197,19 @@ namespace ChurchReport.Models
 
                     _memoryCache.Set<SmallGroupDataList>(key, m_SmallGroupDataList, options);
 
-                    m_Session.SetInt32("dirty", 1);
+                    Session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get<SmallGroupDataList>(key);
             }
         }
         #endregion
-        #region é€±å ±è™•ç†å€
+        #region ¶g³ø³B²z°Ï
         public WeeklyReportData WeeklyReportData
         {
             get
             {
-                var key = m_Session.Id + "_WeeklyReportData";
+                var key = Session.Id + "_WeeklyReportData";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_WeeklyReportData))
@@ -180,7 +219,7 @@ namespace ChurchReport.Models
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
-                            // é€™è£¡åŸ·è¡ŒæŸä¸€å€‹å‹•ä½œ
+                            // ³o¸Ì°õ¦æ¬Y¤@­Ó°Ê§@
                             // ....
                             if (state != null)
                             {
@@ -201,20 +240,20 @@ namespace ChurchReport.Models
                     m_WeeklyReportData = new WeeklyReportData();
                     _memoryCache.Set<WeeklyReportData>(key, m_WeeklyReportData, options);
 
-                    m_Session.SetInt32("dirty", 1);
+                    Session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<WeeklyReportData>(key);
             }
         }
 
         #endregion
-        #region æ–°å¢æ–°äººè™•ç†å€
+        #region ·s¼W·s¤H³B²z°Ï
 
         public NewPersonModel NewPersonModel
         {
             get
             {
-                var key = m_Session.Id + "_NewPersonModel";
+                var key = Session.Id + "_NewPersonModel";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_NewPersonModel))
@@ -224,7 +263,7 @@ namespace ChurchReport.Models
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
-                            // é€™è£¡åŸ·è¡ŒæŸä¸€å€‹å‹•ä½œ
+                            // ³o¸Ì°õ¦æ¬Y¤@­Ó°Ê§@
                             // ....
                             if (state != null)
                             {
@@ -245,19 +284,19 @@ namespace ChurchReport.Models
                     m_NewPersonModel = new NewPersonModel();
                     _memoryCache.Set<NewPersonModel>(key, m_NewPersonModel, options);
 
-                    m_Session.SetInt32("dirty", 1);
+                    Session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<NewPersonModel>(key);
             }
         }
 
         #endregion
-        #region å€‹äººç›¸é—œè³‡æ–™è™•ç†å€
+        #region ­Ó¤H¬ÛÃö¸ê®Æ³B²z°Ï
         public PersonalInfomationModel PersonalInfomationModel
         {
             get
             {
-                var key = m_Session.Id + "_PersonalInfomationModel";
+                var key = Session.Id + "_PersonalInfomationModel";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_NewPersonModel))
@@ -267,7 +306,7 @@ namespace ChurchReport.Models
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
-                            // é€™è£¡åŸ·è¡ŒæŸä¸€å€‹å‹•ä½œ
+                            // ³o¸Ì°õ¦æ¬Y¤@­Ó°Ê§@
                             // ....
                             if (state != null)
                             {
@@ -288,19 +327,19 @@ namespace ChurchReport.Models
                     m_PersonalInfomationModel = new PersonalInfomationModel();
                     _memoryCache.Set<PersonalInfomationModel>(key, m_PersonalInfomationModel, options);
 
-                    m_Session.SetInt32("dirty", 1);
+                    Session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<PersonalInfomationModel>(key);
             }
         }
 
         #endregion
-        #region å¹¸ç¦å°çµ„è™•ç†å€
+        #region ©¯ºÖ¤p²Õ³B²z°Ï
         public HappyGroupDataManager HappyGroupDataManager
         {
             get
             {
-                var key = m_Session.Id + "_HappyGroupDataManager";
+                var key = Session.Id + "_HappyGroupDataManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_HappyGroupDataManager))
@@ -310,7 +349,7 @@ namespace ChurchReport.Models
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
-                            // é€™è£¡åŸ·è¡ŒæŸä¸€å€‹å‹•ä½œ
+                            // ³o¸Ì°õ¦æ¬Y¤@­Ó°Ê§@
                             // ....
                             if (state != null)
                             {
@@ -328,23 +367,23 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    // ä½¿ç”¨ DI æ¨¡å¼æ³¨å…¥ ToolUtilityProvider
+                    // ¨Ï¥Î DI ¼Ò¦¡ª`¤J ToolUtilityProvider
                     m_HappyGroupDataManager = new HappyGroupDataManager(_toolUtilityProvider);
                     _memoryCache.Set<HappyGroupDataManager>(key, m_HappyGroupDataManager, options);
 
-                    m_Session.SetInt32("dirty", 1);
+                    Session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<HappyGroupDataManager>(key);
             }
         }
 
         #endregion
-        #region åå–®ç®¡ç†è™•ç†å€
+        #region ¦W³æºŞ²z³B²z°Ï
         public ListManagementDataManager ListManagementDataManager
         {
             get
             {
-                var key = m_Session.Id + "_ListManagementDataManager";
+                var key = Session.Id + "_ListManagementDataManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_HappyGroupDataManager))
@@ -354,7 +393,7 @@ namespace ChurchReport.Models
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
-                            // é€™è£¡åŸ·è¡ŒæŸä¸€å€‹å‹•ä½œ
+                            // ³o¸Ì°õ¦æ¬Y¤@­Ó°Ê§@
                             // ....
                             if (state != null)
                             {
@@ -375,19 +414,19 @@ namespace ChurchReport.Models
                     m_ListManagementDataManager = new ListManagementDataManager();
                     _memoryCache.Set<ListManagementDataManager>(key, m_ListManagementDataManager, options);
 
-                    m_Session.SetInt32("dirty", 1);
+                    Session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<ListManagementDataManager>(key);
             }
         }
 
         #endregion
-        #region è£å‚™æƒ…å½¢è™•ç†å€
+        #region ¸Ë³Æ±¡§Î³B²z°Ï
         public EquipmentDataManager EquipmentDataManager
         {
             get
             {
-                var key = m_Session.Id + "_EquipmentDataManager";
+                var key = Session.Id + "_EquipmentDataManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_HappyGroupDataManager))
@@ -397,7 +436,7 @@ namespace ChurchReport.Models
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
-                            // é€™è£¡åŸ·è¡ŒæŸä¸€å€‹å‹•ä½œ
+                            // ³o¸Ì°õ¦æ¬Y¤@­Ó°Ê§@
                             // ....
                             if (state != null)
                             {
@@ -415,24 +454,24 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    // ä½¿ç”¨ DI æ¨¡å¼æ³¨å…¥ ToolUtilityProvider
+                    // ¨Ï¥Î DI ¼Ò¦¡ª`¤J ToolUtilityProvider
                     m_EquipmentDataManager = new EquipmentDataManager(_toolUtilityProvider);
                     _memoryCache.Set<EquipmentDataManager>(key, m_EquipmentDataManager, options);
 
-                    m_Session.SetInt32("dirty", 1);
+                    Session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<EquipmentDataManager>(key);
             }
         }
 
         #endregion
-        #region ç¹³è²»èˆ‡å ±åè™•ç†å€
+        #region Ãº¶O»P³ø¦W³B²z°Ï
 
         public FeeList FeeList
         {
             get
             {
-                var key = m_Session.Id + "_FeeList";
+                var key = Session.Id + "_FeeList";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_FeeList))
@@ -442,7 +481,7 @@ namespace ChurchReport.Models
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
-                            // é€™è£¡åŸ·è¡ŒæŸä¸€å€‹å‹•ä½œ
+                            // ³o¸Ì°õ¦æ¬Y¤@­Ó°Ê§@
                             // ....
                             if (state != null)
                             {
@@ -460,23 +499,23 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    // ä½¿ç”¨ DI æ¨¡å¼æ³¨å…¥ ToolUtilityProvider
+                    // ¨Ï¥Î DI ¼Ò¦¡ª`¤J ToolUtilityProvider
                     m_FeeList = new FeeList(_toolUtilityProvider);
                     _memoryCache.Set<FeeList>(key, m_FeeList, options);
 
-                    m_Session.SetInt32("dirty", 1);
+                    Session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get<FeeList>(key);
             }
         }
         #endregion
-        #region Line ç¶å®šè™•ç†å€
+        #region Line ¸j©w³B²z°Ï
         public LineBindingViewModel LineBindingViewModel
         {
             get
             {
-                var key = m_Session.Id + "_LineBindingViewModel";
+                var key = Session.Id + "_LineBindingViewModel";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_LineBindingViewModel))
@@ -486,7 +525,7 @@ namespace ChurchReport.Models
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
-                            // é€™è£¡åŸ·è¡ŒæŸä¸€å€‹å‹•ä½œ
+                            // ³o¸Ì°õ¦æ¬Y¤@­Ó°Ê§@
                             // ....
                             if (state != null)
                             {
@@ -507,19 +546,19 @@ namespace ChurchReport.Models
                     m_LineBindingViewModel = new LineBindingViewModel();
                     _memoryCache.Set<LineBindingViewModel>(key, m_LineBindingViewModel, options);
 
-                    m_Session.SetInt32("dirty", 1);
+                    Session.SetInt32("dirty", 1);
                 }
                 return _memoryCache.Get<LineBindingViewModel>(key);
             }
         }
 
         #endregion
-        #region è¡Œäº‹æ›†è™•ç†å€
+        #region ¦æ¨Æ¾ä³B²z°Ï
         public AppointmentsListManager AppointmentsListManager
         {
             get
             {
-                var key = m_Session.Id + "_AppointmentsListManager";
+                var key = Session.Id + "_AppointmentsListManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_AppointmentsListManager))
@@ -529,7 +568,7 @@ namespace ChurchReport.Models
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
-                            // é€™è£¡åŸ·è¡ŒæŸä¸€å€‹å‹•ä½œ
+                            // ³o¸Ì°õ¦æ¬Y¤@­Ó°Ê§@
                             // ....
                             if (state != null)
                             {
@@ -550,19 +589,19 @@ namespace ChurchReport.Models
                     m_AppointmentsListManager = new AppointmentsListManager();
                     _memoryCache.Set<AppointmentsListManager>(key, m_AppointmentsListManager, options);
 
-                    m_Session.SetInt32("dirty", 1);
+                    Session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get<AppointmentsListManager>(key);
             }
         }
         #endregion
-        #region æ°¸è±é‡‘æµå¥‰ç»è™•ç†å€
+        #region ¥ÃÂ×ª÷¬y©^Äm³B²z°Ï
         public QpayManager QpayManager
         {
             get
             {
-                var key = m_Session.Id + "_QpayManager";
+                var key = Session.Id + "_QpayManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_ListManager))
@@ -572,7 +611,7 @@ namespace ChurchReport.Models
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
-                            // é€™è£¡åŸ·è¡ŒæŸä¸€å€‹å‹•ä½œ
+                            // ³o¸Ì°õ¦æ¬Y¤@­Ó°Ê§@
                             // ....
                             if (state != null)
                             {
@@ -593,19 +632,19 @@ namespace ChurchReport.Models
                     m_QpayManager = new QpayManager(m_PamentService);
                     _memoryCache.Set<QpayManager>(key, m_QpayManager, options);
 
-                    m_Session.SetInt32("dirty", 1);
+                    Session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get<QpayManager>(key);
             }
         }
         #endregion
-        #region èª²ç¨‹å•å·èª¿æŸ¥è™•ç†å€
+        #region ½Òµ{°İ¨÷½Õ¬d³B²z°Ï
         public PollManager PollManager
         {
             get
             {
-                var key = m_Session.Id + "_PollManager";
+                var key = Session.Id + "_PollManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_ListManager))
@@ -615,7 +654,7 @@ namespace ChurchReport.Models
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
-                            // é€™è£¡åŸ·è¡ŒæŸä¸€å€‹å‹•ä½œ
+                            // ³o¸Ì°õ¦æ¬Y¤@­Ó°Ê§@
                             // ....
                             if (state != null)
                             {
@@ -636,20 +675,20 @@ namespace ChurchReport.Models
                     m_PollManager = new PollManager();
                     _memoryCache.Set<PollManager>(key, m_PollManager, options);
 
-                    m_Session.SetInt32("dirty", 1);
+                    Session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get<PollManager>(key);
             }
         }
         #endregion
-        #region å·¥å…·å€
+        #region ¤u¨ã°Ï
 
         public ToolUtilityClass ToolUtilityClass
         {
             get
             {
-                var key = m_Session.Id + "_ToolUtilityClass";
+                var key = Session.Id + "_ToolUtilityClass";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_AppointmentsListManager))
@@ -659,7 +698,7 @@ namespace ChurchReport.Models
                     {
                         EvictionCallback = (subkey, subValue, reason, state) =>
                         {
-                            // é€™è£¡åŸ·è¡ŒæŸä¸€å€‹å‹•ä½œ
+                            // ³o¸Ì°õ¦æ¬Y¤@­Ó°Ê§@
                             // ....
                             if (state != null)
                             {
@@ -677,11 +716,11 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    // ä½¿ç”¨ Factory æ¨¡å¼å–å¾— ToolUtilityClass å–®ä¾‹
+                    // ¨Ï¥Î Factory ¼Ò¦¡¨ú±o ToolUtilityClass ³æ¨Ò
                     m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
                     _memoryCache.Set<ToolUtilityClass>(key, m_ToolUtilityClass, options);
 
-                    m_Session.SetInt32("dirty", 1);
+                    Session.SetInt32("dirty", 1);
                 }
 
                 return _memoryCache.Get<ToolUtilityClass>(key);

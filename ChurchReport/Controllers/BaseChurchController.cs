@@ -43,6 +43,11 @@ namespace ChurchReport.Controllers
         protected readonly ICrmConnectionPool _connectionPool;
 
         /// <summary>
+        /// HTTP 上下文存取器 (用於安全訪問 HttpContext)
+        /// </summary>
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        /// <summary>
         /// 工具類別實例 (透過 DI 取得 Singleton 實例)
         /// </summary>
         protected ToolUtilityClass ToolUtility => _toolUtilityProvider.GetToolUtility();
@@ -56,6 +61,39 @@ namespace ChurchReport.Controllers
         /// 金流服務介面
         /// </summary>
         protected readonly IPayment PaymentService;
+
+        /// <summary>
+        /// 安全的 HttpContext 訪問器（延遲取得，確保在使用時才存取）
+        /// 
+        /// 設計考量：
+        /// - Controller 基類的 HttpContext 屬性在建構函式執行時可能尚未初始化
+        /// - 使用 IHttpContextAccessor 可以在任何時候安全地取得當前的 HttpContext
+        /// - 這種方式更符合 Dependency Injection 原則
+        /// </summary>
+        protected new HttpContext HttpContext
+        {
+            get
+            {
+                // 優先使用 IHttpContextAccessor（更可靠）
+                var context = _httpContextAccessor?.HttpContext;
+                
+                // 如果 IHttpContextAccessor 沒有提供，嘗試使用基類的 HttpContext
+                if (context == null)
+                {
+                    context = base.HttpContext;
+                }
+
+                // 如果仍然為 null，拋出有意義的異常
+                if (context == null)
+                {
+                    throw new InvalidOperationException(
+                        "HttpContext 未初始化。請確保此方法從有效的 HTTP 請求上下文中調用。" +
+                        "如果在單元測試中，請模擬 IHttpContextAccessor。");
+                }
+
+                return context;
+            }
+        }
 
         #endregion
 
@@ -78,6 +116,13 @@ namespace ChurchReport.Controllers
             ICrmConnectionPool connectionPool,
             IInMemoryDataContext inMemoryContext = null)
         {
+            // ========================================
+            // ? P0: 保存 IHttpContextAccessor（關鍵修復）
+            // ========================================
+            // 這是修復 "HttpContext 未初始化" 錯誤的關鍵
+            // 透過保存 IHttpContextAccessor，我們可以在任何時候安全地取得 HttpContext
+            _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+
             // 透過 DI 注入 ToolUtility 提供者
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
             _connectionPool = connectionPool ?? throw new ArgumentNullException(nameof(connectionPool));
