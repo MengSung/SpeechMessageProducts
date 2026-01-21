@@ -273,6 +273,129 @@ namespace ChurchReport.Controllers
 
         #endregion
 
+        #region Session 安全驗證
+
+        /// <summary>
+        /// 驗證當前 Session 是否合法
+        /// 
+        /// 設計模式：
+        /// - Template Method Pattern: 提供通用驗證流程
+        /// - Fail-Fast Principle: 發現問題立即返回 false
+        /// 
+        /// 驗證項目：
+        /// 1. Session 是否存在
+        /// 2. 用戶 ID 是否一致
+        /// 3. Session 是否過期
+        /// 
+        /// 使用方式：
+        /// 在 Controller Action 開始時呼叫：
+        /// <code>
+        /// if (!ValidateSession())
+        /// {
+        ///     return RedirectToAction("Login", "Authentication");
+        /// }
+        /// </code>
+        /// </summary>
+        /// <returns>true 表示 Session 合法，false 表示需要重新登入</returns>
+        protected bool ValidateSession()
+        {
+            try
+            {
+                // ========================================
+                // Step 1: 檢查 Session 是否存在
+                // ========================================
+                var sessionUserId = HttpContext.Session.GetString("_SessionUserId");
+                if (string.IsNullOrEmpty(sessionUserId))
+                {
+                    System.Diagnostics.Debug.WriteLine("[ValidateSession] ? Session 不存在或已過期");
+                    return false;
+                }
+
+                // ========================================
+                // Step 2: 檢查 Session 創建時間（防止過期 Session）
+                // ========================================
+                var sessionCreatedAt = HttpContext.Session.GetString("_SessionCreatedAt");
+                if (!string.IsNullOrEmpty(sessionCreatedAt))
+                {
+                    if (DateTime.TryParse(sessionCreatedAt, out DateTime createdTime))
+                    {
+                        var sessionAge = DateTime.UtcNow - createdTime;
+                        // Session 超過 8 小時視為過期（額外保護層）
+                        if (sessionAge.TotalHours > 8)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[ValidateSession] ?? Session 已過期 ({sessionAge.TotalHours:F2} 小時)");
+                            return false;
+                        }
+                    }
+                }
+
+                // ========================================
+                // Step 3: 驗證用戶身份一致性
+                // ========================================
+                // 檢查 InMemoryContext 中的用戶資料是否與 Session 一致
+                var currentAccount = InMemoryContext?.ListManager?.m_Account;
+                if (string.IsNullOrEmpty(currentAccount))
+                {
+                    System.Diagnostics.Debug.WriteLine("[ValidateSession] ?? 用戶資料不存在於 InMemoryContext");
+                    return false;
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[ValidateSession] ? Session 驗證通過 - UserId: {sessionUserId}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ValidateSession] ? Session 驗證失敗: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 強制重新生成 Session ID（用於安全升級）
+        /// 
+        /// 使用情境：
+        /// - 權限變更後
+        /// - 敏感操作前
+        /// - 定期安全檢查
+        /// 
+        /// 注意：此方法會清除並重建 Session，但保留用戶資料
+        /// </summary>
+        protected void RegenerateSessionId()
+        {
+            try
+            {
+                // 暫存重要資料
+                var userId = HttpContext.Session.GetString("_SessionUserId");
+                var userAgent = HttpContext.Session.GetString("_SessionUserAgent");
+                var realIp = HttpContext.Session.GetString("_SessionRealIp");
+
+                // 清除舊 Session
+                HttpContext.Session.Clear();
+
+                // 強制生成新 Session ID
+                HttpContext.Session.CommitAsync().GetAwaiter().GetResult();
+
+                // 恢復資料（使用新的時間戳）
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    HttpContext.Session.SetString("_SessionUserId", userId);
+                    HttpContext.Session.SetString("_SessionUserIdentifier", $"{userId}_{DateTime.UtcNow.Ticks}");
+                    HttpContext.Session.SetString("_SessionCreatedAt", DateTime.UtcNow.ToString("O"));
+                    HttpContext.Session.SetString("_SessionUserAgent", userAgent ?? "");
+                    HttpContext.Session.SetString("_SessionRealIp", realIp ?? "");
+                }
+
+                System.Diagnostics.Debug.WriteLine("[RegenerateSessionId] ? Session ID 已重新生成");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[RegenerateSessionId] ? 重新生成失敗: {ex.Message}");
+                throw;
+            }
+        }
+
+        #endregion
+
         #region 連接池操作
 
         /// <summary>

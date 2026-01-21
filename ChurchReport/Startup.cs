@@ -621,6 +621,22 @@ namespace ChurchReport
             
             app.UseSession();      // 啟用 Session 中間件
 
+            // ========================================
+            // ✅ P0: Session 驗證中間件（Session Bleeding 防護 - 核心層）
+            // ========================================
+            // 必須在 UseSession 之後、UseAuthentication 之前加入
+            // 驗證每個請求的 Session 合法性，防止跨用戶 Session 洩漏
+            // 
+            // 防護目標：
+            // 1. 防止「A 登入 WiFi → B 登入 WiFi 看到 A 網頁」
+            // 2. 防止 Session 被後登入的人繼承/共用
+            // 3. 防止 Session Hijacking（會話劫持）
+            app.UseMiddleware<ChurchReport.Middleware.SessionValidationMiddleware>();
+            Console.WriteLine("[Startup] ✅ Session 驗證中間件已啟用（Session Bleeding 防護 - 核心層）");
+            Console.WriteLine("[Startup]   - 驗證 User-Agent 一致性（防劫持）");
+            Console.WriteLine("[Startup]   - 追蹤真實 IP 變化（審計用）");
+            Console.WriteLine("[Startup]   - 防止跨用戶 Session 洩漏");
+
 #if DEBUG
             // ========================================
             // ✅ Phase 8: 啟用 Session 監控中介軟體（僅 DEBUG 模式）

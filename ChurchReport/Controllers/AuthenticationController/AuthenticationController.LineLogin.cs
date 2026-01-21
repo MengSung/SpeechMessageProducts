@@ -86,6 +86,7 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine("[SaveUserLineId] 步驟 4: 檢查用戶是否已在資料庫中綁定");
 
                 IOrganizationService service = null;
+                Entity foundContact = null;
                 try
                 {
                     service = GetConnection();
@@ -109,6 +110,7 @@ namespace ChurchReport.Controllers
 
                     if (results.Entities.Count == 0)
                     {
+                        System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ? 此 LINE ID 尚未綁定");
                         return Json(new
                         {
                             DisplayViewType = "尚未綁定",
@@ -118,7 +120,9 @@ namespace ChurchReport.Controllers
                         });
                     }
 
-                    // 有綁定：繼續走登入
+                    // 找到聯絡人
+                    foundContact = results.Entities[0];
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ? 找到聯絡人: {foundContact.GetAttributeValue<string>("fullname")}");
                 }
                 catch (FaultException<OrganizationServiceFault>)
                 {
@@ -133,6 +137,24 @@ namespace ChurchReport.Controllers
                     ReleaseConnection(service);
                 }
 
+                // ========================================
+                // ? Session Fixation 防護 - LINE 登入前清除舊 Session
+                // ========================================
+                // 在處理 LINE 登入前，先清除任何可能存在的舊 Session
+                // 這確保 A 用戶透過 LINE 登入後，B、C 用戶登入不會看到 A 的網頁
+                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ? 清除舊 Session（防止跨用戶洩漏）");
+                try
+                {
+                    HttpContext.Session.Clear();
+                    HttpContext.Session.CommitAsync().GetAwaiter().GetResult();
+                    System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ? 舊 Session 已清除");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ?? 清除 Session 警告: {ex.Message}");
+                }
+
+                // 有綁定：繼續走登入
                 var lineLoginViewModel = new GalleryViewModel
                 {
                     Account = "",
@@ -141,6 +163,7 @@ namespace ChurchReport.Controllers
 
                 InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
 
+                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ? 準備執行 LINE 登入流程");
                 return await ProcessLogin(lineLoginViewModel);
             }
             catch (Exception e)

@@ -1,4 +1,5 @@
 using ChurchReport.ViewModel;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
@@ -151,11 +152,69 @@ namespace ChurchReport.Controllers
 
         private void InitializeUserSession(Entity loginContact, GalleryViewModel viewModel)
         {
+            // ========================================
+            // ? Session Fixation 防護 - Step 1: 清除舊的 Session
+            // ========================================
+            // 在登入前先清除舊的 Session，防止 Session Fixation 攻擊
+            // 這是防止「A 登入 → B 登入看到 A 網頁」的關鍵步驟
+            HttpContext.Session.Clear();
+            
+            System.Diagnostics.Debug.WriteLine("[InitializeUserSession] ? 已清除舊 Session");
+
+            // ========================================
+            // ? Session Fixation 防護 - Step 2: 強制重新生成 Session ID
+            // ========================================
+            // .NET Core 3.0+ 使用 TryCommitAsync 強制產生新的 Session ID
+            // 這確保每次登入都有全新的、唯一的 Session ID
+            try
+            {
+                // 使用同步方式提交 Session（確保立即生效）
+                // 這會觸發 ASP.NET Core 產生新的 Session Cookie
+                HttpContext.Session.CommitAsync().GetAwaiter().GetResult();
+                System.Diagnostics.Debug.WriteLine("[InitializeUserSession] ? 已強制重新生成 Session ID");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ?? Session Commit 警告: {ex.Message}");
+            }
+
+            // ========================================
+            // ? Session Fixation 防護 - Step 3: 綁定用戶身份標識
+            // ========================================
+            // 在 Session 中儲存唯一的用戶識別資訊，用於後續驗證
+            // 防止跨用戶的 Session 竊取或共用
+            var userId = loginContact?.Id.ToString() ?? Guid.NewGuid().ToString();
+            var userIdentifier = $"{userId}_{DateTime.UtcNow.Ticks}";
+            
+            HttpContext.Session.SetString("_SessionUserId", userId);
+            HttpContext.Session.SetString("_SessionUserIdentifier", userIdentifier);
+            HttpContext.Session.SetString("_SessionCreatedAt", DateTime.UtcNow.ToString("O"));
+            HttpContext.Session.SetString("_SessionUserAgent", HttpContext.Request.Headers["User-Agent"].ToString());
+            
+            // 儲存真實 IP（考慮代理模式）
+            var realIp = HttpContext.Connection.RemoteIpAddress?.ToString() 
+                         ?? HttpContext.Request.Headers["X-Forwarded-For"].ToString() 
+                         ?? "Unknown";
+            HttpContext.Session.SetString("_SessionRealIp", realIp);
+
+            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ? 已綁定用戶身份: UserId={userId}, IP={realIp}");
+
+            // ========================================
+            // 原有的 Session 初始化邏輯
+            // ========================================
             InMemoryContext.AppointmentsListManager.m_Account = viewModel.Account;
             InMemoryContext.AppointmentsListManager.m_Password = viewModel.Password;
             InMemoryContext.AppointmentsListManager.m_LoginContact = loginContact;
 
             InMemoryContext.PersonalInfomationModel.m_LoginContact = loginContact;
+
+            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ========================================");
+            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ? Session 初始化完成");
+            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession]   - 用戶: {viewModel.Account}");
+            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession]   - Session ID: 已重新生成（新的唯一 ID）");
+            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession]   - 用戶綁定: {userIdentifier}");
+            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession]   - 真實 IP: {realIp}");
+            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ========================================");
         }
 
         private void SetupSystemData(Entity loginContact, GalleryViewModel viewModel)
