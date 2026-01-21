@@ -39,6 +39,7 @@ namespace ChurchReport.Middleware
         /// <summary>
         /// 排除清單：這些路徑不需要 Session 驗證
         /// - 登入相關路徑
+        /// - LINE LIFF 相關路徑（重要！）
         /// - 公開資源路徑
         /// - 健康檢查路徑
         /// </summary>
@@ -50,6 +51,9 @@ namespace ChurchReport.Middleware
             "/authentication/lineidloginview",
             "/authentication/saveuserlineid",
             "/authentication/processlinelogin",
+            "/authentication/linebinding",           // ? LINE 綁定相關
+            "/authentication/linenotify",            // ? LINE Notify
+            "/liff",                                 // ? LIFF 相關路徑（通用）
             "/logout",
             "/authentication/logout",
             "/health",
@@ -57,7 +61,9 @@ namespace ChurchReport.Middleware
             "/assets/",
             "/css/",
             "/js/",
-            "/lib/"
+            "/lib/",
+            "/images/",                              // ? 圖片資源
+            "/.well-known/"                          // ? OIDC/OAuth 相關
         };
 
         /// <summary>
@@ -115,15 +121,34 @@ namespace ChurchReport.Middleware
             var currentUserAgent = context.Request.Headers["User-Agent"].ToString();
             var sessionUserAgent = context.Session.GetString("_SessionUserAgent");
 
+            // ? 特殊處理：LINE 內建瀏覽器的 User-Agent 可能變化
+            // LINE 瀏覽器的 User-Agent 包含 "Line/" 字串
+            bool isLineUserAgent = currentUserAgent.Contains("Line/", StringComparison.OrdinalIgnoreCase);
+            bool wasLineUserAgent = !string.IsNullOrEmpty(sessionUserAgent) && 
+                                   sessionUserAgent.Contains("Line/", StringComparison.OrdinalIgnoreCase);
+
             if (!string.IsNullOrEmpty(sessionUserAgent) && currentUserAgent != sessionUserAgent)
             {
-                _logger.LogWarning(
-                    "[Session Validation] ?? User-Agent 不一致 | UserId:{UserId} | Session UA:{SessionUA} | Current UA:{CurrentUA}",
-                    sessionUserId, sessionUserAgent, currentUserAgent);
+                // ? 如果是 LINE 瀏覽器，允許 User-Agent 變化（LINE 內建瀏覽器可能有版本更新）
+                if (isLineUserAgent && wasLineUserAgent)
+                {
+                    _logger.LogInformation(
+                        "[Session Validation] ?? LINE User-Agent 變化（允許） | UserId:{UserId}",
+                        sessionUserId);
+                    
+                    // 更新 Session 中的 User-Agent
+                    context.Session.SetString("_SessionUserAgent", currentUserAgent);
+                }
+                else
+                {
+                    // 非 LINE 瀏覽器的 User-Agent 變化 → 可能是 Session Hijacking
+                    _logger.LogWarning(
+                        "[Session Validation] ?? User-Agent 不一致 | UserId:{UserId} | Session UA:{SessionUA} | Current UA:{CurrentUA}",
+                        sessionUserId, sessionUserAgent, currentUserAgent);
 
-                // User-Agent 變化 → 可能是 Session Hijacking
-                ClearSessionAndRedirectToLogin(context);
-                return;
+                    ClearSessionAndRedirectToLogin(context);
+                    return;
+                }
             }
 
             // ========================================

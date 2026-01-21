@@ -406,7 +406,15 @@ namespace ChurchReport
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 #endif
 
-                options.Cookie.SameSite = SameSiteMode.Strict;           // 防止跨站請求偽造 (CSRF)
+                // ========================================
+                // ✅ P0: SameSite 設為 Lax 以支援 LINE LIFF 登入
+                // ========================================
+                // 原本設為 Strict，但會阻擋 LINE LIFF 的跨站請求
+                // 改為 Lax：
+                // - 仍然防止大部分 CSRF 攻擊
+                // - 允許從外部網站導航過來時攜帶 Cookie（例如 LIFF 登入）
+                // - 不允許在跨站的 POST/PUT/DELETE 請求中發送 Cookie
+                options.Cookie.SameSite = SameSiteMode.Lax;  // 改為 Lax 以支援 LINE LIFF
                 
                 options.IOTimeout = TimeSpan.FromSeconds(30);
             });
@@ -414,12 +422,12 @@ namespace ChurchReport
             Console.WriteLine("[Startup] ✅ Session Cookie 安全性已強化（Session Bleeding 防護）");
             Console.WriteLine("[Startup]   - HttpOnly: true (防 XSS)");
             Console.WriteLine("[Startup]   - SecurePolicy: Always (防 MITM，需 HTTPS)");
-            Console.WriteLine("[Startup]   - SameSite: Strict (防 CSRF)");
+            Console.WriteLine("[Startup]   - SameSite: Lax (防 CSRF，但允許 LINE LIFF 登入)");
             System.Diagnostics.Debug.WriteLine($"[Startup] ========================================");
             System.Diagnostics.Debug.WriteLine($"[Startup] ✅ Session Cookie 三層安全防護");
             System.Diagnostics.Debug.WriteLine($"[Startup]   1. HttpOnly → JavaScript 無法存取");
             System.Diagnostics.Debug.WriteLine($"[Startup]   2. Secure → 只能在 HTTPS 傳輸");
-            System.Diagnostics.Debug.WriteLine($"[Startup]   3. SameSite.Strict → 不會在跨站請求中發送");
+            System.Diagnostics.Debug.WriteLine($"[Startup]   3. SameSite.Lax → 防 CSRF，但允許合法的跨站導航（LINE LIFF）");
             System.Diagnostics.Debug.WriteLine($"[Startup] ========================================");
 
             // 配置身份驗證服務，使用 Cookie 身份驗證方案。
