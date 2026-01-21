@@ -12,6 +12,16 @@ XXXXXX
 檔案太大，進行重構分割成多個模組化的非常小的檔案，放置在新建的目錄中，方便開發、理解、管理
 ----------------------------------------------------------------------------------------------------
 
+我希望你扮演一位擁有 20 年以上經驗的資深 C# / .NET 架構師與企業級系統開發工程師 修改程式防止 Web Cache Deception Session Leakage 問題 解決「A 登入WIFI → B登入WIFI 看到 A網頁 → C 登入WIFI看到 B網頁」 問題 解決 認證 session 被後登入的人繼承/共用 問題
+LINE ID登入相關頁面也要能夠繼續登入，不要被排除
+但是不要造成A登入後，B、C..登入卻只看到A的網頁
+因為是代理模式，直接修改程式
+
+而且LINE ID 登入也要成功，不要因為修改程式造成LINE ID 登入失敗
+
+==========================================================================================
+
+
 
 參考 D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ToolUtility\文件\改用：Microsoft.PowerPlatform.Dataverse.Client.md
 https://learn.microsoft.com/en-us/dotnet/api/microsoft.powerplatform.dataverse.client?view=dataverse-sdk-latest
