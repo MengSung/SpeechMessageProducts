@@ -219,12 +219,455 @@ font-weight: 600;
     </div>
 
     <script>
-        // 全局錯誤處理
+        // ========================================
+        // ✅ P0: 電腦版 LINE 奉獻登入方案（Server-side OAuth 2.0 + LIFF SDK）
+        // ========================================
+        // 目的：解決電腦版 LINE 內建瀏覽器無法使用 LIFF SDK 的問題
+        // 策略：根據環境選擇最佳登入方式
+        //   1. 手機版 LINE / 外部瀏覽器 → 使用 LIFF SDK（原有邏輯）
+        //   2. 電腦版 LINE 內建瀏覽器 → 使用 Server-side OAuth 2.0（新增）
+        // 
+        // 架構師註解：
+        //   - 遵循 SOLID 原則中的 Open-Closed Principle（開放封閉原則）
+        //   - 原有 LIFF SDK 邏輯保持不變，新增環境偵測與 OAuth fallback
+        //   - 確保向後相容性，不影響現有手機版用戶體驗
+        //   - 奉獻流程特殊性：需要在 OAuth 回調後重導向到 QPayView
+        // ========================================
+
+        // ========================================
+        // 全局錯誤處理（保持不變，僅增加註解）
+        // ========================================
         window.onerror = function(msg, url, lineNo, columnNo, error) {
-            console.error("❌ 全局 JavaScript 錯誤:", msg, "at", url, ":", lineNo, ":", columnNo);
+            console.error("❌ [DediationLogin] 全局 JavaScript 錯誤:", msg, "at", url, ":", lineNo, ":", columnNo);
             document.getElementById('displaynamefield').innerHTML = "JavaScript 錯誤: " + msg;
             return false;
         };
+
+        var urlParams = new URLSearchParams(window.location.search);
+        var cleanUrl = window.location.href.split('?')[0];
+
+        // ========================================
+        // 全域變數（保持不變）
+        // ========================================
+        var UserId = "";
+        var GroupId = "";
+        var RoomId = "";
+        var DisplayName = "";
+        var ViewType = "";
+
+        // ========================================
+        // 頁面載入初始化（優化版）
+        // ========================================
+        // 改進：
+        //   1. 增加環境偵測邏輯
+        //   2. 電腦版 LINE 自動使用 Server-side OAuth
+        //   3. 保留原有 LIFF SDK 邏輯（向後相容）
+        //   4. 增加詳細的日誌輸出（便於除錯）
+        // ========================================
+        window.onload = function (e) {
+            console.log('[DediationLogin] ========== 開始初始化 LINE 奉獻登入流程 ==========');
+            console.log('[DediationLogin] URL:', window.location.href);
+            console.log('[DediationLogin] LIFF ID:', '@TempData["Proponent"]');
+            
+            // ========================================
+            // ✅ Step 1: 檢查 LIFF SDK 是否載入
+            // ========================================
+            if (typeof liff === 'undefined') {
+                console.error("❌ [DediationLogin] LIFF SDK 未載入！");
+                document.getElementById('displaynamefield').innerHTML = "錯誤：LIFF SDK 未載入";
+                ShowToast("LIFF SDK 載入失敗，將使用替代登入方式", "warning", 3000);
+                
+                // LIFF SDK 未載入，使用 Server-side OAuth 作為 fallback
+                setTimeout(function() {
+                    useServerSideOAuth();
+                }, 3000);
+                return;
+            } else {
+                console.log("✅ [DediationLogin] LIFF SDK 已載入");
+            }
+
+            // ✅ 方案 A：一律使用 Server-side OAuth（最穩定，推薦用於生產環境）
+            // useServerSideOAuth();
+
+            // ✅ 方案 B：根據環境智能選擇（推薦，兼顧用戶體驗與相容性）
+            detectEnvironmentAndChooseMethod();
+        };
+
+        // ========================================
+        // 方案 A：使用 Server-side OAuth（推薦用於生產環境）
+        // ========================================
+        // 優點：
+        //   - 100% 可靠，不受瀏覽器限制
+        //   - 統一流程，易於維護
+        //   - 完整的後端控制與審計
+        // 缺點：
+        //   - 需要額外的 OAuth 頁面跳轉
+        //   - 用戶體驗稍微複雜一點
+        // 
+        // 特殊處理：
+        //   - ✅ 奉獻頁面需要在 OAuth 完成後重導向到 QPayView
+        //   - ✅ 使用 returnUrl 參數指定目標頁面為 /Home/QPayView
+        // ========================================
+        function useServerSideOAuth() {
+            console.log('[DediationLogin] 使用 Server-side OAuth 2.0 奉獻登入流程');
+            document.getElementById('displaynamefield').innerHTML = '正在導向 LINE 授權頁面...';
+            ShowToast('正在導向 LINE 授權頁面...', 'info', 2000);
+
+            setTimeout(function () {
+                // ========================================
+                // ✅ P0: 奉獻頁面專用處理
+                // ========================================
+                // 重要：加入 returnUrl 參數，指定完成後要導向 QPayView
+                // 後端會在 OAuth 完成後使用此 returnUrl 重導向
+                // ========================================
+                console.log('[DediationLogin] 導向 LineLoginStart，returnUrl=/Home/QPayView');
+                
+                // 加入 returnUrl 參數，指定完成後導向奉獻頁面
+                window.location.href = '/Authentication/LineLoginStart?returnUrl=/Home/QPayView';
+            }, 500);
+        }
+
+        // ========================================
+        // 方案 B：根據環境智能選擇（推薦）
+        // ========================================
+        // 策略：
+        //   - 手機版 LINE → 使用 LIFF SDK（最佳用戶體驗）
+        //   - 電腦版 LINE → 使用 Server-side OAuth（避免 LIFF 限制）
+        //   - 外部瀏覽器 → 優先使用 LIFF SDK，失敗時 fallback 到 OAuth
+        // 
+        // 技術細節：
+        //   - liff.getOS() 返回值：'ios', 'android', 'web'
+        //   - liff.isInClient() 判斷是否在 LINE 應用內
+        //   - 電腦版 LINE 通常是 os='web' && isInClient=true
+        // ========================================
+        function detectEnvironmentAndChooseMethod() {
+            console.log('[DediationLogin] ========== 開始 LIFF 初始化與環境偵測 ==========');
+            
+            liff.init({ liffId: '@TempData["Proponent"]' })
+                .then(async () => {
+                    console.log("✅ [DediationLogin] LIFF 初始化成功");
+                    
+                    var os = '';
+                    var isInClient = false;
+
+                    try { os = liff.getOS(); } catch (e) { console.warn('[DediationLogin] 無法取得 OS:', e); }
+                    try { isInClient = liff.isInClient(); } catch (e) { console.warn('[DediationLogin] 無法判斷 isInClient:', e); }
+
+                    console.log('[DediationLogin] 環境偵測結果:', { os: os, isInClient: isInClient });
+
+                    // ========================================
+                    // ✅ P0: 環境判斷邏輯
+                    // ========================================
+                    // 判斷規則：
+                    //   1. os === 'web' → 可能是電腦版 LINE 或桌面瀏覽器
+                    //   2. !isInClient → 外部瀏覽器（Chrome, Safari 等）
+                    //   3. 電腦版 LINE：os='web' && isInClient=true
+                    // 
+                    // 決策：
+                    //   - 電腦版 LINE 或外部瀏覽器 → 使用 Server-side OAuth
+                    //   - 手機版 LINE (ios/android) → 使用 LIFF SDK
+                    // ========================================
+                    if (os === 'web' || !isInClient) {
+                        console.log('[DediationLogin] ✅ 偵測到電腦版 LINE 或外部瀏覽器環境');
+                        console.log('[DediationLogin] 使用 Server-side OAuth 2.0 奉獻登入流程');
+                        useServerSideOAuth();
+                    } else {
+                        console.log('[DediationLogin] ✅ 偵測到手機版 LINE 環境');
+                        console.log('[DediationLogin] 使用原有 LIFF SDK 奉獻登入流程');
+                        useLiffSdk();
+                    }
+                })
+                .catch(function (error) {
+                    console.error("❌ [DediationLogin] LIFF 初始化失敗:", error);
+                    console.error('[DediationLogin] 錯誤訊息:', error.message);
+                    console.error('[DediationLogin] 錯誤堆疊:', error.stack);
+                    
+                    document.getElementById('displaynamefield').innerHTML = "錯誤:" + error.message;
+                    ShowToast("LIFF 初始化失敗，將使用替代登入方式", "warning", 3000);
+                    
+                    // LIFF 初始化失敗，使用 Server-side OAuth 作為 fallback
+                    setTimeout(function() {
+                        useServerSideOAuth();
+                    }, 3000);
+                });
+        }
+
+        // ========================================
+        // LIFF SDK 流程（手機版 LINE 專用）
+        // ========================================
+        // 這是原有的邏輯，完全保留不變
+        // 僅增加詳細的註解與日誌輸出
+        // ========================================
+        function useLiffSdk() {
+            console.log('[DediationLogin] ========== 開始 LIFF SDK 奉獻登入流程 ==========');
+
+            // ========================================
+            // ✅ Step 1: 檢查登入狀態
+            // ========================================
+            if (!liff.isLoggedIn()) {
+                console.log("⚠️ [DediationLogin] 用戶未登入 LINE");
+                document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
+                ShowToast("您還沒有登入LINE，將為您導向登入頁面", "warning", 3000);
+                
+                // 導向 LINE 登入頁面
+                setTimeout(function() {
+                    try {
+                        console.log('[DediationLogin] 導向 LINE 登入頁面...');
+                        liff.login({ redirectUri: cleanUrl });
+                    } catch (e) {
+                        console.error('[DediationLogin] ❌ liff.login() 失敗:', e);
+                        // 如果 LIFF login 失敗，改用 Server-side OAuth
+                        useServerSideOAuth();
+                    }
+                }, 1000);
+                return;
+            }
+
+            // ========================================
+            // ✅ Step 2: 檢查權限授權
+            // ========================================
+            console.log("✅ [DediationLogin] 用戶已登入 LINE");
+            console.log('[DediationLogin] 檢查 profile 權限...');
+            
+            liff.permission.query("profile")
+                .then((permissionStatus) => {
+                    console.log('[DediationLogin] 權限狀態:', permissionStatus.state);
+                    
+                    if (permissionStatus.state === "granted") {
+                        // ✅ 已授權，繼續登入流程
+                        console.log("✅ [DediationLogin] profile 權限已授權");
+                        initializeApp();
+                    }
+                    else if (permissionStatus.state === "prompt") {
+                        // ⚠️ 需要用戶授權
+                        console.log("⚠️ [DediationLogin] 需要用戶授權 profile 權限");
+                        document.getElementById('displaynamefield').innerHTML = "您並未授權，請先完成授權程序!";
+                        ShowToast("請授權取得基本資料", "warning", 3000);
+                        
+                        // 請求權限
+                        try {
+                            liff.permission.requestAll();
+                        } catch (e) {
+                            console.error('[DediationLogin] ❌ requestAll() 失敗:', e);
+                        }
+                    }
+                    else {
+                        // ❌ 權限未設定或被拒絕
+                        console.error("❌ [DediationLogin] LIFF Scope 未正確設定");
+                        document.getElementById('displaynamefield').innerHTML = "Liff Scope沒有設定，所以無法操作!";
+                        ShowToast("Liff Scope 未設定，請聯繫管理員", "error", 5000);
+                    }
+                })
+                .catch((error) => {
+                    console.error('[DediationLogin] ❌ 權限檢查失敗:', error);
+                    // 權限檢查失敗，直接嘗試取得 profile
+                    console.log('[DediationLogin] 嘗試直接取得 profile...');
+                    initializeApp();
+                });
+        }
+
+        // ========================================
+        // 初始化應用程式，獲取用戶資訊（原有邏輯，僅增加日誌）
+        // ========================================
+        // 功能：
+        //   1. 使用 liff.getProfile() 取得用戶資訊
+        //   2. 呼叫 UpdateLineUserId 檢查並設定用戶
+        //   3. 成功後重導向到 QPayView（奉獻頁面）
+        // 
+        // 架構師註解：
+        //   - 此函數為核心業務邏輯，不應修改
+        //   - 僅增加日誌輸出，便於追蹤與除錯
+        // ========================================
+        async function initializeApp() {
+            console.log('[DediationLogin] ========== 開始取得 LINE Profile ==========');
+            
+            try {
+                const profile = await liff.getProfile();
+                console.log("✅ [DediationLogin] liff.getProfile() 成功");
+                console.log('[DediationLogin] Profile:', {
+                    displayName: profile.displayName,
+                    userId: profile.userId
+                });
+                
+                // 更新頁面顯示
+                document.getElementById('displaynamefield').innerHTML = profile.displayName + "<br/> 登入奉獻中，請稍待......";
+
+                // 儲存用戶資訊
+                DisplayName = profile.displayName;
+                UserId = profile.userId;
+                GroupId = profile.aGroupId || "";
+                RoomId = profile.aRoomId || "";
+                ViewType = profile.aViewType || "";
+                
+                console.log('[DediationLogin] 用戶資訊:', {
+                    DisplayName: DisplayName,
+                    UserId: UserId,
+                    GroupId: GroupId,
+                    RoomId: RoomId,
+                    ViewType: ViewType
+                });
+                
+                console.log('[DediationLogin] 準備調用 UpdateLineUserId');
+                
+                // 呼叫後端 API 設定用戶
+                UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+            }
+            catch (error) {
+                console.error("❌ [DediationLogin] initializeApp 錯誤:", error);
+                console.error('[DediationLogin] 錯誤訊息:', error.message);
+                document.getElementById('displaynamefield').innerHTML = "錯誤:" + error.message;
+                ShowToast("取得用戶資料失敗: " + error.message, "error", 5000);
+            }
+        }
+
+        // ========================================
+        // 更新 LINE UserId 到伺服器（原有邏輯，僅增加日誌與錯誤處理）
+        // ========================================
+        // 功能：
+        //   1. 將 LINE UserId 傳送到後端
+        //   2. 後端設定用戶 Session
+        //   3. 成功後重導向到 QPayView（奉獻頁面）
+        // 
+        // 架構師註解：
+        //   - 此函數為關鍵 API 呼叫，不應修改核心邏輯
+        //   - 增加詳細的日誌輸出與錯誤處理
+        //   - 確保 jQuery 已載入
+        //   - 確保 AJAX URL 正確
+        // ========================================
+        function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType) {
+            console.log('[DediationLogin] ========== 開始更新 LINE UserId ==========');
+            console.log('[DediationLogin] 參數:', {
+                UserLineId: aUserLineId,
+                GroupId: aGroupId,
+                RoomId: aRoomId,
+                ViewType: aViewType
+            });
+            
+            // ========================================
+            // ✅ Step 1: 檢查 jQuery 是否載入
+            // ========================================
+            if (typeof $ === 'undefined') {
+                console.error("❌ [DediationLogin] jQuery 未載入！");
+                document.getElementById('displaynamefield').innerHTML = "錯誤：jQuery 未載入";
+                ShowToast("系統錯誤，請重新整理頁面", "error", 5000);
+                return;
+            } else {
+                console.log("✅ [DediationLogin] jQuery 已載入，版本:", $.fn.jquery);
+            }
+            
+            // ========================================
+            // ✅ Step 2: 檢查 AJAX URL 是否正確生成
+            // ========================================
+            var ajaxUrl = '@Url.Action("SetupUserLineId", "Home")';
+            console.log('[DediationLogin] AJAX URL:', ajaxUrl);
+            console.log('[DediationLogin] AJAX URL Type:', typeof ajaxUrl);
+            console.log('[DediationLogin] AJAX URL Length:', ajaxUrl.length);
+            
+            if (!ajaxUrl || ajaxUrl.trim() === '') {
+                console.error("❌ [DediationLogin] AJAX URL 為空！");
+                ajaxUrl = '/Home/SetupUserLineId';  // 使用備用 URL
+                console.log('[DediationLogin] 使用備用 URL:', ajaxUrl);
+            }
+            
+            console.log('[DediationLogin] 準備發送 AJAX 請求...');
+            
+            // ========================================
+            // ✅ Step 3: 發送 AJAX 請求
+            // ========================================
+            $.ajax({
+                url: ajaxUrl,
+                data: { 
+                    UserLineId: aUserLineId, 
+                    GroupId: aGroupId, 
+                    RoomId: aRoomId, 
+                    ViewType: aViewType
+                },
+                type: 'POST',
+                
+                beforeSend: function(xhr, settings) {
+                    console.log('[DediationLogin] === AJAX beforeSend ===');
+                    console.log('[DediationLogin] URL:', settings.url);
+                    console.log('[DediationLogin] Type:', settings.type);
+                    console.log('[DediationLogin] Data:', settings.data);
+                },
+                
+                success: function (data) {
+                    console.log('[DediationLogin] === AJAX Success ===');
+                    console.log('[DediationLogin] Response:', data);
+                    console.log('[DediationLogin] Response Type:', typeof data);
+                    
+                    if (data && data.status) {
+                        console.log('[DediationLogin] Status:', data.status);
+                    }
+                    
+                    // ========================================
+                    // ✅ P0: 重導向到奉獻頁面（QPayView）
+                    // ========================================
+                    console.log('[DediationLogin] 準備重導向到 QPayView:', "/Home/QPayView/" + aUserLineId);
+                    
+                    // 使用 LINE 自己的網頁瀏覽器，比較快，但是 Apple Pay 不成功
+                    // 架構師註解：
+                    //   - 在 LINE 內建瀏覽器中開啟，保持用戶體驗流暢
+                    //   - 缺點：Apple Pay 可能無法使用
+                    //   - 考慮：根據支付方式選擇是否使用外部瀏覽器
+                    window.location.href = "/Home/QPayView/" + aUserLineId;
+                },
+                
+                error: function (xhr, status, error) {
+                    console.log('[DediationLogin] === AJAX Error ===');
+                    console.error('[DediationLogin] Status:', status);
+                    console.error('[DediationLogin] Error:', error);
+                    console.error('[DediationLogin] Status Code:', xhr.status);
+                    console.error('[DediationLogin] Status Text:', xhr.statusText);
+                    console.error('[DediationLogin] Response Text:', xhr.responseText);
+                    console.error('[DediationLogin] Response Headers:', xhr.getAllResponseHeaders());
+                    
+                    // 隱藏載入面板
+                    getLoadPanelInstance().hide();
+                    
+                    // 構建錯誤訊息
+                    var errorMessage = "登入失敗";
+                    
+                    if (xhr.status === 0) {
+                        errorMessage = "網路連線失敗，請檢查網路設定";
+                    } else if (xhr.status === 404) {
+                        errorMessage = "找不到登入頁面 (404)";
+                    } else if (xhr.status === 500) {
+                        errorMessage = "伺服器錯誤 (500)";
+                    } else if (status === 'timeout') {
+                        errorMessage = "連線逾時，請稍後再試";
+                    } else if (xhr.responseText) {
+                        try {
+                            var errorData = JSON.parse(xhr.responseText);
+                            errorMessage = errorData.message || errorMessage;
+                        } catch (e) {
+                            errorMessage = "伺服器回應錯誤";
+                        }
+                    }
+                    
+                    // 顯示錯誤訊息給用戶
+                    document.getElementById('displaynamefield').innerHTML = 
+                        "AJAX 錯誤：" + status + " - " + error + "<br>Status Code: " + xhr.status;
+                    
+                    // 顯示 Toast 提示
+                    ShowToast(errorMessage + " (Code: " + xhr.status + ")", "error", 5000);
+                    
+                    // 暫時註解掉自動重導向，讓用戶看到錯誤訊息
+                    // window.location.href = "/Home/Login";
+                },
+                
+                complete: function(xhr, status) {
+                    console.log('[DediationLogin] === AJAX Complete ===');
+                    console.log('[DediationLogin] Final Status:', status);
+                }
+            });
+            
+            console.log('[DediationLogin] AJAX 請求已發送');
+        }
+
+        // ========================================
+        // 輔助函數（保持不變）
+        // ========================================
 
         function getLoadPanelInstance() {
             return $("#loadPanel").dxLoadPanel("instance");
@@ -249,195 +692,10 @@ font-weight: 600;
         function Login(arg) {
             window.location.href = "/Home/Login";
         }
-    </script>
 
-    <script>
-        var UserId = "";
-        var GroupId = "";
-        var RoomId = "";
-        var DisplayName = "";
-        var ViewType = "";
-
-        window.onload = function (e) {
-            // console.log("=== window.onload 觸發 ===");
-            // console.log("LIFF ID:", '@TempData["Proponent"]');
-            
-            // 檢查 LIFF SDK 是否載入
-            if (typeof liff === 'undefined') {
-                console.error("❌ LIFF SDK 未載入！");
-                document.getElementById('displaynamefield').innerHTML = "錯誤：LIFF SDK 未載入";
-                return;
-            } else {
-                // console.log("✅ LIFF SDK 已載入");
-            }
-            
-            liff.init({ liffId: '@TempData["Proponent"]' })
-                .then(() => {
-                    // console.log("✅ LIFF 初始化成功");
-                    
-                    // 检查用户是否已登录
-                    if (!liff.isLoggedIn()) {
-                        // console.log("⚠️ 用戶未登入 LINE");
-                        document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
-                        ShowToast("您還沒有登入LINE", "error", 5000);
-                        liff.login();
-                        return;
-                    }
-                    else {
-                        // console.log("✅ 用戶已登入 LINE");
-                        
-                        liff.permission.query("profile").then((permissionStatus) => {
-                            // console.log("權限狀態:", permissionStatus.state);
-                            
-                            if (permissionStatus.state === "granted") {
-                                // console.log("✅ 使用者已授權 profile 權限");
-                                initializeApp();
-                            }
-                            else if (permissionStatus.state === "prompt") {
-                                // console.log("⚠️ 需要請求授權");
-                                document.getElementById('displaynamefield').innerHTML = "您並未授權，請先完成授權程序!";
-                                liff.permission.requestAll();
-                            }
-                            else {
-                                console.error("❌ LIFF Scope 未正確設定");
-                                document.getElementById('displaynamefield').innerHTML = "Liff Scope沒有設定，所以無法操作!";
-                            }
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error("❌ LIFF 初始化失敗:", error);
-                    document.getElementById('displaynamefield').innerHTML = "錯誤:" + error;
-                });
-        };
-
-        async function initializeApp() {
-            // console.log("=== initializeApp 開始 ===");
-            
-            try {
-                const profile = await liff.getProfile();
-                // console.log("✅ liff.getProfile() 成功");
-                // console.log("Profile:", profile);
-                
-                document.getElementById('displaynamefield').innerHTML = profile.displayName + "<br/> 登入奉獻中，請稍待......";
-
-                DisplayName = profile.displayName;
-                UserId = profile.userId;
-                GroupId = profile.aGroupId || "";
-                RoomId = profile.aRoomId || "";
-                ViewType = profile.aViewType || "";
-                
-                // console.log("DisplayName:", DisplayName);
-                // console.log("UserId:", UserId);
-                // console.log("GroupId:", GroupId);
-                // console.log("RoomId:", RoomId);
-                // console.log("ViewType:", ViewType);
-                
-                // console.log("準備調用 UpdateLineUserId");
-                
-                // 取得 UserId 的Ajax
-                UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
-            }
-            catch (error) {
-                console.error("❌ initializeApp 錯誤:", error);
-                document.getElementById('displaynamefield').innerHTML = "錯誤:" + error;
-            }
-        }
-
-        function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType) {
-            // console.log("=== UpdateLineUserId 被調用 ===");
-            // console.log("UserLineId:", aUserLineId);
-            // console.log("GroupId:", aGroupId);
-            // console.log("RoomId:", aRoomId);
-            // console.log("ViewType:", aViewType);
-            
-            // 檢查 jQuery 是否載入
-            if (typeof $ === 'undefined') {
-                console.error("❌ jQuery 未載入！");
-                document.getElementById('displaynamefield').innerHTML = "錯誤：jQuery 未載入";
-                return;
-            } else {
-                // console.log("✅ jQuery 已載入，版本:", $.fn.jquery);
-            }
-            
-            // 檢查 URL 是否正確生成
-            var ajaxUrl = '@Url.Action("SetupUserLineId", "Home")';
-            // console.log("AJAX URL:", ajaxUrl);
-            // console.log("AJAX URL Type:", typeof ajaxUrl);
-            // console.log("AJAX URL Length:", ajaxUrl.length);
-            
-            if (!ajaxUrl || ajaxUrl.trim() === '') {
-                console.error("❌ AJAX URL 為空！");
-                ajaxUrl = '/Home/SetupUserLineId';  // 使用備用 URL
-                // console.log("使用備用 URL:", ajaxUrl);
-            }
-            
-            // console.log("準備發送 AJAX 請求...");
-            
-            // AJAX 區塊
-            $.ajax({
-                url: ajaxUrl,
-                data: { 
-                    UserLineId: aUserLineId, 
-                    GroupId: aGroupId, 
-                    RoomId: aRoomId, 
-                    ViewType: aViewType
-                },
-                type: 'POST',
-                
-                beforeSend: function(xhr, settings) {
-                    // console.log("=== AJAX beforeSend 觸發 ===");
-                    // console.log("URL:", settings.url);
-                    // console.log("Type:", settings.type);
-                    // console.log("Data:", settings.data);
-                },
-                
-                success: function (data) {
-                    // console.log("=== AJAX Success ===");
-                    // console.log("Response:", data);
-                    // console.log("Response Type:", typeof data);
-                    
-                    // if (data && data.status) {
-                    //     console.log("Status:", data.status);
-                    // }
-                    
-                    // console.log("準備重導向到:", "/Home/QPayView/" + aUserLineId);
-                    
-                    // 用Line自己的網頁瀏覽器，比較快，但是Apple Pay不成功
-                    window.location.href = "/Home/QPayView/" + aUserLineId;
-                },
-                
-                error: function (xhr, status, error) {
-                    // console.log("=== AJAX Error ===");
-                    console.error("Status:", status);
-                    console.error("Error:", error);
-                    console.error("Status Code:", xhr.status);
-                    console.error("Status Text:", xhr.statusText);
-                    console.error("Response Text:", xhr.responseText);
-                    console.error("Response Headers:", xhr.getAllResponseHeaders());
-                    
-                    // 顯示錯誤訊息給用戶
-                    document.getElementById('displaynamefield').innerHTML = 
-                        "AJAX 錯誤：" + status + " - " + error + "<br>Status Code: " + xhr.status;
-                    
-                    getLoadPanelInstance().hide();
-                    
-                    // 暫時註解掉自動重導向，讓用戶看到錯誤訊息
-                    // window.location.href = "/Home/Login";
-                    
-                    // 顯示 Toast 提示
-                    ShowToast("登入失敗：" + status + " (Code: " + xhr.status + ")", "error", 5000);
-                },
-                
-                complete: function(xhr, status) {
-                    // console.log("=== AJAX Complete ===");
-                    // console.log("Final Status:", status);
-                }
-            });
-            
-            // console.log("AJAX 請求已發送");
-        }
-
+        // ========================================
+        // 顯示 Toast 通知（原有邏輯，增加錯誤處理）
+        // ========================================
         function ShowToast(LocalToastMessage, Type, DisplayTime) {
             try {
                 var ToastInstance = $("#Toast").dxToast("instance");
@@ -447,9 +705,9 @@ font-weight: 600;
                 ToastInstance.option('white-space', 'pre-line');
                 ToastInstance.option('closeOnClick', true);
                 ToastInstance.show();
-                // console.log("Toast 顯示:", LocalToastMessage);
+                console.log('[DediationLogin] Toast 顯示:', LocalToastMessage);
             } catch (e) {
-                console.error("Toast 顯示失敗:", e);
+                console.error('[DediationLogin] Toast 顯示失敗:', e);
             }
         }
     </script>

@@ -34,13 +34,27 @@ namespace ChurchReport.Controllers
         /// 開始 LINE Login OAuth 流程
         /// 重導向用戶至 LINE 授權頁面
         /// </summary>
+        /// <param name="returnUrl">完成後要重導向的目標 URL（可選）</param>
         [HttpGet]
         [Route("/Authentication/LineLoginStart")]
-        public IActionResult LineLoginStart()
+        public IActionResult LineLoginStart(string returnUrl = null)
         {
             try
             {
                 System.Diagnostics.Debug.WriteLine("[LineLoginStart] ========== 開始 LINE Login OAuth 流程 ==========");
+                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] ReturnUrl: {returnUrl}");
+
+                // ========================================
+                // ? P0: 儲存 returnUrl 到 Session
+                // ========================================
+                // 用途：奉獻頁面等特殊流程需要在 OAuth 完成後導向特定頁面
+                // 例如：returnUrl = "/Home/QPayView"
+                // ========================================
+                if (!string.IsNullOrEmpty(returnUrl))
+                {
+                    HttpContext.Session.SetString("_OAuthReturnUrl", returnUrl);
+                    System.Diagnostics.Debug.WriteLine($"[LineLoginStart] ? 已儲存 ReturnUrl 到 Session: {returnUrl}");
+                }
 
                 // 從 HttpContext.RequestServices 取得 IConfiguration
                 var configuration = HttpContext.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
@@ -167,6 +181,65 @@ namespace ChurchReport.Controllers
         #endregion
 
         #region 私有輔助方法
+
+        /// <summary>
+        /// 取得綁定頁面 LIFF ID（從配置文件讀取）
+        /// </summary>
+        private string GetBindingLiffId()
+        {
+            try
+            {
+                var configuration = HttpContext.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
+                var liffId = configuration?["Liff:BindingLiffId"];
+                
+                if (string.IsNullOrEmpty(liffId))
+                {
+                    System.Diagnostics.Debug.WriteLine("[GetBindingLiffId] ?? 配置文件中未找到 Liff:BindingLiffId，使用預設值");
+                    return "1653819697-YkPyPkr6"; // 預設值（向後相容）
+                }
+                
+                return liffId;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetBindingLiffId] ? 讀取配置失敗: {ex.Message}");
+                return "1653819697-YkPyPkr6"; // 預設值
+            }
+        }
+
+        /// <summary>
+        /// 取得登入頁面 LIFF ID（從配置文件讀取）
+        /// </summary>
+        private string GetLoginLiffId()
+        {
+            try
+            {
+                var configuration = HttpContext.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
+                var liffId = configuration?["Liff:LoginLiffId"];
+                
+                if (string.IsNullOrEmpty(liffId))
+                {
+                    System.Diagnostics.Debug.WriteLine("[GetLoginLiffId] ?? 配置文件中未找到 Liff:LoginLiffId，使用預設值");
+                    return "2007621061-Exd9BGv8"; // 預設值（向後相容）
+                }
+                
+                return liffId;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetLoginLiffId] ? 讀取配置失敗: {ex.Message}");
+                return "2007621061-Exd9BGv8"; // 預設值
+            }
+        }
+
+        /// <summary>
+        /// 取得綁定頁面完整 URL（從配置文件讀取 LIFF ID）
+        /// </summary>
+        private string GetBindingPageUrl()
+        {
+            var liffId = GetBindingLiffId();
+            return $"/Authentication/LineLiffView/{liffId}";
+        }
 
         /// <summary>
         /// 生成隨機 state 用於 CSRF 防護
@@ -298,12 +371,141 @@ namespace ChurchReport.Controllers
             {
                 System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 開始處理 LINE 用戶登入: {lineUserId}");
 
+                // ========================================
+                // ? P0: 檢查是否有自訂的 returnUrl（優先處理）
+                // ========================================
+                // 用途：
+                //   1. 奉獻頁面：導向 /Home/QPayView
+                //   2. 綁定頁面：導向綁定頁面（使用特殊標記 "_BINDING_"）
+                // ========================================
+                var returnUrl = HttpContext.Session.GetString("_OAuthReturnUrl");
+                if (!string.IsNullOrEmpty(returnUrl))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? 偵測到自訂 ReturnUrl: {returnUrl}");
+                    
+                    // 清除 Session 中的 returnUrl（避免重複使用）
+                    HttpContext.Session.Remove("_OAuthReturnUrl");
+
+                    // ========================================
+                    // ? P0: 綁定頁面特殊處理
+                    // ========================================
+                    // 如果 returnUrl 是 "_BINDING_"，表示這是綁定流程
+                    // 不執行完整登入，只導向綁定頁面讓前端處理
+                    // ========================================
+                    if (returnUrl == "_BINDING_")
+                    {
+                        System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? 偵測到綁定流程，導向綁定頁面");
+                        
+                        // 儲存 LINE UserId 到 TempData（供綁定頁面前端使用）
+                        TempData["_PendingLineUserId"] = lineUserId;
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? 已儲存 LINE UserId 到 TempData: {lineUserId}");
+                        
+                        // ========================================
+                        // ? 使用配置文件中的 LIFF ID（而不是硬編碼）
+                        // ========================================
+                        var bindingPageUrl = GetBindingPageUrl();
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? 綁定頁面 URL: {bindingPageUrl}");
+                        
+                        // 導向綁定頁面，讓前端 JavaScript 處理
+                        // 前端會檢查是否已綁定，並顯示對應的訊息
+                        return Redirect(bindingPageUrl);
+                    }
+
+                    // ========================================
+                    // 奉獻頁面或其他特殊流程
+                    // ========================================
+                    
+                    // 檢查用戶是否已綁定（仍需檢查）
+                    IOrganizationService service = null;
+                    try
+                    {
+                        service = GetConnection();
+
+                        var query = new QueryExpression("contact")
+                        {
+                            ColumnSet = new ColumnSet("contactid", "fullname", "new_lineid"),
+                            Criteria = new FilterExpression
+                            {
+                                FilterOperator = LogicalOperator.And,
+                                Conditions =
+                                {
+                                    new ConditionExpression("new_lineid", ConditionOperator.Equal, lineUserId),
+                                    new ConditionExpression("statecode", ConditionOperator.Equal, 0)
+                                }
+                            },
+                            TopCount = 1
+                        };
+
+                        var results = service.RetrieveMultiple(query);
+
+                        if (results.Entities.Count == 0)
+                        {
+                            System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 該 LINE ID 尚未綁定");
+                            
+                            // ? 使用配置文件中的 LIFF ID（而不是硬編碼）
+                            var bindingPageUrl = GetBindingPageUrl();
+                            System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? 重導向至綁定頁面: {bindingPageUrl}");
+                            
+                            // 重導向至綁定頁面
+                            return Redirect(bindingPageUrl);
+                        }
+
+                        var foundContact = results.Entities[0];
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 找到聯絡人: {foundContact.GetAttributeValue<string>("fullname")}");
+                    }
+                    finally
+                    {
+                        ReleaseConnection(service);
+                    }
+
+                    // 清除舊 Session（防止 Session Fixation）
+                    System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? 清除舊 Session（防止跨用戶洩漏）");
+                    try
+                    {
+                        // 保存 returnUrl 到臨時變數（因為 Clear 會清除所有）
+                        var tempReturnUrl = returnUrl;
+                        HttpContext.Session.Clear();
+                        await HttpContext.Session.CommitAsync();
+                        returnUrl = tempReturnUrl;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ?? 清除 Session 警告: {ex.Message}");
+                    }
+
+                    // 建立登入 ViewModel
+                    var lineLoginViewModel = new GalleryViewModel
+                    {
+                        Account = "",
+                        Password = lineUserId
+                    };
+
+                    InMemoryContext.LineBindingViewModel.LineUserId = lineUserId;
+
+                    // 執行標準登入流程
+                    System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? 呼叫標準登入流程");
+                    var loginResult = await ProcessLogin(lineLoginViewModel);
+
+                    // ========================================
+                    // ? P0: 使用自訂 returnUrl 重導向
+                    // ========================================
+                    // 重要：對於奉獻頁面等特殊流程，使用 returnUrl 而不是 DisplayViewType
+                    // 例如：returnUrl = "/Home/QPayView"，需要附加 lineUserId
+                    // ========================================
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? 使用自訂 ReturnUrl 重導向: {returnUrl}/{lineUserId}");
+                    return Redirect($"{returnUrl}/{lineUserId}");
+                }
+
+                // ========================================
+                // 一般登入流程（無 returnUrl）
+                // ========================================
+
                 // 檢查用戶是否已綁定
-                IOrganizationService service = null;
-                Entity foundContact = null;
+                IOrganizationService service2 = null;
+                Entity foundContact2 = null;
                 try
                 {
-                    service = GetConnection();
+                    service2 = GetConnection();
 
                     var query = new QueryExpression("contact")
                     {
@@ -320,21 +522,26 @@ namespace ChurchReport.Controllers
                         TopCount = 1
                     };
 
-                    var results = service.RetrieveMultiple(query);
+                    var results = service2.RetrieveMultiple(query);
 
                     if (results.Entities.Count == 0)
                     {
                         System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 該 LINE ID 尚未綁定");
+                        
+                        // ? 使用配置文件中的 LIFF ID（而不是硬編碼）
+                        var bindingPageUrl = GetBindingPageUrl();
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? 重導向至綁定頁面: {bindingPageUrl}");
+                        
                         // 重導向至綁定頁面
-                        return Redirect("/Authentication/LineLiffView/1653819697-YkPyPkr6");
+                        return Redirect(bindingPageUrl);
                     }
 
-                    foundContact = results.Entities[0];
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 找到聯絡人: {foundContact.GetAttributeValue<string>("fullname")}");
+                    foundContact2 = results.Entities[0];
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 找到聯絡人: {foundContact2.GetAttributeValue<string>("fullname")}");
                 }
                 finally
                 {
-                    ReleaseConnection(service);
+                    ReleaseConnection(service2);
                 }
 
                 // 清除舊 Session（防止 Session Fixation）
@@ -350,7 +557,7 @@ namespace ChurchReport.Controllers
                 }
 
                 // 建立登入 ViewModel
-                var lineLoginViewModel = new GalleryViewModel
+                var lineLoginViewModel2 = new GalleryViewModel
                 {
                     Account = "",
                     Password = lineUserId
@@ -360,13 +567,13 @@ namespace ChurchReport.Controllers
 
                 // 執行標準登入流程
                 System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? 呼叫標準登入流程");
-                var loginResult = await ProcessLogin(lineLoginViewModel);
+                var loginResult2 = await ProcessLogin(lineLoginViewModel2);
 
                 // ========================================
-                // ? P0: 處理登入結果並重導向
+                // ? P0: 處理登入結果並重導向（預設流程）
                 // ========================================
                 // ProcessLogin 返回 JSON，但在 OAuth 流程中我們需要重導向
-                if (loginResult is JsonResult jsonResult)
+                if (loginResult2 is JsonResult jsonResult)
                 {
                     System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? 登入成功，解析返回結果");
                     
@@ -420,8 +627,8 @@ namespace ChurchReport.Controllers
                 else
                 {
                     // 如果 ProcessLogin 返回的不是 JSON，直接返回
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ?? ProcessLogin 返回類型: {loginResult?.GetType().Name}");
-                    return loginResult;
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ?? ProcessLogin 返回類型: {loginResult2?.GetType().Name}");
+                    return loginResult2;
                 }
             }
             catch (Exception ex)
