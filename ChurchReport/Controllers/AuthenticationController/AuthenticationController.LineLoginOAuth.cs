@@ -342,7 +342,7 @@ namespace ChurchReport.Controllers
                 try
                 {
                     HttpContext.Session.Clear();
-                    HttpContext.Session.CommitAsync().GetAwaiter().GetResult();
+                    await HttpContext.Session.CommitAsync();
                 }
                 catch (Exception ex)
                 {
@@ -360,12 +360,75 @@ namespace ChurchReport.Controllers
 
                 // 執行標準登入流程
                 System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? 呼叫標準登入流程");
-                return await ProcessLogin(lineLoginViewModel);
+                var loginResult = await ProcessLogin(lineLoginViewModel);
+
+                // ========================================
+                // ? P0: 處理登入結果並重導向
+                // ========================================
+                // ProcessLogin 返回 JSON，但在 OAuth 流程中我們需要重導向
+                if (loginResult is JsonResult jsonResult)
+                {
+                    System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? 登入成功，解析返回結果");
+                    
+                    // 從 JSON 結果中取得資料
+                    var resultValue = jsonResult.Value;
+                    var resultType = resultValue.GetType();
+                    
+                    // 使用反射取得屬性值
+                    var displayViewTypeProperty = resultType.GetProperty("DisplayViewType");
+                    var activeListIdProperty = resultType.GetProperty("ActiveListId");
+                    var messageProperty = resultType.GetProperty("message");
+                    
+                    if (displayViewTypeProperty != null && activeListIdProperty != null)
+                    {
+                        var displayViewType = displayViewTypeProperty.GetValue(resultValue)?.ToString();
+                        var activeListId = activeListIdProperty.GetValue(resultValue)?.ToString();
+                        var message = messageProperty?.GetValue(resultValue)?.ToString();
+                        
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] DisplayViewType: {displayViewType}");
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ActiveListId: {activeListId}");
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] Message: {message}");
+                        
+                        // 根據 DisplayViewType 重導向至對應頁面
+                        if (displayViewType == "MultiGroupView")
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? 重導向至 MultiGroupView: {activeListId}");
+                            return Redirect($"/SmallGroup/MultiGroupView/{activeListId}");
+                        }
+                        else if (displayViewType == "IntegrateView")
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? 重導向至 IntegrateView: {activeListId}");
+                            return Redirect($"/SmallGroup/IntegrateView/{activeListId}");
+                        }
+                        else if (displayViewType == "HappyGroupView")
+                        {
+                            System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? 重導向至 HappyGroupView");
+                            return Redirect("/SmallGroup/HappyGroup");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ?? 未知的 DisplayViewType: {displayViewType}");
+                            return Redirect("/Home/Index");
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ?? 無法從 JSON 結果中取得必要屬性");
+                        return Redirect("/Home/Index");
+                    }
+                }
+                else
+                {
+                    // 如果 ProcessLogin 返回的不是 JSON，直接返回
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ?? ProcessLogin 返回類型: {loginResult?.GetType().Name}");
+                    return loginResult;
+                }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 錯誤: {ex.Message}");
-                throw;
+                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? 錯誤: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 堆疊追蹤: {ex.StackTrace}");
+                return Redirect("/Authentication/Login?error=" + Uri.EscapeDataString("登入失敗，請稍後再試"));
             }
         }
 
