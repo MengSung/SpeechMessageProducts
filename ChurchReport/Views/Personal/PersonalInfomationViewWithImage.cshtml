@@ -1,0 +1,365 @@
+<!-- 
+    個人資訊頁面 - 增強版（含大頭照上傳功能）
+    功能：
+    1. 顯示個人資訊表單
+    2. 上傳並更新 Contact 大頭照
+    3. 即時預覽上傳的圖片
+-->
+
+@using ChurchReport.ViewModels
+@model PersonalInfomationViewModel
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@Model.FullName 個人資料</title>
+    <style>
+        /* 大頭照上傳區域樣式 */
+        .profile-image-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-image-wrapper {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 15px;
+        }
+
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #ffffff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .profile-image:hover {
+            transform: scale(1.05);
+        }
+
+        .upload-overlay {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: #4CAF50;
+            color: white;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            transition: background 0.3s ease;
+        }
+
+        .upload-overlay:hover {
+            background: #45a049;
+        }
+
+        .upload-overlay i {
+            font-size: 20px;
+        }
+
+        #imageFileInput {
+            display: none;
+        }
+
+        .upload-hint {
+            color: #ffffff;
+            font-size: 14px;
+            margin-top: 10px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .long-title h4 {
+            text-align: center;
+            margin: 20px 0;
+            color: #333;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div class="long-title"><h4>@Model.FullName 個人相關資料</h4></div>
+
+<!-- ========================================
+     ? 大頭照上傳區域
+     ======================================== -->
+<div class="profile-image-container">
+    <div class="profile-image-wrapper">
+        <img id="profileImage" 
+             class="profile-image" 
+             src="/Personal/GetContactImage?contactId=@Model.ContactId&timestamp=@DateTime.Now.Ticks" 
+             alt="大頭照"
+             onclick="document.getElementById('imageFileInput').click();" />
+        
+        <div class="upload-overlay" onclick="document.getElementById('imageFileInput').click();">
+            <i class="fas fa-camera"></i>
+        </div>
+    </div>
+    
+    <div class="upload-hint">
+        點擊圖片或相機圖示上傳大頭照<br />
+        支援 JPG、PNG、GIF 格式，大小限制 5MB
+    </div>
+    
+    <input type="file" 
+           id="imageFileInput" 
+           accept="image/jpeg,image/png,image/gif" 
+           onchange="uploadImage(this);" />
+</div>
+
+<!-- ========================================
+     ? 個人資訊表單
+     ======================================== -->
+<form data-ajax="true" 
+      data-ajax-begin="onBegin" 
+      data-ajax-success="onSuccess" 
+      asp-action="SavePersonalInfomation" 
+      asp-controller="Personal" 
+      method="post">
+    
+    <div class="dx-field">
+        <div id="buttonContainer" class="dx-button-icon">
+            @(Html.DevExtreme().Button()
+                .Text("儲存資料").Icon("check")
+                .Type(ButtonType.Success)
+                .ID("save-button")
+                .UseSubmitBehavior(true)
+                .OnClick("SaveNewPerson")
+            )
+        </div>
+        
+        <!-- Toast 通知 -->
+        <div id="ToastContainer">
+            @(Html.DevExtreme().Toast()
+                .ID("toast")
+                .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                .Message("上傳成功了!")
+                .DisplayTime(2000)
+                .MaxWidth(200)
+            )
+        </div>
+        
+        <!-- 圖片上傳 Toast -->
+        <div id="ImageUploadToastContainer">
+            @(Html.DevExtreme().Toast()
+                .ID("imageUploadToast")
+                .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                .DisplayTime(2000)
+                .MaxWidth(300)
+            )
+        </div>
+        
+        <!-- Loading Panel -->
+        <div id="LoadPanel">
+            @(Html.DevExtreme().LoadPanel()
+                .ID("loadPanel")
+                .ShadingColor("rgba(0,0,0,0.4)")
+                .Position(p => p.Of("#form-container"))
+                .Visible(false)
+                .ShowIndicator(true)
+                .ShowPane(true)
+                .Shading(true)
+                .CloseOnOutsideClick(false)
+                .Message("上傳資料中...")
+                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+            )
+        </div>
+    </div>
+
+    <!-- 表單容器 -->
+    <div id="form-container">
+        @(Html.DevExtreme().Form<PersonalInfomationViewModel>()
+            .ID("form")
+            .ColCount(3)
+            .Items(items =>
+            {
+                items.AddSimpleFor(m => m.LastName)
+                    .Label(l => l.Text("姓"))
+                    .Editor(e => e.TextBox().Disabled(true));
+
+                items.AddSimpleFor(m => m.FirstName)
+                    .Label(l => l.Text("名"))
+                    .Editor(e => e.TextBox().Disabled(true));
+
+                items.AddSimpleFor(m => m.Phone)
+                    .Label(l => l.Text("手機號碼"))
+                    .Editor(e => e.TextBox().Disabled(false));
+
+                items.AddSimpleFor(m => m.HomePhone)
+                    .Label(l => l.Text("家用電話"))
+                    .Editor(e => e.TextBox().Disabled(false));
+
+                items.AddSimpleFor(m => m.Email)
+                    .Label(l => l.Text("電子郵件"))
+                    .Editor(e => e.TextBox().Disabled(false));
+
+                items.AddSimpleFor(m => m.BirthDate)
+                    .Label(l => l.Text("生日"))
+                    .Editor(e => e.DateBox()
+                        .DisplayFormat("yyyy/MM/dd")
+                        .Type(DateBoxType.Date));
+
+                items.AddSimpleFor(m => m.Address)
+                    .Label(l => l.Text("地址"))
+                    .ColSpan(3)
+                    .Editor(e => e.TextArea().Height(60));
+            })
+        )
+    </div>
+</form>
+
+<!-- ========================================
+     ? JavaScript: 圖片上傳邏輯
+     ======================================== -->
+<script>
+    /**
+     * 上傳圖片到伺服器
+     * @@param {HTMLInputElement} input - 檔案輸入元素
+     */
+    function uploadImage(input) {
+        console.log('[uploadImage] 開始上傳圖片');
+        
+        // 檢查是否有選擇檔案
+        if (!input.files || input.files.length === 0) {
+            console.log('[uploadImage] 沒有選擇檔案');
+            return;
+        }
+
+        var file = input.files[0];
+        console.log('[uploadImage] 檔案資訊:', {
+            name: file.name,
+            size: file.size,
+            type: file.type
+        });
+
+        // 檢查檔案大小（5MB）
+        var maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            showImageUploadToast('檔案過大，請選擇小於 5MB 的圖片', 'error');
+            input.value = ''; // 清空選擇
+            return;
+        }
+
+        // 檢查檔案類型
+        var allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (allowedTypes.indexOf(file.type) === -1) {
+            showImageUploadToast('只支援 JPG、PNG、GIF 格式', 'error');
+            input.value = ''; // 清空選擇
+            return;
+        }
+
+        // 即時預覽圖片
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('profileImage').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+
+        // 準備上傳
+        var formData = new FormData();
+        formData.append('imageFile', file);
+
+        // 顯示 Loading
+        $('#loadPanel').dxLoadPanel('instance').show();
+
+        // AJAX 上傳
+        $.ajax({
+            url: '@Url.Action("UploadContactImage", "Personal")',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                console.log('[uploadImage] 上傳成功:', response);
+                
+                // 隱藏 Loading
+                $('#loadPanel').dxLoadPanel('instance').hide();
+
+                if (response.success) {
+                    // 更新圖片（加上時間戳避免快取）
+                    $('#profileImage').attr('src', response.imageUrl);
+                    showImageUploadToast(response.message, 'success');
+                } else {
+                    showImageUploadToast(response.message, 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('[uploadImage] 上傳失敗:', error);
+                
+                // 隱藏 Loading
+                $('#loadPanel').dxLoadPanel('instance').hide();
+                
+                showImageUploadToast('上傳失敗，請稍後再試', 'error');
+                
+                // 恢復原始圖片
+                location.reload();
+            }
+        });
+
+        // 清空輸入框（允許重新選擇相同檔案）
+        input.value = '';
+    }
+
+    /**
+     * 顯示圖片上傳 Toast 通知
+     * @@param {string} message - 訊息內容
+     * @@param {string} type - 訊息類型 (success, error, warning, info)
+     */
+    function showImageUploadToast(message, type) {
+        var toast = $('#imageUploadToast').dxToast('instance');
+        toast.option('message', message);
+        toast.option('type', type);
+        toast.show();
+    }
+
+    /**
+     * 表單送出前的處理
+     */
+    function onBegin() {
+        console.log('[onBegin] 開始儲存個人資料');
+        $('#loadPanel').dxLoadPanel('instance').show();
+    }
+
+    /**
+     * 表單送出成功後的處理
+     */
+    function onSuccess(data) {
+        console.log('[onSuccess] 儲存成功:', data);
+        $('#loadPanel').dxLoadPanel('instance').hide();
+        $('#toast').dxToast('instance').show();
+    }
+
+    /**
+     * 儲存個人資料
+     */
+    function SaveNewPerson() {
+        console.log('[SaveNewPerson] 儲存個人資料');
+        // 表單驗證和提交由 DevExtreme Form 處理
+    }
+</script>
+
+<!-- Font Awesome (用於相機圖示) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+</body>
+</html>

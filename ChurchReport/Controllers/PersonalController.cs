@@ -19,7 +19,7 @@ namespace ChurchReport.Controllers
     /// 個人資訊管理控制器
     /// 處理個人資料維護、個人回報等功能
     /// </summary>
-    public class PersonalController : BaseChurchController
+    public partial class PersonalController : BaseChurchController
     {
         #region 幣構函式
 
@@ -763,6 +763,7 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 個人資料管理畫面
         /// 顯示與編輯個人基本資料
+        /// ✅ 已整合大頭照上傳功能
         /// </summary>
         [HttpGet]
         [Route("/Personal/PersonalInfomationView")]
@@ -771,14 +772,36 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine("[PersonalInfomationView] 開始載入個人資訊頁面");
+                
                 SetupPersonalInfoViewBag();
 
                 InMemoryContext.PersonalInfomationModel.SetPersonalInfomationViewModel();
 
-                return View(InMemoryContext.PersonalInfomationModel.m_PersonalInfomationViewModel);
+                // ========================================
+                // ✅ 設定 ContactId（用於大頭照上傳功能）
+                // ========================================
+                var loginContact = InMemoryContext?.PersonalInfomationModel?.m_LoginContact;
+                if (loginContact != null)
+                {
+                    InMemoryContext.PersonalInfomationModel.m_PersonalInfomationViewModel.ContactId = loginContact.Id;
+                    System.Diagnostics.Debug.WriteLine($"[PersonalInfomationView] ✅ ContactId 已設定: {loginContact.Id}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[PersonalInfomationView] ⚠️ 無法取得 loginContact，ContactId 未設定");
+                }
+
+                // ========================================
+                // ✅ 使用新的 View（含大頭照上傳功能）
+                // ========================================
+                System.Diagnostics.Debug.WriteLine("[PersonalInfomationView] 使用 PersonalInfomationViewWithImage View");
+                return View("PersonalInfomationViewWithImage", 
+                    InMemoryContext.PersonalInfomationModel.m_PersonalInfomationViewModel);
             }
             catch (Exception e)
             {
+                System.Diagnostics.Debug.WriteLine($"[PersonalInfomationView] ❌ 發生錯誤: {e.Message}");
                 return HandleError(e, "PersonalInfomationView");
             }
         }

@@ -12,6 +12,11 @@ namespace ChurchReport.ViewModels
 
         public int ID { get; set; }
 
+        /// <summary>
+        /// Contact ID（用於圖片上傳等功能）
+        /// </summary>
+        public Guid ContactId { get; set; }
+
         public String FirstName { get; set; }
         public String LastName { get; set; }
         public String FullName { get; set; }
