@@ -9,6 +9,10 @@
 @using ChurchReport.ViewModels
 @model PersonalInfomationViewModel
 
+@{
+    var priorities = new[] { "Low", "Normal", "Urgent", "High" };
+}
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -126,38 +130,29 @@
 <!-- ========================================
      ? 個人資訊表單
      ======================================== -->
-<form data-ajax="true" 
-      data-ajax-begin="onBegin" 
-      data-ajax-success="onSuccess" 
-      asp-action="SavePersonalInfomation" 
-      asp-controller="Personal" 
-      method="post">
-    
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SavePersonalInfomation" asp-controller="Personal" method="post">
     <div class="dx-field">
         <div id="buttonContainer" class="dx-button-icon">
             @(Html.DevExtreme().Button()
-                .Text("儲存資料").Icon("check")
-                .Type(ButtonType.Success)
-                .ID("save-button")
-                .UseSubmitBehavior(true)
-                .OnClick("SaveNewPerson")
+                    .Text("上傳").Icon("check")
+                    .Type(ButtonType.Success)
+                    .ID("save-button")
+                    .UseSubmitBehavior(true)
+                    .OnClick("SaveNewPerson")
             )
         </div>
-        
-        <!-- Toast 通知 -->
         <div id="ToastContainer">
             @(Html.DevExtreme().Toast()
                 .ID("toast")
                 .Position(p => p
                     .At(HorizontalAlignment.Center, VerticalAlignment.Center)
                     .Offset(0, 50))
-                .Message("上傳成功了!")
-                .DisplayTime(2000)
-                .MaxWidth(200)
+                    .Message("上傳成功了!")
+                    .DisplayTime(20000)
+                    .MaxWidth(200)
             )
+
         </div>
-        
-        <!-- 圖片上傳 Toast -->
         <div id="ImageUploadToastContainer">
             @(Html.DevExtreme().Toast()
                 .ID("imageUploadToast")
@@ -168,78 +163,215 @@
                 .MaxWidth(300)
             )
         </div>
-        
-        <!-- Loading Panel -->
         <div id="LoadPanel">
             @(Html.DevExtreme().LoadPanel()
-                .ID("loadPanel")
-                .ShadingColor("rgba(0,0,0,0.4)")
-                .Position(p => p.Of("#form-container"))
-                .Visible(false)
-                .ShowIndicator(true)
-                .ShowPane(true)
-                .Shading(true)
-                .CloseOnOutsideClick(false)
-                .Message("上傳資料中...")
-                .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+                    .ID("loadPanel")
+                    .ShadingColor("rgba(0,0,0,0.4)")
+                    .Position(p => p.Of("#form-container"))
+                    .Visible(false)
+                    .ShowIndicator(true)
+                    .ShowPane(true)
+                    .Shading(true)
+                    .CloseOnOutsideClick(false)
+                    .Message("上傳資料中...")
+                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
             )
+
         </div>
     </div>
-
-    <!-- 表單容器 -->
     <div id="form-container">
+
+        @{
+            var NtbtOrNotPriorities = new[] { "是", "否", };
+        }
+
         @(Html.DevExtreme().Form<PersonalInfomationViewModel>()
-            .ID("form")
-            .ColCount(3)
-            .Items(items =>
-            {
-                items.AddSimpleFor(m => m.LastName)
-                    .Label(l => l.Text("姓"))
-                    .Editor(e => e.TextBox().Disabled(true));
+        .ID("form")
+        .ColCount(3)
+        .Items(items =>
+        {
+            items.AddSimpleFor(m=>m.LastName)
+                .Label(l => l.Text("姓名"))
+                .Visible(false)
+                .Editor(e => e
+                    .TextBox()
+                    .Disabled(false)
+                    .Placeholder("輸入姓名")
+               );
 
-                items.AddSimpleFor(m => m.FirstName)
-                    .Label(l => l.Text("名"))
-                    .Editor(e => e.TextBox().Disabled(true));
+            items.AddSimpleFor(m => m.Phone)
+                .Label(l => l.Text("行動電話"))
+                .Editor(e => e
+                    .TextBox()
+                    .Mask("(X000) 000-000")
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入手機號碼")
+                )
+                .ValidationRules(r => r
+                        .AddRequired()
+                        .Message("行動電話為必填")
+                    );
 
-                items.AddSimpleFor(m => m.Phone)
-                    .Label(l => l.Text("手機號碼"))
-                    .Editor(e => e.TextBox().Disabled(false));
 
-                items.AddSimpleFor(m => m.HomePhone)
-                    .Label(l => l.Text("家用電話"))
-                    .Editor(e => e.TextBox().Disabled(false));
+            items.AddSimpleFor(m => m.HomePhone)
+                .Label(l => l.Text("住家電話"))
+                .Editor(e => e
+                    .TextBox()
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入電話號碼")
+                );
+            items.AddSimpleFor(m => m.OfficePhone)
+                .Label(l => l.Text("公司電話"))
+                .Editor(e => e
+                    .TextBox()
+                    .MaskRules(new { X = new JS("/[02-9]/") })
+                    .Placeholder("輸入電話號碼")
+                );
 
-                items.AddSimpleFor(m => m.Email)
-                    .Label(l => l.Text("電子郵件"))
-                    .Editor(e => e.TextBox().Disabled(false));
+            items.AddSimpleFor(m => m.Address)
+                .Label(l => l.Text("地址"))
+                .ValidationRules(r => r
+                        .AddRequired()
+                        .Message("地址為必填")
+                    );
+            items.AddSimpleFor(m => m.Email)
+                .Label(l => l.Text("電子郵件"));
 
-                items.AddSimpleFor(m => m.BirthDate)
-                    .Label(l => l.Text("生日"))
-                    .Editor(e => e.DateBox()
-                        .DisplayFormat("yyyy/MM/dd")
-                        .Type(DateBoxType.Date));
+            items.AddSimpleFor(m => m.Facebook)
+                .Label(l => l.Text("Facebook帳號"));
+            items.AddSimpleFor(m => m.Instagram)
+                .Label(l => l.Text("Instagram帳號"));
 
-                items.AddSimpleFor(m => m.Address)
-                    .Label(l => l.Text("地址"))
-                    .ColSpan(3)
-                    .Editor(e => e.TextArea().Height(60));
-            })
+            items.AddSimpleFor(m => m.LastSixDigit)
+                .Label(l => l.Text("銀行帳戶後六碼"));
+
+            items.AddSimpleFor(m => m.NtbtOrNot)
+                .Label(l => l.Text("是否上傳國稅局"))
+                .Editor(
+                    e => e.RadioGroup()
+                    .Items(NtbtOrNotPriorities)
+                    .Layout(Orientation.Horizontal)
+                );
+
+            items.AddSimpleFor(m => m.PersonalId)
+                .Label(l => l.Text("身份證字號"));
+
+            items.AddSimpleFor(m => m.Gender)
+                    .Label(l => l.Text("性別"))
+                    .Editor(e => e
+                        .SelectBox()
+                        .DataSource(new string[] {
+                        "未知",
+                        "男性",
+                        "女性",
+                            }
+                        )
+                        );
+
+            items.AddSimpleFor(m=>m.Position)
+                .Label(l => l.Text("所屬小組"))
+                    .Visible(false)
+                    .Editor(e => e
+                    .SelectBox()
+                            .DataSource(Model.GroupArray)
+                            .Value(Model.Position)
+                        );
+
+            items.AddSimpleFor(m => m.BirthDate)
+                .Label(l => l.Text("生日"))
+                .IsRequired(false)
+                .Editor(e => e
+                    .DateBox()
+                    .DisplayFormat("yyyy/M/d")
+                    .Disabled(false)
+                    .Placeholder("生日")
+                    .PickerType(DateBoxPickerType.Calendar)
+                );
+
+            items.AddSimpleFor(m => m.HireDate)
+                .IsRequired(false)
+                .Label(l => l.Text("進教會日期"))
+                .Editor(
+                        e => e.DateBox()
+                        .Placeholder("進教會日期")
+                        .PickerType(DateBoxPickerType.Calendar)
+                        .DisplayFormat("yyyy/M/d")
+            );
+
+            items.AddSimpleFor(m => m.MerrageState)
+                .Label(l => l.Text("婚姻狀態"))
+                .Editor(e => e
+                    .SelectBox()
+                    .ID("familyStatusSelectBox")
+                    .DataSource(new JS("familyStatusDataSource"))
+                    );
+
+            items.AddSimpleFor(m => m.CustomerTypeCode)
+                 .Label(l => l.Text("委身類型"))
+                 .Editor(e => e
+                    .TextBox()
+                    .Disabled(true))
+                 ;
+
+            items.AddSimpleFor(m => m.Introducer)
+                .Label(l => l.Text("邀請人"));
+            items.AddSimpleFor(m => m.IntroducerRelation)
+                .Label(l => l.Text("與邀請人關係"));
+
+            items.AddSimpleFor(m => m.Status)
+                .Label(l => l.Text("信仰狀態"))
+                .Editor(e => e
+                    .SelectBox()
+                    .ID("spiritualIdentitySelectBox")
+                    .DataSource(new JS("spiritualIdentityDataSource"))
+                    );
+
+            items.AddSimpleFor(m => m.Industry)
+                 .Name("Industry")
+                 .Label(l => l.Text("職業及專長"));
+
+            items.AddSimpleFor(m => m.EquipmentStatus)
+                 .Name("EquipmentStatus")
+                 .Label(l => l.Text("裝備狀態"))
+                 .Editor(e => e
+                    .TextBox()
+                    .Disabled(true))
+                 ;
+            items.AddSimpleFor(m => m.Notes)
+            .Name("Notes")
+            .ColSpan(2)
+            .Label(l => l.Text("附註"))
+            .Editor(e => e
+                .TextArea()
+                .Disabled(true)
+                .Height(200)
+            );
+
+        })
+        .OnContentReady(@<text>
+                    function(e) {
+                    e.component.validate();
+                    }
+        </text>)
+ .FormData(Model)
         )
     </div>
+
+    <div id="buttonContainer" class="dx-button-icon">
+        @(Html.DevExtreme().Button()
+                    .Text("上傳").Icon("check")
+                    .Type(ButtonType.Success)
+                    .ID("save-button_bottom")
+                    .UseSubmitBehavior(true)
+                    .OnClick("SaveNewPerson")
+            )
+    </div>
+
 </form>
 
-<!-- ========================================
-     ? JavaScript: 圖片上傳邏輯
-     ======================================== -->
 <script>
-    /**
-     * 上傳圖片到伺服器
-     * @@param {HTMLInputElement} input - 檔案輸入元素
-     */
     function uploadImage(input) {
         console.log('[uploadImage] 開始上傳圖片');
-        
-        // 檢查是否有選擇檔案
         if (!input.files || input.files.length === 0) {
             console.log('[uploadImage] 沒有選擇檔案');
             return;
@@ -252,37 +384,31 @@
             type: file.type
         });
 
-        // 檢查檔案大小（5MB）
-        var maxSize = 5 * 1024 * 1024; // 5MB
+        var maxSize = 5 * 1024 * 1024;
         if (file.size > maxSize) {
             showImageUploadToast('檔案過大，請選擇小於 5MB 的圖片', 'error');
-            input.value = ''; // 清空選擇
+            input.value = '';
             return;
         }
 
-        // 檢查檔案類型
         var allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
         if (allowedTypes.indexOf(file.type) === -1) {
             showImageUploadToast('只支援 JPG、PNG、GIF 格式', 'error');
-            input.value = ''; // 清空選擇
+            input.value = '';
             return;
         }
 
-        // 即時預覽圖片
         var reader = new FileReader();
         reader.onload = function(e) {
             document.getElementById('profileImage').src = e.target.result;
         };
         reader.readAsDataURL(file);
 
-        // 準備上傳
         var formData = new FormData();
         formData.append('imageFile', file);
 
-        // 顯示 Loading
-        $('#loadPanel').dxLoadPanel('instance').show();
+        getLoadPanelInstance().show();
 
-        // AJAX 上傳
         $.ajax({
             url: '@Url.Action("UploadContactImage", "Personal")',
             type: 'POST',
@@ -291,12 +417,10 @@
             contentType: false,
             success: function(response) {
                 console.log('[uploadImage] 上傳成功:', response);
-                
-                // 隱藏 Loading
-                $('#loadPanel').dxLoadPanel('instance').hide();
+
+                getLoadPanelInstance().hide();
 
                 if (response.success) {
-                    // 更新圖片（加上時間戳避免快取）
                     $('#profileImage').attr('src', response.imageUrl);
                     showImageUploadToast(response.message, 'success');
                 } else {
@@ -305,26 +429,17 @@
             },
             error: function(xhr, status, error) {
                 console.error('[uploadImage] 上傳失敗:', error);
-                
-                // 隱藏 Loading
-                $('#loadPanel').dxLoadPanel('instance').hide();
-                
+
+                getLoadPanelInstance().hide();
+
                 showImageUploadToast('上傳失敗，請稍後再試', 'error');
-                
-                // 恢復原始圖片
                 location.reload();
             }
         });
 
-        // 清空輸入框（允許重新選擇相同檔案）
         input.value = '';
     }
 
-    /**
-     * 顯示圖片上傳 Toast 通知
-     * @@param {string} message - 訊息內容
-     * @@param {string} type - 訊息類型 (success, error, warning, info)
-     */
     function showImageUploadToast(message, type) {
         var toast = $('#imageUploadToast').dxToast('instance');
         toast.option('message', message);
@@ -332,31 +447,104 @@
         toast.show();
     }
 
-    /**
-     * 表單送出前的處理
-     */
+    var spiritualIdentityDataSource = [];
+    var familyStatusDataSource = [];
+
+    $(document).ready(function() {
+        console.log('========================================');
+        console.log('? [PersonalInfomationView] 頁面載入');
+        console.log('? [PersonalInfomationView] Model.Status:', '@Model.Status');
+        console.log('? [PersonalInfomationView] Model.MerrageState:', '@Model.MerrageState');
+        console.log('========================================');
+
+        $.ajax({
+            url: '/Personal/Api/GetSpiritualIdentityList',
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            success: function(response) {
+                if (response.success && response.data) {
+                    spiritualIdentityDataSource = response.data;
+                    console.log('? [PersonalInfomationView] 成功載入信仰狀態清單:', spiritualIdentityDataSource);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('? [PersonalInfomationView] 載入信仰狀態清單失敗:', error);
+                spiritualIdentityDataSource = ["-未知-"];
+            }
+        });
+
+        $.ajax({
+            url: '/Personal/Api/GetFamilyStatusList',
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            success: function(response) {
+                if (response.success && response.data) {
+                    familyStatusDataSource = response.data;
+                    console.log('? [PersonalInfomationView] 成功載入婚姻狀態清單:', familyStatusDataSource);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('? [PersonalInfomationView] 載入婚姻狀態清單失敗:', error);
+                familyStatusDataSource = ["未知"];
+            }
+        });
+    });
+
+    function getLoadPanelInstance() {
+        return $("#loadPanel").dxLoadPanel("instance");
+    }
+
+    function button_click() {
+        getLoadPanelInstance().show();
+    }
+
+    function loadPanel_shown(e) {
+    }
+
+    function loadPanel_hidden() {
+    }
+
+    function SaveNewPerson(arg) {
+        getLoadPanelInstance().show();
+    }
+
+    function OnSelectStatusBoxValueChanged(e) {
+        if (e.value == "未信主") {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', false);
+        }
+        else {
+            $("#form").dxForm("instance").itemOption("OtherDedication", 'visible', true);
+        }
+    }
+
     function onBegin() {
-        console.log('[onBegin] 開始儲存個人資料');
-        $('#loadPanel').dxLoadPanel('instance').show();
     }
 
-    /**
-     * 表單送出成功後的處理
-     */
     function onSuccess(data) {
-        console.log('[onSuccess] 儲存成功:', data);
-        $('#loadPanel').dxLoadPanel('instance').hide();
-        $('#toast').dxToast('instance').show();
+        getLoadPanelInstance().hide();
+
+        if ( data.status == 1) {
+            DevExpress.ui.notify(data.message, "success", 2000);
+        }
+        else {
+            DevExpress.ui.notify(data.message, "error", 5000);
+        }
     }
 
-    /**
-     * 儲存個人資料
-     */
-    function SaveNewPerson() {
-        console.log('[SaveNewPerson] 儲存個人資料');
-        // 表單驗證和提交由 DevExtreme Form 處理
+    function onComplete(data) {
+        alert("結束!");
+
+        if (data.status == 1) {
+        }
+        else {
+        }
     }
 </script>
+
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
+<link href="~/css/NewPerson.css" rel="stylesheet" />
 
 <!-- Font Awesome (用於相機圖示) -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
