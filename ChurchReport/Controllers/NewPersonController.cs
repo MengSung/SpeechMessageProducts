@@ -6,7 +6,9 @@ using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Xrm.Sdk;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -304,7 +306,7 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="aPersonFormViewModel">新人表單 ViewModel</param>
         [HttpPost]
-        public IActionResult SaveNewPerson(PersonFormViewModel aPersonFormViewModel)
+        public IActionResult SaveNewPerson(PersonFormViewModel aPersonFormViewModel, IFormFile imageFile)
         {
             try
             {
@@ -322,6 +324,9 @@ namespace ChurchReport.Controllers
                     // 新增成功後的處理
                     HandleSuccessfulNewPersonCreation(aPersonFormViewModel);
 
+                    // 嘗試上傳新人照片（若有選擇檔案）
+                    TryUploadNewPersonImage(imageFile);
+
                     // 重設表單
                     ResetNewPersonForm();
 
@@ -338,6 +343,94 @@ namespace ChurchReport.Controllers
             catch (Exception e)
             {
                 return HandleError(e, "SaveNewPerson");
+            }
+        }
+
+        /// <summary>
+        /// 上傳新人照片（由前端在新增成功後呼叫）
+        /// </summary>
+        [HttpPost]
+        [Route("/NewPerson/UploadNewPersonImage")]
+        public IActionResult UploadNewPersonImage(IFormFile imageFile)
+        {
+            try
+            {
+                TryUploadNewPersonImage(imageFile);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "大頭照上傳成功"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = $"大頭照上傳失敗: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// ?s?H???j?Y??W???]?s?H???
+        /// </summary>
+        private void TryUploadNewPersonImage(IFormFile imageFile)
+        {
+            if (imageFile == null || imageFile.Length == 0)
+            {
+                return;
+            }
+
+            const long maxFileSize = 5 * 1024 * 1024; // 5MB
+            if (imageFile.Length > maxFileSize)
+            {
+                System.Diagnostics.Debug.WriteLine("[SaveNewPerson] ?j?Y??W?????: ???L?j");
+                return;
+            }
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+            var fileExtension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
+            var contentType = imageFile.ContentType.ToLowerInvariant();
+
+            if (!Array.Exists(allowedExtensions, ext => ext == fileExtension) ||
+                !Array.Exists(allowedContentTypes, type => type == contentType))
+            {
+                System.Diagnostics.Debug.WriteLine("[SaveNewPerson] ?j?Y??W?????: ??????? ????");
+                return;
+            }
+
+            if (!Guid.TryParse(InMemoryContext.NewPersonModel.m_NewContact.PresentRecordId, out var contactId))
+            {
+                System.Diagnostics.Debug.WriteLine("[SaveNewPerson] ?j?Y??W?????: ?s?H ContactId ?L??");
+                return;
+            }
+
+            IOrganizationService service = null;
+            try
+            {
+                byte[] imageBytes;
+                using (var memoryStream = new MemoryStream())
+                {
+                    imageFile.CopyTo(memoryStream);
+                    imageBytes = memoryStream.ToArray();
+                }
+
+                service = GetConnection();
+
+                var contactToUpdate = new Entity("contact", contactId);
+                contactToUpdate["entityimage"] = imageBytes;
+                service.Update(contactToUpdate);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] ?j?Y??W?????: {ex.Message}");
+            }
+            finally
+            {
+                ReleaseConnection(service);
             }
         }
 

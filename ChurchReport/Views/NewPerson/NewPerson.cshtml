@@ -5,9 +5,95 @@
 @using ChurchReport.ViewModels
 @model PersonFormViewModel
 
+<style>
+    /* 大頭照上傳區域樣式 */
+    .profile-image-container {
+        text-align: left;
+        margin: 0 0 10px 0;
+        padding: 7px;
+        width: 96px;
+        background: #f3f4f6;
+        border-radius: 7px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    .profile-image-wrapper {
+        position: relative;
+        width: 82px;
+        height: 82px;
+        margin: 0;
+    }
+
+    .profile-image {
+        width: 82px;
+        height: 82px;
+        border-radius: 7px;
+        object-fit: cover;
+        border: 3px solid #ffffff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    .profile-image:hover {
+        transform: scale(1.05);
+    }
+
+    .upload-overlay {
+        position: absolute;
+        bottom: -7px;
+        right: -7px;
+        background: #4CAF50;
+        color: white;
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        transition: background 0.3s ease;
+    }
+
+    .upload-overlay:hover {
+        background: #45a049;
+    }
+
+    .upload-overlay i {
+        font-size: 14px;
+    }
+
+    #imageFileInput {
+        display: none;
+    }
+</style>
+
 <div class="long-title"><h3>新人資訊</h3></div>
 
-<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveNewPerson" asp-controller="NewPerson" method="post">
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveNewPerson" asp-controller="NewPerson" method="post" enctype="multipart/form-data">
+    <!-- ========================================
+         ? 大頭照上傳區域
+         ======================================== -->
+    <div class="profile-image-container">
+        <div class="profile-image-wrapper">
+            <img id="profileImage"
+                 class="profile-image"
+                 src="~/assets/images/ChurchLogo.png"
+                 alt="大頭照"
+                 onclick="document.getElementById('imageFileInput').click();" />
+
+            <div class="upload-overlay" onclick="document.getElementById('imageFileInput').click();">
+                <i class="fas fa-camera"></i>
+            </div>
+        </div>
+
+        <input type="file"
+               id="imageFileInput"
+               name="imageFile"
+               accept="image/jpeg,image/png,image/gif"
+               onchange="uploadImage(this);" />
+    </div>
     <div class="dx-field">
 
         <div id="buttonContainer" class="dx-button-icon">
@@ -54,6 +140,16 @@
                     .MaxWidth(200)
             )
 
+        </div>
+        <div id="ImageUploadToastContainer">
+            @(Html.DevExtreme().Toast()
+                .ID("imageUploadToast")
+                .Position(p => p
+                    .At(HorizontalAlignment.Center, VerticalAlignment.Center)
+                    .Offset(0, 50))
+                .DisplayTime(2000)
+                .MaxWidth(300)
+            )
         </div>
         <div id="LoadPanel">
             @(Html.DevExtreme().LoadPanel()
@@ -314,6 +410,70 @@
 
 
 <script>
+    function uploadImage(input) {
+        if (!input.files || input.files.length === 0) {
+            return;
+        }
+
+        var file = input.files[0];
+        var maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            showImageUploadToast('檔案過大，請選擇小於 5MB 的圖片', 'error');
+            input.value = '';
+            return;
+        }
+
+        var allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (allowedTypes.indexOf(file.type) === -1) {
+            showImageUploadToast('只支援 JPG、PNG、GIF 格式', 'error');
+            input.value = '';
+            return;
+        }
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('profileImage').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function showImageUploadToast(message, type) {
+        var toast = $('#imageUploadToast').dxToast('instance');
+        toast.option('message', message);
+        toast.option('type', type);
+        toast.show();
+    }
+
+    function uploadNewPersonImage() {
+        var input = document.getElementById('imageFileInput');
+        if (!input || !input.files || input.files.length === 0) {
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('imageFile', input.files[0]);
+
+        $.ajax({
+            url: '@Url.Action("UploadNewPersonImage", "NewPerson")',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response && response.success) {
+                    showImageUploadToast(response.message, 'success');
+                } else {
+                    showImageUploadToast(response && response.message ? response.message : '上傳失敗', 'error');
+                }
+
+                input.value = '';
+            },
+            error: function() {
+                showImageUploadToast('上傳失敗，請稍後再試', 'error');
+            }
+        });
+    }
+
     // ✅ 全域變數：信仰狀態 DataSource
     var spiritualIdentityDataSource = ["-未知-", "基督徒", "已決志", "慕道友", "未信主"]; // 預設值
     
@@ -732,6 +892,7 @@
 
                     //DevExpress.ui.notify(data.message, "info", 2000);
                     DevExpress.ui.notify(data.message, "success", 2000);
+                    uploadNewPersonImage();
                     //window.location.href = "/Jesus/Login";
                     //window.location.href = "/Home/NewPerson";
                 }
