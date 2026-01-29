@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using ChurchReport.Tools;
 using ChurchReport.ViewModels;
 using DevExtreme.AspNet.Data;
@@ -16,12 +16,12 @@ using ToolUtilityNameSpace.DependencyInjection;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// ·s¤HÃöÃh»P°lÂÜ±±¨î¾¹
-    /// ³B²z·s¤H°lÂÜ¡BÃöÃh¡B«ü¬£¤p²Õµ¥¥\¯à
+    /// æ–°äººé—œæ‡·èˆ‡è¿½è¹¤æ§åˆ¶å™¨
+    /// è™•ç†æ–°äººè¿½è¹¤ã€é—œæ‡·ã€æŒ‡æ´¾å°çµ„ç­‰åŠŸèƒ½
     /// </summary>
     public class NewPersonController : BaseChurchController
     {
-        #region «Øºc¨ç¦¡
+        #region å»ºæ§‹å‡½å¼
 
         public NewPersonController(
             IHttpContextAccessor httpContextAccessor,
@@ -35,11 +35,11 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ·s¤H¸ò¶iÃöÃh¥D­¶­±
+        #region æ–°äººè·Ÿé€²é—œæ‡·ä¸»é é¢
 
         /// <summary>
-        /// ·s¤H¸ò¶iÃöÃh¦Cªí­¶­±
-        /// Åã¥Ü»İ­nÃöÃhªº·s¤H²M³æ
+        /// æ–°äººè·Ÿé€²é—œæ‡·åˆ—è¡¨é é¢
+        /// é¡¯ç¤ºéœ€è¦é—œæ‡·çš„æ–°äººæ¸…å–®
         /// </summary>
         [HttpGet]
         [Route("/NewPerson/FollowUpView")]
@@ -58,7 +58,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³]©w·s¤H¸ò¶i­¶­±ªº ViewBag
+        /// è¨­å®šæ–°äººè·Ÿé€²é é¢çš„ ViewBag
         /// </summary>
         private void SetupNewPersonFollowUpViewBag()
         {
@@ -70,14 +70,14 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¸ê®Æ¸ü¤J
+        #region è³‡æ–™è¼‰å…¥
 
         /// <summary>
-        /// ¸ü¤J·s¤H¸ò¶i¸ê®Æ
-        /// ¥Î©ó DevExtreme DataGrid ªº¸ê®Æ¨Ó·½
+        /// è¼‰å…¥æ–°äººè·Ÿé€²è³‡æ–™
+        /// ç”¨æ–¼ DevExtreme DataGrid çš„è³‡æ–™ä¾†æº
         /// </summary>
-        /// <param name="id">²M³æID</param>
-        /// <param name="loadOptions">¸ü¤J¿ï¶µ(¤À­¶¡B±Æ§Ç¡B¿z¿ï)</param>
+        /// <param name="id">æ¸…å–®ID</param>
+        /// <param name="loadOptions">è¼‰å…¥é¸é …(åˆ†é ã€æ’åºã€ç¯©é¸)</param>
         [HttpGet]
         public object LoadNewPersonFollowUp(string id, DataSourceLoadOptions loadOptions)
         {
@@ -97,7 +97,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ½T«O·s¤H¸ò¶i¸ê®Æ¤w¸ü¤J
+        /// ç¢ºä¿æ–°äººè·Ÿé€²è³‡æ–™å·²è¼‰å…¥
         /// </summary>
         private void EnsureNewPersonDataLoaded(string id)
         {
@@ -111,12 +111,12 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region CRUD ¾Ş§@
+        #region CRUD æ“ä½œ
 
         /// <summary>
-        /// ·s¼W·s¤H¸ò¶i°O¿ı
+        /// æ–°å¢æ–°äººè·Ÿé€²è¨˜éŒ„
         /// </summary>
-        /// <param name="values">JSON ®æ¦¡ªº¸ê®Æ</param>
+        /// <param name="values">JSON æ ¼å¼çš„è³‡æ–™</param>
         [HttpPost]
         public IActionResult InsertNewPresentRecord(string values)
         {
@@ -134,20 +134,20 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §ó·s·s¤H¸ò¶i°O¿ı
-        /// ¥]§t«ü¬£¤p²Õ¡BÂà¤¶¡BÃöÃh°O¿ıµ¥¾Ş§@
+        /// æ›´æ–°æ–°äººè·Ÿé€²è¨˜éŒ„
+        /// åŒ…å«æŒ‡æ´¾å°çµ„ã€è½‰ä»‹ã€é—œæ‡·è¨˜éŒ„ç­‰æ“ä½œ
         /// </summary>
-        /// <param name="key">°O¿ıÃÑ§O½X</param>
-        /// <param name="values">§ó·sªºÄæ¦ì­È(JSON)</param>
+        /// <param name="key">è¨˜éŒ„è­˜åˆ¥ç¢¼</param>
+        /// <param name="values">æ›´æ–°çš„æ¬„ä½å€¼(JSON)</param>
         [HttpPut]
         public IActionResult UpdateNewPresentRecord(string key, string values)
         {
             try
             {
-                // §ó·s·s¤H¸ò¶i¸ê®Æ
+                // æ›´æ–°æ–°äººè·Ÿé€²è³‡æ–™
                 UpdateNewPersonFollowUpData(key, values);
 
-                // §ó·s¥ş³¡¦¨­û¸ê®Æ
+                // æ›´æ–°å…¨éƒ¨æˆå“¡è³‡æ–™
                 UpdateAllMemberData(key, values);
 
                 return Ok();
@@ -159,7 +159,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §ó·s·s¤H¸ò¶iÃöÃh¸ê®Æ
+        /// æ›´æ–°æ–°äººè·Ÿé€²é—œæ‡·è³‡æ–™
         /// </summary>
         private void UpdateNewPersonFollowUpData(string key, string values)
         {
@@ -168,7 +168,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §ó·s¥ş³¡¦¨­û¸ê®Æ
+        /// æ›´æ–°å…¨éƒ¨æˆå“¡è³‡æ–™
         /// </summary>
         private void UpdateAllMemberData(string key, string values)
         {
@@ -177,10 +177,10 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §R°£·s¤H¸ò¶i°O¿ı
-        /// ¦P®É±q¦h­Ó¸ê®Æ¶°¤¤²¾°£
+        /// åˆªé™¤æ–°äººè·Ÿé€²è¨˜éŒ„
+        /// åŒæ™‚å¾å¤šå€‹è³‡æ–™é›†ä¸­ç§»é™¤
         /// </summary>
-        /// <param name="key">°O¿ıÃÑ§O½X</param>
+        /// <param name="key">è¨˜éŒ„è­˜åˆ¥ç¢¼</param>
         [HttpDelete]
         public IActionResult DeleteNewPresentRecord(string key)
         {
@@ -189,7 +189,7 @@ namespace ChurchReport.Controllers
                 var dataList = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                     .m_SmallGroupDataList;
 
-                // ±q¦U­Ó¸ê®Æ¶°¤¤§R°£
+                // å¾å„å€‹è³‡æ–™é›†ä¸­åˆªé™¤
                 dataList.m_SmallGroupData.DeleteMember(key);
                 dataList.m_NewPersonFollowUpData.DeleteMember(key);
                 dataList.m_SmallGroupData.DeleteMember(key);
@@ -204,18 +204,18 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¸ê®ÆÀx¦s
+        #region è³‡æ–™å„²å­˜
 
         /// <summary>
-        /// Àx¦s·s¤H¸ò¶i¸ê®Æ
+        /// å„²å­˜æ–°äººè·Ÿé€²è³‡æ–™
         /// </summary>
-        /// <param name="aResult">Àx¦sµ²ªG</param>
+        /// <param name="aResult">å„²å­˜çµæœ</param>
         [HttpPost]
         public IActionResult SaveNewPersonFollowUp(string aResult)
         {
             try
             {
-                return Json(new { status = "1", message = "¦¨¥\¤W¶Ç¤F...." });
+                return Json(new { status = "1", message = "æˆåŠŸä¸Šå‚³äº†...." });
             }
             catch (Exception e)
             {
@@ -225,11 +225,11 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ·s¼W·s¤H
+        #region æ–°å¢æ–°äºº
 
         /// <summary>
-        /// ·s¼W·s¤H­¶­±
-        /// ´£¨Ñ·s¤H°ò¥»¸ê®Æ¿é¤Jªí³æ
+        /// æ–°å¢æ–°äººé é¢
+        /// æä¾›æ–°äººåŸºæœ¬è³‡æ–™è¼¸å…¥è¡¨å–®
         /// </summary>
         [HttpGet]
         [Route("/NewPerson/AddNewPerson")]
@@ -250,7 +250,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³]©w·s¼W·s¤H­¶­±ªº ViewBag
+        /// è¨­å®šæ–°å¢æ–°äººé é¢çš„ ViewBag
         /// </summary>
         private void SetupNewPersonViewBag()
         {
@@ -260,7 +260,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³]©w·s¤H­n¥[¤Jªº¤p²Õ¦ì¸m
+        /// è¨­å®šæ–°äººè¦åŠ å…¥çš„å°çµ„ä½ç½®
         /// </summary>
         private void SetupNewPersonPosition()
         {
@@ -268,7 +268,7 @@ namespace ChurchReport.Controllers
 
             if (multiGroupList.Count == 1)
             {
-                // ³æ¤@¤p²Õ - ¤£»İ³]©w
+                // å–®ä¸€å°çµ„ - ä¸éœ€è¨­å®š
             }
             else
             {
@@ -291,7 +291,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³]©w¥i¿ï¾Üªº¤p²Õ°}¦C
+        /// è¨­å®šå¯é¸æ“‡çš„å°çµ„é™£åˆ—
         /// </summary>
         private void SetupNewPersonGroupArray()
         {
@@ -302,39 +302,39 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// Àx¦s·s¼Wªº·s¤H¸ê®Æ
+        /// å„²å­˜æ–°å¢çš„æ–°äººè³‡æ–™
         /// </summary>
-        /// <param name="aPersonFormViewModel">·s¤Hªí³æ ViewModel</param>
+        /// <param name="aPersonFormViewModel">æ–°äººè¡¨å–® ViewModel</param>
         [HttpPost]
         public IActionResult SaveNewPerson(PersonFormViewModel aPersonFormViewModel, IFormFile imageFile)
         {
             try
             {
-                // ÅçÃÒ¥²¶ñÄæ¦ì
+                // é©—è­‰å¿…å¡«æ¬„ä½
                 if (string.IsNullOrEmpty(aPersonFormViewModel.Phone))
                 {
-                    return Json(new { status = "2", message = "·s¼W·s¤H¥²¶·­n¦³¦æ°Ê¹q¸Ü" });
+                    return Json(new { status = "2", message = "æ–°å¢æ–°äººå¿…é ˆè¦æœ‰è¡Œå‹•é›»è©±" });
                 }
 
-                // ¤W¶Ç·s¤H¸ê®Æ¨ì CRM
+                // ä¸Šå‚³æ–°äººè³‡æ–™åˆ° CRM
                 string result = UploadNewPersonToCrm(aPersonFormViewModel);
 
-                if (result.Contains("¦¨¥\"))
+                if (result.Contains("æˆåŠŸ"))
                 {
-                    // ·s¼W¦¨¥\«áªº³B²z
+                    // æ–°å¢æˆåŠŸå¾Œçš„è™•ç†
                     HandleSuccessfulNewPersonCreation(aPersonFormViewModel);
 
-                    // ¹Á¸Õ¤W¶Ç·s¤H·Ó¤ù¡]­Y¦³¿ï¾ÜÀÉ®×¡^
+                    // å˜—è©¦ä¸Šå‚³æ–°äººç…§ç‰‡ï¼ˆè‹¥æœ‰é¸æ“‡æª”æ¡ˆï¼‰
                     TryUploadNewPersonImage(imageFile);
 
-                    // ­«³]ªí³æ
+                    // é‡è¨­è¡¨å–®
                     ResetNewPersonForm();
 
                     return Json(new { status = "1", message = result });
                 }
                 else
                 {
-                    // ·s¼W¥¢±Ñ«áªº³B²z
+                    // æ–°å¢å¤±æ•—å¾Œçš„è™•ç†
                     ResetNewPersonForm();
 
                     return Json(new { status = "2", message = result });
@@ -347,7 +347,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¤W¶Ç·s¤H·Ó¤ù¡]¥Ñ«eºİ¦b·s¼W¦¨¥\«á©I¥s¡^
+        /// ä¸Šå‚³æ–°äººç…§ç‰‡ï¼ˆç”±å‰ç«¯åœ¨æ–°å¢æˆåŠŸå¾Œå‘¼å«ï¼‰
         /// </summary>
         [HttpPost]
         [Route("/NewPerson/UploadNewPersonImage")]
@@ -360,7 +360,7 @@ namespace ChurchReport.Controllers
                 return Json(new
                 {
                     success = true,
-                    message = "¤jÀY·Ó¤W¶Ç¦¨¥\"
+                    message = "å¤§é ­ç…§ä¸Šå‚³æˆåŠŸ"
                 });
             }
             catch (Exception ex)
@@ -368,13 +368,13 @@ namespace ChurchReport.Controllers
                 return Json(new
                 {
                     success = false,
-                    message = $"¤jÀY·Ó¤W¶Ç¥¢±Ñ: {ex.Message}"
+                    message = $"å¤§é ­ç…§ä¸Šå‚³å¤±æ•—: {ex.Message}"
                 });
             }
         }
 
         /// <summary>
-        /// ?s?H???j?Y??W???]?s?H???
+        /// ä¸Šå‚³æ–°äººç…§ç‰‡åˆ°æ–°äººè¨˜éŒ„
         /// </summary>
         private void TryUploadNewPersonImage(IFormFile imageFile)
         {
@@ -386,7 +386,7 @@ namespace ChurchReport.Controllers
             const long maxFileSize = 5 * 1024 * 1024; // 5MB
             if (imageFile.Length > maxFileSize)
             {
-                System.Diagnostics.Debug.WriteLine("[SaveNewPerson] ?j?Y??W?????: ???L?j");
+                System.Diagnostics.Debug.WriteLine("[SaveNewPerson] åœ–ç‰‡ä¸Šå‚³å¤±æ•—: æª”æ¡ˆéå¤§");
                 return;
             }
 
@@ -398,13 +398,13 @@ namespace ChurchReport.Controllers
             if (!Array.Exists(allowedExtensions, ext => ext == fileExtension) ||
                 !Array.Exists(allowedContentTypes, type => type == contentType))
             {
-                System.Diagnostics.Debug.WriteLine("[SaveNewPerson] ?j?Y??W?????: ??????? ????");
+                System.Diagnostics.Debug.WriteLine("[SaveNewPerson] åœ–ç‰‡ä¸Šå‚³å¤±æ•—: æª”æ¡ˆæ ¼å¼éŒ¯èª¤");
                 return;
             }
 
             if (!Guid.TryParse(InMemoryContext.NewPersonModel.m_NewContact.PresentRecordId, out var contactId))
             {
-                System.Diagnostics.Debug.WriteLine("[SaveNewPerson] ?j?Y??W?????: ?s?H ContactId ?L??");
+                System.Diagnostics.Debug.WriteLine("[SaveNewPerson] åœ–ç‰‡ä¸Šå‚³å¤±æ•—: æ–°äºº ContactId ç„¡æ•ˆ");
                 return;
             }
 
@@ -426,7 +426,7 @@ namespace ChurchReport.Controllers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] ?j?Y??W?????: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] åœ–ç‰‡ä¸Šå‚³å¤±æ•—: {ex.Message}");
             }
             finally
             {
@@ -435,7 +435,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¤W¶Ç·s¤H¸ê®Æ¨ì CRM
+        /// ä¸Šå‚³æ–°äººè³‡æ–™åˆ° CRM
         /// </summary>
         private string UploadNewPersonToCrm(PersonFormViewModel viewModel)
         {
@@ -446,11 +446,11 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³B²z·s¤H·s¼W¦¨¥\«áªºÅŞ¿è
+        /// è™•ç†æ–°äººæ–°å¢æˆåŠŸå¾Œçš„é‚è¼¯
         /// </summary>
         private void HandleSuccessfulNewPersonCreation(PersonFormViewModel viewModel)
         {
-            // ¦pªG¦³«ü¬£¤p²Õ¡A«h¥[¤J¨ì¤p²Õ¦¨­û²M³æ
+            // å¦‚æœæœ‰æŒ‡æ´¾å°çµ„ï¼Œå‰‡åŠ å…¥åˆ°å°çµ„æˆå“¡æ¸…å–®
             if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport != null &&
                 viewModel.Position != "0")
             {
@@ -464,7 +464,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ­«³]·s¤Hªí³æ
+        /// é‡è¨­æ–°äººè¡¨å–®
         /// </summary>
         private void ResetNewPersonForm()
         {
@@ -474,13 +474,13 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¤p²Õ«ü¬£¬d¸ß
+        #region å°çµ„æŒ‡æ´¾æŸ¥è©¢
 
         /// <summary>
-        /// ¨ú±o¥i«ü¬£ªº¤p²Õ²M³æ
-        /// ¥Î©ó Lookup ¤U©Ô¿ï³æ
+        /// å–å¾—å¯æŒ‡æ´¾çš„å°çµ„æ¸…å–®
+        /// ç”¨æ–¼ Lookup ä¸‹æ‹‰é¸å–®
         /// </summary>
-        /// <param name="loadOptions">¸ü¤J¿ï¶µ</param>
+        /// <param name="loadOptions">è¼‰å…¥é¸é …</param>
         [HttpGet]
         public object AssignSmallGroupGet(DataSourceLoadOptions loadOptions)
         {
