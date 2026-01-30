@@ -38,11 +38,17 @@ namespace ChurchReport.Controllers
                     if (validationResult != null) return validationResult;
                 }
 
-                bool pauseCheckBox = CheckBox == "true"; // 將 CheckBox 字串值轉換為布林值
+                // 將 CheckBox 字串值轉換為布林值
+                // 補充說明：
+                // - CheckBox 參數從前端傳來時為字串型別，值為 "true" 或 "false"。
+                // - 這裡的邏輯是將字串 "true" 轉換為布林值 true，
+                //   任何其他值（包括字串 "false"）則轉換為布林值 false。
+                // - 轉換後的布林值指示是否需要暫停上傳流程中的某些步驟。
+                bool pauseCheckBox = CheckBox == "true"; 
 
                 // 補充說明：這些變數在背景任務開始前就被捕獲（captured），
-                // 避免在 Task.Run 內部存取 HttpContext 或 Session，防止 Session Bleeding 問題。
-                // 因為背景執行緒可能在請求結束後繼續執行，此時 HttpContext 已不可用。
+                // 避免在 Task.Run 內部存access HttpContext 或 Session，防止 Session Bleeding 問題。
+                // Cause: 背景執行緒可能在請求結束後繼續執行，此時 HttpContext 已不可用。
                 var selectDate = InMemoryContext.ListManager.m_SelectDate;
                 var account = InMemoryContext.ListManager.m_Account;
                 var password = InMemoryContext.ListManager.m_Password;
@@ -50,19 +56,25 @@ namespace ChurchReport.Controllers
                 var weeklyReportRef = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
                 var allMemberData = weeklyReportRef?.m_SmallGroupDataList?.m_AllMemeberData;
                 var activeListId = InMemoryContext.ListManager.ActiveListId; // 捕獲當前活動名單 ID，背景任務中使用
+                // 補充說明：
+                // - 此行代碼從 InMemoryContext 捕獲當前活動名單的 ID，並賦值給本地變數 activeListId。
+                // - 這樣做的目的是為了在隨後的背景任務中使用該 ID，而無需直接訪問 HttpContext 或 Session。
+                // - 捕獲的值會在 Task.Run 的背景執行緒中使用，確保不會受到請求結束後 HttpContext 不可用的問題影響。
+                // - 活動名單 ID 可能用於決定資料上傳的目標或篩選要處理的資料，具體取決於業務邏輯。
 
                 // 補充說明：在此使用 Task.Run 啟動背景工作。
                 // - 傳入的 cancellationToken 會傳遞到 Task.Run，以便在需要時嘗試取消背景作業。
                 // - Task.Run 的 lambda 標示為 async，但內部呼叫的 UploadIntegrateData 可能為同步方法，
                 //   因此該呼叫會在執行緒池執行緒上同步執行並可能阻塞，若 UploadIntegrateData 有 I/O 工作，
                 //   建議改為真正的非同步實作以避免阻塞執行緒池。
-                // - 不要在背景工作中存取 HttpContext/Session：因此事先捕獲所需資料到區域變數（上方）。
+                // - 不要在背景工作中存access HttpContext/Session：因此事先捕獲所需資料到區域變數（上方）。
                 _ = Task.Run(async () =>
                 {
                     try
                     {
                         System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 開始背景上傳...");
-                        
+                        // 開始背景上傳的調試訊息
+
                         // Use captured references to avoid accessing HttpContext/Session inside background thread
                         // 呼叫上傳方法。
                         // 注意：如果 UploadIntegrateData 是同步方法，這會在背景執行緒上同步執行並佔用該執行緒。
@@ -81,8 +93,9 @@ namespace ChurchReport.Controllers
                         );
 
                         System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 背景上傳完成");
+                        // 補充說明：背景上傳完成的調試訊息
 
-                        // 補充說明：背景清理直接在本地 weeklyReportRef 上執行，避免再度透過 InMemoryContext 存取 Session，
+                        // 補充說明：背景清理直接在本地 weeklyReportRef 上執行，避免再度透過 InMemoryContext 存access Session，
                         // 這樣可以減少跨執行緒對 HttpContext/Session 的存取風險。
                         // 清理邏輯會直接修改記憶體中的成員清單（RemoveTransferredMembers），
                         // 因此如果系統同時有其他執行緒也會修改同一集合，請確保有適當的同步機制（鎖定）或採用 thread-safe 的集合。
@@ -159,18 +172,29 @@ namespace ChurchReport.Controllers
             // 如果任一欄位為空，則返回錯誤訊息的 JsonResult。
             // 返回 null 表示驗證通過。
             // 這種設計允許控制器根據驗證結果決定是否繼續處理請求。
+
+            // 檢查 weekIndex 和 topic 是否皆為空
             if (string.IsNullOrEmpty(weekIndex) && string.IsNullOrEmpty(topic))
             {
+                // 如果兩個欄位都沒有填寫，返回錯誤訊息，狀態碼為 2
                 return Json(new { status = "2", message = "幸福小組必須填寫第幾週和主題" });
             }
+
+            // 檢查 weekIndex 是否為空
             if (string.IsNullOrEmpty(weekIndex))
             {
+                // 如果 weekIndex 沒有填寫，返回錯誤訊息，狀態碼為 2
                 return Json(new { status = "2", message = "幸福小組必須填寫第幾週" });
             }
+
+            // 檢查 topic 是否為空
             if (string.IsNullOrEmpty(topic))
             {
+                // 如果 topic 沒有填寫，返回錯誤訊息，狀態碼為 2
                 return Json(new { status = "2", message = "幸福小組必須填寫主題" });
             }
+
+            // 如果所有必填欄位皆已填寫，返回 null，表示驗證通過
             return null;
         }
 
@@ -271,7 +295,7 @@ namespace ChurchReport.Controllers
                 return false;
             }
 
-            return (!string.IsNullOrEmpty(member.AssignedGroup)) ||
+            return (!string.IsNullOrEmpty(member.AssignedGroup)) || // 如果成員的 AssignedGroup 欄位有值，表示該成員已被指派到其他小組，應該被移除
                    (member.FollowUpNextStep == "轉介"); // FollowUpNextStep 為 "轉介" 表示成員已被轉介
         }
 
