@@ -171,17 +171,45 @@ namespace ChurchReport.Models
             // 已登入時使用 Session 指紋，確保同一使用者跨請求一致。
             // 未綁定時使用即時指紋，避免 Session ID 碰撞時資料混淆。
             // ========================================
+
+            /// <summary>
+            /// 從 Session 中獲取已儲存的指紋
+            /// 
+            /// 指紋是用於識別請求來源的唯一標識符，
+            /// 基於 IP 地址和 User-Agent 的 SHA256 雜湊。
+            /// 如果存在已儲存的指紋，表示使用者已登入並綁定。
+            /// </summary>
             var storedFingerprint = session.GetString("_SessionFingerprint");
             System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: {!string.IsNullOrEmpty(storedFingerprint)}");
 
+            /// <summary>
+            /// 決定當前請求的指紋
+            /// 
+            /// 如果有已儲存的指紋（已登入使用者），優先使用它以確保一致性。
+            /// 否則，動態生成新的指紋以防止未登入使用者的 Session 碰撞。
+            /// 這是 Session 安全隔離的核心機制。
+            /// </summary>
             string currentRequestFingerprint = string.IsNullOrEmpty(storedFingerprint)
                 ? GenerateCurrentRequestFingerprint()
                 : storedFingerprint;
             System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): {(currentRequestFingerprint?.Substring(0, Math.Min(16, currentRequestFingerprint.Length)) ?? "(empty)")}...");
 
+            /// <summary>
+            /// 從 Session 中獲取 Session 建立時間戳
+            /// 
+            /// 時間戳用於進一步區分 Session，防止重複使用舊的 Session ID。
+            /// 如果不存在，將在首次存取時初始化。
+            /// </summary>
             var sessionCreatedTime = session.GetString("_SessionCreatedTime");
             System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: {!string.IsNullOrEmpty(sessionCreatedTime)}");
 
+            /// <summary>
+            /// 初始化或驗證 Session 建立時間戳
+            /// 
+            /// 如果時間戳不存在，生成一個絕對唯一的時間戳（使用 UTC Ticks + GUID）。
+            /// 這確保即使在高併發情況下，每個 Session 都有唯一的時間標識。
+            /// 寫入失敗時拋出異常，因為無法產生安全的快取 key。
+            /// </summary>
             if (string.IsNullOrEmpty(sessionCreatedTime))
             {
                 // 使用 Ticks + GUID 的組合確保絕對唯一性
@@ -208,20 +236,46 @@ namespace ChurchReport.Models
                 System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: {sessionCreatedTime}");
             }
 
+            // ========================================
             // 建構安全的快取 key
+            // 
+            // 快取 key 由多個部分組成，確保唯一性和安全性：
+            // 1. Session ID：ASP.NET Core 提供的基礎 Session 識別符
+            // 2. BoundUserId：已登入使用者的識別符（如果存在）
+            // 3. 短指紋：請求來源的縮短指紋（前8字元）
+            // 4. 短時間戳：Session 建立時間的縮短版本（後10字元）
+            // ========================================
+
+            /// <summary>
+            /// 初始化快取 key 建構器，以 Session ID 為基礎
+            /// 
+            /// Session ID 是 ASP.NET Core 自動生成的唯一識別符，
+            /// 但單獨使用可能會有碰撞風險，因此需要額外元件強化。
+            /// </summary>
             var keyBuilder = new System.Text.StringBuilder(sessionId);
             System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: {sessionId}");
 
+            /// <summary>
+            /// 如果有已綁定的使用者 ID，加入到 key 中
+            /// 
+            /// 這確保已登入使用者的資料不會與其他使用者混淆，
+            /// 即使他們有相同的 Session ID。
+            /// </summary>
             if (!string.IsNullOrEmpty(boundUserId))
             {
                 keyBuilder.Append('_').Append(boundUserId);
                 System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🏗️  已添加 BoundUserId: {boundUserId}");
             }
 
-            // 使用即時指紋作為 key 的一部分
+            /// <summary>
+            /// 加入請求指紋的縮短版本到 key 中
+            /// 
+            /// 只取前 8 個字元以避免 key 過長，同時保留足夠的唯一性。
+            /// 這是防止 Session 碰撞和資料洩漏的核心安全措施。
+            /// </summary>
             if (!string.IsNullOrEmpty(currentRequestFingerprint))
             {
-                // 只取指紋的前 8 個字元，避免 key 過長
+                // 只取指紋的前 8 個字 元，避免 key 過長
                 var shortFingerprint = currentRequestFingerprint.Length > 8
                     ? currentRequestFingerprint.Substring(0, 8)
                     : currentRequestFingerprint;
@@ -229,6 +283,12 @@ namespace ChurchReport.Models
                 System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🏗️  已添加短指紋: {shortFingerprint}");
             }
 
+            /// <summary>
+            /// 加入 Session 建立時間戳的縮短版本到 key 中
+            /// 
+            /// 取後 10 個字元（通常是 GUID 的部分），提供額外的唯一性。
+            /// 這確保即使在極端情況下，key 仍然是唯一的。
+            /// </summary>
             if (!string.IsNullOrEmpty(sessionCreatedTime))
             {
                 var shortTimestamp = sessionCreatedTime.Length > 10
@@ -238,6 +298,12 @@ namespace ChurchReport.Models
                 System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🏗️  已添加時間戳: {shortTimestamp}");
             }
 
+            /// <summary>
+            /// 生成最終的快取 key
+            /// 
+            /// 這個 key 現在包含了足夠的資訊來唯一識別一個使用者的 Session，
+            /// 同時防止資料洩漏和碰撞。
+            /// </summary>
             var finalKey = keyBuilder.ToString();
             System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] ✅ 最終快取 Key: {finalKey}");
             System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] 🟢 方法返回，Key 長度: {finalKey.Length}");
