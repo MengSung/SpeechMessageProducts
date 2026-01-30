@@ -27,22 +27,36 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // 補充說明：此方法採用 Fire-and-Forget 模式，立即回應使用者請求，
+                // 然後在背景執行資料上傳和清理，避免阻塞 UI 並提升使用者體驗。
+                // 這種模式適合非關鍵性操作，但需注意錯誤處理和資源管理。
+
+                // 如果是快樂小組，則進行欄位驗證
                 if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.ListEntityName.Contains("快樂"))
                 {
                     var validationResult = ValidateHappyGroupFields(HappyWeekIndex, HappyWeekTopic);
                     if (validationResult != null) return validationResult;
                 }
 
-                bool pauseCheckBox = CheckBox == "true";
+                bool pauseCheckBox = CheckBox == "true"; // 將 CheckBox 字串值轉換為布林值
 
+                // 補充說明：這些變數在背景任務開始前就被捕獲（captured），
+                // 避免在 Task.Run 內部存取 HttpContext 或 Session，防止 Session Bleeding 問題。
+                // 因為背景執行緒可能在請求結束後繼續執行，此時 HttpContext 已不可用。
                 var selectDate = InMemoryContext.ListManager.m_SelectDate;
                 var account = InMemoryContext.ListManager.m_Account;
                 var password = InMemoryContext.ListManager.m_Password;
                 var loginType = InMemoryContext.ListManager.LoginType;
                 var weeklyReportRef = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
                 var allMemberData = weeklyReportRef?.m_SmallGroupDataList?.m_AllMemeberData;
-                var activeListId = InMemoryContext.ListManager.ActiveListId;
+                var activeListId = InMemoryContext.ListManager.ActiveListId; // 捕獲當前活動名單 ID，背景任務中使用
 
+                // 補充說明：在此使用 Task.Run 啟動背景工作。
+                // - 傳入的 cancellationToken 會傳遞到 Task.Run，以便在需要時嘗試取消背景作業。
+                // - Task.Run 的 lambda 標示為 async，但內部呼叫的 UploadIntegrateData 可能為同步方法，
+                //   因此該呼叫會在執行緒池執行緒上同步執行並可能阻塞，若 UploadIntegrateData 有 I/O 工作，
+                //   建議改為真正的非同步實作以避免阻塞執行緒池。
+                // - 不要在背景工作中存取 HttpContext/Session：因此事先捕獲所需資料到區域變數（上方）。
                 _ = Task.Run(async () =>
                 {
                     try
@@ -50,6 +64,10 @@ namespace ChurchReport.Controllers
                         System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 開始背景上傳...");
                         
                         // Use captured references to avoid accessing HttpContext/Session inside background thread
+                        // 呼叫上傳方法。
+                        // 注意：如果 UploadIntegrateData 是同步方法，這會在背景執行緒上同步執行並佔用該執行緒。
+                        // 若上傳流程包含網路或 I/O，請考慮將 UploadIntegrateData 改寫為 Task-based 非同步方法
+                        //（例如 UploadIntegrateDataAsync）並在此使用 await，以提升可伸縮性與執行緒使用效率。
                         weeklyReportRef?.UploadIntegrateData(
                             selectDate,
                             account,
@@ -64,7 +82,12 @@ namespace ChurchReport.Controllers
 
                         System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 背景上傳完成");
 
-                        // 清理已轉介的成員 - 直接在本地 weeklyReportRef 上執行，避免再度透過 InMemoryContext 存取 Session
+                        // 補充說明：背景清理直接在本地 weeklyReportRef 上執行，避免再度透過 InMemoryContext 存取 Session，
+                        // 這樣可以減少跨執行緒對 HttpContext/Session 的存取風險。
+                        // 清理邏輯會直接修改記憶體中的成員清單（RemoveTransferredMembers），
+                        // 因此如果系統同時有其他執行緒也會修改同一集合，請確保有適當的同步機制（鎖定）或採用 thread-safe 的集合。
+                        // 在目前設計中，我們假設背景任務為唯一在該時刻修改清單的程式，且後續會再由使用者主流程或定期機制
+                        // 將變更持久化至資料庫（若有需要）。
                         try
                         {
                             if (weeklyReportRef != null)
@@ -101,7 +124,7 @@ namespace ChurchReport.Controllers
                         try
                         {
                             ToolUtility?.TraceByLevel(1, 1, 
-                                $"SaveIntegrate 背景上傳失敗: {ex.Message}\n{ex.StackTrace}");
+                                $"SaveIntegrate 背景上傳失敗: {ex.Message}\n{ex.StackTrace}"); // 追蹤背景上傳失敗的細節
                         }
                         catch
                         {
@@ -115,12 +138,15 @@ namespace ChurchReport.Controllers
             }
             catch (OperationCanceledException)
             {
+                // 補充說明：當操作被取消時，會捕捉到此異常，
+                // 返回表示操作已取消的 JSON 結果。
                 return Json(new { status = "0", message = "操作已取消" });
             }
             catch (Exception e)
             {
                 System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 啟動失敗: {e.Message}");
-                return HandleError(e, "SaveIntegrate");
+                // 補充說明：處理其他異常，並返回錯誤處理結果。
+                return HandleError(e, "SaveIntegrate"); // 通用錯誤處理
             }
         }
 
@@ -129,6 +155,10 @@ namespace ChurchReport.Controllers
         /// </summary>
         private JsonResult ValidateHappyGroupFields(string weekIndex, string topic)
         {
+            // 補充說明：此方法檢查幸福小組的必填欄位（第幾週和主題），
+            // 如果任一欄位為空，則返回錯誤訊息的 JsonResult。
+            // 返回 null 表示驗證通過。
+            // 這種設計允許控制器根據驗證結果決定是否繼續處理請求。
             if (string.IsNullOrEmpty(weekIndex) && string.IsNullOrEmpty(topic))
             {
                 return Json(new { status = "2", message = "幸福小組必須填寫第幾週和主題" });
@@ -149,6 +179,10 @@ namespace ChurchReport.Controllers
         /// </summary>
         private void CleanupTransferredMembers()
         {
+            // 補充說明：此方法用於清理已轉介或指派到其他小組的成員，
+            // 確保資料清單只包含當前小組的有效成員。
+            // 這個清理過程在 SaveIntegrate 的背景任務中執行，
+            // 以避免阻塞使用者界面並提升整體效能。
             try
             {
                 var weeklyReport = InMemoryContext?.ListManager?.m_ListSmallGroupWeeklyReport;
@@ -190,6 +224,9 @@ namespace ChurchReport.Controllers
         /// </summary>
         private void RemoveTransferredMembers(List<Member> members)
         {
+            // 補充說明：此方法使用手動迴圈移除成員，而不是使用 LINQ 或其他方法，
+            // 因為在移除過程中需要修改原始清單，且避免建立新的集合以節省記憶體。
+            // 這種方式在清單較大時更有效率，並且在移除過程中保持索引的正確性。
             if (members == null || members.Count == 0)
             {
                 return;
@@ -198,6 +235,10 @@ namespace ChurchReport.Controllers
             int count = members.Count;
             int index = 0;
 
+            // 補充說明：使用手動迴圈而非 LINQ 等方法，因為要在迴圈中修改集合（移除成員），
+            // 使用 foreach 會導致執行期錯誤，因為它也嘗試在迴圈中對集合進行迭代。
+            // 此外，手動迴圈提供對索引的明確控制，便於在移除成員時調整。
+            // 這段邏輯確保在移除程序中不會因為集合變動而導致的問題。
             for (int i = 0; i < count; i++)
             {
                 if (index >= members.Count)
@@ -221,13 +262,17 @@ namespace ChurchReport.Controllers
         /// </summary>
         private bool ShouldRemoveMember(Member member)
         {
+            // 補充說明：此方法根據業務邏輯判斷成員是否應該從清單中移除。
+            // 條件1: AssignedGroup 不為空，表示成員已被指派到其他小組。
+            // 條件2: FollowUpNextStep 為 "轉介"，表示成員已被轉介到其他地方跟進。
+            // 這些條件確保只有當前小組的有效成員保留在清單中。
             if (member == null)
             {
                 return false;
             }
 
             return (!string.IsNullOrEmpty(member.AssignedGroup)) ||
-                   (member.FollowUpNextStep == "轉介");
+                   (member.FollowUpNextStep == "轉介"); // FollowUpNextStep 為 "轉介" 表示成員已被轉介
         }
 
         #endregion
