@@ -13,33 +13,125 @@ using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Models
 {
+    /// <summary>
+    /// 記憶體內資料上下文 - 小組管理專用
+    /// 
+    /// 此類別負責管理小組相關資料的記憶體快取和 Session 處理，
+    /// 實現 IInMemoryDataContext 接口，提供各種資料管理器的快取存取。
+    /// 
+    /// 主要功能：
+    /// - 使用 IMemoryCache 快取資料管理器實例，避免重複建立
+    /// - 處理 Session 隔離，防止 Session Bleeding 問題
+    /// - 提供安全的 Session ID 生成和指紋驗證
+    /// - 支援多個組長和各種小組資料的管理
+    /// 
+    /// 快取策略：
+    /// - 每個屬性使用 Session ID + 屬性名稱作為快取鍵
+    /// - 快取過期時間：絕對 30 分鐘，滑動 30 分鐘
+    /// - Session 變更時設定 dirty flag 標記
+    /// 
+    /// Session 安全：
+    /// - 每次存取 Session 時從 IHttpContextAccessor 取得最新值
+    /// - 使用 IP + User-Agent 生成請求指紋，防止資料混淆
+    /// - 支援已登入使用者的 Session 綁定
+    /// </summary>
     public class InMemoryDataContextSmallGroup : IInMemoryDataContext
     {
         #region 資料區
+
+        /// <summary>
+        /// 記憶體快取實例，用於快取各種資料管理器
+        /// </summary>
         IMemoryCache _memoryCache;
 
+        /// <summary>
+        /// ToolUtilityClass 實例，用於 CRM 操作
+        /// </summary>
         private ToolUtilityClass m_ToolUtilityClass;
+
+        /// <summary>
+        /// 組長管理器
+        /// </summary>
         public ListManager m_ListManager;
+
+        /// <summary>
+        /// 小組資料列表管理器
+        /// </summary>
         public SmallGroupDataList m_SmallGroupDataList;
+
+        /// <summary>
+        /// 週報資料管理器
+        /// </summary>
         public WeeklyReportData m_WeeklyReportData;
+
+        /// <summary>
+        /// 新人模型管理器
+        /// </summary>
         public NewPersonModel m_NewPersonModel;
+
+        /// <summary>
+        /// 個人資訊模型管理器
+        /// </summary>
         public PersonalInfomationModel m_PersonalInfomationModel;
+
+        /// <summary>
+        /// 幸福小組資料管理器
+        /// </summary>
         public HappyGroupDataManager m_HappyGroupDataManager;
+
+        /// <summary>
+        /// 名單管理資料管理器
+        /// </summary>
         public ListManagementDataManager m_ListManagementDataManager;
+
+        /// <summary>
+        /// 裝備資料管理器
+        /// </summary>
         public EquipmentDataManager m_EquipmentDataManager;
+
+        /// <summary>
+        /// 繳費列表管理器
+        /// </summary>
         public FeeList m_FeeList;
+
+        /// <summary>
+        /// Line 綁定視圖模型
+        /// </summary>
         public LineBindingViewModel m_LineBindingViewModel;
+
+        /// <summary>
+        /// 行事曆列表管理器
+        /// </summary>
         public AppointmentsListManager m_AppointmentsListManager;
+
+        /// <summary>
+        /// 永豐金流奉獻管理器
+        /// </summary>
         public QpayManager m_QpayManager;
+
+        /// <summary>
+        /// 課程問卷調查管理器
+        /// </summary>
         public PollManager m_PollManager;
 
         // ========================================
         // ✅ Session Bleeding 修復：不再在建構函式中捕獲 Session
         // 改為每次存取時從 IHttpContextAccessor 取得當前的 Session
         // ========================================
+
+        /// <summary>
+        /// HTTP 上下文存取器，用於安全取得當前請求的 Session
+        /// </summary>
         private readonly IHttpContextAccessor m_ContextAccessor;
 
+        /// <summary>
+        /// 付款服務實例
+        /// </summary>
         private readonly IPayment m_PamentService;
+
+        /// <summary>
+        /// ToolUtility 提供者，用於依賴注入
+        /// </summary>
         private readonly IToolUtilityProvider _toolUtilityProvider;
 
         /// <summary>
@@ -267,7 +359,24 @@ namespace ChurchReport.Models
         }
 
         #endregion
+
         #region 初始化
+
+        /// <summary>
+        /// 建構函式 - 初始化記憶體資料上下文
+        /// 
+        /// 注入必要的依賴項：
+        /// - IHttpContextAccessor: 用於安全存取 HTTP 上下文和 Session
+        /// - IMemoryCache: 用於快取資料管理器實例
+        /// - IPayment: 付款服務
+        /// - IToolUtilityProvider: ToolUtility 提供者
+        /// 
+        /// 注意：不再在建構時捕獲 Session，以避免 Session Bleeding
+        /// </summary>
+        /// <param name="contextAccessor">HTTP 上下文存取器</param>
+        /// <param name="memoryCache">記憶體快取</param>
+        /// <param name="PamentService">付款服務</param>
+        /// <param name="toolUtilityProvider">ToolUtility 提供者</param>
         public InMemoryDataContextSmallGroup(
             IHttpContextAccessor contextAccessor,
             IMemoryCache memoryCache,
@@ -288,8 +397,20 @@ namespace ChurchReport.Models
 
             System.Diagnostics.Debug.WriteLine("[InMemoryDataContext] ✅ 建構完成（Session Bleeding 修復版本）");
         }
+
         #endregion
+
         #region 多個組長處理區
+
+        /// <summary>
+        /// 組長管理器屬性
+        /// 
+        /// 使用記憶體快取管理 ListManager 實例，
+        /// 快取鍵為 Session ID + "_ListManager"，
+        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 
+        /// 若快取不存在，則建立新實例並設定快取選項。
+        /// </summary>
         public ListManager ListManager
         {
             get
@@ -331,9 +452,22 @@ namespace ChurchReport.Models
                 return _memoryCache.Get<ListManager>(key);
             }
         }
+
         #endregion
+
         #region 小組長處理區
 
+        /// <summary>
+        /// 設定小組資料
+        /// 
+        /// 根據提供的姓名、帳號、密碼和選擇日期設定小組資料，
+        /// 並更新 SmallGroupDataList 的聯絡人 ID 字串。
+        /// </summary>
+        /// <param name="FullName">完整姓名</param>
+        /// <param name="Account">帳號</param>
+        /// <param name="Password">密碼</param>
+        /// <param name="aSelectDate">選擇日期</param>
+        /// <param name="DisplayDateFlag">顯示日期旗標</param>
         public void SetupSmallGroupData(String FullName, String Account, String Password, DateTime aSelectDate, bool DisplayDateFlag)
         {
             try
@@ -351,6 +485,16 @@ namespace ChurchReport.Models
             }
 
         }
+
+        /// <summary>
+        /// 小組資料列表管理器屬性
+        /// 
+        /// 使用記憶體快取管理 SmallGroupDataList 實例，
+        /// 快取鍵為 Session ID + "_SmallGroupDataList"，
+        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 
+        /// 若快取不存在，則建立新實例並設定快取選項。
+        /// </summary>
         public SmallGroupDataList SmallGroupDataList
         {
             get
@@ -393,8 +537,20 @@ namespace ChurchReport.Models
                 return _memoryCache.Get<SmallGroupDataList>(key);
             }
         }
+
         #endregion
+
         #region 週報處理區
+
+        /// <summary>
+        /// 週報資料管理器屬性
+        /// 
+        /// 使用記憶體快取管理 WeeklyReportData 實例，
+        /// 快取鍵為 Session ID + "_WeeklyReportData"，
+        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 
+        /// 若快取不存在，則建立新實例並設定快取選項。
+        /// </summary>
         public WeeklyReportData WeeklyReportData
         {
             get
@@ -437,8 +593,18 @@ namespace ChurchReport.Models
         }
 
         #endregion
+
         #region 新增新人處理區
 
+        /// <summary>
+        /// 新人模型管理器屬性
+        /// 
+        /// 使用記憶體快取管理 NewPersonModel 實例，
+        /// 快取鍵為 Session ID + "_NewPersonModel"，
+        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 
+        /// 若快取不存在，則建立新實例並設定快取選項。
+        /// </summary>
         public NewPersonModel NewPersonModel
         {
             get
@@ -481,7 +647,18 @@ namespace ChurchReport.Models
         }
 
         #endregion
+
         #region 個人相關資料處理區
+
+        /// <summary>
+        /// 個人資訊模型管理器屬性
+        /// 
+        /// 使用記憶體快取管理 PersonalInfomationModel 實例，
+        /// 快取鍵為 Session ID + "_PersonalInfomationModel"，
+        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 
+        /// 若快取不存在，則建立新實例並設定快取選項。
+        /// </summary>
         public PersonalInfomationModel PersonalInfomationModel
         {
             get
@@ -524,7 +701,18 @@ namespace ChurchReport.Models
         }
 
         #endregion
+
         #region 幸福小組處理區
+
+        /// <summary>
+        /// 幸福小組資料管理器屬性
+        /// 
+        /// 使用記憶體快取管理 HappyGroupDataManager 實例，
+        /// 快取鍵為 Session ID + "_HappyGroupDataManager"，
+        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 
+        /// 若快取不存在，則使用 DI 注入 ToolUtilityProvider 建立新實例並設定快取選項。
+        /// </summary>
         public HappyGroupDataManager HappyGroupDataManager
         {
             get
@@ -568,7 +756,18 @@ namespace ChurchReport.Models
         }
 
         #endregion
+
         #region 名單管理處理區
+
+        /// <summary>
+        /// 名單管理資料管理器屬性
+        /// 
+        /// 使用記憶體快取管理 ListManagementDataManager 實例，
+        /// 快取鍵為 Session ID + "_ListManagementDataManager"，
+        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 
+        /// 若快取不存在，則建立新實例並設定快取選項。
+        /// </summary>
         public ListManagementDataManager ListManagementDataManager
         {
             get
@@ -611,7 +810,18 @@ namespace ChurchReport.Models
         }
 
         #endregion
+
         #region 裝備情形處理區
+
+        /// <summary>
+        /// 裝備資料管理器屬性
+        /// 
+        /// 使用記憶體快取管理 EquipmentDataManager 實例，
+        /// 快取鍵為 Session ID + "_EquipmentDataManager"，
+        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 
+        /// 若快取不存在，則使用 DI 注入 ToolUtilityProvider 建立新實例並設定快取選項。
+        /// </summary>
         public EquipmentDataManager EquipmentDataManager
         {
             get
@@ -655,8 +865,18 @@ namespace ChurchReport.Models
         }
 
         #endregion
+
         #region 繳費與報名處理區
 
+        /// <summary>
+        /// 繳費列表管理器屬性
+        /// 
+        /// 使用記憶體快取管理 FeeList 實例，
+        /// 快取鍵為 Session ID + "_FeeList"，
+        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 
+        /// 若快取不存在，則使用 DI 注入 ToolUtilityProvider 建立新實例並設定快取選項。
+        /// </summary>
         public FeeList FeeList
         {
             get
@@ -699,8 +919,20 @@ namespace ChurchReport.Models
                 return _memoryCache.Get<FeeList>(key);
             }
         }
+
         #endregion
+
         #region Line 綁定處理區
+
+        /// <summary>
+        /// Line 綁定視圖模型屬性
+        /// 
+        /// 使用記憶體快取管理 LineBindingViewModel 實例，
+        /// 快取鍵為 Session ID + "_LineBindingViewModel"，
+        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 
+        /// 若快取不存在，則建立新實例並設定快取選項。
+        /// </summary>
         public LineBindingViewModel LineBindingViewModel
         {
             get
@@ -743,7 +975,18 @@ namespace ChurchReport.Models
         }
 
         #endregion
+
         #region 行事曆處理區
+
+        /// <summary>
+        /// 行事曆列表管理器屬性
+        /// 
+        /// 使用記憶體快取管理 AppointmentsListManager 實例，
+        /// 快取鍵為 Session ID + "_AppointmentsListManager"，
+        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 
+        /// 若快取不存在，則建立新實例並設定快取選項。
+        /// </summary>
         public AppointmentsListManager AppointmentsListManager
         {
             get
@@ -785,8 +1028,20 @@ namespace ChurchReport.Models
                 return _memoryCache.Get<AppointmentsListManager>(key);
             }
         }
+
         #endregion
+
         #region 永豐金流奉獻處理區
+
+        /// <summary>
+        /// 永豐金流奉獻管理器屬性
+        /// 
+        /// 使用記憶體快取管理 QpayManager 實例，
+        /// 快取鍵為 Session ID + "_QpayManager"，
+        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 
+        /// 若快取不存在，則注入付款服務建立新實例並設定快取選項。
+        /// </summary>
         public QpayManager QpayManager
         {
             get
@@ -828,8 +1083,20 @@ namespace ChurchReport.Models
                 return _memoryCache.Get<QpayManager>(key);
             }
         }
+
         #endregion
+
         #region 課程問卷調查處理區
+
+        /// <summary>
+        /// 課程問卷調查管理器屬性
+        /// 
+        /// 使用記憶體快取管理 PollManager 實例，
+        /// 快取鍵為 Session ID + "_PollManager"，
+        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 
+        /// 若快取不存在，則建立新實例並設定快取選項。
+        /// </summary>
         public PollManager PollManager
         {
             get
@@ -871,9 +1138,20 @@ namespace ChurchReport.Models
                 return _memoryCache.Get<PollManager>(key);
             }
         }
+
         #endregion
+
         #region 工具區
 
+        /// <summary>
+        /// ToolUtilityClass 屬性
+        /// 
+        /// 使用記憶體快取管理 ToolUtilityClass 實例，
+        /// 快取鍵為 Session ID + "_ToolUtilityClass"，
+        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 
+        /// 若快取不存在，則使用 Factory 模式取得 ToolUtilityClass 單例並設定快取選項。
+        /// </summary>
         public ToolUtilityClass ToolUtilityClass
         {
             get
@@ -917,6 +1195,11 @@ namespace ChurchReport.Models
             }
         }
 
+        /// <summary>
+        /// 儲存變更
+        /// 
+        /// 此方法目前為空實作，可用於將記憶體中的變更持久化到資料庫。
+        /// </summary>
         public void SaveChanges()
         {
             //foreach (var employee in DiscipleLessons.Where(a => a.DiscipleLessonsId == 0))
@@ -924,6 +1207,7 @@ namespace ChurchReport.Models
             //    employee.ID = DiscipleLessons.Max(a => a.ID) + 1;
             //}
         }
+
         #endregion
     }
 }
