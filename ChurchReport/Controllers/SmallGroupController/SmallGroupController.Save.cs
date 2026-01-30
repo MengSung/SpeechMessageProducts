@@ -35,18 +35,27 @@ namespace ChurchReport.Controllers
 
                 bool pauseCheckBox = CheckBox == "true";
 
+                var selectDate = InMemoryContext.ListManager.m_SelectDate;
+                var account = InMemoryContext.ListManager.m_Account;
+                var password = InMemoryContext.ListManager.m_Password;
+                var loginType = InMemoryContext.ListManager.LoginType;
+                var weeklyReportRef = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
+                var allMemberData = weeklyReportRef?.m_SmallGroupDataList?.m_AllMemeberData;
+                var activeListId = InMemoryContext.ListManager.ActiveListId;
+
                 _ = Task.Run(async () =>
                 {
                     try
                     {
                         System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 開始背景上傳...");
                         
-                        InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.UploadIntegrateData(
-                            InMemoryContext.ListManager.m_SelectDate,
-                            InMemoryContext.ListManager.m_Account,
-                            InMemoryContext.ListManager.m_Password,
-                            InMemoryContext.ListManager.LoginType,
-                            InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData,
+                        // Use captured references to avoid accessing HttpContext/Session inside background thread
+                        weeklyReportRef?.UploadIntegrateData(
+                            selectDate,
+                            account,
+                            password,
+                            loginType,
+                            allMemberData,
                             WeeklyReportData,
                             HappyWeekIndex,
                             HappyWeekTopic,
@@ -55,11 +64,34 @@ namespace ChurchReport.Controllers
 
                         System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 背景上傳完成");
 
-                        CleanupTransferredMembers();
-                        ClearMultiGroupCache();
-                        ClearIntegrateCache(InMemoryContext.ListManager.ActiveListId);
-                        
-                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 清理完成");
+                        // 清理已轉介的成員 - 直接在本地 weeklyReportRef 上執行，避免再度透過 InMemoryContext 存取 Session
+                        try
+                        {
+                            if (weeklyReportRef != null)
+                            {
+                                var dataList = weeklyReportRef.m_SmallGroupDataList;
+                                if (dataList != null)
+                                {
+                                    var smallGroupData = dataList.m_SmallGroupData;
+                                    if (smallGroupData?.Members != null)
+                                    {
+                                        RemoveTransferredMembers(smallGroupData.Members);
+                                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 已清理小組資料，剩餘 {smallGroupData.Members.Count} 筆");
+                                    }
+
+                                    var newPersonData = dataList.m_NewPersonFollowUpData;
+                                    if (newPersonData?.Members != null)
+                                    {
+                                        RemoveTransferredMembers(newPersonData.Members);
+                                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 已清理新人跟進資料，剩餘 {newPersonData.Members.Count} 筆");
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 背景清理失敗: {ex.Message}");
+                        }
                     }
                     catch (Exception ex)
                     {

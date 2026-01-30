@@ -1,4 +1,6 @@
 using System;
+using System.ServiceModel;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using ChurchReport.Models;
 using ChurchReport.Models.CrmTransmitModule;
@@ -50,6 +52,73 @@ namespace ChurchReport.WebServiceConnector
             return PresentRecordEntityCollection;
         }
 
+        private object ConvertAttributeToExpectedTypeUsingMetadata(object value, Microsoft.Xrm.Sdk.Metadata.AttributeMetadata meta)
+        {
+            if (value == null || meta == null) return null;
+
+            try
+            {
+                // If the value is already one of the SDK types expected, keep it
+                if (value is Microsoft.Xrm.Sdk.EntityReference && meta.AttributeType == Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.Lookup)
+                    return value;
+                if (value is Microsoft.Xrm.Sdk.OptionSetValue && (meta.AttributeType == Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.Picklist || meta.AttributeType == Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.Status || meta.AttributeType == Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.State))
+                    return value;
+                if (value is Microsoft.Xrm.Sdk.Money && (meta.AttributeType == Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.Money || meta.AttributeType == Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.Decimal))
+                    return value;
+
+                switch (meta.AttributeType)
+                {
+                    case Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.Boolean:
+                        if (value is bool b) return b;
+                        if (value is string s && bool.TryParse(s, out var rb)) return rb;
+                        if (value is int i) return i != 0;
+                        break;
+                    case Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.Integer:
+                        if (value is int ii) return ii;
+                        if (value is long l) return (int)l;
+                        if (value is string ss && int.TryParse(ss, out var rint)) return rint;
+                        break;
+                    case Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.Double:
+                        if (value is double d) return d;
+                        if (value is float f) return (double)f;
+                        if (value is string sd && double.TryParse(sd, out var rd)) return rd;
+                        break;
+                    case Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.Decimal:
+                    case Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.Money:
+                        if (value is Microsoft.Xrm.Sdk.Money m) return m;
+                        if (value is decimal dec) return new Microsoft.Xrm.Sdk.Money(dec);
+                        if (value is double dd) return new Microsoft.Xrm.Sdk.Money((decimal)dd);
+                        if (value is string sdec && decimal.TryParse(sdec, out var rdec)) return new Microsoft.Xrm.Sdk.Money(rdec);
+                        break;
+                    case Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.String:
+                        return value.ToString();
+                    case Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.DateTime:
+                        if (value is DateTime dt) return dt;
+                        if (value is string sdt && DateTime.TryParse(sdt, out var rdt)) return rdt;
+                        break;
+                    case Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.Lookup:
+                        if (value is Microsoft.Xrm.Sdk.EntityReference er) return er;
+                        if (value is Guid g) return new Microsoft.Xrm.Sdk.EntityReference("contact", g);
+                        if (value is string sg && Guid.TryParse(sg, out var rg)) return new Microsoft.Xrm.Sdk.EntityReference("contact", rg);
+                        break;
+                    case Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.Picklist:
+                    case Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.State:
+                    case Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.Status:
+                        if (value is Microsoft.Xrm.Sdk.OptionSetValue osv) return osv;
+                        if (value is int iv) return new Microsoft.Xrm.Sdk.OptionSetValue(iv);
+                        if (value is string sopt && int.TryParse(sopt, out var iopt)) return new Microsoft.Xrm.Sdk.OptionSetValue(iopt);
+                        break;
+                    default:
+                        return value;
+                }
+            }
+            catch
+            {
+                return null;
+            }
+
+            return null;
+        }
         private EntityCollection CreatePresentRecordListByList(
             SmallGroupData aSmallGroupData, 
             SmallGroupData aSmallGroupDataFromList, 
@@ -149,9 +218,217 @@ namespace ChurchReport.WebServiceConnector
                 ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, 
                 ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
-            Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
+            // Try to create present record robustly: if CRM reports missing attributes, remove them and retry
+            Guid aPresentRecordId = Guid.Empty;
+            int maxRetries = 5;
+            int attempt = 0;
+
+            // Snapshot of attributes we added so we can try removing candidates if CRM complains
+            var addedAttrs = new List<string>(aPresentRecord.Attributes.Keys);
+
+            // Preferred optional attributes to remove first when type/attribute errors occur
+            var optionalAttrsPriority = new[] {
+                "new_prayer_meeting_number",
+                "new_child_number",
+                "new_big_disciple_number",
+                "new_leadership_small_lecture_number",
+                "new_leaders_gather_number",
+                "new_happy_present",
+                "new_happy_decision",
+                "new_spiritual_work",
+                "new_morning_pray",
+                "new_general_care"
+            };
+
+            // Before attempting creates, obtain metadata-supported attribute names and types and filter/convert
+            var supportedAttrs = this.m_ToolUtilityClass.GetEntityAttributeNames("new_present_record");
+            var attrTypes = this.m_ToolUtilityClass.GetEntityAttributeTypes("new_present_record");
+            var attrMetadata = this.m_ToolUtilityClass.GetEntityAttributeMetadata("new_present_record");
+
+            foreach (var key in new List<string>(aPresentRecord.Attributes.Keys))
+            {
+                if (!supportedAttrs.Contains(key))
+                {
+                    aPresentRecord.Attributes.Remove(key);
+                    this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] 於建立前移除不支援欄位 '{key}'");
+                    continue;
+                }
+
+                // If metadata reports a specific type, attempt to convert value to expected type
+                if (attrMetadata.TryGetValue(key, out var expectedMeta))
+                {
+                    var val = aPresentRecord.Attributes[key];
+                    try
+                    {
+                        object converted = ConvertAttributeToExpectedTypeUsingMetadata(val, expectedMeta);
+                        if (converted == null)
+                        {
+                            // If conversion failed, remove attribute to be safe
+                            aPresentRecord.Attributes.Remove(key);
+                            System.Diagnostics.Trace.WriteLine($"[CreatePresentRecord] 移除因型別不符的欄位 '{key}' (metadata)");
+                        }
+                        else
+                        {
+                            aPresentRecord.Attributes[key] = converted;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        aPresentRecord.Attributes.Remove(key);
+                        System.Diagnostics.Trace.WriteLine($"[CreatePresentRecord] 轉換欄位 '{key}' 型別失敗: {ex.Message}");
+                    }
+                }
+            }
+
+            while (attempt < maxRetries)
+            {
+                try
+                {
+                    aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
+                    break;
+                }
+                catch (FaultException ex)
+                {
+                    attempt++;
+
+                    // Try to extract attribute name from several possible message formats
+                    string attrName = null;
+                    try
+                    {
+                        var m1 = System.Text.RegularExpressions.Regex.Match(ex.Message, "Name = '(?<attr>[^']+)'", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                        if (m1.Success) attrName = m1.Groups["attr"].Value;
+                        if (string.IsNullOrEmpty(attrName))
+                        {
+                            var m2 = System.Text.RegularExpressions.Regex.Match(ex.Message, "attribute '(?<attr>[^']+)'", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                            if (m2.Success) attrName = m2.Groups["attr"].Value;
+                        }
+                    }
+                    catch { }
+
+                    if (!string.IsNullOrEmpty(attrName) && aPresentRecord.Attributes.Contains(attrName))
+                    {
+                        aPresentRecord.Attributes.Remove(attrName);
+                        this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] 移除欄位 '{attrName}' 並重試 (嘗試 {attempt})");
+                        continue;
+                    }
+
+                    // If attribute name not found in message, try removing from priority list
+                    bool removed = false;
+                    foreach (var candidate in optionalAttrsPriority)
+                    {
+                        if (aPresentRecord.Attributes.Contains(candidate))
+                        {
+                            aPresentRecord.Attributes.Remove(candidate);
+                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] 移除優先候選欄位 '{candidate}' 並重試 (嘗試 {attempt})");
+                            removed = true;
+                            break;
+                        }
+                    }
+                    if (removed) continue;
+
+                    // Finally, try removing the first attribute whose value is a plain Int32 (common cause of type mismatch)
+                    string removedAttr = null;
+                    foreach (var key in new List<string>(aPresentRecord.Attributes.Keys))
+                    {
+                        var val = aPresentRecord.Attributes[key];
+                        if (val is int || val is Int32)
+                        {
+                            removedAttr = key;
+                            aPresentRecord.Attributes.Remove(key);
+                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] 移除 Int32 類型欄位 '{key}' 並重試 (嘗試 {attempt})");
+                            break;
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(removedAttr)) continue;
+
+                    // Could not resolve - log and rethrow
+                    this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] 無法處理 FaultException: {ex.Message}");
+                    throw;
+                }
+            }
+
+            if (aPresentRecordId == Guid.Empty)
+            {
+                // 最後仍無法建立，記錄並回傳 null
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "[CreatePresentRecord] 無法建立 new_present_record (重試次數達上限)");
+                return null;
+            }
 
             return this.m_ToolUtilityClass.RetrieveEntity("new_present_record", aPresentRecordId);
+        }
+
+        /// <summary>
+        /// Convert attribute value to expected CRM attribute type. Returns null if cannot convert.
+        /// expectedType is the string representation of AttributeTypeCode (e.g., "Integer", "Lookup", "Boolean", "String", "DateTime", "Money", "Picklist")
+        /// </summary>
+        private object ConvertAttributeToExpectedType(object value, string expectedType)
+        {
+            if (value == null) return null;
+
+            try
+            {
+                switch (expectedType.ToLowerInvariant())
+                {
+                    case "boolean":
+                    case "booleanattribute":
+                        if (value is bool b) return b;
+                        if (value is string s)
+                        {
+                            if (bool.TryParse(s, out var rb)) return rb;
+                            if (int.TryParse(s, out var ri)) return ri != 0;
+                        }
+                        if (value is int i) return i != 0;
+                        break;
+                    case "integer":
+                    case "integerattribute":
+                        if (value is int ii) return ii;
+                        if (value is long l) return (int)l;
+                        if (value is string ss && int.TryParse(ss, out var rint)) return rint;
+                        break;
+                    case "double":
+                    case "doubleattribute":
+                        if (value is double d) return d;
+                        if (value is float f) return (double)f;
+                        if (value is string sd && double.TryParse(sd, out var rd)) return rd;
+                        break;
+                    case "decimal":
+                    case "money":
+                    case "moneyattribute":
+                        if (value is decimal dec) return new Microsoft.Xrm.Sdk.Money((decimal)dec);
+                        if (value is double dd) return new Microsoft.Xrm.Sdk.Money((decimal)dd);
+                        if (value is string sdec && decimal.TryParse(sdec, out var rdec)) return new Microsoft.Xrm.Sdk.Money(rdec);
+                        break;
+                    case "string":
+                    case "stringattribute":
+                        return value.ToString();
+                    case "datetime":
+                    case "datetimeattribute":
+                        if (value is DateTime dt) return dt;
+                        if (value is string sdt && DateTime.TryParse(sdt, out var rdt)) return rdt;
+                        break;
+                    case "lookup":
+                    case "lookupattribute":
+                        // Expect value to be Guid or string Guid
+                        if (value is Guid g) return new Microsoft.Xrm.Sdk.EntityReference("contact", g);
+                        if (value is string sg && Guid.TryParse(sg, out var rg)) return new Microsoft.Xrm.Sdk.EntityReference("contact", rg);
+                        break;
+                    case "picklist":
+                    case "optionset":
+                    case "optionsetvalue":
+                        if (value is int iv) return new Microsoft.Xrm.Sdk.OptionSetValue(iv);
+                        if (value is string sopt && int.TryParse(sopt, out var iopt)) return new Microsoft.Xrm.Sdk.OptionSetValue(iopt);
+                        break;
+                    default:
+                        // Unknown expected type - return original value
+                        return value;
+                }
+            }
+            catch
+            {
+                return null;
+            }
+
+            return null;
         }
 
         #endregion
