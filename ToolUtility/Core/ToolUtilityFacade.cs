@@ -37,26 +37,6 @@ namespace ToolUtilityNameSpace.Core
     /// </summary>
     public partial class ToolUtilityFacade : IDisposable
     {
-        #region 好牧人(雲端機房)
-        private const String SERVER = "speechmessage.com.tw";
-        private const String PORT = "7777";
-        private const String ORGANIZATION = "jesus";
-        private const String USERNAME = "Administrator@speechmessage.com.tw";
-        private const String PASSWORD = "hu9840";
-        private const String DOMAIN = "DYNAMICS-365";
-        #endregion
-
-        // Metadata helper methods moved to ToolUtilityFacade.Metadata.cs
-
-        #region 好牧人(公司內部發展)
-        //private const String SERVER = "speechmessage.com.tw";
-        //private const String PORT = "7777";
-        //private const String ORGANIZATION = "jesusback";
-        //private const String USERNAME = "Administrator@speechmessage.com.tw";
-        //private const String PASSWORD = "hu9840";
-        //private const String DOMAIN = "SPEECHMESSAGE";
-        #endregion
-
         private readonly object _logger;
         private readonly ICrmConnectionService _crmConnectionService;
 
