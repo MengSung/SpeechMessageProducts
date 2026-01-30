@@ -122,14 +122,17 @@ namespace ChurchReport.WebServiceConnector
                         {
                             // 建立週報
                             aGraceLeaderWeeklyReportEntity = ProcessCreateWeeklyReport(
-                                GroupName, 
-                                ref WeeklyReportEntityId, 
-                                aSmallGroupData, 
-                                WeeklyReportData, 
-                                HappyWeekIndex, 
-                                HappyWeekTopic, 
+                                GroupName,
+                                ref WeeklyReportEntityId,
+                                aSmallGroupData,
+                                WeeklyReportData,
+                                HappyWeekIndex,
+                                HappyWeekTopic,
                                 PauseCheckBox);
                         }
+
+        
+
                         else
                         {
                             // 更新週報

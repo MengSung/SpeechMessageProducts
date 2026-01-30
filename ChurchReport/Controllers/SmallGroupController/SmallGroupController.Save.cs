@@ -80,17 +80,22 @@ namespace ChurchReport.Controllers
                         // 注意：如果 UploadIntegrateData 是同步方法，這會在背景執行緒上同步執行並佔用該執行緒。
                         // 若上傳流程包含網路或 I/O，請考慮將 UploadIntegrateData 改寫為 Task-based 非同步方法
                         //（例如 UploadIntegrateDataAsync）並在此使用 await，以提升可伸縮性與執行緒使用效率。
-                        weeklyReportRef?.UploadIntegrateData(
-                            selectDate,
-                            account,
-                            password,
-                            loginType,
-                            allMemberData,
-                            WeeklyReportData,
-                            HappyWeekIndex,
-                            HappyWeekTopic,
-                            pauseCheckBox
-                        );
+                        // 使用非同步版本以避免在執行緒池同步阻塞
+                        if (weeklyReportRef != null)
+                        {
+                            await weeklyReportRef.UploadIntegrateDataAsync(
+                                selectDate,
+                                account,
+                                password,
+                                loginType,
+                                allMemberData,
+                                WeeklyReportData,
+                                HappyWeekIndex,
+                                HappyWeekTopic,
+                                pauseCheckBox,
+                                cancellationToken
+                            ).ConfigureAwait(false);
+                        }
 
                         System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 背景上傳完成");
                         // 補充說明：背景上傳完成的調試訊息

@@ -15,6 +15,7 @@ namespace ChurchReport.Models
         public ListSmallGroupWeeklyReport()
         {
             ModifyFlag = false;
+            m_UploadIntegrateData = new UploadIntegrateData();
 
             //GroupArray.Add("以利亞");
             //GroupArray.Add("耶穌基督");
@@ -52,7 +53,7 @@ namespace ChurchReport.Models
         // 長條圖表資料
         public ChartDataList m_WeeklyReportChart { get; set; }
         public bool ModifyFlag { get; set; }
-        public UploadIntegrateData m_UploadIntegrateData = new UploadIntegrateData();
+        public UploadIntegrateData m_UploadIntegrateData;
 
         // 表單是個人回報需要用到"暫時"傳遞資料用的資料結構
         public PersonalReportViewModel m_PersonalReportViewModel = new PersonalReportViewModel();
@@ -83,6 +84,54 @@ namespace ChurchReport.Models
             m_UploadIntegrateData.UploadData(aSelectedDate, Account, Password, LoginType, GroupType, ListEntityId, ref WeeklyReportEntityId, SundayPrayers, aSmallGroupData, ref WeeklyReportData, ref WeeklyReportAnalysis, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
             return;
+        }
+
+        /// <summary>
+        /// 非同步版本的 UploadIntegrateData。
+        /// 內部會呼叫 UploadIntegrateData.UploadDataAsync，並在完成後將 ref 值回寫到本物件。
+        /// 保留同步版本以維持向下相容性。
+        /// </summary>
+        public async System.Threading.Tasks.Task UploadIntegrateDataAsync(
+            DateTime aSelectedDate,
+            String Account,
+            String Password,
+            String LoginType,
+            SmallGroupData aSmallGroupData,
+            String aWeeklyReportData,
+            String HappyWeekIndex,
+            String HappyWeekTopic,
+            bool PauseCheckBox,
+            System.Threading.CancellationToken cancellationToken = default)
+        {
+            WeeklyReportData = aWeeklyReportData;
+            HappyWeekIndex = HappyWeekIndex;
+            HappyWeekTopic = HappyWeekTopic;
+            PauseCheckBox = PauseCheckBox;
+
+            // 使用 UploadIntegrateData 類別提供的非同步 wrapper
+            var result = await m_UploadIntegrateData.UploadDataAsync(
+                aSelectedDate,
+                Account,
+                Password,
+                LoginType,
+                GroupType,
+                ListEntityId,
+                SundayPrayers,
+                aSmallGroupData,
+                WeeklyReportData,
+                WeeklyReportAnalysis,
+                HappyWeekIndex,
+                HappyWeekTopic,
+                PauseCheckBox,
+                cancellationToken).ConfigureAwait(false);
+
+            // 將結果回寫到本物件
+            if (result != null)
+            {
+                WeeklyReportEntityId = result.WeeklyReportEntityId;
+                WeeklyReportData = result.WeeklyReportData;
+                WeeklyReportAnalysis = result.WeeklyReportAnalysis;
+            }
         }
         public void DeleteMemberData(String Account, String Password, Member aMemberToBeDeleted)
         {
