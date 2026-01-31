@@ -123,6 +123,7 @@ namespace ChurchReport.Models
                 HappyWeekIndex,
                 HappyWeekTopic,
                 PauseCheckBox,
+                WeeklyReportEntityId,
                 cancellationToken).ConfigureAwait(false);
 
             // 將結果回寫到本物件

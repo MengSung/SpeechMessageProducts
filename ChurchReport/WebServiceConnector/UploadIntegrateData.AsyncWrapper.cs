@@ -25,10 +25,13 @@ namespace ChurchReport.WebServiceConnector
             string HappyWeekIndex,
             string HappyWeekTopic,
             bool PauseCheckBox,
+            string currentWeeklyReportEntityId = null,
             CancellationToken cancellationToken = default)
         {
             // local copies for ref parameters
-            var localWeeklyReportEntityId = this.m_WeeklyReportEntity != null ? this.m_WeeklyReportEntity.Id.ToString() : string.Empty;
+            var localWeeklyReportEntityId = !string.IsNullOrEmpty(currentWeeklyReportEntityId)
+                ? currentWeeklyReportEntityId
+                : (this.m_WeeklyReportEntity != null ? this.m_WeeklyReportEntity.Id.ToString() : string.Empty);
             var localWeeklyReportData = weeklyReportData;
             var localWeeklyReportAnalysis = weeklyReportAnalysis;
 
