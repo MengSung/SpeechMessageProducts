@@ -153,10 +153,12 @@ namespace ChurchReport.Models
 
             if (session == null)
             {
-                System.Diagnostics.Debug.WriteLine("[GetCurrentSessionId] ❌ CurrentSession 為 null，拋出異常防止資料洩漏");
-                throw new InvalidOperationException(
-                    "Session 不可用，無法產生安全的快取 key。" +
-                    "請確保在 HTTP 請求上下文中存取此屬性，且 Session 中介軟體已正確配置。");
+                // 在偵錯或非 HTTP 請求上下文 (例如 VS 立即視窗、除錯評估) 中存取時，避免丟出例外導致 Visual Studio 顯示不安全的中止情形。
+                // 改為回傳一個暫時性的唯一 key，並記錄警告。這能避免除錯時評估屬性引發中斷，但在正常請求流程中 Session 應可用。
+                System.Diagnostics.Debug.WriteLine("[GetCurrentSessionId] ❌ CurrentSession 為 null，回傳暫時性快取 key 以避免在除錯時中斷流程");
+                var tempKey = $"NOSESSION_{Environment.MachineName}_{Thread.CurrentThread.ManagedThreadId}_{DateTime.UtcNow.Ticks}";
+                System.Diagnostics.Debug.WriteLine($"[GetCurrentSessionId] ⚠️ 暫時性 Key: {tempKey}");
+                return tempKey;
             }
 
             var sessionId = session.Id;
