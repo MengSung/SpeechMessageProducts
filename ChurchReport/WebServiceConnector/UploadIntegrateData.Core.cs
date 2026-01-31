@@ -114,6 +114,17 @@ namespace ChurchReport.WebServiceConnector
 
                 Guid aWeeklyReportId = m_WeeklyReportEntity != null ? m_WeeklyReportEntity.Id : Guid.Empty;
 
+                // 紀錄目前狀態，協助診斷為何會走到建立流程
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"UploadData: ListEntityId={ (m_ListEntity?.Id.ToString() ?? "null") }, PassedWeeklyReportEntityId={WeeklyReportEntityId}, BoundWeeklyReportId={(aWeeklyReportId==Guid.Empty?"Empty":aWeeklyReportId.ToString())}");
+
+                // 確保如果 m_WeeklyReportEntity 已被找到，使用其 Id
+                if (m_WeeklyReportEntity != null && aWeeklyReportId == Guid.Empty)
+                {
+                    aWeeklyReportId = m_WeeklyReportEntity.Id;
+                    WeeklyReportEntityId = aWeeklyReportId.ToString();
+                    this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"UploadData: bind m_WeeklyReportEntity.Id = {aWeeklyReportId}");
+                }
+
                 if (this.m_ListEntity != null)
                 {
                     lock (m_UploadDataLocker)
@@ -130,6 +141,8 @@ namespace ChurchReport.WebServiceConnector
                                 HappyWeekTopic,
                                 PauseCheckBox);
                         }
+
+        
 
         
 
@@ -325,9 +338,32 @@ namespace ChurchReport.WebServiceConnector
                     ? m_ToolUtilityClass.RetrieveEntity("list", new Guid(ListEntityId)) 
                     : null;
                     
-                this.m_WeeklyReportEntity = !string.IsNullOrEmpty(WeeklyReportEntityId) 
-                    ? m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", new Guid(WeeklyReportEntityId)) 
+                // 如果呼叫端沒有直接傳入週報 Id，嘗試依據主日與清單找出對應的週報
+                this.m_WeeklyReportEntity = !string.IsNullOrEmpty(WeeklyReportEntityId)
+                    ? m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", new Guid(WeeklyReportEntityId))
                     : null;
+
+                if (this.m_WeeklyReportEntity == null && this.m_ListEntity != null)
+                {
+                    try
+                    {
+                        var weeklyCollection = m_ToolUtilityClass.QueryWeeklyReportBySunday(m_Sunday, m_ListEntity.Id);
+                        if (weeklyCollection != null && weeklyCollection.Entities.Count > 0)
+                        {
+                            // 若有多筆則取第一筆（避免因為未提供 WeeklyReportEntityId 而重複建立）
+                            this.m_WeeklyReportEntity = weeklyCollection.Entities[0];
+                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"找到既有週報 (count={weeklyCollection.Entities.Count})，採用 Id = {this.m_WeeklyReportEntity.Id}");
+                        }
+                        else
+                        {
+                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "未找到既有週報，將以建立新週報處理");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"查詢既有週報時發生錯誤: {ex.Message}");
+                    }
+                }
             }
             catch (System.Exception Exception)
             {
