@@ -73567,12 +73567,12 @@ ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] T
 [GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
 [LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
 [LoadMaintainPersonInfomation]   ✅ 成功加入成員: 中壢棒
-[LoadMaintainPersonInfomation]   成員 7: 好牧人
+[LoadMaintainPersonInfomation]   成員 7: 神助611靈糧堂
 [GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
 [LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
 [GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
 [LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
-[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 好牧人
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 神助611靈糧堂
 [LoadMaintainPersonInfomation]   成員 8: 胡夢嵩
 [GetMembershipStatusText] 輸入值: 100000008, 回傳文字: 03. 小組長
 [LoadMaintainPersonInfomation]     會員身分: 03. 小組長 (值: 100000008)
@@ -75359,12 +75359,12 @@ ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] T
 [GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
 [LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
 [LoadMaintainPersonInfomation]   ✅ 成功加入成員: 中壢棒
-[LoadMaintainPersonInfomation]   成員 7: 好牧人
+[LoadMaintainPersonInfomation]   成員 7: 神助611靈糧堂
 [GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
 [LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
 [GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
 [LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
-[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 好牧人
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 神助611靈糧堂
 [LoadMaintainPersonInfomation]   成員 8: 胡夢嵩
 [GetMembershipStatusText] 輸入值: 100000008, 回傳文字: 03. 小組長
 [LoadMaintainPersonInfomation]     會員身分: 03. 小組長 (值: 100000008)
@@ -166860,7 +166860,7 @@ ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] T
 [LoadMaintainPersonInfomation]     單一小組-會員身分: 08. 新朋友
 [GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
 [LoadMaintainPersonInfomation]     單一小組-信仰狀態: 未信主
-[LoadMaintainPersonInfomation]     單一小組-成員: 好牧人
+[LoadMaintainPersonInfomation]     單一小組-成員: 神助611靈糧堂
 [GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
 [LoadMaintainPersonInfomation]     單一小組-會員身分: 08. 新朋友
 [GetSpiritualIdentityText] 輸入值: 100000004, 回傳文字: -未知-
@@ -167602,3 +167602,1383 @@ ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] T
 [SaveIntegrate] 背景上傳完成
 [SaveIntegrate] 已清理小組資料，剩餘 5 筆
 [SaveIntegrate] 已清理新人跟進資料，剩餘 14 筆
+[2026-02-03 16:15:22] Trace listener initialized successfully (Debug build).
+[2026-02-03 16:15:22] Log file: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport\Logs\Trace.log
+[2026-02-03 16:15:22] File mode: Append
+[Startup] ========================================
+[Startup] ✅ Session Bleeding 雙重防護已啟用
+[Startup] 第一層: 全站無快取中介軟體 (Middleware 層)
+[Startup] 第二層: ResponseCacheAttribute (MVC 層)
+[Startup] 第三層: StrictNoCacheFilter (Action 層)
+[Startup] 所有 Controller Action 將套用:
+[Startup]   - Cache-Control: no-store, no-cache
+[Startup]   - Pragma: no-cache
+[Startup]   - Expires: -1
+[Startup] ========================================
+ChurchReport.Services.Monitoring.SessionMonitorService: Information: [Session Monitor] Session 監控服務已啟動
+[2026-02-03 16:15:22.864] [Information] [ChurchReport.Services.Monitoring.SessionMonitorService] [Session Monitor] Session 監控服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 服務已啟動
+[2026-02-03 16:15:22.896] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 服務已啟動
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 清理間隔: 30 分鐘
+[2026-02-03 16:15:22.900] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 清理間隔: 30 分鐘
+ChurchReport.Middleware.IdentityAuditCleanupService: Information: [IdentityAuditCleanup] 資料保留: 1 小時
+[2026-02-03 16:15:22.904] [Information] [ChurchReport.Middleware.IdentityAuditCleanupService] [IdentityAuditCleanup] 資料保留: 1 小時
+Microsoft.AspNetCore.Watch.BrowserRefresh.BlazorWasmHotReloadMiddleware: Debug: Middleware loaded
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/aspnetcore-browser-refresh.js (16509 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserScriptMiddleware: Debug: Middleware loaded. Script /_framework/blazor-hotreload.js (799 B).
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Middleware loaded: DOTNET_MODIFIABLE_ASSEMBLIES=debug, __ASPNETCORE_BROWSER_TOOLS=true
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000005-0000-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+[2026-02-03 16:15:23.703] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000005-0000-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/ | Method:GET
+Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
+[2026-02-03 16:15:23.764] [Information] [Microsoft.Hosting.Lifetime] Application started. Press Ctrl+C to shut down.
+Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
+[2026-02-03 16:15:23.767] [Information] [Microsoft.Hosting.Lifetime] Hosting environment: Development
+Microsoft.Hosting.Lifetime: Information: Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[2026-02-03 16:15:23.771] [Information] [Microsoft.Hosting.Lifetime] Content root path: D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\ChurchReport
+[InMemoryDataContext] ✅ 建構完成（Session Bleeding 修復版本）
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[StrictNoCacheFilter] Action 完成
+  - Path: /
+  - Method: GET
+  - TraceId: 40000005-0000-fa00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET / - 2787ms - Status: 200
+[2026-02-03 16:15:26.470] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET / - 2787ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-02-03 16:15:26.481] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-02-03 16:15:26.488] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000006-0000-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[2026-02-03 16:15:28.258] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000006-0000-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/Home/ProcessLogin | Method:POST
+[InMemoryDataContext] ✅ 建構完成（Session Bleeding 修復版本）
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[InMemoryDataContext] ✅ 建構完成（Session Bleeding 修復版本）
+[BaseChurchController] ?? 使用向後兼容模式建立 InMemoryContext（請盡快更新為 DI 注入）
+[ProcessLogin] 開始處理登入 - 帳號: zz, 時間: 2026/2/3 下午 04:15:28
+[ProcessLogin] 步驟 1: 驗證使用者身份
+[ValidateUserCredentials] 開始驗證 - 帳號: zz
+[ProcessLogin] 步驟 2: 取得使用者資料
+[ProcessLogin] 使用者: 胡夢嵩
+[ProcessLogin] 步驟 3: 初始化使用者 Session
+[InitializeUserSession] ? 已清除舊 Session
+[InitializeUserSession] ? 已強制重新生成 Session ID
+[InitializeUserSession] ? 已綁定用戶身份: UserId=a14960a9-8315-ee11-8137-00155d006608, IP=::1
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: False
+[GetCurrentSessionId] 🆕 生成新的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] ✅ 首次存取，已初始化 Session 時間戳: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[SetSessionDirtyFlag] 🔵 進入方法
+[SetSessionDirtyFlag] 📌 CurrentSession 是否為 null: False
+[SetSessionDirtyFlag] ✅ 已成功設定 dirty flag = 1
+[SetSessionDirtyFlag] 🟢 方法完成
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[SetSessionDirtyFlag] 🔵 進入方法
+[SetSessionDirtyFlag] 📌 CurrentSession 是否為 null: False
+[SetSessionDirtyFlag] ✅ 已成功設定 dirty flag = 1
+[SetSessionDirtyFlag] 🟢 方法完成
+[InitializeUserSession] ========================================
+[InitializeUserSession] ? Session 初始化完成
+[InitializeUserSession]   - 用戶: zz
+[InitializeUserSession]   - Session ID: 已重新生成（新的唯一 ID）
+[InitializeUserSession]   - 用戶綁定: a14960a9-8315-ee11-8137-00155d006608_639057033302931257
+[InitializeUserSession] ========================================
+[ProcessLogin] 步驟 4: 設定系統資料 - 開始時間: 2026/2/3 下午 04:15:30
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[SetSessionDirtyFlag] 🔵 進入方法
+[SetSessionDirtyFlag] 📌 CurrentSession 是否為 null: False
+[SetSessionDirtyFlag] ✅ 已成功設定 dirty flag = 1
+[SetSessionDirtyFlag] 🟢 方法完成
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[QPayProcessor] LINE Token loaded for organization: shekinah611
+[QPayProcessor] ShopNo initialized: DA3009_001 (Environment: 正式環境)
+[SetSessionDirtyFlag] 🔵 進入方法
+[SetSessionDirtyFlag] 📌 CurrentSession 是否為 null: False
+[SetSessionDirtyFlag] ✅ 已成功設定 dirty flag = 1
+[SetSessionDirtyFlag] 🟢 方法完成
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[SetQpayModel] 成功取得 8 個奉獻類別
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[SetSessionDirtyFlag] 🔵 進入方法
+[SetSessionDirtyFlag] 📌 CurrentSession 是否為 null: False
+[SetSessionDirtyFlag] ✅ 已成功設定 dirty flag = 1
+[SetSessionDirtyFlag] 🟢 方法完成
+[ProcessLogin] 步驟 4: 設定系統資料 - 完成時間: 2026/2/3 下午 04:15:35
+[ProcessLogin] 步驟 5: 判斷顯示視圖類型
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[ProcessLogin] 顯示類型: MultiGroupView
+[ProcessLogin] 步驟 6: 設定 ViewBag 參數
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[SetSessionDirtyFlag] 🔵 進入方法
+[SetSessionDirtyFlag] 📌 CurrentSession 是否為 null: False
+[SetSessionDirtyFlag] ✅ 已成功設定 dirty flag = 1
+[SetSessionDirtyFlag] 🟢 方法完成
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[ProcessLogin] 步驟 7: 返回登入結果 - 完成時間: 2026/2/3 下午 04:15:36
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[StrictNoCacheFilter] Action 完成
+  - Path: /Home/ProcessLogin
+  - Method: POST
+  - TraceId: 40000006-0000-fa00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] POST /Home/ProcessLogin - 8067ms - Status: 200
+[2026-02-03 16:15:36.326] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] POST /Home/ProcessLogin - 8067ms - Status: 200
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000007-0000-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/MultiGroupView/78fca4c4-32d3-ee11-80e1-00155d006913 | Method:GET
+[2026-02-03 16:15:36.355] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000007-0000-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/MultiGroupView/78fca4c4-32d3-ee11-80e1-00155d006913 | Method:GET
+[InMemoryDataContext] ✅ 建構完成（Session Bleeding 修復版本）
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/MultiGroupView/78fca4c4-32d3-ee11-80e1-00155d006913
+  - Method: GET
+  - TraceId: 40000007-0000-fa00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Debug: Response markup is scheduled to include browser refresh script injection.
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET /SmallGroup/MultiGroupView/78fca4c4-32d3-ee11-80e1-00155d006913 - 1855ms - Status: 200
+[2026-02-03 16:15:38.207] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET /SmallGroup/MultiGroupView/78fca4c4-32d3-ee11-80e1-00155d006913 - 1855ms - Status: 200
+Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware: Warning: Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-02-03 16:15:38.211] [Warning] [Microsoft.WebTools.BrowserLink.Net.BrowserLinkMiddleware] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware: Warning: Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+[2026-02-03 16:15:38.215] [Warning] [Microsoft.AspNetCore.Watch.BrowserRefresh.BrowserRefreshMiddleware] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: 'br'. Consider disabling response compression.
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000015-000b-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000010-0001-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000043-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+[2026-02-03 16:15:38.287] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000015-000b-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/supplemental.min.js | Method:GET
+[2026-02-03 16:15:38.315] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000043-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/css/demo-template.css | Method:GET
+[2026-02-03 16:15:38.313] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000010-0001-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/event.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000007-0016-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+[2026-02-03 16:15:38.409] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000007-0016-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.spa.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000008-0000-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+[2026-02-03 16:15:38.413] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000008-0000-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/css/dx.common.css | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000035-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+[2026-02-03 16:15:38.418] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000035-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000009-0000-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+[2026-02-03 16:15:38.456] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000009-0000-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000036-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+[2026-02-03 16:15:38.516] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000036-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/currency.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000011-0001-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+[2026-02-03 16:15:38.581] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000011-0001-ff00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/number.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000008-0016-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+[2026-02-03 16:15:38.585] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000008-0016-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/message.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000044-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+[2026-02-03 16:15:38.613] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000044-0016-fe00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/globalize/date.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000016-000b-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000000a-0000-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+[2026-02-03 16:15:38.617] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000016-000b-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/cldr/unresolved.min.js | Method:GET
+[2026-02-03 16:15:38.643] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000000a-0000-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/jszip/dist/jszip.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000037-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+[2026-02-03 16:15:38.675] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000037-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/lib/devextreme/js/vectormap-data/usa.js | Method:GET
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:40000038-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/GetMultiGroupChartDataList | Method:GET
+[2026-02-03 16:15:38.745] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:40000038-000a-fd00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/GetMultiGroupChartDataList | Method:GET
+[InMemoryDataContext] ✅ 建構完成（Session Bleeding 修復版本）
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] Trace:4000000b-0000-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/AssignSmallGroupGet | Method:GET
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[2026-02-03 16:15:39.005] [Information] [ChurchReport.Middleware.IdentityAuditMiddleware] [Identity Audit] Trace:4000000b-0000-fa00-b63f-84710c7967bb | IP:::1 | User:Anonymous | Path:/SmallGroup/AssignSmallGroupGet | Method:GET
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetMultiGroupChartDataList] 快取未命中: SmallGroup_MultiChart_20260203_zz
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[InMemoryDataContext] ✅ 建構完成（Session Bleeding 修復版本）
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[BaseChurchController] 使用 DI 注入的 InMemoryContext
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GetCurrentSessionId] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetMultiGroupChartDataList] 已快取 3 筆
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[AssignSmallGroupGet] 快取未命中: SmallGroup_MultiGrid_20260203_zz
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[GetCurrentSessionId] 🔵 進入方法
+[GetCurrentSessionId] 📌 CurrentSession 是否為 null: False
+[GetCurrentSessionId] 📋 Session ID: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 👤 BoundUserId: (empty)
+[GetCurrentSessionId] 🔐 StoredFingerprint 是否存在: False
+[GenerateCurrentRequestFingerprint] 🔵 進入方法
+[GenerateCurrentRequestFingerprint] 📌 HttpContext 是否為 null: False
+[GenerateCurrentRequestFingerprint] 🌐 開始提取 IP 地址
+[GenerateCurrentRequestFingerprint] 🌐 X-Forwarded-For Header: (empty)
+[GenerateCurrentRequestFingerprint] 🌐 使用 RemoteIpAddress: ::1
+[GenerateCurrentRequestFingerprint] 🖥️  User-Agent (前50字): Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+[GenerateCurrentRequestFingerprint] 🔐 指紋輸入: ::1|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36
+[GenerateCurrentRequestFingerprint] ✅ 生成的指紋: Dj7+IJ2L93rUEDE/NmdnnVDFOvPVQULWtsVao/TwJiY=
+[GenerateCurrentRequestFingerprint] 🟢 方法返回成功
+[GetCurrentSessionId] 🔐 CurrentRequestFingerprint (前16字): Dj7+IJ2L93rUEDE/...
+[GetCurrentSessionId] ⏱️  SessionCreatedTime 是否存在: True
+[GetCurrentSessionId] ⏱️  使用既有的 SessionCreatedTime: 639057033303275693_5a3c2be7
+[GetCurrentSessionId] 🏗️  開始構建快取 Key，初始值: 586873ab-5703-a54c-51fc-6a03d58f570c
+[GetCurrentSessionId] 🏗️  已添加短指紋: Dj7+IJ2L
+[GetCurrentSessionId] 🏗️  已添加時間戳: 3_5a3c2be7
+[GetCurrentSessionId] ✅ 最終快取 Key: 586873ab-5703-a54c-51fc-6a03d58f570c_Dj7+IJ2L_3_5a3c2be7
+[GetCurrentSessionId] 🟢 方法返回，Key 長度: 56
+[AssignSmallGroupGet] 已快取 3 筆
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/AssignSmallGroupGet
+  - Method: GET
+  - TraceId: 4000000b-0000-fa00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+[StrictNoCacheFilter] Action 完成
+  - Path: /SmallGroup/GetMultiGroupChartDataList
+  - Method: GET
+  - TraceId: 40000038-000a-fd00-b63f-84710c7967bb
+  - Headers 已設定:
+    * Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+    * Pragma: no-cache
+    * Expires: -1
+    * Expires: -1
+ChurchReport.Middleware.PerformanceMonitoringMiddleware: Warning: [慢請求] GET /SmallGroup/GetMultiGroupChartDataList - 1101ms - Status: 200
+[2026-02-03 16:15:39.847] [Warning] [ChurchReport.Middleware.PerformanceMonitoringMiddleware] [慢請求] GET /SmallGroup/GetMultiGroupChartDataList - 1101ms - Status: 200

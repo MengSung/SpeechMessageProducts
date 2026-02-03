@@ -147,7 +147,7 @@ namespace ChurchReport.Tools
                     // 透過 LINE ID 找不到此好友，可能還沒加入官LINE@
                     //this.AddNewFriend(DisplayName, UserLineId);
 
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入好牧人的 Line@";
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入神助611靈糧堂的 Line@";
 
                     return;
                 }

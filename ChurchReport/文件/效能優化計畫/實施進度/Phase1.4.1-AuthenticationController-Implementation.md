@@ -492,7 +492,7 @@ public async Task<IActionResult> ProcessLineBinding(LineBindingViewModel model)
                 
                 return Json(new { 
                     status = "1", 
-                    message = $"註冊成功！歡迎 {model.FullName} 加入好牧人" 
+                    message = $"註冊成功！歡迎 {model.FullName} 加入神助611靈糧堂" 
                 });
             }
             else
