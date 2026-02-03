@@ -46,7 +46,15 @@
                         .RowAlternationEnabled(true)
 
                         @* 性能與操作體驗 *@
-                        .RemoteOperations(false)                 @* 於前端處理排序/分頁 *@
+                        @* ✅ 修正：使用 RemoteOperations.Filtering 和 .Sorting(false) 保持前端排序/過濾
+                           但讓更新操作發送到服務器 *@
+                        .RemoteOperations(ro => ro
+                            .Filtering(false)
+                            .Sorting(false)
+                            .Paging(false)
+                            .Grouping(false)
+                            .Summary(false)
+                        )
                         .RepaintChangesOnly(true)
                         .CacheEnabled(true)
                         .Scrolling(s => s
@@ -90,6 +98,87 @@
                             editing.RefreshMode(GridEditRefreshMode.Repaint);
                         })
 
+                        @* ✅ 診斷事件：記錄所有編輯相關事件並發送到服務器 *@
+                        .OnRowUpdating(@<text>
+                            function(e) {
+                                var logData = {
+                                    eventType: "OnRowUpdating",
+                                    message: "用戶嘗試更新資料行",
+                                    data: JSON.stringify({
+                                        key: e.key,
+                                        oldData: e.oldData,
+                                        newData: e.newData
+                                    })
+                                };
+                                
+                                // 發送日誌到服務器
+                                $.ajax({
+                                    url: '/SmallGroup/LogClientEvent',
+                                    type: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify(logData),
+                                    async: true
+                                });
+                            }
+                        </text>)
+                        .OnRowUpdated(@<text>
+                            function(e) {
+                                var logData = {
+                                    eventType: "OnRowUpdated",
+                                    message: "資料行更新完成",
+                                    data: JSON.stringify({
+                                        key: e.key,
+                                        data: e.data
+                                    })
+                                };
+                                
+                                $.ajax({
+                                    url: '/SmallGroup/LogClientEvent',
+                                    type: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify(logData),
+                                    async: true
+                                });
+                            }
+                        </text>)
+                        .OnEditingStart(@<text>
+                            function(e) {
+                                var logData = {
+                                    eventType: "OnEditingStart",
+                                    message: "開始編輯儲存格",
+                                    data: JSON.stringify({
+                                        data: e.data,
+                                        column: e.column ? e.column.dataField : 'unknown'
+                                    })
+                                };
+                                
+                                $.ajax({
+                                    url: '/SmallGroup/LogClientEvent',
+                                    type: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify(logData),
+                                    async: true
+                                });
+                            }
+                        </text>)
+                        .OnInitialized(@<text>
+                            function(e) {
+                                var logData = {
+                                    eventType: "GridInitialized",
+                                    message: "小組牧養 DataGrid 已初始化",
+                                    data: "Grid ID: SmallGroupgridContainer"
+                                };
+                                
+                                $.ajax({
+                                    url: '/SmallGroup/LogClientEvent',
+                                    type: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify(logData),
+                                    async: true
+                                });
+                            }
+                        </text>)
+
                         @* 欄位定義 *@
                         .Columns(columns =>
                         {
@@ -105,12 +194,14 @@
 
                             columns.AddFor(m => m.Sunday)
                                    .Caption("主日")
+                                   .DataType(GridColumnDataType.Boolean)
                                    .Width(45)
                                    .MinWidth(45)
                                    .AllowSorting(false);
 
                             columns.AddFor(m => m.SmallGroup)
                                    .Caption("小組")
+                                   .DataType(GridColumnDataType.Boolean)
                                    .Width(45)
                                    .MinWidth(45)
                                    .AllowSorting(false);
@@ -216,7 +307,14 @@
                         .ColumnHidingEnabled(true)
 
                         @* 性能與操作體驗 *@
-                        .RemoteOperations(false)
+                        @* ✅ 修正：使用 RemoteOperations 配置，保持前端排序/過濾但讓更新操作發送到服務器 *@
+                        .RemoteOperations(ro => ro
+                            .Filtering(false)
+                            .Sorting(false)
+                            .Paging(false)
+                            .Grouping(false)
+                            .Summary(false)
+                        )
                         .RepaintChangesOnly(true)
                         .CacheEnabled(true)
                         .Scrolling(s => s
@@ -266,6 +364,69 @@
                             editing.RefreshMode(GridEditRefreshMode.Repaint);
                         })
 
+                        @* ✅ 診斷事件：記錄所有編輯相關事件並發送到服務器 *@
+                        .OnRowUpdating(@<text>
+                            function(e) {
+                                var logData = {
+                                    eventType: "NewPerson_OnRowUpdating",
+                                    message: "新人跟進 - 用戶嘗試更新資料行",
+                                    data: JSON.stringify({
+                                        key: e.key,
+                                        oldData: e.oldData,
+                                        newData: e.newData
+                                    })
+                                };
+                                
+                                $.ajax({
+                                    url: '/SmallGroup/LogClientEvent',
+                                    type: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify(logData),
+                                    async: true
+                                });
+                            }
+                        </text>)
+                        .OnRowUpdated(@<text>
+                            function(e) {
+                                var logData = {
+                                    eventType: "NewPerson_OnRowUpdated",
+                                    message: "新人跟進 - 資料行更新完成",
+                                    data: JSON.stringify({
+                                        key: e.key,
+                                        data: e.data
+                                    })
+                                };
+                                
+                                $.ajax({
+                                    url: '/SmallGroup/LogClientEvent',
+                                    type: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify(logData),
+                                    async: true
+                                });
+                            }
+                        </text>)
+                        .OnEditingStart(@<text>
+                            function(e) {
+                                var logData = {
+                                    eventType: "NewPerson_OnEditingStart",
+                                    message: "新人跟進 - 開始編輯儲存格",
+                                    data: JSON.stringify({
+                                        data: e.data,
+                                        column: e.column ? e.column.dataField : 'unknown'
+                                    })
+                                };
+                                
+                                $.ajax({
+                                    url: '/SmallGroup/LogClientEvent',
+                                    type: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify(logData),
+                                    async: true
+                                });
+                            }
+                        </text>)
+
                         @* 欄位定義 *@
                         .Columns(columns =>
                         {
@@ -282,13 +443,15 @@
                                    .Caption("主日")
                                    .DataType(GridColumnDataType.Boolean)
                                    .Width(45)
-                                   .MinWidth(45);
+                                   .MinWidth(45)
+                                   .AllowSorting(false);
 
                             columns.AddFor(m => m.SmallGroup)
                                    .Caption("小組")
                                    .DataType(GridColumnDataType.Boolean)
                                    .Width(45)
-                                   .MinWidth(45);
+                                   .MinWidth(45)
+                                   .AllowSorting(false);
 
                             // ✅ 會員身分（委身類型）：改為動態 DataSource
                             columns.Add().DataField("Status")
@@ -298,6 +461,7 @@
                                    .Width(70)
                                    .MinWidth(30)
                                    .DataType(GridColumnDataType.String)
+                                   .AllowSorting(false)
                                    .Lookup(lookup => lookup
                                        .DataSource(new JS("membershipStatusDataSource")) // ✅ 動態 DataSource
                                    );
@@ -310,6 +474,7 @@
                                    .Width(110)
                                    .MinWidth(100)
                                    .DataType(GridColumnDataType.String)
+                                   .AllowSorting(false)
                                    .Lookup(lookup => lookup
                                        .DataSource(new JS("spiritualIdentityDataSource")) // ✅ 動態 DataSource
                                    );
@@ -425,47 +590,62 @@
 @* ✅ JavaScript：動態載入會員身分和信仰狀態清單 *@
 <script>
     // 全域變數：會員身分和信仰狀態 DataSource
-    var membershipStatusDataSource = [];
-    var spiritualIdentityDataSource = [];
+    // ✅ 初始化為備用清單，確保即使 API 失敗也有值可用
+    var membershipStatusDataSource = ["牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案"];
+    var spiritualIdentityDataSource = ["-未知-", "基督徒", "已決志", "慕道友", "未信主"];
 
-    // ✅ 頁面載入時從 API 取得動態選項清單
-    $(document).ready(function() {
+    // ✅ 使用立即執行函數，確保在頁面載入時就執行
+    (function() {
+        console.log('✅ [_GeneralGroupGrids] 開始載入動態選項清單...');
+        
         // 載入會員身分清單
-        $.ajax({
-            url: '/Personal/Api/GetMembershipStatusList',
-            type: 'GET',
-            dataType: 'json',
-            async: false, // 同步載入確保 DataGrid 初始化前完成
-            success: function(response) {
-                if (response.success && response.data) {
-                    membershipStatusDataSource = response.data;
-                    console.log('✅ [_GeneralGroupGrids] 成功載入會員身分清單:', membershipStatusDataSource);
+        try {
+            $.ajax({
+                url: '/Personal/Api/GetMembershipStatusList',
+                type: 'GET',
+                dataType: 'json',
+                async: false, // 同步載入確保 DataGrid 初始化前完成
+                success: function(response) {
+                    if (response && response.success && response.data && response.data.length > 0) {
+                        membershipStatusDataSource = response.data;
+                        console.log('✅ [_GeneralGroupGrids] 成功載入會員身分清單:', membershipStatusDataSource.length, '個選項');
+                    } else {
+                        console.warn('⚠️ [_GeneralGroupGrids] API 返回空資料，使用備用會員身分清單');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('❌ [_GeneralGroupGrids] 載入會員身分清單失敗:', error, '，使用備用清單');
                 }
-            },
-            error: function(xhr, status, error) {
-                console.error('❌ [_GeneralGroupGrids] 載入會員身分清單失敗:', error);
-                // 使用備用清單
-                membershipStatusDataSource = ["牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案"];
-            }
-        });
+            });
+        } catch (e) {
+            console.error('❌ [_GeneralGroupGrids] 會員身分清單 AJAX 例外:', e);
+        }
 
         // 載入信仰狀態清單
-        $.ajax({
-            url: '/Personal/Api/GetSpiritualIdentityList',
-            type: 'GET',
-            dataType: 'json',
-            async: false, // 同步載入確保 DataGrid 初始化前完成
-            success: function(response) {
-                if (response.success && response.data) {
-                    spiritualIdentityDataSource = response.data;
-                    console.log('✅ [_GeneralGroupGrids] 成功載入信仰狀態清單:', spiritualIdentityDataSource);
+        try {
+            $.ajax({
+                url: '/Personal/Api/GetSpiritualIdentityList',
+                type: 'GET',
+                dataType: 'json',
+                async: false, // 同步載入確保 DataGrid 初始化前完成
+                success: function(response) {
+                    if (response && response.success && response.data && response.data.length > 0) {
+                        spiritualIdentityDataSource = response.data;
+                        console.log('✅ [_GeneralGroupGrids] 成功載入信仰狀態清單:', spiritualIdentityDataSource.length, '個選項');
+                    } else {
+                        console.warn('⚠️ [_GeneralGroupGrids] API 返回空資料，使用備用信仰狀態清單');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('❌ [_GeneralGroupGrids] 載入信仰狀態清單失敗:', error, '，使用備用清單');
                 }
-            },
-            error: function(xhr, status, error) {
-                console.error('❌ [_GeneralGroupGrids] 載入信仰狀態清單失敗:', error);
-                // 使用備用清單
-                spiritualIdentityDataSource = ["-未知-", "基督徒", "已決志", "慕道友", "未信主"];
-            }
-        });
-    });
+            });
+        } catch (e) {
+            console.error('❌ [_GeneralGroupGrids] 信仰狀態清單 AJAX 例外:', e);
+        }
+        
+        console.log('✅ [_GeneralGroupGrids] 動態選項清單載入完成');
+        console.log('  - 會員身分:', membershipStatusDataSource);
+        console.log('  - 信仰狀態:', spiritualIdentityDataSource);
+    })();
 </script>
