@@ -17,14 +17,14 @@
             <h5 style="margin:0; color:#667eea;">小組是否暫停</h5>
         </div>
         @(Html.DevExtreme()
-            .CheckBox()
-            .ID("CheckBoxId")
-            .Value(Model.PauseCheckBox)
-        )
+                .CheckBox()
+                .ID("CheckBoxId")
+                .Value(Model.PauseCheckBox)
+                )
     </div>
 
     @* 2) 小組牧養資料網格：在 DisplayFlag 為 true 時顯示，無資料時自動隱藏 *@
-    @if (Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag == true)  
+    @if (Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag == true)
     {
         <div class="small-group-section" id="smallGroupSection">
             <div style="font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
@@ -33,221 +33,130 @@
 
             <div id="smallgroup-grid">
                 @(
-                    Html.DevExtreme()
-                        .DataGrid<Member>()
-                        .ID("SmallGroupgridContainer")
+                            Html.DevExtreme()
+                            .DataGrid<Member>()
+                            .ID("SmallGroupgridContainer")
 
-                        @* 視覺與版面 *@
-                        .ShowBorders(true)
-                        .ColumnAutoWidth(true)
-                        .ColumnHidingEnabled(true)
-                        .ShowColumnLines(true)
-                        .ShowRowLines(true)
-                        .RowAlternationEnabled(true)
+                            @* 視覺與版面 *@
+                            .ShowBorders(true)
+                            .ColumnAutoWidth(true)
+                            .ColumnHidingEnabled(true)
+                            .ShowColumnLines(true)
+                            .ShowRowLines(true)
+                            .RowAlternationEnabled(true)
 
-                        @* 性能與操作體驗 *@
-                        @* ✅ 修正：使用 RemoteOperations.Filtering 和 .Sorting(false) 保持前端排序/過濾
-                           但讓更新操作發送到服務器 *@
-                        .RemoteOperations(ro => ro
-                            .Filtering(false)
-                            .Sorting(false)
-                            .Paging(false)
-                            .Grouping(false)
-                            .Summary(false)
-                        )
-                        .RepaintChangesOnly(true)
-                        .CacheEnabled(true)
-                        .Scrolling(s => s
+                            @* 性能與操作體驗 *@
+                            .RemoteOperations(false)                 @* 於前端處理排序/分頁 *@
+                            .RepaintChangesOnly(true)
+                            .CacheEnabled(true)
+                            .Scrolling(s => s
                             .Mode(GridScrollingMode.Virtual)
                             .RowRenderingMode(GridRowRenderingMode.Virtual)
-                        )
-                        .Paging(p => p.PageSize(100).Enabled(true))
-                        .Sorting(s => s.Mode(GridSortingMode.Single))
-                        .AllowColumnResizing(true)
-                        .ColumnResizingMode(ColumnResizingMode.Widget)
-                        .ColumnFixing(c => c.Enabled(true))
-                        .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
-                        .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+                            )
+                            .Paging(p => p.PageSize(100).Enabled(true))
+                            .Sorting(s => s.Mode(GridSortingMode.Single))
+                            .AllowColumnResizing(true)
+                            .ColumnResizingMode(ColumnResizingMode.Widget)
+                            .ColumnFixing(c => c.Enabled(true))
+                            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+                            .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
 
-                        @* 分組設定：保留功能但隱藏 GroupPanel，避免使用者自行拖放分組 *@
-                        .Grouping(g => g
+                            @* 分組設定：保留功能但隱藏 GroupPanel，避免使用者自行拖放分組 *@
+                            .Grouping(g => g
                             .ContextMenuEnabled(true)
                             .ExpandMode(GridGroupingExpandMode.RowClick)
-                        )
-                        .GroupPanel(p => p
+                            )
+                            .GroupPanel(p => p
                             .EmptyPanelText("請把小組名稱拉到這裡")
                             .Visible(false)
                             .AllowColumnDragging(true)
-                        )
+                            )
 
-                        @* 編輯設定：採用 Cell 模式，允許更新，不允許刪除 *@
-                        .Editing(editing =>
-                        {
-                            editing.Mode(GridEditMode.Cell);
-                            editing.AllowUpdating(true);
-                            editing.AllowDeleting(false);
-                            editing.Texts(a => a
-                                .SaveAllChanges("上傳檔案")
-                                .AddRow("新增")
-                                .CancelAllChanges("取消變更")
-                                .SaveRowChanges("儲存")
-                                .CancelRowChanges("取消")
-                                .EditRow("編輯")
-                                .DeleteRow("刪除")
+                            @* 編輯設定：採用 Cell 模式，允許更新，不允許刪除 *@
+                            .Editing(editing =>
+                            {
+                                editing.Mode(GridEditMode.Cell);
+                                editing.AllowUpdating(true);
+                                editing.AllowDeleting(false);
+                                editing.Texts(a => a
+                            .SaveAllChanges("上傳檔案")
+                            .AddRow("新增")
+                            .CancelAllChanges("取消變更")
+                            .SaveRowChanges("儲存")
+                            .CancelRowChanges("取消")
+                            .EditRow("編輯")
+                            .DeleteRow("刪除")
                             );
-                            editing.RefreshMode(GridEditRefreshMode.Repaint);
-                        })
+                                editing.RefreshMode(GridEditRefreshMode.Repaint);
+                            })
 
-                        @* ✅ 診斷事件：記錄所有編輯相關事件並發送到服務器 *@
-                        .OnRowUpdating(@<text>
-                            function(e) {
-                                var logData = {
-                                    eventType: "OnRowUpdating",
-                                    message: "用戶嘗試更新資料行",
-                                    data: JSON.stringify({
-                                        key: e.key,
-                                        oldData: e.oldData,
-                                        newData: e.newData
-                                    })
-                                };
-                                
-                                // 發送日誌到服務器
-                                $.ajax({
-                                    url: '/SmallGroup/LogClientEvent',
-                                    type: 'POST',
-                                    contentType: 'application/json',
-                                    data: JSON.stringify(logData),
-                                    async: true
-                                });
-                            }
-                        </text>)
-                        .OnRowUpdated(@<text>
-                            function(e) {
-                                var logData = {
-                                    eventType: "OnRowUpdated",
-                                    message: "資料行更新完成",
-                                    data: JSON.stringify({
-                                        key: e.key,
-                                        data: e.data
-                                    })
-                                };
-                                
-                                $.ajax({
-                                    url: '/SmallGroup/LogClientEvent',
-                                    type: 'POST',
-                                    contentType: 'application/json',
-                                    data: JSON.stringify(logData),
-                                    async: true
-                                });
-                            }
-                        </text>)
-                        .OnEditingStart(@<text>
-                            function(e) {
-                                var logData = {
-                                    eventType: "OnEditingStart",
-                                    message: "開始編輯儲存格",
-                                    data: JSON.stringify({
-                                        data: e.data,
-                                        column: e.column ? e.column.dataField : 'unknown'
-                                    })
-                                };
-                                
-                                $.ajax({
-                                    url: '/SmallGroup/LogClientEvent',
-                                    type: 'POST',
-                                    contentType: 'application/json',
-                                    data: JSON.stringify(logData),
-                                    async: true
-                                });
-                            }
-                        </text>)
-                        .OnInitialized(@<text>
-                            function(e) {
-                                var logData = {
-                                    eventType: "GridInitialized",
-                                    message: "小組牧養 DataGrid 已初始化",
-                                    data: "Grid ID: SmallGroupgridContainer"
-                                };
-                                
-                                $.ajax({
-                                    url: '/SmallGroup/LogClientEvent',
-                                    type: 'POST',
-                                    contentType: 'application/json',
-                                    data: JSON.stringify(logData),
-                                    async: true
-                                });
-                            }
-                        </text>)
+                            @* 欄位定義 *@
+                            .Columns(columns =>
+                            {
+                                // 基本出席資訊
+                                columns.AddFor(m => m.FullName)
+                            .Caption("姓名")
+                            .Fixed(true)
+                            .Width(60)
+                            .MinWidth(20)
+                            .Alignment(HorizontalAlignment.Left)
+                            .AllowSorting(false)
+                            .AllowEditing(false);
 
-                        @* 欄位定義 *@
-                        .Columns(columns =>
-                        {
-                            // 基本出席資訊
-                            columns.AddFor(m => m.FullName)
-                                   .Caption("姓名")
-                                   .Fixed(true)
-                                   .Width(60)
-                                   .MinWidth(20)
-                                   .Alignment(HorizontalAlignment.Left)
-                                   .AllowSorting(false)
-                                   .AllowEditing(false);
+                                columns.AddFor(m => m.Sunday)
+                            .Caption("主日")
+                            .Width(45)
+                            .MinWidth(45)
+                            .AllowSorting(false);
 
-                            columns.AddFor(m => m.Sunday)
-                                   .Caption("主日")
-                                   .DataType(GridColumnDataType.Boolean)
-                                   .Width(45)
-                                   .MinWidth(45)
-                                   .AllowSorting(false);
+                                columns.AddFor(m => m.SmallGroup)
+                            .Caption("小組")
+                            .Width(45)
+                            .MinWidth(45)
+                            .AllowSorting(false);
 
-                            columns.AddFor(m => m.SmallGroup)
-                                   .Caption("小組")
-                                   .DataType(GridColumnDataType.Boolean)
-                                   .Width(45)
-                                   .MinWidth(45)
-                                   .AllowSorting(false);
+                                // ✅ 客製 - 委身類型：改為動態 DataSource
+                                columns.Add().DataField("Status")
+                            .Caption("會員身分")
+                            .Alignment(HorizontalAlignment.Center)
+                            .AllowEditing(true)
+                            .Width(120)
+                            .MinWidth(30)
+                            .DataType(GridColumnDataType.String)
+                            .Lookup(lookup => lookup
+                            .DataSource(new JS("membershipStatusDataSource")) // ✅ 動態 DataSource
+                            );
 
-                            // ✅ 客製 - 委身類型：改為動態 DataSource
-                            columns.Add().DataField("Status")
-                                   .Caption("會員身分")
-                                   .Alignment(HorizontalAlignment.Center)
-                                   .AllowEditing(true)
-                                   .Width(120)
-                                   .MinWidth(30)
-                                   .DataType(GridColumnDataType.String)
-                                   .Lookup(lookup => lookup
-                                       .DataSource(new JS("membershipStatusDataSource")) // ✅ 動態 DataSource
-                                   );
+                                // ✅ 信仰狀態：改為動態 DataSource
+                                columns.AddFor(m => m.SpiritualIdentity)
+                            .Caption("信仰狀態")
+                            .Alignment(HorizontalAlignment.Center)
+                            .AllowEditing(true)
+                            .Width(110)
+                            .MinWidth(100)
+                            .DataType(GridColumnDataType.String)
+                            .Lookup(lookup => lookup
+                            .DataSource(new JS("spiritualIdentityDataSource")) // ✅ 動態 DataSource
+                            );
 
-                            // ✅ 信仰狀態：改為動態 DataSource
-                            columns.AddFor(m => m.SpiritualIdentity)
-                                   .Caption("信仰狀態")
-                                   .Alignment(HorizontalAlignment.Center)
-                                   .AllowEditing(true)
-                                   .Width(110)
-                                   .MinWidth(100)
-                                   .DataType(GridColumnDataType.String)
-                                   .Lookup(lookup => lookup
-                                       .DataSource(new JS("spiritualIdentityDataSource")) // ✅ 動態 DataSource
-                                   );
+                                // 代禱事項：可輸入欄位
+                                columns.AddFor(m => m.PrayItem)
+                            .Caption("代禱事項")
+                            .MinWidth(90);
 
-                            // 代禱事項：可輸入欄位
-                            columns.AddFor(m => m.PrayItem)
-                                   .Caption("代禱事項")
-                                   .MinWidth(90);
+                                // 指派小組：使用後端提供之清單，預設隱藏
+                                columns.AddFor(m => m.AssignedGroup)
+                            .Caption("指派小組")
+                            .Visible(false)
+                            .Width(120)
+                            .MinWidth(30)
+                            .Lookup(lookup => lookup
+                            .DataSource(Model.GroupArray)
+                            );
+                            })
 
-                            // 指派小組：使用後端提供之清單，預設隱藏
-                            columns.AddFor(m => m.AssignedGroup)
-                                   .Caption("指派小組")
-                                   .Visible(false)
-                                   .Width(120)
-                                   .MinWidth(30)
-                                   .Lookup(lookup => lookup
-                                       .DataSource(Model.GroupArray)
-                                   );
-                        })
-
-                        @* 資料來源：呼叫 SmallGroup Controller WebAPI 端點 *@
-                        .DataSource(d => d
+                            @* 資料來源：呼叫 SmallGroup Controller WebAPI 端點 *@
+                            .DataSource(d => d
                             .WebApi()
                             .Controller("SmallGroup")
                             .LoadAction("LoadIntegrate")
@@ -256,31 +165,31 @@
                             .UpdateAction("UpdateSmallGroupPresentRecord")
                             .Key("PresentRecordId")
                             .LoadParams(new { id = @ViewBag.ListId })
-                        )
+                            )
 
-                        @* 事件：內容就緒、儲存格顯示自訂 *@
-                        .OnContentReady(@<text>
-                            function(e) {
-                                // 將編輯欄位移至左側，維持既有使用體驗
-                                moveEditColumnToLeft(e.component);
-                                
-                                // ✅ 檢查資料筆數，若無資料則隱藏整個區塊
-                                var dataSource = e.component.getDataSource();
-                                var totalCount = dataSource.totalCount();
-                                
-                                if (totalCount === 0) {
-                                    // 隱藏整個小組牧養區塊
-                                    $('#smallGroupSection').hide();
-                                    console.log('✅ [SmallGroupGrid] 無資料，隱藏小組牧養區塊');
-                                } else {
-                                    // 有資料則顯示
-                                    $('#smallGroupSection').show();
-                                    console.log('✅ [SmallGroupGrid] 資料筆數:', totalCount);
-                                }
-                            }
-                        </text>)
-                        .OnCellPrepared("cell_prepared")        @* 鉛筆圖示/文字等自訂顯示 *@
-                )
+                            @* 事件：內容就緒、儲存格顯示自訂 *@
+                            .OnContentReady(@<text>
+                    function(e) {
+                    // 將編輯欄位移至左側，維持既有使用體驗
+                    moveEditColumnToLeft(e.component);
+
+                    // ✅ 檢查資料筆數，若無資料則隱藏整個區塊
+                    var dataSource = e.component.getDataSource();
+                    var totalCount = dataSource.totalCount();
+
+                    if (totalCount === 0) {
+                    // 隱藏整個小組牧養區塊
+                    $('#smallGroupSection').hide();
+                    console.log('✅ [SmallGroupGrid] 無資料，隱藏小組牧養區塊');
+                    } else {
+                    // 有資料則顯示
+                    $('#smallGroupSection').show();
+                    console.log('✅ [SmallGroupGrid] 資料筆數:', totalCount);
+                    }
+                    }
+                </text>)
+                            .OnCellPrepared("cell_prepared")        @* 鉛筆圖示/文字等自訂顯示 *@
+                            )
             </div>
         </div>
     }
@@ -295,260 +204,186 @@
 
             <div id="newpersonal-data-grid">
                 @(
-                    Html.DevExtreme()
-                        .DataGrid<Member>()
-                        .ID("NewPersonGridContainer")
+                            Html.DevExtreme()
+                            .DataGrid<Member>()
+                            .ID("NewPersonGridContainer")
 
-                        @* 視覺與版面 *@
-                        .ShowBorders(true)
-                        .ShowColumnLines(true)
-                        .ShowRowLines(true)
-                        .RowAlternationEnabled(true)
-                        .ColumnHidingEnabled(true)
+                            @* 視覺與版面 *@
+                            .ShowBorders(true)
+                            .ShowColumnLines(true)
+                            .ShowRowLines(true)
+                            .RowAlternationEnabled(true)
+                            .ColumnHidingEnabled(true)
 
-                        @* 性能與操作體驗 *@
-                        @* ✅ 修正：使用 RemoteOperations 配置，保持前端排序/過濾但讓更新操作發送到服務器 *@
-                        .RemoteOperations(ro => ro
-                            .Filtering(false)
-                            .Sorting(false)
-                            .Paging(false)
-                            .Grouping(false)
-                            .Summary(false)
-                        )
-                        .RepaintChangesOnly(true)
-                        .CacheEnabled(true)
-                        .Scrolling(s => s
+                            @* 性能與操作體驗 *@
+                            .RemoteOperations(false)
+                            .RepaintChangesOnly(true)
+                            .CacheEnabled(true)
+                            .Scrolling(s => s
                             .Mode(GridScrollingMode.Virtual)
                             .RowRenderingMode(GridRowRenderingMode.Virtual)
-                        )
-                        .Paging(paging => paging.PageSize(10).Enabled(true))
-                        .AllowColumnResizing(true)
-                        .ColumnResizingMode(ColumnResizingMode.Widget)
-                        .ColumnFixing(c => c.Enabled(true))
-                        .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
-                        .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
-                        .Export(e => e.Enabled(false).AllowExportSelectedData(true))
-                        .TwoWayBindingEnabled(true)
-                        .Visible(Model.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag)
+                            )
+                            .Paging(paging => paging.PageSize(10).Enabled(true))
+                            .AllowColumnResizing(true)
+                            .ColumnResizingMode(ColumnResizingMode.Widget)
+                            .ColumnFixing(c => c.Enabled(true))
+                            .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
+                            .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
+                            .Export(e => e.Enabled(false).AllowExportSelectedData(true))
+                            .TwoWayBindingEnabled(true)
+                            .Visible(Model.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag)
 
-                        @* 分組設定 *@
-                        .Grouping(g => g
+                            @* 分組設定 *@
+                            .Grouping(g => g
                             .ContextMenuEnabled(true)
                             .ExpandMode(GridGroupingExpandMode.RowClick)
-                        )
-                        .GroupPanel(p => p
+                            )
+                            .GroupPanel(p => p
                             .EmptyPanelText("請把小組名稱拉到這裡")
                             .Visible(false)    @* 避免使用者自行決定分組 *@
                             .AllowColumnDragging(true)
-                        )
+                            )
 
-                        @* 事件（列表互動） *@
-                        .OnSelectionChanged("OnRowSelectionChanged")
-                        .OnEditorPrepared("OnEditorPrepared")
+                            @* 事件（列表互動） *@
+                            .OnSelectionChanged("OnRowSelectionChanged")
+                            .OnEditorPrepared("OnEditorPrepared")
 
-                        @* 編輯設定：採用 Cell 模式，允許更新，不允許刪除 *@
-                        .Editing(editing =>
-                        {
-                            editing.Mode(GridEditMode.Cell);
-                            editing.AllowUpdating(true);
-                            editing.AllowDeleting(false);
-                            editing.Texts(a => a
-                                .SaveAllChanges("上傳檔案")
-                                .AddRow("新增")
-                                .CancelAllChanges("取消變更")
-                                .SaveRowChanges("儲存")
-                                .CancelRowChanges("取消")
-                                .EditRow("編輯")
-                                .DeleteRow("刪除")
+                            @* 編輯設定：採用 Cell 模式，允許更新，不允許刪除 *@
+                            .Editing(editing =>
+                            {
+                                editing.Mode(GridEditMode.Cell);
+                                editing.AllowUpdating(true);
+                                editing.AllowDeleting(false);
+                                editing.Texts(a => a
+                            .SaveAllChanges("上傳檔案")
+                            .AddRow("新增")
+                            .CancelAllChanges("取消變更")
+                            .SaveRowChanges("儲存")
+                            .CancelRowChanges("取消")
+                            .EditRow("編輯")
+                            .DeleteRow("刪除")
                             );
-                            editing.RefreshMode(GridEditRefreshMode.Repaint);
-                        })
+                                editing.RefreshMode(GridEditRefreshMode.Repaint);
+                            })
 
-                        @* ✅ 診斷事件：記錄所有編輯相關事件並發送到服務器 *@
-                        .OnRowUpdating(@<text>
-                            function(e) {
-                                var logData = {
-                                    eventType: "NewPerson_OnRowUpdating",
-                                    message: "新人跟進 - 用戶嘗試更新資料行",
-                                    data: JSON.stringify({
-                                        key: e.key,
-                                        oldData: e.oldData,
-                                        newData: e.newData
-                                    })
-                                };
-                                
-                                $.ajax({
-                                    url: '/SmallGroup/LogClientEvent',
-                                    type: 'POST',
-                                    contentType: 'application/json',
-                                    data: JSON.stringify(logData),
-                                    async: true
-                                });
-                            }
-                        </text>)
-                        .OnRowUpdated(@<text>
-                            function(e) {
-                                var logData = {
-                                    eventType: "NewPerson_OnRowUpdated",
-                                    message: "新人跟進 - 資料行更新完成",
-                                    data: JSON.stringify({
-                                        key: e.key,
-                                        data: e.data
-                                    })
-                                };
-                                
-                                $.ajax({
-                                    url: '/SmallGroup/LogClientEvent',
-                                    type: 'POST',
-                                    contentType: 'application/json',
-                                    data: JSON.stringify(logData),
-                                    async: true
-                                });
-                            }
-                        </text>)
-                        .OnEditingStart(@<text>
-                            function(e) {
-                                var logData = {
-                                    eventType: "NewPerson_OnEditingStart",
-                                    message: "新人跟進 - 開始編輯儲存格",
-                                    data: JSON.stringify({
-                                        data: e.data,
-                                        column: e.column ? e.column.dataField : 'unknown'
-                                    })
-                                };
-                                
-                                $.ajax({
-                                    url: '/SmallGroup/LogClientEvent',
-                                    type: 'POST',
-                                    contentType: 'application/json',
-                                    data: JSON.stringify(logData),
-                                    async: true
-                                });
-                            }
-                        </text>)
+                            @* 欄位定義 *@
+                            .Columns(columns =>
+                            {
+                                // 基本資料
+                                columns.AddFor(m => m.FullName)
+                            .Caption("姓名")
+                            .Fixed(true)
+                            .Width(60)
+                            .MinWidth(20)
+                            .Alignment(HorizontalAlignment.Left)
+                            .AllowEditing(false);
 
-                        @* 欄位定義 *@
-                        .Columns(columns =>
-                        {
-                            // 基本資料
-                            columns.AddFor(m => m.FullName)
-                                   .Caption("姓名")
-                                   .Fixed(true)
-                                   .Width(60)
-                                   .MinWidth(20)
-                                   .Alignment(HorizontalAlignment.Left)
-                                   .AllowEditing(false);
+                                columns.AddFor(m => m.Sunday)
+                            .Caption("主日")
+                            .DataType(GridColumnDataType.Boolean)
+                            .Width(45)
+                            .MinWidth(45);
 
-                            columns.AddFor(m => m.Sunday)
-                                   .Caption("主日")
-                                   .DataType(GridColumnDataType.Boolean)
-                                   .Width(45)
-                                   .MinWidth(45)
-                                   .AllowSorting(false);
+                                columns.AddFor(m => m.SmallGroup)
+                            .Caption("小組")
+                            .DataType(GridColumnDataType.Boolean)
+                            .Width(45)
+                            .MinWidth(45);
 
-                            columns.AddFor(m => m.SmallGroup)
-                                   .Caption("小組")
-                                   .DataType(GridColumnDataType.Boolean)
-                                   .Width(45)
-                                   .MinWidth(45)
-                                   .AllowSorting(false);
+                                // ✅ 會員身分（委身類型）：改為動態 DataSource
+                                columns.Add().DataField("Status")
+                            .Caption("會員身分")
+                            .Alignment(HorizontalAlignment.Center)
+                            .AllowEditing(true)
+                            .Width(70)
+                            .MinWidth(30)
+                            .DataType(GridColumnDataType.String)
+                            .Lookup(lookup => lookup
+                            .DataSource(new JS("membershipStatusDataSource")) // ✅ 動態 DataSource
+                            );
 
-                            // ✅ 會員身分（委身類型）：改為動態 DataSource
-                            columns.Add().DataField("Status")
-                                   .Caption("會員身分")
-                                   .Alignment(HorizontalAlignment.Center)
-                                   .AllowEditing(true)
-                                   .Width(70)
-                                   .MinWidth(30)
-                                   .DataType(GridColumnDataType.String)
-                                   .AllowSorting(false)
-                                   .Lookup(lookup => lookup
-                                       .DataSource(new JS("membershipStatusDataSource")) // ✅ 動態 DataSource
-                                   );
+                                // ✅ 洗禮狀態：改為動態 DataSource
+                                columns.AddFor(m => m.SpiritualIdentity)
+                            .Caption("信仰狀態")
+                            .Alignment(HorizontalAlignment.Center)
+                            .AllowEditing(true)
+                            .Width(110)
+                            .MinWidth(100)
+                            .DataType(GridColumnDataType.String)
+                            .Lookup(lookup => lookup
+                            .DataSource(new JS("spiritualIdentityDataSource")) // ✅ 動態 DataSource
+                            );
 
-                            // ✅ 洗禮狀態：改為動態 DataSource
-                            columns.AddFor(m => m.SpiritualIdentity)
-                                   .Caption("信仰狀態")
-                                   .Alignment(HorizontalAlignment.Center)
-                                   .AllowEditing(true)
-                                   .Width(110)
-                                   .MinWidth(100)
-                                   .DataType(GridColumnDataType.String)
-                                   .AllowSorting(false)
-                                   .Lookup(lookup => lookup
-                                       .DataSource(new JS("spiritualIdentityDataSource")) // ✅ 動態 DataSource
-                                   );
+                                // 跟進相關欄位
+                                columns.AddFor(m => m.FollowUpOption)
+                            .Caption("跟進方式")
+                            .Width(120)
+                            .MinWidth(30)
+                            .Lookup(lookup => lookup
+                            .DataSource(new string[] {
+                        "電話",
+                        "探訪",
+                        "Line/FB",
+                        "出遊/吃飯",
+                        "懷鄉/其他課程",
+                        "約談",
+                        "沒跟進",
+                        "其他"
+                            })
+                            );
 
-                            // 跟進相關欄位
-                            columns.AddFor(m => m.FollowUpOption)
-                                   .Caption("跟進方式")
-                                   .Width(120)
-                                   .MinWidth(30)
-                                   .Lookup(lookup => lookup
-                                       .DataSource(new string[] {
-                                           "電話",
-                                           "探訪",
-                                           "Line/FB",
-                                           "出遊/吃飯",
-                                           "懷鄉/其他課程",
-                                           "約談",
-                                           "沒跟進",
-                                           "其他"
-                                       })
-                                   );
+                                columns.Add()
+                            .DataField("FollowUpResult")
+                            .Caption("跟進結果")
+                            .Width(120)
+                            .MinWidth(30)
+                            .Lookup(lookup => lookup
+                            .DataSource(new string[] {
+                        "未選擇",
+                        "熱情回應",
+                        "渴慕認識信仰",
+                        "沒聯絡上",
+                        "反應冷淡",
+                        "考慮中，繼續跟進",
+                        "入小組",
+                        "來主日",
+                        "其他"
+                            })
+                            );
 
-                            columns.Add()
-                                   .DataField("FollowUpResult")
-                                   .Caption("跟進結果")
-                                   .Width(120)
-                                   .MinWidth(30)
-                                   .Lookup(lookup => lookup
-                                       .DataSource(new string[] {
-                                           "未選擇",
-                                           "熱情回應",
-                                           "渴慕認識信仰",
-                                           "沒聯絡上",
-                                           "反應冷淡",
-                                           "考慮中，繼續跟進",
-                                           "入小組",
-                                           "來主日",
-                                           "其他"
-                                       })
-                                   );
+                                columns.Add()
+                            .DataField("FollowUpNextStep")
+                            .Caption("下一步驟")
+                            .Width(120)
+                            .MinWidth(30)
+                            .Lookup(lookup => lookup
+                            .DataSource(new string[] {
+                        "未選擇",
+                        "繼續跟進",
+                        "轉介"
+                            })
+                            );
 
-                            columns.Add()
-                                   .DataField("FollowUpNextStep")
-                                   .Caption("下一步驟")
-                                   .Width(120)
-                                   .MinWidth(30)
-                                   .Lookup(lookup => lookup
-                                       .DataSource(new string[] {
-                                           "未選擇",
-                                           "繼續跟進",
-                                           "轉介"
-                                       })
-                                   );
+                                columns.AddFor(m => m.PrayItem)
+                            .Caption("跟進關懷說明")
+                            .MinWidth(150);
 
-                            columns.AddFor(m => m.PrayItem)
-                                   .Caption("跟進關懷說明")
-                                   .MinWidth(150);
+                                columns.AddFor(m => m.Description)
+                            .Caption("附註說明")
+                            .MinWidth(300);
 
-                            columns.AddFor(m => m.Description)
-                                   .Caption("附註說明")
-                                   .MinWidth(300);
+                                columns.AddFor(m => m.AssignedGroup)
+                            .Caption("指派小組")
+                            .Visible(false)
+                            .Width(150)
+                            .MinWidth(30)
+                            .Lookup(lookup => lookup
+                            .DataSource(Model.GroupArray)
+                            );
+                            })
 
-                            columns.AddFor(m => m.AssignedGroup)
-                                   .Caption("指派小組")
-                                   .Visible(false)
-                                   .Width(150)
-                                   .MinWidth(30)
-                                   .Lookup(lookup => lookup
-                                       .DataSource(Model.GroupArray)
-                                   );
-                        })
-
-                        @* 資料來源：呼叫 NewPerson Controller WebAPI 端點（新人跟進） *@
-                        .DataSource(d => d
+                            @* 資料來源：呼叫 NewPerson Controller WebAPI 端點（新人跟進） *@
+                            .DataSource(d => d
                             .WebApi()
                             .Controller("NewPerson")
                             .LoadAction("LoadNewPersonFollowUp")
@@ -557,31 +392,31 @@
                             .UpdateAction("UpdateNewPresentRecord")
                             .Key("PresentRecordId")
                             .LoadParams(new { id = @ViewBag.ListId })
-                        )
+                            )
 
-                        @* 事件：內容就緒與單元格顯示 *@
-                        .OnContentReady(@<text>
-                            function(e) {
-                                // 將編輯欄位移至左側，維持既有使用體驗
-                                moveEditColumnToLeft(e.component);
-                                
-                                // ✅ 檢查資料筆數，若無資料則隱藏整個區塊
-                                var dataSource = e.component.getDataSource();
-                                var totalCount = dataSource.totalCount();
-                                
-                                if (totalCount === 0) {
-                                    // 隱藏整個新人跟進關懷區塊
-                                    $('#newPersonFollowUpSection').hide();
-                                    console.log('✅ [NewPersonGrid] 無資料，隱藏新人跟進關懷區塊');
-                                } else {
-                                    // 有資料則顯示
-                                    $('#newPersonFollowUpSection').show();
-                                    console.log('✅ [NewPersonGrid] 資料筆數:', totalCount);
-                                }
-                            }
-                        </text>)
-                        .OnCellPrepared("cell_prepared")        @* 鉛筆圖示/文字等自訂顯示 *@
-                )
+                            @* 事件：內容就緒與單元格顯示 *@
+                            .OnContentReady(@<text>
+                    function(e) {
+                    // 將編輯欄位移至左側，維持既有使用體驗
+                    moveEditColumnToLeft(e.component);
+
+                    // ✅ 檢查資料筆數，若無資料則隱藏整個區塊
+                    var dataSource = e.component.getDataSource();
+                    var totalCount = dataSource.totalCount();
+
+                    if (totalCount === 0) {
+                    // 隱藏整個新人跟進關懷區塊
+                    $('#newPersonFollowUpSection').hide();
+                    console.log('✅ [NewPersonGrid] 無資料，隱藏新人跟進關懷區塊');
+                    } else {
+                    // 有資料則顯示
+                    $('#newPersonFollowUpSection').show();
+                    console.log('✅ [NewPersonGrid] 資料筆數:', totalCount);
+                    }
+                    }
+                </text>)
+                            .OnCellPrepared("cell_prepared")        @* 鉛筆圖示/文字等自訂顯示 *@
+                            )
             </div>
         </div>
     }
@@ -590,62 +425,47 @@
 @* ✅ JavaScript：動態載入會員身分和信仰狀態清單 *@
 <script>
     // 全域變數：會員身分和信仰狀態 DataSource
-    // ✅ 初始化為備用清單，確保即使 API 失敗也有值可用
-    var membershipStatusDataSource = ["牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案"];
-    var spiritualIdentityDataSource = ["-未知-", "基督徒", "已決志", "慕道友", "未信主"];
+    var membershipStatusDataSource = [];
+    var spiritualIdentityDataSource = [];
 
-    // ✅ 使用立即執行函數，確保在頁面載入時就執行
-    (function() {
-        console.log('✅ [_GeneralGroupGrids] 開始載入動態選項清單...');
-        
+    // ✅ 頁面載入時從 API 取得動態選項清單
+    $(document).ready(function() {
         // 載入會員身分清單
-        try {
-            $.ajax({
-                url: '/Personal/Api/GetMembershipStatusList',
-                type: 'GET',
-                dataType: 'json',
-                async: false, // 同步載入確保 DataGrid 初始化前完成
-                success: function(response) {
-                    if (response && response.success && response.data && response.data.length > 0) {
-                        membershipStatusDataSource = response.data;
-                        console.log('✅ [_GeneralGroupGrids] 成功載入會員身分清單:', membershipStatusDataSource.length, '個選項');
-                    } else {
-                        console.warn('⚠️ [_GeneralGroupGrids] API 返回空資料，使用備用會員身分清單');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('❌ [_GeneralGroupGrids] 載入會員身分清單失敗:', error, '，使用備用清單');
+        $.ajax({
+            url: '/Personal/Api/GetMembershipStatusList',
+            type: 'GET',
+            dataType: 'json',
+            async: false, // 同步載入確保 DataGrid 初始化前完成
+            success: function(response) {
+                if (response.success && response.data) {
+                    membershipStatusDataSource = response.data;
+                    console.log('✅ [_GeneralGroupGrids] 成功載入會員身分清單:', membershipStatusDataSource);
                 }
-            });
-        } catch (e) {
-            console.error('❌ [_GeneralGroupGrids] 會員身分清單 AJAX 例外:', e);
-        }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ [_GeneralGroupGrids] 載入會員身分清單失敗:', error);
+                // 使用備用清單
+                membershipStatusDataSource = ["牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案"];
+            }
+        });
 
         // 載入信仰狀態清單
-        try {
-            $.ajax({
-                url: '/Personal/Api/GetSpiritualIdentityList',
-                type: 'GET',
-                dataType: 'json',
-                async: false, // 同步載入確保 DataGrid 初始化前完成
-                success: function(response) {
-                    if (response && response.success && response.data && response.data.length > 0) {
-                        spiritualIdentityDataSource = response.data;
-                        console.log('✅ [_GeneralGroupGrids] 成功載入信仰狀態清單:', spiritualIdentityDataSource.length, '個選項');
-                    } else {
-                        console.warn('⚠️ [_GeneralGroupGrids] API 返回空資料，使用備用信仰狀態清單');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('❌ [_GeneralGroupGrids] 載入信仰狀態清單失敗:', error, '，使用備用清單');
+        $.ajax({
+            url: '/Personal/Api/GetSpiritualIdentityList',
+            type: 'GET',
+            dataType: 'json',
+            async: false, // 同步載入確保 DataGrid 初始化前完成
+            success: function(response) {
+                if (response.success && response.data) {
+                    spiritualIdentityDataSource = response.data;
+                    console.log('✅ [_GeneralGroupGrids] 成功載入信仰狀態清單:', spiritualIdentityDataSource);
                 }
-            });
-        } catch (e) {
-            console.error('❌ [_GeneralGroupGrids] 信仰狀態清單 AJAX 例外:', e);
-        }
-        
-        console.log('✅ [_GeneralGroupGrids] 動態選項清單載入完成');
-        console.log('  - 會員身分:', membershipStatusDataSource);
-        console.log('  - 信仰狀態:', spiritualIdentityDataSource);
-    })();
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ [_GeneralGroupGrids] 載入信仰狀態清單失敗:', error);
+                // 使用備用清單
+                spiritualIdentityDataSource = ["-未知-", "基督徒", "已決志", "慕道友", "未信主"];
+            }
+        });
+    });
 </script>
