@@ -321,6 +321,83 @@ namespace ChurchReport.Controllers
         #region Session 安全驗證
 
         /// <summary>
+        /// ? 共用方法：確保 AJAX 請求使用正確用戶的資料
+        /// 比較 Session 中的憑證和 ListManager 中的憑證，若不一致則重新載入
+        /// 此方法可被所有繼承 BaseChurchController 的子類使用
+        /// </summary>
+        protected virtual void EnsureCorrectUserData()
+        {
+            try
+            {
+                var sessionAccount = HttpContext?.Session?.GetString("_LoginAccount");
+                var sessionPassword = HttpContext?.Session?.GetString("_LoginPassword");
+                var listManagerPassword = InMemoryContext?.ListManager?.m_Password;
+
+                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] Session Password: {(string.IsNullOrEmpty(sessionPassword) ? "(null)" : "***")}");
+                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] ListManager Password: {(string.IsNullOrEmpty(listManagerPassword) ? "(null)" : "***")}");
+
+                // 檢查 Session 和 ListManager 的密碼是否一致
+                if (!string.IsNullOrEmpty(sessionPassword) &&
+                    !string.IsNullOrEmpty(listManagerPassword) &&
+                    sessionPassword != listManagerPassword)
+                {
+                    // 憑證不一致，需要重新載入
+                    System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] ?? 憑證不一致，重新載入 ListManager 資料");
+                    InMemoryContext.ListManager.SetupListManager(
+                        sessionAccount ?? "",
+                        sessionPassword,
+                        InMemoryContext.ListManager.m_SelectDate != default
+                            ? InMemoryContext.ListManager.m_SelectDate
+                            : DateTime.Now);
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(sessionPassword))
+                {
+                    var lineUserId = TryGetLineUserIdFromRequest();
+                    if (!string.IsNullOrEmpty(lineUserId) && lineUserId != listManagerPassword)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] ?? Session 憑證為空，使用 LINE ID 重新載入 ListManager");
+                        InMemoryContext.ListManager.SetupListManager(
+                            "LineIdLogin",
+                            lineUserId,
+                            InMemoryContext.ListManager.m_SelectDate != default
+                                ? InMemoryContext.ListManager.m_SelectDate
+                                : DateTime.Now);
+
+                        HttpContext?.Session?.SetString("_LoginAccount", "LineIdLogin");
+                        HttpContext?.Session?.SetString("_LoginPassword", lineUserId);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] ? 驗證失敗: {ex.Message}");
+            }
+        }
+        protected string TryGetLineUserIdFromRequest()
+        {
+            try
+            {
+                var referer = HttpContext?.Request?.Headers["Referer"].ToString();
+                if (!string.IsNullOrEmpty(referer))
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(referer, "U[a-zA-Z0-9]{32}");
+                    if (match.Success)
+                    {
+                        return match.Value;
+                    }
+                }
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// 驗證當前 Session 是否合法
         /// 
         /// 設計模式：

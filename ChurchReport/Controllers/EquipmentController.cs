@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
@@ -14,21 +14,21 @@ using ToolUtilityNameSpace.DependencyInjection;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// ¸Ë³Æª¬ºAºŞ²z±±¨î¾¹
-    /// ³B²z¤p²Õ¦¨­ûªº¸Ë³Æ/°V½mª¬ºAºŞ²z¥\¯à
+    /// è£å‚™ç‹€æ…‹ç®¡ç†æ§åˆ¶å™¨
+    /// è™•ç†å°çµ„æˆå“¡çš„è£å‚™/è¨“ç·´ç‹€æ…‹ç®¡ç†åŠŸèƒ½
     /// </summary>
     public class EquipmentController : BaseChurchController
     {
-        #region «Øºc¨ç¦¡
+        #region å»ºæ§‹å‡½å¼
 
         /// <summary>
-        /// EquipmentController «Øºc¨ç¼Æ (¨Ï¥Î Dependency Injection)
+        /// EquipmentController å»ºæ§‹å‡½æ•¸ (ä½¿ç”¨ Dependency Injection)
         /// </summary>
-        /// <param name="httpContextAccessor">HTTP ¤W¤U¤å¦s¨ú¾¹</param>
-        /// <param name="memoryCache">°O¾ĞÅé§Ö¨ú</param>
-        /// <param name="paymentService">ª÷¬yªA°È</param>
-        /// <param name="toolUtilityProvider">ToolUtility ´£¨ÑªÌ (DI ª`¤J)</param>
-        /// <param name="connectionPool">CRM ³s½u¦À</param>
+        /// <param name="httpContextAccessor">HTTP ä¸Šä¸‹æ–‡å­˜å–å™¨</param>
+        /// <param name="memoryCache">è¨˜æ†¶é«”å¿«å–</param>
+        /// <param name="paymentService">é‡‘æµæœå‹™</param>
+        /// <param name="toolUtilityProvider">ToolUtility æä¾›è€… (DI æ³¨å…¥)</param>
+        /// <param name="connectionPool">CRM é€£ç·šæ± </param>
         public EquipmentController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
@@ -41,11 +41,11 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¸Ë³Æª¬ºA¥D­¶­±
+        #region è£å‚™ç‹€æ…‹ä¸»é é¢
 
         /// <summary>
-        /// ¸Ë³Æª¬ºAÀËµø­¶­±
-        /// Åã¥Ü¤p²Õ¦¨­ûªº¸Ë³Æ/°V½mª¬ºA
+        /// è£å‚™ç‹€æ…‹æª¢è¦–é é¢
+        /// é¡¯ç¤ºå°çµ„æˆå“¡çš„è£å‚™/è¨“ç·´ç‹€æ…‹
         /// </summary>
         [HttpGet]
         [Route("/Equipment/EquipmentView")]
@@ -56,10 +56,10 @@ namespace ChurchReport.Controllers
                 SetupBasicViewBag();
                 SetMultiGroupLayoutParameter();
 
-                // «Ø¥ß¸Ë³Æ¸ê®Æ - ªğ¦^¥]§t¤p²Õªº¼Ò«¬
+                // å»ºç«‹è£å‚™è³‡æ–™ - è¿”å›åŒ…å«å°çµ„çš„æ¨¡å‹
                 var equipmentData = new EquipmenSmallGroup
                 {
-                    SmallGroupName = ViewBag.LoginFullName ?? "¤p²Õ",
+                    SmallGroupName = ViewBag.LoginFullName ?? "å°çµ„",
                     LoginUserId = InMemoryContext.ListManager.m_Account,
                     SmallGroupListEntityId = InMemoryContext.ListManager.ActiveListId,
                     EquipmentContactList = new List<EquipmentContact>()
@@ -75,30 +75,35 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¸Ë³Æ¸ê®Æ¸ü¤J
+        #region è£å‚™è³‡æ–™è¼‰å…¥
 
         /// <summary>
-        /// ¸ü¤J¸Ë³Æ¤p²Õ²M³æ¸ê®Æ
-        /// ¥Î©ó¥D DataGrid - ªğ¦^ EquipmenSmallGroup ²M³æ
+        /// è¼‰å…¥è£å‚™å°çµ„æ¸…å–®è³‡æ–™
+        /// ç”¨æ–¼ä¸» DataGrid - è¿”å› EquipmenSmallGroup æ¸…å–®
         /// </summary>
-        /// <param name="id">²M³æID</param>
-        /// <param name="loadOptions">¸ü¤J¿ï¶µ(¤À­¶¡B±Æ§Ç¡B¿z¿ï)</param>
+        /// <param name="id">æ¸…å–®ID</param>
+        /// <param name="loadOptions">è¼‰å…¥é¸é …(åˆ†é ã€æ’åºã€ç¯©é¸)</param>
         [HttpGet]
         public object LoadEquipmentList(string id, DataSourceLoadOptions loadOptions)
         {
             try
             {
-                // ½T«O¸ê®Æ¤w¸ü¤J
+                // ========================================
+                // âœ… é—œéµä¿®å¾©ï¼šé©—è­‰ Session ä¸¦ç¢ºä¿è³‡æ–™æ­£ç¢º
+                // ========================================
+                EnsureCorrectUserData();
+
+                // ç¢ºä¿è³‡æ–™å·²è¼‰å…¥
                 if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
                     !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
                 {
                     InMemoryContext.ListManager.SetupIntegrateData(id);
                 }
 
-                // ¬°¨C­Ó¤p²Õ«Ø¥ß EquipmenSmallGroup ¹ï¶H
+                // ç‚ºæ¯å€‹å°çµ„å»ºç«‹ EquipmenSmallGroup å°è±¡
                 var equipmentGroups = new List<EquipmenSmallGroup>();
 
-                // ¦pªG¬O¦h¤p²Õ¡A¬°¨C­Ó¤p²Õ«Ø¥ß¤@­Ó¶µ¥Ø
+                // å¦‚æœæ˜¯å¤šå°çµ„ï¼Œç‚ºæ¯å€‹å°çµ„å»ºç«‹ä¸€å€‹é …ç›®
                 if (InMemoryContext.ListManager.m_MultiGroupList?.m_WeeklyReportRecordListData != null)
                 {
                     foreach (var group in InMemoryContext.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData)
@@ -114,10 +119,10 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    // ³æ¤@¤p²Õªº±¡ªp
+                    // å–®ä¸€å°çµ„çš„æƒ…æ³
                     equipmentGroups.Add(new EquipmenSmallGroup
                     {
-                        SmallGroupName = InMemoryContext.ListManager.LoginFullName ?? "¤p²Õ",
+                        SmallGroupName = InMemoryContext.ListManager.LoginFullName ?? "å°çµ„",
                         SmallGroupListEntityId = InMemoryContext.ListManager.ActiveListId,
                         LoginUserId = InMemoryContext.ListManager.m_Account,
                         EquipmentContactList = new List<EquipmentContact>()
@@ -133,78 +138,83 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¸ü¤J¸Ë³ÆÁpµ¸¤H²M³æ¸ê®Æ
-        /// ¥Î©ó master-detail ªº DataGrid - ªğ¦^ EquipmentContact ²M³æ
+        /// è¼‰å…¥è£å‚™è¯çµ¡äººæ¸…å–®è³‡æ–™
+        /// ç”¨æ–¼ master-detail çš„ DataGrid - è¿”å› EquipmentContact æ¸…å–®
         /// </summary>
-        /// <param name="id">¤p²Õ²M³æID</param>
-        /// <param name="loadOptions">¸ü¤J¿ï¶µ</param>
+        /// <param name="id">å°çµ„æ¸…å–®ID</param>
+        /// <param name="loadOptions">è¼‰å…¥é¸é …</param>
         [HttpGet]
         public object LoadEquipmentContact(string id, DataSourceLoadOptions loadOptions)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ===== ¶}©l¸ü¤JÁpµ¸¤H =====");
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ½Ğ¨D¤p²ÕID: {id}");
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ¥Ø«eActiveListId: {InMemoryContext.ListManager.ActiveListId}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ===== é–‹å§‹è¼‰å…¥è¯çµ¡äºº =====");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] è«‹æ±‚å°çµ„ID: {id}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ç›®å‰ActiveListId: {InMemoryContext.ListManager.ActiveListId}");
 
-                // ±j¨î­«·s¸ü¤J¸ê®Æ¥H½T«O¥¿½T©Ê
-                // ­ì¦]: ¦h¤p²Õ¤Á´«®É¡AActiveListId ¥i¯à¦]¬°«D¦P¨B½Ğ¨D¾É­P¤£¤@­P
+                // ========================================
+                // âœ… é—œéµä¿®å¾©ï¼šé©—è­‰ Session ä¸¦ç¢ºä¿è³‡æ–™æ­£ç¢º
+                // ========================================
+                EnsureCorrectUserData();
+
+                // å¼·åˆ¶é‡æ–°è¼‰å…¥è³‡æ–™ä»¥ç¢ºä¿æ­£ç¢ºæ€§
+                // åŸå› : å¤šå°çµ„åˆ‡æ›æ™‚ï¼ŒActiveListId å¯èƒ½å› ç‚ºéåŒæ­¥è«‹æ±‚å°è‡´ä¸ä¸€è‡´
                 bool needReload = false;
                 
                 if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ­ì¦]: m_ListSmallGroupWeeklyReport ¬° null");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] åŸå› : m_ListSmallGroupWeeklyReport ç‚º null");
                     needReload = true;
                 }
                 else if (!InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ­ì¦]: LoadFlag ¬° false");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] åŸå› : LoadFlag ç‚º false");
                     needReload = true;
                 }
                 else if (InMemoryContext.ListManager.ActiveListId != id)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ­ì¦]: ActiveListId ¤£¤Ç°t");
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   ¥Ø«e: {InMemoryContext.ListManager.ActiveListId}");
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   ½Ğ¨D: {id}");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] åŸå› : ActiveListId ä¸åŒ¹é…");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   ç›®å‰: {InMemoryContext.ListManager.ActiveListId}");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   è«‹æ±‚: {id}");
                     needReload = true;
                 }
 
                 if (needReload)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] >>> °õ¦æ­«·s¸ü¤J¸ê®Æ <<<");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] >>> åŸ·è¡Œé‡æ–°è¼‰å…¥è³‡æ–™ <<<");
                     InMemoryContext.ListManager.SetupIntegrateData(id);
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] >>> ¸ü¤J§¹¦¨¡A·sªºActiveListId: {InMemoryContext.ListManager.ActiveListId}");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] >>> è¼‰å…¥å®Œæˆï¼Œæ–°çš„ActiveListId: {InMemoryContext.ListManager.ActiveListId}");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ¨Ï¥Î²{¦³§Ö¨ú¸ê®Æ");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ä½¿ç”¨ç¾æœ‰å¿«å–è³‡æ–™");
                 }
 
                 var members = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                     ?.m_SmallGroupDataList?.m_AllMemeberData?.Members 
                     ?? new List<Member>();
 
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ¨ú±o¦¨­û¼Æ¶q: {members.Count}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] å–å¾—æˆå“¡æ•¸é‡: {members.Count}");
 
-                // ÃB¥~ÅçÃÒ: ½T«O¸ü¤Jªº¸ê®Æ½T¹êÄİ©ó½Ğ¨Dªº¤p²Õ
+                // é¡å¤–é©—è­‰: ç¢ºä¿è¼‰å…¥çš„è³‡æ–™ç¢ºå¯¦å±¬æ–¼è«‹æ±‚çš„å°çµ„
                 if (InMemoryContext.ListManager.ActiveListId != id)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ?? Äµ§i: ¸ü¤J«á ActiveListId ¤´¤£¤Ç°t!");
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   ¥Ø«e: {InMemoryContext.ListManager.ActiveListId}");
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   ¹w´Á: {id}");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ?? è­¦å‘Š: è¼‰å…¥å¾Œ ActiveListId ä»ä¸åŒ¹é…!");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   ç›®å‰: {InMemoryContext.ListManager.ActiveListId}");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   é æœŸ: {id}");
                     
-                    // ¦A¦¸±j¨î¸ü¤J
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] >>> ¦A¦¸±j¨î¸ü¤J¸ê®Æ <<<");
+                    // å†æ¬¡å¼·åˆ¶è¼‰å…¥
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] >>> å†æ¬¡å¼·åˆ¶è¼‰å…¥è³‡æ–™ <<<");
                     InMemoryContext.ListManager.SetupIntegrateData(id);
                     
                     members = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                         ?.m_SmallGroupDataList?.m_AllMemeberData?.Members 
                         ?? new List<Member>();
                     
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ¦A¦¸¸ü¤J«á¦¨­û¼Æ¶q: {members.Count}");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] å†æ¬¡è¼‰å…¥å¾Œæˆå“¡æ•¸é‡: {members.Count}");
                 }
 
-                // Âà´«¬° EquipmentContact ²M³æ
+                // è½‰æ›ç‚º EquipmentContact æ¸…å–®
                 var equipmentList = members.Select(m => new EquipmentContact
                 {
                     ContactFullName = m.FullName,
@@ -215,51 +225,51 @@ namespace ChurchReport.Controllers
                     StorLessonsList = new List<EquipmentStorLessons>()
                 }).ToList();
 
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ªğ¦^Ápµ¸¤H¼Æ¶q: {equipmentList.Count}");
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ¤p²Õ¦WºÙ: {InMemoryContext.ListManager.LoginFullName}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] è¿”å›è¯çµ¡äººæ•¸é‡: {equipmentList.Count}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] å°çµ„åç¨±: {InMemoryContext.ListManager.LoginFullName}");
                 
-                // ¿é¥X«e 3 ­Ó¦¨­û¦WºÙ¥Î©óÅçÃÒ
+                // è¼¸å‡ºå‰ 3 å€‹æˆå“¡åç¨±ç”¨æ–¼é©—è­‰
                 if (equipmentList.Count > 0)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] «e 3 ­Ó¦¨­û:");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] å‰ 3 å€‹æˆå“¡:");
                     for (int i = 0; i < Math.Min(3, equipmentList.Count); i++)
                     {
                         System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   {i + 1}. {equipmentList[i].ContactFullName}");
                     }
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ===== ¸ü¤JÁpµ¸¤H§¹¦¨ =====\n");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ===== è¼‰å…¥è¯çµ¡äººå®Œæˆ =====\n");
 
                 return DataSourceLoader.Load(equipmentList, loadOptions);
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ? ¿ù»~: {e.Message}");
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] °ïÅ|°lÂÜ: {e.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ? éŒ¯èª¤: {e.Message}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] å †ç–Šè¿½è¹¤: {e.StackTrace}");
                 return HandleError(e, "LoadEquipmentContact");
             }
         }
 
         /// <summary>
-        /// ¸ü¤J¸Ë³Æ½Òµ{²M³æ¸ê®Æ
-        /// ¥Î©ó²Ä¤T¼h master-detail ªº DataGrid - ªğ¦^ EquipmentStorLessons ²M³æ
+        /// è¼‰å…¥è£å‚™èª²ç¨‹æ¸…å–®è³‡æ–™
+        /// ç”¨æ–¼ç¬¬ä¸‰å±¤ master-detail çš„ DataGrid - è¿”å› EquipmentStorLessons æ¸…å–®
         /// </summary>
-        /// <param name="id">Ápµ¸¤Hªº PresentRecordId</param>
-        /// <param name="loadOptions">¸ü¤J¿ï¶µ</param>
+        /// <param name="id">è¯çµ¡äººçš„ PresentRecordId</param>
+        /// <param name="loadOptions">è¼‰å…¥é¸é …</param>
         [HttpGet]
         public object LoadEquipmentStorLessons(string id, DataSourceLoadOptions loadOptions)
         {
             try
             {
-                // ½T«O¸ê®Æ¤w¸ü¤J
+                // ç¢ºä¿è³‡æ–™å·²è¼‰å…¥
                 if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
                     !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] ¸ê®Æ¥¼¸ü¤J¡Aid={id}");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] è³‡æ–™æœªè¼‰å…¥ï¼Œid={id}");
                     return DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions);
                 }
 
-                // ±q¦¨­û¦Cªí¤¤§ä¨ì¹ïÀ³ªºÁpµ¸¤H
+                // å¾æˆå“¡åˆ—è¡¨ä¸­æ‰¾åˆ°å°æ‡‰çš„è¯çµ¡äºº
                 var members = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                     ?.m_SmallGroupDataList?.m_AllMemeberData?.Members 
                     ?? new List<Member>();
@@ -268,24 +278,24 @@ namespace ChurchReport.Controllers
                 
                 if (member == null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] §ä¤£¨ì¦¨­û¡Aid={id}");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] æ‰¾ä¸åˆ°æˆå“¡ï¼Œid={id}");
                     return DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions);
                 }
 
-                // ÀË¬d ContactId ¬O§_¦s¦b
+                // æª¢æŸ¥ ContactId æ˜¯å¦å­˜åœ¨
                 if (string.IsNullOrEmpty(member.ContactId))
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] Äµ§i: ContactId ¬°ªÅ¡AFullName={member.FullName}, PresentRecordId={member.PresentRecordId}");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] è­¦å‘Š: ContactId ç‚ºç©ºï¼ŒFullName={member.FullName}, PresentRecordId={member.PresentRecordId}");
                     return DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions);
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] ¬d¸ß½Òµ{°O¿ı: ContactName={member.FullName}, ContactId={member.ContactId}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] æŸ¥è©¢èª²ç¨‹è¨˜éŒ„: ContactName={member.FullName}, ContactId={member.ContactId}");
 
-                // ±q CRM ¬d¸ß¸ÓÁpµ¸¤Hªº©Ò¦³½Òµ{°O¿ı
-                // ¨Ï¥Î2°Ñ¼Æª©¥»: RetrieveStorLessonsByFetchXml(ContactName, ContactId)
+                // å¾ CRM æŸ¥è©¢è©²è¯çµ¡äººçš„æ‰€æœ‰èª²ç¨‹è¨˜éŒ„
+                // ä½¿ç”¨2åƒæ•¸ç‰ˆæœ¬: RetrieveStorLessonsByFetchXml(ContactName, ContactId)
                 var storLessons = ToolUtility.RetrieveStorLessonsByFetchXml(member.FullName, member.ContactId);
 
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] ¬d¸ßµ²ªG: storLessons={storLessons != null}, Count={storLessons?.Entities.Count ?? -1}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] æŸ¥è©¢çµæœ: storLessons={storLessons != null}, Count={storLessons?.Entities.Count ?? -1}");
 
                 var lessonsList = new List<EquipmentStorLessons>();
 
@@ -293,12 +303,12 @@ namespace ChurchReport.Controllers
                 {
                     foreach (var lessonEntity in storLessons.Entities)
                     {
-                        var lesson = lessonEntity; // «Ø¥ßÁ{®ÉÅÜ¼Æ¥H¤ä´© ref °Ñ¼Æ
+                        var lesson = lessonEntity; // å»ºç«‹è‡¨æ™‚è®Šæ•¸ä»¥æ”¯æ´ ref åƒæ•¸
                         
-                        // ¨ú±oªù®{½Òµ{ªº ID
+                        // å–å¾—é–€å¾’èª²ç¨‹çš„ ID
                         var discipleLessonId = ToolUtility.GetEntityLookupAttribute(ref lesson, "new_new_disciple_lessons_new_stor_les");
                         
-                        // ±qªù®{½Òµ{¹êÅé¨ú±o¸ê®Æ
+                        // å¾é–€å¾’èª²ç¨‹å¯¦é«”å–å¾—è³‡æ–™
                         DateTime classStartDate = DateTime.MinValue;
                         string stageName = string.Empty;
                         
@@ -308,15 +318,15 @@ namespace ChurchReport.Controllers
                             {
                                 var discipleLesson = ToolUtility.RetrieveEntity("new_disciple_lessons", discipleLessonId);
                                 
-                                // ¨ú±o¤W½Ò¶}©l¤é´Á
+                                // å–å¾—ä¸Šèª²é–‹å§‹æ—¥æœŸ
                                 classStartDate = ToolUtility.GetEntityDateTimeAttribute(ref discipleLesson, "new_class_start_date");
                                 
-                                // ¨ú±o¶¥¬q¦WºÙ (±q new_disciple_lessons ªº new_now_stage_name)
+                                // å–å¾—éšæ®µåç¨± (å¾ new_disciple_lessons çš„ new_now_stage_name)
                                 stageName = ToolUtility.GetEntityStringAttribute(ref discipleLesson, "new_now_stage_name");
                             }
                             catch (Exception ex)
                             {
-                                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] Äµ§i: µLªk¨ú±oªù®{½Òµ{¸ê®Æ¡ADiscipleLessonId={discipleLessonId}, ¿ù»~={ex.Message}");
+                                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] è­¦å‘Š: ç„¡æ³•å–å¾—é–€å¾’èª²ç¨‹è³‡æ–™ï¼ŒDiscipleLessonId={discipleLessonId}, éŒ¯èª¤={ex.Message}");
                             }
                         }
                         
@@ -324,48 +334,48 @@ namespace ChurchReport.Controllers
                         {
                             StorLessonsEntityId = lesson.Id.ToString(),
                             DiscipleLessonsName = ToolUtility.GetEntityLookupDisplayName(ref lesson, "new_new_disciple_lessons_new_stor_les"),
-                            StageName = stageName, // ­×¥¿: ±qÃöÁpªº new_disciple_lessons.new_now_stage_name ¨ú±o
+                            StageName = stageName, // ä¿®æ­£: å¾é—œè¯çš„ new_disciple_lessons.new_now_stage_name å–å¾—
                             CurrentComplete = ToolUtility.GetEntityBoolAttribute(ref lesson, "new_current_complete"),
-                            DiscipleLessonsDateTime = classStartDate // ±qÃöÁpªº new_disciple_lessons.new_class_start_date ¨ú±o
+                            DiscipleLessonsDateTime = classStartDate // å¾é—œè¯çš„ new_disciple_lessons.new_class_start_date å–å¾—
                         };
                         
-                        System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] ½Òµ{: {lessonItem.DiscipleLessonsName}, ¶¥¬q: {lessonItem.StageName}, ¤é´Á: {lessonItem.DiscipleLessonsDateTime:yyyy-MM-dd}");
+                        System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] èª²ç¨‹: {lessonItem.DiscipleLessonsName}, éšæ®µ: {lessonItem.StageName}, æ—¥æœŸ: {lessonItem.DiscipleLessonsDateTime:yyyy-MM-dd}");
                         lessonsList.Add(lessonItem);
                     }
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] Äµ§i: ¸ÓÁpµ¸¤H({member.FullName})¨S¦³½Òµ{°O¿ı¡A©Î½Òµ{ªº new_classification ¤£¬O 100000000/100000001");
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] è­¦å‘Š: è©²è¯çµ¡äºº({member.FullName})æ²’æœ‰èª²ç¨‹è¨˜éŒ„ï¼Œæˆ–èª²ç¨‹çš„ new_classification ä¸æ˜¯ 100000000/100000001");
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] ³Ì²×ªğ¦^½Òµ{¼Æ¶q: {lessonsList.Count}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] æœ€çµ‚è¿”å›èª²ç¨‹æ•¸é‡: {lessonsList.Count}");
                 return DataSourceLoader.Load(lessonsList, loadOptions);
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] ¿ù»~: {e.Message}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] éŒ¯èª¤: {e.Message}");
                 return HandleError(e, "LoadEquipmentStorLessons");
             }
         }
 
         #endregion
 
-        #region ¸Ë³Æ¸ê®Æ¾Ş§@
+        #region è£å‚™è³‡æ–™æ“ä½œ
 
         /// <summary>
-        /// §ó·s¸Ë³Æª¬ºA
+        /// æ›´æ–°è£å‚™ç‹€æ…‹
         /// </summary>
-        /// <param name="contactId">Ápµ¸¤HID</param>
-        /// <param name="equipmentStatus">¸Ë³Æª¬ºA</param>
+        /// <param name="contactId">è¯çµ¡äººID</param>
+        /// <param name="equipmentStatus">è£å‚™ç‹€æ…‹</param>
         [HttpPost]
         public IActionResult UpdateEquipmentStatus(string contactId, string equipmentStatus)
         {
             try
             {
-                // ¹ê§@§ó·s¸Ë³Æª¬ºAÅŞ¿è
+                // å¯¦ä½œæ›´æ–°è£å‚™ç‹€æ…‹é‚è¼¯
                 // await InMemoryContext.EquipmentDataManager.UpdateEquipmentStatus(contactId, equipmentStatus);
 
-                return Json(new { status = "1", message = "¸Ë³Æª¬ºA¤w§ó·s" });
+                return Json(new { status = "1", message = "è£å‚™ç‹€æ…‹å·²æ›´æ–°" });
             }
             catch (Exception e)
             {
@@ -374,12 +384,12 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ·s¼W½Òµ{°O¿ı
+        /// æ–°å¢èª²ç¨‹è¨˜éŒ„
         /// </summary>
-        /// <param name="contactId">Ápµ¸¤HID</param>
-        /// <param name="lessonName">½Òµ{¦WºÙ</param>
-        /// <param name="stageName">¶¥¬q¦WºÙ</param>
-        /// <param name="lessonDate">½Òµ{¤é´Á</param>
+        /// <param name="contactId">è¯çµ¡äººID</param>
+        /// <param name="lessonName">èª²ç¨‹åç¨±</param>
+        /// <param name="stageName">éšæ®µåç¨±</param>
+        /// <param name="lessonDate">èª²ç¨‹æ—¥æœŸ</param>
         [HttpPost]
         public IActionResult AddEquipmentLesson(
             string contactId, 
@@ -389,10 +399,10 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ¹ê§@·s¼W½Òµ{°O¿ıÅŞ¿è
+                // å¯¦ä½œæ–°å¢èª²ç¨‹è¨˜éŒ„é‚è¼¯
                 // await InMemoryContext.EquipmentDataManager.AddLesson(contactId, lessonName, stageName, lessonDate);
 
-                return Json(new { status = "1", message = "½Òµ{°O¿ı¤w·s¼W" });
+                return Json(new { status = "1", message = "èª²ç¨‹è¨˜éŒ„å·²æ–°å¢" });
             }
             catch (Exception e)
             {
@@ -401,19 +411,19 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¶×¥X¸Ë³Æ³øªí
-        /// ²£¥Í Excel ®æ¦¡ªº¸Ë³Æª¬ºA²Î­p³øªí
+        /// åŒ¯å‡ºè£å‚™å ±è¡¨
+        /// ç”¢ç”Ÿ Excel æ ¼å¼çš„è£å‚™ç‹€æ…‹çµ±è¨ˆå ±è¡¨
         /// </summary>
-        /// <param name="groupId">¤p²ÕID</param>
+        /// <param name="groupId">å°çµ„ID</param>
         [HttpGet]
         public IActionResult ExportEquipmentReport(string groupId)
         {
             try
             {
-                // ¹ê§@¶×¥X³øªíÅŞ¿è
+                // å¯¦ä½œåŒ¯å‡ºå ±è¡¨é‚è¼¯
                 // var reportData = await InMemoryContext.EquipmentDataManager.GenerateReport(groupId);
 
-                return Json(new { status = "1", message = "³øªí¤w²£¥Í" });
+                return Json(new { status = "1", message = "å ±è¡¨å·²ç”¢ç”Ÿ" });
             }
             catch (Exception e)
             {
@@ -423,19 +433,19 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ²Î­p¸ê°T
+        #region çµ±è¨ˆè³‡è¨Š
 
         /// <summary>
-        /// ¨ú±o¸Ë³Æ²Î­pºK­n
-        /// ¥]§t§¹¦¨¤H¼Æ¡B¶i¦æ¤¤¤H¼Æµ¥²Î­p¸ê°T
+        /// å–å¾—è£å‚™çµ±è¨ˆæ‘˜è¦
+        /// åŒ…å«å®Œæˆäººæ•¸ã€é€²è¡Œä¸­äººæ•¸ç­‰çµ±è¨ˆè³‡è¨Š
         /// </summary>
-        /// <param name="groupId">¤p²ÕID</param>
+        /// <param name="groupId">å°çµ„ID</param>
         [HttpGet]
         public IActionResult GetEquipmentSummary(string groupId)
         {
             try
             {
-                // ¹ê§@²Î­pÅŞ¿è
+                // å¯¦ä½œçµ±è¨ˆé‚è¼¯
                 var summary = new
                 {
                     totalMembers = 0,

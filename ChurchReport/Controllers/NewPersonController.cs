@@ -83,6 +83,11 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // ========================================
+                // ✅ 關鍵修復：驗證 Session 並確保資料正確
+                // ========================================
+                EnsureCorrectUserData();
+
                 EnsureNewPersonDataLoaded(id);
 
                 var tasks = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
@@ -144,6 +149,21 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // ========================================
+                // ✅ 關鍵修復：驗證 Session 並確保資料正確
+                // ========================================
+                EnsureCorrectUserData();
+
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    return BadRequest("缺少 PresentRecordId");
+                }
+
+                if (string.IsNullOrWhiteSpace(values))
+                {
+                    return BadRequest("缺少更新資料");
+                }
+
                 // 更新新人跟進資料
                 UpdateNewPersonFollowUpData(key, values);
 

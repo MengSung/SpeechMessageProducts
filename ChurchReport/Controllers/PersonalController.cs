@@ -125,6 +125,11 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // ========================================
+                // ✅ 關鍵修復：驗證 Session 並確保資料正確
+                // ========================================
+                EnsureCorrectUserData();
+
                 EnsurePersonReportDataLoaded(id);
 
                 var tasks = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
@@ -150,6 +155,11 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public object LoadMaintainPersonInfomation(string id, DataSourceLoadOptions loadOptions)
         {
+            // ========================================
+            // ✅ 關鍵修復：驗證 Session 並確保資料正確
+            // ========================================
+            EnsureCorrectUserData();
+
             // ✅ 診斷日誌:確認方法被呼叫
             System.Diagnostics.Debug.WriteLine("========================================");
             System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ⭐ 方法被呼叫了!");

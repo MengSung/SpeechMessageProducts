@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
@@ -11,20 +11,25 @@ using System.Linq;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// ¤p²ÕºŞ²z±±¨î¾¹ - ¸ê®Æ¸ü¤J API
+    /// å°çµ„ç®¡ç†æ§åˆ¶å™¨ - è³‡æ–™è¼‰å…¥ API
     /// </summary>
     public partial class SmallGroupController
     {
-        #region ¸ê®Æ¸ü¤J API
+        #region è³‡æ–™è¼‰å…¥ API
 
         /// <summary>
-        /// ¸ü¤J¾ã¦X¦¡­¶­±ªº¤p²Õ¦¨­û¸ê®Æ
+        /// è¼‰å…¥æ•´åˆå¼é é¢çš„å°çµ„æˆå“¡è³‡æ–™
         /// </summary>
         [HttpGet]
         public object LoadIntegrate(string id, DataSourceLoadOptions loadOptions)
         {
             try
             {
+                // ========================================
+                // âœ… é—œéµä¿®å¾©ï¼šé©—è­‰ Session ä¸¦ç¢ºä¿è³‡æ–™æ­£ç¢º
+                // ========================================
+                EnsureCorrectUserData();
+
                 EnsureIntegrateDataLoaded(id);
 
                 var tasks = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
@@ -39,7 +44,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¸ü¤J¹Ïªí¸ê®Æ
+        /// è¼‰å…¥åœ–è¡¨è³‡æ–™
         /// </summary>
         [HttpGet]
         [ResponseCache(Duration = 300, VaryByQueryKeys = new[] { "WeeklyReportId" })]
@@ -47,6 +52,11 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // ========================================
+                // âœ… é—œéµä¿®å¾©ï¼šé©—è­‰ Session ä¸¦ç¢ºä¿è³‡æ–™æ­£ç¢º
+                // ========================================
+                EnsureCorrectUserData();
+
                 if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null ||
                     InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_WeeklyReportChart == null ||
                     InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.m_WeeklyReportChart.m_ChartDataList == null)
@@ -66,7 +76,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¸ü¤J¦h¤p²Õ¶ê»æ¹Ï¸ê®Æ¡]§t§Ö¨ú¡^
+        /// è¼‰å…¥å¤šå°çµ„åœ“é¤…åœ–è³‡æ–™ï¼ˆå«å¿«å–ï¼‰
         /// </summary>
         [HttpGet]
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
@@ -80,11 +90,11 @@ namespace ChurchReport.Controllers
                 
                 if (_memoryCache != null && _memoryCache.TryGetValue(cacheKey, out object cachedData) && cachedData is List<MultiGroupChartData> cachedChartData)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[GetMultiGroupChartDataList] ±q§Ö¨úÅª¨ú: {cacheKey}");
+                    System.Diagnostics.Debug.WriteLine($"[GetMultiGroupChartDataList] å¾å¿«å–è®€å–: {cacheKey}");
                     return DataSourceLoader.Load(cachedChartData, loadOptions);
                 }
                 
-                System.Diagnostics.Debug.WriteLine($"[GetMultiGroupChartDataList] §Ö¨ú¥¼©R¤¤: {cacheKey}");
+                System.Diagnostics.Debug.WriteLine($"[GetMultiGroupChartDataList] å¿«å–æœªå‘½ä¸­: {cacheKey}");
 
                 if (InMemoryContext.ListManager.m_MultiGroupChartDataList == null ||
                     InMemoryContext.ListManager.m_MultiGroupChartDataList.m_MultiGroupChartDataList == null)
@@ -97,7 +107,7 @@ namespace ChurchReport.Controllers
                 if (chartData != null && chartData.Any())
                 {
                     _memoryCache?.Set(cacheKey, chartData, CreateCacheOptions());
-                    System.Diagnostics.Debug.WriteLine($"[GetMultiGroupChartDataList] ¤w§Ö¨ú {chartData.Count} µ§");
+                    System.Diagnostics.Debug.WriteLine($"[GetMultiGroupChartDataList] å·²å¿«å– {chartData.Count} ç­†");
                 }
 
                 return DataSourceLoader.Load(chartData, loadOptions);
@@ -109,7 +119,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¸ü¤J¦h¤p²Õ¦Cªí¸ê®Æ¡]§t§Ö¨ú¡^
+        /// è¼‰å…¥å¤šå°çµ„åˆ—è¡¨è³‡æ–™ï¼ˆå«å¿«å–ï¼‰
         /// </summary>
         [HttpGet]
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
@@ -123,11 +133,11 @@ namespace ChurchReport.Controllers
                 
                 if (_memoryCache != null && _memoryCache.TryGetValue(cacheKey, out object cachedData) && cachedData is List<WeeklyReportRecord> cachedRecords)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[AssignSmallGroupGet] ±q§Ö¨úÅª¨ú: {cacheKey}");
+                    System.Diagnostics.Debug.WriteLine($"[AssignSmallGroupGet] å¾å¿«å–è®€å–: {cacheKey}");
                     return DataSourceLoader.Load(cachedRecords, loadOptions);
                 }
                 
-                System.Diagnostics.Debug.WriteLine($"[AssignSmallGroupGet] §Ö¨ú¥¼©R¤¤: {cacheKey}");
+                System.Diagnostics.Debug.WriteLine($"[AssignSmallGroupGet] å¿«å–æœªå‘½ä¸­: {cacheKey}");
 
                 if (InMemoryContext.ListManager.m_MultiGroupList == null ||
                     InMemoryContext.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData == null)
@@ -140,7 +150,7 @@ namespace ChurchReport.Controllers
                 if (weeklyReportRecords != null && weeklyReportRecords.Any())
                 {
                     _memoryCache?.Set(cacheKey, weeklyReportRecords, CreateCacheOptions());
-                    System.Diagnostics.Debug.WriteLine($"[AssignSmallGroupGet] ¤w§Ö¨ú {weeklyReportRecords.Count} µ§");
+                    System.Diagnostics.Debug.WriteLine($"[AssignSmallGroupGet] å·²å¿«å– {weeklyReportRecords.Count} ç­†");
                 }
 
                 return DataSourceLoader.Load(weeklyReportRecords, loadOptions);

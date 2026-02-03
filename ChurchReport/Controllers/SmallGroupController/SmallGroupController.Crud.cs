@@ -1,4 +1,5 @@
-using ChurchReport.Models;
+﻿using ChurchReport.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading;
@@ -7,14 +8,14 @@ using System.Threading.Tasks;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// �p�պ޲z��� - CRUD �ާ@
+    /// 小組管理控制器 - CRUD 操作
     /// </summary>
     public partial class SmallGroupController
     {
-        #region CRUD �ާ@
+        #region CRUD 操作
 
         /// <summary>
-        /// �s�W�X�u�O��
+        /// 新增出席記錄
         /// </summary>
         [HttpPost]
         public IActionResult InsertPresentRecord(string values)
@@ -33,7 +34,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ��s�p�եX�u�O���]�æ��s��Ӹ�ƶ��^
+        /// 更新小組出席記錄（並行更新兩個資料集）
         /// </summary>
         [HttpPut]
         public async Task<IActionResult> UpdateSmallGroupPresentRecord(
@@ -43,6 +44,22 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // ========================================
+                // ✅ 診斷日誌：記錄所有傳入參數
+                // ========================================
+                System.Diagnostics.Debug.WriteLine($"[UpdateSmallGroupPresentRecord] ===== 開始處理更新請求 =====");
+                System.Diagnostics.Debug.WriteLine($"[UpdateSmallGroupPresentRecord] Session ID: {HttpContext.Session.Id}");
+                System.Diagnostics.Debug.WriteLine($"[UpdateSmallGroupPresentRecord] Key: {key ?? "(null)"}");
+                System.Diagnostics.Debug.WriteLine($"[UpdateSmallGroupPresentRecord] Values: {values ?? "(null)"}");
+                System.Diagnostics.Debug.WriteLine($"[UpdateSmallGroupPresentRecord] Request Method: {HttpContext.Request.Method}");
+                System.Diagnostics.Debug.WriteLine($"[UpdateSmallGroupPresentRecord] Request Path: {HttpContext.Request.Path}");
+                System.Diagnostics.Debug.WriteLine($"[UpdateSmallGroupPresentRecord] Content-Type: {HttpContext.Request.ContentType ?? "(null)"}");
+
+                // ========================================
+                // ✅ 關鍵修復：驗證 Session 並確保資料正確
+                // ========================================
+                EnsureCorrectUserData();
+
                 var dataList = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                     .m_SmallGroupDataList;
 
@@ -69,7 +86,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// �R���X�u�O��
+        /// 刪除出席記錄
         /// </summary>
         [HttpDelete]
         public IActionResult DeletePresentRecord(string key)
