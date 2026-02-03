@@ -166,7 +166,13 @@
 
         //.Paging(paging => paging.Enabled(true).PageSize(21))
         .Paging(paging => paging.Enabled(false).PageSize(21))
-        .RemoteOperations(false)
+        .RemoteOperations(ro => ro.Filtering(false)    // 客戶端過濾
+          .Sorting(false)   // 客戶端排序
+          .Paging(false)    // 客戶端分頁
+          .Grouping(false)  // 客戶端分組
+          .Summary(false)   // 客戶端匯總
+                            // CRUD 操作默認為 true，會發送到服務器 ✅ ) 取代 
+        )
         .RepaintChangesOnly(true)
         .CacheEnabled(true)
 
