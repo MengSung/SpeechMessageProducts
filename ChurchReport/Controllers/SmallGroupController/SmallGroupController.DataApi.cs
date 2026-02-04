@@ -2,6 +2,7 @@
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System;
@@ -127,6 +128,14 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // ========================================
+                // ✅ 使用基底控制器的統一驗證方法
+                // ========================================
+                // 教學說明：
+                // 不需要在每個方法中重複寫驗證邏輯。
+                // 基底控制器已經提供了完整的驗證方法。
+                EnsureCorrectUserData();
+
                 var selectedDate = InMemoryContext.ListManager.m_SelectDate;
                 var account = InMemoryContext.ListManager.m_Account ?? "guest";
                 var cacheKey = $"{CACHE_KEY_MULTI_GRID}{selectedDate:yyyyMMdd}_{account}";
