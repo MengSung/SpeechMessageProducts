@@ -235,9 +235,9 @@ namespace ChurchReport.Models.CrmTransmitModule
             set { m_WorkAndCampusNumber = value; }
         }
         #endregion
-        #region 神助611靈糧堂專用
+        #region 神住611靈糧堂專用
         // 牧養狀態
-        // 本週牧養狀態(神助611靈糧堂專用)
+        // 本週牧養狀態(神住611靈糧堂專用)
         string m_ShepherdStatus = "";
         public string ShepherdStatus
         {
@@ -246,7 +246,7 @@ namespace ChurchReport.Models.CrmTransmitModule
         }
 
         // 一對一牧養材料選項
-        // 一對一牧養材料(神助611靈糧堂專用)
+        // 一對一牧養材料(神住611靈糧堂專用)
         string m_OneOnOne = "";
         public string OneOnOne
         {

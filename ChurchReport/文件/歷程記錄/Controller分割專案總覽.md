@@ -323,7 +323,7 @@
 
 ## ?? 成功案例
 
-### Case 1: 神助611靈糧堂專案
+### Case 1: 神住611靈糧堂專案
 **背景：**
 - HomeController 超過 500 行
 - ProcessLogin 方法 150+ 行

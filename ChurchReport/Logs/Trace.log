@@ -73567,12 +73567,12 @@ ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] T
 [GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
 [LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
 [LoadMaintainPersonInfomation]   ✅ 成功加入成員: 中壢棒
-[LoadMaintainPersonInfomation]   成員 7: 神助611靈糧堂
+[LoadMaintainPersonInfomation]   成員 7: 神住611靈糧堂
 [GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
 [LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
 [GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
 [LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
-[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 神助611靈糧堂
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 神住611靈糧堂
 [LoadMaintainPersonInfomation]   成員 8: 胡夢嵩
 [GetMembershipStatusText] 輸入值: 100000008, 回傳文字: 03. 小組長
 [LoadMaintainPersonInfomation]     會員身分: 03. 小組長 (值: 100000008)
@@ -75359,12 +75359,12 @@ ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] T
 [GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
 [LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
 [LoadMaintainPersonInfomation]   ✅ 成功加入成員: 中壢棒
-[LoadMaintainPersonInfomation]   成員 7: 神助611靈糧堂
+[LoadMaintainPersonInfomation]   成員 7: 神住611靈糧堂
 [GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
 [LoadMaintainPersonInfomation]     會員身分: 08. 新朋友 (值: 100000000)
 [GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
 [LoadMaintainPersonInfomation]     信仰狀態: 未信主 (值: 100000001)
-[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 神助611靈糧堂
+[LoadMaintainPersonInfomation]   ✅ 成功加入成員: 神住611靈糧堂
 [LoadMaintainPersonInfomation]   成員 8: 胡夢嵩
 [GetMembershipStatusText] 輸入值: 100000008, 回傳文字: 03. 小組長
 [LoadMaintainPersonInfomation]     會員身分: 03. 小組長 (值: 100000008)
@@ -166860,7 +166860,7 @@ ChurchReport.Middleware.IdentityAuditMiddleware: Information: [Identity Audit] T
 [LoadMaintainPersonInfomation]     單一小組-會員身分: 08. 新朋友
 [GetSpiritualIdentityText] 輸入值: 100000001, 回傳文字: 未信主
 [LoadMaintainPersonInfomation]     單一小組-信仰狀態: 未信主
-[LoadMaintainPersonInfomation]     單一小組-成員: 神助611靈糧堂
+[LoadMaintainPersonInfomation]     單一小組-成員: 神住611靈糧堂
 [GetMembershipStatusText] 輸入值: 100000000, 回傳文字: 08. 新朋友
 [LoadMaintainPersonInfomation]     單一小組-會員身分: 08. 新朋友
 [GetSpiritualIdentityText] 輸入值: 100000004, 回傳文字: -未知-
