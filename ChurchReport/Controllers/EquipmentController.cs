@@ -91,7 +91,7 @@ namespace ChurchReport.Controllers
                 // ========================================
                 // ✅ 關鍵修復：驗證 Session 並確保資料正確
                 // ========================================
-                EnsureCorrectUserData();
+                //EnsureCorrectUserData();
 
                 // 確保資料已載入
                 if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
