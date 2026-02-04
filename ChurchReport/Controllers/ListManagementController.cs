@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
@@ -14,12 +14,12 @@ using ToolUtilityNameSpace.DependencyInjection;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// ¦W³æºŞ²z±±¨î¾¹
-    /// ³B²z±Ğ·|²ÕÂ´¬[ºcºŞ²z (°Ïªª¡B°Ïªø¡B¤p²Õ¡B¦¨­û)
+    /// åå–®ç®¡ç†æ§åˆ¶å™¨
+    /// è™•ç†æ•™æœƒçµ„ç¹”æ¶æ§‹ç®¡ç† (å€ç‰§ã€å€é•·ã€å°çµ„ã€æˆå“¡)
     /// </summary>
     public class ListManagementController : BaseChurchController
     {
-        #region «Øºc¨ç¦¡
+        #region å»ºæ§‹å‡½å¼
 
         public ListManagementController(
             IHttpContextAccessor httpContextAccessor,
@@ -33,11 +33,11 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¦W³æºŞ²z¥D­¶­±
+        #region åå–®ç®¡ç†ä¸»é é¢
 
         /// <summary>
-        /// ±Ğ·|²ÕÂ´¬[ºc(¦W³æºŞ²z)¥D­¶­±
-        /// Åã¥Ü°Ïªª -> °Ïªø -> ¤p²Õ -> ¦¨­û ªº¾ğª¬µ²ºc
+        /// æ•™æœƒçµ„ç¹”æ¶æ§‹(åå–®ç®¡ç†)ä¸»é é¢
+        /// é¡¯ç¤ºå€ç‰§ -> å€é•· -> å°çµ„ -> æˆå“¡ çš„æ¨¹ç‹€çµæ§‹
         /// </summary>
         [Route("/ListManagement/ChurchRoot")]
         public IActionResult ChurchRoot()
@@ -46,7 +46,7 @@ namespace ChurchReport.Controllers
             {
                 SetupListManagementViewBag();
 
-                // ³]©w¦W³æºŞ²z¸ê®Æ
+                // è¨­å®šåå–®ç®¡ç†è³‡æ–™
                 InMemoryContext.ListManagementDataManager.SetupListManagementData(
                     InMemoryContext.AppointmentsListManager.m_Account,
                     InMemoryContext.AppointmentsListManager.m_Password);
@@ -62,7 +62,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³]©w¦W³æºŞ²z­¶­±ªº ViewBag
+        /// è¨­å®šåå–®ç®¡ç†é é¢çš„ ViewBag
         /// </summary>
         private void SetupListManagementViewBag()
         {
@@ -72,16 +72,26 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¸ê®Æ¸ü¤J
+        #region è³‡æ–™è¼‰å…¥
 
         /// <summary>
-        /// ¸ü¤J°Ïªª²M³æ(³Ì¤W¼h)
+        /// è¼‰å…¥å€ç‰§æ¸…å–®(æœ€ä¸Šå±¤)
         /// </summary>
         [HttpGet]
         public object LoadChurchRoot(DataSourceLoadOptions loadOptions)
         {
             try
             {
+                // ========================================
+                // âœ… ä½¿ç”¨åŸºåº•æ§åˆ¶å™¨çš„çµ±ä¸€é©—è­‰æ–¹æ³•
+                // ========================================
+                // æ•™å­¸èªªæ˜ï¼š
+                // åŸºåº•æ§åˆ¶å™¨å·²ç¶“æä¾›äº†å®Œæ•´çš„é©—è­‰æ–¹æ³•ï¼ŒåŒ…å«ï¼š
+                // - Session å’Œ ListManager å¯†ç¢¼ä¸€è‡´æ€§æª¢æŸ¥
+                // - LINE ID æ¢å¾©æ©Ÿåˆ¶
+                // - å®‰å…¨çš„æ—¥èªŒè¨˜éŒ„ï¼ˆéš±è—æ•æ„Ÿè³‡è¨Šï¼‰
+                EnsureCorrectUserData();
+
                 if (InMemoryContext.ListManagementDataManager.m_ChurchRoot != null)
                 {
                     return DataSourceLoader.Load(
@@ -97,14 +107,24 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¸ü¤J°Ïªø²M³æ(²Ä¤G¼h)
+        /// è¼‰å…¥å€é•·æ¸…å–®(ç¬¬äºŒå±¤)
         /// </summary>
-        /// <param name="id">°Ïªª ID</param>
+        /// <param name="id">å€ç‰§ ID</param>
         [HttpGet]
         public object LoadListManagementList(string id, DataSourceLoadOptions loadOptions)
         {
             try
             {
+                // ========================================
+                // âœ… ä½¿ç”¨åŸºåº•æ§åˆ¶å™¨çš„çµ±ä¸€é©—è­‰æ–¹æ³•
+                // ========================================
+                // æ•™å­¸èªªæ˜ï¼š
+                // åŸºåº•æ§åˆ¶å™¨å·²ç¶“æä¾›äº†å®Œæ•´çš„é©—è­‰æ–¹æ³•ï¼ŒåŒ…å«ï¼š
+                // - Session å’Œ ListManager å¯†ç¢¼ä¸€è‡´æ€§æª¢æŸ¥
+                // - LINE ID æ¢å¾©æ©Ÿåˆ¶
+                // - å®‰å…¨çš„æ—¥èªŒè¨˜éŒ„ï¼ˆéš±è—æ•æ„Ÿè³‡è¨Šï¼‰
+                EnsureCorrectUserData();
+
                 if (InMemoryContext.ListManagementDataManager.m_ChurchRoot != null)
                 {
                     var tasks = InMemoryContext.ListManagementDataManager.m_ChurchRoot.AreaLeaderList
@@ -123,14 +143,24 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¸ü¤J¤p²Õ²M³æ(²Ä¤T¼h)
+        /// è¼‰å…¥å°çµ„æ¸…å–®(ç¬¬ä¸‰å±¤)
         /// </summary>
-        /// <param name="id">°Ïªø ID</param>
+        /// <param name="id">å€é•· ID</param>
         [HttpGet]
         public object LoadListManagementSmallGroup(string id, DataSourceLoadOptions loadOptions)
         {
             try
             {
+                // ========================================
+                // âœ… ä½¿ç”¨åŸºåº•æ§åˆ¶å™¨çš„çµ±ä¸€é©—è­‰æ–¹æ³•
+                // ========================================
+                // æ•™å­¸èªªæ˜ï¼š
+                // åŸºåº•æ§åˆ¶å™¨å·²ç¶“æä¾›äº†å®Œæ•´çš„é©—è­‰æ–¹æ³•ï¼ŒåŒ…å«ï¼š
+                // - Session å’Œ ListManager å¯†ç¢¼ä¸€è‡´æ€§æª¢æŸ¥
+                // - LINE ID æ¢å¾©æ©Ÿåˆ¶
+                // - å®‰å…¨çš„æ—¥èªŒè¨˜éŒ„ï¼ˆéš±è—æ•æ„Ÿè³‡è¨Šï¼‰
+                EnsureCorrectUserData();
+
                 AreaLeader areaLeader = InMemoryContext.ListManagementDataManager
                     .GetAreaLeaderByRaceLeaderId(id);
 
@@ -152,14 +182,24 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¸ü¤J¤p²Õ¦¨­û²M³æ(²Ä¥|¼h)
+        /// è¼‰å…¥å°çµ„æˆå“¡æ¸…å–®(ç¬¬å››å±¤)
         /// </summary>
-        /// <param name="id">¤p²Õ ID</param>
+        /// <param name="id">å°çµ„ ID</param>
         [HttpGet]
         public object LoadListManagementMember(string id, DataSourceLoadOptions loadOptions)
         {
             try
             {
+                // ========================================
+                // âœ… ä½¿ç”¨åŸºåº•æ§åˆ¶å™¨çš„çµ±ä¸€é©—è­‰æ–¹æ³•
+                // ========================================
+                // æ•™å­¸èªªæ˜ï¼š
+                // åŸºåº•æ§åˆ¶å™¨å·²ç¶“æä¾›äº†å®Œæ•´çš„é©—è­‰æ–¹æ³•ï¼ŒåŒ…å«ï¼š
+                // - Session å’Œ ListManager å¯†ç¢¼ä¸€è‡´æ€§æª¢æŸ¥
+                // - LINE ID æ¢å¾©æ©Ÿåˆ¶
+                // - å®‰å…¨çš„æ—¥èªŒè¨˜éŒ„ï¼ˆéš±è—æ•æ„Ÿè³‡è¨Šï¼‰
+                EnsureCorrectUserData();
+
                 RaceLeader raceLeader = InMemoryContext.ListManagementDataManager
                     .GetRaceLeaderBySmallGroupId(id);
 
@@ -181,24 +221,24 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¸ü¤J Lookup ¤U©Ô¿ï³æ¸ê®Æ
+        /// è¼‰å…¥ Lookup ä¸‹æ‹‰é¸å–®è³‡æ–™
         /// </summary>
-        /// <param name="id">¸ê®ÆÃş«¬ (´«°Ïªª/´«°Ïªø/«ü¬£¤p²Õ)</param>
+        /// <param name="id">è³‡æ–™é¡å‹ (æ›å€ç‰§/æ›å€é•·/æŒ‡æ´¾å°çµ„)</param>
         [HttpGet]
         public object LoadLookupList(string id, DataSourceLoadOptions loadOptions)
         {
             try
             {
-                // ­×§ï¬° C# 7.3 ¤ä´©ªº switch statement
+                // ä¿®æ”¹ç‚º C# 7.3 æ”¯æ´çš„ switch statement
                 switch (id)
                 {
-                    case "´«°Ïªª":
+                    case "æ›å€ç‰§":
                         return InMemoryContext.ListManagementDataManager.m_AreaLeaderArray;
-                    case "´«°Ïªø":
+                    case "æ›å€é•·":
                         return InMemoryContext.ListManagementDataManager.m_RaceLeaderArray;
-                    case "«ü¬£¦Ü¥»ªª°Ï¤p²Õ":
+                    case "æŒ‡æ´¾è‡³æœ¬ç‰§å€å°çµ„":
                         return InMemoryContext.ListManagementDataManager.m_RaceLeaderSmallGroupArray;
-                    case "«ü¬£¦Ü±Ğ·|¤p²Õ":
+                    case "æŒ‡æ´¾è‡³æ•™æœƒå°çµ„":
                         return InMemoryContext.ListManagementDataManager.m_ChurchSmallGroupArray;
                     default:
                         return null;
@@ -212,10 +252,10 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region °Ïªø CRUD ¾Ş§@
+        #region å€é•· CRUD æ“ä½œ
 
         /// <summary>
-        /// ·s¼W°Ïªø
+        /// æ–°å¢å€é•·
         /// </summary>
         [HttpPost]
         public IActionResult PostRacerListManagementMember(string values)
@@ -235,7 +275,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ·s¼W°Ïªø (§t CRM ¦P¨B)
+        /// æ–°å¢å€é•· (å« CRM åŒæ­¥)
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> AddRaceLeader(string key, string values)
@@ -259,7 +299,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §R°£°Ïªø
+        /// åˆªé™¤å€é•·
         /// </summary>
         [HttpDelete]
         public void DeleteRaceLeader(string key)
@@ -276,10 +316,10 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¤p²Õ CRUD ¾Ş§@
+        #region å°çµ„ CRUD æ“ä½œ
 
         /// <summary>
-        /// ·s¼W¤p²Õ
+        /// æ–°å¢å°çµ„
         /// </summary>
         [HttpPost]
         public IActionResult PostSmallGroupAction(string values)
@@ -296,7 +336,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ·s¼W¤p²Õ (§t CRM ¦P¨B)
+        /// æ–°å¢å°çµ„ (å« CRM åŒæ­¥)
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> AddSmallGroup(
@@ -326,7 +366,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §ó·s¤p²Õ¸ê°T
+        /// æ›´æ–°å°çµ„è³‡è¨Š
         /// </summary>
         [HttpPut]
         public IActionResult UpdateListManagementSmallGroup(string key, string values)
@@ -343,7 +383,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §ó·s¤p²Õ (§t CRM ¦P¨B)
+        /// æ›´æ–°å°çµ„ (å« CRM åŒæ­¥)
         /// </summary>
         [HttpPut]
         public async Task<IActionResult> UpdateSmallGroup(string key, string values)
@@ -366,7 +406,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §R°£¤p²Õ
+        /// åˆªé™¤å°çµ„
         /// </summary>
         [HttpDelete]
         public void DeleteSmallGroup(string key)
@@ -383,10 +423,10 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¦¨­û CRUD ¾Ş§@
+        #region æˆå“¡ CRUD æ“ä½œ
 
         /// <summary>
-        /// ·s¼W¦¨­û
+        /// æ–°å¢æˆå“¡
         /// </summary>
         [HttpPost]
         public IActionResult PostContactAction(string values)
@@ -407,7 +447,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ·s¼W¦¨­û (§t CRM ¦P¨B)
+        /// æ–°å¢æˆå“¡ (å« CRM åŒæ­¥)
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> AddContact(
@@ -441,7 +481,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §ó·s¦¨­û¸ê°T
+        /// æ›´æ–°æˆå“¡è³‡è¨Š
         /// </summary>
         [HttpPut]
         public IActionResult UpdateListManagementContactMember(string key, string values)
@@ -458,7 +498,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §ó·s¦¨­û (§t CRM ¦P¨B)
+        /// æ›´æ–°æˆå“¡ (å« CRM åŒæ­¥)
         /// </summary>
         [HttpPut]
         public async Task<IActionResult> UpdateContactMember(string key, string values)
@@ -481,7 +521,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §R°£¦¨­û
+        /// åˆªé™¤æˆå“¡
         /// </summary>
         [HttpDelete]
         public void DeleteContact(string key)
@@ -498,10 +538,10 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region §å¦¸¾Ş§@
+        #region æ‰¹æ¬¡æ“ä½œ
 
         /// <summary>
-        /// §R°£¦W³æ¤¸¯À (³q¥Î)
+        /// åˆªé™¤åå–®å…ƒç´  (é€šç”¨)
         /// </summary>
         [HttpDelete]
         public void DeleteListManagement(string key)
@@ -517,7 +557,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// Àx¦s©Ò¦³ÅÜ§ó
+        /// å„²å­˜æ‰€æœ‰è®Šæ›´
         /// </summary>
         [HttpPost]
         public IActionResult SaveListManagement()
@@ -528,7 +568,7 @@ namespace ChurchReport.Controllers
                 InMemoryContext.HappyGroupDataManager.InitialHappyGroupData(
                     ref InMemoryContext.HappyGroupDataManager.m_ActiveHappyGroupListClass);
 
-                return Json(new { status = "1", message = "¦¨¥\¤W¶Ç¤F...." });
+                return Json(new { status = "1", message = "æˆåŠŸä¸Šå‚³äº†...." });
             }
             catch (Exception e)
             {
@@ -538,10 +578,10 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¬d¸ß»²§U¤èªk
+        #region æŸ¥è©¢è¼”åŠ©æ–¹æ³•
 
         /// <summary>
-        /// ¨Ì¤p²Õ¦WºÙ·j´M¨Ãªğ¦^ Refresh ID
+        /// ä¾å°çµ„åç¨±æœå°‹ä¸¦è¿”å› Refresh ID
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> SaveListManagementContactMember(string key, string values)
@@ -551,7 +591,7 @@ namespace ChurchReport.Controllers
                 string refreshId = InMemoryContext.ListManagementDataManager
                     .SearchSmallGroupByName(values);
 
-                return Json(new { status = "1", RefreshId = refreshId, message = "¬d¸ß¦¨¥\" });
+                return Json(new { status = "1", RefreshId = refreshId, message = "æŸ¥è©¢æˆåŠŸ" });
             }
             catch (Exception e)
             {
@@ -560,7 +600,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¨Ì°Ïªø¦WºÙ·j´M¨Ãªğ¦^ Refresh ID
+        /// ä¾å€é•·åç¨±æœå°‹ä¸¦è¿”å› Refresh ID
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> SaveListManagementSmallGroup(string key, string values)
@@ -570,7 +610,7 @@ namespace ChurchReport.Controllers
                 string refreshId = InMemoryContext.ListManagementDataManager
                     .SearchRaceLeaderByName(values);
 
-                return Json(new { status = "1", RefreshId = refreshId, message = "¬d¸ß¦¨¥\" });
+                return Json(new { status = "1", RefreshId = refreshId, message = "æŸ¥è©¢æˆåŠŸ" });
             }
             catch (Exception e)
             {

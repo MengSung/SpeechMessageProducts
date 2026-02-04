@@ -135,6 +135,16 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // ========================================
+                // ✅ 使用基底控制器的統一驗證方法
+                // ========================================
+                // 教學說明：
+                // 基底控制器已經提供了完整的驗證方法，包含：
+                // - Session 和 ListManager 密碼一致性檢查
+                // - LINE ID 恢復機制
+                // - 安全的日誌記錄（隱藏敏感資訊）
+                EnsureCorrectUserData();
+
                 // ✅ 檢查金流提供商 - 高鉅金流不需要載入信用卡列表
                 var payProvider = _configuration["PAY_PROVIDER"];
                 if (payProvider == "高鉅金流")
@@ -192,6 +202,16 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // ========================================
+                // ✅ 使用基底控制器的統一驗證方法
+                // ========================================
+                // 教學說明：
+                // 基底控制器已經提供了完整的驗證方法，包含：
+                // - Session 和 ListManager 密碼一致性檢查
+                // - LINE ID 恢復機制
+                // - 安全的日誌記錄（隱藏敏感資訊）
+                EnsureCorrectUserData();
+
                 // ✅ 檢查金流提供商 - 高鉅金流不需要載入認獻清單（不支援定期定額功能）
                 var payProvider = _configuration["PAY_PROVIDER"];
                 if (payProvider == "高鉅金流")
@@ -420,6 +440,16 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // ========================================
+                // ✅ 使用基底控制器的統一驗證方法
+                // ========================================
+                // 教學說明：
+                // 基底控制器已經提供了完整的驗證方法，包含：
+                // - Session 和 ListManager 密碼一致性檢查
+                // - LINE ID 恢復機制
+                // - 安全的日誌記錄（隱藏敏感資訊）
+                EnsureCorrectUserData();
+
                 var tasks = InMemoryContext.QpayManager.m_QpayModel.SameNameList;
                 return DataSourceLoader.Load(tasks, loadOptions);
             }

@@ -85,6 +85,16 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // ========================================
+                // ✅ 使用基底控制器的統一驗證方法
+                // ========================================
+                // 教學說明：
+                // 基底控制器已經提供了完整的驗證方法，包含：
+                // - Session 和 ListManager 密碼一致性檢查
+                // - LINE ID 恢復機制
+                // - 安全的日誌記錄（隱藏敏感資訊）
+                EnsureCorrectUserData();
+
                 var selectedDate = InMemoryContext.ListManager.m_SelectDate;
                 var account = InMemoryContext.ListManager.m_Account ?? "guest";
                 var cacheKey = $"{CACHE_KEY_MULTI_CHART}{selectedDate:yyyyMMdd}_{account}";

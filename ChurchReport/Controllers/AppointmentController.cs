@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
@@ -15,12 +15,12 @@ using ToolUtilityNameSpace.DependencyInjection;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// ¦æ¨Æ¾ä»P¬ù·|ºŞ²z±±¨î¾¹
-    /// ³B²z®t¶ÔÃ±®Ö¡B³õ¦a¹w¬ù¡B¸ê·½¹w¬ùµ¥¥\¯à
+    /// è¡Œäº‹æ›†èˆ‡ç´„æœƒç®¡ç†æ§åˆ¶å™¨
+    /// è™•ç†å·®å‹¤ç°½æ ¸ã€å ´åœ°é ç´„ã€è³‡æºé ç´„ç­‰åŠŸèƒ½
     /// </summary>
     public class AppointmentController : BaseChurchController
     {
-        #region «Øºc¨ç¦¡
+        #region å»ºæ§‹å‡½å¼
 
         public AppointmentController(
             IHttpContextAccessor httpContextAccessor,
@@ -34,12 +34,12 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¦æ¨Æ¾ä¥D­¶­±
+        #region è¡Œäº‹æ›†ä¸»é é¢
 
         /// <summary>
-        /// ¦æ¨Æ¾ä¥D­¶­± (ºô­¶µn¤J)
+        /// è¡Œäº‹æ›†ä¸»é é¢ (ç¶²é ç™»å…¥)
         /// </summary>
-        /// <param name="ScheduleType">¦æ¨Æ¾äÃş«¬ (®t¶ÔÃ±®Ö / ³õ¦a¤Î¸ê·½¹w¬ù)</param>
+        /// <param name="ScheduleType">è¡Œäº‹æ›†é¡å‹ (å·®å‹¤ç°½æ ¸ / å ´åœ°åŠè³‡æºé ç´„)</param>
         [Route("/Appointment/Schedule/{ScheduleType}")]
         public IActionResult Scheduler(string ScheduleType)
         {
@@ -56,10 +56,10 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¦æ¨Æ¾ä¥D­¶­± (LINE LIFF µn¤J)
+        /// è¡Œäº‹æ›†ä¸»é é¢ (LINE LIFF ç™»å…¥)
         /// </summary>
-        /// <param name="ScheduleId">¦æµ{ID</param>
-        /// <param name="SchedulerViewPatameter">¦æ¨Æ¾ä°Ñ¼Æ</param>
+        /// <param name="ScheduleId">è¡Œç¨‹ID</param>
+        /// <param name="SchedulerViewPatameter">è¡Œäº‹æ›†åƒæ•¸</param>
         [Route("/Appointment/SchedulerView/{SchedulerViewPatameter}")]
         public IActionResult SchedulerView(string ScheduleId, string SchedulerViewPatameter)
         {
@@ -77,45 +77,45 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³]©w¦æ¨Æ¾ä­¶­±ªº ViewBag (ºô­¶ª©)
+        /// è¨­å®šè¡Œäº‹æ›†é é¢çš„ ViewBag (ç¶²é ç‰ˆ)
         /// </summary>
         private void SetupSchedulerViewBag(string scheduleType)
         {
             SetupBasicViewBag();
             SetMultiGroupLayoutParameter();
 
-            ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "¤£¬O³æ¯Â¦æ¨Æ¾ä";
-            ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "Åã¥Üªª¾i¦^³ø¶µ¥Ø";
+            ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "ä¸æ˜¯å–®ç´”è¡Œäº‹æ›†";
+            ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
             ViewBag.UserType = InMemoryContext.ListManager.UserType = 
                 InMemoryContext.AppointmentsListManager.UserType;
 
-            // ³]©w¦æ¨Æ¾äÃş«¬
+            // è¨­å®šè¡Œäº‹æ›†é¡å‹
             InMemoryContext.AppointmentsListManager.ScheduleType = scheduleType;
-            ViewBag.SchedulerDisplayType = scheduleType == "®t¶ÔÃ±®Ö" ? "®t¶ÔÃ±®Ö" : "³õ¦aÃ±®Ö";
+            ViewBag.SchedulerDisplayType = scheduleType == "å·®å‹¤ç°½æ ¸" ? "å·®å‹¤ç°½æ ¸" : "å ´åœ°ç°½æ ¸";
         }
 
         /// <summary>
-        /// ³]©w¦æ¨Æ¾ä­¶­±ªº ViewBag (LINE ª©)
+        /// è¨­å®šè¡Œäº‹æ›†é é¢çš„ ViewBag (LINE ç‰ˆ)
         /// </summary>
         private void SetupSchedulerViewForLine()
         {
-            ViewBag.LoginType = "¤p²Õªø";
-            ViewBag.LoginFullName = "­C¿q";
-            ViewBag.FeeType = "¦³Ãº¶OÂI¦W";
-            ViewBag.FeeDataListCount = "Ãº¶O»PÂI¦W©|µL¸ê®Æ";
-            ViewBag.HappyType = "¨S©¯ºÖ¤p²Õ¦W³æ";
+            ViewBag.LoginType = "å°çµ„é•·";
+            ViewBag.LoginFullName = "è€¶ç©Œ";
+            ViewBag.FeeType = "æœ‰ç¹³è²»é»å";
+            ViewBag.FeeDataListCount = "ç¹³è²»èˆ‡é»åå°šç„¡è³‡æ–™";
+            ViewBag.HappyType = "æ²’å¹¸ç¦å°çµ„åå–®";
             ViewBag.MultiGroupIndex = "SingleMultiGroupView";
-            ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "³æ¯Â¦æ¨Æ¾ä";
-            ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "¤£Åã¥Üªª¾i¦^³ø¶µ¥Ø";
-            ViewBag.UserType = InMemoryContext.ListManager.UserType = "¦æ¬F¦P¤u";
+            ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "å–®ç´”è¡Œäº‹æ›†";
+            ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "ä¸é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
+            ViewBag.UserType = InMemoryContext.ListManager.UserType = "è¡Œæ”¿åŒå·¥";
         }
 
         #endregion
 
-        #region LINE µn¤J³B²z
+        #region LINE ç™»å…¥è™•ç†
 
         /// <summary>
-        /// ³z¹L LINE ID ¸ü¤J¬ù·|¸ê®Æ
+        /// é€é LINE ID è¼‰å…¥ç´„æœƒè³‡æ–™
         /// </summary>
         [HttpPost]
         public IActionResult LoadAppointmentByLineId(
@@ -130,7 +130,7 @@ namespace ChurchReport.Controllers
                 SetupAppointmentAccountPassword();
                 SetupSchedulerViewBagForLineLogin();
 
-                return Json(new { message = "Åwªïµn¤J¦¨¥\!" });
+                return Json(new { message = "æ­¡è¿ç™»å…¥æˆåŠŸ!" });
             }
             catch (Exception e)
             {
@@ -139,7 +139,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³]©w LINE ¸j©w¤W¤U¤å
+        /// è¨­å®š LINE ç¶å®šä¸Šä¸‹æ–‡
         /// </summary>
         private void SetupLineBindingContext(
             string userLineId,
@@ -156,7 +156,7 @@ namespace ChurchReport.Controllers
             InMemoryContext.LineBindingViewModel.ViewType = 
                 InMemoryContext.AppointmentsListManager.ViewType = viewType;
 
-            // ³]©wÅã¥ÜID
+            // è¨­å®šé¡¯ç¤ºID
             if (!string.IsNullOrEmpty(groupId))
                 InMemoryContext.LineBindingViewModel.DisplayId = groupId;
             else if (!string.IsNullOrEmpty(roomId))
@@ -166,7 +166,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³]©w¦æ¨Æ¾ä±b±K (LINE µn¤J)
+        /// è¨­å®šè¡Œäº‹æ›†å¸³å¯† (LINE ç™»å…¥)
         /// </summary>
         private void SetupAppointmentAccountPassword()
         {
@@ -176,34 +176,44 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³]©w LINE µn¤Jªº ViewBag
+        /// è¨­å®š LINE ç™»å…¥çš„ ViewBag
         /// </summary>
         private void SetupSchedulerViewBagForLineLogin()
         {
-            ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "³æ¯Â¦æ¨Æ¾ä";
+            ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "å–®ç´”è¡Œäº‹æ›†";
             ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = 
-                "¤£Åã¥Üªª¾i¦^³ø¶µ¥Ø";
+                "ä¸é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
             ViewBag.UserType = InMemoryContext.ListManager.UserType = 
                 InMemoryContext.AppointmentsListManager.UserType;
             ViewBag.SchedulerDisplayType = 
-                InMemoryContext.AppointmentsListManager.UserType == "¦æ¬F¦P¤u" ? 
-                "®t¶ÔÃ±®Ö" : "³õ¦aÃ±®Ö";
+                InMemoryContext.AppointmentsListManager.UserType == "è¡Œæ”¿åŒå·¥" ? 
+                "å·®å‹¤ç°½æ ¸" : "å ´åœ°ç°½æ ¸";
         }
 
         #endregion
 
-        #region ¸ê®Æ¸ü¤J
+        #region è³‡æ–™è¼‰å…¥
 
         /// <summary>
-        /// ¸ü¤J¬ù·|²M³æ
-        /// ¥Î©ó DevExtreme Scheduler ªº¸ê®Æ¨Ó·½
+        /// è¼‰å…¥ç´„æœƒæ¸…å–®
+        /// ç”¨æ–¼ DevExtreme Scheduler çš„è³‡æ–™ä¾†æº
         /// </summary>
         [HttpGet]
         public object LoadAppointments(DataSourceLoadOptions loadOptions)
         {
             try
             {
-                // ·Ç³Æ¬ù·|²M³æ¸ê®Æ
+                // ========================================
+                // âœ… ä½¿ç”¨åŸºåº•æ§åˆ¶å™¨çš„çµ±ä¸€é©—è­‰æ–¹æ³•
+                // ========================================
+                // æ•™å­¸èªªæ˜ï¼š
+                // åŸºåº•æ§åˆ¶å™¨å·²ç¶“æä¾›äº†å®Œæ•´çš„é©—è­‰æ–¹æ³•ï¼ŒåŒ…å«ï¼š
+                // - Session å’Œ ListManager å¯†ç¢¼ä¸€è‡´æ€§æª¢æŸ¥
+                // - LINE ID æ¢å¾©æ©Ÿåˆ¶
+                // - å®‰å…¨çš„æ—¥èªŒè¨˜éŒ„ï¼ˆéš±è—æ•æ„Ÿè³‡è¨Šï¼‰
+                EnsureCorrectUserData();
+
+                // æº–å‚™ç´„æœƒæ¸…å–®è³‡æ–™
                 InMemoryContext.AppointmentsListManager.SetupAppointmentList();
 
                 return DataSourceLoader.Load(
@@ -218,12 +228,12 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region CRUD ¾Ş§@
+        #region CRUD æ“ä½œ
 
         /// <summary>
-        /// ·s¼W¬ù·|
+        /// æ–°å¢ç´„æœƒ
         /// </summary>
-        /// <param name="values">JSON ®æ¦¡ªº¬ù·|¸ê®Æ</param>
+        /// <param name="values">JSON æ ¼å¼çš„ç´„æœƒè³‡æ–™</param>
         [HttpPost]
         public IActionResult PostAppointments(string values)
         {
@@ -232,11 +242,11 @@ namespace ChurchReport.Controllers
                 var newAppointment = new Appointment();
                 JsonConvert.PopulateObject(values, newAppointment);
 
-                // Âà´«¬°¥»¦a®É¶¡
+                // è½‰æ›ç‚ºæœ¬åœ°æ™‚é–“
                 newAppointment.StartDate = newAppointment.StartDate.ToLocalTime();
                 newAppointment.EndDate = newAppointment.EndDate.ToLocalTime();
 
-                // «Ø¥ß¬ù·|
+                // å»ºç«‹ç´„æœƒ
                 InMemoryContext.AppointmentsListManager.CreateAppointment(ref newAppointment);
 
                 return Ok();
@@ -248,10 +258,10 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §ó·s¬ù·|
+        /// æ›´æ–°ç´„æœƒ
         /// </summary>
-        /// <param name="key">¬ù·|ÃÑ§O½X</param>
-        /// <param name="values">§ó·sªºÄæ¦ì­È(JSON)</param>
+        /// <param name="key">ç´„æœƒè­˜åˆ¥ç¢¼</param>
+        /// <param name="values">æ›´æ–°çš„æ¬„ä½å€¼(JSON)</param>
         [HttpPut]
         public IActionResult PutAppointments(string key, string values)
         {
@@ -262,11 +272,11 @@ namespace ChurchReport.Controllers
 
                 JsonConvert.PopulateObject(values, appointment);
 
-                // Âà´«¬°¥»¦a®É¶¡
+                // è½‰æ›ç‚ºæœ¬åœ°æ™‚é–“
                 appointment.StartDate = appointment.StartDate.ToLocalTime();
                 appointment.EndDate = appointment.EndDate.ToLocalTime();
 
-                // §ó·s¬ù·|
+                // æ›´æ–°ç´„æœƒ
                 InMemoryContext.AppointmentsListManager.UpdateAppointment(appointment);
 
                 return Ok();
@@ -278,9 +288,9 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §R°£¬ù·|
+        /// åˆªé™¤ç´„æœƒ
         /// </summary>
-        /// <param name="key">¬ù·|ÃÑ§O½X</param>
+        /// <param name="key">ç´„æœƒè­˜åˆ¥ç¢¼</param>
         [HttpDelete]
         public void DeleteAppointments(string key)
         {
@@ -299,13 +309,13 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¦æ¨Æ¾ä¾ÉÄı
+        #region è¡Œäº‹æ›†å°è¦½
 
         /// <summary>
-        /// ¾ÉÄı¨ì«ü©w¤é´Á
-        /// ¥Î©ó Scheduler ªº¤é´Á¤Á´«
+        /// å°è¦½åˆ°æŒ‡å®šæ—¥æœŸ
+        /// ç”¨æ–¼ Scheduler çš„æ—¥æœŸåˆ‡æ›
         /// </summary>
-        /// <param name="SelectedDate">¿ï¾Üªº¤é´Á¦r¦ê</param>
+        /// <param name="SelectedDate">é¸æ“‡çš„æ—¥æœŸå­—ä¸²</param>
         [HttpPost]
         public IActionResult NavigateAppointmentDate(string SelectedDate)
         {
@@ -313,7 +323,7 @@ namespace ChurchReport.Controllers
             {
                 DateTime parsedDate = ParseSelectedDate(SelectedDate);
 
-                // Àx¦s¿ï¾Üªº¤é´Á
+                // å„²å­˜é¸æ“‡çš„æ—¥æœŸ
                 InMemoryContext.AppointmentsListManager.m_SelectDate = parsedDate;
 
                 return Ok();
@@ -325,8 +335,8 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¸ÑªR¿ï¾Üªº¤é´Á¦r¦ê
-        /// ¤ä´©¦hºØ¤é´Á®æ¦¡
+        /// è§£æé¸æ“‡çš„æ—¥æœŸå­—ä¸²
+        /// æ”¯æ´å¤šç¨®æ—¥æœŸæ ¼å¼
         /// </summary>
         private DateTime ParseSelectedDate(string dateString)
         {
@@ -336,7 +346,7 @@ namespace ChurchReport.Controllers
                 "yyyy/MM/dd tt hh:mm:ss",
                 "yyyy/MM/dd HH:mm:ss",
                 "yyyy/M/d HH:mm:ss",
-                "ddd MMM dd yyyy HH:mm:ss GMT+0800 (¥x¥_¼Ğ·Ç®É¶¡)",
+                "ddd MMM dd yyyy HH:mm:ss GMT+0800 (å°åŒ—æ¨™æº–æ™‚é–“)",
                 "ddd MMM dd yyyy HH:mm:ss GMT+0800 (CST)",
                 "ddd MMM dd yyyy HH:mm:ss GMT+0800",
                 "ddd MMM dd yyyy HH:mm:ss",

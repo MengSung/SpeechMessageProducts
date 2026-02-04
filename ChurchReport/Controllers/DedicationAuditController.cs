@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
@@ -13,12 +13,12 @@ using ToolUtilityNameSpace.DependencyInjection;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// ©^Äm¼f®Ö±±¨î¾¹
-    /// ³B²z½u¤W®½´Úªº©^Äm¼f®Ö»P¬d¸ß¥\¯à
+    /// å¥‰ç»å¯©æ ¸æ§åˆ¶å™¨
+    /// è™•ç†ç·šä¸Šææ¬¾çš„å¥‰ç»å¯©æ ¸èˆ‡æŸ¥è©¢åŠŸèƒ½
     /// </summary>
     public class DedicationAuditController : BaseChurchController
     {
-        #region «Øºc¨ç¦¡
+        #region å»ºæ§‹å‡½å¼
 
         public DedicationAuditController(
             IHttpContextAccessor httpContextAccessor,
@@ -32,11 +32,11 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ©^Äm½]®Ö¥D­¶­±
+        #region å¥‰ç»ç¨½æ ¸ä¸»é é¢
 
         /// <summary>
-        /// ©^Äm½]®Ö­¶­± (LINE µn¤J)
-        /// ¨Ñ¦æ¬F¤H­û¬d¸ß»P½]®Ö©^Äm°O¿ı
+        /// å¥‰ç»ç¨½æ ¸é é¢ (LINE ç™»å…¥)
+        /// ä¾›è¡Œæ”¿äººå“¡æŸ¥è©¢èˆ‡ç¨½æ ¸å¥‰ç»è¨˜éŒ„
         /// </summary>
         [Route("/DedicationAudit/AuditViewLine")]
         public IActionResult DedicationFeeAuditViewLine()
@@ -55,8 +55,8 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ©^Äm½]®Ö­¶­± (ºô­¶µn¤J)
-        /// ¨Ñ¦æ¬F¤H­û¬d¸ß»P½]®Ö©^Äm°O¿ı
+        /// å¥‰ç»ç¨½æ ¸é é¢ (ç¶²é ç™»å…¥)
+        /// ä¾›è¡Œæ”¿äººå“¡æŸ¥è©¢èˆ‡ç¨½æ ¸å¥‰ç»è¨˜éŒ„
         /// </summary>
         [Route("/DedicationAudit/AuditViewWeb")]
         public IActionResult DedicationFeeAuditViewWeb()
@@ -75,42 +75,42 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³]©w½]®Ö­¶­±ªº ViewBag
+        /// è¨­å®šç¨½æ ¸é é¢çš„ ViewBag
         /// </summary>
-        /// <param name="isWebLogin">¬O§_¬°ºô­¶µn¤J</param>
+        /// <param name="isWebLogin">æ˜¯å¦ç‚ºç¶²é ç™»å…¥</param>
         private void SetupAuditViewBag(bool isWebLogin)
         {
             if (isWebLogin)
             {
-                // ºô­¶µn¤J - ¨Ï¥Î§¹¾ã¿ï³æ
+                // ç¶²é ç™»å…¥ - ä½¿ç”¨å®Œæ•´é¸å–®
                 SetupBasicViewBag();
                 SetMultiGroupLayoutParameter();
             }
             else
             {
-                // LINE µn¤J - Â²¤Æ¿ï³æ
-                ViewBag.LoginType = "¤p²Õªø";
-                ViewBag.LoginFullName = "­C¿q";
-                ViewBag.FeeType = "¦³Ãº¶OÂI¦W";
-                ViewBag.FeeDataListCount = "Ãº¶O»PÂI¦W©|µL¸ê®Æ";
-                ViewBag.HappyType = "¨S©¯ºÖ¤p²Õ¦W³æ";
+                // LINE ç™»å…¥ - ç°¡åŒ–é¸å–®
+                ViewBag.LoginType = "å°çµ„é•·";
+                ViewBag.LoginFullName = "è€¶ç©Œ";
+                ViewBag.FeeType = "æœ‰ç¹³è²»é»å";
+                ViewBag.FeeDataListCount = "ç¹³è²»èˆ‡é»åå°šç„¡è³‡æ–™";
+                ViewBag.HappyType = "æ²’å¹¸ç¦å°çµ„åå–®";
                 ViewBag.MultiGroupIndex = "SingleMultiGroupView";
-                ViewBag.DisplayNavigation = "¤£Åã¥Üªª¾i¦^³ø¶µ¥Ø";
-                ViewBag.UserType = "¦æ¬F¦P¤u";
-                ViewBag.DedicationType = "©^ÄmºŞ²z";
-                ViewBag.IsAOfficeWorker = InMemoryContext.QpayManager.m_QpayModel.IsAOfficeWorker ? "¬Oªº" : "§_";
+                ViewBag.DisplayNavigation = "ä¸é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
+                ViewBag.UserType = "è¡Œæ”¿åŒå·¥";
+                ViewBag.DedicationType = "å¥‰ç»ç®¡ç†";
+                ViewBag.IsAOfficeWorker = InMemoryContext.QpayManager.m_QpayModel.IsAOfficeWorker ? "æ˜¯çš„" : "å¦";
             }
         }
 
         #endregion
 
-        #region ©^Äm¬d¸ß
+        #region å¥‰ç»æŸ¥è©¢
 
         /// <summary>
-        /// ½]®Ö¬d¸ß©^Äm°O¿ı
-        /// ¨Ì¾Ú¬d¸ß±ø¥ó¿z¿ï©^Äm¸ê®Æ
+        /// ç¨½æ ¸æŸ¥è©¢å¥‰ç»è¨˜éŒ„
+        /// ä¾æ“šæŸ¥è©¢æ¢ä»¶ç¯©é¸å¥‰ç»è³‡æ–™
         /// </summary>
-        /// <param name="QpayModel">¬d¸ß±ø¥ó(¤é´Á°Ï¶¡¡B©^ÄmªÌµ¥)</param>
+        /// <param name="QpayModel">æŸ¥è©¢æ¢ä»¶(æ—¥æœŸå€é–“ã€å¥‰ç»è€…ç­‰)</param>
         [HttpPost]
         public async Task<IActionResult> AuditQueryDedication(QpayModel QpayModel)
         {
@@ -126,19 +126,29 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ©^Äm¸ê®Æ¸ü¤J
+        #region å¥‰ç»è³‡æ–™è¼‰å…¥
 
         /// <summary>
-        /// ¸ü¤J©^Äm¶O²M³æ
-        /// ¥Î©ó DevExtreme DataGrid Åã¥Ü®½Äm¸ê®Æ
+        /// è¼‰å…¥å¥‰ç»è²»æ¸…å–®
+        /// ç”¨æ–¼ DevExtreme DataGrid é¡¯ç¤ºæç»è³‡æ–™
         /// </summary>
-        /// <param name="id">¬d¸ßID</param>
-        /// <param name="loadOptions">¸ü¤J¿ï¶µ(¤À­¶¡B±Æ§Ç¡B¿z¿ï)</param>
+        /// <param name="id">æŸ¥è©¢ID</param>
+        /// <param name="loadOptions">è¼‰å…¥é¸é …(åˆ†é ã€æ’åºã€ç¯©é¸)</param>
         [HttpGet]
         public object LoadDedicationFeeList(string id, DataSourceLoadOptions loadOptions)
         {
             try
             {
+                // ========================================
+                // âœ… ä½¿ç”¨åŸºåº•æ§åˆ¶å™¨çš„çµ±ä¸€é©—è­‰æ–¹æ³•
+                // ========================================
+                // æ•™å­¸èªªæ˜ï¼š
+                // åŸºåº•æ§åˆ¶å™¨å·²ç¶“æä¾›äº†å®Œæ•´çš„é©—è­‰æ–¹æ³•ï¼ŒåŒ…å«ï¼š
+                // - Session å’Œ ListManager å¯†ç¢¼ä¸€è‡´æ€§æª¢æŸ¥
+                // - LINE ID æ¢å¾©æ©Ÿåˆ¶
+                // - å®‰å…¨çš„æ—¥èªŒè¨˜éŒ„ï¼ˆéš±è—æ•æ„Ÿè³‡è¨Šï¼‰
+                EnsureCorrectUserData();
+
                 var tasks = InMemoryContext.QpayManager.m_QpayModel.DedicationFeeList;
                 return DataSourceLoader.Load(tasks, loadOptions);
             }
@@ -149,16 +159,26 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¸ü¤J¦P¦W³sµ¸¤H²M³æ
-        /// ·í¦³¦h¦ì¦P¦W³sµ¸¤H®É¡A¥Î©ó¿ï¾Ü¥¿½Tªº®½ÄmªÌ
+        /// è¼‰å…¥åŒåé€£çµ¡äººæ¸…å–®
+        /// ç•¶æœ‰å¤šä½åŒåé€£çµ¡äººæ™‚ï¼Œç”¨æ–¼é¸æ“‡æ­£ç¢ºçš„æç»è€…
         /// </summary>
-        /// <param name="id">¬d¸ß°Ñ¼Æ</param>
-        /// <param name="loadOptions">¸ü¤J¿ï¶µ</param>
+        /// <param name="id">æŸ¥è©¢åƒæ•¸</param>
+        /// <param name="loadOptions">è¼‰å…¥é¸é …</param>
         [HttpGet]
         public object LoadSameNameList(string id, DataSourceLoadOptions loadOptions)
         {
             try
             {
+                // ========================================
+                // âœ… ä½¿ç”¨åŸºåº•æ§åˆ¶å™¨çš„çµ±ä¸€é©—è­‰æ–¹æ³•
+                // ========================================
+                // æ•™å­¸èªªæ˜ï¼š
+                // åŸºåº•æ§åˆ¶å™¨å·²ç¶“æä¾›äº†å®Œæ•´çš„é©—è­‰æ–¹æ³•ï¼ŒåŒ…å«ï¼š
+                // - Session å’Œ ListManager å¯†ç¢¼ä¸€è‡´æ€§æª¢æŸ¥
+                // - LINE ID æ¢å¾©æ©Ÿåˆ¶
+                // - å®‰å…¨çš„æ—¥èªŒè¨˜éŒ„ï¼ˆéš±è—æ•æ„Ÿè³‡è¨Šï¼‰
+                EnsureCorrectUserData();
+
                 var sameNameList = InMemoryContext.QpayManager.m_QpayModel.SameNameList 
                     ?? new System.Collections.Generic.List<SameNameElement>();
                 
@@ -172,21 +192,21 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ½]®Ö¾Ş§@
+        #region ç¨½æ ¸æ“ä½œ
 
         /// <summary>
-        /// ®Ö­ã©^Äm°O¿ı
+        /// æ ¸å‡†å¥‰ç»è¨˜éŒ„
         /// </summary>
-        /// <param name="key">©^Äm°O¿ıID</param>
+        /// <param name="key">å¥‰ç»è¨˜éŒ„ID</param>
         [HttpPost]
         public async Task<IActionResult> ApproveDedication(string key)
         {
             try
             {
-                // ¹ê§@®Ö­ãÅŞ¿è
+                // å¯¦ä½œæ ¸å‡†é‚è¼¯
                 // await InMemoryContext.QpayManager.ApproveDedication(key);
 
-                return Json(new { status = "1", message = "©^Äm°O¿ı¤w®Ö­ã" });
+                return Json(new { status = "1", message = "å¥‰ç»è¨˜éŒ„å·²æ ¸å‡†" });
             }
             catch (Exception e)
             {
@@ -195,19 +215,19 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// °h¦^©^Äm°O¿ı
+        /// é€€å›å¥‰ç»è¨˜éŒ„
         /// </summary>
-        /// <param name="key">©^Äm°O¿ıID</param>
-        /// <param name="reason">°h¦^­ì¦]</param>
+        /// <param name="key">å¥‰ç»è¨˜éŒ„ID</param>
+        /// <param name="reason">é€€å›åŸå› </param>
         [HttpPost]
         public async Task<IActionResult> RejectDedication(string key, string reason)
         {
             try
             {
-                // ¹ê§@°h¦^ÅŞ¿è
+                // å¯¦ä½œé€€å›é‚è¼¯
                 // await InMemoryContext.QpayManager.RejectDedication(key, reason);
 
-                return Json(new { status = "1", message = "©^Äm°O¿ı¤w°h¦^" });
+                return Json(new { status = "1", message = "å¥‰ç»è¨˜éŒ„å·²é€€å›" });
             }
             catch (Exception e)
             {
@@ -216,12 +236,12 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¶×¥X©^Äm³øªí
-        /// ²£¥Í Excel ©Î PDF ®æ¦¡ªº©^Äm²Î­p³øªí
+        /// åŒ¯å‡ºå¥‰ç»å ±è¡¨
+        /// ç”¢ç”Ÿ Excel æˆ– PDF æ ¼å¼çš„å¥‰ç»çµ±è¨ˆå ±è¡¨
         /// </summary>
-        /// <param name="startDate">°_©l¤é´Á</param>
-        /// <param name="endDate">µ²§ô¤é´Á</param>
-        /// <param name="format">¶×¥X®æ¦¡ (Excel/PDF)</param>
+        /// <param name="startDate">èµ·å§‹æ—¥æœŸ</param>
+        /// <param name="endDate">çµæŸæ—¥æœŸ</param>
+        /// <param name="format">åŒ¯å‡ºæ ¼å¼ (Excel/PDF)</param>
         [HttpGet]
         public async Task<IActionResult> ExportDedicationReport(
             DateTime startDate,
@@ -230,15 +250,15 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ¹ê§@¶×¥XÅŞ¿è
+                // å¯¦ä½œåŒ¯å‡ºé‚è¼¯
                 // var reportData = await InMemoryContext.QpayManager
                 //     .GenerateDedicationReport(startDate, endDate);
 
-                // ¼È®Éªğ¦^¦¨¥\°T®§
+                // æš«æ™‚è¿”å›æˆåŠŸè¨Šæ¯
                 return Json(new
                 {
                     status = "1",
-                    message = $"¥¿¦b²£¥Í {startDate:yyyy/MM/dd} ¦Ü {endDate:yyyy/MM/dd} ªº©^Äm³øªí"
+                    message = $"æ­£åœ¨ç”¢ç”Ÿ {startDate:yyyy/MM/dd} è‡³ {endDate:yyyy/MM/dd} çš„å¥‰ç»å ±è¡¨"
                 });
             }
             catch (Exception e)
@@ -249,20 +269,20 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ²Î­p¸ê°T
+        #region çµ±è¨ˆè³‡è¨Š
 
         /// <summary>
-        /// ¨ú±o©^Äm²Î­pºK­n
-        /// ¥]§tÁ`ª÷ÃB¡Bµ§¼Æ¡B©^ÄmªÌ¤H¼Æµ¥
+        /// å–å¾—å¥‰ç»çµ±è¨ˆæ‘˜è¦
+        /// åŒ…å«ç¸½é‡‘é¡ã€ç­†æ•¸ã€å¥‰ç»è€…äººæ•¸ç­‰
         /// </summary>
-        /// <param name="startDate">°_©l¤é´Á</param>
-        /// <param name="endDate">µ²§ô¤é´Á</param>
+        /// <param name="startDate">èµ·å§‹æ—¥æœŸ</param>
+        /// <param name="endDate">çµæŸæ—¥æœŸ</param>
         [HttpGet]
         public async Task<IActionResult> GetDedicationSummary(DateTime startDate, DateTime endDate)
         {
             try
             {
-                // ¹ê§@²Î­pÅŞ¿è
+                // å¯¦ä½œçµ±è¨ˆé‚è¼¯
                 var summary = new
                 {
                     totalAmount = 0m,
@@ -282,21 +302,21 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¨ú±o©^ÄmÁÍ¶Õ¹Ï¸ê®Æ
-        /// ¥Î©ó¹ÏªíÅã¥Ü©^Ämª÷ÃBÁÍ¶Õ
+        /// å–å¾—å¥‰ç»è¶¨å‹¢åœ–è³‡æ–™
+        /// ç”¨æ–¼åœ–è¡¨é¡¯ç¤ºå¥‰ç»é‡‘é¡è¶¨å‹¢
         /// </summary>
-        /// <param name="startDate">°_©l¤é´Á</param>
-        /// <param name="endDate">µ²§ô¤é´Á</param>
-        /// <param name="groupBy">¤À²Õ¤è¦¡ (¤é/¶g/¤ë)</param>
+        /// <param name="startDate">èµ·å§‹æ—¥æœŸ</param>
+        /// <param name="endDate">çµæŸæ—¥æœŸ</param>
+        /// <param name="groupBy">åˆ†çµ„æ–¹å¼ (æ—¥/é€±/æœˆ)</param>
         [HttpGet]
         public async Task<IActionResult> GetDedicationTrend(
             DateTime startDate,
             DateTime endDate,
-            string groupBy = "¤ë")
+            string groupBy = "æœˆ")
         {
             try
             {
-                // ¹ê§@ÁÍ¶Õ¤ÀªRÅŞ¿è
+                // å¯¦ä½œè¶¨å‹¢åˆ†æé‚è¼¯
                 var trendData = new object[] { };
 
                 return Json(new { status = "1", data = trendData });
@@ -308,7 +328,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¥H contact Id ¨ú±o¸ÓÁpµ¸¤Hªº©^Äm²M³æ (AJAX)
+        /// ä»¥ contact Id å–å¾—è©²è¯çµ¡äººçš„å¥‰ç»æ¸…å–® (AJAX)
         /// </summary>
         /// <param name="id">contact Id (GUID)</param>
         [HttpGet]
@@ -325,7 +345,7 @@ namespace ChurchReport.Controllers
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"GetFeesByContactId ¿ù»~: {e.Message}");
+                System.Diagnostics.Debug.WriteLine($"GetFeesByContactId éŒ¯èª¤: {e.Message}");
                 return Json(new { status = "0", message = e.Message, DedicationFeeList = new object[] { } });
             }
         }
