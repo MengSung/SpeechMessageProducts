@@ -145,32 +145,17 @@ namespace ChurchReport.Controllers
                 // 不需要在每個方法中重複寫驗證邏輯。
                 // 基底控制器已經提供了完整的驗證方法。
                 EnsureCorrectUserData();
-
-                var selectedDate = InMemoryContext.ListManager.m_SelectDate;
-                var account = InMemoryContext.ListManager.m_Account ?? "guest";
-                var cacheKey = $"{CACHE_KEY_MULTI_GRID}{selectedDate:yyyyMMdd}_{account}";
                 
-                if (_memoryCache != null && _memoryCache.TryGetValue(cacheKey, out object cachedData) && cachedData is List<WeeklyReportRecord> cachedRecords)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[AssignSmallGroupGet] 從快取讀取: {cacheKey}");
-                    return DataSourceLoader.Load(cachedRecords, loadOptions);
-                }
-                
-                System.Diagnostics.Debug.WriteLine($"[AssignSmallGroupGet] 快取未命中: {cacheKey}");
-
+                // 確保多組資料已載入
                 if (InMemoryContext.ListManager.m_MultiGroupList == null ||
                     InMemoryContext.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData == null)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[AssignSmallGroupGet] 資料為空，返回空列表");
                     return DataSourceLoader.Load(new List<WeeklyReportRecord>(), loadOptions);
                 }
 
                 var weeklyReportRecords = InMemoryContext.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData;
-
-                if (weeklyReportRecords != null && weeklyReportRecords.Any())
-                {
-                    _memoryCache?.Set(cacheKey, weeklyReportRecords, CreateCacheOptions());
-                    System.Diagnostics.Debug.WriteLine($"[AssignSmallGroupGet] 已快取 {weeklyReportRecords.Count} 筆");
-                }
+                System.Diagnostics.Debug.WriteLine($"[AssignSmallGroupGet] 返回 {weeklyReportRecords?.Count ?? 0} 筆資料");
 
                 return DataSourceLoader.Load(weeklyReportRecords, loadOptions);
             }

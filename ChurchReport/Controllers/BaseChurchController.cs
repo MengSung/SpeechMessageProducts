@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Xrm.Sdk;
 using System;
+using System.Threading;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -562,7 +563,7 @@ namespace ChurchReport.Controllers
                         InMemoryContext.ListManager.m_SelectDate != default
                             ? InMemoryContext.ListManager.m_SelectDate
                             : DateTime.Now);
-                    
+
                     // 處理完畢，返回
                     return;
                 }

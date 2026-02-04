@@ -211,7 +211,7 @@ namespace ChurchReport.Controllers
                 // - Session 和 ListManager 密碼一致性檢查
                 // - LINE ID 恢復機制
                 // - 安全的日誌記錄（隱藏敏感資訊）
-                EnsureCorrectUserData();
+                //EnsureCorrectUserData();
 
                 // 準備約會清單資料
                 InMemoryContext.AppointmentsListManager.SetupAppointmentList();
