@@ -1255,7 +1255,7 @@ namespace ChurchReport.WebServiceConnector
             };
 
         }
-        // 神住611靈糧堂
+        // 好牧人
         // 委身類型客製化
         // ✅ 改為使用 OptionSetMetadataService 動態查詢
         private String ConvertIndexToIdentity(int Identity)

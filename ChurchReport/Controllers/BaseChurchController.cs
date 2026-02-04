@@ -350,7 +350,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var lineProcessor = new LineMessagingProcessorClass();
-                lineProcessor.SendMessage(LINE_ERROR_RECEIVER_ID, $"¯«¦í611ÆFÂ³°ó: ¿ù»~ => {errorMessage}");
+                lineProcessor.SendMessage(LINE_ERROR_RECEIVER_ID, $"¦nªª¤H: ¿ù»~ => {errorMessage}");
             }
             catch (Exception ex)
             {

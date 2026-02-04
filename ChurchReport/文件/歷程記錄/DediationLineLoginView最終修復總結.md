@@ -139,7 +139,7 @@ URL: https://localhost:479/Dedication/DediationLineLoginView/test
 ```
 URL: https://jesusback.speechmessage.com.tw:479/Dedication/DediationLineLoginView/2007156647-OYnN8BKy
 預期: 
-1. 顯示「神住611靈糧堂」標題
+1. 顯示「好牧人」標題
 2. 顯示輪播圖片
 3. LIFF 初始化成功
 4. 取得使用者資料
