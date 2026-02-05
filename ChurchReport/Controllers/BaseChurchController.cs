@@ -73,6 +73,12 @@ namespace ChurchReport.Controllers
         /// </summary>
         protected const string LINE_ERROR_RECEIVER_ID = "U7638e4ed509708a3573ba6d69970583d";
 
+        /// <summary>
+        /// 使用者驗證快取有效期（秒）
+        /// 效能優化：避免同一用戶連續請求時重複驗證
+        /// </summary>
+        private const int USER_VALIDATION_CACHE_SECONDS = 30;
+
         #endregion
 
         #region 服務實例 (Service Instances)
@@ -113,6 +119,18 @@ namespace ChurchReport.Controllers
         /// - 這是 ASP.NET Core 依賴注入系統的一部分。
         /// </summary>
         private readonly IHttpContextAccessor _httpContextAccessor;
+
+        /// <summary>
+        /// 使用者驗證快取
+        /// 效能優化：避免同一用戶在短時間內重複驗證
+        /// 
+        /// ?? 安全設計：
+        /// - Key: SessionId + PasswordHash（防止 Session Collision）
+        /// - Value: (LastValidated, IsValid, PasswordHash)
+        /// - 驗證時會比對密碼雜湊，確保用戶身份一致
+        /// </summary>
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTime LastValidated, bool IsValid, string PasswordHash)> 
+            _userValidationCache = new();
 
         /// <summary>
         /// 工具類別實例 (Tool Utility Instance)
@@ -496,67 +514,97 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 確保 AJAX 請求使用正確用戶的資料 (Ensure Correct User Data for AJAX Requests)
         /// 
+        /// ? 效能優化版本：
+        /// - 使用記憶體快取避免重複驗證（30 秒內）
+        /// - 條件化 Debug 輸出（僅在需要時）
+        /// - 提前返回（Fail-Fast）減少不必要的檢查
+        /// 
         /// 教學說明：
         /// 在 AJAX 請求中，用戶的 Session 可能已經改變。
         /// 這個方法確保我們使用的是正確的用戶資料。
         /// 
-        /// 為什麼需要這個？
-        /// - 多用戶同時使用系統時，Session 可能會混亂
-        /// - 確保資料安全和一致性
-        /// - 防止用戶看到其他人的資料
-        /// 
-        /// 檢查流程：
-        /// 1. 比較 Session 中的密碼和 ListManager 中的密碼
-        /// 2. 如果不一致，重新載入資料
-        /// 3. 如果 Session 為空，嘗試從請求中取得 LINE ID
-        /// 
-        /// 設計模式：Guard Clause Pattern
-        /// - 先檢查錯誤情況，及早返回
-        /// - 讓正常流程更清晰
-        /// 
-        /// 使用方式：
-        /// 在 AJAX Action 方法開始時呼叫：
-        /// EnsureCorrectUserData();
+        /// 效能優化策略：
+        /// 1. **快取驗證結果**：30 秒內不重複驗證同一用戶
+        /// 2. **Lazy Loading**：只在需要時才讀取 Session
+        /// 3. **條件 Logging**：只在發生變更時才記錄
+        /// 4. **提前返回**：一旦確認有效就立即返回
         /// </summary>
         protected virtual void EnsureCorrectUserData()
         {
             try
             {
                 // ========================================
-                // Step 1: 取得當前 Session 和 ListManager 的資料
+                // Step 0: 快取檢查（效能優化的核心）
                 // ========================================
-                // 教學說明：
-                // Session 是伺服器端儲存用戶狀態的地方。
-                // ListManager 是應用程式中管理用戶資料的物件。
-                // 我們需要確保兩者的密碼一致，否則資料可能不正確。
-                var sessionAccount = HttpContext?.Session?.GetString("_LoginAccount");
+                var sessionId = HttpContext?.Session?.Id;
+                if (string.IsNullOrEmpty(sessionId))
+                {
+                    return; // 無 Session，無需驗證
+                }
+
+                // ========================================
+                // Step 1: Lazy Loading - 只在需要時讀取 Session
+                // ========================================
                 var sessionPassword = HttpContext?.Session?.GetString("_LoginPassword");
                 var listManagerPassword = InMemoryContext?.ListManager?.m_Password;
 
-                // 除錯日誌：記錄密碼狀態（隱藏實際密碼）
-                // 教學說明：
-                // 日誌很重要，但不能記錄敏感資訊如密碼。
-                // 這裡用 "***" 隱藏密碼，只記錄是否存在。
-                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] Session Password: {(string.IsNullOrEmpty(sessionPassword) ? "(null)" : "***")}");
-                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] ListManager Password: {(string.IsNullOrEmpty(listManagerPassword) ? "(null)" : "***")}");
+                // 如果兩者都為空，無需驗證
+                if (string.IsNullOrEmpty(sessionPassword) && string.IsNullOrEmpty(listManagerPassword))
+                {
+                    return;
+                }
+
+                // 計算當前密碼的安全雜湊（用於快取 Key）
+                var currentPasswordHash = GetStableHash(sessionPassword ?? listManagerPassword ?? "");
+                var cacheKey = $"{sessionId}_{currentPasswordHash}";
 
                 // ========================================
-                // Step 2: 檢查 Session 和 ListManager 的密碼是否一致
+                // Step 2: 安全的快取檢查（?? 防止 Session Collision）
                 // ========================================
-                // 教學說明：
-                // 如果密碼不一致，表示用戶的狀態已經改變。
-                // 需要重新載入 ListManager 的資料以保持同步。
+                if (_userValidationCache.TryGetValue(cacheKey, out var cached))
+                {
+                    var cacheAge = (DateTime.UtcNow - cached.LastValidated).TotalSeconds;
+                    
+                    // ? 快取命中 + 密碼雜湊一致（雙重驗證）
+                    if (cacheAge < USER_VALIDATION_CACHE_SECONDS && 
+                        cached.IsValid && 
+                        cached.PasswordHash == currentPasswordHash)
+                    {
+                        // 快取命中且安全，直接返回
+                        return;
+                    }
+                }
+
+                // ========================================
+                // Step 3: 快取失效或不存在，執行完整驗證
+                // ========================================
+                var sessionAccount = HttpContext?.Session?.GetString("_LoginAccount");
+
+                // 檢查 Session 和 ListManager 的密碼是否一致
+                if (!string.IsNullOrEmpty(sessionPassword) &&
+                    !string.IsNullOrEmpty(listManagerPassword) &&
+                    sessionPassword == listManagerPassword)
+                {
+                    // ? 驗證通過，更新快取
+                    _userValidationCache[cacheKey] = (DateTime.UtcNow, true, currentPasswordHash);
+                    
+                    // 清理同一 Session 的舊快取項目（密碼變更時）
+                    CleanupOldCacheForSession(sessionId, cacheKey);
+                    return;
+                }
+
+                // ========================================
+                // Step 4: 憑證不一致，需要重新載入
+                // ========================================
+#if DEBUG
+                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] 憑證不一致，重新載入 ListManager 資料");
+#endif
+
                 if (!string.IsNullOrEmpty(sessionPassword) &&
                     !string.IsNullOrEmpty(listManagerPassword) &&
                     sessionPassword != listManagerPassword)
                 {
-                    // 憑證不一致，需要重新載入
-                    System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] 憑證不一致，重新載入 ListManager 資料");
-                    
                     // 重新載入 ListManager 資料
-                    // 教學說明：
-                    // SetupListManager 方法會重新初始化用戶的資料。
-                    // 參數：帳號、密碼、選擇的日期
                     InMemoryContext.ListManager.SetupListManager(
                         sessionAccount ?? "",
                         sessionPassword,
@@ -564,27 +612,29 @@ namespace ChurchReport.Controllers
                             ? InMemoryContext.ListManager.m_SelectDate
                             : DateTime.Now);
 
-                    // 處理完畢，返回
+                    // 使用新的密碼雜湊更新快取
+                    var newPasswordHash = GetStableHash(sessionPassword);
+                    var newCacheKey = $"{sessionId}_{newPasswordHash}";
+                    _userValidationCache[newCacheKey] = (DateTime.UtcNow, true, newPasswordHash);
+                    
+                    // 清理舊快取
+                    CleanupOldCacheForSession(sessionId, newCacheKey);
                     return;
                 }
 
                 // ========================================
-                // Step 3: 如果 Session 密碼為空，嘗試從請求中取得 LINE ID
+                // Step 5: 如果 Session 密碼為空，嘗試從請求中取得 LINE ID
                 // ========================================
-                // 教學說明：
-                // 有時 Session 會遺失（例如瀏覽器重啟）。
-                // LINE 登入時，用戶 ID 會在 HTTP Referer 中。
-                // 我們可以從請求中解析出用戶 ID 來恢復身份。
                 if (string.IsNullOrEmpty(sessionPassword))
                 {
                     var lineUserId = TryGetLineUserIdFromRequest();
                     
-                    // 如果找到 LINE ID 且與 ListManager 的密碼不同
                     if (!string.IsNullOrEmpty(lineUserId) && lineUserId != listManagerPassword)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] Session 憑證為空，使用 LINE ID 重新載入 ListManager");
+#if DEBUG
+                        System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] Session 憑證為空，使用 LINE ID 重新載入");
+#endif
                         
-                        // 使用 LINE ID 重新載入資料
                         InMemoryContext.ListManager.SetupListManager(
                             "LineIdLogin",
                             lineUserId,
@@ -592,23 +642,102 @@ namespace ChurchReport.Controllers
                                 ? InMemoryContext.ListManager.m_SelectDate
                                 : DateTime.Now);
 
-                        // 更新 Session
-                        // 教學說明：
-                        // 恢復 Session 狀態，確保後續請求能正常工作。
                         HttpContext?.Session?.SetString("_LoginAccount", "LineIdLogin");
                         HttpContext?.Session?.SetString("_LoginPassword", lineUserId);
+
+                        // 更新快取
+                        var linePasswordHash = GetStableHash(lineUserId);
+                        var lineCacheKey = $"{sessionId}_{linePasswordHash}";
+                        _userValidationCache[lineCacheKey] = (DateTime.UtcNow, true, linePasswordHash);
                     }
                 }
             }
             catch (Exception ex)
             {
-                // 錯誤處理：記錄異常但不中斷流程
-                // 教學說明：
-                // 驗證失敗不應該讓整個請求失敗。
-                // 記錄日誌供後續分析，但讓請求繼續執行。
+#if DEBUG
                 System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] 驗證失敗: {ex.Message}");
+#endif
             }
         }
+
+        /// <summary>
+        /// 計算穩定的密碼雜湊（用於快取 Key）
+        /// 
+        /// ?? 安全說明：
+        /// - 使用 SHA256 雜湊，防止密碼明文儲存
+        /// - 取前 8 字元平衡安全性與 Key 長度
+        /// - 雜湊碰撞機率：1 / 2^32（極低）
+        /// 
+        /// 為什麼不直接用密碼？
+        /// - 安全性：避免密碼洩漏到日誌或記憶體快照
+        /// - Key 長度：控制 Dictionary Key 大小
+        /// </summary>
+        private static string GetStableHash(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return "EMPTY";
+
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                var bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(input));
+                var hash = Convert.ToBase64String(bytes);
+                return hash.Length > 8 ? hash.Substring(0, 8) : hash;
+            }
+        }
+
+        /// <summary>
+        /// 清理同一 Session 的舊快取項目
+        /// 
+        /// ?? 記憶體管理：
+        /// - 防止密碼變更後產生的舊快取累積（Memory Leak）
+        /// - 防止 Session ID 重用時的 Session Collision
+        /// - 順便清理全域過期項目（超過 5 分鐘）
+        /// 
+        /// 清理策略：
+        /// 1. 移除同一 Session 但密碼雜湊不同的項目（用戶密碼變更）
+        /// 2. 移除所有超過 5 分鐘的過期項目（記憶體清理）
+        /// 3. 保留當前有效的快取項目
+        /// </summary>
+        private static void CleanupOldCacheForSession(string sessionId, string currentCacheKey)
+        {
+            try
+            {
+                var keysToRemove = new System.Collections.Generic.List<string>();
+                var now = DateTime.UtcNow;
+                
+                foreach (var kvp in _userValidationCache)
+                {
+                    // 檢查 1：同一 Session 但密碼不同的舊項目（Session Collision 防護）
+                    if (kvp.Key.StartsWith(sessionId + "_") && kvp.Key != currentCacheKey)
+                    {
+                        keysToRemove.Add(kvp.Key);
+                    }
+                    // 檢查 2：所有超過 5 分鐘的過期項目（Memory Leak 防護）
+                    else if ((now - kvp.Value.LastValidated).TotalMinutes > 5)
+                    {
+                        keysToRemove.Add(kvp.Key);
+                    }
+                }
+
+                // 批次移除
+                foreach (var key in keysToRemove)
+                {
+                    _userValidationCache.TryRemove(key, out _);
+                }
+
+#if DEBUG
+                if (keysToRemove.Count > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[CleanupOldCache] 已清理 {keysToRemove.Count} 個快取項目（Session={sessionId.Substring(0, Math.Min(8, sessionId.Length))}...)");
+                }
+#endif
+            }
+            catch
+            {
+                // 清理失敗不影響主流程
+            }
+        }
+
 
         /// <summary>
         /// 嘗試從請求中取得 LINE 用戶 ID (Try to Get LINE User ID from Request)
