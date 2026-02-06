@@ -145,6 +145,8 @@ namespace ChurchReport.Controllers
                 // - Session 和 ListManager 密碼一致性檢查
                 // - LINE ID 恢復機制
                 // - 安全的日誌記錄（隱藏敏感資訊）
+                // 信用卡的 CCTOKEN 非常重要敏感，絕對不能使用CACHE
+
                 EnsureCorrectUserData();
 
                 // ✅ 檢查金流提供商 - 高鉅金流不需要載入信用卡列表
