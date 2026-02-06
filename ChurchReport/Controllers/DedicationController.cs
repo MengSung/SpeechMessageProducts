@@ -109,6 +109,7 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="QpayModel">奉獻資料模型</param>
         [HttpPost]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> SaveQPayDedication(QpayModel QpayModel)
         {
             try
@@ -131,6 +132,7 @@ namespace ChurchReport.Controllers
         /// <param name="id">使用者ID</param>
         /// <param name="loadOptions">載入選項</param>
         [HttpGet]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public object LoadCreditCardList(string id, DataSourceLoadOptions loadOptions)
         {
             try
@@ -173,6 +175,7 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="key">信用卡 Token</param>
         [HttpDelete]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public void DeleteCreditCard(string key)
         {
             try
