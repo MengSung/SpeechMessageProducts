@@ -73,7 +73,7 @@
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveNewPerson" asp-controller="NewPerson" method="post" enctype="multipart/form-data">
     <!-- ========================================
-         ? 大頭照上傳區域
+         大頭照上傳區域
          ======================================== -->
     <div class="profile-image-container">
         <div class="profile-image-wrapper">
@@ -447,11 +447,15 @@
     function uploadNewPersonImage() {
         var input = document.getElementById('imageFileInput');
         if (!input || !input.files || input.files.length === 0) {
+            console.log('[uploadNewPersonImage] 沒有選擇檔案');
             return;
         }
 
         var formData = new FormData();
         formData.append('imageFile', input.files[0]);
+
+        console.log('[uploadNewPersonImage] 開始上傳新人照片...');
+        getLoadPanelInstance().show();
 
         $.ajax({
             url: '@Url.Action("UploadNewPersonImage", "NewPerson")',
@@ -460,16 +464,24 @@
             processData: false,
             contentType: false,
             success: function(response) {
+                console.log('[uploadNewPersonImage] 上傳成功:', response);
+                getLoadPanelInstance().hide();
+
                 if (response && response.success) {
                     showImageUploadToast(response.message, 'success');
+                    // ✅ 上傳成功後重置圖片預覽為預設圖片
+                    document.getElementById('profileImage').src = '~/assets/images/ChurchLogo.png';
                 } else {
                     showImageUploadToast(response && response.message ? response.message : '上傳失敗', 'error');
                 }
 
                 input.value = '';
             },
-            error: function() {
+            error: function(xhr, status, error) {
+                console.error('[uploadNewPersonImage] 上傳失敗:', error);
+                getLoadPanelInstance().hide();
                 showImageUploadToast('上傳失敗，請稍後再試', 'error');
+                input.value = '';
             }
         });
     }

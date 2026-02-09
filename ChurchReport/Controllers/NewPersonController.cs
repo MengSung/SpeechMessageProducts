@@ -12,6 +12,11 @@ using System.IO;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
+// ✅ 新增 SixLabors.ImageSharp，用於處理 EXIF Orientation（修正直拍照片旋轉問題）
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 
 namespace ChurchReport.Controllers
 {
@@ -326,7 +331,7 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="aPersonFormViewModel">新人表單 ViewModel</param>
         [HttpPost]
-        public IActionResult SaveNewPerson(PersonFormViewModel aPersonFormViewModel, IFormFile imageFile)
+        public async Task<IActionResult> SaveNewPerson(PersonFormViewModel aPersonFormViewModel, IFormFile imageFile)
         {
             try
             {
@@ -345,7 +350,7 @@ namespace ChurchReport.Controllers
                     HandleSuccessfulNewPersonCreation(aPersonFormViewModel);
 
                     // 嘗試上傳新人照片（若有選擇檔案）
-                    TryUploadNewPersonImage(imageFile);
+                    await TryUploadNewPersonImageAsync(imageFile);
 
                     // 重設表單
                     ResetNewPersonForm();
@@ -371,11 +376,11 @@ namespace ChurchReport.Controllers
         /// </summary>
         [HttpPost]
         [Route("/NewPerson/UploadNewPersonImage")]
-        public IActionResult UploadNewPersonImage(IFormFile imageFile)
+        public async Task<IActionResult> UploadNewPersonImage(IFormFile imageFile)
         {
             try
             {
-                TryUploadNewPersonImage(imageFile);
+                await TryUploadNewPersonImageAsync(imageFile);
 
                 return Json(new
                 {
@@ -395,8 +400,9 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 上傳新人照片到新人記錄
+        /// ✅ 支援 EXIF Orientation 自動修正（解決直拍照片旋轉問題）
         /// </summary>
-        private void TryUploadNewPersonImage(IFormFile imageFile)
+        private async Task TryUploadNewPersonImageAsync(IFormFile imageFile)
         {
             if (imageFile == null || imageFile.Length == 0)
             {
@@ -431,11 +437,58 @@ namespace ChurchReport.Controllers
             IOrganizationService service = null;
             try
             {
+                // ========================================
+                // ✅ 修正 EXIF Orientation（解決直拍照片旋轉問題）
+                // ========================================
                 byte[] imageBytes;
-                using (var memoryStream = new MemoryStream())
+                using (var inputStream = imageFile.OpenReadStream())
+                using (var outputStream = new MemoryStream())
                 {
-                    imageFile.CopyTo(memoryStream);
-                    imageBytes = memoryStream.ToArray();
+                    try
+                    {
+                        // 使用 ImageSharp 載入並修正圖片方向
+                        using (var image = await Image.LoadAsync(inputStream))
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] 📐 原始圖片尺寸: {image.Width}x{image.Height}");
+
+                            // 檢查 EXIF Orientation
+                            var exifProfile = image.Metadata.ExifProfile;
+                            if (exifProfile != null && exifProfile.TryGetValue(ExifTag.Orientation, out IExifValue<ushort> orientationValue))
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] 📱 EXIF Orientation: {orientationValue.Value}");
+                            }
+
+                            // ✅ 自動修正旋轉（根據 EXIF 資訊）
+                            image.Mutate(x => x.AutoOrient());
+
+                            // 移除 EXIF Orientation 標記（避免重複旋轉）
+                            if (image.Metadata.ExifProfile != null)
+                            {
+                                image.Metadata.ExifProfile.RemoveValue(ExifTag.Orientation);
+                            }
+
+                            System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] ✅ EXIF 方向已修正");
+
+                            // 儲存為高品質 JPEG
+                            var encoder = new JpegEncoder { Quality = 90 };
+                            await image.SaveAsync(outputStream, encoder);
+                        }
+
+                        imageBytes = outputStream.ToArray();
+                        System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] ✅ 圖片已處理: {imageBytes.Length} bytes");
+                    }
+                    catch (Exception imageProcessEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[SaveNewPerson] ⚠️ ImageSharp 處理失敗，使用原始檔案: {imageProcessEx.Message}");
+                        
+                        // 降級方案：如果 ImageSharp 處理失敗，使用原始檔案
+                        inputStream.Position = 0;
+                        using (var fallbackStream = new MemoryStream())
+                        {
+                            imageFile.CopyTo(fallbackStream);
+                            imageBytes = fallbackStream.ToArray();
+                        }
+                    }
                 }
 
                 service = GetConnection();
