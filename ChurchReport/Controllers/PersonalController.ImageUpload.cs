@@ -10,6 +10,11 @@ using System.IO;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
+// ? 新增 SixLabors.ImageSharp，用於處理 EXIF Orientation
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 
 namespace ChurchReport.Controllers
 {
@@ -103,16 +108,67 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? 使用者: {fullName} (ID: {contactId})");
 
                 // ========================================
-                // 步驟 3: 讀取圖片為 byte[]
+                // 步驟 3: 讀取並修正圖片 EXIF Orientation（解決直拍旋轉問題）
                 // ========================================
                 byte[] imageBytes;
-                using (var memoryStream = new MemoryStream())
+                using (var inputStream = imageFile.OpenReadStream())
+                using (var outputStream = new MemoryStream())
                 {
-                    await imageFile.CopyToAsync(memoryStream);
-                    imageBytes = memoryStream.ToArray();
+                    try
+                    {
+                        // 使用 ImageSharp 載入圖片
+                        using (var image = await Image.LoadAsync(inputStream))
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ?? 原始圖片尺寸: {image.Width}x{image.Height}");
+
+                            // 檢查 EXIF Orientation（使用 ImageSharp 3.x API）
+                            var exifProfile = image.Metadata.ExifProfile;
+                            if (exifProfile != null && exifProfile.TryGetValue(ExifTag.Orientation, out IExifValue<ushort> orientationValue))
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ?? EXIF Orientation: {orientationValue.Value}");
+                            }
+                            else
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ?? 無 EXIF Orientation 資訊");
+                            }
+
+                            // ? 自動修正旋轉（根據 EXIF 資訊）
+                            image.Mutate(x => x.AutoOrient());
+
+                            // 移除 EXIF Orientation 標記（避免重複旋轉）
+                            if (image.Metadata.ExifProfile != null)
+                            {
+                                image.Metadata.ExifProfile.RemoveValue(ExifTag.Orientation);
+                            }
+
+                            System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? EXIF 方向已修正，圖片已正規化");
+
+                            // 儲存為 JPEG（高品質）
+                            var encoder = new JpegEncoder
+                            {
+                                Quality = 90 // 90% 品質（平衡檔案大小與畫質）
+                            };
+                            await image.SaveAsync(outputStream, encoder);
+                        }
+
+                        imageBytes = outputStream.ToArray();
+                        System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? 圖片已處理並壓縮: {imageBytes.Length} bytes");
+                    }
+                    catch (Exception imageProcessEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ?? ImageSharp 處理失敗，使用原始檔案: {imageProcessEx.Message}");
+                        
+                        // 降級方案：如果 ImageSharp 處理失敗，使用原始檔案
+                        inputStream.Position = 0;
+                        using (var fallbackStream = new MemoryStream())
+                        {
+                            await inputStream.CopyToAsync(fallbackStream);
+                            imageBytes = fallbackStream.ToArray();
+                        }
+                    }
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? 圖片已讀取: {imageBytes.Length} bytes");
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? 最終圖片大小: {imageBytes.Length} bytes");
 
                 // ========================================
                 // 步驟 4: 更新 CRM Contact 的 EntityImage
