@@ -503,6 +503,90 @@ namespace ChurchReport.Controllers
 
         #endregion
 
+        #region 資格設定
+
+        /// <summary>
+        /// 顯示資格設定頁面（信仰狀態、性別、生日、身分證字號）
+        /// 路由: /Home/QualificationView/{lineIdLoginViewParameter}
+        /// </summary>
+        /// <param name="lineIdLoginViewParameter">LINE 使用者識別碼或編碼的 URL 參數</param>
+        [HttpGet]
+        [Route("/Home/QualificationView/{lineIdLoginViewParameter}")]
+        public IActionResult QualificationView(string lineIdLoginViewParameter)
+        {
+            try
+            {
+                var viewModel = InMemoryContext.LineBindingViewModel;
+
+                // 使用參數查詢聯絡人資訊
+                if (!string.IsNullOrEmpty(lineIdLoginViewParameter))
+                {
+                    viewModel.EncodeUrl = lineIdLoginViewParameter;
+
+                    // CS0206: 屬性不能直接傳 ref，需要使用暫存區域變數
+                    string faithStatus  = viewModel.FaithStatus  ?? string.Empty;
+                    string genderCode   = viewModel.GenderCode   ?? string.Empty;
+                    DateTime birthDate  = viewModel.BirthDate;
+                    string personalId   = viewModel.PersonalId   ?? string.Empty;
+
+                    viewModel.GetContactInfomation(
+                        lineIdLoginViewParameter,
+                        ref faithStatus,
+                        ref genderCode,
+                        ref birthDate,
+                        ref personalId
+                    );
+
+                    viewModel.FaithStatus  = faithStatus;
+                    viewModel.GenderCode   = genderCode;
+                    viewModel.BirthDate    = birthDate;
+                    viewModel.PersonalId   = personalId;
+                }
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[HomeController.QualificationView] 錯誤: {ex.Message}");
+                return View(InMemoryContext.LineBindingViewModel);
+            }
+        }
+
+        /// <summary>
+        /// 儲存資格設定資料（信仰狀態、性別、生日、身分證字號）
+        /// </summary>
+        /// <param name="aLineBindingViewModel">表單資料</param>
+        [HttpPost]
+        [Route("/Home/SaveQualificationData")]
+        public IActionResult SaveQualificationData(LineBindingViewModel aLineBindingViewModel)
+        {
+            try
+            {
+                var viewModel = InMemoryContext.LineBindingViewModel;
+
+                viewModel.FaithStatus   = aLineBindingViewModel.FaithStatus;
+                viewModel.GenderCode    = aLineBindingViewModel.GenderCode;
+                viewModel.BirthDate     = aLineBindingViewModel.BirthDate;
+                viewModel.PersonalId    = aLineBindingViewModel.PersonalId;
+
+                viewModel.UpdateContactInfomation(
+                    viewModel.FaithStatus,
+                    viewModel.GenderCode,
+                    viewModel.BirthDate,
+                    viewModel.PersonalId
+                );
+
+                return Json(new { status = "1", message = "? 資料儲存成功！" });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[HomeController.SaveQualificationData] 錯誤: {ex.Message}");
+                return Json(new { status = "0", message = $"? 儲存失敗：{ex.Message}" });
+            }
+        }
+
+        #endregion
+
         #region QPay 登入
 
         /// <summary>

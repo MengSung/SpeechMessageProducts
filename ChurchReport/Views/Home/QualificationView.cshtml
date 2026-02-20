@@ -1,13 +1,64 @@
-﻿<!DOCTYPE html>
+﻿@*
+================================================================================
+📄 檔案名稱：QualificationView.cshtml
+📁 所在位置：Views/Home/QualificationView.cshtml
+🎯 功能說明：LINE LIFF 資格設定頁面
 
+本頁面是透過 LINE App 開啟的資格設定畫面。
+使用者可以在這裡更新以下個人資料：
+  ✅ 信仰狀態（基督徒、慕道友、未信主...）
+  ✅ 性別
+  ✅ 生日
+  ✅ 身分證字號
+
+運作流程：
+  1. 用戶從 LINE App 點擊連結，開啟此頁面 (LIFF)
+  2. 頁面自動向 LINE 伺服器確認用戶身分
+  3. 取得 LINE 用戶的 userId，查詢已有的個人資料
+  4. 用戶修改後點擊「儲存」，資料寫入 Dynamics 365 CRM
+
+📚 初學者說明：
+  - LIFF = LINE Front-end Framework，讓網頁可以在 LINE App 內開啟
+  - DevExtreme = 企業級 UI 元件庫（下拉選單、日期選擇器等）
+  - AJAX = 不重新整理頁面，偷偷與伺服器交換資料的技術
+  - CRM = Customer Relationship Management，管理聯絡人資料的系統
+================================================================================
+*@
+
+@* ─────────────────────────────────────────────────────────────────────────────
+   📌 Layout = null
+   說明：這個頁面「不使用」共用的版型 (_Layout.cshtml)
+   原因：這是一個獨立的 LINE LIFF 頁面，有自己完整的 HTML 結構
+   ───────────────────────────────────────────────────────────────────────────── *@
 @{
     Layout = null;
 }
-<html>
 
+@* ─────────────────────────────────────────────────────────────────────────────
+   📌 @model 宣告
+   說明：指定這個頁面使用的資料模型 (ViewModel)
+   LineBindingViewModel 包含：
+     - FaithStatus  → 信仰狀態
+     - GenderCode   → 性別
+     - BirthDate    → 生日
+     - PersonalId   → 身分證字號
+     - Images       → 上方輪播圖片清單
+     - EncodeUrl    → 用來識別此次操作的識別碼
+   ───────────────────────────────────────────────────────────────────────────── *@
 @model ChurchReport.ViewModel.LineBindingViewModel
 
+<!DOCTYPE html>
+<html>
+
 <head>
+    @* ──────────────────────────────────────────────────────────────────────────
+       📌 Meta 標籤區塊
+       說明：告訴瀏覽器如何正確顯示這個頁面
+
+       viewport        → 讓頁面在手機上自動縮放到適合的寬度（行動化關鍵！）
+       charset         → 使用 UTF-8 編碼，確保中文字不會變成亂碼
+       X-UA-Compatible → 讓 Internet Explorer 使用最新的渲染模式
+       ────────────────────────────────────────────────────────────────────────── *@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -15,21 +66,61 @@
     <meta name="author" content="">
 
     <title>好牧人</title>
+
+    @* ──────────────────────────────────────────────────────────────────────────
+       📌 網頁圖示 (Favicon)
+       說明：瀏覽器分頁上顯示的小圖示
+       ────────────────────────────────────────────────────────────────────────── *@
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
 
+    @* ──────────────────────────────────────────────────────────────────────────
+       📌 CSS 樣式表引用區塊
+       說明：引用讓頁面好看的樣式檔案
+
+       bootstrap.css  → Bootstrap 4 框架，提供基礎排版和按鈕樣式
+       site.css       → 本專案自訂的全站樣式
+       dx.common.css  → DevExtreme 元件的共用樣式
+       dx.light.css   → DevExtreme 元件的「亮色」主題樣式
+       ────────────────────────────────────────────────────────────────────────── *@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
     <link href="~/css/devextreme/dx.light.css" rel="stylesheet" />
 
+    @* ──────────────────────────────────────────────────────────────────────────
+       📌 JavaScript 函式庫引用區塊（基礎）
+       說明：引用各種功能性的 JavaScript 程式庫
+
+       jquery.js    → jQuery，讓操作 HTML 元素更簡單（例如 $("#id")）
+       bootstrap.js → Bootstrap 的 JavaScript 元件（彈窗、選單等）
+       ────────────────────────────────────────────────────────────────────────── *@
     <script src="~/lib/jquery/dist/jquery.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
 
+    @* ──────────────────────────────────────────────────────────────────────────
+       📌 CLDR（Common Locale Data Repository）資料引用
+       說明：提供多語系的地區資料，讓 DevExtreme 可以正確顯示中文日期和數字格式
+
+       cldr.js              → CLDR 核心庫
+       cldr/event.js        → CLDR 事件處理
+       cldr/supplemental.js → 補充地區資料（時區、節日等）
+       cldr/unresolved.js   → 未解析的地區資料處理
+       ────────────────────────────────────────────────────────────────────────── *@
     <script src="~/js/devextreme/cldr.js"></script>
     <script src="~/js/devextreme/cldr/event.js"></script>
     <script src="~/js/devextreme/cldr/supplemental.js"></script>
     <script src="~/js/devextreme/cldr/unresolved.js"></script>
 
+    @* ──────────────────────────────────────────────────────────────────────────
+       📌 Globalize 國際化函式庫引用
+       說明：處理數字、貨幣、日期的本地化格式（例如台灣的日期格式 yyyy/MM/dd）
+
+       globalize.js          → 國際化核心
+       globalize/message     → 多語系訊息
+       globalize/number      → 數字格式化
+       globalize/currency    → 貨幣格式化
+       globalize/date        → 日期格式化（重要！讓日期選擇器顯示正確格式）
+       ────────────────────────────────────────────────────────────────────────── *@
     <script src="~/js/devextreme/globalize.js"></script>
     <script src="~/js/devextreme/globalize/message.js"></script>
     <script src="~/js/devextreme/globalize/number.js"></script>
@@ -39,6 +130,16 @@
     @* JSZip for client side export *@
     @*<script src="~/js/devextreme/jszip.js"></script>*@
 
+    @* ──────────────────────────────────────────────────────────────────────────
+       📌 DevExtreme UI 元件庫引用
+       說明：引用 DevExtreme 的核心 JavaScript，提供所有 UI 元件功能
+             （表單、選單、日期選擇器、Gallery 輪播等）
+
+       dx.all.js            → DevExtreme 全部元件（表單、按鈕、LoadPanel 等）
+       world.js             → 世界地圖向量資料（本頁面未使用，但全域引用）
+       dx.aspnet.data.js    → DevExtreme 與 ASP.NET 的資料橋接
+       dx.aspnet.mvc.js     → DevExtreme 的 MVC/Razor 輔助工具
+       ────────────────────────────────────────────────────────────────────────── *@
     <script src="~/js/devextreme/dx.all.js"></script>
     <script src="~/js/devextreme/vectormap-data/world.js"></script>
     <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
@@ -48,7 +149,22 @@
 
 <body>
 
+    @* ══════════════════════════════════════════════════════════════════════════
+       🖼️ 區塊 1：頂部圖片輪播 (Gallery)
+       說明：頁面頂部的圖片幻燈片效果
+       資料來源：Model.Images（由 Controller 傳入的圖片 URL 清單）
+       ══════════════════════════════════════════════════════════════════════════ *@
     <div class="widget-container" style="padding: 10px;">
+        @* ──────────────────────────────────────────────────────────────────────
+           DevExtreme Gallery 元件
+           說明：顯示自動輪播的圖片幻燈片
+
+           DataSource    → 圖片來源清單（從 ViewModel 傳入）
+           Height        → 圖片高度 250px
+           StretchImages → 圖片延伸填滿整個容器
+           Loop          → 循環播放（最後一張結束後回到第一張）
+           SlideshowDelay→ 每隔 1500 毫秒（1.5 秒）自動切換下一張
+           ────────────────────────────────────────────────────────────────────── *@
         @(Html.DevExtreme().Gallery()
                                 .ID("gallery")
                                 .DataSource(Model.Images)
@@ -61,141 +177,230 @@
         )
     </div>
 
+    @* ══════════════════════════════════════════════════════════════════════════
+       💬 區塊 2：顯示用戶姓名的標題區
+       說明：頁面載入後，JavaScript 會將 LINE 用戶的顯示名稱填入這裡
+       初始狀態：空白
+       載入後顯示：例如「陳小明基本資料」
+       ══════════════════════════════════════════════════════════════════════════ *@
     @*<div class="long-title"><h3 id="displaynamefield"></h3></div>*@
     @*<p id="demo2">測試</p>*@
     @*<p id="displaynamefield"></p>*@
 
     <div class="long-title"><h3 id="displaynamefield"></h3></div>
 
+    @* ══════════════════════════════════════════════════════════════════════════
+       📝 區塊 3：資格設定表單
+       說明：讓用戶填寫並提交個人資料的表單
+
+       data-ajax="true"              → 使用 AJAX 方式提交（不重新整理整頁）
+       data-ajax-begin="onBegin"     → 提交「開始前」呼叫 onBegin() 函數
+       data-ajax-success="onSuccess" → 提交「成功後」呼叫 onSuccess() 函數
+       asp-action="SaveQualificationData" → 提交到 HomeController 的這個方法
+       asp-controller="Home"         → 目標 Controller
+       method="post"                 → 使用 HTTP POST 方式傳送資料
+       ══════════════════════════════════════════════════════════════════════════ *@
     <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveQualificationData" asp-controller="Home" method="post" style="text-align: center;">
 
         <div class="dx-field" style="text-align: center;">
             <div class="form-container-class" id="form-container" style="text-align: center;">
+                @* ──────────────────────────────────────────────────────────────
+                   DevExtreme Form 元件
+                   說明：企業級的表單元件，包含以下四個欄位：
+                     1. 信仰狀態（SelectBox 下拉選單）
+                     2. 性別（SelectBox 下拉選單）
+                     3. 生日（DateBox 日期選擇器）
+                     4. 身分證字號（TextBox 文字輸入框）
+                   ID("form") → 讓 JavaScript 可以用 $("#form").dxForm("instance")
+                                取得此元件並操作它（例如填入資料）
+                   ────────────────────────────────────────────────────────────── *@
                 @(Html.DevExtreme().Form()
-                                       .ID("form")
-                                       .Items(items =>
-                                       {
+                    .ID("form")
+                    .Items(items =>
+                    {
+                        @* ──────────────────────────────────────────────────────
+                           欄位 1：信仰狀態（SelectBox 下拉選單）
+                           說明：讓用戶從清單中選擇目前的信仰狀態
+                           DataField → 對應 ViewModel 的 FaithStatus 屬性
+                           ID        → "spiritualIdentitySelectBox"，
+                                       JavaScript 稍後會用這個 ID
+                                       動態更新選項清單（從 API 取得最新的選項）
+                           DataSource→ 頁面初始預設值（稍後由 API 動態更換）
+                           Value     → 預設選中的值
+                           ────────────────────────────────────────────────────── *@
+                        items.AddSimple()
+                             .DataField("FaithStatus")
+                             .Label(l => l.Text("信仰狀態"))
+                             .Editor(e => e
+                                 .SelectBox()
+                                 .ID("spiritualIdentitySelectBox") // ✅ 新增 ID 以便 JavaScript 控制
+                                 .DataSource(new string[] {
+                                     "-未知-",
+                                 }) // ✅ 預設值
+                                 .Value("未信主")
+                                 );
 
-                                           items.AddSimple()
-                                                .DataField("FaithStatus")
-                                                .Label(l => l.Text("信仰狀態"))
-                                                .Editor(e => e
-                                                    .SelectBox()
-                                                    .ID("spiritualIdentitySelectBox") // ✅ 新增 ID 以便 JavaScript 控制
-                                                    .DataSource(new string[] {
-                                                        "-未知-",
-                                                    }) // ✅ 預設值
-                                                    .Value("未信主")
-                                                    );
+                        @* ──────────────────────────────────────────────────────
+                           欄位 2：性別（SelectBox 下拉選單）
+                           說明：讓用戶選擇性別
+                           DataSource → 固定三個選項：未知、男性、女性
+                           Value      → 預設選中「未知」
+                           ────────────────────────────────────────────────────── *@
+                        items.AddSimple()
+                             .DataField("GenderCode")
+                             .Label(l => l.Text("性別"))
+                             .Editor(e => e
+                                 .SelectBox()
+                                 .DataSource(new string[] {
+                                     "未知",
+                                     "男性",
+                                     "女性",
+                                 })
+                                 .Value("未知")
+                                 );
 
-                                           items.AddSimple()
-                                                .DataField("GenderCode")
-                                                .Label(l => l.Text("性別"))
-                                                .Editor(e => e
-                                                    .SelectBox()
-                                                    .DataSource(new string[] {
-                                                        "未知",
-                                                        "男性",
-                                                        "女性",
-                                                    }
+                        @* ──────────────────────────────────────────────────────
+                           欄位 3：生日（DateBox 日期選擇器）
+                           說明：讓用戶選擇或輸入生日日期
+                           IsRequired(false)  → 生日非必填欄位
+                           OnValueChanged     → 當日期改變時執行的邏輯，
+                                                主要防止選到 1901 年這種異常值
+                                               （因為某些空值會被解析成 1901 年）
+                           ShowClearButton    → 顯示「清除」按鈕，可以清空日期
+                           Placeholder        → 輸入框的提示文字
+                           ────────────────────────────────────────────────────── *@
+                        items.AddSimple()
+                             .DataField("BirthDate")
+                             .Label(l => l.Text("生日"))
+                             .IsRequired(false)
+                             .Editor(e => e
+                                 .DateBox()
+                                 .Disabled(false)
+                                 .OnValueChanged(
+                                 @<text>
+                                     function(e)
+                                     {
+                                         //debugger;
+                                         //if( e.value != null )
+                                         //{
+                                         //debugger;
 
-                                                    )
-                                                    .Value("未知")
-                                                    );
+                                         //var PayDate = ParsingDate( e.value != null );
+                                         var DateValue = e.component.option("value");
 
+                                         if(DateValue != undefined)
+                                         {
+                                             var ParsedDateValue = ParsingDate(e.component.option("value"))
+                                             //alert( "001: " + ParsedDateValue);
+                                             //alert( "002: " + ParsedDateValue.getFullYear());
+                                             if( ParsedDateValue.getFullYear() == 1901 )
+                                             {
+                                                 //return null;
+                                                 //alert( "002: ");
+                                                 e.component.option("value", null);
+                                                 //return DateValue;
+                                             }
+                                             else
+                                             {
+                                                 //alert( "003: ");
 
-                                           items.AddSimple()
-                                                .DataField("BirthDate")
-                                                .Label(l => l.Text("生日"))
-                                                .IsRequired(false)
-                                                .Editor(e => e
-                                                    .DateBox()
-                                                    .Disabled(false)
-                                                    .OnValueChanged
-                                                    (@<text>
-                                                                function(e)
-                                                                {
-                                                                //debugger;
-                                                                //if( e.value != null )
-                                                                //{
-                                                                //debugger;
+                                                 //return e.value;
+                                             }
+                                         }
+                                         //}
+                                         //else
+                                         //{return null;}
+                                     }
+                                 </text>)
+                                 .ShowClearButton(true)
+                                 .Placeholder("請填寫生日")
+                             );
 
-                                                                //var PayDate = ParsingDate( e.value != null );
-                                                                var DateValue = e.component.option("value");
-
-                                                                if(DateValue != undefined)
-                                                                {
-                                                                var ParsedDateValue = ParsingDate(e.component.option("value"))
-                                                                //alert( "001: " + ParsedDateValue);
-                                                                //alert( "002: " + ParsedDateValue.getFullYear());
-                                                                if( ParsedDateValue.getFullYear() == 1901 )
-                                                                {
-                                                                //return null;
-                                                                //alert( "002: ");
-                                                                e.component.option("value", null);
-                                                                //return DateValue;
-                                                                }
-                                                                else
-                                                                {
-                                                                //alert( "003: ");
-
-                                                                //return e.value;
-                                                                }
-                                                                }
-                                                                //}
-                                                                //else
-                                                                //{return null;}
-                                                                }
-                                                    </text>)
-                                       .ShowClearButton(true)
-                                       .Placeholder("請填寫生日")
-                                   );
-
-
-
-                           items.AddSimple()
-                           .DataField("PersonalId")
-                           .Label(l => l.Text("身分證字號"))
-                           .Editor(e => e
-                               .TextBox().Placeholder("請填寫身分證字號")
-                               );
-
-                   })
+                        @* ──────────────────────────────────────────────────────
+                           欄位 4：身分證字號（TextBox 文字輸入框）
+                           說明：讓用戶輸入身分證字號
+                           ────────────────────────────────────────────────────── *@
+                        items.AddSimple()
+                             .DataField("PersonalId")
+                             .Label(l => l.Text("身分證字號"))
+                             .Editor(e => e
+                                 .TextBox().Placeholder("請填寫身分證字號")
+                                 );
+                    })
                 )
             </div>
         </div>
+
+        @* ──────────────────────────────────────────────────────────────────────
+           區塊：按鈕區
+           說明：包含「儲存」按鈕和載入指示器
+           ────────────────────────────────────────────────────────────────────── *@
         <div class="dx-field" style="text-align: center;">
+
+            @* ──────────────────────────────────────────────────────────────────
+               儲存按鈕 (DevExtreme Button)
+               說明：點擊後觸發表單提交
+
+               Text              → 按鈕上顯示的文字「儲存」
+               Type              → ButtonType.Default（預設灰色樣式）
+               ID                → "register-button"，方便 JavaScript 控制
+               UseSubmitBehavior → true，點擊後提交所在的 <form>
+               OnClick           → 點擊時呼叫 Register() 函數（顯示 LoadPanel）
+               Width             → 按鈕寬度 100px
+               ────────────────────────────────────────────────────────────────── *@
             <div id="buttonContainer" class="dx-button-icon">
                 @(Html.DevExtreme().Button()
-                                        .Text("儲存")
-                                        //.Type(ButtonType.Success)
-                                        //.Type(ButtonType.Normal)
-                                        .Type(ButtonType.Default)
-                                        .ID("register-button")
-                                        .UseSubmitBehavior(true)
-                                        .OnClick("Register")
-                                        .Width(100)
+                    .Text("儲存")
+                    //.Type(ButtonType.Success)
+                    //.Type(ButtonType.Normal)
+                    .Type(ButtonType.Default)
+                    .ID("register-button")
+                    .UseSubmitBehavior(true)
+                    .OnClick("Register")
+                    .Width(100)
                 )
             </div>
+
+            @* ──────────────────────────────────────────────────────────────────
+               載入指示器 (DevExtreme LoadPanel)
+               說明：儲存資料時顯示的「載入中...」遮罩畫面
+                     防止用戶在儲存過程中重複點擊
+
+               ShadingColor        → 遮罩背景色（半透明黑色）
+               Position            → 相對於 #form-container 置中顯示
+               Visible(false)      → 初始隱藏，按下儲存時才顯示
+               ShowIndicator       → 顯示旋轉的載入圖示
+               ShowPane            → 顯示白色背景面板
+               Shading             → 顯示半透明遮罩
+               CloseOnOutsideClick → false，點擊外部不關閉（防止誤操作）
+               Message             → 遮罩上顯示的文字「儲存中...」
+               Delay               → 顯示延遲 5000 毫秒（5 秒）
+               ────────────────────────────────────────────────────────────────── *@
             <div id="LoadPanel">
                 @(Html.DevExtreme().LoadPanel()
-                                        .ID("loadPanel")
-                                        .ShadingColor("rgba(0,0,0,0.4)")
-                                        .Position(p => p.Of("#form-container"))
-                                        .Visible(false)
-                                        .ShowIndicator(true)
-                                        .ShowPane(true)
-                                        .Shading(true)
-                                        .CloseOnOutsideClick(false)
-                                        .Message("儲存中...")
-                                        .Delay(5000)
-                                        .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
+                    .ID("loadPanel")
+                    .ShadingColor("rgba(0,0,0,0.4)")
+                    .Position(p => p.Of("#form-container"))
+                    .Visible(false)
+                    .ShowIndicator(true)
+                    .ShowPane(true)
+                    .Shading(true)
+                    .CloseOnOutsideClick(false)
+                    .Message("儲存中...")
+                    .Delay(5000)
+                    .Animation(l => l.Show(k => k.Easing(AnimationEasing.Swing)))
                 )
             </div>
         </div>
 
     </form>
 
+    @* ══════════════════════════════════════════════════════════════════════════
+       🔔 區塊 4：Toast 通知元件
+       說明：在畫面中央顯示操作結果的小提示框
+             例如：儲存成功 ✅ 或 儲存失敗 ❌
+             由 JavaScript 呼叫 ShowToast() 函數來觸發顯示
+       ══════════════════════════════════════════════════════════════════════════ *@
     <div id="ToastContainer">
         @(Html.DevExtreme().Toast()
                                 .ID("Toast")
@@ -206,47 +411,96 @@
                                 .DisplayTime(2000)
                                 .MaxWidth(200)
         )
-
     </div>
 
-
+    @* ══════════════════════════════════════════════════════════════════════════
+       📜 JavaScript 區塊 1：UI 控制函數
+       說明：控制 LoadPanel（載入指示器）的基本函數
+       ══════════════════════════════════════════════════════════════════════════ *@
     <script>
+
+        /**
+         * 取得 LoadPanel 元件的實例
+         * 說明：透過 DevExtreme 的 jQuery 插件語法取得元件實例
+         *       之後可以對此實例呼叫 .show() 或 .hide()
+         * @@returns {Object} LoadPanel 元件實例
+         */
         function getLoadPanelInstance() {
             return $("#loadPanel").dxLoadPanel("instance");
         }
 
+        /**
+         * 顯示 LoadPanel（可從 HTML 的 onclick 事件中呼叫）
+         */
         function button_click() {
             getLoadPanelInstance().show();
         }
 
+        /**
+         * LoadPanel 顯示完成後的回呼函數
+         * 說明：目前為空，可以在這裡加入顯示完成後的額外邏輯
+         * @@param {Object} e - DevExtreme 事件物件
+         */
         function loadPanel_shown(e) {
             //    setTimeout(function () {
             //        e.component.hide();
             //    }, 3000);
         }
 
+        /**
+         * LoadPanel 隱藏完成後的回呼函數
+         * 說明：目前為空，可以在這裡加入隱藏完成後的額外邏輯
+         */
         function loadPanel_hidden() {
         }
 
+        /**
+         * 「儲存」按鈕點擊事件處理函數
+         * 說明：使用者點擊儲存按鈕時，先顯示 LoadPanel，
+         *       讓用戶知道系統正在處理中
+         * @@param {Object} arg - DevExtreme Button 事件物件
+         */
         function Register(arg) {
-
             getLoadPanelInstance().show();
         }
 
     </script>
 
+    @* ══════════════════════════════════════════════════════════════════════════
+       📜 JavaScript 區塊 2：AJAX 表單提交回呼函數
+       說明：這三個函數對應 <form> 標籤的 data-ajax 屬性
+             由 jquery.unobtrusive-ajax.js 函式庫負責在適當時機呼叫
+       ══════════════════════════════════════════════════════════════════════════ *@
     <script type="text/javascript">
+
+        /**
+         * AJAX 表單提交「開始前」的回呼函數
+         * 說明：對應 data-ajax-begin="onBegin"
+         *       表單開始提交的瞬間會呼叫此函數
+         *       目前為空，可以在這裡加入提交前的驗證邏輯
+         */
         function onBegin() {
         }
 
+        /**
+         * AJAX 表單提交「成功後」的回呼函數
+         * 說明：對應 data-ajax-success="onSuccess"
+         *       Server 回傳結果後呼叫此函數
+         *
+         * @@param {Object} data - Server 回傳的 JSON 物件，格式為：
+         *                        { status: "1", message: "訊息內容" }
+         *                        status = "1" 表示成功
+         *                        status = "0" 表示失敗
+         */
         function onSuccess(data) {
 
+            // 隱藏載入指示器（儲存已完成）
             getLoadPanelInstance().hide();
 
             if (data.status == 1) {
-
                 //DevExpress.ui.notify( data.message, "success", 15000 );
 
+                // ✅ 儲存成功：顯示綠色成功通知（5 秒後消失，點擊可關閉）
                 DevExpress.ui.notify({
                     displayTime: 5000,
                     closeOnClick: true,
@@ -261,17 +515,26 @@
 
                 //ShowToast(data.message, "success", 3000);
                 //getLoadPanelInstance().hide();
+
+                // 將成功訊息顯示在標題區域
                 document.getElementById('displaynamefield').innerHTML = data.message;
             }
             else {
+                // ❌ 儲存失敗：顯示紅色錯誤通知（5 秒後消失）
                 DevExpress.ui.notify(data.message, "error", 5000);
                 //window.location.href = "/Home/LineBindingView/" + '@Model.EncodeUrl';
                 //window.location.href = "/Home/BindingResultView/" + data.message;
 
+                // 將錯誤訊息顯示在標題區域
                 document.getElementById('displaynamefield').innerHTML = data.message;
             }
         }
 
+        /**
+         * AJAX 表單提交「完成後」的回呼函數
+         * 說明：不論成功或失敗都會呼叫（主要邏輯已在 onSuccess 處理）
+         * @@param {Object} data - Server 回傳資料
+         */
         function onComplete(data) {
             if (data.status == 1) {
             }
@@ -280,41 +543,82 @@
         }
     </script>
 
+    @* ══════════════════════════════════════════════════════════════════════════
+       📦 外部函式庫引用（放在頁面底部以加快載入速度）
+
+       jquery.unobtrusive-ajax.js → 讓 <form data-ajax="true"> 的 AJAX 提交
+                                    功能運作，處理 data-ajax-begin、
+                                    data-ajax-success 等屬性
+       Gallery.css / WeeklyReport.css → 本專案自訂樣式
+       liff/edge/2/sdk.js         → LINE LIFF SDK，讓網頁可以在 LINE App 內
+                                    運作，並取得用戶的 LINE 資料
+       liff-starter.js            → 本專案的 LIFF 輔助工具函數
+       ══════════════════════════════════════════════════════════════════════════ *@
     <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
     <link href="~/css/Gallery.css" rel="stylesheet" />
     <link href="~/css/WeeklyReport.css" rel="stylesheet" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="~/js/liff-starter.js"></script>
+
+    @* ══════════════════════════════════════════════════════════════════════════
+       📜 JavaScript 區塊 3：LIFF 初始化與核心業務邏輯
+       說明：這是本頁面最重要的 JavaScript 程式碼，負責：
+               1. 動態載入信仰狀態清單（從 API 取得最新選項）
+               2. 初始化 LINE LIFF 環境
+               3. 取得 LINE 用戶的身分資料
+               4. 從 Server 讀取用戶的個人資料並填入表單
+       ══════════════════════════════════════════════════════════════════════════ *@
     <script>
-        // ✅ 全域變數：信仰狀態 DataSource
+
+        // ─────────────────────────────────────────────────────────────────────
+        // 全域變數：信仰狀態選項清單
+        // 說明：預設的信仰狀態清單，頁面載入後會呼叫 API 取得最新的清單並覆蓋
+        // ─────────────────────────────────────────────────────────────────────
         var spiritualIdentityDataSource = ["-未知-", "基督徒", "已決志", "慕道友", "未信主"]; // 預設值
 
-        // ✅ 頁面載入後，動態載入信仰狀態清單
+        /**
+         * 頁面 DOM 載入完成後執行的初始化函數
+         * 說明：$(document).ready() 是 jQuery 的語法，
+         *       確保頁面所有 HTML 元素都載入完成後才執行裡面的程式碼
+         *
+         * 📚 初學者說明：
+         *   瀏覽器讀取 HTML 是從上到下的，如果 JavaScript 太早執行，
+         *   可能會找不到 HTML 元素，ready() 確保一切都準備好了才執行
+         */
         $(document).ready(function() {
             console.log('========================================');
             console.log('✅ [QualificationView] Script 已載入');
             console.log('========================================');
-            
-            // 載入信仰狀態清單
+
+            // 向 Server 取得最新的信仰狀態清單
             loadSpiritualIdentityList();
         });
 
-        // ✅ 載入信仰狀態清單的函數
+        /**
+         * 動態載入信仰狀態清單
+         * 說明：透過 AJAX 向 /Personal/Api/GetSpiritualIdentityList 發送請求，
+         *       取得 Dynamics 365 中最新的信仰狀態選項，再更新頁面上的下拉選單
+         *
+         * 為什麼要動態載入？
+         *   → 管理員可以在 Dynamics 365 後台新增或修改信仰狀態選項，
+         *     動態載入確保選單內容永遠是最新的，不需要修改程式碼
+         */
         function loadSpiritualIdentityList() {
             console.log('✅ [QualificationView] 開始載入信仰狀態清單');
-            
+
             $.ajax({
-                url: '/Personal/Api/GetSpiritualIdentityList',
-                type: 'GET',
-                dataType: 'json',
-                timeout: 10000, // 10秒超時
+                url: '/Personal/Api/GetSpiritualIdentityList',  // API 端點路徑
+                type: 'GET',                                     // 使用 GET 方法取得資料
+                dataType: 'json',                                // 期望 Server 回傳 JSON 格式
+                timeout: 10000,                                  // 10 秒超時，避免無限等待
                 success: function(response) {
                     console.log('✅ [QualificationView] API 回應:', response);
-                    
+
+                    // 確認回應格式正確且有資料
                     if (response && response.success && response.data && response.data.length > 0) {
                         spiritualIdentityDataSource = response.data;
                         console.log('✅ [QualificationView] 成功載入信仰狀態清單:', spiritualIdentityDataSource);
-                        
+
                         // ✅ 動態更新 SelectBox 的 DataSource
                         updateSpiritualIdentitySelectBox();
                     } else {
@@ -322,25 +626,37 @@
                     }
                 },
                 error: function(xhr, status, error) {
+                    // API 呼叫失敗時，保留預設清單，不影響用戶使用
                     console.error('❌ [QualificationView] 載入信仰狀態清單失敗:', error);
                     console.error('❌ [QualificationView] 使用預設清單');
                 }
             });
         }
 
-        // ✅ 更新 SelectBox 的函數
+        /**
+         * 更新「信仰狀態」SelectBox 的選項清單
+         * 說明：取得 DevExtreme SelectBox 的實例並更新其資料來源
+         *       如果元件尚未初始化，則延遲 500ms 後重試
+         *
+         * 📚 初學者說明：
+         *   DevExtreme 元件的操作方式：
+         *   $("#元件ID").dx元件名稱("instance") → 取得元件實例
+         *   實例.option("屬性名稱", 新值)       → 更新元件的屬性
+         */
         function updateSpiritualIdentitySelectBox() {
             try {
+                // 透過 DevExtreme jQuery 插件語法取得 SelectBox 實例
                 var selectBox = $("#spiritualIdentitySelectBox").dxSelectBox("instance");
-                
+
                 if (selectBox) {
                     console.log('✅ [QualificationView] 找到 SelectBox 實例');
+                    // 更新 SelectBox 的選項清單
                     selectBox.option("dataSource", spiritualIdentityDataSource);
                     console.log('✅ [QualificationView] 成功更新 SelectBox DataSource');
                 } else {
                     console.warn('⚠️ [QualificationView] 找不到 SelectBox 實例，嘗試延遲更新...');
-                    
-                    // 延遲 500ms 後重試
+
+                    // 延遲 500ms 後重試（元件可能還在渲染中）
                     setTimeout(function() {
                         var retrySelectBox = $("#spiritualIdentitySelectBox").dxSelectBox("instance");
                         if (retrySelectBox) {
@@ -356,82 +672,136 @@
             }
         }
 
+        /**
+         * 頁面（含所有資源）完全載入後執行的 LIFF 初始化函數
+         * 說明：window.onload 在所有資源（含圖片）都載入完才執行
+         *
+         * 📚 window.onload vs $(document).ready() 的差異：
+         *   - $(document).ready() → HTML 結構載入完就執行（不等圖片）
+         *   - window.onload       → 所有資源（含圖片）都載入完才執行
+         *
+         * 初始化流程：
+         *   1. 呼叫 liff.init() 初始化 LIFF
+         *   2. 確認用戶已登入 LINE
+         *   3. 確認用戶已授權（同意提供個人資料）
+         *   4. 呼叫 initializeApp() 取得用戶資料
+         *
+         * @@param {Event} e - 頁面載入完成事件
+         */
         window.onload = function (e)
         {
+            // liff.init() 初始化 LIFF 環境
+            // liffId 從 TempData["Proponent"] 取得（由 Controller 在 Server 端設定）
             liff.init({ liffId:  '@TempData["Proponent"]' })
                 .then(() =>
                 {
-                // 检查用户是否已登录
-                  if (!liff.isLoggedIn())
-                  {
-                      document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
+                    // ✅ LIFF 初始化成功，開始檢查登入狀態
+                    if (!liff.isLoggedIn())
+                    {
+                        // ❌ 用戶尚未登入 LINE
+                        document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
 
-                      ShowToast("您還沒有登入LINE", "error", 5000);
+                        ShowToast("您還沒有登入LINE", "error", 5000);
 
-                      liff.login();
+                        // 導向 LINE 登入頁面
+                        liff.login();
 
-                      return;
-                  }
-                  else
-                  {
-                      liff.permission.query("profile").then((permissionStatus) => {
-                          if (permissionStatus.state === "granted") {
-                              //使用者已授權
-                              initializeApp();
-                          }
-                          else if (permissionStatus.state === "prompt") {
-                              document.getElementById('displaynamefield').innerHTML = "您並未授權，請先完成授權程序!";
-                              liff.permission.requestAll();
-                          }
-                          else {
-                              document.getElementById('displaynamefield').innerHTML = "Liff Scope沒有設定，所以無法操作!";
-                          }
-                      });
-                  }
+                        return;
+                    }
+                    else
+                    {
+                        // ✅ 用戶已登入，進一步確認授權狀態
+                        liff.permission.query("profile").then((permissionStatus) => {
+                            if (permissionStatus.state === "granted") {
+                                // ✅ 用戶已授權，開始初始化應用程式
+                                initializeApp();
+                            }
+                            else if (permissionStatus.state === "prompt") {
+                                // ⚠️ 用戶尚未授權，請求用戶授權
+                                document.getElementById('displaynamefield').innerHTML = "您並未授權，請先完成授權程序!";
+                                liff.permission.requestAll();
+                            }
+                            else {
+                                // ❌ LIFF Scope 未設定，無法取得 profile
+                                document.getElementById('displaynamefield').innerHTML = "Liff Scope沒有設定，所以無法操作!";
+                            }
+                        });
+                    }
                 })
                 .catch(error => {
-                    // 錯誤處理 Liff LLogin
+                    // ❌ LIFF 初始化失敗，顯示錯誤訊息
                     document.getElementById('displaynamefield').innerHTML = "錯誤:" + error;
                 });
         };
 
 
-        var UserId = "";
-        var GroupId = "";
-        var RoomId = "";
-        var DisplayName = "";
-        var ViewType = "";
+        // ─────────────────────────────────────────────────────────────────────
+        // 全域變數：暫存從 LINE 取得的用戶資訊
+        // 說明：這些變數在 initializeApp() 中被賦值，
+        //       之後 GetQualificationData() 會使用它們向 Server 查詢資料
+        // ─────────────────────────────────────────────────────────────────────
+        var UserId = "";       // LINE 用戶 ID（唯一識別碼）
+        var GroupId = "";      // LINE 群組 ID（如果是在群組中開啟）
+        var RoomId = "";       // LINE 聊天室 ID
+        var DisplayName = "";  // LINE 用戶顯示名稱
+        var ViewType = "";     // 開啟頁面的方式
 
-
+        /**
+         * 應用程式初始化函數
+         * 說明：確認授權後，從 LINE 取得用戶 Profile（個人資料）
+         *       然後向 Server 查詢這位用戶在 CRM 中的詳細資料
+         *
+         * 📚 async/await 說明：
+         *   JavaScript 中有些操作需要等待（例如網路請求），
+         *   async/await 讓我們可以用「好像同步」的方式寫非同步程式碼
+         */
         async function initializeApp() {
             await liff.getProfile()
                 .then(function (profile) {
+                    // ✅ 成功取得 LINE Profile
+
+                    // 在標題顯示用戶名稱（例如「陳小明基本資料」）
                     document.getElementById('displaynamefield').innerHTML = profile.displayName + "基本資料";
-                    DisplayName = profile.displayName;
-                    UserId = profile.userId;
+
+                    // 將 LINE 資料存入全域變數
+                    DisplayName = profile.displayName;  // LINE 顯示名稱
+                    UserId = profile.userId;             // LINE 用戶 ID（最重要，用來查詢 CRM）
                     //alert("測試 UserId =" + UserId);
-                    GroupId = profile.aGroupId;
-                    RoomId = profile.aRoomId;
-                    ViewType = profile.aViewType;
+                    GroupId = profile.aGroupId;          // 群組 ID
+                    RoomId = profile.aRoomId;            // 聊天室 ID
+                    ViewType = profile.aViewType;        // 開啟方式
                     //alert("測試004!" + DisplayName);
 
-                    // 取得 UserId 的Ajax
+                    // 取得此用戶在 CRM 中的資格資料，並填入表單
                     GetQualificationData(UserId, GroupId, RoomId, ViewType);
                 })
                 .catch(error => {
-                    // 錯誤處理 Liff LLogin
+                    // ❌ 取得 Profile 失敗
                     document.getElementById('displaynamefield').innerHTML = "錯誤:" + error;
                 });
 
         }
 
-
-
+        /**
+         * 從 Server 取得用戶的資格資料（AJAX POST）
+         * 說明：用 LINE userId 向 Server 查詢這位用戶在 CRM 中的
+         *       信仰狀態、性別、生日、身分證字號，並填入 DevExtreme Form
+         *
+         * 📚 AJAX 說明：
+         *   Asynchronous JavaScript and XML 的縮寫
+         *   讓網頁可以在「不重新整理整個頁面」的情況下與 Server 交換資料
+         *
+         * @@param {string} aUserLineId - LINE 用戶 ID
+         * @@param {string} aGroupId    - LINE 群組 ID
+         * @@param {string} aRoomId     - LINE 聊天室 ID
+         * @@param {string} aViewType   - 開啟頁面的方式
+         */
         function GetQualificationData(aUserLineId, aGroupId, aRoomId, aViewType ) {
                     // AJAX 區塊
                     $.ajax
                     (
                         {
+                            // Razor 語法 @Url.Action() 會在 Server 端產生正確的 URL
                             url: '@Url.Action("GetQualificationData", "Home")',
                             data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType}, // 整理回傳給 Server 的點名資料
                             type: 'POST', //POST if you want to save, GET if you want to fetch data from server
@@ -444,22 +814,38 @@
                                 //alert("信仰 : " + data.faithStatus);
                                 // formInstance.updateData('YourDataField', YourNewValue);
 
+                                // ✅ 將 Server 回傳的資料填入 DevExtreme Form 的各個欄位
+                                // updateData(欄位名稱, 新值) 是 DevExtreme Form 的 API
                                 $("#form").dxForm("instance").updateData('FaithStatus', data. faithStatus);
                                 $("#form").dxForm("instance").updateData('GenderCode', data.genderCode);
                                 $("#form").dxForm("instance").updateData('BirthDate', data.birthDate);
                                 $("#form").dxForm("instance").updateData('PersonalId', data.personalId);
 
+                                // 資料填入後隱藏 LoadPanel
                                 getLoadPanelInstance().hide();
                             },
 
                             error: function (obj)
                             {
+                                // 取得資料失敗時靜默處理（保持表單空白）
                             }
 
                         }
                     );
                     // AJAX 區塊
         }
+
+        /**
+         * 更新用戶的資格資料（AJAX POST）
+         * 說明：將表單中的資料傳送到 Server 進行儲存
+         *       注意：此函數目前未被直接呼叫，
+         *             表單提交使用的是 <form> 標籤的 data-ajax 機制
+         *
+         * @@param {string} aUserLineId - LINE 用戶 ID
+         * @@param {string} aGroupId    - LINE 群組 ID
+         * @@param {string} aRoomId     - LINE 聊天室 ID
+         * @@param {string} aViewType   - 開啟頁面的方式
+         */
         function UpdateQualificationData(aUserLineId, aGroupId, aRoomId, aViewType ) {
                     // AJAX 區塊
                     $.ajax
@@ -476,6 +862,8 @@
 
                                 //alert("信仰 : " + data.faithStatus);
                                 // formInstance.updateData('YourDataField', YourNewValue);
+
+                                // 將更新後的資料重新填入表單
                                 $("#form").dxForm("instance").updateData('FaithStatus', data. faithStatus);
                                 $("#form").dxForm("instance").updateData('GenderCode', data.genderCode);
                                 $("#form").dxForm("instance").updateData('BirthDate', data.birthDate);
@@ -492,6 +880,16 @@
                     // AJAX 區塊
         }
 
+        /**
+         * 日期字串解析輔助函數
+         * 說明：將不同格式的日期轉換為 JavaScript Date 物件
+         *       處理兩種情況：
+         *         1. 字串格式（例如 "2000-01-15T00:00:00"）→ 手動解析
+         *         2. Date 物件 → 轉換為本地時間格式
+         *
+         * @@param {string|Date} input - 要解析的日期（字串或 Date 物件）
+         * @@returns {Date} 解析後的 JavaScript Date 物件
+         */
         function ParsingDate(input) {
 
             debugger;
@@ -513,6 +911,19 @@
                 return getLocalDateFilter(input);
             }
         }
+
+        /**
+         * 將 Date 物件轉換為本地日期格式
+         * 說明：確保日期以本地時區正確顯示，
+         *       避免時區差異造成日期顯示錯誤（例如差一天）
+         *
+         * 📚 時區問題說明：
+         *   Server 可能使用 UTC 時間，但台灣是 UTC+8，
+         *   如果不做轉換，日期可能會少顯示一天
+         *
+         * @@param {Date} date - JavaScript Date 物件
+         * @@returns {Date} 使用本地時間的新 Date 物件
+         */
         function getLocalDateFilter(date) {
 
             debugger;
@@ -524,6 +935,7 @@
             //-- You can also convert this to UTC Date format
             //-- UTC Usage: getUTCMonth(), getUTCFullYear(), getUTCHours() ...
 
+            // 處理月份：確保兩位數格式（例如 1 → "01"）
             var monthString;
             var rawMonth = (date.getMonth() + 1).toString();
             if (rawMonth.length == 1) {
@@ -531,6 +943,7 @@
             }
             else { monthString = rawMonth; }
 
+            // 處理日期：確保兩位數格式（例如 5 → "05"）
             var dateString;
             //var rawDate = date.getUTCDate().toString();
             var rawDate = date.getDate().toString();
@@ -556,18 +969,31 @@
             return new Date(date.getFullYear(), rawMonth, rawDate);
         }
 
+        /**
+         * 顯示 Toast 通知訊息
+         * 說明：使用 DevExtreme Toast 元件顯示彈出式通知訊息
+         *       支援不同類型（success 成功、error 錯誤、warning 警告）
+         *
+         * 使用範例：
+         *   ShowToast("儲存成功！", "success", 3000);  // 3 秒後消失
+         *   ShowToast("發生錯誤！", "error", 5000);    // 5 秒後消失
+         *
+         * @@param {string} LocalToastMessage - 要顯示的訊息文字
+         * @@param {string} Type              - 訊息類型："success"、"error"、"warning"、"info"
+         * @@param {number} DisplayTime       - 顯示時間（毫秒，1000 = 1 秒）
+         */
         function ShowToast(LocalToastMessage, Type, DisplayTime) {
             //debugger;
             var ToastInstance = $("#Toast").dxToast("instance");
-            ToastInstance.option('message', LocalToastMessage);
-            ToastInstance.option('type', Type);
-            ToastInstance.option('displayTime', DisplayTime);
-            ToastInstance.option('white-space', 'pre-line');
-            ToastInstance.option('closeOnClick', true);
-            ToastInstance.show();
+            ToastInstance.option('message', LocalToastMessage);    // 設定訊息文字
+            ToastInstance.option('type', Type);                    // 設定訊息類型（決定顏色）
+            ToastInstance.option('displayTime', DisplayTime);      // 設定顯示時間
+            ToastInstance.option('white-space', 'pre-line');       // 允許換行
+            ToastInstance.option('closeOnClick', true);            // 點擊可關閉
+            ToastInstance.show();                                  // 顯示 Toast
         }
 
     </script>
 </body>
 
-</html></html>
+</html>
