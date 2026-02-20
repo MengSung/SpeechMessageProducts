@@ -102,6 +102,33 @@ body {
   min-height: 2rem;
 }
 
+/* Hero 橫幅與覆蓋層 */
+.hero-wrapper { position: relative; width:100%; height:320px; overflow:hidden; }
+.hero-overlay { position:absolute; inset:0; background: linear-gradient(135deg, rgba(0,0,0,0.55), rgba(0,0,0,0.2)); display:flex; flex-direction:column; justify-content:center; align-items:center; color:#fff; text-align:center; padding:1rem; }
+.hero-overlay h1 { font-size:2rem; letter-spacing:2px; font-weight:700; margin-bottom:.75rem; }
+.hero-overlay .verse { font-size:.95rem; line-height:1.4; max-width:620px; }
+.hero-overlay .verse span { display:block; margin-top:.35rem; font-size:.75rem; opacity:.8; }
+/* 名稱/提示區 */
+#displaynamefield { font-weight:600; min-height:48px; text-align:center; font-family:'Poppins','Noto Sans TC','Microsoft JhengHei',Arial,sans-serif; font-size:1.82rem; line-height:1.4; letter-spacing:1px; color:#35507d; margin-top:48px; }
+.info-section { margin-top:0; padding-top:32px; }
+/* 卡片樣式 */
+.card-soft { border: none; border-radius: 18px; background: #ffffff; box-shadow: 0 6px 18px rgba(0,0,0,.08); overflow:hidden; }
+.card-soft-header { background: linear-gradient(135deg,#6b8ce3,#4864b8); color:#fff; padding:.75rem 1rem; font-weight:600; letter-spacing:1px; display:flex; align-items:center; gap:.5rem; font-size:1.2rem; }
+#ContactMessage { font-size:1.1rem; }
+.contact-list { list-style:none; padding:0; margin:0; }
+.contact-list li { display:flex; gap:.85rem; padding:.7rem .4rem; align-items:flex-start; font-size:1.1rem; border-bottom:1px dashed #e2e6f0; }
+.contact-list li:last-child { border-bottom:none; }
+.contact-icon { width:36px; text-align:center; font-size:1.25rem; color:#4864b8; }
+.contact-text { flex:1; line-height:1.55; font-weight:500; }
+.action-buttons { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:1.25rem; justify-content:center; }
+.action-buttons .btn { border-radius:30px; padding:.65rem 1.4rem; font-weight:600; letter-spacing:1px; box-shadow:0 4px 12px rgba(0,0,0,.12); transition:.25s; }
+.action-buttons .btn-primary { background:#4864b8; }
+.action-buttons .btn-outline-light { background:#fff; color:#4864b8; border:2px solid #4864b8; }
+.action-buttons .btn:hover { transform:translateY(-3px); }
+.footer-note { text-align:center; font-size:.75rem; color:#777; margin:2.5rem 0 .5rem; }
+.logo-faith { font-size:2.2rem; animation: pulse 3.5s infinite; }
+@keyframes pulse {0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}
+
 /* ===== 動畫效果 ===== */
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -171,4 +198,7 @@ body {
     overflow: visible; /* 超出不隱藏 */
     text-overflow: unset; /* 不顯示省略號 */
   }
-}}}}}
+}
+
+/* Toast 排版修飾不在這裡, DevExtreme 自己處理 */
+@media (max-width:575.98px){ .hero-overlay h1 { font-size:1.55rem; } .hero-wrapper{height:280px;} .card-soft-header{font-size:.95rem;} }

@@ -201,6 +201,7 @@
        method="post"                 → 使用 HTTP POST 方式傳送資料
        ══════════════════════════════════════════════════════════════════════════ *@
     <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveQualificationData" asp-controller="Home" method="post" style="text-align: center;">
+        <input type="hidden" id="LineUserIdField" name="LineUserId" value="" />
 
         <div class="dx-field" style="text-align: center;">
             <div class="form-container-class" id="form-container" style="text-align: center;">
@@ -795,6 +796,7 @@
                     // 將 LINE 資料存入全域變數
                     DisplayName = profile.displayName;  // LINE 顯示名稱
                     UserId = profile.userId;             // LINE 用戶 ID（最重要，用來查詢 CRM）
+                    document.getElementById('LineUserIdField').value = UserId; // ✅ 填入隱藏欄位供表單 POST 使用
                     //alert("測試 UserId =" + UserId);
                     GroupId = profile.aGroupId;          // 群組 ID
                     RoomId = profile.aRoomId;            // 聊天室 ID

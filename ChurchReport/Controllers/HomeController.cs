@@ -563,9 +563,53 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
+        /// 取得資格設定資料（信仰狀態、性別、生日、身分證字號），由 LIFF JavaScript 透過 AJAX 呼叫。
+        /// 使用真實的 LINE UserId 查詢 CRM 聯絡人並將結果存入 Session 快取。
+        /// </summary>
+        /// <param name="UserLineId">LINE 用戶真實 UserId（由 liff.getProfile() 取得）</param>
+        /// <param name="GroupId">LINE 群組 ID</param>
+        /// <param name="RoomId">LINE 聊天室 ID</param>
+        /// <param name="ViewType">開啟頁面方式</param>
+        [HttpPost]
+        [Route("/Home/GetQualificationData")]
+        public IActionResult GetQualificationData(string UserLineId, string GroupId, string RoomId, string ViewType)
+        {
+            try
+            {
+                var viewModel = InMemoryContext.LineBindingViewModel;
+
+                string faithStatus = string.Empty;
+                string genderCode  = string.Empty;
+                DateTime birthDate = default;
+                string personalId  = string.Empty;
+
+                viewModel.GetContactInfomation(UserLineId, ref faithStatus, ref genderCode, ref birthDate, ref personalId);
+
+                viewModel.FaithStatus  = faithStatus;
+                viewModel.GenderCode   = genderCode;
+                viewModel.BirthDate    = birthDate;
+                viewModel.PersonalId   = personalId;
+                viewModel.LineUserId   = UserLineId;
+
+                return Json(new
+                {
+                    faithStatus = viewModel.FaithStatus,
+                    genderCode  = viewModel.GenderCode,
+                    birthDate   = viewModel.BirthDate,
+                    personalId  = viewModel.PersonalId
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[HomeController.GetQualificationData] 錯誤: {ex.Message}");
+                return Json(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// 儲存資格設定資料（信仰狀態、性別、生日、身分證字號）
         /// </summary>
-        /// <param name="aLineBindingViewModel">表單資料</param>
+        /// <param name="aLineBindingViewModel">表單資料（包含 LineUserId）</param>
         [HttpPost]
         [Route("/Home/SaveQualificationData")]
         public IActionResult SaveQualificationData(LineBindingViewModel aLineBindingViewModel)
@@ -574,10 +618,23 @@ namespace ChurchReport.Controllers
             {
                 var viewModel = InMemoryContext.LineBindingViewModel;
 
-                viewModel.FaithStatus   = aLineBindingViewModel.FaithStatus;
-                viewModel.GenderCode    = aLineBindingViewModel.GenderCode;
-                viewModel.BirthDate     = aLineBindingViewModel.BirthDate;
-                viewModel.PersonalId    = aLineBindingViewModel.PersonalId;
+                // 若 m_Contact 為 null（Session 過期或尚未載入），以表單傳入的 LineUserId 重新查詢
+                if (viewModel.m_Contact == null && !string.IsNullOrEmpty(aLineBindingViewModel.LineUserId))
+                {
+                    string faithStatus = string.Empty;
+                    string genderCode  = string.Empty;
+                    DateTime birthDate = default;
+                    string personalId  = string.Empty;
+
+                    viewModel.GetContactInfomation(
+                        aLineBindingViewModel.LineUserId,
+                        ref faithStatus, ref genderCode, ref birthDate, ref personalId);
+                }
+
+                viewModel.FaithStatus = aLineBindingViewModel.FaithStatus;
+                viewModel.GenderCode  = aLineBindingViewModel.GenderCode;
+                viewModel.BirthDate   = aLineBindingViewModel.BirthDate;
+                viewModel.PersonalId  = aLineBindingViewModel.PersonalId;
 
                 viewModel.UpdateContactInfomation(
                     viewModel.FaithStatus,
@@ -586,12 +643,12 @@ namespace ChurchReport.Controllers
                     viewModel.PersonalId
                 );
 
-                return Json(new { status = "1", message = "? 資料儲存成功！" });
+                return Json(new { status = "1", message = "資料儲存成功！" });
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[HomeController.SaveQualificationData] 錯誤: {ex.Message}");
-                return Json(new { status = "0", message = $"? 儲存失敗：{ex.Message}" });
+                return Json(new { status = "0", message = $"儲存失敗：{ex.Message}" });
             }
         }
 
