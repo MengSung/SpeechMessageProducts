@@ -571,10 +571,11 @@
     <script>
 
         // ─────────────────────────────────────────────────────────────────────
-        // 全域變數：信仰狀態選項清單
-        // 說明：預設的信仰狀態清單，頁面載入後會呼叫 API 取得最新的清單並覆蓋
+        // 全域變數
         // ─────────────────────────────────────────────────────────────────────
         var spiritualIdentityDataSource = ["-未知-", "基督徒", "已決志", "慕道友", "未信主"]; // 預設值
+        var _liffId  = '@TempData["Proponent"]';           // ✅ LIFF ID（從 Controller 設定）
+        var cleanUrl = window.location.href.split('?')[0]; // ✅ 用於 liff.login() redirectUri
 
         /**
          * 頁面 DOM 載入完成後執行的初始化函數
@@ -673,66 +674,94 @@
         }
 
         /**
-         * 頁面（含所有資源）完全載入後執行的 LIFF 初始化函數
-         * 說明：window.onload 在所有資源（含圖片）都載入完才執行
-         *
-         * 📚 window.onload vs $(document).ready() 的差異：
-         *   - $(document).ready() → HTML 結構載入完就執行（不等圖片）
-         *   - window.onload       → 所有資源（含圖片）都載入完才執行
-         *
-         * 初始化流程：
-         *   1. 呼叫 liff.init() 初始化 LIFF
-         *   2. 確認用戶已登入 LINE
-         *   3. 確認用戶已授權（同意提供個人資料）
-         *   4. 呼叫 initializeApp() 取得用戶資料
-         *
-         * @@param {Event} e - 頁面載入完成事件
+         * 頁面完全載入後執行的 LIFF 初始化函數
+         * 說明：比照 LineIdLoginView 模式，先驗證 liffId 是否存在，
+         *       再呼叫 liff.init()，確保不會丟出「liffId is necessary」錯誤
          */
-        window.onload = function (e)
-        {
-            // liff.init() 初始化 LIFF 環境
-            // liffId 從 TempData["Proponent"] 取得（由 Controller 在 Server 端設定）
-            liff.init({ liffId:  '@TempData["Proponent"]' })
-                .then(() =>
-                {
-                    // ✅ LIFF 初始化成功，開始檢查登入狀態
-                    if (!liff.isLoggedIn())
-                    {
-                        // ❌ 用戶尚未登入 LINE
-                        document.getElementById('displaynamefield').innerHTML = "您還沒有登入LINE";
+        window.onload = function (e) {
 
-                        ShowToast("您還沒有登入LINE", "error", 5000);
+            // ① 空值防護：liffId 不存在時提早結束並告知用戶
+            if (!_liffId || _liffId.trim() === '') {
+                document.getElementById('displaynamefield').innerHTML = "LIFF ID 未設定，請確認連結是否正確";
+                ShowToast("連結有誤，請重新從 LINE 開啟", "error", 5000);
+                return;
+            }
 
-                        // 導向 LINE 登入頁面
-                        liff.login();
+            document.getElementById('displaynamefield').innerHTML = '正在確認身分...';
 
-                        return;
-                    }
-                    else
-                    {
-                        // ✅ 用戶已登入，進一步確認授權狀態
-                        liff.permission.query("profile").then((permissionStatus) => {
-                            if (permissionStatus.state === "granted") {
-                                // ✅ 用戶已授權，開始初始化應用程式
-                                initializeApp();
-                            }
-                            else if (permissionStatus.state === "prompt") {
-                                // ⚠️ 用戶尚未授權，請求用戶授權
-                                document.getElementById('displaynamefield').innerHTML = "您並未授權，請先完成授權程序!";
-                                liff.permission.requestAll();
-                            }
-                            else {
-                                // ❌ LIFF Scope 未設定，無法取得 profile
-                                document.getElementById('displaynamefield').innerHTML = "Liff Scope沒有設定，所以無法操作!";
-                            }
-                        });
-                    }
+            // ② 初始化 LIFF
+            liff.init({ liffId: _liffId })
+                .then(() => {
+                    useLiffSdkForQualification();
                 })
-                .catch(error => {
-                    // ❌ LIFF 初始化失敗，顯示錯誤訊息
-                    document.getElementById('displaynamefield').innerHTML = "錯誤:" + error;
+                .catch(function (error) {
+                    console.error('[LIFF Init Error]', error);
+                    document.getElementById('displaynamefield').innerHTML = "LIFF 初始化失敗：" + error;
+                    ShowToast("初始化失敗，請重新從 LINE 開啟", "error", 5000);
                 });
         };
+
+        /**
+         * 使用 LIFF SDK 取得用戶資料（資格設定用）
+         * 說明：比照 LineIdLoginView 的 useLiffSdk()，
+         *       先確認登入狀態，再呼叫 ensureProfilePermissionAndRun()
+         */
+        function useLiffSdkForQualification() {
+            var isLoggedIn = false;
+            var token      = null;
+
+            try { isLoggedIn = liff.isLoggedIn();      } catch (e) { }
+            try { token      = liff.getAccessToken();  } catch (e) { token = null; }
+
+            if (isLoggedIn || token) {
+                ensureProfilePermissionAndRun();
+                return;
+            }
+
+            // 尚未登入，導向 LINE Login
+            document.getElementById('displaynamefield').innerHTML = '您尚未登入 LINE';
+            ShowToast("您還沒有登入LINE", "error", 5000);
+
+            setTimeout(function () {
+                try {
+                    liff.login({ redirectUri: cleanUrl });
+                } catch (e) {
+                    console.error('[LIFF Login Error]', e);
+                    document.getElementById('displaynamefield').innerHTML = "登入失敗：" + e;
+                }
+            }, 600);
+        }
+
+        /**
+         * 確認 profile 授權後執行主程式
+         * 說明：比照 LineIdLoginView 的 ensureProfilePermissionAndRun()，
+         *       統一處理 granted / prompt / denied 三種授權狀態
+         */
+        async function ensureProfilePermissionAndRun() {
+            try {
+                var permissionStatus = await liff.permission.query('profile');
+
+                if (permissionStatus && permissionStatus.state === 'granted') {
+                    initializeApp();
+                    return;
+                }
+
+                if (permissionStatus && permissionStatus.state === 'prompt') {
+                    document.getElementById('displaynamefield').innerHTML = "您並未授權，請先完成授權程序!";
+                    try { liff.permission.requestAll(); } catch (e) { }
+                    setTimeout(function () { initializeApp(); }, 800);
+                    return;
+                }
+
+                // denied：Liff Scope 未設定
+                document.getElementById('displaynamefield').innerHTML = "Liff Scope沒有設定，所以無法操作!";
+
+            } catch (e) {
+                // permission API 不可用，直接嘗試取得 Profile
+                console.warn('[Permission Query Error]', e);
+                initializeApp();
+            }
+        }
 
 
         // ─────────────────────────────────────────────────────────────────────
