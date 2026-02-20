@@ -82,21 +82,25 @@ namespace ChurchReport.ViewModel
             }
         }
 
-        public void UpdateContactInfomation(String FaithStatus, String GenderCode, DateTime BirthDate, String PersonalId )
+        public void UpdateContactInfomation(string lineUserId, String FaithStatus, String GenderCode, DateTime BirthDate, String PersonalId)
         {
             if (m_Contact == null)
             {
-                return;
-            }
-            else
-            {
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref this.m_Contact, "new_spiriitual_identity", GetFaithStatusIndex(FaithStatus));
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref this.m_Contact, "gendercode", GetGenderCodeIndex(GenderCode));
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref this.m_Contact, "birthdate", BirthDate.ToLocalTime());
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref this.m_Contact, "new_personal_id", PersonalId );
+                if (string.IsNullOrEmpty(lineUserId))
+                    throw new InvalidOperationException("m_Contact 未設定且 lineUserId 為空，無法儲存資料。");
 
-                this.m_ToolUtilityClass.UpdateEntity(ref this.m_Contact);
+                m_Contact = this.m_ToolUtilityClass.RetrieveContactByLineId(lineUserId);
+
+                if (m_Contact == null)
+                    throw new InvalidOperationException($"找不到 LINE UserId [{lineUserId}] 對應的聯絡人，無法儲存資料。");
             }
+
+            this.m_ToolUtilityClass.SetOptionSetAttribute(ref this.m_Contact, "new_spiriitual_identity", GetFaithStatusIndex(FaithStatus));
+            this.m_ToolUtilityClass.SetOptionSetAttribute(ref this.m_Contact, "gendercode", GetGenderCodeIndex(GenderCode));
+            this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref this.m_Contact, "birthdate", BirthDate.ToLocalTime());
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref this.m_Contact, "new_personal_id", PersonalId);
+
+            this.m_ToolUtilityClass.UpdateEntity(ref this.m_Contact);
         }
 
 

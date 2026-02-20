@@ -618,25 +618,13 @@ namespace ChurchReport.Controllers
             {
                 var viewModel = InMemoryContext.LineBindingViewModel;
 
-                // 若 m_Contact 為 null（Session 過期或尚未載入），以表單傳入的 LineUserId 重新查詢
-                if (viewModel.m_Contact == null && !string.IsNullOrEmpty(aLineBindingViewModel.LineUserId))
-                {
-                    string faithStatus = string.Empty;
-                    string genderCode  = string.Empty;
-                    DateTime birthDate = default;
-                    string personalId  = string.Empty;
-
-                    viewModel.GetContactInfomation(
-                        aLineBindingViewModel.LineUserId,
-                        ref faithStatus, ref genderCode, ref birthDate, ref personalId);
-                }
-
                 viewModel.FaithStatus = aLineBindingViewModel.FaithStatus;
                 viewModel.GenderCode  = aLineBindingViewModel.GenderCode;
                 viewModel.BirthDate   = aLineBindingViewModel.BirthDate;
                 viewModel.PersonalId  = aLineBindingViewModel.PersonalId;
 
                 viewModel.UpdateContactInfomation(
+                    aLineBindingViewModel.LineUserId,
                     viewModel.FaithStatus,
                     viewModel.GenderCode,
                     viewModel.BirthDate,
