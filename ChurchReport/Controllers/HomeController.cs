@@ -518,6 +518,16 @@ namespace ChurchReport.Controllers
             {
                 var viewModel = InMemoryContext.LineBindingViewModel;
 
+                // ─── 設定輪播圖片清單（Gallery 跑馬燈必要）───
+                viewModel.Images = new System.Collections.Generic.List<string>
+                {
+                    Url.Content("~/assets/images/church-001.jpg"),
+                    Url.Content("~/assets/images/church-002.jpg")
+                };
+
+                // ─── 設定 LIFF ID（View 中 liff.init() 必要）───
+                TempData["Proponent"] = lineIdLoginViewParameter;
+
                 // 使用參數查詢聯絡人資訊
                 if (!string.IsNullOrEmpty(lineIdLoginViewParameter))
                 {
