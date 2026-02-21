@@ -1,33 +1,258 @@
-// ========================================
-// ✅ P0: 電腦版 LINE 登入方案（Server-side OAuth 2.0）
-// ========================================
-// 策略：偵測環境，根據環境選擇登入方式
-// 1. 手機版 LINE / 外部瀏覽器 → 使用原有的 LIFF SDK
-// 2. 電腦版 LINE 內建瀏覽器 → 使用 Server-side LINE Login OAuth 2.0
+// ============================================================
+// LineIdLoginView.js
+// LINE ID 登入頁面的所有 JavaScript 邏輯
+//
+// 依賴（由 LineIdLoginView.cshtml 的 config 區塊提供）：
+//   LINE_LOGIN_CFG.liffId            - LIFF App ID
+//   LINE_LOGIN_CFG.saveUserLineIdUrl - SaveUserLineId 端點 URL
+// ============================================================
 
-// Scripts moved from LineIdLoginView.cshtml:
-// <script src="~/lib/jquery/dist/jquery.js"></script>
-// <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
-// <!-- DevExtreme Globalization -->
-// <script src="~/js/devextreme/cldr.js"></script>
-// <script src="~/js/devextreme/cldr/event.js"></script>
-// <script src="~/js/devextreme/cldr/supplemental.js"></script>
-// <script src="~/js/devextreme/cldr/unresolved.js"></script>
-// <script src="~/js/devextreme/globalize.js"></script>
-// <script src="~/js/devextreme/globalize/message.js"></script>
-// <script src="~/js/devextreme/globalize/number.js"></script>
-// <script src="~/js/devextreme/globalize/currency.js"></script>
-// <script src="~/js/devextreme/globalize/date.js"></script>
-// <!-- DevExtreme Core -->
-// <script src="~/js/devextreme/dx.all.js"></script>
-// <script src="~/js/devextreme/vectormap-data/world.js"></script>
-// <script src="~/lib/devextreme-aspnet-data/js/dx.aspnet.data.js"></script>
-// <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
-// <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
-// <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-// <script src="~/js/LineIdLoginView.js"></script>
-
+// ──────────────────────────────────────────────
+// DevExtreme LoadPanel 輔助函數
+// ──────────────────────────────────────────────
 function getLoadPanelInstance() { return $("#loadPanel").dxLoadPanel("instance"); }
+function loadPanel_show() { getLoadPanelInstance().show(); }
+function loadPanel_hide() { getLoadPanelInstance().hide(); }
+
+function ShowLoadPanel(message) {
+    var lp = getLoadPanelInstance();
+    lp.option('message', message);
+    lp.show();
+}
+
+// ──────────────────────────────────────────────
+// DevExtreme Toast 輔助函數
+// ──────────────────────────────────────────────
+function ShowToast(message, type, displayTime) {
+    var toast = $("#Toast").dxToast("instance");
+    toast.option('message', message);
+    toast.option('type', type);
+    toast.option('displayTime', displayTime);
+    toast.option('closeOnClick', true);
+    toast.show();
+}
+
+// ──────────────────────────────────────────────
+// 頁面導覽輔助函數
+// ──────────────────────────────────────────────
+function Binding() { window.location.href = "/Authentication/LineLiffView/1653819697-YkPyPkr6"; }
+function Login()   { window.location.href = "/Authentication/Login"; }
+
+// ──────────────────────────────────────────────
+// 全域狀態變數
+// ──────────────────────────────────────────────
+var urlParams   = new URLSearchParams(window.location.search);
+var cleanUrl    = window.location.href.split('?')[0];
+var UserId      = "";
+var GroupId     = "";
+var RoomId      = "";
+var DisplayName = "";
+var ViewType    = "";
+
+// ============================================================
+// 頁面載入入口
+// ============================================================
+window.onload = function () {
+    document.getElementById('displaynamefield').innerHTML = '正在準備 LINE 登入...';
+
+    // 方案 A：一律使用 Server-side OAuth（推薦，最穩定）
+    // useServerSideOAuth();
+
+    // 方案 B：根據環境選擇（目前啟用）
+    detectEnvironmentAndChooseMethod();
+};
+
+// ============================================================
+// 方案 A：Server-side OAuth 2.0
+// ============================================================
+function useServerSideOAuth() {
+    console.log('[LINE Login] 使用 Server-side OAuth 2.0');
+    document.getElementById('displaynamefield').innerHTML = '正在導向 LINE 登入...';
+    ShowToast('正在導向 LINE 登入...', 'info', 2000);
+
+    setTimeout(function () {
+        window.location.href = '/Authentication/LineLoginStart';
+    }, 500);
+}
+
+// ============================================================
+// 方案 B：根據環境選擇登入方式
+// ============================================================
+function detectEnvironmentAndChooseMethod() {
+    liff.init({ liffId: LINE_LOGIN_CFG.liffId })
+        .then(async function () {
+            var os = '';
+            var isInClient = false;
+
+            try { os = liff.getOS(); }              catch (e) { }
+            try { isInClient = liff.isInClient(); } catch (e) { }
+
+            console.log('[LIFF Detection]', { os: os, isInClient: isInClient });
+
+            if (os === 'web' || !isInClient) {
+                console.log('[LINE Login] 電腦版環境，使用 Server-side OAuth');
+                useServerSideOAuth();
+            } else {
+                console.log('[LINE Login] 手機版環境，使用 LIFF SDK');
+                useLiffSdk();
+            }
+        })
+        .catch(function (error) {
+            console.error('[LIFF Init Error]', error);
+            useServerSideOAuth();
+        });
+}
+
+// ============================================================
+// LIFF SDK 流程（手機版 LINE 用）
+// ============================================================
+function useLiffSdk() {
+    var isLoggedIn = false;
+    var token = null;
+
+    try { isLoggedIn = liff.isLoggedIn(); }  catch (e) { }
+    try { token = liff.getAccessToken(); }    catch (e) { token = null; }
+
+    if (isLoggedIn || token) {
+        ensureProfilePermissionAndRun();
+        return;
+    }
+
+    document.getElementById('displaynamefield').innerHTML = '您尚未登入 LINE';
+    ShowToast('您尚未登入 LINE，將為您導向登入…', 'warning', 2500);
+
+    setTimeout(function () {
+        try {
+            liff.login({ redirectUri: cleanUrl });
+        } catch (e) {
+            console.error('[LIFF Login Error]', e);
+            useServerSideOAuth();
+        }
+    }, 600);
+}
+
+async function ensureProfilePermissionAndRun() {
+    try {
+        var status = await liff.permission.query('profile');
+
+        if (status && status.state === 'granted') {
+            initializeApp();
+            return;
+        }
+        if (status && status.state === 'prompt') {
+            document.getElementById('displaynamefield').innerHTML = '請授權取得基本資料';
+            try { liff.permission.requestAll(); } catch (e) { }
+            setTimeout(function () { initializeApp(); }, 800);
+            return;
+        }
+    } catch (e) {
+        // permission API 不可用，直接嘗試
+    }
+
+    initializeApp();
+}
+
+// ============================================================
+// 取得 LINE 個人資料並啟動登入流程
+// ============================================================
+async function initializeApp() {
+    try {
+        const profile = await liff.getProfile();
+
+        document.getElementById('displaynamefield').innerHTML =
+            "歡迎 " + profile.displayName + " 登入<br/>" +
+            "願神永遠祝福 " + profile.displayName + "<br/>" +
+            "約需10~15秒，感謝您的耐心等候!";
+
+        loadPanel_show();
+
+        DisplayName = profile.displayName;
+        UserId      = profile.userId;
+        GroupId     = profile.aGroupId || "";
+        RoomId      = profile.aRoomId  || "";
+        ViewType    = profile.aViewType || "";
+
+        console.log('[LINE Profile]', { DisplayName, UserId, GroupId, RoomId, ViewType });
+
+        UpdateLineUserId(UserId, GroupId, RoomId, ViewType);
+    } catch (error) {
+        console.error('[Get Profile Error]', error);
+        document.getElementById('displaynamefield').innerHTML = "取得個人資料錯誤: " + error.message;
+        ShowToast("取得個人資料失敗", "error", 3000);
+        loadPanel_hide();
+    }
+}
+
+// ============================================================
+// AJAX：送出 LINE UserId 至伺服器並依回傳結果導頁
+// ============================================================
+function UpdateLineUserId(aUserLineId, aGroupId, aRoomId, aViewType) {
+    console.log('[UpdateLineUserId]', { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType });
+
+    $.ajax({
+        url: LINE_LOGIN_CFG.saveUserLineIdUrl,
+        data: { UserLineId: aUserLineId, GroupId: aGroupId, RoomId: aRoomId, ViewType: aViewType },
+        type: 'POST',
+        dataType: 'json',
+        timeout: 30000,
+        success: function (data) {
+            console.log('[AJAX Success]', data);
+
+            if (data.message !== "尚未綁定") {
+                ShowToast(data.message, "success", 1600);
+
+                if (data.DisplayViewType === "MultiGroupView") {
+                    window.location.href = "/SmallGroup/MultiGroupView/" + data.ActiveListId;
+                } else if (data.DisplayViewType === "IntegrateView") {
+                    window.location.href = "/SmallGroup/IntegrateView/" + data.ActiveListId;
+                } else if (data.DisplayViewType === "HappyGroupView") {
+                    window.location.href = "/SmallGroup/HappyGroup";
+                } else {
+                    console.error('[導向錯誤] 未知的視圖類型:', data.DisplayViewType);
+                    ShowToast("登入錯誤: 未知的視圖類型", "error", 3000);
+                    loadPanel_hide();
+                    document.getElementById('displaynamefield').innerHTML =
+                        "登入錯誤: 未知的視圖類型<br/><small>DisplayViewType=" + data.DisplayViewType + "</small>";
+                }
+            } else {
+                console.warn('[未綁定]', data.message);
+                ShowToast(data.message, "warning", 2200);
+                loadPanel_hide();
+                document.getElementById('displaynamefield').innerHTML = "尚未綁定帳號<br/>請先完成綁定程序";
+
+                setTimeout(function () {
+                    window.location.href = "/Authentication/LineLiffView/1653819697-YkPyPkr6";
+                }, 3000);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('[AJAX Error]', { status: status, error: error, statusCode: xhr.status });
+            loadPanel_hide();
+
+            var errorMessage = "登入失敗";
+            if      (xhr.status === 0)    errorMessage = "網路連線失敗，請檢查網路設定";
+            else if (xhr.status === 404)  errorMessage = "找不到登入頁面 (404)";
+            else if (xhr.status === 500)  errorMessage = "伺服器錯誤 (500)";
+            else if (status === 'timeout') errorMessage = "連線逾時，請稍後再試";
+            else if (xhr.responseText) {
+                try {
+                    var errData = JSON.parse(xhr.responseText);
+                    errorMessage = errData.message || errorMessage;
+                } catch (e) {
+                    errorMessage = "伺服器回應錯誤";
+                }
+            }
+
+            ShowToast(errorMessage, "error", 4000);
+            document.getElementById('displaynamefield').innerHTML =
+                errorMessage + "<br/><small>錯誤代碼: " + xhr.status + "</small>";
+
+            setTimeout(function () {
+                window.location.href = "/Authentication/Login";
+            }, 5000);
+        }
+    });
+}
 function loadPanel_show() { getLoadPanelInstance().show(); }
 function loadPanel_hide() { getLoadPanelInstance().hide(); }
 function Binding() { window.location.href = "/Authentication/LineLiffView/1653819697-YkPyPkr6"; }
