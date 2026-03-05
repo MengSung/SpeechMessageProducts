@@ -89,22 +89,21 @@ namespace ChurchReport.WebServiceConnector
             #region 先根據日期尋找當週主日日期
             // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
             int DayOfWeek = (int)aDownloadDate.DayOfWeek;
-            // 每周以星期六為第一日
-            if (DayOfWeek != 6)
-            {
-                // 如果不是星期六則是上個星期天
-                m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
-            }
-            else
-            {
-                // 如果是星期六則是下個星期天
-                m_Sunday = aDownloadDate.AddDays(1);
-            }
+			// 每周以星期一為第一日
+			if (DayOfWeek > 0)
+			{
+				// 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
+				m_Sunday = aDownloadDate.AddDays(-DayOfWeek + 7).ToLocalTime();
+			}
+			else
+			{
+				// 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
+				m_Sunday = aDownloadDate.AddDays(-DayOfWeek).ToLocalTime();
+			}
+			#endregion
 
-            #endregion
-
-            #region 找小組長及其ID
-            FindGroupLeader(aAccountPasswordData);
+			#region 找小組長及其ID
+			FindGroupLeader(aAccountPasswordData);
             if (m_ContactId == Guid.Empty) //是否有找到小組長的ID
             { return null; } // 沒找到就回傳 null 
             #endregion
@@ -296,21 +295,21 @@ namespace ChurchReport.WebServiceConnector
             #region 先根據日期尋找當週主日日期
             // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
             int DayOfWeek = (int)aDownloadDate.DayOfWeek;
-            // 每周以星期六為第一日
-            if (DayOfWeek != 6)
-            {
-                // 如果不是星期六則是上個星期天
-                m_Sunday = aDownloadDate.AddDays(-DayOfWeek);
-            }
-            else
-            {
-                // 如果是星期六則是下個星期天
-                m_Sunday = aDownloadDate.AddDays(1);
-            }
-            #endregion
+			// 每周以星期一為第一日
+			if (DayOfWeek > 0)
+			{
+				// 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
+				m_Sunday = aDownloadDate.AddDays(-DayOfWeek + 7).ToLocalTime();
+			}
+			else
+			{
+				// 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
+				m_Sunday = aDownloadDate.AddDays(-DayOfWeek).ToLocalTime();
+			}
+			#endregion
 
-            #region 找小組長及其ID
-            FindGroupLeader(aAccountPasswordData);
+			#region 找小組長及其ID
+			FindGroupLeader(aAccountPasswordData);
             if (m_ContactId == Guid.Empty) //是否有找到小組長的ID
             { return null; } // 沒找到就回傳 null 
             #endregion

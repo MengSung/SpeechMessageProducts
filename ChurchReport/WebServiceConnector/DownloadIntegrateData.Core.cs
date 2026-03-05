@@ -127,17 +127,18 @@ namespace ChurchReport.WebServiceConnector
         {
             int dayOfWeek = (int)date.DayOfWeek;
 
-            // 每周以星期六為第一日
-            if (dayOfWeek != 6)
+            // 每周以星期一為第一日
+            if (dayOfWeek > 0)
             {
-                // 如果不是星期六則是上個星期天
-                return date.AddDays(-dayOfWeek);
+                // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
+                return date.AddDays(-dayOfWeek + 7).ToLocalTime();
             }
             else
             {
-                // 如果是星期六則是下個星期天
-                return date.AddDays(1);
+                // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
+                return date.AddDays(-dayOfWeek).ToLocalTime();
             }
+
         }
 
         /// <summary>

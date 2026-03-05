@@ -88,23 +88,22 @@ namespace ChurchReport.Tools
                 int DayOfWeek = (int)aDownloadDate.DayOfWeek;
 
                 // 當週的星期日為認定的主日
-                //this.m_Sunday = DateTime.Now.AddDays(-DayOfWeek);
                 DateTime aSunday;
-                // 每周以星期六為第一日
-                if (DayOfWeek != 6)
-                {
-                    // 如果不是星期六則是上個星期天
-                    aSunday = aDownloadDate.AddDays(-DayOfWeek);
-                }
-                else
-                {
-                    // 如果是星期六則是下個星期天
-                    aSunday = aDownloadDate.AddDays(1);
-                }
-                #endregion
+				// 每周以星期一為第一日
+				if (DayOfWeek > 0)
+				{
+					// 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
+					aSunday = aDownloadDate.AddDays(-DayOfWeek + 7).ToLocalTime();
+				}
+				else
+				{
+					// 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
+					aSunday = aDownloadDate.AddDays(-DayOfWeek).ToLocalTime();
+				}
+				#endregion
 
-                #region 找登入使用者及其ID
-                m_ContactId = aLoginContact.Id;
+				#region 找登入使用者及其ID
+				m_ContactId = aLoginContact.Id;
                 m_ContactEntity = m_ToolUtilityClass.RetrieveEntity("contact", m_ContactId);
                 #endregion
 
