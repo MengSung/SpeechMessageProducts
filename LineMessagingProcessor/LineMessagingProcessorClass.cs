@@ -23,7 +23,7 @@ namespace LineMessagingProcessor
         // 理債一日便
         //String m_ChannelAccessToken = "Bearer " + "0NhRlPIi85qb3pfJbhcyP+Y4Tw+F/Jz0kjHqzfvduTtdzlNOf9NJQW8DZ2NXpEWmpGYvEUQwekGNaoGtwKlu3+ugco6lu8QNGs1P14YeFRG3OSuXktpRt7atnYqMEl7ABYxgBSCq52pMVx58F/RpzwdB04t89/1O/w1cDnyilFU=";
 
-        // 好牧人
+        // 行道會聖谷教會
         // String m_ChannelAccessToken = "Bearer " + "YTd17Eep3V5/nSaI1lxLW5vx//gOfVr21kpnpZ6RBOfvFrjhJYpvtmCIy7yxDi2tQ2cfP/6qGJ9raS72VwN7xhGjneynJHpCRrgJbz4GqMGMMEjLAcVB+hRRNCTNkMOY3rYyyN/W+/sTAx3HzzhsPgdB04t89/1O/w1cDnyilFU=";
 
         // 樹林教會
@@ -32,13 +32,13 @@ namespace LineMessagingProcessor
         // 順風美醫診所
         //String m_ChannelAccessToken = "Bearer " + "s+583b2Rgbv4APgXhkNVpmx+wlaU04wWh82c/6i5Tyjsqh6SBQdBUjLc3b9C9tk4XK+1/TOeetLqFR+KdNromuUaS1Ih/T7gfXS3U/IRY0XqiQCYhrOC0TYKjeFuiDhAHpGidPcimIb6oVkqo5jBDQdB04t89/1O/w1cDnyilFU=";
 
-        // 好牧人(測試版)
+        // 行道會聖谷教會(測試版)
         //String m_ChannelAccessToken = "Bearer " + "/iNy46gPp/ZXokg1Vr9RV/ZjodE3i7Q2o+k9nlH7l3pV8WzjAegGDduZc7gms8X5zrjSrDy2xSdNFud7JqjSDjwcTXZ6MJ/FF3NuhVg6WuXmMT34gAO7VZ0RWYrHXwAifVKpOyh2/8LiGgBpfo4ZXQdB04t89/1O/w1cDnyilFU=";
 
-        // 好牧人
+        // 行道會聖谷教會
         //String m_ChannelAccessToken = "Bearer " + "s+583b2Rgbv4APgXhkNVpmx+wlaU04wWh82c/6i5Tyjsqh6SBQdBUjLc3b9C9tk4XK+1/TOeetLqFR+KdNromuUaS1Ih/T7gfXS3U/IRY0XqiQCYhrOC0TYKjeFuiDhAHpGidPcimIb6oVkqo5jBDQdB04t89/1O/w1cDnyilFU=";
 
-        // 好牧人(進階版)
+        // 行道會聖谷教會(進階版)
         //String m_ChannelAccessToken = "Bearer " + "a5bB4sunKwoZGjbf0HvFnenCpiABmzIT6rGU4rQ25QAqDhxj8Wa+RwXKQN2CZVC3lSk2sZ2n5bqzCcvaa8J/DIOzUdLUUgq1wF6SIvcd0sL0uFWn0+XyaQXdii1QHvA4Lm+NU5wehU4zIhdxZaMMsAdB04t89/1O/w1cDnyilFU=";
 
         // 思恩堂豐富教會
@@ -106,7 +106,7 @@ namespace LineMessagingProcessor
 
                 m_UserId = aEvent["source"]["userId"];
 
-                await SendMessage(m_UserId, "歡迎加入好牧人");
+                await SendMessage(m_UserId, "歡迎加入行道會聖谷教會");
 
                 #endregion
             }
@@ -115,7 +115,7 @@ namespace LineMessagingProcessor
                 #region unfollow
 
                 m_UserId = aEvent["source"]["userId"];
-                await SendMessage(m_UserId, "期待您隨時回來好牧人粉絲團");
+                await SendMessage(m_UserId, "期待您隨時回來行道會聖谷教會粉絲團");
 
                 #endregion
             }

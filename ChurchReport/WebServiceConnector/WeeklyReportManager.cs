@@ -149,7 +149,7 @@ namespace ChurchReport.WebServiceConnector
                         //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
                         if (GroupWeeklyReportEntity != null)
                         {
-                            #region 好牧人
+                            #region 行道會聖谷教會
                             //if (( aWeeklyReport.ReligiousInvestigator = this.m_ToolUtilityClass.GetEntityIntAttribute(ref GroupWeeklyReportEntity, "new_number_of_seekers")) < 0 )
                             //{
                             //    aWeeklyReport.ReligiousInvestigator = 0;
@@ -169,14 +169,14 @@ namespace ChurchReport.WebServiceConnector
                             //aWeeklyReport.ProgressMethod = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_methods_and_number");
                             //aWeeklyReport.OneOnOne = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_onebynoe_and_number");
                             #endregion
-                            #region 楊梅好牧人
+                            #region 楊梅行道會聖谷教會
                             // 小組日誌
                             aWeeklyReport.WeeklyReportContent = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_memo");
                             #endregion
                         }
                         else
                         {
-                            #region 好牧人
+                            #region 行道會聖谷教會
                             //aWeeklyReport.ReligiousInvestigator = 0;
                             //aWeeklyReport.Baptized = 0;
                             //aWeeklyReport.FollowNumber = 0;
@@ -184,7 +184,7 @@ namespace ChurchReport.WebServiceConnector
                             //aWeeklyReport.PushMethod = "還未建立小家回報單";
                             //aWeeklyReport.OneOnOne = "還未建立小家回報單";
                             #endregion
-                            #region 楊梅好牧人
+                            #region 楊梅行道會聖谷教會
                             // 小組日誌
                             //aWeeklyReport.WeeklyReportContent = "還沒有點過名，所以沒有小組日誌，請先點過名之後，才能上傳小組日誌";
                             //aWeeklyReport.WeeklyReportContent = "沒有週報資料，您可能是小家長，但不是小組長，所以沒有小組長日誌需要回報";
@@ -224,7 +224,7 @@ namespace ChurchReport.WebServiceConnector
                     //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
                     if (GroupWeeklyReportEntity != null)
                     {
-                        #region 好牧人
+                        #region 行道會聖谷教會
 
                         // 出席紀錄
                         //aWeeklyReport.PresentContent = this.m_ToolUtilityClass.GetEntityStringAttribute(ref GroupWeeklyReportEntity, "new_sunday_present_report");
@@ -419,7 +419,7 @@ namespace ChurchReport.WebServiceConnector
                     return;
                 }
 
-                // 找到小家長小組名單集合 ，好牧人才有，因為是三層，好牧人並沒有
+                // 找到小家長小組名單集合 ，行道會聖谷教會才有，因為是三層，行道會聖谷教會並沒有
                 //aListEntityCollection = m_ToolUtilityClass.QueryListsAndOrderedByListName("contact", "contactid", m_ContactId.ToString(), "new_familyhead_list", "list");
                 //if (aListEntityCollection.Entities.Count > 0)
                 //{
@@ -600,7 +600,7 @@ namespace ChurchReport.WebServiceConnector
                             {
                                 //  族長   = new_contact_race_leager_list
                                 //  小組長 = new_contact_family_leader_list
-                                //  好牧人，因為好牧人沒有小家長
+                                //  行道會聖谷教會，因為行道會聖谷教會沒有小家長
                                 //Guid FamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_familyhead_list");
                                 Guid GroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ListEntity, "new_contact_family_leader_list");
 

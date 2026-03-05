@@ -368,7 +368,7 @@ namespace ChurchReport.Controllers
             try
             {
                 var lineProcessor = new LineMessagingProcessorClass();
-                lineProcessor.SendMessage(LINE_ERROR_RECEIVER_ID, $"好牧人: 錯誤 => {errorMessage}");
+                lineProcessor.SendMessage(LINE_ERROR_RECEIVER_ID, $"行道會聖谷教會: 錯誤 => {errorMessage}");
             }
             catch (Exception ex)
             {

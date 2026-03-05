@@ -22,7 +22,7 @@ namespace ChurchReport.文件
     public class MyPayController : Controller
     {
         #region 常數定義
-        private const string LINE_CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU="; // 用於 LINE 推播
+        private const string LINE_CHANNEL_ACCESS_TOKEN = @"OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU="; // 用於 LINE 推播
         private const string DYNAMICS_CONNECTION_NAME = "DYNAMICS365"; // CRM連線名稱
         private const int PAYMENT_STATUS_PAID =100000001; // new_pay_status: 信用卡已繳費
         private const int PAYMENT_METHOD_CREDIT_CARD =100000001; // new_pay_way: 信用卡
