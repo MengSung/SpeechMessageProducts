@@ -434,7 +434,7 @@ namespace ChurchReport.WebServiceConnector
 
                 if (string.IsNullOrEmpty(visitReply))
                 {
-                    return "🏠 探訪記錄:" + Environment.NewLine + "沒有進行任何探訪" + Environment.NewLine;
+                    return "⚠️ 探訪記錄:" + Environment.NewLine + "沒有進行任何探訪" + Environment.NewLine;
                 }
 
                 return "🏠 探訪記錄:" + Environment.NewLine + visitReply;
