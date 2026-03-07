@@ -197,6 +197,7 @@
                                 .Caption("探訪")
                                 .Width(120)
                                 .MinWidth(80)
+                                .AllowResizing(false)
                                 .Lookup(lookup => lookup
                                     .DataSource(new JS("visitDataSource"))
                                 );
@@ -616,3 +617,16 @@
         });
     });
 </script>
+
+<style>
+    /* 防止 iOS/行動瀏覽器在點擊輸入框時自動 zoom in
+       原因：瀏覽器在 font-size < 16px 的輸入框取得焦點時會自動縮放畫面
+       解法：強制 DevExtreme 所有輸入元素 font-size >= 16px */
+    .dx-texteditor-input,
+    .dx-selectbox-container input,
+    .dx-dropdowneditor-input-wrapper input,
+    .dx-checkbox-container,
+    select {
+        font-size: 16px !important;
+    }
+</style>
