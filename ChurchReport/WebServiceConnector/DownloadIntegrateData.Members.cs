@@ -395,6 +395,7 @@ namespace ChurchReport.WebServiceConnector
                 
                 // ¥X®u¸ê®Æ
                 PrayItem = attendanceInfo.Note,
+                Visit = attendanceInfo.Visit,
                 Sunday = attendanceInfo.SundayPresent,
                 SmallGroup = attendanceInfo.SmallGroupPresent,
                 PrayerMeeting = attendanceInfo.PrayerMeeting,
