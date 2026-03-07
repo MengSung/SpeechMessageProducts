@@ -109,66 +109,66 @@
                                         };
                                         var button = $("#save-button").dxButton("instance");
 
-                                        // ✅ 先儲存所有編輯中的資料
-                                        Object.values(grids).forEach(function(grid) {
-                                            if (grid && grid.saveEditData) grid.saveEditData();
-                                        });
-
                                         // ✅ 顯示載入面板（短暫）
                                         $("#loadPanel").dxLoadPanel("instance").show();
                                         button.option("disabled", true);
 
-                                        // ✅ 發送 AJAX 請求，但設定較短的超時時間
-                                        $.ajax({
-                                            url: '@Url.Action("SaveIntegrate", "SmallGroup")',
-                                            data: {
-                                                WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text'),
-                                                CheckBox: $("#CheckBoxId").length ? $("#CheckBoxId").dxCheckBox("instance").option("value") : false
-                                            },
-                                            type: 'POST',
-                                            timeout: 3000, // ✅ 設定 3 秒超時，不讓使用者等太久
-                                            success: function(response) {
-                                                // ✅ 立即隱藏載入面板並啟用按鈕
-                                                $("#loadPanel").dxLoadPanel("instance").hide();
-                                                button.option("disabled", false);
-                                                
-                                                // ✅ 顯示成功訊息
-                                                ShowToast(response.message || "資料已開始上傳，將在背景處理", "success", 3000);
-                                                
-                                                // ✅ 重新整理 Grid（但不等待）
-                                                Object.values(grids).forEach(function(grid) {
-                                                    if (grid && grid.refresh) {
-                                                        setTimeout(function() { grid.refresh(); }, 1000);
+                                        var saveTasks = Object.values(grids)
+                                            .filter(function(grid) { return grid && grid.saveEditData; })
+                                            .map(function(grid) { return Promise.resolve(grid.saveEditData()); });
+
+                                        Promise.all(saveTasks)
+                                            .then(function() {
+                                                // ✅ 等待所有 Grid 編輯真正送回伺服器後，再發送總上傳請求
+                                                $.ajax({
+                                                    url: '@Url.Action("SaveIntegrate", "SmallGroup")',
+                                                    data: {
+                                                        WeeklyReportData: $("#WeeklyReportTextData").dxTextArea("instance").option('text'),
+                                                        CheckBox: $("#CheckBoxId").length ? $("#CheckBoxId").dxCheckBox("instance").option("value") : false
+                                                    },
+                                                    type: 'POST',
+                                                    timeout: 3000, // ✅ 設定 3 秒超時，不讓使用者等太久
+                                                    success: function(response) {
+                                                        $("#loadPanel").dxLoadPanel("instance").hide();
+                                                        button.option("disabled", false);
+                                                        ShowToast(response.message || "資料已開始上傳，將在背景處理", "success", 3000);
+
+                                                        Object.values(grids).forEach(function(grid) {
+                                                            if (grid && grid.refresh) {
+                                                                setTimeout(function() { grid.refresh(); }, 1000);
+                                                            }
+                                                        });
+                                                    },
+                                                    error: function(xhr, status, error) {
+                                                        $("#loadPanel").dxLoadPanel("instance").hide();
+                                                        button.option("disabled", false);
+
+                                                        if (status === "timeout") {
+                                                            ShowToast("資料已送出，正在背景上傳中...", "info", 3000);
+
+                                                            Object.values(grids).forEach(function(grid) {
+                                                                if (grid && grid.refresh) {
+                                                                    setTimeout(function() { grid.refresh(); }, 2000);
+                                                                }
+                                                            });
+                                                        } else {
+                                                            var errorMsg = "上傳失敗";
+                                                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                                                errorMsg = xhr.responseJSON.message;
+                                                            } else if (error) {
+                                                                errorMsg += ": " + error;
+                                                            }
+                                                            ShowToast(errorMsg, "error", 5000);
+                                                        }
                                                     }
                                                 });
-                                            },
-                                            error: function(xhr, status, error) {
-                                                // ✅ 即使超時或錯誤，也立即回饋使用者
+                                            })
+                                            .catch(function(error) {
                                                 $("#loadPanel").dxLoadPanel("instance").hide();
                                                 button.option("disabled", false);
-                                                
-                                                if (status === "timeout") {
-                                                    // ✅ 超時視為成功（因為已經開始處理）
-                                                    ShowToast("資料已送出，正在背景上傳中...", "info", 3000);
-                                                    
-                                                    // ✅ 延遲重新整理 Grid
-                                                    Object.values(grids).forEach(function(grid) {
-                                                        if (grid && grid.refresh) {
-                                                            setTimeout(function() { grid.refresh(); }, 2000);
-                                                        }
-                                                    });
-                                                } else {
-                                                    // ✅ 其他錯誤才顯示錯誤訊息
-                                                    var errorMsg = "上傳失敗";
-                                                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                                                        errorMsg = xhr.responseJSON.message;
-                                                    } else if (error) {
-                                                        errorMsg += ": " + error;
-                                                    }
-                                                    ShowToast(errorMsg, "error", 5000);
-                                                }
-                                            }
-                                        });
+                                                ShowToast("請先完成表格儲存後再上傳", "error", 5000);
+                                                console.error("❌ [IntegrateView] Grid 儲存失敗:", error);
+                                            });
                                     }
                                 </text>)
                             )

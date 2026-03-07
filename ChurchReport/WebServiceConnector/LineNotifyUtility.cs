@@ -614,7 +614,7 @@ namespace ChurchReport.WebServiceConnector
                 Guid aListGraceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
                 if (aListGraceLeaderId != Guid.Empty)
                 {
-                    if (LoginContact.Id != aListGraceLeaderId)
+                    //if (LoginContact.Id != aListGraceLeaderId)
                     {
                         // 登入回報者與此人是不一樣的ID
                         aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aListGraceLeaderId);
@@ -627,7 +627,7 @@ namespace ChurchReport.WebServiceConnector
                 Guid aCoListGraceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_co_arealeader");
                 if (aCoListGraceLeaderId != Guid.Empty)
                 {
-                    if (LoginContact.Id != aCoListGraceLeaderId)
+                    //if (LoginContact.Id != aCoListGraceLeaderId)
                     {
                         // 登入回報者與此人是不一樣的ID
                         aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aCoListGraceLeaderId);
@@ -640,7 +640,7 @@ namespace ChurchReport.WebServiceConnector
                 Guid aCoAreaLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_co_race_leager_list");
                 if (aCoAreaLeaderId != Guid.Empty)
                 {
-                    if (LoginContact.Id != aCoAreaLeaderId)
+                    //if (LoginContact.Id != aCoAreaLeaderId)
                     {
                         // 登入回報者與此人是不一樣的ID
                         aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aCoAreaLeaderId);
@@ -681,7 +681,7 @@ namespace ChurchReport.WebServiceConnector
                 Guid ListCoSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_vice_family_leader");
                 if (ListCoSmallGroupLeaderId != Guid.Empty)
                 {
-                    if (LoginContact.Id != ListCoSmallGroupLeaderId)
+                    //if (LoginContact.Id != ListCoSmallGroupLeaderId)
                     {
                         aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", ListCoSmallGroupLeaderId);
                         aListCoSmallGroupLeaderLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");

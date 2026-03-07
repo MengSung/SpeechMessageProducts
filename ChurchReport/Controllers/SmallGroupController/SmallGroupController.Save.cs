@@ -83,6 +83,7 @@ namespace ChurchReport.Controllers
                         // 使用非同步版本以避免在執行緒池同步阻塞
                         if (weeklyReportRef != null)
                         {
+                            // 背景任務使用 CancellationToken.None，避免 HTTP 請求結束後背景上傳被取消
                             await weeklyReportRef.UploadIntegrateDataAsync(
                                 selectDate,
                                 account,
@@ -93,7 +94,7 @@ namespace ChurchReport.Controllers
                                 HappyWeekIndex,
                                 HappyWeekTopic,
                                 pauseCheckBox,
-                                cancellationToken
+                                CancellationToken.None
                             ).ConfigureAwait(false);
                         }
 
@@ -149,7 +150,7 @@ namespace ChurchReport.Controllers
                             // 追蹤失敗不影響
                         }
                     }
-                }, cancellationToken);
+                });
 
                 System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] 立即回應使用者，背景處理中...");
                 return Json(new { status = "1", message = "資料已送出，正在背景上傳中..." });

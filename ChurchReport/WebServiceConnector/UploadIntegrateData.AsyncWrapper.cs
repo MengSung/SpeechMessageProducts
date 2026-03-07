@@ -56,7 +56,7 @@ namespace ChurchReport.WebServiceConnector
                     HappyWeekTopic,
                     PauseCheckBox);
 
-            }, cancellationToken).ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
             return new UploadResult
             {
