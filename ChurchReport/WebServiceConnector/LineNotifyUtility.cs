@@ -426,7 +426,7 @@ namespace ChurchReport.WebServiceConnector
 
                 foreach (Member aMemberInfomation in aSmallGroupData.Members)
                 {
-                    if (!string.IsNullOrWhiteSpace(aMemberInfomation.Visit))
+                    if (!string.IsNullOrWhiteSpace(aMemberInfomation.Visit) && aMemberInfomation.Visit != "無探訪")
                     {
                         visitReply += aMemberInfomation.FullName + " : " + aMemberInfomation.Visit + Environment.NewLine;
                     }
