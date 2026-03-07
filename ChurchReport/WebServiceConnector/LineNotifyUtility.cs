@@ -318,6 +318,9 @@ namespace ChurchReport.WebServiceConnector
                     // 取得代禱事項
                     SmallGroupResult += GetAllPersonalReply(ref aSmallGroupData) + Environment.NewLine;
 
+                    // 取得探訪記錄
+                    SmallGroupResult += GetAllVisitReply(ref aSmallGroupData) + Environment.NewLine;
+
                     // 取得小組日誌
                     if (PauseCheckBox != true)
                     {
@@ -402,7 +405,7 @@ namespace ChurchReport.WebServiceConnector
 
                 if (PersonalReply != "")
                 {
-                    PersonalReply = "代禱事項: " + Environment.NewLine + PersonalReply;
+                    PersonalReply = "🙏 代禱事項:" + Environment.NewLine + PersonalReply;
                 }
 
                 return PersonalReply;
@@ -415,6 +418,35 @@ namespace ChurchReport.WebServiceConnector
                 throw Exception;
             }
         }
+        public String GetAllVisitReply(ref SmallGroupData aSmallGroupData)
+        {
+            try
+            {
+                String visitReply = "";
+
+                foreach (Member aMemberInfomation in aSmallGroupData.Members)
+                {
+                    if (!string.IsNullOrWhiteSpace(aMemberInfomation.Visit))
+                    {
+                        visitReply += aMemberInfomation.FullName + " : " + aMemberInfomation.Visit + Environment.NewLine;
+                    }
+                }
+
+                if (string.IsNullOrEmpty(visitReply))
+                {
+                    return "🏠 探訪記錄:" + Environment.NewLine + "沒有進行任何探訪" + Environment.NewLine;
+                }
+
+                return "🏠 探訪記錄:" + Environment.NewLine + visitReply;
+            }
+            catch (System.Exception Exception)
+            {
+                String ErrorString = "錯誤訊息 : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + Exception.ToString();
+
+                throw Exception;
+            }
+        }
+
         public void SendWeeklyReportLine(String WeeklyReportContent, Entity aListEntity)
         {
             try
