@@ -147,6 +147,7 @@ namespace ChurchReport.WebServiceConnector
                 // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
                 int DayOfWeek = (int)aDownloadDate.DayOfWeek;
 
+                // 設定主日日期
                 // 每周以星期一為第一日
                 if (DayOfWeek > 0)
                 {
