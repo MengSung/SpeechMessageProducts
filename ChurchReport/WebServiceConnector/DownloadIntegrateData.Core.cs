@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using ChurchReport.Models;
 using ChurchReport.Models.CrmTransmitModule;
+using ChurchReport.Services;
 using ChurchReport.WebServiceConnector.Converters;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Xrm.Sdk;
@@ -193,6 +194,22 @@ namespace ChurchReport.WebServiceConnector
         private static string ConvertIndexToTopic(int optionValue) => FollowUpConverter.IndexToTopic(optionValue);
         private static string ConvertNumberToFollowUpWeekPicker(int weekNumber) => FollowUpConverter.NumberToWeekPicker(weekNumber);
         private static int ConvertNumberToWeekIndex(int weekNumber) => FollowUpConverter.NumberToWeekIndex(weekNumber);
+        private string ConvertIndexToVisit(int visit)
+        {
+            try
+            {
+                var optionSetService = new OptionSetMetadataService(
+                    m_ToolUtilityClass.m_Crm2011OrganizationService,
+                    null,
+                    new MemoryCache(new MemoryCacheOptions()));
+
+                return optionSetService.GetOptionSetText("new_present_record", "new_visit", visit);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
 
         #endregion
     }

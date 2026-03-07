@@ -716,6 +716,7 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         private record AttendanceInfo(
             string Note,
+            string Visit,
             bool SundayPresent,
             bool SmallGroupPresent,
             bool PrayerMeeting,
@@ -772,6 +773,9 @@ namespace ChurchReport.WebServiceConnector
         {
             return new AttendanceInfo(
                 Note: m_ToolUtilityClass.GetEntityStringAttribute(presentRecordEntity, "new_explanation"),
+                Visit: presentRecordEntity.Attributes.Contains("new_visit")
+                    ? ConvertIndexToVisit(m_ToolUtilityClass.GetOptionSetAttribute(presentRecordEntity, "new_visit"))
+                    : string.Empty,
                 SundayPresent: m_ToolUtilityClass.GetEntityIntAttribute(presentRecordEntity, "new_sunday_present_this_week") > 0,
                 SmallGroupPresent: m_ToolUtilityClass.GetEntityIntAttribute(presentRecordEntity, "new_group_present_this_week") > 0,
                 PrayerMeeting: m_ToolUtilityClass.GetEntityIntAttribute(presentRecordEntity, "new_prayer_meeting_number") > 0,

@@ -742,6 +742,11 @@ namespace ChurchReport.WebServiceConnector
             this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_weeks", ConvertFollowUpWeekPickerToIndex(aMemberInfomation.FollowUpWeek));
             this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_conclusion_choise", ConvertFollowUpResultPickerToIndex(aMemberInfomation.FollowUpResult));
             this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_next_step", ConvertFollowUpNextStepPickerToIndex(aMemberInfomation.FollowUpNextStep));
+
+            int visitOptionValue = ConvertVisitToIndex(aMemberInfomation.Visit);
+            if (visitOptionValue != EMPTY_VALUE)
+                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_visit", visitOptionValue);
+
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_follow_up", aMemberInfomation.FollowUpOption);
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.PrayItem);
 

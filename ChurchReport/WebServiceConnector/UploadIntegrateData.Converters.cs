@@ -203,6 +203,28 @@ namespace ChurchReport.WebServiceConnector
             return optionMap.TryGetValue(FollowUpWays, out String value) ? value : "";
         }
 
+        private int ConvertVisitToIndex(string visit)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(visit))
+                    return EMPTY_VALUE;
+
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    m_ToolUtilityClass.m_Crm2011OrganizationService,
+                    null,
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
+
+                return optionSetService.GetOptionSetValue("new_present_record", "new_visit", visit);
+            }
+            catch
+            {
+                return EMPTY_VALUE;
+            }
+        }
+
         private int ConvertTopicToIndex(String Topic)
         {
             var topicMap = new Dictionary<String, int>

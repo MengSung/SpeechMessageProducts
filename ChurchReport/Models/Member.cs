@@ -82,6 +82,7 @@ namespace ChurchReport.Models {
         public string SmallGroupName { get; set; }
         public string SectionName { get; set; }
         public string PrayItem { get; set; }
+        public string Visit { get; set; } // 探訪欄位
         public bool Sunday { get; set; }                    // 主日出席
         public bool SmallGroup { get; set; }                // 小組出席
         public bool PrayerMeeting { get; set; }             // 禱告會

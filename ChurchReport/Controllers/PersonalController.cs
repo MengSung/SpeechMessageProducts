@@ -1401,6 +1401,49 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
+        /// 取得探訪清單 (從 new_present_record.new_visit OptionSet 動態取得)
+        /// URL: /Personal/Api/GetVisitList
+        /// </summary>
+        [HttpGet]
+        [Route("/Personal/Api/GetVisitList")]
+        public IActionResult GetVisitList()
+        {
+            try
+            {
+                var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
+                    ToolUtility.m_Crm2011OrganizationService,
+                    null,
+                    new Microsoft.Extensions.Caching.Memory.MemoryCache(
+                        new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
+                );
+
+                var mapping = optionSetService.GetOptionSetMapping("new_present_record", "new_visit");
+                var visitList = mapping.Keys.ToList();
+
+                System.Diagnostics.Debug.WriteLine($"[GetVisitList] 取得 {visitList.Count} 個探訪選項");
+
+                return Json(new
+                {
+                    success = true,
+                    data = visitList,
+                    count = visitList.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetVisitList] 錯誤: {ex.Message}");
+
+                return Json(new
+                {
+                    success = true,
+                    data = new System.Collections.Generic.List<string>(),
+                    count = 0,
+                    warning = "使用空白清單"
+                });
+            }
+        }
+
+        /// <summary>
         /// 取得婚姻狀態清單 (從 contact.familystatuscode OptionSet 動態取得)
         /// URL: /Personal/Api/GetFamilyStatusList
         /// </summary>

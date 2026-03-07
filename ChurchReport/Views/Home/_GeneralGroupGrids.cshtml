@@ -192,6 +192,15 @@
                                     .DataSource(new JS("spiritualIdentityDataSource"))
                                 );
 
+                            // 探訪：由動態 DataSource 提供選項
+                            columns.AddFor(m => m.Visit)
+                                .Caption("探訪")
+                                .Width(120)
+                                .MinWidth(80)
+                                .Lookup(lookup => lookup
+                                .DataSource(new JS("visitDataSource"))
+                                );
+                                
                             // 代禱事項：可自由輸入
                             columns.AddFor(m => m.PrayItem)
                                 .Caption("代禱事項")
@@ -540,6 +549,7 @@
     // 全域變數：提供給 DataGrid Lookup 使用的資料來源
     var membershipStatusDataSource = [];
     var spiritualIdentityDataSource = [];
+    var visitDataSource = [];
 
     // 頁面載入完成後，先同步取得下拉選單資料，再讓 DataGrid 使用
     $(document).ready(function () {
@@ -582,6 +592,26 @@
                 console.error('❌ [_GeneralGroupGrids] 載入信仰狀態清單失敗:', error);
                 // API 失敗時使用備用清單，避免 Lookup 無資料可用
                 spiritualIdentityDataSource = ["-未知-", "基督徒", "已決志", "慕道友", "未信主"];
+            }
+        });
+
+        // --------------------------------------------------------------------------------------------
+        // 3. 載入探訪清單
+        // --------------------------------------------------------------------------------------------
+        $.ajax({
+            url: '/Personal/Api/GetVisitList',
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            success: function (response) {
+                if (response.success && response.data) {
+                    visitDataSource = response.data;
+                    console.log('✅ [_GeneralGroupGrids] 成功載入探訪清單:', visitDataSource);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('❌ [_GeneralGroupGrids] 載入探訪清單失敗:', error);
+                visitDataSource = [];
             }
         });
     });
