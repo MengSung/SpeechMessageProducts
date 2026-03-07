@@ -840,6 +840,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aListEntity == null || NewContactEntityId == null || NewContactEntityId == Guid.Empty)
                 { return; }
 
+                // 設定主日日期，這是新建立的個人聚會與靈修記錄
                 // 根據日期看有沒有那個週報
                 #region 先根據日期尋找當週主日日期
                 // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
@@ -1108,6 +1109,7 @@ namespace ChurchReport.WebServiceConnector
 
                 // 根據日期看有沒有那個週報
                 #region 先根據日期尋找當週主日日期
+                // 設定主日日期
                 // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
                 int DayOfWeek = (int)DateTime.Now.DayOfWeek;
                 // 每周以星期一為第一日
@@ -1524,6 +1526,7 @@ namespace ChurchReport.WebServiceConnector
                             DateTime aStartTrackingDate = DateTime.Parse(aStartTracking);
 
                             #region 先根據日期尋找開始關懷日期的那週主日日期
+                            // 設定主日日期
                             // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
                             int DayOfWeek = (int)aStartTrackingDate.DayOfWeek;
                             DateTime aSunday = new DateTime();

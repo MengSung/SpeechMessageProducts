@@ -1868,7 +1868,7 @@ namespace ChurchReport.WebServiceConnector
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_list_new_present_record", "list", aListEntity.Id); }
                 #endregion
                 #endregion
-                #region 設定主日及小組聚會日期
+                #region 設定主日日期及小組聚會日期
                 int DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek;
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", aHappyGroupWeeklyReportToBeAdded.MeetingDate.AddDays(-DayOfWeek));
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_group_date", aHappyGroupWeeklyReportToBeAdded.MeetingDate);
@@ -2017,7 +2017,7 @@ namespace ChurchReport.WebServiceConnector
                 { this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_list_new_present_record", "list", aListEntity.Id); }
                 #endregion
                 #endregion
-                #region 設定主日及小組聚會日期
+                #region 設定主日日期及小組聚會日期
                 int DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek + 1;
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", aHappyGroupWeeklyReportToBeAdded.MeetingDate.AddDays(-DayOfWeek));
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_group_date", aHappyGroupWeeklyReportToBeAdded.MeetingDate);

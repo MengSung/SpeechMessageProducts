@@ -128,6 +128,7 @@ namespace ChurchReport.WebServiceConnector
         {
             int dayOfWeek = (int)date.DayOfWeek;
 
+            // 設定主日日期
             // 每周以星期一為第一日
             if (dayOfWeek > 0)
             {

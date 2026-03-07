@@ -89,8 +89,9 @@ namespace ChurchReport.WebServiceConnector
             #region 先根據日期尋找當週主日日期
             // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
             int DayOfWeek = (int)aDownloadDate.DayOfWeek;
-			// 每周以星期一為第一日
-			if (DayOfWeek > 0)
+            // 設定主日日期
+            // 每周以星期一為第一日
+            if (DayOfWeek > 0)
 			{
 				// 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
 				m_Sunday = aDownloadDate.AddDays(-DayOfWeek + 7).ToLocalTime();
@@ -295,8 +296,9 @@ namespace ChurchReport.WebServiceConnector
             #region 先根據日期尋找當週主日日期
             // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
             int DayOfWeek = (int)aDownloadDate.DayOfWeek;
-			// 每周以星期一為第一日
-			if (DayOfWeek > 0)
+            // 設定主日日期
+            // 每周以星期一為第一日
+            if (DayOfWeek > 0)
 			{
 				// 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
 				m_Sunday = aDownloadDate.AddDays(-DayOfWeek + 7).ToLocalTime();

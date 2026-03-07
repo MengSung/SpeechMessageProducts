@@ -33,6 +33,7 @@ namespace ChurchReport.WebServiceConnector
                         DateTime aStartTrackingDate = DateTime.Parse(aStartTracking);
                         int DayOfWeek = (int)aStartTrackingDate.DayOfWeek;
                         DateTime aSunday ;
+                        // 設定主日日期
                         // 每周以星期一為第一日
                         if (DayOfWeek > 0)
                         {
