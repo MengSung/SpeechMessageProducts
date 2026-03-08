@@ -53,5 +53,38 @@ namespace ChurchReport.Services
 
             return weekStart.AddDays(daysToSunday).Date;
         }
+
+        /// <summary>
+        /// 依指定主日與每週第一日，回推出該週區間的起始日。
+        /// 例如：
+        /// - 每週第一日為星期一時，主日 2026/03/08 對應的起始日是 2026/03/02。
+        /// - 每週第一日為星期六時，主日 2026/03/08 對應的起始日是 2026/03/07。
+        /// - 每週第一日為星期日時，主日 2026/03/08 對應的起始日就是 2026/03/08。
+        /// </summary>
+        /// <param name="sunday">已計算完成的主日日期。</param>
+        /// <param name="firstDayOfWeek">每週第一日設定值。</param>
+        /// <returns>該主日所屬週區間的起始日。</returns>
+        public static DateTime CalculateWeekStart(DateTime sunday, DayOfWeek firstDayOfWeek)
+        {
+            // 先算出「星期日」在目前週規則下距離週起始日幾天，
+            // 再由主日反推出該週的真正起始日。
+            int daysFromWeekStartToSunday = ((int)DayOfWeek.Sunday - (int)firstDayOfWeek + 7) % 7;
+
+            return sunday.Date.AddDays(-daysFromWeekStartToSunday);
+        }
+
+        /// <summary>
+        /// 依指定主日與每週第一日，計算該週區間的結束日。
+        /// 週區間固定為 7 天，因此結束日一定是起始日加 6 天。
+        /// </summary>
+        /// <param name="sunday">已計算完成的主日日期。</param>
+        /// <param name="firstDayOfWeek">每週第一日設定值。</param>
+        /// <returns>該主日所屬週區間的結束日。</returns>
+        public static DateTime CalculateWeekEnd(DateTime sunday, DayOfWeek firstDayOfWeek)
+        {
+            DateTime weekStart = CalculateWeekStart(sunday, firstDayOfWeek);
+
+            return weekStart.AddDays(6);
+        }
     }
 }

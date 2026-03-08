@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ChurchReport.Models;
+using ChurchReport.Services;
 using Microsoft.Xrm.Sdk;
 
 namespace ChurchReport.WebServiceConnector
@@ -46,7 +47,17 @@ namespace ChurchReport.WebServiceConnector
             aListSmallGroupWeeklyReport.LoginType = this.m_LoginType;
             aListSmallGroupWeeklyReport.SmallGroupLeaderFullName = m_ToolUtilityClass.GetEntityLookupDisplayName(ref m_ListEntity, "new_contact_family_leader_list");
             aListSmallGroupWeeklyReport.SundayPrayers = aDownloadDate;
-            aListSmallGroupWeeklyReport.SundayPeriod = $"小組日期對應到主日期間是: " + m_Sunday.AddDays(-6).ToLocalTime().ToShortDateString() + " ~ " + m_Sunday.AddDays(0).ToLocalTime().ToShortDateString();
+
+            // 「小組日期對應到主日期間」不能再硬編碼為「主日前 6 天到主日」，
+            // 必須依照 appsettings.json 的 WeeklySchedule:每週的第一日 動態決定。
+            // 例如：
+            // - 星期一起始：區間為 星期一 ~ 星期日
+            // - 星期六起始：區間為 星期六 ~ 星期五
+            // - 星期日起始：區間為 星期日 ~ 星期六
+            DateTime weekStart = SundayCalculator.CalculateWeekStart(m_Sunday, WeeklyScheduleProvider.FirstDayOfWeek);
+            DateTime weekEnd = SundayCalculator.CalculateWeekEnd(m_Sunday, WeeklyScheduleProvider.FirstDayOfWeek);
+            aListSmallGroupWeeklyReport.SundayPeriod = $"小組日期對應到主日期間是: {weekStart.ToShortDateString()} ~ {weekEnd.ToShortDateString()}";
+
             aListSmallGroupWeeklyReport.SmallGroupLeaderContactId = m_ContactId.ToString();
             aListSmallGroupWeeklyReport.SmallGroupLeaderFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ContactEntity, "fullname");
         }
