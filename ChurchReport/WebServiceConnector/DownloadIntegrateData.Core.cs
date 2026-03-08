@@ -126,21 +126,9 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         private DateTime CalculateSunday(DateTime date)
         {
-            int dayOfWeek = (int)date.DayOfWeek;
-
-            // 設定主日日期
-            // 每周以星期一為第一日
-            if (dayOfWeek > 0)
-            {
-                // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                return date.AddDays(-dayOfWeek + 7).ToLocalTime();
-            }
-            else
-            {
-                // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                return date.AddDays(-dayOfWeek).ToLocalTime();
-            }
-
+            // 集中由 SundayCalculator 依設定檔的每週第一日規則計算主日，
+            // 避免不同檔案各自維護硬編碼邏輯。
+            return SundayCalculator.CalculateSunday(date, WeeklyScheduleProvider.FirstDayOfWeek);
         }
 
         /// <summary>

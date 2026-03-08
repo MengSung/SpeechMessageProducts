@@ -316,19 +316,10 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // 設定主日日期
-                int DayOfWeek = (int)aSmallGroupDate.DayOfWeek;
-                // 每周以星期一為第一日
-                if (DayOfWeek > 0)
-                {
-                    // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                    m_Sunday = aSmallGroupDate.AddDays(-DayOfWeek + 7).ToLocalTime();
-                }
-                else
-                {
-                    // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                    m_Sunday = aSmallGroupDate.AddDays(-DayOfWeek).ToLocalTime();
-                }
+                // 依據設定檔的每週第一日規則，集中計算所屬週次的主日日期。
+                m_Sunday = ChurchReport.Services.SundayCalculator.CalculateSunday(
+                    aSmallGroupDate,
+                    ChurchReport.Services.WeeklyScheduleProvider.FirstDayOfWeek);
 
                 // 找到操作使用者
                 this.m_ContactEntity = Account != "LineIdLogin"

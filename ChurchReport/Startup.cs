@@ -1,4 +1,5 @@
-﻿using ChurchReport.Tools;
+﻿using ChurchReport.Services;
+using ChurchReport.Tools;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -83,6 +84,13 @@ namespace ChurchReport
 
             // 註冊分散式記憶體快取，用於支援 Session 等功能。
             services.AddDistributedMemoryCache();
+
+            // ========================================
+            // 每週排程設定
+            // ========================================
+            // 將 appsettings.json 的 WeeklySchedule 區段綁定到設定類別，
+            // 讓集中式主日計算服務可以透過統一設定取得每週第一日。
+            services.Configure<WeeklyScheduleSettings>(Configuration.GetSection("WeeklySchedule"));
 
             // ========================================
             // ✅ Phase 5: 配置 ForwardedHeaders (Session Bleeding 防護 - 第五層)
@@ -496,6 +504,17 @@ namespace ChurchReport
         /// <param name="loggerFactory">日誌工廠，用於建立日誌記錄器。</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            // ========================================
+            // 初始化每週第一日設定
+            // ========================================
+            // 舊有程式碼大量透過靜態類別直接計算主日日期，
+            // 因此在應用程式啟動階段先將設定載入到 Provider，
+            // 讓所有舊類別都能共用相同的週起始日規則。
+            WeeklyScheduleSettings weeklyScheduleSettings = Configuration
+                .GetSection("WeeklySchedule")
+                .Get<WeeklyScheduleSettings>() ?? new WeeklyScheduleSettings();
+            WeeklyScheduleProvider.Initialize(weeklyScheduleSettings.GetFirstDayOfWeek());
+
             // ========================================
             // ✅ Phase 5: 使用 ForwardedHeaders 中間件（必須最先執行）
             // ========================================

@@ -135,19 +135,10 @@ namespace ChurchReport.WebServiceConnector
                 if (aListEntity == null || NewContactEntityId == Guid.Empty)
                     return;
 
-                // 設定主日日期
-                int DayOfWeek = (int)DateTime.Now.DayOfWeek;
-                // 每周以星期一為第一日
-                if (DayOfWeek > 0)
-                {
-                    // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                    m_Sunday = DateTime.Now.AddDays(-DayOfWeek + 7).ToLocalTime();
-                }
-                else
-                {
-                    // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                    m_Sunday = DateTime.Now.AddDays(-DayOfWeek).ToLocalTime();
-                }
+                // 依設定檔的每週第一日規則，取得今天所屬週次的主日日期。
+                m_Sunday = ChurchReport.Services.SundayCalculator.CalculateSunday(
+                    DateTime.Now,
+                    ChurchReport.Services.WeeklyScheduleProvider.FirstDayOfWeek);
 
                 EntityCollection GroupWeeklyReportEntityCollection = m_ToolUtilityClass.QueryWeeklyReportBySunday(this.m_Sunday, aListEntity.Id);
 

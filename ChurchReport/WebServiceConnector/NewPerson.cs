@@ -843,19 +843,10 @@ namespace ChurchReport.WebServiceConnector
                 // 設定主日日期，這是新建立的個人聚會與靈修記錄
                 // 根據日期看有沒有那個週報
                 #region 先根據日期尋找當週主日日期
-                // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
-                int DayOfWeek = (int)DateTime.Now.DayOfWeek;
-                // 每周以星期一為第一日
-                if (DayOfWeek > 0)
-                {
-                    // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                    m_Sunday = DateTime.Now.AddDays(-DayOfWeek + 7).ToLocalTime();
-                }
-                else
-                {
-                    // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                    m_Sunday = DateTime.Now.AddDays(-DayOfWeek).ToLocalTime();
-                }
+                // 透過集中式服務依設定檔的每週第一日規則計算主日日期。
+                m_Sunday = ChurchReport.Services.SundayCalculator.CalculateSunday(
+                    DateTime.Now,
+                    ChurchReport.Services.WeeklyScheduleProvider.FirstDayOfWeek);
                 #endregion
 
                 // 尋找此小組的某一個主日的週報集合
@@ -1109,20 +1100,10 @@ namespace ChurchReport.WebServiceConnector
 
                 // 根據日期看有沒有那個週報
                 #region 先根據日期尋找當週主日日期
-                // 設定主日日期
-                // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
-                int DayOfWeek = (int)DateTime.Now.DayOfWeek;
-                // 每周以星期一為第一日
-                if (DayOfWeek > 0)
-                {
-                    // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                    m_Sunday = DateTime.Now.AddDays(-DayOfWeek + 7).ToLocalTime();
-                }
-                else
-                {
-                    // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                    m_Sunday = DateTime.Now.AddDays(-DayOfWeek).ToLocalTime();
-                }
+                // 透過集中式服務依設定檔的每週第一日規則計算主日日期。
+                m_Sunday = ChurchReport.Services.SundayCalculator.CalculateSunday(
+                    DateTime.Now,
+                    ChurchReport.Services.WeeklyScheduleProvider.FirstDayOfWeek);
                 #endregion
 
                 // 尋找此小組的某一個主日的週報集合
@@ -1526,21 +1507,10 @@ namespace ChurchReport.WebServiceConnector
                             DateTime aStartTrackingDate = DateTime.Parse(aStartTracking);
 
                             #region 先根據日期尋找開始關懷日期的那週主日日期
-                            // 設定主日日期
-                            // 其值的範圍從 0 (表示 DayOfWeek.Sunday) 為 6 (表示 DayOfWeek.Saturday)。
-                            int DayOfWeek = (int)aStartTrackingDate.DayOfWeek;
-                            DateTime aSunday = new DateTime();
-                            // 每周以星期一為第一日
-                            if (DayOfWeek > 0)
-                            {
-                                // 大於 0， 表示星期一到星期六=>下一週的星期日為認定的主日
-                                aSunday = aStartTrackingDate.AddDays(-DayOfWeek + 7).ToLocalTime();
-                            }
-                            else
-                            {
-                                // 為 0 = 星期日 (表示 DayOfWeek.Saturday)表示當週星期日為認定的主日
-                                aSunday = aStartTrackingDate.AddDays(-DayOfWeek).ToLocalTime();
-                            }
+                            // 依開始關懷日期所屬週次，計算該週真正的主日日期。
+                            DateTime aSunday = ChurchReport.Services.SundayCalculator.CalculateSunday(
+                                aStartTrackingDate,
+                                ChurchReport.Services.WeeklyScheduleProvider.FirstDayOfWeek);
                             #endregion
 
                             aFollowUpHistoryReport = GetFollowUpWeekForUnGroup(aContact, ref aFollowUpWeek, aSunday);
