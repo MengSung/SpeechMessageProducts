@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using ChurchReport.Models;
+using ChurchReport.Services;
 
 #region Dynamics 365 Microsoft.Xrm.Sdk.dll
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
@@ -188,6 +189,18 @@ namespace ChurchReport.WebServiceConnector
             }
 
             this.m_ContactId = m_ContactEntity.Id;
+        }
+
+        /// <summary>
+        /// 依照全域設定的每週第一日規則，計算幸福小組聚會日期所屬的主日。
+        /// 這裡不再保留舊版以固定星期日/星期一回推的硬編碼，
+        /// 以確保幸福小組週報與一般週報的主日歸屬規則完全一致。
+        /// </summary>
+        /// <param name="meetingDate">幸福小組聚會日期。</param>
+        /// <returns>該聚會日期所屬週次的主日日期。</returns>
+        private DateTime CalculateSundayByMeetingDate(DateTime meetingDate)
+        {
+            return SundayCalculator.CalculateSunday(meetingDate, WeeklyScheduleProvider.FirstDayOfWeek);
         }
         #endregion
         #region 幸福小組名單
@@ -1041,20 +1054,13 @@ namespace ChurchReport.WebServiceConnector
                     aMeetingDate = DateTime.Now;
                 }
 
-                int DayOfWeek = 1;
                 if (aHappyGroupWeeklyReportToBeAdded.MeetingDate.Year == 1)
                 {
                     aHappyGroupWeeklyReportToBeAdded.MeetingDate = DateTime.Now;
-                    //設定主日日期
-                    DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek;
                 }
-                else
-                {
-                    //設定主日日期
-                    DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek;
-                }
-                //設定主日日期
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_sunday_date", aMeetingDate.AddDays(-DayOfWeek));
+
+                // 主日日期必須遵照全域設定的每週第一日規則，而不是固定用舊版回推方式。
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_sunday_date", CalculateSundayByMeetingDate(aMeetingDate));
                 //設定小組日期
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aMeetingDate);
                 #endregion
@@ -1869,8 +1875,8 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #endregion
                 #region 設定主日日期及小組聚會日期
-                int DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek;
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", aHappyGroupWeeklyReportToBeAdded.MeetingDate.AddDays(-DayOfWeek));
+                // 幸福小組的出席紀錄也必須與週報使用相同的主日歸屬規則。
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", CalculateSundayByMeetingDate(aHappyGroupWeeklyReportToBeAdded.MeetingDate));
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_group_date", aHappyGroupWeeklyReportToBeAdded.MeetingDate);
                 #endregion
                 #region 設定小組聚會地點和時間
@@ -2018,8 +2024,8 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #endregion
                 #region 設定主日日期及小組聚會日期
-                int DayOfWeek = (int)aHappyGroupWeeklyReportToBeAdded.MeetingDate.DayOfWeek + 1;
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", aHappyGroupWeeklyReportToBeAdded.MeetingDate.AddDays(-DayOfWeek));
+                // 幸福小組的出席紀錄也必須與週報使用相同的主日歸屬規則。
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", CalculateSundayByMeetingDate(aHappyGroupWeeklyReportToBeAdded.MeetingDate));
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_group_date", aHappyGroupWeeklyReportToBeAdded.MeetingDate);
                 #endregion
                 #region 設定小組聚會地點和時間
@@ -2135,9 +2141,8 @@ namespace ChurchReport.WebServiceConnector
                 #region 設定小組聚會日期
                 if (aHappyGroupWeeklyReportToBeUpdated.MeetingDate.Year != 1)
                 {
-                    //設定主日日期
-                    int DayOfWeek = (int)aHappyGroupWeeklyReportToBeUpdated.MeetingDate.DayOfWeek + 1;
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_sunday_date", aHappyGroupWeeklyReportToBeUpdated.MeetingDate.AddDays(-DayOfWeek));
+                    // 更新週報時，主日日期也必須依照全域設定重算。
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_sunday_date", CalculateSundayByMeetingDate(aHappyGroupWeeklyReportToBeUpdated.MeetingDate));
                     //設定小組日期
                     this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aHappyGroupWeeklyReportToBeUpdated.MeetingDate);
                 }
@@ -2194,9 +2199,8 @@ namespace ChurchReport.WebServiceConnector
                 #region 設定小組聚會日期
                 if (aHappyGroupWeeklyReportToBeUpdated.MeetingDate.Year != 1)
                 {
-                    //設定主日日期
-                    int DayOfWeek = (int)aHappyGroupWeeklyReportToBeUpdated.MeetingDate.DayOfWeek + 1;
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_sunday_date", aHappyGroupWeeklyReportToBeUpdated.MeetingDate.AddDays(-DayOfWeek));
+                    // 更新週報時，主日日期也必須依照全域設定重算。
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_sunday_date", CalculateSundayByMeetingDate(aHappyGroupWeeklyReportToBeUpdated.MeetingDate));
                     //設定小組日期
                     this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", aHappyGroupWeeklyReportToBeUpdated.MeetingDate);
                 }
