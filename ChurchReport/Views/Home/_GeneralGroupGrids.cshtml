@@ -1,20 +1,15 @@
 @*
     ====================================================================================================
-    一般小組資料網格集合
+    一般小組資料網格集合 - 已增加聯絡人照片欄位
     ----------------------------------------------------------------------------------------------------
-    本檔案用途：
+    本檔案用途:
     1. 顯示「小組是否暫停」勾選框。
-    2. 顯示「小組牧養」資料網格。
-    3. 顯示「新人跟進關懷」資料網格。
+    2. 顯示「小組牧養」資料網格（含大頭照）。
+    3. 顯示「新人跟進關懷」資料網格（含大頭照）。
 
-    整理原則：
-    - 僅整理排版、區塊層次與註解說明。
-    - 不改變任何既有功能。
-    - 不刪除任何既有邏輯。
-
-    目前保留的既有行為：
-    - 會員身分與信仰狀態選單由 API 動態載入。
-    - 小組牧養 / 新人跟進關懷資料網格在沒有資料時自動隱藏。
+    更新記錄：
+    - 在 SmallGroupgridContainer 和 NewPersonGridContainer 最左側加入聯絡人照片欄位
+    - 照片來源：CRM contact.entityimage，透過 ContactId 動態載入
     ====================================================================================================
 *@
 @using ChurchReport.Models
@@ -23,15 +18,10 @@
 <div class="general-group-grids">
     @* ================================================================================================
        區塊 1：小組是否暫停
-       ------------------------------------------------------------------------------------------------
-       說明：
-       - 使用 DevExtreme CheckBox。
-       - 直接綁定 `Model.PauseCheckBox`。
-       - 僅負責顯示目前是否勾選，不在此區塊另外加入其他邏輯。
        ================================================================================================ *@
     <div id="PauseOrNot" class="pause-option" style="display: flex; align-items: center; gap: 8px;">
-        <div style="font-size:100%; color:#fff; background: linear-gradient(135deg, #667eea0%, #764ba2100%); text-align:left; font-weight:bold; border-radius:3px; display:inline-block;">
-            <h5 style="margin:0; color:#667eea;">小組是否暫停</h5>
+        <div style="font-size:100%; color:#fff; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); text-align:left; font-weight:bold; border-radius:3px; display:inline-block; padding:5px 10px;">
+            <h5 style="margin:0; color:#fff;">小組是否暫停</h5>
         </div>
         @(Html.DevExtreme()
             .CheckBox()
@@ -41,14 +31,7 @@
     </div>
 
     @* ================================================================================================
-       區塊 2：小組牧養資料網格
-       ------------------------------------------------------------------------------------------------
-       顯示條件：
-       - 只有在 `Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag == true` 時才輸出整個區塊。
-
-       補充說明：
-       - 即使區塊被輸出，仍會在 DataGrid `OnContentReady` 時再次判斷資料筆數。
-       - 若資料筆數為 0，會自動隱藏整個區塊。
+       區塊 2：小組牧養資料網格（已加入大頭照欄位）
        ================================================================================================ *@
     @if (Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag == true)
     {
@@ -62,23 +45,12 @@
                     Html.DevExtreme()
                         .DataGrid<Member>()
                         .ID("SmallGroupgridContainer")
-
-                        @* -----------------------------
-                           視覺與版面設定
-                           ----------------------------- *@
                         .ShowBorders(true)
                         .ColumnAutoWidth(true)
                         .ColumnHidingEnabled(true)
                         .ShowColumnLines(true)
                         .ShowRowLines(true)
                         .RowAlternationEnabled(true)
-
-                        @* -----------------------------
-                           效能與操作體驗設定
-                           說明：
-                           - Filtering / Sorting / Paging / Grouping / Summary 改由前端處理。
-                           - CRUD 相關操作仍依既有方式送回伺服器。
-                           ----------------------------- *@
                         .RemoteOperations(ro => ro
                             .Filtering(false)
                             .Sorting(false)
@@ -99,13 +71,6 @@
                         .ColumnFixing(c => c.Enabled(true))
                         .LoadPanel(l => l.Text("更新資料中...").Enabled(false))
                         .SearchPanel(s => s.Visible(false).Placeholder("搜尋.."))
-
-                        @* -----------------------------
-                           分組設定
-                           說明：
-                           - 保留分組能力。
-                           - 但 GroupPanel 不顯示，避免使用者自行拖曳欄位分組。
-                           ----------------------------- *@
                         .Grouping(g => g
                             .ContextMenuEnabled(true)
                             .ExpandMode(GridGroupingExpandMode.RowClick)
@@ -115,14 +80,6 @@
                             .Visible(false)
                             .AllowColumnDragging(true)
                         )
-
-                        @* -----------------------------
-                           編輯設定
-                           說明：
-                           - 採用 Cell 編輯模式。
-                           - 允許修改。
-                           - 不允許刪除。
-                           ----------------------------- *@
                         .Editing(editing =>
                         {
                             editing.Mode(GridEditMode.Cell);
@@ -139,12 +96,22 @@
                             );
                             editing.RefreshMode(GridEditRefreshMode.Repaint);
                         })
-
-                        @* -----------------------------
-                           欄位定義
-                           ----------------------------- *@
                         .Columns(columns =>
                         {
+                            // ✨ 聯絡人大頭照：顯示於最左側，固定欄位
+                            columns.Add()
+                                .DataField("ContactId")
+                                .Caption("照片")
+                                .Width(56)
+                                .MinWidth(56)
+                                .AllowEditing(false)
+                                .AllowSorting(false)
+                                .AllowFiltering(false)
+                                .AllowResizing(false)
+                                .Fixed(true)
+                                .VisibleIndex(-1)
+                                .CellTemplate(new JS("contactImageCellTemplate"));
+
                             // 基本出席資訊
                             columns.AddFor(m => m.FullName)
                                 .Caption("姓名")
@@ -167,7 +134,7 @@
                                 .MinWidth(45)
                                 .AllowSorting(false);
 
-                            // 會員身分：由前面 JavaScript 載入的動態 DataSource 提供選項
+                            // 會員身分
                             columns.Add()
                                 .DataField("Status")
                                 .Caption("會員身分")
@@ -180,7 +147,7 @@
                                     .DataSource(new JS("membershipStatusDataSource"))
                                 );
 
-                            // 信仰狀態：由前面 JavaScript 載入的動態 DataSource 提供選項
+                            // 信仰狀態
                             columns.AddFor(m => m.SpiritualIdentity)
                                 .Caption("信仰狀態")
                                 .Alignment(HorizontalAlignment.Center)
@@ -192,7 +159,7 @@
                                     .DataSource(new JS("spiritualIdentityDataSource"))
                                 );
 
-                            // 探訪：由動態 DataSource 提供選項
+                            // 探訪
                             columns.AddFor(m => m.Visit)
                                 .Caption("探訪")
                                 .Width(120)
@@ -202,12 +169,12 @@
                                     .DataSource(new JS("visitDataSource"))
                                 );
 
-                            // 代禱事項：可自由輸入
+                            // 代禱事項
                             columns.AddFor(m => m.PrayItem)
                                 .Caption("代禱事項")
                                 .MinWidth(90);
 
-                            // 指派小組：使用後端傳入的 GroupArray，預設隱藏
+                            // 指派小組
                             columns.AddFor(m => m.AssignedGroup)
                                 .Caption("指派小組")
                                 .Visible(false)
@@ -217,12 +184,6 @@
                                     .DataSource(Model.GroupArray)
                                 );
                         })
-
-                        @* -----------------------------
-                           資料來源
-                           說明：
-                           - 透過 `SmallGroup` Controller 的 WebApi 端點載入與更新。
-                           ----------------------------- *@
                         .DataSource(d => d
                             .WebApi()
                             .Controller("SmallGroup")
@@ -233,22 +194,11 @@
                             .Key("PresentRecordId")
                             .LoadParams(new { id = @ViewBag.ListId })
                         )
-
-                        @* -----------------------------
-                           前端事件
-                           說明：
-                           - `OnContentReady`：初始化完成後，移動編輯欄並判斷是否隱藏區塊。
-                           - `OnCellPrepared`：沿用既有儲存格客製顯示。
-                           ----------------------------- *@
                         .OnContentReady(@<text>
                             function(e) {
-                                // 將編輯欄位移至左側，維持既有使用體驗
                                 moveEditColumnToLeft(e.component);
-
-                                // 檢查資料筆數，若無資料則隱藏整個小組牧養區塊
                                 var dataSource = e.component.getDataSource();
                                 var totalCount = dataSource.totalCount();
-
                                 if (totalCount === 0) {
                                     $('#smallGroupSection').hide();
                                     console.log('✅ [SmallGroupGrid] 無資料，隱藏小組牧養區塊');
@@ -265,14 +215,7 @@
     }
 
     @* ================================================================================================
-       區塊 3：新人跟進關懷資料網格
-       ------------------------------------------------------------------------------------------------
-       顯示條件：
-       - 只有在 `Model.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag == true` 時才輸出整個區塊。
-
-       補充說明：
-       - 區塊輸出後，仍會在 DataGrid `OnContentReady` 中再次檢查資料筆數。
-       - 若資料為 0，前端會自動將整個區塊隱藏。
+       區塊 3：新人跟進關懷資料網格（已加入大頭照欄位）
        ================================================================================================ *@
     @if (Model.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag == true)
     {
@@ -286,22 +229,11 @@
                     Html.DevExtreme()
                         .DataGrid<Member>()
                         .ID("NewPersonGridContainer")
-
-                        @* -----------------------------
-                           視覺與版面設定
-                           ----------------------------- *@
                         .ShowBorders(true)
                         .ShowColumnLines(true)
                         .ShowRowLines(true)
                         .RowAlternationEnabled(true)
                         .ColumnHidingEnabled(true)
-
-                        @* -----------------------------
-                           效能與操作體驗設定
-                           說明：
-                           - 過濾、排序、分頁、分組、匯總皆在前端處理。
-                           - CRUD 仍維持既有伺服器端行為。
-                           ----------------------------- *@
                         .RemoteOperations(ro => ro
                             .Filtering(false)
                             .Sorting(false)
@@ -324,10 +256,6 @@
                         .Export(e => e.Enabled(false).AllowExportSelectedData(true))
                         .TwoWayBindingEnabled(true)
                         .Visible(Model.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag)
-
-                        @* -----------------------------
-                           分組設定
-                           ----------------------------- *@
                         .Grouping(g => g
                             .ContextMenuEnabled(true)
                             .ExpandMode(GridGroupingExpandMode.RowClick)
@@ -337,18 +265,8 @@
                             .Visible(false)
                             .AllowColumnDragging(true)
                         )
-
-                        @* -----------------------------
-                           事件設定
-                           說明：
-                           - 保留既有列表互動事件。
-                           ----------------------------- *@
                         .OnSelectionChanged("OnRowSelectionChanged")
                         .OnEditorPrepared("OnEditorPrepared")
-
-                        @* -----------------------------
-                           編輯設定
-                           ----------------------------- *@
                         .Editing(editing =>
                         {
                             editing.Mode(GridEditMode.Cell);
@@ -365,12 +283,22 @@
                             );
                             editing.RefreshMode(GridEditRefreshMode.Repaint);
                         })
-
-                        @* -----------------------------
-                           欄位定義
-                           ----------------------------- *@
                         .Columns(columns =>
                         {
+                            // ✨ 聯絡人大頭照：顯示於最左側，固定欄位
+                            columns.Add()
+                                .DataField("ContactId")
+                                .Caption("照片")
+                                .Width(56)
+                                .MinWidth(56)
+                                .AllowEditing(false)
+                                .AllowSorting(false)
+                                .AllowFiltering(false)
+                                .AllowResizing(false)
+                                .Fixed(true)
+                                .VisibleIndex(-1)
+                                .CellTemplate(new JS("contactImageCellTemplate"));
+
                             // 基本資料
                             columns.AddFor(m => m.FullName)
                                 .Caption("姓名")
@@ -392,7 +320,7 @@
                                 .Width(45)
                                 .MinWidth(45);
 
-                            // 會員身分：由動態 DataSource 提供選項
+                            // 會員身分
                             columns.Add()
                                 .DataField("Status")
                                 .Caption("會員身分")
@@ -405,7 +333,7 @@
                                     .DataSource(new JS("membershipStatusDataSource"))
                                 );
 
-                            // 信仰狀態：由動態 DataSource 提供選項
+                            // 信仰狀態
                             columns.AddFor(m => m.SpiritualIdentity)
                                 .Caption("信仰狀態")
                                 .Alignment(HorizontalAlignment.Center)
@@ -417,7 +345,7 @@
                                     .DataSource(new JS("spiritualIdentityDataSource"))
                                 );
 
-                            // 跟進方式：使用既有固定選項
+                            // 跟進方式
                             columns.AddFor(m => m.FollowUpOption)
                                 .Caption("跟進方式")
                                 .Width(120)
@@ -425,18 +353,12 @@
                                 .Lookup(lookup => lookup
                                     .DataSource(new string[]
                                     {
-                                        "電話",
-                                        "探訪",
-                                        "Line/FB",
-                                        "出遊/吃飯",
-                                        "懷鄉/其他課程",
-                                        "約談",
-                                        "沒跟進",
-                                        "其他"
+                                        "電話", "探訪", "Line/FB", "出遊/吃飯",
+                                        "懷鄉/其他課程", "約談", "沒跟進", "其他"
                                     })
                                 );
 
-                            // 跟進結果：使用既有固定選項
+                            // 跟進結果
                             columns.Add()
                                 .DataField("FollowUpResult")
                                 .Caption("跟進結果")
@@ -445,31 +367,19 @@
                                 .Lookup(lookup => lookup
                                     .DataSource(new string[]
                                     {
-                                        "未選擇",
-                                        "熱情回應",
-                                        "渴慕認識信仰",
-                                        "沒聯絡上",
-                                        "反應冷淡",
-                                        "考慮中，繼續跟進",
-                                        "入小組",
-                                        "來主日",
-                                        "其他"
+                                        "未選擇", "熱情回應", "渴慕認識信仰", "沒聯絡上",
+                                        "反應冷淡", "考慮中，繼續跟進", "入小組", "來主日", "其他"
                                     })
                                 );
 
-                            // 下一步驟：使用既有固定選項
+                            // 下一步驟
                             columns.Add()
                                 .DataField("FollowUpNextStep")
                                 .Caption("下一步驟")
                                 .Width(120)
                                 .MinWidth(30)
                                 .Lookup(lookup => lookup
-                                    .DataSource(new string[]
-                                    {
-                                        "未選擇",
-                                        "繼續跟進",
-                                        "轉介"
-                                    })
+                                    .DataSource(new string[] { "未選擇", "繼續跟進", "轉介" })
                                 );
 
                             // 文字說明欄位
@@ -481,7 +391,7 @@
                                 .Caption("附註說明")
                                 .MinWidth(300);
 
-                            // 指派小組：沿用後端傳入的 GroupArray，預設隱藏
+                            // 指派小組
                             columns.AddFor(m => m.AssignedGroup)
                                 .Caption("指派小組")
                                 .Visible(false)
@@ -491,12 +401,6 @@
                                     .DataSource(Model.GroupArray)
                                 );
                         })
-
-                        @* -----------------------------
-                           資料來源
-                           說明：
-                           - 透過 `NewPerson` Controller 的 WebApi 端點讀寫新人跟進資料。
-                           ----------------------------- *@
                         .DataSource(d => d
                             .WebApi()
                             .Controller("NewPerson")
@@ -507,19 +411,11 @@
                             .Key("PresentRecordId")
                             .LoadParams(new { id = @ViewBag.ListId })
                         )
-
-                        @* -----------------------------
-                           前端事件
-                           ----------------------------- *@
                         .OnContentReady(@<text>
                             function(e) {
-                                // 將編輯欄位移至左側，維持既有使用體驗
                                 moveEditColumnToLeft(e.component);
-
-                                // 檢查資料筆數，若無資料則隱藏整個新人跟進關懷區塊
                                 var dataSource = e.component.getDataSource();
                                 var totalCount = dataSource.totalCount();
-
                                 if (totalCount === 0) {
                                     $('#newPersonFollowUpSection').hide();
                                     console.log('✅ [NewPersonGrid] 無資料，隱藏新人跟進關懷區塊');
@@ -538,25 +434,61 @@
 
 @* ================================================================================================
    JavaScript 區塊：動態載入會員身分與信仰狀態清單
-   ------------------------------------------------------------------------------------------------
-   說明：
-   - 這兩個陣列提供給上方兩個 DataGrid 的 Lookup 欄位使用。
-   - 頁面載入時先呼叫 API 取得選項。
-   - 若 API 失敗，則使用原本的備用固定清單，避免功能中斷。
-   - 這裡保留 `async: false`，因為原本邏輯是要確保 DataGrid 初始化前資料已準備完成。
-   - 僅補充註解與排版，不更動行為。
    ================================================================================================ *@
 <script>
-    // 全域變數：提供給 DataGrid Lookup 使用的資料來源
     var membershipStatusDataSource = [];
     var spiritualIdentityDataSource = [];
     var visitDataSource = [];
+    var contactImageEndpoint = '@Url.Action("GetContactImage", "Personal")';
 
-    // 頁面載入完成後，先同步取得下拉選單資料，再讓 DataGrid 使用
+    function getContactIdFromGridRow(options) {
+        if (!options || !options.data) {
+            return null;
+        }
+
+        return options.data.ContactId || options.data.contactId || options.value || null;
+    }
+
+    function renderContactAvatar(container, options) {
+        var contactId = getContactIdFromGridRow(options);
+        var fallbackSvg = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="20" fill="#e9ecef"/><text x="20" y="25" font-size="14" text-anchor="middle" fill="#6c757d">人</text></svg>');
+        var imageUrl = fallbackSvg;
+
+        if (contactId) {
+            imageUrl = contactImageEndpoint + '?contactId=' + encodeURIComponent(contactId) + '&timestamp=' + Date.now();
+        }
+
+        var host = container && container.get ? container.get(0) : container;
+        if (!host) {
+            return;
+        }
+
+        var img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = '大頭照';
+        img.onerror = function () {
+            if (img.src !== fallbackSvg) {
+                img.src = fallbackSvg;
+            }
+        };
+        img.style.width = '40px';
+        img.style.height = '40px';
+        img.style.borderRadius = '50%';
+        img.style.objectFit = 'cover';
+        img.style.border = '2px solid #e0e0e0';
+        img.style.display = 'block';
+        img.style.margin = '4px auto';
+        img.style.boxShadow = '0 1px 3px rgba(0,0,0,0.12)';
+        img.style.backgroundColor = '#f8f9fa';
+        host.appendChild(img);
+    }
+
+    window.contactImageCellTemplate = function (container, options) {
+        renderContactAvatar(container, options);
+    };
+
     $(document).ready(function () {
-        // --------------------------------------------------------------------------------------------
-        // 1. 載入會員身分清單
-        // --------------------------------------------------------------------------------------------
+        // 載入會員身分清單
         $.ajax({
             url: '/Personal/Api/GetMembershipStatusList',
             type: 'GET',
@@ -570,14 +502,11 @@
             },
             error: function (xhr, status, error) {
                 console.error('❌ [_GeneralGroupGrids] 載入會員身分清單失敗:', error);
-                // API 失敗時使用備用清單，避免 Lookup 無資料可用
                 membershipStatusDataSource = ["牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案"];
             }
         });
 
-        // --------------------------------------------------------------------------------------------
-        // 2. 載入信仰狀態清單
-        // --------------------------------------------------------------------------------------------
+        // 載入信仰狀態清單
         $.ajax({
             url: '/Personal/Api/GetSpiritualIdentityList',
             type: 'GET',
@@ -591,14 +520,11 @@
             },
             error: function (xhr, status, error) {
                 console.error('❌ [_GeneralGroupGrids] 載入信仰狀態清單失敗:', error);
-                // API 失敗時使用備用清單，避免 Lookup 無資料可用
                 spiritualIdentityDataSource = ["-未知-", "基督徒", "已決志", "慕道友", "未信主"];
             }
         });
 
-        // --------------------------------------------------------------------------------------------
-        // 3. 載入探訪清單
-        // --------------------------------------------------------------------------------------------
+        // 載入探訪清單
         $.ajax({
             url: '/Personal/Api/GetVisitList',
             type: 'GET',
@@ -619,9 +545,7 @@
 </script>
 
 <style>
-    /* 防止 iOS/行動瀏覽器在點擊輸入框時自動 zoom in
-       原因：瀏覽器在 font-size < 16px 的輸入框取得焦點時會自動縮放畫面
-       解法：強制 DevExtreme 所有輸入元素 font-size >= 16px */
+    /* 防止 iOS/行動瀏覽器在點擊輸入框時自動 zoom in */
     .dx-texteditor-input,
     .dx-selectbox-container input,
     .dx-dropdowneditor-input-wrapper input,
