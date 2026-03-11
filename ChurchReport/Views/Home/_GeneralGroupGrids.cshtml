@@ -477,9 +477,10 @@
         img.style.objectFit = 'cover';
         img.style.border = '2px solid #e0e0e0';
         img.style.display = 'block';
-        img.style.margin = '4px auto';
+        img.style.margin = '0 auto';
         img.style.boxShadow = '0 1px 3px rgba(0,0,0,0.12)';
         img.style.backgroundColor = '#f8f9fa';
+        img.className = 'contact-avatar-img';
         host.appendChild(img);
     }
 
@@ -552,5 +553,24 @@
     .dx-checkbox-container,
     select {
         font-size: 16px !important;
+    }
+
+    /* DataGrid 內容垂直置中，讓照片/文字/核取方塊對齊 */
+    #SmallGroupgridContainer .dx-datagrid-rowsview .dx-row > td,
+    #NewPersonGridContainer .dx-datagrid-rowsview .dx-row > td {
+        vertical-align: middle !important;
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+    }
+
+    #SmallGroupgridContainer .dx-datagrid-headers .dx-header-row > td,
+    #NewPersonGridContainer .dx-datagrid-headers .dx-header-row > td {
+        vertical-align: middle !important;
+    }
+
+    #SmallGroupgridContainer .contact-avatar-img,
+    #NewPersonGridContainer .contact-avatar-img {
+        width: 40px;
+        height: 40px;
     }
 </style>
