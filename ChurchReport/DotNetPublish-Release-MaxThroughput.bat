@@ -13,7 +13,7 @@ dotnet publish -c Release -r win-x64 --self-contained false ^
     /p:DebugSymbols=false ^
     /p:IlcOptimizationPreference=Speed ^
     /p:IlcOptimizationData=true ^
--o "./bin/Sunny-Output-Release-MaxThroughput"
+-o "./bin/Jesus-Output-Release-MaxThroughput"
 
 pause
 
