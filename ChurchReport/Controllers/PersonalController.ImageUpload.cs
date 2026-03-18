@@ -32,6 +32,10 @@ using SixLabors.ImageSharp.Formats.Jpeg;
 
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 
+using System.Collections.Generic;
+
+using System.Linq;
+
 
 
 namespace ChurchReport.Controllers
@@ -529,8 +533,8 @@ namespace ChurchReport.Controllers
                         outputBytes,
                         new MemoryCacheEntryOptions
                         {
-                            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
-                            SlidingExpiration = TimeSpan.FromMinutes(3),
+                            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
+                                SlidingExpiration = TimeSpan.FromMinutes(10),
                             Size = Math.Max(1, outputBytes.Length / 1024)
                         });
 
@@ -588,7 +592,7 @@ namespace ChurchReport.Controllers
 
         private void ApplyImageResponseCacheHeaders()
         {
-            Response.Headers["Cache-Control"] = "private, max-age=600";
+            Response.Headers["Cache-Control"] = "private, max-age=1800";
             Response.Headers["Vary"] = "Accept-Encoding";
         }
 
@@ -615,10 +619,120 @@ namespace ChurchReport.Controllers
 
         }
 
+        /// <summary>
+        /// 批次取得多個 Contact 大頭照（Base64 Data URL 格式）
+        /// POST: /Personal/GetContactImagesBatch
+        /// 透過單一 CRM RetrieveMultiple 查詢，一次取得所有所需照片，
+        /// 大幅減少 N+1 HTTP 請求與 CRM 連線開銷。
+        /// </summary>
+        /// <param name="request">包含 ContactIds 陣列與縮圖尺寸</param>
+        /// <returns>JSON: { success, images: { contactId: dataUrl } }</returns>
+        [HttpPost]
+        [Route("/Personal/GetContactImagesBatch")]
+        public IActionResult GetContactImagesBatch([FromBody] BatchImageRequest request)
+        {
+            IOrganizationService service = null;
+            try
+            {
+                if (request?.ContactIds == null || request.ContactIds.Length == 0)
+                {
+                    return Json(new { success = true, images = new Dictionary<string, string>() });
+                }
 
+                var thumbSize = Math.Clamp(request.Size > 0 ? request.Size : 48, 32, 256);
+                var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
+                var result = new Dictionary<string, string>();
+                var uncachedGuids = new List<Guid>();
+
+                // ========================================
+                // 步驟 1: 優先從 MemoryCache 取得已快取的縮圖
+                // ========================================
+                foreach (var idStr in request.ContactIds)
+                {
+                    if (!Guid.TryParse(idStr, out var guid)) continue;
+
+                    var cacheKey = $"contact-image-thumb:{guid:N}:{thumbSize}";
+                    if (memoryCache != null && memoryCache.TryGetValue(cacheKey, out byte[] cached) && cached != null)
+                    {
+                        result[idStr] = "data:image/jpeg;base64," + Convert.ToBase64String(cached);
+                    }
+                    else
+                    {
+                        uncachedGuids.Add(guid);
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[GetContactImagesBatch] 快取命中: {result.Count}, 需查詢 CRM: {uncachedGuids.Count}");
+
+                // ========================================
+                // 步驟 2: 批次查詢 CRM 取得未快取的照片
+                // ========================================
+                if (uncachedGuids.Count > 0)
+                {
+                    service = GetConnection();
+
+                    var query = new Microsoft.Xrm.Sdk.Query.QueryExpression("contact")
+                    {
+                        ColumnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet("entityimage", "contactid")
+                    };
+                    query.Criteria.AddCondition(
+                        "contactid",
+                        Microsoft.Xrm.Sdk.Query.ConditionOperator.In,
+                        uncachedGuids.Select(g => (object)g).ToArray());
+
+                    var queryResult = service.RetrieveMultiple(query);
+
+                    foreach (var entity in queryResult.Entities)
+                    {
+                        var contactIdStr = entity.Id.ToString();
+                        if (entity.Contains("entityimage") && entity["entityimage"] != null)
+                        {
+                            var originalBytes = (byte[])entity["entityimage"];
+                            var outputBytes = CreateThumbnailIfNeeded(originalBytes, thumbSize);
+
+                            // 寫入 MemoryCache（與 GetContactImage 共用相同 cache key）
+                            var cacheKey = $"contact-image-thumb:{entity.Id:N}:{thumbSize}";
+                            memoryCache?.Set(cacheKey, outputBytes, new MemoryCacheEntryOptions
+                            {
+                                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
+                                SlidingExpiration = TimeSpan.FromMinutes(10),
+                                Size = Math.Max(1, outputBytes.Length / 1024)
+                            });
+
+                            result[contactIdStr] = "data:image/jpeg;base64," + Convert.ToBase64String(outputBytes);
+                        }
+                    }
+                }
+
+                // 批次回應不設瀏覽器快取（資料已由 MemoryCache 快取）
+                Response.Headers["Cache-Control"] = "private, no-store";
+                return Json(new { success = true, images = result });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetContactImagesBatch] 錯誤: {ex.Message}");
+                return Json(new { success = false, images = new Dictionary<string, string>() });
+            }
+            finally
+            {
+                ReleaseConnection(service);
+            }
+        }
 
         #endregion
 
+    }
+
+    /// <summary>
+    /// 批次取得聯絡人照片的請求模型
+    /// </summary>
+    public class BatchImageRequest
+    {
+        /// <summary>聯絡人 ID 陣列</summary>
+        public string[] ContactIds { get; set; }
+
+        /// <summary>縮圖尺寸（像素）</summary>
+        public int Size { get; set; }
     }
 
 }

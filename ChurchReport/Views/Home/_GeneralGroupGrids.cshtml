@@ -204,6 +204,7 @@
                                     console.log('✅ [SmallGroupGrid] 無資料，隱藏小組牧養區塊');
                                 } else {
                                     $('#smallGroupSection').show();
+                                    preloadContactImages(e.component, 'SmallGroupgridContainer');
                                     console.log('✅ [SmallGroupGrid] 資料筆數:', totalCount);
                                 }
                             }
@@ -421,6 +422,7 @@
                                     console.log('✅ [NewPersonGrid] 無資料，隱藏新人跟進關懷區塊');
                                 } else {
                                     $('#newPersonFollowUpSection').show();
+                                    preloadContactImages(e.component, 'NewPersonGridContainer');
                                     console.log('✅ [NewPersonGrid] 資料筆數:', totalCount);
                                 }
                             }
@@ -441,6 +443,9 @@
     var visitDataSource = [];
     var contactImageEndpoint = '@Url.Action("GetContactImage", "Personal")';
     var contactAvatarThumbSize = 48;
+    var contactImageBatchEndpoint = '@Url.Action("GetContactImagesBatch", "Personal")';
+    var contactImageCache = {};
+    var _batchLoadPending = {};
 
     function getContactIdFromGridRow(options) {
         if (!options || !options.data) {
@@ -453,11 +458,6 @@
     function renderContactAvatar(container, options) {
         var contactId = getContactIdFromGridRow(options);
         var fallbackSvg = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="20" fill="#e9ecef"/><text x="20" y="25" font-size="14" text-anchor="middle" fill="#6c757d">人</text></svg>');
-        var imageUrl = fallbackSvg;
-
-        if (contactId) {
-            imageUrl = contactImageEndpoint + '?contactId=' + encodeURIComponent(contactId) + '&size=' + contactAvatarThumbSize;
-        }
 
         var host = container && container.get ? container.get(0) : container;
         if (!host) {
@@ -467,11 +467,20 @@
         host.textContent = '';
 
         var img = document.createElement('img');
-        img.src = imageUrl;
+
+        // 優先使用批次預載入的快取 Data URL（零網路延遲）
+        if (contactId && contactImageCache[contactId]) {
+            img.src = contactImageCache[contactId];
+        } else if (contactId) {
+            img.src = contactImageEndpoint + '?contactId=' + encodeURIComponent(contactId) + '&size=' + contactAvatarThumbSize;
+        } else {
+            img.src = fallbackSvg;
+        }
+
         img.alt = '大頭照';
-        img.loading = 'eager';
-        img.decoding = 'auto';
-        img.fetchPriority = 'high';
+        img.loading = 'lazy';           // 延遲載入：僅可視區域內的圖片才發送請求
+        img.decoding = 'async';         // 非同步解碼：不阻塞主執行緒渲染
+        img.dataset.contactId = contactId || '';
         img.onerror = function () {
             if (img.src !== fallbackSvg) {
                 img.src = fallbackSvg;
@@ -493,6 +502,58 @@
     window.contactImageCellTemplate = function (container, options) {
         renderContactAvatar(container, options);
     };
+
+    /**
+     * 批次預載入聯絡人大頭照
+     * 從 Grid DataSource 收集所有 ContactId，透過單一 POST 請求批次取得 Base64 Data URL，
+     * 然後直接更新 DOM 中已渲染的 <img> 元素，避免 N+1 個別 HTTP 請求。
+     */
+    function preloadContactImages(gridComponent, gridId) {
+        if (_batchLoadPending[gridId]) return;
+
+        var items = gridComponent.getDataSource().items();
+        if (!items || items.length === 0) return;
+
+        var uncachedIds = [];
+        items.forEach(function (item) {
+            var id = item.ContactId || item.contactId;
+            if (id && !contactImageCache[id]) {
+                uncachedIds.push(id);
+            }
+        });
+
+        if (uncachedIds.length === 0) return;
+
+        _batchLoadPending[gridId] = true;
+
+        $.ajax({
+            url: contactImageBatchEndpoint,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ contactIds: uncachedIds, size: contactAvatarThumbSize }),
+            success: function (response) {
+                if (response.success && response.images) {
+                    for (var id in response.images) {
+                        contactImageCache[id] = response.images[id];
+                    }
+                    // 直接更新 DOM 中已渲染的 <img>，避免整頁 repaint
+                    $('#' + gridId + ' .contact-avatar-img[data-contact-id]').each(function () {
+                        var cid = this.dataset.contactId;
+                        if (cid && contactImageCache[cid]) {
+                            this.src = contactImageCache[cid];
+                        }
+                    });
+                    console.log('✅ [preloadContactImages] ' + gridId + ' 批次載入完成，共 ' + Object.keys(response.images).length + ' 張');
+                }
+            },
+            error: function () {
+                console.warn('⚠️ [preloadContactImages] ' + gridId + ' 批次載入失敗，改用逐筆載入');
+            },
+            complete: function () {
+                _batchLoadPending[gridId] = false;
+            }
+        });
+    }
 
     $(document).ready(function () {
         // 載入會員身分清單
