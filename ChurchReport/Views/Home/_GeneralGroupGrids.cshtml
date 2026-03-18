@@ -440,6 +440,7 @@
     var spiritualIdentityDataSource = [];
     var visitDataSource = [];
     var contactImageEndpoint = '@Url.Action("GetContactImage", "Personal")';
+    var contactAvatarThumbSize = 48;
 
     function getContactIdFromGridRow(options) {
         if (!options || !options.data) {
@@ -455,7 +456,7 @@
         var imageUrl = fallbackSvg;
 
         if (contactId) {
-            imageUrl = contactImageEndpoint + '?contactId=' + encodeURIComponent(contactId);
+            imageUrl = contactImageEndpoint + '?contactId=' + encodeURIComponent(contactId) + '&size=' + contactAvatarThumbSize;
         }
 
         var host = container && container.get ? container.get(0) : container;
@@ -468,6 +469,9 @@
         var img = document.createElement('img');
         img.src = imageUrl;
         img.alt = '大頭照';
+        img.loading = 'eager';
+        img.decoding = 'auto';
+        img.fetchPriority = 'high';
         img.onerror = function () {
             if (img.src !== fallbackSvg) {
                 img.src = fallbackSvg;

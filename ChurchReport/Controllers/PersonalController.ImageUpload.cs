@@ -1,252 +1,493 @@
 using ChurchReport.Models;
+
 using ChurchReport.Tools;
+
 using ChurchReport.ViewModels;
+
 using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
+
 using Microsoft.Extensions.Caching.Memory;
+
 using Microsoft.Xrm.Sdk;
+
 using System;
+
 using System.IO;
+
 using System.Threading.Tasks;
+
 using ToolUtilityNameSpace.ConnectionOperations;
+
 using ToolUtilityNameSpace.DependencyInjection;
-// ? ·s¼W SixLabors.ImageSharp¡A¥Î©ó³B²z EXIF Orientation
+
+// ? æ–°å¢ SixLabors.ImageSharpï¼Œç”¨æ–¼è™•ç† EXIF Orientation
+
 using SixLabors.ImageSharp;
+
 using SixLabors.ImageSharp.Processing;
+
 using SixLabors.ImageSharp.Formats.Jpeg;
+
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 
+
+
 namespace ChurchReport.Controllers
+
 {
+
     /// <summary>
-    /// ­Ó¤H¸ê°TºŞ²z±±¨î¾¹ - ¹Ï¤ù¤W¶Ç³¡¤À
-    /// ³B²z Contact ¤jÀY·Ó¤W¶Ç»P§ó·s
+
+    /// å€‹äººè³‡è¨Šç®¡ç†æ§åˆ¶å™¨ - åœ–ç‰‡ä¸Šå‚³éƒ¨åˆ†
+
+    /// è™•ç† Contact å¤§é ­ç…§ä¸Šå‚³èˆ‡æ›´æ–°
+
     /// </summary>
+
     public partial class PersonalController
+
     {
-        #region ¤jÀY·Ó¤W¶Ç»P§ó·s
+
+        #region å¤§é ­ç…§ä¸Šå‚³èˆ‡æ›´æ–°
+
+
 
         /// <summary>
-        /// ¤W¶Ç¨Ã§ó·s Contact ¤jÀY·Ó
+
+        /// ä¸Šå‚³ä¸¦æ›´æ–° Contact å¤§é ­ç…§
+
         /// POST: /Personal/UploadContactImage
+
         /// </summary>
-        /// <param name="imageFile">¤W¶Çªº¹Ï¤ùÀÉ®×</param>
-        /// <returns>JSON µ²ªG¡G¦¨¥\©Î¥¢±Ñ°T®§</returns>
+
+        /// <param name="imageFile">ä¸Šå‚³çš„åœ–ç‰‡æª”æ¡ˆ</param>
+
+        /// <returns>JSON çµæœï¼šæˆåŠŸæˆ–å¤±æ•—è¨Šæ¯</returns>
+
         [HttpPost]
+
         [Route("/Personal/UploadContactImage")]
+
         public async Task<IActionResult> UploadContactImage(IFormFile imageFile)
+
         {
+
             IOrganizationService service = null;
+
             try
+
             {
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ========== ¶}©l¤W¶Ç¤jÀY·Ó ==========");
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ®É¶¡: {DateTime.Now}");
+
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ========== é–‹å§‹ä¸Šå‚³å¤§é ­ç…§ ==========");
+
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] æ™‚é–“: {DateTime.Now}");
+
+
 
                 // ========================================
-                // ¨BÆJ 1: ÅçÃÒ¤W¶ÇÀÉ®×
+
+                // æ­¥é©Ÿ 1: é©—è­‰ä¸Šå‚³æª”æ¡ˆ
+
                 // ========================================
+
                 if (imageFile == null || imageFile.Length == 0)
+
                 {
-                    System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? ¥¼¿ï¾ÜÀÉ®×");
+
+                    System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? æœªé¸æ“‡æª”æ¡ˆ");
+
                     return Json(new
+
                     {
+
                         success = false,
-                        message = "½Ğ¿ï¾Ü­n¤W¶Çªº¹Ï¤ùÀÉ®×"
+
+                        message = "è«‹é¸æ“‡è¦ä¸Šå‚³çš„åœ–ç‰‡æª”æ¡ˆ"
+
                     });
+
                 }
 
-                // ÀË¬dÀÉ®×¤j¤p¡]­­¨î 5MB¡^
+
+
+                // æª¢æŸ¥æª”æ¡ˆå¤§å°ï¼ˆé™åˆ¶ 5MBï¼‰
+
                 const long maxFileSize = 5 * 1024 * 1024; // 5MB
+
                 if (imageFile.Length > maxFileSize)
+
                 {
-                    System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? ÀÉ®×¹L¤j: {imageFile.Length} bytes");
+
+                    System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? æª”æ¡ˆéå¤§: {imageFile.Length} bytes");
+
                     return Json(new
+
                     {
+
                         success = false,
-                        message = "¹Ï¤ùÀÉ®×¹L¤j¡A½Ğ¿ï¾Ü¤p©ó 5MB ªº¹Ï¤ù"
+
+                        message = "åœ–ç‰‡æª”æ¡ˆéå¤§ï¼Œè«‹é¸æ“‡å°æ–¼ 5MB çš„åœ–ç‰‡"
+
                     });
+
                 }
 
-                // ÀË¬dÀÉ®×Ãş«¬
+
+
+                // æª¢æŸ¥æª”æ¡ˆé¡å‹
+
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+
                 var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+
                 var fileExtension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
+
                 var contentType = imageFile.ContentType.ToLowerInvariant();
 
+
+
                 if (!Array.Exists(allowedExtensions, ext => ext == fileExtension) ||
+
                     !Array.Exists(allowedContentTypes, type => type == contentType))
+
                 {
-                    System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? ¤£¤ä´©ªºÀÉ®×Ãş«¬: {fileExtension}, {contentType}");
+
+                    System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? ä¸æ”¯æ´çš„æª”æ¡ˆé¡å‹: {fileExtension}, {contentType}");
+
                     return Json(new
+
                     {
+
                         success = false,
-                        message = "¥u¤ä´© JPG¡BPNG¡BGIF ®æ¦¡ªº¹Ï¤ù"
+
+                        message = "åªæ”¯æ´ JPGã€PNGã€GIF æ ¼å¼çš„åœ–ç‰‡"
+
                     });
+
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? ÀÉ®×ÅçÃÒ³q¹L");
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage]   - ÀÉ®×¦WºÙ: {imageFile.FileName}");
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage]   - ÀÉ®×¤j¤p: {imageFile.Length} bytes");
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage]   - ÀÉ®×Ãş«¬: {contentType}");
+
+
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? æª”æ¡ˆé©—è­‰é€šé");
+
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage]   - æª”æ¡ˆåç¨±: {imageFile.FileName}");
+
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage]   - æª”æ¡ˆå¤§å°: {imageFile.Length} bytes");
+
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage]   - æª”æ¡ˆé¡å‹: {contentType}");
+
+
 
                 // ========================================
-                // ¨BÆJ 2: ¨ú±o·í«eµn¤J¨Ï¥ÎªÌªº Contact
+
+                // æ­¥é©Ÿ 2: å–å¾—ç•¶å‰ç™»å…¥ä½¿ç”¨è€…çš„ Contact
+
                 // ========================================
+
                 var loginContact = InMemoryContext?.PersonalInfomationModel?.m_LoginContact;
+
                 if (loginContact == null)
+
                 {
-                    System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? µLªk¨ú±oµn¤J¨Ï¥ÎªÌ¸ê°T");
+
+                    System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? ç„¡æ³•å–å¾—ç™»å…¥ä½¿ç”¨è€…è³‡è¨Š");
+
                     return Json(new
+
                     {
+
                         success = false,
-                        message = "µLªk¨ú±oµn¤J¨Ï¥ÎªÌ¸ê°T¡A½Ğ­«·sµn¤J"
+
+                        message = "ç„¡æ³•å–å¾—ç™»å…¥ä½¿ç”¨è€…è³‡è¨Šï¼Œè«‹é‡æ–°ç™»å…¥"
+
                     });
+
                 }
+
+
 
                 var contactId = loginContact.Id;
+
                 var fullName = ToolUtility.GetEntityStringAttribute(ref loginContact, "fullname");
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? ¨Ï¥ÎªÌ: {fullName} (ID: {contactId})");
+
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? ä½¿ç”¨è€…: {fullName} (ID: {contactId})");
+
+
 
                 // ========================================
-                // ¨BÆJ 3: Åª¨ú¨Ã­×¥¿¹Ï¤ù EXIF Orientation¡]¸Ñ¨Mª½©ç±ÛÂà°İÃD¡^
+
+                // æ­¥é©Ÿ 3: è®€å–ä¸¦ä¿®æ­£åœ–ç‰‡ EXIF Orientationï¼ˆè§£æ±ºç›´æ‹æ—‹è½‰å•é¡Œï¼‰
+
                 // ========================================
+
                 byte[] imageBytes;
+
                 using (var inputStream = imageFile.OpenReadStream())
+
                 using (var outputStream = new MemoryStream())
+
                 {
+
                     try
+
                     {
-                        // ¨Ï¥Î ImageSharp ¸ü¤J¹Ï¤ù
+
+                        // ä½¿ç”¨ ImageSharp è¼‰å…¥åœ–ç‰‡
+
                         using (var image = await Image.LoadAsync(inputStream))
+
                         {
-                            System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ?? ­ì©l¹Ï¤ù¤Ø¤o: {image.Width}x{image.Height}");
 
-                            // ÀË¬d EXIF Orientation¡]¨Ï¥Î ImageSharp 3.x API¡^
+                            System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ?? åŸå§‹åœ–ç‰‡å°ºå¯¸: {image.Width}x{image.Height}");
+
+
+
+                            // æª¢æŸ¥ EXIF Orientationï¼ˆä½¿ç”¨ ImageSharp 3.x APIï¼‰
+
                             var exifProfile = image.Metadata.ExifProfile;
+
                             if (exifProfile != null && exifProfile.TryGetValue(ExifTag.Orientation, out IExifValue<ushort> orientationValue))
+
                             {
+
                                 System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ?? EXIF Orientation: {orientationValue.Value}");
-                            }
-                            else
-                            {
-                                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ?? µL EXIF Orientation ¸ê°T");
+
                             }
 
-                            // ? ¦Û°Ê­×¥¿±ÛÂà¡]®Ú¾Ú EXIF ¸ê°T¡^
+                            else
+
+                            {
+
+                                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ?? ç„¡ EXIF Orientation è³‡è¨Š");
+
+                            }
+
+
+
+                            // ? è‡ªå‹•ä¿®æ­£æ—‹è½‰ï¼ˆæ ¹æ“š EXIF è³‡è¨Šï¼‰
+
                             image.Mutate(x => x.AutoOrient());
 
-                            // ²¾°£ EXIF Orientation ¼Ğ°O¡]Á×§K­«½Æ±ÛÂà¡^
+
+
+                            // ç§»é™¤ EXIF Orientation æ¨™è¨˜ï¼ˆé¿å…é‡è¤‡æ—‹è½‰ï¼‰
+
                             if (image.Metadata.ExifProfile != null)
+
                             {
+
                                 image.Metadata.ExifProfile.RemoveValue(ExifTag.Orientation);
+
                             }
 
-                            System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? EXIF ¤è¦V¤w­×¥¿¡A¹Ï¤ù¤w¥¿³W¤Æ");
 
-                            // Àx¦s¬° JPEG¡]°ª«~½è¡^
+
+                            System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? EXIF æ–¹å‘å·²ä¿®æ­£ï¼Œåœ–ç‰‡å·²æ­£è¦åŒ–");
+
+
+
+                            // å„²å­˜ç‚º JPEGï¼ˆé«˜å“è³ªï¼‰
+
                             var encoder = new JpegEncoder
+
                             {
-                                Quality = 90 // 90% «~½è¡]¥­¿ÅÀÉ®×¤j¤p»Pµe½è¡^
+
+                                Quality = 90 // 90% å“è³ªï¼ˆå¹³è¡¡æª”æ¡ˆå¤§å°èˆ‡ç•«è³ªï¼‰
+
                             };
+
                             await image.SaveAsync(outputStream, encoder);
+
                         }
+
+
 
                         imageBytes = outputStream.ToArray();
-                        System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? ¹Ï¤ù¤w³B²z¨ÃÀ£ÁY: {imageBytes.Length} bytes");
+
+                        System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? åœ–ç‰‡å·²è™•ç†ä¸¦å£“ç¸®: {imageBytes.Length} bytes");
+
                     }
+
                     catch (Exception imageProcessEx)
+
                     {
-                        System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ?? ImageSharp ³B²z¥¢±Ñ¡A¨Ï¥Î­ì©lÀÉ®×: {imageProcessEx.Message}");
+
+                        System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ?? ImageSharp è™•ç†å¤±æ•—ï¼Œä½¿ç”¨åŸå§‹æª”æ¡ˆ: {imageProcessEx.Message}");
+
                         
-                        // ­°¯Å¤è®×¡G¦pªG ImageSharp ³B²z¥¢±Ñ¡A¨Ï¥Î­ì©lÀÉ®×
+
+                        // é™ç´šæ–¹æ¡ˆï¼šå¦‚æœ ImageSharp è™•ç†å¤±æ•—ï¼Œä½¿ç”¨åŸå§‹æª”æ¡ˆ
+
                         inputStream.Position = 0;
+
                         using (var fallbackStream = new MemoryStream())
+
                         {
+
                             await inputStream.CopyToAsync(fallbackStream);
+
                             imageBytes = fallbackStream.ToArray();
+
                         }
+
                     }
+
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? ³Ì²×¹Ï¤ù¤j¤p: {imageBytes.Length} bytes");
+
+
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? æœ€çµ‚åœ–ç‰‡å¤§å°: {imageBytes.Length} bytes");
+
+
 
                 // ========================================
-                // ¨BÆJ 4: §ó·s CRM Contact ªº EntityImage
+
+                // æ­¥é©Ÿ 4: æ›´æ–° CRM Contact çš„ EntityImage
+
                 // ========================================
+
                 service = GetConnection();
 
+
+
                 var contactToUpdate = new Entity("contact", contactId);
+
                 contactToUpdate["entityimage"] = imageBytes;
 
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ¶}©l§ó·s CRM Contact...");
+
+
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] é–‹å§‹æ›´æ–° CRM Contact...");
+
                 service.Update(contactToUpdate);
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? CRM Contact §ó·s¦¨¥\");
+
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? CRM Contact æ›´æ–°æˆåŠŸ");
+
+
 
                 // ========================================
-                // ¨BÆJ 5: §ó·s Session ¤¤ªº Contact ¸ê®Æ
+
+                // æ­¥é©Ÿ 5: æ›´æ–° Session ä¸­çš„ Contact è³‡æ–™
+
                 // ========================================
+
                 try
+
                 {
-                    // ­«·s¬d¸ß Contact ¥H¨ú±o§ó·s«áªº¸ê®Æ
+
+                    // é‡æ–°æŸ¥è©¢ Contact ä»¥å–å¾—æ›´æ–°å¾Œçš„è³‡æ–™
+
                     var updatedContact = service.Retrieve("contact", contactId, new Microsoft.Xrm.Sdk.Query.ColumnSet(true));
+
                     InMemoryContext.PersonalInfomationModel.m_LoginContact = updatedContact;
-                    System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? Session ¤¤ªº Contact ¤w§ó·s");
+
+                    System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? Session ä¸­çš„ Contact å·²æ›´æ–°");
+
                 }
+
                 catch (Exception ex)
+
                 {
-                    System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ?? §ó·s Session ¥¢±Ñ¡]¤£¼vÅT¥D­n¥\¯à¡^: {ex.Message}");
+
+                    System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ?? æ›´æ–° Session å¤±æ•—ï¼ˆä¸å½±éŸ¿ä¸»è¦åŠŸèƒ½ï¼‰: {ex.Message}");
+
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ========== ¤jÀY·Ó¤W¶Ç§¹¦¨ ==========");
+
+
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ========== å¤§é ­ç…§ä¸Šå‚³å®Œæˆ ==========");
+
+
 
                 return Json(new
+
                 {
+
                     success = true,
-                    message = "¤jÀY·Ó¤W¶Ç¦¨¥\¡I",
+
+                    message = "å¤§é ­ç…§ä¸Šå‚³æˆåŠŸï¼",
+
                     imageUrl = $"/Personal/GetContactImage?contactId={contactId}&timestamp={DateTime.Now.Ticks}"
+
                 });
+
             }
+
             catch (System.ServiceModel.FaultException faultEx)
+
             {
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? CRM ¿ù»~: {faultEx.Message}");
+
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? CRM éŒ¯èª¤: {faultEx.Message}");
+
                 return Json(new
+
                 {
+
                     success = false,
-                    message = $"CRM §ó·s¥¢±Ñ: {faultEx.Message}"
+
+                    message = $"CRM æ›´æ–°å¤±æ•—: {faultEx.Message}"
+
                 });
+
             }
+
             catch (Exception ex)
+
             {
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? ¥¼¹w´Áªº¿ù»~: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ¿ù»~°ïÅ|: {ex.StackTrace}");
+
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] ? æœªé æœŸçš„éŒ¯èª¤: {ex.Message}");
+
+                System.Diagnostics.Debug.WriteLine($"[UploadContactImage] éŒ¯èª¤å †ç–Š: {ex.StackTrace}");
+
                 return Json(new
+
                 {
+
                     success = false,
-                    message = $"¤W¶Ç¥¢±Ñ: {ex.Message}"
+
+                    message = $"ä¸Šå‚³å¤±æ•—: {ex.Message}"
+
                 });
+
             }
+
             finally
+
             {
+
                 ReleaseConnection(service);
+
             }
+
         }
 
+
+
         /// <summary>
-        /// ¨ú±o Contact ¤jÀY·Ó
+
+        /// å–å¾— Contact å¤§é ­ç…§
+
         /// GET: /Personal/GetContactImage?contactId={guid}
+
         /// </summary>
+
         /// <param name="contactId">Contact ID</param>
-        /// <returns>¹Ï¤ù byte[] ©Î¹w³]¹Ï¤ù</returns>
+
+        /// <returns>åœ–ç‰‡ byte[] æˆ–é è¨­åœ–ç‰‡</returns>
+
         [HttpGet]
         [Route("/Personal/GetContactImage")]
-        public IActionResult GetContactImage(string contactId)
+        public IActionResult GetContactImage(string contactId, int size = 80)
         {
             IOrganizationService service = null;
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[GetContactImage] ¨ú±o¤jÀY·Ó: {contactId}");
+                System.Diagnostics.Debug.WriteLine($"[GetContactImage] å–å¾—å¤§é ­ç…§: {contactId}, size={size}");
 
-                // ¦pªG¨S¦³´£¨Ñ contactId¡A¨Ï¥Î·í«eµn¤J¨Ï¥ÎªÌ
+                var thumbSize = Math.Clamp(size, 32, 256);
+
+                // å¦‚æœæ²’æœ‰æä¾› contactIdï¼Œä½¿ç”¨ç•¶å‰ç™»å…¥ä½¿ç”¨è€…
                 Guid contactGuid;
                 if (string.IsNullOrWhiteSpace(contactId))
                 {
@@ -257,34 +498,52 @@ namespace ChurchReport.Controllers
                     }
                     contactGuid = loginContact.Id;
                 }
-                else
+                else if (!Guid.TryParse(contactId, out contactGuid))
                 {
-                    if (!Guid.TryParse(contactId, out contactGuid))
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[GetContactImage] ? µL®Äªº Contact ID: {contactId}");
-                        return GetDefaultImage();
-                    }
+                    System.Diagnostics.Debug.WriteLine($"[GetContactImage] ç„¡æ•ˆçš„ Contact ID: {contactId}");
+                    return GetDefaultImage();
+                }
+
+                var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
+                var cacheKey = $"contact-image-thumb:{contactGuid:N}:{thumbSize}";
+
+                if (memoryCache != null && memoryCache.TryGetValue(cacheKey, out byte[] cachedImageBytes) && cachedImageBytes != null)
+                {
+                    ApplyImageResponseCacheHeaders();
+                    return File(cachedImageBytes, "image/jpeg");
                 }
 
                 service = GetConnection();
 
-                // ¥u¬d¸ß entityimage Äæ¦ì¥H´£¤É®Ä¯à
-                var contact = service.Retrieve("contact", contactGuid, 
+                // åªæŸ¥è©¢ entityimage æ¬„ä½ä»¥æå‡æ•ˆèƒ½
+                var contact = service.Retrieve("contact", contactGuid,
                     new Microsoft.Xrm.Sdk.Query.ColumnSet("entityimage"));
 
                 if (contact.Contains("entityimage") && contact["entityimage"] != null)
                 {
-                    var imageBytes = (byte[])contact["entityimage"];
-                    System.Diagnostics.Debug.WriteLine($"[GetContactImage] ? §ä¨ì¤jÀY·Ó: {imageBytes.Length} bytes");
-                    return File(imageBytes, "image/jpeg");
+                    var originalBytes = (byte[])contact["entityimage"];
+                    var outputBytes = CreateThumbnailIfNeeded(originalBytes, thumbSize);
+
+                    memoryCache?.Set(
+                        cacheKey,
+                        outputBytes,
+                        new MemoryCacheEntryOptions
+                        {
+                            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
+                            SlidingExpiration = TimeSpan.FromMinutes(3),
+                            Size = Math.Max(1, outputBytes.Length / 1024)
+                        });
+
+                    ApplyImageResponseCacheHeaders();
+                    return File(outputBytes, "image/jpeg");
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[GetContactImage] ?? Contact ¨S¦³¤jÀY·Ó¡Aªğ¦^¹w³]¹Ï¤ù");
+                System.Diagnostics.Debug.WriteLine("[GetContactImage] Contact æ²’æœ‰å¤§é ­ç…§ï¼Œè¿”å›é è¨­åœ–ç‰‡");
                 return GetDefaultImage();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetContactImage] ? ¿ù»~: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[GetContactImage] éŒ¯èª¤: {ex.Message}");
                 return GetDefaultImage();
             }
             finally
@@ -293,20 +552,74 @@ namespace ChurchReport.Controllers
             }
         }
 
-        /// <summary>
-        /// ªğ¦^¹w³]¤jÀY·Ó¡]¯Â¦â¶ê§Î¹Ï¥Ü¡^
-        /// </summary>
-        private IActionResult GetDefaultImage()
+        private static byte[] CreateThumbnailIfNeeded(byte[] originalBytes, int size)
         {
-            // ²£¥Í¤@­ÓÂ²³æªº SVG ¹w³]¹Ï¥Ü
-            var svg = @"<svg xmlns=""http://www.w3.org/2000/svg"" width=""150"" height=""150"">
-                <circle cx=""75"" cy=""75"" r=""70"" fill=""#4A90E2""/>
-                <text x=""75"" y=""95"" font-family=""Arial, sans-serif"" font-size=""60"" fill=""white"" text-anchor=""middle"">??</text>
-            </svg>";
+            try
+            {
+                using var input = new MemoryStream(originalBytes);
+                using var image = Image.Load(input);
 
-            return Content(svg, "image/svg+xml");
+                if (image.Width <= size && image.Height <= size)
+                {
+                    return originalBytes;
+                }
+
+                image.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Size = new Size(size, size),
+                    Mode = ResizeMode.Crop,
+                    Position = AnchorPositionMode.Center
+                }));
+
+                using var output = new MemoryStream();
+                image.Save(output, new JpegEncoder
+                {
+                    Quality = 82
+                });
+
+                return output.ToArray();
+            }
+            catch
+            {
+                // è‹¥ç¸®åœ–è™•ç†å¤±æ•—ï¼Œå›é€€åŸå§‹åœ–é¿å…ä¸­æ–·é¡¯ç¤º
+                return originalBytes;
+            }
         }
 
+        private void ApplyImageResponseCacheHeaders()
+        {
+            Response.Headers["Cache-Control"] = "private, max-age=600";
+            Response.Headers["Vary"] = "Accept-Encoding";
+        }
+
+        /// <summary>
+        /// è¿”å›é è¨­å¤§é ­ç…§ï¼ˆç´”è‰²åœ“å½¢åœ–ç¤ºï¼‰
+        /// </summary>
+        private IActionResult GetDefaultImage()
+
+        {
+
+            // ç”¢ç”Ÿä¸€å€‹ç°¡å–®çš„ SVG é è¨­åœ–ç¤º
+
+            var svg = @"<svg xmlns=""http://www.w3.org/2000/svg"" width=""150"" height=""150"">
+
+                <circle cx=""75"" cy=""75"" r=""70"" fill=""#4A90E2""/>
+
+                <text x=""75"" y=""95"" font-family=""Arial, sans-serif"" font-size=""60"" fill=""white"" text-anchor=""middle"">??</text>
+
+            </svg>";
+
+
+
+            return Content(svg, "image/svg+xml");
+
+        }
+
+
+
         #endregion
+
     }
+
 }
+
