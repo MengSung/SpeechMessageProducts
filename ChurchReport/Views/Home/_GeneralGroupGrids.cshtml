@@ -455,13 +455,15 @@
         var imageUrl = fallbackSvg;
 
         if (contactId) {
-            imageUrl = contactImageEndpoint + '?contactId=' + encodeURIComponent(contactId) + '&timestamp=' + Date.now();
+            imageUrl = contactImageEndpoint + '?contactId=' + encodeURIComponent(contactId);
         }
 
         var host = container && container.get ? container.get(0) : container;
         if (!host) {
             return;
         }
+
+        host.textContent = '';
 
         var img = document.createElement('img');
         img.src = imageUrl;
