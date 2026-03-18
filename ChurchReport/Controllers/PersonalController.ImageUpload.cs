@@ -489,7 +489,9 @@ namespace ChurchReport.Controllers
             {
                 System.Diagnostics.Debug.WriteLine($"[GetContactImage] 取得大頭照: {contactId}, size={size}");
 
-                var thumbSize = Math.Clamp(size, 32, 256);
+                // size <= 0 表示取得原始圖片（彈窗顯示用），不進行縮圖處理
+                var returnOriginal = (size <= 0);
+                var thumbSize = returnOriginal ? 0 : Math.Clamp(size, 32, 256);
 
                 // 如果沒有提供 contactId，使用當前登入使用者
                 Guid contactGuid;
@@ -509,7 +511,9 @@ namespace ChurchReport.Controllers
                 }
 
                 var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
-                var cacheKey = $"contact-image-thumb:{contactGuid:N}:{thumbSize}";
+                var cacheKey = returnOriginal
+                    ? $"contact-image-full:{contactGuid:N}"
+                    : $"contact-image-thumb:{contactGuid:N}:{thumbSize}";
 
                 if (memoryCache != null && memoryCache.TryGetValue(cacheKey, out byte[] cachedImageBytes) && cachedImageBytes != null)
                 {
@@ -526,7 +530,7 @@ namespace ChurchReport.Controllers
                 if (contact.Contains("entityimage") && contact["entityimage"] != null)
                 {
                     var originalBytes = (byte[])contact["entityimage"];
-                    var outputBytes = CreateThumbnailIfNeeded(originalBytes, thumbSize);
+                    var outputBytes = returnOriginal ? originalBytes : CreateThumbnailIfNeeded(originalBytes, thumbSize);
 
                     memoryCache?.Set(
                         cacheKey,

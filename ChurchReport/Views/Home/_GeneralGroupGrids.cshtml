@@ -432,6 +432,11 @@
             </div>
         </div>
     }
+
+    @* ================================================================================================
+       區塊 4：會員詳細資料彈出視窗（點擊大頭照開啟）
+       ================================================================================================ *@
+    <div id="memberDetailPopup"></div>
 </div>
 
 @* ================================================================================================
@@ -496,6 +501,19 @@
         img.style.boxShadow = '0 1px 3px rgba(0,0,0,0.12)';
         img.style.backgroundColor = '#f8f9fa';
         img.className = 'contact-avatar-img';
+
+        // 點擊大頭照開啟會員詳細資料彈出視窗（載入原圖 + 點名表單）
+        img.style.cursor = 'pointer';
+        img.addEventListener('click', function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            if (!options || !options.data) return;
+            var gridElId = '';
+            try { gridElId = options.component.element().attr('id') || ''; } catch (ex) { }
+            var gridType = (gridElId === 'NewPersonGridContainer') ? 'newPerson' : 'smallGroup';
+            openMemberDetailPopup(options.data, gridType);
+        });
+
         host.appendChild(img);
     }
 
@@ -553,6 +571,223 @@
                 _batchLoadPending[gridId] = false;
             }
         });
+    }
+
+    // ================================================================================
+    // 會員詳細資料彈出視窗相關函式
+    // ================================================================================
+    var _currentPopupData = null;
+    var _currentPopupGridType = null;
+    var _memberDetailPopupInstance = null;
+
+    /**
+     * 開啟會員詳細資料彈出視窗
+     * 左上角顮示原圖大頭照（按需下載），其餘顮示出席點名及代禱欄位
+     * @@param {Object} rowData - Grid 行資料（Member 物件）
+     * @@param {string} gridType - 'smallGroup' 或 'newPerson'
+     */
+    function openMemberDetailPopup(rowData, gridType) {
+        _currentPopupData = $.extend(true, {}, rowData);
+        _currentPopupGridType = gridType;
+
+        if (!_memberDetailPopupInstance) {
+            // 首次建立彈窗實例
+            $('#memberDetailPopup').dxPopup({
+                showTitle: true,
+                showCloseButton: true,
+                dragEnabled: false,
+                shading: true,
+                shadingColor: 'rgba(0,0,0,0.4)',
+                width: function () { return Math.min(520, $(window).width() * 0.95); },
+                height: 'auto',
+                maxHeight: function () { return $(window).height() * 0.92; },
+                animation: {
+                    show: { type: 'fadeIn', duration: 200 },
+                    hide: { type: 'fadeOut', duration: 150 }
+                },
+                toolbarItems: [{
+                    toolbar: 'bottom',
+                    location: 'center',
+                    widget: 'dxButton',
+                    options: {
+                        text: '💾 儲存點名與代禱',
+                        type: 'success',
+                        width: '100%',
+                        onClick: saveMemberDetail
+                    }
+                }]
+            });
+            _memberDetailPopupInstance = $('#memberDetailPopup').dxPopup('instance');
+        }
+
+        // 更新標題
+        _memberDetailPopupInstance.option('title', '會員點名 — ' + (rowData.FullName || ''));
+
+        // 重建內容
+        var $contentEl = _memberDetailPopupInstance.content();
+        $contentEl.empty();
+        buildPopupContent($contentEl, rowData, gridType);
+
+        _memberDetailPopupInstance.show();
+
+        // 等待 DOM 就緒後初始化 DevExtreme 表單元件
+        setTimeout(function () { initPopupWidgets(rowData, gridType); }, 80);
+    }
+
+    /**
+     * 建構彈出視窗內容 HTML
+     * 上方：原圖大頭照 + 姓名/身分/狀態
+     * 下方：出席點名勾選 + 代禱事項輸入
+     */
+    function buildPopupContent($container, rowData, gridType) {
+        var contactId = rowData.ContactId || rowData.contactId || '';
+        // 使用 size=0 取得原始圖片（僅在開啟彈窗時才下載）
+        var fullImageUrl = contactId
+            ? contactImageEndpoint + '?contactId=' + encodeURIComponent(contactId) + '&size=0'
+            : '';
+        var fallbackLarge = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">'
+            + '<circle cx="60" cy="60" r="58" fill="#e9ecef"/>'
+            + '<text x="60" y="75" font-size="40" text-anchor="middle" fill="#6c757d">人</text></svg>');
+
+        var html = '<div class="member-popup-body">';
+
+        // ── 上方：照片 + 基本資訊 ──
+        html += '<div class="member-popup-header">';
+        html += '  <div class="member-popup-photo">';
+        html += '    <img id="popupFullPhoto" src="' + (fullImageUrl || fallbackLarge) + '" alt="大頭照" />';
+        html += '  </div>';
+        html += '  <div class="member-popup-info">';
+        html += '    <div class="member-popup-name">' + (rowData.FullName || '-') + '</div>';
+        if (rowData.Status) {
+            html += '    <div class="member-popup-tag"><span class="popup-label">會員身分</span>' + rowData.Status + '</div>';
+        }
+        if (rowData.SpiritualIdentity) {
+            html += '    <div class="member-popup-tag"><span class="popup-label">信仰狀態</span>' + rowData.SpiritualIdentity + '</div>';
+        }
+        if (gridType === 'smallGroup' && rowData.Visit) {
+            html += '    <div class="member-popup-tag"><span class="popup-label">探訪</span>' + rowData.Visit + '</div>';
+        }
+        html += '  </div>';
+        html += '</div>';
+
+        // ── 出席點名 ──
+        html += '<div class="member-popup-section">';
+        html += '  <div class="member-popup-section-title">📋 出席點名</div>';
+        html += '  <div class="member-popup-checks">';
+        html += '    <div id="popupSundayCheck" class="member-popup-check-item"></div>';
+        html += '    <div id="popupSmallGroupCheck" class="member-popup-check-item"></div>';
+        html += '  </div>';
+        html += '</div>';
+
+        // ── 代禱事項 ──
+        var prayLabel = (gridType === 'newPerson') ? '跟進關懷說明' : '代禱事項';
+        html += '<div class="member-popup-section">';
+        html += '  <div class="member-popup-section-title">🙏 ' + prayLabel + '</div>';
+        html += '  <div id="popupPrayItem"></div>';
+        html += '</div>';
+
+        // ── NewPerson 獨有：附註說明 ──
+        if (gridType === 'newPerson') {
+            html += '<div class="member-popup-section">';
+            html += '  <div class="member-popup-section-title">📝 附註說明</div>';
+            html += '  <div id="popupDescription"></div>';
+            html += '</div>';
+        }
+
+        html += '</div>';
+        $container.append(html);
+
+        // 原圖載入失敗時顮示替代圖
+        $('#popupFullPhoto').on('error', function () {
+            if (this.src !== fallbackLarge) {
+                this.src = fallbackLarge;
+            }
+        });
+    }
+
+    /**
+     * 初始化彈出視窗內的 DevExtreme 元件
+     */
+    function initPopupWidgets(rowData, gridType) {
+        $('#popupSundayCheck').dxCheckBox({
+            text: '主日',
+            value: !!rowData.Sunday
+        });
+        $('#popupSmallGroupCheck').dxCheckBox({
+            text: '小組',
+            value: !!rowData.SmallGroup
+        });
+        var prayPlaceholder = (gridType === 'newPerson') ? '請輸入跟進關懷說明...' : '請輸入代禱事項...';
+        $('#popupPrayItem').dxTextArea({
+            value: rowData.PrayItem || '',
+            placeholder: prayPlaceholder,
+            height: 80,
+            maxLength: 2000
+        });
+        if (gridType === 'newPerson') {
+            $('#popupDescription').dxTextArea({
+                value: rowData.Description || '',
+                placeholder: '請輸入附註說明...',
+                height: 80,
+                maxLength: 2000
+            });
+        }
+    }
+
+    /**
+     * 儲存點名與代禱至聚會出席記錄
+     * 透過 Grid DataSource Store 的 update 方法，確保與 Grid 內建編輯行為一致
+     */
+    function saveMemberDetail() {
+        if (!_currentPopupData || !_currentPopupData.PresentRecordId) {
+            DevExpress.ui.notify('⚠️ 缺少記錄 ID，無法儲存', 'warning', 2500);
+            return;
+        }
+
+        var sunday = $('#popupSundayCheck').dxCheckBox('instance').option('value');
+        var smallGroup = $('#popupSmallGroupCheck').dxCheckBox('instance').option('value');
+        var prayItem = $('#popupPrayItem').dxTextArea('instance').option('value');
+
+        var updateValues = {
+            Sunday: sunday,
+            SmallGroup: smallGroup,
+            PrayItem: prayItem
+        };
+
+        if (_currentPopupGridType === 'newPerson') {
+            var descInst = $('#popupDescription').dxTextArea('instance');
+            if (descInst) {
+                updateValues.Description = descInst.option('value');
+            }
+        }
+
+        var key = _currentPopupData.PresentRecordId;
+        var gridId = (_currentPopupGridType === 'smallGroup')
+            ? 'SmallGroupgridContainer'
+            : 'NewPersonGridContainer';
+
+        var gridInstance = $('#' + gridId).dxDataGrid('instance');
+        if (!gridInstance) {
+            DevExpress.ui.notify('❌ 找不到資料網格', 'error', 2500);
+            return;
+        }
+
+        // 使用 DataSource Store 的 update 方法送出 PUT 請求
+        var store = gridInstance.getDataSource().store();
+        store.update(key, updateValues)
+            .done(function () {
+                DevExpress.ui.notify('✅ 儲存成功', 'success', 2000);
+                gridInstance.refresh();
+                if (_memberDetailPopupInstance) {
+                    _memberDetailPopupInstance.hide();
+                }
+            })
+            .fail(function (error) {
+                var msg = (error && error.message) ? error.message : '未知錯誤';
+                DevExpress.ui.notify('❌ 儲存失敗: ' + msg, 'error', 3500);
+                console.error('[saveMemberDetail] 錯誤:', error);
+            });
     }
 
     $(document).ready(function () {
@@ -639,5 +874,87 @@
     #NewPersonGridContainer .contact-avatar-img {
         width: 40px;
         height: 40px;
+    }
+
+    /* ==============================================================
+       會員詳細資料彈出視窗樣式
+       ============================================================== */
+    .member-popup-body {
+        padding: 4px 0;
+    }
+
+    .member-popup-header {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .member-popup-photo img {
+        width: 120px;
+        height: 120px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 3px solid #e0e0e0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        background: linear-gradient(110deg, #f0f0f0 8%, #e0e0e0 18%, #f0f0f0 33%);
+        background-size: 200% 100%;
+        animation: popup-shimmer 1.5s linear infinite;
+    }
+
+    @@keyframes popup-shimmer {
+        to { background-position: -200% 0; }
+    }
+
+    .member-popup-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding-top: 4px;
+    }
+
+    .member-popup-name {
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 2px;
+    }
+
+    .member-popup-tag {
+        font-size: 14px;
+        color: #555;
+    }
+
+    .member-popup-tag .popup-label {
+        display: inline-block;
+        background: #e8f4fd;
+        color: #0077b6;
+        padding: 1px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+        margin-right: 6px;
+    }
+
+    .member-popup-section {
+        border-top: 1px solid #eee;
+        padding-top: 12px;
+        margin-top: 12px;
+    }
+
+    .member-popup-section-title {
+        font-size: 15px;
+        font-weight: bold;
+        color: darkcyan;
+        margin-bottom: 8px;
+    }
+
+    .member-popup-checks {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+
+    .member-popup-check-item {
+        min-width: 80px;
     }
 </style>
