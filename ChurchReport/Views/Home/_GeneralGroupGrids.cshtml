@@ -610,7 +610,7 @@
                     location: 'center',
                     widget: 'dxButton',
                     options: {
-                        text: '💾 儲存點名與代禱',
+                        text: '💾 儲存點名、探訪與代禱',
                         type: 'success',
                         width: '100%',
                         onClick: saveMemberDetail
@@ -680,6 +680,14 @@
         html += '  </div>';
         html += '</div>';
 
+        // ── SmallGroup 獨有：探訪下拉選項 ──
+        if (gridType === 'smallGroup') {
+            html += '<div class="member-popup-section">';
+            html += '  <div class="member-popup-section-title">👣 探訪</div>';
+            html += '  <div id="popupVisit"></div>';
+            html += '</div>';
+        }
+
         // ── 代禱事項 ──
         var prayLabel = (gridType === 'newPerson') ? '跟進關懷說明' : '代禱事項';
         html += '<div class="member-popup-section">';
@@ -718,6 +726,16 @@
             text: '小組',
             value: !!rowData.SmallGroup
         });
+        if (gridType === 'smallGroup') {
+            $('#popupVisit').dxSelectBox({
+                dataSource: visitDataSource || [],
+                value: rowData.Visit || null,
+                placeholder: '請選擇探訪',
+                searchEnabled: true,
+                showClearButton: true,
+                noDataText: '無可用探訪項目'
+            });
+        }
         var prayPlaceholder = (gridType === 'newPerson') ? '請輸入跟進關懷說明...' : '請輸入代禱事項...';
         $('#popupPrayItem').dxTextArea({
             value: rowData.PrayItem || '',
@@ -736,7 +754,7 @@
     }
 
     /**
-     * 儲存點名與代禱至聚會出席記錄
+     * 儲存點名、探訪與代禱至聚會出席記錄
      * 透過 Grid DataSource Store 的 update 方法，確保與 Grid 內建編輯行為一致
      */
     function saveMemberDetail() {
@@ -754,6 +772,13 @@
             SmallGroup: smallGroup,
             PrayItem: prayItem
         };
+
+        if (_currentPopupGridType === 'smallGroup') {
+            var visitInst = $('#popupVisit').dxSelectBox('instance');
+            if (visitInst) {
+                updateValues.Visit = visitInst.option('value');
+            }
+        }
 
         if (_currentPopupGridType === 'newPerson') {
             var descInst = $('#popupDescription').dxTextArea('instance');
