@@ -662,9 +662,7 @@
         if (rowData.Status) {
             html += '    <div class="member-popup-tag"><span class="popup-label">會員身分</span>' + rowData.Status + '</div>';
         }
-        if (rowData.SpiritualIdentity) {
-            html += '    <div class="member-popup-tag"><span class="popup-label">信仰狀態</span>' + rowData.SpiritualIdentity + '</div>';
-        }
+        html += '    <div class="member-popup-tag"><span class="popup-label">信仰狀態</span>' + (rowData.SpiritualIdentity || '-') + '</div>';
         if (gridType === 'smallGroup' && rowData.Visit) {
             html += '    <div class="member-popup-tag"><span class="popup-label">探訪</span>' + rowData.Visit + '</div>';
         }
@@ -685,6 +683,24 @@
             html += '<div class="member-popup-section">';
             html += '  <div class="member-popup-section-title">👣 探訪</div>';
             html += '  <div id="popupVisit"></div>';
+            html += '</div>';
+        }
+
+        // ── NewPerson 獨有：跟進欄位 ──
+        if (gridType === 'newPerson') {
+            html += '<div class="member-popup-section">';
+            html += '  <div class="member-popup-section-title">📞 跟進方式</div>';
+            html += '  <div id="popupFollowUpOption"></div>';
+            html += '</div>';
+
+            html += '<div class="member-popup-section">';
+            html += '  <div class="member-popup-section-title">📌 跟進結果</div>';
+            html += '  <div id="popupFollowUpResult"></div>';
+            html += '</div>';
+
+            html += '<div class="member-popup-section">';
+            html += '  <div class="member-popup-section-title">➡️ 下一步驟</div>';
+            html += '  <div id="popupFollowUpNextStep"></div>';
             html += '</div>';
         }
 
@@ -736,6 +752,34 @@
                 noDataText: '無可用探訪項目'
             });
         }
+        if (gridType === 'newPerson') {
+            $('#popupFollowUpOption').dxSelectBox({
+                dataSource: ["電話", "探訪", "Line/FB", "出遊/吃飯", "懷鄉/其他課程", "約談", "沒跟進", "其他"],
+                value: rowData.FollowUpOption || null,
+                placeholder: '請選擇跟進方式',
+                searchEnabled: true,
+                showClearButton: true,
+                noDataText: '無可用選項'
+            });
+
+            $('#popupFollowUpResult').dxSelectBox({
+                dataSource: ["未選擇", "熱情回應", "渴慕認識信仰", "沒聯絡上", "反應冷淡", "考慮中，繼續跟進", "入小組", "來主日", "其他"],
+                value: rowData.FollowUpResult || null,
+                placeholder: '請選擇跟進結果',
+                searchEnabled: true,
+                showClearButton: true,
+                noDataText: '無可用選項'
+            });
+
+            $('#popupFollowUpNextStep').dxSelectBox({
+                dataSource: ["未選擇", "繼續跟進", "轉介"],
+                value: rowData.FollowUpNextStep || null,
+                placeholder: '請選擇下一步驟',
+                searchEnabled: true,
+                showClearButton: true,
+                noDataText: '無可用選項'
+            });
+        }
         var prayPlaceholder = (gridType === 'newPerson') ? '請輸入跟進關懷說明...' : '請輸入代禱事項...';
         $('#popupPrayItem').dxTextArea({
             value: rowData.PrayItem || '',
@@ -781,6 +825,20 @@
         }
 
         if (_currentPopupGridType === 'newPerson') {
+            var followUpOptionInst = $('#popupFollowUpOption').dxSelectBox('instance');
+            var followUpResultInst = $('#popupFollowUpResult').dxSelectBox('instance');
+            var followUpNextStepInst = $('#popupFollowUpNextStep').dxSelectBox('instance');
+
+            if (followUpOptionInst) {
+                updateValues.FollowUpOption = followUpOptionInst.option('value');
+            }
+            if (followUpResultInst) {
+                updateValues.FollowUpResult = followUpResultInst.option('value');
+            }
+            if (followUpNextStepInst) {
+                updateValues.FollowUpNextStep = followUpNextStepInst.option('value');
+            }
+
             var descInst = $('#popupDescription').dxTextArea('instance');
             if (descInst) {
                 updateValues.Description = descInst.option('value');
