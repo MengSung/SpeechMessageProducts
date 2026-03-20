@@ -36,6 +36,108 @@
 
 ---
 
+## 🚀 你現在要做的 5 步（超詳細版，照抄即可）
+
+> 這一段是依你目前已填入的參數整理：
+> - Developing LIFF ID：`2009427707-Fi5L5blD`
+> - Review LIFF ID：`2009427708-GToVLqgV`
+> - Published LIFF ID：`2009427709-PTH3dfeP`
+> - 站台：`https://jesus.speechmessage.com.tw:807`
+
+### Step 1：先在 Console 把三個 Endpoint URL 全改掉並儲存
+
+1. 打開 LINE Developers Console，進入你的 Mini App Channel。
+2. 點 `Web app settings`。
+3. 在 `Endpoint URL` 三個環境分別點 `Edit`，貼上以下網址：
+
+```text
+Developing
+https://jesus.speechmessage.com.tw:807/Authentication/LineIdLoginView/2009427707-Fi5L5blD
+
+Review
+https://jesus.speechmessage.com.tw:807/Authentication/LineIdLoginView/2009427708-GToVLqgV
+
+Published
+https://jesus.speechmessage.com.tw:807/Authentication/LineIdLoginView/2009427709-PTH3dfeP
+```
+
+4. 每個環境都按 `Save`（或頁面下方統一 `Save`）。
+5. 確認不再是 `liff-default-dev.html / liff-default-review.html / liff-default-published.html`。
+
+### Step 2：到 Roles 加入你自己為 Tester
+
+1. 在同一個 Channel 內切到 `Roles`。
+2. 點 `Add tester`。
+3. 把你自己的 LINE 帳號加進去（至少先加自己）。
+4. 等待 1~2 分鐘再測試。
+
+> 若沒加 Tester，Developing / Review 會被拒絕開啟。
+
+### Step 3：部署後先測 Developing
+
+1. 先把目前程式部署到伺服器（IIS / 發佈流程照你平常方式）。
+2. 手機 LINE 內開啟：
+
+```text
+https://liff.line.me/2009427707-Fi5L5blD
+```
+
+3. 驗證重點：
+   - 能進入登入頁，非白屏
+   - LIFF 初始化成功
+   - 已綁定帳號可正常導向
+   - 未綁定帳號可到綁定頁
+
+### Step 4：測完再跑 Review 測試並送審
+
+1. 手機 LINE 內開啟 Review：
+
+```text
+https://liff.line.me/2009427708-GToVLqgV
+```
+
+2. 用和 Developing 相同清單再測一次。
+3. 確認 `Basic settings` 內容完整：
+   - `Channel name`
+   - `Channel description`
+   - `Email address`
+   - `Privacy policy URL`（建議：`https://jesus.speechmessage.com.tw:807/Privacy`）
+4. 回到 Console 按 `Submit for review` 送審。
+
+### Step 5：審核過後，改 Published 並重新部署
+
+審核通過後，修改專案 `appsettings.json`：
+
+```json
+"MiniApp": {
+  "ActiveEnvironment": "Published"
+}
+```
+
+完整動作：
+1. 把 `MiniApp:ActiveEnvironment` 從 `Developing` 改成 `Published`。
+2. 儲存並重新部署。
+3. 用 Published 連結做最終驗證：
+
+```text
+https://liff.line.me/2009427709-PTH3dfeP
+```
+
+4. 驗證成功後，才對外公告。
+
+### ✅ 快速檢查清單
+
+```
+□ 三個 Endpoint URL 都已改成 jesus.speechmessage.com.tw:807 且已儲存
+□ 自己已加入 Tester
+□ Developing 已測通過
+□ Review 已測通過並送審
+□ 審核通過後 ActiveEnvironment 已改為 Published 並完成重部署
+□ Published 最終驗證通過
+```
+
+---
+
 ## 步驟一：向 LINE Taiwan 申請 Mini App 開發許可
 
 ### 💡 為什麼要先申請？

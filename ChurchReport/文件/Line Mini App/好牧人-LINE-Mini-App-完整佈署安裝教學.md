@@ -9,6 +9,52 @@
 
 ---
 
+## 🔧 依你目前 Console 截圖自動整理的實際填寫值
+
+> 已同步填入 `ChurchReport/appsettings.json` 的 `MiniApp` 區段。
+
+| 欄位 | 值 |
+|---|---|
+| Developing Channel ID | `2009427707` |
+| Review Channel ID | `2009427708` |
+| Published Channel ID | `2009427709` |
+| Developing Channel Secret | `e94032391784ad4f690f79b8efdc193f` |
+| Review Channel Secret | `6c3372bec7d1be20421f451191bd70c0` |
+| Published Channel Secret | `e492954a5072bce0c4089893388fc6af` |
+| Developing LIFF ID | `2009427707-Fi5L5blD` |
+| Review LIFF ID | `2009427708-GToVLqgV` |
+| Published LIFF ID | `2009427709-PTH3dfeP` |
+| Channel name | `好牧人` |
+| Channel description | `好牧人MINI` |
+| Email address | `mengsunghu@gmail.com` |
+
+### LINE MINI App Console 欄位請這樣填
+
+1. `Basic settings`：
+   - `Channel name`：`好牧人`
+   - `Channel description`：`好牧人MINI`
+   - `Email address`：`mengsunghu@gmail.com`
+   - `Privacy policy URL`：`https://jesus.speechmessage.com.tw:807/Privacy`
+   - `Terms of use URL`：可先留空
+
+2. `Web app settings` → `Endpoint URL`（把預設 `liff-default-xxx.html` 全部改掉）：
+   - Developing：`https://jesus.speechmessage.com.tw:807/Authentication/LineIdLoginView/2009427707-Fi5L5blD`
+   - Review：`https://jesus.speechmessage.com.tw:807/Authentication/LineIdLoginView/2009427708-GToVLqgV`
+   - Published：`https://jesus.speechmessage.com.tw:807/Authentication/LineIdLoginView/2009427709-PTH3dfeP`
+
+3. `Scopes`：維持 `profile`、`openid`
+
+### 下一步（你現在應該立刻做）
+
+1. 在 LINE Console 先完成三個 `Endpoint URL` 的修改與儲存。
+2. 把你自己的 LINE 帳號加到 `Roles` → `Tester`。
+3. 部署後先測 `Developing`：
+   - `https://liff.line.me/2009427707-Fi5L5blD`
+4. 測試通過後改測 `Review`，再送審。
+5. 審核通過後，將 `appsettings.json` 的 `MiniApp:ActiveEnvironment` 改成 `Published` 並重新部署。
+
+---
+
 ## 📋 完整大綱
 
 | 章節 | 內容 | 預估時間 |
