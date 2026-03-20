@@ -29,13 +29,14 @@
 | 11 | DediationLineLoginView viewport-fit + Safe Area CSS | `Views/Dedication/DediationLineLoginView.cshtml` | ✅ 已完成 |
 | 12 | DedicationFeeView viewport-fit + Safe Area CSS | `Views/Dedication/DedicationFeeView.cshtml` | ✅ 已完成 |
 | 13 | _Layout viewport-fit + Safe Area CSS | `Views/Shared/_Layout.cshtml` | ✅ 已完成 |
-| 14 | 向 LINE Taiwan 申請 Mini App 開發許可 | （人工操作）| ⬜ 待執行 |
-| 15 | 在 Console 建立 Mini App Channel | （人工操作）| ⬜ 待執行 |
-| 16 | 填入 LIFF ID 到 appsettings.json | `appsettings.json` | ⬜ 待執行 |
-| 17 | 設定 Endpoint URL | （Console 操作）| ⬜ 待執行 |
-| 18 | 準備 loading.gif | `wwwroot/loading.gif` | ⬜ 待執行 |
-| 19 | 準備 Channel Icon (500x500) | （設計）| ⬜ 待執行 |
-| 20 | 測試 + 送審 | （人工操作）| ⬜ 待執行 |
+| 14 | 向 LINE Taiwan 申請 Mini App 開發許可 | 📖 [手把手教學 → 步驟一](好牧人-LINE-Mini-App-手把手實作教學.md#步驟一向-line-taiwan-申請-mini-app-開發許可) | ⬜ 待執行 |
+| 15 | 在 Console 建立 Mini App Channel | 📖 [手把手教學 → 步驟二](好牧人-LINE-Mini-App-手把手實作教學.md#步驟二在-line-developers-console-建立-mini-app-channel) | ⬜ 待執行 |
+| 16 | 填入 LIFF ID 到 appsettings.json | 📖 [手把手教學 → 步驟三](好牧人-LINE-Mini-App-手把手實作教學.md#步驟三把三組-liff-id-填入-appsettingsjson) | ⬜ 待執行 |
+| 17 | 設定 Endpoint URL | 📖 [手把手教學 → 步驟四](好牧人-LINE-Mini-App-手把手實作教學.md#步驟四設定三個環境的-endpoint-url) | ⬜ 待執行 |
+| 18 | 準備 loading.gif + Channel Icon | 📖 [手把手教學 → 步驟五](好牧人-LINE-Mini-App-手把手實作教學.md#步驟五準備-channel-icon--loadinggif) | ⬜ 待執行 |
+| 19 | 測試 + 送審 + 上線 | 📖 [手把手教學 → 步驟六](好牧人-LINE-Mini-App-手把手實作教學.md#步驟六測試--送審--上線) | ⬜ 待執行 |
+
+> 📖 **人工操作的詳細教學**：請參閱 [好牧人-LINE-Mini-App-手把手實作教學.md](好牧人-LINE-Mini-App-手把手實作教學.md)
 
 ---
 
