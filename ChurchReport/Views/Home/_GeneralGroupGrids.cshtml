@@ -662,7 +662,6 @@
         if (rowData.Status) {
             html += '    <div class="member-popup-tag"><span class="popup-label">會員身分</span>' + rowData.Status + '</div>';
         }
-        html += '    <div class="member-popup-tag"><span class="popup-label">信仰狀態</span>' + (rowData.SpiritualIdentity || '-') + '</div>';
         if (gridType === 'smallGroup' && rowData.Visit) {
             html += '    <div class="member-popup-tag"><span class="popup-label">探訪</span>' + rowData.Visit + '</div>';
         }
@@ -676,6 +675,12 @@
         html += '    <div id="popupSundayCheck" class="member-popup-check-item"></div>';
         html += '    <div id="popupSmallGroupCheck" class="member-popup-check-item"></div>';
         html += '  </div>';
+        html += '</div>';
+
+        // ── 共用：信仰狀態下拉選項 ──
+        html += '<div class="member-popup-section">';
+        html += '  <div class="member-popup-section-title">✝️ 信仰狀態</div>';
+        html += '  <div id="popupSpiritualIdentity"></div>';
         html += '</div>';
 
         // ── SmallGroup 獨有：探訪下拉選項 ──
@@ -741,6 +746,14 @@
         $('#popupSmallGroupCheck').dxCheckBox({
             text: '小組',
             value: !!rowData.SmallGroup
+        });
+        $('#popupSpiritualIdentity').dxSelectBox({
+            dataSource: spiritualIdentityDataSource || [],
+            value: rowData.SpiritualIdentity || null,
+            placeholder: '請選擇信仰狀態',
+            searchEnabled: true,
+            showClearButton: true,
+            noDataText: '無可用信仰狀態'
         });
         if (gridType === 'smallGroup') {
             $('#popupVisit').dxSelectBox({
@@ -816,6 +829,11 @@
             SmallGroup: smallGroup,
             PrayItem: prayItem
         };
+
+        var spiritualIdentityInst = $('#popupSpiritualIdentity').dxSelectBox('instance');
+        if (spiritualIdentityInst) {
+            updateValues.SpiritualIdentity = spiritualIdentityInst.option('value');
+        }
 
         if (_currentPopupGridType === 'smallGroup') {
             var visitInst = $('#popupVisit').dxSelectBox('instance');
