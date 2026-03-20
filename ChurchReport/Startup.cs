@@ -729,6 +729,12 @@ namespace ChurchReport
                     template: "Authentication/LineIdLoginView/{LineIdLoginViewPatameter}",
                     defaults: new { controller = "Authentication", action = "LineIdLoginView" });
 
+                // 隱私政策頁面（LINE Mini App 審核必備，必須可公開存取）
+                routes.MapRoute(
+                    name: "privacy",
+                    template: "Privacy",
+                    defaults: new { controller = "Authentication", action = "Privacy" });
+
                 // 小組相關路由
                 routes.MapRoute(
                     name: "multigroup",

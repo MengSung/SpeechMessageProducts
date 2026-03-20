@@ -1,0 +1,81 @@
+/* ====================================================================
+   LINE Mini App Safe Area 適配
+   ====================================================================
+   LINE Mini App 在 LIFF Browser 中執行時，頂部有 LINE 的 Header，
+   底部某些裝置有 Home Indicator。需要用 CSS env() 來處理安全區域。
+
+   引入方式：在 <head> 中加入
+   <link href="~/css/mini-app-safe-area.css" rel="stylesheet" />
+
+   ⚠️ 同時需要在 <meta viewport> 加上 viewport-fit=cover：
+   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+   ==================================================================== */
+
+/* ─── 全域 Safe Area 處理 ─────────────────────────────────────────── */
+
+/* 確保內容不被 iOS 瀏海 / Home Indicator 遮擋 */
+html {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* LINE Mini App 模式下，為 LINE Header 預留空間 */
+body.mini-app-mode {
+    padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* ─── 底部 Footer 安全區域 ────────────────────────────────────────── */
+
+/* 底部固定元素需要額外的 padding（避開 iOS Home Indicator） */
+.mini-app-footer-safe,
+.footer-note {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+}
+
+/* ─── DevExtreme 元件適配 ─────────────────────────────────────────── */
+
+/* 確保 LoadPanel 在 Safe Area 內顯示 */
+.dx-loadpanel-wrapper {
+    top: env(safe-area-inset-top, 0px) !important;
+}
+
+/* Toast 通知避開 LINE Header */
+.dx-toast-wrapper {
+    top: calc(env(safe-area-inset-top, 0px) + 60px) !important;
+}
+
+/* ─── Hero 區域在小螢幕適配 ───────────────────────────────────────── */
+
+/* 在 LIFF Browser（手機）中，因為上方有 LINE Header，
+   適當縮小 Hero 高度以確保主要內容可見 */
+@media (max-height: 700px) {
+    .hero-wrapper {
+        height: 220px !important;
+        min-height: 180px;
+    }
+}
+
+/* 超小螢幕（例如 iPhone SE） */
+@media (max-height: 568px) {
+    .hero-wrapper {
+        height: 160px !important;
+        min-height: 140px;
+    }
+}
+
+/* ─── DataGrid 觸控優化 ──────────────────────────────────────────── */
+
+/* 確保 DataGrid 在觸控裝置上的滾動更順暢 */
+.dx-datagrid .dx-scrollable-container {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* DataGrid 行高在手機上稍微加大，方便觸控操作 */
+@media (max-width: 767px) {
+    .dx-datagrid .dx-row > td {
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+    }
+}

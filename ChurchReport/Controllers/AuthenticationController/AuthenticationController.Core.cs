@@ -69,5 +69,22 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+
+        #region 隱私政策頁面
+
+        /// <summary>
+        /// 隱私政策頁面（LINE Mini App 審核必備）。
+        /// 此頁面必須可公開存取，不需要登入。
+        /// LINE 審核時會檢查此頁面是否可正常瀏覽。
+        /// </summary>
+        /// <returns>隱私政策視圖</returns>
+        [HttpGet]
+        [Route("/Privacy")]
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        #endregion
     }
 }

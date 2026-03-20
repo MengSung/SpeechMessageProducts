@@ -1,0 +1,133 @@
+@*
+    隱私政策頁面（LINE Mini App 審核必備）
+    此頁面必須可公開存取（不需要登入），LINE 審核時會檢查。
+*@
+@{
+    Layout = null;
+}
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="description" content="好牧人隱私政策" />
+    <title>好牧人 - 隱私政策</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link href="~/css/mini-app-safe-area.css" rel="stylesheet" />
+    <style>
+        body { background: #f8f9fa; color: #333; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif; }
+        .privacy-container { max-width: 800px; margin: 0 auto; padding: 24px 16px 40px; }
+        .privacy-header { text-align: center; margin-bottom: 32px; }
+        .privacy-header h1 { font-size: 1.6rem; font-weight: 700; color: #2d3748; }
+        .privacy-header .updated { font-size: 0.85rem; color: #718096; }
+        .privacy-section { background: #fff; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .privacy-section h2 { font-size: 1.1rem; font-weight: 600; color: #4a5568; margin-bottom: 12px; border-left: 4px solid #4864b8; padding-left: 12px; }
+        .privacy-section p, .privacy-section li { font-size: 0.95rem; line-height: 1.7; color: #4a5568; }
+        .privacy-section ul { padding-left: 20px; }
+        .contact-info { background: linear-gradient(135deg, #6b8ce3, #4864b8); color: #fff; border-radius: 12px; padding: 20px 24px; text-align: center; }
+        .contact-info h3 { font-size: 1rem; font-weight: 600; margin-bottom: 8px; }
+        .contact-info p { font-size: 0.9rem; margin: 4px 0; opacity: 0.95; }
+        .footer-note { text-align: center; font-size: 0.8rem; color: #a0aec0; margin-top: 24px; }
+    </style>
+</head>
+<body>
+    <div class="privacy-container">
+        <div class="privacy-header">
+            <h1>🐑 好牧人 隱私政策</h1>
+            <div class="updated">最後更新日期：@DateTime.Now.ToString("yyyy 年 M 月 d 日")</div>
+        </div>
+
+        <div class="privacy-section">
+            <h2>一、服務說明</h2>
+            <p>
+                「好牧人」是由教會提供的會友管理服務，透過 LINE Mini App 提供小組牧養回報、線上奉獻、
+                個人資料管理等功能，旨在方便教會會友參與教會生活。
+            </p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>二、蒐集的個人資料</h2>
+            <p>本服務可能蒐集以下個人資料：</p>
+            <ul>
+                <li><strong>LINE 帳號資訊</strong>：LINE User ID、顯示名稱、大頭貼 URL</li>
+                <li><strong>綁定時填寫的資料</strong>：姓名、電話號碼</li>
+                <li><strong>使用紀錄</strong>：小組出席紀錄、奉獻紀錄</li>
+            </ul>
+        </div>
+
+        <div class="privacy-section">
+            <h2>三、資料用途</h2>
+            <p>蒐集的個人資料僅用於以下用途：</p>
+            <ul>
+                <li>識別會友身份，提供個人化的教會服務</li>
+                <li>記錄小組牧養狀況（出席、探訪、代禱事項）</li>
+                <li>處理線上奉獻交易及開立收據</li>
+                <li>發送教會相關通知（如聚會提醒）</li>
+            </ul>
+            <p>我們<strong>不會</strong>將您的個人資料提供給第三方作為商業用途。</p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>四、資料保護措施</h2>
+            <ul>
+                <li>所有資料傳輸均使用 HTTPS 加密</li>
+                <li>Session 採用嚴格的安全策略（HttpOnly、Secure、SameSite）</li>
+                <li>伺服器設有存取控制與防火牆保護</li>
+                <li>定期備份資料以防止資料遺失</li>
+            </ul>
+        </div>
+
+        <div class="privacy-section">
+            <h2>五、資料保存期間</h2>
+            <p>
+                您的個人資料將在您為教會會友期間持續保存。
+                若您希望刪除個人資料，請聯繫教會管理人員處理。
+            </p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>六、您的權利</h2>
+            <p>您享有以下權利：</p>
+            <ul>
+                <li>查詢或請求閱覽您的個人資料</li>
+                <li>請求更正或補充您的個人資料</li>
+                <li>請求刪除您的個人資料</li>
+                <li>請求停止蒐集、處理或利用您的個人資料</li>
+            </ul>
+        </div>
+
+        <div class="privacy-section">
+            <h2>七、金流服務</h2>
+            <p>
+                線上奉獻功能透過第三方金流服務處理付款（永豐銀行 QPay / 高鉅科技 MyPay / 台新銀行 TSPG），
+                付款資訊由金流服務商依其隱私政策處理，本系統不儲存信用卡號等敏感金融資訊。
+            </p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>八、政策更新</h2>
+            <p>
+                本隱私政策可能因法規變更或服務調整而更新。
+                更新後的內容將公布於本頁面，請定期查閱。
+            </p>
+        </div>
+
+        <div class="contact-info">
+            <h3>聯絡我們</h3>
+            <p>📍 @Configuration["ChurchInfo:Address"]</p>
+            <p>📞 @Configuration["ChurchInfo:Phone"]</p>
+            <p>✉️ @Configuration["ChurchInfo:Email"]</p>
+            <p>統一編號：@Configuration["ChurchInfo:TaxId"]</p>
+        </div>
+
+        <div class="footer-note">
+            Copyright © @DateTime.Now.Year 好牧人
+        </div>
+    </div>
+</body>
+</html>
