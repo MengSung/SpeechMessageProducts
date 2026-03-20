@@ -9,6 +9,36 @@
 
 ---
 
+## 🏗️ 實施進度追蹤
+
+> 以下是程式碼層面已完成的實施項目。  
+> ⚠️ LINE Developers Console 操作（Phase 0、Phase 1）需要人工在網頁上完成。
+
+| # | 項目 | 檔案 | 狀態 |
+|---|------|------|:----:|
+| 1 | `appsettings.json` 新增 MiniApp 設定區段 | `appsettings.json` | ✅ 已完成 |
+| 2 | Privacy 隱私政策頁面 (View) | `Views/Authentication/Privacy.cshtml` | ✅ 已完成 |
+| 3 | Privacy 路由 (Controller Action) | `Controllers/AuthenticationController.Core.cs` | ✅ 已完成 |
+| 4 | Privacy 路由 (Startup 路由表) | `Startup.cs` | ✅ 已完成 |
+| 5 | Safe Area CSS 檔案 | `wwwroot/css/mini-app-safe-area.css` | ✅ 已完成 |
+| 6 | Mini App 偵測中間件 | `Middleware/MiniAppDetectionMiddleware.cs` | ✅ 已完成 |
+| 7 | 中間件註冊 (Startup) | `Startup.cs` | ✅ 已完成 |
+| 8 | LineIdLoginView viewport-fit + Safe Area CSS | `Views/Authentication/LineIdLoginView.cshtml` | ✅ 已完成 |
+| 9 | LineLiffView viewport-fit + Safe Area CSS | `Views/Authentication/LineLiffView.cshtml` | ✅ 已完成 |
+| 10 | Login viewport-fit + Safe Area CSS | `Views/Authentication/Login.cshtml` | ✅ 已完成 |
+| 11 | DediationLineLoginView viewport-fit + Safe Area CSS | `Views/Dedication/DediationLineLoginView.cshtml` | ✅ 已完成 |
+| 12 | DedicationFeeView viewport-fit + Safe Area CSS | `Views/Dedication/DedicationFeeView.cshtml` | ✅ 已完成 |
+| 13 | _Layout viewport-fit + Safe Area CSS | `Views/Shared/_Layout.cshtml` | ✅ 已完成 |
+| 14 | 向 LINE Taiwan 申請 Mini App 開發許可 | （人工操作）| ⬜ 待執行 |
+| 15 | 在 Console 建立 Mini App Channel | （人工操作）| ⬜ 待執行 |
+| 16 | 填入 LIFF ID 到 appsettings.json | `appsettings.json` | ⬜ 待執行 |
+| 17 | 設定 Endpoint URL | （Console 操作）| ⬜ 待執行 |
+| 18 | 準備 loading.gif | `wwwroot/loading.gif` | ⬜ 待執行 |
+| 19 | 準備 Channel Icon (500x500) | （設計）| ⬜ 待執行 |
+| 20 | 測試 + 送審 | （人工操作）| ⬜ 待執行 |
+
+---
+
 ## 📋 目錄
 
 | 章節 | 內容 |

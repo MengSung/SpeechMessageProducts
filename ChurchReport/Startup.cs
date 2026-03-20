@@ -675,6 +675,14 @@ namespace ChurchReport
 
             app.UseAuthentication();  // 啟用身份驗證中間件
 
+            // ========================================
+            // ✅ LINE Mini App 環境偵測中間件
+            // ========================================
+            // 偵測請求是否來自 LINE LIFF Browser，結果存入 HttpContext.Items["IsLineMiniApp"]
+            // 📖 詳細說明：文件\Line Mini App\好牧人-LINE-Mini-App-導入佈署步驟.md 第八章
+            app.UseMiddleware<ChurchReport.Middleware.MiniAppDetectionMiddleware>();
+            Console.WriteLine("[Startup] ✅ LINE Mini App 環境偵測中間件已啟用");
+
 #if DEBUG
             // ========================================
             // ✅ Phase 4: 啟用身份審計中介軟體（Session Bleeding 防護 - 監控層）
