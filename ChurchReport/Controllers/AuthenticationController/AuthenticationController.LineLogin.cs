@@ -110,7 +110,12 @@ namespace ChurchReport.Controllers
 
                     if (results.Entities.Count == 0)
                     {
+                        // ? 增強診斷：記錄未匹配的 userId，協助排查 Provider 不同的問題
                         System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ? 此 LINE ID 尚未綁定");
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ? 搜尋的 UserLineId: {UserLineId}");
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ? 若此 userId 與 CRM 中已綁定的 new_lineid 不同，");
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ? 可能是 Mini App Channel 與綁定 Channel 在不同的 LINE Provider 下");
+
                         return Json(new
                         {
                             DisplayViewType = "尚未綁定",

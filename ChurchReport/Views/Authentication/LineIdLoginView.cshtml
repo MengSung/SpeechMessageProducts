@@ -331,14 +331,43 @@
                         }
                     } else {
                         console.warn('[未綁定]', data.message);
-                        ShowToast(data.message, "warning", 2200);
-                        loadPanel_hide();
-                        document.getElementById('displaynamefield').innerHTML = "尚未綁定帳號<br/>請先完成綁定程序";
+                        console.warn('[未綁定] LIFF userId:', UserId);
 
-                        // 3 秒後導向綁定頁面
-                        setTimeout(function() {
-                            window.location.href = "/Authentication/LineLiffView/1653819697-YkPyPkr6";
-                        }, 3000);
+                        // ========================================
+                        // ✅ Mini App 相容性修正：Provider 不同導致 userId 不同
+                        // ========================================
+                        // 問題：Mini App Channel 與原始綁定 Channel 可能在不同 Provider 下，
+                        //       導致 liff.getProfile().userId 回傳的值與 CRM 儲存的不同。
+                        // 解法：自動改用 Server-side OAuth（使用 LINE Login Channel），
+                        //       因為 LINE Login Channel 與原始綁定 Channel 在同一個 Provider，
+                        //       可以取得一致的 userId。
+                        // 流程：LIFF userId 不匹配 → Server-side OAuth → 取得正確 userId → 登入成功
+                        // ========================================
+                        var isInLiffClient = false;
+                        try { isInLiffClient = liff.isInClient(); } catch (e) { }
+
+                        if (isInLiffClient) {
+                            // 在 LINE App 內（Mini App / LIFF 環境）
+                            // LIFF userId 與 CRM 不匹配，改用 Server-side OAuth 重新驗證
+                            console.log('[LINE Login] Mini App 環境：LIFF userId 未匹配 CRM，改用 Server-side OAuth');
+                            document.getElementById('displaynamefield').innerHTML =
+                                "正在重新驗證身份...<br/><small>切換驗證方式中</small>";
+                            ShowToast("正在重新驗證身份...", "info", 2000);
+                            setTimeout(function() {
+                                useServerSideOAuth();
+                            }, 500);
+                        } else {
+                            // 非 LINE App 內（外部瀏覽器），直接導向綁定頁面
+                            console.log('[LINE Login] 外部瀏覽器環境：導向綁定頁面');
+                            ShowToast(data.message, "warning", 2200);
+                            loadPanel_hide();
+                            document.getElementById('displaynamefield').innerHTML = "尚未綁定帳號<br/>請先完成綁定程序";
+
+                            // 3 秒後導向綁定頁面
+                            setTimeout(function() {
+                                window.location.href = "/Authentication/LineLiffView/1653819697-YkPyPkr6";
+                            }, 3000);
+                        }
                     }
                 },
                 error: function(xhr, status, error) {

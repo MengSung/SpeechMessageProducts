@@ -370,6 +370,7 @@ namespace ChurchReport.Controllers
             try
             {
                 System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 開始處理 LINE 用戶登入: {lineUserId}");
+                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] (此 userId 來自 Server-side OAuth，使用 LINE Login Channel)");
 
                 // ========================================
                 // ? P0: 檢查是否有自訂的 returnUrl（優先處理）
