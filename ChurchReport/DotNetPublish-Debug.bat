@@ -1,3 +1,3 @@
-dotnet publish -c Debug --output bin/611LLC-Output-Debug
+dotnet publish -c Debug --output bin/Jesus-Output-Debug
 
 pause
