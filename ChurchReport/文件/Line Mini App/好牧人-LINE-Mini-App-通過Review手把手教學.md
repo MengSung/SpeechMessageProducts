@@ -521,15 +521,22 @@ https://liff.line.me/2009427708-GToVLqgV
 ### 找到「Submit for review」按鈕
 
 ```
+⚠️ 不在 Basic settings！不在 Overview！
+
+正確位置：上方分頁列 → 「Review request」分頁
+
+步驟：
 1. 登入 LINE Developers Console
    https://developers.line.biz/console/
 
 2. 選擇你的 Provider → 進入好牧人 Mini App Channel
 
-3. 在頁面上方或 Overview 分頁找到「Submit for review」按鈕
-   （有時候在頁面最下方）
+3. 點擊上方分頁列的「Review request」
+   （分頁順序：Basic settings → Web app settings → Review request ← 這個！）
 
-4. 點擊「Submit for review」
+4. 在 Review request 頁面內填寫說明，找到「Submit for review」按鈕
+
+5. 點擊「Submit for review」
 ```
 
 ### 填寫審核說明（直接複製以下內容貼上）
