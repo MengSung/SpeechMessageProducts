@@ -11,6 +11,50 @@
 
 ---
 
+## ⚠️ 台灣地區重要前置條件：Provider 必須先通過認證
+
+```
+LINE 官方規定：
+"If the region to provide the service is Thailand or Taiwan,
+ only certified providers can apply for the verification review."
+
+翻譯：台灣地區只有「已認證的 Provider」才能送審 Mini App！
+
+如果你的 Provider 尚未認證：
+  → Review request 頁面只會顯示說明文字
+  → 不會出現「Submit for review」按鈕
+  → 必須先完成 Provider 認證，按鈕才會出現
+```
+
+### 第零步：先完成 Provider 認證
+
+```
+1. 登入 LINE Developers Console
+   https://developers.line.biz/console/
+
+2. 左側選單點 Provider 名稱「好牧人」
+   （注意：是 Provider 層級，不是進入 Channel）
+
+3. 在 Provider 頁面找「Certification」或「Apply for certification」
+
+4. 填寫認證資料：
+   • 組織/公司名稱：好牧人教會（或音訊科技股份有限公司）
+   • 統一編號（Business ID）：13054485
+   • 服務地區：Taiwan
+   • 聯絡 Email：mengsunghu@gmail.com
+   • 可能需要上傳教會或公司的登記證明文件
+
+5. 提交申請 → 等待 LINE 審核 Provider 認證
+   （審核時間：通常數個工作天）
+
+6. 收到認證通過通知後，再回到 Mini App Channel
+   → Review request 分頁的「Submit for review」按鈕才會出現
+```
+
+> **沒有 Provider 認證，所有後續步驟都無法進行。請先處理這一步！**
+
+---
+
 ## 📋 本文件快速導覽
 
 | 階段 | 步驟 | 說明 |
