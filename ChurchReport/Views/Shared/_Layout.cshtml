@@ -1,4 +1,21 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    var themeCssClass = (ViewData["ThemeCssClass"] as string)?.Trim();
+    if (string.IsNullOrWhiteSpace(themeCssClass))
+    {
+        var configuredTheme = Configuration["Theme:Current"]?.Trim();
+        themeCssClass = configuredTheme switch
+        {
+            "橘色" => "theme-orange",
+            "綠色" => "theme-green",
+            "藍色" => "theme-blue",
+            _ => "theme-blue"
+        };
+    }
+}
+
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -11,7 +28,7 @@
     <title>好牧人</title>
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="~/css/devextreme/dx.common.css" rel="stylesheet" />
     <link href="~/css/devextreme/dx.light.compact.css" rel="stylesheet" />
@@ -34,7 +51,8 @@
             left: 0;
             height: 100%;
             width: 250px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: var(--color-primary, #2f6fd6) !important;
+            background-image: linear-gradient(135deg, var(--color-primary, #2f6fd6) 0%, var(--color-secondary, #4f8df1) 100%) !important;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             z-index: 1000;
             overflow-y: auto;
@@ -77,10 +95,12 @@
 
         .navbar-custom .navbar-nav > li {
             width: 100%;
+            float: none;
+            display: block;
         }
 
         .navbar-custom .navbar-nav > li > a {
-            color: #fff;
+            color: #fff !important;
             padding: 15px 20px;
             transition: background-color 0.3s ease;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -129,7 +149,7 @@
             left: 0;
             right: 0;
             height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
             z-index: 1001;
             align-items: center;
             padding: 0 15px;
@@ -251,7 +271,7 @@
     </script>
 </head>
 
-<body>
+<body class="@themeCssClass">
     <!-- 行動化頂部標題欄 -->
     <div class="mobile-header">
         <a class="mobile-brand" href="/">

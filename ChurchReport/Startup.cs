@@ -1,5 +1,7 @@
 ﻿using ChurchReport.Services;
 using ChurchReport.Tools;
+using ChurchReport.Filters;
+using ChurchReport.Services.Theme;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -31,6 +34,13 @@ namespace ChurchReport
     /// </summary>
     public partial class Startup
     {
+        private static readonly HashSet<string> AllowedThemes = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "藍色",
+            "橘色",
+            "綠色"
+        };
+
         /// <summary>
         /// 建構函式，注入配置物件。
         /// </summary>
@@ -38,6 +48,9 @@ namespace ChurchReport
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            CurrentTheme = ResolveThemeName(configuration["Theme:Current"]);
+            CurrentThemeCssClass = MapThemeCssClass(CurrentTheme);
         }
 
         /// <summary>
@@ -46,12 +59,47 @@ namespace ChurchReport
         public IConfiguration Configuration { get; }
 
         /// <summary>
+        /// 目前啟用的主題名稱（藍色、橘色、綠色）。
+        /// </summary>
+        public string CurrentTheme { get; }
+
+        /// <summary>
+        /// 目前啟用主題對應的 CSS class。
+        /// </summary>
+        public string CurrentThemeCssClass { get; }
+
+        private static string ResolveThemeName(string configuredTheme)
+        {
+            var normalizedTheme = configuredTheme?.Trim();
+            return string.IsNullOrWhiteSpace(normalizedTheme) || !AllowedThemes.Contains(normalizedTheme)
+                ? "藍色"
+                : normalizedTheme;
+        }
+
+        private static string MapThemeCssClass(string themeName)
+        {
+            switch (themeName)
+            {
+                case "橘色":
+                    return "theme-orange";
+                case "綠色":
+                    return "theme-green";
+                case "藍色":
+                default:
+                    return "theme-blue";
+            }
+        }
+
+        /// <summary>
         /// 配置服務的方法。此方法由運行時呼叫，用於將服務添加到依賴注入容器中。
         /// 包括 HTTP 客戶端、快取、CRM 連接池、健康檢查、MVC 配置、身份驗證等服務的註冊。
         /// </summary>
         /// <param name="services">服務集合，用於註冊應用程式所需的服務。</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton(new ThemeSettings(CurrentTheme, CurrentThemeCssClass));
+            services.AddScoped<ThemeViewDataFilter>();
+
             // ========================================
             // ✅ 初始化 ToolUtilityFactory 配置 (必須最先執行)
             // ========================================
@@ -279,6 +327,8 @@ namespace ChurchReport
                 .AddMvc(options =>
                 {
                     options.EnableEndpointRouting = false;
+
+                    options.Filters.Add<ThemeViewDataFilter>();
                     
                     // ========================================
                     // ✅ Phase 3.1: 註冊全域無快取過濾器 (Session Bleeding 防護)

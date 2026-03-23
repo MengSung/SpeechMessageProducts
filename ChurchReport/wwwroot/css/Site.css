@@ -7,4 +7,100 @@
 /* 為固定導航列預留上方空間 */
 body {
   padding-top: 50px;
+  --color-primary: #2f6fd6;
+  --color-secondary: #4f8df1;
+  --color-background: #f4f8ff;
+  --color-border: #c9daf8;
+  --color-text: #1d2a44;
+  --color-surface: #ffffff;
+  --color-row-hover: #eaf2ff;
+  --color-row-selected: #d9e8ff;
+}
+
+body.theme-blue {
+  --color-primary: #2f6fd6;
+  --color-secondary: #4f8df1;
+  --color-background: #f4f8ff;
+  --color-border: #c9daf8;
+  --color-text: #1d2a44;
+  --color-surface: #ffffff;
+  --color-row-hover: #eaf2ff;
+  --color-row-selected: #d9e8ff;
+}
+
+body.theme-orange {
+  --color-primary: #f07f2f;
+  --color-secondary: #f4a340;
+  --color-background: #fff8f3;
+  --color-border: #f3d3bf;
+  --color-text: #4a2b1a;
+  --color-surface: #ffffff;
+  --color-row-hover: #fff1e5;
+  --color-row-selected: #ffe7d2;
+}
+
+body.theme-green {
+  --color-primary: #2f9461;
+  --color-secondary: #52b87f;
+  --color-background: #f4fbf7;
+  --color-border: #c8e6d4;
+  --color-text: #1f3b2e;
+  --color-surface: #ffffff;
+  --color-row-hover: #e7f7ef;
+  --color-row-selected: #d6f0e2;
+}
+
+body,
+.main-content {
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+/* ===== 核心元件套用 Theme ===== */
+.btn-primary,
+.btn.btn-primary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-primary:hover,
+.btn.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:focus,
+.btn-primary:active,
+.btn.btn-primary:active {
+  background-color: var(--color-secondary);
+  border-color: var(--color-secondary);
+}
+
+.section-title,
+.block-title,
+.card-header,
+.panel-heading {
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.card,
+.panel,
+.dx-card {
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+/* DevExtreme DataGrid */
+.dx-datagrid-headers .dx-header-row > td {
+  background-color: var(--color-primary) !important;
+  color: #fff !important;
+  border-color: var(--color-border) !important;
+}
+
+.dx-datagrid-rowsview .dx-row:hover > td {
+  background-color: var(--color-row-hover) !important;
+}
+
+.dx-datagrid-rowsview .dx-selection > td,
+.dx-datagrid-rowsview .dx-row-focused > td {
+  background-color: var(--color-row-selected) !important;
+  color: var(--color-text) !important;
 }
