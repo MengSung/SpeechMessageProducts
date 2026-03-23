@@ -22,56 +22,65 @@
     <title>好牧人</title>
 </head>
 
-<!-- 用戶名稱顯示 -->
-<div style="font-family:標楷體;font-size:100%; color:cadetblue; text-align:left;font-weight:bold">
-    <h4>@(Model.LoginFullName)</h4>
-</div>
+<section class="multi-page-header card-surface">
+    <div class="user-block">
+        <div class="user-label">小組長</div>
+        <h4 class="user-name">@(Model.LoginFullName)</h4>
+    </div>
 
-<!-- 日期選擇 -->
-<div id="SundayLabel" class="dx-field-label" style="float: left; width:25%; background-color:white;">小組日期</div>
-<div id="dateBoxContainer" class="dx-field-value" style="float: left; width:55%; background-color:white;">
-    @(Html.DevExtreme()
-        .DateBoxFor(m => m.m_SelectDate)
-        .Type(DateBoxType.Date)
-        .Value(Model.m_SelectDate)
-        .Width(50)
-        .DisplayFormat("yyyy/M/d")
-        .OnChange("OnDateboxChange")
-        .CalendarOptions(k => k.FirstDayOfWeek(0))
-        .OnValueChanged(@<text>
-            function(arg) {
-                $("#loadPanel").dxLoadPanel("instance").show();
-                $.ajax({
-                    url: '@Url.Action("UpdateDate", "SmallGroup")',
-                    data: { SelectedDate: getODataLocalDateFilter(arg.value) },
-                    type: 'GET',
-                    success: function (result) {
-                        if (result.success) {
-                            // 後端資料已更新，重新載入頁面以確保資料一致性
-                            window.location.reload();
-                        } else {
-                            $("#loadPanel").dxLoadPanel("instance").hide();
-                            $("#toast").dxToast("instance").option("message", result.message || "日期更新失敗");
-                            $("#toast").dxToast("instance").option("type", "error");
-                            $("#toast").dxToast("instance").show();
-                        }
-                    },
-                    error: function (obj) {
-                        $("#loadPanel").dxLoadPanel("instance").hide();
-                        $("#toast").dxToast("instance").option("message", "日期更新失敗，請稍後再試");
-                        $("#toast").dxToast("instance").option("type", "error");
-                        $("#toast").dxToast("instance").show();
+    <div class="date-block">
+        <label id="SundayLabel" class="date-label" for="dateBoxContainer">小組日期</label>
+        <div id="dateBoxContainer" class="date-value">
+            @(Html.DevExtreme()
+                .DateBoxFor(m => m.m_SelectDate)
+                .Type(DateBoxType.Date)
+                .Value(Model.m_SelectDate)
+                .Width("100%")
+                .DisplayFormat("yyyy/M/d")
+                .OnChange("OnDateboxChange")
+                .CalendarOptions(k => k.FirstDayOfWeek(0))
+                .OnValueChanged(@<text>
+                    function(arg) {
+                        $("#loadPanel").dxLoadPanel("instance").show();
+                        $.ajax({
+                            url: '@Url.Action("UpdateDate", "SmallGroup")',
+                            data: { SelectedDate: getODataLocalDateFilter(arg.value) },
+                            type: 'GET',
+                            success: function (result) {
+                                if (result.success) {
+                                    // 後端資料已更新，重新載入頁面以確保資料一致性
+                                    window.location.reload();
+                                } else {
+                                    $("#loadPanel").dxLoadPanel("instance").hide();
+                                    $("#toast").dxToast("instance").option("message", result.message || "日期更新失敗");
+                                    $("#toast").dxToast("instance").option("type", "error");
+                                    $("#toast").dxToast("instance").show();
+                                }
+                            },
+                            error: function (obj) {
+                                $("#loadPanel").dxLoadPanel("instance").hide();
+                                $("#toast").dxToast("instance").option("message", "日期更新失敗，請稍後再試");
+                                $("#toast").dxToast("instance").option("type", "error");
+                                $("#toast").dxToast("instance").show();
+                            }
+                        });
                     }
-                });
-            }
-        </text>)
-    )
-</div>
+                </text>)
+            )
+        </div>
+    </div>
+</section>
 
 <!-- 圓餅圖 -->
-<div id="multigroupchart">
-    @(Html.DevExtreme().PieChart()
-        .ID("multigroupchart")
+<section class="card-surface chart-card">
+    <div class="card-title-row">
+        <h5>多小組出席總覽</h5>
+        <span class="card-hint">每個扇區代表各小組人數</span>
+    </div>
+
+    <div id="multigroupchart" class="chart-host">
+        @(Html.DevExtreme().PieChart()
+        .ID("multigroupchartWidget")
         .Palette(VizPalette.HarmonyLight)
         .Margin(m => m.Left(0).Top(0))
         .AdaptiveLayout(a => a.Height(20).Width(20).KeepLabels(true))
@@ -123,12 +132,19 @@
             .LoadParams(new { WeeklyReportId = @ViewBag.ListId })
         )
     )
-</div>
+    </div>
+</section>
 
 <!-- 資料網格 -->
-<div id="smallgroup-grid">
-    @(
-        Html.DevExtreme().DataGrid<WeeklyReportRecord>()
+<section class="card-surface grid-card">
+    <div class="card-title-row">
+        <h5>小組出席明細</h5>
+        <span class="card-hint">點擊「名稱」可開啟該小組詳細頁面</span>
+    </div>
+
+    <div id="smallgroup-grid" class="grid-host">
+        @(
+            Html.DevExtreme().DataGrid<WeeklyReportRecord>()
             .ID("SmallGroupgridContainer")
             .ShowBorders(true)
             .ColumnAutoWidth(true)
@@ -149,6 +165,7 @@
             .RowAlternationEnabled(true)
             .ShowBorders(true)
             .OnRowPrepared("OnRowPrepared")
+            .OnCellPrepared("cell_prepared")
             .TwoWayBindingEnabled(true)
             .Grouping(g => g
                 .ContextMenuEnabled(true)
@@ -207,8 +224,9 @@
                 }
             </text>)
         )
-    )
-</div>
+        )
+    </div>
+</section>
 
 <!-- 工具元件 -->
 <div id="Tool" style="height:100%; width:100%; overflow: hidden;">
@@ -264,6 +282,167 @@
         )
     </div>
 </div>
+
+<style>
+    .card-surface {
+        --brand-main: #4f46e5;
+        --brand-sub: #0f766e;
+        --text-main: #1f2937;
+        --text-sub: #6b7280;
+        --line-soft: #e5e7eb;
+        background: #fff;
+        border: 1px solid var(--line-soft);
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        margin-bottom: 14px;
+        padding: 12px;
+    }
+
+    .multi-page-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .user-block {
+        min-width: 180px;
+    }
+
+    .user-label {
+        color: var(--text-sub);
+        font-size: 12px;
+        margin-bottom: 2px;
+    }
+
+    .user-name {
+        margin: 0;
+        color: #115e59;
+        letter-spacing: 0.5px;
+    }
+
+    .date-block {
+        flex: 1;
+        max-width: 360px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .date-label {
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .card-title-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .card-title-row h5 {
+        margin: 0;
+        color: var(--brand-sub);
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .card-hint {
+        color: var(--text-sub);
+        font-size: 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        border-radius: 999px;
+        padding: 4px 10px;
+        white-space: nowrap;
+    }
+
+    .chart-card {
+        overflow: hidden;
+    }
+
+    .chart-host {
+        display: flex;
+        justify-content: center;
+    }
+
+    .grid-host {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    #SmallGroupgridContainer .dx-datagrid .dx-header-row > td {
+        background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%) !important;
+        color: #1f3b8f;
+        font-weight: 700;
+        border-bottom: 1px solid #dbeafe !important;
+    }
+
+    #SmallGroupgridContainer .dx-datagrid-rowsview .dx-row > td {
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+        vertical-align: middle !important;
+        color: var(--text-main);
+    }
+
+    #SmallGroupgridContainer .dx-row.dx-data-row:hover > td {
+        background: #f8fbff !important;
+    }
+
+    #SmallGroupgridContainer .dx-row.row-hovered-soft > td {
+        transition: background-color 0.2s ease;
+    }
+
+    #SmallGroupgridContainer .dx-link {
+        border-radius: 6px;
+        padding: 2px 4px;
+    }
+
+    #SmallGroupgridContainer .dx-link:hover {
+        background: #eef2ff;
+    }
+
+    @@media (max-width: 768px) {
+        .multi-page-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .date-block {
+            max-width: none;
+        }
+
+        .card-title-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .card-hint {
+            white-space: normal;
+            line-height: 1.4;
+        }
+    }
+
+    @@media (max-width: 430px) {
+        .card-surface {
+            padding: 10px;
+            border-radius: 12px;
+        }
+
+        .card-title-row h5 {
+            font-size: 17px;
+        }
+
+        #SmallGroupgridContainer .dx-datagrid-rowsview .dx-row > td {
+            padding-top: 9px !important;
+            padding-bottom: 9px !important;
+        }
+    }
+</style>
 
 <!-- JavaScript 函數 -->
 <script>
@@ -347,13 +526,7 @@
         e.rowElement.css({ height: 25 });
         e.rowElement.css('font-size', '16px');
         if (e.rowType == 'data') {
-            e.rowElement[0].addEventListener("mouseover", function () {
-                e.rowElement.css('background', '#fff2a8');
-                e.rowElement.css("transition", "background-color 0.5s");
-            });
-            e.rowElement[0].addEventListener("mouseleave", function () {
-                e.rowElement[0].style.background = "";
-            });
+            e.rowElement.addClass('row-hovered-soft');
         }
     }
 </script>

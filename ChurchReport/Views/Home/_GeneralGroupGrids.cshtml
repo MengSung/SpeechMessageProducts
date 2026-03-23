@@ -19,9 +19,9 @@
     @* ================================================================================================
        區塊 1：小組是否暫停
        ================================================================================================ *@
-    <div id="PauseOrNot" class="pause-option" style="display: flex; align-items: center; gap: 8px;">
-        <div style="font-size:100%; color:#fff; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); text-align:left; font-weight:bold; border-radius:3px; display:inline-block; padding:5px 10px;">
-            <h5 style="margin:0; color:#fff;">小組是否暫停</h5>
+    <div id="PauseOrNot" class="pause-option">
+        <div class="section-title-badge section-title-badge--pause">
+            <h5>小組是否暫停</h5>
         </div>
         @(Html.DevExtreme()
             .CheckBox()
@@ -35,12 +35,13 @@
        ================================================================================================ *@
     @if (Model.m_SmallGroupDataList.m_SmallGroupData.DisplayFlag == true)
     {
-        <div class="small-group-section" id="smallGroupSection">
-            <div style="font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                <h5>小組牧養:</h5>
+        <div class="small-group-section grid-section-card" id="smallGroupSection">
+            <div class="section-title-row">
+                <h5>小組牧養</h5>
+                <span class="section-hint">點擊照片可快速編輯點名與關懷</span>
             </div>
 
-            <div id="smallgroup-grid">
+            <div id="smallgroup-grid" class="grid-shell">
                 @(
                     Html.DevExtreme()
                         .DataGrid<Member>()
@@ -220,12 +221,13 @@
        ================================================================================================ *@
     @if (Model.m_SmallGroupDataList.m_NewPersonFollowUpData.DisplayFlag == true)
     {
-        <div class="new-person-follow-up-section" id="newPersonFollowUpSection">
-            <div style="font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-                <h5>新人跟進關懷:</h5>
+        <div class="new-person-follow-up-section grid-section-card" id="newPersonFollowUpSection">
+            <div class="section-title-row">
+                <h5>新人跟進關懷</h5>
+                <span class="section-hint">點擊照片可快速編輯跟進欄位</span>
             </div>
 
-            <div id="newpersonal-data-grid">
+            <div id="newpersonal-data-grid" class="grid-shell">
                 @(
                     Html.DevExtreme()
                         .DataGrid<Member>()
@@ -501,6 +503,7 @@
         img.style.boxShadow = '0 1px 3px rgba(0,0,0,0.12)';
         img.style.backgroundColor = '#f8f9fa';
         img.className = 'contact-avatar-img';
+        img.title = '點擊查看詳細資料與點名';
 
         // 點擊大頭照開啟會員詳細資料彈出視窗（載入原圖 + 點名表單）
         img.style.cursor = 'pointer';
@@ -598,6 +601,7 @@
                 dragEnabled: false,
                 shading: true,
                 shadingColor: 'rgba(0,0,0,0.4)',
+                wrapperAttr: { class: 'member-detail-popup-wrapper' },
                 width: function () { return Math.min(520, $(window).width() * 0.95); },
                 height: 'auto',
                 maxHeight: function () { return $(window).height() * 0.92; },
@@ -949,6 +953,91 @@
 </script>
 
 <style>
+    .general-group-grids {
+        --page-bg: #f5f8ff;
+        --card-bg: #ffffff;
+        --brand-primary: #4f46e5;
+        --brand-secondary: #0f766e;
+        --text-main: #1f2937;
+        --text-subtle: #6b7280;
+        --border-color: #e5e7eb;
+        --shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.08);
+        background: linear-gradient(180deg, #f8faff 0%, #f3f7ff 100%);
+        border-radius: 16px;
+        padding: 14px;
+    }
+
+    .pause-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-soft);
+        margin-bottom: 14px;
+    }
+
+    .section-title-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 12px;
+        border-radius: 999px;
+        color: #fff;
+        font-weight: 700;
+        letter-spacing: .2px;
+    }
+
+    .section-title-badge h5 {
+        margin: 0;
+        color: inherit;
+    }
+
+    .section-title-badge--pause {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .grid-section-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 12px;
+        box-shadow: var(--shadow-soft);
+        margin-bottom: 14px;
+    }
+
+    .section-title-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 2px 0 10px;
+    }
+
+    .section-title-row h5 {
+        margin: 0;
+        color: var(--brand-secondary);
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+    }
+
+    .section-hint {
+        font-size: 12px;
+        color: var(--text-subtle);
+        background: #eef2ff;
+        border: 1px solid #dbe1ff;
+        padding: 4px 10px;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+
+    .grid-shell {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
     /* 防止 iOS/行動瀏覽器在點擊輸入框時自動 zoom in */
     .dx-texteditor-input,
     .dx-selectbox-container input,
@@ -962,8 +1051,23 @@
     #SmallGroupgridContainer .dx-datagrid-rowsview .dx-row > td,
     #NewPersonGridContainer .dx-datagrid-rowsview .dx-row > td {
         vertical-align: middle !important;
-        padding-top: 8px !important;
-        padding-bottom: 8px !important;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+        color: var(--text-main);
+    }
+
+    #SmallGroupgridContainer .dx-datagrid,
+    #NewPersonGridContainer .dx-datagrid {
+        border-radius: 10px;
+        border-color: var(--border-color);
+    }
+
+    #SmallGroupgridContainer .dx-datagrid .dx-header-row > td,
+    #NewPersonGridContainer .dx-datagrid .dx-header-row > td {
+        background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%) !important;
+        color: #1f3b8f;
+        font-weight: 700;
+        border-bottom: 1px solid #dbe5ff !important;
     }
 
     #SmallGroupgridContainer .dx-datagrid-headers .dx-header-row > td,
@@ -971,17 +1075,39 @@
         vertical-align: middle !important;
     }
 
+    #SmallGroupgridContainer .dx-row.dx-data-row:hover > td,
+    #NewPersonGridContainer .dx-row.dx-data-row:hover > td {
+        background-color: #f8fbff !important;
+    }
+
+    #SmallGroupgridContainer .dx-selection > td,
+    #NewPersonGridContainer .dx-selection > td {
+        background-color: #eef4ff !important;
+    }
+
     #SmallGroupgridContainer .contact-avatar-img,
     #NewPersonGridContainer .contact-avatar-img {
         width: 40px;
         height: 40px;
+        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    #SmallGroupgridContainer .contact-avatar-img:hover,
+    #NewPersonGridContainer .contact-avatar-img:hover {
+        transform: translateY(-1px) scale(1.04);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.18) !important;
+        border-color: #c7d2fe !important;
     }
 
     /* ==============================================================
        會員詳細資料彈出視窗樣式
        ============================================================== */
     .member-popup-body {
-        padding: 4px 0;
+        padding: 8px 2px 10px;
+        max-height: min(72vh, 680px);
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #d1d5db transparent;
     }
 
     .member-popup-header {
@@ -1000,6 +1126,42 @@
         background: linear-gradient(110deg, #f0f0f0 8%, #e0e0e0 18%, #f0f0f0 33%);
         background-size: 200% 100%;
         animation: popup-shimmer 1.5s linear infinite;
+    }
+
+    .member-detail-popup-wrapper .dx-popup-title {
+        background: linear-gradient(90deg, #eef2ff 0%, #f8fafc 100%);
+        border-bottom: 1px solid #dbe5ff;
+    }
+
+    .member-detail-popup-wrapper .dx-popup-title .dx-toolbar-label {
+        color: #1f3b8f;
+        font-weight: 700;
+    }
+
+    .member-detail-popup-wrapper .dx-popup-bottom {
+        position: sticky;
+        bottom: 0;
+        background: #fff;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 8px;
+    }
+
+    .member-detail-popup-wrapper .dx-popup-bottom .dx-button-success {
+        background: linear-gradient(135deg, #0f766e 0%, #0ea5a5 100%);
+        border-color: transparent;
+        font-weight: 700;
+        border-radius: 10px;
+        min-height: 42px;
+    }
+
+    .member-detail-popup-wrapper .dx-popup-content .dx-texteditor,
+    .member-detail-popup-wrapper .dx-popup-content .dx-selectbox {
+        border-radius: 10px;
+    }
+
+    .member-detail-popup-wrapper .dx-popup-content .dx-texteditor.dx-state-focused,
+    .member-detail-popup-wrapper .dx-popup-content .dx-selectbox.dx-state-focused {
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
     }
 
     @@keyframes popup-shimmer {
@@ -1057,5 +1219,66 @@
 
     .member-popup-check-item {
         min-width: 80px;
+    }
+
+    @@media (max-width: 768px) {
+        .general-group-grids {
+            padding: 10px;
+            border-radius: 12px;
+        }
+
+        .grid-section-card,
+        .pause-option {
+            padding: 10px;
+            border-radius: 12px;
+        }
+
+        .section-title-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .section-title-row h5 {
+            font-size: 17px;
+        }
+
+        .section-hint {
+            white-space: normal;
+            line-height: 1.4;
+        }
+
+        .member-popup-header {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 10px;
+        }
+
+        .member-popup-photo img {
+            width: 104px;
+            height: 104px;
+        }
+
+        .member-popup-info {
+            align-items: center;
+        }
+    }
+
+    @@media (max-width: 430px) {
+        #SmallGroupgridContainer .dx-datagrid-rowsview .dx-row > td,
+        #NewPersonGridContainer .dx-datagrid-rowsview .dx-row > td {
+            padding-top: 9px !important;
+            padding-bottom: 9px !important;
+        }
+
+        .member-popup-name {
+            font-size: 18px;
+        }
+
+        .member-popup-section {
+            padding-top: 10px;
+            margin-top: 10px;
+        }
     }
 </style>
