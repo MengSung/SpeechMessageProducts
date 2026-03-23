@@ -15,18 +15,105 @@
 
 </head>
 
+<style>
+    .equipment-page {
+        --theme-primary: #0f766e;
+        --theme-border: #d9e6f2;
+        --theme-surface: #ffffff;
+        --theme-muted: #64748b;
+        --theme-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        padding: 10px 8px 20px;
+    }
+
+    .equipment-card {
+        background: var(--theme-surface);
+        border: 1px solid var(--theme-border);
+        border-radius: 16px;
+        box-shadow: var(--theme-shadow);
+        padding: 14px 16px;
+        margin-bottom: 12px;
+    }
+
+    .equipment-header-card {
+        background: linear-gradient(145deg, #f0fdfa 0%, #f8fafc 60%, #ecfeff 100%);
+    }
+
+    .equipment-title {
+        margin: 0;
+        color: var(--theme-primary);
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .equipment-tip {
+        margin-top: 7px;
+        color: var(--theme-muted);
+        font-size: .9rem;
+    }
+
+    #EquipmentGridContainer .dx-datagrid-headers {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    #EquipmentGridContainer .dx-datagrid-headers .dx-header-row td {
+        background: #e6f6f4;
+        color: #0f172a;
+        font-size: .92rem;
+        font-weight: 700;
+        padding-top: 11px;
+        padding-bottom: 11px;
+    }
+
+    #EquipmentGridContainer .dx-datagrid-rowsview .dx-row > td {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        vertical-align: middle;
+    }
+
+    #EquipmentGridContainer .dx-datagrid-rowsview .dx-data-row:hover > td {
+        background-color: #fff6cc;
+    }
+
+    #EquipmentGridContainer .dx-selection > td,
+    #EquipmentGridContainer .dx-row-focused > td {
+        background-color: #d1fae5 !important;
+    }
+
+    @@media (max-width: 430px) {
+        .equipment-page {
+            padding: 8px 4px 14px;
+        }
+
+        .equipment-card {
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .equipment-title {
+            font-size: 1rem;
+        }
+
+        #EquipmentGridContainer .dx-datagrid-headers .dx-header-row td,
+        #EquipmentGridContainer .dx-datagrid-rowsview .dx-row > td {
+            font-size: .86rem;
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+    }
+</style>
+
 @*<h3>@ViewBag.HappyGroupName</h3>*@
 
-<br />
-<br />
-
-<div style="font-family:標楷體;font-size:100%; color:cadetblue; text-align:left;font-weight:bold">
-    <h4>裝備狀態</h4>
+<div class="equipment-page">
+<div class="equipment-card equipment-header-card" style="font-family:標楷體;font-size:100%; color:cadetblue; text-align:left;font-weight:bold">
+    <h4 class="equipment-title">裝備狀態</h4>
+    <div class="equipment-tip">點擊小組列可展開明細，快速查看各小組裝備資訊。</div>
 </div>
 
 
 
-<div id="data-grid">
+<div id="data-grid" class="equipment-card">
     @(Html.DevExtreme().DataGrid<EquipmenSmallGroup>()
         .ID("EquipmentGridContainer")
         .Grouping(g=>g.AutoExpandAll(true))
@@ -127,17 +214,16 @@
     }
 
     function OnRowPrepared(e) {
-        e.rowElement.css({ height: 25 });
-        e.rowElement.css('font-size', '18px');
-        e.rowElement.css('font-family', '標楷體');
-        e.rowElement.css('color', 'rgb(0, 0, 255)');
-        e.rowElement.css('background', 'rgb(255, 251, 255)');
-
         if (e.rowType == 'data') {
+            e.rowElement.css({ height: 42 });
+            e.rowElement.css('font-size', '16px');
+            e.rowElement.css('font-family', '標楷體');
+            e.rowElement.css('color', '#1e3a8a');
+            e.rowElement.css('background', '#ffffff');
             //e.rowElement.css('background', '#fff2a8');
             e.rowElement[0].addEventListener("mouseover", function () {
-                e.rowElement.css('background', '#fff2a8');
-                e.rowElement.css("transition", "background-color 0.5s");
+                e.rowElement.css('background', '#fff6cc');
+                e.rowElement.css("transition", "background-color 0.25s");
             });
             e.rowElement[0].addEventListener("mouseleave", function () {
                 e.rowElement[0].style.background = ""
