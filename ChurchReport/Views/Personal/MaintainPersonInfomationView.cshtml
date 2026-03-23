@@ -20,7 +20,7 @@
 
 <br />
 
-<div class="dx-field" style="height:100%; width:100%; overflow: auto;">
+<div class="dx-field maintain-person-page">
     <!-- Toast 通知容器 -->
     <div id="ToastContainer">
         @(Html.DevExtreme().Toast()
@@ -59,11 +59,10 @@
             )
     </div>
 
-    <hr />
-
     <!-- 個人資料標題 -->
-    <div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-        <h4>個人資料</h4>
+    <div class="page-title-card">
+        <h4>個人資料維護</h4>
+        <span class="page-subtitle">可直接在表格編輯資料，完成後按「上傳」送出變更。</span>
     </div>
 
     <!-- 地圖容器 -->
@@ -87,7 +86,7 @@
     <br />
 
     <!-- 上傳按鈕 -->
-    <div id="buttonContainer" class="dx-button-icon">
+    <div id="buttonContainer" class="dx-button-icon action-toolbar">
         @(Html.DevExtreme().Button()
             .Text("上傳").Height(50).Width(80).Icon("check")
             .Type(ButtonType.Success)
@@ -184,9 +183,158 @@
     </div>
 
     <!-- 資料網格 -->
-    <div id="gridContainer"></div>
+    <div class="grid-card">
+        <div class="grid-title-row">
+            <h5>個人資料清單</h5>
+            <span class="grid-hint">已編輯列會以底色標示，上傳後清除標記</span>
+        </div>
+        <div id="gridContainer"></div>
+    </div>
 
 </div>
+
+<style>
+    .maintain-person-page {
+        --brand-primary: #4f46e5;
+        --brand-secondary: #0f766e;
+        --text-main: #1f2937;
+        --text-subtle: #6b7280;
+        --line-soft: #e5e7eb;
+        --card-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        height: 100%;
+        width: 100%;
+        overflow: auto;
+        background: linear-gradient(180deg, #f8fbff 0%, #f3f7ff 100%);
+        border-radius: 14px;
+        padding: 10px;
+    }
+
+    .page-title-card {
+        background: #fff;
+        border: 1px solid #dbeafe;
+        border-radius: 14px;
+        box-shadow: var(--card-shadow);
+        padding: 12px 14px;
+        margin-bottom: 12px;
+    }
+
+    .page-title-card h4 {
+        margin: 0;
+        color: var(--brand-secondary);
+        font-weight: 700;
+    }
+
+    .page-subtitle {
+        display: inline-block;
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--text-subtle);
+    }
+
+    .action-toolbar {
+        display: flex;
+        justify-content: flex-end;
+        margin: 10px 0 12px;
+    }
+
+    .action-toolbar .dx-button {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .action-toolbar .dx-button-success {
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        border-color: transparent;
+        font-weight: 700;
+    }
+
+    .grid-card {
+        background: #fff;
+        border: 1px solid var(--line-soft);
+        border-radius: 14px;
+        box-shadow: var(--card-shadow);
+        padding: 10px;
+    }
+
+    .grid-title-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .grid-title-row h5 {
+        margin: 0;
+        color: var(--text-main);
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .grid-hint {
+        font-size: 12px;
+        color: var(--text-subtle);
+        background: #eef2ff;
+        border: 1px solid #dbeafe;
+        border-radius: 999px;
+        padding: 4px 10px;
+        white-space: nowrap;
+    }
+
+    #gridContainer .dx-datagrid .dx-header-row > td {
+        background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%) !important;
+        color: #1f3b8f;
+        font-weight: 700;
+        border-bottom: 1px solid #dbeafe !important;
+    }
+
+    #gridContainer .dx-datagrid-rowsview .dx-row > td {
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+        vertical-align: middle !important;
+    }
+
+    #gridContainer .dx-row.dx-data-row:hover > td {
+        background-color: #f8fbff !important;
+    }
+
+    @@media (max-width: 768px) {
+        .maintain-person-page,
+        .page-title-card,
+        .grid-card {
+            border-radius: 12px;
+        }
+
+        .grid-title-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .grid-hint {
+            white-space: normal;
+            line-height: 1.4;
+        }
+
+        .action-toolbar {
+            justify-content: stretch;
+        }
+
+        .action-toolbar .dx-button {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 430px) {
+        .maintain-person-page {
+            padding: 8px;
+        }
+
+        .page-title-card h4 {
+            font-size: 18px;
+        }
+    }
+</style>
 
 <script>
     // ✅ 條件式日誌函數

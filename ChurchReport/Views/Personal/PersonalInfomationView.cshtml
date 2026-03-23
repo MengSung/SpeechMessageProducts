@@ -5,11 +5,15 @@
 @using ChurchReport.ViewModels
 @model PersonalInfomationViewModel
 
-<div class="long-title"><h4>  @Model.FullName 個人相關資料</h4></div>
+<div class="personal-info-page">
+    <div class="long-title page-title-card">
+        <h4>@Model.FullName 個人相關資料</h4>
+        <span class="page-subtitle">請確認資料正確後再上傳，系統將自動儲存更新內容。</span>
+    </div>
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SavePersonalInfomation" asp-controller="Personal" method="post">
     <div class="dx-field">
-        <div id="buttonContainer" class="dx-button-icon">
+        <div id="buttonContainerTop" class="dx-button-icon action-button-row">
             @(Html.DevExtreme().Button()
                     //.Text("上傳").Height(50).Width(80).Icon("check")
                     .Text("上傳").Icon("check")
@@ -73,7 +77,12 @@
 
         </div>
     </div>
-    <div id="form-container">
+    <div id="form-container" class="form-card">
+
+        <div class="form-intro">
+            <span class="form-intro-title">基本資料</span>
+            <span class="form-intro-hint">星號欄位為建議優先確認欄位</span>
+        </div>
 
         @{
             var NtbtOrNotPriorities = new[] { "是", "否", };
@@ -337,7 +346,7 @@
         )
     </div>
 
-    <div id="buttonContainer" class="dx-button-icon">
+    <div id="buttonContainerBottom" class="dx-button-icon action-button-row action-button-row-bottom">
         @(Html.DevExtreme().Button()
                     //.Text("上傳").Height(50).Width(80).Icon("check")
                     .Text("上傳").Icon("check")
@@ -373,6 +382,146 @@
     </div>
 
 </form>
+
+</div>
+
+<style>
+    .personal-info-page {
+        --brand-primary: #4f46e5;
+        --brand-secondary: #0f766e;
+        --text-main: #1f2937;
+        --text-muted: #6b7280;
+        --line-soft: #e5e7eb;
+        --card-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .page-title-card {
+        background: linear-gradient(120deg, #f8fbff 0%, #eef2ff 100%);
+        border: 1px solid #dbeafe;
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .page-title-card h4 {
+        margin: 0;
+        color: var(--brand-secondary);
+        font-weight: 700;
+    }
+
+    .page-subtitle {
+        margin-top: 6px;
+        display: inline-block;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .action-button-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 10px;
+    }
+
+    .action-button-row .dx-button {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .action-button-row .dx-button-success {
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        border-color: transparent;
+        font-weight: 700;
+        min-width: 92px;
+    }
+
+    .form-card {
+        background: #fff;
+        border: 1px solid var(--line-soft);
+        border-radius: 14px;
+        padding: 12px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .form-intro {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+        border-bottom: 1px dashed #d1d5db;
+        padding-bottom: 8px;
+    }
+
+    .form-intro-title {
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 15px;
+    }
+
+    .form-intro-hint {
+        color: var(--text-muted);
+        font-size: 12px;
+    }
+
+    #form .dx-texteditor,
+    #form .dx-dropdowneditor {
+        border-radius: 10px;
+    }
+
+    #form .dx-texteditor.dx-state-focused,
+    #form .dx-dropdowneditor.dx-state-focused {
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+
+    #form .dx-field-item-label-text {
+        color: #1f2937;
+        font-weight: 600;
+    }
+
+    #form .dx-layout-manager .dx-field-item {
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    .action-button-row-bottom {
+        margin-top: 12px;
+        margin-bottom: 2px;
+    }
+
+    @@media (max-width: 768px) {
+        .page-title-card,
+        .form-card {
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .form-intro {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+
+        .action-button-row {
+            justify-content: stretch;
+        }
+
+        .action-button-row .dx-button {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 430px) {
+        .page-title-card h4 {
+            font-size: 18px;
+        }
+
+        .page-subtitle {
+            font-size: 12px;
+            line-height: 1.45;
+        }
+    }
+</style>
 
 <script>
     // ✅ 全域變數：信仰狀態 DataSource
