@@ -6,9 +6,177 @@
     ViewData["Title"] = "奉獻稽核";
 }
 
+<style>
+    .dedication-audit-page {
+        --theme-primary: #0f766e;
+        --theme-border: #d9e6f2;
+        --theme-surface: #ffffff;
+        --theme-text: #0f172a;
+        --theme-muted: #64748b;
+        --theme-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        color: var(--theme-text);
+        padding: 12px 10px 20px;
+    }
+
+    .dedication-audit-card {
+        background: var(--theme-surface);
+        border: 1px solid var(--theme-border);
+        border-radius: 16px;
+        box-shadow: var(--theme-shadow);
+        padding: 14px 16px;
+        margin-bottom: 12px;
+    }
+
+    .dedication-audit-header {
+        background: linear-gradient(145deg, #f0fdfa 0%, #f8fafc 58%, #ecfeff 100%);
+    }
+
+    .dedication-audit-title {
+        margin: 0;
+        color: var(--theme-primary);
+        font-size: 1.12rem;
+        font-weight: 700;
+        letter-spacing: .02em;
+    }
+
+    .dedication-audit-tip {
+        margin-top: 8px;
+        color: var(--theme-muted);
+        font-size: .9rem;
+    }
+
+    #form-container_Date .dx-field-item-label-text,
+    #samenamecontainer .dx-datagrid-text-content,
+    #data-grid .dx-datagrid-text-content {
+        font-weight: 600;
+    }
+
+    .dedication-audit-page .dx-texteditor.dx-state-focused,
+    .dedication-audit-page .dx-texteditor.dx-state-hover {
+        box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.14);
+        border-radius: 8px;
+    }
+
+    #buttonContainer3 {
+        display: flex;
+        justify-content: flex-end;
+        margin: 8px 0 14px;
+    }
+
+    #buttonContainer3 .dx-button {
+        min-width: 136px;
+        border-radius: 999px;
+        box-shadow: 0 8px 18px rgba(15, 118, 110, 0.3);
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    #buttonContainer3 .dx-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px rgba(15, 118, 110, 0.34);
+    }
+
+    #SameNameList .dx-datagrid-headers,
+    #DedicationFeeGrid .dx-datagrid-headers {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    #SameNameList .dx-datagrid-headers .dx-header-row td,
+    #DedicationFeeGrid .dx-datagrid-headers .dx-header-row td {
+        background: #e6f6f4;
+        color: #0f172a;
+        font-weight: 700;
+        padding-top: 11px;
+        padding-bottom: 11px;
+    }
+
+    #SameNameList .dx-datagrid-rowsview .dx-row > td,
+    #DedicationFeeGrid .dx-datagrid-rowsview .dx-row > td {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        vertical-align: middle;
+    }
+
+    #SameNameList .dx-datagrid-rowsview .dx-data-row:hover > td,
+    #DedicationFeeGrid .dx-datagrid-rowsview .dx-data-row:hover > td {
+        background-color: #e6f6f4;
+    }
+
+    #SameNameList .dx-selection > td,
+    #SameNameList .dx-row-focused > td,
+    #DedicationFeeGrid .dx-selection > td,
+    #DedicationFeeGrid .dx-row-focused > td {
+        background-color: #d1fae5 !important;
+    }
+
+    #DedicationFeeGrid .dx-datagrid-rowsview .dx-data-row.dx-row-alt {
+        background-color: #f8fafc;
+    }
+
+    .section-title {
+        margin: 0 0 10px;
+        color: var(--theme-primary);
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    #displayamountfield {
+        margin: 0;
+        color: #b91c1c;
+        font-size: 1.05rem;
+        text-align: right;
+    }
+
+    #ToastContainer .dx-toast-message {
+        border-radius: 10px;
+        font-size: .92rem;
+    }
+
+    @@media (max-width: 430px) {
+        .dedication-audit-page {
+            padding: 8px 4px 14px;
+        }
+
+        .dedication-audit-card {
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .dedication-audit-title {
+            font-size: 1rem;
+        }
+
+        #buttonContainer3 {
+            position: sticky;
+            bottom: 8px;
+            z-index: 6;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        #buttonContainer3,
+        #buttonContainer3 .dx-button {
+            width: 100%;
+            min-height: 44px;
+        }
+
+        #SameNameList .dx-datagrid-headers .dx-header-row td,
+        #DedicationFeeGrid .dx-datagrid-headers .dx-header-row td,
+        #SameNameList .dx-datagrid-rowsview .dx-row > td,
+        #DedicationFeeGrid .dx-datagrid-rowsview .dx-row > td {
+            font-size: .86rem;
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+    }
+</style>
+
+<div class="dedication-audit-page">
+
 <!-- 頁面標題區域 -->
-<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-    <h4 id="displaynamefield">奉獻稽核</h4>
+<div class="dedication-audit-card dedication-audit-header" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+    <h4 id="displaynamefield" class="dedication-audit-title">奉獻稽核</h4>
+    <div class="dedication-audit-tip">可用日期或個人資料查詢，快速檢視奉獻與總額。</div>
 </div>
 
 <!-- 主表單：處理奉獻稽核查詢 -->
@@ -58,7 +226,7 @@
     </div>
 
     <!-- 表單容器：包含查詢條件輸入欄位 -->
-    <div id="form-container_Date">
+    <div id="form-container_Date" class="dedication-audit-card">
         @(Html.DevExtreme().Form<QpayModel>()
         .ID("form")
         .ColCount(1)
@@ -180,7 +348,7 @@
     </div>
 
     <!-- 同名連絡人清單容器 -->
-    <div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+    <div id="samenamecontainer" class="dedication-audit-card" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
         <h5 id="samenamefield">查詢結果</h5>
 
         @(Html.DevExtreme().DataGrid<SameNameElement>()
@@ -231,7 +399,8 @@
     </div>
 
     <!-- 奉獻清單顯示容器 -->
-    <div id="data-grid">
+    <div id="data-grid" class="dedication-audit-card">
+        <div class="section-title">奉獻清單</div>
         @(Html.DevExtreme().DataGrid<DedicationFee>()
             .ID("DedicationFeeGrid")
             .ShowBorders(true)
@@ -317,7 +486,7 @@
     </div>
 
     <!-- 總金額顯示區域 -->
-    <div style="font-family:標楷體;font-size:100%; color:darkred; text-align:left;font-weight:bold">
+    <div class="dedication-audit-card" style="font-family:標楷體;font-size:100%; color:darkred; text-align:left;font-weight:bold">
         <h4 id="displayamountfield"></h4>
     </div>
 </form>
@@ -706,3 +875,5 @@
 
 <script src="~/js/devextreme/devextreme-intl.min.js"></script>
 <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
+
+</div>

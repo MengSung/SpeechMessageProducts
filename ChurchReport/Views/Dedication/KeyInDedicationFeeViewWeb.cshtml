@@ -2,8 +2,185 @@
 @model QpayModel
 @*<div class="long-title"><h3>奉獻資訊</h3></div>*@
 
-<div style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
-    <h5 id="displaynamefield">輸入人員:@(Model.FullName)</h5>
+<style>
+    .dedication-keyin-page {
+        --theme-primary: #0f766e;
+        --theme-border: #d9e6f2;
+        --theme-surface: #ffffff;
+        --theme-text: #0f172a;
+        --theme-muted: #64748b;
+        --theme-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        color: var(--theme-text);
+        padding: 12px 10px 20px;
+    }
+
+    .dedication-keyin-card {
+        background: var(--theme-surface);
+        border: 1px solid var(--theme-border);
+        border-radius: 16px;
+        box-shadow: var(--theme-shadow);
+        padding: 14px 16px;
+        margin-bottom: 12px;
+    }
+
+    .dedication-keyin-header {
+        background: linear-gradient(145deg, #f0fdfa 0%, #f8fafc 60%, #ecfeff 100%);
+    }
+
+    .dedication-keyin-header h5 {
+        margin: 0;
+        color: var(--theme-primary);
+        font-size: 1.08rem;
+        font-weight: 700;
+        letter-spacing: .02em;
+    }
+
+    .dedication-keyin-tip {
+        margin-top: 7px;
+        color: var(--theme-muted);
+        font-size: .9rem;
+    }
+
+    #form-container-query,
+    #form-container-upload,
+    #samenamecontainer {
+        border-radius: 14px;
+    }
+
+    #form-container-query .dx-field-item-label-text,
+    #form-container-upload .dx-field-item-label-text,
+    #samenamecontainer .dx-datagrid-text-content {
+        font-weight: 600;
+    }
+
+    #form-container-query .dx-texteditor,
+    #form-container-upload .dx-texteditor {
+        border-radius: 10px;
+    }
+
+    .dedication-keyin-page .dx-texteditor.dx-state-focused,
+    .dedication-keyin-page .dx-texteditor.dx-state-hover {
+        box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.14);
+    }
+
+    #buttonContainer2,
+    #buttonContainer3 {
+        margin: 8px 0 14px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    #buttonContainer2 .dx-button,
+    #buttonContainer3 .dx-button {
+        min-width: 136px;
+        border-radius: 999px;
+        box-shadow: 0 8px 18px rgba(15, 118, 110, 0.28);
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    #buttonContainer2 .dx-button:hover,
+    #buttonContainer3 .dx-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px rgba(15, 118, 110, 0.32);
+    }
+
+    #SameNameList .dx-datagrid-headers {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    #SameNameList .dx-datagrid-headers .dx-header-row td {
+        background: #e6f6f4;
+        color: #0f172a;
+        font-weight: 700;
+        padding-top: 11px;
+        padding-bottom: 11px;
+    }
+
+    #SameNameList .dx-datagrid-rowsview .dx-row > td {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        vertical-align: middle;
+    }
+
+    #SameNameList .dx-datagrid-rowsview .dx-data-row:hover > td,
+    #SameNameList .dx-selection > td,
+    #SameNameList .dx-row-focused > td {
+        background-color: #d1fae5 !important;
+    }
+
+    #ToastContainer .dx-toast-message {
+        border-radius: 10px;
+        font-size: .92rem;
+    }
+
+    #popup .dx-popup-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    #popup .dx-popup-title {
+        color: var(--theme-primary);
+        font-weight: 700;
+    }
+
+    #resultfield {
+        margin: 0;
+        color: #4338ca;
+        font-size: .96rem;
+        line-height: 1.55;
+    }
+
+    @@media (max-width: 430px) {
+        .dedication-keyin-page {
+            padding: 8px 4px 14px;
+        }
+
+        .dedication-keyin-card {
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .dedication-keyin-header h5 {
+            font-size: .98rem;
+        }
+
+        #buttonContainer2,
+        #buttonContainer3 {
+            position: sticky;
+            bottom: 8px;
+            z-index: 6;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        #buttonContainer2,
+        #buttonContainer3,
+        #buttonContainer2 .dx-button,
+        #buttonContainer3 .dx-button {
+            width: 100%;
+            min-height: 44px;
+        }
+
+        #SameNameList .dx-datagrid-headers .dx-header-row td,
+        #SameNameList .dx-datagrid-rowsview .dx-row > td {
+            font-size: .86rem;
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+
+        #popup {
+            max-width: 92vw;
+        }
+    }
+</style>
+
+<div class="dedication-keyin-page">
+<div class="dedication-keyin-card dedication-keyin-header">
+    <h5 id="displaynamefield">輸入人員：@(Model.FullName)</h5>
+    <div class="dedication-keyin-tip">先按「查詢」確認資料，再輸入奉獻內容按「上傳」。</div>
 </div>
 
 <div class="dx-field">
@@ -114,7 +291,7 @@
 </div>
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveKeyInDedication" asp-controller="Dedication" method="post">
-    <div id="form-container-query">
+    <div id="form-container-query" class="dedication-keyin-card">
         @(Html.DevExtreme().Form<QpayModel>()
      .ID("form1")
      .ColCount(1)
@@ -207,7 +384,7 @@
         .FormData(Model)
         )
     </div>
-    <div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
+    <div id="samenamecontainer" class="dedication-keyin-card" style="font-family:標楷體;font-size:100%; color:darkcyan; text-align:left;font-weight:bold">
         <h5 id="samenamefield">查詢結果</h5>
 
         @(Html.DevExtreme().DataGrid<SameNameElement>()
@@ -294,7 +471,7 @@
                     .OnClick("OnClickQuery")
             )
     </div>
-    <div id="form-container-upload">
+    <div id="form-container-upload" class="dedication-keyin-card">
         @(Html.DevExtreme().Form<QpayModel>()
         .ID("form2")
         .ColCount(1)
@@ -540,7 +717,7 @@
     </div>
 </form>
 
-<div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold">
+<div id="samenamecontainer" class="dedication-keyin-card" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold">
     <h5 id="resultfield"></h5>
 
 
@@ -802,3 +979,5 @@
     <link href="~/css/Gallery.css" rel="stylesheet" />
     <script src="~/js/devextreme/devextreme-intl.min.js"></script>
     <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
+
+</div>
