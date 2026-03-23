@@ -6,15 +6,93 @@
 @model PersonFormViewModel
 
 <style>
+    .newperson-page {
+        --brand-primary: #4f46e5;
+        --brand-secondary: #0f766e;
+        --text-main: #1f2937;
+        --text-muted: #6b7280;
+        --line-soft: #e5e7eb;
+        --card-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .newperson-title-card {
+        background: linear-gradient(120deg, #f8fbff 0%, #eef2ff 100%);
+        border: 1px solid #dbeafe;
+        border-radius: 14px;
+        padding: 12px 14px;
+        margin-bottom: 12px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .newperson-title-card h3 {
+        margin: 0;
+        color: var(--brand-secondary);
+        font-weight: 700;
+    }
+
+    .newperson-title-sub {
+        display: inline-block;
+        margin-top: 6px;
+        color: var(--text-muted);
+        font-size: 12px;
+    }
+
+    .newperson-form-card {
+        background: #fff;
+        border: 1px solid var(--line-soft);
+        border-radius: 14px;
+        box-shadow: var(--card-shadow);
+        padding: 12px;
+    }
+
+    .newperson-action-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 10px;
+    }
+
+    .newperson-action-row .dx-button {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .newperson-action-row .dx-button-success {
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        border-color: transparent;
+        font-weight: 700;
+    }
+
+    .newperson-form-intro {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px dashed #d1d5db;
+    }
+
+    .newperson-form-intro-title {
+        color: var(--text-main);
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    .newperson-form-intro-hint {
+        color: var(--text-muted);
+        font-size: 12px;
+    }
+
     /* 大頭照上傳區域樣式 */
     .profile-image-container {
         text-align: left;
-        margin: 0 0 10px 0;
+        margin: 0 0 12px 0;
         padding: 7px;
         width: 96px;
-        background: #f3f4f6;
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
         border-radius: 7px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+        box-shadow: var(--card-shadow);
     }
 
     .profile-image-wrapper {
@@ -67,9 +145,44 @@
     #imageFileInput {
         display: none;
     }
+
+    #form .dx-field-item-label-text {
+        color: #1f2937;
+        font-weight: 600;
+    }
+
+    #form .dx-layout-manager .dx-field-item {
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    #form .dx-texteditor.dx-state-focused,
+    #form .dx-dropdowneditor.dx-state-focused {
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.14);
+    }
+
+    @@media (max-width: 768px) {
+        .newperson-form-intro {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+
+        .newperson-action-row {
+            justify-content: stretch;
+        }
+
+        .newperson-action-row .dx-button {
+            width: 100%;
+        }
+    }
 </style>
 
-<div class="long-title"><h3>新人資訊</h3></div>
+<div class="newperson-page">
+    <div class="long-title newperson-title-card">
+        <h3>新人資訊</h3>
+        <span class="newperson-title-sub">請填寫基本資料，確認後上傳；大頭照可於左上角立即預覽。</span>
+    </div>
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveNewPerson" asp-controller="NewPerson" method="post" enctype="multipart/form-data">
     <!-- ========================================
@@ -96,7 +209,7 @@
     </div>
     <div class="dx-field">
 
-        <div id="buttonContainer" class="dx-button-icon">
+        <div id="buttonContainer" class="dx-button-icon newperson-action-row">
             @(Html.DevExtreme().Button()
                     .Text("上傳").Height(50).Width(80).Icon("check")
                     .Type(ButtonType.Success)
@@ -170,7 +283,11 @@
         </div>
 
     </div>
-    <div id="form-container">
+    <div id="form-container" class="newperson-form-card">
+        <div class="newperson-form-intro">
+            <span class="newperson-form-intro-title">新人基本資料</span>
+            <span class="newperson-form-intro-hint">必填欄位請優先填寫，避免上傳失敗</span>
+        </div>
         @(Html.DevExtreme().Form<PersonFormViewModel>()
         .ID("form")
         .ColCount(3)
@@ -393,6 +510,8 @@
         )
     </div>
 </form>
+
+</div>
 
 
 <div id="ToastContainer">
