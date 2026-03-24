@@ -38,7 +38,8 @@ namespace ChurchReport
         {
             "藍色",
             "橘色",
-            "綠色"
+            "綠色",
+            "粉紅色"
         };
 
         /// <summary>
@@ -59,7 +60,7 @@ namespace ChurchReport
         public IConfiguration Configuration { get; }
 
         /// <summary>
-        /// 目前啟用的主題名稱（藍色、橘色、綠色）。
+        /// 目前啟用的主題名稱（藍色、橘色、綠色、粉紅色）。
         /// </summary>
         public string CurrentTheme { get; }
 
@@ -84,6 +85,8 @@ namespace ChurchReport
                     return "theme-orange";
                 case "綠色":
                     return "theme-green";
+                case "粉紅色":
+                    return "theme-pink";
                 case "藍色":
                 default:
                     return "theme-blue";

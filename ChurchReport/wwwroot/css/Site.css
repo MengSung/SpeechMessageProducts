@@ -50,6 +50,17 @@ body.theme-green {
   --color-row-selected: #d6f0e2;
 }
 
+body.theme-pink {
+  --color-primary: #d84b8a;
+  --color-secondary: #f07fb2;
+  --color-background: #fff5fa;
+  --color-border: #f7cfe1;
+  --color-text: #5a1f3f;
+  --color-surface: #ffffff;
+  --color-row-hover: #ffeaf3;
+  --color-row-selected: #ffd9e9;
+}
+
 body,
 .main-content {
   background-color: var(--color-background);

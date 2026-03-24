@@ -19,7 +19,8 @@ namespace ChurchReport.Filters
         {
             "藍色",
             "橘色",
-            "綠色"
+            "綠色",
+            "粉紅色"
         };
 
         public ThemeViewDataFilter(ThemeSettings themeSettings, IConfiguration configuration)
@@ -57,6 +58,8 @@ namespace ChurchReport.Filters
                     return "theme-orange";
                 case "綠色":
                     return "theme-green";
+                case "粉紅色":
+                    return "theme-pink";
                 case "藍色":
                 default:
                     return "theme-blue";
