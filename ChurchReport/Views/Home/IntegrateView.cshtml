@@ -95,7 +95,7 @@
                         @if (Model.LoginType == "小組長")
                         {
                             @(Html.DevExtreme().Button()
-                                .Text("上傳").Height(40).Width(68).Icon("check")
+                                .Text("上傳").Height(40).Width(78).Icon("check")
                                 .Type(ButtonType.Success)
                                 .ID("save-button")
                                 .UseSubmitBehavior(false)
@@ -175,7 +175,7 @@
                         else
                         {
                             @(Html.DevExtreme().Button()
-                                .Text("上傳").Height(40).Width(68).Icon("check")
+                                .Text("上傳").Height(40).Width(78).Icon("check")
                                 .Type(ButtonType.Success)
                                 .ID("save-button")
                                 .UseSubmitBehavior(false)
@@ -537,7 +537,7 @@ flex: 1 1 auto;
     }
     .upload-button-container #save-button .dx-button-content {
         padding: 0 8px;
-        font-size: 15px;
+        font-size: 13px;
         gap: 4px;
     }
 
@@ -633,7 +633,7 @@ flex: 1 1 auto;
 
     /* 上傳按鈕調整 */
       .upload-button-container .dx-button { 
- min-width: 68px; 
+ min-width: 78px; 
         height: 40px; 
     }
    
