@@ -195,23 +195,23 @@
 
 <style>
     .maintain-person-page {
-        --brand-primary: #4f46e5;
-        --brand-secondary: #0f766e;
-        --text-main: #1f2937;
-        --text-subtle: #6b7280;
-        --line-soft: #e5e7eb;
+        --brand-primary: var(--color-primary);
+        --brand-secondary: var(--color-secondary);
+        --text-main: var(--color-text);
+        --text-subtle: var(--color-text);
+        --line-soft: var(--color-border);
         --card-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
         height: 100%;
         width: 100%;
         overflow: auto;
-        background: linear-gradient(180deg, #f8fbff 0%, #f3f7ff 100%);
+        background: var(--color-background);
         border-radius: 14px;
         padding: 10px;
     }
 
     .page-title-card {
-        background: #fff;
-        border: 1px solid #dbeafe;
+        background: var(--color-surface);
+        border: 1px solid var(--line-soft);
         border-radius: 14px;
         box-shadow: var(--card-shadow);
         padding: 12px 14px;
@@ -243,13 +243,13 @@
     }
 
     .action-toolbar .dx-button-success {
-        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
         border-color: transparent;
         font-weight: 700;
     }
 
     .grid-card {
-        background: #fff;
+        background: var(--color-surface);
         border: 1px solid var(--line-soft);
         border-radius: 14px;
         box-shadow: var(--card-shadow);
@@ -274,18 +274,18 @@
     .grid-hint {
         font-size: 12px;
         color: var(--text-subtle);
-        background: #eef2ff;
-        border: 1px solid #dbeafe;
+        background: var(--color-row-hover);
+        border: 1px solid var(--line-soft);
         border-radius: 999px;
         padding: 4px 10px;
         white-space: nowrap;
     }
 
     #gridContainer .dx-datagrid .dx-header-row > td {
-        background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%) !important;
-        color: #1f3b8f;
+        background: linear-gradient(180deg, var(--color-row-hover) 0%, var(--color-background) 100%) !important;
+        color: var(--color-text) !important;
         font-weight: 700;
-        border-bottom: 1px solid #dbeafe !important;
+        border-bottom: 1px solid var(--line-soft) !important;
     }
 
     #gridContainer .dx-datagrid-rowsview .dx-row > td {
@@ -295,7 +295,7 @@
     }
 
     #gridContainer .dx-row.dx-data-row:hover > td {
-        background-color: #f8fbff !important;
+        background-color: var(--color-row-hover) !important;
     }
 
     @@media (max-width: 768px) {
@@ -559,7 +559,7 @@
             onCellPrepared: function(e) {
                 if (e.rowType === "data" && e.data && e.data.ContactId) {
                     if (modifiedRecords.has(e.data.ContactId)) {
-                        e.cellElement.css("background-color", "#fff8dc");
+                        e.cellElement.css("background-color", "var(--color-row-selected)");
                     }
                 }
             },
