@@ -27,7 +27,7 @@
   - 優先使用 `record` 定義 DTO 與 Command/Query。
   - 善用 `file-scoped namespaces`。
   - 使用 `Primary Constructors` 進行依賴注入。
-  - 嚴格遵守 Nullable Reference Types，不允許忽略 `null` 警告。
+  - 嚴格遵守 Nullable Reference Types，不歡迎忽略 `null` 警告。
 
 ## 4. 架構約束 (Architectural Constraints)
 - **職責分離:** 業務邏輯嚴禁寫在 Endpoint 或 Persistence 層，必須封裝在 `Application/Services` 或 `Domain` 中。
@@ -45,6 +45,10 @@
 - 禁止使用 `Newtonsoft.Json` (請使用 `System.Text.Json`)。
 - 禁止在 Repository 層回傳 `IQueryable` (避免洩漏查詢邏輯)。
 - 禁止直接在代碼中寫死 (Hardcode) 連線字串或金鑰。
+
+## 7. UI 操作規範 (UI Operations)
+- 頁面中的操作按鈕（例如上傳按鈕）需跟隨 `Theme:Current` 主題色系，若 DevExtreme 預設樣式衝突需用更高優先度覆蓋。
+- 使用者反饋 Theme 色系問題時，需優先採用程式初始化強制移除 DevExtreme 的 success class（不只靠 CSS）以確保按鈕配色正確。
 
 # Copilot Global Instructions
 
