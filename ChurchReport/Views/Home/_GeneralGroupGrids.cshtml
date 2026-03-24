@@ -954,15 +954,15 @@
 
 <style>
     .general-group-grids {
-        --page-bg: #f5f8ff;
-        --card-bg: #ffffff;
-        --brand-primary: #4f46e5;
-        --brand-secondary: #0f766e;
-        --text-main: #1f2937;
-        --text-subtle: #6b7280;
-        --border-color: #e5e7eb;
+        --page-bg: var(--color-background);
+        --card-bg: var(--color-surface);
+        --brand-primary: var(--color-primary);
+        --brand-secondary: var(--color-secondary);
+        --text-main: var(--color-text);
+        --text-subtle: var(--color-text);
+        --border-color: var(--color-border);
         --shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.08);
-        background: linear-gradient(180deg, #f8faff 0%, #f3f7ff 100%);
+        background: linear-gradient(180deg, var(--page-bg) 0%, var(--color-row-hover) 100%);
         border-radius: 16px;
         padding: 14px;
     }
@@ -995,7 +995,16 @@
     }
 
     .section-title-badge--pause {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+    }
+
+    .pause-option .dx-checkbox-icon {
+        border-color: var(--border-color);
+    }
+
+    .pause-option .dx-checkbox-checked .dx-checkbox-icon {
+        background-color: var(--brand-primary);
+        border-color: var(--brand-primary);
     }
 
     .grid-section-card {
@@ -1017,7 +1026,7 @@
 
     .section-title-row h5 {
         margin: 0;
-        color: var(--brand-secondary);
+        color: var(--brand-primary);
         font-size: 18px;
         font-weight: 700;
         letter-spacing: 0.2px;
@@ -1026,11 +1035,12 @@
     .section-hint {
         font-size: 12px;
         color: var(--text-subtle);
-        background: #eef2ff;
-        border: 1px solid #dbe1ff;
+        background: var(--color-row-hover);
+        border: 1px solid var(--border-color);
         padding: 4px 10px;
         border-radius: 999px;
         white-space: nowrap;
+        opacity: 0.85;
     }
 
     .grid-shell {
@@ -1064,10 +1074,10 @@
 
     #SmallGroupgridContainer .dx-datagrid .dx-header-row > td,
     #NewPersonGridContainer .dx-datagrid .dx-header-row > td {
-        background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%) !important;
-        color: #1f3b8f;
+        background: linear-gradient(180deg, var(--brand-primary) 0%, var(--brand-secondary) 100%) !important;
+        color: #ffffff !important;
         font-weight: 700;
-        border-bottom: 1px solid #dbe5ff !important;
+        border-bottom: 1px solid var(--border-color) !important;
     }
 
     #SmallGroupgridContainer .dx-datagrid-headers .dx-header-row > td,
@@ -1077,12 +1087,12 @@
 
     #SmallGroupgridContainer .dx-row.dx-data-row:hover > td,
     #NewPersonGridContainer .dx-row.dx-data-row:hover > td {
-        background-color: #f8fbff !important;
+        background-color: var(--color-row-hover) !important;
     }
 
     #SmallGroupgridContainer .dx-selection > td,
     #NewPersonGridContainer .dx-selection > td {
-        background-color: #eef4ff !important;
+        background-color: var(--color-row-selected) !important;
     }
 
     #SmallGroupgridContainer .contact-avatar-img,
@@ -1095,8 +1105,8 @@
     #SmallGroupgridContainer .contact-avatar-img:hover,
     #NewPersonGridContainer .contact-avatar-img:hover {
         transform: translateY(-1px) scale(1.04);
-        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.18) !important;
-        border-color: #c7d2fe !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18) !important;
+        border-color: var(--brand-primary) !important;
     }
 
     /* ==============================================================
@@ -1129,25 +1139,25 @@
     }
 
     .member-detail-popup-wrapper .dx-popup-title {
-        background: linear-gradient(90deg, #eef2ff 0%, #f8fafc 100%);
-        border-bottom: 1px solid #dbe5ff;
+        background: linear-gradient(90deg, var(--color-row-hover) 0%, var(--color-surface) 100%);
+        border-bottom: 1px solid var(--border-color);
     }
 
     .member-detail-popup-wrapper .dx-popup-title .dx-toolbar-label {
-        color: #1f3b8f;
+        color: var(--text-main);
         font-weight: 700;
     }
 
     .member-detail-popup-wrapper .dx-popup-bottom {
         position: sticky;
         bottom: 0;
-        background: #fff;
-        border-top: 1px solid #e5e7eb;
+        background: var(--card-bg);
+        border-top: 1px solid var(--border-color);
         padding-top: 8px;
     }
 
     .member-detail-popup-wrapper .dx-popup-bottom .dx-button-success {
-        background: linear-gradient(135deg, #0f766e 0%, #0ea5a5 100%);
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
         border-color: transparent;
         font-weight: 700;
         border-radius: 10px;
@@ -1161,7 +1171,7 @@
 
     .member-detail-popup-wrapper .dx-popup-content .dx-texteditor.dx-state-focused,
     .member-detail-popup-wrapper .dx-popup-content .dx-selectbox.dx-state-focused {
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
     }
 
     @@keyframes popup-shimmer {
@@ -1179,19 +1189,19 @@
     .member-popup-name {
         font-size: 20px;
         font-weight: bold;
-        color: #333;
+        color: var(--text-main);
         margin-bottom: 2px;
     }
 
     .member-popup-tag {
         font-size: 14px;
-        color: #555;
+        color: var(--text-main);
     }
 
     .member-popup-tag .popup-label {
         display: inline-block;
-        background: #e8f4fd;
-        color: #0077b6;
+        background: var(--color-row-hover);
+        color: var(--brand-primary);
         padding: 1px 8px;
         border-radius: 10px;
         font-size: 12px;
@@ -1199,7 +1209,7 @@
     }
 
     .member-popup-section {
-        border-top: 1px solid #eee;
+        border-top: 1px solid var(--border-color);
         padding-top: 12px;
         margin-top: 12px;
     }
@@ -1207,7 +1217,7 @@
     .member-popup-section-title {
         font-size: 15px;
         font-weight: bold;
-        color: darkcyan;
+        color: var(--brand-primary);
         margin-bottom: 8px;
     }
 
