@@ -9,6 +9,8 @@
     Layout = null;
 }
 @model ChurchReport.ViewModel.GalleryViewModel
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 @{
     var heroImages = (Model?.Images != null && Model.Images.Any())
         ? Model.Images
@@ -17,6 +19,20 @@
             Url.Content("~/assets/images/church-001.jpg"),
             Url.Content("~/assets/images/church-002.jpg"),
         };
+
+    var themeName = Configuration["Theme:Current"]?.Trim();
+    var themeCssClass = themeName switch
+    {
+        "橘色" => "theme-orange",
+        "綠色" => "theme-green",
+        _ => "theme-blue"
+    };
+
+    var themePrimary = Configuration[$"Theme:Presets:{themeName}:Primary"] ?? "#2f6fd6";
+    var themeSecondary = Configuration[$"Theme:Presets:{themeName}:Secondary"] ?? "#4f8df1";
+    var themeBackground = Configuration[$"Theme:Presets:{themeName}:Background"] ?? "#f4f8ff";
+    var themeBorder = Configuration[$"Theme:Presets:{themeName}:Border"] ?? "#c9daf8";
+    var themeText = Configuration[$"Theme:Presets:{themeName}:Text"] ?? "#1d2a44";
 }
 <!DOCTYPE html>
 <html lang="zh-Hant">
@@ -67,10 +83,20 @@
         /* 內容區 */
         .main-section { margin-top: 0; padding-top: 32px; }
         .card-soft { border: none; border-radius: 18px; background:#fff; box-shadow: 0 8px 22px rgba(0,0,0,.09); overflow: hidden; }
-        .card-soft-header { background: linear-gradient(135deg,#6b8ce3,#4864b8); color:#fff; padding:.85rem 1rem; font-weight:600; display:flex; align-items:center; gap:.5rem; letter-spacing:1px; }
+        .card-soft-header { background: linear-gradient(135deg, var(--color-secondary, #4f8df1), var(--color-primary, #2f6fd6)) !important; color:#fff; padding:.85rem 1rem; font-weight:600; display:flex; align-items:center; gap:.5rem; letter-spacing:1px; }
         .card-soft-body { padding:1rem 1rem 1.25rem; }
         .actions { display:flex; justify-content:center; gap:.75rem; margin-top:.5rem; }
         .actions .btn { border-radius:30px; padding:.6rem 1.2rem; font-weight:600; letter-spacing:1px; box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+        .actions .dx-button.dx-button-mode-contained.dx-button-default {
+            background-color: var(--color-primary, #2f6fd6) !important;
+            border-color: var(--color-primary, #2f6fd6) !important;
+            color: #fff;
+        }
+        .actions .dx-button.dx-button-mode-contained.dx-button-default:hover,
+        .actions .dx-button.dx-button-mode-contained.dx-button-default.dx-state-hover {
+            background-color: var(--color-secondary, #4f8df1) !important;
+            border-color: var(--color-secondary, #4f8df1) !important;
+        }
         .login-card { max-width:560px; margin:0 auto; }
         .login-card .dx-form .dx-texteditor { width:100%; }
         .login-card .dx-form .dx-field-item-label { text-align:left; width:auto; }
@@ -106,7 +132,7 @@
     <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
 </head>
 
-<body class="bg-light">
+<body class="@themeCssClass bg-light" style="--color-primary:@themePrimary; --color-secondary:@themeSecondary; --color-background:@themeBackground; --color-border:@themeBorder; --color-text:@themeText;">
     <!-- Hero：背景 Gallery 疊加經文 -->
     <section class="hero-wrapper hero-gallery-shift" aria-label="歡迎區">
         <div class="position-absolute w-100 h-100" style="z-index:1;">
