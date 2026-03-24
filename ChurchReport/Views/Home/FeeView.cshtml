@@ -20,12 +20,13 @@
 </head>
 
 <br />
-<div class="dx-field">
+<div class="dx-field fee-upload-toolbar">
     <div id="buttonContainer" class="dx-button-icon" style="float: left; width:30%; text-align: left; background-color:white;">
         @(Html.DevExtreme().Button()
             .Text("上傳").Height(50).Width(80).Icon("check")
-            .Type(ButtonType.Success)
+            .Type(ButtonType.Normal)
             .ID("save-button")
+            .OnInitialized("onThemeSaveButtonInitialized")
             .OnClick
             (@<text>
                 function(arg)
@@ -417,6 +418,44 @@
 //.DataSource(Model.FeeDataList)
     )
 </div>
+
+<style>
+    .fee-upload-toolbar #save-button,
+    .fee-upload-toolbar #save-button.dx-button,
+    .fee-upload-toolbar #save-button.dx-button-success,
+    .fee-upload-toolbar #save-button.dx-button-mode-contained,
+    .fee-upload-toolbar #save-button.dx-button-mode-contained.dx-button-success,
+    .fee-upload-toolbar #save-button.fee-theme-save-button {
+        background-color: var(--color-primary) !important;
+        background-image: none !important;
+        border-color: var(--color-primary) !important;
+        color: #fff !important;
+        font-weight: 700;
+    }
+
+    .fee-upload-toolbar #save-button .dx-icon,
+    .fee-upload-toolbar #save-button .dx-button-text,
+    .fee-upload-toolbar #save-button .dx-button-content {
+        color: #fff !important;
+    }
+
+    .fee-upload-toolbar #save-button.dx-state-hover,
+    .fee-upload-toolbar #save-button.dx-state-focused,
+    .fee-upload-toolbar #save-button.dx-state-active,
+    .fee-upload-toolbar #save-button.dx-button.dx-state-hover,
+    .fee-upload-toolbar #save-button.dx-button.dx-state-focused,
+    .fee-upload-toolbar #save-button.dx-button.dx-state-active,
+    .fee-upload-toolbar #save-button.dx-button-success.dx-state-hover,
+    .fee-upload-toolbar #save-button.dx-button-success.dx-state-focused,
+    .fee-upload-toolbar #save-button.dx-button-success.dx-state-active,
+    .fee-upload-toolbar #save-button.fee-theme-save-button.dx-state-hover,
+    .fee-upload-toolbar #save-button.fee-theme-save-button.dx-state-focused,
+    .fee-upload-toolbar #save-button.fee-theme-save-button.dx-state-active {
+        background-color: var(--color-secondary) !important;
+        border-color: var(--color-secondary) !important;
+    }
+</style>
+
 <script>var DataUploadStatus = "尚未上傳喔!";</script>
 <script src="~/js/FeeDataGridAjax.js"></script>
 <script src="~/js/SelectDate.js"></script>
@@ -425,6 +464,19 @@
 <script>
     // ? 追蹤待上傳的修改數量
     var pendingChangesMap = {}; // Key: StorLessonsId, Value: 修改的欄位集合
+
+    // ✅ 初始化上傳按鈕：強制移除 DevExtreme 預設 success 綠色，套用 Theme 主題色
+    function onThemeSaveButtonInitialized(e) {
+        e.component.option("type", "normal");
+        var $el = $(e.element);
+        $el.removeClass("dx-button-success dx-button-default");
+        $el.addClass("fee-theme-save-button");
+        $el.css({
+            "background-color": "",
+            "background-image": "",
+            "background": ""
+        });
+    }
 
     // ? 更新待上傳修改數量的顯示
     function updatePendingChangesIndicator() {

@@ -47,7 +47,7 @@
 - 禁止直接在代碼中寫死 (Hardcode) 連線字串或金鑰。
 
 ## 7. UI 操作規範 (UI Operations)
-- 頁面中的操作按鈕（例如上傳按鈕）需跟隨 `Theme:Current` 主題色系，若 DevExtreme 預設樣式衝突需用更高優先度覆蓋。
+- 頁面中的操作按鈕（例如上傳按鈕）需跟隨 `Theme:Current` 主題色系，對 DevExtreme Button 必須在初始化時強制移除 `dx-button-success` 並套用主題色變數，不能讓預設成功綠色覆蓋。
 - 使用者反饋 Theme 色系問題時，需優先採用程式初始化強制移除 DevExtreme 的 success class（不只靠 CSS）以確保按鈕配色正確。
 
 # Copilot Global Instructions

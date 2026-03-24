@@ -536,8 +536,11 @@
     .fee-manager-toolbar-card #save-button,
     .fee-manager-toolbar-card #save-button.dx-button,
     .fee-manager-toolbar-card #save-button.dx-button-success,
+    .fee-manager-toolbar-card #save-button.dx-button-mode-contained,
+    .fee-manager-toolbar-card #save-button.dx-button-mode-contained.dx-button-success,
     .fee-manager-toolbar-card #save-button.fee-theme-save-button {
-        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+        background-color: transparent !important;
+        background-image: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%) !important;
         border-color: var(--brand-primary) !important;
         color: #fff !important;
         font-weight: 700;
@@ -557,10 +560,14 @@
     .fee-manager-toolbar-card #save-button.dx-button-success.dx-state-hover,
     .fee-manager-toolbar-card #save-button.dx-button-success.dx-state-focused,
     .fee-manager-toolbar-card #save-button.dx-button-success.dx-state-active,
+    .fee-manager-toolbar-card #save-button.dx-button-mode-contained.dx-state-hover,
+    .fee-manager-toolbar-card #save-button.dx-button-mode-contained.dx-state-focused,
+    .fee-manager-toolbar-card #save-button.dx-button-mode-contained.dx-state-active,
     .fee-manager-toolbar-card #save-button.fee-theme-save-button.dx-state-hover,
     .fee-manager-toolbar-card #save-button.fee-theme-save-button.dx-state-focused,
     .fee-manager-toolbar-card #save-button.fee-theme-save-button.dx-state-active {
-        background: linear-gradient(135deg, var(--brand-secondary) 0%, var(--brand-primary) 100%);
+        background-color: transparent !important;
+        background-image: linear-gradient(135deg, var(--brand-secondary) 0%, var(--brand-primary) 100%) !important;
         border-color: var(--brand-secondary) !important;
     }
 
@@ -627,11 +634,19 @@
 <script src="~/js/DropDownBox.js"></script>
 <script src="~/js/LoadPanel.js"></script>
 <script>
+    // ✅ 初始化上傳按鈕：強制移除 DevExtreme 預設 success 綠色，套用 Theme 主題色
     function onSaveButtonInitialized(e) {
         e.component.option("type", "normal");
-        $(e.element)
-            .removeClass("dx-button-success")
-            .addClass("fee-theme-save-button");
+        var $el = $(e.element);
+        // 強制移除 DevExtreme success class（避免預設綠色覆蓋主題色）
+        $el.removeClass("dx-button-success dx-button-default");
+        $el.addClass("fee-theme-save-button");
+        // 清除 DevExtreme 可能設定的 inline background 樣式
+        $el.css({
+            "background-color": "",
+            "background-image": "",
+            "background": ""
+        });
     }
 
     function moveEditColumnToLeft(dataGrid) {
