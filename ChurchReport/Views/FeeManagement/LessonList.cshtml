@@ -126,17 +126,17 @@
 
 <style>
     .lesson-page {
-        --brand-primary: #4f46e5;
-        --brand-secondary: #0f766e;
-        --text-main: #1f2937;
-        --text-subtle: #6b7280;
-        --line-soft: #e5e7eb;
+        --brand-primary: var(--color-primary);
+        --brand-secondary: var(--color-secondary);
+        --text-main: var(--color-text);
+        --text-subtle: var(--color-text);
+        --line-soft: var(--color-border);
         --card-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
     }
 
     .lesson-title-card {
-        background: linear-gradient(120deg, #f8fbff 0%, #eef2ff 100%);
-        border: 1px solid #dbeafe;
+        background: linear-gradient(120deg, var(--color-background) 0%, var(--color-row-hover) 100%);
+        border: 1px solid var(--line-soft);
         border-radius: 14px;
         padding: 12px 14px;
         margin-bottom: 12px;
@@ -157,7 +157,7 @@
     }
 
     .lesson-grid-card {
-        background: #fff;
+        background: var(--color-surface);
         border: 1px solid var(--line-soft);
         border-radius: 14px;
         box-shadow: var(--card-shadow);
@@ -165,10 +165,10 @@
     }
 
     #SmallGroupgridContainer .dx-datagrid .dx-header-row > td {
-        background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%) !important;
-        color: #1f3b8f;
+        background: linear-gradient(180deg, var(--color-row-hover) 0%, var(--color-background) 100%) !important;
+        color: var(--color-text) !important;
         font-weight: 700;
-        border-bottom: 1px solid #dbeafe !important;
+        border-bottom: 1px solid var(--line-soft) !important;
     }
 
     #SmallGroupgridContainer .dx-datagrid-rowsview .dx-row > td {
@@ -179,11 +179,11 @@
     }
 
     #SmallGroupgridContainer .dx-row.dx-data-row:hover > td {
-        background-color: #f8fbff !important;
+        background-color: var(--color-row-hover) !important;
     }
 
     #SmallGroupgridContainer .dx-link:hover {
-        background: #eef2ff;
+        background: var(--color-row-hover);
         border-radius: 6px;
     }
 
@@ -285,7 +285,7 @@
         if (e.rowType == 'data') {
             //e.rowElement.css('background', '#fff2a8');
             e.rowElement[0].addEventListener("mouseover", function () {
-              e.rowElement.css('background', '#f8fbff');
+              e.rowElement.css('background', 'var(--color-row-hover)');
               e.rowElement.css("transition", "background-color 0.2s");
             });
             e.rowElement[0].addEventListener("mouseleave", function () {
