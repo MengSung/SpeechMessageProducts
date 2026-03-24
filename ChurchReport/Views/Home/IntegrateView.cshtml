@@ -95,7 +95,7 @@
                         @if (Model.LoginType == "小組長")
                         {
                             @(Html.DevExtreme().Button()
-                                .Text("上傳").Height(50).Width(80).Icon("check")
+                                .Text("上傳").Height(40).Width(68).Icon("check")
                                 .Type(ButtonType.Success)
                                 .ID("save-button")
                                 .UseSubmitBehavior(false)
@@ -175,7 +175,7 @@
                         else
                         {
                             @(Html.DevExtreme().Button()
-                                .Text("上傳").Height(50).Width(80).Icon("check")
+                                .Text("上傳").Height(40).Width(68).Icon("check")
                                 .Type(ButtonType.Success)
                                 .ID("save-button")
                                 .UseSubmitBehavior(false)
@@ -523,6 +523,23 @@ flex: 1 1 auto;
     /* 上傳按鈕區域 */
     .upload-section { flex: 0 0 auto; }
     .upload-button-container { text-align: center; }
+    .upload-button-container #save-button.dx-button.dx-button-success {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+        border-color: var(--color-primary);
+        color: #fff;
+        border-radius: 6px;
+    }
+    .upload-button-container #save-button.dx-button.dx-button-success:hover,
+    .upload-button-container #save-button.dx-button.dx-button-success.dx-state-hover,
+    .upload-button-container #save-button.dx-button.dx-button-success:focus {
+        background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
+        border-color: var(--color-secondary);
+    }
+    .upload-button-container #save-button .dx-button-content {
+        padding: 0 8px;
+        font-size: 15px;
+        gap: 4px;
+    }
 
     /* ===== 其他區域 ===== */
     /* 幸福小組選擇 */
@@ -616,8 +633,8 @@ flex: 1 1 auto;
 
     /* 上傳按鈕調整 */
       .upload-button-container .dx-button { 
- min-width: 72px; 
-        height: 44px; 
+ min-width: 68px; 
+        height: 40px; 
     }
    
         /* 週期時間顯示調整 */
