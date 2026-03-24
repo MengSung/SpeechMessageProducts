@@ -32,13 +32,12 @@
                         .Label(l => l.Visible(true).Format(f => f.Type(Format.FixedPoint).Precision(0)).Font(v => v.Size(10)))
                     )
                     .Series(s => {
-                        s.Add().ValueField("SundayNumber").Name("主日人數").Color("#e7d19a");
-                        s.Add().ValueField("SmallNumber").Name("小組人數");
+                        s.Add().ValueField("SundayNumber").Name("主日人數").Color("var(--color-secondary)");
+                        s.Add().ValueField("SmallNumber").Name("小組人數").Color("var(--color-primary)");
                     })
                     .ValueAxis(a => a.Add().Title(t => t.Text("人數")).Position(Position.Left))
-                    .Palette(VizPalette.Violet)
                     .Tooltip(t => t.Enabled(true))
-                    .Title(t => t.Text("聚會人數").Font(f => f.Size(12).Weight(300).Color("darkblue")).Margin(m => m.Top(5).Bottom(5)))
+                    .Title(t => t.Text("聚會人數").Font(f => f.Size(12).Weight(300).Color("var(--color-text)")).Margin(m => m.Top(5).Bottom(5)))
                     .Legend(l => l.VerticalAlignment(VerticalEdge.Bottom).HorizontalAlignment(HorizontalAlignment.Center))
                     .OnPointClick(@<text>function(e) { e.target.select(); }</text>)
                     .DataSource(d => d.WebApi().Controller("SmallGroup").LoadAction("GetChartDataList").Key("WeeklyReportEntityId").LoadParams(new { WeeklyReportId = @ViewBag.ListId }))
@@ -444,13 +443,13 @@
    border-radius: 5px; 
         text-align: center; 
     }
-    .status-title.active { 
-     color: cadetblue; 
+    .status-title.active {
+        color: var(--color-primary);
      font-weight: bold; 
     }
     .status-title.inactive { 
-        color: cadetblue; 
-        background-color: powderblue; 
+        color: var(--color-primary);
+        background-color: var(--color-row-hover);
         font-weight: bold; 
     }
 
@@ -465,11 +464,11 @@
     .chart-section { margin-bottom: 20px; }
 
     /* 週期時間顯示 - 響應式設計 */
-    .period-display { 
+    .period-display {
         font-size: 100%; 
         color: #fff; 
         text-align: left; 
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); 
+        background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
         font-weight: bold; 
         padding: 10px; 
     margin: 10px 0; 
@@ -482,10 +481,11 @@
 
     /* ===== 控制面板 ===== */
     /* 控制面板容器 */
-    .control-panel { 
+    .control-panel {
         margin: 20px 0; 
     padding: 15px; 
-        background: #f9f9f9; 
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
         border-radius: 5px; 
     }
     .control-wrapper { 
@@ -502,10 +502,10 @@
         gap: 8px; 
     flex: 1 1 auto; 
     }
-    .date-label { 
+    .date-label {
      font-size: 100%; 
         color: #fff; 
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
         font-weight: bold; 
    white-space: nowrap; 
   min-width: 80px; 
@@ -526,10 +526,11 @@ flex: 1 1 auto;
 
     /* ===== 其他區域 ===== */
     /* 幸福小組選擇 */
-    .happy-group-selection { 
+    .happy-group-selection {
         margin: 20px 0; 
     padding: 15px; 
-        background: #f0f8ff; 
+        background: var(--color-row-hover);
+        border: 1px solid var(--color-border);
         border-radius: 5px; 
     }
     .selection-wrapper { 
@@ -543,8 +544,8 @@ flex: 1 1 auto;
     }
 
     /* 區塊標題 */
-    .section-title { 
-    color: darkcyan; 
+    .section-title {
+    color: var(--color-primary);
    font-weight: bold; 
  margin-bottom: 10px; 
     }
@@ -553,10 +554,11 @@ flex: 1 1 auto;
     .data-grid-section { margin-top: 20px; }
 
     /* 日誌區域 */
-    .journal-section { 
+    .journal-section {
         margin-top: 30px; 
         padding: 15px; 
-     background: #f8f8f8; 
+     background: var(--color-surface);
+        border: 1px solid var(--color-border);
         border-radius: 5px; 
     }
 
