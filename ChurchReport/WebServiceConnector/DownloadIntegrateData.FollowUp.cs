@@ -1,7 +1,9 @@
 using System;
+using System.Text;
 using ChurchReport.Models;
 using ChurchReport.Models.CrmTransmitModule;
 using ChurchReport.WebServiceConnector.Converters;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Xrm.Sdk;
 
 namespace ChurchReport.WebServiceConnector
@@ -120,28 +122,36 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                string aFollowUpHistoryReport = BuildHistoryHeader(aContact);
+                // ? 極速：快取跟進歷程 2 分鐘，同一小組多個 Tab 切換不重複查 CRM
+                // Session 安全：快取鍵含唯一 contactId，不同人的資料永遠不同 key
+                string presentCacheKey = $"FollowUpHistory_{aContact.Id:N}";
+                if (!_optionSetCache.TryGetValue(presentCacheKey, out EntityCollection PresentRecordCollection))
+                {
+                    PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(
+                        10,
+                        this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"),
+                        aContact.Id.ToString());
+                    _optionSetCache.Set(presentCacheKey, PresentRecordCollection,
+                        new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
+                }
 
-                EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(
-                    10, 
-                    this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"), 
-                    aContact.Id.ToString());
-
-                aFollowUpHistoryReport += PresentRecordCollection.Entities.Count > 0
+                // ? 極速：StringBuilder 取代 string +=，減少每次迭代的記憶體配置
+                var sb = new StringBuilder(BuildHistoryHeader(aContact));
+                sb.Append(PresentRecordCollection.Entities.Count > 0
                     ? "關懷歷程記錄:" + Environment.NewLine
-                    : "沒有關懷歷程記錄!" + Environment.NewLine;
+                    : "沒有關懷歷程記錄!" + Environment.NewLine);
 
                 int WeekCounter = 1;
                 MatchedWeekDay = "";
 
                 foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
                 {
-                    aFollowUpHistoryReport += ProcessFollowUpRecord(PresentRecordEntity, ref MatchedWeekDay, ref WeekCounter);
+                    sb.Append(ProcessFollowUpRecord(PresentRecordEntity, ref MatchedWeekDay, ref WeekCounter));
                     TransferIdentity(aContact, WeekCounter, 10, 18);
                     WeekCounter++;
                 }
 
-                return aFollowUpHistoryReport;
+                return sb.ToString();
             }
             catch (Exception e)
             {
@@ -158,16 +168,23 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                string aFollowUpHistoryReport = BuildHistoryHeader(aContact);
+                // ? 極速：共享快取，與 GetFollowUpWeek 使用相同 key，避免同一人查兩次
+                string presentCacheKey = $"FollowUpHistory_{aContact.Id:N}";
+                if (!_optionSetCache.TryGetValue(presentCacheKey, out EntityCollection PresentRecordCollection))
+                {
+                    PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(
+                        10,
+                        this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"),
+                        aContact.Id.ToString());
+                    _optionSetCache.Set(presentCacheKey, PresentRecordCollection,
+                        new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
+                }
 
-                EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(
-                    10, 
-                    this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"), 
-                    aContact.Id.ToString());
-
-                aFollowUpHistoryReport += PresentRecordCollection.Entities.Count > 0
+                // ? 極速：StringBuilder 取代 string +=
+                var sb = new StringBuilder(BuildHistoryHeader(aContact));
+                sb.Append(PresentRecordCollection.Entities.Count > 0
                     ? "關懷歷程記錄:" + Environment.NewLine
-                    : "沒有關懷歷程記錄!" + Environment.NewLine;
+                    : "沒有關懷歷程記錄!" + Environment.NewLine);
 
                 int WeekCounter = 1;
                 MatchedWeekDay = "";
@@ -190,12 +207,12 @@ namespace ChurchReport.WebServiceConnector
                         }
                     }
 
-                    aFollowUpHistoryReport += ProcessFollowUpRecord(PresentRecordEntity, ref MatchedWeekDay, ref WeekCounter);
+                    sb.Append(ProcessFollowUpRecord(PresentRecordEntity, ref MatchedWeekDay, ref WeekCounter));
                     TransferIdentity(aContact, WeekCounter, 10, 10);
                     WeekCounter++;
                 }
 
-                return aFollowUpHistoryReport;
+                return sb.ToString();
             }
             catch (Exception e)
             {
@@ -214,31 +231,25 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         private string BuildHistoryHeader(Entity aContact)
         {
-            string header = "";
+            // ? 極速：StringBuilder 取代 string +=，4 次字串合併變成 1 次配置
+            var sb = new StringBuilder(128);
 
-            // 性別
             int Gender = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "gendercode");
-            header += Gender == 200000 ? "性別:男性" + Environment.NewLine : "性別:女性" + Environment.NewLine;
+            sb.Append(Gender == 200000 ? "性別:男性" : "性別:女性").Append(Environment.NewLine);
 
-            // 首次進入教會日期
             try
             {
                 DateTime FirstDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContact, "new_enter_church_date").ToLocalTime();
                 if (FirstDate.Year > 0)
-                {
-                    header += "首次進入教會日期:" + FirstDate.ToShortDateString() + Environment.NewLine;
-                }
+                    sb.Append("首次進入教會日期:").Append(FirstDate.ToShortDateString()).Append(Environment.NewLine);
             }
             catch { }
 
-            // 歡迎紀錄
             string WelcomeRecord = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "description");
             if (!string.IsNullOrEmpty(WelcomeRecord))
-            {
-                header += "歡迎紀錄:" + Environment.NewLine + WelcomeRecord + Environment.NewLine + Environment.NewLine;
-            }
+                sb.Append("歡迎紀錄:").Append(Environment.NewLine).Append(WelcomeRecord).Append(Environment.NewLine).Append(Environment.NewLine);
 
-            return header;
+            return sb.ToString();
         }
 
         /// <summary>

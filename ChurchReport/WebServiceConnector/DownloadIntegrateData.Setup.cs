@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using ChurchReport.Models;
 using ChurchReport.Services;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Xrm.Sdk;
 
 namespace ChurchReport.WebServiceConnector
@@ -84,15 +86,22 @@ namespace ChurchReport.WebServiceConnector
             if (!aListSmallGroupWeeklyReport.GroupType.Contains("幸福"))
             {
                 this.SetSmallGroupData(ref aListSmallGroupWeeklyReport);
-                this.SetNewPersonFollowUpData(ref aListSmallGroupWeeklyReport);
+                // SetNewPersonFollowUpData 已整合入 SetSmallGroupData 的單次遍歷
             }
             else
             {
                 this.SetHappyGroupData(ref aListSmallGroupWeeklyReport);
             }
 
-            // 取得所有小組清單
-            EntityCollection aListEntityCollection = m_ToolUtilityClass.RetrieveListByFetchXml();
+            // ? 極速：所有小組名稱清單幾乎不變，快取 30 分鐘省去 CRM 查詢
+            // Session 安全：小組名稱為系統公開資料，所有使用者共享相同清單
+            const string listCacheKey = "AllGroupList_v1";
+            if (!_optionSetCache.TryGetValue(listCacheKey, out EntityCollection aListEntityCollection))
+            {
+                aListEntityCollection = m_ToolUtilityClass.RetrieveListByFetchXml();
+                _optionSetCache.Set(listCacheKey, aListEntityCollection,
+                    new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(30)));
+            }
             aListSmallGroupWeeklyReport.GroupArray.Clear();
             foreach (Entity aList in aListEntityCollection.Entities)
             {
@@ -105,21 +114,15 @@ namespace ChurchReport.WebServiceConnector
 
         /// <summary>
         /// 排序並清理成員狀態
+        /// ? 極速：List.Sort() 原地排序取代 OrderBy().ToList()，省去 4 次 List 建構
         /// </summary>
-        private void SortAndCleanMemberStatus(ref ListSmallGroupWeeklyReport report)
+        private static void SortAndCleanMemberStatus(ref ListSmallGroupWeeklyReport report)
         {
-            // 排序委身類型
-            if (report.m_SmallGroupDataList.m_AllMemeberData?.Members != null)
-                report.m_SmallGroupDataList.m_AllMemeberData.Members = report.m_SmallGroupDataList.m_AllMemeberData.Members.OrderBy(o => o.Status).ToList();
-
-            if (report.m_SmallGroupDataList.m_SmallGroupData?.Members != null)
-                report.m_SmallGroupDataList.m_SmallGroupData.Members = report.m_SmallGroupDataList.m_SmallGroupData.Members.OrderBy(o => o.Status).ToList();
-
-            if (report.m_SmallGroupDataList.m_NewPersonFollowUpData?.Members != null)
-                report.m_SmallGroupDataList.m_NewPersonFollowUpData.Members = report.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.OrderBy(o => o.Status).ToList();
-
-            if (report.m_SmallGroupDataList.m_HappyGroup?.Members != null)
-                report.m_SmallGroupDataList.m_HappyGroup.Members = report.m_SmallGroupDataList.m_HappyGroup.Members.OrderBy(o => o.Status).ToList();
+            // 原地排序，無需建立新 List
+            report.m_SmallGroupDataList.m_AllMemeberData?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
+            report.m_SmallGroupDataList.m_SmallGroupData?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
+            report.m_SmallGroupDataList.m_NewPersonFollowUpData?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
+            report.m_SmallGroupDataList.m_HappyGroup?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
 
             // 去除數字、空白、逗號
             RemoveNumericAndBlank(report.m_SmallGroupDataList.m_AllMemeberData?.Members);
@@ -193,8 +196,15 @@ namespace ChurchReport.WebServiceConnector
             // 初始化圖表資料
             InitializeChartData(ref aListSmallGroupWeeklyReport);
 
-            // 查詢過去兩個月的週報
-            EntityCollection GroupWeeklyReportEntityCollection = this.m_ToolUtilityClass.QueryWeeklyReportBeforeTowMonthOfSunday(this.m_Sunday, this.m_ListEntity.Id);
+            // ? 極速：圖表資料依「小組ID + 主日」快取 15 分鐘，所有使用者共享
+            // Session 安全：圖表僅含出席人數統計，無個人資料
+            string chartCacheKey = $"WeeklyReportChart_{this.m_ListEntity.Id:N}_{this.m_Sunday:yyyyMMdd}";
+            if (!_optionSetCache.TryGetValue(chartCacheKey, out EntityCollection GroupWeeklyReportEntityCollection))
+            {
+                GroupWeeklyReportEntityCollection = this.m_ToolUtilityClass.QueryWeeklyReportBeforeTowMonthOfSunday(this.m_Sunday, this.m_ListEntity.Id);
+                _optionSetCache.Set(chartCacheKey, GroupWeeklyReportEntityCollection,
+                    new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15)));
+            }
 
             // 填充圖表資料
             foreach (Entity aWeeklyReporEntity in GroupWeeklyReportEntityCollection.Entities)
@@ -243,43 +253,40 @@ namespace ChurchReport.WebServiceConnector
 
         /// <summary>
         /// 設定小組牧養資料（過濾掉新朋友和未入組）
+        /// ? 極速：與 SetNewPersonFollowUpData 合併為單次遍歷，省去第二次迭代
         /// </summary>
         private void SetSmallGroupData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData = new SmallGroupData
-            {
-                Members = new List<Member>()
-            };
+            var allMembers = aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members;
+            int capacity = allMembers.Count;
 
-            foreach (Member aMember in aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members)
+            var smallGroupMembers   = new List<Member>(capacity);
+            var newPersonMembers    = new List<Member>(capacity);
+
+            foreach (Member aMember in allMembers)
             {
-                if (!aMember.Status.Contains("新朋友") && 
-                    !aMember.Status.Contains("未入組") && 
-                    !aMember.Status.Contains("外教會") && 
-                    !aMember.Status.Contains("結案"))
+                bool isNewComer = aMember.Status.Contains("新朋友") || aMember.Status.Contains("未入組");
+
+                if (isNewComer)
                 {
-                    aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData.Members.Add(aMember);
+                    newPersonMembers.Add(aMember);
+                }
+                else if (!aMember.Status.Contains("外教會") && !aMember.Status.Contains("結案"))
+                {
+                    smallGroupMembers.Add(aMember);
                 }
             }
+
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_SmallGroupData = new SmallGroupData { Members = smallGroupMembers };
+            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData = new SmallGroupData { Members = newPersonMembers };
         }
 
         /// <summary>
-        /// 設定新人跟進資料（只包含新朋友和未入組）
+        /// 設定新人跟進資料（已整合入 SetSmallGroupData，保留以維持相容性）
         /// </summary>
-        private void SetNewPersonFollowUpData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
+        private static void SetNewPersonFollowUpData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData = new SmallGroupData
-            {
-                Members = new List<Member>()
-            };
-
-            foreach (Member aMember in aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members)
-            {
-                if (aMember.Status.Contains("新朋友") || aMember.Status.Contains("未入組"))
-                {
-                    aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_NewPersonFollowUpData.Members.Add(aMember);
-                }
-            }
+            // 已在 SetSmallGroupData 的單次遍歷中完成，無需重複處理
         }
 
         /// <summary>
