@@ -227,7 +227,13 @@ namespace ChurchReport.Middleware
             try
             {
                 context.Session.Clear();
+
+                // ? 修復：必須 Commit 以確保 Session 立即失效
+                // 若不 Commit，Session 清除可能不會即時生效，
+                // 在高併發情境下可能造成短暫的 Session 洩漏
                 context.Session.CommitAsync().GetAwaiter().GetResult();
+
+                _logger.LogInformation("[Session Validation] ? Session 已清除並提交");
             }
             catch (Exception ex)
             {

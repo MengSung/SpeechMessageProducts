@@ -626,6 +626,13 @@ namespace ChurchReport
                 context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
                 context.Response.Headers["Pragma"] = "no-cache";
                 context.Response.Headers["Expires"] = "0";
+
+                // ========================================
+                // ✅ Web Cache Deception 防護 - 安全標頭
+                // ========================================
+                // X-Content-Type-Options: nosniff - 防止瀏覽器嗅探內容類型
+                // 這能阻止 CDN/Proxy 將動態 HTML 回應誤判為靜態資源
+                context.Response.Headers["X-Content-Type-Options"] = "nosniff";
                 
                 // ⚠️ 重要：告訴所有 Proxy「不同 Cookie = 不同內容，不准共用」
                 // 這是解決 Session Bleeding 的關鍵設定！
@@ -664,6 +671,15 @@ namespace ChurchReport
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+
+            // ========================================
+            // ✅ Web Cache Deception 防護中間件
+            // ========================================
+            // 偵測並阻擋在動態路由後附加靜態副檔名的攻擊
+            // 例如：/Home/IntegrateView/evil.css → 404
+            // 必須在 UseStaticFiles 之前執行
+            app.UseMiddleware<ChurchReport.Middleware.WebCacheDeceptionMiddleware>();
+            Console.WriteLine("[Startup] ✅ Web Cache Deception 防護中間件已啟用");
 
             // ========================================
             // 🆕 新增：Health Check 端點

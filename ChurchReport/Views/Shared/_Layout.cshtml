@@ -32,6 +32,14 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
+    @* ========================================
+       Web Cache Deception / Session Leakage 防護 - HTML 層級
+       即使 HTTP 標頭被剝除，瀏覽器仍會遵守這些 meta 標籤
+       ======================================== *@
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <title>好牧人</title>
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
