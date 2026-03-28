@@ -14,30 +14,14 @@ namespace ChurchReport.WebServiceConnector
         #region 新人跟進資訊
 
         /// <summary>
-        /// 取得新人跟進資訊
+        /// 取得新人跟進資訊（原版：自行查詢 Contact）
         /// </summary>
         private string GetNewComerFollowupInfo(Guid aNewComerId, ref string aFollowUpWeek)
         {
             try
             {
                 Entity aContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aNewComerId);
-                string aFollowUpHistoryReport = "";
-
-                if (VerifyNewComerIdentity(aContact))
-                {
-                    int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
-
-                    if (aIdentityNumber == 100000004) // 未入組
-                    {
-                        aFollowUpHistoryReport = ProcessUnGroupedFollowUp(aContact, ref aFollowUpWeek);
-                    }
-                    else // 新朋友
-                    {
-                        aFollowUpHistoryReport = GetFollowUpWeek(aContact, ref aFollowUpWeek);
-                    }
-                }
-
-                return aFollowUpHistoryReport;
+                return GetNewComerFollowupInfoCore(aContact, ref aFollowUpWeek);
             }
             catch (Exception e)
             {
@@ -45,6 +29,47 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// ? 極速版：接收已快取的 Contact Entity，省去 CRM 網路往返（每位成員省 ~100-300ms）
+        /// </summary>
+        private string GetNewComerFollowupInfoWithEntity(Entity aContact, ref string aFollowUpWeek)
+        {
+            try
+            {
+                return GetNewComerFollowupInfoCore(aContact, ref aFollowUpWeek);
+            }
+            catch (Exception e)
+            {
+                string ErrorString = $"錯誤訊息 : FullName = {this.GetType().FullName} , Time = {DateTime.Now} , Description = {e}";
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 核心邏輯：不負責取得 Contact（由呼叫端提供）
+        /// </summary>
+        private string GetNewComerFollowupInfoCore(Entity aContact, ref string aFollowUpWeek)
+        {
+            string aFollowUpHistoryReport = "";
+
+            if (VerifyNewComerIdentity(aContact))
+            {
+                int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
+
+                if (aIdentityNumber == 100000004) // 未入組
+                {
+                    aFollowUpHistoryReport = ProcessUnGroupedFollowUp(aContact, ref aFollowUpWeek);
+                }
+                else // 新朋友
+                {
+                    aFollowUpHistoryReport = GetFollowUpWeek(aContact, ref aFollowUpWeek);
+                }
+            }
+
+            return aFollowUpHistoryReport;
         }
 
         /// <summary>

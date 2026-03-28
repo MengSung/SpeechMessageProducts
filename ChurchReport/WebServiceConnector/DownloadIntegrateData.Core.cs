@@ -153,18 +153,91 @@ namespace ChurchReport.WebServiceConnector
 
         /// <summary>
         /// 移除成員狀態中的數字與空白
-        /// ? 效能優化：重用靜態編譯的 DigitsOnly Regex，避免每次迭代建立新 Regex 實例
+        /// ? 極速版：使用 char 迴圈取代 Regex，零 Regex 引擎開銷
         /// </summary>
-        private void RemoveNumericAndBlank(List<Member> aMemberList)
+        private static void RemoveNumericAndBlank(List<Member> aMemberList)
         {
             if (aMemberList == null) return;
 
             foreach (Member aMember in aMemberList)
             {
-                aMember.Status = DigitsOnly.Replace(aMember.Status, ""); // 過濾數字（重用靜態 Regex）
-                aMember.Status = aMember.Status.Replace(" ", "");        // 過濾空白
-                aMember.Status = aMember.Status.Replace(".", "");        // 過濾逗號
+                aMember.Status = StripChars(aMember.Status, stripDigits: true, stripSpaces: true, stripDots: true);
             }
+        }
+
+        /// <summary>
+        /// ? 極速：只保留數字字元（用於電話號碼），完全避免 Regex 開銷
+        /// </summary>
+        private static string KeepDigitsOnly(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+
+            // 快速路徑：如果全部都是數字就直接回傳
+            bool allDigits = true;
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (!char.IsDigit(input[i]))
+                {
+                    allDigits = false;
+                    break;
+                }
+            }
+            if (allDigits) return input;
+
+            return string.Create(CountDigits(input), input, static (span, src) =>
+            {
+                int pos = 0;
+                for (int i = 0; i < src.Length; i++)
+                {
+                    if (char.IsDigit(src[i]))
+                        span[pos++] = src[i];
+                }
+            });
+        }
+
+        private static int CountDigits(string s)
+        {
+            int count = 0;
+            for (int i = 0; i < s.Length; i++)
+                if (char.IsDigit(s[i])) count++;
+            return count;
+        }
+
+        /// <summary>
+        /// ? 極速：一次遍歷移除指定類型字元，避免多次 String.Replace 造成多次配置
+        /// </summary>
+        private static string StripChars(string input, bool stripDigits, bool stripSpaces, bool stripDots)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+
+            // 快速路徑：計算需要保留的字元數
+            int keepCount = 0;
+            for (int i = 0; i < input.Length; i++)
+            {
+                char c = input[i];
+                bool skip = (stripDigits && char.IsDigit(c))
+                         || (stripSpaces && c == ' ')
+                         || (stripDots && c == '.');
+                if (!skip) keepCount++;
+            }
+
+            if (keepCount == input.Length) return input; // 無需修改
+            if (keepCount == 0) return string.Empty;
+
+            return string.Create(keepCount, (input, stripDigits, stripSpaces, stripDots), static (span, state) =>
+            {
+                int pos = 0;
+                string src = state.input;
+                for (int i = 0; i < src.Length; i++)
+                {
+                    char c = src[i];
+                    bool skip = (state.stripDigits && char.IsDigit(c))
+                             || (state.stripSpaces && c == ' ')
+                             || (state.stripDots && c == '.');
+                    if (!skip)
+                        span[pos++] = c;
+                }
+            });
         }
 
         #endregion

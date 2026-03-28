@@ -25,10 +25,10 @@ namespace ChurchReport.WebServiceConnector
             string WeeklyReportEntityId, 
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            // 初始化成員資料
+            // 初始化成員資料 — ? 極速：預配 64 筆容量，避免 List 多次擴容
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData = new SmallGroupData
             {
-                Members = new List<Member>(),
+                Members = new List<Member>(64),
                 LoginType = aListSmallGroupWeeklyReport.LoginType
             };
 
@@ -82,10 +82,10 @@ namespace ChurchReport.WebServiceConnector
             // 2. 提取所有需要查詢的 Contact ID
             var contactIds = ExtractContactIdsFromPresentRecords(PresentRecordCollection);
 
-            if (!contactIds.Any())
+            if (contactIds.Count == 0)
                 return;
 
-            // 3. 批次查詢所有 Contact (解決 N+1 問題)
+            // 3. 批次查詢所有 Contact (解決 N+1 問題) — 預先配置容量
             var contactCache = BatchRetrieveContacts(contactIds);
 
             // 4. 處理每筆出席紀錄 (從快取取得 Contact)
@@ -143,7 +143,8 @@ namespace ChurchReport.WebServiceConnector
                 return new Dictionary<Guid, Entity>();
 
             const int BATCH_SIZE = 50; // CRM 建議每批最多 50 筆
-            var result = new Dictionary<Guid, Entity>();
+            // ? 極速：預先配置 Dictionary 容量，避免多次 rehash
+            var result = new Dictionary<Guid, Entity>(contactIds.Count);
 
             // 分批處理
             var batches = SplitIntoBatches(contactIds, BATCH_SIZE);
@@ -157,7 +158,8 @@ namespace ChurchReport.WebServiceConnector
                     {
                         Conditions =
                         {
-                            new ConditionExpression("contactid", ConditionOperator.In, batch.Cast<object>().ToArray())
+                            // ? 極速：直接建立 object[]，避免 Cast<object>() LINQ 中間集合
+                            new ConditionExpression("contactid", ConditionOperator.In, ToObjectArray(batch))
                         }
                     }
                 };
@@ -257,6 +259,17 @@ namespace ChurchReport.WebServiceConnector
                 int count = Math.Min(batchSize, source.Count - i);
                 yield return source.GetRange(i, count);
             }
+        }
+
+        /// <summary>
+        /// ? 極速：零 LINQ 的 Guid → object[] 轉換，避免 Cast&lt;object&gt;().ToArray() 的中間集合配置
+        /// </summary>
+        private static object[] ToObjectArray(List<Guid> guids)
+        {
+            var arr = new object[guids.Count];
+            for (int i = 0; i < guids.Count; i++)
+                arr[i] = guids[i];
+            return arr;
         }
 
         /// <summary>
@@ -370,8 +383,8 @@ namespace ChurchReport.WebServiceConnector
             // 取得出席紀錄資料
             var attendanceInfo = ExtractAttendanceInfo(PresentRecordEntity);
 
-            // 取得新人跟進資料
-            var followUpInfo = ExtractFollowUpInfo(PresentRecordEntity, ((EntityReference)PresentRecordEntity.Attributes["new_contact_new_present_record"]).Id);
+            // ? 極速：傳入已快取的 Contact Entity，省去 GetNewComerFollowupInfo 內的重複 CRM 查詢
+            var followUpInfo = ExtractFollowUpInfo(PresentRecordEntity, ((EntityReference)PresentRecordEntity.Attributes["new_contact_new_present_record"]).Id, aContactEntity);
 
             return new Member
             {
@@ -381,8 +394,8 @@ namespace ChurchReport.WebServiceConnector
                 FullName = FullName,
                 
                 // 個人基本資料
-                Phone = DigitsOnly.Replace(contactInfo.MobilePhone, ""),
-                HomePhone = DigitsOnly.Replace(contactInfo.HomePhone, ""),
+                Phone = KeepDigitsOnly(contactInfo.MobilePhone),
+                HomePhone = KeepDigitsOnly(contactInfo.HomePhone),
                 Address = contactInfo.Address,
                 BirthDate = contactInfo.BirthDate,
                 Industry = contactInfo.Industry,
@@ -393,7 +406,7 @@ namespace ChurchReport.WebServiceConnector
                 BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_introducer"),
                 BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_relationship"),
                 Description = contactInfo.Description,
-                
+
                 // 委身類型
                 Status = ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode")),
                 SmallGroupName = GroupName,
@@ -450,7 +463,7 @@ namespace ChurchReport.WebServiceConnector
             // 提取所有 Contact ID
             var contactIds = ExtractContactIdsFromMembers(MemberCollection, ListType);
 
-            if (!contactIds.Any())
+            if (contactIds.Count == 0)
                 return;
 
             // 批次查詢所有 Contact
@@ -591,7 +604,8 @@ namespace ChurchReport.WebServiceConnector
         {
             var contactInfo = ExtractContactInfo(ContactEntity);
             string aFollowUpWeek = "未選擇";
-            string aNewComerNote = GetNewComerFollowupInfo(ContactEntity.Id, ref aFollowUpWeek);
+            // ? 極速：傳入已有的 ContactEntity，省去重複 CRM 查詢
+            string aNewComerNote = GetNewComerFollowupInfoWithEntity(ContactEntity, ref aFollowUpWeek);
 
             return new Member
             {
@@ -601,8 +615,8 @@ namespace ChurchReport.WebServiceConnector
                 FullName = contactInfo.FullName,
                 
                 // 個人基本資料
-                Phone = DigitsOnly.Replace(contactInfo.MobilePhone, ""),
-                HomePhone = DigitsOnly.Replace(contactInfo.HomePhone, ""),
+                Phone = KeepDigitsOnly(contactInfo.MobilePhone),
+                HomePhone = KeepDigitsOnly(contactInfo.HomePhone),
                 Address = contactInfo.Address,
                 BirthDate = contactInfo.BirthDate,
                 Industry = contactInfo.Industry,
@@ -652,7 +666,8 @@ namespace ChurchReport.WebServiceConnector
         {
             var contactInfo = ExtractContactInfo(m_ContactEntity);
             string aFollowUpWeek = "未選擇";
-            string aNewComerNote = GetNewComerFollowupInfo(m_ContactEntity.Id, ref aFollowUpWeek);
+            // ? 極速：已有 m_ContactEntity，直接傳入
+            string aNewComerNote = GetNewComerFollowupInfoWithEntity(m_ContactEntity, ref aFollowUpWeek);
 
             string aIdentity = ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref m_ContactEntity, "customertypecode"));
 
@@ -665,8 +680,8 @@ namespace ChurchReport.WebServiceConnector
                     Group = GroupName,
                     FullName = contactInfo.FullName,
                     
-                    Phone = DigitsOnly.Replace(contactInfo.MobilePhone, ""),
-                    HomePhone = DigitsOnly.Replace(contactInfo.HomePhone, ""),
+                    Phone = KeepDigitsOnly(contactInfo.MobilePhone),
+                    HomePhone = KeepDigitsOnly(contactInfo.HomePhone),
                     Address = contactInfo.Address,
                     BirthDate = contactInfo.BirthDate,
                     Industry = contactInfo.Industry,
@@ -803,8 +818,9 @@ namespace ChurchReport.WebServiceConnector
 
         /// <summary>
         /// 提取跟進資訊
+        /// ? 極速版：接收已快取的 Contact Entity，省去 GetNewComerFollowupInfo 內的重複 CRM 查詢
         /// </summary>
-        private FollowUpInfoRecord ExtractFollowUpInfo(Entity presentRecordEntity, Guid contactId)
+        private FollowUpInfoRecord ExtractFollowUpInfo(Entity presentRecordEntity, Guid contactId, Entity cachedContactEntity = null)
         {
             string followUpWeek = presentRecordEntity.Attributes.Contains("new_weeks")
                 ? ConvertIndexToFollowUpWeekPicker(m_ToolUtilityClass.GetOptionSetAttribute(presentRecordEntity, "new_weeks"))
@@ -822,7 +838,10 @@ namespace ChurchReport.WebServiceConnector
                 ? ConvertIndexToFollowUpOptionPicker(m_ToolUtilityClass.GetOptionSetAttribute(presentRecordEntity, "new_followup_ways"))
                 : "";
 
-            string newComerNote = GetNewComerFollowupInfo(contactId, ref followUpWeek);
+            // ? 極速：若有已快取的 Contact，直接傳入，省去 CRM 網路往返
+            string newComerNote = cachedContactEntity != null
+                ? GetNewComerFollowupInfoWithEntity(cachedContactEntity, ref followUpWeek)
+                : GetNewComerFollowupInfo(contactId, ref followUpWeek);
 
             return new FollowUpInfoRecord(
                 FollowUpWeek: followUpWeek,
