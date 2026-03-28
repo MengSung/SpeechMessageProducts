@@ -122,18 +122,13 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // ? 極速：快取跟進歷程 2 分鐘，同一小組多個 Tab 切換不重複查 CRM
-                // Session 安全：快取鍵含唯一 contactId，不同人的資料永遠不同 key
-                string presentCacheKey = $"FollowUpHistory_{aContact.Id:N}";
-                if (!_optionSetCache.TryGetValue(presentCacheKey, out EntityCollection PresentRecordCollection))
-                {
-                    PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(
-                        10,
-                        this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"),
-                        aContact.Id.ToString());
-                    _optionSetCache.Set(presentCacheKey, PresentRecordCollection,
-                        new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
-                }
+                // ?? 不可快取：出席/跟進紀錄包含個人牧養資料（姓名、關懷描述、跟進結果）
+                // 靜態快取會讓不同 Session 的使用者共享個人資料，構成 Session Leakage
+                // 且 EntityCollection 為可變物件，TransferIdentity 可能修改內容導致資料污染
+                EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(
+                    10,
+                    this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"),
+                    aContact.Id.ToString());
 
                 // ? 極速：StringBuilder 取代 string +=，減少每次迭代的記憶體配置
                 var sb = new StringBuilder(BuildHistoryHeader(aContact));
@@ -168,17 +163,11 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // ? 極速：共享快取，與 GetFollowUpWeek 使用相同 key，避免同一人查兩次
-                string presentCacheKey = $"FollowUpHistory_{aContact.Id:N}";
-                if (!_optionSetCache.TryGetValue(presentCacheKey, out EntityCollection PresentRecordCollection))
-                {
-                    PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(
-                        10,
-                        this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"),
-                        aContact.Id.ToString());
-                    _optionSetCache.Set(presentCacheKey, PresentRecordCollection,
-                        new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
-                }
+                // ?? 不可快取：出席/跟進紀錄包含個人牧養資料（同 GetFollowUpWeek）
+                EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(
+                    10,
+                    this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"),
+                    aContact.Id.ToString());
 
                 // ? 極速：StringBuilder 取代 string +=
                 var sb = new StringBuilder(BuildHistoryHeader(aContact));

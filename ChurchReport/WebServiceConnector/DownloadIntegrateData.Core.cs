@@ -261,23 +261,27 @@ namespace ChurchReport.WebServiceConnector
         private static string ConvertNumberToFollowUpWeekPicker(int weekNumber) => FollowUpConverter.NumberToWeekPicker(weekNumber);
         private static int ConvertNumberToWeekIndex(int weekNumber) => FollowUpConverter.NumberToWeekIndex(weekNumber);
         /// <summary>
-        /// OptionSet 查詢用共享快取（避免每次呼叫建立新 MemoryCache，降低 GC 壓力）
+        /// 進程級靜態快取（所有使用者共享同一份）
         /// 
-        /// ? Session 安全性分析（已驗證安全）：
-        /// 此快取為 static，所有使用者共享同一份，但不會造成 Session Leakage，原因如下：
+        /// ? Session Leakage 完整審計（最後更新：2025-06）
+        /// ══════════════════════════════════════════════════════════════
         /// 
-        /// 1. 快取鍵格式: "OptionSet_{entityName}_{attributeName}"
-        ///    例如: "OptionSet_new_present_record_new_visit"
-        ///    → 鍵中不含任何使用者 ID、Session ID 或個人資訊
+        /// 【允許放入此快取的資料類型】
+        /// 1. OptionSet_{entity}_{attr}       → CRM 欄位下拉選項（Schema 定義）
+        /// 2. OptionSetReverse_{entity}_{attr} → 上述反向對應
+        /// 3. AllGroupList_v1                  → 所有小組名稱清單（系統公開）
+        /// 4. WeeklyReportChart_{listId}_{date}→ 出席人數統計（聚合數據）
         /// 
-        /// 2. 快取內容: Dictionary&lt;string, int&gt;（OptionSet 顯示文字 → 整數值）
-        ///    例如: { "探訪" → 1, "電話關懷" → 2 }
-        ///    → 這是 CRM 欄位的 Schema 定義（Metadata），屬於系統級資料
-        ///    → 所有使用者看到的 OptionSet 選項完全相同
-        ///    → 不含任何使用者個人資料、登入狀態或 Session 資訊
+        /// 【禁止放入此快取的資料類型】
+        /// ? 個人出席紀錄（FollowUpHistory_*）  → 含個人牧養資料
+        /// ? 個人聯絡資訊（Contact Entity）      → 含姓名/電話/地址
+        /// ? 任何 Entity 含使用者可辨識資訊       → Session Leakage 風險
+        /// ? 可變的 EntityCollection（會被後續修改）→ 資料污染風險
         /// 
-        /// 3. 結論: A 登入 → B 登入，兩人共享的只有「下拉選單的選項文字」，
-        ///    這是 CRM 實體定義的一部分，與使用者身份無關，安全無虞。
+        /// 【判斷準則】
+        /// 此快取只能存放「所有使用者看到完全相同結果」的系統級資料。
+        /// 如果資料會因使用者身份/權限不同而有差異，絕對不可快取。
+        /// ══════════════════════════════════════════════════════════════
         /// </summary>
         private static readonly MemoryCache _optionSetCache = new MemoryCache(new MemoryCacheOptions());
 
