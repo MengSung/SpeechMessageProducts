@@ -101,10 +101,11 @@ namespace ChurchReport.WebServiceConnector
 
         /// <summary>
         /// 從出席紀錄集合中提取所有 Contact ID
+        /// ? 效能優化：使用 HashSet 即時去重，避免 .Distinct().ToList() 的額外迭代與記憶體配置
         /// </summary>
         private List<Guid> ExtractContactIdsFromPresentRecords(EntityCollection presentRecordCollection)
         {
-            var contactIds = new List<Guid>();
+            var contactIdSet = new HashSet<Guid>();
 
             foreach (Entity entity in presentRecordCollection.Entities)
             {
@@ -124,11 +125,11 @@ namespace ChurchReport.WebServiceConnector
                 if (entity.Attributes.Contains("new_contact_new_present_record"))
                 {
                     EntityReference contactRef = (EntityReference)entity.Attributes["new_contact_new_present_record"];
-                    contactIds.Add(contactRef.Id);
+                    contactIdSet.Add(contactRef.Id);
                 }
             }
 
-            return contactIds.Distinct().ToList();
+            return new List<Guid>(contactIdSet);
         }
 
         /// <summary>
@@ -137,7 +138,8 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         private Dictionary<Guid, Entity> BatchRetrieveContacts(List<Guid> contactIds)
         {
-            if (!contactIds.Any())
+            // ? 效能優化：使用 Count 取代 Any()，避免 LINQ 列舉器配置
+            if (contactIds.Count == 0)
                 return new Dictionary<Guid, Entity>();
 
             const int BATCH_SIZE = 50; // CRM 建議每批最多 50 筆
@@ -246,12 +248,14 @@ namespace ChurchReport.WebServiceConnector
 
         /// <summary>
         /// 將 ID 列表分割成批次
+        /// ? 效能優化：使用 GetRange 取代 Skip().Take()，從 O(n?) 降到 O(n)
         /// </summary>
         private IEnumerable<List<Guid>> SplitIntoBatches(List<Guid> source, int batchSize)
         {
             for (int i = 0; i < source.Count; i += batchSize)
             {
-                yield return source.Skip(i).Take(batchSize).ToList();
+                int count = Math.Min(batchSize, source.Count - i);
+                yield return source.GetRange(i, count);
             }
         }
 
@@ -474,21 +478,22 @@ namespace ChurchReport.WebServiceConnector
 
         /// <summary>
         /// 從成員集合中提取所有 Contact ID
+        /// ? 效能優化：使用 HashSet 即時去重，避免 .Distinct().ToList() 的額外迭代與記憶體配置
         /// </summary>
         private List<Guid> ExtractContactIdsFromMembers(EntityCollection memberCollection, bool listType)
         {
-            var contactIds = new List<Guid>();
+            var contactIdSet = new HashSet<Guid>();
 
             foreach (Entity member in memberCollection.Entities)
             {
                 Guid contactId = GetContactIdFromMember(member, listType);
                 if (contactId != Guid.Empty)
                 {
-                    contactIds.Add(contactId);
+                    contactIdSet.Add(contactId);
                 }
             }
 
-            return contactIds.Distinct().ToList();
+            return new List<Guid>(contactIdSet);
         }
 
         /// <summary>

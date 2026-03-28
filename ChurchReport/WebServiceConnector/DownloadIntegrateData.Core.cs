@@ -75,9 +75,11 @@ namespace ChurchReport.WebServiceConnector
             {
                 if (_identityConverter == null)
                 {
+                    // ? 效能優化：共享靜態 _optionSetCache，避免每個 DownloadIntegrateData 實例各自冷啟動
+                    // Session 安全：_optionSetCache 僅存放 CRM Schema Metadata（不含使用者資料）
                     _identityConverter = new IdentityConverter(
                         m_ToolUtilityClass.m_Crm2011OrganizationService,
-                        new MemoryCache(new MemoryCacheOptions())
+                        _optionSetCache
                     );
                 }
                 return _identityConverter;

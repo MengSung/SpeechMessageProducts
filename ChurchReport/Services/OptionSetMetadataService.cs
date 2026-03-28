@@ -164,17 +164,37 @@ namespace ChurchReport.Services
 
         /// <summary>
         /// 根據 OptionSet 值取得顯示文字（反向查詢）
+        /// 
+        /// ? 效能優化：快取反向對應表，避免每次呼叫都重建 Dictionary
+        /// 原本每次呼叫都執行 mapping.ToDictionary() 建立新的反向字典，
+        /// 若一頁有 50 位成員，每人查 3-4 個欄位，就是 150-200 次多餘的 Dictionary 建構。
+        /// 
+        /// ? Session 安全：快取鍵為 "OptionSetReverse_{entityName}_{attributeName}"
+        /// 內容為 Dictionary&lt;int, string&gt;（整數值 → 顯示文字），
+        /// 屬於 CRM Schema Metadata，所有使用者完全相同，不含任何個人資料。
         /// </summary>
-        /// <param name="entityName">實體名稱</param>
-        /// <param name="attributeName">屬性名稱</param>
-        /// <param name="optionSetValue">OptionSet 值</param>
-        /// <returns>顯示文字</returns>
         public string GetOptionSetText(string entityName, string attributeName, int optionSetValue)
         {
             try
             {
-                var mapping = GetOptionSetMapping(entityName, attributeName);
-                var reversedMapping = mapping.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+                // 先嘗試從快取取得反向對應表
+                string reverseCacheKey = $"OptionSetReverse_{entityName}_{attributeName}";
+
+                if (!_cache.TryGetValue(reverseCacheKey, out Dictionary<int, string> reversedMapping))
+                {
+                    // 快取未命中：從正向對應表建立反向對應表
+                    var mapping = GetOptionSetMapping(entityName, attributeName);
+                    reversedMapping = new Dictionary<int, string>(mapping.Count);
+                    foreach (var kvp in mapping)
+                    {
+                        reversedMapping[kvp.Value] = kvp.Key;
+                    }
+
+                    // 存入快取（與正向對應表相同的過期策略）
+                    var cacheOptions = new MemoryCacheEntryOptions()
+                        .SetAbsoluteExpiration(TimeSpan.FromHours(CACHE_DURATION_HOURS));
+                    _cache.Set(reverseCacheKey, reversedMapping, cacheOptions);
+                }
 
                 if (reversedMapping.TryGetValue(optionSetValue, out string displayText))
                 {
