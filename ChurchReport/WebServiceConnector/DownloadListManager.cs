@@ -31,7 +31,8 @@ namespace ChurchReport.WebServiceConnector
         // 透過 Factory 取得 ToolUtilityClass 單一實例
         private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
-        private static Regex DigitsOnly = new Regex(@"[^\d]");
+        // ✅ 效能優化：加入 RegexOptions.Compiled，JIT 編譯正則表達式以加速匹配
+        private static Regex DigitsOnly = new Regex(@"[^\d]", RegexOptions.Compiled);
 
         private Dictionary<String, String> m_FeedBackReport = new Dictionary<string, string>();
 

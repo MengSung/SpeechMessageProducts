@@ -31,7 +31,8 @@ namespace ChurchReport.WebServiceConnector
 
         private LineNotifyUtility m_LineNotifyUtility = new LineNotifyUtility();
 
-        private static Regex DigitsOnly = new Regex(@"[^\d]");
+        // ✅ 效能優化：加入 RegexOptions.Compiled，JIT 編譯正則表達式以加速匹配
+        private static Regex DigitsOnly = new Regex(@"[^\d]", RegexOptions.Compiled);
 
         private Dictionary<String, String> m_FeedBackReport = new Dictionary<string, string>();
         #endregion

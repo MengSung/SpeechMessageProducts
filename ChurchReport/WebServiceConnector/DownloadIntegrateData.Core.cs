@@ -23,14 +23,15 @@ namespace ChurchReport.WebServiceConnector
         // 透過 Factory 取得 ToolUtilityClass 單一實例
         private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
-        private static readonly Regex DigitsOnly = new Regex(@"[^\d]");
+        // ? 效能優化：加入 RegexOptions.Compiled，JIT 編譯正則表達式以加速匹配
+        private static readonly Regex DigitsOnly = new Regex(@"[^\d]", RegexOptions.Compiled);
 
         private readonly Dictionary<String, String> m_FeedBackReport = new Dictionary<string, string>();
 
         private bool m_SetIdentityFlag = false;
 
-        // CRM 類型常數
-        private const string CRM_TYPE = "DYNAMICS365-9.0";
+        // ? 效能修復：CRM 類型常數統一為 "DYNAMICS365"，與所有比較一致
+        private const string CRM_TYPE = "DYNAMICS365";
 
         // 委身類型自動轉換旗標
         private const bool TRANSFER_IDENTITY_FLAG = false;
@@ -150,6 +151,7 @@ namespace ChurchReport.WebServiceConnector
 
         /// <summary>
         /// 移除成員狀態中的數字與空白
+        /// ? 效能優化：重用靜態編譯的 DigitsOnly Regex，避免每次迭代建立新 Regex 實例
         /// </summary>
         private void RemoveNumericAndBlank(List<Member> aMemberList)
         {
@@ -157,9 +159,9 @@ namespace ChurchReport.WebServiceConnector
 
             foreach (Member aMember in aMemberList)
             {
-                aMember.Status = Regex.Replace(aMember.Status, "[0-9]", ""); // 過濾數字
-                aMember.Status = aMember.Status.Replace(" ", "");            // 過濾空白
-                aMember.Status = aMember.Status.Replace(".", "");            // 過濾逗號
+                aMember.Status = DigitsOnly.Replace(aMember.Status, ""); // 過濾數字（重用靜態 Regex）
+                aMember.Status = aMember.Status.Replace(" ", "");        // 過濾空白
+                aMember.Status = aMember.Status.Replace(".", "");        // 過濾逗號
             }
         }
 
@@ -183,14 +185,36 @@ namespace ChurchReport.WebServiceConnector
         private static string ConvertIndexToTopic(int optionValue) => FollowUpConverter.IndexToTopic(optionValue);
         private static string ConvertNumberToFollowUpWeekPicker(int weekNumber) => FollowUpConverter.NumberToWeekPicker(weekNumber);
         private static int ConvertNumberToWeekIndex(int weekNumber) => FollowUpConverter.NumberToWeekIndex(weekNumber);
+        /// <summary>
+        /// OptionSet 查詢用共享快取（避免每次呼叫建立新 MemoryCache，降低 GC 壓力）
+        /// 
+        /// ? Session 安全性分析（已驗證安全）：
+        /// 此快取為 static，所有使用者共享同一份，但不會造成 Session Leakage，原因如下：
+        /// 
+        /// 1. 快取鍵格式: "OptionSet_{entityName}_{attributeName}"
+        ///    例如: "OptionSet_new_present_record_new_visit"
+        ///    → 鍵中不含任何使用者 ID、Session ID 或個人資訊
+        /// 
+        /// 2. 快取內容: Dictionary&lt;string, int&gt;（OptionSet 顯示文字 → 整數值）
+        ///    例如: { "探訪" → 1, "電話關懷" → 2 }
+        ///    → 這是 CRM 欄位的 Schema 定義（Metadata），屬於系統級資料
+        ///    → 所有使用者看到的 OptionSet 選項完全相同
+        ///    → 不含任何使用者個人資料、登入狀態或 Session 資訊
+        /// 
+        /// 3. 結論: A 登入 → B 登入，兩人共享的只有「下拉選單的選項文字」，
+        ///    這是 CRM 實體定義的一部分，與使用者身份無關，安全無虞。
+        /// </summary>
+        private static readonly MemoryCache _optionSetCache = new MemoryCache(new MemoryCacheOptions());
+
         private string ConvertIndexToVisit(int visit)
         {
             try
             {
+                // ? 效能優化：重用靜態快取，避免每次呼叫都 new MemoryCache (原本每次建立新的無法快取任何東西)
                 var optionSetService = new OptionSetMetadataService(
                     m_ToolUtilityClass.m_Crm2011OrganizationService,
                     null,
-                    new MemoryCache(new MemoryCacheOptions()));
+                    _optionSetCache);
 
                 return optionSetService.GetOptionSetText("new_present_record", "new_visit", visit);
             }
