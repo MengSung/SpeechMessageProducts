@@ -483,45 +483,61 @@
     /* 控制面板容器 */
     .control-panel {
         margin: 20px 0; 
-    padding: 15px; 
+        padding: 15px; 
         background: var(--color-surface);
         border: 1px solid var(--color-border);
-        border-radius: 5px; 
+        border-radius: 5px;
+        box-sizing: border-box;
     }
+    /* 永遠保持同一排，不換行 */
     .control-wrapper { 
         display: flex; 
         align-items: center; 
         gap: 8px; 
-        flex-wrap: wrap; 
+        flex-wrap: nowrap;
+        width: 100%;
+        box-sizing: border-box;
     }
 
-    /* 日期選擇區域 */
+    /* 日期選擇區域 - 可縮小以讓上傳按鈕保持可見 */
     .date-section { 
         display: flex; 
         align-items: center; 
-        gap: 8px; 
-    flex: 1 1 auto; 
+        gap: 6px; 
+        flex: 1 1 0;
+        min-width: 0;
+        overflow: hidden;
     }
+    /* 標籤固定不縮小 */
     .date-label {
-     font-size: 100%; 
+        font-size: 100%; 
         color: #fff; 
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
         font-weight: bold; 
-   white-space: nowrap; 
-  min-width: 80px; 
+        white-space: nowrap;
+        flex-shrink: 0;
         padding: 5px 10px; 
-      border-radius: 3px; 
-  }
-    .date-input { 
-        min-width: 140px; 
-flex: 1 1 auto; 
+        border-radius: 3px; 
     }
- .date-input .dx-datebox { 
-      width: 100% !important; 
+    /* 日期輸入框自動佔滿剩餘空間並可縮小 */
+    .date-input { 
+        flex: 1 1 0;
+        min-width: 0;
+        overflow: hidden;
+    }
+    /* 覆蓋 DevExtreme 產生的固定寬度 inline style，使日期框可伸縮 */
+    .date-input .dx-datebox,
+    .date-input .dx-widget { 
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
     }
 
-    /* 上傳按鈕區域 */
-    .upload-section { flex: 0 0 auto; }
+    /* 上傳按鈕區域 - 固定大小，永不被擠壓 */
+    .upload-section { 
+        flex: 0 0 auto;
+        flex-shrink: 0;
+    }
     .upload-button-container { text-align: center; }
     .upload-button-container #save-button.dx-button.dx-button-success {
         background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
@@ -585,63 +601,47 @@ flex: 1 1 auto;
     /* ===== 響應式設計 ===== */
     /* 平板裝置 (768px 以下) */
     @@media (max-width: 768px) {
-        /* 控制面板調整 */
-   .control-wrapper { 
-          flex-direction: row; 
-       align-items: center; 
-            gap: 6px; 
-    flex-wrap: nowrap; 
-        }
-.date-section { 
-       flex-direction: row; 
-            align-items: center; 
-          flex: 1 1 auto; 
-     }
-        .date-label { 
-            min-width: auto; 
-       white-space: nowrap; 
-        font-size: 95%; 
-        }
-        .date-input { 
-            min-width: 0; 
-            width: auto; 
-            flex: 1 1 auto; 
-   }
-        .upload-section { flex: 0 0 auto; }
+        /* 控制面板 - 縮減間距 */
+        .control-panel { padding: 10px; }
+        .control-wrapper { gap: 6px; }
+        .date-section { gap: 4px; }
+        .date-label { font-size: 95%; padding: 5px 8px; }
 
         /* 週期時間顯示調整 */
         .period-display { 
-    font-size: 95%; 
-      padding: 8px; 
- margin: 8px 0; 
-          text-align: center;
+            font-size: 95%; 
+            padding: 8px; 
+            margin: 8px 0; 
+            text-align: center;
         }
 
         /* 幸福小組選擇調整 */
         .selection-wrapper { flex-direction: column; }
         .week-index-selector, .topic-selector { min-width: auto; }
     }
-    
+
     /* 手機裝置 (480px 以下) */
     @@media (max-width: 480px) {
-        /* 容器調整 */
+        /* 容器調整 - 進一步縮減 padding 讓出空間 */
         .control-panel, .happy-group-selection, .journal-section { 
-            padding: 10px; 
+            padding: 8px; 
         }
         .control-wrapper { gap: 4px; }
-     .date-label { font-size: 90%; }
+        .date-section { gap: 3px; }
+        .date-label { font-size: 85%; padding: 4px 6px; }
 
-    /* 上傳按鈕調整 */
-      .upload-button-container .dx-button { 
- min-width: 78px; 
-        height: 40px; 
-    }
-   
+        /* 上傳按鈕調整：確保在極小螢幕不溢出 */
+        .upload-section .dx-button {
+            min-width: 60px !important;
+            width: auto !important;
+            height: 40px !important;
+        }
+
         /* 週期時間顯示調整 */
         .period-display { 
             font-size: 85%; 
             padding: 6px; 
             margin: 6px 0; 
- }
+        }
     }
 </style>
