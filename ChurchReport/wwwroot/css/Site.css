@@ -127,6 +127,17 @@ body.theme-coral-orange {
   --color-row-selected: #ffd7c8;
 }
 
+body.theme-indigo-purple {
+  --color-primary: #4f4098;
+  --color-secondary: #6a52b2;
+  --color-background: #f6f4fb;
+  --color-border: #d8d0ea;
+  --color-text: #2c264a;
+  --color-surface: #ffffff;
+  --color-row-hover: #eee9f5;
+  --color-row-selected: #e2dbf0;
+}
+
 body,
 .main-content {
   background-color: var(--color-background);
