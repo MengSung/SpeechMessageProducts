@@ -69,9 +69,61 @@ namespace ToolUtilityNameSpace.QueryOperations
                           </entity>
                         </fetch>";
 
+                var fetchXmlNoConstrain = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='{SMALL_QUERY_LIMIT}'>
+                          <entity name='new_stor_lessons'>
+                            <attribute name='createdon' />
+                            <attribute name='new_contact_new_stor_lessons' />
+                            <attribute name='new_fee' />
+                            <attribute name='new_pay_date' />
+                            <attribute name='new_current_complete' />
+                            <attribute name='new_new_disciple_lessons_new_stor_les' />
+                            <attribute name='new_stor_lessonsid' />
+                            <order attribute='createdon' descending='true' />
+                            <filter type='and'>
+                                <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname={contactName} uitype='contact' value={contactId} />
+                                <condition attribute='statecode' operator='eq' value='0' />
+                            </filter>
+                            <link-entity name='contact' from='contactid' to='new_contact_new_stor_lessons' visible='false' link-type='outer' alias='contact'>
+                              <attribute name='mobilephone' />
+                              <attribute name='emailaddress1' />
+                            </link-entity>
+                            <link-entity name='new_disciple_lessons' from='new_disciple_lessonsid' to='new_new_disciple_lessons_new_stor_les' alias='lesson'>
+                              <attribute name='new_name' />
+                            </link-entity>
+                          </entity>
+                        </fetch>";
+
+                // ? 優化 1: 添加 top='1000' 限制
+                // ? 優化 2: 只查詢必要欄位，移除不需要的 link-entity 欄位
+                // new_classification 過濾已移除，返回所有分類的課程
+                var fetchXmlRemoveConstrain = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='{SMALL_QUERY_LIMIT}'>
+                          <entity name='new_stor_lessons'>
+                            <attribute name='createdon' />
+                            <attribute name='new_contact_new_stor_lessons' />
+                            <attribute name='new_fee' />
+                            <attribute name='new_pay_date' />
+                            <attribute name='new_current_complete' />
+                            <attribute name='new_new_disciple_lessons_new_stor_les' />
+                            <attribute name='new_stor_lessonsid' />
+                            <order attribute='createdon' descending='true' />
+                            <filter type='and'>
+                                <condition attribute='new_contact_new_stor_lessons' operator='eq' uiname={contactName} uitype='contact' value={contactId} />
+                                <condition attribute='statecode' operator='eq' value='0' />
+                            </filter>
+                            <link-entity name='contact' from='contactid' to='new_contact_new_stor_lessons' visible='false' link-type='outer' alias='contact'>
+                              <attribute name='mobilephone' />
+                              <attribute name='emailaddress1' />
+                            </link-entity>
+                            <link-entity name='new_disciple_lessons' from='new_disciple_lessonsid' to='new_new_disciple_lessons_new_stor_les' alias='lesson'>
+                              <attribute name='new_name' />
+                            </link-entity>
+                          </entity>
+                        </fetch>";
+
                 var fetchRequest = new RetrieveMultipleRequest
                 {
-                    Query = new FetchExpression(fetchXml)
+                    //Query = new FetchExpression(fetchXml)
+                    Query = new FetchExpression(fetchXmlRemoveConstrain)
                 };
 
                 var response = (RetrieveMultipleResponse)_organizationService.Execute(fetchRequest);
