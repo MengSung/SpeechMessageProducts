@@ -26,6 +26,7 @@ namespace ChurchReport.Filters
             "皇家紫金",
             "勃根地金",
             "陽光黃",
+            "行道靛紫",
             "珊瑚橘"
         };
 
@@ -78,6 +79,8 @@ namespace ChurchReport.Filters
                     return "theme-sunshine-yellow";
                 case "珊瑚橘":
                     return "theme-coral-orange";
+                case "行道靛紫":
+                    return "theme-indigo-purple";
                 case "藍色":
                 default:
                     return "theme-blue";

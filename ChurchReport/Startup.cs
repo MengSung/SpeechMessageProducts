@@ -44,6 +44,7 @@ namespace ChurchReport
             "月光藍",
             "皇家紫金",
             "勃根地金",
+            "行道靛紫",
             "陽光黃",
             "珊瑚橘"
         };
@@ -66,7 +67,7 @@ namespace ChurchReport
         public IConfiguration Configuration { get; }
 
         /// <summary>
-        /// 目前啟用的主題名稱（藍色、橘色、綠色、粉紅色、晨霧紫、月光藍、皇家紫金、勃根地金、陽光黃、珊瑚橘）。
+        /// 目前啟用的主題名稱（藍色、橘色、綠色、粉紅色、晨霧紫、月光藍、皇家紫金、勃根地金、陽光黃、珊瑚橘、行道靛紫）。
         /// </summary>
         public string CurrentTheme { get; }
 
@@ -105,6 +106,8 @@ namespace ChurchReport
                     return "theme-sunshine-yellow";
                 case "珊瑚橘":
                     return "theme-coral-orange";
+                case "行道靛紫":
+                    return "theme-indigo-purple";
                 case "藍色":
                 default:
                     return "theme-blue";
