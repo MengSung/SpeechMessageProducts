@@ -1,113 +1,100 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
-using ToolUtilityNameSpace.Interfaces;
+using ToolUtilityNameSpace.Diagnostics;
 
 namespace ToolUtilityNameSpace.EntityOperations
 {
     /// <summary>
-    /// Àu¤Æªº¹êÅé¬d¸ßªA°È
-    /// ? Phase 3.3: ´£¨Ñ©ú½TÄæ¦ì¬d¸ß¡B§å¶q¬d¸ß¡B¸Ñ¨M N+1 °İÃD
-    /// 
-    /// ³]­p­ì«h:
-    /// 1. ©ú½TÄæ¦ì - Á×§K ColumnSet(true)
-    /// 2. §å¶q¬d¸ß - Á×§K N+1 °İÃD
-    /// 3. «D¦P¨B¤Æ - ´£¤É®Ä¯à
-    /// 4. ®Ä¯àºÊ±± - ÃÑ§OºC¬d¸ß
+    /// å„ªåŒ–ç‰ˆå¯¦é«”æŸ¥è©¢æœå‹™ã€‚
+    /// è¨­è¨ˆé‡é»å¦‚ä¸‹ï¼š
+    /// 1. å„ªå…ˆæ”¯æ´æ˜ç¢ºæ¬„ä½æŸ¥è©¢ï¼Œé™ä½ä¸å¿…è¦æ¬„ä½å‚³è¼¸æˆæœ¬ã€‚
+    /// 2. æä¾›æ‰¹é‡æŸ¥è©¢ï¼Œé¿å…ä¸Šå±¤è½å…¥ N+1 æŸ¥è©¢æ¨¡å¼ã€‚
+    /// 3. éåŒæ­¥ API æ¡ç”¨è¼•é‡åŒ…è£ï¼Œä¸é¡å¤–è£½é€  ThreadPool å£“åŠ›ã€‚
+    /// 4. å…§å»ºæ…¢æŸ¥è©¢è§€æ¸¬èƒ½åŠ›ï¼Œæ–¹ä¾¿åœ¨é«˜æµé‡ç’°å¢ƒå¿«é€Ÿå®šä½ç“¶é ¸ã€‚
     /// </summary>
     public class EntityOptimizedQueryService : IDisposable
     {
         private readonly object _logger;
         private readonly IOrganizationService _organizationService;
-        private bool _disposed = false;
+        private bool _disposed;
 
-        // ? ®Ä¯àºÊ±±ìH­È
-        private const int SLOW_QUERY_THRESHOLD_MS = 2000;  // ºC¬d¸ßìH­È 2 ¬í
-        private const int BATCH_SIZE_LIMIT = 500;          // §å¶q¬d¸ß¤W­­
+        private const int SLOW_QUERY_THRESHOLD_MS = 2000;
+        private const int BATCH_SIZE_LIMIT = 500;
 
+        /// <summary>
+        /// å»ºç«‹æŸ¥è©¢æœå‹™å¯¦ä¾‹ã€‚
+        /// </summary>
         public EntityOptimizedQueryService(object logger, IOrganizationService organizationService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
         }
 
-        #region ³æµ§¬d¸ß (©ú½TÄæ¦ì)
+        #region å–®ç­†æŸ¥è©¢
 
         /// <summary>
-        /// ¬d¸ß³æ¤@¹êÅé («ü©wÄæ¦ì)
-        /// ? Phase 3.3: ©ú½TÄæ¦ì¬d¸ß¡AÁ×§K¨ú±o¤£¥²­nªº¸ê®Æ
+        /// ä¾å¯¦é«”åç¨±èˆ‡å¯¦é«” ID å–å¾—å–®ç­†è³‡æ–™ã€‚
+        /// è‹¥æœªæŒ‡å®šæ¬„ä½ï¼Œæœƒæ²¿ç”¨èˆŠè¡Œç‚ºæŠ“å–å…¨éƒ¨æ¬„ä½ã€‚
         /// </summary>
-        /// <param name="entityName">¹êÅé¦WºÙ</param>
-        /// <param name="entityId">¹êÅé ID</param>
-        /// <param name="columns">­n¬d¸ßªºÄæ¦ì</param>
-        /// <returns>¹êÅé</returns>
         public Entity RetrieveEntity(string entityName, Guid entityId, params string[] columns)
         {
             if (string.IsNullOrEmpty(entityName))
                 throw new ArgumentException("entityName cannot be null or empty", nameof(entityName));
-            
+
             if (entityId == Guid.Empty)
                 throw new ArgumentException("entityId cannot be empty", nameof(entityId));
 
-            var startTime = DateTime.UtcNow;
+            var startTimestamp = Stopwatch.GetTimestamp();
 
             try
             {
-                var columnSet = columns?.Length > 0 
-                    ? new ColumnSet(columns) 
+                var columnSet = columns?.Length > 0
+                    ? new ColumnSet(columns)
                     : new ColumnSet(true);
 
                 var entity = _organizationService.Retrieve(entityName, entityId, columnSet);
 
-                LogQueryPerformance(entityName, "RetrieveEntity", startTime, 1);
-                
+                LogQueryPerformance(entityName, "RetrieveEntity", startTimestamp, 1);
                 return entity;
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, $"RetrieveEntity ¥¢±Ñ: {entityName}, Id={entityId}");
+                SafeLogError(ex, $"RetrieveEntity failed: {entityName}, Id={entityId}");
                 throw;
             }
         }
 
         /// <summary>
-        /// «D¦P¨B¬d¸ß³æ¤@¹êÅé («ü©wÄæ¦ì)
-        /// ? Phase 3.3: «D¦P¨B + ©ú½TÄæ¦ì
+        /// å–®ç­†æŸ¥è©¢çš„éåŒæ­¥åŒ…è£ç‰ˆæœ¬ã€‚
         /// </summary>
-        public async Task<Entity> RetrieveEntityAsync(
-            string entityName, 
-            Guid entityId, 
+        public Task<Entity> RetrieveEntityAsync(
+            string entityName,
+            Guid entityId,
             CancellationToken cancellationToken = default,
             params string[] columns)
         {
-            return await Task.Run(() => 
-                RetrieveEntity(entityName, entityId, columns), 
-                cancellationToken).ConfigureAwait(false);
+            return ExecuteAsync(
+                () => RetrieveEntity(entityName, entityId, columns),
+                cancellationToken);
         }
 
         #endregion
 
-        #region §å¶q¬d¸ß (¸Ñ¨M N+1 °İÃD)
+        #region æ‰¹é‡æŸ¥è©¢
 
         /// <summary>
-        /// §å¶q¬d¸ß¹êÅé (¨Ï¥Î IN ±ø¥ó)
-        /// ? Phase 3.3: ¸Ñ¨M N+1 ¬d¸ß°İÃD¡A¤@¦¸¬d¸ß¦hµ§¸ê®Æ
-        /// 
-        /// ¨Ï¥Î½d¨Ò:
-        /// var ids = new List<Guid> { id1, id2, id3 };
-        /// var entities = RetrieveBatch("contact", ids, "fullname", "mobilephone");
+        /// ä¾å¤šå€‹å¯¦é«” ID ä¸€æ¬¡æ‰¹é‡æŸ¥è©¢è³‡æ–™ã€‚
+        /// å›å‚³å­—å…¸å¯è®“ä¸Šå±¤ä»¥ O(1) æ–¹å¼å¿«é€Ÿæ¯”å°çµæœï¼Œæ¸›å°‘å¾ŒçºŒæŸ¥æ‰¾æˆæœ¬ã€‚
         /// </summary>
-        /// <param name="entityName">¹êÅé¦WºÙ</param>
-        /// <param name="entityIds">¹êÅé ID ¦Cªí</param>
-        /// <param name="columns">­n¬d¸ßªºÄæ¦ì</param>
-        /// <returns>¹êÅé¦r¨å (Key: EntityId, Value: Entity)</returns>
         public Dictionary<Guid, Entity> RetrieveBatch(
-            string entityName, 
-            List<Guid> entityIds, 
+            string entityName,
+            List<Guid> entityIds,
             params string[] columns)
         {
             if (string.IsNullOrEmpty(entityName))
@@ -116,34 +103,28 @@ namespace ToolUtilityNameSpace.EntityOperations
             if (entityIds == null || entityIds.Count == 0)
                 return new Dictionary<Guid, Entity>();
 
-            // ? ­­¨î§å¶q¤j¤p
             if (entityIds.Count > BATCH_SIZE_LIMIT)
             {
-                SafeLogWarning($"§å¶q¬d¸ß¶W¹L­­¨î: {entityIds.Count} > {BATCH_SIZE_LIMIT}¡A«ØÄ³¤À§å¬d¸ß");
+                SafeLogWarning($"Batch query exceeds recommended size: {entityIds.Count} > {BATCH_SIZE_LIMIT}. Consider chunking requests.");
             }
 
-            var startTime = DateTime.UtcNow;
+            var startTimestamp = Stopwatch.GetTimestamp();
 
             try
             {
-                // ? ¨Ï¥Î QueryExpression + IN ±ø¥ó
                 var query = new QueryExpression(entityName)
                 {
-                    ColumnSet = columns?.Length > 0 
-                        ? new ColumnSet(columns) 
+                    ColumnSet = columns?.Length > 0
+                        ? new ColumnSet(columns)
                         : new ColumnSet(true),
-                    
                     Criteria = new FilterExpression(LogicalOperator.And)
                 };
 
-                // ? ¥[¤J ID IN ±ø¥ó
                 query.Criteria.AddCondition(
                     $"{entityName}id",
                     ConditionOperator.In,
-                    entityIds.Cast<object>().ToArray()
-                );
+                    entityIds.Cast<object>().ToArray());
 
-                // ? ¥[¤J¤À­¶¸ê°T
                 query.PageInfo = new PagingInfo
                 {
                     Count = 5000,
@@ -152,46 +133,45 @@ namespace ToolUtilityNameSpace.EntityOperations
 
                 var collection = _organizationService.RetrieveMultiple(query);
 
-                LogQueryPerformance(entityName, "RetrieveBatch", startTime, collection.Entities.Count);
+                LogQueryPerformance(entityName, "RetrieveBatch", startTimestamp, collection.Entities.Count);
 
-                // ? «Ø¥ß¦r¨å¬M®g
-                return collection.Entities.ToDictionary(e => e.Id, e => e);
+                var result = new Dictionary<Guid, Entity>(collection.Entities.Count);
+                foreach (var entity in collection.Entities)
+                {
+                    result[entity.Id] = entity;
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, $"RetrieveBatch ¥¢±Ñ: {entityName}, Count={entityIds.Count}");
+                SafeLogError(ex, $"RetrieveBatch failed: {entityName}, Count={entityIds.Count}");
                 throw;
             }
         }
 
         /// <summary>
-        /// «D¦P¨B§å¶q¬d¸ß
-        /// ? Phase 3.3: «D¦P¨B + §å¶q¬d¸ß
+        /// æ‰¹é‡æŸ¥è©¢çš„éåŒæ­¥åŒ…è£ç‰ˆæœ¬ã€‚
         /// </summary>
-        public async Task<Dictionary<Guid, Entity>> RetrieveBatchAsync(
+        public Task<Dictionary<Guid, Entity>> RetrieveBatchAsync(
             string entityName,
             List<Guid> entityIds,
             CancellationToken cancellationToken = default,
             params string[] columns)
         {
-            return await Task.Run(() => 
-                RetrieveBatch(entityName, entityIds, columns), 
-                cancellationToken).ConfigureAwait(false);
+            return ExecuteAsync(
+                () => RetrieveBatch(entityName, entityIds, columns),
+                cancellationToken);
         }
 
         #endregion
 
-        #region ±ø¥ó¬d¸ß (©ú½TÄæ¦ì)
+        #region æ¢ä»¶æŸ¥è©¢
 
         /// <summary>
-        /// ®Ú¾Ú±ø¥ó¬d¸ß¹êÅé («ü©wÄæ¦ì)
-        /// ? Phase 3.3: ©ú½TÄæ¦ì + ±ø¥ó¬d¸ß
+        /// ä¾æŒ‡å®šæ¢ä»¶æŸ¥è©¢å¯¦é«”é›†åˆã€‚
+        /// è‹¥å‘¼å«ç«¯æ²’æœ‰è‡ªè¡ŒåŠ å…¥ statecode æ¢ä»¶ï¼Œé€™è£¡æœƒè‡ªå‹•è£œä¸Šå•Ÿç”¨ç‹€æ…‹é™åˆ¶ã€‚
         /// </summary>
-        /// <param name="entityName">¹êÅé¦WºÙ</param>
-        /// <param name="filter">¿z¿ï±ø¥ó</param>
-        /// <param name="topCount">³Ì¦hªğ¦^µ§¼Æ</param>
-        /// <param name="columns">­n¬d¸ßªºÄæ¦ì</param>
-        /// <returns>¹êÅé¶°¦X</returns>
         public EntityCollection RetrieveByCondition(
             string entityName,
             FilterExpression filter,
@@ -201,22 +181,19 @@ namespace ToolUtilityNameSpace.EntityOperations
             if (string.IsNullOrEmpty(entityName))
                 throw new ArgumentException("entityName cannot be null or empty", nameof(entityName));
 
-            var startTime = DateTime.UtcNow;
+            var startTimestamp = Stopwatch.GetTimestamp();
 
             try
             {
                 var query = new QueryExpression(entityName)
                 {
-                    ColumnSet = columns?.Length > 0 
-                        ? new ColumnSet(columns) 
+                    ColumnSet = columns?.Length > 0
+                        ? new ColumnSet(columns)
                         : new ColumnSet(true),
-                    
                     TopCount = topCount,
-                    
                     Criteria = filter ?? new FilterExpression(LogicalOperator.And)
                 };
 
-                // ? ½T«O¬d¸ß¬¡°Ê°O¿ı
                 if (!HasStateCodeCondition(query.Criteria))
                 {
                     query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
@@ -224,35 +201,34 @@ namespace ToolUtilityNameSpace.EntityOperations
 
                 var collection = _organizationService.RetrieveMultiple(query);
 
-                LogQueryPerformance(entityName, "RetrieveByCondition", startTime, collection.Entities.Count);
-
+                LogQueryPerformance(entityName, "RetrieveByCondition", startTimestamp, collection.Entities.Count);
                 return collection;
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, $"RetrieveByCondition ¥¢±Ñ: {entityName}");
+                SafeLogError(ex, $"RetrieveByCondition failed: {entityName}");
                 throw;
             }
         }
 
         /// <summary>
-        /// «D¦P¨B±ø¥ó¬d¸ß
+        /// æ¢ä»¶æŸ¥è©¢çš„éåŒæ­¥åŒ…è£ç‰ˆæœ¬ã€‚
         /// </summary>
-        public async Task<EntityCollection> RetrieveByConditionAsync(
+        public Task<EntityCollection> RetrieveByConditionAsync(
             string entityName,
             FilterExpression filter,
             int topCount = 1000,
             CancellationToken cancellationToken = default,
             params string[] columns)
         {
-            return await Task.Run(() => 
-                RetrieveByCondition(entityName, filter, topCount, columns), 
-                cancellationToken).ConfigureAwait(false);
+            return ExecuteAsync(
+                () => RetrieveByCondition(entityName, filter, topCount, columns),
+                cancellationToken);
         }
 
         /// <summary>
-        /// ®Ú¾Ú³æ¤@Äæ¦ì­È¬d¸ß («ü©wÄæ¦ì)
-        /// ? Phase 3.3: Â²¤Æªº±ø¥ó¬d¸ß
+        /// ä¾å–®ä¸€æ¬„ä½å€¼æŸ¥è©¢è³‡æ–™ã€‚
+        /// é©åˆç°¡å–®çš„ç­‰å€¼æŸ¥è©¢æƒ…å¢ƒã€‚
         /// </summary>
         public EntityCollection RetrieveByFieldValue(
             string entityName,
@@ -268,9 +244,9 @@ namespace ToolUtilityNameSpace.EntityOperations
         }
 
         /// <summary>
-        /// «D¦P¨B®Ú¾ÚÄæ¦ì­È¬d¸ß
+        /// å–®ä¸€æ¬„ä½å€¼æŸ¥è©¢çš„éåŒæ­¥åŒ…è£ç‰ˆæœ¬ã€‚
         /// </summary>
-        public async Task<EntityCollection> RetrieveByFieldValueAsync(
+        public Task<EntityCollection> RetrieveByFieldValueAsync(
             string entityName,
             string fieldName,
             object fieldValue,
@@ -278,20 +254,19 @@ namespace ToolUtilityNameSpace.EntityOperations
             CancellationToken cancellationToken = default,
             params string[] columns)
         {
-            return await Task.Run(() => 
-                RetrieveByFieldValue(entityName, fieldName, fieldValue, topCount, columns), 
-                cancellationToken).ConfigureAwait(false);
+            return ExecuteAsync(
+                () => RetrieveByFieldValue(entityName, fieldName, fieldValue, topCount, columns),
+                cancellationToken);
         }
 
         #endregion
 
-        #region ¤À­¶¬d¸ß
+        #region åˆ†é æŸ¥è©¢
 
         /// <summary>
-        /// ¤À­¶¬d¸ß (Á×§K¤@¦¸¸ü¤J¤j¶q¸ê®Æ)
-        /// ? Phase 3.3: ¤À­¶¬d¸ß¡A­°§C°O¾ĞÅé¨Ï¥Î
+        /// ä»¥åˆ†é æ–¹å¼æŸ¥è©¢è³‡æ–™ï¼Œé¿å…å–®æ¬¡è¼‰å…¥éå¤šçµæœã€‚
         /// </summary>
-        public async Task<PagedResult<Entity>> RetrievePagedAsync(
+        public Task<PagedResult<Entity>> RetrievePagedAsync(
             string entityName,
             FilterExpression filter = null,
             int pageSize = 100,
@@ -299,16 +274,13 @@ namespace ToolUtilityNameSpace.EntityOperations
             CancellationToken cancellationToken = default,
             params string[] columns)
         {
-            return await Task.Run(() =>
+            return ExecuteAsync(() =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 var query = new QueryExpression(entityName)
                 {
-                    ColumnSet = columns?.Length > 0 
-                        ? new ColumnSet(columns) 
+                    ColumnSet = columns?.Length > 0
+                        ? new ColumnSet(columns)
                         : new ColumnSet(true),
-
                     PageInfo = new PagingInfo
                     {
                         Count = pageSize,
@@ -326,141 +298,129 @@ namespace ToolUtilityNameSpace.EntityOperations
 
                 return new PagedResult<Entity>
                 {
-                    Entities = result.Entities.ToList(),
+                    Entities = new List<Entity>(result.Entities),
                     TotalCount = result.TotalRecordCount,
                     MoreRecords = result.MoreRecords,
                     PagingCookie = result.PagingCookie
                 };
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
         #endregion
 
-        #region ®Ä¯àºÊ±±
+        #region æ•ˆèƒ½ç›£æ§
 
         /// <summary>
-        /// °O¿ı¬d¸ß®Ä¯à
-        /// ? Phase 3.3: ¦Û°ÊÃÑ§OºC¬d¸ß
+        /// è¨˜éŒ„æŸ¥è©¢è€—æ™‚ï¼Œè¶…éé–¾å€¼æ™‚è¼¸å‡ºè­¦å‘Šã€‚
         /// </summary>
-        private void LogQueryPerformance(string entityName, string method, DateTime startTime, int resultCount)
+        private void LogQueryPerformance(string entityName, string method, long startTimestamp, int resultCount)
         {
-            var duration = DateTime.UtcNow - startTime;
-            var durationMs = duration.TotalMilliseconds;
+            var durationMs = Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds;
 
             if (durationMs > SLOW_QUERY_THRESHOLD_MS)
             {
-                // ? ºC¬d¸ß§iÄµ
-                SafeLogWarning($"ºC¬d¸ß°»´ú: {method} - {entityName}, ¯Ó®É: {durationMs:F0}ms, µ²ªG¼Æ: {resultCount}");
+                SafeLogWarning($"Slow query detected: {method} - {entityName}, Duration: {durationMs:F0}ms, ResultCount: {resultCount}");
             }
         }
 
         /// <summary>
-        /// ÀË¬d¬O§_¤w¦³ statecode ±ø¥ó
+        /// æª¢æŸ¥å‘¼å«ç«¯æ˜¯å¦å·²è‡ªè¡ŒåŠ å…¥ statecode æ¢ä»¶ã€‚
         /// </summary>
         private bool HasStateCodeCondition(FilterExpression filter)
         {
-            if (filter == null) return false;
+            if (filter == null)
+            {
+                return false;
+            }
 
-            return filter.Conditions.Any(c => 
+            return filter.Conditions.Any(c =>
                 c.AttributeName?.Equals("statecode", StringComparison.OrdinalIgnoreCase) == true);
+        }
+
+        /// <summary>
+        /// ä»¥æœ€å°æˆæœ¬åŒ…è£åŒæ­¥æŸ¥è©¢çµæœç‚º Taskã€‚
+        /// ä¸ä½¿ç”¨ Task.Runï¼Œé¿å…åœ¨åŒæ­¥ CRM I/O è·¯å¾‘ä¸Šå¢åŠ å¤šé¤˜çš„æ’ç¨‹æˆæœ¬ã€‚
+        /// </summary>
+        private static Task<T> ExecuteAsync<T>(Func<T> operation, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled<T>(cancellationToken);
+            }
+
+            try
+            {
+                return Task.FromResult(operation());
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled<T>(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<T>(ex);
+            }
         }
 
         #endregion
 
-        #region ¤é»x»²§U¤èªk
+        #region æ—¥èªŒè¼”åŠ©æ–¹æ³•
 
+        /// <summary>
+        /// å®‰å…¨è¨˜éŒ„éŒ¯èª¤ï¼Œä¸è®“è¨˜éŒ„å¤±æ•—åå‘å½±éŸ¿ä¸»è¦æµç¨‹ã€‚
+        /// </summary>
         private void SafeLogError(Exception ex, string message)
         {
             try
             {
-                if (_logger == null) return;
-
-                var loggerType = _logger.GetType();
-                var logMethod = loggerType.GetMethods()
-                    .FirstOrDefault(m => m.Name == "Log" && m.GetParameters().Length == 5 && m.IsGenericMethod);
-
-                if (logMethod != null)
-                {
-                    var genericMethod = logMethod.MakeGenericMethod(typeof(object));
-                    var logLevelType = Type.GetType("Microsoft.Extensions.Logging.LogLevel, Microsoft.Extensions.Logging.Abstractions");
-                    object errorLevel = null;
-                    if (logLevelType != null)
-                    {
-                        errorLevel = Enum.Parse(logLevelType, "Error");
-                    }
-
-                    var eventIdType = Type.GetType("Microsoft.Extensions.Logging.EventId, Microsoft.Extensions.Logging.Abstractions");
-                    object eventId = null;
-                    if (eventIdType != null)
-                    {
-                        eventId = Activator.CreateInstance(eventIdType, 0, string.Empty);
-                    }
-
-                    Func<object, Exception, string> formatter = (s, e) => s?.ToString() ?? string.Empty;
-                    var parameters = new object[] { errorLevel, eventId, message, ex, formatter };
-                    genericMethod.Invoke(_logger, parameters);
-                }
+                LoggerInvoker.LogError(_logger, ex, message);
             }
             catch
             {
-                // Swallow logging errors
+                // æ—¥èªŒéŒ¯èª¤åªåæ‰ï¼Œä¸å¹²æ“¾æŸ¥è©¢ä¸»æµç¨‹ã€‚
             }
         }
 
+        /// <summary>
+        /// å®‰å…¨è¨˜éŒ„è­¦å‘Šè¨Šæ¯ã€‚
+        /// </summary>
         private void SafeLogWarning(string message)
         {
             try
             {
-                if (_logger == null) return;
-
-                var loggerType = _logger.GetType();
-                var logMethod = loggerType.GetMethods()
-                    .FirstOrDefault(m => m.Name == "Log" && m.GetParameters().Length == 5 && m.IsGenericMethod);
-
-                if (logMethod != null)
-                {
-                    var genericMethod = logMethod.MakeGenericMethod(typeof(object));
-                    var logLevelType = Type.GetType("Microsoft.Extensions.Logging.LogLevel, Microsoft.Extensions.Logging.Abstractions");
-                    object warningLevel = null;
-                    if (logLevelType != null)
-                    {
-                        warningLevel = Enum.Parse(logLevelType, "Warning");
-                    }
-
-                    var eventIdType = Type.GetType("Microsoft.Extensions.Logging.EventId, Microsoft.Extensions.Logging.Abstractions");
-                    object eventId = null;
-                    if (eventIdType != null)
-                    {
-                        eventId = Activator.CreateInstance(eventIdType, 0, string.Empty);
-                    }
-
-                    Func<object, Exception, string> formatter = (s, e) => s?.ToString() ?? string.Empty;
-                    var parameters = new object[] { warningLevel, eventId, message, null, formatter };
-                    genericMethod.Invoke(_logger, parameters);
-                }
+                LoggerInvoker.LogWarning(_logger, message);
             }
             catch
             {
-                // Swallow logging errors
+                // æ—¥èªŒéŒ¯èª¤åªåæ‰ï¼Œä¸å¹²æ“¾æŸ¥è©¢ä¸»æµç¨‹ã€‚
             }
         }
 
         #endregion
 
-        #region Dispose Pattern
+        #region è³‡æºé‡‹æ”¾
 
+        /// <summary>
+        /// æ¨™æº– Dispose å¯¦ä½œå…¥å£ã€‚
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
-            if (_disposed) return;
+            if (_disposed)
+            {
+                return;
+            }
 
             if (disposing)
             {
-                // Dispose managed resources if any
+                // ç›®å‰æ²’æœ‰é¡å¤–å—æ§è³‡æºéœ€è¦ä¸»å‹•é‡‹æ”¾ï¼Œä¿ç•™æ“´å……é»ã€‚
             }
 
             _disposed = true;
         }
 
+        /// <summary>
+        /// é‡‹æ”¾ç‰©ä»¶ä¸¦æŠ‘åˆ¶çµ‚çµå™¨ã€‚
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
@@ -471,13 +431,28 @@ namespace ToolUtilityNameSpace.EntityOperations
     }
 
     /// <summary>
-    /// ¤À­¶¬d¸ßµ²ªG
+    /// åˆ†é æŸ¥è©¢çµæœæ¨¡å‹ã€‚
     /// </summary>
     public class PagedResult<T>
     {
+        /// <summary>
+        /// ç•¶å‰é é¢å›å‚³çš„è³‡æ–™é›†åˆã€‚
+        /// </summary>
         public List<T> Entities { get; set; }
+
+        /// <summary>
+        /// è³‡æ–™ä¾†æºå›å ±çš„ç¸½ç­†æ•¸ã€‚
+        /// </summary>
         public int TotalCount { get; set; }
+
+        /// <summary>
+        /// æ˜¯å¦ä»æœ‰å¾ŒçºŒé é¢è³‡æ–™ã€‚
+        /// </summary>
         public bool MoreRecords { get; set; }
+
+        /// <summary>
+        /// CRM åˆ†é æŸ¥è©¢ä½¿ç”¨çš„ paging cookieã€‚
+        /// </summary>
         public string PagingCookie { get; set; }
     }
 }

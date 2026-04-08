@@ -1,4 +1,4 @@
-using Microsoft.Xrm.Sdk;
+ï»¿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using System;
@@ -6,14 +6,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ToolUtilityNameSpace.Diagnostics;
 using ToolUtilityNameSpace.EntityOperations;
 
 namespace ToolUtilityNameSpace.CollectionOperations
 {
     /// <summary>
-    /// ¶°¦X¬d¸ßªA°È¹ê§@
-    /// ¿í´` LINUS ­ì«h: Â²¼ä¡B°ª®Ä¡B¥i´ú¸Õ
-    /// ¤ä´©¦P¨B»P«D¦P¨B¾Ş§@
+    /// é›†åˆæŸ¥è©¢æœå‹™å¯¦ä½œã€‚
+    /// é€™å€‹é¡åˆ¥è² è²¬å°è£å¸¸è¦‹çš„ CRM é›†åˆæŸ¥è©¢æ¨¡å¼ï¼Œ
+    /// ä¿ç•™åŸæœ¬åŒæ­¥ API çš„è¡Œç‚ºï¼ŒåŒæ™‚æä¾›å¯é€æ­¥å°å…¥çš„éåŒæ­¥åŒ…è£æ–¹æ³•ã€‚
+    /// ç”±æ–¼åº•å±¤ CRM SDK ä»ä»¥åŒæ­¥ I/O ç‚ºä¸»ï¼Œé€™è£¡ç‰¹åˆ¥é¿å…é¡å¤–çš„ ThreadPool æ’ç¨‹æˆæœ¬ã€‚
     /// </summary>
     public class CollectionQueryService : ICollectionQueryService
     {
@@ -26,79 +28,58 @@ namespace ToolUtilityNameSpace.CollectionOperations
             _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
         }
 
-        #region ¦P¨B¤èªk («O¯d¦V¤U¬Û®e)
+        #region åŒæ­¥å…¬é–‹ API
 
         /// <summary>
-        /// ®Ú¾ÚÄæ¦ì¬d¸ß¹êÅé¶°¦X (¦P¨B)
+        /// ä¾æŒ‡å®šæ¬„ä½å€¼æŸ¥è©¢å¯¦é«”é›†åˆã€‚
+        /// æ­¤æ–¹æ³•æ²¿ç”¨æ—¢æœ‰çš„åŒæ­¥å‘¼å«æ¨¡å¼ï¼Œä¸¦å›ºå®šåŠ ä¸Šå•Ÿç”¨ç‹€æ…‹æ¢ä»¶ï¼Œ
+        /// ä»¥ç¶­æŒèˆŠç‰ˆç¨‹å¼ç¢¼å°å›å‚³çµæœçš„é æœŸã€‚
         /// </summary>
         public EntityCollection RetrieveEntityCollectionByField(string entityName, string fieldName, string fieldValue)
         {
-            var query = new QueryByAttribute(entityName) { ColumnSet = new ColumnSet(true) };
-            query.Attributes.AddRange(fieldName, "statecode");
-            query.Values.AddRange(fieldValue, 0);
-            return _organizationService.RetrieveMultiple(query);
+            return RetrieveEntityCollectionByFieldCore(entityName, fieldName, fieldValue);
         }
 
         /// <summary>
-        /// ¬d¸ß¶g³ø¸ê®Æ (¦P¨B)
+        /// æŸ¥è©¢æŒ‡å®šä¸»æ—¥å¾€å‰å…©å€‹æœˆå…§çš„é€±å ±è³‡æ–™ã€‚
+        /// é€™æ˜¯åŸæœ‰åŒæ­¥å…¥å£ï¼Œä¿ç•™æ—¢æœ‰æŸ¥è©¢æ¢ä»¶èˆ‡æ’åºæ–¹å¼ã€‚
         /// </summary>
         public EntityCollection QueryWeeklyReportBeforeTowMonthOfSunday(DateTime aSunday, Guid aListEntityId)
         {
-            try
-            {
-                var query = BuildWeeklyReportQuery(aSunday, aListEntityId);
-                
-                var retrieve = new RetrieveMultipleRequest { Query = query };
-                var request = (RetrieveMultipleResponse)_organizationService.Execute(retrieve);
-                
-                return request.EntityCollection;
-            }
-            catch (Exception e)
-            {
-                string errorString = $"ERROR: FullName={GetType().FullName}, Time={DateTime.Now}, Description={e}";
-                throw new InvalidOperationException(errorString, e);
-            }
+            return QueryWeeklyReportBeforeTowMonthOfSundayCore(aSunday, aListEntityId);
         }
 
         #endregion
 
-        #region «D¦P¨B¤èªk (·s¼W)
+        #region éåŒæ­¥å…¬é–‹ API
 
         /// <summary>
-        /// ®Ú¾ÚÄæ¦ì¬d¸ß¹êÅé¶°¦X («D¦P¨B)
+        /// ä¾æŒ‡å®šæ¬„ä½å€¼æŸ¥è©¢å¯¦é«”é›†åˆçš„éåŒæ­¥åŒ…è£ç‰ˆæœ¬ã€‚
         /// </summary>
-        public async Task<EntityCollection> RetrieveEntityCollectionByFieldAsync(
-            string entityName, 
-            string fieldName, 
+        public Task<EntityCollection> RetrieveEntityCollectionByFieldAsync(
+            string entityName,
+            string fieldName,
             string fieldValue,
             CancellationToken cancellationToken = default)
         {
-            return await Task.Run(() =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                
-                var query = new QueryByAttribute(entityName) { ColumnSet = new ColumnSet(true) };
-                query.Attributes.AddRange(fieldName, "statecode");
-                query.Values.AddRange(fieldValue, 0);
-                
-                return _organizationService.RetrieveMultiple(query);
-            }, cancellationToken).ConfigureAwait(false);
+            return ExecuteAsync(
+                () => RetrieveEntityCollectionByFieldCore(entityName, fieldName, fieldValue),
+                cancellationToken);
         }
 
         /// <summary>
-        /// ®Ú¾Ú³æ¤@±ø¥ó¬d¸ß¹êÅé¶°¦X («D¦P¨B)
+        /// ä¾å–®ä¸€æ¢ä»¶æŸ¥è©¢å¯¦é«”é›†åˆã€‚
+        /// é¡å¤–å›ºå®šåŠ å…¥ statecode = 0ï¼Œé¿å…èª¤å–åœç”¨è³‡æ–™ã€‚
         /// </summary>
-        public async Task<EntityCollection> RetrieveEntityCollectionByConditionAsync(
+        public Task<EntityCollection> RetrieveEntityCollectionByConditionAsync(
             string entityName,
             string fieldName,
             ConditionOperator conditionOperator,
             object value,
             CancellationToken cancellationToken = default)
         {
-            return await Task.Run(() =>
+            return ExecuteAsync(() =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                
                 var query = new QueryExpression(entityName)
                 {
                     ColumnSet = new ColumnSet(true),
@@ -112,23 +93,22 @@ namespace ToolUtilityNameSpace.CollectionOperations
                         }
                     }
                 };
-                
+
                 return _organizationService.RetrieveMultiple(query);
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
         /// <summary>
-        /// ®Ú¾Ú¦h­«±ø¥ó¬d¸ß¹êÅé¶°¦X («D¦P¨B)
+        /// ä¾å¤šçµ„æ¬„ä½æ¢ä»¶æŸ¥è©¢å¯¦é«”é›†åˆã€‚
+        /// é©åˆä¸Šå±¤å·²å®Œæˆæ¢ä»¶æ•´ç†ï¼Œåªæƒ³ä¸€æ¬¡é€é€²æŸ¥è©¢å±¤çš„æƒ…å¢ƒã€‚
         /// </summary>
-        public async Task<EntityCollection> RetrieveEntityCollectionByConditionsAsync(
+        public Task<EntityCollection> RetrieveEntityCollectionByConditionsAsync(
             string entityName,
             Dictionary<string, object> conditions,
             CancellationToken cancellationToken = default)
         {
-            return await Task.Run(() =>
+            return ExecuteAsync(() =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                
                 var query = new QueryExpression(entityName)
                 {
                     ColumnSet = new ColumnSet(true),
@@ -137,54 +117,38 @@ namespace ToolUtilityNameSpace.CollectionOperations
                         FilterOperator = LogicalOperator.And
                     }
                 };
-                
+
                 foreach (var condition in conditions)
                 {
                     query.Criteria.Conditions.Add(
                         new ConditionExpression(condition.Key, ConditionOperator.Equal, condition.Value));
                 }
-                
-                // ¹w³]¥u¬d¸ß±Ò¥Îªº°O¿ı
+
                 query.Criteria.Conditions.Add(
                     new ConditionExpression("statecode", ConditionOperator.Equal, 0));
-                
+
                 return _organizationService.RetrieveMultiple(query);
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
         /// <summary>
-        /// ¬d¸ß¶g³ø¸ê®Æ («D¦P¨B)
+        /// æŸ¥è©¢æŒ‡å®šä¸»æ—¥å¾€å‰å…©å€‹æœˆå…§çš„é€±å ±è³‡æ–™ä¹‹éåŒæ­¥åŒ…è£ç‰ˆæœ¬ã€‚
         /// </summary>
-        public async Task<EntityCollection> QueryWeeklyReportBeforeTowMonthOfSundayAsync(
-            DateTime aSunday, 
+        public Task<EntityCollection> QueryWeeklyReportBeforeTowMonthOfSundayAsync(
+            DateTime aSunday,
             Guid aListEntityId,
             CancellationToken cancellationToken = default)
         {
-            return await Task.Run(() =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                
-                try
-                {
-                    var query = BuildWeeklyReportQuery(aSunday, aListEntityId);
-                    
-                    var retrieve = new RetrieveMultipleRequest { Query = query };
-                    var request = (RetrieveMultipleResponse)_organizationService.Execute(retrieve);
-                    
-                    return request.EntityCollection;
-                }
-                catch (Exception e)
-                {
-                    string errorString = $"ERROR: FullName={GetType().FullName}, Time={DateTime.Now}, Description={e}";
-                    throw new InvalidOperationException(errorString, e);
-                }
-            }, cancellationToken).ConfigureAwait(false);
+            return ExecuteAsync(
+                () => QueryWeeklyReportBeforeTowMonthOfSundayCore(aSunday, aListEntityId),
+                cancellationToken);
         }
 
         /// <summary>
-        /// ¤À­¶¬d¸ß¹êÅé¶°¦X («D¦P¨B)
+        /// åŸ·è¡Œåˆ†é æŸ¥è©¢ï¼Œé¿å…ä¸€æ¬¡æŠŠå¤§é‡è³‡æ–™å…¨éƒ¨è¼‰å…¥è¨˜æ†¶é«”ã€‚
+        /// è‹¥æœªæŒ‡å®š filterï¼Œæœƒè‡ªå‹•é™åˆ¶ç‚ºå•Ÿç”¨ä¸­çš„è³‡æ–™ã€‚
         /// </summary>
-        public async Task<PagedResult<Entity>> RetrievePagedEntitiesAsync(
+        public Task<PagedResult<Entity>> RetrievePagedEntitiesAsync(
             string entityName,
             FilterExpression filter = null,
             ColumnSet columnSet = null,
@@ -192,10 +156,8 @@ namespace ToolUtilityNameSpace.CollectionOperations
             string pagingCookie = null,
             CancellationToken cancellationToken = default)
         {
-            return await Task.Run(() =>
+            return ExecuteAsync(() =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                
                 var query = new QueryExpression(entityName)
                 {
                     ColumnSet = columnSet ?? new ColumnSet(true),
@@ -206,14 +168,13 @@ namespace ToolUtilityNameSpace.CollectionOperations
                         PagingCookie = pagingCookie
                     }
                 };
-                
+
                 if (filter != null)
                 {
                     query.Criteria = filter;
                 }
                 else
                 {
-                    // ¹w³]¥u¬d¸ß±Ò¥Îªº°O¿ı
                     query.Criteria = new FilterExpression
                     {
                         Conditions =
@@ -222,33 +183,33 @@ namespace ToolUtilityNameSpace.CollectionOperations
                         }
                     };
                 }
-                
+
                 var result = _organizationService.RetrieveMultiple(query);
-                
+
                 return new PagedResult<Entity>
                 {
-                    Entities = result.Entities.ToList(),
+                    Entities = new List<Entity>(result.Entities),
                     TotalCount = result.TotalRecordCount,
                     MoreRecords = result.MoreRecords,
                     PagingCookie = result.PagingCookie
                 };
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
         /// <summary>
-        /// §å¶q¬d¸ß¹êÅé (¨Ï¥Î IN ±ø¥ó¡A«D¦P¨B)
+        /// ä»¥ IN æ¢ä»¶æ‰¹é‡æŸ¥è©¢å¤šç­†å¯¦é«”ã€‚
+        /// é€™å€‹ç‰ˆæœ¬ç¶­æŒèˆ‡èˆŠä»‹é¢ç›¸å®¹ï¼Œå›å‚³ EntityCollectionã€‚
         /// </summary>
-        public async Task<EntityCollection> RetrieveBatchByIdsAsync(
+        public Task<EntityCollection> RetrieveBatchByIdsAsync(
             string entityName,
             string idFieldName,
             IEnumerable<Guid> ids,
             ColumnSet columnSet = null,
             CancellationToken cancellationToken = default)
         {
-            return await Task.Run(() =>
+            return ExecuteAsync(() =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                
+                var boxedIds = ids.Cast<object>().ToArray();
                 var query = new QueryExpression(entityName)
                 {
                     ColumnSet = columnSet ?? new ColumnSet(true),
@@ -257,79 +218,75 @@ namespace ToolUtilityNameSpace.CollectionOperations
                         FilterOperator = LogicalOperator.And,
                         Conditions =
                         {
-                            new ConditionExpression(idFieldName, ConditionOperator.In, ids.ToArray()),
+                            new ConditionExpression(idFieldName, ConditionOperator.In, boxedIds),
                             new ConditionExpression("statecode", ConditionOperator.Equal, 0)
                         }
                     }
                 };
-                
+
                 return _organizationService.RetrieveMultiple(query);
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
         /// <summary>
-        /// §å¦¸®Ú¾Ú ID ¦Cªí¬d¸ß¹êÅé¡]Á×§K N+1 ¬d¸ß)
-        /// ? Phase 3.1: ·s¼W§å¦¸¬d¸ß¡A®Ä¯à´£¤É 10-100­¿
+        /// æ‰¹æ¬¡ä¾ ID æ¸…å–®æŸ¥è©¢è³‡æ–™ï¼Œä¸¦å›å‚³ä»¥å¯¦é«” ID ç‚ºéµçš„å­—å…¸ã€‚
+        /// é€™å¯ä»¥æœ‰æ•ˆé¿å…ä¸Šå±¤ç”¨è¿´åœˆé€ç­†æŸ¥è©¢é€ æˆçš„ N+1 å•é¡Œã€‚
         /// </summary>
-        public async Task<Dictionary<Guid, Entity>> RetrieveBatchByIdsAsync(
+        public Task<Dictionary<Guid, Entity>> RetrieveBatchByIdsAsync(
             string entityName,
             List<Guid> entityIds,
             ColumnSet columnSet = null,
             CancellationToken cancellationToken = default)
         {
             if (entityIds == null || entityIds.Count == 0)
-                return new Dictionary<Guid, Entity>();
-
-            var result = new Dictionary<Guid, Entity>();
-
-            try
             {
-                // ? ¨Ï¥Î IN ±ø¥ó¤@¦¸¬d¸ß©Ò¦³ ID
-                var query = new QueryExpression(entityName)
+                return Task.FromResult(new Dictionary<Guid, Entity>());
+            }
+
+            return ExecuteAsync(() =>
+            {
+                try
                 {
-                    ColumnSet = columnSet ?? new ColumnSet(true),
-                    Criteria = new FilterExpression(LogicalOperator.And)
-                };
+                    var result = new Dictionary<Guid, Entity>(entityIds.Count);
+                    var query = new QueryExpression(entityName)
+                    {
+                        ColumnSet = columnSet ?? new ColumnSet(true),
+                        Criteria = new FilterExpression(LogicalOperator.And)
+                    };
 
-                // ²K¥[ ID ±ø¥ó
-                query.Criteria.AddCondition(
-                    $"{entityName}id",
-                    ConditionOperator.In,
-                    entityIds.Cast<object>().ToArray()
-                );
+                    query.Criteria.AddCondition(
+                        $"{entityName}id",
+                        ConditionOperator.In,
+                        entityIds.Cast<object>().ToArray());
 
-                // ? ²K¥[¤À­¶¡A¨¾¤î¤@¦¸¬d¸ß¹L¦h
-                query.PageInfo = new PagingInfo
-                {
-                    Count = 5000,
-                    PageNumber = 1
-                };
+                    query.PageInfo = new PagingInfo
+                    {
+                        Count = 5000,
+                        PageNumber = 1
+                    };
 
-                // ? «D¦P¨B°õ¦æ¬d¸ß
-                var collection = await Task.Run(() =>
-                    _organizationService.RetrieveMultiple(query),
-                    cancellationToken).ConfigureAwait(false);
+                    var collection = _organizationService.RetrieveMultiple(query);
 
-                // ? «Ø¥ß¦r¨å¬M®g
-                foreach (var entity in collection.Entities)
-                {
-                    result[entity.Id] = entity;
+                    foreach (var entity in collection.Entities)
+                    {
+                        result[entity.Id] = entity;
+                    }
+
+                    return result;
                 }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                SafeLogError(ex, $"RetrieveBatchByIdsAsync ¿ù»~: {entityName}");
-                throw;
-            }
+                catch (Exception ex)
+                {
+                    SafeLogError(ex, $"RetrieveBatchByIdsAsync failed: {entityName}");
+                    throw;
+                }
+            }, cancellationToken);
         }
 
         /// <summary>
-        /// §å¦¸®Ú¾ÚÄæ¦ì­È¬d¸ß¹êÅé¡]¨Ï¥Î IN ±ø¥ó¡^
-        /// ? Phase 3.1: §å¦¸¬d¸ß¡AÁ×§K´`Àô¬d¸ß
+        /// æ‰¹æ¬¡ä¾æ¬„ä½å€¼é›†åˆæŸ¥è©¢è³‡æ–™ã€‚
+        /// å¸¸ç”¨æ–¼ä¸Šå±¤å·²æ”¶æ–‚å‡ºä¸€æ‰¹å¤–éƒ¨éµå€¼ï¼Œéœ€è¦ä¸€æ¬¡å›æŸ¥å°æ‡‰ CRM è¨˜éŒ„çš„æƒ…å¢ƒã€‚
         /// </summary>
-        public async Task<EntityCollection> RetrieveBatchByFieldValuesAsync(
+        public Task<EntityCollection> RetrieveBatchByFieldValuesAsync(
             string entityName,
             string fieldName,
             List<string> fieldValues,
@@ -337,59 +294,109 @@ namespace ToolUtilityNameSpace.CollectionOperations
             CancellationToken cancellationToken = default)
         {
             if (fieldValues == null || fieldValues.Count == 0)
-                return new EntityCollection();
-
-            try
             {
-                // ? ¨Ï¥Î QueryExpression °t¦X IN ±ø¥ó
-                var query = new QueryExpression(entityName)
-                {
-                    ColumnSet = columnSet ?? new ColumnSet(true),
-                    Criteria = new FilterExpression(LogicalOperator.And)
-                };
-
-                // ? ²K¥[ IN ±ø¥ó
-                query.Criteria.AddCondition(
-                    fieldName,
-                    ConditionOperator.In,
-                    fieldValues.Cast<object>().ToArray()
-                );
-
-                // ²K¥[ statecode ±ø¥ó¡]¥u¬d¸ß¬¡°Ê°O¿ı¡^
-                query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
-
-                // ? ²K¥[¤À­¶
-                query.PageInfo = new PagingInfo
-                {
-                    Count = 5000,
-                    PageNumber = 1
-                };
-
-                // ? «D¦P¨B°õ¦æ
-                var collection = await Task.Run(() =>
-                    _organizationService.RetrieveMultiple(query),
-                    cancellationToken).ConfigureAwait(false);
-
-                return collection;
+                return Task.FromResult(new EntityCollection());
             }
-            catch (Exception ex)
+
+            return ExecuteAsync(() =>
             {
-                SafeLogError(ex, $"RetrieveBatchByFieldValuesAsync ¿ù»~: {entityName}.{fieldName}");
-                throw;
-            }
+                try
+                {
+                    var query = new QueryExpression(entityName)
+                    {
+                        ColumnSet = columnSet ?? new ColumnSet(true),
+                        Criteria = new FilterExpression(LogicalOperator.And)
+                    };
+
+                    query.Criteria.AddCondition(
+                        fieldName,
+                        ConditionOperator.In,
+                        fieldValues.ToArray());
+
+                    query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
+
+                    query.PageInfo = new PagingInfo
+                    {
+                        Count = 5000,
+                        PageNumber = 1
+                    };
+
+                    return _organizationService.RetrieveMultiple(query);
+                }
+                catch (Exception ex)
+                {
+                    SafeLogError(ex, $"RetrieveBatchByFieldValuesAsync failed: {entityName}.{fieldName}");
+                    throw;
+                }
+            }, cancellationToken);
         }
 
         #endregion
 
-        #region ¨p¦³»²§U¤èªk
+        #region ç§æœ‰è¼”åŠ©æ–¹æ³•
 
         /// <summary>
-        /// «Ø¥ß¶g³ø¬d¸ßªí¹F¦¡
-        /// ­«ºc¦@¥ÎÅŞ¿è¡AÁ×§Kµ{¦¡½X­«½Æ
+        /// åŒæ­¥æ ¸å¿ƒå¯¦ä½œï¼šä¾æ¬„ä½å€¼æŸ¥è©¢å•Ÿç”¨ä¸­çš„è³‡æ–™ã€‚
+        /// </summary>
+        private EntityCollection RetrieveEntityCollectionByFieldCore(string entityName, string fieldName, string fieldValue)
+        {
+            var query = new QueryByAttribute(entityName) { ColumnSet = new ColumnSet(true) };
+            query.Attributes.AddRange(fieldName, "statecode");
+            query.Values.AddRange(fieldValue, 0);
+            return _organizationService.RetrieveMultiple(query);
+        }
+
+        /// <summary>
+        /// åŒæ­¥æ ¸å¿ƒå¯¦ä½œï¼šæŸ¥è©¢ä¸»æ—¥å¾€å‰å…©å€‹æœˆçš„é€±å ±è³‡æ–™ã€‚
+        /// </summary>
+        private EntityCollection QueryWeeklyReportBeforeTowMonthOfSundayCore(DateTime aSunday, Guid aListEntityId)
+        {
+            try
+            {
+                var query = BuildWeeklyReportQuery(aSunday, aListEntityId);
+                var retrieve = new RetrieveMultipleRequest { Query = query };
+                var request = (RetrieveMultipleResponse)_organizationService.Execute(retrieve);
+                return request.EntityCollection;
+            }
+            catch (Exception e)
+            {
+                string errorString = $"ERROR: FullName={GetType().FullName}, Time={DateTime.Now}, Description={e}";
+                throw new InvalidOperationException(errorString, e);
+            }
+        }
+
+        /// <summary>
+        /// ä»¥æœ€å°æˆæœ¬æŠŠåŒæ­¥çµæœåŒ…è£æˆ Taskã€‚
+        /// é€™è£¡åˆ»æ„ä¸ä½¿ç”¨ Task.Runï¼Œé¿å…æŠŠåŒæ­¥ CRM I/O å†åŒ…ä¸€å±¤ ThreadPool æ’ç¨‹ï¼Œ
+        /// å¦å‰‡é«˜ä½µç™¼æ™‚åªæœƒå¢åŠ ä¸Šä¸‹æ–‡åˆ‡æ›èˆ‡æ’ç¨‹æˆæœ¬ã€‚
+        /// </summary>
+        private static Task<T> ExecuteAsync<T>(Func<T> operation, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled<T>(cancellationToken);
+            }
+
+            try
+            {
+                return Task.FromResult(operation());
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled<T>(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<T>(ex);
+            }
+        }
+
+        /// <summary>
+        /// å»ºç«‹é€±å ±æŸ¥è©¢æ¢ä»¶èˆ‡æ’åºã€‚
+        /// å–®ç¨æŠ½å‡ºä¾†å¯ä»¥é¿å…åŒæ­¥èˆ‡éåŒæ­¥è·¯å¾‘é‡è¤‡çµ„æŸ¥è©¢ç‰©ä»¶ã€‚
         /// </summary>
         private QueryExpression BuildWeeklyReportQuery(DateTime aSunday, Guid aListEntityId)
         {
-            // «Ø¥ß±ø¥óªí¹F¦¡
             var listCondition = new ConditionExpression
             {
                 AttributeName = "new_list_group_present_weekly_report",
@@ -418,7 +425,6 @@ namespace ToolUtilityNameSpace.CollectionOperations
                 Values = { aSunday }
             };
 
-            // «Ø¥ß¿z¿ï±ø¥ó
             var filter = new FilterExpression
             {
                 FilterOperator = LogicalOperator.And,
@@ -431,14 +437,12 @@ namespace ToolUtilityNameSpace.CollectionOperations
                 }
             };
 
-            // «Ø¥ß±Æ§Ç
             var orderByDate = new OrderExpression
             {
                 AttributeName = "new_sunday_date",
                 OrderType = OrderType.Ascending
             };
 
-            // «Ø¥ß¬d¸ßªí¹F¦¡
             var query = new QueryExpression
             {
                 EntityName = "new_group_present_weekly_report",
@@ -451,44 +455,21 @@ namespace ToolUtilityNameSpace.CollectionOperations
         }
 
         /// <summary>
-        /// ¦w¥şªº¿ù»~¤é»x°O¿ı
+        /// å®‰å…¨è¨˜éŒ„éŒ¯èª¤ï¼Œä¸è®“æ—¥èªŒç³»çµ±åå‘å½±éŸ¿ä¸»æµç¨‹ã€‚
         /// </summary>
         private void SafeLogError(Exception ex, string format, params object[] args)
         {
             try
             {
-                if (_logger == null) return;
-                
-                var loggerType = _logger.GetType();
-                var logMethod = loggerType.GetMethods()
-                    .FirstOrDefault(m => m.Name == "Log" && m.GetParameters().Length == 5 && m.IsGenericMethod);
-                
-                if (logMethod != null)
-                {
-                    var genericMethod = logMethod.MakeGenericMethod(typeof(object));
-                    var logLevelType = Type.GetType("Microsoft.Extensions.Logging.LogLevel, Microsoft.Extensions.Logging.Abstractions");
-                    object errorLevel = null;
-                    if (logLevelType != null)
-                    {
-                        errorLevel = Enum.Parse(logLevelType, "Error");
-                    }
-                    
-                    var eventIdType = Type.GetType("Microsoft.Extensions.Logging.EventId, Microsoft.Extensions.Logging.Abstractions");
-                    object eventId = null;
-                    if (eventIdType != null)
-                    {
-                        eventId = Activator.CreateInstance(eventIdType, 0, string.Empty);
-                    }
-                    
-                    object state = string.Format(format, args);
-                    Func<object, Exception, string> formatter = (s, e) => s?.ToString() ?? string.Empty;
-                    var parameters = new object[] { errorLevel, eventId, state, ex, formatter };
-                    genericMethod.Invoke(_logger, parameters);
-                }
+                var message = args == null || args.Length == 0
+                    ? format
+                    : string.Format(format, args);
+
+                LoggerInvoker.LogError(_logger, ex, message);
             }
             catch
             {
-                // swallow - ¤£Åı¤é»x¿ù»~¼vÅT¥D­n¥\¯à
+                // æ—¥èªŒåªèƒ½è¼”åŠ©è¨ºæ–·ï¼Œä¸èƒ½è®“å®ƒè®Šæˆæ–°çš„æ•…éšœä¾†æºã€‚
             }
         }
 

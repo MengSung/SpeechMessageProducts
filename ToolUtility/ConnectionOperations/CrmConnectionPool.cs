@@ -1,28 +1,21 @@
-using Microsoft.Crm.Sdk.Messages;
+ï»¿using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace ToolUtilityNameSpace.ConnectionOperations
 {
     /// <summary>
-    /// CRM ³s±µ¦À¹ê²{ - Object Pool Pattern
-    /// ¿í´` LINUS ¥N½X­ì«h¡GÂ²¼ä¡B°ª®Ä¡B¥i¾a
-    /// 
-    /// ¥\¯à:
-    /// 1. ³s±µ­«¥Î - ´î¤Ö³s±µ³Ğ«Ø¶}¾P 80%
-    /// 2. ³s±µ°·±dÀË¬d - ½T«O³s±µ¦³®Ä©Ê
-    /// 3. ¦Û°Ê¦^¦¬ - ©w´Á²M²z¶¢¸m³s±µ
-    /// 4. °õ¦æºü¦w¥ş - ¤ä´©¨Ãµo³X°İ
+    /// CRM é€£ç·šæ± å¯¦ä½œï¼Œæ¡ç”¨ Object Pool Patternã€‚
+    /// è¨­è¨ˆç›®æ¨™æ˜¯è®“é«˜ä½µç™¼æƒ…å¢ƒä¸‹çš„ CRM é€£ç·šå…·å‚™å¯é‡ç”¨ã€å¯æ§æˆé•·èˆ‡å¯è§€æ¸¬ç‰¹æ€§ï¼Œ
+    /// ä¸¦é™ä½æ¯æ¬¡å€Ÿé‚„é€£ç·šæ™‚çš„å›ºå®šæˆæœ¬ã€‚
     /// </summary>
     public class CrmConnectionPool : ICrmConnectionPool
     {
-        #region ¨p¦³Äæ¦ì
-        
         private readonly ConcurrentBag<PooledConnection> _connections;
+        private readonly ConcurrentDictionary<IOrganizationService, PooledConnection> _connectionLookup;
         private readonly SemaphoreSlim _semaphore;
         private readonly ICrmConnectionService _connectionService;
         private readonly string _serverUrl;
@@ -32,27 +25,17 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         private readonly int _maxPoolSize;
         private readonly TimeSpan _connectionTimeout;
         private readonly TimeSpan _idleTimeout;
+        private readonly TimeSpan _healthCheckInterval;
         private int _currentSize;
+        private int _waitingRequests;
         private bool _disposed;
         private readonly Timer _cleanupTimer;
         private readonly ConnectionPoolStats _stats;
         private readonly object _statsLock = new object();
 
-        #endregion
-
-        #region «Øºc¦¡
-
         /// <summary>
-        /// «Øºc CRM ³s±µ¦À
+        /// å»ºç«‹ CRM é€£ç·šæ± ã€‚
         /// </summary>
-        /// <param name="connectionService">CRM ³s±µªA°È</param>
-        /// <param name="serverUrl">CRM ¦øªA¾¹ URL</param>
-        /// <param name="username">¨Ï¥ÎªÌ¦WºÙ</param>
-        /// <param name="password">±K½X</param>
-        /// <param name="minPoolSize">³Ì¤p³s±µ¼Æ¡]¹w³] 3¡^</param>
-        /// <param name="maxPoolSize">³Ì¤j³s±µ¼Æ¡]¹w³] 10¡^</param>
-        /// <param name="connectionTimeout">³s±µ¶W®É®É¶¡¡]¹w³] 30 ¬í¡^</param>
-        /// <param name="idleTimeout">¶¢¸m¶W®É®É¶¡¡]¹w³] 10 ¤ÀÄÁ¡^</param>
         public CrmConnectionPool(
             ICrmConnectionService connectionService,
             string serverUrl,
@@ -63,115 +46,106 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             TimeSpan? connectionTimeout = null,
             TimeSpan? idleTimeout = null)
         {
-            // °Ñ¼ÆÅçÃÒ
             _connectionService = connectionService ?? throw new ArgumentNullException(nameof(connectionService));
             _serverUrl = serverUrl ?? throw new ArgumentNullException(nameof(serverUrl));
             _username = username ?? throw new ArgumentNullException(nameof(username));
             _password = password ?? throw new ArgumentNullException(nameof(password));
 
             if (minPoolSize < 1)
-                throw new ArgumentException("³Ì¤p³s±µ¼Æ¥²¶·¤j©ó 0", nameof(minPoolSize));
+                throw new ArgumentException("Minimum pool size must be greater than 0.", nameof(minPoolSize));
             if (maxPoolSize < minPoolSize)
-                throw new ArgumentException("³Ì¤j³s±µ¼Æ¥²¶·¤j©óµ¥©ó³Ì¤p³s±µ¼Æ", nameof(maxPoolSize));
+                throw new ArgumentException("Maximum pool size must be greater than or equal to minimum pool size.", nameof(maxPoolSize));
 
             _minPoolSize = minPoolSize;
             _maxPoolSize = maxPoolSize;
             _connectionTimeout = connectionTimeout ?? TimeSpan.FromSeconds(30);
             _idleTimeout = idleTimeout ?? TimeSpan.FromMinutes(10);
+            _healthCheckInterval = TimeSpan.FromSeconds(30);
 
             _connections = new ConcurrentBag<PooledConnection>();
+            _connectionLookup = new ConcurrentDictionary<IOrganizationService, PooledConnection>();
             _semaphore = new SemaphoreSlim(maxPoolSize, maxPoolSize);
             _currentSize = 0;
-            _disposed = false;
 
-            // ªì©l¤Æ²Î­p¸ê°T
             _stats = new ConnectionPoolStats
             {
                 CreatedAt = DateTime.UtcNow,
                 LastActivityAt = DateTime.UtcNow
             };
 
-            // ¹w¥ı³Ğ«Ø³Ì¤p³s±µ¼Æ
             InitializeMinConnections();
-
-            // ±Ò°Ê²M²z­p®É¾¹¡]¨C¤ÀÄÁÀË¬d¤@¦¸¶¢¸m³s±µ¡^
-            _cleanupTimer = new Timer(CleanupIdleConnections, null, 
-                TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+            _cleanupTimer = new Timer(CleanupIdleConnections, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
         }
 
-        #endregion
-
-        #region ¤½¶}¤èªk
-
         /// <summary>
-        /// ±q³s±µ¦À¨ú±o¥i¥Î³s±µ
+        /// å¾é€£ç·šæ± å–å¾—å¯ç”¨é€£ç·šã€‚
+        /// å„ªå…ˆé‡ç”¨é–’ç½®é€£ç·šï¼Œå¿…è¦æ™‚æ‰å»ºç«‹æ–°é€£ç·šã€‚
+        /// å¥åº·æª¢æŸ¥æ¡ç¯€æµç­–ç•¥ï¼Œé¿å…æ¯æ¬¡å€Ÿå‡ºéƒ½åŸ·è¡Œæ˜‚è²´é©—è­‰ã€‚
         /// </summary>
-        /// <returns>IOrganizationService ³s±µ¹ê¨Ò</returns>
-        /// <exception cref="ObjectDisposedException">³s±µ¦À¤w³QÄÀ©ñ</exception>
-        /// <exception cref="TimeoutException">µLªk¦b«ü©w®É¶¡¤º¨ú±o³s±µ</exception>
         public IOrganizationService AcquireConnection()
         {
             if (_disposed)
                 throw new ObjectDisposedException(nameof(CrmConnectionPool));
 
-            // µ¥«İ¥i¥Î³s±µ¡]±a¶W®É¡^
-            if (!_semaphore.Wait(_connectionTimeout))
+            Interlocked.Increment(ref _waitingRequests);
+            try
             {
-                lock (_statsLock)
+                if (!_semaphore.Wait(_connectionTimeout))
                 {
-                    _stats.TimeoutCount++;
+                    lock (_statsLock)
+                    {
+                        _stats.TimeoutCount++;
+                    }
+
+                    throw new TimeoutException($"Unable to acquire a CRM connection within {_connectionTimeout.TotalSeconds} seconds.");
                 }
-                throw new TimeoutException($"µLªk¦b {_connectionTimeout.TotalSeconds} ¬í¤º¨ú±o CRM ³s±µ");
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _waitingRequests);
             }
 
             try
             {
                 IOrganizationService service = null;
                 PooledConnection pooledConnection = null;
+                var now = DateTime.UtcNow;
 
-                // ¹Á¸Õ±q¦À¤¤¨ú±o¥i¥Î³s±µ
                 while (_connections.TryTake(out pooledConnection))
                 {
-                    // ÀË¬d³s±µ°·±dª¬ºA
-                    if (IsConnectionHealthy(pooledConnection))
+                    if (IsConnectionHealthy(pooledConnection, now))
                     {
-                        // ³s±µ°·±d¡A¼Ğ°O¬°¨Ï¥Î¤¤
                         pooledConnection.IsInUse = true;
-                        pooledConnection.LastUsedAt = DateTime.UtcNow;
+                        pooledConnection.LastUsedAt = now;
                         service = pooledConnection.Service;
                         break;
                     }
-                    else
+
+                    DisposeConnection(pooledConnection);
+                    lock (_statsLock)
                     {
-                        // ³s±µ¤£°·±d¡AÄÀ©ñ¨Ã¹Á¸Õ¤U¤@­Ó
-                        DisposeConnection(pooledConnection);
-                        lock (_statsLock)
-                        {
-                            _stats.ValidationFailureCount++;
-                        }
+                        _stats.ValidationFailureCount++;
                     }
                 }
 
-                // ¦pªG¨S¦³¥i¥Î³s±µ¥B¥¼¹F¤W­­¡A³Ğ«Ø·s³s±µ
-                if (service == null && _currentSize < _maxPoolSize)
+                if (service == null)
                 {
                     pooledConnection = CreateConnection();
                     pooledConnection.IsInUse = true;
-                    pooledConnection.LastUsedAt = DateTime.UtcNow;
+                    pooledConnection.LastUsedAt = now;
                     service = pooledConnection.Service;
                 }
 
-                // §ó·s²Î­p¸ê°T
                 lock (_statsLock)
                 {
                     _stats.TotalAcquireCount++;
-                    _stats.LastActivityAt = DateTime.UtcNow;
+                    _stats.LastActivityAt = now;
                 }
 
                 if (service == null)
                 {
                     _semaphore.Release();
-                    throw new InvalidOperationException("µLªk¨ú±o¦³®Äªº CRM ³s±µ");
+                    throw new InvalidOperationException("Unable to acquire a valid CRM connection.");
                 }
 
                 return service;
@@ -184,9 +158,10 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         }
 
         /// <summary>
-        /// ÂkÁÙ³s±µ¦Ü³s±µ¦À
+        /// å°‡é€£ç·šæ­¸é‚„è‡³é€£ç·šæ± ã€‚
+        /// è‹¥æ­¤é€£ç·šåŸæœ¬ä¸æ˜¯ç”±é€£ç·šæ± å»ºç«‹ï¼Œä»æœƒæš«æ™‚ç´å…¥è¿½è¹¤ï¼Œ
+        /// ä»¥ç¶­æŒå€Ÿé‚„æµç¨‹çš„ä¸€è‡´æ€§ã€‚
         /// </summary>
-        /// <param name="service">­nÂkÁÙªº³s±µ</param>
         public void ReleaseConnection(IOrganizationService service)
         {
             if (_disposed)
@@ -197,22 +172,29 @@ namespace ToolUtilityNameSpace.ConnectionOperations
 
             try
             {
-                // ³Ğ«Ø¦À¤Æ³s±µ¹ï¶H¨ÃÂkÁÙ
-                var pooledConnection = new PooledConnection
+                var now = DateTime.UtcNow;
+                if (!_connectionLookup.TryGetValue(service, out var pooledConnection))
                 {
-                    Service = service,
-                    IsInUse = false,
-                    LastUsedAt = DateTime.UtcNow,
-                    CreatedAt = DateTime.UtcNow // ª`·N¡G³o¸ÌµLªk¨ú±o­ì©l³Ğ«Ø®É¶¡¡A¨Ï¥Î·í«e®É¶¡
-                };
+                    pooledConnection = new PooledConnection
+                    {
+                        Service = service,
+                        CreatedAt = now,
+                        LastUsedAt = now,
+                        LastValidatedAt = now,
+                        PoolOwned = false
+                    };
 
+                    _connectionLookup.TryAdd(service, pooledConnection);
+                }
+
+                pooledConnection.IsInUse = false;
+                pooledConnection.LastUsedAt = now;
                 _connections.Add(pooledConnection);
 
-                // §ó·s²Î­p¸ê°T
                 lock (_statsLock)
                 {
                     _stats.TotalReleaseCount++;
-                    _stats.LastActivityAt = DateTime.UtcNow;
+                    _stats.LastActivityAt = now;
                 }
             }
             finally
@@ -222,28 +204,20 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         }
 
         /// <summary>
-        /// ¨ú±o³s±µ¦À²Î­p¸ê°T
+        /// å–å¾—ç›®å‰é€£ç·šæ± çµ±è¨ˆè³‡æ–™ã€‚
         /// </summary>
-        /// <returns>³s±µ¦À²Î­p¸ê®Æ</returns>
         public ConnectionPoolStats GetStats()
         {
             lock (_statsLock)
             {
-                var activeCount = 0;
-                var idleCount = 0;
+                var idleCount = _connections.Count;
+                var activeCount = Math.Max(0, _maxPoolSize - _semaphore.CurrentCount);
+                var totalConnections = Math.Max(Volatile.Read(ref _currentSize), idleCount + activeCount);
 
-                foreach (var conn in _connections)
-                {
-                    if (conn.IsInUse)
-                        activeCount++;
-                    else
-                        idleCount++;
-                }
-
-                _stats.TotalConnections = _currentSize;
+                _stats.TotalConnections = totalConnections;
                 _stats.ActiveConnections = activeCount;
                 _stats.IdleConnections = idleCount;
-                _stats.WaitingRequests = _maxPoolSize - _semaphore.CurrentCount;
+                _stats.WaitingRequests = Volatile.Read(ref _waitingRequests);
 
                 return new ConnectionPoolStats
                 {
@@ -262,10 +236,8 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         }
 
         /// <summary>
-        /// ÅçÃÒ³s±µ¬O§_¦³®Ä
+        /// ç«‹å³é©—è­‰æŒ‡å®šé€£ç·šæ˜¯å¦æœ‰æ•ˆã€‚
         /// </summary>
-        /// <param name="service">­nÅçÃÒªº³s±µ</param>
-        /// <returns>true ªí¥Ü³s±µ¦³®Ä</returns>
         public bool ValidateConnection(IOrganizationService service)
         {
             if (service == null)
@@ -273,7 +245,6 @@ namespace ToolUtilityNameSpace.ConnectionOperations
 
             try
             {
-                // °õ¦æ WhoAmI ½Ğ¨D´ú¸Õ³s±µ
                 var request = new WhoAmIRequest();
                 var response = (WhoAmIResponse)service.Execute(request);
                 return response.UserId != Guid.Empty;
@@ -284,12 +255,8 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             }
         }
 
-        #endregion
-
-        #region ¨p¦³¤èªk
-
         /// <summary>
-        /// ªì©l¤Æ³Ì¤p³s±µ¼Æ
+        /// é å…ˆå»ºç«‹æœ€å°æ•¸é‡çš„é€£ç·šï¼Œé™ä½ç¬¬ä¸€æ³¢æµé‡çš„å†·å•Ÿå‹•å»¶é²ã€‚
         /// </summary>
         private void InitializeMinConnections()
         {
@@ -302,46 +269,71 @@ namespace ToolUtilityNameSpace.ConnectionOperations
                 }
                 catch (Exception ex)
                 {
-                    // °O¿ı¿ù»~¦ıÄ~Äòªì©l¤Æ¨ä¥L³s±µ
-                    System.Diagnostics.Debug.WriteLine($"ªì©l¤Æ³s±µ¥¢±Ñ: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Failed to initialize pooled CRM connection: {ex.Message}");
                 }
             }
         }
 
         /// <summary>
-        /// ³Ğ«Ø·s³s±µ
+        /// å»ºç«‹æ–°çš„æ± åŒ–é€£ç·šä¸¦ç™»éŒ„åˆ°æŸ¥æ‰¾è¡¨ã€‚
         /// </summary>
-        /// <returns>¦À¤Æ³s±µ¹ï¶H</returns>
         private PooledConnection CreateConnection()
         {
-            var service = _connectionService.CreateOnPremiseClient(_serverUrl, _username, _password);
-            Interlocked.Increment(ref _currentSize);
-
-            return new PooledConnection
+            if (!TryReserveConnectionSlot())
             {
-                Service = service,
-                CreatedAt = DateTime.UtcNow,
-                LastUsedAt = DateTime.UtcNow,
-                IsInUse = false
-            };
+                throw new InvalidOperationException("CRM connection pool reached the configured maximum size.");
+            }
+
+            try
+            {
+                var now = DateTime.UtcNow;
+                var service = _connectionService.CreateOnPremiseClient(_serverUrl, _username, _password);
+                var connection = new PooledConnection
+                {
+                    Service = service,
+                    CreatedAt = now,
+                    LastUsedAt = now,
+                    LastValidatedAt = now,
+                    IsInUse = false,
+                    PoolOwned = true
+                };
+
+                _connectionLookup[service] = connection;
+                return connection;
+            }
+            catch
+            {
+                Interlocked.Decrement(ref _currentSize);
+                throw;
+            }
         }
 
         /// <summary>
-        /// ÀË¬d³s±µ¬O§_°·±d
+        /// æª¢æŸ¥é€£ç·šå¥åº·ç‹€æ…‹ã€‚
+        /// è‹¥è·é›¢ä¸Šæ¬¡é©—è­‰ä»åœ¨ç¯€æµå€é–“å…§ï¼Œç›´æ¥è¦–ç‚ºå¯ç”¨ï¼Œ
+        /// ä»¥é¿å…åœ¨é«˜é »å€Ÿç”¨è·¯å¾‘ä¸Šé‡è¤‡åŸ·è¡Œ WhoAmIã€‚
         /// </summary>
-        /// <param name="connection">­nÀË¬dªº³s±µ</param>
-        /// <returns>true ªí¥Ü³s±µ°·±d</returns>
-        private bool IsConnectionHealthy(PooledConnection connection)
+        private bool IsConnectionHealthy(PooledConnection connection, DateTime now)
         {
             if (connection?.Service == null)
                 return false;
 
+            if ((now - connection.LastValidatedAt) < _healthCheckInterval)
+            {
+                return true;
+            }
+
             try
             {
-                // °õ¦æÂ²³æ¬d¸ß´ú¸Õ³s±µ¡]¨Ï¥Î WhoAmI §ó»´¶q¡^
                 var request = new WhoAmIRequest();
                 var response = (WhoAmIResponse)connection.Service.Execute(request);
-                return response.UserId != Guid.Empty;
+                var isHealthy = response.UserId != Guid.Empty;
+                if (isHealthy)
+                {
+                    connection.LastValidatedAt = now;
+                }
+
+                return isHealthy;
             }
             catch
             {
@@ -350,9 +342,9 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         }
 
         /// <summary>
-        /// ²M²z¶¢¸m³s±µ¡]©w®É¾¹¦^½Õ¡^
+        /// æ¸…ç†é•·æ™‚é–“é–’ç½®çš„æ± å…§é€£ç·šã€‚
+        /// åƒ…æœƒæ¸…ç†ç”±æ± è‡ªè¡Œå»ºç«‹ï¼Œä¸”è¶…éæœ€å°æ± å¤§å°çš„é–’ç½®é€£ç·šã€‚
         /// </summary>
-        /// <param name="state">ª¬ºA¹ï¶H</param>
         private void CleanupIdleConnections(object state)
         {
             if (_disposed)
@@ -361,66 +353,86 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             try
             {
                 var now = DateTime.UtcNow;
-                var connectionsToRemove = new ConcurrentBag<PooledConnection>();
-                var tempConnections = new ConcurrentBag<PooledConnection>();
+                var connectionsToRemove = new List<PooledConnection>();
+                var tempConnections = new List<PooledConnection>();
 
-                // ¦¬¶°»İ­n²M²zªº³s±µ
                 while (_connections.TryTake(out var connection))
                 {
-                    if (!connection.IsInUse && 
-                        (now - connection.LastUsedAt) > _idleTimeout && 
-                        _currentSize > _minPoolSize)
+                    if (!connection.IsInUse &&
+                        connection.PoolOwned &&
+                        (now - connection.LastUsedAt) > _idleTimeout &&
+                        Volatile.Read(ref _currentSize) > _minPoolSize)
                     {
                         connectionsToRemove.Add(connection);
                     }
                     else
                     {
-                        // «O¯d³s±µ
                         tempConnections.Add(connection);
                     }
                 }
 
-                // ±N«O¯dªº³s±µ©ñ¦^¦À¤¤
-                foreach (var conn in tempConnections)
+                foreach (var connection in tempConnections)
                 {
-                    _connections.Add(conn);
+                    _connections.Add(connection);
                 }
 
-                // ÄÀ©ñ¶¢¸m³s±µ
-                foreach (var conn in connectionsToRemove)
+                foreach (var connection in connectionsToRemove)
                 {
-                    DisposeConnection(conn);
+                    DisposeConnection(connection);
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"²M²z¶¢¸m³s±µ®Éµo¥Í¿ù»~: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Failed to clean idle CRM connections: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// ÄÀ©ñ³æ­Ó³s±µ
+        /// é‡‹æ”¾å–®ä¸€æ± åŒ–é€£ç·šï¼Œä¸¦åŒæ­¥æ›´æ–°æŸ¥æ‰¾è¡¨èˆ‡å¤§å°è¨ˆæ•¸ã€‚
         /// </summary>
-        /// <param name="connection">­nÄÀ©ñªº³s±µ</param>
         private void DisposeConnection(PooledConnection connection)
         {
             try
             {
-                (connection.Service as IDisposable)?.Dispose();
-                Interlocked.Decrement(ref _currentSize);
+                if (connection?.Service != null)
+                {
+                    _connectionLookup.TryRemove(connection.Service, out _);
+                }
+
+                (connection?.Service as IDisposable)?.Dispose();
+                if (connection != null && connection.PoolOwned)
+                {
+                    Interlocked.Decrement(ref _currentSize);
+                }
             }
             catch
             {
-                // ©¿²¤ÄÀ©ñ¿ù»~
+                // é‡‹æ”¾å¤±æ•—ä¸å†å¾€å¤–æ‹‹ï¼Œé¿å…æ¸…ç†æµç¨‹ä¸­æ–·ã€‚
             }
         }
 
-        #endregion
+        /// <summary>
+        /// å˜—è©¦é ç•™ä¸€å€‹æ–°çš„é€£ç·šåé¡ï¼Œé¿å…å¤šåŸ·è¡Œç·’åŒæ™‚è¶…é¡å»ºç«‹é€£ç·šã€‚
+        /// </summary>
+        private bool TryReserveConnectionSlot()
+        {
+            while (true)
+            {
+                var currentSize = Volatile.Read(ref _currentSize);
+                if (currentSize >= _maxPoolSize)
+                {
+                    return false;
+                }
 
-        #region IDisposable ¹ê²{
+                if (Interlocked.CompareExchange(ref _currentSize, currentSize + 1, currentSize) == currentSize)
+                {
+                    return true;
+                }
+            }
+        }
 
         /// <summary>
-        /// ÄÀ©ñ³s±µ¦À¸ê·½
+        /// é‡‹æ”¾æ•´å€‹é€£ç·šæ± ã€‚
         /// </summary>
         public void Dispose()
         {
@@ -428,50 +440,49 @@ namespace ToolUtilityNameSpace.ConnectionOperations
                 return;
 
             _disposed = true;
-
-            // °±¤î²M²z­p®É¾¹
             _cleanupTimer?.Dispose();
-
-            // ÄÀ©ñ«H¸¹¶q
             _semaphore?.Dispose();
 
-            // ÄÀ©ñ©Ò¦³³s±µ
             while (_connections.TryTake(out var connection))
             {
                 DisposeConnection(connection);
             }
         }
 
-        #endregion
-
-        #region ¤º³¡Ãş§O
-
         /// <summary>
-        /// ¦À¤Æ³s±µ¥]¸ËÃş
+        /// é€£ç·šæ± å…§éƒ¨ä½¿ç”¨çš„æ± åŒ–é€£ç·šåŒ…è£ç‰©ä»¶ã€‚
         /// </summary>
         private class PooledConnection
         {
             /// <summary>
-            /// CRM ³s±µªA°È
+            /// å¯¦éš›çš„ CRM æœå‹™é€£ç·šã€‚
             /// </summary>
             public IOrganizationService Service { get; set; }
 
             /// <summary>
-            /// ³s±µ³Ğ«Ø®É¶¡
+            /// é€£ç·šå»ºç«‹æ™‚é–“ã€‚
             /// </summary>
             public DateTime CreatedAt { get; set; }
 
             /// <summary>
-            /// ³Ì«á¨Ï¥Î®É¶¡
+            /// æœ€å¾Œä¸€æ¬¡å€Ÿå‡ºæˆ–æ­¸é‚„æ™‚é–“ã€‚
             /// </summary>
             public DateTime LastUsedAt { get; set; }
 
             /// <summary>
-            /// ¬O§_¥¿¦b¨Ï¥Î¤¤
+            /// æœ€å¾Œä¸€æ¬¡å¥åº·æª¢æŸ¥é€šéæ™‚é–“ã€‚
+            /// </summary>
+            public DateTime LastValidatedAt { get; set; }
+
+            /// <summary>
+            /// æ˜¯å¦æ­£è¢«å¤–éƒ¨ä½¿ç”¨ä¸­ã€‚
             /// </summary>
             public bool IsInUse { get; set; }
-        }
 
-        #endregion
+            /// <summary>
+            /// æ˜¯å¦ç”±é€£ç·šæ± è‡ªè¡Œå»ºç«‹ã€‚
+            /// </summary>
+            public bool PoolOwned { get; set; }
+        }
     }
 }
