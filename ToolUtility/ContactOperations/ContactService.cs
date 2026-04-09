@@ -1,20 +1,18 @@
-using System;
-using System.Linq;
+ï»¿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
-using ToolUtilityNameSpace.EntityOperations;
-using ToolUtilityNameSpace.Extensions;
+using ToolUtilityNameSpace.Diagnostics;
 using ToolUtilityNameSpace.Caching;
 
 namespace ToolUtilityNameSpace.ContactOperations
 {
     /// <summary>
-    /// Ápµ¸¤HªA°È
-    /// ? Phase 3.2: ¾ã¦X§Ö¨ú¾÷¨î
-    /// ®Ä¯à´£¤É: ´î¤Ö 70% ­«½Æ¬d¸ß
+    /// è¯çµ¡äººæœå‹™
+    /// ? Phase 3.2: æ•´åˆå¿«å–æ©Ÿåˆ¶
+    /// æ•ˆèƒ½æå‡: æ¸›å°‘ 70% é‡è¤‡æŸ¥è©¢
     /// </summary>
     public class ContactService : IContactService
     {
@@ -22,73 +20,68 @@ namespace ToolUtilityNameSpace.ContactOperations
         private readonly IOrganizationService _organizationService;
         private readonly ICrmCacheService _cacheService;
 
-        // ? ¤ä´©µL§Ö¨úªºÂÂª©ºc³y¨ç¼Æ¡]¦V¤U¬Û®e¡^
+        // ? æ”¯æ´ç„¡å¿«å–çš„èˆŠç‰ˆæ§‹é€ å‡½æ•¸ï¼ˆå‘ä¸‹ç›¸å®¹ï¼‰
         public ContactService(object logger, IOrganizationService organizationService)
             : this(logger, organizationService, null)
         {
         }
 
-        // ? ·sª©ºc³y¨ç¼Æ¡A¤ä´©§Ö¨úª`¤J
+        // ? æ–°ç‰ˆæ§‹é€ å‡½æ•¸ï¼Œæ”¯æ´å¿«å–æ³¨å…¥
         public ContactService(object logger, IOrganizationService organizationService, ICrmCacheService cacheService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
-            _cacheService = cacheService;  // ¥i¬° null¡A¤£±j¨î¨Ï¥Î§Ö¨ú
+            _cacheService = cacheService;  // å¯ç‚º nullï¼Œä¸å¼·åˆ¶ä½¿ç”¨å¿«å–
         }
 
-        #region ±a§Ö¨úªº«D¦P¨B¤èªk
+        #region å¸¶å¿«å–çš„éåŒæ­¥æ–¹æ³•
 
         /// <summary>
-        /// ®Ú¾Ú Line ID ¬d¸ßÁpµ¸¤H¡]±a§Ö¨ú¡^
-        /// ? Phase 3.2: §Ö¨ú 10 ¤ÀÄÁ
+        /// æ ¹æ“š Line ID æŸ¥è©¢è¯çµ¡äººï¼ˆå¸¶å¿«å–ï¼‰
+        /// ? Phase 3.2: å¿«å– 10 åˆ†é˜
         /// </summary>
         public async Task<Entity> RetrieveByLineIdAsync(string lineId, CancellationToken cancellationToken = default)
         {
-            // ? ¦pªG¦³§Ö¨úªA°È¡A¨Ï¥Î§Ö¨ú
+            // ? å¦‚æœæœ‰å¿«å–æœå‹™ï¼Œä½¿ç”¨å¿«å–
             if (_cacheService != null)
             {
                 return await _cacheService.GetOrCreateContactAsync(
                     lineId,
                     "LineId",
-                    async () => await Task.Run(() => RetrieveByLineId(lineId), cancellationToken),
+                    () => ExecuteAsync(() => RetrieveByLineId(lineId), cancellationToken),
                     cancellationToken);
             }
 
-            // ¨S¦³§Ö¨ú¡Aª½±µ¬d¸ß
-            return await Task.Run(() => RetrieveByLineId(lineId), cancellationToken);
+            // æ²’æœ‰å¿«å–ï¼Œç›´æ¥æŸ¥è©¢
+            return await ExecuteAsync(() => RetrieveByLineId(lineId), cancellationToken);
         }
 
         /// <summary>
-        /// ®Ú¾Ú±b¸¹©M±K½X¬d¸ßÁpµ¸¤H¡]±a§Ö¨ú¡^
-        /// ? Phase 3.2: §Ö¨ú 10 ¤ÀÄÁ
+        /// æ ¹æ“šå¸³è™Ÿå’Œå¯†ç¢¼æŸ¥è©¢è¯çµ¡äººï¼ˆå¸¶å¿«å–ï¼‰
+        /// ? Phase 3.2: å¿«å– 10 åˆ†é˜
         /// </summary>
         public async Task<Entity> RetrieveByAccountNumberAsync(
             string accountNumber, 
             string password,
             CancellationToken cancellationToken = default)
         {
-            // ±K½X¤£°Ñ»P§Ö¨úÁä¡A¨Ï¥Î±b¸¹§@¬°Áä
+            // å¯†ç¢¼ä¸åƒèˆ‡å¿«å–éµï¼Œä½¿ç”¨å¸³è™Ÿä½œç‚ºéµ
             if (_cacheService != null)
             {
                 var cacheKey = $"Contact:Account:{accountNumber}";
                 return await _cacheService.GetOrCreateAsync(
                     cacheKey,
-                    async () =>
-                    {
-                        var entity = await Task.Run(() => RetrieveByAccountNumber(accountNumber, password), cancellationToken);
-                        // ÅçÃÒ±K½X¥¢±Ñ®É¤£§Ö¨ú
-                        return entity;
-                    },
+                    () => ExecuteAsync(() => RetrieveByAccountNumber(accountNumber, password), cancellationToken),
                     TimeSpan.FromMinutes(10),
                     cancellationToken);
             }
 
-            return await Task.Run(() => RetrieveByAccountNumber(accountNumber, password), cancellationToken);
+            return await ExecuteAsync(() => RetrieveByAccountNumber(accountNumber, password), cancellationToken);
         }
 
         /// <summary>
-        /// ®Ú¾Ú©m¦W¬d¸ßÁpµ¸¤H¡]±a§Ö¨ú¡^
-        /// ? Phase 3.2: §Ö¨ú 5 ¤ÀÄÁ
+        /// æ ¹æ“šå§“åæŸ¥è©¢è¯çµ¡äººï¼ˆå¸¶å¿«å–ï¼‰
+        /// ? Phase 3.2: å¿«å– 5 åˆ†é˜
         /// </summary>
         public async Task<Entity> RetrieveByFullNameAsync(string fullName, CancellationToken cancellationToken = default)
         {
@@ -97,16 +90,16 @@ namespace ToolUtilityNameSpace.ContactOperations
                 return await _cacheService.GetOrCreateContactAsync(
                     fullName,
                     "FullName",
-                    async () => await Task.Run(() => RetrieveByFullName(fullName), cancellationToken),
+                    () => ExecuteAsync(() => RetrieveByFullName(fullName), cancellationToken),
                     cancellationToken);
             }
 
-            return await Task.Run(() => RetrieveByFullName(fullName), cancellationToken);
+            return await ExecuteAsync(() => RetrieveByFullName(fullName), cancellationToken);
         }
 
         #endregion
 
-        #region ­ì¦³¦P¨B¤èªk¡]«O¯d¦V¤U¬Û®e¡^
+        #region åŸæœ‰åŒæ­¥æ–¹æ³•ï¼ˆä¿ç•™å‘ä¸‹ç›¸å®¹ï¼‰
 
         public Entity RetrieveByContactId(string contactId)
         {
@@ -214,9 +207,9 @@ namespace ToolUtilityNameSpace.ContactOperations
             var entity = RetrieveByAccountNumber(accountNumber, password);
             if (entity != null) return entity.Id.ToString();
             var exists = RetrieveAccountEntity(accountNumber);
-            if (exists == null) return "±b¸¹¿ù»~";
-            if (!exists.Contains("new_app_pass")) return "¨t²Î¨S¦³³]©w±K½X";
-            return "±K½X¿ù»~";
+            if (exists == null) return "å¸³è™ŸéŒ¯èª¤";
+            if (!exists.Contains("new_app_pass")) return "ç³»çµ±æ²’æœ‰è¨­å®šå¯†ç¢¼";
+            return "å¯†ç¢¼éŒ¯èª¤";
         }
 
         public Entity RetrieveAccountEntity(string accountNumber)
@@ -254,28 +247,28 @@ namespace ToolUtilityNameSpace.ContactOperations
         }
 
         /// <summary>
-        /// ¨Ï¥Î FetchXML ¬d¸ß©^ÄmÁpµ¸¤H
-        /// ¤ä´©¦h­Ó±ø¥ó½Æ¦X¬d¸ß(ORÅŞ¿è): ©^Äm½s¸¹¡B©m¦W¡B¥«¸Ü¹q¸Ü¡B¤â¾÷¡B¨­¤ÀÃÒ¦r¸¹¡B¦í§}«á¤»¦r½X
+        /// ä½¿ç”¨ FetchXML æŸ¥è©¢å¥‰ç»è¯çµ¡äºº
+        /// æ”¯æ´å¤šå€‹æ¢ä»¶è¤‡åˆæŸ¥è©¢(ORé‚è¼¯): å¥‰ç»ç·¨è™Ÿã€å§“åã€å¸‚è©±é›»è©±ã€æ‰‹æ©Ÿã€èº«åˆ†è­‰å­—è™Ÿã€ä½å€å¾Œå…­å­—ç¢¼
         /// </summary>
         public EntityCollection QueryDediccationContatsByFetchXml(string dedicationNumber, string contactName, string homePhone, string mobile, string nationId, string lastSixDigit)
         {
             try
             {
-                // ¹LÂo¹LÂoªÅªº¬d¸ß±ø¥ó
-                bool hasDedicationNumber = !string.IsNullOrWhiteSpace(dedicationNumber) && !dedicationNumber.StartsWith("½Ğ¿é¤J");
-                bool hasContactName = !string.IsNullOrWhiteSpace(contactName) && !contactName.StartsWith("½Ğ¿é¤J");
-                bool hasHomePhone = !string.IsNullOrWhiteSpace(homePhone) && !homePhone.StartsWith("½Ğ¿é¤J");
-                bool hasMobile = !string.IsNullOrWhiteSpace(mobile) && !mobile.StartsWith("½Ğ¿é¤J");
-                bool hasNationId = !string.IsNullOrWhiteSpace(nationId) && !nationId.StartsWith("½Ğ¿é¤J");
-                bool hasLastSixDigit = !string.IsNullOrWhiteSpace(lastSixDigit) && !lastSixDigit.StartsWith("½Ğ¿é¤J");
+                // éæ¿¾éæ¿¾ç©ºçš„æŸ¥è©¢æ¢ä»¶
+                bool hasDedicationNumber = !string.IsNullOrWhiteSpace(dedicationNumber) && !dedicationNumber.StartsWith("è«‹è¼¸å…¥");
+                bool hasContactName = !string.IsNullOrWhiteSpace(contactName) && !contactName.StartsWith("è«‹è¼¸å…¥");
+                bool hasHomePhone = !string.IsNullOrWhiteSpace(homePhone) && !homePhone.StartsWith("è«‹è¼¸å…¥");
+                bool hasMobile = !string.IsNullOrWhiteSpace(mobile) && !mobile.StartsWith("è«‹è¼¸å…¥");
+                bool hasNationId = !string.IsNullOrWhiteSpace(nationId) && !nationId.StartsWith("è«‹è¼¸å…¥");
+                bool hasLastSixDigit = !string.IsNullOrWhiteSpace(lastSixDigit) && !lastSixDigit.StartsWith("è«‹è¼¸å…¥");
 
-                // ¦pªG¨S¦³¥ô¦ó¦³®Äªº¬d¸ß±ø¥ó,ªğ¦^ªÅ¶°¦X
+                // å¦‚æœæ²’æœ‰ä»»ä½•æœ‰æ•ˆçš„æŸ¥è©¢æ¢ä»¶,è¿”å›ç©ºé›†åˆ
                 if (!hasDedicationNumber && !hasContactName && !hasHomePhone && !hasMobile && !hasNationId && !hasLastSixDigit)
                 {
                     return new EntityCollection();
                 }
 
-                // ºc«Ø±ø¥ó¦r¦ê
+                // æ§‹å»ºæ¢ä»¶å­—ä¸²
                 var conditions = new System.Text.StringBuilder();
                 
                 if (hasDedicationNumber)
@@ -296,7 +289,7 @@ namespace ToolUtilityNameSpace.ContactOperations
                 if (hasLastSixDigit)
                     conditions.AppendLine($"                    <condition attribute='new_last_six_digit' operator='like' value='%{System.Security.SecurityElement.Escape(lastSixDigit)}%' />");
 
-                // ? ²K¥[ top ­­¨î
+                // ? æ·»åŠ  top é™åˆ¶
                 var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='100'>
                               <entity name='contact'>
                                 <attribute name='fullname' />
@@ -328,14 +321,14 @@ namespace ToolUtilityNameSpace.ContactOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "QueryDediccationContatsByFetchXml µo¥Í¿ù»~");
+                SafeLogError(ex, "QueryDediccationContatsByFetchXml ç™¼ç”ŸéŒ¯èª¤");
                 throw;
             }
         }
 
         /// <summary>
-        /// ®Ú¾Ú¶}ÀY©^Äm½s¸¹¬d¸ßÁpµ¸¤H (³Ì«e3­Ó,³Ì©^Äm½s¸¹±Æ§Ç)
-        /// ? Phase 3.1: ¤w¦³ top ­­¨î
+        /// æ ¹æ“šé–‹é ­å¥‰ç»ç·¨è™ŸæŸ¥è©¢è¯çµ¡äºº (æœ€å‰3å€‹,æœ€å¥‰ç»ç·¨è™Ÿæ’åº)
+        /// ? Phase 3.1: å·²æœ‰ top é™åˆ¶
         /// </summary>
         public EntityCollection QueryContatsByStartedDedicationNumber(string dedicationStartNumber)
         {
@@ -368,23 +361,23 @@ namespace ToolUtilityNameSpace.ContactOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "QueryContatsByStartedDedicationNumber µo¥Í¿ù»~");
+                SafeLogError(ex, "QueryContatsByStartedDedicationNumber ç™¼ç”ŸéŒ¯èª¤");
                 throw;
             }
         }
 
         #endregion
 
-        #region ¨p¦³»²§U¤èªk
+        #region ç§æœ‰è¼”åŠ©æ–¹æ³•
 
         private string FormatContactInfo(Entity e)
         {
             if (e == null) return string.Empty;
             var sb = new System.Text.StringBuilder();
-            if (e.Contains("fullname")) sb.AppendLine("©m¦W:" + e["fullname"].ToString());
-            if (e.Contains("build_customer_id")) sb.AppendLine("«È¤á¦r¸¹:" + e["build_customer_id"].ToString());
-            if (e.Contains("telephone1")) sb.AppendLine("¹q¸Ü¸¹½X:" + e["telephone1"].ToString());
-            if (e.Contains("emailaddress1")) sb.AppendLine("¹q¤l¶l¥ó:" + e["emailaddress1"].ToString());
+            if (e.Contains("fullname")) sb.AppendLine("å§“å:" + e["fullname"].ToString());
+            if (e.Contains("build_customer_id")) sb.AppendLine("å®¢æˆ¶å­—è™Ÿ:" + e["build_customer_id"].ToString());
+            if (e.Contains("telephone1")) sb.AppendLine("é›»è©±è™Ÿç¢¼:" + e["telephone1"].ToString());
+            if (e.Contains("emailaddress1")) sb.AppendLine("é›»å­éƒµä»¶:" + e["emailaddress1"].ToString());
             return sb.ToString();
         }
 
@@ -392,34 +385,32 @@ namespace ToolUtilityNameSpace.ContactOperations
         {
             try
             {
-                if (_logger == null) return;
-                var loggerType = _logger.GetType();
-                var logMethod = loggerType.GetMethods()
-                    .FirstOrDefault(m => m.Name == "Log" && m.GetParameters().Length == 5 && m.IsGenericMethod);
-                if (logMethod != null)
-                {
-                    var genericMethod = logMethod.MakeGenericMethod(typeof(object));
-                    var logLevelType = Type.GetType("Microsoft.Extensions.Logging.LogLevel, Microsoft.Extensions.Logging.Abstractions");
-                    object errorLevel = null;
-                    if (logLevelType != null)
-                    {
-                        errorLevel = Enum.Parse(logLevelType, "Error");
-                    }
-                    var eventIdType = Type.GetType("Microsoft.Extensions.Logging.EventId, Microsoft.Extensions.Logging.Abstractions");
-                    object eventId = null;
-                    if (eventIdType != null)
-                    {
-                        eventId = Activator.CreateInstance(eventIdType, 0, string.Empty);
-                    }
-                    object state = string.Format(format, args);
-                    Func<object, Exception, string> formatter = (s, e) => s?.ToString() ?? string.Empty;
-                    var parameters = new object[] { errorLevel, eventId, state, ex, formatter };
-                    genericMethod.Invoke(_logger, parameters);
-                }
+                LoggerInvoker.LogError(_logger, ex, string.Format(format, args));
             }
             catch
             {
                 // swallow
+            }
+        }
+
+        /// <summary>
+        /// è¼•é‡åŒ…è£åŒæ­¥ CRM å‘¼å«ã€‚
+        /// é€™è£¡ä¿ç•™å–æ¶ˆèˆ‡ä¾‹å¤–èªæ„ï¼Œä½†ä¸å†é¡å¤–å»ºç«‹ ThreadPool å·¥ä½œé …ç›®ã€‚
+        /// </summary>
+        private static Task<T> ExecuteAsync<T>(Func<T> operation, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled<T>(cancellationToken);
+            }
+
+            try
+            {
+                return Task.FromResult(operation());
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<T>(ex);
             }
         }
 

@@ -1,4 +1,4 @@
-using Microsoft.Xrm.Sdk;
+ï»¿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
@@ -9,23 +9,24 @@ using System.Threading.Tasks;
 namespace ToolUtilityNameSpace.Extensions
 {
     /// <summary>
-    /// CRM ªA°Èªº«D¦P¨BÂX¥R¤èªk
-    /// Phase 3: ´£¨Ñ«D¦P¨B CRM ¬d¸ß¾Ş§@¡AÁ×§K°õ¦æºüªı¶ë
+    /// CRM æœå‹™çš„éåŒæ­¥æ“´å……æ–¹æ³•
+    /// Phase 3: æä¾›å¯èˆ‡ async æµç¨‹æ•´åˆçš„ Task ä»‹é¢ï¼Œ
+    /// ä¸¦åœ¨èˆŠç‰ˆåŒæ­¥ CRM SDK ä¸Šç›¡é‡é™ä½é¡å¤–æ’ç¨‹æˆæœ¬ã€‚
     /// </summary>
     public static class CrmAsyncExtensions
     {
-        #region «D¦P¨B¬d¸ß¤èªk
+        #region éåŒæ­¥æŸ¥è©¢æ–¹æ³•
 
         /// <summary>
-        /// «D¦P¨BÂ^¨ú³æ¤@¹êÅé
+        /// éåŒæ­¥æ“·å–å–®ä¸€å¯¦é«”
         /// </summary>
-        /// <param name="service">CRM ªA°È</param>
-        /// <param name="entityName">¹êÅé¦WºÙ</param>
-        /// <param name="id">¹êÅé ID</param>
-        /// <param name="columnSet">Äæ¦ì¶°¦X</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        /// <returns>¹êÅé</returns>
-        public static async Task<Entity> RetrieveAsync(
+        /// <param name="service">CRM æœå‹™</param>
+        /// <param name="entityName">å¯¦é«”åç¨±</param>
+        /// <param name="id">å¯¦é«” ID</param>
+        /// <param name="columnSet">æ¬„ä½é›†åˆ</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        /// <returns>å¯¦é«”</returns>
+        public static Task<Entity> RetrieveAsync(
             this IOrganizationService service,
             string entityName,
             Guid id,
@@ -35,21 +36,17 @@ namespace ToolUtilityNameSpace.Extensions
             if (service == null) throw new ArgumentNullException(nameof(service));
             if (string.IsNullOrEmpty(entityName)) throw new ArgumentNullException(nameof(entityName));
 
-            return await Task.Run(() =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                return service.Retrieve(entityName, id, columnSet);
-            }, cancellationToken).ConfigureAwait(false);
+            return ExecuteAsync(() => service.Retrieve(entityName, id, columnSet), cancellationToken);
         }
 
         /// <summary>
-        /// «D¦P¨B¬d¸ß¦hµ§¹êÅé
+        /// éåŒæ­¥æŸ¥è©¢å¤šç­†å¯¦é«”
         /// </summary>
-        /// <param name="service">CRM ªA°È</param>
-        /// <param name="query">¬d¸ßªí¹F¦¡</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        /// <returns>¹êÅé¶°¦X</returns>
-        public static async Task<EntityCollection> RetrieveMultipleAsync(
+        /// <param name="service">CRM æœå‹™</param>
+        /// <param name="query">æŸ¥è©¢è¡¨é”å¼</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        /// <returns>å¯¦é«”é›†åˆ</returns>
+        public static Task<EntityCollection> RetrieveMultipleAsync(
             this IOrganizationService service,
             QueryBase query,
             CancellationToken cancellationToken = default)
@@ -57,21 +54,17 @@ namespace ToolUtilityNameSpace.Extensions
             if (service == null) throw new ArgumentNullException(nameof(service));
             if (query == null) throw new ArgumentNullException(nameof(query));
 
-            return await Task.Run(() =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                return service.RetrieveMultiple(query);
-            }, cancellationToken).ConfigureAwait(false);
+            return ExecuteAsync(() => service.RetrieveMultiple(query), cancellationToken);
         }
 
         /// <summary>
-        /// «D¦P¨B«Ø¥ß¹êÅé
+        /// éåŒæ­¥å»ºç«‹å¯¦é«”
         /// </summary>
-        /// <param name="service">CRM ªA°È</param>
-        /// <param name="entity">­n«Ø¥ßªº¹êÅé</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        /// <returns>«Ø¥ßªº¹êÅé ID</returns>
-        public static async Task<Guid> CreateAsync(
+        /// <param name="service">CRM æœå‹™</param>
+        /// <param name="entity">è¦å»ºç«‹çš„å¯¦é«”</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        /// <returns>å»ºç«‹çš„å¯¦é«” ID</returns>
+        public static Task<Guid> CreateAsync(
             this IOrganizationService service,
             Entity entity,
             CancellationToken cancellationToken = default)
@@ -79,20 +72,16 @@ namespace ToolUtilityNameSpace.Extensions
             if (service == null) throw new ArgumentNullException(nameof(service));
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-            return await Task.Run(() =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                return service.Create(entity);
-            }, cancellationToken).ConfigureAwait(false);
+            return ExecuteAsync(() => service.Create(entity), cancellationToken);
         }
 
         /// <summary>
-        /// «D¦P¨B§ó·s¹êÅé
+        /// éåŒæ­¥æ›´æ–°å¯¦é«”
         /// </summary>
-        /// <param name="service">CRM ªA°È</param>
-        /// <param name="entity">­n§ó·sªº¹êÅé</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        public static async Task UpdateAsync(
+        /// <param name="service">CRM æœå‹™</param>
+        /// <param name="entity">è¦æ›´æ–°çš„å¯¦é«”</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        public static Task UpdateAsync(
             this IOrganizationService service,
             Entity entity,
             CancellationToken cancellationToken = default)
@@ -100,21 +89,17 @@ namespace ToolUtilityNameSpace.Extensions
             if (service == null) throw new ArgumentNullException(nameof(service));
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-            await Task.Run(() =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                service.Update(entity);
-            }, cancellationToken).ConfigureAwait(false);
+            return ExecuteAsync(() => service.Update(entity), cancellationToken);
         }
 
         /// <summary>
-        /// «D¦P¨B§R°£¹êÅé
+        /// éåŒæ­¥åˆªé™¤å¯¦é«”
         /// </summary>
-        /// <param name="service">CRM ªA°È</param>
-        /// <param name="entityName">¹êÅé¦WºÙ</param>
-        /// <param name="id">¹êÅé ID</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        public static async Task DeleteAsync(
+        /// <param name="service">CRM æœå‹™</param>
+        /// <param name="entityName">å¯¦é«”åç¨±</param>
+        /// <param name="id">å¯¦é«” ID</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        public static Task DeleteAsync(
             this IOrganizationService service,
             string entityName,
             Guid id,
@@ -123,21 +108,17 @@ namespace ToolUtilityNameSpace.Extensions
             if (service == null) throw new ArgumentNullException(nameof(service));
             if (string.IsNullOrEmpty(entityName)) throw new ArgumentNullException(nameof(entityName));
 
-            await Task.Run(() =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                service.Delete(entityName, id);
-            }, cancellationToken).ConfigureAwait(false);
+            return ExecuteAsync(() => service.Delete(entityName, id), cancellationToken);
         }
 
         /// <summary>
-        /// «D¦P¨B°õ¦æ CRM ½Ğ¨D
+        /// éåŒæ­¥åŸ·è¡Œ CRM è«‹æ±‚
         /// </summary>
-        /// <param name="service">CRM ªA°È</param>
-        /// <param name="request">½Ğ¨Dª«¥ó</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        /// <returns>¦^À³ª«¥ó</returns>
-        public static async Task<OrganizationResponse> ExecuteAsync(
+        /// <param name="service">CRM æœå‹™</param>
+        /// <param name="request">è«‹æ±‚ç‰©ä»¶</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        /// <returns>å›æ‡‰ç‰©ä»¶</returns>
+        public static Task<OrganizationResponse> ExecuteAsync(
             this IOrganizationService service,
             OrganizationRequest request,
             CancellationToken cancellationToken = default)
@@ -145,26 +126,22 @@ namespace ToolUtilityNameSpace.Extensions
             if (service == null) throw new ArgumentNullException(nameof(service));
             if (request == null) throw new ArgumentNullException(nameof(request));
 
-            return await Task.Run(() =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                return service.Execute(request);
-            }, cancellationToken).ConfigureAwait(false);
+            return ExecuteAsync(() => service.Execute(request), cancellationToken);
         }
 
         #endregion
 
-        #region §å¦¸¬d¸ß¤èªk
+        #region æ‰¹æ¬¡æŸ¥è©¢æ–¹æ³•
 
         /// <summary>
-        /// §å¦¸Â^¨ú¦h­Ó¹êÅé¡]¸Ñ¨M N+1 ¬d¸ß°İÃD¡^
+        /// æ‰¹æ¬¡æ“·å–å¤šå€‹å¯¦é«”ï¼ˆè§£æ±º N+1 æŸ¥è©¢å•é¡Œï¼‰
         /// </summary>
-        /// <param name="service">CRM ªA°È</param>
-        /// <param name="entityName">¹êÅé¦WºÙ</param>
-        /// <param name="ids">¹êÅé ID ¶°¦X</param>
-        /// <param name="columnSet">Äæ¦ì¶°¦X</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        /// <returns>¹êÅé¦r¨å (ID -> Entity)</returns>
+        /// <param name="service">CRM æœå‹™</param>
+        /// <param name="entityName">å¯¦é«”åç¨±</param>
+        /// <param name="ids">å¯¦é«” ID é›†åˆ</param>
+        /// <param name="columnSet">æ¬„ä½é›†åˆ</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        /// <returns>å¯¦é«”å­—å…¸ (ID -> Entity)</returns>
         public static async Task<Dictionary<Guid, Entity>> BatchRetrieveAsync(
             this IOrganizationService service,
             string entityName,
@@ -177,13 +154,13 @@ namespace ToolUtilityNameSpace.Extensions
             if (ids == null) throw new ArgumentNullException(nameof(ids));
 
             var idList = ids.Distinct().ToList();
-            if (!idList.Any())
+            if (idList.Count == 0)
                 return new Dictionary<Guid, Entity>();
 
-            // ¨ú±o¥DÁäÄæ¦ì¦WºÙ
+            // å–å¾—ä¸»éµæ¬„ä½åç¨±
             var primaryKey = $"{entityName}id";
 
-            // «Ø¥ß§å¦¸¬d¸ß
+            // å»ºç«‹æ‰¹æ¬¡æŸ¥è©¢
             var query = new QueryExpression(entityName)
             {
                 ColumnSet = columnSet,
@@ -191,7 +168,7 @@ namespace ToolUtilityNameSpace.Extensions
                 {
                     Conditions =
                     {
-                        new ConditionExpression(primaryKey, ConditionOperator.In, idList.Cast<object>().ToArray())
+                        new ConditionExpression(primaryKey, ConditionOperator.In, ToObjectArray(idList))
                     }
                 }
             };
@@ -201,13 +178,13 @@ namespace ToolUtilityNameSpace.Extensions
         }
 
         /// <summary>
-        /// §å¦¸Â^¨úÃöÁpªº Contact ¹êÅé
+        /// æ‰¹æ¬¡æ“·å–é—œè¯çš„ Contact å¯¦é«”
         /// </summary>
-        /// <param name="service">CRM ªA°È</param>
-        /// <param name="contactIds">Ápµ¸¤H ID ¶°¦X</param>
-        /// <param name="columnSet">Äæ¦ì¶°¦X¡]¹w³]¬°¥ş³¡Äæ¦ì¡^</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        /// <returns>Ápµ¸¤H¦r¨å (ID -> Entity)</returns>
+        /// <param name="service">CRM æœå‹™</param>
+        /// <param name="contactIds">è¯çµ¡äºº ID é›†åˆ</param>
+        /// <param name="columnSet">æ¬„ä½é›†åˆï¼ˆé è¨­ç‚ºå…¨éƒ¨æ¬„ä½ï¼‰</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        /// <returns>è¯çµ¡äººå­—å…¸ (ID -> Entity)</returns>
         public static async Task<Dictionary<Guid, Entity>> BatchRetrieveContactsAsync(
             this IOrganizationService service,
             IEnumerable<Guid> contactIds,
@@ -221,18 +198,74 @@ namespace ToolUtilityNameSpace.Extensions
                 cancellationToken);
         }
 
-        #endregion
+        /// <summary>
+        /// è¼•é‡åŒ…è£æœ‰å›å‚³å€¼çš„åŒæ­¥ CRM å‘¼å«ã€‚
+        /// é€™è£¡ä¿ç•™å–æ¶ˆèˆ‡ä¾‹å¤–èªæ„ï¼Œä½†ä¸å†é¡å¤–å»ºç«‹ ThreadPool å·¥ä½œé …ç›®ã€‚
+        /// </summary>
+        private static Task<TResult> ExecuteAsync<TResult>(Func<TResult> operation, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled<TResult>(cancellationToken);
+            }
 
-        #region ¤À­¶¬d¸ß¤èªk
+            try
+            {
+                return Task.FromResult(operation());
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<TResult>(ex);
+            }
+        }
 
         /// <summary>
-        /// «D¦P¨B¤À­¶¬d¸ß©Ò¦³¹êÅé¡]¦Û°Ê³B²z¤À­¶¡^
+        /// è¼•é‡åŒ…è£æ²’æœ‰å›å‚³å€¼çš„åŒæ­¥ CRM å‘¼å«ã€‚
         /// </summary>
-        /// <param name="service">CRM ªA°È</param>
-        /// <param name="query">¬d¸ßªí¹F¦¡</param>
-        /// <param name="pageSize">¨C­¶µ§¼Æ¡]¹w³] 5000¡^</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        /// <returns>©Ò¦³¹êÅé¶°¦X</returns>
+        private static Task ExecuteAsync(Action operation, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled(cancellationToken);
+            }
+
+            try
+            {
+                operation();
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException(ex);
+            }
+        }
+
+        /// <summary>
+        /// é¿å… `Cast<object>().ToArray()` ç”¢ç”Ÿé¡å¤–çš„ LINQ åˆ—èˆ‰æˆæœ¬ã€‚
+        /// </summary>
+        private static object[] ToObjectArray(IReadOnlyList<Guid> ids)
+        {
+            var values = new object[ids.Count];
+            for (int i = 0; i < ids.Count; i++)
+            {
+                values[i] = ids[i];
+            }
+
+            return values;
+        }
+
+        #endregion
+
+        #region åˆ†é æŸ¥è©¢æ–¹æ³•
+
+        /// <summary>
+        /// éåŒæ­¥åˆ†é æŸ¥è©¢æ‰€æœ‰å¯¦é«”ï¼ˆè‡ªå‹•è™•ç†åˆ†é ï¼‰
+        /// </summary>
+        /// <param name="service">CRM æœå‹™</param>
+        /// <param name="query">æŸ¥è©¢è¡¨é”å¼</param>
+        /// <param name="pageSize">æ¯é ç­†æ•¸ï¼ˆé è¨­ 5000ï¼‰</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        /// <returns>æ‰€æœ‰å¯¦é«”é›†åˆ</returns>
         public static async Task<List<Entity>> RetrieveAllAsync(
             this IOrganizationService service,
             QueryExpression query,
@@ -270,17 +303,17 @@ namespace ToolUtilityNameSpace.Extensions
 
         #endregion
 
-        #region ¨Ã¦æ¬d¸ß¤èªk
+        #region ä¸¦è¡ŒæŸ¥è©¢æ–¹æ³•
 
         /// <summary>
-        /// ¨Ã¦æÂ^¨ú¦h­Ó¤£¦Pªº¹êÅé
+        /// ä¸¦è¡Œæ“·å–å¤šå€‹ä¸åŒçš„å¯¦é«”
         /// </summary>
-        /// <param name="service">CRM ªA°È</param>
-        /// <param name="requests">¬d¸ß½Ğ¨D¶°¦X (¹êÅé¦WºÙ, ID)</param>
-        /// <param name="columnSet">Äæ¦ì¶°¦X</param>
-        /// <param name="maxDegreeOfParallelism">³Ì¤j¨Ã¦æ«×¡]¹w³] 4¡^</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        /// <returns>¹êÅé¦r¨å (ID -> Entity)</returns>
+        /// <param name="service">CRM æœå‹™</param>
+        /// <param name="requests">æŸ¥è©¢è«‹æ±‚é›†åˆ (å¯¦é«”åç¨±, ID)</param>
+        /// <param name="columnSet">æ¬„ä½é›†åˆ</param>
+        /// <param name="maxDegreeOfParallelism">æœ€å¤§ä¸¦è¡Œåº¦ï¼ˆé è¨­ 4ï¼‰</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        /// <returns>å¯¦é«”å­—å…¸ (ID -> Entity)</returns>
         public static async Task<Dictionary<Guid, Entity>> ParallelRetrieveAsync(
             this IOrganizationService service,
             IEnumerable<(string EntityName, Guid Id)> requests,

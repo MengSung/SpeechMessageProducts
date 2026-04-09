@@ -1,4 +1,4 @@
-using ChurchReport.ViewModel;
+ï»¿using ChurchReport.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// »{ÃÒ±±¨î¾¹¡]LINE ¨­¤À¸j©w/µù¥U¡^
+    /// èªè­‰æ§åˆ¶å™¨ï¼ˆLINE èº«åˆ†ç¶å®š/è¨»å†Šï¼‰
     /// </summary>
     public partial class AuthenticationController
     {
-        #region LINE ¨­¤À¸j©wµù¥U
+        #region LINE èº«åˆ†ç¶å®šè¨»å†Š
 
         [HttpGet]
         [Route("/Authentication/LineLiffView/{LineIdLoginViewPatameter?}")]
@@ -26,7 +26,7 @@ namespace ChurchReport.Controllers
             {
                 if (string.IsNullOrWhiteSpace(LineIdLoginViewPatameter))
                 {
-                    return RedirectToAction("DisplayErrorView", "Home", new { ErrorMessage = "¯Ê¤Ö LIFF °Ñ¼Æ¡A½Ğ±q LINE ¤J¤f¶}±Ò¡C" });
+                    return RedirectToAction("DisplayErrorView", "Home", new { ErrorMessage = "ç¼ºå°‘ LIFF åƒæ•¸ï¼Œè«‹å¾ LINE å…¥å£é–‹å•Ÿã€‚" });
                 }
 
                 var images = new List<string>
@@ -95,7 +95,7 @@ namespace ChurchReport.Controllers
             }
         }
 
-        #region ProcessLineBinding »²§U¤èªk
+        #region ProcessLineBinding è¼”åŠ©æ–¹æ³•
 
         private void SyncLineProfileToModel(LineBindingViewModel model)
         {
@@ -126,13 +126,13 @@ namespace ChurchReport.Controllers
         private IActionResult ValidateLineBindingModel(LineBindingViewModel model)
         {
             if (string.IsNullOrWhiteSpace(model.FullName))
-                return Json(new { status = "0", message = "¥D­n©m¦W¥²¶ñ" });
+                return Json(new { status = "0", message = "ä¸»è¦å§“åå¿…å¡«" });
 
             if (string.IsNullOrWhiteSpace(model.Mobile))
-                return Json(new { status = "0", message = "¦æ°Ê¹q¸Ü¥²¶ñ" });
+                return Json(new { status = "0", message = "è¡Œå‹•é›»è©±å¿…å¡«" });
 
             if (string.IsNullOrWhiteSpace(model.LineUserId))
-                return Json(new { status = "0", message = "LINE User ID ¿ò¥¢" });
+                return Json(new { status = "0", message = "LINE User ID éºå¤±" });
 
             return null;
         }
@@ -156,7 +156,7 @@ namespace ChurchReport.Controllers
                 TopCount = 1
             };
 
-            var results = await Task.Run(() => service.RetrieveMultiple(query));
+            var results = await ExecuteCrmAsync(() => service.RetrieveMultiple(query));
 
             if (results.Entities.Count > 0)
             {
@@ -165,7 +165,7 @@ namespace ChurchReport.Controllers
 
                 if (!string.IsNullOrWhiteSpace(existingName) && !existingName.Contains("(Line)"))
                 {
-                    return Json(new { status = "0", message = $"¦¹ LINE ±b¸¹¤w¸j©w¦Ü {existingName}" });
+                    return Json(new { status = "0", message = $"æ­¤ LINE å¸³è™Ÿå·²ç¶å®šè‡³ {existingName}" });
                 }
 
                 if (!string.IsNullOrWhiteSpace(existingName) && existingName.Contains("(Line)"))
@@ -193,7 +193,7 @@ namespace ChurchReport.Controllers
                 }
             };
 
-            var results = await Task.Run(() => service.RetrieveMultiple(query));
+            var results = await ExecuteCrmAsync(() => service.RetrieveMultiple(query));
 
             if (results.Entities.Count == 0)
                 return null;
@@ -228,7 +228,7 @@ namespace ChurchReport.Controllers
                     inactiveEntity["statecode"] = new OptionSetValue(1);
                     inactiveEntity["statuscode"] = new OptionSetValue(2);
 
-                    await Task.Run(() => service.Update(inactiveEntity));
+                    await ExecuteCrmAsync(() => service.Update(inactiveEntity));
                 }
                 catch
                 {
@@ -254,15 +254,15 @@ namespace ChurchReport.Controllers
                 contact["new_line_status_message"] = model.StatusMessage;
 
             contact["new_lineid_backup"] = model.LineUserId;
-            contact["new_line_type"] = "­Ó¤H";
+            contact["new_line_type"] = "å€‹äºº";
             contact["new_line_register"] = false;
 
             if (!string.IsNullOrWhiteSpace(model.OtherName))
                 contact["new_other_name"] = model.OtherName;
 
-            await Task.Run(() => service.Update(contact));
+            await ExecuteCrmAsync(() => service.Update(contact));
 
-            return Json(new { status = "1", message = $"¤w¦¨¥\¸j©w LINE ¦Ü²{¦³±b¸¹:{model.FullName}" });
+            return Json(new { status = "1", message = $"å·²æˆåŠŸç¶å®š LINE è‡³ç¾æœ‰å¸³è™Ÿ:{model.FullName}" });
         }
 
         private async Task<IActionResult> CreateNewContactWithLineBinding(IOrganizationService service, LineBindingViewModel model)
@@ -282,13 +282,13 @@ namespace ChurchReport.Controllers
                 newContact["new_line_status_message"] = model.StatusMessage;
 
             newContact["new_lineid_backup"] = model.LineUserId;
-            newContact["new_line_type"] = "­Ó¤H";
+            newContact["new_line_type"] = "å€‹äºº";
             newContact["new_line_register"] = false;
 
             if (!string.IsNullOrWhiteSpace(model.OtherName))
                 newContact["new_other_name"] = model.OtherName;
 
-            var newContactId = await Task.Run(() => service.Create(newContact));
+            var newContactId = await ExecuteCrmAsync(() => service.Create(newContact));
 
             if (_placeholderLineContact != null && _placeholderLineContact.Id != newContactId)
             {
@@ -298,7 +298,7 @@ namespace ChurchReport.Controllers
                     inactiveEntity["statecode"] = new OptionSetValue(1);
                     inactiveEntity["statuscode"] = new OptionSetValue(2);
 
-                    await Task.Run(() => service.Update(inactiveEntity));
+                    await ExecuteCrmAsync(() => service.Update(inactiveEntity));
                 }
                 catch
                 {
@@ -310,9 +310,9 @@ namespace ChurchReport.Controllers
             }
 
             if (newContactId != Guid.Empty)
-                return Json(new { status = "1", message = $"µù¥U¦¨¥\¡IÅwªï {model.FullName} ¥[¤J¦nªª¤H" });
+                return Json(new { status = "1", message = $"è¨»å†ŠæˆåŠŸï¼æ­¡è¿ {model.FullName} åŠ å…¥å¥½ç‰§äºº" });
 
-            return Json(new { status = "0", message = "µù¥U¥¢±Ñ¡A½Ğµy«á¦A¸Õ" });
+            return Json(new { status = "0", message = "è¨»å†Šå¤±æ•—ï¼Œè«‹ç¨å¾Œå†è©¦" });
         }
 
         private async Task<IActionResult> HandleNoMatchAndMaybeCreateAsync(IOrganizationService service, LineBindingViewModel model)
@@ -331,18 +331,18 @@ namespace ChurchReport.Controllers
                 }
             };
 
-            var nameCheckResults = await Task.Run(() => service.RetrieveMultiple(nameCheckQuery));
+            var nameCheckResults = await ExecuteCrmAsync(() => service.RetrieveMultiple(nameCheckQuery));
 
             if (nameCheckResults.Entities.Count > 0)
             {
                 return Json(new
                 {
                     status = "0",
-                    message = $"¨t²Î§ä¨ì {nameCheckResults.Entities.Count} ¦ì¦W¬°¡u{model.FullName}¡vªºÁpµ¸¤H¡A¦ı±z¿é¤Jªº¤â¾÷¸¹½X»P¨t²Î¤¤ªº¬ö¿ı¤£²Å¡C\n\n" +
-                             "½Ğ½T»{¡G\n" +
-                             "1. ±z¿é¤Jªº¤â¾÷¸¹½X¬O§_¥¿½T\n" +
-                             "2. ­Y±zªº¤â¾÷¸¹½X¤w§ó´«¡A½ĞÁpµ¸¨t²ÎºŞ²z­û§ó·s¸ê®Æ®w¤¤ªº¤â¾÷¸¹½X\n" +
-                             "3. ­Y±z¬O·sµù¥U·|­û¡A½Ğ¨Ï¥Î¤£¦Pªº©m¦W¥HÁ×§K­«½Æ"
+                    message = $"ç³»çµ±æ‰¾åˆ° {nameCheckResults.Entities.Count} ä½åç‚ºã€Œ{model.FullName}ã€çš„è¯çµ¡äººï¼Œä½†æ‚¨è¼¸å…¥çš„æ‰‹æ©Ÿè™Ÿç¢¼èˆ‡ç³»çµ±ä¸­çš„ç´€éŒ„ä¸ç¬¦ã€‚\n\n" +
+                             "è«‹ç¢ºèªï¼š\n" +
+                             "1. æ‚¨è¼¸å…¥çš„æ‰‹æ©Ÿè™Ÿç¢¼æ˜¯å¦æ­£ç¢º\n" +
+                             "2. è‹¥æ‚¨çš„æ‰‹æ©Ÿè™Ÿç¢¼å·²æ›´æ›ï¼Œè«‹è¯çµ¡ç³»çµ±ç®¡ç†å“¡æ›´æ–°è³‡æ–™åº«ä¸­çš„æ‰‹æ©Ÿè™Ÿç¢¼\n" +
+                             "3. è‹¥æ‚¨æ˜¯æ–°è¨»å†Šæœƒå“¡ï¼Œè«‹ä½¿ç”¨ä¸åŒçš„å§“åä»¥é¿å…é‡è¤‡"
                 });
             }
 
@@ -350,10 +350,43 @@ namespace ChurchReport.Controllers
         }
 
         private IActionResult HandleCrmServiceException(FaultException<OrganizationServiceFault> ex)
-            => Json(new { status = "0", message = $"¨t²ÎªA°È²§±`: {ex.Detail?.Message ?? ex.Message}" });
+            => Json(new { status = "0", message = $"ç³»çµ±æœå‹™ç•°å¸¸: {ex.Detail?.Message ?? ex.Message}" });
 
         private IActionResult HandleTimeoutException(TimeoutException ex)
-            => Json(new { status = "0", message = "¨t²Î³s±µ¶W®É¡A½Ğµy«á¦A¸Õ" });
+            => Json(new { status = "0", message = "ç³»çµ±é€£æ¥è¶…æ™‚ï¼Œè«‹ç¨å¾Œå†è©¦" });
+
+        /// <summary>
+        /// è¼•é‡åŒ…è£åŒæ­¥ CRM å‘¼å«ã€‚
+        /// é€™è£¡ä¸å†é¡å¤–æŠŠåŒæ­¥ I/O ä¸Ÿé€² ThreadPoolï¼Œ
+        /// ä»¥å…é«˜ä½µç™¼æ™‚ç”¢ç”Ÿå¤šé¤˜æ’ç¨‹æˆæœ¬èˆ‡åŸ·è¡Œç·’ç«¶çˆ­ã€‚
+        /// </summary>
+        private static Task<T> ExecuteCrmAsync<T>(Func<T> operation)
+        {
+            try
+            {
+                return Task.FromResult(operation());
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<T>(ex);
+            }
+        }
+
+        /// <summary>
+        /// è¼•é‡åŒ…è£æ²’æœ‰å›å‚³å€¼çš„åŒæ­¥ CRM å‘¼å«ã€‚
+        /// </summary>
+        private static Task ExecuteCrmAsync(Action operation)
+        {
+            try
+            {
+                operation();
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException(ex);
+            }
+        }
 
         private static string ExtractDigits(string input)
         {

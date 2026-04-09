@@ -1,18 +1,18 @@
-using System;
+ï»¿using System;
 using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
 
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ¾ã¦X¸ê®Æ¤U¸üªA°È - ¥X®u¬ö¿ı³B²z
+    /// æ•´åˆè³‡æ–™ä¸‹è¼‰æœå‹™ - å‡ºå¸­ç´€éŒ„è™•ç†
     /// </summary>
     public partial class DownloadIntegrateData
     {
-        #region ¥X®u¬ö¿ı¬d¸ß
+        #region å‡ºå¸­ç´€éŒ„æŸ¥è©¢
 
         /// <summary>
-        /// ®Ú¾Úµn¤JÃş«¬¨ú±o¥X®u¬ö¿ı
+        /// æ ¹æ“šç™»å…¥é¡å‹å–å¾—å‡ºå¸­ç´€éŒ„
         /// </summary>
         private EntityCollection GetPresentRecordByLoginType(
             string GroupName, 
@@ -26,12 +26,12 @@ namespace ChurchReport.WebServiceConnector
                 "new_group_present_weekly_report_prese", 
                 "new_present_record");
 
-            if (this.m_LoginType == "¤p²Õªø")
+            if (this.m_LoginType == "å°çµ„é•·")
             {
                 return PresentRecordCollection;
             }
 
-            // ­Ó¤H¦^³ø¡G¥u¦^¶Ç¹ïÀ³ªº¥X®u¬ö¿ı
+            // å€‹äººå›å ±ï¼šåªå›å‚³å°æ‡‰çš„å‡ºå¸­ç´€éŒ„
             foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
             {
                 if (this.m_ContactId == this.m_ToolUtilityClass.GetEntityLookupAttribute(PresentRecordEntity, "new_contact_new_present_record"))
@@ -42,16 +42,16 @@ namespace ChurchReport.WebServiceConnector
                 }
             }
 
-            // ­Ó¤H¦^³ø¡A¨S¦³§ä¨ì¹ïÀ³ªº¥X®u¬ö¿ı³æ¡A·s¼W¤@­Ó
+            // å€‹äººå›å ±ï¼Œæ²’æœ‰æ‰¾åˆ°å°æ‡‰çš„å‡ºå¸­ç´€éŒ„å–®ï¼Œæ–°å¢ä¸€å€‹
             return CreatePresentRecordList(GroupName, ref this.m_ListEntity, ref WeeklyReportId, 0, 0, 0, 0, 0);
         }
 
         #endregion
 
-        #region ¥X®u¬ö¿ı«Ø¥ß
+        #region å‡ºå¸­ç´€éŒ„å»ºç«‹
 
         /// <summary>
-        /// «Ø¥ß¥X®u¬ö¿ı²M³æ
+        /// å»ºç«‹å‡ºå¸­ç´€éŒ„æ¸…å–®
         /// </summary>
         private EntityCollection CreatePresentRecordList(
             string GroupName, 
@@ -79,7 +79,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// «Ø¥ß¥X®u¬ö¿ı
+        /// å»ºç«‹å‡ºå¸­ç´€éŒ„
         /// </summary>
         private Entity CreatePresentRecord(
             Member aMemberInfomation, 
@@ -119,7 +119,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// «Ø¥ß¦¨­ûª«¥ó
+        /// å»ºç«‹æˆå“¡ç‰©ä»¶
         /// </summary>
         private Member CreateMember(string GroupName)
         {
@@ -147,7 +147,7 @@ namespace ChurchReport.WebServiceConnector
                 SmallGroup = false,
                 Decision = false,
                 
-                FollowUpWeek = "¥¼¿ï¾Ü",
+                FollowUpWeek = "æœªé¸æ“‡",
                 FollowUpResult = "",
                 FollowUpOption = "",
                 FollowUp = "",
@@ -163,14 +163,14 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region Ápµ¸¤H¬d¸ß
+        #region è¯çµ¡äººæŸ¥è©¢
 
         /// <summary>
-        /// ±q¦W³æ§ó·sÁpµ¸¤H¸ê°T
+        /// å¾åå–®æ›´æ–°è¯çµ¡äººè³‡è¨Š
         /// </summary>
         private Entity UpdateContactInfomationFromList(string ContactName, Guid ListEntityId)
         {
-            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", ListEntityId);
+            Entity ListEntity = RetrieveListTypeEntity(ListEntityId);
             bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
 
             EntityCollection MemberCollection = GetMemberCollection(ListEntityId, ListType);
@@ -192,10 +192,10 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ¥X®u¬ö¿ıÄİ©Ê³]©w
+        #region å‡ºå¸­ç´€éŒ„å±¬æ€§è¨­å®š
 
         /// <summary>
-        /// ³]©w¥X®u¬ö¿ı¹êÅéÄİ©Ê
+        /// è¨­å®šå‡ºå¸­ç´€éŒ„å¯¦é«”å±¬æ€§
         /// </summary>
         private void SetupPresentRecordEntityAttributes(
             Entity aPresentRecord, 
@@ -211,37 +211,37 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // ³]©w¦WºÙ
-                string PresentRecordName = $"{aMemberInfomation.FullName}-{this.m_Sunday:yy/MM/dd} ¥X®u¬ö¿ı";
+                // è¨­å®šåç¨±
+                string PresentRecordName = $"{aMemberInfomation.FullName}-{this.m_Sunday:yy/MM/dd} å‡ºå¸­ç´€éŒ„";
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", PresentRecordName);
 
-                // ³]©wÁpµ¸¤HÃöÁp
+                // è¨­å®šè¯çµ¡äººé—œè¯
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_new_present_record", "contact", aContactEntity.Id);
 
-                // ³]©w¶g³øÃöÁp
+                // è¨­å®šé€±å ±é—œè¯
                 if (aWeeklyReportId != Guid.Empty)
                 {
                     this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_group_present_weekly_report_prese", "new_group_present_weekly_report", aWeeklyReportId);
                 }
 
-                // ³]©w»â³SÃöÁp
+                // è¨­å®šé ˜è¢–é—œè¯
                 SetupLeaderReferences(ref aPresentRecord, ref aListEntity);
 
-                // ³]©w¤é´Á
+                // è¨­å®šæ—¥æœŸ
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", this.m_Sunday);
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_group_date", this.m_Sunday);
 
-                // ³]©w¦aÂI®É¶¡
+                // è¨­å®šåœ°é»æ™‚é–“
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_group_place", this.m_ToolUtilityClass.GetEntityStringAttribute(aListEntity, "new_group_place"));
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_group_time", this.m_ToolUtilityClass.GetEntityStringAttribute(aListEntity, "new_group_time"));
 
-                // ³]©w¥X®u¸ê®Æ
+                // è¨­å®šå‡ºå¸­è³‡æ–™
                 SetupAttendanceData(ref aPresentRecord, aMemberInfomation, ValidNumber, ref aWeeklySmallGroupNumber);
 
-                // ³]©w·s¤H¸ò¶i¸ê®Æ
+                // è¨­å®šæ–°äººè·Ÿé€²è³‡æ–™
                 SetupFollowUpData(ref aPresentRecord, aMemberInfomation);
 
-                // ³]©w¦æ°Ê¹q¸Ü
+                // è¨­å®šè¡Œå‹•é›»è©±
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_cell_hpone", aMemberInfomation.Phone);
             }
             catch (Exception e)
@@ -252,7 +252,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ³]©w»â³SÃöÁp
+        /// è¨­å®šé ˜è¢–é—œè¯
         /// </summary>
         private void SetupLeaderReferences(ref Entity aPresentRecord, ref Entity aListEntity)
         {
@@ -278,7 +278,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ³]©w¥X®u¸ê®Æ
+        /// è¨­å®šå‡ºå¸­è³‡æ–™
         /// </summary>
         private void SetupAttendanceData(
             ref Entity aPresentRecord, 
@@ -286,7 +286,7 @@ namespace ChurchReport.WebServiceConnector
             double ValidNumber, 
             ref int aWeeklySmallGroupNumber)
         {
-            // ¥D¤é¥X®u
+            // ä¸»æ—¥å‡ºå¸­
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_sunday_present_this_week", aMemberInfomation.Sunday ? 1 : 0);
             if (aMemberInfomation.Sunday && ValidNumber > 0)
             {
@@ -297,7 +297,7 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aPresentRecord, "new_sunday_rate", 0);
             }
 
-            // ¤p²Õ¥X®u
+            // å°çµ„å‡ºå¸­
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_group_present_this_week", aMemberInfomation.SmallGroup ? 1 : 0);
             if (aMemberInfomation.SmallGroup)
             {
@@ -312,21 +312,21 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aPresentRecord, "new_small_group_rate", 0);
             }
 
-            // ¨ä¥L¥X®u
+            // å…¶ä»–å‡ºå¸­
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_prayer_meeting_number", aMemberInfomation.PrayerMeeting ? 1 : 0);
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_child_number", aMemberInfomation.Child ? 1 : 0);
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_big_disciple_number", aMemberInfomation.BigDisciple ? 1 : 0);
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leadership_small_lecture_number", aMemberInfomation.LeadershipSmallLecture ? 1 : 0);
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_leaders_gather_number", aMemberInfomation.Sunday ? 1 : 0);
 
-            // ÆF­×¸ê®Æ
+            // éˆä¿®è³‡æ–™
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_spiritual_work", aMemberInfomation.SpiritualWork);
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_morning_pray", aMemberInfomation.MorningPray);
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_general_care", aMemberInfomation.GeneralCare);
         }
 
         /// <summary>
-        /// ³]©w¸ò¶i¸ê®Æ
+        /// è¨­å®šè·Ÿé€²è³‡æ–™
         /// </summary>
         private void SetupFollowUpData(ref Entity aPresentRecord, Member aMemberInfomation)
         {

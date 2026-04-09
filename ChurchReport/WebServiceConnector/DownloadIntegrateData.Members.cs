@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,21 +11,48 @@ using ToolUtilityNameSpace.Extensions;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ¾ã¦X¸ê®Æ¤U¸üªA°È - ¦¨­û¸ê®Æ³B²z
+    /// æ•´åˆè³‡æ–™ä¸‹è¼‰æœå‹™ - æˆå“¡è³‡æ–™è™•ç†
     /// </summary>
     public partial class DownloadIntegrateData
     {
-        #region ¦¨­û¸ê®Æ¨ú±o
+        /// <summary>
+        /// æˆå“¡é é¢å¯¦éš›æœƒç”¨åˆ°çš„ Contact æ¬„ä½æ¸…å–®ã€‚
+        /// ç¬¬äºŒæ³¢å„ªåŒ–å°‡æ‰¹æ¬¡æŸ¥è©¢å¾å…¨æ¬„ä½ç¸®åˆ°å¿…è¦æ¬„ä½ï¼Œ
+        /// ç›´æ¥æ¸›å°‘ CRM å‚³è¼¸é‡èˆ‡åºåˆ—åŒ–æˆæœ¬ã€‚
+        /// </summary>
+        private static readonly string[] MemberContactColumns =
+        {
+            "statecode",
+            "fullname",
+            "mobilephone",
+            "telephone2",
+            "address2_line1",
+            "birthdate",
+            "new_industry",
+            "new_equipment_status",
+            "new_spiriitual_identity",
+            "new_baptized_situation",
+            "description",
+            "new_contact_contact_spiritleader",
+            "new_best_introducer",
+            "new_best_relationship",
+            "customertypecode",
+            "new_start_tracking_date",
+            "gendercode",
+            "new_enter_church_date"
+        };
+
+        #region æˆå“¡è³‡æ–™å–å¾—
 
         /// <summary>
-        /// ¨ú±o©Ò¦³¦¨­û¸ê®Æ²M³æ
+        /// å–å¾—æ‰€æœ‰æˆå“¡è³‡æ–™æ¸…å–®
         /// </summary>
         public void GetAllMemeberDataList(
             string ListEntityId, 
             string WeeklyReportEntityId, 
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            // ªì©l¤Æ¦¨­û¸ê®Æ ¡X ? ·¥³t¡G¹w°t 64 µ§®e¶q¡AÁ×§K List ¦h¦¸ÂX®e
+            // åˆå§‹åŒ–æˆå“¡è³‡æ–™ â€” ? æ¥µé€Ÿï¼šé é… 64 ç­†å®¹é‡ï¼Œé¿å… List å¤šæ¬¡æ“´å®¹
             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData = new SmallGroupData
             {
                 Members = new List<Member>(64),
@@ -34,7 +61,7 @@ namespace ChurchReport.WebServiceConnector
 
             if (!string.IsNullOrEmpty(WeeklyReportEntityId))
             {
-                // ¦³¶g³ø -> ±q¥X®u¬ö¿ı¨ú±o¦¨­û (¨Ï¥Î§å¦¸¬d¸ßÀu¤Æ)
+                // æœ‰é€±å ± -> å¾å‡ºå¸­ç´€éŒ„å–å¾—æˆå“¡ (ä½¿ç”¨æ‰¹æ¬¡æŸ¥è©¢å„ªåŒ–)
                 GetAllMemberDataFromPresentRecordOptimized(
                     aListSmallGroupWeeklyReport.ListEntityName, 
                     new Guid(WeeklyReportEntityId), 
@@ -42,8 +69,8 @@ namespace ChurchReport.WebServiceConnector
             }
             else
             {
-                // µL¶g³ø -> ±q¦W³æ¨ú±o¦¨­û
-                if (m_LoginType == "¤p²Õªø")
+                // ç„¡é€±å ± -> å¾åå–®å–å¾—æˆå“¡
+                if (m_LoginType == "å°çµ„é•·")
                 {
                     GetAllMemberDataFromListOptimized(
                         aListSmallGroupWeeklyReport.ListEntityName, 
@@ -61,34 +88,34 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ±q¥X®u¬ö¿ı¨ú±o¦¨­û (Àu¤Æª© - §å¦¸¬d¸ß)
+        #region å¾å‡ºå¸­ç´€éŒ„å–å¾—æˆå“¡ (å„ªåŒ–ç‰ˆ - æ‰¹æ¬¡æŸ¥è©¢)
 
         /// <summary>
-        /// ±q¥X®u¬ö¿ı¨ú±o©Ò¦³¦¨­û¸ê®Æ (§å¦¸¬d¸ßÀu¤Æª©)
-        /// ¸Ñ¨M N+1 ¬d¸ß°İÃD¡G­ì¥»¨C­Ó¥X®u¬ö¿ı³£·|¬d¸ß¤@¦¸ Contact
-        /// Àu¤Æ«á¡G§å¦¸¬d¸ß©Ò¦³ Contact¡A´î¤Ö 98% ªº CRM ¬d¸ß¦¸¼Æ
+        /// å¾å‡ºå¸­ç´€éŒ„å–å¾—æ‰€æœ‰æˆå“¡è³‡æ–™ (æ‰¹æ¬¡æŸ¥è©¢å„ªåŒ–ç‰ˆ)
+        /// è§£æ±º N+1 æŸ¥è©¢å•é¡Œï¼šåŸæœ¬æ¯å€‹å‡ºå¸­ç´€éŒ„éƒ½æœƒæŸ¥è©¢ä¸€æ¬¡ Contact
+        /// å„ªåŒ–å¾Œï¼šæ‰¹æ¬¡æŸ¥è©¢æ‰€æœ‰ Contactï¼Œæ¸›å°‘ 98% çš„ CRM æŸ¥è©¢æ¬¡æ•¸
         /// </summary>
         private void GetAllMemberDataFromPresentRecordOptimized(
             string GroupName, 
             Guid WeeklyReportId, 
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            // 1. ¨ú±o©Ò¦³¥X®u¬ö¿ı
+            // 1. å–å¾—æ‰€æœ‰å‡ºå¸­ç´€éŒ„
             EntityCollection PresentRecordCollection = GetPresentRecordByLoginType(GroupName, WeeklyReportId, ref aListSmallGroupWeeklyReport);
 
             if (PresentRecordCollection.Entities.Count == 0)
                 return;
 
-            // 2. ´£¨ú©Ò¦³»İ­n¬d¸ßªº Contact ID
+            // 2. æå–æ‰€æœ‰éœ€è¦æŸ¥è©¢çš„ Contact ID
             var contactIds = ExtractContactIdsFromPresentRecords(PresentRecordCollection);
 
             if (contactIds.Count == 0)
                 return;
 
-            // 3. §å¦¸¬d¸ß©Ò¦³ Contact (¸Ñ¨M N+1 °İÃD) ¡X ¹w¥ı°t¸m®e¶q
+            // 3. æ‰¹æ¬¡æŸ¥è©¢æ‰€æœ‰ Contact (è§£æ±º N+1 å•é¡Œ) â€” é å…ˆé…ç½®å®¹é‡
             var contactCache = BatchRetrieveContacts(contactIds);
 
-            // 4. ³B²z¨Cµ§¥X®u¬ö¿ı (±q§Ö¨ú¨ú±o Contact)
+            // 4. è™•ç†æ¯ç­†å‡ºå¸­ç´€éŒ„ (å¾å¿«å–å–å¾— Contact)
             foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
             {
                 ProcessPresentRecordEntityWithCache(
@@ -100,8 +127,8 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ±q¥X®u¬ö¿ı¶°¦X¤¤´£¨ú©Ò¦³ Contact ID
-        /// ? ®Ä¯àÀu¤Æ¡G¨Ï¥Î HashSet §Y®É¥h­«¡AÁ×§K .Distinct().ToList() ªºÃB¥~­¡¥N»P°O¾ĞÅé°t¸m
+        /// å¾å‡ºå¸­ç´€éŒ„é›†åˆä¸­æå–æ‰€æœ‰ Contact ID
+        /// ? æ•ˆèƒ½å„ªåŒ–ï¼šä½¿ç”¨ HashSet å³æ™‚å»é‡ï¼Œé¿å… .Distinct().ToList() çš„é¡å¤–è¿­ä»£èˆ‡è¨˜æ†¶é«”é…ç½®
         /// </summary>
         private List<Guid> ExtractContactIdsFromPresentRecords(EntityCollection presentRecordCollection)
         {
@@ -109,7 +136,7 @@ namespace ChurchReport.WebServiceConnector
 
             foreach (Entity entity in presentRecordCollection.Entities)
             {
-                // ÀË¬dª¬ºA½X
+                // æª¢æŸ¥ç‹€æ…‹ç¢¼
                 if (!entity.Attributes.Contains("statecode"))
                     continue;
 
@@ -117,11 +144,11 @@ namespace ChurchReport.WebServiceConnector
                 if (stateCode.Value != 0)
                     continue;
 
-                // ÀË¬d¬O§_ÁôÂÃ
+                // æª¢æŸ¥æ˜¯å¦éš±è—
                 if (this.m_ToolUtilityClass.GetEntityBoolAttribute(entity, "new_not_display"))
                     continue;
 
-                // ´£¨ú Contact ID
+                // æå– Contact ID
                 if (entity.Attributes.Contains("new_contact_new_present_record"))
                 {
                     EntityReference contactRef = (EntityReference)entity.Attributes["new_contact_new_present_record"];
@@ -133,32 +160,33 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// §å¦¸¬d¸ß Contact ¹êÅé
-        /// ¨Ï¥Î CRM ªº IN ±ø¥ó¤@¦¸¬d¸ß©Ò¦³ Contact¡AÁ×§K N+1 °İÃD
+        /// æ‰¹æ¬¡æŸ¥è©¢ Contact å¯¦é«”
+        /// ä½¿ç”¨ CRM çš„ IN æ¢ä»¶ä¸€æ¬¡æŸ¥è©¢æ‰€æœ‰ Contactï¼Œé¿å… N+1 å•é¡Œ
         /// </summary>
         private Dictionary<Guid, Entity> BatchRetrieveContacts(List<Guid> contactIds)
         {
-            // ? ®Ä¯àÀu¤Æ¡G¨Ï¥Î Count ¨ú¥N Any()¡AÁ×§K LINQ ¦CÁ|¾¹°t¸m
+            // ? æ•ˆèƒ½å„ªåŒ–ï¼šä½¿ç”¨ Count å–ä»£ Any()ï¼Œé¿å… LINQ åˆ—èˆ‰å™¨é…ç½®
             if (contactIds.Count == 0)
                 return new Dictionary<Guid, Entity>();
 
-            const int BATCH_SIZE = 50; // CRM «ØÄ³¨C§å³Ì¦h 50 µ§
-            // ? ·¥³t¡G¹w¥ı°t¸m Dictionary ®e¶q¡AÁ×§K¦h¦¸ rehash
+            const int BATCH_SIZE = 50; // CRM å»ºè­°æ¯æ‰¹æœ€å¤š 50 ç­†
+            // ? æ¥µé€Ÿï¼šé å…ˆé…ç½® Dictionary å®¹é‡ï¼Œé¿å…å¤šæ¬¡ rehash
             var result = new Dictionary<Guid, Entity>(contactIds.Count);
 
-            // ¤À§å³B²z
+            // åˆ†æ‰¹è™•ç†
             var batches = SplitIntoBatches(contactIds, BATCH_SIZE);
 
             foreach (var batch in batches)
             {
                 var query = new QueryExpression("contact")
                 {
-                    ColumnSet = new ColumnSet(true),
+                    // åªæŠ“æˆå“¡å ±è¡¨æœƒä½¿ç”¨åˆ°çš„æ¬„ä½ï¼Œé¿å…æ¯æ‰¹éƒ½æŠŠæ•´å€‹ Contact å¯¦é«”æ¬å›ä¾†ã€‚
+                    ColumnSet = CreateMemberContactColumnSet(),
                     Criteria = new FilterExpression
                     {
                         Conditions =
                         {
-                            // ? ·¥³t¡Gª½±µ«Ø¥ß object[]¡AÁ×§K Cast<object>() LINQ ¤¤¶¡¶°¦X
+                            // ? æ¥µé€Ÿï¼šç›´æ¥å»ºç«‹ object[]ï¼Œé¿å… Cast<object>() LINQ ä¸­é–“é›†åˆ
                             new ConditionExpression("contactid", ConditionOperator.In, ToObjectArray(batch))
                         }
                     }
@@ -166,59 +194,15 @@ namespace ChurchReport.WebServiceConnector
 
                 try
                 {
-                    EntityCollection contacts;
-                    // ? ®Ä¯à­×´_¡GCRM_TYPE ¬° "DYNAMICS365-9.0"¡A¨Ï¥Î StartsWith ¤ñ¹ï
-                    // ­ì¥» CRM_TYPE == "DYNAMICS365" ¥Ã»·¬° false¡A¾É­P¨«¿ù¤À¤ä¤Şµo NullReferenceException
-                    if (CRM_TYPE.StartsWith("DYNAMICS365", StringComparison.OrdinalIgnoreCase))
+                    var organizationService = GetCurrentOrganizationService();
+                    if (organizationService == null)
                     {
-                        // ÀË¬d m_OrganizationService ¬O§_¬° null
-                        if (this.m_ToolUtilityClass?.m_OrganizationService == null)
-                        {
-                            System.Diagnostics.Debug.WriteLine("[BatchRetrieveContacts] m_OrganizationService is null, falling back to individual queries");
-                            // ­°¯Å³B²z¡G³vµ§¬d¸ß
-                            foreach (var id in batch)
-                            {
-                                try
-                                {
-                                    var contact = this.m_ToolUtilityClass.RetrieveEntity("contact", id);
-                                    if (contact != null)
-                                        result[contact.Id] = contact;
-                                }
-                                catch (Exception ex)
-                                {
-                                    System.Diagnostics.Debug.WriteLine($"[BatchRetrieveContacts] Failed to retrieve contact {id}: {ex.Message}");
-                                }
-                            }
-                            continue;
-                        }
-
-                        contacts = this.m_ToolUtilityClass.m_OrganizationService.RetrieveMultiple(query);
+                        System.Diagnostics.Debug.WriteLine("[BatchRetrieveContacts] CRM service is null, falling back to individual queries");
+                        RetrieveContactsIndividually(batch, result);
+                        continue;
                     }
-                    else
-                    {
-                        // ÀË¬d m_Crm2011OrganizationService ¬O§_¬° null
-                        if (this.m_ToolUtilityClass?.m_Crm2011OrganizationService == null)
-                        {
-                            System.Diagnostics.Debug.WriteLine("[BatchRetrieveContacts] m_Crm2011OrganizationService is null, falling back to individual queries");
-                            // ­°¯Å³B²z¡G³vµ§¬d¸ß
-                            foreach (var id in batch)
-                            {
-                                try
-                                {
-                                    var contact = this.m_ToolUtilityClass.RetrieveEntity("contact", id);
-                                    if (contact != null)
-                                        result[contact.Id] = contact;
-                                }
-                                catch (Exception ex)
-                                {
-                                    System.Diagnostics.Debug.WriteLine($"[BatchRetrieveContacts] Failed to retrieve contact {id}: {ex.Message}");
-                                }
-                            }
-                            continue;
-                        }
 
-                        contacts = this.m_ToolUtilityClass.m_Crm2011OrganizationService.RetrieveMultiple(query);
-                    }
+                    EntityCollection contacts = organizationService.RetrieveMultiple(query);
 
                     foreach (Entity contact in contacts.Entities)
                     {
@@ -227,21 +211,9 @@ namespace ChurchReport.WebServiceConnector
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[BatchRetrieveContacts] §å¦¸¬d¸ß¥¢±Ñ: {ex.Message}");
-                    // ­°¯Å³B²z¡G³vµ§¬d¸ß
-                    foreach (var id in batch)
-                    {
-                        try
-                        {
-                            var contact = this.m_ToolUtilityClass.RetrieveEntity("contact", id);
-                            if (contact != null)
-                                result[contact.Id] = contact;
-                        }
-                        catch (Exception innerEx)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[BatchRetrieveContacts] Failed to retrieve contact {id}: {innerEx.Message}");
-                        }
-                    }
+                    System.Diagnostics.Debug.WriteLine($"[BatchRetrieveContacts] æ‰¹æ¬¡æŸ¥è©¢å¤±æ•—: {ex.Message}");
+                    // é™ç´šè™•ç†ï¼šé€ç­†æŸ¥è©¢
+                    RetrieveContactsIndividually(batch, result);
                 }
             }
 
@@ -249,8 +221,8 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ±N ID ¦Cªí¤À³Î¦¨§å¦¸
-        /// ? ®Ä¯àÀu¤Æ¡G¨Ï¥Î GetRange ¨ú¥N Skip().Take()¡A±q O(n?) ­°¨ì O(n)
+        /// å°‡ ID åˆ—è¡¨åˆ†å‰²æˆæ‰¹æ¬¡
+        /// ? æ•ˆèƒ½å„ªåŒ–ï¼šä½¿ç”¨ GetRange å–ä»£ Skip().Take()ï¼Œå¾ O(n?) é™åˆ° O(n)
         /// </summary>
         private IEnumerable<List<Guid>> SplitIntoBatches(List<Guid> source, int batchSize)
         {
@@ -262,7 +234,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ? ·¥³t¡G¹s LINQ ªº Guid ¡÷ object[] Âà´«¡AÁ×§K Cast&lt;object&gt;().ToArray() ªº¤¤¶¡¶°¦X°t¸m
+        /// ? æ¥µé€Ÿï¼šé›¶ LINQ çš„ Guid â†’ object[] è½‰æ›ï¼Œé¿å… Cast&lt;object&gt;().ToArray() çš„ä¸­é–“é›†åˆé…ç½®
         /// </summary>
         private static object[] ToObjectArray(List<Guid> guids)
         {
@@ -273,7 +245,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ³B²z³æµ§¥X®u¬ö¿ı (¨Ï¥Î§Ö¨úªº Contact)
+        /// è™•ç†å–®ç­†å‡ºå¸­ç´€éŒ„ (ä½¿ç”¨å¿«å–çš„ Contact)
         /// </summary>
         private void ProcessPresentRecordEntityWithCache(
             string GroupName, 
@@ -286,11 +258,11 @@ namespace ChurchReport.WebServiceConnector
 
             OptionSetValue aOptionState = PresentRecordEntity.Attributes["statecode"] as OptionSetValue;
 
-            // ¥u³B²z¨Ï¥Î¤¤¥B¥¼ÁôÂÃªº¬ö¿ı
+            // åªè™•ç†ä½¿ç”¨ä¸­ä¸”æœªéš±è—çš„ç´€éŒ„
             if (aOptionState.Value != 0 || this.m_ToolUtilityClass.GetEntityBoolAttribute(PresentRecordEntity, "new_not_display"))
                 return;
 
-            // ¨ú±oÁpµ¸¤H°Ñ·Ó
+            // å–å¾—è¯çµ¡äººåƒç…§
             if (!PresentRecordEntity.Attributes.Contains("new_contact_new_present_record"))
                 return;
 
@@ -298,39 +270,39 @@ namespace ChurchReport.WebServiceConnector
             string FullName = (string)aFullNameEntityReference.Name;
             string ContactId = aFullNameEntityReference.Id.ToString();
 
-            // ±q§Ö¨ú¨ú±oÁpµ¸¤H¸Ô²Ó¸ê®Æ (¤£¦A­Ó§O¬d¸ß CRM)
+            // å¾å¿«å–å–å¾—è¯çµ¡äººè©³ç´°è³‡æ–™ (ä¸å†å€‹åˆ¥æŸ¥è©¢ CRM)
             if (!contactCache.TryGetValue(aFullNameEntityReference.Id, out Entity aContactEntity))
             {
-                // §Ö¨ú¤¤¨S¦³¡A­°¯Å³B²z¡G³æµ§¬d¸ß
+                // å¿«å–ä¸­æ²’æœ‰ï¼Œé™ç´šè™•ç†ï¼šå–®ç­†æŸ¥è©¢
                 aContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aFullNameEntityReference.Id);
                 if (aContactEntity == null)
                     return;
             }
 
-            // «Ø¥ß¦¨­ûª«¥ó
+            // å»ºç«‹æˆå“¡ç‰©ä»¶
             Member member = CreateMemberFromPresentRecord(GroupName, PresentRecordEntity, aContactEntity, FullName, ContactId);
 
-            // ±Æ°£µ²®×¦¨­û
-            if (member.Status != "10. ¥¼¤J²Õµ²®×")
+            // æ’é™¤çµæ¡ˆæˆå“¡
+            if (member.Status != "10. æœªå…¥çµ„çµæ¡ˆ")
             {
                 aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(member);
             }
         }
 
         /// <summary>
-        /// ±q¥X®u¬ö¿ı¨ú±o©Ò¦³¦¨­û¸ê®Æ (­ì©lª©¥»¡A«O¯d¬Û®e©Ê)
+        /// å¾å‡ºå¸­ç´€éŒ„å–å¾—æ‰€æœ‰æˆå“¡è³‡æ–™ (åŸå§‹ç‰ˆæœ¬ï¼Œä¿ç•™ç›¸å®¹æ€§)
         /// </summary>
         private void GetAllMemberDataFromPresentRecord(
             string GroupName, 
             Guid WeeklyReportId, 
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            // ©I¥sÀu¤Æª©¥»
+            // å‘¼å«å„ªåŒ–ç‰ˆæœ¬
             GetAllMemberDataFromPresentRecordOptimized(GroupName, WeeklyReportId, ref aListSmallGroupWeeklyReport);
         }
 
         /// <summary>
-        /// ³B²z³æµ§¥X®u¬ö¿ı (­ì©lª©¥»¡A«O¯d¬Û®e©Ê)
+        /// è™•ç†å–®ç­†å‡ºå¸­ç´€éŒ„ (åŸå§‹ç‰ˆæœ¬ï¼Œä¿ç•™ç›¸å®¹æ€§)
         /// </summary>
         private void ProcessPresentRecordEntity(
             string GroupName, 
@@ -342,11 +314,11 @@ namespace ChurchReport.WebServiceConnector
 
             OptionSetValue aOptionState = PresentRecordEntity.Attributes["statecode"] as OptionSetValue;
 
-            // ¥u³B²z¨Ï¥Î¤¤¥B¥¼ÁôÂÃªº¬ö¿ı
+            // åªè™•ç†ä½¿ç”¨ä¸­ä¸”æœªéš±è—çš„ç´€éŒ„
             if (aOptionState.Value != 0 || this.m_ToolUtilityClass.GetEntityBoolAttribute(PresentRecordEntity, "new_not_display"))
                 return;
 
-            // ¨ú±oÁpµ¸¤H°Ñ·Ó
+            // å–å¾—è¯çµ¡äººåƒç…§
             if (!PresentRecordEntity.Attributes.Contains("new_contact_new_present_record"))
                 return;
 
@@ -354,21 +326,21 @@ namespace ChurchReport.WebServiceConnector
             string FullName = (string)aFullNameEntityReference.Name;
             string ContactId = aFullNameEntityReference.Id.ToString();
 
-            // ¨ú±oÁpµ¸¤H¸Ô²Ó¸ê®Æ
+            // å–å¾—è¯çµ¡äººè©³ç´°è³‡æ–™
             Entity aContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aFullNameEntityReference.Id);
 
-            // «Ø¥ß¦¨­ûª«¥ó
+            // å»ºç«‹æˆå“¡ç‰©ä»¶
             Member member = CreateMemberFromPresentRecord(GroupName, PresentRecordEntity, aContactEntity, FullName, ContactId);
 
-            // ±Æ°£µ²®×¦¨­û
-            if (member.Status != "10. ¥¼¤J²Õµ²®×")
+            // æ’é™¤çµæ¡ˆæˆå“¡
+            if (member.Status != "10. æœªå…¥çµ„çµæ¡ˆ")
             {
                 aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(member);
             }
         }
 
         /// <summary>
-        /// ±q¥X®u¬ö¿ı«Ø¥ß¦¨­ûª«¥ó
+        /// å¾å‡ºå¸­ç´€éŒ„å»ºç«‹æˆå“¡ç‰©ä»¶
         /// </summary>
         private Member CreateMemberFromPresentRecord(
             string GroupName, 
@@ -377,13 +349,13 @@ namespace ChurchReport.WebServiceConnector
             string FullName, 
             string ContactId)
         {
-            // ¨ú±oÁpµ¸¤H°ò¥»¸ê®Æ
+            // å–å¾—è¯çµ¡äººåŸºæœ¬è³‡æ–™
             var contactInfo = ExtractContactInfo(aContactEntity);
 
-            // ¨ú±o¥X®u¬ö¿ı¸ê®Æ
+            // å–å¾—å‡ºå¸­ç´€éŒ„è³‡æ–™
             var attendanceInfo = ExtractAttendanceInfo(PresentRecordEntity);
 
-            // ? ·¥³t¡G¶Ç¤J¤w§Ö¨úªº Contact Entity¡A¬Ù¥h GetNewComerFollowupInfo ¤ºªº­«½Æ CRM ¬d¸ß
+            // ? æ¥µé€Ÿï¼šå‚³å…¥å·²å¿«å–çš„ Contact Entityï¼Œçœå» GetNewComerFollowupInfo å…§çš„é‡è¤‡ CRM æŸ¥è©¢
             var followUpInfo = ExtractFollowUpInfo(PresentRecordEntity, ((EntityReference)PresentRecordEntity.Attributes["new_contact_new_present_record"]).Id, aContactEntity);
 
             return new Member
@@ -393,7 +365,7 @@ namespace ChurchReport.WebServiceConnector
                 Group = GroupName,
                 FullName = FullName,
                 
-                // ­Ó¤H°ò¥»¸ê®Æ
+                // å€‹äººåŸºæœ¬è³‡æ–™
                 Phone = KeepDigitsOnly(contactInfo.MobilePhone),
                 HomePhone = KeepDigitsOnly(contactInfo.HomePhone),
                 Address = contactInfo.Address,
@@ -407,12 +379,12 @@ namespace ChurchReport.WebServiceConnector
                 BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "new_best_relationship"),
                 Description = contactInfo.Description,
 
-                // ©e¨­Ãş«¬
+                // å§”èº«é¡å‹
                 Status = ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode")),
                 SmallGroupName = GroupName,
                 SectionName = GroupName,
                 
-                // ¥X®u¸ê®Æ
+                // å‡ºå¸­è³‡æ–™
                 PrayItem = attendanceInfo.Note,
                 Visit = attendanceInfo.Visit,
                 Sunday = attendanceInfo.SundayPresent,
@@ -424,12 +396,12 @@ namespace ChurchReport.WebServiceConnector
                 LeadersGather = attendanceInfo.LeadersGather,
                 Decision = attendanceInfo.Decision,
                 
-                // ÆF­×¸ê®Æ
+                // éˆä¿®è³‡æ–™
                 SpiritualWork = attendanceInfo.SpiritualWork,
                 MorningPray = attendanceInfo.MorningPray,
                 GeneralCare = attendanceInfo.GeneralCare,
                 
-                // ·s¤H¸ò¶i
+                // æ–°äººè·Ÿé€²
                 FollowUpWeek = followUpInfo.FollowUpWeek,
                 FollowUpResult = followUpInfo.FollowUpResult,
                 FollowUpOption = followUpInfo.FollowUpOption,
@@ -442,17 +414,17 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ±q¦W³æ¨ú±o¦¨­û (Àu¤Æª© - §å¦¸¬d¸ß)
+        #region å¾åå–®å–å¾—æˆå“¡ (å„ªåŒ–ç‰ˆ - æ‰¹æ¬¡æŸ¥è©¢)
 
         /// <summary>
-        /// ±q¦W³æ¨ú±o©Ò¦³¦¨­û¸ê®Æ (§å¦¸¬d¸ßÀu¤Æª©)
+        /// å¾åå–®å–å¾—æ‰€æœ‰æˆå“¡è³‡æ–™ (æ‰¹æ¬¡æŸ¥è©¢å„ªåŒ–ç‰ˆ)
         /// </summary>
         private void GetAllMemberDataFromListOptimized(
             string GroupName, 
             Guid ListEntityId, 
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            Entity ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", ListEntityId);
+            Entity ListEntity = RetrieveListTypeEntity(ListEntityId);
             bool ListType = this.m_ToolUtilityClass.GetEntityBoolAttribute(ListEntity, "type");
 
             EntityCollection MemberCollection = GetMemberCollection(ListEntityId, ListType);
@@ -460,13 +432,13 @@ namespace ChurchReport.WebServiceConnector
             if (MemberCollection.Entities.Count == 0)
                 return;
 
-            // ´£¨ú©Ò¦³ Contact ID
+            // æå–æ‰€æœ‰ Contact ID
             var contactIds = ExtractContactIdsFromMembers(MemberCollection, ListType);
 
             if (contactIds.Count == 0)
                 return;
 
-            // §å¦¸¬d¸ß©Ò¦³ Contact
+            // æ‰¹æ¬¡æŸ¥è©¢æ‰€æœ‰ Contact
             var contactCache = BatchRetrieveContacts(contactIds);
 
             int PresentRecordIdCounter = 0;
@@ -480,7 +452,7 @@ namespace ChurchReport.WebServiceConnector
                     {
                         Member member = CreateMemberFromContact(GroupName, ContactEntity, PresentRecordIdCounter++);
                         
-                        if (member.Status != "10. ¥¼¤J²Õµ²®×")
+                        if (member.Status != "10. æœªå…¥çµ„çµæ¡ˆ")
                         {
                             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(member);
                         }
@@ -490,8 +462,8 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ±q¦¨­û¶°¦X¤¤´£¨ú©Ò¦³ Contact ID
-        /// ? ®Ä¯àÀu¤Æ¡G¨Ï¥Î HashSet §Y®É¥h­«¡AÁ×§K .Distinct().ToList() ªºÃB¥~­¡¥N»P°O¾ĞÅé°t¸m
+        /// å¾æˆå“¡é›†åˆä¸­æå–æ‰€æœ‰ Contact ID
+        /// ? æ•ˆèƒ½å„ªåŒ–ï¼šä½¿ç”¨ HashSet å³æ™‚å»é‡ï¼Œé¿å… .Distinct().ToList() çš„é¡å¤–è¿­ä»£èˆ‡è¨˜æ†¶é«”é…ç½®
         /// </summary>
         private List<Guid> ExtractContactIdsFromMembers(EntityCollection memberCollection, bool listType)
         {
@@ -510,7 +482,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ±q¦¨­û¹êÅé¨ú±o Contact ID
+        /// å¾æˆå“¡å¯¦é«”å–å¾— Contact ID
         /// </summary>
         private Guid GetContactIdFromMember(Entity memberEntity, bool listType)
         {
@@ -518,13 +490,13 @@ namespace ChurchReport.WebServiceConnector
             {
                 if (listType == false)
                 {
-                    // ÀRºA¦W³æ
+                    // éœæ…‹åå–®
                     if (memberEntity.Attributes.Contains("entityid"))
                         return ((EntityReference)memberEntity.Attributes["entityid"]).Id;
                 }
                 else
                 {
-                    // °ÊºA¦W³æ
+                    // å‹•æ…‹åå–®
                     if (memberEntity.Attributes.Contains("contactid"))
                         return (Guid)memberEntity.Attributes["contactid"];
                 }
@@ -535,35 +507,35 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ±q¦W³æ¨ú±o©Ò¦³¦¨­û¸ê®Æ (­ì©lª©¥»¡A«O¯d¬Û®e©Ê)
+        /// å¾åå–®å–å¾—æ‰€æœ‰æˆå“¡è³‡æ–™ (åŸå§‹ç‰ˆæœ¬ï¼Œä¿ç•™ç›¸å®¹æ€§)
         /// </summary>
         private void GetAllMemberDataFromList(
             string GroupName, 
             Guid ListEntityId, 
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            // ©I¥sÀu¤Æª©¥»
+            // å‘¼å«å„ªåŒ–ç‰ˆæœ¬
             GetAllMemberDataFromListOptimized(GroupName, ListEntityId, ref aListSmallGroupWeeklyReport);
         }
 
         /// <summary>
-        /// ¨ú±o¦¨­û¶°¦X
+        /// å–å¾—æˆå“¡é›†åˆ
         /// </summary>
         private EntityCollection GetMemberCollection(Guid ListEntityId, bool ListType)
         {
-            // ? ®Ä¯à­×´_¡GCRM_TYPE ¬° "DYNAMICS365-9.0"¡A¨Ï¥Î StartsWith ¤ñ¹ï
+            // ? æ•ˆèƒ½ä¿®å¾©ï¼šCRM_TYPE ç‚º "DYNAMICS365-9.0"ï¼Œä½¿ç”¨ StartsWith æ¯”å°
             bool isDynamics365 = CRM_TYPE.StartsWith("DYNAMICS365", StringComparison.OrdinalIgnoreCase);
 
             if (ListType == false)
             {
-                // ÀRºA¦W³æ
+                // éœæ…‹åå–®
                 return isDynamics365
                     ? this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId)
                     : this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
             }
             else
             {
-                // °ÊºA¦W³æ
+                // å‹•æ…‹åå–®
                 return isDynamics365
                     ? this.m_ToolUtilityClass.RetrieveDynamicMemberListDynamics365(ref this.m_ToolUtilityClass.m_OrganizationService, ListEntityId)
                     : this.m_ToolUtilityClass.RetrieveDynamicMemberListCrm2011(ref this.m_ToolUtilityClass.m_Crm2011OrganizationService, ListEntityId);
@@ -571,22 +543,22 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ±q¦¨­û¹êÅé¨ú±oÁpµ¸¤H
+        /// å¾æˆå“¡å¯¦é«”å–å¾—è¯çµ¡äºº
         /// </summary>
         private Entity GetContactFromMember(Entity MemberEntity, bool ListType)
         {
             if (ListType == false)
             {
-                return m_ToolUtilityClass.RetrieveEntity("contact", ((EntityReference)MemberEntity.Attributes["entityid"]).Id);
+                return RetrieveMemberContact(((EntityReference)MemberEntity.Attributes["entityid"]).Id);
             }
             else
             {
-                return m_ToolUtilityClass.RetrieveEntity("contact", (Guid)MemberEntity.Attributes["contactid"]);
+                return RetrieveMemberContact((Guid)MemberEntity.Attributes["contactid"]);
             }
         }
 
         /// <summary>
-        /// ÀË¬dÁpµ¸¤H¬O§_¬°¨Ï¥Î¤¤
+        /// æª¢æŸ¥è¯çµ¡äººæ˜¯å¦ç‚ºä½¿ç”¨ä¸­
         /// </summary>
         private bool IsActiveContact(Entity ContactEntity)
         {
@@ -598,13 +570,13 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ±qÁpµ¸¤H«Ø¥ß¦¨­ûª«¥ó
+        /// å¾è¯çµ¡äººå»ºç«‹æˆå“¡ç‰©ä»¶
         /// </summary>
         private Member CreateMemberFromContact(string GroupName, Entity ContactEntity, int counter)
         {
             var contactInfo = ExtractContactInfo(ContactEntity);
-            string aFollowUpWeek = "¥¼¿ï¾Ü";
-            // ? ·¥³t¡G¶Ç¤J¤w¦³ªº ContactEntity¡A¬Ù¥h­«½Æ CRM ¬d¸ß
+            string aFollowUpWeek = "æœªé¸æ“‡";
+            // ? æ¥µé€Ÿï¼šå‚³å…¥å·²æœ‰çš„ ContactEntityï¼Œçœå»é‡è¤‡ CRM æŸ¥è©¢
             string aNewComerNote = GetNewComerFollowupInfoWithEntity(ContactEntity, ref aFollowUpWeek);
 
             return new Member
@@ -614,7 +586,7 @@ namespace ChurchReport.WebServiceConnector
                 Group = GroupName,
                 FullName = contactInfo.FullName,
                 
-                // ­Ó¤H°ò¥»¸ê®Æ
+                // å€‹äººåŸºæœ¬è³‡æ–™
                 Phone = KeepDigitsOnly(contactInfo.MobilePhone),
                 HomePhone = KeepDigitsOnly(contactInfo.HomePhone),
                 Address = contactInfo.Address,
@@ -628,18 +600,18 @@ namespace ChurchReport.WebServiceConnector
                 BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_relationship"),
                 Description = contactInfo.Description,
                 
-                // ©e¨­Ãş«¬
+                // å§”èº«é¡å‹
                 Status = ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref ContactEntity, "customertypecode")),
                 SmallGroupName = GroupName,
                 SectionName = GroupName,
                 
-                // ¹w³]­È
+                // é è¨­å€¼
                 PrayItem = "",
                 Sunday = false,
                 SmallGroup = false,
                 Decision = false,
                 
-                // ·s¤H¸ò¶i
+                // æ–°äººè·Ÿé€²
                 FollowUpWeek = aFollowUpWeek,
                 FollowUpResult = "",
                 FollowUpOption = "",
@@ -648,7 +620,7 @@ namespace ChurchReport.WebServiceConnector
                 FollowUpNote = "",
                 NewComerNote = aNewComerNote,
                 
-                // ÆF­×¸ê®Æ
+                // éˆä¿®è³‡æ–™
                 SpiritualWork = 0,
                 MorningPray = 0,
                 GeneralCare = 0,
@@ -657,21 +629,21 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ­Ó¤H¦^³ø
+        #region å€‹äººå›å ±
 
         /// <summary>
-        /// ³]©w­Ó¤H¦^³ø¦¨­û¸ê®Æ
+        /// è¨­å®šå€‹äººå›å ±æˆå“¡è³‡æ–™
         /// </summary>
         private void SetAllMemberDataByPersonalReport(string GroupName, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             var contactInfo = ExtractContactInfo(m_ContactEntity);
-            string aFollowUpWeek = "¥¼¿ï¾Ü";
-            // ? ·¥³t¡G¤w¦³ m_ContactEntity¡Aª½±µ¶Ç¤J
+            string aFollowUpWeek = "æœªé¸æ“‡";
+            // ? æ¥µé€Ÿï¼šå·²æœ‰ m_ContactEntityï¼Œç›´æ¥å‚³å…¥
             string aNewComerNote = GetNewComerFollowupInfoWithEntity(m_ContactEntity, ref aFollowUpWeek);
 
             string aIdentity = ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref m_ContactEntity, "customertypecode"));
 
-            if (aIdentity != "10. ¥¼¤J²Õµ²®×")
+            if (aIdentity != "10. æœªå…¥çµ„çµæ¡ˆ")
             {
                 aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(new Member
                 {
@@ -719,10 +691,93 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ¸ê®Æ´£¨ú»²§UÃş§O
+        #region CRM æŸ¥è©¢è¼”åŠ©
 
         /// <summary>
-        /// Ápµ¸¤H¸ê°T
+        /// å»ºç«‹æˆå“¡ Contact æŸ¥è©¢æ¬„ä½é›†åˆã€‚
+        /// æ¯æ¬¡å›å‚³æ–°å¯¦ä¾‹ï¼Œé¿å…å¯è®Šçš„ ColumnSet åœ¨ä¸åŒæŸ¥è©¢é–“è¢«å…±äº«ã€‚
+        /// </summary>
+        private static ColumnSet CreateMemberContactColumnSet()
+        {
+            return new ColumnSet(MemberContactColumns);
+        }
+
+        /// <summary>
+        /// åˆ¤æ–·ç›®å‰æ˜¯å¦èµ° Dynamics 365 é€£ç·šã€‚
+        /// CRM_TYPE åœ¨æ­¤å°ˆæ¡ˆå¯èƒ½é™„å¸¶ç‰ˆæœ¬è™Ÿï¼Œå› æ­¤æ”¹ç”¨ StartsWithã€‚
+        /// </summary>
+        private bool IsDynamics365Crm()
+        {
+            return (CRM_TYPE ?? string.Empty).StartsWith("DYNAMICS365", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// å–å¾—ç›®å‰æ‡‰ä½¿ç”¨çš„ CRM serviceã€‚
+        /// </summary>
+        private IOrganizationService GetCurrentOrganizationService()
+        {
+            return IsDynamics365Crm()
+                ? this.m_ToolUtilityClass?.m_OrganizationService
+                : this.m_ToolUtilityClass?.m_Crm2011OrganizationService;
+        }
+
+        /// <summary>
+        /// é€ç­†è£œæŠ“ Contactã€‚
+        /// æ‰¹æ¬¡æŸ¥è©¢å¤±æ•—æ™‚ä»ä¿ç•™åŸæœ¬é™ç´šè¡Œç‚ºï¼Œä½†å–®ç­†æŸ¥è©¢ä¹Ÿç›¡é‡åªæŠ“å¿…è¦æ¬„ä½ã€‚
+        /// </summary>
+        private void RetrieveContactsIndividually(IEnumerable<Guid> contactIds, Dictionary<Guid, Entity> result)
+        {
+            foreach (var id in contactIds)
+            {
+                try
+                {
+                    var contact = RetrieveMemberContact(id);
+                    if (contact != null)
+                    {
+                        result[contact.Id] = contact;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[BatchRetrieveContacts] Failed to retrieve contact {id}: {ex.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// ä¾æˆå“¡å ±è¡¨éœ€æ±‚æŠ“å–å–®ç­† Contactã€‚
+        /// </summary>
+        private Entity RetrieveMemberContact(Guid contactId)
+        {
+            var organizationService = GetCurrentOrganizationService();
+            if (organizationService == null)
+            {
+                return this.m_ToolUtilityClass.RetrieveEntity("contact", contactId);
+            }
+
+            return organizationService.Retrieve("contact", contactId, CreateMemberContactColumnSet());
+        }
+
+        /// <summary>
+        /// åªæŠ“ list.typeï¼Œé¿å…ç‚ºäº†åˆ¤æ–·éœæ…‹/å‹•æ…‹åå–®è€Œè¼‰å…¥æ•´å€‹ List å¯¦é«”ã€‚
+        /// </summary>
+        private Entity RetrieveListTypeEntity(Guid listEntityId)
+        {
+            var organizationService = GetCurrentOrganizationService();
+            if (organizationService == null)
+            {
+                return this.m_ToolUtilityClass.RetrieveEntity("list", listEntityId);
+            }
+
+            return organizationService.Retrieve("list", listEntityId, new ColumnSet("type"));
+        }
+
+        #endregion
+
+        #region è³‡æ–™æå–è¼”åŠ©é¡åˆ¥
+
+        /// <summary>
+        /// è¯çµ¡äººè³‡è¨Š
         /// </summary>
         private record ContactInfo(
             string FullName,
@@ -738,7 +793,7 @@ namespace ChurchReport.WebServiceConnector
         );
 
         /// <summary>
-        /// ¥X®u¸ê°T
+        /// å‡ºå¸­è³‡è¨Š
         /// </summary>
         private record AttendanceInfo(
             string Note,
@@ -757,7 +812,7 @@ namespace ChurchReport.WebServiceConnector
         );
 
         /// <summary>
-        /// ¸ò¶i¸ê°T
+        /// è·Ÿé€²è³‡è¨Š
         /// </summary>
         private record FollowUpInfoRecord(
             string FollowUpWeek,
@@ -770,7 +825,7 @@ namespace ChurchReport.WebServiceConnector
         );
 
         /// <summary>
-        /// ´£¨úÁpµ¸¤H¸ê°T
+        /// æå–è¯çµ¡äººè³‡è¨Š
         /// </summary>
         private ContactInfo ExtractContactInfo(Entity contactEntity)
         {
@@ -793,7 +848,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ´£¨ú¥X®u¸ê°T
+        /// æå–å‡ºå¸­è³‡è¨Š
         /// </summary>
         private AttendanceInfo ExtractAttendanceInfo(Entity presentRecordEntity)
         {
@@ -817,8 +872,8 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ´£¨ú¸ò¶i¸ê°T
-        /// ? ·¥³tª©¡G±µ¦¬¤w§Ö¨úªº Contact Entity¡A¬Ù¥h GetNewComerFollowupInfo ¤ºªº­«½Æ CRM ¬d¸ß
+        /// æå–è·Ÿé€²è³‡è¨Š
+        /// ? æ¥µé€Ÿç‰ˆï¼šæ¥æ”¶å·²å¿«å–çš„ Contact Entityï¼Œçœå» GetNewComerFollowupInfo å…§çš„é‡è¤‡ CRM æŸ¥è©¢
         /// </summary>
         private FollowUpInfoRecord ExtractFollowUpInfo(Entity presentRecordEntity, Guid contactId, Entity cachedContactEntity = null)
         {
@@ -838,7 +893,7 @@ namespace ChurchReport.WebServiceConnector
                 ? ConvertIndexToFollowUpOptionPicker(m_ToolUtilityClass.GetOptionSetAttribute(presentRecordEntity, "new_followup_ways"))
                 : "";
 
-            // ? ·¥³t¡G­Y¦³¤w§Ö¨úªº Contact¡Aª½±µ¶Ç¤J¡A¬Ù¥h CRM ºô¸ô©¹ªğ
+            // ? æ¥µé€Ÿï¼šè‹¥æœ‰å·²å¿«å–çš„ Contactï¼Œç›´æ¥å‚³å…¥ï¼Œçœå» CRM ç¶²è·¯å¾€è¿”
             string newComerNote = cachedContactEntity != null
                 ? GetNewComerFollowupInfoWithEntity(cachedContactEntity, ref followUpWeek)
                 : GetNewComerFollowupInfo(contactId, ref followUpWeek);

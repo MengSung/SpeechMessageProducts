@@ -1,4 +1,4 @@
-using Microsoft.Xrm.Sdk;
+ï»¿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Query;
 using System;
@@ -11,24 +11,24 @@ using ToolUtilityNameSpace.Interfaces;
 namespace ToolUtilityNameSpace.Adapters
 {
     /// <summary>
-    /// Legacy OrganizationServiceProxy Adapter¡].NET Framework 4.6.2 ¾A¥Î¡^
-    /// ³]­p¼Ò¦¡¡GAdapter Pattern
-    /// ¥Î³~¡G±NÂÂªº OrganizationServiceProxy (WCF) ¥]¸Ë¦¨ ICrmClient
-    /// ª`·N¡G¦¹ Adapter ¶È§@¬°¹L´ç´Á¨Ï¥Î¡A³Ì²×±N²¾°£
+    /// Legacy OrganizationServiceProxy Adapterï¼ˆ.NET Framework 4.6.2 é©ç”¨ï¼‰
+    /// è¨­è¨ˆæ¨¡å¼ï¼šAdapter Pattern
+    /// ç”¨é€”ï¼šå°‡èˆŠçš„ OrganizationServiceProxy (WCF) åŒ…è£æˆ ICrmClient
+    /// æ³¨æ„ï¼šæ­¤ Adapter åƒ…ä½œç‚ºéæ¸¡æœŸä½¿ç”¨ï¼Œæœ€çµ‚å°‡ç§»é™¤
     /// </summary>
     /// <remarks>
-    /// ¦¹ Adapter ²Å¦X Linus ­ì«h¡G
-    /// 1. Â²¼ä¹ê§@ - «O«ù³Ì¤pÅÜ§ó¡Aª½±µÂàµo¨ì OrganizationServiceProxy
-    /// 2. ¥i¦^ºu - ¤£¼vÅT²{¦³¦æ¬°¡A¥i§Ö³t¤Á´«¦^ÂÂ¹ê§@
-    /// 3. º¥¶i¦¡¾E²¾ - µu´Á«O¯d¡AÅı¤W¼hµ{¦¡½X¥ı§ï¥Î ICrmClient
+    /// æ­¤ Adapter ç¬¦åˆ Linus åŸå‰‡ï¼š
+    /// 1. ç°¡æ½”å¯¦ä½œ - ä¿æŒæœ€å°è®Šæ›´ï¼Œç›´æ¥è½‰ç™¼åˆ° OrganizationServiceProxy
+    /// 2. å¯å›æ»¾ - ä¸å½±éŸ¿ç¾æœ‰è¡Œç‚ºï¼Œå¯å¿«é€Ÿåˆ‡æ›å›èˆŠå¯¦ä½œ
+    /// 3. æ¼¸é€²å¼é·ç§» - çŸ­æœŸä¿ç•™ï¼Œè®“ä¸Šå±¤ç¨‹å¼ç¢¼å…ˆæ”¹ç”¨ ICrmClient
     /// 
     /// TODO (Phase 2):
-    /// - ³v¨B±N©Ò¦³©I¥s¾E²¾¨ì DataverseServiceClientAdapter
-    /// - ²¾°£¦¹ Adapter »P OrganizationServiceProxy ¬Û¨Ì©Ê
+    /// - é€æ­¥å°‡æ‰€æœ‰å‘¼å«é·ç§»åˆ° DataverseServiceClientAdapter
+    /// - ç§»é™¤æ­¤ Adapter èˆ‡ OrganizationServiceProxy ç›¸ä¾æ€§
     /// 
-    /// ?? Äµ§i¡G
-    /// - OrganizationServiceProxy ¦b .NET Core / .NET 10 ¤£¤ä´©
-    /// - ¦¹ Adapter ¶È¯à¦b .NET Framework Àô¹Ò¨Ï¥Î
+    /// ?? è­¦å‘Šï¼š
+    /// - OrganizationServiceProxy åœ¨ .NET Core / .NET 10 ä¸æ”¯æ´
+    /// - æ­¤ Adapter åƒ…èƒ½åœ¨ .NET Framework ç’°å¢ƒä½¿ç”¨
     /// </remarks>
     public class LegacyOrganizationServiceAdapter : ICrmClient
     {
@@ -36,10 +36,10 @@ namespace ToolUtilityNameSpace.Adapters
         private readonly OrganizationServiceProxy _organizationServiceProxy;
         private bool _disposed = false;
 
-        #region «Øºc¦¡
+        #region å»ºæ§‹å¼
 
         /// <summary>
-        /// ¨Ï¥Î OrganizationServiceProxy «Ø¥ß Adapter
+        /// ä½¿ç”¨ OrganizationServiceProxy å»ºç«‹ Adapter
         /// </summary>
         public LegacyOrganizationServiceAdapter(OrganizationServiceProxy organizationServiceProxy)
         {
@@ -48,7 +48,7 @@ namespace ToolUtilityNameSpace.Adapters
         }
 
         /// <summary>
-        /// ¨Ï¥Î IOrganizationService «Ø¥ß Adapter¡]¬Û®e CRM 2011¡^
+        /// ä½¿ç”¨ IOrganizationService å»ºç«‹ Adapterï¼ˆç›¸å®¹ CRM 2011ï¼‰
         /// </summary>
         public LegacyOrganizationServiceAdapter(IOrganizationService organizationService)
         {
@@ -57,12 +57,12 @@ namespace ToolUtilityNameSpace.Adapters
         }
 
         /// <summary>
-        /// ¨Ï¥Î³s½u°Ñ¼Æ«Ø¥ß Adapter¡]¦V«á¬Û®e¡^
+        /// ä½¿ç”¨é€£ç·šåƒæ•¸å»ºç«‹ Adapterï¼ˆå‘å¾Œç›¸å®¹ï¼‰
         /// </summary>
-        /// <param name="serverUrl">¦øªA¾¹ URL¡]¨Ò¦p¡Ghttp://crm:5555/org¡^</param>
-        /// <param name="domain">ºô°ì</param>
-        /// <param name="username">¨Ï¥ÎªÌ¦WºÙ</param>
-        /// <param name="password">±K½X</param>
+        /// <param name="serverUrl">ä¼ºæœå™¨ URLï¼ˆä¾‹å¦‚ï¼šhttp://crm:5555/orgï¼‰</param>
+        /// <param name="domain">ç¶²åŸŸ</param>
+        /// <param name="username">ä½¿ç”¨è€…åç¨±</param>
+        /// <param name="password">å¯†ç¢¼</param>
         public LegacyOrganizationServiceAdapter(string serverUrl, string domain, string username, string password)
         {
             if (string.IsNullOrWhiteSpace(serverUrl))
@@ -81,7 +81,7 @@ namespace ToolUtilityNameSpace.Adapters
 
         #endregion
 
-        #region ICrmClient ¦P¨B¹ê§@
+        #region ICrmClient åŒæ­¥å¯¦ä½œ
 
         public Guid Create(Entity entity)
         {
@@ -139,45 +139,45 @@ namespace ToolUtilityNameSpace.Adapters
 
         #endregion
 
-        #region ICrmClient «D¦P¨B¹ê§@ (¦P¨B¤èªk¥]¸Ë)
+        #region ICrmClient éåŒæ­¥å¯¦ä½œ (åŒæ­¥æ–¹æ³•åŒ…è£)
 
-        // ?? ª`·N¡GOrganizationServiceProxy ¤£¤ä´©¯u¥¿ªº«D¦P¨B
-        // ³o¸Ì¨Ï¥Î Task.Run ¥]¸Ë¦P¨B¤èªk¡]¤£¬O¯u¥¿ªº«D¦P¨B I/O¡^
-        // ¦b¾E²¾¨ì DataverseServiceClientAdapter «á·|§ï¥Î¯u¥¿ªº«D¦P¨B
+        // æ³¨æ„ï¼šOrganizationServiceProxy ä¸æ”¯æ´çœŸæ­£çš„éåŒæ­¥ I/Oã€‚
+        // ç¬¬äºŒæ³¢å„ªåŒ–æ”¹æˆè¼•é‡ Task åŒ…è£ï¼Œé¿å…æ¯æ¬¡å‘¼å«éƒ½é¡å¤–æ’å…¥ ThreadPoolï¼Œ
+        // ä½†ä»ç¶­æŒæ—¢æœ‰çš„ Task å‹åˆ¥ä»‹é¢èˆ‡å–æ¶ˆ/ä¾‹å¤–èªæ„ã€‚
 
         public Task<Guid> CreateAsync(Entity entity, CancellationToken cancellationToken = default)
         {
-            return Task.Run(() => Create(entity), cancellationToken);
+            return ExecuteAsync(() => Create(entity), cancellationToken);
         }
 
         public Task UpdateAsync(Entity entity, CancellationToken cancellationToken = default)
         {
-            return Task.Run(() => Update(entity), cancellationToken);
+            return ExecuteAsync(() => Update(entity), cancellationToken);
         }
 
         public Task DeleteAsync(string entityName, Guid id, CancellationToken cancellationToken = default)
         {
-            return Task.Run(() => Delete(entityName, id), cancellationToken);
+            return ExecuteAsync(() => Delete(entityName, id), cancellationToken);
         }
 
         public Task<Entity> RetrieveAsync(string entityName, Guid id, ColumnSet columnSet, CancellationToken cancellationToken = default)
         {
-            return Task.Run(() => Retrieve(entityName, id, columnSet), cancellationToken);
+            return ExecuteAsync(() => Retrieve(entityName, id, columnSet), cancellationToken);
         }
 
         public Task<EntityCollection> RetrieveMultipleAsync(QueryBase query, CancellationToken cancellationToken = default)
         {
-            return Task.Run(() => RetrieveMultiple(query), cancellationToken);
+            return ExecuteAsync(() => RetrieveMultiple(query), cancellationToken);
         }
 
         public Task<OrganizationResponse> ExecuteAsync(OrganizationRequest request, CancellationToken cancellationToken = default)
         {
-            return Task.Run(() => Execute(request), cancellationToken);
+            return ExecuteAsync(() => Execute(request), cancellationToken);
         }
 
         #endregion
 
-        #region ³s½uª¬ºA
+        #region é€£ç·šç‹€æ…‹
 
         public bool IsReady
         {
@@ -185,10 +185,10 @@ namespace ToolUtilityNameSpace.Adapters
             {
                 try
                 {
-                    // Â²³æ´ú¸Õ¡G¹Á¸Õ°õ¦æ WhoAmI
+                    // ç°¡å–®æ¸¬è©¦ï¼šå˜—è©¦åŸ·è¡Œ WhoAmI
                     if (_organizationService == null) return false;
                     
-                    // OrganizationServiceProxy ¨S¦³ IsReady Äİ©Ê¡A°²³]¤w³s½u
+                    // OrganizationServiceProxy æ²’æœ‰ IsReady å±¬æ€§ï¼Œå‡è¨­å·²é€£ç·š
                     return true;
                 }
                 catch
@@ -202,15 +202,15 @@ namespace ToolUtilityNameSpace.Adapters
         {
             get
             {
-                // OrganizationServiceProxy ¨S¦³ª½±µ¨ú±o²ÕÂ´¦WºÙªº¤èªk
-                // ¥i³z¹L ServiceConfiguration ¨ú±o¡A¦ı¸û½ÆÂø
+                // OrganizationServiceProxy æ²’æœ‰ç›´æ¥å–å¾—çµ„ç¹”åç¨±çš„æ–¹æ³•
+                // å¯é€é ServiceConfiguration å–å¾—ï¼Œä½†è¼ƒè¤‡é›œ
                 return _organizationServiceProxy?.ServiceConfiguration?.CurrentServiceEndpoint?.Address?.Uri?.Host ?? "Unknown";
             }
         }
 
         #endregion
 
-        #region IDisposable ¹ê§@
+        #region IDisposable å¯¦ä½œ
 
         protected virtual void Dispose(bool disposing)
         {
@@ -218,7 +218,7 @@ namespace ToolUtilityNameSpace.Adapters
 
             if (disposing)
             {
-                // ÄÀ©ñ OrganizationServiceProxy
+                // é‡‹æ”¾ OrganizationServiceProxy
                 _organizationServiceProxy?.Dispose();
             }
 
@@ -229,6 +229,47 @@ namespace ToolUtilityNameSpace.Adapters
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// è¼•é‡åŒ…è£æœ‰å›å‚³å€¼çš„åŒæ­¥ CRM å‘¼å«ã€‚
+        /// </summary>
+        private static Task<TResult> ExecuteAsync<TResult>(Func<TResult> operation, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled<TResult>(cancellationToken);
+            }
+
+            try
+            {
+                return Task.FromResult(operation());
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<TResult>(ex);
+            }
+        }
+
+        /// <summary>
+        /// è¼•é‡åŒ…è£æ²’æœ‰å›å‚³å€¼çš„åŒæ­¥ CRM å‘¼å«ã€‚
+        /// </summary>
+        private static Task ExecuteAsync(Action operation, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled(cancellationToken);
+            }
+
+            try
+            {
+                operation();
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException(ex);
+            }
         }
 
         #endregion
