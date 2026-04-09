@@ -1,14 +1,16 @@
-using Microsoft.Crm.Sdk.Messages;
+ï»¿using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ToolUtilityNameSpace.ActivityOperations
 {
     /// <summary>
-    /// ¬¡°Ê¹êÅé¾Ş§@ªA°È¹ê§@
-    /// ³B²z CRM ¬¡°Ê¹êÅéªº±`¨£¾Ş§@
+    /// æ´»å‹•å¯¦é«”æ“ä½œæœå‹™å¯¦ä½œ
+    /// è™•ç† CRM æ´»å‹•å¯¦é«”çš„å¸¸è¦‹æ“ä½œ
     /// </summary>
     public class ActivityService : IActivityService
     {
@@ -22,7 +24,7 @@ namespace ToolUtilityNameSpace.ActivityOperations
         }
 
         /// <summary>
-        /// ¨ú±o¬¡°Êªº°Ñ»PªÌ¦Cªí¡]±H¥ó¤H©Î¦¬¥ó¤H¡^
+        /// å–å¾—æ´»å‹•çš„åƒèˆ‡è€…åˆ—è¡¨ï¼ˆå¯„ä»¶äººæˆ–æ”¶ä»¶äººï¼‰
         /// </summary>
         public void GetActivityPartyList(Entity activityEntity, string fromOrTo, ArrayList partyList, ArrayList partyTypeList)
         {
@@ -44,21 +46,41 @@ namespace ToolUtilityNameSpace.ActivityOperations
                 if (partyCollection == null || partyCollection.Entities.Count == 0)
                     return;
 
+                // å…ˆæ”¶é›†æ‰€æœ‰åƒèˆ‡è€…çš„å¼•ç”¨ï¼Œé¿å…åœ¨è¿´åœˆå…§é€ç­†å‘¼å« Retrieveï¼ˆN+1 å•é¡Œï¼‰
+                var partyRefs = new List<EntityReference>();
                 foreach (Entity partyEntity in partyCollection.Entities)
                 {
                     if (!partyEntity.Contains("partyid"))
                         continue;
 
                     EntityReference partyReference = (EntityReference)partyEntity["partyid"];
-                    Guid partyId = partyReference.Id;
-                    string entityName = partyReference.LogicalName;
+                    partyTypeList.Add(partyReference.LogicalName);
+                    partyRefs.Add(partyReference);
+                }
 
-                    // °O¿ı°Ñ»PªÌÃş«¬
-                    partyTypeList.Add(entityName);
+                // æŒ‰å¯¦é«”é¡å‹åˆ†çµ„ï¼Œæ¯çµ„åªç™¼ä¸€æ¬¡æ‰¹æ¬¡æŸ¥è©¢ï¼ˆN æ¬¡ â†’ æœ€å¤šå¹¾æ¬¡ï¼‰
+                var resultMap = new Dictionary<Guid, Entity>(partyRefs.Count);
+                foreach (var group in partyRefs.GroupBy(r => r.LogicalName))
+                {
+                    var ids = group.Select(r => r.Id).ToList();
+                    var query = new Microsoft.Xrm.Sdk.Query.QueryExpression(group.Key)
+                    {
+                        ColumnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet(true)
+                    };
+                    query.Criteria.AddCondition(
+                        $"{group.Key}id",
+                        Microsoft.Xrm.Sdk.Query.ConditionOperator.In,
+                        ids.Cast<object>().ToArray());
 
-                    // ¨ú±o°Ñ»PªÌ¹êÅé
-                    Entity retrievedPartyEntity = _organizationService.Retrieve(entityName, partyId, new Microsoft.Xrm.Sdk.Query.ColumnSet(true));
-                    partyList.Add(retrievedPartyEntity);
+                    foreach (var entity in _organizationService.RetrieveMultiple(query).Entities)
+                        resultMap[entity.Id] = entity;
+                }
+
+                // ä¾åŸå§‹é †åºå¡«å…¥çµæœ
+                foreach (var reference in partyRefs)
+                {
+                    if (resultMap.TryGetValue(reference.Id, out var entity))
+                        partyList.Add(entity);
                 }
             }
             catch (Exception ex)
@@ -70,7 +92,7 @@ namespace ToolUtilityNameSpace.ActivityOperations
         }
 
         /// <summary>
-        /// ¨ú±o¬¡°Êªº°Ñ»PªÌ ID ¦Cªí¡]±H¥ó¤H©Î¦¬¥ó¤H¡^
+        /// å–å¾—æ´»å‹•çš„åƒèˆ‡è€… ID åˆ—è¡¨ï¼ˆå¯„ä»¶äººæˆ–æ”¶ä»¶äººï¼‰
         /// </summary>
         public void GetActivityPartyIdList(Entity activityEntity, string fromOrTo, ArrayList partyIdList, ArrayList partyTypeList)
         {
@@ -99,7 +121,7 @@ namespace ToolUtilityNameSpace.ActivityOperations
 
                     EntityReference partyReference = (EntityReference)partyEntity["partyid"];
                     
-                    // °O¿ı°Ñ»PªÌÃş«¬©M ID
+                    // è¨˜éŒ„åƒèˆ‡è€…é¡å‹å’Œ ID
                     partyTypeList.Add(partyReference.LogicalName);
                     partyIdList.Add(partyReference.Id);
                 }
@@ -112,7 +134,7 @@ namespace ToolUtilityNameSpace.ActivityOperations
         }
 
         /// <summary>
-        /// ±N¬¡°Êª¬ºA³]¬°¤w§¹¦¨
+        /// å°‡æ´»å‹•ç‹€æ…‹è¨­ç‚ºå·²å®Œæˆ
         /// </summary>
         public void SetActivityStatusToCompleted(string activityName, Guid activityId)
         {
@@ -120,7 +142,7 @@ namespace ToolUtilityNameSpace.ActivityOperations
         }
 
         /// <summary>
-        /// ±N¬¡°Êª¬ºA³]¬°¤w§¹¦¨¡]¨Ï¥Î¥~³¡ªA°È¡^
+        /// å°‡æ´»å‹•ç‹€æ…‹è¨­ç‚ºå·²å®Œæˆï¼ˆä½¿ç”¨å¤–éƒ¨æœå‹™ï¼‰
         /// </summary>
         public void SetActivityStatusToCompleted(string activityName, Guid activityId, IOrganizationService organizationService)
         {
@@ -132,7 +154,7 @@ namespace ToolUtilityNameSpace.ActivityOperations
 
             try
             {
-                // «Ø¥ß SetState ½Ğ¨D
+                // å»ºç«‹ SetState è«‹æ±‚
                 SetStateRequest setStateRequest = new SetStateRequest
                 {
                     State = new OptionSetValue(1),      // 1 = Completed
@@ -140,7 +162,7 @@ namespace ToolUtilityNameSpace.ActivityOperations
                     EntityMoniker = new EntityReference(activityName, activityId)
                 };
 
-                // °õ¦æ½Ğ¨D
+                // åŸ·è¡Œè«‹æ±‚
                 SetStateResponse response = (SetStateResponse)organizationService.Execute(setStateRequest);
             }
             catch (Exception ex)
@@ -151,7 +173,7 @@ namespace ToolUtilityNameSpace.ActivityOperations
         }
 
         /// <summary>
-        /// ±N¬ù·|ª¬ºA³]¬°¤w±Æµ{
+        /// å°‡ç´„æœƒç‹€æ…‹è¨­ç‚ºå·²æ’ç¨‹
         /// </summary>
         public void SetAppointmentStatusToScheduled(Guid activityId)
         {
@@ -159,7 +181,7 @@ namespace ToolUtilityNameSpace.ActivityOperations
         }
 
         /// <summary>
-        /// ±N¬ù·|ª¬ºA³]¬°¤w±Æµ{¡]¨Ï¥Î¥~³¡ªA°È¡^
+        /// å°‡ç´„æœƒç‹€æ…‹è¨­ç‚ºå·²æ’ç¨‹ï¼ˆä½¿ç”¨å¤–éƒ¨æœå‹™ï¼‰
         /// </summary>
         public void SetAppointmentStatusToScheduled(Guid activityId, IOrganizationService organizationService)
         {
@@ -168,7 +190,7 @@ namespace ToolUtilityNameSpace.ActivityOperations
 
             try
             {
-                // «Ø¥ß SetState ½Ğ¨D
+                // å»ºç«‹ SetState è«‹æ±‚
                 SetStateRequest setStateRequest = new SetStateRequest
                 {
                     State = new OptionSetValue(3),      // 3 = Scheduled
@@ -176,7 +198,7 @@ namespace ToolUtilityNameSpace.ActivityOperations
                     EntityMoniker = new EntityReference("appointment", activityId)
                 };
 
-                // °õ¦æ½Ğ¨D
+                // åŸ·è¡Œè«‹æ±‚
                 SetStateResponse response = (SetStateResponse)organizationService.Execute(setStateRequest);
             }
             catch (Exception ex)

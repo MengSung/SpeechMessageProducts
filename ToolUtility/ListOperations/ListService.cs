@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,6 +9,7 @@ using ToolUtilityNameSpace.Interfaces;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System.Collections;
+using System.Collections.Concurrent;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Crm.Sdk.Messages;
@@ -26,7 +27,7 @@ namespace ToolUtilityNameSpace.ListOperations
             _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
         }
 
-        #region ¦P¨B¤èªk (¦V¤U¬Û®e)
+        #region åŒæ­¥æ–¹æ³• (å‘ä¸‹ç›¸å®¹)
 
         public void AddMembers(Guid listGuid, List<Guid> memberGuidList)
         {
@@ -34,8 +35,8 @@ namespace ToolUtilityNameSpace.ListOperations
 
             foreach (var member in memberGuidList)
             {
-                // ? ¨Ï¥Î AddMemberListRequest (CRM SDK ±M¥Î¤èªk)
-                // ?? listmember ¬J¤£¤ä´© Create¡A¤]¤£¤ä´© Associate
+                // ? ä½¿ç”¨ AddMemberListRequest (CRM SDK å°ˆç”¨æ–¹æ³•)
+                // ?? listmember æ—¢ä¸æ”¯æ´ Createï¼Œä¹Ÿä¸æ”¯æ´ Associate
                 var request = new AddMemberListRequest
                 {
                     ListId = listGuid,
@@ -46,7 +47,7 @@ namespace ToolUtilityNameSpace.ListOperations
         }
 
         /// <summary>
-        /// ¨Ï¥Î CRM SDK AddListMembersListRequest §å¦¸·s¼W¦h­Ó¦¨­û¨ì¦W³æ
+        /// ä½¿ç”¨ CRM SDK AddListMembersListRequest æ‰¹æ¬¡æ–°å¢å¤šå€‹æˆå“¡åˆ°åå–®
         /// </summary>
         public void AddMembersUsingSdk(Guid listGuid, List<Guid> memberGuidList, IOrganizationService service)
         {
@@ -83,7 +84,7 @@ namespace ToolUtilityNameSpace.ListOperations
         }
 
         /// <summary>
-        /// ¨Ï¥Î CRM SDK RemoveMemberListRequest ±q¦æ¾P¦W³æ²¾°£¦¨­û
+        /// ä½¿ç”¨ CRM SDK RemoveMemberListRequest å¾è¡ŒéŠ·åå–®ç§»é™¤æˆå“¡
         /// </summary>
         public void RemoveMemberUsingSdk(Guid listGuid, Guid memberGuid, IOrganizationService service)
         {
@@ -104,7 +105,7 @@ namespace ToolUtilityNameSpace.ListOperations
 
         public EntityCollection RetrieveMemberListCollectionByListId(Guid listId)
         {
-            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet(true) };
+            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet("listmemberid", "entityid", "listid") };
             query.AddAttributeValue("listid", listId);
             return _organizationService.RetrieveMultiple(query);
         }
@@ -112,7 +113,7 @@ namespace ToolUtilityNameSpace.ListOperations
         public EntityCollection RetrieveMemberListCollectionByListIdUsingService(IOrganizationService externalService, Guid listId)
         {
             if (externalService == null) return new EntityCollection();
-            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet(true) };
+            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet("listmemberid", "entityid", "listid") };
             query.AddAttributeValue("listid", listId);
             return externalService.RetrieveMultiple(query);
         }
@@ -120,7 +121,7 @@ namespace ToolUtilityNameSpace.ListOperations
         public EntityCollection RetrieveMemberListCollectionByListIdUsingProxy(IOrganizationService externalProxy, Guid listId)
         {
             if (externalProxy == null) return new EntityCollection();
-            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet(true) };
+            var query = new QueryByAttribute("listmember") { ColumnSet = new ColumnSet("listmemberid", "entityid", "listid") };
             query.AddAttributeValue("listid", listId);
             return externalProxy.RetrieveMultiple(query);
         }
@@ -166,7 +167,7 @@ namespace ToolUtilityNameSpace.ListOperations
         {
             var members = new ArrayList();
 
-            // ¥ı¨ú±o¦W³æ¹êÅé¥H§PÂ_¬OÀRºA©Î°ÊºA¦W³æ
+            // å…ˆå–å¾—åå–®å¯¦é«”ä»¥åˆ¤æ–·æ˜¯éœæ…‹æˆ–å‹•æ…‹åå–®
             var listEntity = _organizationService.Retrieve("list", listEntityId, new ColumnSet("type", "query"));
             if (listEntity == null) return members;
 
@@ -179,7 +180,7 @@ namespace ToolUtilityNameSpace.ListOperations
             EntityCollection memberCollection;
             if (isStaticList)
             {
-                // ÀRºA¦W³æ
+                // éœæ…‹åå–®
                 memberCollection = RetrieveMemberListCollectionByListId(listEntityId);
                 foreach (Entity memberEntity in memberCollection.Entities)
                 {
@@ -192,7 +193,7 @@ namespace ToolUtilityNameSpace.ListOperations
             }
             else
             {
-                // °ÊºA¦W³æ
+                // å‹•æ…‹åå–®
                 memberCollection = RetrieveDynamicMemberList(listEntityId);
                 foreach (Entity memberEntity in memberCollection.Entities)
                 {
@@ -218,7 +219,7 @@ namespace ToolUtilityNameSpace.ListOperations
                         <order attribute='listname' descending='true' />
                         <filter type='and'>
                           <condition attribute='statuscode' operator='eq' value='0' />
-                          <condition attribute='purpose' operator='eq' value='¤p²Õ¦W³æ' />
+                          <condition attribute='purpose' operator='eq' value='å°çµ„åå–®' />
                           <condition attribute='new_app_named' operator='eq' value='1' />
                         </filter>
                       </entity>
@@ -241,8 +242,8 @@ namespace ToolUtilityNameSpace.ListOperations
                         <filter type='and'>
                           <condition attribute='new_app_named' operator='eq' value='1' />
                           <condition attribute='statuscode' operator='eq' value='0' />
-                          <condition attribute='purpose' operator='eq' value='¤p²Õ¦W³æ' />
-                          <condition attribute='listname' operator='not-like' value='%°h¥X%' />
+                          <condition attribute='purpose' operator='eq' value='å°çµ„åå–®' />
+                          <condition attribute='listname' operator='not-like' value='%é€€å‡º%' />
                         </filter>
                       </entity>
                     </fetch>";
@@ -250,11 +251,11 @@ namespace ToolUtilityNameSpace.ListOperations
         }
 
         /// <summary>
-        /// ®Ú¾Ú¦W³æ¦WºÙ¬d¸ß¦W³æ¹êÅé
+        /// æ ¹æ“šåå–®åç¨±æŸ¥è©¢åå–®å¯¦é«”
         /// </summary>
         public Entity RetrieveListEntityByName(string listName)
         {
-            var query = new QueryByAttribute("list") { ColumnSet = new ColumnSet(true) };
+            var query = new QueryByAttribute("list") { ColumnSet = new ColumnSet("listmemberid", "entityid", "listid") };
             query.Attributes.AddRange("listname", "statecode");
             query.Values.AddRange(listName, 0);
             var coll = _organizationService.RetrieveMultiple(query);
@@ -262,7 +263,7 @@ namespace ToolUtilityNameSpace.ListOperations
         }
 
         /// <summary>
-        /// ®Ú¾Ú³sµ¸¤H¬d¸ß©ÒÄİªº¦W³æ
+        /// æ ¹æ“šé€£çµ¡äººæŸ¥è©¢æ‰€å±¬çš„åå–®
         /// </summary>
         public EntityCollection RetrieveListByContact(string contactName)
         {
@@ -277,7 +278,7 @@ namespace ToolUtilityNameSpace.ListOperations
                             <order attribute='listname' descending='true' />
                             <filter type='and'>
                               <condition attribute='new_app_named' operator='eq' value='1' />
-                              <condition attribute='purpose' operator='eq' value='¤p²Õ¦W³æ' />
+                              <condition attribute='purpose' operator='eq' value='å°çµ„åå–®' />
                             </filter>
                             <link-entity name='listmember' from='listid' to='listid' visible='false' intersect='true'>
                               <link-entity name='contact' from='contactid' to='entityid' alias='af'>
@@ -293,7 +294,7 @@ namespace ToolUtilityNameSpace.ListOperations
         }
 
         /// <summary>
-        /// ®Ú¾ÚÄvÁÉ»â³S¬d¸ß¦W³æ
+        /// æ ¹æ“šç«¶è³½é ˜è¢–æŸ¥è©¢åå–®
         /// </summary>
         public EntityCollection RetrieveListByRacerLeader(string contactName, string contactId)
         {
@@ -319,18 +320,18 @@ namespace ToolUtilityNameSpace.ListOperations
 
         #endregion
 
-        #region «D¦P¨B§å¶q¾Ş§@ (Phase 2.3 - ®Ä¯àÀu¤Æ)
+        #region éåŒæ­¥æ‰¹é‡æ“ä½œ (Phase 2.3 - æ•ˆèƒ½å„ªåŒ–)
 
         /// <summary>
-        /// §å¶q¨Ã¦æ²K¥[¦¨­û¨ì¦W³æ («D¦P¨B)
-        /// ? Phase 2.3: ¨Ï¥Î§å¦¸ + Task.WhenAll ¨Ã¦æ³B²z
-        /// ¹w´Á®Ä¯à´£¤É: 5-10­¿
+        /// æ‰¹é‡ä¸¦è¡Œæ·»åŠ æˆå“¡åˆ°åå–® (éåŒæ­¥)
+        /// ? Phase 2.3: ä½¿ç”¨æ‰¹æ¬¡ + Task.WhenAll ä¸¦è¡Œè™•ç†
+        /// é æœŸæ•ˆèƒ½æå‡: 5-10å€
         /// </summary>
-        /// <param name="listGuid">¦W³æID</param>
-        /// <param name="memberGuidList">¦¨­ûID¦Cªí</param>
-        /// <param name="batchSize">§å¦¸¤j¤p (¹w³]50)</param>
-        /// <param name="cancellationToken">¨ú®ø¼Ğ°O</param>
-        /// <returns>¦¨¥\²K¥[ªº¦¨­û¼Æ</returns>
+        /// <param name="listGuid">åå–®ID</param>
+        /// <param name="memberGuidList">æˆå“¡IDåˆ—è¡¨</param>
+        /// <param name="batchSize">æ‰¹æ¬¡å¤§å° (é è¨­50)</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¨™è¨˜</param>
+        /// <returns>æˆåŠŸæ·»åŠ çš„æˆå“¡æ•¸</returns>
         public async Task<int> AddMembersAsync(
             Guid listGuid, 
             List<Guid> memberGuidList, 
@@ -341,57 +342,48 @@ namespace ToolUtilityNameSpace.ListOperations
                 return 0;
 
             int successCount = 0;
-            var exceptions = new List<Exception>();
+            // ConcurrentBag ç¢ºä¿å¹³è¡Œå¯«å…¥çš„åŸ·è¡Œç·’å®‰å…¨ï¼ˆList<Exception> éåŸ·è¡Œç·’å®‰å…¨ï¼‰
+            var exceptions = new ConcurrentBag<Exception>();
 
             try
             {
-                // ? ¤À§å³B²z (Á×§K¤@¦¸³B²z¤Ó¦h³y¦¨ CRM API ­­¨î)
-                var batches = ChunkList(memberGuidList, batchSize);
+                var batches = ChunkList(memberGuidList, batchSize).ToList();
+
+                // SemaphoreSlim ç¯€æµï¼Œé¿å… Task.Run ç„¡é™åˆ¶ç”¢ç”Ÿè€Œçˆ†ç‚¸ Thread Pool
+                using var throttle = new SemaphoreSlim(Environment.ProcessorCount * 2);
 
                 foreach (var batch in batches)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    // ? ¨Ã¦æ²K¥[§å¦¸¤¤ªº©Ò¦³¦¨­û
-                    // ?? ¨Ï¥Î AddMemberListRequest ¦Ó«D Create ©Î Associate
-                    var tasks = batch.Select(memberId =>
-                        Task.Run(() =>
+                    var tasks = batch.Select(async memberId =>
+                    {
+                        await throttle.WaitAsync(cancellationToken).ConfigureAwait(false);
+                        try
                         {
-                            try
+                            await Task.Run(() =>
                             {
-                                // ¨Ï¥Î AddMemberListRequest (CRM SDK ±M¥Î)
-                                var request = new AddMemberListRequest
-                                {
-                                    ListId = listGuid,
-                                    EntityId = memberId
-                                };
+                                var request = new AddMemberListRequest { ListId = listGuid, EntityId = memberId };
                                 _organizationService.Execute(request);
-                                
-                                return true;
-                            }
-                            catch (Exception ex)
-                            {
-                                // °O¿ı¿ù»~¦ı¤£¤¤Â_¾ãÅé³B²z
-                                exceptions.Add(new InvalidOperationException(
-                                    $"Failed to add member {memberId} to list {listGuid}", ex));
-                                return false;
-                            }
-                        }, cancellationToken)
-                    ).ToList();
+                            }, cancellationToken).ConfigureAwait(false);
+                            return true;
+                        }
+                        catch (Exception ex)
+                        {
+                            exceptions.Add(new InvalidOperationException($"Failed to add member {memberId} to list {listGuid}", ex));
+                            return false;
+                        }
+                        finally { throttle.Release(); }
+                    }).ToList();
 
-                    // ? µ¥«İ·í«e§å¦¸©Ò¦³¥ô°È§¹¦¨
                     var results = await Task.WhenAll(tasks).ConfigureAwait(false);
                     successCount += results.Count(r => r);
 
-                    // ? §å¦¸¶¡µy·L©µ¿ğ¡AÁ×§K¹L«×À£¤O (¥i¿ï)
-                    if (batches.Count() > 1)
-                    {
+                    if (batches.Count > 1)
                         await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-                    }
                 }
 
-                // ¦pªG¦³¿ù»~¦ı³¡¤À¦¨¥\¡A°O¿ıÄµ§i
-                if (exceptions.Count > 0)
+                if (!exceptions.IsEmpty)
                 {
                     // Log warnings: {exceptions.Count} members failed, {successCount} succeeded
                 }
@@ -411,8 +403,8 @@ namespace ToolUtilityNameSpace.ListOperations
         }
 
         /// <summary>
-        /// §å¶q¨Ã¦æ²¾°£¦W³æ¦¨­û («D¦P¨B)
-        /// ? Phase 2.3: ¨Ï¥Î§å¦¸ + Task.WhenAll ¨Ã¦æ³B²z
+        /// æ‰¹é‡ä¸¦è¡Œç§»é™¤åå–®æˆå“¡ (éåŒæ­¥)
+        /// ? Phase 2.3: ä½¿ç”¨æ‰¹æ¬¡ + Task.WhenAll ä¸¦è¡Œè™•ç†
         /// </summary>
         public async Task<int> RemoveMembersAsync(
             Guid listGuid, 
@@ -424,65 +416,46 @@ namespace ToolUtilityNameSpace.ListOperations
                 return 0;
 
             int successCount = 0;
-            var exceptions = new List<Exception>();
+            // ConcurrentBag ç¢ºä¿å¹³è¡Œå¯«å…¥çš„åŸ·è¡Œç·’å®‰å…¨
+            var exceptions = new ConcurrentBag<Exception>();
 
             try
             {
-                // ? ¤À§å³B²z
-                var batches = ChunkList(memberGuidList, batchSize);
+                var batches = ChunkList(memberGuidList, batchSize).ToList();
+
+                // SemaphoreSlim ç¯€æµï¼Œé¿å… Thread Pool çˆ†ç‚¸
+                using var throttle = new SemaphoreSlim(Environment.ProcessorCount * 2);
 
                 foreach (var batch in batches)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    // ? ¨Ã¦æ¬d¸ß¨Ã§R°£§å¦¸¤¤ªº©Ò¦³¦¨­û
-                    var tasks = batch.Select(memberId =>
-                        Task.Run(async () =>
+                    // ç›´æ¥ä½¿ç”¨ RemoveMemberListRequestï¼Œæ¯”æŸ¥è©¢å†åˆªé™¤æ›´é«˜æ•ˆï¼ˆçœå»ä¸€æ¬¡ CRM å‘¼å«ï¼‰
+                    var tasks = batch.Select(async memberId =>
+                    {
+                        await throttle.WaitAsync(cancellationToken).ConfigureAwait(false);
+                        try
                         {
-                            try
+                            await Task.Run(() =>
                             {
-                                // ¬d¸ß listmember °O¿ı
-                                var query = new QueryByAttribute("listmember") 
-                                { 
-                                    ColumnSet = new ColumnSet("listmemberid") 
-                                };
-                                query.AddAttributeValue("listid", listGuid);
-                                query.AddAttributeValue("entityid", memberId);
+                                var request = new RemoveMemberListRequest { ListId = listGuid, EntityId = memberId };
+                                _organizationService.Execute(request);
+                            }, cancellationToken).ConfigureAwait(false);
+                            return true;
+                        }
+                        catch (Exception ex)
+                        {
+                            exceptions.Add(new InvalidOperationException($"Failed to remove member {memberId} from list {listGuid}", ex));
+                            return false;
+                        }
+                        finally { throttle.Release(); }
+                    }).ToList();
 
-                                var coll = await Task.Run(() => 
-                                    _organizationService.RetrieveMultiple(query), 
-                                    cancellationToken).ConfigureAwait(false);
-
-                                if (coll != null && coll.Entities.Count > 0)
-                                {
-                                    foreach (var lm in coll.Entities)
-                                    {
-                                        await Task.Run(() => 
-                                            _organizationService.Delete("listmember", lm.Id), 
-                                            cancellationToken).ConfigureAwait(false);
-                                    }
-                                    return true;
-                                }
-                                return false;
-                            }
-                            catch (Exception ex)
-                            {
-                                exceptions.Add(new InvalidOperationException(
-                                    $"Failed to remove member {memberId} from list {listGuid}", ex));
-                                return false;
-                            }
-                        }, cancellationToken)
-                    ).ToList();
-
-                    // ? µ¥«İ·í«e§å¦¸©Ò¦³¥ô°È§¹¦¨
                     var results = await Task.WhenAll(tasks).ConfigureAwait(false);
                     successCount += results.Count(r => r);
 
-                    // §å¦¸¶¡©µ¿ğ
-                    if (batches.Count() > 1)
-                    {
+                    if (batches.Count > 1)
                         await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-                    }
                 }
 
                 return successCount;
@@ -500,9 +473,9 @@ namespace ToolUtilityNameSpace.ListOperations
         }
 
         /// <summary>
-        /// ¨Ï¥Î CRM SDK §å¶q²K¥[¦¨­û («D¦P¨B)
-        /// ? Phase 2.3: ¨Ï¥Î AddListMembersListRequest §å¦¸³B²z
-        /// ³o¬O³Ì°ª®Äªº¤è¦¡¡ACRM API ­ì¥Í¤ä´©§å¦¸¾Ş§@
+        /// ä½¿ç”¨ CRM SDK æ‰¹é‡æ·»åŠ æˆå“¡ (éåŒæ­¥)
+        /// ? Phase 2.3: ä½¿ç”¨ AddListMembersListRequest æ‰¹æ¬¡è™•ç†
+        /// é€™æ˜¯æœ€é«˜æ•ˆçš„æ–¹å¼ï¼ŒCRM API åŸç”Ÿæ”¯æ´æ‰¹æ¬¡æ“ä½œ
         /// </summary>
         public async Task<int> AddMembersUsingSdkAsync(
             Guid listGuid, 
@@ -521,14 +494,14 @@ namespace ToolUtilityNameSpace.ListOperations
 
             try
             {
-                // ? «ö·Ó CRM API ­­¨î¤À§å (³q±`³Ì¤j1000­Ó)
+                // ? æŒ‰ç…§ CRM API é™åˆ¶åˆ†æ‰¹ (é€šå¸¸æœ€å¤§1000å€‹)
                 var batches = ChunkList(memberGuidList, maxBatchSize);
 
                 foreach (var batch in batches)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    // ? ¨Ï¥Î CRM SDK §å¦¸ API
+                    // ? ä½¿ç”¨ CRM SDK æ‰¹æ¬¡ API
                     await Task.Run(() =>
                     {
                         var request = new AddListMembersListRequest
@@ -541,7 +514,7 @@ namespace ToolUtilityNameSpace.ListOperations
 
                     successCount += batch.Count;
 
-                    // §å¦¸¶¡©µ¿ğ¡AÁ×§K¹L«×À£¤O
+                    // æ‰¹æ¬¡é–“å»¶é²ï¼Œé¿å…éåº¦å£“åŠ›
                     if (batches.Count() > 1)
                     {
                         await Task.Delay(200, cancellationToken).ConfigureAwait(false);
@@ -563,14 +536,13 @@ namespace ToolUtilityNameSpace.ListOperations
         }
 
         /// <summary>
-        /// »²§U¤èªk: ±N¦Cªí¤À§å
+        /// è¼”åŠ©æ–¹æ³•: å°‡åˆ—è¡¨åˆ†æ‰¹
         /// </summary>
+        // GetRange æ˜¯ O(1) ç›´æ¥å­˜å–ï¼Œé¿å… Skip/Take æ¯æ¬¡é‡æ–°éæ­·çš„ O(n^2) å•é¡Œ
         private static IEnumerable<List<T>> ChunkList<T>(List<T> source, int chunkSize)
         {
             for (int i = 0; i < source.Count; i += chunkSize)
-            {
-                yield return source.Skip(i).Take(chunkSize).ToList();
-            }
+                yield return source.GetRange(i, Math.Min(chunkSize, source.Count - i));
         }
 
         #endregion
