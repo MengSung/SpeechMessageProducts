@@ -33,7 +33,7 @@
                     )
                     .Series(s => {
                         s.Add().ValueField("SundayNumber").Name("主日人數").Color("var(--color-secondary)");
-                        s.Add().ValueField("SmallNumber").Name("小組人數").Color("var(--color-primary)");
+                        s.Add().ValueField("SmallNumber").Name("小組人數").Color("#d4a017");
                     })
                     .ValueAxis(a => a.Add().Title(t => t.Text("人數")).Position(Position.Left))
                     .Tooltip(t => t.Enabled(true))
