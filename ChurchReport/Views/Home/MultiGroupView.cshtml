@@ -82,10 +82,10 @@
         @(Html.DevExtreme().PieChart()
         .ID("multigroupchartWidget")
         .Palette(VizPalette.HarmonyLight)
-        .Margin(m => m.Left(0).Top(0))
+        .Margin(m => m.Left(10).Right(10).Top(5))
         .AdaptiveLayout(a => a.Height(20).Width(20).KeepLabels(true))
-        .Diameter(0.3)
-        .Size(s => s.Height(300).Width(300))
+        .Diameter(0.55)
+        .Size(s => s.Height(220))
         .CommonSeriesSettings(s => s
             .ArgumentField("Name")
             .Label(l => l
@@ -98,8 +98,8 @@
                 .Label(l => l
                     .Visible(true)
                     .Font(f => f.Size(12))
-                    .Connector(c => c.Visible(true).Width(0.8))
-                    .Position(PieChartLabelPosition.Columns)
+                    .Connector(c => c.Visible(true).Width(0.5))
+                    .Position(PieChartLabelPosition.Outside)
                     .CustomizeText(@<text>
                         function(arg) {
                             return arg.argument + "=" + arg.valueText;
@@ -109,14 +109,15 @@
         })
         .Tooltip(t => t.Enabled(true))
         .Title(t => t
-            .Text("人數")
-            .Font(f => f.Size(20).Weight(300).Color("darkblue"))
-            .Margin(m => m.Top(5).Bottom(5))
+            .Text("")
+            .Margin(m => m.Top(0).Bottom(0))
         )
         .Legend(l => l
             .VerticalAlignment(VerticalEdge.Bottom)
             .HorizontalAlignment(HorizontalAlignment.Center)
-            .ItemTextPosition(Position.Top)
+            .Orientation(Orientation.Horizontal)
+            .ItemTextPosition(Position.Right)
+            .Margin(m => m.Top(2).Bottom(0))
         )
         .Export(e => e.Enabled(false))
         .OnPointClick(@<text>
@@ -203,9 +204,9 @@
             )
             .Summary(s => s.TotalItems(items =>
             {
-                items.Add().Name("TotalNumber").ShowInColumn("TotalNumber").DisplayFormat("總人數:{0}").SummaryType(SummaryType.Custom);
-                items.Add().Name("SundayNumber").ShowInColumn("SundayNumber").DisplayFormat("主日人數:{0}").SummaryType(SummaryType.Custom);
-                items.Add().Name("SmallGroupNumber").ShowInColumn("SmallGroupNumber").DisplayFormat("小組人數:{0}").SummaryType(SummaryType.Custom);
+                items.Add().Name("TotalNumber").ShowInColumn("ListEntityId").DisplayFormat("總人數:{0}").SummaryType(SummaryType.Custom);
+                items.Add().Name("SundayNumber").ShowInColumn("ListEntityId").DisplayFormat("主日:{0}").SummaryType(SummaryType.Custom);
+                items.Add().Name("SmallGroupNumber").ShowInColumn("ListEntityId").DisplayFormat("小組:{0}").SummaryType(SummaryType.Custom);
             })
             .CalculateCustomSummary(@<text>
                 function (options) {
@@ -361,7 +362,12 @@
     }
 
     .chart-card {
-        overflow: hidden;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .chart-card .card-title-row {
+        margin-bottom: 4px;
     }
 
     .chart-host {
@@ -405,6 +411,19 @@
         background: #eef2ff;
     }
 
+    /* 讓底部統計項目排成同一列 */
+    #SmallGroupgridContainer .dx-datagrid-total-footer .dx-row > td:first-child {
+        overflow: visible;
+    }
+
+    #SmallGroupgridContainer .dx-datagrid-total-footer .dx-datagrid-summary-item {
+        display: inline-block;
+        margin-right: 10px;
+        white-space: nowrap;
+        font-weight: 600;
+        color: var(--brand-sub, #0f766e);
+    }
+
     @@media (max-width: 768px) {
         .multi-page-header {
             flex-direction: column;
@@ -424,6 +443,11 @@
         .card-hint {
             white-space: normal;
             line-height: 1.4;
+        }
+
+        /* 圓餅圖區塊在手機上縮減內距 */
+        .chart-card {
+            padding: 6px;
         }
     }
 
