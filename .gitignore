@@ -260,3 +260,7 @@ paket-files/
 __pycache__/
 *.pyc
 /ChurchReport/ChurchReport.csproj
+
+# 防止大型自動產生的檔案被誤加入 git
+*.diagsession
+.serena/cache/
