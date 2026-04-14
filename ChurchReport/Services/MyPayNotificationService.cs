@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ToolUtilityNameSpace;
 using Microsoft.Xrm.Sdk;
@@ -20,7 +22,18 @@ namespace ChurchReport.Services
         private readonly MyPayMessageBuilder _messageBuilder;
         private readonly MyPayStatusHelper _statusHelper;
         private readonly MyPayFeeTypeHelper _feeTypeHelper;
-        private const string LINE_CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
+
+        #region 設定與配置
+        // ✅ 透過 appsettings.json 讀取設定，避免硬編碼
+        private static readonly Lazy<IConfiguration> s_lazyConfiguration = new Lazy<IConfiguration>(() =>
+        {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            return builder.Build();
+        });
+        private static IConfiguration m_Configuration => s_lazyConfiguration.Value;
+        #endregion
 
         public MyPayNotificationService(
             ILogger<MyPayNotificationService> logger,
@@ -34,6 +47,46 @@ namespace ChurchReport.Services
             _feeTypeHelper = feeTypeHelper;
         }
 
+        /// <summary>
+        /// 從 appsettings.json 取得 LINE Channel Access Token
+        /// ✅ 根據 CRM 組織名稱動態選擇對應的 Token
+        /// </summary>
+        private static string GetLineChannelAccessToken()
+        {
+            try
+            {
+                // 嘗試從組織設定讀取
+                var organization = m_Configuration["CrmConnection:Organization"];
+                if (!string.IsNullOrEmpty(organization))
+                {
+                    var configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
+                    var token = m_Configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
+
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        System.Diagnostics.Trace.WriteLine($"[MyPayNotificationService] LINE Token loaded for organization: {organization}");
+                        return token;
+                    }
+                }
+
+                // 使用預設組織
+                var defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+                var defaultToken = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
+
+                if (string.IsNullOrEmpty(defaultToken))
+                {
+                    System.Diagnostics.Trace.WriteLine("[MyPayNotificationService] 警告: LINE Channel Access Token 未設定");
+                }
+
+                return defaultToken ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[MyPayNotificationService] 錯誤: 讀取 LINE Token 設定失敗 - {ex.Message}");
+                return string.Empty;
+            }
+        }
+
         #region LINE 訊息發送
 
         /// <summary>
@@ -45,7 +98,8 @@ namespace ChurchReport.Services
         {
             try
             {
-                var lineMessagingClient = new LineMessagingClient(LINE_CHANNEL_ACCESS_TOKEN);
+                var channelAccessToken = GetLineChannelAccessToken();
+                var lineMessagingClient = new LineMessagingClient(channelAccessToken);
                 var pushUtility = new PushUtility(lineMessagingClient);
                 pushUtility.SendMessage(lineId, message).Wait();
                 _logger.LogInformation($"SendLineMessage: 已發送 - LineId: {lineId}");

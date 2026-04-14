@@ -1,10 +1,12 @@
 ﻿using ChurchReport.WebServiceConnector;
 using Line.Messaging;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using QPay.Domain;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -14,6 +16,18 @@ namespace ChurchReport.Tools
 {
     public class QPayFeeProcessor : Controller, IDisposable
     {
+        #region 設定與配置
+        // ✅ 透過 appsettings.json 讀取設定，避免硬編碼
+        private static readonly Lazy<IConfiguration> s_lazyConfiguration = new Lazy<IConfiguration>(() =>
+        {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            return builder.Build();
+        });
+        private static IConfiguration m_Configuration => s_lazyConfiguration.Value;
+        #endregion
+
         private LineMessagingClient m_LineMessagingClient { get; }
 
         private PushUtility m_PushUtility { get; }
@@ -25,10 +39,6 @@ namespace ChurchReport.Tools
         // 透過建構函數注入取得 ToolUtilityClass
         private readonly ToolUtilityClass m_ToolUtilityClass;
 
-        // 客製化
-        // 好牧人 2.0
-        private const String SPEECHMESSAGE_CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
-
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
 
@@ -38,7 +48,9 @@ namespace ChurchReport.Tools
         /// </summary>
         public QPayFeeProcessor()
         {
-            this.m_LineMessagingClient = new LineMessagingClient(SPEECHMESSAGE_CHANNEL_ACCESS_TOKEN);
+            // ✅ 從 appsettings.json 讀取 LINE Channel Access Token
+            var channelAccessToken = GetLineChannelAccessToken();
+            this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
             //// 客製化
             m_PushUtility = new PushUtility(m_LineMessagingClient);
@@ -59,7 +71,9 @@ namespace ChurchReport.Tools
             if (toolUtilityProvider == null)
                 throw new ArgumentNullException(nameof(toolUtilityProvider));
 
-            this.m_LineMessagingClient = new LineMessagingClient(SPEECHMESSAGE_CHANNEL_ACCESS_TOKEN);
+            // ✅ 從 appsettings.json 讀取 LINE Channel Access Token
+            var channelAccessToken = GetLineChannelAccessToken();
+            this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
             m_PushUtility = new PushUtility(m_LineMessagingClient);
             m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
@@ -100,6 +114,46 @@ namespace ChurchReport.Tools
             Dispose(false);
         }
         #endregion
+
+        /// <summary>
+        /// 從 appsettings.json 取得 LINE Channel Access Token
+        /// ✅ 根據 CRM 組織名稱動態選擇對應的 Token
+        /// </summary>
+        private static string GetLineChannelAccessToken()
+        {
+            try
+            {
+                // 嘗試從組織設定讀取
+                var organization = m_Configuration["CrmConnection:Organization"];
+                if (!string.IsNullOrEmpty(organization))
+                {
+                    var configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
+                    var token = m_Configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
+
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        System.Diagnostics.Trace.WriteLine($"[QPayFeeProcessor] LINE Token loaded for organization: {organization}");
+                        return token;
+                    }
+                }
+
+                // 使用預設組織
+                var defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+                var defaultToken = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
+
+                if (string.IsNullOrEmpty(defaultToken))
+                {
+                    System.Diagnostics.Trace.WriteLine("[QPayFeeProcessor] 警告: LINE Channel Access Token 未設定");
+                }
+
+                return defaultToken ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[QPayFeeProcessor] 錯誤: 讀取 LINE Token 設定失敗 - {ex.Message}");
+                return string.Empty;
+            }
+        }
 
         //[HttpGet]
         //[Route("QPayReturnUrl")]
