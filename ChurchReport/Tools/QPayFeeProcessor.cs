@@ -202,14 +202,36 @@ namespace ChurchReport.Tools
                 var paymentAmount = ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString("N0");
                 var paymentTime = DateTime.Now.ToLocalTime().ToString("yyyy/MM/dd HH:mm:ss");
                 
-                // 取得奉獻類別（如果有的話）
+                // 取得類別文字（區分奉獻或課程繳費）
                 string categoryText = "";
+                bool isCoursePayment = false;
                 try 
                 {
-                    int categoryOption = this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category");
-                    categoryText = GetDedicationCategoryText(categoryOption);
+                    // 先檢查是否為課程繳費（透過課程 Lookup 判斷）
+                    Guid checkDiscipleId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aFeeEntity, "new_disciple_lessons_new_fee");
+                    if (checkDiscipleId != Guid.Empty)
+                    {
+                        // 是課程繳費 - 取得課程名稱
+                        isCoursePayment = true;
+                        Entity discipleLessonsEntity = this.m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", checkDiscipleId);
+                        if (discipleLessonsEntity != null)
+                        {
+                            string courseName = this.m_ToolUtilityClass.GetEntityStringAttribute(discipleLessonsEntity, "new_name");
+                            categoryText = !string.IsNullOrEmpty(courseName) ? courseName : "課程繳費";
+                        }
+                        else
+                        {
+                            categoryText = "課程繳費";
+                        }
+                    }
+                    else
+                    {
+                        // 非課程繳費 - 取得奉獻類別
+                        int categoryOption = this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category");
+                        categoryText = GetDedicationCategoryText(categoryOption);
+                    }
                 }
-                catch { categoryText = "奉獻"; }
+                catch { categoryText = "繳費"; }
 
                 String Description =
                     "╔════════════╗" + Environment.NewLine +
@@ -322,7 +344,7 @@ namespace ChurchReport.Tools
 
                         #region LINE 通知付款人
 
-                        // 建立成功訊息
+                        // 建立成功訊息（依據奉獻或課程繳費顯示不同結尾）
                         string successMessage =
                             "✨════════════✨" + Environment.NewLine +
                             "🎉 交易成功通知 🎉" + Environment.NewLine +
@@ -331,8 +353,9 @@ namespace ChurchReport.Tools
                             Description +
                             Environment.NewLine +
                             "┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
-                            "💝 感謝您的奉獻！" + Environment.NewLine +
-                            "願神賜福與您！" + Environment.NewLine;
+                            (isCoursePayment
+                                ? "📚 感謝您的報名繳費！" + Environment.NewLine + "祝您學習愉快，願神賜福與您！"
+                                : "💝 感謝您的奉獻！" + Environment.NewLine + "願神賜福與您！") + Environment.NewLine;
                         
                         // 取得收費單的課程Lookup是否有值
                         Guid aDiscipleLessonsId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aFeeEntity, "new_disciple_lessons_new_fee");
@@ -372,19 +395,19 @@ namespace ChurchReport.Tools
 
                         // 設定 ViewBag 並返回美觀的結果頁面
                         ViewBag.IsSuccess = true;
-                        ViewBag.Message = "訂單已建立，會透過LINE另行通知交易狀態，感謝您的支持。";
+                        ViewBag.Message = isCoursePayment
+                            ? "報名繳費成功，會透過LINE另行通知課程資訊，感謝您的支持。"
+                            : "訂單已建立，會透過LINE另行通知交易狀態，感謝您的支持。";
                         ViewBag.FullName = aFullName;
                         ViewBag.Amount = ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString();
                         ViewBag.PaymentTime = DateTime.Now.ToLocalTime().ToString("yyyy/MM/dd HH:mm:ss");
                         ViewBag.OrderId = aQryOrderPay.TSResultContent.OrderNo;
                         ViewBag.TransactionId = aQryOrderPay.TSResultContent.OrderNo;
                         ViewBag.PaymentMethod = "信用卡";
-                        
-                        // 取得奉獻類別
-                        int categoryOption = this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category");
-                        string dedicationCategory = GetDedicationCategoryText(categoryOption);
-                        ViewBag.DedicationCategory = dedicationCategory;
-                        
+
+                        // 使用已判斷的類別文字（奉獻類別或課程名稱）
+                        ViewBag.DedicationCategory = categoryText;
+
                         return View("~/Views/QPayCard/PaymentResult.cshtml");
 
                         #endregion
@@ -393,19 +416,19 @@ namespace ChurchReport.Tools
                     {
                         // 設定 ViewBag 並返回美觀的結果頁面
                         ViewBag.IsSuccess = true;
-                        ViewBag.Message = "訂單已建立，會透過LINE另行通知交易狀態，感謝您的支持。";
+                        ViewBag.Message = isCoursePayment
+                            ? "報名繳費成功，會透過LINE另行通知課程資訊，感謝您的支持。"
+                            : "訂單已建立，會透過LINE另行通知交易狀態，感謝您的支持。";
                         ViewBag.FullName = aFullName;
                         ViewBag.Amount = ((int)Convert.ToUInt32(aQryOrderPay.TSResultContent.Amount) / 100).ToString();
                         ViewBag.PaymentTime = DateTime.Now.ToLocalTime().ToString("yyyy/MM/dd HH:mm:ss");
                         ViewBag.OrderId = aQryOrderPay.TSResultContent.OrderNo;
                         ViewBag.TransactionId = aQryOrderPay.TSResultContent.OrderNo;
                         ViewBag.PaymentMethod = "信用卡";
-                        
-                        // 取得奉獻類別
-                        int categoryOption = this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category");
-                        string dedicationCategory = GetDedicationCategoryText(categoryOption);
-                        ViewBag.DedicationCategory = dedicationCategory;
-                        
+
+                        // 使用已判斷的類別文字（奉獻類別或課程名稱）
+                        ViewBag.DedicationCategory = categoryText;
+
                         return View("~/Views/QPayCard/PaymentResult.cshtml");
                     }
                 }
