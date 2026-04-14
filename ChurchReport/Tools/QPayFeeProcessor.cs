@@ -241,7 +241,9 @@ namespace ChurchReport.Tools
                     "📌 交易資訊" + Environment.NewLine +
                     "┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
                     $"  👤 姓名：{aFullName}" + Environment.NewLine +
-                    $"  🏷️  類別：{categoryText}" + Environment.NewLine +
+                    (isCoursePayment
+                        ? $"  📋 項目：{categoryText}"
+                        : $"  🏷️  類別：{categoryText}") + Environment.NewLine +
                     $"  💰 金額：NT$ {paymentAmount}" + Environment.NewLine +
                     $"  📅 時間：{paymentTime}" + Environment.NewLine +
                     Environment.NewLine +
