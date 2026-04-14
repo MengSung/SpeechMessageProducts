@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using ToolUtilityNameSpace;
@@ -11,8 +11,8 @@ using static ChurchReport.Services.MyPayFeeTypeHelper;
 namespace ChurchReport.Services
 {
     /// <summary>
-    /// MyPay LINE ³qª¾µo°eªA°È
-    /// ­t³d®Ú¾Ú¦¬¶O³æÃş«¬µo°e¹ïÀ³ªº LINE ³qª¾°T®§
+    /// MyPay LINE é€šçŸ¥ç™¼é€æœå‹™
+    /// è² è²¬æ ¹æ“šæ”¶è²»å–®é¡å‹ç™¼é€å°æ‡‰çš„ LINE é€šçŸ¥è¨Šæ¯
     /// </summary>
     public class MyPayNotificationService
     {
@@ -20,7 +20,7 @@ namespace ChurchReport.Services
         private readonly MyPayMessageBuilder _messageBuilder;
         private readonly MyPayStatusHelper _statusHelper;
         private readonly MyPayFeeTypeHelper _feeTypeHelper;
-        private const string LINE_CHANNEL_ACCESS_TOKEN = @"OMjL23DpFRDgphgN7JdzA7uCpv1wb4hXtsGh4FzxP8tHzeMyYOr/ry3BBqaRNJpVUhR6wPHLN4Wa4QiG5i3P5T/Y07swP5OjfCz9DKwTYC7T4mPb8x54pwtcqK1lIdgNm6skdZnu99fBsupEcbZLBAdB04t89/1O/w1cDnyilFU=";
+        private const string LINE_CHANNEL_ACCESS_TOKEN = @"g1jtWWNkjbH3OCh1cKoRvPBUkCJIygNuvV/neHXR9I4J5GBgVE85inaIaTcT4AAZ1qCuqrqJXDawrUweyBqLcX97GGokXnTRQ6MxjXAutd5Yr2FkPsZnq6kMelc/C+mqNUHaVUKFAuvTD8JvXbNmpAdB04t89/1O/w1cDnyilFU=";
 
         public MyPayNotificationService(
             ILogger<MyPayNotificationService> logger,
@@ -34,11 +34,11 @@ namespace ChurchReport.Services
             _feeTypeHelper = feeTypeHelper;
         }
 
-        #region LINE °T®§µo°e
+        #region LINE è¨Šæ¯ç™¼é€
 
         /// <summary>
         /// ========================================
-        /// µo°e LINE °T®§
+        /// ç™¼é€ LINE è¨Šæ¯
         /// ========================================
         /// </summary>
         public void SendLineMessage(string lineId, string message)
@@ -48,22 +48,22 @@ namespace ChurchReport.Services
                 var lineMessagingClient = new LineMessagingClient(LINE_CHANNEL_ACCESS_TOKEN);
                 var pushUtility = new PushUtility(lineMessagingClient);
                 pushUtility.SendMessage(lineId, message).Wait();
-                _logger.LogInformation($"SendLineMessage: ¤wµo°e - LineId: {lineId}");
+                _logger.LogInformation($"SendLineMessage: å·²ç™¼é€ - LineId: {lineId}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"SendLineMessage: µo°e¥¢±Ñ - LineId: {lineId}");
+                _logger.LogError(ex, $"SendLineMessage: ç™¼é€å¤±æ•— - LineId: {lineId}");
                 throw;
             }
         }
 
         #endregion
 
-        #region ¦¨¥\³qª¾µo°e
+        #region æˆåŠŸé€šçŸ¥ç™¼é€
 
         /// <summary>
         /// ========================================
-        /// µo°e LINE ¦¨¥\³qª¾¡]¨Ï¥Î MyPayReturnModel¡^
+        /// ç™¼é€ LINE æˆåŠŸé€šçŸ¥ï¼ˆä½¿ç”¨ MyPayReturnModelï¼‰
         /// ========================================
         /// </summary>
         public void SendLineNotificationByType(
@@ -81,7 +81,7 @@ namespace ChurchReport.Services
                 string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
                 if (string.IsNullOrWhiteSpace(lineId)) return;
 
-                // ¸ÑªR¥I´Úª÷ÃB
+                // è§£æä»˜æ¬¾é‡‘é¡
                 decimal amount = 0m;
                 if (!string.IsNullOrEmpty(model.actual_cost) &&
                     decimal.TryParse(model.actual_cost, out var parsedActual))
@@ -130,7 +130,7 @@ namespace ChurchReport.Services
                 }
                 else
                 {
-                    string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "Ãº¶O";
+                    string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "ç¹³è²»";
 
                     message = _messageBuilder.BuildGeneralPaymentSuccessMessage(
                         fullName,
@@ -146,18 +146,18 @@ namespace ChurchReport.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[MyPay¦^¶Ç] µo°eLINE³qª¾¥¢±Ñ - OrderId: {model?.order_id}");
+                _logger.LogError(ex, $"[MyPayå›å‚³] ç™¼é€LINEé€šçŸ¥å¤±æ•— - OrderId: {model?.order_id}");
                 throw;
             }
         }
 
         #endregion
 
-        #region ¥¢±Ñ³qª¾µo°e
+        #region å¤±æ•—é€šçŸ¥ç™¼é€
 
         /// <summary>
         /// ========================================
-        /// µo°e LINE ¥¢±Ñ³qª¾¡]¨Ï¥Î MyPayReturnModel¡^
+        /// ç™¼é€ LINE å¤±æ•—é€šçŸ¥ï¼ˆä½¿ç”¨ MyPayReturnModelï¼‰
         /// ========================================
         /// </summary>
         public void SendLineFailureNotificationByType(
@@ -175,7 +175,7 @@ namespace ChurchReport.Services
                 string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
                 if (string.IsNullOrWhiteSpace(lineId)) return;
 
-                // ¸ÑªRÀ³¥Iª÷ÃB¡]Àu¥ı¨Ï¥Î CRM ¤¤ªºª÷ÃB¡^
+                // è§£ææ‡‰ä»˜é‡‘é¡ï¼ˆå„ªå…ˆä½¿ç”¨ CRM ä¸­çš„é‡‘é¡ï¼‰
                 decimal amount = 0m;
 
                 var shouldPayMoney = utility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
@@ -233,7 +233,7 @@ namespace ChurchReport.Services
                 }
                 else
                 {
-                    string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "Ãº¶O";
+                    string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "ç¹³è²»";
 
                     message = _messageBuilder.BuildGeneralPaymentFailureMessage(
                         fullName,
@@ -250,18 +250,18 @@ namespace ChurchReport.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[MyPay¦^¶Ç] µo°eLINE¥¢±Ñ³qª¾¥¢±Ñ - OrderId: {model?.order_id}");
+                _logger.LogError(ex, $"[MyPayå›å‚³] ç™¼é€LINEå¤±æ•—é€šçŸ¥å¤±æ•— - OrderId: {model?.order_id}");
                 throw;
             }
         }
 
         #endregion
 
-        #region ÂÂª©¬Û®e¤èªk
+        #region èˆŠç‰ˆç›¸å®¹æ–¹æ³•
 
         /// <summary>
         /// ========================================
-        /// µo°e¥I´Ú³qª¾¡]¨Ï¥Î­Ó§O°Ñ¼Æ¡AÂÂª©¬Û®e¡^
+        /// ç™¼é€ä»˜æ¬¾é€šçŸ¥ï¼ˆä½¿ç”¨å€‹åˆ¥åƒæ•¸ï¼ŒèˆŠç‰ˆç›¸å®¹ï¼‰
         /// ========================================
         /// </summary>
         public void SendPaymentNotificationByType(
@@ -336,7 +336,7 @@ namespace ChurchReport.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"SendNotification: µo°e LINE¥¢±Ñ - OrderId: {orderId}");
+                _logger.LogError(ex, $"SendNotification: ç™¼é€ LINEå¤±æ•— - OrderId: {orderId}");
             }
         }
 
