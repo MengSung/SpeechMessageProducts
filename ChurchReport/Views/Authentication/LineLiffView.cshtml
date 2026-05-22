@@ -410,7 +410,7 @@
         window.onload = function (e) {
             console.log('[LineLiffView] ========== 開始初始化 LINE 綁定流程 ==========');
             console.log('[LineLiffView] URL:', window.location.href);
-            console.log('[LineLiffView] LIFF ID:', '@TempData["Proponent"]');
+            console.log('[LineLiffView] LIFF ID:', '@ViewBag.LiffId');
 
             // ========================================
             // ✅ P0: 檢查是否從 Server-side OAuth 返回
@@ -486,7 +486,7 @@
         // ========================================
         function detectEnvironmentAndChooseMethod() {
             liff
-                .init({ liffId: '@TempData["Proponent"]' })
+                .init({ liffId: '@ViewBag.LiffId' })
                 .then(async () => {
                     var os = '';
                     var isInClient = false;

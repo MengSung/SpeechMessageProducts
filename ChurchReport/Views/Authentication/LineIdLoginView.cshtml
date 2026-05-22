@@ -176,7 +176,14 @@
         // 方案 B：根據環境選擇登入方式（可選）
         // ========================================
         function detectEnvironmentAndChooseMethod() {
-            liff.init({ liffId: '@TempData["Proponent"]' })
+            // 優先取 ViewBag.LiffId（Server 端 render，最可靠），備援從 URL path 最後一段取得
+            var liffId = '@ViewBag.LiffId';
+            if (!liffId || liffId.trim() === '') {
+                var pathParts = window.location.pathname.split('/');
+                liffId = pathParts[pathParts.length - 1] || '';
+            }
+            console.log('[LIFF Init] liffId =', liffId);
+            liff.init({ liffId: liffId })
                 .then(async () => {
                     var os = '';
                     var isInClient = false;

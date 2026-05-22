@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using ChurchReport.Tools;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +10,7 @@ using ToolUtilityNameSpace.DependencyInjection;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// ¤â¾÷¸¹½XÅÜ§ó»P QRCode ¸j©w±±¨î¾¹
+    /// æ‰‹æ©Ÿè™Ÿç¢¼è®Šæ›´èˆ‡ QRCode ç¶å®šæ§åˆ¶å™¨
     /// </summary>
     public class PhoneBindingController : BaseChurchController
     {
@@ -24,7 +24,7 @@ namespace ChurchReport.Controllers
         {
         }
 
-        #region ³æ¿W´«¤â¾÷¸¹½X
+        #region å–®ç¨æ›æ‰‹æ©Ÿè™Ÿç¢¼
         [HttpGet]
         [Route("/Phone/ChangePhoneView/{LineIdLoginViewPatameter}")]
         public IActionResult ChangePhoneView(string LineIdLoginViewPatameter)
@@ -37,6 +37,7 @@ namespace ChurchReport.Controllers
 
                 InMemoryContext.LineBindingViewModel.Images = images;
                 TempData["Proponent"] = LineIdLoginViewPatameter;
+                ViewBag.LiffId = LineIdLoginViewPatameter; // åŒæ­¥ ViewBagï¼Œç¢ºä¿ View å¯é è®€å– LIFF ID
 
                 return View(InMemoryContext.LineBindingViewModel);
             }
@@ -47,26 +48,27 @@ namespace ChurchReport.Controllers
         }
         #endregion
 
-        #region QRcode ´«¤â¾÷¸¹½X
+        #region QRcode æ›æ‰‹æ©Ÿè™Ÿç¢¼
         [HttpGet]
         [Route("/Phone/PhoneQrCodeView/{QrCodeViewPatameter}")]
         public IActionResult PhoneQrCodeView(string QrCodeId, string QrCodeViewPatameter)
         {
             try
             {
-                // ±±¨î Navigation ¤U©Ô¶µ¥Ø
-                ViewBag.LoginType = "¤p²Õªø";
-                ViewBag.LoginFullName = "­C¿q";
-                ViewBag.FeeType = "¦³Ãº¶OÂI¦W";
-                ViewBag.FeeDataListCount = "Ãº¶O»PÂI¦W©|µL¸ê®Æ";
-                ViewBag.HappyType = "¨S©¯ºÖ¤p²Õ¦W³æ";
+                // æ§åˆ¶ Navigation ä¸‹æ‹‰é …ç›®
+                ViewBag.LoginType = "å°çµ„é•·";
+                ViewBag.LoginFullName = "è€¶ç©Œ";
+                ViewBag.FeeType = "æœ‰ç¹³è²»é»å";
+                ViewBag.FeeDataListCount = "ç¹³è²»èˆ‡é»åå°šç„¡è³‡æ–™";
+                ViewBag.HappyType = "æ²’å¹¸ç¦å°çµ„åå–®";
                 ViewBag.MultiGroupIndex = "SingleMultiGroupView";
-                ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "¤£Åã¥Üªª¾i¦^³ø¶µ¥Ø";
+                ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "ä¸é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
                 ViewBag.UserType = InMemoryContext.ListManager.UserType = InMemoryContext.AppointmentsListManager.UserType;
 
                 InMemoryContext.ListManager.QrCodeId = QrCodeId;
 
                 TempData["Proponent"] = QrCodeViewPatameter;
+                ViewBag.LiffId = QrCodeViewPatameter; // åŒæ­¥ ViewBagï¼Œç¢ºä¿ View å¯é è®€å– LIFF ID
                 TempData["QrCodeId"] = QrCodeId;
                 TempData["ClassName"] = " ";
 
@@ -84,7 +86,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // §âLineUserId©ñ¦b¦øªA¾¹ºİ¤F
+                // æŠŠLineUserIdæ”¾åœ¨ä¼ºæœå™¨ç«¯äº†
                 InMemoryContext.LineBindingViewModel.LineUserId = InMemoryContext.AppointmentsListManager.LineUserId = UserLineId;
                 InMemoryContext.LineBindingViewModel.RoomId = InMemoryContext.AppointmentsListManager.RoomId = RoomId;
                 InMemoryContext.LineBindingViewModel.GroupId = InMemoryContext.AppointmentsListManager.GroupId = GroupId;
@@ -103,14 +105,14 @@ namespace ChurchReport.Controllers
                     InMemoryContext.LineBindingViewModel.DisplayId = UserLineId;
                 }
 
-                // ±±¨î Navigation ¤U©Ô¶µ¥Ø
-                ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "³æ¯Â¦æ¨Æ¾ä";
-                ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "¤£Åã¥Üªª¾i¦^³ø¶µ¥Ø";
+                // æ§åˆ¶ Navigation ä¸‹æ‹‰é …ç›®
+                ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "å–®ç´”è¡Œäº‹æ›†";
+                ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "ä¸é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
                 ViewBag.UserType = InMemoryContext.ListManager.UserType = InMemoryContext.AppointmentsListManager.UserType;
 
-                TempData["ClassName"] = "±q¬Û«H¨ì°í«H";
+                TempData["ClassName"] = "å¾ç›¸ä¿¡åˆ°å …ä¿¡";
 
-                // ¨Ï¥Î QrCodeUtility ³B²z QR Code ÅŞ¿è
+                // ä½¿ç”¨ QrCodeUtility è™•ç† QR Code é‚è¼¯
                 QrCodeUtility aQrCodeUtility = new QrCodeUtility();
 
                 string UserName = "";
@@ -118,7 +120,7 @@ namespace ChurchReport.Controllers
                 string ClassIndex = "";
                 string ClassName = "";
 
-                // ¥D¤é±½´y«áªº¬ÛÃö³]©w (¸É¥R¯Ê¤Öªº¨â­Ó°Ñ¼Æ)
+                // ä¸»æ—¥æƒæå¾Œçš„ç›¸é—œè¨­å®š (è£œå……ç¼ºå°‘çš„å…©å€‹åƒæ•¸)
                 aQrCodeUtility.SetupQrCodeIdString(
                     InMemoryContext.ListManager.QrCodeId,
                     DisplayName,

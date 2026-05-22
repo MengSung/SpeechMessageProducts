@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using ChurchReport.Tools;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,12 +11,12 @@ using ToolUtilityNameSpace.DependencyInjection;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// QR Code ±±¨î¾¹
-    /// ³B²z¦UÃş QR Code ±½´y¥\¯à (½Òµ{Ã±¨ì°h¡B¥D¤é¡B¤p²Õ¡B­Ó¤H)
+    /// QR Code æ§åˆ¶å™¨
+    /// è™•ç†å„é¡ QR Code æƒæåŠŸèƒ½ (èª²ç¨‹ç°½åˆ°é€€ã€ä¸»æ—¥ã€å°çµ„ã€å€‹äºº)
     /// </summary>
     public class QrCodeController : BaseChurchController
     {
-        #region «Øºc¨ç¦¡
+        #region å»ºæ§‹å‡½å¼
 
         public QrCodeController(
             IHttpContextAccessor httpContextAccessor,
@@ -30,14 +30,14 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ±Ğ·|½Òµ{ QR CODE (Ã±¨ì¡BÃ±°h¡B³ø¦W)
+        #region æ•™æœƒèª²ç¨‹ QR CODE (ç°½åˆ°ã€ç°½é€€ã€å ±å)
 
         /// <summary>
-        /// ±Ğ·|½Òµ{ QR Code ±½´y­¶­±
-        /// ¥Î©ó½Òµ{Ã±¨ì¡BÃ±°h»P³ø¦W
+        /// æ•™æœƒèª²ç¨‹ QR Code æƒæé é¢
+        /// ç”¨æ–¼èª²ç¨‹ç°½åˆ°ã€ç°½é€€èˆ‡å ±å
         /// </summary>
-        /// <param name="QrCodeId">QR Code ÃÑ§O½X</param>
-        /// <param name="QrCodeViewPatameter">­¶­±°Ñ¼Æ</param>
+        /// <param name="QrCodeId">QR Code è­˜åˆ¥ç¢¼</param>
+        /// <param name="QrCodeViewPatameter">é é¢åƒæ•¸</param>
         [Route("/QrCodeView")]
         [Route("/Home/QrCodeView")]
         [Route("/Home/QrCodeView/{QrCodeViewPatameter}")]
@@ -48,11 +48,12 @@ namespace ChurchReport.Controllers
             {
                 SetupQrCodeViewBag();
 
-                // Àx¦s QR Code ID
+                // å„²å­˜ QR Code ID
                 InMemoryContext.ListManager.QrCodeId = QrCodeId;
 
-                // ¶Ç»¼°Ñ¼Æµ¹­¶­±
+                // å‚³éåƒæ•¸çµ¦é é¢
                 TempData["Proponent"] = QrCodeViewPatameter;
+                ViewBag.LiffId = QrCodeViewPatameter; // åŒæ­¥ ViewBagï¼Œç¢ºä¿ View å¯é è®€å– LIFF ID
                 TempData["QrCodeId"] = QrCodeId;
                 TempData["ClassName"] = " ";
 
@@ -65,7 +66,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¨ú±o½Òµ{ QR Code ±½´y«áªº¸ê°T
+        /// å–å¾—èª²ç¨‹ QR Code æƒæå¾Œçš„è³‡è¨Š
         /// </summary>
         [HttpPost]
         public IActionResult QrCodeGetLineId(
@@ -86,7 +87,7 @@ namespace ChurchReport.Controllers
                 string classIndex = "";
                 string onboardType = "";
 
-                // ¸ÑªR QR Code ¨Ã³B²zÃ±¨ì/Ã±°h
+                // è§£æ QR Code ä¸¦è™•ç†ç°½åˆ°/ç°½é€€
                 qrCodeUtility.SetupQrCodeIdString(
                     InMemoryContext.ListManager.QrCodeId,
                     DisplayName,
@@ -113,10 +114,10 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region °İ¨÷½Õ¬d QR CODE
+        #region å•å·èª¿æŸ¥ QR CODE
 
         /// <summary>
-        /// °İ¨÷½Õ¬d QR Code ­¶­±
+        /// å•å·èª¿æŸ¥ QR Code é é¢
         /// </summary>
         [Route("/PollQrCodeView")]
         [Route("/Home/PollQrCodeView")]
@@ -131,6 +132,7 @@ namespace ChurchReport.Controllers
                 InMemoryContext.ListManager.QrCodeId = QrCodeId;
 
                 TempData["Proponent"] = PollQrCodeViewPatameter;
+                ViewBag.LiffId = PollQrCodeViewPatameter; // åŒæ­¥ ViewBagï¼Œç¢ºä¿ View å¯é è®€å– LIFF ID
                 TempData["QrCodeId"] = QrCodeId;
                 TempData["ClassName"] = " ";
 
@@ -144,7 +146,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¨ú±o°İ¨÷ QR Code ±½´yªÌ¸ê°T
+        /// å–å¾—å•å· QR Code æƒæè€…è³‡è¨Š
         /// </summary>
         [HttpPost]
         public IActionResult PollQrCodeGetLineId(
@@ -158,7 +160,7 @@ namespace ChurchReport.Controllers
             {
                 SetupLineContext(UserLineId, GroupId, RoomId, ViewType);
 
-                // ¨ú±o±½´yªÌ¥ş¦W
+                // å–å¾—æƒæè€…å…¨å
                 string userName = GetUserFullName(UserLineId);
 
                 PollManager pollManager = new PollManager();
@@ -180,7 +182,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// Àx¦s°İ¨÷¦^µª
+        /// å„²å­˜å•å·å›ç­”
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> SavePoll(PollModel aPollModel)
@@ -202,10 +204,10 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¤p²Õ»E·| QR CODE
+        #region å°çµ„èšæœƒ QR CODE
 
         /// <summary>
-        /// ¤p²Õ»E·| QR Code Ã±¨ì°h­¶­±
+        /// å°çµ„èšæœƒ QR Code ç°½åˆ°é€€é é¢
         /// </summary>
         [Route("/SmallGroupQrCodeView")]
         [Route("/Home/SmallGroupQrCodeView")]
@@ -220,6 +222,7 @@ namespace ChurchReport.Controllers
                 InMemoryContext.ListManager.QrCodeId = QrCodeId;
 
                 TempData["Proponent"] = QrCodeViewPatameter;
+                ViewBag.LiffId = QrCodeViewPatameter; // åŒæ­¥ ViewBagï¼Œç¢ºä¿ View å¯é è®€å– LIFF ID
                 TempData["QrCodeId"] = QrCodeId;
                 TempData["ClassName"] = " ";
 
@@ -232,7 +235,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¨ú±o¤p²Õ QR Code ±½´y¸ê°T
+        /// å–å¾—å°çµ„ QR Code æƒæè³‡è¨Š
         /// </summary>
         [HttpPost]
         public IActionResult SmallGroupQrCodeGetLineId(
@@ -276,10 +279,10 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¥D¤é QR CODE
+        #region ä¸»æ—¥ QR CODE
 
         /// <summary>
-        /// ¥D¤é QR Code Ã±¨ì°h­¶­±
+        /// ä¸»æ—¥ QR Code ç°½åˆ°é€€é é¢
         /// </summary>
         [Route("/SundayQrCodeView")]
         [Route("/Home/SundayQrCodeView")]
@@ -294,6 +297,7 @@ namespace ChurchReport.Controllers
                 InMemoryContext.ListManager.QrCodeId = QrCodeId;
 
                 TempData["Proponent"] = QrCodeViewPatameter;
+                ViewBag.LiffId = QrCodeViewPatameter; // åŒæ­¥ ViewBagï¼Œç¢ºä¿ View å¯é è®€å– LIFF ID
                 TempData["QrCodeId"] = QrCodeId;
                 TempData["ClassName"] = " ";
 
@@ -306,7 +310,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¨ú±o¥D¤é QR Code ±½´y¸ê°T
+        /// å–å¾—ä¸»æ—¥ QR Code æƒæè³‡è¨Š
         /// </summary>
         [HttpPost]
         public IActionResult SundayQrCodeGetLineId(
@@ -353,10 +357,10 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¤u§@¤H­û±½´yÁpµ¸¤H QR CODE
+        #region å·¥ä½œäººå“¡æƒæè¯çµ¡äºº QR CODE
 
         /// <summary>
-        /// ¤u§@¤H­û¥D°Ê±½´yÁpµ¸¤H QR Code ­¶­±
+        /// å·¥ä½œäººå“¡ä¸»å‹•æƒæè¯çµ¡äºº QR Code é é¢
         /// </summary>
         [Route("/PersonalQrCodeView")]
         [Route("/Home/PersonalQrCodeView")]
@@ -371,6 +375,7 @@ namespace ChurchReport.Controllers
                 InMemoryContext.ListManager.QrCodeId = QrCodeId;
 
                 TempData["Proponent"] = QrCodeViewPatameter;
+                ViewBag.LiffId = QrCodeViewPatameter; // åŒæ­¥ ViewBagï¼Œç¢ºä¿ View å¯é è®€å– LIFF ID
                 TempData["QrCodeId"] = QrCodeId;
                 TempData["ClassName"] = " ";
 
@@ -383,7 +388,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¨ú±o­Ó¤H QR Code ±½´y¸ê°T
+        /// å–å¾—å€‹äºº QR Code æƒæè³‡è¨Š
         /// </summary>
         [HttpPost]
         public IActionResult PersonalQrCodeGetLineId(
@@ -430,25 +435,25 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¨p¦³»²§U¤èªk
+        #region ç§æœ‰è¼”åŠ©æ–¹æ³•
 
         /// <summary>
-        /// ³]©w QR Code ­¶­±ªº ViewBag
+        /// è¨­å®š QR Code é é¢çš„ ViewBag
         /// </summary>
         private void SetupQrCodeViewBag()
         {
-            ViewBag.LoginType = "¤p²Õªø";
-            ViewBag.LoginFullName = "­C¿q";
-            ViewBag.FeeType = "¦³Ãº¶OÂI¦W";
-            ViewBag.FeeDataListCount = "Ãº¶O»PÂI¦W©|µL¸ê®Æ";
-            ViewBag.HappyType = "¨S©¯ºÖ¤p²Õ¦W³æ";
+            ViewBag.LoginType = "å°çµ„é•·";
+            ViewBag.LoginFullName = "è€¶ç©Œ";
+            ViewBag.FeeType = "æœ‰ç¹³è²»é»å";
+            ViewBag.FeeDataListCount = "ç¹³è²»èˆ‡é»åå°šç„¡è³‡æ–™";
+            ViewBag.HappyType = "æ²’å¹¸ç¦å°çµ„åå–®";
             ViewBag.MultiGroupIndex = "SingleMultiGroupView";
-            ViewBag.DisplayNavigation = "¤£Åã¥Üªª¾i¦^³ø¶µ¥Ø";
-            ViewBag.UserType = "¦æ¬F¦P¤u";
+            ViewBag.DisplayNavigation = "ä¸é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
+            ViewBag.UserType = "è¡Œæ”¿åŒå·¥";
         }
 
         /// <summary>
-        /// ³]©w LINE ¤W¤U¤å¸ê°T
+        /// è¨­å®š LINE ä¸Šä¸‹æ–‡è³‡è¨Š
         /// </summary>
         private void SetupLineContext(string userLineId, string groupId, string roomId, string viewType)
         {
@@ -464,7 +469,7 @@ namespace ChurchReport.Controllers
             InMemoryContext.LineBindingViewModel.ViewType = viewType;
             InMemoryContext.AppointmentsListManager.ViewType = viewType;
 
-            // ³]©wÅã¥Ü ID
+            // è¨­å®šé¡¯ç¤º ID
             if (!string.IsNullOrEmpty(groupId))
                 InMemoryContext.LineBindingViewModel.DisplayId = groupId;
             else if (!string.IsNullOrEmpty(roomId))
@@ -472,15 +477,15 @@ namespace ChurchReport.Controllers
             else
                 InMemoryContext.LineBindingViewModel.DisplayId = userLineId;
 
-            // ³]©w¦æ¨Æ¾ä ViewBag
-            ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "³æ¯Â¦æ¨Æ¾ä";
-            ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "¤£Åã¥Üªª¾i¦^³ø¶µ¥Ø";
+            // è¨­å®šè¡Œäº‹æ›† ViewBag
+            ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "å–®ç´”è¡Œäº‹æ›†";
+            ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "ä¸é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
             ViewBag.UserType = InMemoryContext.ListManager.UserType = 
                 InMemoryContext.AppointmentsListManager.UserType;
         }
 
         /// <summary>
-        /// ¨ú±o¨Ï¥ÎªÌ¥ş¦W
+        /// å–å¾—ä½¿ç”¨è€…å…¨å
         /// </summary>
         private string GetUserFullName(string userLineId)
         {

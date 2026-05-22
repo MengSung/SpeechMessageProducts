@@ -67,6 +67,7 @@ namespace ChurchReport.Controllers
             {
                 SetupSchedulerViewForLine();
                 TempData["Proponent"] = SchedulerViewPatameter;
+                ViewBag.LiffId = SchedulerViewPatameter; // 同步 ViewBag，確保 View 可靠讀取 LIFF ID
 
                 return View();
             }

@@ -527,6 +527,7 @@ namespace ChurchReport.Controllers
 
                 // ─── 設定 LIFF ID（View 中 liff.init() 必要）───
                 TempData["Proponent"] = lineIdLoginViewParameter;
+                ViewBag.LiffId = lineIdLoginViewParameter; // 同步 ViewBag，確保 View 可靠讀取 LIFF ID
 
                 // 使用參數查詢聯絡人資訊
                 if (!string.IsNullOrEmpty(lineIdLoginViewParameter))

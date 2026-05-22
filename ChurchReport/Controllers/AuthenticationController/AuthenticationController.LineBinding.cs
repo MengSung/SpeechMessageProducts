@@ -37,6 +37,7 @@ namespace ChurchReport.Controllers
 
                 InMemoryContext.LineBindingViewModel.Images = images;
                 TempData["Proponent"] = LineIdLoginViewPatameter;
+                ViewBag.LiffId = LineIdLoginViewPatameter; // 同步 ViewBag，確保 View 可靠讀取 LIFF ID
 
                 return View(InMemoryContext.LineBindingViewModel);
             }
@@ -260,6 +261,18 @@ namespace ChurchReport.Controllers
             if (!string.IsNullOrWhiteSpace(model.OtherName))
                 contact["new_other_name"] = model.OtherName;
 
+            // 儲存性別 (Gender) - 僅 VisitorCard 表單填寫時才寫入
+            if (!string.IsNullOrWhiteSpace(model.Gender))
+                contact["gendercode"] = new OptionSetValue(InMemoryContext.LineBindingViewModel.GetGenderCodeIndex(model.Gender));
+
+            // 儲存信仰狀態 (Status)
+            if (!string.IsNullOrWhiteSpace(model.Status))
+                contact["new_spiriitual_identity"] = new OptionSetValue(InMemoryContext.LineBindingViewModel.GetFaithStatusIndex(model.Status));
+
+            // 儲存生日 (BirthDate)
+            if (model.BirthDate != default(DateTime))
+                contact["birthdate"] = model.BirthDate.Date;
+
             await ExecuteCrmAsync(() => service.Update(contact));
 
             return Json(new { status = "1", message = $"已成功綁定 LINE 至現有帳號:{model.FullName}" });
@@ -287,6 +300,18 @@ namespace ChurchReport.Controllers
 
             if (!string.IsNullOrWhiteSpace(model.OtherName))
                 newContact["new_other_name"] = model.OtherName;
+
+            // 儲存性別 (Gender) - 僅 VisitorCard 表單填寫時才寫入
+            if (!string.IsNullOrWhiteSpace(model.Gender))
+                newContact["gendercode"] = new OptionSetValue(InMemoryContext.LineBindingViewModel.GetGenderCodeIndex(model.Gender));
+
+            // 儲存信仰狀態 (Status)
+            if (!string.IsNullOrWhiteSpace(model.Status))
+                newContact["new_spiriitual_identity"] = new OptionSetValue(InMemoryContext.LineBindingViewModel.GetFaithStatusIndex(model.Status));
+
+            // 儲存生日 (BirthDate)
+            if (model.BirthDate != default(DateTime))
+                newContact["birthdate"] = model.BirthDate.Date;
 
             var newContactId = await ExecuteCrmAsync(() => service.Create(newContact));
 

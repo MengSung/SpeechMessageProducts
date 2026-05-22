@@ -588,6 +588,7 @@ namespace ChurchReport.Controllers
 
                 InMemoryContext.LineBindingViewModel.Images = images;
                 TempData["Proponent"] = LineIdLoginViewPatameter;
+                ViewBag.LiffId = LineIdLoginViewPatameter; // 同步 ViewBag，確保 View 可靠讀取 LIFF ID
 
                 return View(InMemoryContext.LineBindingViewModel);
             }

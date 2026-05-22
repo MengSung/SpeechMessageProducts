@@ -158,6 +158,11 @@
                     )
             </div>
         </div>
+
+        {{! 隱藏欄位：DevExtreme Form 不自動 POST，由 JS 在送出前填入 }}
+        <input type="hidden" name="Gender"    id="hidden-Gender"    value="" />
+        <input type="hidden" name="Status"    id="hidden-Status"    value="" />
+        <input type="hidden" name="BirthDate" id="hidden-BirthDate" value="" />
         <div class="dx-field" style="text-align: center;">
             <div id="buttonContainer" class="dx-button-icon">
 
@@ -302,6 +307,25 @@
 
         function Register(arg) {
 
+            // 送出前將 DevExtreme Form 的值同步到隱藏欄位（model binding 才能收到）
+            var formInstance = $("#form").dxForm("instance");
+            var formData    = formInstance.option("formData");
+
+            $("#hidden-Gender").val(formData.Gender    || "");
+            $("#hidden-Status").val(formData.Status    || "");
+
+            // BirthDate 格式轉為 yyyy-MM-dd（後端 DateTime model binding 需要）
+            var bd = formData.BirthDate;
+            if (bd) {
+                var d = new Date(bd);
+                if (!isNaN(d)) {
+                    var yyyy = d.getFullYear();
+                    var mm   = String(d.getMonth() + 1).padStart(2, '0');
+                    var dd   = String(d.getDate()).padStart(2, '0');
+                    $("#hidden-BirthDate").val(yyyy + "-" + mm + "-" + dd);
+                }
+            }
+
             // 顯示旋轉鈕
             getLoadPanelInstance().show();
 
@@ -420,7 +444,13 @@
 
         window.onload = function (e)
         {
-            liff.init({ liffId:  '@TempData["Proponent"]' })
+            // liffId 優先取 ViewBag.LiffId（由路由參數傳入），若為空則從 URL path 最後一段取得
+            var liffId = '@ViewBag.LiffId';
+            if (!liffId || liffId.trim() === '') {
+                var pathParts = window.location.pathname.split('/');
+                liffId = pathParts[pathParts.length - 1] || '';
+            }
+            liff.init({ liffId: liffId })
                 .then(() =>
                 {
                 // 检查用户是否已登录

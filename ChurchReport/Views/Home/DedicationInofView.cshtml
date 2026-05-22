@@ -256,7 +256,7 @@
 
         window.onload = function (e)
         {
-            liff.init({ liffId:  '@TempData["Proponent"]' })
+            liff.init({ liffId:  '@ViewBag.LiffId' })
                 .then(() =>
                 {
                 // 检查用户是否已登录

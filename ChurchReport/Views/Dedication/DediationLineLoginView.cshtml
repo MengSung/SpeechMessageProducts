@@ -269,7 +269,7 @@ font-weight: 600;
         window.onload = function (e) {
             console.log('[DediationLogin] ========== 開始初始化 LINE 奉獻登入流程 ==========');
             console.log('[DediationLogin] URL:', window.location.href);
-            console.log('[DediationLogin] LIFF ID:', '@TempData["Proponent"]');
+            console.log('[DediationLogin] LIFF ID:', '@ViewBag.LiffId');
             
             // ========================================
             // ✅ Step 1: 檢查 LIFF SDK 是否載入
@@ -345,7 +345,7 @@ font-weight: 600;
         function detectEnvironmentAndChooseMethod() {
             console.log('[DediationLogin] ========== 開始 LIFF 初始化與環境偵測 ==========');
             
-            liff.init({ liffId: '@TempData["Proponent"]' })
+            liff.init({ liffId: '@ViewBag.LiffId' })
                 .then(async () => {
                     console.log("✅ [DediationLogin] LIFF 初始化成功");
                     

@@ -1,4 +1,4 @@
-using ChurchReport.ViewModel;
+ï»¿using ChurchReport.ViewModel;
 using ChurchReport.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Xrm.Sdk;
@@ -10,15 +10,15 @@ using System.Threading.Tasks;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// »{ÃÒ±±¨î¾¹¡]LINE µn¤J¡^
+    /// èªè­‰æ§åˆ¶å™¨ï¼ˆLINE ç™»å…¥ï¼‰
     /// </summary>
     public partial class AuthenticationController
     {
-        #region LINE µn¤J
+        #region LINE ç™»å…¥
 
         /// <summary>
-        /// LINE ID µn¤J­¶­±
-        /// Åã¥Ü LINE µn¤Jªí³æ
+        /// LINE ID ç™»å…¥é é¢
+        /// é¡¯ç¤º LINE ç™»å…¥è¡¨å–®
         /// </summary>
         [HttpGet]
         [Route("/Authentication/LineIdLoginView/{LineIdLoginViewPatameter}")]
@@ -33,6 +33,7 @@ namespace ChurchReport.Controllers
 
                 InMemoryContext.LineBindingViewModel.Images = images;
                 TempData["Proponent"] = LineIdLoginViewPatameter;
+                ViewBag.LiffId = LineIdLoginViewPatameter; // åŒæ­¥è¨­å®š ViewBagï¼Œç¢ºä¿ View èƒ½å¯é è®€å–
 
                 return View(InMemoryContext.LineBindingViewModel);
             }
@@ -43,7 +44,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// Àx¦s LINE ¨Ï¥ÎªÌ ID ¨Ã¶i¤Jµn¤J¬yµ{
+        /// å„²å­˜ LINE ä½¿ç”¨è€… ID ä¸¦é€²å…¥ç™»å…¥æµç¨‹
         /// </summary>
         [HttpPost]
         [Route("/Authentication/SaveUserLineId")]
@@ -52,23 +53,23 @@ namespace ChurchReport.Controllers
             try
             {
                 System.Diagnostics.Debug.WriteLine("========================================");
-                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ===== ¶}©l³B²z LINE µn¤J½Ğ¨D =====");
-                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ®É¶¡: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
-                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ½Ğ¨D°Ñ¼Æ:");
+                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ===== é–‹å§‹è™•ç† LINE ç™»å…¥è«‹æ±‚ =====");
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] æ™‚é–“: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
+                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] è«‹æ±‚åƒæ•¸:");
                 System.Diagnostics.Debug.WriteLine($"  - UserLineId: {UserLineId}");
                 System.Diagnostics.Debug.WriteLine($"  - GroupId: {GroupId ?? "(null)"}");
                 System.Diagnostics.Debug.WriteLine($"  - RoomId: {RoomId ?? "(null)"}");
                 System.Diagnostics.Debug.WriteLine($"  - ViewType: {ViewType ?? "(null)"}");
                 System.Diagnostics.Debug.WriteLine("========================================");
 
-                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ¨BÆJ 2: ³]©w LINE ¬ÛÃö¸ê°T¨ì InMemoryContext");
+                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] æ­¥é©Ÿ 2: è¨­å®š LINE ç›¸é—œè³‡è¨Šåˆ° InMemoryContext");
 
                 InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
                 InMemoryContext.LineBindingViewModel.RoomId = RoomId;
                 InMemoryContext.LineBindingViewModel.GroupId = GroupId;
                 InMemoryContext.LineBindingViewModel.ViewType = ViewType;
 
-                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ¨BÆJ 3: ³]©w DisplayId");
+                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] æ­¥é©Ÿ 3: è¨­å®š DisplayId");
 
                 if (!string.IsNullOrEmpty(GroupId))
                 {
@@ -83,7 +84,7 @@ namespace ChurchReport.Controllers
                     InMemoryContext.LineBindingViewModel.DisplayId = UserLineId;
                 }
 
-                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ¨BÆJ 4: ÀË¬d¥Î¤á¬O§_¤w¦b¸ê®Æ®w¤¤¸j©w");
+                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] æ­¥é©Ÿ 4: æª¢æŸ¥ç”¨æˆ¶æ˜¯å¦å·²åœ¨è³‡æ–™åº«ä¸­ç¶å®š");
 
                 IOrganizationService service = null;
                 Entity foundContact = null;
@@ -110,24 +111,24 @@ namespace ChurchReport.Controllers
 
                     if (results.Entities.Count == 0)
                     {
-                        // ? ¼W±j¶EÂ_¡G°O¿ı¥¼¤Ç°tªº userId¡A¨ó§U±Æ¬d Provider ¤£¦Pªº°İÃD
-                        System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ? ¦¹ LINE ID ©|¥¼¸j©w");
-                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ? ·j´Mªº UserLineId: {UserLineId}");
-                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ? ­Y¦¹ userId »P CRM ¤¤¤w¸j©wªº new_lineid ¤£¦P¡A");
-                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ? ¥i¯à¬O Mini App Channel »P¸j©w Channel ¦b¤£¦Pªº LINE Provider ¤U");
+                        // ? å¢å¼·è¨ºæ–·ï¼šè¨˜éŒ„æœªåŒ¹é…çš„ userIdï¼Œå”åŠ©æ’æŸ¥ Provider ä¸åŒçš„å•é¡Œ
+                        System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ? æ­¤ LINE ID å°šæœªç¶å®š");
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ? æœå°‹çš„ UserLineId: {UserLineId}");
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ? è‹¥æ­¤ userId èˆ‡ CRM ä¸­å·²ç¶å®šçš„ new_lineid ä¸åŒï¼Œ");
+                        System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ? å¯èƒ½æ˜¯ Mini App Channel èˆ‡ç¶å®š Channel åœ¨ä¸åŒçš„ LINE Provider ä¸‹");
 
                         return Json(new
                         {
-                            DisplayViewType = "©|¥¼¸j©w",
+                            DisplayViewType = "å°šæœªç¶å®š",
                             ActiveListId = "",
-                            message = "©|¥¼¸j©w",
+                            message = "å°šæœªç¶å®š",
                             fullname = ""
                         });
                     }
 
-                    // §ä¨ìÁpµ¸¤H
+                    // æ‰¾åˆ°è¯çµ¡äºº
                     foundContact = results.Entities[0];
-                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ? §ä¨ìÁpµ¸¤H: {foundContact.GetAttributeValue<string>("fullname")}");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ? æ‰¾åˆ°è¯çµ¡äºº: {foundContact.GetAttributeValue<string>("fullname")}");
                 }
                 catch (FaultException<OrganizationServiceFault>)
                 {
@@ -143,23 +144,23 @@ namespace ChurchReport.Controllers
                 }
 
                 // ========================================
-                // ? Session Fixation ¨¾Å@ - LINE µn¤J«e²M°£ÂÂ Session
+                // ? Session Fixation é˜²è­· - LINE ç™»å…¥å‰æ¸…é™¤èˆŠ Session
                 // ========================================
-                // ¦b³B²z LINE µn¤J«e¡A¥ı²M°£¥ô¦ó¥i¯à¦s¦bªºÂÂ Session
-                // ³o½T«O A ¥Î¤á³z¹L LINE µn¤J«á¡AB¡BC ¥Î¤áµn¤J¤£·|¬İ¨ì A ªººô­¶
-                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ? ²M°£ÂÂ Session¡]¨¾¤î¸ó¥Î¤á¬ªº|¡^");
+                // åœ¨è™•ç† LINE ç™»å…¥å‰ï¼Œå…ˆæ¸…é™¤ä»»ä½•å¯èƒ½å­˜åœ¨çš„èˆŠ Session
+                // é€™ç¢ºä¿ A ç”¨æˆ¶é€é LINE ç™»å…¥å¾Œï¼ŒBã€C ç”¨æˆ¶ç™»å…¥ä¸æœƒçœ‹åˆ° A çš„ç¶²é 
+                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ? æ¸…é™¤èˆŠ Sessionï¼ˆé˜²æ­¢è·¨ç”¨æˆ¶æ´©æ¼ï¼‰");
                 try
                 {
                     HttpContext.Session.Clear();
                     HttpContext.Session.CommitAsync().GetAwaiter().GetResult();
-                    System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ? ÂÂ Session ¤w²M°£");
+                    System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ? èˆŠ Session å·²æ¸…é™¤");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ?? ²M°£ Session Äµ§i: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ?? æ¸…é™¤ Session è­¦å‘Š: {ex.Message}");
                 }
 
-                // ¦³¸j©w¡GÄ~Äò¨«µn¤J
+                // æœ‰ç¶å®šï¼šç¹¼çºŒèµ°ç™»å…¥
                 var lineLoginViewModel = new GalleryViewModel
                 {
                     Account = "",
@@ -168,16 +169,16 @@ namespace ChurchReport.Controllers
 
                 InMemoryContext.LineBindingViewModel.LineUserId = UserLineId;
 
-                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ? ·Ç³Æ°õ¦æ LINE µn¤J¬yµ{");
+                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ? æº–å‚™åŸ·è¡Œ LINE ç™»å…¥æµç¨‹");
                 return await ProcessLogin(lineLoginViewModel);
             }
             catch (Exception e)
             {
                 System.Diagnostics.Debug.WriteLine("========================================");
-                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ??? µo¥Í¥¼¹w´Áªº¿ù»~ ???");
-                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ²§±`Ãş«¬: {e.GetType().Name}");
-                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ²§±`°T®§: {e.Message}");
-                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] °ïÅ|°lÂÜ:");
+                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ??? ç™¼ç”Ÿæœªé æœŸçš„éŒ¯èª¤ ???");
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ç•°å¸¸é¡å‹: {e.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"[SaveUserLineId] ç•°å¸¸è¨Šæ¯: {e.Message}");
+                System.Diagnostics.Debug.WriteLine("[SaveUserLineId] å †ç–Šè¿½è¹¤:");
                 System.Diagnostics.Debug.WriteLine(e.StackTrace);
                 System.Diagnostics.Debug.WriteLine("========================================\n");
 
@@ -186,7 +187,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³B²z LINE µn¤J
+        /// è™•ç† LINE ç™»å…¥
         /// </summary>
         [HttpPost]
         [Route("/Authentication/ProcessLineLogin")]
