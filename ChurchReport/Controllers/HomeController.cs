@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using ChurchReport.ViewModels;
@@ -28,19 +28,19 @@ namespace ChurchReport.Controllers
 {
     public class HomeController : BaseChurchController
     {
-        #region «Øºc¦¡
+        #region å»ºæ§‹å¼
         /// <summary>
-        /// HomeController «Øºc¨ç¼Æ (¨Ï¥Î Dependency Injection)
+        /// HomeController å»ºæ§‹å‡½æ•¸ (ä½¿ç”¨ Dependency Injection)
         /// </summary>
-        /// <param name="httpContextAccessor">HTTP ¤W¤U¤å¦s¨ú¾¹</param>
-        /// <param name="memoryCache">°O¾ĞÅé§Ö¨ú</param>
-        /// <param name="qpayService">ª÷¬yªA°È</param>
-        /// <param name="toolUtilityProvider">ToolUtility ´£¨ÑªÌ (DI ª`¤J)</param>
-        /// <param name="connectionPool">CRM ³s½u¦À</param>
-        /// <param name="inMemoryContext">°O¾ĞÅé¸ê®Æ¤W¤U¤å (DI ª`¤J)</param>
+        /// <param name="httpContextAccessor">HTTP ä¸Šä¸‹æ–‡å­˜å–å™¨</param>
+        /// <param name="memoryCache">è¨˜æ†¶é«”å¿«å–</param>
+        /// <param name="qpayService">é‡‘æµæœå‹™</param>
+        /// <param name="toolUtilityProvider">ToolUtility æä¾›è€… (DI æ³¨å…¥)</param>
+        /// <param name="connectionPool">CRM é€£ç·šæ± </param>
+        /// <param name="inMemoryContext">è¨˜æ†¶é«”è³‡æ–™ä¸Šä¸‹æ–‡ (DI æ³¨å…¥)</param>
         public HomeController(
-            IHttpContextAccessor httpContextAccessor, 
-            IMemoryCache memoryCache, 
+            IHttpContextAccessor httpContextAccessor,
+            IMemoryCache memoryCache,
             IPayment qpayService,
             IToolUtilityProvider toolUtilityProvider,
             ICrmConnectionPool connectionPool,
@@ -49,20 +49,20 @@ namespace ChurchReport.Controllers
         {
         }
         #endregion
-        
-        #region ¦V«á¬Û®e¸ô¥Ñ (Backward Compatibility Routes)
-        
+
+        #region å‘å¾Œç›¸å®¹è·¯ç”± (Backward Compatibility Routes)
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/Login ­«¾É¦V¨ì /Authentication/Login
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/Login é‡å°å‘åˆ° /Authentication/Login
         /// </summary>
         [Route("/Home/Login")]
         public IActionResult LoginRedirect()
         {
             return RedirectToAction("Login", "Authentication");
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ³B²zÂÂªº /Home/ProcessLogin POST ½Ğ¨D
+        /// å‘å¾Œç›¸å®¹: è™•ç†èˆŠçš„ /Home/ProcessLogin POST è«‹æ±‚
         /// </summary>
         [HttpPost]
         [Route("/Home/ProcessLogin")]
@@ -80,99 +80,99 @@ namespace ChurchReport.Controllers
                 return await authController.ProcessLogin(aGalleryViewModel);
             }
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/LineIdLoginView ­«¾É¦V¨ì /Authentication/LineIdLoginView
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/LineIdLoginView é‡å°å‘åˆ° /Authentication/LineIdLoginView
         /// </summary>
         [Route("/Home/LineIdLoginView/{LineIdLoginViewPatameter}")]
         public IActionResult LineIdLoginViewRedirect(string LineIdLoginViewPatameter)
         {
             return RedirectToAction("LineIdLoginView", "Authentication", new { LineIdLoginViewPatameter = LineIdLoginViewPatameter });
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/IntegrateView ­«¾É¦V¨ì /SmallGroup/IntegrateView
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/IntegrateView é‡å°å‘åˆ° /SmallGroup/IntegrateView
         /// </summary>
         [Route("/Home/IntegrateView/{LoginParameter}")]
         public IActionResult IntegrateViewRedirect(string LoginParameter)
         {
             return RedirectToAction("IntegrateView", "SmallGroup", new { LoginParameter = LoginParameter });
         }
-        
+
         /// <summary>
-        /// ±NÂÂªº /Home/MultiGroupView ­«¾É¦V¨ì /SmallGroup/MultiGroupView
+        /// å°‡èˆŠçš„ /Home/MultiGroupView é‡å°å‘åˆ° /SmallGroup/MultiGroupView
         /// </summary>
         [Route("/Home/MultiGroupView/{LoginParameter}")]
         public IActionResult MultiGroupViewRedirect(string LoginParameter)
         {
             return RedirectToAction("MultiGroupView", "SmallGroup", new { LoginParameter = LoginParameter });
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/NewPersonFollowUpView ­«¾É¦V¨ì /NewPerson/FollowUpView
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/NewPersonFollowUpView é‡å°å‘åˆ° /NewPerson/FollowUpView
         /// </summary>
         [Route("/Home/NewPersonFollowUpView")]
         public IActionResult NewPersonFollowUpViewRedirect()
         {
             return RedirectToAction("NewPersonFollowUpView", "NewPerson");
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/PersonalReport ­«¾É¦V¨ì /Personal/PersonalReport
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/PersonalReport é‡å°å‘åˆ° /Personal/PersonalReport
         /// </summary>
         [Route("/Home/PersonalReport")]
         public IActionResult PersonalReportRedirect()
         {
             return RedirectToAction("PersonalReport", "Personal");
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/PersonalInfomationView ­«¾É¦V¨ì /Personal/PersonalInfomationView
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/PersonalInfomationView é‡å°å‘åˆ° /Personal/PersonalInfomationView
         /// </summary>
         [Route("/Home/PersonalInfomationView")]
         public IActionResult PersonalInfomationViewRedirect()
         {
             return RedirectToAction("PersonalInfomationView", "Personal");
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/QPayView ­«¾É¦V¨ì /Dedication/QPayView
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/QPayView é‡å°å‘åˆ° /Dedication/QPayView
         /// </summary>
         [Route("/Home/QPayView/{LineId}")]
         public IActionResult QPayViewRedirect(string LineId)
         {
             return RedirectToAction("QPayView", "Dedication", new { LineId = LineId });
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/ChurchRoot ­«¾É¦V¨ì /ListManagement/ChurchRoot
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/ChurchRoot é‡å°å‘åˆ° /ListManagement/ChurchRoot
         /// </summary>
         [Route("/Home/ChurchRoot")]
         public IActionResult ChurchRootRedirect()
         {
             return RedirectToAction("ChurchRoot", "ListManagement");
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/EquipmentView ­«¾É¦V¨ì /Equipment/EquipmentView
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/EquipmentView é‡å°å‘åˆ° /Equipment/EquipmentView
         /// </summary>
         [Route("/Home/EquipmentView")]
         public IActionResult EquipmentViewRedirect()
         {
             return RedirectToAction("EquipmentView", "Equipment");
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/ChangePhoneView ­«¾É¦V¨ì /Phone/ChangePhoneView
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/ChangePhoneView é‡å°å‘åˆ° /Phone/ChangePhoneView
         /// </summary>
         [Route("/Home/ChangePhoneView/{LineIdLoginViewPatameter}")]
         public IActionResult ChangePhoneViewRedirect(string LineIdLoginViewPatameter)
         {
             return RedirectToAction("ChangePhoneView", "PhoneBinding", new { LineIdLoginViewPatameter });
         }
-                
+
         /// <summary>
-        /// ¦V«á¬Û®e: Â¶¹LÅçÃÒª½±µ¾É¦V­º­¶
+        /// å‘å¾Œç›¸å®¹: ç¹éé©—è­‰ç›´æ¥å°å‘é¦–é 
         /// </summary>
         [Route("/Home/SkipAuth")]
         public IActionResult SkipAuth()
@@ -181,16 +181,16 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/DediationLineLoginView ­«¾É¦V¨ì /Dedication/DedianLineLoginView
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/DediationLineLoginView é‡å°å‘åˆ° /Dedication/DedianLineLoginView
         /// </summary>
         [Route("/Home/DediationLineLoginView/{LineIdLoginViewPatameter}")]
         public IActionResult DediationLineLoginViewRedirect(string LineIdLoginViewPatameter)
         {
             return RedirectToAction("DediationLineLoginView", "Dedication", new { LineIdLoginViewPatameter });
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ³B²zÂÂªº /Home/SaveUserLineId POST ½Ğ¨D
+        /// å‘å¾Œç›¸å®¹: è™•ç†èˆŠçš„ /Home/SaveUserLineId POST è«‹æ±‚
         /// </summary>
         [HttpPost]
         [Route("/Home/SaveUserLineId")]
@@ -208,15 +208,15 @@ namespace ChurchReport.Controllers
                 return await authController.SaveUserLineId(UserLineId, GroupId, RoomId, ViewType);
             }
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ³B²zÂÂªº /Home/SetupUserLineId POST ½Ğ¨D¡]©^Äm¥Î¡^
+        /// å‘å¾Œç›¸å®¹: è™•ç†èˆŠçš„ /Home/SetupUserLineId POST è«‹æ±‚ï¼ˆå¥‰ç»ç”¨ï¼‰
         /// </summary>
         [HttpPost]
         [Route("/Home/SetupUserLineId")]
         public async Task<IActionResult> SetupUserLineIdRedirect(string UserLineId, string GroupId, string RoomId, string ViewType)
         {
-            // ? ¨Ï¥Î using ½T«O Controller ³Q¥¿½TÄÀ©ñ¡AÁ×§K°O¾ĞÅé¬ªº|
+            // ? ä½¿ç”¨ using ç¢ºä¿ Controller è¢«æ­£ç¢ºé‡‹æ”¾ï¼Œé¿å…è¨˜æ†¶é«”æ´©æ¼
             using (var dedicationController = new DedicationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
@@ -225,13 +225,13 @@ namespace ChurchReport.Controllers
                 HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool,
                 HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration))
             {
-                // ? ¨Ï¥Î await ½Õ¥Î«D¦P¨B¤èªk
+                // ? ä½¿ç”¨ await èª¿ç”¨éåŒæ­¥æ–¹æ³•
                 return await dedicationController.SetupUserLineId(UserLineId, GroupId, RoomId, ViewType);
             }
         }
 
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/LineLiffView ­«¾É¦V¨ì /Authentication/LineLiffView
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/LineLiffView é‡å°å‘åˆ° /Authentication/LineLiffView
         /// </summary>
         [Route("/Home/LineLiffView/{LineIdLoginViewPatameter?}")]
         public IActionResult LineLiffViewRedirect(string LineIdLoginViewPatameter)
@@ -240,7 +240,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¦V«á¬Û®e: ³B²zÂÂªº /Home/ProcessLineBinding POST ½Ğ¨D
+        /// å‘å¾Œç›¸å®¹: è™•ç†èˆŠçš„ /Home/ProcessLineBinding POST è«‹æ±‚
         /// </summary>
         [HttpPost]
         [Route("/Home/ProcessLineBinding")]
@@ -260,14 +260,14 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¦V«á¬Û®e: ³B²zÂÂªº /Home/SaveUserId POST ½Ğ¨D
+        /// å‘å¾Œç›¸å®¹: è™•ç†èˆŠçš„ /Home/SaveUserId POST è«‹æ±‚
         /// </summary>
         [HttpPost]
         [Route("/Home/SaveUserId")]
         public async Task<IActionResult> SaveUserIdRedirect(
-            string UserLineId, 
-            string GroupId, 
-            string RoomId, 
+            string UserLineId,
+            string GroupId,
+            string RoomId,
             string ViewType,
             string DisplayName = "",
             string PictureUrl = "",
@@ -285,20 +285,20 @@ namespace ChurchReport.Controllers
                 return await authController.SaveUserId(UserLineId, GroupId, RoomId, ViewType, DisplayName, PictureUrl, StatusMessage);
             }
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/PresentFeeListView ­«¾É¦V¨ì /FeeManagement/LessonList
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/PresentFeeListView é‡å°å‘åˆ° /FeeManagement/LessonList
         /// </summary>
         [Route("/Home/PresentFeeListView")]
         [Route("/Home/PresentFeeListView/{DiscipleLessonsId}")]
         public IActionResult PresentFeeListViewRedirect(string DiscipleLessonsId = null)
         {
-            // ? ²Î¤@­«¾É¦V¨ì LessonList¡A¥Ñ LessonList ¦Û°Ê§PÂ_Åã¥ÜÅŞ¿è
+            // ? çµ±ä¸€é‡å°å‘åˆ° LessonListï¼Œç”± LessonList è‡ªå‹•åˆ¤æ–·é¡¯ç¤ºé‚è¼¯
             return RedirectToAction("LessonList", "FeeManagement");
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/FeeView ­«¾É¦V¨ì /FeeManagement/Fee
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/FeeView é‡å°å‘åˆ° /FeeManagement/Fee
         /// </summary>
         [Route("/Home/FeeView")]
         [Route("/Home/FeeView/{DiscipleLessonsId}")]
@@ -310,9 +310,9 @@ namespace ChurchReport.Controllers
             }
             return RedirectToAction("Fee", "FeeManagement", new { discipleLessonsId = DiscipleLessonsId });
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/PresentView ­«¾É¦V¨ì /FeeManagement/Present
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/PresentView é‡å°å‘åˆ° /FeeManagement/Present
         /// </summary>
         [Route("/Home/PresentView")]
         [Route("/Home/PresentView/{DiscipleLessonsId}")]
@@ -324,9 +324,9 @@ namespace ChurchReport.Controllers
             }
             return RedirectToAction("Present", "FeeManagement", new { discipleLessonsId = DiscipleLessonsId });
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/LoadLessonList API ­«¾É¦V¨ì /FeeManagement/Api/Lessons
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/LoadLessonList API é‡å°å‘åˆ° /FeeManagement/Api/Lessons
         /// </summary>
         [HttpGet]
         [Route("/Home/LoadLessonList")]
@@ -334,9 +334,9 @@ namespace ChurchReport.Controllers
         {
             return RedirectToAction("GetLessons", "FeeManagement", loadOptions);
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/LoadFeeDataList API ­«¾É¦V¨ì /FeeManagement/Api/FeeData
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/LoadFeeDataList API é‡å°å‘åˆ° /FeeManagement/Api/FeeData
         /// </summary>
         [HttpGet]
         [Route("/Home/LoadFeeDataList")]
@@ -344,9 +344,9 @@ namespace ChurchReport.Controllers
         {
             return RedirectToAction("GetFeeData", "FeeManagement", new { discipleLessonsId = DiscipleLessonsId });
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/UpdateFeeDataList API ­«¾É¦V¨ì /FeeManagement/Api/UpdateFeeData
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/UpdateFeeDataList API é‡å°å‘åˆ° /FeeManagement/Api/UpdateFeeData
         /// </summary>
         [HttpPut]
         [Route("/Home/UpdateFeeDataList")]
@@ -354,9 +354,9 @@ namespace ChurchReport.Controllers
         {
             return RedirectToAction("UpdateFeeData", "FeeManagement", new { key, values });
         }
-        
+
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/SaveFeeManager API ­«¾É¦V¨ì /FeeManagement/Api/SaveBatch
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/SaveFeeManager API é‡å°å‘åˆ° /FeeManagement/Api/SaveBatch
         /// </summary>
         [HttpPost]
         [Route("/Home/SaveFeeManager")]
@@ -366,7 +366,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/DedicationFeeView ­«¾É¦V¨ì /Dedication/DedicationFeeView
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/DedicationFeeView é‡å°å‘åˆ° /Dedication/DedicationFeeView
         /// </summary>
         [Route("/Home/DedicationFeeView")]
         public IActionResult DedicationFeeViewRedirect()
@@ -375,7 +375,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/DedicationFeeViewWeb ­«¾É¦V¨ì /Dedication/DedicationFeeViewWeb
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/DedicationFeeViewWeb é‡å°å‘åˆ° /Dedication/DedicationFeeViewWeb
         /// </summary>
         [Route("/Home/DedicationFeeViewWeb")]
         public IActionResult DedicationFeeViewWebRedirect()
@@ -384,7 +384,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/KeyInDedicationFeeView ­«¾É¦V¨ì /Dedication/KeyInDedicationFeeView
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/KeyInDedicationFeeView é‡å°å‘åˆ° /Dedication/KeyInDedicationFeeView
         /// </summary>
         [Route("/Home/KeyInDedicationFeeView")]
         public IActionResult KeyInDedicationFeeViewRedirect()
@@ -393,52 +393,52 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¦V«á¬Û®e: ±NÂÂªº /Home/KeyInDedicationFeeViewWeb ­«¾É¦V¨ì /Dedication/KeyInDedicationFeeViewWeb
+        /// å‘å¾Œç›¸å®¹: å°‡èˆŠçš„ /Home/KeyInDedicationFeeViewWeb é‡å°å‘åˆ° /Dedication/KeyInDedicationFeeViewWeb
         /// </summary>
         [Route("/Home/KeyInDedicationFeeViewWeb")]
         public IActionResult KeyInDedicationFeeViewWebRedirect()
         {
             return RedirectToAction("KeyInDedicationFeeViewWeb", "Dedication");
         }
-        
+
         #endregion
 
-        #region ? Phase 3.2: §Ö¨ú®Ä¯à´ú¸ÕºİÂI
+        #region ? Phase 3.2: å¿«å–æ•ˆèƒ½æ¸¬è©¦ç«¯é»
 
         /// <summary>
-        /// ´ú¸Õ ChurchListDataProcessor ªº§Ö¨ú®Ä¯à
-        /// ³X°İ URL: /Home/TestCachePerformance
+        /// æ¸¬è©¦ ChurchListDataProcessor çš„å¿«å–æ•ˆèƒ½
+        /// è¨ªå• URL: /Home/TestCachePerformance
         /// </summary>
         [Route("/Home/TestCachePerformance")]
         public IActionResult TestCachePerformance()
         {
             try
             {
-                // ±q DI ¨ú±o±a§Ö¨úªº ChurchListDataProcessor
-                var cacheService = HttpContext.RequestServices.GetService(typeof(ToolUtility.Caching.CrmCacheService)) 
+                // å¾ DI å–å¾—å¸¶å¿«å–çš„ ChurchListDataProcessor
+                var cacheService = HttpContext.RequestServices.GetService(typeof(ToolUtility.Caching.CrmCacheService))
                     as ToolUtility.Caching.CrmCacheService;
-                
+
                 var processor = new ChurchListDataProcessor(cacheService);
                 var monitor = new CachePerformanceMonitor();
 
-                // ´ú¸Õ¥Îªº°²³] ContactId¡]½Ğ´À´«¬°¹ê»Úªº´ú¸Õ±b¸¹ ID¡^
-                // ±z¥i¥H±q¸ê®Æ®w¤¤¿ï¾Ü¤@­Ó¯u¹êªº Contact ID
-                var testContactId = GetTestContactId(); // »İ­n¹ê§@³o­Ó¤èªk
+                // æ¸¬è©¦ç”¨çš„å‡è¨­ ContactIdï¼ˆè«‹æ›¿æ›ç‚ºå¯¦éš›çš„æ¸¬è©¦å¸³è™Ÿ IDï¼‰
+                // æ‚¨å¯ä»¥å¾è³‡æ–™åº«ä¸­é¸æ“‡ä¸€å€‹çœŸå¯¦çš„ Contact ID
+                var testContactId = GetTestContactId(); // éœ€è¦å¯¦ä½œé€™å€‹æ–¹æ³•
 
                 if (testContactId == Guid.Empty)
                 {
-                    return Content("½Ğ¥ı³]©w´ú¸Õ¥Îªº Contact ID", "text/plain");
+                    return Content("è«‹å…ˆè¨­å®šæ¸¬è©¦ç”¨çš„ Contact ID", "text/plain");
                 }
 
-                string report = "§Ö¨ú®Ä¯à´ú¸Õ³ø§i\n";
+                string report = "å¿«å–æ•ˆèƒ½æ¸¬è©¦å ±å‘Š\n";
                 report += "==========================================\n\n";
 
-                // ´ú¸Õ 1: QueryListByContactId
+                // æ¸¬è©¦ 1: QueryListByContactId
                 monitor.StartFirstCall("QueryListByContactId");
                 var result1 = TestQueryListByContactId(processor, testContactId);
                 monitor.EndFirstCall();
 
-                // ²Ä¤G¦¸©I¥s¡]À³¸Ó±q§Ö¨ú¨ú±o¡^
+                // ç¬¬äºŒæ¬¡å‘¼å«ï¼ˆæ‡‰è©²å¾å¿«å–å–å¾—ï¼‰
                 monitor.StartSecondCall();
                 var result2 = TestQueryListByContactId(processor, testContactId);
                 monitor.EndSecondCall();
@@ -446,38 +446,38 @@ namespace ChurchReport.Controllers
                 report += monitor.GetPerformanceReport();
                 report += "\n\n";
 
-                // ²M°£§Ö¨ú¥H¶i¦æ¤U¤@­Ó´ú¸Õ
+                // æ¸…é™¤å¿«å–ä»¥é€²è¡Œä¸‹ä¸€å€‹æ¸¬è©¦
                 cacheService?.InvalidateAsync($"list_query_{testContactId}_vice_family_leader").Wait();
 
                 return Content(report, "text/plain; charset=utf-8");
             }
             catch (Exception ex)
             {
-                return Content($"´ú¸Õµo¥Í¿ù»~: {ex.Message}\n\n{ex.StackTrace}", "text/plain; charset=utf-8");
+                return Content($"æ¸¬è©¦ç™¼ç”ŸéŒ¯èª¤: {ex.Message}\n\n{ex.StackTrace}", "text/plain; charset=utf-8");
             }
         }
 
         /// <summary>
-        /// ¨ú±o´ú¸Õ¥Îªº Contact ID
-        /// «ØÄ³¡G±q Session ©Î³]©wÀÉ¨ú±o¡A©Î¨Ï¥Î©T©wªº´ú¸Õ±b¸¹
+        /// å–å¾—æ¸¬è©¦ç”¨çš„ Contact ID
+        /// å»ºè­°ï¼šå¾ Session æˆ–è¨­å®šæª”å–å¾—ï¼Œæˆ–ä½¿ç”¨å›ºå®šçš„æ¸¬è©¦å¸³è™Ÿ
         /// </summary>
         private Guid GetTestContactId()
         {
-            // ¤èªk 1: ±q Session ¨ú±o¥Ø«eµn¤Jªº¨Ï¥ÎªÌ
+            // æ–¹æ³• 1: å¾ Session å–å¾—ç›®å‰ç™»å…¥çš„ä½¿ç”¨è€…
             var contactIdStr = HttpContext.Session.GetString("ContactID");
             if (!string.IsNullOrEmpty(contactIdStr) && Guid.TryParse(contactIdStr, out var contactId))
             {
                 return contactId;
             }
 
-            // ¤èªk 2: ¨Ï¥Î¹w³]´ú¸Õ±b¸¹¡]½Ğ´À´«¬°¹ê»Úªº´ú¸Õ±b¸¹ GUID¡^
+            // æ–¹æ³• 2: ä½¿ç”¨é è¨­æ¸¬è©¦å¸³è™Ÿï¼ˆè«‹æ›¿æ›ç‚ºå¯¦éš›çš„æ¸¬è©¦å¸³è™Ÿ GUIDï¼‰
             // return new Guid("YOUR-TEST-CONTACT-ID-HERE");
 
             return Guid.Empty;
         }
 
         /// <summary>
-        /// ´ú¸Õ¬d¸ß¤èªk¡]¼ÒÀÀ¹ê»Ú¨Ï¥Î³õ´º¡^
+        /// æ¸¬è©¦æŸ¥è©¢æ–¹æ³•ï¼ˆæ¨¡æ“¬å¯¦éš›ä½¿ç”¨å ´æ™¯ï¼‰
         /// </summary>
         private int TestQueryListByContactId(ChurchListDataProcessor processor, Guid contactId)
         {
@@ -487,10 +487,10 @@ namespace ChurchReport.Controllers
             var raceLeaderSmallGroupArray = new List<string>();
             var churchSmallGroupArray = new List<string>();
 
-            // °õ¦æ¹ê»Úªº¬d¸ß¡]³o·|Ä²µo§Ö¨úÅŞ¿è¡^
+            // åŸ·è¡Œå¯¦éš›çš„æŸ¥è©¢ï¼ˆé€™æœƒè§¸ç™¼å¿«å–é‚è¼¯ï¼‰
             var result = processor.GetChurchListData(
-                contactId.ToString(), 
-                "LineIdLogin",  // ¨Ï¥Î LineId µn¤J¼Ò¦¡
+                contactId.ToString(),
+                "LineIdLogin",  // ä½¿ç”¨ LineId ç™»å…¥æ¨¡å¼
                 ref churchRoot,
                 ref raceLeaderArray,
                 ref areaLeaderArray,
@@ -503,13 +503,13 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¸ê®æ³]©w
+        #region è³‡æ ¼è¨­å®š
 
         /// <summary>
-        /// Åã¥Ü¸ê®æ³]©w­¶­±¡]«H¥õª¬ºA¡B©Ê§O¡B¥Í¤é¡B¨­¤ÀÃÒ¦r¸¹¡^
-        /// ¸ô¥Ñ: /Home/QualificationView/{lineIdLoginViewParameter}
+        /// é¡¯ç¤ºè³‡æ ¼è¨­å®šé é¢ï¼ˆä¿¡ä»°ç‹€æ…‹ã€æ€§åˆ¥ã€ç”Ÿæ—¥ã€èº«åˆ†è­‰å­—è™Ÿï¼‰
+        /// è·¯ç”±: /Home/QualificationView/{lineIdLoginViewParameter}
         /// </summary>
-        /// <param name="lineIdLoginViewParameter">LINE ¨Ï¥ÎªÌÃÑ§O½X©Î½s½Xªº URL °Ñ¼Æ</param>
+        /// <param name="lineIdLoginViewParameter">LINE ä½¿ç”¨è€…è­˜åˆ¥ç¢¼æˆ–ç·¨ç¢¼çš„ URL åƒæ•¸</param>
         [HttpGet]
         [Route("/Home/QualificationView/{lineIdLoginViewParameter}")]
         public IActionResult QualificationView(string lineIdLoginViewParameter)
@@ -518,26 +518,26 @@ namespace ChurchReport.Controllers
             {
                 var viewModel = InMemoryContext.LineBindingViewModel;
 
-                // ¢w¢w¢w ³]©w½ü¼½¹Ï¤ù²M³æ¡]Gallery ¶]°¨¿O¥²­n¡^¢w¢w¢w
+                // â”€â”€â”€ è¨­å®šè¼ªæ’­åœ–ç‰‡æ¸…å–®ï¼ˆGallery è·‘é¦¬ç‡ˆå¿…è¦ï¼‰â”€â”€â”€
                 viewModel.Images = new System.Collections.Generic.List<string>
                 {
                     Url.Content("~/assets/images/church-001.jpg"),
                     Url.Content("~/assets/images/church-002.jpg")
                 };
 
-                // ¢w¢w¢w ³]©w LIFF ID¡]View ¤¤ liff.init() ¥²­n¡^¢w¢w¢w
+                // â”€â”€â”€ è¨­å®š LIFF IDï¼ˆView ä¸­ liff.init() å¿…è¦ï¼‰â”€â”€â”€
                 TempData["Proponent"] = lineIdLoginViewParameter;
 
-                // ¨Ï¥Î°Ñ¼Æ¬d¸ßÁpµ¸¤H¸ê°T
+                // ä½¿ç”¨åƒæ•¸æŸ¥è©¢è¯çµ¡äººè³‡è¨Š
                 if (!string.IsNullOrEmpty(lineIdLoginViewParameter))
                 {
                     viewModel.EncodeUrl = lineIdLoginViewParameter;
 
-                    // CS0206: Äİ©Ê¤£¯àª½±µ¶Ç ref¡A»İ­n¨Ï¥Î¼È¦s°Ï°ìÅÜ¼Æ
-                    string faithStatus  = viewModel.FaithStatus  ?? string.Empty;
-                    string genderCode   = viewModel.GenderCode   ?? string.Empty;
-                    DateTime birthDate  = viewModel.BirthDate;
-                    string personalId   = viewModel.PersonalId   ?? string.Empty;
+                    // CS0206: å±¬æ€§ä¸èƒ½ç›´æ¥å‚³ refï¼Œéœ€è¦ä½¿ç”¨æš«å­˜å€åŸŸè®Šæ•¸
+                    string faithStatus = viewModel.FaithStatus ?? string.Empty;
+                    string genderCode = viewModel.GenderCode ?? string.Empty;
+                    DateTime birthDate = viewModel.BirthDate;
+                    string personalId = viewModel.PersonalId ?? string.Empty;
 
                     viewModel.GetContactInfomation(
                         lineIdLoginViewParameter,
@@ -547,29 +547,29 @@ namespace ChurchReport.Controllers
                         ref personalId
                     );
 
-                    viewModel.FaithStatus  = faithStatus;
-                    viewModel.GenderCode   = genderCode;
-                    viewModel.BirthDate    = birthDate;
-                    viewModel.PersonalId   = personalId;
+                    viewModel.FaithStatus = faithStatus;
+                    viewModel.GenderCode = genderCode;
+                    viewModel.BirthDate = birthDate;
+                    viewModel.PersonalId = personalId;
                 }
 
                 return View(viewModel);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[HomeController.QualificationView] ¿ù»~: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[HomeController.QualificationView] éŒ¯èª¤: {ex.Message}");
                 return View(InMemoryContext.LineBindingViewModel);
             }
         }
 
         /// <summary>
-        /// ¨ú±o¸ê®æ³]©w¸ê®Æ¡]«H¥õª¬ºA¡B©Ê§O¡B¥Í¤é¡B¨­¤ÀÃÒ¦r¸¹¡^¡A¥Ñ LIFF JavaScript ³z¹L AJAX ©I¥s¡C
-        /// ¨Ï¥Î¯u¹êªº LINE UserId ¬d¸ß CRM Ápµ¸¤H¨Ã±Nµ²ªG¦s¤J Session §Ö¨ú¡C
+        /// å–å¾—è³‡æ ¼è¨­å®šè³‡æ–™ï¼ˆä¿¡ä»°ç‹€æ…‹ã€æ€§åˆ¥ã€ç”Ÿæ—¥ã€èº«åˆ†è­‰å­—è™Ÿï¼‰ï¼Œç”± LIFF JavaScript é€é AJAX å‘¼å«ã€‚
+        /// ä½¿ç”¨çœŸå¯¦çš„ LINE UserId æŸ¥è©¢ CRM è¯çµ¡äººä¸¦å°‡çµæœå­˜å…¥ Session å¿«å–ã€‚
         /// </summary>
-        /// <param name="UserLineId">LINE ¥Î¤á¯u¹ê UserId¡]¥Ñ liff.getProfile() ¨ú±o¡^</param>
-        /// <param name="GroupId">LINE ¸s²Õ ID</param>
-        /// <param name="RoomId">LINE ²á¤Ñ«Ç ID</param>
-        /// <param name="ViewType">¶}±Ò­¶­±¤è¦¡</param>
+        /// <param name="UserLineId">LINE ç”¨æˆ¶çœŸå¯¦ UserIdï¼ˆç”± liff.getProfile() å–å¾—ï¼‰</param>
+        /// <param name="GroupId">LINE ç¾¤çµ„ ID</param>
+        /// <param name="RoomId">LINE èŠå¤©å®¤ ID</param>
+        /// <param name="ViewType">é–‹å•Ÿé é¢æ–¹å¼</param>
         [HttpPost]
         [Route("/Home/GetQualificationData")]
         public IActionResult GetQualificationData(string UserLineId, string GroupId, string RoomId, string ViewType)
@@ -579,37 +579,37 @@ namespace ChurchReport.Controllers
                 var viewModel = InMemoryContext.LineBindingViewModel;
 
                 string faithStatus = string.Empty;
-                string genderCode  = string.Empty;
+                string genderCode = string.Empty;
                 DateTime birthDate = default;
-                string personalId  = string.Empty;
+                string personalId = string.Empty;
 
                 viewModel.GetContactInfomation(UserLineId, ref faithStatus, ref genderCode, ref birthDate, ref personalId);
 
-                viewModel.FaithStatus  = faithStatus;
-                viewModel.GenderCode   = genderCode;
-                viewModel.BirthDate    = birthDate;
-                viewModel.PersonalId   = personalId;
-                viewModel.LineUserId   = UserLineId;
+                viewModel.FaithStatus = faithStatus;
+                viewModel.GenderCode = genderCode;
+                viewModel.BirthDate = birthDate;
+                viewModel.PersonalId = personalId;
+                viewModel.LineUserId = UserLineId;
 
                 return Json(new
                 {
                     faithStatus = viewModel.FaithStatus,
-                    genderCode  = viewModel.GenderCode,
-                    birthDate   = viewModel.BirthDate,
-                    personalId  = viewModel.PersonalId
+                    genderCode = viewModel.GenderCode,
+                    birthDate = viewModel.BirthDate,
+                    personalId = viewModel.PersonalId
                 });
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[HomeController.GetQualificationData] ¿ù»~: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[HomeController.GetQualificationData] éŒ¯èª¤: {ex.Message}");
                 return Json(new { error = ex.Message });
             }
         }
 
         /// <summary>
-        /// Àx¦s¸ê®æ³]©w¸ê®Æ¡]«H¥õª¬ºA¡B©Ê§O¡B¥Í¤é¡B¨­¤ÀÃÒ¦r¸¹¡^
+        /// å„²å­˜è³‡æ ¼è¨­å®šè³‡æ–™ï¼ˆä¿¡ä»°ç‹€æ…‹ã€æ€§åˆ¥ã€ç”Ÿæ—¥ã€èº«åˆ†è­‰å­—è™Ÿï¼‰
         /// </summary>
-        /// <param name="aLineBindingViewModel">ªí³æ¸ê®Æ¡]¥]§t LineUserId¡^</param>
+        /// <param name="aLineBindingViewModel">è¡¨å–®è³‡æ–™ï¼ˆåŒ…å« LineUserIdï¼‰</param>
         [HttpPost]
         [Route("/Home/SaveQualificationData")]
         public IActionResult SaveQualificationData(LineBindingViewModel aLineBindingViewModel)
@@ -619,9 +619,9 @@ namespace ChurchReport.Controllers
                 var viewModel = InMemoryContext.LineBindingViewModel;
 
                 viewModel.FaithStatus = aLineBindingViewModel.FaithStatus;
-                viewModel.GenderCode  = aLineBindingViewModel.GenderCode;
-                viewModel.BirthDate   = aLineBindingViewModel.BirthDate;
-                viewModel.PersonalId  = aLineBindingViewModel.PersonalId;
+                viewModel.GenderCode = aLineBindingViewModel.GenderCode;
+                viewModel.BirthDate = aLineBindingViewModel.BirthDate;
+                viewModel.PersonalId = aLineBindingViewModel.PersonalId;
 
                 viewModel.UpdateContactInfomation(
                     aLineBindingViewModel.LineUserId,
@@ -631,21 +631,21 @@ namespace ChurchReport.Controllers
                     viewModel.PersonalId
                 );
 
-                return Json(new { status = "1", message = "¸ê®ÆÀx¦s¦¨¥\¡I" });
+                return Json(new { status = "1", message = "è³‡æ–™å„²å­˜æˆåŠŸï¼" });
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[HomeController.SaveQualificationData] ¿ù»~: {ex.Message}");
-                return Json(new { status = "0", message = $"Àx¦s¥¢±Ñ¡G{ex.Message}" });
+                System.Diagnostics.Debug.WriteLine($"[HomeController.SaveQualificationData] éŒ¯èª¤: {ex.Message}");
+                return Json(new { status = "0", message = $"å„²å­˜å¤±æ•—ï¼š{ex.Message}" });
             }
         }
 
         #endregion
 
-        #region QPay µn¤J
+        #region QPay ç™»å…¥
 
         /// <summary>
-        /// Åã¥Ü QPay µn¤J­¶­±
+        /// é¡¯ç¤º QPay ç™»å…¥é é¢
         /// </summary>
         [HttpGet]
         [Route("/Home/QPayLogin")]
@@ -655,7 +655,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³B²z QPay µn¤Jªí³æ´£¥æ
+        /// è™•ç† QPay ç™»å…¥è¡¨å–®æäº¤
         /// </summary>
         [HttpPost]
         [Route("/Home/ProcessQPayLogin")]
@@ -674,6 +674,76 @@ namespace ChurchReport.Controllers
                 };
 
                 return controller.ProcessQPayLogin(model);
+            }
+        }
+
+        #endregion
+
+        #region VisitorCard ä¾†è³“ç™»è¨˜
+
+        /// <summary>
+        /// é¡¯ç¤ºä¾†è³“ç™»è¨˜é é¢ (VisitorCard)
+        /// æ”¯æ´ /Home/VisitorCard åŠ /Home/VisitorCard/{liffId} å…©æ¢è·¯ç”±
+        /// </summary>
+        [HttpGet]
+        [Route("/Home/VisitorCard")]
+        [Route("/Home/VisitorCard/{liffId}")]
+        public IActionResult VisitorCard(string? liffId = null)
+        {
+            try
+            {
+                SetupBasicViewBag();
+                ViewBag.LiffId = liffId ?? string.Empty;
+
+                // è¨­å®š Gallery åœ–ç‰‡æ¸…å–®ï¼ˆèˆ‡ LineLiffView ç›¸åŒï¼‰
+                var model = new LineBindingViewModel
+                {
+                    Images = new List<string>
+                    {
+                        Url.Content("~/assets/images/church-001.jpg"),
+                        Url.Content("~/assets/images/church-002.jpg"),
+                        Url.Content("~/assets/images/church-003.jpg")
+                    }
+                };
+
+                return View(model);
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "VisitorCard");
+            }
+        }
+
+        /// <summary>
+        /// è™•ç†ä¾†è³“å¡è¡¨å–®é€å‡º
+        /// å°‡ä¾†è³“è³‡æ–™å„²å­˜è‡³ CRM è³‡æ–™åº«
+        /// å›å‚³ status=1 æˆåŠŸï¼Œstatus=0 å¤±æ•—
+        /// </summary>
+        [HttpPost]
+        [Route("/Home/ProcessVisitorCard")]
+        public async Task<IActionResult> ProcessVisitorCard(LineBindingViewModel model)
+        {
+            try
+            {
+                var env = HttpContext.RequestServices.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
+                using (var authController = new AuthenticationController(
+                    HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
+                    HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
+                    HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
+                    HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
+                    HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool,
+                    env))
+                {
+                    authController.ControllerContext = new ControllerContext
+                    {
+                        HttpContext = this.HttpContext
+                    };
+                    return await authController.ProcessLineBinding(model);
+                }
+            }
+            catch (Exception e)
+            {
+                return HandleError(e, "ProcessVisitorCard");
             }
         }
 
