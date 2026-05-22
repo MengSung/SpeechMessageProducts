@@ -133,10 +133,14 @@ namespace ChurchReport.Tools
 
         #endregion
         #region 主程式
-        public ActionResult QPayDedicationBookingProcessorReturnUrl(string ShopNo, String PayToken, QryOrderPay aQryOrderPay)
+        public ActionResult QPayDedicationBookingProcessorReturnUrl(string ShopNo, String PayToken, QryOrderPay aQryOrderPay, string correlationId = "", string requestContext = "", QryOrder orderQueryDebugInfo = null, string orderQueryDebugError = "")
         {
             try
             {
+                bool isPaymentSuccess = QPayPaymentResultHelper.IsPaymentSuccess(aQryOrderPay);
+                string paymentStatusText = QPayPaymentResultHelper.GetPaymentStatusText(aQryOrderPay);
+                bool isPaymentDebugLogEnabled = QPayPaymentDebugLogger.IsEnabled();
+
                 #region 處理認獻單
                 // 取得認獻
                 Entity aDedicationBookingEntity = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", new Guid(aQryOrderPay.TSResultContent.Param1));
@@ -144,13 +148,30 @@ namespace ChurchReport.Tools
                 #region 沒找到認獻的例外處理
                 if (aDedicationBookingEntity == null)
                 {
-                    if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
+                    if (isPaymentDebugLogEnabled)
+                    {
+                        QPayPaymentDebugLogger.WritePaymentResult(
+                            nameof(QPayDedicationBookingProcessor),
+                            isPaymentSuccess ? "DedicationBookingNotFoundSuccess" : "DedicationBookingNotFoundFailure",
+                            ShopNo,
+                            PayToken,
+                            aQryOrderPay,
+                            isPaymentSuccess,
+                            paymentStatusText,
+                            "Dedication booking not found by Param1.",
+                            correlationId,
+                            requestContext,
+                            orderQueryDebugInfo,
+                            orderQueryDebugError);
+                    }
+
+                    if (isPaymentSuccess)
                     {
                         ViewBag.IsSuccess = true;
                         ViewBag.Message = "訂單已建立，會透過LINE另行通知交易狀態，感謝您的支持。";
                         ViewBag.OrderId = aQryOrderPay.TSResultContent.OrderNo;
                         ViewBag.PaymentMethod = "信用卡定期定額";
-                        ViewBag.ErrorDetails = aQryOrderPay.Description;
+                        ViewBag.ErrorDetails = paymentStatusText;
                         return View("~/Views/QPayCard/PaymentResult.cshtml");
                     }
                     else
@@ -158,7 +179,7 @@ namespace ChurchReport.Tools
                         ViewBag.IsSuccess = false;
                         ViewBag.Message = "付款失敗，請稍後再試或聯繫教會辦公室。";
                         ViewBag.OrderId = aQryOrderPay.TSResultContent.OrderNo;
-                        ViewBag.ErrorDetails = aQryOrderPay.Description;
+                        ViewBag.ErrorDetails = paymentStatusText;
                         return View("~/Views/QPayCard/PaymentResult.cshtml");
                     }
                 }
@@ -168,16 +189,39 @@ namespace ChurchReport.Tools
                 String aDedicationBookingName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingEntity, "new_name");
                 //取得認獻單目前的期數
                 String aPaidPeriod = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingEntity, "new_paid_period");
+                bool hasFirstPeriodFee = this.m_ToolUtilityClass.RetrieveFeeByFetchXml(aDedicationBookingName, aDedicationBookingEntity.Id.ToString(), "001").Entities.Count > 0;
 
-                if (this.m_ToolUtilityClass.RetrieveFeeByFetchXml(aDedicationBookingName, aDedicationBookingEntity.Id.ToString(), "001").Entities.Count > 0 || aPaidPeriod == "001")
+                if (hasFirstPeriodFee || aPaidPeriod == "001")
                 {
+                    if (isPaymentDebugLogEnabled)
+                    {
+                        QPayPaymentDebugLogger.WritePaymentResult(
+                            nameof(QPayDedicationBookingProcessor),
+                            isPaymentSuccess ? "FirstPeriodAlreadyExistsSuccess" : "FirstPeriodAlreadyExistsFailure",
+                            ShopNo,
+                            PayToken,
+                            aQryOrderPay,
+                            isPaymentSuccess,
+                            paymentStatusText,
+                            "DedicationBookingId=" + aDedicationBookingEntity.Id +
+                            ";ContactId=" + this.m_ToolUtilityClass.GetEntityLookupAttribute(aDedicationBookingEntity, "new_contact_new_dedication_booking") +
+                            ";HasFirstPeriodFee=" + hasFirstPeriodFee +
+                            ";PaidPeriod=" + aPaidPeriod,
+                            correlationId,
+                            requestContext,
+                            orderQueryDebugInfo,
+                            orderQueryDebugError);
+                    }
+
                     // 認獻單目前期數已經是 001
                     // 或是:已經有001期的收費單了，就不再往下繼續執行了
-                    ViewBag.IsSuccess = true;
-                    ViewBag.Message = "訂單已建立，會透過LINE另行通知交易狀態，感謝您的支持。";
+                    ViewBag.IsSuccess = isPaymentSuccess;
+                    ViewBag.Message = isPaymentSuccess
+                        ? "訂單已建立，會透過LINE另行通知交易狀態，感謝您的支持。"
+                        : "付款失敗，請稍後再試或聯繫教會辦公室。";
                     ViewBag.OrderId = aQryOrderPay.TSResultContent.OrderNo;
                     ViewBag.PaymentMethod = "信用卡定期定額";
-                    ViewBag.ErrorDetails = aQryOrderPay.Description;
+                    ViewBag.ErrorDetails = paymentStatusText;
                     return View("~/Views/QPayCard/PaymentResult.cshtml");
                 }
                 #endregion
@@ -221,13 +265,13 @@ namespace ChurchReport.Tools
                                      "總期數   : " + this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingEntity, "new_total_stages") + Environment.NewLine +
                                      "目前期數 : " + ProcessStageNumber(aQryOrderPay.TSResultContent.OrderNo) + Environment.NewLine +
                                      "程式呼叫 : " + aQryOrderPay.Description + Environment.NewLine +
-                                     "交易結果 : " + aQryOrderPay.TSResultContent.Description + Environment.NewLine +
+                                     "交易結果 : " + paymentStatusText + Environment.NewLine +
                                      //"這是 ChurcchReport Webhook!!" + Environment.NewLine +
                                      "--------------------" + Environment.NewLine;
 
                 #endregion
                 // 建立收費單
-                CreateFee(aContact, aDedicationBookingEntity, aQryOrderPay, Description);
+                Guid createdFeeId = CreateFee(aContact, aDedicationBookingEntity, aQryOrderPay, Description);
 
                 #region 處理認獻單定期定額的第幾期字串
                 String StageNumber = ProcessStageNumber(aQryOrderPay.TSResultContent.OrderNo);
@@ -247,7 +291,27 @@ namespace ChurchReport.Tools
                 }
                 #endregion
 
-                if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
+                if (isPaymentDebugLogEnabled)
+                {
+                    QPayPaymentDebugLogger.WritePaymentResult(
+                        nameof(QPayDedicationBookingProcessor),
+                        isPaymentSuccess ? "SuccessProcessing" : "FailureProcessing",
+                        ShopNo,
+                        PayToken,
+                        aQryOrderPay,
+                        isPaymentSuccess,
+                        paymentStatusText,
+                        "DedicationBookingId=" + aDedicationBookingEntity.Id +
+                        ";ContactId=" + aContact.Id +
+                        ";CreatedFeeId=" + createdFeeId +
+                        ";StageNumber=" + StageNumber,
+                        correlationId,
+                        requestContext,
+                        orderQueryDebugInfo,
+                        orderQueryDebugError);
+                }
+
+                if (isPaymentSuccess)
                 {
                     // 認獻單備註 = 寫入成功的原因
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingEntity, "new_explain", "信用卡定期定額付款結果成功!" + Environment.NewLine + this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingEntity, "new_explain") + Environment.NewLine + "--------------------------------------" + Environment.NewLine + Description);
@@ -426,7 +490,7 @@ namespace ChurchReport.Tools
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aFeeToCreated, "new_q_paid_card_order_no", aQryOrderPay.TSResultContent.OrderNo);
                 }
 
-                if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
+                if (QPayPaymentResultHelper.IsPaymentSuccess(aQryOrderPay))
                 {
                     // 信用卡付款結果成功
                     // 收費單付款狀態，是信用卡已繳費

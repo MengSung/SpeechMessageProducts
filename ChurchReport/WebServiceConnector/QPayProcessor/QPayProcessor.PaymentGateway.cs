@@ -260,6 +260,34 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
+        /// 查詢永豐金流訂單明細（供付款 Debug Log 追查失敗原因使用）
+        /// </summary>
+        public QryOrder OrderQuery(string aShopNo, string aOrderNo, string aPayType = "")
+        {
+            try
+            {
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] OrderQuery: ShopNo={aShopNo}, OrderNo={aOrderNo}, PayType={aPayType}");
+
+                var orderQueryReq = new QryOrderReq
+                {
+                    ShopNo = aShopNo,
+                    OrderNo = aOrderNo,
+                    PayType = aPayType
+                };
+
+                var result = PaymentService.OrderQuery(orderQueryReq);
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] OrderQuery result: Status={result?.Status}, Description={result?.Description}, Count={result?.OrderList?.Count ?? 0}");
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] OrderQuery failed: {ex.Message}");
+                throw new Exception($"查詢訂單明細失敗 (ShopNo: {aShopNo}, OrderNo: {aOrderNo}): {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
         /// 依商店代號取得 HashCode/Site 認證字串
         /// ✅ 改為從 appsettings.json 動態讀取，支援多商店配置
         /// </summary>

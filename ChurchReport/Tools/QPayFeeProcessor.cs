@@ -162,22 +162,43 @@ namespace ChurchReport.Tools
         //    return new OkObjectResult("付款結果可能成功");
         //}
 
-        public ActionResult QPayFeeProcessorReturnUrl(string ShopNo, String PayToken, QryOrderPay aQryOrderPay)
+        public ActionResult QPayFeeProcessorReturnUrl(string ShopNo, String PayToken, QryOrderPay aQryOrderPay, string correlationId = "", string requestContext = "", QryOrder orderQueryDebugInfo = null, string orderQueryDebugError = "")
         {
             try
             {
                 //m_PushUtility.SendMessage(MENGSUNG_LINE_ID, "QPayReturnUrl_001");
 
                 Entity aFeeEntity = this.m_ToolUtilityClass.RetrieveEntity("new_fee", new Guid(aQryOrderPay.TSResultContent.Param1));
+                bool isPaymentSuccess = QPayPaymentResultHelper.IsPaymentSuccess(aQryOrderPay);
+                string paymentStatusText = QPayPaymentResultHelper.GetPaymentStatusText(aQryOrderPay);
+                bool isPaymentDebugLogEnabled = QPayPaymentDebugLogger.IsEnabled();
+
                 if (aFeeEntity == null)
                 {
-                    if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
+                    if (isPaymentDebugLogEnabled)
+                    {
+                        QPayPaymentDebugLogger.WritePaymentResult(
+                            nameof(QPayFeeProcessor),
+                            isPaymentSuccess ? "FeeEntityNotFoundSuccess" : "FeeEntityNotFoundFailure",
+                            ShopNo,
+                            PayToken,
+                            aQryOrderPay,
+                            isPaymentSuccess,
+                            paymentStatusText,
+                            "FeeEntity not found by Param1.",
+                            correlationId,
+                            requestContext,
+                            orderQueryDebugInfo,
+                            orderQueryDebugError);
+                    }
+
+                    if (isPaymentSuccess)
                     {
                         ViewBag.IsSuccess = true;
                         ViewBag.Message = "訂單已建立，會透過LINE另行通知交易狀態，感謝您的支持。";
                         ViewBag.OrderId = aQryOrderPay.TSResultContent.OrderNo;
                         ViewBag.PaymentMethod = "信用卡";
-                        ViewBag.ErrorDetails = aQryOrderPay.Description;
+                        ViewBag.ErrorDetails = paymentStatusText;
                         return View("~/Views/QPayCard/PaymentResult.cshtml");
                     }
                     else
@@ -185,7 +206,7 @@ namespace ChurchReport.Tools
                         ViewBag.IsSuccess = false;
                         ViewBag.Message = "付款失敗，請稍後再試或聯繫教會辦公室。";
                         ViewBag.OrderId = aQryOrderPay.TSResultContent.OrderNo;
-                        ViewBag.ErrorDetails = aQryOrderPay.Description;
+                        ViewBag.ErrorDetails = paymentStatusText;
                         return View("~/Views/QPayCard/PaymentResult.cshtml");
                     }
                 }
@@ -254,11 +275,40 @@ namespace ChurchReport.Tools
                     Environment.NewLine +
                     "📝 處理狀態" + Environment.NewLine +
                     "┈┈┈┈┈┈┈┈┈" + Environment.NewLine +
-                    $"  ✓ {aQryOrderPay.Description}" + Environment.NewLine;
+                    $"  {(isPaymentSuccess ? "✓" : "✕")} {paymentStatusText}" + Environment.NewLine;
 
-                if (aQryOrderPay.Status == "S" && aQryOrderPay.TSResultContent.Status == "S")
+                string existingPaymentRecords = this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeEntity, "new_payment_records") ?? string.Empty;
+                int currentPayStatus = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aFeeEntity, "new_pay_status");
+                bool hasProcessedOrder = existingPaymentRecords.Contains(aQryOrderPay.TSResultContent.OrderNo);
+                string branchName = isPaymentSuccess
+                    ? (hasProcessedOrder || currentPayStatus != 100000000 ? "SuccessAlreadyProcessed" : "SuccessProcessing")
+                    : "FailureProcessing";
+
+                if (isPaymentDebugLogEnabled)
                 {
-                    if (this.m_ToolUtilityClass.GetEntityStringAttribute(aFeeEntity, "new_payment_records").Contains(aQryOrderPay.TSResultContent.OrderNo) != true && this.m_ToolUtilityClass.GetOptionSetAttribute(ref aFeeEntity, "new_pay_status") == 100000000)
+                    QPayPaymentDebugLogger.WritePaymentResult(
+                        nameof(QPayFeeProcessor),
+                        branchName,
+                        ShopNo,
+                        PayToken,
+                        aQryOrderPay,
+                        isPaymentSuccess,
+                        paymentStatusText,
+                        "FeeId=" + aFeeEntity.Id +
+                        ";CurrentPayStatus=" + currentPayStatus +
+                        ";HasProcessedOrder=" + hasProcessedOrder +
+                        ";ContactId=" + aContact.Id +
+                        ";IsCoursePayment=" + isCoursePayment +
+                        ";CategoryText=" + categoryText,
+                        correlationId,
+                        requestContext,
+                        orderQueryDebugInfo,
+                        orderQueryDebugError);
+                }
+
+                if (isPaymentSuccess)
+                {
+                    if (hasProcessedOrder != true && currentPayStatus == 100000000)
                     {
                         #region 信用卡會回傳2次，一次是RETURN_URL、一次是BACKEND_URL，為免收費單紀錄信用卡兩次，所以如果這裡已經有信用卡訂單編號，就不再處理了
                         // 收費單付款日期
