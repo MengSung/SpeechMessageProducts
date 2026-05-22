@@ -193,7 +193,7 @@
             }
             console.log('[LINE Login] detectEnvironmentAndChooseMethod, liffId =', liffId);
 
-            // 先嘗試 liff.init() 以判斷是否在 LINE App 內
+            // 先嘗試 liff.init()
             liff.init({ liffId: liffId })
                 .then(function() {
                     var isInClient = false;
@@ -201,19 +201,17 @@
 
                     console.log('[LINE Login] liff.init 成功, isInClient =', isInClient);
 
-                    if (isInClient) {
-                        // 在 LINE App 內（手機版或電腦版 LINE）→ 直接使用 LIFF SDK
-                        console.log('[LINE Login] 在 LINE App 內，使用 LIFF SDK 取得 userId');
-                        useLiffSdk();
-                    } else {
-                        // 在外部瀏覽器開啟（手機 Chrome / 電腦 Chrome 等）→ 走 Server-side OAuth
-                        console.log('[LINE Login] 外部瀏覽器，使用 Server-side OAuth');
-                        useServerSideOAuth();
-                    }
+                    // 不論在 LINE App 內或外部瀏覽器，一律走 LIFF SDK 登入。
+                    // 原因：LIFF 登入的 redirect_uri 是 liff.line.me（LINE 平台自動允許），
+                    // 不需要把 /Authentication/LineCallback 登錄到 Channel 的 Callback URL 白名單，
+                    // 因此可避開 access.line.me 回傳 400 Bad Request 的問題。
+                    // （直接開 Endpoint 原始網址時 isInClient 會是 false，舊版會誤走 Server-side OAuth → 400）
+                    useLiffSdk();
                 })
                 .catch(function(error) {
                     console.error('[LIFF Init Error]', error);
-                    // liff.init() 失敗 → 不在 LIFF 環境 → 改用 Server-side OAuth
+                    // 只有 liff.init() 真的失敗（完全非 LIFF 環境）時，才退回 Server-side OAuth。
+                    // 注意：此後備路徑需在 LINE Login Channel 登錄 Callback URL，否則仍會 400。
                     console.log('[LINE Login] LIFF 初始化失敗，改用 Server-side OAuth');
                     useServerSideOAuth();
                 });
@@ -240,7 +238,11 @@
 
             setTimeout(function() {
                 try {
-                    liff.login({ redirectUri: cleanUrl });
+                    // 不要自己帶 redirectUri！比照 VisitorCard.cshtml 的做法呼叫 liff.login()。
+                    // 帶 redirectUri 會把該網址當成 redirect_uri 送給 LINE，若與 Console 登錄的
+                    // LIFF Endpoint URL 不一致（例：送出 /Authentication/... 但登錄的是 /home/...），
+                    // LINE 會回 400「invalid url ... redirect_uri」。不帶參數時 LINE 用預設值，必定被接受。
+                    liff.login();
                 } catch (e) {
                     // LIFF login 失敗，改用 Server-side OAuth
                     console.error('[LIFF Login Error]', e);

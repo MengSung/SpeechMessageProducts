@@ -20,8 +20,13 @@ namespace ChurchReport.Controllers
         /// LINE ID 登入頁面
         /// 顯示 LINE 登入表單
         /// </summary>
+        // 同一個 action 同時掛 /Authentication/ 與 /Home/ 兩個路由，兩者皆「就地渲染」此畫面。
+        // 重點：/Home/... 不可再 302 轉址到 /Authentication/...，否則執行 liff.login() 時頁面網址
+        // 已變成 /Authentication/...，與 LINE Console 登錄的 LIFF Endpoint URL（/home/...）不符，
+        // LINE 會回 400「invalid url ... redirect_uri」。直接在 /home/ 渲染可讓網址與 Endpoint 一致。
         [HttpGet]
         [Route("/Authentication/LineIdLoginView/{LineIdLoginViewPatameter}")]
+        [Route("/Home/LineIdLoginView/{LineIdLoginViewPatameter}")]
         public IActionResult LineIdLoginView(string LineIdLoginViewPatameter)
         {
             try

@@ -81,14 +81,10 @@ namespace ChurchReport.Controllers
             }
         }
 
-        /// <summary>
-        /// 向後相容: 將舊的 /Home/LineIdLoginView 重導向到 /Authentication/LineIdLoginView
-        /// </summary>
-        [Route("/Home/LineIdLoginView/{LineIdLoginViewPatameter}")]
-        public IActionResult LineIdLoginViewRedirect(string LineIdLoginViewPatameter)
-        {
-            return RedirectToAction("LineIdLoginView", "Authentication", new { LineIdLoginViewPatameter = LineIdLoginViewPatameter });
-        }
+        // 註：原本 /Home/LineIdLoginView 會 302 轉址到 /Authentication/LineIdLoginView，
+        // 但這會讓 liff.login() 的 redirect_uri 變成 /Authentication/...，與 LIFF Endpoint(/home/...)
+        // 不符而造成 LINE 400「invalid url」。現改由 AuthenticationController.LineIdLoginView 直接掛
+        // /Home/ 路由就地渲染（網址維持 /home/...），故此處不再需要轉址方法。
 
         /// <summary>
         /// 向後相容: 將舊的 /Home/IntegrateView 重導向到 /SmallGroup/IntegrateView
