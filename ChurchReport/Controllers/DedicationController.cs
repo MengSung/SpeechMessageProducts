@@ -566,6 +566,7 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 奉獻 LINE 登入頁面
         /// </summary>
+        [Route("/Home/DediationLineLoginView/{LineIdLoginViewPatameter?}")]
         [Route("/Dedication/DediationLineLoginView/{LineIdLoginViewPatameter?}")]
         [Route("/Dedication/DediationLineLoginView")]
         [Route("/DediationLineLoginView/{LineIdLoginViewPatameter?}")]
