@@ -576,7 +576,6 @@
         // ─────────────────────────────────────────────────────────────────────
         var spiritualIdentityDataSource = ["-未知-", "基督徒", "已決志", "慕道友", "未信主"]; // 預設值
         var _liffId  = '@ViewBag.LiffId';           // ✅ LIFF ID（從 Controller 設定，改用 ViewBag 確保可靠）
-        var cleanUrl = window.location.href.split('?')[0]; // ✅ 用於 liff.login() redirectUri
 
         /**
          * 頁面 DOM 載入完成後執行的初始化函數
@@ -725,7 +724,8 @@
 
             setTimeout(function () {
                 try {
-                    liff.login({ redirectUri: cleanUrl });
+                    // 不手動帶 redirectUri，避免與 LINE Console 的 LIFF Endpoint URL 不一致而出現 400。
+                    liff.login();
                 } catch (e) {
                     console.error('[LIFF Login Error]', e);
                     document.getElementById('displaynamefield').innerHTML = "登入失敗：" + e;

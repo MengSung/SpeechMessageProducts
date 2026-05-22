@@ -158,14 +158,8 @@ namespace ChurchReport.Controllers
             return RedirectToAction("EquipmentView", "Equipment");
         }
 
-        /// <summary>
-        /// 向後相容: 將舊的 /Home/ChangePhoneView 重導向到 /Phone/ChangePhoneView
-        /// </summary>
-        [Route("/Home/ChangePhoneView/{LineIdLoginViewPatameter}")]
-        public IActionResult ChangePhoneViewRedirect(string LineIdLoginViewPatameter)
-        {
-            return RedirectToAction("ChangePhoneView", "PhoneBinding", new { LineIdLoginViewPatameter });
-        }
+        // 註：/Home/ChangePhoneView 已改由 PhoneBindingController.ChangePhoneView 直接就地渲染。
+        // LIFF Endpoint 如果登錄 /Home/...，不可再 302 轉到 /Phone/...。
 
         /// <summary>
         /// 向後相容: 繞過驗證直接導向首頁

@@ -26,6 +26,7 @@ namespace ChurchReport.Controllers
 
         #region 單獨換手機號碼
         [HttpGet]
+        [Route("/Home/ChangePhoneView/{LineIdLoginViewPatameter}")]
         [Route("/Phone/ChangePhoneView/{LineIdLoginViewPatameter}")]
         public IActionResult ChangePhoneView(string LineIdLoginViewPatameter)
         {
