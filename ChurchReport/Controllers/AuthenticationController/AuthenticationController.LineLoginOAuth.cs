@@ -28,6 +28,8 @@ namespace ChurchReport.Controllers
     /// </summary>
     public partial class AuthenticationController
     {
+        private const string LineLoginCallbackUrlSessionKey = "_LineLoginCallbackUrl";
+
         #region LINE Login Server-side OAuth 2.0
 
         /// <summary>
@@ -63,7 +65,7 @@ namespace ChurchReport.Controllers
                 }
 
                 var channelId = configuration["LineLogin:ChannelId"];
-                var callbackUrl = configuration["LineLogin:CallbackUrl"];
+                var callbackUrl = ResolveLineLoginCallbackUrl(configuration);
                 var scope = configuration["LineLogin:Scope"] ?? "profile openid";
 
                 System.Diagnostics.Debug.WriteLine($"[LineLoginStart] ChannelId: {channelId}");
@@ -84,6 +86,7 @@ namespace ChurchReport.Controllers
 
                 var nonce = GenerateRandomNonce();
                 HttpContext.Session.SetString("_LineLoginNonce", nonce);
+                HttpContext.Session.SetString(LineLoginCallbackUrlSessionKey, callbackUrl);
 
                 var authUrl = "https://access.line.me/oauth2/v2.1/authorize?" +
                              $"response_type=code" +
@@ -135,6 +138,9 @@ namespace ChurchReport.Controllers
                 HttpContext.Session.Remove("_LineLoginState");
 
                 var tokenResponse = await ExchangeCodeForToken(code);
+                HttpContext.Session.Remove(LineLoginCallbackUrlSessionKey);
+                HttpContext.Session.Remove("_LineLoginNonce");
+
                 if (tokenResponse == null || string.IsNullOrEmpty(tokenResponse.access_token))
                 {
                     System.Diagnostics.Debug.WriteLine("[LineCallback] 取得 Access Token 失敗");
@@ -169,6 +175,60 @@ namespace ChurchReport.Controllers
         #endregion
 
         #region 私有輔助方法
+
+        /// <summary>
+        /// Resolve the callback URL used by both LINE authorization and token exchange.
+        /// </summary>
+        private string ResolveLineLoginCallbackUrl(IConfiguration configuration)
+        {
+            var configuredCallbackUrl = configuration?["LineLogin:CallbackUrl"]?.Trim();
+            var requestCallbackUrl = BuildLineLoginCallbackUrlFromRequest();
+
+            if (string.IsNullOrWhiteSpace(configuredCallbackUrl))
+            {
+                return requestCallbackUrl;
+            }
+
+            if (string.IsNullOrWhiteSpace(requestCallbackUrl))
+            {
+                return configuredCallbackUrl;
+            }
+
+            if (Uri.TryCreate(configuredCallbackUrl, UriKind.Absolute, out var configuredUri) &&
+                Uri.TryCreate(requestCallbackUrl, UriKind.Absolute, out var requestUri) &&
+                string.Equals(configuredUri.Host, requestUri.Host, StringComparison.OrdinalIgnoreCase) &&
+                (NormalizeUriPort(configuredUri) != NormalizeUriPort(requestUri) ||
+                 !string.Equals(configuredUri.Scheme, requestUri.Scheme, StringComparison.OrdinalIgnoreCase)))
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[ResolveLineLoginCallbackUrl] Configured callback ({configuredCallbackUrl}) differs from current request ({requestCallbackUrl}); using current request URL.");
+                return requestCallbackUrl;
+            }
+
+            return configuredCallbackUrl;
+        }
+
+        private string BuildLineLoginCallbackUrlFromRequest()
+        {
+            var request = HttpContext?.Request;
+            if (request == null || !request.Host.HasValue)
+            {
+                return null;
+            }
+
+            var pathBase = request.PathBase.HasValue ? request.PathBase.Value.TrimEnd('/') : string.Empty;
+            return $"{request.Scheme}://{request.Host}{pathBase}/Authentication/LineCallback";
+        }
+
+        private static int NormalizeUriPort(Uri uri)
+        {
+            if (!uri.IsDefaultPort)
+            {
+                return uri.Port;
+            }
+
+            return string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ? 443 : 80;
+        }
 
         /// <summary>
         /// 取得綁定頁面 LIFF ID（從設定檔讀取）
@@ -289,7 +349,8 @@ namespace ChurchReport.Controllers
 
                 var channelId = configuration["LineLogin:ChannelId"];
                 var channelSecret = configuration["LineLogin:ChannelSecret"];
-                var callbackUrl = configuration["LineLogin:CallbackUrl"];
+                var callbackUrl = HttpContext.Session.GetString(LineLoginCallbackUrlSessionKey)
+                    ?? ResolveLineLoginCallbackUrl(configuration);
 
                 using (var httpClient = new HttpClient())
                 {

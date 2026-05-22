@@ -136,14 +136,12 @@
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
         // ========================================
-        // ✅ P0: 電腦版 LINE 登入方案（Server-side OAuth 2.0）
+        // LINE ID 登入流程
         // ========================================
-        // 策略：偵測環境，根據環境選擇登入方式
-        // 1. 手機版 LINE / 外部瀏覽器 → 使用原有的 LIFF SDK
-        // 2. 電腦版 LINE 內建瀏覽器 → 使用 Server-side LINE Login OAuth 2.0
+        // 此頁固定走 LIFF SDK，避免切到 callback URL 不相符的 OAuth 流程。
 
         var urlParams = new URLSearchParams(window.location.search);
-        var cleanUrl = window.location.href.split('?')[0];
+        var bindingPageUrl = '/Authentication/LineLiffView/@(Configuration["Liff:BindingLiffId"] ?? "1653819697-YkPyPkr6")';
 
         window.onload = function() {
             var initialError = urlParams.get('error');
@@ -155,34 +153,11 @@
                 document.getElementById('displaynamefield').innerHTML = '正在準備 LINE 登入...';
             }
 
-            // ✅ 根據環境自動選擇登入方式（LIFF SDK 優先，外部瀏覽器才走 OAuth）
-            // 流程：
-            //   1. 在 LINE App 內（手機/電腦版 LINE）→ liff.init → LIFF SDK 取得 userId
-            //   2. 在外部瀏覽器開啟 → Server-side OAuth 2.0
             detectEnvironmentAndChooseMethod();
         };
 
         // ========================================
-        // 方案 A：使用 Server-side OAuth（推薦）
-        // ========================================
-        function useServerSideOAuth() {
-            var liffId = '@ViewBag.LiffId';
-            console.log('[LINE Login] 使用 Server-side OAuth 2.0, liffId=' + liffId);
-            document.getElementById('displaynamefield').innerHTML = '正在導向 LINE 登入...';
-            ShowToast('正在導向 LINE 登入...', 'info', 2000);
-
-            setTimeout(function() {
-                // 傳入 liffId 作為 returnUrl，讓 Callback 後可以導回正確的登入頁
-                var startUrl = '/Authentication/LineLoginStart';
-                if (liffId && liffId.trim() !== '') {
-                    startUrl += '?liffId=' + encodeURIComponent(liffId);
-                }
-                window.location.href = startUrl;
-            }, 500);
-        }
-
-        // ========================================
-        // 根據環境選擇登入方式
+        // 初始化 LIFF 登入
         // ========================================
         function detectEnvironmentAndChooseMethod() {
             // 優先取 ViewBag.LiffId（Server 端 render，最可靠），備援從 URL path 最後一段取得
@@ -196,24 +171,15 @@
             // 先嘗試 liff.init()
             liff.init({ liffId: liffId })
                 .then(function() {
-                    var isInClient = false;
-                    try { isInClient = liff.isInClient(); } catch (e) { }
-
-                    console.log('[LINE Login] liff.init 成功, isInClient =', isInClient);
-
                     // 不論在 LINE App 內或外部瀏覽器，一律走 LIFF SDK 登入。
-                    // 原因：LIFF 登入的 redirect_uri 是 liff.line.me（LINE 平台自動允許），
-                    // 不需要把 /Authentication/LineCallback 登錄到 Channel 的 Callback URL 白名單，
-                    // 因此可避開 access.line.me 回傳 400 Bad Request 的問題。
-                    // （直接開 Endpoint 原始網址時 isInClient 會是 false，舊版會誤走 Server-side OAuth → 400）
+                    // 這個 LINE ID 頁面不再退回 /Authentication/LineLoginStart，
+                    // 避免 OAuth callback URL 與 LINE Channel 設定不一致時出現 400。
                     useLiffSdk();
                 })
                 .catch(function(error) {
                     console.error('[LIFF Init Error]', error);
-                    // 只有 liff.init() 真的失敗（完全非 LIFF 環境）時，才退回 Server-side OAuth。
-                    // 注意：此後備路徑需在 LINE Login Channel 登錄 Callback URL，否則仍會 400。
-                    console.log('[LINE Login] LIFF 初始化失敗，改用 Server-side OAuth');
-                    useServerSideOAuth();
+                    document.getElementById('displaynamefield').innerHTML = 'LINE 初始化失敗：' + error;
+                    ShowToast('LINE 初始化失敗', 'error', 4000);
                 });
         }
 
@@ -244,9 +210,8 @@
                     // LINE 會回 400「invalid url ... redirect_uri」。不帶參數時 LINE 用預設值，必定被接受。
                     liff.login();
                 } catch (e) {
-                    // LIFF login 失敗，改用 Server-side OAuth
                     console.error('[LIFF Login Error]', e);
-                    useServerSideOAuth();
+                    document.getElementById('displaynamefield').innerHTML = 'LINE 登入失敗：' + e;
                 }
             }, 600);
         }
@@ -352,40 +317,19 @@
                         console.warn('[未綁定] LIFF userId:', UserId);
 
                         // ========================================
-                        // ✅ Mini App 相容性修正：Provider 不同導致 userId 不同
+                        // ✅ 未綁定就導向綁定頁，不從 LINE ID 登入頁切到 OAuth
                         // ========================================
-                        // 問題：Mini App Channel 與原始綁定 Channel 可能在不同 Provider 下，
-                        //       導致 liff.getProfile().userId 回傳的值與 CRM 儲存的不同。
-                        // 解法：自動改用 Server-side OAuth（使用 LINE Login Channel），
-                        //       因為 LINE Login Channel 與原始綁定 Channel 在同一個 Provider，
-                        //       可以取得一致的 userId。
-                        // 流程：LIFF userId 不匹配 → Server-side OAuth → 取得正確 userId → 登入成功
+                        // LIFF userId 沒有找到 CRM 綁定時，維持 LIFF 流程語意：
+                        // 帶使用者進入綁定頁，而不是改用 callback URL 不同的 OAuth 流程。
                         // ========================================
-                        var isInLiffClient = false;
-                        try { isInLiffClient = liff.isInClient(); } catch (e) { }
+                        console.log('[LINE Login] LINE ID 尚未綁定，導向綁定頁面');
+                        ShowToast(data.message, "warning", 2200);
+                        loadPanel_hide();
+                        document.getElementById('displaynamefield').innerHTML = "尚未綁定帳號<br/>請先完成綁定程序";
 
-                        if (isInLiffClient) {
-                            // 在 LINE App 內（Mini App / LIFF 環境）
-                            // LIFF userId 與 CRM 不匹配，改用 Server-side OAuth 重新驗證
-                            console.log('[LINE Login] Mini App 環境：LIFF userId 未匹配 CRM，改用 Server-side OAuth');
-                            document.getElementById('displaynamefield').innerHTML =
-                                "正在重新驗證身份...<br/><small>切換驗證方式中</small>";
-                            ShowToast("正在重新驗證身份...", "info", 2000);
-                            setTimeout(function() {
-                                useServerSideOAuth();
-                            }, 500);
-                        } else {
-                            // 非 LINE App 內（外部瀏覽器），直接導向綁定頁面
-                            console.log('[LINE Login] 外部瀏覽器環境：導向綁定頁面');
-                            ShowToast(data.message, "warning", 2200);
-                            loadPanel_hide();
-                            document.getElementById('displaynamefield').innerHTML = "尚未綁定帳號<br/>請先完成綁定程序";
-
-                            // 3 秒後導向綁定頁面
-                            setTimeout(function() {
-                                window.location.href = "/Authentication/LineLiffView/1653819697-YkPyPkr6";
-                            }, 3000);
-                        }
+                        setTimeout(function() {
+                            window.location.href = bindingPageUrl;
+                        }, 3000);
                     }
                 },
                 error: function(xhr, status, error) {
