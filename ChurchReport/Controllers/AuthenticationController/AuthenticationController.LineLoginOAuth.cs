@@ -1,4 +1,4 @@
-using ChurchReport.ViewModel;
+ï»¿using ChurchReport.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -16,77 +16,75 @@ using System.Web;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// »{ÃÒ±±¨î¾¹¡]LINE Login Server-side OAuth 2.0¡^
-    /// 
-    /// ¥Øªº¡G¸Ñ¨M¹q¸£ª© LINE µLªk¨Ï¥Î LIFF ªº°İÃD
-    /// ¬[ºc¡GServer-side OAuth 2.0 ¬yµ{¡A§¹¥ş¤£¨Ì¿à«eºİ LIFF SDK
-    /// 
-    /// ¬yµ{¡G
-    /// 1. LineLoginStart ¡÷ ­«¾É¦V¦Ü LINE OAuth ±ÂÅv­¶­±
-    /// 2. LINE OAuth ¡÷ ¥Î¤á±ÂÅv ¡÷ ¦^½Õ LineCallback
-    /// 3. LineCallback ¡÷ ¥Î code ´«¨ú access_token ¡÷ ¨ú±o user profile ¡÷ µn¤J¨t²Î
+    /// èªè­‰æ§åˆ¶å™¨ï¼ˆLINE Login Server-side OAuth 2.0ï¼‰
+    ///
+    /// ç›®çš„ï¼šè§£æ±ºé›»è…¦ç‰ˆ LINE ç„¡æ³•ä½¿ç”¨ LIFF çš„å•é¡Œ
+    /// æ¶æ§‹ï¼šServer-side OAuth 2.0 æµç¨‹ï¼Œå®Œå…¨ä¸ä¾è³´ LIFF SDK
+    ///
+    /// æµç¨‹ï¼š
+    /// 1. LineLoginStart => é‡å°å‘è‡³ LINE OAuth æˆæ¬Šé é¢
+    /// 2. LINE OAuth => ç”¨æˆ¶æˆæ¬Š => å›å‘¼ LineCallback
+    /// 3. LineCallback => ä»¥ code æ›å– access_token => å–å¾— user profile => ç™»å…¥ç³»çµ±
     /// </summary>
     public partial class AuthenticationController
     {
         #region LINE Login Server-side OAuth 2.0
 
         /// <summary>
-        /// ¶}©l LINE Login OAuth ¬yµ{
-        /// ­«¾É¦V¥Î¤á¦Ü LINE ±ÂÅv­¶­±
+        /// é–‹å§‹ LINE Login OAuth æµç¨‹
+        /// é‡å°å‘è‡³ LINE æˆæ¬Šé é¢
         /// </summary>
-        /// <param name="returnUrl">§¹¦¨«á­n­«¾É¦Vªº¥Ø¼Ğ URL¡]¥i¿ï¡^</param>
+        /// <param name="returnUrl">å®Œæˆå¾Œè¦é‡å°å‘çš„ç›®æ¨™ URLï¼ˆå¯é¸ï¼‰</param>
+        /// <param name="liffId">å‘¼å«æ–¹çš„ LIFF IDï¼Œå›å‘¼å¾Œå¯ç”¨æ–¼å°å›æ­£ç¢ºé é¢ï¼ˆå¯é¸ï¼‰</param>
         [HttpGet]
         [Route("/Authentication/LineLoginStart")]
-        public IActionResult LineLoginStart(string returnUrl = null)
+        public IActionResult LineLoginStart(string returnUrl = null, string liffId = null)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("[LineLoginStart] ========== ¶}©l LINE Login OAuth ¬yµ{ ==========");
+                System.Diagnostics.Debug.WriteLine("[LineLoginStart] ========== é–‹å§‹ LINE Login OAuth æµç¨‹ ==========");
                 System.Diagnostics.Debug.WriteLine($"[LineLoginStart] ReturnUrl: {returnUrl}");
+                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] LiffId: {liffId}");
 
-                // ========================================
-                // ? P0: Àx¦s returnUrl ¨ì Session
-                // ========================================
-                // ¥Î³~¡G©^Äm­¶­±µ¥¯S®í¬yµ{»İ­n¦b OAuth §¹¦¨«á¾É¦V¯S©w­¶­±
-                // ¨Ò¦p¡GreturnUrl = "/Home/QPayView"
-                // ========================================
                 if (!string.IsNullOrEmpty(returnUrl))
                 {
                     HttpContext.Session.SetString("_OAuthReturnUrl", returnUrl);
-                    System.Diagnostics.Debug.WriteLine($"[LineLoginStart] ? ¤wÀx¦s ReturnUrl ¨ì Session: {returnUrl}");
                 }
 
-                // ±q HttpContext.RequestServices ¨ú±o IConfiguration
+                if (!string.IsNullOrEmpty(liffId))
+                {
+                    HttpContext.Session.SetString("_OAuthLiffId", liffId);
+                }
+
                 var configuration = HttpContext.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
                 if (configuration == null)
                 {
-                    return Json(new { success = false, message = "µLªk¨ú±o¨t²Î°t¸m" });
+                    return Json(new { success = false, message = "ç„¡æ³•å–å¾—ç³»çµ±è¨­å®š" });
                 }
 
-                // ±q appsettings.json Åª¨ú°t¸m
                 var channelId = configuration["LineLogin:ChannelId"];
                 var callbackUrl = configuration["LineLogin:CallbackUrl"];
                 var scope = configuration["LineLogin:Scope"] ?? "profile openid";
 
+                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] ChannelId: {channelId}");
+                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] CallbackUrl: {callbackUrl}");
+
                 if (string.IsNullOrEmpty(channelId))
                 {
-                    return Json(new { success = false, message = "LINE Login Channel ID ¥¼³]©w" });
+                    return Json(new { success = false, message = "LINE Login Channel ID æœªè¨­å®š" });
                 }
 
                 if (string.IsNullOrEmpty(callbackUrl))
                 {
-                    return Json(new { success = false, message = "LINE Login Callback URL ¥¼³]©w" });
+                    return Json(new { success = false, message = "LINE Login Callback URL æœªè¨­å®š" });
                 }
 
-                // ¥Í¦¨ÀH¾÷ state ¥Î©ó CSRF ¨¾Å@
                 var state = GenerateRandomState();
                 HttpContext.Session.SetString("_LineLoginState", state);
 
-                // ¥Í¦¨ÀH¾÷ nonce ¥Î©ó ID Token ÅçÃÒ
                 var nonce = GenerateRandomNonce();
                 HttpContext.Session.SetString("_LineLoginNonce", nonce);
 
-                // «Øºc LINE OAuth ±ÂÅv URL
                 var authUrl = "https://access.line.me/oauth2/v2.1/authorize?" +
                              $"response_type=code" +
                              $"&client_id={Uri.EscapeDataString(channelId)}" +
@@ -95,23 +93,20 @@ namespace ChurchReport.Controllers
                              $"&scope={Uri.EscapeDataString(scope)}" +
                              $"&nonce={Uri.EscapeDataString(nonce)}";
 
-                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] ±ÂÅv URL: {authUrl}");
-                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] State: {state}");
-                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] Nonce: {nonce}");
+                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] æˆæ¬Š URL: {authUrl}");
 
-                // ­«¾É¦V¦Ü LINE OAuth ±ÂÅv­¶­±
                 return Redirect(authUrl);
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] ¿ù»~: {e.Message}");
+                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] éŒ¯èª¤: {e.Message}");
                 return HandleError(e, "LineLoginStart");
             }
         }
 
         /// <summary>
         /// LINE OAuth Callback
-        /// ³B²z LINE OAuth ±ÂÅv«áªº¦^½Õ
+        /// è™•ç† LINE OAuth æˆæ¬Šå¾Œçš„å›å‘¼
         /// </summary>
         [HttpGet]
         [Route("/Authentication/LineCallback")]
@@ -124,66 +119,59 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[LineCallback] State: {state}");
                 System.Diagnostics.Debug.WriteLine($"[LineCallback] Error: {error}");
 
-                // ÀË¬d¬O§_¦³¿ù»~
                 if (!string.IsNullOrEmpty(error))
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LineCallback] LINE OAuth ¿ù»~: {error} - {error_description}");
-                    return RedirectToAction("Login", new { error = $"LINE µn¤J¥¢±Ñ: {error_description}" });
+                    System.Diagnostics.Debug.WriteLine($"[LineCallback] LINE OAuth éŒ¯èª¤: {error} - {error_description}");
+                    return RedirectToAction("Login", new { error = $"LINE ç™»å…¥å¤±æ•—: {error_description}" });
                 }
 
-                // ÅçÃÒ state ¨¾¤î CSRF §ğÀ»
                 var sessionState = HttpContext.Session.GetString("_LineLoginState");
                 if (string.IsNullOrEmpty(sessionState) || sessionState != state)
                 {
-                    System.Diagnostics.Debug.WriteLine("[LineCallback] State ÅçÃÒ¥¢±Ñ¡I¥i¯à¬O CSRF §ğÀ»");
-                    return RedirectToAction("Login", new { error = "State ÅçÃÒ¥¢±Ñ¡A½Ğ­«·sµn¤J" });
+                    System.Diagnostics.Debug.WriteLine("[LineCallback] State é©—è­‰å¤±æ•—ï¼å¯èƒ½æ˜¯ CSRF æ”»æ“Š");
+                    return RedirectToAction("Login", new { error = "State é©—è­‰å¤±æ•—ï¼Œè«‹é‡æ–°ç™»å…¥" });
                 }
 
-                // ²M°£ session ¤¤ªº state
                 HttpContext.Session.Remove("_LineLoginState");
 
-                // ¥Î code ´«¨ú access_token
                 var tokenResponse = await ExchangeCodeForToken(code);
                 if (tokenResponse == null || string.IsNullOrEmpty(tokenResponse.access_token))
                 {
-                    System.Diagnostics.Debug.WriteLine("[LineCallback] ¨ú±o Access Token ¥¢±Ñ");
-                    return RedirectToAction("Login", new { error = "¨ú±o LINE Access Token ¥¢±Ñ" });
+                    System.Diagnostics.Debug.WriteLine("[LineCallback] å–å¾— Access Token å¤±æ•—");
+                    return RedirectToAction("Login", new { error = "å–å¾— LINE Access Token å¤±æ•—" });
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[LineCallback] Access Token: {tokenResponse.access_token.Substring(0, 20)}...");
+                System.Diagnostics.Debug.WriteLine($"[LineCallback] Access Token å‰20å­—: {tokenResponse.access_token.Substring(0, Math.Min(20, tokenResponse.access_token.Length))}...");
 
-                // ¥Î access_token ¨ú±o¥Î¤á profile
                 var userProfile = await GetLineUserProfile(tokenResponse.access_token);
                 if (userProfile == null || string.IsNullOrEmpty(userProfile.userId))
                 {
-                    System.Diagnostics.Debug.WriteLine("[LineCallback] ¨ú±o¥Î¤á Profile ¥¢±Ñ");
-                    return RedirectToAction("Login", new { error = "¨ú±o LINE ¥Î¤á¸ê®Æ¥¢±Ñ" });
+                    System.Diagnostics.Debug.WriteLine("[LineCallback] å–å¾—ç”¨æˆ¶ Profile å¤±æ•—");
+                    return RedirectToAction("Login", new { error = "å–å¾— LINE ç”¨æˆ¶è³‡æ–™å¤±æ•—" });
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[LineCallback] ¥Î¤á ID: {userProfile.userId}");
-                System.Diagnostics.Debug.WriteLine($"[LineCallback] ¥Î¤á¦WºÙ: {userProfile.displayName}");
+                System.Diagnostics.Debug.WriteLine($"[LineCallback] ç”¨æˆ¶ ID: {userProfile.userId}");
+                System.Diagnostics.Debug.WriteLine($"[LineCallback] ç”¨æˆ¶åç¨±: {userProfile.displayName}");
 
-                // §ó·s InMemoryContext
                 InMemoryContext.LineBindingViewModel.LineUserId = userProfile.userId;
                 InMemoryContext.LineBindingViewModel.DisplayId = userProfile.userId;
 
-                // °õ¦æµn¤J¬yµ{¡]»P­ì¦³ªº SaveUserLineId ÅŞ¿è¬Û¦P¡^
                 return await ProcessLineUserLogin(userProfile.userId);
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"[LineCallback] ¿ù»~: {e.Message}");
-                System.Diagnostics.Debug.WriteLine($"[LineCallback] °ïÅ|°lÂÜ: {e.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[LineCallback] éŒ¯èª¤: {e.Message}");
+                System.Diagnostics.Debug.WriteLine($"[LineCallback] å †ç–Šè¿½è¹¤: {e.StackTrace}");
                 return HandleError(e, "LineCallback");
             }
         }
 
         #endregion
 
-        #region ¨p¦³»²§U¤èªk
+        #region ç§æœ‰è¼”åŠ©æ–¹æ³•
 
         /// <summary>
-        /// ¨ú±o¸j©w­¶­± LIFF ID¡]±q°t¸m¤å¥óÅª¨ú¡^
+        /// å–å¾—ç¶å®šé é¢ LIFF IDï¼ˆå¾è¨­å®šæª”è®€å–ï¼‰
         /// </summary>
         private string GetBindingLiffId()
         {
@@ -191,24 +179,24 @@ namespace ChurchReport.Controllers
             {
                 var configuration = HttpContext.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
                 var liffId = configuration?["Liff:BindingLiffId"];
-                
+
                 if (string.IsNullOrEmpty(liffId))
                 {
-                    System.Diagnostics.Debug.WriteLine("[GetBindingLiffId] ?? °t¸m¤å¥ó¤¤¥¼§ä¨ì Liff:BindingLiffId¡A¨Ï¥Î¹w³]­È");
-                    return "1653819697-YkPyPkr6"; // ¹w³]­È¡]¦V«á¬Û®e¡^
+                    System.Diagnostics.Debug.WriteLine("[GetBindingLiffId] è¨­å®šæª”ä¸­æ‰¾ä¸åˆ° Liff:BindingLiffIdï¼Œä½¿ç”¨é è¨­å€¼");
+                    return "1653819697-YkPyPkr6";
                 }
-                
+
                 return liffId;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetBindingLiffId] ? Åª¨ú°t¸m¥¢±Ñ: {ex.Message}");
-                return "1653819697-YkPyPkr6"; // ¹w³]­È
+                System.Diagnostics.Debug.WriteLine($"[GetBindingLiffId] è®€å–è¨­å®šéŒ¯èª¤: {ex.Message}");
+                return "1653819697-YkPyPkr6";
             }
         }
 
         /// <summary>
-        /// ¨ú±oµn¤J­¶­± LIFF ID¡]±q°t¸m¤å¥óÅª¨ú¡^
+        /// å–å¾—ç™»å…¥é é¢ LIFF IDï¼ˆå¾è¨­å®šæª”è®€å–ï¼‰
         /// </summary>
         private string GetLoginLiffId()
         {
@@ -216,24 +204,24 @@ namespace ChurchReport.Controllers
             {
                 var configuration = HttpContext.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
                 var liffId = configuration?["Liff:LoginLiffId"];
-                
+
                 if (string.IsNullOrEmpty(liffId))
                 {
-                    System.Diagnostics.Debug.WriteLine("[GetLoginLiffId] ?? °t¸m¤å¥ó¤¤¥¼§ä¨ì Liff:LoginLiffId¡A¨Ï¥Î¹w³]­È");
-                    return "2007621061-Exd9BGv8"; // ¹w³]­È¡]¦V«á¬Û®e¡^
+                    System.Diagnostics.Debug.WriteLine("[GetLoginLiffId] è¨­å®šæª”ä¸­æ‰¾ä¸åˆ° Liff:LoginLiffIdï¼Œä½¿ç”¨é è¨­å€¼");
+                    return "2007621061-Exd9BGv8";
                 }
-                
+
                 return liffId;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetLoginLiffId] ? Åª¨ú°t¸m¥¢±Ñ: {ex.Message}");
-                return "2007621061-Exd9BGv8"; // ¹w³]­È
+                System.Diagnostics.Debug.WriteLine($"[GetLoginLiffId] è®€å–è¨­å®šéŒ¯èª¤: {ex.Message}");
+                return "2007621061-Exd9BGv8";
             }
         }
 
         /// <summary>
-        /// ¨ú±o¸j©w­¶­±§¹¾ã URL¡]±q°t¸m¤å¥óÅª¨ú LIFF ID¡^
+        /// å–å¾—ç¶å®šé é¢å®Œæ•´ URLï¼ˆå¾è¨­å®šæª”è®€å– LIFF IDï¼‰
         /// </summary>
         private string GetBindingPageUrl()
         {
@@ -242,7 +230,23 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¥Í¦¨ÀH¾÷ state ¥Î©ó CSRF ¨¾Å@
+        /// å–å¾— LINE ID ç™»å…¥é é¢å®Œæ•´ URLã€‚
+        /// OAuth ç™¼ç”ŸéŒ¯èª¤æˆ–éœ€è¦é‡æ–°ç™»å…¥æ™‚ï¼Œå„ªå…ˆå›åˆ°åŸæœ¬çš„ LINE ç™»å…¥é ï¼Œè€Œä¸æ˜¯ä¸€èˆ¬å¸³å¯†ç™»å…¥é ã€‚
+        /// </summary>
+        private string GetLineIdLoginPageUrl()
+        {
+            var liffId = HttpContext.Session.GetString("_OAuthLiffId");
+
+            if (string.IsNullOrWhiteSpace(liffId))
+            {
+                liffId = GetLoginLiffId();
+            }
+
+            return $"/Home/LineIdLoginView/{Uri.EscapeDataString(liffId)}";
+        }
+
+        /// <summary>
+        /// ç”¢ç”Ÿéš¨æ©Ÿ state ç”¨æ–¼ CSRF é˜²è­·
         /// </summary>
         private string GenerateRandomState()
         {
@@ -258,7 +262,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¥Í¦¨ÀH¾÷ nonce ¥Î©ó ID Token ÅçÃÒ
+        /// ç”¢ç”Ÿéš¨æ©Ÿ nonce ç”¨æ–¼ ID Token é©—è­‰
         /// </summary>
         private string GenerateRandomNonce()
         {
@@ -274,7 +278,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¥Î±ÂÅv½X´«¨ú Access Token
+        /// ä»¥æˆæ¬Šç¢¼æ›å– Access Token
         /// </summary>
         private async Task<LineTokenResponse> ExchangeCodeForToken(string code)
         {
@@ -312,20 +316,20 @@ namespace ChurchReport.Controllers
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"[ExchangeCodeForToken] ¿ù»~: {response.StatusCode} - {responseBody}");
+                        System.Diagnostics.Debug.WriteLine($"[ExchangeCodeForToken] éŒ¯èª¤: {response.StatusCode} - {responseBody}");
                         return null;
                     }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ExchangeCodeForToken] ²§±`: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ExchangeCodeForToken] ç•°å¸¸: {ex.Message}");
                 return null;
             }
         }
 
         /// <summary>
-        /// ¥Î Access Token ¨ú±o¥Î¤á Profile
+        /// ä»¥ Access Token å–å¾—ç”¨æˆ¶ Profile
         /// </summary>
         private async Task<LineUserProfile> GetLineUserProfile(string accessToken)
         {
@@ -350,78 +354,45 @@ namespace ChurchReport.Controllers
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"[GetLineUserProfile] ¿ù»~: {response.StatusCode} - {responseBody}");
+                        System.Diagnostics.Debug.WriteLine($"[GetLineUserProfile] éŒ¯èª¤: {response.StatusCode} - {responseBody}");
                         return null;
                     }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetLineUserProfile] ²§±`: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[GetLineUserProfile] ç•°å¸¸: {ex.Message}");
                 return null;
             }
         }
 
         /// <summary>
-        /// ³B²z LINE ¥Î¤áµn¤J
+        /// è™•ç† LINE ç”¨æˆ¶ç™»å…¥
         /// </summary>
         private async Task<IActionResult> ProcessLineUserLogin(string lineUserId)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ¶}©l³B²z LINE ¥Î¤áµn¤J: {lineUserId}");
-                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] (¦¹ userId ¨Ó¦Û Server-side OAuth¡A¨Ï¥Î LINE Login Channel)");
+                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] é–‹å§‹è™•ç† LINE ç”¨æˆ¶ç™»å…¥: {lineUserId}");
 
-                // ========================================
-                // ? P0: ÀË¬d¬O§_¦³¦Û­qªº returnUrl¡]Àu¥ı³B²z¡^
-                // ========================================
-                // ¥Î³~¡G
-                //   1. ©^Äm­¶­±¡G¾É¦V /Home/QPayView
-                //   2. ¸j©w­¶­±¡G¾É¦V¸j©w­¶­±¡]¨Ï¥Î¯S®í¼Ğ°O "_BINDING_"¡^
-                // ========================================
                 var returnUrl = HttpContext.Session.GetString("_OAuthReturnUrl");
                 if (!string.IsNullOrEmpty(returnUrl))
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? °»´ú¨ì¦Û­q ReturnUrl: {returnUrl}");
-                    
-                    // ²M°£ Session ¤¤ªº returnUrl¡]Á×§K­«½Æ¨Ï¥Î¡^
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] åµæ¸¬åˆ°è‡ªè¨‚ ReturnUrl: {returnUrl}");
                     HttpContext.Session.Remove("_OAuthReturnUrl");
 
-                    // ========================================
-                    // ? P0: ¸j©w­¶­±¯S®í³B²z
-                    // ========================================
-                    // ¦pªG returnUrl ¬O "_BINDING_"¡Aªí¥Ü³o¬O¸j©w¬yµ{
-                    // ¤£°õ¦æ§¹¾ãµn¤J¡A¥u¾É¦V¸j©w­¶­±Åı«eºİ³B²z
-                    // ========================================
                     if (returnUrl == "_BINDING_")
                     {
-                        System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? °»´ú¨ì¸j©w¬yµ{¡A¾É¦V¸j©w­¶­±");
-                        
-                        // Àx¦s LINE UserId ¨ì TempData¡]¨Ñ¸j©w­¶­±«eºİ¨Ï¥Î¡^
+                        System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] åµæ¸¬åˆ°ç¶å®šæµç¨‹ï¼Œé‡å°å‘è‡³ç¶å®šé é¢");
                         TempData["_PendingLineUserId"] = lineUserId;
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? ¤wÀx¦s LINE UserId ¨ì TempData: {lineUserId}");
-                        
-                        // ========================================
-                        // ? ¨Ï¥Î°t¸m¤å¥ó¤¤ªº LIFF ID¡]¦Ó¤£¬Oµw½s½X¡^
-                        // ========================================
                         var bindingPageUrl = GetBindingPageUrl();
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? ¸j©w­¶­± URL: {bindingPageUrl}");
-                        
-                        // ¾É¦V¸j©w­¶­±¡AÅı«eºİ JavaScript ³B²z
-                        // «eºİ·|ÀË¬d¬O§_¤w¸j©w¡A¨ÃÅã¥Ü¹ïÀ³ªº°T®§
                         return Redirect(bindingPageUrl);
                     }
 
-                    // ========================================
-                    // ©^Äm­¶­±©Î¨ä¥L¯S®í¬yµ{
-                    // ========================================
-                    
-                    // ÀË¬d¥Î¤á¬O§_¤w¸j©w¡]¤´»İÀË¬d¡^
                     IOrganizationService service = null;
                     try
                     {
                         service = GetConnection();
-
                         var query = new QueryExpression("contact")
                         {
                             ColumnSet = new ColumnSet("contactid", "fullname", "new_lineid"),
@@ -436,34 +407,21 @@ namespace ChurchReport.Controllers
                             },
                             TopCount = 1
                         };
-
                         var results = service.RetrieveMultiple(query);
-
                         if (results.Entities.Count == 0)
                         {
-                            System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ¸Ó LINE ID ©|¥¼¸j©w");
-                            
-                            // ? ¨Ï¥Î°t¸m¤å¥ó¤¤ªº LIFF ID¡]¦Ó¤£¬Oµw½s½X¡^
-                            var bindingPageUrl = GetBindingPageUrl();
-                            System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? ­«¾É¦V¦Ü¸j©w­¶­±: {bindingPageUrl}");
-                            
-                            // ­«¾É¦V¦Ü¸j©w­¶­±
-                            return Redirect(bindingPageUrl);
+                            System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] æ­¤ LINE ID å°šæœªç¶å®šï¼Œé‡å°å‘è‡³ç¶å®šé é¢");
+                            return Redirect(GetBindingPageUrl());
                         }
-
-                        var foundContact = results.Entities[0];
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] §ä¨ìÁpµ¸¤H: {foundContact.GetAttributeValue<string>("fullname")}");
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] æ‰¾åˆ°è¯çµ¡äºº: {results.Entities[0].GetAttributeValue<string>("fullname")}");
                     }
                     finally
                     {
                         ReleaseConnection(service);
                     }
 
-                    // ²M°£ÂÂ Session¡]¨¾¤î Session Fixation¡^
-                    System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? ²M°£ÂÂ Session¡]¨¾¤î¸ó¥Î¤á¬ªº|¡^");
                     try
                     {
-                        // «O¦s returnUrl ¨ìÁ{®ÉÅÜ¼Æ¡]¦]¬° Clear ·|²M°£©Ò¦³¡^
                         var tempReturnUrl = returnUrl;
                         HttpContext.Session.Clear();
                         await HttpContext.Session.CommitAsync();
@@ -471,43 +429,22 @@ namespace ChurchReport.Controllers
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ?? ²M°£ Session Äµ§i: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] æ¸…é™¤ Session è­¦å‘Š: {ex.Message}");
                     }
 
-                    // «Ø¥ßµn¤J ViewModel
-                    var lineLoginViewModel = new GalleryViewModel
-                    {
-                        Account = "",
-                        Password = lineUserId
-                    };
-
                     InMemoryContext.LineBindingViewModel.LineUserId = lineUserId;
+                    await ProcessLogin(new GalleryViewModel { Account = "", Password = lineUserId });
 
-                    // °õ¦æ¼Ğ·Çµn¤J¬yµ{
-                    System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? ©I¥s¼Ğ·Çµn¤J¬yµ{");
-                    var loginResult = await ProcessLogin(lineLoginViewModel);
-
-                    // ========================================
-                    // ? P0: ¨Ï¥Î¦Û­q returnUrl ­«¾É¦V
-                    // ========================================
-                    // ­«­n¡G¹ï©ó©^Äm­¶­±µ¥¯S®í¬yµ{¡A¨Ï¥Î returnUrl ¦Ó¤£¬O DisplayViewType
-                    // ¨Ò¦p¡GreturnUrl = "/Home/QPayView"¡A»İ­nªş¥[ lineUserId
-                    // ========================================
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? ¨Ï¥Î¦Û­q ReturnUrl ­«¾É¦V: {returnUrl}/{lineUserId}");
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ä½¿ç”¨è‡ªè¨‚ ReturnUrl é‡å°å‘: {returnUrl}/{lineUserId}");
                     return Redirect($"{returnUrl}/{lineUserId}");
                 }
 
-                // ========================================
-                // ¤@¯ëµn¤J¬yµ{¡]µL returnUrl¡^
-                // ========================================
-
-                // ÀË¬d¥Î¤á¬O§_¤w¸j©w
+                // ä¸€èˆ¬ç™»å…¥æµç¨‹ï¼ˆç„¡ returnUrlï¼‰
                 IOrganizationService service2 = null;
                 Entity foundContact2 = null;
                 try
                 {
                     service2 = GetConnection();
-
                     var query = new QueryExpression("contact")
                     {
                         ColumnSet = new ColumnSet("contactid", "fullname", "new_lineid"),
@@ -522,31 +459,20 @@ namespace ChurchReport.Controllers
                         },
                         TopCount = 1
                     };
-
                     var results = service2.RetrieveMultiple(query);
-
                     if (results.Entities.Count == 0)
                     {
-                        System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ¸Ó LINE ID ©|¥¼¸j©w");
-                        
-                        // ? ¨Ï¥Î°t¸m¤å¥ó¤¤ªº LIFF ID¡]¦Ó¤£¬Oµw½s½X¡^
-                        var bindingPageUrl = GetBindingPageUrl();
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? ­«¾É¦V¦Ü¸j©w­¶­±: {bindingPageUrl}");
-                        
-                        // ­«¾É¦V¦Ü¸j©w­¶­±
-                        return Redirect(bindingPageUrl);
+                        System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] æ­¤ LINE ID å°šæœªç¶å®šï¼Œé‡å°å‘è‡³ç¶å®šé é¢");
+                        return Redirect(GetBindingPageUrl());
                     }
-
                     foundContact2 = results.Entities[0];
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] §ä¨ìÁpµ¸¤H: {foundContact2.GetAttributeValue<string>("fullname")}");
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] æ‰¾åˆ°è¯çµ¡äºº: {foundContact2.GetAttributeValue<string>("fullname")}");
                 }
                 finally
                 {
                     ReleaseConnection(service2);
                 }
 
-                // ²M°£ÂÂ Session¡]¨¾¤î Session Fixation¡^
-                System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? ²M°£ÂÂ Session¡]¨¾¤î¸ó¥Î¤á¬ªº|¡^");
                 try
                 {
                     HttpContext.Session.Clear();
@@ -554,95 +480,61 @@ namespace ChurchReport.Controllers
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ?? ²M°£ Session Äµ§i: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] æ¸…é™¤ Session è­¦å‘Š: {ex.Message}");
                 }
 
-                // «Ø¥ßµn¤J ViewModel
-                var lineLoginViewModel2 = new GalleryViewModel
-                {
-                    Account = "",
-                    Password = lineUserId
-                };
-
                 InMemoryContext.LineBindingViewModel.LineUserId = lineUserId;
+                var loginResult2 = await ProcessLogin(new GalleryViewModel { Account = "", Password = lineUserId });
 
-                // °õ¦æ¼Ğ·Çµn¤J¬yµ{
-                System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? ©I¥s¼Ğ·Çµn¤J¬yµ{");
-                var loginResult2 = await ProcessLogin(lineLoginViewModel2);
-
-                // ========================================
-                // ? P0: ³B²zµn¤Jµ²ªG¨Ã­«¾É¦V¡]¹w³]¬yµ{¡^
-                // ========================================
-                // ProcessLogin ªğ¦^ JSON¡A¦ı¦b OAuth ¬yµ{¤¤§Ú­Ì»İ­n­«¾É¦V
                 if (loginResult2 is JsonResult jsonResult)
                 {
-                    System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? µn¤J¦¨¥\¡A¸ÑªRªğ¦^µ²ªG");
-                    
-                    // ±q JSON µ²ªG¤¤¨ú±o¸ê®Æ
+                    System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ç™»å…¥æˆåŠŸï¼Œè§£æå›å‚³çµæœ");
                     var resultValue = jsonResult.Value;
                     var resultType = resultValue.GetType();
-                    
-                    // ¨Ï¥Î¤Ï®g¨ú±oÄİ©Ê­È
                     var displayViewTypeProperty = resultType.GetProperty("DisplayViewType");
                     var activeListIdProperty = resultType.GetProperty("ActiveListId");
-                    var messageProperty = resultType.GetProperty("message");
-                    
+
                     if (displayViewTypeProperty != null && activeListIdProperty != null)
                     {
                         var displayViewType = displayViewTypeProperty.GetValue(resultValue)?.ToString();
                         var activeListId = activeListIdProperty.GetValue(resultValue)?.ToString();
-                        var message = messageProperty?.GetValue(resultValue)?.ToString();
-                        
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] DisplayViewType: {displayViewType}");
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ActiveListId: {activeListId}");
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] Message: {message}");
-                        
-                        // ®Ú¾Ú DisplayViewType ­«¾É¦V¦Ü¹ïÀ³­¶­±
+
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] DisplayViewType: {displayViewType}, ActiveListId: {activeListId}");
+
                         if (displayViewType == "MultiGroupView")
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? ­«¾É¦V¦Ü MultiGroupView: {activeListId}");
                             return Redirect($"/SmallGroup/MultiGroupView/{activeListId}");
-                        }
                         else if (displayViewType == "IntegrateView")
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? ­«¾É¦V¦Ü IntegrateView: {activeListId}");
                             return Redirect($"/SmallGroup/IntegrateView/{activeListId}");
-                        }
                         else if (displayViewType == "HappyGroupView")
-                        {
-                            System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ? ­«¾É¦V¦Ü HappyGroupView");
                             return Redirect("/SmallGroup/HappyGroup");
-                        }
                         else
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ?? ¥¼ª¾ªº DisplayViewType: {displayViewType}");
                             return Redirect("/Home/Index");
-                        }
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ?? µLªk±q JSON µ²ªG¤¤¨ú±o¥²­nÄİ©Ê");
+                        System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ç„¡æ³•å–å¾— DisplayViewTypeï¼Œé‡å°å‘è‡³é¦–é ");
                         return Redirect("/Home/Index");
                     }
                 }
                 else
                 {
-                    // ¦pªG ProcessLogin ªğ¦^ªº¤£¬O JSON¡Aª½±µªğ¦^
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ?? ProcessLogin ªğ¦^Ãş«¬: {loginResult2?.GetType().Name}");
+                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ProcessLogin è¿”å›é¡å‹: {loginResult2?.GetType().Name}");
                     return loginResult2;
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ? ¿ù»~: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] °ïÅ|°lÂÜ: {ex.StackTrace}");
-                return Redirect("/Authentication/Login?error=" + Uri.EscapeDataString("µn¤J¥¢±Ñ¡A½Ğµy«á¦A¸Õ"));
+                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] éŒ¯èª¤: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] å †ç–Šè¿½è¹¤: {ex.StackTrace}");
+                var loginPageUrl = GetLineIdLoginPageUrl();
+                var separator = loginPageUrl.Contains("?") ? "&" : "?";
+                return Redirect($"{loginPageUrl}{separator}error={Uri.EscapeDataString("ç™»å…¥å¤±æ•—ï¼Œè«‹ç¨å¾Œå†è©¦")}");
             }
         }
 
         #endregion
 
-        #region ¤º³¡Ãş§O
+        #region å…§éƒ¨é¡åˆ¥
 
         /// <summary>
         /// LINE Token Response

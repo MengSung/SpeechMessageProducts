@@ -146,15 +146,19 @@
         var cleanUrl = window.location.href.split('?')[0];
 
         window.onload = function() {
-            // 優先使用 Server-side OAuth（更可靠，支援所有環境）
-            // 如果用戶更偏好 LIFF，可以在這裡做環境判斷
+            var initialError = urlParams.get('error');
 
-            document.getElementById('displaynamefield').innerHTML = '正在準備 LINE 登入...';
+            if (initialError) {
+                document.getElementById('displaynamefield').innerHTML = initialError;
+                ShowToast(initialError, 'error', 4000);
+            } else {
+                document.getElementById('displaynamefield').innerHTML = '正在準備 LINE 登入...';
+            }
 
-            // ✅ 方案 A：一律使用 Server-side OAuth（推薦，最穩定）
-            //useServerSideOAuth();
-
-            // ✅ 方案 B：根據環境選擇（可選）
+            // ✅ 根據環境自動選擇登入方式（LIFF SDK 優先，外部瀏覽器才走 OAuth）
+            // 流程：
+            //   1. 在 LINE App 內（手機/電腦版 LINE）→ liff.init → LIFF SDK 取得 userId
+            //   2. 在外部瀏覽器開啟 → Server-side OAuth 2.0
             detectEnvironmentAndChooseMethod();
         };
 
@@ -162,18 +166,23 @@
         // 方案 A：使用 Server-side OAuth（推薦）
         // ========================================
         function useServerSideOAuth() {
-            console.log('[LINE Login] 使用 Server-side OAuth 2.0');
+            var liffId = '@ViewBag.LiffId';
+            console.log('[LINE Login] 使用 Server-side OAuth 2.0, liffId=' + liffId);
             document.getElementById('displaynamefield').innerHTML = '正在導向 LINE 登入...';
             ShowToast('正在導向 LINE 登入...', 'info', 2000);
 
             setTimeout(function() {
-                // 直接導向後端的 LINE Login 起點
-                window.location.href = '/Authentication/LineLoginStart';
+                // 傳入 liffId 作為 returnUrl，讓 Callback 後可以導回正確的登入頁
+                var startUrl = '/Authentication/LineLoginStart';
+                if (liffId && liffId.trim() !== '') {
+                    startUrl += '?liffId=' + encodeURIComponent(liffId);
+                }
+                window.location.href = startUrl;
             }, 500);
         }
 
         // ========================================
-        // 方案 B：根據環境選擇登入方式（可選）
+        // 根據環境選擇登入方式
         // ========================================
         function detectEnvironmentAndChooseMethod() {
             // 優先取 ViewBag.LiffId（Server 端 render，最可靠），備援從 URL path 最後一段取得
@@ -182,30 +191,30 @@
                 var pathParts = window.location.pathname.split('/');
                 liffId = pathParts[pathParts.length - 1] || '';
             }
-            console.log('[LIFF Init] liffId =', liffId);
-            liff.init({ liffId: liffId })
-                .then(async () => {
-                    var os = '';
-                    var isInClient = false;
+            console.log('[LINE Login] detectEnvironmentAndChooseMethod, liffId =', liffId);
 
-                    try { os = liff.getOS(); } catch (e) { }
+            // 先嘗試 liff.init() 以判斷是否在 LINE App 內
+            liff.init({ liffId: liffId })
+                .then(function() {
+                    var isInClient = false;
                     try { isInClient = liff.isInClient(); } catch (e) { }
 
-                    console.log('[LIFF Detection]', { os: os, isInClient: isInClient });
+                    console.log('[LINE Login] liff.init 成功, isInClient =', isInClient);
 
-                    // 如果是電腦版 LINE（os === 'web' && isInClient）或無法判斷，使用 Server-side OAuth
-                    if (os === 'web' || !isInClient) {
-                        console.log('[LINE Login] 偵測到電腦版環境，使用 Server-side OAuth');
-                        useServerSideOAuth();
-                    } else {
-                        // 手機版 LINE，使用 LIFF SDK
-                        console.log('[LINE Login] 偵測到手機版環境，使用 LIFF SDK');
+                    if (isInClient) {
+                        // 在 LINE App 內（手機版或電腦版 LINE）→ 直接使用 LIFF SDK
+                        console.log('[LINE Login] 在 LINE App 內，使用 LIFF SDK 取得 userId');
                         useLiffSdk();
+                    } else {
+                        // 在外部瀏覽器開啟（手機 Chrome / 電腦 Chrome 等）→ 走 Server-side OAuth
+                        console.log('[LINE Login] 外部瀏覽器，使用 Server-side OAuth');
+                        useServerSideOAuth();
                     }
                 })
                 .catch(function(error) {
                     console.error('[LIFF Init Error]', error);
-                    // LIFF 初始化失敗，使用 Server-side OAuth 作為後備
+                    // liff.init() 失敗 → 不在 LIFF 環境 → 改用 Server-side OAuth
+                    console.log('[LINE Login] LIFF 初始化失敗，改用 Server-side OAuth');
                     useServerSideOAuth();
                 });
         }
