@@ -286,7 +286,7 @@ namespace ChurchReport.Controllers
         private string GetBindingPageUrl()
         {
             var liffId = GetBindingLiffId();
-            return $"/Authentication/LineLiffView/{liffId}";
+            return $"https://liff.line.me/{Uri.EscapeDataString(liffId)}";
         }
 
         /// <summary>

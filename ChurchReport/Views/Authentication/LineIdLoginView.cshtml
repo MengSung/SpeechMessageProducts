@@ -129,7 +129,7 @@
         function getLoadPanelInstance() { return $("#loadPanel").dxLoadPanel("instance"); }
         function loadPanel_show() { getLoadPanelInstance().show(); }
         function loadPanel_hide() { getLoadPanelInstance().hide(); }
-        function Binding() { window.location.href = "/Authentication/LineLiffView/1653819697-YkPyPkr6"; }
+        function Binding() { window.location.href = 'https://liff.line.me/@(Configuration["Liff:BindingLiffId"] ?? "1653819697-YkPyPkr6")'; }
         function Login() { window.location.href = "/Authentication/Login"; }
     </script>
     <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.js"></script>
@@ -141,7 +141,7 @@
         // 此頁固定走 LIFF SDK，避免切到 callback URL 不相符的 OAuth 流程。
 
         var urlParams = new URLSearchParams(window.location.search);
-        var bindingPageUrl = '/Authentication/LineLiffView/@(Configuration["Liff:BindingLiffId"] ?? "1653819697-YkPyPkr6")';
+        var bindingPageUrl = 'https://liff.line.me/@(Configuration["Liff:BindingLiffId"] ?? "1653819697-YkPyPkr6")';
 
         window.onload = function() {
             var initialError = urlParams.get('error');

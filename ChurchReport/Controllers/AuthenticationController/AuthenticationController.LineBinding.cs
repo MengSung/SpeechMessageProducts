@@ -19,6 +19,7 @@ namespace ChurchReport.Controllers
 
         [HttpGet]
         [Route("/Authentication/LineLiffView/{LineIdLoginViewPatameter?}")]
+        [Route("/Home/LineLiffView/{LineIdLoginViewPatameter?}")]
         [Route("/LineLiffView/{LineIdLoginViewPatameter?}")]
         public IActionResult LineLiffView(string LineIdLoginViewPatameter)
         {
