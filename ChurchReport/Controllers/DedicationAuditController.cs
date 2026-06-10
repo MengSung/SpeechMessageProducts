@@ -341,7 +341,8 @@ namespace ChurchReport.Controllers
 
                 var feeList = InMemoryContext.QpayManager.GetDedicationFeesByContactId(id);
 
-                return Json(new { status = "1", DedicationFeeList = feeList });
+                // GetDedicationFeesByContactId 內部已透過 SetDedicationFeeList 算好總金額
+                return Json(new { status = "1", DedicationFeeList = feeList, TotalAmount = InMemoryContext.QpayManager.m_QpayModel.TotalAmount });
             }
             catch (Exception e)
             {

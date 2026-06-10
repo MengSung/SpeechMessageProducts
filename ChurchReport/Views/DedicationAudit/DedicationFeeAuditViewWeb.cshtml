@@ -59,7 +59,7 @@
 
     #buttonContainer3 {
         display: flex;
-        justify-content: flex-end;
+        justify-content: flex-start;
         margin: 8px 0 14px;
     }
 
@@ -123,8 +123,9 @@
     #displayamountfield {
         margin: 0;
         color: #b91c1c;
-        font-size: 1.05rem;
-        text-align: right;
+        font-size: 1.6rem;
+        font-weight: 700;
+        text-align: left;
     }
 
     #ToastContainer .dx-toast-message {
@@ -485,8 +486,8 @@
             )
     </div>
 
-    <!-- 總金額顯示區域 -->
-    <div class="dedication-audit-card" style="font-family:標楷體;font-size:100%; color:darkred; text-align:left;font-weight:bold">
+    <!-- 總金額顯示區域（按查詢後才顯示） -->
+    <div id="amountcontainer" class="dedication-audit-card" style="font-family:標楷體;font-size:100%; color:darkred; text-align:left;font-weight:bold; display:none;">
         <h4 id="displayamountfield"></h4>
     </div>
 </form>
@@ -510,7 +511,7 @@
             // 隱藏同名清單與奉獻清單
             document.getElementById("samenamecontainer").style.display = "none";
             document.getElementById("data-grid").style.display = "none";
-            document.getElementById("displayamountfield").style.display = "none";
+            document.getElementById("amountcontainer").style.display = "none";
         };
     </script>
 
@@ -655,10 +656,10 @@
                 updateFeeGrid(fees);
 
                 // 顯示總金額（如果後端有提供）
-                try { document.getElementById('displayamountfield').innerHTML = (data.FullName || '') + '  ' + (resp.TotalAmount || ''); } catch(e) { }
+                try { document.getElementById('displayamountfield').innerHTML = (data.FullName || '') + ' 總金額 = ' + (resp.TotalAmount != null ? resp.TotalAmount : 0) + ' 元'; } catch(e) { }
                 document.getElementById('samenamecontainer').style.display = 'none';
                 document.getElementById('data-grid').style.display = '';
-                document.getElementById('displayamountfield').style.display = '';
+                document.getElementById('amountcontainer').style.display = '';
 
                 // 根據需求：在顯示完清單後清空表單基本欄位
                 clearFormBasicFields();
@@ -717,8 +718,8 @@
 
                 document.getElementById('samenamecontainer').style.display = 'none';
                 document.getElementById('data-grid').style.display = '';
-                document.getElementById('displayamountfield').style.display = '';
-                try { document.getElementById('displayamountfield').innerHTML = (data.FullName || '') + '  ' + (data.TotalAmount || 0); } catch(e) {}
+                document.getElementById('amountcontainer').style.display = '';
+                try { document.getElementById('displayamountfield').innerHTML = (data.FullName || '') + ' 總金額 = ' + (data.TotalAmount != null ? data.TotalAmount : 0) + ' 元'; } catch(e) {}
 
                 // 若後端回傳奉獻清單，直接顯示；否則讓原本的 WebApi LoadAction 繼續運作
                 if (data.DedicationFeeList && Array.isArray(data.DedicationFeeList)) {
@@ -746,7 +747,7 @@
                 }
                 document.getElementById('samenamecontainer').style.display = '';
                 document.getElementById('data-grid').style.display = 'none';
-                document.getElementById('displayamountfield').style.display = 'none';
+                document.getElementById('amountcontainer').style.display = 'none';
                 try { $($sameNameGridSelector).dxDataGrid('instance').refresh(); } catch(e) {}
             } else {
                 // 查無結果或發生錯誤
@@ -759,7 +760,7 @@
                 }
                 document.getElementById('samenamecontainer').style.display = 'none';
                 document.getElementById('data-grid').style.display = 'none';
-                document.getElementById('displayamountfield').style.display = 'none';
+                document.getElementById('amountcontainer').style.display = 'none';
                 try { document.getElementById('resultfield').innerHTML = data.DedicationResult || data.message; } catch(e) {}
             }
         }
