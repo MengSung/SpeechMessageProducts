@@ -149,9 +149,6 @@
         }
 
         .keyin-btn-container {
-            position: sticky;
-            bottom: 8px;
-            z-index: 6;
             text-align: left !important;
             float: none !important;
             margin-bottom: 10px;
@@ -159,8 +156,61 @@
 
         .keyin-btn-container .dx-button {
             min-height: 44px;
-            width: 120px !important;
+            width: auto !important;
+            min-width: 0 !important;
             float: none !important;
+        }
+
+        .keyin-btn-container .dx-button .dx-button-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 30px;
+        }
+
+        .keyin-btn-container .dx-button .dx-button-text {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin-right: -2px;
+        }
+
+        /* 手機版表單：標籤獨立一行置於輸入框上方（純 CSS 堆疊，蓋掉 JS 量好的左欄寬） */
+        .dedication-keyin-page .dx-layout-manager .dx-label-h-align.dx-flex-layout {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .dedication-keyin-page .dx-layout-manager .dx-label-h-align .dx-field-item-label,
+        .dedication-keyin-page .dx-layout-manager .dx-label-h-align .dx-field-item-content {
+            display: block;
+            width: auto !important;
+        }
+
+        .dedication-keyin-page .dx-field-item-label {
+            font-size: 15px;
+            font-weight: 600;
+            padding-bottom: 4px;
+        }
+
+        .dedication-keyin-page .dx-texteditor {
+            width: 100% !important;
+        }
+
+        .dedication-keyin-page .dx-texteditor-input {
+            font-size: 16px;
+            padding: 8px 10px;
+        }
+
+        .dedication-keyin-page .dx-placeholder {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .dedication-keyin-page .dx-placeholder::before {
+            padding-top: 0;
+            padding-bottom: 0;
         }
 
         #SameNameList .dx-datagrid-headers .dx-header-row td,
@@ -735,6 +785,16 @@
             document.getElementById("samenamecontainer").style.display = "none";//隱藏查詢容器
             document.getElementById("uploadresultcontainer").style.display = "none";//隱藏上傳結果容器
         };
+
+        // 手機窄螢幕：表單標籤改置於輸入框上方，避免左右欄位互相擠壓變形
+        $(function () {
+            if (window.matchMedia && window.matchMedia('(max-width: 430px)').matches) {
+                ['#form1', '#form2'].forEach(function (sel) {
+                    var inst = $(sel).length ? $(sel).dxForm('instance') : null;
+                    if (inst) { inst.option('labelLocation', 'top'); }
+                });
+            }
+        });
     </script>
     <script>
         // 觸發事件管理

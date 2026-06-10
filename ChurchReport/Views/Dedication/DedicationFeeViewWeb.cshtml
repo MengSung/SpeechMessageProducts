@@ -173,7 +173,13 @@
 
         #buttonContainer3 .dx-button {
             width: 100%;
-            min-height: 44px;
+            min-height: 48px;
+        }
+
+        #buttonContainer3 .dx-button .dx-button-text {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 2px;
         }
 
         #DedicationFeeGrid .dx-datagrid-headers .dx-header-row td,
@@ -181,6 +187,36 @@
             padding-top: 9px;
             padding-bottom: 9px;
             font-size: .86rem;
+        }
+
+        /* 手機版表單：標籤置於輸入框上方（JS 切換 labelLocation: top），輸入框滿版 16px */
+        .dedication-page .dx-field-item-label {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .dedication-page .dx-field-item-label-location-top {
+            padding-bottom: 2px;
+        }
+
+        .dedication-page .dx-texteditor {
+            width: 100% !important;
+        }
+
+        .dedication-page .dx-texteditor-input {
+            font-size: 16px;
+            padding: 11px 10px;
+        }
+
+        .dedication-page .dx-placeholder {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .dedication-page .dx-placeholder::before {
+            padding-top: 0;
+            padding-bottom: 0;
         }
     }
 </style>
@@ -492,6 +528,16 @@
         else {
         }
     }
+</script>
+
+<script>
+    // 手機窄螢幕：表單標籤改置於輸入框上方，避免左右欄位互相擠壓變形
+    $(function () {
+        if (window.matchMedia && window.matchMedia('(max-width: 430px)').matches) {
+            var inst = $('#form').length ? $('#form').dxForm('instance') : null;
+            if (inst) { inst.option('labelLocation', 'top'); }
+        }
+    });
 </script>
 
 <link href="~/css/Scheduler.css" rel="stylesheet" />
