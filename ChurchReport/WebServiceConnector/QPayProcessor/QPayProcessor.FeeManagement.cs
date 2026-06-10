@@ -1,5 +1,6 @@
 ﻿using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Threading.Tasks;
 
@@ -199,7 +200,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 // [PERF-DEDICATION] temporary timing to locate the ~96s slow CRM round-trip. Remove after diagnosis.
                 var swGetContact = System.Diagnostics.Stopwatch.StartNew();
-                var contact = GetContact(QpayModel);
+                var contact = GetContactForKeyIn(QpayModel);
                 swGetContact.Stop();
                 System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION] GetContact elapsed = {swGetContact.ElapsedMilliseconds} ms");
 
@@ -227,6 +228,34 @@ namespace ChurchReport.WebServiceConnector
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] {errorMsg}");
                 throw new InvalidOperationException(errorMsg, ex);
             }
+        }
+
+        /// <summary>
+        /// 鍵入奉獻專用的會友查詢。
+        /// 同一奉獻編號可能掛在大量會友上，原本整批撈回所有欄位再在記憶體比對姓名，
+        /// 曾造成上傳卡住近百秒；改為奉獻編號＋姓名直接在 CRM 端雙條件過濾，
+        /// 同編號不同姓名也能即時找到正確會友。
+        /// </summary>
+        private Entity GetContactForKeyIn(QpayModel QpayModel)
+        {
+            if (!string.IsNullOrEmpty(QpayModel.DedicationNumber))
+            {
+                // 編號有值但姓名空白時，原邏輯必然比對不到任何人，直接視為查無會友
+                if (string.IsNullOrEmpty(QpayModel.FullName))
+                {
+                    return null;
+                }
+
+                var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
+                query.Attributes.AddRange("pager", "fullname", "statecode");
+                query.Values.AddRange(QpayModel.DedicationNumber, QpayModel.FullName, 0);
+
+                var matches = m_ToolUtilityClass.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                return matches.Entities.Count > 0 ? matches.Entities[0] : null;
+            }
+
+            // 沒有奉獻編號時沿用原本的查詢邏輯（姓名＋電話、僅姓名）
+            return GetContact(QpayModel);
         }
 
         /// <summary>
