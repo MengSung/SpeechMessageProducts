@@ -67,14 +67,27 @@ namespace ChurchReport.WebServiceConnector
                 var feeEntity = new Entity("new_fee");
 
                 // 設定收費單參數
+                var swSetParam = System.Diagnostics.Stopwatch.StartNew();
                 SetFeeParameter(aContact, feeEntity, QpayModel, KeyinMode);
+                swSetParam.Stop();
+                System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION]   CreateFee.SetFeeParameter = {swSetParam.ElapsedMilliseconds} ms");
 
                 // 建立收費單
+                var swCreate = System.Diagnostics.Stopwatch.StartNew();
                 var feeId = ToolUtility.CreateEntity(feeEntity);
+                swCreate.Stop();
+                System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION]   CreateFee.CreateEntity = {swCreate.ElapsedMilliseconds} ms");
+
+                var swRetrieve = System.Diagnostics.Stopwatch.StartNew();
                 var retrievedFee = ToolUtility.RetrieveEntity("new_fee", feeId);
+                swRetrieve.Stop();
+                System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION]   CreateFee.RetrieveEntity = {swRetrieve.ElapsedMilliseconds} ms");
 
                 // 指派負責人
+                var swAssign = System.Diagnostics.Stopwatch.StartNew();
                 AssignFeeOwner(retrievedFee, aContact);
+                swAssign.Stop();
+                System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION]   CreateFee.AssignFeeOwner = {swAssign.ElapsedMilliseconds} ms");
 
                 return feeId;
             }
@@ -184,16 +197,27 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
+                // [PERF-DEDICATION] temporary timing to locate the ~96s slow CRM round-trip. Remove after diagnosis.
+                var swGetContact = System.Diagnostics.Stopwatch.StartNew();
                 var contact = GetContact(QpayModel);
+                swGetContact.Stop();
+                System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION] GetContact elapsed = {swGetContact.ElapsedMilliseconds} ms");
+
                 if (contact == null)
                 {
                     return "錯誤:找不到會友!";
                 }
 
+                var swCreateFee = System.Diagnostics.Stopwatch.StartNew();
                 var feeId = CreateFee(contact, QpayModel, true);
+                swCreateFee.Stop();
+                System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION] CreateFee elapsed = {swCreateFee.ElapsedMilliseconds} ms");
 
                 // 發送 LINE 通知給奉獻者
+                var swNotify = System.Diagnostics.Stopwatch.StartNew();
                 await SendDedicationNotificationAsync(contact, QpayModel);
+                swNotify.Stop();
+                System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION] SendDedicationNotificationAsync elapsed = {swNotify.ElapsedMilliseconds} ms");
 
                 return BuildSuccessMessage(contact, QpayModel);
             }

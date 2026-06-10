@@ -43,7 +43,8 @@
 
     #form-container-query,
     #form-container-upload,
-    #samenamecontainer {
+    #samenamecontainer,
+    #uploadresultcontainer {
         border-radius: 14px;
     }
 
@@ -147,21 +148,19 @@
             font-size: .98rem;
         }
 
-        #buttonContainer2,
-        #buttonContainer3 {
+        .keyin-btn-container {
             position: sticky;
             bottom: 8px;
             z-index: 6;
-            justify-content: center;
+            text-align: left !important;
+            float: none !important;
             margin-bottom: 10px;
         }
 
-        #buttonContainer2,
-        #buttonContainer3,
-        #buttonContainer2 .dx-button,
-        #buttonContainer3 .dx-button {
-            width: 100%;
+        .keyin-btn-container .dx-button {
             min-height: 44px;
+            width: 120px !important;
+            float: none !important;
         }
 
         #SameNameList .dx-datagrid-headers .dx-header-row td,
@@ -290,7 +289,7 @@
     </div>
 </div>
 
-<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="SaveKeyInDedication" asp-controller="Dedication" method="post">
+<form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" data-ajax-failure="onFailure" asp-action="SaveKeyInDedication" asp-controller="Dedication" method="post">
     <div id="form-container-query" class="dedication-keyin-card">
         @(Html.DevExtreme().Form<QpayModel>()
      .ID("form1")
@@ -462,7 +461,7 @@
                             //.OnCellPrepared("cell_prepared_background_color")
                             )
     </div>
-    <div id="buttonContainer2" class="dx-button-icon">
+    <div id="buttonContainer2" class="keyin-btn-container" style="display:block; text-align:left !important; width:100%;">
         @(Html.DevExtreme().Button()
                     .Text("查詢")
                     .Type(ButtonType.Success)
@@ -706,7 +705,7 @@
         .FormData(Model)
         )
     </div>
-    <div id="buttonContainer3" class="dx-button-icon">
+    <div id="buttonContainer3" class="keyin-btn-container" style="display:block; text-align:left !important; width:100%;">
         @(Html.DevExtreme().Button()
                     .Text("上傳")
                     .Type(ButtonType.Success)
@@ -717,7 +716,7 @@
     </div>
 </form>
 
-<div id="samenamecontainer" class="dedication-keyin-card" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold">
+<div id="uploadresultcontainer" class="dedication-keyin-card" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold; display:none;">
     <h5 id="resultfield"></h5>
 
 
@@ -733,7 +732,8 @@
             $("#form1").dxForm("instance").updateData('LastSixDigit', "");
             $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
 
-            document.getElementById("samenamecontainer").style.display = "none";//隱藏
+            document.getElementById("samenamecontainer").style.display = "none";//隱藏查詢容器
+            document.getElementById("uploadresultcontainer").style.display = "none";//隱藏上傳結果容器
         };
     </script>
     <script>
@@ -866,8 +866,8 @@
                     $("#form2").dxForm("instance").updateData('WeeklyNote', "");
                     $("#form1").dxForm("instance").updateData('LastSixDigit', "");
                     $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
-                    document.getElementById("samenamecontainer").style.display = "none";//隱藏
-
+                    document.getElementById("samenamecontainer").style.display = "none";//隐藏查詢容器
+                    document.getElementById("uploadresultcontainer").style.display = "";//顯示上傳結果
                     document.getElementById('resultfield').innerHTML = data.DedicationResult;
                 }
                 else {
@@ -884,7 +884,7 @@
                     //$("#form1").dxForm("instance").getEditor('SameNameList').reload();
                     //$("#form1").dxForm("instance").getEditor('SameNameList').refresh();
 
-                    document.getElementById("samenamecontainer").style.display = "none";//隱藏
+                    document.getElementById("samenamecontainer").style.display = "none";//隱藏查詢容器
                     //document.getElementById("samenamecontainer").style.display = "";//顯示
                     //document.getElementById("samenamefield").style.display = "none";//隱藏
                     //document.getElementById("samenamefield").style.display = "";//顯示
@@ -893,6 +893,7 @@
                     //$("#SameNameList").dxDataGrid("instance").refresh();
 
                     //window.location.href = "/Home/KeyInDedicationFeeViewWeb/";
+                    document.getElementById("uploadresultcontainer").style.display = "none";//隱藏上傳結果容器
                     document.getElementById('resultfield').innerHTML = "";
                 }
             }
@@ -908,7 +909,8 @@
                 $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
 
                 //document.getElementById("samenamecontainer").style.display = "none";//隱藏
-                document.getElementById("samenamecontainer").style.display = "";//顯示
+                document.getElementById("samenamecontainer").style.display = "";//顯示查詢列表
+                document.getElementById("uploadresultcontainer").style.display = "none";//隱藏上傳結果
 
                 $("#SameNameList").dxDataGrid("instance").refresh();
 
@@ -925,7 +927,8 @@
                         PopupInstance.show();
                     }
                 }
-                document.getElementById("samenamecontainer").style.display = "none";//隱藏
+                document.getElementById("samenamecontainer").style.display = "none";//隱藏查詢容器
+                document.getElementById("uploadresultcontainer").style.display = "";//顯示上傳錯誤訊息
 
                 document.getElementById('resultfield').innerHTML = data.DedicationResult;
             }
@@ -936,6 +939,12 @@
             }
             else {
             }
+        }
+
+        function onFailure(xhr, status, error) {
+            // AJAX 失敗時確保隅藏 LoadPanel，避免一直旋轉
+            getLoadPanelInstance().hide();
+            ShowToast("上傳失敗，請稍後再試！", "error", 4000);
         }
     </script>
     <script>
