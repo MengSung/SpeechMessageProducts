@@ -4,7 +4,7 @@
 
 <style>
     .dedication-keyin-page {
-        --action-button-height: 48px;
+        --action-button-height: 40px;
         --theme-primary: #0f766e;
         --theme-border: #d9e6f2;
         --theme-surface: #ffffff;
@@ -69,19 +69,19 @@
     #buttonContainer3 {
         margin: 8px 0 14px;
         display: flex;
-        justify-content: flex-end;
+        justify-content: flex-start;
     }
 
     #buttonContainer2 .dx-button,
     #buttonContainer3 .dx-button {
-        min-width: 136px;
+        min-width: 100px;
         height: var(--action-button-height);
         border-radius: 999px;
         display: inline-flex;
         align-items: stretch;
         padding: 0;
         box-sizing: border-box;
-        box-shadow: 0 8px 18px rgba(15, 118, 110, 0.28);
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.22);
         transition: transform .2s ease, box-shadow .2s ease;
     }
 
@@ -92,7 +92,7 @@
         justify-content: center !important;
         flex: 1 1 auto;
         height: 100% !important;
-        padding: 0 28px !important;
+        padding: 0 20px !important;
         box-sizing: border-box;
     }
 
@@ -112,21 +112,18 @@
     }
 
     #buttonContainer2 .dx-button-text,
-    #buttonContainer3 .dx-button-text {
-        display: block !important;
-        height: var(--action-button-height);
-        line-height: var(--action-button-height) !important;
-        margin: 0 !important;
-        transform: none !important;
-        vertical-align: top;
-    }
-
+    #buttonContainer3 .dx-button-text,
     #save-button2 .dx-button-text,
     #save-button3 .dx-button-text {
-        display: block !important;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        display: inline !important;
+        height: auto !important;
         line-height: normal !important;
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
+        margin: 0 !important;
+        vertical-align: middle !important;
+        transform: none !important;
     }
 
     #buttonContainer2 .dx-button:hover,
@@ -221,20 +218,19 @@
             justify-content: center !important;
             flex: 1 1 auto;
             height: 100% !important;
-            padding: 0 30px !important;
+            padding: 0 20px !important;
         }
 
         .keyin-btn-container .dx-button .dx-button-text {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
-            letter-spacing: 2px;
-            margin-right: -2px;
-            height: var(--action-button-height);
-            line-height: var(--action-button-height) !important;
-            margin-top: 0 !important;
-            margin-bottom: 0 !important;
+            letter-spacing: 1px;
+            display: inline !important;
+            height: auto !important;
+            line-height: normal !important;
+            margin: 0 !important;
+            vertical-align: middle !important;
             transform: none !important;
-            vertical-align: top;
         }
 
         /* 手機版表單：標籤獨立一行置於輸入框上方（純 CSS 堆疊，蓋掉 JS 量好的左欄寬） */
@@ -575,11 +571,11 @@
                             //.OnCellPrepared("cell_prepared_background_color")
                             )
     </div>
-    <div id="buttonContainer2" class="keyin-btn-container" style="display:block; text-align:left !important; width:100%;">
+    <div id="buttonContainer2" class="keyin-btn-container">
         @(Html.DevExtreme().Button()
                     .Text("查詢")
                     .Type(ButtonType.Success)
-                .Height(48)
+                .Height(40)
                     .ID("save-button2")
                     .OnInitialized("onActionButtonInitialized")
                     .UseSubmitBehavior(true)
@@ -821,11 +817,11 @@
         .FormData(Model)
         )
     </div>
-    <div id="buttonContainer3" class="keyin-btn-container" style="display:block; text-align:left !important; width:100%;">
+    <div id="buttonContainer3" class="keyin-btn-container">
         @(Html.DevExtreme().Button()
                     .Text("上傳")
                     .Type(ButtonType.Success)
-                .Height(48)
+                .Height(40)
                     .ID("save-button3")
                     .OnInitialized("onActionButtonInitialized")
                     .UseSubmitBehavior(true)

@@ -21,8 +21,8 @@
 
         var buttonHeight = getButtonHeight($button);
         var $content = $button.find(".dx-button-content");
-        var $text = $button.find(".dx-button-text");
 
+        // 只設定 content 的 flex 置中，不碰 dx-button-text（由 CSS 控制）
         $content.css({
             display: "flex",
             alignItems: "center",
@@ -32,16 +32,6 @@
             boxSizing: "border-box",
             paddingTop: "0",
             paddingBottom: "0"
-        });
-
-        $text.css({
-            display: "block",
-            height: buttonHeight + "px",
-            lineHeight: buttonHeight + "px",
-            marginTop: "0",
-            marginBottom: "0",
-            transform: "none",
-            verticalAlign: "top"
         });
     };
 

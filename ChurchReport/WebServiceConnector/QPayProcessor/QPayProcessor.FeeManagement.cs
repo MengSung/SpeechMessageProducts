@@ -248,10 +248,19 @@ namespace ChurchReport.WebServiceConnector
                 // 建立奉獻確認訊息
                 var message = BuildDedicationNotificationMessage(contact, qpayModel);
 
-                // 發送 LINE 訊息
-                await m_PushUtility.SendMessage(lineUserId, message);
+                // 加入 8 秒超時：LINE API 若無回應不應卡住上傳主流程
+                var sendTask = m_PushUtility.SendMessage(lineUserId, message);
+                var timeoutTask = Task.Delay(TimeSpan.FromSeconds(8));
+                var completed = await Task.WhenAny(sendTask, timeoutTask);
 
-                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] 已成功發送奉獻通知給 {qpayModel.FullName}");
+                if (completed == timeoutTask)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[QPayProcessor] LINE 通知發送超時（8秒），略過通知繼續完成上傳");
+                }
+                else
+                {
+                    System.Diagnostics.Trace.WriteLine($"[QPayProcessor] 已成功發送奉獻通知給 {qpayModel.FullName}");
+                }
             }
             catch (Exception ex)
             {
