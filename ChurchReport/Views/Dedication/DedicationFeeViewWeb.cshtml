@@ -55,6 +55,14 @@
         font-weight: 600;
     }
 
+    .dedication-filter-card .dx-field-item-label {
+        padding-right: 10px;
+    }
+
+    .dedication-filter-card .dx-field-item-label-text {
+        line-height: 1.35;
+    }
+
     .dedication-action-bar {
         display: flex;
         justify-content: flex-start;
@@ -66,6 +74,22 @@
         border-radius: 999px;
         box-shadow: 0 8px 18px rgba(15, 118, 110, 0.3);
         transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    #buttonContainer3 .dx-button-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+    #buttonContainer3 .dx-button-content::after {
+        display: none;
+    }
+
+    #buttonContainer3 .dx-button-text {
+        display: block;
+        line-height: 1;
     }
 
     #buttonContainer3 .dx-button:hover {
@@ -163,23 +187,37 @@
             position: sticky;
             bottom: 8px;
             z-index: 5;
-            justify-content: center;
+            justify-content: flex-start;
             margin-bottom: 10px;
         }
 
         #buttonContainer3 {
-            width: 100%;
+            width: auto;
         }
 
         #buttonContainer3 .dx-button {
-            width: 100%;
+            width: auto;
+            min-width: 96px;
             min-height: 48px;
+        }
+
+        #buttonContainer3 .dx-button-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 0 28px;
+        }
+
+        #buttonContainer3 .dx-button-content::after {
+            display: none;
         }
 
         #buttonContainer3 .dx-button .dx-button-text {
             font-size: 16px;
             font-weight: 600;
             letter-spacing: 2px;
+            line-height: 1;
         }
 
         #DedicationFeeGrid .dx-datagrid-headers .dx-header-row td,
@@ -193,10 +231,15 @@
         .dedication-page .dx-field-item-label {
             font-size: 15px;
             font-weight: 600;
+            padding-right: 12px;
         }
 
         .dedication-page .dx-field-item-label-location-top {
             padding-bottom: 2px;
+        }
+
+        .dedication-page .dedication-filter-card .dx-field-item-content {
+            padding-left: 4px;
         }
 
         .dedication-page .dx-texteditor {

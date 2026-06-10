@@ -8,6 +8,7 @@
 
 <style>
     .dedication-audit-page {
+        --action-button-height: 48px;
         --theme-primary: #0f766e;
         --theme-border: #d9e6f2;
         --theme-surface: #ffffff;
@@ -51,6 +52,14 @@
         font-weight: 600;
     }
 
+    #form-container_Date .dx-field-item-label {
+        padding-right: 10px;
+    }
+
+    #form-container_Date .dx-field-item-label-text {
+        line-height: 1.35;
+    }
+
     .dedication-audit-page .dx-texteditor.dx-state-focused,
     .dedication-audit-page .dx-texteditor.dx-state-hover {
         box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.14);
@@ -63,11 +72,43 @@
         margin: 8px 0 14px;
     }
 
-    #buttonContainer3 .dx-button {
+    #buttonContainer3 .dx-button,
+    #save-button3.dx-button {
         min-width: 136px;
+        height: var(--action-button-height);
         border-radius: 999px;
+        display: inline-flex;
+        align-items: stretch;
+        padding: 0;
+        box-sizing: border-box;
         box-shadow: 0 8px 18px rgba(15, 118, 110, 0.3);
         transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    #buttonContainer3 .dx-button-content,
+    #save-button3 .dx-button-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex: 1 1 auto;
+        height: 100% !important;
+        padding: 0 24px !important;
+        box-sizing: border-box;
+    }
+
+    #buttonContainer3 .dx-button-content::after,
+    #save-button3 .dx-button-content::after {
+        display: none !important;
+    }
+
+    #buttonContainer3 .dx-button-text,
+    #save-button3 .dx-button-text {
+        display: block !important;
+        height: var(--action-button-height);
+        line-height: var(--action-button-height) !important;
+        margin: 0 !important;
+        transform: none !important;
+        vertical-align: top;
     }
 
     #buttonContainer3 .dx-button:hover {
@@ -148,23 +189,49 @@
         }
 
         #buttonContainer3 {
-            position: sticky;
-            bottom: 8px;
-            z-index: 6;
-            justify-content: center;
+            position: static;
+            justify-content: flex-start;
             margin-bottom: 10px;
         }
 
-        #buttonContainer3,
-        #buttonContainer3 .dx-button {
-            width: 100%;
-            min-height: 48px;
+        #buttonContainer3 .dx-button,
+        #save-button3.dx-button {
+            width: auto;
+            min-width: 96px;
+            height: var(--action-button-height);
+            min-height: var(--action-button-height);
         }
 
-        #buttonContainer3 .dx-button .dx-button-text {
+        #buttonContainer3 {
+            width: auto;
+        }
+
+        #buttonContainer3 .dx-button-content,
+        #save-button3 .dx-button-content {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex: 1 1 auto;
+            height: 100% !important;
+            padding: 0 28px !important;
+        }
+
+        #buttonContainer3 .dx-button-content::after,
+        #save-button3 .dx-button-content::after {
+            display: none !important;
+        }
+
+        #buttonContainer3 .dx-button .dx-button-text,
+        #save-button3 .dx-button-text {
             font-size: 16px;
             font-weight: 600;
             letter-spacing: 2px;
+            height: var(--action-button-height);
+            line-height: var(--action-button-height) !important;
+            margin: 0 !important;
+            display: block !important;
+            transform: none !important;
+            vertical-align: top;
         }
 
         #SameNameList .dx-datagrid-headers .dx-header-row td,
@@ -177,13 +244,30 @@
         }
 
         /* 手機版表單：標籤置於輸入框上方（JS 切換 labelLocation: top），輸入框滿版 16px */
+        .dedication-audit-page .dx-layout-manager .dx-label-h-align.dx-flex-layout {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .dedication-audit-page .dx-layout-manager .dx-label-h-align .dx-field-item-label,
+        .dedication-audit-page .dx-layout-manager .dx-label-h-align .dx-field-item-content {
+            display: block;
+            width: auto !important;
+        }
+
         .dedication-audit-page .dx-field-item-label {
             font-size: 15px;
             font-weight: 600;
+            padding-right: 12px;
+            padding-bottom: 4px;
         }
 
         .dedication-audit-page .dx-field-item-label-location-top {
             padding-bottom: 2px;
+        }
+
+        .dedication-audit-page #form-container_Date .dx-field-item-content {
+            padding-left: 4px;
         }
 
         .dedication-audit-page .dx-texteditor {
@@ -207,6 +291,8 @@
         }
     }
 </style>
+
+<script src="~/js/ActionButtonCentering.js"></script>
 
 <div class="dedication-audit-page">
 
@@ -379,6 +465,7 @@
                     .Visible(true)
                     .Type(ButtonType.Success)
                     .ID("save-button3")
+                .OnInitialized("onActionButtonInitialized")
                     .UseSubmitBehavior(true)
                     .OnClick("OnClickQuery")
             )
@@ -548,6 +635,8 @@
             document.getElementById("samenamecontainer").style.display = "none";
             document.getElementById("data-grid").style.display = "none";
             document.getElementById("amountcontainer").style.display = "none";
+
+            scheduleCenterActionButtons(["save-button3"]);
         };
 
         // 手機窄螢幕：表單標籤改置於輸入框上方，避免左右欄位互相擠壓變形
@@ -556,6 +645,10 @@
                 var inst = $('#form').length ? $('#form').dxForm('instance') : null;
                 if (inst) { inst.option('labelLocation', 'top'); }
             }
+
+            scheduleCenterActionButtons(["save-button3"]);
+            setTimeout(function () { scheduleCenterActionButtons(["save-button3"]); }, 120);
+            setTimeout(function () { scheduleCenterActionButtons(["save-button3"]); }, 300);
         });
     </script>
 

@@ -4,6 +4,7 @@
 
 <style>
     .dedication-keyin-page {
+        --action-button-height: 48px;
         --theme-primary: #0f766e;
         --theme-border: #d9e6f2;
         --theme-surface: #ffffff;
@@ -74,9 +75,58 @@
     #buttonContainer2 .dx-button,
     #buttonContainer3 .dx-button {
         min-width: 136px;
+        height: var(--action-button-height);
         border-radius: 999px;
+        display: inline-flex;
+        align-items: stretch;
+        padding: 0;
+        box-sizing: border-box;
         box-shadow: 0 8px 18px rgba(15, 118, 110, 0.28);
         transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    #buttonContainer2 .dx-button-content,
+    #buttonContainer3 .dx-button-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex: 1 1 auto;
+        height: 100% !important;
+        padding: 0 28px !important;
+        box-sizing: border-box;
+    }
+
+    #save-button2 .dx-button-content,
+    #save-button3 .dx-button-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: 100% !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    #save-button2 .dx-button-content::after,
+    #save-button3 .dx-button-content::after {
+        display: none !important;
+    }
+
+    #buttonContainer2 .dx-button-text,
+    #buttonContainer3 .dx-button-text {
+        display: block !important;
+        height: var(--action-button-height);
+        line-height: var(--action-button-height) !important;
+        margin: 0 !important;
+        transform: none !important;
+        vertical-align: top;
+    }
+
+    #save-button2 .dx-button-text,
+    #save-button3 .dx-button-text {
+        display: block !important;
+        line-height: normal !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
     }
 
     #buttonContainer2 .dx-button:hover,
@@ -155,17 +205,23 @@
         }
 
         .keyin-btn-container .dx-button {
+            height: var(--action-button-height);
             min-height: 44px;
             width: auto !important;
             min-width: 0 !important;
             float: none !important;
+            display: inline-flex;
+            align-items: stretch;
+            padding: 0;
         }
 
         .keyin-btn-container .dx-button .dx-button-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 30px;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex: 1 1 auto;
+            height: 100% !important;
+            padding: 0 30px !important;
         }
 
         .keyin-btn-container .dx-button .dx-button-text {
@@ -173,6 +229,12 @@
             font-weight: 600;
             letter-spacing: 2px;
             margin-right: -2px;
+            height: var(--action-button-height);
+            line-height: var(--action-button-height) !important;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+            transform: none !important;
+            vertical-align: top;
         }
 
         /* 手機版表單：標籤獨立一行置於輸入框上方（純 CSS 堆疊，蓋掉 JS 量好的左欄寬） */
@@ -225,6 +287,8 @@
         }
     }
 </style>
+
+<script src="~/js/ActionButtonCentering.js"></script>
 
 <div class="dedication-keyin-page">
 <div class="dedication-keyin-card dedication-keyin-header">
@@ -515,7 +579,9 @@
         @(Html.DevExtreme().Button()
                     .Text("查詢")
                     .Type(ButtonType.Success)
+                .Height(48)
                     .ID("save-button2")
+                    .OnInitialized("onActionButtonInitialized")
                     .UseSubmitBehavior(true)
                     .OnClick("OnClickQuery")
             )
@@ -759,7 +825,9 @@
         @(Html.DevExtreme().Button()
                     .Text("上傳")
                     .Type(ButtonType.Success)
+                .Height(48)
                     .ID("save-button3")
+                    .OnInitialized("onActionButtonInitialized")
                     .UseSubmitBehavior(true)
                     .OnClick("OnClickUpdate")
             )
@@ -784,6 +852,8 @@
 
             document.getElementById("samenamecontainer").style.display = "none";//隱藏查詢容器
             document.getElementById("uploadresultcontainer").style.display = "none";//隱藏上傳結果容器
+
+            scheduleCenterActionButtons(["save-button2", "save-button3"]);
         };
 
         // 手機窄螢幕：表單標籤改置於輸入框上方，避免左右欄位互相擠壓變形
@@ -794,6 +864,10 @@
                     if (inst) { inst.option('labelLocation', 'top'); }
                 });
             }
+
+            scheduleCenterActionButtons(["save-button2", "save-button3"]);
+            setTimeout(function () { scheduleCenterActionButtons(["save-button2", "save-button3"]); }, 120);
+            setTimeout(function () { scheduleCenterActionButtons(["save-button2", "save-button3"]); }, 300);
         });
     </script>
     <script>
