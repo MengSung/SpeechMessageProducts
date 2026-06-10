@@ -479,6 +479,15 @@
                    .Disabled(true)
          );
 
+         // 隱藏欄位：儲存從同名清單選取的 CRM Contact GUID
+         // 上傳時後端用此 GUID 直接取得 contact，跳過模糊查詢避免卡住
+         items.AddSimpleFor(m => m.SelectedContactId)
+               .Label(l => l.Text("SelectedContactId"))
+               .Visible(false)
+               .Editor(e => e
+                   .TextBox()
+                   .Width(120)
+         );
 
      })
         .OnContentReady
@@ -889,6 +898,8 @@
                 $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
                 $("#form1").dxForm("instance").updateData('ChurchName', data.ChurchName);
                 $("#form1").dxForm("instance").updateData('LastSixDigit', data.LastSixDigit);
+                // 儲存選定的 CRM Contact GUID，上傳時後端可直接取得 contact，跳過多筆模糊查詢
+                $("#form1").dxForm("instance").updateData('SelectedContactId', data.SameNameElementId);
 
                 $("#SameNameList").dxDataGrid("instance").deselectAll();
             }
@@ -904,6 +915,8 @@
                 $("#form1").dxForm("instance").updateData('Mobile', data.Mobile);
                 $("#form1").dxForm("instance").updateData('ChurchName', data.ChurchName);
                 $("#form1").dxForm("instance").updateData('LastSixDigit', data.LastSixDigit);
+                // 儲存選定的 CRM Contact GUID，上傳時後端可直接取得 contact，跳過多筆模糊查詢
+                $("#form1").dxForm("instance").updateData('SelectedContactId', data.SameNameElementId);
 
                 $("#SameNameList").dxDataGrid("instance").deselectAll();
             }
@@ -1036,6 +1049,7 @@
                 $("#form2").dxForm("instance").updateData('Explain', "");
                 $("#form2").dxForm("instance").updateData('WeeklyNote', "");
                 $("#form1").dxForm("instance").updateData('LastSixDigit', "");
+                $("#form1").dxForm("instance").updateData('SelectedContactId', ""); // 顯示同名清單時清空，等待使用者點選
                 $("#form1").dxForm("instance").getEditor('DedicationNumber').focus();
 
                 //document.getElementById("samenamecontainer").style.display = "none";//隱藏

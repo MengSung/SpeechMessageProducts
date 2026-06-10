@@ -37,6 +37,7 @@ namespace ChurchReport.Models
         public DateTime RecieptDate { get; set; } = DateTime.Now;       //收據日期
         public String ClickType { get; set; }                           //查詢或是上傳
         public String SelectedCreditCard { get; set; }                  //選取的信用卡
+        public String SelectedContactId { get; set; }                   //從同名清單選取的 CRM Contact GUID，用於上傳時直接定位避免模糊查詢卡住
         
         // ✅ 新增：動態奉獻類別清單（從 Dynamics 365 OptionSet 取得）
         public List<String> DedicationCategoryList { get; set; } = new List<String>();

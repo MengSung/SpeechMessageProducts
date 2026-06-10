@@ -29,31 +29,19 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // 方法 0：使用者已從同名清單選取特定聯絡人（含 CRM GUID）
-                // 直接 RetrieveEntity，跳過模糊查詢，避免相同奉獻編號有多筆時卡住
-                if (!string.IsNullOrEmpty(QpayModel.SelectedContactId) &&
-                    Guid.TryParse(QpayModel.SelectedContactId, out Guid contactGuid))
-                {
-                    var directContact = ToolUtility.RetrieveEntity("contact", contactGuid);
-                    if (directContact != null)
-                    {
-                        return directContact;
-                    }
-                }
-
-                // 方法 1：使用奉獻編號查詢
+                // ��k 1�G�ϥΩ^�m�s���d��
                 if (!string.IsNullOrEmpty(QpayModel.DedicationNumber))
                 {
                     return GetContactByDedicationNumber(QpayModel.DedicationNumber, QpayModel.FullName);
                 }
 
-                // 方法 2：使用姓名 + 手機電話查詢
+                // ��k 2�G�ϥΩm�W + ��ʹq�ܬd��
                 if (!string.IsNullOrEmpty(QpayModel.FullName) && !string.IsNullOrEmpty(QpayModel.Mobile))
                 {
                     return GetContactByNameAndMobile(QpayModel.FullName, QpayModel.Mobile);
                 }
 
-                // 方法 3：只使用姓名查詢（僅限唯一一筆）
+                // ��k 3�G�u�ϥΩm�W�d�ߡ]�����ߤ@�^
                 if (!string.IsNullOrEmpty(QpayModel.FullName))
                 {
                     return GetContactByNameOnly(QpayModel.FullName);
@@ -63,12 +51,15 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (Exception ex)
             {
-                var errorMsg = $"查詢連絡人失敗: {ex.Message}";
+                var errorMsg = $"�d�߳s���H����: {ex.Message}";
                 System.Diagnostics.Trace.WriteLine($"[QPayProcessor] {errorMsg}");
                 throw new InvalidOperationException(errorMsg, ex);
             }
         }
 
+        /// <summary>
+        /// �ϥΩ^�m�s���d�߳s���H
+        /// </summary>
         private Entity GetContactByDedicationNumber(string dedicationNumber, string fullName)
         {
             var contactCollection = ToolUtility.RetrieveEntityCollectionByField("contact", "pager", dedicationNumber);
@@ -84,6 +75,9 @@ namespace ChurchReport.WebServiceConnector
             return null;
         }
 
+        /// <summary>
+        /// �ϥΩm�W�M��ʹq�ܬd�߳s���H
+        /// </summary>
         private Entity GetContactByNameAndMobile(string fullName, string mobile)
         {
             var retrievedContact = ToolUtility.RetrieveContactEntityByFullNameAndMobileNumber(fullName, mobile);
@@ -93,9 +87,13 @@ namespace ChurchReport.WebServiceConnector
                 return retrievedContact;
             }
 
+            // ���ըϥ� telephone2 ���d��
             return ToolUtility.RetrieveEntityByField("contact", "telephone2", mobile);
         }
 
+        /// <summary>
+        /// �u�ϥΩm�W�d�߳s���H�]�����ߤ@�^
+        /// </summary>
         private Entity GetContactByNameOnly(string fullName)
         {
             var contactCollection = ToolUtility.RetrieveContactEntityByFullNameCollection(fullName);
@@ -105,10 +103,11 @@ namespace ChurchReport.WebServiceConnector
                 return contactCollection.Entities[0];
             }
 
+            // �p�G���h���P�W�O���A�^�� null
             return null;
         }
 
-                #endregion
+        #endregion
 
         #region ===== LINE �q�� =====
 
@@ -271,3 +270,4 @@ namespace ChurchReport.WebServiceConnector
         #endregion
     }
 }
+
