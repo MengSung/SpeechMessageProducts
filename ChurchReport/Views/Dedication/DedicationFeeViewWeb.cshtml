@@ -184,40 +184,28 @@
         }
 
         .dedication-action-bar {
-            position: sticky;
-            bottom: 8px;
-            z-index: 5;
             justify-content: flex-start;
             margin-bottom: 10px;
         }
 
-        #buttonContainer3 {
-            width: auto;
-        }
-
         #buttonContainer3 .dx-button {
-            width: auto;
-            min-width: 96px;
-            min-height: 48px;
+            min-height: 44px;
+            width: auto !important;
+            min-width: 0 !important;
         }
 
-        #buttonContainer3 .dx-button-content {
+        #buttonContainer3 .dx-button .dx-button-content {
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100%;
-            padding: 0 28px;
-        }
-
-        #buttonContainer3 .dx-button-content::after {
-            display: none;
+            padding: 0 30px;
         }
 
         #buttonContainer3 .dx-button .dx-button-text {
             font-size: 16px;
             font-weight: 600;
             letter-spacing: 2px;
-            line-height: 1;
+            margin-right: -2px;
         }
 
         #DedicationFeeGrid .dx-datagrid-headers .dx-header-row td,
