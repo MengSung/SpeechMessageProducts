@@ -468,6 +468,9 @@ namespace ChurchReport.Models
                 m_QpayModel.DedicationFeeList = new List<DedicationFee>();
                 EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByDateFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString(), m_QpayModel.QueryStartDate, m_QpayModel.QueryEndDate);
 
+                // [DEDQUERY] temporary diagnostic: show the actual date range used and how many fee rows CRM returned. Remove after diagnosis.
+                System.Diagnostics.Trace.WriteLine($"[DEDQUERY] FullName={m_QpayModel.FullName} Start={m_QpayModel.QueryStartDate:yyyy-MM-dd} End={m_QpayModel.QueryEndDate:yyyy-MM-dd} Returned={aDedicationFeeEntityCollection.Entities.Count}");
+
                 m_QpayModel.TotalAmount = 0;
                 m_QpayModel.DedicationFeeList.Clear();
                 foreach (Entity aDedicationFeeEntity in aDedicationFeeEntityCollection.Entities)
@@ -523,6 +526,9 @@ namespace ChurchReport.Models
                 // 收費單清單
                 m_QpayModel.DedicationFeeList = new List<DedicationFee>();
                 EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByDateFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString(), m_QpayModel.QueryStartDate, m_QpayModel.QueryEndDate);
+
+                // [DEDQUERY] temporary diagnostic: show the actual date range used and how many fee rows CRM returned. Remove after diagnosis.
+                System.Diagnostics.Trace.WriteLine($"[DEDQUERY] FullName={m_QpayModel.FullName} Start={m_QpayModel.QueryStartDate:yyyy-MM-dd} End={m_QpayModel.QueryEndDate:yyyy-MM-dd} Returned={aDedicationFeeEntityCollection.Entities.Count}");
 
                 m_QpayModel.TotalAmount = 0;
                 m_QpayModel.DedicationFeeList.Clear();

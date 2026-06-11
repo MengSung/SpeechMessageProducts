@@ -293,6 +293,10 @@ namespace ChurchReport.Controllers
             {
                 SetupDedicationFeeViewBag(true);
 
+                // 還原使用者選的查詢日期（SetupDedicationFeeViewBag 期間的 model 重新載入可能已把日期重設成今年），
+                // 必須在 SetDedicationFeeList 之前還原，才能依「收費日期(new_pay_date)」正確過濾跨年度紀錄。
+                RestoreDedicationQueryDatesFromSession();
+
                 return View(InMemoryContext.QpayManager.SetDedicationFeeList(
                     InMemoryContext.QpayManager.m_Contact));
             }
@@ -329,6 +333,28 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
+        /// 從 Session 還原使用者選擇的奉獻查詢日期區間（若有）。
+        /// 用於避免頁面重新載入時 SetQpayModel 把查詢日期重設成「今年 1/1 ~ 今天」，
+        /// 確保奉獻收費清單依使用者選的收費日期(new_pay_date)區間查詢，能正確顯示跨年度紀錄。
+        /// </summary>
+        private void RestoreDedicationQueryDatesFromSession()
+        {
+            var savedStart = HttpContext.Session.GetString("DedicationFeeQueryStart");
+            var savedEnd = HttpContext.Session.GetString("DedicationFeeQueryEnd");
+
+            if (DateTime.TryParse(savedStart, System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.RoundtripKind, out var queryStart))
+            {
+                InMemoryContext.QpayManager.m_QpayModel.QueryStartDate = queryStart;
+            }
+            if (DateTime.TryParse(savedEnd, System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.RoundtripKind, out var queryEnd))
+            {
+                InMemoryContext.QpayManager.m_QpayModel.QueryEndDate = queryEnd;
+            }
+        }
+
+        /// <summary>
         /// 更新奉獻收費清單查詢日期
         /// </summary>
         /// <param name="aQpayModel">查詢條件</param>
@@ -339,6 +365,11 @@ namespace ChurchReport.Controllers
             {
                 InMemoryContext.QpayManager.m_QpayModel.QueryStartDate = aQpayModel.QueryStartDate;
                 InMemoryContext.QpayManager.m_QpayModel.QueryEndDate = aQpayModel.QueryEndDate;
+
+                // 將使用者選的查詢日期存進 Session：頁面重新載入時 SetQpayModel 會把日期重設成「今年 1/1 ~ 今天」，
+                // 導致跨年度（例如 2025）的紀錄查不到。存進 Session 後，於 GET 重新還原，確保依使用者選的「收費日期」區間查詢。
+                HttpContext.Session.SetString("DedicationFeeQueryStart", aQpayModel.QueryStartDate.ToString("o"));
+                HttpContext.Session.SetString("DedicationFeeQueryEnd", aQpayModel.QueryEndDate.ToString("o"));
 
                 return Json(new { status = "1", message = "成功更新查詢日期!" });
             }
