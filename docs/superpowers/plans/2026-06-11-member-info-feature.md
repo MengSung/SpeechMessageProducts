@@ -24,6 +24,17 @@
 
 ---
 
+## 既有基礎建設（重要，務必先看再動手）
+
+`Views/Home/_GeneralGroupGrids.cshtml`（小組牧養網格，**近期已被修改**）已存在一套「網格大頭照 + 點擊開彈窗」基礎建設，本功能須**避免衝突並沿用慣例**：
+
+- `contactImageCellTemplate` / `renderContactAvatar`：以 `new JS(...)` 模板渲染連絡人大頭照，並透過 `/Personal/GetContactImagesBatch` 批次預載。
+- `openMemberDetailPopup(rowData, gridType)` + DOM id **`#memberDetailPopup`**：既有的「**可編輯**點名/探訪/代禱」彈窗（與本功能的唯讀細節不同用途）。
+- 因此本功能（唯讀、且含地址/信仰狀態/關係目標 + 聚會/裝備兩子網格）刻意採**不同命名以免覆蓋**：
+  - 細節彈窗 id＝**`#memberInfoDetailPopup`**、開啟函式＝**`openMemberInfoDetailPopup`**。
+  - 照片/姓名儲存格＝`new JS("memberInfoAvatarCellTemplate")` / `new JS("memberInfoNameCellTemplate")`（仿既有 `renderContactAvatar`，但點擊開的是唯讀彈窗）。
+- 可選優化（非必做）：把 `renderContactAvatar`／批次預載抽到共用 `wwwroot/js/contact-avatar.js`，供兩個網格共用以免重複（見文末「後續可選」）。
+
 ## File Structure（建立/修改總覽）
 
 **新增**
@@ -415,11 +426,13 @@ git commit -m "feat: 新增 MemberInfoScopeGuard 範圍白名單判定（含測�
         {
             try
             {
-                // 先看 Session 快取
+                // ✅ 修正：只快取「正向」結果。
+                // 避免在登入連絡人尚未載入時，把「無權限」用空字串永久寫死該 Session，
+                // 導致之後即使連絡人已載入、按鈕仍永遠不顯示。
                 var cached = HttpContext?.Session?.GetString("_MemberInfoAccess");
-                if (cached != null)
+                if (!string.IsNullOrEmpty(cached))
                 {
-                    ViewBag.MemberInfoAccess = string.IsNullOrEmpty(cached) ? null : cached;
+                    ViewBag.MemberInfoAccess = cached;
                     return;
                 }
 
@@ -427,25 +440,31 @@ git commit -m "feat: 新增 MemberInfoScopeGuard 範圍白名單判定（含測�
                 var pim = InMemoryContext?.PersonalInfomationModel;
                 if (pim != null && pim.m_LoginContact == null)
                 {
-                    try { pim.SetPersonalInfomationViewModel(); } catch { /* 載入失敗則視為無權限 */ }
+                    try { pim.SetPersonalInfomationViewModel(); } catch { /* 載入失敗則本次視為「未判定」 */ }
                 }
 
                 var loginContact = pim?.m_LoginContact;
-                string access = null;
-                if (loginContact != null)
+                if (loginContact == null)
                 {
-                    string jobTitle = ToolUtility.GetEntityStringAttribute(ref loginContact, "new_church_jobtitle") ?? "";
-                    string loginType = InMemoryContext?.ListManager?.LoginType ?? "";
-                    access = ChurchReport.Services.MemberInfo.MemberInfoAccessResolver.Resolve(jobTitle, loginType);
+                    // 尚無法判定（連絡人未載入）→ 本次不顯示且「不快取」，下次請求再算
+                    ViewBag.MemberInfoAccess = null;
+                    return;
                 }
 
-                // 快取（空字串代表「已算過、無權限」）
-                HttpContext?.Session?.SetString("_MemberInfoAccess", access ?? "");
+                string jobTitle = ToolUtility.GetEntityStringAttribute(ref loginContact, "new_church_jobtitle") ?? "";
+                string loginType = InMemoryContext?.ListManager?.LoginType ?? "";
+                string access = ChurchReport.Services.MemberInfo.MemberInfoAccessResolver.Resolve(jobTitle, loginType);
+
+                // 僅在「確定有權限」時快取；無權限不寫快取，避免資料尚未就緒時誤鎖整個 Session
+                if (!string.IsNullOrEmpty(access))
+                {
+                    HttpContext?.Session?.SetString("_MemberInfoAccess", access);
+                }
                 ViewBag.MemberInfoAccess = access;
             }
             catch
             {
-                // 任何意外都不擋頁面，僅不顯示按鈕
+                // 任何意外都不擋頁面，僅不顯示按鈕（且不快取）
                 ViewBag.MemberInfoAccess = null;
             }
         }
@@ -542,11 +561,32 @@ namespace ChurchReport.Controllers
             return ViewBag.MemberInfoAccess as string;
         }
 
+        /// <summary>
+        /// ✅ 確保登入者的小組名單清單（m_MultiGroupList）已載入。
+        /// 一般情況下 EnsureCorrectUserData() 會在 Session/密碼變動時重建 ListManager；
+        /// 此處對「清單仍為空」的邊界情形再保險一次（沿用既有 SetupListManager 重建作法）。
+        /// </summary>
+        private void EnsureShepherdListsLoaded()
+        {
+            var lm = InMemoryContext?.ListManager;
+            if (lm == null) return;
+
+            var loaded = lm.m_MultiGroupList?.m_WeeklyReportRecordListData;
+            if ((loaded == null || loaded.Count == 0) && !string.IsNullOrEmpty(lm.m_Password))
+            {
+                lm.SetupListManager(
+                    lm.m_Account,
+                    lm.m_Password,
+                    lm.m_SelectDate != default ? lm.m_SelectDate : DateTime.Now);
+            }
+        }
+
         /// <summary>牧養名單者「自己名單成員」的 contactId 白名單（含成員 fullname 對照）。</summary>
         private Dictionary<string, string> GetShepherdMembers()
         {
             // key = contactId(小寫), value = fullname
             var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            EnsureShepherdListsLoaded(); // ✅ 確保名單已載入再讀
             var multiGroupList = InMemoryContext?.ListManager?.m_MultiGroupList;
             if (multiGroupList?.m_WeeklyReportRecordListData == null) return result;
 
@@ -625,6 +665,7 @@ namespace ChurchReport.Controllers
         private List<Member> LoadShepherdListMembers()
         {
             var list = new List<Member>();
+            EnsureShepherdListsLoaded(); // ✅ 確保名單已載入再讀
             var multiGroupList = InMemoryContext?.ListManager?.m_MultiGroupList;
             if (multiGroupList?.m_WeeklyReportRecordListData == null) return list;
 
@@ -685,17 +726,18 @@ Create `ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml`:
         .RemoteOperations(true) // 全教會走伺服器端；牧養名單回固定清單亦可運作
         .Columns(columns =>
         {
-            columns.Add().Caption("照片").Width(64).AllowSorting(false).AllowFiltering(false)
-                .CellTemplate(@<text>
-                    <img src="/Personal/GetContactImage?contactId=<%- ContactId %>&size=48"
-                         style="width:40px;height:40px;border-radius:6px;object-fit:cover;" />
-                </text>);
+            // 照片：採用專案既有慣例 new JS(函式名) 模板（DevExtreme 不支援 <%- %> inline 模板）
+            columns.Add()
+                .DataField("ContactId")
+                .Caption("照片")
+                .Width(56).MinWidth(56)
+                .AllowEditing(false).AllowSorting(false).AllowFiltering(false)
+                .Fixed(true)
+                .CellTemplate(new JS("memberInfoAvatarCellTemplate"));
 
+            // 姓名：可點，開啟「唯讀」細節彈窗（與 _GeneralGroupGrids 既有可編輯的 openMemberDetailPopup 不同）
             columns.AddFor(m => m.FullName).Caption("姓名").Width(120)
-                .CellTemplate(@<text>
-                    <a href="javascript:void(0)" onclick="openMemberDetail('<%- ContactId %>','<%- FullName %>')"
-                       style="color:#3b5bdb;font-weight:bold;text-decoration:underline;"><%- FullName %></a>
-                </text>);
+                .CellTemplate(new JS("memberInfoNameCellTemplate"));
 
             columns.AddFor(m => m.Phone).Caption("手機").Width(140);
             columns.AddFor(m => m.SmallGroupName).Caption("小組").Width(160);
@@ -708,13 +750,44 @@ Create `ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml`:
     )
 </div>
 
-<!-- 細節彈窗容器（內容於 Task 7 載入） -->
-<div id="member-detail-popup-host"></div>
+<!-- 細節彈窗本體於 Task 7 加入 -->
 
 <script>
-    function openMemberDetail(contactId, fullName) {
-        // 於 Task 7 實作：以 DevExtreme Popup 載入 /MemberInfo/Detail
-        console.log("openMemberDetail", contactId, fullName);
+    // 照片儲存格模板（仿 _GeneralGroupGrids.cshtml 的 renderContactAvatar，但不綁定既有點名彈窗）
+    window.memberInfoAvatarCellTemplate = function (container, options) {
+        var d = options.data || {};
+        var contactId = d.ContactId || d.contactId || options.value || '';
+        var host = container && container.get ? container.get(0) : container;
+        if (!host) return;
+        host.textContent = '';
+        var fallback = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="20" fill="#e9ecef"/><text x="20" y="25" font-size="14" text-anchor="middle" fill="#6c757d">人</text></svg>');
+        var img = document.createElement('img');
+        img.src = contactId ? ('/Personal/GetContactImage?contactId=' + encodeURIComponent(contactId) + '&size=48') : fallback;
+        img.onerror = function () { if (img.src !== fallback) img.src = fallback; };
+        img.alt = '大頭照'; img.loading = 'lazy';
+        img.style.cssText = 'width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #e0e0e0;display:block;margin:0 auto;';
+        host.appendChild(img);
+    };
+
+    // 姓名儲存格模板：可點 → 開啟唯讀細節彈窗
+    window.memberInfoNameCellTemplate = function (container, options) {
+        var d = options.data || {};
+        var contactId = d.ContactId || d.contactId || '';
+        var fullName = d.FullName || d.fullName || '';
+        var host = container && container.get ? container.get(0) : container;
+        if (!host) return;
+        var a = document.createElement('a');
+        a.href = 'javascript:void(0)';
+        a.textContent = fullName;
+        a.style.cssText = 'color:#3b5bdb;font-weight:bold;text-decoration:underline;cursor:pointer;';
+        a.addEventListener('click', function (e) { e.preventDefault(); openMemberInfoDetailPopup(contactId, fullName); });
+        host.appendChild(a);
+    };
+
+    // 真正的彈窗於 Task 7 實作；此處先存根（名稱刻意異於既有 openMemberDetailPopup，避免衝突）
+    function openMemberInfoDetailPopup(contactId, fullName) {
+        console.log("openMemberInfoDetailPopup", contactId, fullName);
     }
 </script>
 ```
@@ -1015,14 +1088,14 @@ Create `ChurchReport/Views/MemberInfo/_MemberDetailPopup.cshtml`:
 </script>
 ```
 
-- [ ] **Step 4: 在網格頁建立 Popup 並接 `openMemberDetail`**
+- [ ] **Step 4: 在網格頁加入 Popup 並實作 `openMemberInfoDetailPopup`**
 
-把 `MemberInfoGrid.cshtml` 末端的 `<script>`（含 `openMemberDetail`）整段替換為：
+在 `MemberInfoGrid.cshtml`：(1) 加入下列 Popup 元件；(2) 把 Task 5 的 `openMemberInfoDetailPopup` 存根替換為下列實作。**保留** `memberInfoAvatarCellTemplate`／`memberInfoNameCellTemplate` 兩函式。彈窗 id 用 `memberInfoDetailPopup`，**刻意異於既有 `#memberDetailPopup`**（`_GeneralGroupGrids` 的可編輯點名彈窗）以免衝突。
 
 ```cshtml
-<!-- 細節彈窗 -->
+<!-- 唯讀細節彈窗（id 與既有 #memberDetailPopup 不同） -->
 @(Html.DevExtreme().Popup()
-    .ID("memberDetailPopup")
+    .ID("memberInfoDetailPopup")
     .Width("80%")
     .Height("80%")
     .Title("會友細節")
@@ -1033,8 +1106,9 @@ Create `ChurchReport/Views/MemberInfo/_MemberDetailPopup.cshtml`:
 )
 
 <script>
-    function openMemberDetail(contactId, fullName) {
-        var popup = $("#memberDetailPopup").dxPopup("instance");
+    // 取代 Task 5 的同名存根
+    function openMemberInfoDetailPopup(contactId, fullName) {
+        var popup = $("#memberInfoDetailPopup").dxPopup("instance");
         popup.option("title", fullName + " － 會友細節");
         popup.option("contentTemplate", function (contentElement) {
             $(contentElement).html('<div style="padding:16px;">載入中...</div>');
@@ -1044,8 +1118,7 @@ Create `ChurchReport/Views/MemberInfo/_MemberDetailPopup.cshtml`:
                 data: { contactId: contactId },
                 success: function (html) {
                     $(contentElement).html(html);
-                    // 預設顯示聚會紀錄
-                    if (typeof memberDetailSwitch === 'function') { memberDetailSwitch('present'); }
+                    if (typeof memberDetailSwitch === 'function') { memberDetailSwitch('present'); } // 預設顯示聚會紀錄
                 },
                 error: function (xhr) {
                     $(contentElement).html('<div style="padding:16px;color:#c92a2a;">載入失敗：' +
@@ -1432,4 +1505,11 @@ git commit -m "test: 會友資訊端到端與越權驗證修正"
 | 伺服器端越權防護 | Task 3, Task 7/8/9（套用）, Task 11（驗證） |
 | 唯讀（不寫回 CRM） | 全程無更新端點 |
 
-**Placeholder/一致性檢查**：型別與方法名跨任務一致（`MemberInfoAccess.Church/ShepherdList`、`Resolve`、`IsContactAllowed`、`GetAccess`、`GetShepherdMembers`、`GetRelationGoals`、`ContactPresentRecordRow`、`EquipmentStorLessons`、`MemberInfoDetailViewModel/RelationGoalItem`）。`GetRelationGoals` 於 Task 7 先以空實作引入、Task 10 補完，確保每階段可編譯。OQ-1（關係目標來源）、OQ-2（全教會「小組」欄位）已於對應任務以可運作預設＋註記處理，非程式碼占位。
+**Placeholder/一致性檢查**：型別與方法名跨任務一致（`MemberInfoAccess.Church/ShepherdList`、`Resolve`、`IsContactAllowed`、`GetAccess`、`EnsureShepherdListsLoaded`、`GetShepherdMembers`、`GetRelationGoals`、`ContactPresentRecordRow`、`EquipmentStorLessons`、`MemberInfoDetailViewModel/RelationGoalItem`；前端 `memberInfoAvatarCellTemplate`／`memberInfoNameCellTemplate`／`openMemberInfoDetailPopup`／`#memberInfoDetailPopup` 皆與既有 `_GeneralGroupGrids` 命名區隔，避免覆蓋）。`GetRelationGoals` 於 Task 7 先以空實作引入、Task 10 補完。**三項缺口修正已併入**：①照片/姓名改用 `new JS(...)` 模板（Task 5、沿用 `contactImageCellTemplate` 慣例）；②`EnsureShepherdListsLoaded` 確保 `m_MultiGroupList` 載入再讀（Task 5）；③`SetupMemberInfoViewBag` 只快取「正向」結果避免誤鎖（Task 4）。OQ-1／OQ-2 以可運作預設＋註記處理，非程式碼占位。
+
+---
+
+## 後續可選（非本計畫必做）
+
+- 把 `_GeneralGroupGrids.cshtml` 的 `renderContactAvatar`／`preloadContactImages`（批次預載）抽到共用 `wwwroot/js/contact-avatar.js`，讓小組牧養網格與會友資訊網格共用一份大頭照渲染邏輯，消除重複。抽取時 `renderContactAvatar` 的點擊行為需參數化（既有開 `openMemberDetailPopup`、會友資訊開 `openMemberInfoDetailPopup`）。
+- 會友資訊網格亦可改用 `/Personal/GetContactImagesBatch` 批次預載大頭照（目前為逐格載入，伺服器端已有 MemoryCache，效能可接受）。
