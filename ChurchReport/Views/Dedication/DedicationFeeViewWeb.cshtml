@@ -11,6 +11,7 @@
         --theme-muted: #64748b;
         --theme-surface: #ffffff;
         --theme-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+        --action-button-height: 40px;
         color: var(--theme-text);
         padding: 12px 10px 20px;
     }
@@ -69,31 +70,46 @@
         margin: 6px 0 12px;
     }
 
+    /* 查詢按鈕：與「奉獻管理」頁相同的做法 —— 按鈕本身用 flex 並給定高度，
+       內容才能 height:100% 撐滿並把「查詢」垂直置中（純 min-height 會讓 height:100% 失效而偏上） */
     #buttonContainer3 .dx-button {
-        min-width: 70px;
+        min-width: 100px;
+        height: var(--action-button-height);
         border-radius: 999px;
-        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
+        display: inline-flex;
+        align-items: stretch;
+        padding: 0;
+        box-sizing: border-box;
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.22);
         transition: transform .2s ease, box-shadow .2s ease;
     }
 
-    #buttonContainer3 .dx-button-content {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        padding: 0 18px;
+    #buttonContainer3 .dx-button-content,
+    #save-button3 .dx-button-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex: 1 1 auto;
+        height: 100% !important;
+        padding: 0 20px !important;
+        box-sizing: border-box;
     }
 
-    #buttonContainer3 .dx-button-content::after {
-        display: none;
+    #save-button3 .dx-button-content::after {
+        display: none !important;
     }
 
-    #buttonContainer3 .dx-button-text {
+    #buttonContainer3 .dx-button-text,
+    #save-button3 .dx-button-text {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 1px;
         display: inline !important;
         height: auto !important;
         line-height: normal !important;
         margin: 0 !important;
         vertical-align: middle !important;
+        transform: none !important;
     }
 
     #buttonContainer3 .dx-button:hover {
@@ -192,28 +208,16 @@
             margin-bottom: 10px;
         }
 
+        /* 手機僅加大觸控高度，置中與字體交由上方 base 規則處理（與奉獻管理頁一致） */
         #buttonContainer3 .dx-button {
             min-height: 44px;
-            width: auto !important;
-            min-width: 0 !important;
+            min-width: 110px;
         }
 
-        #buttonContainer3 .dx-button .dx-button-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 16px;
-        }
-
-        #buttonContainer3 .dx-button .dx-button-text {
+        #buttonContainer3 .dx-button-text,
+        #save-button3 .dx-button-text {
             font-size: 16px;
-            font-weight: 600;
             letter-spacing: 2px;
-            display: inline !important;
-            height: auto !important;
-            line-height: normal !important;
-            margin: 0 !important;
-            vertical-align: middle !important;
         }
 
         #DedicationFeeGrid .dx-datagrid-headers .dx-header-row td,
