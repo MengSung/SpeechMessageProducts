@@ -525,7 +525,7 @@ namespace ChurchReport.Controllers
 
                 // 只查詢 entityimage 欄位以提升效能
                 var contact = service.Retrieve("contact", contactGuid,
-                    new Microsoft.Xrm.Sdk.Query.ColumnSet("entityimage"));
+                    new Microsoft.Xrm.Sdk.Query.ColumnSet("entityimage", "gendercode"));
 
                 if (contact.Contains("entityimage") && contact["entityimage"] != null)
                 {
@@ -546,8 +546,9 @@ namespace ChurchReport.Controllers
                     return File(outputBytes, "image/jpeg");
                 }
 
-                System.Diagnostics.Debug.WriteLine("[GetContactImage] Contact 沒有大頭照，返回預設圖片");
-                return GetDefaultImage();
+                System.Diagnostics.Debug.WriteLine("[GetContactImage] Contact 沒有大頭照，返回性別剪影");
+                var genderDefault = contact.GetAttributeValue<Microsoft.Xrm.Sdk.OptionSetValue>("gendercode")?.Value;
+                return Content(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(genderDefault), "image/svg+xml");
             }
             catch (Exception ex)
             {
@@ -613,7 +614,8 @@ namespace ChurchReport.Controllers
 
                 <circle cx=""75"" cy=""75"" r=""70"" fill=""#4A90E2""/>
 
-                <text x=""75"" y=""95"" font-family=""Arial, sans-serif"" font-size=""60"" fill=""white"" text-anchor=""middle"">??</text>
+                <circle cx=""75"" cy=""60"" r=""26"" fill=""white""/>
+                <ellipse cx=""75"" cy=""128"" rx=""44"" ry=""40"" fill=""white""/>
 
             </svg>";
 

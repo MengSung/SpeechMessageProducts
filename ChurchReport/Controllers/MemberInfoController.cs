@@ -266,7 +266,7 @@ namespace ChurchReport.Controllers
                 }
 
                 service = GetConnection();
-                var contact = service.Retrieve("contact", contactGuid, new ColumnSet("entityimage"));
+                var contact = service.Retrieve("contact", contactGuid, new ColumnSet("entityimage", "gendercode"));
                 if (contact.Contains("entityimage") && contact["entityimage"] != null)
                 {
                     var originalBytes = (byte[])contact["entityimage"];
@@ -283,7 +283,9 @@ namespace ChurchReport.Controllers
                     return File(outputBytes, "image/jpeg");
                 }
 
-                return GetDefaultImage();
+                // 無照片 → 依性別回傳上半身剪影
+                var gender = contact.GetAttributeValue<OptionSetValue>("gendercode")?.Value;
+                return Content(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender), "image/svg+xml");
             }
             catch
             {
@@ -939,12 +941,8 @@ namespace ChurchReport.Controllers
 
         private IActionResult GetDefaultImage()
         {
-            var svg = @"<svg xmlns=""http://www.w3.org/2000/svg"" width=""150"" height=""150"">
-                <circle cx=""75"" cy=""75"" r=""70"" fill=""#4A90E2""/>
-                <text x=""75"" y=""95"" font-family=""Arial, sans-serif"" font-size=""60"" fill=""white"" text-anchor=""middle"">人</text>
-            </svg>";
-
-            return Content(svg, "image/svg+xml");
+            // 未授權/查無資料時回傳中性剪影（不洩漏性別）
+            return Content(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.Neutral, "image/svg+xml");
         }
     }
 }
