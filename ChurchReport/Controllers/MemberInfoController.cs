@@ -584,7 +584,7 @@ namespace ChurchReport.Controllers
             var take = loadOptions?.Take > 0 ? Math.Min(loadOptions.Take, MaxPageSize) : DefaultPageSize;
             var skip = loadOptions?.Skip > 0 ? loadOptions.Skip : 0;
             var pageNumber = skip / take + 1;
-            var searchValue = GetRequestSearchValue();
+            var searchValue = GetSearchTerm(loadOptions);
 
             var query = BuildCurrentContactQuery(new ColumnSet("contactid", "fullname", "mobilephone", "customertypecode", "statecode"), searchValue);
             query.PageInfo = new PagingInfo
@@ -652,15 +652,68 @@ namespace ChurchReport.Controllers
             return query;
         }
 
-        private string GetRequestSearchValue()
+        /// <summary>
+        /// 從 DevExtreme 載入選項取得搜尋字串。
+        /// DataGrid 搜尋面板 + 遠端篩選時，搜尋字串可能以 SearchValue 或包在 Filter
+        /// （例如 [["FullName","contains","胡"],"or",["Phone","contains","胡"]]）傳來，兩者都處理。
+        /// </summary>
+        private string GetSearchTerm(DataSourceLoadOptions loadOptions)
         {
-            var value = Request?.Query["searchValue"].FirstOrDefault();
-            if (!string.IsNullOrWhiteSpace(value))
+            var fromFilter = ExtractFilterSearchValue(loadOptions?.Filter as System.Collections.IList);
+            if (!string.IsNullOrWhiteSpace(fromFilter))
             {
-                return value.Trim().Trim('"');
+                return fromFilter.Trim();
             }
 
-            return string.Empty;
+            var raw = Request?.Query["searchValue"].FirstOrDefault();
+            return string.IsNullOrWhiteSpace(raw) ? string.Empty : raw.Trim().Trim('"');
+        }
+
+        /// <summary>從 DevExtreme filter 運算式遞迴取出第一個條件值（搜尋面板各欄位用同一搜尋字）。</summary>
+        private static string ExtractFilterSearchValue(System.Collections.IList filter)
+        {
+            if (filter == null || filter.Count == 0)
+            {
+                return null;
+            }
+
+            // 葉節點條件：[field(string), operator(string), value]
+            if (filter.Count == 3 && filter[0] is string && filter[1] is string op &&
+                IsConditionOperator(op) && filter[2] != null)
+            {
+                return filter[2].ToString();
+            }
+
+            // 群組（含 "and"/"or" 連接子）→ 逐一遞迴
+            foreach (var item in filter)
+            {
+                if (item is System.Collections.IList sub)
+                {
+                    var found = ExtractFilterSearchValue(sub);
+                    if (!string.IsNullOrWhiteSpace(found))
+                    {
+                        return found;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static bool IsConditionOperator(string op)
+        {
+            switch (op)
+            {
+                case "contains":
+                case "notcontains":
+                case "startswith":
+                case "endswith":
+                case "=":
+                case "<>":
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private Dictionary<Guid, string> GetSmallGroupNamesForContacts(IReadOnlyCollection<Guid> contactIds)
