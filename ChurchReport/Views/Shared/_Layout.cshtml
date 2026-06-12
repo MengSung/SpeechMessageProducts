@@ -498,7 +498,11 @@
                                 }
                             }
                         }
-                        @if (ViewBag.MemberInfoAccess == "全教會" || ViewBag.MemberInfoAccess == "牧養名單")
+                        @* 會友資訊導覽：ViewBag 優先；若該頁未設定（如「回報統計」走 SmallGroupController 自己的
+                           ViewBag 流程、不呼叫 SetupMemberInfoViewBag），則退回 Session 已快取的存取等級，確保各頁一致顯示 *@
+                        @if (ViewBag.MemberInfoAccess == "全教會" || ViewBag.MemberInfoAccess == "牧養名單"
+                            || Context.Session?.GetString("_MemberInfoAccess") == "全教會"
+                            || Context.Session?.GetString("_MemberInfoAccess") == "牧養名單")
                         {
                             <li><a href="/MemberInfo/Index"><i class="fas fa-id-card"></i>會友資訊</a></li>
                         }
