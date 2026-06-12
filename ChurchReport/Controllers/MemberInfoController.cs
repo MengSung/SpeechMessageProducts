@@ -137,34 +137,33 @@ namespace ChurchReport.Controllers
                 var fullName = ToolUtility.GetEntityStringAttribute(contact, "fullname");
 
                 var rows = new List<ContactPresentRecordRow>();
-                var records = ToolUtility.RetrievePresentRecordByFetchXmlAndContainEpiredDate(fullName, contactGuid.ToString());
 
-                if (records?.Entities != null)
+                // ✅ 直接以「聯絡人」lookup 查該連絡人的所有個人聚會與靈修記錄(new_present_record)。
+                // 先前用的 RetrievePresentRecordByFetchXmlAndContainEpiredDate 只會回「有關懷期限」的紀錄
+                // （多為新人跟進單），一般週報出席紀錄沒有關懷期限 → 查不到 → 前台空白。
+                var presentQuery = new QueryExpression("new_present_record")
                 {
-                    foreach (var record in records.Entities)
-                    {
-                        Entity fullRecord;
-                        try
-                        {
-                            fullRecord = service.Retrieve(
-                                "new_present_record",
-                                record.Id,
-                                new ColumnSet("new_sunday_present_this_week", "new_group_present_this_week", "new_explanation"));
-                        }
-                        catch
-                        {
-                            fullRecord = record;
-                        }
+                    ColumnSet = new ColumnSet(
+                        "new_present_recordid",
+                        "new_sunday_present_this_week",
+                        "new_group_present_this_week",
+                        "new_explanation",
+                        "new_sunday_date")
+                };
+                presentQuery.Criteria.AddCondition("new_contact_new_present_record", ConditionOperator.Equal, contactGuid);
+                presentQuery.AddOrder("new_sunday_date", OrderType.Descending);
 
-                        rows.Add(new ContactPresentRecordRow
-                        {
-                            PresentRecordId = record.Id.ToString(),
-                            FullName = fullName,
-                            Sunday = ToolUtility.GetEntityIntAttribute(fullRecord, "new_sunday_present_this_week") > 0,
-                            SmallGroup = ToolUtility.GetEntityIntAttribute(fullRecord, "new_group_present_this_week") > 0,
-                            PrayItem = ToolUtility.GetEntityStringAttribute(fullRecord, "new_explanation")
-                        });
-                    }
+                var records = service.RetrieveMultiple(presentQuery);
+                foreach (var record in records.Entities)
+                {
+                    rows.Add(new ContactPresentRecordRow
+                    {
+                        PresentRecordId = record.Id.ToString(),
+                        FullName = fullName,
+                        Sunday = ToolUtility.GetEntityIntAttribute(record, "new_sunday_present_this_week") > 0,
+                        SmallGroup = ToolUtility.GetEntityIntAttribute(record, "new_group_present_this_week") > 0,
+                        PrayItem = ToolUtility.GetEntityStringAttribute(record, "new_explanation")
+                    });
                 }
 
                 return DataSourceLoader.Load(rows, loadOptions);
