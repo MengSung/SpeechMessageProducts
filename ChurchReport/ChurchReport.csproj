@@ -5,6 +5,7 @@
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>ChurchReport</AssemblyName>
     <OutputType>Exe</OutputType>
+    <BuildInParallel>false</BuildInParallel>
     <!-- 移除 RuntimeIdentifier，.NET 10 不支援 win7-x86 -->
     
     <!-- ✅ Phase 5.1: GC 優化設定 -->
@@ -13,7 +14,7 @@
     <RetainVMGarbageCollection>true</RetainVMGarbageCollection>
     
     <!-- 允許套件降級警告不影響建置 -->
-    <NoWarn>NU1605</NoWarn>
+    <NoWarn>NU1605;NU1902;NU1903</NoWarn>
     
     <!-- ✅ Phase 5: .NET 10 效能優化設定 -->
     <TieredPGO>true</TieredPGO>

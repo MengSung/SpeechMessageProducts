@@ -657,7 +657,10 @@ namespace ChurchReport.Models
                 m_QpayModel.QueryEndDate = DateTime.Now;
 
                 // 教會職稱是否是會計
-                m_QpayModel.IsAOfficeWorker = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_church_jobtitle") == "會計" ? true : false;
+                //m_QpayModel.IsAOfficeWorker = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_church_jobtitle") == "會計" ? true : false;
+
+                string jobTitle = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_church_jobtitle");
+                m_QpayModel.IsAOfficeWorker = !string.IsNullOrEmpty(jobTitle) && jobTitle.Contains("會計");
 
                 #region ✅ 動態取得奉獻類別清單
                 // 從 Dynamics 365 OptionSet 動態取得奉獻類別清單

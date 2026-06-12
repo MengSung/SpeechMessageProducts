@@ -1,4 +1,5 @@
 using ChurchReport.Models;
+using ChurchReport.Services.MemberInfo;
 using ChurchReport.Tools;
 using LineMessagingProcessor;
 using Microsoft.AspNetCore.Http;
@@ -484,8 +485,60 @@ namespace ChurchReport.Controllers
 
             // 設定繳費點名狀態
             SetupFeeDataListCount();
+            SetupMemberInfoViewBag();
         }
 
+        /// <summary>
+        /// Setup member-info navigation access flag.
+        /// </summary>
+        protected void SetupMemberInfoViewBag()
+        {
+            try
+            {
+                var cached = HttpContext?.Session?.GetString("_MemberInfoAccess");
+                if (!string.IsNullOrEmpty(cached))
+                {
+                    ViewBag.MemberInfoAccess = cached;
+                    return;
+                }
+
+                var personalModel = InMemoryContext?.PersonalInfomationModel;
+                if (personalModel != null && personalModel.m_LoginContact == null)
+                {
+                    try
+                    {
+                        personalModel.SetPersonalInfomationViewModel();
+                    }
+                    catch
+                    {
+                        // Login contact may not be ready on some entry requests. Do not cache a negative result.
+                    }
+                }
+
+                var loginContact = personalModel?.m_LoginContact;
+                if (loginContact == null)
+                {
+                    ViewBag.MemberInfoAccess = null;
+                    return;
+                }
+
+                var toolUtility = ToolUtility;
+                var jobTitle = toolUtility.GetEntityStringAttribute(ref loginContact, "new_church_jobtitle") ?? string.Empty;
+                var loginType = InMemoryContext?.ListManager?.LoginType ?? string.Empty;
+                var access = MemberInfoAccessResolver.Resolve(jobTitle, loginType);
+
+                if (!string.IsNullOrEmpty(access))
+                {
+                    HttpContext?.Session?.SetString("_MemberInfoAccess", access);
+                }
+
+                ViewBag.MemberInfoAccess = access;
+            }
+            catch
+            {
+                ViewBag.MemberInfoAccess = null;
+            }
+        }
         /// <summary>
         /// 設定繳費點名資料數量狀態 (Set Fee Data List Count Status)
         /// 

@@ -1,0 +1,272 @@
+@using ChurchReport.ViewModels
+
+@{
+    ViewBag.Title = "會友資訊";
+}
+
+<style>
+    .member-info-page {
+        padding: 10px 8px 20px;
+    }
+
+    .member-info-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .member-info-title {
+        margin: 0;
+        color: #1f2937;
+        font-size: 1.15rem;
+        font-weight: 700;
+    }
+
+    .member-info-access {
+        color: #64748b;
+        font-size: .9rem;
+        white-space: nowrap;
+    }
+
+    .member-info-grid-shell {
+        background: #fff;
+        border: 1px solid #d9e2ec;
+        border-radius: 8px;
+        padding: 10px;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
+    }
+
+    #MemberInfoGridContainer .dx-datagrid-headers .dx-header-row td {
+        background: #eef6f8;
+        color: #1f2937;
+        font-weight: 700;
+    }
+
+    #MemberInfoGridContainer .dx-datagrid-rowsview .dx-data-row:hover > td {
+        background: #fff8db;
+    }
+
+    .member-info-name-link {
+        color: #2563eb;
+        cursor: pointer;
+        font-weight: 700;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    .member-info-avatar-img {
+        width: 40px;
+        height: 40px;
+        border: 2px solid #dbe4ea;
+        border-radius: 50%;
+        display: block;
+        margin: 0 auto;
+        object-fit: cover;
+        background: #f8fafc;
+    }
+
+    @@media (max-width: 640px) {
+        .member-info-page {
+            padding: 8px 4px 14px;
+        }
+
+        .member-info-toolbar {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .member-info-grid-shell {
+            padding: 6px;
+        }
+    }
+</style>
+
+<div class="member-info-page">
+    <div class="member-info-toolbar">
+        <h4 class="member-info-title">會友資訊</h4>
+        <div class="member-info-access">@ViewBag.MemberInfoAccess</div>
+    </div>
+
+    <div class="member-info-grid-shell">
+        @(Html.DevExtreme().DataGrid<MemberInfoListRowViewModel>()
+            .ID("MemberInfoGridContainer")
+            .DataSource(d => d.Mvc()
+                .Controller("MemberInfo")
+                .LoadAction("LoadMemberInfoList")
+                .Key("ContactId"))
+            .ShowBorders(true)
+            .ShowRowLines(true)
+            .ShowColumnLines(true)
+            .RowAlternationEnabled(true)
+            .ColumnAutoWidth(true)
+            .AllowColumnResizing(true)
+            .ColumnResizingMode(ColumnResizingMode.Widget)
+            .ColumnHidingEnabled(true)
+            .RemoteOperations(ro => ro
+                .Filtering(true)
+                .Sorting(true)
+                .Paging(true)
+                .Grouping(false)
+                .Summary(false))
+            .SearchPanel(s => s.Visible(true).Placeholder("搜尋姓名或手機"))
+            .Paging(p => p.PageSize(50))
+            .Pager(p => p
+                .ShowPageSizeSelector(true)
+                .AllowedPageSizes(new[] { 25, 50, 100 })
+                .ShowInfo(true))
+            .NoDataText("沒有資料")
+            .LoadPanel(l => l.Enabled(true).Text("載入中..."))
+            .Columns(columns =>
+            {
+                columns.Add()
+                    .DataField("ContactId")
+                    .Caption("照片")
+                    .Width(58)
+                    .MinWidth(58)
+                    .AllowSorting(false)
+                    .AllowFiltering(false)
+                    .AllowEditing(false)
+                    .Fixed(true)
+                    .CellTemplate(new JS("memberInfoAvatarCellTemplate"));
+
+                columns.AddFor(m => m.FullName)
+                    .Caption("姓名")
+                    .Width(140)
+                    .MinWidth(100)
+                    .Fixed(true)
+                    .CellTemplate(new JS("memberInfoNameCellTemplate"));
+
+                columns.AddFor(m => m.Phone)
+                    .Caption("手機")
+                    .Width(150)
+                    .MinWidth(110);
+
+                columns.AddFor(m => m.SmallGroupName)
+                    .Caption("小組")
+                    .MinWidth(160);
+            })
+            .OnContentReady("memberInfoPreloadImages"))
+    </div>
+</div>
+
+@(Html.DevExtreme().Popup()
+    .ID("memberInfoDetailPopup")
+    .Width("90%")
+    .Height("86%")
+    .MaxWidth(980)
+    .ShowTitle(true)
+    .ShowCloseButton(true)
+    .DragEnabled(false)
+    .ResizeEnabled(true)
+    .Shading(true))
+
+<script>
+    var memberInfoImageCache = {};
+    var memberInfoBatchPending = false;
+    var memberInfoFallbackAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="20" fill="#e9ecef"/><text x="20" y="25" font-size="14" text-anchor="middle" fill="#6c757d">人</text></svg>');
+
+    window.memberInfoAvatarCellTemplate = function (container, options) {
+        var data = options.data || {};
+        var contactId = data.ContactId || data.contactId || options.value || '';
+        var host = container && container.get ? container.get(0) : container;
+        if (!host) return;
+        host.textContent = '';
+
+        var img = document.createElement('img');
+        img.className = 'member-info-avatar-img';
+        img.alt = '大頭照';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.dataset.contactId = contactId;
+        img.src = contactId && memberInfoImageCache[contactId]
+            ? memberInfoImageCache[contactId]
+            : (contactId ? '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(contactId) + '&size=48' : memberInfoFallbackAvatar);
+        img.onerror = function () {
+            if (img.src !== memberInfoFallbackAvatar) {
+                img.src = memberInfoFallbackAvatar;
+            }
+        };
+        host.appendChild(img);
+    };
+
+    window.memberInfoNameCellTemplate = function (container, options) {
+        var data = options.data || {};
+        var contactId = data.ContactId || data.contactId || '';
+        var fullName = data.FullName || data.fullName || '';
+        var host = container && container.get ? container.get(0) : container;
+        if (!host) return;
+        host.textContent = '';
+
+        var link = document.createElement('a');
+        link.href = 'javascript:void(0)';
+        link.className = 'member-info-name-link';
+        link.textContent = fullName;
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            openMemberInfoDetailPopup(contactId, fullName);
+        });
+        host.appendChild(link);
+    };
+
+    window.memberInfoPreloadImages = function (e) {
+        if (memberInfoBatchPending || !e || !e.component) return;
+        var items = e.component.getDataSource().items() || [];
+        var ids = [];
+        items.forEach(function (item) {
+            var id = item.ContactId || item.contactId;
+            if (id && !memberInfoImageCache[id]) {
+                ids.push(id);
+            }
+        });
+        if (ids.length === 0) return;
+
+        memberInfoBatchPending = true;
+        $.ajax({
+            url: '/MemberInfo/GetContactImagesBatch',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ contactIds: ids, size: 48 }),
+            success: function (response) {
+                if (response && response.success && response.images) {
+                    Object.keys(response.images).forEach(function (id) {
+                        memberInfoImageCache[id] = response.images[id];
+                    });
+                    $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]').each(function () {
+                        var cid = this.dataset.contactId;
+                        if (cid && memberInfoImageCache[cid]) {
+                            this.src = memberInfoImageCache[cid];
+                        }
+                    });
+                }
+            },
+            complete: function () {
+                memberInfoBatchPending = false;
+            }
+        });
+    };
+
+    window.openMemberInfoDetailPopup = function (contactId, fullName) {
+        if (!contactId) return;
+        var popup = $('#memberInfoDetailPopup').dxPopup('instance');
+        popup.option('title', (fullName || '') + ' - 會友細節');
+        popup.option('contentTemplate', function (contentElement) {
+            $(contentElement).html('<div style="padding:16px;">載入中...</div>');
+            $.ajax({
+                url: '/MemberInfo/Detail',
+                type: 'GET',
+                data: { contactId: contactId },
+                success: function (html) {
+                    $(contentElement).html(html);
+                },
+                error: function (xhr) {
+                    var text = xhr.status === 403 ? '無權檢視此連絡人' : '載入失敗';
+                    $(contentElement).html('<div style="padding:16px;color:#b91c1c;">' + text + '</div>');
+                }
+            });
+        });
+        popup.show();
+    };
+</script>

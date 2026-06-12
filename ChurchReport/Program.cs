@@ -27,6 +27,8 @@ namespace ChurchReport
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            ConfigureSafeLogging(builder);
+
             // 設定 Kestrel
             builder.WebHost.ConfigureKestrel(options =>
             {
@@ -73,6 +75,16 @@ namespace ChurchReport
 #endif
 
             app.Run();
+        }
+
+        private static void ConfigureSafeLogging(WebApplicationBuilder builder)
+        {
+            // Windows EventLog provider can fail under non-admin local runs and prevent Kestrel from starting.
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
+            builder.Logging.AddConsole();
+            builder.Logging.AddDebug();
+            builder.Logging.AddEventSourceLogger();
         }
 
 #if DEBUG

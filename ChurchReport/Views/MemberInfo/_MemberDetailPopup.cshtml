@@ -1,0 +1,234 @@
+@model ChurchReport.ViewModels.MemberInfoDetailViewModel
+
+<style>
+    .member-info-detail {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: 190px minmax(0, 1fr);
+        min-height: 100%;
+    }
+
+    .member-info-side {
+        border-right: 1px solid #e2e8f0;
+        padding: 4px 12px 4px 4px;
+    }
+
+    .member-info-photo {
+        width: 132px;
+        height: 132px;
+        border: 3px solid #dbe4ea;
+        border-radius: 10px;
+        display: block;
+        margin: 0 auto 14px;
+        object-fit: cover;
+        background: #f8fafc;
+    }
+
+    .member-info-tabs {
+        display: grid;
+        gap: 8px;
+    }
+
+    .member-info-tab {
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        background: #fff;
+        color: #334155;
+        cursor: pointer;
+        font-weight: 700;
+        min-height: 38px;
+    }
+
+    .member-info-tab.active {
+        border-color: #2563eb;
+        background: #eaf2ff;
+        color: #1d4ed8;
+    }
+
+    .member-info-main {
+        min-width: 0;
+    }
+
+    .member-info-fields {
+        display: grid;
+        gap: 8px 18px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-bottom: 14px;
+    }
+
+    .member-info-field {
+        border-bottom: 1px solid #edf2f7;
+        min-height: 38px;
+        padding-bottom: 6px;
+    }
+
+    .member-info-label {
+        color: #64748b;
+        font-size: .78rem;
+        margin-bottom: 2px;
+    }
+
+    .member-info-value {
+        color: #1f2937;
+        font-size: .95rem;
+        overflow-wrap: anywhere;
+    }
+
+    .member-info-relations {
+        grid-column: 1 / -1;
+    }
+
+    .member-info-subgrid {
+        display: none;
+    }
+
+    .member-info-subgrid.active {
+        display: block;
+    }
+
+    @@media (max-width: 720px) {
+        .member-info-detail {
+            grid-template-columns: 1fr;
+        }
+
+        .member-info-side {
+            border-right: 0;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 0 12px;
+        }
+
+        .member-info-photo {
+            width: 104px;
+            height: 104px;
+        }
+
+        .member-info-tabs {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .member-info-fields {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="member-info-detail" data-contact-id="@Model.ContactId">
+    <aside class="member-info-side">
+        <img class="member-info-photo"
+             src="/MemberInfo/GetContactImage?contactId=@Model.ContactId&size=0"
+             alt="大頭照"
+             onerror="this.style.visibility='hidden';" />
+        <div class="member-info-tabs">
+            <button type="button" class="member-info-tab" data-tab="present" onclick="memberInfoDetailSwitch('present')">聚會紀錄</button>
+            <button type="button" class="member-info-tab" data-tab="equip" onclick="memberInfoDetailSwitch('equip')">裝備紀錄</button>
+        </div>
+    </aside>
+
+    <main class="member-info-main">
+        <section class="member-info-fields">
+            <div class="member-info-field">
+                <div class="member-info-label">手機</div>
+                <div class="member-info-value">@Model.Phone</div>
+            </div>
+            <div class="member-info-field">
+                <div class="member-info-label">信仰狀態</div>
+                <div class="member-info-value">@Model.SpiritualIdentity</div>
+            </div>
+            <div class="member-info-field">
+                <div class="member-info-label">地址</div>
+                <div class="member-info-value">@Model.Address</div>
+            </div>
+            <div class="member-info-field">
+                <div class="member-info-label">會員身分</div>
+                <div class="member-info-value">@Model.MembershipStatus</div>
+            </div>
+            <div class="member-info-field member-info-relations">
+                <div class="member-info-label">關係目標</div>
+                <div class="member-info-value">
+                    @if (Model.RelationGoals != null && Model.RelationGoals.Count > 0)
+                    {
+                        @string.Join("、", Model.RelationGoals.Select(r => string.IsNullOrWhiteSpace(r.Role) ? r.TargetName : $"{r.Role}: {r.TargetName}"))
+                    }
+                    else
+                    {
+                        <span>（無）</span>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <section id="member-subgrid-present-panel" class="member-info-subgrid">
+            <div id="member-subgrid-present"></div>
+        </section>
+        <section id="member-subgrid-equip-panel" class="member-info-subgrid">
+            <div id="member-subgrid-equip"></div>
+        </section>
+    </main>
+</div>
+
+<script>
+    (function () {
+        var contactId = '@Model.ContactId';
+        window._memberInfoSubGridInit = { present: false, equip: false, contactId: contactId };
+
+        window.memberInfoDetailSwitch = function (tab) {
+            $('.member-info-tab').removeClass('active');
+            $('.member-info-tab[data-tab="' + tab + '"]').addClass('active');
+            $('.member-info-subgrid').removeClass('active');
+            $('#member-subgrid-' + tab + '-panel').addClass('active');
+            initMemberInfoSubGrid(tab, contactId);
+        };
+
+        window.initMemberInfoSubGrid = function (tab, id) {
+            if (tab === 'present' && !window._memberInfoSubGridInit.present) {
+                window._memberInfoSubGridInit.present = true;
+                $('#member-subgrid-present').dxDataGrid({
+                    dataSource: DevExpress.data.AspNet.createStore({
+                        key: 'PresentRecordId',
+                        loadUrl: '/MemberInfo/LoadContactPresentRecords',
+                        loadParams: { contactId: id }
+                    }),
+                    showBorders: true,
+                    showRowLines: true,
+                    showColumnLines: true,
+                    columnAutoWidth: true,
+                    noDataText: '沒有資料',
+                    paging: { pageSize: 10 },
+                    columns: [
+                        { dataField: 'FullName', caption: '姓名', width: 120 },
+                        { dataField: 'Sunday', caption: '主日', dataType: 'boolean', width: 70 },
+                        { dataField: 'SmallGroup', caption: '小組', dataType: 'boolean', width: 70 },
+                        { dataField: 'PrayItem', caption: '代禱', minWidth: 180 }
+                    ]
+                });
+            }
+
+            if (tab === 'equip' && !window._memberInfoSubGridInit.equip) {
+                window._memberInfoSubGridInit.equip = true;
+                $('#member-subgrid-equip').dxDataGrid({
+                    dataSource: DevExpress.data.AspNet.createStore({
+                        key: 'StorLessonsEntityId',
+                        loadUrl: '/MemberInfo/LoadContactStorLessons',
+                        loadParams: { contactId: id }
+                    }),
+                    showBorders: true,
+                    showRowLines: true,
+                    showColumnLines: true,
+                    columnAutoWidth: true,
+                    noDataText: '沒有資料',
+                    paging: { pageSize: 10 },
+                    columns: [
+                        { dataField: 'DiscipleLessonsName', caption: '課程名稱', minWidth: 180 },
+                        { dataField: 'DiscipleLessonsDateTime', caption: '日期', dataType: 'date', format: 'yyyy/MM/dd', width: 120 },
+                        { dataField: 'StageName', caption: '階段名稱', width: 110 },
+                        { dataField: 'CurrentComplete', caption: '是否結業', dataType: 'boolean', width: 95 }
+                    ]
+                });
+            }
+        };
+
+        setTimeout(function () {
+            window.memberInfoDetailSwitch('present');
+        }, 0);
+    })();
+</script>
