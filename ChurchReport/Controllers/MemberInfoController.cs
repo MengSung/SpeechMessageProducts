@@ -160,6 +160,7 @@ namespace ChurchReport.Controllers
                     {
                         PresentRecordId = record.Id.ToString(),
                         FullName = fullName,
+                        SundayDate = record.GetAttributeValue<DateTime?>("new_sunday_date") is DateTime sd && sd.Year > 1 ? sd : (DateTime?)null,
                         Sunday = ToolUtility.GetEntityIntAttribute(record, "new_sunday_present_this_week") > 0,
                         SmallGroup = ToolUtility.GetEntityIntAttribute(record, "new_group_present_this_week") > 0,
                         PrayItem = ToolUtility.GetEntityStringAttribute(record, "new_explanation")
@@ -872,6 +873,7 @@ namespace ChurchReport.Controllers
                 query.Criteria.AddCondition("record2id", ConditionOperator.Equal, contactId);
 
                 var connections = ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var connection in connections.Entities)
                 {
                     var record1 = connection.GetAttributeValue<EntityReference>("record1id");
@@ -885,6 +887,13 @@ namespace ChurchReport.Controllers
                     var roleName = role?.Name ?? string.Empty;
                     var targetName = target?.Name ?? string.Empty;
                     if (string.IsNullOrWhiteSpace(roleName) && string.IsNullOrWhiteSpace(targetName))
+                    {
+                        continue;
+                    }
+
+                    // 去重：雙向查詢（含 Dynamics 自動建立的反向 connection）會讓同一段關係出現兩次
+                    var dedupKey = roleName + "|" + (target?.Id.ToString() ?? targetName);
+                    if (!seen.Add(dedupKey))
                     {
                         continue;
                     }

@@ -6,6 +6,7 @@ namespace ChurchReport.ViewModels
     {
         public string PresentRecordId { get; set; }
         public string FullName { get; set; }
+        public DateTime? SundayDate { get; set; }
         public bool Sunday { get; set; }
         public bool SmallGroup { get; set; }
         public string PrayItem { get; set; }

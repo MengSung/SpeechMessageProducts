@@ -195,10 +195,11 @@
                     noDataText: '沒有資料',
                     paging: { pageSize: 10 },
                     columns: [
-                        { dataField: 'FullName', caption: '姓名', width: 120 },
-                        { dataField: 'Sunday', caption: '主日', dataType: 'boolean', width: 70 },
-                        { dataField: 'SmallGroup', caption: '小組', dataType: 'boolean', width: 70 },
-                        { dataField: 'PrayItem', caption: '代禱', minWidth: 180 }
+                        { dataField: 'FullName', caption: '姓名', width: 100 },
+                        { dataField: 'SundayDate', caption: '主日日期', dataType: 'date', format: 'yyyy/MM/dd', width: 110 },
+                        { dataField: 'Sunday', caption: '主日', dataType: 'boolean', width: 64 },
+                        { dataField: 'SmallGroup', caption: '小組', dataType: 'boolean', width: 64 },
+                        { dataField: 'PrayItem', caption: '代禱', minWidth: 160 }
                     ]
                 });
             }
