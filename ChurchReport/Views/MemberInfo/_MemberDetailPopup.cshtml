@@ -3,6 +3,7 @@
 <style>
     .member-info-detail {
         display: grid;
+        align-content: start;
         gap: 14px;
         grid-template-columns: 190px minmax(0, 1fr);
         min-height: 100%;
@@ -89,12 +90,21 @@
     @@media (max-width: 720px) {
         .member-info-detail {
             grid-template-columns: 1fr;
+            min-height: auto;
         }
 
-        /* 子網格只接管「水平」觸控，垂直滑動交還給彈窗整頁捲動（避免巢狀捲動卡死、滑到下面回不去） */
+        /* 手機：子網格改為「填滿寬度、文字自動換行」，不再產生自己的橫向捲動區，
+           讓整個彈窗只剩 .member-info-detail-scroll 這一個垂直捲軸，杜絕巢狀觸控捲動互卡。
+           同時關閉子網格的慣性捲動、垂直滑動一律交還彈窗整頁捲動（pan-y）。 */
+        .member-info-subgrid {
+            min-width: 0;
+        }
+
         .member-info-subgrid .dx-scrollable-container,
         .member-info-subgrid .dx-datagrid-rowsview {
-            touch-action: pan-x;
+            -webkit-overflow-scrolling: auto;
+            overscroll-behavior: contain;
+            touch-action: pan-y;
         }
 
         .member-info-side {
@@ -175,12 +185,24 @@
 <script>
     (function () {
         var contactId = '@Model.ContactId';
-        window._memberInfoSubGridInit = { present: false, equip: false, contactId: contactId };
-        // 手機用原生捲動（避免模擬捲軸攔截觸控、整頁卡死）；桌面用模擬捲軸（恆顯示）
+        window._memberInfoSubGridInit = { present: false, equip: false, contactId: contactId, scrolledTop: false };
         var isMobile = window.innerWidth <= 720;
-        // 不設固定高度→網格依內容高度自適應，避免最後一筆與框底出現大空白；
-        // 垂直以分頁(每頁10筆+頁碼)瀏覽，水平則因固定欄寬超出寬度而出現捲軸。
-        var gridScrollOptions = { mode: 'standard', useNative: isMobile, showScrollbar: 'always' };
+        // 手機：原生捲動且不顯示捲軸（子網格已填滿寬度、無需自身捲動）；桌面：模擬捲軸恆顯示。
+        var gridScrollOptions = isMobile
+            ? { mode: 'standard', useNative: true, showScrollbar: 'never' }
+            : { mode: 'standard', useNative: false, showScrollbar: 'always' };
+
+        // 把彈窗整頁捲回頂端（先看到大頭照），避免子網格初始化時把內容捲到底部。
+        function memberInfoScrollPopupTop(el) {
+            var node = el && el.get ? el.get(0) : el;
+            if (window.memberInfoResetDetailScrollSoon) {
+                window.memberInfoResetDetailScrollSoon(node);
+                return;
+            }
+
+            var pc = node && node.closest ? node.closest('.member-info-detail-scroll, .dx-popup-content') : null;
+            if (pc) { pc.scrollTop = 0; }
+        }
 
         window.memberInfoDetailSwitch = function (tab) {
             $('.member-info-tab').removeClass('active');
@@ -205,10 +227,24 @@
                     wordWrapEnabled: true,
                     width: '100%',
                     columnAutoWidth: false,
+                    focusStateEnabled: false,
                     scrolling: gridScrollOptions,
                     noDataText: '沒有資料',
                     paging: { pageSize: 10 },
-                    columns: [
+                    onContentReady: function (e) {
+                        // 僅在首次載入時校正捲動位置（避免使用者翻頁時又被拉回頂端）
+                        if (!window._memberInfoSubGridInit.scrolledTop) {
+                            window._memberInfoSubGridInit.scrolledTop = true;
+                            memberInfoScrollPopupTop(e.element);
+                        }
+                    },
+                    columns: isMobile ? [
+                        { dataField: 'FullName', caption: '姓名', width: 56 },
+                        { dataField: 'SundayDate', caption: '主日日期', dataType: 'date', format: 'yyyy/MM/dd', width: 90 },
+                        { dataField: 'Sunday', caption: '主日', dataType: 'boolean', width: 44 },
+                        { dataField: 'SmallGroup', caption: '小組', dataType: 'boolean', width: 44 },
+                        { dataField: 'PrayItem', caption: '代禱', minWidth: 64 }
+                    ] : [
                         { dataField: 'FullName', caption: '姓名', width: 100 },
                         { dataField: 'SundayDate', caption: '主日日期', dataType: 'date', format: 'yyyy/MM/dd', width: 120 },
                         { dataField: 'Sunday', caption: '主日', dataType: 'boolean', width: 70 },
@@ -232,10 +268,16 @@
                     wordWrapEnabled: true,
                     width: '100%',
                     columnAutoWidth: false,
+                    focusStateEnabled: false,
                     scrolling: gridScrollOptions,
                     noDataText: '沒有資料',
                     paging: { pageSize: 10 },
-                    columns: [
+                    columns: isMobile ? [
+                        { dataField: 'DiscipleLessonsName', caption: '課程名稱', minWidth: 84 },
+                        { dataField: 'DiscipleLessonsDateTime', caption: '日期', dataType: 'date', format: 'yyyy/MM/dd', width: 90 },
+                        { dataField: 'StageName', caption: '階段', width: 60 },
+                        { dataField: 'CurrentComplete', caption: '結業', dataType: 'boolean', width: 52 }
+                    ] : [
                         { dataField: 'DiscipleLessonsName', caption: '課程名稱', width: 280 },
                         { dataField: 'DiscipleLessonsDateTime', caption: '日期', dataType: 'date', format: 'yyyy/MM/dd', width: 130 },
                         { dataField: 'StageName', caption: '階段名稱', width: 140 },
