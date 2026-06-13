@@ -880,9 +880,11 @@ namespace ChurchReport.Controllers
                     var record2 = connection.GetAttributeValue<EntityReference>("record2id");
                     var isRecord1 = record1 != null && record1.Id == contactId;
                     var target = isRecord1 ? record2 : record1;
+                    // 顯示「對象（目標）的角色」：對象是 record2 時取 record2roleid，反之取 record1roleid。
+                    // （原本取登入連絡人自己的角色，導致顯示「丈夫」而非對象的「妻子」、且對象角色空白。）
                     var role = isRecord1
-                        ? connection.GetAttributeValue<EntityReference>("record1roleid")
-                        : connection.GetAttributeValue<EntityReference>("record2roleid");
+                        ? connection.GetAttributeValue<EntityReference>("record2roleid")
+                        : connection.GetAttributeValue<EntityReference>("record1roleid");
 
                     var roleName = role?.Name ?? string.Empty;
                     var targetName = target?.Name ?? string.Empty;
