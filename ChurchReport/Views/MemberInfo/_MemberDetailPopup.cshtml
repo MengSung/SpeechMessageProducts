@@ -172,7 +172,8 @@
         window._memberInfoSubGridInit = { present: false, equip: false, contactId: contactId };
         // 手機用原生捲動（避免模擬捲軸攔截觸控、整頁卡死）；桌面用模擬捲軸（恆顯示）
         var isMobile = window.innerWidth <= 720;
-        var gridHeight = isMobile ? 300 : 400;
+        // 不設固定高度→網格依內容高度自適應，避免最後一筆與框底出現大空白；
+        // 垂直以分頁(每頁10筆+頁碼)瀏覽，水平則因固定欄寬超出寬度而出現捲軸。
         var gridScrollOptions = { mode: 'standard', useNative: isMobile, showScrollbar: 'always' };
 
         window.memberInfoDetailSwitch = function (tab) {
@@ -197,7 +198,6 @@
                     showColumnLines: true,
                     wordWrapEnabled: true,
                     width: '100%',
-                    height: gridHeight,
                     columnAutoWidth: false,
                     scrolling: gridScrollOptions,
                     noDataText: '沒有資料',
@@ -225,7 +225,6 @@
                     showColumnLines: true,
                     wordWrapEnabled: true,
                     width: '100%',
-                    height: gridHeight,
                     columnAutoWidth: false,
                     scrolling: gridScrollOptions,
                     noDataText: '沒有資料',
