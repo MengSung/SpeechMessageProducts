@@ -89,21 +89,36 @@
     }
 
     .member-info-detail-popup-content {
+        box-sizing: border-box;
+        height: 100%;
+        min-height: 0;
         padding: 0 !important;
+        position: relative;
         overflow: hidden !important;
         touch-action: pan-y;
     }
 
     .member-info-detail-scroll {
         box-sizing: border-box;
-        height: 100%;
-        max-height: 100%;
+        bottom: 0;
+        height: auto;
+        inset: 0;
+        left: 0;
+        min-height: 0;
         overflow-x: hidden;
-        overflow-y: auto;
-        padding: 16px;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior-y: auto;
+        overflow-y: hidden;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: auto;
+        -ms-touch-action: pan-y;
         touch-action: pan-y;
+    }
+
+    .member-info-detail-scroll-inner {
+        box-sizing: border-box;
+        min-height: 100%;
+        padding: 16px;
     }
 
     .member-info-detail-loading {
@@ -117,8 +132,11 @@
         }
 
         .member-info-detail-scroll {
+            bottom: 0;
+        }
+
+        .member-info-detail-scroll-inner {
             padding: 12px 10px calc(env(safe-area-inset-bottom, 0px) + 16px);
-            -webkit-overflow-scrolling: touch;
         }
     }
 </style>
@@ -309,38 +327,80 @@
         return $content;
     }
 
+    var memberInfoDetailScrollResetToken = 0;
+    var memberInfoDetailUserInteracted = false;
+
+    function memberInfoGetDetailScrollHosts(contentElement) {
+        var $content = memberInfoFindDetailPopupContent(contentElement);
+        var $hosts = $content.find('.member-info-detail-scroll');
+
+        if (!$hosts.length && $content.hasClass('member-info-detail-scroll')) {
+            $hosts = $content;
+        }
+
+        return $hosts;
+    }
+
+    function memberInfoGetScrollViewInstance(host) {
+        if (!host || !$.fn.dxScrollView) {
+            return null;
+        }
+
+        try {
+            return $(host).dxScrollView('instance');
+        } catch (ex) {
+            return null;
+        }
+    }
+
     window.memberInfoResetDetailScroll = function (contentElement) {
         var $content = memberInfoFindDetailPopupContent(contentElement);
-        var $scrollHosts = $content.find('.member-info-detail-scroll');
+        var $scrollHosts = memberInfoGetDetailScrollHosts(contentElement);
 
-        $content.add($scrollHosts).each(function () {
+        $scrollHosts.each(function () {
+            var scrollView = memberInfoGetScrollViewInstance(this);
+            if (scrollView && typeof scrollView.scrollTo === 'function') {
+                scrollView.scrollTo(0);
+            }
+
             this.scrollTop = 0;
             this.scrollLeft = 0;
         });
 
-        if (document.documentElement) {
-            document.documentElement.scrollTop = 0;
-        }
-        if (document.body) {
-            document.body.scrollTop = 0;
-        }
+        $content.each(function () {
+            this.scrollTop = 0;
+            this.scrollLeft = 0;
+        });
     };
 
     window.memberInfoResetDetailScrollSoon = function (contentElement) {
         var requestFrame = window.requestAnimationFrame || function (callback) {
             window.setTimeout(callback, 0);
         };
+        var token = ++memberInfoDetailScrollResetToken;
 
-        window.memberInfoResetDetailScroll(contentElement);
-        requestFrame(function () {
+        function resetIfCurrent() {
+            if (token !== memberInfoDetailScrollResetToken || memberInfoDetailUserInteracted) {
+                return;
+            }
+
             window.memberInfoResetDetailScroll(contentElement);
+        }
+
+        resetIfCurrent();
+        requestFrame(resetIfCurrent);
+        window.setTimeout(resetIfCurrent, 40);
+        window.setTimeout(resetIfCurrent, 160);
+        window.setTimeout(resetIfCurrent, 320);
+    };
+
+    window.memberInfoDetailRefreshScroll = function (contentElement) {
+        memberInfoGetDetailScrollHosts(contentElement).each(function () {
+            var scrollView = memberInfoGetScrollViewInstance(this);
+            if (scrollView && typeof scrollView.update === 'function') {
+                scrollView.update();
+            }
         });
-        window.setTimeout(function () {
-            window.memberInfoResetDetailScroll(contentElement);
-        }, 40);
-        window.setTimeout(function () {
-            window.memberInfoResetDetailScroll(contentElement);
-        }, 160);
     };
 
     window.memberInfoDetailPopupShown = function (e) {
@@ -349,9 +409,42 @@
 
     function memberInfoSetDetailPopupContent(contentElement, html) {
         var $content = $(contentElement);
+        var $scrollHost;
+
+        $content.find('.member-info-detail-scroll').each(function () {
+            var scrollView = memberInfoGetScrollViewInstance(this);
+            if (scrollView && typeof scrollView.dispose === 'function') {
+                scrollView.dispose();
+            }
+        });
+
+        memberInfoDetailUserInteracted = false;
         $content
             .addClass('member-info-detail-popup-content')
-            .html('<div class="member-info-detail-scroll">' + html + '</div>');
+            .empty();
+
+        $scrollHost = $('<div class="member-info-detail-scroll"><div class="member-info-detail-scroll-inner"></div></div>');
+        $content.append($scrollHost);
+        $scrollHost.find('.member-info-detail-scroll-inner').html(html);
+
+        if ($.fn.dxScrollView) {
+            $scrollHost.dxScrollView({
+                bounceEnabled: false,
+                direction: 'vertical',
+                scrollByContent: true,
+                scrollByThumb: true,
+                showScrollbar: 'onScroll',
+                useNative: false
+            });
+        } else {
+            $scrollHost.css('overflowY', 'auto');
+        }
+
+        $content
+            .off('.memberInfoDetailScroll')
+            .on('touchstart.memberInfoDetailScroll pointerdown.memberInfoDetailScroll wheel.memberInfoDetailScroll', function () {
+                memberInfoDetailUserInteracted = true;
+            });
 
         window.memberInfoResetDetailScrollSoon($content);
     }

@@ -87,75 +87,14 @@
         display: block;
     }
 
-    .member-info-mobile-records {
-        display: grid;
-        gap: 8px;
+    .member-info-subgrid .dx-datagrid {
+        max-width: 100%;
     }
 
-    .member-info-mobile-record {
-        border: 1px solid #dbe4ea;
-        border-radius: 8px;
-        background: #fff;
-        padding: 10px;
-    }
-
-    .member-info-mobile-record-header {
-        align-items: center;
-        display: flex;
-        gap: 8px;
-        justify-content: space-between;
-        margin-bottom: 6px;
-    }
-
-    .member-info-mobile-record-title {
-        color: #1f2937;
-        font-weight: 700;
-        min-width: 0;
-        overflow-wrap: anywhere;
-    }
-
-    .member-info-mobile-record-date {
-        color: #64748b;
-        flex: 0 0 auto;
-        font-size: .9rem;
-    }
-
-    .member-info-mobile-flags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-bottom: 6px;
-    }
-
-    .member-info-mobile-flag {
-        border: 1px solid #cbd5e1;
-        border-radius: 999px;
-        color: #475569;
-        font-size: .85rem;
-        line-height: 1.4;
-        padding: 2px 8px;
-    }
-
-    .member-info-mobile-flag.active {
-        border-color: #2563eb;
-        background: #eaf2ff;
-        color: #1d4ed8;
-        font-weight: 700;
-    }
-
-    .member-info-mobile-note {
-        color: #334155;
-        font-size: .95rem;
-        overflow-wrap: anywhere;
-        white-space: pre-wrap;
-    }
-
-    .member-info-mobile-state {
-        border: 1px solid #dbe4ea;
-        border-radius: 8px;
-        color: #64748b;
-        padding: 12px;
-        text-align: center;
+    .member-info-subgrid .dx-datagrid-headers,
+    .member-info-subgrid .dx-datagrid-rowsview {
+        -ms-touch-action: pan-x pan-y;
+        touch-action: pan-x pan-y;
     }
 
     @@media (max-width: 720px) {
@@ -188,11 +127,6 @@
             grid-template-columns: 1fr;
         }
 
-        .member-info-mobile-record-header {
-            align-items: flex-start;
-            flex-direction: column;
-            gap: 2px;
-        }
     }
 </style>
 
@@ -255,10 +189,14 @@
         var contactId = '@Model.ContactId';
         window._memberInfoSubGridInit = { present: false, equip: false, contactId: contactId, scrolledTop: false };
         var isMobile = window.innerWidth <= 720;
-        // 手機：原生捲動且不顯示捲軸（子網格已填滿寬度、無需自身捲動）；桌面：模擬捲軸恆顯示。
-        var gridScrollOptions = isMobile
-            ? { mode: 'standard', useNative: true, showScrollbar: 'never' }
-            : { mode: 'standard', useNative: false, showScrollbar: 'always' };
+        // DataGrid uses non-native scrolling so DevExtreme can render the horizontal scrollbar consistently.
+        var gridScrollOptions = {
+            mode: 'standard',
+            scrollByContent: true,
+            scrollByThumb: true,
+            showScrollbar: 'always',
+            useNative: false
+        };
 
         // 把彈窗整頁捲回頂端（先看到大頭照），避免子網格初始化時把內容捲到底部。
         function memberInfoScrollPopupTop(el) {
@@ -272,150 +210,16 @@
             if (pc) { pc.scrollTop = 0; }
         }
 
-        function memberInfoEscapeHtml(value) {
-            return String(value == null ? '' : value)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
-
-        function memberInfoNormalizeRows(response) {
-            if ($.isArray(response)) {
-                return response;
+        function memberInfoGridReady(e) {
+            var node = e && e.element && e.element.get ? e.element.get(0) : (e && e.element);
+            if (window.memberInfoDetailRefreshScroll) {
+                window.memberInfoDetailRefreshScroll(node);
             }
 
-            if (response && $.isArray(response.data)) {
-                return response.data;
+            if (!window._memberInfoSubGridInit.scrolledTop) {
+                window._memberInfoSubGridInit.scrolledTop = true;
+                memberInfoScrollPopupTop(node);
             }
-
-            if (response && $.isArray(response.Data)) {
-                return response.Data;
-            }
-
-            return [];
-        }
-
-        function memberInfoFormatDate(value) {
-            if (!value) {
-                return '';
-            }
-
-            if (typeof value === 'string') {
-                var shortDate = value.substring(0, 10).replace(/-/g, '/');
-                if (/^\d{4}\/\d{2}\/\d{2}$/.test(shortDate)) {
-                    return shortDate;
-                }
-            }
-
-            var date = new Date(value);
-            if (isNaN(date.getTime())) {
-                return memberInfoEscapeHtml(value);
-            }
-
-            var month = String(date.getMonth() + 1).padStart(2, '0');
-            var day = String(date.getDate()).padStart(2, '0');
-            return date.getFullYear() + '/' + month + '/' + day;
-        }
-
-        function memberInfoActiveFlag(label, active) {
-            return '<span class="member-info-mobile-flag' + (active ? ' active' : '') + '">' +
-                memberInfoEscapeHtml(label) +
-                '</span>';
-        }
-
-        function memberInfoSetMobileState(targetSelector, text) {
-            $(targetSelector).html('<div class="member-info-mobile-state">' + memberInfoEscapeHtml(text) + '</div>');
-        }
-
-        function memberInfoRenderMobilePresent(rows) {
-            if (!rows.length) {
-                memberInfoSetMobileState('#member-subgrid-present', '沒有資料');
-                return;
-            }
-
-            var html = '<div class="member-info-mobile-records">';
-            rows.forEach(function (row) {
-                html += '<article class="member-info-mobile-record">' +
-                    '<div class="member-info-mobile-record-header">' +
-                    '<div class="member-info-mobile-record-title">' + memberInfoEscapeHtml(row.FullName || row.fullName || '') + '</div>' +
-                    '<div class="member-info-mobile-record-date">' + memberInfoEscapeHtml(memberInfoFormatDate(row.SundayDate || row.sundayDate)) + '</div>' +
-                    '</div>' +
-                    '<div class="member-info-mobile-flags">' +
-                    memberInfoActiveFlag('主日', !!(row.Sunday || row.sunday)) +
-                    memberInfoActiveFlag('小組', !!(row.SmallGroup || row.smallGroup)) +
-                    '</div>';
-
-                var prayItem = row.PrayItem || row.prayItem || '';
-                if (prayItem) {
-                    html += '<div class="member-info-mobile-note">' + memberInfoEscapeHtml(prayItem) + '</div>';
-                }
-
-                html += '</article>';
-            });
-            html += '</div>';
-
-            $('#member-subgrid-present').html(html);
-        }
-
-        function memberInfoRenderMobileEquip(rows) {
-            if (!rows.length) {
-                memberInfoSetMobileState('#member-subgrid-equip', '沒有資料');
-                return;
-            }
-
-            var html = '<div class="member-info-mobile-records">';
-            rows.forEach(function (row) {
-                var lessonName = row.DiscipleLessonsName || row.discipleLessonsName || '';
-                var stageName = row.StageName || row.stageName || '';
-                var currentComplete = !!(row.CurrentComplete || row.currentComplete);
-
-                html += '<article class="member-info-mobile-record">' +
-                    '<div class="member-info-mobile-record-header">' +
-                    '<div class="member-info-mobile-record-title">' + memberInfoEscapeHtml(lessonName) + '</div>' +
-                    '<div class="member-info-mobile-record-date">' + memberInfoEscapeHtml(memberInfoFormatDate(row.DiscipleLessonsDateTime || row.discipleLessonsDateTime)) + '</div>' +
-                    '</div>' +
-                    '<div class="member-info-mobile-flags">' +
-                    memberInfoActiveFlag(stageName || '階段', !!stageName) +
-                    memberInfoActiveFlag('結業', currentComplete) +
-                    '</div>' +
-                    '</article>';
-            });
-            html += '</div>';
-
-            $('#member-subgrid-equip').html(html);
-        }
-
-        function memberInfoLoadMobileRows(tab, id) {
-            var targetSelector = tab === 'present' ? '#member-subgrid-present' : '#member-subgrid-equip';
-            var loadUrl = tab === 'present'
-                ? '/MemberInfo/LoadContactPresentRecords'
-                : '/MemberInfo/LoadContactStorLessons';
-
-            memberInfoSetMobileState(targetSelector, '載入中...');
-
-            $.ajax({
-                url: loadUrl,
-                type: 'GET',
-                data: { contactId: id, skip: 0, take: 50 },
-                success: function (response) {
-                    var rows = memberInfoNormalizeRows(response);
-                    if (tab === 'present') {
-                        memberInfoRenderMobilePresent(rows);
-                    } else {
-                        memberInfoRenderMobileEquip(rows);
-                    }
-
-                    if (!window._memberInfoSubGridInit.scrolledTop) {
-                        window._memberInfoSubGridInit.scrolledTop = true;
-                        memberInfoScrollPopupTop($(targetSelector).get(0));
-                    }
-                },
-                error: function () {
-                    memberInfoSetMobileState(targetSelector, '載入失敗');
-                }
-            });
         }
 
         window.memberInfoDetailSwitch = function (tab) {
@@ -429,11 +233,6 @@
         window.initMemberInfoSubGrid = function (tab, id) {
             if (tab === 'present' && !window._memberInfoSubGridInit.present) {
                 window._memberInfoSubGridInit.present = true;
-                if (isMobile) {
-                    memberInfoLoadMobileRows(tab, id);
-                    return;
-                }
-
                 $('#member-subgrid-present').dxDataGrid({
                     dataSource: DevExpress.data.AspNet.createStore({
                         key: 'PresentRecordId',
@@ -450,19 +249,13 @@
                     scrolling: gridScrollOptions,
                     noDataText: '沒有資料',
                     paging: { pageSize: 10 },
-                    onContentReady: function (e) {
-                        // 僅在首次載入時校正捲動位置（避免使用者翻頁時又被拉回頂端）
-                        if (!window._memberInfoSubGridInit.scrolledTop) {
-                            window._memberInfoSubGridInit.scrolledTop = true;
-                            memberInfoScrollPopupTop(e.element);
-                        }
-                    },
+                    onContentReady: memberInfoGridReady,
                     columns: isMobile ? [
-                        { dataField: 'FullName', caption: '姓名', width: 56 },
-                        { dataField: 'SundayDate', caption: '主日日期', dataType: 'date', format: 'yyyy/MM/dd', width: 90 },
-                        { dataField: 'Sunday', caption: '主日', dataType: 'boolean', width: 44 },
-                        { dataField: 'SmallGroup', caption: '小組', dataType: 'boolean', width: 44 },
-                        { dataField: 'PrayItem', caption: '代禱', minWidth: 64 }
+                        { dataField: 'FullName', caption: '姓名', width: 96 },
+                        { dataField: 'SundayDate', caption: '主日日期', dataType: 'date', format: 'yyyy/MM/dd', width: 122 },
+                        { dataField: 'Sunday', caption: '主日', dataType: 'boolean', width: 82 },
+                        { dataField: 'SmallGroup', caption: '小組', dataType: 'boolean', width: 92 },
+                        { dataField: 'PrayItem', caption: '代禱', width: 320 }
                     ] : [
                         { dataField: 'FullName', caption: '姓名', width: 100 },
                         { dataField: 'SundayDate', caption: '主日日期', dataType: 'date', format: 'yyyy/MM/dd', width: 120 },
@@ -475,11 +268,6 @@
 
             if (tab === 'equip' && !window._memberInfoSubGridInit.equip) {
                 window._memberInfoSubGridInit.equip = true;
-                if (isMobile) {
-                    memberInfoLoadMobileRows(tab, id);
-                    return;
-                }
-
                 $('#member-subgrid-equip').dxDataGrid({
                     dataSource: DevExpress.data.AspNet.createStore({
                         key: 'StorLessonsEntityId',
@@ -496,11 +284,12 @@
                     scrolling: gridScrollOptions,
                     noDataText: '沒有資料',
                     paging: { pageSize: 10 },
+                    onContentReady: memberInfoGridReady,
                     columns: isMobile ? [
-                        { dataField: 'DiscipleLessonsName', caption: '課程名稱', minWidth: 84 },
-                        { dataField: 'DiscipleLessonsDateTime', caption: '日期', dataType: 'date', format: 'yyyy/MM/dd', width: 90 },
-                        { dataField: 'StageName', caption: '階段', width: 60 },
-                        { dataField: 'CurrentComplete', caption: '結業', dataType: 'boolean', width: 52 }
+                        { dataField: 'DiscipleLessonsName', caption: '課程名稱', width: 240 },
+                        { dataField: 'DiscipleLessonsDateTime', caption: '日期', dataType: 'date', format: 'yyyy/MM/dd', width: 126 },
+                        { dataField: 'StageName', caption: '階段', width: 140 },
+                        { dataField: 'CurrentComplete', caption: '結業', dataType: 'boolean', width: 110 }
                     ] : [
                         { dataField: 'DiscipleLessonsName', caption: '課程名稱', width: 280 },
                         { dataField: 'DiscipleLessonsDateTime', caption: '日期', dataType: 'date', format: 'yyyy/MM/dd', width: 130 },
