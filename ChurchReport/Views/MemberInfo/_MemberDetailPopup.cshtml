@@ -193,15 +193,17 @@
                     showColumnLines: true,
                     wordWrapEnabled: true,
                     width: '100%',
-                    scrolling: { showScrollbar: 'always' },
+                    height: 400,
+                    columnAutoWidth: false,
+                    scrolling: { mode: 'standard', useNative: false, showScrollbar: 'always' },
                     noDataText: '沒有資料',
                     paging: { pageSize: 10 },
                     columns: [
                         { dataField: 'FullName', caption: '姓名', width: 100 },
-                        { dataField: 'SundayDate', caption: '主日日期', dataType: 'date', format: 'yyyy/MM/dd', width: 110 },
-                        { dataField: 'Sunday', caption: '主日', dataType: 'boolean', width: 64 },
-                        { dataField: 'SmallGroup', caption: '小組', dataType: 'boolean', width: 64 },
-                        { dataField: 'PrayItem', caption: '代禱', minWidth: 160 }
+                        { dataField: 'SundayDate', caption: '主日日期', dataType: 'date', format: 'yyyy/MM/dd', width: 120 },
+                        { dataField: 'Sunday', caption: '主日', dataType: 'boolean', width: 70 },
+                        { dataField: 'SmallGroup', caption: '小組', dataType: 'boolean', width: 70 },
+                        { dataField: 'PrayItem', caption: '代禱', width: 460 }
                     ]
                 });
             }
@@ -219,14 +221,16 @@
                     showColumnLines: true,
                     wordWrapEnabled: true,
                     width: '100%',
-                    scrolling: { showScrollbar: 'always' },
+                    height: 400,
+                    columnAutoWidth: false,
+                    scrolling: { mode: 'standard', useNative: false, showScrollbar: 'always' },
                     noDataText: '沒有資料',
                     paging: { pageSize: 10 },
                     columns: [
-                        { dataField: 'DiscipleLessonsName', caption: '課程名稱', minWidth: 180 },
-                        { dataField: 'DiscipleLessonsDateTime', caption: '日期', dataType: 'date', format: 'yyyy/MM/dd', width: 120 },
-                        { dataField: 'StageName', caption: '階段名稱', width: 110 },
-                        { dataField: 'CurrentComplete', caption: '是否結業', dataType: 'boolean', width: 95 }
+                        { dataField: 'DiscipleLessonsName', caption: '課程名稱', width: 280 },
+                        { dataField: 'DiscipleLessonsDateTime', caption: '日期', dataType: 'date', format: 'yyyy/MM/dd', width: 130 },
+                        { dataField: 'StageName', caption: '階段名稱', width: 140 },
+                        { dataField: 'CurrentComplete', caption: '是否結業', dataType: 'boolean', width: 120 }
                     ]
                 });
             }
