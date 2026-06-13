@@ -170,6 +170,10 @@
     (function () {
         var contactId = '@Model.ContactId';
         window._memberInfoSubGridInit = { present: false, equip: false, contactId: contactId };
+        // 手機用原生捲動（避免模擬捲軸攔截觸控、整頁卡死）；桌面用模擬捲軸（恆顯示）
+        var isMobile = window.innerWidth <= 720;
+        var gridHeight = isMobile ? 300 : 400;
+        var gridScrollOptions = { mode: 'standard', useNative: isMobile, showScrollbar: 'always' };
 
         window.memberInfoDetailSwitch = function (tab) {
             $('.member-info-tab').removeClass('active');
@@ -193,9 +197,9 @@
                     showColumnLines: true,
                     wordWrapEnabled: true,
                     width: '100%',
-                    height: window.innerWidth <= 720 ? undefined : 400,
+                    height: gridHeight,
                     columnAutoWidth: false,
-                    scrolling: { mode: 'standard', useNative: false, showScrollbar: 'always' },
+                    scrolling: gridScrollOptions,
                     noDataText: '沒有資料',
                     paging: { pageSize: 10 },
                     columns: [
@@ -221,9 +225,9 @@
                     showColumnLines: true,
                     wordWrapEnabled: true,
                     width: '100%',
-                    height: window.innerWidth <= 720 ? undefined : 400,
+                    height: gridHeight,
                     columnAutoWidth: false,
-                    scrolling: { mode: 'standard', useNative: false, showScrollbar: 'always' },
+                    scrolling: gridScrollOptions,
                     noDataText: '沒有資料',
                     paging: { pageSize: 10 },
                     columns: [
