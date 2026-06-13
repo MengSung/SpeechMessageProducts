@@ -86,6 +86,19 @@
         display: block;
     }
 
+    /* 手機卡片式清單（取代網格，避免巢狀捲動卡頓） */
+    .mi-cards { display: flex; flex-direction: column; gap: 8px; }
+    .mi-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; background: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, .05); }
+    .mi-card-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .mi-card-date { font-weight: 700; color: #1f2937; }
+    .mi-card-title { font-weight: 700; color: #1f2937; margin-bottom: 4px; }
+    .mi-card-meta { color: #475569; font-size: .9rem; margin-top: 2px; }
+    .mi-card-body { color: #334155; margin-top: 6px; line-height: 1.5; word-break: break-word; }
+    .mi-chip { font-size: .8rem; padding: 2px 8px; border-radius: 999px; border: 1px solid #cbd5e1; color: #94a3b8; }
+    .mi-chip-on { background: #dcfce7; border-color: #86efac; color: #15803d; }
+    .mi-chip-off { background: #f1f5f9; }
+    .mi-cards-msg { padding: 16px; text-align: center; color: #94a3b8; }
+
     @@media (max-width: 720px) {
         .member-info-detail {
             grid-template-columns: 1fr;
@@ -184,58 +197,107 @@
             initMemberInfoSubGrid(tab, contactId);
         };
 
+        function memberInfoFmtDate(v) {
+            if (!v) return '';
+            var d = new Date(v);
+            if (isNaN(d.getTime()) || d.getFullYear() <= 1) return '';
+            return d.getFullYear() + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + ('0' + d.getDate()).slice(-2);
+        }
+        function memberInfoEsc(s) {
+            return (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+        function memberInfoChip(on, label) {
+            return '<span class="mi-chip ' + (on ? 'mi-chip-on' : 'mi-chip-off') + '">' + label + (on ? ' ✓' : '') + '</span>';
+        }
+        // 手機：以 AJAX 取資料，渲染為卡片式清單（純垂直捲動、無巢狀橫向捲軸）
+        function memberInfoRenderCards(selector, url, build) {
+            var $c = $(selector);
+            $c.html('<div class="mi-cards-msg">載入中...</div>');
+            $.ajax({
+                url: url, type: 'GET', data: { contactId: contactId }, dataType: 'json',
+                success: function (resp) {
+                    var rows = Array.isArray(resp) ? resp : (resp && resp.data ? resp.data : []);
+                    if (!rows.length) { $c.html('<div class="mi-cards-msg">沒有資料</div>'); return; }
+                    var html = '';
+                    for (var i = 0; i < rows.length; i++) { html += build(rows[i]); }
+                    $c.html('<div class="mi-cards">' + html + '</div>');
+                },
+                error: function () { $c.html('<div class="mi-cards-msg">載入失敗</div>'); }
+            });
+        }
+
         window.initMemberInfoSubGrid = function (tab, id) {
             if (tab === 'present' && !window._memberInfoSubGridInit.present) {
                 window._memberInfoSubGridInit.present = true;
-                $('#member-subgrid-present').dxDataGrid({
-                    dataSource: DevExpress.data.AspNet.createStore({
-                        key: 'PresentRecordId',
-                        loadUrl: '/MemberInfo/LoadContactPresentRecords',
-                        loadParams: { contactId: id }
-                    }),
-                    showBorders: true,
-                    showRowLines: true,
-                    showColumnLines: true,
-                    wordWrapEnabled: true,
-                    width: '100%',
-                    columnAutoWidth: false,
-                    scrolling: gridScrollOptions,
-                    noDataText: '沒有資料',
-                    paging: { pageSize: 10 },
-                    columns: [
-                        { dataField: 'FullName', caption: '姓名', width: 100 },
-                        { dataField: 'SundayDate', caption: '主日日期', dataType: 'date', format: 'yyyy/MM/dd', width: 120 },
-                        { dataField: 'Sunday', caption: '主日', dataType: 'boolean', width: 70 },
-                        { dataField: 'SmallGroup', caption: '小組', dataType: 'boolean', width: 70 },
-                        { dataField: 'PrayItem', caption: '代禱', width: 460 }
-                    ]
-                });
+                if (isMobile) {
+                    memberInfoRenderCards('#member-subgrid-present', '/MemberInfo/LoadContactPresentRecords', function (r) {
+                        var pray = r.PrayItem ? '<div class="mi-card-body">代禱：' + memberInfoEsc(r.PrayItem) + '</div>' : '';
+                        return '<div class="mi-card"><div class="mi-card-head">' +
+                            '<span class="mi-card-date">' + memberInfoFmtDate(r.SundayDate) + '</span>' +
+                            memberInfoChip(r.Sunday, '主日') + memberInfoChip(r.SmallGroup, '小組') +
+                            '</div>' + pray + '</div>';
+                    });
+                } else {
+                    $('#member-subgrid-present').dxDataGrid({
+                        dataSource: DevExpress.data.AspNet.createStore({
+                            key: 'PresentRecordId',
+                            loadUrl: '/MemberInfo/LoadContactPresentRecords',
+                            loadParams: { contactId: id }
+                        }),
+                        showBorders: true,
+                        showRowLines: true,
+                        showColumnLines: true,
+                        wordWrapEnabled: true,
+                        width: '100%',
+                        columnAutoWidth: false,
+                        scrolling: gridScrollOptions,
+                        noDataText: '沒有資料',
+                        paging: { pageSize: 10 },
+                        columns: [
+                            { dataField: 'FullName', caption: '姓名', width: 100 },
+                            { dataField: 'SundayDate', caption: '主日日期', dataType: 'date', format: 'yyyy/MM/dd', width: 120 },
+                            { dataField: 'Sunday', caption: '主日', dataType: 'boolean', width: 70 },
+                            { dataField: 'SmallGroup', caption: '小組', dataType: 'boolean', width: 70 },
+                            { dataField: 'PrayItem', caption: '代禱', width: 460 }
+                        ]
+                    });
+                }
             }
 
             if (tab === 'equip' && !window._memberInfoSubGridInit.equip) {
                 window._memberInfoSubGridInit.equip = true;
-                $('#member-subgrid-equip').dxDataGrid({
-                    dataSource: DevExpress.data.AspNet.createStore({
-                        key: 'StorLessonsEntityId',
-                        loadUrl: '/MemberInfo/LoadContactStorLessons',
-                        loadParams: { contactId: id }
-                    }),
-                    showBorders: true,
-                    showRowLines: true,
-                    showColumnLines: true,
-                    wordWrapEnabled: true,
-                    width: '100%',
-                    columnAutoWidth: false,
-                    scrolling: gridScrollOptions,
-                    noDataText: '沒有資料',
-                    paging: { pageSize: 10 },
-                    columns: [
-                        { dataField: 'DiscipleLessonsName', caption: '課程名稱', width: 280 },
-                        { dataField: 'DiscipleLessonsDateTime', caption: '日期', dataType: 'date', format: 'yyyy/MM/dd', width: 130 },
-                        { dataField: 'StageName', caption: '階段名稱', width: 140 },
-                        { dataField: 'CurrentComplete', caption: '是否結業', dataType: 'boolean', width: 120 }
-                    ]
-                });
+                if (isMobile) {
+                    memberInfoRenderCards('#member-subgrid-equip', '/MemberInfo/LoadContactStorLessons', function (r) {
+                        return '<div class="mi-card">' +
+                            '<div class="mi-card-title">' + memberInfoEsc(r.DiscipleLessonsName) + '</div>' +
+                            '<div class="mi-card-meta">日期：' + memberInfoFmtDate(r.DiscipleLessonsDateTime) + '</div>' +
+                            '<div class="mi-card-meta">階段：' + memberInfoEsc(r.StageName || '—') + '　結業：' + (r.CurrentComplete ? '是' : '否') + '</div>' +
+                            '</div>';
+                    });
+                } else {
+                    $('#member-subgrid-equip').dxDataGrid({
+                        dataSource: DevExpress.data.AspNet.createStore({
+                            key: 'StorLessonsEntityId',
+                            loadUrl: '/MemberInfo/LoadContactStorLessons',
+                            loadParams: { contactId: id }
+                        }),
+                        showBorders: true,
+                        showRowLines: true,
+                        showColumnLines: true,
+                        wordWrapEnabled: true,
+                        width: '100%',
+                        columnAutoWidth: false,
+                        scrolling: gridScrollOptions,
+                        noDataText: '沒有資料',
+                        paging: { pageSize: 10 },
+                        columns: [
+                            { dataField: 'DiscipleLessonsName', caption: '課程名稱', width: 280 },
+                            { dataField: 'DiscipleLessonsDateTime', caption: '日期', dataType: 'date', format: 'yyyy/MM/dd', width: 130 },
+                            { dataField: 'StageName', caption: '階段名稱', width: 140 },
+                            { dataField: 'CurrentComplete', caption: '是否結業', dataType: 'boolean', width: 120 }
+                        ]
+                    });
+                }
             }
         };
 
