@@ -87,24 +87,86 @@
         display: block;
     }
 
+    .member-info-mobile-records {
+        display: grid;
+        gap: 8px;
+    }
+
+    .member-info-mobile-record {
+        border: 1px solid #dbe4ea;
+        border-radius: 8px;
+        background: #fff;
+        padding: 10px;
+    }
+
+    .member-info-mobile-record-header {
+        align-items: center;
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+
+    .member-info-mobile-record-title {
+        color: #1f2937;
+        font-weight: 700;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .member-info-mobile-record-date {
+        color: #64748b;
+        flex: 0 0 auto;
+        font-size: .9rem;
+    }
+
+    .member-info-mobile-flags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+
+    .member-info-mobile-flag {
+        border: 1px solid #cbd5e1;
+        border-radius: 999px;
+        color: #475569;
+        font-size: .85rem;
+        line-height: 1.4;
+        padding: 2px 8px;
+    }
+
+    .member-info-mobile-flag.active {
+        border-color: #2563eb;
+        background: #eaf2ff;
+        color: #1d4ed8;
+        font-weight: 700;
+    }
+
+    .member-info-mobile-note {
+        color: #334155;
+        font-size: .95rem;
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+    }
+
+    .member-info-mobile-state {
+        border: 1px solid #dbe4ea;
+        border-radius: 8px;
+        color: #64748b;
+        padding: 12px;
+        text-align: center;
+    }
+
     @@media (max-width: 720px) {
         .member-info-detail {
             grid-template-columns: 1fr;
             min-height: auto;
         }
 
-        /* 手機：子網格改為「填滿寬度、文字自動換行」，不再產生自己的橫向捲動區，
-           讓整個彈窗只剩 .member-info-detail-scroll 這一個垂直捲軸，杜絕巢狀觸控捲動互卡。
-           同時關閉子網格的慣性捲動、垂直滑動一律交還彈窗整頁捲動（pan-y）。 */
+        /* 手機：紀錄區改用原生 HTML 清單，不建立 DataGrid 內層捲軸。 */
         .member-info-subgrid {
             min-width: 0;
-        }
-
-        .member-info-subgrid .dx-scrollable-container,
-        .member-info-subgrid .dx-datagrid-rowsview {
-            -webkit-overflow-scrolling: auto;
-            overscroll-behavior: contain;
-            touch-action: pan-y;
         }
 
         .member-info-side {
@@ -124,6 +186,12 @@
 
         .member-info-fields {
             grid-template-columns: 1fr;
+        }
+
+        .member-info-mobile-record-header {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 2px;
         }
     }
 </style>
@@ -204,6 +272,152 @@
             if (pc) { pc.scrollTop = 0; }
         }
 
+        function memberInfoEscapeHtml(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function memberInfoNormalizeRows(response) {
+            if ($.isArray(response)) {
+                return response;
+            }
+
+            if (response && $.isArray(response.data)) {
+                return response.data;
+            }
+
+            if (response && $.isArray(response.Data)) {
+                return response.Data;
+            }
+
+            return [];
+        }
+
+        function memberInfoFormatDate(value) {
+            if (!value) {
+                return '';
+            }
+
+            if (typeof value === 'string') {
+                var shortDate = value.substring(0, 10).replace(/-/g, '/');
+                if (/^\d{4}\/\d{2}\/\d{2}$/.test(shortDate)) {
+                    return shortDate;
+                }
+            }
+
+            var date = new Date(value);
+            if (isNaN(date.getTime())) {
+                return memberInfoEscapeHtml(value);
+            }
+
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            return date.getFullYear() + '/' + month + '/' + day;
+        }
+
+        function memberInfoActiveFlag(label, active) {
+            return '<span class="member-info-mobile-flag' + (active ? ' active' : '') + '">' +
+                memberInfoEscapeHtml(label) +
+                '</span>';
+        }
+
+        function memberInfoSetMobileState(targetSelector, text) {
+            $(targetSelector).html('<div class="member-info-mobile-state">' + memberInfoEscapeHtml(text) + '</div>');
+        }
+
+        function memberInfoRenderMobilePresent(rows) {
+            if (!rows.length) {
+                memberInfoSetMobileState('#member-subgrid-present', '沒有資料');
+                return;
+            }
+
+            var html = '<div class="member-info-mobile-records">';
+            rows.forEach(function (row) {
+                html += '<article class="member-info-mobile-record">' +
+                    '<div class="member-info-mobile-record-header">' +
+                    '<div class="member-info-mobile-record-title">' + memberInfoEscapeHtml(row.FullName || row.fullName || '') + '</div>' +
+                    '<div class="member-info-mobile-record-date">' + memberInfoEscapeHtml(memberInfoFormatDate(row.SundayDate || row.sundayDate)) + '</div>' +
+                    '</div>' +
+                    '<div class="member-info-mobile-flags">' +
+                    memberInfoActiveFlag('主日', !!(row.Sunday || row.sunday)) +
+                    memberInfoActiveFlag('小組', !!(row.SmallGroup || row.smallGroup)) +
+                    '</div>';
+
+                var prayItem = row.PrayItem || row.prayItem || '';
+                if (prayItem) {
+                    html += '<div class="member-info-mobile-note">' + memberInfoEscapeHtml(prayItem) + '</div>';
+                }
+
+                html += '</article>';
+            });
+            html += '</div>';
+
+            $('#member-subgrid-present').html(html);
+        }
+
+        function memberInfoRenderMobileEquip(rows) {
+            if (!rows.length) {
+                memberInfoSetMobileState('#member-subgrid-equip', '沒有資料');
+                return;
+            }
+
+            var html = '<div class="member-info-mobile-records">';
+            rows.forEach(function (row) {
+                var lessonName = row.DiscipleLessonsName || row.discipleLessonsName || '';
+                var stageName = row.StageName || row.stageName || '';
+                var currentComplete = !!(row.CurrentComplete || row.currentComplete);
+
+                html += '<article class="member-info-mobile-record">' +
+                    '<div class="member-info-mobile-record-header">' +
+                    '<div class="member-info-mobile-record-title">' + memberInfoEscapeHtml(lessonName) + '</div>' +
+                    '<div class="member-info-mobile-record-date">' + memberInfoEscapeHtml(memberInfoFormatDate(row.DiscipleLessonsDateTime || row.discipleLessonsDateTime)) + '</div>' +
+                    '</div>' +
+                    '<div class="member-info-mobile-flags">' +
+                    memberInfoActiveFlag(stageName || '階段', !!stageName) +
+                    memberInfoActiveFlag('結業', currentComplete) +
+                    '</div>' +
+                    '</article>';
+            });
+            html += '</div>';
+
+            $('#member-subgrid-equip').html(html);
+        }
+
+        function memberInfoLoadMobileRows(tab, id) {
+            var targetSelector = tab === 'present' ? '#member-subgrid-present' : '#member-subgrid-equip';
+            var loadUrl = tab === 'present'
+                ? '/MemberInfo/LoadContactPresentRecords'
+                : '/MemberInfo/LoadContactStorLessons';
+
+            memberInfoSetMobileState(targetSelector, '載入中...');
+
+            $.ajax({
+                url: loadUrl,
+                type: 'GET',
+                data: { contactId: id, skip: 0, take: 50 },
+                success: function (response) {
+                    var rows = memberInfoNormalizeRows(response);
+                    if (tab === 'present') {
+                        memberInfoRenderMobilePresent(rows);
+                    } else {
+                        memberInfoRenderMobileEquip(rows);
+                    }
+
+                    if (!window._memberInfoSubGridInit.scrolledTop) {
+                        window._memberInfoSubGridInit.scrolledTop = true;
+                        memberInfoScrollPopupTop($(targetSelector).get(0));
+                    }
+                },
+                error: function () {
+                    memberInfoSetMobileState(targetSelector, '載入失敗');
+                }
+            });
+        }
+
         window.memberInfoDetailSwitch = function (tab) {
             $('.member-info-tab').removeClass('active');
             $('.member-info-tab[data-tab="' + tab + '"]').addClass('active');
@@ -215,6 +429,11 @@
         window.initMemberInfoSubGrid = function (tab, id) {
             if (tab === 'present' && !window._memberInfoSubGridInit.present) {
                 window._memberInfoSubGridInit.present = true;
+                if (isMobile) {
+                    memberInfoLoadMobileRows(tab, id);
+                    return;
+                }
+
                 $('#member-subgrid-present').dxDataGrid({
                     dataSource: DevExpress.data.AspNet.createStore({
                         key: 'PresentRecordId',
@@ -256,6 +475,11 @@
 
             if (tab === 'equip' && !window._memberInfoSubGridInit.equip) {
                 window._memberInfoSubGridInit.equip = true;
+                if (isMobile) {
+                    memberInfoLoadMobileRows(tab, id);
+                    return;
+                }
+
                 $('#member-subgrid-equip').dxDataGrid({
                     dataSource: DevExpress.data.AspNet.createStore({
                         key: 'StorLessonsEntityId',
