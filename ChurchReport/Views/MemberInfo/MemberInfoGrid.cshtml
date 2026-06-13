@@ -81,6 +81,21 @@
             padding: 6px;
         }
     }
+
+    /* 防止 iOS 點擊輸入框自動放大整頁：輸入字級必須 >= 16px */
+    #MemberInfoGridContainer .dx-texteditor-input,
+    #memberInfoDetailPopup .dx-texteditor-input {
+        font-size: 16px;
+    }
+
+    /* 手機：細節彈窗全螢幕時，內容可垂直捲動、不橫向溢出 */
+    @@media (max-width: 720px) {
+        .dx-popup-content {
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+    }
 </style>
 
 <div class="member-info-page">
@@ -252,6 +267,8 @@
         if (!contactId) return;
         var popup = $('#memberInfoDetailPopup').dxPopup('instance');
         popup.option('title', (fullName || '') + ' - 會友細節');
+        // 手機：全螢幕，避免固定寬度造成內容被切到畫面外
+        popup.option('fullScreen', window.innerWidth <= 720);
         popup.option('contentTemplate', function (contentElement) {
             $(contentElement).html('<div style="padding:16px;">載入中...</div>');
             $.ajax({
