@@ -593,7 +593,7 @@ namespace ChurchReport.Controllers
                 PageNumber = pageNumber,
                 ReturnTotalRecordCount = true
             };
-            query.AddOrder("fullname", OrderType.Ascending);
+            ApplyChurchMemberSort(query, loadOptions);
 
             var contacts = service.RetrieveMultiple(query);
             var ids = contacts.Entities.Select(e => e.Id).ToList();
@@ -620,6 +620,60 @@ namespace ChurchReport.Controllers
                 data = rows,
                 totalCount
             };
+        }
+
+        /// <summary>
+        /// 全教會清單採「伺服器端分頁」(CRM PageInfo)，排序必須在 CRM 查詢層套用（分頁之前），
+        /// 否則只會排到「當前頁」而看起來像沒排序。這裡把 DataGrid 要求的排序(loadOptions.Sort)
+        /// 轉成 CRM AddOrder。未指定、或欄位無法於 CRM 直接排序(如計算得來的小組名稱)時，
+        /// 退回預設 fullname 遞增。
+        /// </summary>
+        private static void ApplyChurchMemberSort(QueryExpression query, DataSourceLoadOptions loadOptions)
+        {
+            var applied = false;
+            var sort = loadOptions?.Sort;
+
+            if (sort != null)
+            {
+                foreach (var sortInfo in sort)
+                {
+                    var attribute = MapChurchSortAttribute(sortInfo?.Selector);
+                    if (attribute == null)
+                    {
+                        continue;
+                    }
+
+                    query.AddOrder(attribute, sortInfo.Desc ? OrderType.Descending : OrderType.Ascending);
+                    applied = true;
+                }
+            }
+
+            if (!applied)
+            {
+                query.AddOrder("fullname", OrderType.Ascending);
+            }
+        }
+
+        /// <summary>把 DataGrid 欄位 dataField 對應到可在 CRM 排序的 contact 屬性；不可排序者回 null。</summary>
+        private static string MapChurchSortAttribute(string selector)
+        {
+            if (string.IsNullOrWhiteSpace(selector))
+            {
+                return null;
+            }
+
+            if (string.Equals(selector, "FullName", StringComparison.OrdinalIgnoreCase))
+            {
+                return "fullname";
+            }
+
+            if (string.Equals(selector, "Phone", StringComparison.OrdinalIgnoreCase))
+            {
+                return "mobilephone";
+            }
+
+            // 其餘（例如 SmallGroupName 為查詢後計算的小組名稱）CRM 無法直接排序。
+            return null;
         }
 
         private QueryExpression BuildCurrentContactQuery(ColumnSet columns, string searchValue)
