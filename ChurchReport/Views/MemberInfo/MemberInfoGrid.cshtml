@@ -96,8 +96,8 @@
         position: relative;
         overflow: hidden !important;
         overscroll-behavior: contain;
-        -ms-touch-action: pan-x pan-y;
-        touch-action: pan-x pan-y;
+        -ms-touch-action: pan-x;
+        touch-action: pan-x;
     }
 
     /* One native vertical scroll container owns the mobile detail page. */
@@ -112,16 +112,16 @@
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
         scroll-behavior: auto;
-        -ms-touch-action: pan-x pan-y;
-        touch-action: pan-x pan-y;
+        -ms-touch-action: pan-x;
+        touch-action: pan-x;
     }
 
     .member-info-detail-scroll-inner {
         box-sizing: border-box;
         min-height: 100%;
         padding: 16px;
-        -ms-touch-action: pan-x pan-y;
-        touch-action: pan-x pan-y;
+        -ms-touch-action: pan-x;
+        touch-action: pan-x;
     }
 
     .member-info-detail-top-anchor {
@@ -436,7 +436,7 @@
             memberInfoAddDetailListener(cleanups, this, 'wheel', unlock, memberInfoGetEventOptions(true, true));
         });
 
-        var gridPan = {
+        var detailPan = {
             tracking: false,
             lockedAxis: null,
             startX: 0,
@@ -456,7 +456,7 @@
             return null;
         }
 
-        function gridPanStart(event) {
+        function detailPanStart(event) {
             if (event && event.pointerType && event.pointerType !== 'touch') {
                 return;
             }
@@ -467,33 +467,33 @@
             }
 
             memberInfoStopInitialScrollLock();
-            gridPan.tracking = true;
-            gridPan.lockedAxis = null;
-            gridPan.startX = point.clientX;
-            gridPan.startY = point.clientY;
-            gridPan.lastY = point.clientY;
+            detailPan.tracking = true;
+            detailPan.lockedAxis = null;
+            detailPan.startX = point.clientX;
+            detailPan.startY = point.clientY;
+            detailPan.lastY = point.clientY;
         }
 
-        function gridPanMove(event) {
+        function detailPanMove(event) {
             if (event && event.pointerType && event.pointerType !== 'touch') {
                 return;
             }
 
             var point = getTouchPoint(event);
-            if (!point || !gridPan.tracking || !scrollHost) {
+            if (!point || !detailPan.tracking || !scrollHost) {
                 return;
             }
 
-            var dx = point.clientX - gridPan.startX;
-            var dy = point.clientY - gridPan.startY;
+            var dx = point.clientX - detailPan.startX;
+            var dy = point.clientY - detailPan.startY;
             var absX = Math.abs(dx);
             var absY = Math.abs(dy);
 
-            if (!gridPan.lockedAxis && Math.max(absX, absY) > 6) {
-                gridPan.lockedAxis = absY >= absX ? 'y' : 'x';
+            if (!detailPan.lockedAxis && Math.max(absX, absY) > 3) {
+                detailPan.lockedAxis = absY >= absX ? 'y' : 'x';
             }
 
-            if (gridPan.lockedAxis !== 'y') {
+            if (detailPan.lockedAxis !== 'y') {
                 return;
             }
 
@@ -502,33 +502,36 @@
                 return;
             }
 
-            var deltaY = gridPan.lastY - point.clientY;
+            var deltaY = detailPan.lastY - point.clientY;
+            if (deltaY === 0) {
+                return;
+            }
+
             var nextScrollTop = Math.max(0, Math.min(maxScrollTop, scrollHost.scrollTop + deltaY));
             scrollHost.scrollTop = nextScrollTop;
-            gridPan.lastY = point.clientY;
+            detailPan.lastY = point.clientY;
 
             event.preventDefault();
             event.stopPropagation();
         }
 
-        function gridPanEnd() {
-            gridPan.tracking = false;
-            gridPan.lockedAxis = null;
+        function detailPanEnd() {
+            detailPan.tracking = false;
+            detailPan.lockedAxis = null;
         }
 
-        $content.find('.member-info-subgrid').each(function () {
-            if (window.PointerEvent) {
-                memberInfoAddDetailListener(cleanups, this, 'pointerdown', gridPanStart, memberInfoGetEventOptions(true, true));
-                memberInfoAddDetailListener(cleanups, this, 'pointermove', gridPanMove, memberInfoGetEventOptions(false, true));
-                memberInfoAddDetailListener(cleanups, this, 'pointerup', gridPanEnd, memberInfoGetEventOptions(true, true));
-                memberInfoAddDetailListener(cleanups, this, 'pointercancel', gridPanEnd, memberInfoGetEventOptions(true, true));
-            } else {
-                memberInfoAddDetailListener(cleanups, this, 'touchstart', gridPanStart, memberInfoGetEventOptions(true, true));
-                memberInfoAddDetailListener(cleanups, this, 'touchmove', gridPanMove, memberInfoGetEventOptions(false, true));
-                memberInfoAddDetailListener(cleanups, this, 'touchend', gridPanEnd, memberInfoGetEventOptions(true, true));
-                memberInfoAddDetailListener(cleanups, this, 'touchcancel', gridPanEnd, memberInfoGetEventOptions(true, true));
-            }
-        });
+        if (window.PointerEvent) {
+            memberInfoAddDetailListener(cleanups, scrollHost, 'pointerdown', detailPanStart, memberInfoGetEventOptions(true, true));
+            memberInfoAddDetailListener(cleanups, scrollHost, 'pointermove', detailPanMove, memberInfoGetEventOptions(false, true));
+            memberInfoAddDetailListener(cleanups, scrollHost, 'pointerup', detailPanEnd, memberInfoGetEventOptions(true, true));
+            memberInfoAddDetailListener(cleanups, scrollHost, 'pointercancel', detailPanEnd, memberInfoGetEventOptions(true, true));
+            memberInfoAddDetailListener(cleanups, scrollHost, 'pointerleave', detailPanEnd, memberInfoGetEventOptions(true, true));
+        } else {
+            memberInfoAddDetailListener(cleanups, scrollHost, 'touchstart', detailPanStart, memberInfoGetEventOptions(true, true));
+            memberInfoAddDetailListener(cleanups, scrollHost, 'touchmove', detailPanMove, memberInfoGetEventOptions(false, true));
+            memberInfoAddDetailListener(cleanups, scrollHost, 'touchend', detailPanEnd, memberInfoGetEventOptions(true, true));
+            memberInfoAddDetailListener(cleanups, scrollHost, 'touchcancel', detailPanEnd, memberInfoGetEventOptions(true, true));
+        }
 
         memberInfoDetailScrollCleanup = function () {
             cleanups.forEach(function (cleanup) {
