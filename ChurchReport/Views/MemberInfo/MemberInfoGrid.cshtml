@@ -38,6 +38,33 @@
         box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
     }
 
+    .member-info-filter-bar {
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 10px;
+    }
+
+    .member-info-photo-filter-btn {
+        border: none;
+        border-radius: 6px;
+        padding: 8px 18px;
+        min-height: 38px;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        cursor: pointer;
+        background: #16a34a; /* 預設：綠色「顯示照片」 */
+        transition: background-color .15s ease;
+    }
+
+    .member-info-photo-filter-btn.is-photo-only {
+        background: #2563eb; /* 篩選中：藍色「顯示全部」 */
+    }
+
+    .member-info-photo-filter-btn:active {
+        transform: translateY(1px);
+    }
+
     #MemberInfoGridContainer .dx-datagrid-headers .dx-header-row td {
         background: #eef6f8;
         color: #1f2937;
@@ -155,6 +182,12 @@
     </div>
 
     <div class="member-info-grid-shell">
+        <div class="member-info-filter-bar">
+            <button type="button"
+                    id="memberInfoPhotoFilterBtn"
+                    class="member-info-photo-filter-btn"
+                    onclick="memberInfoTogglePhotoFilter()">顯示照片</button>
+        </div>
         @(Html.DevExtreme().DataGrid<MemberInfoListRowViewModel>()
             .ID("MemberInfoGridContainer")
             .DataSource(d => d.Mvc()
@@ -234,6 +267,29 @@
     var memberInfoBatchPending = false;
     var memberInfoFallbackAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(
         '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="20" fill="#e9ecef"/><text x="20" y="25" font-size="14" text-anchor="middle" fill="#6c757d">人</text></svg>');
+
+    // ── 顯示照片 / 顯示全部 切換 ──
+    // 預設：顯示全部(按鈕綠色、文字「顯示照片」)；按下後只顯示真正有照片者(按鈕變藍、文字「顯示全部」)，再按一次切回。
+    var memberInfoPhotoOnly = false;
+    window.memberInfoTogglePhotoFilter = function () {
+        memberInfoPhotoOnly = !memberInfoPhotoOnly;
+
+        var btn = document.getElementById('memberInfoPhotoFilterBtn');
+        if (btn) {
+            btn.classList.toggle('is-photo-only', memberInfoPhotoOnly);
+            btn.textContent = memberInfoPhotoOnly ? '顯示全部' : '顯示照片';
+        }
+
+        var grid = $('#MemberInfoGridContainer').dxDataGrid('instance');
+        if (!grid) { return; }
+
+        // 換資料來源並帶入 photoOnly 參數；表格會自行保留並重新套用目前的排序/搜尋狀態。
+        grid.option('dataSource', DevExpress.data.AspNet.createStore({
+            key: 'ContactId',
+            loadUrl: '/MemberInfo/LoadMemberInfoList',
+            loadParams: { photoOnly: memberInfoPhotoOnly }
+        }));
+    };
 
     window.memberInfoAvatarCellTemplate = function (container, options) {
         var data = options.data || {};

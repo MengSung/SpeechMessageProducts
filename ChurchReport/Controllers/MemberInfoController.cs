@@ -66,15 +66,16 @@ namespace ChurchReport.Controllers
             {
                 EnsureCorrectUserData();
                 var access = GetAccess();
+                var photoOnly = IsPhotoOnlyRequested();
 
                 if (access == MemberInfoAccess.Church)
                 {
-                    return LoadChurchMemberRows(loadOptions);
+                    return LoadChurchMemberRows(loadOptions, photoOnly);
                 }
 
                 if (access == MemberInfoAccess.ShepherdList)
                 {
-                    var rows = LoadShepherdMemberRows();
+                    var rows = LoadShepherdMemberRows(photoOnly);
                     return DataSourceLoader.Load(rows, loadOptions);
                 }
 
@@ -490,7 +491,7 @@ namespace ChurchReport.Controllers
             return result;
         }
 
-        private List<MemberInfoListRowViewModel> LoadShepherdMemberRows()
+        private List<MemberInfoListRowViewModel> LoadShepherdMemberRows(bool photoOnly)
         {
             var rowsByContact = new Dictionary<string, MemberInfoListRowViewModel>(StringComparer.OrdinalIgnoreCase);
             var groupNamesByContact = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
@@ -572,19 +573,38 @@ namespace ChurchReport.Controllers
                 }
             }
 
-            return rowsByContact.Values
+            var rows = rowsByContact.Values
                 .OrderBy(r => r.SmallGroupName)
                 .ThenBy(r => r.FullName)
                 .ToList();
+
+            if (photoOnly)
+            {
+                var ids = new List<Guid>();
+                foreach (var row in rows)
+                {
+                    if (Guid.TryParse(row.ContactId, out var guid))
+                    {
+                        ids.Add(guid);
+                    }
+                }
+
+                var withPhoto = GetContactIdsWithPhoto(ids);
+                rows = rows
+                    .Where(r => Guid.TryParse(r.ContactId, out var guid) && withPhoto.Contains(guid))
+                    .ToList();
+            }
+
+            return rows;
         }
 
-        private object LoadChurchMemberRows(DataSourceLoadOptions loadOptions)
+        private object LoadChurchMemberRows(DataSourceLoadOptions loadOptions, bool photoOnly)
         {
             // 依「計算欄位」(例如小組名稱)排序時，CRM 查詢層無法排序 → 改載入整份(過濾後)清單，
             // 於記憶體排序+分頁；其餘(姓名/手機/預設)仍走 CRM 伺服器端分頁(較快)。
             if (ChurchSortRequiresInMemory(loadOptions))
             {
-                return LoadChurchMemberRowsInMemory(loadOptions);
+                return LoadChurchMemberRowsInMemory(loadOptions, photoOnly);
             }
 
             var service = ToolUtility.m_Crm2011OrganizationService;
@@ -593,7 +613,7 @@ namespace ChurchReport.Controllers
             var pageNumber = skip / take + 1;
             var searchValue = GetSearchTerm(loadOptions);
 
-            var query = BuildCurrentContactQuery(new ColumnSet("contactid", "fullname", "mobilephone", "customertypecode", "statecode"), searchValue);
+            var query = BuildCurrentContactQuery(new ColumnSet("contactid", "fullname", "mobilephone", "customertypecode", "statecode"), searchValue, photoOnly);
             query.PageInfo = new PagingInfo
             {
                 Count = take,
@@ -712,22 +732,22 @@ namespace ChurchReport.Controllers
         /// 全教會：取得整份(過濾後)清單(含小組名稱、帶快取)，交給 DataSourceLoader 於記憶體
         /// 套用排序(含計算欄位 SmallGroupName)與分頁。僅在依計算欄位排序時才走此路徑。
         /// </summary>
-        private object LoadChurchMemberRowsInMemory(DataSourceLoadOptions loadOptions)
+        private object LoadChurchMemberRowsInMemory(DataSourceLoadOptions loadOptions, bool photoOnly)
         {
             var searchValue = GetSearchTerm(loadOptions);
-            var rows = GetChurchMemberRowsCached(searchValue);
+            var rows = GetChurchMemberRowsCached(searchValue, photoOnly);
             // 已是記憶體清單 → DataSourceLoader 套用排序(含 SmallGroupName)＋分頁，速度快。
             return DataSourceLoader.Load(rows, loadOptions);
         }
 
         /// <summary>
         /// 取整份全教會清單(含小組名稱)並快取數分鐘。第一次建立較慢，之後翻頁/改排序皆讀快取，
-        /// 不再每次重打 CRM —— 這是「按小組排序等很久」的主因。依搜尋字分開快取。
+        /// 不再每次重打 CRM —— 這是「按小組排序等很久」的主因。依搜尋字＋是否只看有照片分開快取。
         /// </summary>
-        private List<MemberInfoListRowViewModel> GetChurchMemberRowsCached(string searchValue)
+        private List<MemberInfoListRowViewModel> GetChurchMemberRowsCached(string searchValue, bool photoOnly)
         {
             var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
-            var cacheKey = "member-info-church-rows:" + (searchValue ?? string.Empty);
+            var cacheKey = "member-info-church-rows:" + (photoOnly ? "photo:" : "all:") + (searchValue ?? string.Empty);
 
             if (memoryCache != null &&
                 memoryCache.TryGetValue(cacheKey, out List<MemberInfoListRowViewModel> cached) &&
@@ -736,7 +756,7 @@ namespace ChurchReport.Controllers
                 return cached;
             }
 
-            var rows = BuildAllChurchMemberRows(searchValue);
+            var rows = BuildAllChurchMemberRows(searchValue, photoOnly);
 
             memoryCache?.Set(cacheKey, rows, new MemoryCacheEntryOptions
             {
@@ -749,13 +769,14 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>建立整份全教會清單：一次撈所有(過濾後)聯絡人 ＋ 一次撈所有小組成員，合併為資料列。</summary>
-        private List<MemberInfoListRowViewModel> BuildAllChurchMemberRows(string searchValue)
+        private List<MemberInfoListRowViewModel> BuildAllChurchMemberRows(string searchValue, bool photoOnly)
         {
             var service = ToolUtility.m_Crm2011OrganizationService;
 
             var query = BuildCurrentContactQuery(
                 new ColumnSet("contactid", "fullname", "mobilephone", "customertypecode", "statecode"),
-                searchValue);
+                searchValue,
+                photoOnly);
             query.AddOrder("fullname", OrderType.Ascending); // 穩定基準次序；真正排序由 DataSourceLoader 套用
 
             var contacts = RetrieveAllContacts(service, query);
@@ -886,7 +907,7 @@ namespace ChurchReport.Controllers
             return result;
         }
 
-        private QueryExpression BuildCurrentContactQuery(ColumnSet columns, string searchValue)
+        private QueryExpression BuildCurrentContactQuery(ColumnSet columns, string searchValue, bool photoOnly = false)
         {
             var query = new QueryExpression("contact")
             {
@@ -894,6 +915,12 @@ namespace ChurchReport.Controllers
             };
 
             query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
+
+            // 只看「真正有大頭照」的會友：entityimageid 為影像主鍵，有照片才會有值(輕量、不需抓影像位元組)。
+            if (photoOnly)
+            {
+                query.Criteria.AddCondition("entityimageid", ConditionOperator.NotNull);
+            }
 
             var closedStatus = TryGetClosedCustomerTypeValue();
             if (closedStatus.HasValue)
@@ -978,6 +1005,52 @@ namespace ChurchReport.Controllers
                 default:
                     return false;
             }
+        }
+
+        /// <summary>讀取前端傳來的「只看有照片」旗標(photoOnly=true)。</summary>
+        private bool IsPhotoOnlyRequested()
+        {
+            var raw = Request?.Query["photoOnly"].FirstOrDefault();
+            return string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>查出指定聯絡人中「真正有大頭照」者(entityimageid 不為空)。以小批次查詢，失敗回空集合。</summary>
+        private HashSet<Guid> GetContactIdsWithPhoto(IReadOnlyCollection<Guid> contactIds)
+        {
+            var result = new HashSet<Guid>();
+            if (contactIds == null || contactIds.Count == 0)
+            {
+                return result;
+            }
+
+            try
+            {
+                var service = ToolUtility.m_Crm2011OrganizationService;
+                var idList = contactIds.Distinct().ToList();
+                const int batchSize = 200;
+
+                for (var i = 0; i < idList.Count; i += batchSize)
+                {
+                    var chunk = idList.GetRange(i, Math.Min(batchSize, idList.Count - i));
+                    var query = new QueryExpression("contact")
+                    {
+                        ColumnSet = new ColumnSet("contactid")
+                    };
+                    query.Criteria.AddCondition("contactid", ConditionOperator.In, chunk.Select(id => (object)id).ToArray());
+                    query.Criteria.AddCondition("entityimageid", ConditionOperator.NotNull);
+
+                    foreach (var entity in service.RetrieveMultiple(query).Entities)
+                    {
+                        result.Add(entity.Id);
+                    }
+                }
+            }
+            catch
+            {
+                // entityimageid 不可查時不讓整頁壞掉；photoOnly 牧養名單顯示為空，預設(全部)不受影響。
+            }
+
+            return result;
         }
 
         private Dictionary<Guid, string> GetSmallGroupNamesForContacts(IReadOnlyCollection<Guid> contactIds)
