@@ -94,28 +94,21 @@
         min-height: 0;
         padding: 0 !important;
         position: relative;
-        overflow: hidden !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
         touch-action: pan-y;
     }
 
-    /* 原生垂直捲動層：position:absolute + inset:0 讓它有確定高度（取自 DevExtreme 設定好的
-       .dx-popup-content），再用瀏覽器原生 overflow-y:auto 捲動。不再包 dxScrollView，
-       避免「外層模擬捲動 + 內層網格模擬捲動」互搶觸控手勢而無法上下滑動。 */
+    /* The popup content owns vertical scrolling; this wrapper only provides layout/padding. */
     .member-info-detail-scroll {
         box-sizing: border-box;
-        bottom: 0;
         height: auto;
-        inset: 0;
-        left: 0;
         min-height: 0;
-        overflow-x: hidden;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
-        position: absolute;
-        right: 0;
-        top: 0;
-        width: auto;
+        overflow: visible;
+        position: relative;
+        width: 100%;
         -ms-touch-action: pan-y;
         touch-action: pan-y;
     }
@@ -130,14 +123,10 @@
         padding: 16px;
     }
 
-    /* 手機：細節彈窗全螢幕時，只有內容容器負責垂直捲動 */
+    /* Mobile keeps the same native popup-content scroll container. */
     @@media (max-width: 720px) {
         .member-info-detail-popup-content {
             min-height: 0;
-        }
-
-        .member-info-detail-scroll {
-            bottom: 0;
         }
 
         .member-info-detail-scroll-inner {
@@ -338,9 +327,6 @@
 
     var memberInfoDetailScrollResetToken = 0;
     var memberInfoDetailUserInteracted = false;
-    // 防護用：使用者目前停留的捲動位置，以及「鎖定」旗標（鎖定時把焦點/初始化造成的跳動還原）。
-    var memberInfoDetailUserTop = 0;
-    var memberInfoDetailScrollGuard = false;
 
     function memberInfoGetDetailScrollHosts(contentElement) {
         var $content = memberInfoFindDetailPopupContent(contentElement);
@@ -357,7 +343,6 @@
         var $content = memberInfoFindDetailPopupContent(contentElement);
         var $scrollHosts = memberInfoGetDetailScrollHosts(contentElement);
 
-        // 原生捲動：直接把捲動位置歸零，讓彈窗一開啟先看到大頭照。
         $scrollHosts.each(function () {
             this.scrollTop = 0;
             this.scrollLeft = 0;
@@ -388,13 +373,15 @@
         window.setTimeout(resetIfCurrent, 40);
         window.setTimeout(resetIfCurrent, 160);
         window.setTimeout(resetIfCurrent, 320);
+        window.setTimeout(resetIfCurrent, 700);
+        window.setTimeout(resetIfCurrent, 1200);
     };
 
-    // 子網格載入/重繪後呼叫：DevExtreme DataGrid 可能把可捲動父層 scroll-into-view 到網格，
-    // 這裡短暫啟動防護，讓那波跳動被還原回使用者停留位置（首次載入時即頂端、看得到大頭照）。
+    // DataGrid can change layout after loading; keep the initial view at the top until the user interacts.
     window.memberInfoDetailRefreshScroll = function (contentElement) {
-        memberInfoDetailScrollGuard = true;
-        window.setTimeout(function () { memberInfoDetailScrollGuard = false; }, 500);
+        if (!memberInfoDetailUserInteracted) {
+            window.memberInfoResetDetailScrollSoon(contentElement);
+        }
     };
 
     window.memberInfoDetailPopupShown = function (e) {
@@ -405,46 +392,18 @@
         var $content = $(contentElement);
 
         memberInfoDetailUserInteracted = false;
-        memberInfoDetailUserTop = 0;
         $content
             .addClass('member-info-detail-popup-content')
             .empty();
 
-        // 純瀏覽器原生垂直捲動容器（樣式見 .member-info-detail-scroll），
-        // 刻意不再建立 dxScrollView，避免與內層網格的捲動互搶觸控手勢。
+        // Keep a lightweight inner wrapper for padding; do not create a nested scroll widget.
         var $scrollHost = $('<div class="member-info-detail-scroll"><div class="member-info-detail-scroll-inner"></div></div>');
         $content.append($scrollHost);
         $scrollHost.find('.member-info-detail-scroll-inner').html(html);
 
-        var scrollEl = $scrollHost.get(0);
-
-        // 開啟後 1.2 秒視為「初始化/網格載入」階段：DevExtreme DataGrid 會把可捲動的父層
-        // scroll-into-view 到自己身上（彈窗因此跳到頁面中間、看不到大頭照）。此期間把任何
-        // 「非使用者造成」的捲動鎖回頂端；使用者一旦真的用手指/滾輪滑動就立即解除鎖定。
-        memberInfoDetailScrollGuard = true;
-        window.setTimeout(function () { memberInfoDetailScrollGuard = false; }, 1200);
-
-        $scrollHost
+        $content.add($scrollHost)
             .off('.memberInfoDetailScroll')
-            .on('scroll.memberInfoDetailScroll', function () {
-                if (memberInfoDetailScrollGuard) {
-                    if (scrollEl.scrollTop !== memberInfoDetailUserTop) {
-                        scrollEl.scrollTop = memberInfoDetailUserTop; // 還原焦點/初始化造成的跳動
-                    }
-                } else {
-                    memberInfoDetailUserTop = scrollEl.scrollTop;      // 記錄使用者實際停留位置
-                }
-            })
-            .on('focusin.memberInfoDetailScroll', function () {
-                // 網格 cell/checkbox 取得焦點時，瀏覽器會把父層捲到中間 → 短暫鎖定後還原
-                memberInfoDetailScrollGuard = true;
-                window.setTimeout(function () { memberInfoDetailScrollGuard = false; }, 350);
-            })
-            .on('touchmove.memberInfoDetailScroll wheel.memberInfoDetailScroll', function () {
-                memberInfoDetailScrollGuard = false;  // 使用者真的在滑 → 立即解除鎖定，捲動永遠不被擋
-                memberInfoDetailUserInteracted = true;
-            })
-            .on('touchstart.memberInfoDetailScroll pointerdown.memberInfoDetailScroll', function () {
+            .on('touchstart.memberInfoDetailScroll pointerdown.memberInfoDetailScroll wheel.memberInfoDetailScroll', function () {
                 memberInfoDetailUserInteracted = true;
             });
 
