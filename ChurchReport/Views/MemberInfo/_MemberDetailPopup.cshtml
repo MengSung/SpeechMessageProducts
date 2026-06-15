@@ -160,8 +160,9 @@
 <div class="member-info-detail" data-contact-id="@Model.ContactId">
     <aside class="member-info-side">
         <img class="member-info-photo"
-             src="/MemberInfo/GetContactImage?contactId=@Model.ContactId&size=0"
+             src="/MemberInfo/GetContactImage?contactId=@Model.ContactId&size=256"
              alt="大頭照"
+             loading="eager" decoding="async"
              onerror="this.style.visibility='hidden';" />
         <div class="member-info-tabs">
             <button type="button" class="member-info-tab" data-tab="present" onclick="memberInfoDetailSwitch('present')">聚會紀錄</button>
@@ -233,27 +234,12 @@
             showScrollbar: 'onHover'
         };
 
-        // 把彈窗整頁捲回頂端（先看到大頭照），避免子網格初始化時把內容捲到底部。
-        function memberInfoScrollPopupTop(el) {
-            var node = el && el.get ? el.get(0) : el;
-            if (window.memberInfoResetDetailScrollSoon) {
-                window.memberInfoResetDetailScrollSoon(node);
-                return;
-            }
-
-            var pc = node && node.closest ? node.closest('.member-info-detail-scroll, .dx-popup-content') : null;
-            if (pc) { pc.scrollTop = 0; }
-        }
-
         function memberInfoGridReady(e) {
             var node = e && e.element && e.element.get ? e.element.get(0) : (e && e.element);
+            // 網格載入完成後，重新啟動「捲動防護」把 DevExtreme 的 scroll-into-view 還原回
+            // 使用者停留位置；首次載入時使用者尚未捲動 → 還原到頂端，先看到大頭照。
             if (window.memberInfoDetailRefreshScroll) {
                 window.memberInfoDetailRefreshScroll(node);
-            }
-
-            if (!window._memberInfoSubGridInit.scrolledTop) {
-                window._memberInfoSubGridInit.scrolledTop = true;
-                memberInfoScrollPopupTop(node);
             }
         }
 
