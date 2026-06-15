@@ -101,10 +101,10 @@
             min-width: 0;
         }
 
-        /* 手機：讓 DataGrid 列區只負責橫向捲動，外層 ScrollView 負責整頁垂直捲動。 */
+        /* 手機：DataGrid 列區只保留水平溢出；垂直手勢交給外層原生捲動容器。 */
         .member-info-subgrid .dx-datagrid-rowsview .dx-scrollable-container {
-            -ms-touch-action: pan-x;
-            touch-action: pan-x;
+            -ms-touch-action: pan-x pan-y;
+            touch-action: pan-x pan-y;
             overflow-x: scroll;
             overflow-y: hidden;
             -webkit-overflow-scrolling: touch;
@@ -207,13 +207,13 @@
         var contactId = '@Model.ContactId';
         window._memberInfoSubGridInit = { present: false, equip: false, contactId: contactId, scrolledTop: false };
         var isMobile = window.innerWidth <= 720;
-        // 手機使用 DataGrid 模擬水平捲動，並由外層 ScrollView 掌管垂直捲動。
-        // 這樣可以固定水平卷軸顯示，同時避免 focused row 將 popup 內容自動捲到中段。
+        // 手機使用原生水平捲動，外層 popup 內容則負責唯一的垂直捲動。
+        // 避免 simulated scrolling 和外層 touch scroll 互相搶手勢。
         var gridScrollOptions = isMobile ? {
             mode: 'standard',
             scrollByContent: true,
             scrollByThumb: true,
-            useNative: false,
+            useNative: true,
             showScrollbar: 'always'
         } : {
             mode: 'standard',

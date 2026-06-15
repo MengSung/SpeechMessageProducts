@@ -95,27 +95,30 @@
         padding: 0 !important;
         position: relative;
         overflow: hidden !important;
-        touch-action: pan-y;
+        -ms-touch-action: pan-x pan-y;
+        touch-action: pan-x pan-y;
     }
 
-    /* One outer vertical ScrollView owns page scrolling; grids inside it do not own vertical scroll. */
+    /* One native vertical scroll container owns the mobile detail page. */
     .member-info-detail-scroll {
         box-sizing: border-box;
         height: 100%;
         min-height: 0;
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
         position: relative;
         width: 100%;
-        -ms-touch-action: pan-y;
-        touch-action: pan-y;
+        -webkit-overflow-scrolling: touch;
+        -ms-touch-action: pan-x pan-y;
+        touch-action: pan-x pan-y;
     }
 
     .member-info-detail-scroll-inner {
         box-sizing: border-box;
         min-height: 100%;
         padding: 16px;
-        -ms-touch-action: pan-y;
-        touch-action: pan-y;
+        -ms-touch-action: pan-x pan-y;
+        touch-action: pan-x pan-y;
     }
 
     .member-info-detail-loading {
@@ -338,28 +341,11 @@
         return $hosts;
     }
 
-    function memberInfoGetDetailScrollView(host) {
-        if (!host || !$.fn.dxScrollView) {
-            return null;
-        }
-
-        try {
-            return $(host).dxScrollView('instance');
-        } catch (ex) {
-            return null;
-        }
-    }
-
     window.memberInfoResetDetailScroll = function (contentElement) {
         var $content = memberInfoFindDetailPopupContent(contentElement);
         var $scrollHosts = memberInfoGetDetailScrollHosts(contentElement);
 
         $scrollHosts.each(function () {
-            var scrollView = memberInfoGetDetailScrollView(this);
-            if (scrollView && typeof scrollView.scrollTo === 'function') {
-                scrollView.scrollTo(0);
-            }
-
             this.scrollTop = 0;
             this.scrollLeft = 0;
         });
@@ -387,13 +373,10 @@
         resetIfCurrent();
         requestFrame(resetIfCurrent);
         window.setTimeout(resetIfCurrent, 40);
-        window.setTimeout(resetIfCurrent, 160);
-        window.setTimeout(resetIfCurrent, 320);
-        window.setTimeout(resetIfCurrent, 700);
-        window.setTimeout(resetIfCurrent, 1200);
+        window.setTimeout(resetIfCurrent, 120);
     };
 
-    // DataGrid can change layout after loading; keep the initial view at the top until the user interacts.
+    // DataGrid can change layout after loading; keep the initial view at the top only before the user interacts.
     window.memberInfoDetailRefreshScroll = function (contentElement) {
         if (!memberInfoDetailUserInteracted) {
             window.memberInfoResetDetailScrollSoon(contentElement);
@@ -407,40 +390,15 @@
     function memberInfoSetDetailPopupContent(contentElement, html) {
         var $content = $(contentElement);
 
-        $content.find('.member-info-detail-scroll').each(function () {
-            var scrollView = memberInfoGetDetailScrollView(this);
-            if (scrollView && typeof scrollView.dispose === 'function') {
-                scrollView.dispose();
-            }
-        });
-
         memberInfoDetailUserInteracted = false;
         $content
             .addClass('member-info-detail-popup-content')
             .empty();
 
-        // Keep a lightweight inner wrapper for padding; do not create a nested scroll widget.
+        // Keep one native vertical scroll host; do not create a nested dxScrollView in the popup.
         var $scrollHost = $('<div class="member-info-detail-scroll"><div class="member-info-detail-scroll-inner"></div></div>');
         $content.append($scrollHost);
         $scrollHost.find('.member-info-detail-scroll-inner').html(html);
-
-        if ($.fn.dxScrollView) {
-            var isMobileDetail = window.innerWidth <= 720;
-            $scrollHost.dxScrollView({
-                bounceEnabled: false,
-                direction: 'vertical',
-                scrollByContent: true,
-                scrollByThumb: true,
-                showScrollbar: 'onScroll',
-                useNative: isMobileDetail
-            });
-        } else {
-            $scrollHost.css({
-                '-webkit-overflow-scrolling': 'touch',
-                'overflow-x': 'hidden',
-                'overflow-y': 'auto'
-            });
-        }
 
         $content.add($scrollHost)
             .off('.memberInfoDetailScroll')
