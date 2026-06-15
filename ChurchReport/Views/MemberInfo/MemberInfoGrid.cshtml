@@ -342,6 +342,22 @@
     var memberInfoDetailScrollResetToken = 0;
     var memberInfoDetailUserInteracted = false;
     var memberInfoDetailOpenToken = 0;
+    var memberInfoDetailScrollCleanup = null;
+    var memberInfoSupportsPassiveEvents = false;
+
+    try {
+        var memberInfoPassiveProbe = Object.defineProperty({}, 'passive', {
+            get: function () {
+                memberInfoSupportsPassiveEvents = true;
+                return true;
+            }
+        });
+        var memberInfoPassiveNoop = function () { };
+        window.addEventListener('memberInfoPassiveProbe', memberInfoPassiveNoop, memberInfoPassiveProbe);
+        window.removeEventListener('memberInfoPassiveProbe', memberInfoPassiveNoop, memberInfoPassiveProbe);
+    } catch (ex) {
+        memberInfoSupportsPassiveEvents = false;
+    }
 
     if (window.history && 'scrollRestoration' in window.history) {
         window.history.scrollRestoration = 'manual';
@@ -351,6 +367,28 @@
         if (element && list.indexOf(element) < 0) {
             list.push(element);
         }
+    }
+
+    function memberInfoGetEventOptions(passive, capture) {
+        return memberInfoSupportsPassiveEvents
+            ? { passive: passive, capture: !!capture }
+            : !!capture;
+    }
+
+    function memberInfoAddDetailListener(cleanups, element, type, handler, options) {
+        if (!element || !element.addEventListener) {
+            return;
+        }
+
+        element.addEventListener(type, handler, options);
+        cleanups.push(function () {
+            element.removeEventListener(type, handler, options);
+        });
+    }
+
+    function memberInfoStopInitialScrollLock() {
+        memberInfoDetailUserInteracted = true;
+        memberInfoDetailScrollResetToken++;
     }
 
     function memberInfoGetDetailScrollTargets(contentElement) {
@@ -363,13 +401,7 @@
             });
 
             $root
-                .find('.member-info-detail-scroll, .dx-scrollable-container, .dx-scrollable-content')
-                .each(function () {
-                    memberInfoAddUniqueElement(targets, this);
-                });
-
-            $root
-                .parents('.dx-popup-content, .dx-overlay-content, .dx-overlay-wrapper')
+                .find('.member-info-detail-scroll')
                 .each(function () {
                     memberInfoAddUniqueElement(targets, this);
                 });
@@ -384,11 +416,125 @@
             addFromContent($(popup.content()));
         }
 
-        memberInfoAddUniqueElement(targets, document.scrollingElement);
-        memberInfoAddUniqueElement(targets, document.documentElement);
-        memberInfoAddUniqueElement(targets, document.body);
-
         return targets;
+    }
+
+    function memberInfoBindDetailTouchHandling($content, scrollHost) {
+        if (memberInfoDetailScrollCleanup) {
+            memberInfoDetailScrollCleanup();
+            memberInfoDetailScrollCleanup = null;
+        }
+
+        var cleanups = [];
+        var unlock = function () {
+            memberInfoStopInitialScrollLock();
+        };
+
+        $content.add($(scrollHost)).each(function () {
+            memberInfoAddDetailListener(cleanups, this, 'touchstart', unlock, memberInfoGetEventOptions(true, true));
+            memberInfoAddDetailListener(cleanups, this, 'pointerdown', unlock, memberInfoGetEventOptions(true, true));
+            memberInfoAddDetailListener(cleanups, this, 'wheel', unlock, memberInfoGetEventOptions(true, true));
+        });
+
+        var gridPan = {
+            tracking: false,
+            lockedAxis: null,
+            startX: 0,
+            startY: 0,
+            lastY: 0
+        };
+
+        function getTouchPoint(event) {
+            if (event && event.touches && event.touches.length) {
+                return event.touches[0];
+            }
+
+            if (event && typeof event.clientX === 'number' && typeof event.clientY === 'number') {
+                return event;
+            }
+
+            return null;
+        }
+
+        function gridPanStart(event) {
+            if (event && event.pointerType && event.pointerType !== 'touch') {
+                return;
+            }
+
+            var point = getTouchPoint(event);
+            if (!point) {
+                return;
+            }
+
+            memberInfoStopInitialScrollLock();
+            gridPan.tracking = true;
+            gridPan.lockedAxis = null;
+            gridPan.startX = point.clientX;
+            gridPan.startY = point.clientY;
+            gridPan.lastY = point.clientY;
+        }
+
+        function gridPanMove(event) {
+            if (event && event.pointerType && event.pointerType !== 'touch') {
+                return;
+            }
+
+            var point = getTouchPoint(event);
+            if (!point || !gridPan.tracking || !scrollHost) {
+                return;
+            }
+
+            var dx = point.clientX - gridPan.startX;
+            var dy = point.clientY - gridPan.startY;
+            var absX = Math.abs(dx);
+            var absY = Math.abs(dy);
+
+            if (!gridPan.lockedAxis && Math.max(absX, absY) > 6) {
+                gridPan.lockedAxis = absY >= absX ? 'y' : 'x';
+            }
+
+            if (gridPan.lockedAxis !== 'y') {
+                return;
+            }
+
+            var maxScrollTop = Math.max(0, scrollHost.scrollHeight - scrollHost.clientHeight);
+            if (maxScrollTop <= 0) {
+                return;
+            }
+
+            var deltaY = gridPan.lastY - point.clientY;
+            var nextScrollTop = Math.max(0, Math.min(maxScrollTop, scrollHost.scrollTop + deltaY));
+            scrollHost.scrollTop = nextScrollTop;
+            gridPan.lastY = point.clientY;
+
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        function gridPanEnd() {
+            gridPan.tracking = false;
+            gridPan.lockedAxis = null;
+        }
+
+        $content.find('.member-info-subgrid').each(function () {
+            if (window.PointerEvent) {
+                memberInfoAddDetailListener(cleanups, this, 'pointerdown', gridPanStart, memberInfoGetEventOptions(true, true));
+                memberInfoAddDetailListener(cleanups, this, 'pointermove', gridPanMove, memberInfoGetEventOptions(false, true));
+                memberInfoAddDetailListener(cleanups, this, 'pointerup', gridPanEnd, memberInfoGetEventOptions(true, true));
+                memberInfoAddDetailListener(cleanups, this, 'pointercancel', gridPanEnd, memberInfoGetEventOptions(true, true));
+            } else {
+                memberInfoAddDetailListener(cleanups, this, 'touchstart', gridPanStart, memberInfoGetEventOptions(true, true));
+                memberInfoAddDetailListener(cleanups, this, 'touchmove', gridPanMove, memberInfoGetEventOptions(false, true));
+                memberInfoAddDetailListener(cleanups, this, 'touchend', gridPanEnd, memberInfoGetEventOptions(true, true));
+                memberInfoAddDetailListener(cleanups, this, 'touchcancel', gridPanEnd, memberInfoGetEventOptions(true, true));
+            }
+        });
+
+        memberInfoDetailScrollCleanup = function () {
+            cleanups.forEach(function (cleanup) {
+                cleanup();
+            });
+        };
     }
 
     function memberInfoGetDetailTopAnchor(contentElement) {
@@ -432,14 +578,8 @@
             this.scrollLeft = 0;
         });
 
-        try {
-            window.scrollTo(0, 0);
-        } catch (ex) {
-            // Ignore browsers that block window scroll while an overlay is active.
-        }
-
         var anchor = memberInfoGetDetailTopAnchor(contentElement);
-        if (anchor && typeof anchor.scrollIntoView === 'function') {
+        if (!scrollTargets.length && anchor && typeof anchor.scrollIntoView === 'function') {
             try {
                 anchor.scrollIntoView({ block: 'start', inline: 'nearest' });
             } catch (ex) {
@@ -493,6 +633,10 @@
     window.memberInfoDetailPopupHidden = function (e) {
         memberInfoDetailOpenToken++;
         memberInfoDetailUserInteracted = false;
+        if (memberInfoDetailScrollCleanup) {
+            memberInfoDetailScrollCleanup();
+            memberInfoDetailScrollCleanup = null;
+        }
         window.memberInfoResetDetailScroll(e && e.element);
         memberInfoFindDetailPopupContent(e && e.element)
             .empty()
@@ -515,13 +659,8 @@
         $content.append($scrollHost);
         $scrollHost.find('.member-info-detail-scroll-inner').html('<div class="member-info-detail-top-anchor" aria-hidden="true"></div>' + html);
 
-        $content.add($scrollHost)
-            .off('.memberInfoDetailScroll')
-            .on('touchmove.memberInfoDetailScroll pointermove.memberInfoDetailScroll wheel.memberInfoDetailScroll', function () {
-                memberInfoDetailUserInteracted = true;
-            });
-
         window.memberInfoResetDetailScroll($content);
+        memberInfoBindDetailTouchHandling($content, $scrollHost.get(0));
         window.memberInfoResetDetailScrollSoon($content);
     }
 
