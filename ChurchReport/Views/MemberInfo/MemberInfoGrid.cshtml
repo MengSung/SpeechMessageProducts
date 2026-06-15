@@ -95,6 +95,7 @@
         padding: 0 !important;
         position: relative;
         overflow: hidden !important;
+        overscroll-behavior: contain;
         -ms-touch-action: pan-x pan-y;
         touch-action: pan-x pan-y;
     }
@@ -109,6 +110,8 @@
         position: relative;
         width: 100%;
         -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        scroll-behavior: auto;
         -ms-touch-action: pan-x pan-y;
         touch-action: pan-x pan-y;
     }
@@ -119,6 +122,14 @@
         padding: 16px;
         -ms-touch-action: pan-x pan-y;
         touch-action: pan-x pan-y;
+    }
+
+    .member-info-detail-top-anchor {
+        display: block;
+        height: 1px;
+        margin-bottom: -1px;
+        overflow: hidden;
+        pointer-events: none;
     }
 
     .member-info-detail-loading {
@@ -215,7 +226,8 @@
     .DragEnabled(false)
     .ResizeEnabled(true)
     .Shading(true)
-    .OnShown("memberInfoDetailPopupShown"))
+    .OnShown("memberInfoDetailPopupShown")
+    .OnHidden("memberInfoDetailPopupHidden"))
 
 <script>
     var memberInfoImageCache = {};
@@ -329,31 +341,111 @@
 
     var memberInfoDetailScrollResetToken = 0;
     var memberInfoDetailUserInteracted = false;
+    var memberInfoDetailOpenToken = 0;
 
-    function memberInfoGetDetailScrollHosts(contentElement) {
+    if (window.history && 'scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+    }
+
+    function memberInfoAddUniqueElement(list, element) {
+        if (element && list.indexOf(element) < 0) {
+            list.push(element);
+        }
+    }
+
+    function memberInfoGetDetailScrollTargets(contentElement) {
         var $content = memberInfoFindDetailPopupContent(contentElement);
-        var $hosts = $content.find('.member-info-detail-scroll');
+        var targets = [];
 
-        if (!$hosts.length && $content.hasClass('member-info-detail-scroll')) {
-            $hosts = $content;
+        function addFromContent($root) {
+            $root.each(function () {
+                memberInfoAddUniqueElement(targets, this);
+            });
+
+            $root
+                .find('.member-info-detail-scroll, .dx-scrollable-container, .dx-scrollable-content')
+                .each(function () {
+                    memberInfoAddUniqueElement(targets, this);
+                });
+
+            $root
+                .parents('.dx-popup-content, .dx-overlay-content, .dx-overlay-wrapper')
+                .each(function () {
+                    memberInfoAddUniqueElement(targets, this);
+                });
         }
 
-        return $hosts;
+        if ($content.length) {
+            addFromContent($content);
+        }
+
+        var popup = $('#memberInfoDetailPopup').dxPopup('instance');
+        if (popup && typeof popup.content === 'function') {
+            addFromContent($(popup.content()));
+        }
+
+        memberInfoAddUniqueElement(targets, document.scrollingElement);
+        memberInfoAddUniqueElement(targets, document.documentElement);
+        memberInfoAddUniqueElement(targets, document.body);
+
+        return targets;
+    }
+
+    function memberInfoGetDetailTopAnchor(contentElement) {
+        var $content = memberInfoFindDetailPopupContent(contentElement);
+        return $content
+            .find('.member-info-detail-top-anchor, .member-info-side, .member-info-photo, .member-info-tabs')
+            .filter(':visible')
+            .first()
+            .get(0);
+    }
+
+    function memberInfoIsDetailTopVisible(contentElement) {
+        var $content = memberInfoFindDetailPopupContent(contentElement);
+        var host = $content.find('.member-info-detail-scroll').get(0) || $content.get(0);
+        var anchor = memberInfoGetDetailTopAnchor(contentElement);
+
+        if (!host || !anchor || !host.getBoundingClientRect || !anchor.getBoundingClientRect) {
+            return true;
+        }
+
+        var hostRect = host.getBoundingClientRect();
+        var anchorRect = anchor.getBoundingClientRect();
+        return anchorRect.top >= hostRect.top - 2 && anchorRect.top <= hostRect.top + 24;
     }
 
     window.memberInfoResetDetailScroll = function (contentElement) {
         var $content = memberInfoFindDetailPopupContent(contentElement);
-        var $scrollHosts = memberInfoGetDetailScrollHosts(contentElement);
+        var scrollTargets = memberInfoGetDetailScrollTargets(contentElement);
 
-        $scrollHosts.each(function () {
-            this.scrollTop = 0;
-            this.scrollLeft = 0;
+        scrollTargets.forEach(function (target) {
+            if (!target) {
+                return;
+            }
+
+            target.scrollTop = 0;
+            target.scrollLeft = 0;
         });
 
         $content.each(function () {
             this.scrollTop = 0;
             this.scrollLeft = 0;
         });
+
+        try {
+            window.scrollTo(0, 0);
+        } catch (ex) {
+            // Ignore browsers that block window scroll while an overlay is active.
+        }
+
+        var anchor = memberInfoGetDetailTopAnchor(contentElement);
+        if (anchor && typeof anchor.scrollIntoView === 'function') {
+            try {
+                anchor.scrollIntoView({ block: 'start', inline: 'nearest' });
+            } catch (ex) {
+                anchor.scrollIntoView(true);
+            }
+        }
     };
 
     window.memberInfoResetDetailScrollSoon = function (contentElement) {
@@ -374,6 +466,16 @@
         requestFrame(resetIfCurrent);
         window.setTimeout(resetIfCurrent, 40);
         window.setTimeout(resetIfCurrent, 120);
+        window.setTimeout(resetIfCurrent, 260);
+        window.setTimeout(resetIfCurrent, 520);
+        window.setTimeout(resetIfCurrent, 900);
+        window.setTimeout(resetIfCurrent, 1400);
+        window.setTimeout(resetIfCurrent, 2100);
+        window.setTimeout(function () {
+            if (token === memberInfoDetailScrollResetToken && !memberInfoDetailUserInteracted && !memberInfoIsDetailTopVisible(contentElement)) {
+                window.memberInfoResetDetailScroll(contentElement);
+            }
+        }, 2800);
     };
 
     // DataGrid can change layout after loading; keep the initial view at the top only before the user interacts.
@@ -384,11 +486,24 @@
     };
 
     window.memberInfoDetailPopupShown = function (e) {
+        memberInfoDetailUserInteracted = false;
         window.memberInfoResetDetailScrollSoon(e && e.element);
+    };
+
+    window.memberInfoDetailPopupHidden = function (e) {
+        memberInfoDetailOpenToken++;
+        memberInfoDetailUserInteracted = false;
+        window.memberInfoResetDetailScroll(e && e.element);
+        memberInfoFindDetailPopupContent(e && e.element)
+            .empty()
+            .removeClass('member-info-detail-popup-content');
     };
 
     function memberInfoSetDetailPopupContent(contentElement, html) {
         var $content = $(contentElement);
+        if (!$content.length) {
+            return;
+        }
 
         memberInfoDetailUserInteracted = false;
         $content
@@ -398,14 +513,15 @@
         // Keep one native vertical scroll host; do not create a nested dxScrollView in the popup.
         var $scrollHost = $('<div class="member-info-detail-scroll"><div class="member-info-detail-scroll-inner"></div></div>');
         $content.append($scrollHost);
-        $scrollHost.find('.member-info-detail-scroll-inner').html(html);
+        $scrollHost.find('.member-info-detail-scroll-inner').html('<div class="member-info-detail-top-anchor" aria-hidden="true"></div>' + html);
 
         $content.add($scrollHost)
             .off('.memberInfoDetailScroll')
-            .on('touchstart.memberInfoDetailScroll pointerdown.memberInfoDetailScroll wheel.memberInfoDetailScroll', function () {
+            .on('touchmove.memberInfoDetailScroll pointermove.memberInfoDetailScroll wheel.memberInfoDetailScroll', function () {
                 memberInfoDetailUserInteracted = true;
             });
 
+        window.memberInfoResetDetailScroll($content);
         window.memberInfoResetDetailScrollSoon($content);
     }
 
@@ -425,23 +541,45 @@
             maxWidth: isMobile ? '100%' : 980,
             resizeEnabled: !isMobile
         });
-        // 手機：全螢幕，避免固定寬度造成內容被切到畫面外
-        popup.option('contentTemplate', function (contentElement) {
-            memberInfoSetDetailPopupContent(contentElement, '<div class="member-info-detail-loading">載入中...</div>');
-            $.ajax({
-                url: '/MemberInfo/Detail',
-                type: 'GET',
-                data: { contactId: contactId },
-                success: function (html) {
-                    memberInfoSetDetailPopupContent(contentElement, html);
-                },
-                error: function (xhr) {
-                    var text = xhr.status === 403 ? '無權檢視此連絡人' : '載入失敗';
-                    memberInfoSetDetailPopupContent(contentElement, '<div style="padding:16px;color:#b91c1c;">' + text + '</div>');
-                }
-            });
-        });
+
+        var openToken = ++memberInfoDetailOpenToken;
+        memberInfoDetailUserInteracted = false;
+        var loadingHtml = '<div class="member-info-detail-loading">載入中...</div>';
+        var contentElement = popup.content && popup.content();
+
+        memberInfoSetDetailPopupContent(contentElement, loadingHtml);
         popup.show();
-        window.memberInfoResetDetailScrollSoon();
+        if (popup.repaint) {
+            popup.repaint();
+        }
+
+        contentElement = popup.content && popup.content();
+        memberInfoSetDetailPopupContent(contentElement, loadingHtml);
+        window.memberInfoResetDetailScrollSoon(contentElement);
+
+        $.ajax({
+            url: '/MemberInfo/Detail',
+            type: 'GET',
+            data: { contactId: contactId },
+            success: function (html) {
+                if (openToken !== memberInfoDetailOpenToken) {
+                    return;
+                }
+
+                var latestContent = popup.content && popup.content();
+                memberInfoSetDetailPopupContent(latestContent, html);
+                window.memberInfoResetDetailScrollSoon(latestContent);
+            },
+            error: function (xhr) {
+                if (openToken !== memberInfoDetailOpenToken) {
+                    return;
+                }
+
+                var text = xhr.status === 403 ? '無權檢視此連絡人' : '載入失敗';
+                var latestContent = popup.content && popup.content();
+                memberInfoSetDetailPopupContent(latestContent, '<div style="padding:16px;color:#b91c1c;">' + text + '</div>');
+                window.memberInfoResetDetailScrollSoon(latestContent);
+            }
+        });
     };
 </script>
