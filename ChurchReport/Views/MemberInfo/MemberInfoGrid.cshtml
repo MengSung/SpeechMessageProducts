@@ -98,6 +98,9 @@
         touch-action: pan-y;
     }
 
+    /* 原生垂直捲動層：position:absolute + inset:0 讓它有確定高度（取自 DevExtreme 設定好的
+       .dx-popup-content），再用瀏覽器原生 overflow-y:auto 捲動。不再包 dxScrollView，
+       避免「外層模擬捲動 + 內層網格模擬捲動」互搶觸控手勢而無法上下滑動。 */
     .member-info-detail-scroll {
         box-sizing: border-box;
         bottom: 0;
@@ -106,7 +109,9 @@
         left: 0;
         min-height: 0;
         overflow-x: hidden;
-        overflow-y: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
         position: absolute;
         right: 0;
         top: 0;
@@ -237,7 +242,11 @@
         var img = document.createElement('img');
         img.className = 'member-info-avatar-img';
         img.alt = '大頭照';
-        img.loading = 'lazy';
+        // 必須 eager：照片欄位是 Fixed(true)，DevExtreme 會把欄位範本渲染在「絕對定位」的
+        // 固定欄覆蓋層(.dx-datagrid-content-fixed)。瀏覽器原生 loading="lazy" 的
+        // IntersectionObserver 在初次繪製時偵測不到絕對定位/被裁切容器內的圖片，
+        // 導致照片必須滑動後才載入。改為 eager 可在網格初始化後第一時間就顯示照片。
+        img.loading = 'eager';
         img.decoding = 'async';
         img.dataset.contactId = contactId;
         img.src = contactId && memberInfoImageCache[contactId]
@@ -341,28 +350,12 @@
         return $hosts;
     }
 
-    function memberInfoGetScrollViewInstance(host) {
-        if (!host || !$.fn.dxScrollView) {
-            return null;
-        }
-
-        try {
-            return $(host).dxScrollView('instance');
-        } catch (ex) {
-            return null;
-        }
-    }
-
     window.memberInfoResetDetailScroll = function (contentElement) {
         var $content = memberInfoFindDetailPopupContent(contentElement);
         var $scrollHosts = memberInfoGetDetailScrollHosts(contentElement);
 
+        // 原生捲動：直接把捲動位置歸零，讓彈窗一開啟先看到大頭照。
         $scrollHosts.each(function () {
-            var scrollView = memberInfoGetScrollViewInstance(this);
-            if (scrollView && typeof scrollView.scrollTo === 'function') {
-                scrollView.scrollTo(0);
-            }
-
             this.scrollTop = 0;
             this.scrollLeft = 0;
         });
@@ -394,14 +387,8 @@
         window.setTimeout(resetIfCurrent, 320);
     };
 
-    window.memberInfoDetailRefreshScroll = function (contentElement) {
-        memberInfoGetDetailScrollHosts(contentElement).each(function () {
-            var scrollView = memberInfoGetScrollViewInstance(this);
-            if (scrollView && typeof scrollView.update === 'function') {
-                scrollView.update();
-            }
-        });
-    };
+    // 原生捲動不需要手動 update（保留函式避免子網格 onContentReady 參照出錯）。
+    window.memberInfoDetailRefreshScroll = function (contentElement) { };
 
     window.memberInfoDetailPopupShown = function (e) {
         window.memberInfoResetDetailScrollSoon(e && e.element);
@@ -409,36 +396,17 @@
 
     function memberInfoSetDetailPopupContent(contentElement, html) {
         var $content = $(contentElement);
-        var $scrollHost;
-
-        $content.find('.member-info-detail-scroll').each(function () {
-            var scrollView = memberInfoGetScrollViewInstance(this);
-            if (scrollView && typeof scrollView.dispose === 'function') {
-                scrollView.dispose();
-            }
-        });
 
         memberInfoDetailUserInteracted = false;
         $content
             .addClass('member-info-detail-popup-content')
             .empty();
 
-        $scrollHost = $('<div class="member-info-detail-scroll"><div class="member-info-detail-scroll-inner"></div></div>');
+        // 純瀏覽器原生垂直捲動容器（樣式見 .member-info-detail-scroll），
+        // 刻意不再建立 dxScrollView，避免與內層網格的捲動互搶觸控手勢。
+        var $scrollHost = $('<div class="member-info-detail-scroll"><div class="member-info-detail-scroll-inner"></div></div>');
         $content.append($scrollHost);
         $scrollHost.find('.member-info-detail-scroll-inner').html(html);
-
-        if ($.fn.dxScrollView) {
-            $scrollHost.dxScrollView({
-                bounceEnabled: false,
-                direction: 'vertical',
-                scrollByContent: true,
-                scrollByThumb: true,
-                showScrollbar: 'onScroll',
-                useNative: false
-            });
-        } else {
-            $scrollHost.css('overflowY', 'auto');
-        }
 
         $content
             .off('.memberInfoDetailScroll')

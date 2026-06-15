@@ -91,21 +91,48 @@
         max-width: 100%;
     }
 
-    .member-info-subgrid .dx-datagrid-headers,
-    .member-info-subgrid .dx-datagrid-rowsview {
-        -ms-touch-action: pan-x pan-y;
-        touch-action: pan-x pan-y;
-    }
-
     @@media (max-width: 720px) {
         .member-info-detail {
             grid-template-columns: 1fr;
             min-height: auto;
         }
 
-        /* 手機：紀錄區改用原生 HTML 清單，不建立 DataGrid 內層捲軸。 */
         .member-info-subgrid {
             min-width: 0;
+        }
+
+        /* 手機：網格列區(rowsview)做成「嚴格單軸的水平原生捲動器」。
+           關鍵——iOS(WKWebView/LINE) 對巢狀捲動的 touch-action:pan-x 並不可靠，但對
+           「只有水平、沒有垂直」的原生捲動器是可靠的：水平滑動→網格左右捲動；
+           垂直滑動因為這層沒有垂直可捲範圍→一定冒泡給整頁的原生垂直捲動。
+           （之前會「吃掉」垂直滑動，是因為內層是「雙軸」捲動器；改成單軸即解決。）
+           - overflow-x:scroll → 一律保留水平卷軸軌道。
+           - overflow-y:hidden → 強制單軸，杜絕內層垂直捲動搶手勢(iOS 也可靠)。
+           - 自訂 ::-webkit-scrollbar → Chromium/Android WebView/LINE-Android 改用
+             「常駐(非 overlay)」卷軸，底部左右卷軸一定看得到(iOS 仍為滑動時浮現)。
+           - -webkit-overflow-scrolling:touch → iOS 專屬，給水平動量，對單軸無副作用。 */
+        .member-info-subgrid .dx-datagrid-rowsview .dx-scrollable-container {
+            -ms-touch-action: pan-x pan-y;
+            touch-action: pan-x pan-y;
+            overflow-x: scroll;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .member-info-subgrid .dx-datagrid-rowsview .dx-scrollable-container::-webkit-scrollbar {
+            height: 12px;
+            -webkit-appearance: none;
+        }
+
+        .member-info-subgrid .dx-datagrid-rowsview .dx-scrollable-container::-webkit-scrollbar-thumb {
+            background: rgba(37, 99, 235, .65);
+            border: 2px solid rgba(255, 255, 255, .7);
+            border-radius: 7px;
+        }
+
+        .member-info-subgrid .dx-datagrid-rowsview .dx-scrollable-container::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, .1);
+            border-radius: 7px;
         }
 
         .member-info-side {
@@ -189,13 +216,21 @@
         var contactId = '@Model.ContactId';
         window._memberInfoSubGridInit = { present: false, equip: false, contactId: contactId, scrolledTop: false };
         var isMobile = window.innerWidth <= 720;
-        // DataGrid uses non-native scrolling so DevExtreme can render the horizontal scrollbar consistently.
-        var gridScrollOptions = {
+        // 手機：改用「原生捲動」(useNative:true)。瀏覽器以 touch-action 自動分流手勢——
+        //   水平滑動 → 交給網格水平捲動；垂直滑動 → 冒泡給整頁(外層原生垂直捲動)。
+        //   如此可同時解決「整頁無法上下滑」與「網格無法左右滑」。
+        //   水平卷軸的「永遠可見」改由 CSS(::-webkit-scrollbar)強制呈現，不靠模擬捲動。
+        // 桌機：維持 DevExtreme 模擬捲動，滑鼠/觸控板操作體驗較佳。
+        var gridScrollOptions = isMobile ? {
             mode: 'standard',
+            useNative: true,
+            showScrollbar: 'always'
+        } : {
+            mode: 'standard',
+            useNative: false,
             scrollByContent: true,
             scrollByThumb: true,
-            showScrollbar: 'always',
-            useNative: false
+            showScrollbar: 'onHover'
         };
 
         // 把彈窗整頁捲回頂端（先看到大頭照），避免子網格初始化時把內容捲到底部。
@@ -244,7 +279,7 @@
                     showColumnLines: true,
                     wordWrapEnabled: true,
                     width: '100%',
-                    columnAutoWidth: false,
+                    columnAutoWidth: isMobile, // 手機:依設定欄寬呈現，總寬超過螢幕→必定出現水平卷軸；桌機維持自動填滿
                     focusStateEnabled: false,
                     scrolling: gridScrollOptions,
                     noDataText: '沒有資料',
@@ -279,7 +314,7 @@
                     showColumnLines: true,
                     wordWrapEnabled: true,
                     width: '100%',
-                    columnAutoWidth: false,
+                    columnAutoWidth: isMobile, // 手機:依設定欄寬呈現，總寬超過螢幕→必定出現水平卷軸；桌機維持自動填滿
                     focusStateEnabled: false,
                     scrolling: gridScrollOptions,
                     noDataText: '沒有資料',
