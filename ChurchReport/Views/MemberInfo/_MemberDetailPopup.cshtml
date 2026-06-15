@@ -101,19 +101,10 @@
             min-width: 0;
         }
 
-        /* 手機：網格列區(rowsview)做成「嚴格單軸的水平原生捲動器」。
-           關鍵——iOS(WKWebView/LINE) 對巢狀捲動的 touch-action:pan-x 並不可靠，但對
-           「只有水平、沒有垂直」的原生捲動器是可靠的：水平滑動→網格左右捲動；
-           垂直滑動因為這層沒有垂直可捲範圍→一定冒泡給整頁的原生垂直捲動。
-           （之前會「吃掉」垂直滑動，是因為內層是「雙軸」捲動器；改成單軸即解決。）
-           - overflow-x:scroll → 一律保留水平卷軸軌道。
-           - overflow-y:hidden → 強制單軸，杜絕內層垂直捲動搶手勢(iOS 也可靠)。
-           - 自訂 ::-webkit-scrollbar → Chromium/Android WebView/LINE-Android 改用
-             「常駐(非 overlay)」卷軸，底部左右卷軸一定看得到(iOS 仍為滑動時浮現)。
-           - -webkit-overflow-scrolling:touch → iOS 專屬，給水平動量，對單軸無副作用。 */
+        /* 手機：讓 DataGrid 列區只負責橫向捲動，外層 ScrollView 負責整頁垂直捲動。 */
         .member-info-subgrid .dx-datagrid-rowsview .dx-scrollable-container {
-            -ms-touch-action: pan-x pan-y;
-            touch-action: pan-x pan-y;
+            -ms-touch-action: pan-x;
+            touch-action: pan-x;
             overflow-x: scroll;
             overflow-y: hidden;
             -webkit-overflow-scrolling: touch;
@@ -153,7 +144,6 @@
         .member-info-fields {
             grid-template-columns: 1fr;
         }
-
     }
 </style>
 
@@ -217,14 +207,13 @@
         var contactId = '@Model.ContactId';
         window._memberInfoSubGridInit = { present: false, equip: false, contactId: contactId, scrolledTop: false };
         var isMobile = window.innerWidth <= 720;
-        // 手機：改用「原生捲動」(useNative:true)。瀏覽器以 touch-action 自動分流手勢——
-        //   水平滑動 → 交給網格水平捲動；垂直滑動 → 冒泡給整頁(外層原生垂直捲動)。
-        //   如此可同時解決「整頁無法上下滑」與「網格無法左右滑」。
-        //   水平卷軸的「永遠可見」改由 CSS(::-webkit-scrollbar)強制呈現，不靠模擬捲動。
-        // 桌機：維持 DevExtreme 模擬捲動，滑鼠/觸控板操作體驗較佳。
+        // 手機使用 DataGrid 模擬水平捲動，並由外層 ScrollView 掌管垂直捲動。
+        // 這樣可以固定水平卷軸顯示，同時避免 focused row 將 popup 內容自動捲到中段。
         var gridScrollOptions = isMobile ? {
             mode: 'standard',
-            useNative: true,
+            scrollByContent: true,
+            scrollByThumb: true,
+            useNative: false,
             showScrollbar: 'always'
         } : {
             mode: 'standard',
@@ -236,12 +225,17 @@
 
         function memberInfoGridReady(e) {
             var node = e && e.element && e.element.get ? e.element.get(0) : (e && e.element);
-            // 網格載入完成後，重新啟動「捲動防護」把 DevExtreme 的 scroll-into-view 還原回
-            // 使用者停留位置；首次載入時使用者尚未捲動 → 還原到頂端，先看到大頭照。
+            // 網格與照片載入後，若使用者尚未操作，維持畫面在頂端先看到大頭照。
             if (window.memberInfoDetailRefreshScroll) {
                 window.memberInfoDetailRefreshScroll(node);
             }
         }
+
+        $('.member-info-photo').one('load', function () {
+            if (window.memberInfoDetailRefreshScroll) {
+                window.memberInfoDetailRefreshScroll(this);
+            }
+        });
 
         window.memberInfoDetailSwitch = function (tab) {
             $('.member-info-tab').removeClass('active');
@@ -265,8 +259,11 @@
                     showColumnLines: true,
                     wordWrapEnabled: true,
                     width: '100%',
-                    columnAutoWidth: isMobile, // 手機:依設定欄寬呈現，總寬超過螢幕→必定出現水平卷軸；桌機維持自動填滿
+                    columnAutoWidth: false,
                     focusStateEnabled: false,
+                    focusedRowEnabled: false,
+                    hoverStateEnabled: false,
+                    autoNavigateToFocusedRow: false,
                     scrolling: gridScrollOptions,
                     noDataText: '沒有資料',
                     paging: { pageSize: 10 },
@@ -300,8 +297,11 @@
                     showColumnLines: true,
                     wordWrapEnabled: true,
                     width: '100%',
-                    columnAutoWidth: isMobile, // 手機:依設定欄寬呈現，總寬超過螢幕→必定出現水平卷軸；桌機維持自動填滿
+                    columnAutoWidth: false,
                     focusStateEnabled: false,
+                    focusedRowEnabled: false,
+                    hoverStateEnabled: false,
+                    autoNavigateToFocusedRow: false,
                     scrolling: gridScrollOptions,
                     noDataText: '沒有資料',
                     paging: { pageSize: 10 },
@@ -323,6 +323,6 @@
 
         setTimeout(function () {
             window.memberInfoDetailSwitch('present');
-        }, 0);
+        }, 180);
     })();
 </script>

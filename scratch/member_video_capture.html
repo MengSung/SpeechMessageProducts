@@ -1,0 +1,28 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>
+html, body {
+  margin: 0;
+  background: #111;
+}
+video {
+  display: block;
+  height: 100vh;
+  margin: 0 auto;
+  max-width: 100vw;
+}
+</style>
+<video id="video" muted playsinline></video>
+<script>
+const params = new URLSearchParams(location.search);
+const video = document.getElementById('video');
+const time = Number(params.get('t') || 0);
+video.src = './member_replay.mp4';
+video.addEventListener('loadedmetadata', () => {
+  video.currentTime = Math.min(Math.max(time, 0), Math.max(video.duration - 0.1, 0));
+});
+video.addEventListener('seeked', () => {
+  video.pause();
+  document.body.dataset.ready = 'true';
+});
+</script>

@@ -94,19 +94,16 @@
         min-height: 0;
         padding: 0 !important;
         position: relative;
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
+        overflow: hidden !important;
         touch-action: pan-y;
     }
 
-    /* The popup content owns vertical scrolling; this wrapper only provides layout/padding. */
+    /* One outer vertical ScrollView owns page scrolling; grids inside it do not own vertical scroll. */
     .member-info-detail-scroll {
         box-sizing: border-box;
-        height: auto;
+        height: 100%;
         min-height: 0;
-        overflow: visible;
+        overflow: hidden;
         position: relative;
         width: 100%;
         -ms-touch-action: pan-y;
@@ -117,6 +114,8 @@
         box-sizing: border-box;
         min-height: 100%;
         padding: 16px;
+        -ms-touch-action: pan-y;
+        touch-action: pan-y;
     }
 
     .member-info-detail-loading {
@@ -339,11 +338,28 @@
         return $hosts;
     }
 
+    function memberInfoGetDetailScrollView(host) {
+        if (!host || !$.fn.dxScrollView) {
+            return null;
+        }
+
+        try {
+            return $(host).dxScrollView('instance');
+        } catch (ex) {
+            return null;
+        }
+    }
+
     window.memberInfoResetDetailScroll = function (contentElement) {
         var $content = memberInfoFindDetailPopupContent(contentElement);
         var $scrollHosts = memberInfoGetDetailScrollHosts(contentElement);
 
         $scrollHosts.each(function () {
+            var scrollView = memberInfoGetDetailScrollView(this);
+            if (scrollView && typeof scrollView.scrollTo === 'function') {
+                scrollView.scrollTo(0);
+            }
+
             this.scrollTop = 0;
             this.scrollLeft = 0;
         });
@@ -391,6 +407,13 @@
     function memberInfoSetDetailPopupContent(contentElement, html) {
         var $content = $(contentElement);
 
+        $content.find('.member-info-detail-scroll').each(function () {
+            var scrollView = memberInfoGetDetailScrollView(this);
+            if (scrollView && typeof scrollView.dispose === 'function') {
+                scrollView.dispose();
+            }
+        });
+
         memberInfoDetailUserInteracted = false;
         $content
             .addClass('member-info-detail-popup-content')
@@ -400,6 +423,24 @@
         var $scrollHost = $('<div class="member-info-detail-scroll"><div class="member-info-detail-scroll-inner"></div></div>');
         $content.append($scrollHost);
         $scrollHost.find('.member-info-detail-scroll-inner').html(html);
+
+        if ($.fn.dxScrollView) {
+            var isMobileDetail = window.innerWidth <= 720;
+            $scrollHost.dxScrollView({
+                bounceEnabled: false,
+                direction: 'vertical',
+                scrollByContent: true,
+                scrollByThumb: true,
+                showScrollbar: 'onScroll',
+                useNative: isMobileDetail
+            });
+        } else {
+            $scrollHost.css({
+                '-webkit-overflow-scrolling': 'touch',
+                'overflow-x': 'hidden',
+                'overflow-y': 'auto'
+            });
+        }
 
         $content.add($scrollHost)
             .off('.memberInfoDetailScroll')
