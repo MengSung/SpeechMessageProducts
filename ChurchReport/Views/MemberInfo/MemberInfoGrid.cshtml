@@ -39,16 +39,34 @@
     }
 
     .member-info-photo-filter-btn {
+        box-sizing: border-box;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         border: none;
         border-radius: 6px;
-        padding: 8px 18px;
-        min-height: 36px;
-        font-size: 1rem;
+        padding: 0 16px;
+        height: 34px;
+        line-height: 1;
+        white-space: nowrap;
+        font-size: .95rem;
         font-weight: 700;
         color: #fff;
         cursor: pointer;
         background: #16a34a; /* 預設：綠色「顯示照片」 */
         transition: background-color .15s ease;
+    }
+
+    /* 讓工具列(含按鈕)完整顯示、不被裁切，並與欄位標題列留一點間距 */
+    #MemberInfoGridContainer .dx-datagrid-header-panel {
+        overflow: visible;
+        padding-bottom: 6px;
+    }
+
+    #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar,
+    #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar-items-container,
+    #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar-item {
+        overflow: visible;
     }
 
     .member-info-photo-filter-btn.is-photo-only {
