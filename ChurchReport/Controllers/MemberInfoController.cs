@@ -709,24 +709,59 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 全教會：載入整份(過濾後)清單、計算每位的小組名稱，再交給 DataSourceLoader 於記憶體
-        /// 套用排序(含計算欄位 SmallGroupName)與分頁。僅在依計算欄位排序時才走此較重路徑。
+        /// 全教會：取得整份(過濾後)清單(含小組名稱、帶快取)，交給 DataSourceLoader 於記憶體
+        /// 套用排序(含計算欄位 SmallGroupName)與分頁。僅在依計算欄位排序時才走此路徑。
         /// </summary>
         private object LoadChurchMemberRowsInMemory(DataSourceLoadOptions loadOptions)
         {
-            var service = ToolUtility.m_Crm2011OrganizationService;
             var searchValue = GetSearchTerm(loadOptions);
+            var rows = GetChurchMemberRowsCached(searchValue);
+            // 已是記憶體清單 → DataSourceLoader 套用排序(含 SmallGroupName)＋分頁，速度快。
+            return DataSourceLoader.Load(rows, loadOptions);
+        }
+
+        /// <summary>
+        /// 取整份全教會清單(含小組名稱)並快取數分鐘。第一次建立較慢，之後翻頁/改排序皆讀快取，
+        /// 不再每次重打 CRM —— 這是「按小組排序等很久」的主因。依搜尋字分開快取。
+        /// </summary>
+        private List<MemberInfoListRowViewModel> GetChurchMemberRowsCached(string searchValue)
+        {
+            var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
+            var cacheKey = "member-info-church-rows:" + (searchValue ?? string.Empty);
+
+            if (memoryCache != null &&
+                memoryCache.TryGetValue(cacheKey, out List<MemberInfoListRowViewModel> cached) &&
+                cached != null)
+            {
+                return cached;
+            }
+
+            var rows = BuildAllChurchMemberRows(searchValue);
+
+            memoryCache?.Set(cacheKey, rows, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(3),
+                SlidingExpiration = TimeSpan.FromMinutes(1),
+                Size = Math.Max(1, rows.Count)
+            });
+
+            return rows;
+        }
+
+        /// <summary>建立整份全教會清單：一次撈所有(過濾後)聯絡人 ＋ 一次撈所有小組成員，合併為資料列。</summary>
+        private List<MemberInfoListRowViewModel> BuildAllChurchMemberRows(string searchValue)
+        {
+            var service = ToolUtility.m_Crm2011OrganizationService;
 
             var query = BuildCurrentContactQuery(
                 new ColumnSet("contactid", "fullname", "mobilephone", "customertypecode", "statecode"),
                 searchValue);
-            query.AddOrder("fullname", OrderType.Ascending); // 穩定的基準次序；真正排序由 DataSourceLoader 套用
+            query.AddOrder("fullname", OrderType.Ascending); // 穩定基準次序；真正排序由 DataSourceLoader 套用
 
             var contacts = RetrieveAllContacts(service, query);
-            var ids = contacts.Select(e => e.Id).ToList();
-            var groupMap = GetSmallGroupNamesForContactsBatched(ids);
+            var groupMap = GetAllSmallGroupNames(); // 一次撈回所有人的小組名稱，取代逐 200 筆查詢
 
-            var rows = contacts.Select(contact =>
+            return contacts.Select(contact =>
             {
                 groupMap.TryGetValue(contact.Id, out var groupNames);
                 return new MemberInfoListRowViewModel
@@ -737,9 +772,6 @@ namespace ChurchReport.Controllers
                     SmallGroupName = groupNames ?? string.Empty
                 };
             }).ToList();
-
-            // DataSourceLoader 會依 loadOptions 在記憶體套用排序(含 SmallGroupName)＋分頁(回傳 data/totalCount)。
-            return DataSourceLoader.Load(rows, loadOptions);
         }
 
         /// <summary>分頁迴圈取回查詢的所有資料列（CRM 單次回傳有上限；逐頁累加直到 MoreRecords 為 false）。</summary>
@@ -774,23 +806,81 @@ namespace ChurchReport.Controllers
             return all;
         }
 
-        /// <summary>以小批次呼叫 GetSmallGroupNamesForContacts，避免 In 條件一次塞入過多 Id。</summary>
-        private Dictionary<Guid, string> GetSmallGroupNamesForContactsBatched(List<Guid> contactIds)
+        /// <summary>一次撈回所有「小組名單」成員 → 小組名稱(以 PagingCookie 逐頁累加)，回傳 contactId → 小組名稱字串。</summary>
+        private Dictionary<Guid, string> GetAllSmallGroupNames()
         {
+            var names = new Dictionary<Guid, HashSet<string>>();
             var result = new Dictionary<Guid, string>();
-            if (contactIds == null || contactIds.Count == 0)
+
+            try
             {
-                return result;
+                var service = ToolUtility.m_Crm2011OrganizationService;
+                var query = new QueryExpression("listmember")
+                {
+                    ColumnSet = new ColumnSet("entityid", "listid")
+                };
+
+                var listLink = new LinkEntity("listmember", "list", "listid", "listid", JoinOperator.Inner)
+                {
+                    EntityAlias = "list",
+                    Columns = new ColumnSet("listname")
+                };
+                listLink.LinkCriteria.AddCondition("statecode", ConditionOperator.Equal, 0);
+                listLink.LinkCriteria.AddCondition("new_app_named", ConditionOperator.Equal, true);
+                listLink.LinkCriteria.AddCondition("purpose", ConditionOperator.Equal, "小組名單");
+                query.LinkEntities.Add(listLink);
+
+                query.PageInfo = new PagingInfo
+                {
+                    Count = 5000,
+                    PageNumber = 1,
+                    PagingCookie = null,
+                    ReturnTotalRecordCount = false
+                };
+
+                while (true)
+                {
+                    var page = service.RetrieveMultiple(query);
+                    foreach (var listMember in page.Entities)
+                    {
+                        var contactId = GetListMemberContactId(listMember);
+                        if (contactId == Guid.Empty)
+                        {
+                            continue;
+                        }
+
+                        var listName = GetAliasedString(listMember, "list.listname");
+                        if (string.IsNullOrWhiteSpace(listName))
+                        {
+                            continue;
+                        }
+
+                        if (!names.TryGetValue(contactId, out var set))
+                        {
+                            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                            names[contactId] = set;
+                        }
+
+                        set.Add(listName);
+                    }
+
+                    if (!page.MoreRecords)
+                    {
+                        break;
+                    }
+
+                    query.PageInfo.PageNumber++;
+                    query.PageInfo.PagingCookie = page.PagingCookie;
+                }
+            }
+            catch
+            {
+                // 取小組名稱失敗時回傳已收集到的部分，不讓整個清單壞掉。
             }
 
-            const int batchSize = 200;
-            for (var i = 0; i < contactIds.Count; i += batchSize)
+            foreach (var pair in names)
             {
-                var chunk = contactIds.GetRange(i, Math.Min(batchSize, contactIds.Count - i));
-                foreach (var pair in GetSmallGroupNamesForContacts(chunk))
-                {
-                    result[pair.Key] = pair.Value;
-                }
+                result[pair.Key] = string.Join("、", pair.Value.OrderBy(n => n));
             }
 
             return result;
