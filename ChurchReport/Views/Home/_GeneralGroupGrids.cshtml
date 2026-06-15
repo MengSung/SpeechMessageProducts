@@ -645,9 +645,10 @@
      */
     function buildPopupContent($container, rowData, gridType) {
         var contactId = rowData.ContactId || rowData.contactId || '';
-        // 使用 size=0 取得原始圖片（僅在開啟彈窗時才下載）
-        var fullImageUrl = contactId
-            ? contactImageEndpoint + '?contactId=' + encodeURIComponent(contactId) + '&size=0'
+        // 大頭照只顯示成 104~120px，抓 size=256 縮圖即可。原圖(size=0)是 Dataverse entityimage
+        // 原始檔，可能數 MB，在手機上解碼會卡住主執行緒造成捲動頓挫；縮圖體積小、解碼快、且伺服器會快取。
+        var photoUrl = contactId
+            ? contactImageEndpoint + '?contactId=' + encodeURIComponent(contactId) + '&size=256'
             : '';
         var fallbackLarge = 'data:image/svg+xml;utf8,' + encodeURIComponent(
             '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">'
@@ -659,7 +660,7 @@
         // ── 上方：照片 + 基本資訊 ──
         html += '<div class="member-popup-header">';
         html += '  <div class="member-popup-photo">';
-        html += '    <img id="popupFullPhoto" src="' + (fullImageUrl || fallbackLarge) + '" alt="大頭照" />';
+        html += '    <img id="popupFullPhoto" src="' + (photoUrl || fallbackLarge) + '" alt="大頭照" loading="eager" decoding="async" />';
         html += '  </div>';
         html += '  <div class="member-popup-info">';
         html += '    <div class="member-popup-name">' + (rowData.FullName || '-') + '</div>';
