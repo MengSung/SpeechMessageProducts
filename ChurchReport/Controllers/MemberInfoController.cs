@@ -580,6 +580,13 @@ namespace ChurchReport.Controllers
 
         private object LoadChurchMemberRows(DataSourceLoadOptions loadOptions)
         {
+            // 依「計算欄位」(例如小組名稱)排序時，CRM 查詢層無法排序 → 改載入整份(過濾後)清單，
+            // 於記憶體排序+分頁；其餘(姓名/手機/預設)仍走 CRM 伺服器端分頁(較快)。
+            if (ChurchSortRequiresInMemory(loadOptions))
+            {
+                return LoadChurchMemberRowsInMemory(loadOptions);
+            }
+
             var service = ToolUtility.m_Crm2011OrganizationService;
             var take = loadOptions?.Take > 0 ? Math.Min(loadOptions.Take, MaxPageSize) : DefaultPageSize;
             var skip = loadOptions?.Skip > 0 ? loadOptions.Skip : 0;
@@ -674,6 +681,119 @@ namespace ChurchReport.Controllers
 
             // 其餘（例如 SmallGroupName 為查詢後計算的小組名稱）CRM 無法直接排序。
             return null;
+        }
+
+        /// <summary>是否有「CRM 無法排序的欄位」(如計算得來的小組名稱)被要求排序？是則需改走記憶體排序。</summary>
+        private static bool ChurchSortRequiresInMemory(DataSourceLoadOptions loadOptions)
+        {
+            var sort = loadOptions?.Sort;
+            if (sort == null)
+            {
+                return false;
+            }
+
+            foreach (var sortInfo in sort)
+            {
+                if (sortInfo?.Selector == null)
+                {
+                    continue;
+                }
+
+                if (MapChurchSortAttribute(sortInfo.Selector) == null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 全教會：載入整份(過濾後)清單、計算每位的小組名稱，再交給 DataSourceLoader 於記憶體
+        /// 套用排序(含計算欄位 SmallGroupName)與分頁。僅在依計算欄位排序時才走此較重路徑。
+        /// </summary>
+        private object LoadChurchMemberRowsInMemory(DataSourceLoadOptions loadOptions)
+        {
+            var service = ToolUtility.m_Crm2011OrganizationService;
+            var searchValue = GetSearchTerm(loadOptions);
+
+            var query = BuildCurrentContactQuery(
+                new ColumnSet("contactid", "fullname", "mobilephone", "customertypecode", "statecode"),
+                searchValue);
+            query.AddOrder("fullname", OrderType.Ascending); // 穩定的基準次序；真正排序由 DataSourceLoader 套用
+
+            var contacts = RetrieveAllContacts(service, query);
+            var ids = contacts.Select(e => e.Id).ToList();
+            var groupMap = GetSmallGroupNamesForContactsBatched(ids);
+
+            var rows = contacts.Select(contact =>
+            {
+                groupMap.TryGetValue(contact.Id, out var groupNames);
+                return new MemberInfoListRowViewModel
+                {
+                    ContactId = contact.Id.ToString(),
+                    FullName = ToolUtility.GetEntityStringAttribute(contact, "fullname"),
+                    Phone = ToolUtility.GetEntityStringAttribute(contact, "mobilephone"),
+                    SmallGroupName = groupNames ?? string.Empty
+                };
+            }).ToList();
+
+            // DataSourceLoader 會依 loadOptions 在記憶體套用排序(含 SmallGroupName)＋分頁(回傳 data/totalCount)。
+            return DataSourceLoader.Load(rows, loadOptions);
+        }
+
+        /// <summary>分頁迴圈取回查詢的所有資料列（CRM 單次回傳有上限；逐頁累加直到 MoreRecords 為 false）。</summary>
+        private static List<Entity> RetrieveAllContacts(IOrganizationService service, QueryExpression query)
+        {
+            var all = new List<Entity>();
+            query.PageInfo = new PagingInfo
+            {
+                Count = 2000,
+                PageNumber = 1,
+                PagingCookie = null,
+                ReturnTotalRecordCount = false
+            };
+
+            while (true)
+            {
+                var page = service.RetrieveMultiple(query);
+                if (page?.Entities != null)
+                {
+                    all.AddRange(page.Entities);
+                }
+
+                if (page == null || !page.MoreRecords)
+                {
+                    break;
+                }
+
+                query.PageInfo.PageNumber++;
+                query.PageInfo.PagingCookie = page.PagingCookie;
+            }
+
+            return all;
+        }
+
+        /// <summary>以小批次呼叫 GetSmallGroupNamesForContacts，避免 In 條件一次塞入過多 Id。</summary>
+        private Dictionary<Guid, string> GetSmallGroupNamesForContactsBatched(List<Guid> contactIds)
+        {
+            var result = new Dictionary<Guid, string>();
+            if (contactIds == null || contactIds.Count == 0)
+            {
+                return result;
+            }
+
+            const int batchSize = 200;
+            for (var i = 0; i < contactIds.Count; i += batchSize)
+            {
+                var chunk = contactIds.GetRange(i, Math.Min(batchSize, contactIds.Count - i));
+                foreach (var pair in GetSmallGroupNamesForContacts(chunk))
+                {
+                    result[pair.Key] = pair.Value;
+                }
+            }
+
+            return result;
         }
 
         private QueryExpression BuildCurrentContactQuery(ColumnSet columns, string searchValue)
