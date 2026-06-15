@@ -38,17 +38,11 @@
         box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
     }
 
-    .member-info-filter-bar {
-        display: flex;
-        justify-content: flex-start;
-        margin-bottom: 10px;
-    }
-
     .member-info-photo-filter-btn {
         border: none;
         border-radius: 6px;
         padding: 8px 18px;
-        min-height: 38px;
+        min-height: 36px;
         font-size: 1rem;
         font-weight: 700;
         color: #fff;
@@ -182,12 +176,6 @@
     </div>
 
     <div class="member-info-grid-shell">
-        <div class="member-info-filter-bar">
-            <button type="button"
-                    id="memberInfoPhotoFilterBtn"
-                    class="member-info-photo-filter-btn"
-                    onclick="memberInfoTogglePhotoFilter()">顯示照片</button>
-        </div>
         @(Html.DevExtreme().DataGrid<MemberInfoListRowViewModel>()
             .ID("MemberInfoGridContainer")
             .DataSource(d => d.Mvc()
@@ -245,7 +233,8 @@
                     .Caption("小組")
                     .MinWidth(160);
             })
-            .OnContentReady("memberInfoPreloadImages"))
+            .OnContentReady("memberInfoPreloadImages")
+            .OnToolbarPreparing("memberInfoGridToolbarPreparing"))
     </div>
 </div>
 
@@ -289,6 +278,24 @@
             loadUrl: '/MemberInfo/LoadMemberInfoList',
             loadParams: { photoOnly: memberInfoPhotoOnly }
         }));
+    };
+
+    // 把按鈕放進網格工具列(與搜尋框同一列、緊鄰網格上端)；onToolbarPreparing 確保工具列每次重建都依目前狀態正確呈現。
+    window.memberInfoGridToolbarPreparing = function (e) {
+        if (!e || !e.toolbarOptions || !e.toolbarOptions.items) { return; }
+        e.toolbarOptions.items.unshift({
+            location: 'before',
+            locateInMenu: 'never',
+            template: function () {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.id = 'memberInfoPhotoFilterBtn';
+                btn.className = 'member-info-photo-filter-btn' + (memberInfoPhotoOnly ? ' is-photo-only' : '');
+                btn.textContent = memberInfoPhotoOnly ? '顯示全部' : '顯示照片';
+                btn.onclick = memberInfoTogglePhotoFilter;
+                return btn;
+            }
+        });
     };
 
     window.memberInfoAvatarCellTemplate = function (container, options) {
