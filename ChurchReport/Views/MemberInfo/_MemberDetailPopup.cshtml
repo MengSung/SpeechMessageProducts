@@ -278,11 +278,34 @@
             if (input) { input.click(); }
         };
 
+        // 上傳成功後，立即刷新「所有已知網格」中該會友的縮圖(會友資訊 + 小組回報的小組牧養/新人跟進關懷)。
+        // 以不分大小寫比對 data-contact-id，並用各 img 自身的 id 重建網址，避免 GUID 大小寫差異造成比對不到。
         function memberInfoRefreshGridThumb(id, version) {
             try {
-                if (window.memberInfoImageCache) { delete window.memberInfoImageCache[id]; }
-                var url = '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(id) + '&size=48&v=' + version;
-                $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id="' + id + '"]').attr('src', url);
+                var lid = String(id || '').toLowerCase();
+                var v = version || Date.now();
+
+                // 清掉前端影像快取(各頁面命名不同，且 key 大小寫可能不同)，否則關閉彈窗後仍會顯示舊圖。
+                [window.memberInfoImageCache, window.contactImageCache].forEach(function (cache) {
+                    if (!cache) { return; }
+                    Object.keys(cache).forEach(function (k) {
+                        if (String(k).toLowerCase() === lid) { delete cache[k]; }
+                    });
+                });
+
+                function refreshAvatars(selector, endpoint) {
+                    $(selector).each(function () {
+                        var cid = this.dataset ? (this.dataset.contactId || '') : '';
+                        if (cid && cid.toLowerCase() === lid) {
+                            this.src = endpoint + '?contactId=' + encodeURIComponent(cid) + '&size=48&v=' + v;
+                        }
+                    });
+                }
+
+                // 會友資訊網格：縮圖來自 /MemberInfo/GetContactImage
+                refreshAvatars('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]', '/MemberInfo/GetContactImage');
+                // 小組回報頁(小組牧養/新人跟進關懷)網格：縮圖來自 /Personal/GetContactImage
+                refreshAvatars('#SmallGroupgridContainer .contact-avatar-img[data-contact-id], #NewPersonGridContainer .contact-avatar-img[data-contact-id]', '/Personal/GetContactImage');
             } catch (e) { }
         }
 
