@@ -497,6 +497,7 @@ namespace ChurchReport.Controllers
             var groupNamesByContact = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
             EnsureShepherdListsLoaded();
 
+            var resolveMembershipStatus = CreateMembershipStatusResolver();
             var service = ToolUtility.m_Crm2011OrganizationService;
             var groupRecords = InMemoryContext?.ListManager?.m_MultiGroupList?.m_WeeklyReportRecordListData;
             if (groupRecords == null)
@@ -552,6 +553,7 @@ namespace ChurchReport.Controllers
                             ContactId = key,
                             FullName = ToolUtility.GetEntityStringAttribute(contact, "fullname"),
                             Phone = ToolUtility.GetEntityStringAttribute(contact, "mobilephone"),
+                            MembershipStatus = resolveMembershipStatus(contact),
                             SmallGroupName = group.Name ?? string.Empty
                         };
                         rowsByContact[key] = row;
@@ -626,6 +628,7 @@ namespace ChurchReport.Controllers
             var ids = contacts.Entities.Select(e => e.Id).ToList();
             var groupMap = GetSmallGroupNamesForContacts(ids);
 
+            var resolveMembershipStatus = CreateMembershipStatusResolver();
             var rows = contacts.Entities.Select(contact =>
             {
                 groupMap.TryGetValue(contact.Id, out var groupNames);
@@ -634,6 +637,7 @@ namespace ChurchReport.Controllers
                     ContactId = contact.Id.ToString(),
                     FullName = ToolUtility.GetEntityStringAttribute(contact, "fullname"),
                     Phone = ToolUtility.GetEntityStringAttribute(contact, "mobilephone"),
+                    MembershipStatus = resolveMembershipStatus(contact),
                     SmallGroupName = groupNames ?? string.Empty
                 };
             }).ToList();
@@ -697,6 +701,11 @@ namespace ChurchReport.Controllers
             if (string.Equals(selector, "Phone", StringComparison.OrdinalIgnoreCase))
             {
                 return "mobilephone";
+            }
+
+            if (string.Equals(selector, "MembershipStatus", StringComparison.OrdinalIgnoreCase))
+            {
+                return "customertypecode";
             }
 
             // 其餘（例如 SmallGroupName 為查詢後計算的小組名稱）CRM 無法直接排序。
@@ -782,6 +791,7 @@ namespace ChurchReport.Controllers
             var contacts = RetrieveAllContacts(service, query);
             var groupMap = GetAllSmallGroupNames(); // 一次撈回所有人的小組名稱，取代逐 200 筆查詢
 
+            var resolveMembershipStatus = CreateMembershipStatusResolver();
             return contacts.Select(contact =>
             {
                 groupMap.TryGetValue(contact.Id, out var groupNames);
@@ -790,6 +800,7 @@ namespace ChurchReport.Controllers
                     ContactId = contact.Id.ToString(),
                     FullName = ToolUtility.GetEntityStringAttribute(contact, "fullname"),
                     Phone = ToolUtility.GetEntityStringAttribute(contact, "mobilephone"),
+                    MembershipStatus = resolveMembershipStatus(contact),
                     SmallGroupName = groupNames ?? string.Empty
                 };
             }).ToList();
@@ -937,6 +948,15 @@ namespace ChurchReport.Controllers
                 var searchFilter = new FilterExpression(LogicalOperator.Or);
                 searchFilter.AddCondition("fullname", ConditionOperator.Like, search);
                 searchFilter.AddCondition("mobilephone", ConditionOperator.Like, search);
+
+                // 會員身分(customertypecode)是 OptionSet(整數)，無法用 Like 比對文字 → 先把搜尋字
+                // 比對到符合的選項值，再用 customertypecode In (...) 一併納入同一組 OR 條件。
+                var statusValues = GetCustomerTypeValuesMatchingText(searchValue);
+                if (statusValues.Count > 0)
+                {
+                    searchFilter.AddCondition("customertypecode", ConditionOperator.In, statusValues.Select(v => (object)v).ToArray());
+                }
+
                 query.Criteria.Filters.Add(searchFilter);
             }
 
@@ -1169,6 +1189,79 @@ namespace ChurchReport.Controllers
             {
                 return null;
             }
+        }
+
+        /// <summary>建立以「共用」記憶體快取支援的 OptionSetMetadataService（metadata 整個 App 只查一次、快取 24h）。</summary>
+        private OptionSetMetadataService GetSharedOptionSetService()
+        {
+            var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
+            return new OptionSetMetadataService(ToolUtility.m_Crm2011OrganizationService, null, memoryCache);
+        }
+
+        /// <summary>
+        /// 把搜尋字比對到「會員身分(customertypecode)」選項文字(以 contains、不分大小寫)，回傳所有相符的選項值。
+        /// 供全教會伺服器端搜尋使用：OptionSet 無法 Like 文字，需先轉成值再用 In 篩選。
+        /// </summary>
+        private List<int> GetCustomerTypeValuesMatchingText(string searchValue)
+        {
+            var result = new List<int>();
+            if (string.IsNullOrWhiteSpace(searchValue))
+            {
+                return result;
+            }
+
+            try
+            {
+                var mapping = GetSharedOptionSetService().GetOptionSetMapping("contact", "customertypecode"); // 文字→值
+                var term = searchValue.Trim();
+                foreach (var pair in mapping)
+                {
+                    if (!string.IsNullOrEmpty(pair.Key) &&
+                        pair.Key.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        result.Add(pair.Value);
+                    }
+                }
+            }
+            catch
+            {
+                // 取不到 metadata 時回空集合：搜尋退回只比對姓名/手機，不讓清單壞掉。
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 建一個「會員身分(customertypecode) 值→文字」解析器：以「共用」的記憶體快取建立單一
+        /// OptionSetMetadataService。第一次查一次 CRM Metadata 後，同一份清單(數百~數千列)即全部
+        /// 走快取字典查詢，避免「每列各自 new 服務、各自打 CRM Metadata」造成大量往返。
+        /// </summary>
+        private Func<Entity, string> CreateMembershipStatusResolver()
+        {
+            var metadataService = GetSharedOptionSetService();
+
+            return contact =>
+            {
+                try
+                {
+                    if (contact == null || !contact.Contains("customertypecode"))
+                    {
+                        return string.Empty;
+                    }
+
+                    var value = ToolUtility.GetOptionSetAttribute(contact, "customertypecode");
+                    if (value < 0)
+                    {
+                        return string.Empty;
+                    }
+
+                    return metadataService.GetOptionSetText("contact", "customertypecode", value);
+                }
+                catch
+                {
+                    return string.Empty;
+                }
+            };
         }
 
         private string GetOptionSetText(Entity entity, string attributeName)

@@ -214,7 +214,7 @@
                 .Paging(true)
                 .Grouping(false)
                 .Summary(false))
-            .SearchPanel(s => s.Visible(true).Placeholder("搜尋姓名或手機"))
+            .SearchPanel(s => s.Visible(true).Placeholder("搜尋姓名、手機或會員身分"))
             .Paging(p => p.PageSize(50))
             .Pager(p => p
                 .ShowPageSizeSelector(true)
@@ -241,6 +241,11 @@
                     .MinWidth(100)
                     .Fixed(true)
                     .CellTemplate(new JS("memberInfoNameCellTemplate"));
+
+                columns.AddFor(m => m.MembershipStatus)
+                    .Caption("會員身分")
+                    .Width(110)
+                    .MinWidth(90);
 
                 columns.AddFor(m => m.Phone)
                     .Caption("手機")
