@@ -5,7 +5,7 @@
         display: grid;
         align-content: start;
         gap: 14px;
-        grid-template-columns: 190px minmax(0, 1fr);
+        grid-template-columns: 240px minmax(0, 1fr);
         min-height: 100%;
     }
 
@@ -15,8 +15,8 @@
     }
 
     .member-info-photo {
-        width: 132px;
-        height: 132px;
+        width: 198px;
+        height: 198px;
         border: 3px solid #dbe4ea;
         border-radius: 10px;
         display: block;
@@ -28,7 +28,7 @@
     /* 大頭照 + 右下角相機圖示(可拍照/選相片，選好即上傳) */
     .member-info-photo-wrapper {
         position: relative;
-        width: 132px;
+        width: 198px;
         margin: 0 auto 14px;
     }
 
@@ -64,8 +64,10 @@
         fill: #fff;
     }
 
-    .member-info-photo-input {
-        display: none;
+    /* 用 ID 選擇器確保蓋過全域 input[type=file] 樣式(與個人資料頁 #imageFileInput 同作法)；
+       以程式 .click() 觸發，display:none 仍可開啟檔案選擇。 */
+    #memberInfoPhotoInput {
+        display: none !important;
     }
 
     .member-info-photo-busy {
@@ -75,7 +77,7 @@
 
     @@media (max-width: 720px) {
         .member-info-photo-wrapper {
-            width: 104px;
+            width: 156px;
         }
     }
 
@@ -187,8 +189,8 @@
         }
 
         .member-info-photo {
-            width: 104px;
-            height: 104px;
+            width: 156px;
+            height: 156px;
         }
 
         .member-info-tabs {
