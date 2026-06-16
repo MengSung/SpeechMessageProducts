@@ -121,7 +121,8 @@
                                 .MinWidth(20)
                                 .Alignment(HorizontalAlignment.Left)
                                 .AllowSorting(false)
-                                .AllowEditing(false);
+                                .AllowEditing(false)
+                                .CellTemplate(new JS("memberInfoDetailNameCellTemplate"));
 
                             columns.AddFor(m => m.Sunday)
                                 .Caption("主日")
@@ -309,7 +310,8 @@
                                 .Width(60)
                                 .MinWidth(20)
                                 .Alignment(HorizontalAlignment.Left)
-                                .AllowEditing(false);
+                                .AllowEditing(false)
+                                .CellTemplate(new JS("memberInfoDetailNameCellTemplate"));
 
                             columns.AddFor(m => m.Sunday)
                                 .Caption("主日")
@@ -439,6 +441,11 @@
        區塊 4：會員詳細資料彈出視窗（點擊大頭照開啟）
        ================================================================================================ *@
     <div id="memberDetailPopup"></div>
+
+    @* ================================================================================================
+       區塊 5：會友細節彈出視窗（點擊姓名開啟，與「會友資訊」網格同一套）
+       ================================================================================================ *@
+    @await Html.PartialAsync("_MemberInfoDetailPopupHost")
 </div>
 
 @* ================================================================================================
@@ -522,6 +529,35 @@
 
     window.contactImageCellTemplate = function (container, options) {
         renderContactAvatar(container, options);
+    };
+
+    // 點擊「姓名」開啟會友細節彈窗（與「會友資訊」網格相同；openMemberInfoDetailPopup 來自 _MemberInfoDetailPopupHost）
+    window.memberInfoDetailNameCellTemplate = function (container, options) {
+        var data = (options && options.data) || {};
+        var contactId = data.ContactId || data.contactId || '';
+        var fullName = data.FullName || data.fullName || '';
+        var host = container && container.get ? container.get(0) : container;
+        if (!host) { return; }
+        host.textContent = '';
+
+        if (!contactId) {
+            host.textContent = fullName;
+            return;
+        }
+
+        var link = document.createElement('a');
+        link.href = 'javascript:void(0)';
+        link.className = 'member-info-name-link';
+        link.textContent = fullName;
+        link.title = '點擊查看會友細節';
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (window.openMemberInfoDetailPopup) {
+                window.openMemberInfoDetailPopup(contactId, fullName);
+            }
+        });
+        host.appendChild(link);
     };
 
     /**

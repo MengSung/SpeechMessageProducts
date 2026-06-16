@@ -1,0 +1,504 @@
+@*
+    共用「會友細節」彈出視窗 host
+    --------------------------------------------------------------------------------
+    由「會友資訊」(MemberInfoGrid) 沿用的會友細節彈窗邏輯，供其他頁面(小組牧養 /
+    新人跟進關懷 等)共用。點擊姓名 → 呼叫全域 openMemberInfoDetailPopup(contactId, fullName)
+    → AJAX 載入 /MemberInfo/Detail 內容，並沿用同一套手機巢狀捲動處理(單軸原生捲動)。
+    note: /MemberInfo/Detail 以 CanViewContact 把關，無權者會顯示「無權檢視此連絡人」。
+*@
+
+<style>
+    /* 防止 iOS 點擊輸入框自動放大整頁：輸入字級必須 >= 16px */
+    #memberInfoDetailPopup .dx-texteditor-input {
+        font-size: 16px;
+    }
+
+    .member-info-detail-popup-content {
+        box-sizing: border-box;
+        height: 100%;
+        min-height: 0;
+        padding: 0 !important;
+        position: relative;
+        overflow: hidden !important;
+        overscroll-behavior: contain;
+        -ms-touch-action: pan-x;
+        touch-action: pan-x;
+    }
+
+    /* One native vertical scroll container owns the mobile detail page. */
+    .member-info-detail-scroll {
+        box-sizing: border-box;
+        height: 100%;
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        position: relative;
+        width: 100%;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        scroll-behavior: auto;
+        -ms-touch-action: pan-x;
+        touch-action: pan-x;
+    }
+
+    .member-info-detail-scroll-inner {
+        box-sizing: border-box;
+        min-height: 100%;
+        padding: 16px;
+        -ms-touch-action: pan-x;
+        touch-action: pan-x;
+    }
+
+    .member-info-detail-top-anchor {
+        display: block;
+        height: 1px;
+        margin-bottom: -1px;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .member-info-detail-loading {
+        padding: 16px;
+    }
+
+    /* 姓名連結(點擊開啟會友細節)，比照會友資訊網格樣式 */
+    .member-info-name-link {
+        color: #2563eb;
+        cursor: pointer;
+        font-weight: 700;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    /* Mobile keeps the same native popup-content scroll container. */
+    @@media (max-width: 720px) {
+        .member-info-detail-popup-content {
+            min-height: 0;
+        }
+
+        .member-info-detail-scroll-inner {
+            padding: 12px 10px calc(env(safe-area-inset-bottom, 0px) + 16px);
+        }
+    }
+</style>
+
+@(Html.DevExtreme().Popup()
+    .ID("memberInfoDetailPopup")
+    .Width("90%")
+    .Height("86%")
+    .MaxWidth(980)
+    .ShowTitle(true)
+    .ShowCloseButton(true)
+    .DragEnabled(false)
+    .ResizeEnabled(true)
+    .Shading(true)
+    .OnShown("memberInfoDetailPopupShown")
+    .OnHidden("memberInfoDetailPopupHidden"))
+
+<script>
+    function memberInfoFindDetailPopupContent(contentElement) {
+        var $candidate = contentElement ? $(contentElement) : $();
+        var $content = $candidate.hasClass('dx-popup-content')
+            ? $candidate
+            : $candidate.closest('.dx-popup-content');
+
+        if (!$content.length) {
+            var popup = $('#memberInfoDetailPopup').dxPopup('instance');
+            if (popup && typeof popup.content === 'function') {
+                $content = $(popup.content());
+            }
+        }
+
+        if (!$content.length) {
+            $content = $('.member-info-detail-popup-content').last();
+        }
+
+        return $content;
+    }
+
+    var memberInfoDetailScrollResetToken = 0;
+    var memberInfoDetailUserInteracted = false;
+    var memberInfoDetailOpenToken = 0;
+    var memberInfoDetailScrollCleanup = null;
+    var memberInfoSupportsPassiveEvents = false;
+
+    try {
+        var memberInfoPassiveProbe = Object.defineProperty({}, 'passive', {
+            get: function () {
+                memberInfoSupportsPassiveEvents = true;
+                return true;
+            }
+        });
+        var memberInfoPassiveNoop = function () { };
+        window.addEventListener('memberInfoPassiveProbe', memberInfoPassiveNoop, memberInfoPassiveProbe);
+        window.removeEventListener('memberInfoPassiveProbe', memberInfoPassiveNoop, memberInfoPassiveProbe);
+    } catch (ex) {
+        memberInfoSupportsPassiveEvents = false;
+    }
+
+    if (window.history && 'scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+    }
+
+    function memberInfoAddUniqueElement(list, element) {
+        if (element && list.indexOf(element) < 0) {
+            list.push(element);
+        }
+    }
+
+    function memberInfoGetEventOptions(passive, capture) {
+        return memberInfoSupportsPassiveEvents
+            ? { passive: passive, capture: !!capture }
+            : !!capture;
+    }
+
+    function memberInfoAddDetailListener(cleanups, element, type, handler, options) {
+        if (!element || !element.addEventListener) {
+            return;
+        }
+
+        element.addEventListener(type, handler, options);
+        cleanups.push(function () {
+            element.removeEventListener(type, handler, options);
+        });
+    }
+
+    function memberInfoStopInitialScrollLock() {
+        memberInfoDetailUserInteracted = true;
+        memberInfoDetailScrollResetToken++;
+    }
+
+    function memberInfoGetDetailScrollTargets(contentElement) {
+        var $content = memberInfoFindDetailPopupContent(contentElement);
+        var targets = [];
+
+        function addFromContent($root) {
+            $root.each(function () {
+                memberInfoAddUniqueElement(targets, this);
+            });
+
+            $root
+                .find('.member-info-detail-scroll')
+                .each(function () {
+                    memberInfoAddUniqueElement(targets, this);
+                });
+        }
+
+        if ($content.length) {
+            addFromContent($content);
+        }
+
+        var popup = $('#memberInfoDetailPopup').dxPopup('instance');
+        if (popup && typeof popup.content === 'function') {
+            addFromContent($(popup.content()));
+        }
+
+        return targets;
+    }
+
+    function memberInfoBindDetailTouchHandling($content, scrollHost) {
+        if (memberInfoDetailScrollCleanup) {
+            memberInfoDetailScrollCleanup();
+            memberInfoDetailScrollCleanup = null;
+        }
+
+        var cleanups = [];
+        var unlock = function () {
+            memberInfoStopInitialScrollLock();
+        };
+
+        $content.add($(scrollHost)).each(function () {
+            memberInfoAddDetailListener(cleanups, this, 'touchstart', unlock, memberInfoGetEventOptions(true, true));
+            memberInfoAddDetailListener(cleanups, this, 'pointerdown', unlock, memberInfoGetEventOptions(true, true));
+            memberInfoAddDetailListener(cleanups, this, 'wheel', unlock, memberInfoGetEventOptions(true, true));
+        });
+
+        var detailPan = {
+            tracking: false,
+            lockedAxis: null,
+            startX: 0,
+            startY: 0,
+            lastY: 0
+        };
+
+        function getTouchPoint(event) {
+            if (event && event.touches && event.touches.length) {
+                return event.touches[0];
+            }
+
+            if (event && typeof event.clientX === 'number' && typeof event.clientY === 'number') {
+                return event;
+            }
+
+            return null;
+        }
+
+        function detailPanStart(event) {
+            if (event && event.pointerType && event.pointerType !== 'touch') {
+                return;
+            }
+
+            var point = getTouchPoint(event);
+            if (!point) {
+                return;
+            }
+
+            memberInfoStopInitialScrollLock();
+            detailPan.tracking = true;
+            detailPan.lockedAxis = null;
+            detailPan.startX = point.clientX;
+            detailPan.startY = point.clientY;
+            detailPan.lastY = point.clientY;
+        }
+
+        function detailPanMove(event) {
+            if (event && event.pointerType && event.pointerType !== 'touch') {
+                return;
+            }
+
+            var point = getTouchPoint(event);
+            if (!point || !detailPan.tracking || !scrollHost) {
+                return;
+            }
+
+            var dx = point.clientX - detailPan.startX;
+            var dy = point.clientY - detailPan.startY;
+            var absX = Math.abs(dx);
+            var absY = Math.abs(dy);
+
+            if (!detailPan.lockedAxis && Math.max(absX, absY) > 3) {
+                detailPan.lockedAxis = absY >= absX ? 'y' : 'x';
+            }
+
+            if (detailPan.lockedAxis !== 'y') {
+                return;
+            }
+
+            var maxScrollTop = Math.max(0, scrollHost.scrollHeight - scrollHost.clientHeight);
+            if (maxScrollTop <= 0) {
+                return;
+            }
+
+            var deltaY = detailPan.lastY - point.clientY;
+            if (deltaY === 0) {
+                return;
+            }
+
+            var nextScrollTop = Math.max(0, Math.min(maxScrollTop, scrollHost.scrollTop + deltaY));
+            scrollHost.scrollTop = nextScrollTop;
+            detailPan.lastY = point.clientY;
+
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        function detailPanEnd() {
+            detailPan.tracking = false;
+            detailPan.lockedAxis = null;
+        }
+
+        if (window.PointerEvent) {
+            memberInfoAddDetailListener(cleanups, scrollHost, 'pointerdown', detailPanStart, memberInfoGetEventOptions(true, true));
+            memberInfoAddDetailListener(cleanups, scrollHost, 'pointermove', detailPanMove, memberInfoGetEventOptions(false, true));
+            memberInfoAddDetailListener(cleanups, scrollHost, 'pointerup', detailPanEnd, memberInfoGetEventOptions(true, true));
+            memberInfoAddDetailListener(cleanups, scrollHost, 'pointercancel', detailPanEnd, memberInfoGetEventOptions(true, true));
+            memberInfoAddDetailListener(cleanups, scrollHost, 'pointerleave', detailPanEnd, memberInfoGetEventOptions(true, true));
+        } else {
+            memberInfoAddDetailListener(cleanups, scrollHost, 'touchstart', detailPanStart, memberInfoGetEventOptions(true, true));
+            memberInfoAddDetailListener(cleanups, scrollHost, 'touchmove', detailPanMove, memberInfoGetEventOptions(false, true));
+            memberInfoAddDetailListener(cleanups, scrollHost, 'touchend', detailPanEnd, memberInfoGetEventOptions(true, true));
+            memberInfoAddDetailListener(cleanups, scrollHost, 'touchcancel', detailPanEnd, memberInfoGetEventOptions(true, true));
+        }
+
+        memberInfoDetailScrollCleanup = function () {
+            cleanups.forEach(function (cleanup) {
+                cleanup();
+            });
+        };
+    }
+
+    function memberInfoGetDetailTopAnchor(contentElement) {
+        var $content = memberInfoFindDetailPopupContent(contentElement);
+        return $content
+            .find('.member-info-detail-top-anchor, .member-info-side, .member-info-photo, .member-info-tabs')
+            .filter(':visible')
+            .first()
+            .get(0);
+    }
+
+    function memberInfoIsDetailTopVisible(contentElement) {
+        var $content = memberInfoFindDetailPopupContent(contentElement);
+        var host = $content.find('.member-info-detail-scroll').get(0) || $content.get(0);
+        var anchor = memberInfoGetDetailTopAnchor(contentElement);
+
+        if (!host || !anchor || !host.getBoundingClientRect || !anchor.getBoundingClientRect) {
+            return true;
+        }
+
+        var hostRect = host.getBoundingClientRect();
+        var anchorRect = anchor.getBoundingClientRect();
+        return anchorRect.top >= hostRect.top - 2 && anchorRect.top <= hostRect.top + 24;
+    }
+
+    window.memberInfoResetDetailScroll = function (contentElement) {
+        var $content = memberInfoFindDetailPopupContent(contentElement);
+        var scrollTargets = memberInfoGetDetailScrollTargets(contentElement);
+
+        scrollTargets.forEach(function (target) {
+            if (!target) {
+                return;
+            }
+
+            target.scrollTop = 0;
+            target.scrollLeft = 0;
+        });
+
+        $content.each(function () {
+            this.scrollTop = 0;
+            this.scrollLeft = 0;
+        });
+
+        var anchor = memberInfoGetDetailTopAnchor(contentElement);
+        if (!scrollTargets.length && anchor && typeof anchor.scrollIntoView === 'function') {
+            try {
+                anchor.scrollIntoView({ block: 'start', inline: 'nearest' });
+            } catch (ex) {
+                anchor.scrollIntoView(true);
+            }
+        }
+    };
+
+    window.memberInfoResetDetailScrollSoon = function (contentElement) {
+        var requestFrame = window.requestAnimationFrame || function (callback) {
+            window.setTimeout(callback, 0);
+        };
+        var token = ++memberInfoDetailScrollResetToken;
+
+        function resetIfCurrent() {
+            if (token !== memberInfoDetailScrollResetToken || memberInfoDetailUserInteracted) {
+                return;
+            }
+
+            window.memberInfoResetDetailScroll(contentElement);
+        }
+
+        resetIfCurrent();
+        requestFrame(resetIfCurrent);
+        window.setTimeout(resetIfCurrent, 40);
+        window.setTimeout(resetIfCurrent, 120);
+        window.setTimeout(resetIfCurrent, 260);
+        window.setTimeout(resetIfCurrent, 520);
+        window.setTimeout(resetIfCurrent, 900);
+        window.setTimeout(resetIfCurrent, 1400);
+        window.setTimeout(resetIfCurrent, 2100);
+        window.setTimeout(function () {
+            if (token === memberInfoDetailScrollResetToken && !memberInfoDetailUserInteracted && !memberInfoIsDetailTopVisible(contentElement)) {
+                window.memberInfoResetDetailScroll(contentElement);
+            }
+        }, 2800);
+    };
+
+    // DataGrid can change layout after loading; keep the initial view at the top only before the user interacts.
+    window.memberInfoDetailRefreshScroll = function (contentElement) {
+        if (!memberInfoDetailUserInteracted) {
+            window.memberInfoResetDetailScrollSoon(contentElement);
+        }
+    };
+
+    window.memberInfoDetailPopupShown = function (e) {
+        memberInfoDetailUserInteracted = false;
+        window.memberInfoResetDetailScrollSoon(e && e.element);
+    };
+
+    window.memberInfoDetailPopupHidden = function (e) {
+        memberInfoDetailOpenToken++;
+        memberInfoDetailUserInteracted = false;
+        if (memberInfoDetailScrollCleanup) {
+            memberInfoDetailScrollCleanup();
+            memberInfoDetailScrollCleanup = null;
+        }
+        window.memberInfoResetDetailScroll(e && e.element);
+        memberInfoFindDetailPopupContent(e && e.element)
+            .empty()
+            .removeClass('member-info-detail-popup-content');
+    };
+
+    function memberInfoSetDetailPopupContent(contentElement, html) {
+        var $content = $(contentElement);
+        if (!$content.length) {
+            return;
+        }
+
+        memberInfoDetailUserInteracted = false;
+        $content
+            .addClass('member-info-detail-popup-content')
+            .empty();
+
+        // Keep one native vertical scroll host; do not create a nested dxScrollView in the popup.
+        var $scrollHost = $('<div class="member-info-detail-scroll"><div class="member-info-detail-scroll-inner"></div></div>');
+        $content.append($scrollHost);
+        $scrollHost.find('.member-info-detail-scroll-inner').html('<div class="member-info-detail-top-anchor" aria-hidden="true"></div>' + html);
+
+        window.memberInfoResetDetailScroll($content);
+        memberInfoBindDetailTouchHandling($content, $scrollHost.get(0));
+        window.memberInfoResetDetailScrollSoon($content);
+    }
+
+    window.openMemberInfoDetailPopup = function (contactId, fullName) {
+        if (!contactId) return;
+        if (document.activeElement && document.activeElement.blur) {
+            document.activeElement.blur();
+        }
+
+        var popup = $('#memberInfoDetailPopup').dxPopup('instance');
+        var isMobile = window.innerWidth <= 720;
+        popup.option({
+            title: (fullName || '') + ' - 會友細節',
+            fullScreen: isMobile,
+            width: isMobile ? '100%' : '90%',
+            height: isMobile ? '100%' : '86%',
+            maxWidth: isMobile ? '100%' : 980,
+            resizeEnabled: !isMobile
+        });
+
+        var openToken = ++memberInfoDetailOpenToken;
+        memberInfoDetailUserInteracted = false;
+        var loadingHtml = '<div class="member-info-detail-loading">載入中...</div>';
+        var contentElement = popup.content && popup.content();
+
+        memberInfoSetDetailPopupContent(contentElement, loadingHtml);
+        popup.show();
+        if (popup.repaint) {
+            popup.repaint();
+        }
+
+        contentElement = popup.content && popup.content();
+        memberInfoSetDetailPopupContent(contentElement, loadingHtml);
+        window.memberInfoResetDetailScrollSoon(contentElement);
+
+        $.ajax({
+            url: '/MemberInfo/Detail',
+            type: 'GET',
+            data: { contactId: contactId },
+            success: function (html) {
+                if (openToken !== memberInfoDetailOpenToken) {
+                    return;
+                }
+
+                var latestContent = popup.content && popup.content();
+                memberInfoSetDetailPopupContent(latestContent, html);
+                window.memberInfoResetDetailScrollSoon(latestContent);
+            },
+            error: function (xhr) {
+                if (openToken !== memberInfoDetailOpenToken) {
+                    return;
+                }
+
+                var text = xhr.status === 403 ? '無權檢視此連絡人' : '載入失敗';
+                var latestContent = popup.content && popup.content();
+                memberInfoSetDetailPopupContent(latestContent, '<div style="padding:16px;color:#b91c1c;">' + text + '</div>');
+                window.memberInfoResetDetailScrollSoon(latestContent);
+            }
+        });
+    };
+</script>
