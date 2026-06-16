@@ -21,7 +21,7 @@
         border-radius: 10px;
         display: block;
         margin: 0 auto 14px;
-        object-fit: cover;
+        object-fit: contain;
         background: #f8fafc;
     }
 
@@ -208,7 +208,7 @@
         <div class="member-info-photo-wrapper">
             <img id="memberInfoDetailPhoto"
                  class="member-info-photo"
-                 src="/MemberInfo/GetContactImage?contactId=@Model.ContactId&size=256"
+                 src="/MemberInfo/GetContactImage?contactId=@Model.ContactId&size=256&fit=true"
                  alt="大頭照"
                  loading="eager" decoding="async"
                  onclick="memberInfoTriggerPhotoUpload()" />
@@ -350,7 +350,7 @@
                     if (response && response.success) {
                         var version = response.imageVersion || Date.now();
                         if (photo) {
-                            photo.src = '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(contactId) + '&size=256&v=' + version;
+                            photo.src = '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(contactId) + '&size=256&fit=true&v=' + version;
                         }
                         memberInfoRefreshGridThumb(contactId, version);
                         DevExpress.ui.notify(response.message || '大頭照上傳成功！', 'success', 2000);

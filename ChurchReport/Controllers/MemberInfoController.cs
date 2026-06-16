@@ -240,7 +240,7 @@ namespace ChurchReport.Controllers
 
         [HttpGet]
         [Route("/MemberInfo/GetContactImage")]
-        public IActionResult GetContactImage(string contactId, int size = 80)
+        public IActionResult GetContactImage(string contactId, int size = 80, bool fit = false)
         {
             IOrganizationService service = null;
 
@@ -256,7 +256,9 @@ namespace ChurchReport.Controllers
                 var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
                 var cacheKey = returnOriginal
                     ? $"member-info-contact-image-full:{contactGuid:N}"
-                    : $"member-info-contact-image-thumb:{contactGuid:N}:{thumbSize}";
+                    : (fit
+                        ? $"member-info-contact-image-fit:{contactGuid:N}:{thumbSize}"
+                        : $"member-info-contact-image-thumb:{contactGuid:N}:{thumbSize}");
 
                 if (memoryCache != null &&
                     memoryCache.TryGetValue(cacheKey, out byte[] cachedBytes) &&
@@ -271,7 +273,9 @@ namespace ChurchReport.Controllers
                 if (contact.Contains("entityimage") && contact["entityimage"] != null)
                 {
                     var originalBytes = (byte[])contact["entityimage"];
-                    var outputBytes = returnOriginal ? originalBytes : CreateThumbnailIfNeeded(originalBytes, thumbSize);
+                    var outputBytes = returnOriginal
+                        ? originalBytes
+                        : (fit ? CreateFitThumbnail(originalBytes, thumbSize) : CreateThumbnailIfNeeded(originalBytes, thumbSize));
 
                     memoryCache?.Set(cacheKey, outputBytes, new MemoryCacheEntryOptions
                     {
@@ -454,7 +458,11 @@ namespace ChurchReport.Controllers
             }
         }
 
-        /// <summary>讀取上傳圖片並依 EXIF 自動轉正(解決手機直拍旋轉)，轉存 JPEG；處理失敗時退回原始位元組。</summary>
+        /// <summary>
+        /// 讀取上傳圖片並依 EXIF 自動轉正(解決手機直拍旋轉)，再「置中補邊成正方形」(補白、不裁切)，轉存 JPEG。
+        /// 補正方形的原因：CRM 的 entityimage 以正方形顯示大頭照，直接存直式照片會被裁掉頭頂與下方；
+        /// 先補成正方形後，存進 CRM 不會切到上下，完整人像在 CRM、清單、會友細節都看得到。處理失敗時退回原始位元組。
+        /// </summary>
         private static byte[] NormalizeUploadedImage(IFormFile imageFile)
         {
             byte[] raw;
@@ -470,6 +478,18 @@ namespace ChurchReport.Controllers
                 using var input = new MemoryStream(raw);
                 using var image = Image.Load(input);
                 image.Mutate(x => x.AutoOrient());
+
+                // 置中補邊成正方形(補白、完全不裁切)，避免 CRM 正方形大頭照裁掉頭頂/下方。
+                if (image.Width != image.Height)
+                {
+                    var side = Math.Max(image.Width, image.Height);
+                    image.Mutate(x => x.Resize(new ResizeOptions
+                    {
+                        Size = new Size(side, side),
+                        Mode = ResizeMode.BoxPad,
+                        PadColor = Color.White
+                    }));
+                }
 
                 using var output = new MemoryStream();
                 image.Save(output, new JpegEncoder { Quality = 90 });
@@ -499,6 +519,7 @@ namespace ChurchReport.Controllers
                 foreach (var size in new[] { 48, 80, 256 })
                 {
                     memoryCache.Remove($"{prefix}-thumb:{contactGuid:N}:{size}");
+                    memoryCache.Remove($"{prefix}-fit:{contactGuid:N}:{size}");
                 }
             }
         }
@@ -1540,6 +1561,35 @@ namespace ChurchReport.Controllers
 
                 using var output = new MemoryStream();
                 image.Save(output, new JpegEncoder { Quality = 82 });
+                return output.ToArray();
+            }
+            catch
+            {
+                return originalBytes;
+            }
+        }
+
+        /// <summary>等比縮放使整張照片「完整塞入」size×size(不裁切，保留完整頭部)；原圖較小則回原圖。供會友細節大圖使用。</summary>
+        private static byte[] CreateFitThumbnail(byte[] originalBytes, int size)
+        {
+            try
+            {
+                using var input = new MemoryStream(originalBytes);
+                using var image = Image.Load(input);
+
+                if (image.Width <= size && image.Height <= size)
+                {
+                    return originalBytes;
+                }
+
+                image.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Size = new Size(size, size),
+                    Mode = ResizeMode.Max
+                }));
+
+                using var output = new MemoryStream();
+                image.Save(output, new JpegEncoder { Quality = 85 });
                 return output.ToArray();
             }
             catch
