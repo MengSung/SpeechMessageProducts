@@ -25,6 +25,60 @@
         background: #f8fafc;
     }
 
+    /* 大頭照 + 右下角相機圖示(可拍照/選相片，選好即上傳) */
+    .member-info-photo-wrapper {
+        position: relative;
+        width: 132px;
+        margin: 0 auto 14px;
+    }
+
+    .member-info-photo-wrapper .member-info-photo {
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .member-info-photo-camera {
+        position: absolute;
+        right: -6px;
+        bottom: -6px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #16a34a;
+        border: 2px solid #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, .3);
+        transition: background .15s ease;
+    }
+
+    .member-info-photo-camera:hover {
+        background: #15803d;
+    }
+
+    .member-info-photo-camera svg {
+        width: 18px;
+        height: 18px;
+        fill: #fff;
+    }
+
+    .member-info-photo-input {
+        display: none;
+    }
+
+    .member-info-photo-busy {
+        opacity: .6;
+        pointer-events: none;
+    }
+
+    @@media (max-width: 720px) {
+        .member-info-photo-wrapper {
+            width: 104px;
+        }
+    }
+
     .member-info-tabs {
         display: grid;
         gap: 8px;
@@ -149,11 +203,20 @@
 
 <div class="member-info-detail" data-contact-id="@Model.ContactId">
     <aside class="member-info-side">
-        <img class="member-info-photo"
-             src="/MemberInfo/GetContactImage?contactId=@Model.ContactId&size=256"
-             alt="大頭照"
-             loading="eager" decoding="async"
-             onerror="this.style.visibility='hidden';" />
+        <div class="member-info-photo-wrapper">
+            <img id="memberInfoDetailPhoto"
+                 class="member-info-photo"
+                 src="/MemberInfo/GetContactImage?contactId=@Model.ContactId&size=256"
+                 alt="大頭照"
+                 loading="eager" decoding="async"
+                 onclick="memberInfoTriggerPhotoUpload()" />
+            <label class="member-info-photo-camera" title="拍照或選擇相片" onclick="memberInfoTriggerPhotoUpload()">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 7.17 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9zm3 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+            </label>
+            <input type="file" id="memberInfoPhotoInput" class="member-info-photo-input"
+                   accept="image/jpeg,image/png,image/gif"
+                   onchange="memberInfoUploadPhoto(this)" />
+        </div>
         <div class="member-info-tabs">
             <button type="button" class="member-info-tab" data-tab="present" onclick="memberInfoDetailSwitch('present')">聚會紀錄</button>
             <button type="button" class="member-info-tab" data-tab="equip" onclick="memberInfoDetailSwitch('equip')">裝備紀錄</button>
@@ -206,6 +269,79 @@
     (function () {
         var contactId = '@Model.ContactId';
         window._memberInfoSubGridInit = { present: false, equip: false, contactId: contactId, scrolledTop: false };
+
+        // ── 大頭照：拍照/選相片 → 立即上傳 ──
+        window.memberInfoTriggerPhotoUpload = function () {
+            var input = document.getElementById('memberInfoPhotoInput');
+            if (input) { input.click(); }
+        };
+
+        function memberInfoRefreshGridThumb(id, version) {
+            try {
+                if (window.memberInfoImageCache) { delete window.memberInfoImageCache[id]; }
+                var url = '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(id) + '&size=48&v=' + version;
+                $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id="' + id + '"]').attr('src', url);
+            } catch (e) { }
+        }
+
+        window.memberInfoUploadPhoto = function (input) {
+            if (!input || !input.files || input.files.length === 0) { return; }
+
+            var file = input.files[0];
+            if (file.size > 5 * 1024 * 1024) {
+                DevExpress.ui.notify('檔案過大，請選擇小於 5MB 的圖片', 'error', 3000);
+                input.value = '';
+                return;
+            }
+            if (['image/jpeg', 'image/png', 'image/gif'].indexOf(file.type) === -1) {
+                DevExpress.ui.notify('只支援 JPG、PNG、GIF 格式', 'error', 3000);
+                input.value = '';
+                return;
+            }
+
+            var photo = document.getElementById('memberInfoDetailPhoto');
+            var wrapper = photo ? photo.closest('.member-info-photo-wrapper') : null;
+
+            // 即時預覽(不等伺服器)
+            var reader = new FileReader();
+            reader.onload = function (e) { if (photo) { photo.src = e.target.result; } };
+            reader.readAsDataURL(file);
+
+            if (wrapper) { wrapper.classList.add('member-info-photo-busy'); }
+            DevExpress.ui.notify('上傳中...', 'info', 1500);
+
+            var formData = new FormData();
+            formData.append('contactId', contactId);
+            formData.append('imageFile', file);
+
+            $.ajax({
+                url: '/MemberInfo/UploadContactImage',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (wrapper) { wrapper.classList.remove('member-info-photo-busy'); }
+                    if (response && response.success) {
+                        var version = response.imageVersion || Date.now();
+                        if (photo) {
+                            photo.src = '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(contactId) + '&size=256&v=' + version;
+                        }
+                        memberInfoRefreshGridThumb(contactId, version);
+                        DevExpress.ui.notify(response.message || '大頭照上傳成功！', 'success', 2000);
+                    } else {
+                        DevExpress.ui.notify((response && response.message) || '上傳失敗', 'error', 4000);
+                    }
+                },
+                error: function (xhr) {
+                    if (wrapper) { wrapper.classList.remove('member-info-photo-busy'); }
+                    var msg = (xhr && xhr.status === 403) ? '無權限變更此會友的大頭照' : '上傳失敗，請稍後再試';
+                    DevExpress.ui.notify(msg, 'error', 4000);
+                }
+            });
+
+            input.value = '';
+        };
         var isMobile = window.innerWidth <= 720;
         // 手機使用原生水平捲動，外層 popup 內容則負責唯一的垂直捲動。
         // 避免 simulated scrolling 和外層 touch scroll 互相搶手勢。

@@ -381,6 +381,128 @@ namespace ChurchReport.Controllers
             }
         }
 
+        /// <summary>
+        /// 上傳並更新「指定會友」的大頭照（會友細節彈窗用）。
+        /// 與 /Personal/UploadContactImage(只改登入者自己)不同：這裡可改「其他會友」，
+        /// 因此先用 CanViewContact 把關——能在清單看到/開啟該會友細節的人才可變更其照片。
+        /// POST: /MemberInfo/UploadContactImage
+        /// </summary>
+        [HttpPost]
+        [Route("/MemberInfo/UploadContactImage")]
+        public IActionResult UploadContactImage(string contactId, IFormFile imageFile)
+        {
+            IOrganizationService service = null;
+
+            try
+            {
+                EnsureCorrectUserData();
+
+                if (!Guid.TryParse(contactId, out var contactGuid) || !CanViewContact(contactGuid))
+                {
+                    return Json(new { success = false, message = "無權限變更此會友的大頭照" });
+                }
+
+                if (imageFile == null || imageFile.Length == 0)
+                {
+                    return Json(new { success = false, message = "請選擇要上傳的圖片檔案" });
+                }
+
+                const long maxFileSize = 5 * 1024 * 1024; // 5MB
+                if (imageFile.Length > maxFileSize)
+                {
+                    return Json(new { success = false, message = "圖片檔案過大，請選擇小於 5MB 的圖片" });
+                }
+
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+                var fileExtension = Path.GetExtension(imageFile.FileName)?.ToLowerInvariant() ?? string.Empty;
+                var contentType = imageFile.ContentType?.ToLowerInvariant() ?? string.Empty;
+
+                if (!allowedExtensions.Contains(fileExtension) || !allowedContentTypes.Contains(contentType))
+                {
+                    return Json(new { success = false, message = "只支援 JPG、PNG、GIF 格式的圖片" });
+                }
+
+                var imageBytes = NormalizeUploadedImage(imageFile);
+
+                service = GetConnection();
+                var contactToUpdate = new Entity("contact", contactGuid);
+                contactToUpdate["entityimage"] = imageBytes;
+                service.Update(contactToUpdate);
+
+                // 清掉本控制器對此會友的影像快取，讓表格縮圖與彈窗大圖都能取得新照片。
+                InvalidateMemberImageCache(contactGuid);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "大頭照上傳成功！",
+                    imageVersion = DateTime.Now.Ticks
+                });
+            }
+            catch (System.ServiceModel.FaultException faultEx)
+            {
+                return Json(new { success = false, message = "CRM 更新失敗：" + faultEx.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "上傳失敗：" + ex.Message });
+            }
+            finally
+            {
+                ReleaseConnection(service);
+            }
+        }
+
+        /// <summary>讀取上傳圖片並依 EXIF 自動轉正(解決手機直拍旋轉)，轉存 JPEG；處理失敗時退回原始位元組。</summary>
+        private static byte[] NormalizeUploadedImage(IFormFile imageFile)
+        {
+            byte[] raw;
+            using (var read = imageFile.OpenReadStream())
+            using (var buffer = new MemoryStream())
+            {
+                read.CopyTo(buffer);
+                raw = buffer.ToArray();
+            }
+
+            try
+            {
+                using var input = new MemoryStream(raw);
+                using var image = Image.Load(input);
+                image.Mutate(x => x.AutoOrient());
+
+                using var output = new MemoryStream();
+                image.Save(output, new JpegEncoder { Quality = 90 });
+                return output.ToArray();
+            }
+            catch
+            {
+                // 影像處理失敗 → 至少存原始檔，不讓上傳整個失敗。
+                return raw;
+            }
+        }
+
+        /// <summary>會友照片更新後，清掉本控制器各尺寸的影像快取(全尺寸＋常用縮圖)。</summary>
+        private void InvalidateMemberImageCache(Guid contactGuid)
+        {
+            var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
+            if (memoryCache == null)
+            {
+                return;
+            }
+
+            // 同一張會友照片在兩處各有快取：本控制器(member-info-*)與個人資料頁(contact-image-*)。
+            // 兩種前綴都清，避免改了照片後某一頁仍顯示 30 分鐘的舊圖。
+            foreach (var prefix in new[] { "member-info-contact-image", "contact-image" })
+            {
+                memoryCache.Remove($"{prefix}-full:{contactGuid:N}");
+                foreach (var size in new[] { 48, 80, 256 })
+                {
+                    memoryCache.Remove($"{prefix}-thumb:{contactGuid:N}:{size}");
+                }
+            }
+        }
+
         private string GetAccess()
         {
             var cached = HttpContext?.Session?.GetString("_MemberInfoAccess");
