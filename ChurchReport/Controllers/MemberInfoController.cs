@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
 
@@ -46,11 +47,14 @@ namespace ChurchReport.Controllers
                 SetupBasicViewBag();
                 SetMultiGroupLayoutParameter();
 
-                if (string.IsNullOrEmpty(GetAccess()))
+                var access = GetAccess();
+                if (string.IsNullOrEmpty(access))
                 {
                     return Forbid();
                 }
 
+                // 只有「全教會」管理者才看得到、用得到「重新同步LINE」按鈕（全教會範圍的批次操作）。
+                ViewBag.MemberInfoCanResync = (access == MemberInfoAccess.Church);
                 return View("MemberInfoGrid");
             }
             catch (Exception ex)
@@ -431,6 +435,158 @@ namespace ChurchReport.Controllers
             finally
             {
                 ReleaseConnection(service);
+            }
+        }
+
+        /// <summary>
+        /// 依 LINE ID 重新向 LINE Profile API 取得最新的大頭貼/狀態/暱稱，覆寫（或清空）聯絡人對應欄位：
+        /// new_line_picture_url / new_line_status_message / new_line_displayname。
+        /// 已換照或移除照片者，其 new_line_picture_url 會被清空——之後即顯示性別預設剪影、不再有 LINE 標示、也不計入「顯示照片」。
+        /// 僅限「全教會」管理者執行；只處理在籍且同時有 new_lineid 與 new_line_picture_url 的聯絡人（可能過時者）。
+        /// 取不到 profile（例如未加官方帳號好友→404、或暫時性錯誤）者保留原值不動。可重複執行（清空者下次即被排除）。
+        /// POST: /MemberInfo/ResyncLineProfiles
+        /// </summary>
+        [HttpPost]
+        [Route("/MemberInfo/ResyncLineProfiles")]
+        public async Task<IActionResult> ResyncLineProfiles(int max = 300)
+        {
+            IOrganizationService service = null;
+
+            try
+            {
+                if (GetAccess() != MemberInfoAccess.Church)
+                {
+                    return Forbid();
+                }
+
+                var token = GetResyncLineChannelAccessToken();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return Json(new { success = false, message = "未設定 LINE Channel Access Token" });
+                }
+
+                if (max <= 0) { max = 300; }
+                max = Math.Min(max, 2000);
+
+                service = GetConnection();
+
+                var query = new QueryExpression("contact")
+                {
+                    ColumnSet = new ColumnSet(
+                        "contactid",
+                        "new_lineid",
+                        ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute),
+                    TopCount = max
+                };
+                query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
+                query.Criteria.AddCondition("new_lineid", ConditionOperator.NotNull);
+                query.Criteria.AddCondition(
+                    ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute,
+                    ConditionOperator.NotNull);
+                // 最舊更新者優先：處理後 modifiedon 會被推到最新而排到隊尾，因此重複執行可逐步涵蓋所有人（免分頁）。
+                query.Orders.Add(new OrderExpression("modifiedon", OrderType.Ascending));
+
+                var contacts = service.RetrieveMultiple(query);
+
+                int checkedCount = 0, updated = 0, cleared = 0, errors = 0;
+                using (var client = new Line.Messaging.LineMessagingClient(token))
+                {
+                    foreach (var contact in contacts.Entities)
+                    {
+                        var lineId = contact.GetAttributeValue<string>("new_lineid");
+                        if (string.IsNullOrWhiteSpace(lineId)) { continue; }
+                        checkedCount++;
+
+                        try
+                        {
+                            var profile = await client.GetUserProfileAsync(lineId);
+
+                            // 只有「確實取得 profile」(回應含 userId)時才覆寫欄位；否則視為取不到，保留原值不誤清。
+                            if (profile != null && !string.IsNullOrWhiteSpace(profile.UserId))
+                            {
+                                var newPic = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(profile.PictureUrl);
+                                var oldPic = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
+                                    contact.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
+
+                                var update = new Entity("contact") { Id = contact.Id };
+                                // set-or-clear：profile 沒有照片時寫 null 即清空欄位 → 之後顯示性別剪影、無 LINE 標示、不計入「顯示照片」。
+                                update[ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute] =
+                                    string.IsNullOrEmpty(newPic) ? null : newPic;
+                                update["new_line_status_message"] =
+                                    string.IsNullOrWhiteSpace(profile.StatusMessage) ? null : profile.StatusMessage;
+                                // 暱稱幾乎一定有值；僅在取得到時更新，避免誤清。
+                                if (!string.IsNullOrWhiteSpace(profile.DisplayName))
+                                {
+                                    update["new_line_displayname"] = profile.DisplayName;
+                                }
+
+                                service.Update(update);
+
+                                if (string.IsNullOrEmpty(newPic) && !string.IsNullOrEmpty(oldPic)) { cleared++; }
+                                else { updated++; }
+                            }
+                            else
+                            {
+                                errors++;
+                            }
+                        }
+                        catch
+                        {
+                            // 取不到 profile（未加官方帳號好友→404、或暫時性錯誤）：保留原值不動。
+                            errors++;
+                        }
+
+                        await Task.Delay(20);
+                    }
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    scanned = contacts.Entities.Count,
+                    checkedCount,
+                    updated,
+                    cleared,
+                    errors
+                });
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex, "MemberInfo.ResyncLineProfiles");
+            }
+            finally
+            {
+                ReleaseConnection(service);
+            }
+        }
+
+        /// <summary>
+        /// 讀取目前組織對應的 LINE Channel Access Token（LineMessaging:{Organization}:ChannelAccessToken，
+        /// 找不到則退回 DefaultOrganization）。供 ResyncLineProfiles 呼叫 LINE Profile API 使用。
+        /// </summary>
+        private string GetResyncLineChannelAccessToken()
+        {
+            try
+            {
+                var config = HttpContext?.RequestServices?
+                    .GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration))
+                    as Microsoft.Extensions.Configuration.IConfiguration;
+                if (config == null) { return string.Empty; }
+
+                var organization = config["CrmConnection:Organization"];
+                if (!string.IsNullOrEmpty(organization))
+                {
+                    var configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
+                    var token = config[$"LineMessaging:{configKey}:ChannelAccessToken"];
+                    if (!string.IsNullOrEmpty(token)) { return token; }
+                }
+
+                var defaultOrg = config["LineMessaging:DefaultOrganization"] ?? "Jesus";
+                return config[$"LineMessaging:{defaultOrg}:ChannelAccessToken"] ?? string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
             }
         }
 

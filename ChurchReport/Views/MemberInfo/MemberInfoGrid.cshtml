@@ -372,6 +372,8 @@
     // ── 顯示照片 / 顯示全部 切換 ──
     // 預設：顯示全部(按鈕綠色、文字「顯示照片」)；按下後只顯示真正有照片者(按鈕變藍、文字「顯示全部」)，再按一次切回。
     var memberInfoPhotoOnly = false;
+    // 僅「全教會」管理者顯示「重新同步LINE」按鈕（由伺服器端 ViewBag 決定）。
+    var memberInfoCanResync = @(ViewBag.MemberInfoCanResync == true ? "true" : "false");
 
     function memberInfoNormalizeAvatarSource(source) {
         if (source === 'primary' || source === 'line' || source === 'fallback') {
@@ -448,6 +450,35 @@
         }));
     };
 
+    // ── 重新同步 LINE 資料 ──
+    // 依 new_lineid 向 LINE Profile API 重新取得大頭貼/狀態/暱稱並覆寫(或清空)CRM 欄位。
+    // 已換照/移除照片者其照片網址被清空後，下次載入即顯示性別預設剪影、不再有 LINE 標示。
+    window.memberInfoResyncLineProfiles = function () {
+        if (!window.confirm('將依 LINE ID 重新同步聯絡人的 LINE 大頭貼／狀態／暱稱（已換照或移除者會清空照片），可能需要一點時間，是否繼續？')) { return; }
+        var btn = document.getElementById('memberInfoResyncBtn');
+        if (btn) { btn.disabled = true; btn.textContent = '同步中…'; }
+        $.ajax({
+            url: '/MemberInfo/ResyncLineProfiles',
+            type: 'POST',
+            success: function (res) {
+                if (res && res.success) {
+                    alert('完成：掃描 ' + res.scanned + ' 人，更新 ' + res.updated + '、清空 ' + res.cleared + '、略過/失敗 ' + res.errors + '。');
+                    // 清掉前端影像快取，讓網格重新批次帶回正確的來源(剪影/照片)。
+                    memberInfoImageCache = {};
+                    memberInfoImageSourceCache = {};
+                    var grid = $('#MemberInfoGridContainer').dxDataGrid('instance');
+                    if (grid) { grid.refresh(); }
+                } else {
+                    alert('未完成：' + ((res && res.message) || '未知錯誤'));
+                }
+            },
+            error: function () { alert('同步要求失敗，請稍後再試。'); },
+            complete: function () {
+                if (btn) { btn.disabled = false; btn.textContent = '重新同步LINE'; }
+            }
+        });
+    };
+
     // 把按鈕放進網格工具列(與搜尋框同一列、緊鄰網格上端)；onToolbarPreparing 確保工具列每次重建都依目前狀態正確呈現。
     window.memberInfoGridToolbarPreparing = function (e) {
         if (!e || !e.toolbarOptions || !e.toolbarOptions.items) { return; }
@@ -464,6 +495,24 @@
                 return btn;
             }
         });
+
+        if (memberInfoCanResync) {
+            // 插在「顯示照片」按鈕(index 0)之後，使其顯示在顯示照片的右邊。
+            e.toolbarOptions.items.splice(1, 0, {
+                location: 'before',
+                locateInMenu: 'never',
+                template: function () {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.id = 'memberInfoResyncBtn';
+                    btn.className = 'member-info-photo-filter-btn';
+                    btn.style.background = '#0ea5e9';
+                    btn.textContent = '重新同步LINE';
+                    btn.onclick = memberInfoResyncLineProfiles;
+                    return btn;
+                }
+            });
+        }
     };
 
     window.memberInfoAvatarCellTemplate = function (container, options) {
