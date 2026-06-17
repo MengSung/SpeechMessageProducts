@@ -280,7 +280,10 @@ namespace ChurchReport.Controllers
                 }
 
                 service = GetConnection();
-                var contact = service.Retrieve("contact", contactGuid, new ColumnSet("entityimage", "gendercode"));
+                var contact = service.Retrieve("contact", contactGuid, new ColumnSet(
+                    "entityimage",
+                    "gendercode",
+                    ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
                 if (contact.Contains("entityimage") && contact["entityimage"] != null)
                 {
                     var originalBytes = (byte[])contact["entityimage"];
@@ -300,6 +303,14 @@ namespace ChurchReport.Controllers
                 }
 
                 // 無照片 → 依性別回傳上半身剪影
+                var linePictureUrl = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
+                    contact.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
+                if (!string.IsNullOrEmpty(linePictureUrl))
+                {
+                    Response.Headers["Cache-Control"] = "private, max-age=300";
+                    return Redirect(linePictureUrl);
+                }
+
                 var gender = contact.GetAttributeValue<OptionSetValue>("gendercode")?.Value;
                 return Content(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender), "image/svg+xml");
             }
@@ -356,7 +367,11 @@ namespace ChurchReport.Controllers
                     service = GetConnection();
                     var query = new QueryExpression("contact")
                     {
-                        ColumnSet = new ColumnSet("contactid", "entityimage", "gendercode")
+                        ColumnSet = new ColumnSet(
+                            "contactid",
+                            "entityimage",
+                            "gendercode",
+                            ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute)
                     };
                     query.Criteria.AddCondition("contactid", ConditionOperator.In, uncachedGuids.Select(g => (object)g).ToArray());
 
@@ -381,8 +396,17 @@ namespace ChurchReport.Controllers
                         else
                         {
                             // 無照片：批次直接帶回性別剪影(SVG data URI)，前端就不必再逐筆打 GetContactImage。
-                            var gender = contact.GetAttributeValue<OptionSetValue>("gendercode")?.Value;
-                            result[contact.Id.ToString()] = ToSvgDataUri(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender));
+                            var linePictureUrl = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
+                                contact.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
+                            if (!string.IsNullOrEmpty(linePictureUrl))
+                            {
+                                result[contact.Id.ToString()] = linePictureUrl;
+                            }
+                            else
+                            {
+                                var gender = contact.GetAttributeValue<OptionSetValue>("gendercode")?.Value;
+                                result[contact.Id.ToString()] = ToSvgDataUri(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender));
+                            }
                         }
                     }
                 }
@@ -1197,7 +1221,12 @@ namespace ChurchReport.Controllers
             // 只看「真正有大頭照」的會友：entityimageid 為影像主鍵，有照片才會有值(輕量、不需抓影像位元組)。
             if (photoOnly)
             {
-                query.Criteria.AddCondition("entityimageid", ConditionOperator.NotNull);
+                var photoFilter = new FilterExpression(LogicalOperator.Or);
+                photoFilter.AddCondition("entityimageid", ConditionOperator.NotNull);
+                photoFilter.AddCondition(
+                    ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute,
+                    ConditionOperator.NotNull);
+                query.Criteria.Filters.Add(photoFilter);
             }
 
             var closedStatus = TryGetClosedCustomerTypeValue();
@@ -1324,7 +1353,12 @@ namespace ChurchReport.Controllers
                         ColumnSet = new ColumnSet("contactid")
                     };
                     query.Criteria.AddCondition("contactid", ConditionOperator.In, chunk.Select(id => (object)id).ToArray());
-                    query.Criteria.AddCondition("entityimageid", ConditionOperator.NotNull);
+                    var photoFilter = new FilterExpression(LogicalOperator.Or);
+                    photoFilter.AddCondition("entityimageid", ConditionOperator.NotNull);
+                    photoFilter.AddCondition(
+                        ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute,
+                        ConditionOperator.NotNull);
+                    query.Criteria.Filters.Add(photoFilter);
 
                     foreach (var entity in service.RetrieveMultiple(query).Entities)
                     {

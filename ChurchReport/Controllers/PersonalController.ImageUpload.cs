@@ -525,7 +525,10 @@ namespace ChurchReport.Controllers
 
                 // 只查詢 entityimage 欄位以提升效能
                 var contact = service.Retrieve("contact", contactGuid,
-                    new Microsoft.Xrm.Sdk.Query.ColumnSet("entityimage", "gendercode"));
+                    new Microsoft.Xrm.Sdk.Query.ColumnSet(
+                        "entityimage",
+                        "gendercode",
+                        ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
 
                 if (contact.Contains("entityimage") && contact["entityimage"] != null)
                 {
@@ -547,6 +550,14 @@ namespace ChurchReport.Controllers
                 }
 
                 System.Diagnostics.Debug.WriteLine("[GetContactImage] Contact 沒有大頭照，返回性別剪影");
+                var linePictureUrl = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
+                    contact.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
+                if (!string.IsNullOrEmpty(linePictureUrl))
+                {
+                    Response.Headers["Cache-Control"] = "private, max-age=300";
+                    return Redirect(linePictureUrl);
+                }
+
                 var genderDefault = contact.GetAttributeValue<Microsoft.Xrm.Sdk.OptionSetValue>("gendercode")?.Value;
                 return Content(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(genderDefault), "image/svg+xml");
             }
@@ -678,7 +689,11 @@ namespace ChurchReport.Controllers
 
                     var query = new Microsoft.Xrm.Sdk.Query.QueryExpression("contact")
                     {
-                        ColumnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet("entityimage", "contactid", "gendercode")
+                        ColumnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet(
+                            "entityimage",
+                            "contactid",
+                            "gendercode",
+                            ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute)
                     };
                     query.Criteria.AddCondition(
                         "contactid",
@@ -709,8 +724,17 @@ namespace ChurchReport.Controllers
                         else
                         {
                             // 無照片：批次直接帶回性別剪影(SVG data URI)，前端就不必再逐筆打 GetContactImage。
-                            var gender = entity.GetAttributeValue<Microsoft.Xrm.Sdk.OptionSetValue>("gendercode")?.Value;
-                            result[contactIdStr] = ToSvgDataUri(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender));
+                            var linePictureUrl = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
+                                entity.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
+                            if (!string.IsNullOrEmpty(linePictureUrl))
+                            {
+                                result[contactIdStr] = linePictureUrl;
+                            }
+                            else
+                            {
+                                var gender = entity.GetAttributeValue<Microsoft.Xrm.Sdk.OptionSetValue>("gendercode")?.Value;
+                                result[contactIdStr] = ToSvgDataUri(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender));
+                            }
                         }
                     }
                 }
