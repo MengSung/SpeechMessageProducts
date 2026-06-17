@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <style>
+    html,body{margin:0;padding:0;height:100%;background:transparent;}
+    .wrap{display:flex;align-items:center;justify-content:center;height:100%;}
+    img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;}
+  </style>
+</head>
+<body>
+  <div class="wrap"><img id="pic" referrerpolicy="no-referrer" alt="" /></div>
+  <script>
+    // 在不同 D365 版本/iframe 巢狀下，往上層尋找 Xrm（含 window.top 後援）。
+    function findXrm(){
+      var w=window;
+      for(var i=0;i<6 && w;i++){
+        try{ if(w.Xrm && w.Xrm.Page && w.Xrm.Page.getAttribute){ return w.Xrm; } }catch(e){}
+        if(w===w.parent){ break; }
+        w=w.parent;
+      }
+      try{ if(window.top && window.top.Xrm && window.top.Xrm.Page){ return window.top.Xrm; } }catch(e){}
+      return null;
+    }
+    function getUrl(){
+      try{
+        var xrm=findXrm();
+        if(xrm){
+          var a=xrm.Page.getAttribute("new_line_picture_url");
+          if(a){ return a.getValue(); }
+        }
+      }catch(e){}
+      return null;
+    }
+    function render(){
+      var img=document.getElementById("pic");
+      var url=getUrl();
+      if(url){ img.style.display=""; img.src=url; } else { img.style.display="none"; }
+    }
+    var tries=0;
+    function init(){
+      var xrm=findXrm();
+      if(xrm){
+        try{
+          var a=xrm.Page.getAttribute("new_line_picture_url");
+          if(a && a.addOnChange){ a.addOnChange(render); }
+        }catch(e){}
+        render();
+      } else if(tries++ < 20){
+        setTimeout(init, 300); // 表單尚未就緒，稍後重試（最多約 6 秒）
+      }
+    }
+    window.addEventListener("load", init);
+  </script>
+</body>
+</html>
