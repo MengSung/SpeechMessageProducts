@@ -39,15 +39,14 @@ https://developers.line.biz/en/news/2019/01/
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
+    <NoWarn>$(NoWarn);1701;1702;1705;1591;CS0618;CS1570;CS1573;CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8625;CS8765;SYSLIB0013</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile>bin\Release\net10.0\Line.Messaging.xml</DocumentationFile>
-    <NoWarn>1701;1702;1705;1591</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <NoWarn>1701;1702;1705;1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

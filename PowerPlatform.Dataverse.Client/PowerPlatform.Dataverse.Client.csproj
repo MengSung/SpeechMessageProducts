@@ -7,7 +7,7 @@
     <RepositoryUrl>https://github.com/Data8/DataverseClient</RepositoryUrl>
     <PackageReleaseNotes>Updated to support .NET 10 with latest WCF packages</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/Data8/DataverseClient</PackageProjectUrl>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 	  <Description>Provides a WS-Trust compatible client for connecting to on-premise IFD instances of Dynamics 365 from .NET 10.
 
 This package builds on top of Microsoft.PowerPlatform.Dataverse.Client and offers an alternative IOrganizationService implementation using WS-Trust.
