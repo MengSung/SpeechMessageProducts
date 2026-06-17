@@ -532,6 +532,8 @@
     var contactImageCache = {};
     var contactImageSourceCache = {};
     var _batchLoadPending = {};
+    var _batchLoadQueuedIds = {};
+    var _batchLoadTimers = {};
 
     function getContactIdFromGridRow(options) {
         if (!options || !options.data) {
@@ -539,6 +541,38 @@
         }
 
         return options.data.ContactId || options.data.contactId || options.value || null;
+    }
+
+    function getContactAvatarGridId(options) {
+        try {
+            return (options && options.component && options.component.element().attr('id')) || '';
+        } catch (ex) {
+            return '';
+        }
+    }
+
+    function scheduleContactImagePreload(gridComponent, gridId, contactId) {
+        if (!gridId) {
+            return;
+        }
+
+        if (contactId) {
+            if (contactImageCache[contactId]) {
+                return;
+            }
+            _batchLoadQueuedIds[gridId] = _batchLoadQueuedIds[gridId] || {};
+            _batchLoadQueuedIds[gridId][contactId] = true;
+        }
+
+        var queuedIds = _batchLoadQueuedIds[gridId];
+        if (!queuedIds || Object.keys(queuedIds).length === 0 || _batchLoadTimers[gridId]) {
+            return;
+        }
+
+        _batchLoadTimers[gridId] = setTimeout(function () {
+            _batchLoadTimers[gridId] = null;
+            preloadContactImages(gridComponent, gridId);
+        }, 0);
     }
 
     // 載入中的本地佔位圖：綠底白色「上半身剪影」(頭與身體相連)。轉圈停止後不可再保留綠底。
@@ -651,6 +685,7 @@
 
     function renderContactAvatar(container, options) {
         var contactId = getContactIdFromGridRow(options);
+        var gridId = getContactAvatarGridId(options);
 
         var host = container && container.get ? container.get(0) : container;
         if (!host) {
@@ -672,7 +707,7 @@
         img.src = cached ? contactImageCache[contactId] : contactAvatarLoadingSvg;
 
         img.alt = '大頭照';
-        img.loading = 'lazy';           // 延遲載入：僅可視區域內的圖片才發送請求
+        img.loading = 'eager';          // 圖片批次結果到位後立即解碼顯示，避免固定欄被 lazy loading 延後。
         img.decoding = 'async';         // 非同步解碼：不阻塞主執行緒渲染
         img.dataset.contactId = contactId || '';
         img.onerror = function () {
@@ -717,6 +752,10 @@
         wrap.appendChild(spinner);
         applyContactAvatarSource(wrap, img, cachedSource);
         host.appendChild(wrap);
+
+        if (!cached) {
+            scheduleContactImagePreload(options && options.component, gridId, contactId);
+        }
     }
 
     window.contactImageCellTemplate = function (container, options) {
@@ -760,16 +799,27 @@
     function preloadContactImages(gridComponent, gridId) {
         if (_batchLoadPending[gridId]) return;
 
-        var items = gridComponent.getDataSource().items();
-        if (!items || items.length === 0) return;
-
-        var uncachedIds = [];
-        items.forEach(function (item) {
-            var id = item.ContactId || item.contactId;
+        var idMap = {};
+        var queuedIds = _batchLoadQueuedIds[gridId] || {};
+        Object.keys(queuedIds).forEach(function (id) {
             if (id && !contactImageCache[id]) {
-                uncachedIds.push(id);
+                idMap[id] = true;
             }
         });
+        _batchLoadQueuedIds[gridId] = {};
+
+        var dataSource = gridComponent && gridComponent.getDataSource ? gridComponent.getDataSource() : null;
+        var items = dataSource && dataSource.items ? dataSource.items() : [];
+        if (items && items.length > 0) {
+            items.forEach(function (item) {
+                var id = item.ContactId || item.contactId;
+                if (id && !contactImageCache[id]) {
+                    idMap[id] = true;
+                }
+            });
+        }
+
+        var uncachedIds = Object.keys(idMap);
 
         if (uncachedIds.length === 0) return;
 
@@ -812,6 +862,9 @@
             },
             complete: function () {
                 _batchLoadPending[gridId] = false;
+                if (_batchLoadQueuedIds[gridId] && Object.keys(_batchLoadQueuedIds[gridId]).length > 0) {
+                    scheduleContactImagePreload(gridComponent, gridId, null);
+                }
             }
         });
     }

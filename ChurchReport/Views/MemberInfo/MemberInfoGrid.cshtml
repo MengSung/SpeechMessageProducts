@@ -408,6 +408,9 @@
     var memberInfoImageSourceCache = {};
     // 用來避免同時間重複發送多個批次請求。
     var memberInfoBatchPending = false;
+    var memberInfoQueuedImageIds = {};
+    var memberInfoPreloadTimer = null;
+    var memberInfoPreloadComponent = null;
     // 載入中的本地佔位圖：綠底白色「上半身剪影」(頭與身體相連)。轉圈停止後不可再保留綠底。
     var memberInfoLoadingAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(
         "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='40' height='40'>" +
@@ -643,6 +646,28 @@
     };
 
     // 縮圖 cell template：先顯示 loading 剪影，再由批次請求補上實際照片。
+    function memberInfoScheduleImagePreload(gridComponent, contactId) {
+        if (contactId) {
+            if (memberInfoImageCache[contactId]) {
+                return;
+            }
+            memberInfoQueuedImageIds[contactId] = true;
+        }
+
+        if (gridComponent) {
+            memberInfoPreloadComponent = gridComponent;
+        }
+
+        if (!memberInfoPreloadComponent || Object.keys(memberInfoQueuedImageIds).length === 0 || memberInfoPreloadTimer) {
+            return;
+        }
+
+        memberInfoPreloadTimer = setTimeout(function () {
+            memberInfoPreloadTimer = null;
+            window.memberInfoPreloadImages({ component: memberInfoPreloadComponent });
+        }, 0);
+    }
+
     window.memberInfoAvatarCellTemplate = function (container, options) {
         var data = options.data || {};
         var contactId = data.ContactId || data.contactId || options.value || '';
@@ -686,6 +711,10 @@
         wrap.appendChild(spinner);
         memberInfoApplyAvatarSource(wrap, img, cachedSource);
         host.appendChild(wrap);
+
+        if (!cached) {
+            memberInfoScheduleImagePreload(options && options.component, contactId);
+        }
     };
 
     // 照片/剪影到位：換上圖並停止轉圈。載入失敗時退回非綠色的最終 fallback。
@@ -741,14 +770,26 @@
     // 針對目前頁面可見的資料列一次批次預載照片，降低首屏後續捲動時的延遲。
     window.memberInfoPreloadImages = function (e) {
         if (memberInfoBatchPending || !e || !e.component) return;
-        var items = e.component.getDataSource().items() || [];
-        var ids = [];
+        memberInfoPreloadComponent = e.component;
+
+        var idMap = {};
+        Object.keys(memberInfoQueuedImageIds).forEach(function (id) {
+            if (id && !memberInfoImageCache[id]) {
+                idMap[id] = true;
+            }
+        });
+        memberInfoQueuedImageIds = {};
+
+        var dataSource = e.component.getDataSource ? e.component.getDataSource() : null;
+        var items = dataSource && dataSource.items ? dataSource.items() : [];
         items.forEach(function (item) {
             var id = item.ContactId || item.contactId;
             if (id && !memberInfoImageCache[id]) {
-                ids.push(id);
+                idMap[id] = true;
             }
         });
+
+        var ids = Object.keys(idMap);
         if (ids.length === 0) return;
 
         memberInfoBatchPending = true;
@@ -787,6 +828,9 @@
             },
             complete: function () {
                 memberInfoBatchPending = false;
+                if (Object.keys(memberInfoQueuedImageIds).length > 0) {
+                    memberInfoScheduleImagePreload(memberInfoPreloadComponent, null);
+                }
             }
         });
     };
