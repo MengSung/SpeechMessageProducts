@@ -1,4 +1,15 @@
 @model ChurchReport.ViewModels.MemberInfoDetailViewModel
+@{
+    var detailAvatarSource = Model.AvatarSource == "primary" || Model.AvatarSource == "line" || Model.AvatarSource == "fallback"
+        ? Model.AvatarSource
+        : "fallback";
+    var detailAvatarBadgeText = detailAvatarSource == "primary"
+        ? "\u7167\u7247"
+        : (detailAvatarSource == "line" ? "LINE" : string.Empty);
+    var detailAvatarTitle = detailAvatarSource == "primary"
+        ? "\u4e3b\u8981\u7167\u7247"
+        : (detailAvatarSource == "line" ? "LINE \u7167\u7247" : "\u9810\u8a2d\u526a\u5f71");
+}
 
 <style>
     .member-info-detail {
@@ -15,8 +26,10 @@
     }
 
     .member-info-photo {
-        width: 198px;
-        height: 198px;
+        width: auto;
+        height: auto;
+        max-width: 198px;
+        max-height: 198px;
         border: 3px solid #dbe4ea;
         border-radius: 10px;
         display: block;
@@ -28,8 +41,20 @@
     /* 大頭照 + 右下角相機圖示(可拍照/選相片，選好即上傳) */
     .member-info-photo-wrapper {
         position: relative;
-        width: 198px;
+        width: fit-content;
+        max-width: 198px;
         margin: 0 auto 14px;
+    }
+
+    .member-info-photo-wrapper.avatar-source-fallback {
+        width: 198px;
+    }
+
+    .member-info-photo-wrapper.avatar-source-fallback .member-info-photo {
+        width: 198px;
+        height: 198px;
+        max-width: none;
+        max-height: none;
     }
 
     .member-info-photo-wrapper .member-info-photo {
@@ -64,6 +89,40 @@
         fill: #fff;
     }
 
+    .member-info-photo-source-badge {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        display: none;
+        min-width: 17px;
+        height: 10px;
+        padding: 0 2px;
+        border: 1px solid #fff;
+        border-radius: 2px;
+        color: #fff;
+        font-size: 6px;
+        font-weight: 700;
+        line-height: 9px;
+        text-align: center;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .18);
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .member-info-photo-wrapper.avatar-source-primary .member-info-photo-source-badge,
+    .member-info-photo-wrapper.avatar-source-line .member-info-photo-source-badge {
+        display: block;
+    }
+
+    .member-info-photo-wrapper.avatar-source-primary .member-info-photo-source-badge {
+        background: #16a34a;
+    }
+
+    .member-info-photo-wrapper.avatar-source-line .member-info-photo-source-badge {
+        min-width: 18px;
+        background: #2563eb;
+    }
+
     /* 用 ID 選擇器確保蓋過全域 input[type=file] 樣式(與個人資料頁 #imageFileInput 同作法)；
        以程式 .click() 觸發，display:none 仍可開啟檔案選擇。 */
     #memberInfoPhotoInput {
@@ -77,7 +136,7 @@
 
     @@media (max-width: 720px) {
         .member-info-photo-wrapper {
-            width: 156px;
+            max-width: 156px;
         }
     }
 
@@ -212,6 +271,12 @@
         }
 
         .member-info-photo {
+            max-width: 156px;
+            max-height: 156px;
+        }
+
+        .member-info-photo-wrapper.avatar-source-fallback,
+        .member-info-photo-wrapper.avatar-source-fallback .member-info-photo {
             width: 156px;
             height: 156px;
         }
@@ -228,13 +293,14 @@
 
 <div class="member-info-detail" data-contact-id="@Model.ContactId">
     <aside class="member-info-side">
-        <div class="member-info-photo-wrapper">
+        <div class="member-info-photo-wrapper avatar-source-@detailAvatarSource" data-avatar-source="@detailAvatarSource">
             <img id="memberInfoDetailPhoto"
                  class="member-info-photo"
-                 src="/MemberInfo/GetContactImage?contactId=@Model.ContactId&size=256&fit=true"
+                 src="/MemberInfo/GetContactImage?contactId=@Model.ContactId&size=0"
                  alt="大頭照"
                  loading="eager" decoding="async"
                  onclick="memberInfoTriggerPhotoUpload()" />
+            <span class="member-info-photo-source-badge" title="@detailAvatarTitle">@detailAvatarBadgeText</span>
             <label class="member-info-photo-camera" title="拍照或選擇相片" onclick="memberInfoTriggerPhotoUpload()">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 7.17 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9zm3 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
             </label>
@@ -322,6 +388,31 @@
     (function () {
         var contactId = '@Model.ContactId';
         window._memberInfoSubGridInit = { present: false, equip: false, contactId: contactId, scrolledTop: false };
+
+        function memberInfoSetDetailAvatarSource(source) {
+            source = (source === 'primary' || source === 'line' || source === 'fallback') ? source : 'fallback';
+
+            var wrapper = document.querySelector('.member-info-photo-wrapper');
+            if (!wrapper) { return; }
+
+            wrapper.classList.remove('avatar-source-primary', 'avatar-source-line', 'avatar-source-fallback');
+            wrapper.classList.add('avatar-source-' + source);
+            wrapper.dataset.avatarSource = source;
+
+            var badge = wrapper.querySelector('.member-info-photo-source-badge');
+            if (!badge) { return; }
+
+            if (source === 'primary') {
+                badge.textContent = '\u7167\u7247';
+                badge.title = '\u4e3b\u8981\u7167\u7247';
+            } else if (source === 'line') {
+                badge.textContent = 'LINE';
+                badge.title = 'LINE \u7167\u7247';
+            } else {
+                badge.textContent = '';
+                badge.title = '\u9810\u8a2d\u526a\u5f71';
+            }
+        }
 
         // ── 大頭照：拍照/選相片 → 立即上傳 ──
         window.memberInfoTriggerPhotoUpload = function () {
@@ -442,7 +533,8 @@
                     if (response && response.success) {
                         var version = response.imageVersion || Date.now();
                         if (photo) {
-                            photo.src = '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(contactId) + '&size=256&fit=true&v=' + version;
+                            photo.src = '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(contactId) + '&size=0&v=' + version;
+                            memberInfoSetDetailAvatarSource('primary');
                         }
                         memberInfoRefreshGridThumb(contactId, version);
                         DevExpress.ui.notify(response.message || '大頭照上傳成功！', 'success', 2000);

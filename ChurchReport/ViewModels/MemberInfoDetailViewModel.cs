@@ -10,6 +10,7 @@ namespace ChurchReport.ViewModels
         public string Address { get; set; }
         public string MembershipStatus { get; set; }
         public string SpiritualIdentity { get; set; }
+        public string AvatarSource { get; set; }
 
         // 會員身分(customertypecode) / 信仰狀態(new_spiriitual_identity) 改為下拉編輯所需：
         // *Value = 目前選中的 OptionSet 整數值(無值為 null)；*Options = 全部可選項(文字+值)。

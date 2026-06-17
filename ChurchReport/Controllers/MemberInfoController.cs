@@ -110,7 +110,8 @@ namespace ChurchReport.Controllers
                     Address = ToolUtility.GetEntityStringAttribute(contact, "address2_line1"),
                     MembershipStatus = GetOptionSetText(contact, "customertypecode"),
                     SpiritualIdentity = GetOptionSetText(contact, "new_spiriitual_identity"),
-                    RelationGoals = GetRelationGoals(contactGuid)
+                    RelationGoals = GetRelationGoals(contactGuid),
+                    AvatarSource = ResolveContactAvatarSource(contact)
                 };
 
                 // 下拉選項(會員身分/信仰狀態)：用「共用快取」的 OptionSet 服務一次取得全部選項，
@@ -1669,7 +1670,27 @@ namespace ChurchReport.Controllers
                 "address2_line1",
                 "customertypecode",
                 "new_spiriitual_identity",
+                "entityimageid",
+                ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute,
                 "statecode");
+        }
+
+        private static string ResolveContactAvatarSource(Entity contact)
+        {
+            if (contact == null)
+            {
+                return "fallback";
+            }
+
+            if (contact.Contains("entityimageid") && contact["entityimageid"] != null)
+            {
+                return "primary";
+            }
+
+            var linePictureUrl = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
+                contact.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
+
+            return string.IsNullOrEmpty(linePictureUrl) ? "fallback" : "line";
         }
 
         private static Guid GetListMemberContactId(Entity listMember)
