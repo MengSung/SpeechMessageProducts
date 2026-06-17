@@ -616,14 +616,7 @@ namespace ChurchReport.Controllers
 
             // 產生一個簡單的 SVG 預設圖示
 
-            var svg = @"<svg xmlns=""http://www.w3.org/2000/svg"" width=""150"" height=""150"">
-
-                <circle cx=""75"" cy=""75"" r=""70"" fill=""#4A90E2""/>
-
-                <circle cx=""75"" cy=""60"" r=""26"" fill=""white""/>
-                <ellipse cx=""75"" cy=""128"" rx=""44"" ry=""40"" fill=""white""/>
-
-            </svg>";
+            var svg = ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.Neutral;
 
 
 
