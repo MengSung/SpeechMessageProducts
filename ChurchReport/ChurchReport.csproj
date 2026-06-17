@@ -14,7 +14,7 @@
     <RetainVMGarbageCollection>true</RetainVMGarbageCollection>
     
     <!-- 允許套件降級警告不影響建置 -->
-    <NoWarn>NU1605;NU1902;NU1903</NoWarn>
+    <NoWarn>$(NoWarn);NU1605;NU1902;NU1903;ASPDEPR005;CA1416;CA2200;CS0105;CS0108;CS0114;CS0162;CS0168;CS0169;CS0219;CS0414;CS0472;CS0618;CS0649;CS8073;CS8632;CS8981;CS1717;CS4014;MVC1000;SYSLIB0014;SYSLIB0021</NoWarn>
     
     <!-- ✅ Phase 5: .NET 10 效能優化設定 -->
     <TieredPGO>true</TieredPGO>

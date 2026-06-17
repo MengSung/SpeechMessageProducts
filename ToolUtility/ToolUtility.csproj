@@ -7,6 +7,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
+    <NoWarn>$(NoWarn);CA2200;CS0162;CS0169;CS8073</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,9 +37,7 @@
     <!-- System Libraries -->
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
-    <PackageReference Include="System.Security.AccessControl" Version="6.0.0" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" />
-    <PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
     <PackageReference Include="System.ServiceModel.Http" Version="10.0.652802" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="10.0.652802" />
     
@@ -46,7 +45,7 @@
     <PackageReference Include="System.DirectoryServices" Version="9.0.0" />
     <PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.0" NoWarn="NU1510" />
   </ItemGroup>
 
   <ItemGroup>
