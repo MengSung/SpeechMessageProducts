@@ -311,12 +311,20 @@
 <script>
     var memberInfoImageCache = {};
     var memberInfoBatchPending = false;
-    // 載入中／無法取得照片時的本地佔位圖：綠底白色「上半身剪影」(頭與身體相連)。取代舊的「人」文字圖示。
-    var memberInfoFallbackAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    // 載入中的本地佔位圖：綠底白色「上半身剪影」(頭與身體相連)。轉圈停止後不可再保留綠底。
+    var memberInfoLoadingAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(
         "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='40' height='40'>" +
         "<defs><clipPath id='mig'><circle cx='32' cy='32' r='32'/></clipPath></defs>" +
         "<circle cx='32' cy='32' r='32' fill='#16a34a'/>" +
         "<g clip-path='url(#mig)' fill='#ffffff'>" +
+        "<circle cx='32' cy='24.2' r='10.2'/>" +
+        "<path d='M8 64c1.5-17.2 10.9-29.6 24-29.6S54.5 46.8 56 64H8z'/>" +
+        "</g></svg>");
+    var memberInfoFinalFallbackAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='40' height='40'>" +
+        "<defs><clipPath id='migf'><circle cx='32' cy='32' r='32'/></clipPath></defs>" +
+        "<circle cx='32' cy='32' r='32' fill='#aeb6bf'/>" +
+        "<g clip-path='url(#migf)' fill='#ffffff'>" +
         "<circle cx='32' cy='24.2' r='10.2'/>" +
         "<path d='M8 64c1.5-17.2 10.9-29.6 24-29.6S54.5 46.8 56 64H8z'/>" +
         "</g></svg>");
@@ -386,9 +394,9 @@
         img.dataset.contactId = contactId;
         // 初始：已快取就直接放照片；否則放綠色剪影佔位 + 轉圈，等 memberInfoPreloadImages 批次一次帶回後再換上。
         // 不要在這裡指向 /MemberInfo/GetContactImage——否則每列各自發一支請求、各打一次 CRM，會拖慢甚至餓死唯一的批次請求。
-        img.src = cached ? memberInfoImageCache[contactId] : memberInfoFallbackAvatar;
+        img.src = cached ? memberInfoImageCache[contactId] : memberInfoLoadingAvatar;
         img.onerror = function () {
-            if (img.src !== memberInfoFallbackAvatar) { img.src = memberInfoFallbackAvatar; }
+            if (img.src !== memberInfoFinalFallbackAvatar) { img.src = memberInfoFinalFallbackAvatar; }
             wrap.classList.remove('is-loading');
         };
 
@@ -400,12 +408,12 @@
         host.appendChild(wrap);
     };
 
-    // 照片/剪影到位：換上圖並停止轉圈(載入完成或失敗都停，失敗則退回綠色剪影)。
+    // 照片/剪影到位：換上圖並停止轉圈。載入失敗時退回非綠色的最終 fallback。
     function memberInfoSettleAvatar(img, src) {
         var wrap = img.closest('.member-info-avatar-wrap');
         img.onload = function () { if (wrap) { wrap.classList.remove('is-loading'); } };
         img.onerror = function () {
-            if (img.src !== memberInfoFallbackAvatar) { img.src = memberInfoFallbackAvatar; }
+            if (img.src !== memberInfoFinalFallbackAvatar) { img.src = memberInfoFinalFallbackAvatar; }
             if (wrap) { wrap.classList.remove('is-loading'); }
         };
         img.src = src;
@@ -413,6 +421,9 @@
 
     function memberInfoStopAvatarSpinner(img) {
         var wrap = img.closest('.member-info-avatar-wrap');
+        if (img.getAttribute('src') === memberInfoLoadingAvatar) {
+            img.src = memberInfoFinalFallbackAvatar;
+        }
         if (wrap) { wrap.classList.remove('is-loading'); }
     }
 
@@ -465,7 +476,7 @@
                     if (cid && memberInfoImageCache[cid]) {
                         memberInfoSettleAvatar(this, memberInfoImageCache[cid]);
                     } else {
-                        memberInfoStopAvatarSpinner(this);
+                        memberInfoSettleAvatar(this, memberInfoFinalFallbackAvatar);
                     }
                 });
             },

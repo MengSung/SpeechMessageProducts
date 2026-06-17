@@ -334,12 +334,13 @@ namespace ChurchReport.Controllers
             {
                 if (request?.ContactIds == null || request.ContactIds.Length == 0)
                 {
-                    return Json(new { success = true, images = new Dictionary<string, string>() });
+                    return Json(new { success = true, images = new Dictionary<string, string>(), sources = new Dictionary<string, string>() });
                 }
 
                 var thumbSize = Math.Clamp(request.Size > 0 ? request.Size : 48, 32, 256);
                 var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
                 var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                var sources = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 var uncachedGuids = new List<Guid>();
 
                 foreach (var id in request.ContactIds.Distinct(StringComparer.OrdinalIgnoreCase))
@@ -354,7 +355,9 @@ namespace ChurchReport.Controllers
                         memoryCache.TryGetValue(cacheKey, out byte[] cachedBytes) &&
                         cachedBytes != null)
                     {
-                        result[guid.ToString()] = "data:image/jpeg;base64," + Convert.ToBase64String(cachedBytes);
+                        var key = guid.ToString();
+                        result[key] = "data:image/jpeg;base64," + Convert.ToBase64String(cachedBytes);
+                        sources[key] = "primary";
                     }
                     else
                     {
@@ -391,7 +394,9 @@ namespace ChurchReport.Controllers
                                 Size = Math.Max(1, outputBytes.Length / 1024)
                             });
 
-                            result[contact.Id.ToString()] = "data:image/jpeg;base64," + Convert.ToBase64String(outputBytes);
+                            var key = contact.Id.ToString();
+                            result[key] = "data:image/jpeg;base64," + Convert.ToBase64String(outputBytes);
+                            sources[key] = "primary";
                         }
                         else
                         {
@@ -400,23 +405,27 @@ namespace ChurchReport.Controllers
                                 contact.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
                             if (!string.IsNullOrEmpty(linePictureUrl))
                             {
-                                result[contact.Id.ToString()] = linePictureUrl;
+                                var key = contact.Id.ToString();
+                                result[key] = linePictureUrl;
+                                sources[key] = "line";
                             }
                             else
                             {
                                 var gender = contact.GetAttributeValue<OptionSetValue>("gendercode")?.Value;
-                                result[contact.Id.ToString()] = ToSvgDataUri(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender));
+                                var key = contact.Id.ToString();
+                                result[key] = ToSvgDataUri(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender));
+                                sources[key] = "fallback";
                             }
                         }
                     }
                 }
 
                 Response.Headers["Cache-Control"] = "private, no-store";
-                return Json(new { success = true, images = result });
+                return Json(new { success = true, images = result, sources });
             }
             catch
             {
-                return Json(new { success = false, images = new Dictionary<string, string>() });
+                return Json(new { success = false, images = new Dictionary<string, string>(), sources = new Dictionary<string, string>() });
             }
             finally
             {
