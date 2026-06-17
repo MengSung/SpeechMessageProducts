@@ -482,11 +482,10 @@
 
         var img = document.createElement('img');
 
-        // 優先使用批次預載入的快取 Data URL（零網路延遲）
+        // 初始一律用本地佔位圖(零網路)；真正照片/性別剪影由 preloadContactImages 批次一次帶回後再換上。
+        // 不要在這裡指向 /Personal/GetContactImage——否則每列各自發一支請求、各打一次 CRM，會拖慢唯一的批次請求。
         if (contactId && contactImageCache[contactId]) {
             img.src = contactImageCache[contactId];
-        } else if (contactId) {
-            img.src = contactImageEndpoint + '?contactId=' + encodeURIComponent(contactId) + '&size=' + contactAvatarThumbSize;
         } else {
             img.src = fallbackSvg;
         }
@@ -605,6 +604,13 @@
             },
             error: function () {
                 console.warn('⚠️ [preloadContactImages] ' + gridId + ' 批次載入失敗，改用逐筆載入');
+                // 批次失敗時退回逐筆載入(舊行為)，至少還能顯示照片，不會卡在佔位圖。
+                $('#' + gridId + ' .contact-avatar-img[data-contact-id]').each(function () {
+                    var cid = this.dataset.contactId;
+                    if (cid && !contactImageCache[cid]) {
+                        this.src = contactImageEndpoint + '?contactId=' + encodeURIComponent(cid) + '&size=' + contactAvatarThumbSize;
+                    }
+                });
             },
             complete: function () {
                 _batchLoadPending[gridId] = false;

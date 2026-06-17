@@ -338,9 +338,11 @@
         img.loading = 'eager';
         img.decoding = 'async';
         img.dataset.contactId = contactId;
-        img.src = contactId && memberInfoImageCache[contactId]
+        // 初始一律用本地佔位圖(零網路請求)；真正的照片/性別剪影由 memberInfoPreloadImages 批次一次帶回後再換上。
+        // 不要在這裡指向 /MemberInfo/GetContactImage——否則每列各自發一支請求、各打一次 CRM，會拖慢甚至餓死唯一的批次請求。
+        img.src = (contactId && memberInfoImageCache[contactId])
             ? memberInfoImageCache[contactId]
-            : (contactId ? '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(contactId) + '&size=48' : memberInfoFallbackAvatar);
+            : memberInfoFallbackAvatar;
         img.onerror = function () {
             if (img.src !== memberInfoFallbackAvatar) {
                 img.src = memberInfoFallbackAvatar;
@@ -398,6 +400,15 @@
                         }
                     });
                 }
+            },
+            error: function () {
+                // 批次失敗時退回逐筆載入(舊行為)，至少還能顯示照片，不會卡在佔位圖。
+                $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]').each(function () {
+                    var cid = this.dataset.contactId;
+                    if (cid && !memberInfoImageCache[cid]) {
+                        this.src = '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(cid) + '&size=48';
+                    }
+                });
             },
             complete: function () {
                 memberInfoBatchPending = false;

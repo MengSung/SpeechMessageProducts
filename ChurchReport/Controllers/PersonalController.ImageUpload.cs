@@ -601,6 +601,12 @@ namespace ChurchReport.Controllers
             Response.Headers["Vary"] = "Accept-Encoding";
         }
 
+        /// <summary>把 SVG 字串轉成可直接當 img src 的 data URI(base64，避免特殊字元轉義問題)。</summary>
+        private static string ToSvgDataUri(string svg)
+        {
+            return "data:image/svg+xml;base64," + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(svg ?? string.Empty));
+        }
+
         /// <summary>
         /// 返回預設大頭照（純色圓形圖示）
         /// </summary>
@@ -679,7 +685,7 @@ namespace ChurchReport.Controllers
 
                     var query = new Microsoft.Xrm.Sdk.Query.QueryExpression("contact")
                     {
-                        ColumnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet("entityimage", "contactid")
+                        ColumnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet("entityimage", "contactid", "gendercode")
                     };
                     query.Criteria.AddCondition(
                         "contactid",
@@ -706,6 +712,12 @@ namespace ChurchReport.Controllers
                             });
 
                             result[contactIdStr] = "data:image/jpeg;base64," + Convert.ToBase64String(outputBytes);
+                        }
+                        else
+                        {
+                            // 無照片：批次直接帶回性別剪影(SVG data URI)，前端就不必再逐筆打 GetContactImage。
+                            var gender = entity.GetAttributeValue<Microsoft.Xrm.Sdk.OptionSetValue>("gendercode")?.Value;
+                            result[contactIdStr] = ToSvgDataUri(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender));
                         }
                     }
                 }

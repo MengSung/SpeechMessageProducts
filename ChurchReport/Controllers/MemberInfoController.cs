@@ -356,30 +356,34 @@ namespace ChurchReport.Controllers
                     service = GetConnection();
                     var query = new QueryExpression("contact")
                     {
-                        ColumnSet = new ColumnSet("contactid", "entityimage")
+                        ColumnSet = new ColumnSet("contactid", "entityimage", "gendercode")
                     };
                     query.Criteria.AddCondition("contactid", ConditionOperator.In, uncachedGuids.Select(g => (object)g).ToArray());
 
                     var contacts = service.RetrieveMultiple(query);
                     foreach (var contact in contacts.Entities)
                     {
-                        if (!contact.Contains("entityimage") || contact["entityimage"] == null)
+                        if (contact.Contains("entityimage") && contact["entityimage"] != null)
                         {
-                            continue;
+                            var originalBytes = (byte[])contact["entityimage"];
+                            var outputBytes = CreateThumbnailIfNeeded(originalBytes, thumbSize);
+                            var cacheKey = $"member-info-contact-image-thumb:{contact.Id:N}:{thumbSize}";
+
+                            memoryCache?.Set(cacheKey, outputBytes, new MemoryCacheEntryOptions
+                            {
+                                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
+                                SlidingExpiration = TimeSpan.FromMinutes(10),
+                                Size = Math.Max(1, outputBytes.Length / 1024)
+                            });
+
+                            result[contact.Id.ToString()] = "data:image/jpeg;base64," + Convert.ToBase64String(outputBytes);
                         }
-
-                        var originalBytes = (byte[])contact["entityimage"];
-                        var outputBytes = CreateThumbnailIfNeeded(originalBytes, thumbSize);
-                        var cacheKey = $"member-info-contact-image-thumb:{contact.Id:N}:{thumbSize}";
-
-                        memoryCache?.Set(cacheKey, outputBytes, new MemoryCacheEntryOptions
+                        else
                         {
-                            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
-                            SlidingExpiration = TimeSpan.FromMinutes(10),
-                            Size = Math.Max(1, outputBytes.Length / 1024)
-                        });
-
-                        result[contact.Id.ToString()] = "data:image/jpeg;base64," + Convert.ToBase64String(outputBytes);
+                            // 無照片：批次直接帶回性別剪影(SVG data URI)，前端就不必再逐筆打 GetContactImage。
+                            var gender = contact.GetAttributeValue<OptionSetValue>("gendercode")?.Value;
+                            result[contact.Id.ToString()] = ToSvgDataUri(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender));
+                        }
                     }
                 }
 
@@ -1722,6 +1726,12 @@ namespace ChurchReport.Controllers
         {
             Response.Headers["Cache-Control"] = "private, max-age=1800";
             Response.Headers["Vary"] = "Accept-Encoding";
+        }
+
+        /// <summary>把 SVG 字串轉成可直接當 img src 的 data URI(base64，避免特殊字元轉義問題)。</summary>
+        private static string ToSvgDataUri(string svg)
+        {
+            return "data:image/svg+xml;base64," + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(svg ?? string.Empty));
         }
 
         private IActionResult GetDefaultImage()
