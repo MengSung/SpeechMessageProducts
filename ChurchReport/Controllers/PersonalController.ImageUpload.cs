@@ -661,6 +661,11 @@ namespace ChurchReport.Controllers
                 var sources = new Dictionary<string, string>();
                 var uncachedGuids = new List<Guid>();
 
+                // [計時診斷] 暫時性效能量測，僅讀取耗時與位元組大小，不影響任何邏輯/安全。確認瓶頸後即可移除。
+                var swTotal = System.Diagnostics.Stopwatch.StartNew();
+                long connMs = 0, crmMs = 0, imgTicks = 0, inBytes = 0, outBytes = 0;
+                int withPhoto = 0;
+
                 // ========================================
                 // 步驟 1: 優先從 MemoryCache 取得已快取的縮圖
                 // ========================================
@@ -681,13 +686,16 @@ namespace ChurchReport.Controllers
                 }
 
                 System.Diagnostics.Debug.WriteLine($"[GetContactImagesBatch] 快取命中: {result.Count}, 需查詢 CRM: {uncachedGuids.Count}");
+                int cacheHitCount = result.Count; // [計時診斷] 步驟1結束時 result 內全是快取命中
 
                 // ========================================
                 // 步驟 2: 批次查詢 CRM 取得未快取的照片
                 // ========================================
                 if (uncachedGuids.Count > 0)
                 {
+                    var swConn = System.Diagnostics.Stopwatch.StartNew();
                     service = GetConnection();
+                    swConn.Stop(); connMs = swConn.ElapsedMilliseconds; // [計時診斷] 連線池取得連線耗時
 
                     var query = new Microsoft.Xrm.Sdk.Query.QueryExpression("contact")
                     {
@@ -702,7 +710,9 @@ namespace ChurchReport.Controllers
                         Microsoft.Xrm.Sdk.Query.ConditionOperator.In,
                         uncachedGuids.Select(g => (object)g).ToArray());
 
+                    var swCrm = System.Diagnostics.Stopwatch.StartNew();
                     var queryResult = service.RetrieveMultiple(query);
+                    swCrm.Stop(); crmMs = swCrm.ElapsedMilliseconds; // [計時診斷] 單一 RetrieveMultiple(含 entityimage 傳輸) 耗時
 
                     foreach (var entity in queryResult.Entities)
                     {
@@ -710,7 +720,10 @@ namespace ChurchReport.Controllers
                         if (entity.Contains("entityimage") && entity["entityimage"] != null)
                         {
                             var originalBytes = (byte[])entity["entityimage"];
+                            var _imgStart = System.Diagnostics.Stopwatch.GetTimestamp(); // [計時診斷] 累計解碼/縮圖耗時
                             var outputBytes = CreateThumbnailIfNeeded(originalBytes, thumbSize);
+                            imgTicks += System.Diagnostics.Stopwatch.GetTimestamp() - _imgStart;
+                            inBytes += originalBytes.Length; outBytes += outputBytes.Length; withPhoto++; // [計時診斷] 原圖/縮圖位元組
 
                             // 寫入 MemoryCache（與 GetContactImage 共用相同 cache key）
                             var cacheKey = $"contact-image-thumb:{entity.Id:N}:{thumbSize}";
@@ -743,6 +756,11 @@ namespace ChurchReport.Controllers
                         }
                     }
                 }
+
+                // [計時診斷] 一行彙總：total/conn/crm/img 各自耗時 + 原圖(inKB)/縮圖(outKB)大小，用來判定瓶頸在 CRM 傳輸還是本地解碼
+                var imgMs = imgTicks * 1000 / System.Diagnostics.Stopwatch.Frequency;
+                System.Diagnostics.Trace.WriteLine(
+                    $"[BatchImg-Timing] ep=Personal total={swTotal.ElapsedMilliseconds}ms conn={connMs}ms crm={crmMs}ms img={imgMs}ms | req={request.ContactIds.Length} cacheHit={cacheHitCount} crmQ={uncachedGuids.Count} photo={withPhoto} inKB={inBytes / 1024} outKB={outBytes / 1024}");
 
                 // 批次回應不設瀏覽器快取（資料已由 MemoryCache 快取）
                 Response.Headers["Cache-Control"] = "private, no-store";

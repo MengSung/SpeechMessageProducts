@@ -348,9 +348,23 @@ namespace ChurchReport.Controllers
                 var sources = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 var uncachedGuids = new List<Guid>();
 
+                // [計時診斷] 暫時性效能量測，僅讀取耗時與位元組大小，不影響任何邏輯/安全。確認瓶頸後即可移除。
+                var swTotal = System.Diagnostics.Stopwatch.StartNew();
+                long preMs = 0, connMs = 0, crmMs = 0, imgTicks = 0, inBytes = 0, outBytes = 0;
+                int withPhoto = 0;
+                var swPre = System.Diagnostics.Stopwatch.StartNew(); // [計時診斷] 授權檢查(CanViewContact)+快取查詢迴圈耗時
+
+                // 先一次算出「可檢視」名單，取代迴圈內逐人 CanViewContact 的 N+1 CRM 查詢；授權判斷邏輯與逐筆版完全相同。
+                var parsedGuids = new List<Guid>();
                 foreach (var id in request.ContactIds.Distinct(StringComparer.OrdinalIgnoreCase))
                 {
-                    if (!Guid.TryParse(id, out var guid) || !CanViewContact(guid))
+                    if (Guid.TryParse(id, out var g)) parsedGuids.Add(g);
+                }
+                var allowedSet = CanViewContactsBatch(parsedGuids);
+
+                foreach (var guid in parsedGuids)
+                {
+                    if (!allowedSet.Contains(guid))
                     {
                         continue;
                     }
@@ -369,10 +383,14 @@ namespace ChurchReport.Controllers
                         uncachedGuids.Add(guid);
                     }
                 }
+                swPre.Stop(); preMs = swPre.ElapsedMilliseconds; // [計時診斷]
+                int cacheHitCount = result.Count; // [計時診斷] 迴圈結束時 result 內全是快取命中
 
                 if (uncachedGuids.Count > 0)
                 {
+                    var swConn = System.Diagnostics.Stopwatch.StartNew();
                     service = GetConnection();
+                    swConn.Stop(); connMs = swConn.ElapsedMilliseconds; // [計時診斷] 連線池取得連線耗時
                     var query = new QueryExpression("contact")
                     {
                         ColumnSet = new ColumnSet(
@@ -383,13 +401,18 @@ namespace ChurchReport.Controllers
                     };
                     query.Criteria.AddCondition("contactid", ConditionOperator.In, uncachedGuids.Select(g => (object)g).ToArray());
 
+                    var swCrm = System.Diagnostics.Stopwatch.StartNew();
                     var contacts = service.RetrieveMultiple(query);
+                    swCrm.Stop(); crmMs = swCrm.ElapsedMilliseconds; // [計時診斷] 單一 RetrieveMultiple(含 entityimage 傳輸) 耗時
                     foreach (var contact in contacts.Entities)
                     {
                         if (contact.Contains("entityimage") && contact["entityimage"] != null)
                         {
                             var originalBytes = (byte[])contact["entityimage"];
+                            var _imgStart = System.Diagnostics.Stopwatch.GetTimestamp(); // [計時診斷] 累計解碼/縮圖耗時
                             var outputBytes = CreateThumbnailIfNeeded(originalBytes, thumbSize);
+                            imgTicks += System.Diagnostics.Stopwatch.GetTimestamp() - _imgStart;
+                            inBytes += originalBytes.Length; outBytes += outputBytes.Length; withPhoto++; // [計時診斷] 原圖/縮圖位元組
                             var cacheKey = $"member-info-contact-image-thumb:{contact.Id:N}:{thumbSize}";
 
                             memoryCache?.Set(cacheKey, outputBytes, new MemoryCacheEntryOptions
@@ -424,6 +447,11 @@ namespace ChurchReport.Controllers
                         }
                     }
                 }
+
+                // [計時診斷] 一行彙總：total/pre/conn/crm/img 各自耗時 + 原圖(inKB)/縮圖(outKB)大小，用來判定瓶頸在 CRM 傳輸還是本地解碼
+                var imgMs = imgTicks * 1000 / System.Diagnostics.Stopwatch.Frequency;
+                System.Diagnostics.Trace.WriteLine(
+                    $"[BatchImg-Timing] ep=MemberInfo total={swTotal.ElapsedMilliseconds}ms pre={preMs}ms conn={connMs}ms crm={crmMs}ms img={imgMs}ms | req={request.ContactIds.Length} cacheHit={cacheHitCount} crmQ={uncachedGuids.Count} photo={withPhoto} inKB={inBytes / 1024} outKB={outBytes / 1024}");
 
                 Response.Headers["Cache-Control"] = "private, no-store";
                 return Json(new { success = true, images = result, sources });
@@ -978,6 +1006,89 @@ namespace ChurchReport.Controllers
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// 批次版授權檢查：與逐筆 <see cref="CanViewContact"/> 的允許/拒絕判斷「完全等價」，
+        /// 但把「逐人各打一支 CRM Retrieve(statecode/customertypecode)」改成「一支 RetrieveMultiple 全部撈回」，
+        /// 消除 N+1 查詢。回傳「可檢視」的 contactId 集合。
+        /// 安全性：沿用同樣的 GetAccess()/GetShepherdContactIds()/IsCurrentContactEntity()，名單與逐筆版相同；
+        /// 不快取授權結果、不放任何使用者專屬資料進共用快取、不碰 session。
+        /// </summary>
+        private HashSet<Guid> CanViewContactsBatch(IReadOnlyCollection<Guid> contactIds)
+        {
+            var allowed = new HashSet<Guid>();
+            if (contactIds == null || contactIds.Count == 0)
+            {
+                return allowed;
+            }
+
+            var access = GetAccess();
+            if (access != MemberInfoAccess.Church && access != MemberInfoAccess.ShepherdList)
+            {
+                return allowed; // 無權限：與逐筆版一致，全部拒絕
+            }
+
+            // 牧養名單：把「我可見的 contactId」集合算一次(in-memory)，不在迴圈內逐人重算
+            HashSet<string> shepherdAllowed = null;
+            if (access == MemberInfoAccess.ShepherdList)
+            {
+                shepherdAllowed = GetShepherdContactIds();
+                if (shepherdAllowed.Count == 0)
+                {
+                    return allowed;
+                }
+            }
+
+            var validGuids = contactIds.Where(g => g != Guid.Empty).Distinct().ToList();
+            if (validGuids.Count == 0)
+            {
+                return allowed;
+            }
+
+            // 一次撈回在籍判斷欄位，取代逐人 IsCurrentContact 的 N 支 Retrieve
+            var contactsById = new Dictionary<Guid, Entity>();
+            try
+            {
+                var query = new QueryExpression("contact")
+                {
+                    ColumnSet = new ColumnSet("contactid", "statecode", "customertypecode")
+                };
+                query.Criteria.AddCondition("contactid", ConditionOperator.In, validGuids.Select(g => (object)g).ToArray());
+
+                var fetched = ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                foreach (var entity in fetched.Entities)
+                {
+                    contactsById[entity.Id] = entity;
+                }
+            }
+            catch
+            {
+                return allowed; // 查詢失敗：保守地全部拒絕(等同逐筆版 Retrieve 失敗 → false)
+            }
+
+            foreach (var guid in validGuids)
+            {
+                // 查不到該 contact → 拒絕(等同逐筆版 Retrieve 取不到 → false)
+                if (!contactsById.TryGetValue(guid, out var entity))
+                {
+                    continue;
+                }
+
+                // 牧養名單需同時落在「我的牧養名單」內(與逐筆版的 allowed.Contains 相同)
+                if (access == MemberInfoAccess.ShepherdList && !shepherdAllowed.Contains(guid.ToString()))
+                {
+                    continue;
+                }
+
+                // 在籍且非結案 —— 與逐筆版 IsCurrentContactEntity 完全相同的判斷
+                if (IsCurrentContactEntity(entity))
+                {
+                    allowed.Add(guid);
+                }
+            }
+
+            return allowed;
         }
 
         private void EnsureShepherdListsLoaded()
@@ -1740,8 +1851,9 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var service = new OptionSetMetadataService(ToolUtility.m_Crm2011OrganizationService);
-                return service.GetOptionSetValue("contact", "customertypecode", "結案", null);
+                // 改用共用快取的 OptionSet 服務：「結案」狀態值整個 App 只查一次 CRM metadata，之後全走快取，
+                // 避免逐人(逐列)各打一支 metadata 查詢。文字→值對照非使用者專屬資料，快取安全。
+                return GetSharedOptionSetService().GetOptionSetValue("contact", "customertypecode", "結案", null);
             }
             catch
             {
