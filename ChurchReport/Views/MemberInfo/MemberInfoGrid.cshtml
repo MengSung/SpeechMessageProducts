@@ -524,7 +524,9 @@
             type: 'POST',
             success: function (res) {
                 if (res && res.success) {
-                    alert('完成：掃描 ' + res.scanned + ' 人，更新 ' + res.updated + '、清空 ' + res.cleared + '、略過/失敗 ' + res.errors + '。');
+                    var msg = '完成：掃描 ' + res.scanned + ' 人。\n照片正常 ' + res.okValid + '、更新 ' + res.updated + '、清空(失效) ' + res.cleared + '、暫時略過 ' + res.inconclusive + '。';
+                    if (res.reasons && res.reasons.length) { msg += '\nLINE 取資料失敗原因(範例)：\n- ' + res.reasons.join('\n- '); }
+                    alert(msg);
                     // 清掉前端影像快取，讓網格重新批次帶回正確的來源(剪影/照片)。
                     memberInfoImageCache = {};
                     memberInfoImageSourceCache = {};

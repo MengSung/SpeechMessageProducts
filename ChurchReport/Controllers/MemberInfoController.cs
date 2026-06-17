@@ -448,7 +448,7 @@ namespace ChurchReport.Controllers
         /// </summary>
         [HttpPost]
         [Route("/MemberInfo/ResyncLineProfiles")]
-        public async Task<IActionResult> ResyncLineProfiles(int max = 300)
+        public async Task<IActionResult> ResyncLineProfiles(int max = 1000)
         {
             IOrganizationService service = null;
 
@@ -465,7 +465,7 @@ namespace ChurchReport.Controllers
                     return Json(new { success = false, message = "未設定 LINE Channel Access Token" });
                 }
 
-                if (max <= 0) { max = 300; }
+                if (max <= 0) { max = 1000; }
                 max = Math.Min(max, 2000);
 
                 service = GetConnection();
@@ -487,67 +487,90 @@ namespace ChurchReport.Controllers
                 query.Orders.Add(new OrderExpression("modifiedon", OrderType.Ascending));
 
                 var contacts = service.RetrieveMultiple(query);
+                var candidates = contacts.Entities
+                    .Where(c => !string.IsNullOrWhiteSpace(c.GetAttributeValue<string>("new_lineid")))
+                    .ToList();
 
-                int checkedCount = 0, updated = 0, cleared = 0, errors = 0;
+                // 第一步：嚴謹判斷每個 new_line_picture_url 是否「真的能顯示圖片」。平行探測(限流)以縮短等待。
+                // 0 = 可顯示(2xx 且 Content-Type 為 image/*)；1 = 確定無法顯示(收到回應但非圖片或非 2xx)；2 = 無法判定(逾時/連線錯誤)。
+                var probe = new System.Collections.Concurrent.ConcurrentDictionary<Guid, int>();
+                using (var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(4) })
+                using (var gate = new System.Threading.SemaphoreSlim(20))
+                {
+                    http.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0");
+                    await Task.WhenAll(candidates.Select(async c =>
+                    {
+                        var url = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
+                            c.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
+                        if (string.IsNullOrEmpty(url)) { probe[c.Id] = 2; return; }
+                        await gate.WaitAsync();
+                        try { probe[c.Id] = await ProbeImageDisplayableAsync(http, url); }
+                        finally { gate.Release(); }
+                    }));
+                }
+
+                // 第二步：只有「確定無法顯示圖片」(state==1)者，才透過 LINE ID 取得最新 Profile 並更新／清空後台欄位。
+                int okValid = 0, updated = 0, cleared = 0, inconclusive = 0;
+                var reasons = new List<string>();
                 using (var client = new Line.Messaging.LineMessagingClient(token))
                 {
-                    foreach (var contact in contacts.Entities)
+                    foreach (var contact in candidates)
                     {
-                        var lineId = contact.GetAttributeValue<string>("new_lineid");
-                        if (string.IsNullOrWhiteSpace(lineId)) { continue; }
-                        checkedCount++;
+                        var state = probe.TryGetValue(contact.Id, out var s) ? s : 2;
+                        if (state == 0) { okValid++; continue; }       // 照片正常顯示 → 不動
+                        if (state == 2) { inconclusive++; continue; }  // 暫時無法判定(逾時等) → 不動，避免誤清
 
+                        // state == 1：確定無法顯示 → 依 LINE ID 取最新 Profile
+                        var lineId = contact.GetAttributeValue<string>("new_lineid");
                         try
                         {
                             var profile = await client.GetUserProfileAsync(lineId);
-
-                            // 只有「確實取得 profile」(回應含 userId)時才覆寫欄位；否則視為取不到，保留原值不誤清。
                             if (profile != null && !string.IsNullOrWhiteSpace(profile.UserId))
                             {
                                 var newPic = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(profile.PictureUrl);
-                                var oldPic = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
-                                    contact.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
-
-                                var update = new Entity("contact") { Id = contact.Id };
-                                // set-or-clear：profile 沒有照片時寫 null 即清空欄位 → 之後顯示性別剪影、無 LINE 標示、不計入「顯示照片」。
-                                update[ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute] =
+                                var upd = new Entity("contact") { Id = contact.Id };
+                                // set-or-clear：取回新照片就更新；LINE 已無照片則寫 null 清空 → 顯示性別剪影、無標示、不計入「顯示照片」。
+                                upd[ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute] =
                                     string.IsNullOrEmpty(newPic) ? null : newPic;
-                                update["new_line_status_message"] =
+                                upd["new_line_status_message"] =
                                     string.IsNullOrWhiteSpace(profile.StatusMessage) ? null : profile.StatusMessage;
-                                // 暱稱幾乎一定有值；僅在取得到時更新，避免誤清。
                                 if (!string.IsNullOrWhiteSpace(profile.DisplayName))
                                 {
-                                    update["new_line_displayname"] = profile.DisplayName;
+                                    upd["new_line_displayname"] = profile.DisplayName;
                                 }
-
-                                service.Update(update);
-
-                                if (string.IsNullOrEmpty(newPic) && !string.IsNullOrEmpty(oldPic)) { cleared++; }
-                                else { updated++; }
+                                service.Update(upd);
+                                if (string.IsNullOrEmpty(newPic)) { cleared++; } else { updated++; }
+                                continue;
                             }
-                            else
-                            {
-                                errors++;
-                            }
+                            if (reasons.Count < 6) { reasons.Add("profile 回應無 userId"); }
                         }
-                        catch
+                        catch (Line.Messaging.LineResponseException lre)
                         {
-                            // 取不到 profile（未加官方帳號好友→404、或暫時性錯誤）：保留原值不動。
-                            errors++;
+                            if (reasons.Count < 6) { reasons.Add($"getProfile {(int)lre.StatusCode}: {lre.Message}"); }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (reasons.Count < 6) { reasons.Add("getProfile " + ex.GetType().Name + ": " + ex.Message); }
                         }
 
-                        await Task.Delay(20);
+                        // 取不到 Profile（多半是未加官方帳號好友→403/404）：照片網址已「確定失效」，直接清空 →
+                        // 顯示性別剪影、無 LINE 標示、不計入「顯示照片」。其餘欄位保留不動。
+                        var clear = new Entity("contact") { Id = contact.Id };
+                        clear[ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute] = null;
+                        service.Update(clear);
+                        cleared++;
                     }
                 }
 
                 return Json(new
                 {
                     success = true,
-                    scanned = contacts.Entities.Count,
-                    checkedCount,
+                    scanned = candidates.Count,
+                    okValid,
                     updated,
                     cleared,
-                    errors
+                    inconclusive,
+                    reasons = reasons.Distinct().Take(6).ToList()
                 });
             }
             catch (Exception ex)
@@ -587,6 +610,28 @@ namespace ChurchReport.Controllers
             catch
             {
                 return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// 嚴謹判斷一個圖片網址是否「真的能顯示圖片」（只讀回應標頭、不下載內容）。
+        /// 回傳 0 = 可顯示（2xx 且 Content-Type 為 image/*）；1 = 確定無法顯示（有回應但非圖片或非 2xx）；2 = 無法判定（逾時／連線錯誤）。
+        /// </summary>
+        private static async Task<int> ProbeImageDisplayableAsync(System.Net.Http.HttpClient http, string url)
+        {
+            try
+            {
+                using (var resp = await http.GetAsync(url, System.Net.Http.HttpCompletionOption.ResponseHeadersRead))
+                {
+                    var contentType = resp.Content?.Headers?.ContentType?.MediaType ?? string.Empty;
+                    var displayable = resp.IsSuccessStatusCode
+                        && contentType.StartsWith("image", StringComparison.OrdinalIgnoreCase);
+                    return displayable ? 0 : 1;
+                }
+            }
+            catch
+            {
+                return 2;
             }
         }
 

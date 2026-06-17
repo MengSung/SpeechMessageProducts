@@ -10,6 +10,7 @@
 - 提供生產等級、高效能且具備高度可測試性，的程式碼。
 - 善用設計模式、堅守LINUS代碼原則，確保代碼簡單、可讀、可維護且可測試。
 - 確保所有回應和代碼變更遵循高級 C#/.NET 架構實踐，包括 SOLID、Clean Architecture、DDD、GoF 模式，並在修改代碼時包含完整的解釋性註釋。
+- 節省 Token 使用量，回覆與操作應保持精簡、避免重複內容。
 
 ## 2. 技術棧規範 (Tech Stack)
 - **Runtime:** .NET 10 (Targeting Native AOT)
