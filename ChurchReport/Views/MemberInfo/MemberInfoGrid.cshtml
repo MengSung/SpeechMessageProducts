@@ -5,10 +5,15 @@
 }
 
 <style>
+    /*
+        本頁為會友清單主畫面：上方工具列提供搜尋與操作按鈕，下方資料表負責呈現清單內容。
+        版面以桌機優先設計，手機時則透過 media query 壓縮間距與改變工具列排列方式，避免視覺擁擠。
+    */
     .member-info-page {
         padding: 10px 8px 20px;
     }
 
+    /* 工具列分成左右兩側：左邊標題、右邊目前權限/提示文字。 */
     .member-info-toolbar {
         display: flex;
         align-items: center;
@@ -17,6 +22,7 @@
         margin-bottom: 10px;
     }
 
+    /* 頁面標題維持簡潔強調，讓使用者一眼看出目前是在「會友資訊」頁。 */
     .member-info-title {
         margin: 0;
         color: #1f2937;
@@ -24,12 +30,14 @@
         font-weight: 700;
     }
 
+    /* 權限/說明文字使用較淡的灰色，避免與標題競爭視覺焦點。 */
     .member-info-access {
         color: #64748b;
         font-size: .9rem;
         white-space: nowrap;
     }
 
+    /* 白色卡片外框把 DevExtreme Grid 包起來，讓整體與頁面背景形成明確層次。 */
     .member-info-grid-shell {
         background: #fff;
         border: 1px solid #d9e2ec;
@@ -38,6 +46,7 @@
         box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
     }
 
+    /* 這顆按鈕用來快速切換「顯示全部 / 顯示照片」的資料模式，並保持與工具列同高。 */
     .member-info-photo-filter-btn {
         box-sizing: border-box;
         display: inline-flex;
@@ -57,36 +66,45 @@
         transition: background-color .15s ease;
     }
 
-    /* 讓工具列(含按鈕)完整顯示、不被裁切，並與欄位標題列留一點間距 */
+    /*
+        DevExtreme 的 toolbar 可能會因為預設 overflow 而裁切自訂按鈕。
+        這裡主動放寬 overflow，確保「顯示照片」與「重新同步LINE」兩顆按鈕都能完整呈現。
+    */
     #MemberInfoGridContainer .dx-datagrid-header-panel {
         overflow: visible;
         padding-bottom: 6px;
     }
 
+    /* 讓自訂按鈕模板在工具列的每一層容器中都不被裁切。 */
     #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar,
     #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar-items-container,
     #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar-item {
         overflow: visible;
     }
 
+    /* 切到「顯示全部」模式時，按鈕改為藍色，讓目前篩選狀態一目了然。 */
     .member-info-photo-filter-btn.is-photo-only {
         background: #2563eb; /* 篩選中：藍色「顯示全部」 */
     }
 
+    /* 按下時做一點下沉效果，增加觸控回饋。 */
     .member-info-photo-filter-btn:active {
         transform: translateY(1px);
     }
 
+    /* 表頭使用較淺的背景色與深色文字，提高欄位辨識度。 */
     #MemberInfoGridContainer .dx-datagrid-headers .dx-header-row td {
         background: #eef6f8;
         color: #1f2937;
         font-weight: 700;
     }
 
+    /* 滑鼠停留時以淡黃色標示整列，幫助使用者快速追蹤目前游標所在列。 */
     #MemberInfoGridContainer .dx-datagrid-rowsview .dx-data-row:hover > td {
         background: #fff8db;
     }
 
+    /* 姓名欄位做成可點擊連結樣式，提示可進入明細視窗。 */
     .member-info-name-link {
         color: #2563eb;
         cursor: pointer;
@@ -95,6 +113,7 @@
         text-underline-offset: 2px;
     }
 
+    /* 圓形大頭照縮圖固定為 40px，搭配邊框與 cover 裁切，確保每列高度一致。 */
     .member-info-avatar-img {
         width: 40px;
         height: 40px;
@@ -106,7 +125,10 @@
         background: #f8fafc;
     }
 
-    /* 大頭照外框：載入時在綠色剪影上疊一個旋轉等待圖示，照片到位後移除 is-loading 即停止旋轉。 */
+    /*
+        大頭照外框同時承載：圖片本體、來源徽章、載入中的旋轉圖示。
+        這樣可避免縮圖載入尚未完成時畫面空白，也能讓使用者知道目前是否仍在抓圖。
+    */
     .member-info-avatar-wrap {
         position: relative;
         width: 40px;
@@ -114,18 +136,22 @@
         margin: 0 auto;
     }
 
+    /* 讓圖片在包裝器中維持置中並去除預設外距。 */
     .member-info-avatar-wrap .member-info-avatar-img {
         margin: 0;
     }
 
+    /* 取得主要照片或 LINE 圖片時，外框會用不同邊框色區分來源。 */
     .member-info-avatar-wrap.avatar-source-primary .member-info-avatar-img {
         border-color: #16a34a;
     }
 
+    /* LINE 來源則使用藍色邊框，以便與主要照片做出清楚區隔。 */
     .member-info-avatar-wrap.avatar-source-line .member-info-avatar-img {
         border-color: #2563eb;
     }
 
+    /* 來源徽章預設隱藏，只在有明確來源時顯示，以免干擾未標記圖片。 */
     .member-info-avatar-source-badge {
         position: absolute;
         right: -4px;
@@ -145,18 +171,21 @@
         pointer-events: none;
     }
 
+    /* 主要照片時顯示綠底徽章，告訴使用者目前使用的是正式照片。 */
     .member-info-avatar-wrap.avatar-source-primary .member-info-avatar-source-badge {
         display: block;
         min-width: 14px;
         background: #16a34a;
     }
 
+    /* LINE 照片時顯示藍底徽章，讓來源在列表中一眼可辨。 */
     .member-info-avatar-wrap.avatar-source-line .member-info-avatar-source-badge {
         display: block;
         min-width: 15px;
         background: #2563eb;
     }
 
+    /* 旋轉等待圖示置於縮圖中央，用來表達「照片尚在批次載入」的狀態。 */
     .member-info-avatar-spinner {
         position: absolute;
         inset: 0;
@@ -171,14 +200,17 @@
         pointer-events: none;
     }
 
+    /* 加上 is-loading 時才顯示 spinner；圖片到位後則隱藏，避免長時間卡圈。 */
     .member-info-avatar-wrap.is-loading .member-info-avatar-spinner {
         display: block;
     }
 
+    /* 旋轉動畫只負責輕量提示，不改變版面尺寸。 */
     @@keyframes member-info-avatar-spin {
         to { transform: rotate(360deg); }
     }
 
+    /* 手機版縮小頁面外距與卡片 padding，提升可視範圍。 */
     @@media (max-width: 640px) {
         .member-info-page {
             padding: 8px 4px 14px;
@@ -194,12 +226,16 @@
         }
     }
 
-    /* 防止 iOS 點擊輸入框自動放大整頁：輸入字級必須 >= 16px */
+    /*
+        iOS Safari 會在輸入框字級小於 16px 時自動放大整頁。
+        這裡將所有編輯控制項的輸入字級統一拉高，避免手機操作時畫面被強制縮放。
+    */
     #MemberInfoGridContainer .dx-texteditor-input,
     #memberInfoDetailPopup .dx-texteditor-input {
         font-size: 16px;
     }
 
+    /* 明細彈窗內的內容容器，負責建立單一可捲動區塊並禁止超出邊界的內容破版。 */
     .member-info-detail-popup-content {
         box-sizing: border-box;
         height: 100%;
@@ -212,7 +248,10 @@
         touch-action: pan-x;
     }
 
-    /* One native vertical scroll container owns the mobile detail page. */
+    /*
+        手機版明細僅保留一個原生垂直捲動容器。
+        這樣可避免 popup、內層 DataGrid、或外層 touch handler 同時搶捲動權，造成手勢衝突。
+    */
     .member-info-detail-scroll {
         box-sizing: border-box;
         height: 100%;
@@ -228,6 +267,7 @@
         touch-action: pan-x;
     }
 
+    /* 內層實際承載 HTML 內容的區塊，將內容與捲動容器分離，方便後續 JS 動態注入。 */
     .member-info-detail-scroll-inner {
         box-sizing: border-box;
         min-height: 100%;
@@ -236,6 +276,7 @@
         touch-action: pan-x;
     }
 
+    /* 放在最上方的 1px 定位錨點，讓程式能穩定地把明細內容捲回頂部。 */
     .member-info-detail-top-anchor {
         display: block;
         height: 1px;
@@ -244,11 +285,12 @@
         pointer-events: none;
     }
 
+    /* 載入中訊息保留與實際內容相同的邊距，避免彈窗切換時畫面跳動。 */
     .member-info-detail-loading {
         padding: 16px;
     }
 
-    /* Mobile keeps the same native popup-content scroll container. */
+    /* 手機版維持同一個原生 popup 內容容器，只調整內距與安全區底部距離。 */
     @@media (max-width: 720px) {
         .member-info-detail-popup-content {
             min-height: 0;
@@ -261,12 +303,20 @@
 </style>
 
 <div class="member-info-page">
+    <!-- 頁面頂部工具列：左側標題、右側權限提示。 -->
     <div class="member-info-toolbar">
         <h4 class="member-info-title">會友資訊</h4>
         <div class="member-info-access">@ViewBag.MemberInfoAccess</div>
     </div>
 
+    <!-- 主要內容區：以卡片包覆 DevExtreme DataGrid，維持與頁面一致的留白與陰影。 -->
     <div class="member-info-grid-shell">
+        <!--
+            會友清單使用 DevExtreme DataGrid 呈現：
+            - 伺服器端分頁與排序，減少前端一次載入壓力
+            - 照片欄位使用自訂模板，先顯示佔位圖再批次補圖
+            - 姓名欄位可點擊，進入右側明細彈窗
+        -->
         @(Html.DevExtreme().DataGrid<MemberInfoListRowViewModel>()
             .ID("MemberInfoGridContainer")
             .DataSource(d => d.Mvc()
@@ -334,6 +384,10 @@
     </div>
 </div>
 
+<!--
+    明細彈窗：使用 DevExtreme Popup 承載會友完整資料。
+    內容本體由 AJAX 載入，因此初始只需建立空彈窗，實際 HTML 會在 openMemberInfoDetailPopup 中注入。
+-->
 @(Html.DevExtreme().Popup()
     .ID("memberInfoDetailPopup")
     .Width("90%")
@@ -348,8 +402,11 @@
     .OnHidden("memberInfoDetailPopupHidden"))
 
 <script>
+    // 圖片批次快取：避免每一列都各自向後端發送單獨請求。
     var memberInfoImageCache = {};
+    // 紀錄圖片來源，方便在縮圖邊框與徽章上顯示不同來源狀態。
     var memberInfoImageSourceCache = {};
+    // 用來避免同時間重複發送多個批次請求。
     var memberInfoBatchPending = false;
     // 載入中的本地佔位圖：綠底白色「上半身剪影」(頭與身體相連)。轉圈停止後不可再保留綠底。
     var memberInfoLoadingAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(
@@ -375,6 +432,7 @@
     // 僅「全教會」管理者顯示「重新同步LINE」按鈕（由伺服器端 ViewBag 決定）。
     var memberInfoCanResync = @(ViewBag.MemberInfoCanResync == true ? "true" : "false");
 
+    // 將後端或批次 API 回傳的照片來源值正規化，確保前端只處理三種合法狀態。
     function memberInfoNormalizeAvatarSource(source) {
         if (source === 'primary' || source === 'line' || source === 'fallback') {
             return source;
@@ -383,6 +441,8 @@
     }
 
     /*
+        這段舊版註解保留下來，主要是方便比對來源文案的演進。
+        實際執行時仍以目前下方的 UTF-8 字串版本為準，避免中文在不同編碼環境中顯示異常。
     function memberInfoAvatarSourceText(source) {
         if (source === 'primary') { return '照'; }
         if (source === 'line') { return 'LINE'; }
@@ -430,6 +490,7 @@
         }
     }
 
+    // 自訂工具列按鈕：切換資料表是否只顯示有照片的會友。
     window.memberInfoTogglePhotoFilter = function () {
         memberInfoPhotoOnly = !memberInfoPhotoOnly;
 
@@ -453,6 +514,7 @@
     // ── 重新同步 LINE 資料 ──
     // 依 new_lineid 向 LINE Profile API 重新取得大頭貼/狀態/暱稱並覆寫(或清空)CRM 欄位。
     // 已換照/移除照片者其照片網址被清空後，下次載入即顯示性別預設剪影、不再有 LINE 標示。
+    // 這個流程主要提供系統管理員用來修正資料一致性，避免前端長期看到過舊的 LINE 狀態。
     window.memberInfoResyncLineProfiles = function () {
         if (!window.confirm('將依 LINE ID 重新同步聯絡人的 LINE 大頭貼／狀態／暱稱（已換照或移除者會清空照片），可能需要一點時間，是否繼續？')) { return; }
         var btn = document.getElementById('memberInfoResyncBtn');
@@ -480,6 +542,7 @@
     };
 
     // 把按鈕放進網格工具列(與搜尋框同一列、緊鄰網格上端)；onToolbarPreparing 確保工具列每次重建都依目前狀態正確呈現。
+    // 由於 DataGrid 會在排序、搜尋或重繪時重新建立 toolbar，因此按鈕必須在此處動態插入。
     window.memberInfoGridToolbarPreparing = function (e) {
         if (!e || !e.toolbarOptions || !e.toolbarOptions.items) { return; }
         e.toolbarOptions.items.unshift({
@@ -515,6 +578,7 @@
         }
     };
 
+    // 縮圖 cell template：先顯示 loading 剪影，再由批次請求補上實際照片。
     window.memberInfoAvatarCellTemplate = function (container, options) {
         var data = options.data || {};
         var contactId = data.ContactId || data.contactId || options.value || '';
@@ -561,6 +625,7 @@
     };
 
     // 照片/剪影到位：換上圖並停止轉圈。載入失敗時退回非綠色的最終 fallback。
+    // 這個方法將圖片載入完成與 UI 狀態切換集中處理，避免每個呼叫端重複寫一樣的邏輯。
     function memberInfoSettleAvatar(img, src, source) {
         var wrap = img.closest('.member-info-avatar-wrap');
         img.onload = function () {
@@ -579,6 +644,7 @@
         img.src = src;
     }
 
+    // 當未成功拿到任何可顯示圖片時，結束 spinner 並切換到最終 fallback，避免縮圖永遠停留在載入中。
     function memberInfoStopAvatarSpinner(img) {
         var wrap = img.closest('.member-info-avatar-wrap');
         if (img.getAttribute('src') === memberInfoLoadingAvatar) {
@@ -588,6 +654,7 @@
         if (wrap) { wrap.classList.remove('is-loading'); }
     }
 
+    // 姓名欄位模板：使用超連結外觀，但實際上開啟的是明細彈窗而非頁面導轉。
     window.memberInfoNameCellTemplate = function (container, options) {
         var data = options.data || {};
         var contactId = data.ContactId || data.contactId || '';
@@ -607,6 +674,7 @@
         host.appendChild(link);
     };
 
+    // 針對目前頁面可見的資料列一次批次預載照片，降低首屏後續捲動時的延遲。
     window.memberInfoPreloadImages = function (e) {
         if (memberInfoBatchPending || !e || !e.component) return;
         var items = e.component.getDataSource().items() || [];
@@ -659,6 +727,7 @@
         });
     };
 
+    // 從彈窗內容中找出真正的 scroll host，避免 popup 與內層容器互相搶捲動位置。
     function memberInfoFindDetailPopupContent(contentElement) {
         var $candidate = contentElement ? $(contentElement) : $();
         var $content = $candidate.hasClass('dx-popup-content')
@@ -679,12 +748,14 @@
         return $content;
     }
 
+    // 以下變數負責追蹤明細彈窗的開啟序號、使用者是否已互動，以及 scroll 清理 callback。
     var memberInfoDetailScrollResetToken = 0;
     var memberInfoDetailUserInteracted = false;
     var memberInfoDetailOpenToken = 0;
     var memberInfoDetailScrollCleanup = null;
     var memberInfoSupportsPassiveEvents = false;
 
+    // 以被動事件偵測確認目前瀏覽器是否支援 passive listener，方便在 touch/scroll 綁定時做最佳化。
     try {
         var memberInfoPassiveProbe = Object.defineProperty({}, 'passive', {
             get: function () {
@@ -699,22 +770,26 @@
         memberInfoSupportsPassiveEvents = false;
     }
 
+    // 關閉瀏覽器的 scroll restoration，避免彈窗開合後瀏覽器自行回復到非預期位置。
     if (window.history && 'scrollRestoration' in window.history) {
         window.history.scrollRestoration = 'manual';
     }
 
+    // 確保同一個 DOM 物件只會被加入一次，避免觸發多重重設滾動。
     function memberInfoAddUniqueElement(list, element) {
         if (element && list.indexOf(element) < 0) {
             list.push(element);
         }
     }
 
+    // 依需求產生事件選項：若支援 passive，就盡量保留。
     function memberInfoGetEventOptions(passive, capture) {
         return memberInfoSupportsPassiveEvents
             ? { passive: passive, capture: !!capture }
             : !!capture;
     }
 
+    // 統一管理明細彈窗事件監聽與清理，讓 hidden 時可以一次移除。
     function memberInfoAddDetailListener(cleanups, element, type, handler, options) {
         if (!element || !element.addEventListener) {
             return;
@@ -726,11 +801,13 @@
         });
     }
 
+    // 只要使用者開始手動捲動/點擊，就停止後續的自動回頂部機制，避免搶走使用者控制權。
     function memberInfoStopInitialScrollLock() {
         memberInfoDetailUserInteracted = true;
         memberInfoDetailScrollResetToken++;
     }
 
+    // 取得明細彈窗中可能需要重設捲動的位置：主 content、內層 scroll 容器等。
     function memberInfoGetDetailScrollTargets(contentElement) {
         var $content = memberInfoFindDetailPopupContent(contentElement);
         var targets = [];
@@ -759,6 +836,7 @@
         return targets;
     }
 
+    // 綁定觸控/滑鼠/捲輪相關事件，讓手機上的捲動手勢能穩定落在內容容器上。
     function memberInfoBindDetailTouchHandling($content, scrollHost) {
         if (memberInfoDetailScrollCleanup) {
             memberInfoDetailScrollCleanup();
@@ -889,6 +967,7 @@
             .get(0);
     }
 
+    // 判斷明細內容是否已回到頂端，避免重複執行不必要的捲動重設。
     function memberInfoIsDetailTopVisible(contentElement) {
         var $content = memberInfoFindDetailPopupContent(contentElement);
         var host = $content.find('.member-info-detail-scroll').get(0) || $content.get(0);
@@ -903,6 +982,7 @@
         return anchorRect.top >= hostRect.top - 2 && anchorRect.top <= hostRect.top + 24;
     }
 
+    // 立即把明細內容捲回頂部，適用於初次開啟或切換內容後的畫面校正。
     window.memberInfoResetDetailScroll = function (contentElement) {
         var $content = memberInfoFindDetailPopupContent(contentElement);
         var scrollTargets = memberInfoGetDetailScrollTargets(contentElement);
@@ -931,6 +1011,7 @@
         }
     };
 
+    // 以多次延遲重試的方式重設捲動，因為 popup / DataGrid 可能在數個 reflow 後才完成佈局。
     window.memberInfoResetDetailScrollSoon = function (contentElement) {
         var requestFrame = window.requestAnimationFrame || function (callback) {
             window.setTimeout(callback, 0);
@@ -962,17 +1043,20 @@
     };
 
     // DataGrid can change layout after loading; keep the initial view at the top only before the user interacts.
+    // 這裡不在使用者已經手動操作後重設，以免在閱讀明細時突然跳回最上方。
     window.memberInfoDetailRefreshScroll = function (contentElement) {
         if (!memberInfoDetailUserInteracted) {
             window.memberInfoResetDetailScrollSoon(contentElement);
         }
     };
 
+    // Popup 顯示後重新標記為未互動並安排回頂部，讓第一次開啟能直接看到內容起點。
     window.memberInfoDetailPopupShown = function (e) {
         memberInfoDetailUserInteracted = false;
         window.memberInfoResetDetailScrollSoon(e && e.element);
     };
 
+    // Popup 關閉時清理 touch 監聽與暫存狀態，避免下次開啟殘留舊的事件處理器。
     window.memberInfoDetailPopupHidden = function (e) {
         memberInfoDetailOpenToken++;
         memberInfoDetailUserInteracted = false;
@@ -986,6 +1070,7 @@
             .removeClass('member-info-detail-popup-content');
     };
 
+    // 將 AJAX 回傳的 HTML 注入 popup，並包上一層單一捲動容器與頂部錨點。
     function memberInfoSetDetailPopupContent(contentElement, html) {
         var $content = $(contentElement);
         if (!$content.length) {
@@ -1007,6 +1092,7 @@
         window.memberInfoResetDetailScrollSoon($content);
     }
 
+    // 開啟明細彈窗：先顯示 loading，待 AJAX 載入完成後再置換成實際 HTML。
     window.openMemberInfoDetailPopup = function (contactId, fullName) {
         if (!contactId) return;
         if (document.activeElement && document.activeElement.blur) {

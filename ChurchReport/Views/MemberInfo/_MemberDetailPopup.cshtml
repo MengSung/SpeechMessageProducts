@@ -1,17 +1,21 @@
 @model ChurchReport.ViewModels.MemberInfoDetailViewModel
 @{
+    // 先在伺服器端整理大頭照來源種類，讓前端只需依這個統一結果切換外觀與標籤，避免 JS 重複判斷。
     var detailAvatarSource = Model.AvatarSource == "primary" || Model.AvatarSource == "line" || Model.AvatarSource == "fallback"
         ? Model.AvatarSource
         : "fallback";
+    // 右上角的小標籤僅用於提示圖片來源，未提供來源時保持空白，避免畫面出現多餘文字。
     var detailAvatarBadgeText = detailAvatarSource == "primary"
         ? "\u7167\u7247"
         : (detailAvatarSource == "line" ? "LINE" : string.Empty);
+    // 滑鼠停留或輔助工具會讀到的標題字串，必須與來源種類一致，方便維護與除錯。
     var detailAvatarTitle = detailAvatarSource == "primary"
         ? "\u4e3b\u8981\u7167\u7247"
         : (detailAvatarSource == "line" ? "LINE \u7167\u7247" : "\u9810\u8a2d\u526a\u5f71");
 }
 
 <style>
+    /* 主要容器採左右雙欄配置：左側放大頭照與切換按鈕，右側放可編輯欄位與資料表。 */
     .member-info-detail {
         display: grid;
         align-content: start;
@@ -20,11 +24,13 @@
         min-height: 100%;
     }
 
+    /* 左側邊欄以分隔線區分內容，讓照片區與資料區在視覺上更清楚。 */
     .member-info-side {
         border-right: 1px solid #e2e8f0;
         padding: 4px 12px 4px 4px;
     }
 
+    /* 大頭照本體：限制最大尺寸、維持等比縮放，避免圖片過大撐破彈窗版面。 */
     .member-info-photo {
         width: auto;
         height: auto;
@@ -89,6 +95,7 @@
         fill: #fff;
     }
 
+    /* 來源徽章只在主照片或 LINE 照片時顯示，讓使用者知道目前使用的是哪種影像。 */
     .member-info-photo-source-badge {
         position: absolute;
         top: 6px;
@@ -165,6 +172,7 @@
         min-width: 0;
     }
 
+    /* 會員資料編輯區採兩欄排版，方便在桌面版同時檢視多個欄位。 */
     .member-info-fields {
         display: grid;
         gap: 8px 18px;
@@ -172,18 +180,21 @@
         margin-bottom: 14px;
     }
 
+    /* 單一欄位用底線與最小高度撐出一致的閱讀節奏。 */
     .member-info-field {
         border-bottom: 1px solid #edf2f7;
         min-height: 38px;
         padding-bottom: 6px;
     }
 
+    /* 標籤以較淡的顏色呈現，讓使用者快速辨識欄位名稱而不搶走主要內容注意力。 */
     .member-info-label {
         color: #64748b;
         font-size: 1rem;
         margin-bottom: 2px;
     }
 
+    /* 值欄位允許長文字換行，避免地址或關係資料在小螢幕時被截斷。 */
     .member-info-value {
         color: #1f2937;
         font-size: 1.1rem;
@@ -292,6 +303,7 @@
 </style>
 
 <div class="member-info-detail" data-contact-id="@Model.ContactId">
+    <!-- 左側區塊：大頭照、照片來源標籤、相機上傳入口與紀錄分頁按鈕。 -->
     <aside class="member-info-side">
         <div class="member-info-photo-wrapper avatar-source-@detailAvatarSource" data-avatar-source="@detailAvatarSource">
             <img id="memberInfoDetailPhoto"
@@ -314,6 +326,7 @@
         </div>
     </aside>
 
+    <!-- 右側主內容：先顯示可編輯基本資料，再載入對應的資料表分頁內容。 -->
     <main class="member-info-main">
         <section class="member-info-fields">
             <div class="member-info-field">
@@ -386,9 +399,11 @@
 
 <script>
     (function () {
+        // 以立即執行函式包住所有細節邏輯，避免汙染全域命名空間，只保留必要的入口函式供彈窗 host 呼叫。
         var contactId = '@Model.ContactId';
         window._memberInfoSubGridInit = { present: false, equip: false, contactId: contactId, scrolledTop: false };
 
+        // 依照片來源同步更新外層樣式與徽章文字，讓前端在換圖後不需要重繪整個區塊。
         function memberInfoSetDetailAvatarSource(source) {
             source = (source === 'primary' || source === 'line' || source === 'fallback') ? source : 'fallback';
 
@@ -415,6 +430,7 @@
         }
 
         // ── 大頭照：拍照/選相片 → 立即上傳 ──
+        // 這個入口只負責打開檔案選擇器，真正的驗證與 AJAX 上傳在 memberInfoUploadPhoto 中處理。
         window.memberInfoTriggerPhotoUpload = function () {
             var input = document.getElementById('memberInfoPhotoInput');
             if (input) { input.click(); }
@@ -424,6 +440,7 @@
         // 由共用彈窗 host 標題列左上的「上傳」鈕呼叫(全域函式)。以 DOM 的 data-contact-id 取得對象，
         // 故同一彈窗被不同頁面重用、或切換不同會友時也不會存錯人。
         window.memberInfoUploadFields = function () {
+            // 先從目前彈窗根節點取出 contactId，確保更新的是當前正在瀏覽的會友。
             var root = document.querySelector('.member-info-detail[data-contact-id]');
             var cid = root ? root.getAttribute('data-contact-id') : '';
             if (!cid) { return; }
@@ -439,6 +456,7 @@
                 address: addressEl ? addressEl.value : ''
             };
             // 下拉留在「（未設定）」(空字串)時不送，後台即略過不動該 OptionSet。
+            // 這樣可避免使用者只是查看畫面、沒有變更時，仍不小心把原值覆寫成空值。
             if (membershipEl && membershipEl.value !== '') { data.membershipStatusValue = membershipEl.value; }
             if (spiritualEl && spiritualEl.value !== '') { data.spiritualIdentityValue = spiritualEl.value; }
 
@@ -465,6 +483,7 @@
         // 以不分大小寫比對 data-contact-id，並用各 img 自身的 id 重建網址，避免 GUID 大小寫差異造成比對不到。
         function memberInfoRefreshGridThumb(id, version) {
             try {
+                // 先把快取清掉，再逐一重設 src，才能確保離開彈窗後看到的是最新大頭照。
                 var lid = String(id || '').toLowerCase();
                 var v = version || Date.now();
 
@@ -492,6 +511,7 @@
             } catch (e) { }
         }
 
+        // 檔案上傳流程：先做檔案大小與格式檢查，再立即預覽，最後呼叫後端儲存並同步更新各處縮圖。
         window.memberInfoUploadPhoto = function (input) {
             if (!input || !input.files || input.files.length === 0) { return; }
 
@@ -551,6 +571,7 @@
 
             input.value = '';
         };
+        // 依螢幕寬度切換表格的捲動策略與欄位寬度，避免手機版看起來過擁擠。
         var isMobile = window.innerWidth <= 720;
         // 手機使用原生水平捲動，外層 popup 內容則負責唯一的垂直捲動。
         // 避免 simulated scrolling 和外層 touch scroll 互相搶手勢。
@@ -582,6 +603,7 @@
             }
         });
 
+        // 分頁切換只在第一次點擊時初始化對應 DataGrid，減少初次開啟彈窗的負擔。
         window.memberInfoDetailSwitch = function (tab) {
             $('.member-info-tab').removeClass('active');
             $('.member-info-tab[data-tab="' + tab + '"]').addClass('active');
@@ -590,6 +612,7 @@
             initMemberInfoSubGrid(tab, contactId);
         };
 
+        // 依分頁類型分別初始化不同資料來源，並保留各自的初始化旗標避免重複建立 DataGrid。
         window.initMemberInfoSubGrid = function (tab, id) {
             if (tab === 'present' && !window._memberInfoSubGridInit.present) {
                 window._memberInfoSubGridInit.present = true;
@@ -666,6 +689,7 @@
             }
         };
 
+        // 預設先載入「聚會紀錄」，讓使用者打開彈窗時立刻看到最常用的資料內容。
         setTimeout(function () {
             window.memberInfoDetailSwitch('present');
         }, 180);
