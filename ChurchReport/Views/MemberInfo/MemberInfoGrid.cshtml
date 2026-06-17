@@ -118,6 +118,45 @@
         margin: 0;
     }
 
+    .member-info-avatar-wrap.avatar-source-primary .member-info-avatar-img {
+        border-color: #16a34a;
+    }
+
+    .member-info-avatar-wrap.avatar-source-line .member-info-avatar-img {
+        border-color: #2563eb;
+    }
+
+    .member-info-avatar-source-badge {
+        position: absolute;
+        right: -5px;
+        bottom: -3px;
+        display: none;
+        min-width: 16px;
+        height: 14px;
+        padding: 0 3px;
+        border: 1px solid #fff;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 8px;
+        font-weight: 700;
+        line-height: 13px;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, .22);
+        pointer-events: none;
+    }
+
+    .member-info-avatar-wrap.avatar-source-primary .member-info-avatar-source-badge {
+        display: block;
+        min-width: 24px;
+        background: #16a34a;
+    }
+
+    .member-info-avatar-wrap.avatar-source-line .member-info-avatar-source-badge {
+        display: block;
+        min-width: 24px;
+        background: #2563eb;
+    }
+
     .member-info-avatar-spinner {
         position: absolute;
         inset: 0;
@@ -310,6 +349,7 @@
 
 <script>
     var memberInfoImageCache = {};
+    var memberInfoImageSourceCache = {};
     var memberInfoBatchPending = false;
     // 載入中的本地佔位圖：綠底白色「上半身剪影」(頭與身體相連)。轉圈停止後不可再保留綠底。
     var memberInfoLoadingAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(
@@ -332,6 +372,62 @@
     // ── 顯示照片 / 顯示全部 切換 ──
     // 預設：顯示全部(按鈕綠色、文字「顯示照片」)；按下後只顯示真正有照片者(按鈕變藍、文字「顯示全部」)，再按一次切回。
     var memberInfoPhotoOnly = false;
+
+    function memberInfoNormalizeAvatarSource(source) {
+        if (source === 'primary' || source === 'line' || source === 'fallback') {
+            return source;
+        }
+        return '';
+    }
+
+    /*
+    function memberInfoAvatarSourceText(source) {
+        if (source === 'primary') { return '照'; }
+        if (source === 'line') { return 'LINE'; }
+        return '';
+    }
+
+    function memberInfoAvatarSourceTitle(source) {
+        if (source === 'primary') { return '主要頭像'; }
+        if (source === 'line') { return 'LINE 照片'; }
+        if (source === 'fallback') { return '預設剪影'; }
+        return '照片來源未標記';
+    }
+
+    */
+    function memberInfoAvatarSourceText(source) {
+        if (source === 'primary') { return '\u4e3b\u7167'; }
+        if (source === 'line') { return 'LINE'; }
+        return '';
+    }
+
+    function memberInfoAvatarSourceTitle(source) {
+        if (source === 'primary') { return '\u4e3b\u8981\u982d\u50cf'; }
+        if (source === 'line') { return 'LINE \u7167\u7247'; }
+        if (source === 'fallback') { return '\u9810\u8a2d\u526a\u5f71'; }
+        return '\u7167\u7247\u4f86\u6e90\u672a\u6a19\u8a18';
+    }
+
+    function memberInfoApplyAvatarSource(wrap, img, source) {
+        source = memberInfoNormalizeAvatarSource(source);
+        if (!wrap) { return; }
+
+        wrap.classList.remove('avatar-source-primary', 'avatar-source-line', 'avatar-source-fallback');
+        if (source) {
+            wrap.classList.add('avatar-source-' + source);
+        }
+
+        var badge = wrap.querySelector('.member-info-avatar-source-badge');
+        if (badge) {
+            badge.textContent = memberInfoAvatarSourceText(source);
+        }
+
+        if (img) {
+            img.title = memberInfoAvatarSourceTitle(source);
+            img.dataset.imageSource = source || '';
+        }
+    }
+
     window.memberInfoTogglePhotoFilter = function () {
         memberInfoPhotoOnly = !memberInfoPhotoOnly;
 
@@ -378,6 +474,7 @@
         host.textContent = '';
 
         var cached = contactId && memberInfoImageCache[contactId];
+        var cachedSource = cached ? memberInfoImageSourceCache[contactId] : '';
 
         var wrap = document.createElement('div');
         wrap.className = 'member-info-avatar-wrap' + (cached ? '' : ' is-loading');
@@ -397,24 +494,38 @@
         img.src = cached ? memberInfoImageCache[contactId] : memberInfoLoadingAvatar;
         img.onerror = function () {
             if (img.src !== memberInfoFinalFallbackAvatar) { img.src = memberInfoFinalFallbackAvatar; }
+            memberInfoApplyAvatarSource(wrap, img, 'fallback');
             wrap.classList.remove('is-loading');
         };
 
         var spinner = document.createElement('span');
         spinner.className = 'member-info-avatar-spinner';
 
+        var badge = document.createElement('span');
+        badge.className = 'member-info-avatar-source-badge';
+
         wrap.appendChild(img);
+        wrap.appendChild(badge);
         wrap.appendChild(spinner);
+        memberInfoApplyAvatarSource(wrap, img, cachedSource);
         host.appendChild(wrap);
     };
 
     // 照片/剪影到位：換上圖並停止轉圈。載入失敗時退回非綠色的最終 fallback。
-    function memberInfoSettleAvatar(img, src) {
+    function memberInfoSettleAvatar(img, src, source) {
         var wrap = img.closest('.member-info-avatar-wrap');
-        img.onload = function () { if (wrap) { wrap.classList.remove('is-loading'); } };
+        img.onload = function () {
+            if (wrap) {
+                wrap.classList.remove('is-loading');
+                memberInfoApplyAvatarSource(wrap, img, source);
+            }
+        };
         img.onerror = function () {
             if (img.src !== memberInfoFinalFallbackAvatar) { img.src = memberInfoFinalFallbackAvatar; }
-            if (wrap) { wrap.classList.remove('is-loading'); }
+            if (wrap) {
+                wrap.classList.remove('is-loading');
+                memberInfoApplyAvatarSource(wrap, img, 'fallback');
+            }
         };
         img.src = src;
     }
@@ -423,6 +534,7 @@
         var wrap = img.closest('.member-info-avatar-wrap');
         if (img.getAttribute('src') === memberInfoLoadingAvatar) {
             img.src = memberInfoFinalFallbackAvatar;
+            memberInfoApplyAvatarSource(wrap, img, 'fallback');
         }
         if (wrap) { wrap.classList.remove('is-loading'); }
     }
@@ -468,15 +580,16 @@
                 if (response && response.success && response.images) {
                     Object.keys(response.images).forEach(function (id) {
                         memberInfoImageCache[id] = response.images[id];
+                        memberInfoImageSourceCache[id] = (response.sources && response.sources[id]) || 'fallback';
                     });
                 }
                 // 批次已回：有圖就換上並停轉；沒回傳該人(極少數，如無權檢視)也停轉，留綠色剪影。
                 $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]').each(function () {
                     var cid = this.dataset.contactId;
                     if (cid && memberInfoImageCache[cid]) {
-                        memberInfoSettleAvatar(this, memberInfoImageCache[cid]);
+                        memberInfoSettleAvatar(this, memberInfoImageCache[cid], memberInfoImageSourceCache[cid]);
                     } else {
-                        memberInfoSettleAvatar(this, memberInfoFinalFallbackAvatar);
+                        memberInfoSettleAvatar(this, memberInfoFinalFallbackAvatar, 'fallback');
                     }
                 });
             },
@@ -485,7 +598,7 @@
                 $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]').each(function () {
                     var cid = this.dataset.contactId;
                     if (cid && !memberInfoImageCache[cid]) {
-                        memberInfoSettleAvatar(this, '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(cid) + '&size=48');
+                        memberInfoSettleAvatar(this, '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(cid) + '&size=48', '');
                     } else {
                         memberInfoStopAvatarSpinner(this);
                     }

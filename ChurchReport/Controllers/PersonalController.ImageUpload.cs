@@ -652,12 +652,13 @@ namespace ChurchReport.Controllers
             {
                 if (request?.ContactIds == null || request.ContactIds.Length == 0)
                 {
-                    return Json(new { success = true, images = new Dictionary<string, string>() });
+                    return Json(new { success = true, images = new Dictionary<string, string>(), sources = new Dictionary<string, string>() });
                 }
 
                 var thumbSize = Math.Clamp(request.Size > 0 ? request.Size : 48, 32, 256);
                 var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
                 var result = new Dictionary<string, string>();
+                var sources = new Dictionary<string, string>();
                 var uncachedGuids = new List<Guid>();
 
                 // ========================================
@@ -671,6 +672,7 @@ namespace ChurchReport.Controllers
                     if (memoryCache != null && memoryCache.TryGetValue(cacheKey, out byte[] cached) && cached != null)
                     {
                         result[idStr] = "data:image/jpeg;base64," + Convert.ToBase64String(cached);
+                        sources[idStr] = "primary";
                     }
                     else
                     {
@@ -720,6 +722,7 @@ namespace ChurchReport.Controllers
                             });
 
                             result[contactIdStr] = "data:image/jpeg;base64," + Convert.ToBase64String(outputBytes);
+                            sources[contactIdStr] = "primary";
                         }
                         else
                         {
@@ -729,11 +732,13 @@ namespace ChurchReport.Controllers
                             if (!string.IsNullOrEmpty(linePictureUrl))
                             {
                                 result[contactIdStr] = linePictureUrl;
+                                sources[contactIdStr] = "line";
                             }
                             else
                             {
                                 var gender = entity.GetAttributeValue<Microsoft.Xrm.Sdk.OptionSetValue>("gendercode")?.Value;
                                 result[contactIdStr] = ToSvgDataUri(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender));
+                                sources[contactIdStr] = "fallback";
                             }
                         }
                     }
@@ -741,12 +746,12 @@ namespace ChurchReport.Controllers
 
                 // 批次回應不設瀏覽器快取（資料已由 MemoryCache 快取）
                 Response.Headers["Cache-Control"] = "private, no-store";
-                return Json(new { success = true, images = result });
+                return Json(new { success = true, images = result, sources });
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[GetContactImagesBatch] 錯誤: {ex.Message}");
-                return Json(new { success = false, images = new Dictionary<string, string>() });
+                return Json(new { success = false, images = new Dictionary<string, string>(), sources = new Dictionary<string, string>() });
             }
             finally
             {

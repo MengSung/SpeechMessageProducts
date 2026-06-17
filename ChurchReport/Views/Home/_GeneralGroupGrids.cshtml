@@ -24,6 +24,45 @@
         margin: 0 auto;
     }
 
+    .contact-avatar-wrap.avatar-source-primary .contact-avatar-img {
+        border-color: #16a34a !important;
+    }
+
+    .contact-avatar-wrap.avatar-source-line .contact-avatar-img {
+        border-color: #2563eb !important;
+    }
+
+    .contact-avatar-source-badge {
+        position: absolute;
+        right: -5px;
+        bottom: -3px;
+        display: none;
+        min-width: 16px;
+        height: 14px;
+        padding: 0 3px;
+        border: 1px solid #fff;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 8px;
+        font-weight: 700;
+        line-height: 13px;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, .22);
+        pointer-events: none;
+    }
+
+    .contact-avatar-wrap.avatar-source-primary .contact-avatar-source-badge {
+        display: block;
+        min-width: 24px;
+        background: #16a34a;
+    }
+
+    .contact-avatar-wrap.avatar-source-line .contact-avatar-source-badge {
+        display: block;
+        min-width: 24px;
+        background: #2563eb;
+    }
+
     .contact-avatar-spinner {
         position: absolute;
         inset: 0;
@@ -491,6 +530,7 @@
     var contactAvatarThumbSize = 48;
     var contactImageBatchEndpoint = '@Url.Action("GetContactImagesBatch", "Personal")';
     var contactImageCache = {};
+    var contactImageSourceCache = {};
     var _batchLoadPending = {};
 
     function getContactIdFromGridRow(options) {
@@ -519,13 +559,83 @@
         "<path d='M8 64c1.5-17.2 10.9-29.6 24-29.6S54.5 46.8 56 64H8z'/>" +
         "</g></svg>");
 
+    function normalizeContactAvatarSource(source) {
+        if (source === 'primary' || source === 'line' || source === 'fallback') {
+            return source;
+        }
+        return '';
+    }
+
+    /*
+    function contactAvatarSourceText(source) {
+        if (source === 'primary') { return '照'; }
+        if (source === 'line') { return 'LINE'; }
+        return '';
+    }
+
+    function contactAvatarSourceTitle(source) {
+        if (source === 'primary') { return '主要頭像'; }
+        if (source === 'line') { return 'LINE 照片'; }
+        if (source === 'fallback') { return '預設剪影'; }
+        return '照片來源未標記';
+    }
+
+    */
+    function contactAvatarSourceText(source) {
+        if (source === 'primary') { return '\u4e3b\u7167'; }
+        if (source === 'line') { return 'LINE'; }
+        return '';
+    }
+
+    function contactAvatarSourceTitle(source) {
+        if (source === 'primary') { return '\u4e3b\u8981\u982d\u50cf'; }
+        if (source === 'line') { return 'LINE \u7167\u7247'; }
+        if (source === 'fallback') { return '\u9810\u8a2d\u526a\u5f71'; }
+        return '\u7167\u7247\u4f86\u6e90\u672a\u6a19\u8a18';
+    }
+
+    function applyContactAvatarSource(wrap, img, source) {
+        source = normalizeContactAvatarSource(source);
+        if (!wrap) { return; }
+
+        wrap.classList.remove('avatar-source-primary', 'avatar-source-line', 'avatar-source-fallback');
+        if (source) {
+            wrap.classList.add('avatar-source-' + source);
+        }
+
+        var badge = wrap.querySelector('.contact-avatar-source-badge');
+        if (badge) {
+            badge.textContent = contactAvatarSourceText(source);
+        }
+
+        if (img) {
+            img.title = contactAvatarSourceTitle(source);
+            img.dataset.imageSource = source || '';
+            if (source === 'primary') {
+                img.style.borderColor = '#16a34a';
+            } else if (source === 'line') {
+                img.style.borderColor = '#2563eb';
+            } else {
+                img.style.borderColor = '#e0e0e0';
+            }
+        }
+    }
+
     // 照片/剪影到位：換上圖並停止轉圈。載入失敗時退回非綠色的最終 fallback。
-    function settleContactAvatar(img, src) {
+    function settleContactAvatar(img, src, source) {
         var wrap = img.closest('.contact-avatar-wrap');
-        img.onload = function () { if (wrap) { wrap.classList.remove('is-loading'); } };
+        img.onload = function () {
+            if (wrap) {
+                wrap.classList.remove('is-loading');
+                applyContactAvatarSource(wrap, img, source);
+            }
+        };
         img.onerror = function () {
             if (img.src !== contactAvatarFinalFallbackSvg) { img.src = contactAvatarFinalFallbackSvg; }
-            if (wrap) { wrap.classList.remove('is-loading'); }
+            if (wrap) {
+                wrap.classList.remove('is-loading');
+                applyContactAvatarSource(wrap, img, 'fallback');
+            }
         };
         img.src = src;
     }
@@ -534,6 +644,7 @@
         var wrap = img.closest('.contact-avatar-wrap');
         if (img.getAttribute('src') === contactAvatarLoadingSvg) {
             img.src = contactAvatarFinalFallbackSvg;
+            applyContactAvatarSource(wrap, img, 'fallback');
         }
         if (wrap) { wrap.classList.remove('is-loading'); }
     }
@@ -549,6 +660,7 @@
         host.textContent = '';
 
         var cached = contactId && contactImageCache[contactId];
+        var cachedSource = cached ? contactImageSourceCache[contactId] : '';
 
         var wrap = document.createElement('div');
         wrap.className = 'contact-avatar-wrap' + (cached ? '' : ' is-loading');
@@ -567,6 +679,7 @@
             if (img.src !== contactAvatarFinalFallbackSvg) {
                 img.src = contactAvatarFinalFallbackSvg;
             }
+            applyContactAvatarSource(wrap, img, 'fallback');
             wrap.classList.remove('is-loading');
         };
         img.style.width = '40px';
@@ -596,8 +709,13 @@
         var spinner = document.createElement('span');
         spinner.className = 'contact-avatar-spinner';
 
+        var badge = document.createElement('span');
+        badge.className = 'contact-avatar-source-badge';
+
         wrap.appendChild(img);
+        wrap.appendChild(badge);
         wrap.appendChild(spinner);
+        applyContactAvatarSource(wrap, img, cachedSource);
         host.appendChild(wrap);
     }
 
@@ -666,6 +784,7 @@
                 if (response.success && response.images) {
                     for (var id in response.images) {
                         contactImageCache[id] = response.images[id];
+                        contactImageSourceCache[id] = (response.sources && response.sources[id]) || 'fallback';
                     }
                     console.log('✅ [preloadContactImages] ' + gridId + ' 批次載入完成，共 ' + Object.keys(response.images).length + ' 張');
                 }
@@ -673,9 +792,9 @@
                 $('#' + gridId + ' .contact-avatar-img[data-contact-id]').each(function () {
                     var cid = this.dataset.contactId;
                     if (cid && contactImageCache[cid]) {
-                        settleContactAvatar(this, contactImageCache[cid]);
+                        settleContactAvatar(this, contactImageCache[cid], contactImageSourceCache[cid]);
                     } else {
-                        settleContactAvatar(this, contactAvatarFinalFallbackSvg);
+                        settleContactAvatar(this, contactAvatarFinalFallbackSvg, 'fallback');
                     }
                 });
             },
@@ -685,7 +804,7 @@
                 $('#' + gridId + ' .contact-avatar-img[data-contact-id]').each(function () {
                     var cid = this.dataset.contactId;
                     if (cid && !contactImageCache[cid]) {
-                        settleContactAvatar(this, contactImageEndpoint + '?contactId=' + encodeURIComponent(cid) + '&size=' + contactAvatarThumbSize);
+                        settleContactAvatar(this, contactImageEndpoint + '?contactId=' + encodeURIComponent(cid) + '&size=' + contactAvatarThumbSize, '');
                     } else {
                         stopContactAvatarSpinner(this);
                     }
