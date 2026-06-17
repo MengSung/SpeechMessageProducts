@@ -439,16 +439,59 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 依 LINE ID 重新向 LINE Profile API 取得最新的大頭貼/狀態/暱稱，覆寫（或清空）聯絡人對應欄位：
-        /// new_line_picture_url / new_line_status_message / new_line_displayname。
-        /// 已換照或移除照片者，其 new_line_picture_url 會被清空——之後即顯示性別預設剪影、不再有 LINE 標示、也不計入「顯示照片」。
-        /// 僅限「全教會」管理者執行；只處理在籍且同時有 new_lineid 與 new_line_picture_url 的聯絡人（可能過時者）。
-        /// 取不到 profile（例如未加官方帳號好友→404、或暫時性錯誤）者保留原值不動。可重複執行（清空者下次即被排除）。
-        /// POST: /MemberInfo/ResyncLineProfiles
+        /// 取得「需要重新同步」的候選聯絡人 ID 清單（在籍且同時有 new_lineid 與 new_line_picture_url）。
+        /// 前端據此分批呼叫 ResyncLineProfiles，以便即時顯示進度。僅限「全教會」管理者。
+        /// GET: /MemberInfo/ResyncLineCandidateIds
+        /// </summary>
+        [HttpGet]
+        [Route("/MemberInfo/ResyncLineCandidateIds")]
+        public IActionResult ResyncLineCandidateIds()
+        {
+            IOrganizationService service = null;
+            try
+            {
+                if (GetAccess() != MemberInfoAccess.Church)
+                {
+                    return Forbid();
+                }
+
+                service = GetConnection();
+                var query = new QueryExpression("contact")
+                {
+                    ColumnSet = new ColumnSet("contactid"),
+                    TopCount = 5000
+                };
+                query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
+                query.Criteria.AddCondition("new_lineid", ConditionOperator.NotNull);
+                query.Criteria.AddCondition(
+                    ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute,
+                    ConditionOperator.NotNull);
+                query.Orders.Add(new OrderExpression("modifiedon", OrderType.Ascending));
+
+                var contacts = service.RetrieveMultiple(query);
+                var ids = contacts.Entities.Select(c => c.Id.ToString()).ToList();
+                return Json(new { success = true, ids });
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex, "MemberInfo.ResyncLineCandidateIds");
+            }
+            finally
+            {
+                ReleaseConnection(service);
+            }
+        }
+
+        /// <summary>
+        /// 對「前端傳來的一批聯絡人 ID」重新同步 LINE 資料（供分批/即時進度使用）。
+        /// 先嚴謹判斷 new_line_picture_url 是否「真的能顯示圖片」；只有「確定無法顯示」者才依 new_lineid 取最新 Profile，
+        /// 更新 new_line_picture_url / new_line_status_message / new_line_displayname（set-or-clear）。
+        /// 取不到 Profile（多半未加官方帳號好友→403/404）者，因網址已確定失效，直接清空照片網址 → 顯示性別剪影、無標示、不計入「顯示照片」。
+        /// 僅限「全教會」管理者。POST: /MemberInfo/ResyncLineProfiles（body: { contactIds: [...] }）
         /// </summary>
         [HttpPost]
         [Route("/MemberInfo/ResyncLineProfiles")]
-        public async Task<IActionResult> ResyncLineProfiles(int max = 1000)
+        public async Task<IActionResult> ResyncLineProfiles([FromBody] BatchImageRequest request)
         {
             IOrganizationService service = null;
 
@@ -465,8 +508,18 @@ namespace ChurchReport.Controllers
                     return Json(new { success = false, message = "未設定 LINE Channel Access Token" });
                 }
 
-                if (max <= 0) { max = 1000; }
-                max = Math.Min(max, 2000);
+                var guids = new List<Guid>();
+                if (request?.ContactIds != null)
+                {
+                    foreach (var raw in request.ContactIds)
+                    {
+                        if (Guid.TryParse(raw, out var g)) { guids.Add(g); }
+                    }
+                }
+                if (guids.Count == 0)
+                {
+                    return Json(new { success = true, scanned = 0, okValid = 0, updated = 0, cleared = 0, inconclusive = 0, reasons = new List<string>() });
+                }
 
                 service = GetConnection();
 
@@ -475,16 +528,9 @@ namespace ChurchReport.Controllers
                     ColumnSet = new ColumnSet(
                         "contactid",
                         "new_lineid",
-                        ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute),
-                    TopCount = max
+                        ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute)
                 };
-                query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
-                query.Criteria.AddCondition("new_lineid", ConditionOperator.NotNull);
-                query.Criteria.AddCondition(
-                    ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute,
-                    ConditionOperator.NotNull);
-                // 最舊更新者優先：處理後 modifiedon 會被推到最新而排到隊尾，因此重複執行可逐步涵蓋所有人（免分頁）。
-                query.Orders.Add(new OrderExpression("modifiedon", OrderType.Ascending));
+                query.Criteria.AddCondition("contactid", ConditionOperator.In, guids.Select(g => (object)g).ToArray());
 
                 var contacts = service.RetrieveMultiple(query);
                 var candidates = contacts.Entities
