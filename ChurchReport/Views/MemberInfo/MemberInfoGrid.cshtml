@@ -106,6 +106,40 @@
         background: #f8fafc;
     }
 
+    /* 大頭照外框：載入時在綠色剪影上疊一個旋轉等待圖示，照片到位後移除 is-loading 即停止旋轉。 */
+    .member-info-avatar-wrap {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        margin: 0 auto;
+    }
+
+    .member-info-avatar-wrap .member-info-avatar-img {
+        margin: 0;
+    }
+
+    .member-info-avatar-spinner {
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        width: 22px;
+        height: 22px;
+        border: 3px solid rgba(255, 255, 255, .55);
+        border-top-color: #15803d;
+        border-radius: 50%;
+        animation: member-info-avatar-spin .7s linear infinite;
+        display: none;
+        pointer-events: none;
+    }
+
+    .member-info-avatar-wrap.is-loading .member-info-avatar-spinner {
+        display: block;
+    }
+
+    @@keyframes member-info-avatar-spin {
+        to { transform: rotate(360deg); }
+    }
+
     @@media (max-width: 640px) {
         .member-info-page {
             padding: 8px 4px 14px;
@@ -277,8 +311,15 @@
 <script>
     var memberInfoImageCache = {};
     var memberInfoBatchPending = false;
+    // 載入中／無法取得照片時的本地佔位圖：綠底白色「上半身剪影」(頭與身體相連)。取代舊的「人」文字圖示。
     var memberInfoFallbackAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-        '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="20" fill="#e9ecef"/><text x="20" y="25" font-size="14" text-anchor="middle" fill="#6c757d">人</text></svg>');
+        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='40' height='40'>" +
+        "<defs><clipPath id='mig'><circle cx='32' cy='32' r='32'/></clipPath></defs>" +
+        "<circle cx='32' cy='32' r='32' fill='#16a34a'/>" +
+        "<g clip-path='url(#mig)' fill='#ffffff'>" +
+        "<circle cx='32' cy='25' r='11'/>" +
+        "<ellipse cx='32' cy='57' rx='20' ry='25'/>" +
+        "</g></svg>");
 
     // ── 顯示照片 / 顯示全部 切換 ──
     // 預設：顯示全部(按鈕綠色、文字「顯示照片」)；按下後只顯示真正有照片者(按鈕變藍、文字「顯示全部」)，再按一次切回。
@@ -328,6 +369,11 @@
         if (!host) return;
         host.textContent = '';
 
+        var cached = contactId && memberInfoImageCache[contactId];
+
+        var wrap = document.createElement('div');
+        wrap.className = 'member-info-avatar-wrap' + (cached ? '' : ' is-loading');
+
         var img = document.createElement('img');
         img.className = 'member-info-avatar-img';
         img.alt = '大頭照';
@@ -338,18 +384,37 @@
         img.loading = 'eager';
         img.decoding = 'async';
         img.dataset.contactId = contactId;
-        // 初始一律用本地佔位圖(零網路請求)；真正的照片/性別剪影由 memberInfoPreloadImages 批次一次帶回後再換上。
+        // 初始：已快取就直接放照片；否則放綠色剪影佔位 + 轉圈，等 memberInfoPreloadImages 批次一次帶回後再換上。
         // 不要在這裡指向 /MemberInfo/GetContactImage——否則每列各自發一支請求、各打一次 CRM，會拖慢甚至餓死唯一的批次請求。
-        img.src = (contactId && memberInfoImageCache[contactId])
-            ? memberInfoImageCache[contactId]
-            : memberInfoFallbackAvatar;
+        img.src = cached ? memberInfoImageCache[contactId] : memberInfoFallbackAvatar;
         img.onerror = function () {
-            if (img.src !== memberInfoFallbackAvatar) {
-                img.src = memberInfoFallbackAvatar;
-            }
+            if (img.src !== memberInfoFallbackAvatar) { img.src = memberInfoFallbackAvatar; }
+            wrap.classList.remove('is-loading');
         };
-        host.appendChild(img);
+
+        var spinner = document.createElement('span');
+        spinner.className = 'member-info-avatar-spinner';
+
+        wrap.appendChild(img);
+        wrap.appendChild(spinner);
+        host.appendChild(wrap);
     };
+
+    // 照片/剪影到位：換上圖並停止轉圈(載入完成或失敗都停，失敗則退回綠色剪影)。
+    function memberInfoSettleAvatar(img, src) {
+        var wrap = img.closest('.member-info-avatar-wrap');
+        img.onload = function () { if (wrap) { wrap.classList.remove('is-loading'); } };
+        img.onerror = function () {
+            if (img.src !== memberInfoFallbackAvatar) { img.src = memberInfoFallbackAvatar; }
+            if (wrap) { wrap.classList.remove('is-loading'); }
+        };
+        img.src = src;
+    }
+
+    function memberInfoStopAvatarSpinner(img) {
+        var wrap = img.closest('.member-info-avatar-wrap');
+        if (wrap) { wrap.classList.remove('is-loading'); }
+    }
 
     window.memberInfoNameCellTemplate = function (container, options) {
         var data = options.data || {};
@@ -393,20 +458,25 @@
                     Object.keys(response.images).forEach(function (id) {
                         memberInfoImageCache[id] = response.images[id];
                     });
-                    $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]').each(function () {
-                        var cid = this.dataset.contactId;
-                        if (cid && memberInfoImageCache[cid]) {
-                            this.src = memberInfoImageCache[cid];
-                        }
-                    });
                 }
+                // 批次已回：有圖就換上並停轉；沒回傳該人(極少數，如無權檢視)也停轉，留綠色剪影。
+                $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]').each(function () {
+                    var cid = this.dataset.contactId;
+                    if (cid && memberInfoImageCache[cid]) {
+                        memberInfoSettleAvatar(this, memberInfoImageCache[cid]);
+                    } else {
+                        memberInfoStopAvatarSpinner(this);
+                    }
+                });
             },
             error: function () {
-                // 批次失敗時退回逐筆載入(舊行為)，至少還能顯示照片，不會卡在佔位圖。
+                // 批次失敗 → 退回逐筆載入(舊行為)；載入完成(或失敗)即停轉，不會卡在轉圈。
                 $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]').each(function () {
                     var cid = this.dataset.contactId;
                     if (cid && !memberInfoImageCache[cid]) {
-                        this.src = '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(cid) + '&size=48';
+                        memberInfoSettleAvatar(this, '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(cid) + '&size=48');
+                    } else {
+                        memberInfoStopAvatarSpinner(this);
                     }
                 });
             },
