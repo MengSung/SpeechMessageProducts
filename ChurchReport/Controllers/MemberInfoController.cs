@@ -113,6 +113,17 @@ namespace ChurchReport.Controllers
                     RelationGoals = GetRelationGoals(contactGuid)
                 };
 
+                // 下拉選項(會員身分/信仰狀態)：用「共用快取」的 OptionSet 服務一次取得全部選項，
+                // 避免每次開細節都打 CRM metadata；目前值以整數送給前端 <select> 預選。
+                var optionSvc = GetSharedOptionSetService();
+                model.MembershipStatusOptions = BuildOptionItems(optionSvc, "customertypecode");
+                model.SpiritualIdentityOptions = BuildOptionItems(optionSvc, "new_spiriitual_identity");
+
+                var membershipValue = ToolUtility.GetOptionSetAttribute(contact, "customertypecode");
+                model.MembershipStatusValue = membershipValue >= 0 ? membershipValue : (int?)null;
+                var spiritualValue = ToolUtility.GetOptionSetAttribute(contact, "new_spiriitual_identity");
+                model.SpiritualIdentityValue = spiritualValue >= 0 ? spiritualValue : (int?)null;
+
                 return PartialView("_MemberDetailPopup", model);
             }
             catch (Exception ex)
@@ -459,6 +470,81 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
+        /// 更新「指定會友」的手機/地址/會員身分/信仰狀態(會友細節彈窗左上「上傳」鈕)。
+        /// 比照大頭照上傳，以 CanViewContact 把關——能在清單看到/開啟該會友者才可變更其資料。
+        /// 「空白略過不動」：手機/地址留空則不覆寫；下拉選「（未設定）」(空值)則該 OptionSet 不動。
+        /// POST: /MemberInfo/UpdateContactInfo
+        /// </summary>
+        [HttpPost]
+        [Route("/MemberInfo/UpdateContactInfo")]
+        public IActionResult UpdateContactInfo(string contactId, string phone, string address, int? membershipStatusValue, int? spiritualIdentityValue)
+        {
+            IOrganizationService service = null;
+
+            try
+            {
+                EnsureCorrectUserData();
+
+                if (!Guid.TryParse(contactId, out var contactGuid) || !CanViewContact(contactGuid))
+                {
+                    return Json(new { success = false, message = "無權限變更此會友資料" });
+                }
+
+                var contactToUpdate = new Entity("contact", contactGuid);
+                var hasChanges = false;
+
+                if (!string.IsNullOrWhiteSpace(phone))
+                {
+                    contactToUpdate["mobilephone"] = phone.Trim();
+                    hasChanges = true;
+                }
+
+                if (!string.IsNullOrWhiteSpace(address))
+                {
+                    contactToUpdate["address2_line1"] = address.Trim();
+                    hasChanges = true;
+                }
+
+                if (membershipStatusValue.HasValue && membershipStatusValue.Value >= 0)
+                {
+                    contactToUpdate["customertypecode"] = new OptionSetValue(membershipStatusValue.Value);
+                    hasChanges = true;
+                }
+
+                if (spiritualIdentityValue.HasValue && spiritualIdentityValue.Value >= 0)
+                {
+                    contactToUpdate["new_spiriitual_identity"] = new OptionSetValue(spiritualIdentityValue.Value);
+                    hasChanges = true;
+                }
+
+                if (!hasChanges)
+                {
+                    return Json(new { success = true, message = "無變更" });
+                }
+
+                service = GetConnection();
+                service.Update(contactToUpdate);
+
+                // 手機/會員身分也顯示在全教會清單列；清掉未搜尋的清單快取，讓預設清單即時反映變更。
+                InvalidateChurchRowsCache();
+
+                return Json(new { success = true, message = "已更新" });
+            }
+            catch (System.ServiceModel.FaultException faultEx)
+            {
+                return Json(new { success = false, message = "CRM 更新失敗：" + faultEx.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "更新失敗：" + ex.Message });
+            }
+            finally
+            {
+                ReleaseConnection(service);
+            }
+        }
+
+        /// <summary>
         /// 讀取上傳圖片並依 EXIF 自動轉正(解決手機直拍旋轉)，再「置中補邊成正方形」(補白、不裁切)，轉存 JPEG。
         /// 補正方形的原因：CRM 的 entityimage 以正方形顯示大頭照，直接存直式照片會被裁掉頭頂與下方；
         /// 先補成正方形後，存進 CRM 不會切到上下，完整人像在 CRM、清單、會友細節都看得到。處理失敗時退回原始位元組。
@@ -521,6 +607,40 @@ namespace ChurchReport.Controllers
                     memoryCache.Remove($"{prefix}-thumb:{contactGuid:N}:{size}");
                     memoryCache.Remove($"{prefix}-fit:{contactGuid:N}:{size}");
                 }
+            }
+        }
+
+        /// <summary>
+        /// 全教會清單列(含手機/會員身分)以搜尋字分鍵快取。手機/會員身分被改後，
+        /// 至少清掉「未搜尋」的兩個常用變體，讓預設清單即時反映(有搜尋字者最多 3 分鐘後自然過期)。
+        /// IMemoryCache 無法依前綴批次移除，故僅清最常見的未搜尋鍵。
+        /// </summary>
+        private void InvalidateChurchRowsCache()
+        {
+            var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
+            if (memoryCache == null)
+            {
+                return;
+            }
+
+            memoryCache.Remove("member-info-church-rows:all:");
+            memoryCache.Remove("member-info-church-rows:photo:");
+        }
+
+        /// <summary>以共用快取的 OptionSet 服務取得某 contact 欄位的全部選項(文字+整數值)，供下拉編輯使用。</summary>
+        private static List<OptionItem> BuildOptionItems(OptionSetMetadataService optionSvc, string attribute)
+        {
+            try
+            {
+                var mapping = optionSvc.GetOptionSetMapping("contact", attribute); // 文字 → 值
+                return mapping
+                    .Select(kv => new OptionItem { Value = kv.Value, Text = kv.Key })
+                    .OrderBy(o => o.Value)
+                    .ToList();
+            }
+            catch
+            {
+                return new List<OptionItem>();
             }
         }
 

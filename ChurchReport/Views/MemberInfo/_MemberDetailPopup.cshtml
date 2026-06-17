@@ -131,6 +131,29 @@
         overflow-wrap: anywhere;
     }
 
+    /* 可編輯欄位(手機/地址輸入框、信仰狀態/會員身分下拉)。font-size:16px 防 iOS 點擊自動放大。 */
+    .member-info-edit {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #93c5fd;
+        border-radius: 6px;
+        padding: 7px 9px;
+        font-size: 16px;
+        color: #1f2937;
+        background: #f7fbff;
+    }
+
+    .member-info-edit:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, .15);
+    }
+
+    select.member-info-edit {
+        appearance: auto;
+        -webkit-appearance: auto;
+    }
+
     .member-info-relations {
         grid-column: 1 / -1;
     }
@@ -229,19 +252,47 @@
         <section class="member-info-fields">
             <div class="member-info-field">
                 <div class="member-info-label">手機</div>
-                <div class="member-info-value">@Model.Phone</div>
+                <input type="text" id="memberInfoPhone" class="member-info-edit"
+                       value="@Model.Phone" inputmode="tel" autocomplete="off" />
             </div>
             <div class="member-info-field">
                 <div class="member-info-label">信仰狀態</div>
-                <div class="member-info-value">@Model.SpiritualIdentity</div>
+                <select id="memberInfoSpiritual" class="member-info-edit">
+                    <option value="">（未設定）</option>
+                    @foreach (var opt in Model.SpiritualIdentityOptions)
+                    {
+                        if (Model.SpiritualIdentityValue.HasValue && Model.SpiritualIdentityValue.Value == opt.Value)
+                        {
+                            <option value="@opt.Value" selected>@opt.Text</option>
+                        }
+                        else
+                        {
+                            <option value="@opt.Value">@opt.Text</option>
+                        }
+                    }
+                </select>
             </div>
             <div class="member-info-field">
                 <div class="member-info-label">地址</div>
-                <div class="member-info-value">@Model.Address</div>
+                <input type="text" id="memberInfoAddress" class="member-info-edit"
+                       value="@Model.Address" autocomplete="off" />
             </div>
             <div class="member-info-field">
                 <div class="member-info-label">會員身分</div>
-                <div class="member-info-value">@Model.MembershipStatus</div>
+                <select id="memberInfoMembership" class="member-info-edit">
+                    <option value="">（未設定）</option>
+                    @foreach (var opt in Model.MembershipStatusOptions)
+                    {
+                        if (Model.MembershipStatusValue.HasValue && Model.MembershipStatusValue.Value == opt.Value)
+                        {
+                            <option value="@opt.Value" selected>@opt.Text</option>
+                        }
+                        else
+                        {
+                            <option value="@opt.Value">@opt.Text</option>
+                        }
+                    }
+                </select>
             </div>
             <div class="member-info-field member-info-relations">
                 <div class="member-info-label">關係目標</div>
@@ -276,6 +327,47 @@
         window.memberInfoTriggerPhotoUpload = function () {
             var input = document.getElementById('memberInfoPhotoInput');
             if (input) { input.click(); }
+        };
+
+        // ── 會友細節「上傳」鈕：把手機/地址/信仰狀態/會員身分一次存回後台 ──
+        // 由共用彈窗 host 標題列左上的「上傳」鈕呼叫(全域函式)。以 DOM 的 data-contact-id 取得對象，
+        // 故同一彈窗被不同頁面重用、或切換不同會友時也不會存錯人。
+        window.memberInfoUploadFields = function () {
+            var root = document.querySelector('.member-info-detail[data-contact-id]');
+            var cid = root ? root.getAttribute('data-contact-id') : '';
+            if (!cid) { return; }
+
+            var phoneEl = document.getElementById('memberInfoPhone');
+            var addressEl = document.getElementById('memberInfoAddress');
+            var membershipEl = document.getElementById('memberInfoMembership');
+            var spiritualEl = document.getElementById('memberInfoSpiritual');
+
+            var data = {
+                contactId: cid,
+                phone: phoneEl ? phoneEl.value : '',
+                address: addressEl ? addressEl.value : ''
+            };
+            // 下拉留在「（未設定）」(空字串)時不送，後台即略過不動該 OptionSet。
+            if (membershipEl && membershipEl.value !== '') { data.membershipStatusValue = membershipEl.value; }
+            if (spiritualEl && spiritualEl.value !== '') { data.spiritualIdentityValue = spiritualEl.value; }
+
+            DevExpress.ui.notify('上傳中...', 'info', 1200);
+            $.ajax({
+                url: '/MemberInfo/UpdateContactInfo',
+                type: 'POST',
+                data: data,
+                success: function (response) {
+                    if (response && response.success) {
+                        DevExpress.ui.notify(response.message || '已更新', 'success', 2000);
+                    } else {
+                        DevExpress.ui.notify((response && response.message) || '更新失敗', 'error', 4000);
+                    }
+                },
+                error: function (xhr) {
+                    var msg = (xhr && xhr.status === 403) ? '無權限變更此會友資料' : '更新失敗，請稍後再試';
+                    DevExpress.ui.notify(msg, 'error', 4000);
+                }
+            });
         };
 
         // 上傳成功後，立即刷新「所有已知網格」中該會友的縮圖(會友資訊 + 小組回報的小組牧養/新人跟進關懷)。

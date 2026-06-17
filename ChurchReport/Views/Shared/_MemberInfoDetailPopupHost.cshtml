@@ -458,7 +458,23 @@
             width: isMobile ? '100%' : '90%',
             height: isMobile ? '100%' : '86%',
             maxWidth: isMobile ? '100%' : 980,
-            resizeEnabled: !isMobile
+            resizeEnabled: !isMobile,
+            // 標題列左上「上傳」鈕：存回手機/地址/信仰狀態/會員身分。實際蒐集表單與送出
+            // 由 partial 的全域函式 memberInfoUploadFields 處理(點擊時才解析，確保已載入)。
+            toolbarItems: [{
+                widget: 'dxButton',
+                toolbar: 'top',
+                location: 'before',
+                options: {
+                    text: '上傳',
+                    icon: 'upload',
+                    type: 'success',
+                    stylingMode: 'contained',
+                    onClick: function () {
+                        if (window.memberInfoUploadFields) { window.memberInfoUploadFields(); }
+                    }
+                }
+            }]
         });
 
         var openToken = ++memberInfoDetailOpenToken;
