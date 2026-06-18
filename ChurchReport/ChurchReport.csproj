@@ -25,7 +25,7 @@
     <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;appsettings.Development.json;web.config">
+    <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;appsettings.Production.json;web.config">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <None Remove="Views\Home\BindingResultView.cshtml" />
