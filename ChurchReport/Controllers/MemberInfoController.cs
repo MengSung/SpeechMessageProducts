@@ -469,7 +469,8 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 取得「需要重新同步」的候選聯絡人 ID 清單（在籍且同時有 new_lineid 與 new_line_picture_url）。
+        /// 取得「需要重新同步」的候選聯絡人 ID 清單（在籍、且有 new_lineid 者；不論目前有無 new_line_picture_url）。
+        /// 已清空/從未有照片者也要納入，以便偵測對方「解除封鎖/重新加好友/新增照片」後補回。
         /// 前端據此分批呼叫 ResyncLineProfiles，以便即時顯示進度。僅限「全教會」管理者。
         /// GET: /MemberInfo/ResyncLineCandidateIds
         /// </summary>
@@ -493,9 +494,8 @@ namespace ChurchReport.Controllers
                 };
                 query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
                 query.Criteria.AddCondition("new_lineid", ConditionOperator.NotNull);
-                query.Criteria.AddCondition(
-                    ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute,
-                    ConditionOperator.NotNull);
+                // 不限制 new_line_picture_url 必須有值：已清空/從未有照片者也要重新檢查，
+                // 因為對方可能已解除封鎖/重新加好友/新增照片，此時要重新向 LINE 取得並補回。
                 query.Orders.Add(new OrderExpression("modifiedon", OrderType.Ascending));
 
                 var contacts = service.RetrieveMultiple(query);
@@ -514,9 +514,9 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 對「前端傳來的一批聯絡人 ID」重新同步 LINE 資料（供分批/即時進度使用）。
-        /// 先嚴謹判斷 new_line_picture_url 是否「真的能顯示圖片」；只有「確定無法顯示」者才依 new_lineid 取最新 Profile，
+        /// 有照片網址者先探測該網址能否顯示圖片；「確定失效」或「根本沒有網址」者，皆依 new_lineid 取最新 Profile，
         /// 更新 new_line_picture_url / new_line_status_message / new_line_displayname（set-or-clear）。
-        /// 取不到 Profile（多半未加官方帳號好友→403/404）者，因網址已確定失效，直接清空照片網址 → 顯示性別剪影、無標示、不計入「顯示照片」。
+        /// 取不到 Profile（多半未加官方帳號好友→403/404）：有舊網址者清空失效網址；本來就沒網址者維持無照片(下次再試)。
         /// 僅限「全教會」管理者。POST: /MemberInfo/ResyncLineProfiles（body: { contactIds: [...] }）
         /// </summary>
         [HttpPost]
@@ -548,7 +548,7 @@ namespace ChurchReport.Controllers
                 }
                 if (guids.Count == 0)
                 {
-                    return Json(new { success = true, scanned = 0, okValid = 0, updated = 0, cleared = 0, inconclusive = 0, reasons = new List<string>() });
+                    return Json(new { success = true, scanned = 0, okValid = 0, updated = 0, cleared = 0, noPhoto = 0, inconclusive = 0, reasons = new List<string>() });
                 }
 
                 service = GetConnection();
@@ -567,8 +567,8 @@ namespace ChurchReport.Controllers
                     .Where(c => !string.IsNullOrWhiteSpace(c.GetAttributeValue<string>("new_lineid")))
                     .ToList();
 
-                // 第一步：嚴謹判斷每個 new_line_picture_url 是否「真的能顯示圖片」。平行探測(限流)以縮短等待。
-                // 0 = 可顯示(2xx 且 Content-Type 為 image/*)；1 = 確定無法顯示(收到回應但非圖片或非 2xx)；2 = 無法判定(逾時/連線錯誤)。
+                // 第一步：對「有存照片網址」者，嚴謹判斷該網址是否「真的能顯示圖片」(平行探測、限流)。
+                // 0 = 可顯示(2xx 且 image/*)；1 = 確定無法顯示(有回應但非圖片/非 2xx)；2 = 無法判定(逾時/連線錯誤)；3 = 根本沒有網址(待向 LINE 查詢)。
                 var probe = new System.Collections.Concurrent.ConcurrentDictionary<Guid, int>();
                 using (var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(4) })
                 using (var gate = new System.Threading.SemaphoreSlim(20))
@@ -578,15 +578,19 @@ namespace ChurchReport.Controllers
                     {
                         var url = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
                             c.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
-                        if (string.IsNullOrEmpty(url)) { probe[c.Id] = 2; return; }
+                        if (string.IsNullOrEmpty(url)) { probe[c.Id] = 3; return; } // 沒網址 → 直接走 getProfile（不需探測）
                         await gate.WaitAsync();
                         try { probe[c.Id] = await ProbeImageDisplayableAsync(http, url); }
                         finally { gate.Release(); }
                     }));
                 }
 
-                // 第二步：只有「確定無法顯示圖片」(state==1)者，才透過 LINE ID 取得最新 Profile 並更新／清空後台欄位。
-                int okValid = 0, updated = 0, cleared = 0, inconclusive = 0;
+                // 第二步：
+                //  - 可顯示(0) → 不動。
+                //  - 無法判定(2) → 不動，避免誤清。
+                //  - 確定失效(1) 或 沒有網址(3) → 依 new_lineid 取最新 Profile：取到照片就更新(補回)；確認無照片則「有舊網址者清空、本來就沒網址者維持無照片」。
+                //    取不到 Profile(未加好友/封鎖→403/404)：有舊網址者清空失效網址；本來就沒網址者維持(下次再試 → 對方解除封鎖/重新加好友後即可補回)。
+                int okValid = 0, updated = 0, cleared = 0, noPhoto = 0, inconclusive = 0;
                 var reasons = new List<string>();
                 using (var client = new Line.Messaging.LineMessagingClient(token))
                 {
@@ -594,9 +598,9 @@ namespace ChurchReport.Controllers
                     {
                         var state = probe.TryGetValue(contact.Id, out var s) ? s : 2;
                         if (state == 0) { okValid++; continue; }       // 照片正常顯示 → 不動
-                        if (state == 2) { inconclusive++; continue; }  // 暫時無法判定(逾時等) → 不動，避免誤清
+                        if (state == 2) { inconclusive++; continue; }  // 暫時無法判定 → 不動，避免誤清
 
-                        // state == 1：確定無法顯示 → 依 LINE ID 取最新 Profile
+                        var hadUrl = (state == 1); // 1=原有(失效)網址；3=本來就沒網址
                         var lineId = contact.GetAttributeValue<string>("new_lineid");
                         try
                         {
@@ -605,7 +609,7 @@ namespace ChurchReport.Controllers
                             {
                                 var newPic = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(profile.PictureUrl);
                                 var upd = new Entity("contact") { Id = contact.Id };
-                                // set-or-clear：取回新照片就更新；LINE 已無照片則寫 null 清空 → 顯示性別剪影、無標示、不計入「顯示照片」。
+                                // set-or-clear：取回新照片就更新(補回)；LINE 已無照片則寫 null 清空。
                                 upd[ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute] =
                                     string.IsNullOrEmpty(newPic) ? null : newPic;
                                 upd["new_line_status_message"] =
@@ -615,7 +619,9 @@ namespace ChurchReport.Controllers
                                     upd["new_line_displayname"] = profile.DisplayName;
                                 }
                                 service.Update(upd);
-                                if (string.IsNullOrEmpty(newPic)) { cleared++; } else { updated++; }
+                                if (!string.IsNullOrEmpty(newPic)) { updated++; }   // 取到/補回照片
+                                else if (hadUrl) { cleared++; }                     // 原有網址、確認無照片 → 清空
+                                else { noPhoto++; }                                 // 本來無、現仍無
                                 continue;
                             }
                             if (reasons.Count < 6) { reasons.Add("profile 回應無 userId"); }
@@ -629,12 +635,20 @@ namespace ChurchReport.Controllers
                             if (reasons.Count < 6) { reasons.Add("getProfile " + ex.GetType().Name + ": " + ex.Message); }
                         }
 
-                        // 取不到 Profile（多半是未加官方帳號好友→403/404）：照片網址已「確定失效」，直接清空 →
-                        // 顯示性別剪影、無 LINE 標示、不計入「顯示照片」。其餘欄位保留不動。
-                        var clear = new Entity("contact") { Id = contact.Id };
-                        clear[ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute] = null;
-                        service.Update(clear);
-                        cleared++;
+                        // 取不到 Profile：
+                        if (hadUrl)
+                        {
+                            // 原有網址已確定失效又拿不到新資料 → 清空，改顯示性別剪影、無標示、不計入「顯示照片」。
+                            var clear = new Entity("contact") { Id = contact.Id };
+                            clear[ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute] = null;
+                            service.Update(clear);
+                            cleared++;
+                        }
+                        else
+                        {
+                            // 本來就沒網址、現在也拿不到(多為未加好友/封鎖) → 維持無照片、不寫入。下次再試。
+                            noPhoto++;
+                        }
                     }
                 }
 
@@ -645,6 +659,7 @@ namespace ChurchReport.Controllers
                     okValid,
                     updated,
                     cleared,
+                    noPhoto,
                     inconclusive,
                     reasons = reasons.Distinct().Take(6).ToList()
                 });

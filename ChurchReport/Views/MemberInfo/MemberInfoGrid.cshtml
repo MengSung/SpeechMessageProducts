@@ -535,7 +535,7 @@
         }
         statusEl.textContent = '準備中…';
 
-        var okValid = 0, updated = 0, cleared = 0, inconclusive = 0, failed = 0, done = 0;
+        var okValid = 0, updated = 0, cleared = 0, noPhoto = 0, inconclusive = 0, failed = 0, done = 0;
         var reasons = [];
 
         try {
@@ -561,6 +561,7 @@
                         okValid += res.okValid || 0;
                         updated += res.updated || 0;
                         cleared += res.cleared || 0;
+                        noPhoto += res.noPhoto || 0;
                         inconclusive += res.inconclusive || 0;
                         if (res.reasons) {
                             res.reasons.forEach(function (r) {
@@ -574,23 +575,23 @@
                     failed += batch.length;
                 }
                 done += batch.length;
-                var ok = okValid + updated + cleared;
+                var ok = okValid + updated + cleared + noPhoto;
                 statusEl.textContent = '同步中… 已處理 ' + done + '/' + total +
-                    '｜成功 ' + ok + '（照片正常 ' + okValid + '、更新 ' + updated + '、清空 ' + cleared + '）、失敗 ' + (failed + inconclusive);
+                    '｜成功 ' + ok + '（照片正常 ' + okValid + '、更新 ' + updated + '、清空 ' + cleared + '、無照片 ' + noPhoto + '）、失敗 ' + (failed + inconclusive);
             }
 
             // 3) 完成
-            var okFinal = okValid + updated + cleared;
+            var okFinal = okValid + updated + cleared + noPhoto;
             statusEl.textContent = '完成：已處理 ' + done + '/' + total + '｜成功 ' + okFinal + '、失敗 ' + (failed + inconclusive) +
-                '（照片正常 ' + okValid + '、更新 ' + updated + '、清空失效 ' + cleared + '、暫時略過 ' + inconclusive + (failed ? ('、批次失敗 ' + failed) : '') + '）';
+                '（照片正常 ' + okValid + '、更新 ' + updated + '、清空失效 ' + cleared + '、無照片 ' + noPhoto + '、暫時略過 ' + inconclusive + (failed ? ('、批次失敗 ' + failed) : '') + '）';
             var msg = statusEl.textContent;
             if (reasons.length) {
                 var friendly = reasons.map(function (r) {
-                    if (/40[34]/.test(r)) { return '未加入官方帳號好友，讀不到其 LINE 最新資料（已清除失效照片、改顯示剪影）'; }
+                    if (/40[34]/.test(r)) { return '未加入官方帳號好友／已封鎖，讀不到其 LINE 資料（維持剪影；原有失效照片者已清除）'; }
                     return r;
                 });
                 friendly = friendly.filter(function (v, i) { return friendly.indexOf(v) === i; });
-                msg += '\n\n附註（以下為自動處理情形，非錯誤）：部分聯絡人無法向 LINE 取得最新資料，已清除其失效照片網址並改顯示剪影。\n常見情形：\n- ' + friendly.join('\n- ');
+                msg += '\n\n附註（以下為自動處理情形，非錯誤）：部分聯絡人未加官方帳號好友或已封鎖，無法向 LINE 取得其最新資料；原有失效照片者已清除改顯示剪影，本來就沒照片者維持剪影。日後對方若解除封鎖／重新加好友，再次同步即可自動補回照片。\n常見情形：\n- ' + friendly.join('\n- ');
             }
             alert(msg);
 
