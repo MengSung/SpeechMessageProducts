@@ -227,6 +227,10 @@ namespace ChurchReport.Controllers
             InMemoryContext.AppointmentsListManager.m_LoginContact = loginContact;
 
             InMemoryContext.PersonalInfomationModel.m_LoginContact = loginContact;
+            InMemoryContext.FeeList.SetupLoginUserInfo(
+                loginContact?.GetAttributeValue<string>("fullname") ?? string.Empty,
+                viewModel.Account,
+                viewModel.Password);
 
             System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ========================================");
             System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ? Session 初始化完成");
@@ -315,16 +319,7 @@ namespace ChurchReport.Controllers
                 {
                 }
 
-                try
-                {
-                    using (PerfPhase.Measure(HttpContext, "Login.SetupSystemData.SetupLessonList"))
-                    {
-                        InMemoryContext.FeeList.SetupLessonList(viewModel.Account, viewModel.Password);
-                    }
-                }
-                catch
-                {
-                }
+                System.Diagnostics.Debug.WriteLine("[SetupSystemData] Skip FeeList.SetupLessonList during login; FeeManagement loads it on demand.");
             }
             finally
             {

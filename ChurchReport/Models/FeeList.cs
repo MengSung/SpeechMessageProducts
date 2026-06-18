@@ -36,6 +36,8 @@ namespace ChurchReport.Models
         public String m_FullName = "";
         public String m_Account = "";
         public String m_Password = "";
+        private bool _lessonListLoaded;
+        public string LoadedPresentDiscipleLessonsId { get; private set; } = "";
 
         public String SmallGroupLeaderContactId { get; set; }
 
@@ -86,20 +88,36 @@ namespace ChurchReport.Models
         #region 初始化繳費與點名
         public void SetupLoginUserInfo(String FullName, String Account, String Password)
         {
-            m_FullName = FullName;
-            m_Account = Account;
-            m_Password = Password;
+            var account = Account ?? "";
+            var password = Password ?? "";
+
+            if (!IsSameLogin(account, password))
+            {
+                ClearUserScopedFeeData();
+            }
+
+            m_FullName = FullName ?? "";
+            m_Account = account;
+            m_Password = password;
         }
 
         public void SetupLessonList(String Account, String Password)
         {
+            var account = Account ?? "";
+            var password = Password ?? "";
 
-            m_Account = Account;
-            m_Password = Password;
+            if (!IsSameLogin(account, password))
+            {
+                ClearUserScopedFeeData();
+            }
+
+            m_Account = account;
+            m_Password = password;
 
             String LocalResult = "";
 
-            LessonList = m_FeeDownUpLoader.GetLessonList(Account, Password, ref LocalResult, ref m_ClassName);
+            LessonList = m_FeeDownUpLoader.GetLessonList(account, password, ref LocalResult, ref m_ClassName);
+            _lessonListLoaded = true;
 
             if (LessonList.Count > 0)
             {
@@ -116,18 +134,27 @@ namespace ChurchReport.Models
             String LocalResult = "";
 
             FeeDataList = m_FeeDownUpLoader.GetPresentFeeList(DiscipleLessonsId, ref LocalResult, ref m_ClassName);
+            LoadedPresentDiscipleLessonsId = DiscipleLessonsId ?? "";
 
             Result = LocalResult;
         }
         public void SetupFeeDataList(String Account, String Password)
         {
+            var account = Account ?? "";
+            var password = Password ?? "";
 
-            m_Account = Account;
-            m_Password = Password;
+            if (!IsSameLogin(account, password))
+            {
+                ClearUserScopedFeeData();
+            }
+
+            m_Account = account;
+            m_Password = password;
 
             String LocalResult = "";
 
-            FeeDataList = m_FeeDownUpLoader.GetFeeList(Account, Password, ref LocalResult, ref m_ClassName);
+            FeeDataList = m_FeeDownUpLoader.GetFeeList(account, password, ref LocalResult, ref m_ClassName);
+            LoadedPresentDiscipleLessonsId = "";
 
             if (FeeDataList.Count > 0)
             {
@@ -145,6 +172,7 @@ namespace ChurchReport.Models
 
 
             FeeDataList = m_FeeDownUpLoader.GetFeeList(m_Account, m_Password, ref LocalResult, ref m_ClassName);
+            LoadedPresentDiscipleLessonsId = "";
             if (FeeDataList.Count > 0)
             {
                 FeeType = "有繳費點名";
@@ -159,6 +187,41 @@ namespace ChurchReport.Models
         }
 
         #endregion
+
+        public bool IsLessonListLoadedFor(string account, string password)
+        {
+            return _lessonListLoaded
+                && LessonList != null
+                && IsSameLogin(account ?? "", password ?? "");
+        }
+
+        public bool IsPresentFeeListLoadedFor(string discipleLessonsId)
+        {
+            return !string.IsNullOrWhiteSpace(discipleLessonsId)
+                && FeeDataList != null
+                && string.Equals(
+                    LoadedPresentDiscipleLessonsId,
+                    discipleLessonsId,
+                    StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool IsSameLogin(string account, string password)
+        {
+            return string.Equals(m_Account, account ?? "", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(m_Password, password ?? "", StringComparison.Ordinal);
+        }
+
+        private void ClearUserScopedFeeData()
+        {
+            LessonList = null;
+            FeeDataList = null;
+            _lessonListLoaded = false;
+            LoadedPresentDiscipleLessonsId = "";
+            FeeType = null;
+            Result = null;
+            m_ClassName = new ClassName();
+            ChangeHistory?.ClearAll();
+        }
 
         /// <summary>
         /// 填充物件並記錄修改歷程 (不立即更新資料庫)

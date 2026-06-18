@@ -55,13 +55,7 @@ namespace ChurchReport.Controllers
             try
             {
                 // 使用當前登入者的帳密設定課程清單
-                using (PerfPhase.Measure(HttpContext, "FeeManagement.LessonList.SetupLessonList"))
-                {
-                    InMemoryContext.FeeList.SetupLessonList(
-                        InMemoryContext.FeeList.m_Account,
-                        InMemoryContext.FeeList.m_Password
-                    );
-                }
+                EnsureLessonListLoaded("FeeManagement.LessonList.SetupLessonList");
 
                 // 設定所有必要的 ViewBag 參數
                 using (PerfPhase.Measure(HttpContext, "FeeManagement.LessonList.SetupBasicViewBag"))
@@ -91,10 +85,7 @@ namespace ChurchReport.Controllers
                     System.Diagnostics.Debug.WriteLine($"[LessonList] 只有一門課程，自動載入 - DiscipleLessonsId={discipleLessonsId}");
                     
                     // 載入該課程的繳費資料
-                    using (PerfPhase.Measure(HttpContext, "FeeManagement.LessonList.SetupPresentFeeList"))
-                    {
-                        InMemoryContext.FeeList.SetupPresentFeeList(discipleLessonsId);
-                    }
+                    EnsurePresentFeeListLoaded(discipleLessonsId, "FeeManagement.LessonList.SetupPresentFeeList");
                     
                     // 設定 DiscipleLessonsId，讓側邊欄能正確生成連結
                     ViewBag.DiscipleLessonsId = discipleLessonsId;
@@ -148,10 +139,7 @@ namespace ChurchReport.Controllers
                 }
 
                 // 載入該課程的繳費資料
-                using (PerfPhase.Measure(HttpContext, "FeeManagement.Fee.SetupPresentFeeList"))
-                {
-                    InMemoryContext.FeeList.SetupPresentFeeList(discipleLessonsId);
-                }
+                EnsurePresentFeeListLoaded(discipleLessonsId, "FeeManagement.Fee.SetupPresentFeeList");
 
                 // 設定所有必要的 ViewBag 參數
                 using (PerfPhase.Measure(HttpContext, "FeeManagement.Fee.SetupBasicViewBag"))
@@ -200,10 +188,7 @@ namespace ChurchReport.Controllers
                 }
 
                 // 載入該課程的點名資料
-                using (PerfPhase.Measure(HttpContext, "FeeManagement.Present.SetupPresentFeeList"))
-                {
-                    InMemoryContext.FeeList.SetupPresentFeeList(discipleLessonsId);
-                }
+                EnsurePresentFeeListLoaded(discipleLessonsId, "FeeManagement.Present.SetupPresentFeeList");
 
                 // 設定所有必要的 ViewBag 參數
                 using (PerfPhase.Measure(HttpContext, "FeeManagement.Present.SetupBasicViewBag"))
@@ -256,16 +241,7 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine("[GetLessons] 開始載入課程清單");
 
                 // 確保課程清單已載入
-                if (InMemoryContext.FeeList.LessonList == null || InMemoryContext.FeeList.LessonList.Count == 0)
-                {
-                    using (PerfPhase.Measure(HttpContext, "FeeManagement.GetLessons.SetupLessonList"))
-                    {
-                        InMemoryContext.FeeList.SetupLessonList(
-                            InMemoryContext.FeeList.m_Account,
-                            InMemoryContext.FeeList.m_Password
-                        );
-                    }
-                }
+                EnsureLessonListLoaded("FeeManagement.GetLessons.SetupLessonList");
 
                 // 使用 DevExtreme DataSourceLoader 處理資料
                 var result = PerfPhase.Measure(HttpContext, "FeeManagement.GetLessons.DataSourceLoader", () =>
@@ -304,11 +280,8 @@ namespace ChurchReport.Controllers
                 // 如果有指定課程ID，載入該課程的繳費資料
                 if (!string.IsNullOrEmpty(discipleLessonsId))
                 {
-                    System.Diagnostics.Debug.WriteLine($"[GetFeeData] 呼叫 SetupPresentFeeList({discipleLessonsId})");
-                    using (PerfPhase.Measure(HttpContext, "FeeManagement.GetFeeData.SetupPresentFeeList"))
-                    {
-                        InMemoryContext.FeeList.SetupPresentFeeList(discipleLessonsId);
-                    }
+                    System.Diagnostics.Debug.WriteLine($"[GetFeeData] 呼叫 EnsurePresentFeeListLoaded({discipleLessonsId})");
+                    EnsurePresentFeeListLoaded(discipleLessonsId, "FeeManagement.GetFeeData.SetupPresentFeeList");
                 }
                 else if (InMemoryContext.FeeList.FeeDataList == null || InMemoryContext.FeeList.FeeDataList.Count == 0)
                 {
@@ -433,6 +406,37 @@ namespace ChurchReport.Controllers
         #endregion
 
         #region 私有輔助方法
+
+        private void EnsureLessonListLoaded(string phaseName)
+        {
+            var account = InMemoryContext.FeeList.m_Account;
+            var password = InMemoryContext.FeeList.m_Password;
+
+            if (InMemoryContext.FeeList.IsLessonListLoadedFor(account, password))
+            {
+                System.Diagnostics.Debug.WriteLine("[FeeManagement] Reuse LessonList for current login.");
+                return;
+            }
+
+            using (PerfPhase.Measure(HttpContext, phaseName))
+            {
+                InMemoryContext.FeeList.SetupLessonList(account, password);
+            }
+        }
+
+        private void EnsurePresentFeeListLoaded(string discipleLessonsId, string phaseName)
+        {
+            if (InMemoryContext.FeeList.IsPresentFeeListLoadedFor(discipleLessonsId))
+            {
+                System.Diagnostics.Debug.WriteLine($"[FeeManagement] Reuse PresentFeeList for discipleLessonsId={discipleLessonsId}");
+                return;
+            }
+
+            using (PerfPhase.Measure(HttpContext, phaseName))
+            {
+                InMemoryContext.FeeList.SetupPresentFeeList(discipleLessonsId);
+            }
+        }
 
         /// <summary>
         /// 初始化欄位標題參數（用於點名視圖的 onCustomizeColumns 函數）
