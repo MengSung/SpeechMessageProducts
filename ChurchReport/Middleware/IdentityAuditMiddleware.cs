@@ -86,6 +86,12 @@ namespace ChurchReport.Middleware
         /// <returns>非同步任務</returns>
         public async Task InvokeAsync(HttpContext context)
         {
+            if (StaticRequestPathHelper.IsStaticAssetPath(context.Request.Path))
+            {
+                await _next(context);
+                return;
+            }
+
             // ========================================
             // Step 1: 提取身份資訊
             // ========================================

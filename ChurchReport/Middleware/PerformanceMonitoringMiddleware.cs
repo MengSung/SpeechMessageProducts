@@ -29,8 +29,14 @@ namespace ChurchReport.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var stopwatch = Stopwatch.StartNew();
             var path = context.Request.Path.Value ?? "/";
+            if (StaticRequestPathHelper.IsStaticAssetPath(context.Request.Path))
+            {
+                await _next(context);
+                return;
+            }
+
+            var stopwatch = Stopwatch.StartNew();
 
             try
             {

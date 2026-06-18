@@ -26,29 +26,6 @@ namespace ChurchReport.Middleware
         private readonly RequestDelegate _next;
         private readonly ILogger<WebCacheDeceptionMiddleware> _logger;
 
-        /// <summary>
-        /// 需要攔截的靜態檔案副檔名清單
-        /// 攻擊者常用這些副檔名欺騙快取層
-        /// </summary>
-        private static readonly string[] StaticFileExtensions = new[]
-        {
-            ".css", ".js", ".png", ".jpg", ".jpeg", ".gif", ".svg",
-            ".ico", ".woff", ".woff2", ".ttf", ".eot",
-            ".map", ".json", ".xml", ".txt", ".pdf",
-            ".webp", ".avif", ".bmp", ".tiff"
-        };
-
-        /// <summary>
-        /// 合法靜態資源目錄前綴
-        /// 這些目錄下的請求不需要攔截（它們本來就是靜態檔案）
-        /// </summary>
-        private static readonly string[] LegitimateStaticPaths = new[]
-        {
-            "/css/", "/js/", "/lib/", "/images/", "/assets/",
-            "/fonts/", "/favicon.ico", "/.well-known/",
-            "/devextreme/", "/wwwroot/"
-        };
-
         public WebCacheDeceptionMiddleware(RequestDelegate next, ILogger<WebCacheDeceptionMiddleware> logger)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
@@ -66,10 +43,10 @@ namespace ChurchReport.Middleware
             if (string.Equals(context.Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
             {
                 // 步驟 1：檢查路徑是否以靜態檔案副檔名結尾
-                if (HasStaticFileExtension(path))
+                if (StaticRequestPathHelper.HasStaticAssetExtension(context.Request.Path))
                 {
                     // 步驟 2：排除合法靜態資源目錄
-                    if (!IsLegitimateStaticPath(path))
+                    if (!StaticRequestPathHelper.IsStaticAssetPath(context.Request.Path))
                     {
                         // 偵測到 Web Cache Deception 攻擊嘗試
                         _logger.LogWarning(
@@ -87,37 +64,6 @@ namespace ChurchReport.Middleware
             }
 
             await _next(context);
-        }
-
-        /// <summary>
-        /// 檢查路徑是否以靜態檔案副檔名結尾
-        /// </summary>
-        private static bool HasStaticFileExtension(string path)
-        {
-            if (string.IsNullOrEmpty(path))
-                return false;
-
-            foreach (var ext in StaticFileExtensions)
-            {
-                if (path.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// 檢查路徑是否為合法靜態資源目錄
-        /// </summary>
-        private static bool IsLegitimateStaticPath(string path)
-        {
-            var lowerPath = path.ToLowerInvariant();
-
-            foreach (var staticPath in LegitimateStaticPaths)
-            {
-                if (lowerPath.StartsWith(staticPath, StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
-            return false;
         }
     }
 }

@@ -16,7 +16,11 @@ namespace ChurchReport.Middleware
 
         public async Task Invoke(HttpContext context)
         {
-            if (!ProfilingSwitch.Enabled) { await _next(context); return; } // runtime 開關（預設關）
+            if (!ProfilingSwitch.Enabled || StaticRequestPathHelper.IsStaticAssetPath(context.Request.Path))
+            {
+                await _next(context);
+                return;
+            } // runtime 開關（預設關）
 
             var profiler = new RequestProfiler();
             context.Items[RequestProfiler.ItemsKey] = profiler;
