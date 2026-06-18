@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System;
+using Microsoft.AspNetCore.Http;
 
 namespace ChurchReport.Diagnostics.Profiling
 {
@@ -27,8 +29,46 @@ namespace ChurchReport.Diagnostics.Profiling
             new Dictionary<string, (int, long)>();
         private readonly List<(string entity, string op, long ms)> _slowCalls =
             new List<(string, string, long)>();
+        private readonly List<(string name, long ms)> _phases =
+            new List<(string, long)>();
+        private readonly Dictionary<string, (int count, long ms)> _phaseByName =
+            new Dictionary<string, (int, long)>();
 
         public void SetActionElapsed(long ms) => _actionMs = ms;
+
+        public static IDisposable MeasurePhase(HttpContext context, string name)
+        {
+            if (!ProfilingSwitch.Enabled
+                || context?.Items == null
+                || !context.Items.TryGetValue(ItemsKey, out var profiler)
+                || profiler is not RequestProfiler requestProfiler)
+            {
+                return NoopDisposable.Instance;
+            }
+
+            return new PhaseScope(requestProfiler, name);
+        }
+
+        public void RecordPhase(string name, long elapsedTicks)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                name = "?";
+            }
+
+            var ms = (long)(elapsedTicks * TicksToMs);
+            lock (_lock)
+            {
+                _phaseByName[name] = _phaseByName.TryGetValue(name, out var current)
+                    ? (current.count + 1, current.ms + ms)
+                    : (1, ms);
+
+                if (ms >= PerfThresholds.PhaseMs)
+                {
+                    _phases.Add((name, ms));
+                }
+            }
+        }
 
         /// <param name="elapsedTicks">由裝飾器以 Stopwatch.GetTimestamp() 差值傳入。</param>
         public void RecordCrmCall(string entity, string op, long elapsedTicks)
@@ -60,6 +100,31 @@ namespace ChurchReport.Diagnostics.Profiling
                  + $"crm{{n={_crmCount},ms={CrmMs}}} gap={Gap}ms{slowest}";
         }
 
+        public IEnumerable<string> BuildPhaseLines(string path)
+        {
+            var lines = new List<string>();
+            lock (_lock)
+            {
+                foreach (var phase in _phaseByName)
+                {
+                    if (phase.Value.count <= 1 || phase.Value.ms < PerfThresholds.PhaseMs)
+                    {
+                        continue;
+                    }
+
+                    var avg = phase.Value.ms / phase.Value.count;
+                    lines.Add($"[Perf-Phase] path={path} phase={phase.Key} count={phase.Value.count} ms={phase.Value.ms} avg={avg}");
+                }
+
+                foreach (var phase in _phases)
+                {
+                    lines.Add($"[Perf-Phase] path={path} phase={phase.name} ms={phase.ms}");
+                }
+            }
+
+            return lines;
+        }
+
         public IEnumerable<string> BuildEscalationLines(string path)
         {
             var lines = new List<string>();
@@ -79,6 +144,45 @@ namespace ChurchReport.Diagnostics.Profiling
                 lines.Add($"[Perf-Gap] path={path} action={_actionMs}ms crm.ms={CrmMs} gap={Gap}ms "
                         + "(未歸因:可能 m_OrganizationService proxy 路徑或非 CRM 運算)");
             return lines;
+        }
+
+        private sealed class PhaseScope : IDisposable
+        {
+            private readonly RequestProfiler _profiler;
+            private readonly string _name;
+            private readonly long _startTimestamp;
+            private bool _disposed;
+
+            public PhaseScope(RequestProfiler profiler, string name)
+            {
+                _profiler = profiler;
+                _name = name;
+                _startTimestamp = Stopwatch.GetTimestamp();
+            }
+
+            public void Dispose()
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _disposed = true;
+                _profiler.RecordPhase(_name, Stopwatch.GetTimestamp() - _startTimestamp);
+            }
+        }
+
+        private sealed class NoopDisposable : IDisposable
+        {
+            public static readonly NoopDisposable Instance = new NoopDisposable();
+
+            private NoopDisposable()
+            {
+            }
+
+            public void Dispose()
+            {
+            }
         }
     }
 }

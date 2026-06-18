@@ -12,6 +12,9 @@ namespace ChurchReport.Diagnostics.Profiling
 
         /// <summary>action − 已計時 CRM 超過此毫秒 → 視為「未歸因時間」過大（盲區/CPU），加印 [Perf-Gap]。</summary>
         public const long GapMs = 150;
+
+        /// <summary>named phase 超過此毫秒才輸出，避免 log 被微小階段淹沒。</summary>
+        public const long PhaseMs = 100;
     }
 }
 #endif

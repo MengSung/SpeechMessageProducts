@@ -1,4 +1,5 @@
-﻿using ChurchReport.Models;
+﻿using ChurchReport.Diagnostics.Profiling;
+using ChurchReport.Models;
 using ChurchReport.Tools;
 using ChurchReport.ViewModels;
 using DevExtreme.AspNet.Data;
@@ -155,10 +156,15 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public object LoadMaintainPersonInfomation(string id, DataSourceLoadOptions loadOptions)
         {
+            using var perfPhase = PerfPhase.Measure(HttpContext, "Personal.LoadMaintain");
+
             // ========================================
             // ✅ 關鍵修復：驗證 Session 並確保資料正確
             // ========================================
-            EnsureCorrectUserData();
+            using (PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.EnsureCorrectUserData"))
+            {
+                EnsureCorrectUserData();
+            }
 
             // ✅ 診斷日誌:確認方法被呼叫
             System.Diagnostics.Debug.WriteLine("========================================");
@@ -199,7 +205,8 @@ namespace ChurchReport.Controllers
                 string displayViewType = null;
                 try
                 {
-                    displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
+                    displayViewType = PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.GetDisplayViewType", () =>
+                        InMemoryContext.ListManager.GetDisplayViewType());
                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ✅ displayViewType = {displayViewType}");
                 }
                 catch (Exception ex)
@@ -214,7 +221,8 @@ namespace ChurchReport.Controllers
                 bool integrateFlag = false;
                 try
                 {
-                    integrateFlag = IsIntegrateDataLoaded();
+                    integrateFlag = PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.IsIntegrateDataLoaded", () =>
+                        IsIntegrateDataLoaded());
                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ✅ integrateFlag = {integrateFlag}");
                 }
                 catch (Exception ex)
@@ -228,6 +236,8 @@ namespace ChurchReport.Controllers
                 // 就應該載入所有小組的成員，不管 integrateFlag 的值
                 if (displayViewType == "MultiGroupView")
                 {
+                    using var multiGroupPhase = PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.MultiGroup");
+
                     // ✅ 多小組模式：從各小組載入資料
                     var multiGroupList = InMemoryContext.ListManager.m_MultiGroupList;
                     
@@ -255,7 +265,8 @@ namespace ChurchReport.Controllers
                                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 開始查詢小組 {groupRecord.Name} 的成員...");
                                     
                                     // 查詢名單成員
-                                    var memberCollection = toolUtility.RetrieveMemberListCollectionByListId(listGuid);
+                                    var memberCollection = PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.MultiGroup.RetrieveMemberListCollection", () =>
+                                        toolUtility.RetrieveMemberListCollectionByListId(listGuid));
                                     
                                     if (memberCollection != null && memberCollection.Entities != null)
                                     {
@@ -284,7 +295,8 @@ namespace ChurchReport.Controllers
                                                         "new_equipment_status" // ✅ 裝備狀態欄位
                                                     );
                                                     
-                                                    var contactEntity = toolUtility.m_Crm2011OrganizationService.Retrieve("contact", contactId, columnSet);
+                                                    var contactEntity = PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.MultiGroup.ContactRetrieve", () =>
+                                                        toolUtility.m_Crm2011OrganizationService.Retrieve("contact", contactId, columnSet));
                                                 
                                                     if (contactEntity != null)
                                                     {
@@ -390,10 +402,15 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
+                    using var singleGroupPhase = PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.SingleGroup");
+
                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 使用單一小組模式");
                     
                     // ✅ 單一小組模式：改用與多小組相同的查詢邏輯
-                    EnsurePersonReportDataLoaded(id);
+                    using (PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.SingleGroup.EnsurePersonReportDataLoaded"))
+                    {
+                        EnsurePersonReportDataLoaded(id);
+                    }
 
                     var weeklyReport = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
                     
@@ -428,7 +445,8 @@ namespace ChurchReport.Controllers
                                             "new_equipment_status" // ✅ 裝備狀態欄位
                                         );
                                         
-                                        var contactEntity = toolUtility.m_Crm2011OrganizationService.Retrieve("contact", contactGuid, columnSet);
+                                        var contactEntity = PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.SingleGroup.ContactRetrieve", () =>
+                                            toolUtility.m_Crm2011OrganizationService.Retrieve("contact", contactGuid, columnSet));
                                         
                                         if (contactEntity != null)
                                         {
@@ -508,7 +526,8 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 總計返回 {allMembers.Count} 筆資料");
                 
                 // 返回資料
-                return DataSourceLoader.Load(allMembers, loadOptions);
+                return PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.DataSourceLoader", () =>
+                    DataSourceLoader.Load(allMembers, loadOptions));
             }
             catch (Exception e)
             {

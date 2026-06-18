@@ -1,3 +1,4 @@
+ï»¿using ChurchReport.Diagnostics.Profiling;
 using ChurchReport.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,17 +11,19 @@ using System.Threading.Tasks;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// »{ÃÒ±±¨î¾¹¡]¨p¦³»²§U¤èªk¡^
+    /// èªè­‰æ§åˆ¶å™¨ï¼ˆç§æœ‰è¼”åŠ©æ–¹æ³•ï¼‰
     /// </summary>
     public partial class AuthenticationController
     {
-        #region ¨p¦³»²§U¤èªk
+        #region ç§æœ‰è¼”åŠ©æ–¹æ³•
 
         private (bool isValid, string contactId, string errorMessage) ValidateUserCredentials(GalleryViewModel viewModel)
         {
+            using var perfPhase = PerfPhase.Measure(HttpContext, "Login.ValidateUserCredentials");
+
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] ¶}©lÅçÃÒ - ±b¸¹: {viewModel?.Account}");
+                System.Diagnostics.Debug.WriteLine($"[ValidateUserCredentials] é–‹å§‹é©—è­‰ - å¸³è™Ÿ: {viewModel?.Account}");
 
                 string contactIdString = "";
 
@@ -49,7 +52,7 @@ namespace ChurchReport.Controllers
                         var results = service.RetrieveMultiple(query);
 
                         if (results.Entities.Count == 0)
-                            return (false, "", "±b¸¹¿ù»~");
+                            return (false, "", "å¸³è™ŸéŒ¯èª¤");
 
                         var contact = results.Entities[0];
                         var storedPassword = contact.Contains("new_app_pass")
@@ -57,20 +60,20 @@ namespace ChurchReport.Controllers
                             : null;
 
                         if (string.IsNullOrEmpty(storedPassword))
-                            return (false, "", "¨t²Î¨S¦³³]©w±K½X");
+                            return (false, "", "ç³»çµ±æ²’æœ‰è¨­å®šå¯†ç¢¼");
 
                         if (storedPassword != viewModel.Password)
-                            return (false, "", "±K½X¿ù»~");
+                            return (false, "", "å¯†ç¢¼éŒ¯èª¤");
 
                         contactIdString = contact.Id.ToString();
                     }
                     catch (FaultException<OrganizationServiceFault> ex)
                     {
-                        return (false, "", $"¨t²ÎªA°È²§±`: {ex.Detail?.Message ?? ex.Message}");
+                        return (false, "", $"ç³»çµ±æœå‹™ç•°å¸¸: {ex.Detail?.Message ?? ex.Message}");
                     }
                     catch (TimeoutException)
                     {
-                        return (false, "", "¨t²Î³s±µ¶W®É¡A½Ğµy«á¦A¸Õ");
+                        return (false, "", "ç³»çµ±é€£æ¥è¶…æ™‚ï¼Œè«‹ç¨å¾Œå†è©¦");
                     }
                     finally
                     {
@@ -79,19 +82,21 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    contactIdString = "³z¹LLine Id µn¤J";
+                    contactIdString = "é€éLine Id ç™»å…¥";
                 }
 
                 return (true, contactIdString, "");
             }
             catch (Exception ex)
             {
-                return (false, "", $"ÅçÃÒ¹Lµ{µo¥Í¿ù»~: {ex.Message}");
+                return (false, "", $"é©—è­‰éç¨‹ç™¼ç”ŸéŒ¯èª¤: {ex.Message}");
             }
         }
 
         private async Task<(Entity loginContact, string fullName)> RetrieveUserData(string contactIdString, GalleryViewModel viewModel)
         {
+            using var perfPhase = PerfPhase.Measure(HttpContext, "Login.RetrieveUserData");
+
             Entity loginContact = null;
             string fullName = "";
 
@@ -100,7 +105,7 @@ namespace ChurchReport.Controllers
             {
                 service = GetConnection();
 
-                if (contactIdString != "³z¹LLine Id µn¤J")
+                if (contactIdString != "é€éLine Id ç™»å…¥")
                 {
                     loginContact = service.Retrieve("contact", new Guid(contactIdString), new ColumnSet(true));
                     fullName = loginContact.Contains("fullname") ? loginContact.GetAttributeValue<string>("fullname") : "";
@@ -136,11 +141,11 @@ namespace ChurchReport.Controllers
             }
             catch (FaultException<OrganizationServiceFault> ex)
             {
-                throw new Exception($"¨ú±o¨Ï¥ÎªÌ¸ê®Æ¥¢±Ñ: {ex.Detail?.Message ?? ex.Message}", ex);
+                throw new Exception($"å–å¾—ä½¿ç”¨è€…è³‡æ–™å¤±æ•—: {ex.Detail?.Message ?? ex.Message}", ex);
             }
             catch (TimeoutException ex)
             {
-                throw new Exception("¨ú±o¨Ï¥ÎªÌ¸ê®Æ¶W®É¡A½Ğµy«á¦A¸Õ", ex);
+                throw new Exception("å–å¾—ä½¿ç”¨è€…è³‡æ–™è¶…æ™‚ï¼Œè«‹ç¨å¾Œå†è©¦", ex);
             }
             finally
             {
@@ -152,43 +157,45 @@ namespace ChurchReport.Controllers
 
         private void InitializeUserSession(Entity loginContact, GalleryViewModel viewModel)
         {
+            using var perfPhase = PerfPhase.Measure(HttpContext, "Login.InitializeUserSession");
+
             // ========================================
-            // ? Session Fixation ¨¾Å@ - Step 1: ²M°£ÂÂªº Session
+            // ? Session Fixation é˜²è­· - Step 1: æ¸…é™¤èˆŠçš„ Session
             // ========================================
-            // ¦bµn¤J«e¥ı²M°£ÂÂªº Session¡A¨¾¤î Session Fixation §ğÀ»
-            // ³o¬O¨¾¤î¡uA µn¤J ¡÷ B µn¤J¬İ¨ì A ºô­¶¡vªºÃöÁä¨BÆJ
+            // åœ¨ç™»å…¥å‰å…ˆæ¸…é™¤èˆŠçš„ Sessionï¼Œé˜²æ­¢ Session Fixation æ”»æ“Š
+            // é€™æ˜¯é˜²æ­¢ã€ŒA ç™»å…¥ â†’ B ç™»å…¥çœ‹åˆ° A ç¶²é ã€çš„é—œéµæ­¥é©Ÿ
             try
             {
                 HttpContext.Session.Clear();
-                System.Diagnostics.Debug.WriteLine("[InitializeUserSession] ? ¤w²M°£ÂÂ Session");
+                System.Diagnostics.Debug.WriteLine("[InitializeUserSession] ? å·²æ¸…é™¤èˆŠ Session");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ?? ²M°£ Session Äµ§i: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ?? æ¸…é™¤ Session è­¦å‘Š: {ex.Message}");
             }
 
             // ========================================
-            // ? Session Fixation ¨¾Å@ - Step 2: ±j¨î­«·s¥Í¦¨ Session ID
+            // ? Session Fixation é˜²è­· - Step 2: å¼·åˆ¶é‡æ–°ç”Ÿæˆ Session ID
             // ========================================
-            // .NET Core 3.0+ ¨Ï¥Î CommitAsync ±j¨î²£¥Í·sªº Session ID
-            // ³o½T«O¨C¦¸µn¤J³£¦³¥ş·sªº¡B°ß¤@ªº Session ID
+            // .NET Core 3.0+ ä½¿ç”¨ CommitAsync å¼·åˆ¶ç”¢ç”Ÿæ–°çš„ Session ID
+            // é€™ç¢ºä¿æ¯æ¬¡ç™»å…¥éƒ½æœ‰å…¨æ–°çš„ã€å”¯ä¸€çš„ Session ID
             try
             {
-                // ¨Ï¥Î¦P¨B¤è¦¡´£¥æ Session¡]½T«O¥ß§Y¥Í®Ä¡^
-                // ³o·|Ä²µo ASP.NET Core ²£¥Í·sªº Session Cookie
+                // ä½¿ç”¨åŒæ­¥æ–¹å¼æäº¤ Sessionï¼ˆç¢ºä¿ç«‹å³ç”Ÿæ•ˆï¼‰
+                // é€™æœƒè§¸ç™¼ ASP.NET Core ç”¢ç”Ÿæ–°çš„ Session Cookie
                 HttpContext.Session.CommitAsync().GetAwaiter().GetResult();
-                System.Diagnostics.Debug.WriteLine("[InitializeUserSession] ? ¤w±j¨î­«·s¥Í¦¨ Session ID");
+                System.Diagnostics.Debug.WriteLine("[InitializeUserSession] ? å·²å¼·åˆ¶é‡æ–°ç”Ÿæˆ Session ID");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ?? Session Commit Äµ§i: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ?? Session Commit è­¦å‘Š: {ex.Message}");
             }
 
             // ========================================
-            // ? Session Fixation ¨¾Å@ - Step 3: ¸j©w¥Î¤á¨­¥÷¼ĞÃÑ
+            // ? Session Fixation é˜²è­· - Step 3: ç¶å®šç”¨æˆ¶èº«ä»½æ¨™è­˜
             // ========================================
-            // ¦b Session ¤¤Àx¦s°ß¤@ªº¥Î¤áÃÑ§O¸ê°T¡A¥Î©ó«áÄòÅçÃÒ
-            // ¨¾¤î¸ó¥Î¤áªº Session ÅÑ¨ú©Î¦@¥Î
+            // åœ¨ Session ä¸­å„²å­˜å”¯ä¸€çš„ç”¨æˆ¶è­˜åˆ¥è³‡è¨Šï¼Œç”¨æ–¼å¾ŒçºŒé©—è­‰
+            // é˜²æ­¢è·¨ç”¨æˆ¶çš„ Session ç«Šå–æˆ–å…±ç”¨
             var userId = loginContact?.Id.ToString() ?? Guid.NewGuid().ToString();
             var userIdentifier = $"{userId}_{DateTime.UtcNow.Ticks}";
             
@@ -199,21 +206,21 @@ namespace ChurchReport.Controllers
                 HttpContext.Session.SetString("_SessionCreatedAt", DateTime.UtcNow.ToString("O"));
                 HttpContext.Session.SetString("_SessionUserAgent", HttpContext.Request.Headers["User-Agent"].ToString());
                 
-                // Àx¦s¯u¹ê IP¡]¦Ò¼{¥N²z¼Ò¦¡¡^
+                // å„²å­˜çœŸå¯¦ IPï¼ˆè€ƒæ…®ä»£ç†æ¨¡å¼ï¼‰
                 var realIp = HttpContext.Connection.RemoteIpAddress?.ToString() 
                              ?? HttpContext.Request.Headers["X-Forwarded-For"].ToString() 
                              ?? "Unknown";
                 HttpContext.Session.SetString("_SessionRealIp", realIp);
 
-                System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ? ¤w¸j©w¥Î¤á¨­¥÷: UserId={userId}, IP={realIp}");
+                System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ? å·²ç¶å®šç”¨æˆ¶èº«ä»½: UserId={userId}, IP={realIp}");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ?? ¸j©w¥Î¤á¨­¥÷Äµ§i: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ?? ç¶å®šç”¨æˆ¶èº«ä»½è­¦å‘Š: {ex.Message}");
             }
 
             // ========================================
-            // ­ì¦³ªº Session ªì©l¤ÆÅŞ¿è
+            // åŸæœ‰çš„ Session åˆå§‹åŒ–é‚è¼¯
             // ========================================
             InMemoryContext.AppointmentsListManager.m_Account = viewModel.Account;
             InMemoryContext.AppointmentsListManager.m_Password = viewModel.Password;
@@ -222,58 +229,72 @@ namespace ChurchReport.Controllers
             InMemoryContext.PersonalInfomationModel.m_LoginContact = loginContact;
 
             System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ========================================");
-            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ? Session ªì©l¤Æ§¹¦¨");
-            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession]   - ¥Î¤á: {viewModel.Account}");
-            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession]   - Session ID: ¤w­«·s¥Í¦¨¡]·sªº°ß¤@ ID¡^");
-            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession]   - ¥Î¤á¸j©w: {userIdentifier}");
+            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ? Session åˆå§‹åŒ–å®Œæˆ");
+            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession]   - ç”¨æˆ¶: {viewModel.Account}");
+            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession]   - Session ID: å·²é‡æ–°ç”Ÿæˆï¼ˆæ–°çš„å”¯ä¸€ IDï¼‰");
+            System.Diagnostics.Debug.WriteLine($"[InitializeUserSession]   - ç”¨æˆ¶ç¶å®š: {userIdentifier}");
             System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ========================================");
         }
 
         private void SetupSystemData(Entity loginContact, GalleryViewModel viewModel)
         {
+            using var perfPhase = PerfPhase.Measure(HttpContext, "Login.SetupSystemData");
+
             IOrganizationService service = null;
             try
             {
-                service = GetConnection();
+                using (PerfPhase.Measure(HttpContext, "Login.SetupSystemData.GetConnection"))
+                {
+                    service = GetConnection();
+                }
 
                 // ========================================
-                // ?? ÃöÁä­×´_¡Gµn¤J®É¸ü¤J ListManager
+                // ?? é—œéµä¿®å¾©ï¼šç™»å…¥æ™‚è¼‰å…¥ ListManager
                 // ========================================
-                InMemoryContext.ListManager.SetupListManager(
-                    viewModel.Account,
-                    viewModel.Password,
-                    DateTime.Now,
-                    service);
+                using (PerfPhase.Measure(HttpContext, "Login.SetupSystemData.SetupListManager"))
+                {
+                    InMemoryContext.ListManager.SetupListManager(
+                        viewModel.Account,
+                        viewModel.Password,
+                        DateTime.Now,
+                        service);
+                }
 
                 // ========================================
-                // ? ®Ä¯àÀu¤Æ¡Gµn¤J§¹¦¨«á¥ß§Y«Ø¥ßÅçÃÒ§Ö¨ú
+                // ? æ•ˆèƒ½å„ªåŒ–ï¼šç™»å…¥å®Œæˆå¾Œç«‹å³å»ºç«‹é©—è­‰å¿«å–
                 // ========================================
-                // ¥Øªº¡GÁ×§K«áÄò AJAX ½Ğ¨D­«½Æ©I¥s SetupListManager
+                // ç›®çš„ï¼šé¿å…å¾ŒçºŒ AJAX è«‹æ±‚é‡è¤‡å‘¼å« SetupListManager
                 // 
-                // ­ì¦]¡G
-                // 1. µn¤J«á²Ä¤@­Ó AJAX ½Ğ¨D·|Ä²µo EnsureCorrectUserData()
-                // 2. ¦pªG§Ö¨ú¥¼«Ø¥ß¡A·|¦A¦¸©I¥s SetupListManager¡]­«½Æ¸ü¤J¡^
-                // 3. ³o·|³y¦¨ +100ms ©µ¿ğ + ¸ê®Æ®w³s½u®ö¶O
+                // åŸå› ï¼š
+                // 1. ç™»å…¥å¾Œç¬¬ä¸€å€‹ AJAX è«‹æ±‚æœƒè§¸ç™¼ EnsureCorrectUserData()
+                // 2. å¦‚æœå¿«å–æœªå»ºç«‹ï¼Œæœƒå†æ¬¡å‘¼å« SetupListManagerï¼ˆé‡è¤‡è¼‰å…¥ï¼‰
+                // 3. é€™æœƒé€ æˆ +100ms å»¶é² + è³‡æ–™åº«é€£ç·šæµªè²»
                 // 
-                // ¸Ñ¨M¤è¦¡¡G
-                // - ¦bµn¤J¦¨¥\«á¥D°Ê©I¥s¤@¦¸ EnsureCorrectUserData()
-                // - ³o·|«Ø¥ß§Ö¨ú¡A«áÄò 30 ¬í¤ºªº½Ğ¨Dª½±µ©R¤¤§Ö¨ú
-                // - §Ö¨ú©R¤¤®É¶¡ <1ms¡A¤j´T´£¤É®Ä¯à
+                // è§£æ±ºæ–¹å¼ï¼š
+                // - åœ¨ç™»å…¥æˆåŠŸå¾Œä¸»å‹•å‘¼å«ä¸€æ¬¡ EnsureCorrectUserData()
+                // - é€™æœƒå»ºç«‹å¿«å–ï¼Œå¾ŒçºŒ 30 ç§’å…§çš„è«‹æ±‚ç›´æ¥å‘½ä¸­å¿«å–
+                // - å¿«å–å‘½ä¸­æ™‚é–“ <1msï¼Œå¤§å¹…æå‡æ•ˆèƒ½
                 try
                 {
-                    System.Diagnostics.Debug.WriteLine("[SetupSystemData] ? ¹w¥ı«Ø¥ß¥Î¤áÅçÃÒ§Ö¨ú");
-                    EnsureCorrectUserData();
-                    System.Diagnostics.Debug.WriteLine("[SetupSystemData] ? §Ö¨ú«Ø¥ß§¹¦¨¡A«áÄò½Ğ¨D±N§Ö³tÅçÃÒ");
+                    System.Diagnostics.Debug.WriteLine("[SetupSystemData] ? é å…ˆå»ºç«‹ç”¨æˆ¶é©—è­‰å¿«å–");
+                    using (PerfPhase.Measure(HttpContext, "Login.SetupSystemData.EnsureCorrectUserData"))
+                    {
+                        EnsureCorrectUserData();
+                    }
+                    System.Diagnostics.Debug.WriteLine("[SetupSystemData] ? å¿«å–å»ºç«‹å®Œæˆï¼Œå¾ŒçºŒè«‹æ±‚å°‡å¿«é€Ÿé©—è­‰");
                 }
                 catch (Exception cacheEx)
                 {
-                    // §Ö¨ú«Ø¥ß¥¢±Ñ¤£¼vÅTµn¤J¬yµ{
-                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] ?? §Ö¨ú«Ø¥ß¥¢±Ñ: {cacheEx.Message}");
+                    // å¿«å–å»ºç«‹å¤±æ•—ä¸å½±éŸ¿ç™»å…¥æµç¨‹
+                    System.Diagnostics.Debug.WriteLine($"[SetupSystemData] ?? å¿«å–å»ºç«‹å¤±æ•—: {cacheEx.Message}");
                 }
 
                 try
                 {
-                    InMemoryContext.AppointmentsListManager.SetupAppointmentList();
+                    using (PerfPhase.Measure(HttpContext, "Login.SetupSystemData.SetupAppointmentList"))
+                    {
+                        InMemoryContext.AppointmentsListManager.SetupAppointmentList();
+                    }
                 }
                 catch
                 {
@@ -283,8 +304,11 @@ namespace ChurchReport.Controllers
                 {
                     if (loginContact != null)
                     {
-                        InMemoryContext.QpayManager.LoginType = "ºô­¶µn¤J";
-                        InMemoryContext.QpayManager.SetQpayModel(loginContact);
+                        InMemoryContext.QpayManager.LoginType = "ç¶²é ç™»å…¥";
+                        using (PerfPhase.Measure(HttpContext, "Login.SetupSystemData.SetQpayModel"))
+                        {
+                            InMemoryContext.QpayManager.SetQpayModel(loginContact);
+                        }
                     }
                 }
                 catch
@@ -293,7 +317,10 @@ namespace ChurchReport.Controllers
 
                 try
                 {
-                    InMemoryContext.FeeList.SetupLessonList(viewModel.Account, viewModel.Password);
+                    using (PerfPhase.Measure(HttpContext, "Login.SetupSystemData.SetupLessonList"))
+                    {
+                        InMemoryContext.FeeList.SetupLessonList(viewModel.Account, viewModel.Password);
+                    }
                 }
                 catch
                 {
@@ -307,17 +334,19 @@ namespace ChurchReport.Controllers
 
         private string DetermineDisplayViewType()
         {
+            using var perfPhase = PerfPhase.Measure(HttpContext, "Login.DetermineDisplayViewType");
+
             try
             {
-                ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "¤£¬O³æ¯Â¦æ¨Æ¾ä";
-                ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "Åã¥Üªª¾i¦^³ø¶µ¥Ø";
+                ViewBag.SchedulerView = InMemoryContext.ListManager.SchedulerView = "ä¸æ˜¯å–®ç´”è¡Œäº‹æ›†";
+                ViewBag.DisplayNavigation = InMemoryContext.ListManager.DisplayNavigation = "é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
                 ViewBag.UserType = InMemoryContext.ListManager.UserType = InMemoryContext.AppointmentsListManager.UserType;
 
                 string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
 
                 if (string.IsNullOrEmpty(displayViewType))
                 {
-                    if (InMemoryContext.ListManager.LoginType == "¤p²Õªø")
+                    if (InMemoryContext.ListManager.LoginType == "å°çµ„é•·")
                         displayViewType = "IntegrateView";
                     else
                         displayViewType = "MultiGroupView";
@@ -327,15 +356,18 @@ namespace ChurchReport.Controllers
                 {
                     try
                     {
-                        InMemoryContext.ListManager.SetupIntegrateData(InMemoryContext.ListManager.ActiveListId);
+                        using (PerfPhase.Measure(HttpContext, "Login.DetermineDisplayViewType.SetupIntegrateData"))
+                        {
+                            InMemoryContext.ListManager.SetupIntegrateData(InMemoryContext.ListManager.ActiveListId);
+                        }
                     }
                     catch
                     {
                     }
                 }
 
-                if (InMemoryContext.ListManager.LoginType != "¤p²Õªø" &&
-                    InMemoryContext.HappyGroupDataManager.HappyType == "¦³©¯ºÖ¤p²Õ¦W³æ")
+                if (InMemoryContext.ListManager.LoginType != "å°çµ„é•·" &&
+                    InMemoryContext.HappyGroupDataManager.HappyType == "æœ‰å¹¸ç¦å°çµ„åå–®")
                 {
                     displayViewType = "HappyGroupView";
                 }
@@ -365,7 +397,7 @@ namespace ChurchReport.Controllers
             {
                 DisplayViewType = displayViewType,
                 ActiveListId = InMemoryContext.ListManager.ActiveListId,
-                message = "Åwªï" + fullName + "µn¤J¦¨¥\!",
+                message = "æ­¡è¿" + fullName + "ç™»å…¥æˆåŠŸ!",
                 fullname = fullName,
                 account = viewModel.Account,
                 password = viewModel.Password

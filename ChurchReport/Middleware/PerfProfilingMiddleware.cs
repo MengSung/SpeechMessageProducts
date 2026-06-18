@@ -33,6 +33,8 @@ namespace ChurchReport.Middleware
                 var totalMs = profiler.StopAndGetTotalMs();
                 var path = GetRouteTemplate(context); // 樣板，不含實際 ID
                 Debug.WriteLine(profiler.BuildSummaryLine(path, totalMs));
+                foreach (var line in profiler.BuildPhaseLines(path))
+                    Debug.WriteLine(line);
                 foreach (var line in profiler.BuildEscalationLines(path))
                     Debug.WriteLine(line);
             }

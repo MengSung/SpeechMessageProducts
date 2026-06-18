@@ -1,3 +1,4 @@
+using ChurchReport.Diagnostics.Profiling;
 using ChurchReport.Models;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
@@ -54,14 +55,23 @@ namespace ChurchReport.Controllers
             try
             {
                 // 使用當前登入者的帳密設定課程清單
-                InMemoryContext.FeeList.SetupLessonList(
-                    InMemoryContext.FeeList.m_Account,
-                    InMemoryContext.FeeList.m_Password
-                );
+                using (PerfPhase.Measure(HttpContext, "FeeManagement.LessonList.SetupLessonList"))
+                {
+                    InMemoryContext.FeeList.SetupLessonList(
+                        InMemoryContext.FeeList.m_Account,
+                        InMemoryContext.FeeList.m_Password
+                    );
+                }
 
                 // 設定所有必要的 ViewBag 參數
-                SetupBasicViewBag();
-                SetMultiGroupLayoutParameter();
+                using (PerfPhase.Measure(HttpContext, "FeeManagement.LessonList.SetupBasicViewBag"))
+                {
+                    SetupBasicViewBag();
+                }
+                using (PerfPhase.Measure(HttpContext, "FeeManagement.LessonList.SetMultiGroupLayoutParameter"))
+                {
+                    SetMultiGroupLayoutParameter();
+                }
 
                 // 設定 ViewBag 參數
                 ViewBag.Result = InMemoryContext.FeeList.Result;
@@ -81,7 +91,10 @@ namespace ChurchReport.Controllers
                     System.Diagnostics.Debug.WriteLine($"[LessonList] 只有一門課程，自動載入 - DiscipleLessonsId={discipleLessonsId}");
                     
                     // 載入該課程的繳費資料
-                    InMemoryContext.FeeList.SetupPresentFeeList(discipleLessonsId);
+                    using (PerfPhase.Measure(HttpContext, "FeeManagement.LessonList.SetupPresentFeeList"))
+                    {
+                        InMemoryContext.FeeList.SetupPresentFeeList(discipleLessonsId);
+                    }
                     
                     // 設定 DiscipleLessonsId，讓側邊欄能正確生成連結
                     ViewBag.DiscipleLessonsId = discipleLessonsId;
@@ -135,11 +148,20 @@ namespace ChurchReport.Controllers
                 }
 
                 // 載入該課程的繳費資料
-                InMemoryContext.FeeList.SetupPresentFeeList(discipleLessonsId);
+                using (PerfPhase.Measure(HttpContext, "FeeManagement.Fee.SetupPresentFeeList"))
+                {
+                    InMemoryContext.FeeList.SetupPresentFeeList(discipleLessonsId);
+                }
 
                 // 設定所有必要的 ViewBag 參數
-                SetupBasicViewBag();
-                SetMultiGroupLayoutParameter();
+                using (PerfPhase.Measure(HttpContext, "FeeManagement.Fee.SetupBasicViewBag"))
+                {
+                    SetupBasicViewBag();
+                }
+                using (PerfPhase.Measure(HttpContext, "FeeManagement.Fee.SetMultiGroupLayoutParameter"))
+                {
+                    SetMultiGroupLayoutParameter();
+                }
 
                 // 設定 ViewBag 參數
                 ViewBag.FeeResult = InMemoryContext.FeeList.Result;
@@ -178,11 +200,20 @@ namespace ChurchReport.Controllers
                 }
 
                 // 載入該課程的點名資料
-                InMemoryContext.FeeList.SetupPresentFeeList(discipleLessonsId);
+                using (PerfPhase.Measure(HttpContext, "FeeManagement.Present.SetupPresentFeeList"))
+                {
+                    InMemoryContext.FeeList.SetupPresentFeeList(discipleLessonsId);
+                }
 
                 // 設定所有必要的 ViewBag 參數
-                SetupBasicViewBag();
-                SetMultiGroupLayoutParameter();
+                using (PerfPhase.Measure(HttpContext, "FeeManagement.Present.SetupBasicViewBag"))
+                {
+                    SetupBasicViewBag();
+                }
+                using (PerfPhase.Measure(HttpContext, "FeeManagement.Present.SetMultiGroupLayoutParameter"))
+                {
+                    SetMultiGroupLayoutParameter();
+                }
 
                 // 設定 ViewBag 參數
                 ViewBag.PresentResult = InMemoryContext.FeeList.Result;
@@ -227,14 +258,18 @@ namespace ChurchReport.Controllers
                 // 確保課程清單已載入
                 if (InMemoryContext.FeeList.LessonList == null || InMemoryContext.FeeList.LessonList.Count == 0)
                 {
-                    InMemoryContext.FeeList.SetupLessonList(
-                        InMemoryContext.FeeList.m_Account,
-                        InMemoryContext.FeeList.m_Password
-                    );
+                    using (PerfPhase.Measure(HttpContext, "FeeManagement.GetLessons.SetupLessonList"))
+                    {
+                        InMemoryContext.FeeList.SetupLessonList(
+                            InMemoryContext.FeeList.m_Account,
+                            InMemoryContext.FeeList.m_Password
+                        );
+                    }
                 }
 
                 // 使用 DevExtreme DataSourceLoader 處理資料
-                var result = DataSourceLoader.Load(InMemoryContext.FeeList.LessonList, loadOptions);
+                var result = PerfPhase.Measure(HttpContext, "FeeManagement.GetLessons.DataSourceLoader", () =>
+                    DataSourceLoader.Load(InMemoryContext.FeeList.LessonList, loadOptions));
 
                 System.Diagnostics.Debug.WriteLine($"[GetLessons] 載入完成 - totalCount={result.totalCount}");
 
@@ -270,22 +305,29 @@ namespace ChurchReport.Controllers
                 if (!string.IsNullOrEmpty(discipleLessonsId))
                 {
                     System.Diagnostics.Debug.WriteLine($"[GetFeeData] 呼叫 SetupPresentFeeList({discipleLessonsId})");
-                    InMemoryContext.FeeList.SetupPresentFeeList(discipleLessonsId);
+                    using (PerfPhase.Measure(HttpContext, "FeeManagement.GetFeeData.SetupPresentFeeList"))
+                    {
+                        InMemoryContext.FeeList.SetupPresentFeeList(discipleLessonsId);
+                    }
                 }
                 else if (InMemoryContext.FeeList.FeeDataList == null || InMemoryContext.FeeList.FeeDataList.Count == 0)
                 {
                     System.Diagnostics.Debug.WriteLine("[GetFeeData] FeeDataList 為空，重新載入");
-                    InMemoryContext.FeeList.SetupFeeDataList(
-                        InMemoryContext.FeeList.m_Account,
-                        InMemoryContext.FeeList.m_Password
-                    );
+                    using (PerfPhase.Measure(HttpContext, "FeeManagement.GetFeeData.SetupFeeDataList"))
+                    {
+                        InMemoryContext.FeeList.SetupFeeDataList(
+                            InMemoryContext.FeeList.m_Account,
+                            InMemoryContext.FeeList.m_Password
+                        );
+                    }
                 }
 
                 var feeDataCount = InMemoryContext.FeeList.FeeDataList?.Count ?? 0;
                 System.Diagnostics.Debug.WriteLine($"[GetFeeData] FeeDataList.Count={feeDataCount}");
 
                 // 使用 DevExtreme DataSourceLoader 處理資料
-                var result = DataSourceLoader.Load(InMemoryContext.FeeList.FeeDataList, loadOptions);
+                var result = PerfPhase.Measure(HttpContext, "FeeManagement.GetFeeData.DataSourceLoader", () =>
+                    DataSourceLoader.Load(InMemoryContext.FeeList.FeeDataList, loadOptions));
 
                 System.Diagnostics.Debug.WriteLine($"[GetFeeData] 回傳結果 - totalCount={result.totalCount}, data count={((IEnumerable<object>)result.data).Count()}");
 
@@ -360,7 +402,11 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[SaveBatch] 開始批次儲存");
 
                 // ? 執行批次提交所有待處理的修改
-                int successCount = InMemoryContext.FeeList.CommitPendingChanges();
+                int successCount;
+                using (PerfPhase.Measure(HttpContext, "FeeManagement.SaveBatch.CommitPendingChanges"))
+                {
+                    successCount = InMemoryContext.FeeList.CommitPendingChanges();
+                }
 
                 System.Diagnostics.Debug.WriteLine($"[SaveBatch] 批次儲存完成 - 成功更新 {successCount} 筆記錄");
 
