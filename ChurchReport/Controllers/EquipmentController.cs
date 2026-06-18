@@ -1,4 +1,5 @@
-﻿using ChurchReport.Models;
+﻿using ChurchReport.Diagnostics.Profiling;
+using ChurchReport.Models;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
@@ -51,10 +52,18 @@ namespace ChurchReport.Controllers
         [Route("/Equipment/EquipmentView")]
         public IActionResult EquipmentView()
         {
+            using var perfPhase = PerfPhase.Measure(HttpContext, "Equipment.EquipmentView");
+
             try
             {
-                SetupBasicViewBag();
-                SetMultiGroupLayoutParameter();
+                using (PerfPhase.Measure(HttpContext, "Equipment.EquipmentView.SetupBasicViewBag"))
+                {
+                    SetupBasicViewBag();
+                }
+                using (PerfPhase.Measure(HttpContext, "Equipment.EquipmentView.SetMultiGroupLayoutParameter"))
+                {
+                    SetMultiGroupLayoutParameter();
+                }
 
                 // 建立裝備資料 - 返回包含小組的模型
                 var equipmentData = new EquipmenSmallGroup
@@ -86,6 +95,8 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public object LoadEquipmentList(string id, DataSourceLoadOptions loadOptions)
         {
+            using var perfPhase = PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentList");
+
             try
             {
                 // ========================================
@@ -97,7 +108,10 @@ namespace ChurchReport.Controllers
                 if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
                     !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
                 {
-                    InMemoryContext.ListManager.SetupIntegrateData(id);
+                    using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentList.SetupIntegrateData"))
+                    {
+                        InMemoryContext.ListManager.SetupIntegrateData(id);
+                    }
                 }
 
                 // 為每個小組建立 EquipmenSmallGroup 對象
@@ -129,7 +143,8 @@ namespace ChurchReport.Controllers
                     });
                 }
 
-                return DataSourceLoader.Load(equipmentGroups, loadOptions);
+                return PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentList.DataSourceLoader", () =>
+                    DataSourceLoader.Load(equipmentGroups, loadOptions));
             }
             catch (Exception e)
             {
@@ -146,6 +161,8 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public object LoadEquipmentContact(string id, DataSourceLoadOptions loadOptions)
         {
+            using var perfPhase = PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentContact");
+
             try
             {
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ===== 開始載入聯絡人 =====");
@@ -155,7 +172,10 @@ namespace ChurchReport.Controllers
                 // ========================================
                 // ✅ 關鍵修復：驗證 Session 並確保資料正確
                 // ========================================
-                EnsureCorrectUserData();
+                using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentContact.EnsureCorrectUserData"))
+                {
+                    EnsureCorrectUserData();
+                }
 
                 // 強制重新載入資料以確保正確性
                 // 原因: 多小組切換時，ActiveListId 可能因為非同步請求導致不一致
@@ -182,7 +202,10 @@ namespace ChurchReport.Controllers
                 if (needReload)
                 {
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] >>> 執行重新載入資料 <<<");
-                    InMemoryContext.ListManager.SetupIntegrateData(id);
+                    using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentContact.SetupIntegrateData"))
+                    {
+                        InMemoryContext.ListManager.SetupIntegrateData(id);
+                    }
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] >>> 載入完成，新的ActiveListId: {InMemoryContext.ListManager.ActiveListId}");
                 }
                 else
@@ -205,7 +228,10 @@ namespace ChurchReport.Controllers
                     
                     // 再次強制載入
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] >>> 再次強制載入資料 <<<");
-                    InMemoryContext.ListManager.SetupIntegrateData(id);
+                    using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentContact.SetupIntegrateDataRetry"))
+                    {
+                        InMemoryContext.ListManager.SetupIntegrateData(id);
+                    }
                     
                     members = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                         ?.m_SmallGroupDataList?.m_AllMemeberData?.Members 
@@ -240,7 +266,8 @@ namespace ChurchReport.Controllers
 
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ===== 載入聯絡人完成 =====\n");
 
-                return DataSourceLoader.Load(equipmentList, loadOptions);
+                return PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentContact.DataSourceLoader", () =>
+                    DataSourceLoader.Load(equipmentList, loadOptions));
             }
             catch (Exception e)
             {
@@ -259,6 +286,8 @@ namespace ChurchReport.Controllers
         [HttpGet]
         public object LoadEquipmentStorLessons(string id, DataSourceLoadOptions loadOptions)
         {
+            using var perfPhase = PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons");
+
             try
             {
                 // ========================================
@@ -269,14 +298,18 @@ namespace ChurchReport.Controllers
                 // - Session 和 ListManager 密碼一致性檢查
                 // - LINE ID 恢復機制
                 // - 安全的日誌記錄（隱藏敏感資訊）
-                EnsureCorrectUserData();
+                using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.EnsureCorrectUserData"))
+                {
+                    EnsureCorrectUserData();
+                }
 
                 // 確保資料已載入
                 if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
                     !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
                 {
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 資料未載入，id={id}");
-                    return DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions);
+                    return PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.EmptyDataSourceLoader", () =>
+                        DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions));
                 }
 
                 // 從成員列表中找到對應的聯絡人
@@ -289,21 +322,24 @@ namespace ChurchReport.Controllers
                 if (member == null)
                 {
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 找不到成員，id={id}");
-                    return DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions);
+                    return PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.EmptyDataSourceLoader", () =>
+                        DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions));
                 }
 
                 // 檢查 ContactId 是否存在
                 if (string.IsNullOrEmpty(member.ContactId))
                 {
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 警告: ContactId 為空，FullName={member.FullName}, PresentRecordId={member.PresentRecordId}");
-                    return DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions);
+                    return PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.EmptyDataSourceLoader", () =>
+                        DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions));
                 }
 
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 查詢課程記錄: ContactName={member.FullName}, ContactId={member.ContactId}");
 
                 // 從 CRM 查詢該聯絡人的所有課程記錄
                 // 使用2參數版本: RetrieveStorLessonsByFetchXml(ContactName, ContactId)
-                var storLessons = ToolUtility.RetrieveStorLessonsByFetchXml(member.FullName, member.ContactId);
+                var storLessons = PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.RetrieveStorLessonsByFetchXml", () =>
+                    ToolUtility.RetrieveStorLessonsByFetchXml(member.FullName, member.ContactId));
 
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 查詢結果: storLessons={storLessons != null}, Count={storLessons?.Entities.Count ?? -1}");
 
@@ -326,7 +362,8 @@ namespace ChurchReport.Controllers
                         {
                             try
                             {
-                                var discipleLesson = ToolUtility.RetrieveEntity("new_disciple_lessons", discipleLessonId);
+                                var discipleLesson = PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.RetrieveDiscipleLesson", () =>
+                                    ToolUtility.RetrieveEntity("new_disciple_lessons", discipleLessonId));
                                 
                                 // 取得上課開始日期
                                 classStartDate = ToolUtility.GetEntityDateTimeAttribute(ref discipleLesson, "new_class_start_date");
@@ -359,7 +396,8 @@ namespace ChurchReport.Controllers
                 }
 
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 最終返回課程數量: {lessonsList.Count}");
-                return DataSourceLoader.Load(lessonsList, loadOptions);
+                return PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.DataSourceLoader", () =>
+                    DataSourceLoader.Load(lessonsList, loadOptions));
             }
             catch (Exception e)
             {

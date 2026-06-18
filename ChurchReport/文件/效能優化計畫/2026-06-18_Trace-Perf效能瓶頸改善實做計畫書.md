@@ -1407,25 +1407,25 @@ X-Content-Type-Options: nosniff
 |---|---|---|
 | Phase 0.1 靜態檔 log 噪音排除 | 完成 | 本次仍維持 static-like `[Perf] = 0` |
 | Phase 0.2 命名分段計時 | 完成 | 已定位 Login、FeeManagement、Personal 的主要慢點 |
-| Phase 0.3 Equipment 分段/批次設計 | 下一步 | 因本次最大總量瓶頸變成 Equipment |
+| Phase 0.3 Equipment 分段計時 | 已實作，待測 | 已在 `EquipmentController` 補上 endpoint、驗證、資料重載、CRM 查詢與 DataSourceLoader phase |
 | Phase 1 Login 最小載入 | 待實作 | 已知道需先移除登入階段 `SetupLessonList()`，並檢查驗證查詢 |
 | Phase 2 FeeManagement 重複載入修正 | 待實作 | 已知道重點是 `SetupPresentFeeList()` 重複呼叫 |
 | Phase 3 Personal N+1 | 待實作 | 已知道 contact retrieve 與 option metadata 是主要來源 |
 
 ### 18.7 使用者下一步
 
-目前不建議立刻做完整回歸操作。下一步應先讓開發者補上 Equipment phase timing，或直接依本計畫實作 Equipment batch API 的後端安全版本。
+目前不建議立刻做完整回歸操作。Phase 0.3 已先補上 Equipment phase timing，下一步只需要針對 Equipment 頁面做局部測試，產生新 log 後再決定是否實作 batch API。
 
 原因：
 
 1. `Trace-Phase0.2.log` 已足夠證明 Login、FeeManagement、Personal 的慢點，不需要再重跑同樣流程確認這三者。
-2. 本次最大總量瓶頸是 Equipment，但目前沒有 Equipment phase，若直接修改可能不知道時間花在查詢、逐筆組裝、還是 DataSourceLoader。
+2. 本次最大總量瓶頸是 Equipment，現在已補 phase，下一份 log 可以判斷時間花在查詢、逐筆組裝、還是 DataSourceLoader。
 3. 若先做 Equipment batch API，必須先設計好 server-side ownership check，否則容易為了加速導入跨使用者資料風險。
 
 建議下一個操作順序：
 
-1. 開發者先補 `EquipmentController` 的 phase timing，或直接實作安全的 `/Equipment/LoadEquipmentStorLessonsBatch` 後端。
-2. 編譯成功後，使用者只需要測 Equipment 頁面，不必重跑全部流程。
+1. 使用者只需要測 Equipment 頁面，不必重跑全部流程。
+2. 操作時展開多個成員的第三層課程明細，讓 `/Equipment/LoadEquipmentStorLessons` 產生足夠樣本。
 3. 產生新 log：
    - `ChurchReport\Logs\Trace-Phase0.3-Equipment.log`
 4. 用該 log 判斷 Equipment 是要做：
