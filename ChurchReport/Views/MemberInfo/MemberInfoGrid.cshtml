@@ -1216,7 +1216,21 @@
             width: isMobile ? '100%' : '90%',
             height: isMobile ? '100%' : '86%',
             maxWidth: isMobile ? '100%' : 980,
-            resizeEnabled: !isMobile
+            resizeEnabled: !isMobile,
+            toolbarItems: [{
+                widget: 'dxButton',
+                toolbar: 'top',
+                location: 'before',
+                options: {
+                    text: '上傳',
+                    icon: 'upload',
+                    type: 'success',
+                    stylingMode: 'contained',
+                    onClick: function () {
+                        if (window.memberInfoUploadFields) { window.memberInfoUploadFields(); }
+                    }
+                }
+            }]
         });
 
         var openToken = ++memberInfoDetailOpenToken;
