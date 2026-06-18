@@ -1286,3 +1286,151 @@ X-Content-Type-Options: nosniff
 
 - 只要發現任何可能讓 B 使用者看到 A 使用者資料的情境，即使效能達標，也視為本計畫未完成。
 - 任何為了效能而降低 session 驗證、no-store、權限檢查、ownership check 的修改，一律不得合併。
+
+## 十八、2026-06-18 Phase 0.2 實測更新：`Trace-Phase0.2.log`
+
+### 18.1 本次 Log 狀態
+
+本次分析來源：
+
+- `ChurchReport\Logs\Trace-Phase0.2.log`
+
+本次 log 已確認 Phase 0.2 的命名分段計時生效，並且 Phase 0.1 的安全性與 log 噪音改善仍然維持：
+
+| 項目 | 數值 | 判讀 |
+|---|---:|---|
+| `[Perf]` 動態 request | `141` | 本次操作範圍比 Phase0 更廣，包含 Equipment |
+| `[Perf-Phase]` | `18` | 已能定位 Login、FeeManagement、Personal 內部耗時 |
+| `[Perf-N+1]` | `1` | 仍集中在 `/Personal/LoadMaintainPersonInfomation` |
+| `[Perf-Gap]` | `73` | 仍有許多舊式 CRM/ToolUtility 路徑未被 CRM wrapper 完整歸因 |
+| static-like `[Perf]` | `0` | 靜態檔案 profiler 噪音已排除 |
+| static-like `[Identity Audit]` | `0` | IdentityAudit 靜態檔噪音已排除 |
+| `Cache-Control: public` | `0` | 未發現動態資料被 public cache |
+| `Cache-Control: no-store` | `142` | 動態 response no-store 仍維持 |
+
+本次總量：
+
+| 指標 | 數值 |
+|---|---:|
+| request total | `136,923ms` |
+| action total | `120,042ms` |
+| 已歸因 CRM total | `26,457ms` |
+| CRM calls | `153` |
+| gap total | `93,585ms` |
+
+### 18.2 本次前 12 大瓶頸
+
+| 排名 | Endpoint | 次數 | 合計 | 佔比 | 單次最高 | CRM | Gap | 判讀 |
+|---:|---|---:|---:|---:|---:|---:|---:|---|
+| 1 | `/Equipment/LoadEquipmentStorLessons` | `23` | `28,695ms` | `21.0%` | `3,648ms` | `0ms` | `22,235ms` | 本次最大總量瓶頸，尚未有 phase，需先補 Equipment 分段或直接依既有計畫做 batch API |
+| 2 | `/Home/ProcessLogin` | `1` | `25,127ms` | `18.4%` | `25,127ms` | `16,377ms` | `8,685ms` | 登入嚴重變慢，主因為帳密驗證 CRM 查詢與同步預載課程 |
+| 3 | `/FeeManagement/Api/FeeData` | `3` | `12,067ms` | `8.8%` | `4,466ms` | `0ms` | `12,029ms` | 每次 API 都重跑 `SetupPresentFeeList` |
+| 4 | `/SmallGroup/IntegrateView/{LoginParameter}` | `4` | `7,022ms` | `5.1%` | `2,391ms` | `204ms` | `6,662ms` | 仍有未分段 gap，列入後續 |
+| 5 | `/FeeManagement/LessonList` | `1` | `6,906ms` | `5.0%` | `6,906ms` | `0ms` | `6,844ms` | `SetupLessonList` 為主要耗時 |
+| 6 | `/FeeManagement/Present/{discipleLessonsId}` | `1` | `6,314ms` | `4.6%` | `6,314ms` | `0ms` | `5,355ms` | `SetupPresentFeeList` 為主要耗時 |
+| 7 | `/NewPerson/SaveNewPerson` | `1` | `4,743ms` | `3.5%` | `4,743ms` | `124ms` | `4,594ms` | 儲存流程仍需 Phase 5 分段 |
+| 8 | `/Personal/LoadMaintainPersonInfomation` | `1` | `4,499ms` | `3.3%` | `4,499ms` | `4,078ms` | `401ms` | 明確 N+1，需批次化 contact 與 option label |
+| 9 | `/FeeManagement/Fee/{discipleLessonsId}` | `1` | `4,372ms` | `3.2%` | `4,372ms` | `0ms` | `4,274ms` | `SetupPresentFeeList` 為主要耗時 |
+| 10 | `/SmallGroup/UpdateIntegrateDate` | `2` | `3,729ms` | `2.7%` | `1,989ms` | `272ms` | `3,432ms` | 後續補分段 |
+| 11 | `/Equipment/LoadEquipmentContact` | `2` | `2,795ms` | `2.0%` | `1,534ms` | `0ms` | `2,771ms` | Equipment 另一個未歸因慢點 |
+| 12 | `/Authentication/Login` | `1` | `2,377ms` | `1.7%` | `2,377ms` | `0ms` | `2ms` | action 幾乎不耗時，可能為 middleware/static/view 初始化成本 |
+
+### 18.3 Phase Timing 新發現
+
+| Phase | 次數 | 合計 | 單次最高 | 判讀 |
+|---|---:|---:|---:|---|
+| `Login.ValidateUserCredentials` | `1` | `16,044ms` | `16,044ms` | 登入最大單點；對應 `[Perf-Slow] contact.RetrieveMultiple 15,977ms` |
+| `Login.SetupSystemData` | `1` | `8,250ms` | `8,250ms` | 登入同步預載過多 |
+| `Login.SetupSystemData.SetupLessonList` | `1` | `6,338ms` | `6,338ms` | 登入時載入課程清單是第二大登入瓶頸 |
+| `Login.SetupSystemData.SetupListManager` | `1` | `1,213ms` | `1,213ms` | 可接受但仍需避免重複呼叫 |
+| `FeeManagement.LessonList.SetupLessonList` | `1` | `6,574ms` | `6,574ms` | 課程清單載入本身慢，且登入也重複做一次 |
+| `FeeManagement.GetFeeData.SetupPresentFeeList` | `3` | `11,932ms` | `4,414ms` | FeeData API 每次進來都重載同課程資料，是 FeeManagement 首要修正點 |
+| `FeeManagement.Fee.SetupPresentFeeList` | `1` | `3,974ms` | `3,974ms` | View action 已先載入一次，後續 API 又載入，存在重複 |
+| `FeeManagement.Present.SetupPresentFeeList` | `1` | `3,860ms` | `3,860ms` | 同上 |
+| `FeeManagement.SaveBatch.CommitPendingChanges` | `1` | `2,192ms` | `2,192ms` | 儲存仍可優化，但優先級低於重複載入 |
+| `Personal.LoadMaintain.MultiGroup` | `1` | `4,378ms` | `4,378ms` | 多小組模式整段慢 |
+| `Personal.LoadMaintain.MultiGroup.ContactRetrieve` | `23` | `816ms` | `816ms` aggregate | contact retrieve 本身不是全部，另有 `RetrieveAttribute.Execute ×45 = 3,233ms` |
+
+### 18.4 優先順序調整
+
+依本次 Phase 0.2 實測，下一步優先順序調整如下：
+
+1. **Phase 0.3：補 Equipment phase timing 或直接進入 Equipment batch API 設計確認。**
+   - 原因：本次最大總量瓶頸已變成 `/Equipment/LoadEquipmentStorLessons`，23 次合計 `28.7s`。
+   - 目前問題不是單次超慢，而是 master-detail 每筆/多筆重複呼叫造成總量慢。
+   - 需要看清楚每次呼叫內部是否卡在 `RetrieveStorLessonsByFetchXml`、逐筆 `RetrieveEntity("new_disciple_lessons")`、或 `DataSourceLoader.Load`。
+
+2. **Phase 1：Login 第一頁最小載入。**
+   - 原因：`/Home/ProcessLogin` 單次 `25.1s`，其中：
+     - `ValidateUserCredentials = 16.0s`
+     - `SetupSystemData.SetupLessonList = 6.3s`
+   - 應先移除登入階段不必要的 `SetupLessonList()`，讓使用者先進第一頁。
+   - `ValidateUserCredentials` 的 `contact.RetrieveMultiple` 需要檢查 CRM 查詢條件與索引/欄位選取，但不可用跨使用者 cache 取代安全驗證。
+
+3. **Phase 2：FeeManagement 避免重複 `SetupPresentFeeList()`。**
+   - 原因：`GetFeeData.SetupPresentFeeList` 3 次合計 `11.9s`，且 `Fee()` / `Present()` view action 也會先做一次。
+   - 修正方向：同一 `discipleLessonsId`、同一使用者 session、同一權限 scope，在短時間內不可重複載入。
+   - 任何 cache key 必須包含 session/user/lesson/permission scope，不可只用 `discipleLessonsId`。
+
+4. **Phase 3：Personal N+1 修正。**
+   - 原因：`/Personal/LoadMaintainPersonInfomation` 仍有 `[Perf-N+1] crm.n=68`。
+   - 主要是：
+     - `contact.Retrieve ×23 = 816ms`
+     - `RetrieveAttribute.Execute ×45 = 3,233ms`
+   - 修正方向：contact 批次查詢，加上 option label per-request 或 metadata scoped cache。
+
+5. **Phase 4：Save / NewPerson / SmallGroup 未歸因 gap 分段。**
+   - 原因：`/NewPerson/SaveNewPerson` 單次 `4.7s`，gap `4.6s`，但目前沒有 phase。
+   - 此階段排在使用者最明顯的登入、Equipment、FeeManagement 之後。
+
+### 18.5 安全結論
+
+本次更新仍未發現下列安全退化：
+
+- static-like `[Perf] = 0`。
+- static-like `[Identity Audit] = 0`。
+- `Cache-Control: public = 0`。
+- 動態 response 仍有 `Cache-Control: no-store`。
+
+後續實作必須繼續遵守：
+
+1. 不得修改 `SessionValidationMiddleware` 來換速度。
+2. 不得移除或放寬 `Cache-Control: no-store` 與 `Vary: Cookie`。
+3. 不得用全域/static cache 存使用者資料。
+4. 不得只用 `lessonId`、`contactId`、`discipleLessonsId` 當 cache key。
+5. 所有 lazy/batch API 必須由後端重新做 ownership check，不信任前端傳入 ID。
+6. Login 驗證結果不可跨使用者共用；如需快取，只能做極短期、session/user/accountOrLineHash scoped，且密碼/LINE ID 不可明文進 cache key。
+
+### 18.6 目前進度狀態
+
+| 階段 | 狀態 | 說明 |
+|---|---|---|
+| Phase 0.1 靜態檔 log 噪音排除 | 完成 | 本次仍維持 static-like `[Perf] = 0` |
+| Phase 0.2 命名分段計時 | 完成 | 已定位 Login、FeeManagement、Personal 的主要慢點 |
+| Phase 0.3 Equipment 分段/批次設計 | 下一步 | 因本次最大總量瓶頸變成 Equipment |
+| Phase 1 Login 最小載入 | 待實作 | 已知道需先移除登入階段 `SetupLessonList()`，並檢查驗證查詢 |
+| Phase 2 FeeManagement 重複載入修正 | 待實作 | 已知道重點是 `SetupPresentFeeList()` 重複呼叫 |
+| Phase 3 Personal N+1 | 待實作 | 已知道 contact retrieve 與 option metadata 是主要來源 |
+
+### 18.7 使用者下一步
+
+目前不建議立刻做完整回歸操作。下一步應先讓開發者補上 Equipment phase timing，或直接依本計畫實作 Equipment batch API 的後端安全版本。
+
+原因：
+
+1. `Trace-Phase0.2.log` 已足夠證明 Login、FeeManagement、Personal 的慢點，不需要再重跑同樣流程確認這三者。
+2. 本次最大總量瓶頸是 Equipment，但目前沒有 Equipment phase，若直接修改可能不知道時間花在查詢、逐筆組裝、還是 DataSourceLoader。
+3. 若先做 Equipment batch API，必須先設計好 server-side ownership check，否則容易為了加速導入跨使用者資料風險。
+
+建議下一個操作順序：
+
+1. 開發者先補 `EquipmentController` 的 phase timing，或直接實作安全的 `/Equipment/LoadEquipmentStorLessonsBatch` 後端。
+2. 編譯成功後，使用者只需要測 Equipment 頁面，不必重跑全部流程。
+3. 產生新 log：
+   - `ChurchReport\Logs\Trace-Phase0.3-Equipment.log`
+4. 用該 log 判斷 Equipment 是要做：
+   - 批次 API。
+   - 批次 CRM query。
+   - visible-row lazy load。
+   - 短 TTL per-user/session cache。
+5. Equipment 確認後，再進入 Login 最小載入實作。
