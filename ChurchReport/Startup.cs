@@ -121,6 +121,13 @@ namespace ChurchReport
         /// <param name="services">服務集合，用於註冊應用程式所需的服務。</param>
         public void ConfigureServices(IServiceCollection services)
         {
+#if DEBUG
+            ChurchReport.Diagnostics.Profiling.ProfilingSwitch.Enabled =
+                Configuration.GetValue<bool>("Profiling:Enabled", false);
+            using var __perfConfigureServices =
+                ChurchReport.Diagnostics.Profiling.StartupProfiler.Phase("ConfigureServices");
+#endif
+
             services.AddSingleton(new ThemeSettings(CurrentTheme, CurrentThemeCssClass));
             services.AddScoped<ThemeViewDataFilter>();
 
@@ -360,6 +367,10 @@ namespace ChurchReport
                     // 防止 Session Bleeding（會話串連）問題
                     // 確保所有 Controller Action 都不會被中間層代理伺服器或瀏覽器快取
                     options.Filters.Add<ChurchReport.Filters.StrictNoCacheFilter>();
+
+#if DEBUG
+                    options.Filters.Add<ChurchReport.Filters.PerfTimingActionFilter>();
+#endif
                     
                     // ========================================
                     // ✅ Phase 3.2: 註冊全域 ResponseCache 屬性 (Session Bleeding 防護 - Step 2)
@@ -396,6 +407,43 @@ namespace ChurchReport
             // ========================================
             // 註冊 ToolUtility 相關服務，使用擴充方法進行批量註冊。
             services.AddToolUtility();
+
+#if DEBUG
+            {
+                var providerDescriptor = services.LastOrDefault(d => d.ServiceType == typeof(IToolUtilityProvider));
+                if (providerDescriptor != null)
+                {
+                    services.Remove(providerDescriptor);
+                    services.Add(new ServiceDescriptor(
+                        typeof(IToolUtilityProvider),
+                        sp =>
+                        {
+                            IToolUtilityProvider inner;
+                            if (providerDescriptor.ImplementationFactory != null)
+                            {
+                                inner = (IToolUtilityProvider)providerDescriptor.ImplementationFactory(sp);
+                            }
+                            else if (providerDescriptor.ImplementationInstance != null)
+                            {
+                                inner = (IToolUtilityProvider)providerDescriptor.ImplementationInstance;
+                            }
+                            else if (providerDescriptor.ImplementationType != null)
+                            {
+                                inner = (IToolUtilityProvider)ActivatorUtilities.CreateInstance(
+                                    sp, providerDescriptor.ImplementationType);
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException("Unsupported IToolUtilityProvider registration.");
+                            }
+
+                            var http = sp.GetRequiredService<IHttpContextAccessor>();
+                            return new ChurchReport.Diagnostics.Profiling.TimedToolUtilityProvider(inner, http);
+                        },
+                        providerDescriptor.Lifetime));
+                }
+            }
+#endif
 
             // ========================================
             // ✅ Phase 3.2: 註冊 CRM 快取服務
@@ -578,6 +626,11 @@ namespace ChurchReport
         /// <param name="loggerFactory">日誌工廠，用於建立日誌記錄器。</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+#if DEBUG
+            using var __perfConfigure =
+                ChurchReport.Diagnostics.Profiling.StartupProfiler.Phase("Configure");
+#endif
+
             // ========================================
             // 初始化每週第一日設定
             // ========================================
@@ -724,6 +777,10 @@ namespace ChurchReport
                         "Cache-Control", $"public,max-age={durationInSeconds}");
                 }
             });
+
+#if DEBUG
+            app.UseMiddleware<ChurchReport.Middleware.PerfProfilingMiddleware>();
+#endif
             
             // ========================================
             // ✅ Phase 2.4: 啟用 Response Caching 中介軟體

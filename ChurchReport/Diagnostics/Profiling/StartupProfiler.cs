@@ -10,7 +10,15 @@ namespace ChurchReport.Diagnostics.Profiling
     /// </summary>
     public static class StartupProfiler
     {
-        public static IDisposable Phase(string name) => new PhaseTimer(name);
+        public static IDisposable Phase(string name) =>
+            ProfilingSwitch.Enabled ? new PhaseTimer(name) : NoOpTimer.Instance;
+
+        private sealed class NoOpTimer : IDisposable
+        {
+            public static readonly NoOpTimer Instance = new NoOpTimer();
+            private NoOpTimer() { }
+            public void Dispose() { }
+        }
 
         private sealed class PhaseTimer : IDisposable
         {

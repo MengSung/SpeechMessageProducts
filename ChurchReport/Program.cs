@@ -38,6 +38,10 @@ namespace ChurchReport
                 options.Limits.MaxConcurrentUpgradedConnections = 1000;
             });
 
+#if DEBUG
+            InitializeTraceListener(builder.Environment.ContentRootPath);
+#endif
+
             // 使用 Startup 類別設定服務
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);

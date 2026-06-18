@@ -12,6 +12,7 @@ namespace ChurchReport.Diagnostics.Profiling
     public sealed class RequestProfiler
     {
         public const string ItemsKey = "__PerfProfiler";
+        public const string RouteTemplateItemsKey = "__PerfRouteTemplate";
         private static readonly double TicksToMs = 1000.0 / Stopwatch.Frequency;
 
         private readonly Stopwatch _total = Stopwatch.StartNew();

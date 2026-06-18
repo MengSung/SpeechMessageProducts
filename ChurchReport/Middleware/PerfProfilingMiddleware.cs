@@ -1,5 +1,6 @@
 #if DEBUG
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using ChurchReport.Diagnostics.Profiling;
 using Microsoft.AspNetCore.Http;
@@ -36,9 +37,39 @@ namespace ChurchReport.Middleware
         // finally 在 _next 之後執行，此時路由已跑完，GetEndpoint() 可取得對應端點的路由樣板。
         private static string GetRouteTemplate(HttpContext ctx)
         {
+            if (ctx.Items.TryGetValue(RequestProfiler.RouteTemplateItemsKey, out var routeTemplate)
+                && routeTemplate is string route
+                && !string.IsNullOrWhiteSpace(route))
+            {
+                return route;
+            }
+
             if (ctx.GetEndpoint() is RouteEndpoint re && !string.IsNullOrEmpty(re.RoutePattern?.RawText))
                 return "/" + re.RoutePattern.RawText.TrimStart('/');
-            return ctx.Request?.Path.Value ?? "?";
+
+            return SanitizePath(ctx.Request?.Path.Value ?? "?");
+        }
+
+        private static string SanitizePath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path) || path == "?")
+            {
+                return "?";
+            }
+
+            var segments = path.Split('/')
+                .Select(segment =>
+                {
+                    if (System.Guid.TryParse(segment, out _)
+                        || (segment.Length > 0 && segment.All(char.IsDigit)))
+                    {
+                        return "{id}";
+                    }
+
+                    return segment;
+                });
+
+            return string.Join("/", segments);
         }
     }
 }

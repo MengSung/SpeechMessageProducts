@@ -1000,6 +1000,20 @@ namespace ChurchReport.Controllers
                     throw new InvalidOperationException("無法從連接池獲取有效連接");
                 }
 
+#if DEBUG
+                if (ChurchReport.Diagnostics.Profiling.ProfilingSwitch.Enabled)
+                {
+                    var httpAccessor = HttpContext?.RequestServices?
+                        .GetService(typeof(Microsoft.AspNetCore.Http.IHttpContextAccessor))
+                        as Microsoft.AspNetCore.Http.IHttpContextAccessor;
+                    if (httpAccessor != null
+                        && connection is not ChurchReport.Diagnostics.Profiling.TimedOrganizationService)
+                    {
+                        connection = new ChurchReport.Diagnostics.Profiling.TimedOrganizationService(connection, httpAccessor);
+                    }
+                }
+#endif
+
                 return connection;
             }
             catch (TimeoutException)
@@ -1045,6 +1059,13 @@ namespace ChurchReport.Controllers
                     System.Diagnostics.Debug.WriteLine($"[ReleaseConnection] 連接池未初始化，無法歸還連接");
                     return;
                 }
+
+#if DEBUG
+                if (connection is ChurchReport.Diagnostics.Profiling.TimedOrganizationService timedConnection)
+                {
+                    connection = timedConnection.Inner;
+                }
+#endif
 
                 _connectionPool.ReleaseConnection(connection);
             }
