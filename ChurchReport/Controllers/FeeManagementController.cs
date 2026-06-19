@@ -343,6 +343,11 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[UpdateFeeData] 開始更新 - key={key}");
 
                 // 找到要更新的 Fee 記錄
+                // Security: re-scope to current session login before reading/mutating cached FeeData,
+                // so a previous user's stale FeeDataList cannot be looked up or edited after a re-login.
+                var (account, password) = CurrentLogin();
+                InMemoryContext.FeeList.EnsureLoginScope(account, password);
+
                 var fee = InMemoryContext.FeeList.FeeDataList?.FirstOrDefault(f => f.StorLessonsId == key);
 
                 if (fee == null)
@@ -383,6 +388,11 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[SaveBatch] 開始批次儲存");
 
                 // ? 執行批次提交所有待處理的修改
+                // Security: re-scope to current session login; on a re-login this clears the previous
+                // user's pending ChangeHistory so SaveBatch cannot commit their edits to CRM.
+                var (account, password) = CurrentLogin();
+                InMemoryContext.FeeList.EnsureLoginScope(account, password);
+
                 int successCount;
                 using (PerfPhase.Measure(HttpContext, "FeeManagement.SaveBatch.CommitPendingChanges"))
                 {
