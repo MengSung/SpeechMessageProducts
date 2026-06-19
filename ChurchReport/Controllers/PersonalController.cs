@@ -213,8 +213,10 @@ namespace ChurchReport.Controllers
                 string displayViewType = null;
                 try
                 {
-                    displayViewType = PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.GetDisplayViewType", () =>
-                        InMemoryContext.ListManager.GetDisplayViewType());
+                    using (PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.GetDisplayViewType"))
+                    {
+                        displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
+                    }
                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ✅ displayViewType = {displayViewType}");
                 }
                 catch (Exception ex)
@@ -229,8 +231,10 @@ namespace ChurchReport.Controllers
                 bool integrateFlag = false;
                 try
                 {
-                    integrateFlag = PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.IsIntegrateDataLoaded", () =>
-                        IsIntegrateDataLoaded());
+                    using (PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.IsIntegrateDataLoaded"))
+                    {
+                        integrateFlag = IsIntegrateDataLoaded();
+                    }
                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ✅ integrateFlag = {integrateFlag}");
                 }
                 catch (Exception ex)
@@ -273,8 +277,11 @@ namespace ChurchReport.Controllers
                                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 開始查詢小組 {groupRecord.Name} 的成員...");
                                     
                                     // 查詢名單成員
-                                    var memberCollection = PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.MultiGroup.RetrieveMemberListCollection", () =>
-                                        toolUtility.RetrieveMemberListCollectionByListId(listGuid));
+                                    EntityCollection memberCollection;
+                                    using (PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.MultiGroup.RetrieveMemberListCollection"))
+                                    {
+                                        memberCollection = toolUtility.RetrieveMemberListCollectionByListId(listGuid);
+                                    }
                                     
                                     if (memberCollection != null && memberCollection.Entities != null)
                                     {
@@ -418,8 +425,10 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 總計返回 {allMembers.Count} 筆資料");
                 
                 // 返回資料
-                return PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.DataSourceLoader", () =>
-                    DataSourceLoader.Load(allMembers, loadOptions));
+                using (PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.DataSourceLoader"))
+                {
+                    return DataSourceLoader.Load(allMembers, loadOptions);
+                }
             }
             catch (Exception e)
             {
@@ -482,8 +491,11 @@ namespace ChurchReport.Controllers
                 };
                 query.Criteria.AddCondition("contactid", ConditionOperator.In, batchIds);
 
-                var contactCollection = PerfPhase.Measure(HttpContext, phaseName, () =>
-                    ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query));
+                EntityCollection contactCollection;
+                using (PerfPhase.Measure(HttpContext, phaseName))
+                {
+                    contactCollection = ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query);
+                }
 
                 foreach (var contactEntity in contactCollection.Entities)
                 {

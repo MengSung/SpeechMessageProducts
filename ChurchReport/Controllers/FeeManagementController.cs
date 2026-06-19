@@ -244,8 +244,11 @@ namespace ChurchReport.Controllers
                 EnsureLessonListLoaded("FeeManagement.GetLessons.SetupLessonList");
 
                 // 使用 DevExtreme DataSourceLoader 處理資料
-                var result = PerfPhase.Measure(HttpContext, "FeeManagement.GetLessons.DataSourceLoader", () =>
-                    DataSourceLoader.Load(InMemoryContext.FeeList.LessonList, loadOptions));
+                DevExtreme.AspNet.Data.ResponseModel.LoadResult result;
+                using (PerfPhase.Measure(HttpContext, "FeeManagement.GetLessons.DataSourceLoader"))
+                {
+                    result = DataSourceLoader.Load(InMemoryContext.FeeList.LessonList, loadOptions);
+                }
 
                 System.Diagnostics.Debug.WriteLine($"[GetLessons] 載入完成 - totalCount={result.totalCount}");
 
@@ -301,8 +304,11 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[GetFeeData] FeeDataList.Count={feeDataCount}");
 
                 // 使用 DevExtreme DataSourceLoader 處理資料
-                var result = PerfPhase.Measure(HttpContext, "FeeManagement.GetFeeData.DataSourceLoader", () =>
-                    DataSourceLoader.Load(InMemoryContext.FeeList.FeeDataList, loadOptions));
+                DevExtreme.AspNet.Data.ResponseModel.LoadResult result;
+                using (PerfPhase.Measure(HttpContext, "FeeManagement.GetFeeData.DataSourceLoader"))
+                {
+                    result = DataSourceLoader.Load(InMemoryContext.FeeList.FeeDataList, loadOptions);
+                }
 
                 System.Diagnostics.Debug.WriteLine($"[GetFeeData] 回傳結果 - totalCount={result.totalCount}, data count={((IEnumerable<object>)result.data).Count()}");
 

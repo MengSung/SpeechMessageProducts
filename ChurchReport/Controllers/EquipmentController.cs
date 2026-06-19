@@ -143,8 +143,10 @@ namespace ChurchReport.Controllers
                     });
                 }
 
-                return PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentList.DataSourceLoader", () =>
-                    DataSourceLoader.Load(equipmentGroups, loadOptions));
+                using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentList.DataSourceLoader"))
+                {
+                    return DataSourceLoader.Load(equipmentGroups, loadOptions);
+                }
             }
             catch (Exception e)
             {
@@ -266,8 +268,10 @@ namespace ChurchReport.Controllers
 
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ===== 載入聯絡人完成 =====\n");
 
-                return PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentContact.DataSourceLoader", () =>
-                    DataSourceLoader.Load(equipmentList, loadOptions));
+                using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentContact.DataSourceLoader"))
+                {
+                    return DataSourceLoader.Load(equipmentList, loadOptions);
+                }
             }
             catch (Exception e)
             {
@@ -308,8 +312,10 @@ namespace ChurchReport.Controllers
                     !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
                 {
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 資料未載入，id={id}");
-                    return PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.EmptyDataSourceLoader", () =>
-                        DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions));
+                    using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.EmptyDataSourceLoader"))
+                    {
+                        return DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions);
+                    }
                 }
 
                 // 從成員列表中找到對應的聯絡人
@@ -322,24 +328,31 @@ namespace ChurchReport.Controllers
                 if (member == null)
                 {
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 找不到成員，id={id}");
-                    return PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.EmptyDataSourceLoader", () =>
-                        DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions));
+                    using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.EmptyDataSourceLoader"))
+                    {
+                        return DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions);
+                    }
                 }
 
                 // 檢查 ContactId 是否存在
                 if (string.IsNullOrEmpty(member.ContactId))
                 {
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 警告: ContactId 為空，FullName={member.FullName}, PresentRecordId={member.PresentRecordId}");
-                    return PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.EmptyDataSourceLoader", () =>
-                        DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions));
+                    using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.EmptyDataSourceLoader"))
+                    {
+                        return DataSourceLoader.Load(new List<EquipmentStorLessons>(), loadOptions);
+                    }
                 }
 
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 查詢課程記錄: ContactName={member.FullName}, ContactId={member.ContactId}");
 
                 // 從 CRM 查詢該聯絡人的所有課程記錄
                 // 使用2參數版本: RetrieveStorLessonsByFetchXml(ContactName, ContactId)
-                var storLessons = PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.RetrieveStorLessonsByFetchXml", () =>
-                    ToolUtility.RetrieveStorLessonsByFetchXml(member.FullName, member.ContactId));
+                Microsoft.Xrm.Sdk.EntityCollection storLessons;
+                using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.RetrieveStorLessonsByFetchXml"))
+                {
+                    storLessons = ToolUtility.RetrieveStorLessonsByFetchXml(member.FullName, member.ContactId);
+                }
 
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 查詢結果: storLessons={storLessons != null}, Count={storLessons?.Entities.Count ?? -1}");
 
@@ -362,8 +375,11 @@ namespace ChurchReport.Controllers
                         {
                             try
                             {
-                                var discipleLesson = PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.RetrieveDiscipleLesson", () =>
-                                    ToolUtility.RetrieveEntity("new_disciple_lessons", discipleLessonId));
+                                Microsoft.Xrm.Sdk.Entity discipleLesson;
+                                using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.RetrieveDiscipleLesson"))
+                                {
+                                    discipleLesson = ToolUtility.RetrieveEntity("new_disciple_lessons", discipleLessonId);
+                                }
                                 
                                 // 取得上課開始日期
                                 classStartDate = ToolUtility.GetEntityDateTimeAttribute(ref discipleLesson, "new_class_start_date");
@@ -396,8 +412,10 @@ namespace ChurchReport.Controllers
                 }
 
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 最終返回課程數量: {lessonsList.Count}");
-                return PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.DataSourceLoader", () =>
-                    DataSourceLoader.Load(lessonsList, loadOptions));
+                using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.DataSourceLoader"))
+                {
+                    return DataSourceLoader.Load(lessonsList, loadOptions);
+                }
             }
             catch (Exception e)
             {
