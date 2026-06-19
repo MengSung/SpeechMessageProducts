@@ -14,6 +14,8 @@ namespace ChurchReport
 {
     public class Program
     {
+        // ⚠️【安全不變量】寫入 Logs\Trace.log 的 TextWriterTraceListener 必須永遠位於 #if DEBUG 內。
+        // 一旦移出，Release 將開始寫 Trace.log（違反硬性要求②）。剖析子系統的 Release 無痕亦依賴此不變量。
 #if DEBUG
         // ========================================
         // 靜態成員變數用來保存 TraceListener，確保單例且可釋放
