@@ -407,10 +407,19 @@ namespace ChurchReport.Controllers
 
         #region 私有輔助方法
 
+        // Authoritative current-session login identity. Source = session keys set at login time
+        // (_LoginAccount / _LoginPassword; LINE login = "LineIdLogin" / lineUserId).
+        // Do NOT use FeeList.m_Account (self-comparison would make login-change detection vacuous).
+        private (string account, string password) CurrentLogin()
+            => (HttpContext?.Session?.GetString("_LoginAccount") ?? "",
+                HttpContext?.Session?.GetString("_LoginPassword") ?? "");
+
         private void EnsureLessonListLoaded(string phaseName)
         {
-            var account = InMemoryContext.FeeList.m_Account;
-            var password = InMemoryContext.FeeList.m_Password;
+            var (account, password) = CurrentLogin();
+
+            // Security: re-scope to current login; clears the previous user's data on account switch.
+            InMemoryContext.FeeList.EnsureLoginScope(account, password);
 
             if (InMemoryContext.FeeList.IsLessonListLoadedFor(account, password))
             {
@@ -426,6 +435,12 @@ namespace ChurchReport.Controllers
 
         private void EnsurePresentFeeListLoaded(string discipleLessonsId, string phaseName)
         {
+            var (account, password) = CurrentLogin();
+
+            // Security: re-scope first. On account switch EnsureLoginScope clears FeeDataList, so the
+            // IsPresentFeeListLoadedFor reuse check below cannot match the previous user's data.
+            InMemoryContext.FeeList.EnsureLoginScope(account, password);
+
             if (InMemoryContext.FeeList.IsPresentFeeListLoadedFor(discipleLessonsId))
             {
                 System.Diagnostics.Debug.WriteLine($"[FeeManagement] Reuse PresentFeeList for discipleLessonsId={discipleLessonsId}");

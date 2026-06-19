@@ -224,6 +224,22 @@ namespace ChurchReport.Models
         }
 
         /// <summary>
+        /// Re-scope this FeeList to the CURRENT session login identity. If the current login
+        /// differs from the identity the data was last loaded under, immediately clear all
+        /// user-scoped data (no CRM call) and adopt the current identity. Prevents reusing the
+        /// previous user's data when the same Session ID is reused across a re-login.
+        /// </summary>
+        public void EnsureLoginScope(string account, string password)
+        {
+            if (!IsSameLogin(account ?? "", password ?? ""))
+            {
+                ClearUserScopedFeeData();
+                m_Account = account ?? "";
+                m_Password = password ?? "";
+            }
+        }
+
+        /// <summary>
         /// 填充物件並記錄修改歷程 (不立即更新資料庫)
         /// 修改會被暫存在 ChangeHistory 中，等待批次上傳
         /// </summary>
