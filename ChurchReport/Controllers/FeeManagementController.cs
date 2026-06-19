@@ -278,6 +278,11 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[GetFeeData] 開始載入 - discipleLessonsId={discipleLessonsId}");
 
                 // 如果有指定課程ID，載入該課程的繳費資料
+                // Security: re-scope to current session login before serving or loading any FeeData,
+                // so a previous user's cached FeeDataList cannot be served after a same-session re-login.
+                var (account, password) = CurrentLogin();
+                InMemoryContext.FeeList.EnsureLoginScope(account, password);
+
                 if (!string.IsNullOrEmpty(discipleLessonsId))
                 {
                     System.Diagnostics.Debug.WriteLine($"[GetFeeData] 呼叫 EnsurePresentFeeListLoaded({discipleLessonsId})");
@@ -288,10 +293,7 @@ namespace ChurchReport.Controllers
                     System.Diagnostics.Debug.WriteLine("[GetFeeData] FeeDataList 為空，重新載入");
                     using (PerfPhase.Measure(HttpContext, "FeeManagement.GetFeeData.SetupFeeDataList"))
                     {
-                        InMemoryContext.FeeList.SetupFeeDataList(
-                            InMemoryContext.FeeList.m_Account,
-                            InMemoryContext.FeeList.m_Password
-                        );
+                        InMemoryContext.FeeList.SetupFeeDataList(account, password);
                     }
                 }
 
