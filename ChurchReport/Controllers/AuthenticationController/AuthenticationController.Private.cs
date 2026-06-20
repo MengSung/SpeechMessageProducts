@@ -226,6 +226,24 @@ namespace ChurchReport.Controllers
             InMemoryContext.AppointmentsListManager.m_Password = viewModel.Password;
             InMemoryContext.AppointmentsListManager.m_LoginContact = loginContact;
 
+            // ✅ 修復：寫入權威登入身分到 Session（_LoginAccount / _LoginPassword）。
+            // FeeManagementController.CurrentLogin() 與 BaseChurchController.EnsureCorrectUserData()
+            // 以這兩個 Session key 作為「當前 session 真實登入身分」的權威來源。
+            // 過去只有 LINE 登入會在 BaseChurchController 設定它們（"LineIdLogin"/lineUserId），
+            // 帳號/密碼登入從未設定，導致點「課程清單」時 CurrentLogin() 取得空帳密 →
+            // SetupLessonList("","") → FindLoginUser 找不到 contact → NullReferenceException。
+            // 此處 viewModel 已於 RetrieveUserData 正規化：帳號登入＝帳號/密碼；LINE 登入＝ "LineIdLogin"/lineUserId，
+            // 與 FindLoginUser 的 Account != "LineIdLogin" 慣例一致。
+            try
+            {
+                HttpContext.Session.SetString("_LoginAccount", viewModel.Account ?? "");
+                HttpContext.Session.SetString("_LoginPassword", viewModel.Password ?? "");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ?? 寫入登入身分警告: {ex.Message}");
+            }
+
             InMemoryContext.PersonalInfomationModel.m_LoginContact = loginContact;
             InMemoryContext.FeeList.SetupLoginUserInfo(
                 loginContact?.GetAttributeValue<string>("fullname") ?? string.Empty,
@@ -319,7 +337,24 @@ namespace ChurchReport.Controllers
                 {
                 }
 
-                System.Diagnostics.Debug.WriteLine("[SetupSystemData] Skip FeeList.SetupLessonList during login; FeeManagement loads it on demand.");
+                // ✅ 修復：登入時載入課程清單以決定 FeeType。
+                // 導覽列「課程清單」「繳費」「點名」是否顯示，依賴 ViewBag.FeeType == "有繳費點名"，
+                // 而 FeeType 只有在 SetupLessonList 載入課程後才會被設定。若在登入時略過此載入，
+                // FeeType 會是 null，導覽列的「課程清單」就會消失（且使用者也無從點進 FeeManagement
+                // 觸發 on-demand 載入，形成死結）。
+                // 安全性：SetupLessonList 內部會依目前登入身分重新界定範圍（IsSameLogin→ClearUserScopedFeeData），
+                // 與本分支的工作階段防洩漏機制一致；同時此次載入會暖身快取，後續 FeeManagement 透過
+                // EnsureLessonListLoaded 的 IsLessonListLoadedFor 守衛重用，不會重複載入。
+                try
+                {
+                    using (PerfPhase.Measure(HttpContext, "Login.SetupSystemData.SetupLessonList"))
+                    {
+                        InMemoryContext.FeeList.SetupLessonList(viewModel.Account, viewModel.Password);
+                    }
+                }
+                catch
+                {
+                }
             }
             finally
             {
