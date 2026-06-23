@@ -140,15 +140,15 @@ namespace ChurchReport.Controllers
         /// 圖表資料通常包含統計數字、趨勢變化等視覺化資訊。
         /// 
         /// 快取策略：
-        /// 使用 [ResponseCache] 屬性設定快取，持續時間 300 秒（5 分鐘）。
-        /// 為什麼要快取？
-        /// - 圖表資料通常不會頻繁變動
-        /// - 減少重複查詢，節省伺服器資源
-        /// - 提升回應速度，改善用戶體驗
-        /// 
-        /// VaryByQueryKeys：
-        /// 根據 WeeklyReportId 參數的不同值分別快取。
-        /// 例如：WeeklyReportId=123 和 WeeklyReportId=456 會有各自的快取。
+        /// 此端點回傳「登入後、依 Session 取得」的小組圖表資料，屬動態且與使用者相關，
+        /// 因此採 no-store（與本檔其他資料端點一致），不做 HTTP 快取。
+        ///
+        /// ⚠️ 不可使用 [ResponseCache(VaryByQueryKeys = ...)]：
+        /// VaryByQueryKeys 需要 ResponseCaching 中介軟體，而本專案基於資安考量
+        /// 預設停用該中介軟體（appsettings: SessionBleeding:EnableResponseCaching = false）。
+        /// 一旦標註 VaryByQueryKeys，會在執行期擲出
+        /// InvalidOperationException: 'VaryByQueryKeys' requires the response cache middleware
+        /// → 回傳 HTTP 500 → 圖表取不到資料 → 曲線消失（此為先前的 bug）。
         /// 
         /// HTTP 方法：GET
         /// URL 範例：/SmallGroup/GetChartDataList?WeeklyReportId=12345
@@ -157,7 +157,7 @@ namespace ChurchReport.Controllers
         /// <param name="loadOptions">DevExtreme 載入選項</param>
         /// <returns>圖表資料</returns>
         [HttpGet]
-        [ResponseCache(Duration = 300, VaryByQueryKeys = new[] { "WeeklyReportId" })]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public object GetChartDataList(string WeeklyReportId, DataSourceLoadOptions loadOptions)
         {
             try

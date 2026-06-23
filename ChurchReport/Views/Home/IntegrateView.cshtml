@@ -4,7 +4,17 @@
     ===================================================================
 *@
 @using ChurchReport.Models
+@using Microsoft.Extensions.Configuration
 @model ChurchReport.Models.ListSmallGroupWeeklyReport
+@inject IConfiguration Configuration
+@{
+    // DevExtreme 圖表以 SVG 屬性 (stroke/fill) 套色，無法解析 CSS 變數 var(--color-secondary)，
+    // 會造成曲線 (spline) 與資料點完全不顯示。因此在伺服器端依目前主題解析出實際色碼
+    // (與 Views/Authentication/Login.cshtml 相同作法)，讓圖表仍可隨主題變色又能正常繪製。
+    var chartThemeName = Configuration["Theme:Current"]?.Trim();
+    var chartSecondaryColor = Configuration[$"Theme:Presets:{chartThemeName}:Secondary"] ?? "#4f8df1";
+    var chartTextColor = Configuration[$"Theme:Presets:{chartThemeName}:Text"] ?? "#1d2a44";
+}
 
 @* 小組狀態標題 *@
 <div class="group-status-header">
@@ -32,12 +42,12 @@
                         .Label(l => l.Visible(true).Format(f => f.Type(Format.FixedPoint).Precision(0)).Font(v => v.Size(10)))
                     )
                     .Series(s => {
-                        s.Add().ValueField("SundayNumber").Name("主日人數").Color("var(--color-secondary)");
+                        s.Add().ValueField("SundayNumber").Name("主日人數").Color(chartSecondaryColor);
                         s.Add().ValueField("SmallNumber").Name("小組人數").Color("#d4a017");
                     })
                     .ValueAxis(a => a.Add().Title(t => t.Text("人數")).Position(Position.Left))
                     .Tooltip(t => t.Enabled(true))
-                    .Title(t => t.Text("聚會人數").Font(f => f.Size(12).Weight(300).Color("var(--color-text)")).Margin(m => m.Top(5).Bottom(5)))
+                    .Title(t => t.Text("聚會人數").Font(f => f.Size(12).Weight(300).Color(chartTextColor)).Margin(m => m.Top(5).Bottom(5)))
                     .Legend(l => l.VerticalAlignment(VerticalEdge.Bottom).HorizontalAlignment(HorizontalAlignment.Center))
                     .OnPointClick(@<text>function(e) { e.target.select(); }</text>)
                     .DataSource(d => d.WebApi().Controller("SmallGroup").LoadAction("GetChartDataList").Key("WeeklyReportEntityId").LoadParams(new { WeeklyReportId = @ViewBag.ListId }))
