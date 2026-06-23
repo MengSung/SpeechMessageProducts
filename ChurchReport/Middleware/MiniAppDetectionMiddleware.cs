@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using System;
 using System.Threading.Tasks;
 
@@ -13,7 +13,7 @@ namespace ChurchReport.Middleware
     ///   - 在 Controller 中：var isMiniApp = (bool)(HttpContext.Items["IsLineMiniApp"] ?? false);
     ///   - 在 Razor View 中：var isMiniApp = (bool)(Context.Items["IsLineMiniApp"] ?? false);
     /// 
-    /// 📖 詳細說明請參閱：文件\Line Mini App\好牧人-LINE-Mini-App-導入佈署步驟.md 第八章
+    /// 📖 詳細說明請參閱：文件\Line Mini App\行道會聖谷教會-LINE-Mini-App-導入佈署步驟.md 第八章
     /// </summary>
     public class MiniAppDetectionMiddleware
     {

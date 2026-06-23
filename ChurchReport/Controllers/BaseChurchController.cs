@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using ChurchReport.Services.MemberInfo;
 using ChurchReport.Tools;
 using LineMessagingProcessor;
@@ -15,47 +15,47 @@ using ToolUtilityNameSpace.DependencyInjection;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// ±Ğ·|³øªí°ò©³±±¨î¾¹ (Base Controller for Church Reports)
+    /// æ•™æœƒå ±è¡¨åŸºåº•æ§åˆ¶å™¨ (Base Controller for Church Reports)
     /// 
-    /// ±Ğ¾Ç»¡©ú¡G
-    /// ³o¬O¤@­Ó©â¶H°ò©³Ãş§O¡A©Ò¦³±Ğ·|¬ÛÃöªº±±¨î¾¹³£·|Ä~©Ó¦Û³o­ÓÃş§O¡C
-    /// ¬°¤°»ò»İ­n°ò©³±±¨î¾¹¡H
-    /// - Á×§K­«½Æ¥N½X¡G±N¦@¥Îªº¥\¯à¡]¦p¿ù»~³B²z¡BSession ÅçÃÒ¡^©ñ¦b³o¸Ì¡C
-    /// - ²Î¤@¦æ¬°¡G½T«O©Ò¦³±±¨î¾¹³£¦³¬Û¦Pªº¿ù»~³B²z©M¦w¥şÀË¬d¡C
-    /// - ¨Ì¿àª`¤J¡G¶°¤¤ºŞ²z¥~³¡ªA°Èªºª`¤J¡C
+    /// æ•™å­¸èªªæ˜ï¼š
+    /// é€™æ˜¯ä¸€å€‹æŠ½è±¡åŸºåº•é¡åˆ¥ï¼Œæ‰€æœ‰æ•™æœƒç›¸é—œçš„æ§åˆ¶å™¨éƒ½æœƒç¹¼æ‰¿è‡ªé€™å€‹é¡åˆ¥ã€‚
+    /// ç‚ºä»€éº¼éœ€è¦åŸºåº•æ§åˆ¶å™¨ï¼Ÿ
+    /// - é¿å…é‡è¤‡ä»£ç¢¼ï¼šå°‡å…±ç”¨çš„åŠŸèƒ½ï¼ˆå¦‚éŒ¯èª¤è™•ç†ã€Session é©—è­‰ï¼‰æ”¾åœ¨é€™è£¡ã€‚
+    /// - çµ±ä¸€è¡Œç‚ºï¼šç¢ºä¿æ‰€æœ‰æ§åˆ¶å™¨éƒ½æœ‰ç›¸åŒçš„éŒ¯èª¤è™•ç†å’Œå®‰å…¨æª¢æŸ¥ã€‚
+    /// - ä¾è³´æ³¨å…¥ï¼šé›†ä¸­ç®¡ç†å¤–éƒ¨æœå‹™çš„æ³¨å…¥ã€‚
     /// 
-    /// ³]­p¼Ò¦¡¡G
-    /// - Template Method Pattern¡G´£¨Ñ³q¥Î¬yµ{¡AÅı¤lÃş§OÂĞ¼g¯S©w¨BÆJ¡C
-    /// - Dependency Injection¡G¤£ª½±µ³Ğ«Ø¨Ì¿à¡A¦Ó¬O±q¥~³¡ª`¤J¡C
-    /// - Singleton Pattern¡G¬Y¨ÇªA°È¡]¦p ToolUtility¡^¬O³æ¨Òªº¡C
+    /// è¨­è¨ˆæ¨¡å¼ï¼š
+    /// - Template Method Patternï¼šæä¾›é€šç”¨æµç¨‹ï¼Œè®“å­é¡åˆ¥è¦†å¯«ç‰¹å®šæ­¥é©Ÿã€‚
+    /// - Dependency Injectionï¼šä¸ç›´æ¥å‰µå»ºä¾è³´ï¼Œè€Œæ˜¯å¾å¤–éƒ¨æ³¨å…¥ã€‚
+    /// - Singleton Patternï¼šæŸäº›æœå‹™ï¼ˆå¦‚ ToolUtilityï¼‰æ˜¯å–®ä¾‹çš„ã€‚
     /// 
-    /// ¨Ï¥Î¤è¦¡¡G
+    /// ä½¿ç”¨æ–¹å¼ï¼š
     /// public class MyController : BaseChurchController
     /// {
     ///     public MyController(...) : base(...) { }
     ///     
     ///     public IActionResult MyAction()
     ///     {
-    ///         // ¥i¥Hª½±µ¨Ï¥Î°ò©³Ãş§OªºÄİ©Ê¡A¦p ToolUtility, InMemoryContext µ¥
+    ///         // å¯ä»¥ç›´æ¥ä½¿ç”¨åŸºåº•é¡åˆ¥çš„å±¬æ€§ï¼Œå¦‚ ToolUtility, InMemoryContext ç­‰
     ///     }
     /// }
     /// </summary>
     public abstract class BaseChurchController : Controller, IDisposable
     {
-        #region ±`¼Æ©w¸q (Constants)
+        #region å¸¸æ•¸å®šç¾© (Constants)
 
         /// <summary>
-        /// ¤é»x°O¿ıªºÁ`¼h¯Å (Total logging level)
+        /// æ—¥èªŒè¨˜éŒ„çš„ç¸½å±¤ç´š (Total logging level)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ¦b¥ø·~À³¥Î¤¤¡A¤é»x¤À¼h¯ÅºŞ²z¡G
-        /// - Level 1: °ò¥»¸ê°T
-        /// - Level 2: ¸Ô²Ó¸ê°T
-        /// - Level 3: °£¿ù¸ê°T
-        /// - Level 4: Äµ§i
-        /// - Level 5: ¿ù»~
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// åœ¨ä¼æ¥­æ‡‰ç”¨ä¸­ï¼Œæ—¥èªŒåˆ†å±¤ç´šç®¡ç†ï¼š
+        /// - Level 1: åŸºæœ¬è³‡è¨Š
+        /// - Level 2: è©³ç´°è³‡è¨Š
+        /// - Level 3: é™¤éŒ¯è³‡è¨Š
+        /// - Level 4: è­¦å‘Š
+        /// - Level 5: éŒ¯èª¤
         /// 
-        /// ³o¸Ì©w¸q¤F±`¥Îªº¼h¯Å±`¼Æ¡A¤è«K²Î¤@¨Ï¥Î¡C
+        /// é€™è£¡å®šç¾©äº†å¸¸ç”¨çš„å±¤ç´šå¸¸æ•¸ï¼Œæ–¹ä¾¿çµ±ä¸€ä½¿ç”¨ã€‚
         /// </summary>
         protected const int TOTAL_LEVEL = 1;
         protected const int LEVEL_1 = 1;
@@ -65,140 +65,140 @@ namespace ChurchReport.Controllers
         protected const int LEVEL_5 = 5;
 
         /// <summary>
-        /// LINE ¿ù»~±µ¦¬ªÌ ID (LINE error receiver ID)
+        /// LINE éŒ¯èª¤æ¥æ”¶è€… ID (LINE error receiver ID)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ·í¨t²Îµo¥Í¿ù»~®É¡A·|¦Û°Êµo°e LINE °T®§³qª¾ºŞ²z­û¡C
-        /// ³o­Ó ID ¬O±µ¦¬³qª¾ªº LINE ¥Î¤á ID¡C
-        /// ¬°¤°»ò¥Î±`¼Æ¡H¦]¬°³o¬O©T©w­È¡A¤£·|¦b¹B¦æ®É§ïÅÜ¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// ç•¶ç³»çµ±ç™¼ç”ŸéŒ¯èª¤æ™‚ï¼Œæœƒè‡ªå‹•ç™¼é€ LINE è¨Šæ¯é€šçŸ¥ç®¡ç†å“¡ã€‚
+        /// é€™å€‹ ID æ˜¯æ¥æ”¶é€šçŸ¥çš„ LINE ç”¨æˆ¶ IDã€‚
+        /// ç‚ºä»€éº¼ç”¨å¸¸æ•¸ï¼Ÿå› ç‚ºé€™æ˜¯å›ºå®šå€¼ï¼Œä¸æœƒåœ¨é‹è¡Œæ™‚æ”¹è®Šã€‚
         /// </summary>
         protected const string LINE_ERROR_RECEIVER_ID = "U7638e4ed509708a3573ba6d69970583d";
 
         /// <summary>
-        /// ¨Ï¥ÎªÌÅçÃÒ§Ö¨ú¦³®Ä´Á¡]¬í¡^
-        /// ®Ä¯àÀu¤Æ¡GÁ×§K¦P¤@¥Î¤á³sÄò½Ğ¨D®É­«½ÆÅçÃÒ
+        /// ä½¿ç”¨è€…é©—è­‰å¿«å–æœ‰æ•ˆæœŸï¼ˆç§’ï¼‰
+        /// æ•ˆèƒ½å„ªåŒ–ï¼šé¿å…åŒä¸€ç”¨æˆ¶é€£çºŒè«‹æ±‚æ™‚é‡è¤‡é©—è­‰
         /// </summary>
         private const int USER_VALIDATION_CACHE_SECONDS = 30;
 
         #endregion
 
-        #region ªA°È¹ê¨Ò (Service Instances)
+        #region æœå‹™å¯¦ä¾‹ (Service Instances)
 
         /// <summary>
-        /// ToolUtility ´£¨ÑªÌ (ToolUtility Provider)
+        /// ToolUtility æä¾›è€… (ToolUtility Provider)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ¤°»ò¬O ToolUtility¡H
-        /// - ³o¬O¤@­Ó¤u¨ãÃş§O¡A´£¨Ñ¤é»x°O¿ı¡BCRM ¾Ş§@µ¥¥\¯à¡C
-        /// - ¬°¤°»ò¥Î´£¨ÑªÌ¼Ò¦¡¡H¦]¬° ToolUtility ¬O³æ¨Òªº¡A»İ­n²Î¤@ºŞ²z¡C
-        /// - ¨Ì¿àª`¤J¡G¤£ª½±µ³Ğ«Ø¹ê¨Ò¡A¦Ó¬O±q¥~³¡ª`¤J¡A²Å¦X SOLID ­ì«h¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// ä»€éº¼æ˜¯ ToolUtilityï¼Ÿ
+        /// - é€™æ˜¯ä¸€å€‹å·¥å…·é¡åˆ¥ï¼Œæä¾›æ—¥èªŒè¨˜éŒ„ã€CRM æ“ä½œç­‰åŠŸèƒ½ã€‚
+        /// - ç‚ºä»€éº¼ç”¨æä¾›è€…æ¨¡å¼ï¼Ÿå› ç‚º ToolUtility æ˜¯å–®ä¾‹çš„ï¼Œéœ€è¦çµ±ä¸€ç®¡ç†ã€‚
+        /// - ä¾è³´æ³¨å…¥ï¼šä¸ç›´æ¥å‰µå»ºå¯¦ä¾‹ï¼Œè€Œæ˜¯å¾å¤–éƒ¨æ³¨å…¥ï¼Œç¬¦åˆ SOLID åŸå‰‡ã€‚
         /// 
-        /// ³]­p¼Ò¦¡¡GProvider Pattern
+        /// è¨­è¨ˆæ¨¡å¼ï¼šProvider Pattern
         /// </summary>
         protected readonly IToolUtilityProvider _toolUtilityProvider;
 
         /// <summary>
-        /// CRM ³s½u¦À (CRM Connection Pool)
+        /// CRM é€£ç·šæ±  (CRM Connection Pool)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ¤°»ò¬O³s½u¦À¡H
-        /// - CRM ¨t²Î³s½u«Ü¯Ó¸ê·½¡A¤£¯à¨C¦¸³£·s«Ø³s½u¡C
-        /// - ³s½u¦À¹w¥ı«Ø¥ß¦h­Ó³s½u¡A­«½Æ¨Ï¥Î¡A´£°ª©Ê¯à¡C
-        /// - ·í³s½u¥Î§¹®É¡A¦Û°ÊÂkÁÙ¨ì¦À¤¤¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// ä»€éº¼æ˜¯é€£ç·šæ± ï¼Ÿ
+        /// - CRM ç³»çµ±é€£ç·šå¾ˆè€—è³‡æºï¼Œä¸èƒ½æ¯æ¬¡éƒ½æ–°å»ºé€£ç·šã€‚
+        /// - é€£ç·šæ± é å…ˆå»ºç«‹å¤šå€‹é€£ç·šï¼Œé‡è¤‡ä½¿ç”¨ï¼Œæé«˜æ€§èƒ½ã€‚
+        /// - ç•¶é€£ç·šç”¨å®Œæ™‚ï¼Œè‡ªå‹•æ­¸é‚„åˆ°æ± ä¸­ã€‚
         /// 
-        /// ³]­p¼Ò¦¡¡GObject Pool Pattern
+        /// è¨­è¨ˆæ¨¡å¼ï¼šObject Pool Pattern
         /// </summary>
         protected readonly ICrmConnectionPool _connectionPool;
 
         /// <summary>
-        /// HTTP ¤W¤U¤å¦s¨ú¾¹ (HTTP Context Accessor)
+        /// HTTP ä¸Šä¸‹æ–‡å­˜å–å™¨ (HTTP Context Accessor)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ¬°¤°»ò»İ­n³o­Ó¡H
-        /// - ¦b ASP.NET Core ¤¤¡AHttpContext ¤£¬OÁ`¬O¥i¥Îªº¡]¤×¨ä¦b­I´º¥ô°È¤¤¡^¡C
-        /// - IHttpContextAccessor ´£¨Ñ¦w¥şªº¤è¦¡¨Ó¦s¨ú·í«e½Ğ¨Dªº¤W¤U¤å¡C
-        /// - ³o¬O ASP.NET Core ¨Ì¿àª`¤J¨t²Îªº¤@³¡¤À¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// ç‚ºä»€éº¼éœ€è¦é€™å€‹ï¼Ÿ
+        /// - åœ¨ ASP.NET Core ä¸­ï¼ŒHttpContext ä¸æ˜¯ç¸½æ˜¯å¯ç”¨çš„ï¼ˆå°¤å…¶åœ¨èƒŒæ™¯ä»»å‹™ä¸­ï¼‰ã€‚
+        /// - IHttpContextAccessor æä¾›å®‰å…¨çš„æ–¹å¼ä¾†å­˜å–ç•¶å‰è«‹æ±‚çš„ä¸Šä¸‹æ–‡ã€‚
+        /// - é€™æ˜¯ ASP.NET Core ä¾è³´æ³¨å…¥ç³»çµ±çš„ä¸€éƒ¨åˆ†ã€‚
         /// </summary>
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
-        /// ¨Ï¥ÎªÌÅçÃÒ§Ö¨ú
-        /// ®Ä¯àÀu¤Æ¡GÁ×§K¦P¤@¥Î¤á¦bµu®É¶¡¤º­«½ÆÅçÃÒ
+        /// ä½¿ç”¨è€…é©—è­‰å¿«å–
+        /// æ•ˆèƒ½å„ªåŒ–ï¼šé¿å…åŒä¸€ç”¨æˆ¶åœ¨çŸ­æ™‚é–“å…§é‡è¤‡é©—è­‰
         /// 
-        /// ?? ¦w¥ş³]­p¡G
-        /// - Key: SessionId + PasswordHash¡]¨¾¤î Session Collision¡^
+        /// ?? å®‰å…¨è¨­è¨ˆï¼š
+        /// - Key: SessionId + PasswordHashï¼ˆé˜²æ­¢ Session Collisionï¼‰
         /// - Value: (LastValidated, IsValid, PasswordHash)
-        /// - ÅçÃÒ®É·|¤ñ¹ï±K½XÂø´ê¡A½T«O¥Î¤á¨­¥÷¤@­P
+        /// - é©—è­‰æ™‚æœƒæ¯”å°å¯†ç¢¼é›œæ¹Šï¼Œç¢ºä¿ç”¨æˆ¶èº«ä»½ä¸€è‡´
         /// </summary>
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTime LastValidated, bool IsValid, string PasswordHash)> 
             _userValidationCache = new();
 
         /// <summary>
-        /// ¤u¨ãÃş§O¹ê¨Ò (Tool Utility Instance)
+        /// å·¥å…·é¡åˆ¥å¯¦ä¾‹ (Tool Utility Instance)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ³o­ÓÄİ©Ê´£¨Ñ¹ï ToolUtility ªº¦s¨ú¡C
-        /// ¬°¤°»ò¥ÎÄİ©Ê¦Ó¤£¬Oª½±µ¦s¨ú _toolUtilityProvider¡H
-        /// - Â²¤Æ¥N½X¡G¤lÃş§O¥i¥Hª½±µ¥Î ToolUtility¡A¦Ó¤£¥Îª¾¹D´£¨ÑªÌ¡C
-        /// - ©µ¿ğ¸ü¤J¡G¥u¦³¦b»İ­n®É¤~±q´£¨ÑªÌ¨ú±o¹ê¨Ò¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// é€™å€‹å±¬æ€§æä¾›å° ToolUtility çš„å­˜å–ã€‚
+        /// ç‚ºä»€éº¼ç”¨å±¬æ€§è€Œä¸æ˜¯ç›´æ¥å­˜å– _toolUtilityProviderï¼Ÿ
+        /// - ç°¡åŒ–ä»£ç¢¼ï¼šå­é¡åˆ¥å¯ä»¥ç›´æ¥ç”¨ ToolUtilityï¼Œè€Œä¸ç”¨çŸ¥é“æä¾›è€…ã€‚
+        /// - å»¶é²è¼‰å…¥ï¼šåªæœ‰åœ¨éœ€è¦æ™‚æ‰å¾æä¾›è€…å–å¾—å¯¦ä¾‹ã€‚
         /// </summary>
         protected ToolUtilityClass ToolUtility => _toolUtilityProvider.GetToolUtility();
 
         /// <summary>
-        /// °O¾ĞÅé¸ê®Æ¤W¤U¤å (In-Memory Data Context)
+        /// è¨˜æ†¶é«”è³‡æ–™ä¸Šä¸‹æ–‡ (In-Memory Data Context)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ¤°»ò¬O°O¾ĞÅé¸ê®Æ¤W¤U¤å¡H
-        /// - ¦s©ñÀ³¥Îµ{¦¡ªº¸ê®Æª¬ºA¡A¦p¥Î¤á¸ê°T¡B¤p²Õ¸ê®Æµ¥¡C
-        /// - ¬°¤°»ò¥Î¤¶­±¡H¦]¬°¥i¥H»´ÃP¤Á´«¤£¦Pªº¹ê§@¡]´ú¸Õ¥Î¡B¥Í²£¥Î¡^¡C
-        /// - ¨Ì¿àª`¤J¡G±q¥~³¡ª`¤J¡AÁ×§Kµw½s½X¨Ì¿à¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// ä»€éº¼æ˜¯è¨˜æ†¶é«”è³‡æ–™ä¸Šä¸‹æ–‡ï¼Ÿ
+        /// - å­˜æ”¾æ‡‰ç”¨ç¨‹å¼çš„è³‡æ–™ç‹€æ…‹ï¼Œå¦‚ç”¨æˆ¶è³‡è¨Šã€å°çµ„è³‡æ–™ç­‰ã€‚
+        /// - ç‚ºä»€éº¼ç”¨ä»‹é¢ï¼Ÿå› ç‚ºå¯ä»¥è¼•é¬†åˆ‡æ›ä¸åŒçš„å¯¦ä½œï¼ˆæ¸¬è©¦ç”¨ã€ç”Ÿç”¢ç”¨ï¼‰ã€‚
+        /// - ä¾è³´æ³¨å…¥ï¼šå¾å¤–éƒ¨æ³¨å…¥ï¼Œé¿å…ç¡¬ç·¨ç¢¼ä¾è³´ã€‚
         /// </summary>
         protected readonly IInMemoryDataContext InMemoryContext;
 
         /// <summary>
-        /// ª÷¬yªA°È¤¶­± (Payment Service Interface)
+        /// é‡‘æµæœå‹™ä»‹é¢ (Payment Service Interface)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ­t³d³B²z¥I´Ú¬ÛÃöªº·~°ÈÅŞ¿è¡C
-        /// ¬°¤°»ò¥Î¤¶­±¡H¦]¬°¥i¥H¦³¤£¦Pªº¥I´Ú´£¨ÑªÌ¡]«H¥Î¥d¡BLINE Pay µ¥¡^¡C
-        /// ³]­p¼Ò¦¡¡GStrategy Pattern
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// è² è²¬è™•ç†ä»˜æ¬¾ç›¸é—œçš„æ¥­å‹™é‚è¼¯ã€‚
+        /// ç‚ºä»€éº¼ç”¨ä»‹é¢ï¼Ÿå› ç‚ºå¯ä»¥æœ‰ä¸åŒçš„ä»˜æ¬¾æä¾›è€…ï¼ˆä¿¡ç”¨å¡ã€LINE Pay ç­‰ï¼‰ã€‚
+        /// è¨­è¨ˆæ¨¡å¼ï¼šStrategy Pattern
         /// </summary>
         protected readonly IPayment PaymentService;
 
         /// <summary>
-        /// ¦w¥şªº HttpContext ¦s¨ú (Safe HttpContext Access)
+        /// å®‰å…¨çš„ HttpContext å­˜å– (Safe HttpContext Access)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ³o­ÓÄİ©Ê´£¨Ñ¦w¥şªº¤è¦¡¨Ó¦s¨ú HttpContext¡C
-        /// ¬°¤°»ò»İ­n¯S®í³B²z¡H
-        /// - Controller ªº HttpContext ¦b«Øºc¨ç¦¡¤¤¥i¯àÁÙ¨Sªì©l¤Æ¡C
-        /// - ¨Ï¥Î IHttpContextAccessor ¥i¥HÀH®É¦w¥ş¦s¨ú¡C
-        /// - ¦pªG³£¤£¥i¥Î¡A©ß¥X²§±`¡A¨¾¤îÁôÂÃ¿ù»~¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// é€™å€‹å±¬æ€§æä¾›å®‰å…¨çš„æ–¹å¼ä¾†å­˜å– HttpContextã€‚
+        /// ç‚ºä»€éº¼éœ€è¦ç‰¹æ®Šè™•ç†ï¼Ÿ
+        /// - Controller çš„ HttpContext åœ¨å»ºæ§‹å‡½å¼ä¸­å¯èƒ½é‚„æ²’åˆå§‹åŒ–ã€‚
+        /// - ä½¿ç”¨ IHttpContextAccessor å¯ä»¥éš¨æ™‚å®‰å…¨å­˜å–ã€‚
+        /// - å¦‚æœéƒ½ä¸å¯ç”¨ï¼Œæ‹‹å‡ºç•°å¸¸ï¼Œé˜²æ­¢éš±è—éŒ¯èª¤ã€‚
         /// 
-        /// ³]­p¦Ò¶q¡G
-        /// - Àu¥ı¨Ï¥Î IHttpContextAccessor¡]§ó¥i¾a¡^¡C
-        /// - ¦pªG¥¢±Ñ¡A¹Á¸Õ°òÃşªº HttpContext¡C
-        /// - ¦pªG³£¥¢±Ñ¡A©ß¥X¦³·N¸qªº¿ù»~°T®§¡C
+        /// è¨­è¨ˆè€ƒé‡ï¼š
+        /// - å„ªå…ˆä½¿ç”¨ IHttpContextAccessorï¼ˆæ›´å¯é ï¼‰ã€‚
+        /// - å¦‚æœå¤±æ•—ï¼Œå˜—è©¦åŸºé¡çš„ HttpContextã€‚
+        /// - å¦‚æœéƒ½å¤±æ•—ï¼Œæ‹‹å‡ºæœ‰æ„ç¾©çš„éŒ¯èª¤è¨Šæ¯ã€‚
         /// </summary>
         protected new HttpContext HttpContext
         {
             get
             {
-                // Àu¥ı¨Ï¥Î IHttpContextAccessor¡]§ó¥i¾a¡^
+                // å„ªå…ˆä½¿ç”¨ IHttpContextAccessorï¼ˆæ›´å¯é ï¼‰
                 var context = _httpContextAccessor?.HttpContext;
                 
-                // ¦pªG IHttpContextAccessor ¨S¦³´£¨Ñ¡A¹Á¸Õ¨Ï¥Î°òÃşªº HttpContext
+                // å¦‚æœ IHttpContextAccessor æ²’æœ‰æä¾›ï¼Œå˜—è©¦ä½¿ç”¨åŸºé¡çš„ HttpContext
                 if (context == null)
                 {
                     context = base.HttpContext;
                 }
 
-                // ¦pªG¤´µM¬° null¡A©ß¥X¦³·N¸qªº²§±`
+                // å¦‚æœä»ç„¶ç‚º nullï¼Œæ‹‹å‡ºæœ‰æ„ç¾©çš„ç•°å¸¸
                 if (context == null)
                 {
                     throw new InvalidOperationException(
-                        "HttpContext ¥¼ªì©l¤Æ¡C½Ğ½T«O¦¹¤èªk±q¦³®Äªº HTTP ½Ğ¨D¤W¤U¤å¤¤½Õ¥Î¡C" +
-                        "¦pªG¦b³æ¤¸´ú¸Õ¤¤¡A½Ğ¼ÒÀÀ IHttpContextAccessor¡C");
+                        "HttpContext æœªåˆå§‹åŒ–ã€‚è«‹ç¢ºä¿æ­¤æ–¹æ³•å¾æœ‰æ•ˆçš„ HTTP è«‹æ±‚ä¸Šä¸‹æ–‡ä¸­èª¿ç”¨ã€‚" +
+                        "å¦‚æœåœ¨å–®å…ƒæ¸¬è©¦ä¸­ï¼Œè«‹æ¨¡æ“¬ IHttpContextAccessorã€‚");
                 }
 
                 return context;
@@ -207,30 +207,30 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region «Øºc¨ç¦¡ (Constructor)
+        #region å»ºæ§‹å‡½å¼ (Constructor)
 
         /// <summary>
-        /// ªì©l¤Æ°ò©³±±¨î¾¹ (Initialize Base Controller)
+        /// åˆå§‹åŒ–åŸºåº•æ§åˆ¶å™¨ (Initialize Base Controller)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// «Øºc¨ç¦¡¬OÃş§O³Q³Ğ«Ø®É¦Û°Ê°õ¦æªº¤èªk¡C
-        /// ³o¸Ì°µªº¨Æ±¡¡G
-        /// 1. ÅçÃÒ°Ñ¼Æ¡G½T«O¥²­nªºªA°È³£³Qª`¤J¡C
-        /// 2. «O¦s°Ñ¦Ò¡G±Nª`¤JªºªA°È¦s°_¨Ó¨Ñ«áÄò¨Ï¥Î¡C
-        /// 3. ªì©l¤Æ¤W¤U¤å¡G«Ø¥ß©Îª`¤J°O¾ĞÅé¸ê®Æ¤W¤U¤å¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// å»ºæ§‹å‡½å¼æ˜¯é¡åˆ¥è¢«å‰µå»ºæ™‚è‡ªå‹•åŸ·è¡Œçš„æ–¹æ³•ã€‚
+        /// é€™è£¡åšçš„äº‹æƒ…ï¼š
+        /// 1. é©—è­‰åƒæ•¸ï¼šç¢ºä¿å¿…è¦çš„æœå‹™éƒ½è¢«æ³¨å…¥ã€‚
+        /// 2. ä¿å­˜åƒè€ƒï¼šå°‡æ³¨å…¥çš„æœå‹™å­˜èµ·ä¾†ä¾›å¾ŒçºŒä½¿ç”¨ã€‚
+        /// 3. åˆå§‹åŒ–ä¸Šä¸‹æ–‡ï¼šå»ºç«‹æˆ–æ³¨å…¥è¨˜æ†¶é«”è³‡æ–™ä¸Šä¸‹æ–‡ã€‚
         /// 
-        /// ¨Ì¿àª`¤JªºÀuÂI¡G
-        /// - ÃP½¢¦X¡GÃş§O¤£¨Ì¿à¨ãÅé¹ê§@¡C
-        /// - ¥i´ú¸Õ©Ê¡G¥i¥H»´ÃP¥Î°²ª«¥ó´À´«¯u¹êªA°È¡C
-        /// - ÆF¬¡©Ê¡G¥i¥H®Ú¾ÚÀô¹Òª`¤J¤£¦Pªº¹ê§@¡C
+        /// ä¾è³´æ³¨å…¥çš„å„ªé»ï¼š
+        /// - é¬†è€¦åˆï¼šé¡åˆ¥ä¸ä¾è³´å…·é«”å¯¦ä½œã€‚
+        /// - å¯æ¸¬è©¦æ€§ï¼šå¯ä»¥è¼•é¬†ç”¨å‡ç‰©ä»¶æ›¿æ›çœŸå¯¦æœå‹™ã€‚
+        /// - éˆæ´»æ€§ï¼šå¯ä»¥æ ¹æ“šç’°å¢ƒæ³¨å…¥ä¸åŒçš„å¯¦ä½œã€‚
         /// 
-        /// °Ñ¼Æ»¡©ú¡G
-        /// - httpContextAccessor: ¦s¨ú HTTP ½Ğ¨D¤W¤U¤å
-        /// - memoryCache: °O¾ĞÅé§Ö¨úªA°È
-        /// - paymentService: ¥I´Ú³B²zªA°È
-        /// - toolUtilityProvider: ¤u¨ãÃş§O´£¨ÑªÌ
-        /// - connectionPool: CRM ³s½u¦À
-        /// - inMemoryContext: °O¾ĞÅé¸ê®Æ¤W¤U¤å¡]¥i¿ï¡A¦V«á¬Û®e¡^
+        /// åƒæ•¸èªªæ˜ï¼š
+        /// - httpContextAccessor: å­˜å– HTTP è«‹æ±‚ä¸Šä¸‹æ–‡
+        /// - memoryCache: è¨˜æ†¶é«”å¿«å–æœå‹™
+        /// - paymentService: ä»˜æ¬¾è™•ç†æœå‹™
+        /// - toolUtilityProvider: å·¥å…·é¡åˆ¥æä¾›è€…
+        /// - connectionPool: CRM é€£ç·šæ± 
+        /// - inMemoryContext: è¨˜æ†¶é«”è³‡æ–™ä¸Šä¸‹æ–‡ï¼ˆå¯é¸ï¼Œå‘å¾Œç›¸å®¹ï¼‰
         /// </summary>
         protected BaseChurchController(
             IHttpContextAccessor httpContextAccessor,
@@ -241,86 +241,86 @@ namespace ChurchReport.Controllers
             IInMemoryDataContext inMemoryContext = null)
         {
             // ========================================
-            // ÃöÁä­×´_¡G«O¦s IHttpContextAccessor
+            // é—œéµä¿®å¾©ï¼šä¿å­˜ IHttpContextAccessor
             // ========================================
-            // ³o¬O­×´_ "HttpContext ¥¼ªì©l¤Æ" ¿ù»~ªºÃöÁä
-            // ³z¹L«O¦s IHttpContextAccessor¡A§Ú­Ì¥i¥H¦b¥ô¦ó®É­Ô¦w¥ş¦a¨ú±o HttpContext
+            // é€™æ˜¯ä¿®å¾© "HttpContext æœªåˆå§‹åŒ–" éŒ¯èª¤çš„é—œéµ
+            // é€éä¿å­˜ IHttpContextAccessorï¼Œæˆ‘å€‘å¯ä»¥åœ¨ä»»ä½•æ™‚å€™å®‰å…¨åœ°å–å¾— HttpContext
             _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
 
-            // ³z¹L DI ª`¤J ToolUtility ´£¨ÑªÌ
+            // é€é DI æ³¨å…¥ ToolUtility æä¾›è€…
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
             _connectionPool = connectionPool ?? throw new ArgumentNullException(nameof(connectionPool));
 
-            // ¤ä´©¨âºØ¤è¦¡¡G
-            // 1. ·s¤è¦¡¡G³z¹L DI ª`¤J°O¾ĞÅé¸ê®Æ¤W¤U¤å¡]±ÀÂË¡AÁ×§KÀRºA¨Ì¿à¡^
-            // 2. ÂÂ¤è¦¡¡Gª½±µ new ¹ê¨Ò¡]¦V«á¬Û®e¡A³v¨B²^¨O¡^
+            // æ”¯æ´å…©ç¨®æ–¹å¼ï¼š
+            // 1. æ–°æ–¹å¼ï¼šé€é DI æ³¨å…¥è¨˜æ†¶é«”è³‡æ–™ä¸Šä¸‹æ–‡ï¼ˆæ¨è–¦ï¼Œé¿å…éœæ…‹ä¾è³´ï¼‰
+            // 2. èˆŠæ–¹å¼ï¼šç›´æ¥ new å¯¦ä¾‹ï¼ˆå‘å¾Œç›¸å®¹ï¼Œé€æ­¥æ·˜æ±°ï¼‰
             if (inMemoryContext != null)
             {
-                // ¨Ï¥Î DI ª`¤Jªº¹ê¨Ò¡]±ÀÂË¡^
+                // ä½¿ç”¨ DI æ³¨å…¥çš„å¯¦ä¾‹ï¼ˆæ¨è–¦ï¼‰
                 InMemoryContext = inMemoryContext;
-                System.Diagnostics.Debug.WriteLine("[BaseChurchController] ¨Ï¥Î DI ª`¤Jªº InMemoryContext");
+                System.Diagnostics.Debug.WriteLine("[BaseChurchController] ä½¿ç”¨ DI æ³¨å…¥çš„ InMemoryContext");
             }
             else
             {
-                // ¦V«á¬Û®e¡Gª½±µ«Ø¥ß¹ê¨Ò¡]±N³v¨B²^¨O¡^
+                // å‘å¾Œç›¸å®¹ï¼šç›´æ¥å»ºç«‹å¯¦ä¾‹ï¼ˆå°‡é€æ­¥æ·˜æ±°ï¼‰
                 InMemoryContext = new InMemoryDataContextSmallGroup(
                     httpContextAccessor, memoryCache, paymentService, toolUtilityProvider);
-                System.Diagnostics.Debug.WriteLine("[BaseChurchController] ¨Ï¥Î¦V«á¬Û®e¼Ò¦¡«Ø¥ß InMemoryContext¡]½ĞºÉ§Ö§ó·s¬° DI ª`¤J¡^");
+                System.Diagnostics.Debug.WriteLine("[BaseChurchController] ä½¿ç”¨å‘å¾Œç›¸å®¹æ¨¡å¼å»ºç«‹ InMemoryContextï¼ˆè«‹ç›¡å¿«æ›´æ–°ç‚º DI æ³¨å…¥ï¼‰");
             }
 
-            // ¦s©ñª÷¬yªA°È°Ñ¦Ò
+            // å­˜æ”¾é‡‘æµæœå‹™åƒè€ƒ
             PaymentService = paymentService;
         }
 
         #endregion
 
-        #region ¿ù»~³B²z (Error Handling)
+        #region éŒ¯èª¤è™•ç† (Error Handling)
 
         /// <summary>
-        /// ²Î¤@¿ù»~³B²z¤èªk (Unified Error Handling Method)
+        /// çµ±ä¸€éŒ¯èª¤è™•ç†æ–¹æ³• (Unified Error Handling Method)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ¬°¤°»ò»İ­n²Î¤@¿ù»~³B²z¡H
-        /// - Á×§K¨C­Ó¤èªk³£­«½Æ¼g try-catch¡C
-        /// - ½T«O¿ù»~³Q¥¿½T°O¿ı©M³qª¾¡C
-        /// - ´£¨Ñ¤@­Pªº¿ù»~¦^À³®æ¦¡¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// ç‚ºä»€éº¼éœ€è¦çµ±ä¸€éŒ¯èª¤è™•ç†ï¼Ÿ
+        /// - é¿å…æ¯å€‹æ–¹æ³•éƒ½é‡è¤‡å¯« try-catchã€‚
+        /// - ç¢ºä¿éŒ¯èª¤è¢«æ­£ç¢ºè¨˜éŒ„å’Œé€šçŸ¥ã€‚
+        /// - æä¾›ä¸€è‡´çš„éŒ¯èª¤å›æ‡‰æ ¼å¼ã€‚
         /// 
-        /// ³B²z¬yµ{¡G
-        /// 1. °O¿ı¿ù»~¨ì¤é»x
-        /// 2. µo°e LINE ³qª¾µ¹ºŞ²z­û
-        /// 3. ®Ú¾Ú½Ğ¨DÃş«¬ªğ¦^¾A·íªº¦^À³
+        /// è™•ç†æµç¨‹ï¼š
+        /// 1. è¨˜éŒ„éŒ¯èª¤åˆ°æ—¥èªŒ
+        /// 2. ç™¼é€ LINE é€šçŸ¥çµ¦ç®¡ç†å“¡
+        /// 3. æ ¹æ“šè«‹æ±‚é¡å‹è¿”å›é©ç•¶çš„å›æ‡‰
         /// 
-        /// °Ñ¼Æ¡G
-        /// - exception: µo¥Íªº²§±`ª«¥ó
-        /// - methodName: µo¥Í¿ù»~ªº¤èªk¦WºÙ¡]¥Î©ó°lÂÜ¡^
+        /// åƒæ•¸ï¼š
+        /// - exception: ç™¼ç”Ÿçš„ç•°å¸¸ç‰©ä»¶
+        /// - methodName: ç™¼ç”ŸéŒ¯èª¤çš„æ–¹æ³•åç¨±ï¼ˆç”¨æ–¼è¿½è¹¤ï¼‰
         /// 
-        /// ªğ¦^­È¡G
-        /// - AJAX ½Ğ¨D¡Gªğ¦^ JSON ¿ù»~°T®§
-        /// - ¤@¯ë½Ğ¨D¡G­«¾É¦V¨ì¿ù»~­¶­±
+        /// è¿”å›å€¼ï¼š
+        /// - AJAX è«‹æ±‚ï¼šè¿”å› JSON éŒ¯èª¤è¨Šæ¯
+        /// - ä¸€èˆ¬è«‹æ±‚ï¼šé‡å°å‘åˆ°éŒ¯èª¤é é¢
         /// </summary>
         protected IActionResult HandleError(Exception exception, string methodName)
         {
-            // ²Õ¦X¿ù»~°T®§
-            string errorMessage = $"¿ù»~°T®§ : FullName = {GetType().FullName}, " +
+            // çµ„åˆéŒ¯èª¤è¨Šæ¯
+            string errorMessage = $"éŒ¯èª¤è¨Šæ¯ : FullName = {GetType().FullName}, " +
                                 $"Method = {methodName}, " +
                                 $"Time = {DateTime.Now}, " +
                                 $"Description = {exception}";
 
-            // ¼g¤J°lÂÜ¤é»x (¥[¤J null ÀË¬d)
+            // å¯«å…¥è¿½è¹¤æ—¥èªŒ (åŠ å…¥ null æª¢æŸ¥)
             try
             {
                 ToolUtility?.TraceByLevel(TOTAL_LEVEL, LEVEL_1, errorMessage);
             }
             catch (Exception traceEx)
             {
-                // °lÂÜ¥¢±Ñ¤£¼vÅT¿ù»~³B²z¬yµ{
-                System.Diagnostics.Debug.WriteLine($"TraceByLevel ¥¢±Ñ: {traceEx.Message}");
+                // è¿½è¹¤å¤±æ•—ä¸å½±éŸ¿éŒ¯èª¤è™•ç†æµç¨‹
+                System.Diagnostics.Debug.WriteLine($"TraceByLevel å¤±æ•—: {traceEx.Message}");
             }
 
-            // µo°e LINE ³qª¾
+            // ç™¼é€ LINE é€šçŸ¥
             SendLineErrorNotification(errorMessage);
 
-            // §PÂ_¬O§_¬° AJAX ½Ğ¨D (¥[¤J null ÀË¬d)
+            // åˆ¤æ–·æ˜¯å¦ç‚º AJAX è«‹æ±‚ (åŠ å…¥ null æª¢æŸ¥)
             bool isAjaxRequest = false;
             try
             {
@@ -329,13 +329,13 @@ namespace ChurchReport.Controllers
             }
             catch
             {
-                // µLªk§PÂ_½Ğ¨DÃş«¬¡A¹w³]¬°«D AJAX
+                // ç„¡æ³•åˆ¤æ–·è«‹æ±‚é¡å‹ï¼Œé è¨­ç‚ºé AJAX
                 isAjaxRequest = false;
             }
 
             if (isAjaxRequest)
             {
-                // AJAX ½Ğ¨Dªğ¦^ JSON
+                // AJAX è«‹æ±‚è¿”å› JSON
                 return Json(new
                 {
                     status = "error",
@@ -345,115 +345,115 @@ namespace ChurchReport.Controllers
             }
             else
             {
-                // ¤@¯ë½Ğ¨D¾É¦V¿ù»~­¶­±
+                // ä¸€èˆ¬è«‹æ±‚å°å‘éŒ¯èª¤é é¢
                 return RedirectToAction("DisplayErrorView", "Home", new { ErrorMessage = exception.Message });
             }
         }
 
         /// <summary>
-        /// µo°e LINE ¿ù»~³qª¾ (Send LINE Error Notification)
+        /// ç™¼é€ LINE éŒ¯èª¤é€šçŸ¥ (Send LINE Error Notification)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ·í¨t²Îµo¥ÍÄY­«¿ù»~®É¡A¥D°Ê³qª¾ºŞ²z­û¡C
-        /// ¬°¤°»ò¥Î LINE¡H
-        /// - §Y®É©Ê¡GºŞ²z­û¥i¥H¥ß§Y¦¬¨ì³qª¾¡C
-        /// - «K§Q©Ê¡G¤â¾÷¤W´N¯à¬İ¨ì¡C
-        /// - ¥i¾a©Ê¡G§Y¨Ï¶l¥ó¨t²Î¬G»Ù¡ALINE ³q±`ÁÙ¯à¥Î¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// ç•¶ç³»çµ±ç™¼ç”Ÿåš´é‡éŒ¯èª¤æ™‚ï¼Œä¸»å‹•é€šçŸ¥ç®¡ç†å“¡ã€‚
+        /// ç‚ºä»€éº¼ç”¨ LINEï¼Ÿ
+        /// - å³æ™‚æ€§ï¼šç®¡ç†å“¡å¯ä»¥ç«‹å³æ”¶åˆ°é€šçŸ¥ã€‚
+        /// - ä¾¿åˆ©æ€§ï¼šæ‰‹æ©Ÿä¸Šå°±èƒ½çœ‹åˆ°ã€‚
+        /// - å¯é æ€§ï¼šå³ä½¿éƒµä»¶ç³»çµ±æ•…éšœï¼ŒLINE é€šå¸¸é‚„èƒ½ç”¨ã€‚
         /// 
-        /// ¿ù»~³B²z¡G
-        /// - ¦pªG LINE µo°e¥¢±Ñ¡A¤£¼vÅT¥D­n·~°È¬yµ{¡C
-        /// - ·|°O¿ı LINE µo°e¥¢±Ñªº¤é»x¡C
+        /// éŒ¯èª¤è™•ç†ï¼š
+        /// - å¦‚æœ LINE ç™¼é€å¤±æ•—ï¼Œä¸å½±éŸ¿ä¸»è¦æ¥­å‹™æµç¨‹ã€‚
+        /// - æœƒè¨˜éŒ„ LINE ç™¼é€å¤±æ•—çš„æ—¥èªŒã€‚
         /// </summary>
         protected void SendLineErrorNotification(string errorMessage)
         {
             try
             {
                 var lineProcessor = new LineMessagingProcessorClass();
-                lineProcessor.SendMessage(LINE_ERROR_RECEIVER_ID, $"¦nªª¤H: ¿ù»~ => {errorMessage}");
+                lineProcessor.SendMessage(LINE_ERROR_RECEIVER_ID, $"è¡Œé“æœƒè–è°·æ•™æœƒ: éŒ¯èª¤ => {errorMessage}");
             }
             catch (Exception ex)
             {
-                // LINE ³qª¾¥¢±Ñ¤£¼vÅT¥D­n¬yµ{
+                // LINE é€šçŸ¥å¤±æ•—ä¸å½±éŸ¿ä¸»è¦æµç¨‹
                 try
                 {
                     ToolUtility?.TraceByLevel(TOTAL_LEVEL, LEVEL_1,
-                        $"LINE ³qª¾µo°e¥¢±Ñ: {ex.Message}");
+                        $"LINE é€šçŸ¥ç™¼é€å¤±æ•—: {ex.Message}");
                 }
                 catch
                 {
-                    // ¦pªG³s°lÂÜ³£¥¢±Ñ¡A¨Ï¥Î Debug ¿é¥X
-                    System.Diagnostics.Debug.WriteLine($"LINE ³q³qª¾µo°e¥¢±Ñ¥B°lÂÜ¥¢±Ñ: {ex.Message}");
+                    // å¦‚æœé€£è¿½è¹¤éƒ½å¤±æ•—ï¼Œä½¿ç”¨ Debug è¼¸å‡º
+                    System.Diagnostics.Debug.WriteLine($"LINE é€šé€šçŸ¥ç™¼é€å¤±æ•—ä¸”è¿½è¹¤å¤±æ•—: {ex.Message}");
                 }
             }
         }
 
         #endregion
 
-        #region ViewBag ³]©w»²§U¤èªk (ViewBag Setup Helper Methods)
+        #region ViewBag è¨­å®šè¼”åŠ©æ–¹æ³• (ViewBag Setup Helper Methods)
 
         /// <summary>
-        /// ³]©w¦h¤p²Õª©­±°Ñ¼Æ (Set Multi-Group Layout Parameters)
+        /// è¨­å®šå¤šå°çµ„ç‰ˆé¢åƒæ•¸ (Set Multi-Group Layout Parameters)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ViewBag ¬O ASP.NET MVC ¤¤¥Î¨Ó¶Ç»¼¸ê®Æ¨ì View ªº¾÷¨î¡C
-        /// ³o­Ó¤èªk¨M©w­¶­±À³¸ÓÅã¥Ü¤°»ò¼Ëªº¾ÉÄı¿ï³æ¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// ViewBag æ˜¯ ASP.NET MVC ä¸­ç”¨ä¾†å‚³éè³‡æ–™åˆ° View çš„æ©Ÿåˆ¶ã€‚
+        /// é€™å€‹æ–¹æ³•æ±ºå®šé é¢æ‡‰è©²é¡¯ç¤ºä»€éº¼æ¨£çš„å°è¦½é¸å–®ã€‚
         /// 
-        /// ·~°ÈÅŞ¿è¡G
-        /// - ¦pªG¬O¦h¤p²Õ¼Ò¦¡¥B¥¼¸ü¤J¯S©w¤p²Õ¡GÅã¥Ü³æ¯Âªº¦h¤p²Õµø¹Ï
-        /// - ¦pªG¬O¾ã¦X¼Ò¦¡¥B¤w¸ü¤J¸ê®Æ¡GÅã¥Ü³æ¤@¤p²Õªº¸Ô²Óµø¹Ï
-        /// - ¦pªG¬O²V¦X¼Ò¦¡¡GÅã¥Ü¨â­Ó¿ï¶µ¡]²Î­p + ¸Ô²Ó¡^
+        /// æ¥­å‹™é‚è¼¯ï¼š
+        /// - å¦‚æœæ˜¯å¤šå°çµ„æ¨¡å¼ä¸”æœªè¼‰å…¥ç‰¹å®šå°çµ„ï¼šé¡¯ç¤ºå–®ç´”çš„å¤šå°çµ„è¦–åœ–
+        /// - å¦‚æœæ˜¯æ•´åˆæ¨¡å¼ä¸”å·²è¼‰å…¥è³‡æ–™ï¼šé¡¯ç¤ºå–®ä¸€å°çµ„çš„è©³ç´°è¦–åœ–
+        /// - å¦‚æœæ˜¯æ··åˆæ¨¡å¼ï¼šé¡¯ç¤ºå…©å€‹é¸é …ï¼ˆçµ±è¨ˆ + è©³ç´°ï¼‰
         /// 
-        /// ¬°¤°»ò»İ­n³o­Ó¡H
-        /// - ¥Î¤áÅéÅç¡G®Ú¾Ú¥Î¤áª¬ºAÅã¥Ü¾A·íªº¿ï¶µ
-        /// - ¾É¯èÅŞ¿è¡G½T«O¥Î¤á¤£·|°g¸ô
+        /// ç‚ºä»€éº¼éœ€è¦é€™å€‹ï¼Ÿ
+        /// - ç”¨æˆ¶é«”é©—ï¼šæ ¹æ“šç”¨æˆ¶ç‹€æ…‹é¡¯ç¤ºé©ç•¶çš„é¸é …
+        /// - å°èˆªé‚è¼¯ï¼šç¢ºä¿ç”¨æˆ¶ä¸æœƒè¿·è·¯
         /// </summary>
         protected void SetMultiGroupLayoutParameter()
         {
             string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
             bool integrateFlag = IsIntegrateDataLoaded();
 
-            // ­×¥¿¡G½T«O±q MultiGroupView ÂIÀ»¤p²Õ«á¡A«O«ù HybridView ¼Ò¦¡
-            // Åı¡u¦^³ø²Î­p¡v©M¡u¤p²Õ¦^³ø¡v¿ï¶µ³£Åã¥Ü
+            // ä¿®æ­£ï¼šç¢ºä¿å¾ MultiGroupView é»æ“Šå°çµ„å¾Œï¼Œä¿æŒ HybridView æ¨¡å¼
+            // è®“ã€Œå›å ±çµ±è¨ˆã€å’Œã€Œå°çµ„å›å ±ã€é¸é …éƒ½é¡¯ç¤º
             if (displayViewType == "MultiGroupView" && !integrateFlag)
             {
-                // ¯Â¦h¤p²Õ¼Ò¦¡¡]©|¥¼ÂIÀ»¥ô¦ó¤p²Õ¡^
+                // ç´”å¤šå°çµ„æ¨¡å¼ï¼ˆå°šæœªé»æ“Šä»»ä½•å°çµ„ï¼‰
                 ViewBag.MultiGroupIndex = "SingleMultiGroupView";
             }
             else if (displayViewType == "IntegrateView" && integrateFlag)
             {
-                // ³æ¤@¤p²Õ¼Ò¦¡¡]¥u¦³¤@­Ó¤p²Õ¡^
+                // å–®ä¸€å°çµ„æ¨¡å¼ï¼ˆåªæœ‰ä¸€å€‹å°çµ„ï¼‰
                 ViewBag.MultiGroupIndex = "IntegrateView";
             }
             else if (displayViewType == "MultiGroupView" && integrateFlag)
             {
-                // ²V¦X¼Ò¦¡¡G¦³¦h­Ó¤p²Õ¥B¤wÂIÀ»¨ä¤¤¤@­Ó
-                // ¦¹®ÉÀ³¸ÓÅã¥Ü¡u¦^³ø²Î­p¡v©M¡u¤p²Õ¦^³ø¡v¨â­Ó¿ï¶µ
+                // æ··åˆæ¨¡å¼ï¼šæœ‰å¤šå€‹å°çµ„ä¸”å·²é»æ“Šå…¶ä¸­ä¸€å€‹
+                // æ­¤æ™‚æ‡‰è©²é¡¯ç¤ºã€Œå›å ±çµ±è¨ˆã€å’Œã€Œå°çµ„å›å ±ã€å…©å€‹é¸é …
                 ViewBag.MultiGroupIndex = "HybridView";
             }
             else
             {
-                // ¹w³]¬° IntegrateView ©Î HybridView
-                // ¦pªG¦³¸ü¤J¾ã¦X¸ê®Æ¡A´N¨Ï¥Î HybridView¡A½T«O¿ï¶µ¤£®ø¥¢
+                // é è¨­ç‚º IntegrateView æˆ– HybridView
+                // å¦‚æœæœ‰è¼‰å…¥æ•´åˆè³‡æ–™ï¼Œå°±ä½¿ç”¨ HybridViewï¼Œç¢ºä¿é¸é …ä¸æ¶ˆå¤±
                 ViewBag.MultiGroupIndex = integrateFlag ? "HybridView" : "IntegrateView";
             }
 
-            // ³]©w¬O§_¬°¦æ¬F¦P¤u
+            // è¨­å®šæ˜¯å¦ç‚ºè¡Œæ”¿åŒå·¥
             ViewBag.IsAOfficeWorker = InMemoryContext.QpayManager.m_QpayModel.IsAOfficeWorker
-                ? "¬Oªº" : "§_";
+                ? "æ˜¯çš„" : "å¦";
         }
 
         /// <summary>
-        /// ÀË¬d¾ã¦X¸ê®Æ¬O§_¤w¸ü¤J (Check if Integrate Data is Loaded)
+        /// æª¢æŸ¥æ•´åˆè³‡æ–™æ˜¯å¦å·²è¼‰å…¥ (Check if Integrate Data is Loaded)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ¾ã¦X¸ê®Æ¬O«ü¯S©w¤p²Õªº¸Ô²Ó¸ê°T¡C
-        /// ¬°¤°»ò»İ­nÀË¬d¡H
-        /// - ½T«O¥Î¤á¬İ¨ìªº¬O¥¿½Tªº¸ê®Æ
-        /// - Á×§KÅã¥ÜªÅªº©Î¿ù»~ªº¸ê°T
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// æ•´åˆè³‡æ–™æ˜¯æŒ‡ç‰¹å®šå°çµ„çš„è©³ç´°è³‡è¨Šã€‚
+        /// ç‚ºä»€éº¼éœ€è¦æª¢æŸ¥ï¼Ÿ
+        /// - ç¢ºä¿ç”¨æˆ¶çœ‹åˆ°çš„æ˜¯æ­£ç¢ºçš„è³‡æ–™
+        /// - é¿å…é¡¯ç¤ºç©ºçš„æˆ–éŒ¯èª¤çš„è³‡è¨Š
         /// 
-        /// ÀË¬d±ø¥ó¡G
-        /// - ¶g³øª«¥ó¦s¦b
-        /// - LoadFlag ¬° true¡]ªí¥Ü¸ê®Æ¤w¸ü¤J¡^
+        /// æª¢æŸ¥æ¢ä»¶ï¼š
+        /// - é€±å ±ç‰©ä»¶å­˜åœ¨
+        /// - LoadFlag ç‚º trueï¼ˆè¡¨ç¤ºè³‡æ–™å·²è¼‰å…¥ï¼‰
         /// </summary>
         protected bool IsIntegrateDataLoaded()
         {
@@ -462,19 +462,19 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³]©w°ò¥» ViewBag °Ñ¼Æ (Set Basic ViewBag Parameters)
+        /// è¨­å®šåŸºæœ¬ ViewBag åƒæ•¸ (Set Basic ViewBag Parameters)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ³o­Ó¤èªk³]©w©Ò¦³±±¨î¾¹³£»İ­nªº°ò¥» ViewBag °Ñ¼Æ¡C
-        /// ¬°¤°»ò­n²Î¤@³]©w¡H
-        /// - Á×§K¨C­Ó±±¨î¾¹­«½Æ¼g¬Û¦Pªº¥N½X
-        /// - ½T«O©Ò¦³­¶­±³£¦³¥²­nªº¸ê°T
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// é€™å€‹æ–¹æ³•è¨­å®šæ‰€æœ‰æ§åˆ¶å™¨éƒ½éœ€è¦çš„åŸºæœ¬ ViewBag åƒæ•¸ã€‚
+        /// ç‚ºä»€éº¼è¦çµ±ä¸€è¨­å®šï¼Ÿ
+        /// - é¿å…æ¯å€‹æ§åˆ¶å™¨é‡è¤‡å¯«ç›¸åŒçš„ä»£ç¢¼
+        /// - ç¢ºä¿æ‰€æœ‰é é¢éƒ½æœ‰å¿…è¦çš„è³‡è¨Š
         /// 
-        /// ³]©wªº°Ñ¼Æ¡G
-        /// - µn¤JÃş«¬©M¥Î¤á¦WºÙ
-        /// - ¶O¥ÎÃş«¬
-        /// - §Ö¼Ö¤p²ÕÃş«¬
-        /// - ¶O¥Î¸ê®Æª¬ºA
+        /// è¨­å®šçš„åƒæ•¸ï¼š
+        /// - ç™»å…¥é¡å‹å’Œç”¨æˆ¶åç¨±
+        /// - è²»ç”¨é¡å‹
+        /// - å¿«æ¨‚å°çµ„é¡å‹
+        /// - è²»ç”¨è³‡æ–™ç‹€æ…‹
         /// </summary>
         protected void SetupBasicViewBag()
         {
@@ -483,7 +483,7 @@ namespace ChurchReport.Controllers
             ViewBag.FeeType = InMemoryContext.FeeList.FeeType;
             ViewBag.HappyType = InMemoryContext.HappyGroupDataManager.HappyType;
 
-            // ³]©wÃº¶OÂI¦Wª¬ºA
+            // è¨­å®šç¹³è²»é»åç‹€æ…‹
             SetupFeeDataListCount();
             SetupMemberInfoViewBag();
         }
@@ -540,124 +540,124 @@ namespace ChurchReport.Controllers
             }
         }
         /// <summary>
-        /// ³]©wÃº¶OÂI¦W¸ê®Æ¼Æ¶qª¬ºA (Set Fee Data List Count Status)
+        /// è¨­å®šç¹³è²»é»åè³‡æ–™æ•¸é‡ç‹€æ…‹ (Set Fee Data List Count Status)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ³o­Ó¤èªkÀË¬d¬O§_¦³¶O¥Î¸ê®Æ¡A¨Ã³]©w¹ïÀ³ªºª¬ºA°T®§¡C
-        /// ¬°¤°»ò»İ­n³o­Ó¡H
-        /// - Åı¥Î¤áª¾¹D¨t²Î¤¤¬O§_¦³¸ê®Æ
-        /// - ´£¨ÑµøÄ±¦^õX
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// é€™å€‹æ–¹æ³•æª¢æŸ¥æ˜¯å¦æœ‰è²»ç”¨è³‡æ–™ï¼Œä¸¦è¨­å®šå°æ‡‰çš„ç‹€æ…‹è¨Šæ¯ã€‚
+        /// ç‚ºä»€éº¼éœ€è¦é€™å€‹ï¼Ÿ
+        /// - è®“ç”¨æˆ¶çŸ¥é“ç³»çµ±ä¸­æ˜¯å¦æœ‰è³‡æ–™
+        /// - æä¾›è¦–è¦ºå›é¥‹
         /// 
-        /// ª¬ºA°T®§¡G
-        /// - ¦³¸ê®Æ¡G"Ãº¶O»PÂI¦W¤w¦³¸ê®Æ"
-        /// - µL¸ê®Æ¡G"Ãº¶O»PÂI¦W©|µL¸ê®Æ"
+        /// ç‹€æ…‹è¨Šæ¯ï¼š
+        /// - æœ‰è³‡æ–™ï¼š"ç¹³è²»èˆ‡é»åå·²æœ‰è³‡æ–™"
+        /// - ç„¡è³‡æ–™ï¼š"ç¹³è²»èˆ‡é»åå°šç„¡è³‡æ–™"
         /// </summary>
         protected void SetupFeeDataListCount()
         {
             bool hasFeeData = InMemoryContext.FeeList.FeeDataList != null &&
                             InMemoryContext.FeeList.FeeDataList.Count > 0;
 
-            ViewBag.FeeDataListCount = hasFeeData ? "Ãº¶O»PÂI¦W¤w¦³¸ê®Æ" : "Ãº¶O»PÂI¦W©|µL¸ê®Æ";
+            ViewBag.FeeDataListCount = hasFeeData ? "ç¹³è²»èˆ‡é»åå·²æœ‰è³‡æ–™" : "ç¹³è²»èˆ‡é»åå°šç„¡è³‡æ–™";
         }
 
         #endregion
 
-        #region Session ¦w¥şÅçÃÒ (Session Security Validation)
+        #region Session å®‰å…¨é©—è­‰ (Session Security Validation)
 
         /// <summary>
-        /// ½T«O AJAX ½Ğ¨D¨Ï¥Î¥¿½T¥Î¤áªº¸ê®Æ (Ensure Correct User Data for AJAX Requests)
+        /// ç¢ºä¿ AJAX è«‹æ±‚ä½¿ç”¨æ­£ç¢ºç”¨æˆ¶çš„è³‡æ–™ (Ensure Correct User Data for AJAX Requests)
         /// 
-        /// ? ®Ä¯àÀu¤Æª©¥»¡G
-        /// - ¨Ï¥Î°O¾ĞÅé§Ö¨úÁ×§K­«½ÆÅçÃÒ¡]30 ¬í¤º¡^
-        /// - ±ø¥ó¤Æ Debug ¿é¥X¡]¶È¦b»İ­n®É¡^
-        /// - ´£«eªğ¦^¡]Fail-Fast¡^´î¤Ö¤£¥²­nªºÀË¬d
+        /// ? æ•ˆèƒ½å„ªåŒ–ç‰ˆæœ¬ï¼š
+        /// - ä½¿ç”¨è¨˜æ†¶é«”å¿«å–é¿å…é‡è¤‡é©—è­‰ï¼ˆ30 ç§’å…§ï¼‰
+        /// - æ¢ä»¶åŒ– Debug è¼¸å‡ºï¼ˆåƒ…åœ¨éœ€è¦æ™‚ï¼‰
+        /// - æå‰è¿”å›ï¼ˆFail-Fastï¼‰æ¸›å°‘ä¸å¿…è¦çš„æª¢æŸ¥
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ¦b AJAX ½Ğ¨D¤¤¡A¥Î¤áªº Session ¥i¯à¤w¸g§ïÅÜ¡C
-        /// ³o­Ó¤èªk½T«O§Ú­Ì¨Ï¥Îªº¬O¥¿½Tªº¥Î¤á¸ê®Æ¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// åœ¨ AJAX è«‹æ±‚ä¸­ï¼Œç”¨æˆ¶çš„ Session å¯èƒ½å·²ç¶“æ”¹è®Šã€‚
+        /// é€™å€‹æ–¹æ³•ç¢ºä¿æˆ‘å€‘ä½¿ç”¨çš„æ˜¯æ­£ç¢ºçš„ç”¨æˆ¶è³‡æ–™ã€‚
         /// 
-        /// ®Ä¯àÀu¤Æµ¦²¤¡G
-        /// 1. **§Ö¨úÅçÃÒµ²ªG**¡G30 ¬í¤º¤£­«½ÆÅçÃÒ¦P¤@¥Î¤á
-        /// 2. **Lazy Loading**¡G¥u¦b»İ­n®É¤~Åª¨ú Session
-        /// 3. **±ø¥ó Logging**¡G¥u¦bµo¥ÍÅÜ§ó®É¤~°O¿ı
-        /// 4. **´£«eªğ¦^**¡G¤@¥¹½T»{¦³®Ä´N¥ß§Yªğ¦^
+        /// æ•ˆèƒ½å„ªåŒ–ç­–ç•¥ï¼š
+        /// 1. **å¿«å–é©—è­‰çµæœ**ï¼š30 ç§’å…§ä¸é‡è¤‡é©—è­‰åŒä¸€ç”¨æˆ¶
+        /// 2. **Lazy Loading**ï¼šåªåœ¨éœ€è¦æ™‚æ‰è®€å– Session
+        /// 3. **æ¢ä»¶ Logging**ï¼šåªåœ¨ç™¼ç”Ÿè®Šæ›´æ™‚æ‰è¨˜éŒ„
+        /// 4. **æå‰è¿”å›**ï¼šä¸€æ—¦ç¢ºèªæœ‰æ•ˆå°±ç«‹å³è¿”å›
         /// </summary>
         protected virtual void EnsureCorrectUserData()
         {
             try
             {
                 // ========================================
-                // Step 0: §Ö¨úÀË¬d¡]®Ä¯àÀu¤Æªº®Ö¤ß¡^
+                // Step 0: å¿«å–æª¢æŸ¥ï¼ˆæ•ˆèƒ½å„ªåŒ–çš„æ ¸å¿ƒï¼‰
                 // ========================================
                 var sessionId = HttpContext?.Session?.Id;
                 if (string.IsNullOrEmpty(sessionId))
                 {
-                    return; // µL Session¡AµL»İÅçÃÒ
+                    return; // ç„¡ Sessionï¼Œç„¡éœ€é©—è­‰
                 }
 
                 // ========================================
-                // Step 1: Lazy Loading - ¥u¦b»İ­n®ÉÅª¨ú Session
+                // Step 1: Lazy Loading - åªåœ¨éœ€è¦æ™‚è®€å– Session
                 // ========================================
                 var sessionPassword = HttpContext?.Session?.GetString("_LoginPassword");
                 var listManagerPassword = InMemoryContext?.ListManager?.m_Password;
 
-                // ¦pªG¨âªÌ³£¬°ªÅ¡AµL»İÅçÃÒ
+                // å¦‚æœå…©è€…éƒ½ç‚ºç©ºï¼Œç„¡éœ€é©—è­‰
                 if (string.IsNullOrEmpty(sessionPassword) && string.IsNullOrEmpty(listManagerPassword))
                 {
                     return;
                 }
 
-                // ­pºâ·í«e±K½Xªº¦w¥şÂø´ê¡]¥Î©ó§Ö¨ú Key¡^
+                // è¨ˆç®—ç•¶å‰å¯†ç¢¼çš„å®‰å…¨é›œæ¹Šï¼ˆç”¨æ–¼å¿«å– Keyï¼‰
                 var currentPasswordHash = GetStableHash(sessionPassword ?? listManagerPassword ?? "");
                 var cacheKey = $"{sessionId}_{currentPasswordHash}";
 
                 // ========================================
-                // Step 2: ¦w¥şªº§Ö¨úÀË¬d¡]?? ¨¾¤î Session Collision¡^
+                // Step 2: å®‰å…¨çš„å¿«å–æª¢æŸ¥ï¼ˆ?? é˜²æ­¢ Session Collisionï¼‰
                 // ========================================
                 if (_userValidationCache.TryGetValue(cacheKey, out var cached))
                 {
                     var cacheAge = (DateTime.UtcNow - cached.LastValidated).TotalSeconds;
                     
-                    // ? §Ö¨ú©R¤¤ + ±K½XÂø´ê¤@­P¡]Âù­«ÅçÃÒ¡^
+                    // ? å¿«å–å‘½ä¸­ + å¯†ç¢¼é›œæ¹Šä¸€è‡´ï¼ˆé›™é‡é©—è­‰ï¼‰
                     if (cacheAge < USER_VALIDATION_CACHE_SECONDS && 
                         cached.IsValid && 
                         cached.PasswordHash == currentPasswordHash)
                     {
-                        // §Ö¨ú©R¤¤¥B¦w¥ş¡Aª½±µªğ¦^
+                        // å¿«å–å‘½ä¸­ä¸”å®‰å…¨ï¼Œç›´æ¥è¿”å›
                         return;
                     }
                 }
 
                 // ========================================
-                // Step 3: §Ö¨ú¥¢®Ä©Î¤£¦s¦b¡A°õ¦æ§¹¾ãÅçÃÒ
+                // Step 3: å¿«å–å¤±æ•ˆæˆ–ä¸å­˜åœ¨ï¼ŒåŸ·è¡Œå®Œæ•´é©—è­‰
                 // ========================================
                 var sessionAccount = HttpContext?.Session?.GetString("_LoginAccount");
 
-                // ÀË¬d Session ©M ListManager ªº±K½X¬O§_¤@­P
+                // æª¢æŸ¥ Session å’Œ ListManager çš„å¯†ç¢¼æ˜¯å¦ä¸€è‡´
                 if (!string.IsNullOrEmpty(sessionPassword) &&
                     !string.IsNullOrEmpty(listManagerPassword) &&
                     sessionPassword == listManagerPassword)
                 {
-                    // ? ÅçÃÒ³q¹L¡A§ó·s§Ö¨ú
+                    // ? é©—è­‰é€šéï¼Œæ›´æ–°å¿«å–
                     _userValidationCache[cacheKey] = (DateTime.UtcNow, true, currentPasswordHash);
                     
-                    // ²M²z¦P¤@ Session ªºÂÂ§Ö¨ú¶µ¥Ø¡]±K½XÅÜ§ó®É¡^
+                    // æ¸…ç†åŒä¸€ Session çš„èˆŠå¿«å–é …ç›®ï¼ˆå¯†ç¢¼è®Šæ›´æ™‚ï¼‰
                     CleanupOldCacheForSession(sessionId, cacheKey);
                     return;
                 }
 
                 // ========================================
-                // Step 4: ¾ÌÃÒ¤£¤@­P¡A»İ­n­«·s¸ü¤J
+                // Step 4: æ†‘è­‰ä¸ä¸€è‡´ï¼Œéœ€è¦é‡æ–°è¼‰å…¥
                 // ========================================
 #if DEBUG
-                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] ¾ÌÃÒ¤£¤@­P¡A­«·s¸ü¤J ListManager ¸ê®Æ");
+                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] æ†‘è­‰ä¸ä¸€è‡´ï¼Œé‡æ–°è¼‰å…¥ ListManager è³‡æ–™");
 #endif
 
                 if (!string.IsNullOrEmpty(sessionPassword) &&
                     !string.IsNullOrEmpty(listManagerPassword) &&
                     sessionPassword != listManagerPassword)
                 {
-                    // ­«·s¸ü¤J ListManager ¸ê®Æ
+                    // é‡æ–°è¼‰å…¥ ListManager è³‡æ–™
                     InMemoryContext.ListManager.SetupListManager(
                         sessionAccount ?? "",
                         sessionPassword,
@@ -665,18 +665,18 @@ namespace ChurchReport.Controllers
                             ? InMemoryContext.ListManager.m_SelectDate
                             : DateTime.Now);
 
-                    // ¨Ï¥Î·sªº±K½XÂø´ê§ó·s§Ö¨ú
+                    // ä½¿ç”¨æ–°çš„å¯†ç¢¼é›œæ¹Šæ›´æ–°å¿«å–
                     var newPasswordHash = GetStableHash(sessionPassword);
                     var newCacheKey = $"{sessionId}_{newPasswordHash}";
                     _userValidationCache[newCacheKey] = (DateTime.UtcNow, true, newPasswordHash);
                     
-                    // ²M²zÂÂ§Ö¨ú
+                    // æ¸…ç†èˆŠå¿«å–
                     CleanupOldCacheForSession(sessionId, newCacheKey);
                     return;
                 }
 
                 // ========================================
-                // Step 5: ¦pªG Session ±K½X¬°ªÅ¡A¹Á¸Õ±q½Ğ¨D¤¤¨ú±o LINE ID
+                // Step 5: å¦‚æœ Session å¯†ç¢¼ç‚ºç©ºï¼Œå˜—è©¦å¾è«‹æ±‚ä¸­å–å¾— LINE ID
                 // ========================================
                 if (string.IsNullOrEmpty(sessionPassword))
                 {
@@ -685,7 +685,7 @@ namespace ChurchReport.Controllers
                     if (!string.IsNullOrEmpty(lineUserId) && lineUserId != listManagerPassword)
                     {
 #if DEBUG
-                        System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] Session ¾ÌÃÒ¬°ªÅ¡A¨Ï¥Î LINE ID ­«·s¸ü¤J");
+                        System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] Session æ†‘è­‰ç‚ºç©ºï¼Œä½¿ç”¨ LINE ID é‡æ–°è¼‰å…¥");
 #endif
                         
                         InMemoryContext.ListManager.SetupListManager(
@@ -698,7 +698,7 @@ namespace ChurchReport.Controllers
                         HttpContext?.Session?.SetString("_LoginAccount", "LineIdLogin");
                         HttpContext?.Session?.SetString("_LoginPassword", lineUserId);
 
-                        // §ó·s§Ö¨ú
+                        // æ›´æ–°å¿«å–
                         var linePasswordHash = GetStableHash(lineUserId);
                         var lineCacheKey = $"{sessionId}_{linePasswordHash}";
                         _userValidationCache[lineCacheKey] = (DateTime.UtcNow, true, linePasswordHash);
@@ -708,22 +708,22 @@ namespace ChurchReport.Controllers
             catch (Exception ex)
             {
 #if DEBUG
-                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] ÅçÃÒ¥¢±Ñ: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] é©—è­‰å¤±æ•—: {ex.Message}");
 #endif
             }
         }
 
         /// <summary>
-        /// ­pºâÃ­©wªº±K½XÂø´ê¡]¥Î©ó§Ö¨ú Key¡^
+        /// è¨ˆç®—ç©©å®šçš„å¯†ç¢¼é›œæ¹Šï¼ˆç”¨æ–¼å¿«å– Keyï¼‰
         /// 
-        /// ?? ¦w¥ş»¡©ú¡G
-        /// - ¨Ï¥Î SHA256 Âø´ê¡A¨¾¤î±K½X©ú¤åÀx¦s
-        /// - ¨ú«e 8 ¦r¤¸¥­¿Å¦w¥ş©Ê»P Key ªø«×
-        /// - Âø´ê¸I¼²¾÷²v¡G1 / 2^32¡]·¥§C¡^
+        /// ?? å®‰å…¨èªªæ˜ï¼š
+        /// - ä½¿ç”¨ SHA256 é›œæ¹Šï¼Œé˜²æ­¢å¯†ç¢¼æ˜æ–‡å„²å­˜
+        /// - å–å‰ 8 å­—å…ƒå¹³è¡¡å®‰å…¨æ€§èˆ‡ Key é•·åº¦
+        /// - é›œæ¹Šç¢°æ’æ©Ÿç‡ï¼š1 / 2^32ï¼ˆæ¥µä½ï¼‰
         /// 
-        /// ¬°¤°»ò¤£ª½±µ¥Î±K½X¡H
-        /// - ¦w¥ş©Ê¡GÁ×§K±K½X¬ªº|¨ì¤é»x©Î°O¾ĞÅé§Ö·Ó
-        /// - Key ªø«×¡G±±¨î Dictionary Key ¤j¤p
+        /// ç‚ºä»€éº¼ä¸ç›´æ¥ç”¨å¯†ç¢¼ï¼Ÿ
+        /// - å®‰å…¨æ€§ï¼šé¿å…å¯†ç¢¼æ´©æ¼åˆ°æ—¥èªŒæˆ–è¨˜æ†¶é«”å¿«ç…§
+        /// - Key é•·åº¦ï¼šæ§åˆ¶ Dictionary Key å¤§å°
         /// </summary>
         private static string GetStableHash(string input)
         {
@@ -739,17 +739,17 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ²M²z¦P¤@ Session ªºÂÂ§Ö¨ú¶µ¥Ø
+        /// æ¸…ç†åŒä¸€ Session çš„èˆŠå¿«å–é …ç›®
         /// 
-        /// ?? °O¾ĞÅéºŞ²z¡G
-        /// - ¨¾¤î±K½XÅÜ§ó«á²£¥ÍªºÂÂ§Ö¨ú²Ö¿n¡]Memory Leak¡^
-        /// - ¨¾¤î Session ID ­«¥Î®Éªº Session Collision
-        /// - ¶¶«K²M²z¥ş°ì¹L´Á¶µ¥Ø¡]¶W¹L 5 ¤ÀÄÁ¡^
+        /// ?? è¨˜æ†¶é«”ç®¡ç†ï¼š
+        /// - é˜²æ­¢å¯†ç¢¼è®Šæ›´å¾Œç”¢ç”Ÿçš„èˆŠå¿«å–ç´¯ç©ï¼ˆMemory Leakï¼‰
+        /// - é˜²æ­¢ Session ID é‡ç”¨æ™‚çš„ Session Collision
+        /// - é †ä¾¿æ¸…ç†å…¨åŸŸéæœŸé …ç›®ï¼ˆè¶…é 5 åˆ†é˜ï¼‰
         /// 
-        /// ²M²zµ¦²¤¡G
-        /// 1. ²¾°£¦P¤@ Session ¦ı±K½XÂø´ê¤£¦Pªº¶µ¥Ø¡]¥Î¤á±K½XÅÜ§ó¡^
-        /// 2. ²¾°£©Ò¦³¶W¹L 5 ¤ÀÄÁªº¹L´Á¶µ¥Ø¡]°O¾ĞÅé²M²z¡^
-        /// 3. «O¯d·í«e¦³®Äªº§Ö¨ú¶µ¥Ø
+        /// æ¸…ç†ç­–ç•¥ï¼š
+        /// 1. ç§»é™¤åŒä¸€ Session ä½†å¯†ç¢¼é›œæ¹Šä¸åŒçš„é …ç›®ï¼ˆç”¨æˆ¶å¯†ç¢¼è®Šæ›´ï¼‰
+        /// 2. ç§»é™¤æ‰€æœ‰è¶…é 5 åˆ†é˜çš„éæœŸé …ç›®ï¼ˆè¨˜æ†¶é«”æ¸…ç†ï¼‰
+        /// 3. ä¿ç•™ç•¶å‰æœ‰æ•ˆçš„å¿«å–é …ç›®
         /// </summary>
         private static void CleanupOldCacheForSession(string sessionId, string currentCacheKey)
         {
@@ -760,19 +760,19 @@ namespace ChurchReport.Controllers
                 
                 foreach (var kvp in _userValidationCache)
                 {
-                    // ÀË¬d 1¡G¦P¤@ Session ¦ı±K½X¤£¦PªºÂÂ¶µ¥Ø¡]Session Collision ¨¾Å@¡^
+                    // æª¢æŸ¥ 1ï¼šåŒä¸€ Session ä½†å¯†ç¢¼ä¸åŒçš„èˆŠé …ç›®ï¼ˆSession Collision é˜²è­·ï¼‰
                     if (kvp.Key.StartsWith(sessionId + "_") && kvp.Key != currentCacheKey)
                     {
                         keysToRemove.Add(kvp.Key);
                     }
-                    // ÀË¬d 2¡G©Ò¦³¶W¹L 5 ¤ÀÄÁªº¹L´Á¶µ¥Ø¡]Memory Leak ¨¾Å@¡^
+                    // æª¢æŸ¥ 2ï¼šæ‰€æœ‰è¶…é 5 åˆ†é˜çš„éæœŸé …ç›®ï¼ˆMemory Leak é˜²è­·ï¼‰
                     else if ((now - kvp.Value.LastValidated).TotalMinutes > 5)
                     {
                         keysToRemove.Add(kvp.Key);
                     }
                 }
 
-                // §å¦¸²¾°£
+                // æ‰¹æ¬¡ç§»é™¤
                 foreach (var key in keysToRemove)
                 {
                     _userValidationCache.TryRemove(key, out _);
@@ -781,31 +781,31 @@ namespace ChurchReport.Controllers
 #if DEBUG
                 if (keysToRemove.Count > 0)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[CleanupOldCache] ¤w²M²z {keysToRemove.Count} ­Ó§Ö¨ú¶µ¥Ø¡]Session={sessionId.Substring(0, Math.Min(8, sessionId.Length))}...)");
+                    System.Diagnostics.Debug.WriteLine($"[CleanupOldCache] å·²æ¸…ç† {keysToRemove.Count} å€‹å¿«å–é …ç›®ï¼ˆSession={sessionId.Substring(0, Math.Min(8, sessionId.Length))}...)");
                 }
 #endif
             }
             catch
             {
-                // ²M²z¥¢±Ñ¤£¼vÅT¥D¬yµ{
+                // æ¸…ç†å¤±æ•—ä¸å½±éŸ¿ä¸»æµç¨‹
             }
         }
 
 
         /// <summary>
-        /// ¹Á¸Õ±q½Ğ¨D¤¤¨ú±o LINE ¥Î¤á ID (Try to Get LINE User ID from Request)
+        /// å˜—è©¦å¾è«‹æ±‚ä¸­å–å¾— LINE ç”¨æˆ¶ ID (Try to Get LINE User ID from Request)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// LINE µn¤J®É¡A¥Î¤á ID ·|¥]§t¦b½Ğ¨Dªº Referer ¤¤¡C
-        /// ³o­Ó¤èªk¸ÑªR¥X¥Î¤á ID¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// LINE ç™»å…¥æ™‚ï¼Œç”¨æˆ¶ ID æœƒåŒ…å«åœ¨è«‹æ±‚çš„ Referer ä¸­ã€‚
+        /// é€™å€‹æ–¹æ³•è§£æå‡ºç”¨æˆ¶ IDã€‚
         /// 
-        /// ¸ÑªRÅŞ¿è¡G
-        /// - ±q HTTP Referer ¼ĞÀY¤¤´M§ä LINE ¥Î¤á ID ®æ¦¡
-        /// - LINE ¥Î¤á ID ¥H "U" ¶}ÀY¡Aªø«×¬° 33 ­Ó¦r¤¸
+        /// è§£æé‚è¼¯ï¼š
+        /// - å¾ HTTP Referer æ¨™é ­ä¸­å°‹æ‰¾ LINE ç”¨æˆ¶ ID æ ¼å¼
+        /// - LINE ç”¨æˆ¶ ID ä»¥ "U" é–‹é ­ï¼Œé•·åº¦ç‚º 33 å€‹å­—å…ƒ
         /// 
-        /// ¬°¤°»ò»İ­n³o­Ó¡H
-        /// - ·í Session ¿ò¥¢®É¡A¥i¥H±q½Ğ¨D¤¤«ì´_¥Î¤á¨­¥÷
-        /// - ´£°ª¨t²Îªº®e¿ù¯à¤O
+        /// ç‚ºä»€éº¼éœ€è¦é€™å€‹ï¼Ÿ
+        /// - ç•¶ Session éºå¤±æ™‚ï¼Œå¯ä»¥å¾è«‹æ±‚ä¸­æ¢å¾©ç”¨æˆ¶èº«ä»½
+        /// - æé«˜ç³»çµ±çš„å®¹éŒ¯èƒ½åŠ›
         /// </summary>
         protected string TryGetLineUserIdFromRequest()
         {
@@ -830,27 +830,27 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ÅçÃÒ·í«e Session ¬O§_¦Xªk (Validate Current Session)
+        /// é©—è­‰ç•¶å‰ Session æ˜¯å¦åˆæ³• (Validate Current Session)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// Session ÅçÃÒ¬O Web À³¥Î¦w¥şªº­«­n³¡¤À¡C
-        /// ³o­Ó¤èªkÀË¬d¥Î¤áªºµn¤Jª¬ºA¬O§_¤´µM¦³®Ä¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// Session é©—è­‰æ˜¯ Web æ‡‰ç”¨å®‰å…¨çš„é‡è¦éƒ¨åˆ†ã€‚
+        /// é€™å€‹æ–¹æ³•æª¢æŸ¥ç”¨æˆ¶çš„ç™»å…¥ç‹€æ…‹æ˜¯å¦ä»ç„¶æœ‰æ•ˆã€‚
         /// 
-        /// ³]­p¼Ò¦¡¡GTemplate Method Pattern
-        /// - ´£¨Ñ³q¥ÎªºÅçÃÒ¬yµ{
-        /// - ¤lÃş§O¥i¥HÂĞ¼g¯S©wÀË¬d
+        /// è¨­è¨ˆæ¨¡å¼ï¼šTemplate Method Pattern
+        /// - æä¾›é€šç”¨çš„é©—è­‰æµç¨‹
+        /// - å­é¡åˆ¥å¯ä»¥è¦†å¯«ç‰¹å®šæª¢æŸ¥
         /// 
-        /// Fail-Fast ­ì«h¡G
-        /// - ¤@µo²{°İÃD´N¥ß§Yªğ¦^ false
-        /// - ¤£Ä~Äò°õ¦æ¤£¥²­nªºÀË¬d
+        /// Fail-Fast åŸå‰‡ï¼š
+        /// - ä¸€ç™¼ç¾å•é¡Œå°±ç«‹å³è¿”å› false
+        /// - ä¸ç¹¼çºŒåŸ·è¡Œä¸å¿…è¦çš„æª¢æŸ¥
         /// 
-        /// ÅçÃÒ¶µ¥Ø¡G
-        /// 1. Session ¬O§_¦s¦b
-        /// 2. Session ¬O§_¹L´Á¡]8 ¤p®É¡^
-        /// 3. ¥Î¤á¨­¥÷¬O§_¤@­P
+        /// é©—è­‰é …ç›®ï¼š
+        /// 1. Session æ˜¯å¦å­˜åœ¨
+        /// 2. Session æ˜¯å¦éæœŸï¼ˆ8 å°æ™‚ï¼‰
+        /// 3. ç”¨æˆ¶èº«ä»½æ˜¯å¦ä¸€è‡´
         /// 
-        /// ¨Ï¥Î¤è¦¡¡G
-        /// ¦b Controller Action ¶}©l®É©I¥s¡G
+        /// ä½¿ç”¨æ–¹å¼ï¼š
+        /// åœ¨ Controller Action é–‹å§‹æ™‚å‘¼å«ï¼š
         /// if (!ValidateSession())
         /// {
         ///     return RedirectToAction("Login", "Authentication");
@@ -861,17 +861,17 @@ namespace ChurchReport.Controllers
             try
             {
                 // ========================================
-                // Step 1: ÀË¬d Session ¬O§_¦s¦b
+                // Step 1: æª¢æŸ¥ Session æ˜¯å¦å­˜åœ¨
                 // ========================================
                 var sessionUserId = HttpContext.Session.GetString("_SessionUserId");
                 if (string.IsNullOrEmpty(sessionUserId))
                 {
-                    System.Diagnostics.Debug.WriteLine("[ValidateSession] Session ¤£¦s¦b©Î¤w¹L´Á");
+                    System.Diagnostics.Debug.WriteLine("[ValidateSession] Session ä¸å­˜åœ¨æˆ–å·²éæœŸ");
                     return false;
                 }
 
                 // ========================================
-                // Step 2: ÀË¬d Session ³Ğ«Ø®É¶¡¡]¨¾¤î¹L´Á Session¡^
+                // Step 2: æª¢æŸ¥ Session å‰µå»ºæ™‚é–“ï¼ˆé˜²æ­¢éæœŸ Sessionï¼‰
                 // ========================================
                 var sessionCreatedAt = HttpContext.Session.GetString("_SessionCreatedAt");
                 if (!string.IsNullOrEmpty(sessionCreatedAt))
@@ -879,70 +879,70 @@ namespace ChurchReport.Controllers
                     if (DateTime.TryParse(sessionCreatedAt, out DateTime createdTime))
                     {
                         var sessionAge = DateTime.UtcNow - createdTime;
-                        // Session ¶W¹L 8 ¤p®Éµø¬°¹L´Á¡]ÃB¥~«OÅ@¼h¡^
+                        // Session è¶…é 8 å°æ™‚è¦–ç‚ºéæœŸï¼ˆé¡å¤–ä¿è­·å±¤ï¼‰
                         if (sessionAge.TotalHours > 8)
                         {
-                            System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session ¤w¹L´Á ({sessionAge.TotalHours:F2} ¤p®É)");
+                            System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session å·²éæœŸ ({sessionAge.TotalHours:F2} å°æ™‚)");
                             return false;
                         }
                     }
                 }
 
                 // ========================================
-                // Step 3: ÅçÃÒ¥Î¤á¨­¥÷¤@­P©Ê
+                // Step 3: é©—è­‰ç”¨æˆ¶èº«ä»½ä¸€è‡´æ€§
                 // ========================================
-                // ÀË¬d InMemoryContext ¤¤ªº¥Î¤á¸ê®Æ¬O§_»P Session ¤@­P
+                // æª¢æŸ¥ InMemoryContext ä¸­çš„ç”¨æˆ¶è³‡æ–™æ˜¯å¦èˆ‡ Session ä¸€è‡´
                 var currentAccount = InMemoryContext?.ListManager?.m_Account;
                 if (string.IsNullOrEmpty(currentAccount))
                 {
-                    System.Diagnostics.Debug.WriteLine("[ValidateSession] ¥Î¤á¸ê®Æ¤£¦s¦b©ó InMemoryContext");
+                    System.Diagnostics.Debug.WriteLine("[ValidateSession] ç”¨æˆ¶è³‡æ–™ä¸å­˜åœ¨æ–¼ InMemoryContext");
                     return false;
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session ÅçÃÒ³q¹L - UserId: {sessionUserId}");
+                System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session é©—è­‰é€šé - UserId: {sessionUserId}");
                 return true;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session ÅçÃÒ¥¢±Ñ: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session é©—è­‰å¤±æ•—: {ex.Message}");
                 return false;
             }
         }
 
         /// <summary>
-        /// ±j¨î­«·s¥Í¦¨ Session ID (Regenerate Session ID)
+        /// å¼·åˆ¶é‡æ–°ç”Ÿæˆ Session ID (Regenerate Session ID)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// Session ID ­«·s¥Í¦¨¬O¦w¥ş³Ì¨Î¹ê°È¡C
-        /// ¬°¤°»ò»İ­n¡H
-        /// - ¨¾¤î Session Fixation §ğÀ»
-        /// - ¦bÅv­­§ïÅÜ«á½T«O¦w¥ş
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// Session ID é‡æ–°ç”Ÿæˆæ˜¯å®‰å…¨æœ€ä½³å¯¦å‹™ã€‚
+        /// ç‚ºä»€éº¼éœ€è¦ï¼Ÿ
+        /// - é˜²æ­¢ Session Fixation æ”»æ“Š
+        /// - åœ¨æ¬Šé™æ”¹è®Šå¾Œç¢ºä¿å®‰å…¨
         /// 
-        /// ¨Ï¥Î±¡¹Ò¡G
-        /// - Åv­­ÅÜ§ó«á
-        /// - ±Ó·P¾Ş§@«e
-        /// - ©w´Á¦w¥şÀË¬d
+        /// ä½¿ç”¨æƒ…å¢ƒï¼š
+        /// - æ¬Šé™è®Šæ›´å¾Œ
+        /// - æ•æ„Ÿæ“ä½œå‰
+        /// - å®šæœŸå®‰å…¨æª¢æŸ¥
         /// 
-        /// ª`·N¨Æ¶µ¡G
-        /// - ¦¹¤èªk·|²M°£¨Ã­««Ø Session
-        /// - ¦ı·|«O¯d¥Î¤á¸ê®Æ¡]¨Ï¥Î·s®É¶¡ÂW¡^
+        /// æ³¨æ„äº‹é …ï¼š
+        /// - æ­¤æ–¹æ³•æœƒæ¸…é™¤ä¸¦é‡å»º Session
+        /// - ä½†æœƒä¿ç•™ç”¨æˆ¶è³‡æ–™ï¼ˆä½¿ç”¨æ–°æ™‚é–“æˆ³ï¼‰
         /// </summary>
         protected void RegenerateSessionId()
         {
             try
             {
-                // ¼È¦s­«­n¸ê®Æ
+                // æš«å­˜é‡è¦è³‡æ–™
                 var userId = HttpContext.Session.GetString("_SessionUserId");
                 var userAgent = HttpContext.Session.GetString("_SessionUserAgent");
                 var realIp = HttpContext.Session.GetString("_SessionRealIp");
 
-                // ²M°£ÂÂ Session
+                // æ¸…é™¤èˆŠ Session
                 HttpContext.Session.Clear();
 
-                // ±j¨î¥Í¦¨·s Session ID
+                // å¼·åˆ¶ç”Ÿæˆæ–° Session ID
                 HttpContext.Session.CommitAsync().GetAwaiter().GetResult();
 
-                // «ì´_¸ê®Æ¡]¨Ï¥Î·sªº®É¶¡ÂW¡^
+                // æ¢å¾©è³‡æ–™ï¼ˆä½¿ç”¨æ–°çš„æ™‚é–“æˆ³ï¼‰
                 if (!string.IsNullOrEmpty(userId))
                 {
                     HttpContext.Session.SetString("_SessionUserId", userId);
@@ -952,37 +952,37 @@ namespace ChurchReport.Controllers
                     HttpContext.Session.SetString("_SessionRealIp", realIp ?? "");
                 }
 
-                System.Diagnostics.Debug.WriteLine("[RegenerateSessionId] Session ID ¤w­«·s¥Í¦¨");
+                System.Diagnostics.Debug.WriteLine("[RegenerateSessionId] Session ID å·²é‡æ–°ç”Ÿæˆ");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[RegenerateSessionId] ­«·s¥Í¦¨¥¢±Ñ: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[RegenerateSessionId] é‡æ–°ç”Ÿæˆå¤±æ•—: {ex.Message}");
                 throw;
             }
         }
 
         #endregion
 
-        #region ³s±µ¦À¾Ş§@ (Connection Pool Operations)
+        #region é€£æ¥æ± æ“ä½œ (Connection Pool Operations)
 
         /// <summary>
-        /// ±q³s±µ¦ÀÀò¨ú CRM ³s±µ (Get CRM Connection from Pool)
+        /// å¾é€£æ¥æ± ç²å– CRM é€£æ¥ (Get CRM Connection from Pool)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// CRM ³s±µ«Ü¯Ó¸ê·½¡A©Ò¥H¨Ï¥Î³s±µ¦À¨ÓºŞ²z¡C
-        /// ³o­Ó¤èªk±q¦À¤¤¨ú±o¤@­Ó¥i¥Îªº³s±µ¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// CRM é€£æ¥å¾ˆè€—è³‡æºï¼Œæ‰€ä»¥ä½¿ç”¨é€£æ¥æ± ä¾†ç®¡ç†ã€‚
+        /// é€™å€‹æ–¹æ³•å¾æ± ä¸­å–å¾—ä¸€å€‹å¯ç”¨çš„é€£æ¥ã€‚
         /// 
-        /// ³]­p¼Ò¦¡¡GObject Pool Pattern
+        /// è¨­è¨ˆæ¨¡å¼ï¼šObject Pool Pattern
         /// 
-        /// ²§±`³B²z¡G
-        /// - TimeoutException: ³s±µ¦À¤wº¡¡Aµ¥«İ¶W®É
-        /// - InvalidOperationException: ³s±µ¦À¥¼ªì©l¤Æ
+        /// ç•°å¸¸è™•ç†ï¼š
+        /// - TimeoutException: é€£æ¥æ± å·²æ»¿ï¼Œç­‰å¾…è¶…æ™‚
+        /// - InvalidOperationException: é€£æ¥æ± æœªåˆå§‹åŒ–
         /// 
-        /// ¨Ï¥Î¤è¦¡¡G
+        /// ä½¿ç”¨æ–¹å¼ï¼š
         /// using (var connection = GetConnection())
         /// {
-        ///     // ¨Ï¥Î³s±µ
-        /// } // ¦Û°ÊÂkÁÙ
+        ///     // ä½¿ç”¨é€£æ¥
+        /// } // è‡ªå‹•æ­¸é‚„
         /// </summary>
         protected IOrganizationService GetConnection()
         {
@@ -990,14 +990,14 @@ namespace ChurchReport.Controllers
             {
                 if (_connectionPool == null)
                 {
-                    throw new InvalidOperationException("³s±µ¦À¥¼ªì©l¤Æ");
+                    throw new InvalidOperationException("é€£æ¥æ± æœªåˆå§‹åŒ–");
                 }
 
                 var connection = _connectionPool.AcquireConnection();
                 
                 if (connection == null)
                 {
-                    throw new InvalidOperationException("µLªk±q³s±µ¦ÀÀò¨ú¦³®Ä³s±µ");
+                    throw new InvalidOperationException("ç„¡æ³•å¾é€£æ¥æ± ç²å–æœ‰æ•ˆé€£æ¥");
                 }
 
 #if DEBUG
@@ -1018,31 +1018,31 @@ namespace ChurchReport.Controllers
             }
             catch (TimeoutException)
             {
-                // ³s±µ¦À¤wº¡¡A°O¿ı¤é»x
-                System.Diagnostics.Debug.WriteLine($"[GetConnection] ³s±µ¦À¤wº¡¡Aµ¥«İ¶W®É");
+                // é€£æ¥æ± å·²æ»¿ï¼Œè¨˜éŒ„æ—¥èªŒ
+                System.Diagnostics.Debug.WriteLine($"[GetConnection] é€£æ¥æ± å·²æ»¿ï¼Œç­‰å¾…è¶…æ™‚");
                 throw;
             }
             catch (Exception ex)
             {
-                // ¨ä¥L²§±`
-                System.Diagnostics.Debug.WriteLine($"[GetConnection] Àò¨ú³s±µ¥¢±Ñ: {ex.Message}");
+                // å…¶ä»–ç•°å¸¸
+                System.Diagnostics.Debug.WriteLine($"[GetConnection] ç²å–é€£æ¥å¤±æ•—: {ex.Message}");
                 throw;
             }
         }
 
         /// <summary>
-        /// ÂkÁÙ³s±µ¨ì³s±µ¦À (Return Connection to Pool)
+        /// æ­¸é‚„é€£æ¥åˆ°é€£æ¥æ±  (Return Connection to Pool)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ¨Ï¥Î§¹³s±µ«á¡A¤@©w­nÂkÁÙ¨ì¦À¤¤¡C
-        /// ¬°¤°»ò­«­n¡H
-        /// - ³s±µ¬O¦³­­¸ê·½¡A¤£ÂkÁÙ·|³y¦¨¸ê·½¬ªº|
-        /// - ¨ä¥L½Ğ¨DµLªk¨ú±o³s±µ
-        /// - ¨t²Î©Ê¯à¤U­°
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// ä½¿ç”¨å®Œé€£æ¥å¾Œï¼Œä¸€å®šè¦æ­¸é‚„åˆ°æ± ä¸­ã€‚
+        /// ç‚ºä»€éº¼é‡è¦ï¼Ÿ
+        /// - é€£æ¥æ˜¯æœ‰é™è³‡æºï¼Œä¸æ­¸é‚„æœƒé€ æˆè³‡æºæ´©æ¼
+        /// - å…¶ä»–è«‹æ±‚ç„¡æ³•å–å¾—é€£æ¥
+        /// - ç³»çµ±æ€§èƒ½ä¸‹é™
         /// 
-        /// ª`·N¨Æ¶µ¡G
-        /// - §Y¨ÏÂkÁÙ¥¢±Ñ¡A¤]¤£À³¸Ó¤¤Â_·~°ÈÅŞ¿è
-        /// - ·|°O¿ı¥¢±Ñªº¤é»x
+        /// æ³¨æ„äº‹é …ï¼š
+        /// - å³ä½¿æ­¸é‚„å¤±æ•—ï¼Œä¹Ÿä¸æ‡‰è©²ä¸­æ–·æ¥­å‹™é‚è¼¯
+        /// - æœƒè¨˜éŒ„å¤±æ•—çš„æ—¥èªŒ
         /// </summary>
         protected void ReleaseConnection(IOrganizationService connection)
         {
@@ -1050,13 +1050,13 @@ namespace ChurchReport.Controllers
             {
                 if (connection == null)
                 {
-                    // ³s±µ¬° null¡A¤£»İ­nÂkÁÙ
+                    // é€£æ¥ç‚º nullï¼Œä¸éœ€è¦æ­¸é‚„
                     return;
                 }
 
                 if (_connectionPool == null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ReleaseConnection] ³s±µ¦À¥¼ªì©l¤Æ¡AµLªkÂkÁÙ³s±µ");
+                    System.Diagnostics.Debug.WriteLine($"[ReleaseConnection] é€£æ¥æ± æœªåˆå§‹åŒ–ï¼Œç„¡æ³•æ­¸é‚„é€£æ¥");
                     return;
                 }
 
@@ -1071,41 +1071,41 @@ namespace ChurchReport.Controllers
             }
             catch (Exception ex)
             {
-                // ÂkÁÙ³s±µ¥¢±Ñ¤£À³¸Ó¤¤Â_·~°ÈÅŞ¿è
-                System.Diagnostics.Debug.WriteLine($"[ReleaseConnection] ÂkÁÙ³s±µ¥¢±Ñ: {ex.Message}");
+                // æ­¸é‚„é€£æ¥å¤±æ•—ä¸æ‡‰è©²ä¸­æ–·æ¥­å‹™é‚è¼¯
+                System.Diagnostics.Debug.WriteLine($"[ReleaseConnection] æ­¸é‚„é€£æ¥å¤±æ•—: {ex.Message}");
                 
-                // °O¿ı¨ì°lÂÜ¤é»x
+                // è¨˜éŒ„åˆ°è¿½è¹¤æ—¥èªŒ
                 try
                 {
                     ToolUtility?.TraceByLevel(TOTAL_LEVEL, LEVEL_1, 
-                        $"ÂkÁÙ³s±µ¥¢±Ñ: {ex.Message}");
+                        $"æ­¸é‚„é€£æ¥å¤±æ•—: {ex.Message}");
                 }
                 catch
                 {
-                    // °lÂÜ¥¢±Ñ¤]¤£¼vÅT¬yµ{
+                    // è¿½è¹¤å¤±æ•—ä¹Ÿä¸å½±éŸ¿æµç¨‹
                 }
             }
         }
 
         /// <summary>
-        /// Àò¨ú³s±µ¦À²Î­p¸ê°T (Get Connection Pool Statistics)
+        /// ç²å–é€£æ¥æ± çµ±è¨ˆè³‡è¨Š (Get Connection Pool Statistics)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ºÊ±±³s±µ¦Àªºª¬ºA«Ü­«­n¡C
-        /// ³o­Ó¤èªkªğ¦^³s±µ¦Àªº²Î­p¸ê®Æ¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// ç›£æ§é€£æ¥æ± çš„ç‹€æ…‹å¾ˆé‡è¦ã€‚
+        /// é€™å€‹æ–¹æ³•è¿”å›é€£æ¥æ± çš„çµ±è¨ˆè³‡æ–™ã€‚
         /// 
-        /// ²Î­p¸ê°T¥]¬A¡G
-        /// - Á`³s±µ¼Æ
-        /// - ¬¡ÅD³s±µ¼Æ
-        /// - ¶¢¸m³s±µ¼Æ
-        /// - µ¥«İ½Ğ¨D¼Æ
-        /// - ¨ú±o/ÄÀ©ñ­p¼Æ
-        /// - ¶W®É©MÅçÃÒ¥¢±Ñ­p¼Æ
+        /// çµ±è¨ˆè³‡è¨ŠåŒ…æ‹¬ï¼š
+        /// - ç¸½é€£æ¥æ•¸
+        /// - æ´»èºé€£æ¥æ•¸
+        /// - é–’ç½®é€£æ¥æ•¸
+        /// - ç­‰å¾…è«‹æ±‚æ•¸
+        /// - å–å¾—/é‡‹æ”¾è¨ˆæ•¸
+        /// - è¶…æ™‚å’Œé©—è­‰å¤±æ•—è¨ˆæ•¸
         /// 
-        /// ¬°¤°»ò»İ­n¡H
-        /// - ©Ê¯àºÊ±±¡Gµo²{³s±µ¦À°İÃD
-        /// - ®e¶q³W¹º¡G¨M©w¬O§_»İ­n¼W¥[³s±µ¼Æ
-        /// - °İÃD¶EÂ_¡G°lÂÜ³s±µ¨Ï¥Î¼Ò¦¡
+        /// ç‚ºä»€éº¼éœ€è¦ï¼Ÿ
+        /// - æ€§èƒ½ç›£æ§ï¼šç™¼ç¾é€£æ¥æ± å•é¡Œ
+        /// - å®¹é‡è¦åŠƒï¼šæ±ºå®šæ˜¯å¦éœ€è¦å¢åŠ é€£æ¥æ•¸
+        /// - å•é¡Œè¨ºæ–·ï¼šè¿½è¹¤é€£æ¥ä½¿ç”¨æ¨¡å¼
         /// </summary>
         protected ConnectionPoolStats GetConnectionPoolStats()
         {
@@ -1130,9 +1130,9 @@ namespace ChurchReport.Controllers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetConnectionPoolStats] Àò¨ú²Î­p¸ê°T¥¢±Ñ: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[GetConnectionPoolStats] ç²å–çµ±è¨ˆè³‡è¨Šå¤±æ•—: {ex.Message}");
                 
-                // ªğ¦^ªÅ²Î­p¸ê°T
+                // è¿”å›ç©ºçµ±è¨ˆè³‡è¨Š
                 return new ConnectionPoolStats
                 {
                     TotalConnections = 0,
@@ -1149,33 +1149,33 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¸ê·½ÄÀ©ñ (Resource Disposal)
+        #region è³‡æºé‡‹æ”¾ (Resource Disposal)
 
         /// <summary>
-        /// ÄÀ©ñ¸ê·½ (Dispose Resources)
+        /// é‡‹æ”¾è³‡æº (Dispose Resources)
         /// 
-        /// ±Ğ¾Ç»¡©ú¡G
-        /// ¹ê²{ IDisposable ¤¶­±¬O¨}¦nªº¹ê°È¡C
-        /// ³o­Ó¤èªk¦bª«¥ó³Q¾P·´®É¦Û°Ê©I¥s¡C
+        /// æ•™å­¸èªªæ˜ï¼š
+        /// å¯¦ç¾ IDisposable ä»‹é¢æ˜¯è‰¯å¥½çš„å¯¦å‹™ã€‚
+        /// é€™å€‹æ–¹æ³•åœ¨ç‰©ä»¶è¢«éŠ·æ¯€æ™‚è‡ªå‹•å‘¼å«ã€‚
         /// 
-        /// ÄÀ©ñªº¸ê·½¡G
-        /// - ToolUtility¡G¤u¨ãÃş§Oªº¸ê·½
-        /// - °òÃş¸ê·½¡G©I¥s Controller ªº Dispose
+        /// é‡‹æ”¾çš„è³‡æºï¼š
+        /// - ToolUtilityï¼šå·¥å…·é¡åˆ¥çš„è³‡æº
+        /// - åŸºé¡è³‡æºï¼šå‘¼å« Controller çš„ Dispose
         /// 
-        /// ¬°¤°»ò­«­n¡H
-        /// - ¨¾¤î¸ê·½¬ªº|
-        /// - ½T«O³s±µ¥¿½TÃö³¬
-        /// - ¨t²Î¸ê·½±o¨ì¦³®Ä§Q¥Î
+        /// ç‚ºä»€éº¼é‡è¦ï¼Ÿ
+        /// - é˜²æ­¢è³‡æºæ´©æ¼
+        /// - ç¢ºä¿é€£æ¥æ­£ç¢ºé—œé–‰
+        /// - ç³»çµ±è³‡æºå¾—åˆ°æœ‰æ•ˆåˆ©ç”¨
         /// 
-        /// ª`·N¡G³o­Ó¤èªk·|³Q©U§£¦^¦¬¾¹¦Û°Ê©I¥s¡A
-        /// ©ÎªÌ¥i¥H¤â°Ê©I¥s using »y¥y¡C
+        /// æ³¨æ„ï¼šé€™å€‹æ–¹æ³•æœƒè¢«åƒåœ¾å›æ”¶å™¨è‡ªå‹•å‘¼å«ï¼Œ
+        /// æˆ–è€…å¯ä»¥æ‰‹å‹•å‘¼å« using èªå¥ã€‚
         /// </summary>
         public new void Dispose()
         {
-            // ÄÀ©ñ¤u¨ãÃş§O¸ê·½
+            // é‡‹æ”¾å·¥å…·é¡åˆ¥è³‡æº
             ToolUtility?.Dispose();
 
-            // ©I¥s°òÂ¦Ãş§Oªº Dispose
+            // å‘¼å«åŸºç¤é¡åˆ¥çš„ Dispose
             base.Dispose();
         }
 

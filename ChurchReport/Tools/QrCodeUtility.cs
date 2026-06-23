@@ -148,19 +148,19 @@ namespace ChurchReport.Tools
         {
             try
             {
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "003 : 好牧人: 資訊 => " + DisplayName + "，" + UserName);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "003 : 行道會聖谷教會: 資訊 => " + DisplayName + "，" + UserName);
 
                 m_UserLineId = UserLineId;
 
                 m_Contact = m_ToolUtilityClass.RetrieveContactEntityByLineUserId(UserLineId);
                 if (m_Contact == null)
                 {
-                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入好牧人的 Line@";
+                    OnboardType = "錯誤 : " + DisplayName + "還沒有加入行道會聖谷教會的 Line@";
                     return;
                 }
 
                 m_UserName = UserName = m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "004 : 好牧人: 資訊 => " + m_UserName);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "004 : 行道會聖谷教會: 資訊 => " + m_UserName);
 
                 string[] arr = QrCodeIdString.Split('_');
                 Guid aGuid = new Guid(arr[0]);
@@ -172,7 +172,7 @@ namespace ChurchReport.Tools
                 if (!m_ClassIndex.Contains("enroll"))
                 {
                     m_OnboardType = arr[2];
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "005 : 好牧人: 資訊 => " + m_OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "005 : 行道會聖谷教會: 資訊 => " + m_OnboardType);
 
                     SigningLesson(m_Lesson, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType);
 
@@ -200,7 +200,7 @@ namespace ChurchReport.Tools
             try
             {
                 System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] >>> SigningLesson 開始 - Line 177");
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "006 : 好牧人: 資訊 => " + m_OnboardType);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "006 : 行道會聖谷教會: 資訊 => " + m_OnboardType);
 
                 EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.RetrieveStorLessonsByFetchXml(LessonName, aLesson.Id.ToString(), UserName, UserId);
                 System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] 查詢到 {aStorLessonsEntityCollection.Entities.Count} 筆課程記錄");
@@ -208,21 +208,21 @@ namespace ChurchReport.Tools
                 if (aStorLessonsEntityCollection.Entities.Count > 0)
                 {
                     Entity retrievedStorLessons = m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsEntityCollection.Entities[0].Id);
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "007 : 好牧人: 資訊 => SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );");
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "007 : 行道會聖谷教會: 資訊 => SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );");
 
                     System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] >>> 準備調用 SigningProcess - Line 182 前");
                     SigningProcess(retrievedStorLessons, ClassIndex, OnboardType);
                     System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] <<< SigningProcess 返回 - Line 182 後");
 
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "008 : 好牧人: 資訊 => " + m_OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "008 : 行道會聖谷教會: 資訊 => " + m_OnboardType);
                     return true;
                 }
 
-                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "009 : 好牧人: 資訊 => " + m_OnboardType);
+                m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "009 : 行道會聖谷教會: 資訊 => " + m_OnboardType);
 
                 if (m_ClassIndex.Contains("enroll"))
                 {
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "010 : 好牧人: 資訊 => " + m_OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "010 : 行道會聖谷教會: 資訊 => " + m_OnboardType);
 
                     Entity createdStorLessons = m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", CreateNewStorLesson(m_Contact, ref aLesson));
 
@@ -232,7 +232,7 @@ namespace ChurchReport.Tools
                     }
 
                     SigningProcess(createdStorLessons, ClassIndex, OnboardType);
-                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "011 : 好牧人: 資訊 => " + m_OnboardType);
+                    m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "011 : 行道會聖谷教會: 資訊 => " + m_OnboardType);
                 }
                 else
                 {

@@ -216,7 +216,7 @@ namespace ChurchReport.WebServiceConnector
             // 委身類型設定為新朋友
 
 
-            // 好牧人牧養新朋友稱呼代碼，跟台中思恩堂不一樣
+            // 行道會聖谷教會牧養新朋友稱呼代碼，跟台中思恩堂不一樣
             //台中思恩堂
             if (aListEntityId != Guid.Empty)
             {
@@ -262,7 +262,7 @@ namespace ChurchReport.WebServiceConnector
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000000);
                 }
             }
-            // 好牧人
+            // 行道會聖谷教會
             //this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "customertypecode", 100000009);
 
             // 生日
@@ -283,7 +283,7 @@ namespace ChurchReport.WebServiceConnector
             { this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 200001); }
             else { }
 
-            // 好牧人性別值，跟好牧人不一樣
+            // 行道會聖谷教會性別值，跟行道會聖谷教會不一樣
             //if (aNewContact.Gender)
             //{ this.m_ToolUtilityClass.SetOptionSetAttribute(ref aNewContactEntity, "gendercode", 100000001); }
             //else
@@ -469,9 +469,9 @@ namespace ChurchReport.WebServiceConnector
                         Entity aNewContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", NewContactEntityId);
                         EntityReference aListEntityReference = new EntityReference("list", aListEntity.Id);
 
-                        // 好牧人
+                        // 行道會聖谷教會
                         //this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_cell_list_contact", ref aListEntityReference);
-                        // 好牧人
+                        // 行道會聖谷教會
                         this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aNewContactEntity, "new_list_contact", ref aListEntityReference);
 
                         this.m_ToolUtilityClass.UpdateEntity(ref aNewContactEntity);
@@ -700,7 +700,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         // 委身類型客製化，委身類型客製化
-        //好牧人
+        //行道會聖谷教會
         // 委身類型客製化
         // ✅ 改為使用 OptionSetMetadataService 動態查詢
         private String ConvertIndexToIdentity(int Identity)
@@ -1771,11 +1771,11 @@ namespace ChurchReport.WebServiceConnector
                 #endregion
                 #region 設定附註或是代禱事項
 
-                // 好牧人
+                // 行道會聖谷教會
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", aMemberInfomation.Note);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.Note);
 
-                // 好牧人
+                // 行道會聖谷教會
                 //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_memo", aMemberInfomation.Note);
                 #endregion
                 #region// 新人跟進
@@ -2001,7 +2001,7 @@ namespace ChurchReport.WebServiceConnector
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 //OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
 
-                // 如果是新朋友或是未入組則不列入累積，好牧人
+                // 如果是新朋友或是未入組則不列入累積，行道會聖谷教會
                 if (aCustomerTypeCodeValue != 100000004 && aCustomerTypeCodeValue != 100000000 && aCustomerTypeCodeValue != 100000007 && aCustomerTypeCodeValue != EMPTY_VALUE)
                 {
                     return true;
@@ -2012,7 +2012,7 @@ namespace ChurchReport.WebServiceConnector
                 }
 
 
-                // 如果是新朋友或是未入組則不列入累積，好牧人
+                // 如果是新朋友或是未入組則不列入累積，行道會聖谷教會
                 // 10.不穩定組員   =   100,000,008
                 // 11.新朋友       =   100,000,009
                 // 12.未入組       =   100,000,010

@@ -364,7 +364,7 @@ namespace ChurchReport.Tools
                             Entity aStorLessons = this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsId);
 
                             #region 報名狀態
-                            // 有審核的教會=>報名成功:好牧人
+                            // 有審核的教會=>報名成功:行道會聖谷教會
                             this.m_ToolUtilityClass.SetOptionSetAttribute(ref aStorLessons, "new_enroll_status", 100000008);
                             #endregion
 

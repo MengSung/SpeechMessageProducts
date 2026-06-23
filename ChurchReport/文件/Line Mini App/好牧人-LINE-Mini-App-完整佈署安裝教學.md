@@ -1,8 +1,8 @@
-# 🐑 好牧人 LINE Mini App — 完整佈署安裝教學（超詳細圖解版）
+# 🐑 行道會聖谷教會 LINE Mini App — 完整佈署安裝教學（超詳細圖解版）
 ### LINE Mini App 大白癡專用 — 每一步都有截圖位置說明、常見坑洞提醒
 
 > **對象**：完全不懂 LINE Mini App 的開發者（自稱大白癡也沒問題 🙌）  
-> **專案**：ChurchReport 好牧人教會管理系統  
+> **專案**：ChurchReport 行道會聖谷教會教會管理系統  
 > **技術棧**：ASP.NET Core (.NET 10) + DevExtreme 21.2.7 + jQuery + LIFF SDK 2.x  
 > **伺服器**：`jesus.speechmessage.com.tw:807`  
 > **更新日期**：2025 年 7 月
@@ -24,15 +24,15 @@
 | Developing LIFF ID | `2009427707-Fi5L5blD` |
 | Review LIFF ID | `2009427708-GToVLqgV` |
 | Published LIFF ID | `2009427709-PTH3dfeP` |
-| Channel name | `好牧人` |
-| Channel description | `好牧人MINI` |
+| Channel name | `行道會聖谷教會` |
+| Channel description | `行道會聖谷教會MINI` |
 | Email address | `mengsunghu@gmail.com` |
 
 ### LINE MINI App Console 欄位請這樣填
 
 1. `Basic settings`：
-   - `Channel name`：`好牧人`
-   - `Channel description`：`好牧人MINI`
+   - `Channel name`：`行道會聖谷教會`
+   - `Channel description`：`行道會聖谷教會MINI`
    - `Email address`：`mengsunghu@gmail.com`
    - `Privacy policy URL`：`https://jesus.speechmessage.com.tw:807/Privacy`
    - `Terms of use URL`：可先留空
@@ -59,7 +59,7 @@
 
 | 章節 | 內容 | 預估時間 |
 |:----:|------|:-------:|
-| [零](#第零章好牧人現在的狀態你不用從零開始) | 好牧人現在的狀態（你不用從零開始！） | 5 分鐘閱讀 |
+| [零](#第零章行道會聖谷教會現在的狀態你不用從零開始) | 行道會聖谷教會現在的狀態（你不用從零開始！） | 5 分鐘閱讀 |
 | [一](#第一章line-mini-app-到底是什麼白話文版) | LINE Mini App 到底是什麼？（白話文版） | 10 分鐘閱讀 |
 | [二](#第二章向-line-taiwan-申請開發許可) | 向 LINE Taiwan 申請開發許可 | 30 分鐘操作 + 1-4 週等待 |
 | [三](#第三章在-line-developers-console-建立-mini-app-channel) | 在 LINE Developers Console 建立 Mini App Channel | 30 分鐘操作 |
@@ -72,11 +72,11 @@
 | [十](#第十章審核通過正式上線) | 審核通過 → 正式上線 🎉 | 15 分鐘操作 |
 | [附錄A](#附錄a完整問題排查手冊遇到問題看這裡) | 完整問題排查手冊（遇到問題看這裡） | 參考用 |
 | [附錄B](#附錄b名詞對照表) | 名詞對照表 | 參考用 |
-| [附錄C](#附錄c好牧人專案程式碼與-mini-app-的對應關係) | 好牧人程式碼與 Mini App 的對應關係 | 參考用 |
+| [附錄C](#附錄c行道會聖谷教會專案程式碼與-mini-app-的對應關係) | 行道會聖谷教會程式碼與 Mini App 的對應關係 | 參考用 |
 
 ---
 
-## 第零章：好牧人現在的狀態（你不用從零開始！）
+## 第零章：行道會聖谷教會現在的狀態（你不用從零開始！）
 
 ### 0.1 程式碼部分已經全部完成 ✅
 
@@ -111,7 +111,7 @@
 ⬜ 步驟 6：測試 → 送審 → 上線                   ← 用手機測試後送審
 ```
 
-### 0.3 為什麼好牧人轉換特別容易？
+### 0.3 為什麼行道會聖谷教會轉換特別容易？
 
 ```
 原因：我們已經整合了 LIFF SDK！
@@ -157,14 +157,14 @@
   │  │  LINE App                  │  │
   │  │                            │  │
   │  │  ┌──────────────────────┐  │  │
-  │  │  │  好牧人 Mini App     │  │  │  ← 這就是 LINE Mini App
+  │  │  │  行道會聖谷教會 Mini App     │  │  │  ← 這就是 LINE Mini App
   │  │  │                      │  │  │     它跑在 LINE 裡面
   │  │  │  ┌────────────────┐  │  │  │
   │  │  │  │ LINE Header    │  │  │  │  ← LINE 自動加的頂部列
   │  │  │  ├────────────────┤  │  │  │
   │  │  │  │                │  │  │  │
   │  │  │  │  你的網頁      │  │  │  │  ← 這才是你寫的東西
-  │  │  │  │  (好牧人)      │  │  │  │     就是 LineIdLoginView.cshtml
+  │  │  │  │  (行道會聖谷教會)      │  │  │  │     就是 LineIdLoginView.cshtml
   │  │  │  │                │  │  │  │
   │  │  │  ├────────────────┤  │  │  │
   │  │  │  │ LINE Footer    │  │  │  │  ← LINE 自動加的底部列
@@ -186,8 +186,8 @@
   缺點：只能透過連結進入，沒有搜尋、沒有主畫面捷徑
 
 【轉換後】Mini App 的方式：
-  教友在 LINE 搜尋「好牧人」→ 直接開啟 → 自動登入 → 使用 ✅
-  教友在 LINE 首頁 → 看到好牧人圖示 → 點一下就開啟 ✅
+  教友在 LINE 搜尋「行道會聖谷教會」→ 直接開啟 → 自動登入 → 使用 ✅
+  教友在 LINE 首頁 → 看到行道會聖谷教會圖示 → 點一下就開啟 ✅
   教友加捷徑到手機桌面 → 像原生 App 一樣使用 ✅
   教友收到 Service Message 推播通知 → 點擊直接開啟 ✅
 ```
@@ -237,7 +237,7 @@ LINE Mini App Channel 建好後，LINE 會自動幫你建 3 個環境：
   現在 ──────► 開發測試 ──────► 送審 ──────► 上線
               Developing        Review       Published
 
-  好牧人的情況：
+  行道會聖谷教會的情況：
     因為只有一台伺服器，三個環境都指向同一台
     差別只在 URL 末尾的 LIFF ID 不同
 ```
@@ -297,7 +297,7 @@ LINE Mini App Channel 建好後，LINE 會自動幫你建 3 個環境：
 |------|--------|-------------|
 | **公司/組織名稱** | `音訊科技有限公司` | 你的公司登記名稱 |
 | **統一編號** | `13054485` | appsettings.json 中 ChurchInfo:TaxId 的值 |
-| **服務名稱** | `好牧人教會管理系統` | 教友看到的 Mini App 名稱 |
+| **服務名稱** | `行道會聖谷教會教會管理系統` | 教友看到的 Mini App 名稱 |
 | **服務說明** | （見下方完整範文） | 越詳細越好，LINE 會看這個 |
 | **預期上線時間** | `2025 年 9 月`（或更晚） | 留多一點時間，不要太趕 |
 | **聯絡人姓名** | （你的本名） | LINE 會用這個名字聯絡你 |
@@ -310,7 +310,7 @@ LINE Mini App Channel 建好後，LINE 會自動幫你建 3 個環境：
 #### 📄 服務說明範文（可直接複製貼上）
 
 ```
-好牧人（ChurchReport）是一個教會會友管理系統，主要服務對象為台灣各教會會友。
+行道會聖谷教會（ChurchReport）是一個教會會友管理系統，主要服務對象為台灣各教會會友。
 
 【主要功能】
 1. LINE 帳號快速登入：會友透過 LINE LIFF SDK 登入，無須額外帳號密碼
@@ -341,7 +341,7 @@ LINE Mini App Channel 建好後，LINE 會自動幫你建 3 個環境：
 
 【申請原因】
 希望透過 LINE Mini App 讓教友有更好的使用體驗，包括：
-- LINE 搜尋直接找到「好牧人」
+- LINE 搜尋直接找到「行道會聖谷教會」
 - 主畫面捷徑，像原生 App 一樣方便
 - Service Message 發送聚會提醒、奉獻感謝通知
 ```
@@ -507,8 +507,8 @@ LINE Mini App Channel 建好後，LINE 會自動幫你建 3 個環境：
 |---|---------|--------|-------------|
 | 1 | **Region** | 下拉選 `Taiwan` | — |
 | 2 | **Channel icon** | 點「Upload」上傳圖片<br>（還沒做好可以先跳過，之後補） | 搜尋結果、授權畫面、分享卡片 |
-| 3 | **Channel name** | 輸入 `好牧人` | 搜尋結果、授權畫面<br>⚠️ **不能包含 "LINE"** |
-| 4 | **Channel description** | 輸入：<br>`好牧人教會管理系統，提供小組牧養回報、線上奉獻、會友管理等服務` | 授權畫面 |
+| 3 | **Channel name** | 輸入 `行道會聖谷教會` | 搜尋結果、授權畫面<br>⚠️ **不能包含 "LINE"** |
+| 4 | **Channel description** | 輸入：<br>`行道會聖谷教會教會管理系統，提供小組牧養回報、線上奉獻、會友管理等服務` | 授權畫面 |
 | 5 | **Email address** | 輸入 `mengsunghu@gmail.com` | — |
 | 6 | **Privacy policy URL** | 輸入：<br>`https://jesus.speechmessage.com.tw:807/Privacy` | 授權畫面 |
 | 7 | **Terms of use URL** | 先留空（非必填） | 授權畫面 |
@@ -516,11 +516,11 @@ LINE Mini App Channel 建好後，LINE 會自動幫你建 3 個環境：
 
 ```
 ⚠️ Channel name 規則：
-  ✅ 「好牧人」           → OK
-  ✅ 「好牧人教會系統」    → OK
-  ❌ 「好牧人 LINE」       → 不行！包含 "LINE" 字樣
-  ❌ 「LINE 好牧人」       → 不行！
-  ❌ 「好牧人Line系統」    → 不行！大小寫都不行
+  ✅ 「行道會聖谷教會」           → OK
+  ✅ 「行道會聖谷教會教會系統」    → OK
+  ❌ 「行道會聖谷教會 LINE」       → 不行！包含 "LINE" 字樣
+  ❌ 「LINE 行道會聖谷教會」       → 不行！
+  ❌ 「行道會聖谷教會Line系統」    → 不行！大小寫都不行
 ```
 
 #### Step 5：同意條款
@@ -753,7 +753,7 @@ Published LIFF ID:   2012345678-MmNnOoPp
 
 ```
 告訴 LINE：
-  「教友用 LINE 打開好牧人 Mini App 時，
+  「教友用 LINE 打開行道會聖谷教會 Mini App 時，
     請載入這個網頁 → https://jesus.speechmessage.com.tw:807/Authentication/LineIdLoginView/{LIFF_ID}」
 
 這個就是 Endpoint URL。
@@ -763,7 +763,7 @@ Published LIFF ID:   2012345678-MmNnOoPp
 ### 5.2 為什麼 URL 要帶 LIFF ID？
 
 ```
-因為好牧人的 LineIdLoginView Action 是這樣寫的：
+因為行道會聖谷教會的 LineIdLoginView Action 是這樣寫的：
 
   [Route("/Authentication/LineIdLoginView/{LineIdLoginViewPatameter}")]
   public IActionResult LineIdLoginView(string LineIdLoginViewPatameter)
@@ -791,7 +791,7 @@ Published LIFF ID:   2012345678-MmNnOoPp
    ↓
    https://developers.line.biz/console/
    ↓
-   選擇你的 Provider → 選擇好牧人 Mini App Channel
+   選擇你的 Provider → 選擇行道會聖谷教會 Mini App Channel
    ↓
    點擊「Web app settings」分頁
 ```
@@ -858,7 +858,7 @@ https://jesus.speechmessage.com.tw:807/Authentication/LineIdLoginView/{你的Pub
    □ 1-2 位教會同工（幫忙測試）
 
 💡 怎麼找自己的 LINE User ID？
-   方法 1：你之前用好牧人 LIFF 登入時，後端 Console 日誌有印出 userId
+   方法 1：你之前用行道會聖谷教會 LIFF 登入時，後端 Console 日誌有印出 userId
    方法 2：等 Mini App 跑起來後，看瀏覽器 F12 → Console 裡的
           [LINE Profile] { UserId: "Uxxxxxxxxx..." }
 ```
@@ -913,11 +913,11 @@ https://jesus.speechmessage.com.tw:807/Authentication/LineIdLoginView/{你的Pub
   2. 點「建立設計」→「自訂大小」→ 500 × 500 px
   3. 左邊「背景」→ 輸入色碼 #4864b8
   4. 左邊「上傳」→ 上傳 ChurchLogo.png → 拖到中央
-  5. 可選：加「好牧人」文字
+  5. 可選：加「行道會聖谷教會」文字
   6. 右上角「下載」→ PNG → good-shepherd-icon.png
 
 方案 C：請設計師
-  規格：500×500px PNG，品牌色 #4864b8，教會名「好牧人」
+  規格：500×500px PNG，品牌色 #4864b8，教會名「行道會聖谷教會」
 ```
 
 #### 上傳到 Console
@@ -1016,7 +1016,7 @@ https://jesus.speechmessage.com.tw:807/Authentication/LineIdLoginView/{你的Pub
 驗證清單：
 
   □ https://jesus.speechmessage.com.tw:807/Privacy
-    → 要看到「好牧人 隱私政策」頁面
+    → 要看到「行道會聖谷教會 隱私政策」頁面
 
   □ https://jesus.speechmessage.com.tw:807/loading.gif
     → 要看到載入動畫圖片
@@ -1078,10 +1078,10 @@ https://jesus.speechmessage.com.tw:807/Authentication/LineIdLoginView/{你的Pub
         → 如果看到白屏或錯誤 → 看附錄A「問題 1」
         → ✅ 看到 loading 圖片
 
-  □ A2. loading 結束後，是否看到好牧人登入頁面？
+  □ A2. loading 結束後，是否看到行道會聖谷教會登入頁面？
         → 應該看到：
            • Hero 圖片（教會照片輪播）
-           • 「好牧人」標題
+           • 「行道會聖谷教會」標題
            • 經文「我們愛，因為神先愛我們」
            • 聯絡資訊卡片
         → ✅ 頁面正常顯示
@@ -1174,7 +1174,7 @@ https://jesus.speechmessage.com.tw:807/Authentication/LineIdLoginView/{你的Pub
 
   □ Developing 環境測試全部通過（第八章）
   □ Channel Icon 已上傳（500×500 PNG）
-  □ Channel name = "好牧人"（不含 "LINE"）
+  □ Channel name = "行道會聖谷教會"（不含 "LINE"）
   □ Channel description 已填寫
   □ Email address 已填寫
   □ Privacy policy URL 已填寫且可存取
@@ -1212,7 +1212,7 @@ https://jesus.speechmessage.com.tw:807/Authentication/LineIdLoginView/{你的Pub
 
 ```
 【服務說明】
-好牧人是一個教會會友管理系統，提供以下功能：
+行道會聖谷教會是一個教會會友管理系統，提供以下功能：
 1. LINE 帳號綁定與自動登入
 2. 小組牧養回報（出席、探訪、代禱事項）
 3. 線上奉獻（支援永豐銀行 QPay / 高鉅科技 MyPay / 台新銀行 TSPG）
@@ -1342,14 +1342,14 @@ LINE 會寄 Email 告訴你審核通過了！🎉
    在 LINE 群組或教會公告中發送：
 
    ─────────────────────────────────────
-   📢 好消息！好牧人已升級為 LINE Mini App！
+   📢 好消息！行道會聖谷教會已升級為 LINE Mini App！
 
-   現在可以在 LINE 中直接使用好牧人系統：
+   現在可以在 LINE 中直接使用行道會聖谷教會系統：
    
    🔗 點擊開啟：https://miniapp.line.me/{Published_LIFF_ID}
    
    功能不變，但使用更方便：
-   ✅ 在 LINE 中直接搜尋「好牧人」
+   ✅ 在 LINE 中直接搜尋「行道會聖谷教會」
    ✅ 可以加到手機主畫面，像 App 一樣使用
    ✅ 自動 LINE 登入，不用輸入帳號密碼
    ─────────────────────────────────────
@@ -1452,11 +1452,11 @@ LINE 會寄 Email 告訴你審核通過了！🎉
 
 ## 附錄B：名詞對照表
 
-| 名詞 | 白話文解釋 | 在好牧人系統的對應 |
+| 名詞 | 白話文解釋 | 在行道會聖谷教會系統的對應 |
 |------|----------|-------------------|
 | **LIFF** | LINE 前端框架，讓網頁可以跟 LINE 互動 | 我們已經在用了（LineIdLoginView.cshtml 第 136 行） |
 | **LIFF ID** | 一組辨識碼，格式像 `1234567890-AbCdEfGh` | appsettings.json 裡的各種 LiffId |
-| **LIFF Browser** | LINE App 裡面的內建瀏覽器 | 教友用 LINE 打開好牧人時，就是跑在這裡面 |
+| **LIFF Browser** | LINE App 裡面的內建瀏覽器 | 教友用 LINE 打開行道會聖谷教會時，就是跑在這裡面 |
 | **Channel** | LINE 的服務設定單位 | 我們有兩個：LINE Login Channel + Mini App Channel |
 | **Provider** | Channel 的上層資料夾，同 Provider → 同 userId | ⚠️ 必須和 LINE Login 在同一個 |
 | **Endpoint URL** | LINE 打開你的 Mini App 時，實際載入的網頁網址 | 指向 LineIdLoginView |
@@ -1469,7 +1469,7 @@ LINE 會寄 Email 告訴你審核通過了！🎉
 
 ---
 
-## 附錄C：好牧人專案程式碼與 Mini App 的對應關係
+## 附錄C：行道會聖谷教會專案程式碼與 Mini App 的對應關係
 
 ### C.1 LIFF 初始化流程（程式碼在哪裡）
 
@@ -1566,5 +1566,5 @@ Week 2-4：
 
 *文件版本：v1.0*  
 *建立日期：2025 年 7 月*  
-*專案：ChurchReport 好牧人教會管理系統*  
+*專案：ChurchReport 行道會聖谷教會教會管理系統*  
 *分支：Jesus_5.0.4.LineMiniApp*

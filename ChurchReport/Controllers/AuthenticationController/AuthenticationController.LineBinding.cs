@@ -336,7 +336,7 @@ namespace ChurchReport.Controllers
             }
 
             if (newContactId != Guid.Empty)
-                return Json(new { status = "1", message = $"註冊成功！歡迎 {model.FullName} 加入好牧人" });
+                return Json(new { status = "1", message = $"註冊成功！歡迎 {model.FullName} 加入行道會聖谷教會" });
 
             return Json(new { status = "0", message = "註冊失敗，請稍後再試" });
         }
