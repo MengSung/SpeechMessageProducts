@@ -826,7 +826,7 @@ namespace ChurchReport
             // ✅ LINE Mini App 環境偵測中間件
             // ========================================
             // 偵測請求是否來自 LINE LIFF Browser，結果存入 HttpContext.Items["IsLineMiniApp"]
-            // 📖 詳細說明：文件\Line Mini App\行道會聖谷教會-LINE-Mini-App-導入佈署步驟.md 第八章
+            // 📖 詳細說明：文件\Line Mini App\好牧人-LINE-Mini-App-導入佈署步驟.md 第八章
             app.UseMiddleware<ChurchReport.Middleware.MiniAppDetectionMiddleware>();
             Console.WriteLine("[Startup] ✅ LINE Mini App 環境偵測中間件已啟用");
 

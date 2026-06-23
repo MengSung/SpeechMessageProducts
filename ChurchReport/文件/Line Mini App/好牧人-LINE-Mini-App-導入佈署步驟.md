@@ -1,8 +1,8 @@
-# 🐑 行道會聖谷教會 ChurchReport — LINE Mini App 導入佈署步驟
+# 🐑 好牧人 ChurchReport — LINE Mini App 導入佈署步驟
 ### 專案專屬完整教學（從現有 ASP.NET Core Web App 轉換到 LINE Mini App）
 
 > **適用對象**：完全沒有 LINE Mini App 開發經驗的新手  
-> **專案名稱**：ChurchReport（行道會聖谷教會教會管理系統）  
+> **專案名稱**：ChurchReport（好牧人教會管理系統）  
 > **技術棧**：ASP.NET Core (.NET 10) + DevExtreme 21.2.7 + jQuery + LIFF SDK  
 > **伺服器**：`jesus.speechmessage.com.tw` (Port 807/700)  
 > **更新日期**：2025 年 7 月
@@ -29,14 +29,14 @@
 | 11 | DediationLineLoginView viewport-fit + Safe Area CSS | `Views/Dedication/DediationLineLoginView.cshtml` | ✅ 已完成 |
 | 12 | DedicationFeeView viewport-fit + Safe Area CSS | `Views/Dedication/DedicationFeeView.cshtml` | ✅ 已完成 |
 | 13 | _Layout viewport-fit + Safe Area CSS | `Views/Shared/_Layout.cshtml` | ✅ 已完成 |
-| 14 | 向 LINE Taiwan 申請 Mini App 開發許可 | 📖 [手把手教學 → 步驟一](行道會聖谷教會-LINE-Mini-App-手把手實作教學.md#步驟一向-line-taiwan-申請-mini-app-開發許可) | ⬜ 待執行 |
-| 15 | 在 Console 建立 Mini App Channel | 📖 [手把手教學 → 步驟二](行道會聖谷教會-LINE-Mini-App-手把手實作教學.md#步驟二在-line-developers-console-建立-mini-app-channel) | ⬜ 待執行 |
-| 16 | 填入 LIFF ID 到 appsettings.json | 📖 [手把手教學 → 步驟三](行道會聖谷教會-LINE-Mini-App-手把手實作教學.md#步驟三把三組-liff-id-填入-appsettingsjson) | ⬜ 待執行 |
-| 17 | 設定 Endpoint URL | 📖 [手把手教學 → 步驟四](行道會聖谷教會-LINE-Mini-App-手把手實作教學.md#步驟四設定三個環境的-endpoint-url) | ⬜ 待執行 |
-| 18 | 準備 loading.gif + Channel Icon | 📖 [手把手教學 → 步驟五](行道會聖谷教會-LINE-Mini-App-手把手實作教學.md#步驟五準備-channel-icon--loadinggif) | ⬜ 待執行 |
-| 19 | 測試 + 送審 + 上線 | 📖 [手把手教學 → 步驟六](行道會聖谷教會-LINE-Mini-App-手把手實作教學.md#步驟六測試--送審--上線) | ⬜ 待執行 |
+| 14 | 向 LINE Taiwan 申請 Mini App 開發許可 | 📖 [手把手教學 → 步驟一](好牧人-LINE-Mini-App-手把手實作教學.md#步驟一向-line-taiwan-申請-mini-app-開發許可) | ⬜ 待執行 |
+| 15 | 在 Console 建立 Mini App Channel | 📖 [手把手教學 → 步驟二](好牧人-LINE-Mini-App-手把手實作教學.md#步驟二在-line-developers-console-建立-mini-app-channel) | ⬜ 待執行 |
+| 16 | 填入 LIFF ID 到 appsettings.json | 📖 [手把手教學 → 步驟三](好牧人-LINE-Mini-App-手把手實作教學.md#步驟三把三組-liff-id-填入-appsettingsjson) | ⬜ 待執行 |
+| 17 | 設定 Endpoint URL | 📖 [手把手教學 → 步驟四](好牧人-LINE-Mini-App-手把手實作教學.md#步驟四設定三個環境的-endpoint-url) | ⬜ 待執行 |
+| 18 | 準備 loading.gif + Channel Icon | 📖 [手把手教學 → 步驟五](好牧人-LINE-Mini-App-手把手實作教學.md#步驟五準備-channel-icon--loadinggif) | ⬜ 待執行 |
+| 19 | 測試 + 送審 + 上線 | 📖 [手把手教學 → 步驟六](好牧人-LINE-Mini-App-手把手實作教學.md#步驟六測試--送審--上線) | ⬜ 待執行 |
 
-> 📖 **人工操作的詳細教學**：請參閱 [行道會聖谷教會-LINE-Mini-App-手把手實作教學.md](行道會聖谷教會-LINE-Mini-App-手把手實作教學.md)
+> 📖 **人工操作的詳細教學**：請參閱 [好牧人-LINE-Mini-App-手把手實作教學.md](好牧人-LINE-Mini-App-手把手實作教學.md)
 
 ---
 
@@ -46,7 +46,7 @@
 |------|------|
 | [第一章](#第一章我們的專案現況分析) | 我們的專案現況分析 |
 | [第二章](#第二章line-mini-app-vs-現有-liff-差異) | LINE Mini App vs 現有 LIFF 差異 |
-| [第三章](#第三章整體架構圖行道會聖谷教會專屬) | 整體架構圖（行道會聖谷教會專屬）|
+| [第三章](#第三章整體架構圖好牧人專屬) | 整體架構圖（好牧人專屬）|
 | [第四章](#第四章需要轉換的頁面清單與對應關係) | 需要轉換的頁面清單與對應關係 |
 | [第五章](#第五章前置準備工作) | 前置準備工作 |
 | [第六章](#第六章在-line-developers-console-建立-mini-app-channel) | 在 LINE Developers Console 建立 Mini App Channel |
@@ -69,7 +69,7 @@
 ### 1.1 目前的技術架構
 
 ```
-行道會聖谷教會 ChurchReport 現有系統：
+好牧人 ChurchReport 現有系統：
 
 ┌─────────────────────────────────────────────────────────────┐
 │  ASP.NET Core (.NET 10) Web Application                      │
@@ -178,14 +178,14 @@
   教友在 LINE 收到連結 → 點開 → 跑 LIFF → 登入 → 使用
 
 轉換後（Mini App）：
-  教友在 LINE 搜尋「行道會聖谷教會」→ 直接開啟 → 自動登入 → 使用 ✅
-  教友在 LINE 首頁 → 看到行道會聖谷教會圖示 → 點一下就開啟 ✅
+  教友在 LINE 搜尋「好牧人」→ 直接開啟 → 自動登入 → 使用 ✅
+  教友在 LINE 首頁 → 看到好牧人圖示 → 點一下就開啟 ✅
   教友加捷徑到手機桌面 → 像原生 App 一樣使用 ✅
 ```
 
 ---
 
-## 第三章：整體架構圖（行道會聖谷教會專屬）
+## 第三章：整體架構圖（好牧人專屬）
 
 ### 3.1 轉換後的完整系統架構
 
@@ -196,7 +196,7 @@
 ║  ┌───────────────────────────────────────────────────────────────────────┐  ║
 ║  │                   LINE Developers Console                             │  ║
 ║  │                                                                       │  ║
-║  │   Provider：行道會聖谷教會 (或音訊科技)                                        │  ║
+║  │   Provider：好牧人 (或音訊科技)                                        │  ║
 ║  │   │                                                                   │  ║
 ║  │   ├── 【既有】LINE Login Channel (ID: 2007621061)                     │  ║
 ║  │   │     └── 用於 Server-side OAuth（電腦版 LINE）                     │  ║
@@ -218,9 +218,9 @@
 ║  │  （教友的手機）       │                                                  ║
 ║  │                      │                                                  ║
 ║  │  ┌────────────────┐  │    入口方式：                                     ║
-║  │  │ LINE MINI App  │  │    • LINE 搜尋「行道會聖谷教會」                         ║
+║  │  │ LINE MINI App  │  │    • LINE 搜尋「好牧人」                         ║
 ║  │  │ ┌────────────┐ │  │    • LINE 首頁推薦                               ║
-║  │  │ │ 行道會聖谷教會     │ │  │    • 好友分享連結                                ║
+║  │  │ │ 好牧人     │ │  │    • 好友分享連結                                ║
 ║  │  │ │ Header     │ │  │    • QR Code 掃描                               ║
 ║  │  │ ├────────────┤ │  │    • 主畫面捷徑 (Add to Home Screen)             ║
 ║  │  │ │            │ │  │                                                  ║
@@ -238,7 +238,7 @@
               │
 ┌─────────────▼────────────────────────────────────────────────────────────┐
 │                                                                           │
-│   行道會聖谷教會 ASP.NET Core 後端伺服器                                           │
+│   好牧人 ASP.NET Core 後端伺服器                                           │
 │   (jesus.speechmessage.com.tw:807)                                        │
 │                                                                           │
 │   ┌───────────────────────────────────────────────────────────────────┐   │
@@ -288,7 +288,7 @@
 ### 3.2 頁面導航流程圖（Mini App 版）
 
 ```
-教友在 LINE 打開行道會聖谷教會 Mini App
+教友在 LINE 打開好牧人 Mini App
                 │
                 ▼
     ┌─────────────────────────┐
@@ -368,7 +368,7 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│               行道會聖谷教會 LINE MINI App Channel（三個環境）                     │
+│               好牧人 LINE MINI App Channel（三個環境）                     │
 │                                                                          │
 │  ┌────────────────────┐  ┌────────────────────┐  ┌───────────────────┐  │
 │  │   Developing        │  │    Review           │  │   Published       │  │
@@ -395,7 +395,7 @@
   │  測試路由         │    │                   │    │   可正式發送          │
   └──────────────────┘    └───────────────────┘    └──────────────────────┘
 
-💡 行道會聖谷教會的情況：
+💡 好牧人的情況：
    因為只有一台伺服器 (jesus.speechmessage.com.tw:807)，
    三個環境可以指向同一台，用不同的 LIFF ID 區分即可。
    在 appsettings.json 中根據環境切換對應的 LIFF ID。
@@ -471,7 +471,7 @@
 2. 點擊「立即申請」或「聯絡我們」
 3. 填寫申請表單：
    - 公司名稱：（你的教會 / 音訊科技）
-   - 服務名稱：行道會聖谷教會教會管理系統
+   - 服務名稱：好牧人教會管理系統
    - 服務說明：教會會友管理、小組牧養回報、線上奉獻
    - 預期上線時間
    - 聯絡人資訊
@@ -500,7 +500,7 @@ curl -I https://jesus.speechmessage.com.tw:807/
 
 ### 5.4 準備 Mini App 圖示
 
-建立行道會聖谷教會 Mini App 的 Channel Icon：
+建立好牧人 Mini App 的 Channel Icon：
 
 ```
 規格要求：
@@ -509,13 +509,13 @@ curl -I https://jesus.speechmessage.com.tw:807/
   │         最小 100 x 100 px
   ├── 不能有透明背景（必須有底色）
   ├── 不能包含 "LINE" 字樣
-  └── 建議使用教會 LOGO 或行道會聖谷教會圖案
+  └── 建議使用教會 LOGO 或好牧人圖案
 
 建議設計：
   ┌──────────────┐
   │  ╭──────╮    │
-  │  │ 🐑   │    │  ← 行道會聖谷教會 LOGO
-  │  │ 行道會聖谷教會│    │
+  │  │ 🐑   │    │  ← 好牧人 LOGO
+  │  │ 好牧人│    │
   │  ╰──────╯    │
   │  #4864b8 底色 │  ← 使用你 CSS 中的品牌色
   └──────────────┘
@@ -543,7 +543,7 @@ LINE 審核要求必須有隱私政策頁面。需要建立一個可公開存取
 建議 URL：https://jesus.speechmessage.com.tw:807/Privacy
 
 內容需包含：
-  ├── 服務名稱（行道會聖谷教會教會管理系統）
+  ├── 服務名稱（好牧人教會管理系統）
   ├── 營運組織（教會名稱 / 統一編號：13054485）
   ├── 蒐集的個人資料類型（LINE 顯示名稱、LINE User ID）
   ├── 資料用途說明
@@ -578,8 +578,8 @@ Step 5：填寫 Channel 資訊：
 |------|---------|
 | **Region** | `Taiwan` |
 | **Channel icon** | 上傳步驟 5.4 準備好的圖示 |
-| **Channel name** | `行道會聖谷教會` ⚠️ 不能包含 "LINE" |
-| **Channel description** | `行道會聖谷教會教會管理系統，提供小組牧養回報、線上奉獻、會友管理等服務` |
+| **Channel name** | `好牧人` ⚠️ 不能包含 "LINE" |
+| **Channel description** | `好牧人教會管理系統，提供小組牧養回報、線上奉獻、會友管理等服務` |
 | **Email address** | `mengsunghu@gmail.com` |
 | **Privacy policy URL** | `https://jesus.speechmessage.com.tw:807/Privacy` |
 | **Terms of use URL** | （選填，可先不填）|
@@ -927,8 +927,8 @@ liff.init({ liffId: '@TempData["Proponent"]' })
     <link href="~/css/mini-app-safe-area.css" rel="stylesheet" />
     
     <link rel="shortcut icon" href="~/favicon.ico" type="image/x-icon">
-    <meta name="description" content="行道會聖谷教會奉獻紀錄查詢">
-    <title>行道會聖谷教會 - 奉獻紀錄</title>
+    <meta name="description" content="好牧人奉獻紀錄查詢">
+    <title>好牧人 - 奉獻紀錄</title>
 </head>
 ```
 
@@ -1064,7 +1064,7 @@ private string GetActiveMiniAppLiffId()
 ┌────────────────────────────────────────┐
 │ ┌────────────────────────────────────┐ │ ← iOS 狀態列 (電池、時間、信號)
 │ │     LINE Mini App Header           │ │ ← LINE 提供的 Header
-│ │  [← 返回]  行道會聖谷教會  [⋮ 選單]        │ │    (約 44-56px 高)
+│ │  [← 返回]  好牧人  [⋮ 選單]        │ │    (約 44-56px 高)
 │ ├────────────────────────────────────┤ │
 │ │                                    │ │
 │ │                                    │ │
@@ -1219,7 +1219,7 @@ Step 4：審核通過 ✅
 Step 5：正式上線 🎉
 ```
 
-### 13.2 行道會聖谷教會的實際部署設定
+### 13.2 好牧人的實際部署設定
 
 因為我們只有一台主要伺服器，三個環境的 Endpoint URL 都指向同一台，  
 差別只在路由參數中的 LIFF ID：
@@ -1262,8 +1262,8 @@ Published:
 
 ```
 【必要條件 - 缺一不可】
-  □ Channel icon 已上傳（500x500 PNG，行道會聖谷教會 LOGO）
-  □ Channel name = "行道會聖谷教會"（不含 "LINE"）
+  □ Channel icon 已上傳（500x500 PNG，好牧人 LOGO）
+  □ Channel name = "好牧人"（不含 "LINE"）
   □ Channel description 清楚說明服務
   □ Privacy policy URL 可公開存取
   □ Review 環境 Endpoint URL 已設定且可存取
@@ -1290,12 +1290,12 @@ Published:
 
 ```
 1. 登入 LINE Developers Console
-2. 進入行道會聖谷教會 Mini App Channel
+2. 進入好牧人 Mini App Channel
 3. 點擊「Submit for review」
 4. 填寫審核說明：
 
    服務說明：
-   行道會聖谷教會是一個教會管理系統，提供會友小組牧養回報、
+   好牧人是一個教會管理系統，提供會友小組牧養回報、
    線上奉獻、個人資料管理等功能。教友可以透過 LINE 登入，
    直接在 LINE 中管理小組事務和進行線上奉獻。
 
@@ -1410,7 +1410,7 @@ Published:
 
 ```
 ═══════════════════════════════════════════════════════
- 行道會聖谷教會 LINE Mini App 導入 - 完整 Checklist
+ 好牧人 LINE Mini App 導入 - 完整 Checklist
 ═══════════════════════════════════════════════════════
 
 Phase 0：申請許可（台灣地區必要）
@@ -1513,6 +1513,6 @@ Phase 6：上線
 
 *文件版本：v1.0*  
 *建立日期：2025 年 7 月*  
-*專案：ChurchReport 行道會聖谷教會教會管理系統*  
+*專案：ChurchReport 好牧人教會管理系統*  
 *分支：Jesus_5.0.4.LineMiniApp*  
 *作者：GitHub Copilot 自動產生，需經開發者確認*
