@@ -1,12 +1,12 @@
 {
   "id": "payment-module-extraction",
-  "title": "抽出共用金流專案",
+  "title": "Extract reusable payment core project",
   "status": "in_progress",
   "complexity": "L+",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "analysis",
-  "nextAction": "釐清 ChurchReport 遷移策略與相容性要求",
+  "currentPhase": "planning",
+  "nextAction": "Review implementation plan before starting code changes",
   "createdAt": "2026-06-25T12:38:10+08:00",
   "branch": "Jesus_5.1.3.RefactorPament"
 }
