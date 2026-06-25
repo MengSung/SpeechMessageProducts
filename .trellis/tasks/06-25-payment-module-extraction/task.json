@@ -3,7 +3,7 @@
   "name": "payment-module-extraction",
   "title": "Extract reusable payment core project",
   "description": "",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -23,7 +23,7 @@
   "relatedFiles": [],
   "notes": "Planning artifacts written to docs/superpowers/plans/2026-06-25-payment-module-extraction.md and .trellis/tasks/06-25-payment-module-extraction/implement.md.",
   "meta": {
-    "currentPhase": "planning",
-    "nextAction": "Review implementation plan before task.py start"
+    "currentPhase": "implementation",
+    "nextAction": "Execute Task 1: create payment core and test project shells"
   }
 }

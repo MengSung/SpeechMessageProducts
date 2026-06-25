@@ -21,8 +21,21 @@
 - Callback URLs are supplied in `PaymentCreateRequest`, not hard-wired into reusable merchant profiles.
 - The core is stateless: it does not store orders, update product records, deduplicate callbacks, or decide product idempotency.
 - Provider diagnostics must be sanitized. Full tokens, signatures, keys, secrets, full card numbers, CVV/CVC, and sensitive personal identifiers must be masked or omitted.
+- Hardcoded production provider credentials and fallback merchant credential tables must not be copied into `SpeechMessage.Payments`; provider credentials must come from named merchant profiles and missing profiles must fail closed.
 - `LinePayCSharp` is out of scope and must remain untouched.
 - Current Codex mode is inline. Do not dispatch implementation or check sub-agents in this session; use inline execution after user approval.
+
+## Pre-Implementation Review Adjustments
+
+The CCG architecture review identified these implementation constraints before coding starts:
+
+- `PaymentCreateResult` must expose one neutral hosted-payment URL field, `PaymentPageUrl`, and one neutral provider reference field, `ProviderOrderRef`.
+- `PaymentQueryRequest` must use `ProviderOrderRef`; QPay terms such as `PaymentToken` remain internal provider vocabulary or HTTP route fields.
+- `PaymentCallbackResult` must carry `ProductOrderId`, `ProviderTransactionId`, optional `Amount`, `Acknowledgement`, `Error`, sanitized `ProviderData`, and sanitized `Diagnostics`.
+- MyPay and TSPG provider migrations are structural rewrites from static appsettings readers into options/DI-driven provider classes.
+- TSPG callback parsing must be rewritten from ASP.NET `HttpRequest` access into the neutral `PaymentCallbackRequest` shape.
+- QPay hardcoded fallback credentials must be replaced by named `Payment:Profiles`; no fallback credential switch may be moved into the reusable core.
+- Task 10 must include `BaseChurchController` and every `QPayProcessor` partial file that references `IPayment`, plus a classification of `QPayCardWebhook` as core provider logic or ChurchReport glue.
 
 ---
 
@@ -399,6 +412,51 @@ public sealed record PaymentCreateRequest
 
 Use equivalent records for `PaymentCreateResult`, `PaymentQueryRequest`, `PaymentStatusResult`, `PaymentCallbackRequest`, and `PaymentCallbackResult`. All result records include `PaymentError Error`, sanitized `ProviderData`, and sanitized `Diagnostics`.
 
+`PaymentCreateResult` includes:
+
+```csharp
+public sealed record PaymentCreateResult
+{
+    public PaymentStatus Status { get; init; } = PaymentStatus.Unknown;
+    public string ProductOrderId { get; init; } = string.Empty;
+    public string ProviderOrderRef { get; init; } = string.Empty;
+    public string PaymentPageUrl { get; init; } = string.Empty;
+    public PaymentError Error { get; init; } = PaymentError.None;
+    public IReadOnlyDictionary<string, string> ProviderData { get; init; } = new Dictionary<string, string>();
+    public IReadOnlyDictionary<string, string> Diagnostics { get; init; } = new Dictionary<string, string>();
+}
+```
+
+`PaymentQueryRequest` uses neutral terminology:
+
+```csharp
+public sealed record PaymentQueryRequest
+{
+    public string ProfileName { get; init; } = string.Empty;
+    public PaymentProviderKind? ProviderHint { get; init; }
+    public string ProductOrderId { get; init; } = string.Empty;
+    public string ProviderOrderRef { get; init; } = string.Empty;
+    public IReadOnlyDictionary<string, string> Metadata { get; init; } = new Dictionary<string, string>();
+}
+```
+
+`PaymentCallbackResult` includes the acknowledgement descriptor and normalized product/provider identifiers:
+
+```csharp
+public sealed record PaymentCallbackResult
+{
+    public PaymentStatus Status { get; init; } = PaymentStatus.Unknown;
+    public string ProductOrderId { get; init; } = string.Empty;
+    public string ProviderTransactionId { get; init; } = string.Empty;
+    public decimal? Amount { get; init; }
+    public string Currency { get; init; } = "TWD";
+    public PaymentCallbackAcknowledgement Acknowledgement { get; init; } = PaymentCallbackAcknowledgement.None;
+    public PaymentError Error { get; init; } = PaymentError.None;
+    public IReadOnlyDictionary<string, string> ProviderData { get; init; } = new Dictionary<string, string>();
+    public IReadOnlyDictionary<string, string> Diagnostics { get; init; } = new Dictionary<string, string>();
+}
+```
+
 - [ ] **Step 5: Add acknowledgement and error helpers**
 
 `PaymentCallbackAcknowledgement` exposes:
@@ -674,6 +732,7 @@ Expected: compile fails because adapter types do not exist.
 Implementation rules:
 
 - `PaymentHttpRequestMapper` reads body once and resets stream position when seekable.
+- `PaymentHttpRequestMapper` or each callback action calls `EnableBuffering()` before reading the body so model binding cannot empty the raw body before mapping.
 - dictionaries flatten multi-value query/form/header values with comma joins.
 - adapters do not verify signatures, parse provider status, or reference provider SDK models.
 - `PaymentAcknowledgementResultMapper` switches only on `PaymentAckKind`.
@@ -916,7 +975,9 @@ Expected: compile fails because Taishin provider types do not exist.
 
 - [ ] **Step 3: Implement Taishin provider**
 
-Move TSPG provider-only models and protocol code into `SpeechMessage.Payments/Providers/Taishin`. Parse callbacks only from `PaymentCallbackRequest.Query`, `Form`, `RawBody`, and `ContentType`. Use DI-managed `HttpClient`.
+Move TSPG provider-only models and protocol code into `SpeechMessage.Payments/Providers/Taishin`. Parse callbacks only from `PaymentCallbackRequest.Query`, `Form`, `Headers`, `RawBody`, and `ContentType`. Use DI-managed `HttpClient`.
+
+Do not move `TSPGWebhookHandler` as-is. Its `HttpRequest`-based parsing path must be rewritten into `TaishinCallbackParser` against `PaymentCallbackRequest` so `SpeechMessage.Payments` has no ASP.NET dependency.
 
 - [ ] **Step 4: Register provider and run tests**
 
@@ -1024,7 +1085,7 @@ Expected: tests pass, build succeeds, commit succeeds.
 Test:
 
 - create payment maps product order id, amount, return URL, backend URL, and metadata into internal QPay request models.
-- query maps `PaymentQueryRequest.PaymentToken` to QPay pay-token query.
+- query maps `PaymentQueryRequest.ProviderOrderRef` to QPay pay-token query internally.
 - successful `QryOrderPay` fixture maps to `PaymentStatus.Succeeded`.
 - declined or incomplete QPay fixture maps to failed or pending following current `QPayPaymentResultHelper`.
 - invalid or missing `ShopNo`/`PayToken` maps to `PaymentErrorKind.CallbackInvalid`.
@@ -1033,6 +1094,8 @@ Test:
 - [ ] **Step 2: Implement Sinopac provider**
 
 Move QPay protocol code into `SpeechMessage.Payments/Providers/Sinopac`. Keep QPay-shaped request and response classes internal. Do not expose `CreOrder`, `QryOrderPay`, or `QryOrderPayReq` in the public gateway contract.
+
+Do not copy any hardcoded merchant credential fallback switch into the core. Before deleting the old QPay code, confirm each required `ShopNo` has a corresponding named `Payment:Profiles` entry. Unknown profile or missing credential cases must return `PaymentErrorKind.ConfigurationInvalid` or throw `PaymentConfigurationException`; they must not silently reuse another merchant's credentials.
 
 - [ ] **Step 3: Run tests and commit**
 
@@ -1053,8 +1116,13 @@ Expected: tests pass and commit succeeds.
 
 **Files:**
 - Modify: `ChurchReport/WebServiceConnector/QPayProcessor/QPayProcessor.PaymentGateway.cs`
+- Modify: `ChurchReport/WebServiceConnector/QPayProcessor/QPayProcessor.Core.cs`
+- Modify/audit: every `ChurchReport/WebServiceConnector/QPayProcessor/QPayProcessor.*.cs` partial that references `IPayment`, `m_PaymentService`, QPay request models, or provider status parsing
 - Modify: `ChurchReport/Tools/QPayWebhook.cs`
+- Modify/audit: `ChurchReport/Tools/QPayCardWebhook.cs` if present; otherwise classify the existing `QPayCardWebhook` class location before Task 10 changes
 - Modify: `ChurchReport/Controllers/QPayCardController.cs`
+- Modify: `ChurchReport/Controllers/BaseChurchController.cs`
+- Modify: all controllers inheriting `BaseChurchController` whose constructors pass the old `IPayment` dependency
 - Modify: `ChurchReport/Models/QpayManager.cs`
 - Modify: `ChurchReport/Tools/QPayFeeProcessor.cs`
 - Modify: `ChurchReport/Tools/QPayDedicationBookingProcessor.cs`
@@ -1089,6 +1157,8 @@ rg -n "IPayment" ChurchReport --glob "*.cs"
 ```
 
 Replace payment create/query/parse consumers with `IPaymentGateway`. Product workflow classes remain in ChurchReport, but QPay request construction and status parsing move to `SpeechMessage.Payments`.
+
+This step includes removing the old `IPayment` constructor parameter/property from `BaseChurchController`, updating all derived controller constructors, and replacing `QPayProcessor` partial-class fields that store `IPayment` with `IPaymentGateway` or narrower ChurchReport workflow collaborators.
 
 - [ ] **Step 3: Refactor return route**
 

@@ -30,8 +30,19 @@ Build a reusable `SpeechMessage.Payments` payment core and move Sinopac/QPay, My
 7. Migrate Taishin/TSPG core provider into `SpeechMessage.Payments`.
 8. Convert `TSPGController` routes to thin adapters and remove TSPG provider implementation from ChurchReport.
 9. Migrate Sinopac/QPay core provider into `SpeechMessage.Payments`.
-10. Convert QPay ChurchReport create/query/return flows to `IPaymentGateway` and remove old QPay-shaped `IPayment`.
+10. Convert QPay ChurchReport create/query/return flows to `IPaymentGateway`, including `BaseChurchController` constructor/property cleanup and all `QPayProcessor` partial files that reference `IPayment`, then remove old QPay-shaped `IPayment`.
 11. Run final boundary cleanup, Line Pay non-interference checks, full tests/build, CCG review, Trellis check, and documentation updates.
+
+## Pre-Implementation Review Adjustments
+
+- `PaymentCreateResult` must include a neutral hosted-payment URL field such as `PaymentPageUrl`, plus a neutral provider reference field such as `ProviderOrderRef`. Do not let each provider invent its own public field names.
+- `PaymentQueryRequest` must use neutral terminology such as `ProviderOrderRef`; provider-specific names like QPay `PaymentToken` stay inside provider implementations or HTTP route binding.
+- `PaymentCallbackResult` must include `ProductOrderId`, `ProviderTransactionId`, optional `Amount`, `Acknowledgement`, `Error`, sanitized `ProviderData`, and sanitized `Diagnostics`. Product order extraction belongs in provider callback parsers, not ChurchReport workflow services.
+- `PaymentHttpRequestMapper` or its call sites must call ASP.NET Core request buffering before reading callback bodies; otherwise prior model binding can empty the raw body.
+- MyPay and TSPG static configuration readers must be converted to options/DI-driven provider classes. Do not copy static `ConfigurationBuilder().AddJsonFile("appsettings.json")` into the reusable core.
+- `TSPGWebhookHandler` must be rewritten against `PaymentCallbackRequest.Query`, `Form`, `Headers`, `RawBody`, and `ContentType`. Do not move any `HttpRequest` dependency into `SpeechMessage.Payments`.
+- QPay hardcoded fallback credential tables must not be copied into `SpeechMessage.Payments`. Every required `ShopNo` must map to a named `Payment:Profiles` entry, and unknown profiles must fail with configuration errors rather than fallback credentials.
+- Before Task 10, audit `QPayCardWebhook`, `BaseChurchController`, and all `QPayProcessor` partial files for `IPayment` or QPay protocol dependencies and include them in the conversion scope.
 
 ## Validation Commands
 
@@ -59,6 +70,7 @@ Expected final state:
 - Do not move ASP.NET controllers into the core.
 - Do not add refund, capture, void, bill query, allotment query, or back-office UI to the first public `IPaymentGateway`.
 - Do not expose raw provider SDK models from the public core contract.
+- Do not reproduce hardcoded production provider credentials or fallback merchant credential tables in `SpeechMessage.Payments`; provider credentials must come from named profiles and missing profiles must fail closed.
 - Do not delete legacy provider code until the replacement provider tests, ChurchReport adapter tests, build, and provider-specific boundary search pass.
 - Because this task is L+ complexity and high risk, run CCG dual-model review before final completion and save findings to `.ccg/tasks/payment-module-extraction/review.md`.
 
