@@ -30,7 +30,6 @@ namespace ChurchReport.Services
         public MyPayNotificationService(
             ILogger<MyPayNotificationService> logger,
             MyPayMessageBuilder messageBuilder,
-            MyPayStatusHelper statusHelper,
             MyPayFeeTypeHelper feeTypeHelper)
         {
             _logger = logger;

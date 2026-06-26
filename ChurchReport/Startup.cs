@@ -477,7 +477,6 @@ namespace ChurchReport
             // ========================================
             // 註冊 MyPay 相關的服務類別，使用 Scoped 生命週期（每個請求一個實例）。
             services.AddScoped<ChurchReport.Services.MyPayMessageBuilder>();
-            services.AddScoped<ChurchReport.Services.MyPayStatusHelper>();
             services.AddScoped<ChurchReport.Services.MyPayFeeTypeHelper>();
             services.AddScoped<ChurchReport.Services.MyPayLogger>();
             services.AddScoped<ChurchReport.Services.MyPayCrmService>();

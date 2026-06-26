@@ -12,7 +12,7 @@ namespace ChurchReport.Services
         private const int PaymentMethodCreditCard = 100000001;
         private readonly ILogger<MyPayCrmService> _logger;
 
-        public MyPayCrmService(ILogger<MyPayCrmService> logger, MyPayStatusHelper statusHelper)
+        public MyPayCrmService(ILogger<MyPayCrmService> logger)
         {
             _logger = logger;
         }

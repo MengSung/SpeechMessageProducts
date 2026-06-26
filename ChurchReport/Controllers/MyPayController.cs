@@ -20,7 +20,6 @@ namespace ChurchReport.Controllers
         private readonly MyPayMessageBuilder _messageBuilder;
         private readonly MyPayCrmService _crmService;
         private readonly MyPayNotificationService _notificationService;
-        private readonly MyPayStatusHelper _statusHelper;
         private readonly MyPayFeeTypeHelper _feeTypeHelper;
         private readonly MyPayLogger _myPayLogger;
         private readonly IToolUtilityProvider _toolUtilityProvider;
@@ -37,7 +36,6 @@ namespace ChurchReport.Controllers
             MyPayMessageBuilder messageBuilder,
             MyPayCrmService crmService,
             MyPayNotificationService notificationService,
-            MyPayStatusHelper statusHelper,
             MyPayFeeTypeHelper feeTypeHelper,
             MyPayLogger myPayLogger,
             IToolUtilityProvider toolUtilityProvider,
@@ -51,7 +49,6 @@ namespace ChurchReport.Controllers
             _messageBuilder = messageBuilder ?? throw new ArgumentNullException(nameof(messageBuilder));
             _crmService = crmService ?? throw new ArgumentNullException(nameof(crmService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
-            _statusHelper = statusHelper ?? throw new ArgumentNullException(nameof(statusHelper));
             _feeTypeHelper = feeTypeHelper ?? throw new ArgumentNullException(nameof(feeTypeHelper));
             _myPayLogger = myPayLogger ?? throw new ArgumentNullException(nameof(myPayLogger));
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));

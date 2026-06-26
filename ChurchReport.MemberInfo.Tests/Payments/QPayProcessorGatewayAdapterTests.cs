@@ -461,7 +461,7 @@ public sealed class QPayProcessorGatewayAdapterTests
 
         public bool TryGetValue(string key, out byte[] value)
         {
-            value = null;
+            value = Array.Empty<byte>();
             return false;
         }
     }

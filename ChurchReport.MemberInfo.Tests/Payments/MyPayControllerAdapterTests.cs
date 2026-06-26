@@ -49,20 +49,17 @@ public sealed class MyPayControllerAdapterTests
 
     private static MyPayController CreateController(IPaymentGateway gateway)
     {
-        var statusHelper = new MyPayStatusHelper(NullLogger<MyPayStatusHelper>.Instance);
         var feeTypeHelper = new MyPayFeeTypeHelper(NullLogger<MyPayFeeTypeHelper>.Instance);
         var messageBuilder = new MyPayMessageBuilder();
 
         return new MyPayController(
             NullLogger<MyPayController>.Instance,
             messageBuilder,
-            new MyPayCrmService(NullLogger<MyPayCrmService>.Instance, statusHelper),
+            new MyPayCrmService(NullLogger<MyPayCrmService>.Instance),
             new MyPayNotificationService(
                 NullLogger<MyPayNotificationService>.Instance,
                 messageBuilder,
-                statusHelper,
                 feeTypeHelper),
-            statusHelper,
             feeTypeHelper,
             new MyPayLogger(NullLogger<MyPayLogger>.Instance),
             new ThrowingToolUtilityProvider(),
