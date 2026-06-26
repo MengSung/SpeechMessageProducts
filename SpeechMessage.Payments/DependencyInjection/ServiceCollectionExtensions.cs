@@ -5,6 +5,7 @@ using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Configuration;
 using SpeechMessage.Payments.Gateway;
 using SpeechMessage.Payments.Providers.MyPay;
+using SpeechMessage.Payments.Providers.Taishin;
 
 namespace SpeechMessage.Payments.DependencyInjection;
 
@@ -20,7 +21,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IPaymentGateway, PaymentGateway>();
         services.AddHttpClient("SpeechMessage.Payments");
         services.AddHttpClient<MyPayPaymentProvider>();
+        services.AddHttpClient<TaishinPaymentProvider>();
         services.AddTransient<IPaymentProvider>(provider => provider.GetRequiredService<MyPayPaymentProvider>());
+        services.AddTransient<IPaymentProvider>(provider => provider.GetRequiredService<TaishinPaymentProvider>());
 
         return services;
     }

@@ -24,6 +24,6 @@
   "notes": "Planning artifacts written to docs/superpowers/plans/2026-06-25-payment-module-extraction.md and .trellis/tasks/06-25-payment-module-extraction/implement.md.",
   "meta": {
     "currentPhase": "implementation",
-    "nextAction": "Execute Task 7: migrate Taishin/TSPG core provider"
+    "nextAction": "Execute Task 8: convert TSPG ChurchReport routes to thin adapters"
   }
 }
