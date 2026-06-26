@@ -203,3 +203,50 @@ Info:
 - Task 11 cleanup removed previously unused MyPay provider callback/status DTO code from `ChurchReport`.
 - ChurchReport now keeps MyPay product workflow services and no longer carries the unused provider status helper dependency.
 - The reusable payment core boundary remains clean after verification.
+
+## 2026-06-26 Sinopac ATM LINE Notification Fix
+
+Scope:
+
+- Restored ChurchReport-owned ATM payment-instruction LINE notification observability after Sinopac ATM virtual account creation.
+- Kept LINE notification behavior in ChurchReport product workflow; no LINE or ChurchReport dependency was added to `SpeechMessage.Payments`.
+- `QpayManager` now constructs `QPayProcessor` through the compatibility constructor so the processor uses the manager-created LINE client and push utility.
+- Added `PushUtility.SendMessageOrThrowAsync(...)` for required payment-instruction notifications. Existing legacy `SendMessage(...)` behavior remains unchanged for optional notification paths that intentionally do not block the workflow.
+- `QPayProcessor.ProcessAtm(...)` now resolves LINE ID from explicit input, `new_lineid`, then `new_lineid_backup`; missing/rejected LINE delivery keeps the ATM instructions visible and appends a visible warning to the returned HTML.
+
+Regression tests added:
+
+- `ChurchReport.MemberInfo.Tests/Payments/PushUtilityTests.cs`
+  - verifies strict LINE push posts to `/bot/message/push`.
+  - verifies LINE API rejection propagates as `LineResponseException`.
+  - verifies empty LINE user ID is rejected before any LINE HTTP call.
+
+Verification:
+
+```powershell
+dotnet build ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --no-restore -v minimal -p:BaseOutputPath=.\artifacts\test-build\ -p:UseSharedCompilation=false
+dotnet vstest ChurchReport.MemberInfo.Tests\artifacts\test-build\Debug\net10.0\ChurchReport.MemberInfo.Tests.dll --Tests:ChurchReport.MemberInfo.Tests.Payments.PushUtilityTests
+dotnet vstest ChurchReport.MemberInfo.Tests\artifacts\test-build\Debug\net10.0\ChurchReport.MemberInfo.Tests.dll
+dotnet test SpeechMessage.Payments.Tests\SpeechMessage.Payments.Tests.csproj --no-restore -v minimal
+dotnet build ChurchReport.sln --no-restore -v minimal -p:BaseOutputPath=.\artifacts\solution-build\ -p:UseSharedCompilation=false
+rg -n "ChurchReport|ToolUtility|Line\.Messaging|Microsoft\.Xrm|HttpRequest|Controller|IActionResult|DbContext" SpeechMessage.Payments --glob "*.cs" --glob "*.csproj"
+rg -n "QPay\.Domain|QryOrderPay|TSResultContent|QryOrder\b|OrderInfo\b|TSResult\b|CreOrderReq|QryOrderPayReq|OrderMaintainReq|BillQuery|AllotQuery|MyPayReturnModel|MyPayProcessingResult|MyPayStatusHelper" ChurchReport --glob "*.cs"
+rg -n "\bIPayment\b|IQPayToolkit|QPayToolkit|QPayToolkitWrapper|MyPayToolkit|MyPayToolkitWrapper|TspgToolkit|TspgToolkitWrapper|TSPGWebhookHandler|CreOrderReq|QryOrderPayReq|OrderMaintainReq|BillQuery|AllotQuery|TSPGPaymentRequest|TSPGPaymentNotification|StoreKey|StoreIV|auth_id_resp|BuildPaymentPostData|VerifyNotificationHash" ChurchReport --glob "*.cs"
+git diff -- LinePayCSharp
+git diff --check
+```
+
+Results:
+
+- `PushUtilityTests`: 3 passed.
+- `ChurchReport.MemberInfo.Tests`: 82 passed.
+- `SpeechMessage.Payments.Tests`: 49 passed.
+- `ChurchReport.sln` build: 0 errors; one existing xUnit analyzer warning in `MemberInfoScopeGuardTests.cs` about a null argument.
+- Initial default-output test/build attempts were blocked by locked DLLs under `ChurchReport/bin/Debug/net10.0`; lock owners were Visual Studio PID 15440 and IIS Express Worker Process PID 4956. The verified runs used isolated `artifacts/*` output paths to avoid touching the running app binaries.
+- Boundary searches: no matches.
+- `LinePayCSharp`: no diff.
+- `git diff --check`: no whitespace errors; Git reported CRLF normalization warnings only.
+
+External review:
+
+- CCG wrapper remains unavailable in this environment (`$HOME/.claude/bin/codeagent-wrapper` not present), so Gemini/Claude review could not be run for this slice.

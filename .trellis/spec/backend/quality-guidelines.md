@@ -115,6 +115,58 @@ Provider status mapping is owned by `SpeechMessage.Payments`; ChurchReport handl
 
 ---
 
+## Payment Workflow LINE Notifications
+
+### 1. Scope / Trigger
+
+- Trigger: a ChurchReport product payment workflow generates user-facing payment instructions or status messages.
+- LINE notifications are ChurchReport product workflow behavior; they must not be moved into `SpeechMessage.Payments`.
+- Payment instructions that the donor needs in order to pay, such as Sinopac ATM virtual account instructions, must be observable when LINE delivery fails.
+
+### 2. Contracts
+
+- `SpeechMessage.Payments` owns provider protocol calls and normalized payment results only.
+- ChurchReport owns CRM updates, rendered payment instruction pages, and LINE notification delivery.
+- ATM/transfer payment instructions must still render on the web page even if LINE delivery fails.
+- For required payment-instruction notifications, ChurchReport must use a sender path that surfaces invalid LINE user IDs or LINE API failures. Do not use the legacy `PushUtility.SendMessage(...)` swallowing path for these required notifications.
+- If `new_lineid` is empty and an existing contact has `new_lineid_backup`, ChurchReport may use the backup LINE ID for the payment-instruction notification and trace that fallback.
+- If neither LINE ID is available, ChurchReport must trace the skipped notification and add a visible warning to the returned payment instructions.
+
+### 3. Validation & Error Matrix
+
+- ATM account generated and page renders, but LINE user ID is empty -> keep the ATM instructions visible, trace the missing LINE binding, and add a visible warning.
+- LINE API rejects the push message -> keep the ATM instructions visible, trace the LINE failure, and add a visible warning.
+- Provider create-payment response lacks the ATM virtual account -> fail closed in the provider/adapter before ChurchReport renders instructions.
+- A product workflow sends optional gratitude/status messages where delivery failure should not block the flow -> legacy swallowing send can remain, but do not reuse it for required payment instructions.
+
+### 4. Tests Required
+
+- `PushUtility.SendMessageOrThrowAsync` posts to the LINE push endpoint and propagates LINE API rejections.
+- `PushUtility.SendMessageOrThrowAsync` rejects empty LINE user IDs before calling LINE.
+- ChurchReport payment workflow tests should cover required payment-instruction notifications without making real LINE network calls.
+
+### 5. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+await PushUtility.SendMessage(lineId, atmInfo.LineMessage);
+return atmInfo.HtmlMessage;
+```
+
+This can silently fail and make the UI look successful even though the donor never received the LINE payment instructions.
+
+#### Correct
+
+```csharp
+var warning = await TrySendAtmPaymentInstructionsAsync(lineId, atmInfo.LineMessage, contact.Id);
+return atmInfo.HtmlMessage + warning;
+```
+
+The web page remains the source of truth for payment instructions, while LINE delivery failures become visible and diagnosable.
+
+---
+
 ## Sinopac QPay Create-Payment Compatibility
 
 ### 1. Scope / Trigger

@@ -77,7 +77,11 @@ namespace ChurchReport.Models
             m_PushUtility = new PushUtility(m_LineMessagingClient);
 
             m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter;
-            m_QPayProcessor = new QPayProcessor(m_QPayCreatePaymentGatewayAdapter);
+            m_QPayProcessor = new QPayProcessor(
+                m_LineMessagingClient,
+                m_PushUtility,
+                new ReplyUtility(m_LineMessagingClient),
+                m_QPayCreatePaymentGatewayAdapter);
 
         }
         #endregion
