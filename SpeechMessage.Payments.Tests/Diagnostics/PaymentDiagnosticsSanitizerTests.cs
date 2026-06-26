@@ -15,6 +15,7 @@ public sealed class PaymentDiagnosticsSanitizerTests
             ["signature"] = "ABCDEF123456",
             ["StoreKey"] = "secret-key",
             ["cardno"] = "4111111111111111",
+            ["atm_pay_no"] = "12345678901234",
             ["ret_code"] = "00",
             ["order_no"] = "F202606250001"
         };
@@ -25,6 +26,7 @@ public sealed class PaymentDiagnosticsSanitizerTests
         sanitized["signature"].Should().Be("***");
         sanitized["StoreKey"].Should().Be("***");
         sanitized["cardno"].Should().Be("411111******1111");
+        sanitized["atm_pay_no"].Should().Be("12345678901234");
         sanitized["ret_code"].Should().Be("00");
         sanitized["order_no"].Should().Be("F202606250001");
     }

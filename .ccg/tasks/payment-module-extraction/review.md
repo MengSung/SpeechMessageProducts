@@ -4,6 +4,60 @@ Date: 2026-06-26
 Task: `payment-module-extraction`
 Scope reviewed: Task 11 cleanup diff from the working tree at review time.
 
+## Follow-up Review - Sinopac ATM Virtual Account
+
+Date: 2026-06-26
+Scope reviewed:
+
+- `SpeechMessage.Payments/Providers/Sinopac/SinopacPaymentProvider.cs`
+- `SpeechMessage.Payments/Diagnostics/PaymentDiagnosticsSanitizer.cs`
+- `SpeechMessage.Payments.Tests/Providers/Sinopac/SinopacProviderTests.cs`
+- `SpeechMessage.Payments.Tests/Diagnostics/PaymentDiagnosticsSanitizerTests.cs`
+- `ChurchReport.MemberInfo.Tests/Payments/QPayCreatePaymentGatewayAdapterTests.cs`
+- `.trellis/spec/backend/quality-guidelines.md`
+
+External review status:
+
+- Required CCG wrapper is not present in this environment (`Test-Path "$HOME\.claude\bin\codeagent-wrapper"` previously returned `False`), so Gemini/Claude review could not be rerun.
+
+Manual review findings:
+
+- Critical: none.
+- Warning: none.
+- Info:
+  - Root cause: Sinopac ATM create response contained `ATMParam.AtmPayNo`, but `BuildCreateProviderData(...)` did not expose it as `ProviderData["atm_pay_no"]`. ChurchReport's adapter already read that key, so the rendered ATM account was blank.
+- Secondary root cause: generic numeric-card masking would mask 13-19 digit ATM virtual account values unless `atm_pay_no` is explicitly treated as safe bank-payment instruction data.
+- Additional guard: both the Sinopac core result mapper and ChurchReport legacy adapter now fail closed if ATM create-payment data lacks an ATM virtual account number, preventing blank account instructions from being rendered.
+- Fix keeps provider protocol ownership in `SpeechMessage.Payments`; ChurchReport remains a thin adapter that maps provider-neutral data into the legacy `CreOrder` shape.
+
+Verification:
+
+```powershell
+dotnet test SpeechMessage.Payments.Tests\SpeechMessage.Payments.Tests.csproj --no-restore --filter "FullyQualifiedName~SinopacProviderTests|FullyQualifiedName~PaymentDiagnosticsSanitizerTests" -v minimal
+dotnet build ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --no-restore -v minimal
+dotnet vstest ChurchReport.MemberInfo.Tests\bin\Debug\net10.0\ChurchReport.MemberInfo.Tests.dll --TestCaseFilter:"FullyQualifiedName~QPayCreatePaymentGatewayAdapterTests"
+dotnet test SpeechMessage.Payments.Tests\SpeechMessage.Payments.Tests.csproj --no-restore -v minimal
+dotnet vstest ChurchReport.MemberInfo.Tests\bin\Debug\net10.0\ChurchReport.MemberInfo.Tests.dll
+dotnet build ChurchReport.sln --no-restore -v minimal
+rg -n "ChurchReport|ToolUtility|Line\.Messaging|Microsoft\.Xrm|HttpRequest|Controller|IActionResult|DbContext" SpeechMessage.Payments --glob "*.cs" --glob "*.csproj"
+rg -n "QPay\.Domain|QryOrderPay|TSResultContent|QryOrder\b|OrderInfo\b|TSResult\b|CreOrderReq|QryOrderPayReq|OrderMaintainReq|BillQuery|AllotQuery|MyPayReturnModel|MyPayProcessingResult|MyPayStatusHelper" ChurchReport --glob "*.cs"
+rg -n "\bIPayment\b|IQPayToolkit|QPayToolkit|QPayToolkitWrapper|MyPayToolkit|MyPayToolkitWrapper|TspgToolkit|TspgToolkitWrapper|TSPGWebhookHandler|CreOrderReq|QryOrderPayReq|OrderMaintainReq|BillQuery|AllotQuery|TSPGPaymentRequest|TSPGPaymentNotification|StoreKey|StoreIV|auth_id_resp|BuildPaymentPostData|VerifyNotificationHash" ChurchReport --glob "*.cs"
+git diff -- LinePayCSharp
+git diff --check
+```
+
+Results:
+
+- Targeted core tests: 13 passed.
+- Targeted core tests after fail-closed guard: 14 passed.
+- Targeted ChurchReport adapter tests: 5 passed.
+- `SpeechMessage.Payments.Tests`: 49 passed.
+- `ChurchReport.MemberInfo.Tests`: 79 passed.
+- `ChurchReport.sln` build: 0 warnings, 0 errors.
+- Boundary searches: no matches.
+- `LinePayCSharp`: no diff.
+- `git diff --check`: no whitespace errors; Git reported CRLF normalization warnings only.
+
 ## Follow-up Review - Sinopac Card Redirect and HTTP 400
 
 Date: 2026-06-26

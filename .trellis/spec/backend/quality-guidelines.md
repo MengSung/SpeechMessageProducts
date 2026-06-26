@@ -128,6 +128,7 @@ Provider status mapping is owned by `SpeechMessage.Payments`; ChurchReport handl
 - `SinopacCrypto.BuildAesKey(PaymentMerchantProfile profile)` must return the legacy QPay AES key string.
 - `SinopacPaymentProvider.CreatePaymentAsync(...)` must return a failed `PaymentCreateResult` if a hosted payment method succeeds without a payment URL.
 - `QPayCreatePaymentGatewayAdapter.CreateLegacyOrderAsync(...)` must not populate `CardParam` or `MobileParam` when the neutral `PaymentCreateResult.PaymentPageUrl` is empty.
+- For ATM create-payment results, `SinopacPaymentProvider.ResolveCreateResult(...)` must expose `ProviderData["atm_pay_no"]`, `ProviderData["web_atm_url"]`, and `ProviderData["otp_url"]`.
 
 ### 3. Contracts
 
@@ -141,6 +142,8 @@ Provider status mapping is owned by `SpeechMessage.Payments`; ChurchReport handl
 - Hosted payment methods `C`, `M`, `L`, blank, or missing pay type require a non-empty absolute provider payment URL before the product redirects the browser.
 - HTTP status failures from Sinopac must include sanitized route and response-body context in the normalized error message, for example `Sinopac Nonce returned HTTP 400 BadRequest. Response: ...`.
 - Product UI code may redirect only to non-empty absolute `http` or `https` payment URLs.
+- ATM virtual account numbers are bank payment instructions, not credit card numbers. `PaymentDiagnosticsSanitizer` must preserve `atm_pay_no` / `AtmPayNo` / `virtual_account` values even when they are 13-19 digits.
+- ChurchReport's legacy QPay adapter must map `ProviderData["atm_pay_no"]` into `CreOrder.ATMParam.AtmPayNo`; otherwise the user-facing ATM/transfer message will render a blank account number.
 
 ### 4. Validation & Error Matrix
 
@@ -148,19 +151,28 @@ Provider status mapping is owned by `SpeechMessage.Payments`; ChurchReport handl
 - Hosted create response status is success but card/mobile URL is empty -> return `PaymentStatus.Failed` with `PaymentErrorKind.ProviderRejected`; do not treat the legacy `CreOrder` as success.
 - ChurchReport receives an empty or relative redirect URL for credit card payment -> show an error message; do not assign `window.location.href = ""`.
 - Sinopac HTTP status is non-success -> normalize as `PaymentErrorKind.ProviderUnavailable` and include the Sinopac route plus a truncated response-body snippet.
+- Sinopac ATM response has `ATMParam.AtmPayNo` but `ProviderData["atm_pay_no"]` is missing or masked -> ATM/transfer output has `帳號 :` blank; add the provider-data mapping and sanitizer exception.
+- Sinopac ATM response lacks `ATMParam.AtmPayNo` -> return a failed create result; do not allow ChurchReport to generate ATM/transfer instructions with a blank account number.
 
 ### 5. Good/Base/Bad Cases
 
 - Good: card create payment returns `PaymentPageUrl = "https://sandbox.sinopac.com/..."`; ChurchReport redirects to Sinopac card entry.
 - Base: provider rejects the request with HTTP 400; the result fails with route/body diagnostics and ChurchReport shows a payment failure.
+- Good: ATM create payment returns `ATMParam.AtmPayNo = "12345678901234"`; `ProviderData["atm_pay_no"]` remains `12345678901234`; ChurchReport renders `帳號 : 12345678901234`.
 - Bad: provider returns an empty card URL but ChurchReport marks `CreOrder.Status = "S"` and redirects to the current page.
+- Bad: sanitizer treats `atm_pay_no` as a credit card number and returns `123456******1234`, or core omits `atm_pay_no` and ChurchReport renders a blank ATM account.
 
 ### 6. Tests Required
 
 - `SinopacCrypto.BuildAesKey(CreateProfile())` equals `89C697BCC1C10908864428F5C58A068A`.
 - Sinopac create-result mapping fails when pay type `C` has no hosted card payment URL.
+- Sinopac ATM create-result mapping preserves `atm_pay_no`, `web_atm_url`, and `otp_url` in provider data.
+- Sinopac ATM create-result mapping fails when pay type `A` lacks `ATMParam.AtmPayNo`.
+- Payment diagnostics sanitizer masks card numbers but preserves `atm_pay_no`.
 - Sinopac HTTP 400 tests assert the error includes the route name and response body snippet.
 - ChurchReport QPay adapter tests assert empty card `PaymentPageUrl` yields legacy status `F` and no `CardParam`.
+- ChurchReport QPay adapter tests assert ATM provider data maps into `CreOrder.ATMParam.AtmPayNo`.
+- ChurchReport QPay adapter tests assert ATM provider data without `atm_pay_no` yields legacy status `F`.
 
 ### 7. Wrong vs Correct
 
@@ -179,6 +191,23 @@ return ToHex(Xor(a1, a2), uppercase: true) + ToHex(Xor(b1, b2), uppercase: true)
 ```
 
 Preserve legacy QPay Toolkit behavior exactly when generating bank-facing encrypted payloads.
+
+#### Wrong
+
+```csharp
+ProviderData = PaymentDiagnosticsSanitizer.Sanitize(BuildCreateProviderData(response));
+// BuildCreateProviderData omits response.ATMParam.AtmPayNo.
+```
+
+The ChurchReport adapter reads `ProviderData["atm_pay_no"]`; omission causes the user-facing ATM account to be blank.
+
+#### Correct
+
+```csharp
+["atm_pay_no"] = response.ATMParam?.AtmPayNo ?? string.Empty
+```
+
+Provider-owned protocol fields needed by product workflows must cross the boundary as sanitized provider data.
 
 ---
 

@@ -34,6 +34,11 @@ public static class PaymentDiagnosticsSanitizer
 
     private static string SanitizeValue(string key, string value)
     {
+        if (IsSafeBankAccountKey(key))
+        {
+            return value;
+        }
+
         if (IsTokenKey(key) && value.Length > 8)
         {
             return $"{value[..4]}...{value[^4..]}";
@@ -62,6 +67,14 @@ public static class PaymentDiagnosticsSanitizer
         return ExactSecretKeys.Contains(key) ||
             SecretKeyFragments.Any(fragment => key.Contains(fragment, StringComparison.OrdinalIgnoreCase)) ||
             (key.Contains("key", StringComparison.OrdinalIgnoreCase) && !IsTokenKey(key));
+    }
+
+    private static bool IsSafeBankAccountKey(string key)
+    {
+        var normalizedKey = key.Replace("_", string.Empty, StringComparison.Ordinal)
+            .Replace("-", string.Empty, StringComparison.Ordinal);
+        return normalizedKey.Contains("atmpayno", StringComparison.OrdinalIgnoreCase) ||
+            normalizedKey.Contains("virtualaccount", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsCardNumber(string value)

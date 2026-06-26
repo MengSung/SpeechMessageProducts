@@ -88,9 +88,12 @@ public sealed class QPayCreatePaymentGatewayAdapter
     {
         var missingHostedPaymentUrl = RequiresHostedPaymentUrl(input.PaymentMethod) &&
             string.IsNullOrWhiteSpace(result.PaymentPageUrl);
+        var missingAtmPayNo = RequiresAtmPayNo(input.PaymentMethod) &&
+            string.IsNullOrWhiteSpace(ReadProviderData(result.ProviderData, "atm_pay_no"));
         var isRejected = result.Error.HasError
             || result.Status is PaymentStatus.Failed or PaymentStatus.Cancelled
-            || missingHostedPaymentUrl;
+            || missingHostedPaymentUrl
+            || missingAtmPayNo;
         var order = new CreOrder
         {
             OrderNo = FirstNonEmpty(result.ProductOrderId, input.ProductOrderId),
@@ -105,7 +108,9 @@ public sealed class QPayCreatePaymentGatewayAdapter
                 ? result.Error.Message
                 : missingHostedPaymentUrl
                     ? "Payment provider did not return a payment page URL."
-                    : string.Empty,
+                    : missingAtmPayNo
+                        ? "Payment provider did not return an ATM virtual account number."
+                        : string.Empty,
             Param1 = input.ProductEntityId,
             Param2 = input.PaymentOrganization,
             Param3 = input.PaymentCategory
@@ -180,6 +185,11 @@ public sealed class QPayCreatePaymentGatewayAdapter
     private static bool RequiresHostedPaymentUrl(string paymentMethod)
     {
         return (paymentMethod ?? string.Empty).Trim().ToUpperInvariant() is "C" or "M" or "L" or "";
+    }
+
+    private static bool RequiresAtmPayNo(string paymentMethod)
+    {
+        return string.Equals((paymentMethod ?? string.Empty).Trim(), "A", StringComparison.OrdinalIgnoreCase);
     }
 }
 

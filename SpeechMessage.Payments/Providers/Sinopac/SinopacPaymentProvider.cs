@@ -274,7 +274,10 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
             ["param3"] = response.Param3,
             ["product_entity_id"] = response.Param1,
             ["payment_organization"] = response.Param2,
-            ["payment_category"] = response.Param3
+            ["payment_category"] = response.Param3,
+            ["atm_pay_no"] = response.ATMParam?.AtmPayNo ?? string.Empty,
+            ["web_atm_url"] = response.ATMParam?.WebAtmURL ?? string.Empty,
+            ["otp_url"] = response.ATMParam?.OtpURL ?? string.Empty
         };
     }
 
@@ -286,7 +289,9 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
         var paymentPageUrl = ResolvePaymentPageUrl(response);
         var missingPaymentPageUrl = RequiresPaymentPageUrl(payload.PayType) &&
             string.IsNullOrWhiteSpace(paymentPageUrl);
-        var status = missingPaymentPageUrl
+        var missingAtmPayNo = RequiresAtmPayNo(payload.PayType) &&
+            string.IsNullOrWhiteSpace(response.ATMParam?.AtmPayNo);
+        var status = missingPaymentPageUrl || missingAtmPayNo
             ? PaymentStatus.Failed
             : SinopacStatusMapper.MapCreate(response);
 
@@ -296,12 +301,16 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
             ProductOrderId = FirstNonEmpty(response.OrderNo, fallbackProductOrderId),
             ProviderOrderRef = FirstNonEmpty(response.TSNo, response.OrderNo),
             PaymentPageUrl = paymentPageUrl,
-            Error = missingPaymentPageUrl
+            Error = missingPaymentPageUrl || missingAtmPayNo
                 ? new PaymentError
                 {
                     Kind = PaymentErrorKind.ProviderRejected,
-                    Code = FirstNonEmpty(response.Status, "MissingPaymentPageUrl"),
-                    Message = "Sinopac did not return a payment page URL."
+                    Code = FirstNonEmpty(
+                        response.Status,
+                        missingAtmPayNo ? "MissingAtmPayNo" : "MissingPaymentPageUrl"),
+                    Message = missingAtmPayNo
+                        ? "Sinopac did not return an ATM virtual account number."
+                        : "Sinopac did not return a payment page URL."
                 }
                 : SinopacStatusMapper.IsProviderRejected(response)
                     ? new PaymentError
@@ -319,7 +328,9 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
                 ["description"] = response.Description,
                 ["card_pay_url"] = response.CardParam?.CardPayURL ?? string.Empty,
                 ["mobile_pay_url"] = response.MobileParam?.MobilePayURL ?? string.Empty,
-                ["web_atm_url"] = response.ATMParam?.WebAtmURL ?? string.Empty
+                ["atm_pay_no"] = response.ATMParam?.AtmPayNo ?? string.Empty,
+                ["web_atm_url"] = response.ATMParam?.WebAtmURL ?? string.Empty,
+                ["otp_url"] = response.ATMParam?.OtpURL ?? string.Empty
             })
         };
     }
@@ -376,6 +387,11 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
     {
         var normalizedPayType = payType?.Trim().ToUpperInvariant();
         return normalizedPayType is "C" or "M" or "L" or "" or null;
+    }
+
+    private static bool RequiresAtmPayNo(string? payType)
+    {
+        return string.Equals(payType?.Trim(), "A", StringComparison.OrdinalIgnoreCase);
     }
 
     private static decimal? ParseMinorAmount(string? amount)

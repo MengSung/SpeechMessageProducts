@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "review",
-  "nextAction": "Commit verified Sinopac QPay credit-card redirect fix",
+  "nextAction": "Commit verified Sinopac ATM virtual account fix",
   "createdAt": "2026-06-25T12:38:10+08:00",
   "branch": "payment-module-extraction"
 }

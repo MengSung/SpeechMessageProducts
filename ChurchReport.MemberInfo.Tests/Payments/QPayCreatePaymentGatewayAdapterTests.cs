@@ -145,6 +145,77 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
         order.ATMParam.Should().BeNull();
     }
 
+    [Fact]
+    public async Task CreateLegacyOrderAsync_maps_atm_virtual_account_from_provider_data()
+    {
+        var gateway = new RecordingPaymentGateway(new PaymentCreateResult
+        {
+            Status = PaymentStatus.Pending,
+            ProductOrderId = "A20260626112233",
+            ProviderOrderRef = "TSATM123456",
+            PaymentPageUrl = "https://pay.example.test/atm",
+            ProviderData = new Dictionary<string, string>
+            {
+                ["shop_no"] = "NA0149_001",
+                ["atm_pay_no"] = "12345678901234",
+                ["otp_url"] = "https://pay.example.test/otp"
+            }
+        });
+        var adapter = CreateAdapter(gateway);
+
+        var order = await adapter.CreateLegacyOrderAsync(new QPayCreatePaymentInput
+        {
+            Amount = 8m,
+            ProductName = "Tithe donation",
+            ProductOrderId = "A20260626112233",
+            ProductEntityId = "fee-id",
+            PaymentOrganization = "Jesus",
+            PaymentCategory = "tithe",
+            PaymentMethod = "A",
+            ReturnUrl = "https://church.example.test/qpay-return",
+            BackendUrl = "https://church.example.test/qpay-backend"
+        });
+
+        order.Status.Should().Be("S");
+        order.ATMParam.Should().NotBeNull();
+        order.ATMParam.AtmPayNo.Should().Be("12345678901234");
+        order.ATMParam.WebAtmURL.Should().Be("https://pay.example.test/atm");
+        order.ATMParam.OtpURL.Should().Be("https://pay.example.test/otp");
+    }
+
+    [Fact]
+    public async Task CreateLegacyOrderAsync_fails_closed_when_atm_virtual_account_is_missing()
+    {
+        var gateway = new RecordingPaymentGateway(new PaymentCreateResult
+        {
+            Status = PaymentStatus.Pending,
+            ProductOrderId = "A20260626112233",
+            ProviderOrderRef = "TSATM123456",
+            PaymentPageUrl = "https://pay.example.test/atm",
+            ProviderData = new Dictionary<string, string>
+            {
+                ["shop_no"] = "NA0149_001"
+            }
+        });
+        var adapter = CreateAdapter(gateway);
+
+        var order = await adapter.CreateLegacyOrderAsync(new QPayCreatePaymentInput
+        {
+            Amount = 8m,
+            ProductName = "Tithe donation",
+            ProductOrderId = "A20260626112233",
+            ProductEntityId = "fee-id",
+            PaymentOrganization = "Jesus",
+            PaymentCategory = "tithe",
+            PaymentMethod = "A",
+            ReturnUrl = "https://church.example.test/qpay-return",
+            BackendUrl = "https://church.example.test/qpay-backend"
+        });
+
+        order.Status.Should().Be("F");
+        order.Description.Should().Contain("ATM virtual account");
+    }
+
     private static QPayCreatePaymentGatewayAdapter CreateAdapter(IPaymentGateway gateway)
     {
         var configuration = new ConfigurationBuilder()

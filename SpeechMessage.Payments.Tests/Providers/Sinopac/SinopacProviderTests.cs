@@ -154,6 +154,71 @@ public sealed class SinopacProviderTests
     }
 
     [Fact]
+    public void Create_result_preserves_atm_virtual_account_in_provider_data()
+    {
+        var request = new SinopacOrderCreateRequest
+        {
+            OrderNo = "A202606250001",
+            PayType = "A"
+        };
+        var response = new SinopacOrderCreateResponse
+        {
+            OrderNo = "A202606250001",
+            TSNo = "TSATM123456",
+            Status = "S",
+            Description = "S00000",
+            ATMParam = new SinopacOrderCreateAtmResponse
+            {
+                AtmPayNo = "12345678901234",
+                WebAtmURL = "https://sandbox.sinopac.test/atm",
+                OtpURL = "https://sandbox.sinopac.test/otp"
+            }
+        };
+
+        var result = SinopacPaymentProvider.ResolveCreateResult(
+            request,
+            response,
+            "fallback-order");
+
+        result.Status.Should().Be(PaymentStatus.Pending);
+        result.PaymentPageUrl.Should().Be("https://sandbox.sinopac.test/atm");
+        result.ProviderData["atm_pay_no"].Should().Be("12345678901234");
+        result.ProviderData["web_atm_url"].Should().Be("https://sandbox.sinopac.test/atm");
+        result.ProviderData["otp_url"].Should().Be("https://sandbox.sinopac.test/otp");
+        result.Diagnostics["atm_pay_no"].Should().Be("12345678901234");
+    }
+
+    [Fact]
+    public void Create_result_fails_when_atm_success_response_has_no_virtual_account()
+    {
+        var request = new SinopacOrderCreateRequest
+        {
+            OrderNo = "A202606250001",
+            PayType = "A"
+        };
+        var response = new SinopacOrderCreateResponse
+        {
+            OrderNo = "A202606250001",
+            TSNo = "TSATM123456",
+            Status = "S",
+            Description = "S00000",
+            ATMParam = new SinopacOrderCreateAtmResponse
+            {
+                WebAtmURL = "https://sandbox.sinopac.test/atm"
+            }
+        };
+
+        var result = SinopacPaymentProvider.ResolveCreateResult(
+            request,
+            response,
+            "fallback-order");
+
+        result.Status.Should().Be(PaymentStatus.Failed);
+        result.Error.Kind.Should().Be(PaymentErrorKind.ProviderRejected);
+        result.Error.Message.Should().Contain("ATM virtual account");
+    }
+
+    [Fact]
     public async Task Create_payment_includes_route_and_response_body_when_http_status_fails()
     {
         using var httpClient = new HttpClient(new StaticResponseHandler(
