@@ -513,7 +513,6 @@ namespace ChurchReport
             else if (Configuration["PAY_PROVIDER"] == "台新金流")
             {
                 services.AddScoped<IPayment, TspgToolkitWrapper>();
-                services.AddScoped<TSPGWebhookHandler>();
             }
             else
             {
@@ -521,7 +520,6 @@ namespace ChurchReport
                 services.AddScoped<IPayment, QPayToolkitWrapper>();
                 // 預設使用台新金流。
                 //services.AddScoped<IPayment, TspgToolkitWrapper>();
-                //services.AddScoped<TSPGWebhookHandler>();
             }
 
             // ========================================
