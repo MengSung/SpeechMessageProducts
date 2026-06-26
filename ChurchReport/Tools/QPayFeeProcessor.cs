@@ -34,8 +34,6 @@ namespace ChurchReport.Tools
 
         private ReplyUtility m_ReplyUtility { get; }
 
-        private QPayProcessor m_QPayProcessor { get; }
-
         // 透過建構函數注入取得 ToolUtilityClass
         private readonly ToolUtilityClass m_ToolUtilityClass;
 
@@ -56,8 +54,6 @@ namespace ChurchReport.Tools
             m_PushUtility = new PushUtility(m_LineMessagingClient);
             m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
 
-            m_QPayProcessor = new QPayProcessor(m_LineMessagingClient, m_PushUtility, m_ReplyUtility);
-
             // 使用 Factory 模式取得 ToolUtilityClass 單例
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
         }
@@ -77,8 +73,6 @@ namespace ChurchReport.Tools
 
             m_PushUtility = new PushUtility(m_LineMessagingClient);
             m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
-
-            m_QPayProcessor = new QPayProcessor(m_LineMessagingClient, m_PushUtility, m_ReplyUtility);
 
             m_ToolUtilityClass = toolUtilityProvider.GetToolUtility();
         }

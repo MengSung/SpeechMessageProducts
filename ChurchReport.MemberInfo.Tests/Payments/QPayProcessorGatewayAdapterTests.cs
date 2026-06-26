@@ -5,9 +5,13 @@ using ChurchReport.Payments;
 using ChurchReport.Tools;
 using ChurchReport.WebServiceConnector;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Models;
+using ToolUtilityNameSpace;
+using ToolUtilityNameSpace.DependencyInjection;
 using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Payments;
@@ -71,10 +75,60 @@ public sealed class QPayProcessorGatewayAdapterTests
     }
 
     [Fact]
+    public void QPay_processor_constructors_require_gateway_create_adapter()
+    {
+        var adapterType = typeof(QPayCreatePaymentGatewayAdapter);
+        var adapterParameters = typeof(QPayProcessor)
+            .GetConstructors(BindingFlags.Instance | BindingFlags.Public)
+            .SelectMany(constructor => constructor.GetParameters())
+            .Where(parameter => parameter.ParameterType == adapterType)
+            .ToArray();
+
+        adapterParameters.Should().NotBeEmpty();
+        adapterParameters.Should().OnlyContain(parameter => !parameter.HasDefaultValue);
+    }
+
+    [Fact]
     public void Qpay_manager_and_context_constructors_accept_gateway_create_adapter()
     {
         ConstructorHasAdapter(typeof(QpayManager)).Should().BeTrue();
         ConstructorHasAdapter(typeof(InMemoryDataContextSmallGroup)).Should().BeTrue();
+    }
+
+    [Fact]
+    public void ContextDictionary_passes_gateway_create_adapter_from_request_services()
+    {
+        const string sessionId = "payment-adapter-session";
+        ContextDictionary.Remove(sessionId);
+        var adapter = CreateAdapter(new RecordingPaymentGateway(new PaymentCreateResult()));
+        var httpContext = new DefaultHttpContext
+        {
+            Session = new TestSession(sessionId),
+            RequestServices = new SingleServiceProvider(adapter)
+        };
+        var accessor = new HttpContextAccessor
+        {
+            HttpContext = httpContext
+        };
+        using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+
+        var context = ContextDictionary.GetInMemoryDataContextSmallGroup(
+            accessor,
+            memoryCache,
+            new ThrowingToolUtilityProvider());
+
+        try
+        {
+            var field = typeof(InMemoryDataContextSmallGroup).GetField(
+                "m_QPayCreatePaymentGatewayAdapter",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            field.Should().NotBeNull();
+            field!.GetValue(context).Should().BeSameAs(adapter);
+        }
+        finally
+        {
+            ContextDictionary.Remove(sessionId);
+        }
     }
 
     [Fact]
@@ -352,6 +406,71 @@ public sealed class QPayProcessorGatewayAdapterTests
             CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
+        }
+    }
+
+    private sealed class SingleServiceProvider : IServiceProvider
+    {
+        private readonly QPayCreatePaymentGatewayAdapter _adapter;
+
+        public SingleServiceProvider(QPayCreatePaymentGatewayAdapter adapter)
+        {
+            _adapter = adapter;
+        }
+
+        public object? GetService(Type serviceType)
+        {
+            return serviceType == typeof(QPayCreatePaymentGatewayAdapter)
+                ? _adapter
+                : null;
+        }
+    }
+
+    private sealed class TestSession : ISession
+    {
+        public TestSession(string id)
+        {
+            Id = id;
+        }
+
+        public bool IsAvailable => true;
+        public string Id { get; }
+        public IEnumerable<string> Keys => Array.Empty<string>();
+
+        public void Clear()
+        {
+        }
+
+        public Task CommitAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task LoadAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
+
+        public void Remove(string key)
+        {
+        }
+
+        public void Set(string key, byte[] value)
+        {
+        }
+
+        public bool TryGetValue(string key, out byte[] value)
+        {
+            value = null;
+            return false;
+        }
+    }
+
+    private sealed class ThrowingToolUtilityProvider : IToolUtilityProvider
+    {
+        public ToolUtilityClass GetToolUtility()
+        {
+            throw new InvalidOperationException("ToolUtility should not be used by this test.");
         }
     }
 }

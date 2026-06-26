@@ -71,7 +71,7 @@ namespace ChurchReport.WebServiceConnector
         /// 主要建構函式（推薦使用）
         /// </summary>
         public QPayProcessor(
-            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter = null)
+            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter)
         {
             // 初始化環境設定
             RETURN_URL = m_Configuration["RETURN_URL"];
@@ -88,7 +88,8 @@ namespace ChurchReport.WebServiceConnector
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
             // 初始化金流服務
-            m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter;
+            m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter
+                ?? throw new ArgumentNullException(nameof(qPayCreatePaymentGatewayAdapter));
 
             // 初始化 OptionSet 服務
             _optionSetMetadataService = new OptionSetMetadataService(
@@ -108,7 +109,7 @@ namespace ChurchReport.WebServiceConnector
             LineMessagingClient aLineMessagingClient,
             PushUtility aPushUtility,
             ReplyUtility aReplyUtility,
-            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter = null)
+            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter)
         {
             // 初始化環境設定
             RETURN_URL = m_Configuration["RETURN_URL"];
@@ -124,7 +125,8 @@ namespace ChurchReport.WebServiceConnector
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
             // 根據配置選擇金流服務（策略模式）
-            m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter;
+            m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter
+                ?? throw new ArgumentNullException(nameof(qPayCreatePaymentGatewayAdapter));
 
             // 初始化 OptionSet 服務
             _optionSetMetadataService = new OptionSetMetadataService(

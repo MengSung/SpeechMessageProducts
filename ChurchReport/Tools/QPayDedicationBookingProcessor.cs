@@ -35,8 +35,6 @@ namespace ChurchReport.Tools
 
         private ReplyUtility m_ReplyUtility { get; }
 
-        private QPayProcessor m_QPayProcessor { get; }
-
         // 透過 Factory 取得 ToolUtilityClass 單一實例
         ToolUtilityClass m_ToolUtilityClass;
 
@@ -53,8 +51,6 @@ namespace ChurchReport.Tools
             //// 客製化
             m_PushUtility = new PushUtility(m_LineMessagingClient);
             m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
-
-            m_QPayProcessor = new QPayProcessor(m_LineMessagingClient, m_PushUtility, m_ReplyUtility);
 
             // 透過 Factory 取得 ToolUtilityClass 單一實例
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");

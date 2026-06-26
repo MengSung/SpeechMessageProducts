@@ -1,4 +1,5 @@
 ﻿using ChurchReport.Models;
+using ChurchReport.Payments;
 using ChurchReport.Services.MemberInfo;
 using ChurchReport.Tools;
 using LineMessagingProcessor;
@@ -261,8 +262,11 @@ namespace ChurchReport.Controllers
             else
             {
                 // 向後相容：直接建立實例（將逐步淘汰）
+                var qPayCreatePaymentGatewayAdapter =
+                    httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(QPayCreatePaymentGatewayAdapter))
+                        as QPayCreatePaymentGatewayAdapter;
                 InMemoryContext = new InMemoryDataContextSmallGroup(
-                    httpContextAccessor, memoryCache, toolUtilityProvider);
+                    httpContextAccessor, memoryCache, toolUtilityProvider, qPayCreatePaymentGatewayAdapter);
                 System.Diagnostics.Debug.WriteLine("[BaseChurchController] 使用向後相容模式建立 InMemoryContext（請盡快更新為 DI 注入）");
             }
 

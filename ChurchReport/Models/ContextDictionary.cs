@@ -1,4 +1,5 @@
 ﻿using ChurchReport.Tools;
+using ChurchReport.Payments;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using System;
@@ -74,6 +75,9 @@ namespace ChurchReport.Models
                 }
                 
                 var key = session.Id;
+                var qPayCreatePaymentGatewayAdapter =
+                    httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(QPayCreatePaymentGatewayAdapter))
+                        as QPayCreatePaymentGatewayAdapter;
 
                 // ✅ 使用 GetOrAdd 確保執行緒安全
                 var entry = _contextDictionary.GetOrAdd(key, k => 
@@ -96,7 +100,8 @@ namespace ChurchReport.Models
                         Context = new InMemoryDataContextSmallGroup(
                             httpContextAccessor, 
                             memoryCache, 
-                            toolUtilityProvider),
+                            toolUtilityProvider,
+                            qPayCreatePaymentGatewayAdapter),
                         LastAccessTime = DateTime.UtcNow
                     };
                 });
