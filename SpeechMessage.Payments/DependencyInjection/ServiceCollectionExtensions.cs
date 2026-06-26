@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Configuration;
 using SpeechMessage.Payments.Gateway;
+using SpeechMessage.Payments.Providers.MyPay;
 
 namespace SpeechMessage.Payments.DependencyInjection;
 
@@ -18,6 +19,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IPaymentProfileResolver, OptionsPaymentProfileResolver>();
         services.AddSingleton<IPaymentGateway, PaymentGateway>();
         services.AddHttpClient("SpeechMessage.Payments");
+        services.AddHttpClient<MyPayPaymentProvider>();
+        services.AddTransient<IPaymentProvider>(provider => provider.GetRequiredService<MyPayPaymentProvider>());
 
         return services;
     }
