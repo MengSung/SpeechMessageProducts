@@ -112,6 +112,39 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
         order.ATMParam.Should().BeNull();
     }
 
+    [Fact]
+    public async Task CreateLegacyOrderAsync_fails_closed_when_card_payment_page_url_is_missing()
+    {
+        var gateway = new RecordingPaymentGateway(new PaymentCreateResult
+        {
+            Status = PaymentStatus.Pending,
+            ProductOrderId = "C20260626112233",
+            ProviderOrderRef = "TS123456789",
+            PaymentPageUrl = string.Empty
+        });
+        var adapter = CreateAdapter(gateway);
+
+        var order = await adapter.CreateLegacyOrderAsync(new QPayCreatePaymentInput
+        {
+            Amount = 1200m,
+            ProductName = "Fee payment",
+            ProductOrderId = "C20260626112233",
+            ProductEntityId = "fee-id",
+            PaymentOrganization = "Jesus",
+            PaymentCategory = "fee",
+            PaymentMethod = "C",
+            PaymentMethodSubType = "ONE",
+            ReturnUrl = "https://church.example.test/qpay-return",
+            BackendUrl = "https://church.example.test/qpay-backend"
+        });
+
+        order.Status.Should().Be("F");
+        order.Description.Should().Contain("payment page URL");
+        order.CardParam.Should().BeNull();
+        order.MobileParam.Should().BeNull();
+        order.ATMParam.Should().BeNull();
+    }
+
     private static QPayCreatePaymentGatewayAdapter CreateAdapter(IPaymentGateway gateway)
     {
         var configuration = new ConfigurationBuilder()

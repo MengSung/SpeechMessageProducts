@@ -45,32 +45,7 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
                 SinopacApiService.OrderCreate,
                 cancellationToken);
 
-            var status = SinopacStatusMapper.MapCreate(response);
-            return new PaymentCreateResult
-            {
-                Status = status,
-                ProductOrderId = FirstNonEmpty(response.OrderNo, request.ProductOrderId),
-                ProviderOrderRef = FirstNonEmpty(response.TSNo, response.OrderNo),
-                PaymentPageUrl = ResolvePaymentPageUrl(response),
-                Error = SinopacStatusMapper.IsProviderRejected(response)
-                    ? new PaymentError
-                    {
-                        Kind = PaymentErrorKind.ProviderRejected,
-                        Code = response.Status,
-                        Message = response.Description
-                    }
-                    : PaymentError.None,
-                ProviderData = PaymentDiagnosticsSanitizer.Sanitize(BuildCreateProviderData(response)),
-                Diagnostics = PaymentDiagnosticsSanitizer.Sanitize(new Dictionary<string, string>
-                {
-                    ["shop_no"] = response.ShopNo,
-                    ["status"] = response.Status,
-                    ["description"] = response.Description,
-                    ["card_pay_url"] = response.CardParam?.CardPayURL ?? string.Empty,
-                    ["mobile_pay_url"] = response.MobileParam?.MobilePayURL ?? string.Empty,
-                    ["web_atm_url"] = response.ATMParam?.WebAtmURL ?? string.Empty
-                })
-            };
+            return ResolveCreateResult(payload, response, request.ProductOrderId);
         }
         catch (PaymentConfigurationException ex)
         {
@@ -260,7 +235,7 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new SinopacHttpStatusException(response.StatusCode);
+                throw new SinopacHttpStatusException(route, response.StatusCode, content);
             }
 
             return JsonConvert.DeserializeObject<TResponse>(content)
@@ -300,6 +275,52 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
             ["product_entity_id"] = response.Param1,
             ["payment_organization"] = response.Param2,
             ["payment_category"] = response.Param3
+        };
+    }
+
+    internal static PaymentCreateResult ResolveCreateResult(
+        SinopacOrderCreateRequest payload,
+        SinopacOrderCreateResponse response,
+        string fallbackProductOrderId)
+    {
+        var paymentPageUrl = ResolvePaymentPageUrl(response);
+        var missingPaymentPageUrl = RequiresPaymentPageUrl(payload.PayType) &&
+            string.IsNullOrWhiteSpace(paymentPageUrl);
+        var status = missingPaymentPageUrl
+            ? PaymentStatus.Failed
+            : SinopacStatusMapper.MapCreate(response);
+
+        return new PaymentCreateResult
+        {
+            Status = status,
+            ProductOrderId = FirstNonEmpty(response.OrderNo, fallbackProductOrderId),
+            ProviderOrderRef = FirstNonEmpty(response.TSNo, response.OrderNo),
+            PaymentPageUrl = paymentPageUrl,
+            Error = missingPaymentPageUrl
+                ? new PaymentError
+                {
+                    Kind = PaymentErrorKind.ProviderRejected,
+                    Code = FirstNonEmpty(response.Status, "MissingPaymentPageUrl"),
+                    Message = "Sinopac did not return a payment page URL."
+                }
+                : SinopacStatusMapper.IsProviderRejected(response)
+                    ? new PaymentError
+                    {
+                        Kind = PaymentErrorKind.ProviderRejected,
+                        Code = response.Status,
+                        Message = response.Description
+                    }
+                    : PaymentError.None,
+            ProviderData = PaymentDiagnosticsSanitizer.Sanitize(BuildCreateProviderData(response)),
+            Diagnostics = PaymentDiagnosticsSanitizer.Sanitize(new Dictionary<string, string>
+            {
+                ["shop_no"] = response.ShopNo,
+                ["status"] = response.Status,
+                ["description"] = response.Description,
+                ["card_pay_url"] = response.CardParam?.CardPayURL ?? string.Empty,
+                ["mobile_pay_url"] = response.MobileParam?.MobilePayURL ?? string.Empty,
+                ["web_atm_url"] = response.ATMParam?.WebAtmURL ?? string.Empty
+            })
         };
     }
 
@@ -349,6 +370,12 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
             response.MobileParam?.MobilePayURL ?? string.Empty,
             response.ATMParam?.WebAtmURL ?? string.Empty,
             response.ATMParam?.OtpURL ?? string.Empty);
+    }
+
+    private static bool RequiresPaymentPageUrl(string? payType)
+    {
+        var normalizedPayType = payType?.Trim().ToUpperInvariant();
+        return normalizedPayType is "C" or "M" or "L" or "" or null;
     }
 
     private static decimal? ParseMinorAmount(string? amount)
@@ -403,14 +430,34 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
 
     private sealed class SinopacHttpStatusException : Exception
     {
-        public SinopacHttpStatusException(HttpStatusCode statusCode)
-            : base($"Sinopac returned HTTP {(int)statusCode} {statusCode}.")
+        public SinopacHttpStatusException(string route, HttpStatusCode statusCode, string responseBody)
+            : base(FormatHttpStatusMessage(route, statusCode, responseBody))
         {
         }
 
         public SinopacHttpStatusException(string message)
             : base(message)
         {
+        }
+
+        private static string FormatHttpStatusMessage(
+            string route,
+            HttpStatusCode statusCode,
+            string responseBody)
+        {
+            var message = $"Sinopac {route} returned HTTP {(int)statusCode} {statusCode}.";
+            if (string.IsNullOrWhiteSpace(responseBody))
+            {
+                return message;
+            }
+
+            var trimmedBody = responseBody.Trim();
+            if (trimmedBody.Length > 500)
+            {
+                trimmedBody = trimmedBody[..500] + "...";
+            }
+
+            return $"{message} Response: {trimmedBody}";
         }
     }
 

@@ -4,6 +4,59 @@ Date: 2026-06-26
 Task: `payment-module-extraction`
 Scope reviewed: Task 11 cleanup diff from the working tree at review time.
 
+## Follow-up Review - Sinopac Card Redirect and HTTP 400
+
+Date: 2026-06-26
+Scope reviewed:
+
+- `SpeechMessage.Payments/Providers/Sinopac/SinopacCrypto.cs`
+- `SpeechMessage.Payments/Providers/Sinopac/SinopacPaymentProvider.cs`
+- `SpeechMessage.Payments.Tests/Providers/Sinopac/SinopacProviderTests.cs`
+- `ChurchReport/Payments/QPayCreatePaymentGatewayAdapter.cs`
+- `ChurchReport.MemberInfo.Tests/Payments/QPayCreatePaymentGatewayAdapterTests.cs`
+- `ChurchReport/Views/Dedication/QPayView.cshtml`
+- `.trellis/spec/backend/quality-guidelines.md`
+
+External review status:
+
+- Required CCG wrapper was checked with `Test-Path "$HOME\.claude\bin\codeagent-wrapper"`.
+- Result: `False`.
+- Gemini/Claude CCG review could not be rerun from this environment because the wrapper is not present.
+
+Manual review findings:
+
+- Critical: none.
+- Warning: none.
+- Info:
+  - Sinopac AES key derivation now preserves legacy uppercase hex bytes; the sandbox `JesusTest` regression locks the value to `89C697BCC1C10908864428F5C58A068A`.
+  - Sinopac create-payment mapping now fails closed if a hosted card/mobile/LinePay response lacks a payment page URL.
+  - ChurchReport QPay legacy adapter now fails closed instead of creating a successful `CreOrder` with empty `CardParam.CardPayURL`.
+  - Donation page JavaScript now redirects only to non-empty absolute `http`/`https` URLs. Legacy `DedicationResult` URL fallback is limited to credit-card flow; explicit `PaymentPageUrl`/`RedirectUrl` remains valid for future hosted payment responses.
+  - HTTP 400 diagnostics now include the Sinopac route and a truncated response-body snippet, improving next-failure diagnosis without adding credentials to provider data.
+
+Verification:
+
+```powershell
+dotnet test SpeechMessage.Payments.Tests\SpeechMessage.Payments.Tests.csproj --no-restore -v minimal
+dotnet vstest ChurchReport.MemberInfo.Tests\bin\Debug\net10.0\ChurchReport.MemberInfo.Tests.dll
+dotnet build ChurchReport.sln --no-restore -v minimal
+rg -n "ChurchReport|ToolUtility|Line\.Messaging|Microsoft\.Xrm|HttpRequest|Controller|IActionResult|DbContext" SpeechMessage.Payments --glob "*.cs" --glob "*.csproj"
+rg -n "QPay\.Domain|QryOrderPay|TSResultContent|QryOrder\b|OrderInfo\b|TSResult\b|CreOrderReq|QryOrderPayReq|OrderMaintainReq|BillQuery|AllotQuery|MyPayReturnModel|MyPayProcessingResult|MyPayStatusHelper" ChurchReport --glob "*.cs"
+rg -n "\bIPayment\b|IQPayToolkit|QPayToolkit|QPayToolkitWrapper|MyPayToolkit|MyPayToolkitWrapper|TspgToolkit|TspgToolkitWrapper|TSPGWebhookHandler|CreOrderReq|QryOrderPayReq|OrderMaintainReq|BillQuery|AllotQuery|TSPGPaymentRequest|TSPGPaymentNotification|StoreKey|StoreIV|auth_id_resp|BuildPaymentPostData|VerifyNotificationHash" ChurchReport --glob "*.cs"
+git diff -- LinePayCSharp
+git diff --check
+```
+
+Results:
+
+- `SpeechMessage.Payments.Tests`: 47 passed.
+- `ChurchReport.MemberInfo.Tests`: 77 passed.
+- `ChurchReport.sln` build: 0 warnings, 0 errors.
+- Boundary searches: no matches.
+- `LinePayCSharp`: no diff.
+- `git diff --check`: no whitespace errors; Git reported CRLF normalization warnings only.
+- User verification: card donation now redirects to the Sinopac credit-card entry page.
+
 ## External Review Status
 
 ### Gemini

@@ -1100,9 +1100,15 @@
     function onSuccess(data) {
         getLoadPanelInstance().hide();
         if (data.status == 1) {
-            if (data.PayWay == "信用卡") {
+            var payWay = data.PayWay || data.payWay || "";
+            var paymentUrl = getPaymentRedirectUrl(data, payWay == "信用卡");
+            if (paymentUrl) {
                 ShowToast(data.message, "success", 2000);
-                window.location.href = data.DedicationResult;
+                window.location.href = paymentUrl;
+            } else if (payWay == "信用卡") {
+                ShowToast("金流未回傳信用卡付款頁，請稍後再試或聯絡教會同工。", "error", 3000);
+                document.getElementById('atmfield').innerHTML = data.message || "金流未回傳信用卡付款頁";
+                document.getElementById('atm-info').style.display = 'block';
             } else {
                 ShowToast(data.message, "success", 2000);
                 document.getElementById('atmfield').innerHTML = data.DedicationResult;
@@ -1113,6 +1119,29 @@
             document.getElementById('atmfield').innerHTML = data.message;
             document.getElementById('atm-info').style.display = 'block';  // 顯示錯誤訊息
         }
+    }
+
+    function getPaymentRedirectUrl(data, allowLegacyDedicationResult) {
+        if (!data) {
+            return "";
+        }
+
+        var candidate = data.PaymentPageUrl ||
+            data.paymentPageUrl ||
+            data.RedirectUrl ||
+            data.redirectUrl ||
+            "";
+        if (!candidate && allowLegacyDedicationResult) {
+            candidate = data.DedicationResult ||
+                data.dedicationResult ||
+                "";
+        }
+        if (typeof candidate !== "string") {
+            return "";
+        }
+
+        candidate = candidate.trim();
+        return /^https?:\/\//i.test(candidate) ? candidate : "";
     }
 
     // ==================== DevExtreme 本地化設定 ====================

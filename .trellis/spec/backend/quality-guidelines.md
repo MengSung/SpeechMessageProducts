@@ -115,6 +115,73 @@ Provider status mapping is owned by `SpeechMessage.Payments`; ChurchReport handl
 
 ---
 
+## Sinopac QPay Create-Payment Compatibility
+
+### 1. Scope / Trigger
+
+- Trigger: Sinopac/QPay create-payment calls cross a bank API boundary and are sensitive to legacy encryption/signature bytes.
+- This applies to `SpeechMessage.Payments.Providers.Sinopac` and ChurchReport QPay create-payment adapters.
+- User-visible symptom: card donation returns to the donation page, or the app shows `Sinopac returned HTTP 400 BadRequest` instead of reaching the Sinopac card entry page.
+
+### 2. Signatures
+
+- `SinopacCrypto.BuildAesKey(PaymentMerchantProfile profile)` must return the legacy QPay AES key string.
+- `SinopacPaymentProvider.CreatePaymentAsync(...)` must return a failed `PaymentCreateResult` if a hosted payment method succeeds without a payment URL.
+- `QPayCreatePaymentGatewayAdapter.CreateLegacyOrderAsync(...)` must not populate `CardParam` or `MobileParam` when the neutral `PaymentCreateResult.PaymentPageUrl` is empty.
+
+### 3. Contracts
+
+- Sinopac AES key derivation uses XOR of `A1/A2` and `B1/B2`, then uppercase hex fragments concatenated as an ASCII AES key string.
+- The sandbox `JesusTest` profile must produce:
+
+```text
+89C697BCC1C10908864428F5C58A068A
+```
+
+- Hosted payment methods `C`, `M`, `L`, blank, or missing pay type require a non-empty absolute provider payment URL before the product redirects the browser.
+- HTTP status failures from Sinopac must include sanitized route and response-body context in the normalized error message, for example `Sinopac Nonce returned HTTP 400 BadRequest. Response: ...`.
+- Product UI code may redirect only to non-empty absolute `http` or `https` payment URLs.
+
+### 4. Validation & Error Matrix
+
+- AES key uses lowercase hex -> Sinopac may reject the encrypted payload/signature with HTTP 400; restore uppercase hex and keep the regression test.
+- Hosted create response status is success but card/mobile URL is empty -> return `PaymentStatus.Failed` with `PaymentErrorKind.ProviderRejected`; do not treat the legacy `CreOrder` as success.
+- ChurchReport receives an empty or relative redirect URL for credit card payment -> show an error message; do not assign `window.location.href = ""`.
+- Sinopac HTTP status is non-success -> normalize as `PaymentErrorKind.ProviderUnavailable` and include the Sinopac route plus a truncated response-body snippet.
+
+### 5. Good/Base/Bad Cases
+
+- Good: card create payment returns `PaymentPageUrl = "https://sandbox.sinopac.com/..."`; ChurchReport redirects to Sinopac card entry.
+- Base: provider rejects the request with HTTP 400; the result fails with route/body diagnostics and ChurchReport shows a payment failure.
+- Bad: provider returns an empty card URL but ChurchReport marks `CreOrder.Status = "S"` and redirects to the current page.
+
+### 6. Tests Required
+
+- `SinopacCrypto.BuildAesKey(CreateProfile())` equals `89C697BCC1C10908864428F5C58A068A`.
+- Sinopac create-result mapping fails when pay type `C` has no hosted card payment URL.
+- Sinopac HTTP 400 tests assert the error includes the route name and response body snippet.
+- ChurchReport QPay adapter tests assert empty card `PaymentPageUrl` yields legacy status `F` and no `CardParam`.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+return ToHex(Xor(a1, a2)) + ToHex(Xor(b1, b2));
+```
+
+Lowercase hex changes the ASCII AES key bytes used by the Sinopac protocol.
+
+#### Correct
+
+```csharp
+return ToHex(Xor(a1, a2), uppercase: true) + ToHex(Xor(b1, b2), uppercase: true);
+```
+
+Preserve legacy QPay Toolkit behavior exactly when generating bank-facing encrypted payloads.
+
+---
+
 ## Code Review Checklist
 
 <!-- What reviewers should check -->

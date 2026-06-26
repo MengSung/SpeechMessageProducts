@@ -86,8 +86,11 @@ public sealed class QPayCreatePaymentGatewayAdapter
         QPayCreatePaymentInput input,
         PaymentCreateResult result)
     {
+        var missingHostedPaymentUrl = RequiresHostedPaymentUrl(input.PaymentMethod) &&
+            string.IsNullOrWhiteSpace(result.PaymentPageUrl);
         var isRejected = result.Error.HasError
-            || result.Status is PaymentStatus.Failed or PaymentStatus.Cancelled;
+            || result.Status is PaymentStatus.Failed or PaymentStatus.Cancelled
+            || missingHostedPaymentUrl;
         var order = new CreOrder
         {
             OrderNo = FirstNonEmpty(result.ProductOrderId, input.ProductOrderId),
@@ -98,7 +101,11 @@ public sealed class QPayCreatePaymentGatewayAdapter
             PayType = input.PaymentMethod,
             Amount = decimal.ToInt32(input.Amount * 100m),
             Status = isRejected ? "F" : "S",
-            Description = result.Error.HasError ? result.Error.Message : string.Empty,
+            Description = result.Error.HasError
+                ? result.Error.Message
+                : missingHostedPaymentUrl
+                    ? "Payment provider did not return a payment page URL."
+                    : string.Empty,
             Param1 = input.ProductEntityId,
             Param2 = input.PaymentOrganization,
             Param3 = input.PaymentCategory
@@ -118,6 +125,11 @@ public sealed class QPayCreatePaymentGatewayAdapter
         {
             case "M":
             case "L":
+                if (string.IsNullOrWhiteSpace(paymentPageUrl))
+                {
+                    return;
+                }
+
                 order.MobileParam = new CreOrderMobileParamRes
                 {
                     MobilePayURL = paymentPageUrl
@@ -132,6 +144,11 @@ public sealed class QPayCreatePaymentGatewayAdapter
                 };
                 break;
             default:
+                if (string.IsNullOrWhiteSpace(paymentPageUrl))
+                {
+                    return;
+                }
+
                 order.CardParam = new CreOrderCardParamRes
                 {
                     CardPayURL = paymentPageUrl
@@ -158,6 +175,11 @@ public sealed class QPayCreatePaymentGatewayAdapter
         }
 
         return string.Empty;
+    }
+
+    private static bool RequiresHostedPaymentUrl(string paymentMethod)
+    {
+        return (paymentMethod ?? string.Empty).Trim().ToUpperInvariant() is "C" or "M" or "L" or "";
     }
 }
 

@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net;
 using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Configuration;
 using SpeechMessage.Payments.DependencyInjection;
@@ -73,6 +74,14 @@ public sealed class SinopacProviderTests
     }
 
     [Fact]
+    public void Crypto_builds_legacy_uppercase_aes_key()
+    {
+        var aesKey = SinopacCrypto.BuildAesKey(CreateProfile());
+
+        aesKey.Should().Be("89C697BCC1C10908864428F5C58A068A");
+    }
+
+    [Fact]
     public void Status_mapper_maps_successful_order_pay_response_to_succeeded()
     {
         var response = new SinopacOrderPayResponse
@@ -115,6 +124,63 @@ public sealed class SinopacProviderTests
         };
 
         SinopacStatusMapper.Map(response).Should().Be(PaymentStatus.Failed);
+    }
+
+    [Fact]
+    public void Create_result_fails_when_card_payment_success_response_has_no_payment_page_url()
+    {
+        var request = new SinopacOrderCreateRequest
+        {
+            OrderNo = "C202606250001",
+            PayType = "C"
+        };
+        var response = new SinopacOrderCreateResponse
+        {
+            OrderNo = "C202606250001",
+            Status = "S",
+            Description = "S00000",
+            CardParam = new SinopacOrderCreateCardResponse()
+        };
+
+        var result = SinopacPaymentProvider.ResolveCreateResult(
+            request,
+            response,
+            "fallback-order");
+
+        result.Status.Should().Be(PaymentStatus.Failed);
+        result.PaymentPageUrl.Should().BeEmpty();
+        result.Error.Kind.Should().Be(PaymentErrorKind.ProviderRejected);
+        result.Error.Message.Should().Contain("payment page URL");
+    }
+
+    [Fact]
+    public async Task Create_payment_includes_route_and_response_body_when_http_status_fails()
+    {
+        using var httpClient = new HttpClient(new StaticResponseHandler(
+            HttpStatusCode.BadRequest,
+            "invalid request payload"));
+        var provider = new SinopacPaymentProvider(httpClient);
+
+        var result = await provider.CreatePaymentAsync(
+            CreateProfile(),
+            new PaymentCreateRequest
+            {
+                ProductOrderId = "C202606250001",
+                Amount = 1200m,
+                Description = "Fee payment",
+                PaymentMethod = "C",
+                Callbacks = new PaymentCallbacks
+                {
+                    ReturnUrl = "https://example.test/qpay-return",
+                    BackendUrl = "https://example.test/qpay-backend"
+                }
+            },
+            CancellationToken.None);
+
+        result.Status.Should().Be(PaymentStatus.Failed);
+        result.Error.Kind.Should().Be(PaymentErrorKind.ProviderUnavailable);
+        result.Error.Message.Should().Contain("Sinopac Nonce returned HTTP 400 BadRequest");
+        result.Error.Message.Should().Contain("invalid request payload");
     }
 
     [Theory]
@@ -213,5 +279,27 @@ public sealed class SinopacProviderTests
                 ["ApiBaseUrl"] = "https://sandbox.sinopac.com/QPay.WebAPI/api/"
             }
         };
+    }
+
+    private sealed class StaticResponseHandler : HttpMessageHandler
+    {
+        private readonly HttpStatusCode _statusCode;
+        private readonly string _content;
+
+        public StaticResponseHandler(HttpStatusCode statusCode, string content)
+        {
+            _statusCode = statusCode;
+            _content = content;
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new HttpResponseMessage(_statusCode)
+            {
+                Content = new StringContent(_content)
+            });
+        }
     }
 }

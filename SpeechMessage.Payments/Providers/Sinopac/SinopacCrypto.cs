@@ -13,7 +13,7 @@ internal static class SinopacCrypto
         var b1 = ReadHalfKey(profile, "B1");
         var b2 = ReadHalfKey(profile, "B2");
 
-        return ToHex(Xor(a1, a2)) + ToHex(Xor(b1, b2));
+        return ToHex(Xor(a1, a2), uppercase: true) + ToHex(Xor(b1, b2), uppercase: true);
     }
 
     public static string Encrypt(string aesKey, string data, string nonce)
