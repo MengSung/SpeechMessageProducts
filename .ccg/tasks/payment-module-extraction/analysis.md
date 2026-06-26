@@ -15,3 +15,9 @@ Claude architecture review completed. Gemini review was attempted twice but did 
 - `QPayCardWebhook` and all `QPayProcessor` partial files must be audited before QPay conversion.
 - `PaymentCreateResult`, `PaymentQueryRequest`, and `PaymentCallbackResult` need explicit neutral fields to avoid provider-specific vocabulary leaking into the public contract.
 - `PaymentHttpRequestMapper` or callback actions must enable ASP.NET request buffering before reading raw callback bodies.
+
+## Implementation Notes
+
+- Task 6 converted `MyPayController.PaymentNotify` to a thin adapter over `IPaymentGateway.ParseCallbackAsync`.
+- The focused MyPay adapter validation passed through the ChurchReport test assembly direct `vstest` path.
+- `rg` still finds `MyPayToolkit`, `MyPayToolkitWrapper`, `MyPayReturnModel`, and `prc` in ChurchReport because the legacy TSPG and QPay paths still reference those types. Deleting them at Task 6 would break the staged migration. Removal is deferred until Task 8/10 eliminates those cross-provider references and the final boundary search can pass cleanly.
