@@ -2,6 +2,7 @@
 using ChurchReport.Tools;
 using ChurchReport.Filters;
 using ChurchReport.Services.Theme;
+using ChurchReport.Payments;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -25,6 +26,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using ToolUtilityNameSpace.DependencyInjection;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ChurchReport.WebServiceConnector;
+using SpeechMessage.Payments.DependencyInjection;
 
 namespace ChurchReport
 {
@@ -480,6 +482,13 @@ namespace ChurchReport
             services.AddScoped<ChurchReport.Services.MyPayLogger>();
             services.AddScoped<ChurchReport.Services.MyPayCrmService>();
             services.AddScoped<ChurchReport.Services.MyPayNotificationService>();
+
+            services.AddSpeechMessagePayments(Configuration.GetSection("Payment"));
+            services.AddScoped<PaymentHttpRequestMapper>();
+            services.AddScoped<PaymentAcknowledgementResultMapper>();
+            services.AddScoped<ChurchReportPaymentProfileResolver>();
+            services.AddScoped<PaymentCreateRequestFactory>();
+            services.AddScoped<PaymentWorkflowResultMapper>();
 
 #if DEBUG
             // ========================================

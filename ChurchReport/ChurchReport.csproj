@@ -88,6 +88,7 @@
     <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />
     <ProjectReference Include="..\LineMessagingProcessor\LineMessagingProcessor.csproj" />
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Payments\SpeechMessage.Payments.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tests\Services\Caching\" />
