@@ -489,6 +489,9 @@ namespace ChurchReport
             services.AddScoped<ChurchReportPaymentProfileResolver>();
             services.AddScoped<PaymentCreateRequestFactory>();
             services.AddScoped<PaymentWorkflowResultMapper>();
+            services.AddScoped<IQPayReturnWorkflow, QPayReturnWorkflow>();
+            services.AddScoped<IQPayProductWorkflowDispatcher, QPayProductWorkflowDispatcher>();
+            services.AddScoped<QPayCreatePaymentGatewayAdapter>();
 
 #if DEBUG
             // ========================================
@@ -499,28 +502,6 @@ namespace ChurchReport
             services.AddHostedService<ChurchReport.Middleware.IdentityAuditCleanupService>();
             Console.WriteLine("[Startup] ✅ IdentityAuditCleanupService 已註冊（定期清理追蹤資料）");
 #endif
-
-
-            // 根據配置中的 PAY_PROVIDER 設定，註冊對應的支付服務。
-            if (Configuration["PAY_PROVIDER"] == "永豐金流")
-            {
-                services.AddScoped<IPayment, QPayToolkitWrapper>();
-            }
-            else if (Configuration["PAY_PROVIDER"] == "高鉅金流")
-            {
-                services.AddScoped<IPayment, MyPayToolkitWrapper>();
-            }
-            else if (Configuration["PAY_PROVIDER"] == "台新金流")
-            {
-                services.AddScoped<IPayment, TspgToolkitWrapper>();
-            }
-            else
-            {
-                // 預設使用永豐金流。
-                services.AddScoped<IPayment, QPayToolkitWrapper>();
-                // 預設使用台新金流。
-                //services.AddScoped<IPayment, TspgToolkitWrapper>();
-            }
 
             // ========================================
             // ✅ Phase 3.3: Session 配置與安全性強化 (Session Bleeding 防護 - Step 3)

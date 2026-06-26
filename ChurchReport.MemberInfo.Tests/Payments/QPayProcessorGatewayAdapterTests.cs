@@ -1,0 +1,357 @@
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using ChurchReport.Models;
+using ChurchReport.Payments;
+using ChurchReport.Tools;
+using ChurchReport.WebServiceConnector;
+using FluentAssertions;
+using Microsoft.Extensions.Configuration;
+using SpeechMessage.Payments.Abstractions;
+using SpeechMessage.Payments.Models;
+using Xunit;
+
+namespace ChurchReport.MemberInfo.Tests.Payments;
+
+public sealed class QPayProcessorGatewayAdapterTests
+{
+    [Fact]
+    public void ChurchReport_controllers_do_not_accept_legacy_ipayment_in_constructors()
+    {
+        const string legacyPaymentTypeName = "ChurchReport.Tools.IPayment";
+        var offenders = typeof(QpayManager).Assembly
+            .GetTypes()
+            .Where(type => type.Namespace != null && type.Namespace.StartsWith("ChurchReport.Controllers"))
+            .Where(type => type.Name.EndsWith("Controller", StringComparison.Ordinal))
+            .SelectMany(type => type
+                .GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Select(constructor => new
+                {
+                    Type = type,
+                    Constructor = constructor
+                }))
+            .Where(item => item.Constructor
+                .GetParameters()
+                .Any(parameter => parameter.ParameterType.FullName == legacyPaymentTypeName))
+            .Select(item => item.Type.FullName)
+            .Distinct()
+            .OrderBy(name => name)
+            .ToArray();
+
+        offenders.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void QPay_processor_does_not_store_legacy_ipayment_provider()
+    {
+        const string legacyPaymentTypeName = "ChurchReport.Tools.IPayment";
+        var processorType = typeof(QPayProcessor);
+
+        var fieldNames = processorType
+            .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            .Where(field => field.FieldType.FullName == legacyPaymentTypeName)
+            .Select(field => field.Name)
+            .OrderBy(name => name)
+            .ToArray();
+        var propertyNames = processorType
+            .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            .Where(property => property.PropertyType.FullName == legacyPaymentTypeName)
+            .Select(property => property.Name)
+            .OrderBy(name => name)
+            .ToArray();
+        var methodNames = processorType
+            .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            .Where(method => method.ReturnType.FullName == legacyPaymentTypeName)
+            .Select(method => method.Name)
+            .OrderBy(name => name)
+            .ToArray();
+
+        fieldNames.Should().BeEmpty();
+        propertyNames.Should().BeEmpty();
+        methodNames.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Qpay_manager_and_context_constructors_accept_gateway_create_adapter()
+    {
+        ConstructorHasAdapter(typeof(QpayManager)).Should().BeTrue();
+        ConstructorHasAdapter(typeof(InMemoryDataContextSmallGroup)).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task CreateQPayOrder_uses_gateway_adapter_when_available()
+    {
+        var gateway = new RecordingPaymentGateway(new PaymentCreateResult
+        {
+            Status = PaymentStatus.Pending,
+            ProductOrderId = "C20260626112233",
+            ProviderOrderRef = "TS123456789",
+            PaymentPageUrl = "https://pay.example.test/card",
+            ProviderData = new Dictionary<string, string>
+            {
+                ["shop_no"] = "NA0149_001"
+            }
+        });
+        var processor = CreateProcessor(CreateAdapter(gateway));
+
+        var order = await InvokeCreateQPayOrder(processor);
+
+        gateway.CreatePaymentCallCount.Should().Be(1);
+        gateway.LastCreateRequest.Should().NotBeNull();
+        gateway.LastCreateRequest!.ProviderHint.Should().BeNull();
+        gateway.LastCreateRequest.ProductOrderId.Should().Be("C20260626112233");
+        gateway.LastCreateRequest.Metadata["Param1"].Should().Be("fee-id");
+        gateway.LastCreateRequest.Metadata["Param2"].Should().Be("Jesus");
+        gateway.LastCreateRequest.Metadata["Param3"].Should().Be("fee");
+        order.Status.Should().Be("S");
+        order.OrderNo.Should().Be("C20260626112233");
+        order.TSNo.Should().Be("TS123456789");
+        order.CardParam.CardPayURL.Should().Be("https://pay.example.test/card");
+    }
+
+    [Fact]
+    public async Task CreateOrderATM_uses_gateway_adapter_when_available()
+    {
+        var gateway = new RecordingPaymentGateway(new PaymentCreateResult
+        {
+            Status = PaymentStatus.Pending,
+            ProductOrderId = "A20260626112233",
+            ProviderOrderRef = "TSATM123456",
+            PaymentPageUrl = "https://pay.example.test/atm",
+            ProviderData = new Dictionary<string, string>
+            {
+                ["shop_no"] = "NA0149_001",
+                ["atm_pay_no"] = "12345678901234"
+            }
+        });
+        var processor = CreateProcessor(CreateAdapter(gateway));
+
+        var order = await processor.CreateOrderATM(
+            800,
+            "ATM payment",
+            "20260626112233",
+            "fee-id");
+
+        gateway.CreatePaymentCallCount.Should().Be(1);
+        gateway.LastCreateRequest.Should().NotBeNull();
+        gateway.LastCreateRequest!.ProductOrderId.Should().Be("A20260626112233");
+        gateway.LastCreateRequest.PaymentMethod.Should().Be("A");
+        gateway.LastCreateRequest.Metadata["Param1"].Should().Be("fee-id");
+        gateway.LastCreateRequest.Metadata["Param2"].Should().Be("Jesus");
+        gateway.LastCreateRequest.Metadata["Param3"].Should().Be("fee");
+        order.Status.Should().Be("S");
+        order.OrderNo.Should().Be("A20260626112233");
+        order.TSNo.Should().Be("TSATM123456");
+        order.ATMParam.Should().NotBeNull();
+        order.ATMParam.AtmPayNo.Should().Be("12345678901234");
+        order.ATMParam.WebAtmURL.Should().Be("https://pay.example.test/atm");
+    }
+
+    [Fact]
+    public async Task Qpay_manager_order_maintenance_fails_closed_without_legacy_toolkit()
+    {
+        var manager = (QpayManager)RuntimeHelpers.GetUninitializedObject(typeof(QpayManager));
+
+        var result = await manager.OrderMaintain("C20260626112233", "E");
+
+        result.Status.Should().Be("F");
+        result.OrderNo.Should().Be("C20260626112233");
+        result.Command.Should().Be("E");
+        result.Description.Should().Contain("not part of the reusable payment core");
+    }
+
+    [Fact]
+    public void ChurchReport_assembly_does_not_expose_legacy_payment_toolkits()
+    {
+        var legacyTypeNames = new[]
+        {
+            "ChurchReport.Tools.IPayment",
+            "ChurchReport.Tools.IQPayToolkit",
+            "ChurchReport.Tools.QPayToolkit",
+            "ChurchReport.Tools.QPayToolkitWrapper",
+            "ChurchReport.Tools.MyPayToolkit",
+            "ChurchReport.Tools.MyPayToolkitWrapper",
+            "ChurchReport.Tools.TspgToolkit",
+            "ChurchReport.Tools.TspgToolkitWrapper",
+            "ChurchReport.Tools.TSPGWebhookHandler"
+        };
+
+        var assembly = typeof(QpayManager).Assembly;
+        var presentLegacyTypes = legacyTypeNames
+            .Where(typeName => assembly.GetType(typeName, throwOnError: false) != null)
+            .OrderBy(typeName => typeName)
+            .ToArray();
+
+        presentLegacyTypes.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void QPay_product_workflow_processors_do_not_accept_legacy_order_pay_models()
+    {
+        var processorTypes = new[]
+        {
+            typeof(QPayFeeProcessor),
+            typeof(QPayDedicationBookingProcessor)
+        };
+
+        var offendingMethods = processorTypes
+            .SelectMany(type => type
+                .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                .Select(method => new
+                {
+                    Type = type,
+                    Method = method
+                }))
+            .Where(item => item.Method
+                .GetParameters()
+                .Any(parameter => parameter.ParameterType.FullName == "QPay.Domain.QryOrderPay"))
+            .Select(item => item.Type.FullName + "." + item.Method.Name)
+            .OrderBy(name => name)
+            .ToArray();
+
+        offendingMethods.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ChurchReport_assembly_does_not_define_qpay_domain_namespace()
+    {
+        var qpayDomainTypes = typeof(QpayManager).Assembly
+            .GetTypes()
+            .Where(type => string.Equals(type.Namespace, "QPay.Domain", StringComparison.Ordinal))
+            .Select(type => type.FullName)
+            .OrderBy(name => name)
+            .ToArray();
+
+        qpayDomainTypes.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ChurchReport_assembly_does_not_expose_legacy_qpay_query_models()
+    {
+        var legacyQueryTypeNames = new[]
+        {
+            "ChurchReport.Payments.QryOrder",
+            "ChurchReport.Payments.OrderInfo",
+            "ChurchReport.Payments.OrderInfoATMParamRes",
+            "ChurchReport.Payments.OrderInfoCardParamRes",
+            "ChurchReport.Payments.QryOrderPay",
+            "ChurchReport.Payments.TSResult"
+        };
+
+        var assembly = typeof(QpayManager).Assembly;
+        var presentLegacyTypes = legacyQueryTypeNames
+            .Where(typeName => assembly.GetType(typeName, throwOnError: false) != null)
+            .OrderBy(typeName => typeName)
+            .ToArray();
+
+        presentLegacyTypes.Should().BeEmpty();
+    }
+
+    private static QPayProcessor CreateProcessor(QPayCreatePaymentGatewayAdapter adapter)
+    {
+        var processor = (QPayProcessor)RuntimeHelpers.GetUninitializedObject(typeof(QPayProcessor));
+        SetField(processor, "RETURN_URL", "https://church.example.test/qpay-return");
+        SetField(processor, "BACKEND_URL", "https://church.example.test/qpay-backend");
+        SetField(processor, "QPAY_ORGANIZATION", "Jesus");
+        SetField(processor, "m_ShopNo", "NA0149_001");
+        SetField(processor, "m_QPayCreatePaymentGatewayAdapter", adapter);
+        return processor;
+    }
+
+    private static async Task<CreOrder> InvokeCreateQPayOrder(QPayProcessor processor)
+    {
+        var method = typeof(QPayProcessor).GetMethod(
+            "CreateQPayOrder",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        method.Should().NotBeNull();
+
+        var task = method!.Invoke(
+            processor,
+            new object?[]
+            {
+                1200,
+                "Fee payment",
+                "20260626112233",
+                "fee-id",
+                "C",
+                "ONE",
+                string.Empty,
+                0,
+                "M",
+                1,
+                "fee",
+                "cc-token"
+            }) as Task<CreOrder>;
+
+        task.Should().NotBeNull();
+        return await task!;
+    }
+
+    private static bool ConstructorHasAdapter(Type type)
+    {
+        return type
+            .GetConstructors()
+            .Any(constructor => constructor
+                .GetParameters()
+                .Any(parameter => parameter.ParameterType == typeof(QPayCreatePaymentGatewayAdapter)));
+    }
+
+    private static void SetField<T>(QPayProcessor processor, string fieldName, T value)
+    {
+        var field = typeof(QPayProcessor).GetField(
+            fieldName,
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        field.Should().NotBeNull();
+        field!.SetValue(processor, value);
+    }
+
+    private static QPayCreatePaymentGatewayAdapter CreateAdapter(IPaymentGateway gateway)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Payment:DefaultProfile"] = "JesusTest"
+            })
+            .Build();
+
+        return new QPayCreatePaymentGatewayAdapter(
+            gateway,
+            new PaymentCreateRequestFactory(),
+            new ChurchReportPaymentProfileResolver(configuration));
+    }
+
+    private sealed class RecordingPaymentGateway : IPaymentGateway
+    {
+        private readonly PaymentCreateResult _createResult;
+
+        public RecordingPaymentGateway(PaymentCreateResult createResult)
+        {
+            _createResult = createResult;
+        }
+
+        public int CreatePaymentCallCount { get; private set; }
+        public PaymentCreateRequest? LastCreateRequest { get; private set; }
+
+        public Task<PaymentCreateResult> CreatePaymentAsync(
+            PaymentCreateRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            CreatePaymentCallCount++;
+            LastCreateRequest = request;
+            return Task.FromResult(_createResult);
+        }
+
+        public Task<PaymentStatusResult> QueryPaymentAsync(
+            PaymentQueryRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<PaymentCallbackResult> ParseCallbackAsync(
+            PaymentCallbackRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+    }
+}

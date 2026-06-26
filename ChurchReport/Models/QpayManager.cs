@@ -1,4 +1,5 @@
-﻿using ChurchReport.Tools;
+using ChurchReport.Payments;
+using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using ChurchReport.WebServiceConnector;
 using Line.Messaging;
@@ -6,7 +7,6 @@ using LineMessagingProcessor;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
-using QPay.Domain;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -41,6 +41,7 @@ namespace ChurchReport.Models
         public QpayModel m_QpayModel { get; set; } = new QpayModel();
 
         private QPayProcessor m_QPayProcessor;
+        private readonly QPayCreatePaymentGatewayAdapter m_QPayCreatePaymentGatewayAdapter;
 
         // 登入的連絡人
         public Entity m_LoginContact;
@@ -55,7 +56,8 @@ namespace ChurchReport.Models
 
         #endregion
         #region 初始化
-        public QpayManager(IPayment aPaymentService)
+        public QpayManager(
+            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter = null)
         {
             // 商店編號
             if( m_Configuration["Cash_Environment"] == "正式環境" )
@@ -74,7 +76,8 @@ namespace ChurchReport.Models
             this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
             m_PushUtility = new PushUtility(m_LineMessagingClient);
 
-            m_QPayProcessor = new QPayProcessor(aPaymentService);
+            m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter;
+            m_QPayProcessor = new QPayProcessor(m_QPayCreatePaymentGatewayAdapter);
 
         }
         #endregion
@@ -1472,17 +1475,14 @@ namespace ChurchReport.Models
         #region 永豐金流工具區
         public async Task<OrderMaintain> OrderMaintain(String aOrderNo, String aCommand)
         {
-            OrderMaintainReq orderMaintainReq = new OrderMaintainReq()
+            return await Task.FromResult(new OrderMaintain
             {
-                ShopNo = m_ShopNo,
-                OrderNo = aOrderNo,
-                Command = aCommand
-            };
-
-            OrderMaintain retObj = QPayToolkit.OrderMaintain(orderMaintainReq);
-
-            //ltResponse.Text = QPayCommon.SerializeToJson(retObj);
-            return retObj;
+                OrderNo = aOrderNo ?? string.Empty,
+                ShopNo = m_ShopNo ?? string.Empty,
+                Command = aCommand ?? string.Empty,
+                Status = "F",
+                Description = "QPay order maintenance is not part of the reusable payment core first release."
+            });
         }
         #endregion
 

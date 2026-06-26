@@ -51,12 +51,11 @@ namespace ChurchReport.Controllers
         public SmallGroupController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
-            IPayment paymentService,
             IToolUtilityProvider toolUtilityProvider,
             ICrmConnectionPool connectionPool,
             IInMemoryDataContext inMemoryContext,
             ChurchReport.Services.Caching.ISmallGroupCacheManager cacheManager)
-            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool, inMemoryContext)
+            : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool, inMemoryContext)
         {
             _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
             _cacheManager = cacheManager ?? throw new ArgumentNullException(nameof(cacheManager));

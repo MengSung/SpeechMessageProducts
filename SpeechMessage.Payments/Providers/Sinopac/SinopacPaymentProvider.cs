@@ -296,7 +296,10 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
             ["provider_message"] = response.Description,
             ["param1"] = response.Param1,
             ["param2"] = response.Param2,
-            ["param3"] = response.Param3
+            ["param3"] = response.Param3,
+            ["product_entity_id"] = response.Param1,
+            ["payment_organization"] = response.Param2,
+            ["payment_category"] = response.Param3
         };
     }
 
@@ -316,6 +319,9 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
             ["param1"] = transaction?.Param1 ?? string.Empty,
             ["param2"] = transaction?.Param2 ?? string.Empty,
             ["param3"] = transaction?.Param3 ?? string.Empty,
+            ["product_entity_id"] = transaction?.Param1 ?? string.Empty,
+            ["payment_organization"] = transaction?.Param2 ?? string.Empty,
+            ["payment_category"] = transaction?.Param3 ?? string.Empty,
             ["left_cc_no"] = transaction?.LeftCCNo ?? string.Empty,
             ["right_cc_no"] = transaction?.RightCCNo ?? string.Empty
         };

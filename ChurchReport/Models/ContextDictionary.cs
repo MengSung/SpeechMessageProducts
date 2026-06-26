@@ -63,7 +63,6 @@ namespace ChurchReport.Models
         public static InMemoryDataContextSmallGroup GetInMemoryDataContextSmallGroup(
             IHttpContextAccessor httpContextAccessor, 
             IMemoryCache memoryCache, 
-            IPayment aPaymentService, 
             IToolUtilityProvider toolUtilityProvider)
         {
             try
@@ -97,7 +96,6 @@ namespace ChurchReport.Models
                         Context = new InMemoryDataContextSmallGroup(
                             httpContextAccessor, 
                             memoryCache, 
-                            aPaymentService, 
                             toolUtilityProvider),
                         LastAccessTime = DateTime.UtcNow
                     };

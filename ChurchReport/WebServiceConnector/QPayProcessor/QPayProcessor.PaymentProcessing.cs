@@ -1,6 +1,5 @@
 using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
-using QPay.Domain;
 using System;
 using System.Threading.Tasks;
 

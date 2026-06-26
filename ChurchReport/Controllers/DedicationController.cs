@@ -32,11 +32,10 @@ namespace ChurchReport.Controllers
         public DedicationController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
-            IPayment paymentService,
             IToolUtilityProvider toolUtilityProvider,
             ICrmConnectionPool connectionPool,
             IConfiguration configuration)
-            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool)
+            : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool)
         {
             _configuration = configuration;
         }
