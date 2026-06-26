@@ -4,10 +4,10 @@ namespace SpeechMessage.Payments.Configuration;
 
 public sealed record PaymentMerchantProfile
 {
-    public string Name { get; init; } = string.Empty;
-    public PaymentProviderKind Provider { get; init; } = PaymentProviderKind.Unknown;
-    public PaymentEnvironment Environment { get; init; } = PaymentEnvironment.Sandbox;
-    public IReadOnlyDictionary<string, string> Credentials { get; init; } = new Dictionary<string, string>();
-    public IReadOnlyDictionary<string, string> Endpoints { get; init; } = new Dictionary<string, string>();
-    public IReadOnlyDictionary<string, string> Settings { get; init; } = new Dictionary<string, string>();
+    public string Name { get; set; } = string.Empty;
+    public PaymentProviderKind Provider { get; set; } = PaymentProviderKind.Unknown;
+    public PaymentEnvironment Environment { get; set; } = PaymentEnvironment.Sandbox;
+    public Dictionary<string, string> Credentials { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, string> Endpoints { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, string> Settings { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }
