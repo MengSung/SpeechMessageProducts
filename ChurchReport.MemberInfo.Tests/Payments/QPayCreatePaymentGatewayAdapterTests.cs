@@ -43,6 +43,10 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
             ReturnUrl = "https://church.example.test/qpay-return",
             BackendUrl = "https://church.example.test/qpay-backend",
             AutoBilling = "Y",
+            Customer = new PaymentCustomer
+            {
+                Name = "Grace"
+            },
             CreditCardToken = "cc-token"
         });
 
@@ -63,6 +67,11 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
         gateway.LastCreateRequest.Metadata["PayType"].Should().Be("C");
         gateway.LastCreateRequest.Metadata["AutoBilling"].Should().Be("Y");
         gateway.LastCreateRequest.Metadata["CCToken"].Should().Be("cc-token");
+        gateway.LastCreateRequest.Metadata["UserId"].Should().Be("Grace");
+        gateway.LastCreateRequest.Items.Should().ContainSingle();
+        gateway.LastCreateRequest.Items[0].Name.Should().Be("Fee payment");
+        gateway.LastCreateRequest.Items[0].Quantity.Should().Be(1);
+        gateway.LastCreateRequest.Items[0].UnitPrice.Should().Be(1200m);
         result.PaymentPageUrl.Should().Be("https://pay.example.test/card");
     }
 

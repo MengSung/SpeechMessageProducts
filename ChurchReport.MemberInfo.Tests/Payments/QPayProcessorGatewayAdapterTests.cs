@@ -156,6 +156,8 @@ public sealed class QPayProcessorGatewayAdapterTests
         gateway.LastCreateRequest.Metadata["Param1"].Should().Be("fee-id");
         gateway.LastCreateRequest.Metadata["Param2"].Should().Be("Jesus");
         gateway.LastCreateRequest.Metadata["Param3"].Should().Be("fee");
+        gateway.LastCreateRequest.Metadata["UserId"].Should().Be("Grace");
+        gateway.LastCreateRequest.Customer.Name.Should().Be("Grace");
         order.Status.Should().Be("S");
         order.OrderNo.Should().Be("C20260626112233");
         order.TSNo.Should().Be("TS123456789");
@@ -333,6 +335,7 @@ public sealed class QPayProcessorGatewayAdapterTests
                 "M",
                 1,
                 "fee",
+                "Grace",
                 "cc-token"
             }) as Task<CreOrder>;
 

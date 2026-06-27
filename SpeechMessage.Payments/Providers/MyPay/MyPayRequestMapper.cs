@@ -17,9 +17,19 @@ internal static class MyPayRequestMapper
             StoreUid = GetRequiredCredential(profile, "StoreId"),
             OrderId = request.ProductOrderId,
             Cost = FormatAmount(request.Amount),
+            Items = MapItems(request),
+            UserId = FirstNonEmpty(
+                GetMetadata(request, "UserId"),
+                request.Customer.Name,
+                request.Customer.Email,
+                request.ProductOrderId),
+            Ip = FirstNonEmpty(
+                GetMetadata(request, "Ip"),
+                GetProfileSetting(profile, "IP"),
+                "127.0.0.1"),
             Currency = request.Currency,
             ProductName = request.Description,
-            PaymentMethod = request.PaymentMethod,
+            PaymentMethod = ResolvePaymentMethod(profile, request),
             UserName = request.Customer.Name,
             UserEmail = request.Customer.Email,
             UserPhone = request.Customer.Phone,
@@ -112,5 +122,81 @@ internal static class MyPayRequestMapper
         }
 
         return SHA256.HashData(bytes);
+    }
+
+    private static IReadOnlyList<MyPayCreateItemPayload> MapItems(PaymentCreateRequest request)
+    {
+        if (request.Items.Count == 0)
+        {
+            var amount = FormatAmount(request.Amount);
+            return new[]
+            {
+                new MyPayCreateItemPayload
+                {
+                    Id = FirstNonEmpty(GetMetadata(request, "Param1"), request.ProductOrderId),
+                    Name = FirstNonEmpty(request.Description, request.ProductOrderId),
+                    Cost = amount,
+                    Amount = "1",
+                    Total = amount
+                }
+            };
+        }
+
+        return request.Items.Select((item, index) =>
+        {
+            var quantity = item.Quantity <= 0 ? 1 : item.Quantity;
+            var total = item.UnitPrice * quantity;
+            return new MyPayCreateItemPayload
+            {
+                Id = (index + 1).ToString(),
+                Name = FirstNonEmpty(item.Name, request.Description, request.ProductOrderId),
+                Cost = FormatAmount(item.UnitPrice),
+                Amount = quantity.ToString(),
+                Total = FormatAmount(total)
+            };
+        }).ToArray();
+    }
+
+    private static string ResolvePaymentMethod(PaymentMerchantProfile profile, PaymentCreateRequest request)
+    {
+        var configuredPfn = FirstNonEmpty(
+            GetMetadata(request, "PFN"),
+            GetProfileSetting(profile, "PFN"));
+        if (!string.IsNullOrWhiteSpace(configuredPfn))
+        {
+            return configuredPfn;
+        }
+
+        return request.PaymentMethod?.Trim().ToUpperInvariant() switch
+        {
+            "L" or "LINEPAY" or "LINEPAYON" => "LINEPAYON",
+            "M" or "MOBILEPAY" => "MobilePayAll",
+            "A" or "ATM" or "E_COLLECTION" => "E_COLLECTION",
+            "C" or "CREDITCARD" or "CUP" => "0",
+            _ => "0"
+        };
+    }
+
+    private static string GetMetadata(PaymentCreateRequest request, string key)
+    {
+        return request.Metadata.TryGetValue(key, out var value) ? value : string.Empty;
+    }
+
+    private static string GetProfileSetting(PaymentMerchantProfile profile, string key)
+    {
+        return profile.Settings.TryGetValue(key, out var value) ? value : string.Empty;
+    }
+
+    private static string FirstNonEmpty(params string[] values)
+    {
+        foreach (var value in values)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+        }
+
+        return string.Empty;
     }
 }

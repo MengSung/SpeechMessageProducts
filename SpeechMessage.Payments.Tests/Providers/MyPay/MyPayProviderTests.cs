@@ -118,10 +118,68 @@ public sealed class MyPayProviderTests
         payload.StoreUid.Should().Be("130544850001");
         payload.OrderId.Should().Be("F202606250001");
         payload.Cost.Should().Be("1200");
+        payload.Items.Should().ContainSingle();
+        payload.Items[0].Id.Should().Be("F202606250001");
+        payload.Items[0].Name.Should().Be("Fee payment");
+        payload.Items[0].Cost.Should().Be("1200");
+        payload.Items[0].Amount.Should().Be("1");
+        payload.Items[0].Total.Should().Be("1200");
+        payload.UserId.Should().Be("Grace");
+        payload.Ip.Should().Be("127.0.0.1");
         payload.Currency.Should().Be("TWD");
         payload.UserName.Should().Be("Grace");
+        payload.PaymentMethod.Should().Be("0");
         payload.SuccessReturnUrl.Should().Be("https://example.test/success");
         payload.FailureReturnUrl.Should().Be("https://example.test/failure");
+    }
+
+    [Fact]
+    public void Request_mapper_maps_mypay_payload_from_metadata_and_line_items()
+    {
+        var profile = new PaymentMerchantProfile
+        {
+            Name = "MyPayProduction",
+            Provider = PaymentProviderKind.MyPay,
+            Credentials = new Dictionary<string, string>
+            {
+                ["StoreId"] = "130544850001"
+            },
+            Settings = new Dictionary<string, string>
+            {
+                ["PFN"] = "CREDITCARD",
+                ["IP"] = "192.0.2.55"
+            }
+        };
+        var request = CreateMyPayPaymentRequest() with
+        {
+            Items = new[]
+            {
+                new PaymentLineItem
+                {
+                    Name = "十一奉獻-Grace",
+                    Quantity = 2,
+                    UnitPrice = 600m,
+                    Currency = "TWD"
+                }
+            },
+            Metadata = new Dictionary<string, string>
+            {
+                ["UserId"] = "U123",
+                ["Ip"] = "203.0.113.10",
+                ["PFN"] = "1"
+            }
+        };
+
+        var payload = MyPayRequestMapper.MapCreatePayload(profile, request);
+
+        payload.PaymentMethod.Should().Be("1");
+        payload.UserId.Should().Be("U123");
+        payload.Ip.Should().Be("203.0.113.10");
+        payload.Items.Should().ContainSingle();
+        payload.Items[0].Name.Should().Be("十一奉獻-Grace");
+        payload.Items[0].Cost.Should().Be("600");
+        payload.Items[0].Amount.Should().Be("2");
+        payload.Items[0].Total.Should().Be("1200");
     }
 
     [Fact]

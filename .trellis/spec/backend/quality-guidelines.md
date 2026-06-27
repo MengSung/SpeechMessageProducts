@@ -296,17 +296,38 @@ encry_data
 - `store_uid` still belongs inside the encrypted MyPay transaction payload for both direct merchant and reseller flows.
 - Do not send both top-level `store_uid` and top-level `agent_uid` for the same create-payment request.
 - A MyPay profile is treated as reseller mode only when it explicitly configures `Credentials:AgentId`. In reseller mode, use `Credentials:AgentKey` for encryption when present; otherwise fall back to `Credentials:Key`.
+- The encrypted `api/orders` payload must preserve the MyPay create-order contract used by the previous working ChurchReport flow:
+
+```text
+store_uid
+items
+cost
+user_id
+order_id
+ip
+pfn
+```
+
+- Each `items` entry must include `id`, `name`, `cost`, `amount`, and `total`. If ChurchReport does not supply line items, the adapter must create one line item from the product name, amount, quantity `1`, and product entity/order id.
+- `user_id` is a MyPay consumer identifier. ChurchReport should pass the contact name when available, then fall back to the product order id.
+- `ip` must be present. If no product IP is available, use the configured MyPay profile `Settings:IP`, then the legacy-compatible fallback `127.0.0.1`.
+- `pfn` is a MyPay payment-function value, not a Sinopac/QPay `PayType`. Do not pass `C` directly as MyPay `pfn`. Use a configured `Metadata["PFN"]` or profile `Settings:PFN` when provided; otherwise map card payment to `0` for the legacy all-enabled MyPay page, ATM to `E_COLLECTION`, mobile pay to `MobilePayAll`, and LINE Pay to `LINEPAYON`.
 
 ### 3. Validation & Error Matrix
 
 - `/api/init` receives top-level `agent_uid` with a merchant store id -> MyPay may validate the payload through the reseller credential path and reject the request as an expired or wrong key.
 - `/api/agent` lacks `agent_uid` -> MyPay cannot identify the reseller contract.
 - `AgentId` is absent in a normal merchant profile -> remain in direct merchant mode and send top-level `store_uid`.
+- `encry_data` omits `items`, `user_id`, `ip`, or `pfn` -> MyPay may reject the request during encrypted payload validation, often surfacing as the same expired/wrong-key message.
+- `encry_data.pfn` is `C` from QPay/Sinopac -> MyPay may reject or route to the wrong payment tool; translate to MyPay PFN before encryption.
 
 ### 4. Tests Required
 
 - MyPay direct merchant create-form mapping asserts `store_uid` is present and `agent_uid` is absent.
 - MyPay reseller create-form mapping asserts `agent_uid` is present and `store_uid` is absent at the top level.
+- MyPay create-payload mapping asserts `items`, `user_id`, `ip`, and `pfn` are present in the payload before encryption.
+- MyPay create-payload mapping asserts metadata/profile `PFN` and `IP` override the fallback values.
+- ChurchReport QPay create adapter tests assert product name/amount become a default line item and contact name flows into `Metadata["UserId"]`.
 
 ### 5. Wrong vs Correct
 
@@ -338,6 +359,28 @@ else
 ```
 
 The configured profile determines the MyPay API contract before the form is posted.
+
+#### Wrong
+
+```csharp
+payload.PaymentMethod = request.PaymentMethod; // "C" from QPay/Sinopac
+payload.Items = Array.Empty<MyPayCreateItemPayload>();
+payload.UserId = string.Empty;
+payload.Ip = string.Empty;
+```
+
+This builds an encrypted payload that no longer matches MyPay `api/orders`.
+
+#### Correct
+
+```csharp
+payload.Items = MapItems(request);
+payload.UserId = FirstNonEmpty(metadataUserId, request.Customer.Name, request.ProductOrderId);
+payload.Ip = FirstNonEmpty(metadataIp, profileIp, "127.0.0.1");
+payload.PaymentMethod = ResolveMyPayPfn(profile, request);
+```
+
+The provider core translates the neutral request and ChurchReport adapter metadata into the MyPay payload contract before encryption.
 
 ---
 

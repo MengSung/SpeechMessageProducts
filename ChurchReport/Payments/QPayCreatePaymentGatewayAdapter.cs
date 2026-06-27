@@ -50,7 +50,7 @@ public sealed class QPayCreatePaymentGatewayAdapter
                 FailureUrl = input.FailureUrl
             },
             Customer = input.Customer,
-            Items = input.Items,
+            Items = ResolveItems(input),
             Metadata = BuildMetadata(input)
         });
 
@@ -82,7 +82,27 @@ public sealed class QPayCreatePaymentGatewayAdapter
             ["PeriodType"] = ResolvePeriodType(input),
             ["DeductFreq"] = ResolveDeductFreq(input).ToString(System.Globalization.CultureInfo.InvariantCulture),
             ["CCToken"] = input.CreditCardToken,
-            ["ExpireDate"] = input.ExpireDate
+            ["ExpireDate"] = input.ExpireDate,
+            ["UserId"] = FirstNonEmpty(input.Customer.Name, input.ProductOrderId)
+        };
+    }
+
+    private static IReadOnlyList<PaymentLineItem> ResolveItems(QPayCreatePaymentInput input)
+    {
+        if (input.Items.Count > 0)
+        {
+            return input.Items;
+        }
+
+        return new[]
+        {
+            new PaymentLineItem
+            {
+                Name = input.ProductName,
+                Quantity = 1,
+                UnitPrice = input.Amount,
+                Currency = input.Currency
+            }
         };
     }
 

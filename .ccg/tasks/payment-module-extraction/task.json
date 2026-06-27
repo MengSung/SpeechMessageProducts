@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "review",
-  "nextAction": "Commit verified MyPay direct merchant create-form fix",
+  "nextAction": "Commit verified MyPay encrypted create-payload fix",
   "createdAt": "2026-06-25T12:38:10+08:00",
   "branch": "payment-module-extraction"
 }

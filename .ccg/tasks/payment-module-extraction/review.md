@@ -4,6 +4,54 @@ Date: 2026-06-26
 Task: `payment-module-extraction`
 Scope reviewed: Task 11 cleanup diff from the working tree at review time.
 
+## Follow-up Review - MyPay Encrypted Create Payload Contract
+
+Date: 2026-06-27
+Scope reviewed:
+
+- `SpeechMessage.Payments/Providers/MyPay/MyPayModels.cs`
+- `SpeechMessage.Payments/Providers/MyPay/MyPayRequestMapper.cs`
+- `SpeechMessage.Payments.Tests/Providers/MyPay/MyPayProviderTests.cs`
+- `ChurchReport/Payments/QPayCreatePaymentGatewayAdapter.cs`
+- `ChurchReport/WebServiceConnector/QPayProcessor/QPayProcessor.PaymentGateway.cs`
+- `ChurchReport.MemberInfo.Tests/Payments/QPayCreatePaymentGatewayAdapterTests.cs`
+- `ChurchReport.MemberInfo.Tests/Payments/QPayProcessorGatewayAdapterTests.cs`
+- `.trellis/spec/backend/quality-guidelines.md`
+
+External review status:
+
+- Required CCG wrapper is not present in this environment (`Test-Path "$HOME\.claude\bin\codeagent-wrapper"` returned `False` earlier in this task), so Gemini/Claude review could not be run for this follow-up.
+
+Manual review findings:
+
+- Critical: none.
+- Warning: none.
+- Info:
+  - Root cause candidate: after the direct merchant outer form fix, MyPay could still reject `encry_data` because the migrated encrypted payload no longer matched the previous working MyPay `api/orders` contract. The old flow sent `store_uid`, `items`, `cost`, `user_id`, `order_id`, `ip`, and `pfn`; the migrated mapper omitted `items`, `user_id`, and `ip`.
+  - Secondary compatibility issue: the migrated mapper passed the neutral/QPay payment method value such as `C` into MyPay `pfn`. MyPay `pfn` is a payment-function value; card flow now defaults to legacy-compatible `0`, while explicit metadata/profile `PFN` can override it.
+  - ChurchReport remains a product adapter: it supplies default line-item data and the contact name as `UserId`; provider-specific MyPay payload construction stays inside `SpeechMessage.Payments`.
+  - No `ChurchReport`, ASP.NET, CRM, LINE, or persistence dependency was added to `SpeechMessage.Payments`.
+
+Verification:
+
+```powershell
+dotnet test SpeechMessage.Payments.Tests\SpeechMessage.Payments.Tests.csproj --no-restore -v minimal -p:UseSharedCompilation=false
+dotnet build ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --no-restore -v minimal -p:BaseOutputPath=.\artifacts\mypay-payload-fix-build\ -p:UseSharedCompilation=false
+dotnet vstest "ChurchReport.MemberInfo.Tests\artifacts\mypay-payload-fix-build\Debug\net10.0\ChurchReport.MemberInfo.Tests.dll" --TestCaseFilter:"FullyQualifiedName~Payments"
+dotnet build ChurchReport.sln --no-restore -v minimal -p:BaseOutputPath=.\artifacts\solution-build-mypay-payload-fix\ -p:UseSharedCompilation=false
+rg -n "ChurchReport|ToolUtility|Line\.Messaging|Microsoft\.Xrm|HttpRequest|Controller|IActionResult|DbContext" SpeechMessage.Payments --glob "*.cs" --glob "*.csproj"
+git diff --check
+```
+
+Results:
+
+- `SpeechMessage.Payments.Tests`: 53 passed.
+- `ChurchReport.MemberInfo.Tests` payment filter: 39 passed.
+- `ChurchReport.MemberInfo.Tests` build: 0 errors; one existing xUnit analyzer warning in `MemberInfoScopeGuardTests.cs` about a null argument.
+- `ChurchReport.sln` build: 0 errors; same existing xUnit analyzer warning.
+- Boundary search: no matches.
+- `git diff --check`: no whitespace errors; Git reported CRLF normalization warnings only.
+
 ## Follow-up Review - MyPay Direct Merchant Form Contract
 
 Date: 2026-06-27

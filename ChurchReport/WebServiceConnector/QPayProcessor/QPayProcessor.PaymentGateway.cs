@@ -63,7 +63,8 @@ namespace ChurchReport.WebServiceConnector
             Entity LineLoginContact,
             string CCToken = null)
         {
-            return await CreateQPayOrder(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, Staging, DeductTotalNum, PeriodType, DeductFreq, CreditCategory, CCToken);
+            var customerName = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "fullname");
+            return await CreateQPayOrder(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, Staging, DeductTotalNum, PeriodType, DeductFreq, CreditCategory, customerName, CCToken);
         }
 
         /// <summary>
@@ -135,6 +136,7 @@ namespace ChurchReport.WebServiceConnector
             string PeriodType,
             int DeductFreq,
             string CreditCategory,
+            string CustomerName,
             string CCToken)
         {
             return await GetRequiredQPayCreatePaymentGatewayAdapter().CreateLegacyOrderAsync(
@@ -155,6 +157,10 @@ namespace ChurchReport.WebServiceConnector
                     DeductTotalNum = DeductTotalNum,
                     PeriodType = PeriodType,
                     DeductFreq = DeductFreq,
+                    Customer = new SpeechMessage.Payments.Models.PaymentCustomer
+                    {
+                        Name = CustomerName
+                    },
                     CreditCardToken = CCToken
                 });
         }

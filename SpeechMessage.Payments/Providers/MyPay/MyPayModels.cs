@@ -13,6 +13,15 @@ internal sealed record MyPayCreatePayload
     [JsonProperty("cost")]
     public string Cost { get; init; } = string.Empty;
 
+    [JsonProperty("items")]
+    public IReadOnlyList<MyPayCreateItemPayload> Items { get; init; } = Array.Empty<MyPayCreateItemPayload>();
+
+    [JsonProperty("user_id")]
+    public string UserId { get; init; } = string.Empty;
+
+    [JsonProperty("ip")]
+    public string Ip { get; init; } = string.Empty;
+
     [JsonProperty("currency")]
     public string Currency { get; init; } = "TWD";
 
@@ -39,6 +48,24 @@ internal sealed record MyPayCreatePayload
 
     [JsonProperty("notify_url")]
     public string NotifyUrl { get; init; } = string.Empty;
+}
+
+internal sealed record MyPayCreateItemPayload
+{
+    [JsonProperty("id")]
+    public string Id { get; init; } = string.Empty;
+
+    [JsonProperty("name")]
+    public string Name { get; init; } = string.Empty;
+
+    [JsonProperty("cost")]
+    public string Cost { get; init; } = string.Empty;
+
+    [JsonProperty("amount")]
+    public string Amount { get; init; } = "1";
+
+    [JsonProperty("total")]
+    public string Total { get; init; } = string.Empty;
 }
 
 internal sealed record MyPayServicePayload
