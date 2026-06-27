@@ -67,6 +67,47 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
     }
 
     [Fact]
+    public async Task CreateCardPaymentAsync_uses_pay_provider_profile_before_payment_default_profile()
+    {
+        var gateway = new RecordingPaymentGateway(new PaymentCreateResult
+        {
+            Status = PaymentStatus.Pending,
+            ProductOrderId = "C20260626112233",
+            ProviderOrderRef = "MYPAY123",
+            PaymentPageUrl = "https://mypay.example.test/card"
+        });
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["PAY_PROVIDER"] = "高鉅金流",
+                ["Payment:DefaultProfile"] = "JesusTest"
+            })
+            .Build();
+        var adapter = new QPayCreatePaymentGatewayAdapter(
+            gateway,
+            new PaymentCreateRequestFactory(),
+            new ChurchReportPaymentProfileResolver(configuration));
+
+        await adapter.CreateCardPaymentAsync(new QPayCreatePaymentInput
+        {
+            Amount = 1200m,
+            ProductName = "Fee payment",
+            ProductOrderId = "C20260626112233",
+            ProductEntityId = "fee-id",
+            PaymentOrganization = "Jesus",
+            PaymentCategory = "fee",
+            PaymentMethod = "C",
+            PaymentMethodSubType = "ONE",
+            ReturnUrl = "https://church.example.test/qpay-return",
+            BackendUrl = "https://church.example.test/qpay-backend"
+        });
+
+        gateway.LastCreateRequest.Should().NotBeNull();
+        gateway.LastCreateRequest!.ProfileName.Should().Be("MyPayProduction");
+        gateway.LastCreateRequest.ProviderHint.Should().BeNull();
+    }
+
+    [Fact]
     public async Task CreateCardPaymentAsync_defaults_recurring_schedule_when_ui_default_is_not_posted()
     {
         var gateway = new RecordingPaymentGateway(new PaymentCreateResult
