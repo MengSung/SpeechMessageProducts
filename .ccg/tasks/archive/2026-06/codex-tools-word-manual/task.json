@@ -1,0 +1,12 @@
+{
+  "id": "codex-tools-word-manual",
+  "title": "Create Word manual for Trellis CCG Superpowers and Codex workflow",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "docs",
+  "currentPhase": "completed",
+  "nextAction": "Archived after DOCX manual creation and structural QA",
+  "createdAt": "2026-06-27T00:00:00+08:00",
+  "branch": "Jesus_5.1.3.RefactorPament"
+}
