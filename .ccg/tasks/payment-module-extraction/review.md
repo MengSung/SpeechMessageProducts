@@ -4,6 +4,49 @@ Date: 2026-06-26
 Task: `payment-module-extraction`
 Scope reviewed: Task 11 cleanup diff from the working tree at review time.
 
+## Follow-up Review - MyPay Direct Merchant Form Contract
+
+Date: 2026-06-27
+Scope reviewed:
+
+- `SpeechMessage.Payments/Providers/MyPay/MyPayRequestMapper.cs`
+- `SpeechMessage.Payments.Tests/Providers/MyPay/MyPayProviderTests.cs`
+- `.trellis/spec/backend/quality-guidelines.md`
+
+External review status:
+
+- Required CCG wrapper is not present in this environment (`Test-Path "$HOME\.claude\bin\codeagent-wrapper"` returned `False`), so Gemini/Claude review could not be run.
+
+Manual review findings:
+
+- Critical: none.
+- Warning: none.
+- Info:
+  - Root cause candidate: the migrated MyPay create-payment mapper sent both top-level `store_uid` and top-level `agent_uid` to `/api/init`. MyPay direct merchant examples and the previous working ChurchReport `StoreOrder.GetPostData(...)` send only top-level `store_uid`, while `agent_uid` belongs to reseller `/api/agent` flows.
+  - The mapper now defaults normal MyPay profiles to direct merchant mode and sends top-level `store_uid` only. Reseller mode is selected only when `Credentials:AgentId` is explicitly configured, and then the top-level form sends `agent_uid`.
+  - The encrypted payload still includes the merchant `store_uid` for both modes, preserving the provider payload contract.
+  - The fix stays inside `SpeechMessage.Payments`; ChurchReport remains responsible only for profile selection and product workflow.
+
+Verification:
+
+```powershell
+dotnet test SpeechMessage.Payments.Tests\SpeechMessage.Payments.Tests.csproj --no-restore -v minimal -p:UseSharedCompilation=false
+dotnet build ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --no-restore -v minimal -p:BaseOutputPath=.\artifacts\mypay-direct-form-fix-build\ -p:UseSharedCompilation=false
+dotnet vstest "ChurchReport.MemberInfo.Tests\artifacts\mypay-direct-form-fix-build\Debug\net10.0\ChurchReport.MemberInfo.Tests.dll" --TestCaseFilter:"FullyQualifiedName~Payments"
+dotnet build ChurchReport.sln --no-restore -v minimal -p:BaseOutputPath=.\artifacts\solution-build-mypay-direct-form-fix\ -p:UseSharedCompilation=false
+rg -n "ChurchReport|ToolUtility|Line\.Messaging|Microsoft\.Xrm|HttpRequest|Controller|IActionResult|DbContext" SpeechMessage.Payments --glob "*.cs" --glob "*.csproj"
+git diff --check
+```
+
+Results:
+
+- `SpeechMessage.Payments.Tests`: 52 passed.
+- `ChurchReport.MemberInfo.Tests` payment filter: 39 passed.
+- `ChurchReport.MemberInfo.Tests` build: 0 errors; one existing xUnit analyzer warning in `MemberInfoScopeGuardTests.cs` about a null argument.
+- `ChurchReport.sln` build: 0 errors; same existing xUnit analyzer warning.
+- Boundary search: no matches.
+- `git diff --check`: no whitespace errors; Git reported CRLF normalization warnings only.
+
 ## Follow-up Review - Sinopac Recurring Card Payment Page
 
 Date: 2026-06-27

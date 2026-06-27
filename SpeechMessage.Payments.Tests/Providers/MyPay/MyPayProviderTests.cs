@@ -125,6 +125,60 @@ public sealed class MyPayProviderTests
     }
 
     [Fact]
+    public void Request_mapper_uses_store_uid_for_direct_merchant_create_form()
+    {
+        var profile = new PaymentMerchantProfile
+        {
+            Name = "MyPayProduction",
+            Provider = PaymentProviderKind.MyPay,
+            Credentials = new Dictionary<string, string>
+            {
+                ["StoreId"] = "130544850001",
+                ["Key"] = "m4KNdB8NtuIc6mJa1XAYX3W1jWoHQCgy"
+            },
+            Endpoints = new Dictionary<string, string>
+            {
+                ["ApiBaseUrl"] = "https://ka.usecase.cc/api/init"
+            }
+        };
+
+        var form = MyPayRequestMapper.MapCreateForm(profile, CreateMyPayPaymentRequest());
+
+        form.Should().ContainKey("store_uid").WhoseValue.Should().Be("130544850001");
+        form.Should().NotContainKey("agent_uid");
+        form.Should().ContainKey("service");
+        form.Should().ContainKey("encry_data");
+    }
+
+    [Fact]
+    public void Request_mapper_uses_agent_uid_only_when_agent_profile_is_configured()
+    {
+        var profile = new PaymentMerchantProfile
+        {
+            Name = "MyPayAgent",
+            Provider = PaymentProviderKind.MyPay,
+            Credentials = new Dictionary<string, string>
+            {
+                ["StoreId"] = "289151880002",
+                ["Key"] = "merchant-key",
+                ["AgentId"] = "518169081001",
+                ["AgentKey"] = "0DZP5XgV1dLXXNQqNUFZ7UXvSP6DBalS"
+            },
+            Endpoints = new Dictionary<string, string>
+            {
+                ["ApiBaseUrl"] = "https://ka.usecase.cc/api/agent"
+            }
+        };
+
+        var form = MyPayRequestMapper.MapCreateForm(profile, CreateMyPayPaymentRequest());
+
+        form.Should().ContainKey("agent_uid").WhoseValue.Should().Be("518169081001");
+        form.Should().NotContainKey("store_uid");
+        form.Should().ContainKey("service");
+        form.Should().ContainKey("encry_data");
+    }
+
+    [Fact]
     public void Service_registration_adds_mypay_provider()
     {
         var configuration = new ConfigurationBuilder()
@@ -142,5 +196,29 @@ public sealed class MyPayProviderTests
         provider.GetServices<IPaymentProvider>()
             .Should()
             .Contain(paymentProvider => paymentProvider.ProviderKind == PaymentProviderKind.MyPay);
+    }
+
+    private static PaymentCreateRequest CreateMyPayPaymentRequest()
+    {
+        return new PaymentCreateRequest
+        {
+            ProductOrderId = "F202606250001",
+            Amount = 1200m,
+            Currency = "TWD",
+            Description = "Fee payment",
+            PaymentMethod = "CreditCard",
+            Customer = new PaymentCustomer
+            {
+                Name = "Grace",
+                Email = "grace@example.test",
+                Phone = "0912345678"
+            },
+            Callbacks = new PaymentCallbacks
+            {
+                SuccessUrl = "https://example.test/success",
+                FailureUrl = "https://example.test/failure",
+                BackendUrl = "https://example.test/backend"
+            }
+        };
     }
 }

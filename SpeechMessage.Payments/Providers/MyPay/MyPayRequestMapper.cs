@@ -36,15 +36,28 @@ internal static class MyPayRequestMapper
         var payload = MapCreatePayload(profile, request);
         var service = new MyPayServicePayload();
         var key = GetRequiredCredential(profile, "Key");
+        var agentId = TryGetCredential(profile, "AgentId");
+        var encryptionKey = !string.IsNullOrWhiteSpace(agentId)
+            ? TryGetCredential(profile, "AgentKey") ?? key
+            : key;
         var iv = GenerateIv();
 
-        return new Dictionary<string, string>
+        var form = new Dictionary<string, string>
         {
-            ["store_uid"] = payload.StoreUid,
-            ["agent_uid"] = payload.StoreUid,
-            ["service"] = Encrypt(JsonConvert.SerializeObject(service, Formatting.None), key, iv),
-            ["encry_data"] = Encrypt(JsonConvert.SerializeObject(payload, Formatting.None), key, iv)
+            ["service"] = Encrypt(JsonConvert.SerializeObject(service, Formatting.None), encryptionKey, iv),
+            ["encry_data"] = Encrypt(JsonConvert.SerializeObject(payload, Formatting.None), encryptionKey, iv)
         };
+
+        if (string.IsNullOrWhiteSpace(agentId))
+        {
+            form["store_uid"] = payload.StoreUid;
+        }
+        else
+        {
+            form["agent_uid"] = agentId;
+        }
+
+        return form;
     }
 
     private static string GetRequiredCredential(PaymentMerchantProfile profile, string key)
@@ -55,6 +68,13 @@ internal static class MyPayRequestMapper
         }
 
         throw new PaymentConfigurationException($"MyPay profile '{profile.Name}' is missing credential '{key}'.");
+    }
+
+    private static string? TryGetCredential(PaymentMerchantProfile profile, string key)
+    {
+        return profile.Credentials.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value)
+            ? value
+            : null;
     }
 
     private static string FormatAmount(decimal amount)

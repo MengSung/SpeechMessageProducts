@@ -267,6 +267,80 @@ Provider-owned protocol fields needed by product workflows must cross the bounda
 
 ---
 
+## MyPay Create-Payment Form Compatibility
+
+### 1. Scope / Trigger
+
+- Trigger: MyPay create-payment calls cross the High Giant/MyPay API boundary and the outer form field chooses the merchant contract.
+- This applies to `SpeechMessage.Payments.Providers.MyPay.MyPayRequestMapper`.
+- User-visible symptom: selecting `PAY_PROVIDER = "高鉅金流"` reaches MyPay, but MyPay rejects card payment creation with a key error such as `資料輸入有誤: 金鑰過期或使用錯誤之金鑰`.
+
+### 2. Contracts
+
+- Direct merchant `/api/init` profiles must send top-level form fields:
+
+```text
+store_uid
+service
+encry_data
+```
+
+- Reseller `/api/agent` profiles must send top-level form fields:
+
+```text
+agent_uid
+service
+encry_data
+```
+
+- `store_uid` still belongs inside the encrypted MyPay transaction payload for both direct merchant and reseller flows.
+- Do not send both top-level `store_uid` and top-level `agent_uid` for the same create-payment request.
+- A MyPay profile is treated as reseller mode only when it explicitly configures `Credentials:AgentId`. In reseller mode, use `Credentials:AgentKey` for encryption when present; otherwise fall back to `Credentials:Key`.
+
+### 3. Validation & Error Matrix
+
+- `/api/init` receives top-level `agent_uid` with a merchant store id -> MyPay may validate the payload through the reseller credential path and reject the request as an expired or wrong key.
+- `/api/agent` lacks `agent_uid` -> MyPay cannot identify the reseller contract.
+- `AgentId` is absent in a normal merchant profile -> remain in direct merchant mode and send top-level `store_uid`.
+
+### 4. Tests Required
+
+- MyPay direct merchant create-form mapping asserts `store_uid` is present and `agent_uid` is absent.
+- MyPay reseller create-form mapping asserts `agent_uid` is present and `store_uid` is absent at the top level.
+
+### 5. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+return new Dictionary<string, string>
+{
+    ["store_uid"] = payload.StoreUid,
+    ["agent_uid"] = payload.StoreUid,
+    ["service"] = Encrypt(service, key, iv),
+    ["encry_data"] = Encrypt(payload, key, iv)
+};
+```
+
+This mixes direct merchant and reseller outer-form contracts.
+
+#### Correct
+
+```csharp
+if (string.IsNullOrWhiteSpace(agentId))
+{
+    form["store_uid"] = payload.StoreUid;
+}
+else
+{
+    form["agent_uid"] = agentId;
+}
+```
+
+The configured profile determines the MyPay API contract before the form is posted.
+
+---
+
 ## Code Review Checklist
 
 <!-- What reviewers should check -->
