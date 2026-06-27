@@ -9,6 +9,10 @@ namespace ChurchReport.Payments;
 
 public sealed class QPayCreatePaymentGatewayAdapter
 {
+    private const int DefaultRecurringDeductTotalNum = 12;
+    private const int DefaultRecurringDeductFreq = 1;
+    private const string DefaultRecurringPeriodType = "M";
+
     private readonly IPaymentGateway _paymentGateway;
     private readonly PaymentCreateRequestFactory _requestFactory;
     private readonly ChurchReportPaymentProfileResolver _profileResolver;
@@ -74,12 +78,38 @@ public sealed class QPayCreatePaymentGatewayAdapter
             ["PayTypeSub"] = input.PaymentMethodSubType,
             ["AutoBilling"] = input.AutoBilling,
             ["Staging"] = input.Staging,
-            ["DeductTotalNum"] = input.DeductTotalNum.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            ["PeriodType"] = input.PeriodType,
-            ["DeductFreq"] = input.DeductFreq.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["DeductTotalNum"] = ResolveDeductTotalNum(input).ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["PeriodType"] = ResolvePeriodType(input),
+            ["DeductFreq"] = ResolveDeductFreq(input).ToString(System.Globalization.CultureInfo.InvariantCulture),
             ["CCToken"] = input.CreditCardToken,
             ["ExpireDate"] = input.ExpireDate
         };
+    }
+
+    private static int ResolveDeductTotalNum(QPayCreatePaymentInput input)
+    {
+        return IsRecurringCard(input) && input.DeductTotalNum <= 0
+            ? DefaultRecurringDeductTotalNum
+            : input.DeductTotalNum;
+    }
+
+    private static string ResolvePeriodType(QPayCreatePaymentInput input)
+    {
+        return IsRecurringCard(input) && string.IsNullOrWhiteSpace(input.PeriodType)
+            ? DefaultRecurringPeriodType
+            : input.PeriodType;
+    }
+
+    private static int ResolveDeductFreq(QPayCreatePaymentInput input)
+    {
+        return IsRecurringCard(input) && input.DeductFreq <= 0
+            ? DefaultRecurringDeductFreq
+            : input.DeductFreq;
+    }
+
+    private static bool IsRecurringCard(QPayCreatePaymentInput input)
+    {
+        return string.Equals(input.PaymentMethodSubType?.Trim(), "REGULAR", StringComparison.OrdinalIgnoreCase);
     }
 
     private static CreOrder ToLegacyCreOrder(

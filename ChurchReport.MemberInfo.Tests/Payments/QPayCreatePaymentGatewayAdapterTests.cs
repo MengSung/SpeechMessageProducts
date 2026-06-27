@@ -67,6 +67,39 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
     }
 
     [Fact]
+    public async Task CreateCardPaymentAsync_defaults_recurring_schedule_when_ui_default_is_not_posted()
+    {
+        var gateway = new RecordingPaymentGateway(new PaymentCreateResult
+        {
+            Status = PaymentStatus.Pending,
+            ProductOrderId = "C20260626112233",
+            ProviderOrderRef = "TS123",
+            PaymentPageUrl = "https://pay.example.test/card"
+        });
+        var adapter = CreateAdapter(gateway);
+
+        await adapter.CreateCardPaymentAsync(new QPayCreatePaymentInput
+        {
+            Amount = 800m,
+            ProductName = "Recurring donation",
+            ProductOrderId = "C20260626112233",
+            ProductEntityId = "booking-id",
+            PaymentOrganization = "Jesus",
+            PaymentCategory = "dedication-booking",
+            PaymentMethod = "C",
+            PaymentMethodSubType = "REGULAR",
+            ReturnUrl = "https://church.example.test/qpay-return",
+            BackendUrl = "https://church.example.test/qpay-backend"
+        });
+
+        gateway.LastCreateRequest.Should().NotBeNull();
+        gateway.LastCreateRequest!.Metadata["PayTypeSub"].Should().Be("REGULAR");
+        gateway.LastCreateRequest.Metadata["DeductTotalNum"].Should().Be("12");
+        gateway.LastCreateRequest.Metadata["PeriodType"].Should().Be("M");
+        gateway.LastCreateRequest.Metadata["DeductFreq"].Should().Be("1");
+    }
+
+    [Fact]
     public async Task CreateLegacyOrderAsync_maps_neutral_create_result_to_existing_creorder_shape()
     {
         var gateway = new RecordingPaymentGateway(new PaymentCreateResult

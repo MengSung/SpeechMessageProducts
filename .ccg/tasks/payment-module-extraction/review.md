@@ -4,6 +4,59 @@ Date: 2026-06-26
 Task: `payment-module-extraction`
 Scope reviewed: Task 11 cleanup diff from the working tree at review time.
 
+## Follow-up Review - Sinopac Recurring Card Payment Page
+
+Date: 2026-06-27
+Scope reviewed:
+
+- `ChurchReport/Payments/QPayCreatePaymentGatewayAdapter.cs`
+- `ChurchReport.MemberInfo.Tests/Payments/QPayCreatePaymentGatewayAdapterTests.cs`
+- `SpeechMessage.Payments/Providers/Sinopac/SinopacPaymentProvider.cs`
+- `SpeechMessage.Payments.Tests/Providers/Sinopac/SinopacProviderTests.cs`
+- `.trellis/spec/backend/quality-guidelines.md`
+
+External review status:
+
+- Required CCG wrapper is not present in this environment (`Test-Path "$HOME\.claude\bin\codeagent-wrapper"` returned `False`), so Gemini/Claude review could not be run.
+
+Manual review findings:
+
+- Critical: none.
+- Warning: none.
+- Info:
+  - Root cause candidate: the recurring card flow can submit the visible UI default total-period value without posting it into `QpayModel.DeductTotalNumber`, causing the legacy adapter to send `DeductTotalNum=0` to Sinopac. The adapter now defaults `REGULAR` card setup to the legacy monthly schedule: 12 total deductions, period type `M`, frequency `1`.
+  - Diagnostic gap: Sinopac rejected create responses may also lack a card payment URL. The provider now preserves Sinopac `Status` / `Description` when the bank rejected the request, instead of masking the actionable bank message with the generic missing payment page URL error.
+  - One-time hosted card payment remains fail-closed if Sinopac reports success but omits `CardPayURL`.
+  - The boundary remains clean: ChurchReport owns the legacy UI/workflow default; `SpeechMessage.Payments` only normalizes the provider response.
+
+Verification:
+
+```powershell
+dotnet test SpeechMessage.Payments.Tests\SpeechMessage.Payments.Tests.csproj --no-restore -v minimal
+dotnet build ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --no-restore -v minimal -p:BaseOutputPath=.\artifacts\qpay-adapter-build\ -p:UseSharedCompilation=false
+dotnet vstest ChurchReport.MemberInfo.Tests\artifacts\qpay-adapter-build\Debug\net10.0\ChurchReport.MemberInfo.Tests.dll --Tests:ChurchReport.MemberInfo.Tests.Payments.QPayCreatePaymentGatewayAdapterTests.CreateCardPaymentAsync_defaults_recurring_schedule_when_ui_default_is_not_posted
+dotnet vstest ChurchReport.MemberInfo.Tests\artifacts\qpay-adapter-build\Debug\net10.0\ChurchReport.MemberInfo.Tests.dll --TestCaseFilter:"FullyQualifiedName~QPayCreatePaymentGatewayAdapterTests"
+dotnet vstest ChurchReport.MemberInfo.Tests\artifacts\qpay-adapter-build\Debug\net10.0\ChurchReport.MemberInfo.Tests.dll
+dotnet build ChurchReport.sln --no-restore -v minimal -p:BaseOutputPath=.\artifacts\solution-build\ -p:UseSharedCompilation=false
+rg -n "ChurchReport|ToolUtility|Line\.Messaging|Microsoft\.Xrm|HttpRequest|Controller|IActionResult|DbContext" SpeechMessage.Payments --glob "*.cs" --glob "*.csproj"
+rg -n "QPay\.Domain|QryOrderPay|TSResultContent|QryOrder\b|OrderInfo\b|TSResult\b|CreOrderReq|QryOrderPayReq|OrderMaintainReq|BillQuery|AllotQuery|MyPayReturnModel|MyPayProcessingResult|MyPayStatusHelper" ChurchReport --glob "*.cs"
+rg -n "\bIPayment\b|IQPayToolkit|QPayToolkit|QPayToolkitWrapper|MyPayToolkit|MyPayToolkitWrapper|TspgToolkit|TspgToolkitWrapper|TSPGWebhookHandler|CreOrderReq|QryOrderPayReq|OrderMaintainReq|BillQuery|AllotQuery|TSPGPaymentRequest|TSPGPaymentNotification|StoreKey|StoreIV|auth_id_resp|BuildPaymentPostData|VerifyNotificationHash" ChurchReport --glob "*.cs"
+git diff -- LinePayCSharp
+git diff --check
+```
+
+Results:
+
+- `SpeechMessage.Payments.Tests`: 50 passed.
+- New recurring adapter regression: 1 passed.
+- `QPayCreatePaymentGatewayAdapterTests`: 6 passed.
+- `ChurchReport.MemberInfo.Tests`: 83 passed.
+- `ChurchReport.sln` build: 0 errors; one existing xUnit analyzer warning in `MemberInfoScopeGuardTests.cs` about a null argument.
+- Boundary searches: no matches.
+- `LinePayCSharp`: no diff.
+- `git diff --check`: no whitespace errors; Git reported CRLF normalization warnings only.
+- `dotnet test ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj ...` hung without output in this environment; verified runs used isolated build output plus `dotnet vstest`.
+
 ## Follow-up Review - Sinopac ATM Virtual Account
 
 Date: 2026-06-26

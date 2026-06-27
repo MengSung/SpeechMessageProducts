@@ -205,6 +205,8 @@ The web page remains the source of truth for payment instructions, while LINE de
 - Sinopac HTTP status is non-success -> normalize as `PaymentErrorKind.ProviderUnavailable` and include the Sinopac route plus a truncated response-body snippet.
 - Sinopac ATM response has `ATMParam.AtmPayNo` but `ProviderData["atm_pay_no"]` is missing or masked -> ATM/transfer output has `帳號 :` blank; add the provider-data mapping and sanitizer exception.
 - Sinopac ATM response lacks `ATMParam.AtmPayNo` -> return a failed create result; do not allow ChurchReport to generate ATM/transfer instructions with a blank account number.
+- ChurchReport recurring card setup uses the legacy QPay UI default of 12 monthly deductions. If the visible DevExtreme default is not posted, the ChurchReport QPay create adapter must still send `PayTypeSub=REGULAR`, `DeductTotalNum=12`, `PeriodType=M`, and `DeductFreq=1`.
+- Sinopac rejected create responses may also lack hosted URLs. Preserve the provider rejection `Status` / `Description` instead of replacing the message with the generic missing payment page URL error; otherwise errors such as invalid recurring installment count become undiagnosable.
 
 ### 5. Good/Base/Bad Cases
 
@@ -225,6 +227,8 @@ The web page remains the source of truth for payment instructions, while LINE de
 - ChurchReport QPay adapter tests assert empty card `PaymentPageUrl` yields legacy status `F` and no `CardParam`.
 - ChurchReport QPay adapter tests assert ATM provider data maps into `CreOrder.ATMParam.AtmPayNo`.
 - ChurchReport QPay adapter tests assert ATM provider data without `atm_pay_no` yields legacy status `F`.
+- ChurchReport QPay adapter tests assert recurring card inputs with omitted UI schedule defaults send `DeductTotalNum=12`, `PeriodType=M`, and `DeductFreq=1`.
+- Sinopac create-result tests assert provider rejection messages are preserved even when the response also lacks a hosted card URL.
 
 ### 7. Wrong vs Correct
 

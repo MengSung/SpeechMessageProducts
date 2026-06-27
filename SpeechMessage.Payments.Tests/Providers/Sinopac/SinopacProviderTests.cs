@@ -154,6 +154,33 @@ public sealed class SinopacProviderTests
     }
 
     [Fact]
+    public void Create_result_preserves_provider_rejection_when_card_payment_page_url_is_missing()
+    {
+        var request = new SinopacOrderCreateRequest
+        {
+            OrderNo = "C202606250001",
+            PayType = "C"
+        };
+        var response = new SinopacOrderCreateResponse
+        {
+            OrderNo = "C202606250001",
+            Status = "F",
+            Description = "E5001 - invalid recurring installment count"
+        };
+
+        var result = SinopacPaymentProvider.ResolveCreateResult(
+            request,
+            response,
+            "fallback-order");
+
+        result.Status.Should().Be(PaymentStatus.Failed);
+        result.PaymentPageUrl.Should().BeEmpty();
+        result.Error.Kind.Should().Be(PaymentErrorKind.ProviderRejected);
+        result.Error.Code.Should().Be("F");
+        result.Error.Message.Should().Be("E5001 - invalid recurring installment count");
+    }
+
+    [Fact]
     public void Create_result_preserves_atm_virtual_account_in_provider_data()
     {
         var request = new SinopacOrderCreateRequest

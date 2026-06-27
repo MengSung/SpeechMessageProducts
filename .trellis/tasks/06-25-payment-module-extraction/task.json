@@ -24,6 +24,6 @@
   "notes": "Planning artifacts written to docs/superpowers/plans/2026-06-25-payment-module-extraction.md and .trellis/tasks/06-25-payment-module-extraction/implement.md.",
   "meta": {
     "currentPhase": "review",
-    "nextAction": "Execute Task 11: run final boundary verification, cross-provider tests, and review"
+    "nextAction": "Review and commit verified Sinopac recurring card payment page fix"
   }
 }

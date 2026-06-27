@@ -291,6 +291,7 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
             string.IsNullOrWhiteSpace(paymentPageUrl);
         var missingAtmPayNo = RequiresAtmPayNo(payload.PayType) &&
             string.IsNullOrWhiteSpace(response.ATMParam?.AtmPayNo);
+        var providerRejected = SinopacStatusMapper.IsProviderRejected(response);
         var status = missingPaymentPageUrl || missingAtmPayNo
             ? PaymentStatus.Failed
             : SinopacStatusMapper.MapCreate(response);
@@ -302,17 +303,8 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
             ProviderOrderRef = FirstNonEmpty(response.TSNo, response.OrderNo),
             PaymentPageUrl = paymentPageUrl,
             Error = missingPaymentPageUrl || missingAtmPayNo
-                ? new PaymentError
-                {
-                    Kind = PaymentErrorKind.ProviderRejected,
-                    Code = FirstNonEmpty(
-                        response.Status,
-                        missingAtmPayNo ? "MissingAtmPayNo" : "MissingPaymentPageUrl"),
-                    Message = missingAtmPayNo
-                        ? "Sinopac did not return an ATM virtual account number."
-                        : "Sinopac did not return a payment page URL."
-                }
-                : SinopacStatusMapper.IsProviderRejected(response)
+                ? CreateMissingCreateFieldError(response, missingAtmPayNo)
+                : providerRejected
                     ? new PaymentError
                     {
                         Kind = PaymentErrorKind.ProviderRejected,
@@ -332,6 +324,32 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
                 ["web_atm_url"] = response.ATMParam?.WebAtmURL ?? string.Empty,
                 ["otp_url"] = response.ATMParam?.OtpURL ?? string.Empty
             })
+        };
+    }
+
+    private static PaymentError CreateMissingCreateFieldError(
+        SinopacOrderCreateResponse response,
+        bool missingAtmPayNo)
+    {
+        if (SinopacStatusMapper.IsProviderRejected(response))
+        {
+            return new PaymentError
+            {
+                Kind = PaymentErrorKind.ProviderRejected,
+                Code = response.Status,
+                Message = FirstNonEmpty(response.Description, response.Status)
+            };
+        }
+
+        return new PaymentError
+        {
+            Kind = PaymentErrorKind.ProviderRejected,
+            Code = FirstNonEmpty(
+                response.Status,
+                missingAtmPayNo ? "MissingAtmPayNo" : "MissingPaymentPageUrl"),
+            Message = missingAtmPayNo
+                ? "Sinopac did not return an ATM virtual account number."
+                : "Sinopac did not return a payment page URL."
         };
     }
 
