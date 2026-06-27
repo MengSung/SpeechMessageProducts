@@ -2,6 +2,7 @@
 using ChurchReport.Tools;
 using ChurchReport.Filters;
 using ChurchReport.Services.Theme;
+using ChurchReport.Payments;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -25,6 +26,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using ToolUtilityNameSpace.DependencyInjection;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ChurchReport.WebServiceConnector;
+using SpeechMessage.Payments.DependencyInjection;
 
 namespace ChurchReport
 {
@@ -475,11 +477,20 @@ namespace ChurchReport
             // ========================================
             // 註冊 MyPay 相關的服務類別，使用 Scoped 生命週期（每個請求一個實例）。
             services.AddScoped<ChurchReport.Services.MyPayMessageBuilder>();
-            services.AddScoped<ChurchReport.Services.MyPayStatusHelper>();
             services.AddScoped<ChurchReport.Services.MyPayFeeTypeHelper>();
             services.AddScoped<ChurchReport.Services.MyPayLogger>();
             services.AddScoped<ChurchReport.Services.MyPayCrmService>();
             services.AddScoped<ChurchReport.Services.MyPayNotificationService>();
+
+            services.AddSpeechMessagePayments(Configuration.GetSection("Payment"));
+            services.AddScoped<PaymentHttpRequestMapper>();
+            services.AddScoped<PaymentAcknowledgementResultMapper>();
+            services.AddScoped<ChurchReportPaymentProfileResolver>();
+            services.AddScoped<PaymentCreateRequestFactory>();
+            services.AddScoped<PaymentWorkflowResultMapper>();
+            services.AddScoped<IQPayReturnWorkflow, QPayReturnWorkflow>();
+            services.AddScoped<IQPayProductWorkflowDispatcher, QPayProductWorkflowDispatcher>();
+            services.AddScoped<QPayCreatePaymentGatewayAdapter>();
 
 #if DEBUG
             // ========================================
@@ -490,30 +501,6 @@ namespace ChurchReport
             services.AddHostedService<ChurchReport.Middleware.IdentityAuditCleanupService>();
             Console.WriteLine("[Startup] ✅ IdentityAuditCleanupService 已註冊（定期清理追蹤資料）");
 #endif
-
-
-            // 根據配置中的 PAY_PROVIDER 設定，註冊對應的支付服務。
-            if (Configuration["PAY_PROVIDER"] == "永豐金流")
-            {
-                services.AddScoped<IPayment, QPayToolkitWrapper>();
-            }
-            else if (Configuration["PAY_PROVIDER"] == "高鉅金流")
-            {
-                services.AddScoped<IPayment, MyPayToolkitWrapper>();
-            }
-            else if (Configuration["PAY_PROVIDER"] == "台新金流")
-            {
-                services.AddScoped<IPayment, TspgToolkitWrapper>();
-                services.AddScoped<TSPGWebhookHandler>();
-            }
-            else
-            {
-                // 預設使用永豐金流。
-                services.AddScoped<IPayment, QPayToolkitWrapper>();
-                // 預設使用台新金流。
-                //services.AddScoped<IPayment, TspgToolkitWrapper>();
-                //services.AddScoped<TSPGWebhookHandler>();
-            }
 
             // ========================================
             // ✅ Phase 3.3: Session 配置與安全性強化 (Session Bleeding 防護 - Step 3)

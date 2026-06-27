@@ -1,4 +1,5 @@
-﻿using ChurchReport.Tools;
+﻿using ChurchReport.Payments;
+using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
@@ -127,7 +128,7 @@ namespace ChurchReport.Models
         /// <summary>
         /// 付款服務實例
         /// </summary>
-        private readonly IPayment m_PamentService;
+        private readonly QPayCreatePaymentGatewayAdapter m_QPayCreatePaymentGatewayAdapter;
 
         /// <summary>
         /// ToolUtility 提供者，用於依賴注入
@@ -466,7 +467,7 @@ namespace ChurchReport.Models
         /// 注入必要的依賴項：
         /// - IHttpContextAccessor: 用於安全存取 HTTP 上下文和 Session
         /// - IMemoryCache: 用於快取資料管理器實例
-        /// - IPayment: 付款服務
+        /// - QPayCreatePaymentGatewayAdapter: QPay 建單 adapter
         /// - IToolUtilityProvider: ToolUtility 提供者
         /// 
         /// 注意：不再在建構時捕獲 Session，以避免 Session Bleeding
@@ -478,8 +479,8 @@ namespace ChurchReport.Models
         public InMemoryDataContextSmallGroup(
             IHttpContextAccessor contextAccessor,
             IMemoryCache memoryCache,
-            IPayment PamentService,
-            IToolUtilityProvider toolUtilityProvider)
+            IToolUtilityProvider toolUtilityProvider,
+            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter = null)
         {
             _memoryCache = memoryCache;
 
@@ -490,7 +491,7 @@ namespace ChurchReport.Models
             // ========================================
             m_ContextAccessor = contextAccessor ?? throw new ArgumentNullException(nameof(contextAccessor));
 
-            m_PamentService = PamentService;
+            m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter;
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
 
             System.Diagnostics.Debug.WriteLine("[InMemoryDataContext] ✅ 建構完成（Session Bleeding 修復版本）");
@@ -1172,7 +1173,7 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    m_QpayManager = new QpayManager(m_PamentService);
+                    m_QpayManager = new QpayManager(m_QPayCreatePaymentGatewayAdapter);
                     _memoryCache.Set<QpayManager>(key, m_QpayManager, options);
 
                     SetSessionDirtyFlag();

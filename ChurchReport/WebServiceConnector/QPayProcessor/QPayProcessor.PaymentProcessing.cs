@@ -1,6 +1,5 @@
 using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
-using QPay.Domain;
 using System;
 using System.Threading.Tasks;
 
@@ -233,10 +232,13 @@ namespace ChurchReport.WebServiceConnector
                 var atmInfo = BuildAtmInfo(LineLoginContact, QpayModel, createdAtmOrder.ATMParam.AtmPayNo);
 
                 // 發送 LINE 通知
-                LineId = LineId != "" ? LineId : ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "new_lineid");
-                await PushUtility.SendMessage(LineId, atmInfo.LineMessage);
+                LineId = ResolveAtmNotificationLineId(LineId, LineLoginContact);
+                var notificationWarning = await TrySendAtmPaymentInstructionsAsync(
+                    LineId,
+                    atmInfo.LineMessage,
+                    LineLoginContact.Id);
 
-                return atmInfo.HtmlMessage;
+                return atmInfo.HtmlMessage + notificationWarning;
             }
             catch (Exception ex)
             {
@@ -266,6 +268,65 @@ namespace ChurchReport.WebServiceConnector
             var htmlMessage = lineMessage.Replace(Environment.NewLine, "<br/>");
 
             return (lineMessage, htmlMessage);
+        }
+
+        private string ResolveAtmNotificationLineId(string lineId, Entity contact)
+        {
+            if (!string.IsNullOrWhiteSpace(lineId))
+            {
+                return lineId;
+            }
+
+            var contactLineId = ToolUtility.GetEntityStringAttribute(ref contact, "new_lineid");
+            if (!string.IsNullOrWhiteSpace(contactLineId))
+            {
+                return contactLineId;
+            }
+
+            var backupLineId = ToolUtility.GetEntityStringAttribute(ref contact, "new_lineid_backup");
+            if (!string.IsNullOrWhiteSpace(backupLineId))
+            {
+                System.Diagnostics.Trace.WriteLine(
+                    $"[QPayProcessor] ATM LINE notification uses new_lineid_backup. ContactId={contact.Id}");
+                return backupLineId;
+            }
+
+            return string.Empty;
+        }
+
+        private async Task<string> TrySendAtmPaymentInstructionsAsync(
+            string lineId,
+            string lineMessage,
+            Guid contactId)
+        {
+            if (string.IsNullOrWhiteSpace(lineId))
+            {
+                System.Diagnostics.Trace.WriteLine(
+                    $"[QPayProcessor] ATM LINE notification skipped because donor has no LINE id. ContactId={contactId}");
+                return BuildAtmNotificationWarning("LINE 通知未送出：奉獻者尚未綁定 LINE，請保存本頁付款資訊。");
+            }
+
+            try
+            {
+                await SendAtmPaymentInstructionsAsync(lineId, lineMessage);
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine(
+                    $"[QPayProcessor] ATM LINE notification failed. ContactId={contactId}, LineId={lineId}, Error={ex}");
+                return BuildAtmNotificationWarning("LINE 通知未送出，請保存本頁付款資訊。");
+            }
+        }
+
+        protected virtual async Task SendAtmPaymentInstructionsAsync(string lineId, string lineMessage)
+        {
+            await PushUtility.SendMessageOrThrowAsync(lineId, lineMessage);
+        }
+
+        private static string BuildAtmNotificationWarning(string message)
+        {
+            return $"{Environment.NewLine}<br/><br/><strong>{message}</strong>";
         }
 
         #endregion

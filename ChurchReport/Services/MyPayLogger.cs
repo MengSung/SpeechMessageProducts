@@ -1,13 +1,9 @@
-using System;
+ï»¿using System;
 using Microsoft.Extensions.Logging;
-using ChurchReport.Models;
+using SpeechMessage.Payments.Models;
 
 namespace ChurchReport.Services
 {
-    /// <summary>
-    /// MyPay ¤é»x°O¿ýªA°È
-    /// ­t³d°O¿ýª÷¬y¦^¶Ç¸ê®Æ
-    /// </summary>
     public class MyPayLogger
     {
         private readonly ILogger<MyPayLogger> _logger;
@@ -17,36 +13,21 @@ namespace ChurchReport.Services
             _logger = logger;
         }
 
-        /// <summary>
-        /// ========================================
-        /// °O¿ý§¹¾ãªºª÷¬y¦^¶Ç¸ê®Æ
-        /// ========================================
-        /// 
-        /// ¡i°O¿ý¤º®e¤ÀÃþ¡j
-        /// 1. ®Ö¤ßÄæ¦ì¡Guid, key, prc, order_id
-        /// 2. ¥æ©ö¸ê°T¡Gfinishtime, cost, actual_cost
-        /// 3. ¥I´Ú¸ê°T¡Gpfn, cardno, acode
-        /// 4. ®ø¶OªÌ¸ê°T¡Guser_id
-        /// 5. ¦Û­q°Ñ¼Æ¡Gecho_0~2
-        /// 6. ÂÂª©Äæ¦ì¡Gstate, msg, transaction_id
-        /// </summary>
-        public void LogFullReturnData(MyPayReturnModel model)
+        public void LogPaymentCallbackResult(PaymentCallbackResult result)
         {
             try
             {
-                var logData = $"[MyPay§¹¾ã¦^¶Ç¸ê®Æ]\n" +
-                             $"®Ö¤ßÄæ¦ì: uid={model.uid}, key={model.key}, prc={model.prc}, order_id={model.order_id}\n" +
-                             $"¥æ©ö¸ê°T: finishtime={model.finishtime}, cost={model.cost}, actual_cost={model.actual_cost}\n" +
-                             $"¥I´Ú¸ê°T: pfn={model.pfn}, cardno={model.cardno}, acode={model.acode}\n" +
-                             $"®ø¶OªÌ: user_id={model.user_id}\n" +
-                             $"¦Û­q°Ñ¼Æ: echo_0={model.echo_0}, echo_1={model.echo_1}, echo_2={model.echo_2}\n" +
-                             $"ÂÂª©Äæ¦ì: state={model.state}, msg={model.msg}, transaction_id={model.transaction_id}";
-
-                _logger.LogInformation(logData);
+                _logger.LogInformation(
+                    "[MyPayå›žå‚³] Core callback result: OrderId={OrderId}, TransactionId={TransactionId}, Status={Status}, Error={ErrorKind}, Amount={Amount}",
+                    result.ProductOrderId,
+                    result.ProviderTransactionId,
+                    result.Status,
+                    result.Error.Kind,
+                    result.Amount);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[MyPay¦^¶Ç] °O¿ý¦^¶Ç¸ê®Æ®Éµo¥Í¿ù»~");
+                _logger.LogError(ex, "[MyPayå›žå‚³] è¨˜éŒ„ core callback result æ™‚ç™¼ç”ŸéŒ¯èª¤");
             }
         }
     }

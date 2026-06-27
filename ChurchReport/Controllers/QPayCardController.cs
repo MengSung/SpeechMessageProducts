@@ -1,87 +1,166 @@
-﻿using Line.Messaging;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Xrm.Sdk;
-using QPay.Domain;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using ToolUtilityNameSpace;
-using ChurchReport.Tools;
+using ChurchReport.Payments;
+using Microsoft.AspNetCore.Mvc;
+using SpeechMessage.Payments.Abstractions;
+using SpeechMessage.Payments.Models;
 
 namespace ChurchReport.Controllers
 {
     [Route("api/[controller]")]
     public class QPayCardController : Controller
     {
+        private readonly IPaymentGateway _paymentGateway;
+        private readonly PaymentHttpRequestMapper _paymentHttpRequestMapper;
+        private readonly ChurchReportPaymentProfileResolver _paymentProfileResolver;
+        private readonly IQPayReturnWorkflow _qPayReturnWorkflow;
+
+        public QPayCardController(
+            IPaymentGateway paymentGateway,
+            PaymentHttpRequestMapper paymentHttpRequestMapper,
+            ChurchReportPaymentProfileResolver paymentProfileResolver,
+            IQPayReturnWorkflow qPayReturnWorkflow)
+        {
+            _paymentGateway = paymentGateway ?? throw new ArgumentNullException(nameof(paymentGateway));
+            _paymentHttpRequestMapper = paymentHttpRequestMapper ?? throw new ArgumentNullException(nameof(paymentHttpRequestMapper));
+            _paymentProfileResolver = paymentProfileResolver ?? throw new ArgumentNullException(nameof(paymentProfileResolver));
+            _qPayReturnWorkflow = qPayReturnWorkflow ?? throw new ArgumentNullException(nameof(qPayReturnWorkflow));
+        }
+
         [HttpPost]
         [HttpGet]
         [Route("QPayReturnUrl")]
-        public ActionResult QPayReturnUrl(string ShopNo, string PayToken)
+        public async Task<IActionResult> QPayReturnUrl(string ShopNo, string PayToken)
         {
             try
             {
-                // 記錄請求資訊
                 System.Diagnostics.Trace.WriteLine($"[QPayCardController] QPayReturnUrl called at {DateTime.Now}");
                 System.Diagnostics.Trace.WriteLine($"  - HTTP Method: {Request.Method}");
                 System.Diagnostics.Trace.WriteLine($"  - ShopNo: {ShopNo ?? "(null)"}");
-                System.Diagnostics.Trace.WriteLine($"  - PayToken: {PayToken ?? "(null)"}");
-                
-                // 記錄所有查詢字串參數
-                if (Request.QueryString.HasValue)
+                System.Diagnostics.Trace.WriteLine($"  - PayToken: {MaskForTrace(PayToken)}");
+
+                var profileName = _paymentProfileResolver.ResolveProfileName();
+                var callbackRequest = await _paymentHttpRequestMapper.MapAsync(
+                    Request,
+                    profileName,
+                    PaymentProviderKind.Sinopac,
+                    HttpContext.RequestAborted);
+                callbackRequest = EnsureReturnFields(callbackRequest, ShopNo, PayToken);
+
+                var callbackResult = await _paymentGateway.ParseCallbackAsync(
+                    callbackRequest,
+                    HttpContext.RequestAborted);
+
+                if (callbackResult.Error.HasError)
                 {
-                    System.Diagnostics.Trace.WriteLine($"  - QueryString: {Request.QueryString.Value}");
+                    return PaymentResultView(
+                        false,
+                        "Payment callback is invalid. Please contact the church office if the payment was already submitted.",
+                        string.Empty,
+                        callbackResult.Error.Message);
                 }
-                
-                // 記錄所有 Form 參數
-                if (Request.HasFormContentType && Request.Form != null)
-                {
-                    foreach (var key in Request.Form.Keys)
+
+                var providerOrderRef = FirstNonEmpty(
+                    callbackResult.ProviderTransactionId,
+                    ReadProviderData(callbackResult.ProviderData, "pay_token"),
+                    PayToken);
+                var shopNo = FirstNonEmpty(
+                    ReadProviderData(callbackResult.ProviderData, "shop_no"),
+                    ShopNo);
+
+                var statusResult = await _paymentGateway.QueryPaymentAsync(
+                    new PaymentQueryRequest
                     {
-                        System.Diagnostics.Trace.WriteLine($"  - Form[{key}]: {Request.Form[key]}");
-                    }
-                }
-                
-                // 參數驗證
-                if (string.IsNullOrWhiteSpace(ShopNo) || string.IsNullOrWhiteSpace(PayToken))
-                {
-                    string errorMsg = $"參數不完整: ShopNo={ShopNo ?? "(null)"}, PayToken={PayToken ?? "(null)"}";
-                    System.Diagnostics.Trace.WriteLine($"[QPayCardController] Error: {errorMsg}");
-                    
-                    // 返回美觀的付款失敗頁面
-                    ViewBag.IsSuccess = false;
-                    ViewBag.Message = "缺少必要的付款資訊，請重新嘗試或聯繫教會辦公室。";
-                    ViewBag.ErrorDetails = errorMsg;
-                    ViewBag.OrderId = "";
-                    
-                    return View("PaymentResult");
-                }
-                
-                using (QPayCardWebhook aQPayCardWebhook = new QPayCardWebhook())
-                {
-                    return aQPayCardWebhook.QPayReturnUrl(ShopNo, PayToken);
-                }
+                        ProfileName = profileName,
+                        ProviderHint = PaymentProviderKind.Sinopac,
+                        ProductOrderId = callbackResult.ProductOrderId,
+                        ProviderOrderRef = providerOrderRef,
+                        Metadata = new Dictionary<string, string>
+                        {
+                            ["ShopNo"] = shopNo
+                        }
+                    },
+                    HttpContext.RequestAborted);
+
+                return _qPayReturnWorkflow.HandleReturn(shopNo, providerOrderRef, statusResult);
             }
             catch (Exception ex)
             {
-                // 記錄詳細錯誤資訊
                 string errorDetail = $"ERROR: QPayCardController.QPayReturnUrl{Environment.NewLine}" +
                                    $"Time: {DateTime.Now}{Environment.NewLine}" +
                                    $"ShopNo: {ShopNo ?? "(null)"}{Environment.NewLine}" +
-                                   $"PayToken: {PayToken ?? "(null)"}{Environment.NewLine}" +
+                                   $"PayToken: {MaskForTrace(PayToken)}{Environment.NewLine}" +
                                    $"Message: {ex.Message}{Environment.NewLine}" +
                                    $"StackTrace: {ex.StackTrace}{Environment.NewLine}" +
                                    $"InnerException: {ex.InnerException?.Message ?? "(none)"}";
-                
+
                 System.Diagnostics.Trace.WriteLine(errorDetail);
                 Console.WriteLine(errorDetail);
-                
-                // 返回美觀的付款失敗頁面
-                ViewBag.IsSuccess = false;
-                ViewBag.Message = "處理付款結果時發生系統錯誤，請稍後再試或聯繫教會辦公室。";
-                ViewBag.ErrorDetails = $"{ex.Message}\n\n{ex.StackTrace}";
-                ViewBag.OrderId = "";
-                
-                return View("PaymentResult");
+
+                return PaymentResultView(
+                    false,
+                    "An error occurred while processing the payment result. Please try again later or contact the church office.",
+                    string.Empty,
+                    $"{ex.Message}\n\n{ex.StackTrace}");
             }
+        }
+
+        private ViewResult PaymentResultView(
+            bool isSuccess,
+            string message,
+            string orderId,
+            string errorDetails)
+        {
+            ViewBag.IsSuccess = isSuccess;
+            ViewBag.Message = message;
+            ViewBag.OrderId = orderId;
+            ViewBag.ErrorDetails = errorDetails;
+            return View("~/Views/QPayCard/PaymentResult.cshtml");
+        }
+
+        private static PaymentCallbackRequest EnsureReturnFields(
+            PaymentCallbackRequest request,
+            string shopNo,
+            string payToken)
+        {
+            var query = new Dictionary<string, string>(request.Query, StringComparer.OrdinalIgnoreCase);
+            if (!string.IsNullOrWhiteSpace(shopNo) && !query.ContainsKey("ShopNo"))
+            {
+                query["ShopNo"] = shopNo;
+            }
+
+            if (!string.IsNullOrWhiteSpace(payToken) && !query.ContainsKey("PayToken"))
+            {
+                query["PayToken"] = payToken;
+            }
+
+            return request with { Query = query };
+        }
+
+        private static string ReadProviderData(
+            IReadOnlyDictionary<string, string> providerData,
+            string key)
+        {
+            return providerData.TryGetValue(key, out var value) ? value : string.Empty;
+        }
+
+        private static string FirstNonEmpty(params string[] values)
+        {
+            return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)) ?? string.Empty;
+        }
+
+        private static string MaskForTrace(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            return value.Length <= 8
+                ? new string('*', value.Length)
+                : value[..4] + "..." + value[^4..];
         }
     }
 }

@@ -34,10 +34,9 @@ namespace ChurchReport.Controllers
         public FeeManagementController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
-            IPayment qpayService,
             IToolUtilityProvider toolUtilityProvider,
             ICrmConnectionPool connectionPool)
-        : base(httpContextAccessor, memoryCache, qpayService, toolUtilityProvider, connectionPool)
+        : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool)
         {
         }
 

@@ -1,212 +1,61 @@
-using System;
+ï»¿using System;
+using ChurchReport.Payments;
 using Microsoft.Extensions.Logging;
-using ToolUtilityNameSpace;
 using Microsoft.Xrm.Sdk;
-using ChurchReport.Models;
+using ToolUtilityNameSpace;
 
 namespace ChurchReport.Services
 {
-    /// <summary>
-    /// MyPay CRM ¸ê®Æ§ó·sªA°È
-    /// ­t³d§ó·s Dynamics 365 CRM ¤¤ªº¦¬¶O³æ¸ê°T
-    /// </summary>
     public class MyPayCrmService
     {
+        private const int PaymentStatusPaid = 100000001;
+        private const int PaymentMethodCreditCard = 100000001;
         private readonly ILogger<MyPayCrmService> _logger;
-        private readonly MyPayStatusHelper _statusHelper;
-        private const int PAYMENT_STATUS_PAID = 100000001;
-        private const int PAYMENT_METHOD_CREDIT_CARD = 100000001;
 
-        public MyPayCrmService(ILogger<MyPayCrmService> logger, MyPayStatusHelper statusHelper)
+        public MyPayCrmService(ILogger<MyPayCrmService> logger)
         {
             _logger = logger;
-            _statusHelper = statusHelper;
         }
 
-        /// <summary>
-        /// ========================================
-        /// §ó·s CRM ¦¬¶O³æ¡]¨Ï¥Î MyPayReturnModel¡^
-        /// ========================================
-        /// 
-        /// ¡i§ó·s¤º®e¡j
-        /// 
-        /// ? ¦¨¥\¥æ©ö§ó·s¶µ¥Ø¡G
-        /// - new_pay_status: ³]¬°¡u¤wÃº¶O¡v¡]100000001¡^
-        /// - new_fee_really_paid: ¹ê¥Iª÷ÃB
-        /// - new_difference_fee_paid: ®tÃB¡]³]¬° 0¡^
-        /// - new_pay_date: ¥I´Ú¤é´Á®É¶¡
-        /// - new_pay_way: ¥I´Ú¤è¦¡¡]«H¥Î¥d = 100000001¡^
-        /// 
-        /// ? ¦¨¥\»P¥¢±Ñ³£§ó·sªº¶µ¥Ø¡G
-        /// - new_description: ªş¥[¥æ©ö©ú²Ó
-        /// </summary>
-        public void UpdateFeeEntityWithMyPayReturn(
+        public void UpdateFeeEntityWithPaymentResult(
             ToolUtilityClass toolUtility,
             Entity feeEntity,
-            MyPayReturnModel model,
+            PaymentWorkflowResult result,
             bool isSuccess)
         {
             try
             {
-                // ¨BÆJ 1¡G¸ÑªR¥I´Ú®É¶¡
-                DateTime paymentTime = _statusHelper.ParseFinishTime(model.finishtime);
+                var paymentTime = DateTime.Now;
 
-                // ¨BÆJ 2¡G¦pªG¥æ©ö¦¨¥\¡A§ó·s¥I´Úª¬ºA¬ÛÃöÄæ¦ì
                 if (isSuccess)
                 {
                     var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
-                    toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PAYMENT_STATUS_PAID);
+                    toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PaymentStatusPaid);
                     toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_fee_really_paid", shouldPayMoney);
                     toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_difference_fee_paid", new Money(0));
                     toolUtility.SetEntityDateTimeAttribute(ref feeEntity, "new_pay_date", paymentTime);
-                    toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PAYMENT_METHOD_CREDIT_CARD);
+                    toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PaymentMethodCreditCard);
                 }
 
-                // ¨BÆJ 3¡G·Ç³Æ´y­zÄæ¦ì¸ê®Æ
                 var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description") ?? string.Empty;
-                var paymentMethodName = _statusHelper.GetPaymentMethodName(model.pfn);
-                var statusMessage = _statusHelper.GetPaymentStatusMessage(model.prc);
-
-                // ¨BÆJ 4¡G«Ø¥ß·sªº´y­z¤º®e
                 var newDescription = originalDescription + Environment.NewLine +
-                    $"[ª÷¬y¦^¶Ç¸ê°T - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +
-                    "====== ®Ö¤ßÄæ¦ì ======" + Environment.NewLine +
-                    $"­q³æ¸¹(order_id): {model.order_id}" + Environment.NewLine +
-                    $"¥æ©ö¬y¤ô¸¹(uid): {model.uid}" + Environment.NewLine +
-                    $"¥æ©öÅçÃÒ½X(key): {model.key}" + Environment.NewLine +
-                    $"¥æ©öª¬ºA½X(prc): {model.prc} ({statusMessage})" + Environment.NewLine +
-                    "====== ¥æ©ö¸ê°T ======" + Environment.NewLine +
-                    $"§¹¦¨®É¶¡: {paymentTime:yyyy-MM-dd HH:mm:ss}" + Environment.NewLine +
-                    $"¥æ©öª÷ÃB: {model.cost}" + Environment.NewLine +
-                    $"¹ê»Úª÷ÃB: {model.actual_cost ?? model.cost}" + Environment.NewLine +
-                    $"¥æ©ö¹ô§O: {model.currency ?? "TWD"}" + Environment.NewLine +
-                    "====== ¥I´Ú¸ê°T ======" + Environment.NewLine +
-                    $"¥I´Ú¤è¦¡(pfn): {paymentMethodName}" + Environment.NewLine +
-                    $"¥d¸¹: {model.cardno}" + Environment.NewLine +
-                    $"±ÂÅv½X: {model.acode}" + Environment.NewLine +
-                    $"¥d§O: {model.card_type}" + Environment.NewLine +
-                    $"µo¥d¦æ: {model.issuing_bank}" + Environment.NewLine +
-                    $"µo¥d¦æ¥N½X: {model.issuing_bank_uid}" + Environment.NewLine;
+                    $"[é‡‘æµå›å‚³è³‡è¨Š - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +
+                    "====== æ ¸å¿ƒæ¬„ä½ ======" + Environment.NewLine +
+                    $"è¨‚å–®è™Ÿ: {result.ProductOrderId}" + Environment.NewLine +
+                    $"äº¤æ˜“æµæ°´è™Ÿ: {result.ProviderTransactionId}" + Environment.NewLine +
+                    $"äº¤æ˜“ç‹€æ…‹: {result.Status}" + Environment.NewLine +
+                    "====== äº¤æ˜“è³‡è¨Š ======" + Environment.NewLine +
+                    $"å®Œæˆæ™‚é–“: {paymentTime:yyyy-MM-dd HH:mm:ss}" + Environment.NewLine +
+                    $"äº¤æ˜“é‡‘é¡: {result.Amount?.ToString() ?? string.Empty}" + Environment.NewLine +
+                    $"äº¤æ˜“å¹£åˆ¥: {result.Currency}" + Environment.NewLine +
+                    $"é‡‘æµè¨Šæ¯: {result.ProviderMessage}" + Environment.NewLine;
 
-                // ¨BÆJ 5¡Gªş¥[¿ï¶ñ¸ê°T
-                if (!string.IsNullOrEmpty(model.installment))
-                    newDescription += $"¤À´Á¸ê°T: {model.installment}" + Environment.NewLine;
-
-                if (!string.IsNullOrEmpty(model.redeem))
-                    newDescription += $"¬õ§Q¸ê°T: {model.redeem}" + Environment.NewLine;
-
-                if (!string.IsNullOrEmpty(model.supplier_name))
-                {
-                    newDescription += "====== ªA°È°Ó¸ê°T ======" + Environment.NewLine +
-                                      $"ªA°È°Ó: {model.supplier_name}" + Environment.NewLine +
-                                      $"ªA°È°Ó¥N½X: {model.supplier_code}" + Environment.NewLine;
-                }
-
-                if (!string.IsNullOrEmpty(model.payment_name) ||
-                    !string.IsNullOrEmpty(model.nois) ||
-                    !string.IsNullOrEmpty(model.group_id))
-                {
-                    newDescription += "====== ©w´Á©wÃB¸ê°T ======" + Environment.NewLine +
-                                      $"¦©´Ú¦WºÙ: {model.payment_name}" + Environment.NewLine +
-                                      $"´Á¼Æ: {model.nois}" + Environment.NewLine +
-                                      $"¸s²Õ½s¸¹: {model.group_id}" + Environment.NewLine;
-                }
-
-                if (!string.IsNullOrEmpty(model.bank_id) ||
-                    !string.IsNullOrEmpty(model.expired_date))
-                {
-                    newDescription += "====== µêÀÀ±b¸¹¸ê°T ======" + Environment.NewLine +
-                                      $"»È¦æ¥N½X: {model.bank_id}" + Environment.NewLine +
-                                      $"¦³®Ä´Á­­: {model.expired_date}" + Environment.NewLine;
-                }
-
-                if (!string.IsNullOrEmpty(model.echo_0) ||
-                    !string.IsNullOrEmpty(model.echo_1) ||
-                    !string.IsNullOrEmpty(model.echo_2) ||
-                    !string.IsNullOrEmpty(model.echo_3) ||
-                    !string.IsNullOrEmpty(model.echo_4))
-                {
-                    newDescription += "====== ¦Û­q°Ñ¼Æ ======" + Environment.NewLine +
-                                      $"echo_0: {model.echo_0}" + Environment.NewLine +
-                                      $"echo_1: {model.echo_1}" + Environment.NewLine +
-                                      $"echo_2: {model.echo_2}" + Environment.NewLine +
-                                      $"echo_3: {model.echo_3}" + Environment.NewLine +
-                                      $"echo_4: {model.echo_4}" + Environment.NewLine;
-                }
-
-                newDescription += "====== ÂÂª©¬Û®eÄæ¦ì ======" + Environment.NewLine +
-                                  $"state: {model.state}" + Environment.NewLine +
-                                  $"msg: {model.msg}" + Environment.NewLine +
-                                  $"transaction_id: {model.transaction_id}" + Environment.NewLine +
-                                  $"store_uid: {model.store_uid}" + Environment.NewLine +
-                                  $"hash: {model.hash}" + Environment.NewLine;
-
-                // ¨BÆJ 6¡G§ó·s´y­zÄæ¦ì
                 toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
-
-                _logger.LogInformation($"[MyPay¦^¶Ç] ¦¬¶O³æÄæ¦ì¤w§ó·s - FeeId: {feeEntity.Id}, OrderId: {model.order_id}");
+                _logger.LogInformation($"[MyPayå›å‚³] æ”¶è²»å–®æ¬„ä½å·²æ›´æ–° - FeeId: {feeEntity.Id}, OrderId: {result.ProductOrderId}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[MyPay¦^¶Ç] §ó·s¦¬¶O³æ¥¢±Ñ - OrderId: {model.order_id}");
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// ========================================
-        /// §ó·s CRM ¦¬¶O³æ¡]¨Ï¥Î­Ó§O°Ñ¼Æ¡AÂÂª©¬Û®e¡^
-        /// ========================================
-        /// </summary>
-        public void UpdateFeeEntityForSuccessWithMyPay(
-            ToolUtilityClass toolUtility,
-            Entity feeEntity,
-            string orderId,
-            string uid,
-            string key,
-            string cost,
-            string actualCost,
-            string prc,
-            string pfn,
-            DateTime paymentTime,
-            string cardno,
-            string acode)
-        {
-            try
-            {
-                var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
-                toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PAYMENT_STATUS_PAID);
-                toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_fee_really_paid", shouldPayMoney);
-                toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_difference_fee_paid", new Money(0));
-                toolUtility.SetEntityDateTimeAttribute(ref feeEntity, "new_pay_date", paymentTime);
-                toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PAYMENT_METHOD_CREDIT_CARD);
-
-                DateTime transTime = _statusHelper.ParseFinishTime(paymentTime.ToString("yyyyMMddHHmmss"));
-                var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description") ?? string.Empty;
-
-                var newDescription = originalDescription + Environment.NewLine +
-                    $"[ª÷¬y¦^¶Ç¸ê°T - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +
-                    "====== ®Ö¤ßÄæ¦ì ======" + Environment.NewLine +
-                    $"­q³æ¸¹(order_id): {orderId}" + Environment.NewLine +
-                    $"¥æ©ö¬y¤ô¸¹(uid): {uid}" + Environment.NewLine +
-                    $"¥æ©öÅçÃÒ½X(key): {key}" + Environment.NewLine +
-                    $"¥æ©öª¬ºA½X(prc): {prc} ({_statusHelper.GetPaymentStatusMessage(prc)})" + Environment.NewLine +
-                    "====== ¥æ©ö¸ê°T ======" + Environment.NewLine +
-                    $"§¹¦¨®É¶¡: {transTime:yyyy-MM-dd HH:mm:ss}" + Environment.NewLine +
-                    $"¥æ©öª÷ÃB: {cost}" + Environment.NewLine +
-                    $"¹ê»Úª÷ÃB: {actualCost ?? cost}" + Environment.NewLine +
-                    $"¥æ©ö¹ô§O: TWD" + Environment.NewLine +
-                    "====== ¥I´Ú¸ê°T ======" + Environment.NewLine +
-                    $"¥I´Ú¤è¦¡(pfn): {pfn}" + Environment.NewLine +
-                    $"¥d¸¹: {cardno}" + Environment.NewLine +
-                    $"±ÂÅv½X: {acode}" + Environment.NewLine;
-
-                toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
-                _logger.LogInformation($"[MyPay¦^¶Ç] ¦¬¶O³æÄæ¦ì¤w§ó·s - FeeId: {feeEntity.Id}, OrderId: {orderId}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"[MyPay¦^¶Ç] §ó·s¦¬¶O³æ¥¢±Ñ - OrderId: {orderId}");
+                _logger.LogError(ex, $"[MyPayå›å‚³] æ›´æ–°æ”¶è²»å–®å¤±æ•— - OrderId: {result.ProductOrderId}");
                 throw;
             }
         }

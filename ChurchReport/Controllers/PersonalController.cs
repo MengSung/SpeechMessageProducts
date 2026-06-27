@@ -35,10 +35,9 @@ namespace ChurchReport.Controllers
         public PersonalController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
-            IPayment paymentService,
             IToolUtilityProvider toolUtilityProvider,
             ICrmConnectionPool connectionPool)
-            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool)
+            : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool)
         {
         }
 

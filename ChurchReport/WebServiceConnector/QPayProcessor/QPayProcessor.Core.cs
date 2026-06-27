@@ -1,6 +1,7 @@
 using ChurchReport.Models;
+using ChurchReport.Payments;
 using ChurchReport.Services;
-using ChurchReport.Tools;  // ? 加入以支援 IPayment, PushUtility, ReplyUtility
+using ChurchReport.Tools;
 using Line.Messaging;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -56,7 +57,7 @@ namespace ChurchReport.WebServiceConnector
 
         // CRM 與金流服務
         private readonly ToolUtilityClass m_ToolUtilityClass;
-        private readonly IPayment m_PaymentService;
+        private readonly QPayCreatePaymentGatewayAdapter m_QPayCreatePaymentGatewayAdapter;
         private readonly OptionSetMetadataService _optionSetMetadataService;
 
         // 業務資料
@@ -69,7 +70,8 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 主要建構函式（推薦使用）
         /// </summary>
-        public QPayProcessor(IPayment aPaymentService)
+        public QPayProcessor(
+            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter)
         {
             // 初始化環境設定
             RETURN_URL = m_Configuration["RETURN_URL"];
@@ -86,7 +88,8 @@ namespace ChurchReport.WebServiceConnector
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
             // 初始化金流服務
-            m_PaymentService = aPaymentService ?? throw new ArgumentNullException(nameof(aPaymentService));
+            m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter
+                ?? throw new ArgumentNullException(nameof(qPayCreatePaymentGatewayAdapter));
 
             // 初始化 OptionSet 服務
             _optionSetMetadataService = new OptionSetMetadataService(
@@ -105,7 +108,8 @@ namespace ChurchReport.WebServiceConnector
         public QPayProcessor(
             LineMessagingClient aLineMessagingClient,
             PushUtility aPushUtility,
-            ReplyUtility aReplyUtility)
+            ReplyUtility aReplyUtility,
+            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter)
         {
             // 初始化環境設定
             RETURN_URL = m_Configuration["RETURN_URL"];
@@ -121,7 +125,8 @@ namespace ChurchReport.WebServiceConnector
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
             // 根據配置選擇金流服務（策略模式）
-            m_PaymentService = SelectPaymentProvider();
+            m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter
+                ?? throw new ArgumentNullException(nameof(qPayCreatePaymentGatewayAdapter));
 
             // 初始化 OptionSet 服務
             _optionSetMetadataService = new OptionSetMetadataService(
@@ -150,34 +155,6 @@ namespace ChurchReport.WebServiceConnector
                 : m_Configuration["Sandbox:ShopNo"];
 
             System.Diagnostics.Trace.WriteLine($"[QPayProcessor] ShopNo initialized: {m_ShopNo} (Environment: {cashEnvironment})");
-        }
-
-        /// <summary>
-        /// 選擇金流服務提供者（策略模式）
-        /// </summary>
-        private IPayment SelectPaymentProvider()
-        {
-            var payProvider = m_Configuration["PAY_PROVIDER"];
-            System.Diagnostics.Trace.WriteLine($"[QPayProcessor] Selecting payment provider: {payProvider}");
-
-            return payProvider switch
-            {
-                "永豐金流" => new QPayToolkitWrapper(),
-                "高鉅金流" => new MyPayToolkitWrapper(),
-                "台新金流" => new TspgToolkitWrapper(),
-                _ => CreateDefaultPaymentProvider(payProvider)
-            };
-        }
-
-        /// <summary>
-        /// 建立預設金流服務提供者
-        /// </summary>
-        private IPayment CreateDefaultPaymentProvider(string payProvider)
-        {
-            System.Diagnostics.Trace.WriteLine(
-                $"[QPayProcessor] Unknown payment provider: {payProvider}, defaulting to 永豐金流"
-            );
-            return new QPayToolkitWrapper();
         }
 
         /// <summary>
@@ -241,8 +218,9 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>CRM 工具類</summary>
         protected ToolUtilityClass ToolUtility => m_ToolUtilityClass;
 
-        /// <summary>金流服務</summary>
-        protected IPayment PaymentService => m_PaymentService;
+
+        /// <summary>QPay neutral gateway create adapter</summary>
+        protected QPayCreatePaymentGatewayAdapter QPayCreatePaymentGatewayAdapter => m_QPayCreatePaymentGatewayAdapter;
 
         /// <summary>OptionSet 服務</summary>
         protected OptionSetMetadataService OptionSetService => _optionSetMetadataService;

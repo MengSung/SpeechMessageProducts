@@ -29,11 +29,10 @@ namespace ChurchReport.Controllers
         public AuthenticationController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
-            IPayment paymentService,
             IToolUtilityProvider toolUtilityProvider,
             ICrmConnectionPool connectionPool,
             IWebHostEnvironment env)
-            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool)
+            : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool)
         {
             _env = env;
         }

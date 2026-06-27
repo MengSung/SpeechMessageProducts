@@ -41,11 +41,10 @@ namespace ChurchReport.Controllers
         public HomeController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
-            IPayment qpayService,
             IToolUtilityProvider toolUtilityProvider,
             ICrmConnectionPool connectionPool,
             IInMemoryDataContext inMemoryContext)
-        : base(httpContextAccessor, memoryCache, qpayService, toolUtilityProvider, connectionPool, inMemoryContext)
+        : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool, inMemoryContext)
         {
         }
         #endregion
@@ -72,7 +71,6 @@ namespace ChurchReport.Controllers
             using (var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
-                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
                 HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool,
                 env))
@@ -185,7 +183,6 @@ namespace ChurchReport.Controllers
             using (var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
-                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
                 HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool,
                 env))
@@ -205,7 +202,6 @@ namespace ChurchReport.Controllers
             using (var dedicationController = new DedicationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
-                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
                 HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool,
                 HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration))
@@ -230,7 +226,6 @@ namespace ChurchReport.Controllers
             using (var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
-                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
                 HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool,
                 env))
@@ -257,7 +252,6 @@ namespace ChurchReport.Controllers
             using (var authController = new AuthenticationController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
-                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
                 HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool,
                 env))
@@ -645,7 +639,6 @@ namespace ChurchReport.Controllers
             using (var controller = new QPayLoginController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
-                HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
                 HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool))
             {
@@ -710,8 +703,7 @@ namespace ChurchReport.Controllers
                 using (var authController = new AuthenticationController(
                     HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                     HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
-                    HttpContext.RequestServices.GetService(typeof(IPayment)) as IPayment,
-                    HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
+                        HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
                     HttpContext.RequestServices.GetService(typeof(ICrmConnectionPool)) as ICrmConnectionPool,
                     env))
                 {

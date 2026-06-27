@@ -53,6 +53,22 @@ namespace ChurchReport.Tools
             }
 
         }
+
+        public async Task SendMessageOrThrowAsync(string UserId, string Message)
+        {
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                throw new ArgumentException("LINE user id is required.", nameof(UserId));
+            }
+
+            List<ISendMessage> MessageToSend = new List<ISendMessage>
+            {
+                new TextMessage(Message)
+            };
+
+            await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+        }
+
         public async Task SendImage(string UserId, string OriginalContenUrl, string PreviewImageUrl)
         {
             try
