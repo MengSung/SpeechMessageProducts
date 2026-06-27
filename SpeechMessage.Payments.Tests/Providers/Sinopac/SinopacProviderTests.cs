@@ -11,6 +11,10 @@ using Xunit;
 
 namespace SpeechMessage.Payments.Tests.Providers.Sinopac;
 
+/// <summary>
+/// 驗證永豐 QPay provider 的 request mapping、AES key、狀態轉換、callback 與 HTTP 錯誤正規化。
+/// 這些測試特別保護付款頁 URL、ATM 虛擬帳號與 legacy key derivation，避免抽離後破壞既有奉獻流程。
+/// </summary>
 public sealed class SinopacProviderTests
 {
     [Fact]
@@ -76,6 +80,8 @@ public sealed class SinopacProviderTests
     [Fact]
     public void Crypto_builds_legacy_uppercase_aes_key()
     {
+        // 永豐 QPay AES key 來自 A1/A2、B1/B2 XOR 後的大寫 hex 字串。
+        // 大小寫會影響實際 AES key bytes，錯誤時銀行端可能直接回 HTTP 400。
         var aesKey = SinopacCrypto.BuildAesKey(CreateProfile());
 
         aesKey.Should().Be("89C697BCC1C10908864428F5C58A068A");
@@ -129,6 +135,8 @@ public sealed class SinopacProviderTests
     [Fact]
     public void Create_result_fails_when_card_payment_success_response_has_no_payment_page_url()
     {
+        // 信用卡、行動支付等 hosted payment 成功回應必須有付款頁 URL。
+        // 若缺 URL 仍視為成功，瀏覽器會跳回原奉獻頁而不是永豐刷卡頁。
         var request = new SinopacOrderCreateRequest
         {
             OrderNo = "C202606250001",
@@ -183,6 +191,8 @@ public sealed class SinopacProviderTests
     [Fact]
     public void Create_result_preserves_atm_virtual_account_in_provider_data()
     {
+        // ATM 虛擬帳號是使用者付款指示，必須從 provider response 跨到 ProviderData，
+        // 讓 ChurchReport legacy adapter 可以顯示帳號並發送 LINE/頁面通知。
         var request = new SinopacOrderCreateRequest
         {
             OrderNo = "A202606250001",
@@ -248,6 +258,8 @@ public sealed class SinopacProviderTests
     [Fact]
     public async Task Create_payment_includes_route_and_response_body_when_http_status_fails()
     {
+        // 銀行 HTTP status 失敗時，錯誤訊息要包含 route 與 sanitized response body，
+        // 否則現場只會看到 BadRequest，難以判斷是 nonce、create order 或 payload 哪一段失敗。
         using var httpClient = new HttpClient(new StaticResponseHandler(
             HttpStatusCode.BadRequest,
             "invalid request payload"));
@@ -300,6 +312,7 @@ public sealed class SinopacProviderTests
     [Fact]
     public void Callback_parser_maps_return_query_and_sanitizes_sensitive_values()
     {
+        // Return query 只提供 PayToken/ShopNo 供後續查詢，PayToken 與密鑰類欄位在 diagnostics 中必須遮蔽。
         var request = new PaymentCallbackRequest
         {
             ProfileName = "JesusTest",

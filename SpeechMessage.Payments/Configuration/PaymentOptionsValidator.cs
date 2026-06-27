@@ -3,6 +3,10 @@ using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.Configuration;
 
+/// <summary>
+/// 啟動期檢查 Payment 設定的最低必要條件。
+/// 真正的 provider 憑證欄位仍由各 provider mapper 檢查，因為不同金流需要的欄位不同。
+/// </summary>
 public sealed class PaymentOptionsValidator : IValidateOptions<PaymentOptions>
 {
     public ValidateOptionsResult Validate(string? name, PaymentOptions options)

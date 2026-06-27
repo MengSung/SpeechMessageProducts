@@ -9,6 +9,11 @@ using SpeechMessage.Payments.Models;
 
 namespace ChurchReport.Payments;
 
+/// <summary>
+/// QPay 前端 return URL 後續產品流程的抽象。
+/// 金流核心只負責 parse callback 與 query payment status；
+/// ChurchReport 的 CRM 更新、奉獻結果頁與費用 workflow 由此介面背後的產品層處理。
+/// </summary>
 public interface IQPayReturnWorkflow
 {
     IActionResult HandleReturn(
@@ -17,6 +22,10 @@ public interface IQPayReturnWorkflow
         PaymentStatusResult statusResult);
 }
 
+/// <summary>
+/// 將永豐 QPay return/query 的標準化結果導回 ChurchReport 既有產品 workflow。
+/// 這個類別不做永豐簽章、加解密或狀態碼解析，只消費 <see cref="PaymentStatusResult"/>。
+/// </summary>
 public sealed class QPayReturnWorkflow : IQPayReturnWorkflow
 {
     private const string PaymentResultViewName = "~/Views/QPayCard/PaymentResult.cshtml";
@@ -37,12 +46,15 @@ public sealed class QPayReturnWorkflow : IQPayReturnWorkflow
         var providerData = statusResult.ProviderData ?? new Dictionary<string, string>();
         if (_productWorkflowDispatcher != null)
         {
+            // 正式執行時優先交給既有 QPay processor，維持 CRM/LINE/頁面行為。
+            // providerData 只承載核心已清理過的 provider metadata，避免產品層重新處理 raw callback。
             var workflowResult = CreateWorkflowPaymentResult(shopNo, payToken, statusResult, providerData);
             return IsDedicationBooking(workflowResult.PaymentCategory)
                 ? _productWorkflowDispatcher.HandleDedicationBookingReturn(shopNo, payToken, workflowResult)
                 : _productWorkflowDispatcher.HandleFeeReturn(shopNo, payToken, workflowResult);
         }
 
+        // 沒有注入產品 dispatcher 時提供保底 ViewResult，主要供測試或未接上完整 ChurchReport workflow 的環境使用。
         var isSuccess = statusResult.Status == PaymentStatus.Succeeded &&
             !statusResult.Error.HasError;
         var providerMessage = FirstNonEmpty(
@@ -109,6 +121,8 @@ public sealed class QPayReturnWorkflow : IQPayReturnWorkflow
 
     private static bool IsDedicationBooking(string value)
     {
+        // 這裡判斷的是 ChurchReport 產品分類，不是 provider payment method。
+        // 保留中英文與舊值相容，讓舊資料仍可走到正確奉獻預約處理器。
         return value.Equals("dedication_booking", StringComparison.OrdinalIgnoreCase) ||
             value.Equals("recurring_dedication", StringComparison.OrdinalIgnoreCase) ||
             value.Contains("Dedication", StringComparison.OrdinalIgnoreCase) ||
@@ -121,6 +135,8 @@ public sealed class QPayReturnWorkflow : IQPayReturnWorkflow
         PaymentStatusResult statusResult,
         IReadOnlyDictionary<string, string> providerData)
     {
+        // 將 provider-neutral status result 轉成舊 QPay processor 可處理的 workflow DTO。
+        // 這是產品層相容 shim，不應被移到 SpeechMessage.Payments。
         var isSuccess = statusResult.Status == PaymentStatus.Succeeded &&
             !statusResult.Error.HasError;
         var status = isSuccess ? "S" : "F";

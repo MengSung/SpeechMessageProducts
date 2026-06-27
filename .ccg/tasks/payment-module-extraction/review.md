@@ -4,6 +4,72 @@ Date: 2026-06-26
 Task: `payment-module-extraction`
 Scope reviewed: Task 11 cleanup diff from the working tree at review time.
 
+## Follow-up Review - Documentation And Traditional Chinese Code Comments
+
+Date: 2026-06-27
+Scope reviewed:
+
+- `docs/payment-module-extraction-report-zh-TW.md`
+- `SpeechMessage.Payments/Abstractions/*.cs`
+- `SpeechMessage.Payments/Configuration/*.cs`
+- `SpeechMessage.Payments/DependencyInjection/ServiceCollectionExtensions.cs`
+- `SpeechMessage.Payments/Diagnostics/PaymentDiagnosticsSanitizer.cs`
+- `SpeechMessage.Payments/Gateway/PaymentGateway.cs`
+- `SpeechMessage.Payments/Models/*.cs`
+- `SpeechMessage.Payments/Providers/MyPay/*.cs`
+- `SpeechMessage.Payments/Providers/Sinopac/*.cs`
+- `SpeechMessage.Payments/Providers/Taishin/*.cs`
+- `ChurchReport/Payments/*.cs`
+- `ChurchReport/Controllers/MyPayController.cs`
+- `ChurchReport/Controllers/TSPGController.cs`
+- `ChurchReport/Controllers/QPayCardController.cs`
+- `ChurchReport/WebServiceConnector/QPayProcessor/QPayProcessor.PaymentGateway.cs`
+- `ChurchReport/Startup.cs`
+- `SpeechMessage.Payments.Tests/**/*.cs`
+
+External review status:
+
+- Required CCG wrapper is not present in this environment (`Test-Path "$HOME\.claude\bin\codeagent-wrapper"` returned `False`), so Gemini/Claude dual-model review could not be run for this documentation/comment follow-up.
+
+Manual review findings:
+
+- Critical: none.
+- Warning: none.
+- Info:
+  - Added a detailed Traditional Chinese extraction report covering architecture, modified/written projects and files, provider responsibilities, ChurchReport adapter boundaries, tests, known limitations, validation commands, deployment notes, and bugs fixed during the extraction.
+  - Added Traditional Chinese maintenance comments across the reusable payment core, provider implementations, ChurchReport thin adapters/controllers, QPay compatibility bridge, and key tests.
+  - Kept `SpeechMessage.Payments` boundary grep clean by using product-neutral wording inside core comments. ChurchReport-specific boundary explanations remain in ChurchReport adapter files and the report document.
+  - No runtime logic, provider payload fields, route names, credential values, or callback acknowledgement behavior were changed in this follow-up; changes are comments/documentation only.
+  - No `LinePayCSharp` changes were introduced.
+
+Verification:
+
+```powershell
+dotnet test SpeechMessage.Payments.Tests\SpeechMessage.Payments.Tests.csproj --no-restore -v minimal -p:UseSharedCompilation=false
+dotnet build ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --no-restore -m:1 -v minimal -p:BaseOutputPath=.\artifacts\payment-report-comments-member-build\ -p:UseSharedCompilation=false
+dotnet vstest "ChurchReport.MemberInfo.Tests\artifacts\payment-report-comments-member-build\Debug\net10.0\ChurchReport.MemberInfo.Tests.dll" --TestCaseFilter:"FullyQualifiedName~Payments"
+dotnet build ChurchReport.sln --no-restore -v minimal -p:BaseOutputPath=.\artifacts\solution-build-payment-report-comments\ -p:UseSharedCompilation=false
+rg -n "ChurchReport|ToolUtility|Line\.Messaging|Microsoft\.Xrm|HttpRequest|Controller|IActionResult|DbContext" SpeechMessage.Payments --glob "*.cs" --glob "*.csproj"
+rg -n "QPay\.Domain|QryOrderPay|TSResultContent|QryOrder\b|OrderInfo\b|TSResult\b|CreOrderReq|QryOrderPayReq|OrderMaintainReq|BillQuery|AllotQuery|MyPayReturnModel|MyPayProcessingResult|MyPayStatusHelper" ChurchReport --glob "*.cs"
+rg -n "\bIPayment\b|IQPayToolkit|QPayToolkit|QPayToolkitWrapper|MyPayToolkit|MyPayToolkitWrapper|TspgToolkit|TspgToolkitWrapper|TSPGWebhookHandler|CreOrderReq|QryOrderPayReq|OrderMaintainReq|BillQuery|AllotQuery|TSPGPaymentRequest|TSPGPaymentNotification|StoreKey|StoreIV|auth_id_resp|BuildPaymentPostData|VerifyNotificationHash" ChurchReport --glob "*.cs"
+git diff -- LinePayCSharp
+git diff --check
+```
+
+Results:
+
+- `SpeechMessage.Payments.Tests`: 53 passed.
+- `ChurchReport.MemberInfo.Tests` build: 0 errors; one existing xUnit analyzer warning in `MemberInfoScopeGuardTests.cs` about a null argument.
+- `ChurchReport.MemberInfo.Tests` payment filter: 39 passed.
+- `ChurchReport.sln` build: 0 errors; two warnings:
+  - one transient file-lock retry warning while copying `ToolUtility.dll`, which recovered during the build.
+  - the existing `xUnit1012` analyzer warning in `MemberInfoScopeGuardTests.cs`.
+- Boundary search in `SpeechMessage.Payments`: no matches.
+- Legacy toolkit/provider model searches in compiled `ChurchReport` code: no matches.
+- `LinePayCSharp`: no diff.
+- `git diff --check`: no whitespace errors; Git reported CRLF normalization warnings only.
+- A parallel `ChurchReport.MemberInfo.Tests` build attempt failed earlier because `ChurchReport\obj\Debug\net10.0\rpswa.dswa.cache.json` was locked by another process while the solution build was running. The sequential `-m:1` rebuild above passed, so this was treated as an environment/file-lock issue, not a code issue.
+
 ## Follow-up Review - MyPay Encrypted Create Payload Contract
 
 Date: 2026-06-27

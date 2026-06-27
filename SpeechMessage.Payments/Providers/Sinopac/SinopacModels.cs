@@ -3,6 +3,10 @@ using System.Runtime.Serialization;
 
 namespace SpeechMessage.Payments.Providers.Sinopac;
 
+/// <summary>
+/// 永豐 QPay provider 內部 DTO。
+/// 這些型別刻意不公開給宿主產品，避免 provider 欄位再次成為產品層合約。
+/// </summary>
 [AttributeUsage(AttributeTargets.Property)]
 internal sealed class SinopacSignExcludeAttribute : Attribute
 {

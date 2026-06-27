@@ -7,6 +7,10 @@ using Xunit;
 
 namespace SpeechMessage.Payments.Tests.Gateway;
 
+/// <summary>
+/// 驗證 <see cref="PaymentGateway"/> 的 provider routing 行為。
+/// Gateway 只根據 profile/provider hint 選擇 provider，不知道永豐、高鉅或台新的內部協定細節。
+/// </summary>
 public sealed class PaymentGatewayTests
 {
     [Fact]
@@ -29,6 +33,8 @@ public sealed class PaymentGatewayTests
     [Fact]
     public async Task Create_payment_returns_configuration_error_when_provider_hint_mismatches_profile()
     {
+        // provider hint 與 profile 不一致時必須回設定錯誤；
+        // 這可以防止例如 route 明明是台新，卻誤用高鉅 profile 建立付款。
         var gateway = new PaymentGateway(
             new StubProfileResolver(new PaymentMerchantProfile
             {
@@ -67,6 +73,7 @@ public sealed class PaymentGatewayTests
 
     private sealed class StubProfileResolver : IPaymentProfileResolver
     {
+        // 測試用 resolver：只模擬 profile name resolution，不讀 appsettings，也不帶真實 credential。
         private readonly PaymentMerchantProfile _profile;
 
         public StubProfileResolver(PaymentMerchantProfile profile)
@@ -82,6 +89,7 @@ public sealed class PaymentGatewayTests
 
     private sealed class FakePaymentProvider : IPaymentProvider
     {
+        // 測試用 provider：只記錄收到的 profile name，避免 gateway routing 測試碰到真實 provider HTTP 呼叫。
         public FakePaymentProvider(PaymentProviderKind providerKind)
         {
             ProviderKind = providerKind;

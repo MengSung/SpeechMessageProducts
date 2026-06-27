@@ -2,6 +2,10 @@ using Newtonsoft.Json;
 
 namespace SpeechMessage.Payments.Providers.MyPay;
 
+/// <summary>
+/// MyPay api/orders 加密 payload。
+/// 這些型別保持 internal，避免 MyPay 欄位名稱外漏成通用 API 的一部分。
+/// </summary>
 internal sealed record MyPayCreatePayload
 {
     [JsonProperty("store_uid")]
@@ -70,6 +74,7 @@ internal sealed record MyPayCreateItemPayload
 
 internal sealed record MyPayServicePayload
 {
+    // MyPay service payload 也需要加密；目前建單固定呼叫 api/orders。
     [JsonProperty("service_name")]
     public string ServiceName { get; init; } = "api";
 

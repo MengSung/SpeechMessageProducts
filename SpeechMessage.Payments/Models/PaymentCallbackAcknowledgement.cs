@@ -1,5 +1,9 @@
 namespace SpeechMessage.Payments.Models;
 
+/// <summary>
+/// provider callback 所需的回應描述。
+/// 核心只描述「應回什麼」，實際 ASP.NET ContentResult/RedirectResult 由產品層轉換。
+/// </summary>
 public sealed record PaymentCallbackAcknowledgement
 {
     public static PaymentCallbackAcknowledgement None { get; } = new();

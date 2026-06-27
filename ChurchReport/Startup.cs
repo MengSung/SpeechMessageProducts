@@ -482,6 +482,12 @@ namespace ChurchReport
             services.AddScoped<ChurchReport.Services.MyPayCrmService>();
             services.AddScoped<ChurchReport.Services.MyPayNotificationService>();
 
+            // ========================================
+            // 註冊抽離後的通用金流核心與 ChurchReport adapter
+            // ========================================
+            // SpeechMessage.Payments 擁有永豐、高鉅、台新的 provider protocol、加解密、簽章、
+            // request/response mapping 與 callback parsing。ChurchReport 只註冊薄 adapter，
+            // 負責把 ASP.NET request、CRM/LINE workflow 與舊 QPay processor 接回核心。
             services.AddSpeechMessagePayments(Configuration.GetSection("Payment"));
             services.AddScoped<PaymentHttpRequestMapper>();
             services.AddScoped<PaymentAcknowledgementResultMapper>();

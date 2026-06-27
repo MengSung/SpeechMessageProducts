@@ -2,6 +2,10 @@ using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.Providers.Sinopac;
 
+/// <summary>
+/// 永豐 QPay 狀態正規化。
+/// 永豐回應可能同時有 API 層狀態與交易層狀態，產品層只應消費 normalized PaymentStatus。
+/// </summary>
 internal static class SinopacStatusMapper
 {
     private static readonly HashSet<string> SuccessCodes = new(StringComparer.OrdinalIgnoreCase)
@@ -38,6 +42,7 @@ internal static class SinopacStatusMapper
         return IsSuccessStatus(response.Status) ||
             IsSuccessStatus(response.Description) ||
             ContainsSuccessText(response.Description)
+                // 建單成功代表拿到付款頁或付款指示，尚未代表使用者已付款。
                 ? PaymentStatus.Pending
                 : PaymentStatus.Unknown;
     }
@@ -66,6 +71,7 @@ internal static class SinopacStatusMapper
         var transaction = response.TSResultContent;
         if (transaction is null)
         {
+            // 查詢 API 成功但沒有交易明細時，保守視為等待中。
             return PaymentStatus.Pending;
         }
 

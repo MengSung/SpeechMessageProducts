@@ -8,6 +8,10 @@ using Xunit;
 
 namespace SpeechMessage.Payments.Tests.Configuration;
 
+/// <summary>
+/// 驗證多商店 profile 設定的 binding 與解析規則。
+/// ChurchReport 與未來產品都只透過 profile 名稱選金流，不應在程式碼中硬編 provider credential。
+/// </summary>
 public sealed class PaymentOptionsTests
 {
     [Fact]
@@ -28,6 +32,8 @@ public sealed class PaymentOptionsTests
     [Fact]
     public void Resolver_uses_default_profile_when_requested_name_is_empty()
     {
+        // 空 profile name 代表呼叫端接受 Payment:DefaultProfile；
+        // 這是讓產品程式不必知道實際 provider 的主要入口。
         var options = new PaymentOptions();
         BuildPaymentConfiguration().GetSection("Payment").Bind(options);
         var resolver = new OptionsPaymentProfileResolver(Options.Create(options));
@@ -41,6 +47,7 @@ public sealed class PaymentOptionsTests
     [Fact]
     public void Resolver_throws_configuration_exception_when_profile_cannot_be_resolved()
     {
+        // 未知 profile 必須 fail closed，避免退回硬編 credential 或錯誤商店。
         var options = new PaymentOptions();
         BuildPaymentConfiguration().GetSection("Payment").Bind(options);
         var resolver = new OptionsPaymentProfileResolver(Options.Create(options));
@@ -54,6 +61,7 @@ public sealed class PaymentOptionsTests
 
     private static IConfiguration BuildPaymentConfiguration()
     {
+        // 使用記憶體中的 JSON fixture，避免測試依賴 ChurchReport/appsettings.json 或真實商店密鑰。
         const string json = """
         {
           "Payment": {

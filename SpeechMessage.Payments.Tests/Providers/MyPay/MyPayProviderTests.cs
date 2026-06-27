@@ -10,6 +10,10 @@ using Xunit;
 
 namespace SpeechMessage.Payments.Tests.Providers.MyPay;
 
+/// <summary>
+/// 驗證高鉅 MyPay provider 的狀態碼、callback、建立付款 payload 與 DI 註冊。
+/// 這些測試守住 MyPay 協定細節必須留在 <c>SpeechMessage.Payments</c>，不能回流到 ChurchReport controller。
+/// </summary>
 public sealed class MyPayProviderTests
 {
     [Theory]
@@ -29,6 +33,8 @@ public sealed class MyPayProviderTests
     [Fact]
     public void Callback_parser_maps_valid_callback_to_neutral_result_with_plain_text_ack()
     {
+        // MyPay callback 會以 form 欄位帶回 uid/key/prc/order_id；
+        // parser 必須轉成通用 PaymentCallbackResult，並回傳 MyPay 需要的純文字 8888 acknowledgement。
         var request = new PaymentCallbackRequest
         {
             ProfileName = "MyPayProduction",
@@ -83,6 +89,8 @@ public sealed class MyPayProviderTests
     [Fact]
     public void Request_mapper_maps_create_request_to_mypay_payload()
     {
+        // 建立付款 payload 必須包含高鉅 api/orders 需要的 store_uid、items、cost、user_id、ip、pfn 等欄位。
+        // ChurchReport 只提供 neutral request，不應知道這些 MyPay 原始欄位規則。
         var profile = new PaymentMerchantProfile
         {
             Name = "MyPayProduction",
@@ -185,6 +193,8 @@ public sealed class MyPayProviderTests
     [Fact]
     public void Request_mapper_uses_store_uid_for_direct_merchant_create_form()
     {
+        // 一般商店 /api/init 外層 form 必須送 store_uid，不能誤送 agent_uid。
+        // 這個案例回歸先前「選高鉅卻出現金鑰過期或錯誤金鑰」的錯誤。
         var profile = new PaymentMerchantProfile
         {
             Name = "MyPayProduction",
@@ -211,6 +221,8 @@ public sealed class MyPayProviderTests
     [Fact]
     public void Request_mapper_uses_agent_uid_only_when_agent_profile_is_configured()
     {
+        // 只有明確設定 AgentId 的 reseller profile 才能走 /api/agent 與 agent_uid。
+        // 這避免直連商店與代理商契約混用造成 MyPay 金鑰驗證失敗。
         var profile = new PaymentMerchantProfile
         {
             Name = "MyPayAgent",

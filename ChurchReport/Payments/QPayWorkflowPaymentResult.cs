@@ -2,6 +2,11 @@ using System.Collections.Generic;
 
 namespace ChurchReport.Payments;
 
+/// <summary>
+/// ChurchReport 既有 QPay processor 使用的 workflow DTO。
+/// 它保留舊欄位名稱，讓既有 CRM/LINE/結果頁程式不用直接認識新的 PaymentStatusResult；
+/// 但 provider 原始 DTO、簽章、加解密與狀態碼解析仍不應放在這裡。
+/// </summary>
 public sealed record QPayWorkflowPaymentResult
 {
     public string ShopNo { get; init; } = string.Empty;

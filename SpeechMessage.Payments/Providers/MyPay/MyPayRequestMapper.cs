@@ -6,6 +6,11 @@ using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.Providers.MyPay;
 
+/// <summary>
+/// 將 provider-neutral PaymentCreateRequest 轉成 MyPay 建單 contract。
+/// MyPay 對外層 form 與內層 encry_data 的欄位非常敏感，錯誤欄位常被回報成
+/// 「金鑰過期或使用錯誤金鑰」，因此這個 mapper 是高鉅相容性的主要保護點。
+/// </summary>
 internal static class MyPayRequestMapper
 {
     public static MyPayCreatePayload MapCreatePayload(
@@ -17,7 +22,9 @@ internal static class MyPayRequestMapper
             StoreUid = GetRequiredCredential(profile, "StoreId"),
             OrderId = request.ProductOrderId,
             Cost = FormatAmount(request.Amount),
+            // api/orders 必須有 items；宿主產品未提供明細時由 MapItems 建立單筆相容資料。
             Items = MapItems(request),
+            // user_id 是 MyPay 必填消費者識別；優先取產品層傳入的 UserId，再退回付款者資料。
             UserId = FirstNonEmpty(
                 GetMetadata(request, "UserId"),
                 request.Customer.Name,
@@ -29,6 +36,7 @@ internal static class MyPayRequestMapper
                 "127.0.0.1"),
             Currency = request.Currency,
             ProductName = request.Description,
+            // PaymentMethod 這裡會轉成 MyPay pfn，不可直接沿用 Sinopac/QPay 的 C/A/M/L 語意。
             PaymentMethod = ResolvePaymentMethod(profile, request),
             UserName = request.Customer.Name,
             UserEmail = request.Customer.Email,
@@ -47,6 +55,7 @@ internal static class MyPayRequestMapper
         var service = new MyPayServicePayload();
         var key = GetRequiredCredential(profile, "Key");
         var agentId = TryGetCredential(profile, "AgentId");
+        // 有 AgentId 才是經銷/代理商模式；否則 direct merchant 必須只送 top-level store_uid。
         var encryptionKey = !string.IsNullOrWhiteSpace(agentId)
             ? TryGetCredential(profile, "AgentKey") ?? key
             : key;
@@ -54,16 +63,19 @@ internal static class MyPayRequestMapper
 
         var form = new Dictionary<string, string>
         {
+            // service 與 encry_data 都使用同一把 MyPay 金鑰加密；IV 會前綴在密文後一起 base64。
             ["service"] = Encrypt(JsonConvert.SerializeObject(service, Formatting.None), encryptionKey, iv),
             ["encry_data"] = Encrypt(JsonConvert.SerializeObject(payload, Formatting.None), encryptionKey, iv)
         };
 
         if (string.IsNullOrWhiteSpace(agentId))
         {
+            // /api/init direct merchant contract：外層只能放 store_uid，不可同時放 agent_uid。
             form["store_uid"] = payload.StoreUid;
         }
         else
         {
+            // /api/agent reseller contract：外層只能放 agent_uid，商店 store_uid 留在加密 payload 內。
             form["agent_uid"] = agentId;
         }
 
@@ -129,6 +141,7 @@ internal static class MyPayRequestMapper
         if (request.Items.Count == 0)
         {
             var amount = FormatAmount(request.Amount);
+            // 舊版產品流程只有單筆商品；保留這個 fallback 可避免 encry_data 缺 items。
             return new[]
             {
                 new MyPayCreateItemPayload
@@ -159,6 +172,8 @@ internal static class MyPayRequestMapper
 
     private static string ResolvePaymentMethod(PaymentMerchantProfile profile, PaymentCreateRequest request)
     {
+        // PFN 是 MyPay payment-function，不是宿主產品或永豐的 pay type。
+        // 允許 profile 或 metadata 明確指定，支援未來不同產品調整顯示的付款工具。
         var configuredPfn = FirstNonEmpty(
             GetMetadata(request, "PFN"),
             GetProfileSetting(profile, "PFN"));
@@ -172,6 +187,7 @@ internal static class MyPayRequestMapper
             "L" or "LINEPAY" or "LINEPAYON" => "LINEPAYON",
             "M" or "MOBILEPAY" => "MobilePayAll",
             "A" or "ATM" or "E_COLLECTION" => "E_COLLECTION",
+            // 舊版 MyPay 信用卡流程使用 pfn=0，讓 MyPay 顯示商店啟用的付款工具。
             "C" or "CREDITCARD" or "CUP" => "0",
             _ => "0"
         };

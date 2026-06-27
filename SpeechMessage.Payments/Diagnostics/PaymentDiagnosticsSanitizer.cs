@@ -1,5 +1,10 @@
 namespace SpeechMessage.Payments.Diagnostics;
 
+/// <summary>
+/// 對外回傳 provider diagnostics 前的遮罩工具。
+/// Payment core 可以保留除錯需要的 provider 欄位，但不能把金鑰、簽章、token、
+/// 完整卡號等敏感資料暴露給宿主產品畫面、log 或未來其他產品。
+/// </summary>
 public static class PaymentDiagnosticsSanitizer
 {
     private static readonly string[] SecretKeyFragments =
@@ -34,6 +39,7 @@ public static class PaymentDiagnosticsSanitizer
 
     private static string SanitizeValue(string key, string value)
     {
+        // ATM 虛擬帳號是付款指示，不是信用卡號；必須保留完整號碼讓使用者能付款。
         if (IsSafeBankAccountKey(key))
         {
             return value;

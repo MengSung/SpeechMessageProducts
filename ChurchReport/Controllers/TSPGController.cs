@@ -13,6 +13,11 @@ using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers
 {
+    /// <summary>
+    /// 台新 TSPG 的 ChurchReport HTTP adapter。
+    /// 台新 JSON/form callback parsing、hash 驗證與狀態轉換已移到 <c>SpeechMessage.Payments</c>；
+    /// 此 controller 保留 ChurchReport 專屬的 CRM fee 更新、LINE 通知與結果頁轉址。
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class TSPGController : ControllerBase
@@ -51,6 +56,9 @@ namespace ChurchReport.Controllers
             _paymentWorkflowResultMapper = paymentWorkflowResultMapper ?? throw new ArgumentNullException(nameof(paymentWorkflowResultMapper));
         }
 
+        /// <summary>
+        /// 台新前端返回入口，解析付款結果後轉到 ChurchReport 的成功或失敗頁。
+        /// </summary>
         [HttpGet("post-back")]
         [HttpPost("post-back")]
         public async Task<IActionResult> PostBack()
@@ -59,6 +67,8 @@ namespace ChurchReport.Controllers
 
             try
             {
+                // ASP.NET request 只在 controller 層轉成 neutral callback request；
+                // hash 驗證與欄位正規化交由台新 provider parser。
                 callbackResult = await ParseTaishinCallbackAsync();
                 if (callbackResult.Error.HasError || string.IsNullOrWhiteSpace(callbackResult.ProductOrderId))
                 {
@@ -80,6 +90,9 @@ namespace ChurchReport.Controllers
             }
         }
 
+        /// <summary>
+        /// 台新後端通知入口，付款成功時更新 ChurchReport CRM fee 並回覆台新需要的 acknowledgement。
+        /// </summary>
         [HttpPost("result-url")]
         [HttpGet("result-url")]
         public async Task<IActionResult> ResultUrl()
@@ -95,6 +108,7 @@ namespace ChurchReport.Controllers
                     return _paymentAcknowledgementResultMapper.ToActionResult(callbackResult.Acknowledgement);
                 }
 
+                // 產品層只消費 normalized workflow result，不直接解讀台新的 ret_code/state/hash。
                 var workflowResult = _paymentWorkflowResultMapper.Map(callbackResult);
                 if (workflowResult.Status == PaymentStatus.Succeeded)
                 {
@@ -117,6 +131,10 @@ namespace ChurchReport.Controllers
             }
         }
 
+        /// <summary>
+        /// 台新建立付款的測試/整合入口。
+        /// Request body 使用通用核心模型；Controller 只補上台新 profile 與 provider hint。
+        /// </summary>
         [HttpPost("create-payment")]
         public async Task<IActionResult> CreatePayment([FromBody] PaymentCreateRequest request)
         {
@@ -130,6 +148,7 @@ namespace ChurchReport.Controllers
                 return BadRequest(ModelState);
             }
 
+            // 固定走台新 profile，避免外部呼叫誤用其他 provider profile 建立 TSPG 付款。
             var gatewayRequest = request with
             {
                 ProfileName = ResolveTaishinProfileName(request.ProfileName),
@@ -158,6 +177,9 @@ namespace ChurchReport.Controllers
             });
         }
 
+        /// <summary>
+        /// 台新付款查詢入口，回傳 provider-neutral 狀態給呼叫端。
+        /// </summary>
         [HttpGet("query-order/{orderId}")]
         public async Task<IActionResult> QueryOrderStatus(string orderId)
         {
@@ -200,6 +222,7 @@ namespace ChurchReport.Controllers
 
         private async Task<PaymentCallbackResult> ParseTaishinCallbackAsync()
         {
+            // 保持 ASP.NET HttpRequest 只存在於 ChurchReport；核心只收到 PaymentCallbackRequest。
             var callbackRequest = await _paymentHttpRequestMapper.MapAsync(
                 Request,
                 ResolveTaishinProfileName(null),
@@ -226,6 +249,7 @@ namespace ChurchReport.Controllers
                     return;
                 }
 
+                // CRM entity 查詢與欄位更新是 ChurchReport product workflow，不能下沉到通用金流核心。
                 Entity feeEntity = ToolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", result.ProductOrderId);
                 if (feeEntity == null)
                 {
@@ -269,6 +293,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
+                // LINE 通知是產品體驗，不是台新 provider contract；核心只回傳付款狀態與交易識別。
                 var contactId = ToolUtility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
                 if (contactId == Guid.Empty)
                 {

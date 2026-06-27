@@ -63,6 +63,8 @@ namespace ChurchReport.WebServiceConnector
             Entity LineLoginContact,
             string CCToken = null)
         {
+            // QPayProcessor 是 ChurchReport 既有費用/奉獻流程的入口；
+            // 這裡只擷取 CRM contact 顯示名稱，實際建立付款交給 QPayCreatePaymentGatewayAdapter 與通用金流核心。
             var customerName = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "fullname");
             return await CreateQPayOrder(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, Staging, DeductTotalNum, PeriodType, DeductFreq, CreditCategory, customerName, CCToken);
         }
@@ -77,6 +79,8 @@ namespace ChurchReport.WebServiceConnector
         /// <returns>CreOrder 物件，包含 ATM 付款資訊</returns>
         public async Task<CreOrder> CreateOrderATM(int Amount, string ProductName, string OrderDate, string FeeId)
         {
+            // ATM/轉帳的 provider protocol 已移到 SpeechMessage.Payments.Sinopac。
+            // ChurchReport 只提供產品訂單、fee id、回呼 URL 與到期日，並接收 legacy CreOrder 相容結果。
             return await GetRequiredQPayCreatePaymentGatewayAdapter().CreateLegacyOrderAsync(
                 new QPayCreatePaymentInput
                 {
@@ -95,6 +99,8 @@ namespace ChurchReport.WebServiceConnector
 
         private QPayCreatePaymentGatewayAdapter GetRequiredQPayCreatePaymentGatewayAdapter()
         {
+            // Fail fast：若 DI 沒有註冊 adapter，就不要退回舊 toolkit 或硬編 credential。
+            // 這能確保付款建立一律走新的抽離核心。
             if (QPayCreatePaymentGatewayAdapter == null)
             {
                 throw new InvalidOperationException(
@@ -139,6 +145,8 @@ namespace ChurchReport.WebServiceConnector
             string CustomerName,
             string CCToken)
         {
+            // 將 QPayProcessor 的舊參數包成 ChurchReport adapter input。
+            // adapter 再轉成 PaymentCreateRequest，provider-specific payload 由核心決定。
             return await GetRequiredQPayCreatePaymentGatewayAdapter().CreateLegacyOrderAsync(
                 new QPayCreatePaymentInput
                 {

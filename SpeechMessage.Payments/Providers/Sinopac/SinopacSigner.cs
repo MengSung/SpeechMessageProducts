@@ -5,6 +5,11 @@ using System.Text;
 
 namespace SpeechMessage.Payments.Providers.Sinopac;
 
+/// <summary>
+/// 永豐 QPay 簽章工具。
+/// 只取公開純量屬性、排除 Sign 欄位，再依欄位名稱排序組字串，
+/// 最後串接 nonce 與 AES key 做 SHA256。
+/// </summary>
 internal static class SinopacSigner
 {
     public static string GenerateSign(object value, string aesKey, string nonce)
@@ -22,6 +27,7 @@ internal static class SinopacSigner
 
         foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
         {
+            // Sign 本身不能參與簽章，否則 request/response 都無法通過驗證。
             if (property.GetCustomAttribute<SinopacSignExcludeAttribute>() is not null)
             {
                 continue;

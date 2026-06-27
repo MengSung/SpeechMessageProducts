@@ -4,6 +4,10 @@ using Xunit;
 
 namespace SpeechMessage.Payments.Tests.Models;
 
+/// <summary>
+/// 驗證通用金流核心公開模型保持 provider-neutral。
+/// 這些測試用來防止 QPay PayToken、ASP.NET HttpRequest 或 provider SDK 型別重新洩漏到 public contract。
+/// </summary>
 public sealed class PaymentModelContractTests
 {
     [Fact]
@@ -50,6 +54,8 @@ public sealed class PaymentModelContractTests
     [Fact]
     public void Query_request_uses_neutral_provider_reference_instead_of_qpay_token_terms()
     {
+        // Query contract 使用 ProviderOrderRef，不使用 QPay 專屬 PaymentToken 命名，
+        // 才能同時支援永豐、高鉅、台新與未來 provider。
         var request = new PaymentQueryRequest
         {
             ProfileName = "JesusTest",
@@ -68,6 +74,8 @@ public sealed class PaymentModelContractTests
     [Fact]
     public void Callback_request_is_http_neutral()
     {
+        // Callback request 可以承載 method/body/query/form/header，
+        // 但型別本身不能依賴 ASP.NET HttpRequest，否則核心無法被其他產品重用。
         var request = new PaymentCallbackRequest
         {
             ProfileName = "MyPayProduction",
@@ -109,6 +117,8 @@ public sealed class PaymentModelContractTests
     [Fact]
     public void Acknowledgement_can_describe_provider_response_shape()
     {
+        // Core 回傳 acknowledgement descriptor，由 ChurchReport adapter 轉成 IActionResult；
+        // 這避免 provider acknowledgement 規則散落在各 controller。
         PaymentCallbackAcknowledgement.PlainText("8888").Kind.Should().Be(PaymentAckKind.PlainText);
         PaymentCallbackAcknowledgement.Json("{\"status\":\"success\"}").Kind.Should().Be(PaymentAckKind.Json);
         PaymentCallbackAcknowledgement.Redirect("https://example.test/success").Kind.Should().Be(PaymentAckKind.Redirect);

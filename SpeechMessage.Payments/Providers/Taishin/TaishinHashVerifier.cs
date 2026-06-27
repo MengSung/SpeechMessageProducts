@@ -5,6 +5,11 @@ using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.Providers.Taishin;
 
+/// <summary>
+/// 台新 TSPG callback hash 驗證。
+/// 驗證規則依序串接 StoreKey、transaction_id、order_id、state、StoreIV 後做 SHA256。
+/// StoreKey/StoreIV 只存在 profile credentials，不回傳給產品層。
+/// </summary>
 internal static class TaishinHashVerifier
 {
     public static PaymentError Validate(
@@ -47,6 +52,7 @@ internal static class TaishinHashVerifier
         }
 
         var expected = CalculateNotificationHash(storeKey, transactionId, orderId, state, storeIV);
+        // Hash 不符時 fail closed；不可讓未驗證的付款成功 callback 更新宿主產品收費單。
         return string.Equals(expected, hash, StringComparison.OrdinalIgnoreCase)
             ? PaymentError.None
             : new PaymentError

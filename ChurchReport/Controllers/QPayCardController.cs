@@ -9,6 +9,11 @@ using SpeechMessage.Payments.Models;
 
 namespace ChurchReport.Controllers
 {
+    /// <summary>
+    /// 永豐 QPay 信用卡付款返回入口。
+    /// Controller 只負責收 ASP.NET route/query、呼叫通用金流核心 parse/query，
+    /// 再把標準化結果交給 ChurchReport 的 QPay return workflow。
+    /// </summary>
     [Route("api/[controller]")]
     public class QPayCardController : Controller
     {
@@ -29,6 +34,10 @@ namespace ChurchReport.Controllers
             _qPayReturnWorkflow = qPayReturnWorkflow ?? throw new ArgumentNullException(nameof(qPayReturnWorkflow));
         }
 
+        /// <summary>
+        /// 處理永豐導回 ChurchReport 的 return URL。
+        /// return payload 先由 Sinopac provider parser 驗證與正規化，再用 PayToken 查詢最終付款狀態。
+        /// </summary>
         [HttpPost]
         [HttpGet]
         [Route("QPayReturnUrl")]
@@ -41,12 +50,15 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Trace.WriteLine($"  - ShopNo: {ShopNo ?? "(null)"}");
                 System.Diagnostics.Trace.WriteLine($"  - PayToken: {MaskForTrace(PayToken)}");
 
+                // QPay return 使用目前設定的預設 profile；PAY_PROVIDER 到 profile 的轉換由 ChurchReport resolver 負責。
                 var profileName = _paymentProfileResolver.ResolveProfileName();
                 var callbackRequest = await _paymentHttpRequestMapper.MapAsync(
                     Request,
                     profileName,
                     PaymentProviderKind.Sinopac,
                     HttpContext.RequestAborted);
+                // 某些 return URL 參數由 MVC action binding 提供，未必仍存在於 Query 字典；
+                // 補回 neutral callback request，讓核心 parser 可以用一致方式讀取 ShopNo/PayToken。
                 callbackRequest = EnsureReturnFields(callbackRequest, ShopNo, PayToken);
 
                 var callbackResult = await _paymentGateway.ParseCallbackAsync(
@@ -70,6 +82,7 @@ namespace ChurchReport.Controllers
                     ReadProviderData(callbackResult.ProviderData, "shop_no"),
                     ShopNo);
 
+                // 永豐 return 只代表付款流程導回，最終狀態仍以 QPay 查詢結果為準。
                 var statusResult = await _paymentGateway.QueryPaymentAsync(
                     new PaymentQueryRequest
                     {
@@ -125,6 +138,7 @@ namespace ChurchReport.Controllers
             string shopNo,
             string payToken)
         {
+            // 保留不分大小寫 query 字典，避免 provider 端大小寫差異造成 ShopNo/PayToken 遺失。
             var query = new Dictionary<string, string>(request.Query, StringComparer.OrdinalIgnoreCase);
             if (!string.IsNullOrWhiteSpace(shopNo) && !query.ContainsKey("ShopNo"))
             {
@@ -153,6 +167,7 @@ namespace ChurchReport.Controllers
 
         private static string MaskForTrace(string value)
         {
+            // PayToken 屬於敏感交易識別，trace 只保留頭尾方便追查，不輸出完整 token。
             if (string.IsNullOrWhiteSpace(value))
             {
                 return string.Empty;

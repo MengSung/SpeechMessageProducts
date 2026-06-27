@@ -4,6 +4,10 @@ using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.Providers.Sinopac;
 
+/// <summary>
+/// 將通用付款請求轉成永豐 QPay 建單/查詢 payload。
+/// QPay 欄位名稱仍保留在 provider core 內，宿主產品不再直接建立 CreOrderReq。
+/// </summary>
 internal static class SinopacRequestMapper
 {
     public static SinopacOrderCreateRequest MapCreateRequest(
@@ -29,6 +33,7 @@ internal static class SinopacRequestMapper
 
         if (string.Equals(payType, "A", StringComparison.OrdinalIgnoreCase))
         {
+            // ATM/匯款走 ATMParam；到期日未提供時沿用舊版預設十天。
             payload.ATMParam = new SinopacOrderCreateAtmRequest
             {
                 ExpireDate = FirstNonEmpty(
@@ -38,6 +43,7 @@ internal static class SinopacRequestMapper
         }
         else
         {
+            // 信用卡/行動支付/LinePay 仍使用 CardParam。定期定額預設由宿主產品 adapter 補齊。
             payload.CardParam = new SinopacOrderCreateCardRequest
             {
                 AutoBilling = FirstNonEmpty(GetMetadata(request, "AutoBilling"), "Y"),
@@ -117,6 +123,7 @@ internal static class SinopacRequestMapper
 
     private static string ResolvePayType(PaymentCreateRequest request)
     {
+        // 宿主產品 adapter 可能明確帶 PayType；若沒有，neutral PaymentMethod 再轉成 QPay PayType。
         var configuredPayType = GetMetadata(request, "PayType");
         if (!string.IsNullOrWhiteSpace(configuredPayType))
         {

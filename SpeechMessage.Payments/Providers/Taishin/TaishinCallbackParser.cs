@@ -6,6 +6,11 @@ using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.Providers.Taishin;
 
+/// <summary>
+/// 解析台新 TSPG callback。
+/// 台新回呼可能由前端返回或後端通知送入，欄位大小寫與容器層級會不同，
+/// 因此 parser 會先正規化欄位，再做狀態與 hash 驗證。
+/// </summary>
 internal static class TaishinCallbackParser
 {
     private static readonly PaymentCallbackAcknowledgement Acknowledgement =
@@ -26,6 +31,7 @@ internal static class TaishinCallbackParser
             ProviderTransactionId = GetValue(fields, "transaction_id"),
             Amount = ParseMinorAmount(GetValue(fields, "amount")),
             Currency = NormalizeCurrency(GetValue(fields, "currency")),
+            // TSPG 後端通知預期 JSON acknowledgement；宿主產品只負責把這個 descriptor 轉成實際 web response。
             Acknowledgement = Acknowledgement,
             Error = error,
             ProviderData = PaymentDiagnosticsSanitizer.Sanitize(BuildProviderData(fields)),
@@ -61,6 +67,7 @@ internal static class TaishinCallbackParser
         var fields = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         CopyObjectProperties(json, fields);
 
+        // 台新部分回應會把交易資料包在 params 物件內；需攤平成同一層供後續驗證與映射使用。
         if (json.TryGetValue("params", StringComparison.OrdinalIgnoreCase, out var parameters) &&
             parameters is JObject parameterObject)
         {
@@ -99,6 +106,7 @@ internal static class TaishinCallbackParser
     private static IReadOnlyDictionary<string, string> NormalizeFields(IReadOnlyDictionary<string, string> rawFields)
     {
         var fields = new Dictionary<string, string>(rawFields, StringComparer.OrdinalIgnoreCase);
+        // 支援舊 controller、台新文件與不同大小寫欄位的別名，避免產品層自行判斷 provider 欄位。
         AddNormalized(fields, "order_id", "order_id", "order_no", "ORDERNO", "orderId", "orderNo", "uid", "order");
         AddNormalized(fields, "transaction_id", "transaction_id", "transactionId", "tx_id", "txn_id");
         AddNormalized(fields, "ret_code", "ret_code", "retCode", "return_code", "code");

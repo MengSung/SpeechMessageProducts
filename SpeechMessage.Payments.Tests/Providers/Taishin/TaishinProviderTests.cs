@@ -12,6 +12,10 @@ using Xunit;
 
 namespace SpeechMessage.Payments.Tests.Providers.Taishin;
 
+/// <summary>
+/// 驗證台新 TSPG provider 的狀態碼、前端/後端 callback、hash 驗證與建立付款 payload。
+/// 台新 ret_code/state/hash 規則屬於 provider protocol，應留在 <c>SpeechMessage.Payments</c> provider 實作與測試中。
+/// </summary>
 public sealed class TaishinProviderTests
 {
     [Theory]
@@ -32,6 +36,7 @@ public sealed class TaishinProviderTests
     [Fact]
     public void Callback_parser_maps_frontend_form_callback_to_neutral_result()
     {
+        // 前端 post-back 常見為 form callback；parser 必須驗證 hash 後輸出通用 callback result。
         var profile = CreateProfile();
         var hash = ComputeNotificationHash("store-key", "TX123", "F202606250001", "1", "store-iv");
         var request = new PaymentCallbackRequest
@@ -70,6 +75,8 @@ public sealed class TaishinProviderTests
     [Fact]
     public void Callback_parser_maps_backend_json_callback_to_json_acknowledgement()
     {
+        // 後端 result-url 常見為 JSON callback，台新需要 JSON acknowledgement；
+        // ChurchReport controller 只把 acknowledgement descriptor 轉成 IActionResult。
         var profile = CreateProfile();
         var hash = ComputeNotificationHash("store-key", "TX456", "F202606250002", "1", "store-iv");
         var request = new PaymentCallbackRequest
@@ -107,6 +114,8 @@ public sealed class TaishinProviderTests
     [Fact]
     public void Callback_parser_maps_invalid_hash_to_signature_invalid()
     {
+        // Hash 驗證失敗是 provider protocol 層的簽章錯誤。
+        // 產品層可記錄或略過 CRM 更新，但不應自行重算台新 hash。
         var profile = CreateProfile();
         var request = new PaymentCallbackRequest
         {
@@ -133,6 +142,7 @@ public sealed class TaishinProviderTests
     [Fact]
     public void Request_mapper_maps_create_request_to_tspg_payload()
     {
+        // 建立付款時把 neutral amount/callback/customer 欄位轉成 TSPG auth.ashx 需要的 JSON payload。
         var profile = CreateProfile();
         var request = new PaymentCreateRequest
         {
