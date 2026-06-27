@@ -18,17 +18,22 @@ public sealed class ChurchReportPaymentProfileResolver
             return requestedProfileName;
         }
 
-        var defaultProfile = _configuration["Payment:DefaultProfile"];
-        if (!string.IsNullOrWhiteSpace(defaultProfile))
+        var providerProfile = _configuration["PAY_PROVIDER"] switch
         {
-            return defaultProfile;
-        }
-
-        return _configuration["PAY_PROVIDER"] switch
-        {
+            "永豐金流" => "JesusTest",
             "高鉅金流" => "MyPayProduction",
             "台新金流" => "TaishinSandbox",
-            _ => "JesusTest"
+            _ => string.Empty
         };
+
+        if (!string.IsNullOrWhiteSpace(providerProfile))
+        {
+            return providerProfile;
+        }
+
+        var defaultProfile = _configuration["Payment:DefaultProfile"];
+        return !string.IsNullOrWhiteSpace(defaultProfile)
+            ? defaultProfile
+            : "JesusTest";
     }
 }
