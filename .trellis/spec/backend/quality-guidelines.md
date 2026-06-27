@@ -167,6 +167,77 @@ The web page remains the source of truth for payment instructions, while LINE de
 
 ---
 
+## ChurchReport Payment Provider Selection
+
+### 1. Scope / Trigger
+
+- Trigger: ChurchReport creates a provider-neutral payment request through a legacy QPay-shaped entry point such as `QPayCreatePaymentGatewayAdapter`.
+- The active ChurchReport provider is selected by the legacy `PAY_PROVIDER` setting because existing UI and product workflows already use that key.
+- `Payment:DefaultProfile` is a payment-core fallback profile, not the first selector for ChurchReport's active provider.
+
+### 2. Signatures
+
+- `ChurchReport.Payments.ChurchReportPaymentProfileResolver.ResolveProfileName(string? requestedProfileName = null)` returns the profile name that ChurchReport sends to `IPaymentGateway`.
+- Explicit `requestedProfileName` always wins for provider-specific routes such as MyPay callbacks or Taishin controller actions.
+
+### 3. Contracts
+
+- `PAY_PROVIDER = "永豐金流"` maps to profile `JesusTest`.
+- `PAY_PROVIDER = "高鉅金流"` maps to profile `MyPayProduction`.
+- `PAY_PROVIDER = "台新金流"` maps to profile `TaishinSandbox`.
+- If `PAY_PROVIDER` is missing or unrecognized, then `Payment:DefaultProfile` may be used.
+- If both are missing, ChurchReport falls back to `JesusTest` for existing QPay compatibility.
+- `QPayCreatePaymentGatewayAdapter` must not hard-code `ProviderHint = Sinopac`; the selected profile determines the provider.
+
+### 4. Validation & Error Matrix
+
+- `PAY_PROVIDER = "高鉅金流"` and `Payment:DefaultProfile = "JesusTest"` -> create-payment request profile must be `MyPayProduction`.
+- Explicit requested profile `MyPayProduction` -> resolver returns `MyPayProduction` regardless of `PAY_PROVIDER`.
+- Hard-coded Sinopac provider hint on a generic create-payment path -> either wrong redirect or configuration mismatch; remove the hint and let the profile select the provider.
+- Unknown `PAY_PROVIDER` with configured `Payment:DefaultProfile` -> use the configured default profile.
+
+### 5. Good/Base/Bad Cases
+
+- Good: dedication credit-card create flow with `PAY_PROVIDER = "高鉅金流"` sends `ProfileName = "MyPayProduction"` and redirects to the MyPay hosted payment URL.
+- Base: Sinopac QPay return callback route still passes `ProviderHint = Sinopac` because that route is provider-specific.
+- Bad: `Payment:DefaultProfile = "JesusTest"` silently overrides `PAY_PROVIDER = "高鉅金流"` and sends the donor to the Sinopac card page.
+
+### 6. Tests Required
+
+- ChurchReport adapter tests must assert `PAY_PROVIDER = "高鉅金流"` beats `Payment:DefaultProfile = "JesusTest"` for create-payment requests.
+- Tests should assert the generic create adapter leaves `ProviderHint` null so the payment gateway uses the configured profile provider.
+- Provider-specific callback/controller tests may continue to assert provider hints for their own routes.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+var defaultProfile = configuration["Payment:DefaultProfile"];
+if (!string.IsNullOrWhiteSpace(defaultProfile))
+{
+    return defaultProfile;
+}
+```
+
+This makes the new payment-core fallback profile override ChurchReport's existing active provider setting.
+
+#### Correct
+
+```csharp
+return configuration["PAY_PROVIDER"] switch
+{
+    "永豐金流" => "JesusTest",
+    "高鉅金流" => "MyPayProduction",
+    "台新金流" => "TaishinSandbox",
+    _ => configuration["Payment:DefaultProfile"] ?? "JesusTest"
+};
+```
+
+ChurchReport's legacy active-provider switch remains the product-level source of truth while the reusable core still receives a named merchant profile.
+
+---
+
 ## Sinopac QPay Create-Payment Compatibility
 
 ### 1. Scope / Trigger
