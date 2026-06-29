@@ -27,7 +27,7 @@ public sealed class QPayProcessorGatewayAdapterTests
     public void ChurchReport_controllers_do_not_accept_legacy_ipayment_in_constructors()
     {
         const string legacyPaymentTypeName = "ChurchReport.Tools.IPayment";
-        var offenders = typeof(QpayManager).Assembly
+        var offenders = typeof(DonationPaymentManager).Assembly
             .GetTypes()
             .Where(type => type.Namespace != null && type.Namespace.StartsWith("ChurchReport.Controllers"))
             .Where(type => type.Name.EndsWith("Controller", StringComparison.Ordinal))
@@ -96,7 +96,7 @@ public sealed class QPayProcessorGatewayAdapterTests
     [Fact]
     public void Qpay_manager_and_context_constructors_accept_gateway_create_adapter()
     {
-        ConstructorHasAdapter(typeof(QpayManager)).Should().BeTrue();
+        ConstructorHasAdapter(typeof(DonationPaymentManager)).Should().BeTrue();
         ConstructorHasAdapter(typeof(InMemoryDataContextSmallGroup)).Should().BeTrue();
     }
 
@@ -210,7 +210,7 @@ public sealed class QPayProcessorGatewayAdapterTests
     [Fact]
     public async Task Qpay_manager_order_maintenance_fails_closed_without_legacy_toolkit()
     {
-        var manager = (QpayManager)RuntimeHelpers.GetUninitializedObject(typeof(QpayManager));
+        var manager = (DonationPaymentManager)RuntimeHelpers.GetUninitializedObject(typeof(DonationPaymentManager));
 
         var result = await manager.OrderMaintain("C20260626112233", "E");
 
@@ -236,7 +236,7 @@ public sealed class QPayProcessorGatewayAdapterTests
             "ChurchReport.Tools.TSPGWebhookHandler"
         };
 
-        var assembly = typeof(QpayManager).Assembly;
+        var assembly = typeof(DonationPaymentManager).Assembly;
         var presentLegacyTypes = legacyTypeNames
             .Where(typeName => assembly.GetType(typeName, throwOnError: false) != null)
             .OrderBy(typeName => typeName)
@@ -275,7 +275,7 @@ public sealed class QPayProcessorGatewayAdapterTests
     [Fact]
     public void ChurchReport_assembly_does_not_define_qpay_domain_namespace()
     {
-        var qpayDomainTypes = typeof(QpayManager).Assembly
+        var qpayDomainTypes = typeof(DonationPaymentManager).Assembly
             .GetTypes()
             .Where(type => string.Equals(type.Namespace, "QPay.Domain", StringComparison.Ordinal))
             .Select(type => type.FullName)
@@ -298,7 +298,7 @@ public sealed class QPayProcessorGatewayAdapterTests
             "ChurchReport.Payments.TSResult"
         };
 
-        var assembly = typeof(QpayManager).Assembly;
+        var assembly = typeof(DonationPaymentManager).Assembly;
         var presentLegacyTypes = legacyQueryTypeNames
             .Where(typeName => assembly.GetType(typeName, throwOnError: false) != null)
             .OrderBy(typeName => typeName)

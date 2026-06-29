@@ -441,7 +441,7 @@ namespace ChurchReport.Controllers
             }
 
             // 設定是否為行政同工
-            ViewBag.IsAOfficeWorker = InMemoryContext.QpayManager.m_QpayModel.IsAOfficeWorker
+            ViewBag.IsAOfficeWorker = InMemoryContext.DonationPaymentManager.m_QpayModel.IsAOfficeWorker
                 ? "是的" : "否";
         }
 
@@ -1185,3 +1185,4 @@ namespace ChurchReport.Controllers
         #endregion
     }
 }
+

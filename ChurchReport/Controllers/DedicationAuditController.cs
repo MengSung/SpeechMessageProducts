@@ -44,7 +44,7 @@ namespace ChurchReport.Controllers
             {
                 SetupAuditViewBag(false);
 
-                return View(InMemoryContext.QpayManager.SetDedicationFeeList(
+                return View(InMemoryContext.DonationPaymentManager.SetDedicationFeeList(
                     InMemoryContext.LineBindingViewModel.LineUserId));
             }
             catch (Exception e)
@@ -64,8 +64,8 @@ namespace ChurchReport.Controllers
             {
                 SetupAuditViewBag(true);
 
-                return View(InMemoryContext.QpayManager.SetDedicationFeeList(
-                    InMemoryContext.QpayManager.m_Contact));
+                return View(InMemoryContext.DonationPaymentManager.SetDedicationFeeList(
+                    InMemoryContext.DonationPaymentManager.m_Contact));
             }
             catch (Exception e)
             {
@@ -97,7 +97,7 @@ namespace ChurchReport.Controllers
                 ViewBag.DisplayNavigation = "不顯示牧養回報項目";
                 ViewBag.UserType = "行政同工";
                 ViewBag.DedicationType = "奉獻管理";
-                ViewBag.IsAOfficeWorker = InMemoryContext.QpayManager.m_QpayModel.IsAOfficeWorker ? "是的" : "否";
+                ViewBag.IsAOfficeWorker = InMemoryContext.DonationPaymentManager.m_QpayModel.IsAOfficeWorker ? "是的" : "否";
             }
         }
 
@@ -115,7 +115,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                return await InMemoryContext.QpayManager.AuditQueryDedication(QpayModel);
+                return await InMemoryContext.DonationPaymentManager.AuditQueryDedication(QpayModel);
             }
             catch (Exception e)
             {
@@ -148,7 +148,7 @@ namespace ChurchReport.Controllers
                 // - 安全的日誌記錄（隱藏敏感資訊）
                 EnsureCorrectUserData();
 
-                var tasks = InMemoryContext.QpayManager.m_QpayModel.DedicationFeeList;
+                var tasks = InMemoryContext.DonationPaymentManager.m_QpayModel.DedicationFeeList;
                 return DataSourceLoader.Load(tasks, loadOptions);
             }
             catch (Exception e)
@@ -178,7 +178,7 @@ namespace ChurchReport.Controllers
                 // - 安全的日誌記錄（隱藏敏感資訊）
                 EnsureCorrectUserData();
 
-                var sameNameList = InMemoryContext.QpayManager.m_QpayModel.SameNameList 
+                var sameNameList = InMemoryContext.DonationPaymentManager.m_QpayModel.SameNameList 
                     ?? new System.Collections.Generic.List<SameNameElement>();
                 
                 return DataSourceLoader.Load(sameNameList, loadOptions);
@@ -203,7 +203,7 @@ namespace ChurchReport.Controllers
             try
             {
                 // 實作核准邏輯
-                // await InMemoryContext.QpayManager.ApproveDedication(key);
+                // await InMemoryContext.DonationPaymentManager.ApproveDedication(key);
 
                 return Json(new { status = "1", message = "奉獻記錄已核准" });
             }
@@ -224,7 +224,7 @@ namespace ChurchReport.Controllers
             try
             {
                 // 實作退回邏輯
-                // await InMemoryContext.QpayManager.RejectDedication(key, reason);
+                // await InMemoryContext.DonationPaymentManager.RejectDedication(key, reason);
 
                 return Json(new { status = "1", message = "奉獻記錄已退回" });
             }
@@ -250,7 +250,7 @@ namespace ChurchReport.Controllers
             try
             {
                 // 實作匯出邏輯
-                // var reportData = await InMemoryContext.QpayManager
+                // var reportData = await InMemoryContext.DonationPaymentManager
                 //     .GenerateDedicationReport(startDate, endDate);
 
                 // 暫時返回成功訊息
@@ -338,10 +338,10 @@ namespace ChurchReport.Controllers
                 if (string.IsNullOrEmpty(id))
                     return Json(new { status = "0", message = "missing id", DedicationFeeList = new object[] { } });
 
-                var feeList = InMemoryContext.QpayManager.GetDedicationFeesByContactId(id);
+                var feeList = InMemoryContext.DonationPaymentManager.GetDedicationFeesByContactId(id);
 
                 // GetDedicationFeesByContactId 內部已透過 SetDedicationFeeList 算好總金額
-                return Json(new { status = "1", DedicationFeeList = feeList, TotalAmount = InMemoryContext.QpayManager.m_QpayModel.TotalAmount });
+                return Json(new { status = "1", DedicationFeeList = feeList, TotalAmount = InMemoryContext.DonationPaymentManager.m_QpayModel.TotalAmount });
             }
             catch (Exception e)
             {
@@ -353,3 +353,4 @@ namespace ChurchReport.Controllers
         #endregion
     }
 }
+

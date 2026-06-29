@@ -4,89 +4,67 @@ using ChurchReport.ViewModel;
 namespace ChurchReport.Models
 {
     /// <summary>
-    /// �O�����ƤW�U�夶��
-    /// �Ω�䴩 Dependency Injection �M�椸����
+    /// 記憶體資料上下文介面，用於支援 Dependency Injection 和單元測試。
+    /// 此介面只描述 ChurchReport 應用程式內部的 session/context 管理，不屬於可重用金流核心。
     /// </summary>
     public interface IInMemoryDataContext
     {
-        /// <summary>
-        /// �M��޲z��
-        /// </summary>
+        /// <summary>清單管理器。</summary>
         ListManager ListManager { get; }
 
-        /// <summary>
-        /// �p�ո�ƲM��
-        /// </summary>
+        /// <summary>小組資料清單。</summary>
         SmallGroupDataList SmallGroupDataList { get; }
 
-        /// <summary>
-        /// �g�����
-        /// </summary>
+        /// <summary>週報資料。</summary>
         WeeklyReportData WeeklyReportData { get; }
 
-        /// <summary>
-        /// �s�H��Ƽҫ�
-        /// </summary>
+        /// <summary>新人資料模型。</summary>
         NewPersonModel NewPersonModel { get; }
 
-        /// <summary>
-        /// �ӤH��T�ҫ�
-        /// </summary>
+        /// <summary>個人資訊模型。</summary>
         PersonalInfomationModel PersonalInfomationModel { get; }
 
-        /// <summary>
-        /// ���֤p�ո�ƺ޲z��
-        /// </summary>
+        /// <summary>幸福小組資料管理器。</summary>
         HappyGroupDataManager HappyGroupDataManager { get; }
 
-        /// <summary>
-        /// �M��޲z��ƺ޲z��
-        /// </summary>
+        /// <summary>清單管理資料管理器。</summary>
         ListManagementDataManager ListManagementDataManager { get; }
 
-        /// <summary>
-        /// �˳Ƹ�ƺ޲z��
-        /// </summary>
+        /// <summary>裝備資料管理器。</summary>
         EquipmentDataManager EquipmentDataManager { get; }
 
-        /// <summary>
-        /// ú�O�M��
-        /// </summary>
+        /// <summary>繳費清單。</summary>
         FeeList FeeList { get; }
 
-        /// <summary>
-        /// LINE �j�w���ϼҫ�
-        /// </summary>
+        /// <summary>LINE 綁定視圖模型。</summary>
         LineBindingViewModel LineBindingViewModel { get; }
 
-        /// <summary>
-        /// ��ƾ�M��޲z��
-        /// </summary>
+        /// <summary>行事曆清單管理器。</summary>
         AppointmentsListManager AppointmentsListManager { get; }
 
         /// <summary>
-        /// QPay �޲z��
+        /// ChurchReport 奉獻付款 UI 狀態管理器。
+        /// 新程式應使用此屬性；它負責產品流程、CRM 狀態與 LINE 通知，不屬於可重用金流核心。
         /// </summary>
+        DonationPaymentManager DonationPaymentManager { get; }
+
+        /// <summary>
+        /// 舊 QpayManager 名稱的相容屬性。
+        /// 保留此入口是為了既有 Controller/View 逐步遷移，不應再把新程式寫到 QPay 命名上。
+        /// </summary>
+        [System.Obsolete("Use DonationPaymentManager. QpayManager is retained only for compatibility during migration.")]
         QpayManager QpayManager { get; }
 
-        /// <summary>
-        /// �ݨ��޲z��
-        /// </summary>
+        /// <summary>問卷管理器。</summary>
         PollManager PollManager { get; }
 
-        /// <summary>
-        /// �u�����O���
-        /// </summary>
+        /// <summary>工具類別實例。</summary>
         ToolUtilityNameSpace.ToolUtilityClass ToolUtilityClass { get; }
 
-        /// <summary>
-        /// �]�w�p�ո��
-        /// </summary>
+        /// <summary>設定小組資料。</summary>
         void SetupSmallGroupData(string fullName, string account, string password, System.DateTime selectDate, bool displayDateFlag);
 
-        /// <summary>
-        /// �x�s�ܧ�
-        /// </summary>
+        /// <summary>儲存變更。</summary>
         void SaveChanges();
     }
 }

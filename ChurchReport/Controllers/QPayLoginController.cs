@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using ChurchReport.Models;
 using ChurchReport.Tools;
@@ -13,7 +13,7 @@ using ToolUtilityNameSpace.DependencyInjection;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// ±M³d³B²z©xºô QPay µn¤Jªº±±¨î¾¹
+    /// å°ˆè²¬è™•ç†å®˜ç¶² QPay ç™»å…¥çš„æ§åˆ¶å™¨
     /// </summary>
     public class QPayLoginController : BaseChurchController
     {
@@ -27,7 +27,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// Åã¥Ü QPay µn¤J­¶­±
+        /// é¡¯ç¤º QPay ç™»å…¥é é¢
         /// </summary>
         [HttpGet]
         [Route("/QPayLogin")]
@@ -43,7 +43,7 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ³B²z QPay µn¤Jªí³æ´£¥æ
+        /// è™•ç† QPay ç™»å…¥è¡¨å–®æäº¤
         /// </summary>
         [HttpPost]
         [Route("/QPayLogin/ProcessQPayLogin")]
@@ -53,26 +53,26 @@ namespace ChurchReport.Controllers
             {
                 if (model == null)
                 {
-                    return Json(new { status = "3", message = "¿ù»~!©Ò¦³Äæ¦ì³£­n¶ñ¼g¡A«ô°U!" });
+                    return Json(new { status = "3", message = "éŒ¯èª¤!æ‰€æœ‰æ¬„ä½éƒ½è¦å¡«å¯«ï¼Œæ‹œè¨—!" });
                 }
 
                 if (string.IsNullOrWhiteSpace(model.FullName) ||
                     string.IsNullOrWhiteSpace(model.NationId) ||
                     string.IsNullOrWhiteSpace(model.Mobile))
                 {
-                    return Json(new { status = "3", message = "¿ù»~!©Ò¦³Äæ¦ì³£­n¶ñ¼g¡A«ô°U!" });
+                    return Json(new { status = "3", message = "éŒ¯èª¤!æ‰€æœ‰æ¬„ä½éƒ½è¦å¡«å¯«ï¼Œæ‹œè¨—!" });
                 }
 
                 model.NationId = model.NationId.ToUpperInvariant();
 
-                InMemoryContext.QpayManager.LoginType = "ºô­¶µn¤J";
+                InMemoryContext.DonationPaymentManager.LoginType = "ç¶²é ç™»å…¥";
 
                 string queryResult = string.Empty;
-                var loginContact = InMemoryContext.QpayManager.GetLoginContactQpay(model, ref queryResult);
+                var loginContact = InMemoryContext.DonationPaymentManager.GetLoginContactQpay(model, ref queryResult);
 
                 if (loginContact != null)
                 {
-                    InMemoryContext.QpayManager.SetQpayModel(loginContact);
+                    InMemoryContext.DonationPaymentManager.SetQpayModel(loginContact);
                     return Json(new { status = "1", message = queryResult });
                 }
 
@@ -85,3 +85,4 @@ namespace ChurchReport.Controllers
         }
     }
 }
+
