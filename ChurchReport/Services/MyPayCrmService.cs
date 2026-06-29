@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using ChurchReport.Payments;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
