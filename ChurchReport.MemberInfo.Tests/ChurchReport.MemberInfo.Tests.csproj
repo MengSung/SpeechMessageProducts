@@ -20,5 +20,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ChurchReport\ChurchReport.csproj" />
     <ProjectReference Include="..\SpeechMessage.Payments.AspNetCore\SpeechMessage.Payments.AspNetCore.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Payments.Workflows\SpeechMessage.Payments.Workflows.csproj" />
   </ItemGroup>
 </Project>

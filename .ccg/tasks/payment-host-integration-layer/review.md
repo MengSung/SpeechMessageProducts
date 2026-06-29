@@ -34,6 +34,26 @@
 - `dotnet test ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --no-restore -v minimal --filter "FullyQualifiedName~Payments" -p:BaseOutputPath=.\artifacts\comments-utf8-payments-test\ -p:UseSharedCompilation=false`: passed, 39 tests, with the existing `xUnit1012` warning.
 - `dotnet build ChurchReport.sln --no-restore -m:1 -v minimal -p:BaseOutputPath=.\artifacts\comments-utf8-solution-build\ -p:UseSharedCompilation=false`: passed with 0 errors and the existing `xUnit1012` warning.
 
+## Phase 4 Post-Payment Workflow Verification
+
+- Added `SpeechMessage.Payments.Workflows` as the reusable post-payment workflow abstraction layer.
+- Added product-neutral contracts:
+  - `PaymentPostPaymentContext`
+  - `PaymentPostPaymentWorkflow`
+  - `IPaymentRecordUpdater`
+  - `IPaymentPayerNotifier`
+  - `PaymentWorkflowResultMapper`
+  - `PaymentWorkflowResult`
+- ChurchReport implements the workflow extension points through product-owned handlers:
+  - `ChurchReportPaymentRecordUpdater`
+  - `ChurchReportPaymentPayerNotifier`
+- TDD red check: `dotnet test ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --no-restore -v minimal --filter "FullyQualifiedName~PaymentPostPaymentWorkflowTests" -p:BaseOutputPath=.\artifacts\phase4-red\ -p:UseSharedCompilation=false` failed as expected before implementation because `SpeechMessage.Payments.Workflows` did not exist.
+- Green check: `dotnet test ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --no-restore -v minimal --filter "FullyQualifiedName~PaymentPostPaymentWorkflowTests" -p:BaseOutputPath=.\artifacts\phase4-green\ -p:UseSharedCompilation=false`: passed, 1 test.
+- `dotnet test ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --no-restore -v minimal --filter "FullyQualifiedName~Payments" -p:BaseOutputPath=.\artifacts\phase4-payments-test\ -p:UseSharedCompilation=false`: passed, 40 tests, with the existing `xUnit1012` warning.
+- `dotnet test SpeechMessage.Payments.Tests\SpeechMessage.Payments.Tests.csproj --no-restore -v minimal -p:UseSharedCompilation=false`: passed, 53 tests.
+- `dotnet build ChurchReport.sln --no-restore -m:1 -v minimal -p:BaseOutputPath=.\artifacts\phase4-solution-build\ -p:UseSharedCompilation=false`: passed with 0 errors and the existing `xUnit1012` warning.
+- Workflows boundary search found no dependencies on ChurchReport, ToolUtility, LINE, Dataverse, ASP.NET Controller/HttpRequest/IActionResult, or CRM SDK types.
+
 ## Boundary Review
 
 - `SpeechMessage.Payments.AspNetCore` contains ASP.NET Core host glue only:

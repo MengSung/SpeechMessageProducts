@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using SpeechMessage.Payments.AspNetCore;
 using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Models;
+using SpeechMessage.Payments.Workflows;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.DependencyInjection;
 using Xunit;
@@ -68,7 +69,10 @@ public sealed class MyPayControllerAdapterTests
             new PaymentHttpRequestMapper(),
             new ChurchReportPaymentProfileResolver(new ConfigurationBuilder().Build()),
             new PaymentAcknowledgementResultMapper(),
-            new PaymentWorkflowResultMapper());
+            new PaymentWorkflowResultMapper(),
+            new PaymentPostPaymentWorkflow(
+                Array.Empty<IPaymentRecordUpdater>(),
+                Array.Empty<IPaymentPayerNotifier>()));
     }
 
     private sealed class RecordingPaymentGateway : IPaymentGateway

@@ -28,6 +28,7 @@ using ToolUtilityNameSpace.ConnectionOperations;
 using ChurchReport.WebServiceConnector;
 using SpeechMessage.Payments.AspNetCore.DependencyInjection;
 using SpeechMessage.Payments.DependencyInjection;
+using SpeechMessage.Payments.Workflows;
 
 namespace ChurchReport
 {
@@ -492,6 +493,8 @@ namespace ChurchReport
             services.AddSpeechMessagePayments(Configuration.GetSection("Payment"));
             services.AddSpeechMessagePaymentAspNetCore();
             services.AddScoped<ChurchReportPaymentProfileResolver>();
+            services.AddScoped<IPaymentRecordUpdater, ChurchReportPaymentRecordUpdater>();
+            services.AddScoped<IPaymentPayerNotifier, ChurchReportPaymentPayerNotifier>();
             services.AddScoped<IQPayReturnWorkflow, QPayReturnWorkflow>();
             services.AddScoped<IQPayProductWorkflowDispatcher, QPayProductWorkflowDispatcher>();
             services.AddScoped<QPayCreatePaymentGatewayAdapter>();

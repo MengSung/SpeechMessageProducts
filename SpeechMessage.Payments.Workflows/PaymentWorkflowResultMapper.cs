@@ -1,11 +1,11 @@
 using SpeechMessage.Payments.Models;
 
-namespace SpeechMessage.Payments.AspNetCore;
+namespace SpeechMessage.Payments.Workflows;
 
 /// <summary>
 /// 將金流核心解析完成的 callback 結果投影成產品流程容易使用的摘要模型。
 /// 此類別只整理中立欄位；付款成功後要更新維修單、會員期限、發票收款、
-/// 奉獻紀錄或發送通知，仍由各 ASP.NET Core 產品自行負責。
+/// 奉獻紀錄或發送通知，仍由各產品自行實作。
 /// </summary>
 public sealed class PaymentWorkflowResultMapper
 {

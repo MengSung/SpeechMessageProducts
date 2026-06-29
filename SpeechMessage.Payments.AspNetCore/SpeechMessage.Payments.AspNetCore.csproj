@@ -12,5 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SpeechMessage.Payments\SpeechMessage.Payments.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Payments.Workflows\SpeechMessage.Payments.Workflows.csproj" />
   </ItemGroup>
 </Project>
