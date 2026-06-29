@@ -1,27 +1,27 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
 using System;
 
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ª÷¬y³B²z¾¹ - »{Äm³æºŞ²z¼Ò²Õ
+    /// é‡‘æµè™•ç†å™¨ - èªç»å–®ç®¡ç†æ¨¡çµ„
     /// 
-    /// ¡iÂ¾³d¡j
-    /// - «Ø¥ß»{Äm³æ
-    /// - ³]©w»{Äm³æ°Ñ¼Æ
-    /// - ©w´Á©wÃB¦©´Ú³B²z
+    /// ã€è·è²¬ã€‘
+    /// - å»ºç«‹èªç»å–®
+    /// - è¨­å®šèªç»å–®åƒæ•¸
+    /// - å®šæœŸå®šé¡æ‰£æ¬¾è™•ç†
     /// 
-    /// ¡i³]­p­ì«h¡j
-    /// - ³æ¤@Â¾³d¡G±Mª`©ó»{Äm³æ¥Í©R¶g´ÁºŞ²z
-    /// - ¶}©ñ«Ê³¬¡G©ö©óÂX®i·sªº»{ÄmÃş«¬
+    /// ã€è¨­è¨ˆåŸå‰‡ã€‘
+    /// - å–®ä¸€è·è²¬ï¼šå°ˆæ³¨æ–¼èªç»å–®ç”Ÿå‘½é€±æœŸç®¡ç†
+    /// - é–‹æ”¾å°é–‰ï¼šæ˜“æ–¼æ“´å±•æ–°çš„èªç»é¡å‹
     /// </summary>
-    public partial class QPayProcessor
+    public partial class DonationPaymentProcessor
     {
-        #region ===== «Ø¥ß»{Äm³æ =====
+        #region ===== å»ºç«‹èªç»å–® =====
 
         /// <summary>
-        /// «Ø¥ß»{Äm³æ¹êÅé
+        /// å»ºç«‹èªç»å–®å¯¦é«”
         /// </summary>
         public Guid CreateDedicationBooking(Entity aContact, QpayModel QpayModel)
         {
@@ -29,96 +29,96 @@ namespace ChurchReport.WebServiceConnector
             {
                 var dedicationBookingEntity = new Entity("new_dedication_booking");
 
-                // ³]©w»{Äm³æ°Ñ¼Æ
+                // è¨­å®šèªç»å–®åƒæ•¸
                 SetDedicationBookingParameter(aContact, dedicationBookingEntity, QpayModel);
 
-                // «Ø¥ß»{Äm³æ
+                // å»ºç«‹èªç»å–®
                 var dedicationBookingId = ToolUtility.CreateEntity(dedicationBookingEntity);
                 var retrievedDedicationBooking = ToolUtility.RetrieveEntity("new_dedication_booking", dedicationBookingId);
 
-                // «ü¬£­t³d¤H
+                // æŒ‡æ´¾è² è²¬äºº
                 AssignDedicationBookingOwner(retrievedDedicationBooking, aContact);
 
                 return dedicationBookingId;
             }
             catch (Exception ex)
             {
-                var errorMsg = $"«Ø¥ß»{Äm³æ¥¢±Ñ: {ex.Message}";
-                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] {errorMsg}");
+                var errorMsg = $"å»ºç«‹èªç»å–®å¤±æ•—: {ex.Message}";
+                System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] {errorMsg}");
                 throw new InvalidOperationException(errorMsg, ex);
             }
         }
 
         /// <summary>
-        /// ³]©w»{Äm³æ°Ñ¼Æ
+        /// è¨­å®šèªç»å–®åƒæ•¸
         /// </summary>
         public void SetDedicationBookingParameter(Entity aContact, Entity aDedicationBookingToCreated, QpayModel QpayModel)
         {
             try
             {
-                // °ò¥»¸ê°T
-                var fullName = ToolUtility.GetEntityStringAttribute(ref aContact, "fullname") + "©^Äm";
+                // åŸºæœ¬è³‡è¨Š
+                var fullName = ToolUtility.GetEntityStringAttribute(ref aContact, "fullname") + "å¥‰ç»";
                 ToolUtility.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_name", fullName);
 
-                // ³sµ¸¤HÃöÁp
+                // é€£çµ¡äººé—œè¯
                 ToolUtility.SetEntityLookUpAttribute(ref aDedicationBookingToCreated, "new_contact_new_dedication_booking", "contact", aContact.Id);
 
-                // »{Äm³æª¬ºA = ©|¥¼±Ò°Ê
+                // èªç»å–®ç‹€æ…‹ = å°šæœªå•Ÿå‹•
                 ToolUtility.SetOptionSetAttribute(ref aDedicationBookingToCreated, "new_dedication_booking_status", 100000000);
 
-                // ª÷ÃB³]©w
+                // é‡‘é¡è¨­å®š
                 SetDedicationBookingAmounts(ref aDedicationBookingToCreated, QpayModel);
 
-                // ¤é´Á³]©w
+                // æ—¥æœŸè¨­å®š
                 SetDedicationBookingDates(ref aDedicationBookingToCreated, QpayModel);
 
-                // ©^ÄmÃş§O
+                // å¥‰ç»é¡åˆ¥
                 SetPayCategory(QpayModel.Category, "new_dedication_category", ref aDedicationBookingToCreated);
 
-                // ©^Äm³Æµù
+                // å¥‰ç»å‚™è¨»
                 ToolUtility.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_explain", QpayModel.Explain);
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"³]©w»{Äm³æ°Ñ¼Æ¥¢±Ñ: {ex.Message}", ex);
+                throw new InvalidOperationException($"è¨­å®šèªç»å–®åƒæ•¸å¤±æ•—: {ex.Message}", ex);
             }
         }
 
         #endregion
 
-        #region ===== ¨p¦³»²§U¤èªk =====
+        #region ===== ç§æœ‰è¼”åŠ©æ–¹æ³• =====
 
         /// <summary>
-        /// ³]©w»{Äm³æª÷ÃB
+        /// è¨­å®šèªç»å–®é‡‘é¡
         /// </summary>
         private void SetDedicationBookingAmounts(ref Entity aDedicationBookingToCreated, QpayModel QpayModel)
         {
-            // ¨C´Áª÷ÃB
+            // æ¯æœŸé‡‘é¡
             ToolUtility.SetEntityMoneyAttribute(ref aDedicationBookingToCreated, "new_amount_per_stage", new Money(QpayModel.Amount));
 
-            // Á`´Á¼Æ
+            // ç¸½æœŸæ•¸
             ToolUtility.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_total_stages", QpayModel.DeductTotalNumber);
 
-            // À³¦¬ª÷ÃB¡]¨C´Áª÷ÃB ¡Ñ Á`´Á¼Æ¡^
+            // æ‡‰æ”¶é‡‘é¡ï¼ˆæ¯æœŸé‡‘é¡ Ã— ç¸½æœŸæ•¸ï¼‰
             var totalAmount = QpayModel.Amount * TransferToDeductTotalNum(QpayModel.DeductTotalNumber);
             ToolUtility.SetEntityMoneyAttribute(ref aDedicationBookingToCreated, "new_dedication_amount", new Money(totalAmount));
         }
 
         /// <summary>
-        /// ³]©w»{Äm³æ¤é´Á
+        /// è¨­å®šèªç»å–®æ—¥æœŸ
         /// </summary>
         private void SetDedicationBookingDates(ref Entity aDedicationBookingToCreated, QpayModel QpayModel)
         {
-            // ¶}©l¤é´Á
+            // é–‹å§‹æ—¥æœŸ
             ToolUtility.SetEntityDateTimeAttribute(ref aDedicationBookingToCreated, "new_dedication_start_date", DateTime.Now);
 
-            // µ²§ô¤é´Á¡]®Ú¾ÚÁ`´Á¼Æ­pºâ¡^
+            // çµæŸæ—¥æœŸï¼ˆæ ¹æ“šç¸½æœŸæ•¸è¨ˆç®—ï¼‰
             var deductMonths = TransferToDeductTotalNum(QpayModel.DeductTotalNumber);
             ToolUtility.SetEntityDateTimeAttribute(ref aDedicationBookingToCreated, "new_dedication_end_date", DateTime.Now.AddMonths(deductMonths));
         }
 
         /// <summary>
-        /// «ü¬£»{Äm³æ­t³d¤H
+        /// æŒ‡æ´¾èªç»å–®è² è²¬äºº
         /// </summary>
         private void AssignDedicationBookingOwner(Entity retrievedDedicationBooking, Entity aContact)
         {
@@ -130,7 +130,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Trace.WriteLine($"[QPayProcessor] «ü¬£»{Äm³æ­t³d¤H¥¢±Ñ: {ex.Message}");
+                    System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] æŒ‡æ´¾èªç»å–®è² è²¬äººå¤±æ•—: {ex.Message}");
                 }
             }
         }
@@ -138,3 +138,4 @@ namespace ChurchReport.WebServiceConnector
         #endregion
     }
 }
+

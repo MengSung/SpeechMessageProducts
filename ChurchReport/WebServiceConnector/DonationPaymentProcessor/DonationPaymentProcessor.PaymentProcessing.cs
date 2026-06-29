@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
 using System;
 using System.Threading.Tasks;
@@ -6,46 +6,46 @@ using System.Threading.Tasks;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ª÷¬y³B²z¾¹ - ¥I´Ú¬yµ{³B²z¼Ò²Õ
+    /// é‡‘æµè™•ç†å™¨ - ä»˜æ¬¾æµç¨‹è™•ç†æ¨¡çµ„
     /// 
-    /// ¡iÂ¾³d¡j
-    /// - «H¥Î¥d¥I´Ú³B²z
-    /// - ATM Âà±b³B²z
-    /// - ¦æ°Ê¤ä¥I³B²z
-    /// - LinePay ³B²z
-    /// - ©w´Á©wÃB³B²z
+    /// ã€è·è²¬ã€‘
+    /// - ä¿¡ç”¨å¡ä»˜æ¬¾è™•ç†
+    /// - ATM è½‰å¸³è™•ç†
+    /// - è¡Œå‹•æ”¯ä»˜è™•ç†
+    /// - LinePay è™•ç†
+    /// - å®šæœŸå®šé¡è™•ç†
     /// 
-    /// ¡i³]­p­ì«h¡j
-    /// - µ¦²¤¼Ò¦¡¡G®Ú¾Ú¥I´Ú¤è¦¡¿ï¾Ü³B²zµ¦²¤
-    /// - ¼ÒªO¤èªk¡G²Î¤@¥I´Ú³B²z¬yµ{
+    /// ã€è¨­è¨ˆåŸå‰‡ã€‘
+    /// - ç­–ç•¥æ¨¡å¼ï¼šæ ¹æ“šä»˜æ¬¾æ–¹å¼é¸æ“‡è™•ç†ç­–ç•¥
+    /// - æ¨¡æ¿æ–¹æ³•ï¼šçµ±ä¸€ä»˜æ¬¾è™•ç†æµç¨‹
     /// </summary>
-    public partial class QPayProcessor
+    public partial class DonationPaymentProcessor
     {
-        #region ===== «H¥Î¥d¥I´Ú =====
+        #region ===== ä¿¡ç”¨å¡ä»˜æ¬¾ =====
 
         /// <summary>
-        /// ³B²z«H¥Î¥d/»ÈÁp¥d¥I´Ú
+        /// è™•ç†ä¿¡ç”¨å¡/éŠ€è¯å¡ä»˜æ¬¾
         /// </summary>
         private async Task<string> ProcessCreditCardPayment(Entity LineLoginContact, QpayModel QpayModel, string orderDate)
         {
             var feeId = CreateFee(LineLoginContact, QpayModel, false);
             var feeEntity = ToolUtility.RetrieveEntity("new_fee", feeId);
 
-            // §PÂ_«H¥Î¥dÃş«¬
-            var payTypeSub = QpayModel.PayWay == "»ÈÁp¥d" ? "CUP" : "ONE";
+            // åˆ¤æ–·ä¿¡ç”¨å¡é¡å‹
+            var payTypeSub = QpayModel.PayWay == "éŠ€è¯å¡" ? "CUP" : "ONE";
             
             var createdCardOrder = await CreOrderCard(
                 QpayModel.Amount,
                 $"{QpayModel.Category}-{QpayModel.FullName}",
                 orderDate,
                 feeId.ToString(),
-                "C", // «H¥Î¥d
+                "C", // ä¿¡ç”¨å¡
                 payTypeSub,
                 "",
                 0,
                 "M",
                 1,
-                "¦¬¶O³æ",
+                "æ”¶è²»å–®",
                 LineLoginContact,
                 QpayModel.SelectedCreditCard
             );
@@ -56,19 +56,19 @@ namespace ChurchReport.WebServiceConnector
                 return createdCardOrder.CardParam.CardPayURL;
             }
 
-            return $"«H¥Î¥dÃº¶O¥¢±Ñ! {createdCardOrder?.Description}";
+            return $"ä¿¡ç”¨å¡ç¹³è²»å¤±æ•—! {createdCardOrder?.Description}";
         }
 
         #endregion
 
-        #region ===== ©w´Á©wÃB¥I´Ú =====
+        #region ===== å®šæœŸå®šé¡ä»˜æ¬¾ =====
 
         /// <summary>
-        /// ³B²z«H¥Î¥d©w´Á©wÃB¦©´Ú
+        /// è™•ç†ä¿¡ç”¨å¡å®šæœŸå®šé¡æ‰£æ¬¾
         /// </summary>
         private async Task<string> ProcessRecurringPayment(Entity LineLoginContact, QpayModel QpayModel, string orderDate)
         {
-            // «Ø¥ß»{Äm³æ
+            // å»ºç«‹èªç»å–®
             var dedicationBookingId = CreateDedicationBooking(LineLoginContact, QpayModel);
             var dedicationBookingEntity = ToolUtility.RetrieveEntity("new_dedication_booking", dedicationBookingId);
 
@@ -78,12 +78,12 @@ namespace ChurchReport.WebServiceConnector
                 orderDate,
                 dedicationBookingId.ToString(),
                 "C",
-                "REGULAR", // ©w´Á©wÃB
+                "REGULAR", // å®šæœŸå®šé¡
                 "",
                 TransferToDeductTotalNum(QpayModel.DeductTotalNumber),
                 "M",
                 1,
-                "»{Äm³æ",
+                "èªç»å–®",
                 LineLoginContact,
                 QpayModel.SelectedCreditCard
             );
@@ -98,26 +98,26 @@ namespace ChurchReport.WebServiceConnector
                 else
                 {
                     UpdateFee(ref dedicationBookingEntity, createdCardOrder.Description, "C" + orderDate, "", "");
-                    return $"«H¥Î¥dÃº¶O¥¢±Ñ! {createdCardOrder.Description}";
+                    return $"ä¿¡ç”¨å¡ç¹³è²»å¤±æ•—! {createdCardOrder.Description}";
                 }
             }
             else
             {
-                // »{Äm³æª¬ºA = ±Ò°Ê¥¢±Ñ
+                // èªç»å–®ç‹€æ…‹ = å•Ÿå‹•å¤±æ•—
                 ToolUtility.SetOptionSetAttribute(ref dedicationBookingEntity, "new_dedication_booking_status", 100000003);
-                ToolUtility.SetEntityStringAttribute(ref dedicationBookingEntity, "new_explain", "«Ø¥ß¥ÃÂ×«H¥Î¥d­q³æ®É´N¥¢±Ñ¤F");
+                ToolUtility.SetEntityStringAttribute(ref dedicationBookingEntity, "new_explain", "å»ºç«‹æ°¸è±ä¿¡ç”¨å¡è¨‚å–®æ™‚å°±å¤±æ•—äº†");
                 ToolUtility.UpdateEntity(dedicationBookingEntity);
 
-                return $"«H¥Î¥d©w´Á©wÃB«Ø¥ß¥¢±Ñ! {createdCardOrder?.Description}";
+                return $"ä¿¡ç”¨å¡å®šæœŸå®šé¡å»ºç«‹å¤±æ•—! {createdCardOrder?.Description}";
             }
         }
 
         #endregion
 
-        #region ===== ¦æ°Ê¤ä¥I =====
+        #region ===== è¡Œå‹•æ”¯ä»˜ =====
 
         /// <summary>
-        /// ³B²z¦æ°Ê¤ä¥I
+        /// è™•ç†è¡Œå‹•æ”¯ä»˜
         /// </summary>
         private async Task<string> ProcessMobilePayment(Entity LineLoginContact, QpayModel QpayModel, string orderDate)
         {
@@ -129,13 +129,13 @@ namespace ChurchReport.WebServiceConnector
                 $"{QpayModel.Category}-{QpayModel.FullName}",
                 orderDate,
                 feeId.ToString(),
-                "M", // ¦æ°Ê¤ä¥I
+                "M", // è¡Œå‹•æ”¯ä»˜
                 "ONE",
                 "",
                 0,
                 "M",
                 1,
-                "¦¬¶O³æ",
+                "æ”¶è²»å–®",
                 LineLoginContact,
                 QpayModel.SelectedCreditCard
             );
@@ -147,7 +147,7 @@ namespace ChurchReport.WebServiceConnector
             }
 
             UpdateFee(ref feeEntity, createdMobileOrder.Description, "C" + orderDate, "", "");
-            return $"¦æ°Ê¤ä¥I¥I´Ú¥¢±Ñ! {createdMobileOrder?.Description}";
+            return $"è¡Œå‹•æ”¯ä»˜ä»˜æ¬¾å¤±æ•—! {createdMobileOrder?.Description}";
         }
 
         #endregion
@@ -155,7 +155,7 @@ namespace ChurchReport.WebServiceConnector
         #region ===== LinePay =====
 
         /// <summary>
-        /// ³B²z LinePay ¥I´Ú
+        /// è™•ç† LinePay ä»˜æ¬¾
         /// </summary>
         private async Task<string> ProcessLinePayPayment(Entity LineLoginContact, QpayModel QpayModel, string orderDate)
         {
@@ -173,7 +173,7 @@ namespace ChurchReport.WebServiceConnector
                 0,
                 "M",
                 1,
-                "¦¬¶O³æ",
+                "æ”¶è²»å–®",
                 LineLoginContact,
                 QpayModel.SelectedCreditCard
             );
@@ -185,15 +185,15 @@ namespace ChurchReport.WebServiceConnector
             }
 
             UpdateFee(ref feeEntity, createdLinePayOrder.Description, "C" + orderDate, "", "");
-            return $"LinePay¥I´Ú¥¢±Ñ! {createdLinePayOrder?.Description}";
+            return $"LinePayä»˜æ¬¾å¤±æ•—! {createdLinePayOrder?.Description}";
         }
 
         #endregion
 
-        #region ===== ATM Âà±b =====
+        #region ===== ATM è½‰å¸³ =====
 
         /// <summary>
-        /// ³B²z ATM Âà±b/¶×´Ú
+        /// è™•ç† ATM è½‰å¸³/åŒ¯æ¬¾
         /// </summary>
         private async Task<string> ProcessAtmPayment(Entity LineLoginContact, QpayModel QpayModel, string orderDate)
         {
@@ -204,7 +204,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ³B²z ATM Âà±b¸Ô²Ó¬yµ{
+        /// è™•ç† ATM è½‰å¸³è©³ç´°æµç¨‹
         /// </summary>
         public async Task<string> ProcessAtm(
             Guid aCreatedFeeId,
@@ -225,13 +225,13 @@ namespace ChurchReport.WebServiceConnector
                     aCreatedFeeId.ToString()
                 );
 
-                // §ó·s¦¬¶O³æ
+                // æ›´æ–°æ”¶è²»å–®
                 UpdateFee(ref aFeeToUpdate, "", createdAtmOrder.OrderNo, OrderId, createdAtmOrder.ATMParam.AtmPayNo);
 
-                // «Ø¥ß ATM ¸ê°T
+                // å»ºç«‹ ATM è³‡è¨Š
                 var atmInfo = BuildAtmInfo(LineLoginContact, QpayModel, createdAtmOrder.ATMParam.AtmPayNo);
 
-                // µo°e LINE ³qª¾
+                // ç™¼é€ LINE é€šçŸ¥
                 LineId = ResolveAtmNotificationLineId(LineId, LineLoginContact);
                 var notificationWarning = await TrySendAtmPaymentInstructionsAsync(
                     LineId,
@@ -242,12 +242,12 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"³B²z ATM Âà±b¥¢±Ñ: {ex.Message}", ex);
+                throw new InvalidOperationException($"è™•ç† ATM è½‰å¸³å¤±æ•—: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// «Ø¥ß ATM ¸ê°T°T®§
+        /// å»ºç«‹ ATM è³‡è¨Šè¨Šæ¯
         /// </summary>
         private (string LineMessage, string HtmlMessage) BuildAtmInfo(Entity contact, QpayModel model, string atmPayNo)
         {
@@ -255,15 +255,15 @@ namespace ChurchReport.WebServiceConnector
             var expireDate = DateTime.Now.AddDays(10).ToLocalTime().ToShortDateString();
 
             var lineMessage = 
-                $"©m¦W : {fullName}{Environment.NewLine}" +
-                $"¦WºÙ : {model.Category}{Environment.NewLine}" +
-                $"ª÷ÃB : {model.Amount}¤¸{Environment.NewLine}" +
-                $"¥I´Ú¨ì´Á¤é: {expireDate}{Environment.NewLine}" +
-                $"*** ½Ğ¨Ì·Ó°T®§¥I´Ú ***{Environment.NewLine}" +
-                $"»È¦æ¥N½X : 807 ¥ÃÂ×°Ó·~»È¦æ{Environment.NewLine}" +
-                $"¤À¦æ¥N¸¹ : 021 ¥x¥_¤À¦æ{Environment.NewLine}" +
-                $"±b¸¹     : {atmPayNo}{Environment.NewLine}" +
-                $"¤á¦W     : ¨ä¥LÀ³¥I´Ú-¥N¦¬-ºô¸ô¦¬´Ú";
+                $"å§“å : {fullName}{Environment.NewLine}" +
+                $"åç¨± : {model.Category}{Environment.NewLine}" +
+                $"é‡‘é¡ : {model.Amount}å…ƒ{Environment.NewLine}" +
+                $"ä»˜æ¬¾åˆ°æœŸæ—¥: {expireDate}{Environment.NewLine}" +
+                $"*** è«‹ä¾ç…§è¨Šæ¯ä»˜æ¬¾ ***{Environment.NewLine}" +
+                $"éŠ€è¡Œä»£ç¢¼ : 807 æ°¸è±å•†æ¥­éŠ€è¡Œ{Environment.NewLine}" +
+                $"åˆ†è¡Œä»£è™Ÿ : 021 å°åŒ—åˆ†è¡Œ{Environment.NewLine}" +
+                $"å¸³è™Ÿ     : {atmPayNo}{Environment.NewLine}" +
+                $"æˆ¶å     : å…¶ä»–æ‡‰ä»˜æ¬¾-ä»£æ”¶-ç¶²è·¯æ”¶æ¬¾";
 
             var htmlMessage = lineMessage.Replace(Environment.NewLine, "<br/>");
 
@@ -287,7 +287,7 @@ namespace ChurchReport.WebServiceConnector
             if (!string.IsNullOrWhiteSpace(backupLineId))
             {
                 System.Diagnostics.Trace.WriteLine(
-                    $"[QPayProcessor] ATM LINE notification uses new_lineid_backup. ContactId={contact.Id}");
+                    $"[DonationPaymentProcessor] ATM LINE notification uses new_lineid_backup. ContactId={contact.Id}");
                 return backupLineId;
             }
 
@@ -302,8 +302,8 @@ namespace ChurchReport.WebServiceConnector
             if (string.IsNullOrWhiteSpace(lineId))
             {
                 System.Diagnostics.Trace.WriteLine(
-                    $"[QPayProcessor] ATM LINE notification skipped because donor has no LINE id. ContactId={contactId}");
-                return BuildAtmNotificationWarning("LINE ³qª¾¥¼°e¥X¡G©^ÄmªÌ©|¥¼¸j©w LINE¡A½Ğ«O¦s¥»­¶¥I´Ú¸ê°T¡C");
+                    $"[DonationPaymentProcessor] ATM LINE notification skipped because donor has no LINE id. ContactId={contactId}");
+                return BuildAtmNotificationWarning("LINE é€šçŸ¥æœªé€å‡ºï¼šå¥‰ç»è€…å°šæœªç¶å®š LINEï¼Œè«‹ä¿å­˜æœ¬é ä»˜æ¬¾è³‡è¨Šã€‚");
             }
 
             try
@@ -314,8 +314,8 @@ namespace ChurchReport.WebServiceConnector
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.WriteLine(
-                    $"[QPayProcessor] ATM LINE notification failed. ContactId={contactId}, LineId={lineId}, Error={ex}");
-                return BuildAtmNotificationWarning("LINE ³qª¾¥¼°e¥X¡A½Ğ«O¦s¥»­¶¥I´Ú¸ê°T¡C");
+                    $"[DonationPaymentProcessor] ATM LINE notification failed. ContactId={contactId}, LineId={lineId}, Error={ex}");
+                return BuildAtmNotificationWarning("LINE é€šçŸ¥æœªé€å‡ºï¼Œè«‹ä¿å­˜æœ¬é ä»˜æ¬¾è³‡è¨Šã€‚");
             }
         }
 
@@ -332,3 +332,4 @@ namespace ChurchReport.WebServiceConnector
         #endregion
     }
 }
+

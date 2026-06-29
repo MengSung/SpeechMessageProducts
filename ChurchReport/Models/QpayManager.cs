@@ -40,8 +40,18 @@ namespace ChurchReport.Models
 
         public QpayModel m_QpayModel { get; set; } = new QpayModel();
 
-        private QPayProcessor m_QPayProcessor;
-        private readonly QPayCreatePaymentGatewayAdapter m_QPayCreatePaymentGatewayAdapter;
+        /// <summary>
+        /// ChurchReport 奉獻付款主流程。
+        /// 類別名稱仍是 QpayManager 是為了保留舊 Controller/View 的相容性；
+        /// 實際金流流程已改由 DonationPaymentProcessor 承擔，避免產品流程繼續綁在永豐 QPay 名稱上。
+        /// </summary>
+        private DonationPaymentProcessor m_DonationPaymentProcessor;
+
+        /// <summary>
+        /// 建立付款用的中性 adapter。
+        /// 這個 adapter 是 ChurchReport 與抽離後金流核心的邊界，未來其他 ASP.NET Core 產品可用同一種模式接入。
+        /// </summary>
+        private readonly IDonationPaymentCreateGatewayAdapter m_DonationPaymentCreateGatewayAdapter;
 
         // 登入的連絡人
         public Entity m_LoginContact;
@@ -56,8 +66,19 @@ namespace ChurchReport.Models
 
         #endregion
         #region 初始化
+        public QpayManager()
+            : this((IDonationPaymentCreateGatewayAdapter)null)
+        {
+        }
+
         public QpayManager(
-            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter = null)
+            DonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter)
+            : this((IDonationPaymentCreateGatewayAdapter)donationPaymentCreateGatewayAdapter)
+        {
+        }
+
+        public QpayManager(
+            IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter)
         {
             // 商店編號
             if( m_Configuration["Cash_Environment"] == "正式環境" )
@@ -76,13 +97,25 @@ namespace ChurchReport.Models
             this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
             m_PushUtility = new PushUtility(m_LineMessagingClient);
 
-            m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter;
-            m_QPayProcessor = new QPayProcessor(
+            m_DonationPaymentCreateGatewayAdapter = donationPaymentCreateGatewayAdapter;
+            m_DonationPaymentProcessor = new DonationPaymentProcessor(
                 m_LineMessagingClient,
                 m_PushUtility,
                 new ReplyUtility(m_LineMessagingClient),
-                m_QPayCreatePaymentGatewayAdapter);
+                m_DonationPaymentCreateGatewayAdapter);
 
+        }
+
+        /// <summary>
+        /// 舊程式仍以 QPay 命名 adapter 建立 QpayManager 時使用的相容建構函式。
+        /// 這裡只轉成中性的 DonationPaymentProcessor 路徑，不保留任何 QPay 專屬產品流程邏輯；
+        /// 新程式請改用 <see cref="DonationPaymentCreateGatewayAdapter"/> 建構函式。
+        /// </summary>
+        [Obsolete("Use QpayManager(DonationPaymentCreateGatewayAdapter). QPay adapter constructor is retained only for compatibility.")]
+        public QpayManager(
+            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter)
+            : this((IDonationPaymentCreateGatewayAdapter)qPayCreatePaymentGatewayAdapter)
+        {
         }
         #endregion
 
@@ -155,7 +188,7 @@ namespace ChurchReport.Models
             try
             {
                 this.m_LoginContact = aLoginContact;
-                m_QPayProcessor.m_LoginContact = aLoginContact;
+                m_DonationPaymentProcessor.m_LoginContact = aLoginContact;
 
                 if (QpayModel.ClickType == "查詢")
                 {
@@ -396,7 +429,7 @@ namespace ChurchReport.Models
             {
                 if (QpayModel.Amount != null && QpayModel.Amount > 0)
                 {
-                    String DedicationResult = await m_QPayProcessor.SaveKeyInDedication(QpayModel);
+                    String DedicationResult = await m_DonationPaymentProcessor.SaveKeyInDedication(QpayModel);
 
                     if (DedicationResult.Contains("錯誤") != true)
                     {
@@ -734,7 +767,7 @@ namespace ChurchReport.Models
                 //控管奉獻金額
                 if (QpayModel.Amount != null && QpayModel.Amount > 0)
                 {
-                    String DedicationResult = await m_QPayProcessor.CreateFeeAsync(m_Contact, QpayModel);
+                    String DedicationResult = await m_DonationPaymentProcessor.CreateFeeAsync(m_Contact, QpayModel);
 
                     String PayWay = "";
                     if (DedicationResult.StartsWith("信用卡繳費失敗!"))

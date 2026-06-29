@@ -14,20 +14,20 @@ using ToolUtilityNameSpace.Factory;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// 金流處理器 - 核心模組
+    /// ChurchReport 奉獻付款處理器 - 核心模組
     /// 
     /// 【職責】
     /// - 初始化與依賴注入
     /// - 配置管理
     /// - LINE Bot 整合
-    /// - 金流服務提供者選擇（策略模式）
+    /// - 建立 ChurchReport 產品層付款流程所需的 CRM、LINE 與金流 adapter 依賴
     /// 
     /// 【設計模式】
     /// - Facade 模式：為複雜的金流系統提供統一介面
     /// - Strategy 模式：動態選擇金流提供商
     /// - Factory 模式：ToolUtility 實例化
     /// </summary>
-    public partial class QPayProcessor
+    public partial class DonationPaymentProcessor
     {
         #region ===== 私有成員 =====
 
@@ -55,9 +55,11 @@ namespace ChurchReport.WebServiceConnector
         private readonly PushUtility m_PushUtility;
         private readonly ReplyUtility m_ReplyUtility;
 
-        // CRM 與金流服務
+        // CRM 與金流服務。
+        // 這裡只依賴 ChurchReport 產品層的中性 adapter 介面；
+        // 實際 provider protocol 由 SpeechMessage.Payments 決定，避免主流程再綁死 QPay/永豐命名。
         private readonly ToolUtilityClass m_ToolUtilityClass;
-        private readonly QPayCreatePaymentGatewayAdapter m_QPayCreatePaymentGatewayAdapter;
+        private readonly IDonationPaymentCreateGatewayAdapter m_DonationPaymentCreateGatewayAdapter;
         private readonly OptionSetMetadataService _optionSetMetadataService;
 
         // 業務資料
@@ -68,10 +70,23 @@ namespace ChurchReport.WebServiceConnector
         #region ===== 建構函式 =====
 
         /// <summary>
-        /// 主要建構函式（推薦使用）
+        /// 主要建構函式（推薦使用）。
+        /// 新程式應注入 <see cref="DonationPaymentCreateGatewayAdapter"/>，
+        /// 讓奉獻付款流程維持產品中性命名，而不是再從 QPay adapter 開始。
         /// </summary>
-        public QPayProcessor(
-            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter)
+        public DonationPaymentProcessor(
+            DonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter)
+            : this((IDonationPaymentCreateGatewayAdapter)donationPaymentCreateGatewayAdapter)
+        {
+        }
+
+        /// <summary>
+        /// 內部共用建構函式。
+        /// 測試或相容 wrapper 可以提供任何實作 <see cref="IDonationPaymentCreateGatewayAdapter"/> 的 adapter，
+        /// 但主要 DI 註冊仍應使用 <see cref="DonationPaymentCreateGatewayAdapter"/>。
+        /// </summary>
+        public DonationPaymentProcessor(
+            IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter)
         {
             // 初始化環境設定
             RETURN_URL = m_Configuration["RETURN_URL"];
@@ -87,9 +102,11 @@ namespace ChurchReport.WebServiceConnector
             // 初始化 CRM 工具
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
-            // 初始化金流服務
-            m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter
-                ?? throw new ArgumentNullException(nameof(qPayCreatePaymentGatewayAdapter));
+            // 初始化金流建單 adapter。
+            // 這是 ChurchReport 與抽離後金流核心的唯一建立付款邊界；
+            // 不在 processor 內直接建立 provider request，避免未來新增產品時複製一套金流細節。
+            m_DonationPaymentCreateGatewayAdapter = donationPaymentCreateGatewayAdapter
+                ?? throw new ArgumentNullException(nameof(donationPaymentCreateGatewayAdapter));
 
             // 初始化 OptionSet 服務
             _optionSetMetadataService = new OptionSetMetadataService(
@@ -103,13 +120,31 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// 相容性建構函式（用於現有 LINE Bot 整合）
+        /// 相容性建構函式（用於現有 LINE Bot 整合）。
+        /// 仍然收 LINE 相關物件，是因為 ChurchReport 的奉獻通知流程屬於產品層；
+        /// 這些依賴不會被搬入可重用金流核心。
         /// </summary>
-        public QPayProcessor(
+        public DonationPaymentProcessor(
             LineMessagingClient aLineMessagingClient,
             PushUtility aPushUtility,
             ReplyUtility aReplyUtility,
-            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter)
+            DonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter)
+            : this(
+                  aLineMessagingClient,
+                  aPushUtility,
+                  aReplyUtility,
+                  (IDonationPaymentCreateGatewayAdapter)donationPaymentCreateGatewayAdapter)
+        {
+        }
+
+        /// <summary>
+        /// 內部共用建構函式，讓相容 wrapper 可用舊 adapter 轉接到同一條實作路徑。
+        /// </summary>
+        public DonationPaymentProcessor(
+            LineMessagingClient aLineMessagingClient,
+            PushUtility aPushUtility,
+            ReplyUtility aReplyUtility,
+            IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter)
         {
             // 初始化環境設定
             RETURN_URL = m_Configuration["RETURN_URL"];
@@ -124,9 +159,10 @@ namespace ChurchReport.WebServiceConnector
             // 初始化 CRM 工具
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
-            // 根據配置選擇金流服務（策略模式）
-            m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter
-                ?? throw new ArgumentNullException(nameof(qPayCreatePaymentGatewayAdapter));
+            // 根據配置選擇金流服務（策略模式）。
+            // provider 的差異已封裝在 adapter/core 內，processor 只保留 ChurchReport 的產品流程。
+            m_DonationPaymentCreateGatewayAdapter = donationPaymentCreateGatewayAdapter
+                ?? throw new ArgumentNullException(nameof(donationPaymentCreateGatewayAdapter));
 
             // 初始化 OptionSet 服務
             _optionSetMetadataService = new OptionSetMetadataService(
@@ -154,7 +190,7 @@ namespace ChurchReport.WebServiceConnector
                 ? m_Configuration["Sinopac:ShopNo"]
                 : m_Configuration["Sandbox:ShopNo"];
 
-            System.Diagnostics.Trace.WriteLine($"[QPayProcessor] ShopNo initialized: {m_ShopNo} (Environment: {cashEnvironment})");
+            System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] ShopNo initialized: {m_ShopNo} (Environment: {cashEnvironment})");
         }
 
         /// <summary>
@@ -173,7 +209,7 @@ namespace ChurchReport.WebServiceConnector
                     
                     if (!string.IsNullOrEmpty(token))
                     {
-                        System.Diagnostics.Trace.WriteLine($"[QPayProcessor] LINE Token loaded for organization: {organization}");
+                        System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] LINE Token loaded for organization: {organization}");
                         return token;
                     }
                 }
@@ -184,14 +220,14 @@ namespace ChurchReport.WebServiceConnector
 
                 if (string.IsNullOrEmpty(defaultToken))
                 {
-                    System.Diagnostics.Trace.WriteLine("[QPayProcessor] 警告: LINE Channel Access Token 未設定");
+                    System.Diagnostics.Trace.WriteLine("[DonationPaymentProcessor] 警告: LINE Channel Access Token 未設定");
                 }
 
                 return defaultToken ?? string.Empty;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] 錯誤: 讀取 LINE Token 配置失敗 - {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] 錯誤: 讀取 LINE Token 配置失敗 - {ex.Message}");
                 return string.Empty;
             }
         }
@@ -212,15 +248,18 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>後端 URL</summary>
         protected string BackendUrl => BACKEND_URL;
 
-        /// <summary>組織代碼</summary>
+        /// <summary>ChurchReport 付款組織代碼。名稱暫保留 QPayOrganization，因 appsettings 既有 key 仍為 QPAY_ORGANIZATION。</summary>
         protected string QPayOrganization => QPAY_ORGANIZATION;
 
         /// <summary>CRM 工具類</summary>
         protected ToolUtilityClass ToolUtility => m_ToolUtilityClass;
 
 
-        /// <summary>QPay neutral gateway create adapter</summary>
-        protected QPayCreatePaymentGatewayAdapter QPayCreatePaymentGatewayAdapter => m_QPayCreatePaymentGatewayAdapter;
+        /// <summary>
+        /// ChurchReport 產品層建立付款 adapter。
+        /// partial 類別只能透過這個中性屬性建單，避免新的付款流程再依賴 QPay 命名。
+        /// </summary>
+        protected IDonationPaymentCreateGatewayAdapter DonationPaymentCreateGatewayAdapter => m_DonationPaymentCreateGatewayAdapter;
 
         /// <summary>OptionSet 服務</summary>
         protected OptionSetMetadataService OptionSetService => _optionSetMetadataService;
@@ -231,3 +270,4 @@ namespace ChurchReport.WebServiceConnector
         #endregion
     }
 }
+

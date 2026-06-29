@@ -126,9 +126,11 @@ namespace ChurchReport.Models
         private readonly IHttpContextAccessor m_ContextAccessor;
 
         /// <summary>
-        /// 付款服務實例
+        /// 建立付款用的產品層 adapter。
+        /// 此處保留在 ChurchReport 內，是因為它銜接 Session、CRM 與舊奉獻頁面狀態；
+        /// 可重用金流核心不應知道 InMemoryDataContext 或 ChurchReport 的頁面模型。
         /// </summary>
-        private readonly QPayCreatePaymentGatewayAdapter m_QPayCreatePaymentGatewayAdapter;
+        private readonly IDonationPaymentCreateGatewayAdapter m_DonationPaymentCreateGatewayAdapter;
 
         /// <summary>
         /// ToolUtility 提供者，用於依賴注入
@@ -467,7 +469,7 @@ namespace ChurchReport.Models
         /// 注入必要的依賴項：
         /// - IHttpContextAccessor: 用於安全存取 HTTP 上下文和 Session
         /// - IMemoryCache: 用於快取資料管理器實例
-        /// - QPayCreatePaymentGatewayAdapter: QPay 建單 adapter
+        /// - IDonationPaymentCreateGatewayAdapter: ChurchReport 奉獻付款建單 adapter
         /// - IToolUtilityProvider: ToolUtility 提供者
         /// 
         /// 注意：不再在建構時捕獲 Session，以避免 Session Bleeding
@@ -480,7 +482,7 @@ namespace ChurchReport.Models
             IHttpContextAccessor contextAccessor,
             IMemoryCache memoryCache,
             IToolUtilityProvider toolUtilityProvider,
-            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter = null)
+            IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter = null)
         {
             _memoryCache = memoryCache;
 
@@ -491,7 +493,7 @@ namespace ChurchReport.Models
             // ========================================
             m_ContextAccessor = contextAccessor ?? throw new ArgumentNullException(nameof(contextAccessor));
 
-            m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter;
+            m_DonationPaymentCreateGatewayAdapter = donationPaymentCreateGatewayAdapter;
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
 
             System.Diagnostics.Debug.WriteLine("[InMemoryDataContext] ✅ 建構完成（Session Bleeding 修復版本）");
@@ -1173,7 +1175,7 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    m_QpayManager = new QpayManager(m_QPayCreatePaymentGatewayAdapter);
+                    m_QpayManager = new QpayManager(m_DonationPaymentCreateGatewayAdapter);
                     _memoryCache.Set<QpayManager>(key, m_QpayManager, options);
 
                     SetSessionDirtyFlag();

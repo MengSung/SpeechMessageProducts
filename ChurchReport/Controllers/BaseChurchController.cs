@@ -262,11 +262,13 @@ namespace ChurchReport.Controllers
             else
             {
                 // 向後相容：直接建立實例（將逐步淘汰）
-                var qPayCreatePaymentGatewayAdapter =
-                    httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(QPayCreatePaymentGatewayAdapter))
-                        as QPayCreatePaymentGatewayAdapter;
+                // 從 DI 取得中性的奉獻付款建單 adapter。
+                // Base controller 只需要把 ChurchReport session/context 串起來，不應再以 QPay 類名作為主要入口。
+                var donationPaymentCreateGatewayAdapter =
+                    httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(IDonationPaymentCreateGatewayAdapter))
+                        as IDonationPaymentCreateGatewayAdapter;
                 InMemoryContext = new InMemoryDataContextSmallGroup(
-                    httpContextAccessor, memoryCache, toolUtilityProvider, qPayCreatePaymentGatewayAdapter);
+                    httpContextAccessor, memoryCache, toolUtilityProvider, donationPaymentCreateGatewayAdapter);
                 System.Diagnostics.Debug.WriteLine("[BaseChurchController] 使用向後相容模式建立 InMemoryContext（請盡快更新為 DI 注入）");
             }
 

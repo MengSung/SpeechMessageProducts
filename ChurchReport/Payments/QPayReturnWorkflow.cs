@@ -10,11 +10,11 @@ using SpeechMessage.Payments.Models;
 namespace ChurchReport.Payments;
 
 /// <summary>
-/// QPay 前端 return URL 後續產品流程的抽象。
-/// 金流核心只負責 parse callback 與 query payment status；
-/// ChurchReport 的 CRM 更新、奉獻結果頁與費用 workflow 由此介面背後的產品層處理。
+/// ChurchReport 付款回傳 workflow 的中性介面。
+/// Controller 只負責把 HTTP callback 轉成 core 查詢結果；這個 workflow 才決定付款結果如何進入
+/// ChurchReport 的產品流程，例如費用單付款或定期定額奉獻。
 /// </summary>
-public interface IQPayReturnWorkflow
+public interface IDonationPaymentReturnWorkflow
 {
     IActionResult HandleReturn(
         string shopNo,
@@ -23,15 +23,27 @@ public interface IQPayReturnWorkflow
 }
 
 /// <summary>
-/// 將永豐 QPay return/query 的標準化結果導回 ChurchReport 既有產品 workflow。
-/// 這個類別不做永豐簽章、加解密或狀態碼解析，只消費 <see cref="PaymentStatusResult"/>。
+/// 舊 QPay 命名的 return workflow 介面。
+/// 保留此介面是為了讓舊 Controller、測試與 DI 在遷移期間不中斷；新程式應依賴
+/// <see cref="IDonationPaymentReturnWorkflow"/>。
 /// </summary>
-public sealed class QPayReturnWorkflow : IQPayReturnWorkflow
+[Obsolete("Use IDonationPaymentReturnWorkflow. QPay naming is retained only for compatibility during the migration.")]
+public interface IQPayReturnWorkflow : IDonationPaymentReturnWorkflow
+{
+}
+
+/// <summary>
+/// 將 provider-neutral 的付款狀態轉成 ChurchReport 產品流程結果。
+/// 這個類別是金流核心與 ChurchReport 業務流程的邊界：它讀取 SpeechMessage.Payments 的
+/// <see cref="PaymentStatusResult"/>，但不直接處理 HTTP、簽章、CRM 查詢或 LINE 發送。
+/// </summary>
+public sealed class DonationPaymentReturnWorkflow : IDonationPaymentReturnWorkflow
 {
     private const string PaymentResultViewName = "~/Views/QPayCard/PaymentResult.cshtml";
-    private readonly IQPayProductWorkflowDispatcher? _productWorkflowDispatcher;
+    private readonly IDonationPaymentProductWorkflowDispatcher? _productWorkflowDispatcher;
 
-    public QPayReturnWorkflow(IQPayProductWorkflowDispatcher? productWorkflowDispatcher = null)
+    public DonationPaymentReturnWorkflow(
+        IDonationPaymentProductWorkflowDispatcher? productWorkflowDispatcher = null)
     {
         _productWorkflowDispatcher = productWorkflowDispatcher;
     }
@@ -46,15 +58,16 @@ public sealed class QPayReturnWorkflow : IQPayReturnWorkflow
         var providerData = statusResult.ProviderData ?? new Dictionary<string, string>();
         if (_productWorkflowDispatcher != null)
         {
-            // 正式執行時優先交給既有 QPay processor，維持 CRM/LINE/頁面行為。
-            // providerData 只承載核心已清理過的 provider metadata，避免產品層重新處理 raw callback。
+            // 正常正式流程會進入 dispatcher，讓 ChurchReport 自己的 fee/recurring donation processor
+            // 負責 CRM 更新、LINE 通知與結果頁呈現。金流核心不應知道這些產品細節。
             var workflowResult = CreateWorkflowPaymentResult(shopNo, payToken, statusResult, providerData);
             return IsDedicationBooking(workflowResult.PaymentCategory)
                 ? _productWorkflowDispatcher.HandleDedicationBookingReturn(shopNo, payToken, workflowResult)
                 : _productWorkflowDispatcher.HandleFeeReturn(shopNo, payToken, workflowResult);
         }
 
-        // 沒有注入產品 dispatcher 時提供保底 ViewResult，主要供測試或未接上完整 ChurchReport workflow 的環境使用。
+        // 測試或尚未註冊產品 dispatcher 的環境仍要能得到可讀結果頁，
+        // 因此這裡保留一個無副作用 fallback，不做 CRM 或 LINE 寫入。
         var isSuccess = statusResult.Status == PaymentStatus.Succeeded &&
             !statusResult.Error.HasError;
         var providerMessage = FirstNonEmpty(
@@ -121,22 +134,22 @@ public sealed class QPayReturnWorkflow : IQPayReturnWorkflow
 
     private static bool IsDedicationBooking(string value)
     {
-        // 這裡判斷的是 ChurchReport 產品分類，不是 provider payment method。
-        // 保留中英文與舊值相容，讓舊資料仍可走到正確奉獻預約處理器。
+        // 這裡判斷的是 ChurchReport 的產品分類，不是 provider payment method。
+        // 保留多個舊值是為了相容歷史 callback metadata 與先前抽離階段產生的分類名稱。
         return value.Equals("dedication_booking", StringComparison.OrdinalIgnoreCase) ||
             value.Equals("recurring_dedication", StringComparison.OrdinalIgnoreCase) ||
             value.Contains("Dedication", StringComparison.OrdinalIgnoreCase) ||
-            value.Contains("\u8a8d\u737b", StringComparison.OrdinalIgnoreCase);
+            value.Contains("認獻", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static QPayWorkflowPaymentResult CreateWorkflowPaymentResult(
+    private static DonationPaymentWorkflowResult CreateWorkflowPaymentResult(
         string shopNo,
         string payToken,
         PaymentStatusResult statusResult,
         IReadOnlyDictionary<string, string> providerData)
     {
-        // 將 provider-neutral status result 轉成舊 QPay processor 可處理的 workflow DTO。
-        // 這是產品層相容 shim，不應被移到 SpeechMessage.Payments。
+        // 將金流核心的中性查詢結果投影成 ChurchReport 產品流程需要的 DTO。
+        // 這個轉換集中在單一位置，避免 fee processor、recurring processor 與 controller 各自解析 providerData。
         var isSuccess = statusResult.Status == PaymentStatus.Succeeded &&
             !statusResult.Error.HasError;
         var status = isSuccess ? "S" : "F";
@@ -145,7 +158,7 @@ public sealed class QPayReturnWorkflow : IQPayReturnWorkflow
             statusResult.Error.Message,
             statusResult.Status.ToString());
 
-        return new QPayWorkflowPaymentResult
+        return new DonationPaymentWorkflowResult
         {
             ShopNo = shopNo ?? string.Empty,
             PayToken = FirstNonEmpty(payToken, statusResult.ProviderOrderRef),
@@ -207,5 +220,89 @@ public sealed class QPayReturnWorkflow : IQPayReturnWorkflow
         }
 
         return string.Empty;
+    }
+}
+
+/// <summary>
+/// 舊類別名稱的相容外殼。
+/// 所有實際付款回傳流程都在 <see cref="DonationPaymentReturnWorkflow"/>；此類別不可新增業務邏輯。
+/// </summary>
+[Obsolete("Use DonationPaymentReturnWorkflow. QPay naming is retained only for compatibility during the migration.")]
+public sealed class QPayReturnWorkflow : IQPayReturnWorkflow
+{
+    private readonly DonationPaymentReturnWorkflow _inner;
+
+    public QPayReturnWorkflow(IQPayProductWorkflowDispatcher? productWorkflowDispatcher = null)
+    {
+        _inner = new DonationPaymentReturnWorkflow(
+            productWorkflowDispatcher == null
+                ? null
+                : new LegacyProductWorkflowDispatcherAdapter(productWorkflowDispatcher));
+    }
+
+    public IActionResult HandleReturn(
+        string shopNo,
+        string payToken,
+        PaymentStatusResult statusResult)
+    {
+        return _inner.HandleReturn(shopNo, payToken, statusResult);
+    }
+
+    private sealed class LegacyProductWorkflowDispatcherAdapter : IDonationPaymentProductWorkflowDispatcher
+    {
+        private readonly IQPayProductWorkflowDispatcher _legacyDispatcher;
+
+        public LegacyProductWorkflowDispatcherAdapter(IQPayProductWorkflowDispatcher legacyDispatcher)
+        {
+            _legacyDispatcher = legacyDispatcher;
+        }
+
+        public IActionResult HandleFeeReturn(
+            string shopNo,
+            string payToken,
+            DonationPaymentWorkflowResult paymentResult)
+        {
+            return _legacyDispatcher.HandleFeeReturn(
+                shopNo,
+                payToken,
+                ToLegacyResult(paymentResult));
+        }
+
+        public IActionResult HandleDedicationBookingReturn(
+            string shopNo,
+            string payToken,
+            DonationPaymentWorkflowResult paymentResult)
+        {
+            return _legacyDispatcher.HandleDedicationBookingReturn(
+                shopNo,
+                payToken,
+                ToLegacyResult(paymentResult));
+        }
+
+        private static QPayWorkflowPaymentResult ToLegacyResult(DonationPaymentWorkflowResult result)
+        {
+            return result is QPayWorkflowPaymentResult legacyResult
+                ? legacyResult
+                : new QPayWorkflowPaymentResult
+                {
+                    ShopNo = result.ShopNo,
+                    PayToken = result.PayToken,
+                    OrderNo = result.OrderNo,
+                    ProviderTransactionId = result.ProviderTransactionId,
+                    Amount = result.Amount,
+                    AmountMinorUnits = result.AmountMinorUnits,
+                    ProductEntityId = result.ProductEntityId,
+                    PaymentOrganization = result.PaymentOrganization,
+                    PaymentCategory = result.PaymentCategory,
+                    PayType = result.PayType,
+                    Status = result.Status,
+                    Description = result.Description,
+                    LeftCCNo = result.LeftCCNo,
+                    RightCCNo = result.RightCCNo,
+                    CCExpDate = result.CCExpDate,
+                    CCToken = result.CCToken,
+                    ProviderData = result.ProviderData
+                };
+        }
     }
 }

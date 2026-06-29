@@ -20,7 +20,7 @@ namespace ChurchReport.WebServiceConnector
     /// - 單一職責：專注於收費單生命週期管理
     /// - 開放封閉：易於擴展新的付款方式
     /// </summary>
-    public partial class QPayProcessor
+    public partial class DonationPaymentProcessor
     {
         #region ===== 建立收費單（主要入口）=====
 
@@ -49,7 +49,7 @@ namespace ChurchReport.WebServiceConnector
             catch (Exception ex)
             {
                 var errorMsg = $"建立收費單失敗: {ex.Message}";
-                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] {errorMsg}\n{ex.StackTrace}");
+                System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] {errorMsg}\n{ex.StackTrace}");
                 throw new InvalidOperationException(errorMsg, ex);
             }
         }
@@ -95,7 +95,7 @@ namespace ChurchReport.WebServiceConnector
             catch (Exception ex)
             {
                 var errorMsg = $"建立收費單實體失敗: {ex.Message}";
-                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] {errorMsg}");
+                System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] {errorMsg}");
                 throw new InvalidOperationException(errorMsg, ex);
             }
         }
@@ -225,7 +225,7 @@ namespace ChurchReport.WebServiceConnector
             catch (Exception ex)
             {
                 var errorMsg = $"儲存手動奉獻失敗: {ex.Message}";
-                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] {errorMsg}");
+                System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] {errorMsg}");
                 throw new InvalidOperationException(errorMsg, ex);
             }
         }
@@ -270,7 +270,7 @@ namespace ChurchReport.WebServiceConnector
 
                 if (string.IsNullOrEmpty(lineUserId))
                 {
-                    System.Diagnostics.Trace.WriteLine($"[QPayProcessor] 會友沒有綁定 LINE，無法發送通知");
+                    System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] 會友沒有綁定 LINE，無法發送通知");
                     return;
                 }
 
@@ -284,17 +284,17 @@ namespace ChurchReport.WebServiceConnector
 
                 if (completed == timeoutTask)
                 {
-                    System.Diagnostics.Trace.WriteLine($"[QPayProcessor] LINE 通知發送超時（8秒），略過通知繼續完成上傳");
+                    System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] LINE 通知發送超時（8秒），略過通知繼續完成上傳");
                 }
                 else
                 {
-                    System.Diagnostics.Trace.WriteLine($"[QPayProcessor] 已成功發送奉獻通知給 {qpayModel.FullName}");
+                    System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] 已成功發送奉獻通知給 {qpayModel.FullName}");
                 }
             }
             catch (Exception ex)
             {
                 // 發送失敗不影響奉獻記錄，只記錄錯誤
-                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] 發送 LINE 通知失敗: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] 發送 LINE 通知失敗: {ex.Message}");
             }
         }
 
@@ -459,7 +459,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Trace.WriteLine($"[QPayProcessor] 指派負責人失敗: {ex.Message}");
+                    System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] 指派負責人失敗: {ex.Message}");
                 }
             }
         }
@@ -486,3 +486,4 @@ namespace ChurchReport.WebServiceConnector
         #endregion
     }
 }
+

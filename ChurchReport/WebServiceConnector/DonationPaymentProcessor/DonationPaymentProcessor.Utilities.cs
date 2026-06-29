@@ -18,7 +18,7 @@ namespace ChurchReport.WebServiceConnector
     /// - ��@¾�d�G�C�Ӥ�k�M�`���@�\��
     /// - DRY�G�קK���Ƶ{���X
     /// </summary>
-    public partial class QPayProcessor
+    public partial class DonationPaymentProcessor
     {
         #region ===== �s���H�d�� =====
 
@@ -64,7 +64,7 @@ namespace ChurchReport.WebServiceConnector
             catch (Exception ex)
             {
                 var errorMsg = $"查詢連絡人失敗: {ex.Message}";
-                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] {errorMsg}");
+                System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] {errorMsg}");
                 throw new InvalidOperationException(errorMsg, ex);
             }
         }
@@ -131,7 +131,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] �o�e LINE �T������: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] �o�e LINE �T������: {ex.Message}");
             }
         }
 
@@ -271,3 +271,4 @@ namespace ChurchReport.WebServiceConnector
         #endregion
     }
 }
+

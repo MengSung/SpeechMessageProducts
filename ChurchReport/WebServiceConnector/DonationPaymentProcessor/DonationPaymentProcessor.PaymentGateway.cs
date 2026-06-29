@@ -12,21 +12,19 @@ using System.Threading.Tasks;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// 金流處理器 - 金流閘道整合模組
+    /// ChurchReport 奉獻付款處理器 - 金流閘道整合模組
     ///
     /// 【職責】
-    /// - 永豐金流(QPay)整合
-    /// - 高鉅金流(MyPay)整合
-    /// - 台新金流(TSPG)整合
-    /// - 訂單建立與查詢
-    /// - 金流回傳處理
+    /// - 將 ChurchReport 的奉獻付款資料轉交給中性金流 adapter
+    /// - 保留既有 CreOrder 回傳形狀，避免一次破壞舊 Razor/View 流程
+    /// - provider 差異由 SpeechMessage.Payments 與 adapter 處理，本類別不直接分辨永豐/高鉅/台新 protocol
     ///
     /// 【設計模式】
     /// - 適配器模式：統一不同金流介面
     /// - 工廠模式：根據配置選擇金流
     /// - 策略模式：動態選擇金流提供商
     /// </summary>
-    public partial class QPayProcessor
+    public partial class DonationPaymentProcessor
     {
         #region ===== 建立訂單（統一介面）=====
 
@@ -63,10 +61,10 @@ namespace ChurchReport.WebServiceConnector
             Entity LineLoginContact,
             string CCToken = null)
         {
-            // QPayProcessor 是 ChurchReport 既有費用/奉獻流程的入口；
-            // 這裡只擷取 CRM contact 顯示名稱，實際建立付款交給 QPayCreatePaymentGatewayAdapter 與通用金流核心。
+            // DonationPaymentProcessor 是 ChurchReport 既有費用/奉獻流程的入口。
+            // 這裡只擷取 CRM contact 顯示名稱，實際 provider 建單交給中性 adapter 與通用金流核心。
             var customerName = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "fullname");
-            return await CreateQPayOrder(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, Staging, DeductTotalNum, PeriodType, DeductFreq, CreditCategory, customerName, CCToken);
+            return await CreateDonationPaymentOrder(Amount, ProductName, OrderDate, FeeId, PayType, PayTypeSub, Staging, DeductTotalNum, PeriodType, DeductFreq, CreditCategory, customerName, CCToken);
         }
 
         /// <summary>
@@ -81,7 +79,7 @@ namespace ChurchReport.WebServiceConnector
         {
             // ATM/轉帳的 provider protocol 已移到 SpeechMessage.Payments.Sinopac。
             // ChurchReport 只提供產品訂單、fee id、回呼 URL 與到期日，並接收 legacy CreOrder 相容結果。
-            return await GetRequiredQPayCreatePaymentGatewayAdapter().CreateLegacyOrderAsync(
+            return await GetRequiredDonationPaymentCreateGatewayAdapter().CreateLegacyOrderAsync(
                 new QPayCreatePaymentInput
                 {
                     Amount = Amount,
@@ -97,25 +95,27 @@ namespace ChurchReport.WebServiceConnector
                 });
         }
 
-        private QPayCreatePaymentGatewayAdapter GetRequiredQPayCreatePaymentGatewayAdapter()
+        private IDonationPaymentCreateGatewayAdapter GetRequiredDonationPaymentCreateGatewayAdapter()
         {
             // Fail fast：若 DI 沒有註冊 adapter，就不要退回舊 toolkit 或硬編 credential。
-            // 這能確保付款建立一律走新的抽離核心。
-            if (QPayCreatePaymentGatewayAdapter == null)
+            // 這能確保付款建立一律走抽離後的金流核心，而不是散落在 ChurchReport 的歷史程式。
+            if (DonationPaymentCreateGatewayAdapter == null)
             {
                 throw new InvalidOperationException(
-                    "QPay create payment gateway adapter is required. Register the payment core adapter before creating QPay orders.");
+                    "Donation payment create gateway adapter is required. Register the payment core adapter before creating donation payment orders.");
             }
 
-            return QPayCreatePaymentGatewayAdapter;
+            return DonationPaymentCreateGatewayAdapter;
         }
 
         #endregion
 
-        #region ===== 永豐金流 (QPay) =====
+        #region ===== 建立奉獻付款訂單 =====
 
         /// <summary>
-        /// 建立永豐金流訂單
+        /// 建立奉獻付款訂單。
+        /// 方法仍回傳舊 <see cref="CreOrder"/>，是為了讓既有頁面與測試保持相容；
+        /// 真正的 provider request 已由中性 adapter 轉交給抽離後的金流核心。
         /// </summary>
         /// <param name="Amount">金額（元）</param>
         /// <param name="ProductName">產品名稱</param>
@@ -130,7 +130,7 @@ namespace ChurchReport.WebServiceConnector
         /// <param name="CreditCategory">信用卡類別</param>
         /// <param name="CCToken">信用卡 Token</param>
         /// <returns>CreOrder 物件</returns>
-        private async Task<CreOrder> CreateQPayOrder(
+        private async Task<CreOrder> CreateDonationPaymentOrder(
             int Amount,
             string ProductName,
             string OrderDate,
@@ -145,9 +145,9 @@ namespace ChurchReport.WebServiceConnector
             string CustomerName,
             string CCToken)
         {
-            // 將 QPayProcessor 的舊參數包成 ChurchReport adapter input。
+            // 將 ChurchReport 舊 UI 傳入的分散參數包成產品層 input。
             // adapter 再轉成 PaymentCreateRequest，provider-specific payload 由核心決定。
-            return await GetRequiredQPayCreatePaymentGatewayAdapter().CreateLegacyOrderAsync(
+            return await GetRequiredDonationPaymentCreateGatewayAdapter().CreateLegacyOrderAsync(
                 new QPayCreatePaymentInput
                 {
                     Amount = Amount,
@@ -176,3 +176,4 @@ namespace ChurchReport.WebServiceConnector
         #endregion
     }
 }
+

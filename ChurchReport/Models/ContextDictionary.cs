@@ -75,9 +75,11 @@ namespace ChurchReport.Models
                 }
                 
                 var key = session.Id;
-                var qPayCreatePaymentGatewayAdapter =
-                    httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(QPayCreatePaymentGatewayAdapter))
-                        as QPayCreatePaymentGatewayAdapter;
+                // 從 ASP.NET Core DI 取得中性的奉獻付款建單 adapter。
+                // ContextDictionary 只負責把每個 session 的 manager 串起來，不應直接依賴 QPay 命名的相容 adapter。
+                var donationPaymentCreateGatewayAdapter =
+                    httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(IDonationPaymentCreateGatewayAdapter))
+                        as IDonationPaymentCreateGatewayAdapter;
 
                 // ✅ 使用 GetOrAdd 確保執行緒安全
                 var entry = _contextDictionary.GetOrAdd(key, k => 
@@ -101,7 +103,7 @@ namespace ChurchReport.Models
                             httpContextAccessor, 
                             memoryCache, 
                             toolUtilityProvider,
-                            qPayCreatePaymentGatewayAdapter),
+                            donationPaymentCreateGatewayAdapter),
                         LastAccessTime = DateTime.UtcNow
                     };
                 });

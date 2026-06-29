@@ -495,8 +495,15 @@ namespace ChurchReport
             services.AddScoped<ChurchReportPaymentProfileResolver>();
             services.AddScoped<IPaymentRecordUpdater, ChurchReportPaymentRecordUpdater>();
             services.AddScoped<IPaymentPayerNotifier, ChurchReportPaymentPayerNotifier>();
+            services.AddScoped<IDonationPaymentReturnWorkflow, DonationPaymentReturnWorkflow>();
             services.AddScoped<IQPayReturnWorkflow, QPayReturnWorkflow>();
+            services.AddScoped<IDonationPaymentProductWorkflowDispatcher, DonationPaymentProductWorkflowDispatcher>();
             services.AddScoped<IQPayProductWorkflowDispatcher, QPayProductWorkflowDispatcher>();
+            // ChurchReport 產品層的建單 adapter，以中性介面供 controller/context/manager 使用。
+            // 舊 QPayCreatePaymentGatewayAdapter 只保留給相容 constructor，不作為新流程的主要入口。
+            services.AddScoped<DonationPaymentCreateGatewayAdapter>();
+            services.AddScoped<IDonationPaymentCreateGatewayAdapter>(sp =>
+                sp.GetRequiredService<DonationPaymentCreateGatewayAdapter>());
             services.AddScoped<QPayCreatePaymentGatewayAdapter>();
 
 #if DEBUG
