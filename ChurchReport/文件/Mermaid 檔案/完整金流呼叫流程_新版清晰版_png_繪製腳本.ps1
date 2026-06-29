@@ -1,4 +1,4 @@
-Add-Type -AssemblyName System.Drawing
+﻿Add-Type -AssemblyName System.Drawing
 
 if (-not ('PaymentFlowPngWriterV3' -as [type])) {
 Add-Type -ReferencedAssemblies 'System.Drawing','System.IO.Compression' -TypeDefinition @'
@@ -130,7 +130,7 @@ if ([string]::IsNullOrWhiteSpace($scriptDir)) {
     $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 }
 
-$outputPath = [System.IO.Path]::Combine($scriptDir, 'payment-flow-clear-v2.png')
+$outputPath = [System.IO.Path]::Combine($scriptDir, 'payment-flow-clear-v3.png')
 $width = 2600
 $height = 3600
 
@@ -229,38 +229,38 @@ Draw-Group 80 1640 2440 450 '4. Callback returns to ChurchReport and core parser
 Draw-Group 80 2150 2440 500 '5. Reusable host/workflow layer' '#f8fafc' '#64748b'
 Draw-Group 80 2710 2440 520 '6. ChurchReport concrete product implementation' '#fff7ed' '#c2410c'
 
-Draw-Node 'user' 140 260 285 130 'Donor/User' "Input donor data`namount`npayment method" '#fef3c7' '#d97706'
-Draw-Node 'controller' 540 260 350 130 'ChurchReport' "DedicationController`nQPay/MyPay/TSPG`nkeeps current routes" '#ffedd5' '#c2410c'
-Draw-Node 'resolver' 1010 260 360 130 'Profile Resolver' "PAY_PROVIDER ->`nPayment ProfileName`nprovider-neutral choice" '#ffedd5' '#c2410c'
-Draw-Node 'factory' 1490 260 390 130 'CreateRequestFactory' "Product data ->`nPaymentCreateRequest`nneutral DTO" '#cffafe' '#0891b2'
-Draw-Node 'adapter' 2000 260 390 130 'Legacy Adapter' "Keeps old QPay callers`nwhile calling`nthe neutral core" '#ffedd5' '#c2410c'
+Draw-Node 'user' 140 250 285 165 'Donor/User' "Input donor data`namount`npayment method" '#fef3c7' '#d97706'
+Draw-Node 'controller' 540 250 350 165 'ChurchReport' "DedicationController`nQPay/MyPay/TSPG`nkeeps current routes" '#ffedd5' '#c2410c'
+Draw-Node 'resolver' 1010 250 360 165 'Profile Resolver' "PAY_PROVIDER ->`nPayment ProfileName`nprovider-neutral choice" '#ffedd5' '#c2410c'
+Draw-Node 'factory' 1490 250 390 165 'CreateRequestFactory' "Product data ->`nPaymentCreateRequest`nneutral DTO" '#cffafe' '#0891b2'
+Draw-Node 'adapter' 2000 250 390 165 'Legacy Adapter' "Keeps old QPay callers`nwhile calling`nthe neutral core" '#ffedd5' '#c2410c'
 
 Draw-Node 'gatewayCreate' 150 790 330 135 'IPaymentGateway' "CreatePaymentAsync`nentry point for all`npayment providers" '#e0e7ff' '#4f46e5'
 Draw-Node 'providerSwitch' 610 790 315 135 'Provider Router' "Choose by profile`nand provider kind`nno product logic" '#fef9c3' '#ca8a04'
-Draw-Node 'sinopac' 1010 720 330 135 'Sinopac/QPay' "sign / encrypt`ncard order`nATM order" '#e0e7ff' '#4f46e5'
-Draw-Node 'mypay' 1440 720 330 135 'MyPay' "map request`ncreate MyPay order`nparse provider data" '#e0e7ff' '#4f46e5'
-Draw-Node 'taishin' 1870 720 330 135 'Taishin/TSPG' "hash mapping`ncreate TSPG order`nparse provider data" '#e0e7ff' '#4f46e5'
+Draw-Node 'sinopac' 1030 690 330 155 'Sinopac/QPay' "sign / encrypt`ncard order`nATM order" '#e0e7ff' '#4f46e5'
+Draw-Node 'mypay' 1440 690 330 155 'MyPay' "map request`ncreate MyPay order`nparse provider data" '#e0e7ff' '#4f46e5'
+Draw-Node 'taishin' 1850 690 330 155 'Taishin/TSPG' "hash mapping`ncreate TSPG order`nparse provider data" '#e0e7ff' '#4f46e5'
 Draw-Node 'createResult' 1050 980 790 120 'PaymentCreateResult' "PaymentPageUrl + ProviderOrderRef`nThe product host only redirects user to payment page." '#e0e7ff' '#4f46e5'
 
-Draw-Node 'providerPage' 420 1335 430 130 'Provider page' "Sinopac / MyPay / Taishin`ncard input`nor ATM payment data" '#dcfce7' '#16a34a'
-Draw-Node 'paymentDone' 1110 1335 430 130 'Payment result' "Provider completes payment`nthen sends callback`nor browser return" '#dcfce7' '#16a34a'
-Draw-Node 'providerAck' 1790 1335 430 130 'Provider waits ack' "PlainText / JSON / Redirect`nresponse produced by`nacknowledgement mapper" '#dcfce7' '#16a34a'
+Draw-Node 'providerPage' 420 1320 430 155 'Provider page' "Sinopac / MyPay / Taishin`ncard input`nor ATM payment data" '#dcfce7' '#16a34a'
+Draw-Node 'paymentDone' 1110 1320 430 155 'Payment result' "Provider completes payment`nthen sends callback`nor browser return" '#dcfce7' '#16a34a'
+Draw-Node 'providerAck' 1790 1320 430 155 'Provider waits ack' "PlainText / JSON / Redirect`nresponse produced by`nacknowledgement mapper" '#dcfce7' '#16a34a'
 
-Draw-Node 'callbackController' 140 1780 420 135 'Callback Controller' "MyPayController`nTSPGController`nQPayCardController" '#cffafe' '#0891b2'
-Draw-Node 'httpMapper' 680 1780 390 135 'HttpRequestMapper' "HttpRequest ->`nPaymentCallbackRequest`nASP.NET boundary only" '#cffafe' '#0891b2'
-Draw-Node 'gatewayParse' 1190 1780 340 135 'IPaymentGateway' "ParseCallbackAsync`nprovider-neutral`ncallback entry" '#e0e7ff' '#4f46e5'
-Draw-Node 'parser' 1640 1780 390 135 'Provider Parser' "verify / decrypt / hash`nnormalize provider status`nmask diagnostics" '#e0e7ff' '#4f46e5'
-Draw-Node 'callbackResult' 2140 1780 320 135 'CallbackResult' "order id`nstatus / amount`nack / diagnostics" '#e0e7ff' '#4f46e5'
+Draw-Node 'callbackController' 140 1770 420 165 'Callback Controller' "MyPayController`nTSPGController`nQPayCardController" '#cffafe' '#0891b2'
+Draw-Node 'httpMapper' 680 1770 390 165 'HttpRequestMapper' "HttpRequest ->`nPaymentCallbackRequest`nASP.NET boundary only" '#cffafe' '#0891b2'
+Draw-Node 'gatewayParse' 1190 1770 340 165 'IPaymentGateway' "ParseCallbackAsync`nprovider-neutral`ncallback entry" '#e0e7ff' '#4f46e5'
+Draw-Node 'parser' 1640 1770 390 165 'Provider Parser' "verify / decrypt / hash`nnormalize provider status`nmask diagnostics" '#e0e7ff' '#4f46e5'
+Draw-Node 'callbackResult' 2140 1770 320 165 'CallbackResult' "order id`nstatus / amount`nack / diagnostics" '#e0e7ff' '#4f46e5'
 
-Draw-Node 'ackMapper' 160 2315 390 135 'Ack Result Mapper' "Payment ack -> IActionResult`nresponse to provider`nno product workflow" '#cffafe' '#0891b2'
-Draw-Node 'workflowMapper' 710 2315 380 135 'Workflow Mapper' "CallbackResult ->`npost-payment context`nshared mapping" '#f1f5f9' '#64748b'
-Draw-Node 'postWorkflow' 1230 2315 380 135 'PostPaymentWorkflow' "runs updater`nand notifier`nthrough interfaces" '#f1f5f9' '#64748b'
+Draw-Node 'ackMapper' 160 2300 390 165 'Ack Result Mapper' "Payment ack -> IActionResult`nresponse to provider`nno product workflow" '#cffafe' '#0891b2'
+Draw-Node 'workflowMapper' 710 2300 380 165 'Workflow Mapper' "CallbackResult ->`npost-payment context`nshared mapping" '#f1f5f9' '#64748b'
+Draw-Node 'postWorkflow' 1230 2300 380 165 'PostPaymentWorkflow' "runs updater`nand notifier`nthrough interfaces" '#f1f5f9' '#64748b'
 Draw-Node 'recordInterface' 1740 2250 365 120 'IPaymentRecordUpdater' "abstract product`npayment record update" '#f1f5f9' '#64748b'
 Draw-Node 'notifyInterface' 1740 2415 365 120 'IPaymentPayerNotifier' "abstract payer`nnotification" '#f1f5f9' '#64748b'
 
 Draw-Node 'crm' 330 2860 470 140 'ChurchReportRecordUpdater' "updates CRM payment bill`nor donation record`nChurchReport-specific" '#ffedd5' '#c2410c'
-Draw-Node 'line' 1070 2860 470 140 'ChurchReportPayerNotifier' "sends LINE notification`nfuture products can replace`nwith Email or SMS" '#ffedd5' '#c2410c'
-Draw-Node 'resultPage' 1810 2860 470 140 'Result page / next step' "success / failed / pending`nUI is decided by`nthe product host" '#ffedd5' '#c2410c'
+Draw-Node 'line' 1070 2845 470 170 'ChurchReportPayerNotifier' "sends LINE notification`nfuture products can replace`nwith Email or SMS" '#ffedd5' '#c2410c'
+Draw-Node 'resultPage' 1810 2845 470 170 'Result page / next step' "success / failed / pending`nUI is decided by`nthe product host" '#ffedd5' '#c2410c'
 
 Draw-Line 'user' 'R' 'controller' 'L'
 Draw-Line 'controller' 'R' 'resolver' 'L'
