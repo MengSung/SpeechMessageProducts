@@ -1,4 +1,4 @@
-using ChurchReport.Models;
+ï»¿using ChurchReport.Models;
 using ChurchReport.Payments;
 using ChurchReport.Services;
 using ChurchReport.Tools;
@@ -14,24 +14,24 @@ using ToolUtilityNameSpace.Factory;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ª÷¬y³B²z¾¹ - ®Ö¤ß¼Ò²Õ
+    /// é‡‘æµè™•ç†å™¨ - æ ¸å¿ƒæ¨¡çµ„
     /// 
-    /// ¡iÂ¾³d¡j
-    /// - ªì©l¤Æ»P¨Ì¿àª`¤J
-    /// - °t¸mºŞ²z
-    /// - LINE Bot ¾ã¦X
-    /// - ª÷¬yªA°È´£¨ÑªÌ¿ï¾Ü¡]µ¦²¤¼Ò¦¡¡^
+    /// ã€è·è²¬ã€‘
+    /// - åˆå§‹åŒ–èˆ‡ä¾è³´æ³¨å…¥
+    /// - é…ç½®ç®¡ç†
+    /// - LINE Bot æ•´åˆ
+    /// - é‡‘æµæœå‹™æä¾›è€…é¸æ“‡ï¼ˆç­–ç•¥æ¨¡å¼ï¼‰
     /// 
-    /// ¡i³]­p¼Ò¦¡¡j
-    /// - Facade ¼Ò¦¡¡G¬°½ÆÂøªºª÷¬y¨t²Î´£¨Ñ²Î¤@¤¶­±
-    /// - Strategy ¼Ò¦¡¡G°ÊºA¿ï¾Üª÷¬y´£¨Ñ°Ó
-    /// - Factory ¼Ò¦¡¡GToolUtility ¹ê¨Ò¤Æ
+    /// ã€è¨­è¨ˆæ¨¡å¼ã€‘
+    /// - Facade æ¨¡å¼ï¼šç‚ºè¤‡é›œçš„é‡‘æµç³»çµ±æä¾›çµ±ä¸€ä»‹é¢
+    /// - Strategy æ¨¡å¼ï¼šå‹•æ…‹é¸æ“‡é‡‘æµæä¾›å•†
+    /// - Factory æ¨¡å¼ï¼šToolUtility å¯¦ä¾‹åŒ–
     /// </summary>
     public partial class QPayProcessor
     {
-        #region ===== ¨p¦³¦¨­û =====
+        #region ===== ç§æœ‰æˆå“¡ =====
 
-        // °t¸mºŞ²z¡]©µ¿ğªì©l¤Æ¡A½uµ{¦w¥ş¡^
+        // é…ç½®ç®¡ç†ï¼ˆå»¶é²åˆå§‹åŒ–ï¼Œç·šç¨‹å®‰å…¨ï¼‰
         private static readonly Lazy<IConfiguration> s_lazyConfiguration = new Lazy<IConfiguration>(() =>
         {
             var builder = new ConfigurationBuilder()
@@ -42,68 +42,68 @@ namespace ChurchReport.WebServiceConnector
 
         private static IConfiguration m_Configuration => s_lazyConfiguration.Value;
 
-        // °Ó©±³]©w
+        // å•†åº—è¨­å®š
         private string m_ShopNo = string.Empty;
 
-        // Àô¹Ò URL
+        // ç’°å¢ƒ URL
         private readonly string RETURN_URL;
         private readonly string BACKEND_URL;
         private readonly string QPAY_ORGANIZATION;
 
-        // LINE Bot ªA°È
+        // LINE Bot æœå‹™
         private readonly LineMessagingClient m_LineMessagingClient;
         private readonly PushUtility m_PushUtility;
         private readonly ReplyUtility m_ReplyUtility;
 
-        // CRM »Pª÷¬yªA°È
+        // CRM èˆ‡é‡‘æµæœå‹™
         private readonly ToolUtilityClass m_ToolUtilityClass;
         private readonly QPayCreatePaymentGatewayAdapter m_QPayCreatePaymentGatewayAdapter;
         private readonly OptionSetMetadataService _optionSetMetadataService;
 
-        // ·~°È¸ê®Æ
+        // æ¥­å‹™è³‡æ–™
         public Entity m_LoginContact { get; set; }
 
         #endregion
 
-        #region ===== «Øºc¨ç¦¡ =====
+        #region ===== å»ºæ§‹å‡½å¼ =====
 
         /// <summary>
-        /// ¥D­n«Øºc¨ç¦¡¡]±ÀÂË¨Ï¥Î¡^
+        /// ä¸»è¦å»ºæ§‹å‡½å¼ï¼ˆæ¨è–¦ä½¿ç”¨ï¼‰
         /// </summary>
         public QPayProcessor(
             QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter)
         {
-            // ªì©l¤ÆÀô¹Ò³]©w
+            // åˆå§‹åŒ–ç’°å¢ƒè¨­å®š
             RETURN_URL = m_Configuration["RETURN_URL"];
             BACKEND_URL = m_Configuration["BACKEND_URL"];
             QPAY_ORGANIZATION = m_Configuration["QPAY_ORGANIZATION"];
 
-            // ªì©l¤Æ LINE Bot
+            // åˆå§‹åŒ– LINE Bot
             var channelAccessToken = GetLineChannelAccessToken();
             m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
             m_PushUtility = new PushUtility(m_LineMessagingClient);
             m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
 
-            // ªì©l¤Æ CRM ¤u¨ã
+            // åˆå§‹åŒ– CRM å·¥å…·
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
-            // ªì©l¤Æª÷¬yªA°È
+            // åˆå§‹åŒ–é‡‘æµæœå‹™
             m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter
                 ?? throw new ArgumentNullException(nameof(qPayCreatePaymentGatewayAdapter));
 
-            // ªì©l¤Æ OptionSet ªA°È
+            // åˆå§‹åŒ– OptionSet æœå‹™
             _optionSetMetadataService = new OptionSetMetadataService(
                 m_ToolUtilityClass.m_Crm2011OrganizationService,
                 null,
                 new MemoryCache(new MemoryCacheOptions())
             );
 
-            // ³]©w°Ó©±½s¸¹
+            // è¨­å®šå•†åº—ç·¨è™Ÿ
             InitializeShopNumber();
         }
 
         /// <summary>
-        /// ¬Û®e©Ê«Øºc¨ç¦¡¡]¥Î©ó²{¦³ LINE Bot ¾ã¦X¡^
+        /// ç›¸å®¹æ€§å»ºæ§‹å‡½å¼ï¼ˆç”¨æ–¼ç¾æœ‰ LINE Bot æ•´åˆï¼‰
         /// </summary>
         public QPayProcessor(
             LineMessagingClient aLineMessagingClient,
@@ -111,46 +111,46 @@ namespace ChurchReport.WebServiceConnector
             ReplyUtility aReplyUtility,
             QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter)
         {
-            // ªì©l¤ÆÀô¹Ò³]©w
+            // åˆå§‹åŒ–ç’°å¢ƒè¨­å®š
             RETURN_URL = m_Configuration["RETURN_URL"];
             BACKEND_URL = m_Configuration["BACKEND_URL"];
             QPAY_ORGANIZATION = m_Configuration["QPAY_ORGANIZATION"];
 
-            // ¨Ï¥Îª`¤Jªº LINE Bot ªA°È
+            // ä½¿ç”¨æ³¨å…¥çš„ LINE Bot æœå‹™
             m_LineMessagingClient = aLineMessagingClient ?? throw new ArgumentNullException(nameof(aLineMessagingClient));
             m_PushUtility = aPushUtility ?? throw new ArgumentNullException(nameof(aPushUtility));
             m_ReplyUtility = aReplyUtility ?? throw new ArgumentNullException(nameof(aReplyUtility));
 
-            // ªì©l¤Æ CRM ¤u¨ã
+            // åˆå§‹åŒ– CRM å·¥å…·
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
-            // ®Ú¾Ú°t¸m¿ï¾Üª÷¬yªA°È¡]µ¦²¤¼Ò¦¡¡^
+            // æ ¹æ“šé…ç½®é¸æ“‡é‡‘æµæœå‹™ï¼ˆç­–ç•¥æ¨¡å¼ï¼‰
             m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter
                 ?? throw new ArgumentNullException(nameof(qPayCreatePaymentGatewayAdapter));
 
-            // ªì©l¤Æ OptionSet ªA°È
+            // åˆå§‹åŒ– OptionSet æœå‹™
             _optionSetMetadataService = new OptionSetMetadataService(
                 m_ToolUtilityClass.m_Crm2011OrganizationService,
                 null,
                 new MemoryCache(new MemoryCacheOptions())
             );
 
-            // ³]©w°Ó©±½s¸¹
+            // è¨­å®šå•†åº—ç·¨è™Ÿ
             InitializeShopNumber();
         }
 
         #endregion
 
-        #region ===== ªì©l¤Æ»²§U¤èªk =====
+        #region ===== åˆå§‹åŒ–è¼”åŠ©æ–¹æ³• =====
 
         /// <summary>
-        /// ªì©l¤Æ°Ó©±½s¸¹¡]®Ú¾ÚÀô¹Ò¿ï¾Ü¡^
+        /// åˆå§‹åŒ–å•†åº—ç·¨è™Ÿï¼ˆæ ¹æ“šç’°å¢ƒé¸æ“‡ï¼‰
         /// </summary>
         private void InitializeShopNumber()
         {
             var cashEnvironment = m_Configuration["Cash_Environment"];
             
-            m_ShopNo = cashEnvironment == "¥¿¦¡Àô¹Ò"
+            m_ShopNo = cashEnvironment == "æ­£å¼ç’°å¢ƒ"
                 ? m_Configuration["Sinopac:ShopNo"]
                 : m_Configuration["Sandbox:ShopNo"];
 
@@ -158,13 +158,13 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ¨ú±o LINE Channel Access Token
+        /// å–å¾— LINE Channel Access Token
         /// </summary>
         private static string GetLineChannelAccessToken()
         {
             try
             {
-                // ¹Á¸Õ±q²ÕÂ´³]©wÅª¨ú
+                // å˜—è©¦å¾çµ„ç¹”è¨­å®šè®€å–
                 var organization = m_Configuration["CrmConnection:Organization"];
                 if (!string.IsNullOrEmpty(organization))
                 {
@@ -178,54 +178,54 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
 
-                // ¨Ï¥Î¹w³]²ÕÂ´
+                // ä½¿ç”¨é è¨­çµ„ç¹”
                 var defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
                 var defaultToken = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
 
                 if (string.IsNullOrEmpty(defaultToken))
                 {
-                    System.Diagnostics.Trace.WriteLine("[QPayProcessor] Äµ§i: LINE Channel Access Token ¥¼³]©w");
+                    System.Diagnostics.Trace.WriteLine("[QPayProcessor] è­¦å‘Š: LINE Channel Access Token æœªè¨­å®š");
                 }
 
                 return defaultToken ?? string.Empty;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] ¿ù»~: Åª¨ú LINE Token °t¸m¥¢±Ñ - {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"[QPayProcessor] éŒ¯èª¤: è®€å– LINE Token é…ç½®å¤±æ•— - {ex.Message}");
                 return string.Empty;
             }
         }
 
         #endregion
 
-        #region ===== ¤½¶}Äİ©Ê¡]¨Ñ¨ä¥L partial Ãş§O¨Ï¥Î¡^=====
+        #region ===== å…¬é–‹å±¬æ€§ï¼ˆä¾›å…¶ä»– partial é¡åˆ¥ä½¿ç”¨ï¼‰=====
 
-        /// <summary>°t¸m¹ê¨Ò</summary>
+        /// <summary>é…ç½®å¯¦ä¾‹</summary>
         protected static IConfiguration Configuration => m_Configuration;
 
-        /// <summary>°Ó©±½s¸¹</summary>
+        /// <summary>å•†åº—ç·¨è™Ÿ</summary>
         protected string ShopNo => m_ShopNo;
 
-        /// <summary>ªğ¦^ URL</summary>
+        /// <summary>è¿”å› URL</summary>
         protected string ReturnUrl => RETURN_URL;
 
-        /// <summary>«áºİ URL</summary>
+        /// <summary>å¾Œç«¯ URL</summary>
         protected string BackendUrl => BACKEND_URL;
 
-        /// <summary>²ÕÂ´¥N½X</summary>
+        /// <summary>çµ„ç¹”ä»£ç¢¼</summary>
         protected string QPayOrganization => QPAY_ORGANIZATION;
 
-        /// <summary>CRM ¤u¨ãÃş</summary>
+        /// <summary>CRM å·¥å…·é¡</summary>
         protected ToolUtilityClass ToolUtility => m_ToolUtilityClass;
 
 
         /// <summary>QPay neutral gateway create adapter</summary>
         protected QPayCreatePaymentGatewayAdapter QPayCreatePaymentGatewayAdapter => m_QPayCreatePaymentGatewayAdapter;
 
-        /// <summary>OptionSet ªA°È</summary>
+        /// <summary>OptionSet æœå‹™</summary>
         protected OptionSetMetadataService OptionSetService => _optionSetMetadataService;
 
-        /// <summary>LINE ±À¼½¤u¨ã</summary>
+        /// <summary>LINE æ¨æ’­å·¥å…·</summary>
         protected PushUtility PushUtility => m_PushUtility;
 
         #endregion

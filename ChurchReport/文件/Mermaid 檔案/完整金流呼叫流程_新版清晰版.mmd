@@ -1,0 +1,124 @@
+%% 完整金流呼叫流程_新版清晰版
+%% Encoding: UTF-8
+%% 目的：說明 ChurchReport 抽離金流模組後，從建立付款、跳轉金流頁、接收 callback、
+%%       更新產品紀錄、通知付款者，到顯示結果頁的完整呼叫路徑。
+%% 注意：SpeechMessage.Payments 是純金流核心；SpeechMessage.Payments.AspNetCore 是 ASP.NET Core 轉接層；
+%%       SpeechMessage.Payments.Workflows 只定義付款後流程抽象，CRM/LINE 實作仍留在 ChurchReport。
+
+%%{init: {
+  "flowchart": {
+    "curve": "linear",
+    "nodeSpacing": 70,
+    "rankSpacing": 95,
+    "padding": 18
+  },
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Microsoft JhengHei, Noto Sans TC, Arial",
+    "fontSize": "16px",
+    "primaryTextColor": "#111827",
+    "lineColor": "#334155"
+  }
+}}%%
+
+flowchart TB
+    UserStart([奉獻者開啟奉獻頁])
+    UserInput[輸入奉獻資料<br/>姓名、項目、金額、付款方式]
+    UserSubmit[按下付款按鈕]
+
+    subgraph ChurchReportCreate["ChurchReport：產品流程與舊有路由相容"]
+        C1[DedicationController / QpayManager<br/>整理奉獻或收費資料]
+        C2[ChurchReportPaymentProfileResolver<br/>依 PAY_PROVIDER 決定 ProfileName]
+        C3[QPayCreatePaymentGatewayAdapter<br/>保留舊程式呼叫介面]
+        C4[PaymentCreateRequestFactory<br/>建立中立 PaymentCreateRequest]
+    end
+
+    subgraph CoreCreate["SpeechMessage.Payments：純金流核心"]
+        G1[IPaymentGateway.CreatePaymentAsync]
+        G2{依 Profile<br/>選擇金流供應商}
+        P1[Sinopac/QPay Provider<br/>建立信用卡或 ATM 交易]
+        P2[MyPay Provider<br/>建立高鉅交易]
+        P3[Taishin/TSPG Provider<br/>建立台新交易]
+        R1[PaymentCreateResult<br/>PaymentPageUrl / ProviderOrderRef]
+    end
+
+    subgraph ProviderPage["外部金流頁面"]
+        E1[永豐信用卡或 ATM 頁面]
+        E2[高鉅金流頁面]
+        E3[台新 TSPG 頁面]
+        E4[付款完成或失敗]
+    end
+
+    subgraph ChurchReportCallback["ChurchReport：接收 callback / return"]
+        B1[MyPayController / TSPGController / QPayCardController<br/>保留既有 callback URL]
+        B2[PaymentHttpRequestMapper<br/>HttpRequest 轉 PaymentCallbackRequest]
+    end
+
+    subgraph CoreCallback["SpeechMessage.Payments：驗證與正規化結果"]
+        G3[IPaymentGateway.ParseCallbackAsync]
+        G4{依 Profile 或 ProviderHint<br/>選擇 parser}
+        P4[Sinopac callback parser<br/>驗簽、解密、狀態轉換]
+        P5[MyPay callback parser<br/>驗證 payload、狀態轉換]
+        P6[Taishin callback parser<br/>驗 hash、狀態轉換]
+        R2[PaymentCallbackResult<br/>ProductOrderId / Status / Amount / Ack]
+    end
+
+    subgraph HostWorkflow["SpeechMessage.Payments.AspNetCore / Workflows：可重用主機與付款後抽象"]
+        H1[PaymentAcknowledgementResultMapper<br/>Ack 轉 IActionResult]
+        H2[PaymentWorkflowResultMapper<br/>callback 結果轉付款後 context]
+        H3[PaymentPostPaymentWorkflow<br/>依序呼叫抽象 handler]
+        H4[IPaymentRecordUpdater<br/>更新產品付款紀錄的抽象]
+        H5[IPaymentPayerNotifier<br/>通知付款者的抽象]
+    end
+
+    subgraph ChurchReportPost["ChurchReport：產品專屬實作"]
+        S1[ChurchReportPaymentRecordUpdater<br/>更新 CRM 付費單或奉獻紀錄]
+        S2[ChurchReportPaymentPayerNotifier<br/>發送 LINE 通知付款者]
+        S3[成功 / 失敗 / 等待付款結果頁]
+    end
+
+    UserStart --> UserInput --> UserSubmit --> C1
+    C1 --> C2 --> C3 --> C4 --> G1
+    G1 --> G2
+    G2 -->|永豐金流| P1
+    G2 -->|高鉅金流| P2
+    G2 -->|台新金流| P3
+    P1 --> R1
+    P2 --> R1
+    P3 --> R1
+    R1 -->|Redirect PaymentPageUrl| E1
+    R1 -->|Redirect PaymentPageUrl| E2
+    R1 -->|Redirect PaymentPageUrl| E3
+    E1 --> E4
+    E2 --> E4
+    E3 --> E4
+    E4 -->|Provider callback / return| B1
+    B1 --> B2 --> G3
+    G3 --> G4
+    G4 -->|永豐| P4
+    G4 -->|高鉅| P5
+    G4 -->|台新| P6
+    P4 --> R2
+    P5 --> R2
+    P6 --> R2
+    R2 --> H1
+    H1 -->|回覆金流平台<br/>PlainText / JSON / Redirect| E4
+    R2 --> H2 --> H3
+    H3 --> H4 --> S1
+    H3 --> H5 --> S2
+    S1 --> S3
+    S2 --> S3
+
+    classDef user fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#111827;
+    classDef church fill:#fff7ed,stroke:#c2410c,stroke-width:2px,color:#111827;
+    classDef host fill:#ecfeff,stroke:#0891b2,stroke-width:2px,color:#111827;
+    classDef core fill:#eef2ff,stroke:#4f46e5,stroke-width:2px,color:#111827;
+    classDef provider fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#111827;
+    classDef decision fill:#fef9c3,stroke:#ca8a04,stroke-width:2px,color:#111827;
+
+    class UserStart,UserInput,UserSubmit user;
+    class C1,C2,C3,C4,B1,S1,S2,S3 church;
+    class B2,H1,H2,H3,H4,H5 host;
+    class G1,G3,R1,R2,P1,P2,P3,P4,P5,P6 core;
+    class E1,E2,E3,E4 provider;
+    class G2,G4 decision;
