@@ -1,12 +1,12 @@
-﻿{
+{
     "id":  "neutralize-qpay-product-workflow-names",
-    "title":  "閬?撠?ChurchReport ?扯炊撠抒? QPay ?Ｗ?瘚??賢??寧?隞狡?賢?",
+    "title":  "將 ChurchReport 產品流程中的 QPay 命名改為中性付款命名",
     "status":  "in_progress",
     "complexity":  "L",
     "risk":  "medium",
     "domain":  "backend",
     "currentPhase":  "implementation",
-    "nextAction":  "Continue Task 4: rename QPayProcessor implementation to DonationPaymentProcessor while keeping QPayProcessor compatibility wrapper.",
+    "nextAction":  "Task 8: run naming audit, reusable-project boundary scan, payment tests, build, and generated-output cleanup.",
     "createdAt":  "2026-06-29T16:20:00+08:00",
     "branch":  "payment-module-extraction"
 }

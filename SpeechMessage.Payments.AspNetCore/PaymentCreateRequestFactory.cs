@@ -5,7 +5,7 @@ namespace SpeechMessage.Payments.AspNetCore;
 /// <summary>
 /// 將各 ASP.NET Core 產品整理好的付款資料轉成金流核心可理解的
 /// <see cref="PaymentCreateRequest"/>。
-/// 這裡只處理 provider-neutral 欄位，不引用 ChurchReport、CRM、LINE、
+/// 這裡只處理 provider-neutral 欄位，不引用任何產品專案、CRM、LINE、
 /// 維修單、會員、發票等產品模型，讓不同產品可以重用同一個付款建立邊界。
 /// </summary>
 public sealed class PaymentCreateRequestFactory

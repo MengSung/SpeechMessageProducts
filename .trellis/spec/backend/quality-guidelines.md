@@ -384,6 +384,61 @@ The provider core translates the neutral request and ChurchReport adapter metada
 
 ---
 
+## Payment Donation View Initialization
+
+### 1. Scope / Trigger
+
+- Trigger: a ChurchReport MVC action renders a donation/payment form backed by `QpayModel` or `DonationPaymentManager.m_QpayModel`.
+- User-visible symptom: donation category, payment method, donor name, or donation number renders blank on `/Dedication/QPayView/{LineId}`.
+
+### 2. Contracts
+
+- Any MVC action that calls `SetupUserLineId(...)` must be `async` and must `await` it before returning `View(...)`.
+- `QpayModel` must provide safe defaults for `Category`, `PayWay`, `DedicationCategoryList`, `OtherCategoryArray`, `SpecialCategoryArray`, `CreditCardList`, `DedicationFeeList`, and `DedicationBookingList`.
+- Before returning the donation form View, call `QpayModel.EnsureFormDefaults()` on the model that will be rendered; `DonationPaymentManager.m_QpayModel` is reused state and can be partially cleared by older flows.
+- CRM/LINE initialization may enrich the model, but the form must still render usable fallback category and payment-method choices when CRM data is missing or delayed.
+
+### 3. Validation & Error Matrix
+
+- Synchronous action calls `SetupUserLineId(...)` without `await` -> page can render before CRM contact data and option lists are loaded.
+- New `QpayModel()` has null category/payment fields -> DevExtreme select boxes display blank/default placeholders and may post incomplete data.
+- Reused `DonationPaymentManager.m_QpayModel` has empty/null lists after an earlier failed flow -> call `EnsureFormDefaults()` before rendering the form.
+- CRM OptionSet lookup fails -> fallback donation categories must remain available.
+
+### 4. Tests Required
+
+- A test must assert `QpayModel` default category/payment values and non-null option lists.
+- A test must assert `QpayModel.EnsureFormDefaults()` restores required category/payment/list fields after reused state is cleared.
+- A test must assert `DedicationController.QPayView` returns `Task<IActionResult>` so LINE initialization can complete before rendering.
+
+### 5. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+public IActionResult QPayView(string lineId)
+{
+    SetupUserLineId(lineId, "", "", "");
+    return View(InMemoryContext.DonationPaymentManager.m_QpayModel);
+}
+```
+
+This starts the asynchronous initialization but renders the View before the model is populated.
+
+#### Correct
+
+```csharp
+public async Task<IActionResult> QPayView(string lineId)
+{
+    await SetupUserLineId(lineId, "", "", "");
+    return View(InMemoryContext.DonationPaymentManager.m_QpayModel);
+}
+```
+
+The page renders only after the product workflow model has been initialized or has fallen back to safe defaults.
+
+---
+
 ## Code Review Checklist
 
 <!-- What reviewers should check -->

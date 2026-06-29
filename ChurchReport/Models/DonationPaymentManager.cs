@@ -47,8 +47,8 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// ChurchReport 奉獻付款主流程。
-        /// 類別名稱仍是 QpayManager 是為了保留舊 Controller/View 的相容性；
-        /// 實際金流流程已改由 DonationPaymentProcessor 承擔，避免產品流程繼續綁在永豐 QPay 名稱上。
+        /// DonationPaymentManager 是產品層的主要名稱；舊 QpayManager 只保留在薄相容 wrapper。
+        /// 實際金流流程由 DonationPaymentProcessor 承擔，避免產品流程繼續綁在永豐 QPay 名稱上。
         /// </summary>
         private DonationPaymentProcessor m_DonationPaymentProcessor;
 
@@ -604,7 +604,7 @@ namespace ChurchReport.Models
         }
         #endregion
         #region 電腦網頁或是LINE登入
-        public QpayModel SetQpayModel(Entity aContact)
+        public QpayModel SetDonationPaymentModel(Entity aContact)
         {
             try
             {
@@ -724,18 +724,22 @@ namespace ChurchReport.Models
                     // 將 Dictionary 的 Key (顯示文字) 轉換為 List<string>
                     m_QpayModel.DedicationCategoryList = categoryMapping.Keys.ToList();
 
-                    System.Diagnostics.Debug.WriteLine($"[SetQpayModel] 成功取得 {m_QpayModel.DedicationCategoryList.Count} 個奉獻類別");
+                    System.Diagnostics.Debug.WriteLine($"[SetDonationPaymentModel] 成功取得 {m_QpayModel.DedicationCategoryList.Count} 個奉獻類別");
                 }
                 catch (Exception ex)
                 {
                     // 如果動態取得失敗，使用備用的硬編碼清單
-                    System.Diagnostics.Debug.WriteLine($"[SetQpayModel] 動態取得奉獻類別失敗，使用備用清單: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[SetDonationPaymentModel] 動態取得奉獻類別失敗，使用備用清單: {ex.Message}");
                     m_QpayModel.DedicationCategoryList = new List<String> {
                         "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
                         "宣教奉獻", "愛心奉獻", "特別奉獻"
                     };
                 }
                 #endregion
+
+                // 動態 OptionSet 若查詢成功但回傳空集合，仍不能讓奉獻頁下拉選單變成空白。
+                // 這裡統一回補必要表單預設值，保留 CRM 成功載入的清單，也保護失敗或空回傳的路徑。
+                m_QpayModel.EnsureFormDefaults();
 
                 return m_QpayModel;
             }
@@ -747,32 +751,42 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-        public async Task<IActionResult> SaveQPayDedication(QpayModel QpayModel)
+        /// <summary>
+        /// 舊方法名稱的相容入口；新程式應呼叫 <see cref="SetDonationPaymentModel"/>。
+        /// 保留 wrapper 可避免舊 Controller、View 或測試在分階段改名時立刻中斷。
+        /// </summary>
+        [Obsolete("Use SetDonationPaymentModel. SetQpayModel is retained only for compatibility during migration.")]
+        public QpayModel SetQpayModel(Entity aContact)
+        {
+            return SetDonationPaymentModel(aContact);
+        }
+
+        public async Task<IActionResult> SaveDonationPaymentDedicationAsync(QpayModel donationModel)
         {
             try
             {
                 //控管節期獻金
-                if (QpayModel.Category != null && QpayModel.Category == "節期獻金")
+                if (donationModel.Category != null && donationModel.Category == "節期獻金")
                 {
-                    if (QpayModel.Others == null || QpayModel.Others =="")
+                    if (donationModel.Others == null || donationModel.Others =="")
                     {
                         return Json(new { status = "2", message = "錯誤:沒有選擇節期!" });
                     }
                 }
 
                 //控管特別奉獻
-                if (QpayModel.Category != null && QpayModel.Category == "特別奉獻")
+                if (donationModel.Category != null && donationModel.Category == "特別奉獻")
                 {
-                    if (QpayModel.Others == null || QpayModel.Others == "")
+                    if (donationModel.Others == null || donationModel.Others == "")
                     {
                         return Json(new { status = "2", message = "錯誤:沒有選擇特別奉獻的項目!" });
                     }
                 }
 
                 //控管奉獻金額
-                if (QpayModel.Amount != null && QpayModel.Amount > 0)
+                if (donationModel.Amount != null && donationModel.Amount > 0)
                 {
-                    String DedicationResult = await m_DonationPaymentProcessor.CreateFeeAsync(m_Contact, QpayModel);
+                    String DedicationResult = await m_DonationPaymentProcessor.CreateFeeAsync(m_Contact, donationModel);
 
                     String PayWay = "";
                     if (DedicationResult.StartsWith("信用卡繳費失敗!"))
@@ -823,9 +837,19 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
+
+        /// <summary>
+        /// 舊 action/model 呼叫端的相容入口；實際奉獻付款建立流程集中在
+        /// <see cref="SaveDonationPaymentDedicationAsync"/>。
+        /// </summary>
+        [Obsolete("Use SaveDonationPaymentDedicationAsync. SaveQPayDedication is retained only for compatibility during migration.")]
+        public Task<IActionResult> SaveQPayDedication(QpayModel qpayModel)
+        {
+            return SaveDonationPaymentDedicationAsync(qpayModel);
+        }
         #endregion
         #region 與官網整合串連，決定登入者
-        public Entity GetLoginContactQpay(GalleryViewModel aGalleryViewModel, ref String QueryResult)
+        public Entity GetDonationPaymentLoginContact(GalleryViewModel aGalleryViewModel, ref String QueryResult)
         {
             try
             {
@@ -837,13 +861,13 @@ namespace ChurchReport.Models
                     // 有找到奉獻者
 
                     // 透過姓名全名再找一遍
-                    Entity aLoginContact = FilterQpayContactByFullName(aGalleryViewModel, aLoginContactCollection);
+                    Entity aLoginContact = FilterDonationContactByFullName(aGalleryViewModel, aLoginContactCollection);
 
                     if (aLoginContact != null)
                     {
                         // 姓名跟身分證字號一樣的有找到
                         // 奉獻者的欄位 行動電話、身分證字號、奉獻編號 沒有值才會加上去，所以不會覆蓋原有的
-                        //UpdateQpayContact(aGalleryViewModel, ref aLoginContact);
+                        //UpdateDonationContact(aGalleryViewModel, ref aLoginContact);
 
                         QueryResult = aGalleryViewModel.FullName + "成功登入";
 
@@ -870,14 +894,14 @@ namespace ChurchReport.Models
                         //QueryResult = aGalleryViewModel.FullName + "登入錯誤:" + "有找到姓名，但是身分證字號卻不一樣";
 
                         QueryResult = aGalleryViewModel.FullName + "成功登入" + "為您在系統中建立了資料";
-                        return CreateQpayContact(aGalleryViewModel);
+                        return CreateDonationContact(aGalleryViewModel);
                     }
                     else
                     {
                         // 沒找到姓名跟身分證字號一樣的
                         // 沒找到奉獻者，所以新增一個連絡人
                         QueryResult = aGalleryViewModel.FullName + "成功登入" + "為您在系統中建立了資料";
-                        return CreateQpayContact(aGalleryViewModel);
+                        return CreateDonationContact(aGalleryViewModel);
 
                     }
                 }
@@ -890,7 +914,18 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-        public Entity CreateQpayContact(GalleryViewModel aGalleryViewModel)
+
+        /// <summary>
+        /// 舊官網奉獻登入流程的相容入口；新程式應呼叫
+        /// <see cref="GetDonationPaymentLoginContact"/>。
+        /// </summary>
+        [Obsolete("Use GetDonationPaymentLoginContact. GetLoginContactQpay is retained only for compatibility during migration.")]
+        public Entity GetLoginContactQpay(GalleryViewModel aGalleryViewModel, ref String QueryResult)
+        {
+            return GetDonationPaymentLoginContact(aGalleryViewModel, ref QueryResult);
+        }
+
+        public Entity CreateDonationContact(GalleryViewModel aGalleryViewModel)
         {
             try
             {
@@ -918,7 +953,17 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-        public Entity FilterQpayContactByFullName(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
+
+        /// <summary>
+        /// 舊方法名稱的相容入口；新程式應呼叫 <see cref="CreateDonationContact"/>。
+        /// </summary>
+        [Obsolete("Use CreateDonationContact. CreateQpayContact is retained only for compatibility during migration.")]
+        public Entity CreateQpayContact(GalleryViewModel aGalleryViewModel)
+        {
+            return CreateDonationContact(aGalleryViewModel);
+        }
+
+        public Entity FilterDonationContactByFullName(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
         {
             try
             {
@@ -941,7 +986,17 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-        public Entity FilterQpayContactByNationId(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
+
+        /// <summary>
+        /// 舊方法名稱的相容入口；新程式應呼叫 <see cref="FilterDonationContactByFullName"/>。
+        /// </summary>
+        [Obsolete("Use FilterDonationContactByFullName. FilterQpayContactByFullName is retained only for compatibility during migration.")]
+        public Entity FilterQpayContactByFullName(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
+        {
+            return FilterDonationContactByFullName(aGalleryViewModel, aContactEntityCollection);
+        }
+
+        public Entity FilterDonationContactByNationId(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
         {
             try
             {
@@ -964,7 +1019,17 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-        public Entity FilterQpayContactByMobile(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
+
+        /// <summary>
+        /// 舊方法名稱的相容入口；新程式應呼叫 <see cref="FilterDonationContactByNationId"/>。
+        /// </summary>
+        [Obsolete("Use FilterDonationContactByNationId. FilterQpayContactByNationId is retained only for compatibility during migration.")]
+        public Entity FilterQpayContactByNationId(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
+        {
+            return FilterDonationContactByNationId(aGalleryViewModel, aContactEntityCollection);
+        }
+
+        public Entity FilterDonationContactByMobile(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
         {
             try
             {
@@ -987,7 +1052,17 @@ namespace ChurchReport.Models
                 throw e;
             }
         }
-        public void UpdateQpayContact(GalleryViewModel aGalleryViewModel, ref Entity aContact)
+
+        /// <summary>
+        /// 舊方法名稱的相容入口；新程式應呼叫 <see cref="FilterDonationContactByMobile"/>。
+        /// </summary>
+        [Obsolete("Use FilterDonationContactByMobile. FilterQpayContactByMobile is retained only for compatibility during migration.")]
+        public Entity FilterQpayContactByMobile(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
+        {
+            return FilterDonationContactByMobile(aGalleryViewModel, aContactEntityCollection);
+        }
+
+        public void UpdateDonationContact(GalleryViewModel aGalleryViewModel, ref Entity aContact)
         {
             try
             {
@@ -1027,6 +1102,15 @@ namespace ChurchReport.Models
                 //Monitor.Exit(this);
                 throw e;
             }
+        }
+
+        /// <summary>
+        /// 舊方法名稱的相容入口；新程式應呼叫 <see cref="UpdateDonationContact"/>。
+        /// </summary>
+        [Obsolete("Use UpdateDonationContact. UpdateQpayContact is retained only for compatibility during migration.")]
+        public void UpdateQpayContact(GalleryViewModel aGalleryViewModel, ref Entity aContact)
+        {
+            UpdateDonationContact(aGalleryViewModel, ref aContact);
         }
         #endregion
         #region 信用卡管理

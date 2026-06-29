@@ -1,4 +1,4 @@
-﻿using ChurchReport.Services;
+using ChurchReport.Services;
 using ChurchReport.Tools;
 using ChurchReport.Filters;
 using ChurchReport.Services.Theme;
@@ -489,7 +489,7 @@ namespace ChurchReport
             // ========================================
             // SpeechMessage.Payments 擁有永豐、高鉅、台新的 provider protocol、加解密、簽章、
             // request/response mapping 與 callback parsing。ChurchReport 只註冊薄 adapter，
-            // 負責把 ASP.NET request、CRM/LINE workflow 與舊 QPay processor 接回核心。
+            // 負責把 ASP.NET request、CRM/LINE 產品流程與抽離後的付款核心接回來。
             services.AddSpeechMessagePayments(Configuration.GetSection("Payment"));
             services.AddSpeechMessagePaymentAspNetCore();
             services.AddScoped<ChurchReportPaymentProfileResolver>();
