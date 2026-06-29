@@ -2,15 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using SpeechMessage.Payments.AspNetCore;
 using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Models;
 
 namespace ChurchReport.Payments;
 
 /// <summary>
-/// 讓既有 ChurchReport QPay 建立訂單流程改走 provider-neutral <see cref="IPaymentGateway"/>。
-/// 這個 adapter 的責任是相容舊的 <see cref="CreOrder"/> 呼叫面與前端欄位；
-/// 真正的永豐、高鉅或台新 request mapping、簽章、加密與 HTTP 呼叫都在 <c>SpeechMessage.Payments</c>。
+/// ChurchReport 舊 QPay 建立訂單流程與新版 <see cref="IPaymentGateway"/> 的轉接器。
+/// 這個類別仍屬於 ChurchReport，因為它必須維持 <see cref="CreOrder"/>、
+/// QPayProcessor、奉獻/收費分類與既有畫面的相容性；真正可跨產品共用的
+/// <see cref="PaymentCreateRequestFactory"/> 已移到 <c>SpeechMessage.Payments.AspNetCore</c>。
 /// </summary>
 public sealed class QPayCreatePaymentGatewayAdapter
 {
@@ -32,14 +34,16 @@ public sealed class QPayCreatePaymentGatewayAdapter
         _profileResolver = profileResolver ?? throw new ArgumentNullException(nameof(profileResolver));
     }
 
+    /// <summary>
+    /// 將 ChurchReport 舊 QPay 欄位轉成 provider-neutral 付款請求後送進共用金流核心。
+    /// 產品流程專用資料會被放進 Metadata，避免共用金流層知道 CRM entity id 或奉獻分類。
+    /// </summary>
     public Task<PaymentCreateResult> CreateCardPaymentAsync(
         QPayCreatePaymentInput input,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
 
-        // 將 ChurchReport 舊流程的付款資料轉成通用核心 contract。
-        // Metadata 用來保留 product/workflow 需要跨回 provider data 的欄位，例如 CRM fee id、奉獻分類、定期定額參數。
         var request = _requestFactory.Create(new PaymentCreateRequestInput
         {
             ProfileName = _profileResolver.ResolveProfileName(input.ProfileName),
@@ -64,22 +68,24 @@ public sealed class QPayCreatePaymentGatewayAdapter
         return _paymentGateway.CreatePaymentAsync(request, cancellationToken);
     }
 
+    /// <summary>
+    /// 舊 QPayProcessor 與舊畫面仍吃 CreOrder shape，因此這裡只做相容轉換。
+    /// 對外新的金流核心仍以 <see cref="PaymentCreateResult"/> 為主，不把 CreOrder 帶進共用專案。
+    /// </summary>
     public async Task<CreOrder> CreateLegacyOrderAsync(
         QPayCreatePaymentInput input,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
 
-        // 舊版 QPayProcessor 仍期待 CreOrder shape；這裡做向後相容轉換，
-        // 但核心 public API 已經是 PaymentCreateResult，不再把 CreOrder 暴露給通用金流專案。
         var result = await CreateCardPaymentAsync(input, cancellationToken);
         return ToLegacyCreOrder(input, result);
     }
 
     private static IReadOnlyDictionary<string, string> BuildMetadata(QPayCreatePaymentInput input)
     {
-        // 這些 metadata 是產品層補充資料，不是 provider SDK DTO。
-        // provider 實作會只讀取自己需要的欄位，例如 MyPay 的 UserId/PFN 或永豐的 Param1/2/3。
+        // Metadata 是產品流程與 provider mapping 的延伸欄位，不是 provider SDK DTO。
+        // MyPay、永豐等 provider 若需要 Param1/2/3 或 UserId，會由金流核心再轉成對應 payload。
         return new Dictionary<string, string>
         {
             ["Param1"] = input.ProductEntityId,
@@ -105,8 +111,8 @@ public sealed class QPayCreatePaymentGatewayAdapter
             return input.Items;
         }
 
-        // 高鉅 MyPay create payload 需要 items；若 ChurchReport 舊呼叫端沒有提供品項，
-        // 以產品名稱與金額建立單一品項，維持舊付款頁可以順利建立訂單。
+        // 部分 provider 建立付款時需要商品項目；舊 ChurchReport 流程沒有明細時，
+        // 以產品名稱與付款金額建立單一項目，保留原本畫面行為。
         return new[]
         {
             new PaymentLineItem
@@ -121,8 +127,8 @@ public sealed class QPayCreatePaymentGatewayAdapter
 
     private static int ResolveDeductTotalNum(QPayCreatePaymentInput input)
     {
-        // DevExtreme 頁面在定期定額情境可能沒有送出可見預設值；
-        // 這裡補齊舊 QPay UI 預設的 12 期，避免永豐拒絕缺少期數的定期扣款建立請求。
+        // 舊 UI 沒有送出定期定額期數時，沿用原流程的 12 期預設值。
+        // 這是 ChurchReport 畫面相容規則，因此留在 adapter，不放進共用金流層。
         return IsRecurringCard(input) && input.DeductTotalNum <= 0
             ? DefaultRecurringDeductTotalNum
             : input.DeductTotalNum;
@@ -151,8 +157,8 @@ public sealed class QPayCreatePaymentGatewayAdapter
         QPayCreatePaymentInput input,
         PaymentCreateResult result)
     {
-        // Legacy CreOrder 的 Status=S 會讓舊前端立即轉跳或顯示繳費資訊。
-        // 因此 hosted payment URL 或 ATM 虛擬帳號缺失時必須 fail closed，不能當成成功。
+        // 舊 CreOrder 以 Status=S/F 判斷是否建立成功。
+        // 若信用卡/LinePay 缺付款頁、ATM 缺虛擬帳號，採 fail closed，避免使用者看到成功但無法付款。
         var missingHostedPaymentUrl = RequiresHostedPaymentUrl(input.PaymentMethod) &&
             string.IsNullOrWhiteSpace(result.PaymentPageUrl);
         var missingAtmPayNo = RequiresAtmPayNo(input.PaymentMethod) &&
@@ -193,8 +199,8 @@ public sealed class QPayCreatePaymentGatewayAdapter
         string paymentPageUrl,
         IReadOnlyDictionary<string, string> providerData)
     {
-        // 舊 UI 依 pay type 讀取不同 legacy param 物件。
-        // 新核心只回傳 PaymentPageUrl 與 sanitized ProviderData，這裡負責映射回舊欄位。
+        // 舊前端依付款方式讀取不同 legacy param。
+        // 這裡只把金流核心回傳的付款頁或虛擬帳號塞回舊 shape，不做 provider-specific parser。
         switch ((paymentMethod ?? string.Empty).ToUpperInvariant())
         {
             case "M":
@@ -264,8 +270,8 @@ public sealed class QPayCreatePaymentGatewayAdapter
 
 /// <summary>
 /// ChurchReport 舊 QPay 建立付款流程的輸入模型。
-/// 此模型刻意留在 ChurchReport，因為它混合了 CRM entity id、奉獻分類、舊前端欄位與回呼 URL；
-/// 通用金流核心只接收轉換後的 <see cref="PaymentCreateRequest"/>。
+/// 這個模型保留產品端欄位，例如 CRM entity id、奉獻/收費分類、舊 callback URL 與定期定額欄位；
+/// adapter 會再把它轉成共用的 <see cref="PaymentCreateRequestInput"/>。
 /// </summary>
 public sealed record QPayCreatePaymentInput
 {

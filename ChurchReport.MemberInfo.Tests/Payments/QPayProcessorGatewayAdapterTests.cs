@@ -8,6 +8,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using SpeechMessage.Payments.AspNetCore;
 using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Models;
 using ToolUtilityNameSpace;
@@ -16,6 +17,10 @@ using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Payments;
 
+/// <summary>
+/// 驗證 ChurchReport 舊 QPayProcessor 已透過 adapter 接到共用金流核心，
+/// 不再直接暴露或依賴舊 IPayment/QPay toolkit 類型。
+/// </summary>
 public sealed class QPayProcessorGatewayAdapterTests
 {
     [Fact]

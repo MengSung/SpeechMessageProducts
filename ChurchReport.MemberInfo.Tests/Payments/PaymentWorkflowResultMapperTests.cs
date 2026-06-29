@@ -1,10 +1,14 @@
-using ChurchReport.Payments;
 using FluentAssertions;
+using SpeechMessage.Payments.AspNetCore;
 using SpeechMessage.Payments.Models;
 using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Payments;
 
+/// <summary>
+/// 驗證 callback workflow 結果投影已移到 SpeechMessage.Payments.AspNetCore，
+/// 且仍能保留 ChurchReport 後續 CRM/LINE 流程需要的核心欄位。
+/// </summary>
 public sealed class PaymentWorkflowResultMapperTests
 {
     [Fact]

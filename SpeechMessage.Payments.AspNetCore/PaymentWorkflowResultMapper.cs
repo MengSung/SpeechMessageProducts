@@ -1,17 +1,18 @@
-using System.Collections.Generic;
 using SpeechMessage.Payments.Models;
 
-namespace ChurchReport.Payments;
+namespace SpeechMessage.Payments.AspNetCore;
 
 /// <summary>
-/// 將金流核心的 callback result 轉成 ChurchReport 產品流程使用的付款結果。
-/// 這層只把 provider-neutral 欄位整理給 CRM、LINE 與既有 workflow，
-/// 不重新解析 provider callback，也不依 provider 原始狀態碼做商業判斷。
+/// 將金流核心解析完成的 callback 結果投影成產品流程容易使用的摘要模型。
+/// 此類別只整理中立欄位；付款成功後要更新維修單、會員期限、發票收款、
+/// 奉獻紀錄或發送通知，仍由各 ASP.NET Core 產品自行負責。
 /// </summary>
 public sealed class PaymentWorkflowResultMapper
 {
     /// <summary>
-    /// 建立 ChurchReport 專用 workflow result，讓後續服務可以更新費用、送 LINE 或顯示結果頁。
+    /// 從 <see cref="PaymentCallbackResult"/> 取出產品流程常用欄位。
+    /// Provider 原始資料保留在 <see cref="PaymentWorkflowResult.ProviderData"/>，
+    /// 供產品端在必要時做對帳、紀錄或通知訊息。
     /// </summary>
     public PaymentWorkflowResult Map(PaymentCallbackResult result)
     {
@@ -29,8 +30,8 @@ public sealed class PaymentWorkflowResultMapper
 
     private static string ReadProviderMessage(IReadOnlyDictionary<string, string> providerData)
     {
-        // provider_message 是核心各 provider 統一塞入的較佳訊息鍵；
-        // message 是相容既有流程或部分 provider sample 的退路。
+        // 多數 provider parser 會把主要訊息正規化成 provider_message；
+        // message 是相容部分舊 payload 或測試資料的 fallback。
         if (providerData.TryGetValue("provider_message", out var providerMessage))
         {
             return providerMessage;
@@ -41,17 +42,24 @@ public sealed class PaymentWorkflowResultMapper
 }
 
 /// <summary>
-/// ChurchReport 產品層的付款結果模型。
-/// 這個模型允許 CRM/LINE workflow 使用 provider-neutral 狀態與 sanitized provider data，
-/// 但不把永豐、高鉅、台新的原始 DTO 暴露給產品流程。
+/// 產品流程友善的付款 callback 結果。
+/// 共用層只負責狀態、訂單號、金額、交易流水號與 provider 訊息的正規化；
+/// 各產品仍自行決定成功、失敗、待處理時要更新哪些資料。
 /// </summary>
 public sealed record PaymentWorkflowResult
 {
+    /// <summary>金流核心正規化後的付款狀態。</summary>
     public PaymentStatus Status { get; init; } = PaymentStatus.Unknown;
+    /// <summary>產品端原始訂單號。</summary>
     public string ProductOrderId { get; init; } = string.Empty;
+    /// <summary>金流供應商交易流水號或授權交易識別碼。</summary>
     public string ProviderTransactionId { get; init; } = string.Empty;
+    /// <summary>callback 中確認到的付款金額；部分 provider 或失敗狀態可能為空。</summary>
     public decimal? Amount { get; init; }
+    /// <summary>付款幣別，預設為 TWD。</summary>
     public string Currency { get; init; } = "TWD";
+    /// <summary>供產品端紀錄或通知使用的 provider 訊息。</summary>
     public string ProviderMessage { get; init; } = string.Empty;
+    /// <summary>經過金流核心清理後的 provider 原始延伸欄位。</summary>
     public IReadOnlyDictionary<string, string> ProviderData { get; init; } = new Dictionary<string, string>();
 }

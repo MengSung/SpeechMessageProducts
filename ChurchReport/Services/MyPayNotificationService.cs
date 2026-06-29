@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using ChurchReport.Payments;
 using ChurchReport.Tools;
@@ -6,11 +6,17 @@ using Line.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
+using SpeechMessage.Payments.AspNetCore;
 using ToolUtilityNameSpace;
 using static ChurchReport.Services.MyPayFeeTypeHelper;
 
 namespace ChurchReport.Services
 {
+    /// <summary>
+    /// MyPay callback 後的 ChurchReport LINE 通知服務。
+    /// 此服務消費共用金流層的 <see cref="PaymentWorkflowResult"/>，但訊息內容、
+    /// 收費單欄位與 LINE 推播策略都屬於 ChurchReport 產品流程，因此不放進共用金流專案。
+    /// </summary>
     public class MyPayNotificationService
     {
         private readonly ILogger<MyPayNotificationService> _logger;

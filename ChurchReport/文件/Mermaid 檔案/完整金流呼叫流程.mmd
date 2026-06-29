@@ -1,0 +1,101 @@
+flowchart TD
+    %% ChurchReport payment module extraction - complete payment call flow.
+    %% Encoding: UTF-8. This file documents boundaries between product workflow,
+    %% ASP.NET Core host integration, reusable payment core, and external providers.
+
+    Start([使用者進入奉獻/繳費頁面])
+    SelectPayment[使用者選擇付款方式<br/>信用卡 / ATM / LINE Pay / 定期定額]
+    SubmitDonation[送出奉獻或繳費表單]
+
+    subgraph Product["ChurchReport 產品層：奉獻、CRM、LINE、舊 QPay 相容"]
+        Controller[DedicationController / QPayCardController<br/>MyPayController / TSPGController]
+        ProductInput[整理產品資料<br/>金額、姓名、訂單號、CRM Id、奉獻/收費分類]
+        ProfileResolver[ChurchReportPaymentProfileResolver<br/>讀 PAY_PROVIDER 或 Payment:DefaultProfile]
+        QPayAdapter[QPayCreatePaymentGatewayAdapter<br/>維持舊 CreOrder / QPayProcessor 相容]
+        ProductWorkflow[ChurchReport 付款後流程<br/>更新 CRM、建立奉獻/收費紀錄、發送 LINE]
+        ResultPage[ChurchReport 成功/失敗/提示頁面]
+    end
+
+    subgraph Host["SpeechMessage.Payments.AspNetCore：ASP.NET Core 共用接線層"]
+        CreateFactory[PaymentCreateRequestFactory<br/>產品輸入 -> PaymentCreateRequest]
+        HttpMapper[PaymentHttpRequestMapper<br/>HttpRequest -> PaymentCallbackRequest]
+        AckMapper[PaymentAcknowledgementResultMapper<br/>PaymentCallbackAcknowledgement -> IActionResult]
+        WorkflowMapper[PaymentWorkflowResultMapper<br/>PaymentCallbackResult -> PaymentWorkflowResult]
+        DI[AddSpeechMessagePaymentAspNetCore<br/>註冊共用 host integration 服務]
+    end
+
+    subgraph Core["SpeechMessage.Payments：純金流核心"]
+        PaymentGateway[IPaymentGateway / PaymentGateway<br/>統一建立付款與處理 callback]
+        ProfileOptions[Payment:Profiles 設定<br/>ProfileName 決定 provider 與金鑰]
+        ProviderRouter{選擇金流 provider}
+        Sinopac[Sinopac/QPay Provider<br/>永豐簽章、加密、callback parser]
+        MyPay[MyPay Provider<br/>高鉅 payload、簽章、callback parser]
+        Taishin[Taishin/TSPG Provider<br/>台新 hash、callback parser]
+        NormalizedResult[PaymentCreateResult / PaymentCallbackResult<br/>中立狀態、錯誤、provider data、ack]
+    end
+
+    subgraph External["外部金流平台"]
+        SinopacPage[永豐信用卡/ATM/付款頁]
+        MyPayPage[高鉅付款頁]
+        TaishinPage[台新 TSPG 付款頁]
+        ProviderNotify[金流背景通知 / 前景返回]
+    end
+
+    Start --> SelectPayment --> SubmitDonation --> Controller
+    Controller --> ProductInput
+    ProductInput --> ProfileResolver
+    ProductInput --> QPayAdapter
+    ProfileResolver --> QPayAdapter
+    QPayAdapter --> CreateFactory
+    CreateFactory --> PaymentGateway
+    PaymentGateway --> ProfileOptions
+    ProfileOptions --> ProviderRouter
+    ProviderRouter -->|PAY_PROVIDER=永豐金流<br/>或 Profile=JesusTest| Sinopac
+    ProviderRouter -->|PAY_PROVIDER=高鉅金流<br/>或 Profile=MyPayProduction| MyPay
+    ProviderRouter -->|PAY_PROVIDER=台新金流<br/>或 Profile=TaishinSandbox| Taishin
+    Sinopac --> NormalizedResult
+    MyPay --> NormalizedResult
+    Taishin --> NormalizedResult
+
+    NormalizedResult -->|PaymentPageUrl| Controller
+    Controller -->|Redirect| SinopacPage
+    Controller -->|Redirect| MyPayPage
+    Controller -->|Redirect| TaishinPage
+    SinopacPage --> ProviderNotify
+    MyPayPage --> ProviderNotify
+    TaishinPage --> ProviderNotify
+
+    ProviderNotify --> Controller
+    Controller --> HttpMapper
+    HttpMapper --> PaymentGateway
+    PaymentGateway --> ProviderRouter
+    ProviderRouter --> Sinopac
+    ProviderRouter --> MyPay
+    ProviderRouter --> Taishin
+    Sinopac --> NormalizedResult
+    MyPay --> NormalizedResult
+    Taishin --> NormalizedResult
+
+    NormalizedResult --> AckMapper
+    AckMapper -->|回應金流平台<br/>PlainText / JSON / Redirect| ProviderNotify
+    NormalizedResult --> WorkflowMapper
+    WorkflowMapper --> ProductWorkflow
+    ProductWorkflow --> ResultPage
+
+    DI -. 在 Startup 註冊 .-> Controller
+    DI -. 提供 .-> CreateFactory
+    DI -. 提供 .-> HttpMapper
+    DI -. 提供 .-> AckMapper
+    DI -. 提供 .-> WorkflowMapper
+
+    classDef product fill:#fff7ed,stroke:#c2410c,color:#111827;
+    classDef host fill:#ecfeff,stroke:#0891b2,color:#111827;
+    classDef core fill:#eef2ff,stroke:#4f46e5,color:#111827;
+    classDef external fill:#f0fdf4,stroke:#16a34a,color:#111827;
+    classDef decision fill:#fef9c3,stroke:#ca8a04,color:#111827;
+
+    class Controller,ProductInput,ProfileResolver,QPayAdapter,ProductWorkflow,ResultPage product;
+    class CreateFactory,HttpMapper,AckMapper,WorkflowMapper,DI host;
+    class PaymentGateway,ProfileOptions,Sinopac,MyPay,Taishin,NormalizedResult core;
+    class SinopacPage,MyPayPage,TaishinPage,ProviderNotify external;
+    class ProviderRouter decision;

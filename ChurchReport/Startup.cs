@@ -492,8 +492,6 @@ namespace ChurchReport
             services.AddSpeechMessagePayments(Configuration.GetSection("Payment"));
             services.AddSpeechMessagePaymentAspNetCore();
             services.AddScoped<ChurchReportPaymentProfileResolver>();
-            services.AddScoped<PaymentCreateRequestFactory>();
-            services.AddScoped<PaymentWorkflowResultMapper>();
             services.AddScoped<IQPayReturnWorkflow, QPayReturnWorkflow>();
             services.AddScoped<IQPayProductWorkflowDispatcher, QPayProductWorkflowDispatcher>();
             services.AddScoped<QPayCreatePaymentGatewayAdapter>();
