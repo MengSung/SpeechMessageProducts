@@ -89,9 +89,9 @@
     <ProjectReference Include="..\LineMessagingProcessor\LineMessagingProcessor.csproj" />
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
     <ProjectReference Include="..\SpeechMessage.Payments\SpeechMessage.Payments.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Payments.AspNetCore\SpeechMessage.Payments.AspNetCore.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Tests\Services\Caching\" />
     <Folder Include="Views\Dedication\" />
     <Folder Include="文件\佈署規劃\" />
     <Folder Include="文件\修正官網奉獻網頁\" />

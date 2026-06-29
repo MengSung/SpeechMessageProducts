@@ -26,6 +26,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using ToolUtilityNameSpace.DependencyInjection;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ChurchReport.WebServiceConnector;
+using SpeechMessage.Payments.AspNetCore.DependencyInjection;
 using SpeechMessage.Payments.DependencyInjection;
 
 namespace ChurchReport
@@ -489,8 +490,7 @@ namespace ChurchReport
             // request/response mapping 與 callback parsing。ChurchReport 只註冊薄 adapter，
             // 負責把 ASP.NET request、CRM/LINE workflow 與舊 QPay processor 接回核心。
             services.AddSpeechMessagePayments(Configuration.GetSection("Payment"));
-            services.AddScoped<PaymentHttpRequestMapper>();
-            services.AddScoped<PaymentAcknowledgementResultMapper>();
+            services.AddSpeechMessagePaymentAspNetCore();
             services.AddScoped<ChurchReportPaymentProfileResolver>();
             services.AddScoped<PaymentCreateRequestFactory>();
             services.AddScoped<PaymentWorkflowResultMapper>();

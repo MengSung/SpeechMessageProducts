@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ChurchReport.Payments;
 using Microsoft.AspNetCore.Mvc;
+using SpeechMessage.Payments.AspNetCore;
 using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Models;
 
