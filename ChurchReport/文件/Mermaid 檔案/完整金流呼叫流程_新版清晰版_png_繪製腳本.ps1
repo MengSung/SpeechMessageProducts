@@ -1,12 +1,14 @@
 Add-Type -AssemblyName System.Drawing
+
+if (-not ('PaymentFlowPngWriterV3' -as [type])) {
 Add-Type -ReferencedAssemblies 'System.Drawing','System.IO.Compression' -TypeDefinition @'
-using System.Drawing;
 using System;
+using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
 
-public static class PngWriter
+public static class PaymentFlowPngWriterV3
 {
     public static void Save(Bitmap bitmap, string outputPath)
     {
@@ -31,11 +33,11 @@ public static class PngWriter
         {
             WriteUInt32(memory, (uint)width);
             WriteUInt32(memory, (uint)height);
-            memory.WriteByte(8); // bit depth
-            memory.WriteByte(2); // truecolor RGB
-            memory.WriteByte(0); // compression
-            memory.WriteByte(0); // filter
-            memory.WriteByte(0); // interlace
+            memory.WriteByte(8);
+            memory.WriteByte(2);
+            memory.WriteByte(0);
+            memory.WriteByte(0);
+            memory.WriteByte(0);
             return memory.ToArray();
         }
     }
@@ -46,7 +48,7 @@ public static class PngWriter
         {
             for (int y = 0; y < bitmap.Height; y++)
             {
-                raw.WriteByte(0); // filter type: None
+                raw.WriteByte(0);
                 for (int x = 0; x < bitmap.Width; x++)
                 {
                     Color color = bitmap.GetPixel(x, y);
@@ -56,14 +58,17 @@ public static class PngWriter
                 }
             }
 
-            raw.Position = 0;
-            using (var compressed = new MemoryStream())
+            byte[] rawBytes = raw.ToArray();
+            using (var zlib = new MemoryStream())
             {
-                using (var deflate = new DeflateStream(compressed, CompressionLevel.Optimal, true))
+                zlib.WriteByte(0x78);
+                zlib.WriteByte(0x9C);
+                using (var deflate = new DeflateStream(zlib, CompressionLevel.Optimal, true))
                 {
-                    raw.CopyTo(deflate);
+                    deflate.Write(rawBytes, 0, rawBytes.Length);
                 }
-                return compressed.ToArray();
+                WriteUInt32(zlib, Adler32(rawBytes));
+                return zlib.ToArray();
             }
         }
     }
@@ -76,8 +81,8 @@ public static class PngWriter
         output.Write(data, 0, data.Length);
 
         byte[] crcInput = new byte[typeBytes.Length + data.Length];
-        Buffer.BlockCopy(typeBytes, 0, crcInput, 0, typeBytes.Length);
-        Buffer.BlockCopy(data, 0, crcInput, typeBytes.Length, data.Length);
+        System.Buffer.BlockCopy(typeBytes, 0, crcInput, 0, typeBytes.Length);
+        System.Buffer.BlockCopy(data, 0, crcInput, typeBytes.Length, data.Length);
         WriteUInt32(output, Crc32(crcInput));
     }
 
@@ -103,19 +108,31 @@ public static class PngWriter
         }
         return ~crc;
     }
+
+    private static uint Adler32(byte[] bytes)
+    {
+        const uint mod = 65521;
+        uint a = 1;
+        uint b = 0;
+        for (int i = 0; i < bytes.Length; i++)
+        {
+            a = (a + bytes[i]) % mod;
+            b = (b + a) % mod;
+        }
+        return (b << 16) | a;
+    }
 }
 '@
+}
 
-# PowerShell 5.1 在不同主控台編碼下可能會把中文檔名解讀成亂碼，
-# 甚至產生 Bitmap.Save() 無法接受的不合法路徑字元。
-# 因此 PNG 輸出固定使用 ASCII 檔名，避免使用者在 VS/PowerShell 內執行時失敗。
 $scriptDir = $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($scriptDir)) {
     $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 }
-$outputPath = [System.IO.Path]::Combine($scriptDir, 'payment-flow-clear.png')
-$width = 2400
-$height = 3000
+
+$outputPath = [System.IO.Path]::Combine($scriptDir, 'payment-flow-clear-v2.png')
+$width = 2600
+$height = 3600
 
 $bitmap = New-Object System.Drawing.Bitmap($width, $height)
 $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
@@ -205,86 +222,84 @@ $script:nodes = @{}
 $graphics.DrawString('Complete Payment Call Flow - Clear Version', $titleFont, $textBrush, 660, 32)
 $graphics.DrawString('Product workflow, ASP.NET Core host glue, reusable payment core, provider callback parsing, and post-payment handlers are separated.', $smallFont, $captionBrush, 500, 88)
 
-Draw-Group 80 150 2240 340 '1. Product creates payment request' '#fff7ed' '#c2410c'
-Draw-Group 80 535 2240 430 '2. SpeechMessage.Payments selects provider' '#eef2ff' '#4f46e5'
-Draw-Group 80 1010 2240 285 '3. External provider payment page' '#f0fdf4' '#16a34a'
-Draw-Group 80 1340 2240 410 '4. Callback returns to ChurchReport and core parser' '#ecfeff' '#0891b2'
-Draw-Group 80 1795 2240 430 '5. Reusable host/workflow layer' '#f8fafc' '#64748b'
-Draw-Group 80 2270 2240 455 '6. ChurchReport concrete product implementation' '#fff7ed' '#c2410c'
+Draw-Group 80 150 2440 410 '1. Product creates payment request' '#fff7ed' '#c2410c'
+Draw-Group 80 620 2440 540 '2. SpeechMessage.Payments selects provider' '#eef2ff' '#4f46e5'
+Draw-Group 80 1220 2440 360 '3. External provider payment page' '#f0fdf4' '#16a34a'
+Draw-Group 80 1640 2440 450 '4. Callback returns to ChurchReport and core parser' '#ecfeff' '#0891b2'
+Draw-Group 80 2150 2440 500 '5. Reusable host/workflow layer' '#f8fafc' '#64748b'
+Draw-Group 80 2710 2440 520 '6. ChurchReport concrete product implementation' '#fff7ed' '#c2410c'
 
-Draw-Node 'user' 140 235 260 105 'Donor/User' "Input donor data`namount, method" '#fef3c7' '#d97706'
-Draw-Node 'controller' 500 235 320 105 'ChurchReport' "DedicationController`nQPay/MyPay/TSPG route" '#ffedd5' '#c2410c'
-Draw-Node 'resolver' 920 235 320 105 'Profile Resolver' "PAY_PROVIDER ->`nPayment ProfileName" '#ffedd5' '#c2410c'
-Draw-Node 'factory' 1340 235 360 105 'CreateRequestFactory' "Product data ->`nPaymentCreateRequest" '#cffafe' '#0891b2'
-Draw-Node 'adapter' 1800 235 360 105 'Legacy Adapter' "Keeps old QPay callers`nusing neutral core" '#ffedd5' '#c2410c'
+Draw-Node 'user' 140 260 285 130 'Donor/User' "Input donor data`namount`npayment method" '#fef3c7' '#d97706'
+Draw-Node 'controller' 540 260 350 130 'ChurchReport' "DedicationController`nQPay/MyPay/TSPG`nkeeps current routes" '#ffedd5' '#c2410c'
+Draw-Node 'resolver' 1010 260 360 130 'Profile Resolver' "PAY_PROVIDER ->`nPayment ProfileName`nprovider-neutral choice" '#ffedd5' '#c2410c'
+Draw-Node 'factory' 1490 260 390 130 'CreateRequestFactory' "Product data ->`nPaymentCreateRequest`nneutral DTO" '#cffafe' '#0891b2'
+Draw-Node 'adapter' 2000 260 390 130 'Legacy Adapter' "Keeps old QPay callers`nwhile calling`nthe neutral core" '#ffedd5' '#c2410c'
 
-Draw-Node 'gatewayCreate' 140 655 320 110 'IPaymentGateway' 'CreatePaymentAsync' '#e0e7ff' '#4f46e5'
-Draw-Node 'providerSwitch' 560 655 280 110 'Provider Router' "Choose by profile`nand provider kind" '#fef9c3' '#ca8a04'
-Draw-Node 'sinopac' 930 610 315 118 'Sinopac/QPay' "sign/encrypt`ncard or ATM order" '#e0e7ff' '#4f46e5'
-Draw-Node 'mypay' 1300 610 315 118 'MyPay' "map request`ncreate MyPay order" '#e0e7ff' '#4f46e5'
-Draw-Node 'taishin' 1670 610 315 118 'Taishin/TSPG' "hash mapping`ncreate TSPG order" '#e0e7ff' '#4f46e5'
-Draw-Node 'createResult' 975 810 650 96 'PaymentCreateResult' 'PaymentPageUrl + ProviderOrderRef. Product host redirects user.' '#e0e7ff' '#4f46e5'
+Draw-Node 'gatewayCreate' 150 790 330 135 'IPaymentGateway' "CreatePaymentAsync`nentry point for all`npayment providers" '#e0e7ff' '#4f46e5'
+Draw-Node 'providerSwitch' 610 790 315 135 'Provider Router' "Choose by profile`nand provider kind`nno product logic" '#fef9c3' '#ca8a04'
+Draw-Node 'sinopac' 1010 720 330 135 'Sinopac/QPay' "sign / encrypt`ncard order`nATM order" '#e0e7ff' '#4f46e5'
+Draw-Node 'mypay' 1440 720 330 135 'MyPay' "map request`ncreate MyPay order`nparse provider data" '#e0e7ff' '#4f46e5'
+Draw-Node 'taishin' 1870 720 330 135 'Taishin/TSPG' "hash mapping`ncreate TSPG order`nparse provider data" '#e0e7ff' '#4f46e5'
+Draw-Node 'createResult' 1050 980 790 120 'PaymentCreateResult' "PaymentPageUrl + ProviderOrderRef`nThe product host only redirects user to payment page." '#e0e7ff' '#4f46e5'
 
-Draw-Node 'providerPage' 420 1110 380 100 'Provider page' "Sinopac / MyPay / Taishin`ncard input or ATM data" '#dcfce7' '#16a34a'
-Draw-Node 'paymentDone' 1140 1110 380 100 'Payment result' "Provider creates callback`nor browser return" '#dcfce7' '#16a34a'
-Draw-Node 'providerAck' 1740 1110 360 100 'Provider waits ack' "PlainText / JSON / Redirect`nfrom acknowledgement mapper" '#dcfce7' '#16a34a'
+Draw-Node 'providerPage' 420 1335 430 130 'Provider page' "Sinopac / MyPay / Taishin`ncard input`nor ATM payment data" '#dcfce7' '#16a34a'
+Draw-Node 'paymentDone' 1110 1335 430 130 'Payment result' "Provider completes payment`nthen sends callback`nor browser return" '#dcfce7' '#16a34a'
+Draw-Node 'providerAck' 1790 1335 430 130 'Provider waits ack' "PlainText / JSON / Redirect`nresponse produced by`nacknowledgement mapper" '#dcfce7' '#16a34a'
 
-Draw-Node 'callbackController' 140 1450 390 110 'Callback Controller' "MyPayController / TSPGController`nQPayCardController" '#cffafe' '#0891b2'
-Draw-Node 'httpMapper' 650 1450 350 110 'HttpRequestMapper' "HttpRequest ->`nPaymentCallbackRequest" '#cffafe' '#0891b2'
-Draw-Node 'gatewayParse' 1120 1450 310 110 'IPaymentGateway' 'ParseCallbackAsync' '#e0e7ff' '#4f46e5'
-Draw-Node 'parser' 1540 1450 360 110 'Provider Parser' "verify/decrypt/hash`nnormalize status" '#e0e7ff' '#4f46e5'
-Draw-Node 'callbackResult' 1980 1450 280 110 'CallbackResult' "order, status, amount`nack, diagnostics" '#e0e7ff' '#4f46e5'
+Draw-Node 'callbackController' 140 1780 420 135 'Callback Controller' "MyPayController`nTSPGController`nQPayCardController" '#cffafe' '#0891b2'
+Draw-Node 'httpMapper' 680 1780 390 135 'HttpRequestMapper' "HttpRequest ->`nPaymentCallbackRequest`nASP.NET boundary only" '#cffafe' '#0891b2'
+Draw-Node 'gatewayParse' 1190 1780 340 135 'IPaymentGateway' "ParseCallbackAsync`nprovider-neutral`ncallback entry" '#e0e7ff' '#4f46e5'
+Draw-Node 'parser' 1640 1780 390 135 'Provider Parser' "verify / decrypt / hash`nnormalize provider status`nmask diagnostics" '#e0e7ff' '#4f46e5'
+Draw-Node 'callbackResult' 2140 1780 320 135 'CallbackResult' "order id`nstatus / amount`nack / diagnostics" '#e0e7ff' '#4f46e5'
 
-Draw-Node 'ackMapper' 160 1915 360 110 'Ack Result Mapper' "Payment ack -> IActionResult`nresponse to provider" '#cffafe' '#0891b2'
-Draw-Node 'workflowMapper' 660 1915 330 110 'Workflow Mapper' "CallbackResult ->`npost-payment context" '#f1f5f9' '#64748b'
-Draw-Node 'postWorkflow' 1120 1915 330 110 'PostPaymentWorkflow' "runs updater and notifier`nthrough interfaces" '#f1f5f9' '#64748b'
-Draw-Node 'recordInterface' 1540 1860 330 100 'IPaymentRecordUpdater' 'abstract product record update' '#f1f5f9' '#64748b'
-Draw-Node 'notifyInterface' 1540 1995 330 100 'IPaymentPayerNotifier' 'abstract payer notification' '#f1f5f9' '#64748b'
+Draw-Node 'ackMapper' 160 2315 390 135 'Ack Result Mapper' "Payment ack -> IActionResult`nresponse to provider`nno product workflow" '#cffafe' '#0891b2'
+Draw-Node 'workflowMapper' 710 2315 380 135 'Workflow Mapper' "CallbackResult ->`npost-payment context`nshared mapping" '#f1f5f9' '#64748b'
+Draw-Node 'postWorkflow' 1230 2315 380 135 'PostPaymentWorkflow' "runs updater`nand notifier`nthrough interfaces" '#f1f5f9' '#64748b'
+Draw-Node 'recordInterface' 1740 2250 365 120 'IPaymentRecordUpdater' "abstract product`npayment record update" '#f1f5f9' '#64748b'
+Draw-Node 'notifyInterface' 1740 2415 365 120 'IPaymentPayerNotifier' "abstract payer`nnotification" '#f1f5f9' '#64748b'
 
-Draw-Node 'crm' 320 2395 420 115 'ChurchReportRecordUpdater' "updates CRM payment bill`nor donation record" '#ffedd5' '#c2410c'
-Draw-Node 'line' 980 2395 420 115 'ChurchReportPayerNotifier' "sends LINE notification`nfuture products can replace it" '#ffedd5' '#c2410c'
-Draw-Node 'resultPage' 1640 2395 420 115 'Result page / next step' "success, failed, pending`ndecided by product host" '#ffedd5' '#c2410c'
+Draw-Node 'crm' 330 2860 470 140 'ChurchReportRecordUpdater' "updates CRM payment bill`nor donation record`nChurchReport-specific" '#ffedd5' '#c2410c'
+Draw-Node 'line' 1070 2860 470 140 'ChurchReportPayerNotifier' "sends LINE notification`nfuture products can replace`nwith Email or SMS" '#ffedd5' '#c2410c'
+Draw-Node 'resultPage' 1810 2860 470 140 'Result page / next step' "success / failed / pending`nUI is decided by`nthe product host" '#ffedd5' '#c2410c'
 
 Draw-Line 'user' 'R' 'controller' 'L'
 Draw-Line 'controller' 'R' 'resolver' 'L'
 Draw-Line 'resolver' 'R' 'factory' 'L'
 Draw-Line 'factory' 'R' 'adapter' 'L'
-Draw-Polyline @((EdgePoint 'adapter' 'B'), [pscustomobject]@{X=1980;Y=515}, [pscustomobject]@{X=300;Y=515}, (EdgePoint 'gatewayCreate' 'T')) 'create payment'
+Draw-Polyline @((EdgePoint 'adapter' 'B'), [pscustomobject]@{X=2195;Y=585}, [pscustomobject]@{X=315;Y=585}, (EdgePoint 'gatewayCreate' 'T')) 'create payment'
 Draw-Line 'gatewayCreate' 'R' 'providerSwitch' 'L'
 Draw-Line 'providerSwitch' 'R' 'sinopac' 'L' 'Sinopac'
 Draw-Line 'providerSwitch' 'R' 'mypay' 'L' 'MyPay'
 Draw-Line 'providerSwitch' 'R' 'taishin' 'L' 'Taishin'
-Draw-Polyline @((EdgePoint 'sinopac' 'B'), [pscustomobject]@{X=1088;Y=790}, (EdgePoint 'createResult' 'T'))
-Draw-Polyline @((EdgePoint 'mypay' 'B'), [pscustomobject]@{X=1458;Y=790}, (EdgePoint 'createResult' 'T'))
-Draw-Polyline @((EdgePoint 'taishin' 'B'), [pscustomobject]@{X=1828;Y=790}, [pscustomobject]@{X=1625;Y=790}, (EdgePoint 'createResult' 'T'))
-Draw-Polyline @((EdgePoint 'createResult' 'B'), [pscustomobject]@{X=1300;Y=995}, (EdgePoint 'providerPage' 'T')) 'redirect'
+Draw-Polyline @((EdgePoint 'sinopac' 'B'), [pscustomobject]@{X=1175;Y=940}, [pscustomobject]@{X=1220;Y=940}, (EdgePoint 'createResult' 'T'))
+Draw-Polyline @((EdgePoint 'mypay' 'B'), [pscustomobject]@{X=1605;Y=940}, [pscustomobject]@{X=1445;Y=940}, (EdgePoint 'createResult' 'T'))
+Draw-Polyline @((EdgePoint 'taishin' 'B'), [pscustomobject]@{X=2035;Y=940}, [pscustomobject]@{X=1670;Y=940}, (EdgePoint 'createResult' 'T'))
+Draw-Polyline @((EdgePoint 'createResult' 'B'), [pscustomobject]@{X=1445;Y=1190}, [pscustomobject]@{X=635;Y=1190}, (EdgePoint 'providerPage' 'T')) 'redirect'
 Draw-Line 'providerPage' 'R' 'paymentDone' 'L'
 Draw-Line 'paymentDone' 'R' 'providerAck' 'L'
-Draw-Polyline @((EdgePoint 'paymentDone' 'B'), [pscustomobject]@{X=1330;Y=1320}, [pscustomobject]@{X=335;Y=1320}, (EdgePoint 'callbackController' 'T')) 'callback / return'
+Draw-Polyline @((EdgePoint 'paymentDone' 'B'), [pscustomobject]@{X=1325;Y=1610}, [pscustomobject]@{X=350;Y=1610}, (EdgePoint 'callbackController' 'T')) 'callback / return'
 Draw-Line 'callbackController' 'R' 'httpMapper' 'L'
 Draw-Line 'httpMapper' 'R' 'gatewayParse' 'L'
 Draw-Line 'gatewayParse' 'R' 'parser' 'L'
 Draw-Line 'parser' 'R' 'callbackResult' 'L'
-Draw-Polyline @((EdgePoint 'callbackResult' 'B'), [pscustomobject]@{X=2120;Y=1780}, [pscustomobject]@{X=340;Y=1780}, (EdgePoint 'ackMapper' 'T')) 'ack path'
-Draw-Polyline @((EdgePoint 'ackMapper' 'T'), [pscustomobject]@{X=340;Y=1325}, [pscustomobject]@{X=1920;Y=1325}, (EdgePoint 'providerAck' 'B'))
-Draw-Polyline @((EdgePoint 'callbackResult' 'B'), [pscustomobject]@{X=2120;Y=1840}, [pscustomobject]@{X=825;Y=1840}, (EdgePoint 'workflowMapper' 'T')) 'post-payment path'
+Draw-Polyline @((EdgePoint 'callbackResult' 'B'), [pscustomobject]@{X=2300;Y=2115}, [pscustomobject]@{X=355;Y=2115}, (EdgePoint 'ackMapper' 'T')) 'ack path'
+Draw-Polyline @((EdgePoint 'ackMapper' 'T'), [pscustomobject]@{X=355;Y=1600}, [pscustomobject]@{X=2005;Y=1600}, (EdgePoint 'providerAck' 'B'))
+Draw-Polyline @((EdgePoint 'callbackResult' 'B'), [pscustomobject]@{X=2300;Y=2185}, [pscustomobject]@{X=900;Y=2185}, (EdgePoint 'workflowMapper' 'T')) 'post-payment path'
 Draw-Line 'workflowMapper' 'R' 'postWorkflow' 'L'
 Draw-Line 'postWorkflow' 'R' 'recordInterface' 'L'
 Draw-Line 'postWorkflow' 'R' 'notifyInterface' 'L'
-Draw-Polyline @((EdgePoint 'recordInterface' 'B'), [pscustomobject]@{X=1705;Y=2250}, [pscustomobject]@{X=530;Y=2250}, (EdgePoint 'crm' 'T'))
-Draw-Polyline @((EdgePoint 'notifyInterface' 'B'), [pscustomobject]@{X=1705;Y=2265}, [pscustomobject]@{X=1190;Y=2265}, (EdgePoint 'line' 'T'))
+Draw-Polyline @((EdgePoint 'recordInterface' 'B'), [pscustomobject]@{X=1922;Y=2685}, [pscustomobject]@{X=565;Y=2685}, (EdgePoint 'crm' 'T'))
+Draw-Polyline @((EdgePoint 'notifyInterface' 'B'), [pscustomobject]@{X=1922;Y=2700}, [pscustomobject]@{X=1305;Y=2700}, (EdgePoint 'line' 'T'))
 Draw-Line 'crm' 'R' 'line' 'L'
 Draw-Line 'line' 'R' 'resultPage' 'L'
 
-$graphics.DrawString('Boundary rule: SpeechMessage.Payments has no ASP.NET/CRM/LINE dependency. AspNetCore maps HTTP. Workflows define abstractions. ChurchReport owns CRM and LINE implementations.', $nodeFont, $textBrush, 160, 2800)
+$graphics.DrawString('Boundary rule: SpeechMessage.Payments has no ASP.NET/CRM/LINE dependency. AspNetCore maps HTTP. Workflows define abstractions. ChurchReport owns CRM and LINE implementations.', $nodeFont, $textBrush, 160, 3370)
 
 if ([System.IO.File]::Exists($outputPath)) {
     [System.IO.File]::Delete($outputPath)
 }
 
-# 透過 C# helper 明確呼叫 Bitmap.Save(string, ImageFormat.Png)，避免
-# Windows PowerShell 5.1 對 System.Drawing 多載解析錯誤而產生 0 byte 檔。
-[PngWriter]::Save($bitmap, $outputPath)
+[PaymentFlowPngWriterV3]::Save($bitmap, $outputPath)
 
 $outputFile = Get-Item -LiteralPath $outputPath
 if ($outputFile.Length -le 0) {
