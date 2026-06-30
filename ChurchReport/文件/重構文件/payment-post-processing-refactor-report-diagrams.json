@@ -1,0 +1,39 @@
+{
+  "architecture": {
+    "title": "重構後金流架構圖",
+    "boxes": [
+      { "id": "provider", "x": 40, "y": 70, "w": 310, "h": 160, "title": "金流 Provider 核心", "lines": [ "SpeechMessage.Payments", "永豐 / MyPay / 台新 TSPG", "簽章、解析、狀態標準化" ], "fill": "#e0f2fe", "stroke": "#0369a1" },
+      { "id": "result", "x": 410, "y": 95, "w": 250, "h": 110, "title": "PaymentWorkflowResult", "lines": [ "訂單、交易編號、金額", "付款狀態、provider message" ], "fill": "#eef2ff", "stroke": "#4338ca" },
+      { "id": "workflow", "x": 720, "y": 65, "w": 330, "h": 185, "title": "共通 Workflow", "lines": [ "SpeechMessage.Payments.Workflows", "PaymentPostPaymentWorkflow", "IPaymentRecordUpdater", "IPaymentPayerNotifier" ], "fill": "#f0fdf4", "stroke": "#15803d" },
+      { "id": "church", "x": 230, "y": 330, "w": 360, "h": 190, "title": "ChurchReport Adapter", "lines": [ "ChurchReportPaymentContextBuilder", "DonationPaymentReturnPresenter", "MyPay / TSPG / Donation 接入" ], "fill": "#fff7ed", "stroke": "#c2410c" },
+      { "id": "crm", "x": 690, "y": 330, "w": 270, "h": 135, "title": "CRM 更新", "lines": [ "ChurchReportPaymentRecordUpdater", "更新 new_fee 付款狀態與金額" ], "fill": "#fefce8", "stroke": "#a16207" },
+      { "id": "line", "x": 1000, "y": 330, "w": 270, "h": 135, "title": "付款者通知", "lines": [ "ChurchReportPaymentPayerNotifier", "LINE 成功 / 失敗通知" ], "fill": "#ecfdf5", "stroke": "#047857" },
+      { "id": "page", "x": 70, "y": 575, "w": 300, "h": 120, "title": "奉獻結果頁", "lines": [ "ViewBag / ActionResult", "QPayCard/PaymentResult.cshtml" ], "fill": "#fdf2f8", "stroke": "#be185d" },
+      { "id": "future", "x": 560, "y": 575, "w": 430, "h": 120, "title": "未來 ASP.NET Core 產品", "lines": [ "維修系統 / 協會會員 / 發票收款", "各自實作 updater、notifier、context builder" ], "fill": "#f8fafc", "stroke": "#475569" }
+    ],
+    "arrows": [
+      { "from": "provider", "to": "result", "label": "標準化付款結果" },
+      { "from": "result", "to": "church", "label": "產品 context" },
+      { "from": "church", "to": "workflow", "label": "ExecuteAsync" },
+      { "from": "workflow", "to": "crm", "label": "先更新紀錄" },
+      { "from": "workflow", "to": "line", "label": "再通知付款者" },
+      { "from": "church", "to": "page", "label": "奉獻頁面呈現" },
+      { "from": "workflow", "to": "future", "label": "共用 contract" }
+    ]
+  },
+  "flow": {
+    "title": "付款後呼叫流程圖",
+    "note": "重點：provider 只負責付款資料標準化；CRM 更新、通知與頁面呈現由產品層 handler/presenter 負責。",
+    "steps": [
+      { "id": "payer", "title": "付款者完成付款", "lines": [ "信用卡 / ATM / 定期定額" ], "fill": "#dbeafe", "stroke": "#2563eb" },
+      { "id": "callback", "title": "金流回傳", "lines": [ "callback 或 return URL" ], "fill": "#e0f2fe", "stroke": "#0369a1" },
+      { "id": "parse", "title": "Provider 解析", "lines": [ "驗簽、解析欄位", "轉 PaymentWorkflowResult" ], "fill": "#eef2ff", "stroke": "#4338ca" },
+      { "id": "context", "title": "建立產品 Context", "lines": [ "ChurchReportPaymentContextBuilder", "收費單、聯絡人、奉獻類型" ], "fill": "#fff7ed", "stroke": "#c2410c" },
+      { "id": "workflow", "title": "執行共通 Workflow", "lines": [ "PaymentPostPaymentWorkflow" ], "fill": "#f0fdf4", "stroke": "#15803d" },
+      { "id": "crm", "title": "更新 CRM", "lines": [ "ChurchReportPaymentRecordUpdater", "付款狀態、實收金額" ], "fill": "#fefce8", "stroke": "#a16207" },
+      { "id": "notify", "title": "通知付款者", "lines": [ "ChurchReportPaymentPayerNotifier", "LINE 成功 / 失敗通知" ], "fill": "#ecfdf5", "stroke": "#047857" },
+      { "id": "ack", "title": "回應金流平台", "lines": [ "acknowledgement / redirect" ], "fill": "#f8fafc", "stroke": "#475569" },
+      { "id": "page", "title": "顯示結果頁", "lines": [ "DonationPaymentReturnPresenter", "只屬於 ChurchReport MVC" ], "fill": "#fdf2f8", "stroke": "#be185d" }
+    ]
+  }
+}

@@ -1,4 +1,4 @@
-﻿using ChurchReport.WebServiceConnector;
+using ChurchReport.WebServiceConnector;
 using Line.Messaging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
