@@ -1,0 +1,12 @@
+{
+  "id": "create-payment-flow-v15-diagram",
+  "title": "Create a new complete payment flow Mermaid diagram and PNG",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "docs",
+  "currentPhase": "implementation",
+  "nextAction": "Generate V15 Mermaid source and PNG renderer",
+  "createdAt": "2026-06-30T12:45:00+08:00",
+  "branch": "Jesus_5.1.5_Worktree_TuneRefactorPament"
+}

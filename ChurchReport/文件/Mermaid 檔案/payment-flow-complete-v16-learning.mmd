@@ -1,0 +1,73 @@
+﻿flowchart TD
+    A1["付款者 / 奉獻者<br/>在 ChurchReport 奉獻頁輸入姓名、奉獻項目、金額與付款方式"]
+    A2["DedicationController.cs<br/>SaveQPayDedication(QpayModel)"]
+    A3["DonationPaymentManager<br/>SaveDonationPaymentDedicationAsync(QpayModel)"]
+    A4["DonationPaymentProcessor.PaymentProcessing.cs<br/>ProcessCreditCardPayment / ProcessAtmPayment / ProcessRecurringPayment"]
+    A5["DonationPaymentProcessor.PaymentGateway.cs<br/>CreOrderCard / CreateOrderATM / CreateDonationPaymentOrder"]
+    A6["DonationPaymentCreateGatewayAdapter.cs<br/>CreateLegacyOrderAsync / CreateCardPaymentAsync"]
+    A7["DonationPaymentCreateGatewayAdapter.cs<br/>ApplyLegacyPaymentUrl / ToLegacyCreOrder"]
+    A8["DonationPaymentProcessor.PaymentProcessing.cs<br/>UpdateFee 並回傳 CardPayURL / ATM 資訊 / MobilePayURL"]
+    A9["付款者進入第三方金流頁<br/>信用卡輸入頁、ATM 虛擬帳號頁或第三方付款頁"]
+    A10["ChurchReport Callback / Return Controllers<br/>QPayCardController.QPayReturnUrl / PaymentReturnController.ReturnCore / MyPayController.PaymentNotify / TSPGController.PostBack / ResultUrl"]
+
+    B1["PaymentCreateRequestFactory.cs<br/>Create(PaymentCreateRequestInput)"]
+    B2["PaymentHttpRequestMapper.cs<br/>MapAsync(HttpRequest, profileName, providerHint)"]
+    B3["PaymentAcknowledgementResultMapper.cs<br/>ToActionResult(PaymentCallbackAcknowledgement)"]
+
+    C1["PaymentGateway.cs<br/>CreatePaymentAsync(PaymentCreateRequest)"]
+    C2["PaymentGateway.cs<br/>ResolveProvider(profileName, providerHint)"]
+    C3["PaymentCreateResult<br/>PaymentPageUrl / ProviderOrderRef / ProviderData"]
+    C4["PaymentGateway.cs<br/>ParseCallbackAsync(PaymentCallbackRequest)"]
+    C5["PaymentCallbackResult<br/>ProductOrderId / Status / Amount / ProviderTransactionId / Acknowledgement"]
+    C6["PaymentWorkflowResultMapper.cs<br/>Map(PaymentCallbackResult)"]
+    C7["PaymentPostPaymentWorkflow.cs<br/>ExecuteAsync(PaymentPostPaymentContext)"]
+
+    D1["OptionsPaymentProfileResolver.cs<br/>Resolve(profileName) 讀取 Payment:Profiles 與 PAY_PROVIDER 對應設定"]
+    D2["SinopacPaymentProvider.cs<br/>CreatePaymentAsync / QueryPaymentAsync / ParseCallbackAsync"]
+    D3["SinopacRequestMapper.cs + SinopacCrypto.cs + SinopacSigner.cs<br/>MapCreateRequest / Encrypt / Decrypt / GenerateSign"]
+    D4["MyPayPaymentProvider.cs<br/>CreatePaymentAsync / QueryPaymentAsync / ParseCallbackAsync"]
+    D5["MyPayRequestMapper.cs + MyPaySignatureVerifier.cs<br/>MapCreatePayload / MapCreateForm / Encrypt / Validate"]
+    D6["TaishinPaymentProvider.cs<br/>CreatePaymentAsync / QueryPaymentAsync / ParseCallbackAsync"]
+    D7["TaishinRequestMapper.cs + TaishinHashVerifier.cs<br/>MapCreatePayload / MapQueryPayload / Validate"]
+    D8["Provider Callback Parsers<br/>SinopacCallbackParser.Parse / MyPayCallbackParser.Parse / TaishinCallbackParser.Parse"]
+    D9["Provider Status Mappers<br/>SinopacStatusMapper / MyPayStatusMapper / TaishinStatusMapper"]
+
+    E1["DonationPaymentReturnWorkflow.cs<br/>HandleReturn(shopNo, payToken, statusResult)"]
+    E2["DonationPaymentProductWorkflowDispatcher.cs<br/>HandleFeeReturn / HandleDedicationBookingReturn"]
+    E3["ChurchReportPaymentRecordUpdater.cs<br/>UpdateAsync(PaymentPostPaymentContext)"]
+    E4["PaymentCrmService.cs<br/>UpdateFeeEntityWithPaymentResult(toolUtility, feeEntity, payment, isSuccess)"]
+    E5["ChurchReportPaymentPayerNotifier.cs<br/>NotifyAsync(PaymentPostPaymentContext)"]
+    E6["PaymentNotificationService.cs<br/>SendLineNotificationByType / SendLineFailureNotificationByType / SendLineMessage"]
+    E7["ChurchReport 結果頁 / 後續產品流程<br/>成功、失敗、待付款、ATM 付款資訊或產品自訂頁面"]
+
+    F1["核心邊界<br/>SpeechMessage.Payments 只負責金流協定、簽章、加解密、callback 解析與狀態正規化"]
+    F2["ASP.NET 邊界<br/>SpeechMessage.Payments.AspNetCore 只負責 HttpRequest 與 ActionResult 轉換"]
+    F3["產品邊界<br/>ChurchReport 保留 Controller、CRM 更新、LINE 通知、頁面與奉獻流程"]
+
+    A1 --> A2 --> A3 --> A4 --> A5 --> A6
+    A6 --> B1 --> C1 --> C2 --> D1
+    D1 --> D2 --> D3 --> C3
+    D1 --> D4 --> D5 --> C3
+    D1 --> D6 --> D7 --> C3
+    C3 --> A7 --> A8 --> A9 --> A10
+    A10 --> B2 --> C4 --> D8 --> D9 --> C5
+    C5 --> B3
+    C5 --> C6 --> E1 --> E2 --> C7
+    C7 --> E3 --> E4
+    C7 --> E5 --> E6
+    E4 --> E7
+    E6 --> E7
+    F1 --> F2 --> F3
+
+    classDef product fill:#fff7ed,stroke:#c2410c,color:#111827,stroke-width:2px
+    classDef adapter fill:#ecfeff,stroke:#0891b2,color:#111827,stroke-width:2px
+    classDef core fill:#eef2ff,stroke:#4f46e5,color:#111827,stroke-width:2px
+    classDef provider fill:#f0fdf4,stroke:#16a34a,color:#111827,stroke-width:2px
+    classDef summary fill:#f8fafc,stroke:#64748b,color:#111827,stroke-width:2px
+
+    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,E1,E2,E3,E4,E5,E6,E7 product
+    class B1,B2,B3 adapter
+    class C1,C2,C3,C4,C5,C6,C7,F1 core
+    class D1,D2,D3,D4,D5,D6,D7,D8,D9 provider
+    class F2 adapter
+    class F3,F1,F2 summary

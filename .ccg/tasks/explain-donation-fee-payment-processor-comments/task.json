@@ -1,0 +1,12 @@
+{
+  "id": "explain-donation-fee-payment-processor-comments",
+  "title": "Add detailed Traditional Chinese explanatory comments to DonationFeePaymentProcessor",
+  "status": "in_progress",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "Add comments only without changing runtime behavior",
+  "createdAt": "2026-06-30T00:00:00+08:00",
+  "branch": "Jesus_5.1.5_Worktree_TuneRefactorPament"
+}
