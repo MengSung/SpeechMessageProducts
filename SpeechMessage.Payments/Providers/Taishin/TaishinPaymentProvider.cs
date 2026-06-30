@@ -7,6 +7,11 @@ using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.Providers.Taishin;
 
+/// <summary>
+/// 台新 TSPG provider 實作。
+/// 這裡只處理台新 REST API 的建單、查詢、回應正規化與 callback parser 轉接；
+/// 宿主產品的收費單更新與通知不放進通用核心。
+/// </summary>
 internal sealed class TaishinPaymentProvider : IPaymentProvider
 {
     private readonly HttpClient _httpClient;
@@ -38,6 +43,7 @@ internal sealed class TaishinPaymentProvider : IPaymentProvider
             var response = await PostAsync(profile, "auth.ashx", payload, cancellationToken);
             var retCode = FirstNonEmpty(response.RetCode, response.Params?.RetCode ?? string.Empty);
             var retMessage = FirstNonEmpty(response.RetMessage, response.Params?.RetMessage ?? string.Empty);
+            // 台新建單成功只代表取得 HPP 付款頁，付款尚未完成，所以回傳 Pending。
             var status = TaishinStatusMapper.Map(retCode, "1") == PaymentStatus.Succeeded
                 ? PaymentStatus.Pending
                 : PaymentStatus.Failed;
@@ -161,6 +167,7 @@ internal sealed class TaishinPaymentProvider : IPaymentProvider
         PaymentCallbackRequest request,
         CancellationToken cancellationToken)
     {
+        // 台新 callback hash 驗證需要 profile 內的 StoreKey/StoreIV，因此 profile 必須傳入 parser。
         return Task.FromResult(TaishinCallbackParser.Parse(profile, request));
     }
 
@@ -178,6 +185,7 @@ internal sealed class TaishinPaymentProvider : IPaymentProvider
                 NullValueHandling = NullValueHandling.Ignore,
                 DefaultValueHandling = DefaultValueHandling.Ignore
             });
+        // 台新 TSPG REST endpoint 使用 JSON payload；auth.ashx 建單，other.ashx 查詢。
         using var response = await _httpClient.PostAsync(
             uri,
             new StringContent(json, System.Text.Encoding.UTF8, "application/json"),

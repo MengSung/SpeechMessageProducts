@@ -2,6 +2,10 @@ using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.Providers.Taishin;
 
+/// <summary>
+/// 將台新 ret_code/state 正規化成通用 PaymentStatus。
+/// 建單、查詢、callback 的成功欄位組合不同，因此集中在此處維護狀態規則。
+/// </summary>
 internal static class TaishinStatusMapper
 {
     public static PaymentStatus Map(string? retCode, string? state)

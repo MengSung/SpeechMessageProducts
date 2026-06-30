@@ -1,5 +1,9 @@
 namespace SpeechMessage.Payments.Models;
 
+/// <summary>
+/// 查詢付款狀態後的通用結果。
+/// ProviderData 用於產品 workflow；Diagnostics 用於除錯，兩者都必須由 sanitizer 清理敏感資料。
+/// </summary>
 public sealed record PaymentStatusResult
 {
     public PaymentStatus Status { get; init; } = PaymentStatus.Unknown;

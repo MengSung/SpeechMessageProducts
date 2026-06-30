@@ -8,6 +8,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using SpeechMessage.Payments.AspNetCore;
 using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Models;
 using ToolUtilityNameSpace;
@@ -16,13 +17,17 @@ using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Payments;
 
+/// <summary>
+/// 驗證 ChurchReport 奉獻付款流程已透過產品層 adapter 接到共用金流核心，
+/// 並保留舊 QPay 命名入口的相容性。
+/// </summary>
 public sealed class QPayProcessorGatewayAdapterTests
 {
     [Fact]
     public void ChurchReport_controllers_do_not_accept_legacy_ipayment_in_constructors()
     {
         const string legacyPaymentTypeName = "ChurchReport.Tools.IPayment";
-        var offenders = typeof(QpayManager).Assembly
+        var offenders = typeof(DonationPaymentManager).Assembly
             .GetTypes()
             .Where(type => type.Namespace != null && type.Namespace.StartsWith("ChurchReport.Controllers"))
             .Where(type => type.Name.EndsWith("Controller", StringComparison.Ordinal))
@@ -45,10 +50,10 @@ public sealed class QPayProcessorGatewayAdapterTests
     }
 
     [Fact]
-    public void QPay_processor_does_not_store_legacy_ipayment_provider()
+    public void Donation_payment_processor_does_not_store_legacy_ipayment_provider()
     {
         const string legacyPaymentTypeName = "ChurchReport.Tools.IPayment";
-        var processorType = typeof(QPayProcessor);
+        var processorType = typeof(DonationPaymentProcessor);
 
         var fieldNames = processorType
             .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
@@ -75,10 +80,10 @@ public sealed class QPayProcessorGatewayAdapterTests
     }
 
     [Fact]
-    public void QPay_processor_constructors_require_gateway_create_adapter()
+    public void Donation_payment_processor_constructors_require_gateway_create_adapter()
     {
-        var adapterType = typeof(QPayCreatePaymentGatewayAdapter);
-        var adapterParameters = typeof(QPayProcessor)
+        var adapterType = typeof(DonationPaymentCreateGatewayAdapter);
+        var adapterParameters = typeof(DonationPaymentProcessor)
             .GetConstructors(BindingFlags.Instance | BindingFlags.Public)
             .SelectMany(constructor => constructor.GetParameters())
             .Where(parameter => parameter.ParameterType == adapterType)
@@ -91,7 +96,7 @@ public sealed class QPayProcessorGatewayAdapterTests
     [Fact]
     public void Qpay_manager_and_context_constructors_accept_gateway_create_adapter()
     {
-        ConstructorHasAdapter(typeof(QpayManager)).Should().BeTrue();
+        ConstructorHasAdapter(typeof(DonationPaymentManager)).Should().BeTrue();
         ConstructorHasAdapter(typeof(InMemoryDataContextSmallGroup)).Should().BeTrue();
     }
 
@@ -120,7 +125,7 @@ public sealed class QPayProcessorGatewayAdapterTests
         try
         {
             var field = typeof(InMemoryDataContextSmallGroup).GetField(
-                "m_QPayCreatePaymentGatewayAdapter",
+                "m_DonationPaymentCreateGatewayAdapter",
                 BindingFlags.Instance | BindingFlags.NonPublic);
             field.Should().NotBeNull();
             field!.GetValue(context).Should().BeSameAs(adapter);
@@ -156,6 +161,8 @@ public sealed class QPayProcessorGatewayAdapterTests
         gateway.LastCreateRequest.Metadata["Param1"].Should().Be("fee-id");
         gateway.LastCreateRequest.Metadata["Param2"].Should().Be("Jesus");
         gateway.LastCreateRequest.Metadata["Param3"].Should().Be("fee");
+        gateway.LastCreateRequest.Metadata["UserId"].Should().Be("Grace");
+        gateway.LastCreateRequest.Customer.Name.Should().Be("Grace");
         order.Status.Should().Be("S");
         order.OrderNo.Should().Be("C20260626112233");
         order.TSNo.Should().Be("TS123456789");
@@ -203,7 +210,7 @@ public sealed class QPayProcessorGatewayAdapterTests
     [Fact]
     public async Task Qpay_manager_order_maintenance_fails_closed_without_legacy_toolkit()
     {
-        var manager = (QpayManager)RuntimeHelpers.GetUninitializedObject(typeof(QpayManager));
+        var manager = (DonationPaymentManager)RuntimeHelpers.GetUninitializedObject(typeof(DonationPaymentManager));
 
         var result = await manager.OrderMaintain("C20260626112233", "E");
 
@@ -229,7 +236,7 @@ public sealed class QPayProcessorGatewayAdapterTests
             "ChurchReport.Tools.TSPGWebhookHandler"
         };
 
-        var assembly = typeof(QpayManager).Assembly;
+        var assembly = typeof(DonationPaymentManager).Assembly;
         var presentLegacyTypes = legacyTypeNames
             .Where(typeName => assembly.GetType(typeName, throwOnError: false) != null)
             .OrderBy(typeName => typeName)
@@ -268,7 +275,7 @@ public sealed class QPayProcessorGatewayAdapterTests
     [Fact]
     public void ChurchReport_assembly_does_not_define_qpay_domain_namespace()
     {
-        var qpayDomainTypes = typeof(QpayManager).Assembly
+        var qpayDomainTypes = typeof(DonationPaymentManager).Assembly
             .GetTypes()
             .Where(type => string.Equals(type.Namespace, "QPay.Domain", StringComparison.Ordinal))
             .Select(type => type.FullName)
@@ -291,7 +298,7 @@ public sealed class QPayProcessorGatewayAdapterTests
             "ChurchReport.Payments.TSResult"
         };
 
-        var assembly = typeof(QpayManager).Assembly;
+        var assembly = typeof(DonationPaymentManager).Assembly;
         var presentLegacyTypes = legacyQueryTypeNames
             .Where(typeName => assembly.GetType(typeName, throwOnError: false) != null)
             .OrderBy(typeName => typeName)
@@ -300,21 +307,21 @@ public sealed class QPayProcessorGatewayAdapterTests
         presentLegacyTypes.Should().BeEmpty();
     }
 
-    private static QPayProcessor CreateProcessor(QPayCreatePaymentGatewayAdapter adapter)
+    private static DonationPaymentProcessor CreateProcessor(IDonationPaymentCreateGatewayAdapter adapter)
     {
-        var processor = (QPayProcessor)RuntimeHelpers.GetUninitializedObject(typeof(QPayProcessor));
+        var processor = (DonationPaymentProcessor)RuntimeHelpers.GetUninitializedObject(typeof(DonationPaymentProcessor));
         SetField(processor, "RETURN_URL", "https://church.example.test/qpay-return");
         SetField(processor, "BACKEND_URL", "https://church.example.test/qpay-backend");
         SetField(processor, "QPAY_ORGANIZATION", "Jesus");
         SetField(processor, "m_ShopNo", "NA0149_001");
-        SetField(processor, "m_QPayCreatePaymentGatewayAdapter", adapter);
+        SetField(processor, "m_DonationPaymentCreateGatewayAdapter", adapter);
         return processor;
     }
 
-    private static async Task<CreOrder> InvokeCreateQPayOrder(QPayProcessor processor)
+    private static async Task<CreOrder> InvokeCreateQPayOrder(DonationPaymentProcessor processor)
     {
-        var method = typeof(QPayProcessor).GetMethod(
-            "CreateQPayOrder",
+        var method = typeof(DonationPaymentProcessor).GetMethod(
+            "CreateDonationPaymentOrder",
             BindingFlags.Instance | BindingFlags.NonPublic);
         method.Should().NotBeNull();
 
@@ -333,6 +340,7 @@ public sealed class QPayProcessorGatewayAdapterTests
                 "M",
                 1,
                 "fee",
+                "Grace",
                 "cc-token"
             }) as Task<CreOrder>;
 
@@ -346,19 +354,21 @@ public sealed class QPayProcessorGatewayAdapterTests
             .GetConstructors()
             .Any(constructor => constructor
                 .GetParameters()
-                .Any(parameter => parameter.ParameterType == typeof(QPayCreatePaymentGatewayAdapter)));
+                .Any(parameter => parameter.ParameterType == typeof(IDonationPaymentCreateGatewayAdapter)
+                    || parameter.ParameterType == typeof(DonationPaymentCreateGatewayAdapter)
+                    || parameter.ParameterType == typeof(QPayCreatePaymentGatewayAdapter)));
     }
 
-    private static void SetField<T>(QPayProcessor processor, string fieldName, T value)
+    private static void SetField<T>(DonationPaymentProcessor processor, string fieldName, T value)
     {
-        var field = typeof(QPayProcessor).GetField(
+        var field = typeof(DonationPaymentProcessor).GetField(
             fieldName,
             BindingFlags.Instance | BindingFlags.NonPublic);
         field.Should().NotBeNull();
         field!.SetValue(processor, value);
     }
 
-    private static QPayCreatePaymentGatewayAdapter CreateAdapter(IPaymentGateway gateway)
+    private static DonationPaymentCreateGatewayAdapter CreateAdapter(IPaymentGateway gateway)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -367,7 +377,7 @@ public sealed class QPayProcessorGatewayAdapterTests
             })
             .Build();
 
-        return new QPayCreatePaymentGatewayAdapter(
+        return new DonationPaymentCreateGatewayAdapter(
             gateway,
             new PaymentCreateRequestFactory(),
             new ChurchReportPaymentProfileResolver(configuration));
@@ -411,16 +421,16 @@ public sealed class QPayProcessorGatewayAdapterTests
 
     private sealed class SingleServiceProvider : IServiceProvider
     {
-        private readonly QPayCreatePaymentGatewayAdapter _adapter;
+        private readonly IDonationPaymentCreateGatewayAdapter _adapter;
 
-        public SingleServiceProvider(QPayCreatePaymentGatewayAdapter adapter)
+        public SingleServiceProvider(IDonationPaymentCreateGatewayAdapter adapter)
         {
             _adapter = adapter;
         }
 
         public object? GetService(Type serviceType)
         {
-            return serviceType == typeof(QPayCreatePaymentGatewayAdapter)
+            return serviceType == typeof(IDonationPaymentCreateGatewayAdapter)
                 ? _adapter
                 : null;
         }

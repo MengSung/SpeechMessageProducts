@@ -1,24 +1,11 @@
-using System.Collections.Generic;
+using System;
 
 namespace ChurchReport.Payments;
 
-public sealed record QPayWorkflowPaymentResult
-{
-    public string ShopNo { get; init; } = string.Empty;
-    public string PayToken { get; init; } = string.Empty;
-    public string OrderNo { get; init; } = string.Empty;
-    public string ProviderTransactionId { get; init; } = string.Empty;
-    public decimal? Amount { get; init; }
-    public string AmountMinorUnits { get; init; } = string.Empty;
-    public string ProductEntityId { get; init; } = string.Empty;
-    public string PaymentOrganization { get; init; } = string.Empty;
-    public string PaymentCategory { get; init; } = string.Empty;
-    public string PayType { get; init; } = string.Empty;
-    public string Status { get; init; } = string.Empty;
-    public string Description { get; init; } = string.Empty;
-    public string LeftCCNo { get; init; } = string.Empty;
-    public string RightCCNo { get; init; } = string.Empty;
-    public string CCExpDate { get; init; } = string.Empty;
-    public string CCToken { get; init; } = string.Empty;
-    public IReadOnlyDictionary<string, string> ProviderData { get; init; } = new Dictionary<string, string>();
-}
+/// <summary>
+/// 舊 ChurchReport QPay 命名的付款 workflow DTO。
+/// 新程式請使用 <see cref="DonationPaymentWorkflowResult"/>；此型別只作為相容層，
+/// 讓尚未完成改名的 CRM、LINE 與結果頁處理器可以在遷移期間繼續編譯與運作。
+/// </summary>
+[Obsolete("Use DonationPaymentWorkflowResult. QPay naming is retained only for compatibility during the migration.")]
+public sealed record QPayWorkflowPaymentResult : DonationPaymentWorkflowResult;

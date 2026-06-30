@@ -4,6 +4,10 @@ using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.Providers.Taishin;
 
+/// <summary>
+/// 將通用付款請求轉成台新 TSPG REST payload。
+/// 台新使用 NTD/小單位金額與 tx_type 區分建單、查詢，這些 provider 細節集中在此檔。
+/// </summary>
 internal static class TaishinRequestMapper
 {
     public static TaishinPaymentRequest MapCreatePayload(
@@ -11,6 +15,7 @@ internal static class TaishinRequestMapper
         PaymentCreateRequest request)
     {
         var payload = CreateBaseRequest(profile);
+        // tx_type=1 為建立付款頁授權交易。
         payload.TxType = 1;
         payload.Params = new TaishinPaymentParams
         {
@@ -41,6 +46,7 @@ internal static class TaishinRequestMapper
         PaymentQueryRequest request)
     {
         var payload = CreateBaseRequest(profile);
+        // tx_type=7 為交易查詢，OrderNo 可用產品訂單號或 provider reference。
         payload.TxType = 7;
         payload.Params = new TaishinPaymentParams
         {
@@ -86,6 +92,7 @@ internal static class TaishinRequestMapper
 
     private static string ResolveLayout(string paymentMethod)
     {
+        // 台新 layout=2 表示行動版頁面；未指定時保守使用一般網頁版 layout=1。
         return string.Equals(paymentMethod, "Mobile", StringComparison.OrdinalIgnoreCase)
             ? "2"
             : "1";

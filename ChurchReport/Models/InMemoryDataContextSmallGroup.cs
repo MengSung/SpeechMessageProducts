@@ -1,4 +1,4 @@
-﻿using ChurchReport.Payments;
+using ChurchReport.Payments;
 using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using Microsoft.AspNetCore.Http;
@@ -106,8 +106,16 @@ namespace ChurchReport.Models
         public AppointmentsListManager m_AppointmentsListManager;
 
         /// <summary>
-        /// 永豐金流奉獻管理器
+        /// ChurchReport 奉獻付款 UI 狀態管理器。
+        /// 這是產品流程的主要入口，負責把 UI 狀態、CRM 資料與付款建立流程串起來。
         /// </summary>
+        public DonationPaymentManager m_DonationPaymentManager;
+
+        /// <summary>
+        /// 舊 QpayManager 名稱的相容欄位。
+        /// 新程式不應直接使用此欄位；保留它只是為了舊 Controller/View 在遷移期間不被破壞。
+        /// </summary>
+        [Obsolete("Use m_DonationPaymentManager. QpayManager is retained only for compatibility during migration.")]
         public QpayManager m_QpayManager;
 
         /// <summary>
@@ -126,9 +134,11 @@ namespace ChurchReport.Models
         private readonly IHttpContextAccessor m_ContextAccessor;
 
         /// <summary>
-        /// 付款服務實例
+        /// 建立付款用的產品層 adapter。
+        /// 此處保留在 ChurchReport 內，是因為它銜接 Session、CRM 與舊奉獻頁面狀態；
+        /// 可重用金流核心不應知道 InMemoryDataContext 或 ChurchReport 的頁面模型。
         /// </summary>
-        private readonly QPayCreatePaymentGatewayAdapter m_QPayCreatePaymentGatewayAdapter;
+        private readonly IDonationPaymentCreateGatewayAdapter m_DonationPaymentCreateGatewayAdapter;
 
         /// <summary>
         /// ToolUtility 提供者，用於依賴注入
@@ -467,7 +477,7 @@ namespace ChurchReport.Models
         /// 注入必要的依賴項：
         /// - IHttpContextAccessor: 用於安全存取 HTTP 上下文和 Session
         /// - IMemoryCache: 用於快取資料管理器實例
-        /// - QPayCreatePaymentGatewayAdapter: QPay 建單 adapter
+        /// - IDonationPaymentCreateGatewayAdapter: ChurchReport 奉獻付款建單 adapter
         /// - IToolUtilityProvider: ToolUtility 提供者
         /// 
         /// 注意：不再在建構時捕獲 Session，以避免 Session Bleeding
@@ -480,7 +490,7 @@ namespace ChurchReport.Models
             IHttpContextAccessor contextAccessor,
             IMemoryCache memoryCache,
             IToolUtilityProvider toolUtilityProvider,
-            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter = null)
+            IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter = null)
         {
             _memoryCache = memoryCache;
 
@@ -491,7 +501,7 @@ namespace ChurchReport.Models
             // ========================================
             m_ContextAccessor = contextAccessor ?? throw new ArgumentNullException(nameof(contextAccessor));
 
-            m_QPayCreatePaymentGatewayAdapter = qPayCreatePaymentGatewayAdapter;
+            m_DonationPaymentCreateGatewayAdapter = donationPaymentCreateGatewayAdapter;
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
 
             System.Diagnostics.Debug.WriteLine("[InMemoryDataContext] ✅ 建構完成（Session Bleeding 修復版本）");
@@ -1130,22 +1140,22 @@ namespace ChurchReport.Models
 
         #endregion
 
-        #region 永豐金流奉獻處理區
+        #region 奉獻付款處理區
 
         /// <summary>
-        /// 永豐金流奉獻管理器屬性
-        /// 
-        /// 使用記憶體快取管理 QpayManager 實例，
-        /// 快取鍵為 Session ID + "_QpayManager"，
+        /// ChurchReport 奉獻付款管理器屬性。
+        ///
+        /// 使用記憶體快取管理 DonationPaymentManager 實例，
+        /// 快取鍵為 Session ID + "_DonationPaymentManager"，
         /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        /// 
-        /// 若快取不存在，則注入付款服務建立新實例並設定快取選項。
+        ///
+        /// 若快取不存在，則注入中性的付款建單 adapter 建立新實例並設定快取選項。
         /// </summary>
-        public QpayManager QpayManager
+        public DonationPaymentManager DonationPaymentManager
         {
             get
             {
-                var key = GetCurrentSessionId() + "_QpayManager";
+                var key = GetCurrentSessionId() + "_DonationPaymentManager";
 
                 if (_memoryCache.Get(key) == null)
                 //if (!_memoryCache.TryGetValue(key, out m_ListManager))
@@ -1173,7 +1183,35 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    m_QpayManager = new QpayManager(m_QPayCreatePaymentGatewayAdapter);
+                    m_DonationPaymentManager = new DonationPaymentManager(m_DonationPaymentCreateGatewayAdapter);
+                    _memoryCache.Set<DonationPaymentManager>(key, m_DonationPaymentManager, options);
+
+                    SetSessionDirtyFlag();
+                }
+
+                return _memoryCache.Get<DonationPaymentManager>(key);
+            }
+        }
+
+        /// <summary>
+        /// 舊 QpayManager 名稱的相容屬性。
+        /// 由於舊 Controller/View 可能仍以此名稱存取，這裡回傳薄 wrapper；
+        /// 新程式應使用 <see cref="DonationPaymentManager"/>。
+        /// </summary>
+        [Obsolete("Use DonationPaymentManager. QpayManager is retained only for compatibility during migration.")]
+        public QpayManager QpayManager
+        {
+            get
+            {
+                var key = GetCurrentSessionId() + "_QpayManager";
+
+                if (_memoryCache.Get(key) == null)
+                {
+                    var options = new MemoryCacheEntryOptions();
+                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
+                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
+
+                    m_QpayManager = new QpayManager(m_DonationPaymentCreateGatewayAdapter);
                     _memoryCache.Set<QpayManager>(key, m_QpayManager, options);
 
                     SetSessionDirtyFlag();

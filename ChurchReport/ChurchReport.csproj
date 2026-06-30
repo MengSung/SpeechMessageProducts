@@ -28,6 +28,9 @@
     <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;appsettings.Production.json;web.config">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
+    <Compile Remove="文件\佈署規劃\**" />
+    <EmbeddedResource Remove="文件\佈署規劃\**" />
+    <None Remove="文件\佈署規劃\**" />
     <None Remove="Views\Home\BindingResultView.cshtml" />
     <None Remove="Views\Home\DedicationFeeAuditViewLine.cshtml" />
     <None Remove="Views\Home\DedicationInofView.cshtml" />
@@ -89,11 +92,11 @@
     <ProjectReference Include="..\LineMessagingProcessor\LineMessagingProcessor.csproj" />
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
     <ProjectReference Include="..\SpeechMessage.Payments\SpeechMessage.Payments.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Payments.AspNetCore\SpeechMessage.Payments.AspNetCore.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Payments.Workflows\SpeechMessage.Payments.Workflows.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Tests\Services\Caching\" />
     <Folder Include="Views\Dedication\" />
-    <Folder Include="文件\佈署規劃\" />
     <Folder Include="文件\修正官網奉獻網頁\" />
   </ItemGroup>
   <ItemGroup>

@@ -5,6 +5,10 @@ using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.Providers.Sinopac;
 
+/// <summary>
+/// 解析永豐 QPay frontend/backend callback。
+/// Callback 只提供 ShopNo/PayToken 等查詢線索，真正付款狀態仍由 QueryPaymentAsync 查銀行。
+/// </summary>
 internal static class SinopacCallbackParser
 {
     public static PaymentCallbackResult Parse(PaymentCallbackRequest request)
@@ -33,6 +37,7 @@ internal static class SinopacCallbackParser
 
         return new PaymentCallbackResult
         {
+            // QPay callback 代表「可查詢狀態」，不直接等同付款成功。
             Status = error.HasError ? PaymentStatus.Unknown : PaymentStatus.Pending,
             ProviderTransactionId = payToken,
             Acknowledgement = PaymentCallbackAcknowledgement.None,
@@ -87,6 +92,7 @@ internal static class SinopacCallbackParser
     private static IReadOnlyDictionary<string, string> NormalizeFields(IReadOnlyDictionary<string, string> rawFields)
     {
         var fields = new Dictionary<string, string>(rawFields, StringComparer.OrdinalIgnoreCase);
+        // 不同舊 endpoint/銀行文件可能使用大小寫或別名，先統一成核心欄位名稱。
         AddNormalized(fields, "shop_no", "shop_no", "ShopNo", "shopNo", "merchant_id");
         AddNormalized(fields, "pay_token", "pay_token", "PayToken", "payToken", "token");
         AddNormalized(fields, "hash", "hash", "HashCode", "signature", "sign");

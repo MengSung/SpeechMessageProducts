@@ -1,0 +1,12 @@
+{
+  "id": "payment-host-integration-layer",
+  "title": "Design reusable payment host integration layer",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "validation",
+  "nextAction": "Run or restore external dual-model review when codeagent-wrapper is available, then commit",
+  "createdAt": "2026-06-29T09:45:00+08:00",
+  "branch": "payment-module-extraction"
+}

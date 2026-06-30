@@ -338,6 +338,178 @@ Provider-owned protocol fields needed by product workflows must cross the bounda
 
 ---
 
+## MyPay Create-Payment Form Compatibility
+
+### 1. Scope / Trigger
+
+- Trigger: MyPay create-payment calls cross the High Giant/MyPay API boundary and the outer form field chooses the merchant contract.
+- This applies to `SpeechMessage.Payments.Providers.MyPay.MyPayRequestMapper`.
+- User-visible symptom: selecting `PAY_PROVIDER = "高鉅金流"` reaches MyPay, but MyPay rejects card payment creation with a key error such as `資料輸入有誤: 金鑰過期或使用錯誤之金鑰`.
+
+### 2. Contracts
+
+- Direct merchant `/api/init` profiles must send top-level form fields:
+
+```text
+store_uid
+service
+encry_data
+```
+
+- Reseller `/api/agent` profiles must send top-level form fields:
+
+```text
+agent_uid
+service
+encry_data
+```
+
+- `store_uid` still belongs inside the encrypted MyPay transaction payload for both direct merchant and reseller flows.
+- Do not send both top-level `store_uid` and top-level `agent_uid` for the same create-payment request.
+- A MyPay profile is treated as reseller mode only when it explicitly configures `Credentials:AgentId`. In reseller mode, use `Credentials:AgentKey` for encryption when present; otherwise fall back to `Credentials:Key`.
+- The encrypted `api/orders` payload must preserve the MyPay create-order contract used by the previous working ChurchReport flow:
+
+```text
+store_uid
+items
+cost
+user_id
+order_id
+ip
+pfn
+```
+
+- Each `items` entry must include `id`, `name`, `cost`, `amount`, and `total`. If ChurchReport does not supply line items, the adapter must create one line item from the product name, amount, quantity `1`, and product entity/order id.
+- `user_id` is a MyPay consumer identifier. ChurchReport should pass the contact name when available, then fall back to the product order id.
+- `ip` must be present. If no product IP is available, use the configured MyPay profile `Settings:IP`, then the legacy-compatible fallback `127.0.0.1`.
+- `pfn` is a MyPay payment-function value, not a Sinopac/QPay `PayType`. Do not pass `C` directly as MyPay `pfn`. Use a configured `Metadata["PFN"]` or profile `Settings:PFN` when provided; otherwise map card payment to `0` for the legacy all-enabled MyPay page, ATM to `E_COLLECTION`, mobile pay to `MobilePayAll`, and LINE Pay to `LINEPAYON`.
+
+### 3. Validation & Error Matrix
+
+- `/api/init` receives top-level `agent_uid` with a merchant store id -> MyPay may validate the payload through the reseller credential path and reject the request as an expired or wrong key.
+- `/api/agent` lacks `agent_uid` -> MyPay cannot identify the reseller contract.
+- `AgentId` is absent in a normal merchant profile -> remain in direct merchant mode and send top-level `store_uid`.
+- `encry_data` omits `items`, `user_id`, `ip`, or `pfn` -> MyPay may reject the request during encrypted payload validation, often surfacing as the same expired/wrong-key message.
+- `encry_data.pfn` is `C` from QPay/Sinopac -> MyPay may reject or route to the wrong payment tool; translate to MyPay PFN before encryption.
+
+### 4. Tests Required
+
+- MyPay direct merchant create-form mapping asserts `store_uid` is present and `agent_uid` is absent.
+- MyPay reseller create-form mapping asserts `agent_uid` is present and `store_uid` is absent at the top level.
+- MyPay create-payload mapping asserts `items`, `user_id`, `ip`, and `pfn` are present in the payload before encryption.
+- MyPay create-payload mapping asserts metadata/profile `PFN` and `IP` override the fallback values.
+- ChurchReport QPay create adapter tests assert product name/amount become a default line item and contact name flows into `Metadata["UserId"]`.
+
+### 5. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+return new Dictionary<string, string>
+{
+    ["store_uid"] = payload.StoreUid,
+    ["agent_uid"] = payload.StoreUid,
+    ["service"] = Encrypt(service, key, iv),
+    ["encry_data"] = Encrypt(payload, key, iv)
+};
+```
+
+This mixes direct merchant and reseller outer-form contracts.
+
+#### Correct
+
+```csharp
+if (string.IsNullOrWhiteSpace(agentId))
+{
+    form["store_uid"] = payload.StoreUid;
+}
+else
+{
+    form["agent_uid"] = agentId;
+}
+```
+
+The configured profile determines the MyPay API contract before the form is posted.
+
+#### Wrong
+
+```csharp
+payload.PaymentMethod = request.PaymentMethod; // "C" from QPay/Sinopac
+payload.Items = Array.Empty<MyPayCreateItemPayload>();
+payload.UserId = string.Empty;
+payload.Ip = string.Empty;
+```
+
+This builds an encrypted payload that no longer matches MyPay `api/orders`.
+
+#### Correct
+
+```csharp
+payload.Items = MapItems(request);
+payload.UserId = FirstNonEmpty(metadataUserId, request.Customer.Name, request.ProductOrderId);
+payload.Ip = FirstNonEmpty(metadataIp, profileIp, "127.0.0.1");
+payload.PaymentMethod = ResolveMyPayPfn(profile, request);
+```
+
+The provider core translates the neutral request and ChurchReport adapter metadata into the MyPay payload contract before encryption.
+
+---
+
+## Payment Donation View Initialization
+
+### 1. Scope / Trigger
+
+- Trigger: a ChurchReport MVC action renders a donation/payment form backed by `QpayModel` or `DonationPaymentManager.m_QpayModel`.
+- User-visible symptom: donation category, payment method, donor name, or donation number renders blank on `/Dedication/QPayView/{LineId}`.
+
+### 2. Contracts
+
+- Any MVC action that calls `SetupUserLineId(...)` must be `async` and must `await` it before returning `View(...)`.
+- `QpayModel` must provide safe defaults for `Category`, `PayWay`, `DedicationCategoryList`, `OtherCategoryArray`, `SpecialCategoryArray`, `CreditCardList`, `DedicationFeeList`, and `DedicationBookingList`.
+- Before returning the donation form View, call `QpayModel.EnsureFormDefaults()` on the model that will be rendered; `DonationPaymentManager.m_QpayModel` is reused state and can be partially cleared by older flows.
+- CRM/LINE initialization may enrich the model, but the form must still render usable fallback category and payment-method choices when CRM data is missing or delayed.
+
+### 3. Validation & Error Matrix
+
+- Synchronous action calls `SetupUserLineId(...)` without `await` -> page can render before CRM contact data and option lists are loaded.
+- New `QpayModel()` has null category/payment fields -> DevExtreme select boxes display blank/default placeholders and may post incomplete data.
+- Reused `DonationPaymentManager.m_QpayModel` has empty/null lists after an earlier failed flow -> call `EnsureFormDefaults()` before rendering the form.
+- CRM OptionSet lookup fails -> fallback donation categories must remain available.
+
+### 4. Tests Required
+
+- A test must assert `QpayModel` default category/payment values and non-null option lists.
+- A test must assert `QpayModel.EnsureFormDefaults()` restores required category/payment/list fields after reused state is cleared.
+- A test must assert `DedicationController.QPayView` returns `Task<IActionResult>` so LINE initialization can complete before rendering.
+
+### 5. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+public IActionResult QPayView(string lineId)
+{
+    SetupUserLineId(lineId, "", "", "");
+    return View(InMemoryContext.DonationPaymentManager.m_QpayModel);
+}
+```
+
+This starts the asynchronous initialization but renders the View before the model is populated.
+
+#### Correct
+
+```csharp
+public async Task<IActionResult> QPayView(string lineId)
+{
+    await SetupUserLineId(lineId, "", "", "");
+    return View(InMemoryContext.DonationPaymentManager.m_QpayModel);
+}
+```
+
+The page renders only after the product workflow model has been initialized or has fallen back to safe defaults.
+
+---
+
 ## Code Review Checklist
 
 <!-- What reviewers should check -->

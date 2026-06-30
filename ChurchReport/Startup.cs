@@ -1,4 +1,4 @@
-﻿using ChurchReport.Services;
+using ChurchReport.Services;
 using ChurchReport.Tools;
 using ChurchReport.Filters;
 using ChurchReport.Services.Theme;
@@ -26,7 +26,9 @@ using Microsoft.AspNetCore.ResponseCompression;
 using ToolUtilityNameSpace.DependencyInjection;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ChurchReport.WebServiceConnector;
+using SpeechMessage.Payments.AspNetCore.DependencyInjection;
 using SpeechMessage.Payments.DependencyInjection;
+using SpeechMessage.Payments.Workflows;
 
 namespace ChurchReport
 {
@@ -482,14 +484,26 @@ namespace ChurchReport
             services.AddScoped<ChurchReport.Services.MyPayCrmService>();
             services.AddScoped<ChurchReport.Services.MyPayNotificationService>();
 
+            // ========================================
+            // 註冊抽離後的通用金流核心與 ChurchReport adapter
+            // ========================================
+            // SpeechMessage.Payments 擁有永豐、高鉅、台新的 provider protocol、加解密、簽章、
+            // request/response mapping 與 callback parsing。ChurchReport 只註冊薄 adapter，
+            // 負責把 ASP.NET request、CRM/LINE 產品流程與抽離後的付款核心接回來。
             services.AddSpeechMessagePayments(Configuration.GetSection("Payment"));
-            services.AddScoped<PaymentHttpRequestMapper>();
-            services.AddScoped<PaymentAcknowledgementResultMapper>();
+            services.AddSpeechMessagePaymentAspNetCore();
             services.AddScoped<ChurchReportPaymentProfileResolver>();
-            services.AddScoped<PaymentCreateRequestFactory>();
-            services.AddScoped<PaymentWorkflowResultMapper>();
+            services.AddScoped<IPaymentRecordUpdater, ChurchReportPaymentRecordUpdater>();
+            services.AddScoped<IPaymentPayerNotifier, ChurchReportPaymentPayerNotifier>();
+            services.AddScoped<IDonationPaymentReturnWorkflow, DonationPaymentReturnWorkflow>();
             services.AddScoped<IQPayReturnWorkflow, QPayReturnWorkflow>();
+            services.AddScoped<IDonationPaymentProductWorkflowDispatcher, DonationPaymentProductWorkflowDispatcher>();
             services.AddScoped<IQPayProductWorkflowDispatcher, QPayProductWorkflowDispatcher>();
+            // ChurchReport 產品層的建單 adapter，以中性介面供 controller/context/manager 使用。
+            // 舊 QPayCreatePaymentGatewayAdapter 只保留給相容 constructor，不作為新流程的主要入口。
+            services.AddScoped<DonationPaymentCreateGatewayAdapter>();
+            services.AddScoped<IDonationPaymentCreateGatewayAdapter>(sp =>
+                sp.GetRequiredService<DonationPaymentCreateGatewayAdapter>());
             services.AddScoped<QPayCreatePaymentGatewayAdapter>();
 
 #if DEBUG

@@ -10,6 +10,11 @@ using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.Providers.Sinopac;
 
+/// <summary>
+/// 永豐 QPay provider 實作。
+/// 這裡集中處理 Nonce、AES 加解密、簽章、建單與查詢封包；
+/// 宿主產品端只拿 normalized result，不再自行組永豐 protocol。
+/// </summary>
 internal sealed class SinopacPaymentProvider : IPaymentProvider
 {
     private const string CurrentVersion = "1.0.0";
@@ -171,6 +176,8 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
         CancellationToken cancellationToken)
         where TRequest : ISinopacRequest
     {
+        // 永豐 QPay 每次呼叫都先取 Nonce，再用 A1/A2/B1/B2 推導出的 AES key 加密 Message。
+        // AES key 的大小寫與位元組內容必須完全符合舊 QPay Toolkit，否則銀行會回 HTTP 400。
         var aesKey = SinopacCrypto.BuildAesKey(profile);
         var nonceResponse = await PostJsonAsync<SinopacNonceResponse>(
             profile,
@@ -192,6 +199,7 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
             APIService = apiService.ToString(),
             Nonce = nonceResponse.Nonce,
             Message = encryptedMessage,
+            // 簽章由 provider core 產生，產品層不需要也不應知道永豐簽章欄位規則。
             Sign = SinopacSigner.GenerateSign(payload, aesKey, nonceResponse.Nonce)
         };
 
@@ -205,6 +213,7 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
             ?? throw new JsonException("Sinopac returned an empty response message.");
         var expectedSign = SinopacSigner.GenerateSign(innerResult, aesKey, responseEnvelope.Nonce);
 
+        // 回應簽章不符時 fail closed，避免宿主產品根據未驗證資料更新 CRM 或顯示付款成功。
         if (!string.Equals(expectedSign, responseEnvelope.Sign, StringComparison.OrdinalIgnoreCase))
         {
             throw new SinopacSignatureException("Sinopac response signature validation failed.");
@@ -227,6 +236,7 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
         await _sendLock.WaitAsync(cancellationToken);
         try
         {
+            // HttpClient header 是 instance 狀態；此 provider 用 semaphore 避免並行呼叫時 X-KeyID 被交錯覆蓋。
             _httpClient.DefaultRequestHeaders.Remove("X-KeyID");
             _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-KeyID", SinopacRequestMapper.GetXKeyId(profile));
 
@@ -275,6 +285,7 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
             ["product_entity_id"] = response.Param1,
             ["payment_organization"] = response.Param2,
             ["payment_category"] = response.Param3,
+            // ATM 虛擬帳號是使用者付款所需資訊，必須穿越核心邊界給宿主產品顯示與通知。
             ["atm_pay_no"] = response.ATMParam?.AtmPayNo ?? string.Empty,
             ["web_atm_url"] = response.ATMParam?.WebAtmURL ?? string.Empty,
             ["otp_url"] = response.ATMParam?.OtpURL ?? string.Empty
@@ -287,8 +298,11 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
         string fallbackProductOrderId)
     {
         var paymentPageUrl = ResolvePaymentPageUrl(response);
+        // 信用卡、行動支付、LinePay 等 hosted flow 必須有付款頁網址；
+        // 若 provider 回成功但 URL 空白，宿主產品不可導回原頁造成假成功。
         var missingPaymentPageUrl = RequiresPaymentPageUrl(payload.PayType) &&
             string.IsNullOrWhiteSpace(paymentPageUrl);
+        // ATM/匯款 flow 必須有虛擬帳號；沒有帳號就不能產生付款指示。
         var missingAtmPayNo = RequiresAtmPayNo(payload.PayType) &&
             string.IsNullOrWhiteSpace(response.ATMParam?.AtmPayNo);
         var providerRejected = SinopacStatusMapper.IsProviderRejected(response);
@@ -333,6 +347,7 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
     {
         if (SinopacStatusMapper.IsProviderRejected(response))
         {
+            // Provider 已經明確拒絕時，保留銀行原始 status/description，避免被 generic missing URL 訊息遮蔽。
             return new PaymentError
             {
                 Kind = PaymentErrorKind.ProviderRejected,

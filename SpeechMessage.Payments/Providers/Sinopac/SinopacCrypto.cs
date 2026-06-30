@@ -4,6 +4,11 @@ using SpeechMessage.Payments.Configuration;
 
 namespace SpeechMessage.Payments.Providers.Sinopac;
 
+/// <summary>
+/// 永豐 QPay 加解密工具。
+/// AES key 由 A1/A2、B1/B2 做 XOR 後轉成大寫十六進位字串；
+/// 這是舊 QPay Toolkit 的相容行為，不能改成一般 binary key 或小寫 hex。
+/// </summary>
 internal static class SinopacCrypto
 {
     public static string BuildAesKey(PaymentMerchantProfile profile)
@@ -69,6 +74,7 @@ internal static class SinopacCrypto
 
     private static string DeriveIv(string nonce)
     {
+        // 永豐 IV 取 Nonce 的 SHA256 大寫 hex 最後 16 字元，需與銀行規格一致。
         var hash = ToHex(SHA256.HashData(Encoding.UTF8.GetBytes(nonce)), uppercase: true);
         return hash[^16..];
     }

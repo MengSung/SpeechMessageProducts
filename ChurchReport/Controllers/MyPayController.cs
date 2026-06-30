@@ -1,18 +1,26 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChurchReport.Payments;
 using ChurchReport.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
+using SpeechMessage.Payments.AspNetCore;
 using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Models;
+using SpeechMessage.Payments.Workflows;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.DependencyInjection;
 using static ChurchReport.Services.MyPayFeeTypeHelper;
 
 namespace ChurchReport.Controllers
 {
+    /// <summary>
+    /// 高鉅 MyPay callback 的 ChurchReport HTTP adapter。
+    /// Provider callback parsing、acknowledgement 與狀態正規化交給共用金流核心；
+    /// 本 controller 只負責 ChurchReport 的 CRM fee 查詢、付款後 workflow context 組裝與結果頁。
+    /// </summary>
     [Route("api/[controller]")]
     public class MyPayController : Controller
     {
@@ -28,6 +36,7 @@ namespace ChurchReport.Controllers
         private readonly ChurchReportPaymentProfileResolver _paymentProfileResolver;
         private readonly PaymentAcknowledgementResultMapper _paymentAcknowledgementResultMapper;
         private readonly PaymentWorkflowResultMapper _paymentWorkflowResultMapper;
+        private readonly PaymentPostPaymentWorkflow _postPaymentWorkflow;
 
         private ToolUtilityClass ToolUtility => _toolUtilityProvider.GetToolUtility();
 
@@ -43,7 +52,8 @@ namespace ChurchReport.Controllers
             PaymentHttpRequestMapper paymentHttpRequestMapper,
             ChurchReportPaymentProfileResolver paymentProfileResolver,
             PaymentAcknowledgementResultMapper paymentAcknowledgementResultMapper,
-            PaymentWorkflowResultMapper paymentWorkflowResultMapper)
+            PaymentWorkflowResultMapper paymentWorkflowResultMapper,
+            PaymentPostPaymentWorkflow postPaymentWorkflow)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _messageBuilder = messageBuilder ?? throw new ArgumentNullException(nameof(messageBuilder));
@@ -57,8 +67,14 @@ namespace ChurchReport.Controllers
             _paymentProfileResolver = paymentProfileResolver ?? throw new ArgumentNullException(nameof(paymentProfileResolver));
             _paymentAcknowledgementResultMapper = paymentAcknowledgementResultMapper ?? throw new ArgumentNullException(nameof(paymentAcknowledgementResultMapper));
             _paymentWorkflowResultMapper = paymentWorkflowResultMapper ?? throw new ArgumentNullException(nameof(paymentWorkflowResultMapper));
+            _postPaymentWorkflow = postPaymentWorkflow ?? throw new ArgumentNullException(nameof(postPaymentWorkflow));
         }
 
+        /// <summary>
+        /// MyPay 背景通知入口。
+        /// ASP.NET request 先轉成中立 callback request，再由 MyPay provider parser 驗證與正規化；
+        /// 成功解析後，交給共用付款後流程 pipeline 編排 CRM 更新與付款者通知。
+        /// </summary>
         [HttpPost("MyPayNotify")]
         public async Task<IActionResult> PaymentNotify()
         {
@@ -87,7 +103,7 @@ namespace ChurchReport.Controllers
                 }
 
                 var workflowResult = _paymentWorkflowResultMapper.Map(callbackResult);
-                bool isSuccess = workflowResult.Status == PaymentStatus.Succeeded;
+                var isSuccess = workflowResult.Status == PaymentStatus.Succeeded;
 
                 _logger.LogInformation(
                     "[MyPay回傳] Core callback parsed. OrderId: {OrderId}, Status: {Status}, IsSuccess: {IsSuccess}",
@@ -95,72 +111,37 @@ namespace ChurchReport.Controllers
                     workflowResult.Status,
                     isSuccess);
 
-                Entity feeEntity = ToolUtility.RetrieveEntityByField(
+                var feeEntity = ToolUtility.RetrieveEntityByField(
                     "new_fee",
                     "new_q_pay_order_number",
                     workflowResult.ProductOrderId);
 
                 if (feeEntity == null)
                 {
-                    _logger.LogWarning($"[MyPay回傳] 找不到對應收費單 - OrderId: {workflowResult.ProductOrderId}");
+                    _logger.LogWarning("[MyPay回傳] 找不到收費單 - OrderId: {OrderId}", workflowResult.ProductOrderId);
                     return _paymentAcknowledgementResultMapper.ToActionResult(callbackResult.Acknowledgement);
                 }
 
-                FeeType feeType = _feeTypeHelper.DetermineFeeType(ToolUtility, feeEntity);
-                var contactId = ToolUtility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
-                Entity contactEntity = null;
-                string fullName = "會友";
-                string lineId = null;
-
-                if (contactId != Guid.Empty)
-                {
-                    contactEntity = ToolUtility.RetrieveEntity("contact", contactId);
-                    if (contactEntity != null)
+                var feeType = _feeTypeHelper.DetermineFeeType(ToolUtility, feeEntity);
+                var contactEntity = ResolveContactEntity(feeEntity, out var fullName);
+                var postPaymentContext = new PaymentPostPaymentContext(
+                    workflowResult,
+                    new Dictionary<string, object?>
                     {
-                        fullName = ToolUtility.GetEntityStringAttribute(contactEntity, "fullname") ?? "會友";
-                        lineId = ToolUtility.GetEntityStringAttribute(contactEntity, "new_lineid");
-                    }
-                }
+                        [ChurchReportPaymentWorkflowContextKeys.ToolUtility] = ToolUtility,
+                        [ChurchReportPaymentWorkflowContextKeys.FeeEntity] = feeEntity,
+                        [ChurchReportPaymentWorkflowContextKeys.IsSuccess] = isSuccess,
+                        [ChurchReportPaymentWorkflowContextKeys.FullName] = fullName,
+                        [ChurchReportPaymentWorkflowContextKeys.FeeType] = feeType,
+                        [ChurchReportPaymentWorkflowContextKeys.ContactEntity] = contactEntity
+                    });
 
-                _crmService.UpdateFeeEntityWithPaymentResult(ToolUtility, feeEntity, workflowResult, isSuccess);
-                ToolUtility.UpdateEntity(ref feeEntity);
-
-                if (!string.IsNullOrWhiteSpace(lineId))
-                {
-                    try
-                    {
-                        if (isSuccess)
-                        {
-                            _notificationService.SendLineNotificationByType(
-                                ToolUtility,
-                                feeEntity,
-                                workflowResult,
-                                fullName,
-                                feeType,
-                                contactEntity);
-                        }
-                        else
-                        {
-                            _notificationService.SendLineFailureNotificationByType(
-                                ToolUtility,
-                                feeEntity,
-                                workflowResult,
-                                fullName,
-                                feeType,
-                                contactEntity);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"[MyPay回傳] 發送LINE通知失敗 - OrderId: {workflowResult.ProductOrderId}");
-                    }
-                }
-
+                await _postPaymentWorkflow.ExecuteAsync(postPaymentContext, HttpContext.RequestAborted);
                 return _paymentAcknowledgementResultMapper.ToActionResult(callbackResult.Acknowledgement);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[MyPay回傳] 處理異常");
+                _logger.LogError(ex, "[MyPay回傳] 處理失敗");
                 var acknowledgement = callbackResult?.Acknowledgement ?? PaymentCallbackAcknowledgement.PlainText("8888");
                 return _paymentAcknowledgementResultMapper.ToActionResult(acknowledgement);
             }
@@ -170,7 +151,7 @@ namespace ChurchReport.Controllers
         public IActionResult PaymentSuccess([FromQuery] string order_id = "")
         {
             ViewBag.OrderId = order_id;
-            ViewBag.Message = "訂單已建立，會透過LINE另行通知交易狀態，感謝您的支持。";
+            ViewBag.Message = "付款已完成，系統會更新收費紀錄並發送通知。";
             ViewBag.IsSuccess = true;
             return View("PaymentResult");
         }
@@ -179,9 +160,27 @@ namespace ChurchReport.Controllers
         public IActionResult PaymentFailure([FromQuery] string order_id = "", [FromQuery] string msg = "")
         {
             ViewBag.OrderId = order_id;
-            ViewBag.Message = !string.IsNullOrEmpty(msg) ? $"付款失敗：{msg}" : "付款失敗，請稍後再試或聯繫教會辦公室。";
+            ViewBag.Message = !string.IsNullOrEmpty(msg) ? $"付款失敗：{msg}" : "付款失敗，請確認付款資料或稍後再試。";
             ViewBag.IsSuccess = false;
             return View("PaymentResult");
+        }
+
+        private Entity ResolveContactEntity(Entity feeEntity, out string fullName)
+        {
+            fullName = "未知";
+            var contactId = ToolUtility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
+            if (contactId == Guid.Empty)
+            {
+                return null;
+            }
+
+            var contactEntity = ToolUtility.RetrieveEntity("contact", contactId);
+            if (contactEntity != null)
+            {
+                fullName = ToolUtility.GetEntityStringAttribute(contactEntity, "fullname") ?? "未知";
+            }
+
+            return contactEntity;
         }
     }
 }

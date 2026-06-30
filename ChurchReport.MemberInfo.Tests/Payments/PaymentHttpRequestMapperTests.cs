@@ -1,8 +1,8 @@
 using System.Text;
-using ChurchReport.Payments;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
+using SpeechMessage.Payments.AspNetCore;
 using SpeechMessage.Payments.Models;
 using Xunit;
 

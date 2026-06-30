@@ -1,30 +1,33 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using SpeechMessage.Payments.Models;
 
 namespace ChurchReport.Payments;
 
-public interface IQPayReturnWorkflow
+/// <summary>
+/// 舊 QPay 命名的 return workflow 介面。
+/// 新程式應使用 <see cref="IDonationPaymentReturnWorkflow"/>；此介面只為舊 controller 與舊測試相容而存在。
+/// </summary>
+[Obsolete("Use IDonationPaymentReturnWorkflow. QPay naming is retained only for compatibility during the migration.")]
+public interface IQPayReturnWorkflow : IDonationPaymentReturnWorkflow
 {
-    IActionResult HandleReturn(
-        string shopNo,
-        string payToken,
-        PaymentStatusResult statusResult);
 }
 
+/// <summary>
+/// 舊 <c>QPayReturnWorkflow</c> 名稱的相容包裝。
+/// 所有實際付款回傳流程都在 <see cref="DonationPaymentReturnWorkflow"/>；此類別不可新增業務邏輯。
+/// </summary>
+[Obsolete("Use DonationPaymentReturnWorkflow. QPay naming is retained only for compatibility during the migration.")]
 public sealed class QPayReturnWorkflow : IQPayReturnWorkflow
 {
-    private const string PaymentResultViewName = "~/Views/QPayCard/PaymentResult.cshtml";
-    private readonly IQPayProductWorkflowDispatcher? _productWorkflowDispatcher;
+    private readonly DonationPaymentReturnWorkflow _inner;
 
     public QPayReturnWorkflow(IQPayProductWorkflowDispatcher? productWorkflowDispatcher = null)
     {
-        _productWorkflowDispatcher = productWorkflowDispatcher;
+        _inner = new DonationPaymentReturnWorkflow(
+            productWorkflowDispatcher == null
+                ? null
+                : new LegacyProductWorkflowDispatcherAdapter(productWorkflowDispatcher));
     }
 
     public IActionResult HandleReturn(
@@ -32,164 +35,64 @@ public sealed class QPayReturnWorkflow : IQPayReturnWorkflow
         string payToken,
         PaymentStatusResult statusResult)
     {
-        ArgumentNullException.ThrowIfNull(statusResult);
+        return _inner.HandleReturn(shopNo, payToken, statusResult);
+    }
 
-        var providerData = statusResult.ProviderData ?? new Dictionary<string, string>();
-        if (_productWorkflowDispatcher != null)
+    private sealed class LegacyProductWorkflowDispatcherAdapter : IDonationPaymentProductWorkflowDispatcher
+    {
+        private readonly IQPayProductWorkflowDispatcher _legacyDispatcher;
+
+        public LegacyProductWorkflowDispatcherAdapter(IQPayProductWorkflowDispatcher legacyDispatcher)
         {
-            var workflowResult = CreateWorkflowPaymentResult(shopNo, payToken, statusResult, providerData);
-            return IsDedicationBooking(workflowResult.PaymentCategory)
-                ? _productWorkflowDispatcher.HandleDedicationBookingReturn(shopNo, payToken, workflowResult)
-                : _productWorkflowDispatcher.HandleFeeReturn(shopNo, payToken, workflowResult);
+            _legacyDispatcher = legacyDispatcher ?? throw new ArgumentNullException(nameof(legacyDispatcher));
         }
 
-        var isSuccess = statusResult.Status == PaymentStatus.Succeeded &&
-            !statusResult.Error.HasError;
-        var providerMessage = FirstNonEmpty(
-            Read(providerData, "provider_message"),
-            statusResult.Error.Message,
-            statusResult.Status.ToString());
-        var orderId = FirstNonEmpty(
-            statusResult.ProductOrderId,
-            statusResult.ProviderOrderRef,
-            payToken);
-
-        var viewData = CreateViewData();
-        viewData["IsSuccess"] = isSuccess;
-        viewData["Message"] = isSuccess
-            ? "Order created successfully. Payment processing will continue through the ChurchReport workflow."
-            : "Payment failed. Please try again later or contact the church office.";
-        viewData["OrderId"] = orderId;
-        viewData["TransactionId"] = FirstNonEmpty(
-            statusResult.ProviderTransactionId,
-            statusResult.ProviderOrderRef,
-            payToken);
-        viewData["Amount"] = statusResult.Amount?.ToString("0.##", CultureInfo.InvariantCulture) ?? string.Empty;
-        viewData["PaymentTime"] = DateTime.Now.ToLocalTime().ToString("yyyy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture);
-        viewData["PaymentMethod"] = ResolvePaymentMethod(providerData);
-        viewData["DedicationCategory"] = ResolvePaymentCategory(providerData);
-        viewData["ErrorDetails"] = providerMessage;
-        viewData["ShopNo"] = shopNo ?? string.Empty;
-        viewData["ProductEntityId"] = Read(providerData, "product_entity_id");
-
-        return new ViewResult
+        public IActionResult HandleFeeReturn(
+            string shopNo,
+            string payToken,
+            DonationPaymentWorkflowResult paymentResult)
         {
-            ViewName = PaymentResultViewName,
-            ViewData = viewData
-        };
-    }
-
-    private static ViewDataDictionary CreateViewData()
-    {
-        return new ViewDataDictionary(
-            new EmptyModelMetadataProvider(),
-            new ModelStateDictionary());
-    }
-
-    private static string ResolvePaymentMethod(IReadOnlyDictionary<string, string> providerData)
-    {
-        var paymentCategory = Read(providerData, "payment_category");
-        return IsDedicationBooking(paymentCategory)
-            ? "Credit card recurring"
-            : "Credit card";
-    }
-
-    private static string ResolvePaymentCategory(IReadOnlyDictionary<string, string> providerData)
-    {
-        var paymentCategory = Read(providerData, "payment_category");
-        if (IsDedicationBooking(paymentCategory))
-        {
-            return "Dedication booking";
+            return _legacyDispatcher.HandleFeeReturn(
+                shopNo,
+                payToken,
+                ToLegacyResult(paymentResult));
         }
 
-        return string.IsNullOrWhiteSpace(paymentCategory)
-            ? "Payment"
-            : paymentCategory;
-    }
-
-    private static bool IsDedicationBooking(string value)
-    {
-        return value.Equals("dedication_booking", StringComparison.OrdinalIgnoreCase) ||
-            value.Equals("recurring_dedication", StringComparison.OrdinalIgnoreCase) ||
-            value.Contains("Dedication", StringComparison.OrdinalIgnoreCase) ||
-            value.Contains("\u8a8d\u737b", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static QPayWorkflowPaymentResult CreateWorkflowPaymentResult(
-        string shopNo,
-        string payToken,
-        PaymentStatusResult statusResult,
-        IReadOnlyDictionary<string, string> providerData)
-    {
-        var isSuccess = statusResult.Status == PaymentStatus.Succeeded &&
-            !statusResult.Error.HasError;
-        var status = isSuccess ? "S" : "F";
-        var description = FirstNonEmpty(
-            Read(providerData, "provider_message"),
-            statusResult.Error.Message,
-            statusResult.Status.ToString());
-
-        return new QPayWorkflowPaymentResult
+        public IActionResult HandleDedicationBookingReturn(
+            string shopNo,
+            string payToken,
+            DonationPaymentWorkflowResult paymentResult)
         {
-            ShopNo = shopNo ?? string.Empty,
-            PayToken = FirstNonEmpty(payToken, statusResult.ProviderOrderRef),
-            OrderNo = FirstNonEmpty(statusResult.ProductOrderId, statusResult.ProviderOrderRef),
-            ProviderTransactionId = statusResult.ProviderTransactionId,
-            Amount = statusResult.Amount,
-            AmountMinorUnits = ResolveMinorAmount(statusResult, providerData),
-            ProductEntityId = Read(providerData, "product_entity_id", "param1"),
-            PaymentOrganization = Read(providerData, "payment_organization", "param2"),
-            PaymentCategory = Read(providerData, "payment_category", "param3"),
-            PayType = FirstNonEmpty(Read(providerData, "pay_type"), "C"),
-            Status = status,
-            Description = description,
-            LeftCCNo = Read(providerData, "left_cc_no"),
-            RightCCNo = Read(providerData, "right_cc_no"),
-            CCExpDate = Read(providerData, "cc_exp_date"),
-            CCToken = Read(providerData, "cc_token"),
-            ProviderData = providerData
-        };
-    }
-
-    private static string ResolveMinorAmount(
-        PaymentStatusResult statusResult,
-        IReadOnlyDictionary<string, string> providerData)
-    {
-        var providerAmount = Read(providerData, "amount");
-        if (!string.IsNullOrWhiteSpace(providerAmount))
-        {
-            return providerAmount;
+            return _legacyDispatcher.HandleDedicationBookingReturn(
+                shopNo,
+                payToken,
+                ToLegacyResult(paymentResult));
         }
 
-        return statusResult.Amount.HasValue
-            ? decimal.Round(statusResult.Amount.Value * 100m, 0, MidpointRounding.AwayFromZero)
-                .ToString("0", CultureInfo.InvariantCulture)
-            : string.Empty;
-    }
-
-    private static string Read(IReadOnlyDictionary<string, string> values, params string[] keys)
-    {
-        foreach (var key in keys)
+        private static QPayWorkflowPaymentResult ToLegacyResult(DonationPaymentWorkflowResult result)
         {
-            if (values.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value))
-            {
-                return value;
-            }
+            return result is QPayWorkflowPaymentResult legacyResult
+                ? legacyResult
+                : new QPayWorkflowPaymentResult
+                {
+                    ShopNo = result.ShopNo,
+                    PayToken = result.PayToken,
+                    OrderNo = result.OrderNo,
+                    ProviderTransactionId = result.ProviderTransactionId,
+                    Amount = result.Amount,
+                    AmountMinorUnits = result.AmountMinorUnits,
+                    ProductEntityId = result.ProductEntityId,
+                    PaymentOrganization = result.PaymentOrganization,
+                    PaymentCategory = result.PaymentCategory,
+                    PayType = result.PayType,
+                    Status = result.Status,
+                    Description = result.Description,
+                    LeftCCNo = result.LeftCCNo,
+                    RightCCNo = result.RightCCNo,
+                    CCExpDate = result.CCExpDate,
+                    CCToken = result.CCToken,
+                    ProviderData = result.ProviderData
+                };
         }
-
-        return string.Empty;
-    }
-
-    private static string FirstNonEmpty(params string[] values)
-    {
-        foreach (var value in values)
-        {
-            if (!string.IsNullOrWhiteSpace(value))
-            {
-                return value;
-            }
-        }
-
-        return string.Empty;
     }
 }

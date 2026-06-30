@@ -2,10 +2,16 @@
 using ChurchReport.Payments;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
+using SpeechMessage.Payments.Workflows;
 using ToolUtilityNameSpace;
 
 namespace ChurchReport.Services
 {
+    /// <summary>
+    /// MyPay callback 成功或失敗後，負責把共用金流層整理出的
+    /// <see cref="PaymentWorkflowResult"/> 寫回 ChurchReport CRM 收費單。
+    /// 此類別仍屬於 ChurchReport，因為 CRM 欄位名稱、option set 值與描述文字格式都是產品規則。
+    /// </summary>
     public class MyPayCrmService
     {
         private const int PaymentStatusPaid = 100000001;
@@ -29,6 +35,8 @@ namespace ChurchReport.Services
 
                 if (isSuccess)
                 {
+                    // 只有產品端知道 ChurchReport CRM 的付款狀態欄位與 option set 值；
+                    // 共用金流專案只提供已正規化的付款結果，不直接更新 CRM。
                     var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
                     toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PaymentStatusPaid);
                     toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_fee_really_paid", shouldPayMoney);
@@ -37,6 +45,7 @@ namespace ChurchReport.Services
                     toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PaymentMethodCreditCard);
                 }
 
+                // 將 provider-neutral 結果附加到 CRM 描述欄位，保留後續客服查核與對帳資訊。
                 var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description") ?? string.Empty;
                 var newDescription = originalDescription + Environment.NewLine +
                     $"[金流回傳資訊 - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +

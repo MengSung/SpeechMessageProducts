@@ -4,6 +4,11 @@ using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.Gateway;
 
+/// <summary>
+/// provider-neutral gateway router。
+/// 這裡只負責 profile/provider 選擇與錯誤正規化，不處理任何宿主產品 CRM、
+/// LINE 通知、畫面導向或 provider 封包細節。
+/// </summary>
 internal sealed class PaymentGateway : IPaymentGateway
 {
     private readonly IPaymentProfileResolver _profileResolver;
@@ -71,6 +76,8 @@ internal sealed class PaymentGateway : IPaymentGateway
             return ProviderSelection.Failed(PaymentErrorKind.ConfigurationInvalid, ex.Message);
         }
 
+        // ProviderHint 是 callback route 或產品流程對 provider 的防呆宣告。
+        // 若指定 MyPay 卻解析到 Sinopac profile，直接 fail closed，避免用錯金鑰或錯誤 API。
         if (providerHint is not null &&
             providerHint.Value != PaymentProviderKind.Unknown &&
             providerHint.Value != profile.Provider)

@@ -2,6 +2,10 @@ using Newtonsoft.Json;
 
 namespace SpeechMessage.Payments.Providers.Taishin;
 
+/// <summary>
+/// 台新 TSPG REST API 內部 DTO。
+/// 這些欄位名稱是 provider contract，不作為 SpeechMessage.Payments 的公開模型。
+/// </summary>
 internal sealed class TaishinPaymentRequest
 {
     [JsonProperty("sender")]

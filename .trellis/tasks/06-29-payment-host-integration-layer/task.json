@@ -1,0 +1,29 @@
+{
+  "id": "payment-host-integration-layer",
+  "name": "payment-host-integration-layer",
+  "title": "Payment host integration layer extraction",
+  "description": "Design a second-stage reusable host/integration layer so ChurchReport can remove QPay-named helper/adapters from its web project while keeping the pure SpeechMessage.Payments core unchanged.",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-06-29",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "payment-module-extraction",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "Implementation plan saved to docs/superpowers/plans/2026-06-29-payment-host-integration-layer.md. Design/spec saved to docs/superpowers/specs/2026-06-29-payment-host-integration-layer-design.md.",
+  "meta": {
+    "currentPhase": "validation",
+    "nextAction": "External dual-model review remains blocked because codeagent-wrapper is unavailable; ready for user review or commit after approved review path"
+  }
+}

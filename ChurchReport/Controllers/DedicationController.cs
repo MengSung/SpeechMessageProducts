@@ -1,4 +1,5 @@
-﻿using ChurchReport.Models;
+using ChurchReport.Models;
+using ChurchReport.Payments;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Xrm.Sdk;
 using System;
 using System.Linq;
 using System.Threading;
@@ -50,19 +52,34 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="LineId">LINE 使用者 ID (若從 LINE 進入)</param>
         [Route("/Dedication/QPayView/{LineId}")]
-        public IActionResult QPayView(string LineId)
+        public async Task<IActionResult> QPayView(string LineId)
         {
             try
             {
-                SetupQPayViewBag();
-
                 // 處理 LINE 登入
-                if (!string.IsNullOrEmpty(LineId) && LineId != "網頁登入")
+                if (!string.IsNullOrEmpty(LineId) && !IsWebLogin(LineId))
                 {
-                    SetupUserLineId(LineId, "", "", "");
+                    HttpContext.Session.Remove(DonationPaymentSessionKeys.WebLoginContactId);
+
+                    // SetupUserLineId 會查詢 LINE 使用者對應的 CRM 連絡人，並填入
+                    // DonationPaymentManager.m_QpayModel 的奉獻類別、付款方式、奉獻編號等資料。
+                    // 必須等待它完成後再產生 View，否則畫面會先 render 出空白下拉選單。
+                    await SetupUserLineId(LineId, "", "", "");
+                }
+                else if (IsWebLogin(LineId))
+                {
+                    RestoreWebLoginDonationPaymentModel();
                 }
 
-                return View(InMemoryContext.QpayManager.m_QpayModel);
+                SetupQPayViewBag();
+
+                QpayModel qpayModel = InMemoryContext.DonationPaymentManager.m_QpayModel ?? new QpayModel();
+                // DonationPaymentManager.m_QpayModel 是長生命週期狀態，可能曾被舊流程或失敗的 CRM 查詢清空欄位。
+                // 在 render 前統一補齊表單必要預設值，避免 DevExtreme 下拉選單顯示空白。
+                qpayModel.EnsureFormDefaults();
+                InMemoryContext.DonationPaymentManager.m_QpayModel = qpayModel;
+
+                return View(qpayModel);
             }
             catch (Exception e)
             {
@@ -71,11 +88,106 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
+        /// 判斷目前路由是否為官網網頁奉獻登入。
+        ///
+        /// LINE 入口會把 LINE user id 放在同一個 route segment，因此這裡必須精準比對
+        /// 「網頁登入」，不能用空字串或其他寬鬆判斷，避免把 LINE 使用者誤當成網頁登入。
+        /// </summary>
+        private static bool IsWebLogin(string lineId)
+        {
+            return string.Equals(lineId, "網頁登入", StringComparison.Ordinal);
+        }
+
+        /// <summary>
+        /// 在官網網頁登入流程中，必要時重新建立奉獻頁模型。
+        ///
+        /// 根因說明：
+        /// QPayLoginController 在 AJAX POST 中已經呼叫 SetDonationPaymentModel(contact)，
+        /// 但瀏覽器接著會 redirect 到奉獻頁，DevExtreme Grid 又會再送 AJAX 請求。
+        /// 如果這些請求讀到不同的 DonationPaymentManager memory-cache key，畫面就會拿到空模型，
+        /// 導致姓名、奉獻編號與信用卡清單一起消失。
+        ///
+        /// 修補策略：
+        /// - 不建立假姓名或假奉獻編號。
+        /// - 優先沿用目前 manager 已有的 m_Contact。
+        /// - 若 manager 是空的，使用登入成功時存在 ASP.NET Session 的 CRM contact id 重新讀取 contact。
+        /// - 最後才嘗試 PersonalInfomationModel 的登入 contact。
+        /// </summary>
+        private void RestoreWebLoginDonationPaymentModel()
+        {
+            var manager = InMemoryContext.DonationPaymentManager;
+            var qpayModel = manager.m_QpayModel ?? new QpayModel();
+
+            if (!qpayModel.NeedsDonorIdentityRestore())
+            {
+                manager.m_QpayModel = qpayModel;
+                return;
+            }
+
+            if (manager.m_Contact != null)
+            {
+                manager.SetDonationPaymentModel(manager.m_Contact);
+                return;
+            }
+
+            if (RestoreWebLoginDonationPaymentModelFromSession(manager))
+            {
+                return;
+            }
+
+            var loginContact = InMemoryContext.PersonalInfomationModel?.m_LoginContact;
+            if (loginContact != null)
+            {
+                manager.SetDonationPaymentModel(loginContact);
+            }
+        }
+
+        /// <summary>
+        /// 使用 Session 保存的 CRM contact id 重新初始化 DonationPaymentManager。
+        ///
+        /// 這個方法只在產品層 Controller 使用，因為它同時碰到 ASP.NET Session、CRM 與畫面模型；
+        /// 這些責任都不屬於抽離後的 SpeechMessage.Payments 金流核心。
+        /// </summary>
+        private bool RestoreWebLoginDonationPaymentModelFromSession(DonationPaymentManager manager)
+        {
+            var contactIdText = HttpContext.Session.GetString(DonationPaymentSessionKeys.WebLoginContactId);
+            if (string.IsNullOrWhiteSpace(contactIdText))
+            {
+                return false;
+            }
+
+            if (!Guid.TryParse(contactIdText, out var contactId))
+            {
+                HttpContext.Session.Remove(DonationPaymentSessionKeys.WebLoginContactId);
+                return false;
+            }
+
+            try
+            {
+                Entity contact = ToolUtility.RetrieveEntity("contact", contactId);
+                if (contact == null)
+                {
+                    return false;
+                }
+
+                manager.SetDonationPaymentModel(contact);
+                InMemoryContext.PersonalInfomationModel.m_LoginContact = contact;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[DedicationController] 網頁奉獻登入模型恢復失敗，ContactId={contactId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
         /// 設定奉獻頁面的 ViewBag
         /// </summary>
         private void SetupQPayViewBag()
         {
-            if (InMemoryContext.QpayManager.LoginType == "網頁登入")
+            if (InMemoryContext.DonationPaymentManager.LoginType == "網頁登入")
             {
                 // 網頁登入 - 使用完整選單
                 SetupBasicViewBag();
@@ -94,7 +206,7 @@ namespace ChurchReport.Controllers
                 ViewBag.UserType = "行政同工";
                 ViewBag.DedicationType = "奉獻管理";
                 ViewBag.DedicationFlag = "奉獻";
-                ViewBag.IsAOfficeWorker = InMemoryContext.QpayManager.m_QpayModel.IsAOfficeWorker ? "是的" : "否";
+                ViewBag.IsAOfficeWorker = InMemoryContext.DonationPaymentManager.m_QpayModel.IsAOfficeWorker ? "是的" : "否";
             }
         }
 
@@ -113,7 +225,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                return await InMemoryContext.QpayManager.SaveQPayDedication(QpayModel);
+                return await InMemoryContext.DonationPaymentManager.SaveDonationPaymentDedicationAsync(QpayModel);
             }
             catch (Exception e)
             {
@@ -147,6 +259,7 @@ namespace ChurchReport.Controllers
                 // 信用卡的 CCTOKEN 非常重要敏感，絕對不能使用CACHE
 
                 EnsureCorrectUserData();
+                RestoreWebLoginDonationPaymentModel();
 
                 // ✅ 檢查金流提供商 - 高鉅金流不需要載入信用卡列表
                 var payProvider = _configuration["PAY_PROVIDER"];
@@ -160,7 +273,7 @@ namespace ChurchReport.Controllers
                 }
 
                 // 永豐金流或台新金流 - 載入信用卡列表
-                var tasks = InMemoryContext.QpayManager.m_QpayModel.CreditCardList
+                var tasks = InMemoryContext.DonationPaymentManager.m_QpayModel.CreditCardList
                     ?? System.Linq.Enumerable.Empty<object>();
 
                 return DataSourceLoader.Load(tasks, loadOptions);
@@ -181,10 +294,10 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var creditCard = InMemoryContext.QpayManager.m_QpayModel.CreditCardList
+                var creditCard = InMemoryContext.DonationPaymentManager.m_QpayModel.CreditCardList
                     .First(a => a.CCToken == key);
 
-                InMemoryContext.QpayManager.DeleteCreditCard(creditCard);
+                InMemoryContext.DonationPaymentManager.DeleteCreditCard(creditCard);
             }
             catch (Exception e)
             {
@@ -215,6 +328,7 @@ namespace ChurchReport.Controllers
                 // - LINE ID 恢復機制
                 // - 安全的日誌記錄（隱藏敏感資訊）
                 EnsureCorrectUserData();
+                RestoreWebLoginDonationPaymentModel();
 
                 // ✅ 檢查金流提供商 - 高鉅金流不需要載入認獻清單（不支援定期定額功能）
                 var payProvider = _configuration["PAY_PROVIDER"];
@@ -228,7 +342,7 @@ namespace ChurchReport.Controllers
                 }
 
                 // 永豐金流或台新金流 - 載入認獻清單
-                var tasks = InMemoryContext.QpayManager.m_QpayModel.DedicationBookingList
+                var tasks = InMemoryContext.DonationPaymentManager.m_QpayModel.DedicationBookingList
                     ?? System.Linq.Enumerable.Empty<object>();
 
                 return DataSourceLoader.Load(tasks, loadOptions);
@@ -248,10 +362,10 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var dedicationBooking = InMemoryContext.QpayManager.m_QpayModel.DedicationBookingList
+                var dedicationBooking = InMemoryContext.DonationPaymentManager.m_QpayModel.DedicationBookingList
                     .First(a => a.EntityId == key);
 
-                InMemoryContext.QpayManager.DeleteDedicationBooking(dedicationBooking);
+                InMemoryContext.DonationPaymentManager.DeleteDedicationBooking(dedicationBooking);
             }
             catch (Exception e)
             {
@@ -273,7 +387,7 @@ namespace ChurchReport.Controllers
             {
                 SetupDedicationFeeViewBag(false);
 
-                return View(InMemoryContext.QpayManager.SetDedicationFeeList(
+                return View(InMemoryContext.DonationPaymentManager.SetDedicationFeeList(
                     InMemoryContext.LineBindingViewModel.LineUserId));
             }
             catch (Exception e)
@@ -296,8 +410,8 @@ namespace ChurchReport.Controllers
                 // 必須在 SetDedicationFeeList 之前還原，才能依「收費日期(new_pay_date)」正確過濾跨年度紀錄。
                 RestoreDedicationQueryDatesFromSession();
 
-                return View(InMemoryContext.QpayManager.SetDedicationFeeList(
-                    InMemoryContext.QpayManager.m_Contact));
+                return View(InMemoryContext.DonationPaymentManager.SetDedicationFeeList(
+                    InMemoryContext.DonationPaymentManager.m_Contact));
             }
             catch (Exception e)
             {
@@ -327,7 +441,7 @@ namespace ChurchReport.Controllers
                 ViewBag.DisplayNavigation = "不顯示牧養回報項目";
                 ViewBag.UserType = "行政同工";
                 ViewBag.DedicationType = "奉獻管理";
-                ViewBag.IsAOfficeWorker = InMemoryContext.QpayManager.m_QpayModel.IsAOfficeWorker ? "是的" : "否";
+                ViewBag.IsAOfficeWorker = InMemoryContext.DonationPaymentManager.m_QpayModel.IsAOfficeWorker ? "是的" : "否";
             }
         }
 
@@ -344,12 +458,12 @@ namespace ChurchReport.Controllers
             if (DateTime.TryParse(savedStart, System.Globalization.CultureInfo.InvariantCulture,
                     System.Globalization.DateTimeStyles.RoundtripKind, out var queryStart))
             {
-                InMemoryContext.QpayManager.m_QpayModel.QueryStartDate = queryStart;
+                InMemoryContext.DonationPaymentManager.m_QpayModel.QueryStartDate = queryStart;
             }
             if (DateTime.TryParse(savedEnd, System.Globalization.CultureInfo.InvariantCulture,
                     System.Globalization.DateTimeStyles.RoundtripKind, out var queryEnd))
             {
-                InMemoryContext.QpayManager.m_QpayModel.QueryEndDate = queryEnd;
+                InMemoryContext.DonationPaymentManager.m_QpayModel.QueryEndDate = queryEnd;
             }
         }
 
@@ -362,8 +476,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                InMemoryContext.QpayManager.m_QpayModel.QueryStartDate = aQpayModel.QueryStartDate;
-                InMemoryContext.QpayManager.m_QpayModel.QueryEndDate = aQpayModel.QueryEndDate;
+                InMemoryContext.DonationPaymentManager.m_QpayModel.QueryStartDate = aQpayModel.QueryStartDate;
+                InMemoryContext.DonationPaymentManager.m_QpayModel.QueryEndDate = aQpayModel.QueryEndDate;
 
                 // 將使用者選的查詢日期存進 Session：頁面重新載入時 SetQpayModel 會把日期重設成「今年 1/1 ~ 今天」，
                 // 導致跨年度（例如 2025）的紀錄查不到。存進 Session 後，於 GET 重新還原，確保依使用者選的「收費日期」區間查詢。
@@ -392,7 +506,7 @@ namespace ChurchReport.Controllers
             {
                 SetupKeyInViewBag(false);
 
-                return View(InMemoryContext.QpayManager.SetDedicationFeeList(
+                return View(InMemoryContext.DonationPaymentManager.SetDedicationFeeList(
                     InMemoryContext.LineBindingViewModel.LineUserId));
             }
             catch (Exception e)
@@ -411,7 +525,7 @@ namespace ChurchReport.Controllers
             {
                 SetupKeyInViewBag(true);
 
-                return View(InMemoryContext.QpayManager.m_QpayModel);
+                return View(InMemoryContext.DonationPaymentManager.m_QpayModel);
             }
             catch (Exception e)
             {
@@ -440,7 +554,7 @@ namespace ChurchReport.Controllers
                 ViewBag.DisplayNavigation = "不顯示牧養回報項目";
                 ViewBag.UserType = "行政同工";
                 ViewBag.DedicationType = "奉獻管理";
-                ViewBag.IsAOfficeWorker = InMemoryContext.QpayManager.m_QpayModel.IsAOfficeWorker ? "是的" : "否";
+                ViewBag.IsAOfficeWorker = InMemoryContext.DonationPaymentManager.m_QpayModel.IsAOfficeWorker ? "是的" : "否";
             }
         }
 
@@ -453,7 +567,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                return await InMemoryContext.QpayManager.SaveKeyInDedication(
+                return await InMemoryContext.DonationPaymentManager.SaveKeyInDedication(
                     QpayModel,
                     InMemoryContext.AppointmentsListManager.m_LoginContact);
             }
@@ -485,7 +599,7 @@ namespace ChurchReport.Controllers
                 // - 安全的日誌記錄（隱藏敏感資訊）
                 EnsureCorrectUserData();
 
-                var tasks = InMemoryContext.QpayManager.m_QpayModel.SameNameList;
+                var tasks = InMemoryContext.DonationPaymentManager.m_QpayModel.SameNameList;
                 return DataSourceLoader.Load(tasks, loadOptions);
             }
             catch (Exception e)
@@ -503,10 +617,10 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var sameNameContact = InMemoryContext.QpayManager.m_QpayModel.SameNameList
+                var sameNameContact = InMemoryContext.DonationPaymentManager.m_QpayModel.SameNameList
                     .First(a => a.SameNameElementId == key);
 
-                InMemoryContext.QpayManager.DeleteSameNameContact(sameNameContact);
+                InMemoryContext.DonationPaymentManager.DeleteSameNameContact(sameNameContact);
             }
             catch (Exception e)
             {
@@ -523,7 +637,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                return await InMemoryContext.QpayManager.CreateContact(FullName);
+                return await InMemoryContext.DonationPaymentManager.CreateContact(FullName);
             }
             catch (Exception e)
             {
@@ -542,9 +656,9 @@ namespace ChurchReport.Controllers
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> SetupUserLineId(
-            string UserLineId, 
-            string GroupId, 
-            string RoomId, 
+            string UserLineId,
+            string GroupId,
+            string RoomId,
             string ViewType,
             CancellationToken cancellationToken = default)
         {
@@ -565,19 +679,20 @@ namespace ChurchReport.Controllers
                     InMemoryContext.LineBindingViewModel.DisplayId = UserLineId;
 
                 // 設定奉獻管理器
-                InMemoryContext.QpayManager.LoginType = "Line線上登入";
+                InMemoryContext.DonationPaymentManager.LoginType = "Line線上登入";
+                HttpContext.Session.Remove(DonationPaymentSessionKeys.WebLoginContactId);
 
                 // ? 使用非同步查詢載入登入使用者資料
-                var loginContactTask = Task.Run(() => 
+                var loginContactTask = Task.Run(() =>
                     ToolUtility.RetrieveContactByLineId(UserLineId),
                     cancellationToken);
 
                 var loginContact = await loginContactTask.ConfigureAwait(false);
-                
+
                 if (loginContact != null)
                 {
-                    await Task.Run(() => 
-                        InMemoryContext.QpayManager.SetQpayModel(loginContact),
+                    await Task.Run(() =>
+                        InMemoryContext.DonationPaymentManager.SetDonationPaymentModel(loginContact),
                         cancellationToken).ConfigureAwait(false);
                 }
 

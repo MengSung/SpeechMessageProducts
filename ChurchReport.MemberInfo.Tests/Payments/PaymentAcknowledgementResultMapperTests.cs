@@ -1,6 +1,6 @@
-using ChurchReport.Payments;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using SpeechMessage.Payments.AspNetCore;
 using SpeechMessage.Payments.Models;
 using Xunit;
 

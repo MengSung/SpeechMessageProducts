@@ -4,6 +4,170 @@ Date: 2026-06-26
 Task: `payment-module-extraction`
 Scope reviewed: Task 11 cleanup diff from the working tree at review time.
 
+## Follow-up Review - Documentation And Traditional Chinese Code Comments
+
+Date: 2026-06-27
+Scope reviewed:
+
+- `docs/payment-module-extraction-report-zh-TW.md`
+- `SpeechMessage.Payments/Abstractions/*.cs`
+- `SpeechMessage.Payments/Configuration/*.cs`
+- `SpeechMessage.Payments/DependencyInjection/ServiceCollectionExtensions.cs`
+- `SpeechMessage.Payments/Diagnostics/PaymentDiagnosticsSanitizer.cs`
+- `SpeechMessage.Payments/Gateway/PaymentGateway.cs`
+- `SpeechMessage.Payments/Models/*.cs`
+- `SpeechMessage.Payments/Providers/MyPay/*.cs`
+- `SpeechMessage.Payments/Providers/Sinopac/*.cs`
+- `SpeechMessage.Payments/Providers/Taishin/*.cs`
+- `ChurchReport/Payments/*.cs`
+- `ChurchReport/Controllers/MyPayController.cs`
+- `ChurchReport/Controllers/TSPGController.cs`
+- `ChurchReport/Controllers/QPayCardController.cs`
+- `ChurchReport/WebServiceConnector/QPayProcessor/QPayProcessor.PaymentGateway.cs`
+- `ChurchReport/Startup.cs`
+- `SpeechMessage.Payments.Tests/**/*.cs`
+
+External review status:
+
+- Required CCG wrapper is not present in this environment (`Test-Path "$HOME\.claude\bin\codeagent-wrapper"` returned `False`), so Gemini/Claude dual-model review could not be run for this documentation/comment follow-up.
+
+Manual review findings:
+
+- Critical: none.
+- Warning: none.
+- Info:
+  - Added a detailed Traditional Chinese extraction report covering architecture, modified/written projects and files, provider responsibilities, ChurchReport adapter boundaries, tests, known limitations, validation commands, deployment notes, and bugs fixed during the extraction.
+  - Added Traditional Chinese maintenance comments across the reusable payment core, provider implementations, ChurchReport thin adapters/controllers, QPay compatibility bridge, and key tests.
+  - Kept `SpeechMessage.Payments` boundary grep clean by using product-neutral wording inside core comments. ChurchReport-specific boundary explanations remain in ChurchReport adapter files and the report document.
+  - No runtime logic, provider payload fields, route names, credential values, or callback acknowledgement behavior were changed in this follow-up; changes are comments/documentation only.
+  - No `LinePayCSharp` changes were introduced.
+
+Verification:
+
+```powershell
+dotnet test SpeechMessage.Payments.Tests\SpeechMessage.Payments.Tests.csproj --no-restore -v minimal -p:UseSharedCompilation=false
+dotnet build ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --no-restore -m:1 -v minimal -p:BaseOutputPath=.\artifacts\payment-report-comments-member-build\ -p:UseSharedCompilation=false
+dotnet vstest "ChurchReport.MemberInfo.Tests\artifacts\payment-report-comments-member-build\Debug\net10.0\ChurchReport.MemberInfo.Tests.dll" --TestCaseFilter:"FullyQualifiedName~Payments"
+dotnet build ChurchReport.sln --no-restore -v minimal -p:BaseOutputPath=.\artifacts\solution-build-payment-report-comments\ -p:UseSharedCompilation=false
+rg -n "ChurchReport|ToolUtility|Line\.Messaging|Microsoft\.Xrm|HttpRequest|Controller|IActionResult|DbContext" SpeechMessage.Payments --glob "*.cs" --glob "*.csproj"
+rg -n "QPay\.Domain|QryOrderPay|TSResultContent|QryOrder\b|OrderInfo\b|TSResult\b|CreOrderReq|QryOrderPayReq|OrderMaintainReq|BillQuery|AllotQuery|MyPayReturnModel|MyPayProcessingResult|MyPayStatusHelper" ChurchReport --glob "*.cs"
+rg -n "\bIPayment\b|IQPayToolkit|QPayToolkit|QPayToolkitWrapper|MyPayToolkit|MyPayToolkitWrapper|TspgToolkit|TspgToolkitWrapper|TSPGWebhookHandler|CreOrderReq|QryOrderPayReq|OrderMaintainReq|BillQuery|AllotQuery|TSPGPaymentRequest|TSPGPaymentNotification|StoreKey|StoreIV|auth_id_resp|BuildPaymentPostData|VerifyNotificationHash" ChurchReport --glob "*.cs"
+git diff -- LinePayCSharp
+git diff --check
+```
+
+Results:
+
+- `SpeechMessage.Payments.Tests`: 53 passed.
+- `ChurchReport.MemberInfo.Tests` build: 0 errors; one existing xUnit analyzer warning in `MemberInfoScopeGuardTests.cs` about a null argument.
+- `ChurchReport.MemberInfo.Tests` payment filter: 39 passed.
+- `ChurchReport.sln` build: 0 errors; two warnings:
+  - one transient file-lock retry warning while copying `ToolUtility.dll`, which recovered during the build.
+  - the existing `xUnit1012` analyzer warning in `MemberInfoScopeGuardTests.cs`.
+- Boundary search in `SpeechMessage.Payments`: no matches.
+- Legacy toolkit/provider model searches in compiled `ChurchReport` code: no matches.
+- `LinePayCSharp`: no diff.
+- `git diff --check`: no whitespace errors; Git reported CRLF normalization warnings only.
+- A parallel `ChurchReport.MemberInfo.Tests` build attempt failed earlier because `ChurchReport\obj\Debug\net10.0\rpswa.dswa.cache.json` was locked by another process while the solution build was running. The sequential `-m:1` rebuild above passed, so this was treated as an environment/file-lock issue, not a code issue.
+
+## Follow-up Review - MyPay Encrypted Create Payload Contract
+
+Date: 2026-06-27
+Scope reviewed:
+
+- `SpeechMessage.Payments/Providers/MyPay/MyPayModels.cs`
+- `SpeechMessage.Payments/Providers/MyPay/MyPayRequestMapper.cs`
+- `SpeechMessage.Payments.Tests/Providers/MyPay/MyPayProviderTests.cs`
+- `ChurchReport/Payments/QPayCreatePaymentGatewayAdapter.cs`
+- `ChurchReport/WebServiceConnector/QPayProcessor/QPayProcessor.PaymentGateway.cs`
+- `ChurchReport.MemberInfo.Tests/Payments/QPayCreatePaymentGatewayAdapterTests.cs`
+- `ChurchReport.MemberInfo.Tests/Payments/QPayProcessorGatewayAdapterTests.cs`
+- `.trellis/spec/backend/quality-guidelines.md`
+
+External review status:
+
+- Required CCG wrapper is not present in this environment (`Test-Path "$HOME\.claude\bin\codeagent-wrapper"` returned `False` earlier in this task), so Gemini/Claude review could not be run for this follow-up.
+
+Manual review findings:
+
+- Critical: none.
+- Warning: none.
+- Info:
+  - Root cause candidate: after the direct merchant outer form fix, MyPay could still reject `encry_data` because the migrated encrypted payload no longer matched the previous working MyPay `api/orders` contract. The old flow sent `store_uid`, `items`, `cost`, `user_id`, `order_id`, `ip`, and `pfn`; the migrated mapper omitted `items`, `user_id`, and `ip`.
+  - Secondary compatibility issue: the migrated mapper passed the neutral/QPay payment method value such as `C` into MyPay `pfn`. MyPay `pfn` is a payment-function value; card flow now defaults to legacy-compatible `0`, while explicit metadata/profile `PFN` can override it.
+  - ChurchReport remains a product adapter: it supplies default line-item data and the contact name as `UserId`; provider-specific MyPay payload construction stays inside `SpeechMessage.Payments`.
+  - No `ChurchReport`, ASP.NET, CRM, LINE, or persistence dependency was added to `SpeechMessage.Payments`.
+
+Verification:
+
+```powershell
+dotnet test SpeechMessage.Payments.Tests\SpeechMessage.Payments.Tests.csproj --no-restore -v minimal -p:UseSharedCompilation=false
+dotnet build ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --no-restore -v minimal -p:BaseOutputPath=.\artifacts\mypay-payload-fix-build\ -p:UseSharedCompilation=false
+dotnet vstest "ChurchReport.MemberInfo.Tests\artifacts\mypay-payload-fix-build\Debug\net10.0\ChurchReport.MemberInfo.Tests.dll" --TestCaseFilter:"FullyQualifiedName~Payments"
+dotnet build ChurchReport.sln --no-restore -v minimal -p:BaseOutputPath=.\artifacts\solution-build-mypay-payload-fix\ -p:UseSharedCompilation=false
+rg -n "ChurchReport|ToolUtility|Line\.Messaging|Microsoft\.Xrm|HttpRequest|Controller|IActionResult|DbContext" SpeechMessage.Payments --glob "*.cs" --glob "*.csproj"
+git diff --check
+```
+
+Results:
+
+- `SpeechMessage.Payments.Tests`: 53 passed.
+- `ChurchReport.MemberInfo.Tests` payment filter: 39 passed.
+- `ChurchReport.MemberInfo.Tests` build: 0 errors; one existing xUnit analyzer warning in `MemberInfoScopeGuardTests.cs` about a null argument.
+- `ChurchReport.sln` build: 0 errors; same existing xUnit analyzer warning.
+- Boundary search: no matches.
+- `git diff --check`: no whitespace errors; Git reported CRLF normalization warnings only.
+
+## Follow-up Review - MyPay Direct Merchant Form Contract
+
+Date: 2026-06-27
+Scope reviewed:
+
+- `SpeechMessage.Payments/Providers/MyPay/MyPayRequestMapper.cs`
+- `SpeechMessage.Payments.Tests/Providers/MyPay/MyPayProviderTests.cs`
+- `.trellis/spec/backend/quality-guidelines.md`
+
+External review status:
+
+- 2026-06-29 rerun attempted with `C:\Users\Administrator\.claude\bin\codeagent-wrapper.exe` against commit `90898ecd` (`fix: restore sinopac recurring card setup`).
+- Gemini command:
+  `codeagent-wrapper.exe --progress --backend gemini - <repo>`
+  Result: wrapper launched, but failed because `gemini command not found in PATH`.
+- Claude command:
+  `codeagent-wrapper.exe --progress --backend claude - <repo>`
+  Result: wrapper launched, but failed because `claude command not found in PATH`.
+- Both required external model reviews were invoked, but the underlying model CLIs are unavailable in this environment, so no external review reports were produced.
+
+Manual review findings:
+
+- Critical: none.
+- Warning: none.
+- Info:
+  - Root cause candidate: the migrated MyPay create-payment mapper sent both top-level `store_uid` and top-level `agent_uid` to `/api/init`. MyPay direct merchant examples and the previous working ChurchReport `StoreOrder.GetPostData(...)` send only top-level `store_uid`, while `agent_uid` belongs to reseller `/api/agent` flows.
+  - The mapper now defaults normal MyPay profiles to direct merchant mode and sends top-level `store_uid` only. Reseller mode is selected only when `Credentials:AgentId` is explicitly configured, and then the top-level form sends `agent_uid`.
+  - The encrypted payload still includes the merchant `store_uid` for both modes, preserving the provider payload contract.
+  - The fix stays inside `SpeechMessage.Payments`; ChurchReport remains responsible only for profile selection and product workflow.
+
+Verification:
+
+```powershell
+dotnet test SpeechMessage.Payments.Tests\SpeechMessage.Payments.Tests.csproj --no-restore -v minimal -p:UseSharedCompilation=false
+dotnet build ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --no-restore -v minimal -p:BaseOutputPath=.\artifacts\mypay-direct-form-fix-build\ -p:UseSharedCompilation=false
+dotnet vstest "ChurchReport.MemberInfo.Tests\artifacts\mypay-direct-form-fix-build\Debug\net10.0\ChurchReport.MemberInfo.Tests.dll" --TestCaseFilter:"FullyQualifiedName~Payments"
+dotnet build ChurchReport.sln --no-restore -v minimal -p:BaseOutputPath=.\artifacts\solution-build-mypay-direct-form-fix\ -p:UseSharedCompilation=false
+rg -n "ChurchReport|ToolUtility|Line\.Messaging|Microsoft\.Xrm|HttpRequest|Controller|IActionResult|DbContext" SpeechMessage.Payments --glob "*.cs" --glob "*.csproj"
+git diff --check
+```
+
+Results:
+
+- `SpeechMessage.Payments.Tests`: 52 passed.
+- `ChurchReport.MemberInfo.Tests` payment filter: 39 passed.
+- `ChurchReport.MemberInfo.Tests` build: 0 errors; one existing xUnit analyzer warning in `MemberInfoScopeGuardTests.cs` about a null argument.
+- `ChurchReport.sln` build: 0 errors; same existing xUnit analyzer warning.
+- Boundary search: no matches.
+- `git diff --check`: no whitespace errors; Git reported CRLF normalization warnings only.
+
 ## Follow-up Review - Sinopac Recurring Card Payment Page
 
 Date: 2026-06-27
@@ -24,6 +188,7 @@ Manual review findings:
 - Critical: none.
 - Warning: none.
 - Info:
+  - Local re-review on 2026-06-29 covered commit `90898ecd` and confirmed the recurring-card default is scoped to `QPayCreatePaymentGatewayAdapter.BuildMetadata(...)`; `SpeechMessage.Payments` remains provider/protocol normalization only.
   - Root cause candidate: the recurring card flow can submit the visible UI default total-period value without posting it into `QpayModel.DeductTotalNumber`, causing the legacy adapter to send `DeductTotalNum=0` to Sinopac. The adapter now defaults `REGULAR` card setup to the legacy monthly schedule: 12 total deductions, period type `M`, frequency `1`.
   - Diagnostic gap: Sinopac rejected create responses may also lack a card payment URL. The provider now preserves Sinopac `Status` / `Description` when the bank rejected the request, instead of masking the actionable bank message with the generic missing payment page URL error.
   - One-time hosted card payment remains fail-closed if Sinopac reports success but omits `CardPayURL`.

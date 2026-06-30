@@ -1,4 +1,4 @@
-﻿using ChurchReport.Models;
+using ChurchReport.Models;
 using ChurchReport.Payments;
 using ChurchReport.Services.MemberInfo;
 using ChurchReport.Tools;
@@ -17,24 +17,24 @@ namespace ChurchReport.Controllers
 {
     /// <summary>
     /// 教會報表基底控制器 (Base Controller for Church Reports)
-    /// 
+    ///
     /// 教學說明：
     /// 這是一個抽象基底類別，所有教會相關的控制器都會繼承自這個類別。
     /// 為什麼需要基底控制器？
     /// - 避免重複代碼：將共用的功能（如錯誤處理、Session 驗證）放在這裡。
     /// - 統一行為：確保所有控制器都有相同的錯誤處理和安全檢查。
     /// - 依賴注入：集中管理外部服務的注入。
-    /// 
+    ///
     /// 設計模式：
     /// - Template Method Pattern：提供通用流程，讓子類別覆寫特定步驟。
     /// - Dependency Injection：不直接創建依賴，而是從外部注入。
     /// - Singleton Pattern：某些服務（如 ToolUtility）是單例的。
-    /// 
+    ///
     /// 使用方式：
     /// public class MyController : BaseChurchController
     /// {
     ///     public MyController(...) : base(...) { }
-    ///     
+    ///
     ///     public IActionResult MyAction()
     ///     {
     ///         // 可以直接使用基底類別的屬性，如 ToolUtility, InMemoryContext 等
@@ -47,7 +47,7 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 日誌記錄的總層級 (Total logging level)
-        /// 
+        ///
         /// 教學說明：
         /// 在企業應用中，日誌分層級管理：
         /// - Level 1: 基本資訊
@@ -55,7 +55,7 @@ namespace ChurchReport.Controllers
         /// - Level 3: 除錯資訊
         /// - Level 4: 警告
         /// - Level 5: 錯誤
-        /// 
+        ///
         /// 這裡定義了常用的層級常數，方便統一使用。
         /// </summary>
         protected const int TOTAL_LEVEL = 1;
@@ -67,7 +67,7 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// LINE 錯誤接收者 ID (LINE error receiver ID)
-        /// 
+        ///
         /// 教學說明：
         /// 當系統發生錯誤時，會自動發送 LINE 訊息通知管理員。
         /// 這個 ID 是接收通知的 LINE 用戶 ID。
@@ -87,33 +87,33 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// ToolUtility 提供者 (ToolUtility Provider)
-        /// 
+        ///
         /// 教學說明：
         /// 什麼是 ToolUtility？
         /// - 這是一個工具類別，提供日誌記錄、CRM 操作等功能。
         /// - 為什麼用提供者模式？因為 ToolUtility 是單例的，需要統一管理。
         /// - 依賴注入：不直接創建實例，而是從外部注入，符合 SOLID 原則。
-        /// 
+        ///
         /// 設計模式：Provider Pattern
         /// </summary>
         protected readonly IToolUtilityProvider _toolUtilityProvider;
 
         /// <summary>
         /// CRM 連線池 (CRM Connection Pool)
-        /// 
+        ///
         /// 教學說明：
         /// 什麼是連線池？
         /// - CRM 系統連線很耗資源，不能每次都新建連線。
         /// - 連線池預先建立多個連線，重複使用，提高性能。
         /// - 當連線用完時，自動歸還到池中。
-        /// 
+        ///
         /// 設計模式：Object Pool Pattern
         /// </summary>
         protected readonly ICrmConnectionPool _connectionPool;
 
         /// <summary>
         /// HTTP 上下文存取器 (HTTP Context Accessor)
-        /// 
+        ///
         /// 教學說明：
         /// 為什麼需要這個？
         /// - 在 ASP.NET Core 中，HttpContext 不是總是可用的（尤其在背景任務中）。
@@ -125,18 +125,18 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 使用者驗證快取
         /// 效能優化：避免同一用戶在短時間內重複驗證
-        /// 
+        ///
         /// ?? 安全設計：
         /// - Key: SessionId + PasswordHash（防止 Session Collision）
         /// - Value: (LastValidated, IsValid, PasswordHash)
         /// - 驗證時會比對密碼雜湊，確保用戶身份一致
         /// </summary>
-        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTime LastValidated, bool IsValid, string PasswordHash)> 
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTime LastValidated, bool IsValid, string PasswordHash)>
             _userValidationCache = new();
 
         /// <summary>
         /// 工具類別實例 (Tool Utility Instance)
-        /// 
+        ///
         /// 教學說明：
         /// 這個屬性提供對 ToolUtility 的存取。
         /// 為什麼用屬性而不是直接存取 _toolUtilityProvider？
@@ -147,7 +147,7 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 記憶體資料上下文 (In-Memory Data Context)
-        /// 
+        ///
         /// 教學說明：
         /// 什麼是記憶體資料上下文？
         /// - 存放應用程式的資料狀態，如用戶資訊、小組資料等。
@@ -158,7 +158,7 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 金流服務介面 (Payment Service Interface)
-        /// 
+        ///
         /// 教學說明：
         /// 負責處理付款相關的業務邏輯。
         /// 為什麼用介面？因為可以有不同的付款提供者（信用卡、LINE Pay 等）。
@@ -167,14 +167,14 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 安全的 HttpContext 存取 (Safe HttpContext Access)
-        /// 
+        ///
         /// 教學說明：
         /// 這個屬性提供安全的方式來存取 HttpContext。
         /// 為什麼需要特殊處理？
         /// - Controller 的 HttpContext 在建構函式中可能還沒初始化。
         /// - 使用 IHttpContextAccessor 可以隨時安全存取。
         /// - 如果都不可用，拋出異常，防止隱藏錯誤。
-        /// 
+        ///
         /// 設計考量：
         /// - 優先使用 IHttpContextAccessor（更可靠）。
         /// - 如果失敗，嘗試基類的 HttpContext。
@@ -186,7 +186,7 @@ namespace ChurchReport.Controllers
             {
                 // 優先使用 IHttpContextAccessor（更可靠）
                 var context = _httpContextAccessor?.HttpContext;
-                
+
                 // 如果 IHttpContextAccessor 沒有提供，嘗試使用基類的 HttpContext
                 if (context == null)
                 {
@@ -211,19 +211,19 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 初始化基底控制器 (Initialize Base Controller)
-        /// 
+        ///
         /// 教學說明：
         /// 建構函式是類別被創建時自動執行的方法。
         /// 這裡做的事情：
         /// 1. 驗證參數：確保必要的服務都被注入。
         /// 2. 保存參考：將注入的服務存起來供後續使用。
         /// 3. 初始化上下文：建立或注入記憶體資料上下文。
-        /// 
+        ///
         /// 依賴注入的優點：
         /// - 鬆耦合：類別不依賴具體實作。
         /// - 可測試性：可以輕鬆用假物件替換真實服務。
         /// - 靈活性：可以根據環境注入不同的實作。
-        /// 
+        ///
         /// 參數說明：
         /// - httpContextAccessor: 存取 HTTP 請求上下文
         /// - memoryCache: 記憶體快取服務
@@ -262,11 +262,13 @@ namespace ChurchReport.Controllers
             else
             {
                 // 向後相容：直接建立實例（將逐步淘汰）
-                var qPayCreatePaymentGatewayAdapter =
-                    httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(QPayCreatePaymentGatewayAdapter))
-                        as QPayCreatePaymentGatewayAdapter;
+                // 從 DI 取得中性的奉獻付款建單 adapter。
+                // Base controller 只需要把 ChurchReport session/context 串起來，不應再以 QPay 類名作為主要入口。
+                var donationPaymentCreateGatewayAdapter =
+                    httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(IDonationPaymentCreateGatewayAdapter))
+                        as IDonationPaymentCreateGatewayAdapter;
                 InMemoryContext = new InMemoryDataContextSmallGroup(
-                    httpContextAccessor, memoryCache, toolUtilityProvider, qPayCreatePaymentGatewayAdapter);
+                    httpContextAccessor, memoryCache, toolUtilityProvider, donationPaymentCreateGatewayAdapter);
                 System.Diagnostics.Debug.WriteLine("[BaseChurchController] 使用向後相容模式建立 InMemoryContext（請盡快更新為 DI 注入）");
             }
 
@@ -279,22 +281,22 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 統一錯誤處理方法 (Unified Error Handling Method)
-        /// 
+        ///
         /// 教學說明：
         /// 為什麼需要統一錯誤處理？
         /// - 避免每個方法都重複寫 try-catch。
         /// - 確保錯誤被正確記錄和通知。
         /// - 提供一致的錯誤回應格式。
-        /// 
+        ///
         /// 處理流程：
         /// 1. 記錄錯誤到日誌
         /// 2. 發送 LINE 通知給管理員
         /// 3. 根據請求類型返回適當的回應
-        /// 
+        ///
         /// 參數：
         /// - exception: 發生的異常物件
         /// - methodName: 發生錯誤的方法名稱（用於追蹤）
-        /// 
+        ///
         /// 返回值：
         /// - AJAX 請求：返回 JSON 錯誤訊息
         /// - 一般請求：重導向到錯誤頁面
@@ -325,7 +327,7 @@ namespace ChurchReport.Controllers
             bool isAjaxRequest = false;
             try
             {
-                isAjaxRequest = Request?.Headers != null && 
+                isAjaxRequest = Request?.Headers != null &&
                                Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             }
             catch
@@ -353,14 +355,14 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 發送 LINE 錯誤通知 (Send LINE Error Notification)
-        /// 
+        ///
         /// 教學說明：
         /// 當系統發生嚴重錯誤時，主動通知管理員。
         /// 為什麼用 LINE？
         /// - 即時性：管理員可以立即收到通知。
         /// - 便利性：手機上就能看到。
         /// - 可靠性：即使郵件系統故障，LINE 通常還能用。
-        /// 
+        ///
         /// 錯誤處理：
         /// - 如果 LINE 發送失敗，不影響主要業務流程。
         /// - 會記錄 LINE 發送失敗的日誌。
@@ -394,16 +396,16 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 設定多小組版面參數 (Set Multi-Group Layout Parameters)
-        /// 
+        ///
         /// 教學說明：
         /// ViewBag 是 ASP.NET MVC 中用來傳遞資料到 View 的機制。
         /// 這個方法決定頁面應該顯示什麼樣的導覽選單。
-        /// 
+        ///
         /// 業務邏輯：
         /// - 如果是多小組模式且未載入特定小組：顯示單純的多小組視圖
         /// - 如果是整合模式且已載入資料：顯示單一小組的詳細視圖
         /// - 如果是混合模式：顯示兩個選項（統計 + 詳細）
-        /// 
+        ///
         /// 為什麼需要這個？
         /// - 用戶體驗：根據用戶狀態顯示適當的選項
         /// - 導航邏輯：確保用戶不會迷路
@@ -439,19 +441,19 @@ namespace ChurchReport.Controllers
             }
 
             // 設定是否為行政同工
-            ViewBag.IsAOfficeWorker = InMemoryContext.QpayManager.m_QpayModel.IsAOfficeWorker
+            ViewBag.IsAOfficeWorker = InMemoryContext.DonationPaymentManager.m_QpayModel.IsAOfficeWorker
                 ? "是的" : "否";
         }
 
         /// <summary>
         /// 檢查整合資料是否已載入 (Check if Integrate Data is Loaded)
-        /// 
+        ///
         /// 教學說明：
         /// 整合資料是指特定小組的詳細資訊。
         /// 為什麼需要檢查？
         /// - 確保用戶看到的是正確的資料
         /// - 避免顯示空的或錯誤的資訊
-        /// 
+        ///
         /// 檢查條件：
         /// - 週報物件存在
         /// - LoadFlag 為 true（表示資料已載入）
@@ -464,13 +466,13 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 設定基本 ViewBag 參數 (Set Basic ViewBag Parameters)
-        /// 
+        ///
         /// 教學說明：
         /// 這個方法設定所有控制器都需要的基本 ViewBag 參數。
         /// 為什麼要統一設定？
         /// - 避免每個控制器重複寫相同的代碼
         /// - 確保所有頁面都有必要的資訊
-        /// 
+        ///
         /// 設定的參數：
         /// - 登入類型和用戶名稱
         /// - 費用類型
@@ -542,13 +544,13 @@ namespace ChurchReport.Controllers
         }
         /// <summary>
         /// 設定繳費點名資料數量狀態 (Set Fee Data List Count Status)
-        /// 
+        ///
         /// 教學說明：
         /// 這個方法檢查是否有費用資料，並設定對應的狀態訊息。
         /// 為什麼需要這個？
         /// - 讓用戶知道系統中是否有資料
         /// - 提供視覺回饋
-        /// 
+        ///
         /// 狀態訊息：
         /// - 有資料："繳費與點名已有資料"
         /// - 無資料："繳費與點名尚無資料"
@@ -567,16 +569,16 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 確保 AJAX 請求使用正確用戶的資料 (Ensure Correct User Data for AJAX Requests)
-        /// 
+        ///
         /// ? 效能優化版本：
         /// - 使用記憶體快取避免重複驗證（30 秒內）
         /// - 條件化 Debug 輸出（僅在需要時）
         /// - 提前返回（Fail-Fast）減少不必要的檢查
-        /// 
+        ///
         /// 教學說明：
         /// 在 AJAX 請求中，用戶的 Session 可能已經改變。
         /// 這個方法確保我們使用的是正確的用戶資料。
-        /// 
+        ///
         /// 效能優化策略：
         /// 1. **快取驗證結果**：30 秒內不重複驗證同一用戶
         /// 2. **Lazy Loading**：只在需要時才讀取 Session
@@ -618,10 +620,10 @@ namespace ChurchReport.Controllers
                 if (_userValidationCache.TryGetValue(cacheKey, out var cached))
                 {
                     var cacheAge = (DateTime.UtcNow - cached.LastValidated).TotalSeconds;
-                    
+
                     // ? 快取命中 + 密碼雜湊一致（雙重驗證）
-                    if (cacheAge < USER_VALIDATION_CACHE_SECONDS && 
-                        cached.IsValid && 
+                    if (cacheAge < USER_VALIDATION_CACHE_SECONDS &&
+                        cached.IsValid &&
                         cached.PasswordHash == currentPasswordHash)
                     {
                         // 快取命中且安全，直接返回
@@ -641,7 +643,7 @@ namespace ChurchReport.Controllers
                 {
                     // ? 驗證通過，更新快取
                     _userValidationCache[cacheKey] = (DateTime.UtcNow, true, currentPasswordHash);
-                    
+
                     // 清理同一 Session 的舊快取項目（密碼變更時）
                     CleanupOldCacheForSession(sessionId, cacheKey);
                     return;
@@ -670,7 +672,7 @@ namespace ChurchReport.Controllers
                     var newPasswordHash = GetStableHash(sessionPassword);
                     var newCacheKey = $"{sessionId}_{newPasswordHash}";
                     _userValidationCache[newCacheKey] = (DateTime.UtcNow, true, newPasswordHash);
-                    
+
                     // 清理舊快取
                     CleanupOldCacheForSession(sessionId, newCacheKey);
                     return;
@@ -682,13 +684,13 @@ namespace ChurchReport.Controllers
                 if (string.IsNullOrEmpty(sessionPassword))
                 {
                     var lineUserId = TryGetLineUserIdFromRequest();
-                    
+
                     if (!string.IsNullOrEmpty(lineUserId) && lineUserId != listManagerPassword)
                     {
 #if DEBUG
                         System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] Session 憑證為空，使用 LINE ID 重新載入");
 #endif
-                        
+
                         InMemoryContext.ListManager.SetupListManager(
                             "LineIdLogin",
                             lineUserId,
@@ -716,12 +718,12 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 計算穩定的密碼雜湊（用於快取 Key）
-        /// 
+        ///
         /// ?? 安全說明：
         /// - 使用 SHA256 雜湊，防止密碼明文儲存
         /// - 取前 8 字元平衡安全性與 Key 長度
         /// - 雜湊碰撞機率：1 / 2^32（極低）
-        /// 
+        ///
         /// 為什麼不直接用密碼？
         /// - 安全性：避免密碼洩漏到日誌或記憶體快照
         /// - Key 長度：控制 Dictionary Key 大小
@@ -741,12 +743,12 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 清理同一 Session 的舊快取項目
-        /// 
+        ///
         /// ?? 記憶體管理：
         /// - 防止密碼變更後產生的舊快取累積（Memory Leak）
         /// - 防止 Session ID 重用時的 Session Collision
         /// - 順便清理全域過期項目（超過 5 分鐘）
-        /// 
+        ///
         /// 清理策略：
         /// 1. 移除同一 Session 但密碼雜湊不同的項目（用戶密碼變更）
         /// 2. 移除所有超過 5 分鐘的過期項目（記憶體清理）
@@ -758,7 +760,7 @@ namespace ChurchReport.Controllers
             {
                 var keysToRemove = new System.Collections.Generic.List<string>();
                 var now = DateTime.UtcNow;
-                
+
                 foreach (var kvp in _userValidationCache)
                 {
                     // 檢查 1：同一 Session 但密碼不同的舊項目（Session Collision 防護）
@@ -795,15 +797,15 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 嘗試從請求中取得 LINE 用戶 ID (Try to Get LINE User ID from Request)
-        /// 
+        ///
         /// 教學說明：
         /// LINE 登入時，用戶 ID 會包含在請求的 Referer 中。
         /// 這個方法解析出用戶 ID。
-        /// 
+        ///
         /// 解析邏輯：
         /// - 從 HTTP Referer 標頭中尋找 LINE 用戶 ID 格式
         /// - LINE 用戶 ID 以 "U" 開頭，長度為 33 個字元
-        /// 
+        ///
         /// 為什麼需要這個？
         /// - 當 Session 遺失時，可以從請求中恢復用戶身份
         /// - 提高系統的容錯能力
@@ -832,24 +834,24 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 驗證當前 Session 是否合法 (Validate Current Session)
-        /// 
+        ///
         /// 教學說明：
         /// Session 驗證是 Web 應用安全的重要部分。
         /// 這個方法檢查用戶的登入狀態是否仍然有效。
-        /// 
+        ///
         /// 設計模式：Template Method Pattern
         /// - 提供通用的驗證流程
         /// - 子類別可以覆寫特定檢查
-        /// 
+        ///
         /// Fail-Fast 原則：
         /// - 一發現問題就立即返回 false
         /// - 不繼續執行不必要的檢查
-        /// 
+        ///
         /// 驗證項目：
         /// 1. Session 是否存在
         /// 2. Session 是否過期（8 小時）
         /// 3. 用戶身份是否一致
-        /// 
+        ///
         /// 使用方式：
         /// 在 Controller Action 開始時呼叫：
         /// if (!ValidateSession())
@@ -912,18 +914,18 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 強制重新生成 Session ID (Regenerate Session ID)
-        /// 
+        ///
         /// 教學說明：
         /// Session ID 重新生成是安全最佳實務。
         /// 為什麼需要？
         /// - 防止 Session Fixation 攻擊
         /// - 在權限改變後確保安全
-        /// 
+        ///
         /// 使用情境：
         /// - 權限變更後
         /// - 敏感操作前
         /// - 定期安全檢查
-        /// 
+        ///
         /// 注意事項：
         /// - 此方法會清除並重建 Session
         /// - 但會保留用戶資料（使用新時間戳）
@@ -968,17 +970,17 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 從連接池獲取 CRM 連接 (Get CRM Connection from Pool)
-        /// 
+        ///
         /// 教學說明：
         /// CRM 連接很耗資源，所以使用連接池來管理。
         /// 這個方法從池中取得一個可用的連接。
-        /// 
+        ///
         /// 設計模式：Object Pool Pattern
-        /// 
+        ///
         /// 異常處理：
         /// - TimeoutException: 連接池已滿，等待超時
         /// - InvalidOperationException: 連接池未初始化
-        /// 
+        ///
         /// 使用方式：
         /// using (var connection = GetConnection())
         /// {
@@ -995,7 +997,7 @@ namespace ChurchReport.Controllers
                 }
 
                 var connection = _connectionPool.AcquireConnection();
-                
+
                 if (connection == null)
                 {
                     throw new InvalidOperationException("無法從連接池獲取有效連接");
@@ -1033,14 +1035,14 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 歸還連接到連接池 (Return Connection to Pool)
-        /// 
+        ///
         /// 教學說明：
         /// 使用完連接後，一定要歸還到池中。
         /// 為什麼重要？
         /// - 連接是有限資源，不歸還會造成資源洩漏
         /// - 其他請求無法取得連接
         /// - 系統性能下降
-        /// 
+        ///
         /// 注意事項：
         /// - 即使歸還失敗，也不應該中斷業務邏輯
         /// - 會記錄失敗的日誌
@@ -1074,11 +1076,11 @@ namespace ChurchReport.Controllers
             {
                 // 歸還連接失敗不應該中斷業務邏輯
                 System.Diagnostics.Debug.WriteLine($"[ReleaseConnection] 歸還連接失敗: {ex.Message}");
-                
+
                 // 記錄到追蹤日誌
                 try
                 {
-                    ToolUtility?.TraceByLevel(TOTAL_LEVEL, LEVEL_1, 
+                    ToolUtility?.TraceByLevel(TOTAL_LEVEL, LEVEL_1,
                         $"歸還連接失敗: {ex.Message}");
                 }
                 catch
@@ -1090,11 +1092,11 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 獲取連接池統計資訊 (Get Connection Pool Statistics)
-        /// 
+        ///
         /// 教學說明：
         /// 監控連接池的狀態很重要。
         /// 這個方法返回連接池的統計資料。
-        /// 
+        ///
         /// 統計資訊包括：
         /// - 總連接數
         /// - 活躍連接數
@@ -1102,7 +1104,7 @@ namespace ChurchReport.Controllers
         /// - 等待請求數
         /// - 取得/釋放計數
         /// - 超時和驗證失敗計數
-        /// 
+        ///
         /// 為什麼需要？
         /// - 性能監控：發現連接池問題
         /// - 容量規劃：決定是否需要增加連接數
@@ -1132,7 +1134,7 @@ namespace ChurchReport.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[GetConnectionPoolStats] 獲取統計資訊失敗: {ex.Message}");
-                
+
                 // 返回空統計資訊
                 return new ConnectionPoolStats
                 {
@@ -1154,20 +1156,20 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 釋放資源 (Dispose Resources)
-        /// 
+        ///
         /// 教學說明：
         /// 實現 IDisposable 介面是良好的實務。
         /// 這個方法在物件被銷毀時自動呼叫。
-        /// 
+        ///
         /// 釋放的資源：
         /// - ToolUtility：工具類別的資源
         /// - 基類資源：呼叫 Controller 的 Dispose
-        /// 
+        ///
         /// 為什麼重要？
         /// - 防止資源洩漏
         /// - 確保連接正確關閉
         /// - 系統資源得到有效利用
-        /// 
+        ///
         /// 注意：這個方法會被垃圾回收器自動呼叫，
         /// 或者可以手動呼叫 using 語句。
         /// </summary>
