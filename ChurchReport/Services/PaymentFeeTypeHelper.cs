@@ -6,105 +6,105 @@ using Microsoft.Xrm.Sdk;
 namespace ChurchReport.Services
 {
     /// <summary>
-    /// MyPay ¦¬¶O³æÃş«¬§PÂ_»²§UªA°È
-    /// ­t³d§PÂ_¦¬¶O³æÃş«¬¤Î¨ú±o¬ÛÃö¸ê°T
+    /// ChurchReport ä»˜æ¬¾æ”¶è²»å–®é¡å‹åˆ¤æ–·è¼”åŠ©æœå‹™
+    /// æ­¤é¡åˆ¥åªç†è§£ ChurchReport çš„ CRM æ¬„ä½èˆ‡å¥‰ç»/èª²ç¨‹åˆ†é¡è¦å‰‡ï¼Œä¸è™•ç†ä»»ä½• MyPayã€æ°¸è±æˆ–å°æ–° provider protocolã€‚
     /// </summary>
-    public class MyPayFeeTypeHelper
+    public class PaymentFeeTypeHelper
     {
-        private readonly ILogger<MyPayFeeTypeHelper> _logger;
+        private readonly ILogger<PaymentFeeTypeHelper> _logger;
 
-        public MyPayFeeTypeHelper(ILogger<MyPayFeeTypeHelper> logger)
+        public PaymentFeeTypeHelper(ILogger<PaymentFeeTypeHelper> logger)
         {
             _logger = logger;
         }
 
         /// <summary>
-        /// ¦¬¶O³æÃş«¬¦CÁ|
+        /// æ”¶è²»å–®é¡å‹åˆ—èˆ‰
         /// </summary>
         public enum FeeType
         {
-            /// <summary>©^ÄmÃş«¬</summary>
+            /// <summary>å¥‰ç»é¡å‹</summary>
             Dedication,
-            /// <summary>½Òµ{Ãş«¬</summary>
+            /// <summary>èª²ç¨‹é¡å‹</summary>
             Course,
-            /// <summary>¨ä¥LÃş«¬</summary>
+            /// <summary>å…¶ä»–é¡å‹</summary>
             Other
         }
 
         /// <summary>
         /// ========================================
-        /// §PÂ_¦¬¶O³æÃş«¬
+        /// åˆ¤æ–·æ”¶è²»å–®é¡å‹
         /// ========================================
         /// 
-        /// ¡i§PÂ_ÅŞ¿è¡j
-        /// 1. ÀË¬d¬O§_¦³ÃöÁp½Òµ{¡]new_course_id¡^¡÷ ½Òµ{Ãş«¬
-        /// 2. ÀË¬d¦¬¶O³æ¦WºÙ¬O§_¥]§t½Òµ{ÃöÁä¦r ¡÷ ½Òµ{Ãş«¬
-        /// 3. ÀË¬d½Òµ{¦WºÙÄæ¦ì¬O§_¦³­È ¡÷ ½Òµ{Ãş«¬
-        /// 4. ÀË¬d©^ÄmÃş§O¥N½X½d³ò¡]100000000~100000019¡^¡÷ ©^ÄmÃş«¬
-        /// 5. ¹w³]¬°©^ÄmÃş«¬
+        /// ã€åˆ¤æ–·é‚è¼¯ã€‘
+        /// 1. æª¢æŸ¥æ˜¯å¦æœ‰é—œè¯èª²ç¨‹ï¼ˆnew_course_idï¼‰â†’ èª²ç¨‹é¡å‹
+        /// 2. æª¢æŸ¥æ”¶è²»å–®åç¨±æ˜¯å¦åŒ…å«èª²ç¨‹é—œéµå­— â†’ èª²ç¨‹é¡å‹
+        /// 3. æª¢æŸ¥èª²ç¨‹åç¨±æ¬„ä½æ˜¯å¦æœ‰å€¼ â†’ èª²ç¨‹é¡å‹
+        /// 4. æª¢æŸ¥å¥‰ç»é¡åˆ¥ä»£ç¢¼ç¯„åœï¼ˆ100000000~100000019ï¼‰â†’ å¥‰ç»é¡å‹
+        /// 5. é è¨­ç‚ºå¥‰ç»é¡å‹
         /// </summary>
         public FeeType DetermineFeeType(ToolUtilityClass utility, Entity feeEntity)
         {
             try
             {
-                // §PÂ_ 1¡GÀË¬d½Òµ{ÃöÁp
+                // åˆ¤æ–· 1ï¼šæª¢æŸ¥èª²ç¨‹é—œè¯
                 var courseId = utility.GetEntityLookupAttribute(feeEntity, "new_course_id");
                 if (courseId != Guid.Empty)
                 {
                     return FeeType.Course;
                 }
 
-                // §PÂ_ 2¡GÀË¬d¦¬¶O³æ¦WºÙ¬O§_¥]§t½Òµ{ÃöÁä¦r
+                // åˆ¤æ–· 2ï¼šæª¢æŸ¥æ”¶è²»å–®åç¨±æ˜¯å¦åŒ…å«èª²ç¨‹é—œéµå­—
                 string feeName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? string.Empty;
-                if (feeName.Contains("½Òµ{") ||
-                    feeName.Contains("³ø¦W") ||
-                    feeName.Contains("¾Ç¶O") ||
-                    feeName.Contains("°ö°V") ||
-                    feeName.Contains("¬ã²ß"))
+                if (feeName.Contains("èª²ç¨‹") ||
+                    feeName.Contains("å ±å") ||
+                    feeName.Contains("å­¸è²»") ||
+                    feeName.Contains("åŸ¹è¨“") ||
+                    feeName.Contains("ç ”ç¿’"))
                 {
                     return FeeType.Course;
                 }
 
-                // §PÂ_ 3¡GÀË¬d½Òµ{¦WºÙÄæ¦ì
+                // åˆ¤æ–· 3ï¼šæª¢æŸ¥èª²ç¨‹åç¨±æ¬„ä½
                 string courseName = utility.GetEntityStringAttribute(feeEntity, "new_course_name");
                 if (!string.IsNullOrWhiteSpace(courseName))
                 {
                     return FeeType.Course;
                 }
 
-                // §PÂ_ 4¡GÀË¬d©^ÄmÃş§O¥N½X
+                // åˆ¤æ–· 4ï¼šæª¢æŸ¥å¥‰ç»é¡åˆ¥ä»£ç¢¼
                 int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
                 if (categoryValue >= 100000000 && categoryValue <= 100000019)
                 {
                     return FeeType.Dedication;
                 }
 
-                // ¹w³]§PÂ_¡G©^ÄmÃş«¬
+                // é è¨­åˆ¤æ–·ï¼šå¥‰ç»é¡å‹
                 return FeeType.Dedication;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "DetermineFeeType¨Ò¥~¡A¹w³]©^Äm");
+                _logger.LogError(ex, "DetermineFeeTypeä¾‹å¤–ï¼Œé è¨­å¥‰ç»");
                 return FeeType.Dedication;
             }
         }
 
         /// <summary>
         /// ========================================
-        /// ¨ú±o½Òµ{¦WºÙ
+        /// å–å¾—èª²ç¨‹åç¨±
         /// ========================================
         /// 
-        /// ¡i¨ú±o¶¶§Ç¡j
-        /// 1. ³z¹L½Òµ{ÃöÁp¡]new_course_id¡^¬d¸ß½Òµ{¹êÅéªº¦WºÙ
-        /// 2. ¨Ï¥Î¦¬¶O³æªº½Òµ{¦WºÙÄæ¦ì¡]new_course_name¡^
-        /// 3. ¨Ï¥Î¦¬¶O³æ¥»¨­ªº¦WºÙ¡]new_name¡^
-        /// 4. ¹w³]¦^¶Ç¡u½Òµ{¡v
+        /// ã€å–å¾—é †åºã€‘
+        /// 1. é€éèª²ç¨‹é—œè¯ï¼ˆnew_course_idï¼‰æŸ¥è©¢èª²ç¨‹å¯¦é«”çš„åç¨±
+        /// 2. ä½¿ç”¨æ”¶è²»å–®çš„èª²ç¨‹åç¨±æ¬„ä½ï¼ˆnew_course_nameï¼‰
+        /// 3. ä½¿ç”¨æ”¶è²»å–®æœ¬èº«çš„åç¨±ï¼ˆnew_nameï¼‰
+        /// 4. é è¨­å›å‚³ã€Œèª²ç¨‹ã€
         /// </summary>
         public string GetCourseName(ToolUtilityClass utility, Entity feeEntity)
         {
             try
             {
-                // ¤èªk 1¡G±q½Òµ{¹êÅé¬d¸ß
+                // æ–¹æ³• 1ï¼šå¾èª²ç¨‹å¯¦é«”æŸ¥è©¢
                 var courseId = utility.GetEntityLookupAttribute(feeEntity, "new_course_id");
                 if (courseId != Guid.Empty)
                 {
@@ -119,64 +119,64 @@ namespace ChurchReport.Services
                     }
                 }
 
-                // ¤èªk 2¡G±q¦¬¶O³æªº½Òµ{¦WºÙÄæ¦ì
+                // æ–¹æ³• 2ï¼šå¾æ”¶è²»å–®çš„èª²ç¨‹åç¨±æ¬„ä½
                 var courseNameField = utility.GetEntityStringAttribute(feeEntity, "new_course_name");
                 if (!string.IsNullOrWhiteSpace(courseNameField))
                 {
                     return courseNameField;
                 }
 
-                // ¤èªk 3¡G±q¦¬¶O³æ¦WºÙ
-                return utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "½Òµ{";
+                // æ–¹æ³• 3ï¼šå¾æ”¶è²»å–®åç¨±
+                return utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "èª²ç¨‹";
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "GetCourseName¨Ò¥~");
-                return "½Òµ{";
+                _logger.LogError(ex, "GetCourseNameä¾‹å¤–");
+                return "èª²ç¨‹";
             }
         }
 
         /// <summary>
         /// ========================================
-        /// ¨ú±o©^ÄmÃş§O¦WºÙ
+        /// å–å¾—å¥‰ç»é¡åˆ¥åç¨±
         /// ========================================
         /// 
-        /// ¡i¤ä´©ªº©^ÄmÃş§O¡j
-        /// - 100000010: ¥D¤é©^Äm
-        /// - 100000000: ¤Q¤@©^Äm
-        /// - 100000002: ·P®¦©^Äm
-        /// - 100000006: «Ø°ó©^Äm
-        /// - 100000007: «Å±Ğ©^Äm
-        /// - 100000019: ·R¤ß©^Äm
-        /// - 100000008: ¯S§O©^Äm
+        /// ã€æ”¯æ´çš„å¥‰ç»é¡åˆ¥ã€‘
+        /// - 100000010: ä¸»æ—¥å¥‰ç»
+        /// - 100000000: åä¸€å¥‰ç»
+        /// - 100000002: æ„Ÿæ©å¥‰ç»
+        /// - 100000006: å»ºå ‚å¥‰ç»
+        /// - 100000007: å®£æ•™å¥‰ç»
+        /// - 100000019: æ„›å¿ƒå¥‰ç»
+        /// - 100000008: ç‰¹åˆ¥å¥‰ç»
         /// 
-        /// ¡i¤ä´©¦hºØ¿é¤J¤è¦¡¡j
-        /// 1. ¶Ç¤J Entity¡G±q FormattedValues ©Î OptionSetValue ¨ú±o
-        /// 2. ¶Ç¤J int¡Gª½±µ¹ïÀ³Ãş§O¥N½X
+        /// ã€æ”¯æ´å¤šç¨®è¼¸å…¥æ–¹å¼ã€‘
+        /// 1. å‚³å…¥ Entityï¼šå¾ FormattedValues æˆ– OptionSetValue å–å¾—
+        /// 2. å‚³å…¥ intï¼šç›´æ¥å°æ‡‰é¡åˆ¥ä»£ç¢¼
         /// </summary>
         public string GetDedicationCategoryName(Entity aFeeEntity)
         {
             try
             {
-                // ¤èªk 1: Àu¥ı¨Ï¥Î FormattedValues¡]³Ì§Ö³t¥B³Ì¥i¾a¡^
+                // æ–¹æ³• 1: å„ªå…ˆä½¿ç”¨ FormattedValuesï¼ˆæœ€å¿«é€Ÿä¸”æœ€å¯é ï¼‰
                 if (aFeeEntity.FormattedValues.Contains("new_category"))
                 {
                     string displayText = aFeeEntity.FormattedValues["new_category"];
                     if (!string.IsNullOrEmpty(displayText))
                     {
-                        _logger.LogDebug("¨Ï¥Î FormattedValues ¨ú±o©^ÄmÃş§O: {Category}", displayText);
+                        _logger.LogDebug("ä½¿ç”¨ FormattedValues å–å¾—å¥‰ç»é¡åˆ¥: {Category}", displayText);
                         return displayText;
                     }
                 }
                 
-                // ¹w³]­È
-                _logger.LogWarning("µLªk±q Entity ¨ú±o©^ÄmÃş§O¡A¨Ï¥Î¹w³]­È");
-                return "¤Q¤@©^Äm";
+                // é è¨­å€¼
+                _logger.LogWarning("ç„¡æ³•å¾ Entity å–å¾—å¥‰ç»é¡åˆ¥ï¼Œä½¿ç”¨é è¨­å€¼");
+                return "åä¸€å¥‰ç»";
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "GetDedicationCategoryName(Entity) µo¥Í¿ù»~");
-                return "¤Q¤@©^Äm";
+                _logger.LogError(ex, "GetDedicationCategoryName(Entity) ç™¼ç”ŸéŒ¯èª¤");
+                return "åä¸€å¥‰ç»";
             }
         }
 

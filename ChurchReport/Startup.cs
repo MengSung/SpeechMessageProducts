@@ -475,14 +475,15 @@ namespace ChurchReport
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             // ========================================
-            // 註冊 MyPay 相關服務
+            // 註冊付款後產品流程服務
             // ========================================
-            // 註冊 MyPay 相關的服務類別，使用 Scoped 生命週期（每個請求一個實例）。
-            services.AddScoped<ChurchReport.Services.MyPayMessageBuilder>();
-            services.AddScoped<ChurchReport.Services.MyPayFeeTypeHelper>();
-            services.AddScoped<ChurchReport.Services.MyPayLogger>();
-            services.AddScoped<ChurchReport.Services.MyPayCrmService>();
-            services.AddScoped<ChurchReport.Services.MyPayNotificationService>();
+            // 這些服務消費共用金流核心的 provider-neutral 結果，再接回 ChurchReport 的 CRM、LINE 與收費單分類流程；
+            // 因此命名採用 Payment*，避免誤解成只屬於 MyPay provider protocol 的實作。
+            services.AddScoped<ChurchReport.Services.PaymentMessageBuilder>();
+            services.AddScoped<ChurchReport.Services.PaymentFeeTypeHelper>();
+            services.AddScoped<ChurchReport.Services.PaymentCallbackLogger>();
+            services.AddScoped<ChurchReport.Services.PaymentCrmService>();
+            services.AddScoped<ChurchReport.Services.PaymentNotificationService>();
 
             // ========================================
             // 註冊抽離後的通用金流核心與 ChurchReport adapter

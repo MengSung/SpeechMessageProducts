@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using ChurchReport.Payments;
 using ChurchReport.Tools;
@@ -8,20 +8,20 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
 using SpeechMessage.Payments.Workflows;
 using ToolUtilityNameSpace;
-using static ChurchReport.Services.MyPayFeeTypeHelper;
+using static ChurchReport.Services.PaymentFeeTypeHelper;
 
 namespace ChurchReport.Services
 {
     /// <summary>
-    /// MyPay callback 後的 ChurchReport LINE 通知服務。
+    /// 金流 callback 後的 ChurchReport LINE 通知服務。
     /// 此服務消費共用金流層的 <see cref="PaymentWorkflowResult"/>，但訊息內容、
     /// 收費單欄位與 LINE 推播策略都屬於 ChurchReport 產品流程，因此不放進共用金流專案。
     /// </summary>
-    public class MyPayNotificationService
+    public class PaymentNotificationService
     {
-        private readonly ILogger<MyPayNotificationService> _logger;
-        private readonly MyPayMessageBuilder _messageBuilder;
-        private readonly MyPayFeeTypeHelper _feeTypeHelper;
+        private readonly ILogger<PaymentNotificationService> _logger;
+        private readonly PaymentMessageBuilder _messageBuilder;
+        private readonly PaymentFeeTypeHelper _feeTypeHelper;
 
         private static readonly Lazy<IConfiguration> s_lazyConfiguration = new Lazy<IConfiguration>(() =>
         {
@@ -33,16 +33,21 @@ namespace ChurchReport.Services
 
         private static IConfiguration Configuration => s_lazyConfiguration.Value;
 
-        public MyPayNotificationService(
-            ILogger<MyPayNotificationService> logger,
-            MyPayMessageBuilder messageBuilder,
-            MyPayFeeTypeHelper feeTypeHelper)
+        public PaymentNotificationService(
+            ILogger<PaymentNotificationService> logger,
+            PaymentMessageBuilder messageBuilder,
+            PaymentFeeTypeHelper feeTypeHelper)
         {
             _logger = logger;
             _messageBuilder = messageBuilder;
             _feeTypeHelper = feeTypeHelper;
         }
 
+        /// <summary>
+        /// 透過 LINE Messaging API 推播付款通知。
+        /// 此方法仍位於 ChurchReport，是因為 LINE channel token 的選擇、
+        /// 使用者 LINE ID 欄位與通知失敗策略都屬於產品流程，不屬於共用金流核心。
+        /// </summary>
         public void SendLineMessage(string lineId, string message)
         {
             try
@@ -60,6 +65,11 @@ namespace ChurchReport.Services
             }
         }
 
+        /// <summary>
+        /// 依收費單類型建立付款成功通知並推播給付款者。
+        /// 共用金流核心只提供 <see cref="PaymentWorkflowResult"/>；這裡才根據 ChurchReport CRM
+        /// 欄位判斷奉獻、課程或一般繳費，並組出符合教會使用情境的 LINE 文案。
+        /// </summary>
         public void SendLineNotificationByType(
             ToolUtilityClass utility,
             Entity feeEntity,
@@ -121,11 +131,16 @@ namespace ChurchReport.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[MyPay回傳] 發送LINE通知失敗 - OrderId: {result?.ProductOrderId}");
+                _logger.LogError(ex, $"[付款回傳] 發送LINE通知失敗 - OrderId: {result?.ProductOrderId}");
                 throw;
             }
         }
 
+        /// <summary>
+        /// 依收費單類型建立付款失敗通知並推播給付款者。
+        /// 失敗通知優先使用收費單應付金額，因為 provider 失敗結果不一定會帶回金額；
+        /// 若 CRM 尚未提供應付金額，才退回使用標準化金流結果中的金額。
+        /// </summary>
         public void SendLineFailureNotificationByType(
             ToolUtilityClass utility,
             Entity feeEntity,
@@ -203,11 +218,16 @@ namespace ChurchReport.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[MyPay回傳] 發送LINE失敗通知失敗 - OrderId: {result?.ProductOrderId}");
+                _logger.LogError(ex, $"[付款回傳] 發送LINE失敗通知失敗 - OrderId: {result?.ProductOrderId}");
                 throw;
             }
         }
 
+        /// <summary>
+        /// 依目前 CRM organization 選擇 LINE channel access token。
+        /// 多產品或多教會環境共用同一份程式時，這個選擇邏輯仍是 ChurchReport 組態規則；
+        /// 因此不放入 provider-neutral 的金流核心。
+        /// </summary>
         private static string GetLineChannelAccessToken()
         {
             try

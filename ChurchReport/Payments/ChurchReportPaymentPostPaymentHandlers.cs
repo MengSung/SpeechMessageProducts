@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
 using SpeechMessage.Payments.Workflows;
 using ToolUtilityNameSpace;
-using static ChurchReport.Services.MyPayFeeTypeHelper;
+using static ChurchReport.Services.PaymentFeeTypeHelper;
 
 namespace ChurchReport.Payments;
 
@@ -31,9 +31,9 @@ public static class ChurchReportPaymentWorkflowContextKeys
 /// </summary>
 public sealed class ChurchReportPaymentRecordUpdater : IPaymentRecordUpdater
 {
-    private readonly MyPayCrmService _crmService;
+    private readonly PaymentCrmService _crmService;
 
-    public ChurchReportPaymentRecordUpdater(MyPayCrmService crmService)
+    public ChurchReportPaymentRecordUpdater(PaymentCrmService crmService)
     {
         _crmService = crmService ?? throw new ArgumentNullException(nameof(crmService));
     }
@@ -57,11 +57,11 @@ public sealed class ChurchReportPaymentRecordUpdater : IPaymentRecordUpdater
 /// </summary>
 public sealed class ChurchReportPaymentPayerNotifier : IPaymentPayerNotifier
 {
-    private readonly MyPayNotificationService _notificationService;
+    private readonly PaymentNotificationService _notificationService;
     private readonly ILogger<ChurchReportPaymentPayerNotifier> _logger;
 
     public ChurchReportPaymentPayerNotifier(
-        MyPayNotificationService notificationService,
+        PaymentNotificationService notificationService,
         ILogger<ChurchReportPaymentPayerNotifier> logger)
     {
         _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
@@ -84,26 +84,26 @@ public sealed class ChurchReportPaymentPayerNotifier : IPaymentPayerNotifier
 
         try
         {
-        if (isSuccess)
-        {
-            _notificationService.SendLineNotificationByType(
-                toolUtility,
-                feeEntity,
-                context.Payment,
-                fullName,
-                feeType,
-                contactEntity);
-        }
-        else
-        {
-            _notificationService.SendLineFailureNotificationByType(
-                toolUtility,
-                feeEntity,
-                context.Payment,
-                fullName,
-                feeType,
-                contactEntity);
-        }
+            if (isSuccess)
+            {
+                _notificationService.SendLineNotificationByType(
+                    toolUtility,
+                    feeEntity,
+                    context.Payment,
+                    fullName,
+                    feeType,
+                    contactEntity);
+            }
+            else
+            {
+                _notificationService.SendLineFailureNotificationByType(
+                    toolUtility,
+                    feeEntity,
+                    context.Payment,
+                    fullName,
+                    feeType,
+                    contactEntity);
+            }
         }
         catch (Exception ex)
         {

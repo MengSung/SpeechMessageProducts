@@ -12,7 +12,7 @@ using SpeechMessage.Payments.Models;
 using SpeechMessage.Payments.Workflows;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.DependencyInjection;
-using static ChurchReport.Services.MyPayFeeTypeHelper;
+using static ChurchReport.Services.PaymentFeeTypeHelper;
 
 namespace ChurchReport.Controllers
 {
@@ -25,11 +25,11 @@ namespace ChurchReport.Controllers
     public class MyPayController : Controller
     {
         private readonly ILogger<MyPayController> _logger;
-        private readonly MyPayMessageBuilder _messageBuilder;
-        private readonly MyPayCrmService _crmService;
-        private readonly MyPayNotificationService _notificationService;
-        private readonly MyPayFeeTypeHelper _feeTypeHelper;
-        private readonly MyPayLogger _myPayLogger;
+        private readonly PaymentMessageBuilder _messageBuilder;
+        private readonly PaymentCrmService _crmService;
+        private readonly PaymentNotificationService _notificationService;
+        private readonly PaymentFeeTypeHelper _feeTypeHelper;
+        private readonly PaymentCallbackLogger _paymentCallbackLogger;
         private readonly IToolUtilityProvider _toolUtilityProvider;
         private readonly IPaymentGateway _paymentGateway;
         private readonly PaymentHttpRequestMapper _paymentHttpRequestMapper;
@@ -42,11 +42,11 @@ namespace ChurchReport.Controllers
 
         public MyPayController(
             ILogger<MyPayController> logger,
-            MyPayMessageBuilder messageBuilder,
-            MyPayCrmService crmService,
-            MyPayNotificationService notificationService,
-            MyPayFeeTypeHelper feeTypeHelper,
-            MyPayLogger myPayLogger,
+            PaymentMessageBuilder messageBuilder,
+            PaymentCrmService crmService,
+            PaymentNotificationService notificationService,
+            PaymentFeeTypeHelper feeTypeHelper,
+            PaymentCallbackLogger paymentCallbackLogger,
             IToolUtilityProvider toolUtilityProvider,
             IPaymentGateway paymentGateway,
             PaymentHttpRequestMapper paymentHttpRequestMapper,
@@ -60,7 +60,7 @@ namespace ChurchReport.Controllers
             _crmService = crmService ?? throw new ArgumentNullException(nameof(crmService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _feeTypeHelper = feeTypeHelper ?? throw new ArgumentNullException(nameof(feeTypeHelper));
-            _myPayLogger = myPayLogger ?? throw new ArgumentNullException(nameof(myPayLogger));
+            _paymentCallbackLogger = paymentCallbackLogger ?? throw new ArgumentNullException(nameof(paymentCallbackLogger));
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
             _paymentGateway = paymentGateway ?? throw new ArgumentNullException(nameof(paymentGateway));
             _paymentHttpRequestMapper = paymentHttpRequestMapper ?? throw new ArgumentNullException(nameof(paymentHttpRequestMapper));
@@ -90,12 +90,12 @@ namespace ChurchReport.Controllers
                     HttpContext.RequestAborted);
 
                 callbackResult = await _paymentGateway.ParseCallbackAsync(callbackRequest, HttpContext.RequestAborted);
-                _myPayLogger.LogPaymentCallbackResult(callbackResult);
+                _paymentCallbackLogger.LogPaymentCallbackResult(callbackResult);
 
                 if (callbackResult.Error.HasError || string.IsNullOrWhiteSpace(callbackResult.ProductOrderId))
                 {
                     _logger.LogWarning(
-                        "[MyPay回傳] Core callback parse failed: {ErrorKind} {ErrorMessage}",
+                        "[付款回傳] Core callback parse failed: {ErrorKind} {ErrorMessage}",
                         callbackResult.Error.Kind,
                         callbackResult.Error.Message);
 
@@ -106,7 +106,7 @@ namespace ChurchReport.Controllers
                 var isSuccess = workflowResult.Status == PaymentStatus.Succeeded;
 
                 _logger.LogInformation(
-                    "[MyPay回傳] Core callback parsed. OrderId: {OrderId}, Status: {Status}, IsSuccess: {IsSuccess}",
+                    "[付款回傳] Core callback parsed. OrderId: {OrderId}, Status: {Status}, IsSuccess: {IsSuccess}",
                     workflowResult.ProductOrderId,
                     workflowResult.Status,
                     isSuccess);
@@ -118,7 +118,7 @@ namespace ChurchReport.Controllers
 
                 if (feeEntity == null)
                 {
-                    _logger.LogWarning("[MyPay回傳] 找不到收費單 - OrderId: {OrderId}", workflowResult.ProductOrderId);
+                    _logger.LogWarning("[付款回傳] 找不到收費單 - OrderId: {OrderId}", workflowResult.ProductOrderId);
                     return _paymentAcknowledgementResultMapper.ToActionResult(callbackResult.Acknowledgement);
                 }
 
@@ -141,7 +141,7 @@ namespace ChurchReport.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[MyPay回傳] 處理失敗");
+                _logger.LogError(ex, "[付款回傳] 處理失敗");
                 var acknowledgement = callbackResult?.Acknowledgement ?? PaymentCallbackAcknowledgement.PlainText("8888");
                 return _paymentAcknowledgementResultMapper.ToActionResult(acknowledgement);
             }

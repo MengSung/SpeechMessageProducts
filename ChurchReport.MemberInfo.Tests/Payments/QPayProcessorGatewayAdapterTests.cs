@@ -246,12 +246,12 @@ public sealed class QPayProcessorGatewayAdapterTests
     }
 
     [Fact]
-    public void QPay_product_workflow_processors_do_not_accept_legacy_order_pay_models()
+    public void Donation_product_workflow_processors_do_not_accept_legacy_order_pay_models()
     {
         var processorTypes = new[]
         {
-            typeof(QPayFeeProcessor),
-            typeof(QPayDedicationBookingProcessor)
+            typeof(DonationFeePaymentProcessor),
+            typeof(RecurringDonationPaymentProcessor)
         };
 
         var offendingMethods = processorTypes

@@ -1,0 +1,1989 @@
+diff --git a/ChurchReport.MemberInfo.Tests/Payments/MyPayControllerAdapterTests.cs b/ChurchReport.MemberInfo.Tests/Payments/MyPayControllerAdapterTests.cs
+index 6d8dc4ef..af163eff 100644
+--- a/ChurchReport.MemberInfo.Tests/Payments/MyPayControllerAdapterTests.cs
++++ b/ChurchReport.MemberInfo.Tests/Payments/MyPayControllerAdapterTests.cs
+@@ -51,19 +51,19 @@ public sealed class MyPayControllerAdapterTests
+ 
+     private static MyPayController CreateController(IPaymentGateway gateway)
+     {
+-        var feeTypeHelper = new MyPayFeeTypeHelper(NullLogger<MyPayFeeTypeHelper>.Instance);
+-        var messageBuilder = new MyPayMessageBuilder();
++        var feeTypeHelper = new PaymentFeeTypeHelper(NullLogger<PaymentFeeTypeHelper>.Instance);
++        var messageBuilder = new PaymentMessageBuilder();
+ 
+         return new MyPayController(
+             NullLogger<MyPayController>.Instance,
+             messageBuilder,
+-            new MyPayCrmService(NullLogger<MyPayCrmService>.Instance),
+-            new MyPayNotificationService(
+-                NullLogger<MyPayNotificationService>.Instance,
++            new PaymentCrmService(NullLogger<PaymentCrmService>.Instance),
++            new PaymentNotificationService(
++                NullLogger<PaymentNotificationService>.Instance,
+                 messageBuilder,
+                 feeTypeHelper),
+             feeTypeHelper,
+-            new MyPayLogger(NullLogger<MyPayLogger>.Instance),
++            new PaymentCallbackLogger(NullLogger<PaymentCallbackLogger>.Instance),
+             new ThrowingToolUtilityProvider(),
+             gateway,
+             new PaymentHttpRequestMapper(),
+diff --git a/ChurchReport/Controllers/MyPayController.cs b/ChurchReport/Controllers/MyPayController.cs
+index 331cb719..5d7a2469 100644
+--- a/ChurchReport/Controllers/MyPayController.cs
++++ b/ChurchReport/Controllers/MyPayController.cs
+@@ -12,7 +12,7 @@ using SpeechMessage.Payments.Models;
+ using SpeechMessage.Payments.Workflows;
+ using ToolUtilityNameSpace;
+ using ToolUtilityNameSpace.DependencyInjection;
+-using static ChurchReport.Services.MyPayFeeTypeHelper;
++using static ChurchReport.Services.PaymentFeeTypeHelper;
+ 
+ namespace ChurchReport.Controllers
+ {
+@@ -25,11 +25,11 @@ namespace ChurchReport.Controllers
+     public class MyPayController : Controller
+     {
+         private readonly ILogger<MyPayController> _logger;
+-        private readonly MyPayMessageBuilder _messageBuilder;
+-        private readonly MyPayCrmService _crmService;
+-        private readonly MyPayNotificationService _notificationService;
+-        private readonly MyPayFeeTypeHelper _feeTypeHelper;
+-        private readonly MyPayLogger _myPayLogger;
++        private readonly PaymentMessageBuilder _messageBuilder;
++        private readonly PaymentCrmService _crmService;
++        private readonly PaymentNotificationService _notificationService;
++        private readonly PaymentFeeTypeHelper _feeTypeHelper;
++        private readonly PaymentCallbackLogger _paymentCallbackLogger;
+         private readonly IToolUtilityProvider _toolUtilityProvider;
+         private readonly IPaymentGateway _paymentGateway;
+         private readonly PaymentHttpRequestMapper _paymentHttpRequestMapper;
+@@ -42,11 +42,11 @@ namespace ChurchReport.Controllers
+ 
+         public MyPayController(
+             ILogger<MyPayController> logger,
+-            MyPayMessageBuilder messageBuilder,
+-            MyPayCrmService crmService,
+-            MyPayNotificationService notificationService,
+-            MyPayFeeTypeHelper feeTypeHelper,
+-            MyPayLogger myPayLogger,
++            PaymentMessageBuilder messageBuilder,
++            PaymentCrmService crmService,
++            PaymentNotificationService notificationService,
++            PaymentFeeTypeHelper feeTypeHelper,
++            PaymentCallbackLogger paymentCallbackLogger,
+             IToolUtilityProvider toolUtilityProvider,
+             IPaymentGateway paymentGateway,
+             PaymentHttpRequestMapper paymentHttpRequestMapper,
+@@ -60,7 +60,7 @@ namespace ChurchReport.Controllers
+             _crmService = crmService ?? throw new ArgumentNullException(nameof(crmService));
+             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+             _feeTypeHelper = feeTypeHelper ?? throw new ArgumentNullException(nameof(feeTypeHelper));
+-            _myPayLogger = myPayLogger ?? throw new ArgumentNullException(nameof(myPayLogger));
++            _paymentCallbackLogger = paymentCallbackLogger ?? throw new ArgumentNullException(nameof(paymentCallbackLogger));
+             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
+             _paymentGateway = paymentGateway ?? throw new ArgumentNullException(nameof(paymentGateway));
+             _paymentHttpRequestMapper = paymentHttpRequestMapper ?? throw new ArgumentNullException(nameof(paymentHttpRequestMapper));
+@@ -90,12 +90,12 @@ namespace ChurchReport.Controllers
+                     HttpContext.RequestAborted);
+ 
+                 callbackResult = await _paymentGateway.ParseCallbackAsync(callbackRequest, HttpContext.RequestAborted);
+-                _myPayLogger.LogPaymentCallbackResult(callbackResult);
++                _paymentCallbackLogger.LogPaymentCallbackResult(callbackResult);
+ 
+                 if (callbackResult.Error.HasError || string.IsNullOrWhiteSpace(callbackResult.ProductOrderId))
+                 {
+                     _logger.LogWarning(
+-                        "[MyPay回傳] Core callback parse failed: {ErrorKind} {ErrorMessage}",
++                        "[付款回傳] Core callback parse failed: {ErrorKind} {ErrorMessage}",
+                         callbackResult.Error.Kind,
+                         callbackResult.Error.Message);
+ 
+@@ -106,7 +106,7 @@ namespace ChurchReport.Controllers
+                 var isSuccess = workflowResult.Status == PaymentStatus.Succeeded;
+ 
+                 _logger.LogInformation(
+-                    "[MyPay回傳] Core callback parsed. OrderId: {OrderId}, Status: {Status}, IsSuccess: {IsSuccess}",
++                    "[付款回傳] Core callback parsed. OrderId: {OrderId}, Status: {Status}, IsSuccess: {IsSuccess}",
+                     workflowResult.ProductOrderId,
+                     workflowResult.Status,
+                     isSuccess);
+@@ -118,7 +118,7 @@ namespace ChurchReport.Controllers
+ 
+                 if (feeEntity == null)
+                 {
+-                    _logger.LogWarning("[MyPay回傳] 找不到收費單 - OrderId: {OrderId}", workflowResult.ProductOrderId);
++                    _logger.LogWarning("[付款回傳] 找不到收費單 - OrderId: {OrderId}", workflowResult.ProductOrderId);
+                     return _paymentAcknowledgementResultMapper.ToActionResult(callbackResult.Acknowledgement);
+                 }
+ 
+@@ -141,7 +141,7 @@ namespace ChurchReport.Controllers
+             }
+             catch (Exception ex)
+             {
+-                _logger.LogError(ex, "[MyPay回傳] 處理失敗");
++                _logger.LogError(ex, "[付款回傳] 處理失敗");
+                 var acknowledgement = callbackResult?.Acknowledgement ?? PaymentCallbackAcknowledgement.PlainText("8888");
+                 return _paymentAcknowledgementResultMapper.ToActionResult(acknowledgement);
+             }
+diff --git a/ChurchReport/Payments/ChurchReportPaymentPostPaymentHandlers.cs b/ChurchReport/Payments/ChurchReportPaymentPostPaymentHandlers.cs
+index 89b0ec89..e72015a6 100644
+--- a/ChurchReport/Payments/ChurchReportPaymentPostPaymentHandlers.cs
++++ b/ChurchReport/Payments/ChurchReportPaymentPostPaymentHandlers.cs
+@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
+ using Microsoft.Xrm.Sdk;
+ using SpeechMessage.Payments.Workflows;
+ using ToolUtilityNameSpace;
+-using static ChurchReport.Services.MyPayFeeTypeHelper;
++using static ChurchReport.Services.PaymentFeeTypeHelper;
+ 
+ namespace ChurchReport.Payments;
+ 
+@@ -31,9 +31,9 @@ public static class ChurchReportPaymentWorkflowContextKeys
+ /// </summary>
+ public sealed class ChurchReportPaymentRecordUpdater : IPaymentRecordUpdater
+ {
+-    private readonly MyPayCrmService _crmService;
++    private readonly PaymentCrmService _crmService;
+ 
+-    public ChurchReportPaymentRecordUpdater(MyPayCrmService crmService)
++    public ChurchReportPaymentRecordUpdater(PaymentCrmService crmService)
+     {
+         _crmService = crmService ?? throw new ArgumentNullException(nameof(crmService));
+     }
+@@ -57,11 +57,11 @@ public sealed class ChurchReportPaymentRecordUpdater : IPaymentRecordUpdater
+ /// </summary>
+ public sealed class ChurchReportPaymentPayerNotifier : IPaymentPayerNotifier
+ {
+-    private readonly MyPayNotificationService _notificationService;
++    private readonly PaymentNotificationService _notificationService;
+     private readonly ILogger<ChurchReportPaymentPayerNotifier> _logger;
+ 
+     public ChurchReportPaymentPayerNotifier(
+-        MyPayNotificationService notificationService,
++        PaymentNotificationService notificationService,
+         ILogger<ChurchReportPaymentPayerNotifier> logger)
+     {
+         _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+@@ -84,26 +84,26 @@ public sealed class ChurchReportPaymentPayerNotifier : IPaymentPayerNotifier
+ 
+         try
+         {
+-        if (isSuccess)
+-        {
+-            _notificationService.SendLineNotificationByType(
+-                toolUtility,
+-                feeEntity,
+-                context.Payment,
+-                fullName,
+-                feeType,
+-                contactEntity);
+-        }
+-        else
+-        {
+-            _notificationService.SendLineFailureNotificationByType(
+-                toolUtility,
+-                feeEntity,
+-                context.Payment,
+-                fullName,
+-                feeType,
+-                contactEntity);
+-        }
++            if (isSuccess)
++            {
++                _notificationService.SendLineNotificationByType(
++                    toolUtility,
++                    feeEntity,
++                    context.Payment,
++                    fullName,
++                    feeType,
++                    contactEntity);
++            }
++            else
++            {
++                _notificationService.SendLineFailureNotificationByType(
++                    toolUtility,
++                    feeEntity,
++                    context.Payment,
++                    fullName,
++                    feeType,
++                    contactEntity);
++            }
+         }
+         catch (Exception ex)
+         {
+diff --git a/ChurchReport/Services/MyPayCrmService.cs b/ChurchReport/Services/MyPayCrmService.cs
+deleted file mode 100644
+index 8c4b913c..00000000
+--- a/ChurchReport/Services/MyPayCrmService.cs
++++ /dev/null
+@@ -1,72 +0,0 @@
+-﻿using System;
+-using ChurchReport.Payments;
+-using Microsoft.Extensions.Logging;
+-using Microsoft.Xrm.Sdk;
+-using SpeechMessage.Payments.Workflows;
+-using ToolUtilityNameSpace;
+-
+-namespace ChurchReport.Services
+-{
+-    /// <summary>
+-    /// MyPay callback 成功或失敗後，負責把共用金流層整理出的
+-    /// <see cref="PaymentWorkflowResult"/> 寫回 ChurchReport CRM 收費單。
+-    /// 此類別仍屬於 ChurchReport，因為 CRM 欄位名稱、option set 值與描述文字格式都是產品規則。
+-    /// </summary>
+-    public class MyPayCrmService
+-    {
+-        private const int PaymentStatusPaid = 100000001;
+-        private const int PaymentMethodCreditCard = 100000001;
+-        private readonly ILogger<MyPayCrmService> _logger;
+-
+-        public MyPayCrmService(ILogger<MyPayCrmService> logger)
+-        {
+-            _logger = logger;
+-        }
+-
+-        public void UpdateFeeEntityWithPaymentResult(
+-            ToolUtilityClass toolUtility,
+-            Entity feeEntity,
+-            PaymentWorkflowResult result,
+-            bool isSuccess)
+-        {
+-            try
+-            {
+-                var paymentTime = DateTime.Now;
+-
+-                if (isSuccess)
+-                {
+-                    // 只有產品端知道 ChurchReport CRM 的付款狀態欄位與 option set 值；
+-                    // 共用金流專案只提供已正規化的付款結果，不直接更新 CRM。
+-                    var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
+-                    toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PaymentStatusPaid);
+-                    toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_fee_really_paid", shouldPayMoney);
+-                    toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_difference_fee_paid", new Money(0));
+-                    toolUtility.SetEntityDateTimeAttribute(ref feeEntity, "new_pay_date", paymentTime);
+-                    toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PaymentMethodCreditCard);
+-                }
+-
+-                // 將 provider-neutral 結果附加到 CRM 描述欄位，保留後續客服查核與對帳資訊。
+-                var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description") ?? string.Empty;
+-                var newDescription = originalDescription + Environment.NewLine +
+-                    $"[金流回傳資訊 - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +
+-                    "====== 核心欄位 ======" + Environment.NewLine +
+-                    $"訂單號: {result.ProductOrderId}" + Environment.NewLine +
+-                    $"交易流水號: {result.ProviderTransactionId}" + Environment.NewLine +
+-                    $"交易狀態: {result.Status}" + Environment.NewLine +
+-                    "====== 交易資訊 ======" + Environment.NewLine +
+-                    $"完成時間: {paymentTime:yyyy-MM-dd HH:mm:ss}" + Environment.NewLine +
+-                    $"交易金額: {result.Amount?.ToString() ?? string.Empty}" + Environment.NewLine +
+-                    $"交易幣別: {result.Currency}" + Environment.NewLine +
+-                    $"金流訊息: {result.ProviderMessage}" + Environment.NewLine;
+-
+-                toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
+-                _logger.LogInformation($"[MyPay回傳] 收費單欄位已更新 - FeeId: {feeEntity.Id}, OrderId: {result.ProductOrderId}");
+-            }
+-            catch (Exception ex)
+-            {
+-                _logger.LogError(ex, $"[MyPay回傳] 更新收費單失敗 - OrderId: {result.ProductOrderId}");
+-                throw;
+-            }
+-        }
+-    }
+-}
+diff --git a/ChurchReport/Services/MyPayFeeTypeHelper.cs b/ChurchReport/Services/MyPayFeeTypeHelper.cs
+deleted file mode 100644
+index df3db9ea..00000000
+--- a/ChurchReport/Services/MyPayFeeTypeHelper.cs
++++ /dev/null
+@@ -1,184 +0,0 @@
+-using System;
+-using Microsoft.Extensions.Logging;
+-using ToolUtilityNameSpace;
+-using Microsoft.Xrm.Sdk;
+-
+-namespace ChurchReport.Services
+-{
+-    /// <summary>
+-    /// MyPay ���O�������P�_���U�A��
+-    /// �t�d�P�_���O�������Ψ��o������T
+-    /// </summary>
+-    public class MyPayFeeTypeHelper
+-    {
+-        private readonly ILogger<MyPayFeeTypeHelper> _logger;
+-
+-        public MyPayFeeTypeHelper(ILogger<MyPayFeeTypeHelper> logger)
+-        {
+-            _logger = logger;
+-        }
+-
+-        /// <summary>
+-        /// ���O�������C�|
+-        /// </summary>
+-        public enum FeeType
+-        {
+-            /// <summary>�^�m����</summary>
+-            Dedication,
+-            /// <summary>�ҵ{����</summary>
+-            Course,
+-            /// <summary>��L����</summary>
+-            Other
+-        }
+-
+-        /// <summary>
+-        /// ========================================
+-        /// �P�_���O������
+-        /// ========================================
+-        /// 
+-        /// �i�P�_�޿�j
+-        /// 1. �ˬd�O�_�����p�ҵ{�]new_course_id�^�� �ҵ{����
+-        /// 2. �ˬd���O��W�٬O�_�]�t�ҵ{����r �� �ҵ{����
+-        /// 3. �ˬd�ҵ{�W�����O�_���� �� �ҵ{����
+-        /// 4. �ˬd�^�m���O�N�X�d��]100000000~100000019�^�� �^�m����
+-        /// 5. �w�]���^�m����
+-        /// </summary>
+-        public FeeType DetermineFeeType(ToolUtilityClass utility, Entity feeEntity)
+-        {
+-            try
+-            {
+-                // �P�_ 1�G�ˬd�ҵ{���p
+-                var courseId = utility.GetEntityLookupAttribute(feeEntity, "new_course_id");
+-                if (courseId != Guid.Empty)
+-                {
+-                    return FeeType.Course;
+-                }
+-
+-                // �P�_ 2�G�ˬd���O��W�٬O�_�]�t�ҵ{����r
+-                string feeName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? string.Empty;
+-                if (feeName.Contains("�ҵ{") ||
+-                    feeName.Contains("���W") ||
+-                    feeName.Contains("�ǶO") ||
+-                    feeName.Contains("���V") ||
+-                    feeName.Contains("���"))
+-                {
+-                    return FeeType.Course;
+-                }
+-
+-                // �P�_ 3�G�ˬd�ҵ{�W�����
+-                string courseName = utility.GetEntityStringAttribute(feeEntity, "new_course_name");
+-                if (!string.IsNullOrWhiteSpace(courseName))
+-                {
+-                    return FeeType.Course;
+-                }
+-
+-                // �P�_ 4�G�ˬd�^�m���O�N�X
+-                int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
+-                if (categoryValue >= 100000000 && categoryValue <= 100000019)
+-                {
+-                    return FeeType.Dedication;
+-                }
+-
+-                // �w�]�P�_�G�^�m����
+-                return FeeType.Dedication;
+-            }
+-            catch (Exception ex)
+-            {
+-                _logger.LogError(ex, "DetermineFeeType�ҥ~�A�w�]�^�m");
+-                return FeeType.Dedication;
+-            }
+-        }
+-
+-        /// <summary>
+-        /// ========================================
+-        /// ���o�ҵ{�W��
+-        /// ========================================
+-        /// 
+-        /// �i���o���ǡj
+-        /// 1. �z�L�ҵ{���p�]new_course_id�^�d�߽ҵ{���骺�W��
+-        /// 2. �ϥΦ��O�檺�ҵ{�W�����]new_course_name�^
+-        /// 3. �ϥΦ��O�楻�����W�١]new_name�^
+-        /// 4. �w�]�^�ǡu�ҵ{�v
+-        /// </summary>
+-        public string GetCourseName(ToolUtilityClass utility, Entity feeEntity)
+-        {
+-            try
+-            {
+-                // ��k 1�G�q�ҵ{����d��
+-                var courseId = utility.GetEntityLookupAttribute(feeEntity, "new_course_id");
+-                if (courseId != Guid.Empty)
+-                {
+-                    var courseEntity = utility.RetrieveEntity("new_course", courseId);
+-                    if (courseEntity != null)
+-                    {
+-                        var name = utility.GetEntityStringAttribute(courseEntity, "new_name");
+-                        if (!string.IsNullOrWhiteSpace(name))
+-                        {
+-                            return name;
+-                        }
+-                    }
+-                }
+-
+-                // ��k 2�G�q���O�檺�ҵ{�W�����
+-                var courseNameField = utility.GetEntityStringAttribute(feeEntity, "new_course_name");
+-                if (!string.IsNullOrWhiteSpace(courseNameField))
+-                {
+-                    return courseNameField;
+-                }
+-
+-                // ��k 3�G�q���O��W��
+-                return utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "�ҵ{";
+-            }
+-            catch (Exception ex)
+-            {
+-                _logger.LogError(ex, "GetCourseName�ҥ~");
+-                return "�ҵ{";
+-            }
+-        }
+-
+-        /// <summary>
+-        /// ========================================
+-        /// ���o�^�m���O�W��
+-        /// ========================================
+-        /// 
+-        /// �i�䴩���^�m���O�j
+-        /// - 100000010: �D��^�m
+-        /// - 100000000: �Q�@�^�m
+-        /// - 100000002: �P���^�m
+-        /// - 100000006: �ذ�^�m
+-        /// - 100000007: �űЩ^�m
+-        /// - 100000019: �R�ߩ^�m
+-        /// - 100000008: �S�O�^�m
+-        /// 
+-        /// �i�䴩�h�ؿ�J�覡�j
+-        /// 1. �ǤJ Entity�G�q FormattedValues �� OptionSetValue ���o
+-        /// 2. �ǤJ int�G�����������O�N�X
+-        /// </summary>
+-        public string GetDedicationCategoryName(Entity aFeeEntity)
+-        {
+-            try
+-            {
+-                // ��k 1: �u���ϥ� FormattedValues�]�ֳ̧t�B�̥i�a�^
+-                if (aFeeEntity.FormattedValues.Contains("new_category"))
+-                {
+-                    string displayText = aFeeEntity.FormattedValues["new_category"];
+-                    if (!string.IsNullOrEmpty(displayText))
+-                    {
+-                        _logger.LogDebug("�ϥ� FormattedValues ���o�^�m���O: {Category}", displayText);
+-                        return displayText;
+-                    }
+-                }
+-                
+-                // �w�]��
+-                _logger.LogWarning("�L�k�q Entity ���o�^�m���O�A�ϥιw�]��");
+-                return "�Q�@�^�m";
+-            }
+-            catch (Exception ex)
+-            {
+-                _logger.LogError(ex, "GetDedicationCategoryName(Entity) �o�Ϳ��~");
+-                return "�Q�@�^�m";
+-            }
+-        }
+-
+-    }
+-}
+diff --git a/ChurchReport/Services/MyPayLogger.cs b/ChurchReport/Services/MyPayLogger.cs
+deleted file mode 100644
+index 791df4ab..00000000
+--- a/ChurchReport/Services/MyPayLogger.cs
++++ /dev/null
+@@ -1,34 +0,0 @@
+-﻿using System;
+-using Microsoft.Extensions.Logging;
+-using SpeechMessage.Payments.Models;
+-
+-namespace ChurchReport.Services
+-{
+-    public class MyPayLogger
+-    {
+-        private readonly ILogger<MyPayLogger> _logger;
+-
+-        public MyPayLogger(ILogger<MyPayLogger> logger)
+-        {
+-            _logger = logger;
+-        }
+-
+-        public void LogPaymentCallbackResult(PaymentCallbackResult result)
+-        {
+-            try
+-            {
+-                _logger.LogInformation(
+-                    "[MyPay回傳] Core callback result: OrderId={OrderId}, TransactionId={TransactionId}, Status={Status}, Error={ErrorKind}, Amount={Amount}",
+-                    result.ProductOrderId,
+-                    result.ProviderTransactionId,
+-                    result.Status,
+-                    result.Error.Kind,
+-                    result.Amount);
+-            }
+-            catch (Exception ex)
+-            {
+-                _logger.LogError(ex, "[MyPay回傳] 記錄 core callback result 時發生錯誤");
+-            }
+-        }
+-    }
+-}
+diff --git a/ChurchReport/Services/MyPayMessageBuilder.cs b/ChurchReport/Services/MyPayMessageBuilder.cs
+deleted file mode 100644
+index c483b341..00000000
+--- a/ChurchReport/Services/MyPayMessageBuilder.cs
++++ /dev/null
+@@ -1,252 +0,0 @@
+-using System;
+-
+-namespace ChurchReport.Services
+-{
+-    /// <summary>
+-    /// MyPay LINE �T���إߪA��
+-    /// �t�d�ͦ��U�������� LINE �q���T��
+-    /// </summary>
+-    public class MyPayMessageBuilder
+-    {
+-        #region �^�m�����T���إ�
+-
+-        /// <summary>
+-        /// ========================================
+-        /// �إߩ^�m���\�T��
+-        /// ========================================
+-        /// 
+-        /// �i�\�໡���j
+-        /// �ھک^�m�����M�I�ڸ�T�ͦ����㪺���\�q���T��
+-        /// 
+-        /// �i�T�����e�j
+-        /// - �P�µ��P�ݭԻy
+-        /// - �^�m���O�]�Q�@�^�m�B�P���^�m���^
+-        /// - �q��P����s��
+-        /// - �I�ڪ��B�P�ɶ�
+-        /// - ���ֻy
+-        /// 
+-        /// </summary>
+-        public string BuildDedicationSuccessMessage(
+-            string fullName,
+-            string orderId,
+-            string transactionId,
+-            decimal amount,
+-            string dedicationCategory,
+-            DateTime paymentTime)
+-        {
+-            var msg = $"�i���y�I�ڦ��\�q���j{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�˷R�� {fullName}�A�z�n�I{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�z���^�m�w���\�����A�P�±z������I{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�I�ڸ�T�G{Environment.NewLine}";
+-            msg += $"�m�W�G{fullName}{Environment.NewLine}";
+-            msg += $"�^�m���O�G{dedicationCategory}{Environment.NewLine}";
+-            msg += $"�q��s���G{orderId}{Environment.NewLine}";
+-
+-            if (!string.IsNullOrWhiteSpace(transactionId))
+-                msg += $"����s���G{transactionId}{Environment.NewLine}";
+-
+-            msg += $"�I�ڪ��B�GNT$ {amount:N0}{Environment.NewLine}";
+-            msg += $"�I�ڮɶ��G{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
+-            msg += $"�I�ڤ覡�G�H�Υd{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�@�W�ҽ�ֻP�z�I";
+-
+-            return msg;
+-        }
+-
+-        /// <summary>
+-        /// ========================================
+-        /// �إߩ^�m���ѰT��
+-        /// ========================================
+-        /// </summary>
+-        public string BuildDedicationFailureMessage(
+-            string fullName,
+-            string orderId,
+-            string transactionId,
+-            decimal amount,
+-            string dedicationCategory,
+-            DateTime paymentTime,
+-            string statusMessage)
+-        {
+-            var msg = $"�i���y�I�ڥ��ѳq���j{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�˷R�� {fullName}�A�z�n�I{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�ܩ�p�A�z���^�m�I�ڥ��৹���C{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"���ѭ�]�G{statusMessage}{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�I�ڸ�T�G{Environment.NewLine}";
+-            msg += $"�m�W�G{fullName}{Environment.NewLine}";
+-            msg += $"�^�m���O�G{dedicationCategory}{Environment.NewLine}";
+-            msg += $"�q��s���G{orderId}{Environment.NewLine}";
+-
+-            if (!string.IsNullOrWhiteSpace(transactionId))
+-                msg += $"����s���G{transactionId}{Environment.NewLine}";
+-
+-            msg += $"���I���B�GNT$ {amount:N0}{Environment.NewLine}";
+-            msg += $"���ծɶ��G{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�z�i�H�G{Environment.NewLine}";
+-            msg += $"1. ���s���եI��{Environment.NewLine}";
+-            msg += $"2. �󴫨�L�H�Υd{Environment.NewLine}";
+-            msg += $"3. �pô�з|�줽�ǴM�D��U{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�p�������D�A���H�ɻP�ڭ��pô�C";
+-
+-            return msg;
+-        }
+-
+-        #endregion
+-
+-        #region �ҵ{ú�O�����T���إ�
+-
+-        /// <summary>
+-        /// ========================================
+-        /// �إ߽ҵ{ú�O���\�T��
+-        /// ========================================
+-        /// </summary>
+-        public string BuildCoursePaymentSuccessMessage(
+-            string fullName,
+-            string orderId,
+-            string transactionId,
+-            decimal amount,
+-            string courseName,
+-            string courseSchedule,
+-            string courseLocation,
+-            DateTime paymentTime)
+-        {
+-            var msg = $"�i���y�I�ڦ��\�q���j{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�˷R�� {fullName}�A�z�n�I{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�z���ҵ{ú�O�w���\�����I{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�ҵ{��T�G{Environment.NewLine}";
+-            msg += $"�m�W�G{fullName}{Environment.NewLine}";
+-            msg += $"�ҵ{�W�١G{courseName}{Environment.NewLine}";
+-
+-            if (!string.IsNullOrWhiteSpace(courseSchedule))
+-                msg += $"�W�Үɶ��G{courseSchedule}{Environment.NewLine}";
+-
+-            if (!string.IsNullOrWhiteSpace(courseLocation))
+-                msg += $"�W�Ҧa�I�G{courseLocation}{Environment.NewLine}";
+-
+-            msg += $"{Environment.NewLine}�I�ڸ�T�G{Environment.NewLine}";
+-            msg += $"�q��s���G{orderId}{Environment.NewLine}";
+-
+-            if (!string.IsNullOrWhiteSpace(transactionId))
+-                msg += $"����s���G{transactionId}{Environment.NewLine}";
+-
+-            msg += $"ú�O���B�GNT$ {amount:N0}{Environment.NewLine}";
+-            msg += $"�I�ڮɶ��G{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
+-            msg += $"�I�ڤ覡�G�H�Υd{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"���ݦb�ҵ{���P�z�ۨ��I";
+-
+-            return msg;
+-        }
+-
+-        /// <summary>
+-        /// ========================================
+-        /// �إ߽ҵ{ú�O���ѰT��
+-        /// ========================================
+-        /// </summary>
+-        public string BuildCoursePaymentFailureMessage(
+-            string fullName,
+-            string orderId,
+-            string transactionId,
+-            decimal amount,
+-            string courseName,
+-            string courseSchedule,
+-            string courseLocation,
+-            DateTime paymentTime,
+-            string statusMessage)
+-        {
+-            var msg = $"�i���y�I�ڥ��ѳq���j{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�˷R�� {fullName}�A�z�n�I{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�ܩ�p�A�z���ҵ{ú�O���৹���C{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"���ѭ�]�G{statusMessage}{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�ҵ{��T�G{Environment.NewLine}";
+-            msg += $"�m�W�G{fullName}{Environment.NewLine}";
+-            msg += $"�ҵ{�W�١G{courseName}{Environment.NewLine}";
+-
+-            if (!string.IsNullOrWhiteSpace(transactionId))
+-                msg += $"����s���G{transactionId}{Environment.NewLine}";
+-
+-            msg += $"��ú���B�GNT$ {amount:N0}{Environment.NewLine}";
+-            msg += $"���ծɶ��G{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�z�i�H�G{Environment.NewLine}";
+-            msg += $"1. ���s���եI��{Environment.NewLine}";
+-            msg += $"2. �󴫨�L�H�Υd{Environment.NewLine}";
+-            msg += $"3. �pô�з|�줽�ǴM�D��U{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�p�������D�A���H�ɻP�ڭ��pô�C";
+-
+-            return msg;
+-        }
+-
+-        #endregion
+-
+-        #region �@��ú�O�����T���إ�
+-
+-        /// <summary>
+-        /// ========================================
+-        /// �إߤ@��ú�O���\�T��
+-        /// ========================================
+-        /// </summary>
+-        public string BuildGeneralPaymentSuccessMessage(
+-            string fullName,
+-            string orderId,
+-            string transactionId,
+-            decimal amount,
+-            string itemName,
+-            DateTime paymentTime)
+-        {
+-            var msg = $"�i���y�I�ڦ��\�q���j{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�˷R�� {fullName}�A�z�n�I{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�z���I�ڤw���\�����I{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�I�ڸ�T�G{Environment.NewLine}";
+-            msg += $"�m�W�G{fullName}{Environment.NewLine}";
+-            msg += $"���ءG{itemName}{Environment.NewLine}";
+-            msg += $"�q��s���G{orderId}{Environment.NewLine}";
+-
+-            if (!string.IsNullOrWhiteSpace(transactionId))
+-                msg += $"����s���G{transactionId}{Environment.NewLine}";
+-
+-            msg += $"�I�ڪ��B�GNT$ {amount:N0}{Environment.NewLine}";
+-            msg += $"�I�ڮɶ��G{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
+-            msg += $"�I�ڤ覡�G�H�Υd{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�P�±z������I";
+-
+-            return msg;
+-        }
+-
+-        /// <summary>
+-        /// ========================================
+-        /// �إߤ@��ú�O���ѰT��
+-        /// ========================================
+-        /// </summary>
+-        public string BuildGeneralPaymentFailureMessage(
+-            string fullName,
+-            string orderId,
+-            string transactionId,
+-            decimal amount,
+-            string itemName,
+-            DateTime paymentTime,
+-            string statusMessage)
+-        {
+-            var msg = $"�i���y�I�ڥ��ѳq���j{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�˷R�� {fullName}�A�z�n�I{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�ܩ�p�A�z���I�ڥ��৹���C{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"���ѭ�]�G{statusMessage}{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�I�ڸ�T�G{Environment.NewLine}";
+-            msg += $"�m�W�G{fullName}{Environment.NewLine}";
+-            msg += $"���ءG{itemName}{Environment.NewLine}";
+-            msg += $"�q��s���G{orderId}{Environment.NewLine}";
+-
+-            if (!string.IsNullOrWhiteSpace(transactionId))
+-                msg += $"����s���G{transactionId}{Environment.NewLine}";
+-
+-            msg += $"���I���B�GNT$ {amount:N0}{Environment.NewLine}";
+-            msg += $"���ծɶ��G{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�z�i�H�G{Environment.NewLine}";
+-            msg += $"1. ���s���եI��{Environment.NewLine}";
+-            msg += $"2. �󴫨�L�H�Υd{Environment.NewLine}";
+-            msg += $"3. �pô�з|�줽�ǴM�D��U{Environment.NewLine}{Environment.NewLine}";
+-            msg += $"�p�������D�A���H�ɻP�ڭ��pô�C";
+-
+-            return msg;
+-        }
+-
+-        #endregion
+-    }
+-}
+diff --git a/ChurchReport/Services/MyPayNotificationService.cs b/ChurchReport/Services/MyPayNotificationService.cs
+deleted file mode 100644
+index f92fe985..00000000
+--- a/ChurchReport/Services/MyPayNotificationService.cs
++++ /dev/null
+@@ -1,235 +0,0 @@
+-﻿using System;
+-using System.IO;
+-using ChurchReport.Payments;
+-using ChurchReport.Tools;
+-using Line.Messaging;
+-using Microsoft.Extensions.Configuration;
+-using Microsoft.Extensions.Logging;
+-using Microsoft.Xrm.Sdk;
+-using SpeechMessage.Payments.Workflows;
+-using ToolUtilityNameSpace;
+-using static ChurchReport.Services.MyPayFeeTypeHelper;
+-
+-namespace ChurchReport.Services
+-{
+-    /// <summary>
+-    /// MyPay callback 後的 ChurchReport LINE 通知服務。
+-    /// 此服務消費共用金流層的 <see cref="PaymentWorkflowResult"/>，但訊息內容、
+-    /// 收費單欄位與 LINE 推播策略都屬於 ChurchReport 產品流程，因此不放進共用金流專案。
+-    /// </summary>
+-    public class MyPayNotificationService
+-    {
+-        private readonly ILogger<MyPayNotificationService> _logger;
+-        private readonly MyPayMessageBuilder _messageBuilder;
+-        private readonly MyPayFeeTypeHelper _feeTypeHelper;
+-
+-        private static readonly Lazy<IConfiguration> s_lazyConfiguration = new Lazy<IConfiguration>(() =>
+-        {
+-            var builder = new ConfigurationBuilder()
+-                .SetBasePath(Directory.GetCurrentDirectory())
+-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+-            return builder.Build();
+-        });
+-
+-        private static IConfiguration Configuration => s_lazyConfiguration.Value;
+-
+-        public MyPayNotificationService(
+-            ILogger<MyPayNotificationService> logger,
+-            MyPayMessageBuilder messageBuilder,
+-            MyPayFeeTypeHelper feeTypeHelper)
+-        {
+-            _logger = logger;
+-            _messageBuilder = messageBuilder;
+-            _feeTypeHelper = feeTypeHelper;
+-        }
+-
+-        public void SendLineMessage(string lineId, string message)
+-        {
+-            try
+-            {
+-                var channelAccessToken = GetLineChannelAccessToken();
+-                var lineMessagingClient = new LineMessagingClient(channelAccessToken);
+-                var pushUtility = new PushUtility(lineMessagingClient);
+-                pushUtility.SendMessage(lineId, message).Wait();
+-                _logger.LogInformation($"SendLineMessage: 已發送 - LineId: {lineId}");
+-            }
+-            catch (Exception ex)
+-            {
+-                _logger.LogError(ex, $"SendLineMessage: 發送失敗 - LineId: {lineId}");
+-                throw;
+-            }
+-        }
+-
+-        public void SendLineNotificationByType(
+-            ToolUtilityClass utility,
+-            Entity feeEntity,
+-            PaymentWorkflowResult result,
+-            string fullName,
+-            FeeType feeType,
+-            Entity contactEntity)
+-        {
+-            try
+-            {
+-                if (contactEntity == null) return;
+-
+-                string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
+-                if (string.IsNullOrWhiteSpace(lineId)) return;
+-
+-                decimal amount = result.Amount ?? 0m;
+-                DateTime paymentTime = DateTime.Now;
+-                string message;
+-
+-                if (feeType == FeeType.Dedication)
+-                {
+-                    string dedicationCategory = _feeTypeHelper.GetDedicationCategoryName(feeEntity);
+-                    message = _messageBuilder.BuildDedicationSuccessMessage(
+-                        fullName,
+-                        result.ProductOrderId,
+-                        result.ProviderTransactionId,
+-                        amount,
+-                        dedicationCategory,
+-                        paymentTime);
+-                }
+-                else if (feeType == FeeType.Course)
+-                {
+-                    string courseName = _feeTypeHelper.GetCourseName(utility, feeEntity);
+-                    string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? string.Empty;
+-                    string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? string.Empty;
+-                    message = _messageBuilder.BuildCoursePaymentSuccessMessage(
+-                        fullName,
+-                        result.ProductOrderId,
+-                        result.ProviderTransactionId,
+-                        amount,
+-                        courseName,
+-                        courseSchedule,
+-                        courseLocation,
+-                        paymentTime);
+-                }
+-                else
+-                {
+-                    string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "繳費";
+-                    message = _messageBuilder.BuildGeneralPaymentSuccessMessage(
+-                        fullName,
+-                        result.ProductOrderId,
+-                        result.ProviderTransactionId,
+-                        amount,
+-                        itemName,
+-                        paymentTime);
+-                }
+-
+-                SendLineMessage(lineId, message);
+-            }
+-            catch (Exception ex)
+-            {
+-                _logger.LogError(ex, $"[MyPay回傳] 發送LINE通知失敗 - OrderId: {result?.ProductOrderId}");
+-                throw;
+-            }
+-        }
+-
+-        public void SendLineFailureNotificationByType(
+-            ToolUtilityClass utility,
+-            Entity feeEntity,
+-            PaymentWorkflowResult result,
+-            string fullName,
+-            FeeType feeType,
+-            Entity contactEntity)
+-        {
+-            try
+-            {
+-                if (contactEntity == null) return;
+-
+-                string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
+-                if (string.IsNullOrWhiteSpace(lineId)) return;
+-
+-                decimal amount = 0m;
+-                var shouldPayMoney = utility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
+-                if (shouldPayMoney != null && shouldPayMoney.Value > 0)
+-                {
+-                    amount = shouldPayMoney.Value;
+-                }
+-                else if (result.Amount.HasValue)
+-                {
+-                    amount = result.Amount.Value;
+-                }
+-
+-                DateTime paymentTime = DateTime.Now;
+-                string statusMessage = string.IsNullOrWhiteSpace(result.ProviderMessage)
+-                    ? result.Status.ToString()
+-                    : result.ProviderMessage;
+-                string message;
+-
+-                if (feeType == FeeType.Dedication)
+-                {
+-                    string dedicationCategory = _feeTypeHelper.GetDedicationCategoryName(feeEntity);
+-                    message = _messageBuilder.BuildDedicationFailureMessage(
+-                        fullName,
+-                        result.ProductOrderId,
+-                        result.ProviderTransactionId,
+-                        amount,
+-                        dedicationCategory,
+-                        paymentTime,
+-                        statusMessage);
+-                }
+-                else if (feeType == FeeType.Course)
+-                {
+-                    string courseName = _feeTypeHelper.GetCourseName(utility, feeEntity);
+-                    string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? string.Empty;
+-                    string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? string.Empty;
+-                    message = _messageBuilder.BuildCoursePaymentFailureMessage(
+-                        fullName,
+-                        result.ProductOrderId,
+-                        result.ProviderTransactionId,
+-                        amount,
+-                        courseName,
+-                        courseSchedule,
+-                        courseLocation,
+-                        paymentTime,
+-                        statusMessage);
+-                }
+-                else
+-                {
+-                    string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "繳費";
+-                    message = _messageBuilder.BuildGeneralPaymentFailureMessage(
+-                        fullName,
+-                        result.ProductOrderId,
+-                        result.ProviderTransactionId,
+-                        amount,
+-                        itemName,
+-                        paymentTime,
+-                        statusMessage);
+-                }
+-
+-                SendLineMessage(lineId, message);
+-            }
+-            catch (Exception ex)
+-            {
+-                _logger.LogError(ex, $"[MyPay回傳] 發送LINE失敗通知失敗 - OrderId: {result?.ProductOrderId}");
+-                throw;
+-            }
+-        }
+-
+-        private static string GetLineChannelAccessToken()
+-        {
+-            try
+-            {
+-                var organization = Configuration["CrmConnection:Organization"];
+-                if (!string.IsNullOrEmpty(organization))
+-                {
+-                    var configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
+-                    var token = Configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
+-                    if (!string.IsNullOrEmpty(token))
+-                    {
+-                        return token;
+-                    }
+-                }
+-
+-                var defaultOrg = Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+-                return Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"] ?? string.Empty;
+-            }
+-            catch
+-            {
+-                return string.Empty;
+-            }
+-        }
+-    }
+-}
+diff --git a/ChurchReport/Startup.cs b/ChurchReport/Startup.cs
+index 76048cd0..a790718d 100644
+--- a/ChurchReport/Startup.cs
++++ b/ChurchReport/Startup.cs
+@@ -478,11 +478,11 @@ namespace ChurchReport
+             // 註冊 MyPay 相關服務
+             // ========================================
+             // 註冊 MyPay 相關的服務類別，使用 Scoped 生命週期（每個請求一個實例）。
+-            services.AddScoped<ChurchReport.Services.MyPayMessageBuilder>();
+-            services.AddScoped<ChurchReport.Services.MyPayFeeTypeHelper>();
+-            services.AddScoped<ChurchReport.Services.MyPayLogger>();
+-            services.AddScoped<ChurchReport.Services.MyPayCrmService>();
+-            services.AddScoped<ChurchReport.Services.MyPayNotificationService>();
++            services.AddScoped<ChurchReport.Services.PaymentMessageBuilder>();
++            services.AddScoped<ChurchReport.Services.PaymentFeeTypeHelper>();
++            services.AddScoped<ChurchReport.Services.PaymentCallbackLogger>();
++            services.AddScoped<ChurchReport.Services.PaymentCrmService>();
++            services.AddScoped<ChurchReport.Services.PaymentNotificationService>();
+ 
+             // ========================================
+             // 註冊抽離後的通用金流核心與 ChurchReport adapter
+
+
+diff --git a/ChurchReport/Services/PaymentCallbackLogger.cs b/ChurchReport/Services/PaymentCallbackLogger.cs
+new file mode 100644
+index 00000000..e99d67f7
+--- /dev/null
++++ b/ChurchReport/Services/PaymentCallbackLogger.cs
+@@ -0,0 +1,44 @@
++using System;
++using Microsoft.Extensions.Logging;
++using SpeechMessage.Payments.Models;
++
++namespace ChurchReport.Services
++{
++    /// <summary>
++    /// 記錄共用金流核心解析 callback 後的標準化結果。
++    /// 此服務只負責 ChurchReport 產品層的診斷紀錄，不做 provider 狀態碼轉換、
++    /// 簽章驗證或加解密；那些銀行/金流協定細節已經由 <c>SpeechMessage.Payments</c> 負責。
++    /// </summary>
++    public class PaymentCallbackLogger
++    {
++        private readonly ILogger<PaymentCallbackLogger> _logger;
++
++        public PaymentCallbackLogger(ILogger<PaymentCallbackLogger> logger)
++        {
++            _logger = logger;
++        }
++
++        /// <summary>
++        /// 寫入付款 callback 的核心欄位，方便後續客服查詢訂單與工程端追蹤 provider 回傳結果。
++        /// 這裡刻意只記錄訂單號、交易號、狀態、錯誤種類與金額，避免把原始 callback payload、
++        /// token、簽章、卡號或其他敏感資訊寫入應用程式 log。
++        /// </summary>
++        public void LogPaymentCallbackResult(PaymentCallbackResult result)
++        {
++            try
++            {
++                _logger.LogInformation(
++                    "[付款回傳] Core callback result: OrderId={OrderId}, TransactionId={TransactionId}, Status={Status}, Error={ErrorKind}, Amount={Amount}",
++                    result.ProductOrderId,
++                    result.ProviderTransactionId,
++                    result.Status,
++                    result.Error.Kind,
++                    result.Amount);
++            }
++            catch (Exception ex)
++            {
++                _logger.LogError(ex, "[付款回傳] 記錄 core callback result 時發生錯誤");
++            }
++        }
++    }
++}
+
+
+diff --git a/ChurchReport/Services/PaymentCrmService.cs b/ChurchReport/Services/PaymentCrmService.cs
+new file mode 100644
+index 00000000..95f5dc79
+--- /dev/null
++++ b/ChurchReport/Services/PaymentCrmService.cs
+@@ -0,0 +1,72 @@
++using System;
++using ChurchReport.Payments;
++using Microsoft.Extensions.Logging;
++using Microsoft.Xrm.Sdk;
++using SpeechMessage.Payments.Workflows;
++using ToolUtilityNameSpace;
++
++namespace ChurchReport.Services
++{
++    /// <summary>
++    /// 金流 callback 成功或失敗後，負責把共用金流層整理出的
++    /// <see cref="PaymentWorkflowResult"/> 寫回 ChurchReport CRM 收費單。
++    /// 這個服務屬於 ChurchReport 產品層，而不是金流核心；CRM 欄位名稱、option set 值、實收金額與描述文字格式都是 ChurchReport 自己的業務規則。
++    /// </summary>
++    public class PaymentCrmService
++    {
++        private const int PaymentStatusPaid = 100000001;
++        private const int PaymentMethodCreditCard = 100000001;
++        private readonly ILogger<PaymentCrmService> _logger;
++
++        public PaymentCrmService(ILogger<PaymentCrmService> logger)
++        {
++            _logger = logger;
++        }
++
++        public void UpdateFeeEntityWithPaymentResult(
++            ToolUtilityClass toolUtility,
++            Entity feeEntity,
++            PaymentWorkflowResult result,
++            bool isSuccess)
++        {
++            try
++            {
++                var paymentTime = DateTime.Now;
++
++                if (isSuccess)
++                {
++                    // 只有產品端知道 ChurchReport CRM 的付款狀態欄位與 option set 值；
++                    // 共用金流專案只提供已正規化的付款結果，不直接更新 CRM。
++                    var shouldPayMoney = toolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
++                    toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PaymentStatusPaid);
++                    toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_fee_really_paid", shouldPayMoney);
++                    toolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_difference_fee_paid", new Money(0));
++                    toolUtility.SetEntityDateTimeAttribute(ref feeEntity, "new_pay_date", paymentTime);
++                    toolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PaymentMethodCreditCard);
++                }
++
++                // 將 provider-neutral 結果附加到 CRM 描述欄位，保留後續客服查核與對帳資訊。
++                var originalDescription = toolUtility.GetEntityStringAttribute(feeEntity, "new_description") ?? string.Empty;
++                var newDescription = originalDescription + Environment.NewLine +
++                    $"[金流回傳資訊 - {DateTime.Now:yyyy-MM-dd HH:mm:ss}]" + Environment.NewLine +
++                    "====== 核心欄位 ======" + Environment.NewLine +
++                    $"訂單號: {result.ProductOrderId}" + Environment.NewLine +
++                    $"交易流水號: {result.ProviderTransactionId}" + Environment.NewLine +
++                    $"交易狀態: {result.Status}" + Environment.NewLine +
++                    "====== 交易資訊 ======" + Environment.NewLine +
++                    $"完成時間: {paymentTime:yyyy-MM-dd HH:mm:ss}" + Environment.NewLine +
++                    $"交易金額: {result.Amount?.ToString() ?? string.Empty}" + Environment.NewLine +
++                    $"交易幣別: {result.Currency}" + Environment.NewLine +
++                    $"金流訊息: {result.ProviderMessage}" + Environment.NewLine;
++
++                toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
++                _logger.LogInformation($"[付款回傳] 收費單欄位已更新 - FeeId: {feeEntity.Id}, OrderId: {result.ProductOrderId}");
++            }
++            catch (Exception ex)
++            {
++                _logger.LogError(ex, $"[付款回傳] 更新收費單失敗 - OrderId: {result.ProductOrderId}");
++                throw;
++            }
++        }
++    }
++}
+
+
+diff --git a/ChurchReport/Services/PaymentFeeTypeHelper.cs b/ChurchReport/Services/PaymentFeeTypeHelper.cs
+new file mode 100644
+index 00000000..bce0bc4f
+--- /dev/null
++++ b/ChurchReport/Services/PaymentFeeTypeHelper.cs
+@@ -0,0 +1,184 @@
++using System;
++using Microsoft.Extensions.Logging;
++using ToolUtilityNameSpace;
++using Microsoft.Xrm.Sdk;
++
++namespace ChurchReport.Services
++{
++    /// <summary>
++    /// ChurchReport 付款收費單類型判斷輔助服務
++    /// 此類別只理解 ChurchReport 的 CRM 欄位與奉獻/課程分類規則，不處理任何 MyPay、永豐或台新 provider protocol。
++    /// </summary>
++    public class PaymentFeeTypeHelper
++    {
++        private readonly ILogger<PaymentFeeTypeHelper> _logger;
++
++        public PaymentFeeTypeHelper(ILogger<PaymentFeeTypeHelper> logger)
++        {
++            _logger = logger;
++        }
++
++        /// <summary>
++        /// 收費單類型列舉
++        /// </summary>
++        public enum FeeType
++        {
++            /// <summary>奉獻類型</summary>
++            Dedication,
++            /// <summary>課程類型</summary>
++            Course,
++            /// <summary>其他類型</summary>
++            Other
++        }
++
++        /// <summary>
++        /// ========================================
++        /// 判斷收費單類型
++        /// ========================================
++        /// 
++        /// 【判斷邏輯】
++        /// 1. 檢查是否有關聯課程（new_course_id）→ 課程類型
++        /// 2. 檢查收費單名稱是否包含課程關鍵字 → 課程類型
++        /// 3. 檢查課程名稱欄位是否有值 → 課程類型
++        /// 4. 檢查奉獻類別代碼範圍（100000000~100000019）→ 奉獻類型
++        /// 5. 預設為奉獻類型
++        /// </summary>
++        public FeeType DetermineFeeType(ToolUtilityClass utility, Entity feeEntity)
++        {
++            try
++            {
++                // 判斷 1：檢查課程關聯
++                var courseId = utility.GetEntityLookupAttribute(feeEntity, "new_course_id");
++                if (courseId != Guid.Empty)
++                {
++                    return FeeType.Course;
++                }
++
++                // 判斷 2：檢查收費單名稱是否包含課程關鍵字
++                string feeName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? string.Empty;
++                if (feeName.Contains("課程") ||
++                    feeName.Contains("報名") ||
++                    feeName.Contains("學費") ||
++                    feeName.Contains("培訓") ||
++                    feeName.Contains("研習"))
++                {
++                    return FeeType.Course;
++                }
++
++                // 判斷 3：檢查課程名稱欄位
++                string courseName = utility.GetEntityStringAttribute(feeEntity, "new_course_name");
++                if (!string.IsNullOrWhiteSpace(courseName))
++                {
++                    return FeeType.Course;
++                }
++
++                // 判斷 4：檢查奉獻類別代碼
++                int categoryValue = utility.GetOptionSetAttribute(feeEntity, "new_category");
++                if (categoryValue >= 100000000 && categoryValue <= 100000019)
++                {
++                    return FeeType.Dedication;
++                }
++
++                // 預設判斷：奉獻類型
++                return FeeType.Dedication;
++            }
++            catch (Exception ex)
++            {
++                _logger.LogError(ex, "DetermineFeeType例外，預設奉獻");
++                return FeeType.Dedication;
++            }
++        }
++
++        /// <summary>
++        /// ========================================
++        /// 取得課程名稱
++        /// ========================================
++        /// 
++        /// 【取得順序】
++        /// 1. 透過課程關聯（new_course_id）查詢課程實體的名稱
++        /// 2. 使用收費單的課程名稱欄位（new_course_name）
++        /// 3. 使用收費單本身的名稱（new_name）
++        /// 4. 預設回傳「課程」
++        /// </summary>
++        public string GetCourseName(ToolUtilityClass utility, Entity feeEntity)
++        {
++            try
++            {
++                // 方法 1：從課程實體查詢
++                var courseId = utility.GetEntityLookupAttribute(feeEntity, "new_course_id");
++                if (courseId != Guid.Empty)
++                {
++                    var courseEntity = utility.RetrieveEntity("new_course", courseId);
++                    if (courseEntity != null)
++                    {
++                        var name = utility.GetEntityStringAttribute(courseEntity, "new_name");
++                        if (!string.IsNullOrWhiteSpace(name))
++                        {
++                            return name;
++                        }
++                    }
++                }
++
++                // 方法 2：從收費單的課程名稱欄位
++                var courseNameField = utility.GetEntityStringAttribute(feeEntity, "new_course_name");
++                if (!string.IsNullOrWhiteSpace(courseNameField))
++                {
++                    return courseNameField;
++                }
++
++                // 方法 3：從收費單名稱
++                return utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "課程";
++            }
++            catch (Exception ex)
++            {
++                _logger.LogError(ex, "GetCourseName例外");
++                return "課程";
++            }
++        }
++
++        /// <summary>
++        /// ========================================
++        /// 取得奉獻類別名稱
++        /// ========================================
++        /// 
++        /// 【支援的奉獻類別】
++        /// - 100000010: 主日奉獻
++        /// - 100000000: 十一奉獻
++        /// - 100000002: 感恩奉獻
++        /// - 100000006: 建堂奉獻
++        /// - 100000007: 宣教奉獻
++        /// - 100000019: 愛心奉獻
++        /// - 100000008: 特別奉獻
++        /// 
++        /// 【支援多種輸入方式】
++        /// 1. 傳入 Entity：從 FormattedValues 或 OptionSetValue 取得
++        /// 2. 傳入 int：直接對應類別代碼
++        /// </summary>
++        public string GetDedicationCategoryName(Entity aFeeEntity)
++        {
++            try
++            {
++                // 方法 1: 優先使用 FormattedValues（最快速且最可靠）
++                if (aFeeEntity.FormattedValues.Contains("new_category"))
++                {
++                    string displayText = aFeeEntity.FormattedValues["new_category"];
++                    if (!string.IsNullOrEmpty(displayText))
++                    {
++                        _logger.LogDebug("使用 FormattedValues 取得奉獻類別: {Category}", displayText);
++                        return displayText;
++                    }
++                }
++                
++                // 預設值
++                _logger.LogWarning("無法從 Entity 取得奉獻類別，使用預設值");
++                return "十一奉獻";
++            }
++            catch (Exception ex)
++            {
++                _logger.LogError(ex, "GetDedicationCategoryName(Entity) 發生錯誤");
++                return "十一奉獻";
++            }
++        }
++
++    }
++}
+
+
+diff --git a/ChurchReport/Services/PaymentMessageBuilder.cs b/ChurchReport/Services/PaymentMessageBuilder.cs
+new file mode 100644
+index 00000000..16d10bd4
+--- /dev/null
++++ b/ChurchReport/Services/PaymentMessageBuilder.cs
+@@ -0,0 +1,252 @@
++using System;
++
++namespace ChurchReport.Services
++{
++    /// <summary>
++    /// ChurchReport 付款 LINE 訊息建立服務
++    /// 這裡負責把 provider-neutral 付款結果轉成 ChurchReport 使用者看得懂的文字，例如奉獻、課程繳費與一般繳費通知；訊息文案屬於產品流程，不屬於共用金流核心。
++    /// </summary>
++    public class PaymentMessageBuilder
++    {
++        #region 奉獻類型訊息建立
++
++        /// <summary>
++        /// ========================================
++        /// 建立奉獻成功訊息
++        /// ========================================
++        /// 
++        /// 【功能說明】
++        /// 根據奉獻類型和付款資訊生成完整的成功通知訊息
++        /// 
++        /// 【訊息內容】
++        /// - 感謝詞與問候語
++        /// - 奉獻類別（十一奉獻、感恩奉獻等）
++        /// - 訂單與交易編號
++        /// - 付款金額與時間
++        /// - 祝福語
++        /// 
++        /// </summary>
++        public string BuildDedicationSuccessMessage(
++            string fullName,
++            string orderId,
++            string transactionId,
++            decimal amount,
++            string dedicationCategory,
++            DateTime paymentTime)
++        {
++            var msg = $"【金流付款成功通知】{Environment.NewLine}{Environment.NewLine}";
++            msg += $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}";
++            msg += $"您的奉獻已成功完成，感謝您的支持！{Environment.NewLine}{Environment.NewLine}";
++            msg += $"付款資訊：{Environment.NewLine}";
++            msg += $"姓名：{fullName}{Environment.NewLine}";
++            msg += $"奉獻類別：{dedicationCategory}{Environment.NewLine}";
++            msg += $"訂單編號：{orderId}{Environment.NewLine}";
++
++            if (!string.IsNullOrWhiteSpace(transactionId))
++                msg += $"交易編號：{transactionId}{Environment.NewLine}";
++
++            msg += $"付款金額：NT$ {amount:N0}{Environment.NewLine}";
++            msg += $"付款時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
++            msg += $"付款方式：信用卡{Environment.NewLine}{Environment.NewLine}";
++            msg += $"願上帝賜福與您！";
++
++            return msg;
++        }
++
++        /// <summary>
++        /// ========================================
++        /// 建立奉獻失敗訊息
++        /// ========================================
++        /// </summary>
++        public string BuildDedicationFailureMessage(
++            string fullName,
++            string orderId,
++            string transactionId,
++            decimal amount,
++            string dedicationCategory,
++            DateTime paymentTime,
++            string statusMessage)
++        {
++            var msg = $"【金流付款失敗通知】{Environment.NewLine}{Environment.NewLine}";
++            msg += $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}";
++            msg += $"很抱歉，您的奉獻付款未能完成。{Environment.NewLine}{Environment.NewLine}";
++            msg += $"失敗原因：{statusMessage}{Environment.NewLine}{Environment.NewLine}";
++            msg += $"付款資訊：{Environment.NewLine}";
++            msg += $"姓名：{fullName}{Environment.NewLine}";
++            msg += $"奉獻類別：{dedicationCategory}{Environment.NewLine}";
++            msg += $"訂單編號：{orderId}{Environment.NewLine}";
++
++            if (!string.IsNullOrWhiteSpace(transactionId))
++                msg += $"交易編號：{transactionId}{Environment.NewLine}";
++
++            msg += $"應付金額：NT$ {amount:N0}{Environment.NewLine}";
++            msg += $"嘗試時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}";
++            msg += $"您可以：{Environment.NewLine}";
++            msg += $"1. 重新嘗試付款{Environment.NewLine}";
++            msg += $"2. 更換其他信用卡{Environment.NewLine}";
++            msg += $"3. 聯繫教會辦公室尋求協助{Environment.NewLine}{Environment.NewLine}";
++            msg += $"如有任何問題，請隨時與我們聯繫。";
++
++            return msg;
++        }
++
++        #endregion
++
++        #region 課程繳費類型訊息建立
++
++        /// <summary>
++        /// ========================================
++        /// 建立課程繳費成功訊息
++        /// ========================================
++        /// </summary>
++        public string BuildCoursePaymentSuccessMessage(
++            string fullName,
++            string orderId,
++            string transactionId,
++            decimal amount,
++            string courseName,
++            string courseSchedule,
++            string courseLocation,
++            DateTime paymentTime)
++        {
++            var msg = $"【金流付款成功通知】{Environment.NewLine}{Environment.NewLine}";
++            msg += $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}";
++            msg += $"您的課程繳費已成功完成！{Environment.NewLine}{Environment.NewLine}";
++            msg += $"課程資訊：{Environment.NewLine}";
++            msg += $"姓名：{fullName}{Environment.NewLine}";
++            msg += $"課程名稱：{courseName}{Environment.NewLine}";
++
++            if (!string.IsNullOrWhiteSpace(courseSchedule))
++                msg += $"上課時間：{courseSchedule}{Environment.NewLine}";
++
++            if (!string.IsNullOrWhiteSpace(courseLocation))
++                msg += $"上課地點：{courseLocation}{Environment.NewLine}";
++
++            msg += $"{Environment.NewLine}付款資訊：{Environment.NewLine}";
++            msg += $"訂單編號：{orderId}{Environment.NewLine}";
++
++            if (!string.IsNullOrWhiteSpace(transactionId))
++                msg += $"交易編號：{transactionId}{Environment.NewLine}";
++
++            msg += $"繳費金額：NT$ {amount:N0}{Environment.NewLine}";
++            msg += $"付款時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
++            msg += $"付款方式：信用卡{Environment.NewLine}{Environment.NewLine}";
++            msg += $"期待在課程中與您相見！";
++
++            return msg;
++        }
++
++        /// <summary>
++        /// ========================================
++        /// 建立課程繳費失敗訊息
++        /// ========================================
++        /// </summary>
++        public string BuildCoursePaymentFailureMessage(
++            string fullName,
++            string orderId,
++            string transactionId,
++            decimal amount,
++            string courseName,
++            string courseSchedule,
++            string courseLocation,
++            DateTime paymentTime,
++            string statusMessage)
++        {
++            var msg = $"【金流付款失敗通知】{Environment.NewLine}{Environment.NewLine}";
++            msg += $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}";
++            msg += $"很抱歉，您的課程繳費未能完成。{Environment.NewLine}{Environment.NewLine}";
++            msg += $"失敗原因：{statusMessage}{Environment.NewLine}{Environment.NewLine}";
++            msg += $"課程資訊：{Environment.NewLine}";
++            msg += $"姓名：{fullName}{Environment.NewLine}";
++            msg += $"課程名稱：{courseName}{Environment.NewLine}";
++
++            if (!string.IsNullOrWhiteSpace(transactionId))
++                msg += $"交易編號：{transactionId}{Environment.NewLine}";
++
++            msg += $"應繳金額：NT$ {amount:N0}{Environment.NewLine}";
++            msg += $"嘗試時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}";
++            msg += $"您可以：{Environment.NewLine}";
++            msg += $"1. 重新嘗試付款{Environment.NewLine}";
++            msg += $"2. 更換其他信用卡{Environment.NewLine}";
++            msg += $"3. 聯繫教會辦公室尋求協助{Environment.NewLine}{Environment.NewLine}";
++            msg += $"如有任何問題，請隨時與我們聯繫。";
++
++            return msg;
++        }
++
++        #endregion
++
++        #region 一般繳費類型訊息建立
++
++        /// <summary>
++        /// ========================================
++        /// 建立一般繳費成功訊息
++        /// ========================================
++        /// </summary>
++        public string BuildGeneralPaymentSuccessMessage(
++            string fullName,
++            string orderId,
++            string transactionId,
++            decimal amount,
++            string itemName,
++            DateTime paymentTime)
++        {
++            var msg = $"【金流付款成功通知】{Environment.NewLine}{Environment.NewLine}";
++            msg += $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}";
++            msg += $"您的付款已成功完成！{Environment.NewLine}{Environment.NewLine}";
++            msg += $"付款資訊：{Environment.NewLine}";
++            msg += $"姓名：{fullName}{Environment.NewLine}";
++            msg += $"項目：{itemName}{Environment.NewLine}";
++            msg += $"訂單編號：{orderId}{Environment.NewLine}";
++
++            if (!string.IsNullOrWhiteSpace(transactionId))
++                msg += $"交易編號：{transactionId}{Environment.NewLine}";
++
++            msg += $"付款金額：NT$ {amount:N0}{Environment.NewLine}";
++            msg += $"付款時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
++            msg += $"付款方式：信用卡{Environment.NewLine}{Environment.NewLine}";
++            msg += $"感謝您的支持！";
++
++            return msg;
++        }
++
++        /// <summary>
++        /// ========================================
++        /// 建立一般繳費失敗訊息
++        /// ========================================
++        /// </summary>
++        public string BuildGeneralPaymentFailureMessage(
++            string fullName,
++            string orderId,
++            string transactionId,
++            decimal amount,
++            string itemName,
++            DateTime paymentTime,
++            string statusMessage)
++        {
++            var msg = $"【金流付款失敗通知】{Environment.NewLine}{Environment.NewLine}";
++            msg += $"親愛的 {fullName}，您好！{Environment.NewLine}{Environment.NewLine}";
++            msg += $"很抱歉，您的付款未能完成。{Environment.NewLine}{Environment.NewLine}";
++            msg += $"失敗原因：{statusMessage}{Environment.NewLine}{Environment.NewLine}";
++            msg += $"付款資訊：{Environment.NewLine}";
++            msg += $"姓名：{fullName}{Environment.NewLine}";
++            msg += $"項目：{itemName}{Environment.NewLine}";
++            msg += $"訂單編號：{orderId}{Environment.NewLine}";
++
++            if (!string.IsNullOrWhiteSpace(transactionId))
++                msg += $"交易編號：{transactionId}{Environment.NewLine}";
++
++            msg += $"應付金額：NT$ {amount:N0}{Environment.NewLine}";
++            msg += $"嘗試時間：{paymentTime:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}";
++            msg += $"您可以：{Environment.NewLine}";
++            msg += $"1. 重新嘗試付款{Environment.NewLine}";
++            msg += $"2. 更換其他信用卡{Environment.NewLine}";
++            msg += $"3. 聯繫教會辦公室尋求協助{Environment.NewLine}{Environment.NewLine}";
++            msg += $"如有任何問題，請隨時與我們聯繫。";
++
++            return msg;
++        }
++
++        #endregion
++    }
++}
+
+
+diff --git a/ChurchReport/Services/PaymentNotificationService.cs b/ChurchReport/Services/PaymentNotificationService.cs
+new file mode 100644
+index 00000000..1c3e0e72
+--- /dev/null
++++ b/ChurchReport/Services/PaymentNotificationService.cs
+@@ -0,0 +1,255 @@
++using System;
++using System.IO;
++using ChurchReport.Payments;
++using ChurchReport.Tools;
++using Line.Messaging;
++using Microsoft.Extensions.Configuration;
++using Microsoft.Extensions.Logging;
++using Microsoft.Xrm.Sdk;
++using SpeechMessage.Payments.Workflows;
++using ToolUtilityNameSpace;
++using static ChurchReport.Services.PaymentFeeTypeHelper;
++
++namespace ChurchReport.Services
++{
++    /// <summary>
++    /// 金流 callback 後的 ChurchReport LINE 通知服務。
++    /// 此服務消費共用金流層的 <see cref="PaymentWorkflowResult"/>，但訊息內容、
++    /// 收費單欄位與 LINE 推播策略都屬於 ChurchReport 產品流程，因此不放進共用金流專案。
++    /// </summary>
++    public class PaymentNotificationService
++    {
++        private readonly ILogger<PaymentNotificationService> _logger;
++        private readonly PaymentMessageBuilder _messageBuilder;
++        private readonly PaymentFeeTypeHelper _feeTypeHelper;
++
++        private static readonly Lazy<IConfiguration> s_lazyConfiguration = new Lazy<IConfiguration>(() =>
++        {
++            var builder = new ConfigurationBuilder()
++                .SetBasePath(Directory.GetCurrentDirectory())
++                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
++            return builder.Build();
++        });
++
++        private static IConfiguration Configuration => s_lazyConfiguration.Value;
++
++        public PaymentNotificationService(
++            ILogger<PaymentNotificationService> logger,
++            PaymentMessageBuilder messageBuilder,
++            PaymentFeeTypeHelper feeTypeHelper)
++        {
++            _logger = logger;
++            _messageBuilder = messageBuilder;
++            _feeTypeHelper = feeTypeHelper;
++        }
++
++        /// <summary>
++        /// 透過 LINE Messaging API 推播付款通知。
++        /// 此方法仍位於 ChurchReport，是因為 LINE channel token 的選擇、
++        /// 使用者 LINE ID 欄位與通知失敗策略都屬於產品流程，不屬於共用金流核心。
++        /// </summary>
++        public void SendLineMessage(string lineId, string message)
++        {
++            try
++            {
++                var channelAccessToken = GetLineChannelAccessToken();
++                var lineMessagingClient = new LineMessagingClient(channelAccessToken);
++                var pushUtility = new PushUtility(lineMessagingClient);
++                pushUtility.SendMessage(lineId, message).Wait();
++                _logger.LogInformation($"SendLineMessage: 已發送 - LineId: {lineId}");
++            }
++            catch (Exception ex)
++            {
++                _logger.LogError(ex, $"SendLineMessage: 發送失敗 - LineId: {lineId}");
++                throw;
++            }
++        }
++
++        /// <summary>
++        /// 依收費單類型建立付款成功通知並推播給付款者。
++        /// 共用金流核心只提供 <see cref="PaymentWorkflowResult"/>；這裡才根據 ChurchReport CRM
++        /// 欄位判斷奉獻、課程或一般繳費，並組出符合教會使用情境的 LINE 文案。
++        /// </summary>
++        public void SendLineNotificationByType(
++            ToolUtilityClass utility,
++            Entity feeEntity,
++            PaymentWorkflowResult result,
++            string fullName,
++            FeeType feeType,
++            Entity contactEntity)
++        {
++            try
++            {
++                if (contactEntity == null) return;
++
++                string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
++                if (string.IsNullOrWhiteSpace(lineId)) return;
++
++                decimal amount = result.Amount ?? 0m;
++                DateTime paymentTime = DateTime.Now;
++                string message;
++
++                if (feeType == FeeType.Dedication)
++                {
++                    string dedicationCategory = _feeTypeHelper.GetDedicationCategoryName(feeEntity);
++                    message = _messageBuilder.BuildDedicationSuccessMessage(
++                        fullName,
++                        result.ProductOrderId,
++                        result.ProviderTransactionId,
++                        amount,
++                        dedicationCategory,
++                        paymentTime);
++                }
++                else if (feeType == FeeType.Course)
++                {
++                    string courseName = _feeTypeHelper.GetCourseName(utility, feeEntity);
++                    string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? string.Empty;
++                    string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? string.Empty;
++                    message = _messageBuilder.BuildCoursePaymentSuccessMessage(
++                        fullName,
++                        result.ProductOrderId,
++                        result.ProviderTransactionId,
++                        amount,
++                        courseName,
++                        courseSchedule,
++                        courseLocation,
++                        paymentTime);
++                }
++                else
++                {
++                    string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "繳費";
++                    message = _messageBuilder.BuildGeneralPaymentSuccessMessage(
++                        fullName,
++                        result.ProductOrderId,
++                        result.ProviderTransactionId,
++                        amount,
++                        itemName,
++                        paymentTime);
++                }
++
++                SendLineMessage(lineId, message);
++            }
++            catch (Exception ex)
++            {
++                _logger.LogError(ex, $"[付款回傳] 發送LINE通知失敗 - OrderId: {result?.ProductOrderId}");
++                throw;
++            }
++        }
++
++        /// <summary>
++        /// 依收費單類型建立付款失敗通知並推播給付款者。
++        /// 失敗通知優先使用收費單應付金額，因為 provider 失敗結果不一定會帶回金額；
++        /// 若 CRM 尚未提供應付金額，才退回使用標準化金流結果中的金額。
++        /// </summary>
++        public void SendLineFailureNotificationByType(
++            ToolUtilityClass utility,
++            Entity feeEntity,
++            PaymentWorkflowResult result,
++            string fullName,
++            FeeType feeType,
++            Entity contactEntity)
++        {
++            try
++            {
++                if (contactEntity == null) return;
++
++                string lineId = utility.GetEntityStringAttribute(contactEntity, "new_lineid");
++                if (string.IsNullOrWhiteSpace(lineId)) return;
++
++                decimal amount = 0m;
++                var shouldPayMoney = utility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
++                if (shouldPayMoney != null && shouldPayMoney.Value > 0)
++                {
++                    amount = shouldPayMoney.Value;
++                }
++                else if (result.Amount.HasValue)
++                {
++                    amount = result.Amount.Value;
++                }
++
++                DateTime paymentTime = DateTime.Now;
++                string statusMessage = string.IsNullOrWhiteSpace(result.ProviderMessage)
++                    ? result.Status.ToString()
++                    : result.ProviderMessage;
++                string message;
++
++                if (feeType == FeeType.Dedication)
++                {
++                    string dedicationCategory = _feeTypeHelper.GetDedicationCategoryName(feeEntity);
++                    message = _messageBuilder.BuildDedicationFailureMessage(
++                        fullName,
++                        result.ProductOrderId,
++                        result.ProviderTransactionId,
++                        amount,
++                        dedicationCategory,
++                        paymentTime,
++                        statusMessage);
++                }
++                else if (feeType == FeeType.Course)
++                {
++                    string courseName = _feeTypeHelper.GetCourseName(utility, feeEntity);
++                    string courseSchedule = utility.GetEntityStringAttribute(feeEntity, "new_course_schedule") ?? string.Empty;
++                    string courseLocation = utility.GetEntityStringAttribute(feeEntity, "new_course_location") ?? string.Empty;
++                    message = _messageBuilder.BuildCoursePaymentFailureMessage(
++                        fullName,
++                        result.ProductOrderId,
++                        result.ProviderTransactionId,
++                        amount,
++                        courseName,
++                        courseSchedule,
++                        courseLocation,
++                        paymentTime,
++                        statusMessage);
++                }
++                else
++                {
++                    string itemName = utility.GetEntityStringAttribute(feeEntity, "new_name") ?? "繳費";
++                    message = _messageBuilder.BuildGeneralPaymentFailureMessage(
++                        fullName,
++                        result.ProductOrderId,
++                        result.ProviderTransactionId,
++                        amount,
++                        itemName,
++                        paymentTime,
++                        statusMessage);
++                }
++
++                SendLineMessage(lineId, message);
++            }
++            catch (Exception ex)
++            {
++                _logger.LogError(ex, $"[付款回傳] 發送LINE失敗通知失敗 - OrderId: {result?.ProductOrderId}");
++                throw;
++            }
++        }
++
++        /// <summary>
++        /// 依目前 CRM organization 選擇 LINE channel access token。
++        /// 多產品或多教會環境共用同一份程式時，這個選擇邏輯仍是 ChurchReport 組態規則；
++        /// 因此不放入 provider-neutral 的金流核心。
++        /// </summary>
++        private static string GetLineChannelAccessToken()
++        {
++            try
++            {
++                var organization = Configuration["CrmConnection:Organization"];
++                if (!string.IsNullOrEmpty(organization))
++                {
++                    var configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
++                    var token = Configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
++                    if (!string.IsNullOrEmpty(token))
++                    {
++                        return token;
++                    }
++                }
++
++                var defaultOrg = Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
++                return Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"] ?? string.Empty;
++            }
++            catch
++            {
++                return string.Empty;
++            }
++        }
++    }
++}
+
+
+diff --git a/ChurchReport.MemberInfo.Tests/Payments/PaymentProductServiceNamingTests.cs b/ChurchReport.MemberInfo.Tests/Payments/PaymentProductServiceNamingTests.cs
+new file mode 100644
+index 00000000..feff8994
+--- /dev/null
++++ b/ChurchReport.MemberInfo.Tests/Payments/PaymentProductServiceNamingTests.cs
+@@ -0,0 +1,50 @@
++using FluentAssertions;
++using Xunit;
++
++namespace ChurchReport.MemberInfo.Tests.Payments;
++
++/// <summary>
++/// 驗證 ChurchReport 的付款後產品流程服務不再以單一 provider 命名。
++/// CRM 更新、LINE 通知、付款訊息組裝都屬於 ChurchReport 產品流程，
++/// 服務名稱應表達「產品付款後處理」而不是誤導成 MyPay 金流協定實作。
++/// </summary>
++public sealed class PaymentProductServiceNamingTests
++{
++    [Fact]
++    public void Product_payment_services_use_provider_neutral_names()
++    {
++        var expectedServiceNames = new[]
++        {
++            "ChurchReport.Services.PaymentCrmService, ChurchReport",
++            "ChurchReport.Services.PaymentFeeTypeHelper, ChurchReport",
++            "ChurchReport.Services.PaymentCallbackLogger, ChurchReport",
++            "ChurchReport.Services.PaymentMessageBuilder, ChurchReport",
++            "ChurchReport.Services.PaymentNotificationService, ChurchReport"
++        };
++
++        foreach (var expectedServiceName in expectedServiceNames)
++        {
++            Type.GetType(expectedServiceName).Should().NotBeNull(
++                "ChurchReport 付款後流程服務應以 provider-neutral 名稱呈現，避免把 CRM/LINE/收費單流程誤認為 MyPay 協定實作");
++        }
++    }
++
++    [Fact]
++    public void Legacy_mypay_product_service_names_are_removed()
++    {
++        var legacyServiceNames = new[]
++        {
++            "ChurchReport.Services.MyPayCrmService, ChurchReport",
++            "ChurchReport.Services.MyPayFeeTypeHelper, ChurchReport",
++            "ChurchReport.Services.MyPayLogger, ChurchReport",
++            "ChurchReport.Services.MyPayMessageBuilder, ChurchReport",
++            "ChurchReport.Services.MyPayNotificationService, ChurchReport"
++        };
++
++        foreach (var legacyServiceName in legacyServiceNames)
++        {
++            Type.GetType(legacyServiceName).Should().BeNull(
++                "這些服務已經只消費 provider-neutral payment result，不應保留 MyPay 開頭的產品流程型別名稱");
++        }
++    }
++}
+
+
+diff --git a/ChurchReport.MemberInfo.Tests/Payments/PaymentMessageBuilderEncodingTests.cs b/ChurchReport.MemberInfo.Tests/Payments/PaymentMessageBuilderEncodingTests.cs
+new file mode 100644
+index 00000000..bd0bf915
+--- /dev/null
++++ b/ChurchReport.MemberInfo.Tests/Payments/PaymentMessageBuilderEncodingTests.cs
+@@ -0,0 +1,34 @@
++using ChurchReport.Services;
++using FluentAssertions;
++using Xunit;
++
++namespace ChurchReport.MemberInfo.Tests.Payments;
++
++/// <summary>
++/// 保護付款後 LINE 通知文案的編碼與基本語意。
++/// 這些訊息會直接送給奉獻者或付款者；如果檔案被 Big5/UTF-8 來回轉碼破壞，
++/// 編譯仍可能成功，但使用者收到的內容會變成亂碼，因此用測試鎖住可讀的繁體中文關鍵字。
++/// </summary>
++public sealed class PaymentMessageBuilderEncodingTests
++{
++    [Fact]
++    public void Dedication_success_message_uses_readable_traditional_chinese_text()
++    {
++        var builder = new PaymentMessageBuilder();
++
++        var message = builder.BuildDedicationSuccessMessage(
++            "胡夢嵩",
++            "ORDER-001",
++            "TX-001",
++            8m,
++            "十一奉獻",
++            new DateTime(2026, 7, 6, 12, 30, 0));
++
++        message.Should().Contain("金流付款成功通知");
++        message.Should().Contain("親愛的 胡夢嵩");
++        message.Should().Contain("奉獻類別：十一奉獻");
++        message.Should().Contain("付款金額：NT$ 8");
++        message.Should().NotContain("嚗");
++        message.Should().NotContain(((char)0xFFFD).ToString());
++    }
++}

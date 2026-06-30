@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ChurchReport.Payments;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
@@ -8,17 +8,17 @@ using ToolUtilityNameSpace;
 namespace ChurchReport.Services
 {
     /// <summary>
-    /// MyPay callback 成功或失敗後，負責把共用金流層整理出的
+    /// 金流 callback 成功或失敗後，負責把共用金流層整理出的
     /// <see cref="PaymentWorkflowResult"/> 寫回 ChurchReport CRM 收費單。
-    /// 此類別仍屬於 ChurchReport，因為 CRM 欄位名稱、option set 值與描述文字格式都是產品規則。
+    /// 這個服務屬於 ChurchReport 產品層，而不是金流核心；CRM 欄位名稱、option set 值、實收金額與描述文字格式都是 ChurchReport 自己的業務規則。
     /// </summary>
-    public class MyPayCrmService
+    public class PaymentCrmService
     {
         private const int PaymentStatusPaid = 100000001;
         private const int PaymentMethodCreditCard = 100000001;
-        private readonly ILogger<MyPayCrmService> _logger;
+        private readonly ILogger<PaymentCrmService> _logger;
 
-        public MyPayCrmService(ILogger<MyPayCrmService> logger)
+        public PaymentCrmService(ILogger<PaymentCrmService> logger)
         {
             _logger = logger;
         }
@@ -60,11 +60,11 @@ namespace ChurchReport.Services
                     $"金流訊息: {result.ProviderMessage}" + Environment.NewLine;
 
                 toolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
-                _logger.LogInformation($"[MyPay回傳] 收費單欄位已更新 - FeeId: {feeEntity.Id}, OrderId: {result.ProductOrderId}");
+                _logger.LogInformation($"[付款回傳] 收費單欄位已更新 - FeeId: {feeEntity.Id}, OrderId: {result.ProductOrderId}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[MyPay回傳] 更新收費單失敗 - OrderId: {result.ProductOrderId}");
+                _logger.LogError(ex, $"[付款回傳] 更新收費單失敗 - OrderId: {result.ProductOrderId}");
                 throw;
             }
         }

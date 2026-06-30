@@ -1,0 +1,12 @@
+{
+  "id": "neutralize-mypay-product-service-names",
+  "title": "Rename ChurchReport MyPay post-payment services to provider-neutral names",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "Commit or archive after user confirms this batch should be included",
+  "createdAt": "2026-06-30T10:39:01.5045275+08:00",
+  "branch": "Jesus_5.1.5_Worktree_TuneRefactorPament"
+}

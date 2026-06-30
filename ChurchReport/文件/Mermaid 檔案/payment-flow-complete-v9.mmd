@@ -1,0 +1,50 @@
+%% 完整金流呼叫流程 V9 - 最終清晰版
+flowchart TD
+    A1["1. 填寫奉獻 / 付款資料<br/>奉獻者輸入姓名、項目、金額與付款方式"]
+    A2["2. ChurchReport Controller 接收並驗證請求<br/>保留既有頁面、路由與畫面驗證"]
+    A3["3. 依 PAY_PROVIDER 選擇 Payment Profile<br/>對應到命名金流設定檔"]
+    A4["4. 建立中立 PaymentCreateRequest<br/>不暴露 QPay / MyPay / TSPG 專屬欄位"]
+    A5["5. 呼叫 IPaymentGateway.CreatePaymentAsync<br/>只使用 provider-neutral DTO"]
+    A6["6. Provider 封裝協定細節<br/>簽章、加密、端點、欄位格式留在核心內"]
+    A7["7. 回傳 PaymentCreateResult<br/>PaymentPageUrl / ProviderOrderRef / sanitized diagnostics"]
+    A8["8. Redirect 到第三方付款頁<br/>付款者完成信用卡、ATM 或第三方付款"]
+
+    B1["9. 第三方金流回呼既有 callback/return route<br/>QPay / MyPay / TSPG 網址保留"]
+    B2["10. PaymentHttpRequestMapper 映射 HTTP 回呼<br/>query / form / header / body -> PaymentCallbackRequest"]
+    B3["11. ParseCallbackAsync 驗證、解密、解析狀態<br/>輸出 PaymentCallbackResult"]
+    B4["12. PaymentAcknowledgementResultMapper 回覆 ACK<br/>文字 / JSON / Redirect 回給第三方金流"]
+    B5["13. ChurchReport 接收中立回呼結果<br/>ProductOrderId / Amount / Status / ProviderOrderRef"]
+
+    C1["14. 啟動產品付款後流程<br/>PaymentPostPaymentWorkflow 呼叫產品實作"]
+    C2["15. 更新 CRM / 奉獻 / 付費單<br/>IPaymentRecordUpdater 由 ChurchReport 實作"]
+    C3["16. 通知付款者<br/>IPaymentPayerNotifier 由 ChurchReport 實作，發送 LINE"]
+    C4["17. 顯示結果頁或後續流程<br/>成功、失敗、待付款、重新付款或下一頁"]
+    C5["18. 未來 ASP.NET Core 產品重用方式<br/>維修、會員、發票系統重用核心與 Host Adapter，再實作自己的資料更新與通知"]
+
+    A1 --> A2 --> A3 --> A4 --> A5 --> A6 --> A7 --> A8
+    A8 --> B1 --> B2 --> B3 --> B4 --> B5
+    B5 --> C1 --> C2 --> C3 --> C4 --> C5
+
+    subgraph CORE["核心邊界"]
+        D1["SpeechMessage.Payments<br/>Provider 協定、簽章、加密、建立付款、查詢、回呼解析、狀態正規化"]
+        D2["SpeechMessage.Payments.AspNetCore<br/>HttpRequest 對應、ACK 轉 ASP.NET 回應、DI 輔助"]
+        D3["產品層<br/>Controller、頁面、CRM/DB、LINE/通知、去重、商業流程"]
+        D4["LinePay 說明<br/>LinePay 仍是獨立專案，未納入本次核心抽離"]
+    end
+
+    C5 --> D1
+
+    classDef payer fill:#fffbeb,stroke:#d97706,color:#111827,stroke-width:2px
+    classDef product fill:#fff7ed,stroke:#c2410c,color:#111827,stroke-width:2px
+    classDef host fill:#ecfeff,stroke:#0891b2,color:#111827,stroke-width:2px
+    classDef core fill:#eef2ff,stroke:#4f46e5,color:#111827,stroke-width:2px
+    classDef provider fill:#f0fdf4,stroke:#16a34a,color:#111827,stroke-width:2px
+    classDef workflow fill:#f8fafc,stroke:#64748b,color:#111827,stroke-width:2px
+
+    class A1,A8 payer
+    class A2,A3,B1,B5,C1,C2,C3,C4,C5 product
+    class A4,B2,B4 host
+    class A5,A6,A7,B3,D1 core
+    class D2 host
+    class D3 product
+    class D4 workflow

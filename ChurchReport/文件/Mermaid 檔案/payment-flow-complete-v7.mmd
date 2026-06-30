@@ -1,0 +1,48 @@
+sequenceDiagram
+    autonumber
+    actor Payer as 奉獻者 / 付款者
+    participant Product as ChurchReport 產品層
+    participant Host as SpeechMessage.Payments.AspNetCore
+    participant Core as SpeechMessage.Payments 核心
+    participant Provider as 第三方金流<br/>Sinopac/QPay / MyPay / Taishin/TSPG
+    participant Workflow as 產品自己的付款後工作流<br/>CRM / LINE / 結果頁
+
+    rect rgb(255, 247, 237)
+        Note over Payer,Provider: 建立付款與導向第三方
+        Payer->>Product: 1. 填寫奉獻資料<br/>姓名、項目、金額、付款方式
+        Product->>Product: 2. Controller 驗證畫面輸入<br/>保留既有 ChurchReport 路由
+        Product->>Product: 3. 依 PAY_PROVIDER 選擇 Payment Profile
+        Product->>Host: 4. 建立 provider-neutral PaymentCreateRequest
+        Host->>Core: 5. 呼叫 IPaymentGateway.CreatePaymentAsync
+        Core->>Core: 6. 依 profile 選擇 Provider
+        Core->>Provider: 7. 封裝簽章、加密、端點與欄位格式
+        Provider-->>Core: 8. 回傳付款頁 URL / ProviderOrderRef
+        Core-->>Host: 9. PaymentCreateResult
+        Host-->>Product: 10. 回傳可導向結果
+        Product-->>Payer: 11. Redirect 到第三方付款頁
+        Payer->>Provider: 12. 在第三方頁面完成信用卡、ATM 或金流付款
+    end
+
+    rect rgb(236, 254, 255)
+        Note over Provider,Core: 付款完成與回呼解析
+        Provider->>Product: 13. 呼叫既有 callback route<br/>QPay / MyPay / TSPG 網址仍保留
+        Product->>Host: 14. PaymentHttpRequestMapper 讀取 query / form / header / body
+        Host->>Core: 15. ParseCallbackAsync 驗簽、解密、解析狀態
+        Core-->>Host: 16. PaymentCallbackResult<br/>狀態、金額、訂單、ACK、已清理診斷資訊
+        Host-->>Product: 17. Provider-neutral 回呼結果
+        Host-->>Provider: 18. PaymentAcknowledgementResultMapper 回覆文字、JSON 或 Redirect
+    end
+
+    rect rgb(240, 253, 244)
+        Note over Product,Workflow: 付款後產品工作流
+        Product->>Workflow: 19. 啟動 ChurchReport 自己的付款後流程
+        Workflow->>Workflow: 20. IPaymentRecordUpdater 更新 CRM / 奉獻 / 付費單
+        Workflow->>Workflow: 21. IPaymentPayerNotifier 發送 LINE 通知付款者
+        Workflow-->>Product: 22. 回傳產品流程結果
+        Product-->>Payer: 23. 顯示成功、失敗、待付款或後續流程頁
+    end
+
+    Note over Core: 純金流核心不依賴 ASP.NET Controller、CRM、LINE、DB、View 或 ChurchReport。只處理 Provider 協定、簽章、加密、狀態正規化。
+    Note over Host: ASP.NET 共用橋接層只處理 HttpRequest 對應與 ACK 轉 ASP.NET 回應，可給其他 ASP.NET Core 產品重用。
+    Note over Product,Workflow: ChurchReport 與未來產品各自負責資料庫、CRM、LINE/通知、頁面、去重與商業流程。
+    Note over Provider: LinePay 仍是獨立專案，未納入本次 Sinopac/MyPay/TSPG 核心抽離範圍。
