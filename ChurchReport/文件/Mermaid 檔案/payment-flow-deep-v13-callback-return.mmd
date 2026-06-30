@@ -1,0 +1,74 @@
+﻿flowchart TD
+    subgraph Entry["Callback / Return 入口"]
+        A1["QPayCardController.cs<br/>QPayReturnUrl(ShopNo, PayToken)"]
+        A2["PaymentReturnController.cs<br/>Return(ShopNo, PayToken)"]
+        A3["MyPayController.cs<br/>PaymentNotify()"]
+        A4["TSPGController.cs<br/>PostBack()"]
+        A5["TSPGController.cs<br/>ResultUrl()"]
+    end
+
+    subgraph Host["ASP.NET Host Adapter"]
+        B1["PaymentReturnController.cs<br/>ReturnCore(ShopNo, PayToken, traceSource)"]
+        B2["PaymentReturnController.cs<br/>EnsureReturnFields(request, ShopNo, PayToken)"]
+        B3["PaymentHttpRequestMapper.cs<br/>MapAsync(HttpRequest, profileName, providerHint, cancellationToken)"]
+        B4["PaymentHttpRequestMapper.cs<br/>ReadRawBodyAsync(...)"]
+        B5["PaymentHttpRequestMapper.cs<br/>Flatten(query/form/header)"]
+    end
+
+    subgraph Core["SpeechMessage.Payments Core"]
+        C1["PaymentGateway.cs<br/>ParseCallbackAsync(PaymentCallbackRequest)"]
+        C2["PaymentGateway.cs<br/>ResolveProvider(profileName, providerHint)"]
+        C3["PaymentGateway.cs<br/>QueryPaymentAsync(PaymentQueryRequest)"]
+    end
+
+    subgraph Parser["Provider Callback Parser"]
+        D1["SinopacCallbackParser.cs<br/>Parse(request, profile)"]
+        D2["MyPayCallbackParser.cs<br/>Parse(request)"]
+        D3["TaishinCallbackParser.cs<br/>Parse(request, profile)"]
+        D4["MyPaySignatureVerifier.cs<br/>Validate(fields)"]
+        D5["TaishinHashVerifier.cs<br/>Validate(fields, profile)"]
+        D6["SinopacStatusMapper.cs / MyPayStatusMapper.cs / TaishinStatusMapper.cs<br/>Map(...)"]
+    end
+
+    subgraph Ack["回覆第三方金流"]
+        E1["PaymentCallbackResult.Acknowledgement"]
+        E2["PaymentAcknowledgementResultMapper.cs<br/>ToActionResult(acknowledgement)"]
+        E3["文字 / JSON / Redirect response"]
+    end
+
+    subgraph ProductWorkflow["產品後處理入口"]
+        F1["PaymentWorkflowResultMapper.cs<br/>Map(PaymentCallbackResult)"]
+        F2["DonationPaymentReturnWorkflow.cs<br/>HandleReturn(shopNo, payToken, statusResult)"]
+        F3["TSPGController.cs<br/>UpdateFeeEntityByOrderNo(result)"]
+        F4["MyPayController.cs<br/>ResolveContactEntity(feeEntity, out fullName)"]
+        F5["PaymentPostPaymentWorkflow.cs<br/>ExecuteAsync(context)"]
+    end
+
+    A1 --> B1
+    A2 --> B1
+    B1 --> B3 --> B4 --> B5 --> B2 --> C1
+    A3 --> B3
+    A4 --> B3
+    A5 --> B3
+    B3 --> C1 --> C2
+    C2 --> D1 --> D6 --> E1
+    C2 --> D2 --> D4 --> D6 --> E1
+    C2 --> D3 --> D5 --> D6 --> E1
+    E1 --> E2 --> E3
+    C1 --> F1
+    B1 --> C3 --> F2
+    A4 --> F1
+    A5 --> F1 --> F3
+    A3 --> F1 --> F4 --> F5
+
+    classDef church fill:#fff7ed,stroke:#c2410c,color:#111827,stroke-width:2px
+    classDef host fill:#ecfeff,stroke:#0891b2,color:#111827,stroke-width:2px
+    classDef core fill:#eef2ff,stroke:#4f46e5,color:#111827,stroke-width:2px
+    classDef provider fill:#f0fdf4,stroke:#16a34a,color:#111827,stroke-width:2px
+    classDef ack fill:#f8fafc,stroke:#64748b,color:#111827,stroke-width:2px
+
+    class A1,A2,A3,A4,A5,F2,F3,F4 church
+    class B1,B2,B3,B4,B5,E2 host
+    class C1,C2,C3,F1,F5 core
+    class D1,D2,D3,D4,D5,D6 provider
+    class E1,E3 ack

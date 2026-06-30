@@ -1,0 +1,83 @@
+﻿flowchart LR
+    subgraph UI["ChurchReport UI / Controller"]
+        A["DedicationController.cs<br/>SaveQPayDedication(QpayModel)"]
+        B["DonationPaymentManager<br/>SaveDonationPaymentDedicationAsync(QpayModel)"]
+    end
+
+    subgraph ProductProcessor["ChurchReport/WebServiceConnector/DonationPaymentProcessor"]
+        C{"PaymentProcessing.cs<br/>依付款方式分流"}
+        C1["ProcessCreditCardPayment(...)<br/>信用卡一次付清"]
+        C2["ProcessAtmPayment(...)<br/>ATM / 匯款"]
+        C3["ProcessRecurringPayment(...)<br/>定期定額"]
+        C4["ProcessMobilePayment(...) / ProcessLinePayPayment(...)<br/>行動付款 / LinePay legacy"]
+        D["PaymentGateway.cs<br/>CreOrderCard(...)"]
+        E["PaymentGateway.cs<br/>CreateOrderATM(...)"]
+        F["PaymentGateway.cs<br/>CreateDonationPaymentOrder(...)"]
+        G["PaymentGateway.cs<br/>GetRequiredDonationPaymentCreateGatewayAdapter()"]
+    end
+
+    subgraph Adapter["ChurchReport/Payments Adapter"]
+        H["DonationPaymentCreateGatewayAdapter.cs<br/>CreateLegacyOrderAsync(QPayCreatePaymentInput)"]
+        I["DonationPaymentCreateGatewayAdapter.cs<br/>CreateCardPaymentAsync(...)"]
+        J["DonationPaymentCreateGatewayAdapter.cs<br/>BuildMetadata(input)"]
+        K["DonationPaymentCreateGatewayAdapter.cs<br/>ResolveItems(input)"]
+        L["PaymentCreateRequestFactory.cs<br/>Create(PaymentCreateRequestInput)"]
+    end
+
+    subgraph Core["SpeechMessage.Payments Core"]
+        M["PaymentGateway.cs<br/>CreatePaymentAsync(PaymentCreateRequest)"]
+        N["PaymentGateway.cs<br/>ResolveProvider(profileName, providerHint)"]
+        O["OptionsPaymentProfileResolver.cs<br/>Resolve(profileName)"]
+    end
+
+    subgraph Provider["Provider Create Payment"]
+        P1["SinopacPaymentProvider.cs<br/>CreatePaymentAsync(...)"]
+        P1a["SinopacRequestMapper.cs<br/>MapCreateRequest(...)"]
+        P1b["SinopacCrypto.cs<br/>BuildAesKey(...) / Encrypt(...)"]
+        P1c["SinopacSigner.cs<br/>GenerateSign(...)"]
+        P1d["SinopacPaymentProvider.cs<br/>SendOrderAsync(...) / PostJsonAsync(...)"]
+        P1e["SinopacPaymentProvider.cs<br/>ResolveCreateResult(...)"]
+
+        P2["MyPayPaymentProvider.cs<br/>CreatePaymentAsync(...)"]
+        P2a["MyPayRequestMapper.cs<br/>MapCreatePayload(...) / MapCreateForm(...)"]
+        P2b["MyPayRequestMapper.cs<br/>Encrypt(...)"]
+
+        P3["TaishinPaymentProvider.cs<br/>CreatePaymentAsync(...)"]
+        P3a["TaishinRequestMapper.cs<br/>MapCreatePayload(...)"]
+        P3b["TaishinPaymentProvider.cs<br/>PostAsync(...)"]
+    end
+
+    subgraph LegacyResult["回到 ChurchReport Legacy Shape"]
+        Q["PaymentCreateResult"]
+        R["DonationPaymentCreateGatewayAdapter.cs<br/>ToLegacyCreOrder(...)"]
+        S["DonationPaymentCreateGatewayAdapter.cs<br/>ApplyLegacyPaymentUrl(...)"]
+        T["DonationPaymentProcessor.PaymentProcessing.cs<br/>UpdateFee(...)"]
+        U["回傳 CardPayURL / MobilePayURL / ATM AtmPayNo"]
+    end
+
+    A --> B --> C
+    C --> C1 --> D
+    C --> C2 --> E
+    C --> C3 --> D
+    C --> C4 --> D
+    D --> F --> G --> H --> I
+    E --> G
+    I --> J --> L
+    I --> K --> L
+    L --> M --> N --> O --> Provider
+    N --> P1 --> P1a --> P1b --> P1c --> P1d --> P1e --> Q
+    N --> P2 --> P2a --> P2b --> Q
+    N --> P3 --> P3a --> P3b --> Q
+    Q --> R --> S --> T --> U
+
+    classDef church fill:#fff7ed,stroke:#c2410c,color:#111827,stroke-width:2px
+    classDef host fill:#ecfeff,stroke:#0891b2,color:#111827,stroke-width:2px
+    classDef core fill:#eef2ff,stroke:#4f46e5,color:#111827,stroke-width:2px
+    classDef provider fill:#f0fdf4,stroke:#16a34a,color:#111827,stroke-width:2px
+    classDef result fill:#f8fafc,stroke:#64748b,color:#111827,stroke-width:2px
+
+    class A,B,C,C1,C2,C3,C4,D,E,F,G,H,I,J,K,R,S,T church
+    class L host
+    class M,N,O core
+    class P1,P1a,P1b,P1c,P1d,P1e,P2,P2a,P2b,P3,P3a,P3b provider
+    class Q,U result

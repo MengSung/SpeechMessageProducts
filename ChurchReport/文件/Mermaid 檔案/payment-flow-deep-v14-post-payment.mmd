@@ -1,0 +1,70 @@
+﻿flowchart TD
+    A["PaymentCallbackResult<br/>核心解析後的 provider-neutral 結果"]
+    B["PaymentWorkflowResultMapper.cs<br/>Map(PaymentCallbackResult)"]
+    C["PaymentWorkflowResult<br/>ProductOrderId / Status / Amount / ProviderMessage / ProviderData"]
+
+    subgraph SinopacReturn["Sinopac / QPay Return 路徑"]
+        S1["PaymentReturnController.cs<br/>ReturnCore(...)"]
+        S2["PaymentGateway.cs<br/>QueryPaymentAsync(PaymentQueryRequest)"]
+        S3["DonationPaymentReturnWorkflow.cs<br/>HandleReturn(shopNo, payToken, statusResult)"]
+        S4["DonationPaymentReturnWorkflow.cs<br/>CreateWorkflowPaymentResult(...)"]
+        S5{"PaymentCategory"}
+        S6["DonationPaymentProductWorkflowDispatcher.cs<br/>HandleFeeReturn(...)"]
+        S7["DonationPaymentProductWorkflowDispatcher.cs<br/>HandleDedicationBookingReturn(...)"]
+        S8["DonationFeePaymentProcessor.cs<br/>HandlePaymentReturn(...)"]
+        S9["RecurringDonationPaymentProcessor.cs<br/>HandlePaymentReturn(...)"]
+    end
+
+    subgraph MyPayReturn["MyPay Callback 路徑"]
+        M1["MyPayController.cs<br/>PaymentNotify()"]
+        M2["MyPayController.cs<br/>ResolveContactEntity(feeEntity, out fullName)"]
+        M3["PaymentPostPaymentContext.cs<br/>new PaymentPostPaymentContext(workflowResult, items)"]
+        M4["PaymentPostPaymentWorkflow.cs<br/>ExecuteAsync(context)"]
+    end
+
+    subgraph TaishinReturn["Taishin / TSPG Callback 路徑"]
+        T1["TSPGController.cs<br/>ResultUrl()"]
+        T2["TSPGController.cs<br/>UpdateFeeEntityByOrderNo(PaymentWorkflowResult)"]
+        T3["TSPGController.cs<br/>UpdateFeeEntityFields(Entity, PaymentWorkflowResult)"]
+        T4["TSPGController.cs<br/>SendPaymentNotificationToContact(...)"]
+        T5["TSPGController.cs<br/>BuildPaymentSuccessMessage(...)"]
+        T6["TSPGController.cs<br/>SendLineMessage(lineId, message)"]
+    end
+
+    subgraph WorkflowCore["SpeechMessage.Payments.Workflows"]
+        W1["PaymentPostPaymentWorkflow.cs<br/>ExecuteAsync(context)"]
+        W2["ChurchReportPaymentRecordUpdater.cs<br/>UpdateAsync(context)"]
+        W3["ChurchReportPaymentPayerNotifier.cs<br/>NotifyAsync(context)"]
+    end
+
+    subgraph ChurchServices["ChurchReport Services"]
+        C1["PaymentCrmService.cs<br/>UpdateFeeEntityWithPaymentResult(toolUtility, feeEntity, payment, isSuccess)"]
+        C2["ToolUtilityClass<br/>UpdateEntity(ref feeEntity)"]
+        C3["PaymentNotificationService.cs<br/>SendLineNotificationByType(...)"]
+        C4["PaymentNotificationService.cs<br/>SendLineFailureNotificationByType(...)"]
+        C5["PaymentNotificationService.cs<br/>SendLineMessage(lineId, message)"]
+        C6["PaymentMessageBuilder.cs<br/>Build*SuccessMessage(...) / Build*FailureMessage(...)"]
+    end
+
+    A --> B --> C
+    C --> S1 --> S2 --> S3 --> S4 --> S5
+    S5 --> S6 --> S8
+    S5 --> S7 --> S9
+    C --> M1 --> M2 --> M3 --> M4
+    M4 --> W1
+    C --> T1 --> T2 --> T3
+    T2 --> T4 --> T5 --> T6
+    W1 --> W2 --> C1 --> C2
+    W1 --> W3
+    W3 --> C3 --> C6 --> C5
+    W3 --> C4 --> C6 --> C5
+
+    classDef church fill:#fff7ed,stroke:#c2410c,color:#111827,stroke-width:2px
+    classDef workflow fill:#f8fafc,stroke:#64748b,color:#111827,stroke-width:2px
+    classDef core fill:#eef2ff,stroke:#4f46e5,color:#111827,stroke-width:2px
+    classDef service fill:#ecfeff,stroke:#0891b2,color:#111827,stroke-width:2px
+
+    class S1,S2,S3,S4,S5,S6,S7,S8,S9,M1,M2,M3,M4,T1,T2,T3,T4,T5,T6 church
+    class A,C workflow
+    class B,W1,W2,W3 core
+    class C1,C2,C3,C4,C5,C6 service

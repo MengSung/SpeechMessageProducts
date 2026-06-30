@@ -1,0 +1,74 @@
+﻿flowchart TD
+    A["PaymentGateway.cs<br/>CreatePaymentAsync / QueryPaymentAsync / ParseCallbackAsync"]
+    B["PaymentGateway.cs<br/>ResolveProvider(profileName, providerHint)"]
+    C["OptionsPaymentProfileResolver.cs<br/>Resolve(profileName)"]
+
+    subgraph Sinopac["永豐 Sinopac / QPay"]
+        S1["SinopacPaymentProvider.cs<br/>CreatePaymentAsync(...)"]
+        S2["SinopacRequestMapper.cs<br/>MapCreateRequest(...)"]
+        S3["SinopacCrypto.cs<br/>BuildAesKey(...) / Encrypt(...) / Decrypt(...)"]
+        S4["SinopacSigner.cs<br/>GenerateSign(...) / GetSigningString(...)"]
+        S5["SinopacPaymentProvider.cs<br/>SendOrderAsync(...) / PostJsonAsync(...)"]
+        S6["SinopacPaymentProvider.cs<br/>ResolveCreateResult(...)"]
+        S7["SinopacPaymentProvider.cs<br/>QueryPaymentAsync(...)"]
+        S8["SinopacRequestMapper.cs<br/>MapOrderPayQuery(...)"]
+        S9["SinopacCallbackParser.cs<br/>Parse(...)"]
+        S10["SinopacStatusMapper.cs<br/>MapCreate(...) / Map(...)"]
+    end
+
+    subgraph MyPay["高鉅 MyPay"]
+        M1["MyPayPaymentProvider.cs<br/>CreatePaymentAsync(...)"]
+        M2["MyPayRequestMapper.cs<br/>MapCreatePayload(...)"]
+        M3["MyPayRequestMapper.cs<br/>MapCreateForm(...)"]
+        M4["MyPayRequestMapper.cs<br/>Encrypt(...)"]
+        M5["MyPayPaymentProvider.cs<br/>QueryPaymentAsync(...)"]
+        M6["MyPayPaymentProvider.cs<br/>ParseCallbackAsync(...)"]
+        M7["MyPayCallbackParser.cs<br/>Parse(...)"]
+        M8["MyPaySignatureVerifier.cs<br/>Validate(...)"]
+        M9["MyPayStatusMapper.cs<br/>Map(...)"]
+    end
+
+    subgraph Taishin["台新 Taishin / TSPG"]
+        T1["TaishinPaymentProvider.cs<br/>CreatePaymentAsync(...)"]
+        T2["TaishinRequestMapper.cs<br/>MapCreatePayload(...)"]
+        T3["TaishinPaymentProvider.cs<br/>PostAsync(...)"]
+        T4["TaishinPaymentProvider.cs<br/>QueryPaymentAsync(...)"]
+        T5["TaishinRequestMapper.cs<br/>MapQueryPayload(...)"]
+        T6["TaishinPaymentProvider.cs<br/>ParseCallbackAsync(...)"]
+        T7["TaishinCallbackParser.cs<br/>Parse(...)"]
+        T8["TaishinHashVerifier.cs<br/>Validate(...)"]
+        T9["TaishinStatusMapper.cs<br/>Map(...)"]
+    end
+
+    R1["PaymentCreateResult<br/>PaymentPageUrl / ProviderOrderRef / ProviderData"]
+    R2["PaymentStatusResult<br/>Status / Amount / ProviderTransactionId / Error"]
+    R3["PaymentCallbackResult<br/>ProductOrderId / Status / Acknowledgement / ProviderData"]
+
+    A --> B --> C
+    B --> S1
+    B --> M1
+    B --> T1
+
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S10 --> R1
+    S7 --> S8 --> S5 --> S10 --> R2
+    S9 --> S3 --> S10 --> R3
+
+    M1 --> M2 --> M3 --> M4 --> R1
+    M5 --> R2
+    M6 --> M7 --> M8 --> M9 --> R3
+
+    T1 --> T2 --> T3 --> R1
+    T4 --> T5 --> T3 --> R2
+    T6 --> T7 --> T8 --> T9 --> R3
+
+    classDef core fill:#eef2ff,stroke:#4f46e5,color:#111827,stroke-width:2px
+    classDef sinopac fill:#ecfeff,stroke:#0891b2,color:#111827,stroke-width:2px
+    classDef mypay fill:#f0fdf4,stroke:#16a34a,color:#111827,stroke-width:2px
+    classDef taishin fill:#fff7ed,stroke:#c2410c,color:#111827,stroke-width:2px
+    classDef result fill:#f8fafc,stroke:#64748b,color:#111827,stroke-width:2px
+
+    class A,B,C core
+    class S1,S2,S3,S4,S5,S6,S7,S8,S9,S10 sinopac
+    class M1,M2,M3,M4,M5,M6,M7,M8,M9 mypay
+    class T1,T2,T3,T4,T5,T6,T7,T8,T9 taishin
+    class R1,R2,R3 result

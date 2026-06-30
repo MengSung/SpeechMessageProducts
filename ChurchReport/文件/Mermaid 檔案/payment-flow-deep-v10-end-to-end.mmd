@@ -1,0 +1,74 @@
+﻿flowchart TD
+    A["DedicationController.cs<br/>SaveQPayDedication(QpayModel)"]
+    B["DonationPaymentManager<br/>SaveDonationPaymentDedicationAsync(QpayModel)"]
+    C{"DonationPaymentProcessor.PaymentProcessing.cs<br/>依付款方式分流"}
+    C1["ProcessCreditCardPayment(...)"]
+    C2["ProcessAtmPayment(...) / ProcessAtm(...)"]
+    C3["ProcessRecurringPayment(...)"]
+    D["DonationPaymentProcessor.PaymentGateway.cs<br/>CreOrderCard(...) 或 CreateOrderATM(...)"]
+    E["CreateDonationPaymentOrder(...)"]
+    F["GetRequiredDonationPaymentCreateGatewayAdapter()"]
+    G["DonationPaymentCreateGatewayAdapter.cs<br/>CreateLegacyOrderAsync(QPayCreatePaymentInput)"]
+    H["DonationPaymentCreateGatewayAdapter.cs<br/>CreateCardPaymentAsync(...)"]
+    I["PaymentCreateRequestFactory.cs<br/>Create(PaymentCreateRequestInput)"]
+    J["PaymentGateway.cs<br/>CreatePaymentAsync(PaymentCreateRequest)"]
+    K["PaymentGateway.cs<br/>ResolveProvider(profileName, providerHint)"]
+    L{"Provider"}
+    L1["SinopacPaymentProvider.cs<br/>CreatePaymentAsync(...)"]
+    L2["MyPayPaymentProvider.cs<br/>CreatePaymentAsync(...)"]
+    L3["TaishinPaymentProvider.cs<br/>CreatePaymentAsync(...)"]
+    M["PaymentCreateResult<br/>PaymentPageUrl / ProviderOrderRef / ProviderData"]
+    N["DonationPaymentCreateGatewayAdapter.cs<br/>ToLegacyCreOrder(...)"]
+    O["DonationPaymentCreateGatewayAdapter.cs<br/>ApplyLegacyPaymentUrl(...)"]
+    P["DonationPaymentProcessor.PaymentProcessing.cs<br/>UpdateFee(...) 並回傳付款頁 URL / ATM 資訊"]
+    Q["第三方金流頁<br/>付款者輸入信用卡 / ATM / 第三方付款"]
+    R{"付款完成 Callback"}
+    R1["QPayCardController.cs<br/>QPayReturnUrl(ShopNo, PayToken)"]
+    R2["PaymentReturnController.cs<br/>ReturnCore(...)"]
+    R3["MyPayController.cs<br/>PaymentNotify()"]
+    R4["TSPGController.cs<br/>PostBack() / ResultUrl()"]
+    S["PaymentHttpRequestMapper.cs<br/>MapAsync(HttpRequest, profileName, providerHint)"]
+    T["PaymentGateway.cs<br/>ParseCallbackAsync(PaymentCallbackRequest)"]
+    U{"Provider Callback Parser"}
+    U1["SinopacCallbackParser.cs<br/>Parse(...)"]
+    U2["MyPayCallbackParser.cs<br/>Parse(...)"]
+    U3["TaishinCallbackParser.cs<br/>Parse(...)"]
+    V["PaymentWorkflowResultMapper.cs<br/>Map(PaymentCallbackResult)"]
+    W["PaymentPostPaymentWorkflow.cs<br/>ExecuteAsync(PaymentPostPaymentContext)"]
+    X["ChurchReportPaymentRecordUpdater.cs<br/>UpdateAsync(...)"]
+    Y["PaymentCrmService.cs<br/>UpdateFeeEntityWithPaymentResult(...)"]
+    Z["ChurchReportPaymentPayerNotifier.cs<br/>NotifyAsync(...)"]
+    AA["PaymentNotificationService.cs<br/>SendLineNotificationByType(...) / SendLineFailureNotificationByType(...)"]
+    AB["PaymentAcknowledgementResultMapper.cs<br/>ToActionResult(acknowledgement)"]
+
+    A --> B --> C
+    C --> C1 --> D
+    C --> C2 --> D
+    C --> C3 --> D
+    D --> E --> F --> G --> H --> I --> J --> K --> L
+    L --> L1 --> M
+    L --> L2 --> M
+    L --> L3 --> M
+    M --> N --> O --> P --> Q --> R
+    R --> R1 --> R2 --> S
+    R --> R3 --> S
+    R --> R4 --> S
+    S --> T --> U
+    U --> U1 --> V
+    U --> U2 --> V
+    U --> U3 --> V
+    V --> W --> X --> Y
+    W --> Z --> AA
+    T --> AB
+
+    classDef church fill:#fff7ed,stroke:#c2410c,color:#111827,stroke-width:2px
+    classDef host fill:#ecfeff,stroke:#0891b2,color:#111827,stroke-width:2px
+    classDef core fill:#eef2ff,stroke:#4f46e5,color:#111827,stroke-width:2px
+    classDef provider fill:#f0fdf4,stroke:#16a34a,color:#111827,stroke-width:2px
+    classDef workflow fill:#f8fafc,stroke:#64748b,color:#111827,stroke-width:2px
+
+    class A,B,C,C1,C2,C3,D,E,F,G,H,N,O,P,R1,R2,R3,R4,V,X,Y,Z,AA church
+    class I,S,AB host
+    class J,K,T,W core
+    class L,L1,L2,L3,U,U1,U2,U3,Q provider
+    class M,R workflow

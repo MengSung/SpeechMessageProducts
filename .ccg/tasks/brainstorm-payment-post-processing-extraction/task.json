@@ -1,0 +1,12 @@
+{
+  "id": "brainstorm-payment-post-processing-extraction",
+  "title": "研究金流付款後處理共通化與 provider 邊界",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "analysis",
+  "nextAction": "提出 Payment、Donation、TSPG 的責任邊界與可行重構方向",
+  "createdAt": "2026-06-30T00:00:00+08:00",
+  "branch": "Jesus_5.1.5_Worktree_TuneRefactorPament"
+}
