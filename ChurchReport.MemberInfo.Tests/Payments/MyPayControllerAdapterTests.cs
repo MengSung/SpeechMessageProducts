@@ -19,6 +19,16 @@ namespace ChurchReport.MemberInfo.Tests.Payments;
 public sealed class MyPayControllerAdapterTests
 {
     [Fact]
+    public void Constructor_accepts_context_builder_dependency()
+    {
+        typeof(MyPayController)
+            .GetConstructors()
+            .SelectMany(constructor => constructor.GetParameters())
+            .Should()
+            .Contain(parameter => parameter.ParameterType == typeof(ChurchReportPaymentContextBuilder));
+    }
+
+    [Fact]
     public async Task PaymentNotify_calls_payment_gateway_and_returns_core_acknowledgement()
     {
         var gateway = new RecordingPaymentGateway(new PaymentCallbackResult
@@ -72,7 +82,8 @@ public sealed class MyPayControllerAdapterTests
             new PaymentWorkflowResultMapper(),
             new PaymentPostPaymentWorkflow(
                 Array.Empty<IPaymentRecordUpdater>(),
-                Array.Empty<IPaymentPayerNotifier>()));
+                Array.Empty<IPaymentPayerNotifier>()),
+            new ChurchReportPaymentContextBuilder(feeTypeHelper));
     }
 
     private sealed class RecordingPaymentGateway : IPaymentGateway

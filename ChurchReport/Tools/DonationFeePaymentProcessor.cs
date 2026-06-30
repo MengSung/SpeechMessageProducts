@@ -10,6 +10,8 @@ using System.IO;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
 using ToolUtilityNameSpace.DependencyInjection;
+using SpeechMessage.Payments.Models;
+using SpeechMessage.Payments.Workflows;
 
 
 namespace ChurchReport.Tools
@@ -41,6 +43,11 @@ namespace ChurchReport.Tools
 
         // 透過建構函數注入取得 ToolUtilityClass
         private readonly ToolUtilityClass m_ToolUtilityClass;
+        // 共通付款後流程負責執行「更新付款紀錄」與「通知付款者」兩類產品後處理。
+        // Donation processor 仍保留奉獻、課程、信用卡 token 與舊回傳頁流程，避免把 ChurchReport 規則推進共用金流核心。
+        private readonly PaymentPostPaymentWorkflow m_PostPaymentWorkflow;
+        private readonly ChurchReportPaymentContextBuilder m_PaymentContextBuilder;
+        private readonly DonationPaymentReturnPresenter m_ReturnPresenter;
 
         // 胡夢嵩回傳　EXCEPTION　專用的ＩＤ
         private const String MENGSUNG_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
@@ -61,6 +68,8 @@ namespace ChurchReport.Tools
 
             // 使用 Factory 模式取得 ToolUtilityClass 單例
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+            m_PostPaymentWorkflow = CreateNoOpPostPaymentWorkflow();
+            m_ReturnPresenter = new DonationPaymentReturnPresenter();
         }
 
         /// <summary>
@@ -80,6 +89,24 @@ namespace ChurchReport.Tools
             m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
 
             m_ToolUtilityClass = toolUtilityProvider.GetToolUtility();
+            m_PostPaymentWorkflow = CreateNoOpPostPaymentWorkflow();
+            m_ReturnPresenter = new DonationPaymentReturnPresenter();
+        }
+
+        /// <summary>
+        /// DI 使用的主要建構子。共通付款後流程與頁面 presenter 都透過 DI 注入，
+        /// 讓其他 ASP.NET Core 產品未來可以使用同一套 workflow contract，再實作自己的 CRM/通知 handler。
+        /// </summary>
+        public DonationFeePaymentProcessor(
+            IToolUtilityProvider toolUtilityProvider,
+            PaymentPostPaymentWorkflow postPaymentWorkflow,
+            ChurchReportPaymentContextBuilder paymentContextBuilder,
+            DonationPaymentReturnPresenter returnPresenter)
+            : this(toolUtilityProvider)
+        {
+            m_PostPaymentWorkflow = postPaymentWorkflow ?? throw new ArgumentNullException(nameof(postPaymentWorkflow));
+            m_PaymentContextBuilder = paymentContextBuilder ?? throw new ArgumentNullException(nameof(paymentContextBuilder));
+            m_ReturnPresenter = returnPresenter ?? throw new ArgumentNullException(nameof(returnPresenter));
         }
         #endregion
 
@@ -154,6 +181,53 @@ namespace ChurchReport.Tools
             }
         }
 
+        private static PaymentPostPaymentWorkflow CreateNoOpPostPaymentWorkflow()
+        {
+            // 舊程式仍可能直接 new DonationFeePaymentProcessor()；這些路徑不能隱式觸發真實 CRM/LINE handler。
+            // DI 路徑會使用完整建構子注入正式的 PaymentPostPaymentWorkflow。
+            return new PaymentPostPaymentWorkflow(
+                Array.Empty<IPaymentRecordUpdater>(),
+                Array.Empty<IPaymentPayerNotifier>());
+        }
+
+        private static PaymentWorkflowResult CreatePaymentWorkflowResult(
+            DonationPaymentWorkflowResult paymentResult,
+            bool isPaymentSuccess,
+            string paymentStatusText)
+        {
+            if (paymentResult == null) throw new ArgumentNullException(nameof(paymentResult));
+
+            return new PaymentWorkflowResult
+            {
+                Status = isPaymentSuccess ? PaymentStatus.Succeeded : PaymentStatus.Failed,
+                ProductOrderId = paymentResult.OrderNo ?? string.Empty,
+                ProviderTransactionId = paymentResult.OrderNo ?? string.Empty,
+                Amount = Convert.ToUInt32(paymentResult.AmountMinorUnits) / 100m,
+                Currency = "TWD",
+                ProviderMessage = paymentStatusText ?? string.Empty
+            };
+        }
+
+        private void ExecutePostPaymentWorkflowIfAvailable(
+            Entity feeEntity,
+            PaymentWorkflowResult workflowResult,
+            bool isPaymentSuccess)
+        {
+            if (feeEntity == null || workflowResult == null || m_PaymentContextBuilder == null)
+            {
+                return;
+            }
+
+            // 共通 workflow 僅處理可共用的付款後責任；Donation 特有的課程報名、信用卡 token 儲存與 legacy 回傳頁仍留在本類別。
+            var context = m_PaymentContextBuilder.Build(
+                m_ToolUtilityClass,
+                feeEntity,
+                workflowResult,
+                isPaymentSuccess);
+
+            m_PostPaymentWorkflow.ExecuteAsync(context).GetAwaiter().GetResult();
+        }
+
         public ActionResult HandlePaymentReturn(string ShopNo, String PayToken, DonationPaymentWorkflowResult paymentResult, string correlationId = "", string requestContext = "")
         {
             try
@@ -161,6 +235,7 @@ namespace ChurchReport.Tools
                 Entity aFeeEntity = this.m_ToolUtilityClass.RetrieveEntity("new_fee", new Guid(paymentResult.ProductEntityId));
                 bool isPaymentSuccess = DonationPaymentResultHelper.IsPaymentSuccess(paymentResult);
                 string paymentStatusText = DonationPaymentResultHelper.GetPaymentStatusText(paymentResult);
+                var workflowResult = CreatePaymentWorkflowResult(paymentResult, isPaymentSuccess, paymentStatusText);
                 bool isPaymentDebugLogEnabled = DonationPaymentDebugLogger.IsEnabled();
 
                 if (aFeeEntity == null)

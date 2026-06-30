@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChurchReport.Payments;
 using ChurchReport.Services;
@@ -12,7 +11,6 @@ using SpeechMessage.Payments.Models;
 using SpeechMessage.Payments.Workflows;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.DependencyInjection;
-using static ChurchReport.Services.PaymentFeeTypeHelper;
 
 namespace ChurchReport.Controllers
 {
@@ -37,6 +35,7 @@ namespace ChurchReport.Controllers
         private readonly PaymentAcknowledgementResultMapper _paymentAcknowledgementResultMapper;
         private readonly PaymentWorkflowResultMapper _paymentWorkflowResultMapper;
         private readonly PaymentPostPaymentWorkflow _postPaymentWorkflow;
+        private readonly ChurchReportPaymentContextBuilder _paymentContextBuilder;
 
         private ToolUtilityClass ToolUtility => _toolUtilityProvider.GetToolUtility();
 
@@ -53,7 +52,8 @@ namespace ChurchReport.Controllers
             ChurchReportPaymentProfileResolver paymentProfileResolver,
             PaymentAcknowledgementResultMapper paymentAcknowledgementResultMapper,
             PaymentWorkflowResultMapper paymentWorkflowResultMapper,
-            PaymentPostPaymentWorkflow postPaymentWorkflow)
+            PaymentPostPaymentWorkflow postPaymentWorkflow,
+            ChurchReportPaymentContextBuilder paymentContextBuilder)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _messageBuilder = messageBuilder ?? throw new ArgumentNullException(nameof(messageBuilder));
@@ -68,6 +68,7 @@ namespace ChurchReport.Controllers
             _paymentAcknowledgementResultMapper = paymentAcknowledgementResultMapper ?? throw new ArgumentNullException(nameof(paymentAcknowledgementResultMapper));
             _paymentWorkflowResultMapper = paymentWorkflowResultMapper ?? throw new ArgumentNullException(nameof(paymentWorkflowResultMapper));
             _postPaymentWorkflow = postPaymentWorkflow ?? throw new ArgumentNullException(nameof(postPaymentWorkflow));
+            _paymentContextBuilder = paymentContextBuilder ?? throw new ArgumentNullException(nameof(paymentContextBuilder));
         }
 
         /// <summary>
@@ -122,19 +123,11 @@ namespace ChurchReport.Controllers
                     return _paymentAcknowledgementResultMapper.ToActionResult(callbackResult.Acknowledgement);
                 }
 
-                var feeType = _feeTypeHelper.DetermineFeeType(ToolUtility, feeEntity);
-                var contactEntity = ResolveContactEntity(feeEntity, out var fullName);
-                var postPaymentContext = new PaymentPostPaymentContext(
+                var postPaymentContext = _paymentContextBuilder.Build(
+                    ToolUtility,
+                    feeEntity,
                     workflowResult,
-                    new Dictionary<string, object?>
-                    {
-                        [ChurchReportPaymentWorkflowContextKeys.ToolUtility] = ToolUtility,
-                        [ChurchReportPaymentWorkflowContextKeys.FeeEntity] = feeEntity,
-                        [ChurchReportPaymentWorkflowContextKeys.IsSuccess] = isSuccess,
-                        [ChurchReportPaymentWorkflowContextKeys.FullName] = fullName,
-                        [ChurchReportPaymentWorkflowContextKeys.FeeType] = feeType,
-                        [ChurchReportPaymentWorkflowContextKeys.ContactEntity] = contactEntity
-                    });
+                    isSuccess);
 
                 await _postPaymentWorkflow.ExecuteAsync(postPaymentContext, HttpContext.RequestAborted);
                 return _paymentAcknowledgementResultMapper.ToActionResult(callbackResult.Acknowledgement);

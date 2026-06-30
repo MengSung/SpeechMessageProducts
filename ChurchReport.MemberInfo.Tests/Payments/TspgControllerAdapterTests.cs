@@ -1,10 +1,12 @@
 using System.Text;
 using ChurchReport.Controllers;
 using ChurchReport.Payments;
+using ChurchReport.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 using SpeechMessage.Payments.AspNetCore;
 using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Models;
@@ -17,6 +19,19 @@ namespace ChurchReport.MemberInfo.Tests.Payments;
 
 public sealed class TspgControllerAdapterTests
 {
+    [Fact]
+    public void Constructor_accepts_common_post_payment_workflow_dependencies()
+    {
+        var constructorParameters = typeof(TSPGController)
+            .GetConstructors()
+            .SelectMany(constructor => constructor.GetParameters())
+            .Select(parameter => parameter.ParameterType)
+            .ToArray();
+
+        constructorParameters.Should().Contain(typeof(PaymentPostPaymentWorkflow));
+        constructorParameters.Should().Contain(typeof(ChurchReportPaymentContextBuilder));
+    }
+
     [Fact]
     public async Task ResultUrl_calls_payment_gateway_and_returns_core_json_acknowledgement()
     {
@@ -148,12 +163,16 @@ public sealed class TspgControllerAdapterTests
         var configuration = new ConfigurationBuilder().Build();
         return new TSPGController(
             new ThrowingToolUtilityProvider(),
-            configuration,
             gateway,
             new PaymentHttpRequestMapper(),
             new ChurchReportPaymentProfileResolver(configuration),
             new PaymentAcknowledgementResultMapper(),
-            new PaymentWorkflowResultMapper());
+            new PaymentWorkflowResultMapper(),
+            new PaymentPostPaymentWorkflow(
+                Array.Empty<IPaymentRecordUpdater>(),
+                Array.Empty<IPaymentPayerNotifier>()),
+            new ChurchReportPaymentContextBuilder(
+                new PaymentFeeTypeHelper(NullLogger<PaymentFeeTypeHelper>.Instance)));
     }
 
     private sealed class RecordingPaymentGateway : IPaymentGateway

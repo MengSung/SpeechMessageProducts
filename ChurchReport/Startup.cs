@@ -494,6 +494,8 @@ namespace ChurchReport
             services.AddSpeechMessagePayments(Configuration.GetSection("Payment"));
             services.AddSpeechMessagePaymentAspNetCore();
             services.AddScoped<ChurchReportPaymentProfileResolver>();
+            services.AddScoped<ChurchReportPaymentContextBuilder>();
+            services.AddScoped<DonationPaymentReturnPresenter>();
             services.AddScoped<IPaymentRecordUpdater, ChurchReportPaymentRecordUpdater>();
             services.AddScoped<IPaymentPayerNotifier, ChurchReportPaymentPayerNotifier>();
             services.AddScoped<IDonationPaymentReturnWorkflow, DonationPaymentReturnWorkflow>();

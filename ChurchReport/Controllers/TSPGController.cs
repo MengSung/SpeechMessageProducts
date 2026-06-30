@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using ChurchReport.Payments;
-using ChurchReport.Tools;
-using Line.Messaging;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using SpeechMessage.Payments.AspNetCore;
 using SpeechMessage.Payments.Abstractions;
@@ -18,44 +15,44 @@ namespace ChurchReport.Controllers
     /// <summary>
     /// 台新 TSPG 的 ChurchReport HTTP adapter。
     /// 台新 JSON/form callback parsing、hash 驗證與狀態轉換已移到 <c>SpeechMessage.Payments</c>；
-    /// 此 controller 保留 ChurchReport 專屬的 CRM fee 更新、LINE 通知與結果頁轉址。
+    /// 此 controller 只保留 HTTP 入口、acknowledgement 與結果頁轉址；CRM/LINE 後處理委派給 ChurchReport workflow handlers。
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class TSPGController : ControllerBase
     {
-        private const int PaymentStatusPaid = 100000001;
-        private const int PaymentMethodCreditCard = 100000001;
         private const string TaishinProfileName = "TaishinSandbox";
 
         private readonly IToolUtilityProvider _toolUtilityProvider;
-        private readonly IConfiguration _configuration;
         private readonly IPaymentGateway _paymentGateway;
         private readonly PaymentHttpRequestMapper _paymentHttpRequestMapper;
         private readonly ChurchReportPaymentProfileResolver _paymentProfileResolver;
         private readonly PaymentAcknowledgementResultMapper _paymentAcknowledgementResultMapper;
         private readonly PaymentWorkflowResultMapper _paymentWorkflowResultMapper;
+        private readonly PaymentPostPaymentWorkflow _postPaymentWorkflow;
+        private readonly ChurchReportPaymentContextBuilder _paymentContextBuilder;
 
         private ToolUtilityClass ToolUtility => _toolUtilityProvider.GetToolUtility();
-        private string LineChannelAccessToken => GetLineChannelAccessToken();
         private System.Threading.CancellationToken RequestAborted => HttpContext?.RequestAborted ?? default;
 
         public TSPGController(
             IToolUtilityProvider toolUtilityProvider,
-            IConfiguration configuration,
             IPaymentGateway paymentGateway,
             PaymentHttpRequestMapper paymentHttpRequestMapper,
             ChurchReportPaymentProfileResolver paymentProfileResolver,
             PaymentAcknowledgementResultMapper paymentAcknowledgementResultMapper,
-            PaymentWorkflowResultMapper paymentWorkflowResultMapper)
+            PaymentWorkflowResultMapper paymentWorkflowResultMapper,
+            PaymentPostPaymentWorkflow postPaymentWorkflow,
+            ChurchReportPaymentContextBuilder paymentContextBuilder)
         {
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _paymentGateway = paymentGateway ?? throw new ArgumentNullException(nameof(paymentGateway));
             _paymentHttpRequestMapper = paymentHttpRequestMapper ?? throw new ArgumentNullException(nameof(paymentHttpRequestMapper));
             _paymentProfileResolver = paymentProfileResolver ?? throw new ArgumentNullException(nameof(paymentProfileResolver));
             _paymentAcknowledgementResultMapper = paymentAcknowledgementResultMapper ?? throw new ArgumentNullException(nameof(paymentAcknowledgementResultMapper));
             _paymentWorkflowResultMapper = paymentWorkflowResultMapper ?? throw new ArgumentNullException(nameof(paymentWorkflowResultMapper));
+            _postPaymentWorkflow = postPaymentWorkflow ?? throw new ArgumentNullException(nameof(postPaymentWorkflow));
+            _paymentContextBuilder = paymentContextBuilder ?? throw new ArgumentNullException(nameof(paymentContextBuilder));
         }
 
         /// <summary>
@@ -80,7 +77,7 @@ namespace ChurchReport.Controllers
 
                 var workflowResult = _paymentWorkflowResultMapper.Map(callbackResult);
                 return workflowResult.Status == PaymentStatus.Succeeded
-                    ? HandleSuccessfulPaymentReturn(workflowResult)
+                    ? await HandleSuccessfulPaymentReturnAsync(workflowResult)
                     : HandleFailedPaymentReturn(workflowResult);
             }
             catch (Exception ex)
@@ -112,15 +109,12 @@ namespace ChurchReport.Controllers
 
                 // 產品層只消費 normalized workflow result，不直接解讀台新的 ret_code/state/hash。
                 var workflowResult = _paymentWorkflowResultMapper.Map(callbackResult);
-                if (workflowResult.Status == PaymentStatus.Succeeded)
-                {
-                    UpdateFeeEntityByOrderNo(workflowResult);
-                    LogInfo("PaymentNotify", $"Payment success processed - Order: {workflowResult.ProductOrderId}");
-                }
-                else
-                {
-                    LogInfo("PaymentNotify", $"Payment failed - Order: {workflowResult.ProductOrderId}, Message: {workflowResult.ProviderMessage}");
-                }
+                await ExecutePostPaymentWorkflowAsync(workflowResult);
+                LogInfo(
+                    "PaymentNotify",
+                    workflowResult.Status == PaymentStatus.Succeeded
+                        ? $"Payment success processed - Order: {workflowResult.ProductOrderId}"
+                        : $"Payment failed - Order: {workflowResult.ProductOrderId}, Message: {workflowResult.ProviderMessage}");
 
                 return _paymentAcknowledgementResultMapper.ToActionResult(callbackResult.Acknowledgement);
             }
@@ -241,131 +235,47 @@ namespace ChurchReport.Controllers
                 : _paymentProfileResolver.ResolveProfileName(requestedProfileName);
         }
 
-        private void UpdateFeeEntityByOrderNo(PaymentWorkflowResult result)
+        private async Task ExecutePostPaymentWorkflowAsync(PaymentWorkflowResult result)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(result.ProductOrderId))
                 {
-                    LogWarning("UpdateFeeEntity", "Payment result has no order id.");
+                    LogWarning("PostPaymentWorkflow", "Payment result has no order id.");
                     return;
                 }
 
-                // CRM entity 查詢與欄位更新是 ChurchReport product workflow，不能下沉到通用金流核心。
+                // CRM entity 查詢留在 ChurchReport 產品層；通用金流核心只提供標準化付款結果。
                 Entity feeEntity = ToolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", result.ProductOrderId);
                 if (feeEntity == null)
                 {
-                    LogWarning("UpdateFeeEntity", $"No fee entity found - OrderNo: {result.ProductOrderId}");
+                    LogWarning("PostPaymentWorkflow", $"No fee entity found - OrderNo: {result.ProductOrderId}");
                     return;
                 }
 
-                UpdateFeeEntityFields(feeEntity, result);
-                ToolUtility.UpdateEntity(ref feeEntity);
-                LogInfo("UpdateFeeEntity", $"Fee entity updated - OrderNo: {result.ProductOrderId}, FeeId: {feeEntity.Id}");
+                // context builder 統一準備付款後 workflow 需要的 ChurchReport 資料。
+                // 實際 CRM 更新與 LINE 通知由 PaymentPostPaymentWorkflow 的 handlers 執行。
+                var context = _paymentContextBuilder.Build(
+                    ToolUtility,
+                    feeEntity,
+                    result,
+                    result.Status == PaymentStatus.Succeeded);
 
-                var amount = ToolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
-                if (amount != null)
-                {
-                    SendPaymentNotificationToContact(feeEntity, result, amount.Value);
-                }
+                await _postPaymentWorkflow.ExecuteAsync(context, RequestAborted);
+                LogInfo("PostPaymentWorkflow", $"Workflow executed - OrderNo: {result.ProductOrderId}, FeeId: {feeEntity.Id}");
             }
             catch (Exception ex)
             {
-                LogError("UpdateFeeEntity", "Failed to update fee entity", ex);
+                LogError("PostPaymentWorkflow", "Failed to execute post-payment workflow", ex);
             }
         }
 
-        private void UpdateFeeEntityFields(Entity feeEntity, PaymentWorkflowResult result)
-        {
-            var shouldPayMoney = ToolUtility.GetEntityMoneyAttribute(feeEntity, "new_fee_shoud_pay");
-            ToolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_status", PaymentStatusPaid);
-            ToolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_fee_really_paid", shouldPayMoney);
-            ToolUtility.SetEntityMoneyAttribute(ref feeEntity, "new_difference_fee_paid", new Money(0));
-            ToolUtility.SetEntityDateTimeAttribute(ref feeEntity, "new_pay_date", DateTime.Now);
-            ToolUtility.SetOptionSetAttribute(ref feeEntity, "new_pay_way", PaymentMethodCreditCard);
-
-            var originalDescription = ToolUtility.GetEntityStringAttribute(feeEntity, "new_description");
-            var newDescription = $"{originalDescription}{Environment.NewLine}" +
-                $"[Taishin payment success] Order:{result.ProductOrderId}, Transaction:{result.ProviderTransactionId}, " +
-                $"Amount:{shouldPayMoney}, Time:{DateTime.Now}";
-            ToolUtility.SetEntityStringAttribute(ref feeEntity, "new_description", newDescription);
-        }
-
-        private void SendPaymentNotificationToContact(Entity feeEntity, PaymentWorkflowResult result, decimal amount)
-        {
-            try
-            {
-                // LINE 通知是產品體驗，不是台新 provider contract；核心只回傳付款狀態與交易識別。
-                var contactId = ToolUtility.GetEntityLookupAttribute(feeEntity, "new_contact_new_fee");
-                if (contactId == Guid.Empty)
-                {
-                    LogWarning("SendNotification", "Fee entity has no contact.");
-                    return;
-                }
-
-                Entity contactEntity = ToolUtility.RetrieveEntity("contact", contactId);
-                if (contactEntity == null)
-                {
-                    LogWarning("SendNotification", $"No contact found - ContactId: {contactId}");
-                    return;
-                }
-
-                string lineId = ToolUtility.GetEntityStringAttribute(contactEntity, "new_lineid");
-                if (string.IsNullOrEmpty(lineId))
-                {
-                    LogWarning("SendNotification", $"Contact has no LINE ID - ContactId: {contactId}");
-                    return;
-                }
-
-                string fullName = ToolUtility.GetEntityStringAttribute(contactEntity, "fullname");
-                var message = BuildPaymentSuccessMessage(fullName, result.ProductOrderId, amount, result);
-                SendLineMessage(lineId, message);
-                LogInfo("SendNotification", $"Payment LINE message sent - ContactId: {contactId}, LineId: {lineId}");
-            }
-            catch (Exception ex)
-            {
-                LogError("SendNotification", "Failed to send LINE message", ex);
-            }
-        }
-
-        private string BuildPaymentSuccessMessage(string fullName, string orderNo, decimal amount, PaymentWorkflowResult result)
-        {
-            var message = $"[Taishin payment success]{Environment.NewLine}{Environment.NewLine}";
-            message += $"Dear {fullName},{Environment.NewLine}{Environment.NewLine}";
-            message += $"Payment information:{Environment.NewLine}";
-            message += $"Order: {orderNo}{Environment.NewLine}";
-            message += $"Amount: NT$ {amount:N0}{Environment.NewLine}";
-            message += $"Payment time: {DateTime.Now:yyyy/MM/dd HH:mm:ss}{Environment.NewLine}";
-            message += $"Payment method: Credit card{Environment.NewLine}";
-            if (!string.IsNullOrEmpty(result.ProviderTransactionId))
-            {
-                message += $"Transaction: {result.ProviderTransactionId}{Environment.NewLine}";
-            }
-
-            return message;
-        }
-
-        private void SendLineMessage(string lineId, string message)
-        {
-            var token = LineChannelAccessToken;
-            if (string.IsNullOrEmpty(token))
-            {
-                LogWarning("SendLineMessage", "LINE Channel Access Token is empty.");
-                return;
-            }
-
-            var lineMessagingClient = new LineMessagingClient(token);
-            var pushUtility = new PushUtility(lineMessagingClient);
-            pushUtility.SendMessage(lineId, message).Wait();
-            LogInfo("SendLineMessage", $"LINE message sent - LineId: {lineId}");
-        }
-
-        private IActionResult HandleSuccessfulPaymentReturn(PaymentWorkflowResult result)
+        private async Task<IActionResult> HandleSuccessfulPaymentReturnAsync(PaymentWorkflowResult result)
         {
             try
             {
                 LogInfo("PaymentReturn", $"Payment success - Order: {result.ProductOrderId}");
-                UpdateFeeEntityByOrderNo(result);
+                await ExecutePostPaymentWorkflowAsync(result);
 
                 Entity feeEntity = ToolUtility.RetrieveEntityByField("new_fee", "new_q_pay_card_order_no", result.ProductOrderId);
                 var queryString = BuildSuccessQueryString(result, feeEntity);
@@ -402,31 +312,6 @@ namespace ChurchReport.Controllers
             return $"order_id={Uri.EscapeDataString(result.ProductOrderId)}" +
                 $"&transaction_id={Uri.EscapeDataString(result.ProviderTransactionId ?? string.Empty)}" +
                 $"&amount={amount}";
-        }
-
-        private string GetLineChannelAccessToken()
-        {
-            try
-            {
-                string organization = _configuration["CrmConnection:Organization"];
-                if (!string.IsNullOrEmpty(organization))
-                {
-                    string configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
-                    string token = _configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
-                    if (!string.IsNullOrEmpty(token))
-                    {
-                        return token;
-                    }
-                }
-
-                string defaultOrg = _configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
-                return _configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"] ?? string.Empty;
-            }
-            catch (Exception ex)
-            {
-                LogError("GetLineChannelAccessToken", "Failed to read LINE token configuration", ex);
-                return string.Empty;
-            }
         }
 
         private void LogInfo(string method, string message)
