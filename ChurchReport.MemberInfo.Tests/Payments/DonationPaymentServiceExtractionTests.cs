@@ -150,6 +150,101 @@ public sealed class DonationPaymentServiceExtractionTests
         contactSection.Should().NotContain("SetOptionSetAttribute(ref aContactToCreate");
     }
 
+    [Fact]
+    public void DonationPaymentManager_should_delegate_key_in_dedication_workflow()
+    {
+        // 手動奉獻查詢/更新是 ChurchReport 產品流程，manager 應只保留公開入口，
+        // CRM 查詢與 JSON payload 組裝要集中在 DonationKeyInDedicationService。
+        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string keyInSection = ExtractSourceSection(
+            managerSource,
+            "public async Task<IActionResult> SaveKeyInDedication",
+            "public DonationPaymentFormModel SetDedicationFeeList");
+
+        keyInSection.Should().Contain("m_DonationKeyInDedicationService");
+        keyInSection.Should().NotContain("QueryDediccationContatsByFetchXml");
+    }
+
+    [Fact]
+    public void DonationPaymentManager_should_delegate_booking_workflow()
+    {
+        // 認獻清單與取消認獻會碰 CRM、LINE 與舊金流取消流程，
+        // 這些流程應移到 ChurchReport service，不能留在大型 manager 裡。
+        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string bookingSection = ExtractSourceSection(
+            managerSource,
+            "public void ProcessDedicationBooking()",
+            "public async Task<IActionResult> CreateContact");
+
+        bookingSection.Should().Contain("m_DonationBookingService");
+        bookingSection.Should().NotContain("RetrieveDedicationBookingByFetchXml");
+        bookingSection.Should().NotContain("new_dedication_booking");
+    }
+
+    [Fact]
+    public void DonationPaymentManager_should_delegate_contact_creation_numbering_workflow()
+    {
+        // 查無新人時建立 contact 以及奉獻編號規則是 ChurchReport 資料規則，
+        // manager 不應直接建立 contact 或計算 pager 編號。
+        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string creationSection = ExtractSourceSection(
+            managerSource,
+            "public async Task<IActionResult> CreateContact",
+            "#region 工具區");
+
+        creationSection.Should().Contain("m_DonationContactCreationService");
+        creationSection.Should().NotContain("new Entity(\"contact\")");
+        creationSection.Should().NotContain("QueryContatsByStartedDedicationNumber");
+    }
+
+    [Fact]
+    public void DonationPaymentManager_should_delegate_payment_model_assembly()
+    {
+        // 奉獻表單初始化牽涉 CRM 欄位、OptionSet、信用卡清單與認獻清單，
+        // manager 應把組裝細節交給 assembler，避免 UI model 規則散在大型協調器。
+        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string modelSection = ExtractSourceSection(
+            managerSource,
+            "public DonationPaymentFormModel SetDonationPaymentModel",
+            "public async Task<IActionResult> SaveDonationPaymentDedicationAsync");
+
+        modelSection.Should().Contain("m_DonationPaymentModelAssembler");
+        modelSection.Should().NotContain("RetrieveTaskByFetchXml");
+        modelSection.Should().NotContain("OptionSetMetadataService");
+    }
+
+    [Fact]
+    public void DonationPaymentManager_should_delegate_donation_login_contact_workflow()
+    {
+        // 官網奉獻登入會處理身分證、姓名、同名資料與新 contact 建立，
+        // 這是 ChurchReport contact workflow，manager 不應保留大段 CRM 查詢判斷。
+        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string loginSection = ExtractSourceSection(
+            managerSource,
+            "public Entity GetDonationPaymentLoginContact",
+            "public Entity CreateDonationContact");
+
+        loginSection.Should().Contain("m_DonationLoginContactService");
+        loginSection.Should().NotContain("RetrieveContactCollectionByNationId");
+        loginSection.Should().NotContain("RetrieveContactCollectionByName");
+    }
+
+    [Fact]
+    public void DonationPaymentManager_should_delegate_dedication_fee_form_refresh()
+    {
+        // 奉獻查詢表單刷新包含 contact 欄位投影與 new_fee 查詢，屬於 ChurchReport 產品表單流程。
+        // manager 只應保留 public wrapper，讓 service 負責欄位填值與 fee list refresh。
+        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string feeListSection = ExtractSourceSection(
+            managerSource,
+            "public DonationPaymentFormModel SetDedicationFeeList(String UserLineId)",
+            "#endregion\r\n        #region 電腦網頁或是LINE登入");
+
+        feeListSection.Should().Contain("m_DonationDedicationFeeFormService");
+        feeListSection.Should().NotContain("RetrieveContactByLineId");
+        feeListSection.Should().NotContain("new DonationFeeQueryService");
+    }
+
     private static string ReadRepositoryFile(params string[] pathSegments)
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
