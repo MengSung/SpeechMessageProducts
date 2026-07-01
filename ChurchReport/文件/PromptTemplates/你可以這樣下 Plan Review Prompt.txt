@@ -1,0 +1,132 @@
+將來「建設公司維修系統、協會會員系統、發票收款系統」就是 ASP.NET Core 專案
+目前在D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\.worktrees\payment-module-extraction\ChurchReport\ChurchReport.csproj
+還有甚麼可以被抽離出來，提供給將來產品呼叫的呢?
+
+------------------------------------------------------------------------
+
+你重新製作一個新的完整金流的呼叫Mermaid流程圖和一個.PNG圖檔，而且畫的線要清晰，不要遮蓋到文字，讓我可以完全理解及學習整個金流的呼叫過程，你可以參考"D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\.worktrees\Jesus_5.1.5_Worktree_TuneRefactorPament\ChurchReport\文件\Mermaid 檔案\render-payment-flow-v6.ps1"的程式
+並放在 "D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\.worktrees\Jesus_5.1.5_Worktree_TuneRefactorPament\ChurchReport\文件\Mermaid 檔案" 資料夾
+
+------------------------------------------------------------------------
+
+
+現在留在churchreport的程式 是不是都真的屬於churchreport的 還有可以？
+D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\.worktrees\payment-module-extraction\ChurchReport\Tools\QPayFeeProcessor.cs
+
+------------------------------------------------------------------------
+
+D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\.worktrees\payment-module-extraction\ChurchReport\Tools\
+底下仍然有以QPay開頭的檔案，
+但是都有表頭注解
+/// 舊 名稱的相容包裝。
+是否不要再有相容了呢?因為都已經Refactor金流模組了
+所以這些檔案到底是否可以刪除了呢?
+
+------------------------------------------------------------------------
+
+
+"D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\.worktrees\Jesus_5.1.5_Worktree_TuneRefactorPament\ChurchReport\Services"底下仍然有以MyPay開頭的檔案，他們是否應該繼承抽離模組才對，因為抽離的模組應該要定義通用的部分，不是嗎?
+
+
+
+------------------------------------------------------------------------
+
+在D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\.worktrees\Jesus_5.1.5_Worktree_TuneRefactorPament\ChurchReport\Services\ 底下以Payment開頭的檔案是否與高鉅金流相關
+在D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\.worktrees\Jesus_5.1.5_Worktree_TuneRefactorPament\ChurchReport\Tools\ 底下以Donation開頭的檔案是否與永豐金流相關
+而且台新金流TSPG跟這些功能相似的檔案是放置在哪裡?
+他們是否有共通的功能，是否可以合併，並且收費單寫入CRM、發送LINE通知給奉獻者，其實也可以抽離出來，然後永豐、高鋸、台新金流可以繼承抽離出來的模組
+然後在這些合併的檔案中在個別實現實做出來
+
+------------------------------------------------------------------------
+
+
+是我發現有好多
+QPay的字樣散布在整個解決方案中，這樣似乎不大符合中立的原則，因為還有其他的金流例如
+  高鉅、台新金流，也使用QPay字樣的程式似乎怪怪的
+
+
+QPay的字樣散布在整個解決方案中，這樣似乎不大符合中立的原則，因為還有其他的金流例如
+  高鉅、台新金流，也使用QPay字樣的程式似乎怪怪的
+
+根據我們所討論的，不要讓QPay的字樣散布在整個解決方案中，因為這樣似乎不大符合中立的原則，其他的金流例如高鉅、台新金流應該使用中性名稱，你write plan 並且代碼可以易於管理 符合linus代碼原則
+
+------------------------------------------------------------------------
+
+
+請進入 CCG plan review phase，使用 gemini + claude 雙模型 reviewer，審查目前的 plan 是否符合金流模組抽離目標、Linus-style、架構邊界與測試策略。
+請審查以下 plan 是否合理：
+  1. 是否符合金流核心抽離的邊界
+  2. 是否避免 ChurchReport 專屬流程污染通用金流核心
+  3. 是否符合 Linus-style：簡單、清楚、低耦合、容易維護
+  4. 是否有過度設計、重複抽象、命名不清或責任混雜
+  5. 是否有漏掉測試、風險控管、回歸驗證
+  6. 是否會影響永豐、高鉅、台新 TSPG、LINE Pay、CRM 更新、LINE 通知流程
+不要修改程式，只輸出 Critical / Warning / Info，並寫入 .ccg/tasks/<task-name>/review.md。
+
+
+
+
+------------------------------------------------------------------------
+
+
+• 你可以這樣下 Plan Review Prompt：
+
+  請進行 Plan Review，不要修改程式碼，也不要開始實作。
+
+  請審查以下 plan 是否合理：
+  1. 是否符合金流核心抽離的邊界
+  2. 是否避免 ChurchReport 專屬流程污染通用金流核心
+  3. 是否符合 Linus-style：簡單、清楚、低耦合、容易維護
+  4. 是否有過度設計、重複抽象、命名不清或責任混雜
+  5. 是否有漏掉測試、風險控管、回歸驗證
+  6. 是否會影響永豐、高鉅、台新 TSPG、LINE Pay、CRM 更新、LINE 通知流程
+
+  請用以下格式回覆：
+  - Critical：一定要改，否則會造成架構錯誤或功能風險
+  - Warning：建議調整，否則未來維護會變困難
+  - Info：可改善但不是必要
+  - 結論：這份 plan 是否可以進入 implementation
+
+  如果你要更明確套用到目前專案，可以下：
+
+  請在 .worktrees\Jesus_5.1.5_Worktree_TuneRefactorPament 中，針對目前的重構 plan 做 Plan Review。
+
+  限制：
+  - 不要修改任何程式碼
+  - 不要執行 implementation
+  - 只審查 plan、架構邊界、可維護性、測試策略
+  - 請特別檢查金流核心、ASP.NET Core 輔助層、ChurchReport 專屬流程三者是否切乾淨
+
+  請用 Critical / Warning / Info 分級，最後給出是否建議進入實作。
+
+  如果要用 CCG 雙模型 review，可以這樣下：
+
+  請進入 CCG plan review phase，使用 gemini + claude 雙模型 reviewer，審查目前的 plan 是否符合金流模組抽離目標、
+  Linus-style、架構邊界與測試策略。不要修改程式，只輸出 Critical / Warning / Info，並寫入 .ccg/tasks/<task-
+  name>/review.md。
+
+  最短版 prompt：
+
+  請 review 這份 plan 是否可以進入實作；不要改程式，請用 Critical / Warning / Info 指出架構、邊界、測試與維護性
+  問題。
+
+
+
+------------------------------------------------------------------------
+
+
+$superpowers:brain-storming 全域搜尋明明還看到很多 QPay，你再仔細深入分析研究不要讓QPay的字樣散布在整個解決方案中，因為這樣似乎不大符合中立的原則
+他們這麼多的QPay字樣是否有共通的功能，是否可以合併，並且收費單寫入CRM、發送LINE通知給奉獻者，是否其實也可以抽離出來，然後永豐、高鋸、台新金流可以繼承抽離出來的模組，甚至將來也很可能會加入新的金流公司繼承抽離出來的模組
+我將來的產品也可以整合這些獨立抽離出來的專案模組
+代碼要易於管理 符合linus代碼原則
+
+全域搜尋明明還看到很多 QPay，你再仔細深入分析研究不要讓QPay的字樣散布在整個解決方案中，因為這樣似乎不大符合中立的原則
+他們這麼多的QPay字樣是否有共通的功能，是否可以合併，並且收費單寫入CRM、發送LINE通知給奉獻者，是否其實也可以抽離出來，然後永豐、高鋸、台新金流可以繼承抽離出來的模組，甚至將來也很可能會加入新的金流公司繼承抽離出來的模組
+我將來的產品也可以整合這些獨立抽離出來的專案模組
+然後在這些合併的檔案中在個別實現實做出來
+你再WRITE一個新的PLAN(Write Plan)
+
+------------------------------------------------------------------------
+
+Gemini + Claude 雙模型 review 是否已經完全打通了呢?
+外部 Gemini/Claude CCG review 現在是否可以執行了呢?CODE Review是否也已經完成了呢?
