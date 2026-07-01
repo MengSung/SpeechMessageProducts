@@ -4,6 +4,45 @@ Date: 2026-06-26
 Task: `payment-module-extraction`
 Scope reviewed: Task 11 cleanup diff from the working tree at review time.
 
+## Merge-Back Review Attempt - Jesus_5.1.5 Worktree
+
+Date: 2026-07-01
+Scope reviewed:
+
+- Merge candidate from `Jesus_5.1.5_Worktree_TuneRefactorPament` back into `Jesus_5.1.5_TuneRefactorPament`.
+- Diff range: `Jesus_5.1.5_TuneRefactorPament..Jesus_5.1.5_Worktree_TuneRefactorPament`.
+- Main themes: payment post-processing workflow extraction, MyPay/TSPG controller adapters, ChurchReport CRM/LINE workflow handlers, tests, Word report, and Mermaid/PNG flow documentation.
+
+External review status:
+
+- Required Gemini review was invoked through `C:\Users\Administrator\.claude\bin\codeagent-wrapper`.
+- Required Claude review was invoked through `C:\Users\Administrator\.claude\bin\codeagent-wrapper`.
+- Gemini result: wrapper launched, but the underlying `gemini` command was not found in `PATH`, so no Gemini review report was produced.
+- Claude result: wrapper launched, but the underlying `claude` command was not found in `PATH`, so no Claude review report was produced.
+- Both review prompts also hit a local Git textconv problem while preparing the full diff for `.docx` content: `C:\Program Files\Git\usr\bin\astextplain` could not find the `file` command and reported the Word report as an unsupported file type.
+- Because the external model CLIs are unavailable in this environment, the CCG-mandated dual-model review could not produce usable findings.
+
+Local verification:
+
+```powershell
+dotnet test .\SpeechMessage.Payments.Tests\SpeechMessage.Payments.Tests.csproj
+dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --filter "FullyQualifiedName~Payments"
+dotnet build .\ChurchReport.sln
+```
+
+Results:
+
+- `SpeechMessage.Payments.Tests`: 53 passed, 0 failed.
+- `ChurchReport.MemberInfo.Tests` payment filter: 74 passed, 0 failed.
+- `ChurchReport.sln` build: 0 warnings, 0 errors.
+- `ChurchReport.MemberInfo.Tests` emitted existing obsolete `QPay` compatibility warnings during the filtered test build; these warnings did not fail the tests.
+
+Manual merge-readiness finding:
+
+- Critical: none found by local build/test verification.
+- Warning: required Gemini/Claude review tools are unavailable, so external review remains blocked by environment setup.
+- Info: the candidate branch is ahead of `Jesus_5.1.5_TuneRefactorPament` by 7 commits, while `Jesus_5.1.5_TuneRefactorPament` has no unique commits relative to the worktree branch.
+
 ## Follow-up Review - Documentation And Traditional Chinese Code Comments
 
 Date: 2026-06-27
