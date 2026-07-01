@@ -499,15 +499,12 @@ namespace ChurchReport
             services.AddScoped<IPaymentRecordUpdater, ChurchReportPaymentRecordUpdater>();
             services.AddScoped<IPaymentPayerNotifier, ChurchReportPaymentPayerNotifier>();
             services.AddScoped<IDonationPaymentReturnWorkflow, DonationPaymentReturnWorkflow>();
-            services.AddScoped<IQPayReturnWorkflow, QPayReturnWorkflow>();
             services.AddScoped<IDonationPaymentProductWorkflowDispatcher, DonationPaymentProductWorkflowDispatcher>();
-            services.AddScoped<IQPayProductWorkflowDispatcher, QPayProductWorkflowDispatcher>();
             // ChurchReport 產品層的建單 adapter，以中性介面供 controller/context/manager 使用。
-            // 舊 QPayCreatePaymentGatewayAdapter 只保留給相容 constructor，不作為新流程的主要入口。
+            // 這裡只註冊中性的 DonationPaymentCreateGatewayAdapter，避免 ChurchReport 產品層再依賴永豐 QPay 命名。
             services.AddScoped<DonationPaymentCreateGatewayAdapter>();
             services.AddScoped<IDonationPaymentCreateGatewayAdapter>(sp =>
                 sp.GetRequiredService<DonationPaymentCreateGatewayAdapter>());
-            services.AddScoped<QPayCreatePaymentGatewayAdapter>();
 
 #if DEBUG
             // ========================================
@@ -854,16 +851,27 @@ namespace ChurchReport
                     template: string.Empty,
                     defaults: new { controller = "Authentication", action = "Login" });
 
-                // QPay 登入路由
+                // 奉獻付款登入路由。
+                // template 保留舊 URL，defaults 指向中性 action，避免 conventional route 依賴已移除的 QPay action 名稱。
                 routes.MapRoute(
-                    name: "qpaylogin",
+                    name: "legacy-donation-payment-login",
                     template: "Home/QPayLogin",
-                    defaults: new { controller = "Home", action = "QPayLogin" });
+                    defaults: new { controller = "Home", action = "DonationPaymentLogin" });
 
                 routes.MapRoute(
-                    name: "processqpaylogin",
+                    name: "legacy-process-donation-payment-login",
                     template: "Home/ProcessQPayLogin",
-                    defaults: new { controller = "Home", action = "ProcessQPayLogin" });
+                    defaults: new { controller = "Home", action = "ProcessDonationPaymentLogin" });
+
+                routes.MapRoute(
+                    name: "donationpaymentlogin",
+                    template: "Home/DonationPaymentLogin",
+                    defaults: new { controller = "Home", action = "DonationPaymentLogin" });
+
+                routes.MapRoute(
+                    name: "processdonationpaymentlogin",
+                    template: "Home/ProcessDonationPaymentLogin",
+                    defaults: new { controller = "Home", action = "ProcessDonationPaymentLogin" });
 
                 // 登入相關路由
                 routes.MapRoute(
@@ -956,9 +964,14 @@ namespace ChurchReport
 
                 // 奉獻相關路由
                 routes.MapRoute(
-                    name: "qpayview",
+                    name: "donationpaymentview",
+                    template: "Dedication/DonationPaymentView/{LineId?}",
+                    defaults: new { controller = "Dedication", action = "DonationPaymentView" });
+
+                routes.MapRoute(
+                    name: "legacy-donation-payment-view",
                     template: "Dedication/QPayView/{LineId?}",
-                    defaults: new { controller = "Dedication", action = "QPayView" });
+                    defaults: new { controller = "Dedication", action = "DonationPaymentView" });
 
                 routes.MapRoute(
                     name: "dedicationfeeview",

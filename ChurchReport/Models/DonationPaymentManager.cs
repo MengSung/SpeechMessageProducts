@@ -1,4 +1,5 @@
 using ChurchReport.Payments;
+using ChurchReport.Services;
 using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using ChurchReport.WebServiceConnector;
@@ -43,11 +44,11 @@ namespace ChurchReport.Models
         // 透過 Factory 取得 ToolUtilityClass 單一實例
         private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
-        public QpayModel m_QpayModel { get; set; } = new QpayModel();
+        public DonationPaymentFormModel m_DonationPaymentFormModel { get; set; } = new DonationPaymentFormModel();
 
         /// <summary>
         /// ChurchReport 奉獻付款主流程。
-        /// DonationPaymentManager 是產品層的主要名稱；舊 QpayManager 只保留在薄相容 wrapper。
+        /// DonationPaymentManager 是產品層的主要名稱；舊 DonationPaymentManager 只保留在薄相容 wrapper。
         /// 實際金流流程由 DonationPaymentProcessor 承擔，避免產品流程繼續綁在永豐 QPay 名稱上。
         /// </summary>
         private DonationPaymentProcessor m_DonationPaymentProcessor;
@@ -57,6 +58,50 @@ namespace ChurchReport.Models
         /// 這個 adapter 是 ChurchReport 與抽離後金流核心的邊界，未來其他 ASP.NET Core 產品可用同一種模式接入。
         /// </summary>
         private readonly IDonationPaymentCreateGatewayAdapter m_DonationPaymentCreateGatewayAdapter;
+
+        /// <summary>
+        /// ChurchReport CRM contact 的建立、篩選與補欄位服務。
+        /// 這些規則直接依賴 Dynamics 365 的 contact 欄位與奉獻者登入邏輯，
+        /// 因此保留在 ChurchReport 專案，不抽入通用金流核心或 ASP.NET Core 共用層。
+        /// </summary>
+        private readonly DonationContactService m_DonationContactService;
+
+        /// <summary>
+        /// 手動輸入奉獻資料的查詢與更新流程。
+        /// 這是 ChurchReport 的 CRM/AJAX 流程，不屬於通用金流核心。
+        /// </summary>
+        private readonly DonationKeyInDedicationService m_DonationKeyInDedicationService;
+
+        /// <summary>
+        /// ChurchReport 認獻單清單與取消流程服務。
+        /// new_dedication_booking、LINE 通知與定期定額中止結果備註都屬於 ChurchReport 產品流程，
+        /// 不應留在大型 manager，也不應抽進通用金流核心。
+        /// </summary>
+        private readonly DonationBookingService m_DonationBookingService;
+
+        /// <summary>
+        /// 查無新人時建立 ChurchReport contact 與奉獻編號規則的服務。
+        /// 這些規則直接綁定 CRM contact.pager 與 ChurchReport 奉獻編號慣例。
+        /// </summary>
+        private readonly DonationContactCreationService m_DonationContactCreationService;
+
+        /// <summary>
+        /// 奉獻付款頁面模型組裝器。
+        /// Manager 只保留公開入口與目前 contact 狀態，CRM task、OptionSet、清單初始化由 assembler 負責。
+        /// </summary>
+        private readonly DonationPaymentModelAssembler m_DonationPaymentModelAssembler;
+
+        /// <summary>
+        /// 官網奉獻登入 contact 比對服務。
+        /// 身分證、姓名與新 contact 建立策略屬於 ChurchReport CRM 身分流程，manager 只保留公開入口。
+        /// </summary>
+        private readonly DonationLoginContactService m_DonationLoginContactService;
+
+        /// <summary>
+        /// 奉獻查詢表單刷新服務。
+        /// 這個服務負責 contact 欄位投影與 new_fee 清單刷新，避免 manager 直接組裝表單欄位。
+        /// </summary>
+        private readonly DonationDedicationFeeFormService m_DonationDedicationFeeFormService;
 
         // 登入的連絡人
         public Entity m_LoginContact;
@@ -103,24 +148,33 @@ namespace ChurchReport.Models
             m_PushUtility = new PushUtility(m_LineMessagingClient);
 
             m_DonationPaymentCreateGatewayAdapter = donationPaymentCreateGatewayAdapter;
+            m_DonationContactService = new DonationContactService(m_ToolUtilityClass);
+            m_DonationBookingService = new DonationBookingService(m_ToolUtilityClass);
             m_DonationPaymentProcessor = new DonationPaymentProcessor(
                 m_LineMessagingClient,
                 m_PushUtility,
                 new ReplyUtility(m_LineMessagingClient),
                 m_DonationPaymentCreateGatewayAdapter);
+            m_DonationKeyInDedicationService = new DonationKeyInDedicationService(
+                m_ToolUtilityClass,
+                m_DonationPaymentFormModel,
+                m_DonationPaymentProcessor,
+                Json,
+                NotifyDonationPaymentError);
+            m_DonationContactCreationService = new DonationContactCreationService(
+                m_ToolUtilityClass,
+                Json,
+                RedirectToAction,
+                NotifyDonationRegistrationError);
+            m_DonationPaymentModelAssembler = new DonationPaymentModelAssembler(
+                m_ToolUtilityClass,
+                m_DonationBookingService,
+                ProcessCreditCard);
+            m_DonationLoginContactService = new DonationLoginContactService(
+                m_ToolUtilityClass,
+                m_DonationContactService);
+            m_DonationDedicationFeeFormService = new DonationDedicationFeeFormService(m_ToolUtilityClass);
 
-        }
-
-        /// <summary>
-        /// 舊程式仍以 QPay 命名 adapter 建立 DonationPaymentManager 時使用的相容建構函式。
-        /// 這裡只轉成中性的 DonationPaymentProcessor 路徑，不保留任何 QPay 專屬產品流程邏輯；
-        /// 新程式請改用 <see cref="DonationPaymentCreateGatewayAdapter"/> 建構函式。
-        /// </summary>
-        [Obsolete("Use DonationPaymentManager(DonationPaymentCreateGatewayAdapter). QPay adapter constructor is retained only for compatibility.")]
-        public DonationPaymentManager(
-            QPayCreatePaymentGatewayAdapter qPayCreatePaymentGatewayAdapter)
-            : this((IDonationPaymentCreateGatewayAdapter)qPayCreatePaymentGatewayAdapter)
-        {
         }
         #endregion
 
@@ -159,589 +213,98 @@ namespace ChurchReport.Models
                 return string.Empty;
             }
         }
+
+        /// <summary>
+        /// 保留既有錯誤通知行為，讓拆出去的 ChurchReport service 可以共用同一個通知出口。
+        /// 這不是通用金流錯誤處理；它含有 ChurchReport 既有 LINE 管理者通知對象。
+        /// </summary>
+        private static void NotifyDonationPaymentError(string errorString)
+        {
+            LineMessagingProcessorClass lineMessagingProcessor = new LineMessagingProcessorClass();
+            lineMessagingProcessor.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + errorString);
+        }
+
+        /// <summary>
+        /// 保留查無新人建立 contact 失敗時的舊管理者通知文字。
+        /// 這個通知是 ChurchReport 後台維運流程，不屬於通用金流核心。
+        /// </summary>
+        private static void NotifyDonationRegistrationError(string errorString)
+        {
+            LineMessagingProcessorClass lineMessagingProcessor = new LineMessagingProcessorClass();
+            lineMessagingProcessor.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人 : 註冊錯誤 => " + errorString);
+        }
         #endregion
         #region Line 單獨登入
-        public async Task<IActionResult> SaveKeyInDedication(QpayModel QpayModel)
+        public async Task<IActionResult> SaveKeyInDedication(DonationPaymentFormModel DonationPaymentFormModel)
         {
-            try
-            {
-                if (QpayModel.ClickType == "查詢")
-                {
-                    return await QueryKeyInDedication(QpayModel);
-                }
-                else
-                {
-                    return await UpdateKeyInDedication(QpayModel);
-                }
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + ErrorString);
-
-                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
-            }
-        }
-        public async Task<IActionResult> SaveKeyInDedication(QpayModel QpayModel, Entity aLoginContact)
-        {
-            try
-            {
-                this.m_LoginContact = aLoginContact;
-                m_DonationPaymentProcessor.m_LoginContact = aLoginContact;
-
-                if (QpayModel.ClickType == "查詢")
-                {
-                    return await QueryKeyInDedication(QpayModel);
-                }
-                else
-                {
-                    return await UpdateKeyInDedication(QpayModel);
-                }
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + ErrorString);
-
-                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
-            }
-        }
-        public async Task<IActionResult> QueryKeyInDedication(QpayModel QpayModel)
-        {
-            try
-            {
-                String DedicationResult = "";
-
-                String DedicationNumber = QpayModel.DedicationNumber != null ? QpayModel.DedicationNumber : "未填奉獻編號";
-                String NationId = QpayModel.NationId != null ? QpayModel.NationId : "未填身分證字號";
-                String FullName = QpayModel.FullName != null ? QpayModel.FullName : "未填姓名";
-                String HomePhone = QpayModel.Mobile != null ? QpayModel.Mobile : "未填手機號碼";
-                String Mobile = QpayModel.Mobile != null ? QpayModel.Mobile : "未填手機號碼";
-                String LastSixDigit = QpayModel.LastSixDigit != null ? QpayModel.LastSixDigit : "未填帳戶後六碼";
-
-                EntityCollection DedicationContacts = this.m_ToolUtilityClass.QueryDediccationContatsByFetchXml(DedicationNumber, FullName, HomePhone, Mobile, NationId, LastSixDigit);
-
-                if (DedicationContacts.Entities.Count == 1)
-                {
-                    DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "pager");
-                    NationId = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "new_personal_id");
-                    FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "fullname");
-                    HomePhone = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "telephone2");
-                    Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "mobilephone");
-                    LastSixDigit = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "new_last_six_digit");
-
-                    Entity aRetrievedContact = this.m_ToolUtilityClass.RetrieveEntity("contact", DedicationContacts.Entities[0].Id);
-
-                    String ChurchName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref aRetrievedContact, "parentcustomerid");
-
-                    String PhoneNumber = "";
-                    if (Mobile != "")
-                    {
-                        PhoneNumber = Mobile;
-                    }
-                    else
-                    {
-                        PhoneNumber = HomePhone;
-                    }
-
-                    return Json(new { status = "1", clicktype = "查詢", DedicationNumber = DedicationNumber, NationId = NationId, FullName = FullName, Mobile = PhoneNumber, LastSixDigit = LastSixDigit, message = DedicationResult, DedicationResult = DedicationResult, ChurchName = ChurchName });
-                }
-                else if (DedicationContacts.Entities.Count > 1)
-                {
-                    //m_QpayModel.SameNameList = new List<SameNameElement>();
-
-                    m_QpayModel.SameNameList.Clear();
-                    foreach (Entity aContact in DedicationContacts.Entities)
-                    {
-                        SameNameElement aSameNameElement = new SameNameElement();
-                        aSameNameElement.SameNameElementId = aContact.Id.ToString();
-                        aSameNameElement.DedicationNumber = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "pager");
-                        aSameNameElement.NationId = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_personal_id");
-                        aSameNameElement.FullName = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname");
-                        String PhoneNumber;
-                        if ((PhoneNumber = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "mobilephone")) != "")
-                        {
-                            aSameNameElement.Mobile = PhoneNumber;
-                        }
-                        else
-                        {
-                            aSameNameElement.Mobile = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "telephone2");
-                        }
-
-                        aSameNameElement.SmallGroupName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContact, "new_cell_list_contact");
-
-                        aSameNameElement.ChurchName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContact, "parentcustomerid");
-
-                        m_QpayModel.SameNameList.Add(aSameNameElement);
-                    };
-
-                    return Json(new { status = "2", clicktype = "查詢", DedicationNumber = "", NationId = NationId, FullName = "", Mobile = "", message = "", DedicationResult = "" });
-
-                }
-                else
-                {
-                    return Json(new { status = "3", clicktype = "查詢", message = "沒找到這個連絡人", fullname = FullName, DedicationResult = "沒找到這個連絡人" });
-                }
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + ErrorString);
-
-                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
-            }
+            return await m_DonationKeyInDedicationService.SaveAsync(DonationPaymentFormModel);
         }
 
-        public async Task<IActionResult> AuditQueryDedication(QpayModel QpayModel)
+        public async Task<IActionResult> SaveKeyInDedication(DonationPaymentFormModel DonationPaymentFormModel, Entity aLoginContact)
         {
-            try
-            {
-                String DedicationResult = "";
+            this.m_LoginContact = aLoginContact;
+            m_DonationPaymentProcessor.m_LoginContact = aLoginContact;
 
-                String DedicationNumber = QpayModel.DedicationNumber != null ? QpayModel.DedicationNumber : "未填奉獻編號";
-                String NationId = QpayModel.NationId != null ? QpayModel.NationId : "未填身分證字號";
-                String FullName = QpayModel.FullName != null ? QpayModel.FullName : "未填姓名";
-                String HomePhone = QpayModel.Mobile != null ? QpayModel.Mobile : "未填手機號碼";
-                String Mobile = QpayModel.Mobile != null ? QpayModel.Mobile : "未填手機號碼";
-                String LastSixDigit = QpayModel.LastSixDigit != null ? QpayModel.LastSixDigit : "未填帳戶後六碼";
-
-                m_QpayModel.QueryStartDate = QpayModel.QueryStartDate != null ? QpayModel.QueryStartDate : new DateTime(DateTime.Now.Year, 1, 1);
-                m_QpayModel.QueryEndDate = QpayModel.QueryEndDate != null ? QpayModel.QueryEndDate : DateTime.Now;
-
-                EntityCollection DedicationContacts = this.m_ToolUtilityClass.QueryDediccationContatsByFetchXml(DedicationNumber, FullName, HomePhone, Mobile, NationId, LastSixDigit);
-
-                if (DedicationContacts.Entities.Count == 1)
-                {
-                    DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "pager");
-                    NationId = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "new_personal_id");
-                    FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "fullname");
-                    HomePhone = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "telephone2");
-                    Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "mobilephone");
-                    LastSixDigit = this.m_ToolUtilityClass.GetEntityStringAttribute(DedicationContacts.Entities[0], "new_last_six_digit");
-
-                    String PhoneNumber = "";
-                    if (Mobile != "")
-                    {
-                        PhoneNumber = Mobile;
-                    }
-                    else
-                    {
-                        PhoneNumber = HomePhone;
-                    }
-
-                    SetDedicationFeeList(DedicationContacts.Entities[0]);
-
-                    String TotalAmount = "總金額 = " + m_QpayModel.TotalAmount + "元";
-
-                    // 回傳同時包含奉獻清單資料，讓前端可直接繫結
-                    var feeList = m_QpayModel.DedicationFeeList.Select(f => new
-                    {
-                        Category = f.Category,
-                        DedicationDate = f.DedicationDate,
-                        PayDate = f.PayDate,
-                        PayWay = f.PayWay,
-                        Amount = f.Amount,
-                        PaidPeriod = f.PaidPeriod,
-                        Others = f.Others
-                    }).ToList();
-
-                    return Json(new
-                    {
-                        status = "1",
-                        clicktype = "查詢",
-                        DedicationNumber = DedicationNumber,
-                        NationId = NationId,
-                        FullName = FullName,
-                        Mobile = PhoneNumber,
-                        LastSixDigit = LastSixDigit,
-                        TotalAmount = m_QpayModel.TotalAmount,
-                        DedicationFeeList = feeList,
-                        message = DedicationResult,
-                        DedicationResult = DedicationResult
-                    });
-                }
-                else if (DedicationContacts.Entities.Count > 1)
-                {
-                    //m_QpayModel.SameNameList = new List<SameNameElement>();
-
-                    m_QpayModel.SameNameList.Clear();
-                    foreach (Entity aContact in DedicationContacts.Entities)
-                    {
-                        SameNameElement aSameNameElement = new SameNameElement();
-                        aSameNameElement.SameNameElementId = aContact.Id.ToString();
-                        aSameNameElement.DedicationNumber = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "pager");
-                        aSameNameElement.NationId = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_personal_id");
-                        aSameNameElement.FullName = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname");
-                        String PhoneNumber;
-                        if ((PhoneNumber = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "mobilephone")) != "")
-                        {
-                            aSameNameElement.Mobile = PhoneNumber;
-                        }
-                        else
-                        {
-                            aSameNameElement.Mobile = m_ToolUtilityClass.GetEntityStringAttribute(aContact, "telephone2");
-                        }
-
-                        aSameNameElement.SmallGroupName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(aContact, "new_cell_list_contact");
-
-                        m_QpayModel.SameNameList.Add(aSameNameElement);
-                    };
-
-                    return Json(new { status = "2", clicktype = "查詢", DedicationNumber = "", NationId = NationId, FullName = "", Mobile = "", message = "", DedicationResult = "" });
-
-                }
-                else
-                {
-                    return Json(new { status = "3", clicktype = "查詢", message = "沒找到這個連絡人", fullname = FullName, DedicationResult = "沒找到這個連絡人" });
-                }
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + ErrorString);
-
-                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
-            }
+            return await m_DonationKeyInDedicationService.SaveAsync(DonationPaymentFormModel);
         }
 
-        public async Task<IActionResult> UpdateKeyInDedication(QpayModel QpayModel)
+        public async Task<IActionResult> QueryKeyInDedication(DonationPaymentFormModel DonationPaymentFormModel)
         {
-            try
-            {
-                if (QpayModel.Amount != null && QpayModel.Amount > 0)
-                {
-                    String DedicationResult = await m_DonationPaymentProcessor.SaveKeyInDedication(QpayModel);
-
-                    if (DedicationResult.Contains("錯誤") != true)
-                    {
-                        return Json(new { status = "1", clicktype = "上傳", message = DedicationResult, DedicationResult = DedicationResult });
-                    }
-                    else
-                    {
-                        return Json(new { status = "3", clicktype = "上傳", message = DedicationResult, DedicationResult = DedicationResult });
-                    }
-                }
-                else
-                {
-                    return Json(new { status = "3", clicktype = "上傳", message = "未輸入奉獻金額" });
-                }
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + ErrorString);
-
-                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
-            }
+            return await m_DonationKeyInDedicationService.QueryAsync(DonationPaymentFormModel);
         }
-        public QpayModel SetDedicationFeeList(String UserLineId)
+
+        public async Task<IActionResult> AuditQueryDedication(DonationPaymentFormModel DonationPaymentFormModel)
+        {
+            return await m_DonationKeyInDedicationService.AuditQueryAsync(
+                DonationPaymentFormModel,
+                contact => SetDedicationFeeList(contact));
+        }
+
+        public async Task<IActionResult> UpdateKeyInDedication(DonationPaymentFormModel DonationPaymentFormModel)
+        {
+            return await m_DonationKeyInDedicationService.UpdateAsync(DonationPaymentFormModel);
+        }
+
+        public DonationPaymentFormModel SetDedicationFeeList(String UserLineId)
         {
             try
             {
-                Entity LineLoginContact = new Entity("contact");
-                if (UserLineId != null)
-                {
-                    LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
-                }
-                else
-                {
-                    if (this.m_Contact != null)
-                    {
-                        // 從官網串接金流那邊進來的，所以在官網登入時就建立了連絡人
-                        LineLoginContact = this.m_Contact;
-                    }
-                }
-
-                // 全名
-                m_QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
-                // 行動電話
-                m_QpayModel.Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone");
-                // 奉獻單編號
-                m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
-                // 身分證字號
-                m_QpayModel.NationId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_personal_id");
-
-                //是否上傳國稅局
-                if (this.m_ToolUtilityClass.GetEntityBoolAttribute(ref LineLoginContact, "new_ntbt_ornot") == true)
-                {
-                    m_QpayModel.Ntbt = "願意上傳國稅局";
-                }
-                else
-                {
-                    m_QpayModel.Ntbt = "不願意上傳國稅局";
-                }
-
-                //奉獻類別
-                m_QpayModel.Category = "十一奉獻";
-                //付款方式
-                m_QpayModel.PayWay = "信用卡";
-                //奉獻日期
-                m_QpayModel.DedicationDate = DateTime.Now;
-                //奉獻分堂
-                m_QpayModel.DedicateLocation = "好牧人";
-
-                m_QpayModel.DedicationFeeList = new List<DedicationFee>();
-                EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByDateFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString(), m_QpayModel.QueryStartDate, m_QpayModel.QueryEndDate);
-
-                // [DEDQUERY] temporary diagnostic: show the actual date range used and how many fee rows CRM returned. Remove after diagnosis.
-                System.Diagnostics.Trace.WriteLine($"[DEDQUERY] FullName={m_QpayModel.FullName} Start={m_QpayModel.QueryStartDate:yyyy-MM-dd} End={m_QpayModel.QueryEndDate:yyyy-MM-dd} Returned={aDedicationFeeEntityCollection.Entities.Count}");
-
-                m_QpayModel.TotalAmount = 0;
-                m_QpayModel.DedicationFeeList.Clear();
-                foreach (Entity aDedicationFeeEntity in aDedicationFeeEntityCollection.Entities)
-                {
-                    DedicationFee aDedicationFee = new DedicationFee();
-
-                    aDedicationFee.DedicationDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDedicationFeeEntity, "createdon").ToLocalTime();
-                    aDedicationFee.PayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDedicationFeeEntity, "new_pay_date").ToLocalTime();
-                    aDedicationFee.Amount = Convert.ToInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(aDedicationFeeEntity, "new_fee_really_paid").Value);
-                    m_QpayModel.TotalAmount += aDedicationFee.Amount;
-                    aDedicationFee.PayWay = ConvertToPayway(aDedicationFeeEntity);
-                    aDedicationFee.Category = ConvertToCategory(aDedicationFeeEntity);
-                    aDedicationFee.Others = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_others");
-                    aDedicationFee.PaidPeriod = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_paid_period");
-                    m_QpayModel.DedicationFeeList.Add(aDedicationFee);
-                }
-
-                return m_QpayModel;
+                return m_DonationDedicationFeeFormService.FillFromLineId(
+                    m_DonationPaymentFormModel,
+                    UserLineId,
+                    this.m_Contact);
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                //Monitor.Exit(this);
                 throw e;
             }
         }
-        public QpayModel SetDedicationFeeList(Entity LineLoginContact)
+        public DonationPaymentFormModel SetDedicationFeeList(Entity LineLoginContact)
         {
             try
             {
-                if (m_QpayModel.ClickType == null)
-                {
-                    // 全名
-                    m_QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
-                    // 全名
-                    m_QpayModel.Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone");
-                    // 奉獻單編號
-                    m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
-
-                    //是否上傳國稅局
-                    if (this.m_ToolUtilityClass.GetEntityBoolAttribute(ref LineLoginContact, "new_ntbt_ornot") == true)
-                    {
-                        m_QpayModel.Ntbt = "願意上傳國稅局";
-                    }
-                    else
-                    {
-                        m_QpayModel.Ntbt = "不願意上傳國稅局";
-                    }
-
-                }
-
-                // 收費單清單
-                m_QpayModel.DedicationFeeList = new List<DedicationFee>();
-                EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByDateFetchXml(m_QpayModel.FullName, LineLoginContact.Id.ToString(), m_QpayModel.QueryStartDate, m_QpayModel.QueryEndDate);
-
-                // [DEDQUERY] temporary diagnostic: show the actual date range used and how many fee rows CRM returned. Remove after diagnosis.
-                System.Diagnostics.Trace.WriteLine($"[DEDQUERY] FullName={m_QpayModel.FullName} Start={m_QpayModel.QueryStartDate:yyyy-MM-dd} End={m_QpayModel.QueryEndDate:yyyy-MM-dd} Returned={aDedicationFeeEntityCollection.Entities.Count}");
-
-                m_QpayModel.TotalAmount = 0;
-                m_QpayModel.DedicationFeeList.Clear();
-                foreach (Entity aDedicationFeeEntity in aDedicationFeeEntityCollection.Entities)
-                {
-                    DedicationFee aDedicationFee = new DedicationFee();
-
-                    aDedicationFee.DedicationDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDedicationFeeEntity, "createdon").ToLocalTime();
-                    aDedicationFee.PayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDedicationFeeEntity, "new_pay_date").ToLocalTime();
-                    aDedicationFee.Amount = Convert.ToInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(aDedicationFeeEntity, "new_fee_really_paid").Value);
-                    m_QpayModel.TotalAmount += aDedicationFee.Amount;
-                    aDedicationFee.PayWay = ConvertToPayway(aDedicationFeeEntity);
-                    aDedicationFee.Category = ConvertToCategory(aDedicationFeeEntity);
-                    aDedicationFee.Others = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_others");
-                    aDedicationFee.PaidPeriod = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_paid_period");
-                    m_QpayModel.DedicationFeeList.Add(aDedicationFee);
-                }
-
-                return m_QpayModel;
+                return m_DonationDedicationFeeFormService.FillFromContact(
+                    m_DonationPaymentFormModel,
+                    LineLoginContact);
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                //Monitor.Exit(this);
                 throw e;
             }
         }
         #endregion
         #region 電腦網頁或是LINE登入
-        public QpayModel SetDonationPaymentModel(Entity aContact)
+        public DonationPaymentFormModel SetDonationPaymentModel(Entity aContact)
         {
             try
             {
                 m_Contact = aContact;
 
-                // 全名
-                m_QpayModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname");
-
-                // 奉獻單編號
-                m_QpayModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "pager");
-
-                // 身分證字號
-                m_QpayModel.NationId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_personal_id");
-
-                //是否上傳國稅局
-                if (this.m_ToolUtilityClass.GetEntityBoolAttribute(ref aContact, "new_ntbt_ornot") == true)
-                {
-                    m_QpayModel.Ntbt = "願意上傳國稅局";
-                }
-                else
-                {
-                    m_QpayModel.Ntbt = "不願意上傳國稅局";
-                }
-
-                m_QpayModel.Category = "十一奉獻";
-                m_QpayModel.PayWay = "信用卡";
-                //奉獻分堂
-                m_QpayModel.DedicateLocation = "好牧人";
-
-
-                #region 宣道支持奉獻
-                m_QpayModel.OtherCategoryArray = new List<String>();
-                EntityCollection TaskCollection = m_ToolUtilityClass.RetrieveTaskByFetchXml("宣道支持奉獻(請勿刪除)");
-                String Description = "";
-                if (TaskCollection.Entities.Count > 0)
-                {
-                    Description = this.m_ToolUtilityClass.GetEntityStringAttribute(TaskCollection.Entities[0], "description");
-                }
-                //String[] OtherCategoryArray = Description.Split(',');
-                String[] OtherCategoryArray = Description.Split(Environment.NewLine.ToCharArray());
-                m_QpayModel.OtherCategoryArray.Clear();
-                foreach (String OtherCategory in OtherCategoryArray)
-                {
-                    m_QpayModel.OtherCategoryArray.Add(OtherCategory);
-                }
-                #endregion
-
-                #region 特別奉獻清單項目
-                m_QpayModel.SpecialCategoryArray = new List<String>();
-                TaskCollection = m_ToolUtilityClass.RetrieveTaskByFetchXml("特別奉獻清單(不可刪除)");
-                Description = "";
-                if (TaskCollection.Entities.Count > 0)
-                {
-                    Description = this.m_ToolUtilityClass.GetEntityStringAttribute(TaskCollection.Entities[0], "description");
-                }
-                //String[] OtherCategoryArray = Description.Split(',');
-                String[] SpecialCategoryArray = Description.Split(Environment.NewLine.ToCharArray());
-                m_QpayModel.SpecialCategoryArray.Clear();
-                foreach (String SpecialCategory in SpecialCategoryArray)
-                {
-                    String SpecialCategoryString = ProcessSpecialCategoryString(SpecialCategory);
-
-                    if (SpecialCategoryString != "")
-                    {
-                        m_QpayModel.SpecialCategoryArray.Add(SpecialCategoryString);
-                    }
-                }
-                #endregion
-
-                #region// 處理信用卡清單
-                if (m_QpayModel.CreditCardList == null)
-                {
-                    m_QpayModel.CreditCardList = new List<CreditCard>();
-                }
-                else
-                {
-                    m_QpayModel.CreditCardList.Clear();
-                }
-
-                ProcessCreditCard();
-                #endregion
-
-                if (m_QpayModel.DedicationBookingList == null)
-                {
-                    m_QpayModel.DedicationBookingList = new List<DedicationBooking>();
-                }
-                else
-                {
-                    m_QpayModel.DedicationBookingList.Clear();
-                }
-                // 處理認獻清單
-                ProcessDedicationBooking();
-
-                m_QpayModel.QueryStartDate = new DateTime(DateTime.Now.Year, 1, 1);
-                m_QpayModel.QueryEndDate = DateTime.Now;
-
-                // 教會職稱是否是會計
-                //m_QpayModel.IsAOfficeWorker = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_church_jobtitle") == "會計" ? true : false;
-
-                string jobTitle = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_church_jobtitle");
-                m_QpayModel.IsAOfficeWorker = !string.IsNullOrEmpty(jobTitle) && jobTitle.Contains("會計");
-
-                #region ✅ 動態取得奉獻類別清單
-                // 從 Dynamics 365 OptionSet 動態取得奉獻類別清單
-                try
-                {
-                    var optionSetService = new ChurchReport.Services.OptionSetMetadataService(
-                        this.m_ToolUtilityClass.m_Crm2011OrganizationService,
-                        null, // Logger (可選)
-                        new Microsoft.Extensions.Caching.Memory.MemoryCache(
-                            new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions())
-                    );
-
-                    // 取得 new_fee 實體的 new_category OptionSet 對應表
-                    var categoryMapping = optionSetService.GetOptionSetMapping("new_fee", "new_category");
-
-                    // 將 Dictionary 的 Key (顯示文字) 轉換為 List<string>
-                    m_QpayModel.DedicationCategoryList = categoryMapping.Keys.ToList();
-
-                    System.Diagnostics.Debug.WriteLine($"[SetDonationPaymentModel] 成功取得 {m_QpayModel.DedicationCategoryList.Count} 個奉獻類別");
-                }
-                catch (Exception ex)
-                {
-                    // 如果動態取得失敗，使用備用的硬編碼清單
-                    System.Diagnostics.Debug.WriteLine($"[SetDonationPaymentModel] 動態取得奉獻類別失敗，使用備用清單: {ex.Message}");
-                    m_QpayModel.DedicationCategoryList = new List<String> {
-                        "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻",
-                        "宣教奉獻", "愛心奉獻", "特別奉獻"
-                    };
-                }
-                #endregion
-
-                // 動態 OptionSet 若查詢成功但回傳空集合，仍不能讓奉獻頁下拉選單變成空白。
-                // 這裡統一回補必要表單預設值，保留 CRM 成功載入的清單，也保護失敗或空回傳的路徑。
-                m_QpayModel.EnsureFormDefaults();
-
-                return m_QpayModel;
+                // 表單欄位、CRM task 設定、OptionSet、信用卡與認獻清單組裝都由專責 assembler 處理。
+                // Manager 保留公開入口，是為了讓既有 Controller/View 呼叫面穩定。
+                return m_DonationPaymentModelAssembler.Build(aContact, m_DonationPaymentFormModel);
             }
             catch (System.Exception e)
             {
@@ -755,156 +318,59 @@ namespace ChurchReport.Models
         /// 舊方法名稱的相容入口；新程式應呼叫 <see cref="SetDonationPaymentModel"/>。
         /// 保留 wrapper 可避免舊 Controller、View 或測試在分階段改名時立刻中斷。
         /// </summary>
-        [Obsolete("Use SetDonationPaymentModel. SetQpayModel is retained only for compatibility during migration.")]
-        public QpayModel SetQpayModel(Entity aContact)
+        [Obsolete("Use SetDonationPaymentModel. SetDonationPaymentFormModel is retained only for compatibility during migration.")]
+        public DonationPaymentFormModel SetDonationPaymentFormModel(Entity aContact)
         {
             return SetDonationPaymentModel(aContact);
         }
 
-        public async Task<IActionResult> SaveDonationPaymentDedicationAsync(QpayModel donationModel)
+        public async Task<IActionResult> SaveDonationPaymentDedicationAsync(DonationPaymentFormModel donationModel)
         {
             try
             {
-                //控管節期獻金
-                if (donationModel.Category != null && donationModel.Category == "節期獻金")
+                string validationMessage = DonationPaymentSubmissionService.ValidateDonationForm(donationModel);
+                if (!string.IsNullOrWhiteSpace(validationMessage))
                 {
-                    if (donationModel.Others == null || donationModel.Others =="")
-                    {
-                        return Json(new { status = "2", message = "錯誤:沒有選擇節期!" });
-                    }
+                    return Json(new { status = "2", message = validationMessage });
                 }
 
-                //控管特別奉獻
-                if (donationModel.Category != null && donationModel.Category == "特別奉獻")
+                string dedicationResult = await m_DonationPaymentProcessor.CreateFeeAsync(m_Contact, donationModel);
+                DonationPaymentSubmissionResult classifiedResult = DonationPaymentSubmissionService.ClassifyCreatePaymentResult(dedicationResult);
+
+                if (classifiedResult.Status == "2")
                 {
-                    if (donationModel.Others == null || donationModel.Others == "")
-                    {
-                        return Json(new { status = "2", message = "錯誤:沒有選擇特別奉獻的項目!" });
-                    }
+                    return Json(new { status = classifiedResult.Status, message = classifiedResult.Message });
                 }
 
-                //控管奉獻金額
-                if (donationModel.Amount != null && donationModel.Amount > 0)
+                return Json(new
                 {
-                    String DedicationResult = await m_DonationPaymentProcessor.CreateFeeAsync(m_Contact, donationModel);
-
-                    String PayWay = "";
-                    if (DedicationResult.StartsWith("信用卡繳費失敗!"))
-                    {
-                        return Json(new { status = "2", message = DedicationResult });
-                    }
-                    else if (DedicationResult.StartsWith("信用卡定期定額建立失敗!"))
-                    {
-                        return Json(new { status = "2", message = DedicationResult });
-                    }
-                    else if (DedicationResult.StartsWith("行動支付付款失敗!"))
-                    {
-                        return Json(new { status = "2", message = DedicationResult });
-                    }
-                    else if (DedicationResult.StartsWith("LinePay付款失敗!"))
-                    {
-                        return Json(new { status = "2", message = DedicationResult });
-                    }
-                    else if (DedicationResult.Contains("*** 請依照訊息付款 ***") != true)
-                    {
-                        PayWay = "信用卡";
-                        // TODO:因為尚未上線，目前暫時無法使用信用卡支付，所以還原為null
-                        //return Json(new { status = "2", message = "因為尚未上線，目前暫時無法使用信用卡支付!", DedicationResult = DedicationResult, PayWay = PayWay });
-                        return Json(new { status = "1", message = "正在處理您的奉獻中.....", DedicationResult = DedicationResult, PayWay = PayWay });
-                    }
-                    else
-                    {
-                        PayWay = "虛擬帳號";
-                        return Json(new { status = "1", message = "正在處理您的奉獻中.....", DedicationResult = DedicationResult, PayWay = PayWay });
-                    }
-                }
-                else
-                {
-                    return Json(new { status = "2", message = "未輸入奉獻金額" });
-                }
+                    status = classifiedResult.Status,
+                    message = classifiedResult.Message,
+                    DedicationResult = classifiedResult.DedicationResult,
+                    PayWay = classifiedResult.PayWay
+                });
             }
             catch (System.Exception e)
             {
                 string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + ErrorString);
 
-                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
                 throw e;
             }
         }
 
-        /// <summary>
-        /// 舊 action/model 呼叫端的相容入口；實際奉獻付款建立流程集中在
-        /// <see cref="SaveDonationPaymentDedicationAsync"/>。
-        /// </summary>
-        [Obsolete("Use SaveDonationPaymentDedicationAsync. SaveQPayDedication is retained only for compatibility during migration.")]
-        public Task<IActionResult> SaveQPayDedication(QpayModel qpayModel)
-        {
-            return SaveDonationPaymentDedicationAsync(qpayModel);
-        }
         #endregion
         #region 與官網整合串連，決定登入者
         public Entity GetDonationPaymentLoginContact(GalleryViewModel aGalleryViewModel, ref String QueryResult)
         {
             try
             {
-                // 透過身分證字號尋找連絡人
-                EntityCollection aLoginContactCollection = m_ToolUtilityClass.RetrieveContactCollectionByNationId(aGalleryViewModel.NationId);
-
-                if (aLoginContactCollection.Entities.Count > 0)
-                {
-                    // 有找到奉獻者
-
-                    // 透過姓名全名再找一遍
-                    Entity aLoginContact = FilterDonationContactByFullName(aGalleryViewModel, aLoginContactCollection);
-
-                    if (aLoginContact != null)
-                    {
-                        // 姓名跟身分證字號一樣的有找到
-                        // 奉獻者的欄位 行動電話、身分證字號、奉獻編號 沒有值才會加上去，所以不會覆蓋原有的
-                        //UpdateDonationContact(aGalleryViewModel, ref aLoginContact);
-
-                        QueryResult = aGalleryViewModel.FullName + "成功登入";
-
-                        return aLoginContact;
-                    }
-                    else
-                    {
-                        // 顯示錯誤
-                        // 有找到身分證字號一樣，但是姓名不一樣
-                        QueryResult = aGalleryViewModel.FullName + "登入錯誤:" + "有找到身分證字號，但是姓名卻不一樣";
-
-                        return null;
-                    }
-                }
-                else
-                {
-                    // 透過姓名全名再找一遍
-                    EntityCollection aFullNameContactCollection = m_ToolUtilityClass.RetrieveContactCollectionByName(aGalleryViewModel.FullName);
-
-                    if (aFullNameContactCollection.Entities.Count > 0)
-                    {
-                        // 有找到身分證字號不一樣，但是姓名卻有一樣
-                        // 仍然新增一個連絡人
-                        //QueryResult = aGalleryViewModel.FullName + "登入錯誤:" + "有找到姓名，但是身分證字號卻不一樣";
-
-                        QueryResult = aGalleryViewModel.FullName + "成功登入" + "為您在系統中建立了資料";
-                        return CreateDonationContact(aGalleryViewModel);
-                    }
-                    else
-                    {
-                        // 沒找到姓名跟身分證字號一樣的
-                        // 沒找到奉獻者，所以新增一個連絡人
-                        QueryResult = aGalleryViewModel.FullName + "成功登入" + "為您在系統中建立了資料";
-                        return CreateDonationContact(aGalleryViewModel);
-
-                    }
-                }
+                return m_DonationLoginContactService.GetDonationPaymentLoginContact(
+                    aGalleryViewModel,
+                    ref QueryResult);
             }
             catch (System.Exception e)
             {
@@ -919,8 +385,8 @@ namespace ChurchReport.Models
         /// 舊官網奉獻登入流程的相容入口；新程式應呼叫
         /// <see cref="GetDonationPaymentLoginContact"/>。
         /// </summary>
-        [Obsolete("Use GetDonationPaymentLoginContact. GetLoginContactQpay is retained only for compatibility during migration.")]
-        public Entity GetLoginContactQpay(GalleryViewModel aGalleryViewModel, ref String QueryResult)
+        [Obsolete("Use GetDonationPaymentLoginContact. GetLoginContactDonationPayment is retained only for compatibility during migration.")]
+        public Entity GetLoginContactDonationPayment(GalleryViewModel aGalleryViewModel, ref String QueryResult)
         {
             return GetDonationPaymentLoginContact(aGalleryViewModel, ref QueryResult);
         }
@@ -929,21 +395,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                Entity aContactToCreate = new Entity("contact");
-
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "lastname", aGalleryViewModel.FullName);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "mobilephone", aGalleryViewModel.Mobile);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "address2_line1", aGalleryViewModel.Address);//設定住家地址
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "new_personal_id", aGalleryViewModel.NationId);
-
-                // 一般小組新增的新人，委身類型設為"新朋友"
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactToCreate, "customertypecode", 100000000);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "description", "透過官網建立的奉獻新朋友");
-
-                // 設定奉獻帶編號
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "pager", aGalleryViewModel.NationId);
-
-                return this.m_ToolUtilityClass.RetrieveEntity("contact", this.m_ToolUtilityClass.CreateEntity(aContactToCreate));
+                return m_DonationContactService.CreateContact(aGalleryViewModel);
             }
             catch (System.Exception e)
             {
@@ -957,8 +409,8 @@ namespace ChurchReport.Models
         /// <summary>
         /// 舊方法名稱的相容入口；新程式應呼叫 <see cref="CreateDonationContact"/>。
         /// </summary>
-        [Obsolete("Use CreateDonationContact. CreateQpayContact is retained only for compatibility during migration.")]
-        public Entity CreateQpayContact(GalleryViewModel aGalleryViewModel)
+        [Obsolete("Use CreateDonationContact. CreateDonationPaymentContact is retained only for compatibility during migration.")]
+        public Entity CreateDonationPaymentContact(GalleryViewModel aGalleryViewModel)
         {
             return CreateDonationContact(aGalleryViewModel);
         }
@@ -967,16 +419,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                foreach (Entity aContact in aContactEntityCollection.Entities)
-                {
-                    if (this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname") == aGalleryViewModel.FullName)
-                    {
-                        // 奉獻者姓名與身分證字號相同
-                        return aContact;
-                    }
-                }
-
-                return null;
+                return m_DonationContactService.FilterByFullName(aGalleryViewModel, aContactEntityCollection);
             }
             catch (System.Exception e)
             {
@@ -990,8 +433,8 @@ namespace ChurchReport.Models
         /// <summary>
         /// 舊方法名稱的相容入口；新程式應呼叫 <see cref="FilterDonationContactByFullName"/>。
         /// </summary>
-        [Obsolete("Use FilterDonationContactByFullName. FilterQpayContactByFullName is retained only for compatibility during migration.")]
-        public Entity FilterQpayContactByFullName(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
+        [Obsolete("Use FilterDonationContactByFullName. FilterDonationPaymentContactByFullName is retained only for compatibility during migration.")]
+        public Entity FilterDonationPaymentContactByFullName(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
         {
             return FilterDonationContactByFullName(aGalleryViewModel, aContactEntityCollection);
         }
@@ -1000,16 +443,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                foreach (Entity aContact in aContactEntityCollection.Entities)
-                {
-                    if (this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_personal_id") == aGalleryViewModel.NationId || this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "pager") == aGalleryViewModel.NationId)
-                    {
-                        // 奉獻者姓名與身分證字號相同或是奉獻者姓名與奉獻編號相同
-                        return aContact;
-                    }
-                }
-
-                return null;
+                return m_DonationContactService.FilterByNationId(aGalleryViewModel, aContactEntityCollection);
             }
             catch (System.Exception e)
             {
@@ -1023,8 +457,8 @@ namespace ChurchReport.Models
         /// <summary>
         /// 舊方法名稱的相容入口；新程式應呼叫 <see cref="FilterDonationContactByNationId"/>。
         /// </summary>
-        [Obsolete("Use FilterDonationContactByNationId. FilterQpayContactByNationId is retained only for compatibility during migration.")]
-        public Entity FilterQpayContactByNationId(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
+        [Obsolete("Use FilterDonationContactByNationId. FilterDonationPaymentContactByNationId is retained only for compatibility during migration.")]
+        public Entity FilterDonationPaymentContactByNationId(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
         {
             return FilterDonationContactByNationId(aGalleryViewModel, aContactEntityCollection);
         }
@@ -1033,16 +467,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                foreach (Entity aContact in aContactEntityCollection.Entities)
-                {
-                    if (this.m_ToolUtilityClass.FilterDigit(this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "mobilephone")) == this.m_ToolUtilityClass.FilterDigit(aGalleryViewModel.Mobile))
-                    {
-                        // 奉獻者姓名與行動電話相同
-                        return aContact;
-                    }
-                }
-
-                return null;
+                return m_DonationContactService.FilterByMobile(aGalleryViewModel, aContactEntityCollection);
             }
             catch (System.Exception e)
             {
@@ -1056,8 +481,8 @@ namespace ChurchReport.Models
         /// <summary>
         /// 舊方法名稱的相容入口；新程式應呼叫 <see cref="FilterDonationContactByMobile"/>。
         /// </summary>
-        [Obsolete("Use FilterDonationContactByMobile. FilterQpayContactByMobile is retained only for compatibility during migration.")]
-        public Entity FilterQpayContactByMobile(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
+        [Obsolete("Use FilterDonationContactByMobile. FilterDonationPaymentContactByMobile is retained only for compatibility during migration.")]
+        public Entity FilterDonationPaymentContactByMobile(GalleryViewModel aGalleryViewModel, EntityCollection aContactEntityCollection)
         {
             return FilterDonationContactByMobile(aGalleryViewModel, aContactEntityCollection);
         }
@@ -1066,34 +491,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                // 奉獻旗標預設為 FALSE
-                bool Updateflag = false;
-
-                // 奉獻者的欄位 行動電話、身分證字號、奉獻編號 沒有值才會加上去，所以不會覆蓋原有的
-                if (this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "mobilephone") == "")
-                {
-                    // 奉獻者沒有行動電話
-                    m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "mobilephone", aGalleryViewModel.Mobile);
-                    Updateflag = true;
-                }
-                if (this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_personal_id") == "")
-                {
-                    // 奉獻者沒有身分證字號
-                    m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "new_personal_id", aGalleryViewModel.NationId);
-                    Updateflag = true;
-                }
-                if (this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "pager") == "")
-                {
-                    // 奉獻者沒有奉獻編號
-                    m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "pager", aGalleryViewModel.NationId);
-                    Updateflag = true;
-                }
-
-                if (Updateflag == true)
-                {
-                    // 旗標為TRUE所以要更新奉獻者
-                    this.m_ToolUtilityClass.UpdateEntity(ref aContact);
-                }
+                m_DonationContactService.UpdateMissingFields(aGalleryViewModel, ref aContact);
             }
             catch (System.Exception e)
             {
@@ -1107,8 +505,8 @@ namespace ChurchReport.Models
         /// <summary>
         /// 舊方法名稱的相容入口；新程式應呼叫 <see cref="UpdateDonationContact"/>。
         /// </summary>
-        [Obsolete("Use UpdateDonationContact. UpdateQpayContact is retained only for compatibility during migration.")]
-        public void UpdateQpayContact(GalleryViewModel aGalleryViewModel, ref Entity aContact)
+        [Obsolete("Use UpdateDonationContact. UpdateDonationPaymentContact is retained only for compatibility during migration.")]
+        public void UpdateDonationPaymentContact(GalleryViewModel aGalleryViewModel, ref Entity aContact)
         {
             UpdateDonationContact(aGalleryViewModel, ref aContact);
         }
@@ -1116,122 +514,38 @@ namespace ChurchReport.Models
         #region 信用卡管理
         public void ProcessCreditCard()
         {
-            try
-            {
-                GetCreditCardList(this.m_Contact);
-                //預設信用卡
-                if (m_QpayModel.CreditCardList.Count > 0)
-                {
-                    // 選第1個信用卡
-                    m_QpayModel.SelectedCreditCard = m_QpayModel.CreditCardList[0].CCToken;
-                    // 選最後個信用卡
-                    //m_QpayModel.SelectedCreditCard = m_QpayModel.CreditCardList[m_QpayModel.CreditCardList.Count - 1].CCToken;
-                }
-                else
-                {
-                    // 沒有預存信用卡
-                    m_QpayModel.SelectedCreditCard = null;
-                }
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            var cards = DonationCreditCardProfileService.ParseCreditCards(
+                this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "new_visa_info"));
 
-                throw e;
-            }
+            m_DonationPaymentFormModel.CreditCardList.Clear();
+            m_DonationPaymentFormModel.CreditCardList.AddRange(cards);
+            m_DonationPaymentFormModel.SelectedCreditCard = cards.Count > 0 ? cards[0].CCToken : null;
         }
         public void GetCreditCardList(Entity aContact)
         {
-            #region// 取得連絡人信用卡資訊
+            var cards = DonationCreditCardProfileService.ParseCreditCards(
+                this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_visa_info"));
 
-            String VisaInfo = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_visa_info");
-
-            if (VisaInfo != "")
-            {
-                String[] VisaInfoSplit = VisaInfo.Split('|');
-
-                if (VisaInfoSplit.Length > 0)
-                {
-                    foreach (String CreditCard in VisaInfoSplit)
-                    {
-                        String[] VisaCCTokenSplit = CreditCard.Split('，');
-
-                        if (VisaCCTokenSplit.Length == 4)
-                        {
-                            m_QpayModel.CreditCardList.Add(new CreditCard
-                            {
-                                CCToken = VisaCCTokenSplit[0],
-                                LeftCardNumber = VisaCCTokenSplit[1],
-                                RightCardNumber = VisaCCTokenSplit[2],
-                                CreditCardNumber = VisaCCTokenSplit[1] + "-XXXX-" + VisaCCTokenSplit[2],
-                                ExpireDate = ProcessExpireDate(VisaCCTokenSplit[3])
-                            });
-                        }
-                        else
-                        {
-                            //return null;
-                        }
-
-                    }
-                }
-                else
-                {
-                    return;
-                }
-
-            }
-            else
-            {
-                return;
-            }
-            #endregion
+            m_DonationPaymentFormModel.CreditCardList.AddRange(cards);
         }
         public String ProcessExpireDate(String aExpiredDate)
         {
-            #region//轉換過期日
-
-            //char[] CharArr = aExpiredDate.ToCharArray();
-            //int Year = Convert.ToInt32(  "20" + new string(new char[] { CharArr[0], CharArr[1] }) );
-            //int Month = Convert.ToInt32( new string(new char[] { CharArr[2], CharArr[3] }) );
-
-            //return new DateTime(Year, Month, 1).ToLocalTime().ToShortDateString();
-
-            char[] CharArr = aExpiredDate.ToCharArray();
-            return new string(new char[] { CharArr[0], CharArr[1] }) + "/" + new string(new char[] { CharArr[2], CharArr[3] });
-            #endregion
+            return DonationCreditCardProfileService.FormatExpireDate(aExpiredDate);
         }
         public void DeleteCreditCard(CreditCard aCreditCardToDelete)
         {
-            try
-            {
-                // 刪除信用卡
-                m_QpayModel.CreditCardList.Remove(aCreditCardToDelete);
+            m_DonationPaymentFormModel.CreditCardList.Remove(aCreditCardToDelete);
 
-                String VisaInfo = "";
-
-                foreach (CreditCard aCreditCard in m_QpayModel.CreditCardList)
-                {
-                    VisaInfo += aCreditCard.CCToken + "，" + aCreditCard.LeftCardNumber + "，" + aCreditCard.RightCardNumber + "，" + aCreditCard.ExpireDate.Replace("/","") + "|";
-                }
-
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_visa_info", VisaInfo);
-
-                this.m_ToolUtilityClass.UpdateEntity(ref m_Contact);
-
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
+            string visaInfo = DonationCreditCardProfileService.SerializeCreditCards(m_DonationPaymentFormModel.CreditCardList);
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_visa_info", visaInfo);
+            this.m_ToolUtilityClass.UpdateEntity(ref m_Contact);
         }
         public void DeleteSameNameContact(SameNameElement aSameNameElement)
         {
             try
             {
                 // 刪除約會
-                m_QpayModel.SameNameList.RemoveAt(1);
+                m_DonationPaymentFormModel.SameNameList.RemoveAt(1);
 
             }
             catch (System.Exception e)
@@ -1247,17 +561,8 @@ namespace ChurchReport.Models
         {
             try
             {
-                GetDedicationBookingList(this.m_Contact);
-
-                //預設認獻
-                if (m_QpayModel.DedicationBookingList.Count > 0)
-                {
-                    // 選第1個認獻
-                    m_QpayModel.SelectedDedicationBooking = m_QpayModel.DedicationBookingList[0].EntityId;
-                    // 選最後個認獻
-                    //m_QpayModel.SelectedDedicationBooking = m_QpayModel.CreditCardList[m_QpayModel.DedicationBookingList.Count - 1].EntityId;
-                }
-
+                m_DonationBookingService.FillBookingList(m_DonationPaymentFormModel, this.m_Contact);
+                m_DonationBookingService.SelectDefaultBooking(m_DonationPaymentFormModel);
             }
             catch (System.Exception e)
             {
@@ -1268,151 +573,18 @@ namespace ChurchReport.Models
         }
         public void GetDedicationBookingList(Entity aContact)
         {
-            #region// 取得連絡人認獻資訊
-            EntityCollection aDedicationBookingEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationBookingByFetchXml(this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname"), aContact.Id.ToString());
-
-            m_QpayModel.DedicationBookingList.Clear();
-
-            foreach (Entity aDedicationBookingEntity in aDedicationBookingEntityCollection.Entities)
-            {
-                Entity aRetrievedDedicationBookingEntity = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", aDedicationBookingEntity.Id);
-
-                DedicationBooking aDedicationBooking = new DedicationBooking();
-
-                // 實體 ID
-                aDedicationBooking.EntityId = aRetrievedDedicationBookingEntity.Id.ToString();
-                // 類別
-                aDedicationBooking.DedicationCategory = ConvertToCategory(aRetrievedDedicationBookingEntity);
-                // 認獻單狀態
-                aDedicationBooking.DedicationBookingStatus = ConvertToDedicationBookingStatus(this.m_ToolUtilityClass.GetOptionSetAttribute(aRetrievedDedicationBookingEntity, "new_dedication_booking_status"));
-                // 每期金額
-                aDedicationBooking.AmountPerStage = Decimal.Truncate(this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aRetrievedDedicationBookingEntity, "new_amount_per_stage").Value).ToString();
-                // 總期數
-                aDedicationBooking.TotalStages = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aRetrievedDedicationBookingEntity, "new_total_stages");
-                // 應付總金額
-                aDedicationBooking.DedicationAmount = Decimal.Truncate(this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aRetrievedDedicationBookingEntity, "new_dedication_amount").Value).ToString();
-                // 目前期數
-                aDedicationBooking.PaidPeriod = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aRetrievedDedicationBookingEntity, "new_paid_period");
-                // 已付金額
-                aDedicationBooking.RollupPaidFee = Decimal.Truncate(this.m_ToolUtilityClass.GetEntityMoneyAttribute(ref aRetrievedDedicationBookingEntity, "new_rollup_paid_fee").Value).ToString();
-                // 認獻開始日期
-                aDedicationBooking.StartDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedDedicationBookingEntity, "new_dedication_start_date").ToLocalTime().ToShortDateString();
-                // 認獻結束日期
-                aDedicationBooking.EndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aRetrievedDedicationBookingEntity, "new_dedication_end_date").ToLocalTime().ToShortDateString();
-
-                m_QpayModel.DedicationBookingList.Add(aDedicationBooking);
-            }
-            #endregion
-            #region// 取得連絡人認獻資訊 (開發用的虛擬資料)
-            //m_QpayModel.DedicationBookingList.Clear();
-
-            //m_QpayModel.DedicationBookingList.Add(new DedicationBooking
-            //{
-            //    EntityId = "001",
-            //    DedicationCategory = "十一奉獻",
-            //    DedicationBookingStatus = "進行中",
-            //    AmountPerStage = "5000",                    // 每期金額
-            //    TotalStages = "12期",
-            //    DedicationAmount = "60000",                 //應付總金額
-            //    PaidPeriod = "第2期",
-            //    RollupPaidFee = "10000",
-            //    StartDate = "2021/4/13",
-            //    EndDate = "2022/4/13"
-            //});
-            //m_QpayModel.DedicationBookingList.Add(new DedicationBooking
-            //{
-            //    EntityId = "002",
-            //    DedicationCategory = "感恩奉獻",
-            //    DedicationBookingStatus = "進行中",
-            //    AmountPerStage = "6000",                    // 每期金額
-            //    TotalStages = "12期",
-            //    DedicationAmount = "72000",                 //應付總金額
-            //    PaidPeriod = "第2期",
-            //    RollupPaidFee = "12000",
-            //    StartDate = "2021/5/13",
-            //    EndDate = "2022/5/13"
-            //});
-            #endregion
+            m_DonationBookingService.FillBookingList(m_DonationPaymentFormModel, aContact);
         }
         public async Task<string> DeleteDedicationBooking(DedicationBooking aDedicationBookingToDelete)
         {
             try
             {
-                Entity aDedicationBookingToDeleteEntity = this.m_ToolUtilityClass.RetrieveEntity("new_dedication_booking", new Guid(aDedicationBookingToDelete.EntityId));
-
-                if (aDedicationBookingToDeleteEntity != null)
-                {
-                    //"P"請款要求
-                    //"C"取消授權
-                    //"R"退款要求
-                    //"E" 中止定期定額 要求
-                    OrderMaintain aOrderMaintain = await OrderMaintain(this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationBookingToDeleteEntity, "new_q_pay_card_order_no"), "E");
-
-                    if (aOrderMaintain != null && aOrderMaintain.Status == "S")
-                    {
-                        // 取消認獻
-                        m_QpayModel.DedicationBookingList.Remove(aDedicationBookingToDelete);
-                        // 設定認獻狀態: 已取消
-                        this.m_ToolUtilityClass.SetOptionSetAttribute(ref aDedicationBookingToDeleteEntity, "new_dedication_booking_status", 100000004);
-
-                        // 認獻單備註 = 寫入中止定期定額成功的原因
-                        String Result =
-                                this.m_ToolUtilityClass.GetEntityStringAttribute(m_Contact, "fullname") + ":中止定期定額成功!" + Environment.NewLine +
-                                "類別:" + aDedicationBookingToDelete.DedicationCategory + Environment.NewLine +
-                                "每期金額:" + aDedicationBookingToDelete.AmountPerStage + Environment.NewLine +
-                                "總期數:" + aDedicationBookingToDelete.TotalStages + Environment.NewLine +
-                                "應付總金額:" + aDedicationBookingToDelete.DedicationAmount + Environment.NewLine +
-                                "目前期數:" + aDedicationBookingToDelete.PaidPeriod + Environment.NewLine +
-                                "已付金額:" + aDedicationBookingToDelete.RollupPaidFee + Environment.NewLine +
-                                "開始日期:" + aDedicationBookingToDelete.StartDate + Environment.NewLine +
-                                "結束日期:" + aDedicationBookingToDelete.EndDate + Environment.NewLine +
-                                aOrderMaintain.Description + Environment.NewLine +
-                                "--------------------------------------" + Environment.NewLine;
-
-                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToDeleteEntity, "new_explain", this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingToDeleteEntity, "new_explain") + Environment.NewLine + Result);
-                        this.m_ToolUtilityClass.UpdateEntity(ref aDedicationBookingToDeleteEntity);
-
-                        // 送出 LINE 訊息
-                        String aContactLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(m_Contact, "new_lineid");
-                        if (aContactLineId != "")
-                        {
-                            m_PushUtility.SendMessage(aContactLineId, Result);
-                        }
-
-                    }
-                    else
-                    {
-                        // 認獻單備註 = 寫入中止定期定額成功的原因
-                        String Result =
-                                this.m_ToolUtilityClass.GetEntityStringAttribute(m_Contact, "fullname") + ":中止定期定額失敗!" + Environment.NewLine +
-                                "類別:" + aDedicationBookingToDelete.DedicationCategory + Environment.NewLine +
-                                "每期金額:" + aDedicationBookingToDelete.AmountPerStage + Environment.NewLine +
-                                "總期數:" + aDedicationBookingToDelete.TotalStages + Environment.NewLine +
-                                "應付總金額:" + aDedicationBookingToDelete.DedicationAmount + Environment.NewLine +
-                                "目前期數:" + aDedicationBookingToDelete.PaidPeriod + Environment.NewLine +
-                                "已付金額:" + aDedicationBookingToDelete.RollupPaidFee + Environment.NewLine +
-                                "開始日期:" + aDedicationBookingToDelete.StartDate + Environment.NewLine +
-                                "結束日期:" + aDedicationBookingToDelete.EndDate + Environment.NewLine +
-                                aOrderMaintain.Description + Environment.NewLine +
-                                "--------------------------------------" + Environment.NewLine;
-
-                        this.m_ToolUtilityClass.SetEntityStringAttribute(ref aDedicationBookingToDeleteEntity, "new_explain", this.m_ToolUtilityClass.GetEntityStringAttribute(ref aDedicationBookingToDeleteEntity, "new_explain") + Environment.NewLine + Result);
-                        this.m_ToolUtilityClass.UpdateEntity(ref aDedicationBookingToDeleteEntity);
-
-                        // 送出 LINE 訊息
-                        String aContactLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(m_Contact, "new_lineid");
-                        if (aContactLineId != "")
-                        {
-                            m_PushUtility.SendMessage(aContactLineId, Result);
-                        }
-                    }
-
-                    return aOrderMaintain.Description;
-                }
-                else
-                {
-                    return "";
-                }
+                return await m_DonationBookingService.DeleteBookingAsync(
+                    m_DonationPaymentFormModel,
+                    m_Contact,
+                    aDedicationBookingToDelete,
+                    OrderMaintain,
+                    m_PushUtility);
             }
             catch (System.Exception e)
             {
@@ -1425,177 +597,28 @@ namespace ChurchReport.Models
         #region 查詢找不到時新增新人
         public async Task<IActionResult> CreateContact(string FullName)
         {
-            try
-            {
-                // 建立新人
-                EntityCollection aQueriedContacts = this.m_ToolUtilityClass.RetrieveContactEntityByFullNameCollection(FullName);
-
-                if (aQueriedContacts.Entities.Count == 0)
-                {
-                    Entity aContactToCreate = new Entity("contact");
-
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "lastname", FullName);
-                    Guid aContactToCreateId = this.m_ToolUtilityClass.CreateEntity(aContactToCreate);
-
-
-                    // 自動奉獻編號
-                    // Entity aContactCreated = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactToCreateId);
-                    // AutoDedicationNumbering(FullName, aContactCreated);
-
-                    return Json(new { status = "1", message = "成功建立了" + FullName });
-                }
-                else
-                {
-                    return Json(new { status = "2", message = "錯誤: 有同名同姓的" + FullName });
-
-                }
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人 : 註冊錯誤 => " + ErrorString);
-
-                return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
-
-                throw e;
-            }
-        }
-        /// <summary>
-        /// 自動奉獻編號
-        /// </summary>
-        /// <param name="aContactCreated"></param>
-        private void AutoDedicationNumbering(String FullName, Entity aContactCreated)
-        {
-            //Entity aRetrievedContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactCreated.Id);
-
-            if (FullName.Length <= 5)
-            {
-                //新增的是聯絡人
-                SetDedicationNumber("0", aContactCreated);
-            }
-            else
-            {
-                //新增的是公司組織
-                SetDedicationNumber("9", aContactCreated);
-            }
-        }
-        private void SetDedicationNumber(String StartNumber, Entity aContactCreated)
-        {
-            EntityCollection aContactEntityCollection = this.m_ToolUtilityClass.QueryContatsByStartedDedicationNumber(StartNumber);
-            if (aContactEntityCollection.Entities.Count > 0)
-            {
-                int NewNumber = Convert.ToInt32(this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntityCollection.Entities[0], "pager")) + 1;
-
-                this.m_ToolUtilityClass.SetEntityStringAttribute(aContactCreated, "pager", StartNumber + NewNumber.ToString());
-
-                this.m_ToolUtilityClass.UpdateEntity(aContactCreated);
-            }
+            // 這個 public 方法仍回傳 Task<IActionResult>，保留 Controller/AJAX 呼叫面；
+            // 實際查重、建立 contact、錯誤通知與奉獻編號規則由 ChurchReport service 負責。
+            return await Task.FromResult(m_DonationContactCreationService.CreateContact(FullName));
         }
 
         #endregion
         #region 工具區
         private String ConvertToPayway(Entity aFeeEntity)
         {
-            switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_pay_way"))
-            {
-                case 100000004:
-                    return "未知";
-                case 100000000:
-                    return "現金";
-                case 100000001:
-                    return "信用卡";
-                case 100000002:
-                    return "ATM轉帳";
-                case 100000003:
-                    return "超商付款";
-                case 100000005:
-                    return "LinePay";
-                case 100000006:
-                    return "銀行轉帳";
-                case 100000007:
-                    return "行動支付";
-                case 100000008:
-                    return "銀聯卡";
-                default:
-                    return "未知";
-            }
+            return DonationFeeQueryService.ConvertPayWay(this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_pay_way"));
         }
         public String ConvertToCategory(Entity aFeeEntity)
         {
-            try
-            {
-                // 方法 1: 優先使用 FormattedValues（最快速且最可靠）
-                if (aFeeEntity.FormattedValues.Contains("new_category"))
-                {
-                    string displayText = aFeeEntity.FormattedValues["new_category"];
-                    if (!string.IsNullOrEmpty(displayText))
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[ConvertToCategory] 使用 FormattedValues: {displayText}");
-                        return displayText;
-                    }
-                }
-                                // 預設值（當無法取得顯示文字時）
-                System.Diagnostics.Debug.WriteLine($"[ConvertToCategory] 使用預設值");
-                return "十一奉獻";
-            }
-            catch (Exception ex)
-            {
-                // 記錄錯誤並返回預設值
-                System.Diagnostics.Debug.WriteLine($"[ConvertToCategory] 錯誤: {ex.Message}");
-                return "十一奉獻";
-            }
+            return DonationFeeQueryService.ConvertCategory(aFeeEntity);
         }
-                public String ConvertToDedicationBookingStatus(int OptionSetValue)
+        public String ConvertToDedicationBookingStatus(int OptionSetValue)
         {
-            switch (OptionSetValue)
-            {
-                case 100000000:
-                    return "尚未啟動";
-                case 100000001:
-                    return "進行中";
-                case 100000002:
-                    return "已結案";
-                case 100000003:
-                    return "啟動失敗";
-                case 100000004:
-                    return "已取消";
-                default:
-                    return "尚未啟動";
-            }
+            return DonationBookingService.ConvertStatus(OptionSetValue);
         }
         public String ProcessSpecialCategoryString(String SpecialCategory)
         {
-            String[] OtherCategoryArray = SpecialCategory.Split(',');
-            if (OtherCategoryArray.Length == 2)
-            {
-                String[] StartAndEndDateArray = OtherCategoryArray[0].Split('~');
-                if (StartAndEndDateArray.Length == 2)
-                {
-                    DateTime aStartDate = ParseDateTime(StartAndEndDateArray[0]).ToLocalTime();
-                    DateTime aEndDate = ParseDateTime(StartAndEndDateArray[1]).ToLocalTime().AddDays(1);
-
-                    if (aStartDate.Date < DateTime.Now && DateTime.Now < aEndDate.Date)
-                    {
-                        return OtherCategoryArray[1];
-                    }
-                    else
-                    {
-                        return "";
-                    }
-                }
-                else
-                {
-                    return "";
-                }
-
-            }
-            else
-            {
-                return "";
-            }
+            return DonationPaymentFormBuilder.ResolveSpecialCategory(SpecialCategory, DateTime.Now);
         }
         #endregion
         #region 永豐金流工具區
@@ -1607,7 +630,7 @@ namespace ChurchReport.Models
                 ShopNo = m_ShopNo ?? string.Empty,
                 Command = aCommand ?? string.Empty,
                 Status = "F",
-                Description = "QPay order maintenance is not part of the reusable payment core first release."
+                        Description = "Payment order maintenance is not part of the reusable payment core first release."
             });
         }
         #endregion
@@ -1621,29 +644,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                if (String.IsNullOrEmpty(contactId)) return new List<object>();
-
-                Guid id;
-                if (!Guid.TryParse(contactId, out id)) return new List<object>();
-
-                Entity contactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", id);
-                if (contactEntity == null) return new List<object>();
-
-                // Fill model's dedication list for this contact
-                SetDedicationFeeList(contactEntity);
-
-                var feeList = m_QpayModel.DedicationFeeList.Select(f => new
-                {
-                    Category = f.Category,
-                    DedicationDate = f.DedicationDate,
-                    PayDate = f.PayDate,
-                    PayWay = f.PayWay,
-                    Amount = f.Amount,
-                    PaidPeriod = f.PaidPeriod,
-                    Others = f.Others
-                }).ToList<object>();
-
-                return feeList;
+                return m_DonationDedicationFeeFormService.GetFeesByContactId(contactId, m_DonationPaymentFormModel);
             }
             catch (Exception)
             {
@@ -1652,20 +653,7 @@ namespace ChurchReport.Models
         }
         private DateTime ParseDateTime(string dateString)
         {
-            // 嘗試以多種格式解析日期字串
-            DateTime result;
-            string[] formats = { "yyyy/MM/dd", "yyyy-MM-dd", "yyyyMMdd" };
-            if (DateTime.TryParseExact(dateString, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
-            {
-                return result;
-            }
-            // 若無法解析則嘗試一般解析
-            if (DateTime.TryParse(dateString, out result))
-            {
-                return result;
-            }
-            // 若解析失敗則回傳現在時間
-            return DateTime.Now;
+            return DonationPaymentFormBuilder.ParseDateTime(dateString);
         }
     }
 }

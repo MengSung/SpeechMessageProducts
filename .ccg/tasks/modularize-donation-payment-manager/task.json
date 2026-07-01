@@ -1,0 +1,12 @@
+{
+  "id": "modularize-donation-payment-manager",
+  "title": "Modularize DonationPaymentManager and keep reusable ASP.NET Core payment boundaries clean",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "review",
+  "nextAction": "Local verification complete; external Gemini/Claude review is blocked because codeagent-wrapper is unavailable",
+  "createdAt": "2026-07-01T13:50:20+08:00",
+  "branch": "Jesus_5.1.5_Worktree_TuneRefactorPament"
+}

@@ -15,7 +15,7 @@ public interface IDonationPaymentCreateGatewayAdapter
     /// 將 ChurchReport 的奉獻付款輸入轉成 provider-neutral request，並交給目前設定的金流 provider 建立付款。
     /// </summary>
     Task<PaymentCreateResult> CreateCardPaymentAsync(
-        QPayCreatePaymentInput input,
+        DonationPaymentCreateInput input,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -23,6 +23,6 @@ public interface IDonationPaymentCreateGatewayAdapter
     /// 新產品若不需要舊 DTO，應直接使用 <see cref="CreateCardPaymentAsync"/> 的 provider-neutral 結果。
     /// </summary>
     Task<CreOrder> CreateLegacyOrderAsync(
-        QPayCreatePaymentInput input,
+        DonationPaymentCreateInput input,
         CancellationToken cancellationToken = default);
 }

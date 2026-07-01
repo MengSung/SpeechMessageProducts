@@ -11,13 +11,27 @@ using SpeechMessage.Payments.Models;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// 金流回傳端點的主要 Controller。
-    /// 這個 Controller 名稱刻意不包含 QPay，因為它負責的是 ChurchReport 的付款回傳流程，
-    /// 不是永豐專屬 protocol；provider callback 解析與狀態查詢由 <see cref="IPaymentGateway"/> 負責。
+    /// ChurchReport 的付款回傳 Controller。
+    ///
+    /// 這個 Controller 是「產品層 callback 入口」，不是任何一家銀行的 provider 實作。
+    /// 它的工作是把 ASP.NET Core 收到的 HTTP request 轉成通用金流核心看得懂的
+    /// <see cref="PaymentCallbackRequest"/>，再把金流核心查到的付款狀態交給
+    /// <see cref="IDonationPaymentReturnWorkflow"/> 做 ChurchReport 專屬後續處理。
+    ///
+    /// 分工邊界如下：
+    /// - 這裡可以知道 ASP.NET Core、Controller、ViewBag、舊網址。
+    /// - 這裡可以指定目前這條舊 callback 屬於 Sinopac profile，因為舊銀行設定就是打這個網址。
+    /// - 這裡不直接更新 CRM、不直接發 LINE、不直接解析銀行加密欄位。
+    /// - provider protocol 的 callback 解析與查詢付款狀態由 <see cref="IPaymentGateway"/> 負責。
+    ///
+    /// 舊外部網址仍透過 Route attribute 保留，避免銀行後台設定或既有連結立刻失效；
+    /// 但是 C# 類別與方法使用 PaymentReturn 這種中性名稱，避免把整條產品流程誤命名成單一 provider。
     /// </summary>
     [Route("api/[controller]")]
     public class PaymentReturnController : Controller
     {
+        private const string PaymentResultViewName = "~/Views/PaymentReturn/PaymentResult.cshtml";
+
         private readonly IPaymentGateway _paymentGateway;
         private readonly PaymentHttpRequestMapper _paymentHttpRequestMapper;
         private readonly ChurchReportPaymentProfileResolver _paymentProfileResolver;
@@ -36,23 +50,36 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 新的中性付款回傳端點。
-        /// 目前 provider callback 仍可能使用舊 QPay URL，因此此 action 是新的主要名稱，
-        /// 舊 action 會透過 <see cref="ReturnCore"/> 重用同一段流程。
+        /// 接收付款完成後的瀏覽器導回或 provider callback。
+        ///
+        /// 這個 action 同時掛上新的中性 URL 與舊 URL：
+        /// - /api/PaymentReturn/Return：新的中性入口。
+        /// - /Payment/Return：比較短的中性入口。
+        /// - 舊 route template：保留給銀行後台或既有連結使用。
+        ///
+        /// 實作時不要新增舊 provider 形狀的方法名稱；如果未來還有舊網址要保留，
+        /// 請只加 Route attribute，讓 C# 呼叫端永遠面對 Return 這個中性 action。
         /// </summary>
         [HttpPost]
         [HttpGet]
         [Route("Return")]
         [Route("/Payment/Return")]
+        [Route("/api/QPayCard/QPayReturnUrl")]
         public Task<IActionResult> Return(string ShopNo, string PayToken)
         {
             return ReturnCore(ShopNo, PayToken, "PaymentReturnController.Return");
         }
 
         /// <summary>
-        /// 實際付款回傳流程。
-        /// 這裡是 HTTP 層與付款 workflow 的邊界：HTTP query/form 先被轉成 PaymentCallbackRequest，
-        /// 再交給金流核心解析、查詢狀態，最後交給 ChurchReport 產品 workflow 處理 CRM/LINE 等後續流程。
+        /// 實際處理付款回傳的共用流程。
+        ///
+        /// 步驟拆解：
+        /// 1. 先把 ASP.NET Core 的 Request 轉成通用 callback request。
+        /// 2. 補上 MVC model binding 已經抓到的 ShopNo / PayToken，避免 query/form mapper 沒吃到時資料遺失。
+        /// 3. 呼叫 <see cref="IPaymentGateway.ParseCallbackAsync"/> 讓金流核心驗證 callback。
+        /// 4. 如果 callback 無效，就回到付款結果頁並顯示可診斷的錯誤。
+        /// 5. 如果 callback 有效，再查詢 provider 的最新付款狀態。
+        /// 6. 把狀態交給 ChurchReport 專屬 workflow，後續 CRM 更新、LINE 通知、頁面呈現都在 workflow 處理。
         /// </summary>
         protected async Task<IActionResult> ReturnCore(
             string ShopNo,
@@ -73,8 +100,6 @@ namespace ChurchReport.Controllers
                     PaymentProviderKind.Sinopac,
                     HttpContext.RequestAborted);
 
-                // ASP.NET MVC action binding 可能已經先把 ShopNo/PayToken 綁到參數。
-                // 這裡把它們補回 neutral callback request，讓 provider parser 有完整資料可判斷。
                 callbackRequest = EnsureReturnFields(callbackRequest, ShopNo, PayToken);
 
                 var callbackResult = await _paymentGateway.ParseCallbackAsync(
@@ -85,7 +110,7 @@ namespace ChurchReport.Controllers
                 {
                     return PaymentResultView(
                         false,
-                        "Payment callback is invalid. Please contact the church office if the payment was already submitted.",
+                        "付款回傳資料無效。如果您已經完成付款，請聯絡教會辦公室協助確認。",
                         string.Empty,
                         callbackResult.Error.Message);
                 }
@@ -98,8 +123,6 @@ namespace ChurchReport.Controllers
                     ReadProviderData(callbackResult.ProviderData, "shop_no"),
                     ShopNo);
 
-                // return callback 只代表金流通知抵達，不代表最終付款狀態。
-                // 因此必須透過 provider-neutral gateway 查詢狀態，再交給 ChurchReport workflow。
                 var statusResult = await _paymentGateway.QueryPaymentAsync(
                     new PaymentQueryRequest
                     {
@@ -131,9 +154,9 @@ namespace ChurchReport.Controllers
 
                 return PaymentResultView(
                     false,
-                    "An error occurred while processing the payment result. Please try again later or contact the church office.",
+                    "處理付款結果時發生錯誤，請稍後再試或聯絡教會辦公室。",
                     string.Empty,
-                    $"{ex.Message}\n\n{ex.StackTrace}");
+                    $"{ex.Message}{Environment.NewLine}{Environment.NewLine}{ex.StackTrace}");
             }
         }
 
@@ -147,7 +170,7 @@ namespace ChurchReport.Controllers
             ViewBag.Message = message;
             ViewBag.OrderId = orderId;
             ViewBag.ErrorDetails = errorDetails;
-            return View("~/Views/QPayCard/PaymentResult.cshtml");
+            return View(PaymentResultViewName);
         }
 
         private static PaymentCallbackRequest EnsureReturnFields(
@@ -183,7 +206,6 @@ namespace ChurchReport.Controllers
 
         private static string MaskForTrace(string value)
         {
-            // PayToken 可能是可追蹤付款的敏感識別值，trace 只保留頭尾方便除錯。
             if (string.IsNullOrWhiteSpace(value))
             {
                 return string.Empty;

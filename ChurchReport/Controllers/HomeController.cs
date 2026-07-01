@@ -1,4 +1,4 @@
-﻿using ChurchReport.Models;
+using ChurchReport.Models;
 using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using ChurchReport.ViewModels;
@@ -34,7 +34,7 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="httpContextAccessor">HTTP 上下文存取器</param>
         /// <param name="memoryCache">記憶體快取</param>
-        /// <param name="qpayService">金流服務</param>
+        /// <param name="paymentService">金流服務</param>
         /// <param name="toolUtilityProvider">ToolUtility 提供者 (DI 注入)</param>
         /// <param name="connectionPool">CRM 連線池</param>
         /// <param name="inMemoryContext">記憶體資料上下文 (DI 注入)</param>
@@ -130,12 +130,14 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 向後相容: 將舊的 /Home/QPayView 重導向到 /Dedication/QPayView
+        /// 向後相容：將舊的奉獻付款入口轉到新的中性 action。
+        /// 路由字串保留舊網址，是為了不中斷既有 LINE/網頁連結；C# action 名稱改用 DonationPayment。
         /// </summary>
+        [Route("/Home/DonationPaymentView/{LineId}")]
         [Route("/Home/QPayView/{LineId}")]
-        public IActionResult QPayViewRedirect(string LineId)
+        public IActionResult DonationPaymentViewRedirect(string LineId)
         {
-            return RedirectToAction("QPayView", "Dedication", new { LineId = LineId });
+            return RedirectToAction("DonationPaymentView", "Dedication", new { LineId = LineId });
         }
 
         /// <summary>
@@ -617,26 +619,30 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region QPay 登入
+        #region 奉獻付款網頁登入
 
         /// <summary>
-        /// 顯示 QPay 登入頁面
+        /// 顯示奉獻付款網頁登入頁。
+        /// 舊網址 /Home/QPayLogin 保留為 route template，內部轉到中性 Controller。
         /// </summary>
         [HttpGet]
+        [Route("/Home/DonationPaymentLogin")]
         [Route("/Home/QPayLogin")]
-        public IActionResult QPayLogin()
+        public IActionResult DonationPaymentLogin()
         {
-            return RedirectToAction("Index", "QPayLogin");
+            return RedirectToAction("Index", "DonationPaymentLogin");
         }
 
         /// <summary>
-        /// 處理 QPay 登入表單提交
+        /// 處理奉獻付款網頁登入表單。
+        /// 這裡只是一個舊 /Home/... 路徑的橋接點，真正的登入流程在 DonationPaymentLoginController。
         /// </summary>
         [HttpPost]
+        [Route("/Home/ProcessDonationPaymentLogin")]
         [Route("/Home/ProcessQPayLogin")]
-        public IActionResult ProcessQPayLogin(GalleryViewModel model)
+        public IActionResult ProcessDonationPaymentLogin(GalleryViewModel model)
         {
-            using (var controller = new QPayLoginController(
+            using (var controller = new DonationPaymentLoginController(
                 HttpContext.RequestServices.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor,
                 HttpContext.RequestServices.GetService(typeof(IMemoryCache)) as IMemoryCache,
                 HttpContext.RequestServices.GetService(typeof(IToolUtilityProvider)) as IToolUtilityProvider,
@@ -647,7 +653,7 @@ namespace ChurchReport.Controllers
                     HttpContext = this.HttpContext
                 };
 
-                return controller.ProcessQPayLogin(model);
+                return controller.ProcessDonationPaymentLogin(model);
             }
         }
 

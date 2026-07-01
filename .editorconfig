@@ -1,6 +1,8 @@
-﻿root = true
+root = true
 
-[*.cs]
-charset = utf-8-bom
+# The project is edited mainly with Windows and Visual Studio, so keep text files on CRLF.
+# charset=utf-8 means UTF-8 without BOM and prevents mixed BOM/no-BOM edits.
+[*.{cs,cshtml,csproj,sln,json,config,xml,css,js,ts,md,ps1,txt}]
+charset = utf-8
 end_of_line = crlf
 insert_final_newline = true

@@ -10,7 +10,7 @@ namespace ChurchReport.Payments;
 /// </summary>
 public sealed class DonationPaymentReturnPresenter
 {
-    private const string PaymentResultView = "~/Views/QPayCard/PaymentResult.cshtml";
+    private const string PaymentResultView = "~/Views/PaymentReturn/PaymentResult.cshtml";
 
     /// <summary>
     /// 設定付款成功頁需要的 ViewBag 欄位，讓 processor 不再散落重複的畫面設定。

@@ -1,4 +1,4 @@
-﻿@using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
 @{
     var themeCssClass = (ViewData["ThemeCssClass"] as string)?.Trim();
@@ -501,7 +501,7 @@
                         @* 會友資訊導覽：以 ViewComponent 自行計算存取等級（必要時載入登入連絡人並快取 Session），
                            確保在「回報統計」等不走 SetupMemberInfoViewBag 的頁面、以及剛登入第一個畫面也能正確顯示 *@
                         @await Component.InvokeAsync("MemberInfoNav")
-                        <li><a href="/Dedication/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
+                            <li><a href="/Dedication/DonationPaymentView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
                         <li><a href="/Dedication/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
                         <li><a href="/Home/EquipmentView"><i class="fas fa-tools"></i>裝備狀態</a></li>
                         @if (@ViewBag.IsAOfficeWorker == "是的")
@@ -526,7 +526,7 @@
                         {
                             @if (@ViewBag.DedicationType == "奉獻管理")
                             {
-                                <li><a href="/Dedication/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
+                            <li><a href="/Dedication/DonationPaymentView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
                                 <li><a href="/Dedication/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
                                 @if (@ViewBag.IsAOfficeWorker == "是的")
                                 {
@@ -536,7 +536,7 @@
                             }
                             else if (@ViewBag.DedicationFlag == "奉獻")
                             {
-                                <li><a href="/Dedication/QPayView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
+                            <li><a href="/Dedication/DonationPaymentView/網頁登入"><i class="fas fa-donate"></i>奉獻</a></li>
                                 <li><a href="/Dedication/DedicationFeeViewWeb"><i class="fas fa-receipt"></i>奉獻收費清單</a></li>
                             }
                             else

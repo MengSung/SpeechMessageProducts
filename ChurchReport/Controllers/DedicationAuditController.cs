@@ -97,7 +97,7 @@ namespace ChurchReport.Controllers
                 ViewBag.DisplayNavigation = "不顯示牧養回報項目";
                 ViewBag.UserType = "行政同工";
                 ViewBag.DedicationType = "奉獻管理";
-                ViewBag.IsAOfficeWorker = InMemoryContext.DonationPaymentManager.m_QpayModel.IsAOfficeWorker ? "是的" : "否";
+                ViewBag.IsAOfficeWorker = InMemoryContext.DonationPaymentManager.m_DonationPaymentFormModel.IsAOfficeWorker ? "是的" : "否";
             }
         }
 
@@ -109,13 +109,13 @@ namespace ChurchReport.Controllers
         /// 稽核查詢奉獻記錄
         /// 依據查詢條件篩選奉獻資料
         /// </summary>
-        /// <param name="QpayModel">查詢條件(日期區間、奉獻者等)</param>
+        /// <param name="DonationPaymentFormModel">查詢條件(日期區間、奉獻者等)</param>
         [HttpPost]
-        public async Task<IActionResult> AuditQueryDedication(QpayModel QpayModel)
+        public async Task<IActionResult> AuditQueryDedication(DonationPaymentFormModel DonationPaymentFormModel)
         {
             try
             {
-                return await InMemoryContext.DonationPaymentManager.AuditQueryDedication(QpayModel);
+                return await InMemoryContext.DonationPaymentManager.AuditQueryDedication(DonationPaymentFormModel);
             }
             catch (Exception e)
             {
@@ -148,7 +148,7 @@ namespace ChurchReport.Controllers
                 // - 安全的日誌記錄（隱藏敏感資訊）
                 EnsureCorrectUserData();
 
-                var tasks = InMemoryContext.DonationPaymentManager.m_QpayModel.DedicationFeeList;
+                var tasks = InMemoryContext.DonationPaymentManager.m_DonationPaymentFormModel.DedicationFeeList;
                 return DataSourceLoader.Load(tasks, loadOptions);
             }
             catch (Exception e)
@@ -178,7 +178,7 @@ namespace ChurchReport.Controllers
                 // - 安全的日誌記錄（隱藏敏感資訊）
                 EnsureCorrectUserData();
 
-                var sameNameList = InMemoryContext.DonationPaymentManager.m_QpayModel.SameNameList
+                var sameNameList = InMemoryContext.DonationPaymentManager.m_DonationPaymentFormModel.SameNameList
                     ?? new System.Collections.Generic.List<SameNameElement>();
 
                 return DataSourceLoader.Load(sameNameList, loadOptions);
@@ -341,7 +341,7 @@ namespace ChurchReport.Controllers
                 var feeList = InMemoryContext.DonationPaymentManager.GetDedicationFeesByContactId(id);
 
                 // GetDedicationFeesByContactId 內部已透過 SetDedicationFeeList 算好總金額
-                return Json(new { status = "1", DedicationFeeList = feeList, TotalAmount = InMemoryContext.DonationPaymentManager.m_QpayModel.TotalAmount });
+                return Json(new { status = "1", DedicationFeeList = feeList, TotalAmount = InMemoryContext.DonationPaymentManager.m_DonationPaymentFormModel.TotalAmount });
             }
             catch (Exception e)
             {

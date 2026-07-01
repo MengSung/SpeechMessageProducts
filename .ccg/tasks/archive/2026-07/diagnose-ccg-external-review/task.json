@@ -1,0 +1,12 @@
+{
+  "id": "diagnose-ccg-external-review",
+  "title": "診斷外部 Gemini/Claude CCG review 無法執行原因",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "tooling",
+  "currentPhase": "completed",
+  "nextAction": "安裝或修復 gemini/claude backend CLI，並改用 PowerShell 版本 review 指令",
+  "createdAt": "2026-07-01T00:00:00Z",
+  "branch": "Jesus_5.1.5_Worktree_TuneRefactorPament"
+}

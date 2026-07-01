@@ -3,17 +3,17 @@ using SpeechMessage.Payments.Models;
 namespace SpeechMessage.Payments.AspNetCore;
 
 /// <summary>
-/// 將各 ASP.NET Core 產品整理好的付款資料轉成金流核心可理解的
+/// 將 ASP.NET Core host 收到的產品付款資料轉成通用金流核心使用的
 /// <see cref="PaymentCreateRequest"/>。
-/// 這裡只處理 provider-neutral 欄位，不引用任何產品專案、CRM、LINE、
-/// 維修單、會員、發票等產品模型，讓不同產品可以重用同一個付款建立邊界。
+/// 這個 factory 只處理 provider-neutral 欄位搬移，不知道 CRM、LINE、奉獻、
+/// 發票或任何產品流程，因此可以被其他 ASP.NET Core 產品重用。
 /// </summary>
 public sealed class PaymentCreateRequestFactory
 {
     /// <summary>
-    /// 建立金流核心的付款請求。呼叫端應先把自己的產品流程資料整理成
-    /// <see cref="PaymentCreateRequestInput"/>，本方法只做欄位投影，不做
-    /// provider SDK payload 組裝，也不決定付款成功後的產品流程。
+    /// 建立金流核心的付款建立請求。Host 端可以先把自己的表單或 ViewModel
+    /// 投影成 <see cref="PaymentCreateRequestInput"/>，再由這裡產生核心 DTO。
+    /// 真正的 provider SDK payload 仍由 <c>SpeechMessage.Payments</c> 的 provider 實作負責。
     /// </summary>
     public PaymentCreateRequest Create(PaymentCreateRequestInput input)
     {
@@ -35,32 +35,42 @@ public sealed class PaymentCreateRequestFactory
 }
 
 /// <summary>
-/// Host 端建立付款時使用的中立輸入模型。
-/// 維修單號、會員編號、發票號碼、奉獻 CRM Id 等產品識別資料，應透過
-/// <see cref="Metadata"/> 傳遞，避免共用金流專案反向依賴任何單一產品。
+/// Host 應用程式傳入的付款建立資料。
+/// 產品專屬識別，例如 CRM Id、會員 Id、發票 Id 或維修單 Id，應放在
+/// <see cref="Metadata"/>，不要把產品欄位新增到通用金流核心模型。
 /// </summary>
 public sealed record PaymentCreateRequestInput
 {
-    /// <summary>要使用的付款 profile 名稱，對應 appsettings 的 Payment:Profiles 設定。</summary>
+    /// <summary>要使用的金流 profile 名稱，通常對應 appsettings 的 Payment:Profiles 設定。</summary>
     public string ProfileName { get; init; } = string.Empty;
-    /// <summary>產品端自己的訂單號或交易識別碼。</summary>
+
+    /// <summary>產品端訂單或收費單編號。</summary>
     public string ProductOrderId { get; init; } = string.Empty;
-    /// <summary>付款金額，使用主要幣別單位，例如新台幣 100 元即為 100。</summary>
+
+    /// <summary>付款金額，單位由 host 與 provider profile 約定，台灣金流通常為新台幣元。</summary>
     public decimal Amount { get; init; }
-    /// <summary>幣別，預設為 TWD。</summary>
+
+    /// <summary>幣別，預設 TWD。</summary>
     public string Currency { get; init; } = "TWD";
-    /// <summary>顯示給付款人或金流平台的商品/付款描述。</summary>
+
+    /// <summary>顯示給付款者或 provider 後台的付款描述。</summary>
     public string Description { get; init; } = string.Empty;
-    /// <summary>付款方式，例如信用卡、ATM、LinePay；實際值由 provider 轉換層解讀。</summary>
+
+    /// <summary>付款方式，例如信用卡、ATM、LinePay；provider 會再轉成自己的協定值。</summary>
     public string PaymentMethod { get; init; } = string.Empty;
-    /// <summary>付款方式子類型，例如一次付清或定期定額。</summary>
+
+    /// <summary>付款方式子類型，例如一次付清、定期定額或行動支付子類別。</summary>
     public string PaymentMethodSubType { get; init; } = string.Empty;
-    /// <summary>前景返回、背景通知、成功與失敗導向 URL。</summary>
+
+    /// <summary>付款完成、失敗、取消與 callback 使用的 URL。</summary>
     public PaymentCallbacks Callbacks { get; init; } = new();
-    /// <summary>付款人資訊，保持 provider-neutral，避免帶入特定供應商 DTO。</summary>
+
+    /// <summary>付款者資料，維持 provider-neutral，不承載產品專屬 contact 型別。</summary>
     public PaymentCustomer Customer { get; init; } = new();
-    /// <summary>付款項目明細；若產品沒有明細，可由呼叫端建立單一預設項目。</summary>
+
+    /// <summary>付款項目清單；若產品沒有明細，可由 host 建立單一明細。</summary>
     public IReadOnlyList<PaymentLineItem> Items { get; init; } = Array.Empty<PaymentLineItem>();
-    /// <summary>產品流程需要回傳保存的延伸資料，例如產品 Id、分類或對帳欄位。</summary>
+
+    /// <summary>產品端需要帶過金流核心邊界的附加資料，例如 CRM fee id 或付款者內部 id。</summary>
     public IReadOnlyDictionary<string, string> Metadata { get; init; } = new Dictionary<string, string>();
 }

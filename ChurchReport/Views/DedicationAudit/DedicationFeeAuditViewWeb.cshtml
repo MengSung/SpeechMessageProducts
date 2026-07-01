@@ -1,5 +1,5 @@
-﻿@using ChurchReport.Models
-@model QpayModel
+@using ChurchReport.Models
+@model DonationPaymentFormModel
 
 @{
     // 頁面標題：奉獻稽核頁面
@@ -350,7 +350,7 @@
 
     <!-- 表單容器：包含查詢條件輸入欄位 -->
     <div id="form-container_Date" class="dedication-audit-card">
-        @(Html.DevExtreme().Form<QpayModel>()
+        @(Html.DevExtreme().Form<DonationPaymentFormModel>()
         .ID("form")
         .ColCount(1)
         .Items

@@ -23,14 +23,14 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 建立認獻單實體
         /// </summary>
-        public Guid CreateDedicationBooking(Entity aContact, QpayModel QpayModel)
+        public Guid CreateDedicationBooking(Entity aContact, DonationPaymentFormModel DonationPaymentFormModel)
         {
             try
             {
                 var dedicationBookingEntity = new Entity("new_dedication_booking");
 
                 // 設定認獻單參數
-                SetDedicationBookingParameter(aContact, dedicationBookingEntity, QpayModel);
+                SetDedicationBookingParameter(aContact, dedicationBookingEntity, DonationPaymentFormModel);
 
                 // 建立認獻單
                 var dedicationBookingId = ToolUtility.CreateEntity(dedicationBookingEntity);
@@ -52,7 +52,7 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 設定認獻單參數
         /// </summary>
-        public void SetDedicationBookingParameter(Entity aContact, Entity aDedicationBookingToCreated, QpayModel QpayModel)
+        public void SetDedicationBookingParameter(Entity aContact, Entity aDedicationBookingToCreated, DonationPaymentFormModel DonationPaymentFormModel)
         {
             try
             {
@@ -67,16 +67,16 @@ namespace ChurchReport.WebServiceConnector
                 ToolUtility.SetOptionSetAttribute(ref aDedicationBookingToCreated, "new_dedication_booking_status", 100000000);
 
                 // 金額設定
-                SetDedicationBookingAmounts(ref aDedicationBookingToCreated, QpayModel);
+                SetDedicationBookingAmounts(ref aDedicationBookingToCreated, DonationPaymentFormModel);
 
                 // 日期設定
-                SetDedicationBookingDates(ref aDedicationBookingToCreated, QpayModel);
+                SetDedicationBookingDates(ref aDedicationBookingToCreated, DonationPaymentFormModel);
 
                 // 奉獻類別
-                SetPayCategory(QpayModel.Category, "new_dedication_category", ref aDedicationBookingToCreated);
+                SetPayCategory(DonationPaymentFormModel.Category, "new_dedication_category", ref aDedicationBookingToCreated);
 
                 // 奉獻備註
-                ToolUtility.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_explain", QpayModel.Explain);
+                ToolUtility.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_explain", DonationPaymentFormModel.Explain);
             }
             catch (Exception ex)
             {
@@ -91,29 +91,29 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 設定認獻單金額
         /// </summary>
-        private void SetDedicationBookingAmounts(ref Entity aDedicationBookingToCreated, QpayModel QpayModel)
+        private void SetDedicationBookingAmounts(ref Entity aDedicationBookingToCreated, DonationPaymentFormModel DonationPaymentFormModel)
         {
             // 每期金額
-            ToolUtility.SetEntityMoneyAttribute(ref aDedicationBookingToCreated, "new_amount_per_stage", new Money(QpayModel.Amount));
+            ToolUtility.SetEntityMoneyAttribute(ref aDedicationBookingToCreated, "new_amount_per_stage", new Money(DonationPaymentFormModel.Amount));
 
             // 總期數
-            ToolUtility.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_total_stages", QpayModel.DeductTotalNumber);
+            ToolUtility.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_total_stages", DonationPaymentFormModel.DeductTotalNumber);
 
             // 應收金額（每期金額 × 總期數）
-            var totalAmount = QpayModel.Amount * TransferToDeductTotalNum(QpayModel.DeductTotalNumber);
+            var totalAmount = DonationPaymentFormModel.Amount * TransferToDeductTotalNum(DonationPaymentFormModel.DeductTotalNumber);
             ToolUtility.SetEntityMoneyAttribute(ref aDedicationBookingToCreated, "new_dedication_amount", new Money(totalAmount));
         }
 
         /// <summary>
         /// 設定認獻單日期
         /// </summary>
-        private void SetDedicationBookingDates(ref Entity aDedicationBookingToCreated, QpayModel QpayModel)
+        private void SetDedicationBookingDates(ref Entity aDedicationBookingToCreated, DonationPaymentFormModel DonationPaymentFormModel)
         {
             // 開始日期
             ToolUtility.SetEntityDateTimeAttribute(ref aDedicationBookingToCreated, "new_dedication_start_date", DateTime.Now);
 
             // 結束日期（根據總期數計算）
-            var deductMonths = TransferToDeductTotalNum(QpayModel.DeductTotalNumber);
+            var deductMonths = TransferToDeductTotalNum(DonationPaymentFormModel.DeductTotalNumber);
             ToolUtility.SetEntityDateTimeAttribute(ref aDedicationBookingToCreated, "new_dedication_end_date", DateTime.Now.AddMonths(deductMonths));
         }
 

@@ -1,0 +1,12 @@
+{
+  "id": "qpay-model-boundary-brainstorm",
+  "title": "Brainstorm QpayModel and QpayManager boundary cleanup",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "review",
+  "nextAction": "Resolve plan review warnings, then re-run dual-model CCG review after gemini and claude commands are available in PATH",
+  "createdAt": "2026-07-01T00:00:00+08:00",
+  "branch": "Jesus_5.1.5_Worktree_TuneRefactorPament"
+}

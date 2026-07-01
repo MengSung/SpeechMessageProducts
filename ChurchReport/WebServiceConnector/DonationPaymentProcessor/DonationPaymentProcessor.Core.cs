@@ -48,7 +48,7 @@ namespace ChurchReport.WebServiceConnector
         // 環境 URL
         private readonly string RETURN_URL;
         private readonly string BACKEND_URL;
-        private readonly string QPAY_ORGANIZATION;
+        private readonly string PAYMENT_ORGANIZATION;
 
         // LINE Bot 服務
         private readonly LineMessagingClient m_LineMessagingClient;
@@ -91,7 +91,7 @@ namespace ChurchReport.WebServiceConnector
             // 初始化環境設定
             RETURN_URL = m_Configuration["RETURN_URL"];
             BACKEND_URL = m_Configuration["BACKEND_URL"];
-            QPAY_ORGANIZATION = m_Configuration["QPAY_ORGANIZATION"];
+            PAYMENT_ORGANIZATION = ResolvePaymentOrganization();
 
             // 初始化 LINE Bot
             var channelAccessToken = GetLineChannelAccessToken();
@@ -149,7 +149,7 @@ namespace ChurchReport.WebServiceConnector
             // 初始化環境設定
             RETURN_URL = m_Configuration["RETURN_URL"];
             BACKEND_URL = m_Configuration["BACKEND_URL"];
-            QPAY_ORGANIZATION = m_Configuration["QPAY_ORGANIZATION"];
+            PAYMENT_ORGANIZATION = ResolvePaymentOrganization();
 
             // 使用注入的 LINE Bot 服務
             m_LineMessagingClient = aLineMessagingClient ?? throw new ArgumentNullException(nameof(aLineMessagingClient));
@@ -248,8 +248,14 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>後端 URL</summary>
         protected string BackendUrl => BACKEND_URL;
 
-        /// <summary>ChurchReport 付款組織代碼。名稱暫保留 QPayOrganization，因 appsettings 既有 key 仍為 QPAY_ORGANIZATION。</summary>
-        protected string QPayOrganization => QPAY_ORGANIZATION;
+        /// <summary>
+        /// ChurchReport 付款組織代碼。
+        ///
+        /// 這個值會交給共用建單 adapter，讓 adapter 再依目前設定的 provider profile
+        /// 決定要送永豐、高鉅、台新或未來新增的金流。屬性名稱刻意使用 PaymentOrganization，
+        /// 不再使用 QPayOrganization，避免產品層共用建單流程看起來只屬於永豐 QPay。
+        /// </summary>
+        protected string PaymentOrganization => PAYMENT_ORGANIZATION;
 
         /// <summary>CRM 工具類</summary>
         protected ToolUtilityClass ToolUtility => m_ToolUtilityClass;
@@ -268,5 +274,19 @@ namespace ChurchReport.WebServiceConnector
         protected PushUtility PushUtility => m_PushUtility;
 
         #endregion
+
+        /// <summary>
+        /// 讀取 ChurchReport 付款組織設定。
+        ///
+        /// 新設定鍵是 Payment:Organization，語意是「這個產品目前使用哪個付款組織」；
+        /// 舊設定鍵 QPAY_ORGANIZATION 只作為既有 appsettings 尚未遷移時的相容 fallback。
+        /// 這裡只做設定鍵相容，不在 C# 型別或主要流程保留 QPay alias。
+        /// </summary>
+        private static string ResolvePaymentOrganization()
+        {
+            return m_Configuration["Payment:Organization"]
+                ?? m_Configuration["QPAY_ORGANIZATION"]
+                ?? string.Empty;
+        }
     }
 }

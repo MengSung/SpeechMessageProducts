@@ -32,7 +32,12 @@ Questions to answer:
 
 <!-- Patterns that must always be used -->
 
-(To be filled by the team)
+### Text File Encoding and Line Endings
+
+- Source, view, configuration, script, and Markdown files must be saved as UTF-8 without BOM.
+- Windows/Visual Studio text files must use CRLF line endings.
+- Before completing a task that touches text files, run a byte-level check for BOM and LF-only lines on the modified files.
+- Do not rely only on the editor warning dialog; fix the file format before reporting completion.
 
 ---
 

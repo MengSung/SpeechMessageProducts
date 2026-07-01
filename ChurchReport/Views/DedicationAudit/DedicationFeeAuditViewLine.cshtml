@@ -1,5 +1,5 @@
-﻿@using ChurchReport.Models
-@model QpayModel
+@using ChurchReport.Models
+@model DonationPaymentFormModel
 
     <head>
         <!-- Site made with Mobirise Website Builder v4.0.16, https://mobirise.com -->
@@ -57,7 +57,7 @@
             </div>
         </div>
         <div id="form-container_Date">
-            @(Html.DevExtreme().Form<QpayModel>()
+            @(Html.DevExtreme().Form<DonationPaymentFormModel>()
         .ID("form")
         .ColCount(1)
         .Items
