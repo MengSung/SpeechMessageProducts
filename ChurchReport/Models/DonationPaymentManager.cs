@@ -826,15 +826,6 @@ namespace ChurchReport.Models
             }
         }
 
-        /// <summary>
-        /// 舊 action/model 呼叫端的相容入口；實際奉獻付款建立流程集中在
-        /// <see cref="SaveDonationPaymentDedicationAsync"/>。
-        /// </summary>
-        [Obsolete("Use SaveDonationPaymentDedicationAsync. SaveQPayDedication is retained only for compatibility during migration.")]
-        public Task<IActionResult> SaveQPayDedication(DonationPaymentFormModel donationPaymentModel)
-        {
-            return SaveDonationPaymentDedicationAsync(donationPaymentModel);
-        }
         #endregion
         #region 與官網整合串連，決定登入者
         public Entity GetDonationPaymentLoginContact(GalleryViewModel aGalleryViewModel, ref String QueryResult)

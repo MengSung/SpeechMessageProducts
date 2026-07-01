@@ -41,7 +41,6 @@
     <None Remove="Views\Home\HappyGroupWeeklyReport.cshtml" />
     <None Remove="Views\Home\IntegrateView.cshtml" />
     <None Remove="Views\Home\MultiGroupView.cshtml" />
-    <None Remove="Views\Home\QPayLogin.cshtml" />
     <None Remove="Views\Home\QualificationView.cshtml" />
     <None Remove="Views\Home\SchedulerView.cshtml" />
     <None Remove="Views\Home\VisitorCard.cshtml" />
@@ -53,7 +52,6 @@
     <None Remove="wwwroot\js\FeeDataGridAjax.js" />
     <Content Include="bower.json" />
     <Content Include="Properties\launchSettings.json" />
-    <Content Include="文件\歷程記錄\QPayView_README.md" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DevExtreme.AspNet.Core" Version="23.1.5" />

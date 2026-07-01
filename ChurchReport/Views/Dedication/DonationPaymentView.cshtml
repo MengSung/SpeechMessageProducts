@@ -51,24 +51,24 @@
     <link href="~/css/Scheduler.css" rel="stylesheet">
     <link href="~/css/Site.css" rel="stylesheet">
     
-    <!-- QPayView 專屬樣式 -->
-    <link href="~/css/QPayView.css?v=20251024" rel="stylesheet">
+<!-- DonationPaymentView 專屬樣式 -->
+<link href="~/css/DonationPaymentView.css?v=20251024" rel="stylesheet">
 </head>
 
 <style>
-  .qpay-page {
+.donation-payment-page {
     --theme-primary: #0f766e;
     --theme-border: #d9e6f2;
     --theme-surface: #ffffff;
     --theme-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
   }
 
-  .qpay-container {
+.donation-payment-container {
     max-width: 1024px;
     margin: 0 auto;
   }
 
-  .qpay-card {
+.donation-payment-card {
     background: var(--theme-surface);
     border: 1px solid var(--theme-border);
     border-radius: 16px;
@@ -91,8 +91,8 @@
     line-height: 1.5;
   }
 
-  .qpay-page .dx-texteditor.dx-state-focused,
-  .qpay-page .dx-texteditor.dx-state-hover {
+.donation-payment-page .dx-texteditor.dx-state-focused,
+.donation-payment-page .dx-texteditor.dx-state-hover {
     box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.14);
     border-radius: 8px;
   }
@@ -299,7 +299,7 @@
       --row-height: 42px;
     }
 
-    .qpay-card,
+.donation-payment-card,
     .card-list,
     .booking-list {
       border-radius: 12px;
@@ -351,7 +351,7 @@
   }
 
   @@media (max-width: 430px) {
-    .qpay-page {
+.donation-payment-page {
       padding-left: 4px;
       padding-right: 4px;
     }
@@ -424,8 +424,8 @@
 </style>
 
 <!-- ==================== 頁面主容器 ==================== -->
-<div class="qpay-page">
-    <div class="qpay-container">
+<div class="donation-payment-page">
+    <div class="donation-payment-container">
         <!-- ==================== 奉獻者資訊 ==================== -->
         <div class="dedication-header">
             <h4 id="displaynamefield">
@@ -441,11 +441,11 @@
         <form data-ajax="true" 
               data-ajax-begin="onBegin" 
               data-ajax-success="onSuccess" 
-              asp-action="SaveQPayDedication" 
+                  asp-action="SaveDonationPaymentDedication"
               asp-controller="Dedication" 
               method="post">
             
-            <div id="form-container" class="qpay-card">
+            <div id="form-container" class="donation-payment-card">
                 <h5 class="section-title">
                     <i class="mbri-edit" style="margin-right: 10px;"></i>奉獻資訊
                 </h5>
@@ -583,7 +583,7 @@
             </div>
 
             <!-- ==================== 信用卡列表 ==================== -->
-            <div id="creditcardlistcontainer" class="card-list qpay-card">
+        <div id="creditcardlistcontainer" class="card-list donation-payment-card">
                 <h4 class="section-title">
                     <i class="mbri-credit-card" style="margin-right: 15px;"></i>
                     我的信用卡
@@ -676,7 +676,7 @@
             </div>
 
                         <!-- ==================== 定期定額清單 ==================== -->
-            <div id="dedicationbookinglistcontainer" class="booking-list qpay-card">
+        <div id="dedicationbookinglistcontainer" class="booking-list donation-payment-card">
                 <h5 class="section-title">
                     <i class="mbri-timer" style="margin-right: 10px;"></i>
                     定期定額奉獻清單
@@ -851,7 +851,7 @@
 <script src="~/js/devextreme/localization/dx.messages.zh-tw.js"></script>
 <!-- 移除會與全域 Bootstrap 衝突的外部 JS：Popper/Tether/Bootstrap/Mobirise -->
 
-<!-- ==================== QPayView 自定義腳本 ==================== -->
+<!-- ==================== DonationPaymentView 自定義腳本 ==================== -->
 <script>
     // ==================== 工具函數 ====================
     // 獲取 LoadPanel 實例

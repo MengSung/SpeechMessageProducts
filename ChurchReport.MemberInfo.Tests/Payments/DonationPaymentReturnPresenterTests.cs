@@ -30,7 +30,7 @@ public sealed class DonationPaymentReturnPresenterTests
         ((string)controller.ViewBag.TransactionId).Should().Be("TX-DONATION-001");
         ((string)controller.ViewBag.PaymentMethod).Should().Be("信用卡");
         ((string)controller.ViewBag.DedicationCategory).Should().Be("十一奉獻");
-        ((ViewResult)result).ViewName.Should().Be("~/Views/QPayCard/PaymentResult.cshtml");
+        ((ViewResult)result).ViewName.Should().Be("~/Views/PaymentReturn/PaymentResult.cshtml");
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public sealed class DonationPaymentReturnPresenterTests
         ((string)controller.ViewBag.FullName).Should().Be("王小明");
         ((string)controller.ViewBag.OrderId).Should().Be("D202606300002");
         ((string)controller.ViewBag.ErrorDetails).Should().Be("銀行拒絕交易");
-        ((ViewResult)result).ViewName.Should().Be("~/Views/QPayCard/PaymentResult.cshtml");
+        ((ViewResult)result).ViewName.Should().Be("~/Views/PaymentReturn/PaymentResult.cshtml");
     }
 
     private sealed class TestController : Controller

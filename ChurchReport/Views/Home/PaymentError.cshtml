@@ -62,7 +62,7 @@
                 }
                 <div class="btn-group">
                     <button onclick="history.back()" class="btn btn-outline-primary"><i class="mbri-left" aria-hidden="true"></i> 返回上頁</button>
-                    <a href="/Home/QPayView/功能登入" class="btn btn-primary"><i class="mbri-refresh" aria-hidden="true"></i> 重新付款</a>
+                    <a href="/Dedication/DonationPaymentView/功能登入" class="btn btn-primary"><i class="mbri-refresh" aria-hidden="true"></i> 重新付款</a>
                     <a href="/Home/Login" class="btn btn-secondary"><i class="mbri-home" aria-hidden="true"></i> 回到首頁</a>
                 </div>
                 @if (!string.IsNullOrEmpty(errorDetails))
@@ -103,7 +103,7 @@
                     sessionStorage.removeItem('paymentData');
                 }
             } catch (e) {}
-            window.location.href = '/Home/QPayView/功能登入';
+                    window.location.href = '/Dedication/DonationPaymentView/功能登入';
         }
         function reportProblem() {
             var errorInfo = {

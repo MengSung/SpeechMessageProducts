@@ -6,19 +6,18 @@ namespace ChurchReport.MemberInfo.Tests.Payments;
 public sealed class DonationPaymentReturnWorkflowNamingTests
 {
     [Fact]
-    public void Legacy_qpay_workflow_result_remains_available_during_rename()
+    public void Legacy_qpay_workflow_result_should_not_remain_after_neutral_rename()
     {
-        // 這個測試保護舊程式碼與尚未改名的呼叫點：
-        // 第一階段改名時，不能直接移除 QPayWorkflowPaymentResult，否則舊的 CRM/LINE 回傳流程會立刻中斷。
+        // CRM 更新與 LINE 通知流程已經改用 DonationPaymentWorkflowResult。
+        // 舊 QPayWorkflowPaymentResult 不應再保留成 alias，避免未來高鉅、台新或新金流看起來也在依賴永豐名稱。
         var resultType = Type.GetType("ChurchReport.Payments.QPayWorkflowPaymentResult, ChurchReport");
 
-        resultType.Should().NotBeNull("第一階段必須保留舊 QPay DTO 作為相容層");
+        resultType.Should().BeNull();
     }
 
     [Fact]
     public void New_donation_payment_workflow_result_exists_after_rename()
     {
-        // 這個測試描述目標狀態：
         // ChurchReport 產品流程應該使用 DonationPaymentWorkflowResult，而不是使用永豐專屬的 QPay 名稱。
         var resultType = Type.GetType("ChurchReport.Payments.DonationPaymentWorkflowResult, ChurchReport");
 

@@ -851,16 +851,27 @@ namespace ChurchReport
                     template: string.Empty,
                     defaults: new { controller = "Authentication", action = "Login" });
 
-                // QPay 登入路由
+                // 奉獻付款登入路由。
+                // template 保留舊 URL，defaults 指向中性 action，避免 conventional route 依賴已移除的 QPay action 名稱。
                 routes.MapRoute(
-                    name: "qpaylogin",
+                    name: "legacy-donation-payment-login",
                     template: "Home/QPayLogin",
-                    defaults: new { controller = "Home", action = "QPayLogin" });
+                    defaults: new { controller = "Home", action = "DonationPaymentLogin" });
 
                 routes.MapRoute(
-                    name: "processqpaylogin",
+                    name: "legacy-process-donation-payment-login",
                     template: "Home/ProcessQPayLogin",
-                    defaults: new { controller = "Home", action = "ProcessQPayLogin" });
+                    defaults: new { controller = "Home", action = "ProcessDonationPaymentLogin" });
+
+                routes.MapRoute(
+                    name: "donationpaymentlogin",
+                    template: "Home/DonationPaymentLogin",
+                    defaults: new { controller = "Home", action = "DonationPaymentLogin" });
+
+                routes.MapRoute(
+                    name: "processdonationpaymentlogin",
+                    template: "Home/ProcessDonationPaymentLogin",
+                    defaults: new { controller = "Home", action = "ProcessDonationPaymentLogin" });
 
                 // 登入相關路由
                 routes.MapRoute(
@@ -953,9 +964,14 @@ namespace ChurchReport
 
                 // 奉獻相關路由
                 routes.MapRoute(
-                    name: "qpayview",
+                    name: "donationpaymentview",
+                    template: "Dedication/DonationPaymentView/{LineId?}",
+                    defaults: new { controller = "Dedication", action = "DonationPaymentView" });
+
+                routes.MapRoute(
+                    name: "legacy-donation-payment-view",
                     template: "Dedication/QPayView/{LineId?}",
-                    defaults: new { controller = "Dedication", action = "QPayView" });
+                    defaults: new { controller = "Dedication", action = "DonationPaymentView" });
 
                 routes.MapRoute(
                     name: "dedicationfeeview",

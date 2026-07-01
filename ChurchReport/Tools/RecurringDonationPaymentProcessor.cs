@@ -1,4 +1,4 @@
-using ChurchReport.WebServiceConnector;
+﻿using ChurchReport.WebServiceConnector;
 using Line.Messaging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -171,7 +171,7 @@ namespace ChurchReport.Tools
                         ViewBag.OrderId = paymentResult.OrderNo;
                         ViewBag.PaymentMethod = "信用卡定期定額";
                         ViewBag.ErrorDetails = paymentStatusText;
-                        return View("~/Views/QPayCard/PaymentResult.cshtml");
+                return View("~/Views/PaymentReturn/PaymentResult.cshtml");
                     }
                     else
                     {
@@ -179,7 +179,7 @@ namespace ChurchReport.Tools
                         ViewBag.Message = "付款失敗，請稍後再試或聯繫教會辦公室。";
                         ViewBag.OrderId = paymentResult.OrderNo;
                         ViewBag.ErrorDetails = paymentStatusText;
-                        return View("~/Views/QPayCard/PaymentResult.cshtml");
+                return View("~/Views/PaymentReturn/PaymentResult.cshtml");
                     }
                 }
                 else { }
@@ -219,7 +219,7 @@ namespace ChurchReport.Tools
                     ViewBag.OrderId = paymentResult.OrderNo;
                     ViewBag.PaymentMethod = "信用卡定期定額";
                     ViewBag.ErrorDetails = paymentStatusText;
-                    return View("~/Views/QPayCard/PaymentResult.cshtml");
+                return View("~/Views/PaymentReturn/PaymentResult.cshtml");
                 }
                 #endregion
                 #endregion
@@ -340,7 +340,7 @@ namespace ChurchReport.Tools
                     string dedicationCategory = GetDedicationCategoryText(categoryOption);
                     ViewBag.DedicationCategory = dedicationCategory;
 
-                    return View("~/Views/QPayCard/PaymentResult.cshtml");
+                return View("~/Views/PaymentReturn/PaymentResult.cshtml");
                 }
                 else
                 {
@@ -364,7 +364,7 @@ namespace ChurchReport.Tools
                     ViewBag.ErrorDetails = Description;
                     ViewBag.PaymentMethod = "信用卡定期定額";
 
-                    return View("~/Views/QPayCard/PaymentResult.cshtml");
+                    return View("~/Views/PaymentReturn/PaymentResult.cshtml");
                 }
             }
             catch (System.Exception e)

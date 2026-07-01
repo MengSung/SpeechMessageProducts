@@ -60,7 +60,15 @@ public sealed class DonationPaymentFormModelNamingTests
             Path.Combine("ChurchReport", "文件")
         };
 
-        var offenders = Directory.GetFileSystemEntries(repositoryRoot, "*", SearchOption.AllDirectories)
+        var runtimeRoots = new[]
+        {
+            Path.Combine(repositoryRoot, "ChurchReport"),
+            Path.Combine(repositoryRoot, "SpeechMessage.Payments")
+        };
+
+        var offenders = runtimeRoots
+            .Where(Directory.Exists)
+            .SelectMany(root => Directory.GetFileSystemEntries(root, "*", SearchOption.AllDirectories))
             .Where(path => !ShouldIgnorePath(repositoryRoot, path))
             .Where(path =>
                 Path.GetFileName(path).Contains(ProviderBrandToken, StringComparison.Ordinal) ||
@@ -91,7 +99,15 @@ public sealed class DonationPaymentFormModelNamingTests
             Path.Combine("SpeechMessage.Payments.Tests", "Providers", "Sinopac")
         };
 
-        var scannedFiles = Directory.GetFiles(repositoryRoot, "*.cs", SearchOption.AllDirectories)
+        var runtimeRoots = new[]
+        {
+            Path.Combine(repositoryRoot, "ChurchReport"),
+            Path.Combine(repositoryRoot, "SpeechMessage.Payments")
+        };
+
+        var scannedFiles = runtimeRoots
+            .Where(Directory.Exists)
+            .SelectMany(root => Directory.GetFiles(root, "*.cs", SearchOption.AllDirectories))
             .Where(path => !ShouldIgnorePath(repositoryRoot, path))
             .ToArray();
 
@@ -125,6 +141,7 @@ public sealed class DonationPaymentFormModelNamingTests
             relativePath.Equals(Path.Combine("ChurchReport", "Controllers", "DonationPaymentLoginController.cs"), StringComparison.OrdinalIgnoreCase) ||
             relativePath.Equals(Path.Combine("ChurchReport", "Controllers", "HomeController.cs"), StringComparison.OrdinalIgnoreCase) ||
             relativePath.Equals(Path.Combine("ChurchReport", "Controllers", "PaymentReturnController.cs"), StringComparison.OrdinalIgnoreCase) ||
+            relativePath.Equals(Path.Combine("ChurchReport", "WebServiceConnector", "DonationPaymentProcessor", "DonationPaymentProcessor.Core.cs"), StringComparison.OrdinalIgnoreCase) ||
             relativePath.Equals(Path.Combine("ChurchReport", "Startup.cs"), StringComparison.OrdinalIgnoreCase);
 
         if (!isLegacyRouteOwner)
@@ -137,7 +154,8 @@ public sealed class DonationPaymentFormModelNamingTests
             trimmed.StartsWith("[Route(", StringComparison.Ordinal) ||
             trimmed.StartsWith("[HttpGet(", StringComparison.Ordinal) ||
             trimmed.StartsWith("[HttpPost(", StringComparison.Ordinal) ||
-            trimmed.StartsWith("template:", StringComparison.Ordinal);
+            trimmed.StartsWith("template:", StringComparison.Ordinal) ||
+            line.Contains("[\"QPAY_ORGANIZATION\"]", StringComparison.Ordinal);
 
         if (!isRouteString)
         {

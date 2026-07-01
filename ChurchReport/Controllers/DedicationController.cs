@@ -19,7 +19,8 @@ namespace ChurchReport.Controllers
 {
     /// <summary>
     /// 奉獻管理控制器
-    /// 處理線上金流(QPay)奉獻相關功能
+    /// 處理線上奉獻付款相關功能。
+    /// 真正使用哪一家金流由共用 payment core 與 appsettings profile 決定，Controller 只負責 ChurchReport 的畫面、CRM 與 Session 流程。
     /// </summary>
     public class DedicationController : BaseChurchController
     {
@@ -47,10 +48,13 @@ namespace ChurchReport.Controllers
         #region 奉獻主頁面 (Line 或網頁登入)
 
         /// <summary>
-        /// 永豐金流奉獻主頁面
-        /// 支援 LINE 單獨登入或網頁登入
+        /// 奉獻付款主頁面。
+        ///
+        /// `/Dedication/DonationPaymentView/{LineId}` 是新的中性入口；
+        /// `/Dedication/QPayView/{LineId}` 僅保留給舊 LINE 連結與既有書籤使用，不代表此 action 只服務永豐 QPay。
         /// </summary>
         /// <param name="LineId">LINE 使用者 ID (若從 LINE 進入)</param>
+        [Route("/Dedication/DonationPaymentView/{LineId}")]
         [Route("/Dedication/QPayView/{LineId}")]
         public async Task<IActionResult> DonationPaymentView(string LineId)
         {
@@ -102,7 +106,7 @@ namespace ChurchReport.Controllers
         /// 在官網網頁登入流程中，必要時重新建立奉獻頁模型。
         ///
         /// 根因說明：
-        /// QPayLoginController 在 AJAX POST 中已經呼叫 SetDonationPaymentModel(contact)，
+        /// DonationPaymentLoginController 在 AJAX POST 中已經呼叫 SetDonationPaymentModel(contact)，
         /// 但瀏覽器接著會 redirect 到奉獻頁，DevExtreme Grid 又會再送 AJAX 請求。
         /// 如果這些請求讀到不同的 DonationPaymentManager memory-cache key，畫面就會拿到空模型，
         /// 導致姓名、奉獻編號與信用卡清單一起消失。
@@ -221,6 +225,7 @@ namespace ChurchReport.Controllers
         /// <param name="DonationPaymentFormModel">奉獻資料模型</param>
         [HttpPost]
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        [Route("/Dedication/SaveDonationPaymentDedication")]
         [Route("/Dedication/SaveQPayDedication")]
         public async Task<IActionResult> SaveDonationPaymentDedication(DonationPaymentFormModel DonationPaymentFormModel)
         {

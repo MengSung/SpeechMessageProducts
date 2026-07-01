@@ -85,7 +85,7 @@
 
     </div>
 
-    <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessQPayLogin" asp-controller="QPayLogin" method="post" style="text-align: center;">
+    <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" asp-action="ProcessDonationPaymentLogin" asp-controller="DonationPaymentLogin" method="post" style="text-align: center;">
 
         <div class="dx-field" style="text-align: center;">
             <div class="form-container-class" id="form-container" style="text-align: center;">
@@ -155,7 +155,7 @@
                                 );
 
                         })
-                        .ValidationGroup("QPay")
+                        .ValidationGroup("DonationPayment")
                 )
             </div>
         </div>
@@ -170,7 +170,7 @@
                     .UseSubmitBehavior(true)
                     .OnClick("Login")
                     .Width(100)
-                    //.ValidationGroup("QPay")
+                    //.ValidationGroup("DonationPayment")
                 )
             </div>
             <div id="LoadPanel">
@@ -239,7 +239,7 @@
             if (data.status == 1) {
                 ShowToast(data.message, "success", 2000);
 
-                window.location.href = "/Home/QPayView/網頁登入";
+                window.location.href = "/Dedication/DonationPaymentView/網頁登入";
             }
             else if (data.status == 2) {
                 document.getElementById('displaynamefield').innerHTML = data.message;

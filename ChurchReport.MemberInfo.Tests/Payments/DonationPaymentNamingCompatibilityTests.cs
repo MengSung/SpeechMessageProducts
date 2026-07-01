@@ -7,14 +7,13 @@ namespace ChurchReport.MemberInfo.Tests.Payments;
 public sealed class DonationPaymentNamingCompatibilityTests
 {
     [Fact]
-    public void Old_qpay_card_controller_remains_available_as_route_alias_during_migration()
+    public void Old_qpay_card_controller_should_not_remain_as_csharp_alias()
     {
         // 舊的 QPayCardController 仍然承接既有金流回傳 URL。
         // 這是外部金流設定與舊連結的相容層，不代表新程式還應該以 QPay 命名為主。
         var legacyType = Type.GetType("ChurchReport.Controllers.QPayCardController, ChurchReport");
 
-        legacyType.Should().NotBeNull();
-        legacyType!.IsAssignableTo(typeof(Controller)).Should().BeTrue();
+        legacyType.Should().BeNull();
     }
 
     [Fact]

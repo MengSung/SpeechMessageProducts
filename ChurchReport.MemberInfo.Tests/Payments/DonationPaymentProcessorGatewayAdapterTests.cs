@@ -21,7 +21,7 @@ namespace ChurchReport.MemberInfo.Tests.Payments;
 /// 驗證 ChurchReport 奉獻付款流程已透過產品層 adapter 接到共用金流核心，
 /// 並保留舊 QPay 命名入口的相容性。
 /// </summary>
-public sealed class QPayProcessorGatewayAdapterTests
+public sealed class DonationPaymentProcessorGatewayAdapterTests
 {
     [Fact]
     public void ChurchReport_controllers_do_not_accept_legacy_ipayment_in_constructors()
@@ -137,7 +137,7 @@ public sealed class QPayProcessorGatewayAdapterTests
     }
 
     [Fact]
-    public async Task CreateQPayOrder_uses_gateway_adapter_when_available()
+    public async Task CreateDonationPaymentOrder_uses_gateway_adapter_when_available()
     {
         var gateway = new RecordingPaymentGateway(new PaymentCreateResult
         {
@@ -152,7 +152,7 @@ public sealed class QPayProcessorGatewayAdapterTests
         });
         var processor = CreateProcessor(CreateAdapter(gateway));
 
-        var order = await InvokeCreateQPayOrder(processor);
+        var order = await InvokeCreateDonationPaymentOrder(processor);
 
         gateway.CreatePaymentCallCount.Should().Be(1);
         gateway.LastCreateRequest.Should().NotBeNull();
@@ -312,13 +312,13 @@ public sealed class QPayProcessorGatewayAdapterTests
         var processor = (DonationPaymentProcessor)RuntimeHelpers.GetUninitializedObject(typeof(DonationPaymentProcessor));
         SetField(processor, "RETURN_URL", "https://church.example.test/qpay-return");
         SetField(processor, "BACKEND_URL", "https://church.example.test/qpay-backend");
-        SetField(processor, "QPAY_ORGANIZATION", "Jesus");
+        SetField(processor, "PAYMENT_ORGANIZATION", "Jesus");
         SetField(processor, "m_ShopNo", "NA0149_001");
         SetField(processor, "m_DonationPaymentCreateGatewayAdapter", adapter);
         return processor;
     }
 
-    private static async Task<CreOrder> InvokeCreateQPayOrder(DonationPaymentProcessor processor)
+    private static async Task<CreOrder> InvokeCreateDonationPaymentOrder(DonationPaymentProcessor processor)
     {
         var method = typeof(DonationPaymentProcessor).GetMethod(
             "CreateDonationPaymentOrder",

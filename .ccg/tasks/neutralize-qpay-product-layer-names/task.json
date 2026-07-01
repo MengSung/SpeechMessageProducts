@@ -5,8 +5,8 @@
   "complexity": "M",
   "risk": "medium",
   "domain": "backend",
-  "currentPhase": "analysis",
-  "nextAction": "讀取 Trellis 規範並盤點 QPay 命名殘留",
+  "currentPhase": "implementation",
+  "nextAction": "先調整 guard 測試，再修改產品層 QPay 命名殘留",
   "createdAt": "2026-07-01T00:00:00Z",
   "branch": "Jesus_5.1.5_Worktree_TuneRefactorPament"
 }

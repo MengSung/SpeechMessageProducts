@@ -1,18 +1,18 @@
 @{
-    ViewData["Title"] = "¥I´Úµ²ªG";
+    ViewData["Title"] = "ä»˜æ¬¾çµæœ";
     Layout = null;
 }
 
 @{
     string message = ViewBag.Message ?? "";
     bool isSuccess = ViewBag.IsSuccess != null ? (bool)ViewBag.IsSuccess : false;
-    string fullName = ViewBag.FullName ?? "·|¤Í";
-    string dedicationCategory = ViewBag.DedicationCategory ?? "©^Äm";
+    string fullName = ViewBag.FullName ?? "æœƒå‹";
+    string dedicationCategory = ViewBag.DedicationCategory ?? "å¥‰ç»";
     string amount = ViewBag.Amount ?? "0";
     string paymentTime = ViewBag.PaymentTime ?? DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
     string orderId = ViewBag.OrderId ?? "";
     string transactionId = ViewBag.TransactionId ?? "";
-    string paymentMethod = ViewBag.PaymentMethod ?? "«H¥Î¥d";
+    string paymentMethod = ViewBag.PaymentMethod ?? "ä¿¡ç”¨å¡";
     string errorDetails = ViewBag.ErrorDetails ?? "";
 }
 
@@ -142,31 +142,31 @@
     <div class="row justify-content-center">
         <div class="col-md-10 col-lg-8">
             <div class="card result-card">
-                <!-- ¥d¤ù¼ĞÃD -->
+                <!-- å¡ç‰‡æ¨™é¡Œ -->
                 <div class="card-header text-center">
-                    <h3><i class="fas fa-heart"></i> ¥ÃÂ×ª÷¬y¥I´Úµ²ªG</h3>
+                    <h3><i class="fas fa-heart"></i> æ°¸è±é‡‘æµä»˜æ¬¾çµæœ</h3>
                 </div>
 
-                <!-- ¥d¤ù¤º®e -->
+                <!-- å¡ç‰‡å…§å®¹ -->
                 <div class="card-body">
-                    <!-- µ²ªG¹Ï¥Ü»P°T®§ -->
+                    <!-- çµæœåœ–ç¤ºèˆ‡è¨Šæ¯ -->
                     <div class="text-center mb-4">
                         @if (isSuccess)
                         {
                             <i class="fas fa-check-circle success-icon"></i>
-                            <h4 class="mt-3 text-success font-weight-bold">­q³æ«Ø¥ß¦¨¥\¡I</h4>
+                            <h4 class="mt-3 text-success font-weight-bold">è¨‚å–®å»ºç«‹æˆåŠŸï¼</h4>
                             <p class="text-muted">@message</p>
                         }
                         else if (string.IsNullOrEmpty(transactionId) && !string.IsNullOrEmpty(orderId))
                         {
                             <i class="fas fa-hourglass-half processing-icon"></i>
-                                <h4 class="mt-3 text-warning font-weight-bold">­q³æ³B²z¥¢±Ñ¡I</h4>
+                                <h4 class="mt-3 text-warning font-weight-bold">è¨‚å–®è™•ç†å¤±æ•—ï¼</h4>
                             <p class="text-muted">@message</p>
                         }
                         else
                         {
                             <i class="fas fa-times-circle failure-icon"></i>
-                                <h4 class="mt-3 text-danger font-weight-bold">­q³æ«Ø¥ß¥¢±Ñ¡I</h4>
+                                <h4 class="mt-3 text-danger font-weight-bold">è¨‚å–®å»ºç«‹å¤±æ•—ï¼</h4>
                             <p class="text-muted">@message</p>
                         }
                     </div>
@@ -175,14 +175,14 @@
 
                     @if (isSuccess)
                     {
-                        <!-- ¥I´Ú¦¨¥\¸ê°T -->
+                        <!-- ä»˜æ¬¾æˆåŠŸè³‡è¨Š -->
                         <div class="info-section">
-                            <h5 class="mb-3"><i class="fas fa-receipt"></i> ¥æ©ö©ú²Ó</h5>
+                            <h5 class="mb-3"><i class="fas fa-receipt"></i> äº¤æ˜“æ˜ç´°</h5>
                             
                             @if (!string.IsNullOrEmpty(fullName))
                             {
                                 <div class="info-row">
-                                    <div class="info-label"><i class="fas fa-user"></i> ©^ÄmªÌ</div>
+                                    <div class="info-label"><i class="fas fa-user"></i> å¥‰ç»è€…</div>
                                     <div class="info-value">@fullName</div>
                                 </div>
                             }
@@ -190,7 +190,7 @@
                             @if (!string.IsNullOrEmpty(dedicationCategory))
                             {
                                 <div class="info-row">
-                                    <div class="info-label"><i class="fas fa-tag"></i> ©^ÄmÃş§O</div>
+                                    <div class="info-label"><i class="fas fa-tag"></i> å¥‰ç»é¡åˆ¥</div>
                                     <div class="info-value">@dedicationCategory</div>
                                 </div>
                             }
@@ -198,7 +198,7 @@
                             @if (!string.IsNullOrEmpty(amount) && amount != "0")
                             {
                                 <div class="info-row">
-                                    <div class="info-label"><i class="fas fa-dollar-sign"></i> ©^Ämª÷ÃB</div>
+                                    <div class="info-label"><i class="fas fa-dollar-sign"></i> å¥‰ç»é‡‘é¡</div>
                                     <div class="info-value">
                                         <span class="amount-highlight">NT$ @amount</span>
                                     </div>
@@ -208,7 +208,7 @@
                             @if (!string.IsNullOrEmpty(paymentMethod))
                             {
                                 <div class="info-row">
-                                    <div class="info-label"><i class="fas fa-credit-card"></i> ¥I´Ú¤è¦¡</div>
+                                    <div class="info-label"><i class="fas fa-credit-card"></i> ä»˜æ¬¾æ–¹å¼</div>
                                     <div class="info-value">@paymentMethod</div>
                                 </div>
                             }
@@ -216,7 +216,7 @@
                             @if (!string.IsNullOrEmpty(paymentTime))
                             {
                                 <div class="info-row">
-                                    <div class="info-label"><i class="fas fa-clock"></i> ¥I´Ú®É¶¡</div>
+                                    <div class="info-label"><i class="fas fa-clock"></i> ä»˜æ¬¾æ™‚é–“</div>
                                     <div class="info-value">@paymentTime</div>
                                 </div>
                             }
@@ -224,7 +224,7 @@
                             @if (!string.IsNullOrEmpty(transactionId))
                             {
                                 <div class="info-row">
-                                    <div class="info-label"><i class="fas fa-hashtag"></i> ¥æ©ö½s¸¹</div>
+                                    <div class="info-label"><i class="fas fa-hashtag"></i> äº¤æ˜“ç·¨è™Ÿ</div>
                                     <div class="info-value"><small class="text-muted">@transactionId</small></div>
                                 </div>
                             }
@@ -232,59 +232,59 @@
                             @if (!string.IsNullOrEmpty(orderId))
                             {
                                 <div class="info-row">
-                                    <div class="info-label"><i class="fas fa-file-alt"></i> ­q³æ½s¸¹</div>
+                                    <div class="info-label"><i class="fas fa-file-alt"></i> è¨‚å–®ç·¨è™Ÿ</div>
                                     <div class="info-value"><small class="text-muted">@orderId</small></div>
                                 </div>
                             }
                         </div>
 
-                        <!-- ¦¨¥\´£¿ô -->
+                        <!-- æˆåŠŸæé†’ -->
                         <div class="alert alert-success alert-custom" role="alert">
                             <h5 class="alert-heading">
-                                <i class="fas fa-info-circle"></i> ·ÅÄÉ´£¿ô
+                                <i class="fas fa-info-circle"></i> æº«é¦¨æé†’
                             </h5>
                             <hr>
                             <p class="mb-0">
-                                <i class="fas fa-check text-success"></i> ±zªº©^Äm¤w¸g¦¨¥\§¹¦¨¡A¬ÛÃö¦¬¾Ú±N³z¹L LINE ³qª¾±z¡C<br>
-                                <i class="fas fa-check text-success"></i> ¦p»İ¯È¥»¦¬¾Ú¡A½ĞÁpÃ´±Ğ·|¿ì¤½«Ç¡C<br>
-                                <i class="fas fa-check text-success"></i> ·PÁÂ±z¹ï±Ğ·|¨Æ¤uªº¤ä«ù»P©^Äm¡I<br>
-                                <i class="fas fa-praying-hands text-success"></i> Ä@¤W«Ò½çºÖ»P±z¡I
+                                <i class="fas fa-check text-success"></i> æ‚¨çš„å¥‰ç»å·²ç¶“æˆåŠŸå®Œæˆï¼Œç›¸é—œæ”¶æ“šå°‡é€é LINE é€šçŸ¥æ‚¨ã€‚<br>
+                                <i class="fas fa-check text-success"></i> å¦‚éœ€ç´™æœ¬æ”¶æ“šï¼Œè«‹è¯ç¹«æ•™æœƒè¾¦å…¬å®¤ã€‚<br>
+                                <i class="fas fa-check text-success"></i> æ„Ÿè¬æ‚¨å°æ•™æœƒäº‹å·¥çš„æ”¯æŒèˆ‡å¥‰ç»ï¼<br>
+                                <i class="fas fa-praying-hands text-success"></i> é¡˜ä¸Šå¸è³œç¦èˆ‡æ‚¨ï¼
                             </p>
                         </div>
                     }
                     else
                     {
-                        <!-- ¥¢±Ñ/³B²z¤¤¸ê°T -->
+                        <!-- å¤±æ•—/è™•ç†ä¸­è³‡è¨Š -->
                         @if (!string.IsNullOrEmpty(orderId))
                         {
                             <div class="info-section">
-                                <h5 class="mb-3"><i class="fas fa-info"></i> ­q³æ¸ê°T</h5>
+                                <h5 class="mb-3"><i class="fas fa-info"></i> è¨‚å–®è³‡è¨Š</h5>
                                 <div class="info-row">
-                                    <div class="info-label"><i class="fas fa-file-alt"></i> ­q³æ½s¸¹</div>
+                                    <div class="info-label"><i class="fas fa-file-alt"></i> è¨‚å–®ç·¨è™Ÿ</div>
                                     <div class="info-value"><small class="text-muted">@orderId</small></div>
                                 </div>
                             </div>
                         }
 
-                        <!-- ¥¢±Ñ´£¿ô -->
+                        <!-- å¤±æ•—æé†’ -->
                         <div class="alert alert-warning alert-custom" role="alert">
                             <h5 class="alert-heading">
-                                <i class="fas fa-exclamation-triangle"></i> »İ­n¨ó§U¡H
+                                <i class="fas fa-exclamation-triangle"></i> éœ€è¦å”åŠ©ï¼Ÿ
                             </h5>
                             <hr>
                             <p class="mb-0">
-                                <i class="fas fa-info-circle"></i> ¦pªG¦h¦¸¹Á¸Õ¤´µLªk§¹¦¨¥I´Ú¡A½ĞÁpÃ´±Ğ·|¿ì¤½«Ç¡C<br>
-                                <i class="fas fa-info-circle"></i> ±z¤]¥i¥H¿ï¾Ü¨ä¥L¥I´Ú¤è¦¡§¹¦¨©^Äm¡C<br>
-                                <i class="fas fa-phone"></i> ±Ğ·|¿ì¤½«Ç±N¨ó§U±z¸Ñ¨M¥I´Ú°İÃD¡C
+                                <i class="fas fa-info-circle"></i> å¦‚æœå¤šæ¬¡å˜—è©¦ä»ç„¡æ³•å®Œæˆä»˜æ¬¾ï¼Œè«‹è¯ç¹«æ•™æœƒè¾¦å…¬å®¤ã€‚<br>
+                                <i class="fas fa-info-circle"></i> æ‚¨ä¹Ÿå¯ä»¥é¸æ“‡å…¶ä»–ä»˜æ¬¾æ–¹å¼å®Œæˆå¥‰ç»ã€‚<br>
+                                <i class="fas fa-phone"></i> æ•™æœƒè¾¦å…¬å®¤å°‡å”åŠ©æ‚¨è§£æ±ºä»˜æ¬¾å•é¡Œã€‚
                             </p>
                         </div>
 
                         @if (!string.IsNullOrEmpty(errorDetails))
                         {
-                            <!-- ¿ù»~¸Ô±¡¡]¥iºPÅ|¡^ -->
+                            <!-- éŒ¯èª¤è©³æƒ…ï¼ˆå¯æ‘ºç–Šï¼‰ -->
                             <div class="mt-3">
                                 <button class="btn btn-link btn-sm" type="button" data-toggle="collapse" data-target="#errorDetails">
-                                    <i class="fas fa-chevron-down"></i> ¬d¬İ¸Ô²Ó¿ù»~¸ê°T
+                                    <i class="fas fa-chevron-down"></i> æŸ¥çœ‹è©³ç´°éŒ¯èª¤è³‡è¨Š
                                 </button>
                                 <div class="collapse" id="errorDetails">
                                     <div class="card card-body bg-light">
@@ -297,35 +297,35 @@
 
                     <div class="divider"></div>
 
-                    <!-- ¾Ş§@«ö¶s -->
+                    <!-- æ“ä½œæŒ‰éˆ• -->
                     <div class="text-center mt-4">
                         @if (isSuccess)
                         {
-                            <a href="@Url.Action("QPayView", "Home", new { id = "ºô­¶µn¤J" })" class="btn btn-primary btn-custom">
-                                <i class="fas fa-home"></i> ¦^©^Äm­¶­±
+                            <a href="@Url.Action("DonationPaymentView", "Dedication", new { LineId = "ç¶²é ç™»å…¥" })" class="btn btn-primary btn-custom">
+                                <i class="fas fa-home"></i> å›å¥‰ç»é é¢
                             </a>
                             <a href="@Url.Action("DedicationFeeView", "Home")" class="btn btn-success btn-custom">
-                                <i class="fas fa-list"></i> ©w´Á©wÃB
+                                <i class="fas fa-list"></i> å®šæœŸå®šé¡
                             </a>
                         }
                         else
                         {
-                            <a href="@Url.Action("QPayView", "Home", new { id = "ºô­¶µn¤J" })" class="btn btn-primary btn-custom">
-                                <i class="fas fa-redo"></i> ­«·s¥I´Ú
+                            <a href="@Url.Action("DonationPaymentView", "Dedication", new { LineId = "ç¶²é ç™»å…¥" })" class="btn btn-primary btn-custom">
+                                <i class="fas fa-redo"></i> é‡æ–°ä»˜æ¬¾
                             </a>
                             <a href="@Url.Action("ChurchRoot", "Home")" class="btn btn-outline-secondary btn-custom">
-                                <i class="fas fa-home"></i> ¦^­º­¶
+                                <i class="fas fa-home"></i> å›é¦–é 
                             </a>
                         }
                     </div>
                 </div>
             </div>
 
-            <!-- ­¶§ÀÁpµ¸¸ê°T -->
+            <!-- é å°¾è¯çµ¡è³‡è¨Š -->
             <div class="text-center mt-4">
                 <p class="footer-text">
-                    <i class="fas fa-phone-alt"></i> ¦p¦³°İÃD½ĞÁpÃ´±Ğ·|¿ì¤½«Ç<br>
-                    <i class="fas fa-praying-hands"></i> Ä@¤W«Ò½çºÖ»P±z¡I
+                    <i class="fas fa-phone-alt"></i> å¦‚æœ‰å•é¡Œè«‹è¯ç¹«æ•™æœƒè¾¦å…¬å®¤<br>
+                    <i class="fas fa-praying-hands"></i> é¡˜ä¸Šå¸è³œç¦èˆ‡æ‚¨ï¼
                 </p>
             </div>
         </div>
@@ -336,10 +336,10 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- ¦Û°ÊÃö³¬ºPÅ|¸Ô±¡ -->
+<!-- è‡ªå‹•é—œé–‰æ‘ºç–Šè©³æƒ… -->
 <script>
     $(document).ready(function() {
-        // 5¬í«á¦Û°ÊÁôÂÃ¦¨¥\°T®§ªº¸Ô²Ó¸ê°T
+        // 5ç§’å¾Œè‡ªå‹•éš±è—æˆåŠŸè¨Šæ¯çš„è©³ç´°è³‡è¨Š
         setTimeout(function() {
             $('#errorDetails').collapse('hide');
         }, 10000);

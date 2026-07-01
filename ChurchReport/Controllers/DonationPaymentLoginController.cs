@@ -45,6 +45,7 @@ namespace ChurchReport.Controllers
         /// 但 View 檔名使用 DonationPaymentLogin.cshtml，讓專案檔與檔案總管中看到的名稱都是產品中性名稱。
         /// </summary>
         [HttpGet]
+        [Route("/DonationPaymentLogin")]
         [Route("/QPayLogin")]
         public IActionResult Index()
         {
@@ -70,6 +71,7 @@ namespace ChurchReport.Controllers
         /// 這個 action 回傳 JSON，是為了配合原本 AJAX 登入頁流程。
         /// </summary>
         [HttpPost]
+        [Route("/DonationPaymentLogin/ProcessDonationPaymentLogin")]
         [Route("/QPayLogin/ProcessQPayLogin")]
         public IActionResult ProcessDonationPaymentLogin(GalleryViewModel model)
         {

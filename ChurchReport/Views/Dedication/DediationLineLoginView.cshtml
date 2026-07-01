@@ -388,7 +388,7 @@ font-weight: 600;
         // 功能：
         //   1. 使用 liff.getProfile() 取得用戶資訊
         //   2. 呼叫 UpdateLineUserId 檢查並設定用戶
-        //   3. 成功後重導向到 QPayView（奉獻頁面）
+        //   3. 成功後重導向到 DonationPaymentView（奉獻頁面）
         // 
         // 架構師註解：
         //   - 此函數為核心業務邏輯，不應修改
@@ -442,7 +442,7 @@ font-weight: 600;
         // 功能：
         //   1. 將 LINE UserId 傳送到後端
         //   2. 後端設定用戶 Session
-        //   3. 成功後重導向到 QPayView（奉獻頁面）
+        //   3. 成功後重導向到 DonationPaymentView（奉獻頁面）
         // 
         // 架構師註解：
         //   - 此函數為關鍵 API 呼叫，不應修改核心邏輯
@@ -517,16 +517,16 @@ font-weight: 600;
                     }
                     
                     // ========================================
-                    // ✅ P0: 重導向到奉獻頁面（QPayView）
+                    // ✅ P0: 重導向到奉獻頁面（DonationPaymentView）
                     // ========================================
-                    console.log('[DediationLogin] 準備重導向到 QPayView:', "/Home/QPayView/" + aUserLineId);
+                    console.log('[DediationLogin] 準備重導向到 DonationPaymentView:', "/Dedication/DonationPaymentView/" + aUserLineId);
                     
                     // 使用 LINE 自己的網頁瀏覽器，比較快，但是 Apple Pay 不成功
                     // 架構師註解：
                     //   - 在 LINE 內建瀏覽器中開啟，保持用戶體驗流暢
                     //   - 缺點：Apple Pay 可能無法使用
                     //   - 考慮：根據支付方式選擇是否使用外部瀏覽器
-                    window.location.href = "/Home/QPayView/" + aUserLineId;
+                    window.location.href = "/Dedication/DonationPaymentView/" + aUserLineId;
                 },
                 
                 error: function (xhr, status, error) {

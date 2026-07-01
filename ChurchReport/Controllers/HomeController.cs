@@ -133,6 +133,7 @@ namespace ChurchReport.Controllers
         /// 向後相容：將舊的奉獻付款入口轉到新的中性 action。
         /// 路由字串保留舊網址，是為了不中斷既有 LINE/網頁連結；C# action 名稱改用 DonationPayment。
         /// </summary>
+        [Route("/Home/DonationPaymentView/{LineId}")]
         [Route("/Home/QPayView/{LineId}")]
         public IActionResult DonationPaymentViewRedirect(string LineId)
         {
@@ -625,6 +626,7 @@ namespace ChurchReport.Controllers
         /// 舊網址 /Home/QPayLogin 保留為 route template，內部轉到中性 Controller。
         /// </summary>
         [HttpGet]
+        [Route("/Home/DonationPaymentLogin")]
         [Route("/Home/QPayLogin")]
         public IActionResult DonationPaymentLogin()
         {
@@ -636,6 +638,7 @@ namespace ChurchReport.Controllers
         /// 這裡只是一個舊 /Home/... 路徑的橋接點，真正的登入流程在 DonationPaymentLoginController。
         /// </summary>
         [HttpPost]
+        [Route("/Home/ProcessDonationPaymentLogin")]
         [Route("/Home/ProcessQPayLogin")]
         public IActionResult ProcessDonationPaymentLogin(GalleryViewModel model)
         {
