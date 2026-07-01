@@ -22,7 +22,7 @@
 8. Product-layer file names must also be neutral. Do not keep `QPay` / `Qpay` in ChurchReport file names merely for class compatibility; preserve old URLs with route attributes on neutral controllers.
 9. Do not keep product-layer `QPay` / `Qpay` type aliases. This is a same-solution refactor, so update source callers to neutral names instead of carrying dirty compatibility classes.
 10. MyPay, Taishin, Line Pay, and provider-neutral ChurchReport flows must never call a `QPay*` / `Qpay*` type directly. They must call neutral interfaces/classes, such as `IDonationPaymentCreateGatewayAdapter`, `DonationPaymentCreateGatewayAdapter`, `PaymentReturnController`, or `IPaymentGateway`.
-11. Legacy `QPay` route names are allowed only as route templates or action names needed by existing URLs/callbacks. They must not appear as primary product-layer type names.
+11. Legacy `QPay` wording is allowed only inside explicit route-template strings needed by existing URLs/callbacks. C# class names, action method names, parameters, variables, DTOs, services, file names, and test names must use neutral payment names.
 
 ## File Map
 
@@ -138,7 +138,7 @@
 ### Do Not Modify For This Plan
 
 - Provider protocol classes under `SpeechMessage.Payments/Providers/Sinopac`. They may keep QPay wording where it describes Sinopac/QPay.
-- External callback route names that would break bank callbacks without a deployment migration.
+- External callback route templates that would break bank callbacks without a deployment migration. Keep only the literal URL template; use neutral C# class and action method names.
 - `LinePayCSharp`; Line Pay remains separate.
 
 ---
@@ -1122,6 +1122,7 @@ Open `.ccg/tasks/qpay-model-boundary-brainstorm/qpay-inventory.txt` and classify
 
 - `ChurchReport/Controllers/DonationPaymentLoginController.cs`: may preserve old `/QPayLogin/...` URLs through route attributes only; the file/class name must be neutral.
 - `ChurchReport/Controllers/PaymentReturnController.cs`: may preserve old `/QPayCard/...` URLs through route attributes only; the file/class name must be neutral.
+- Legacy `QPay` text in those controllers must be limited to attribute route-template strings on `[Route(...)]`, `[HttpGet(...)]`, or `[HttpPost(...)]` lines. It must not appear in class names, action method names, parameters, locals, fields, injected services, DTOs, comments used as compatibility aliases, or helper names.
 
 ## Must Rename
 
@@ -1137,12 +1138,10 @@ In `DonationPaymentFormModelNamingTests.cs`, add:
 public void Qpay_references_are_confined_to_sinopac_provider_or_legacy_route_templates()
 {
     var repositoryRoot = FindRepositoryRoot();
-    var allowedContentFragments = new[]
+    var allowedProviderFragments = new[]
     {
         Path.Combine("SpeechMessage.Payments", "Providers", "Sinopac"),
-        Path.Combine("SpeechMessage.Payments.Tests", "Providers", "Sinopac"),
-        Path.Combine("ChurchReport", "Controllers", "DonationPaymentLoginController.cs"),
-        Path.Combine("ChurchReport", "Controllers", "PaymentReturnController.cs")
+        Path.Combine("SpeechMessage.Payments.Tests", "Providers", "Sinopac")
     };
 
     var scannedFiles = Directory.GetFiles(repositoryRoot, "*.cs", SearchOption.AllDirectories)
@@ -1162,14 +1161,38 @@ public void Qpay_references_are_confined_to_sinopac_provider_or_legacy_route_tem
         .Where(item =>
         {
             var relative = Path.GetRelativePath(repositoryRoot, item.path);
-            return !allowedContentFragments.Any(fragment =>
+            var isProviderCode = allowedProviderFragments.Any(fragment =>
                 relative.StartsWith(fragment, StringComparison.OrdinalIgnoreCase));
+
+            return !isProviderCode && !IsAllowedLegacyQPayRouteTemplate(relative, item.line);
         })
         .Select(item => $"{Path.GetRelativePath(repositoryRoot, item.path)}:{item.lineNumber}:{item.line.Trim()}")
         .ToArray();
 
     offenders.Should().BeEmpty(
         "QPay names should not appear in product-neutral code paths used by MyPay or Taishin");
+}
+
+private static bool IsAllowedLegacyQPayRouteTemplate(string relativePath, string line)
+{
+    var isLegacyRouteController =
+        relativePath.Equals(Path.Combine("ChurchReport", "Controllers", "DonationPaymentLoginController.cs"), StringComparison.OrdinalIgnoreCase) ||
+        relativePath.Equals(Path.Combine("ChurchReport", "Controllers", "PaymentReturnController.cs"), StringComparison.OrdinalIgnoreCase);
+
+    if (!isLegacyRouteController)
+    {
+        return false;
+    }
+
+    var trimmed = line.TrimStart();
+    var isRouteAttribute =
+        trimmed.StartsWith("[Route(", StringComparison.Ordinal) ||
+        trimmed.StartsWith("[HttpGet(", StringComparison.Ordinal) ||
+        trimmed.StartsWith("[HttpPost(", StringComparison.Ordinal);
+
+    return isRouteAttribute &&
+        (line.Contains("QPayLogin", StringComparison.Ordinal) ||
+         line.Contains("QPayCard", StringComparison.Ordinal));
 }
 ```
 
@@ -1274,7 +1297,7 @@ For each failing offender:
 1. If it is generic create-payment or post-payment code, rename `QPay` to `Payment` or `DonationPayment`.
 2. If it is ChurchReport donation UI state, rename `Qpay` to `DonationPayment`.
 3. If it is true Sinopac provider protocol, move it under `SpeechMessage.Payments/Providers/Sinopac` if it is not already there.
-4. If it is an externally visible legacy route, rename the file/class to neutral and preserve the old URL through route/action attributes.
+4. If it is an externally visible legacy route, rename the file/class/action method to neutral and preserve the old URL only through route-template attributes.
 5. Do not keep legacy product-layer `QPay*` class names for source compatibility. Update source callers to neutral names.
 6. If MyPay, Taishin, or provider-neutral ChurchReport code calls a `QPay*` type, rename the type and update the caller to the neutral type.
 
@@ -1388,12 +1411,40 @@ Get-ChildItem -Path . -Recurse -Include *.cs |
 
 Expected: matches are limited to Sinopac provider/test code and documented legacy URL route templates.
 
-- [ ] **Step 6: Attempt required CCG dual-model review**
+- [ ] **Step 6: Run payment-flow regression checklist**
+
+Use existing focused tests when they exist; otherwise add focused mocked tests before treating the task as complete. Do not call real bank, CRM, or LINE services.
+
+Required regression coverage:
+
+- Sinopac credit-card create flow: mocked gateway returns an absolute hosted payment URL; ChurchReport returns/redirects to that URL and does not fall back to the original donation page.
+- Sinopac ATM/virtual-account create flow: mocked provider data includes `atm_pay_no`; ChurchReport renders the virtual account and keeps payment instructions visible even when LINE delivery is mocked as failed.
+- MyPay/high-grand create flow: selected MyPay profile builds the encrypted create payload with MyPay-shaped fields and does not call QPay-named adapters/classes.
+- Taishin TSPG create/return flow: TSPG profile and callback/return path still map to neutral payment results without QPay aliases.
+- LINE Pay selection/redirect flow: choosing LINE Pay still routes to the LINE Pay path and does not depend on QPay-named product classes.
+- CRM payment-record update workflow: a successful neutral payment workflow updates the ChurchReport CRM fee/payment record through ChurchReport-owned services only.
+- LINE payer notification workflow: required payer notifications are sent through ChurchReport-owned LINE services, failures are surfaced, and no LINE dependency is introduced into `SpeechMessage.Payments`.
+
+Expected: every affected payment path has either an existing passing test or a newly added mocked regression test recorded in review.md.
+
+- [ ] **Step 7: Record fixed base SHA for final review**
+
+Before starting Task 1 implementation, record the current commit:
+
+```powershell
+$baseSha = git rev-parse HEAD
+Set-Content -LiteralPath .ccg\tasks\qpay-model-boundary-brainstorm\base-sha.txt -Value $baseSha -Encoding UTF8
+```
+
+Expected: final review uses `.ccg/tasks/qpay-model-boundary-brainstorm/base-sha.txt` instead of a moving HEAD-relative range.
+
+- [ ] **Step 8: Attempt required CCG dual-model review**
 
 Run Gemini review:
 
 ```powershell
-$diff = git diff --no-textconv HEAD~7..HEAD
+$baseSha = Get-Content -LiteralPath .ccg\tasks\qpay-model-boundary-brainstorm\base-sha.txt
+$diff = git diff --no-textconv "$baseSha..HEAD"
 $task = @"
 ROLE_FILE: ~/.claude/.ccg/prompts/gemini/reviewer.md
 <TASK>
@@ -1410,7 +1461,8 @@ $task | & "$env:USERPROFILE\.claude\bin\codeagent-wrapper" --progress --backend 
 Run Claude review:
 
 ```powershell
-$diff = git diff --no-textconv HEAD~7..HEAD
+$baseSha = Get-Content -LiteralPath .ccg\tasks\qpay-model-boundary-brainstorm\base-sha.txt
+$diff = git diff --no-textconv "$baseSha..HEAD"
 $task = @"
 ROLE_FILE: ~/.claude/.ccg/prompts/claude/reviewer.md
 <TASK>
@@ -1424,9 +1476,9 @@ OUTPUT: Critical/Warning/Info review report
 $task | & "$env:USERPROFILE\.claude\bin\codeagent-wrapper" --progress --backend claude - (Get-Location).Path
 ```
 
-Expected: review reports are produced. If the local machine still lacks `gemini` or `claude` in `PATH`, record that exact failure in review.md instead of claiming external review passed.
+Expected: review reports are produced against the fixed base SHA. If the local machine still lacks `gemini` or `claude` in `PATH`, record that exact failure in review.md instead of claiming external review passed.
 
-- [ ] **Step 7: Write review record**
+- [ ] **Step 9: Write review record**
 
 Create or update `.ccg/tasks/qpay-model-boundary-brainstorm/review.md` with:
 
@@ -1440,6 +1492,8 @@ Create or update `.ccg/tasks/qpay-model-boundary-brainstorm/review.md` with:
 - `dotnet build .\ChurchReport.sln`: result
 - Core dependency search: result
 - QPay containment search: result
+- Payment-flow regression checklist: result for Sinopac credit card, Sinopac ATM/virtual account, MyPay/high-grand, Taishin TSPG, LINE Pay, CRM payment-record update, and LINE payer notification
+- Review base SHA: value from `.ccg/tasks/qpay-model-boundary-brainstorm/base-sha.txt`
 
 ## External Review
 
@@ -1453,10 +1507,10 @@ Create or update `.ccg/tasks/qpay-model-boundary-brainstorm/review.md` with:
 - Info:
 ```
 
-- [ ] **Step 8: Commit validation record**
+- [ ] **Step 10: Commit validation record**
 
 ```powershell
-git add .ccg\tasks\qpay-model-boundary-brainstorm\review.md
+git add .ccg\tasks\qpay-model-boundary-brainstorm\base-sha.txt .ccg\tasks\qpay-model-boundary-brainstorm\review.md
 git commit -m "docs: record neutral payment naming review"
 ```
 
