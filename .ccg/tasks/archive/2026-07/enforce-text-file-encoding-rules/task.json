@@ -1,0 +1,12 @@
+{
+  "id": "enforce-text-file-encoding-rules",
+  "title": "避免修改檔案後出現 Visual Studio 換行或編碼警告",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "等待使用者確認是否提交",
+  "createdAt": "2026-07-01T13:47:20+08:00",
+  "branch": "Jesus_5.1.5_Worktree_TuneRefactorPament"
+}

@@ -1,4 +1,5 @@
 using ChurchReport.Payments;
+using ChurchReport.Services;
 using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using ChurchReport.WebServiceConnector;
@@ -58,6 +59,13 @@ namespace ChurchReport.Models
         /// </summary>
         private readonly IDonationPaymentCreateGatewayAdapter m_DonationPaymentCreateGatewayAdapter;
 
+        /// <summary>
+        /// ChurchReport CRM contact 的建立、篩選與補欄位服務。
+        /// 這些規則直接依賴 Dynamics 365 的 contact 欄位與奉獻者登入邏輯，
+        /// 因此保留在 ChurchReport 專案，不抽入通用金流核心或 ASP.NET Core 共用層。
+        /// </summary>
+        private readonly DonationContactService m_DonationContactService;
+
         // 登入的連絡人
         public Entity m_LoginContact;
 
@@ -103,6 +111,7 @@ namespace ChurchReport.Models
             m_PushUtility = new PushUtility(m_LineMessagingClient);
 
             m_DonationPaymentCreateGatewayAdapter = donationPaymentCreateGatewayAdapter;
+            m_DonationContactService = new DonationContactService(m_ToolUtilityClass);
             m_DonationPaymentProcessor = new DonationPaymentProcessor(
                 m_LineMessagingClient,
                 m_PushUtility,
@@ -456,78 +465,28 @@ namespace ChurchReport.Models
         {
             try
             {
-                Entity LineLoginContact = new Entity("contact");
-                if (UserLineId != null)
-                {
-                    LineLoginContact = this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId);
-                }
-                else
-                {
-                    if (this.m_Contact != null)
-                    {
-                        // 從官網串接金流那邊進來的，所以在官網登入時就建立了連絡人
-                        LineLoginContact = this.m_Contact;
-                    }
-                }
+                Entity lineLoginContact = UserLineId != null
+                    ? this.m_ToolUtilityClass.RetrieveContactByLineId(UserLineId)
+                    : this.m_Contact ?? new Entity("contact");
 
-                // 全名
-                m_DonationPaymentFormModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
-                // 行動電話
-                m_DonationPaymentFormModel.Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone");
-                // 奉獻單編號
-                m_DonationPaymentFormModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
-                // 身分證字號
-                m_DonationPaymentFormModel.NationId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "new_personal_id");
-
-                //是否上傳國稅局
-                if (this.m_ToolUtilityClass.GetEntityBoolAttribute(ref LineLoginContact, "new_ntbt_ornot") == true)
-                {
-                    m_DonationPaymentFormModel.Ntbt = "願意上傳國稅局";
-                }
-                else
-                {
-                    m_DonationPaymentFormModel.Ntbt = "不願意上傳國稅局";
-                }
-
-                //奉獻類別
+                m_DonationPaymentFormModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref lineLoginContact, "fullname");
+                m_DonationPaymentFormModel.Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(ref lineLoginContact, "mobilephone");
+                m_DonationPaymentFormModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref lineLoginContact, "pager");
+                m_DonationPaymentFormModel.NationId = this.m_ToolUtilityClass.GetEntityStringAttribute(ref lineLoginContact, "new_personal_id");
+                m_DonationPaymentFormModel.Ntbt = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref lineLoginContact, "new_ntbt_ornot")
+                    ? "願意上傳國稅局"
+                    : "不願意上傳國稅局";
                 m_DonationPaymentFormModel.Category = "十一奉獻";
-                //付款方式
                 m_DonationPaymentFormModel.PayWay = "信用卡";
-                //奉獻日期
                 m_DonationPaymentFormModel.DedicationDate = DateTime.Now;
-                //奉獻分堂
                 m_DonationPaymentFormModel.DedicateLocation = "好牧人";
 
-                m_DonationPaymentFormModel.DedicationFeeList = new List<DedicationFee>();
-                EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByDateFetchXml(m_DonationPaymentFormModel.FullName, LineLoginContact.Id.ToString(), m_DonationPaymentFormModel.QueryStartDate, m_DonationPaymentFormModel.QueryEndDate);
-
-                // [DEDQUERY] temporary diagnostic: show the actual date range used and how many fee rows CRM returned. Remove after diagnosis.
-                System.Diagnostics.Trace.WriteLine($"[DEDQUERY] FullName={m_DonationPaymentFormModel.FullName} Start={m_DonationPaymentFormModel.QueryStartDate:yyyy-MM-dd} End={m_DonationPaymentFormModel.QueryEndDate:yyyy-MM-dd} Returned={aDedicationFeeEntityCollection.Entities.Count}");
-
-                m_DonationPaymentFormModel.TotalAmount = 0;
-                m_DonationPaymentFormModel.DedicationFeeList.Clear();
-                foreach (Entity aDedicationFeeEntity in aDedicationFeeEntityCollection.Entities)
-                {
-                    DedicationFee aDedicationFee = new DedicationFee();
-
-                    aDedicationFee.DedicationDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDedicationFeeEntity, "createdon").ToLocalTime();
-                    aDedicationFee.PayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDedicationFeeEntity, "new_pay_date").ToLocalTime();
-                    aDedicationFee.Amount = Convert.ToInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(aDedicationFeeEntity, "new_fee_really_paid").Value);
-                    m_DonationPaymentFormModel.TotalAmount += aDedicationFee.Amount;
-                    aDedicationFee.PayWay = ConvertToPayway(aDedicationFeeEntity);
-                    aDedicationFee.Category = ConvertToCategory(aDedicationFeeEntity);
-                    aDedicationFee.Others = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_others");
-                    aDedicationFee.PaidPeriod = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_paid_period");
-                    m_DonationPaymentFormModel.DedicationFeeList.Add(aDedicationFee);
-                }
-
+                new DonationFeeQueryService(this.m_ToolUtilityClass).FillFeeList(m_DonationPaymentFormModel, lineLoginContact);
                 return m_DonationPaymentFormModel;
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                //Monitor.Exit(this);
                 throw e;
             }
         }
@@ -537,56 +496,20 @@ namespace ChurchReport.Models
             {
                 if (m_DonationPaymentFormModel.ClickType == null)
                 {
-                    // 全名
                     m_DonationPaymentFormModel.FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "fullname");
-                    // 全名
                     m_DonationPaymentFormModel.Mobile = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "mobilephone");
-                    // 奉獻單編號
                     m_DonationPaymentFormModel.DedicationNumber = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LineLoginContact, "pager");
-
-                    //是否上傳國稅局
-                    if (this.m_ToolUtilityClass.GetEntityBoolAttribute(ref LineLoginContact, "new_ntbt_ornot") == true)
-                    {
-                        m_DonationPaymentFormModel.Ntbt = "願意上傳國稅局";
-                    }
-                    else
-                    {
-                        m_DonationPaymentFormModel.Ntbt = "不願意上傳國稅局";
-                    }
-
+                    m_DonationPaymentFormModel.Ntbt = this.m_ToolUtilityClass.GetEntityBoolAttribute(ref LineLoginContact, "new_ntbt_ornot")
+                        ? "願意上傳國稅局"
+                        : "不願意上傳國稅局";
                 }
 
-                // 收費單清單
-                m_DonationPaymentFormModel.DedicationFeeList = new List<DedicationFee>();
-                EntityCollection aDedicationFeeEntityCollection = this.m_ToolUtilityClass.RetrieveDedicationFeeByDateFetchXml(m_DonationPaymentFormModel.FullName, LineLoginContact.Id.ToString(), m_DonationPaymentFormModel.QueryStartDate, m_DonationPaymentFormModel.QueryEndDate);
-
-                // [DEDQUERY] temporary diagnostic: show the actual date range used and how many fee rows CRM returned. Remove after diagnosis.
-                System.Diagnostics.Trace.WriteLine($"[DEDQUERY] FullName={m_DonationPaymentFormModel.FullName} Start={m_DonationPaymentFormModel.QueryStartDate:yyyy-MM-dd} End={m_DonationPaymentFormModel.QueryEndDate:yyyy-MM-dd} Returned={aDedicationFeeEntityCollection.Entities.Count}");
-
-                m_DonationPaymentFormModel.TotalAmount = 0;
-                m_DonationPaymentFormModel.DedicationFeeList.Clear();
-                foreach (Entity aDedicationFeeEntity in aDedicationFeeEntityCollection.Entities)
-                {
-                    DedicationFee aDedicationFee = new DedicationFee();
-
-                    aDedicationFee.DedicationDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDedicationFeeEntity, "createdon").ToLocalTime();
-                    aDedicationFee.PayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDedicationFeeEntity, "new_pay_date").ToLocalTime();
-                    aDedicationFee.Amount = Convert.ToInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(aDedicationFeeEntity, "new_fee_really_paid").Value);
-                    m_DonationPaymentFormModel.TotalAmount += aDedicationFee.Amount;
-                    aDedicationFee.PayWay = ConvertToPayway(aDedicationFeeEntity);
-                    aDedicationFee.Category = ConvertToCategory(aDedicationFeeEntity);
-                    aDedicationFee.Others = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_others");
-                    aDedicationFee.PaidPeriod = this.m_ToolUtilityClass.GetEntityStringAttribute(aDedicationFeeEntity, "new_paid_period");
-                    m_DonationPaymentFormModel.DedicationFeeList.Add(aDedicationFee);
-                }
-
+                new DonationFeeQueryService(this.m_ToolUtilityClass).FillFeeList(m_DonationPaymentFormModel, LineLoginContact);
                 return m_DonationPaymentFormModel;
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                //Monitor.Exit(this);
                 throw e;
             }
         }
@@ -753,74 +676,35 @@ namespace ChurchReport.Models
         {
             try
             {
-                //控管節期獻金
-                if (donationModel.Category != null && donationModel.Category == "節期獻金")
+                string validationMessage = DonationPaymentSubmissionService.ValidateDonationForm(donationModel);
+                if (!string.IsNullOrWhiteSpace(validationMessage))
                 {
-                    if (donationModel.Others == null || donationModel.Others =="")
-                    {
-                        return Json(new { status = "2", message = "錯誤:沒有選擇節期!" });
-                    }
+                    return Json(new { status = "2", message = validationMessage });
                 }
 
-                //控管特別奉獻
-                if (donationModel.Category != null && donationModel.Category == "特別奉獻")
+                string dedicationResult = await m_DonationPaymentProcessor.CreateFeeAsync(m_Contact, donationModel);
+                DonationPaymentSubmissionResult classifiedResult = DonationPaymentSubmissionService.ClassifyCreatePaymentResult(dedicationResult);
+
+                if (classifiedResult.Status == "2")
                 {
-                    if (donationModel.Others == null || donationModel.Others == "")
-                    {
-                        return Json(new { status = "2", message = "錯誤:沒有選擇特別奉獻的項目!" });
-                    }
+                    return Json(new { status = classifiedResult.Status, message = classifiedResult.Message });
                 }
 
-                //控管奉獻金額
-                if (donationModel.Amount != null && donationModel.Amount > 0)
+                return Json(new
                 {
-                    String DedicationResult = await m_DonationPaymentProcessor.CreateFeeAsync(m_Contact, donationModel);
-
-                    String PayWay = "";
-                    if (DedicationResult.StartsWith("信用卡繳費失敗!"))
-                    {
-                        return Json(new { status = "2", message = DedicationResult });
-                    }
-                    else if (DedicationResult.StartsWith("信用卡定期定額建立失敗!"))
-                    {
-                        return Json(new { status = "2", message = DedicationResult });
-                    }
-                    else if (DedicationResult.StartsWith("行動支付付款失敗!"))
-                    {
-                        return Json(new { status = "2", message = DedicationResult });
-                    }
-                    else if (DedicationResult.StartsWith("LinePay付款失敗!"))
-                    {
-                        return Json(new { status = "2", message = DedicationResult });
-                    }
-                    else if (DedicationResult.Contains("*** 請依照訊息付款 ***") != true)
-                    {
-                        PayWay = "信用卡";
-                        // TODO:因為尚未上線，目前暫時無法使用信用卡支付，所以還原為null
-                        //return Json(new { status = "2", message = "因為尚未上線，目前暫時無法使用信用卡支付!", DedicationResult = DedicationResult, PayWay = PayWay });
-                        return Json(new { status = "1", message = "正在處理您的奉獻中.....", DedicationResult = DedicationResult, PayWay = PayWay });
-                    }
-                    else
-                    {
-                        PayWay = "虛擬帳號";
-                        return Json(new { status = "1", message = "正在處理您的奉獻中.....", DedicationResult = DedicationResult, PayWay = PayWay });
-                    }
-                }
-                else
-                {
-                    return Json(new { status = "2", message = "未輸入奉獻金額" });
-                }
+                    status = classifiedResult.Status,
+                    message = classifiedResult.Message,
+                    DedicationResult = classifiedResult.DedicationResult,
+                    PayWay = classifiedResult.PayWay
+                });
             }
             catch (System.Exception e)
             {
                 string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
                 aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + ErrorString);
-
-                //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
                 throw e;
             }
@@ -908,21 +792,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                Entity aContactToCreate = new Entity("contact");
-
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "lastname", aGalleryViewModel.FullName);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "mobilephone", aGalleryViewModel.Mobile);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "address2_line1", aGalleryViewModel.Address);//設定住家地址
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "new_personal_id", aGalleryViewModel.NationId);
-
-                // 一般小組新增的新人，委身類型設為"新朋友"
-                this.m_ToolUtilityClass.SetOptionSetAttribute(ref aContactToCreate, "customertypecode", 100000000);
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "description", "透過官網建立的奉獻新朋友");
-
-                // 設定奉獻帶編號
-                //this.m_ToolUtilityClass.SetEntityStringAttribute(ref aContactToCreate, "pager", aGalleryViewModel.NationId);
-
-                return this.m_ToolUtilityClass.RetrieveEntity("contact", this.m_ToolUtilityClass.CreateEntity(aContactToCreate));
+                return m_DonationContactService.CreateContact(aGalleryViewModel);
             }
             catch (System.Exception e)
             {
@@ -946,16 +816,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                foreach (Entity aContact in aContactEntityCollection.Entities)
-                {
-                    if (this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname") == aGalleryViewModel.FullName)
-                    {
-                        // 奉獻者姓名與身分證字號相同
-                        return aContact;
-                    }
-                }
-
-                return null;
+                return m_DonationContactService.FilterByFullName(aGalleryViewModel, aContactEntityCollection);
             }
             catch (System.Exception e)
             {
@@ -979,16 +840,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                foreach (Entity aContact in aContactEntityCollection.Entities)
-                {
-                    if (this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_personal_id") == aGalleryViewModel.NationId || this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "pager") == aGalleryViewModel.NationId)
-                    {
-                        // 奉獻者姓名與身分證字號相同或是奉獻者姓名與奉獻編號相同
-                        return aContact;
-                    }
-                }
-
-                return null;
+                return m_DonationContactService.FilterByNationId(aGalleryViewModel, aContactEntityCollection);
             }
             catch (System.Exception e)
             {
@@ -1012,16 +864,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                foreach (Entity aContact in aContactEntityCollection.Entities)
-                {
-                    if (this.m_ToolUtilityClass.FilterDigit(this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "mobilephone")) == this.m_ToolUtilityClass.FilterDigit(aGalleryViewModel.Mobile))
-                    {
-                        // 奉獻者姓名與行動電話相同
-                        return aContact;
-                    }
-                }
-
-                return null;
+                return m_DonationContactService.FilterByMobile(aGalleryViewModel, aContactEntityCollection);
             }
             catch (System.Exception e)
             {
@@ -1045,34 +888,7 @@ namespace ChurchReport.Models
         {
             try
             {
-                // 奉獻旗標預設為 FALSE
-                bool Updateflag = false;
-
-                // 奉獻者的欄位 行動電話、身分證字號、奉獻編號 沒有值才會加上去，所以不會覆蓋原有的
-                if (this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "mobilephone") == "")
-                {
-                    // 奉獻者沒有行動電話
-                    m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "mobilephone", aGalleryViewModel.Mobile);
-                    Updateflag = true;
-                }
-                if (this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_personal_id") == "")
-                {
-                    // 奉獻者沒有身分證字號
-                    m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "new_personal_id", aGalleryViewModel.NationId);
-                    Updateflag = true;
-                }
-                if (this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "pager") == "")
-                {
-                    // 奉獻者沒有奉獻編號
-                    m_ToolUtilityClass.SetEntityStringAttribute(ref aContact, "pager", aGalleryViewModel.NationId);
-                    Updateflag = true;
-                }
-
-                if (Updateflag == true)
-                {
-                    // 旗標為TRUE所以要更新奉獻者
-                    this.m_ToolUtilityClass.UpdateEntity(ref aContact);
-                }
+                m_DonationContactService.UpdateMissingFields(aGalleryViewModel, ref aContact);
             }
             catch (System.Exception e)
             {
@@ -1095,115 +911,31 @@ namespace ChurchReport.Models
         #region 信用卡管理
         public void ProcessCreditCard()
         {
-            try
-            {
-                GetCreditCardList(this.m_Contact);
-                //預設信用卡
-                if (m_DonationPaymentFormModel.CreditCardList.Count > 0)
-                {
-                    // 選第1個信用卡
-                    m_DonationPaymentFormModel.SelectedCreditCard = m_DonationPaymentFormModel.CreditCardList[0].CCToken;
-                    // 選最後個信用卡
-                    //m_DonationPaymentFormModel.SelectedCreditCard = m_DonationPaymentFormModel.CreditCardList[m_DonationPaymentFormModel.CreditCardList.Count - 1].CCToken;
-                }
-                else
-                {
-                    // 沒有預存信用卡
-                    m_DonationPaymentFormModel.SelectedCreditCard = null;
-                }
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+            var cards = DonationCreditCardProfileService.ParseCreditCards(
+                this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "new_visa_info"));
 
-                throw e;
-            }
+            m_DonationPaymentFormModel.CreditCardList.Clear();
+            m_DonationPaymentFormModel.CreditCardList.AddRange(cards);
+            m_DonationPaymentFormModel.SelectedCreditCard = cards.Count > 0 ? cards[0].CCToken : null;
         }
         public void GetCreditCardList(Entity aContact)
         {
-            #region// 取得連絡人信用卡資訊
+            var cards = DonationCreditCardProfileService.ParseCreditCards(
+                this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_visa_info"));
 
-            String VisaInfo = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "new_visa_info");
-
-            if (VisaInfo != "")
-            {
-                String[] VisaInfoSplit = VisaInfo.Split('|');
-
-                if (VisaInfoSplit.Length > 0)
-                {
-                    foreach (String CreditCard in VisaInfoSplit)
-                    {
-                        String[] VisaCCTokenSplit = CreditCard.Split('，');
-
-                        if (VisaCCTokenSplit.Length == 4)
-                        {
-                            m_DonationPaymentFormModel.CreditCardList.Add(new CreditCard
-                            {
-                                CCToken = VisaCCTokenSplit[0],
-                                LeftCardNumber = VisaCCTokenSplit[1],
-                                RightCardNumber = VisaCCTokenSplit[2],
-                                CreditCardNumber = VisaCCTokenSplit[1] + "-XXXX-" + VisaCCTokenSplit[2],
-                                ExpireDate = ProcessExpireDate(VisaCCTokenSplit[3])
-                            });
-                        }
-                        else
-                        {
-                            //return null;
-                        }
-
-                    }
-                }
-                else
-                {
-                    return;
-                }
-
-            }
-            else
-            {
-                return;
-            }
-            #endregion
+            m_DonationPaymentFormModel.CreditCardList.AddRange(cards);
         }
         public String ProcessExpireDate(String aExpiredDate)
         {
-            #region//轉換過期日
-
-            //char[] CharArr = aExpiredDate.ToCharArray();
-            //int Year = Convert.ToInt32(  "20" + new string(new char[] { CharArr[0], CharArr[1] }) );
-            //int Month = Convert.ToInt32( new string(new char[] { CharArr[2], CharArr[3] }) );
-
-            //return new DateTime(Year, Month, 1).ToLocalTime().ToShortDateString();
-
-            char[] CharArr = aExpiredDate.ToCharArray();
-            return new string(new char[] { CharArr[0], CharArr[1] }) + "/" + new string(new char[] { CharArr[2], CharArr[3] });
-            #endregion
+            return DonationCreditCardProfileService.FormatExpireDate(aExpiredDate);
         }
         public void DeleteCreditCard(CreditCard aCreditCardToDelete)
         {
-            try
-            {
-                // 刪除信用卡
-                m_DonationPaymentFormModel.CreditCardList.Remove(aCreditCardToDelete);
+            m_DonationPaymentFormModel.CreditCardList.Remove(aCreditCardToDelete);
 
-                String VisaInfo = "";
-
-                foreach (CreditCard aCreditCard in m_DonationPaymentFormModel.CreditCardList)
-                {
-                    VisaInfo += aCreditCard.CCToken + "，" + aCreditCard.LeftCardNumber + "，" + aCreditCard.RightCardNumber + "，" + aCreditCard.ExpireDate.Replace("/","") + "|";
-                }
-
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_visa_info", VisaInfo);
-
-                this.m_ToolUtilityClass.UpdateEntity(ref m_Contact);
-
-            }
-            catch (System.Exception e)
-            {
-                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
-            }
+            string visaInfo = DonationCreditCardProfileService.SerializeCreditCards(m_DonationPaymentFormModel.CreditCardList);
+            this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_Contact, "new_visa_info", visaInfo);
+            this.m_ToolUtilityClass.UpdateEntity(ref m_Contact);
         }
         public void DeleteSameNameContact(SameNameElement aSameNameElement)
         {
@@ -1478,103 +1210,19 @@ namespace ChurchReport.Models
         #region 工具區
         private String ConvertToPayway(Entity aFeeEntity)
         {
-            switch (this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_pay_way"))
-            {
-                case 100000004:
-                    return "未知";
-                case 100000000:
-                    return "現金";
-                case 100000001:
-                    return "信用卡";
-                case 100000002:
-                    return "ATM轉帳";
-                case 100000003:
-                    return "超商付款";
-                case 100000005:
-                    return "LinePay";
-                case 100000006:
-                    return "銀行轉帳";
-                case 100000007:
-                    return "行動支付";
-                case 100000008:
-                    return "銀聯卡";
-                default:
-                    return "未知";
-            }
+            return DonationFeeQueryService.ConvertPayWay(this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_pay_way"));
         }
         public String ConvertToCategory(Entity aFeeEntity)
         {
-            try
-            {
-                // 方法 1: 優先使用 FormattedValues（最快速且最可靠）
-                if (aFeeEntity.FormattedValues.Contains("new_category"))
-                {
-                    string displayText = aFeeEntity.FormattedValues["new_category"];
-                    if (!string.IsNullOrEmpty(displayText))
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[ConvertToCategory] 使用 FormattedValues: {displayText}");
-                        return displayText;
-                    }
-                }
-                                // 預設值（當無法取得顯示文字時）
-                System.Diagnostics.Debug.WriteLine($"[ConvertToCategory] 使用預設值");
-                return "十一奉獻";
-            }
-            catch (Exception ex)
-            {
-                // 記錄錯誤並返回預設值
-                System.Diagnostics.Debug.WriteLine($"[ConvertToCategory] 錯誤: {ex.Message}");
-                return "十一奉獻";
-            }
+            return DonationFeeQueryService.ConvertCategory(aFeeEntity);
         }
-                public String ConvertToDedicationBookingStatus(int OptionSetValue)
+        public String ConvertToDedicationBookingStatus(int OptionSetValue)
         {
-            switch (OptionSetValue)
-            {
-                case 100000000:
-                    return "尚未啟動";
-                case 100000001:
-                    return "進行中";
-                case 100000002:
-                    return "已結案";
-                case 100000003:
-                    return "啟動失敗";
-                case 100000004:
-                    return "已取消";
-                default:
-                    return "尚未啟動";
-            }
+            return DonationBookingService.ConvertStatus(OptionSetValue);
         }
         public String ProcessSpecialCategoryString(String SpecialCategory)
         {
-            String[] OtherCategoryArray = SpecialCategory.Split(',');
-            if (OtherCategoryArray.Length == 2)
-            {
-                String[] StartAndEndDateArray = OtherCategoryArray[0].Split('~');
-                if (StartAndEndDateArray.Length == 2)
-                {
-                    DateTime aStartDate = ParseDateTime(StartAndEndDateArray[0]).ToLocalTime();
-                    DateTime aEndDate = ParseDateTime(StartAndEndDateArray[1]).ToLocalTime().AddDays(1);
-
-                    if (aStartDate.Date < DateTime.Now && DateTime.Now < aEndDate.Date)
-                    {
-                        return OtherCategoryArray[1];
-                    }
-                    else
-                    {
-                        return "";
-                    }
-                }
-                else
-                {
-                    return "";
-                }
-
-            }
-            else
-            {
-                return "";
-            }
+            return DonationPaymentFormBuilder.ResolveSpecialCategory(SpecialCategory, DateTime.Now);
         }
         #endregion
         #region 永豐金流工具區
@@ -1601,28 +1249,13 @@ namespace ChurchReport.Models
             try
             {
                 if (String.IsNullOrEmpty(contactId)) return new List<object>();
-
-                Guid id;
-                if (!Guid.TryParse(contactId, out id)) return new List<object>();
+                if (!Guid.TryParse(contactId, out Guid id)) return new List<object>();
 
                 Entity contactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", id);
                 if (contactEntity == null) return new List<object>();
 
-                // Fill model's dedication list for this contact
                 SetDedicationFeeList(contactEntity);
-
-                var feeList = m_DonationPaymentFormModel.DedicationFeeList.Select(f => new
-                {
-                    Category = f.Category,
-                    DedicationDate = f.DedicationDate,
-                    PayDate = f.PayDate,
-                    PayWay = f.PayWay,
-                    Amount = f.Amount,
-                    PaidPeriod = f.PaidPeriod,
-                    Others = f.Others
-                }).ToList<object>();
-
-                return feeList;
+                return DonationFeeQueryService.ToAjaxRows(m_DonationPaymentFormModel.DedicationFeeList);
             }
             catch (Exception)
             {
@@ -1631,20 +1264,7 @@ namespace ChurchReport.Models
         }
         private DateTime ParseDateTime(string dateString)
         {
-            // 嘗試以多種格式解析日期字串
-            DateTime result;
-            string[] formats = { "yyyy/MM/dd", "yyyy-MM-dd", "yyyyMMdd" };
-            if (DateTime.TryParseExact(dateString, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
-            {
-                return result;
-            }
-            // 若無法解析則嘗試一般解析
-            if (DateTime.TryParse(dateString, out result))
-            {
-                return result;
-            }
-            // 若解析失敗則回傳現在時間
-            return DateTime.Now;
+            return DonationPaymentFormBuilder.ParseDateTime(dateString);
         }
     }
 }

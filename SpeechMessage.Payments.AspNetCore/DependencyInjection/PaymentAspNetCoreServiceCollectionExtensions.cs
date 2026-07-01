@@ -4,15 +4,14 @@ using SpeechMessage.Payments.Workflows;
 namespace SpeechMessage.Payments.AspNetCore.DependencyInjection;
 
 /// <summary>
-/// 註冊可被多個 ASP.NET Core 產品共用的金流 host integration 服務。
-/// 這裡只提供 HTTP request/response 映射、建立付款請求與付款後流程管線；
-/// CRM、LINE、畫面、資料庫與產品流程的具體實作仍由 host application 自行註冊。
+/// 註冊 ASP.NET Core host integration 需要的共用金流服務。
+/// 這個專案只處理 HTTP request/response、付款建立 DTO 與 provider-neutral workflow，
+/// 不註冊 CRM、LINE、奉獻、會員或任何產品資料庫實作；那些責任由 host application 自己提供。
 /// </summary>
 public static class PaymentAspNetCoreServiceCollectionExtensions
 {
     /// <summary>
-    /// 將 SpeechMessage.Payments.AspNetCore 的薄整合層加入 DI。
-    /// 其他 ASP.NET Core 產品引用此專案後，可透過同一個方法取得一致的金流接線行為。
+    /// 將可跨 ASP.NET Core 產品重用的金流 host 輔助服務加入 DI。
     /// </summary>
     public static IServiceCollection AddSpeechMessagePaymentAspNetCore(this IServiceCollection services)
     {
