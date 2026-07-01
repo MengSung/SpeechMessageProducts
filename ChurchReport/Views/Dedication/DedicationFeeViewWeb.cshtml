@@ -1,5 +1,5 @@
-﻿@using ChurchReport.Models
-@model QpayModel
+@using ChurchReport.Models
+@model DonationPaymentFormModel
 @*<div class="long-title"><h3>奉獻資訊</h3></div>*@
 
 <style>
@@ -312,7 +312,7 @@
         </div>
     </div>
     <div id="form-container" class="dedication-card dedication-filter-card">
-        @(Html.DevExtreme().Form<QpayModel>()
+        @(Html.DevExtreme().Form<DonationPaymentFormModel>()
         .ID("form")
         .ColCount(1)
         .Items

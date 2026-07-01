@@ -1,4 +1,4 @@
-﻿using ChurchReport.Diagnostics.Profiling;
+using ChurchReport.Diagnostics.Profiling;
 using ChurchReport.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -326,10 +326,10 @@ namespace ChurchReport.Controllers
                 {
                     if (loginContact != null)
                     {
-                        InMemoryContext.QpayManager.LoginType = "網頁登入";
-                        using (PerfPhase.Measure(HttpContext, "Login.SetupSystemData.SetQpayModel"))
+                        InMemoryContext.DonationPaymentManager.LoginType = "網頁登入";
+                        using (PerfPhase.Measure(HttpContext, "Login.SetupSystemData.SetDonationPaymentModel"))
                         {
-                            InMemoryContext.QpayManager.SetQpayModel(loginContact);
+                            InMemoryContext.DonationPaymentManager.SetDonationPaymentModel(loginContact);
                         }
                     }
                 }

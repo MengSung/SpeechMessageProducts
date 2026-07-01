@@ -40,7 +40,7 @@ public sealed class DonationPaymentCreateGatewayAdapter : IDonationPaymentCreate
     /// 付款分類與定期定額欄位，避免這些資料散落在各個 processor。
     /// </summary>
     public Task<PaymentCreateResult> CreateCardPaymentAsync(
-        QPayCreatePaymentInput input,
+        DonationPaymentCreateInput input,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -74,7 +74,7 @@ public sealed class DonationPaymentCreateGatewayAdapter : IDonationPaymentCreate
     /// 這是相容舊 ChurchReport 呼叫點的轉換，不應新增 provider-specific protocol 邏輯。
     /// </summary>
     public async Task<CreOrder> CreateLegacyOrderAsync(
-        QPayCreatePaymentInput input,
+        DonationPaymentCreateInput input,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -83,7 +83,7 @@ public sealed class DonationPaymentCreateGatewayAdapter : IDonationPaymentCreate
         return ToLegacyCreOrder(input, result);
     }
 
-    private static IReadOnlyDictionary<string, string> BuildMetadata(QPayCreatePaymentInput input)
+    private static IReadOnlyDictionary<string, string> BuildMetadata(DonationPaymentCreateInput input)
     {
         return new Dictionary<string, string>
         {
@@ -103,7 +103,7 @@ public sealed class DonationPaymentCreateGatewayAdapter : IDonationPaymentCreate
         };
     }
 
-    private static IReadOnlyList<PaymentLineItem> ResolveItems(QPayCreatePaymentInput input)
+    private static IReadOnlyList<PaymentLineItem> ResolveItems(DonationPaymentCreateInput input)
     {
         if (input.Items.Count > 0)
         {
@@ -124,7 +124,7 @@ public sealed class DonationPaymentCreateGatewayAdapter : IDonationPaymentCreate
         };
     }
 
-    private static int ResolveDeductTotalNum(QPayCreatePaymentInput input)
+    private static int ResolveDeductTotalNum(DonationPaymentCreateInput input)
     {
         // 舊 UI 沒有送定期定額總期數時，沿用 ChurchReport 既有預設：每月扣 12 期。
         return IsRecurringCard(input) && input.DeductTotalNum <= 0
@@ -132,27 +132,27 @@ public sealed class DonationPaymentCreateGatewayAdapter : IDonationPaymentCreate
             : input.DeductTotalNum;
     }
 
-    private static string ResolvePeriodType(QPayCreatePaymentInput input)
+    private static string ResolvePeriodType(DonationPaymentCreateInput input)
     {
         return IsRecurringCard(input) && string.IsNullOrWhiteSpace(input.PeriodType)
             ? DefaultRecurringPeriodType
             : input.PeriodType;
     }
 
-    private static int ResolveDeductFreq(QPayCreatePaymentInput input)
+    private static int ResolveDeductFreq(DonationPaymentCreateInput input)
     {
         return IsRecurringCard(input) && input.DeductFreq <= 0
             ? DefaultRecurringDeductFreq
             : input.DeductFreq;
     }
 
-    private static bool IsRecurringCard(QPayCreatePaymentInput input)
+    private static bool IsRecurringCard(DonationPaymentCreateInput input)
     {
         return string.Equals(input.PaymentMethodSubType?.Trim(), "REGULAR", StringComparison.OrdinalIgnoreCase);
     }
 
     private static CreOrder ToLegacyCreOrder(
-        QPayCreatePaymentInput input,
+        DonationPaymentCreateInput input,
         PaymentCreateResult result)
     {
         var missingHostedPaymentUrl = RequiresHostedPaymentUrl(input.PaymentMethod) &&

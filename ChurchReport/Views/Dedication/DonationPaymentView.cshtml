@@ -1,8 +1,8 @@
-﻿@using ChurchReport.Models
+@using ChurchReport.Models
 @using DevExtreme.AspNet.Mvc
 @using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
-@model QpayModel
+@model DonationPaymentFormModel
 
 @{
     ViewBag.Title = "線上奉獻 - 好牧人";
@@ -450,7 +450,7 @@
                     <i class="mbri-edit" style="margin-right: 10px;"></i>奉獻資訊
                 </h5>
                 
-                @(Html.DevExtreme().Form<QpayModel>()
+                @(Html.DevExtreme().Form<DonationPaymentFormModel>()
                     .ID("form")
                     .ColCount(1)
                     .FormData(Model)

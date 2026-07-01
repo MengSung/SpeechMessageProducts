@@ -48,12 +48,6 @@ namespace ChurchReport.Models
         /// </summary>
         DonationPaymentManager DonationPaymentManager { get; }
 
-        /// <summary>
-        /// 舊 QpayManager 名稱的相容屬性。
-        /// 保留此入口是為了既有 Controller/View 逐步遷移，不應再把新程式寫到 QPay 命名上。
-        /// </summary>
-        [System.Obsolete("Use DonationPaymentManager. QpayManager is retained only for compatibility during migration.")]
-        QpayManager QpayManager { get; }
 
         /// <summary>問卷管理器。</summary>
         PollManager PollManager { get; }

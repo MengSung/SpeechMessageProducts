@@ -1,4 +1,4 @@
-using ChurchReport.Services;
+﻿using ChurchReport.Services;
 using ChurchReport.Tools;
 using ChurchReport.Filters;
 using ChurchReport.Services.Theme;
@@ -499,15 +499,12 @@ namespace ChurchReport
             services.AddScoped<IPaymentRecordUpdater, ChurchReportPaymentRecordUpdater>();
             services.AddScoped<IPaymentPayerNotifier, ChurchReportPaymentPayerNotifier>();
             services.AddScoped<IDonationPaymentReturnWorkflow, DonationPaymentReturnWorkflow>();
-            services.AddScoped<IQPayReturnWorkflow, QPayReturnWorkflow>();
             services.AddScoped<IDonationPaymentProductWorkflowDispatcher, DonationPaymentProductWorkflowDispatcher>();
-            services.AddScoped<IQPayProductWorkflowDispatcher, QPayProductWorkflowDispatcher>();
             // ChurchReport 產品層的建單 adapter，以中性介面供 controller/context/manager 使用。
-            // 舊 QPayCreatePaymentGatewayAdapter 只保留給相容 constructor，不作為新流程的主要入口。
+            // 這裡只註冊中性的 DonationPaymentCreateGatewayAdapter，避免 ChurchReport 產品層再依賴永豐 QPay 命名。
             services.AddScoped<DonationPaymentCreateGatewayAdapter>();
             services.AddScoped<IDonationPaymentCreateGatewayAdapter>(sp =>
                 sp.GetRequiredService<DonationPaymentCreateGatewayAdapter>());
-            services.AddScoped<QPayCreatePaymentGatewayAdapter>();
 
 #if DEBUG
             // ========================================

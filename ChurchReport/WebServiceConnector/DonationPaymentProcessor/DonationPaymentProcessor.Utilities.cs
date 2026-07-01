@@ -23,16 +23,16 @@ namespace ChurchReport.WebServiceConnector
         #region ===== �s���H�d�� =====
 
         /// <summary>
-        /// �ھ� QpayModel ���o�s���H
+        /// �ھ� DonationPaymentFormModel ���o�s���H
         /// </summary>
-        public Entity GetContact(QpayModel QpayModel)
+        public Entity GetContact(DonationPaymentFormModel DonationPaymentFormModel)
         {
             try
             {
                 // 方法 0：使用者已從同名清單選取特定聯絡人（含 CRM GUID）
                 // 直接 RetrieveEntity，跳過模糊查詢，避免相同奉獻編號有多筆時卡住
-                if (!string.IsNullOrEmpty(QpayModel.SelectedContactId) &&
-                    Guid.TryParse(QpayModel.SelectedContactId, out Guid contactGuid))
+                if (!string.IsNullOrEmpty(DonationPaymentFormModel.SelectedContactId) &&
+                    Guid.TryParse(DonationPaymentFormModel.SelectedContactId, out Guid contactGuid))
                 {
                     var directContact = ToolUtility.RetrieveEntity("contact", contactGuid);
                     if (directContact != null)
@@ -42,21 +42,21 @@ namespace ChurchReport.WebServiceConnector
                 }
 
                 // 方法 1：使用奉獻編號查詢
-                if (!string.IsNullOrEmpty(QpayModel.DedicationNumber))
+                if (!string.IsNullOrEmpty(DonationPaymentFormModel.DedicationNumber))
                 {
-                    return GetContactByDedicationNumber(QpayModel.DedicationNumber, QpayModel.FullName);
+                    return GetContactByDedicationNumber(DonationPaymentFormModel.DedicationNumber, DonationPaymentFormModel.FullName);
                 }
 
                 // 方法 2：使用姓名 + 手機電話查詢
-                if (!string.IsNullOrEmpty(QpayModel.FullName) && !string.IsNullOrEmpty(QpayModel.Mobile))
+                if (!string.IsNullOrEmpty(DonationPaymentFormModel.FullName) && !string.IsNullOrEmpty(DonationPaymentFormModel.Mobile))
                 {
-                    return GetContactByNameAndMobile(QpayModel.FullName, QpayModel.Mobile);
+                    return GetContactByNameAndMobile(DonationPaymentFormModel.FullName, DonationPaymentFormModel.Mobile);
                 }
 
                 // 方法 3：只使用姓名查詢（僅限唯一一筆）
-                if (!string.IsNullOrEmpty(QpayModel.FullName))
+                if (!string.IsNullOrEmpty(DonationPaymentFormModel.FullName))
                 {
-                    return GetContactByNameOnly(QpayModel.FullName);
+                    return GetContactByNameOnly(DonationPaymentFormModel.FullName);
                 }
 
                 return null;
@@ -115,7 +115,7 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// �o�e�P�©^�m LINE �T��
         /// </summary>
-        public async Task SendGratitudeLineMessage(Entity aContact, QpayModel QpayModel)
+        public async Task SendGratitudeLineMessage(Entity aContact, DonationPaymentFormModel DonationPaymentFormModel)
         {
             try
             {
@@ -124,7 +124,7 @@ namespace ChurchReport.WebServiceConnector
                 if (!string.IsNullOrEmpty(lineId))
                 {
                     var fullName = ToolUtility.GetEntityStringAttribute(ref aContact, "fullname");
-                    var gratitudeMessage = BuildGratitudeMessage(fullName, QpayModel);
+                    var gratitudeMessage = BuildGratitudeMessage(fullName, DonationPaymentFormModel);
 
                     await PushUtility.SendMessage(lineId, gratitudeMessage);
                 }
@@ -138,13 +138,13 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// �إ߷P�°T��
         /// </summary>
-        private string BuildGratitudeMessage(string fullName, QpayModel QpayModel)
+        private string BuildGratitudeMessage(string fullName, DonationPaymentFormModel DonationPaymentFormModel)
         {
             return $"�q�� {fullName} �^�m{Environment.NewLine}" +
-                   $"��� : {QpayModel.DedicationDate.ToShortDateString()}{Environment.NewLine}" +
-                   $"���O : {QpayModel.Category}  {QpayModel.Others}{Environment.NewLine}" +
-                   $"�I�ڤ覡: {QpayModel.PayWay}{Environment.NewLine}" +
-                   $"���B : {QpayModel.Amount}";
+                   $"��� : {DonationPaymentFormModel.DedicationDate.ToShortDateString()}{Environment.NewLine}" +
+                   $"���O : {DonationPaymentFormModel.Category}  {DonationPaymentFormModel.Others}{Environment.NewLine}" +
+                   $"�I�ڤ覡: {DonationPaymentFormModel.PayWay}{Environment.NewLine}" +
+                   $"���B : {DonationPaymentFormModel.Amount}";
         }
 
         #endregion

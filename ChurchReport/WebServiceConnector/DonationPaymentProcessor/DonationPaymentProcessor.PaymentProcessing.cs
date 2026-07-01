@@ -26,17 +26,17 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 處理信用卡/銀聯卡付款
         /// </summary>
-        private async Task<string> ProcessCreditCardPayment(Entity LineLoginContact, QpayModel QpayModel, string orderDate)
+        private async Task<string> ProcessCreditCardPayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, string orderDate)
         {
-            var feeId = CreateFee(LineLoginContact, QpayModel, false);
+            var feeId = CreateFee(LineLoginContact, DonationPaymentFormModel, false);
             var feeEntity = ToolUtility.RetrieveEntity("new_fee", feeId);
 
             // 判斷信用卡類型
-            var payTypeSub = QpayModel.PayWay == "銀聯卡" ? "CUP" : "ONE";
+            var payTypeSub = DonationPaymentFormModel.PayWay == "銀聯卡" ? "CUP" : "ONE";
 
             var createdCardOrder = await CreOrderCard(
-                QpayModel.Amount,
-                $"{QpayModel.Category}-{QpayModel.FullName}",
+                DonationPaymentFormModel.Amount,
+                $"{DonationPaymentFormModel.Category}-{DonationPaymentFormModel.FullName}",
                 orderDate,
                 feeId.ToString(),
                 "C", // 信用卡
@@ -47,7 +47,7 @@ namespace ChurchReport.WebServiceConnector
                 1,
                 "收費單",
                 LineLoginContact,
-                QpayModel.SelectedCreditCard
+                DonationPaymentFormModel.SelectedCreditCard
             );
 
             if (createdCardOrder?.CardParam?.CardPayURL != null)
@@ -66,26 +66,26 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 處理信用卡定期定額扣款
         /// </summary>
-        private async Task<string> ProcessRecurringPayment(Entity LineLoginContact, QpayModel QpayModel, string orderDate)
+        private async Task<string> ProcessRecurringPayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, string orderDate)
         {
             // 建立認獻單
-            var dedicationBookingId = CreateDedicationBooking(LineLoginContact, QpayModel);
+            var dedicationBookingId = CreateDedicationBooking(LineLoginContact, DonationPaymentFormModel);
             var dedicationBookingEntity = ToolUtility.RetrieveEntity("new_dedication_booking", dedicationBookingId);
 
             var createdCardOrder = await CreOrderCard(
-                QpayModel.Amount,
-                $"{QpayModel.Category}-{QpayModel.FullName}",
+                DonationPaymentFormModel.Amount,
+                $"{DonationPaymentFormModel.Category}-{DonationPaymentFormModel.FullName}",
                 orderDate,
                 dedicationBookingId.ToString(),
                 "C",
                 "REGULAR", // 定期定額
                 "",
-                TransferToDeductTotalNum(QpayModel.DeductTotalNumber),
+                TransferToDeductTotalNum(DonationPaymentFormModel.DeductTotalNumber),
                 "M",
                 1,
                 "認獻單",
                 LineLoginContact,
-                QpayModel.SelectedCreditCard
+                DonationPaymentFormModel.SelectedCreditCard
             );
 
             if (createdCardOrder?.CardParam?.CardPayURL != null)
@@ -119,14 +119,14 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 處理行動支付
         /// </summary>
-        private async Task<string> ProcessMobilePayment(Entity LineLoginContact, QpayModel QpayModel, string orderDate)
+        private async Task<string> ProcessMobilePayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, string orderDate)
         {
-            var feeId = CreateFee(LineLoginContact, QpayModel, false);
+            var feeId = CreateFee(LineLoginContact, DonationPaymentFormModel, false);
             var feeEntity = ToolUtility.RetrieveEntity("new_fee", feeId);
 
             var createdMobileOrder = await CreOrderCard(
-                QpayModel.Amount,
-                $"{QpayModel.Category}-{QpayModel.FullName}",
+                DonationPaymentFormModel.Amount,
+                $"{DonationPaymentFormModel.Category}-{DonationPaymentFormModel.FullName}",
                 orderDate,
                 feeId.ToString(),
                 "M", // 行動支付
@@ -137,7 +137,7 @@ namespace ChurchReport.WebServiceConnector
                 1,
                 "收費單",
                 LineLoginContact,
-                QpayModel.SelectedCreditCard
+                DonationPaymentFormModel.SelectedCreditCard
             );
 
             if (createdMobileOrder?.MobileParam?.MobilePayURL != null)
@@ -157,14 +157,14 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 處理 LinePay 付款
         /// </summary>
-        private async Task<string> ProcessLinePayPayment(Entity LineLoginContact, QpayModel QpayModel, string orderDate)
+        private async Task<string> ProcessLinePayPayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, string orderDate)
         {
-            var feeId = CreateFee(LineLoginContact, QpayModel, false);
+            var feeId = CreateFee(LineLoginContact, DonationPaymentFormModel, false);
             var feeEntity = ToolUtility.RetrieveEntity("new_fee", feeId);
 
             var createdLinePayOrder = await CreOrderCard(
-                QpayModel.Amount,
-                $"{QpayModel.Category}-{QpayModel.FullName}",
+                DonationPaymentFormModel.Amount,
+                $"{DonationPaymentFormModel.Category}-{DonationPaymentFormModel.FullName}",
                 DateTime.Now.ToString("yyyyMMddhhmmssfff"),
                 feeId.ToString(),
                 "L", // LinePay
@@ -175,7 +175,7 @@ namespace ChurchReport.WebServiceConnector
                 1,
                 "收費單",
                 LineLoginContact,
-                QpayModel.SelectedCreditCard
+                DonationPaymentFormModel.SelectedCreditCard
             );
 
             if (createdLinePayOrder?.MobileParam?.MobilePayURL != null)
@@ -195,12 +195,12 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 處理 ATM 轉帳/匯款
         /// </summary>
-        private async Task<string> ProcessAtmPayment(Entity LineLoginContact, QpayModel QpayModel, string orderDate)
+        private async Task<string> ProcessAtmPayment(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel, string orderDate)
         {
-            var feeId = CreateFee(LineLoginContact, QpayModel, false);
+            var feeId = CreateFee(LineLoginContact, DonationPaymentFormModel, false);
             var feeEntity = ToolUtility.RetrieveEntity("new_fee", feeId);
 
-            return await ProcessAtm(feeId, feeEntity, QpayModel, "C" + orderDate, "", LineLoginContact);
+            return await ProcessAtm(feeId, feeEntity, DonationPaymentFormModel, "C" + orderDate, "", LineLoginContact);
         }
 
         /// <summary>
@@ -209,18 +209,18 @@ namespace ChurchReport.WebServiceConnector
         public async Task<string> ProcessAtm(
             Guid aCreatedFeeId,
             Entity aFeeToUpdate,
-            QpayModel QpayModel,
+            DonationPaymentFormModel DonationPaymentFormModel,
             string OrderId,
             string LineId,
             Entity LineLoginContact)
         {
             try
             {
-                QpayModel.FullName = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "fullname");
+                DonationPaymentFormModel.FullName = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "fullname");
 
                 var createdAtmOrder = await CreateOrderATM(
-                    QpayModel.Amount,
-                    $"{QpayModel.Category}-{QpayModel.FullName}",
+                    DonationPaymentFormModel.Amount,
+                    $"{DonationPaymentFormModel.Category}-{DonationPaymentFormModel.FullName}",
                     DateTime.Now.ToString("yyyyMMddhhmmssfff"),
                     aCreatedFeeId.ToString()
                 );
@@ -229,7 +229,7 @@ namespace ChurchReport.WebServiceConnector
                 UpdateFee(ref aFeeToUpdate, "", createdAtmOrder.OrderNo, OrderId, createdAtmOrder.ATMParam.AtmPayNo);
 
                 // 建立 ATM 資訊
-                var atmInfo = BuildAtmInfo(LineLoginContact, QpayModel, createdAtmOrder.ATMParam.AtmPayNo);
+                var atmInfo = BuildAtmInfo(LineLoginContact, DonationPaymentFormModel, createdAtmOrder.ATMParam.AtmPayNo);
 
                 // 發送 LINE 通知
                 LineId = ResolveAtmNotificationLineId(LineId, LineLoginContact);
@@ -249,7 +249,7 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 建立 ATM 資訊訊息
         /// </summary>
-        private (string LineMessage, string HtmlMessage) BuildAtmInfo(Entity contact, QpayModel model, string atmPayNo)
+        private (string LineMessage, string HtmlMessage) BuildAtmInfo(Entity contact, DonationPaymentFormModel model, string atmPayNo)
         {
             var fullName = ToolUtility.GetEntityStringAttribute(ref contact, "fullname");
             var expireDate = DateTime.Now.AddDays(10).ToLocalTime().ToShortDateString();

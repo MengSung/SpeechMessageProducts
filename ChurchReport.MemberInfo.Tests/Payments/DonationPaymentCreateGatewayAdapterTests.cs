@@ -12,7 +12,7 @@ namespace ChurchReport.MemberInfo.Tests.Payments;
 /// 驗證 ChurchReport 舊 QPay 建立付款 adapter 仍能呼叫共用的
 /// PaymentCreateRequestFactory，並維持既有 CreOrder 與 profile mapping 行為。
 /// </summary>
-public sealed class QPayCreatePaymentGatewayAdapterTests
+public sealed class DonationPaymentCreateGatewayAdapterTests
 {
     [Fact]
     public async Task CreateCardPaymentAsync_maps_legacy_qpay_fields_to_neutral_create_request()
@@ -30,12 +30,12 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
                 ["Payment:DefaultProfile"] = "JesusTest"
             })
             .Build();
-        var adapter = new QPayCreatePaymentGatewayAdapter(
+        var adapter = new DonationPaymentCreateGatewayAdapter(
             gateway,
             new PaymentCreateRequestFactory(),
             new ChurchReportPaymentProfileResolver(configuration));
 
-        var result = await adapter.CreateCardPaymentAsync(new QPayCreatePaymentInput
+        var result = await adapter.CreateCardPaymentAsync(new DonationPaymentCreateInput
         {
             Amount = 1200m,
             ProductName = "Fee payment",
@@ -97,12 +97,12 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
                 ["Payment:DefaultProfile"] = "JesusTest"
             })
             .Build();
-        var adapter = new QPayCreatePaymentGatewayAdapter(
+        var adapter = new DonationPaymentCreateGatewayAdapter(
             gateway,
             new PaymentCreateRequestFactory(),
             new ChurchReportPaymentProfileResolver(configuration));
 
-        await adapter.CreateCardPaymentAsync(new QPayCreatePaymentInput
+        await adapter.CreateCardPaymentAsync(new DonationPaymentCreateInput
         {
             Amount = 1200m,
             ProductName = "Fee payment",
@@ -133,7 +133,7 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
         });
         var adapter = CreateAdapter(gateway);
 
-        await adapter.CreateCardPaymentAsync(new QPayCreatePaymentInput
+        await adapter.CreateCardPaymentAsync(new DonationPaymentCreateInput
         {
             Amount = 800m,
             ProductName = "Recurring donation",
@@ -170,7 +170,7 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
         });
         var adapter = CreateAdapter(gateway);
 
-        var order = await adapter.CreateLegacyOrderAsync(new QPayCreatePaymentInput
+        var order = await adapter.CreateLegacyOrderAsync(new DonationPaymentCreateInput
         {
             Amount = 1200m,
             ProductName = "Fee payment",
@@ -212,7 +212,7 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
         });
         var adapter = CreateAdapter(gateway);
 
-        var order = await adapter.CreateLegacyOrderAsync(new QPayCreatePaymentInput
+        var order = await adapter.CreateLegacyOrderAsync(new DonationPaymentCreateInput
         {
             Amount = 1200m,
             ProductName = "Fee payment",
@@ -251,7 +251,7 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
         });
         var adapter = CreateAdapter(gateway);
 
-        var order = await adapter.CreateLegacyOrderAsync(new QPayCreatePaymentInput
+        var order = await adapter.CreateLegacyOrderAsync(new DonationPaymentCreateInput
         {
             Amount = 8m,
             ProductName = "Tithe donation",
@@ -287,7 +287,7 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
         });
         var adapter = CreateAdapter(gateway);
 
-        var order = await adapter.CreateLegacyOrderAsync(new QPayCreatePaymentInput
+        var order = await adapter.CreateLegacyOrderAsync(new DonationPaymentCreateInput
         {
             Amount = 8m,
             ProductName = "Tithe donation",
@@ -304,7 +304,7 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
         order.Description.Should().Contain("ATM virtual account");
     }
 
-    private static QPayCreatePaymentGatewayAdapter CreateAdapter(IPaymentGateway gateway)
+    private static DonationPaymentCreateGatewayAdapter CreateAdapter(IPaymentGateway gateway)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -313,7 +313,7 @@ public sealed class QPayCreatePaymentGatewayAdapterTests
             })
             .Build();
 
-        return new QPayCreatePaymentGatewayAdapter(
+        return new DonationPaymentCreateGatewayAdapter(
             gateway,
             new PaymentCreateRequestFactory(),
             new ChurchReportPaymentProfileResolver(configuration));

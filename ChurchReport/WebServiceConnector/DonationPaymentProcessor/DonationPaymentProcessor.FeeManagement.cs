@@ -27,22 +27,22 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 非同步建立收費單並處理付款流程
         /// </summary>
-        public async Task<string> CreateFeeAsync(Entity LineLoginContact, QpayModel QpayModel)
+        public async Task<string> CreateFeeAsync(Entity LineLoginContact, DonationPaymentFormModel DonationPaymentFormModel)
         {
             try
             {
                 // 設定產品名稱
-                QpayModel.FullName = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "fullname");
+                DonationPaymentFormModel.FullName = ToolUtility.GetEntityStringAttribute(ref LineLoginContact, "fullname");
                 var orderDate = DateTime.Now.ToString("yyyyMMddhhmmssfff");
 
                 // 根據付款方式路由到對應處理方法
-                return QpayModel.PayWay switch
+                return DonationPaymentFormModel.PayWay switch
                 {
-                    "信用卡" or "銀聯卡" or null => await ProcessCreditCardPayment(LineLoginContact, QpayModel, orderDate),
-                    "信用卡定期定額(每個月)" => await ProcessRecurringPayment(LineLoginContact, QpayModel, orderDate),
-                    "行動支付" => await ProcessMobilePayment(LineLoginContact, QpayModel, orderDate),
-                    "LinePay" => await ProcessLinePayPayment(LineLoginContact, QpayModel, orderDate),
-                    "ATM轉帳/匯款" => await ProcessAtmPayment(LineLoginContact, QpayModel, orderDate),
+                    "信用卡" or "銀聯卡" or null => await ProcessCreditCardPayment(LineLoginContact, DonationPaymentFormModel, orderDate),
+                    "信用卡定期定額(每個月)" => await ProcessRecurringPayment(LineLoginContact, DonationPaymentFormModel, orderDate),
+                    "行動支付" => await ProcessMobilePayment(LineLoginContact, DonationPaymentFormModel, orderDate),
+                    "LinePay" => await ProcessLinePayPayment(LineLoginContact, DonationPaymentFormModel, orderDate),
+                    "ATM轉帳/匯款" => await ProcessAtmPayment(LineLoginContact, DonationPaymentFormModel, orderDate),
                     _ => "不支援的付款方式!"
                 };
             }
@@ -61,7 +61,7 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 建立收費單實體
         /// </summary>
-        public Guid CreateFee(Entity aContact, QpayModel QpayModel, bool KeyinMode)
+        public Guid CreateFee(Entity aContact, DonationPaymentFormModel DonationPaymentFormModel, bool KeyinMode)
         {
             try
             {
@@ -69,7 +69,7 @@ namespace ChurchReport.WebServiceConnector
 
                 // 設定收費單參數
                 var swSetParam = System.Diagnostics.Stopwatch.StartNew();
-                SetFeeParameter(aContact, feeEntity, QpayModel, KeyinMode);
+                SetFeeParameter(aContact, feeEntity, DonationPaymentFormModel, KeyinMode);
                 swSetParam.Stop();
                 System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION]   CreateFee.SetFeeParameter = {swSetParam.ElapsedMilliseconds} ms");
 
@@ -103,7 +103,7 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 設定收費單參數
         /// </summary>
-        public void SetFeeParameter(Entity aContact, Entity aFeeToCreated, QpayModel QpayModel, bool KeyinMode)
+        public void SetFeeParameter(Entity aContact, Entity aFeeToCreated, DonationPaymentFormModel DonationPaymentFormModel, bool KeyinMode)
         {
             try
             {
@@ -113,16 +113,16 @@ namespace ChurchReport.WebServiceConnector
                 ToolUtility.SetEntityLookUpAttribute(ref aFeeToCreated, "new_contact_new_fee", "contact", aContact.Id);
 
                 // 金額設定
-                SetFeeAmounts(ref aFeeToCreated, QpayModel, KeyinMode);
+                SetFeeAmounts(ref aFeeToCreated, DonationPaymentFormModel, KeyinMode);
 
                 // 付款資訊
-                SetFeePaymentInfo(ref aFeeToCreated, QpayModel, KeyinMode);
+                SetFeePaymentInfo(ref aFeeToCreated, DonationPaymentFormModel, KeyinMode);
 
                 // 奉獻分類
-                SetFeeCategoryInfo(ref aFeeToCreated, QpayModel);
+                SetFeeCategoryInfo(ref aFeeToCreated, DonationPaymentFormModel);
 
                 // 其他資訊
-                SetFeeAdditionalInfo(ref aFeeToCreated, aContact, QpayModel);
+                SetFeeAdditionalInfo(ref aFeeToCreated, aContact, DonationPaymentFormModel);
             }
             catch (Exception ex)
             {
@@ -194,13 +194,13 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 儲存手動輸入的奉獻資料
         /// </summary>
-        public async Task<string> SaveKeyInDedication(QpayModel QpayModel)
+        public async Task<string> SaveKeyInDedication(DonationPaymentFormModel DonationPaymentFormModel)
         {
             try
             {
                 // [PERF-DEDICATION] temporary timing to locate the ~96s slow CRM round-trip. Remove after diagnosis.
                 var swGetContact = System.Diagnostics.Stopwatch.StartNew();
-                var contact = GetContactForKeyIn(QpayModel);
+                var contact = GetContactForKeyIn(DonationPaymentFormModel);
                 swGetContact.Stop();
                 System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION] GetContact elapsed = {swGetContact.ElapsedMilliseconds} ms");
 
@@ -210,17 +210,17 @@ namespace ChurchReport.WebServiceConnector
                 }
 
                 var swCreateFee = System.Diagnostics.Stopwatch.StartNew();
-                var feeId = CreateFee(contact, QpayModel, true);
+                var feeId = CreateFee(contact, DonationPaymentFormModel, true);
                 swCreateFee.Stop();
                 System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION] CreateFee elapsed = {swCreateFee.ElapsedMilliseconds} ms");
 
                 // 發送 LINE 通知給奉獻者
                 var swNotify = System.Diagnostics.Stopwatch.StartNew();
-                await SendDedicationNotificationAsync(contact, QpayModel);
+                await SendDedicationNotificationAsync(contact, DonationPaymentFormModel);
                 swNotify.Stop();
                 System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION] SendDedicationNotificationAsync elapsed = {swNotify.ElapsedMilliseconds} ms");
 
-                return BuildSuccessMessage(contact, QpayModel);
+                return BuildSuccessMessage(contact, DonationPaymentFormModel);
             }
             catch (Exception ex)
             {
@@ -236,32 +236,32 @@ namespace ChurchReport.WebServiceConnector
         /// 曾造成上傳卡住近百秒；改為奉獻編號＋姓名直接在 CRM 端雙條件過濾，
         /// 同編號不同姓名也能即時找到正確會友。
         /// </summary>
-        private Entity GetContactForKeyIn(QpayModel QpayModel)
+        private Entity GetContactForKeyIn(DonationPaymentFormModel DonationPaymentFormModel)
         {
-            if (!string.IsNullOrEmpty(QpayModel.DedicationNumber))
+            if (!string.IsNullOrEmpty(DonationPaymentFormModel.DedicationNumber))
             {
                 // 編號有值但姓名空白時，原邏輯必然比對不到任何人，直接視為查無會友
-                if (string.IsNullOrEmpty(QpayModel.FullName))
+                if (string.IsNullOrEmpty(DonationPaymentFormModel.FullName))
                 {
                     return null;
                 }
 
                 var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
                 query.Attributes.AddRange("pager", "fullname", "statecode");
-                query.Values.AddRange(QpayModel.DedicationNumber, QpayModel.FullName, 0);
+                query.Values.AddRange(DonationPaymentFormModel.DedicationNumber, DonationPaymentFormModel.FullName, 0);
 
                 var matches = m_ToolUtilityClass.m_Crm2011OrganizationService.RetrieveMultiple(query);
                 return matches.Entities.Count > 0 ? matches.Entities[0] : null;
             }
 
             // 沒有奉獻編號時沿用原本的查詢邏輯（姓名＋電話、僅姓名）
-            return GetContact(QpayModel);
+            return GetContact(DonationPaymentFormModel);
         }
 
         /// <summary>
         /// 發送奉獻確認 LINE 通知給奉獻者
         /// </summary>
-        private async Task SendDedicationNotificationAsync(Entity contact, QpayModel qpayModel)
+        private async Task SendDedicationNotificationAsync(Entity contact, DonationPaymentFormModel donationPaymentFormModel)
         {
             try
             {
@@ -275,7 +275,7 @@ namespace ChurchReport.WebServiceConnector
                 }
 
                 // 建立奉獻確認訊息
-                var message = BuildDedicationNotificationMessage(contact, qpayModel);
+                var message = BuildDedicationNotificationMessage(contact, donationPaymentFormModel);
 
                 // 加入 8 秒超時：LINE API 若無回應不應卡住上傳主流程
                 var sendTask = m_PushUtility.SendMessage(lineUserId, message);
@@ -288,7 +288,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] 已成功發送奉獻通知給 {qpayModel.FullName}");
+                    System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] 已成功發送奉獻通知給 {donationPaymentFormModel.FullName}");
                 }
             }
             catch (Exception ex)
@@ -301,34 +301,34 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 建立奉獻確認 LINE 訊息內容
         /// </summary>
-        private string BuildDedicationNotificationMessage(Entity contact, QpayModel qpayModel)
+        private string BuildDedicationNotificationMessage(Entity contact, DonationPaymentFormModel donationPaymentFormModel)
         {
             var message = "🙏 奉獻確認通知\n" +
                          "━━━━━━━━━\n" +
                          $"✨ 感謝您的奉獻！\n\n" +
-                         $"📅 日期：{qpayModel.DedicationDate:yyyy/MM/dd}\n" +
-                         $"👤 姓名：{qpayModel.FullName}\n" +
-                         $"🏷️ 類別：{qpayModel.Category}\n";
+                         $"📅 日期：{donationPaymentFormModel.DedicationDate:yyyy/MM/dd}\n" +
+                         $"👤 姓名：{donationPaymentFormModel.FullName}\n" +
+                         $"🏷️ 類別：{donationPaymentFormModel.Category}\n";
 
             // 如果有其他類別說明
-            if (!string.IsNullOrEmpty(qpayModel.Others))
+            if (!string.IsNullOrEmpty(donationPaymentFormModel.Others))
             {
-                message += $"📝 其他類別：{qpayModel.Others}\n";
+                message += $"📝 其他類別：{donationPaymentFormModel.Others}\n";
             }
 
-            message += $"💰 金額：NT$ {qpayModel.Amount:N0}\n" +
-                      $"💳 方式：{qpayModel.PayWay}\n";
+            message += $"💰 金額：NT$ {donationPaymentFormModel.Amount:N0}\n" +
+                      $"💳 方式：{donationPaymentFormModel.PayWay}\n";
 
             // 如果有奉獻地點
-            if (!string.IsNullOrEmpty(qpayModel.DedicateLocation))
+            if (!string.IsNullOrEmpty(donationPaymentFormModel.DedicateLocation))
             {
-                message += $"📍 地點：{qpayModel.DedicateLocation}\n";
+                message += $"📍 地點：{donationPaymentFormModel.DedicateLocation}\n";
             }
 
             // 如果有備註
-            if (!string.IsNullOrEmpty(qpayModel.Explain))
+            if (!string.IsNullOrEmpty(donationPaymentFormModel.Explain))
             {
-                message += $"\n💬 備註：{qpayModel.Explain}\n";
+                message += $"\n💬 備註：{donationPaymentFormModel.Explain}\n";
             }
 
             message += "\n━━━━━━━━━\n" +
@@ -345,18 +345,18 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 設定收費單金額
         /// </summary>
-        private void SetFeeAmounts(ref Entity aFeeToCreated, QpayModel QpayModel, bool KeyinMode)
+        private void SetFeeAmounts(ref Entity aFeeToCreated, DonationPaymentFormModel DonationPaymentFormModel, bool KeyinMode)
         {
             // 應收金額
-            ToolUtility.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", new Money(QpayModel.Amount));
+            ToolUtility.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_shoud_pay", new Money(DonationPaymentFormModel.Amount));
 
             // 實收金額（根據付款方式和輸入模式決定）
-            var reallyPaidAmount = ShouldSetFullAmount(QpayModel.PayWay, KeyinMode) ? QpayModel.Amount : 0;
+            var reallyPaidAmount = ShouldSetFullAmount(DonationPaymentFormModel.PayWay, KeyinMode) ? DonationPaymentFormModel.Amount : 0;
             ToolUtility.SetEntityMoneyAttribute(ref aFeeToCreated, "new_fee_really_paid", new Money(reallyPaidAmount));
 
             // 大寫金額
             ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_big_chinese_number",
-                MoneyToChinese(QpayModel.Amount.ToString()));
+                MoneyToChinese(DonationPaymentFormModel.Amount.ToString()));
         }
 
         /// <summary>
@@ -375,20 +375,20 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 設定收費單付款資訊
         /// </summary>
-        private void SetFeePaymentInfo(ref Entity aFeeToCreated, QpayModel QpayModel, bool KeyinMode)
+        private void SetFeePaymentInfo(ref Entity aFeeToCreated, DonationPaymentFormModel DonationPaymentFormModel, bool KeyinMode)
         {
             // 付款方式
-            SetPayMethod(QpayModel.PayWay, ref aFeeToCreated);
+            SetPayMethod(DonationPaymentFormModel.PayWay, ref aFeeToCreated);
 
             // 付款狀態
-            var payStatus = DeterminePayStatus(QpayModel.PayWay, KeyinMode);
+            var payStatus = DeterminePayStatus(DonationPaymentFormModel.PayWay, KeyinMode);
             SetPayStatus(payStatus, ref aFeeToCreated);
 
             // 帳戶後六碼
-            ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_last_six_digit", QpayModel.LastSixDigit);
+            ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_last_six_digit", DonationPaymentFormModel.LastSixDigit);
 
             // 收費日期
-            ToolUtility.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_pay_date", QpayModel.DedicationDate.ToLocalTime());
+            ToolUtility.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_pay_date", DonationPaymentFormModel.DedicationDate.ToLocalTime());
         }
 
         /// <summary>
@@ -408,25 +408,25 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 設定收費單分類資訊
         /// </summary>
-        private void SetFeeCategoryInfo(ref Entity aFeeToCreated, QpayModel QpayModel)
+        private void SetFeeCategoryInfo(ref Entity aFeeToCreated, DonationPaymentFormModel DonationPaymentFormModel)
         {
             // 奉獻類別
-            SetFeePayCategory(QpayModel.Category, ref aFeeToCreated);
+            SetFeePayCategory(DonationPaymentFormModel.Category, ref aFeeToCreated);
 
             // 奉獻其他類別
-            if (QpayModel.Others != "" && QpayModel.Others != null)
+            if (DonationPaymentFormModel.Others != "" && DonationPaymentFormModel.Others != null)
             {
-                ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_others", QpayModel.Others);
+                ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_others", DonationPaymentFormModel.Others);
             }
 
             // 收入類別
-            SetIncomeCategory(QpayModel.Category, ref aFeeToCreated);
+            SetIncomeCategory(DonationPaymentFormModel.Category, ref aFeeToCreated);
         }
 
         /// <summary>
         /// 設定收費單額外資訊
         /// </summary>
-        private void SetFeeAdditionalInfo(ref Entity aFeeToCreated, Entity aContact, QpayModel QpayModel)
+        private void SetFeeAdditionalInfo(ref Entity aFeeToCreated, Entity aContact, DonationPaymentFormModel DonationPaymentFormModel)
         {
             // 設定輸入奉獻人員
             if (m_LoginContact != null)
@@ -435,15 +435,15 @@ namespace ChurchReport.WebServiceConnector
             }
 
             // 奉獻地點
-            var dedicateLocation = QpayModel.DedicateLocation
+            var dedicateLocation = DonationPaymentFormModel.DedicateLocation
                 ?? ToolUtility.GetEntityLookupDisplayName(ref aContact, "parentcustomerid");
             ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_dedicate_location", dedicateLocation);
 
             // 奉獻備註
-            ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_explain", QpayModel.Explain);
+            ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_explain", DonationPaymentFormModel.Explain);
 
             // 週報專用備註
-            ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_weekly_note", QpayModel.WeeklyNote);
+            ToolUtility.SetEntityStringAttribute(ref aFeeToCreated, "new_weekly_note", DonationPaymentFormModel.WeeklyNote);
         }
 
         /// <summary>
@@ -467,20 +467,20 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 建立成功訊息
         /// </summary>
-        private string BuildSuccessMessage(Entity aContact, QpayModel QpayModel)
+        private string BuildSuccessMessage(Entity aContact, DonationPaymentFormModel DonationPaymentFormModel)
         {
             return "上傳成功<br/>" +
                    "--------------------<br/>" +
-                   $"日期    : {QpayModel.DedicationDate.ToShortDateString()}<br/>" +
-                   $"姓名    : {QpayModel.FullName}<br/>" +
+                   $"日期    : {DonationPaymentFormModel.DedicationDate.ToShortDateString()}<br/>" +
+                   $"姓名    : {DonationPaymentFormModel.FullName}<br/>" +
                    $"奉獻編號: {ToolUtility.GetEntityStringAttribute(ref aContact, "pager")}<br/>" +
                    $"身分證字號: {ToolUtility.GetEntityStringAttribute(ref aContact, "new_personal_id")}<br/>" +
-                   $"電話    : {QpayModel.Mobile}<br/>" +
-                   $"類別    : {QpayModel.Category}<br/>" +
-                   $"奉獻地點: {QpayModel.DedicateLocation}<br/>" +
-                   $"付款方式: {QpayModel.PayWay}<br/>" +
-                   $"金額    : {QpayModel.Amount}<br/>" +
-                   $"備註    : {QpayModel.Explain}<br/>";
+                   $"電話    : {DonationPaymentFormModel.Mobile}<br/>" +
+                   $"類別    : {DonationPaymentFormModel.Category}<br/>" +
+                   $"奉獻地點: {DonationPaymentFormModel.DedicateLocation}<br/>" +
+                   $"付款方式: {DonationPaymentFormModel.PayWay}<br/>" +
+                   $"金額    : {DonationPaymentFormModel.Amount}<br/>" +
+                   $"備註    : {DonationPaymentFormModel.Explain}<br/>";
         }
 
         #endregion

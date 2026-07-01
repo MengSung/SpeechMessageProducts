@@ -356,7 +356,7 @@ public sealed class QPayProcessorGatewayAdapterTests
                 .GetParameters()
                 .Any(parameter => parameter.ParameterType == typeof(IDonationPaymentCreateGatewayAdapter)
                     || parameter.ParameterType == typeof(DonationPaymentCreateGatewayAdapter)
-                    || parameter.ParameterType == typeof(QPayCreatePaymentGatewayAdapter)));
+                    || parameter.ParameterType == typeof(DonationPaymentCreateGatewayAdapter)));
     }
 
     private static void SetField<T>(DonationPaymentProcessor processor, string fieldName, T value)

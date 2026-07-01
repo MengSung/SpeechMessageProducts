@@ -1,11 +1,22 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace ChurchReport.Models
 {
-    public class QpayModel
+    /// <summary>
+    /// ChurchReport 奉獻付款頁面使用的「產品層表單狀態」。
+    ///
+    /// 這個類別只描述 ChurchReport 畫面與奉獻流程需要暫存的資料，例如奉獻者姓名、奉獻編號、
+    /// 奉獻類別、付款方式、信用卡清單、定期定額清單、查詢日期等。它不是永豐 QPay 的協定模型，
+    /// 也不是高鉅、台新或 LINE Pay 的 provider DTO。
+    ///
+    /// 重構前這個類別叫做 DonationPaymentFormModel，但那個名稱會讓人誤會整個奉獻付款流程都屬於永豐。
+    /// 新名稱 DonationPaymentFormModel 明確表示：這是 ChurchReport 奉獻付款表單資料，
+    /// 真正的銀行協定資料應該留在 SpeechMessage.Payments 的 provider 實作內。
+    /// </summary>
+    public class DonationPaymentFormModel
     {
         private const String DefaultCategory = "十一奉獻";
         private const String DefaultPayWay = "信用卡";
@@ -21,14 +32,14 @@ namespace ChurchReport.Models
             "特別奉獻"
         };
 
-        public QpayModel()
+        public DonationPaymentFormModel()
         {
             EnsureFormDefaults();
         }
 
         /// <summary>
         /// 確保奉獻頁面 render 時一定有可用的基本表單資料。
-        /// QpayModel 目前會被 DonationPaymentManager 當作長生命週期狀態重複使用，
+        /// DonationPaymentFormModel 目前會被 DonationPaymentManager 當作長生命週期狀態重複使用，
         /// 舊流程或 CRM 查詢失敗時可能把下拉選單清成 null 或空集合。
         /// Controller 在回傳 View 前呼叫此方法，可以讓畫面至少保有可操作的奉獻類別與付款方式，
         /// 再由 CRM/LINE 初始化流程補上更完整的個人資料與選項。

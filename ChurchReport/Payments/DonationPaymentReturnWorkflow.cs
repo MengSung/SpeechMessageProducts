@@ -10,9 +10,20 @@ using SpeechMessage.Payments.Models;
 namespace ChurchReport.Payments;
 
 /// <summary>
-/// ChurchReport 付款回傳 workflow 的產品層入口。
-/// Controller 只負責把 HTTP callback 轉成金流核心查詢結果；這個 workflow 再決定要交給
-/// ChurchReport 的收費單、定期定額奉獻、CRM 更新與 LINE 通知流程。
+/// ChurchReport 奉獻付款回傳 workflow。
+///
+/// 這個 workflow 是「通用金流核心」與「ChurchReport 產品後續流程」中間的轉接層。
+///
+/// 通用金流核心回傳的是 <see cref="PaymentStatusResult"/>：
+/// - 它只關心 provider 回報的付款狀態、金額、交易編號、錯誤訊息與 ProviderData。
+/// - 它不應知道 ChurchReport 的 CRM fee id、奉獻類別、LINE 通知或 Razor View。
+///
+/// ChurchReport 後續流程需要的是 <see cref="DonationPaymentWorkflowResult"/>：
+/// - 它要知道要更新哪一筆 CRM 收費單或定期定額資料。
+/// - 它要知道付款是否成功、信用卡 token、卡號遮罩、付款分類等產品欄位。
+/// - 它最後會交給 DonationFeePaymentProcessor 或 RecurringDonationPaymentProcessor。
+///
+/// 所以這個類別的主要責任就是「轉譯」與「派送」，不要在這裡直接實作 CRM 更新或 LINE 發送。
 /// </summary>
 public interface IDonationPaymentReturnWorkflow
 {
@@ -23,13 +34,16 @@ public interface IDonationPaymentReturnWorkflow
 }
 
 /// <summary>
-/// Provider-neutral 的 ChurchReport 付款回傳 workflow。
-/// 此類別接收 <see cref="PaymentStatusResult"/>，把 provider 結果轉成 ChurchReport 產品層 DTO，
-/// 再交給產品流程派送器；沒有派送器時才使用只顯示結果頁的 fallback。
+/// 預設的 ChurchReport 奉獻付款回傳 workflow。
+///
+/// 如果 DI 有提供 <see cref="IDonationPaymentProductWorkflowDispatcher"/>，
+/// workflow 會把結果派送到真正的 ChurchReport 產品 processor。
+/// 如果沒有提供 dispatcher，workflow 會回傳一個基本付款結果頁，這主要用於測試或保底顯示。
 /// </summary>
 public sealed class DonationPaymentReturnWorkflow : IDonationPaymentReturnWorkflow
 {
-    private const string PaymentResultViewName = "~/Views/QPayCard/PaymentResult.cshtml";
+    private const string PaymentResultViewName = "~/Views/PaymentReturn/PaymentResult.cshtml";
+
     private readonly IDonationPaymentProductWorkflowDispatcher? _productWorkflowDispatcher;
 
     public DonationPaymentReturnWorkflow(
@@ -48,15 +62,24 @@ public sealed class DonationPaymentReturnWorkflow : IDonationPaymentReturnWorkfl
         var providerData = statusResult.ProviderData ?? new Dictionary<string, string>();
         if (_productWorkflowDispatcher != null)
         {
-            // 這裡是 ChurchReport 產品層的分界點：金流核心只告知付款狀態，
-            // CRM 更新、LINE 通知與付款結果頁由 fee/recurring donation processor 負責。
             var workflowResult = CreateWorkflowPaymentResult(shopNo, payToken, statusResult, providerData);
             return IsDedicationBooking(workflowResult.PaymentCategory)
                 ? _productWorkflowDispatcher.HandleDedicationBookingReturn(shopNo, payToken, workflowResult)
                 : _productWorkflowDispatcher.HandleFeeReturn(shopNo, payToken, workflowResult);
         }
 
-        // 測試或未注入 dispatcher 的情境使用保守 fallback，只顯示結果，不寫入 CRM 或 LINE。
+        return CreateFallbackViewResult(shopNo, payToken, statusResult, providerData);
+    }
+
+    private static ViewResult CreateFallbackViewResult(
+        string shopNo,
+        string payToken,
+        PaymentStatusResult statusResult,
+        IReadOnlyDictionary<string, string> providerData)
+    {
+        // Fallback view 的目的不是取代正式 ChurchReport 產品流程。
+        // 正式環境應該由 dispatcher 接手，進一步更新 CRM 與通知付款者。
+        // 這裡只提供一個可診斷的結果頁，避免沒有 dispatcher 時直接空白或例外。
         var isSuccess = statusResult.Status == PaymentStatus.Succeeded &&
             !statusResult.Error.HasError;
         var providerMessage = FirstNonEmpty(
@@ -71,8 +94,8 @@ public sealed class DonationPaymentReturnWorkflow : IDonationPaymentReturnWorkfl
         var viewData = CreateViewData();
         viewData["IsSuccess"] = isSuccess;
         viewData["Message"] = isSuccess
-            ? "Order created successfully. Payment processing will continue through the ChurchReport workflow."
-            : "Payment failed. Please try again later or contact the church office.";
+            ? "付款狀態已成功取得，ChurchReport 後續流程將繼續處理。"
+            : "付款失敗，請稍後再試或聯絡教會辦公室。";
         viewData["OrderId"] = orderId;
         viewData["TransactionId"] = FirstNonEmpty(
             statusResult.ProviderTransactionId,
@@ -104,8 +127,8 @@ public sealed class DonationPaymentReturnWorkflow : IDonationPaymentReturnWorkfl
     {
         var paymentCategory = Read(providerData, "payment_category");
         return IsDedicationBooking(paymentCategory)
-            ? "Credit card recurring"
-            : "Credit card";
+            ? "定期定額信用卡"
+            : "信用卡";
     }
 
     private static string ResolvePaymentCategory(IReadOnlyDictionary<string, string> providerData)
@@ -113,22 +136,23 @@ public sealed class DonationPaymentReturnWorkflow : IDonationPaymentReturnWorkfl
         var paymentCategory = Read(providerData, "payment_category");
         if (IsDedicationBooking(paymentCategory))
         {
-            return "Dedication booking";
+            return "定期定額奉獻";
         }
 
         return string.IsNullOrWhiteSpace(paymentCategory)
-            ? "Payment"
+            ? "付款"
             : paymentCategory;
     }
 
     private static bool IsDedicationBooking(string value)
     {
-        // 這是 ChurchReport 產品分類，不是 provider payment method；
-        // 多保留幾個關鍵字可讓舊 callback metadata 與新中性分類都能正確派送。
+        // 這裡判斷的是 ChurchReport 產品分類，不是 provider 付款方式。
+        // 有些舊流程會把定期定額奉獻寫成英文代碼，有些資料可能保留中文分類，
+        // 因此用多個中性條件辨識，避免把分類判斷散落到 controller 或 processor。
         return value.Equals("dedication_booking", StringComparison.OrdinalIgnoreCase) ||
             value.Equals("recurring_dedication", StringComparison.OrdinalIgnoreCase) ||
             value.Contains("Dedication", StringComparison.OrdinalIgnoreCase) ||
-            value.Contains("認獻", StringComparison.OrdinalIgnoreCase) ||
+            value.Contains("定期", StringComparison.OrdinalIgnoreCase) ||
             value.Contains("奉獻", StringComparison.OrdinalIgnoreCase);
     }
 

@@ -1,5 +1,5 @@
-﻿@using ChurchReport.Models
-@model QpayModel
+@using ChurchReport.Models
+@model DonationPaymentFormModel
 @*<div class="long-title"><h3>奉獻資訊</h3></div>*@
 
 <style>
@@ -401,7 +401,7 @@
 
 <form data-ajax="true" data-ajax-begin="onBegin" data-ajax-success="onSuccess" data-ajax-failure="onFailure" asp-action="SaveKeyInDedication" asp-controller="Dedication" method="post">
     <div id="form-container-query" class="dedication-keyin-card">
-        @(Html.DevExtreme().Form<QpayModel>()
+        @(Html.DevExtreme().Form<DonationPaymentFormModel>()
      .ID("form1")
      .ColCount(1)
      .Items(items =>
@@ -592,7 +592,7 @@
             )
     </div>
     <div id="form-container-upload" class="dedication-keyin-card">
-        @(Html.DevExtreme().Form<QpayModel>()
+        @(Html.DevExtreme().Form<DonationPaymentFormModel>()
         .ID("form2")
         .ColCount(1)
         .Items(items =>
@@ -1015,7 +1015,7 @@
                 }
                 else {
                     // 按查詢
-                    //return Json(new { status = "1", clicktype = "查詢", DedicationNumber = m_QpayModel.DedicationNumber, FullName = m_QpayModel.FullName, Mobile = m_QpayModel.Mobile, message = DedicationResult, DedicationResult = DedicationResult });
+                    //return Json(new { status = "1", clicktype = "查詢", DedicationNumber = m_DonationPaymentFormModel.DedicationNumber, FullName = m_DonationPaymentFormModel.FullName, Mobile = m_DonationPaymentFormModel.Mobile, message = DedicationResult, DedicationResult = DedicationResult });
                     //debugger;
 
                     $("#form1").dxForm("instance").updateData('DedicationNumber', data.DedicationNumber);

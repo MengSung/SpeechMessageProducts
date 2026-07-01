@@ -1,5 +1,5 @@
-﻿@using ChurchReport.Models
-@model QpayModel
+@using ChurchReport.Models
+@model DonationPaymentFormModel
 @using Newtonsoft.Json
 <head>
     <meta charset="UTF-8">
@@ -58,7 +58,7 @@
         </div>
     </div>
     <div id="form-container">
-        @(Html.DevExtreme().Form<QpayModel>()
+        @(Html.DevExtreme().Form<DonationPaymentFormModel>()
         .ID("form")
         .ColCount(1)
         .Items

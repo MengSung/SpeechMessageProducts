@@ -80,7 +80,7 @@ namespace ChurchReport.WebServiceConnector
             // ATM/轉帳的 provider protocol 已移到 SpeechMessage.Payments.Sinopac。
             // ChurchReport 只提供產品訂單、fee id、回呼 URL 與到期日，並接收 legacy CreOrder 相容結果。
             return await GetRequiredDonationPaymentCreateGatewayAdapter().CreateLegacyOrderAsync(
-                new QPayCreatePaymentInput
+                new DonationPaymentCreateInput
                 {
                     Amount = Amount,
                     ProductName = ProductName,
@@ -148,7 +148,7 @@ namespace ChurchReport.WebServiceConnector
             // 將 ChurchReport 舊 UI 傳入的分散參數包成產品層 input。
             // adapter 再轉成 PaymentCreateRequest，provider-specific payload 由核心決定。
             return await GetRequiredDonationPaymentCreateGatewayAdapter().CreateLegacyOrderAsync(
-                new QPayCreatePaymentInput
+                new DonationPaymentCreateInput
                 {
                     Amount = Amount,
                     ProductName = ProductName,

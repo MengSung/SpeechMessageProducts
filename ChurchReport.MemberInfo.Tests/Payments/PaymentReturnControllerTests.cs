@@ -11,7 +11,7 @@ using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Payments;
 
-public sealed class QPayAdapterTests
+public sealed class PaymentReturnControllerTests
 {
     [Fact]
     public async Task ReturnUrl_calls_payment_gateway_parse_and_query_with_pay_token()
@@ -42,14 +42,14 @@ public sealed class QPayAdapterTests
                     ["provider_message"] = "S00000"
                 }
             });
-        var workflow = new RecordingQPayReturnWorkflow();
+        var workflow = new RecordingDonationPaymentReturnWorkflow();
         var controller = CreateController(gateway, workflow);
         var context = new DefaultHttpContext();
         context.Request.Method = HttpMethods.Get;
         context.Request.QueryString = new QueryString($"?ShopNo=NA0149_001&PayToken={payToken}");
         controller.ControllerContext = new ControllerContext { HttpContext = context };
 
-        var result = await controller.QPayReturnUrl("NA0149_001", payToken);
+        var result = await controller.Return("NA0149_001", payToken);
 
         gateway.ParseCallbackCallCount.Should().Be(1);
         gateway.LastCallbackRequest!.ProviderHint.Should().Be(PaymentProviderKind.Sinopac);
@@ -65,7 +65,7 @@ public sealed class QPayAdapterTests
         workflow.LastShopNo.Should().Be("NA0149_001");
         workflow.LastPayToken.Should().Be(payToken);
         var view = result.Should().BeOfType<ViewResult>().Subject;
-        view.ViewName.Should().Be("~/Views/QPayCard/PaymentResult.cshtml");
+        view.ViewName.Should().Be("~/Views/PaymentReturn/PaymentResult.cshtml");
     }
 
     [Fact]
@@ -81,29 +81,29 @@ public sealed class QPayAdapterTests
                 }
             },
             new PaymentStatusResult());
-        var workflow = new RecordingQPayReturnWorkflow();
+        var workflow = new RecordingDonationPaymentReturnWorkflow();
         var controller = CreateController(gateway, workflow);
         var context = new DefaultHttpContext();
         context.Request.Method = HttpMethods.Get;
         controller.ControllerContext = new ControllerContext { HttpContext = context };
 
-        var result = await controller.QPayReturnUrl("", "PAYTOKEN-123");
+        var result = await controller.Return("", "PAYTOKEN-123");
 
         gateway.ParseCallbackCallCount.Should().Be(1);
         gateway.QueryPaymentCallCount.Should().Be(0);
         workflow.CallCount.Should().Be(0);
         var view = result.Should().BeOfType<ViewResult>().Subject;
-        view.ViewName.Should().Be("~/Views/QPayCard/PaymentResult.cshtml");
+        view.ViewName.Should().Be("~/Views/PaymentReturn/PaymentResult.cshtml");
         ((bool)controller.ViewBag.IsSuccess).Should().Be(false);
         ((string)controller.ViewBag.ErrorDetails).Should().Contain("missing ShopNo or PayToken");
     }
 
-    private static QPayCardController CreateController(
+    private static PaymentReturnController CreateController(
         IPaymentGateway gateway,
-        IQPayReturnWorkflow workflow)
+        IDonationPaymentReturnWorkflow workflow)
     {
         var configuration = new ConfigurationBuilder().Build();
-        return new QPayCardController(
+        return new PaymentReturnController(
             gateway,
             new PaymentHttpRequestMapper(),
             new ChurchReportPaymentProfileResolver(configuration),
@@ -155,7 +155,7 @@ public sealed class QPayAdapterTests
         }
     }
 
-    private sealed class RecordingQPayReturnWorkflow : IQPayReturnWorkflow
+    private sealed class RecordingDonationPaymentReturnWorkflow : IDonationPaymentReturnWorkflow
     {
         public int CallCount { get; private set; }
         public string LastShopNo { get; private set; } = string.Empty;
@@ -171,7 +171,7 @@ public sealed class QPayAdapterTests
             LastShopNo = shopNo;
             LastPayToken = payToken;
             LastStatusResult = statusResult;
-            return new ViewResult { ViewName = "~/Views/QPayCard/PaymentResult.cshtml" };
+            return new ViewResult { ViewName = "~/Views/PaymentReturn/PaymentResult.cshtml" };
         }
     }
 }

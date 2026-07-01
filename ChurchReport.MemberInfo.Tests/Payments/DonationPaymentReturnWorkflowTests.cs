@@ -6,13 +6,13 @@ using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Payments;
 
-public sealed class QPayReturnWorkflowTests
+public sealed class DonationPaymentReturnWorkflowTests
 {
     [Fact]
     public void HandleReturn_dispatches_fee_category_to_fee_workflow()
     {
-        var dispatcher = new RecordingQPayProductWorkflowDispatcher();
-        var workflow = new QPayReturnWorkflow(dispatcher);
+        var dispatcher = new RecordingDonationPaymentProductWorkflowDispatcher();
+        var workflow = new DonationPaymentReturnWorkflow(dispatcher);
         var statusResult = CreateStatusResult("fee");
 
         var result = workflow.HandleReturn("NA0149_001", "PAYTOKEN", statusResult);
@@ -40,8 +40,8 @@ public sealed class QPayReturnWorkflowTests
     [Fact]
     public void HandleReturn_dispatches_dedication_category_to_dedication_workflow()
     {
-        var dispatcher = new RecordingQPayProductWorkflowDispatcher();
-        var workflow = new QPayReturnWorkflow(dispatcher);
+        var dispatcher = new RecordingDonationPaymentProductWorkflowDispatcher();
+        var workflow = new DonationPaymentReturnWorkflow(dispatcher);
         var statusResult = CreateStatusResult("dedication_booking");
 
         var result = workflow.HandleReturn("NA0149_001", "PAYTOKEN", statusResult);
@@ -79,18 +79,18 @@ public sealed class QPayReturnWorkflowTests
         };
     }
 
-    private sealed class RecordingQPayProductWorkflowDispatcher : IQPayProductWorkflowDispatcher
+    private sealed class RecordingDonationPaymentProductWorkflowDispatcher : IDonationPaymentProductWorkflowDispatcher
     {
         public IActionResult FeeResult { get; } = new ViewResult { ViewName = "fee" };
         public IActionResult DedicationBookingResult { get; } = new ViewResult { ViewName = "dedication" };
         public int FeeCallCount { get; private set; }
         public int DedicationBookingCallCount { get; private set; }
-        public QPayWorkflowPaymentResult? LastWorkflowResult { get; private set; }
+        public DonationPaymentWorkflowResult? LastWorkflowResult { get; private set; }
 
         public IActionResult HandleFeeReturn(
             string shopNo,
             string payToken,
-            QPayWorkflowPaymentResult paymentResult)
+            DonationPaymentWorkflowResult paymentResult)
         {
             FeeCallCount++;
             LastWorkflowResult = paymentResult;
@@ -100,7 +100,7 @@ public sealed class QPayReturnWorkflowTests
         public IActionResult HandleDedicationBookingReturn(
             string shopNo,
             string payToken,
-            QPayWorkflowPaymentResult paymentResult)
+            DonationPaymentWorkflowResult paymentResult)
         {
             DedicationBookingCallCount++;
             LastWorkflowResult = paymentResult;
