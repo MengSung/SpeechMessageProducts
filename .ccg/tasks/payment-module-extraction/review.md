@@ -507,3 +507,44 @@ Results:
 External review:
 
 - CCG wrapper remains unavailable in this environment (`$HOME/.claude/bin/codeagent-wrapper` not present), so Gemini/Claude review could not be run for this slice.
+
+## 2026-07-01 External Gemini/Claude CCG Review Execution Check
+
+Scope:
+
+- Fresh execution check from worktree `Jesus_5.1.5_Worktree_TuneRefactorPament`.
+- Purpose: verify whether the CCG-required Gemini and Claude external reviewers can now run.
+
+Commands attempted:
+
+```powershell
+Get-Command gemini -ErrorAction SilentlyContinue
+Get-Command claude -ErrorAction SilentlyContinue
+& "$HOME\.claude\bin\codeagent-wrapper.exe" --help
+@'
+ROLE_FILE: C:\Users\Administrator\.claude\.ccg\prompts\gemini\reviewer.md
+<TASK>
+請只回答 OK，用來測試 Gemini backend 是否可執行。
+</TASK>
+'@ | & "$HOME\.claude\bin\codeagent-wrapper.exe" --progress --backend gemini - "$PWD"
+@'
+ROLE_FILE: C:\Users\Administrator\.claude\.ccg\prompts\claude\reviewer.md
+<TASK>
+請只回答 OK，用來測試 Claude backend 是否可執行。
+</TASK>
+'@ | & "$HOME\.claude\bin\codeagent-wrapper.exe" --progress --backend claude - "$PWD"
+```
+
+Results:
+
+- `codeagent-wrapper.exe` exists and `--help` runs successfully.
+- `gemini` is still not found in `PATH`.
+- `claude` is still not found in `PATH`.
+- Gemini wrapper attempt launched the wrapper, then failed with `gemini command not found in PATH`.
+- Claude wrapper attempt launched the wrapper, then failed with `claude command not found in PATH`.
+
+Conclusion:
+
+- External Gemini/Claude CCG review still cannot execute in this environment.
+- The current blocker is no longer the wrapper itself. The blocker is the missing backend CLI commands `gemini` and `claude`.
+- The CCG-mandated dual-model review has not produced usable external findings for this check.
