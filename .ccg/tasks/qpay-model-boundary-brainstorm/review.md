@@ -26,6 +26,29 @@ Updated on 2026-07-01 after the plan review warning pass.
 - Still open: the required CCG dual-model review remains blocked until `gemini` and `claude` are available in `PATH`.
 - Rechecked: after the warning fixes, a second CCG reviewer attempt was made. Gemini still failed with `gemini command not found in PATH`; Claude still failed with `claude command not found in PATH`.
 
+## 2026-07-01 Fresh Dual-Model Review Rerun
+
+Fresh backend status:
+
+- Claude reviewer: reachable through `codeagent-wrapper.exe --backend claude`; smoke check completed with Session-ID `193a1f8e-3d69-4a3e-9c26-60880dd8fd34`.
+- Gemini reviewer: first smoke check failed because Gemini CLI rejected the untrusted headless workspace. Re-running with `GEMINI_CLI_TRUST_WORKSPACE=true` completed with Session-ID `290c4fa7-2556-4119-979f-30d01c2d65f9`.
+- Conclusion: the dual-model review plumbing is operational when the Gemini trust setting is supplied or the workspace is trusted. It is not zero-config in a fresh shell unless that trust setting is preserved.
+
+Formal plan review rerun:
+
+- Diff base: `.ccg/tasks/qpay-model-boundary-brainstorm/base-sha.txt` = `66b8feebe87308b89978cc7ff321bff1f72b802e`.
+- Review target: `docs/superpowers/plans/2026-07-01-neutral-payment-dto-and-qpay-name-containment.md` plus this task metadata.
+- Gemini reviewer: completed with Session-ID `9558c978-093b-4e6c-bc92-b50e3a4e2f3b` after one transient API 500 retry. Its report repeated earlier process-blocker/warning content and is superseded where it contradicts the fresh backend evidence above.
+- Claude reviewer: completed with Session-ID `4bb4537b-3815-4d10-8b11-9de59b830727` and produced actionable repo-state findings.
+
+Consolidated disposition:
+
+- The dual-model tooling is now callable end-to-end, but this plan is not approved as an executable implementation plan.
+- Accepted Critical from Claude: Tasks 1-6 describe DTOs and neutral payment/QPay renames that already exist in the current repo under their target neutral names. Running the plan literally would duplicate or regress work already completed by earlier tasks.
+- Accepted Critical from Claude: the sample `DonationPaymentFormModelMapper` shape in the plan is stale relative to the real mapper, which has provider-code mapping, `ExternalItemId`, `Explain`, recurring defaults, and structured metadata. Executing the sample literally could reintroduce payment-flow regressions.
+- Accepted Warning from Claude: recording `base-sha.txt` in the last task is too late for a fixed-base review workflow; the base must be captured before implementation begins.
+- Next action: retire or re-scope the plan against current HEAD before any implementation work continues.
+
 ## Critical
 
 - Process blocker: the required CCG dual-model review could not complete because neither `gemini` nor `claude` is available in `PATH`. This is not a plan architecture defect, but it is a review-phase blocker under the repository CCG rules.

@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "review",
-  "nextAction": "Resolve plan review warnings, then re-run dual-model CCG review after gemini and claude commands are available in PATH",
+  "nextAction": "Retire or re-scope the plan against current HEAD after fresh dual-model review found the plan stale",
   "createdAt": "2026-07-01T00:00:00+08:00",
   "branch": "Jesus_5.1.5_Worktree_TuneRefactorPament"
 }
