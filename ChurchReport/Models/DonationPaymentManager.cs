@@ -1,4 +1,4 @@
-﻿using ChurchReport.Payments;
+using ChurchReport.Payments;
 using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using ChurchReport.WebServiceConnector;
@@ -1586,7 +1586,7 @@ namespace ChurchReport.Models
                 ShopNo = m_ShopNo ?? string.Empty,
                 Command = aCommand ?? string.Empty,
                 Status = "F",
-                Description = "QPay order maintenance is not part of the reusable payment core first release."
+                        Description = "Payment order maintenance is not part of the reusable payment core first release."
             });
         }
         #endregion

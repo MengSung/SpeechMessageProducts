@@ -1,4 +1,4 @@
-﻿using ChurchReport.Models;
+using ChurchReport.Models;
 using ChurchReport.Payments;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
@@ -226,7 +226,6 @@ namespace ChurchReport.Controllers
         [HttpPost]
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         [Route("/Dedication/SaveDonationPaymentDedication")]
-        [Route("/Dedication/SaveQPayDedication")]
         public async Task<IActionResult> SaveDonationPaymentDedication(DonationPaymentFormModel DonationPaymentFormModel)
         {
             try

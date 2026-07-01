@@ -1,4 +1,4 @@
-﻿@{
+@{
     var qs = Context?.Request?.Query;
     string GetQ(string key) => qs?.TryGetValue(key, out var v) == true ? v.ToString() : null;
 

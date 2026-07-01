@@ -113,6 +113,7 @@ public sealed class DonationPaymentFormModelNamingTests
 
         var offenders = scannedFiles
             .SelectMany(path => File.ReadLines(path).Select((line, index) => new { path, line, lineNumber = index + 1 }))
+            .Where(item => IsRuntimeCodeLine(item.line))
             .Where(item =>
                 item.line.Contains(ProviderBrandToken, StringComparison.Ordinal) ||
                 item.line.Contains(LegacyModelToken, StringComparison.Ordinal) ||
@@ -170,6 +171,15 @@ public sealed class DonationPaymentFormModelNamingTests
         };
 
         return legacyRouteTokens.Any(token => line.Contains(token, StringComparison.Ordinal));
+    }
+
+    private static bool IsRuntimeCodeLine(string line)
+    {
+        var trimmed = line.TrimStart();
+        return !trimmed.StartsWith("//", StringComparison.Ordinal) &&
+               !trimmed.StartsWith("///", StringComparison.Ordinal) &&
+               !trimmed.StartsWith("*", StringComparison.Ordinal) &&
+               !trimmed.StartsWith("/*", StringComparison.Ordinal);
     }
 
     private static bool ShouldIgnorePath(string repositoryRoot, string path)

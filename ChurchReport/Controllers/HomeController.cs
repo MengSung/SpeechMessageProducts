@@ -1,4 +1,4 @@
-﻿using ChurchReport.Models;
+using ChurchReport.Models;
 using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using ChurchReport.ViewModels;
@@ -34,7 +34,7 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="httpContextAccessor">HTTP 上下文存取器</param>
         /// <param name="memoryCache">記憶體快取</param>
-        /// <param name="qpayService">金流服務</param>
+        /// <param name="paymentService">金流服務</param>
         /// <param name="toolUtilityProvider">ToolUtility 提供者 (DI 注入)</param>
         /// <param name="connectionPool">CRM 連線池</param>
         /// <param name="inMemoryContext">記憶體資料上下文 (DI 注入)</param>

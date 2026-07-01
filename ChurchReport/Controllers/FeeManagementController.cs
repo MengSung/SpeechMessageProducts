@@ -16,21 +16,21 @@ using ToolUtilityNameSpace.DependencyInjection;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// ½Òµ{Ãº¶OÂI¦WºŞ²z Controller
-    /// ­t³d³B²z½Òµ{²M³æ¡BÃº¶O¡BÂI¦Wµ¥¬ÛÃö¥\¯à
+    /// èª²ç¨‹ç¹³è²»é»åç®¡ç† Controller
+    /// è² è²¬è™•ç†èª²ç¨‹æ¸…å–®ã€ç¹³è²»ã€é»åç­‰ç›¸é—œåŠŸèƒ½
     /// </summary>
     public class FeeManagementController : BaseChurchController
     {
-        #region «Øºc¦¡
+        #region å»ºæ§‹å¼
 
         /// <summary>
-        /// FeeManagementController «Øºc¨ç¼Æ (¨Ï¥Î Dependency Injection)
+        /// FeeManagementController å»ºæ§‹å‡½æ•¸ (ä½¿ç”¨ Dependency Injection)
         /// </summary>
-        /// <param name="httpContextAccessor">HTTP ¤W¤U¤å¦s¨ú¾¹</param>
-        /// <param name="memoryCache">°O¾ĞÅé§Ö¨ú</param>
-        /// <param name="qpayService">ª÷¬yªA°È</param>
-        /// <param name="toolUtilityProvider">ToolUtility ´£¨ÑªÌ (DI ª`¤J)</param>
-        /// <param name="connectionPool">CRM ³s½u¦À</param>
+        /// <param name="httpContextAccessor">HTTP ä¸Šä¸‹æ–‡å­˜å–å™¨</param>
+        /// <param name="memoryCache">è¨˜æ†¶é«”å¿«å–</param>
+        /// <param name="paymentService">é‡‘æµæœå‹™</param>
+        /// <param name="toolUtilityProvider">ToolUtility æä¾›è€… (DI æ³¨å…¥)</param>
+        /// <param name="connectionPool">CRM é€£ç·šæ± </param>
         public FeeManagementController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
@@ -42,21 +42,21 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region µø¹Ï¤èªk
+        #region è¦–åœ–æ–¹æ³•
 
         /// <summary>
-        /// Åã¥Ü½Òµ{²M³æµø¹Ï
-        /// ¸ô®|: /FeeManagement/LessonList
+        /// é¡¯ç¤ºèª²ç¨‹æ¸…å–®è¦–åœ–
+        /// è·¯å¾‘: /FeeManagement/LessonList
         /// </summary>
         [Route("/FeeManagement/LessonList")]
         public IActionResult LessonList()
         {
             try
             {
-                // ¨Ï¥Î·í«eµn¤JªÌªº±b±K³]©w½Òµ{²M³æ
+                // ä½¿ç”¨ç•¶å‰ç™»å…¥è€…çš„å¸³å¯†è¨­å®šèª²ç¨‹æ¸…å–®
                 EnsureLessonListLoaded("FeeManagement.LessonList.SetupLessonList");
 
-                // ³]©w©Ò¦³¥²­nªº ViewBag °Ñ¼Æ
+                // è¨­å®šæ‰€æœ‰å¿…è¦çš„ ViewBag åƒæ•¸
                 using (PerfPhase.Measure(HttpContext, "FeeManagement.LessonList.SetupBasicViewBag"))
                 {
                     SetupBasicViewBag();
@@ -66,66 +66,66 @@ namespace ChurchReport.Controllers
                     SetMultiGroupLayoutParameter();
                 }
 
-                // ³]©w ViewBag °Ñ¼Æ
+                // è¨­å®š ViewBag åƒæ•¸
                 ViewBag.Result = InMemoryContext.FeeList.Result;
-                ViewBag.DisplayNavigation = "Åã¥Üªª¾i¦^³ø¶µ¥Ø";
+                ViewBag.DisplayNavigation = "é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
 
                 var lessonCount = InMemoryContext.FeeList.LessonList?.Count ?? 0;
                 
-                System.Diagnostics.Debug.WriteLine($"[LessonList] ½Òµ{¼Æ¶q: {lessonCount}");
+                System.Diagnostics.Debug.WriteLine($"[LessonList] èª²ç¨‹æ•¸é‡: {lessonCount}");
 
-                // ? ´¼¯à§PÂ_¡G®Ú¾Ú½Òµ{¼Æ¶q¨M©wÅã¥ÜÅŞ¿è
+                // ? æ™ºèƒ½åˆ¤æ–·ï¼šæ ¹æ“šèª²ç¨‹æ•¸é‡æ±ºå®šé¡¯ç¤ºé‚è¼¯
                 if (lessonCount == 1)
                 {
-                    // ¥u¦³¤@ªù½Òµ{¡G¦Û°Ê¸ü¤J¸Ó½Òµ{¸ê®Æ¡A¨ÃÅã¥Ü¡uÂI¦W¡v¡B¡uÃº¶O¡v«ö¶s
+                    // åªæœ‰ä¸€é–€èª²ç¨‹ï¼šè‡ªå‹•è¼‰å…¥è©²èª²ç¨‹è³‡æ–™ï¼Œä¸¦é¡¯ç¤ºã€Œé»åã€ã€ã€Œç¹³è²»ã€æŒ‰éˆ•
                     var singleLesson = InMemoryContext.FeeList.LessonList[0];
                     var discipleLessonsId = singleLesson.DiscipleLessonsId;
                     
-                    System.Diagnostics.Debug.WriteLine($"[LessonList] ¥u¦³¤@ªù½Òµ{¡A¦Û°Ê¸ü¤J - DiscipleLessonsId={discipleLessonsId}");
+                    System.Diagnostics.Debug.WriteLine($"[LessonList] åªæœ‰ä¸€é–€èª²ç¨‹ï¼Œè‡ªå‹•è¼‰å…¥ - DiscipleLessonsId={discipleLessonsId}");
                     
-                    // ¸ü¤J¸Ó½Òµ{ªºÃº¶O¸ê®Æ
+                    // è¼‰å…¥è©²èª²ç¨‹çš„ç¹³è²»è³‡æ–™
                     EnsurePresentFeeListLoaded(discipleLessonsId, "FeeManagement.LessonList.SetupPresentFeeList");
                     
-                    // ³]©w DiscipleLessonsId¡AÅı°¼ÃäÄæ¯à¥¿½T¥Í¦¨³sµ²
+                    // è¨­å®š DiscipleLessonsIdï¼Œè®“å´é‚Šæ¬„èƒ½æ­£ç¢ºç”Ÿæˆé€£çµ
                     ViewBag.DiscipleLessonsId = discipleLessonsId;
                     
-                    // ³]©w¬°¡u¤w¦³¸ê®Æ¡v¡AÅı¡uÃº¶O¡v©M¡uÂI¦W¡v¿ï³æÅã¥Ü
+                    // è¨­å®šç‚ºã€Œå·²æœ‰è³‡æ–™ã€ï¼Œè®“ã€Œç¹³è²»ã€å’Œã€Œé»åã€é¸å–®é¡¯ç¤º
                     var feeDataCount = InMemoryContext.FeeList.FeeDataList?.Count ?? 0;
-                    ViewBag.FeeDataListCount = feeDataCount > 0 ? "Ãº¶O»PÂI¦W¤w¦³¸ê®Æ" : "Ãº¶O»PÂI¦WµL¸ê®Æ";
+                    ViewBag.FeeDataListCount = feeDataCount > 0 ? "ç¹³è²»èˆ‡é»åå·²æœ‰è³‡æ–™" : "ç¹³è²»èˆ‡é»åç„¡è³‡æ–™";
                     
-                    System.Diagnostics.Debug.WriteLine($"[LessonList] ³æ¤@½Òµ{¼Ò¦¡ - ¾Ç­û¼Æ={feeDataCount}, FeeDataListCount={ViewBag.FeeDataListCount}");
+                    System.Diagnostics.Debug.WriteLine($"[LessonList] å–®ä¸€èª²ç¨‹æ¨¡å¼ - å­¸å“¡æ•¸={feeDataCount}, FeeDataListCount={ViewBag.FeeDataListCount}");
                 }
                 else if (lessonCount > 1)
                 {
-                    // ¦hªù½Òµ{¡G¥uÅã¥Ü¡u½Òµ{²M³æ¡v«ö¶s¡AÁôÂÃ¡uÂI¦W¡v¡B¡uÃº¶O¡v«ö¶s
-                    ViewBag.FeeDataListCount = "Ãº¶O»PÂI¦WµL¸ê®Æ";
+                    // å¤šé–€èª²ç¨‹ï¼šåªé¡¯ç¤ºã€Œèª²ç¨‹æ¸…å–®ã€æŒ‰éˆ•ï¼Œéš±è—ã€Œé»åã€ã€ã€Œç¹³è²»ã€æŒ‰éˆ•
+                    ViewBag.FeeDataListCount = "ç¹³è²»èˆ‡é»åç„¡è³‡æ–™";
                     ViewBag.DiscipleLessonsId = null;
                     
-                    System.Diagnostics.Debug.WriteLine($"[LessonList] ¦h½Òµ{¼Ò¦¡ - ¥uÅã¥Ü½Òµ{²M³æ«ö¶s");
+                    System.Diagnostics.Debug.WriteLine($"[LessonList] å¤šèª²ç¨‹æ¨¡å¼ - åªé¡¯ç¤ºèª²ç¨‹æ¸…å–®æŒ‰éˆ•");
                 }
                 else
                 {
-                    // ¨S¦³½Òµ{
-                    ViewBag.FeeDataListCount = "Ãº¶O»PÂI¦WµL¸ê®Æ";
+                    // æ²’æœ‰èª²ç¨‹
+                    ViewBag.FeeDataListCount = "ç¹³è²»èˆ‡é»åç„¡è³‡æ–™";
                     ViewBag.DiscipleLessonsId = null;
                     
-                    System.Diagnostics.Debug.WriteLine($"[LessonList] µL½Òµ{");
+                    System.Diagnostics.Debug.WriteLine($"[LessonList] ç„¡èª²ç¨‹");
                 }
 
                 return View(InMemoryContext.FeeList);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[LessonList] µo¥Í¿ù»~: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[LessonList] ç™¼ç”ŸéŒ¯èª¤: {ex.Message}");
                 return HandleError(ex, "LessonList");
             }
         }
 
         /// <summary>
-        /// Åã¥Ü½Òµ{Ãº¶Oµø¹Ï
-        /// ¸ô®|: /FeeManagement/Fee/{discipleLessonsId}
+        /// é¡¯ç¤ºèª²ç¨‹ç¹³è²»è¦–åœ–
+        /// è·¯å¾‘: /FeeManagement/Fee/{discipleLessonsId}
         /// </summary>
-        /// <param name="discipleLessonsId">½Òµ{ID</param>
+        /// <param name="discipleLessonsId">èª²ç¨‹ID</param>
         [Route("/FeeManagement/Fee/{discipleLessonsId}")]
         public IActionResult Fee(string discipleLessonsId)
         {
@@ -133,14 +133,14 @@ namespace ChurchReport.Controllers
             {
                 if (string.IsNullOrEmpty(discipleLessonsId))
                 {
-                    System.Diagnostics.Debug.WriteLine("[Fee] ½Òµ{ID¬°ªÅ¡A­«¾É¦V¨ì½Òµ{²M³æ");
+                    System.Diagnostics.Debug.WriteLine("[Fee] èª²ç¨‹IDç‚ºç©ºï¼Œé‡å°å‘åˆ°èª²ç¨‹æ¸…å–®");
                     return RedirectToAction("LessonList");
                 }
 
-                // ¸ü¤J¸Ó½Òµ{ªºÃº¶O¸ê®Æ
+                // è¼‰å…¥è©²èª²ç¨‹çš„ç¹³è²»è³‡æ–™
                 EnsurePresentFeeListLoaded(discipleLessonsId, "FeeManagement.Fee.SetupPresentFeeList");
 
-                // ³]©w©Ò¦³¥²­nªº ViewBag °Ñ¼Æ
+                // è¨­å®šæ‰€æœ‰å¿…è¦çš„ ViewBag åƒæ•¸
                 using (PerfPhase.Measure(HttpContext, "FeeManagement.Fee.SetupBasicViewBag"))
                 {
                     SetupBasicViewBag();
@@ -150,31 +150,31 @@ namespace ChurchReport.Controllers
                     SetMultiGroupLayoutParameter();
                 }
 
-                // ³]©w ViewBag °Ñ¼Æ
+                // è¨­å®š ViewBag åƒæ•¸
                 ViewBag.FeeResult = InMemoryContext.FeeList.Result;
                 ViewBag.DiscipleLessonsId = discipleLessonsId;
 
-                // ³]©w¬°¡u¤w¦³¸ê®Æ¡v¡AÅı¡uÃº¶O¡v©M¡uÂI¦W¡v¿ï³æÅã¥Ü
+                // è¨­å®šç‚ºã€Œå·²æœ‰è³‡æ–™ã€ï¼Œè®“ã€Œç¹³è²»ã€å’Œã€Œé»åã€é¸å–®é¡¯ç¤º
                 var feeDataCount = InMemoryContext.FeeList.FeeDataList?.Count ?? 0;
-                ViewBag.FeeDataListCount = feeDataCount > 0 ? "Ãº¶O»PÂI¦W¤w¦³¸ê®Æ" : "Ãº¶O»PÂI¦WµL¸ê®Æ";
-                ViewBag.DisplayNavigation = "Åã¥Üªª¾i¦^³ø¶µ¥Ø";
+                ViewBag.FeeDataListCount = feeDataCount > 0 ? "ç¹³è²»èˆ‡é»åå·²æœ‰è³‡æ–™" : "ç¹³è²»èˆ‡é»åç„¡è³‡æ–™";
+                ViewBag.DisplayNavigation = "é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
 
-                System.Diagnostics.Debug.WriteLine($"[Fee] ½Òµ{Ãº¶O¸ü¤J§¹¦¨ - DiscipleLessonsId={discipleLessonsId}, ¾Ç­û¼Æ={feeDataCount}");
+                System.Diagnostics.Debug.WriteLine($"[Fee] èª²ç¨‹ç¹³è²»è¼‰å…¥å®Œæˆ - DiscipleLessonsId={discipleLessonsId}, å­¸å“¡æ•¸={feeDataCount}");
 
                 return View(InMemoryContext.FeeList);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[Fee] µo¥Í¿ù»~: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[Fee] ç™¼ç”ŸéŒ¯èª¤: {ex.Message}");
                 return HandleError(ex, "Fee");
             }
         }
 
         /// <summary>
-        /// Åã¥Ü½Òµ{ÂI¦Wµø¹Ï
-        /// ¸ô®|: /FeeManagement/Present/{discipleLessonsId}
+        /// é¡¯ç¤ºèª²ç¨‹é»åè¦–åœ–
+        /// è·¯å¾‘: /FeeManagement/Present/{discipleLessonsId}
         /// </summary>
-        /// <param name="discipleLessonsId">½Òµ{ID</param>
+        /// <param name="discipleLessonsId">èª²ç¨‹ID</param>
         [Route("/FeeManagement/Present/{discipleLessonsId}")]
         public IActionResult Present(string discipleLessonsId)
         {
@@ -182,14 +182,14 @@ namespace ChurchReport.Controllers
             {
                 if (string.IsNullOrEmpty(discipleLessonsId))
                 {
-                    System.Diagnostics.Debug.WriteLine("[Present] ½Òµ{ID¬°ªÅ¡A­«¾É¦V¨ì½Òµ{²M³æ");
+                    System.Diagnostics.Debug.WriteLine("[Present] èª²ç¨‹IDç‚ºç©ºï¼Œé‡å°å‘åˆ°èª²ç¨‹æ¸…å–®");
                     return RedirectToAction("LessonList");
                 }
 
-                // ¸ü¤J¸Ó½Òµ{ªºÂI¦W¸ê®Æ
+                // è¼‰å…¥è©²èª²ç¨‹çš„é»åè³‡æ–™
                 EnsurePresentFeeListLoaded(discipleLessonsId, "FeeManagement.Present.SetupPresentFeeList");
 
-                // ³]©w©Ò¦³¥²­nªº ViewBag °Ñ¼Æ
+                // è¨­å®šæ‰€æœ‰å¿…è¦çš„ ViewBag åƒæ•¸
                 using (PerfPhase.Measure(HttpContext, "FeeManagement.Present.SetupBasicViewBag"))
                 {
                     SetupBasicViewBag();
@@ -199,37 +199,37 @@ namespace ChurchReport.Controllers
                     SetMultiGroupLayoutParameter();
                 }
 
-                // ³]©w ViewBag °Ñ¼Æ
+                // è¨­å®š ViewBag åƒæ•¸
                 ViewBag.PresentResult = InMemoryContext.FeeList.Result;
                 ViewBag.DiscipleLessonsId = discipleLessonsId;
 
-                // ³]©w¬°¡u¤w¦³¸ê®Æ¡v¡AÅı¡uÃº¶O¡v©M¡uÂI¦W¡v¿ï³æÅã¥Ü
+                // è¨­å®šç‚ºã€Œå·²æœ‰è³‡æ–™ã€ï¼Œè®“ã€Œç¹³è²»ã€å’Œã€Œé»åã€é¸å–®é¡¯ç¤º
                 var feeDataCount = InMemoryContext.FeeList.FeeDataList?.Count ?? 0;
-                ViewBag.FeeDataListCount = feeDataCount > 0 ? "Ãº¶O»PÂI¦W¤w¦³¸ê®Æ" : "Ãº¶O»PÂI¦WµL¸ê®Æ";
-                ViewBag.DisplayNavigation = "Åã¥Üªª¾i¦^³ø¶µ¥Ø";
+                ViewBag.FeeDataListCount = feeDataCount > 0 ? "ç¹³è²»èˆ‡é»åå·²æœ‰è³‡æ–™" : "ç¹³è²»èˆ‡é»åç„¡è³‡æ–™";
+                ViewBag.DisplayNavigation = "é¡¯ç¤ºç‰§é¤Šå›å ±é …ç›®";
 
-                // ? ³]©wÄæ¦ì¼ĞÃD°Ñ¼Æ¡]¥Î©ó onCustomizeColumns ¨ç¼Æ¡^
+                // ? è¨­å®šæ¬„ä½æ¨™é¡Œåƒæ•¸ï¼ˆç”¨æ–¼ onCustomizeColumns å‡½æ•¸ï¼‰
                 //InitializeColumnHeaders();
                 SetFeeManagerViewBag();
 
-                System.Diagnostics.Debug.WriteLine($"[Present] ½Òµ{ÂI¦W¸ü¤J§¹¦¨ - DiscipleLessonsId={discipleLessonsId}, ¾Ç­û¼Æ={feeDataCount}");
+                System.Diagnostics.Debug.WriteLine($"[Present] èª²ç¨‹é»åè¼‰å…¥å®Œæˆ - DiscipleLessonsId={discipleLessonsId}, å­¸å“¡æ•¸={feeDataCount}");
 
                 return View(InMemoryContext.FeeList);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[Present] µo¥Í¿ù»~: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[Present] ç™¼ç”ŸéŒ¯èª¤: {ex.Message}");
                 return HandleError(ex, "Present");
             }
         }
 
         #endregion
 
-        #region API ¤èªk
+        #region API æ–¹æ³•
 
         /// <summary>
-        /// ¸ü¤J½Òµ{²M³æ (DevExtreme DataGrid API)
-        /// ¸ô®|: /FeeManagement/Api/Lessons
+        /// è¼‰å…¥èª²ç¨‹æ¸…å–® (DevExtreme DataGrid API)
+        /// è·¯å¾‘: /FeeManagement/Api/Lessons
         /// </summary>
         [HttpGet]
         [Route("/FeeManagement/Api/Lessons")]
@@ -237,28 +237,28 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("[GetLessons] ¶}©l¸ü¤J½Òµ{²M³æ");
+                System.Diagnostics.Debug.WriteLine("[GetLessons] é–‹å§‹è¼‰å…¥èª²ç¨‹æ¸…å–®");
 
-                // ½T«O½Òµ{²M³æ¤w¸ü¤J
+                // ç¢ºä¿èª²ç¨‹æ¸…å–®å·²è¼‰å…¥
                 EnsureLessonListLoaded("FeeManagement.GetLessons.SetupLessonList");
 
-                // ¨Ï¥Î DevExtreme DataSourceLoader ³B²z¸ê®Æ
+                // ä½¿ç”¨ DevExtreme DataSourceLoader è™•ç†è³‡æ–™
                 DevExtreme.AspNet.Data.ResponseModel.LoadResult result;
                 using (PerfPhase.Measure(HttpContext, "FeeManagement.GetLessons.DataSourceLoader"))
                 {
                     result = DataSourceLoader.Load(InMemoryContext.FeeList.LessonList, loadOptions);
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[GetLessons] ¸ü¤J§¹¦¨ - totalCount={result.totalCount}");
+                System.Diagnostics.Debug.WriteLine($"[GetLessons] è¼‰å…¥å®Œæˆ - totalCount={result.totalCount}");
 
                 return Json(result);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetLessons] µo¥Í¿ù»~: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[GetLessons] ¿ù»~°ïÅ|: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[GetLessons] ç™¼ç”ŸéŒ¯èª¤: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[GetLessons] éŒ¯èª¤å †ç–Š: {ex.StackTrace}");
 
-                // ªğ¦^ªÅµ²ªG¦Ó¤£¬O¿ù»~¡AÁ×§K«eºİÅã¥Ü²§±`
+                // è¿”å›ç©ºçµæœè€Œä¸æ˜¯éŒ¯èª¤ï¼Œé¿å…å‰ç«¯é¡¯ç¤ºç•°å¸¸
                 return Json(new
                 {
                     data = new List<Lesson>(),
@@ -268,8 +268,8 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¸ü¤JÃº¶O¸ê®Æ²M³æ (DevExtreme DataGrid API)
-        /// ¸ô®|: /FeeManagement/Api/FeeData
+        /// è¼‰å…¥ç¹³è²»è³‡æ–™æ¸…å–® (DevExtreme DataGrid API)
+        /// è·¯å¾‘: /FeeManagement/Api/FeeData
         /// </summary>
         [HttpGet]
         [Route("/FeeManagement/Api/FeeData")]
@@ -277,9 +277,9 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[GetFeeData] ¶}©l¸ü¤J - discipleLessonsId={discipleLessonsId}");
+                System.Diagnostics.Debug.WriteLine($"[GetFeeData] é–‹å§‹è¼‰å…¥ - discipleLessonsId={discipleLessonsId}");
 
-                // ¦pªG¦³«ü©w½Òµ{ID¡A¸ü¤J¸Ó½Òµ{ªºÃº¶O¸ê®Æ
+                // å¦‚æœæœ‰æŒ‡å®šèª²ç¨‹IDï¼Œè¼‰å…¥è©²èª²ç¨‹çš„ç¹³è²»è³‡æ–™
                 // Security: re-scope to current session login before serving or loading any FeeData,
                 // so a previous user's cached FeeDataList cannot be served after a same-session re-login.
                 var (account, password) = CurrentLogin();
@@ -287,12 +287,12 @@ namespace ChurchReport.Controllers
 
                 if (!string.IsNullOrEmpty(discipleLessonsId))
                 {
-                    System.Diagnostics.Debug.WriteLine($"[GetFeeData] ©I¥s EnsurePresentFeeListLoaded({discipleLessonsId})");
+                    System.Diagnostics.Debug.WriteLine($"[GetFeeData] å‘¼å« EnsurePresentFeeListLoaded({discipleLessonsId})");
                     EnsurePresentFeeListLoaded(discipleLessonsId, "FeeManagement.GetFeeData.SetupPresentFeeList");
                 }
                 else if (InMemoryContext.FeeList.FeeDataList == null || InMemoryContext.FeeList.FeeDataList.Count == 0)
                 {
-                    System.Diagnostics.Debug.WriteLine("[GetFeeData] FeeDataList ¬°ªÅ¡A­«·s¸ü¤J");
+                    System.Diagnostics.Debug.WriteLine("[GetFeeData] FeeDataList ç‚ºç©ºï¼Œé‡æ–°è¼‰å…¥");
                     using (PerfPhase.Measure(HttpContext, "FeeManagement.GetFeeData.SetupFeeDataList"))
                     {
                         InMemoryContext.FeeList.SetupFeeDataList(account, password);
@@ -302,23 +302,23 @@ namespace ChurchReport.Controllers
                 var feeDataCount = InMemoryContext.FeeList.FeeDataList?.Count ?? 0;
                 System.Diagnostics.Debug.WriteLine($"[GetFeeData] FeeDataList.Count={feeDataCount}");
 
-                // ¨Ï¥Î DevExtreme DataSourceLoader ³B²z¸ê®Æ
+                // ä½¿ç”¨ DevExtreme DataSourceLoader è™•ç†è³‡æ–™
                 DevExtreme.AspNet.Data.ResponseModel.LoadResult result;
                 using (PerfPhase.Measure(HttpContext, "FeeManagement.GetFeeData.DataSourceLoader"))
                 {
                     result = DataSourceLoader.Load(InMemoryContext.FeeList.FeeDataList, loadOptions);
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[GetFeeData] ¦^¶Çµ²ªG - totalCount={result.totalCount}, data count={((IEnumerable<object>)result.data).Count()}");
+                System.Diagnostics.Debug.WriteLine($"[GetFeeData] å›å‚³çµæœ - totalCount={result.totalCount}, data count={((IEnumerable<object>)result.data).Count()}");
 
                 return Json(result);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetFeeData] µo¥Í¿ù»~: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[GetFeeData] ¿ù»~°ïÅ|: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[GetFeeData] ç™¼ç”ŸéŒ¯èª¤: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[GetFeeData] éŒ¯èª¤å †ç–Š: {ex.StackTrace}");
 
-                // ªğ¦^ªÅµ²ªG
+                // è¿”å›ç©ºçµæœ
                 return Json(new
                 {
                     data = new List<Fee>(),
@@ -328,10 +328,10 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §ó·sÃº¶O¸ê®Æ (DevExtreme DataGrid API)
-        /// ¸ô®|: /FeeManagement/Api/UpdateFeeData
-        /// ª`·N: ¦¹¤èªk¥u§ó·s°O¾ĞÅé¤¤ªº¸ê®Æ¡A¤£·|¥ß§Y´£¥æ¨ì¸ê®Æ®w
-        /// »İ­n«ö¤U¡u¤W¶Ç¡v«ö¶sÄ²µo SaveBatch ¤~·|§å¦¸´£¥æ
+        /// æ›´æ–°ç¹³è²»è³‡æ–™ (DevExtreme DataGrid API)
+        /// è·¯å¾‘: /FeeManagement/Api/UpdateFeeData
+        /// æ³¨æ„: æ­¤æ–¹æ³•åªæ›´æ–°è¨˜æ†¶é«”ä¸­çš„è³‡æ–™ï¼Œä¸æœƒç«‹å³æäº¤åˆ°è³‡æ–™åº«
+        /// éœ€è¦æŒ‰ä¸‹ã€Œä¸Šå‚³ã€æŒ‰éˆ•è§¸ç™¼ SaveBatch æ‰æœƒæ‰¹æ¬¡æäº¤
         /// </summary>
         [HttpPut]
         [Route("/FeeManagement/Api/UpdateFeeData")]
@@ -339,9 +339,9 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[UpdateFeeData] ¶}©l§ó·s - key={key}");
+                System.Diagnostics.Debug.WriteLine($"[UpdateFeeData] é–‹å§‹æ›´æ–° - key={key}");
 
-                // §ä¨ì­n§ó·sªº Fee °O¿ı
+                // æ‰¾åˆ°è¦æ›´æ–°çš„ Fee è¨˜éŒ„
                 // Security: re-scope to current session login before reading/mutating cached FeeData,
                 // so a previous user's stale FeeDataList cannot be looked up or edited after a re-login.
                 var (account, password) = CurrentLogin();
@@ -351,32 +351,32 @@ namespace ChurchReport.Controllers
 
                 if (fee == null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[UpdateFeeData] §ä¤£¨ì°O¿ı - key={key}");
-                    return BadRequest("§ä¤£¨ì«ü©wªºÃº¶O°O¿ı");
+                    System.Diagnostics.Debug.WriteLine($"[UpdateFeeData] æ‰¾ä¸åˆ°è¨˜éŒ„ - key={key}");
+                    return BadRequest("æ‰¾ä¸åˆ°æŒ‡å®šçš„ç¹³è²»è¨˜éŒ„");
                 }
 
-                // ? ¨Ï¥Î FeeList ªº PopulateObjectAndUpdateEntity ¤èªk
-                // ¦¹¤èªk·|§ó·s°O¾ĞÅé¤¤ªº Fee ª«¥ó¡A¨Ã°O¿ı­×§ï¾úµ{¡A¦ı¤£·|¥ß§Y´£¥æ¨ì¸ê®Æ®w
+                // ? ä½¿ç”¨ FeeList çš„ PopulateObjectAndUpdateEntity æ–¹æ³•
+                // æ­¤æ–¹æ³•æœƒæ›´æ–°è¨˜æ†¶é«”ä¸­çš„ Fee ç‰©ä»¶ï¼Œä¸¦è¨˜éŒ„ä¿®æ”¹æ­·ç¨‹ï¼Œä½†ä¸æœƒç«‹å³æäº¤åˆ°è³‡æ–™åº«
                 InMemoryContext.FeeList.PopulateObjectAndUpdateEntity(values, fee);
 
                 System.Diagnostics.Debug.WriteLine(
-                    $"[UpdateFeeData] ­×§ï¤w°O¿ı - key={key}, " +
-                    $"«İ³B²z­×§ï¼Æ: {InMemoryContext.FeeList.ChangeHistory.GetPendingCount()}");
+                    $"[UpdateFeeData] ä¿®æ”¹å·²è¨˜éŒ„ - key={key}, " +
+                    $"å¾…è™•ç†ä¿®æ”¹æ•¸: {InMemoryContext.FeeList.ChangeHistory.GetPendingCount()}");
 
                 return Ok();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[UpdateFeeData] µo¥Í¿ù»~: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[UpdateFeeData] ¿ù»~°ïÅ|: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[UpdateFeeData] ç™¼ç”ŸéŒ¯èª¤: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[UpdateFeeData] éŒ¯èª¤å †ç–Š: {ex.StackTrace}");
 
                 return BadRequest(ex.Message);
             }
         }
 
         /// <summary>
-        /// §å¦¸Àx¦sÃº¶OºŞ²z¸ê®Æ
-        /// ¸ô®|: /FeeManagement/Api/SaveBatch
+        /// æ‰¹æ¬¡å„²å­˜ç¹³è²»ç®¡ç†è³‡æ–™
+        /// è·¯å¾‘: /FeeManagement/Api/SaveBatch
         /// </summary>
         [HttpPost]
         [Route("/FeeManagement/Api/SaveBatch")]
@@ -384,9 +384,9 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[SaveBatch] ¶}©l§å¦¸Àx¦s");
+                System.Diagnostics.Debug.WriteLine($"[SaveBatch] é–‹å§‹æ‰¹æ¬¡å„²å­˜");
 
-                // ? °õ¦æ§å¦¸´£¥æ©Ò¦³«İ³B²zªº­×§ï
+                // ? åŸ·è¡Œæ‰¹æ¬¡æäº¤æ‰€æœ‰å¾…è™•ç†çš„ä¿®æ”¹
                 // Security: re-scope to current session login; on a re-login this clears the previous
                 // user's pending ChangeHistory so SaveBatch cannot commit their edits to CRM.
                 var (account, password) = CurrentLogin();
@@ -398,19 +398,19 @@ namespace ChurchReport.Controllers
                     successCount = InMemoryContext.FeeList.CommitPendingChanges();
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[SaveBatch] §å¦¸Àx¦s§¹¦¨ - ¦¨¥\§ó·s {successCount} µ§°O¿ı");
+                System.Diagnostics.Debug.WriteLine($"[SaveBatch] æ‰¹æ¬¡å„²å­˜å®Œæˆ - æˆåŠŸæ›´æ–° {successCount} ç­†è¨˜éŒ„");
 
                 return Json(new
                 {
                     status = "success",
-                    message = $"Ãº¶O¸ê®Æ¤w¦¨¥\Àx¦s ({successCount} µ§°O¿ı¤w§ó·s)",
+                    message = $"ç¹³è²»è³‡æ–™å·²æˆåŠŸå„²å­˜ ({successCount} ç­†è¨˜éŒ„å·²æ›´æ–°)",
                     count = successCount
                 });
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SaveBatch] µo¥Í¿ù»~: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[SaveBatch] ¿ù»~°ïÅ|: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[SaveBatch] ç™¼ç”ŸéŒ¯èª¤: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SaveBatch] éŒ¯èª¤å †ç–Š: {ex.StackTrace}");
 
                 return Json(new
                 {
@@ -422,7 +422,7 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region ¨p¦³»²§U¤èªk
+        #region ç§æœ‰è¼”åŠ©æ–¹æ³•
 
         // Authoritative current-session login identity. Source = session keys set at login time
         // (_LoginAccount / _LoginPassword; LINE login = "LineIdLogin" / lineUserId).
@@ -471,11 +471,11 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ªì©l¤ÆÄæ¦ì¼ĞÃD°Ñ¼Æ¡]¥Î©óÂI¦Wµø¹Ïªº onCustomizeColumns ¨ç¼Æ¡^
+        /// åˆå§‹åŒ–æ¬„ä½æ¨™é¡Œåƒæ•¸ï¼ˆç”¨æ–¼é»åè¦–åœ–çš„ onCustomizeColumns å‡½æ•¸ï¼‰
         /// </summary>
         private void InitializeColumnHeaders()
         {
-            // ªì©l¤Æ©Ò¦³Äæ¦ì¼ĞÃD¬°ªÅ¦r¦ê¡AÁ×§K JavaScript ¿ù»~
+            // åˆå§‹åŒ–æ‰€æœ‰æ¬„ä½æ¨™é¡Œç‚ºç©ºå­—ä¸²ï¼Œé¿å… JavaScript éŒ¯èª¤
             ViewBag.Colume9 = "";
             ViewBag.Colume10 = "";
             ViewBag.Colume11 = "";
@@ -516,19 +516,19 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ½T«O m_ClassName ¤wªì©l¤Æ
+                // ç¢ºä¿ m_ClassName å·²åˆå§‹åŒ–
                 if (InMemoryContext?.FeeList?.m_ClassName == null)
                 {
-                    System.Diagnostics.Debug.WriteLine("[SetFeeManagerViewBag] m_ClassName ¥¼ªì©l¤Æ¡A¨Ï¥Î¹w³]­È");
+                    System.Diagnostics.Debug.WriteLine("[SetFeeManagerViewBag] m_ClassName æœªåˆå§‹åŒ–ï¼Œä½¿ç”¨é è¨­å€¼");
 
-                    // ¦pªG m_ClassName ¬° null¡A«Ø¥ß·sªº ClassName ¹ê¨Ò¡]·|¨Ï¥Î¹w³]­È¡^
+                    // å¦‚æœ m_ClassName ç‚º nullï¼Œå»ºç«‹æ–°çš„ ClassName å¯¦ä¾‹ï¼ˆæœƒä½¿ç”¨é è¨­å€¼ï¼‰
                     if (InMemoryContext?.FeeList != null)
                     {
                         InMemoryContext.FeeList.m_ClassName = new ClassName();
                     }
                     else
                     {
-                        // ¦pªG³s FeeList ³£¨S¦³¡Aªì©l¤Æ©Ò¦³Äæ¦ì¬°¹w³]­È
+                        // å¦‚æœé€£ FeeList éƒ½æ²’æœ‰ï¼Œåˆå§‹åŒ–æ‰€æœ‰æ¬„ä½ç‚ºé è¨­å€¼
                         InitializeColumnHeaders();
                         return;
                     }
@@ -574,12 +574,12 @@ namespace ChurchReport.Controllers
             }
             catch (System.Exception e)
             {
-                string ErrorString = "¿ù»~°T®§ : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                string ErrorString = "éŒ¯èª¤è¨Šæ¯ : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 ToolUtility.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
                 LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
 
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "·s²øÆFÂ³°ó: ¿ù»~ => " + ErrorString);
+                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "æ–°èŠéˆç³§å ‚: éŒ¯èª¤ => " + ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 

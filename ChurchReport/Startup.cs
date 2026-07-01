@@ -1,4 +1,4 @@
-﻿using ChurchReport.Services;
+using ChurchReport.Services;
 using ChurchReport.Tools;
 using ChurchReport.Filters;
 using ChurchReport.Services.Theme;
