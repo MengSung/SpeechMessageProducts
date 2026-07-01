@@ -28,111 +28,111 @@
 
 ### Create
 
-- `SpeechMessage.Payments.Workflows/PaymentOrderDraft.cs`  
+- `SpeechMessage.Payments.Workflows/PaymentOrderDraft.cs`
   Product-neutral draft order submitted by any host product before provider create-payment.
 
-- `SpeechMessage.Payments.Workflows/PaymentPayerDraft.cs`  
+- `SpeechMessage.Payments.Workflows/PaymentPayerDraft.cs`
   Product-neutral payer identity and contact data.
 
-- `SpeechMessage.Payments.Workflows/PaymentLineItemDraft.cs`  
+- `SpeechMessage.Payments.Workflows/PaymentLineItemDraft.cs`
   Product-neutral payable item data.
 
-- `SpeechMessage.Payments.Workflows/PaymentMethodSelection.cs`  
+- `SpeechMessage.Payments.Workflows/PaymentMethodSelection.cs`
   Product-neutral payment method and provider metadata selection.
 
-- `SpeechMessage.Payments.Workflows/PaymentScheduleDraft.cs`  
+- `SpeechMessage.Payments.Workflows/PaymentScheduleDraft.cs`
   Product-neutral recurring-payment schedule.
 
-- `SpeechMessage.Payments.Workflows/PaymentOrderDraftMapper.cs`  
+- `SpeechMessage.Payments.Workflows/PaymentOrderDraftMapper.cs`
   Converts `PaymentOrderDraft` into `SpeechMessage.Payments.Models.PaymentCreateRequest`.
 
-- `SpeechMessage.Payments.Tests/Workflows/PaymentOrderDraftMapperTests.cs`  
+- `SpeechMessage.Payments.Tests/Workflows/PaymentOrderDraftMapperTests.cs`
   Verifies reusable DTO mapping into provider execution DTOs.
 
-- `ChurchReport/Models/DonationPaymentFormModel.cs`  
+- `ChurchReport/Models/DonationPaymentFormModel.cs`
   ChurchReport donation form model that replaces `QpayModel` as the primary type name.
 
-- `ChurchReport/Payments/DonationPaymentFormModelMapper.cs`  
+- `ChurchReport/Payments/DonationPaymentFormModelMapper.cs`
   Converts ChurchReport donation form state into `PaymentOrderDraft`.
 
-- `ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelNamingTests.cs`  
+- `ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelNamingTests.cs`
   Locks primary ChurchReport naming and the rule that legacy `QPay` wording may appear only in explicit route templates.
 
-- `ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelMapperTests.cs`  
+- `ChurchReport.MemberInfo.Tests/Payments/DonationPaymentFormModelMapperTests.cs`
   Verifies donation form data maps into reusable neutral DTOs.
 
 ### Modify
 
-- `ChurchReport/Models/QpayModel.cs`  
+- `ChurchReport/Models/QpayModel.cs`
   Delete after moving the real implementation to `DonationPaymentFormModel.cs`; do not keep a `QpayModel` alias.
 
-- `ChurchReport/Models/QpayManager.cs`  
+- `ChurchReport/Models/QpayManager.cs`
   Delete after all callers use `DonationPaymentManager`; do not keep a `QpayManager` alias.
 
-- `ChurchReport/Models/DonationPaymentManager.cs`  
+- `ChurchReport/Models/DonationPaymentManager.cs`
   Replace internal primary state from `m_QpayModel` to `m_DonationPaymentFormModel`; update callers in the same task instead of keeping a bridge property.
 
-- `ChurchReport/Controllers/DedicationController.cs`  
+- `ChurchReport/Controllers/DedicationController.cs`
   Rename internal variables and action parameters from `QpayModel` to `DonationPaymentFormModel`. If an old external URL still contains `QPay`, preserve that only in route metadata, not in C# type, parameter, or local variable names.
 
-- `ChurchReport/Controllers/DedicationAuditController.cs`  
+- `ChurchReport/Controllers/DedicationAuditController.cs`
   Rename action parameters and local variables from `QpayModel` to `DonationPaymentFormModel`.
 
-- `ChurchReport/Controllers/BaseChurchController.cs`  
+- `ChurchReport/Controllers/BaseChurchController.cs`
   Read donation payment state through neutral `DonationPaymentManager` / form model naming.
 
-- `ChurchReport/Controllers/QPayLoginController.cs`  
+- `ChurchReport/Controllers/QPayLoginController.cs`
   Rename the file/class to a neutral name such as `DonationPaymentLoginController`; preserve existing `/QPayLogin/...` URLs with route/action attributes if external callers still use them.
 
-- `ChurchReport/Models/InMemoryDataContextSmallGroup.cs`  
+- `ChurchReport/Models/InMemoryDataContextSmallGroup.cs`
   Keep `DonationPaymentManager` as primary. Remove `QpayManager` bridge and update all callers.
 
-- `ChurchReport/Models/IInMemoryDataContext.cs`  
+- `ChurchReport/Models/IInMemoryDataContext.cs`
   Keep only primary `DonationPaymentManager`; remove obsolete `QpayManager` bridge from the interface.
 
-- `ChurchReport/WebServiceConnector/DonationPaymentProcessor/*.cs`  
+- `ChurchReport/WebServiceConnector/DonationPaymentProcessor/*.cs`
   Rename parameters and local variables from `QpayModel` to `DonationPaymentFormModel`. Do not change provider call behavior in the same task.
 
-- `ChurchReport/Payments/QPayCreatePaymentGatewayAdapter.cs`  
+- `ChurchReport/Payments/QPayCreatePaymentGatewayAdapter.cs`
   Rename to `DonationPaymentCreateGatewayAdapter.cs`; update all callers to the neutral type.
 
-- `ChurchReport/Payments/QPayProductWorkflowDispatcher.cs`  
+- `ChurchReport/Payments/QPayProductWorkflowDispatcher.cs`
   Rename to `DonationPaymentProductWorkflowDispatcher.cs`; update all callers to the neutral type.
 
-- `ChurchReport/Payments/QPayReturnWorkflow.cs`  
+- `ChurchReport/Payments/QPayReturnWorkflow.cs`
   Rename to `DonationPaymentReturnWorkflow.cs`; update all callers to the neutral type.
 
-- `ChurchReport/Payments/QPayWorkflowPaymentResult.cs`  
+- `ChurchReport/Payments/QPayWorkflowPaymentResult.cs`
   Rename to `DonationPaymentWorkflowResult.cs`; update all callers to the neutral type.
 
-- `ChurchReport/Payments/LegacyQPayModels.cs`  
+- `ChurchReport/Payments/LegacyQPayModels.cs`
   Delete if no longer referenced; otherwise rename the real remaining DTOs to neutral product names such as `LegacyDonationPaymentModels.cs`. Do not keep a QPay alias layer.
 
-- `ChurchReport/WebServiceConnector/QPayProcessorCompatibility.cs`  
+- `ChurchReport/WebServiceConnector/QPayProcessorCompatibility.cs`
   Delete if it is only an alias for `DonationPaymentProcessor`. If it still contains real behavior, move that behavior into `DonationPaymentProcessor` or another neutral helper, then delete the QPay-named wrapper.
 
-- `ChurchReport/Controllers/QPayCardController.cs`  
+- `ChurchReport/Controllers/QPayCardController.cs`
   Rename to `PaymentReturnController.cs` or `DonationPaymentReturnController.cs`; preserve legacy callback route attributes so bank callbacks do not break.
 
-- `ChurchReport/Views/Dedication/QPayView.cshtml`  
+- `ChurchReport/Views/Dedication/QPayView.cshtml`
   Rename to `DonationPaymentView.cshtml` or `DonationPaymentForm.cshtml`; update controller `View(...)` calls explicitly so route URLs remain stable.
 
-- `ChurchReport/Views/Home/QPayLogin.cshtml`  
+- `ChurchReport/Views/Home/QPayLogin.cshtml`
   Rename to `DonationPaymentLogin.cshtml`; update controller view names explicitly.
 
-- `ChurchReport/Views/QPayCard/`  
+- `ChurchReport/Views/QPayCard/`
   Rename folder to match the neutral controller/view name after old callback URLs are covered by route attributes.
 
-- `ChurchReport/wwwroot/css/QPayView.css`  
+- `ChurchReport/wwwroot/css/QPayView.css`
   Rename to `DonationPaymentView.css`; update view references.
 
-- `ChurchReport.MemberInfo.Tests/Payments/QPay*.cs`  
+- `ChurchReport.MemberInfo.Tests/Payments/QPay*.cs`
   Rename test files to `DonationPayment*` or `PaymentReturn*` names unless the test specifically targets true Sinopac/QPay provider protocol.
 
-- `ChurchReport.MemberInfo.Tests/Payments/DonationPaymentViewDefaultsTests.cs`  
+- `ChurchReport.MemberInfo.Tests/Payments/DonationPaymentViewDefaultsTests.cs`
   Update tests to primary `DonationPaymentFormModel`; do not test a `QpayModel` alias because the alias should not remain.
 
-- `ChurchReport.MemberInfo.Tests/Payments/DonationPaymentManagerNamingTests.cs`  
+- `ChurchReport.MemberInfo.Tests/Payments/DonationPaymentManagerNamingTests.cs`
   Tighten policy: `QpayManager` should not exist outside true Sinopac provider code.
 
 ### Do Not Modify For This Plan

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +12,7 @@ namespace ChurchReport.Models
     /// 奉獻類別、付款方式、信用卡清單、定期定額清單、查詢日期等。它不是永豐 QPay 的協定模型，
     /// 也不是高鉅、台新或 LINE Pay 的 provider DTO。
     ///
-    /// 重構前這個類別叫做 DonationPaymentFormModel，但那個名稱會讓人誤會整個奉獻付款流程都屬於永豐。
+    /// 重構前這個類別叫做 QpayModel，但那個名稱會讓人誤會整個奉獻付款流程都屬於永豐。
     /// 新名稱 DonationPaymentFormModel 明確表示：這是 ChurchReport 奉獻付款表單資料，
     /// 真正的銀行協定資料應該留在 SpeechMessage.Payments 的 provider 實作內。
     /// </summary>

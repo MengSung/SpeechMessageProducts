@@ -45,6 +45,8 @@ namespace ChurchReport.Services
 
         /// <summary>
         /// 奉獻設定資料目前可能使用多種日期格式；集中解析可避免每個呼叫端各自猜格式。
+        /// CRM 內的 task 文字可由人工維護，若日期被誤填，這裡要退回現在時間而不是丟例外，
+        /// 避免整個奉獻付款頁面因單筆特別奉獻設定格式錯誤而無法載入。
         /// </summary>
         public static DateTime ParseDateTime(string dateString)
         {
@@ -54,7 +56,12 @@ namespace ChurchReport.Services
                 return exactResult;
             }
 
-            return DateTime.Parse(dateString, CultureInfo.InvariantCulture);
+            if (DateTime.TryParse(dateString, CultureInfo.CurrentCulture, DateTimeStyles.None, out var cultureResult))
+            {
+                return cultureResult;
+            }
+
+            return DateTime.Now;
         }
     }
 }

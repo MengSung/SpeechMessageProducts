@@ -548,3 +548,129 @@ Conclusion:
 - External Gemini/Claude CCG review still cannot execute in this environment.
 - The current blocker is no longer the wrapper itself. The blocker is the missing backend CLI commands `gemini` and `claude`.
 - The CCG-mandated dual-model review has not produced usable external findings for this check.
+
+## 2026-07-01 External Gemini/Claude CCG Review Rerun After CLI Install
+
+Scope:
+
+- Diff range: `Jesus_5.1.5_TuneRefactorPament..Jesus_5.1.5_Worktree_TuneRefactorPament`.
+- Review prompt included branch stat, name-status, and code patch excluding `.ccg`, `docs`, and markdown files.
+- Gemini was run from a temporary work directory to avoid project `.gemini` SessionStart hooks overriding the reviewer prompt.
+- Claude was invoked through `codeagent-wrapper.exe` as required by CCG.
+
+Gemini execution:
+
+- `@google/gemini-cli` was installed and `gemini` can run from the full user environment.
+- Wrapper command launched Gemini successfully and produced usable findings.
+- After producing the findings, Gemini also emitted non-blocking tool/read errors because it attempted to access the repository path from the temporary review workspace. The findings below were already present in the command output before those later errors.
+
+Gemini findings and disposition:
+
+- Critical: `.editorconfig` changed `*.cs` / `*.cshtml` from `utf-8-bom` to `utf-8`; Gemini warned this could cause Traditional Chinese strings to compile or run as mojibake on Windows.
+  - Disposition: rejected as a likely false positive for this repository state. The repository has already passed .NET builds after the UTF-8 without BOM migration, and the project requirement explicitly requires UTF-8 rather than Big5/BOM churn. No code change was made for this finding.
+- Warning: `ChurchReport/Tools/DonationFeePaymentProcessor.cs` and `ChurchReport/Tools/RecurringDonationPaymentProcessor.cs` had under-indented `return View("~/Views/PaymentReturn/PaymentResult.cshtml")` lines.
+  - Disposition: accepted and fixed in the working tree.
+- Info: old QPay routes are intentionally preserved through neutral controllers/routes so existing LINE links, bookmarks, and payment callbacks do not break during naming cleanup.
+  - Disposition: accepted; this is intentional compatibility behavior.
+
+Claude execution:
+
+- `@anthropic-ai/claude-code` was installed and `claude --version` reports `2.1.197 (Claude Code)`.
+- Wrapper command launched Claude but exited with status `1` before producing a review report.
+- Direct diagnostic command `claude --safe-mode -p "請只回答 OK" --output-format text --debug-file ... --no-session-persistence` reported:
+  - `Not logged in · Please run /login`
+  - `No API key available`
+  - `Could not resolve authentication method`
+- Environment presence check showed `ANTHROPIC_API_KEY=UNSET` and `CLAUDE_API_KEY=UNSET`.
+
+Claude result:
+
+- Required Claude external review was invoked, but no usable Claude findings were produced because the Claude CLI is not authenticated in this environment.
+
+Follow-up fixes from review:
+
+- Fixed the indentation warnings in:
+  - `ChurchReport/Tools/DonationFeePaymentProcessor.cs`
+  - `ChurchReport/Tools/RecurringDonationPaymentProcessor.cs`
+- Removed trailing whitespace from `docs/superpowers/plans/2026-07-01-neutral-payment-dto-and-qpay-name-containment.md`.
+
+Verification after follow-up fixes:
+
+```powershell
+git diff --check
+```
+
+Result:
+
+- Passed for the current working tree. Git reported CRLF normalization warnings only for the two touched C# files.
+
+## 2026-07-01 Claude Authentication Fix And Completed Dual-Model Review
+
+Root cause fixed:
+
+- `claude` CLI was installed but not authenticated.
+- `claude auth status` previously returned `loggedIn=false`.
+- `C:\Users\Administrator\.claude\.credentials.json` existed, but `claudeAiOauth.accessToken` and `refreshToken` were empty strings, so the CLI could not authenticate.
+- Ran `claude auth login --claudeai`; the CLI completed with `Login successful`.
+- Fresh status check after login returned:
+  - `loggedIn=true`
+  - `authMethod=claude.ai`
+  - `subscriptionType=pro`
+
+Claude wrapper verification:
+
+```powershell
+@'
+ROLE_FILE: C:\Users\Administrator\.claude\.ccg\prompts\claude\reviewer.md
+<TASK>
+請只回答 OK，用來測試 Claude backend 是否可執行。
+</TASK>
+'@ | & "$HOME\.claude\bin\codeagent-wrapper.exe" --progress --backend claude - "$PWD"
+```
+
+Result:
+
+- `codeagent-wrapper.exe --backend claude` launched Claude successfully and produced a normal model response with a Session-ID.
+
+Formal Claude review:
+
+- Ran formal Claude external reviewer through `codeagent-wrapper.exe --backend claude`.
+- Review range: `Jesus_5.1.5_TuneRefactorPament..Jesus_5.1.5_Worktree_TuneRefactorPament`.
+- Result: Claude completed and produced a usable review report.
+
+Claude findings and disposition:
+
+- Critical: `ChurchReport/Views/MyPay/PaymentResult.cshtml` contained broken Razor links using `@@Content("~/Dedication/DonationPaymentView/網頁登入")`.
+  - Disposition: accepted and fixed by changing both links to `@Url.Content("~/Dedication/DonationPaymentView/網頁登入")`.
+- Warning: `ChurchReport/Services/DonationPaymentFormBuilder.cs` changed malformed special-category date parsing from graceful fallback to throwing `FormatException`.
+  - Disposition: accepted and fixed. `ParseDateTime` now falls back through `TryParse` and then `DateTime.Now`, preserving the legacy non-throwing behavior.
+  - Added regression coverage in `ChurchReport.MemberInfo.Tests/Payments/DonationPaymentServiceExtractionTests.cs`.
+- Warning: `SpeechMessage.Payments.Workflows/*` and `DonationPaymentFormModelMapper` are currently scaffolding used by tests but not yet wired into runtime.
+  - Disposition: documented as intentional Phase 3 reusable workflow scaffolding; no runtime change made in this review pass.
+- Warning: mechanical indentation issues in `DonationFeePaymentProcessor` and `RecurringDonationPaymentProcessor`.
+  - Disposition: accepted and fixed.
+- Warning: `DonationPaymentFormModel` XML comment incorrectly said the old class name was `DonationPaymentFormModel`.
+  - Disposition: accepted and fixed to `QpayModel`.
+- Info findings about compatibility routes, CRM-visible description text, deployment requirements, and remaining legacy-route compatibility were reviewed and accepted as intentional/non-blocking.
+
+Verification after Claude review fixes:
+
+```powershell
+dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --filter "FullyQualifiedName~DonationPaymentServiceExtractionTests" --no-restore -v minimal -p:UseSharedCompilation=false
+dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --filter "FullyQualifiedName~Payments" --no-restore -m:1 -v minimal -p:UseSharedCompilation=false
+dotnet build .\ChurchReport.sln --no-restore -m:1 -v minimal -p:UseSharedCompilation=false
+git diff --check
+```
+
+Results:
+
+- `DonationPaymentServiceExtractionTests`: 31 passed.
+- `ChurchReport.MemberInfo.Tests` payment filter: 111 passed.
+- `ChurchReport.sln` build: 0 warnings, 0 errors.
+- `git diff --check`: passed; Git reported CRLF normalization warnings only.
+
+Consolidated external review status:
+
+- Gemini external review: completed and produced usable findings.
+- Claude external review: authentication fixed, completed, and produced usable findings.
+- Review-driven fixes have been applied and locally verified.

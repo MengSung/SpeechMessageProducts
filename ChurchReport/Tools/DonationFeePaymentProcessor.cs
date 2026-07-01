@@ -369,7 +369,7 @@ namespace ChurchReport.Tools
                         ViewBag.OrderId = paymentResult.OrderNo;
                         ViewBag.PaymentMethod = "信用卡";
                         ViewBag.ErrorDetails = paymentStatusText;
-                return View("~/Views/PaymentReturn/PaymentResult.cshtml");
+                        return View("~/Views/PaymentReturn/PaymentResult.cshtml");
                     }
                     else
                     {
@@ -378,7 +378,7 @@ namespace ChurchReport.Tools
                         ViewBag.Message = "付款失敗，請稍後再試或聯繫教會辦公室。";
                         ViewBag.OrderId = paymentResult.OrderNo;
                         ViewBag.ErrorDetails = paymentStatusText;
-                return View("~/Views/PaymentReturn/PaymentResult.cshtml");
+                        return View("~/Views/PaymentReturn/PaymentResult.cshtml");
                     }
                 }
                 else { }
@@ -671,7 +671,7 @@ namespace ChurchReport.Tools
                         #endregion
 
                         // 設定 ViewBag 並返回付款結果頁。
-                // 這是舊 MVC View 使用的資料傳遞方式；目前保留 ViewBag contract，畫面檔名已改為中性的 PaymentReturn。
+                        // 這是舊 MVC View 使用的資料傳遞方式；目前保留 ViewBag contract，畫面檔名已改為中性的 PaymentReturn。
                         ViewBag.IsSuccess = true;
                         ViewBag.Message = isCoursePayment
                             ? "報名繳費成功，會透過LINE另行通知課程資訊，感謝您的支持。"
@@ -686,7 +686,7 @@ namespace ChurchReport.Tools
                         // 使用已判斷的類別文字（奉獻類別或課程名稱）
                         ViewBag.DedicationCategory = categoryText;
 
-                return View("~/Views/PaymentReturn/PaymentResult.cshtml");
+                        return View("~/Views/PaymentReturn/PaymentResult.cshtml");
 
                         #endregion
                     }
@@ -709,7 +709,7 @@ namespace ChurchReport.Tools
                         // 使用已判斷的類別文字（奉獻類別或課程名稱）
                         ViewBag.DedicationCategory = categoryText;
 
-                return View("~/Views/PaymentReturn/PaymentResult.cshtml");
+                        return View("~/Views/PaymentReturn/PaymentResult.cshtml");
                     }
                 }
                 else

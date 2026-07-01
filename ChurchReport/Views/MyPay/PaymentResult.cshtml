@@ -158,7 +158,7 @@
                     <div class="text-center mt-4">
                         @if (isSuccess)
                         {
-                            <a href="@@Content("~/Dedication/DonationPaymentView/網頁登入")" class="btn btn-primary btn-custom">
+                            <a href="@Url.Content("~/Dedication/DonationPaymentView/網頁登入")" class="btn btn-primary btn-custom">
                                 <i class="fas fa-home"></i> 回奉獻頁面
                             </a>
                             <a href="@Url.Action("DedicationFeeView", "Home")" class="btn btn-success btn-custom ml-2">
@@ -167,7 +167,7 @@
                         }
                         else
                         {
-                            <a href="@@Content("~/Dedication/DonationPaymentView/網頁登入")" class="btn btn-primary btn-custom">
+                            <a href="@Url.Content("~/Dedication/DonationPaymentView/網頁登入")" class="btn btn-primary btn-custom">
                                 <i class="fas fa-redo"></i> 重新付款
                             </a>
                             <a href="@Url.Action("ChurchRoot", "Home")" class="btn btn-outline-secondary btn-custom ml-2">

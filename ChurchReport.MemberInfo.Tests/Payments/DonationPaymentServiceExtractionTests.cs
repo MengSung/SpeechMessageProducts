@@ -59,6 +59,23 @@ public sealed class DonationPaymentServiceExtractionTests
     }
 
     [Fact]
+    public void ResolveSpecialCategory_should_ignore_malformed_date_text_without_throwing()
+    {
+        var today = new DateTime(2026, 7, 1);
+
+        Action act = () => DonationPaymentFormBuilder.ResolveSpecialCategory(
+            "錯誤日期~也不是日期,暑期特別奉獻",
+            today);
+
+        act.Should().NotThrow();
+        DonationPaymentFormBuilder.ResolveSpecialCategory(
+                "錯誤日期~也不是日期,暑期特別奉獻",
+                today)
+            .Should()
+            .BeEmpty();
+    }
+
+    [Fact]
     public void ValidateDonationForm_should_reject_empty_amount()
     {
         var result = DonationPaymentSubmissionService.ValidateDonationForm(new DonationPaymentFormModel
