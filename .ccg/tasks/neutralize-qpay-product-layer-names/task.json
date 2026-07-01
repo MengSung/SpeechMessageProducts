@@ -1,0 +1,12 @@
+{
+  "id": "neutralize-qpay-product-layer-names",
+  "title": "清理 ChurchReport 產品層 QPay 命名並保留必要舊路由相容",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "analysis",
+  "nextAction": "讀取 Trellis 規範並盤點 QPay 命名殘留",
+  "createdAt": "2026-07-01T00:00:00Z",
+  "branch": "Jesus_5.1.5_Worktree_TuneRefactorPament"
+}
