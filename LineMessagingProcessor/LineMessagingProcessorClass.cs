@@ -353,6 +353,56 @@ namespace LineMessagingProcessor
             };
         }
 
+        /// <summary>
+        /// 以 SDK 取得 LINE 群組中的成員個人資料。
+        /// 這個方法只負責共用 LINE 查詢入口需要的最小工作：驗證 groupId 與 userId，
+        /// 然後把官方 API 呼叫交給 Line.Messaging SDK。群組成員是否要綁定到會員、
+        /// 小組、課程或任何產品資料，必須由呼叫端產品自己決定，不能放進共用 LINE 模組。
+        /// </summary>
+        /// <param name="groupId">LINE 群組 ID。不可為 null、空字串或只包含空白。</param>
+        /// <param name="userId">LINE 使用者 ID。不可為 null、空字串或只包含空白。</param>
+        /// <returns>LINE 官方回傳的群組成員個人資料。</returns>
+        /// <exception cref="ArgumentException">groupId 或 userId 空白時拋出，且不發出 HTTP request。</exception>
+        public async Task<Line.Messaging.UserProfile> GetGroupMemberProfileAsync(string groupId, string userId)
+        {
+            if (string.IsNullOrWhiteSpace(groupId))
+            {
+                throw new ArgumentException("groupId is required.", nameof(groupId));
+            }
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new ArgumentException("userId is required.", nameof(userId));
+            }
+
+            return await _lineMessagingClient.GetGroupMemberProfileAsync(groupId, userId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 以 SDK 取得 LINE 聊天室中的成員個人資料。
+        /// 這個方法與群組成員查詢維持同一個邊界：Processor 只驗證 roomId 與 userId，
+        /// 實際 endpoint、HTTP header、JSON 解析都交給 Line.Messaging SDK 統一處理。
+        /// 產品端仍然負責判斷這個聊天室成員資料要如何對應到自己的會員或流程。
+        /// </summary>
+        /// <param name="roomId">LINE 聊天室 ID。不可為 null、空字串或只包含空白。</param>
+        /// <param name="userId">LINE 使用者 ID。不可為 null、空字串或只包含空白。</param>
+        /// <returns>LINE 官方回傳的聊天室成員個人資料。</returns>
+        /// <exception cref="ArgumentException">roomId 或 userId 空白時拋出，且不發出 HTTP request。</exception>
+        public async Task<Line.Messaging.UserProfile> GetRoomMemberProfileAsync(string roomId, string userId)
+        {
+            if (string.IsNullOrWhiteSpace(roomId))
+            {
+                throw new ArgumentException("roomId is required.", nameof(roomId));
+            }
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new ArgumentException("userId is required.", nameof(userId));
+            }
+
+            return await _lineMessagingClient.GetRoomMemberProfileAsync(roomId, userId).ConfigureAwait(false);
+        }
+
         public async Task<String> GetUserDisplayName(string UserId)
         {
             try

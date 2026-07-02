@@ -1,0 +1,13 @@
+{
+    "id":  "line-group-room-profile-adapter",
+    "title":  "Add reusable LINE group and room member profile adapter",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "backend",
+    "currentPhase":  "completed",
+    "nextAction":  "Completed: group and room member profile adapters implemented, verified, reviewed, and ready for next LINE slice.",
+    "createdAt":  "2026-07-02T19:05:00+08:00",
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine",
+    "completedAt":  "2026-07-02T19:30:00+08:00"
+}
