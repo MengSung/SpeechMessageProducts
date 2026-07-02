@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -116,10 +116,17 @@ namespace Line.Messaging
         Task<NarrowcastProgress> GetNarrowcastProgressAsync(string requestId);
 
         /// <summary>
-        /// Mark messages from the user as read.
+        /// Mark webhook messages as read by using LINE's official mark-as-read token.
         /// https://developers.line.biz/en/reference/messaging-api/#mark-messages-as-read
         /// </summary>
-        /// <param name="chatId">The identifier of chat. The chat can be a user, group, or room. Use userId for user, groupId for group, roomId for room.</param>
+        /// <param name="markAsReadToken">Token received from the webhook event that identifies the messages to mark as read.</param>
+        Task MarkAsReadByTokenAsync(string markAsReadToken);
+
+        /// <summary>
+        /// Legacy API placeholder kept only so older callers fail with a clear message instead of sending chatId as markAsReadToken.
+        /// </summary>
+        /// <param name="chatId">Legacy chat ID parameter. LINE's current official API requires a webhook markAsReadToken instead.</param>
+        [Obsolete("Use MarkAsReadByTokenAsync(markAsReadToken). LINE official API uses markAsReadToken, not chatId.")]
         Task MarkAsReadAsync(string chatId);
 
         /// <summary>

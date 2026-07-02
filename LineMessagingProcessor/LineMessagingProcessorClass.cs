@@ -1,50 +1,23 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 using RestSharp;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Configuration;
 
 namespace LineMessagingProcessor
 {
     public class LineMessagingProcessorClass : IDisposable
     {
-        #region 設定 m_ChannelAccessToken，新增組織修改區
+        // LINE channel access token 是部署環境的機密資料，不能寫死在原始碼。
+        // 建構式會統一正規化成 Authorization header 需要的 Bearer 格式。
+        private readonly string _channelAccessToken;
 
-        // 音訊科技
-        //String m_ChannelAccessToken = "Bearer RvnT/SCXqbHbGKSUm6y7PDW4G+KHMcsJPZdXqnEPg9JZiPrRcrYnn8jG/hn/Mvcher+IqARAc4B02aRzXCjrs+cI/VV7Gw2c3MsbhGlTJRSZntVfJeiKWejJqPT27dnstPcgaFER2FaW5sf9ipliQAdB04t89/1O/w1cDnyilFU=";
-
-        // 咩咩俱樂部
-        //String m_ChannelAccessToken = "Bearer zBJV+jmsWVq7fRDlqQthGK4Pb7lgj7L1P5Q7PUyq8lxhI2GTagRKLJx5ASK5FNjXUebUryqbWDj1CNU5s3iaQPlm1DBDOX4wke/sSawNMEgv7O2PqWRPc2qezlQqS6mhFm3OeIltJ7bYjPePi2eqLQdB04t89/1O/w1cDnyilFU=";
-
-        // 理債一日便
-        //String m_ChannelAccessToken = "Bearer " + "0NhRlPIi85qb3pfJbhcyP+Y4Tw+F/Jz0kjHqzfvduTtdzlNOf9NJQW8DZ2NXpEWmpGYvEUQwekGNaoGtwKlu3+ugco6lu8QNGs1P14YeFRG3OSuXktpRt7atnYqMEl7ABYxgBSCq52pMVx58F/RpzwdB04t89/1O/w1cDnyilFU=";
-
-        // 好牧人
-        // String m_ChannelAccessToken = "Bearer " + "YTd17Eep3V5/nSaI1lxLW5vx//gOfVr21kpnpZ6RBOfvFrjhJYpvtmCIy7yxDi2tQ2cfP/6qGJ9raS72VwN7xhGjneynJHpCRrgJbz4GqMGMMEjLAcVB+hRRNCTNkMOY3rYyyN/W+/sTAx3HzzhsPgdB04t89/1O/w1cDnyilFU=";
-
-        // 樹林教會
-        //String m_ChannelAccessToken = "Bearer " + "36PV/e/hoJ9+CAqRwzO34PRWTQJSmkkIH0uXrV0bFPOSYmvUpNa1xx0G+BKrDmoce77OdGsItv4dTaLY35iG+KiIYpmkOzklQWm4N6jedvJKj9ruarXG+JKpPzUY6UlS0I+NS+6iD5ahJ+UhNaYaMwdB04t89/1O/w1cDnyilFU=";
-
-        // 順風美醫診所
-        //String m_ChannelAccessToken = "Bearer " + "s+583b2Rgbv4APgXhkNVpmx+wlaU04wWh82c/6i5Tyjsqh6SBQdBUjLc3b9C9tk4XK+1/TOeetLqFR+KdNromuUaS1Ih/T7gfXS3U/IRY0XqiQCYhrOC0TYKjeFuiDhAHpGidPcimIb6oVkqo5jBDQdB04t89/1O/w1cDnyilFU=";
-
-        // 好牧人(測試版)
-        //String m_ChannelAccessToken = "Bearer " + "/iNy46gPp/ZXokg1Vr9RV/ZjodE3i7Q2o+k9nlH7l3pV8WzjAegGDduZc7gms8X5zrjSrDy2xSdNFud7JqjSDjwcTXZ6MJ/FF3NuhVg6WuXmMT34gAO7VZ0RWYrHXwAifVKpOyh2/8LiGgBpfo4ZXQdB04t89/1O/w1cDnyilFU=";
-
-        // 好牧人
-        //String m_ChannelAccessToken = "Bearer " + "s+583b2Rgbv4APgXhkNVpmx+wlaU04wWh82c/6i5Tyjsqh6SBQdBUjLc3b9C9tk4XK+1/TOeetLqFR+KdNromuUaS1Ih/T7gfXS3U/IRY0XqiQCYhrOC0TYKjeFuiDhAHpGidPcimIb6oVkqo5jBDQdB04t89/1O/w1cDnyilFU=";
-
-        // 好牧人(進階版)
-        //String m_ChannelAccessToken = "Bearer " + "a5bB4sunKwoZGjbf0HvFnenCpiABmzIT6rGU4rQ25QAqDhxj8Wa+RwXKQN2CZVC3lSk2sZ2n5bqzCcvaa8J/DIOzUdLUUgq1wF6SIvcd0sL0uFWn0+XyaQXdii1QHvA4Lm+NU5wehU4zIhdxZaMMsAdB04t89/1O/w1cDnyilFU=";
-
-        // 思恩堂豐富教會
-        String m_ChannelAccessToken = "Bearer " + "PhC1ibjhqnR1CiDPyRsO6yvTmB1pWRiZAEQEsdTc0ibRd9hn3j1u3yOZf6IFneDsy3x1TBJgL1ODRxhpm9nTjELXi6uK3NFBapHXlogGsZryEIq6rZAVQ37cwquPr6sruwmkvRjQrxIvubS50aXBEwdB04t89/1O/w1cDnyilFU=";
-
-        #endregion
+        private static readonly Lazy<string> s_defaultChannelAccessToken = new Lazy<string>(ResolveDefaultChannelAccessToken);
 
         public String m_UserId = "";
         public String m_Message = "";
@@ -52,9 +25,73 @@ namespace LineMessagingProcessor
         private readonly RestClient _restClient;
 
         public LineMessagingProcessorClass()
+            : this(s_defaultChannelAccessToken.Value)
         {
+        }
+
+        public LineMessagingProcessorClass(string channelAccessToken)
+        {
+            _channelAccessToken = NormalizeBearerToken(channelAccessToken);
             var options = new RestClientOptions("https://api.line.me/v2/bot");
             _restClient = new RestClient(options);
+        }
+
+        public LineMessagingProcessorClass(IConfiguration configuration)
+            : this(ResolveChannelAccessToken(configuration))
+        {
+        }
+
+        private static string NormalizeBearerToken(string channelAccessToken)
+        {
+            if (string.IsNullOrWhiteSpace(channelAccessToken))
+            {
+                return string.Empty;
+            }
+
+            return channelAccessToken.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                ? channelAccessToken
+                : "Bearer " + channelAccessToken;
+        }
+
+        private static string ResolveDefaultChannelAccessToken()
+        {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+                .AddEnvironmentVariables()
+                .Build();
+
+            return ResolveChannelAccessToken(configuration);
+        }
+
+        private static string ResolveChannelAccessToken(IConfiguration configuration)
+        {
+            if (configuration == null)
+            {
+                return string.Empty;
+            }
+
+            var environmentToken = configuration["LINE_CHANNEL_ACCESS_TOKEN"];
+            if (!string.IsNullOrWhiteSpace(environmentToken))
+            {
+                return environmentToken;
+            }
+
+            var defaultOrganization = configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+            var configuredToken = configuration[$"LineMessaging:{defaultOrganization}:ChannelAccessToken"];
+
+            return configuredToken ?? string.Empty;
+        }
+
+        private string GetRequiredChannelAccessToken()
+        {
+            if (string.IsNullOrWhiteSpace(_channelAccessToken))
+            {
+                throw new InvalidOperationException(
+                    "LINE channel access token is required. Pass it to LineMessagingProcessorClass or set LINE_CHANNEL_ACCESS_TOKEN.");
+            }
+
+            return _channelAccessToken;
         }
 
         #region 釋放記憶體
@@ -186,7 +223,7 @@ namespace LineMessagingProcessor
             var request = new RestRequest("message/push");
             
             request.AddHeader("Content-Type", "application/json; charset=UTF-8");
-            request.AddHeader("Authorization", m_ChannelAccessToken);
+            request.AddHeader("Authorization", GetRequiredChannelAccessToken());
 
             if (Message == "顯示認證")
             {
@@ -230,7 +267,7 @@ namespace LineMessagingProcessor
         {
             var request = new RestRequest($"profile/{UserId}");
             request.AddHeader("Content-Type", "application/json; charset=UTF-8");
-            request.AddHeader("Authorization", m_ChannelAccessToken);
+            request.AddHeader("Authorization", GetRequiredChannelAccessToken());
 
             var response = await _restClient.GetAsync(request);
 
