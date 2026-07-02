@@ -1,0 +1,12 @@
+{
+    "domain":  "backend",
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine",
+    "id":  "line-usage-surface-inventory",
+    "risk":  "medium",
+    "createdAt":  "2026-07-02T17:40:00+08:00",
+    "complexity":  "M",
+    "currentPhase":  "design",
+    "status":  "in_progress",
+    "nextAction":  "Design spec written; next write implementation plan after approval",
+    "title":  "Inventory actual ChurchReport LINE usage surface before next SDK slice"
+}
