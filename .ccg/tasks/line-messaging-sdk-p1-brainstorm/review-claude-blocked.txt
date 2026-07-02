@@ -1,0 +1,10 @@
+﻿Claude reviewer could not be executed at this time.
+
+Observed command:
+'Say OK only.' | claude -p --dangerously-skip-permissions --output-format text -
+
+Observed result:
+You've hit your session limit; Claude CLI exited with code 1.
+
+Impact:
+P1 implementation commit exists and Gemini review output exists, but the required Gemini + Claude dual-model review gate is not complete until Claude quota resets and the Claude reviewer can run.
