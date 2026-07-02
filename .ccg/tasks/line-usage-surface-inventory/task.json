@@ -5,8 +5,8 @@
     "risk":  "medium",
     "createdAt":  "2026-07-02T17:40:00+08:00",
     "complexity":  "M",
-    "currentPhase":  "design",
-    "status":  "in_progress",
-    "nextAction":  "Design spec written; next write implementation plan after approval",
+    "currentPhase":  "completed",
+    "status":  "completed",
+    "nextAction":  "Implementation planning moved to .ccg/tasks/line-identity-profile-adapter",
     "title":  "Inventory actual ChurchReport LINE usage surface before next SDK slice"
 }

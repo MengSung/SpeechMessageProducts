@@ -313,20 +313,44 @@ namespace LineMessagingProcessor
             await _lineMessagingClient.PushMessageAsync(UserId, messages, retryKey).ConfigureAwait(false);
         }
 
-        public async Task<UserProfile> GetUserProfile(string UserId)
+        /// <summary>
+        /// 以 SDK 取得 LINE 使用者個人資料。
+        /// 這一層只負責「可重用的 LINE 身分查詢」：先確認 UserId 有值，再交給
+        /// Line.Messaging SDK 呼叫官方 /bot/profile/{userId} API。
+        /// 特定產品的資料庫查詢、會員欄位綁定、登入流程與 LIFF 頁面都不放在這裡，
+        /// 避免未來其他 ASP.NET Core 產品重用 LINE 模組時，被某一個產品的流程綁住。
+        /// </summary>
+        /// <param name="UserId">LINE 使用者 ID。不可為 null、空字串或只包含空白。</param>
+        /// <returns>LINE 官方回傳的使用者個人資料。</returns>
+        /// <exception cref="ArgumentException">UserId 空白時拋出，且不發出 HTTP request。</exception>
+        public async Task<Line.Messaging.UserProfile> GetUserProfileAsync(string UserId)
         {
-            var request = new RestRequest($"profile/{UserId}");
-            request.AddHeader("Content-Type", "application/json; charset=UTF-8");
-            request.AddHeader("Authorization", GetRequiredChannelAccessToken());
-
-            var response = await _restClient.GetAsync(request);
-
-            if (response != null && response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
+            if (string.IsNullOrWhiteSpace(UserId))
             {
-                return JsonConvert.DeserializeObject<UserProfile>(response.Content);
+                throw new ArgumentException("UserId is required.", nameof(UserId));
             }
 
-            return null;
+            return await _lineMessagingClient.GetUserProfileAsync(UserId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 舊版同步命名的相容入口。
+        /// 保留這個方法是為了不一次破壞既有 ChurchReport 呼叫端；實際資料流已改走
+        /// GetUserProfileAsync，讓新舊入口共用同一份 SDK-backed 實作。
+        /// </summary>
+        /// <param name="UserId">LINE 使用者 ID。</param>
+        /// <returns>LINE 官方回傳的使用者個人資料。</returns>
+        public async Task<UserProfile> GetUserProfile(string UserId)
+        {
+            var profile = await GetUserProfileAsync(UserId).ConfigureAwait(false);
+
+            return new UserProfile
+            {
+                DisplayName = profile.DisplayName,
+                UserId = profile.UserId,
+                PictureUrl = profile.PictureUrl,
+                StatusMessage = profile.StatusMessage
+            };
         }
 
         public async Task<String> GetUserDisplayName(string UserId)
