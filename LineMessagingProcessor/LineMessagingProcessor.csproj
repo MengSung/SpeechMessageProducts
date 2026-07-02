@@ -43,4 +43,8 @@
     <PackageReference Include="RestSharp" Version="112.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />
+  </ItemGroup>
+
 </Project>

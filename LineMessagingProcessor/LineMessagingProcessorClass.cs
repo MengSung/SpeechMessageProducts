@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Line.Messaging;
 using RestSharp;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +17,7 @@ namespace LineMessagingProcessor
         // LINE channel access token 是部署環境的機密資料，不能寫死在原始碼。
         // 建構式會統一正規化成 Authorization header 需要的 Bearer 格式。
         private readonly string _channelAccessToken;
+        private readonly LineMessagingClient _lineMessagingClient;
 
         private static readonly Lazy<string> s_defaultChannelAccessToken = new Lazy<string>(ResolveDefaultChannelAccessToken);
 
@@ -32,6 +34,17 @@ namespace LineMessagingProcessor
         public LineMessagingProcessorClass(string channelAccessToken)
         {
             _channelAccessToken = NormalizeBearerToken(channelAccessToken);
+            var options = new RestClientOptions("https://api.line.me/v2/bot");
+            _restClient = new RestClient(options);
+#pragma warning disable CS0618 // 保留既有 token 建構流程；新的測試/DI 路徑可直接注入 LineMessagingClient。
+            _lineMessagingClient = new LineMessagingClient(StripBearerPrefix(_channelAccessToken));
+#pragma warning restore CS0618
+        }
+
+        public LineMessagingProcessorClass(LineMessagingClient lineMessagingClient)
+        {
+            _lineMessagingClient = lineMessagingClient ?? throw new ArgumentNullException(nameof(lineMessagingClient));
+            _channelAccessToken = string.Empty;
             var options = new RestClientOptions("https://api.line.me/v2/bot");
             _restClient = new RestClient(options);
         }
@@ -51,6 +64,18 @@ namespace LineMessagingProcessor
             return channelAccessToken.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
                 ? channelAccessToken
                 : "Bearer " + channelAccessToken;
+        }
+
+        private static string StripBearerPrefix(string channelAccessToken)
+        {
+            if (string.IsNullOrWhiteSpace(channelAccessToken))
+            {
+                return string.Empty;
+            }
+
+            return channelAccessToken.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                ? channelAccessToken.Substring("Bearer ".Length)
+                : channelAccessToken;
         }
 
         private static string ResolveDefaultChannelAccessToken()
@@ -261,6 +286,31 @@ namespace LineMessagingProcessor
             }
 
             await _restClient.PostAsync(request);
+        }
+
+        /// <summary>
+        /// 發送可重試的 LINE 推播訊息。
+        /// 此方法只負責「可重用的 LINE 推播入口」：檢查必要欄位、建立文字訊息，
+        /// 然後把呼叫交給 Line.Messaging SDK。真正的 X-Line-Retry-Key header
+        /// 仍由 SDK 統一處理，避免 Processor 與 SDK 各自實作一份 LINE 協定細節。
+        /// </summary>
+        /// <param name="UserId">LINE 使用者 ID、群組 ID 或聊天室 ID。</param>
+        /// <param name="Message">要推播給付款者的純文字訊息。</param>
+        /// <param name="retryKey">由產品端產生的冪等重試鍵；空白時沿用非重試行為。</param>
+        public async Task SendReliableMessageAsync(string UserId, string Message, string? retryKey)
+        {
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                throw new ArgumentException("UserId is required.", nameof(UserId));
+            }
+
+            if (string.IsNullOrWhiteSpace(Message))
+            {
+                throw new ArgumentException("Message is required.", nameof(Message));
+            }
+
+            var messages = new List<ISendMessage> { new TextMessage(Message) };
+            await _lineMessagingClient.PushMessageAsync(UserId, messages, retryKey).ConfigureAwait(false);
         }
 
         public async Task<UserProfile> GetUserProfile(string UserId)

@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.IO;
 using ChurchReport.Payments;
 using ChurchReport.Tools;
 using Line.Messaging;
+using LineMessagingProcessor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
@@ -44,23 +45,67 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
+        /// 建立付款 LINE 通知專用的 deterministic retry key。
+        /// 同一筆付款事件重送時會得到同一個 key，LINE 端即可辨識重試請求，
+        /// 但 key 內不放付款者姓名、LINE ID、卡號 token 或完整訊息，避免把個資/敏感資料寫進協定 header。
+        /// </summary>
+        public static string? BuildPaymentLineRetryKey(string? orderId, string? productOrderId, string status)
+        {
+            var stableId = !string.IsNullOrWhiteSpace(orderId)
+                ? orderId.Trim()
+                : !string.IsNullOrWhiteSpace(productOrderId)
+                    ? productOrderId.Trim()
+                    : null;
+
+            if (stableId == null)
+            {
+                return null;
+            }
+
+            var normalizedStatus = string.IsNullOrWhiteSpace(status)
+                ? "unknown"
+                : status.Trim().ToLowerInvariant();
+
+            return $"churchreport:payment:{stableId}:{normalizedStatus}:payer-line-notice";
+        }
+
+        /// <summary>
         /// 透過 LINE Messaging API 推播付款通知。
         /// 此方法仍位於 ChurchReport，是因為 LINE channel token 的選擇、
         /// 使用者 LINE ID 欄位與通知失敗策略都屬於產品流程，不屬於共用金流核心。
         /// </summary>
         public void SendLineMessage(string lineId, string message)
         {
+            SendLineMessage(lineId, message, retryKey: null);
+        }
+
+        /// <summary>
+        /// 透過 LINE Messaging API 推播付款通知。
+        /// retryKey 有值時走 LineMessagingProcessor 的可重試入口；沒有 retryKey 時保留舊的 PushUtility 路徑，
+        /// 讓既有非付款或無穩定識別碼的通知不被本次重構影響。
+        /// </summary>
+        public void SendLineMessage(string lineId, string message, string? retryKey)
+        {
             try
             {
                 var channelAccessToken = GetLineChannelAccessToken();
-                var lineMessagingClient = new LineMessagingClient(channelAccessToken);
-                var pushUtility = new PushUtility(lineMessagingClient);
-                pushUtility.SendMessage(lineId, message).Wait();
-                _logger.LogInformation($"SendLineMessage: 已發送 - LineId: {lineId}");
+                if (string.IsNullOrWhiteSpace(retryKey))
+                {
+                    var lineMessagingClient = new LineMessagingClient(channelAccessToken);
+                    var pushUtility = new PushUtility(lineMessagingClient);
+                    pushUtility.SendMessage(lineId, message).Wait();
+                }
+                else
+                {
+                    var processor = new LineMessagingProcessorClass(channelAccessToken);
+                    processor.SendReliableMessageAsync(lineId, message, retryKey).Wait();
+                }
+
+                _logger.LogInformation($"SendLineMessage: 已發送 - LineId: {lineId}, RetryKey: {retryKey ?? "<none>"}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"SendLineMessage: 發送失敗 - LineId: {lineId}");
+                _logger.LogError(ex, $"SendLineMessage: 發送失敗 - LineId: {lineId}, RetryKey: {retryKey ?? "<none>"}");
                 throw;
             }
         }
@@ -127,7 +172,11 @@ namespace ChurchReport.Services
                         paymentTime);
                 }
 
-                SendLineMessage(lineId, message);
+                var retryKey = BuildPaymentLineRetryKey(
+                    orderId: result?.ProductOrderId,
+                    productOrderId: result?.ProductOrderId,
+                    status: "paid");
+                SendLineMessage(lineId, message, retryKey);
             }
             catch (Exception ex)
             {
@@ -214,7 +263,11 @@ namespace ChurchReport.Services
                         statusMessage);
                 }
 
-                SendLineMessage(lineId, message);
+                var retryKey = BuildPaymentLineRetryKey(
+                    orderId: result?.ProductOrderId,
+                    productOrderId: result?.ProductOrderId,
+                    status: "failed");
+                SendLineMessage(lineId, message, retryKey);
             }
             catch (Exception ex)
             {
