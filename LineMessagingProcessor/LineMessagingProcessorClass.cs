@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Line.Messaging;
-using RestSharp;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
 
@@ -18,13 +17,12 @@ namespace LineMessagingProcessor
         // 建構式會統一正規化成 Authorization header 需要的 Bearer 格式。
         private readonly string _channelAccessToken;
         private readonly LineMessagingClient _lineMessagingClient;
+        private readonly bool _requiresChannelAccessToken;
 
         private static readonly Lazy<string> s_defaultChannelAccessToken = new Lazy<string>(ResolveDefaultChannelAccessToken);
 
         public String m_UserId = "";
         public String m_Message = "";
-
-        private readonly RestClient _restClient;
 
         public LineMessagingProcessorClass()
             : this(s_defaultChannelAccessToken.Value)
@@ -34,8 +32,7 @@ namespace LineMessagingProcessor
         public LineMessagingProcessorClass(string channelAccessToken)
         {
             _channelAccessToken = NormalizeBearerToken(channelAccessToken);
-            var options = new RestClientOptions("https://api.line.me/v2/bot");
-            _restClient = new RestClient(options);
+            _requiresChannelAccessToken = true;
 #pragma warning disable CS0618 // 保留既有 token 建構流程；新的測試/DI 路徑可直接注入 LineMessagingClient。
             _lineMessagingClient = new LineMessagingClient(StripBearerPrefix(_channelAccessToken));
 #pragma warning restore CS0618
@@ -45,8 +42,7 @@ namespace LineMessagingProcessor
         {
             _lineMessagingClient = lineMessagingClient ?? throw new ArgumentNullException(nameof(lineMessagingClient));
             _channelAccessToken = string.Empty;
-            var options = new RestClientOptions("https://api.line.me/v2/bot");
-            _restClient = new RestClient(options);
+            _requiresChannelAccessToken = false;
         }
 
         public LineMessagingProcessorClass(IConfiguration configuration)
@@ -245,47 +241,31 @@ namespace LineMessagingProcessor
 
         public async Task SendMessage(string UserId, string Message)
         {
-            var request = new RestRequest("message/push");
-            
-            request.AddHeader("Content-Type", "application/json; charset=UTF-8");
-            request.AddHeader("Authorization", GetRequiredChannelAccessToken());
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                throw new ArgumentException("UserId is required.", nameof(UserId));
+            }
 
+            if (string.IsNullOrWhiteSpace(Message))
+            {
+                throw new ArgumentException("Message is required.", nameof(Message));
+            }
+
+            // 舊版 ChurchReport 流程曾用這個特殊字串要求系統回傳 LINE 使用者 ID。
+            // 這不是 LINE 官方 Messaging API 的協定；此處只保留既有文字轉換，
+            // 實際 HTTP endpoint、Authorization header 與 JSON 序列化全部交給 Line.Messaging SDK。
             if (Message == "顯示認證")
             {
-                var messageData = new
-                {
-                    to = UserId,
-                    messages = new[]
-                    {
-                        new
-                        {
-                            type = "text",
-                            text = "認證:" + UserId
-                        }
-                    }
-                };
-
-                request.AddJsonBody(messageData);
+                Message = "認證:" + UserId;
             }
-            else
+
+            if (_requiresChannelAccessToken)
             {
-                var messageData = new
-                {
-                    to = UserId,
-                    messages = new[]
-                    {
-                        new
-                        {
-                            type = "text",
-                            text = Message
-                        }
-                    }
-                };
-
-                request.AddJsonBody(messageData);
+                GetRequiredChannelAccessToken();
             }
 
-            await _restClient.PostAsync(request);
+            var messages = new List<ISendMessage> { new TextMessage(Message) };
+            await _lineMessagingClient.PushMessageAsync(UserId, messages).ConfigureAwait(false);
         }
 
         /// <summary>
