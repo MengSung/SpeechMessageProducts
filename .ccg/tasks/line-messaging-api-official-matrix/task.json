@@ -1,0 +1,12 @@
+{
+  "id": "line-messaging-api-official-matrix",
+  "title": "建立 LINE Messaging API 官方對照矩陣",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "docs",
+  "currentPhase": "implementation",
+  "nextAction": "提交矩陣骨架並補齊 SDK 證據索引",
+  "createdAt": "2026-07-02T00:00:00Z",
+  "branch": "Jesus_5.1.6.WorktreeRefactorLine"
+}
