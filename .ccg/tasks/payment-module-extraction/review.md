@@ -674,3 +674,86 @@ Consolidated external review status:
 - Gemini external review: completed and produced usable findings.
 - Claude external review: authentication fixed, completed, and produced usable findings.
 - Review-driven fixes have been applied and locally verified.
+
+## 2026-07-02 Gemini/Claude CCG Backend Permanence Check
+
+Scope:
+
+- User asked whether the Gemini + Claude dual-model CCG review backend is now permanently fixed and whether this problem can be guaranteed not to recur.
+- Verification was run from worktree `Jesus_5.1.6.WorktreeRefactorLine`.
+- Both external reviewer backends were invoked with reviewer role as required by CCG.
+
+Current environment checks:
+
+```powershell
+cmd.exe /c "where gemini & where claude & gemini --version & claude --version"
+cmd.exe /c "where python & python --version & where py"
+& "C:\Users\Administrator\.claude\bin\codeagent-wrapper.exe" --version
+```
+
+Results:
+
+- Outside the Codex sandbox, `where gemini` and `where claude` find the npm global shims first:
+  - `C:\Users\Administrator\AppData\Roaming\npm\gemini.cmd`
+  - `C:\Users\Administrator\AppData\Roaming\npm\claude.cmd`
+- `gemini --version`: `0.49.0`.
+- `claude --version`: `2.1.198 (Claude Code)`.
+- `codeagent-wrapper --version`: `5.11.1`.
+- `python --version`: `Python 3.14.2`.
+- Gemini project hooks exist under `.gemini/hooks`; they require `python` to be visible in the process PATH.
+- After this check, Python 3.14 paths were added back to the persistent User PATH so newly opened shells have a better chance of resolving Gemini hook dependencies:
+  - `C:\Users\Administrator\AppData\Local\Programs\Python\Python314\Scripts\`
+  - `C:\Users\Administrator\AppData\Local\Programs\Python\Python314\`
+  - `C:\Users\Administrator\AppData\Local\Programs\Python\Launcher\`
+
+Gemini reviewer command:
+
+```powershell
+$env:GEMINI_CLI_TRUST_WORKSPACE='true'
+$env:Path = 'C:\Users\Administrator\AppData\Roaming\npm;C:\Program Files\nodejs;' + [Environment]::GetEnvironmentVariable('Path','Machine')
+$task | & 'C:\Users\Administrator\.claude\bin\codeagent-wrapper.exe' --lite --backend gemini - $repo
+```
+
+Gemini reviewer result:
+
+- Completed and produced a review report with Session-ID `eab692f9-c2de-4dde-948d-33fc69925c61`.
+- Finding: this is not a fully permanent sandbox-independent fix.
+- Critical:
+  - Codex sandbox can still restrict direct access to `C:\Users\Administrator\AppData\Roaming\npm`, so Codex-internal execution can still fail unless external / escalated execution is used.
+  - `codeagent-wrapper --lite --progress --backend gemini` remains unsafe on Windows because progress mode previously caused libuv assertion/crash/hang.
+- Warning:
+  - Active process PATH can differ from the persistent User PATH until the parent process is restarted.
+  - In the constrained PATH used for this verification, Gemini hook output showed `python` command-not-found messages. A normal external environment did resolve Python, but the hook dependency is another required health-check item.
+
+Claude reviewer command:
+
+```powershell
+$env:Path = 'C:\Users\Administrator\AppData\Roaming\npm;C:\Program Files\nodejs;' + [Environment]::GetEnvironmentVariable('Path','Machine')
+$task | & 'C:\Users\Administrator\.claude\bin\codeagent-wrapper.exe' --lite --backend claude - $repo
+```
+
+Claude reviewer result:
+
+- Completed and produced a review report with Session-ID `690697d8-17dc-459d-b1e8-157a12f64cf0`.
+- Critical: none currently blocking under the tested external / escalated execution path.
+- Warning:
+  - The repair is composed of external settings that can regress independently: Codex sandbox mode, HKCU PATH / environment variables, PowerShell profile behavior, workspace trust variables, and CCG template changes.
+  - Template patching is not durable across `ccg-workflow` npm upgrades unless rechecked.
+  - User PATH-only setup does not automatically cover services, scheduled tasks, or a different Windows account.
+- Info:
+  - Current versions and npm shim locations match expected values.
+  - External CCG review is operational when invoked through `codeagent-wrapper --lite` and without Gemini `--progress`.
+
+Final judgement:
+
+- Gemini + Claude dual-model review is operationally fixed for the currently tested external / escalated CCG execution path.
+- It is not a mathematically permanent fix.
+- To keep it from recurring, future CCG review runs should start with a health check that verifies:
+  - `where gemini`
+  - `where claude`
+  - `where python`
+  - `gemini --version`
+  - `claude --version`
+  - `codeagent-wrapper --version`
+  - Gemini reviewer smoke test without `--progress`
+  - Claude reviewer smoke test with `--lite`

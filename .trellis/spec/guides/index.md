@@ -23,6 +23,7 @@ These guides help you **ask the right questions before coding**.
 |-------|---------|-------------|
 | [Code Reuse Thinking Guide](./code-reuse-thinking-guide.md) | Identify patterns and reduce duplication | When you notice repeated patterns |
 | [Cross-Layer Thinking Guide](./cross-layer-thinking-guide.md) | Think through data flow across layers | Features spanning multiple layers |
+| [CCG External Review Thinking Guide](./ccg-external-review-thinking-guide.md) | Avoid repeated Gemini/Claude reviewer toolchain debugging | Before running or repairing CCG external review |
 
 ---
 
@@ -57,6 +58,7 @@ These guides help you **ask the right questions before coding**.
 - [ ] Reviewer flags "missing validation" → Is the data from a trusted internal source?
 - [ ] Reviewer says "behavior change" → Read the code comments — is it intentional design?
 - [ ] Reviewer identifies a "bug" in test → Mentally delete the feature being tested — does the test still pass? If yes → tautological test
+- [ ] Gemini/Claude backend fails before producing findings → Read [CCG External Review Thinking Guide](./ccg-external-review-thinking-guide.md) before trying fixes
 
 **Common AI reviewer false-positive patterns**:
 1. **Trust boundary confusion**: Treating internal data (bundled JSON manifests) as untrusted external input

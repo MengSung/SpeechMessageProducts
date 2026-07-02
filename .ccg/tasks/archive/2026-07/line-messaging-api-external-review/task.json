@@ -1,0 +1,12 @@
+{
+  "id": "line-messaging-api-external-review",
+  "title": "Run external Gemini and Claude CCG review for LINE Messaging API matrix work",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "docs",
+  "currentPhase": "completed",
+  "nextAction": "Archive task and commit review record",
+  "createdAt": "2026-07-02T00:00:00Z",
+  "branch": "Jesus_5.1.6.WorktreeRefactorLine"
+}

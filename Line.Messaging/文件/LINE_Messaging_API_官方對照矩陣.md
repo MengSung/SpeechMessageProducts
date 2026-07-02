@@ -125,6 +125,10 @@
 
 | 官方分類 | 官方 endpoint / object | HTTP method | host | 官方用途 | 目前 SDK 對應方法/類別 | 目前狀態 | 問題類型 | 風險等級 | 建議修正 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Webhook | `/v2/bot/channel/webhook/endpoint` | PUT | `api.line.me` | 設定 webhook endpoint URL。 | `SetWebhookEndpointAsync`; `ILineMessagingClient.cs:327`, `LineMessagingClient.cs:1564` | `Correct` | endpoint、method 與 payload 均符合官方 set webhook endpoint 規格。 | `P2` | 保留現有實作，補 URL payload 與狀態碼 regression test。 |
+| Webhook | `/v2/bot/channel/webhook/endpoint` | GET | `api.line.me` | 取得目前 webhook endpoint 資訊。 | `GetWebhookEndpointAsync`; `ILineMessagingClient.cs:334`, `LineMessagingClient.cs:1601` | `Correct` | endpoint 與 method 符合官方 get webhook endpoint 規格。 | `P2` | 保留現有實作，補 `WebhookEndpoint` response model 測試。 |
+| Webhook | `/v2/bot/channel/webhook/test` | POST | `api.line.me` | 測試 webhook endpoint 是否可被 LINE 平台呼叫。 | `TestWebhookEndpointAsync`; `ILineMessagingClient.cs:342`, `LineMessagingClient.cs:1641` | `Correct` | endpoint、method 與 optional endpoint payload 均符合官方 test webhook endpoint 規格。 | `P2` | 保留現有實作，補 empty body 與指定 endpoint 兩種 payload regression test。 |
+| Webhook | `X-Line-Signature` verification | N/A | N/A | 驗證 webhook request 是否由 LINE platform 發送。 | `WebhookRequestMessageHelper.GetWebhookEventsAsync`, `VerifySignature`; `WebhookRequestMessageHelper.cs:29-68` | `Correct` | 已讀取 `X-Line-Signature`，使用 channel secret 做 HMAC-SHA256，並以 constant-time compare 驗證。 | `P2` | 保留驗章流程，補正確簽章、錯誤簽章、缺 header 的 parser 測試。 |
 | Webhook | Webhook request `destination` | N/A | N/A | 驗證 webhook 目標 bot user ID。 | `WebhookRequestMessageHelper.cs:39` | `Partial` | helper 會比對 destination，但沒有公開保留完整 request envelope。 | `P1` | 建立 `WebhookRequest` model，保留 destination 與 events。 |
 | Webhook | Webhook request `events` | N/A | N/A | 承載 webhook event 陣列。 | `WebhookEventParser`, `WebhookApplication` | `Partial` | parser 直接輸出 event list，request-level metadata 不完整。 | `P1` | 建立 request envelope parser。 |
 | Webhook | `webhookEventId` | N/A | N/A | webhook event 唯一 ID。 | None | `Missing` | `WebhookEvent` 只有 Type/Source/Timestamp。 | `P1` | 在 base event model 加入 nullable `WebhookEventId`。 |
@@ -262,7 +266,7 @@
 | --- | ---: | --- |
 | `P0` | 27 | 硬編碼 token、data host 錯誤、`/v2/v2` endpoint、mark-as-read 與 rich menu batch endpoint 錯誤。 |
 | `P1` | 43 | SDK 宣稱支援但未完成、Webhook common fields 缺漏、message common model 缺欄位、OAuth/token 流程不完整。 |
-| `P2` | 65 | 需要補齊測試、response model、進階 endpoint 或官方完整欄位。 |
+| `P2` | 69 | 需要補齊測試、response model、進階 endpoint 或官方完整欄位。 |
 | `P3` | 0 | 目前沒有列為可延後的官方 Messaging API 項目。 |
 
 ## 7. 下一階段修正順序

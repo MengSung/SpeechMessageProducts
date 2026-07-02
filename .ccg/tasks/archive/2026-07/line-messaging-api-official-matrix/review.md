@@ -5,8 +5,8 @@
 - `git diff --check`：通過。
 - `dotnet build ChurchReport.sln --no-restore`：通過，0 errors。
 - 既有 warning：`ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardTests.cs(33,17)` 的 `xUnit1012`，本次沒有修改該測試。
-- 矩陣文件列數：135 個資料列。
-- 優先級統計：`P0` 27、`P1` 43、`P2` 65、`P3` 0。
+- 矩陣文件列數：139 個資料列。
+- 優先級統計：`P0` 27、`P1` 43、`P2` 69、`P3` 0。
 - 文字檔格式：`Line.Messaging/文件/LINE_Messaging_API_官方對照矩陣.md` 已確認 UTF-8 without BOM，且沒有 LF-only 行。
 
 ## CCG 雙模型 Review 嘗試結果
@@ -20,7 +20,7 @@
 - PATH 中雖包含 `C:\Users\Administrator\AppData\Roaming\Claude\claude-code\2.1.92`，但該路徑目前不存在。
 - `C:\Users\Administrator\AppData\Roaming\npm` 目前沒有 `claude` 或 `gemini` shim。
 
-結論：本次矩陣文件已完成本地驗證，但外部 Gemini/Claude CCG review 尚未完成。這是本機 CLI/PATH 安裝狀態問題，不是本次文件內容錯誤。
+結論：本次矩陣文件已完成本地驗證；初版外部 Gemini/Claude CCG review 曾因本機 CLI/PATH 安裝狀態尚未完成而受阻。後續 `line-messaging-api-external-review` 任務已在 CLI 修復後完成雙模型 review，並依 Claude reviewer 發現補上 webhook endpoint management 與 `X-Line-Signature` 驗章列。
 
 ## 自我審查結果
 
