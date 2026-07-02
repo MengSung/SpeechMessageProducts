@@ -46,6 +46,19 @@
 | 風險等級 | `P0`、`P1`、`P2`、`P3`。 |
 | 建議修正 | 下一階段 SDK 修正方向。 |
 
+## 4.1 SDK 證據來源
+
+本矩陣以官方文件為判斷基準，並以目前 SDK 原始碼作為實作證據。主要檢查來源如下：
+
+- `Line.Messaging/ILineMessagingClient.cs`：確認 SDK 對外宣稱支援的方法。
+- `Line.Messaging/LineMessagingClient.cs`：確認實際 host、path、HTTP method、payload 組裝與是否拋出 `NotImplementedException`。
+- `Line.Messaging/Webhooks/*.cs`：確認 Webhook request、event、source、message event 與 parser 是否支援官方欄位。
+- `Line.Messaging/Messages/*.cs`、`Line.Messaging/Messages/**/*.cs`：確認 message object、action object、quick reply、template、imagemap、flex、rich menu object 是否存在。
+- `Line.Messaging/LineObjects/*.cs`：確認 quota、insights、audience、coupon、membership、token、webhook endpoint、bot info 等 response/request model 是否存在。
+- `LineMessagingProcessor/LineMessagingProcessorClass.cs`：確認產品層 processor 是否仍有硬編碼 token 或與 SDK 重疊的直接 LINE API 呼叫。
+
+本階段只記錄事實與風險，不修改 SDK 程式碼。任何 `WrongEndpoint`、`WrongHost`、`Unsafe`、`NotImplemented`、`Partial` 都必須附上可追蹤的檔案或方法位置，供下一階段 SDK 修正計畫使用。
+
 ## 5. 官方對照矩陣
 
 ### 5.1 Client 基礎與安全
