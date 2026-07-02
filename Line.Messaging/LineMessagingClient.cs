@@ -165,6 +165,21 @@ namespace Line.Messaging
             return CombineBaseAndPath(_dataUri, path);
         }
 
+        private static void ApplyRetryKeyHeader(HttpRequestMessage request, string? retryKey)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (string.IsNullOrWhiteSpace(retryKey))
+            {
+                return;
+            }
+
+            request.Headers.TryAddWithoutValidation("X-Line-Retry-Key", retryKey);
+        }
+
         private static string CombineBaseAndPath(string baseUri, string path)
         {
             if (string.IsNullOrWhiteSpace(baseUri))
@@ -236,7 +251,7 @@ namespace Line.Messaging
         /// </example>
         public static async Task<ChannelAccessToken> IssueChannelAccessTokenAsync(HttpClient httpClient, string channelId, string channelAccessToken, string uri = DEFAULT_URI)
         {
-            var response = await httpClient.PostAsync($"{uri}/oauth/accessToken",
+            var response = await httpClient.PostAsync(CombineBaseAndPath(NormalizeLineApiBaseUri(uri), "/oauth/accessToken"),
                 new FormUrlEncodedContent(new Dictionary<string, string>
                 {
                     ["grant_type"] = "client_credentials",
@@ -292,7 +307,7 @@ namespace Line.Messaging
         /// </example>
         public static async Task RevokeChannelAccessTokenAsync(HttpClient httpClient, string channelAccessToken, string uri = DEFAULT_URI)
         {
-            var response = await httpClient.PostAsync($"{uri}/oauth/revoke",
+            var response = await httpClient.PostAsync(CombineBaseAndPath(NormalizeLineApiBaseUri(uri), "/oauth/revoke"),
                 new FormUrlEncodedContent(new Dictionary<string, string> { ["access_token"] = channelAccessToken })).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
@@ -542,9 +557,13 @@ namespace Line.Messaging
         /// </example>
         /// <seealso cref="ReplyMessageAsync(string, IList{ISendMessage})"/>
         /// <seealso cref="MultiCastMessageAsync(IList{string}, IList{ISendMessage})"/>
-        public virtual async Task PushMessageAsync(string to, IList<ISendMessage> messages)
+        public virtual Task PushMessageAsync(string to, IList<ISendMessage> messages)
+            => PushMessageAsync(to, messages, retryKey: null);
+
+        public virtual async Task PushMessageAsync(string to, IList<ISendMessage> messages, string? retryKey)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/push");
+            var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/message/push"));
+            ApplyRetryKeyHeader(request, retryKey);
             request.Content = new StringContent(JsonConvert.SerializeObject(new { to, messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
             var response = await _client.SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
@@ -636,9 +655,13 @@ namespace Line.Messaging
         /// });
         /// </code>
         /// </example>
-        public virtual async Task MultiCastMessageAsync(IList<string> to, IList<ISendMessage> messages)
+        public virtual Task MultiCastMessageAsync(IList<string> to, IList<ISendMessage> messages)
+            => MultiCastMessageAsync(to, messages, retryKey: null);
+
+        public virtual async Task MultiCastMessageAsync(IList<string> to, IList<ISendMessage> messages, string? retryKey)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/multicast");
+            var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/message/multicast"));
+            ApplyRetryKeyHeader(request, retryKey);
             request.Content = new StringContent(JsonConvert.SerializeObject(new { to, messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
             var response = await _client.SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
@@ -710,9 +733,13 @@ namespace Line.Messaging
         /// });
         /// </code>
         /// </example>
-        public virtual async Task BroadcastMessageAsync(IList<ISendMessage> messages)
+        public virtual Task BroadcastMessageAsync(IList<ISendMessage> messages)
+            => BroadcastMessageAsync(messages, retryKey: null);
+
+        public virtual async Task BroadcastMessageAsync(IList<ISendMessage> messages, string? retryKey)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/broadcast");
+            var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/message/broadcast"));
+            ApplyRetryKeyHeader(request, retryKey);
             request.Content = new StringContent(JsonConvert.SerializeObject(new { messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
             var response = await _client.SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);

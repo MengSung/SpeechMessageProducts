@@ -46,6 +46,14 @@ namespace Line.Messaging
         Task PushMessageAsync(string to, IList<ISendMessage> messages);
 
         /// <summary>
+        /// Send messages to a user, group, or room with LINE retry-key support.
+        /// </summary>
+        /// <param name="to">ID of the receiver</param>
+        /// <param name="messages">Reply messages. Up to 5 messages.</param>
+        /// <param name="retryKey">Optional LINE retry key for idempotent retries. Null or whitespace means no retry header.</param>
+        Task PushMessageAsync(string to, IList<ISendMessage> messages, string? retryKey);
+
+        /// <summary>
         /// Send messages to a user, group, or room at any time.
         /// Note: Use of push messages are limited to certain plans.
         /// </summary>
@@ -69,6 +77,14 @@ namespace Line.Messaging
         /// <param name="to">IDs of the receivers. Max: 500 users</param>
         /// <param name="messages">Reply messages. Up to 5 messages.</param>
         Task MultiCastMessageAsync(IList<string> to, IList<ISendMessage> messages);
+
+        /// <summary>
+        /// Send push messages to multiple users with LINE retry-key support.
+        /// </summary>
+        /// <param name="to">IDs of the receivers. Max: 500 users</param>
+        /// <param name="messages">Reply messages. Up to 5 messages.</param>
+        /// <param name="retryKey">Optional LINE retry key for idempotent retries. Null or whitespace means no retry header.</param>
+        Task MultiCastMessageAsync(IList<string> to, IList<ISendMessage> messages, string? retryKey);
 
         /// <summary>
         /// Send push messages to multiple users at any time.
@@ -95,6 +111,13 @@ namespace Line.Messaging
         /// </summary>
         /// <param name="messages">Messages to send. Max: 5 messages</param>
         Task BroadcastMessageAsync(IList<ISendMessage> messages);
+
+        /// <summary>
+        /// Broadcasts messages with LINE retry-key support.
+        /// </summary>
+        /// <param name="messages">Messages to send. Max: 5 messages</param>
+        /// <param name="retryKey">Optional LINE retry key for idempotent retries. Null or whitespace means no retry header.</param>
+        Task BroadcastMessageAsync(IList<ISendMessage> messages, string? retryKey);
 
         /// <summary>
         /// Sends push messages to multiple users specified by attributes (such as gender, age, OS, region, friendship duration) or retargeting (audiences).
