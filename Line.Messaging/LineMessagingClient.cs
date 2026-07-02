@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
@@ -64,6 +64,12 @@ namespace Line.Messaging
         private const string DEFAULT_URI = "https://api.line.me/v2";
 
         /// <summary>
+        /// LINE binary data API 預設 URI。
+        /// Content 與 Rich Menu 圖檔端點官方要求使用 api-data.line.me，不可共用一般 JSON API host。
+        /// </summary>
+        private const string DEFAULT_DATA_URI = "https://api-data.line.me/v2";
+
+        /// <summary>
         /// HTTP 客戶端，用於發送 API 請求
         /// HTTP client for sending API requests
         /// </summary>
@@ -88,6 +94,11 @@ namespace Line.Messaging
         private string _uri;
 
         /// <summary>
+        /// LINE binary data API 的基礎 URI。
+        /// </summary>
+        private string _dataUri;
+
+        /// <summary>
         /// 初始化 LineMessagingClient - 使用外部提供的 HttpClient（建議用於 DI 情境）
         /// Initializes LineMessagingClient using externally provided HttpClient (recommended for DI scenarios)
         /// </summary>
@@ -100,7 +111,8 @@ namespace Line.Messaging
             _disposeClient = false;
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", channelAccessToken);
             _jsonSerializerSettings = new CamelCaseJsonSerializerSettings();
-            _uri = uri;
+            _uri = NormalizeLineApiBaseUri(uri);
+            _dataUri = DeriveDataUri(_uri);
         }
 
         /// <summary>
@@ -116,7 +128,74 @@ namespace Line.Messaging
             _disposeClient = true;
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", channelAccessToken);
             _jsonSerializerSettings = new CamelCaseJsonSerializerSettings();
-            _uri = uri;
+            _uri = NormalizeLineApiBaseUri(uri);
+            _dataUri = DeriveDataUri(_uri);
+        }
+
+        private static string NormalizeLineApiBaseUri(string apiUri)
+        {
+            if (string.IsNullOrWhiteSpace(apiUri))
+            {
+                return DEFAULT_URI;
+            }
+
+            var normalizedUri = apiUri.TrimEnd('/');
+            return normalizedUri.EndsWith("/v2", StringComparison.OrdinalIgnoreCase)
+                ? normalizedUri
+                : normalizedUri + "/v2";
+        }
+
+        private static string DeriveDataUri(string apiUri)
+        {
+            if (string.IsNullOrWhiteSpace(apiUri))
+            {
+                return DEFAULT_DATA_URI;
+            }
+
+            return apiUri.Replace("https://api.line.me", "https://api-data.line.me");
+        }
+
+        private string ApiUrl(string path)
+        {
+            return CombineBaseAndPath(_uri, path);
+        }
+
+        private string DataUrl(string path)
+        {
+            return CombineBaseAndPath(_dataUri, path);
+        }
+
+        private static void ApplyRetryKeyHeader(HttpRequestMessage request, string? retryKey)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (string.IsNullOrWhiteSpace(retryKey))
+            {
+                return;
+            }
+
+            request.Headers.TryAddWithoutValidation("X-Line-Retry-Key", retryKey);
+        }
+
+        private static string CombineBaseAndPath(string baseUri, string path)
+        {
+            if (string.IsNullOrWhiteSpace(baseUri))
+            {
+                throw new ArgumentException("Base URI is required.", nameof(baseUri));
+            }
+
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentException("Path is required.", nameof(path));
+            }
+
+            var normalizedBase = baseUri.TrimEnd('/');
+            var normalizedPath = path.TrimStart('/');
+
+            return normalizedBase + "/" + normalizedPath;
         }
 
         #region OAuth
@@ -172,7 +251,7 @@ namespace Line.Messaging
         /// </example>
         public static async Task<ChannelAccessToken> IssueChannelAccessTokenAsync(HttpClient httpClient, string channelId, string channelAccessToken, string uri = DEFAULT_URI)
         {
-            var response = await httpClient.PostAsync($"{uri}/oauth/accessToken",
+            var response = await httpClient.PostAsync(CombineBaseAndPath(NormalizeLineApiBaseUri(uri), "/oauth/accessToken"),
                 new FormUrlEncodedContent(new Dictionary<string, string>
                 {
                     ["grant_type"] = "client_credentials",
@@ -228,7 +307,7 @@ namespace Line.Messaging
         /// </example>
         public static async Task RevokeChannelAccessTokenAsync(HttpClient httpClient, string channelAccessToken, string uri = DEFAULT_URI)
         {
-            var response = await httpClient.PostAsync($"{uri}/oauth/revoke",
+            var response = await httpClient.PostAsync(CombineBaseAndPath(NormalizeLineApiBaseUri(uri), "/oauth/revoke"),
                 new FormUrlEncodedContent(new Dictionary<string, string> { ["access_token"] = channelAccessToken })).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
@@ -478,9 +557,13 @@ namespace Line.Messaging
         /// </example>
         /// <seealso cref="ReplyMessageAsync(string, IList{ISendMessage})"/>
         /// <seealso cref="MultiCastMessageAsync(IList{string}, IList{ISendMessage})"/>
-        public virtual async Task PushMessageAsync(string to, IList<ISendMessage> messages)
+        public virtual Task PushMessageAsync(string to, IList<ISendMessage> messages)
+            => PushMessageAsync(to, messages, retryKey: null);
+
+        public virtual async Task PushMessageAsync(string to, IList<ISendMessage> messages, string? retryKey)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/push");
+            var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/message/push"));
+            ApplyRetryKeyHeader(request, retryKey);
             request.Content = new StringContent(JsonConvert.SerializeObject(new { to, messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
             var response = await _client.SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
@@ -572,9 +655,13 @@ namespace Line.Messaging
         /// });
         /// </code>
         /// </example>
-        public virtual async Task MultiCastMessageAsync(IList<string> to, IList<ISendMessage> messages)
+        public virtual Task MultiCastMessageAsync(IList<string> to, IList<ISendMessage> messages)
+            => MultiCastMessageAsync(to, messages, retryKey: null);
+
+        public virtual async Task MultiCastMessageAsync(IList<string> to, IList<ISendMessage> messages, string? retryKey)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/multicast");
+            var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/message/multicast"));
+            ApplyRetryKeyHeader(request, retryKey);
             request.Content = new StringContent(JsonConvert.SerializeObject(new { to, messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
             var response = await _client.SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
@@ -646,9 +733,13 @@ namespace Line.Messaging
         /// });
         /// </code>
         /// </example>
-        public virtual async Task BroadcastMessageAsync(IList<ISendMessage> messages)
+        public virtual Task BroadcastMessageAsync(IList<ISendMessage> messages)
+            => BroadcastMessageAsync(messages, retryKey: null);
+
+        public virtual async Task BroadcastMessageAsync(IList<ISendMessage> messages, string? retryKey)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/broadcast");
+            var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/message/broadcast"));
+            ApplyRetryKeyHeader(request, retryKey);
             request.Content = new StringContent(JsonConvert.SerializeObject(new { messages }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
             var response = await _client.SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
@@ -773,12 +864,22 @@ namespace Line.Messaging
         /// await client.MarkAsReadAsync(groupId);
         /// </code>
         /// </example>
-        public virtual async Task MarkAsReadAsync(string chatId)
+        public virtual async Task MarkAsReadByTokenAsync(string markAsReadToken)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/message/markAsRead");
-            request.Content = new StringContent(JsonConvert.SerializeObject(new { chatId }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
+            var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/chat/markAsRead"));
+            request.Content = new StringContent(
+                JsonConvert.SerializeObject(new { markAsReadToken }, _jsonSerializerSettings),
+                Encoding.UTF8,
+                "application/json");
             var response = await _client.SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
+        }
+
+        [Obsolete("Use MarkAsReadByTokenAsync(markAsReadToken). LINE official API uses markAsReadToken, not chatId.")]
+        public virtual Task MarkAsReadAsync(string chatId)
+        {
+            throw new NotSupportedException(
+                "LINE mark-as-read now requires markAsReadToken from webhook events. Use MarkAsReadByTokenAsync(markAsReadToken) instead of passing a chatId.");
         }
 
         /// <summary>
@@ -869,7 +970,7 @@ namespace Line.Messaging
         /// <seealso cref="GetContentBytesAsync(string)"/>
         public virtual async Task<ContentStream> GetContentStreamAsync(string messageId)
         {
-            var response = await _client.GetAsync($"{_uri}/bot/message/{messageId}/content").ConfigureAwait(false);
+            var response = await _client.GetAsync(DataUrl($"/bot/message/{messageId}/content")).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
             return new ContentStream(await response.Content.ReadAsStreamAsync(), response.Content.Headers);
         }
@@ -902,7 +1003,7 @@ namespace Line.Messaging
         /// <seealso cref="GetContentStreamAsync(string)"/>
         public virtual async Task<byte[]> GetContentBytesAsync(string messageId)
         {
-            var response = await _client.GetAsync($"{_uri}/bot/message/{messageId}/content").ConfigureAwait(false);
+            var response = await _client.GetAsync(DataUrl($"/bot/message/{messageId}/content")).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
             return await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
         }
@@ -945,7 +1046,7 @@ namespace Line.Messaging
         /// </example>
         public virtual async Task<bool> VerifyContentPreparationAsync(string messageId)
         {
-            var response = await _client.GetAsync($"{_uri}/bot/message/{messageId}/content/verify").ConfigureAwait(false);
+            var response = await _client.GetAsync(DataUrl($"/bot/message/{messageId}/content/transcoding")).ConfigureAwait(false);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -958,7 +1059,10 @@ namespace Line.Messaging
                         if (info != null)
                         {
                             if (info.available.HasValue) return info.available.Value;
-                            if (!string.IsNullOrEmpty(info.status)) return string.Equals(info.status, "ready", StringComparison.OrdinalIgnoreCase);
+
+                            // LINE 官方 /content/transcoding 回傳的狀態只有 processing / succeeded / failed。
+                            // 這裡只把 succeeded 視為可下載，其他狀態維持 false，讓呼叫端可以繼續等待或自行處理失敗狀態。
+                            if (!string.IsNullOrEmpty(info.status)) return string.Equals(info.status, "succeeded", StringComparison.OrdinalIgnoreCase);
                         }
                     }
                     catch { }
@@ -1006,7 +1110,7 @@ namespace Line.Messaging
         /// </example>
         public virtual async Task<ContentStream> GetContentPreviewAsync(string messageId)
         {
-            var response = await _client.GetAsync($"{_uri}/bot/message/{messageId}/content/preview").ConfigureAwait(false);
+            var response = await _client.GetAsync(DataUrl($"/bot/message/{messageId}/content/preview")).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
             return new ContentStream(await response.Content.ReadAsStreamAsync(), response.Content.Headers);
         }
@@ -2043,7 +2147,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task<RichMenuBatchProgress> GetRichMenuBatchProgressAsync(string requestId)
         {
-            var json = await GetStringAsync($"{_uri}/bot/richmenu/batch/{requestId}").ConfigureAwait(false);
+            var json = await GetStringAsync(ApiUrl($"/bot/richmenu/progress/batch?requestId={Uri.EscapeDataString(requestId)}")).ConfigureAwait(false);
             return JsonConvert.DeserializeObject<RichMenuBatchProgress>(json);
         }
 
@@ -2053,7 +2157,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task ValidateRichMenuBatchRequestAsync(IList<RichMenuBatchOperation> operations)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/bot/richmenu/batch/validate");
+            var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/richmenu/validate/batch"));
             request.Content = new StringContent(JsonConvert.SerializeObject(new { operations }, _jsonSerializerSettings), Encoding.UTF8, "application/json");
             var response = await _client.SendAsync(request).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
@@ -2065,7 +2169,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task<ContentStream> DownloadRichMenuImageAsync(string richMenuId)
         {
-            var response = await _client.GetAsync($"{_uri}/bot/richmenu/{richMenuId}/content").ConfigureAwait(false);
+            var response = await _client.GetAsync(DataUrl($"/bot/richmenu/{richMenuId}/content")).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
             return new ContentStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false), response.Content.Headers);
         }
@@ -2078,7 +2182,7 @@ namespace Line.Messaging
         {
             var content = new StreamContent(stream);
             content.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
-            var response = await _client.PostAsync($"{_uri}/bot/richmenu/{richMenuId}/content", content).ConfigureAwait(false);
+            var response = await _client.PostAsync(DataUrl($"/bot/richmenu/{richMenuId}/content"), content).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2090,7 +2194,7 @@ namespace Line.Messaging
         {
             var content = new StreamContent(stream);
             content.Headers.ContentType = new MediaTypeHeaderValue("image/png");
-            var response = await _client.PostAsync($"{_uri}/bot/richmenu/{richMenuId}/content", content).ConfigureAwait(false);
+            var response = await _client.PostAsync(DataUrl($"/bot/richmenu/{richMenuId}/content"), content).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
 
@@ -2125,7 +2229,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task<MessageDelivery> GetMessageDeliveryAsync(DateTime date)
         {
-            var json = await GetStringAsync($"{_uri}/v2/bot/insight/message/delivery?date={date:yyyyMMdd}").ConfigureAwait(false);
+            var json = await GetStringAsync(ApiUrl($"/bot/insight/message/delivery?date={date:yyyyMMdd}")).ConfigureAwait(false);
             return JsonConvert.DeserializeObject<MessageDelivery>(json);
         }
 
@@ -2135,7 +2239,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task<FollowerStatistics> GetFollowerStatisticsAsync(DateTime date)
         {
-            var json = await GetStringAsync($"{_uri}/v2/bot/insight/followers?date={date:yyyyMMdd}").ConfigureAwait(false);
+            var json = await GetStringAsync(ApiUrl($"/bot/insight/followers?date={date:yyyyMMdd}")).ConfigureAwait(false);
             return JsonConvert.DeserializeObject<FollowerStatistics>(json);
         }
 
@@ -2145,7 +2249,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task<DemographicStatistics> GetFriendDemographicsAsync()
         {
-            var json = await GetStringAsync($"{_uri}/v2/bot/insight/demographic").ConfigureAwait(false);
+            var json = await GetStringAsync(ApiUrl("/bot/insight/demographic")).ConfigureAwait(false);
             return JsonConvert.DeserializeObject<DemographicStatistics>(json);
         }
 
@@ -2155,7 +2259,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task<UserInteractionStatistics> GetUserInteractionStatisticsAsync(string requestId)
         {
-            var json = await GetStringAsync($"{_uri}/v2/bot/insight/message/event?requestId={requestId}").ConfigureAwait(false);
+            var json = await GetStringAsync(ApiUrl($"/bot/insight/message/event?requestId={requestId}")).ConfigureAwait(false);
             return JsonConvert.DeserializeObject<UserInteractionStatistics>(json);
         }
 
@@ -2165,7 +2269,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task<StatisticsPerUnit> GetStatisticsPerUnitAsync(string customAggregationUnit, string from, string to)
         {
-            var json = await GetStringAsync($"{_uri}/v2/bot/insight/message/event/aggregation?customAggregationUnit={Uri.EscapeDataString(customAggregationUnit)}&from={from}&to={to}").ConfigureAwait(false);
+            var json = await GetStringAsync(ApiUrl($"/bot/insight/message/event/aggregation?customAggregationUnit={Uri.EscapeDataString(customAggregationUnit)}&from={from}&to={to}")).ConfigureAwait(false);
             return JsonConvert.DeserializeObject<StatisticsPerUnit>(json);
         }
 
@@ -2175,7 +2279,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task<AggregationInfo> GetAggregationInfoAsync()
         {
-            var json = await GetStringAsync($"{_uri}/v2/bot/message/aggregation/info").ConfigureAwait(false);
+            var json = await GetStringAsync(ApiUrl("/bot/message/aggregation/info")).ConfigureAwait(false);
             return JsonConvert.DeserializeObject<AggregationInfo>(json);
         }
 
@@ -2185,7 +2289,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task<AggregationUnitNameList> GetAggregationUnitNameListAsync(int limit = 100, string start = null)
         {
-            var url = $"{_uri}/v2/bot/message/aggregation/list?limit={limit}";
+            var url = ApiUrl($"/bot/message/aggregation/list?limit={limit}");
             if (!string.IsNullOrEmpty(start))
                 url += $"&start={start}";
             var json = await GetStringAsync(url).ConfigureAwait(false);
@@ -2427,7 +2531,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task<Coupon> CreateCouponAsync(CreateCouponRequest request)
         {
-            var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_uri}/v2/bot/coupon");
+            var httpRequest = new HttpRequestMessage(HttpMethod.Post, ApiUrl("/bot/coupon"));
             httpRequest.Content = new StringContent(JsonConvert.SerializeObject(request, _jsonSerializerSettings), Encoding.UTF8, "application/json");
             var response = await _client.SendAsync(httpRequest).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
@@ -2441,7 +2545,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task CloseCouponAsync(string couponId)
         {
-            var httpRequest = new HttpRequestMessage(HttpMethod.Put, $"{_uri}/v2/bot/coupon/{couponId}/close");
+            var httpRequest = new HttpRequestMessage(HttpMethod.Put, ApiUrl($"/bot/coupon/{couponId}/close"));
             var response = await _client.SendAsync(httpRequest).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
@@ -2452,7 +2556,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task<CouponList> GetCouponListAsync(int limit = 20, string next = null)
         {
-            var url = $"{_uri}/v2/bot/coupon?limit={limit}";
+            var url = ApiUrl($"/bot/coupon?limit={limit}");
             if (!string.IsNullOrEmpty(next))
                 url += $"&next={next}";
             var json = await GetStringAsync(url).ConfigureAwait(false);
@@ -2465,7 +2569,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task<Coupon> GetCouponAsync(string couponId)
         {
-            var json = await GetStringAsync($"{_uri}/v2/bot/coupon/{couponId}").ConfigureAwait(false);
+            var json = await GetStringAsync(ApiUrl($"/bot/coupon/{couponId}")).ConfigureAwait(false);
             return JsonConvert.DeserializeObject<Coupon>(json);
         }
         #endregion
@@ -2477,7 +2581,7 @@ namespace Line.Messaging
         /// </summary>
         public virtual async Task<MembershipSubscription> GetMembershipSubscriptionAsync(string userId)
         {
-            var json = await GetStringAsync($"{_uri}/v2/bot/membership/subscription/{userId}").ConfigureAwait(false);
+            var json = await GetStringAsync(ApiUrl($"/bot/membership/subscription/{userId}")).ConfigureAwait(false);
             return JsonConvert.DeserializeObject<MembershipSubscription>(json);
         }
 
@@ -2503,7 +2607,7 @@ namespace Line.Messaging
         /// </returns>
         public virtual async Task<MembershipUserIds> GetMembershipUserIdsAsync(string membershipId, int limit = 100, string next = null)
         {
-            var url = $"{_uri}/v2/bot/membership/{membershipId}/users/ids?limit={limit}";
+            var url = ApiUrl($"/bot/membership/{membershipId}/users/ids?limit={limit}");
             if (!string.IsNullOrEmpty(next))
                 url += $"&next={next}";
             var json = await GetStringAsync(url).ConfigureAwait(false);
@@ -2520,7 +2624,7 @@ namespace Line.Messaging
         /// </returns>
         public virtual async Task<MembershipPlanList> GetMembershipPlansAsync()
         {
-            var json = await GetStringAsync($"{_uri}/v2/bot/membership/list").ConfigureAwait(false);
+            var json = await GetStringAsync(ApiUrl("/bot/membership/list")).ConfigureAwait(false);
             return JsonConvert.DeserializeObject<MembershipPlanList>(json);
         }
         #endregion

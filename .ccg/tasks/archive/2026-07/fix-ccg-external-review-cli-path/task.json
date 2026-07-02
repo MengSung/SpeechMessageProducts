@@ -1,0 +1,12 @@
+{
+  "id": "fix-ccg-external-review-cli-path",
+  "title": "修復 CCG Gemini/Claude 外部 reviewer backend 無法啟動",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "tooling",
+  "currentPhase": "completed",
+  "nextAction": "已完成：一般終端 PATH 修復，Codex 內需 escalated wrapper，Gemini 不使用 --progress",
+  "createdAt": "2026-07-02T10:01:37+08:00",
+  "branch": "Jesus_5.1.6.WorktreeRefactorLine"
+}

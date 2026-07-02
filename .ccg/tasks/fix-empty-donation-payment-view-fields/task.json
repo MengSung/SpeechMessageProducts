@@ -1,13 +1,13 @@
 {
-  "id": "fix-empty-donation-payment-view-fields",
-  "title": "修正奉獻付款頁奉獻者資料與信用卡清單空白",
-  "status": "completed",
-  "complexity": "M",
-  "risk": "medium",
-  "domain": "backend",
-  "currentPhase": "completed",
-  "nextAction": "等待使用者於瀏覽器重新驗證奉獻登入流程",
-  "createdAt": "2026-06-29T21:37:06+08:00",
-  "completedAt": "2026-06-29T22:14:18+08:00",
-  "branch": "payment-module-extraction"
+    "domain":  "backend",
+    "branch":  "payment-module-extraction",
+    "id":  "fix-empty-donation-payment-view-fields",
+    "risk":  "medium",
+    "createdAt":  "2026-06-29T21:37:06+08:00",
+    "complexity":  "M",
+    "currentPhase":  "completed",
+    "status":  "completed",
+    "nextAction":  "Completed in prior payment-module-extraction work; JSON repaired during LINE task cleanup.",
+    "title":  "Fix empty donation payment view fields",
+    "completedAt":  "2026-06-29T22:14:18+08:00"
 }

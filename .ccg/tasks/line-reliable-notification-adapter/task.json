@@ -1,0 +1,13 @@
+{
+    "id":  "line-reliable-notification-adapter",
+    "title":  "Add reusable reliable LINE notification adapter for payment notifications",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "backend",
+    "currentPhase":  "completed",
+    "nextAction":  "Completed: reliable LINE notification adapter implemented, verified, reviewed, and committed.",
+    "createdAt":  "2026-07-02T17:00:00+08:00",
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine",
+    "completedAt":  "2026-07-02T17:30:00+08:00"
+}

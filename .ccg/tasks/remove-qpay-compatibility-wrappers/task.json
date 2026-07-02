@@ -1,12 +1,13 @@
 {
-  "id": "remove-qpay-compatibility-wrappers",
-  "title": "移除 ChurchReport 產品流程層的 QPay 舊名稱相容包裝",
-  "status": "completed",
-  "complexity": "M",
-  "risk": "medium",
-  "domain": "backend",
-  "currentPhase": "completed",
-  "nextAction": "等待使用者決定是否提交或合併",
-  "createdAt": "2026-06-30T10:36:35.3561326+08:00",
-  "branch": "Jesus_5.1.5_Worktree_TuneRefactorPament"
+    "domain":  "backend",
+    "branch":  "Jesus_5.1.5_Worktree_TuneRefactorPament",
+    "id":  "remove-qpay-compatibility-wrappers",
+    "risk":  "medium",
+    "createdAt":  "2026-06-30T10:36:35+08:00",
+    "complexity":  "M",
+    "currentPhase":  "completed",
+    "status":  "completed",
+    "nextAction":  "Completed in prior payment refactor work; JSON repaired during LINE task cleanup.",
+    "title":  "Remove QPay compatibility wrappers",
+    "completedAt":  "2026-06-30T10:36:35+08:00"
 }

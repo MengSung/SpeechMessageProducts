@@ -265,3 +265,4 @@ __pycache__/
 *.diagsession
 .serena/cache/
 .worktrees/
+.ccg/tmp/

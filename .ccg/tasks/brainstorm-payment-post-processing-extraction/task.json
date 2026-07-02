@@ -1,12 +1,13 @@
 {
-  "id": "brainstorm-payment-post-processing-extraction",
-  "title": "研究金流付款後處理共通化與 provider 邊界",
-  "status": "in_progress",
-  "complexity": "L",
-  "risk": "high",
-  "domain": "backend",
-  "currentPhase": "review",
-  "nextAction": "Report generated; final verification passed; documentation commit pending.",
-  "createdAt": "2026-06-30T00:00:00+08:00",
-  "branch": "Jesus_5.1.5_Worktree_TuneRefactorPament"
+    "domain":  "backend",
+    "branch":  "Jesus_5.1.5_Worktree_TuneRefactorPament",
+    "id":  "brainstorm-payment-post-processing-extraction",
+    "risk":  "high",
+    "createdAt":  "2026-07-02T18:45:00+08:00",
+    "complexity":  "L",
+    "currentPhase":  "completed",
+    "status":  "completed",
+    "nextAction":  "Retired: previous payment refactor work belongs to Jesus_5.1.5/payment worktrees and should not remain active during Jesus_5.1.6 LINE refactor.",
+    "title":  "Retired payment post-processing extraction brainstorm",
+    "completedAt":  "2026-07-02T18:45:00+08:00"
 }

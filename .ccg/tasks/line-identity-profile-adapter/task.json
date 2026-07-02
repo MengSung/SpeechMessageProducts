@@ -1,0 +1,12 @@
+{
+  "id": "line-identity-profile-adapter",
+  "title": "Add reusable LINE identity profile adapter",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "Ready for next P1 or selected P2 LINE slice",
+  "createdAt": "2026-07-02T18:10:00+08:00",
+  "branch": "Jesus_5.1.6.WorktreeRefactorLine"
+}

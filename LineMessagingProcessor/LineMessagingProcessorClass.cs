@@ -1,60 +1,118 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using RestSharp;
+using Line.Messaging;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Configuration;
 
 namespace LineMessagingProcessor
 {
     public class LineMessagingProcessorClass : IDisposable
     {
-        #region 設定 m_ChannelAccessToken，新增組織修改區
+        // LINE channel access token 是部署環境的機密資料，不能寫死在原始碼。
+        // 建構式會統一正規化成 Authorization header 需要的 Bearer 格式。
+        private readonly string _channelAccessToken;
+        private readonly LineMessagingClient _lineMessagingClient;
+        private readonly bool _requiresChannelAccessToken;
 
-        // 音訊科技
-        //String m_ChannelAccessToken = "Bearer RvnT/SCXqbHbGKSUm6y7PDW4G+KHMcsJPZdXqnEPg9JZiPrRcrYnn8jG/hn/Mvcher+IqARAc4B02aRzXCjrs+cI/VV7Gw2c3MsbhGlTJRSZntVfJeiKWejJqPT27dnstPcgaFER2FaW5sf9ipliQAdB04t89/1O/w1cDnyilFU=";
-
-        // 咩咩俱樂部
-        //String m_ChannelAccessToken = "Bearer zBJV+jmsWVq7fRDlqQthGK4Pb7lgj7L1P5Q7PUyq8lxhI2GTagRKLJx5ASK5FNjXUebUryqbWDj1CNU5s3iaQPlm1DBDOX4wke/sSawNMEgv7O2PqWRPc2qezlQqS6mhFm3OeIltJ7bYjPePi2eqLQdB04t89/1O/w1cDnyilFU=";
-
-        // 理債一日便
-        //String m_ChannelAccessToken = "Bearer " + "0NhRlPIi85qb3pfJbhcyP+Y4Tw+F/Jz0kjHqzfvduTtdzlNOf9NJQW8DZ2NXpEWmpGYvEUQwekGNaoGtwKlu3+ugco6lu8QNGs1P14YeFRG3OSuXktpRt7atnYqMEl7ABYxgBSCq52pMVx58F/RpzwdB04t89/1O/w1cDnyilFU=";
-
-        // 好牧人
-        // String m_ChannelAccessToken = "Bearer " + "YTd17Eep3V5/nSaI1lxLW5vx//gOfVr21kpnpZ6RBOfvFrjhJYpvtmCIy7yxDi2tQ2cfP/6qGJ9raS72VwN7xhGjneynJHpCRrgJbz4GqMGMMEjLAcVB+hRRNCTNkMOY3rYyyN/W+/sTAx3HzzhsPgdB04t89/1O/w1cDnyilFU=";
-
-        // 樹林教會
-        //String m_ChannelAccessToken = "Bearer " + "36PV/e/hoJ9+CAqRwzO34PRWTQJSmkkIH0uXrV0bFPOSYmvUpNa1xx0G+BKrDmoce77OdGsItv4dTaLY35iG+KiIYpmkOzklQWm4N6jedvJKj9ruarXG+JKpPzUY6UlS0I+NS+6iD5ahJ+UhNaYaMwdB04t89/1O/w1cDnyilFU=";
-
-        // 順風美醫診所
-        //String m_ChannelAccessToken = "Bearer " + "s+583b2Rgbv4APgXhkNVpmx+wlaU04wWh82c/6i5Tyjsqh6SBQdBUjLc3b9C9tk4XK+1/TOeetLqFR+KdNromuUaS1Ih/T7gfXS3U/IRY0XqiQCYhrOC0TYKjeFuiDhAHpGidPcimIb6oVkqo5jBDQdB04t89/1O/w1cDnyilFU=";
-
-        // 好牧人(測試版)
-        //String m_ChannelAccessToken = "Bearer " + "/iNy46gPp/ZXokg1Vr9RV/ZjodE3i7Q2o+k9nlH7l3pV8WzjAegGDduZc7gms8X5zrjSrDy2xSdNFud7JqjSDjwcTXZ6MJ/FF3NuhVg6WuXmMT34gAO7VZ0RWYrHXwAifVKpOyh2/8LiGgBpfo4ZXQdB04t89/1O/w1cDnyilFU=";
-
-        // 好牧人
-        //String m_ChannelAccessToken = "Bearer " + "s+583b2Rgbv4APgXhkNVpmx+wlaU04wWh82c/6i5Tyjsqh6SBQdBUjLc3b9C9tk4XK+1/TOeetLqFR+KdNromuUaS1Ih/T7gfXS3U/IRY0XqiQCYhrOC0TYKjeFuiDhAHpGidPcimIb6oVkqo5jBDQdB04t89/1O/w1cDnyilFU=";
-
-        // 好牧人(進階版)
-        //String m_ChannelAccessToken = "Bearer " + "a5bB4sunKwoZGjbf0HvFnenCpiABmzIT6rGU4rQ25QAqDhxj8Wa+RwXKQN2CZVC3lSk2sZ2n5bqzCcvaa8J/DIOzUdLUUgq1wF6SIvcd0sL0uFWn0+XyaQXdii1QHvA4Lm+NU5wehU4zIhdxZaMMsAdB04t89/1O/w1cDnyilFU=";
-
-        // 思恩堂豐富教會
-        String m_ChannelAccessToken = "Bearer " + "PhC1ibjhqnR1CiDPyRsO6yvTmB1pWRiZAEQEsdTc0ibRd9hn3j1u3yOZf6IFneDsy3x1TBJgL1ODRxhpm9nTjELXi6uK3NFBapHXlogGsZryEIq6rZAVQ37cwquPr6sruwmkvRjQrxIvubS50aXBEwdB04t89/1O/w1cDnyilFU=";
-
-        #endregion
+        private static readonly Lazy<string> s_defaultChannelAccessToken = new Lazy<string>(ResolveDefaultChannelAccessToken);
 
         public String m_UserId = "";
         public String m_Message = "";
 
-        private readonly RestClient _restClient;
-
         public LineMessagingProcessorClass()
+            : this(s_defaultChannelAccessToken.Value)
         {
-            var options = new RestClientOptions("https://api.line.me/v2/bot");
-            _restClient = new RestClient(options);
+        }
+
+        public LineMessagingProcessorClass(string channelAccessToken)
+        {
+            _channelAccessToken = NormalizeBearerToken(channelAccessToken);
+            _requiresChannelAccessToken = true;
+#pragma warning disable CS0618 // 保留既有 token 建構流程；新的測試/DI 路徑可直接注入 LineMessagingClient。
+            _lineMessagingClient = new LineMessagingClient(StripBearerPrefix(_channelAccessToken));
+#pragma warning restore CS0618
+        }
+
+        public LineMessagingProcessorClass(LineMessagingClient lineMessagingClient)
+        {
+            _lineMessagingClient = lineMessagingClient ?? throw new ArgumentNullException(nameof(lineMessagingClient));
+            _channelAccessToken = string.Empty;
+            _requiresChannelAccessToken = false;
+        }
+
+        public LineMessagingProcessorClass(IConfiguration configuration)
+            : this(ResolveChannelAccessToken(configuration))
+        {
+        }
+
+        private static string NormalizeBearerToken(string channelAccessToken)
+        {
+            if (string.IsNullOrWhiteSpace(channelAccessToken))
+            {
+                return string.Empty;
+            }
+
+            return channelAccessToken.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                ? channelAccessToken
+                : "Bearer " + channelAccessToken;
+        }
+
+        private static string StripBearerPrefix(string channelAccessToken)
+        {
+            if (string.IsNullOrWhiteSpace(channelAccessToken))
+            {
+                return string.Empty;
+            }
+
+            return channelAccessToken.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                ? channelAccessToken.Substring("Bearer ".Length)
+                : channelAccessToken;
+        }
+
+        private static string ResolveDefaultChannelAccessToken()
+        {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+                .AddEnvironmentVariables()
+                .Build();
+
+            return ResolveChannelAccessToken(configuration);
+        }
+
+        private static string ResolveChannelAccessToken(IConfiguration configuration)
+        {
+            if (configuration == null)
+            {
+                return string.Empty;
+            }
+
+            var environmentToken = configuration["LINE_CHANNEL_ACCESS_TOKEN"];
+            if (!string.IsNullOrWhiteSpace(environmentToken))
+            {
+                return environmentToken;
+            }
+
+            var defaultOrganization = configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+            var configuredToken = configuration[$"LineMessaging:{defaultOrganization}:ChannelAccessToken"];
+
+            return configuredToken ?? string.Empty;
+        }
+
+        private string GetRequiredChannelAccessToken()
+        {
+            if (string.IsNullOrWhiteSpace(_channelAccessToken))
+            {
+                throw new InvalidOperationException(
+                    "LINE channel access token is required. Pass it to LineMessagingProcessorClass or set LINE_CHANNEL_ACCESS_TOKEN.");
+            }
+
+            return _channelAccessToken;
         }
 
         #region 釋放記憶體
@@ -183,63 +241,146 @@ namespace LineMessagingProcessor
 
         public async Task SendMessage(string UserId, string Message)
         {
-            var request = new RestRequest("message/push");
-            
-            request.AddHeader("Content-Type", "application/json; charset=UTF-8");
-            request.AddHeader("Authorization", m_ChannelAccessToken);
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                throw new ArgumentException("UserId is required.", nameof(UserId));
+            }
 
+            if (string.IsNullOrWhiteSpace(Message))
+            {
+                throw new ArgumentException("Message is required.", nameof(Message));
+            }
+
+            // 舊版 ChurchReport 流程曾用這個特殊字串要求系統回傳 LINE 使用者 ID。
+            // 這不是 LINE 官方 Messaging API 的協定；此處只保留既有文字轉換，
+            // 實際 HTTP endpoint、Authorization header 與 JSON 序列化全部交給 Line.Messaging SDK。
             if (Message == "顯示認證")
             {
-                var messageData = new
-                {
-                    to = UserId,
-                    messages = new[]
-                    {
-                        new
-                        {
-                            type = "text",
-                            text = "認證:" + UserId
-                        }
-                    }
-                };
-
-                request.AddJsonBody(messageData);
+                Message = "認證:" + UserId;
             }
-            else
+
+            if (_requiresChannelAccessToken)
             {
-                var messageData = new
-                {
-                    to = UserId,
-                    messages = new[]
-                    {
-                        new
-                        {
-                            type = "text",
-                            text = Message
-                        }
-                    }
-                };
-
-                request.AddJsonBody(messageData);
+                GetRequiredChannelAccessToken();
             }
 
-            await _restClient.PostAsync(request);
+            var messages = new List<ISendMessage> { new TextMessage(Message) };
+            await _lineMessagingClient.PushMessageAsync(UserId, messages).ConfigureAwait(false);
         }
 
-        public async Task<UserProfile> GetUserProfile(string UserId)
+        /// <summary>
+        /// 發送可重試的 LINE 推播訊息。
+        /// 此方法只負責「可重用的 LINE 推播入口」：檢查必要欄位、建立文字訊息，
+        /// 然後把呼叫交給 Line.Messaging SDK。真正的 X-Line-Retry-Key header
+        /// 仍由 SDK 統一處理，避免 Processor 與 SDK 各自實作一份 LINE 協定細節。
+        /// </summary>
+        /// <param name="UserId">LINE 使用者 ID、群組 ID 或聊天室 ID。</param>
+        /// <param name="Message">要推播給付款者的純文字訊息。</param>
+        /// <param name="retryKey">由產品端產生的冪等重試鍵；空白時沿用非重試行為。</param>
+        public async Task SendReliableMessageAsync(string UserId, string Message, string? retryKey)
         {
-            var request = new RestRequest($"profile/{UserId}");
-            request.AddHeader("Content-Type", "application/json; charset=UTF-8");
-            request.AddHeader("Authorization", m_ChannelAccessToken);
-
-            var response = await _restClient.GetAsync(request);
-
-            if (response != null && response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
+            if (string.IsNullOrWhiteSpace(UserId))
             {
-                return JsonConvert.DeserializeObject<UserProfile>(response.Content);
+                throw new ArgumentException("UserId is required.", nameof(UserId));
             }
 
-            return null;
+            if (string.IsNullOrWhiteSpace(Message))
+            {
+                throw new ArgumentException("Message is required.", nameof(Message));
+            }
+
+            var messages = new List<ISendMessage> { new TextMessage(Message) };
+            await _lineMessagingClient.PushMessageAsync(UserId, messages, retryKey).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 以 SDK 取得 LINE 使用者個人資料。
+        /// 這一層只負責「可重用的 LINE 身分查詢」：先確認 UserId 有值，再交給
+        /// Line.Messaging SDK 呼叫官方 /bot/profile/{userId} API。
+        /// 特定產品的資料庫查詢、會員欄位綁定、登入流程與 LIFF 頁面都不放在這裡，
+        /// 避免未來其他 ASP.NET Core 產品重用 LINE 模組時，被某一個產品的流程綁住。
+        /// </summary>
+        /// <param name="UserId">LINE 使用者 ID。不可為 null、空字串或只包含空白。</param>
+        /// <returns>LINE 官方回傳的使用者個人資料。</returns>
+        /// <exception cref="ArgumentException">UserId 空白時拋出，且不發出 HTTP request。</exception>
+        public async Task<Line.Messaging.UserProfile> GetUserProfileAsync(string UserId)
+        {
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                throw new ArgumentException("UserId is required.", nameof(UserId));
+            }
+
+            return await _lineMessagingClient.GetUserProfileAsync(UserId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 舊版同步命名的相容入口。
+        /// 保留這個方法是為了不一次破壞既有 ChurchReport 呼叫端；實際資料流已改走
+        /// GetUserProfileAsync，讓新舊入口共用同一份 SDK-backed 實作。
+        /// </summary>
+        /// <param name="UserId">LINE 使用者 ID。</param>
+        /// <returns>LINE 官方回傳的使用者個人資料。</returns>
+        public async Task<UserProfile> GetUserProfile(string UserId)
+        {
+            var profile = await GetUserProfileAsync(UserId).ConfigureAwait(false);
+
+            return new UserProfile
+            {
+                DisplayName = profile.DisplayName,
+                UserId = profile.UserId,
+                PictureUrl = profile.PictureUrl,
+                StatusMessage = profile.StatusMessage
+            };
+        }
+
+        /// <summary>
+        /// 以 SDK 取得 LINE 群組中的成員個人資料。
+        /// 這個方法只負責共用 LINE 查詢入口需要的最小工作：驗證 groupId 與 userId，
+        /// 然後把官方 API 呼叫交給 Line.Messaging SDK。群組成員是否要綁定到會員、
+        /// 小組、課程或任何產品資料，必須由呼叫端產品自己決定，不能放進共用 LINE 模組。
+        /// </summary>
+        /// <param name="groupId">LINE 群組 ID。不可為 null、空字串或只包含空白。</param>
+        /// <param name="userId">LINE 使用者 ID。不可為 null、空字串或只包含空白。</param>
+        /// <returns>LINE 官方回傳的群組成員個人資料。</returns>
+        /// <exception cref="ArgumentException">groupId 或 userId 空白時拋出，且不發出 HTTP request。</exception>
+        public async Task<Line.Messaging.UserProfile> GetGroupMemberProfileAsync(string groupId, string userId)
+        {
+            if (string.IsNullOrWhiteSpace(groupId))
+            {
+                throw new ArgumentException("groupId is required.", nameof(groupId));
+            }
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new ArgumentException("userId is required.", nameof(userId));
+            }
+
+            return await _lineMessagingClient.GetGroupMemberProfileAsync(groupId, userId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 以 SDK 取得 LINE 聊天室中的成員個人資料。
+        /// 這個方法與群組成員查詢維持同一個邊界：Processor 只驗證 roomId 與 userId，
+        /// 實際 endpoint、HTTP header、JSON 解析都交給 Line.Messaging SDK 統一處理。
+        /// 產品端仍然負責判斷這個聊天室成員資料要如何對應到自己的會員或流程。
+        /// </summary>
+        /// <param name="roomId">LINE 聊天室 ID。不可為 null、空字串或只包含空白。</param>
+        /// <param name="userId">LINE 使用者 ID。不可為 null、空字串或只包含空白。</param>
+        /// <returns>LINE 官方回傳的聊天室成員個人資料。</returns>
+        /// <exception cref="ArgumentException">roomId 或 userId 空白時拋出，且不發出 HTTP request。</exception>
+        public async Task<Line.Messaging.UserProfile> GetRoomMemberProfileAsync(string roomId, string userId)
+        {
+            if (string.IsNullOrWhiteSpace(roomId))
+            {
+                throw new ArgumentException("roomId is required.", nameof(roomId));
+            }
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new ArgumentException("userId is required.", nameof(userId));
+            }
+
+            return await _lineMessagingClient.GetRoomMemberProfileAsync(roomId, userId).ConfigureAwait(false);
         }
 
         public async Task<String> GetUserDisplayName(string UserId)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -46,6 +46,14 @@ namespace Line.Messaging
         Task PushMessageAsync(string to, IList<ISendMessage> messages);
 
         /// <summary>
+        /// Send messages to a user, group, or room with LINE retry-key support.
+        /// </summary>
+        /// <param name="to">ID of the receiver</param>
+        /// <param name="messages">Reply messages. Up to 5 messages.</param>
+        /// <param name="retryKey">Optional LINE retry key for idempotent retries. Null or whitespace means no retry header.</param>
+        Task PushMessageAsync(string to, IList<ISendMessage> messages, string? retryKey);
+
+        /// <summary>
         /// Send messages to a user, group, or room at any time.
         /// Note: Use of push messages are limited to certain plans.
         /// </summary>
@@ -69,6 +77,14 @@ namespace Line.Messaging
         /// <param name="to">IDs of the receivers. Max: 500 users</param>
         /// <param name="messages">Reply messages. Up to 5 messages.</param>
         Task MultiCastMessageAsync(IList<string> to, IList<ISendMessage> messages);
+
+        /// <summary>
+        /// Send push messages to multiple users with LINE retry-key support.
+        /// </summary>
+        /// <param name="to">IDs of the receivers. Max: 500 users</param>
+        /// <param name="messages">Reply messages. Up to 5 messages.</param>
+        /// <param name="retryKey">Optional LINE retry key for idempotent retries. Null or whitespace means no retry header.</param>
+        Task MultiCastMessageAsync(IList<string> to, IList<ISendMessage> messages, string? retryKey);
 
         /// <summary>
         /// Send push messages to multiple users at any time.
@@ -97,6 +113,13 @@ namespace Line.Messaging
         Task BroadcastMessageAsync(IList<ISendMessage> messages);
 
         /// <summary>
+        /// Broadcasts messages with LINE retry-key support.
+        /// </summary>
+        /// <param name="messages">Messages to send. Max: 5 messages</param>
+        /// <param name="retryKey">Optional LINE retry key for idempotent retries. Null or whitespace means no retry header.</param>
+        Task BroadcastMessageAsync(IList<ISendMessage> messages, string? retryKey);
+
+        /// <summary>
         /// Sends push messages to multiple users specified by attributes (such as gender, age, OS, region, friendship duration) or retargeting (audiences).
         /// https://developers.line.biz/en/reference/messaging-api/#send-narrowcast-message
         /// </summary>
@@ -116,10 +139,17 @@ namespace Line.Messaging
         Task<NarrowcastProgress> GetNarrowcastProgressAsync(string requestId);
 
         /// <summary>
-        /// Mark messages from the user as read.
+        /// Mark webhook messages as read by using LINE's official mark-as-read token.
         /// https://developers.line.biz/en/reference/messaging-api/#mark-messages-as-read
         /// </summary>
-        /// <param name="chatId">The identifier of chat. The chat can be a user, group, or room. Use userId for user, groupId for group, roomId for room.</param>
+        /// <param name="markAsReadToken">Token received from the webhook event that identifies the messages to mark as read.</param>
+        Task MarkAsReadByTokenAsync(string markAsReadToken);
+
+        /// <summary>
+        /// Legacy API placeholder kept only so older callers fail with a clear message instead of sending chatId as markAsReadToken.
+        /// </summary>
+        /// <param name="chatId">Legacy chat ID parameter. LINE's current official API requires a webhook markAsReadToken instead.</param>
+        [Obsolete("Use MarkAsReadByTokenAsync(markAsReadToken). LINE official API uses markAsReadToken, not chatId.")]
         Task MarkAsReadAsync(string chatId);
 
         /// <summary>

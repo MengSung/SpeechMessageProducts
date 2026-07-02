@@ -1,0 +1,12 @@
+{
+  "id": "line-messaging-api-official-matrix",
+  "title": "建立 LINE Messaging API 官方對照矩陣",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "docs",
+  "currentPhase": "completed",
+  "nextAction": "已完成矩陣；外部 Gemini/Claude review 因 CLI shim 不在 PATH 而未完成",
+  "createdAt": "2026-07-02T00:00:00Z",
+  "branch": "Jesus_5.1.6.WorktreeRefactorLine"
+}

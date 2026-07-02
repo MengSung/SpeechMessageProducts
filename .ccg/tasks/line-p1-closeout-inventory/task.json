@@ -1,0 +1,13 @@
+{
+    "id":  "line-p1-closeout-inventory",
+    "title":  "Inventory LINE P1 closeout and next reusable adapter candidates",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "backend",
+    "currentPhase":  "completed",
+    "nextAction":  "Completed: P1 closeout inventory written; next recommended slice is SDK-backed SendMessage cleanup.",
+    "createdAt":  "2026-07-02T19:45:00+08:00",
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine",
+    "completedAt":  "2026-07-02T19:55:00+08:00"
+}
