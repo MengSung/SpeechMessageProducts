@@ -757,3 +757,8 @@ Final judgement:
   - `codeagent-wrapper --version`
   - Gemini reviewer smoke test without `--progress`
   - Claude reviewer smoke test with `--lite`
+
+Knowledge capture:
+
+- Created `docs/ccg-gemini-claude-review-troubleshooting.md` as the durable runbook for future CCG dual-model reviewer failures.
+- Created `.trellis/spec/guides/ccg-external-review-thinking-guide.md` and linked it from `.trellis/spec/guides/index.md` so future sessions know to run the health check before debugging prompts.

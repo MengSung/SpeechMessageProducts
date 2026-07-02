@@ -1,0 +1,12 @@
+{
+    "id":  "line-messaging-sdk-p1-brainstorm",
+    "title":  "Brainstorm LINE Messaging SDK P1 scope after P0 closure",
+    "status":  "in_progress",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "backend",
+    "currentPhase":  "analysis",
+    "nextAction":  "Intersect ChurchReport and LineMessagingProcessor SDK usage with P1 matrix, then confirm scope",
+    "createdAt":  "2026-07-02T16:00:00+08:00",
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine"
+}

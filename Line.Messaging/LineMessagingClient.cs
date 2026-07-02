@@ -236,8 +236,7 @@ namespace Line.Messaging
         /// </example>
         public static async Task<ChannelAccessToken> IssueChannelAccessTokenAsync(HttpClient httpClient, string channelId, string channelAccessToken, string uri = DEFAULT_URI)
         {
-            var baseUri = NormalizeLineApiBaseUri(uri);
-            var response = await httpClient.PostAsync(CombineBaseAndPath(baseUri, "/oauth/accessToken"),
+            var response = await httpClient.PostAsync($"{uri}/oauth/accessToken",
                 new FormUrlEncodedContent(new Dictionary<string, string>
                 {
                     ["grant_type"] = "client_credentials",
@@ -293,8 +292,7 @@ namespace Line.Messaging
         /// </example>
         public static async Task RevokeChannelAccessTokenAsync(HttpClient httpClient, string channelAccessToken, string uri = DEFAULT_URI)
         {
-            var baseUri = NormalizeLineApiBaseUri(uri);
-            var response = await httpClient.PostAsync(CombineBaseAndPath(baseUri, "/oauth/revoke"),
+            var response = await httpClient.PostAsync($"{uri}/oauth/revoke",
                 new FormUrlEncodedContent(new Dictionary<string, string> { ["access_token"] = channelAccessToken })).ConfigureAwait(false);
             await response.EnsureSuccessStatusCodeAsync().ConfigureAwait(false);
         }
