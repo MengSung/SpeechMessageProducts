@@ -1,5 +1,7 @@
 # Neutral Payment DTO And QPay Name Containment Implementation Plan
 
+> **RETIRED 2026-07-02 — DO NOT EXECUTE.** The 2026-07-01 CCG dual-model review found this plan stale against current HEAD: Tasks 1-6 describe DTO extraction and neutral renames that already exist in the repo under their target names, and the sample `DonationPaymentFormModelMapper` shape is stale relative to the real mapper (provider-code mapping, `ExternalItemId`, `Explain`, recurring defaults, structured metadata). Executing this plan literally would duplicate or regress completed work. The user retired the plan on 2026-07-02; see `.ccg/tasks/archive/2026-07/qpay-model-boundary-brainstorm/review.md`. Any future QPay-name containment work must be re-scoped from current HEAD.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Stop `QPay` naming from spreading across product-neutral payment flows, ensure only the Sinopac-specific provider path contains QPay-named code, and extract reusable payment form/order DTOs that future ASP.NET Core products can call before creating provider-specific payments.

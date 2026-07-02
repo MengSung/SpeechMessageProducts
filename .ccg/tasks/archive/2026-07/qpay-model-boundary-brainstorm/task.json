@@ -1,0 +1,13 @@
+{
+  "id": "qpay-model-boundary-brainstorm",
+  "title": "Brainstorm QpayModel and QpayManager boundary cleanup",
+  "status": "retired",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "retired",
+  "nextAction": "None. User retired the plan on 2026-07-02 after dual-model review confirmed it is stale against current HEAD; re-scope from HEAD if QPay-name containment work resumes.",
+  "createdAt": "2026-07-01T00:00:00+08:00",
+  "retiredAt": "2026-07-02T10:10:00+08:00",
+  "branch": "Jesus_5.1.5_Worktree_TuneRefactorPament"
+}

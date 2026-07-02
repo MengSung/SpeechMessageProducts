@@ -80,3 +80,10 @@ Consolidated disposition:
 - The plan correctly keeps ASP.NET controllers, CRM updates, LINE notifications, MVC views, DevExtreme concerns, and ChurchReport donation classifications out of the reusable payment projects.
 
 - Inline execution is appropriate for this worktree because the active mode says not to dispatch implement/check sub-agents. The plan's task-by-task tests and separate commits are also appropriate for a high-risk rename/refactor.
+
+## 2026-07-02 Task Retirement
+
+- Decision: the user retired this plan on 2026-07-02.
+- Basis: the 2026-07-01 fresh dual-model review (Gemini + Claude) found the plan stale against current HEAD — Tasks 1-6 already exist under their target neutral names, and the sample mapper shape is stale versus the real `DonationPaymentFormModelMapper`.
+- The plan document `docs/superpowers/plans/2026-07-01-neutral-payment-dto-and-qpay-name-containment.md` now carries a RETIRED banner so agents do not execute it.
+- Any future QPay-name containment work must be re-scoped from current HEAD as a new task.
