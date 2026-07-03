@@ -36,7 +36,8 @@ public static class LineMessagingProcessorServiceCollectionExtensions
             var httpClient = httpClientFactory.CreateClient(HttpClientName);
             return new LineMessagingClient(httpClient, options.ChannelAccessToken, options.ApiBaseUri);
         });
-        services.AddTransient<LineMessagingProcessorClass>();
+        services.AddTransient(sp =>
+            new LineMessagingProcessorClass(sp.GetRequiredService<LineMessagingClient>()));
         services.AddTransient<ILineNotificationWorkflow, LineNotificationWorkflow>();
 
         return services;
