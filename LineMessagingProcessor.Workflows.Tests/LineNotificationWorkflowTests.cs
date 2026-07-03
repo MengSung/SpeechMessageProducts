@@ -34,6 +34,75 @@ public sealed class LineNotificationWorkflowTests
     }
 
     [Fact]
+    public async Task SendAsync_posts_image_message_created_by_product_friendly_wrapper()
+    {
+        var handler = new CapturingHttpMessageHandler();
+        var workflow = CreateWorkflow(handler);
+
+        var result = await workflow.SendAsync(new LineNotificationRequest
+        {
+            Recipient = LineNotificationRecipient.User("U1234567890abcdef"),
+            Content = LineNotificationContent.ImageMessage(
+                "https://example.test/original.jpg",
+                "https://example.test/preview.jpg")
+        });
+
+        result.Succeeded.Should().BeTrue();
+
+        var body = JObject.Parse(handler.Bodies[0]);
+        body["messages"]![0]!["type"]!.Value<string>().Should().Be("image");
+        body["messages"]![0]!["originalContentUrl"]!.Value<string>().Should().Be("https://example.test/original.jpg");
+        body["messages"]![0]!["previewImageUrl"]!.Value<string>().Should().Be("https://example.test/preview.jpg");
+    }
+
+    [Fact]
+    public async Task SendAsync_posts_flex_message_created_by_product_friendly_wrapper()
+    {
+        var handler = new CapturingHttpMessageHandler();
+        var workflow = CreateWorkflow(handler);
+
+        var result = await workflow.SendAsync(new LineNotificationRequest
+        {
+            Recipient = LineNotificationRecipient.User("U1234567890abcdef"),
+            Content = LineNotificationContent.FlexMessage(FlexMessage.CreateBubbleMessage("repair notice"))
+        });
+
+        result.Succeeded.Should().BeTrue();
+
+        var body = JObject.Parse(handler.Bodies[0]);
+        body["messages"]![0]!["type"]!.Value<string>().Should().Be("flex");
+        body["messages"]![0]!["altText"]!.Value<string>().Should().Be("repair notice");
+        body["messages"]![0]!["contents"]!["type"]!.Value<string>().Should().Be("bubble");
+    }
+
+    [Theory]
+    [InlineData("", "https://example.test/preview.jpg", "originalContentUrl")]
+    [InlineData(" ", "https://example.test/preview.jpg", "originalContentUrl")]
+    [InlineData("http://example.test/original.jpg", "https://example.test/preview.jpg", "originalContentUrl")]
+    [InlineData("https://example.test/original.jpg", "", "previewImageUrl")]
+    [InlineData("https://example.test/original.jpg", " ", "previewImageUrl")]
+    [InlineData("https://example.test/original.jpg", "http://example.test/preview.jpg", "previewImageUrl")]
+    public void ImageMessage_rejects_blank_urls_before_http_call(
+        string originalContentUrl,
+        string previewImageUrl,
+        string expectedParameterName)
+    {
+        var action = () => LineNotificationContent.ImageMessage(originalContentUrl, previewImageUrl);
+
+        action.Should().Throw<ArgumentException>()
+            .Which.ParamName.Should().Be(expectedParameterName);
+    }
+
+    [Fact]
+    public void FlexMessage_rejects_null_message_before_http_call()
+    {
+        var action = () => LineNotificationContent.FlexMessage(null!);
+
+        action.Should().Throw<ArgumentNullException>()
+            .WithParameterName("message");
+    }
+
+    [Fact]
     public async Task SendAsync_passes_retry_key_to_processor()
     {
         var handler = new CapturingHttpMessageHandler();
