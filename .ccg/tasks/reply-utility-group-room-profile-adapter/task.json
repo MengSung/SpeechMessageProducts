@@ -1,0 +1,12 @@
+{
+  "id": "reply-utility-group-room-profile-adapter",
+  "title": "Route ReplyUtility group and room profile lookups through LineMessagingProcessor",
+  "status": "planning",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "planning",
+  "nextAction": "Write and review design spec before implementation plan",
+  "createdAt": "2026-07-03T08:35:00+08:00",
+  "branch": "Jesus_5.1.6.WorktreeRefactorLine"
+}
