@@ -1,0 +1,12 @@
+{
+    "domain":  "backend",
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine",
+    "id":  "line-utilityclass-best-effort-sdk-convergence",
+    "risk":  "medium",
+    "createdAt":  "2026-07-03T00:00:00+08:00",
+    "complexity":  "M",
+    "currentPhase":  "completed",
+    "status":  "completed",
+    "nextAction":  "Archive task and commit LineUtilityClass workflow convergence",
+    "title":  "Route LineUtilityClass best-effort push messages through shared LINE workflow"
+}
