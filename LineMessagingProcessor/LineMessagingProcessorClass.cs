@@ -317,6 +317,118 @@ namespace LineMessagingProcessor
         }
 
         /// <summary>
+        /// 透過 LINE reply token 回覆 webhook 事件。
+        /// 這是共用 reply workflow 的最底層 adapter：只包住 SDK 呼叫與基本參數驗證，
+        /// 不放 ChurchReport 的回覆文字、CRM 判斷或控制器流程，避免共用 LINE 專案反向依賴產品。
+        /// </summary>
+        /// <param name="replyToken">LINE webhook 事件提供的一次性 reply token。</param>
+        /// <param name="messages">要回覆給 LINE 使用者的 SDK message 清單。</param>
+        public async Task ReplyMessagesAsync(string replyToken, IList<ISendMessage> messages)
+        {
+            if (string.IsNullOrWhiteSpace(replyToken))
+            {
+                throw new ArgumentException("replyToken is required.", nameof(replyToken));
+            }
+
+            if (messages == null || messages.Count == 0)
+            {
+                throw new ArgumentException("messages are required.", nameof(messages));
+            }
+
+            await _lineMessagingClient.ReplyMessageAsync(replyToken, messages).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 建立 LINE RichMenu 並回傳 LINE 產生的 richMenuId。
+        /// Processor 只包住 SDK 與必要參數驗證；RichMenu 版面、圖片與產品套用規則由產品端或 workflow 決定。
+        /// </summary>
+        public async Task<string> CreateRichMenuAsync(RichMenu richMenu)
+        {
+            if (richMenu == null)
+            {
+                throw new ArgumentNullException(nameof(richMenu));
+            }
+
+            return await _lineMessagingClient.CreateRichMenuAsync(richMenu).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 上傳 RichMenu PNG 圖片。
+        /// 圖片來源可能是產品專案檔案、Blob 或其他儲存體；Processor 不處理路徑，只接收已開啟的 stream。
+        /// </summary>
+        public async Task UploadRichMenuPngImageAsync(string richMenuId, Stream imageStream)
+        {
+            if (string.IsNullOrWhiteSpace(richMenuId))
+            {
+                throw new ArgumentException("richMenuId is required.", nameof(richMenuId));
+            }
+
+            if (imageStream == null)
+            {
+                throw new ArgumentNullException(nameof(imageStream));
+            }
+
+            await _lineMessagingClient.UploadRichMenuPngImageAsync(imageStream, richMenuId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 將 RichMenu 綁定到單一 LINE 使用者。
+        /// </summary>
+        public async Task LinkRichMenuToUserAsync(string userId, string richMenuId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new ArgumentException("userId is required.", nameof(userId));
+            }
+
+            if (string.IsNullOrWhiteSpace(richMenuId))
+            {
+                throw new ArgumentException("richMenuId is required.", nameof(richMenuId));
+            }
+
+            await _lineMessagingClient.LinkRichMenuToUserAsync(userId, richMenuId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 查詢使用者目前綁定的 RichMenu ID。
+        /// </summary>
+        public async Task<string> GetRichMenuIdOfUserAsync(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new ArgumentException("userId is required.", nameof(userId));
+            }
+
+            return await _lineMessagingClient.GetRichMenuIdOfUserAsync(userId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 解除使用者目前綁定的 RichMenu。
+        /// </summary>
+        public async Task UnlinkRichMenuFromUserAsync(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new ArgumentException("userId is required.", nameof(userId));
+            }
+
+            await _lineMessagingClient.UnLinkRichMenuFromUserAsync(userId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 刪除指定 RichMenu。
+        /// </summary>
+        public async Task DeleteRichMenuAsync(string richMenuId)
+        {
+            if (string.IsNullOrWhiteSpace(richMenuId))
+            {
+                throw new ArgumentException("richMenuId is required.", nameof(richMenuId));
+            }
+
+            await _lineMessagingClient.DeleteRichMenuAsync(richMenuId).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// 以 SDK 取得 LINE 使用者個人資料。
         /// 這一層只負責「可重用的 LINE 身分查詢」：先確認 UserId 有值，再交給
         /// Line.Messaging SDK 呼叫官方 /bot/profile/{userId} API。

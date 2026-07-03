@@ -216,7 +216,7 @@ namespace ChurchReport.WebServiceConnector
 
                 // 發送 LINE 通知給奉獻者
                 var swNotify = System.Diagnostics.Stopwatch.StartNew();
-                await SendDedicationNotificationAsync(contact, DonationPaymentFormModel);
+                await SendDedicationNotificationAsync(contact, DonationPaymentFormModel, feeId);
                 swNotify.Stop();
                 System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION] SendDedicationNotificationAsync elapsed = {swNotify.ElapsedMilliseconds} ms");
 
@@ -259,43 +259,140 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// 發送奉獻確認 LINE 通知給奉獻者
+        /// 發送手動輸入奉獻完成後的 LINE 通知給奉獻者。
+        ///
+        /// 這段流程和一般線上 ATM 建單的「虛擬帳號付款資訊」不同：
+        /// - 一般 ATM 建單會在 <c>ProcessAtm</c> 內直接把虛擬帳號送給奉獻者。
+        /// - 手動輸入奉獻是後台同工補登既有奉獻資料，這裡送的是「奉獻已登記」確認訊息。
+        ///
+        /// 兩者仍然有相同的 LINE 發送規則：
+        /// 1. 優先使用 CRM 主要欄位 <c>new_lineid</c>。
+        /// 2. 若主要欄位空白，改用綁定流程保存的備援欄位 <c>new_lineid_backup</c>。
+        /// 3. 這是付款/奉獻確認通知，失敗不應被靜默吞掉；必須走 <see cref="PushUtility.SendReliableMessageAsync"/>
+        ///    讓共用 LINE workflow 保留 retry key 與錯誤語意。
+        ///
+        /// 注意：CRM 查詢、奉獻文案、是否允許主流程繼續，都是 ChurchReport 的產品規則；
+        /// 共用 LINE 專案只負責真正把訊息送到 LINE，不反向依賴 ChurchReport。
         /// </summary>
-        private async Task SendDedicationNotificationAsync(Entity contact, DonationPaymentFormModel donationPaymentFormModel)
+        private async Task SendDedicationNotificationAsync(Entity contact, DonationPaymentFormModel donationPaymentFormModel, Guid feeId)
         {
             try
             {
-                // 取得奉獻者的 LINE User ID
-                var lineUserId = ToolUtility.GetEntityStringAttribute(ref contact, "new_lineid");
+                // 取得奉獻者的 LINE User ID。這裡不可只看 new_lineid：
+                // 歷史資料或 LINE 綁定搬移流程可能只留下 new_lineid_backup，
+                // 若沒有 fallback，畫面會顯示奉獻建立成功，但奉獻者完全收不到 LINE。
+                var lineUserId = ResolveDedicationNotificationLineId(contact);
 
                 if (string.IsNullOrEmpty(lineUserId))
                 {
-                    System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] 會友沒有綁定 LINE，無法發送通知");
+                    System.Diagnostics.Trace.WriteLine(
+                        $"[DonationPaymentProcessor] 手動輸入奉獻 LINE 通知略過：奉獻者尚未綁定 LINE。ContactId={contact.Id}, FeeId={feeId}");
                     return;
                 }
 
                 // 建立奉獻確認訊息
                 var message = BuildDedicationNotificationMessage(contact, donationPaymentFormModel);
 
-                // 加入 8 秒超時：LINE API 若無回應不應卡住上傳主流程
-                var sendTask = m_PushUtility.SendMessage(lineUserId, message);
+                // 付款/奉獻確認屬於「應送達」通知，不使用會吞例外的 legacy SendMessage。
+                // retry key 固定由 fee id 與內容摘要組成：同一筆補登重試時可讓 LINE API 降低重複通知風險。
+                var retryKey = BuildDedicationNotificationLineRetryKey(feeId, donationPaymentFormModel);
+                var sendTask = m_PushUtility.SendReliableMessageAsync(lineUserId, message, retryKey);
+
+                // 加入 8 秒超時：LINE API 若無回應不應卡住上傳主流程。
+                // 若超時，仍讓奉獻收費單保存完成，但留下 trace 供維運追查。
                 var timeoutTask = Task.Delay(TimeSpan.FromSeconds(8));
                 var completed = await Task.WhenAny(sendTask, timeoutTask);
 
                 if (completed == timeoutTask)
                 {
-                    System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] LINE 通知發送超時（8秒），略過通知繼續完成上傳");
+                    System.Diagnostics.Trace.WriteLine(
+                        $"[DonationPaymentProcessor] 手動輸入奉獻 LINE 通知發送超時（8秒），略過通知繼續完成上傳。ContactId={contact.Id}, FeeId={feeId}");
                 }
                 else
                 {
-                    System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] 已成功發送奉獻通知給 {donationPaymentFormModel.FullName}");
+                    // 重要：SendReliableMessageAsync 會把 provider rejection / validation failure 往外丟；
+                    // await sendTask 可以確保非超時錯誤會進入 catch，而不是只因 Task.WhenAny 完成就誤判成功。
+                    await sendTask;
+                    System.Diagnostics.Trace.WriteLine(
+                        $"[DonationPaymentProcessor] 已成功發送手動輸入奉獻通知。ContactId={contact.Id}, FeeId={feeId}");
                 }
             }
             catch (Exception ex)
             {
                 // 發送失敗不影響奉獻記錄，只記錄錯誤
-                System.Diagnostics.Trace.WriteLine($"[DonationPaymentProcessor] 發送 LINE 通知失敗: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine(
+                    $"[DonationPaymentProcessor] 手動輸入奉獻 LINE 通知失敗。ContactId={contact.Id}, FeeId={feeId}, Error={ex}");
             }
+        }
+
+        /// <summary>
+        /// 解析手動輸入奉獻通知要使用的 LINE user id。
+        /// 這個 helper 故意和 ATM 建單通知的解析規則保持一致，避免同一位奉獻者在
+        /// 「線上 ATM 建單」可收到通知，但「後台手動輸入 ATM 奉獻」收不到通知。
+        /// </summary>
+        private string ResolveDedicationNotificationLineId(Entity contact)
+        {
+            var primaryLineId = ToolUtility.GetEntityStringAttribute(ref contact, "new_lineid");
+            if (!string.IsNullOrWhiteSpace(primaryLineId))
+            {
+                return primaryLineId;
+            }
+
+            var backupLineId = ToolUtility.GetEntityStringAttribute(ref contact, "new_lineid_backup");
+            if (!string.IsNullOrWhiteSpace(backupLineId))
+            {
+                System.Diagnostics.Trace.WriteLine(
+                    $"[DonationPaymentProcessor] 手動輸入奉獻 LINE 通知使用 new_lineid_backup。ContactId={contact.Id}");
+                return backupLineId;
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// 建立手動輸入奉獻通知的 retry key。
+        /// LINE retry key 的目的不是取代資料庫交易，而是讓同一筆通知在網路重試時有穩定識別。
+        /// 這個值最後會進入 HTTP header，因此回傳標準 UUID 字串；
+        /// 不把中文奉獻類別、付款方式或冒號分隔的產品語意字串放進 header，
+        /// 避免不同 HTTP client、proxy 或 LINE API 對 header 格式的處理不一致，
+        /// 反而讓通知在進入 LINE 前就失敗。
+        /// </summary>
+        private static string BuildDedicationNotificationLineRetryKey(Guid feeId, DonationPaymentFormModel donationPaymentFormModel)
+        {
+            if (feeId == Guid.Empty)
+            {
+                throw new ArgumentException("Fee id is required for dedication LINE retry key.", nameof(feeId));
+            }
+
+            return BuildDeterministicLineRetryKey(
+                $"churchreport:keyin-dedication:{feeId:N}:{donationPaymentFormModel.Amount}");
+        }
+
+        /// <summary>
+        /// 把產品端可讀的 retry key seed 轉成 LINE provider-safe 的 UUID。
+        ///
+        /// 設計理由：
+        /// - ChurchReport 需要用 fee/order/amount 這類業務資料決定「同一筆通知」。
+        /// - LINE 實際收到的是 HTTP header；header 值越單純越不容易因格式被拒。
+        /// - 使用 SHA256 前 16 bytes 建立 Guid，可讓相同 seed 永遠得到相同 UUID，
+        ///   同時避免把訂單號、ATM 虛擬帳號、奉獻類別或付款方式直接暴露在 header。
+        ///
+        /// 這是 ChurchReport 產品層的 helper，不放進共用 LINE 專案；
+        /// 共用 LINE 專案不應知道 feeId、ATM 虛擬帳號或奉獻流程語意。
+        /// </summary>
+        private static string BuildDeterministicLineRetryKey(string seed)
+        {
+            if (string.IsNullOrWhiteSpace(seed))
+            {
+                throw new ArgumentException("Retry key seed is required.", nameof(seed));
+            }
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var hash = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(seed.Trim()));
+            var guidBytes = new byte[16];
+            Array.Copy(hash, guidBytes, guidBytes.Length);
+
+            return new Guid(guidBytes).ToString("D");
         }
 
         /// <summary>

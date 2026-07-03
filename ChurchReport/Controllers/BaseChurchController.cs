@@ -1,8 +1,10 @@
 using ChurchReport.Models;
 using ChurchReport.Payments;
+using ChurchReport.Services.Donation;
 using ChurchReport.Services.MemberInfo;
 using ChurchReport.Tools;
 using ChurchReport.Services;
+using LineMessagingProcessor.Workflows;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -188,8 +190,7 @@ namespace ChurchReport.Controllers
                 if (context == null)
                 {
                     throw new InvalidOperationException(
-                        "HttpContext ?芸?憪???蝣箔?甇斗瘜?????HTTP 隢?銝??葉隤輻?? +
-                        "憒??典?葫閰虫葉嚗?璅⊥ IHttpContextAccessor??);
+                        "HttpContext is not available. Ensure the request is running inside an ASP.NET Core HTTP pipeline and IHttpContextAccessor is registered.");
                 }
 
                 return context;
@@ -258,9 +259,15 @@ namespace ChurchReport.Controllers
                 var donationPaymentCreateGatewayAdapter =
                     httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(IDonationPaymentCreateGatewayAdapter))
                         as IDonationPaymentCreateGatewayAdapter;
+                var lineNotificationWorkflow =
+                    httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(ILineNotificationWorkflow))
+                        as ILineNotificationWorkflow;
+                var lineReplyWorkflow =
+                    httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(ILineReplyWorkflow))
+                        as ILineReplyWorkflow;
                 InMemoryContext = new InMemoryDataContextSmallGroup(
-                    httpContextAccessor, memoryCache, toolUtilityProvider, donationPaymentCreateGatewayAdapter);
-                System.Diagnostics.Debug.WriteLine("[BaseChurchController] 雿輻???詨捆璅∪?撱箇? InMemoryContext嚗??∪翰?湔??DI 瘜典嚗?);
+                    httpContextAccessor, memoryCache, toolUtilityProvider, donationPaymentCreateGatewayAdapter, lineNotificationWorkflow, lineReplyWorkflow);
+                System.Diagnostics.Debug.WriteLine("[BaseChurchController] Created InMemoryContext from DI services.");
             }
 
             // 摮??????
@@ -362,7 +369,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                ChurchReportLineAdminNotificationService.NotifyDefaultError("憟賜鈭?, errorMessage);
+                ChurchReportLineAdminNotificationService.NotifyDefaultError("BaseChurchController", errorMessage);
             }
             catch (Exception ex)
             {
@@ -430,9 +437,55 @@ namespace ChurchReport.Controllers
                 ViewBag.MultiGroupIndex = integrateFlag ? "HybridView" : "IntegrateView";
             }
 
-            // 閮剖??臬?箄??踹?撌?
-            ViewBag.IsAOfficeWorker = InMemoryContext.DonationPaymentManager.m_DonationPaymentFormModel.IsAOfficeWorker
-                ? "?舐?" : "??;
+            // 「奉獻管理」按鈕屬於全站導覽列權限，不應依賴奉獻付款頁面的表單模型是否已初始化。
+            // 先用目前登入者 CRM contact.new_church_jobtitle 判斷；只有登入 contact 尚未載入時，
+            // 才保留舊的 DonationPaymentFormModel.IsAOfficeWorker 作為最後 fallback。
+            ViewBag.IsAOfficeWorker = ResolveDonationManagementAccessFlag();
+        }
+
+        /// <summary>
+        /// 解析 Layout 是否要顯示「奉獻管理／奉獻稽核」導覽入口。
+        ///
+        /// 根因說明：
+        /// _Layout.cshtml 每一頁都會渲染，但 DonationPaymentManager.m_DonationPaymentFormModel
+        /// 只會在奉獻付款流程初始化後才具有完整狀態。若使用者剛登入或停留在回報統計等非奉獻頁，
+        /// 直接讀表單模型會得到預設 false，導致原本有權限的會計同工看不到「奉獻管理」按鈕。
+        ///
+        /// 正確資料來源是登入者的 CRM contact 職稱；奉獻付款表單狀態只能作為舊流程相容 fallback。
+        /// </summary>
+        private string ResolveDonationManagementAccessFlag()
+        {
+            try
+            {
+                var personalModel = InMemoryContext?.PersonalInfomationModel;
+                if (personalModel != null && personalModel.m_LoginContact == null)
+                {
+                    try
+                    {
+                        personalModel.SetPersonalInfomationViewModel();
+                    }
+                    catch
+                    {
+                        // 某些入口頁可能尚未能載入登入 contact；不要讓導覽列渲染失敗，改走 fallback。
+                    }
+                }
+
+                var loginContact = personalModel?.m_LoginContact;
+                if (loginContact != null)
+                {
+                    var toolUtility = ToolUtility;
+                    var jobTitle = toolUtility.GetEntityStringAttribute(ref loginContact, "new_church_jobtitle") ?? string.Empty;
+                    return DonationNavigationAccessResolver.CanAccessDonationManagement(jobTitle) ? "是的" : "否";
+                }
+            }
+            catch
+            {
+                // 導覽列權限判斷不應中斷頁面輸出；下方 fallback 會維持舊流程可用。
+            }
+
+            return InMemoryContext?.DonationPaymentManager?.m_DonationPaymentFormModel?.IsAOfficeWorker == true
+                ? "是的"
+                : "否";
         }
 
         /// <summary>
@@ -550,7 +603,7 @@ namespace ChurchReport.Controllers
             bool hasFeeData = InMemoryContext.FeeList.FeeDataList != null &&
                             InMemoryContext.FeeList.FeeDataList.Count > 0;
 
-            ViewBag.FeeDataListCount = hasFeeData ? "蝜唾祥???歇???? : "蝜唾祥?????∟???;
+            ViewBag.FeeDataListCount = hasFeeData ? "已載入收費資料" : "尚未載入收費資料";
         }
 
         #endregion
@@ -859,7 +912,7 @@ namespace ChurchReport.Controllers
                 var sessionUserId = HttpContext.Session.GetString("_SessionUserId");
                 if (string.IsNullOrEmpty(sessionUserId))
                 {
-                    System.Diagnostics.Debug.WriteLine("[ValidateSession] Session 銝??冽?撌脤???);
+                    System.Diagnostics.Debug.WriteLine("[ValidateSession] Session user id is missing.");
                     return false;
                 }
 
@@ -945,7 +998,7 @@ namespace ChurchReport.Controllers
                     HttpContext.Session.SetString("_SessionRealIp", realIp ?? "");
                 }
 
-                System.Diagnostics.Debug.WriteLine("[RegenerateSessionId] Session ID 撌脤??啁???);
+                System.Diagnostics.Debug.WriteLine("[RegenerateSessionId] Session ID regenerated.");
             }
             catch (Exception ex)
             {
@@ -983,14 +1036,14 @@ namespace ChurchReport.Controllers
             {
                 if (_connectionPool == null)
                 {
-                    throw new InvalidOperationException("??瘙????);
+                    throw new InvalidOperationException("CRM connection pool is not initialized.");
                 }
 
                 var connection = _connectionPool.AcquireConnection();
 
                 if (connection == null)
                 {
-                    throw new InvalidOperationException("?⊥?敺?瘙????");
+                    throw new InvalidOperationException("CRM connection pool returned a null connection.");
                 }
 
 #if DEBUG
@@ -1049,7 +1102,7 @@ namespace ChurchReport.Controllers
 
                 if (_connectionPool == null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ReleaseConnection] ??瘙?????⊥?甇賊???");
+                    System.Diagnostics.Debug.WriteLine("[ReleaseConnection] CRM connection pool is not initialized.");
                     return;
                 }
 

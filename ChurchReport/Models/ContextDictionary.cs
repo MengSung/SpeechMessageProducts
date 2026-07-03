@@ -1,5 +1,6 @@
-﻿using ChurchReport.Tools;
+using ChurchReport.Tools;
 using ChurchReport.Payments;
+using LineMessagingProcessor.Workflows;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using System;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace.DependencyInjection;
+using LineMessagingProcessor.Workflows;
 
 namespace ChurchReport.Models
 {
@@ -80,6 +82,12 @@ namespace ChurchReport.Models
                 var donationPaymentCreateGatewayAdapter =
                     httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(IDonationPaymentCreateGatewayAdapter))
                         as IDonationPaymentCreateGatewayAdapter;
+                var lineNotificationWorkflow =
+                    httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(ILineNotificationWorkflow))
+                        as ILineNotificationWorkflow;
+                var lineReplyWorkflow =
+                    httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(ILineReplyWorkflow))
+                        as ILineReplyWorkflow;
 
                 // ✅ 使用 GetOrAdd 確保執行緒安全
                 var entry = _contextDictionary.GetOrAdd(key, k => 
@@ -103,7 +111,9 @@ namespace ChurchReport.Models
                             httpContextAccessor, 
                             memoryCache, 
                             toolUtilityProvider,
-                            donationPaymentCreateGatewayAdapter),
+                            donationPaymentCreateGatewayAdapter,
+                            lineNotificationWorkflow,
+                            lineReplyWorkflow),
                         LastAccessTime = DateTime.UtcNow
                     };
                 });

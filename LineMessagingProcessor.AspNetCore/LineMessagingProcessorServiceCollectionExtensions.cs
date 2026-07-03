@@ -39,6 +39,8 @@ public static class LineMessagingProcessorServiceCollectionExtensions
         services.AddTransient(sp =>
             new LineMessagingProcessorClass(sp.GetRequiredService<LineMessagingClient>()));
         services.AddTransient<ILineNotificationWorkflow, LineNotificationWorkflow>();
+        services.AddTransient<ILineReplyWorkflow, LineReplyWorkflow>();
+        services.AddTransient<ILineRichMenuWorkflow, LineRichMenuWorkflow>();
 
         return services;
     }

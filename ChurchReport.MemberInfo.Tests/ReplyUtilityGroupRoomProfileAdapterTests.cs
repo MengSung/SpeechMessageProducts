@@ -5,6 +5,7 @@ using FluentAssertions;
 using Line.Messaging;
 using Line.Messaging.Webhooks;
 using LineMessagingProcessor;
+using LineMessagingProcessor.Workflows;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -82,6 +83,69 @@ public sealed class ReplyUtilityGroupRoomProfileAdapterTests
         replyBody["messages"]![0]!["text"]!.Value<string>().Should().Contain("hello");
     }
 
+    [Fact]
+    public async Task ReplyMessageAsync_uses_reply_workflow_when_workflow_is_provided()
+    {
+        var workflow = new CapturingReplyWorkflow();
+        using var httpClient = new HttpClient(new ThrowingHttpMessageHandler());
+        var lineClient = new LineMessagingClient(httpClient, "test-token", "https://api.line.me/v2");
+        var processor = new LineMessagingProcessorClass(lineClient);
+        var utility = new ReplyUtility(lineClient, processor, workflow);
+
+        await utility.ReplyMessageAsync("reply-token", "workflow reply");
+
+        workflow.Requests.Should().ContainSingle();
+        workflow.Requests[0].ReplyToken.Should().Be("reply-token");
+        workflow.Requests[0].Messages.Should().ContainSingle()
+            .Which.Should().BeOfType<TextMessage>();
+        workflow.Requests[0].Metadata.Should().ContainKey("source")
+            .WhoseValue.Should().Be("ChurchReport.ReplyUtility.ReplyMessageAsync");
+    }
+
+    [Fact]
+    public async Task EchoAsyncProcessor_user_source_uses_reply_workflow_when_workflow_is_provided()
+    {
+        var workflow = new CapturingReplyWorkflow();
+        using var httpClient = new HttpClient(new ThrowingHttpMessageHandler());
+        var lineClient = new LineMessagingClient(httpClient, "test-token", "https://api.line.me/v2");
+        var processor = new LineMessagingProcessorClass(lineClient);
+        var utility = new ReplyUtility(lineClient, processor, workflow);
+        var ev = CreateTextEvent(EventSourceType.User, "Udirect", "Udirect", "reply-token", "hello");
+
+        await utility.EchoAsyncProcessor(ev);
+
+        workflow.Requests.Should().ContainSingle();
+        workflow.Requests[0].ReplyToken.Should().Be("reply-token");
+        workflow.Requests[0].Messages.Should().ContainSingle()
+            .Which.Should().BeOfType<TextMessage>();
+        workflow.Requests[0].Metadata.Should().ContainKey("source")
+            .WhoseValue.Should().Be("ChurchReport.ReplyUtility.EchoAsync");
+    }
+
+    [Fact]
+    public async Task PostSerializedConfirm_uses_reply_workflow_when_workflow_is_provided()
+    {
+        var workflow = new CapturingReplyWorkflow();
+        using var httpClient = new HttpClient(new ThrowingHttpMessageHandler());
+        var lineClient = new LineMessagingClient(httpClient, "test-token", "https://api.line.me/v2");
+        var processor = new LineMessagingProcessorClass(lineClient);
+        var utility = new ReplyUtility(lineClient, processor, workflow);
+        var actions = new List<ITemplateAction>
+        {
+            new MessageTemplateAction("Yes", "yes"),
+            new MessageTemplateAction("No", "no")
+        };
+
+        await utility.PostSerializedConfirm("reply-token", "alt", "confirm", actions);
+
+        workflow.Requests.Should().ContainSingle();
+        workflow.Requests[0].ReplyToken.Should().Be("reply-token");
+        workflow.Requests[0].Messages.Should().ContainSingle()
+            .Which.Should().BeOfType<TemplateMessage>();
+        workflow.Requests[0].Metadata.Should().ContainKey("source")
+            .WhoseValue.Should().Be("ChurchReport.ReplyUtility.PostSerializedConfirm");
+    }
+
     private static MessageEvent CreateTextEvent(
         EventSourceType sourceType,
         string sourceId,
@@ -118,6 +182,33 @@ public sealed class ReplyUtilityGroupRoomProfileAdapterTests
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
+        }
+    }
+
+    private sealed class CapturingReplyWorkflow : ILineReplyWorkflow
+    {
+        public List<LineReplyRequest> Requests { get; } = new();
+
+        public Task<LineReplyResult> ReplyAsync(LineReplyRequest request)
+        {
+            Requests.Add(request);
+            return Task.FromResult(LineReplyResult.Success(request));
+        }
+
+        public Task ReplyOrThrowAsync(LineReplyRequest request)
+        {
+            Requests.Add(request);
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class ThrowingHttpMessageHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            throw new InvalidOperationException("The test should use ILineReplyWorkflow, not real HTTP.");
         }
     }
 }

@@ -410,7 +410,6 @@ namespace ChurchReport.Tools
 
                 if (SEND_LINE_NOTIFICATION == true)
                 {
-                    //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
                     m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
                 }
             }

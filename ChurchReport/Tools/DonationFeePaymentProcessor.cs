@@ -117,13 +117,21 @@ namespace ChurchReport.Tools
         /// </summary>
         /// <param name="toolUtilityProvider">ToolUtility 提供者</param>
         public DonationFeePaymentProcessor(IToolUtilityProvider toolUtilityProvider)
-            : this(toolUtilityProvider, null)
+            : this(toolUtilityProvider, null, null)
         {
         }
 
         public DonationFeePaymentProcessor(
             IToolUtilityProvider toolUtilityProvider,
             ILineNotificationWorkflow? lineNotificationWorkflow)
+            : this(toolUtilityProvider, lineNotificationWorkflow, null)
+        {
+        }
+
+        public DonationFeePaymentProcessor(
+            IToolUtilityProvider toolUtilityProvider,
+            ILineNotificationWorkflow? lineNotificationWorkflow,
+            ILineReplyWorkflow? lineReplyWorkflow)
         {
             if (toolUtilityProvider == null)
                 throw new ArgumentNullException(nameof(toolUtilityProvider));
@@ -133,7 +141,10 @@ namespace ChurchReport.Tools
             this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
             m_PushUtility = new PushUtility(m_LineMessagingClient, lineNotificationWorkflow);
-            m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
+            m_ReplyUtility = new ReplyUtility(
+                m_LineMessagingClient,
+                new LineMessagingProcessor.LineMessagingProcessorClass(m_LineMessagingClient),
+                lineReplyWorkflow);
 
             m_ToolUtilityClass = toolUtilityProvider.GetToolUtility();
             m_PostPaymentWorkflow = CreateNoOpPostPaymentWorkflow();
@@ -154,8 +165,9 @@ namespace ChurchReport.Tools
             IToolUtilityProvider toolUtilityProvider,
             PaymentPostPaymentWorkflow postPaymentWorkflow,
             ChurchReportPaymentContextBuilder paymentContextBuilder,
-            DonationPaymentReturnPresenter returnPresenter)
-            : this(toolUtilityProvider, null)
+            DonationPaymentReturnPresenter returnPresenter,
+            ILineReplyWorkflow? lineReplyWorkflow = null)
+            : this(toolUtilityProvider, null, lineReplyWorkflow)
         {
             m_PostPaymentWorkflow = postPaymentWorkflow ?? throw new ArgumentNullException(nameof(postPaymentWorkflow));
             m_PaymentContextBuilder = paymentContextBuilder ?? throw new ArgumentNullException(nameof(paymentContextBuilder));

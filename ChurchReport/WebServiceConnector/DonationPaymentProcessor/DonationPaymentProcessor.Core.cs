@@ -3,6 +3,8 @@ using ChurchReport.Payments;
 using ChurchReport.Services;
 using ChurchReport.Tools;
 using Line.Messaging;
+using LineMessagingProcessor;
+using LineMessagingProcessor.Workflows;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
@@ -87,6 +89,23 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         public DonationPaymentProcessor(
             IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter)
+            : this(donationPaymentCreateGatewayAdapter, null, null)
+        {
+        }
+
+        /// <summary>
+        /// DI-friendly constructor used by ChurchReport product flows that already have shared LINE workflows.
+        ///
+        /// DonationPaymentProcessor still owns ChurchReport-specific CRM and donation-payment orchestration.
+        /// The injected workflows own only the product-neutral LINE transport boundary. This keeps the
+        /// dependency direction simple: ChurchReport decides the business message, LineMessagingProcessor
+        /// sends it. Future ASP.NET Core products can reuse the same workflow classes without depending on
+        /// DonationPaymentProcessor, CRM entities, MVC result handling, or ChurchReport page state.
+        /// </summary>
+        public DonationPaymentProcessor(
+            IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter,
+            ILineNotificationWorkflow? lineNotificationWorkflow,
+            ILineReplyWorkflow? lineReplyWorkflow)
         {
             // 初始化環境設定
             RETURN_URL = m_Configuration["RETURN_URL"];
@@ -96,8 +115,8 @@ namespace ChurchReport.WebServiceConnector
             // 初始化 LINE Bot
             var channelAccessToken = GetLineChannelAccessToken();
             m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
-            m_PushUtility = new PushUtility(m_LineMessagingClient);
-            m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
+            m_PushUtility = new PushUtility(m_LineMessagingClient, lineNotificationWorkflow);
+            m_ReplyUtility = new ReplyUtility(m_LineMessagingClient, lineReplyWorkflow);
 
             // 初始化 CRM 工具
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");

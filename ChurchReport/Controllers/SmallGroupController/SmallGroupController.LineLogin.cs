@@ -1,4 +1,3 @@
-using LineMessagingProcessor;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading;
@@ -37,10 +36,9 @@ namespace ChurchReport.Controllers
 
                 if (fullName.EndsWith("(Line)"))
                 {
-                    var lineProcessor = new LineMessagingProcessorClass();
-                    await Task.Run(() => 
-                        lineProcessor.NotifyLineBinding(lineUserId),
-                        cancellationToken).ConfigureAwait(false);
+                    await _lineBindingNotificationService
+                        .NotifyLineBindingAsync(lineUserId, cancellationToken)
+                        .ConfigureAwait(false);
                     
                     return RedirectToAction("Login", "Authentication");
                 }

@@ -311,7 +311,6 @@ namespace ChurchReport.Tools
 
                 // 送出 LINE 訊息
                 String NotifyMessage = GetNotifyMessageString();
-                //m_LineMessagingClient.PushMessageAsync(UserLineId, NotifyMessage);
                 m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
             }
             catch (System.Exception Exception)

@@ -1,6 +1,7 @@
 using Line.Messaging;
 using Line.Messaging.Webhooks;
 using LineMessagingProcessor;
+using LineMessagingProcessor.Workflows;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -16,22 +17,56 @@ namespace ChurchReport.Tools
 
         private LineMessagingProcessorClass m_LineMessagingProcessor { get; }
 
+        private ILineReplyWorkflow m_LineReplyWorkflow { get; }
+
         //private PushUtility m_PushUtility { get; }
 
         public ReplyUtility(LineMessagingClient LineMessagingClient)
-            : this(LineMessagingClient, new LineMessagingProcessorClass(LineMessagingClient))
+            : this(
+                  LineMessagingClient,
+                  new LineMessagingProcessorClass(LineMessagingClient),
+                  CreateDefaultReplyWorkflow(LineMessagingClient))
+        {
+        }
+
+        /// <summary>
+        /// 產品流程只需要提供 LINE client 與共用 reply workflow 時使用的建構式。
+        /// 直接 new LineMessagingProcessorClass 的 adapter 建立細節留在 ReplyUtility 內部，
+        /// 避免 ChurchReport 的付款、奉獻、控制器流程到處知道 processor adapter 的建立方式。
+        /// </summary>
+        public ReplyUtility(
+            LineMessagingClient LineMessagingClient,
+            ILineReplyWorkflow? lineReplyWorkflow)
+            : this(
+                  LineMessagingClient,
+                  new LineMessagingProcessorClass(LineMessagingClient),
+                  lineReplyWorkflow)
         {
         }
 
         public ReplyUtility(
             LineMessagingClient LineMessagingClient,
             LineMessagingProcessorClass LineMessagingProcessor)
+            : this(LineMessagingClient, LineMessagingProcessor, null)
+        {
+        }
+
+        public ReplyUtility(
+            LineMessagingClient LineMessagingClient,
+            LineMessagingProcessorClass LineMessagingProcessor,
+            ILineReplyWorkflow? lineReplyWorkflow)
         {
             this.m_LineMessagingClient = LineMessagingClient ?? throw new ArgumentNullException(nameof(LineMessagingClient));
             this.m_LineMessagingProcessor = LineMessagingProcessor ?? throw new ArgumentNullException(nameof(LineMessagingProcessor));
+            this.m_LineReplyWorkflow = lineReplyWorkflow ?? CreateDefaultReplyWorkflow(LineMessagingClient);
 
             //m_PushUtility = new PushUtility(LineMessagingClient);
 
+        }
+
+        private static ILineReplyWorkflow CreateDefaultReplyWorkflow(LineMessagingClient lineMessagingClient)
+        {
+            return new LineReplyWorkflow(new LineMessagingProcessorClass(lineMessagingClient));
         }
         #endregion
         #region Line Messagin Api Reply SDK傳送
@@ -103,7 +138,10 @@ namespace ChurchReport.Tools
         {
             try
             {
-                await this.m_LineMessagingClient.ReplyMessageAsync(replyToken, MessageToSend);
+                await ReplyBestEffortSdkMessagesAsync(
+                    replyToken,
+                    MessageToSend,
+                    "ChurchReport.ReplyUtility.ReplyMessage");
 
                 return;
             }
@@ -111,7 +149,7 @@ namespace ChurchReport.Tools
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                throw e;
+                throw;
             }
         }
 
@@ -122,13 +160,19 @@ namespace ChurchReport.Tools
                     new TextMessage(TextMessage)
                 };
 
-            await this.m_LineMessagingClient.ReplyMessageAsync(replyToken, MessageToSend);
+            await ReplyBestEffortSdkMessagesAsync(
+                replyToken,
+                MessageToSend,
+                "ChurchReport.ReplyUtility.ReplyMessageAsync");
 
             return;
         }
         public Task EchoAsync(string replyToken, string userMessage)
         {
-            return this.m_LineMessagingClient.ReplyMessageAsync(replyToken, userMessage);
+            return ReplyBestEffortTextAsync(
+                replyToken,
+                userMessage,
+                "ChurchReport.ReplyUtility.EchoAsync");
         }
 
         public async Task PostSerializedConfirm(string replyToken, String AltText, String Text, List<ITemplateAction> aITemplateAction)
@@ -146,13 +190,16 @@ namespace ChurchReport.Tools
                     ConfirmTemplateMessage,
                 };
 
-                await this.m_LineMessagingClient.ReplyMessageAsync(replyToken, MessageToSend);
+                await ReplyBestEffortSdkMessagesAsync(
+                    replyToken,
+                    MessageToSend,
+                    "ChurchReport.ReplyUtility.PostSerializedConfirm");
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                throw e;
+                throw;
             }
         }
         public async Task PostSerializedImageMap(string replyToken, string AltText, string ImageUrl, int BaseWidth, int Basehight, List<IImagemapAction> aImagemapAction)
@@ -171,14 +218,17 @@ namespace ChurchReport.Tools
                     ImageMapTemplateMessage,
                 };
 
-                await this.m_LineMessagingClient.ReplyMessageAsync(replyToken, MessageToSend);
+                await ReplyBestEffortSdkMessagesAsync(
+                    replyToken,
+                    MessageToSend,
+                    "ChurchReport.ReplyUtility.PostSerializedImageMap");
 
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                throw e;
+                throw;
             }
         }
 
@@ -194,15 +244,12 @@ namespace ChurchReport.Tools
 
             //var blobImagePath = await BlobStorage.UploadImageAsync(image, blobDirectoryName, imageName);
             //var blobPreviewPath = await BlobStorage.UploadImageAsync(previewImage, blobDirectoryName, previewImageName);
-
-            //await this.m_LineMessagingClient.ReplyMessageAsync(replyToken, new[] { new ImageMessage(blobImagePath.ToString(), blobPreviewPath.ToString()) });
         }
         public async Task UploadMediaContentAsync(string replyToken, string messageId, string blobDirectoryName, string blobName)
         {
             //var stream = await this.m_LineMessagingClient.GetContentStreamAsync(messageId);
             //var ext = GetFileExtension(stream.ContentHeaders.ContentType.MediaType);
             //var uri = await BlobStorage.UploadFromStreamAsync(stream, blobDirectoryName, blobName + ext);
-            //await this.m_LineMessagingClient.ReplyMessageAsync(replyToken, uri.ToString());
         }
         public async Task ReplyRandomStickerAsync(string replyToken)
         {
@@ -215,9 +262,41 @@ namespace ChurchReport.Tools
 
             var rand = new Random(Guid.NewGuid().GetHashCode());
             var stickerId = stickerids[rand.Next(stickerids.Length - 1)].ToString();
-            await this.m_LineMessagingClient.ReplyMessageAsync(replyToken, new[] {
-                        new StickerMessage("1", stickerId)
-                    });
+            await ReplyBestEffortSdkMessagesAsync(
+                replyToken,
+                new ISendMessage[] { new StickerMessage("1", stickerId) },
+                "ChurchReport.ReplyUtility.ReplyRandomStickerAsync");
+        }
+
+        /// <summary>
+        /// ChurchReport 的 reply-token 發送集中點。
+        /// 所有 helper 都走共用 LINE reply workflow，讓 product code 不再直接呼叫 LINE reply SDK。
+        /// </summary>
+        private async Task ReplyBestEffortSdkMessagesAsync(
+            string replyToken,
+            IReadOnlyList<ISendMessage> messages,
+            string source)
+        {
+            await m_LineReplyWorkflow.ReplyAsync(new LineReplyRequest
+            {
+                ReplyToken = replyToken,
+                Messages = messages,
+                Metadata = new Dictionary<string, string>
+                {
+                    ["source"] = source
+                }
+            });
+        }
+
+        private Task ReplyBestEffortTextAsync(
+            string replyToken,
+            string message,
+            string source)
+        {
+            return ReplyBestEffortSdkMessagesAsync(
+                replyToken,
+                new ISendMessage[] { new TextMessage(message) },
+                source);
         }
         #endregion
 

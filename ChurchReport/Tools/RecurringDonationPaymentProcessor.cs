@@ -49,19 +49,30 @@ namespace ChurchReport.Tools
         #endregion
         #region 初始化
         public RecurringDonationPaymentProcessor()
-            : this(null)
+            : this(null, null)
         {
         }
 
         public RecurringDonationPaymentProcessor(ILineNotificationWorkflow? lineNotificationWorkflow)
+            : this(lineNotificationWorkflow, null)
+        {
+        }
+
+        public RecurringDonationPaymentProcessor(
+            ILineNotificationWorkflow? lineNotificationWorkflow,
+            ILineReplyWorkflow? lineReplyWorkflow)
         {
             // ✅ 從 appsettings.json 讀取 LINE Channel Access Token
             var channelAccessToken = GetLineChannelAccessToken();
             this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
-            //// 客製化
+            // Recurring donation flow stays in ChurchReport; LINE push/reply delivery
+            // is delegated to workflow-backed helper classes.
             m_PushUtility = new PushUtility(m_LineMessagingClient, lineNotificationWorkflow);
-            m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
+            m_ReplyUtility = new ReplyUtility(
+                m_LineMessagingClient,
+                new LineMessagingProcessor.LineMessagingProcessorClass(m_LineMessagingClient),
+                lineReplyWorkflow);
 
             // 透過 Factory 取得 ToolUtilityClass 單一實例
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");

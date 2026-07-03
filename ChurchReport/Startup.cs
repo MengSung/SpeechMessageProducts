@@ -493,6 +493,8 @@ namespace ChurchReport
                     Configuration["LINE_CHANNEL_ACCESS_TOKEN"] ??
                     string.Empty;
             });
+            services.AddScoped<ChurchReport.Services.IChurchReportLineProfileProvider, ChurchReport.Services.ChurchReportLineProfileProvider>();
+            services.AddScoped<ChurchReport.Services.IChurchReportLineBindingNotificationService, ChurchReport.Services.ChurchReportLineBindingNotificationService>();
 
             // ========================================
             // 註冊抽離後的通用金流核心與 ChurchReport adapter

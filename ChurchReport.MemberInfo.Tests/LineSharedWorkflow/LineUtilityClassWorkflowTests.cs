@@ -29,7 +29,7 @@ public sealed class LineUtilityClassWorkflowTests
     }
 
     [Fact]
-    public async Task SendMessage_with_sdk_messages_uses_legacy_line_client_when_workflow_is_not_provided()
+    public async Task SendMessage_with_sdk_messages_uses_default_shared_workflow_when_workflow_is_not_provided()
     {
         var handler = new RecordingLineHandler();
         using var httpClient = new HttpClient(handler);
@@ -105,16 +105,99 @@ public sealed class LineUtilityClassWorkflowTests
             LineUtilitySubjectPrefix + "ImageMap");
     }
 
+    [Fact]
+    public async Task MultiCastTextMessageAsync_splits_recipients_through_workflow_when_workflow_is_provided()
+    {
+        var workflow = new CapturingWorkflow();
+        using var httpClient = new HttpClient(new ThrowingHttpMessageHandler());
+        using var utility = CreateLineUtility(httpClient, workflow);
+
+        await utility.MultiCastTextMessageAsync(new[] { "Uone", "Utwo" }, "broadcast");
+
+        workflow.Requests.Should().HaveCount(2);
+        workflow.Requests.Select(request => request.Recipient.PrimaryId).Should().Equal("Uone", "Utwo");
+        workflow.Requests.Should().OnlyContain(request =>
+            request.Metadata["source"] == "ChurchReport.LineUtilityClass.MultiCastTextMessageAsync" &&
+            request.Metadata["deliveryMode"] == "multicast-split");
+        workflow.Requests.Should().OnlyContain(request =>
+            request.Content.SdkMessages != null &&
+            request.Content.SdkMessages.Count == 1);
+    }
+
+    [Fact]
+    public void SendMessage_sync_uses_shared_workflow_when_workflow_is_provided()
+    {
+        var workflow = new CapturingWorkflow();
+        using var httpClient = new HttpClient(new ThrowingHttpMessageHandler());
+        var statistics = new List<(string UserId, string Subject, string Message)>();
+        using var utility = CreateLineUtility(httpClient, workflow, statistics);
+
+        utility.SendMessage("Uuser", "sync text");
+
+        workflow.Requests.Should().ContainSingle();
+        workflow.Requests[0].Recipient.PrimaryId.Should().Be("Uuser");
+        workflow.Requests[0].Content.SdkMessages.Should().NotBeNull();
+        workflow.Requests[0].Metadata.Should().ContainKey("source")
+            .WhoseValue.Should().Be("ChurchReport.LineUtilityClass.SendMessage.Sync");
+        statistics.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task ReplyTextMessage_uses_shared_reply_workflow_when_workflow_is_provided()
+    {
+        var replyWorkflow = new CapturingReplyWorkflow();
+        using var httpClient = new HttpClient(new ThrowingHttpMessageHandler());
+        using var utility = CreateLineUtility(
+            httpClient,
+            lineNotificationWorkflow: null,
+            pushStatisticCalls: null,
+            lineReplyWorkflow: replyWorkflow);
+
+        await utility.ReplyTextMessage("reply-token", "reply text");
+
+        replyWorkflow.Requests.Should().ContainSingle();
+        replyWorkflow.Requests[0].ReplyToken.Should().Be("reply-token");
+        replyWorkflow.Requests[0].Messages.Should().ContainSingle()
+            .Which.Should().BeOfType<TextMessage>();
+        replyWorkflow.Requests[0].Metadata.Should().ContainKey("source")
+            .WhoseValue.Should().Be("ChurchReport.ReplyUtility.ReplyMessageAsync");
+    }
+
+    [Fact]
+    public async Task ReplyImage_uses_shared_reply_workflow_when_workflow_is_provided()
+    {
+        var replyWorkflow = new CapturingReplyWorkflow();
+        using var httpClient = new HttpClient(new ThrowingHttpMessageHandler());
+        using var utility = CreateLineUtility(
+            httpClient,
+            lineNotificationWorkflow: null,
+            pushStatisticCalls: null,
+            lineReplyWorkflow: replyWorkflow);
+
+        await utility.ReplyImage(
+            "reply-token",
+            "https://example.test/original.png",
+            "https://example.test/preview.png");
+
+        replyWorkflow.Requests.Should().ContainSingle();
+        replyWorkflow.Requests[0].ReplyToken.Should().Be("reply-token");
+        replyWorkflow.Requests[0].Messages.Should().ContainSingle()
+            .Which.Should().BeOfType<ImageMessage>();
+        replyWorkflow.Requests[0].Metadata.Should().ContainKey("source")
+            .WhoseValue.Should().Be("ChurchReport.ReplyUtility.ReplyMessage");
+    }
+
     private static LineUtilityClass CreateLineUtility(
         HttpClient httpClient,
         ILineNotificationWorkflow? lineNotificationWorkflow,
-        List<(string UserId, string Subject, string Message)>? pushStatisticCalls = null)
+        List<(string UserId, string Subject, string Message)>? pushStatisticCalls = null,
+        ILineReplyWorkflow? lineReplyWorkflow = null)
     {
         var validFlag = true;
         var toolUtility = new ToolUtilityClass(ref validFlag);
         var lineClient = new LineMessagingClient(httpClient, "test-token", "https://api.line.test/v2");
 
-        return new TestLineUtility(toolUtility, lineClient, lineNotificationWorkflow, pushStatisticCalls);
+        return new TestLineUtility(toolUtility, lineClient, lineNotificationWorkflow, lineReplyWorkflow, pushStatisticCalls);
     }
 
     private sealed class TestLineUtility : LineUtilityClass
@@ -123,11 +206,13 @@ public sealed class LineUtilityClassWorkflowTests
             ToolUtilityClass toolUtility,
             LineMessagingClient lineClient,
             ILineNotificationWorkflow? lineNotificationWorkflow,
+            ILineReplyWorkflow? lineReplyWorkflow,
             List<(string UserId, string Subject, string Message)>? pushStatisticCalls)
             : base(
                 toolUtility,
                 lineClient,
                 lineNotificationWorkflow,
+                lineReplyWorkflow,
                 (userId, subject, message) => pushStatisticCalls?.Add((userId, subject, message)))
         {
         }
@@ -144,6 +229,23 @@ public sealed class LineUtilityClassWorkflowTests
         }
 
         public Task SendOrThrowAsync(LineNotificationRequest request)
+        {
+            Requests.Add(request);
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class CapturingReplyWorkflow : ILineReplyWorkflow
+    {
+        public List<LineReplyRequest> Requests { get; } = new();
+
+        public Task<LineReplyResult> ReplyAsync(LineReplyRequest request)
+        {
+            Requests.Add(request);
+            return Task.FromResult(LineReplyResult.Success(request));
+        }
+
+        public Task ReplyOrThrowAsync(LineReplyRequest request)
         {
             Requests.Add(request);
             return Task.CompletedTask;

@@ -4,6 +4,8 @@ using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using ChurchReport.WebServiceConnector;
 using Line.Messaging;
+using LineMessagingProcessor;
+using LineMessagingProcessor.Workflows;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
@@ -112,22 +114,32 @@ namespace ChurchReport.Models
 
         private LineMessagingClient m_LineMessagingClient { get; set; }
         private PushUtility m_PushUtility { get; set; }
+        private readonly ILineNotificationWorkflow? m_LineNotificationWorkflow;
+        private readonly ILineReplyWorkflow? m_LineReplyWorkflow;
 
         #endregion
         #region 初始化
         public DonationPaymentManager()
-            : this((IDonationPaymentCreateGatewayAdapter)null)
+            : this((IDonationPaymentCreateGatewayAdapter)null, null, null)
         {
         }
 
         public DonationPaymentManager(
             DonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter)
-            : this((IDonationPaymentCreateGatewayAdapter)donationPaymentCreateGatewayAdapter)
+            : this((IDonationPaymentCreateGatewayAdapter)donationPaymentCreateGatewayAdapter, null, null)
         {
         }
 
         public DonationPaymentManager(
             IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter)
+            : this(donationPaymentCreateGatewayAdapter, null, null)
+        {
+        }
+
+        public DonationPaymentManager(
+            IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter,
+            ILineNotificationWorkflow? lineNotificationWorkflow,
+            ILineReplyWorkflow? lineReplyWorkflow)
         {
             // 商店編號
             if( m_Configuration["Cash_Environment"] == "正式環境" )
@@ -144,7 +156,12 @@ namespace ChurchReport.Models
             // 初始化 LINE Messaging Client (從 appsettings.json 取得 Token)
             string channelAccessToken = GetLineChannelAccessToken();
             this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
-            m_PushUtility = new PushUtility(m_LineMessagingClient);
+            m_LineNotificationWorkflow = lineNotificationWorkflow;
+            m_LineReplyWorkflow = lineReplyWorkflow;
+
+            // Donation/payment UI stays in ChurchReport, while LINE push delivery
+            // is centralized through PushUtility and the shared processor-backed workflow.
+            m_PushUtility = new PushUtility(m_LineMessagingClient, m_LineNotificationWorkflow);
 
             m_DonationPaymentCreateGatewayAdapter = donationPaymentCreateGatewayAdapter;
             m_DonationContactService = new DonationContactService(m_ToolUtilityClass);
@@ -152,7 +169,7 @@ namespace ChurchReport.Models
             m_DonationPaymentProcessor = new DonationPaymentProcessor(
                 m_LineMessagingClient,
                 m_PushUtility,
-                new ReplyUtility(m_LineMessagingClient),
+                new ReplyUtility(m_LineMessagingClient, m_LineReplyWorkflow),
                 m_DonationPaymentCreateGatewayAdapter);
             m_DonationKeyInDedicationService = new DonationKeyInDedicationService(
                 m_ToolUtilityClass,
