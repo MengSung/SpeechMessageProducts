@@ -1,0 +1,12 @@
+{
+    "id":  "line-pushutility-best-effort-sdk-convergence",
+    "title":  "Route safe PushUtility best-effort SDK messages through shared LINE workflow",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "backend",
+    "currentPhase":  "completed",
+    "nextAction":  "Archive task and commit PushUtility best-effort SDK message convergence",
+    "createdAt":  "2026-07-03T00:00:00+08:00",
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine"
+}

@@ -23,6 +23,28 @@ namespace ChurchReport.Tools
             this.m_LineMessagingClient = LineMessagingClient ?? throw new ArgumentNullException(nameof(LineMessagingClient));
             _lineNotificationWorkflow = lineNotificationWorkflow;
         }
+
+        private async Task SendBestEffortSdkMessagesAsync(
+            string userId,
+            IReadOnlyList<ISendMessage> messages,
+            string source)
+        {
+            if (_lineNotificationWorkflow != null)
+            {
+                await _lineNotificationWorkflow.SendAsync(new LineNotificationRequest
+                {
+                    Recipient = LineNotificationRecipient.User(userId),
+                    Content = LineNotificationContent.SdkMessagesList(messages),
+                    Metadata = new Dictionary<string, string>
+                    {
+                        ["source"] = source
+                    }
+                });
+                return;
+            }
+
+            await this.m_LineMessagingClient.PushMessageAsync(userId, new List<ISendMessage>(messages));
+        }
         #endregion
 
         #region Line Messagin Api Push SDK傳送
@@ -30,7 +52,10 @@ namespace ChurchReport.Tools
         {
             try
             {
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.BestEffortSdkMessages");
                 return;
             }
             catch (System.Exception e)
@@ -64,7 +89,10 @@ namespace ChurchReport.Tools
                     new TextMessage(Message)
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.SendMessage");
 
                 return;
             }
@@ -192,7 +220,10 @@ namespace ChurchReport.Tools
                     new ImageMessage(OriginalContenUrl, PreviewImageUrl)
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.SendImage");
 
                 return;
             }
@@ -212,7 +243,10 @@ namespace ChurchReport.Tools
                     new VideoMessage(OriginalContenUrl, PreviewImageUrl)
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.SendVideo");
 
                 return;
             }
@@ -232,7 +266,10 @@ namespace ChurchReport.Tools
                     new AudioMessage(OriginalContenUrl, Duration)
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.SendAudio");
 
                 return;
             }
@@ -252,7 +289,10 @@ namespace ChurchReport.Tools
                     new LocationMessage(Title, Address, Latitude, Longitude)
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.SendLocation");
 
                 return;
             }
@@ -272,7 +312,10 @@ namespace ChurchReport.Tools
                     new StickerMessage(PackageId.ToString(), StickerId.ToString())
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.SendSticker");
 
                 return;
             }
@@ -305,7 +348,10 @@ namespace ChurchReport.Tools
                     ButtonsTemplateMessage,
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.PostSerializedTemplate");
 
             }
             catch (System.Exception e)
@@ -330,7 +376,10 @@ namespace ChurchReport.Tools
                     ConfirmTemplateMessage,
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.PostSerializedConfirm");
             }
             catch (System.Exception e)
             {
@@ -355,7 +404,10 @@ namespace ChurchReport.Tools
                     ImageMapTemplateMessage,
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.PostSerializedImageMap");
 
             }
             catch (System.Exception e)

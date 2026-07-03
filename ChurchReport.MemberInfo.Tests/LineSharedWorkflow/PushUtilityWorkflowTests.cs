@@ -44,6 +44,119 @@ public sealed class PushUtilityWorkflowTests
     }
 
     [Fact]
+    public async Task SendMessage_with_sdk_messages_uses_shared_workflow_for_best_effort_path()
+    {
+        var workflow = new CapturingWorkflow();
+        using var httpClient = new HttpClient(new ThrowingHttpMessageHandler());
+        var utility = new PushUtility(new LineMessagingClient(httpClient, "test-token", "https://api.line.me/v2"), workflow);
+        var messages = new List<ISendMessage> { new TextMessage("sdk best effort") };
+
+        await utility.SendMessage("Uuser", messages);
+
+        workflow.Requests.Should().ContainSingle();
+        workflow.Requests[0].Recipient.PrimaryId.Should().Be("Uuser");
+        workflow.Requests[0].Content.SdkMessages.Should().BeSameAs(messages);
+        workflow.Requests[0].Metadata.Should().ContainKey("source")
+            .WhoseValue.Should().Be("ChurchReport.PushUtility.BestEffortSdkMessages");
+    }
+
+    [Fact]
+    public async Task SendMessage_with_sdk_messages_swallows_workflow_failure_for_legacy_best_effort_behavior()
+    {
+        var workflow = new CapturingWorkflow
+        {
+            SendAsyncResultFactory = request => LineNotificationResult.Failure(
+                request,
+                LineNotificationStatus.ProviderRejected,
+                "line-provider-rejected",
+                "LINE rejected the best-effort SDK message")
+        };
+        using var httpClient = new HttpClient(new ThrowingHttpMessageHandler());
+        var utility = new PushUtility(new LineMessagingClient(httpClient, "test-token", "https://api.line.me/v2"), workflow);
+        var messages = new List<ISendMessage> { new TextMessage("sdk best effort") };
+
+        var action = () => utility.SendMessage("Uuser", messages);
+
+        await action.Should().NotThrowAsync();
+        workflow.Requests.Should().ContainSingle();
+        workflow.Requests[0].Content.SdkMessages.Should().BeSameAs(messages);
+    }
+
+    [Fact]
+    public async Task SendImage_uses_shared_workflow_for_best_effort_image_message()
+    {
+        var workflow = new CapturingWorkflow();
+        using var httpClient = new HttpClient(new ThrowingHttpMessageHandler());
+        var utility = new PushUtility(new LineMessagingClient(httpClient, "test-token", "https://api.line.me/v2"), workflow);
+
+        await utility.SendImage("Uuser", "https://example.test/original.png", "https://example.test/preview.png");
+
+        workflow.Requests.Should().ContainSingle();
+        workflow.Requests[0].Recipient.PrimaryId.Should().Be("Uuser");
+        workflow.Requests[0].Content.SdkMessages.Should().NotBeNull();
+        workflow.Requests[0].Content.SdkMessages![0].Should().BeOfType<ImageMessage>();
+        workflow.Requests[0].Metadata.Should().ContainKey("source")
+            .WhoseValue.Should().Be("ChurchReport.PushUtility.SendImage");
+    }
+
+    [Fact]
+    public async Task SendImage_uses_legacy_line_client_when_workflow_is_not_provided()
+    {
+        var handler = new RecordingLineHandler();
+        using var httpClient = new HttpClient(handler);
+        var utility = new PushUtility(new LineMessagingClient(httpClient, "test-token", "https://api.line.me/v2"));
+
+        await utility.SendImage("Uuser", "https://example.test/original.png", "https://example.test/preview.png");
+
+        handler.RequestUri.Should().Be("https://api.line.me/v2/bot/message/push");
+        handler.AuthorizationHeader.Should().Be("Bearer test-token");
+        handler.RequestBody.Should().Contain("\"to\":\"Uuser\"");
+        handler.RequestBody.Should().Contain("\"type\":\"image\"");
+        handler.RequestBody.Should().Contain("\"originalContentUrl\":\"https://example.test/original.png\"");
+        handler.RequestBody.Should().Contain("\"previewImageUrl\":\"https://example.test/preview.png\"");
+    }
+
+    [Fact]
+    public async Task Safe_best_effort_sdk_methods_use_matching_workflow_sources()
+    {
+        var workflow = new CapturingWorkflow();
+        using var httpClient = new HttpClient(new ThrowingHttpMessageHandler());
+        var utility = new PushUtility(new LineMessagingClient(httpClient, "test-token", "https://api.line.me/v2"), workflow);
+        var templateActions = new List<ITemplateAction>
+        {
+            new MessageTemplateAction("OK", "ok")
+        };
+        var confirmActions = new List<ITemplateAction>
+        {
+            new MessageTemplateAction("Yes", "yes"),
+            new MessageTemplateAction("No", "no")
+        };
+        var imagemapActions = new List<IImagemapAction>
+        {
+            new MessageImagemapAction(new ImagemapArea(0, 0, 100, 100), "tap")
+        };
+
+        await utility.SendVideo("Uuser", "https://example.test/video.mp4", "https://example.test/preview.jpg");
+        await utility.SendAudeo("Uuser", "https://example.test/audio.m4a", 1000);
+        await utility.SendLocation("Uuser", "title", "address", 25.0m, 121.0m);
+        await utility.SendSticker("Uuser", 1, 1);
+        await utility.PostSerializedTemplate("Uuser", "alt", "https://example.test/thumb.jpg", "title", "text", templateActions);
+        await utility.PostSerializedConfirm("Uuser", "alt", "confirm", confirmActions);
+        await utility.PostSerializedImageMap("Uuser", "alt", "https://example.test/imagemap", 1040, 1040, imagemapActions);
+
+        workflow.Requests.Select(request => request.Metadata["source"]).Should().Equal(
+            "ChurchReport.PushUtility.SendVideo",
+            "ChurchReport.PushUtility.SendAudio",
+            "ChurchReport.PushUtility.SendLocation",
+            "ChurchReport.PushUtility.SendSticker",
+            "ChurchReport.PushUtility.PostSerializedTemplate",
+            "ChurchReport.PushUtility.PostSerializedConfirm",
+            "ChurchReport.PushUtility.PostSerializedImageMap");
+        workflow.Requests.Should().OnlyContain(request => request.Recipient.PrimaryId == "Uuser");
+        workflow.Requests.Should().OnlyContain(request => request.Content.SdkMessages != null && request.Content.SdkMessages.Count == 1);
+    }
+
+    [Fact]
     public async Task SendMessageOrThrowAsync_uses_shared_workflow_and_propagates_failure()
     {
         var workflow = new CapturingWorkflow
@@ -142,6 +255,41 @@ public sealed class PushUtilityWorkflowTests
             CancellationToken cancellationToken)
         {
             return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK));
+        }
+    }
+
+    private sealed class RecordingLineHandler : HttpMessageHandler
+    {
+        public string? RequestUri { get; private set; }
+
+        public string? AuthorizationHeader { get; private set; }
+
+        public string? RequestBody { get; private set; }
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            RequestUri = request.RequestUri?.ToString();
+            AuthorizationHeader = request.Headers.Authorization?.ToString();
+            RequestBody = request.Content == null
+                ? string.Empty
+                : await request.Content.ReadAsStringAsync(cancellationToken);
+
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent("{}")
+            };
+        }
+    }
+
+    private sealed class ThrowingHttpMessageHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            throw new InvalidOperationException("The test should use ILineNotificationWorkflow, not real HTTP.");
         }
     }
 }
