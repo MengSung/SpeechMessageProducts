@@ -1,135 +1,365 @@
-# LINE 共用化抽離 — 設計文件
+# LINE 共用化抽離 Phase 2 設計規格
 
 日期：2026-07-03
 分支：Jesus_5.1.6.WorktreeRefactorLine
-狀態：設計已與使用者逐段確認
+狀態：已完成 brainstorming，等待 implementation plan
 
-## 一、目標與背景
+## 1. 目標
 
-把 ChurchReport 現有的 LINE 相關程式抽離成可共用模組，讓將來的產品（同
-solution、project reference 取用）不必重寫 LINE 發訊、webhook 回覆與 rich menu
-操作。
+Phase 2 的目標不是再修一兩個 LINE 呼叫點，而是把 ChurchReport 現有 LINE 相關程式整理成未來產品可以共用的模組。
 
-現況三層中，`Line.Messaging`（SDK，協定層）與 `LineMessagingProcessor`
-（共用 adapter 層）已中立且有測試；抽離主戰場在 ChurchReport 產品層：
+未來產品包含建設公司維修系統、協會會員系統、發票收款系統等 ASP.NET Core 專案。這些產品應能引用共用 LINE 專案，取得通知、收件者、錯誤處理、重試與 DI 註冊能力，而不需要複製 ChurchReport 的 `PushUtility`、`LineUtilityClass` 或散落的 `LineMessagingClient` 建構邏輯。
 
-| 檔案 | 行數 | 現況 |
-| --- | --- | --- |
-| `ChurchReport/Tools/LineUtilityClass.cs` | 806 | **混雜**：約 20 個通用發送方法（圖片/影音/貼圖/位置/Template/Flex/Imagemap/RichMenu）與 CRM 邏輯（`SetupChannelAccessToken(ref IOrganizationService)`、`Entity` overload）綁在一起 |
-| `ChurchReport/Tools/PushUtility.cs` | 498 | 產品推播 helper，吞錯設計 |
-| `ChurchReport/Tools/ReplyUtility.cs` | 225 | webhook 回覆行為（profile 查詢已於 8e7509eb 改走 processor） |
-| 付款處理器 ×3、`PaymentNotificationService`、`MemberInfoController` | — | 直接 new `LineMessagingClient` 的產品呼叫點 |
-| LIFF（.cshtml/JS） | — | 瀏覽器端流程，**不在本設計範圍** |
+## 2. 採用方案
 
-## 二、已確認的設計決策
+採用「共用核心 + ChurchReport 主要通知路徑同步接上」。
 
-1. **取用方式**：同 solution project reference（與 SpeechMessage.Payments 金流
-   抽離同模式）。不做 NuGet、不搬獨立 repo；日後要打包隨時可升級。
-2. **共用範圍**：全型別訊息發送 + webhook 事件回覆入口 + rich menu 操作入口。
-   LIFF / LINE Login 前端輔助留在產品層。
-3. **Token 設計**：呼叫端注入（token 字串或 IConfiguration），**每 channel 一個
-   processor 實例**。「選哪個組織的 token」（`LineMessaging:{organization}:
-   ChannelAccessToken` 的組織判斷、含 CRM 判斷）永遠留在產品層。不做 token
-   provider 介面（目前沒有動態換 token 需求，YAGNI）。
-4. **方案**：漸進收斂到現有 `LineMessagingProcessor`（方案 A）。不新建
-   SpeechMessage.Line 專案（LINE 已有中立 processor 層，重做是浪費）；不採
-   「只內部委派不搬家」（未來產品拿不到通用方法，未達成共用目標）。
+這不是單點小修，也不是一次搬完所有 LINE 程式。Phase 2 會建立乾淨共用核心，然後用 ChurchReport 主要通知流程驗證這個核心是否真的能給其他產品重用。
 
-## 三、目標架構（相依方向）
+第一批 ChurchReport 接入包含：
 
-```
-┌─────────────────────────────────────────────┐
-│ ChurchReport（產品）      未來產品（同 solution）│
-│  CRM 組織選擇、會員綁定、付款流程、LIFF、Controller│
-└──────────────┬──────────────────┬───────────┘
-               ↓ project reference ↓
-┌─────────────────────────────────────────────┐
-│ LineMessagingProcessor（共用 adapter 層）      │
-│  參數驗證、訊息組裝、便利入口                    │
-│  token 由呼叫端注入，每 channel 一實例           │
-└──────────────┬──────────────────────────────┘
-               ↓
-┌─────────────────────────────────────────────┐
-│ Line.Messaging（SDK，協定層）                  │
-│  endpoint / header / JSON / webhook 驗章解析   │
-└─────────────────────────────────────────────┘
-```
+- 付款 / 奉獻通知
+- 一般 `PushUtility` 文字通知
+- LINE 綁定 / 會員身份通知
 
-相依只能往下。共用兩層禁止出現 ChurchReport、CRM（`IOrganizationService` /
-`Entity`）、DbContext。
+## 3. 架構邊界
 
-## 四、processor 專案內部結構
+LINE 能力分成四層。
 
-未來產品只需認識一個入口類別 `LineMessagingProcessorClass`（token 一次注入，
-所有功能同一實例），檔案按功能族拆 partial class，不讓單檔無限長大：
+### 3.1 `Line.Messaging`
 
-```
-LineMessagingProcessor/
-  LineMessagingProcessorClass.cs           ← 建構子、token/client 管理（現有）
-  LineMessagingProcessorClass.Push.cs      ← 全型別發送（文字/圖/影音/貼圖/位置/多播）
-  LineMessagingProcessorClass.Template.cs  ← Template/Flex/Confirm/Imagemap 發送
-  LineMessagingProcessorClass.Reply.cs     ← ReplyMessage/ReplyText/ReplyImage…
-  LineMessagingProcessorClass.RichMenu.cs  ← rich menu 連結/解除入口
-  LineMessagingProcessorClass.Profile.cs   ← 既有 profile 查詢（搬檔不改碼）
-```
+`Line.Messaging` 是 LINE 官方 API SDK 層。
 
-**搬移規則**：`LineUtilityClass` 裡「參數版」方法搬進共用層（如
-`PostSerializedTemplate(string UserId, …)`）；「CRM Entity 版」overload
-（`PostSerializedTemplate(Entity aLetterEntity, …)`、`SetupActionList(Entity…)`、
-`GetLineIdAndContactFullNameOfSender(Entity…)`）留在產品層，轉換完參數後呼叫
-共用版。
+它負責：
 
-## 五、遷移路線圖（切片順序）
+- LINE endpoint
+- HTTP header
+- JSON request / response
+- 官方 message model
+- webhook model
+- LINE API 回應錯誤
 
-每一刀都是獨立切片：TDD → 測試綠 → 雙模型審查 → 提交。
+它不負責：
 
-| # | 切片 | 內容 | 排序理由 |
-| --- | --- | --- | --- |
-| 0 | 付款通知路徑收斂 | `PaymentNotificationService` 非 retry 路徑改走 processor SDK-backed `SendMessage`；**併入** C1 審查債（生產建構子測試）與 W1（註解點名 ChurchReport 改中性） | 已在進行的收尾，先清完 |
-| 1 | 基礎發送族 | `SendMessage(UserId, List<ISendMessage>)` 泛用入口 + SendImage/Video/Audio/Location/Sticker + MultiCast → `*.Push.cs` | 呼叫端最多，方法小而同構 |
-| 2 | Template/Flex 族 | 參數版 PostSerializedTemplate/Flex/Confirm/ImageMap → `*.Template.cs` | 沿用切片 1 模式，組裝較複雜 |
-| 3 | Reply 族 | ReplyMessage/ReplyTextMessage/ReplyImage → `*.Reply.cs` | webhook 回覆入口共用化 |
-| 4 | Rich Menu 族 | 通用 link/unlink/查詢入口 → `*.RichMenu.cs`（`AddRichMenuMessage` 內的產品邏輯留產品層） | 範圍內但呼叫端最少 |
-| 5 | LineUtilityClass 瘦身 | 內部全面改委派 processor，只剩 CRM 組織選擇 + Entity 版 overload | 前四刀完成後自然發生 |
-| 6 | （選做）PushUtility / 付款處理器呼叫點遷移 | 逐呼叫點評估，有價值才動 | 依實際收益決定 |
+- ChurchReport
+- CRM
+- 付款 / 奉獻
+- 會員 / 小組
+- notification workflow
+- ASP.NET Core DI
 
-切片 0 已由 Codex 選定並經雙方確認；切片 1–5 各自產生 plan 後執行；切片 6 不
-承諾。
+### 3.2 `LineMessagingProcessor`
 
-## 六、錯誤處理與測試
+`LineMessagingProcessor` 是 LINE SDK 的共用 adapter 層。
 
-**失敗語意統一**：共用層一律「失敗拋例外」（SDK 已用
-`EnsureSuccessStatusCode`）。「吞錯」是產品層決策 — optional 通知要吞，產品
-自己 catch（`PaymentNotificationService.SendLineMessage` 的 try/catch+log 是
-正確示範）。共用層絕不靜默失敗。
+它負責：
 
-**測試三件套**（每個搬入的方法）：
+- Send
+- Reply
+- Profile
+- Group / Room
+- RichMenu
+- RetryKey / Reliable Push
+- 共用 validation
+- 對 `Line.Messaging` 的穩定包裝
 
-1. Request 捕捉測試 — URL、JSON body、必要 header 正確。
-2. 行為測試 — 非 2xx 拋例外、空參數本地拒絕（`ArgumentException`）。
-3. 生產建構子測試 — 真 token 路徑與空 token 拋例外（補 C1 型缺口；目前
-   13 個 processor 測試全用 DI 建構子，生產路徑零覆蓋）。
+它可以依賴 `Line.Messaging`，但不能依賴 ChurchReport、CRM、付款、奉獻、會員或小組語意。
 
-**相容性保證**：`LineUtilityClass` 對外簽章不變，ChurchReport 呼叫端零改動；
-行為等價由委派 + 回歸測試保證。同步/非同步邊界維持呼叫端現狀（既有 `.Wait()`
-處不順手改成 async 蔓延）。
+### 3.3 `LineMessagingProcessor.Workflows`
 
-## 七、Guardrails（不可動範圍）
+新增 `LineMessagingProcessor.Workflows` 專案。
 
-- LIFF / 前端 `.cshtml` / JS 不動（已決議留產品層）。
-- `LinePayCSharp/` 不動（Line Pay 是另一個模組）。
-- 官方對照矩陣的 P2 官方 API 不實作 — 共用化**只搬已在用的功能**，不趁機加新
-  API。
-- 共用專案不得引用產品專案（以 grep 邊界掃描驗證，沿用
-  `line-processor-sdk-backed-send-message` 任務的做法）。
-- 檔案 UTF-8 無 BOM + CRLF；bin/obj/artifacts 不進 commit。
+這一層負責未來產品都會用到的「通知工作流」抽象：
 
-## 八、成功標準
+- 收件者
+- 通知內容
+- 發送模式
+- retry key
+- metadata
+- 發送結果
+- 失敗結果或例外
 
-1. 未來產品加入 solution 後，只需 reference `Line.Messaging` +
-   `LineMessagingProcessor` 兩個專案，即可完成：全型別發訊、webhook 事件回覆、
-   rich menu 操作。
-2. 共用兩層對 ChurchReport/CRM 的相依為零（邊界掃描通過）。
-3. ChurchReport 全部既有 LINE 流程行為不變（既有測試 + 各切片回歸測試全綠）。
-4. `LineUtilityClass` 瘦身後只含 CRM/產品邏輯；通用發送方法在共用層各有測試
-   三件套。
+它不依賴 ChurchReport，也不依賴 ASP.NET Core。
+
+### 3.4 `LineMessagingProcessor.AspNetCore`
+
+新增 `LineMessagingProcessor.AspNetCore` 專案。
+
+這一層負責 ASP.NET Core 整合：
+
+- options / configuration binding
+- DI registration
+- `services.AddLineMessagingProcessor(...)`
+- `services.AddLineNotificationWorkflow(...)`
+
+ChurchReport 與未來 ASP.NET Core 產品都透過這層快速註冊 LINE 共用服務。
+
+### 3.5 ChurchReport
+
+ChurchReport 保留產品流程：
+
+- CRM 查詢
+- 奉獻資料查詢
+- 付款通知內容組裝
+- 小組通知內容組裝
+- 會員綁定與權限判斷
+- Controller
+- View
+- LIFF 前端流程
+- session / cookie / route
+
+ChurchReport 不應再到處自行建立 `LineMessagingClient` 送通知。ChurchReport 應集中呼叫共用 workflow 或 processor。
+
+## 4. 共用通知模型
+
+`LineMessagingProcessor.Workflows` 對外提供產品友善模型，避免未來產品一開始就必須理解 LINE SDK 的所有 message 類別。
+
+### 4.1 `LineNotificationRequest`
+
+一次通知請求。
+
+包含：
+
+- `Recipient`
+- `Content`
+- `RetryKey`
+- `Metadata`
+- 發送模式或必要通知標記
+
+### 4.2 `LineNotificationRecipient`
+
+表示通知對象。
+
+第一階段支援：
+
+- `User(lineUserId)`
+- `Users(IEnumerable<string>)`
+- `Group(groupId)`
+- `Room(roomId)`
+
+未來可擴充 broadcast / narrowcast，但 Phase 2 不把 broad official API expansion 當成目標。
+
+### 4.3 `LineNotificationContent`
+
+表示通知內容。
+
+第一階段支援：
+
+- `Text(string message)`
+- `SdkMessages(IReadOnlyList<ISendMessage> messages)`
+
+`Text(...)` 是給未來產品最常用的簡單入口。`SdkMessages(...)` 是 escape hatch，讓 ChurchReport 既有 Flex、Template、Image、Sticker 等複雜 LINE 訊息可以逐步接上，而不需要重造一整套 LINE message DTO。
+
+### 4.4 `LineNotificationResult`
+
+表示發送結果。
+
+包含：
+
+- `Succeeded`
+- `Status`
+- `ErrorCode`
+- `ErrorMessage`
+- `ProviderResponse`
+- `Recipient`
+- `RetryKey`
+- `Metadata`
+
+### 4.5 `LineNotificationStatus`
+
+第一階段狀態：
+
+- `Succeeded`
+- `ValidationFailed`
+- `ProviderRejected`
+- `ProviderUnavailable`
+- `UnexpectedError`
+
+## 5. 發送入口與錯誤處理
+
+共用 workflow 提供兩種入口。
+
+### 5.1 `SendAsync(...)`
+
+`SendAsync(LineNotificationRequest request)` 不丟例外。
+
+發送成功或失敗都回傳 `LineNotificationResult`。這適合一般提醒、可選通知、失敗不應中斷主流程的情境。
+
+### 5.2 `SendOrThrowAsync(...)`
+
+`SendOrThrowAsync(LineNotificationRequest request)` 在失敗時丟 `LineNotificationException`。
+
+這適合付款指示、重要狀態、不能靜默失敗的通知。
+
+### 5.3 錯誤分類
+
+- 空 LINE ID、空訊息、空收件者：workflow 層 fail fast，回傳 `ValidationFailed` 或丟 `LineNotificationException`。
+- LINE API 拒絕：轉成 `ProviderRejected`。
+- timeout / network failure：轉成 `ProviderUnavailable`。
+- 未預期錯誤：轉成 `UnexpectedError`。
+
+共用模組不寫 ChurchReport trace、不更新 CRM、不更新付款狀態。ChurchReport 在收到 result 或 exception 後自行決定產品流程要怎麼處理。
+
+## 6. ChurchReport 第一批接入範圍
+
+### 6.1 付款 / 奉獻通知
+
+目標是讓付款通知流程改用 `LineMessagingProcessor.Workflows`。
+
+接入範圍：
+
+- 成功付款通知
+- 失敗付款通知
+- ATM / 匯款付款指示
+- 定期定額付款結果
+
+原則：
+
+- 必要付款指示使用 `SendOrThrowAsync(...)`。
+- 一般付款結果通知可依既有語意使用 `SendAsync(...)` 或 `SendOrThrowAsync(...)`。
+- ChurchReport 繼續負責 CRM 收費單更新、奉獻資料查詢、付款文字內容組裝與 LINE ID 來源。
+
+### 6.2 一般 `PushUtility` 文字通知
+
+目標是把最常見的文字推播集中到 workflow。
+
+接入範圍：
+
+- `PushUtility.SendMessage(...)`
+- 可安全轉成 `LineNotificationContent.Text(...)` 的文字通知
+
+第一批不搬：
+
+- Flex 複雜樣板
+- RichMenu 建立 / 上傳 / 綁定
+- ImageMap
+- Template Carousel
+- `.Wait()` 同步阻塞路徑的大規模重寫
+
+`PushUtility` 第一階段保留 public API，但內部逐步變成 ChurchReport 舊 API wrapper。
+
+### 6.3 LINE 綁定 / 會員身份通知
+
+目標是讓會員綁定與身份通知使用共用 workflow / processor。
+
+接入範圍：
+
+- LINE profile 查詢使用 processor
+- 綁定成功通知
+- 綁定失敗通知
+- 會員身份提示通知
+
+ChurchReport 保留：
+
+- CRM contact 查詢
+- 會員權限判斷
+- session
+- controller
+- view
+- LIFF 前端流程
+
+## 7. Implementation Batches
+
+Phase 2 拆成四個 implementation batches。每批都必須能獨立測試、獨立 review、必要時獨立回退。
+
+### Batch 1：共用核心與 ASP.NET Core 整合
+
+新增：
+
+- `LineMessagingProcessor.Workflows`
+- `LineMessagingProcessor.AspNetCore`
+- 對應測試專案
+
+內容：
+
+- `LineNotificationRequest`
+- `LineNotificationRecipient`
+- `LineNotificationContent`
+- `LineNotificationResult`
+- `LineNotificationStatus`
+- `LineNotificationException`
+- `ILineNotificationWorkflow`
+- `LineNotificationWorkflow`
+- `LineMessagingProcessorOptions`
+- DI extension methods
+
+驗收：
+
+- workflow 可以發送 text notification。
+- workflow 可以接受 SDK messages。
+- `SendAsync` 失敗回傳 result。
+- `SendOrThrowAsync` 失敗丟 exception。
+- ASP.NET Core 專案可以透過 DI extension 註冊。
+- 共用專案不得 reference ChurchReport、CRM、ASP.NET Controller、DbContext 或付款專案。
+
+### Batch 2：付款 / 奉獻通知接入
+
+處理：
+
+- `PaymentNotificationService`
+- `DonationPaymentProcessor` 內必要付款指示通知
+- `DonationFeePaymentProcessor`
+- `RecurringDonationPaymentProcessor`
+
+驗收：
+
+- 付款通知不再直接散落建立 `LineMessagingClient`。
+- LINE 發送失敗在必要通知流程可被觀察。
+- 原本付款頁面、CRM 更新與付款狀態流程不被破壞。
+
+### Batch 3：一般 `PushUtility` 文字通知接入
+
+處理：
+
+- `ChurchReport/Tools/PushUtility.cs`
+- 使用 `PushUtility.SendMessage(...)` 的一般文字通知呼叫點
+
+驗收：
+
+- 舊呼叫點不用立刻改簽名。
+- `PushUtility` 開始變成 wrapper。
+- 文字通知可走共用 workflow。
+- 除非路徑明確改為必要通知，否則現有流程不因通知失敗行為改變而中斷。
+
+### Batch 4：LINE 綁定 / 會員身份通知接入
+
+處理：
+
+- `MemberInfoController` 直接 profile 查詢
+- LINE 綁定相關服務
+- 會員身份通知或提示訊息
+- `LineUtilityClass` 中可安全抽出的 profile / text notify 路徑
+
+驗收：
+
+- 會員綁定流程仍可查 profile。
+- 綁定通知可走 workflow。
+- 共用專案沒有 ChurchReport 依賴。
+- 直接 `LineMessagingClient` 使用點明顯減少。
+
+## 8. Guardrails
+
+- 不把 CRM、付款、奉獻、會員、小組語意放進 `LineMessagingProcessor.Workflows` 或 `LineMessagingProcessor.AspNetCore`。
+- 不修改 `LinePayCSharp`。
+- 不把 LIFF `.cshtml` / JavaScript 搬進後端共用模組。
+- 不做 broad official LINE API expansion。
+- 不一次搬完 `LineUtilityClass`。
+- 不在共用模組中隱藏全域狀態。
+- 不新增只有 ChurchReport 才懂的 abstraction。
+- 檔案必須 UTF-8 without BOM + CRLF。
+- 不提交 `bin/`、`obj/`、`artifacts/`。
+
+## 9. Validation
+
+每個 batch 完成後至少執行：
+
+- 對應測試專案。
+- `dotnet build ChurchReport.sln -m:1 -v minimal -p:UseSharedCompilation=false`。
+- boundary scan：共用 LINE 專案不得含 `ChurchReport`、`Microsoft.Xrm`、`IOrganizationService`、`Entity`、`Controller`、`IActionResult`、`DbContext`。
+- 搜尋 ChurchReport 直接 `LineMessagingClient` 使用點，確認該 batch 的接入點已收斂。
+- Gemini + Claude 雙模型 review。
+- touched text files encoding check。
+
+## 10. 下一步
+
+依本 spec 撰寫 implementation plan。Plan 必須分批描述 Batch 1 到 Batch 4，且每批都要有 TDD、驗證、boundary scan、review 與可回退範圍。

@@ -1,0 +1,12 @@
+{
+  "id": "line-shared-workflow-extraction-phase2",
+  "title": "Design LINE shared workflow extraction Phase 2",
+  "status": "planning",
+  "complexity": "L",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "planning",
+  "nextAction": "Review design spec and write implementation plan after user approval.",
+  "createdAt": "2026-07-03T09:49:55+08:00",
+  "branch": "Jesus_5.1.6.WorktreeRefactorLine"
+}
