@@ -4,7 +4,6 @@ using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using ChurchReport.WebServiceConnector;
 using Line.Messaging;
-using LineMessagingProcessor;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
@@ -220,8 +219,7 @@ namespace ChurchReport.Models
         /// </summary>
         private static void NotifyDonationPaymentError(string errorString)
         {
-            LineMessagingProcessorClass lineMessagingProcessor = new LineMessagingProcessorClass();
-            lineMessagingProcessor.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + errorString);
+            ChurchReportLineAdminNotificationService.NotifyDefaultError("好牧人", errorString);
         }
 
         /// <summary>
@@ -230,8 +228,7 @@ namespace ChurchReport.Models
         /// </summary>
         private static void NotifyDonationRegistrationError(string errorString)
         {
-            LineMessagingProcessorClass lineMessagingProcessor = new LineMessagingProcessorClass();
-            lineMessagingProcessor.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人 : 註冊錯誤 => " + errorString);
+            ChurchReportLineAdminNotificationService.NotifyDefaultError("好牧人", "註冊錯誤", errorString);
         }
         #endregion
         #region Line 單獨登入
@@ -354,9 +351,7 @@ namespace ChurchReport.Models
             {
                 string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
 
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + ErrorString);
+                NotifyDonationPaymentError(ErrorString);
 
                 throw e;
             }

@@ -1,0 +1,12 @@
+{
+    "domain":  "backend",
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine",
+    "id":  "line-admin-error-notification-convergence",
+    "risk":  "medium",
+    "createdAt":  "2026-07-03T00:00:00+08:00",
+    "complexity":  "M",
+    "currentPhase":  "completed",
+    "status":  "completed",
+    "nextAction":  "Archive task and commit admin error notification convergence",
+    "title":  "Converge ChurchReport LINE admin error notifications through shared workflow"
+}
