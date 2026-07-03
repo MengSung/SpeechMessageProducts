@@ -294,6 +294,29 @@ namespace LineMessagingProcessor
         }
 
         /// <summary>
+        /// 共用 workflow 使用的低階發送入口。
+        /// 這個方法只接受 LINE user id 與已組好的 SDK 訊息，避免 workflow 反射讀取 private client，
+        /// 也讓未來產品可以重用同一條 SDK-backed push 路徑。
+        /// </summary>
+        /// <param name="userId">LINE user id。空白時在進入 HTTP 前即拒絕。</param>
+        /// <param name="messages">要送出的 LINE SDK 訊息集合。空集合代表呼叫端沒有建立有效內容。</param>
+        /// <param name="retryKey">LINE retry key；可為 null，保留一般 push 行為。</param>
+        public async Task SendMessagesAsync(string userId, IList<ISendMessage> messages, string? retryKey = null)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new ArgumentException("userId is required.", nameof(userId));
+            }
+
+            if (messages == null || messages.Count == 0)
+            {
+                throw new ArgumentException("messages are required.", nameof(messages));
+            }
+
+            await _lineMessagingClient.PushMessageAsync(userId, messages, retryKey).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// 以 SDK 取得 LINE 使用者個人資料。
         /// 這一層只負責「可重用的 LINE 身分查詢」：先確認 UserId 有值，再交給
         /// Line.Messaging SDK 呼叫官方 /bot/profile/{userId} API。

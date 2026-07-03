@@ -88,6 +88,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />
     <ProjectReference Include="..\LineMessagingProcessor\LineMessagingProcessor.csproj" />
+    <ProjectReference Include="..\LineMessagingProcessor.AspNetCore\LineMessagingProcessor.AspNetCore.csproj" />
+    <ProjectReference Include="..\LineMessagingProcessor.Workflows\LineMessagingProcessor.Workflows.csproj" />
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
     <ProjectReference Include="..\SpeechMessage.Payments\SpeechMessage.Payments.csproj" />
     <ProjectReference Include="..\SpeechMessage.Payments.AspNetCore\SpeechMessage.Payments.AspNetCore.csproj" />

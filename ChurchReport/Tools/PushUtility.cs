@@ -1,4 +1,5 @@
-﻿using Line.Messaging;
+using Line.Messaging;
+using LineMessagingProcessor.Workflows;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,10 +11,17 @@ namespace ChurchReport.Tools
     {
         #region 初始化設定
         private LineMessagingClient m_LineMessagingClient { get; }
+        private readonly ILineNotificationWorkflow? _lineNotificationWorkflow;
 
         public PushUtility(LineMessagingClient LineMessagingClient)
+            : this(LineMessagingClient, null)
+        {
+        }
+
+        public PushUtility(LineMessagingClient LineMessagingClient, ILineNotificationWorkflow? lineNotificationWorkflow)
         {
             this.m_LineMessagingClient = LineMessagingClient;
+            _lineNotificationWorkflow = lineNotificationWorkflow;
         }
         #endregion
 
@@ -36,6 +44,21 @@ namespace ChurchReport.Tools
         {
             try
             {
+                if (_lineNotificationWorkflow != null)
+                {
+                    await _lineNotificationWorkflow.SendAsync(new LineNotificationRequest
+                    {
+                        Recipient = LineNotificationRecipient.User(UserId),
+                        Content = LineNotificationContent.TextMessage(Message),
+                        Metadata = new Dictionary<string, string>
+                        {
+                            ["source"] = "ChurchReport.PushUtility"
+                        }
+                    });
+
+                    return;
+                }
+
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new TextMessage(Message)

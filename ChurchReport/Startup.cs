@@ -26,6 +26,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using ToolUtilityNameSpace.DependencyInjection;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ChurchReport.WebServiceConnector;
+using LineMessagingProcessor.AspNetCore;
 using SpeechMessage.Payments.AspNetCore.DependencyInjection;
 using SpeechMessage.Payments.DependencyInjection;
 using SpeechMessage.Payments.Workflows;
@@ -484,6 +485,14 @@ namespace ChurchReport
             services.AddScoped<ChurchReport.Services.PaymentCallbackLogger>();
             services.AddScoped<ChurchReport.Services.PaymentCrmService>();
             services.AddScoped<ChurchReport.Services.PaymentNotificationService>();
+            services.AddLineMessagingProcessor(options =>
+            {
+                var defaultOrg = Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
+                options.ChannelAccessToken =
+                    Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"] ??
+                    Configuration["LINE_CHANNEL_ACCESS_TOKEN"] ??
+                    string.Empty;
+            });
 
             // ========================================
             // 註冊抽離後的通用金流核心與 ChurchReport adapter

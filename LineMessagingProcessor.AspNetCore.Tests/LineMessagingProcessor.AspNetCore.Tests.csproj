@@ -5,7 +5,6 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <!-- 與主專案一致：允許 Newtonsoft.Json 等套件降級（NU1605）不擋建置 -->
     <NoWarn>NU1605</NoWarn>
   </PropertyGroup>
   <ItemGroup>
@@ -18,9 +17,9 @@
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ChurchReport\ChurchReport.csproj" />
+    <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />
+    <ProjectReference Include="..\LineMessagingProcessor\LineMessagingProcessor.csproj" />
+    <ProjectReference Include="..\LineMessagingProcessor.AspNetCore\LineMessagingProcessor.AspNetCore.csproj" />
     <ProjectReference Include="..\LineMessagingProcessor.Workflows\LineMessagingProcessor.Workflows.csproj" />
-    <ProjectReference Include="..\SpeechMessage.Payments.AspNetCore\SpeechMessage.Payments.AspNetCore.csproj" />
-    <ProjectReference Include="..\SpeechMessage.Payments.Workflows\SpeechMessage.Payments.Workflows.csproj" />
   </ItemGroup>
 </Project>
