@@ -1,5 +1,6 @@
-﻿using Line.Messaging;
+using Line.Messaging;
 using Line.Messaging.Webhooks;
+using LineMessagingProcessor;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -13,11 +14,21 @@ namespace ChurchReport.Tools
         #region 初始化設定
         private LineMessagingClient m_LineMessagingClient { get; }
 
+        private LineMessagingProcessorClass m_LineMessagingProcessor { get; }
+
         //private PushUtility m_PushUtility { get; }
 
         public ReplyUtility(LineMessagingClient LineMessagingClient)
+            : this(LineMessagingClient, new LineMessagingProcessorClass(LineMessagingClient))
         {
-            this.m_LineMessagingClient = LineMessagingClient;
+        }
+
+        public ReplyUtility(
+            LineMessagingClient LineMessagingClient,
+            LineMessagingProcessorClass LineMessagingProcessor)
+        {
+            this.m_LineMessagingClient = LineMessagingClient ?? throw new ArgumentNullException(nameof(LineMessagingClient));
+            this.m_LineMessagingProcessor = LineMessagingProcessor ?? throw new ArgumentNullException(nameof(LineMessagingProcessor));
 
             //m_PushUtility = new PushUtility(LineMessagingClient);
 
@@ -37,7 +48,7 @@ namespace ChurchReport.Tools
             String UserName = "";
             if (ev.Source.Type == EventSourceType.Group)
             {
-                var userProfile = await m_LineMessagingClient.GetGroupMemberProfileAsync(ev.Source.Id, ev.Source.UserId);
+                var userProfile = await m_LineMessagingProcessor.GetGroupMemberProfileAsync(ev.Source.Id, ev.Source.UserId);
                 UserName = userProfile?.DisplayName ?? "";
 
                 //ConfirmMessage(ev.Source.Id);
@@ -57,7 +68,7 @@ namespace ChurchReport.Tools
             }
             else if (ev.Source.Type == EventSourceType.Room)
             {
-                var userProfile = await m_LineMessagingClient.GetRoomMemberProfileAsync(ev.Source.Id, ev.Source.UserId);
+                var userProfile = await m_LineMessagingProcessor.GetRoomMemberProfileAsync(ev.Source.Id, ev.Source.UserId);
                 UserName = userProfile?.DisplayName ?? "";
 
                 //ConfirmMessage(ev.Source.Id);
