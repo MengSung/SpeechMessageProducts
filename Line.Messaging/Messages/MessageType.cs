@@ -1,4 +1,4 @@
-﻿namespace Line.Messaging
+namespace Line.Messaging
 {
     /// <summary>
     /// LINE 訊息類型列舉
@@ -23,6 +23,12 @@
         /// Text message - Maximum 2000 characters
         /// </summary>
         Text,
+
+        /// <summary>
+        /// 文字訊息 v2 - 支援 substitution mention / emoji 的官方 textV2 訊息
+        /// Text message v2 - Official textV2 message with substitution support
+        /// </summary>
+        TextV2,
         
         /// <summary>
         /// 圖片訊息 - 支援 JPEG/PNG 格式
@@ -53,6 +59,12 @@
         /// Sticker message - Uses official LINE stickers
         /// </summary>
         Sticker,
+
+        /// <summary>
+        /// 優惠券訊息 - 透過 couponId 發送 LINE 官方帳號優惠券
+        /// Coupon message - Sends an official account coupon by couponId
+        /// </summary>
+        Coupon,
         
         /// <summary>
         /// 圖片地圖訊息 - 可在圖片上設定多個可點擊區域
