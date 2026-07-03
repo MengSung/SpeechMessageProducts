@@ -25,7 +25,11 @@ Reviewed the `LineMessagingProcessorClass.SendMessage(string UserId, string Mess
 
 ### Warning
 
-- Claude review is not available because `codeagent-wrapper.exe --lite --backend claude` exited with status 1 in stdin mode. This is an external reviewer/toolchain failure and should be revisited separately if strict dual-model approval is required.
+- ~~Claude review is not available because `codeagent-wrapper.exe --lite --backend claude` exited with status 1 in stdin mode.~~
+  **2026-07-03 補跑完成**（exit 0，全文見 `review-claude-final.txt`）。Claude 結論 REQUEST_CHANGES（C1/C2），主審裁定如下：
+  - **C1 成立（真缺口）**：LineMessagingProcessor.Tests 全部 13 個測試都用 DI 建構子（`_requiresChannelAccessToken == false`），生產環境實際使用的建構子路徑（無參數 / string token / IConfiguration）與「token 缺失時拋例外」的保護行為零測試覆蓋。此缺口涵蓋全部四個 P1 adapter 測試檔，不只 SendMessage。→ 收尾前應補：production 建構子 + 空 token 拋例外測試、有效 token 正常送出測試。
+  - **C2 前提不成立，降級為 Info**：舊版 RestSharp 為 112.1.0，其 `PostAsync` 便捷方法在非 2xx 時預設即拋例外（`ThrowIfError`），並非「靜默吞錯」；新舊路徑同為「失敗拋例外」，實際差異僅例外型別（`HttpRequestException` → SDK 例外）。補一條非 2xx 行為測試仍值得做，但非阻斷。
+  - W1 成立（`LineMessagingProcessorClass.cs:254` 註解點名 ChurchReport，違反可重用模組中立性）；W2/W3 為合理建議，非阻斷。
 
 ### Info
 

@@ -1,0 +1,68 @@
+[codeagent-wrapper]
+  Backend: claude
+  Command: claude -p --dangerously-skip-permissions --setting-sources  --output-format stream-json --verbose -
+  PID: 3204
+  Log: C:\Users\Administrator\AppData\Local\Temp\codeagent-wrapper-3204.log
+  Session-ID: 4d902ba0-d29c-49de-8197-18f67f316b3f
+# 程式碼審查報告 — commit f43adfc9 (LineMessagingProcessor.SendMessage RestSharp → SDK 委派)
+
+## 1. Critical
+
+**C1. 新增的三組測試全部只涵蓋 `_requiresChannelAccessToken == false` 分支，正式環境會走到的分支完全零覆蓋**
+所有新測試都用 `new LineMessagingProcessorClass(sdkClient)`（DI 建構子）建立 processor，這條路徑會把 `_requiresChannelAccessToken` 設為 `false`，因此 `SendMessage` 裡的
+```csharp
+if (_requiresChannelAccessToken)
+{
+    GetRequiredChannelAccessToken();
+}
+```
+從沒被執行過。但正式產品（`LineMessagingProcessorClass()` 無參數 / `LineMessagingProcessorClass(string channelAccessToken)` / `LineMessagingProcessorClass(IConfiguration)`）用的正是 `_requiresChannelAccessToken == true` 這條路徑——也就是 ChurchReport 實際使用的建構子。
+換句話說：**這次重構真正落地在生產環境的那條程式路徑，重構後沒有任何一個新測試驗證過**，包含題目明確要求檢查的「token 缺失時的行為」。目前完全無法確認：token 為空/未設定時是否仍會如預期丟出例外、丟出的例外型別/訊息是否與舊行為一致。
+→ 建議至少補一個以 `LineMessagingProcessorClass(string channelAccessToken)`（或空字串/null token）建構、呼叫 `SendMessage` 驗證會丟出例外的測試，以及一個以有效字串 token 建構、驗證仍能正常送出訊息（含 Authorization header 內容）的測試。
+
+**C2. 錯誤處理行為疑似出現未被驗證、未被記錄的破壞性變更**
+舊路徑 `await _restClient.PostAsync(request)`：RestSharp 的 `PostAsync(RestRequest)` 預設**不會**在非 2xx 回應時丟例外（除非額外設定 `ThrowOnAnyError`），也沒有檢查回傳的 `RestResponse`。也就是說，LINE API 回 400/401/500 時，舊版 `SendMessage` 會靜默吞掉錯誤，呼叫端完全不會收到例外。
+新路徑 `_lineMessagingClient.PushMessageAsync(...)`：Line.Messaging SDK 在非成功狀態碼時通常會拋出 `LineResponseException`（會檢查 `response.IsSuccessStatusCode`）。
+這代表**呼叫端的錯誤處理行為被改變了**——舊版靜默失敗、新版會丟例外往上拋。這對「可重用模組」的呼叫方（例如 ChurchReport）而言是有感知的破壞性變更：如果現有呼叫端沒有包 try/catch，先前會被吞掉的 LINE API 失敗，現在會變成未處理例外導致流程中斷。
+本次 diff 沒有任何測試模擬非 2xx 回應（`CapturingHttpMessageHandler` 永遠回 200），也沒有 commit message / 註解說明這個行為差異是刻意的。
+→ 建議：(a) 補一個 handler 回傳 4xx/5xx 的測試，明確斷言新行為（拋例外或吞例外，二選一並寫死在測試裡）；(b) 若確定要改成「拋例外」，需要在 commit / PR 說明中明確告知呼叫端這是有意的行為變更，並確認 ChurchReport 端已經或即將補上對應的例外處理。
+
+## 2. Warning
+
+**W1. 新增註解在「不得引入產品相依」的模組裡直接寫出了 `ChurchReport`**
+```csharp
+// 舊版 ChurchReport 流程曾用這個特殊字串要求系統回傳 LINE 使用者 ID。
+```
+邊界規則要求 LineMessagingProcessor 不得引入 ChurchReport / CRM / DbContext 等產品相依。雖然這只是註解、不是程式碼相依，但明文寫出消費端專案名稱，違反了「這是可重用、產品無關模組」的設計精神，且會讓未來其他消費端（非 ChurchReport）誤以為這行為是 ChurchReport 專屬、可能被誤刪。
+→ 建議改成中性描述，例如：「既有呼叫端流程曾使用此特殊字串要求系統回傳 LINE 使用者 ID（非 LINE 官方協定，屬既有相容行為）」，不要點名具體消費端專案。
+
+**W2. `GetRequiredChannelAccessToken()` 呼叫但捨棄回傳值，語意不清、易被誤判為死碼**
+```csharp
+if (_requiresChannelAccessToken)
+{
+    GetRequiredChannelAccessToken();
+}
+```
+這裡呼叫的目的看起來純粹是「利用其內部驗證/丟例外的副作用」，因為 `_lineMessagingClient` 早在建構式階段就已經把 token 塞進去了，SendMessage 時再呼叫一次理論上不會改變實際送出的 Authorization header。目前寫法很容易被之後的人當成沒用到回傳值的死碼而清掉，進而悄悄移除「token 缺失時應丟例外」的保護。
+→ 建議明確化意圖，例如改名為 `EnsureChannelAccessTokenPresent()`，或至少 `_ = GetRequiredChannelAccessToken();` 並加上一行註解說明「僅用於驗證 token 存在，實際 header 已由 SDK client 於建構時設定」。
+
+**W3. 新增的 blank 參數驗證屬於重構範圍外的行為擴張**
+原本委託任務描述是「把 RestSharp 呼叫路徑改為委派給 SDK」，但這次順手加了 `UserId`/`Message` 為空白時丟 `ArgumentException` 的新檢查。這是合理的防禦性寫法，但屬於**新行為**而非單純等價替換——舊版對空白 `UserId`/`Message` 不會在本地丟例外（會照樣送出格式不完整的請求給 LINE API）。若現有呼叫端（例如某些初始化流程用 `m_UserId=""` 預設值）依賴舊的「送出去讓 API 端拒絕」的寬鬆行為，這裡會變成本地直接炸例外。
+→ 建議在 PR 描述中明確標注這是行為新增而非純委派，並確認沒有生產路徑會用空白值呼叫。
+
+## 3. Info
+
+- **中文字面值核對**：`"顯示認證"` 與 `"認證:" + UserId"` 在 diff 中與舊版逐字元一致，測試中也用同樣字串斷言，未發現本次改動引入亂碼/編碼問題。
+- **Authorization header 未被任何測試斷言**：三個測試都只檢查 URL 與 JSON body，沒有一個檢查 `handler.Requests[0].Headers.Authorization`（或 SDK client 送出的實際 header 值）。既然題目特別要求檢查「SDK 委派後行為是否等價」，補上這個斷言能讓測試更有說服力。
+- **異常訊息語言不一致**：`"UserId is required."` / `"Message is required."` 用英文，但周邊註解/既有字串都是中文，風格略不統一（非阻斷項）。
+- **`_restClient` 欄位與 `using RestSharp;` 已完整移除**，但本次 diff 只涵蓋建構式與 `SendMessage`。若同一檔案中還有其他既有方法（例如可能存在的 Flex/貼圖等其他 Send 方法）仍參照 `_restClient`，會直接編譯失敗。這份 diff 看不到檔案全貌，建議再次確認整個檔案（以及 .csproj 是否還殘留不再需要的 RestSharp 套件參考）已無殘留用法。
+- async/await 與 ConfigureAwait 用法正確：`await ... .ConfigureAwait(false)` 在函式庫層級是正確做法，沒有 fire-and-forget 或死鎖風險。
+
+## 4. 結論
+
+**REQUEST_CHANGES**
+
+主要原因：C1（重構後實際會用在生產環境的建構子路徑完全沒有測試覆蓋，包含題目要求驗證的 token 缺失行為）與 C2（錯誤處理行為疑似從「靜默吞錯」變成「拋例外」，屬於未被驗證、未被記錄的相容性風險）。這兩點都直接對應「SDK 委派後行為是否與舊路徑等價」的核心審查要求，在目前的測試證據下無法確認等價，建議補測試/補說明後再合併。W1（註解洩漏 ChurchReport 產品名稱）建議一併順手修掉。
+
+---
+SESSION_ID: 4d902ba0-d29c-49de-8197-18f67f316b3f
