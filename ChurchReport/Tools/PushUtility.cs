@@ -20,7 +20,7 @@ namespace ChurchReport.Tools
 
         public PushUtility(LineMessagingClient LineMessagingClient, ILineNotificationWorkflow? lineNotificationWorkflow)
         {
-            this.m_LineMessagingClient = LineMessagingClient;
+            this.m_LineMessagingClient = LineMessagingClient ?? throw new ArgumentNullException(nameof(LineMessagingClient));
             _lineNotificationWorkflow = lineNotificationWorkflow;
         }
         #endregion
@@ -128,6 +128,59 @@ namespace ChurchReport.Tools
             }
 
             await this.m_LineMessagingClient.PushMessageAsync(UserId, new List<ISendMessage>(messages));
+        }
+
+        /// <summary>
+        /// Sends a required text notification with LINE retry-key semantics.
+        /// This method is intentionally different from <see cref="SendMessage(string, string)"/>:
+        /// SendMessage is the legacy best-effort path and still swallows failures; this method is
+        /// for payment or required notifications where failure must remain visible to the caller.
+        ///
+        /// When an ILineNotificationWorkflow is injected, the request is routed through the shared
+        /// product-agnostic LINE workflow with the retry key preserved. ChurchReport-specific CRM,
+        /// payment, donation, and MVC decisions stay in ChurchReport.
+        ///
+        /// When no workflow is injected, the method falls back to the SDK retry-key push overload
+        /// so existing new PushUtility(client) call sites remain compatible.
+        /// </summary>
+        /// <param name="UserId">LINE user id. Required notifications must have an explicit recipient.</param>
+        /// <param name="Message">Text content to send.</param>
+        /// <param name="retryKey">
+        /// LINE retry key used to identify retried sends and reduce duplicate payment notifications.
+        /// </param>
+        public async Task SendReliableMessageAsync(string UserId, string Message, string? retryKey)
+        {
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                throw new ArgumentException("LINE user id is required.", nameof(UserId));
+            }
+
+            if (string.IsNullOrWhiteSpace(Message))
+            {
+                throw new ArgumentException("LINE message is required.", nameof(Message));
+            }
+
+            if (_lineNotificationWorkflow != null)
+            {
+                await _lineNotificationWorkflow.SendOrThrowAsync(new LineNotificationRequest
+                {
+                    Recipient = LineNotificationRecipient.User(UserId),
+                    Content = LineNotificationContent.TextMessage(Message),
+                    RetryKey = retryKey,
+                    Metadata = new Dictionary<string, string>
+                    {
+                        ["source"] = "ChurchReport.PushUtility.ReliableText"
+                    }
+                });
+                return;
+            }
+
+            List<ISendMessage> MessageToSend = new List<ISendMessage>
+            {
+                new TextMessage(Message)
+            };
+
+            await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend, retryKey);
         }
 
         public async Task SendImage(string UserId, string OriginalContenUrl, string PreviewImageUrl)

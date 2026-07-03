@@ -225,7 +225,10 @@ namespace ChurchReport.WebServiceConnector
                     aCreatedFeeId.ToString()
                 );
 
-                // 更新收費單
+                if (createdAtmOrder?.ATMParam == null || string.IsNullOrWhiteSpace(createdAtmOrder.ATMParam.AtmPayNo))
+                {
+                    throw new InvalidOperationException("ATM order creation did not return a virtual account.");
+                }
                 UpdateFee(ref aFeeToUpdate, "", createdAtmOrder.OrderNo, OrderId, createdAtmOrder.ATMParam.AtmPayNo);
 
                 // 建立 ATM 資訊
@@ -236,6 +239,7 @@ namespace ChurchReport.WebServiceConnector
                 var notificationWarning = await TrySendAtmPaymentInstructionsAsync(
                     LineId,
                     atmInfo.LineMessage,
+                    BuildAtmPaymentLineRetryKey(aCreatedFeeId, createdAtmOrder.OrderNo, createdAtmOrder.ATMParam.AtmPayNo),
                     LineLoginContact.Id);
 
                 return atmInfo.HtmlMessage + notificationWarning;
@@ -297,6 +301,7 @@ namespace ChurchReport.WebServiceConnector
         private async Task<string> TrySendAtmPaymentInstructionsAsync(
             string lineId,
             string lineMessage,
+            string retryKey,
             Guid contactId)
         {
             if (string.IsNullOrWhiteSpace(lineId))
@@ -308,7 +313,7 @@ namespace ChurchReport.WebServiceConnector
 
             try
             {
-                await SendAtmPaymentInstructionsAsync(lineId, lineMessage);
+                await SendAtmPaymentInstructionsAsync(lineId, lineMessage, retryKey);
                 return string.Empty;
             }
             catch (Exception ex)
@@ -319,9 +324,28 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
-        protected virtual async Task SendAtmPaymentInstructionsAsync(string lineId, string lineMessage)
+        private static string BuildAtmPaymentLineRetryKey(Guid feeId, string providerOrderNo, string atmPayNo)
         {
-            await PushUtility.SendMessageOrThrowAsync(lineId, lineMessage);
+            if (feeId == Guid.Empty)
+            {
+                throw new ArgumentException("Fee id is required for ATM LINE retry key.", nameof(feeId));
+            }
+
+            if (string.IsNullOrWhiteSpace(atmPayNo))
+            {
+                throw new ArgumentException("ATM virtual account is required for ATM LINE retry key.", nameof(atmPayNo));
+            }
+
+            var normalizedProviderOrderNo = string.IsNullOrWhiteSpace(providerOrderNo)
+                ? "no-provider-order"
+                : providerOrderNo.Trim();
+
+            return $"churchreport:donation-atm:{feeId:N}:{normalizedProviderOrderNo}:{atmPayNo.Trim()}";
+        }
+
+        protected virtual async Task SendAtmPaymentInstructionsAsync(string lineId, string lineMessage, string retryKey)
+        {
+            await PushUtility.SendReliableMessageAsync(lineId, lineMessage, retryKey);
         }
 
         private static string BuildAtmNotificationWarning(string message)

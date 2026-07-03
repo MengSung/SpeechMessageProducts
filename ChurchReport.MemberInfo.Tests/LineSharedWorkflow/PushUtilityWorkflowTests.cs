@@ -81,6 +81,34 @@ public sealed class PushUtilityWorkflowTests
         workflow.Requests[0].Content.SdkMessages.Should().BeSameAs(messages);
     }
 
+    [Fact]
+    public async Task SendReliableMessageAsync_uses_shared_workflow_with_retry_key_and_propagates_failure()
+    {
+        var workflow = new CapturingWorkflow
+        {
+            SendOrThrowExceptionFactory = request => new LineNotificationException(
+                LineNotificationResult.Failure(
+                    request,
+                    LineNotificationStatus.ProviderUnavailable,
+                    "line-provider-timeout",
+                    "LINE retryable send failed"))
+        };
+        using var httpClient = new HttpClient(new NoopHttpMessageHandler());
+        var utility = new PushUtility(new LineMessagingClient(httpClient, "test-token", "https://api.line.me/v2"), workflow);
+
+        var action = () => utility.SendReliableMessageAsync("Uuser", "required reliable", "retry-payment-001");
+
+        var exception = await action.Should().ThrowAsync<LineNotificationException>();
+        exception.Which.Result.Status.Should().Be(LineNotificationStatus.ProviderUnavailable);
+        exception.Which.Result.ErrorCode.Should().Be("line-provider-timeout");
+        exception.Which.Result.ErrorMessage.Should().Be("LINE retryable send failed");
+        exception.Which.Result.RetryKey.Should().Be("retry-payment-001");
+        workflow.Requests.Should().ContainSingle();
+        workflow.Requests[0].Recipient.PrimaryId.Should().Be("Uuser");
+        workflow.Requests[0].Content.Text.Should().Be("required reliable");
+        workflow.Requests[0].RetryKey.Should().Be("retry-payment-001");
+    }
+
     private sealed class CapturingWorkflow : ILineNotificationWorkflow
     {
         public List<LineNotificationRequest> Requests { get; } = new();
