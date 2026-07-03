@@ -1,6 +1,8 @@
 using System;
 using ChurchReport.Tools;
+using LineMessagingProcessor.Workflows;
 using Microsoft.AspNetCore.Mvc;
+using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Payments;
 
@@ -42,6 +44,17 @@ public interface IDonationPaymentProductWorkflowDispatcher
 /// </summary>
 public sealed class DonationPaymentProductWorkflowDispatcher : IDonationPaymentProductWorkflowDispatcher
 {
+    private readonly IToolUtilityProvider _toolUtilityProvider;
+    private readonly ILineNotificationWorkflow _lineNotificationWorkflow;
+
+    public DonationPaymentProductWorkflowDispatcher(
+        IToolUtilityProvider toolUtilityProvider,
+        ILineNotificationWorkflow lineNotificationWorkflow)
+    {
+        _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
+        _lineNotificationWorkflow = lineNotificationWorkflow ?? throw new ArgumentNullException(nameof(lineNotificationWorkflow));
+    }
+
     public IActionResult HandleFeeReturn(
         string shopNo,
         string payToken,
@@ -49,7 +62,7 @@ public sealed class DonationPaymentProductWorkflowDispatcher : IDonationPaymentP
     {
         ArgumentNullException.ThrowIfNull(paymentResult);
 
-        using var processor = new DonationFeePaymentProcessor();
+        using var processor = new DonationFeePaymentProcessor(_toolUtilityProvider, _lineNotificationWorkflow);
         return processor.HandlePaymentReturn(
             shopNo,
             payToken,
@@ -63,7 +76,7 @@ public sealed class DonationPaymentProductWorkflowDispatcher : IDonationPaymentP
     {
         ArgumentNullException.ThrowIfNull(paymentResult);
 
-        using var processor = new RecurringDonationPaymentProcessor();
+        using var processor = new RecurringDonationPaymentProcessor(_lineNotificationWorkflow);
         return processor.HandlePaymentReturn(
             shopNo,
             payToken,

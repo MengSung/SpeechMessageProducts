@@ -1,5 +1,6 @@
 using ChurchReport.WebServiceConnector;
 using Line.Messaging;
+using LineMessagingProcessor.Workflows;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
@@ -116,6 +117,13 @@ namespace ChurchReport.Tools
         /// </summary>
         /// <param name="toolUtilityProvider">ToolUtility 提供者</param>
         public DonationFeePaymentProcessor(IToolUtilityProvider toolUtilityProvider)
+            : this(toolUtilityProvider, null)
+        {
+        }
+
+        public DonationFeePaymentProcessor(
+            IToolUtilityProvider toolUtilityProvider,
+            ILineNotificationWorkflow? lineNotificationWorkflow)
         {
             if (toolUtilityProvider == null)
                 throw new ArgumentNullException(nameof(toolUtilityProvider));
@@ -124,7 +132,7 @@ namespace ChurchReport.Tools
             var channelAccessToken = GetLineChannelAccessToken();
             this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
-            m_PushUtility = new PushUtility(m_LineMessagingClient);
+            m_PushUtility = new PushUtility(m_LineMessagingClient, lineNotificationWorkflow);
             m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
 
             m_ToolUtilityClass = toolUtilityProvider.GetToolUtility();
@@ -147,7 +155,7 @@ namespace ChurchReport.Tools
             PaymentPostPaymentWorkflow postPaymentWorkflow,
             ChurchReportPaymentContextBuilder paymentContextBuilder,
             DonationPaymentReturnPresenter returnPresenter)
-            : this(toolUtilityProvider)
+            : this(toolUtilityProvider, null)
         {
             m_PostPaymentWorkflow = postPaymentWorkflow ?? throw new ArgumentNullException(nameof(postPaymentWorkflow));
             m_PaymentContextBuilder = paymentContextBuilder ?? throw new ArgumentNullException(nameof(paymentContextBuilder));

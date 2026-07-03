@@ -84,12 +84,50 @@ namespace ChurchReport.Tools
                 throw new ArgumentException("LINE user id is required.", nameof(UserId));
             }
 
+            if (_lineNotificationWorkflow != null)
+            {
+                await _lineNotificationWorkflow.SendOrThrowAsync(new LineNotificationRequest
+                {
+                    Recipient = LineNotificationRecipient.User(UserId),
+                    Content = LineNotificationContent.TextMessage(Message),
+                    Metadata = new Dictionary<string, string>
+                    {
+                        ["source"] = "ChurchReport.PushUtility.RequiredText"
+                    }
+                });
+                return;
+            }
+
             List<ISendMessage> MessageToSend = new List<ISendMessage>
             {
                 new TextMessage(Message)
             };
 
             await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+        }
+
+        public async Task SendMessagesOrThrowAsync(string UserId, IReadOnlyList<ISendMessage> messages)
+        {
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                throw new ArgumentException("LINE user id is required.", nameof(UserId));
+            }
+
+            if (_lineNotificationWorkflow != null)
+            {
+                await _lineNotificationWorkflow.SendOrThrowAsync(new LineNotificationRequest
+                {
+                    Recipient = LineNotificationRecipient.User(UserId),
+                    Content = LineNotificationContent.SdkMessagesList(messages),
+                    Metadata = new Dictionary<string, string>
+                    {
+                        ["source"] = "ChurchReport.PushUtility.RequiredSdkMessages"
+                    }
+                });
+                return;
+            }
+
+            await this.m_LineMessagingClient.PushMessageAsync(UserId, new List<ISendMessage>(messages));
         }
 
         public async Task SendImage(string UserId, string OriginalContenUrl, string PreviewImageUrl)

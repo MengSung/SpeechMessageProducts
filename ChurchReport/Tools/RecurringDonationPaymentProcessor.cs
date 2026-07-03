@@ -1,5 +1,6 @@
 using ChurchReport.WebServiceConnector;
 using Line.Messaging;
+using LineMessagingProcessor.Workflows;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
@@ -48,13 +49,18 @@ namespace ChurchReport.Tools
         #endregion
         #region 初始化
         public RecurringDonationPaymentProcessor()
+            : this(null)
+        {
+        }
+
+        public RecurringDonationPaymentProcessor(ILineNotificationWorkflow? lineNotificationWorkflow)
         {
             // ✅ 從 appsettings.json 讀取 LINE Channel Access Token
             var channelAccessToken = GetLineChannelAccessToken();
             this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
             //// 客製化
-            m_PushUtility = new PushUtility(m_LineMessagingClient);
+            m_PushUtility = new PushUtility(m_LineMessagingClient, lineNotificationWorkflow);
             m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
 
             // 透過 Factory 取得 ToolUtilityClass 單一實例
