@@ -1,0 +1,9 @@
+[codeagent-wrapper]
+  Backend: gemini
+  Command: gemini -o stream-json -y --include-directories D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\.worktrees\Jesus_5.1.7.WorktreeRefactorRichMenu
+  PID: 5540
+  Log: C:\Users\Administrator\AppData\Local\Temp\codeagent-wrapper-5540.log
+Ripgrep is not available. Falling back to GrepTool.
+  Session-ID: 7465ccf2-13b2-4e5a-ba21-c84b1e4f3a64
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Error executing tool grep_search: params must have required property 'pattern'
