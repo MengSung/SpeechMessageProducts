@@ -336,6 +336,8 @@ $summary = [ordered]@{
     healthBackendSmoke = [bool]$RunHealthBackendSmoke
     attempts = @()
     ok = $false
+    degradedFallback = $false
+    fallbackAccepted = [bool]$AllowSingleModelWhenQuotaBlocked
     quotaBlocked = $false
     completedBackends = @()
     failedBackends = @()
@@ -473,6 +475,9 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
         if ($AllowSingleModelWhenQuotaBlocked) {
             $summary.completedBackends = @($attemptRecord.backends | Where-Object { $_.ok } | ForEach-Object { $_.backend })
             $summary.failedBackends = @($failed | ForEach-Object { $_.backend })
+            if (@($summary.completedBackends).Count -gt 0) {
+                $summary.degradedFallback = $true
+            }
             break
         }
     }
@@ -496,6 +501,8 @@ $markdown = @(
     "- Repository: $repositoryFullPath",
     "- TaskFile: $resolvedTaskFile",
     "- OK: $($summary.ok)",
+    "- DegradedFallback: $($summary.degradedFallback)",
+    "- FallbackAccepted: $($summary.fallbackAccepted)",
     "- QuotaBlocked: $($summary.quotaBlocked)",
     "- CompletedBackends: $($summary.completedBackends -join ', ')",
     "- FailedBackends: $($summary.failedBackends -join ', ')",
@@ -509,6 +516,10 @@ $markdown = @(
 $summary | ConvertTo-Json -Depth 10
 
 if ($summary.ok) {
+    exit 0
+}
+
+if ($summary.degradedFallback) {
     exit 0
 }
 

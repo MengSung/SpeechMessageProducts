@@ -1,0 +1,12 @@
+﻿{
+    "domain":  "tooling",
+    "branch":  "Jesus_5.1.7.WorktreeRefactorRichMenu",
+    "id":  "ccg-dual-model-auto-recovery-entrypoint",
+    "risk":  "medium",
+    "createdAt":  "2026-07-04T11:15:43.2077123Z",
+    "complexity":  "M",
+    "currentPhase":  "completed",
+    "status":  "completed",
+    "nextAction":  "Use Start-CcgDualModelRun.ps1 for future CCG analyze/review runs",
+    "title":  "Make future CCG dual-model runs automatically use self-healing entrypoint"
+}
