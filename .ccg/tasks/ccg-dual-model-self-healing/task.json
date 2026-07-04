@@ -1,0 +1,12 @@
+{
+    "id":  "ccg-dual-model-self-healing",
+    "title":  "Make CCG Gemini Claude dual model runs self healing",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "tooling",
+    "currentPhase":  "completed",
+    "nextAction":  "Use Invoke-CcgDualModelWithSelfHealing.ps1 for future CCG analyze/review runs",
+    "createdAt":  "2026-07-04T05:14:43Z",
+    "branch":  "Jesus_5.1.7.WorktreeRefactorRichMenu"
+}

@@ -1,10 +1,10 @@
 using Line.Messaging;
 
-namespace LineMessagingProcessor.Workflows;
+namespace LineMessagingProcessor.RichMenus;
 
 /// <summary>
-/// 建立 RichMenu、上傳 PNG 圖片並綁定到單一 LINE 使用者的共用請求。
-/// RichMenu 的版面與圖片內容由產品端提供；workflow 只負責照 LINE 官方 API 順序執行。
+/// 建立 RichMenu、上傳 PNG 並連結到 LINE 使用者的標準請求。
+/// RichMenu 版面與圖片來源由呼叫端提供，workflow 僅負責穩定串接 LINE RichMenu API。
 /// </summary>
 public sealed class LineRichMenuCreateUploadAndLinkRequest
 {
@@ -16,3 +16,4 @@ public sealed class LineRichMenuCreateUploadAndLinkRequest
 
     public IReadOnlyDictionary<string, string> Metadata { get; init; } = new Dictionary<string, string>();
 }
+

@@ -1,18 +1,17 @@
 using Line.Messaging;
-using LineMessagingProcessor;
 
-namespace LineMessagingProcessor.Workflows;
+namespace LineMessagingProcessor.RichMenus;
 
 /// <summary>
-/// 共用 RichMenu 工作流。
-/// 它只負責 LINE API 的固定編排：驗證請求、建立 RichMenu、上傳 PNG、綁定使用者、解除並刪除。
-/// 產品端的「誰應該看到哪個 RichMenu」不屬於這裡，應由 ChurchReport 或未來產品自己的 policy 決定。
+/// RichMenu API 的共用 workflow。
+/// 此型別只負責建立 RichMenu、上傳 PNG、連結使用者、解除連結與刪除遠端選單；
+/// 選單規則、使用者分群、畫面流程與產品 policy 都留在呼叫端或更上層 orchestrator。
 /// </summary>
 public sealed class LineRichMenuWorkflow : ILineRichMenuWorkflow
 {
-    private readonly LineMessagingProcessorClass _processor;
+    private readonly ILineRichMenuProcessor _processor;
 
-    public LineRichMenuWorkflow(LineMessagingProcessorClass processor)
+    public LineRichMenuWorkflow(ILineRichMenuProcessor processor)
     {
         _processor = processor ?? throw new ArgumentNullException(nameof(processor));
     }
@@ -37,7 +36,7 @@ public sealed class LineRichMenuWorkflow : ILineRichMenuWorkflow
                 return LineRichMenuResult.Failure(
                     request.UserId,
                     richMenuId,
-                    LineNotificationStatus.ValidationFailed,
+                    LineRichMenuStatus.ValidationFailed,
                     "line-richmenu-image-stream-required",
                     "RichMenu PNG image stream is required.",
                     null,
@@ -54,7 +53,7 @@ public sealed class LineRichMenuWorkflow : ILineRichMenuWorkflow
             return LineRichMenuResult.Failure(
                 request.UserId,
                 richMenuId,
-                LineNotificationStatus.ProviderRejected,
+                LineRichMenuStatus.ProviderRejected,
                 "line-richmenu-provider-rejected",
                 ex.Message,
                 ex,
@@ -65,7 +64,7 @@ public sealed class LineRichMenuWorkflow : ILineRichMenuWorkflow
             return LineRichMenuResult.Failure(
                 request.UserId,
                 richMenuId,
-                LineNotificationStatus.ProviderUnavailable,
+                LineRichMenuStatus.ProviderUnavailable,
                 "line-richmenu-provider-unavailable",
                 ex.Message,
                 ex,
@@ -76,7 +75,7 @@ public sealed class LineRichMenuWorkflow : ILineRichMenuWorkflow
             return LineRichMenuResult.Failure(
                 request.UserId,
                 richMenuId,
-                LineNotificationStatus.ProviderUnavailable,
+                LineRichMenuStatus.ProviderUnavailable,
                 "line-richmenu-provider-timeout",
                 ex.Message,
                 ex,
@@ -87,7 +86,7 @@ public sealed class LineRichMenuWorkflow : ILineRichMenuWorkflow
             return LineRichMenuResult.Failure(
                 request.UserId,
                 richMenuId,
-                LineNotificationStatus.UnexpectedError,
+                LineRichMenuStatus.UnexpectedError,
                 "line-richmenu-unexpected-error",
                 ex.Message,
                 ex,
@@ -131,7 +130,7 @@ public sealed class LineRichMenuWorkflow : ILineRichMenuWorkflow
             return LineRichMenuResult.Failure(
                 request.UserId,
                 richMenuId,
-                LineNotificationStatus.ProviderRejected,
+                LineRichMenuStatus.ProviderRejected,
                 "line-richmenu-provider-rejected",
                 ex.Message,
                 ex,
@@ -142,7 +141,7 @@ public sealed class LineRichMenuWorkflow : ILineRichMenuWorkflow
             return LineRichMenuResult.Failure(
                 request.UserId,
                 richMenuId,
-                LineNotificationStatus.ProviderUnavailable,
+                LineRichMenuStatus.ProviderUnavailable,
                 "line-richmenu-provider-unavailable",
                 ex.Message,
                 ex,
@@ -153,7 +152,7 @@ public sealed class LineRichMenuWorkflow : ILineRichMenuWorkflow
             return LineRichMenuResult.Failure(
                 request.UserId,
                 richMenuId,
-                LineNotificationStatus.ProviderUnavailable,
+                LineRichMenuStatus.ProviderUnavailable,
                 "line-richmenu-provider-timeout",
                 ex.Message,
                 ex,
@@ -164,7 +163,7 @@ public sealed class LineRichMenuWorkflow : ILineRichMenuWorkflow
             return LineRichMenuResult.Failure(
                 request.UserId,
                 richMenuId,
-                LineNotificationStatus.UnexpectedError,
+                LineRichMenuStatus.UnexpectedError,
                 "line-richmenu-unexpected-error",
                 ex.Message,
                 ex,
@@ -185,22 +184,22 @@ public sealed class LineRichMenuWorkflow : ILineRichMenuWorkflow
     {
         if (request == null)
         {
-            return LineRichMenuResult.Failure(null, null, LineNotificationStatus.ValidationFailed, "line-richmenu-request-required", "RichMenu request is required.", null, null);
+            return LineRichMenuResult.Failure(null, null, LineRichMenuStatus.ValidationFailed, "line-richmenu-request-required", "RichMenu request is required.", null, null);
         }
 
         if (string.IsNullOrWhiteSpace(request.UserId))
         {
-            return LineRichMenuResult.Failure(request.UserId, null, LineNotificationStatus.ValidationFailed, "line-richmenu-user-required", "LINE user id is required.", null, request.Metadata);
+            return LineRichMenuResult.Failure(request.UserId, null, LineRichMenuStatus.ValidationFailed, "line-richmenu-user-required", "LINE user id is required.", null, request.Metadata);
         }
 
         if (request.RichMenu == null)
         {
-            return LineRichMenuResult.Failure(request.UserId, null, LineNotificationStatus.ValidationFailed, "line-richmenu-definition-required", "RichMenu definition is required.", null, request.Metadata);
+            return LineRichMenuResult.Failure(request.UserId, null, LineRichMenuStatus.ValidationFailed, "line-richmenu-definition-required", "RichMenu definition is required.", null, request.Metadata);
         }
 
         if (request.PngImageStreamFactory == null)
         {
-            return LineRichMenuResult.Failure(request.UserId, null, LineNotificationStatus.ValidationFailed, "line-richmenu-image-factory-required", "RichMenu PNG image stream factory is required.", null, request.Metadata);
+            return LineRichMenuResult.Failure(request.UserId, null, LineRichMenuStatus.ValidationFailed, "line-richmenu-image-factory-required", "RichMenu PNG image stream factory is required.", null, request.Metadata);
         }
 
         return null;
@@ -210,14 +209,16 @@ public sealed class LineRichMenuWorkflow : ILineRichMenuWorkflow
     {
         if (request == null)
         {
-            return LineRichMenuResult.Failure(null, null, LineNotificationStatus.ValidationFailed, "line-richmenu-request-required", "RichMenu request is required.", null, null);
+            return LineRichMenuResult.Failure(null, null, LineRichMenuStatus.ValidationFailed, "line-richmenu-request-required", "RichMenu request is required.", null, null);
         }
 
         if (string.IsNullOrWhiteSpace(request.UserId))
         {
-            return LineRichMenuResult.Failure(request.UserId, null, LineNotificationStatus.ValidationFailed, "line-richmenu-user-required", "LINE user id is required.", null, request.Metadata);
+            return LineRichMenuResult.Failure(request.UserId, null, LineRichMenuStatus.ValidationFailed, "line-richmenu-user-required", "LINE user id is required.", null, request.Metadata);
         }
 
         return null;
     }
 }
+
+

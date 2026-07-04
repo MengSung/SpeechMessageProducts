@@ -3,10 +3,10 @@ using System.Text;
 using FluentAssertions;
 using Line.Messaging;
 using LineMessagingProcessor;
-using LineMessagingProcessor.Workflows;
+using LineMessagingProcessor.RichMenus;
 using Xunit;
 
-namespace LineMessagingProcessor.Workflows.Tests;
+namespace LineMessagingProcessor.RichMenus.Tests;
 
 public sealed class LineRichMenuWorkflowTests
 {
@@ -77,7 +77,7 @@ public sealed class LineRichMenuWorkflowTests
         });
 
         result.Succeeded.Should().BeFalse();
-        result.Status.Should().Be(LineNotificationStatus.ValidationFailed);
+        result.Status.Should().Be(LineRichMenuStatus.ValidationFailed);
         result.ErrorCode.Should().Be("line-richmenu-user-required");
         handler.Requests.Should().BeEmpty();
     }
@@ -97,7 +97,7 @@ public sealed class LineRichMenuWorkflowTests
         });
 
         var exception = await action.Should().ThrowAsync<LineRichMenuException>();
-        exception.Which.Result.Status.Should().Be(LineNotificationStatus.ProviderRejected);
+        exception.Which.Result.Status.Should().Be(LineRichMenuStatus.ProviderRejected);
         exception.Which.Result.ErrorCode.Should().Be("line-richmenu-provider-rejected");
         exception.Which.Result.ErrorMessage.Should().Be("invalid rich menu");
     }
@@ -105,7 +105,7 @@ public sealed class LineRichMenuWorkflowTests
     private static LineRichMenuWorkflow CreateWorkflow(SequencedHttpMessageHandler handler)
     {
         var sdkClient = new LineMessagingClient(new HttpClient(handler), "test-token", "https://api.line.me/v2");
-        return new LineRichMenuWorkflow(new LineMessagingProcessorClass(sdkClient));
+        return new LineRichMenuWorkflow(new LineMessagingProcessorRichMenuAdapter(new LineMessagingProcessorClass(sdkClient)));
     }
 
     private static RichMenu CreateRichMenu()
@@ -156,3 +156,5 @@ public sealed class LineRichMenuWorkflowTests
         }
     }
 }
+
+

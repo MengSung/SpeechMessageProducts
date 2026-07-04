@@ -1,5 +1,6 @@
 using Line.Messaging;
 using LineMessagingProcessor;
+using LineMessagingProcessor.RichMenus;
 using LineMessagingProcessor.Workflows;
 using System;
 using System.Collections.Generic;
@@ -45,7 +46,7 @@ namespace ChurchReport.Tools
 
         private static ILineRichMenuWorkflow CreateDefaultRichMenuWorkflow(LineMessagingClient lineMessagingClient)
         {
-            return new LineRichMenuWorkflow(new LineMessagingProcessorClass(lineMessagingClient));
+            return new LineRichMenuWorkflow(new LineMessagingProcessorRichMenuAdapter(new LineMessagingProcessorClass(lineMessagingClient)));
         }
 
         private async Task SendBestEffortSdkMessagesAsync(

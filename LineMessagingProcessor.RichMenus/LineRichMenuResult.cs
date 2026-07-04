@@ -1,14 +1,14 @@
-namespace LineMessagingProcessor.Workflows;
+namespace LineMessagingProcessor.RichMenus;
 
 /// <summary>
-/// RichMenu 共用 workflow 的標準結果。
-/// SendAsync 類流程回傳結果而非直接吞掉例外，讓產品端可以依重要性決定是否中斷流程。
+/// RichMenu workflow 的標準化執行結果。
+/// 透過固定欄位表達成功、驗證失敗、LINE 拒絕、服務不可用或未預期錯誤，避免各產品自行解析例外。
 /// </summary>
 public sealed class LineRichMenuResult
 {
     private LineRichMenuResult(
         bool succeeded,
-        LineNotificationStatus status,
+        LineRichMenuStatus status,
         string? userId,
         string? richMenuId,
         string? errorCode,
@@ -28,7 +28,7 @@ public sealed class LineRichMenuResult
 
     public bool Succeeded { get; }
 
-    public LineNotificationStatus Status { get; }
+    public LineRichMenuStatus Status { get; }
 
     public string? UserId { get; }
 
@@ -43,15 +43,16 @@ public sealed class LineRichMenuResult
     public IReadOnlyDictionary<string, string> Metadata { get; }
 
     public static LineRichMenuResult Success(string userId, string? richMenuId, IReadOnlyDictionary<string, string> metadata)
-        => new(true, LineNotificationStatus.Succeeded, userId, richMenuId, null, null, null, metadata);
+        => new(true, LineRichMenuStatus.Succeeded, userId, richMenuId, null, null, null, metadata);
 
     public static LineRichMenuResult Failure(
         string? userId,
         string? richMenuId,
-        LineNotificationStatus status,
+        LineRichMenuStatus status,
         string errorCode,
         string errorMessage,
         Exception? exception,
         IReadOnlyDictionary<string, string>? metadata)
         => new(false, status, userId, richMenuId, errorCode, errorMessage, exception, metadata ?? new Dictionary<string, string>());
 }
+

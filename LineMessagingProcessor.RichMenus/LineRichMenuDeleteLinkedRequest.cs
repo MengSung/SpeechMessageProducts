@@ -1,9 +1,8 @@
-namespace LineMessagingProcessor.Workflows;
+namespace LineMessagingProcessor.RichMenus;
 
 /// <summary>
-/// 解除使用者目前 RichMenu 並刪除該 RichMenu 的共用請求。
-/// 這保留舊 ChurchReport 行為：先查使用者目前綁定的 RichMenu ID，再 unlink，最後 delete。
-/// 若未來產品需要「只解除不刪除」或「刪除共用模板」這類不同策略，應新增明確方法，不在這裡塞旗標。
+/// 刪除已連結 RichMenu 的標準請求。
+/// 呼叫端只提供 LINE user id 與必要追蹤資料；解除連結與刪除遠端選單由共用 workflow 負責。
 /// </summary>
 public sealed class LineRichMenuDeleteLinkedRequest
 {
@@ -11,3 +10,4 @@ public sealed class LineRichMenuDeleteLinkedRequest
 
     public IReadOnlyDictionary<string, string> Metadata { get; init; } = new Dictionary<string, string>();
 }
+

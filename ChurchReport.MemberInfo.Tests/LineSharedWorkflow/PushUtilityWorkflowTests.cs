@@ -1,6 +1,7 @@
 using ChurchReport.Tools;
 using FluentAssertions;
 using Line.Messaging;
+using LineMessagingProcessor.RichMenus;
 using LineMessagingProcessor.Workflows;
 using Xunit;
 
@@ -362,3 +363,4 @@ public sealed class PushUtilityWorkflowTests
         }
     }
 }
+

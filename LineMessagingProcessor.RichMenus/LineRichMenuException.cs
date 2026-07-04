@@ -1,8 +1,8 @@
-namespace LineMessagingProcessor.Workflows;
+namespace LineMessagingProcessor.RichMenus;
 
 /// <summary>
-/// RichMenu 必達流程失敗時使用的標準例外。
-/// 呼叫端可從 Result 取得 provider 回覆、驗證錯誤或原始例外，不需要解析字串。
+/// RichMenu 共用流程使用的標準例外。
+/// 共用層同時保留標準化結果，讓產品端可以用同一種方式記錄錯誤、回覆使用者或中斷必要流程。
 /// </summary>
 public sealed class LineRichMenuException : Exception
 {
@@ -12,5 +12,21 @@ public sealed class LineRichMenuException : Exception
         Result = result ?? throw new ArgumentNullException(nameof(result));
     }
 
+    public LineRichMenuException(LineRichMenuAssignmentResult result)
+        : base(result?.ErrorMessage ?? "LINE RichMenu assignment failed.")
+    {
+        AssignmentResult = result ?? throw new ArgumentNullException(nameof(result));
+        Result = LineRichMenuResult.Failure(
+            null,
+            result.RichMenuId,
+            result.Status,
+            result.ErrorCode ?? "line-richmenu-assignment-failed",
+            result.ErrorMessage ?? "LINE RichMenu assignment failed.",
+            null,
+            new Dictionary<string, string>());
+    }
+
     public LineRichMenuResult Result { get; }
+
+    public LineRichMenuAssignmentResult? AssignmentResult { get; }
 }
