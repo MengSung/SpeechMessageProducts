@@ -4,7 +4,9 @@
 
 ## Standard Entry
 
-For CCG analysis or review, use the self-healing runner first:
+For CCG analysis or review, use the self-healing runner first. This is also the
+automatic recovery path when Gemini, Claude, or `codeagent-wrapper` fails before
+producing usable findings.
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\docs\scripts\Invoke-CcgDualModelWithSelfHealing.ps1" `
@@ -16,6 +18,22 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\docs\scripts\Invoke-C
 
 Do not start by debugging Gemini or Claude manually. The runner owns PATH setup,
 UTF-8 environment setup, backend smoke checks, retries, and summary output.
+
+## Mandatory Recovery Loop
+
+When a dual-model analysis/review fails:
+
+1. Preserve the original task prompt, or create one under `.ccg/dual-model-runs/` if the failed call
+   was typed directly.
+2. Run `Invoke-CcgDualModelWithSelfHealing.ps1` with the same role and repository path.
+3. Read the generated `summary.json`.
+4. If `ok=true`, continue the task from Gemini + Claude outputs.
+5. If exit code is `2`, repair the local issue shown in the run folder and rerun the same runner.
+6. If `quotaBlocked=true`, stop calling it a tool failure; this is provider/session state. Use
+   `-AllowSingleModelWhenQuotaBlocked` only when the task owner explicitly accepts fallback.
+
+Do not abandon the development task just because the first Gemini/Claude call failed. The default
+response is self-heal, rerun, then continue.
 
 ## Quick Trigger
 

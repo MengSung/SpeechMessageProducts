@@ -1,8 +1,8 @@
-# CCG Gemini + Claude 雙模型自我修復固定流程
+# CCG Gemini + Claude 雙模型健康檢查與永久修復手冊
 
-本文件說明未來執行 CCG analysis / review 時，如何避免 Gemini 或 Claude 工具鏈失敗後整個任務停住。
+本文件說明本專案以後執行 CCG analysis / review 時，如何讓 Gemini + Claude 雙模型流程在失敗時自動先修復本機環境、重新執行，並在可恢復時繼續任務，而不是停在「雙模型失敗」。
 
-## 結論
+## 核心結論
 
 以後不要直接手動呼叫：
 
@@ -11,7 +11,7 @@
 - `gemini`
 - `claude`
 
-請一律改用自我修復入口：
+所有 CCG analysis / review 都要先走專案自修復 runner：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\docs\scripts\Invoke-CcgDualModelWithSelfHealing.ps1" `
@@ -31,80 +31,90 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\docs\scripts\Invoke-C
 - `optimizer`
 - `builder`
 
-## 自我修復會處理什麼
+## 自動修復流程
 
-`Invoke-CcgDualModelWithSelfHealing.ps1` 會先呼叫 `Test-CcgDualModelHealth.ps1`，並在同一個執行流程內處理下列問題：
+`Invoke-CcgDualModelWithSelfHealing.ps1` 會先呼叫 `Test-CcgDualModelHealth.ps1`，再執行 Gemini 與 Claude。它負責：
 
 - 確認 `codeagent-wrapper.exe` 是否存在。
-- 確認 `gemini.cmd`、`claude.cmd`、`python.exe` 是否可找到。
-- 自動補齊目前 process PATH 與 Windows User PATH。
-- 設定 `GEMINI_CLI_TRUST_WORKSPACE=true`，避免新 worktree 信任狀態卡住。
-- 設定 `CODEAGENT_LITE_MODE=true`，避免 Windows 下 Gemini progress mode 不穩。
-- 設定 `PYTHONIOENCODING=utf-8`，降低中文輸出亂碼風險。
-- 將 prompt、stdout、stderr、health check、summary 全部保存到 `.ccg/dual-model-runs/`。
-- 健康檢查預設只檢查本機工具鏈，不額外呼叫 Gemini / Claude，以免正式 review 前先消耗模型額度。
-- 如需連 backend smoke test 也一起跑，可加上 `-RunHealthBackendSmoke`。
-- 健康檢查若仍屬於可修復問題，會依 `-MaxAttempts` 自動重新嘗試。
-- backend 成功不只看 exit code，還會確認模型確實產生 reviewer / analyzer 輸出。
+- 確認 `gemini.cmd`、`claude.cmd`、`python.exe` 是否可用。
+- 修復目前 PowerShell process 的 `PATH`。
+- 修復 Windows User `PATH`，避免下次新開終端機又找不到工具。
+- 設定 `GEMINI_CLI_TRUST_WORKSPACE=true`，避免新 worktree 的信任問題。
+- 設定 `CODEAGENT_LITE_MODE=true`，避免 Windows 上 Gemini progress mode 的不穩定路徑。
+- 設定 `PYTHONIOENCODING=utf-8`，避免中文輸出亂碼。
+- 將 prompt、stdout、stderr、health check、summary 全部寫入 `.ccg/dual-model-runs/`。
+- 要求模型真的輸出內容；不能只看 exit code。
+- 預設略過 backend smoke test，避免還沒 review 就先消耗模型額度。需要診斷登入或 provider 狀態時才加上 `-RunHealthBackendSmoke`。
 
-## 什麼情況不能本機修復
+## 未來失敗時的固定處理規則
 
-下列狀況不是本機工具鏈壞掉，不能靠腳本修復：
+當 CCG analysis / review 發生失敗，不要停下任務，也不要直接從零手動查 Gemini 或 Claude。固定照以下流程：
 
-- Claude 或 Gemini 額度用完。
-- Claude session limit。
-- Provider HTTP 429。
-- 帳號登入、授權、付款、服務端限制。
-
-這類情況 runner 會標記：
-
-```text
-quotaBlocked=true
-```
-
-這表示不是程式壞掉，而是外部模型供應商暫時拒絕服務。不可把這種情況回報成「雙模型 review 成功」。
+1. 將原本要分析或 review 的內容寫成 UTF-8 prompt 檔，放在 `.ccg/dual-model-runs/`。
+2. 用 `Invoke-CcgDualModelWithSelfHealing.ps1` 重新執行同一個任務。
+3. 讀取本次 run folder 內的 `summary.json`。
+4. 如果 `ok=true`，代表 Gemini + Claude 都完成，繼續整理雙模型結果。
+5. 如果 exit code 是 `2`，代表還有本機工具鏈問題；依 run folder 中的 health/stdout/stderr 修復後，再跑同一支 runner。
+6. 如果 `quotaBlocked=true`，代表 Gemini / Claude provider 額度、session limit、HTTP 429、登入狀態等外部因素阻擋。這不是本機可修復問題，不可以宣稱雙模型 review 成功。
+7. 只有在任務明確允許單模型 fallback 時，才可以加上 `-AllowSingleModelWhenQuotaBlocked`，而且報告中必須註明這不是完整雙模型 review。
 
 ## Claude wrapper exit 1 的處理
 
-`codeagent-wrapper.exe --backend claude` 有時只輸出：
+有時候 `codeagent-wrapper.exe --backend claude` 只會回：
 
 ```text
 claude exited with status 1
 ```
 
-這種訊息不足以判斷是本機壞掉還是 Claude 額度問題。因此 runner 會自動再做一次 direct Claude probe：
+這個訊息本身不足以判斷是本機壞掉，還是 Claude provider / session limit。runner 會自動再做 direct Claude probe：
 
 ```powershell
 claude -p "Smoke test only..." --dangerously-skip-permissions --output-format text
 ```
 
-如果 direct probe 顯示 `You've hit your session limit`、`rate limit`、`quota` 或 `429`，runner 會正確歸類為外部額度問題，而不是反覆做無效的本機修復。
+如果 direct probe 顯示 `You've hit your session limit`、`rate limit`、`quota`、`429` 等訊息，runner 會將它分類為：
 
-## analyze / review 指令入口
+```text
+quotaBlocked=true
+```
 
-以下兩個 CCG 指令已固定改走自我修復入口：
+這樣可以避免一直對不可本機修復的 provider 限制做錯誤修復。
+
+## Analyze / Review 指令
+
+專案的 CCG 指令已改成使用自修復 runner：
 
 - `C:\Users\Administrator\.claude\commands\ccg\analyze.md`
 - `C:\Users\Administrator\.claude\commands\ccg\review.md`
 
-因此未來進行 CCG analysis / review 時，應該讓指令建立 task prompt，然後交給 `Invoke-CcgDualModelWithSelfHealing.ps1` 執行。
+以後呼叫 CCG analysis / review 時，這兩份指令會要求先建立 task prompt，再透過 `Invoke-CcgDualModelWithSelfHealing.ps1` 執行。
 
-## 未來任務遇到雙模型失敗時的標準處理
+## 快速健康檢查
 
-1. 不要停止任務。
-2. 不要立刻手動重查 Gemini / Claude。
-3. 直接改用 `Invoke-CcgDualModelWithSelfHealing.ps1`。
-4. 讀取 runner 的 `summary.json`。
-5. 如果 `ok=true`，繼續整理雙模型分析或 review 結果。
-6. 如果 `quotaBlocked=true`，明確回報外部額度阻塞；若任務允許，可使用 `-AllowSingleModelWhenQuotaBlocked` 暫時取得可用模型的意見，但不可宣稱完成雙模型 review。
-7. 如果 exit code 是 `2`，代表仍有本機可修復問題，應查看該 run 目錄中的 health / stderr 檔案，再修腳本或環境。
+如果只想檢查工具鏈，不想跑正式 review：
 
-## 設計原則
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\docs\scripts\Test-CcgDualModelHealth.ps1" `
+  -RepositoryPath "<worktree-root>" `
+  -OutputDirectory ".\.ccg\dual-model-runs" `
+  -SkipBackendSmoke
+```
 
-這個流程的目的不是掩蓋錯誤，而是把問題分成三類：
+如果要同時確認 Gemini / Claude provider 是否能真的回覆，才使用：
 
-- 本機環境問題：自動修復後重試。
-- 模型供應商額度問題：正確標記，不做假成功。
-- 真正 review 發現的程式問題：寫入 review 結果並回到程式修正。
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\docs\scripts\Test-CcgDualModelHealth.ps1" `
+  -RepositoryPath "<worktree-root>" `
+  -OutputDirectory ".\.ccg\dual-model-runs"
+```
 
-這樣可以讓 CCG review 成為穩定流程，而不是每次失敗都重新手動除錯。
+## 給未來 agent 的規則
+
+- 不要因為第一次 Gemini / Claude 失敗就停止任務。
+- 不要跳過自修復 runner 直接手動呼叫模型。
+- 不要把 `quotaBlocked=true` 報告成「雙模型 review 已完成」。
+- 不要把只有 Gemini 或只有 Claude 的結果包裝成雙模型結果。
+- 如果 runner 成功，任務要繼續往 implementation / review / fix 前進。
+- 如果 runner 失敗但不是 quota，先修本機工具鏈，再重跑 runner。
+
+此流程的目的不是保證 provider 永遠有額度，而是讓所有可本機修復的問題自動被修掉，並讓不可本機修復的 provider 限制被清楚分類，避免任務卡在模糊的「雙模型壞了」。
