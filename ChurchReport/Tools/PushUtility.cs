@@ -1,5 +1,6 @@
 using Line.Messaging;
 using LineMessagingProcessor;
+using LineMessagingProcessor.RichMenus;
 using LineMessagingProcessor.Workflows;
 using System;
 using System.Collections.Generic;
@@ -14,17 +15,24 @@ namespace ChurchReport.Tools
         private LineMessagingClient m_LineMessagingClient { get; }
         private readonly ILineNotificationWorkflow _lineNotificationWorkflow;
         private readonly ILineRichMenuWorkflow _lineRichMenuWorkflow;
+        private readonly ILineRichMenuAssignmentWorkflow _lineRichMenuAssignmentWorkflow;
+        private const string LegacyAuthRichMenuKey = "legacy-auth";
 
         public PushUtility(LineMessagingClient LineMessagingClient)
             : this(
                   LineMessagingClient,
                   CreateDefaultNotificationWorkflow(LineMessagingClient),
-                  null)
+                  lineRichMenuWorkflow: null,
+                  lineRichMenuAssignmentWorkflow: null)
         {
         }
 
         public PushUtility(LineMessagingClient LineMessagingClient, ILineNotificationWorkflow? lineNotificationWorkflow)
-            : this(LineMessagingClient, lineNotificationWorkflow, CreateDefaultRichMenuWorkflow(LineMessagingClient))
+            : this(
+                  LineMessagingClient,
+                  lineNotificationWorkflow,
+                  CreateDefaultRichMenuWorkflow(LineMessagingClient),
+                  lineRichMenuAssignmentWorkflow: null)
         {
         }
 
@@ -32,10 +40,28 @@ namespace ChurchReport.Tools
             LineMessagingClient LineMessagingClient,
             ILineNotificationWorkflow? lineNotificationWorkflow,
             ILineRichMenuWorkflow? lineRichMenuWorkflow)
+            : this(LineMessagingClient, lineNotificationWorkflow, lineRichMenuWorkflow, null)
+        {
+        }
+
+        public PushUtility(
+            LineMessagingClient LineMessagingClient,
+            ILineNotificationWorkflow? lineNotificationWorkflow,
+            ILineRichMenuAssignmentWorkflow? lineRichMenuAssignmentWorkflow)
+            : this(LineMessagingClient, lineNotificationWorkflow, null, lineRichMenuAssignmentWorkflow)
+        {
+        }
+
+        public PushUtility(
+            LineMessagingClient LineMessagingClient,
+            ILineNotificationWorkflow? lineNotificationWorkflow,
+            ILineRichMenuWorkflow? lineRichMenuWorkflow,
+            ILineRichMenuAssignmentWorkflow? lineRichMenuAssignmentWorkflow)
         {
             this.m_LineMessagingClient = LineMessagingClient ?? throw new ArgumentNullException(nameof(LineMessagingClient));
             _lineNotificationWorkflow = lineNotificationWorkflow ?? CreateDefaultNotificationWorkflow(LineMessagingClient);
             _lineRichMenuWorkflow = lineRichMenuWorkflow ?? CreateDefaultRichMenuWorkflow(LineMessagingClient);
+            _lineRichMenuAssignmentWorkflow = lineRichMenuAssignmentWorkflow ?? CreateDefaultRichMenuAssignmentWorkflow(LineMessagingClient);
         }
 
         private static ILineNotificationWorkflow CreateDefaultNotificationWorkflow(LineMessagingClient lineMessagingClient)
@@ -45,7 +71,17 @@ namespace ChurchReport.Tools
 
         private static ILineRichMenuWorkflow CreateDefaultRichMenuWorkflow(LineMessagingClient lineMessagingClient)
         {
-            return new LineRichMenuWorkflow(new LineMessagingProcessorClass(lineMessagingClient));
+            return new LineRichMenuWorkflow(new LineMessagingProcessorRichMenuAdapter(new LineMessagingProcessorClass(lineMessagingClient)));
+        }
+
+        private static ILineRichMenuAssignmentWorkflow CreateDefaultRichMenuAssignmentWorkflow(LineMessagingClient lineMessagingClient)
+        {
+            var processor = new LineMessagingProcessorRichMenuAdapter(new LineMessagingProcessorClass(lineMessagingClient));
+            return new LineRichMenuAssignmentWorkflow(
+                processor,
+                new InMemoryLineRichMenuIdCache(),
+                new InMemoryRichMenuStateStore(),
+                new ChurchReportLegacyRichMenuCatalog());
         }
 
         private async Task SendBestEffortSdkMessagesAsync(
@@ -396,19 +432,10 @@ namespace ChurchReport.Tools
         {
             try
             {
-                var richMenu = CreateLegacySingleButtonRichMenu();
-                var imagePath = @"D:\暫存區\richmenu.PNG";
-                await _lineRichMenuWorkflow.CreateUploadAndLinkOrThrowAsync(new LineRichMenuCreateUploadAndLinkRequest
-                {
-                        UserId = UserId,
-                        RichMenu = richMenu,
-                        PngImageStreamFactory = () => File.OpenRead(imagePath),
-                        Metadata = new Dictionary<string, string>
-                        {
-                            ["source"] = "ChurchReport.PushUtility.AddRichMenuMessage",
-                            ["legacyImagePath"] = imagePath
-                        }
-                });
+                // RichMenu 的建立、上傳、alias 與版本比對已抽到 LineMessagingProcessor.RichMenus。
+                // ChurchReport 這個舊入口只保留「把使用者切到 legacy-auth 選單」的產品動作，
+                // 避免每次呼叫都在產品工具類中重新建立或上傳 LINE RichMenu。
+                await _lineRichMenuAssignmentWorkflow.AssignOrThrowAsync(UserId, LegacyAuthRichMenuKey);
 
                 var messageToSend = new List<ISendMessage>
                 {
@@ -434,14 +461,9 @@ namespace ChurchReport.Tools
         {
             try
             {
-                    await _lineRichMenuWorkflow.DeleteLinkedRichMenuOrThrowAsync(new LineRichMenuDeleteLinkedRequest
-                    {
-                        UserId = UserId,
-                        Metadata = new Dictionary<string, string>
-                        {
-                            ["source"] = "ChurchReport.PushUtility.DeleteRichMenuMessage"
-                        }
-                    });
+                // 刪除舊使用者連結時也只走共用 assignment workflow。
+                // 共用層負責呼叫 LINE unlink API；ChurchReport 不再處理 RichMenu id 或生命週期。
+                await _lineRichMenuAssignmentWorkflow.UnassignOrThrowAsync(UserId);
 
                 return "成功";
             }
@@ -452,24 +474,6 @@ namespace ChurchReport.Tools
             }
         }
 
-        private static RichMenu CreateLegacySingleButtonRichMenu()
-        {
-            return new RichMenu()
-            {
-                Size = ImagemapSize.RichMenuLong,
-                Selected = false,
-                Name = "nice richmenu",
-                ChatBarText = "touch me",
-                Areas = new List<ActionArea>()
-                {
-                    new ActionArea()
-                    {
-                        Bounds = new ImagemapArea(0, 0, ImagemapSize.RichMenuLong.Width, ImagemapSize.RichMenuLong.Height),
-                        Action = new PostbackTemplateAction("ButtonA", "Menu A", "Menu A")
-                    }
-                }
-            };
-        }
         #endregion
 
         #region 撌亙?

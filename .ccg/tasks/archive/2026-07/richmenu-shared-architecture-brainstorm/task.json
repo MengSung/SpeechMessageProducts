@@ -1,0 +1,12 @@
+﻿{
+    "id":  "richmenu-shared-architecture-brainstorm",
+    "title":  "規劃未來產品可共用的 LINE RichMenu 身分與文字動態切換架構",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "backend",
+    "currentPhase":  "completed",
+    "nextAction":  "RichMenu shared orchestrator implementation verified; ready for commit or merge review.",
+    "createdAt":  "2026-07-03T08:20:41Z",
+    "branch":  "Jesus_5.1.7.WorktreeRefactorRichMenu"
+}

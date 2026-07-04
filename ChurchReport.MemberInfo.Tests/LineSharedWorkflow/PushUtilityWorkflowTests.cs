@@ -1,6 +1,7 @@
 using ChurchReport.Tools;
 using FluentAssertions;
 using Line.Messaging;
+using LineMessagingProcessor.RichMenus;
 using LineMessagingProcessor.Workflows;
 using Xunit;
 
@@ -223,41 +224,41 @@ public sealed class PushUtilityWorkflowTests
     }
 
     [Fact]
-    public async Task AddRichMenuMessage_uses_shared_rich_menu_workflow_when_workflow_is_provided()
+    public async Task AddRichMenuMessage_assigns_legacy_auth_menu_through_shared_assignment_workflow()
     {
         var notificationWorkflow = new CapturingWorkflow();
-        var richMenuWorkflow = new CapturingRichMenuWorkflow();
+        var assignmentWorkflow = new CapturingRichMenuAssignmentWorkflow();
         using var httpClient = new HttpClient(new ThrowingHttpMessageHandler());
         var utility = new PushUtility(
             new LineMessagingClient(httpClient, "test-token", "https://api.line.me/v2"),
             notificationWorkflow,
-            richMenuWorkflow);
+            lineRichMenuWorkflow: null,
+            assignmentWorkflow);
 
         await utility.AddRichMenuMessage("Uuser");
 
-        richMenuWorkflow.CreateRequests.Should().ContainSingle();
-        richMenuWorkflow.CreateRequests[0].UserId.Should().Be("Uuser");
-        richMenuWorkflow.CreateRequests[0].RichMenu.Name.Should().Be("nice richmenu");
-        richMenuWorkflow.CreateRequests[0].Metadata["source"].Should().Be("ChurchReport.PushUtility.AddRichMenuMessage");
+        assignmentWorkflow.Assignments.Should().ContainSingle();
+        assignmentWorkflow.Assignments[0].UserId.Should().Be("Uuser");
+        assignmentWorkflow.Assignments[0].MenuKey.Should().Be("legacy-auth");
         notificationWorkflow.Requests.Should().ContainSingle();
         notificationWorkflow.Requests[0].Metadata["source"].Should().Be("ChurchReport.PushUtility.AddRichMenuMessage");
     }
 
     [Fact]
-    public async Task DeleteRichMenuMessage_uses_shared_rich_menu_workflow_when_workflow_is_provided()
+    public async Task DeleteRichMenuMessage_unassigns_through_shared_assignment_workflow()
     {
-        var richMenuWorkflow = new CapturingRichMenuWorkflow();
+        var assignmentWorkflow = new CapturingRichMenuAssignmentWorkflow();
         using var httpClient = new HttpClient(new ThrowingHttpMessageHandler());
         var utility = new PushUtility(
             new LineMessagingClient(httpClient, "test-token", "https://api.line.me/v2"),
             null,
-            richMenuWorkflow);
+            lineRichMenuWorkflow: null,
+            assignmentWorkflow);
 
         await utility.DeleteRichMenuMessage("Uuser");
 
-        richMenuWorkflow.DeleteRequests.Should().ContainSingle();
-        richMenuWorkflow.DeleteRequests[0].UserId.Should().Be("Uuser");
-        richMenuWorkflow.DeleteRequests[0].Metadata["source"].Should().Be("ChurchReport.PushUtility.DeleteRichMenuMessage");
+        assignmentWorkflow.Unassignments.Should().ContainSingle();
+        assignmentWorkflow.Unassignments[0].Should().Be("Uuser");
     }
 
     private sealed class CapturingWorkflow : ILineNotificationWorkflow
@@ -317,6 +318,37 @@ public sealed class PushUtilityWorkflowTests
         }
     }
 
+    private sealed class CapturingRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWorkflow
+    {
+        public List<(string UserId, string MenuKey)> Assignments { get; } = new();
+
+        public List<string> Unassignments { get; } = new();
+
+        public Task<LineRichMenuAssignmentResult> AssignAsync(string lineUserId, string menuKey, CancellationToken cancellationToken = default)
+        {
+            Assignments.Add((lineUserId, menuKey));
+            return Task.FromResult(LineRichMenuAssignmentResult.Linked(null, menuKey, "rich-menu-test", changed: true));
+        }
+
+        public Task AssignOrThrowAsync(string lineUserId, string menuKey, CancellationToken cancellationToken = default)
+        {
+            Assignments.Add((lineUserId, menuKey));
+            return Task.CompletedTask;
+        }
+
+        public Task<LineRichMenuAssignmentResult> UnassignAsync(string lineUserId, CancellationToken cancellationToken = default)
+        {
+            Unassignments.Add(lineUserId);
+            return Task.FromResult(LineRichMenuAssignmentResult.Unlinked("legacy-auth", changed: true));
+        }
+
+        public Task UnassignOrThrowAsync(string lineUserId, CancellationToken cancellationToken = default)
+        {
+            Unassignments.Add(lineUserId);
+            return Task.CompletedTask;
+        }
+    }
+
     private sealed class NoopHttpMessageHandler : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(
@@ -362,3 +394,4 @@ public sealed class PushUtilityWorkflowTests
         }
     }
 }
+

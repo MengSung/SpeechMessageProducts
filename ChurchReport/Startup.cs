@@ -27,6 +27,7 @@ using ToolUtilityNameSpace.DependencyInjection;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ChurchReport.WebServiceConnector;
 using LineMessagingProcessor.AspNetCore;
+using LineMessagingProcessor.RichMenus;
 using SpeechMessage.Payments.AspNetCore.DependencyInjection;
 using SpeechMessage.Payments.DependencyInjection;
 using SpeechMessage.Payments.Workflows;
@@ -493,6 +494,7 @@ namespace ChurchReport
                     Configuration["LINE_CHANNEL_ACCESS_TOKEN"] ??
                     string.Empty;
             });
+            services.AddLineRichMenuProvisioning<ChurchReportLegacyRichMenuCatalog>();
             services.AddScoped<ChurchReport.Services.IChurchReportLineProfileProvider, ChurchReport.Services.ChurchReportLineProfileProvider>();
             services.AddScoped<ChurchReport.Services.IChurchReportLineBindingNotificationService, ChurchReport.Services.ChurchReportLineBindingNotificationService>();
 

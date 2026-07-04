@@ -13,6 +13,7 @@ using System.IO;
 using ToolUtilityNameSpace;
 using Microsoft.Extensions.Configuration;
 using LineMessagingProcessor;
+using LineMessagingProcessor.RichMenus;
 using LineMessagingProcessor.Workflows;
 
 namespace ChurchReport.Tools
@@ -69,13 +70,19 @@ namespace ChurchReport.Tools
 
             private ILineRichMenuWorkflow m_LineRichMenuWorkflow;
 
+            private ILineRichMenuAssignmentWorkflow m_LineRichMenuAssignmentWorkflow;
+
             private readonly bool m_UsesDefaultLineNotificationWorkflow;
 
             private readonly bool m_UsesDefaultLineReplyWorkflow;
 
             private readonly bool m_UsesDefaultLineRichMenuWorkflow;
 
+            private readonly bool m_UsesDefaultLineRichMenuAssignmentWorkflow;
+
             private readonly Action<string, string, string> m_CreatePushLineMessage;
+
+            private const string LegacyAuthRichMenuKey = "legacy-auth";
 
             private const String WEB_LINK = @"http://www.speechmessage.com.tw";
 
@@ -160,9 +167,11 @@ namespace ChurchReport.Tools
                 m_UsesDefaultLineNotificationWorkflow = lineNotificationWorkflow == null;
                 m_UsesDefaultLineReplyWorkflow = lineReplyWorkflow == null;
                 m_UsesDefaultLineRichMenuWorkflow = true;
+                m_UsesDefaultLineRichMenuAssignmentWorkflow = true;
                 m_LineNotificationWorkflow = lineNotificationWorkflow ?? CreateDefaultNotificationWorkflow(m_LineMessagingClient);
                 m_LineReplyWorkflow = lineReplyWorkflow ?? CreateDefaultReplyWorkflow(m_LineMessagingClient);
                 m_LineRichMenuWorkflow = CreateDefaultRichMenuWorkflow(m_LineMessagingClient);
+                m_LineRichMenuAssignmentWorkflow = CreateDefaultRichMenuAssignmentWorkflow(m_LineMessagingClient);
                 m_CreatePushLineMessage = m_ToolUtilityClass.CreatePushLineMessage;
 
                 m_ReplyUtility = new ReplyUtility(
@@ -214,15 +223,29 @@ namespace ChurchReport.Tools
                 ILineReplyWorkflow? lineReplyWorkflow,
                 ILineRichMenuWorkflow? lineRichMenuWorkflow,
                 Action<string, string, string>? createPushLineMessage = null)
+                : this(aToolUtilityClass, lineMessagingClient, lineNotificationWorkflow, lineReplyWorkflow, lineRichMenuWorkflow, null, createPushLineMessage)
+            {
+            }
+
+            protected LineUtilityClass(
+                ToolUtilityClass aToolUtilityClass,
+                LineMessagingClient lineMessagingClient,
+                ILineNotificationWorkflow? lineNotificationWorkflow,
+                ILineReplyWorkflow? lineReplyWorkflow,
+                ILineRichMenuWorkflow? lineRichMenuWorkflow,
+                ILineRichMenuAssignmentWorkflow? lineRichMenuAssignmentWorkflow,
+                Action<string, string, string>? createPushLineMessage = null)
             {
                 m_ToolUtilityClass = aToolUtilityClass ?? throw new ArgumentNullException(nameof(aToolUtilityClass));
                 m_LineMessagingClient = lineMessagingClient ?? throw new ArgumentNullException(nameof(lineMessagingClient));
                 m_UsesDefaultLineNotificationWorkflow = lineNotificationWorkflow == null;
                 m_UsesDefaultLineReplyWorkflow = lineReplyWorkflow == null;
                 m_UsesDefaultLineRichMenuWorkflow = lineRichMenuWorkflow == null;
+                m_UsesDefaultLineRichMenuAssignmentWorkflow = lineRichMenuAssignmentWorkflow == null;
                 m_LineNotificationWorkflow = lineNotificationWorkflow ?? CreateDefaultNotificationWorkflow(m_LineMessagingClient);
                 m_LineReplyWorkflow = lineReplyWorkflow ?? CreateDefaultReplyWorkflow(m_LineMessagingClient);
                 m_LineRichMenuWorkflow = lineRichMenuWorkflow ?? CreateDefaultRichMenuWorkflow(m_LineMessagingClient);
+                m_LineRichMenuAssignmentWorkflow = lineRichMenuAssignmentWorkflow ?? CreateDefaultRichMenuAssignmentWorkflow(m_LineMessagingClient);
                 m_CreatePushLineMessage = createPushLineMessage ?? m_ToolUtilityClass.CreatePushLineMessage;
                 m_ReplyUtility = new ReplyUtility(
                     m_LineMessagingClient,
@@ -242,7 +265,17 @@ namespace ChurchReport.Tools
 
             private static ILineRichMenuWorkflow CreateDefaultRichMenuWorkflow(LineMessagingClient lineMessagingClient)
             {
-                return new LineRichMenuWorkflow(new LineMessagingProcessorClass(lineMessagingClient));
+                return new LineRichMenuWorkflow(new LineMessagingProcessorRichMenuAdapter(new LineMessagingProcessorClass(lineMessagingClient)));
+            }
+
+            private static ILineRichMenuAssignmentWorkflow CreateDefaultRichMenuAssignmentWorkflow(LineMessagingClient lineMessagingClient)
+            {
+                var processor = new LineMessagingProcessorRichMenuAdapter(new LineMessagingProcessorClass(lineMessagingClient));
+                return new LineRichMenuAssignmentWorkflow(
+                    processor,
+                    new InMemoryLineRichMenuIdCache(),
+                    new InMemoryRichMenuStateStore(),
+                    new ChurchReportLegacyRichMenuCatalog());
             }
 
             public void SetupChannelAccessToken(ref IOrganizationService aCrmService)
@@ -297,6 +330,11 @@ namespace ChurchReport.Tools
                 if (m_UsesDefaultLineRichMenuWorkflow)
                 {
                     m_LineRichMenuWorkflow = CreateDefaultRichMenuWorkflow(m_LineMessagingClient);
+                }
+
+                if (m_UsesDefaultLineRichMenuAssignmentWorkflow)
+                {
+                    m_LineRichMenuAssignmentWorkflow = CreateDefaultRichMenuAssignmentWorkflow(m_LineMessagingClient);
                 }
             }
 
@@ -633,19 +671,9 @@ namespace ChurchReport.Tools
 
             public async Task<String> AddRichMenuMessage(string UserId)
             {
-                var richMenu = CreateLegacySingleButtonRichMenu();
-                var imagePath = @"D:\暫存區\richmenu.PNG";
-                await m_LineRichMenuWorkflow.CreateUploadAndLinkOrThrowAsync(new LineRichMenuCreateUploadAndLinkRequest
-                {
-                        UserId = UserId,
-                        RichMenu = richMenu,
-                        PngImageStreamFactory = () => File.OpenRead(imagePath),
-                        Metadata = new Dictionary<string, string>
-                        {
-                            ["source"] = "ChurchReport.LineUtilityClass.AddRichMenuMessage",
-                            ["legacyImagePath"] = imagePath
-                        }
-                });
+                // RichMenu 佈建已由 LineMessagingProcessor.RichMenus 的 catalog/provisioning workflow 負責。
+                // 這個 ChurchReport 舊入口只保留「將使用者指派到 legacy-auth 選單」的應用層動作。
+                await m_LineRichMenuAssignmentWorkflow.AssignOrThrowAsync(UserId, LegacyAuthRichMenuKey);
 
                 var messageToSend = new List<ISendMessage>
                 {
@@ -663,35 +691,11 @@ namespace ChurchReport.Tools
 
             public async Task<String> DeleteRichMenuMessage(string UserId)
             {
-                await m_LineRichMenuWorkflow.DeleteLinkedRichMenuOrThrowAsync(new LineRichMenuDeleteLinkedRequest
-                {
-                        UserId = UserId,
-                        Metadata = new Dictionary<string, string>
-                        {
-                            ["source"] = "ChurchReport.LineUtilityClass.DeleteRichMenuMessage"
-                        }
-                });
+                // 解除使用者 RichMenu 連結時走共用 assignment workflow，
+                // 讓 ChurchReport 不再自行保存或刪除 richMenuId。
+                await m_LineRichMenuAssignmentWorkflow.UnassignOrThrowAsync(UserId);
 
                 return "成功";
-            }
-
-            private static RichMenu CreateLegacySingleButtonRichMenu()
-            {
-                return new RichMenu()
-                {
-                    Size = ImagemapSize.RichMenuLong,
-                    Selected = false,
-                    Name = "nice richmenu",
-                    ChatBarText = "touch me",
-                    Areas = new List<ActionArea>()
-                    {
-                        new ActionArea()
-                        {
-                            Bounds = new ImagemapArea(0, 0, ImagemapSize.RichMenuLong.Width, ImagemapSize.RichMenuLong.Height),
-                            Action = new PostbackTemplateAction("ButtonA", "Menu A", "Menu A")
-                        }
-                    }
-                };
             }
             #endregion
             #endregion

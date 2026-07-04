@@ -429,6 +429,124 @@ namespace LineMessagingProcessor
         }
 
         /// <summary>
+        /// 查詢目前 LINE 官方帳號底下已建立的 RichMenu 清單。
+        /// 這裡只包住 LINE SDK 的查詢入口，不在 processor 內決定哪些選單要給哪個產品使用；
+        /// 產品可透過上層 catalog / provisioning workflow 做自己的部署與比對策略。
+        /// </summary>
+        public async Task<IList<ResponseRichMenu>> GetRichMenuListAsync()
+        {
+            return await _lineMessagingClient.GetRichMenuListAsync().ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 將指定 RichMenu 設為 LINE 官方帳號的預設選單。
+        /// 預設選單是帳號層級設定，影響範圍比單一使用者綁定更大，因此只做參數驗證與 SDK 呼叫，
+        /// 是否允許設定預設選單由上層產品或 provisioning workflow 決定。
+        /// </summary>
+        public async Task SetDefaultRichMenuAsync(string richMenuId)
+        {
+            if (string.IsNullOrWhiteSpace(richMenuId))
+            {
+                throw new ArgumentException("richMenuId is required.", nameof(richMenuId));
+            }
+
+            await _lineMessagingClient.SetDefaultRichMenuAsync(richMenuId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 查詢 LINE 官方帳號目前設定的預設 RichMenu ID。
+        /// 呼叫端可用這個值判斷 provisioning 結果，或在切換預設選單前做稽核紀錄。
+        /// </summary>
+        public async Task<string> GetDefaultRichMenuIdAsync()
+        {
+            return await _lineMessagingClient.GetDefaultRichMenuIdAsync().ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 取消 LINE 官方帳號目前的預設 RichMenu。
+        /// 這是帳號層級操作；processor 不做產品規則判斷，只把明確要求交給 SDK 執行。
+        /// </summary>
+        public async Task CancelDefaultRichMenuAsync()
+        {
+            await _lineMessagingClient.CancelDefaultRichMenuAsync().ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 建立 RichMenu alias，讓產品端可以用穩定的 alias 指向 LINE 產生的 richMenuId。
+        /// alias 是未來多產品共用 RichMenu 的重要邊界：產品記住 alias，而不是記住每次部署產生的 ID。
+        /// </summary>
+        public async Task CreateRichMenuAliasAsync(string richMenuId, string richMenuAliasId)
+        {
+            if (string.IsNullOrWhiteSpace(richMenuId))
+            {
+                throw new ArgumentException("richMenuId is required.", nameof(richMenuId));
+            }
+
+            if (string.IsNullOrWhiteSpace(richMenuAliasId))
+            {
+                throw new ArgumentException("richMenuAliasId is required.", nameof(richMenuAliasId));
+            }
+
+            await _lineMessagingClient.CreateRichMenuAliasAsync(richMenuId, richMenuAliasId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 更新既有 RichMenu alias 指向的新 richMenuId。
+        /// provisioning workflow 可以透過這個方法做到「穩定 alias，不穩定實體 ID」的部署模式。
+        /// </summary>
+        public async Task UpdateRichMenuAliasAsync(string richMenuAliasId, string richMenuId)
+        {
+            if (string.IsNullOrWhiteSpace(richMenuAliasId))
+            {
+                throw new ArgumentException("richMenuAliasId is required.", nameof(richMenuAliasId));
+            }
+
+            if (string.IsNullOrWhiteSpace(richMenuId))
+            {
+                throw new ArgumentException("richMenuId is required.", nameof(richMenuId));
+            }
+
+            await _lineMessagingClient.UpdateRichMenuAliasAsync(richMenuAliasId, richMenuId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 刪除指定 RichMenu alias。
+        /// 清除 alias 時不假設產品流程，避免共用 LINE 模組知道任何 ChurchReport 或其他產品語意。
+        /// </summary>
+        public async Task DeleteRichMenuAliasAsync(string richMenuAliasId)
+        {
+            if (string.IsNullOrWhiteSpace(richMenuAliasId))
+            {
+                throw new ArgumentException("richMenuAliasId is required.", nameof(richMenuAliasId));
+            }
+
+            await _lineMessagingClient.DeleteRichMenuAliasAsync(richMenuAliasId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 查詢單一 RichMenu alias 的官方資料。
+        /// adapter 會把官方 404 轉成共用 RichMenu 專案可理解的 alias-not-found 例外。
+        /// </summary>
+        public async Task<RichMenuAlias> GetRichMenuAliasAsync(string richMenuAliasId)
+        {
+            if (string.IsNullOrWhiteSpace(richMenuAliasId))
+            {
+                throw new ArgumentException("richMenuAliasId is required.", nameof(richMenuAliasId));
+            }
+
+            return await _lineMessagingClient.GetRichMenuAliasAsync(richMenuAliasId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 查詢 LINE 官方帳號底下所有 RichMenu alias。
+        /// provisioning workflow 可用這份清單判斷 alias 是否需要新增、更新或維持不變。
+        /// </summary>
+        public async Task<RichMenuAliasList> GetRichMenuAliasListAsync()
+        {
+            return await _lineMessagingClient.GetRichMenuAliasListAsync().ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// 以 SDK 取得 LINE 使用者個人資料。
         /// 這一層只負責「可重用的 LINE 身分查詢」：先確認 UserId 有值，再交給
         /// Line.Messaging SDK 呼叫官方 /bot/profile/{userId} API。
