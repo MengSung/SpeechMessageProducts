@@ -1,0 +1,69 @@
+﻿{
+    "runId":  "20260704-153745-review-task",
+    "role":  "reviewer",
+    "repositoryPath":  "D:\\網頁APP雲端線上版本\\DevExpressDevExtreme-21.2.7版本\\音訊產品版本\\ChurchReport\\.worktrees\\Jesus_5.1.7.WorktreeRefactorRichMenu",
+    "taskFile":  "D:\\網頁APP雲端線上版本\\DevExpressDevExtreme-21.2.7版本\\音訊產品版本\\ChurchReport\\.worktrees\\Jesus_5.1.7.WorktreeRefactorRichMenu\\.ccg\\tasks\\line-richmenu-shared-orchestrator-review\\review-task.md",
+    "runDirectory":  "D:\\網頁APP雲端線上版本\\DevExpressDevExtreme-21.2.7版本\\音訊產品版本\\ChurchReport\\.worktrees\\Jesus_5.1.7.WorktreeRefactorRichMenu\\.\\.ccg\\dual-model-runs\\20260704-153745-review-task",
+    "wrapperPath":  "C:\\Users\\Administrator\\.claude\\bin\\codeagent-wrapper.exe",
+    "toolchainEnvironment":  {
+                                 "ToolPathEntries":  [
+                                                         "C:\\Users\\Administrator\\AppData\\Roaming\\npm",
+                                                         "C:\\Users\\Administrator\\.claude\\bin",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314\\Scripts",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Launcher"
+                                                     ],
+                                 "ChangedProcessPath":  false,
+                                 "ChangedUserPath":  false,
+                                 "GEMINI_CLI_TRUST_WORKSPACE":  "true",
+                                 "CODEAGENT_LITE_MODE":  "true",
+                                 "PYTHONIOENCODING":  "utf-8"
+                             },
+    "healthBackendSmoke":  false,
+    "attempts":  [
+                     {
+                         "attempt":  1,
+                         "healthExitCode":  0,
+                         "healthTimedOut":  false,
+                         "healthOutput":  "D:\\網頁APP雲端線上版本\\DevExpressDevExtreme-21.2.7版本\\音訊產品版本\\ChurchReport\\.worktrees\\Jesus_5.1.7.WorktreeRefactorRichMenu\\.\\.ccg\\dual-model-runs\\20260704-153745-review-task\\health-attempt-1.json",
+                         "healthStatus":  "passed",
+                         "backends":  [
+                                          {
+                                              "backend":  "gemini",
+                                              "ok":  true,
+                                              "exitCode":  0,
+                                              "timedOut":  false,
+                                              "quotaBlocked":  false,
+                                              "producedOutput":  true,
+                                              "outputLength":  8203,
+                                              "diagnostic":  null,
+                                              "prompt":  "D:\\網頁APP雲端線上版本\\DevExpressDevExtreme-21.2.7版本\\音訊產品版本\\ChurchReport\\.worktrees\\Jesus_5.1.7.WorktreeRefactorRichMenu\\.\\.ccg\\dual-model-runs\\20260704-153745-review-task\\gemini-reviewer-attempt-1.prompt.md",
+                                              "stdout":  "D:\\網頁APP雲端線上版本\\DevExpressDevExtreme-21.2.7版本\\音訊產品版本\\ChurchReport\\.worktrees\\Jesus_5.1.7.WorktreeRefactorRichMenu\\.\\.ccg\\dual-model-runs\\20260704-153745-review-task\\gemini-reviewer-attempt-1.stdout.md",
+                                              "stderr":  "D:\\網頁APP雲端線上版本\\DevExpressDevExtreme-21.2.7版本\\音訊產品版本\\ChurchReport\\.worktrees\\Jesus_5.1.7.WorktreeRefactorRichMenu\\.\\.ccg\\dual-model-runs\\20260704-153745-review-task\\gemini-reviewer-attempt-1.stderr.md"
+                                          },
+                                          {
+                                              "backend":  "claude",
+                                              "ok":  true,
+                                              "exitCode":  0,
+                                              "timedOut":  false,
+                                              "quotaBlocked":  false,
+                                              "producedOutput":  true,
+                                              "outputLength":  4488,
+                                              "diagnostic":  null,
+                                              "prompt":  "D:\\網頁APP雲端線上版本\\DevExpressDevExtreme-21.2.7版本\\音訊產品版本\\ChurchReport\\.worktrees\\Jesus_5.1.7.WorktreeRefactorRichMenu\\.\\.ccg\\dual-model-runs\\20260704-153745-review-task\\claude-reviewer-attempt-1.prompt.md",
+                                              "stdout":  "D:\\網頁APP雲端線上版本\\DevExpressDevExtreme-21.2.7版本\\音訊產品版本\\ChurchReport\\.worktrees\\Jesus_5.1.7.WorktreeRefactorRichMenu\\.\\.ccg\\dual-model-runs\\20260704-153745-review-task\\claude-reviewer-attempt-1.stdout.md",
+                                              "stderr":  "D:\\網頁APP雲端線上版本\\DevExpressDevExtreme-21.2.7版本\\音訊產品版本\\ChurchReport\\.worktrees\\Jesus_5.1.7.WorktreeRefactorRichMenu\\.\\.ccg\\dual-model-runs\\20260704-153745-review-task\\claude-reviewer-attempt-1.stderr.md"
+                                          }
+                                      ]
+                     }
+                 ],
+    "ok":  true,
+    "quotaBlocked":  false,
+    "completedBackends":  [
+                              "gemini",
+                              "claude"
+                          ],
+    "failedBackends":  [
+
+                       ]
+}

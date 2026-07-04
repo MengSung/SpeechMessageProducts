@@ -1,6 +1,7 @@
 using ChurchReport.Tools;
 using FluentAssertions;
 using Line.Messaging;
+using LineMessagingProcessor.RichMenus;
 using LineMessagingProcessor.Workflows;
 using ToolUtilityNameSpace;
 using Xunit;
@@ -191,13 +192,14 @@ public sealed class LineUtilityClassWorkflowTests
         HttpClient httpClient,
         ILineNotificationWorkflow? lineNotificationWorkflow,
         List<(string UserId, string Subject, string Message)>? pushStatisticCalls = null,
-        ILineReplyWorkflow? lineReplyWorkflow = null)
+        ILineReplyWorkflow? lineReplyWorkflow = null,
+        ILineRichMenuAssignmentWorkflow? lineRichMenuAssignmentWorkflow = null)
     {
         var validFlag = true;
         var toolUtility = new ToolUtilityClass(ref validFlag);
         var lineClient = new LineMessagingClient(httpClient, "test-token", "https://api.line.test/v2");
 
-        return new TestLineUtility(toolUtility, lineClient, lineNotificationWorkflow, lineReplyWorkflow, pushStatisticCalls);
+        return new TestLineUtility(toolUtility, lineClient, lineNotificationWorkflow, lineReplyWorkflow, lineRichMenuAssignmentWorkflow, pushStatisticCalls);
     }
 
     private sealed class TestLineUtility : LineUtilityClass
@@ -207,12 +209,15 @@ public sealed class LineUtilityClassWorkflowTests
             LineMessagingClient lineClient,
             ILineNotificationWorkflow? lineNotificationWorkflow,
             ILineReplyWorkflow? lineReplyWorkflow,
+            ILineRichMenuAssignmentWorkflow? lineRichMenuAssignmentWorkflow,
             List<(string UserId, string Subject, string Message)>? pushStatisticCalls)
             : base(
                 toolUtility,
                 lineClient,
                 lineNotificationWorkflow,
                 lineReplyWorkflow,
+                lineRichMenuWorkflow: null,
+                lineRichMenuAssignmentWorkflow,
                 (userId, subject, message) => pushStatisticCalls?.Add((userId, subject, message)))
         {
         }
