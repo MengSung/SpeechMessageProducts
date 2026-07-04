@@ -42,11 +42,14 @@
 
 ### 3.3 Processor 補齊包裝
 
-`LineMessagingProcessorClass` 目前只包了 6 個 RichMenu 操作（Create、UploadPng、LinkToUser、GetIdOfUser、Unlink、Delete）。本案需補：
+`LineMessagingProcessorClass` 目前只包了 6 個 RichMenu 操作（Create、UploadPng、LinkToUser、GetIdOfUser、Unlink、Delete）。本案需補（SDK 均已有實作，只補 processor 層包裝與參數驗證）：
 
 - `GetRichMenuListAsync()`（同步比對用）
-- `SetDefaultRichMenuAsync(richMenuId)`（IsDefault 佈建用）
-- `CreateRichMenuAliasAsync` / `UpdateRichMenuAliasAsync` / `DeleteRichMenuAliasAsync` / `GetRichMenuAliasAsync`（alias 分頁用；SDK 已有實作，只補 processor 層包裝與參數驗證）
+- `SetDefaultRichMenuAsync(richMenuId)` / `GetDefaultRichMenuIdAsync()`（IsDefault 佈建與冪等判斷用）
+- `CreateRichMenuAliasAsync` / `UpdateRichMenuAliasAsync` / `DeleteRichMenuAliasAsync` / `GetRichMenuAliasAsync` / `GetRichMenuAliasListAsync`（alias 分頁與差異比對用）
+- `ValidateRichMenuAsync(richMenu)`（§13 C1 佈建前驗證用）
+- `LinkRichMenuToUsersAsync(richMenuId, userIds)` / `UnlinkRichMenuFromUsersAsync(userIds)`（§13 C4 批次指派用；LINE 單次上限 500 人）
+- `RichMenuBatchOperationAsync(operations)` / `GetRichMenuBatchProgressAsync(requestId)`（§13 C4 批次汰換與進度查詢用）
 
 ### 3.4 DI 整合
 
@@ -223,3 +226,28 @@ public interface ILineRichMenuTextTriggerResolver
 3. **R3**：目錄 + 同步工作流 + 冪等／改版／部分失敗測試。
 4. **R4**：指派工作流 + 文字觸發解析器 + DI 註冊 + 測試。
 5. **R5**：ChurchReport 最小驗證接入 + 雙模型 review。
+
+## 12. 實作計畫定案補充（2026-07-04 撰寫 plan 時的事實查核與裁決）
+
+1. **§3.4 更新**：`LineMessagingProcessor.AspNetCore` 已由 Phase 2 Batch 1 建立（含 `AddLineMessagingProcessor` 與 options），本案改走「擴充既有專案」路線，最小版建立條款不再適用。
+2. **狀態列舉獨立**：為維持 §3.1 依賴邊界（RichMenus 不得依賴 Workflows），搬移後的 `LineRichMenuResult` / `LineRichMenuWorkflow` 改用新列舉 `LineRichMenuStatus`（值與 `LineNotificationStatus` 一一對應：Succeeded / ValidationFailed / ProviderRejected / ProviderUnavailable / UnexpectedError）。§6 的狀態語意不變。
+3. **§3.3 包裝清單增補**：`GetDefaultRichMenuIdAsync`（判斷預設選單是否需要重設，成就 §7「第二次同步零寫入」；channel 未設預設時 LINE 回 404）與 `GetRichMenuAliasListAsync`（alias 差異比對用）。兩者 SDK 均已存在。
+4. **半成品補償刪除**：同步時「建立選單成功、上傳圖片失敗」會 best-effort 刪除本次呼叫剛建立的選單，避免留下無圖殘件被下次同步誤判 `UpToDate`。不違反「不自動刪除線上選單」——該條款保護既有／未知選單，不含本次呼叫的失敗半成品。
+5. **快取為頻道層級**：`LineRichMenuIdCache` 一個 LINE channel 一份。ChurchReport 的 `LineUtilityClass.SetupChannelAccessToken` 會於執行期切換 token（jesus / jesusback 為不同 channel），因此快取跟著 workflow 實例走，token 重建時一併重建；DI 情境（單 token 容器）註冊 singleton。
+6. **R5 範圍補列**：`ChurchReport.MemberInfo.Tests\LineSharedWorkflow\PushUtilityWorkflowTests.cs` 既有 RichMenu 測試需改為驗證指派工作流；ChurchReport 補手動同步入口 `PushUtility.SyncRichMenusAsync()` / `LineUtilityClass.SyncRichMenusAsync()`（管理者觸發，滿足 §5.1）。`AddRichMenuMessage` / `DeleteRichMenuMessage` 目前無產品呼叫端，行為不變風險低。
+
+## 13. 創意功能納入（2026-07-04 網路研究後補充）
+
+依網路研究（LINE 官方文件較新 API + 日本 LINE 行銷實務案例，如 Yamada Homes 以 tab 切換整合雙產品線使諮詢轉換率提升 3 倍）納入四項創意能力。使用者訊息要求「尋找更好更新的創意作法並設計進本次修改」；選項確認時使用者暫離，由 Claude 依最佳判斷全數納入，**審查本節時可個別剔除**。
+
+- **C1 佈建前驗證**（成本最低）：同步流程對每個待建立的定義先呼叫 `ValidateRichMenuAsync`（`POST /v2/bot/richmenu/validate`），驗證失敗 → 該定義 `Failed`（錯誤訊息含 LINE 回覆）、不發 create/upload，也就不會產生半成品。
+- **C2 依 key 切換預設選單**：`ILineRichMenuProvisioningWorkflow` 增 `Task<LineRichMenuResult> SetDefaultAsync(string menuKey)`（與指派相同的 key→名稱→線上 ID 解析）。產品端配排程器即可實現「時間帶選單」（早/午/晚）與「檔期活動選單」，共用層不引入排程相依。
+- **C3 分頁分析動作工廠**：靜態工廠 `LineRichMenuTabActionFactory.CreateSwitchAction(targetAlias, fromMenuKey, toMenuKey, label?)` 產生 `RichMenuSwitchTemplateAction`，`data` 統一為 `richmenu:tab:{fromKey}->{toKey}`（≤300 字元驗證）。產品 webhook 記錄 postback 即得各分頁點擊統計，格式跨產品一致。
+- **C4 批次指派與汰換**（獨立切片，審查時最容易整片剔除）：`ILineRichMenuAssignmentWorkflow` 增：
+  - `Task<LineRichMenuResult> AssignManyAsync(IReadOnlyList<string> userIds, string menuKey)`：bulk link，內部自動以 500 人為單位分批；任一批失敗即回失敗結果（含已成功批數 metadata）。
+  - `Task<LineRichMenuResult> ReplaceLinkedMenuAsync(string fromRichMenuId, string toMenuKey)`：以 `richmenu/batch` 的 replace 操作把「綁定舊選單的所有使用者」搬到目錄新選單；`from` 用線上 richMenuId（可取自同步報告的 Unknown 清單），`to` 用目錄 key。LINE 端為非同步作業，回傳結果附 requestId，進度由 `GetRichMenuBatchProgressAsync` 查詢。
+  - 取代 §4.3「大量重指派第一版不提供」的決策。
+
+零程式碼的應用模式（寫進文件即可）：漸進式引導（未綁定者看 `IsDefault` guest 選單、綁定後 `AssignAsync` 身分選單）、半高選單（2500×843 版面不遮聊天）、時間帶/檔期選單（C2 + 產品排程）。
+
+切片對應更新：C1 併入 R3；C2、C3 併入 R4；C4 獨立為 **R4b**（R4 之後、R5 之前）；相關 processor 包裝（validate/bulk/batch）併入 R2。
