@@ -1,0 +1,12 @@
+{
+    "id":  "line-pushutility-reliable-required-callsite-cleanup",
+    "title":  "Converge PushUtility required and reliable LINE notification paths",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "backend",
+    "currentPhase":  "completed",
+    "nextAction":  "Archive task and commit reliable PushUtility call-site cleanup",
+    "createdAt":  "2026-07-03T00:00:00+08:00",
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine"
+}

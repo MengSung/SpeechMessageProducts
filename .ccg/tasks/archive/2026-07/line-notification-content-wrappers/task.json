@@ -1,0 +1,12 @@
+{
+    "domain":  "backend",
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine",
+    "id":  "line-notification-content-wrappers",
+    "risk":  "medium",
+    "createdAt":  "2026-07-03T11:01:56+08:00",
+    "complexity":  "M",
+    "currentPhase":  "completed",
+    "status":  "completed",
+    "nextAction":  "Commit LINE notification content wrapper changes",
+    "title":  "Add product-friendly LINE text image flex notification content wrappers"
+}

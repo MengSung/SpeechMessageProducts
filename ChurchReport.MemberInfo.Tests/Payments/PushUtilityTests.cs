@@ -2,6 +2,7 @@ using System.Net;
 using ChurchReport.Tools;
 using FluentAssertions;
 using Line.Messaging;
+using LineMessagingProcessor.Workflows;
 using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Payments;
@@ -40,7 +41,7 @@ public sealed class PushUtilityTests
 
         var act = () => pushUtility.SendMessageOrThrowAsync("bad-user", "ATM instructions");
 
-        await act.Should().ThrowAsync<LineResponseException>()
+        await act.Should().ThrowAsync<LineNotificationException>()
             .WithMessage("invalid user id");
     }
 

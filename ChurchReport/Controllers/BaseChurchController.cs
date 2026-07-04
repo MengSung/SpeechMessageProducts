@@ -1,8 +1,10 @@
 using ChurchReport.Models;
 using ChurchReport.Payments;
+using ChurchReport.Services.Donation;
 using ChurchReport.Services.MemberInfo;
 using ChurchReport.Tools;
-using LineMessagingProcessor;
+using ChurchReport.Services;
+using LineMessagingProcessor.Workflows;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -16,47 +18,47 @@ using ToolUtilityNameSpace.DependencyInjection;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// 教會報表基底控制器 (Base Controller for Church Reports)
+    /// ???梯”?箏??批??(Base Controller for Church Reports)
     ///
-    /// 教學說明：
-    /// 這是一個抽象基底類別，所有教會相關的控制器都會繼承自這個類別。
-    /// 為什麼需要基底控制器？
-    /// - 避免重複代碼：將共用的功能（如錯誤處理、Session 驗證）放在這裡。
-    /// - 統一行為：確保所有控制器都有相同的錯誤處理和安全檢查。
-    /// - 依賴注入：集中管理外部服務的注入。
+    /// ?飛隤芣?嚗?
+    /// ?銝?鞊∪摨??伐????????批?券?匱?輯???乓?
+    /// ?箔?暻潮?閬摨?嗅嚗?
+    /// - ?踹???隞?Ⅳ嚗??梁???踝?憒隤方??ession 撽?嚗?券ㄐ??
+    /// - 蝯曹?銵嚗Ⅱ靽???嗅?賣??詨??隤方???摰瑼Ｘ??
+    /// - 靘陷瘜典嚗?銝剔恣???冽???瘜典??
     ///
-    /// 設計模式：
-    /// - Template Method Pattern：提供通用流程，讓子類別覆寫特定步驟。
-    /// - Dependency Injection：不直接創建依賴，而是從外部注入。
-    /// - Singleton Pattern：某些服務（如 ToolUtility）是單例的。
+    /// 閮剛?璅∪?嚗?
+    /// - Template Method Pattern嚗?靘瘚?嚗?摮??亥?撖怎摰郊撽?
+    /// - Dependency Injection嚗??湔?萄遣靘陷嚗敺??冽釣?乓?
+    /// - Singleton Pattern嚗?鈭???憒?ToolUtility嚗?桐???
     ///
-    /// 使用方式：
+    /// 雿輻?孵?嚗?
     /// public class MyController : BaseChurchController
     /// {
     ///     public MyController(...) : base(...) { }
     ///
     ///     public IActionResult MyAction()
     ///     {
-    ///         // 可以直接使用基底類別的屬性，如 ToolUtility, InMemoryContext 等
+    ///         // ?臭誑?湔雿輻?箏?憿?惇?改?憒?ToolUtility, InMemoryContext 蝑?
     ///     }
     /// }
     /// </summary>
     public abstract class BaseChurchController : Controller, IDisposable
     {
-        #region 常數定義 (Constants)
+        #region 撣豢摰儔 (Constants)
 
         /// <summary>
-        /// 日誌記錄的總層級 (Total logging level)
+        /// ?亥?閮??蜇撅斤? (Total logging level)
         ///
-        /// 教學說明：
-        /// 在企業應用中，日誌分層級管理：
-        /// - Level 1: 基本資訊
-        /// - Level 2: 詳細資訊
-        /// - Level 3: 除錯資訊
-        /// - Level 4: 警告
-        /// - Level 5: 錯誤
+        /// ?飛隤芣?嚗?
+        /// ?其?璆剜??其葉嚗隤?撅斤?蝞∠?嚗?
+        /// - Level 1: ?箸鞈?
+        /// - Level 2: 閰喟敦鞈?
+        /// - Level 3: ?日鞈?
+        /// - Level 4: 霅血?
+        /// - Level 5: ?航炊
         ///
-        /// 這裡定義了常用的層級常數，方便統一使用。
+        /// ?ㄐ摰儔鈭虜?函?撅斤?撣豢嚗靘輻絞銝雿輻??
         /// </summary>
         protected const int TOTAL_LEVEL = 1;
         protected const int LEVEL_1 = 1;
@@ -65,140 +67,130 @@ namespace ChurchReport.Controllers
         protected const int LEVEL_4 = 4;
         protected const int LEVEL_5 = 5;
 
-        /// <summary>
-        /// LINE 錯誤接收者 ID (LINE error receiver ID)
-        ///
-        /// 教學說明：
-        /// 當系統發生錯誤時，會自動發送 LINE 訊息通知管理員。
-        /// 這個 ID 是接收通知的 LINE 用戶 ID。
-        /// 為什麼用常數？因為這是固定值，不會在運行時改變。
-        /// </summary>
-        protected const string LINE_ERROR_RECEIVER_ID = "U7638e4ed509708a3573ba6d69970583d";
 
         /// <summary>
-        /// 使用者驗證快取有效期（秒）
-        /// 效能優化：避免同一用戶連續請求時重複驗證
+        /// 雿輻??霅翰????嚗?嚗?
+        /// ??芸?嚗??銝?冽???隢???銴?霅?
         /// </summary>
         private const int USER_VALIDATION_CACHE_SECONDS = 30;
 
         #endregion
 
-        #region 服務實例 (Service Instances)
+        #region ??撖虫? (Service Instances)
 
         /// <summary>
-        /// ToolUtility 提供者 (ToolUtility Provider)
+        /// ToolUtility ????(ToolUtility Provider)
         ///
-        /// 教學說明：
-        /// 什麼是 ToolUtility？
-        /// - 這是一個工具類別，提供日誌記錄、CRM 操作等功能。
-        /// - 為什麼用提供者模式？因為 ToolUtility 是單例的，需要統一管理。
-        /// - 依賴注入：不直接創建實例，而是從外部注入，符合 SOLID 原則。
+        /// ?飛隤芣?嚗?
+        /// 隞暻潭 ToolUtility嚗?
+        /// - ?銝?極?琿??伐????亥?閮??RM ??蝑??賬?
+        /// - ?箔?暻潛???芋撘?? ToolUtility ?臬靘?嚗?閬絞銝蝞∠???
+        /// - 靘陷瘜典嚗??湔?萄遣撖虫?嚗敺??冽釣?伐?蝚血? SOLID ????
         ///
-        /// 設計模式：Provider Pattern
+        /// 閮剛?璅∪?嚗rovider Pattern
         /// </summary>
         protected readonly IToolUtilityProvider _toolUtilityProvider;
 
         /// <summary>
-        /// CRM 連線池 (CRM Connection Pool)
+        /// CRM ???瘙?(CRM Connection Pool)
         ///
-        /// 教學說明：
-        /// 什麼是連線池？
-        /// - CRM 系統連線很耗資源，不能每次都新建連線。
-        /// - 連線池預先建立多個連線，重複使用，提高性能。
-        /// - 當連線用完時，自動歸還到池中。
+        /// ?飛隤芣?嚗?
+        /// 隞暻潭???瘙?
+        /// - CRM 蝟餌絞???敺?皞?銝瘥活?賣撱粹????
+        /// - ???瘙??遣蝡????嚗?銴蝙?剁????扯??
+        /// - ?園???典????芸?甇賊??唳?銝准?
         ///
-        /// 設計模式：Object Pool Pattern
+        /// 閮剛?璅∪?嚗bject Pool Pattern
         /// </summary>
         protected readonly ICrmConnectionPool _connectionPool;
 
         /// <summary>
-        /// HTTP 上下文存取器 (HTTP Context Accessor)
+        /// HTTP 銝???? (HTTP Context Accessor)
         ///
-        /// 教學說明：
-        /// 為什麼需要這個？
-        /// - 在 ASP.NET Core 中，HttpContext 不是總是可用的（尤其在背景任務中）。
-        /// - IHttpContextAccessor 提供安全的方式來存取當前請求的上下文。
-        /// - 這是 ASP.NET Core 依賴注入系統的一部分。
+        /// ?飛隤芣?嚗?
+        /// ?箔?暻潮?閬?
+        /// - ??ASP.NET Core 銝哨?HttpContext 銝蝮賣?舐??撠文?刻??臭遙?葉嚗?
+        /// - IHttpContextAccessor ??摰?撘?摮??嗅?隢???銝???
+        /// - ? ASP.NET Core 靘陷瘜典蝟餌絞???典???
         /// </summary>
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
-        /// 使用者驗證快取
-        /// 效能優化：避免同一用戶在短時間內重複驗證
+        /// 雿輻??霅翰??
+        /// ??芸?嚗??銝?冽?函???折?銴?霅?
         ///
-        /// ?? 安全設計：
-        /// - Key: SessionId + PasswordHash（防止 Session Collision）
+        /// ?? 摰閮剛?嚗?
+        /// - Key: SessionId + PasswordHash嚗甇?Session Collision嚗?
         /// - Value: (LastValidated, IsValid, PasswordHash)
-        /// - 驗證時會比對密碼雜湊，確保用戶身份一致
+        /// - 撽???瘥?撖Ⅳ??嚗Ⅱ靽?嗉澈隞賭???
         /// </summary>
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTime LastValidated, bool IsValid, string PasswordHash)>
             _userValidationCache = new();
 
         /// <summary>
-        /// 工具類別實例 (Tool Utility Instance)
+        /// 撌亙憿撖虫? (Tool Utility Instance)
         ///
-        /// 教學說明：
-        /// 這個屬性提供對 ToolUtility 的存取。
-        /// 為什麼用屬性而不是直接存取 _toolUtilityProvider？
-        /// - 簡化代碼：子類別可以直接用 ToolUtility，而不用知道提供者。
-        /// - 延遲載入：只有在需要時才從提供者取得實例。
+        /// ?飛隤芣?嚗?
+        /// ?惇?扳?靘? ToolUtility ????
+        /// ?箔?暻潛撅祆扯??舐?亙???_toolUtilityProvider嚗?
+        /// - 蝪∪?隞?Ⅳ嚗?憿?臭誑?湔??ToolUtility嚗??函??靘?
+        /// - 撱園頛嚗??閬???????敺祕靘?
         /// </summary>
         protected ToolUtilityClass ToolUtility => _toolUtilityProvider.GetToolUtility();
 
         /// <summary>
-        /// 記憶體資料上下文 (In-Memory Data Context)
+        /// 閮擃???銝? (In-Memory Data Context)
         ///
-        /// 教學說明：
-        /// 什麼是記憶體資料上下文？
-        /// - 存放應用程式的資料狀態，如用戶資訊、小組資料等。
-        /// - 為什麼用介面？因為可以輕鬆切換不同的實作（測試用、生產用）。
-        /// - 依賴注入：從外部注入，避免硬編碼依賴。
+        /// ?飛隤芣?嚗?
+        /// 隞暻潭閮擃???銝?嚗?
+        /// - 摮?蝔???????憒?嗉?閮?蝯?????
+        /// - ?箔?暻潛隞嚗??箏隞亥?擛?????撖虫?嚗葫閰衣???Ｙ嚗?
+        /// - 靘陷瘜典嚗?憭瘜典嚗?′蝺函Ⅳ靘陷??
         /// </summary>
         protected readonly IInMemoryDataContext InMemoryContext;
 
         /// <summary>
-        /// 金流服務介面 (Payment Service Interface)
+        /// ????隞 (Payment Service Interface)
         ///
-        /// 教學說明：
-        /// 負責處理付款相關的業務邏輯。
-        /// 為什麼用介面？因為可以有不同的付款提供者（信用卡、LINE Pay 等）。
-        /// 設計模式：Strategy Pattern
+        /// ?飛隤芣?嚗?
+        /// 鞎痊??隞狡?賊??平??頛胯?
+        /// ?箔?暻潛隞嚗??箏隞交?銝???甈暹?靘?靽∠?～INE Pay 蝑???
+        /// 閮剛?璅∪?嚗trategy Pattern
         /// </summary>
 
         /// <summary>
-        /// 安全的 HttpContext 存取 (Safe HttpContext Access)
+        /// 摰??HttpContext 摮? (Safe HttpContext Access)
         ///
-        /// 教學說明：
-        /// 這個屬性提供安全的方式來存取 HttpContext。
-        /// 為什麼需要特殊處理？
-        /// - Controller 的 HttpContext 在建構函式中可能還沒初始化。
-        /// - 使用 IHttpContextAccessor 可以隨時安全存取。
-        /// - 如果都不可用，拋出異常，防止隱藏錯誤。
+        /// ?飛隤芣?嚗?
+        /// ?惇?扳?靘??函??孵?靘???HttpContext??
+        /// ?箔?暻潮?閬畾???
+        /// - Controller ??HttpContext ?典遣瑽撘葉?航??????
+        /// - 雿輻 IHttpContextAccessor ?臭誑?冽?摰摮???
+        /// - 憒??賭??舐嚗??箇撣賂??脫迫?梯??航炊??
         ///
-        /// 設計考量：
-        /// - 優先使用 IHttpContextAccessor（更可靠）。
-        /// - 如果失敗，嘗試基類的 HttpContext。
-        /// - 如果都失敗，拋出有意義的錯誤訊息。
+        /// 閮剛???嚗?
+        /// - ?芸?雿輻 IHttpContextAccessor嚗?舫?嚗?
+        /// - 憒?憭望?嚗?閰血憿? HttpContext??
+        /// - 憒??賢仃?????蝢拍??航炊閮??
         /// </summary>
         protected new HttpContext HttpContext
         {
             get
             {
-                // 優先使用 IHttpContextAccessor（更可靠）
+                // ?芸?雿輻 IHttpContextAccessor嚗?舫?嚗?
                 var context = _httpContextAccessor?.HttpContext;
 
-                // 如果 IHttpContextAccessor 沒有提供，嘗試使用基類的 HttpContext
+                // 憒? IHttpContextAccessor 瘝???嚗?閰虫蝙?典憿? HttpContext
                 if (context == null)
                 {
                     context = base.HttpContext;
                 }
 
-                // 如果仍然為 null，拋出有意義的異常
+                // 憒?隞??null嚗??箸??儔?撣?
                 if (context == null)
                 {
                     throw new InvalidOperationException(
-                        "HttpContext 未初始化。請確保此方法從有效的 HTTP 請求上下文中調用。" +
-                        "如果在單元測試中，請模擬 IHttpContextAccessor。");
+                        "HttpContext is not available. Ensure the request is running inside an ASP.NET Core HTTP pipeline and IHttpContextAccessor is registered.");
                 }
 
                 return context;
@@ -207,30 +199,30 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region 建構函式 (Constructor)
+        #region 撱箸??賢? (Constructor)
 
         /// <summary>
-        /// 初始化基底控制器 (Initialize Base Controller)
+        /// ???摨?嗅 (Initialize Base Controller)
         ///
-        /// 教學說明：
-        /// 建構函式是類別被創建時自動執行的方法。
-        /// 這裡做的事情：
-        /// 1. 驗證參數：確保必要的服務都被注入。
-        /// 2. 保存參考：將注入的服務存起來供後續使用。
-        /// 3. 初始化上下文：建立或注入記憶體資料上下文。
+        /// ?飛隤芣?嚗?
+        /// 撱箸??賢??舫??亥◤?萄遣??銵??寞???
+        /// ?ㄐ??鈭?嚗?
+        /// 1. 撽??嚗Ⅱ靽?閬????質◤瘜典??
+        /// 2. 靽???撠釣?亦???摮絲靘?敺?雿輻??
+        /// 3. ????銝?嚗遣蝡?瘜典閮擃???銝???
         ///
-        /// 依賴注入的優點：
-        /// - 鬆耦合：類別不依賴具體實作。
-        /// - 可測試性：可以輕鬆用假物件替換真實服務。
-        /// - 靈活性：可以根據環境注入不同的實作。
+        /// 靘陷瘜典?暺?
+        /// - 擛血?嚗??乩?靘陷?琿?撖虫???
+        /// - ?舀葫閰行改??臭誑頛??典??拐辣?踵??祕????
+        /// - ?暑?改??臭誑?寞??啣?瘜典銝??祕雿?
         ///
-        /// 參數說明：
-        /// - httpContextAccessor: 存取 HTTP 請求上下文
-        /// - memoryCache: 記憶體快取服務
-        /// - paymentService: 付款處理服務
-        /// - toolUtilityProvider: 工具類別提供者
-        /// - connectionPool: CRM 連線池
-        /// - inMemoryContext: 記憶體資料上下文（可選，向後相容）
+        /// ?隤芣?嚗?
+        /// - httpContextAccessor: 摮? HTTP 隢?銝???
+        /// - memoryCache: 閮擃翰????
+        /// - paymentService: 隞狡????
+        /// - toolUtilityProvider: 撌亙憿????
+        /// - connectionPool: CRM ???瘙?
+        /// - inMemoryContext: 閮擃???銝?嚗?賂????詨捆嚗?
         /// </summary>
         protected BaseChurchController(
             IHttpContextAccessor httpContextAccessor,
@@ -240,90 +232,96 @@ namespace ChurchReport.Controllers
             IInMemoryDataContext inMemoryContext = null)
         {
             // ========================================
-            // 關鍵修復：保存 IHttpContextAccessor
+            // ?靽桀儔嚗?摮?IHttpContextAccessor
             // ========================================
-            // 這是修復 "HttpContext 未初始化" 錯誤的關鍵
-            // 透過保存 IHttpContextAccessor，我們可以在任何時候安全地取得 HttpContext
+            // ?靽桀儔 "HttpContext ?芸?憪?" ?航炊????
+            // ??靽? IHttpContextAccessor嚗??隞亙隞颱????典?? HttpContext
             _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
 
-            // 透過 DI 注入 ToolUtility 提供者
+            // ?? DI 瘜典 ToolUtility ????
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
             _connectionPool = connectionPool ?? throw new ArgumentNullException(nameof(connectionPool));
 
-            // 支援兩種方式：
-            // 1. 新方式：透過 DI 注入記憶體資料上下文（推薦，避免靜態依賴）
-            // 2. 舊方式：直接 new 實例（向後相容，逐步淘汰）
+            // ?舀?拍車?孵?嚗?
+            // 1. ?唳撘??? DI 瘜典閮擃???銝?嚗?佗??踹???靘陷嚗?
+            // 2. ?撘??湔 new 撖虫?嚗?敺摰對??郊瘛掠嚗?
             if (inMemoryContext != null)
             {
-                // 使用 DI 注入的實例（推薦）
+                // 雿輻 DI 瘜典?祕靘??刻嚗?
                 InMemoryContext = inMemoryContext;
-                System.Diagnostics.Debug.WriteLine("[BaseChurchController] 使用 DI 注入的 InMemoryContext");
+                System.Diagnostics.Debug.WriteLine("[BaseChurchController] 雿輻 DI 瘜典??InMemoryContext");
             }
             else
             {
-                // 向後相容：直接建立實例（將逐步淘汰）
-                // 從 DI 取得中性的奉獻付款建單 adapter。
-                // Base controller 只需要把 ChurchReport session/context 串起來，不應再以 QPay 類名作為主要入口。
+                // ???詨捆嚗?亙遣蝡祕靘?撠郊瘛掠嚗?
+                // 敺?DI ??銝剜抒?憟隞狡撱箏 adapter??
+                // Base controller ?芷?閬? ChurchReport session/context 銝脰絲靘?銝??誑 QPay 憿?雿銝餉??亙??
                 var donationPaymentCreateGatewayAdapter =
                     httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(IDonationPaymentCreateGatewayAdapter))
                         as IDonationPaymentCreateGatewayAdapter;
+                var lineNotificationWorkflow =
+                    httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(ILineNotificationWorkflow))
+                        as ILineNotificationWorkflow;
+                var lineReplyWorkflow =
+                    httpContextAccessor.HttpContext?.RequestServices?.GetService(typeof(ILineReplyWorkflow))
+                        as ILineReplyWorkflow;
                 InMemoryContext = new InMemoryDataContextSmallGroup(
-                    httpContextAccessor, memoryCache, toolUtilityProvider, donationPaymentCreateGatewayAdapter);
-                System.Diagnostics.Debug.WriteLine("[BaseChurchController] 使用向後相容模式建立 InMemoryContext（請盡快更新為 DI 注入）");
+                    httpContextAccessor, memoryCache, toolUtilityProvider, donationPaymentCreateGatewayAdapter, lineNotificationWorkflow, lineReplyWorkflow);
+                System.Diagnostics.Debug.WriteLine("[BaseChurchController] Created InMemoryContext from DI services.");
             }
 
-            // 存放金流服務參考
+            // 摮??????
         }
 
         #endregion
 
-        #region 錯誤處理 (Error Handling)
+        #region ?航炊?? (Error Handling)
 
         /// <summary>
-        /// 統一錯誤處理方法 (Unified Error Handling Method)
+        /// 蝯曹??航炊???寞? (Unified Error Handling Method)
         ///
-        /// 教學說明：
-        /// 為什麼需要統一錯誤處理？
-        /// - 避免每個方法都重複寫 try-catch。
-        /// - 確保錯誤被正確記錄和通知。
-        /// - 提供一致的錯誤回應格式。
+        /// ?飛隤芣?嚗?
+        /// ?箔?暻潮?閬絞銝?航炊??嚗?
+        /// - ?踹?瘥瘜??撖?try-catch??
+        /// - 蝣箔??航炊鋡急迤蝣箄??????
+        /// - ??銝?渡??航炊???澆???
         ///
-        /// 處理流程：
-        /// 1. 記錄錯誤到日誌
-        /// 2. 發送 LINE 通知給管理員
-        /// 3. 根據請求類型返回適當的回應
+        /// ??瘚?嚗?
+        /// 1. 閮??航炊?唳隤?
+        /// 2. ?潮?LINE ?蝯衣恣?
+        /// 3. ?寞?隢?憿?餈??拍????
         ///
-        /// 參數：
-        /// - exception: 發生的異常物件
-        /// - methodName: 發生錯誤的方法名稱（用於追蹤）
+        /// ?嚗?
+        /// - exception: ?潛??撣貊隞?
+        /// - methodName: ?潛??航炊?瘜?蝔梧??冽餈質馱嚗?
         ///
-        /// 返回值：
-        /// - AJAX 請求：返回 JSON 錯誤訊息
-        /// - 一般請求：重導向到錯誤頁面
+        /// 餈??潘?
+        /// - AJAX 隢?嚗???JSON ?航炊閮
+        /// - 銝?祈?瘙?????航炊?
         /// </summary>
         protected IActionResult HandleError(Exception exception, string methodName)
         {
-            // 組合錯誤訊息
-            string errorMessage = $"錯誤訊息 : FullName = {GetType().FullName}, " +
+            // 蝯??航炊閮
+            string errorMessage = $"?航炊閮 : FullName = {GetType().FullName}, " +
                                 $"Method = {methodName}, " +
                                 $"Time = {DateTime.Now}, " +
                                 $"Description = {exception}";
 
-            // 寫入追蹤日誌 (加入 null 檢查)
+            // 撖怠餈質馱?亥? (? null 瑼Ｘ)
             try
             {
                 ToolUtility?.TraceByLevel(TOTAL_LEVEL, LEVEL_1, errorMessage);
             }
             catch (Exception traceEx)
             {
-                // 追蹤失敗不影響錯誤處理流程
-                System.Diagnostics.Debug.WriteLine($"TraceByLevel 失敗: {traceEx.Message}");
+                // 餈質馱憭望?銝蔣?輸隤方???蝔?
+                System.Diagnostics.Debug.WriteLine($"TraceByLevel 憭望?: {traceEx.Message}");
             }
 
-            // 發送 LINE 通知
+            // ?潮?LINE ?
             SendLineErrorNotification(errorMessage);
 
-            // 判斷是否為 AJAX 請求 (加入 null 檢查)
+            // ?斗?臬??AJAX 隢? (? null 瑼Ｘ)
             bool isAjaxRequest = false;
             try
             {
@@ -332,13 +330,13 @@ namespace ChurchReport.Controllers
             }
             catch
             {
-                // 無法判斷請求類型，預設為非 AJAX
+                // ?⊥??斗隢?憿?嚗?閮剔??AJAX
                 isAjaxRequest = false;
             }
 
             if (isAjaxRequest)
             {
-                // AJAX 請求返回 JSON
+                // AJAX 隢?餈? JSON
                 return Json(new
                 {
                     status = "error",
@@ -348,115 +346,160 @@ namespace ChurchReport.Controllers
             }
             else
             {
-                // 一般請求導向錯誤頁面
+                // 銝?祈?瘙??隤日???
                 return RedirectToAction("DisplayErrorView", "Home", new { ErrorMessage = exception.Message });
             }
         }
 
         /// <summary>
-        /// 發送 LINE 錯誤通知 (Send LINE Error Notification)
+        /// ?潮?LINE ?航炊? (Send LINE Error Notification)
         ///
-        /// 教學說明：
-        /// 當系統發生嚴重錯誤時，主動通知管理員。
-        /// 為什麼用 LINE？
-        /// - 即時性：管理員可以立即收到通知。
-        /// - 便利性：手機上就能看到。
-        /// - 可靠性：即使郵件系統故障，LINE 通常還能用。
+        /// ?飛隤芣?嚗?
+        /// ?嗥頂蝯梁??隤斗?嚗蜓?蝞∠??～?
+        /// ?箔?暻潛 LINE嚗?
+        /// - ?單??改?蝞∠??∪隞亦??單?圈??
+        /// - 靘踹?改???銝停?賜??啜?
+        /// - ?舫??改??喃蝙?萎辣蝟餌絞??嚗INE ?虜??具?
         ///
-        /// 錯誤處理：
-        /// - 如果 LINE 發送失敗，不影響主要業務流程。
-        /// - 會記錄 LINE 發送失敗的日誌。
+        /// ?航炊??嚗?
+        /// - 憒? LINE ?潮仃??銝蔣?蹂蜓閬平??蝔?
+        /// - ????LINE ?潮仃???亥???
         /// </summary>
         protected void SendLineErrorNotification(string errorMessage)
         {
             try
             {
-                var lineProcessor = new LineMessagingProcessorClass();
-                lineProcessor.SendMessage(LINE_ERROR_RECEIVER_ID, $"好牧人: 錯誤 => {errorMessage}");
+                ChurchReportLineAdminNotificationService.NotifyDefaultError("BaseChurchController", errorMessage);
             }
             catch (Exception ex)
             {
-                // LINE 通知失敗不影響主要流程
+                // LINE ?憭望?銝蔣?蹂蜓閬?蝔?
                 try
                 {
                     ToolUtility?.TraceByLevel(TOTAL_LEVEL, LEVEL_1,
-                        $"LINE 通知發送失敗: {ex.Message}");
+                        $"LINE ??潮仃?? {ex.Message}");
                 }
                 catch
                 {
-                    // 如果連追蹤都失敗，使用 Debug 輸出
-                    System.Diagnostics.Debug.WriteLine($"LINE 通通知發送失敗且追蹤失敗: {ex.Message}");
+                    // 憒???蕭頩日憭望?嚗蝙??Debug 頛詨
+                    System.Diagnostics.Debug.WriteLine($"LINE ??潮仃??餈質馱憭望?: {ex.Message}");
                 }
             }
         }
 
         #endregion
 
-        #region ViewBag 設定輔助方法 (ViewBag Setup Helper Methods)
+        #region ViewBag 閮剖?頛?寞? (ViewBag Setup Helper Methods)
 
         /// <summary>
-        /// 設定多小組版面參數 (Set Multi-Group Layout Parameters)
+        /// 閮剖?憭?蝯??Ｗ???(Set Multi-Group Layout Parameters)
         ///
-        /// 教學說明：
-        /// ViewBag 是 ASP.NET MVC 中用來傳遞資料到 View 的機制。
-        /// 這個方法決定頁面應該顯示什麼樣的導覽選單。
+        /// ?飛隤芣?嚗?
+        /// ViewBag ??ASP.NET MVC 銝剔靘??? View ???嗚?
+        /// ?瘜捱摰??Ｘ?閰脤＊蝷箔?暻潭見??閬賡?柴?
         ///
-        /// 業務邏輯：
-        /// - 如果是多小組模式且未載入特定小組：顯示單純的多小組視圖
-        /// - 如果是整合模式且已載入資料：顯示單一小組的詳細視圖
-        /// - 如果是混合模式：顯示兩個選項（統計 + 詳細）
+        /// 璆剖??摩嚗?
+        /// - 憒??臬?撠?璅∪?銝頛?孵?撠?嚗＊蝷箏蝝?憭?蝯???
+        /// - 憒??舀?芋撘?撌脰??亥???憿舐內?桐?撠??底蝝啗???
+        /// - 憒??舀毽?芋撘?憿舐內?拙??蝯梯? + 閰喟敦嚗?
         ///
-        /// 為什麼需要這個？
-        /// - 用戶體驗：根據用戶狀態顯示適當的選項
-        /// - 導航邏輯：確保用戶不會迷路
+        /// ?箔?暻潮?閬?
+        /// - ?冽擃?嚗??嗥??＊蝷粹?嗥??賊?
+        /// - 撠?摩嚗Ⅱ靽?嗡??蕙頝?
         /// </summary>
         protected void SetMultiGroupLayoutParameter()
         {
             string displayViewType = InMemoryContext.ListManager.GetDisplayViewType();
             bool integrateFlag = IsIntegrateDataLoaded();
 
-            // 修正：確保從 MultiGroupView 點擊小組後，保持 HybridView 模式
-            // 讓「回報統計」和「小組回報」選項都顯示
+            // 靽格迤嚗Ⅱ靽? MultiGroupView 暺?撠?敺?靽? HybridView 璅∪?
+            // 霈??梁絞閮???蝯??晞?憿舐內
             if (displayViewType == "MultiGroupView" && !integrateFlag)
             {
-                // 純多小組模式（尚未點擊任何小組）
+                // 蝝?撠?璅∪?嚗??芷??遙雿?蝯?
                 ViewBag.MultiGroupIndex = "SingleMultiGroupView";
             }
             else if (displayViewType == "IntegrateView" && integrateFlag)
             {
-                // 單一小組模式（只有一個小組）
+                // ?桐?撠?璅∪?嚗????蝯?
                 ViewBag.MultiGroupIndex = "IntegrateView";
             }
             else if (displayViewType == "MultiGroupView" && integrateFlag)
             {
-                // 混合模式：有多個小組且已點擊其中一個
-                // 此時應該顯示「回報統計」和「小組回報」兩個選項
+                // 瘛瑕?璅∪?嚗?憭?蝯?撌脤??銝凋???
+                // 甇斗??府憿舐內???梁絞閮???蝯??晞???
                 ViewBag.MultiGroupIndex = "HybridView";
             }
             else
             {
-                // 預設為 IntegrateView 或 HybridView
-                // 如果有載入整合資料，就使用 HybridView，確保選項不消失
+                // ?身??IntegrateView ??HybridView
+                // 憒????交????撠曹蝙??HybridView嚗Ⅱ靽??瘨仃
                 ViewBag.MultiGroupIndex = integrateFlag ? "HybridView" : "IntegrateView";
             }
 
-            // 設定是否為行政同工
-            ViewBag.IsAOfficeWorker = InMemoryContext.DonationPaymentManager.m_DonationPaymentFormModel.IsAOfficeWorker
-                ? "是的" : "否";
+            // 「奉獻管理」按鈕屬於全站導覽列權限，不應依賴奉獻付款頁面的表單模型是否已初始化。
+            // 先用目前登入者 CRM contact.new_church_jobtitle 判斷；只有登入 contact 尚未載入時，
+            // 才保留舊的 DonationPaymentFormModel.IsAOfficeWorker 作為最後 fallback。
+            ViewBag.IsAOfficeWorker = ResolveDonationManagementAccessFlag();
         }
 
         /// <summary>
-        /// 檢查整合資料是否已載入 (Check if Integrate Data is Loaded)
+        /// 解析 Layout 是否要顯示「奉獻管理／奉獻稽核」導覽入口。
         ///
-        /// 教學說明：
-        /// 整合資料是指特定小組的詳細資訊。
-        /// 為什麼需要檢查？
-        /// - 確保用戶看到的是正確的資料
-        /// - 避免顯示空的或錯誤的資訊
+        /// 根因說明：
+        /// _Layout.cshtml 每一頁都會渲染，但 DonationPaymentManager.m_DonationPaymentFormModel
+        /// 只會在奉獻付款流程初始化後才具有完整狀態。若使用者剛登入或停留在回報統計等非奉獻頁，
+        /// 直接讀表單模型會得到預設 false，導致原本有權限的會計同工看不到「奉獻管理」按鈕。
         ///
-        /// 檢查條件：
-        /// - 週報物件存在
-        /// - LoadFlag 為 true（表示資料已載入）
+        /// 正確資料來源是登入者的 CRM contact 職稱；奉獻付款表單狀態只能作為舊流程相容 fallback。
+        /// </summary>
+        private string ResolveDonationManagementAccessFlag()
+        {
+            try
+            {
+                var personalModel = InMemoryContext?.PersonalInfomationModel;
+                if (personalModel != null && personalModel.m_LoginContact == null)
+                {
+                    try
+                    {
+                        personalModel.SetPersonalInfomationViewModel();
+                    }
+                    catch
+                    {
+                        // 某些入口頁可能尚未能載入登入 contact；不要讓導覽列渲染失敗，改走 fallback。
+                    }
+                }
+
+                var loginContact = personalModel?.m_LoginContact;
+                if (loginContact != null)
+                {
+                    var toolUtility = ToolUtility;
+                    var jobTitle = toolUtility.GetEntityStringAttribute(ref loginContact, "new_church_jobtitle") ?? string.Empty;
+                    return DonationNavigationAccessResolver.CanAccessDonationManagement(jobTitle) ? "是的" : "否";
+                }
+            }
+            catch
+            {
+                // 導覽列權限判斷不應中斷頁面輸出；下方 fallback 會維持舊流程可用。
+            }
+
+            return InMemoryContext?.DonationPaymentManager?.m_DonationPaymentFormModel?.IsAOfficeWorker == true
+                ? "是的"
+                : "否";
+        }
+
+        /// <summary>
+        /// 瑼Ｘ?游?鞈??臬撌脰???(Check if Integrate Data is Loaded)
+        ///
+        /// ?飛隤芣?嚗?
+        /// ?游?鞈??舀??孵?撠??底蝝啗?閮?
+        /// ?箔?暻潮?閬炎?伐?
+        /// - 蝣箔??冽??甇?Ⅱ????
+        /// - ?踹?憿舐內蝛箇??隤斤?鞈?
+        ///
+        /// 瑼Ｘ璇辣嚗?
+        /// - ?勗?拐辣摮
+        /// - LoadFlag ??true嚗”蝷箄??歇頛嚗?
         /// </summary>
         protected bool IsIntegrateDataLoaded()
         {
@@ -465,19 +508,19 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 設定基本 ViewBag 參數 (Set Basic ViewBag Parameters)
+        /// 閮剖??箸 ViewBag ? (Set Basic ViewBag Parameters)
         ///
-        /// 教學說明：
-        /// 這個方法設定所有控制器都需要的基本 ViewBag 參數。
-        /// 為什麼要統一設定？
-        /// - 避免每個控制器重複寫相同的代碼
-        /// - 確保所有頁面都有必要的資訊
+        /// ?飛隤芣?嚗?
+        /// ?瘜身摰???嗅?賡?閬??箸 ViewBag ???
+        /// ?箔?暻潸?蝯曹?閮剖?嚗?
+        /// - ?踹?瘥?嗅??撖怎??隞?Ⅳ
+        /// - 蝣箔?????ａ??閬?鞈?
         ///
-        /// 設定的參數：
-        /// - 登入類型和用戶名稱
-        /// - 費用類型
-        /// - 快樂小組類型
-        /// - 費用資料狀態
+        /// 閮剖????賂?
+        /// - ?餃憿???嗅?蝔?
+        /// - 鞎餌憿?
+        /// - 敹急?撠?憿?
+        /// - 鞎餌鞈????
         /// </summary>
         protected void SetupBasicViewBag()
         {
@@ -486,7 +529,7 @@ namespace ChurchReport.Controllers
             ViewBag.FeeType = InMemoryContext.FeeList.FeeType;
             ViewBag.HappyType = InMemoryContext.HappyGroupDataManager.HappyType;
 
-            // 設定繳費點名狀態
+            // 閮剖?蝜唾祥暺????
             SetupFeeDataListCount();
             SetupMemberInfoViewBag();
         }
@@ -543,124 +586,124 @@ namespace ChurchReport.Controllers
             }
         }
         /// <summary>
-        /// 設定繳費點名資料數量狀態 (Set Fee Data List Count Status)
+        /// 閮剖?蝜唾祥暺?鞈??賊????(Set Fee Data List Count Status)
         ///
-        /// 教學說明：
-        /// 這個方法檢查是否有費用資料，並設定對應的狀態訊息。
-        /// 為什麼需要這個？
-        /// - 讓用戶知道系統中是否有資料
-        /// - 提供視覺回饋
+        /// ?飛隤芣?嚗?
+        /// ?瘜炎?交?行?鞎餌鞈?嚗蒂閮剖?撠??????胯?
+        /// ?箔?暻潮?閬?
+        /// - 霈?嗥?頂蝯曹葉?臬????
+        /// - ??閬死??
         ///
-        /// 狀態訊息：
-        /// - 有資料："繳費與點名已有資料"
-        /// - 無資料："繳費與點名尚無資料"
+        /// ????荔?
+        /// - ????"蝜唾祥???歇????
+        /// - ?∟???"蝜唾祥?????∟???
         /// </summary>
         protected void SetupFeeDataListCount()
         {
             bool hasFeeData = InMemoryContext.FeeList.FeeDataList != null &&
                             InMemoryContext.FeeList.FeeDataList.Count > 0;
 
-            ViewBag.FeeDataListCount = hasFeeData ? "繳費與點名已有資料" : "繳費與點名尚無資料";
+            ViewBag.FeeDataListCount = hasFeeData ? "已載入收費資料" : "尚未載入收費資料";
         }
 
         #endregion
 
-        #region Session 安全驗證 (Session Security Validation)
+        #region Session 摰撽? (Session Security Validation)
 
         /// <summary>
-        /// 確保 AJAX 請求使用正確用戶的資料 (Ensure Correct User Data for AJAX Requests)
+        /// 蝣箔? AJAX 隢?雿輻甇?Ⅱ?冽????(Ensure Correct User Data for AJAX Requests)
         ///
-        /// ? 效能優化版本：
-        /// - 使用記憶體快取避免重複驗證（30 秒內）
-        /// - 條件化 Debug 輸出（僅在需要時）
-        /// - 提前返回（Fail-Fast）減少不必要的檢查
+        /// ? ??芸??嚗?
+        /// - 雿輻閮擃翰???銴?霅?30 蝘嚗?
+        /// - 璇辣??Debug 頛詨嚗??券?閬?嚗?
+        /// - ??餈?嚗ail-Fast嚗?撠?敹??炎??
         ///
-        /// 教學說明：
-        /// 在 AJAX 請求中，用戶的 Session 可能已經改變。
-        /// 這個方法確保我們使用的是正確的用戶資料。
+        /// ?飛隤芣?嚗?
+        /// ??AJAX 隢?銝哨??冽??Session ?航撌脩??寡???
+        /// ?瘜Ⅱ靽??蝙?函??舀迤蝣箇??冽鞈???
         ///
-        /// 效能優化策略：
-        /// 1. **快取驗證結果**：30 秒內不重複驗證同一用戶
-        /// 2. **Lazy Loading**：只在需要時才讀取 Session
-        /// 3. **條件 Logging**：只在發生變更時才記錄
-        /// 4. **提前返回**：一旦確認有效就立即返回
+        /// ??芸?蝑嚗?
+        /// 1. **敹怠?撽?蝯?**嚗?0 蝘銝?銴?霅?銝?冽
+        /// 2. **Lazy Loading**嚗?券?閬?????Session
+        /// 3. **璇辣 Logging**嚗?函???湔?????
+        /// 4. **??餈?**嚗??衣Ⅱ隤??停蝡餈?
         /// </summary>
         protected virtual void EnsureCorrectUserData()
         {
             try
             {
                 // ========================================
-                // Step 0: 快取檢查（效能優化的核心）
+                // Step 0: 敹怠?瑼Ｘ嚗??賢???詨?嚗?
                 // ========================================
                 var sessionId = HttpContext?.Session?.Id;
                 if (string.IsNullOrEmpty(sessionId))
                 {
-                    return; // 無 Session，無需驗證
+                    return; // ??Session嚗?撽?
                 }
 
                 // ========================================
-                // Step 1: Lazy Loading - 只在需要時讀取 Session
+                // Step 1: Lazy Loading - ?芸?閬?霈??Session
                 // ========================================
                 var sessionPassword = HttpContext?.Session?.GetString("_LoginPassword");
                 var listManagerPassword = InMemoryContext?.ListManager?.m_Password;
 
-                // 如果兩者都為空，無需驗證
+                // 憒??抵?箇征嚗?撽?
                 if (string.IsNullOrEmpty(sessionPassword) && string.IsNullOrEmpty(listManagerPassword))
                 {
                     return;
                 }
 
-                // 計算當前密碼的安全雜湊（用於快取 Key）
+                // 閮??嗅?撖Ⅳ???券?皝??冽敹怠? Key嚗?
                 var currentPasswordHash = GetStableHash(sessionPassword ?? listManagerPassword ?? "");
                 var cacheKey = $"{sessionId}_{currentPasswordHash}";
 
                 // ========================================
-                // Step 2: 安全的快取檢查（?? 防止 Session Collision）
+                // Step 2: 摰?翰?炎?伐??? ?脫迫 Session Collision嚗?
                 // ========================================
                 if (_userValidationCache.TryGetValue(cacheKey, out var cached))
                 {
                     var cacheAge = (DateTime.UtcNow - cached.LastValidated).TotalSeconds;
 
-                    // ? 快取命中 + 密碼雜湊一致（雙重驗證）
+                    // ? 敹怠??賭葉 + 撖Ⅳ??銝?湛???撽?嚗?
                     if (cacheAge < USER_VALIDATION_CACHE_SECONDS &&
                         cached.IsValid &&
                         cached.PasswordHash == currentPasswordHash)
                     {
-                        // 快取命中且安全，直接返回
+                        // 敹怠??賭葉銝??剁??湔餈?
                         return;
                     }
                 }
 
                 // ========================================
-                // Step 3: 快取失效或不存在，執行完整驗證
+                // Step 3: 敹怠?憭望???摮嚗銵??湧?霅?
                 // ========================================
                 var sessionAccount = HttpContext?.Session?.GetString("_LoginAccount");
 
-                // 檢查 Session 和 ListManager 的密碼是否一致
+                // 瑼Ｘ Session ??ListManager ??蝣潭?虫???
                 if (!string.IsNullOrEmpty(sessionPassword) &&
                     !string.IsNullOrEmpty(listManagerPassword) &&
                     sessionPassword == listManagerPassword)
                 {
-                    // ? 驗證通過，更新快取
+                    // ? 撽???嚗?啣翰??
                     _userValidationCache[cacheKey] = (DateTime.UtcNow, true, currentPasswordHash);
 
-                    // 清理同一 Session 的舊快取項目（密碼變更時）
+                    // 皜??? Session ??敹怠??嚗?蝣潸??湔?嚗?
                     CleanupOldCacheForSession(sessionId, cacheKey);
                     return;
                 }
 
                 // ========================================
-                // Step 4: 憑證不一致，需要重新載入
+                // Step 4: ??銝??湛??閬??啗???
                 // ========================================
 #if DEBUG
-                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] 憑證不一致，重新載入 ListManager 資料");
+                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] ??銝??湛??頛 ListManager 鞈?");
 #endif
 
                 if (!string.IsNullOrEmpty(sessionPassword) &&
                     !string.IsNullOrEmpty(listManagerPassword) &&
                     sessionPassword != listManagerPassword)
                 {
-                    // 重新載入 ListManager 資料
+                    // ?頛 ListManager 鞈?
                     InMemoryContext.ListManager.SetupListManager(
                         sessionAccount ?? "",
                         sessionPassword,
@@ -668,18 +711,18 @@ namespace ChurchReport.Controllers
                             ? InMemoryContext.ListManager.m_SelectDate
                             : DateTime.Now);
 
-                    // 使用新的密碼雜湊更新快取
+                    // 雿輻?啁?撖Ⅳ???湔敹怠?
                     var newPasswordHash = GetStableHash(sessionPassword);
                     var newCacheKey = $"{sessionId}_{newPasswordHash}";
                     _userValidationCache[newCacheKey] = (DateTime.UtcNow, true, newPasswordHash);
 
-                    // 清理舊快取
+                    // 皜??翰??
                     CleanupOldCacheForSession(sessionId, newCacheKey);
                     return;
                 }
 
                 // ========================================
-                // Step 5: 如果 Session 密碼為空，嘗試從請求中取得 LINE ID
+                // Step 5: 憒? Session 撖Ⅳ?箇征嚗?閰血?隢?銝剖?敺?LINE ID
                 // ========================================
                 if (string.IsNullOrEmpty(sessionPassword))
                 {
@@ -688,7 +731,7 @@ namespace ChurchReport.Controllers
                     if (!string.IsNullOrEmpty(lineUserId) && lineUserId != listManagerPassword)
                     {
 #if DEBUG
-                        System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] Session 憑證為空，使用 LINE ID 重新載入");
+                        System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] Session ???箇征嚗蝙??LINE ID ?頛");
 #endif
 
                         InMemoryContext.ListManager.SetupListManager(
@@ -701,7 +744,7 @@ namespace ChurchReport.Controllers
                         HttpContext?.Session?.SetString("_LoginAccount", "LineIdLogin");
                         HttpContext?.Session?.SetString("_LoginPassword", lineUserId);
 
-                        // 更新快取
+                        // ?湔敹怠?
                         var linePasswordHash = GetStableHash(lineUserId);
                         var lineCacheKey = $"{sessionId}_{linePasswordHash}";
                         _userValidationCache[lineCacheKey] = (DateTime.UtcNow, true, linePasswordHash);
@@ -711,22 +754,22 @@ namespace ChurchReport.Controllers
             catch (Exception ex)
             {
 #if DEBUG
-                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] 驗證失敗: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] 撽?憭望?: {ex.Message}");
 #endif
             }
         }
 
         /// <summary>
-        /// 計算穩定的密碼雜湊（用於快取 Key）
+        /// 閮?蝛拙???蝣潮?皝??冽敹怠? Key嚗?
         ///
-        /// ?? 安全說明：
-        /// - 使用 SHA256 雜湊，防止密碼明文儲存
-        /// - 取前 8 字元平衡安全性與 Key 長度
-        /// - 雜湊碰撞機率：1 / 2^32（極低）
+        /// ?? 摰隤芣?嚗?
+        /// - 雿輻 SHA256 ??嚗甇Ｗ?蝣潭??摮?
+        /// - ?? 8 摮?撟唾﹛摰?扯? Key ?瑕漲
+        /// - ??蝣唳?璈?嚗? / 2^32嚗扔雿?
         ///
-        /// 為什麼不直接用密碼？
-        /// - 安全性：避免密碼洩漏到日誌或記憶體快照
-        /// - Key 長度：控制 Dictionary Key 大小
+        /// ?箔?暻潔??湔?典?蝣潘?
+        /// - 摰?改??踹?撖Ⅳ瘣拇??唳隤?閮擃翰??
+        /// - Key ?瑕漲嚗??Dictionary Key 憭批?
         /// </summary>
         private static string GetStableHash(string input)
         {
@@ -742,17 +785,17 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 清理同一 Session 的舊快取項目
+        /// 皜??? Session ??敹怠??
         ///
-        /// ?? 記憶體管理：
-        /// - 防止密碼變更後產生的舊快取累積（Memory Leak）
-        /// - 防止 Session ID 重用時的 Session Collision
-        /// - 順便清理全域過期項目（超過 5 分鐘）
+        /// ?? 閮擃恣??
+        /// - ?脫迫撖Ⅳ霈敺???翰?敞蝛?Memory Leak嚗?
+        /// - ?脫迫 Session ID ??? Session Collision
+        /// - ?噶皜??典????嚗???5 ??嚗?
         ///
-        /// 清理策略：
-        /// 1. 移除同一 Session 但密碼雜湊不同的項目（用戶密碼變更）
-        /// 2. 移除所有超過 5 分鐘的過期項目（記憶體清理）
-        /// 3. 保留當前有效的快取項目
+        /// 皜?蝑嚗?
+        /// 1. 蝘駁?? Session 雿?蝣潮?皝????嚗?嗅?蝣潸??湛?
+        /// 2. 蝘駁?????5 ???????殷?閮擃???
+        /// 3. 靽??嗅????翰????
         /// </summary>
         private static void CleanupOldCacheForSession(string sessionId, string currentCacheKey)
         {
@@ -763,19 +806,19 @@ namespace ChurchReport.Controllers
 
                 foreach (var kvp in _userValidationCache)
                 {
-                    // 檢查 1：同一 Session 但密碼不同的舊項目（Session Collision 防護）
+                    // 瑼Ｘ 1嚗?銝 Session 雿?蝣潔??????殷?Session Collision ?脰風嚗?
                     if (kvp.Key.StartsWith(sessionId + "_") && kvp.Key != currentCacheKey)
                     {
                         keysToRemove.Add(kvp.Key);
                     }
-                    // 檢查 2：所有超過 5 分鐘的過期項目（Memory Leak 防護）
+                    // 瑼Ｘ 2嚗?????5 ???????殷?Memory Leak ?脰風嚗?
                     else if ((now - kvp.Value.LastValidated).TotalMinutes > 5)
                     {
                         keysToRemove.Add(kvp.Key);
                     }
                 }
 
-                // 批次移除
+                // ?寞活蝘駁
                 foreach (var key in keysToRemove)
                 {
                     _userValidationCache.TryRemove(key, out _);
@@ -784,31 +827,31 @@ namespace ChurchReport.Controllers
 #if DEBUG
                 if (keysToRemove.Count > 0)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[CleanupOldCache] 已清理 {keysToRemove.Count} 個快取項目（Session={sessionId.Substring(0, Math.Min(8, sessionId.Length))}...)");
+                    System.Diagnostics.Debug.WriteLine($"[CleanupOldCache] 撌脫???{keysToRemove.Count} ?翰???殷?Session={sessionId.Substring(0, Math.Min(8, sessionId.Length))}...)");
                 }
 #endif
             }
             catch
             {
-                // 清理失敗不影響主流程
+                // 皜?憭望?銝蔣?蹂蜓瘚?
             }
         }
 
 
         /// <summary>
-        /// 嘗試從請求中取得 LINE 用戶 ID (Try to Get LINE User ID from Request)
+        /// ?岫敺?瘙葉?? LINE ?冽 ID (Try to Get LINE User ID from Request)
         ///
-        /// 教學說明：
-        /// LINE 登入時，用戶 ID 會包含在請求的 Referer 中。
-        /// 這個方法解析出用戶 ID。
+        /// ?飛隤芣?嚗?
+        /// LINE ?餃???冽 ID ???怠隢???Referer 銝准?
+        /// ?瘜圾??冽 ID??
         ///
-        /// 解析邏輯：
-        /// - 從 HTTP Referer 標頭中尋找 LINE 用戶 ID 格式
-        /// - LINE 用戶 ID 以 "U" 開頭，長度為 33 個字元
+        /// 閫???摩嚗?
+        /// - 敺?HTTP Referer 璅銝剖???LINE ?冽 ID ?澆?
+        /// - LINE ?冽 ID 隞?"U" ?嚗摨衣 33 ????
         ///
-        /// 為什麼需要這個？
-        /// - 當 Session 遺失時，可以從請求中恢復用戶身份
-        /// - 提高系統的容錯能力
+        /// ?箔?暻潮?閬?
+        /// - ??Session ?箏仃???臭誑敺?瘙葉?Ｗ儔?冽頨思遢
+        /// - ??蝟餌絞?捆?航??
         /// </summary>
         protected string TryGetLineUserIdFromRequest()
         {
@@ -833,27 +876,27 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// 驗證當前 Session 是否合法 (Validate Current Session)
+        /// 撽??嗅? Session ?臬?? (Validate Current Session)
         ///
-        /// 教學說明：
-        /// Session 驗證是 Web 應用安全的重要部分。
-        /// 這個方法檢查用戶的登入狀態是否仍然有效。
+        /// ?飛隤芣?嚗?
+        /// Session 撽???Web ?摰??閬??
+        /// ?瘜炎?亦?嗥??餃???虫??嗆???
         ///
-        /// 設計模式：Template Method Pattern
-        /// - 提供通用的驗證流程
-        /// - 子類別可以覆寫特定檢查
+        /// 閮剛?璅∪?嚗emplate Method Pattern
+        /// - ?????霅?蝔?
+        /// - 摮??亙隞亥?撖怎摰炎??
         ///
-        /// Fail-Fast 原則：
-        /// - 一發現問題就立即返回 false
-        /// - 不繼續執行不必要的檢查
+        /// Fail-Fast ??嚗?
+        /// - 銝?潛??撠梁??唾???false
+        /// - 銝匱蝥銵?敹??炎??
         ///
-        /// 驗證項目：
-        /// 1. Session 是否存在
-        /// 2. Session 是否過期（8 小時）
-        /// 3. 用戶身份是否一致
+        /// 撽??嚗?
+        /// 1. Session ?臬摮
+        /// 2. Session ?臬??嚗? 撠?嚗?
+        /// 3. ?冽頨思遢?臬銝??
         ///
-        /// 使用方式：
-        /// 在 Controller Action 開始時呼叫：
+        /// 雿輻?孵?嚗?
+        /// ??Controller Action ????恬?
         /// if (!ValidateSession())
         /// {
         ///     return RedirectToAction("Login", "Authentication");
@@ -864,17 +907,17 @@ namespace ChurchReport.Controllers
             try
             {
                 // ========================================
-                // Step 1: 檢查 Session 是否存在
+                // Step 1: 瑼Ｘ Session ?臬摮
                 // ========================================
                 var sessionUserId = HttpContext.Session.GetString("_SessionUserId");
                 if (string.IsNullOrEmpty(sessionUserId))
                 {
-                    System.Diagnostics.Debug.WriteLine("[ValidateSession] Session 不存在或已過期");
+                    System.Diagnostics.Debug.WriteLine("[ValidateSession] Session user id is missing.");
                     return false;
                 }
 
                 // ========================================
-                // Step 2: 檢查 Session 創建時間（防止過期 Session）
+                // Step 2: 瑼Ｘ Session ?萄遣??嚗甇ａ???Session嚗?
                 // ========================================
                 var sessionCreatedAt = HttpContext.Session.GetString("_SessionCreatedAt");
                 if (!string.IsNullOrEmpty(sessionCreatedAt))
@@ -882,70 +925,70 @@ namespace ChurchReport.Controllers
                     if (DateTime.TryParse(sessionCreatedAt, out DateTime createdTime))
                     {
                         var sessionAge = DateTime.UtcNow - createdTime;
-                        // Session 超過 8 小時視為過期（額外保護層）
+                        // Session 頞? 8 撠?閬??嚗?憭?霅瑕惜嚗?
                         if (sessionAge.TotalHours > 8)
                         {
-                            System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session 已過期 ({sessionAge.TotalHours:F2} 小時)");
+                            System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session 撌脤???({sessionAge.TotalHours:F2} 撠?)");
                             return false;
                         }
                     }
                 }
 
                 // ========================================
-                // Step 3: 驗證用戶身份一致性
+                // Step 3: 撽??冽頨思遢銝?湔?
                 // ========================================
-                // 檢查 InMemoryContext 中的用戶資料是否與 Session 一致
+                // 瑼Ｘ InMemoryContext 銝剔??冽鞈??臬??Session 銝??
                 var currentAccount = InMemoryContext?.ListManager?.m_Account;
                 if (string.IsNullOrEmpty(currentAccount))
                 {
-                    System.Diagnostics.Debug.WriteLine("[ValidateSession] 用戶資料不存在於 InMemoryContext");
+                    System.Diagnostics.Debug.WriteLine("[ValidateSession] ?冽鞈?銝??冽 InMemoryContext");
                     return false;
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session 驗證通過 - UserId: {sessionUserId}");
+                System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session 撽??? - UserId: {sessionUserId}");
                 return true;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session 驗證失敗: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ValidateSession] Session 撽?憭望?: {ex.Message}");
                 return false;
             }
         }
 
         /// <summary>
-        /// 強制重新生成 Session ID (Regenerate Session ID)
+        /// 撘瑕??? Session ID (Regenerate Session ID)
         ///
-        /// 教學說明：
-        /// Session ID 重新生成是安全最佳實務。
-        /// 為什麼需要？
-        /// - 防止 Session Fixation 攻擊
-        /// - 在權限改變後確保安全
+        /// ?飛隤芣?嚗?
+        /// Session ID ????臬??冽?雿喳祕??
+        /// ?箔?暻潮?閬?
+        /// - ?脫迫 Session Fixation ?餅?
+        /// - ?冽??霈?蝣箔?摰
         ///
-        /// 使用情境：
-        /// - 權限變更後
-        /// - 敏感操作前
-        /// - 定期安全檢查
+        /// 雿輻??嚗?
+        /// - 甈?霈敺?
+        /// - ??????
+        /// - 摰?摰瑼Ｘ
         ///
-        /// 注意事項：
-        /// - 此方法會清除並重建 Session
-        /// - 但會保留用戶資料（使用新時間戳）
+        /// 瘜冽?鈭?嚗?
+        /// - 甇斗瘜?皜銝阡?撱?Session
+        /// - 雿?靽??冽鞈?嚗蝙?冽???喉?
         /// </summary>
         protected void RegenerateSessionId()
         {
             try
             {
-                // 暫存重要資料
+                // ?怠???鞈?
                 var userId = HttpContext.Session.GetString("_SessionUserId");
                 var userAgent = HttpContext.Session.GetString("_SessionUserAgent");
                 var realIp = HttpContext.Session.GetString("_SessionRealIp");
 
-                // 清除舊 Session
+                // 皜??Session
                 HttpContext.Session.Clear();
 
-                // 強制生成新 Session ID
+                // 撘瑕????Session ID
                 HttpContext.Session.CommitAsync().GetAwaiter().GetResult();
 
-                // 恢復資料（使用新的時間戳）
+                // ?Ｗ儔鞈?嚗蝙?冽???嚗?
                 if (!string.IsNullOrEmpty(userId))
                 {
                     HttpContext.Session.SetString("_SessionUserId", userId);
@@ -955,37 +998,37 @@ namespace ChurchReport.Controllers
                     HttpContext.Session.SetString("_SessionRealIp", realIp ?? "");
                 }
 
-                System.Diagnostics.Debug.WriteLine("[RegenerateSessionId] Session ID 已重新生成");
+                System.Diagnostics.Debug.WriteLine("[RegenerateSessionId] Session ID regenerated.");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[RegenerateSessionId] 重新生成失敗: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[RegenerateSessionId] ???憭望?: {ex.Message}");
                 throw;
             }
         }
 
         #endregion
 
-        #region 連接池操作 (Connection Pool Operations)
+        #region ??瘙?雿?(Connection Pool Operations)
 
         /// <summary>
-        /// 從連接池獲取 CRM 連接 (Get CRM Connection from Pool)
+        /// 敺?瘙??CRM ?? (Get CRM Connection from Pool)
         ///
-        /// 教學說明：
-        /// CRM 連接很耗資源，所以使用連接池來管理。
-        /// 這個方法從池中取得一個可用的連接。
+        /// ?飛隤芣?嚗?
+        /// CRM ??敺?皞??隞乩蝙?券?瘙?蝞∠???
+        /// ?瘜?瘙葉??銝??函?????
         ///
-        /// 設計模式：Object Pool Pattern
+        /// 閮剛?璅∪?嚗bject Pool Pattern
         ///
-        /// 異常處理：
-        /// - TimeoutException: 連接池已滿，等待超時
-        /// - InvalidOperationException: 連接池未初始化
+        /// ?啣虜??嚗?
+        /// - TimeoutException: ??瘙歇皛選?蝑?頞?
+        /// - InvalidOperationException: ??瘙????
         ///
-        /// 使用方式：
+        /// 雿輻?孵?嚗?
         /// using (var connection = GetConnection())
         /// {
-        ///     // 使用連接
-        /// } // 自動歸還
+        ///     // 雿輻??
+        /// } // ?芸?甇賊?
         /// </summary>
         protected IOrganizationService GetConnection()
         {
@@ -993,14 +1036,14 @@ namespace ChurchReport.Controllers
             {
                 if (_connectionPool == null)
                 {
-                    throw new InvalidOperationException("連接池未初始化");
+                    throw new InvalidOperationException("CRM connection pool is not initialized.");
                 }
 
                 var connection = _connectionPool.AcquireConnection();
 
                 if (connection == null)
                 {
-                    throw new InvalidOperationException("無法從連接池獲取有效連接");
+                    throw new InvalidOperationException("CRM connection pool returned a null connection.");
                 }
 
 #if DEBUG
@@ -1021,31 +1064,31 @@ namespace ChurchReport.Controllers
             }
             catch (TimeoutException)
             {
-                // 連接池已滿，記錄日誌
-                System.Diagnostics.Debug.WriteLine($"[GetConnection] 連接池已滿，等待超時");
+                // ??瘙歇皛選?閮??亥?
+                System.Diagnostics.Debug.WriteLine($"[GetConnection] ??瘙歇皛選?蝑?頞?");
                 throw;
             }
             catch (Exception ex)
             {
-                // 其他異常
-                System.Diagnostics.Debug.WriteLine($"[GetConnection] 獲取連接失敗: {ex.Message}");
+                // ?嗡??啣虜
+                System.Diagnostics.Debug.WriteLine($"[GetConnection] ?脣???憭望?: {ex.Message}");
                 throw;
             }
         }
 
         /// <summary>
-        /// 歸還連接到連接池 (Return Connection to Pool)
+        /// 甇賊????圈?瘙?(Return Connection to Pool)
         ///
-        /// 教學說明：
-        /// 使用完連接後，一定要歸還到池中。
-        /// 為什麼重要？
-        /// - 連接是有限資源，不歸還會造成資源洩漏
-        /// - 其他請求無法取得連接
-        /// - 系統性能下降
+        /// ?飛隤芣?嚗?
+        /// 雿輻摰?敺?銝摰?甇賊??唳?銝准?
+        /// ?箔?暻潮?閬?
+        /// - ???舀???皞?銝飛????鞈?瘣拇?
+        /// - ?嗡?隢??⊥?????
+        /// - 蝟餌絞?扯銝?
         ///
-        /// 注意事項：
-        /// - 即使歸還失敗，也不應該中斷業務邏輯
-        /// - 會記錄失敗的日誌
+        /// 瘜冽?鈭?嚗?
+        /// - ?喃蝙甇賊?憭望?嚗?銝?閰脖葉?瑟平??頛?
+        /// - ???仃???亥?
         /// </summary>
         protected void ReleaseConnection(IOrganizationService connection)
         {
@@ -1053,13 +1096,13 @@ namespace ChurchReport.Controllers
             {
                 if (connection == null)
                 {
-                    // 連接為 null，不需要歸還
+                    // ????null嚗??閬飛??
                     return;
                 }
 
                 if (_connectionPool == null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ReleaseConnection] 連接池未初始化，無法歸還連接");
+                    System.Diagnostics.Debug.WriteLine("[ReleaseConnection] CRM connection pool is not initialized.");
                     return;
                 }
 
@@ -1074,41 +1117,41 @@ namespace ChurchReport.Controllers
             }
             catch (Exception ex)
             {
-                // 歸還連接失敗不應該中斷業務邏輯
-                System.Diagnostics.Debug.WriteLine($"[ReleaseConnection] 歸還連接失敗: {ex.Message}");
+                // 甇賊???憭望?銝?閰脖葉?瑟平??頛?
+                System.Diagnostics.Debug.WriteLine($"[ReleaseConnection] 甇賊???憭望?: {ex.Message}");
 
-                // 記錄到追蹤日誌
+                // 閮??啗蕭頩斗隤?
                 try
                 {
                     ToolUtility?.TraceByLevel(TOTAL_LEVEL, LEVEL_1,
-                        $"歸還連接失敗: {ex.Message}");
+                        $"甇賊???憭望?: {ex.Message}");
                 }
                 catch
                 {
-                    // 追蹤失敗也不影響流程
+                    // 餈質馱憭望?銋?敶梢瘚?
                 }
             }
         }
 
         /// <summary>
-        /// 獲取連接池統計資訊 (Get Connection Pool Statistics)
+        /// ?脣???瘙絞閮?閮?(Get Connection Pool Statistics)
         ///
-        /// 教學說明：
-        /// 監控連接池的狀態很重要。
-        /// 這個方法返回連接池的統計資料。
+        /// ?飛隤芣?嚗?
+        /// ????瘙????????
+        /// ?瘜???瘙?蝯梯?鞈???
         ///
-        /// 統計資訊包括：
-        /// - 總連接數
-        /// - 活躍連接數
-        /// - 閒置連接數
-        /// - 等待請求數
-        /// - 取得/釋放計數
-        /// - 超時和驗證失敗計數
+        /// 蝯梯?鞈??嚗?
+        /// - 蝮賡???
+        /// - 瘣餉?????
+        /// - ?蔭????
+        /// - 蝑?隢???
+        /// - ??/?閮
+        /// - 頞???霅仃????
         ///
-        /// 為什麼需要？
-        /// - 性能監控：發現連接池問題
-        /// - 容量規劃：決定是否需要增加連接數
-        /// - 問題診斷：追蹤連接使用模式
+        /// ?箔?暻潮?閬?
+        /// - ?扯??嚗?暸?瘙?憿?
+        /// - 摰寥?閬?嚗捱摰?阡?閬?????
+        /// - ??閮箸嚗蕭頩日?雿輻璅∪?
         /// </summary>
         protected ConnectionPoolStats GetConnectionPoolStats()
         {
@@ -1133,9 +1176,9 @@ namespace ChurchReport.Controllers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetConnectionPoolStats] 獲取統計資訊失敗: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[GetConnectionPoolStats] ?脣?蝯梯?鞈?憭望?: {ex.Message}");
 
-                // 返回空統計資訊
+                // 餈?蝛箇絞閮?閮?
                 return new ConnectionPoolStats
                 {
                     TotalConnections = 0,
@@ -1152,33 +1195,33 @@ namespace ChurchReport.Controllers
 
         #endregion
 
-        #region 資源釋放 (Resource Disposal)
+        #region 鞈?? (Resource Disposal)
 
         /// <summary>
-        /// 釋放資源 (Dispose Resources)
+        /// ?鞈? (Dispose Resources)
         ///
-        /// 教學說明：
-        /// 實現 IDisposable 介面是良好的實務。
-        /// 這個方法在物件被銷毀時自動呼叫。
+        /// ?飛隤芣?嚗?
+        /// 撖衣 IDisposable 隞?航憟賜?撖血???
+        /// ?瘜?拐辣鋡恍瘥???怒?
         ///
-        /// 釋放的資源：
-        /// - ToolUtility：工具類別的資源
-        /// - 基類資源：呼叫 Controller 的 Dispose
+        /// ???皞?
+        /// - ToolUtility嚗極?琿??亦?鞈?
+        /// - ?粹?鞈?嚗??Controller ??Dispose
         ///
-        /// 為什麼重要？
-        /// - 防止資源洩漏
-        /// - 確保連接正確關閉
-        /// - 系統資源得到有效利用
+        /// ?箔?暻潮?閬?
+        /// - ?脫迫鞈?瘣拇?
+        /// - 蝣箔???甇?Ⅱ??
+        /// - 蝟餌絞鞈?敺???拍
         ///
-        /// 注意：這個方法會被垃圾回收器自動呼叫，
-        /// 或者可以手動呼叫 using 語句。
+        /// 瘜冽?嚗瘜?鋡怠??曉??嗅?芸??澆嚗?
+        /// ?隞交????using 隤??
         /// </summary>
         public new void Dispose()
         {
-            // 釋放工具類別資源
+            // ?撌亙憿鞈?
             ToolUtility?.Dispose();
 
-            // 呼叫基礎類別的 Dispose
+            // ?澆?箇?憿??Dispose
             base.Dispose();
         }
 

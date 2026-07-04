@@ -1,0 +1,12 @@
+{
+  "id": "line-churchreport-callsite-convergence",
+  "title": "Converge ChurchReport LINE call sites onto shared notification workflow",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "Archive task and commit ChurchReport LINE call-site convergence slice",
+  "createdAt": "2026-07-03T00:00:00+08:00",
+  "branch": "Jesus_5.1.6.WorktreeRefactorLine"
+}

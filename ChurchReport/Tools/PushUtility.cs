@@ -1,4 +1,6 @@
-﻿using Line.Messaging;
+using Line.Messaging;
+using LineMessagingProcessor;
+using LineMessagingProcessor.Workflows;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,21 +10,70 @@ namespace ChurchReport.Tools
 {
     public class PushUtility
     {
-        #region 初始化設定
+        #region ???身摰?
         private LineMessagingClient m_LineMessagingClient { get; }
+        private readonly ILineNotificationWorkflow _lineNotificationWorkflow;
+        private readonly ILineRichMenuWorkflow _lineRichMenuWorkflow;
 
         public PushUtility(LineMessagingClient LineMessagingClient)
+            : this(
+                  LineMessagingClient,
+                  CreateDefaultNotificationWorkflow(LineMessagingClient),
+                  null)
         {
-            this.m_LineMessagingClient = LineMessagingClient;
+        }
+
+        public PushUtility(LineMessagingClient LineMessagingClient, ILineNotificationWorkflow? lineNotificationWorkflow)
+            : this(LineMessagingClient, lineNotificationWorkflow, CreateDefaultRichMenuWorkflow(LineMessagingClient))
+        {
+        }
+
+        public PushUtility(
+            LineMessagingClient LineMessagingClient,
+            ILineNotificationWorkflow? lineNotificationWorkflow,
+            ILineRichMenuWorkflow? lineRichMenuWorkflow)
+        {
+            this.m_LineMessagingClient = LineMessagingClient ?? throw new ArgumentNullException(nameof(LineMessagingClient));
+            _lineNotificationWorkflow = lineNotificationWorkflow ?? CreateDefaultNotificationWorkflow(LineMessagingClient);
+            _lineRichMenuWorkflow = lineRichMenuWorkflow ?? CreateDefaultRichMenuWorkflow(LineMessagingClient);
+        }
+
+        private static ILineNotificationWorkflow CreateDefaultNotificationWorkflow(LineMessagingClient lineMessagingClient)
+        {
+            return new LineNotificationWorkflow(new LineMessagingProcessorClass(lineMessagingClient));
+        }
+
+        private static ILineRichMenuWorkflow CreateDefaultRichMenuWorkflow(LineMessagingClient lineMessagingClient)
+        {
+            return new LineRichMenuWorkflow(new LineMessagingProcessorClass(lineMessagingClient));
+        }
+
+        private async Task SendBestEffortSdkMessagesAsync(
+            string userId,
+            IReadOnlyList<ISendMessage> messages,
+            string source)
+        {
+            await _lineNotificationWorkflow.SendAsync(new LineNotificationRequest
+            {
+                Recipient = LineNotificationRecipient.User(userId),
+                Content = LineNotificationContent.SdkMessagesList(messages),
+                Metadata = new Dictionary<string, string>
+                {
+                    ["source"] = source
+                }
+            });
         }
         #endregion
 
-        #region Line Messagin Api Push SDK傳送
+        #region Line Messagin Api Push SDK?喲?
         public async Task SendMessage(string UserId, List<ISendMessage> MessageToSend)
         {
             try
             {
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.BestEffortSdkMessages");
                 return;
             }
             catch (System.Exception e)
@@ -36,12 +87,15 @@ namespace ChurchReport.Tools
         {
             try
             {
-                List<ISendMessage> MessageToSend = new List<ISendMessage>
+                await _lineNotificationWorkflow.SendAsync(new LineNotificationRequest
                 {
-                    new TextMessage(Message)
-                };
-
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                    Recipient = LineNotificationRecipient.User(UserId),
+                    Content = LineNotificationContent.TextMessage(Message),
+                    Metadata = new Dictionary<string, string>
+                    {
+                        ["source"] = "ChurchReport.PushUtility"
+                    }
+                });
 
                 return;
             }
@@ -61,12 +115,75 @@ namespace ChurchReport.Tools
                 throw new ArgumentException("LINE user id is required.", nameof(UserId));
             }
 
-            List<ISendMessage> MessageToSend = new List<ISendMessage>
+            await _lineNotificationWorkflow.SendOrThrowAsync(new LineNotificationRequest
             {
-                new TextMessage(Message)
-            };
+                Recipient = LineNotificationRecipient.User(UserId),
+                Content = LineNotificationContent.TextMessage(Message),
+                Metadata = new Dictionary<string, string>
+                {
+                    ["source"] = "ChurchReport.PushUtility.RequiredText"
+                }
+            });
+        }
 
-            await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+        public async Task SendMessagesOrThrowAsync(string UserId, IReadOnlyList<ISendMessage> messages)
+        {
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                throw new ArgumentException("LINE user id is required.", nameof(UserId));
+            }
+
+            await _lineNotificationWorkflow.SendOrThrowAsync(new LineNotificationRequest
+            {
+                Recipient = LineNotificationRecipient.User(UserId),
+                Content = LineNotificationContent.SdkMessagesList(messages),
+                Metadata = new Dictionary<string, string>
+                {
+                    ["source"] = "ChurchReport.PushUtility.RequiredSdkMessages"
+                }
+            });
+        }
+
+        /// <summary>
+        /// Sends a required text notification with LINE retry-key semantics.
+        /// This method is intentionally different from <see cref="SendMessage(string, string)"/>:
+        /// SendMessage is the legacy best-effort path and still swallows failures; this method is
+        /// for payment or required notifications where failure must remain visible to the caller.
+        ///
+        /// When an ILineNotificationWorkflow is injected, the request is routed through the shared
+        /// product-agnostic LINE workflow with the retry key preserved. ChurchReport-specific CRM,
+        /// payment, donation, and MVC decisions stay in ChurchReport.
+        ///
+        /// The legacy <c>new PushUtility(client)</c> constructor now creates this shared workflow
+        /// automatically, so older call sites also use the same processor-backed path.
+        /// </summary>
+        /// <param name="UserId">LINE user id. Required notifications must have an explicit recipient.</param>
+        /// <param name="Message">Text content to send.</param>
+        /// <param name="retryKey">
+        /// LINE retry key used to identify retried sends and reduce duplicate payment notifications.
+        /// </param>
+        public async Task SendReliableMessageAsync(string UserId, string Message, string? retryKey)
+        {
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                throw new ArgumentException("LINE user id is required.", nameof(UserId));
+            }
+
+            if (string.IsNullOrWhiteSpace(Message))
+            {
+                throw new ArgumentException("LINE message is required.", nameof(Message));
+            }
+
+            await _lineNotificationWorkflow.SendOrThrowAsync(new LineNotificationRequest
+            {
+                Recipient = LineNotificationRecipient.User(UserId),
+                Content = LineNotificationContent.TextMessage(Message),
+                RetryKey = retryKey,
+                Metadata = new Dictionary<string, string>
+                {
+                    ["source"] = "ChurchReport.PushUtility.ReliableText"
+                }
+            });
         }
 
         public async Task SendImage(string UserId, string OriginalContenUrl, string PreviewImageUrl)
@@ -78,7 +195,10 @@ namespace ChurchReport.Tools
                     new ImageMessage(OriginalContenUrl, PreviewImageUrl)
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.SendImage");
 
                 return;
             }
@@ -98,7 +218,10 @@ namespace ChurchReport.Tools
                     new VideoMessage(OriginalContenUrl, PreviewImageUrl)
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.SendVideo");
 
                 return;
             }
@@ -118,7 +241,10 @@ namespace ChurchReport.Tools
                     new AudioMessage(OriginalContenUrl, Duration)
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.SendAudio");
 
                 return;
             }
@@ -138,7 +264,10 @@ namespace ChurchReport.Tools
                     new LocationMessage(Title, Address, Latitude, Longitude)
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.SendLocation");
 
                 return;
             }
@@ -158,7 +287,10 @@ namespace ChurchReport.Tools
                     new StickerMessage(PackageId.ToString(), StickerId.ToString())
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.SendSticker");
 
                 return;
             }
@@ -191,7 +323,10 @@ namespace ChurchReport.Tools
                     ButtonsTemplateMessage,
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.PostSerializedTemplate");
 
             }
             catch (System.Exception e)
@@ -216,7 +351,10 @@ namespace ChurchReport.Tools
                     ConfirmTemplateMessage,
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.PostSerializedConfirm");
             }
             catch (System.Exception e)
             {
@@ -241,7 +379,10 @@ namespace ChurchReport.Tools
                     ImageMapTemplateMessage,
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.PostSerializedImageMap");
 
             }
             catch (System.Exception e)
@@ -255,81 +396,83 @@ namespace ChurchReport.Tools
         {
             try
             {
-                RichMenu richMenu = new RichMenu()
+                var richMenu = CreateLegacySingleButtonRichMenu();
+                var imagePath = @"D:\暫存區\richmenu.PNG";
+                await _lineRichMenuWorkflow.CreateUploadAndLinkOrThrowAsync(new LineRichMenuCreateUploadAndLinkRequest
                 {
-                    Size = ImagemapSize.RichMenuLong,
-                    Selected = false,
-                    Name = "nice richmenu",
-                    ChatBarText = "touch me",
-                    Areas = new List<ActionArea>()
+                        UserId = UserId,
+                        RichMenu = richMenu,
+                        PngImageStreamFactory = () => File.OpenRead(imagePath),
+                        Metadata = new Dictionary<string, string>
                         {
-                            new ActionArea()
-                            {
-                                Bounds = new ImagemapArea(0,0 ,ImagemapSize.RichMenuLong.Width,ImagemapSize.RichMenuLong.Height),
-                                Action = new PostbackTemplateAction("ButtonA", "Menu A", "Menu A")
-                            }
+                            ["source"] = "ChurchReport.PushUtility.AddRichMenuMessage",
+                            ["legacyImagePath"] = imagePath
                         }
-                };
+                });
 
-                String richMenuId = await this.m_LineMessagingClient.CreateRichMenuAsync(richMenu);
-                //var image = new MemoryStream(File.ReadAllBytes(HttpContext.Current.Server.MapPath(@"~\Images\richmenu.PNG")));
-                //var image = new MemoryStream(File.ReadAllBytes(@"D:\\LINE 佈署\\Logo\\音訊科技\\SpeechMessage.png"));
-
-                String path = @"D:\暫存區\richmenu.PNG";
-
-                byte[] readText = System.IO.File.ReadAllBytes(path);
-                var image = new MemoryStream(readText);
-
-
-                //var image = new MemoryStream(byDataValue);
-
-                // Upload Image
-                await this.m_LineMessagingClient.UploadRichMenuPngImageAsync(image, richMenuId);
-                // Link to user
-                await this.m_LineMessagingClient.LinkRichMenuToUserAsync(UserId, richMenuId);
-
-                ISendMessage replyMessage = new TextMessage("Rich menu added");
-                List<ISendMessage> MessageToSend = new List<ISendMessage>
+                var messageToSend = new List<ISendMessage>
                 {
-                    replyMessage,
+                    new TextMessage("Rich menu added"),
                     new StickerMessage("1", "5")
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    messageToSend,
+                    "ChurchReport.PushUtility.AddRichMenuMessage");
 
                 return "成功";
-
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
+                throw;
             }
         }
+
         public async Task<String> DeleteRichMenuMessage(string UserId)
         {
             try
             {
-                // Get Rich Menu for the user
-                var richMenuId = await this.m_LineMessagingClient.GetRichMenuIdOfUserAsync(UserId);
-                await m_LineMessagingClient.UnLinkRichMenuFromUserAsync(UserId);
-                await m_LineMessagingClient.DeleteRichMenuAsync(richMenuId);
+                    await _lineRichMenuWorkflow.DeleteLinkedRichMenuOrThrowAsync(new LineRichMenuDeleteLinkedRequest
+                    {
+                        UserId = UserId,
+                        Metadata = new Dictionary<string, string>
+                        {
+                            ["source"] = "ChurchReport.PushUtility.DeleteRichMenuMessage"
+                        }
+                    });
 
                 return "成功";
             }
             catch (System.Exception e)
             {
                 String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-
-                throw e;
+                throw;
             }
-
         }
 
+        private static RichMenu CreateLegacySingleButtonRichMenu()
+        {
+            return new RichMenu()
+            {
+                Size = ImagemapSize.RichMenuLong,
+                Selected = false,
+                Name = "nice richmenu",
+                ChatBarText = "touch me",
+                Areas = new List<ActionArea>()
+                {
+                    new ActionArea()
+                    {
+                        Bounds = new ImagemapArea(0, 0, ImagemapSize.RichMenuLong.Width, ImagemapSize.RichMenuLong.Height),
+                        Action = new PostbackTemplateAction("ButtonA", "Menu A", "Menu A")
+                    }
+                }
+            };
+        }
         #endregion
 
-        #region 工具區
+        #region 撌亙?
         private string GetFileExtension(string mediaType)
         {
             switch (mediaType)
@@ -345,7 +488,7 @@ namespace ChurchReport.Tools
             }
         }
         #endregion
-        #region 練習區
+        #region 蝺渡??
 
         public void ConfirmMessage(string UserId)
         {
@@ -361,7 +504,12 @@ namespace ChurchReport.Tools
                 new StickerMessage("1", "2")
             };
 
-            this.m_LineMessagingClient.PushMessageAsync(UserId, actions1).Wait();
+            SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    actions1,
+                    "ChurchReport.PushUtility.ConfirmMessage.Sync")
+                .GetAwaiter()
+                .GetResult();
 
             return;
 
@@ -422,7 +570,12 @@ namespace ChurchReport.Tools
                 new StickerMessage("1", "14")
             };
 
-            this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend).Wait();
+            SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.CarouselMessage.Sync")
+                .GetAwaiter()
+                .GetResult();
 
             return;
 
@@ -488,7 +641,12 @@ namespace ChurchReport.Tools
                 new StickerMessage("1", "14")
             };
 
-            this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend).Wait();
+            SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.PushUtility.ChurchCarouselMessage.Sync")
+                .GetAwaiter()
+                .GetResult();
 
             return;
 
@@ -496,3 +654,4 @@ namespace ChurchReport.Tools
         #endregion
     }
 }
+

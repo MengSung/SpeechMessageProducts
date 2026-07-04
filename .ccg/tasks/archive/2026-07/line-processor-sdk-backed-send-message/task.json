@@ -1,12 +1,13 @@
 {
     "id":  "line-processor-sdk-backed-send-message",
     "title":  "Replace LineMessagingProcessor SendMessage RestSharp path with SDK-backed push",
-    "status":  "in_progress",
+    "status":  "completed",
     "complexity":  "M",
     "risk":  "medium",
     "domain":  "backend",
-    "currentPhase":  "review",
-    "nextAction":  "Commit verified SDK-backed SendMessage refactor",
+    "currentPhase":  "completed",
+    "nextAction":  "Archived after successful Gemini and Claude review rerun.",
     "createdAt":  "2026-07-02T20:05:00+08:00",
-    "branch":  "Jesus_5.1.6.WorktreeRefactorLine"
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine",
+    "completedAt":  "2026-07-03T08:25:00+08:00"
 }

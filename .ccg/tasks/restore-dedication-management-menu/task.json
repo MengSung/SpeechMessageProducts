@@ -1,0 +1,12 @@
+﻿{
+    "id":  "restore-dedication-management-menu",
+    "title":  "恢復奉獻管理選單按鈕",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "frontend/backend",
+    "currentPhase":  "completed",
+    "nextAction":  "等待使用者確認或提交修復",
+    "createdAt":  "2026-07-03T07:36:56Z",
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine"
+}

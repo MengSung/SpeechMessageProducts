@@ -1,6 +1,7 @@
 using ChurchReport.Payments;
 using ChurchReport.Tools;
 using ChurchReport.ViewModel;
+using LineMessagingProcessor.Workflows;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using System;
@@ -133,6 +134,20 @@ namespace ChurchReport.Models
         /// 可重用金流核心不應知道 InMemoryDataContext 或 ChurchReport 的頁面模型。
         /// </summary>
         private readonly IDonationPaymentCreateGatewayAdapter m_DonationPaymentCreateGatewayAdapter;
+
+        /// <summary>
+        /// 共用 LINE push workflow。這裡只保存 product-neutral 的 LINE 發送邊界，
+        /// ChurchReport 的 CRM、奉獻、付款與頁面流程仍留在 ChurchReport。
+        /// DonationPaymentManager 由本類別建立與快取，因此必須從這裡傳入 workflow，
+        /// 才能避免付款與奉獻流程退回舊的 new PushUtility(client) 直呼 SDK 路徑。
+        /// </summary>
+        private readonly ILineNotificationWorkflow? _lineNotificationWorkflow;
+
+        /// <summary>
+        /// 共用 LINE reply-token workflow。Reply token 與 push notification 是不同 API 語意，
+        /// 所以分開注入，讓未來 ASP.NET Core 產品也能重用同一套 reply adapter。
+        /// </summary>
+        private readonly ILineReplyWorkflow? _lineReplyWorkflow;
 
         /// <summary>
         /// ToolUtility 提供者，用於依賴注入
@@ -484,7 +499,9 @@ namespace ChurchReport.Models
             IHttpContextAccessor contextAccessor,
             IMemoryCache memoryCache,
             IToolUtilityProvider toolUtilityProvider,
-            IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter = null)
+            IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter = null,
+            ILineNotificationWorkflow? lineNotificationWorkflow = null,
+            ILineReplyWorkflow? lineReplyWorkflow = null)
         {
             _memoryCache = memoryCache;
 
@@ -497,6 +514,8 @@ namespace ChurchReport.Models
 
             m_DonationPaymentCreateGatewayAdapter = donationPaymentCreateGatewayAdapter;
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
+            _lineNotificationWorkflow = lineNotificationWorkflow;
+            _lineReplyWorkflow = lineReplyWorkflow;
 
             System.Diagnostics.Debug.WriteLine("[InMemoryDataContext] ✅ 建構完成（Session Bleeding 修復版本）");
         }
@@ -1177,7 +1196,10 @@ namespace ChurchReport.Models
                     //options.SetSize(1);
                     //options.Size = 1024;
 
-                    m_DonationPaymentManager = new DonationPaymentManager(m_DonationPaymentCreateGatewayAdapter);
+                    m_DonationPaymentManager = new DonationPaymentManager(
+                        m_DonationPaymentCreateGatewayAdapter,
+                        _lineNotificationWorkflow,
+                        _lineReplyWorkflow);
                     _memoryCache.Set<DonationPaymentManager>(key, m_DonationPaymentManager, options);
 
                     SetSessionDirtyFlag();

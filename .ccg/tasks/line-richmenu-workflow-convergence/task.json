@@ -1,0 +1,13 @@
+﻿{
+    "id":  "line-richmenu-workflow-convergence",
+    "title":  "Route ChurchReport RichMenu operations through shared LINE workflow",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "backend",
+    "currentPhase":  "completed",
+    "nextAction":  "Ready for commit with related LINE convergence changes.",
+    "updatedAt":  "2026-07-03T15:52:27+08:00",
+    "createdAt":  "2026-07-03T00:00:00+08:00",
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine"
+}

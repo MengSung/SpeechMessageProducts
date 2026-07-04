@@ -1,0 +1,12 @@
+{
+    "id":  "fix-atm-line-notification",
+    "title":  "修復 ATM 奉獻付款資訊未送出 LINE 通知",
+    "status":  "in_progress",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "backend",
+    "currentPhase":  "completed",
+    "nextAction":  "請使用者重新測試 ATM 奉獻 LINE 通知是否已改送備援 LINE ID",
+    "createdAt":  "2026-07-03T07:29:39Z",
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine"
+}

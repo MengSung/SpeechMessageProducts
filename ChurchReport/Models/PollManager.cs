@@ -1,5 +1,5 @@
-﻿using ChurchReport.WebServiceConnector;
-using LineMessagingProcessor;
+using ChurchReport.WebServiceConnector;
+using ChurchReport.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Xrm.Sdk;
 using System;
@@ -86,10 +86,7 @@ namespace ChurchReport.Models
             {
                 string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + ErrorString);
+                NotifyPollError(ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -168,10 +165,7 @@ namespace ChurchReport.Models
             {
                 string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + ErrorString);
+                NotifyPollError(ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -192,10 +186,7 @@ namespace ChurchReport.Models
             {
                 string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + ErrorString);
+                NotifyPollError(ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -271,10 +262,7 @@ namespace ChurchReport.Models
             {
                 string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + ErrorString);
+                NotifyPollError(ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -396,10 +384,7 @@ namespace ChurchReport.Models
             {
                 string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + ErrorString);
+                NotifyPollError(ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -420,10 +405,7 @@ namespace ChurchReport.Models
             {
                 string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 //m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
-
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "好牧人: 錯誤 => " + ErrorString);
+                NotifyPollError(ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 
@@ -431,6 +413,10 @@ namespace ChurchReport.Models
             }
         }
 
+        private static void NotifyPollError(string errorString)
+        {
+            ChurchReportLineAdminNotificationService.NotifyDefaultError("好牧人", errorString);
+        }
         #endregion
         #region 新增、修改課程記錄
         public Guid CreateNewStorLesson(Entity aContact, ref Entity aDiscepleLessons)

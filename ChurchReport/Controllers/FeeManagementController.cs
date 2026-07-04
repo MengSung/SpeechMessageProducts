@@ -1,9 +1,9 @@
 using ChurchReport.Diagnostics.Profiling;
 using ChurchReport.Models;
+using ChurchReport.Services;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
-using LineMessagingProcessor;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -577,9 +577,7 @@ namespace ChurchReport.Controllers
                 string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 ToolUtility.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
 
-                LineMessagingProcessorClass aLineMessagingProcessorClass = new LineMessagingProcessorClass();
-
-                aLineMessagingProcessorClass.SendMessage("U7638e4ed509708a3573ba6d69970583d", "新莊靈糧堂: 錯誤 => " + ErrorString);
+                ChurchReportLineAdminNotificationService.NotifyDefaultError("新莊靈糧堂", ErrorString);
 
                 //return RedirectToAction("DisplayErrorView", new { ErrorMessage = e.Message });
 

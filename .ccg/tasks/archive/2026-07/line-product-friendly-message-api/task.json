@@ -1,0 +1,12 @@
+{
+    "id":  "line-product-friendly-message-api",
+    "title":  "Add product-friendly LINE message content API",
+    "status":  "completed",
+    "complexity":  "L",
+    "risk":  "medium",
+    "domain":  "backend",
+    "currentPhase":  "completed",
+    "nextAction":  "Archive task and commit product-friendly LINE message API",
+    "createdAt":  "2026-07-03T11:24:33.1288409+08:00",
+    "branch":  "Jesus_5.1.6.WorktreeRefactorLine"
+}

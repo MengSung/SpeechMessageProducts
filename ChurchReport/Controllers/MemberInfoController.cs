@@ -591,7 +591,7 @@ namespace ChurchReport.Controllers
                 //    取不到 Profile(未加好友/封鎖→403/404)：有舊網址者清空失效網址；本來就沒網址者維持(下次再試 → 對方解除封鎖/重新加好友後即可補回)。
                 int okValid = 0, updated = 0, cleared = 0, noPhoto = 0, inconclusive = 0;
                 var reasons = new List<string>();
-                using (var client = new Line.Messaging.LineMessagingClient(token))
+                using (var lineProcessor = new LineMessagingProcessor.LineMessagingProcessorClass(token))
                 {
                     foreach (var contact in candidates)
                     {
@@ -603,7 +603,7 @@ namespace ChurchReport.Controllers
                         var lineId = contact.GetAttributeValue<string>("new_lineid");
                         try
                         {
-                            var profile = await client.GetUserProfileAsync(lineId);
+                            var profile = await lineProcessor.GetUserProfileAsync(lineId);
                             if (profile != null && !string.IsNullOrWhiteSpace(profile.UserId))
                             {
                                 var newPic = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(profile.PictureUrl);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,16 +12,18 @@ using Line.Messaging;
 using System.IO;
 using ToolUtilityNameSpace;
 using Microsoft.Extensions.Configuration;
+using LineMessagingProcessor;
+using LineMessagingProcessor.Workflows;
 
 namespace ChurchReport.Tools
 {
     /// <summary>
-    /// LINE 訊息工具類別
-    /// ✅ Phase 5: 正確實現 IDisposable Pattern 以防止記憶體洩漏
+    /// LINE 閮撌亙憿
+    /// ??Phase 5: 甇?Ⅱ撖衣 IDisposable Pattern 隞仿甇Ｚ??園?瘣拇?
     /// </summary>
     public class LineUtilityClass : IDisposable
     {
-            #region 系統參數
+            #region 蝟餌絞?
             //IServiceProvider m_ServiceProvider;
             //ITracingService m_TracingService;
             //IPluginExecutionContext m_Context;
@@ -29,26 +31,26 @@ namespace ChurchReport.Tools
             //IOrganizationServiceFactory m_ServiceFactory;
             IOrganizationService m_CrmService;
 
-            // 系統傳來的組織名稱
+            // 蝟餌絞?喃???蝜?蝔?
             public String m_OrganizationName = "";
 
             ReplyUtility m_ReplyUtility;
 
-            #region Channel Access Token 設定
+            #region Channel Access Token 閮剖?
 
-            // 配置建構器與實例
+            // ?蔭撱箸??刻?撖虫?
             private static readonly IConfigurationBuilder m_ConfigurationBuilder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
             private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
 
-            // 從配置讀取 Channel Access Token
+            // 敺?蝵株???Channel Access Token
             private static string GetChannelAccessToken(string organization)
             {
                 string token = m_Configuration[$"LineMessaging:{organization}:ChannelAccessToken"];
                 if (string.IsNullOrEmpty(token))
                 {
-                    // 如果找不到指定組織的設定，使用預設組織
+                    // 憒??曆??唳?摰?蝜?閮剖?嚗蝙?券?閮剔?蝜?
                     string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
                     token = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
                 }
@@ -61,24 +63,38 @@ namespace ChurchReport.Tools
 
             LineMessagingClient m_LineMessagingClient;
 
+            private ILineNotificationWorkflow m_LineNotificationWorkflow;
+
+            private ILineReplyWorkflow m_LineReplyWorkflow;
+
+            private ILineRichMenuWorkflow m_LineRichMenuWorkflow;
+
+            private readonly bool m_UsesDefaultLineNotificationWorkflow;
+
+            private readonly bool m_UsesDefaultLineReplyWorkflow;
+
+            private readonly bool m_UsesDefaultLineRichMenuWorkflow;
+
+            private readonly Action<string, string, string> m_CreatePushLineMessage;
+
             private const String WEB_LINK = @"http://www.speechmessage.com.tw";
 
             private const String DEVELOPER_LINE_ID = @"U7638e4ed509708a3573ba6d69970583d";
 
-            // Line 選單圖形檔案位置
-            private const String LINE_MENU_PATH = @"D:\Line 選單\";
+            // Line ?詨?耦瑼?雿蔭
+            private const String LINE_MENU_PATH = @"D:\Line ?詨\";
 
 
-            // 模板預設的圖片
+            // 璅⊥?身????
             private const String m_Default_ThumbnailImageUrl = "https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1";
-            // 楊梅靈糧堂模板預設的圖片
+            // 璆??釦?芋?輸?閮剔???
             private const String m_Yangmeillc_ThumbnailImageUrl = "https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1";
-            // 好牧人模板預設的圖片
+            // 憟賜鈭箸芋?輸?閮剔???
             private const String m_TpeHoc_ThumbnailImageUrl = "https://od.lk/s/ODdfNTg5ODc5OF8/2017_06_sermon_6-18.jpg";
 
             #endregion
 
-            #region 釋放記憶體
+            #region ?閮擃?
         private bool _disposed = false;
 
         protected virtual void Dispose(bool disposing)
@@ -87,13 +103,13 @@ namespace ChurchReport.Tools
 
             if (disposing)
             {
-                // ✅ 釋放 ToolUtilityClass
+                // ??? ToolUtilityClass
                 m_ToolUtilityClass?.Dispose();
                 
-                // ✅ 釋放 LineMessagingClient
+                // ??? LineMessagingClient
                 m_LineMessagingClient?.Dispose();
                 
-                // ✅ 釋放 ReplyUtility
+                // ??? ReplyUtility
                 (m_ReplyUtility as IDisposable)?.Dispose();
             }
 
@@ -118,21 +134,122 @@ namespace ChurchReport.Tools
             ToolUtilityClass m_ToolUtilityClass;
 
             public LineUtilityClass( ToolUtilityClass aToolUtilityClass)
+                : this(aToolUtilityClass, null)
             {
-                // 初始化時使用預設組織的 Token
+            }
+
+            public LineUtilityClass(
+                ToolUtilityClass aToolUtilityClass,
+                ILineNotificationWorkflow? lineNotificationWorkflow)
+                : this(aToolUtilityClass, lineNotificationWorkflow, null)
+            {
+            }
+
+            public LineUtilityClass(
+                ToolUtilityClass aToolUtilityClass,
+                ILineNotificationWorkflow? lineNotificationWorkflow,
+                ILineReplyWorkflow? lineReplyWorkflow)
+            {
+                m_ToolUtilityClass = aToolUtilityClass ?? throw new ArgumentNullException(nameof(aToolUtilityClass));
+
+                // ????雿輻?身蝯???Token
                 string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
                 m_ChannelAccessToken = GetChannelAccessToken(defaultOrg);
                 
                 m_LineMessagingClient = new LineMessagingClient(m_ChannelAccessToken);
+                m_UsesDefaultLineNotificationWorkflow = lineNotificationWorkflow == null;
+                m_UsesDefaultLineReplyWorkflow = lineReplyWorkflow == null;
+                m_UsesDefaultLineRichMenuWorkflow = true;
+                m_LineNotificationWorkflow = lineNotificationWorkflow ?? CreateDefaultNotificationWorkflow(m_LineMessagingClient);
+                m_LineReplyWorkflow = lineReplyWorkflow ?? CreateDefaultReplyWorkflow(m_LineMessagingClient);
+                m_LineRichMenuWorkflow = CreateDefaultRichMenuWorkflow(m_LineMessagingClient);
+                m_CreatePushLineMessage = m_ToolUtilityClass.CreatePushLineMessage;
 
-                m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
+                m_ReplyUtility = new ReplyUtility(
+                    m_LineMessagingClient,
+                    new LineMessagingProcessor.LineMessagingProcessorClass(m_LineMessagingClient),
+                    m_LineReplyWorkflow);
+            }
+
+            public LineUtilityClass(
+                ToolUtilityClass aToolUtilityClass,
+                LineMessagingClient lineMessagingClient,
+                ILineNotificationWorkflow? lineNotificationWorkflow)
+                : this(aToolUtilityClass, lineMessagingClient, lineNotificationWorkflow, null, null)
+            {
+            }
+
+            public LineUtilityClass(
+                ToolUtilityClass aToolUtilityClass,
+                LineMessagingClient lineMessagingClient,
+                ILineNotificationWorkflow? lineNotificationWorkflow,
+                ILineReplyWorkflow? lineReplyWorkflow)
+                : this(aToolUtilityClass, lineMessagingClient, lineNotificationWorkflow, lineReplyWorkflow, null, null)
+            {
+            }
+
+            protected LineUtilityClass(
+                ToolUtilityClass aToolUtilityClass,
+                LineMessagingClient lineMessagingClient,
+                ILineNotificationWorkflow? lineNotificationWorkflow,
+                Action<string, string, string>? createPushLineMessage)
+                : this(aToolUtilityClass, lineMessagingClient, lineNotificationWorkflow, null, null, createPushLineMessage)
+            {
+            }
+
+            protected LineUtilityClass(
+                ToolUtilityClass aToolUtilityClass,
+                LineMessagingClient lineMessagingClient,
+                ILineNotificationWorkflow? lineNotificationWorkflow,
+                ILineReplyWorkflow? lineReplyWorkflow,
+                Action<string, string, string>? createPushLineMessage)
+                : this(aToolUtilityClass, lineMessagingClient, lineNotificationWorkflow, lineReplyWorkflow, null, createPushLineMessage)
+            {
+            }
+
+            protected LineUtilityClass(
+                ToolUtilityClass aToolUtilityClass,
+                LineMessagingClient lineMessagingClient,
+                ILineNotificationWorkflow? lineNotificationWorkflow,
+                ILineReplyWorkflow? lineReplyWorkflow,
+                ILineRichMenuWorkflow? lineRichMenuWorkflow,
+                Action<string, string, string>? createPushLineMessage = null)
+            {
+                m_ToolUtilityClass = aToolUtilityClass ?? throw new ArgumentNullException(nameof(aToolUtilityClass));
+                m_LineMessagingClient = lineMessagingClient ?? throw new ArgumentNullException(nameof(lineMessagingClient));
+                m_UsesDefaultLineNotificationWorkflow = lineNotificationWorkflow == null;
+                m_UsesDefaultLineReplyWorkflow = lineReplyWorkflow == null;
+                m_UsesDefaultLineRichMenuWorkflow = lineRichMenuWorkflow == null;
+                m_LineNotificationWorkflow = lineNotificationWorkflow ?? CreateDefaultNotificationWorkflow(m_LineMessagingClient);
+                m_LineReplyWorkflow = lineReplyWorkflow ?? CreateDefaultReplyWorkflow(m_LineMessagingClient);
+                m_LineRichMenuWorkflow = lineRichMenuWorkflow ?? CreateDefaultRichMenuWorkflow(m_LineMessagingClient);
+                m_CreatePushLineMessage = createPushLineMessage ?? m_ToolUtilityClass.CreatePushLineMessage;
+                m_ReplyUtility = new ReplyUtility(
+                    m_LineMessagingClient,
+                    new LineMessagingProcessor.LineMessagingProcessorClass(m_LineMessagingClient),
+                    m_LineReplyWorkflow);
+            }
+
+            private static ILineNotificationWorkflow CreateDefaultNotificationWorkflow(LineMessagingClient lineMessagingClient)
+            {
+                return new LineNotificationWorkflow(new LineMessagingProcessorClass(lineMessagingClient));
+            }
+
+            private static ILineReplyWorkflow CreateDefaultReplyWorkflow(LineMessagingClient lineMessagingClient)
+            {
+                return new LineReplyWorkflow(new LineMessagingProcessorClass(lineMessagingClient));
+            }
+
+            private static ILineRichMenuWorkflow CreateDefaultRichMenuWorkflow(LineMessagingClient lineMessagingClient)
+            {
+                return new LineRichMenuWorkflow(new LineMessagingProcessorClass(lineMessagingClient));
             }
 
             public void SetupChannelAccessToken(ref IOrganizationService aCrmService)
             {
                 try
                 {
-                    // 根據組織名稱從配置檔讀取對應的 Channel Access Token
+                    // ?寞?蝯??迂敺?蝵格?霈???? Channel Access Token
                     if (this.m_OrganizationName == "jesus")
                     {
                         m_ChannelAccessToken = GetChannelAccessToken("Jesus");
@@ -143,14 +260,19 @@ namespace ChurchReport.Tools
                     }
                     else
                     {
-                        // 使用預設組織
+                        // 雿輻?身蝯?
                         string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
                         m_ChannelAccessToken = GetChannelAccessToken(defaultOrg);
                     }
 
-                    // 重新初始化 LineMessagingClient
+                    // ?????LineMessagingClient
+                    // ?ㄐ?芣??遣?祇??交??? LineMessagingClient??
+                    // 憒??芯???ILineNotificationWorkflow 瘜典?唬?靘陷憭?蝜????澆蝡荔?
+                    // 撖阡???粥 workflow ????processor/client嚗??舫ㄐ?遣??client??
+                    // ?迨甇???亦???workflow 撅支?敹??瑕??詨???蝜?token 頝舐?賢???
                     m_LineMessagingClient = new LineMessagingClient(m_ChannelAccessToken);
-                    m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
+                    RebuildDefaultWorkflowsForCurrentClient();
+                    m_ReplyUtility = new ReplyUtility(m_LineMessagingClient, m_LineReplyWorkflow);
                 }
                 catch (System.Exception e)
                 {
@@ -160,8 +282,67 @@ namespace ChurchReport.Tools
                 }
             }
 
-            #region 工具區
-            #region Line Messagin Api SDK傳送
+            private void RebuildDefaultWorkflowsForCurrentClient()
+            {
+                if (m_UsesDefaultLineNotificationWorkflow)
+                {
+                    m_LineNotificationWorkflow = CreateDefaultNotificationWorkflow(m_LineMessagingClient);
+                }
+
+                if (m_UsesDefaultLineReplyWorkflow)
+                {
+                    m_LineReplyWorkflow = CreateDefaultReplyWorkflow(m_LineMessagingClient);
+                }
+
+                if (m_UsesDefaultLineRichMenuWorkflow)
+                {
+                    m_LineRichMenuWorkflow = CreateDefaultRichMenuWorkflow(m_LineMessagingClient);
+                }
+            }
+
+            #region 撌亙?
+            #region Line Messagin Api SDK?喲?
+            private async Task SendBestEffortSdkMessagesAsync(
+                string userId,
+                IReadOnlyList<ISendMessage> messages,
+                string source)
+            {
+                await m_LineNotificationWorkflow.SendAsync(new LineNotificationRequest
+                {
+                    Recipient = LineNotificationRecipient.User(userId),
+                    Content = LineNotificationContent.SdkMessagesList(messages),
+                    Metadata = new Dictionary<string, string>
+                    {
+                        ["source"] = source
+                    }
+                });
+            }
+
+            private async Task SendBestEffortSdkMessagesToManyAsync(
+                IList<string> userIds,
+                IReadOnlyList<ISendMessage> messages,
+                string source)
+            {
+                if (userIds == null || userIds.Count == 0)
+                {
+                    return;
+                }
+
+                foreach (var userId in userIds.Where(id => !string.IsNullOrWhiteSpace(id)))
+                {
+                    await m_LineNotificationWorkflow.SendAsync(new LineNotificationRequest
+                    {
+                        Recipient = LineNotificationRecipient.User(userId),
+                        Content = LineNotificationContent.SdkMessagesList(messages),
+                        Metadata = new Dictionary<string, string>
+                        {
+                            ["source"] = source,
+                            ["deliveryMode"] = "multicast-split"
+                        }
+                    });
+                }
+            }
+
             public async Task ReplyMessage(string ReplyToken, List<ISendMessage> MessageToSend)
             {
                 try
@@ -183,21 +364,27 @@ namespace ChurchReport.Tools
             }
             public async Task SendMessage(string UserId, List<ISendMessage> MessageToSend)
             {
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.LineUtilityClass.BestEffortSdkMessages");
 
                 return;
             }
             public async Task SendMessageAsync(string UserId, string Message)
             {
-                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:文字", Message);
+                m_CreatePushLineMessage(UserId, "Line推播統計:文字", Message);
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new TextMessage(Message)
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.LineUtilityClass.SendMessageAsync");
 
-                //this.m_ToolUtilityClass.TraceByLevel(5, 1, "傳送結果=" + aHttpResponseMessage);
+                //this.m_ToolUtilityClass.TraceByLevel(5, 1, "?喲???" + aHttpResponseMessage);
 
                 return;
             }
@@ -212,7 +399,10 @@ namespace ChurchReport.Tools
                             new TextMessage(Message)
                         };
 
-                        await this.m_LineMessagingClient.MultiCastMessageAsync(To, MessageToSend);
+                        await SendBestEffortSdkMessagesToManyAsync(
+                            To,
+                            MessageToSend,
+                            "ChurchReport.LineUtilityClass.MultiCastTextMessageAsync");
                     }
                     return;
                 }
@@ -226,25 +416,33 @@ namespace ChurchReport.Tools
             }
             public void SendMessage(string UserId, string Message)
             {
-                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:文字", Message);
+                m_CreatePushLineMessage(UserId, "Line推播統計:文字", Message);
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new TextMessage(Message)
                 };
 
-                this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                SendBestEffortSdkMessagesAsync(
+                        UserId,
+                        MessageToSend,
+                        "ChurchReport.LineUtilityClass.SendMessage.Sync")
+                    .GetAwaiter()
+                    .GetResult();
 
                 return;
             }
             public async Task SendImage(string UserId, string OriginalContenUrl, string PreviewImageUrl)
             {
-                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:圖片", "");
+                m_CreatePushLineMessage(UserId, "Line推播統計:圖片", "");
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new ImageMessage(OriginalContenUrl, PreviewImageUrl)
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.LineUtilityClass.SendImage");
 
                 return;
             }
@@ -255,61 +453,73 @@ namespace ChurchReport.Tools
                     new ImageMessage(OriginalContenUrl, PreviewImageUrl)
                 };
 
-                await this.m_LineMessagingClient.ReplyMessageAsync(ReplyToken, MessageToSend);
+                await this.m_ReplyUtility.ReplyMessage(ReplyToken, MessageToSend);
 
                 return;
             }
             public async Task SendVideo(string UserId, string OriginalContenUrl, string PreviewImageUrl)
             {
-                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:影片", "");
+                m_CreatePushLineMessage(UserId, "Line推播統計:影片", "");
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new VideoMessage(OriginalContenUrl, PreviewImageUrl)
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.LineUtilityClass.SendVideo");
 
                 return;
             }
             public async Task SendAudeo(string UserId, string OriginalContenUrl, long Duration)
             {
-                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:聲音", "");
+                m_CreatePushLineMessage(UserId, "Line推播統計:聲音", "");
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new AudioMessage(OriginalContenUrl, Duration)
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.LineUtilityClass.SendAudio");
 
                 return;
             }
             public async Task SendLocation(string UserId, string Title, string Address, decimal Latitude, decimal Longitude)
             {
-                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:座標", "");
+                m_CreatePushLineMessage(UserId, "Line推播統計:座標", "");
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new LocationMessage(Title, Address, Latitude, Longitude)
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.LineUtilityClass.SendLocation");
 
                 return;
             }
             public async Task SendSticker(string UserId, int PackageId, int StickerId)
             {
-                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:貼圖", "");
+                m_CreatePushLineMessage(UserId, "Line推播統計:貼圖", "");
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
                     new StickerMessage(PackageId.ToString(), StickerId.ToString())
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.LineUtilityClass.SendSticker");
 
                 return;
             }
             public async Task PostSerializedTemplate(Entity aLetterEntity, string UserId, String AltText, String ThumbnailImageUrl, String Title, String Text, List<ITemplateAction> aITemplateAction)
             {
-                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:Template", "");
+                m_CreatePushLineMessage(UserId, "Line推播統計:Template", "");
                 ISendMessage ButtonsTemplateMessage = new TemplateMessage
                     (
                         AltText,
@@ -328,7 +538,10 @@ namespace ChurchReport.Tools
                 ButtonsTemplateMessage,
             };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.LineUtilityClass.PostSerializedTemplate.Entity");
 
             }
 
@@ -336,7 +549,7 @@ namespace ChurchReport.Tools
             {
                 try
                 {
-                    this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:Template", "");
+                    m_CreatePushLineMessage(UserId, "Line推播統計:Template", "");
                     ISendMessage ButtonsTemplateMessage = new TemplateMessage
                     (
                         AltText,
@@ -355,7 +568,10 @@ namespace ChurchReport.Tools
                         ButtonsTemplateMessage,
                     };
 
-                    await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                    await SendBestEffortSdkMessagesAsync(
+                        UserId,
+                        MessageToSend,
+                        "ChurchReport.LineUtilityClass.PostSerializedTemplate");
 
                 }
                 catch (System.Exception e)
@@ -368,12 +584,15 @@ namespace ChurchReport.Tools
 
             public async Task PostSerializedFlex(string UserId, FlexMessage aFlexMessage)
             {
-            this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:Flex", "");
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, new List<ISendMessage> { aFlexMessage });
+                m_CreatePushLineMessage(UserId, "Line推播統計:Flex", "");
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    new List<ISendMessage> { aFlexMessage },
+                    "ChurchReport.LineUtilityClass.PostSerializedFlex");
             }
             public async Task PostSerializedConfirm(string UserId, String AltText, String Text, List<ITemplateAction> aITemplateAction)
             {
-                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:Confirm", "");
+                m_CreatePushLineMessage(UserId, "Line推播統計:Confirm", "");
                 ISendMessage ConfirmTemplateMessage = new TemplateMessage
                     (
                         AltText,
@@ -385,11 +604,14 @@ namespace ChurchReport.Tools
                     ConfirmTemplateMessage,
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.LineUtilityClass.PostSerializedConfirm");
             }
             public async Task PostSerializedImageMap(string UserId, string AltText, string ImageUrl, int BaseWidth, int Basehight, List<IImagemapAction> aImagemapAction)
             {
-                this.m_ToolUtilityClass.CreatePushLineMessage(UserId, "Line推播統計:ImageMap", "");
+                m_CreatePushLineMessage(UserId, "Line推播統計:ImageMap", "");
                 ISendMessage ImageMapTemplateMessage = new ImagemapMessage
                         (
                             ImageUrl, AltText,
@@ -402,13 +624,60 @@ namespace ChurchReport.Tools
                     ImageMapTemplateMessage,
                 };
 
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    MessageToSend,
+                    "ChurchReport.LineUtilityClass.PostSerializedImageMap");
 
             }
 
             public async Task<String> AddRichMenuMessage(string UserId)
             {
-                RichMenu richMenu = new RichMenu()
+                var richMenu = CreateLegacySingleButtonRichMenu();
+                var imagePath = @"D:\暫存區\richmenu.PNG";
+                await m_LineRichMenuWorkflow.CreateUploadAndLinkOrThrowAsync(new LineRichMenuCreateUploadAndLinkRequest
+                {
+                        UserId = UserId,
+                        RichMenu = richMenu,
+                        PngImageStreamFactory = () => File.OpenRead(imagePath),
+                        Metadata = new Dictionary<string, string>
+                        {
+                            ["source"] = "ChurchReport.LineUtilityClass.AddRichMenuMessage",
+                            ["legacyImagePath"] = imagePath
+                        }
+                });
+
+                var messageToSend = new List<ISendMessage>
+                {
+                    new TextMessage("Rich menu added"),
+                    new StickerMessage("1", "5")
+                };
+
+                await SendBestEffortSdkMessagesAsync(
+                    UserId,
+                    messageToSend,
+                    "ChurchReport.LineUtilityClass.AddRichMenuMessage");
+
+                return "成功";
+            }
+
+            public async Task<String> DeleteRichMenuMessage(string UserId)
+            {
+                await m_LineRichMenuWorkflow.DeleteLinkedRichMenuOrThrowAsync(new LineRichMenuDeleteLinkedRequest
+                {
+                        UserId = UserId,
+                        Metadata = new Dictionary<string, string>
+                        {
+                            ["source"] = "ChurchReport.LineUtilityClass.DeleteRichMenuMessage"
+                        }
+                });
+
+                return "成功";
+            }
+
+            private static RichMenu CreateLegacySingleButtonRichMenu()
+            {
+                return new RichMenu()
                 {
                     Size = ImagemapSize.RichMenuLong,
                     Selected = false,
@@ -418,56 +687,16 @@ namespace ChurchReport.Tools
                     {
                         new ActionArea()
                         {
-                            Bounds = new ImagemapArea(0,0 ,ImagemapSize.RichMenuLong.Width,ImagemapSize.RichMenuLong.Height),
+                            Bounds = new ImagemapArea(0, 0, ImagemapSize.RichMenuLong.Width, ImagemapSize.RichMenuLong.Height),
                             Action = new PostbackTemplateAction("ButtonA", "Menu A", "Menu A")
                         }
                     }
                 };
-
-                String richMenuId = await this.m_LineMessagingClient.CreateRichMenuAsync(richMenu);
-                //var image = new MemoryStream(File.ReadAllBytes(HttpContext.Current.Server.MapPath(@"~\Images\richmenu.PNG")));
-                //var image = new MemoryStream(File.ReadAllBytes(@"D:\\LINE 佈署\\Logo\\音訊科技\\SpeechMessage.png"));
-
-                String path = @"D:\暫存區\richmenu.PNG";
-
-                byte[] readText = File.ReadAllBytes(path);
-                var image = new MemoryStream(readText);
-
-
-                //var image = new MemoryStream(byDataValue);
-
-                // Upload Image
-                await this.m_LineMessagingClient.UploadRichMenuPngImageAsync(image, richMenuId);
-                // Link to user
-                await this.m_LineMessagingClient.LinkRichMenuToUserAsync(UserId, richMenuId);
-
-                ISendMessage replyMessage = new TextMessage("Rich menu added");
-                List<ISendMessage> MessageToSend = new List<ISendMessage>
-            {
-                replyMessage,
-                new StickerMessage("1", "5")
-            };
-
-                await this.m_LineMessagingClient.PushMessageAsync(UserId, MessageToSend);
-
-                return "成功";
-
             }
-            public async Task<String> DeleteRichMenuMessage(string UserId)
-            {
-                // Get Rich Menu for the user
-                var richMenuId = await this.m_LineMessagingClient.GetRichMenuIdOfUserAsync(UserId);
-                await m_LineMessagingClient.UnLinkRichMenuFromUserAsync(UserId);
-                await m_LineMessagingClient.DeleteRichMenuAsync(richMenuId);
-
-                return "成功";
-
-            }
-
             #endregion
             #endregion
 
-            #region 設定通知格式
+            #region 閮剖???澆?
 
             public void SetupActionList(Entity aLetterEntity, ref TemplateMessageClass aTemplateMessageClass)
             {
@@ -481,12 +710,12 @@ namespace ChurchReport.Tools
                             type = ConvertActionType(aLetterEntity, "new_action_category_1"),
                             label = ActionLabel_1,
                             text = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aLetterEntity, "new_template_text_1"),
-                            data = "動作=" + ActionLabel_1 + "& EntityId=" + aLetterEntity.Id,
+                            data = "??=" + ActionLabel_1 + "& EntityId=" + aLetterEntity.Id,
                             uri = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aLetterEntity, "new_template_uri_1"),
 
                             //type = "postback",
-                            //label = "購買",
-                            //data = "action=購買&itemid=001",
+                            //label = "鞈潸眺",
+                            //data = "action=鞈潸眺&itemid=001",
                             //uri = "http://www.speechmessage.com.tw",
                         };
                         aTemplateMessageClass.template.actions.Add(aActionClass);
@@ -535,7 +764,7 @@ namespace ChurchReport.Tools
             }
             #endregion
 
-            #region 處理寄送者
+            #region ??撖?
 
             public Entity GetLineSender(Entity aLetterEntity)
             {
@@ -545,7 +774,7 @@ namespace ChurchReport.Tools
 
                     for (int i = 0; i < aFromEntityCollection.Entities.Count; i++)
                     {
-                        #region 取得 LINE 訊息寄送者
+                        #region ?? LINE 閮撖?
                         EntityReference aContactEntityReference = (EntityReference)aFromEntityCollection.Entities[i]["partyid"];
 
                         Guid aContactId = aContactEntityReference.Id;
@@ -575,7 +804,7 @@ namespace ChurchReport.Tools
 
                     for (int i = 0; i < aFromEntityCollection.Entities.Count; i++)
                     {
-                        #region 取得 LINE 訊息收件者的全名及其LINE ID
+                        #region ?? LINE 閮?嗡辣???典??LINE ID
                         LineId = "";
                         ContactFullName = GetContactPartyFullName(aFromEntityCollection.Entities[i], ref LineId);
                         #endregion
@@ -607,7 +836,7 @@ namespace ChurchReport.Tools
 
                     Entity aRetrievedContact = this.m_ToolUtilityClass.RetrieveEntity("contact", aContactId);
 
-                    //if (aContactName.StartsWith("Line新加入者"))
+                    //if (aContactName.StartsWith("Line?啣??亥?))
                     //if (aContactName.EndsWith("(Line)"))
                     //{
                     //    aContactName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aRetrievedContact, "new_line_displayname");
@@ -630,7 +859,7 @@ namespace ChurchReport.Tools
 
         }
 
-        #region POST 區塊
+        #region POST ?憛?
 
         public class PostTextClass
         {
@@ -780,7 +1009,7 @@ namespace ChurchReport.Tools
 
         #endregion
 
-        #region 寄發LINE所需的 Class
+        #region 撖LINE????Class
 
         public class MessageContent
         {
@@ -804,3 +1033,4 @@ namespace ChurchReport.Tools
 
     #endregion
 }
+

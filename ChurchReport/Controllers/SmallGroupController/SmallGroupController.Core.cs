@@ -1,4 +1,5 @@
 using ChurchReport.Models;
+using ChurchReport.Services;
 using ChurchReport.Tools;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -48,17 +49,24 @@ namespace ChurchReport.Controllers
         /// </summary>
         private readonly ChurchReport.Services.Caching.ISmallGroupCacheManager _cacheManager;
 
+        /// <summary>
+        /// LINE binding notification service. Controller decides the flow; service owns profile lookup, message composition, and workflow send.
+        /// </summary>
+        private readonly IChurchReportLineBindingNotificationService _lineBindingNotificationService;
+
         public SmallGroupController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             IToolUtilityProvider toolUtilityProvider,
             ICrmConnectionPool connectionPool,
             IInMemoryDataContext inMemoryContext,
-            ChurchReport.Services.Caching.ISmallGroupCacheManager cacheManager)
+            ChurchReport.Services.Caching.ISmallGroupCacheManager cacheManager,
+            IChurchReportLineBindingNotificationService lineBindingNotificationService)
             : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool, inMemoryContext)
         {
             _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
             _cacheManager = cacheManager ?? throw new ArgumentNullException(nameof(cacheManager));
+            _lineBindingNotificationService = lineBindingNotificationService ?? throw new ArgumentNullException(nameof(lineBindingNotificationService));
         }
 
         #endregion

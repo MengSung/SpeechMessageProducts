@@ -1,6 +1,7 @@
 using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ChurchReport.WebServiceConnector
@@ -225,17 +226,23 @@ namespace ChurchReport.WebServiceConnector
                     aCreatedFeeId.ToString()
                 );
 
-                // 更新收費單
+                if (createdAtmOrder?.ATMParam == null || string.IsNullOrWhiteSpace(createdAtmOrder.ATMParam.AtmPayNo))
+                {
+                    throw new InvalidOperationException("ATM order creation did not return a virtual account.");
+                }
                 UpdateFee(ref aFeeToUpdate, "", createdAtmOrder.OrderNo, OrderId, createdAtmOrder.ATMParam.AtmPayNo);
 
                 // 建立 ATM 資訊
                 var atmInfo = BuildAtmInfo(LineLoginContact, DonationPaymentFormModel, createdAtmOrder.ATMParam.AtmPayNo);
 
                 // 發送 LINE 通知
-                LineId = ResolveAtmNotificationLineId(LineId, LineLoginContact);
+                // ATM 虛擬帳號是付款必要資訊，因此不可只嘗試單一 LINE ID。
+                // 若主要欄位 new_lineid 已失效，仍要改試綁定流程保留的 new_lineid_backup。
+                var lineIds = ResolveAtmNotificationLineIds(LineId, LineLoginContact);
                 var notificationWarning = await TrySendAtmPaymentInstructionsAsync(
-                    LineId,
+                    lineIds,
                     atmInfo.LineMessage,
+                    BuildAtmPaymentLineRetryKey(aCreatedFeeId, createdAtmOrder.OrderNo, createdAtmOrder.ATMParam.AtmPayNo),
                     LineLoginContact.Id);
 
                 return atmInfo.HtmlMessage + notificationWarning;
@@ -270,58 +277,116 @@ namespace ChurchReport.WebServiceConnector
             return (lineMessage, htmlMessage);
         }
 
-        private string ResolveAtmNotificationLineId(string lineId, Entity contact)
+        private IReadOnlyList<string> ResolveAtmNotificationLineIds(string lineId, Entity contact)
         {
-            if (!string.IsNullOrWhiteSpace(lineId))
-            {
-                return lineId;
-            }
+            var candidates = new List<string>();
+            AddDistinctLineId(candidates, lineId);
 
             var contactLineId = ToolUtility.GetEntityStringAttribute(ref contact, "new_lineid");
-            if (!string.IsNullOrWhiteSpace(contactLineId))
-            {
-                return contactLineId;
-            }
+            AddDistinctLineId(candidates, contactLineId);
 
             var backupLineId = ToolUtility.GetEntityStringAttribute(ref contact, "new_lineid_backup");
-            if (!string.IsNullOrWhiteSpace(backupLineId))
+            if (!string.IsNullOrWhiteSpace(backupLineId) && !candidates.Contains(backupLineId.Trim()))
             {
                 System.Diagnostics.Trace.WriteLine(
-                    $"[DonationPaymentProcessor] ATM LINE notification uses new_lineid_backup. ContactId={contact.Id}");
-                return backupLineId;
+                    $"[DonationPaymentProcessor] ATM LINE notification has backup LINE id candidate. ContactId={contact.Id}");
             }
 
-            return string.Empty;
+            AddDistinctLineId(candidates, backupLineId);
+            return candidates;
+        }
+
+        private static void AddDistinctLineId(List<string> candidates, string lineId)
+        {
+            if (string.IsNullOrWhiteSpace(lineId))
+            {
+                return;
+            }
+
+            var normalizedLineId = lineId.Trim();
+            if (!candidates.Contains(normalizedLineId))
+            {
+                candidates.Add(normalizedLineId);
+            }
         }
 
         private async Task<string> TrySendAtmPaymentInstructionsAsync(
-            string lineId,
+            IReadOnlyList<string> lineIds,
             string lineMessage,
+            string retryKey,
             Guid contactId)
         {
-            if (string.IsNullOrWhiteSpace(lineId))
+            if (lineIds == null || lineIds.Count == 0)
             {
                 System.Diagnostics.Trace.WriteLine(
                     $"[DonationPaymentProcessor] ATM LINE notification skipped because donor has no LINE id. ContactId={contactId}");
                 return BuildAtmNotificationWarning("LINE 通知未送出：奉獻者尚未綁定 LINE，請保存本頁付款資訊。");
             }
 
-            try
+            Exception lastException = null;
+            for (var index = 0; index < lineIds.Count; index++)
             {
-                await SendAtmPaymentInstructionsAsync(lineId, lineMessage);
-                return string.Empty;
+                var lineId = lineIds[index];
+                if (string.IsNullOrWhiteSpace(lineId))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    await SendAtmPaymentInstructionsAsync(lineId, lineMessage, retryKey);
+
+                    if (index > 0)
+                    {
+                        System.Diagnostics.Trace.WriteLine(
+                            $"[DonationPaymentProcessor] ATM LINE notification sent by fallback LINE id. ContactId={contactId}, AttemptIndex={index + 1}");
+                    }
+
+                    return string.Empty;
+                }
+                catch (Exception ex)
+                {
+                    lastException = ex;
+                    System.Diagnostics.Trace.WriteLine(
+                        $"[DonationPaymentProcessor] ATM LINE notification failed for candidate. ContactId={contactId}, AttemptIndex={index + 1}, HasMoreCandidates={index + 1 < lineIds.Count}, Error={ex}");
+                }
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine(
-                    $"[DonationPaymentProcessor] ATM LINE notification failed. ContactId={contactId}, LineId={lineId}, Error={ex}");
-                return BuildAtmNotificationWarning("LINE 通知未送出，請保存本頁付款資訊。");
-            }
+
+            System.Diagnostics.Trace.WriteLine(
+                $"[DonationPaymentProcessor] ATM LINE notification failed for all LINE id candidates. ContactId={contactId}, CandidateCount={lineIds.Count}, LastError={lastException}");
+            return BuildAtmNotificationWarning("LINE 通知未送出，請保存本頁付款資訊。");
         }
 
-        protected virtual async Task SendAtmPaymentInstructionsAsync(string lineId, string lineMessage)
+        private static string BuildAtmPaymentLineRetryKey(Guid feeId, string providerOrderNo, string atmPayNo)
         {
-            await PushUtility.SendMessageOrThrowAsync(lineId, lineMessage);
+            if (feeId == Guid.Empty)
+            {
+                throw new ArgumentException("Fee id is required for ATM LINE retry key.", nameof(feeId));
+            }
+
+            if (string.IsNullOrWhiteSpace(atmPayNo))
+            {
+                throw new ArgumentException("ATM virtual account is required for ATM LINE retry key.", nameof(atmPayNo));
+            }
+
+            var normalizedProviderOrderNo = string.IsNullOrWhiteSpace(providerOrderNo)
+                ? "no-provider-order"
+                : providerOrderNo.Trim();
+
+            // LINE 的 X-Line-Retry-Key 會進入 HTTP header。舊版使用
+            // "churchreport:donation-atm:{feeId}:{orderNo}:{atmPayNo}" 這種產品語意字串，
+            // 雖然可讀性高，但長度、冒號與 provider/order 資料都會增加被 LINE 或中介 proxy
+            // 拒收的風險。這裡改成由穩定業務資料推導出的 UUID 字串：
+            // - 同一筆 fee/order/ATM 虛擬帳號重送時得到同一個 retry key。
+            // - header 內容固定為 UUID 格式，不含中文、冒號或個資。
+            // - ChurchReport 仍保留 retry key 的業務來源；共用 LINE 模組只負責送出。
+            return BuildDeterministicLineRetryKey(
+                $"churchreport:donation-atm:{feeId:N}:{normalizedProviderOrderNo}:{atmPayNo.Trim()}");
+        }
+
+        protected virtual async Task SendAtmPaymentInstructionsAsync(string lineId, string lineMessage, string retryKey)
+        {
+            await PushUtility.SendReliableMessageAsync(lineId, lineMessage, retryKey);
         }
 
         private static string BuildAtmNotificationWarning(string message)

@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using ChurchReport.Payments;
 using ChurchReport.Tools;
 using Line.Messaging;
 using LineMessagingProcessor;
+using LineMessagingProcessor.Workflows;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
@@ -23,6 +25,7 @@ namespace ChurchReport.Services
         private readonly ILogger<PaymentNotificationService> _logger;
         private readonly PaymentMessageBuilder _messageBuilder;
         private readonly PaymentFeeTypeHelper _feeTypeHelper;
+        private readonly ILineNotificationWorkflow _lineNotificationWorkflow;
 
         private static readonly Lazy<IConfiguration> s_lazyConfiguration = new Lazy<IConfiguration>(() =>
         {
@@ -38,10 +41,20 @@ namespace ChurchReport.Services
             ILogger<PaymentNotificationService> logger,
             PaymentMessageBuilder messageBuilder,
             PaymentFeeTypeHelper feeTypeHelper)
+            : this(logger, messageBuilder, feeTypeHelper, CreateDefaultLineNotificationWorkflow())
+        {
+        }
+
+        public PaymentNotificationService(
+            ILogger<PaymentNotificationService> logger,
+            PaymentMessageBuilder messageBuilder,
+            PaymentFeeTypeHelper feeTypeHelper,
+            ILineNotificationWorkflow lineNotificationWorkflow)
         {
             _logger = logger;
             _messageBuilder = messageBuilder;
             _feeTypeHelper = feeTypeHelper;
+            _lineNotificationWorkflow = lineNotificationWorkflow ?? throw new ArgumentNullException(nameof(lineNotificationWorkflow));
         }
 
         /// <summary>
@@ -88,18 +101,18 @@ namespace ChurchReport.Services
         {
             try
             {
-                var channelAccessToken = GetLineChannelAccessToken();
-                if (string.IsNullOrWhiteSpace(retryKey))
+                var request = new LineNotificationRequest
                 {
-                    var lineMessagingClient = new LineMessagingClient(channelAccessToken);
-                    var pushUtility = new PushUtility(lineMessagingClient);
-                    pushUtility.SendMessage(lineId, message).Wait();
-                }
-                else
-                {
-                    var processor = new LineMessagingProcessorClass(channelAccessToken);
-                    processor.SendReliableMessageAsync(lineId, message, retryKey).Wait();
-                }
+                    Recipient = LineNotificationRecipient.User(lineId),
+                    Content = LineNotificationContent.TextMessage(message),
+                    RetryKey = retryKey,
+                    Metadata = new Dictionary<string, string>
+                    {
+                        ["source"] = "ChurchReport.PaymentNotificationService"
+                    }
+                };
+
+                _lineNotificationWorkflow.SendOrThrowAsync(request).GetAwaiter().GetResult();
 
                 _logger.LogInformation($"SendLineMessage: 已發送 - LineId: {lineId}, RetryKey: {retryKey ?? "<none>"}");
             }
@@ -303,6 +316,12 @@ namespace ChurchReport.Services
             {
                 return string.Empty;
             }
+        }
+
+        private static ILineNotificationWorkflow CreateDefaultLineNotificationWorkflow()
+        {
+            var channelAccessToken = GetLineChannelAccessToken();
+            return new LineNotificationWorkflow(new LineMessagingProcessorClass(channelAccessToken));
         }
     }
 }
