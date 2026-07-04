@@ -2,6 +2,11 @@ using System.Collections.Concurrent;
 
 namespace LineMessagingProcessor.RichMenus;
 
+/// <summary>
+/// 開發與測試用的 RichMenu 使用者狀態儲存。
+/// 這個實作只把資料保存在目前應用程式行程的記憶體中，服務重啟、站台回收或多台主機部署時資料都不會保留或同步。
+/// 未來產品若需要正式使用 RichMenu 到期還原、角色切換或跨節點一致性，應實作 <see cref="IRichMenuStateStore"/> 並接到資料庫、Redis 或其他持久化儲存。
+/// </summary>
 public sealed class InMemoryRichMenuStateStore : IRichMenuStateStore
 {
     private readonly ConcurrentDictionary<string, RichMenuUserState> _states = new(StringComparer.OrdinalIgnoreCase);
