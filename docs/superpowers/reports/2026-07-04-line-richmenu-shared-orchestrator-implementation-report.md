@@ -149,3 +149,32 @@ ChurchReport 的 CRM、付款、奉獻、Controller 與畫面邏輯沒有進入 
 - 若要正式 merge，建議再跑一次完整 CCG Gemini + Claude review；若 provider 額度不足，記錄 quota blocker，不要假裝雙模型成功。
 - 下一階段可補 ChurchReport 實際 RichMenu catalog 與產品 policy，將管理者、一般使用者、付款、維修、會員等角色切換規則逐步接上。
 - 若未來產品需要跨機器或跨站台共用狀態，建議新增資料庫或 Redis 版 `IRichMenuStateStore`。
+## 2026-07-04 收尾更新：Assignment 例外邊界修正
+
+本次針對外部 review 指出的 RichMenu assignment 例外邊界問題完成修正：
+
+- `LineRichMenuAssignmentWorkflow` 將原本較寬鬆的 `TryMapException` 收斂為 `TryMapProviderException`。
+- 共用層只將 LINE / provider 可預期外部錯誤轉成 `LineRichMenuAssignmentResult`：
+  - `LineResponseException` → `ProviderRejected`
+  - `HttpRequestException` → `ProviderUnavailable`
+  - 非呼叫端主動取消的 `TaskCanceledException` → `ProviderUnavailable` / timeout
+- 未知程式錯誤不再被包成 `UnexpectedError`，而是直接往外拋，避免遮住真正 bug。
+- 新增 assignment / unassignment 不吞掉未知 processor exception 的回歸測試。
+
+### 收尾驗證
+
+已重新執行下列驗證：
+
+- `LineMessagingProcessor.RichMenus.Tests`：30 passed。
+- `LineMessagingProcessor.AspNetCore.Tests`：4 passed。
+- `LineMessagingProcessor.Tests`：33 passed。
+- `ChurchReport.MemberInfo.Tests` LINE / RichMenu focused filter：31 passed。
+- `ChurchReport\ChurchReport.csproj` build：0 warnings / 0 errors。
+- `ChurchReport.sln` build：0 warnings / 0 errors。
+- `LineMessagingProcessor.RichMenus` product boundary scan：passed。
+- touched files UTF-8 / mojibake scan：passed。
+- CCG self-healing review：Gemini PASS；Claude 被 provider session limit 擋住，runner 正確分類為 `quotaBlocked=true`，非本機工具鏈問題。
+
+### 對未來產品整合的意義
+
+這次修正讓 RichMenu 共用核心維持清楚邊界：產品可以用標準 result 處理 LINE provider 錯誤，但程式錯誤不會被靜默吞掉。未來建設公司維修系統、協會會員系統、發票收款系統接入此模組時，比較容易在測試與監控中發現真正的 integration bug，而不是被統一包成模糊失敗結果。
