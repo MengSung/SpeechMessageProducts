@@ -1,0 +1,12 @@
+{
+  "id": "line-richmenu-word-manual",
+  "title": "LINE RichMenu 創意、程式修改與調用方式 Word 說明文件",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "documentation",
+  "currentPhase": "analysis",
+  "nextAction": "盤點 RichMenu 程式修改與文件內容",
+  "createdAt": "2026-07-05T00:00:00+08:00",
+  "branch": "Jesus_5.1.7.RefactorRichMenu"
+}

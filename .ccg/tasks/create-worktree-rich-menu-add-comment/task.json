@@ -1,0 +1,14 @@
+﻿{
+    "id":  "create-worktree-rich-menu-add-comment",
+    "title":  "Create .worktrees branch Jesus_5.1.7.WorktreeRichMenuAddComment",
+    "status":  "completed",
+    "complexity":  "S",
+    "risk":  "low",
+    "domain":  "git",
+    "currentPhase":  "completed",
+    "nextAction":  "Report created worktree branch",
+    "createdAt":  "2026-07-04T23:36:15Z",
+    "branch":  "Jesus_5.1.7.RefactorRichMenu",
+    "worktreePath":  "D:\\網頁APP雲端線上版本\\DevExpressDevExtreme-21.2.7版本\\音訊產品版本\\ChurchReport\\.worktrees\\Jesus_5.1.7.WorktreeRichMenuAddComment",
+    "worktreeBranch":  "Jesus_5.1.7.WorktreeRichMenuAddComment"
+}
