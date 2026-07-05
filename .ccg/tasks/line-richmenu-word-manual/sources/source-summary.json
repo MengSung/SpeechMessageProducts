@@ -1,0 +1,65 @@
+﻿[
+    {
+        "Url":  "https://developers.line.biz/en/docs/messaging-api/using-rich-menus/",
+        "Status":  200,
+        "Title":  "Use rich menus | LINE Developers",
+        "Bytes":  68489,
+        "File":  ".ccg\\tasks\\line-richmenu-word-manual\\sources\\developers_line_biz_en_docs_messaging_api_using_rich_menus.html"
+    },
+    {
+        "Url":  "https://developers.line.biz/en/reference/messaging-api/#rich-menu",
+        "Status":  200,
+        "Title":  "Messaging API reference | LINE Developers",
+        "Bytes":  149595,
+        "File":  ".ccg\\tasks\\line-richmenu-word-manual\\sources\\developers_line_biz_en_reference_messaging_api_rich_menu.html"
+    },
+    {
+        "Url":  "https://developers.line.biz/en/reference/messaging-api/#richmenu-switch-action",
+        "Status":  200,
+        "Title":  "Messaging API reference | LINE Developers",
+        "Bytes":  149595,
+        "File":  ".ccg\\tasks\\line-richmenu-word-manual\\sources\\developers_line_biz_en_reference_messaging_api_richmenu_switch_action.html"
+    },
+    {
+        "Url":  "https://developers.line.biz/en/docs/messaging-api/rich-menu-alias/",
+        "Status":  "ERR",
+        "Title":  "遠端伺服器傳回一個錯誤: (403) 禁止。",
+        "Bytes":  0,
+        "File":  ""
+    },
+    {
+        "Url":  "https://developers.line.biz/en/docs/messaging-api/use-rich-menus-per-user/",
+        "Status":  "ERR",
+        "Title":  "遠端伺服器傳回一個錯誤: (403) 禁止。",
+        "Bytes":  0,
+        "File":  ""
+    },
+    {
+        "Url":  "https://developers.line.biz/en/docs/messaging-api/link-rich-menus-to-users/",
+        "Status":  "ERR",
+        "Title":  "遠端伺服器傳回一個錯誤: (403) 禁止。",
+        "Bytes":  0,
+        "File":  ""
+    },
+    {
+        "Url":  "https://developers.line.biz/en/docs/messaging-api/rich-menu-a-b-test/",
+        "Status":  "ERR",
+        "Title":  "遠端伺服器傳回一個錯誤: (403) 禁止。",
+        "Bytes":  0,
+        "File":  ""
+    },
+    {
+        "Url":  "https://developers.line.biz/en/docs/messaging-api/line-oa-plus/",
+        "Status":  "ERR",
+        "Title":  "遠端伺服器傳回一個錯誤: (403) 禁止。",
+        "Bytes":  0,
+        "File":  ""
+    },
+    {
+        "Url":  "https://developers.line.biz/en/docs/liff/overview/",
+        "Status":  200,
+        "Title":  "LIFF overview | LINE Developers",
+        "Bytes":  68940,
+        "File":  ".ccg\\tasks\\line-richmenu-word-manual\\sources\\developers_line_biz_en_docs_liff_overview.html"
+    }
+]
