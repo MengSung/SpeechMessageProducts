@@ -1,4 +1,17 @@
-﻿using System;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/WebServiceConnector/DownloadListManager.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class DownloadListManager
+// 主要成員：GetListManager、ProcessListEntity、SetupWeeklyReportRecord、GetSmallGroupMemberNumber、FilterPersonalListEntity、ProcessPersonalListEntity、FindLoginUser、FindListCollection、MergeCollectionSmallGroupAhead、SetUserType
+// 引用命名空間：System、System.Collections.Generic、System.Linq、System.Threading.Tasks、ChurchReport.Models.CrmTransmitModule、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query、Microsoft.Xrm.Sdk.Client
+// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -108,7 +121,7 @@ namespace ChurchReport.WebServiceConnector
                         }
                     }
                 }
-                
+
                 #region 多小組需要的資料結構，在此配置記憶體，並回傳給上層呼叫者
                 m_MultiGroupList.m_WeeklyReportRecordListData = new List<WeeklyReportRecord>();
 
@@ -155,7 +168,7 @@ namespace ChurchReport.WebServiceConnector
                 #region 找登入使用者及其ID
                 FindLoginUser(Account, Password); // 也就是設定 this.m_ContactEntity
                 if (m_ContactId == Guid.Empty) //是否有找到登入使用者及其ID
-                { return ; } // 沒找到就回傳 null 
+                { return ; } // 沒找到就回傳 null
                 else
                 {
                     // 取得登入者的姓名
@@ -239,7 +252,7 @@ namespace ChurchReport.WebServiceConnector
                     // 此小組的某一個主日的週報集合，應該僅有一個，也就是第0個的週報
                     Entity GroupWeeklyReportEntity = GroupWeeklyReportEntityCollection.Entities.Count == 1 ? GroupWeeklyReportEntityCollection.Entities[0] : null;
 
-                    //依據找到的週報有還是沒有來決定下一步:  
+                    //依據找到的週報有還是沒有來決定下一步:
                     //      有: 建立GroupName及WeeklyReportId
                     //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
                     //String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");
@@ -346,7 +359,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 serviceToUse = this.m_ToolUtilityClass.m_OrganizationService;
             }
-            
+
             if (serviceToUse == null)
             {
                 throw new ArgumentNullException(nameof(serviceToUse), "organizationService 為 null，無法查詢小組成員數量");
@@ -457,7 +470,7 @@ namespace ChurchReport.WebServiceConnector
                         // 此小組的某一個主日的週報集合，應該僅有一個，也就是第0個的週報
                         Entity GroupWeeklyReportEntity = GroupWeeklyReportEntityCollection.Entities.Count == 1 ? GroupWeeklyReportEntityCollection.Entities[0] : null;
 
-                        //依據找到的週報有還是沒有來決定下一步:  
+                        //依據找到的週報有還是沒有來決定下一步:
                         //      有: 建立GroupName及WeeklyReportId
                         //    沒有: 建立GroupName及WeeklyReportId = Guid.Empty();
                         String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ListEntity, "listname");

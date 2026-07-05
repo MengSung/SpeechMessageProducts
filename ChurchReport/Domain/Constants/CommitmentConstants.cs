@@ -1,60 +1,73 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Domain/Constants/CommitmentConstants.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆæä¾› CommitmentConstants ç›¸é—œåŠŸèƒ½ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜æª”æ¡ˆè²¬ä»»ã€ä¸Šæ¸¸/ä¸‹æ¸¸ä¾è³´èˆ‡ç¶­è­·æ™‚ä¸å¯ç ´å£çš„è¡Œç‚ºå‡è¨­ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass CommitmentTypeã€class Genderã€class FollowUpWeekã€class FollowUpResultã€class FollowUpNextStepã€class CareConstants
+// ä¸»è¦æˆå“¡ï¼šGetDisplayNameã€RequiresCareã€ShouldCountInAttendanceã€NumberToWeekCodeã€WeekCodeToChineseNumberã€NumberToChineseWeek
+// å¼•ç”¨å‘½åç©ºé–“ï¼šæœªå®£å‘Š usingï¼›è«‹ç”±å‘½åç©ºé–“ã€åŒæª”å‹åˆ¥æˆ–å®Œå…¨é™å®šåç¨±åˆ¤è®€ç›¸ä¾æ€§ã€‚
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆå¾å…¬é–‹å‹åˆ¥ã€å»ºæ§‹å¼æ³¨å…¥ã€ä¸»è¦æ–¹æ³•èˆ‡ä¾‹å¤–è™•ç†è·¯å¾‘æŒæ¡è³‡æ–™æµï¼Œå†é€²è¡Œç¶­è­·ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 namespace ChurchReport.Domain.Constants
 {
     /// <summary>
-    /// ©e¨­Ãş«¬±`¼Æ
-    /// ©w¸q Dynamics 365 ¤¤ªº customertypecode ¿ï¶µ¶°­È
+    /// å§”èº«é¡å‹å¸¸æ•¸
+    /// å®šç¾© Dynamics 365 ä¸­çš„ customertypecode é¸é …é›†å€¼
     /// </summary>
     public static class CommitmentType
     {
         /// <summary>
-        /// ¤p²Õ²Õ­û
+        /// å°çµ„çµ„å“¡
         /// </summary>
         public const int SmallGroupMember = 1;
 
         /// <summary>
-        /// ·sªB¤Í
+        /// æ–°æœ‹å‹
         /// </summary>
         public const int NewFriend = 100000000;
 
         /// <summary>
-        /// ¥¼¤J²Õ
+        /// æœªå…¥çµ„
         /// </summary>
         public const int NotJoinedGroup = 100000004;
 
         /// <summary>
-        /// ©¯ºÖ Best
+        /// å¹¸ç¦ Best
         /// </summary>
         public const int HappyBest = 100000005;
 
         /// <summary>
-        /// ¥~±Ğ·|
+        /// å¤–æ•™æœƒ
         /// </summary>
         public const int ExternalChurch = 100000007;
 
         /// <summary>
-        /// ¥¼¤J²Õµ²®×
+        /// æœªå…¥çµ„çµæ¡ˆ
         /// </summary>
         public const int NotJoinedGroupClosed = 100000008;
 
         /// <summary>
-        /// ¨ú±o©e¨­Ãş«¬ªºÅã¥Ü¦WºÙ
+        /// å–å¾—å§”èº«é¡å‹çš„é¡¯ç¤ºåç¨±
         /// </summary>
         public static string GetDisplayName(int commitmentTypeCode)
         {
             return commitmentTypeCode switch
             {
-                SmallGroupMember => "¤p²Õ²Õ­û",
-                NewFriend => "·sªB¤Í",
-                NotJoinedGroup => "¥¼¤J²Õ",
-                HappyBest => "©¯ºÖ Best",
-                ExternalChurch => "¥~±Ğ·|",
-                NotJoinedGroupClosed => "¥¼¤J²Õµ²®×",
-                _ => "¥¼ª¾"
+                SmallGroupMember => "å°çµ„çµ„å“¡",
+                NewFriend => "æ–°æœ‹å‹",
+                NotJoinedGroup => "æœªå…¥çµ„",
+                HappyBest => "å¹¸ç¦ Best",
+                ExternalChurch => "å¤–æ•™æœƒ",
+                NotJoinedGroupClosed => "æœªå…¥çµ„çµæ¡ˆ",
+                _ => "æœªçŸ¥"
             };
         }
 
         /// <summary>
-        /// §PÂ_¬O§_¬°»İ­nÃöÃhªº¹ï¶H¡]·sªB¤Í©Î¥¼¤J²Õ¡^
+        /// åˆ¤æ–·æ˜¯å¦ç‚ºéœ€è¦é—œæ‡·çš„å°è±¡ï¼ˆæ–°æœ‹å‹æˆ–æœªå…¥çµ„ï¼‰
         /// </summary>
         public static bool RequiresCare(int commitmentTypeCode)
         {
@@ -62,18 +75,18 @@ namespace ChurchReport.Domain.Constants
         }
 
         /// <summary>
-        /// §PÂ_¬O§_À³¦C¤J¥X®u²v²Î­p
+        /// åˆ¤æ–·æ˜¯å¦æ‡‰åˆ—å…¥å‡ºå¸­ç‡çµ±è¨ˆ
         /// </summary>
         public static bool ShouldCountInAttendance(int commitmentTypeCode)
         {
-            return commitmentTypeCode != NewFriend 
-                && commitmentTypeCode != NotJoinedGroup 
+            return commitmentTypeCode != NewFriend
+                && commitmentTypeCode != NotJoinedGroup
                 && commitmentTypeCode != ExternalChurch;
         }
     }
 
     /// <summary>
-    /// ©Ê§O±`¼Æ
+    /// æ€§åˆ¥å¸¸æ•¸
     /// </summary>
     public static class Gender
     {
@@ -84,15 +97,15 @@ namespace ChurchReport.Domain.Constants
         {
             return genderCode switch
             {
-                Male => "¨k©Ê",
-                Female => "¤k©Ê",
-                _ => "¥¼ª¾"
+                Male => "ç”·æ€§",
+                Female => "å¥³æ€§",
+                _ => "æœªçŸ¥"
             };
         }
     }
 
     /// <summary>
-    /// ¸ò¶i¶g¦¸±`¼Æ
+    /// è·Ÿé€²é€±æ¬¡å¸¸æ•¸
     /// </summary>
     public static class FollowUpWeek
     {
@@ -118,58 +131,58 @@ namespace ChurchReport.Domain.Constants
         public const int Week20 = 100000019;
 
         /// <summary>
-        /// ±N¼Æ¦rÂà´«¬°¶g¦¸¿ï¶µ¶°­È
+        /// å°‡æ•¸å­—è½‰æ›ç‚ºé€±æ¬¡é¸é …é›†å€¼
         /// </summary>
         public static int NumberToWeekCode(int weekNumber)
         {
-            if (weekNumber < 1 || weekNumber > 20) return Week8; // ¹w³]²Ä8¶g
+            if (weekNumber < 1 || weekNumber > 20) return Week8; // é è¨­ç¬¬8é€±
             return Week1 + (weekNumber - 1);
         }
 
         /// <summary>
-        /// ±N¶g¦¸¿ï¶µ¶°­ÈÂà´«¬°¤¤¤å
+        /// å°‡é€±æ¬¡é¸é …é›†å€¼è½‰æ›ç‚ºä¸­æ–‡
         /// </summary>
         public static string WeekCodeToChineseNumber(int weekCode)
         {
             int weekNumber = weekCode - Week1 + 1;
             return weekNumber switch
             {
-                1 => "¤@",
-                2 => "¤G",
-                3 => "¤T",
-                4 => "¥|",
-                5 => "¤­",
-                6 => "¤»",
-                7 => "¤C",
-                8 => "¤K",
-                9 => "¤E",
-                10 => "¤Q",
-                11 => "¤Q¤@",
-                12 => "¤Q¤G",
-                13 => "¤Q¤T",
-                14 => "¤Q¥|",
-                15 => "¤Q¤­",
-                16 => "¤Q¤»",
-                17 => "¤Q¤C",
-                18 => "¤Q¤K",
-                19 => "¤Q¤E",
-                20 => "¤G¤Q",
+                1 => "ä¸€",
+                2 => "äºŒ",
+                3 => "ä¸‰",
+                4 => "å››",
+                5 => "äº”",
+                6 => "å…­",
+                7 => "ä¸ƒ",
+                8 => "å…«",
+                9 => "ä¹",
+                10 => "å",
+                11 => "åä¸€",
+                12 => "åäºŒ",
+                13 => "åä¸‰",
+                14 => "åå››",
+                15 => "åäº”",
+                16 => "åå…­",
+                17 => "åä¸ƒ",
+                18 => "åå…«",
+                19 => "åä¹",
+                20 => "äºŒå",
                 _ => "."
             };
         }
 
         /// <summary>
-        /// ±N¼Æ¦rÂà´«¬°¤¤¤å¶g¦¸
+        /// å°‡æ•¸å­—è½‰æ›ç‚ºä¸­æ–‡é€±æ¬¡
         /// </summary>
         public static string NumberToChineseWeek(int weekNumber)
         {
-            if (weekNumber < 1 || weekNumber > 20) return "¤G¤Q";
+            if (weekNumber < 1 || weekNumber > 20) return "äºŒå";
             return WeekCodeToChineseNumber(NumberToWeekCode(weekNumber));
         }
     }
 
     /// <summary>
-    /// ¸ò¶iµ²ªG±`¼Æ
+    /// è·Ÿé€²çµæœå¸¸æ•¸
     /// </summary>
     public static class FollowUpResult
     {
@@ -188,23 +201,23 @@ namespace ChurchReport.Domain.Constants
         {
             return resultCode switch
             {
-                PleaseSelect => "½Ğ¿ï¾Ü",
-                EnthusiasticResponse => "¼ö±¡¦^À³",
-                EagerToKnowFaith => "´÷¼}»{ÃÑ«H¥õ",
-                NoContact => "¨SÁpµ¸¤W",
-                ColdResponse => "¤ÏÀ³§N²H",
-                Considering => "¦Ò¼{¤¤¡AÄ~Äò¸ò¶i",
-                JoinedSmallGroup => "¤J¤p²Õ",
-                AttendedSunday => "¨Ó¥D¤é",
-                Transferred => "Âà¤¶",
-                Other => "¨ä¥L",
+                PleaseSelect => "è«‹é¸æ“‡",
+                EnthusiasticResponse => "ç†±æƒ…å›æ‡‰",
+                EagerToKnowFaith => "æ¸´æ…•èªè­˜ä¿¡ä»°",
+                NoContact => "æ²’è¯çµ¡ä¸Š",
+                ColdResponse => "åæ‡‰å†·æ·¡",
+                Considering => "è€ƒæ…®ä¸­ï¼Œç¹¼çºŒè·Ÿé€²",
+                JoinedSmallGroup => "å…¥å°çµ„",
+                AttendedSunday => "ä¾†ä¸»æ—¥",
+                Transferred => "è½‰ä»‹",
+                Other => "å…¶ä»–",
                 _ => ""
             };
         }
     }
 
     /// <summary>
-    /// ¸ò¶i¤U¤@¨BÆJ±`¼Æ
+    /// è·Ÿé€²ä¸‹ä¸€æ­¥é©Ÿå¸¸æ•¸
     /// </summary>
     public static class FollowUpNextStep
     {
@@ -216,41 +229,41 @@ namespace ChurchReport.Domain.Constants
         {
             return nextStepCode switch
             {
-                PleaseSelect => "½Ğ¿ï¾Ü",
-                ContinueFollowUp => "Ä~Äò¸ò¶i",
-                Transfer => "Âà¤¶",
-                _ => "½Ğ¿ï¾Ü"
+                PleaseSelect => "è«‹é¸æ“‡",
+                ContinueFollowUp => "ç¹¼çºŒè·Ÿé€²",
+                Transfer => "è½‰ä»‹",
+                _ => "è«‹é¸æ“‡"
             };
         }
     }
 
     /// <summary>
-    /// ·s¤HÃöÃh¬ÛÃö±`¼Æ
+    /// æ–°äººé—œæ‡·ç›¸é—œå¸¸æ•¸
     /// </summary>
     public static class CareConstants
     {
         /// <summary>
-        /// ¹L¥h´X¶g¤ºªº¥X®u²Î­p¶g´Á
+        /// éå»å¹¾é€±å…§çš„å‡ºå¸­çµ±è¨ˆé€±æœŸ
         /// </summary>
         public const int WeekPeriod = 8;
 
         /// <summary>
-        /// ¥X®u¦¸¼ÆªùÂe¡]¹F¨ì¦¹¦¸¼Æ¥i®Ê¤É¬°¤p²Õ²Õ­û¡^
+        /// å‡ºå¸­æ¬¡æ•¸é–€æª»ï¼ˆé”åˆ°æ­¤æ¬¡æ•¸å¯æ™‰å‡ç‚ºå°çµ„çµ„å“¡ï¼‰
         /// </summary>
         public const int MinimumAttendanceThreshold = 4;
 
         /// <summary>
-        /// ·sªB¤ÍÂà¬°¥¼¤J²Õªº¶g¦¸¤W­­
+        /// æ–°æœ‹å‹è½‰ç‚ºæœªå…¥çµ„çš„é€±æ¬¡ä¸Šé™
         /// </summary>
         public const int NewFriendToNotJoinedWeekLimit = 10;
 
         /// <summary>
-        /// ¥¼¤J²Õµ²®×ªº¶g¦¸¤W­­
+        /// æœªå…¥çµ„çµæ¡ˆçš„é€±æ¬¡ä¸Šé™
         /// </summary>
         public const int NotJoinedClosureWeekLimit = 18;
 
         /// <summary>
-        /// ¬O§_±Ò¥Î©e¨­Ãş«¬¦Û°ÊÂà´«
+        /// æ˜¯å¦å•Ÿç”¨å§”èº«é¡å‹è‡ªå‹•è½‰æ›
         /// </summary>
         public const bool EnableAutoIdentityTransfer = false;
     }

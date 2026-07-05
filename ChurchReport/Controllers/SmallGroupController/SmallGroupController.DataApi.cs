@@ -1,4 +1,17 @@
-﻿using ChurchReport.Models;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/Controllers/SmallGroupController/SmallGroupController.DataApi.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
+// 主要型別：class SmallGroupController
+// 主要成員：LoadIntegrate、GetChartDataList、GetMultiGroupChartDataList、AssignSmallGroupGet
+// 引用命名空間：ChurchReport.Models、ChurchReport.Tools、DevExtreme.AspNet.Data、DevExtreme.AspNet.Mvc、Microsoft.AspNetCore.Http、Microsoft.AspNetCore.Mvc、Microsoft.Extensions.Caching.Memory、System
+// 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using ChurchReport.Models;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
@@ -13,25 +26,25 @@ namespace ChurchReport.Controllers
 {
     /// <summary>
     /// 小組管理控制器 - 資料載入 API (Small Group Controller - Data Loading API)
-    /// 
+    ///
     /// 教學說明：
     /// 這是一個 Partial Class（部分類別），將 SmallGroupController 的功能分散到多個檔案中。
     /// 為什麼使用 Partial Class？
     /// - 分離關注點：這個檔案專注於「資料載入 API」
     /// - 代碼組織：避免單一檔案過大，難以維護
     /// - 團隊協作：不同開發者可以同時編輯不同部分而不衝突
-    /// 
+    ///
     /// 本檔案的職責：
     /// - 提供資料載入的 HTTP GET API 端點
     /// - 處理 DevExtreme DataGrid 的 AJAX 請求
     /// - 實作快取機制以提升性能
     /// - 確保用戶身份驗證和資料安全
-    /// 
+    ///
     /// API 設計模式：
     /// - RESTful API：使用 HTTP GET 方法載入資料
     /// - Repository Pattern：透過 InMemoryContext 存取資料
     /// - Caching Pattern：使用記憶體快取減少重複查詢
-    /// 
+    ///
     /// 與其他部分的關係：
     /// - SmallGroupController.IntegrateView.cs：處理整合視圖的頁面渲染
     /// - SmallGroupController.Crud.cs：處理資料的新增、修改、刪除
@@ -43,11 +56,11 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 載入整合式頁面的小組成員資料 (Load Small Group Member Data for Integrate View)
-        /// 
+        ///
         /// 教學說明：
         /// 這是一個 HTTP GET API 端點，供前端 DevExtreme DataGrid 使用。
         /// 當頁面載入或需要刷新資料時，DataGrid 會自動呼叫這個 API。
-        /// 
+        ///
         /// 工作流程：
         /// 1. 前端 JavaScript 發送 AJAX 請求到這個 API
         /// 2. 後端驗證用戶身份（確保資料安全）
@@ -55,22 +68,22 @@ namespace ChurchReport.Controllers
         /// 4. 取得小組成員清單
         /// 5. 將資料轉換為 DevExtreme 可以理解的格式
         /// 6. 返回給前端
-        /// 
+        ///
         /// 為什麼需要這個 API？
         /// - 非同步載入：不阻塞頁面顯示，提升用戶體驗
         /// - 分頁支援：DataGrid 可以只載入當前頁面的資料
         /// - 排序篩選：DataGrid 可以在後端進行排序和篩選
-        /// 
+        ///
         /// 參數說明：
         /// - id: 週報的識別碼，用來指定要載入哪個週報的資料
         /// - loadOptions: DevExtreme 提供的載入選項，包含分頁、排序、篩選等資訊
-        /// 
+        ///
         /// 返回值：
         /// - object: DevExtreme DataSourceLoader 格式的資料，包含：
         ///   - data: 實際的資料陣列
         ///   - totalCount: 總資料筆數（用於分頁）
         ///   - summary: 統計資訊（如果有設定的話）
-        /// 
+        ///
         /// HTTP 方法：GET
         /// URL 範例：/SmallGroup/LoadIntegrate?id=12345
         /// </summary>
@@ -89,7 +102,7 @@ namespace ChurchReport.Controllers
                 // 在處理 AJAX 請求時，必須先驗證用戶身份。
                 // 為什麼？因為多個用戶可能同時使用系統，
                 // 我們必須確保 A 用戶看到的是 A 的資料，而不是 B 的資料。
-                // 
+                //
                 // EnsureCorrectUserData() 會做這些事：
                 // 1. 檢查 Session 中的密碼和 ListManager 中的密碼是否一致
                 // 2. 如果不一致，重新載入正確用戶的資料
@@ -134,11 +147,11 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 載入圖表資料 (Load Chart Data)
-        /// 
+        ///
         /// 教學說明：
         /// 這個 API 提供圖表（Chart）所需的資料。
         /// 圖表資料通常包含統計數字、趨勢變化等視覺化資訊。
-        /// 
+        ///
         /// 快取策略：
         /// 此端點回傳「登入後、依 Session 取得」的小組圖表資料，屬動態且與使用者相關，
         /// 因此採 no-store（與本檔其他資料端點一致），不做 HTTP 快取。
@@ -149,7 +162,7 @@ namespace ChurchReport.Controllers
         /// 一旦標註 VaryByQueryKeys，會在執行期擲出
         /// InvalidOperationException: 'VaryByQueryKeys' requires the response cache middleware
         /// → 回傳 HTTP 500 → 圖表取不到資料 → 曲線消失（此為先前的 bug）。
-        /// 
+        ///
         /// HTTP 方法：GET
         /// URL 範例：/SmallGroup/GetChartDataList?WeeklyReportId=12345
         /// </summary>
@@ -199,16 +212,16 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 載入多小組圓餅圖資料（含快取）(Load Multi-Group Pie Chart Data with Caching)
-        /// 
+        ///
         /// 教學說明：
         /// 這個 API 提供多小組統計的圓餅圖資料。
         /// 與前一個方法不同，這裡使用「手動快取」而不是 [ResponseCache]。
-        /// 
+        ///
         /// 為什麼用手動快取？
         /// - 更靈活的快取控制
         /// - 可以根據用戶和日期分別快取
         /// - 可以在代碼中記錄快取命中/未命中的日誌
-        /// 
+        ///
         /// 快取 Key 設計：
         /// 格式：{前綴}{日期}_{帳號}
         /// 範例：MultiChart_20240101_john
@@ -216,19 +229,19 @@ namespace ChurchReport.Controllers
         /// - 不同用戶的資料分開快取
         /// - 不同日期的資料分開快取
         /// - 避免快取衝突
-        /// 
+        ///
         /// 快取流程：
         /// 1. 嘗試從快取讀取
         /// 2. 如果快取命中，直接返回
         /// 3. 如果快取未命中，從資料源載入
         /// 4. 將資料存入快取供下次使用
-        /// 
+        ///
         /// [ResponseCache] 設定：
         /// NoStore = true, Location = None：
         /// 告訴瀏覽器和中間代理伺服器不要快取這個回應。
         /// 為什麼？因為我們在伺服器端已經做了快取，
         /// 不需要瀏覽器端再快取。
-        /// 
+        ///
         /// HTTP 方法：GET
         /// URL 範例：/SmallGroup/GetMultiGroupChartDataList?WeeklyReportId=12345
         /// </summary>
@@ -260,7 +273,7 @@ namespace ChurchReport.Controllers
                 var selectedDate = InMemoryContext.ListManager.m_SelectDate;
                 var account = InMemoryContext.ListManager.m_Account ?? "guest";
                 var cacheKey = $"{CACHE_KEY_MULTI_CHART}{selectedDate:yyyyMMdd}_{account}";
-                
+
                 // 嘗試從快取讀取
                 // 教學說明：
                 // TryGetValue() 是一個安全的取值方法：
@@ -278,7 +291,7 @@ namespace ChurchReport.Controllers
                     System.Diagnostics.Debug.WriteLine($"[GetMultiGroupChartDataList] 從快取讀取: {cacheKey}");
                     return DataSourceLoader.Load(cachedChartData, loadOptions);
                 }
-                
+
                 // 快取未命中，需要載入資料
                 System.Diagnostics.Debug.WriteLine($"[GetMultiGroupChartDataList] 快取未命中: {cacheKey}");
 
@@ -312,26 +325,26 @@ namespace ChurchReport.Controllers
 
         /// <summary>
         /// 載入多小組列表資料（含快取）(Load Multi-Group List Data with Caching)
-        /// 
+        ///
         /// 教學說明：
         /// 這個 API 提供多小組的詳細列表資料。
         /// 用於 DataGrid 或 Lookup 控制項的資料來源。
-        /// 
+        ///
         /// 與前一個方法的區別：
         /// - 前一個是圓餅圖資料（統計數字）
         /// - 這個是列表資料（詳細記錄）
-        /// 
+        ///
         /// 快取策略：
         /// 使用與前一個方法相同的手動快取機制。
         /// 快取 Key 格式：{前綴}{日期}_{帳號}
-        /// 
+        ///
         /// 資料來源：
         /// m_WeeklyReportRecordListData 包含所有小組的週報記錄。
         /// 這些資料通常用於：
         /// - 多小組統計頁面
         /// - 小組選擇下拉選單
         /// - 小組指派功能
-        /// 
+        ///
         /// HTTP 方法：GET
         /// URL 範例：/SmallGroup/AssignSmallGroupGet?id=12345
         /// </summary>
@@ -351,7 +364,7 @@ namespace ChurchReport.Controllers
                 // 不需要在每個方法中重複寫驗證邏輯。
                 // 基底控制器已經提供了完整的驗證方法。
                 EnsureCorrectUserData();
-                
+
                 // 確保多組資料已載入
                 // 教學說明：
                 // 在返回資料之前，必須確保資料已經存在。
@@ -369,7 +382,7 @@ namespace ChurchReport.Controllers
 
                 // 取得週報記錄列表
                 var weeklyReportRecords = InMemoryContext.ListManager.m_MultiGroupList.m_WeeklyReportRecordListData;
-                
+
                 // 記錄日誌：返回資料筆數
                 // 教學說明：
                 // 記錄資料筆數可以幫助我們：

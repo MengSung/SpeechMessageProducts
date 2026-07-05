@@ -1,4 +1,17 @@
-﻿using System;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：Line.Messaging/Messages/Flex/Extensions/BubbleContainerEntensions.cs
+// 所屬區塊：LINE Messaging SDK 封裝層，定義 LINE API DTO、Client 呼叫與訊息模型。
+// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
+// 主要型別：class BubbleContainerExtensions
+// 主要成員：SetHeader、AddHeaderContents、SetBody、AddBodyContents、SetFooter、AddFooterContents、SetHero、SetHeroAction、SetStyles、SetHeaderStyle
+// 引用命名空間：System、System.Collections.Generic、System.Text
+// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -26,21 +39,21 @@ namespace Line.Messaging
         /// </param>
         /// <param name="self">BubbleContainer</param>
         /// <param name="flex">
-        /// The ratio of the width or height of this box within the parent box. 
-        /// The default value for the horizontal parent box is 1, and the default value for the vertical parent box is 0. 
+        /// The ratio of the width or height of this box within the parent box.
+        /// The default value for the horizontal parent box is 1, and the default value for the vertical parent box is 0.
         /// </param>
         /// <param name="spacing">
-        /// Minimum space between components in this box. 
-        /// You can specify one of the following values: none, xs, sm, md, lg, xl, or xxl. 
+        /// Minimum space between components in this box.
+        /// You can specify one of the following values: none, xs, sm, md, lg, xl, or xxl.
         /// none does not set a space while the other values set a space whose size increases in the order of listing. <para>
-        /// The default value is none. 
+        /// The default value is none.
         /// To override this setting for a specific component, set the margin property of that component.</para>
         /// </param>
         /// <param name="margin">
-        /// Minimum space between this box and the previous component in the parent box. 
-        /// You can specify one of the following values: none, xs, sm, md, lg, xl, or xxl. 
+        /// Minimum space between this box and the previous component in the parent box.
+        /// You can specify one of the following values: none, xs, sm, md, lg, xl, or xxl.
         /// none does not set a space while the other values set a space whose size increases in the order of listing. <para>
-        /// The default value is the value of the spacing property of the parent box. 
+        /// The default value is the value of the spacing property of the parent box.
         /// If this box is the first component in the parent box, the margin property will be ignored.</para>
         /// </param>
         /// <returns>BoxContainer</returns>
@@ -89,21 +102,21 @@ namespace Line.Messaging
         /// The placement style of components in this box. Specify one of the following values
         /// </param>
         /// <param name="flex">
-        /// The ratio of the width or height of this box within the parent box. 
-        /// The default value for the horizontal parent box is 1, and the default value for the vertical parent box is 0. 
+        /// The ratio of the width or height of this box within the parent box.
+        /// The default value for the horizontal parent box is 1, and the default value for the vertical parent box is 0.
         /// </param>
         /// <param name="spacing">
-        /// Minimum space between components in this box. 
-        /// You can specify one of the following values: none, xs, sm, md, lg, xl, or xxl. 
+        /// Minimum space between components in this box.
+        /// You can specify one of the following values: none, xs, sm, md, lg, xl, or xxl.
         /// none does not set a space while the other values set a space whose size increases in the order of listing. <para>
-        /// The default value is none. 
+        /// The default value is none.
         /// To override this setting for a specific component, set the margin property of that component.</para>
         /// </param>
         /// <param name="margin">
-        /// Minimum space between this box and the previous component in the parent box. 
-        /// You can specify one of the following values: none, xs, sm, md, lg, xl, or xxl. 
+        /// Minimum space between this box and the previous component in the parent box.
+        /// You can specify one of the following values: none, xs, sm, md, lg, xl, or xxl.
         /// none does not set a space while the other values set a space whose size increases in the order of listing. <para>
-        /// The default value is the value of the spacing property of the parent box. 
+        /// The default value is the value of the spacing property of the parent box.
         /// If this box is the first component in the parent box, the margin property will be ignored.</para>
         /// </param>
         /// <returns>BoxContainer</returns>
@@ -152,21 +165,21 @@ namespace Line.Messaging
         /// The placement style of components in this box. Specify one of the following values
         /// </param>
         /// <param name="flex">
-        /// The ratio of the width or height of this box within the parent box. 
-        /// The default value for the horizontal parent box is 1, and the default value for the vertical parent box is 0. 
+        /// The ratio of the width or height of this box within the parent box.
+        /// The default value for the horizontal parent box is 1, and the default value for the vertical parent box is 0.
         /// </param>
         /// <param name="spacing">
-        /// Minimum space between components in this box. 
-        /// You can specify one of the following values: none, xs, sm, md, lg, xl, or xxl. 
+        /// Minimum space between components in this box.
+        /// You can specify one of the following values: none, xs, sm, md, lg, xl, or xxl.
         /// none does not set a space while the other values set a space whose size increases in the order of listing. <para>
-        /// The default value is none. 
+        /// The default value is none.
         /// To override this setting for a specific component, set the margin property of that component.</para>
         /// </param>
         /// <param name="margin">
-        /// Minimum space between this box and the previous component in the parent box. 
-        /// You can specify one of the following values: none, xs, sm, md, lg, xl, or xxl. 
+        /// Minimum space between this box and the previous component in the parent box.
+        /// You can specify one of the following values: none, xs, sm, md, lg, xl, or xxl.
         /// none does not set a space while the other values set a space whose size increases in the order of listing. <para>
-        /// The default value is the value of the spacing property of the parent box. 
+        /// The default value is the value of the spacing property of the parent box.
         /// If this box is the first component in the parent box, the margin property will be ignored.</para>
         /// </param>
         /// <returns>BoxContainer</returns>
@@ -196,7 +209,7 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// Sets a ImageComponent to the BobbleContainer hero 
+        /// Sets a ImageComponent to the BobbleContainer hero
         /// </summary>
         /// <param name="self">BubbleContainer</param>
         /// <param name="hero">
@@ -210,7 +223,7 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// Sets a ImageComponent to the BobbleContainer hero 
+        /// Sets a ImageComponent to the BobbleContainer hero
         /// </summary>
         /// <param name="self">BubbleContainer</param>
         /// <param name="imageUrl">
@@ -222,18 +235,18 @@ namespace Line.Messaging
         /// </param>
         /// <param name="flex">
         /// The ratio of the width or height of this component within the parent box. <para>
-        /// The default value for the horizontal parent box is 1, and the default value for the vertical parent box is 0. 
+        /// The default value for the horizontal parent box is 1, and the default value for the vertical parent box is 0.
         /// For more information, see Width and height of components.</para>
         /// </param>
         /// <param name="margin">
-        /// Minimum space between this component and the previous component in the parent box.<para> 
-        /// You can specify one of the following values: none, xs, sm, md, lg, xl, or xxl. 
-        /// none does not set a space while the other values set a space whose size increases in the order of listing. 
-        /// The default value is the value of the spacing property of the parent box. 
+        /// Minimum space between this component and the previous component in the parent box.<para>
+        /// You can specify one of the following values: none, xs, sm, md, lg, xl, or xxl.
+        /// none does not set a space while the other values set a space whose size increases in the order of listing.
+        /// The default value is the value of the spacing property of the parent box.
         ///If this component is the first component in the parent box, the margin property will be ignored.</para>
         /// </param>
         /// <param name="align">
-        /// Horizontal alignment style.<para> 
+        /// Horizontal alignment style.<para>
         /// Specify one of the following values:
         /// / start: Left-aligned
         /// / end: Right-aligned
@@ -250,20 +263,20 @@ namespace Line.Messaging
         /// If the layout property of the parent box is baseline, the gravity property will be ignored.</para>
         /// </param>
         /// <param name="size">
-        /// Maximum size of the image width.<para> 
-        /// You can specify one of the following values: xxs, xs, sm, md, lg, xl, xxl, 3xl, 4xl, 5xl, or full. 
-        /// The size increases in the order of listing. 
+        /// Maximum size of the image width.<para>
+        /// You can specify one of the following values: xxs, xs, sm, md, lg, xl, xxl, 3xl, 4xl, 5xl, or full.
+        /// The size increases in the order of listing.
         /// The default value is md.</para>
         /// </param>
         /// <param name="aspectRatio">
-        /// Aspect ratio of the image. 
+        /// Aspect ratio of the image.
         /// Specify in the {width}:{height} format. <para>
-        /// Specify the value of the {width} property and the {height} property in the range from 1 to 100000. However, 
+        /// Specify the value of the {width} property and the {height} property in the range from 1 to 100000. However,
         /// you cannot set the {height} property to a value that is more than three times the value of the {width} property. </para>
         /// The default value is 1:1.
         /// </param>
         /// <param name="aspectMode">
-        /// Style of the image.<para> 
+        /// Style of the image.<para>
         /// Specify one of the following values:
         /// / cover: The image fills the entire drawing area.Parts of the image that do not fit in the drawing area are not displayed.
         /// / fit: The entire image is displayed in the drawing area.The background is displayed in the unused areas to the left and right of vertical images and in the areas above and below horizontal images.

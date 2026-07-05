@@ -1,5 +1,18 @@
-// ���ɮ׻ݭn�b .NET Core 3.1+ �� .NET 5+ ���Ҥ~��sĶ
-// �b .NET Framework 4.6.2 ���ҤU�|�Q����sĶ�ư�
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ToolUtility/Adapters/DataverseServiceClientAdapter.cs
+// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class DataverseServiceClientAdapter
+// 主要成員：Create、Update、Delete、Retrieve、RetrieveMultiple、Execute、CreateAsync、UpdateAsync、DeleteAsync、RetrieveAsync
+// 引用命名空間：Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query、Microsoft.PowerPlatform.Dataverse.Client、System、System.Threading、System.Threading.Tasks、ToolUtilityNameSpace.Interfaces
+// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+// 此檔案需要在 .NET Core 3.1+ 或 .NET 5+ 環境才能編譯
+// 在 .NET Framework 4.6.2 環境下會被條件編譯排除
 #if NETCOREAPP || NET5_0_OR_GREATER
 
 using Microsoft.Xrm.Sdk;
@@ -13,34 +26,34 @@ using ToolUtilityNameSpace.Interfaces;
 namespace ToolUtilityNameSpace.Adapters
 {
     /// <summary>
-    /// Dataverse ServiceClient Adapter�].NET Core / .NET 10 �A�Ρ^
-    /// �]�p�Ҧ��GAdapter Pattern
-    /// �γ~�G�N�s�� Microsoft.PowerPlatform.Dataverse.Client.ServiceClient �]�˦� ICrmClient
+    /// Dataverse ServiceClient Adapter（.NET Core / .NET 10 適用）
+    /// 設計模式：Adapter Pattern
+    /// 用途：將新的 Microsoft.PowerPlatform.Dataverse.Client.ServiceClient 包裝成 ICrmClient
     /// </summary>
     /// <remarks>
-    /// ?? �� Adapter �Ȧb .NET Core 3.1+ �� .NET 5+ ���ҤU�sĶ
-    /// 
-    /// �� Adapter �ŦX Linus ��h�G
-    /// 1. ²���@ - ������o�I�s�A���[�J�B�~�޿�
-    /// 2. �i���թ� - �z�L ICrmClient ������K mock
-    /// 3. �V��ۮe - �P�ɤ䴩�P�B�P�D�P�B�I�s
-    /// 
+    /// ?? 此 Adapter 僅在 .NET Core 3.1+ 或 .NET 5+ 環境下編譯
+    ///
+    /// 此 Adapter 符合 Linus 原則：
+    /// 1. 簡潔實作 - 直接轉發呼叫，不加入額外邏輯
+    /// 2. 可測試性 - 透過 ICrmClient 介面方便 mock
+    /// 3. 向後相容 - 同時支援同步與非同步呼叫
+    ///
     /// TODO (Phase 2):
-    /// - �[�J Retry �����]�ϥ� Polly�^
-    /// - �[�J Telemetry / Logging�]�ϥ� Decorator�^
-    /// - �[�J�s�u���޲z
+    /// - 加入 Retry 策略（使用 Polly）
+    /// - 加入 Telemetry / Logging（使用 Decorator）
+    /// - 加入連線池管理
     /// </remarks>
     public class DataverseServiceClientAdapter : ICrmClient
     {
         private readonly ServiceClient _serviceClient;
         private bool _disposed = false;
 
-        #region �غc��
+        #region 建構式
 
         /// <summary>
-        /// �ϥγs�u�r��إ� Adapter
+        /// 使用連線字串建立 Adapter
         /// </summary>
-        /// <param name="connectionString">Dataverse �s�u�r��]�䴩 OAuth�^</param>
+        /// <param name="connectionString">Dataverse 連線字串（支援 OAuth）</param>
         /// <example>
         /// AuthType=OAuth;Username=user@org.onmicrosoft.com;Password=***;Url=https://org.crm.dynamics.com;AppId=***;RedirectUri=app://***;LoginPrompt=Auto
         /// </example>
@@ -59,7 +72,7 @@ namespace ToolUtilityNameSpace.Adapters
         }
 
         /// <summary>
-        /// �ϥβ{�� ServiceClient �إ� Adapter�]�Ω���թζi�����ҡ^
+        /// 使用現有 ServiceClient 建立 Adapter（用於測試或進階情境）
         /// </summary>
         public DataverseServiceClientAdapter(ServiceClient serviceClient)
         {
@@ -68,7 +81,7 @@ namespace ToolUtilityNameSpace.Adapters
 
         #endregion
 
-        #region ICrmClient �P�B��@
+        #region ICrmClient 同步實作
 
         public Guid Create(Entity entity)
         {
@@ -126,14 +139,14 @@ namespace ToolUtilityNameSpace.Adapters
 
         #endregion
 
-        #region ICrmClient �D�P�B��@
+        #region ICrmClient 非同步實作
 
         public async Task<Guid> CreateAsync(Entity entity, CancellationToken cancellationToken = default)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
 
-            // ServiceClient �� CreateAsync �䴩 CancellationToken
+            // ServiceClient 的 CreateAsync 支援 CancellationToken
             return await _serviceClient.CreateAsync(entity, cancellationToken).ConfigureAwait(false);
         }
 
@@ -185,7 +198,7 @@ namespace ToolUtilityNameSpace.Adapters
 
         #endregion
 
-        #region �s�u���A
+        #region 連線狀態
 
         public bool IsReady => _serviceClient?.IsReady ?? false;
 
@@ -193,7 +206,7 @@ namespace ToolUtilityNameSpace.Adapters
 
         #endregion
 
-        #region IDisposable ��@
+        #region IDisposable 實作
 
         protected virtual void Dispose(bool disposing)
         {
@@ -201,7 +214,7 @@ namespace ToolUtilityNameSpace.Adapters
 
             if (disposing)
             {
-                // ���� ServiceClient�]�|�����s�u�^
+                // 釋放 ServiceClient（會關閉連線）
                 _serviceClient?.Dispose();
             }
 

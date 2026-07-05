@@ -1,10 +1,23 @@
-﻿using System;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：Line.Messaging/LineSchemeUrl.cs
+// 所屬區塊：LINE Messaging SDK 封裝層，定義 LINE API DTO、Client 呼叫與訊息模型。
+// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
+// 主要型別：class LineSchemeUrl
+// 主要成員：GetCameraUrl、GetCameraUriTemplateAction、GetCameraRollSingleUrl、GetCameraRollSingleUriTemplateAction、GetCameraRollMultiUrl、GetCameraRollMultiUriTemplateAction、GetLocationUrl、GetLocationUriTemplateAction、GetTiPUrl、GetTiPUriTemplateAction
+// 引用命名空間：System
+// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using System;
 
 namespace Line.Messaging
 {
     /// <summary>
     /// Provide URLs of the LINE URL scheme.
-    /// <para>https://developers.line.me/en/docs/messaging-api/using-line-url-scheme/</para> 
+    /// <para>https://developers.line.me/en/docs/messaging-api/using-line-url-scheme/</para>
     /// </summary>
     public static class LineSchemeUrl
     {
@@ -105,7 +118,7 @@ namespace Line.Messaging
         /// Opens the "Location" screen. Users can share the current location or drop a pin on the map to select the location they want to share.
         /// </summary>
         /// <para>
-        /// Note: This scheme is only supported in one-on-one chats between a user and a bot(LINE@ account). 
+        /// Note: This scheme is only supported in one-on-one chats between a user and a bot(LINE@ account).
         /// Not supported on external apps or other types of LINE chats.
         ///</para>
         /// <returns>String of LINE Scheme URL</returns>
@@ -115,7 +128,7 @@ namespace Line.Messaging
         /// Opens the "Location" screen. Users can share the current location or drop a pin on the map to select the location they want to share.
         /// </summary>
         /// <para>
-        /// Note: This scheme is only supported in one-on-one chats between a user and a bot(LINE@ account). 
+        /// Note: This scheme is only supported in one-on-one chats between a user and a bot(LINE@ account).
         /// Not supported on external apps or other types of LINE chats.
         /// </para>
         /// <param name = "label" > Template action label text</param>
@@ -205,7 +218,7 @@ namespace Line.Messaging
         public static UriTemplateAction GetHomePublicProfileUriTemplateAction(string label, string lineIdWithoutAt) => new UriTemplateAction(label, GetHomePublicProfileUrl(lineIdWithoutAt));
 
         /// <summary>
-        /// Opens a specific Timeline post for your bot. 
+        /// Opens a specific Timeline post for your bot.
         /// You can find the post ID of individual posts in the "Timeline (Home)" section of the LINE@ Manager.
         /// </summary>
         /// <param name="lineIdWithoutAt">
@@ -216,7 +229,7 @@ namespace Line.Messaging
         public static string GetHomePublicPostUrl(string lineIdWithoutAt, string postId) => string.Format(homePublicPost, lineIdWithoutAt, postId);
 
         /// <summary>
-        /// Opens a specific Timeline post for your bot. 
+        /// Opens a specific Timeline post for your bot.
         /// You can find the post ID of individual posts in the "Timeline (Home)" section of the LINE@ Manager.
         /// </summary>
         /// <param name="lineIdWithoutAt">
@@ -228,7 +241,7 @@ namespace Line.Messaging
         public static UriTemplateAction GetHomePublicPostUriTemplateAction(string label, string lineIdWithoutAt, string postId) => new UriTemplateAction(label, GetHomePublicPostUrl(lineIdWithoutAt, postId));
 
         /// <summary>
-        /// Opens the "Share with" screen where users can select friends, groups, or chats to send a preset text message.<para> 
+        /// Opens the "Share with" screen where users can select friends, groups, or chats to send a preset text message.<para>
         /// Users can also post the message as a note in a chat or post the message to Timeline.</para>
         /// </summary>
         /// <param name="textMessage"></param>
@@ -236,7 +249,7 @@ namespace Line.Messaging
         public static string GetMsgTextUrl(string textMessage) => string.Format(msgText, Uri.EscapeUriString(textMessage));
 
         /// <summary>
-        /// Opens the "Share with" screen where users can select friends, groups, or chats to send a preset text message.<para> 
+        /// Opens the "Share with" screen where users can select friends, groups, or chats to send a preset text message.<para>
         /// Users can also post the message as a note in a chat or post the message to Timeline.</para>
         /// </summary>
         /// <param name="textMessage">Text message</param>
@@ -293,13 +306,13 @@ namespace Line.Messaging
         public static UriTemplateAction GetProfileSetIdUriTemplateAction(string label) => new UriTemplateAction(label, GetProfileSetIdUrl());
 
         /// <summary>
-        /// Opens the "Chats" screen. 
+        /// Opens the "Chats" screen.
         /// </summary>
         /// <returns>String of LINE Scheme URL</returns>
         public static string GetChatUrl() => chat;
 
         /// <summary>
-        /// Opens the "Chats" screen. 
+        /// Opens the "Chats" screen.
         /// </summary>
         /// <param name = "label" > Template action label text</param>
         /// <returns>URI template action object</returns>
@@ -319,7 +332,7 @@ namespace Line.Messaging
         public static UriTemplateAction GetTimelineUriTemplateAction(string label) => new UriTemplateAction(label, GetTimelineUrl());
 
         /// <summary>
-        /// Opens the More screen. This is the screen that is opened when the tab on the furthest right is tapped. 
+        /// Opens the More screen. This is the screen that is opened when the tab on the furthest right is tapped.
         /// The More tab may be represented by either the "More" label or the "..." icon depending on the user's theme.
         /// </summary>
         /// <returns>String of LINE Scheme URL</returns>
@@ -385,14 +398,14 @@ namespace Line.Messaging
         public static UriTemplateAction GetSettingsAccountUriTemplateAction(string label) => new UriTemplateAction(label, GetSettingsAccountUrl());
 
         /// <summary>
-        /// Opens the "Authorized apps" screen in the "Account" settings screen.<para> 
+        /// Opens the "Authorized apps" screen in the "Account" settings screen.<para>
         /// Users can see the permissions granted to authorized apps and deauthorize apps from this screen.</para>
         /// </summary>
         /// <returns>String of LINE Scheme URL</returns>
         public static string GetConnectedAppsUrl() => connectedApps;
 
         /// <summary>
-        /// Opens the "Authorized apps" screen in the "Account" settings screen.<para> 
+        /// Opens the "Authorized apps" screen in the "Account" settings screen.<para>
         /// Users can see the permissions granted to authorized apps and deauthorize apps from this screen.</para>
         /// </summary>
         /// <param name = "label" > Template action label text</param>
@@ -505,14 +518,14 @@ namespace Line.Messaging
         public static UriTemplateAction GetThemeSettingsUriTemplateAction(string label) => new UriTemplateAction(label, GetThemeSettingsUrl());
 
         /// <summary>
-        /// Opens the "Authorized apps" screen in the "Notification" settings. 
+        /// Opens the "Authorized apps" screen in the "Notification" settings.
         /// Users can configure notification settings for authorized apps in this screen.
         /// </summary>
         /// <returns>String of LINE scheme URL</returns>
         public static string GetNotificationsServiceDetailUrl() => notificationsServiceDetail;
 
         /// <summary>
-        /// Opens the "Authorized apps" screen in the "Notification" settings. 
+        /// Opens the "Authorized apps" screen in the "Notification" settings.
         /// Users can configure notification settings for authorized apps in this screen.
         /// </summary>
         /// <param name = "label" > Template action label text</param>
@@ -592,7 +605,7 @@ namespace Line.Messaging
             => new UriTemplateAction(label, GetShopStickerDetailUrl(packageId));
 
         /// <summary>
-        /// Opens the "RANK" tab for a specified category. 
+        /// Opens the "RANK" tab for a specified category.
         /// Find the "category ID" in the URL of category pages in the "Official stickers" section of the LINE STORE.
         /// </summary>
         /// <param name="categoryId"></param>
@@ -600,7 +613,7 @@ namespace Line.Messaging
         public static string GetShopCategoryUrl(string categoryId) => string.Format(shopCategory, categoryId);
 
         /// <summary>
-        /// Opens the "RANK" tab for a specified category. 
+        /// Opens the "RANK" tab for a specified category.
         /// Find the "category ID" in the URL of category pages in the "Official stickers" section of the LINE STORE.
         /// </summary>
         /// <param name="categoryId"></param>
@@ -695,7 +708,7 @@ namespace Line.Messaging
         public static UriTemplateAction GetShopStickerCategoryUriTemplateAction(string label) => new UriTemplateAction(label, GetShopStickerCategoryUrl());
 
         /// <summary>
-        /// Opens the "Sticker set info" screen for a specified creators' sticker set. 
+        /// Opens the "Sticker set info" screen for a specified creators' sticker set.
         /// </summary>
         /// <param name="packageId">
         /// Find the "package ID" in the URL of sticker set pages in the "Creators' stickers" section of the LINE STORE.
@@ -704,7 +717,7 @@ namespace Line.Messaging
         public static string GetSStickerUrl(string packageId) => string.Format(sSticker, packageId);
 
         /// <summary>
-        /// Opens the "Sticker set info" screen for a specified creators' sticker set. 
+        /// Opens the "Sticker set info" screen for a specified creators' sticker set.
         /// </summary>
         /// <param name="packageId">
         /// Find the "package ID" in the URL of sticker set pages in the "Creators' stickers" section of the LINE STORE.
@@ -715,7 +728,7 @@ namespace Line.Messaging
             => new UriTemplateAction(label, GetSStickerUrl(packageId));
 
         /// <summary>
-        /// Opens a list of creators' sticker sets from a specified author. 
+        /// Opens a list of creators' sticker sets from a specified author.
         /// </summary>
         /// <param name="authorId">
         /// Find the "author ID" in the URL of author pages in the "Creators' stickers" section of the LINE STORE.
@@ -724,7 +737,7 @@ namespace Line.Messaging
         public static string GetSShopStickerAuthorUrl(string authorId) => string.Format(sShopStickerAuthor, authorId);
 
         /// <summary>
-        /// Opens a list of creators' sticker sets from a specified author. 
+        /// Opens a list of creators' sticker sets from a specified author.
         /// </summary>
         /// <param name="authorId">
         /// Find the "author ID" in the URL of author pages in the "Creators' stickers" section of the LINE STORE.
@@ -735,7 +748,7 @@ namespace Line.Messaging
             => new UriTemplateAction(label, GetSShopStickerAuthorUrl(authorId));
 
         /// <summary>
-        /// Opens the "Theme info" screen for a specified official theme in the Theme Shop. 
+        /// Opens the "Theme info" screen for a specified official theme in the Theme Shop.
         /// </summary>
         /// <param name="productId">
         /// Find the "product ID" in the URL of the theme page in the "Official themes" section of the LINE STORE.
@@ -744,7 +757,7 @@ namespace Line.Messaging
         public static string GetShopThemeDetailUrl(string productId) => string.Format(shopThemeDetail, productId);
 
         /// <summary>
-        /// Opens the "Theme info" screen for a specified official theme in the Theme Shop. 
+        /// Opens the "Theme info" screen for a specified official theme in the Theme Shop.
         /// </summary>
         /// <param name="productId">
         /// Find the "product ID" in the URL of the theme page in the "Official themes" section of the LINE STORE.
@@ -755,14 +768,14 @@ namespace Line.Messaging
             => new UriTemplateAction(label, GetShopThemeDetailUrl(productId));
 
         /// <summary>
-        /// Opens the "Theme info" screen for a specified creators' theme in the Theme Shop. 
+        /// Opens the "Theme info" screen for a specified creators' theme in the Theme Shop.
         /// </summary>
         /// <param name="productId"></param>
         /// <returns>String of LINE scheme URL</returns>
         public static string GetSShopThemeDetailUrl(string productId) => string.Format(sShopThemeDetail, productId);
 
         /// <summary>
-        /// Opens the "Theme info" screen for a specified creators' theme in the Theme Shop. 
+        /// Opens the "Theme info" screen for a specified creators' theme in the Theme Shop.
         /// </summary>
         /// <param name="productId"></param>
         /// <param name = "label" > Template action label text</param>
@@ -771,13 +784,13 @@ namespace Line.Messaging
             => new UriTemplateAction(label, GetSShopThemeDetailUrl(productId));
 
         /// <summary>
-        /// Opens the "LINE Out" dial pad screen with a preset phone number. 
+        /// Opens the "LINE Out" dial pad screen with a preset phone number.
         /// </summary>
         /// <para>
         /// For example, line://call/81/1022223333 sets the country calling code to "+81" and the local phone number to "1022223333".
         /// </para>
         /// <param name="countryCallingCode">
-        /// Specify the country calling code and the phone number as path parameters. Do not include the "+" symbol in the URL. 
+        /// Specify the country calling code and the phone number as path parameters. Do not include the "+" symbol in the URL.
         /// </param>
         /// <param name="phoneNumber">
         /// Local phone number
@@ -786,13 +799,13 @@ namespace Line.Messaging
         public static string GetCallUrl(string countryCallingCode, string phoneNumber) => string.Format(call, countryCallingCode, phoneNumber);
 
         /// <summary>
-        /// Opens the "LINE Out" dial pad screen with a preset phone number. 
+        /// Opens the "LINE Out" dial pad screen with a preset phone number.
         /// </summary>
         /// <para>
         /// For example, line://call/81/1022223333 sets the country calling code to "+81" and the local phone number to "1022223333".
         /// </para>
         /// <param name="countryCallingCode">
-        /// Specify the country calling code and the phone number as path parameters. Do not include the "+" symbol in the URL. 
+        /// Specify the country calling code and the phone number as path parameters. Do not include the "+" symbol in the URL.
         /// </param>
         /// <param name="phoneNumber">
         /// Local phone number

@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šToolUtility/Interfaces/ICrmClient.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport å…±ç”¨å·¥å…·èˆ‡æ•´åˆè¼”åŠ©å±¤ï¼ŒåŒ…å«é€šçŸ¥ã€ä»˜æ¬¾ã€CRM æˆ–è·¨æ¨¡çµ„ helperã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šinterface ICrmClient
+// ä¸»è¦æˆå“¡ï¼šæœªåµæ¸¬åˆ°å…¬é–‹/å—ä¿è­·æˆå“¡ï¼›ç¶­è­·æ™‚è«‹ä»¥æª”æ¡ˆå…§çš„å¸¸æ•¸ã€æ¬„ä½ã€private helper æˆ–å±¬æ€§åˆå§‹åŒ–é‚è¼¯ç‚ºä¸»è¦é–±è®€å…¥å£ã€‚
+// å¼•ç”¨å‘½åç©ºé–“ï¼šMicrosoft.Xrm.Sdkã€Microsoft.Xrm.Sdk.Queryã€Systemã€System.Threadingã€System.Threading.Tasks
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System;
@@ -7,108 +20,108 @@ using System.Threading.Tasks;
 namespace ToolUtilityNameSpace.Interfaces
 {
     /// <summary>
-    /// CRM/Dataverse «È¤áºİ©â¶H¤¶­±
-    /// ¥Øªº¡G¹jÂ÷ OrganizationServiceProxy (WCF) »P ServiceClient ªº®t²§
-    /// ³]­p¼Ò¦¡¡GAdapter Pattern
+    /// CRM/Dataverse å®¢æˆ¶ç«¯æŠ½è±¡ä»‹é¢
+    /// ç›®çš„ï¼šéš”é›¢ OrganizationServiceProxy (WCF) èˆ‡ ServiceClient çš„å·®ç•°
+    /// è¨­è¨ˆæ¨¡å¼ï¼šAdapter Pattern
     /// </summary>
     /// <remarks>
-    /// ¦¹¤¶­±¿í´` Linus ­ì«h¡G
-    /// 1. Â²¼äÀu¥ı - ¥u¼ÉÅS¥²­nªº CRUD + Execute ¾Ş§@
-    /// 2. ¦V«á¬Û®e - «O¯d¦P¨B¤èªk¡A³v¨B¥[¤J async
-    /// 3. ¥i´ú¸Õ©Ê - ¤è«K mock »P³æ¤¸´ú¸Õ
+    /// æ­¤ä»‹é¢éµå¾ª Linus åŸå‰‡ï¼š
+    /// 1. ç°¡æ½”å„ªå…ˆ - åªæš´éœ²å¿…è¦çš„ CRUD + Execute æ“ä½œ
+    /// 2. å‘å¾Œç›¸å®¹ - ä¿ç•™åŒæ­¥æ–¹æ³•ï¼Œé€æ­¥åŠ å…¥ async
+    /// 3. å¯æ¸¬è©¦æ€§ - æ–¹ä¾¿ mock èˆ‡å–®å…ƒæ¸¬è©¦
     /// </remarks>
     public interface ICrmClient : IDisposable
     {
-        #region ¦P¨B¤èªk (¦V«á¬Û®e)
+        #region åŒæ­¥æ–¹æ³• (å‘å¾Œç›¸å®¹)
 
         /// <summary>
-        /// «Ø¥ß¹êÅé
+        /// å»ºç«‹å¯¦é«”
         /// </summary>
-        /// <param name="entity">­n«Ø¥ßªº¹êÅé</param>
-        /// <returns>·s«Ø¥ß¹êÅéªº GUID</returns>
+        /// <param name="entity">è¦å»ºç«‹çš„å¯¦é«”</param>
+        /// <returns>æ–°å»ºç«‹å¯¦é«”çš„ GUID</returns>
         Guid Create(Entity entity);
 
         /// <summary>
-        /// §ó·s¹êÅé
+        /// æ›´æ–°å¯¦é«”
         /// </summary>
-        /// <param name="entity">­n§ó·sªº¹êÅé¡]¥²¶·¥]§t Id¡^</param>
+        /// <param name="entity">è¦æ›´æ–°çš„å¯¦é«”ï¼ˆå¿…é ˆåŒ…å« Idï¼‰</param>
         void Update(Entity entity);
 
         /// <summary>
-        /// §R°£¹êÅé
+        /// åˆªé™¤å¯¦é«”
         /// </summary>
-        /// <param name="entityName">¹êÅéÅŞ¿è¦WºÙ¡]¨Ò¦p¡Gcontact¡^</param>
-        /// <param name="id">¹êÅé GUID</param>
+        /// <param name="entityName">å¯¦é«”é‚è¼¯åç¨±ï¼ˆä¾‹å¦‚ï¼šcontactï¼‰</param>
+        /// <param name="id">å¯¦é«” GUID</param>
         void Delete(string entityName, Guid id);
 
         /// <summary>
-        /// ¨ú±o³æ¤@¹êÅé
+        /// å–å¾—å–®ä¸€å¯¦é«”
         /// </summary>
-        /// <param name="entityName">¹êÅéÅŞ¿è¦WºÙ</param>
-        /// <param name="id">¹êÅé GUID</param>
-        /// <param name="columnSet">­n¨ú±oªºÄæ¦ì¶°¦X</param>
-        /// <returns>¹êÅéª«¥ó</returns>
+        /// <param name="entityName">å¯¦é«”é‚è¼¯åç¨±</param>
+        /// <param name="id">å¯¦é«” GUID</param>
+        /// <param name="columnSet">è¦å–å¾—çš„æ¬„ä½é›†åˆ</param>
+        /// <returns>å¯¦é«”ç‰©ä»¶</returns>
         Entity Retrieve(string entityName, Guid id, ColumnSet columnSet);
 
         /// <summary>
-        /// ¨ú±o¦hµ§¹êÅé
+        /// å–å¾—å¤šç­†å¯¦é«”
         /// </summary>
-        /// <param name="query">¬d¸ß±ø¥ó¡]QueryExpression / QueryByAttribute / FetchExpression¡^</param>
-        /// <returns>¹êÅé¶°¦X</returns>
+        /// <param name="query">æŸ¥è©¢æ¢ä»¶ï¼ˆQueryExpression / QueryByAttribute / FetchExpressionï¼‰</param>
+        /// <returns>å¯¦é«”é›†åˆ</returns>
         EntityCollection RetrieveMultiple(QueryBase query);
 
         /// <summary>
-        /// °õ¦æ CRM ½Ğ¨D¡]¨Ò¦p¡GAssignRequest¡BSetStateRequest¡^
+        /// åŸ·è¡Œ CRM è«‹æ±‚ï¼ˆä¾‹å¦‚ï¼šAssignRequestã€SetStateRequestï¼‰
         /// </summary>
-        /// <param name="request">½Ğ¨Dª«¥ó</param>
-        /// <returns>¦^À³ª«¥ó</returns>
+        /// <param name="request">è«‹æ±‚ç‰©ä»¶</param>
+        /// <returns>å›æ‡‰ç‰©ä»¶</returns>
         OrganizationResponse Execute(OrganizationRequest request);
 
         #endregion
 
-        #region «D¦P¨B¤èªk (²{¥N¤Æ)
+        #region éåŒæ­¥æ–¹æ³• (ç¾ä»£åŒ–)
 
         /// <summary>
-        /// «D¦P¨B«Ø¥ß¹êÅé
+        /// éåŒæ­¥å»ºç«‹å¯¦é«”
         /// </summary>
         Task<Guid> CreateAsync(Entity entity, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// «D¦P¨B§ó·s¹êÅé
+        /// éåŒæ­¥æ›´æ–°å¯¦é«”
         /// </summary>
         Task UpdateAsync(Entity entity, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// «D¦P¨B§R°£¹êÅé
+        /// éåŒæ­¥åˆªé™¤å¯¦é«”
         /// </summary>
         Task DeleteAsync(string entityName, Guid id, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// «D¦P¨B¨ú±o³æ¤@¹êÅé
+        /// éåŒæ­¥å–å¾—å–®ä¸€å¯¦é«”
         /// </summary>
         Task<Entity> RetrieveAsync(string entityName, Guid id, ColumnSet columnSet, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// «D¦P¨B¨ú±o¦hµ§¹êÅé
+        /// éåŒæ­¥å–å¾—å¤šç­†å¯¦é«”
         /// </summary>
         Task<EntityCollection> RetrieveMultipleAsync(QueryBase query, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// «D¦P¨B°õ¦æ CRM ½Ğ¨D
+        /// éåŒæ­¥åŸ·è¡Œ CRM è«‹æ±‚
         /// </summary>
         Task<OrganizationResponse> ExecuteAsync(OrganizationRequest request, CancellationToken cancellationToken = default);
 
         #endregion
 
-        #region ³s½uª¬ºA»P¸ê°T
+        #region é€£ç·šç‹€æ…‹èˆ‡è³‡è¨Š
 
         /// <summary>
-        /// ¬O§_¤w³s½u
+        /// æ˜¯å¦å·²é€£ç·š
         /// </summary>
         bool IsReady { get; }
 
         /// <summary>
-        /// ²ÕÂ´¦WºÙ
+        /// çµ„ç¹”åç¨±
         /// </summary>
         string OrganizationName { get; }
 

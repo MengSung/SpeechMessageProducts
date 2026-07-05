@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/WebServiceConnector/UploadIntegrateData.FollowUp.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class UploadIntegrateData
+// 主要成員：GetNewComerFollowupInfo、VerifyNewComerIdentity、GetFollowUpWeek、GetFollowUpWeekForUnGroup、BuildFollowUpHeader、BuildFollowUpRecord、UpdateWeekIndex、TransferIdentity、UpdateContactEntity
+// 引用命名空間：System、ChurchReport.Models、ChurchReport.Models.CrmTransmitModule、Microsoft.Xrm.Sdk
+// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using System;
 using ChurchReport.Models;
 using ChurchReport.Models.CrmTransmitModule;
@@ -6,12 +19,12 @@ using Microsoft.Xrm.Sdk;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// �W�Ǿ�X��� - �s�H��i (Partial)
-    /// �]�t�G�s�H��i�����޿�B�e�������ഫ
+    /// 上傳整合資料 - 新人跟進 (Partial)
+    /// 包含：新人跟進相關邏輯、委身類型轉換
     /// </summary>
     public partial class UploadIntegrateData
     {
-        #region �s�H��i��T
+        #region 新人跟進資訊
 
         private String GetNewComerFollowupInfo(Guid aNewComerId, ref String aFollowUpWeek)
         {
@@ -25,14 +38,14 @@ namespace ChurchReport.WebServiceConnector
 
                 int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
 
-                if (aIdentityNumber == 100000004) // ���J��
+                if (aIdentityNumber == 100000004) // 未入組
                 {
                     String aStartTracking = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_start_tracking_date");
                     if (!string.IsNullOrEmpty(aStartTracking))
                     {
                         DateTime aStartTrackingDate = DateTime.Parse(aStartTracking);
-                        // �O�d�J���H�u�ثe����v�P�_���ݥD�骺�y�{�A
-                        // ����Ѷ������A�Ȩ̳]�w���C�g�Ĥ@��p��D��C
+                        // 保留既有以「目前日期」判斷所屬主日的流程，
+                        // 但改由集中式服務依設定的每週第一日計算主日。
                         DateTime aSunday = ChurchReport.Services.SundayCalculator.CalculateSunday(
                             DateTime.Now,
                             ChurchReport.Services.WeeklyScheduleProvider.FirstDayOfWeek);
@@ -44,7 +57,7 @@ namespace ChurchReport.WebServiceConnector
                         aFollowUpHistoryReport = GetFollowUpWeek(aContact, ref aFollowUpWeek);
                     }
                 }
-                else // �s�B��
+                else // 新朋友
                 {
                     aFollowUpHistoryReport = GetFollowUpWeek(aContact, ref aFollowUpWeek);
                 }
@@ -53,7 +66,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception e)
             {
-                String ErrorString = $"���~�T�� : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
+                String ErrorString = $"錯誤訊息 : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -68,7 +81,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception e)
             {
-                String ErrorString = $"���~�T�� : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
+                String ErrorString = $"錯誤訊息 : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -83,9 +96,9 @@ namespace ChurchReport.WebServiceConnector
                 EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(
                     10, this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"), aContact.Id.ToString());
 
-                aFollowUpHistoryReport += PresentRecordCollection.Entities.Count > 0 
-                    ? "���h���{�O��:" + Environment.NewLine 
-                    : "�S�����h���{�O��!" + Environment.NewLine;
+                aFollowUpHistoryReport += PresentRecordCollection.Entities.Count > 0
+                    ? "關懷歷程記錄:" + Environment.NewLine
+                    : "沒有關懷歷程記錄!" + Environment.NewLine;
 
                 int WeekCounter = 1;
                 MatchedWeekDay = "";
@@ -93,7 +106,7 @@ namespace ChurchReport.WebServiceConnector
                 foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
                 {
                     DateTime aSundayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(PresentRecordEntity, "new_sunday_date");
-                    
+
                     if (aSundayDate.Date == this.m_Sunday.Date)
                         MatchedWeekDay = ConvertNumberToFollowUpWeekPicker(WeekCounter);
 
@@ -108,7 +121,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception e)
             {
-                String ErrorString = $"���~�T�� : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
+                String ErrorString = $"錯誤訊息 : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -123,9 +136,9 @@ namespace ChurchReport.WebServiceConnector
                 EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(
                     10, this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"), aContact.Id.ToString());
 
-                aFollowUpHistoryReport += PresentRecordCollection.Entities.Count > 0 
-                    ? "���h���{�O��:" + Environment.NewLine 
-                    : "�S�����h���{�O��!" + Environment.NewLine;
+                aFollowUpHistoryReport += PresentRecordCollection.Entities.Count > 0
+                    ? "關懷歷程記錄:" + Environment.NewLine
+                    : "沒有關懷歷程記錄!" + Environment.NewLine;
 
                 int WeekCounter = 1;
                 MatchedWeekDay = "";
@@ -149,7 +162,7 @@ namespace ChurchReport.WebServiceConnector
                     }
 
                     DateTime aSundayDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(PresentRecordEntity, "new_sunday_date");
-                    
+
                     if (aSundayDate.Date == this.m_Sunday.Date)
                         MatchedWeekDay = ConvertNumberToFollowUpWeekPicker(WeekCounter);
 
@@ -164,7 +177,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception e)
             {
-                String ErrorString = $"���~�T�� : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
+                String ErrorString = $"錯誤訊息 : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -174,61 +187,61 @@ namespace ChurchReport.WebServiceConnector
         {
             String header = "";
 
-            // �ʧO
+            // 性別
             int Gender = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "gendercode");
-            header += Gender == 200000 ? "�ʧO:�k��" + Environment.NewLine : "�ʧO:�k��" + Environment.NewLine;
+            header += Gender == 200000 ? "性別:男性" + Environment.NewLine : "性別:女性" + Environment.NewLine;
 
-            // �����i�J�з|���
+            // 首次進入教會日期
             try
             {
                 DateTime FirstDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContact, "new_enter_church_date").ToLocalTime();
                 if (FirstDate.Year > 0)
-                    header += "�����i�J�з|���:" + FirstDate.ToShortDateString() + Environment.NewLine;
+                    header += "首次進入教會日期:" + FirstDate.ToShortDateString() + Environment.NewLine;
             }
             catch { }
 
-            // �w�����
+            // 歡迎紀錄
             String WelcomeRecord = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "description");
             if (!string.IsNullOrEmpty(WelcomeRecord))
-                header += "�w�����:" + Environment.NewLine + WelcomeRecord + Environment.NewLine + Environment.NewLine;
+                header += "歡迎紀錄:" + Environment.NewLine + WelcomeRecord + Environment.NewLine + Environment.NewLine;
 
             return header;
         }
 
         private String BuildFollowUpRecord(Entity PresentRecordEntity, int WeekCounter, DateTime aSundayDate)
         {
-            String record = $"��{ConvertNumberToFollowUpWeekPicker(WeekCounter)}�g�A{aSundayDate.Date.ToShortDateString()}�A";
-            record += "�p�ժ�:" + this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_groupleader_present_record") + "�A";
+            String record = $"第{ConvertNumberToFollowUpWeekPicker(WeekCounter)}週，{aSundayDate.Date.ToShortDateString()}，";
+            record += "小組長:" + this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_groupleader_present_record") + "，";
 
-            // ��i�覡
+            // 跟進方式
             int FollowUpOptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_followup_ways");
             String aFollowUpOption = ConvertIndexToFollowUpOptionPicker(FollowUpOptionValue);
             String aFollowUpMethod = this.m_ToolUtilityClass.GetEntityStringAttribute(PresentRecordEntity, "new_follow_up");
             if (!string.IsNullOrEmpty(aFollowUpMethod))
-                record += "��i�覡:" + aFollowUpOption + aFollowUpMethod + "�A";
+                record += "跟進方式:" + aFollowUpOption + aFollowUpMethod + "，";
 
-            // ��i���G
+            // 跟進結果
             if (PresentRecordEntity.Attributes.Contains("new_conclusion_choise"))
             {
                 int OptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_conclusion_choise");
                 String aFollowUpResult = ConvertIndexToFollowUpResultPicker(OptionValue);
-                if (!string.IsNullOrEmpty(aFollowUpResult) && aFollowUpResult != "�п��")
-                    record += "��i���G:" + aFollowUpResult + "�A";
+                if (!string.IsNullOrEmpty(aFollowUpResult) && aFollowUpResult != "請選擇")
+                    record += "跟進結果:" + aFollowUpResult + "，";
             }
 
-            // ��i�U�@�B�J
+            // 跟進下一步驟
             if (PresentRecordEntity.Attributes.Contains("new_next_step"))
             {
                 int OptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_next_step");
                 String aFollowUpNextStep = ConvertIndexToFollowUpNextStepPicker(OptionValue);
-                if (!string.IsNullOrEmpty(aFollowUpNextStep) && aFollowUpNextStep != "�п��")
-                    record += "��i�U�@�B�J:" + aFollowUpNextStep + "�A";
+                if (!string.IsNullOrEmpty(aFollowUpNextStep) && aFollowUpNextStep != "請選擇")
+                    record += "跟進下一步驟:" + aFollowUpNextStep + "，";
             }
 
-            // ��i�y�z
+            // 跟進描述
             String aExplanation = this.m_ToolUtilityClass.GetEntityStringAttribute(PresentRecordEntity, "new_explanation");
-            record += !string.IsNullOrEmpty(aExplanation) 
-                ? "��i�y�z:" + aExplanation + Environment.NewLine + Environment.NewLine 
+            record += !string.IsNullOrEmpty(aExplanation)
+                ? "跟進描述:" + aExplanation + Environment.NewLine + Environment.NewLine
                 : Environment.NewLine + Environment.NewLine;
 
             return record;
@@ -253,7 +266,7 @@ namespace ChurchReport.WebServiceConnector
         {
             int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
 
-            if (aIdentityNumber == 100000000) // �s�B��
+            if (aIdentityNumber == 100000000) // 新朋友
             {
                 if (Counter >= NewComeMaxiNumber && !m_SetIdentityFlag)
                 {
@@ -265,7 +278,7 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
             }
-            else if (aIdentityNumber == 100000004) // ���J��
+            else if (aIdentityNumber == 100000004) // 未入組
             {
                 if (Counter >= UnGroupMaxiNumber && !m_SetIdentityFlag)
                 {

@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/Startup.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案提供 Startup 相關功能，註解重點在說明檔案責任、上游/下游依賴與維護時不可破壞的行為假設。
+// 主要型別：class Startup
+// 主要成員：ResolveThemeName、MapThemeCssClass、ConfigureServices、Configure、Configuration、CurrentTheme、CurrentThemeCssClass
+// 引用命名空間：ChurchReport.Services、ChurchReport.Tools、ChurchReport.Filters、ChurchReport.Services.Theme、ChurchReport.Payments、Microsoft.AspNetCore.Authentication.Cookies、Microsoft.AspNetCore.Builder、Microsoft.AspNetCore.Hosting
+// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using ChurchReport.Services;
 using ChurchReport.Tools;
 using ChurchReport.Filters;
@@ -203,7 +216,7 @@ namespace ChurchReport
                     options.KnownProxies.Clear();
                 }
             });
-            
+
             Console.WriteLine("[Startup] ✅ ForwardedHeaders 已配置（支援反向代理和負載平衡器）");
 
             // ========================================
@@ -229,9 +242,9 @@ namespace ChurchReport
                 options.Providers.Add<BrotliCompressionProvider>();
                 options.Providers.Add<GzipCompressionProvider>();
                 options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-                    new[] { 
-                        "application/json", 
-                        "text/html", 
+                    new[] {
+                        "application/json",
+                        "text/html",
                         "application/javascript",
                         "text/css",
                         "image/svg+xml"
@@ -269,14 +282,14 @@ namespace ChurchReport
             // 用於監控應用程式效能指標和驗證效能目標
             // ⚠️ Release 版本不會包含此服務
             services.AddSingleton<ChurchReport.Services.Performance.IPerformanceMonitor, ChurchReport.Services.Performance.PerformanceMonitor>();
-            
+
             // ========================================
             // ✅ Phase 8: 註冊 Session 監控服務（僅 DEBUG 模式）
             // ========================================
             // 追蹤活躍 Session 數量和記憶體使用
             services.AddSingleton<ChurchReport.Services.Monitoring.ISessionMonitorService, ChurchReport.Services.Monitoring.SessionMonitorService>();
             services.AddHostedService(sp => (ChurchReport.Services.Monitoring.SessionMonitorService)sp.GetRequiredService<ChurchReport.Services.Monitoring.ISessionMonitorService>());
-            
+
             Console.WriteLine("[Startup] ✅ 效能監控服務已註冊（DEBUG 模式）");
             Console.WriteLine("[Startup] ✅ Session 監控服務已註冊（DEBUG 模式）");
 #endif
@@ -366,7 +379,7 @@ namespace ChurchReport
                     options.EnableEndpointRouting = false;
 
                     options.Filters.Add<ThemeViewDataFilter>();
-                    
+
                     // ========================================
                     // ✅ Phase 3.1: 註冊全域無快取過濾器 (Session Bleeding 防護)
                     // ========================================
@@ -377,7 +390,7 @@ namespace ChurchReport
 #if DEBUG
                     options.Filters.Add<ChurchReport.Filters.PerfTimingActionFilter>();
 #endif
-                    
+
                     // ========================================
                     // ✅ Phase 3.2: 註冊全域 ResponseCache 屬性 (Session Bleeding 防護 - Step 2)
                     // ========================================
@@ -389,7 +402,7 @@ namespace ChurchReport
                         Location = ResponseCacheLocation.None,
                         Duration = 0
                     });
-                    
+
                     Console.WriteLine("[Startup] ✅ StrictNoCacheFilter 已註冊為全域過濾器");
                     Console.WriteLine("[Startup] ✅ ResponseCacheAttribute 已註冊為全域過濾器 (NoStore=true)");
                     System.Diagnostics.Debug.WriteLine($"[Startup] ========================================");
@@ -540,7 +553,7 @@ namespace ChurchReport
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
-                
+
                 // ========================================
                 // ✅ Phase 3.3: 強化 Session Cookie 安全性 (Session Bleeding 防護)
                 // ========================================
@@ -561,10 +574,10 @@ namespace ChurchReport
                 // - 允許從外部網站導航過來時攜帶 Cookie（例如 LIFF 登入）
                 // - 不允許在跨站的 POST/PUT/DELETE 請求中發送 Cookie
                 options.Cookie.SameSite = SameSiteMode.Lax;  // 改為 Lax 以支援 LINE LIFF
-                
+
                 options.IOTimeout = TimeSpan.FromSeconds(30);
             });
-            
+
             Console.WriteLine("[Startup] ✅ Session Cookie 安全性已強化（Session Bleeding 防護）");
             Console.WriteLine("[Startup]   - HttpOnly: true (防 XSS)");
             Console.WriteLine("[Startup]   - SecurePolicy: Always (防 MITM，需 HTTPS)");
@@ -705,7 +718,7 @@ namespace ChurchReport
                 // X-Content-Type-Options: nosniff - 防止瀏覽器嗅探內容類型
                 // 這能阻止 CDN/Proxy 將動態 HTML 回應誤判為靜態資源
                 context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-                
+
                 // ⚠️ 重要：告訴所有 Proxy「不同 Cookie = 不同內容，不准共用」
                 // 這是解決 Session Bleeding 的關鍵設定！
                 // ✅ P1: 不覆蓋既有 Vary（例如 Accept-Encoding），改用合併策略
@@ -724,7 +737,7 @@ namespace ChurchReport
 
                 await next();
             });
-            
+
             Console.WriteLine("[Startup] ========================================");
             Console.WriteLine("[Startup] ✅ 全站無快取中介軟體已啟用（Session Bleeding 防護）");
             Console.WriteLine("[Startup]   - Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -797,7 +810,7 @@ namespace ChurchReport
 #if DEBUG
             app.UseMiddleware<ChurchReport.Middleware.PerfProfilingMiddleware>();
 #endif
-            
+
             // ========================================
             // ✅ Phase 2.4: 啟用 Response Caching 中介軟體
             // ========================================
@@ -808,7 +821,7 @@ namespace ChurchReport
                 app.UseResponseCaching();
                 Console.WriteLine("[Startup] ⚠️ ResponseCaching 中介軟體已啟用（請僅用於匿名/公共資料端點）");
             }
-            
+
             app.UseSession();      // 啟用 Session 中間件
 
             // ========================================
@@ -816,7 +829,7 @@ namespace ChurchReport
             // ========================================
             // 必須在 UseSession 之後、UseAuthentication 之前加入
             // 驗證每個請求的 Session 合法性，防止跨用戶 Session 洩漏
-            // 
+            //
             // 防護目標：
             // 1. 防止「A 登入 WiFi → B 登入 WiFi 看到 A 網頁」
             // 2. 防止 Session 被後登入的人繼承/共用

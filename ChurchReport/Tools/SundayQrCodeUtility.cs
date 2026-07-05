@@ -1,4 +1,17 @@
-﻿using System;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/Tools/SundayQrCodeUtility.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class SundayQrCodeUtility
+// 主要成員：GetLineChannelAccessToken、SetupQrCodeIdString、SigningMeetingStatistics、SigningProcess、SetPresentRecordTimeAttribute、GetNotifyMessageString、ConvertMeetingStatisticsQrName、GetDynamicCategoryName、ConvertMeetingStatisticsToPresentRecordAttribute、GetDynamicPresentRecordAttribute
+// 引用命名空間：System、System.IO、ToolUtilityNameSpace、ToolUtilityNameSpace.Factory、Microsoft.Extensions.Configuration、Microsoft.Xrm.Sdk、Line.Messaging、System.Collections.Generic
+// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using System;
 using System.IO;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
@@ -55,13 +68,13 @@ namespace ChurchReport.Tools
 
         #endregion
         #endregion
-        
+
         #region 初始化
         public SundayQrCodeUtility()
         {
             // 從配置讀取 LINE Channel Access Token
             string channelAccessToken = GetLineChannelAccessToken();
-            
+
             // 初始化 LINE Messaging Client
             this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
@@ -82,7 +95,7 @@ namespace ChurchReport.Tools
         /// 2. 根據組織名稱讀取對應的 Token (LineMessaging:{Organization}:ChannelAccessToken)
         /// 3. 若找不到，使用預設組織的 Token
         /// 4. 若預設組織也找不到，返回空字串並記錄錯誤
-        /// 
+        ///
         /// 配置結構範例：
         /// "LineMessaging": {
         ///   "Jesus": { "ChannelAccessToken": "xxx" },
@@ -96,13 +109,13 @@ namespace ChurchReport.Tools
             {
                 // 從 CRM 連接配置取得組織名稱
                 string organization = m_Configuration["CrmConnection:Organization"];
-                
+
                 if (!string.IsNullOrEmpty(organization))
                 {
                     // 將組織名稱轉換為配置鍵格式 (首字母大寫)
                     // 例如: "jesuslove" -> "Jesuslove"
                     string configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
-                    
+
                     // 嘗試讀取指定組織的 Token
                     string token = m_Configuration[$"LineMessaging:{configKey}:ChannelAccessToken"];
                     if (!string.IsNullOrEmpty(token))
@@ -110,16 +123,16 @@ namespace ChurchReport.Tools
                         return token;
                     }
                 }
-                
+
                 // 若找不到指定組織的設定，使用預設組織
                 string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
                 string defaultToken = m_Configuration[$"LineMessaging:{defaultOrg}:ChannelAccessToken"];
-                
+
                 if (string.IsNullOrEmpty(defaultToken))
                 {
                     System.Diagnostics.Trace.WriteLine("[SundayQrCodeUtility] 警告: LINE Channel Access Token 未設定");
                 }
-                
+
                 return defaultToken ?? string.Empty;
             }
             catch (Exception ex)
@@ -160,7 +173,7 @@ namespace ChurchReport.Tools
                 {
                     arr = QrCodeIdString.Split('@');
                 }
-                else 
+                else
                 {
                     arr = QrCodeIdString.Split('_');
                 }
@@ -271,7 +284,7 @@ namespace ChurchReport.Tools
                         this.m_ToolUtilityClass.UpdateEntity(ref aRetrievedPresentRecord);
 
                         #region// 計算週報主日出席人數及出席率
-                        lock (m_UpdateSundayWeeklyReportLocker)//避免多人同時掃描"，會產生2個週報或是改變"委身類型"、"裝備狀態"  
+                        lock (m_UpdateSundayWeeklyReportLocker)//避免多人同時掃描"，會產生2個週報或是改變"委身類型"、"裝備狀態"
                         {
                             Guid aWeeklyReportId = this.m_ToolUtilityClass.GetEntityLookupAttribute(aRetrievedPresentRecord, "new_group_present_weekly_report_prese");
 
@@ -436,7 +449,7 @@ namespace ChurchReport.Tools
                 {
                     SigningTypeAndTime = m_SigningTime.ToLocalTime().ToString() + " 簽退成功";
                 }
-                                
+
                 if (m_UserName.Contains("(Line)") != true)
                 {
                     // 彈跳要用到的簽到退時間資訊
@@ -605,7 +618,7 @@ namespace ChurchReport.Tools
             }
             else if (MeetingStatisticsAttribute.Contains("new_sunday_second_qr"))
             {
-                
+
                 if (m_OnboardType == "on" || m_OnboardType == "On")
                 {
                     // 主日第二堂簽到時間
@@ -892,8 +905,8 @@ namespace ChurchReport.Tools
                                         #endregion
                                     }
                                 }
-                                else 
-                                { 
+                                else
+                                {
                                 }
                             }
                             else

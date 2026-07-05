@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/Models/InMemoryDataContextSmallGroup.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於資料模型或 ViewModel 層，註解重點在說明欄位語意、序列化/繫結用途與相容性限制。
+// 主要型別：class InMemoryDataContextSmallGroup
+// 主要成員：GetCurrentSessionId、GenerateCurrentRequestFingerprint、SetSessionDirtyFlag、SetupSmallGroupData、SaveChanges、ListManager、SmallGroupDataList、WeeklyReportData、NewPersonModel、PersonalInfomationModel
+// 引用命名空間：ChurchReport.Payments、ChurchReport.Tools、ChurchReport.ViewModel、LineMessagingProcessor.Workflows、Microsoft.AspNetCore.Http、Microsoft.Extensions.Caching.Memory、System、System.Collections.Generic
+// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using ChurchReport.Payments;
 using ChurchReport.Tools;
 using ChurchReport.ViewModel;
@@ -17,21 +30,21 @@ namespace ChurchReport.Models
 {
     /// <summary>
     /// 記憶體內資料上下文 - 小組管理專用
-    /// 
+    ///
     /// 此類別負責管理小組相關資料的記憶體快取和 Session 處理，
     /// 實現 IInMemoryDataContext 接口，提供各種資料管理器的快取存取。
-    /// 
+    ///
     /// 主要功能：
     /// - 使用 IMemoryCache 快取資料管理器實例，避免重複建立
     /// - 處理 Session 隔離，防止 Session Bleeding 問題
     /// - 提供安全的 Session ID 生成和指紋驗證
     /// - 支援多個組長和各種小組資料的管理
-    /// 
+    ///
     /// 快取策略：
     /// - 每個屬性使用 Session ID + 屬性名稱作為快取鍵
     /// - 快取過期時間：絕對 30 分鐘，滑動 30 分鐘
     /// - Session 變更時設定 dirty flag 標記
-    /// 
+    ///
     /// Session 安全：
     /// - 每次存取 Session 時從 IHttpContextAccessor 取得最新值
     /// - 使用 IP + User-Agent 生成請求指紋，防止資料混淆
@@ -189,14 +202,14 @@ namespace ChurchReport.Models
 
             // ========================================
             // ✅ 指紋策略：優先使用已綁定的 Session 指紋
-            // 
+            //
             // 已登入時使用 Session 指紋，確保同一使用者跨請求一致。
             // 未綁定時使用即時指紋，避免 Session ID 碰撞時資料混淆。
             // ========================================
 
             /// <summary>
             /// 從 Session 中獲取已儲存的指紋
-            /// 
+            ///
             /// 指紋是用於識別請求來源的唯一標識符，
             /// 基於 IP 地址和 User-Agent 的 SHA256 雜湊。
             /// 如果存在已儲存的指紋，表示使用者已登入並綁定。
@@ -212,7 +225,7 @@ namespace ChurchReport.Models
 
             /// <summary>
             /// 決定當前請求的指紋
-            /// 
+            ///
             /// 如果有已儲存的指紋（已登入使用者），優先使用它以確保一致性。
             /// 否則，動態生成新的指紋以防止未登入使用者的 Session 碰撞。
             /// 這是 Session 安全隔離的核心機制。
@@ -229,7 +242,7 @@ namespace ChurchReport.Models
 
             /// <summary>
             /// 從 Session 中獲取 Session 建立時間戳
-            /// 
+            ///
             /// 時間戳用於進一步區分 Session，防止重複使用舊的 Session ID。
             /// 如果不存在，將在首次存取時初始化。
             /// </summary>
@@ -243,7 +256,7 @@ namespace ChurchReport.Models
 
             /// <summary>
             /// 初始化或驗證 Session 建立時間戳
-            /// 
+            ///
             /// 如果時間戳不存在，生成一個絕對唯一的時間戳（使用 UTC Ticks + GUID）。
             /// 這確保即使在高併發情況下，每個 Session 都有唯一的時間標識。
             /// 寫入失敗時拋出異常，因為無法產生安全的快取 key。
@@ -276,7 +289,7 @@ namespace ChurchReport.Models
 
             // ========================================
             // 建構安全的快取 key
-            // 
+            //
             // 快取 key 由多個部分組成，確保唯一性和安全性：
             // 1. Session ID：ASP.NET Core 提供的基礎 Session 識別符
             // 2. BoundUserId：已登入使用者的識別符（如果存在）
@@ -286,7 +299,7 @@ namespace ChurchReport.Models
 
             /// <summary>
             /// 初始化快取 key 建構器，以 Session ID 為基礎
-            /// 
+            ///
             /// Session ID 是 ASP.NET Core 自動生成的唯一識別符，
             /// 但單獨使用可能會有碰撞風險，因此需要額外元件強化。
             /// </summary>
@@ -295,7 +308,7 @@ namespace ChurchReport.Models
 
             /// <summary>
             /// 如果有已綁定的使用者 ID，加入到 key 中
-            /// 
+            ///
             /// 這確保已登入使用者的資料不會與其他使用者混淆，
             /// 即使他們有相同的 Session ID。
             /// </summary>
@@ -307,7 +320,7 @@ namespace ChurchReport.Models
 
             /// <summary>
             /// 加入請求指紋的縮短版本到 key 中
-            /// 
+            ///
             /// 只取前 8 個字元以避免 key 過長，同時保留足夠的唯一性。
             /// 這是防止 Session 碰撞和資料洩漏的核心安全措施。
             /// </summary>
@@ -328,7 +341,7 @@ namespace ChurchReport.Models
 
             /// <summary>
             /// 加入 Session 建立時間戳的縮短版本到 key 中
-            /// 
+            ///
             /// 取後 10 個字元（通常是 GUID 的部分），提供額外的唯一性。
             /// 這確保即使在極端情況下，key 仍然是唯一的。
             /// </summary>
@@ -347,7 +360,7 @@ namespace ChurchReport.Models
 
             /// <summary>
             /// 生成最終的快取 key
-            /// 
+            ///
             /// 這個 key 現在包含了足夠的資訊來唯一識別一個使用者的 Session，
             /// 同時防止資料洩漏和碰撞。
             /// </summary>
@@ -482,13 +495,13 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 建構函式 - 初始化記憶體資料上下文
-        /// 
+        ///
         /// 注入必要的依賴項：
         /// - IHttpContextAccessor: 用於安全存取 HTTP 上下文和 Session
         /// - IMemoryCache: 用於快取資料管理器實例
         /// - IDonationPaymentCreateGatewayAdapter: ChurchReport 奉獻付款建單 adapter
         /// - IToolUtilityProvider: ToolUtility 提供者
-        /// 
+        ///
         /// 注意：不再在建構時捕獲 Session，以避免 Session Bleeding
         /// </summary>
         /// <param name="contextAccessor">HTTP 上下文存取器</param>
@@ -526,11 +539,11 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 組長管理器屬性
-        /// 
+        ///
         /// 使用記憶體快取管理 ListManager 實例，
         /// 快取鍵為 Session ID + "_ListManager"，
         /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        /// 
+        ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
         public ListManager ListManager
@@ -581,7 +594,7 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 設定小組資料
-        /// 
+        ///
         /// 根據提供的姓名、帳號、密碼和選擇日期設定小組資料，
         /// 並更新 SmallGroupDataList 的聯絡人 ID 字串。
         /// </summary>
@@ -610,11 +623,11 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 小組資料列表管理器屬性
-        /// 
+        ///
         /// 使用記憶體快取管理 SmallGroupDataList 實例，
         /// 快取鍵為 Session ID + "_SmallGroupDataList"，
         /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        /// 
+        ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
         public SmallGroupDataList SmallGroupDataList
@@ -666,11 +679,11 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 週報資料管理器屬性
-        /// 
+        ///
         /// 使用記憶體快取管理 WeeklyReportData 實例，
         /// 快取鍵為 Session ID + "_WeeklyReportData"，
         /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        /// 
+        ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
         public WeeklyReportData WeeklyReportData
@@ -720,11 +733,11 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 新人模型管理器屬性
-        /// 
+        ///
         /// 使用記憶體快取管理 NewPersonModel 實例，
         /// 快取鍵為 Session ID + "_NewPersonModel"，
         /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        /// 
+        ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
         public NewPersonModel NewPersonModel
@@ -774,11 +787,11 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 個人資訊模型管理器屬性
-        /// 
+        ///
         /// 使用記憶體快取管理 PersonalInfomationModel 實例，
         /// 快取鍵為 Session ID + "_PersonalInfomationModel"，
         /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        /// 
+        ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
         public PersonalInfomationModel PersonalInfomationModel
@@ -828,11 +841,11 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 幸福小組資料管理器屬性
-        /// 
+        ///
         /// 使用記憶體快取管理 HappyGroupDataManager 實例，
         /// 快取鍵為 Session ID + "_HappyGroupDataManager"，
         /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        /// 
+        ///
         /// 若快取不存在，則使用 DI 注入 ToolUtilityProvider 建立新實例並設定快取選項。
         /// </summary>
         public HappyGroupDataManager HappyGroupDataManager
@@ -883,11 +896,11 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 名單管理資料管理器屬性
-        /// 
+        ///
         /// 使用記憶體快取管理 ListManagementDataManager 實例，
         /// 快取鍵為 Session ID + "_ListManagementDataManager"，
         /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        /// 
+        ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
         public ListManagementDataManager ListManagementDataManager
@@ -937,11 +950,11 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 裝備資料管理器屬性
-        /// 
+        ///
         /// 使用記憶體快取管理 EquipmentDataManager 實例，
         /// 快取鍵為 Session ID + "_EquipmentDataManager"，
         /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        /// 
+        ///
         /// 若快取不存在，則使用 DI 注入 ToolUtilityProvider 建立新實例並設定快取選項。
         /// </summary>
         public EquipmentDataManager EquipmentDataManager
@@ -992,11 +1005,11 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 繳費列表管理器屬性
-        /// 
+        ///
         /// 使用記憶體快取管理 FeeList 實例，
         /// 快取鍵為 Session ID + "_FeeList"，
         /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        /// 
+        ///
         /// 若快取不存在，則使用 DI 注入 ToolUtilityProvider 建立新實例並設定快取選項。
         /// </summary>
         public FeeList FeeList
@@ -1048,11 +1061,11 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// Line 綁定視圖模型屬性
-        /// 
+        ///
         /// 使用記憶體快取管理 LineBindingViewModel 實例，
         /// 快取鍵為 Session ID + "_LineBindingViewModel"，
         /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        /// 
+        ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
         public LineBindingViewModel LineBindingViewModel
@@ -1102,11 +1115,11 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 行事曆列表管理器屬性
-        /// 
+        ///
         /// 使用記憶體快取管理 AppointmentsListManager 實例，
         /// 快取鍵為 Session ID + "_AppointmentsListManager"，
         /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        /// 
+        ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
         public AppointmentsListManager AppointmentsListManager
@@ -1216,11 +1229,11 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 課程問卷調查管理器屬性
-        /// 
+        ///
         /// 使用記憶體快取管理 PollManager 實例，
         /// 快取鍵為 Session ID + "_PollManager"，
         /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        /// 
+        ///
         /// 若快取不存在，則建立新實例並設定快取選項。
         /// </summary>
         public PollManager PollManager
@@ -1271,11 +1284,11 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// ToolUtilityClass 屬性
-        /// 
+        ///
         /// 使用記憶體快取管理 ToolUtilityClass 實例，
         /// 快取鍵為 Session ID + "_ToolUtilityClass"，
         /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
-        /// 
+        ///
         /// 若快取不存在，則使用 Factory 模式取得 ToolUtilityClass 單例並設定快取選項。
         /// </summary>
         public ToolUtilityClass ToolUtilityClass
@@ -1323,7 +1336,7 @@ namespace ChurchReport.Models
 
         /// <summary>
         /// 儲存變更
-        /// 
+        ///
         /// 此方法目前為空實作，可用於將記憶體中的變更持久化到資料庫。
         /// </summary>
         public void SaveChanges()

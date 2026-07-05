@@ -1,4 +1,17 @@
-﻿using System;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ToolUtility/ContactOperations/ContactService.cs
+// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class ContactService
+// 主要成員：RetrieveByLineIdAsync、RetrieveByAccountNumberAsync、RetrieveByFullNameAsync、RetrieveByContactId、GetContactInfoByContactId、RetrieveByLineId、RetrieveByLineIdForCollection、RetrieveCollectionByLineId、RetrieveCollectionByName、GetContactInfoByFullName
+// 引用命名空間：System、System.Threading、System.Threading.Tasks、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Messages、Microsoft.Xrm.Sdk.Query、ToolUtilityNameSpace.Diagnostics、ToolUtilityNameSpace.Caching
+// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Xrm.Sdk;
@@ -61,7 +74,7 @@ namespace ToolUtilityNameSpace.ContactOperations
         /// ? Phase 3.2: 快取 10 分鐘
         /// </summary>
         public async Task<Entity> RetrieveByAccountNumberAsync(
-            string accountNumber, 
+            string accountNumber,
             string password,
             CancellationToken cancellationToken = default)
         {
@@ -270,22 +283,22 @@ namespace ToolUtilityNameSpace.ContactOperations
 
                 // 構建條件字串
                 var conditions = new System.Text.StringBuilder();
-                
+
                 if (hasDedicationNumber)
                     conditions.AppendLine($"                    <condition attribute='pager' operator='eq' value='{System.Security.SecurityElement.Escape(dedicationNumber)}' />");
-                
+
                 if (hasContactName)
                     conditions.AppendLine($"                    <condition attribute='fullname' operator='like' value='%{System.Security.SecurityElement.Escape(contactName)}%' />");
-                
+
                 if (hasHomePhone)
                     conditions.AppendLine($"                    <condition attribute='telephone2' operator='like' value='%{System.Security.SecurityElement.Escape(homePhone)}%' />");
-                
+
                 if (hasMobile)
                     conditions.AppendLine($"                    <condition attribute='mobilephone' operator='like' value='%{System.Security.SecurityElement.Escape(mobile)}%' />");
-                
+
                 if (hasNationId)
                     conditions.AppendLine($"                    <condition attribute='new_personal_id' operator='like' value='%{System.Security.SecurityElement.Escape(nationId)}%' />");
-                
+
                 if (hasLastSixDigit)
                     conditions.AppendLine($"                    <condition attribute='new_last_six_digit' operator='like' value='%{System.Security.SecurityElement.Escape(lastSixDigit)}%' />");
 

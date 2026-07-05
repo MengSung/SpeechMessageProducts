@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：Line.Messaging.Tests/LineMessagingClientP0EndpointTests.cs
+// 所屬區塊：LINE Messaging SDK 測試專案，驗證 API 端點、序列化與 Client 行為。
+// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
+// 主要型別：class LineMessagingClientP0EndpointTests、class CapturingHttpMessageHandler
+// 主要成員：Get_message_delivery_uses_single_v2_segment、Get_content_stream_uses_api_data_host、Get_content_bytes_uses_api_data_host、Verify_content_preparation_uses_transcoding_endpoint_on_api_data_host、Verify_content_preparation_returns_false_until_transcoding_succeeds、Get_content_preview_uses_api_data_host、Rich_menu_image_download_and_upload_use_api_data_host、Mark_as_read_uses_official_chat_endpoint_and_token_payload、Legacy_mark_as_read_fails_clearly_instead_of_sending_chat_id_as_token、Get_rich_menu_batch_progress_uses_progress_query_endpoint
+// 引用命名空間：FluentAssertions、Line.Messaging、Newtonsoft.Json.Linq、System.Net、System.Text、Xunit
+// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
+// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using FluentAssertions;
 using Line.Messaging;
 using Newtonsoft.Json.Linq;

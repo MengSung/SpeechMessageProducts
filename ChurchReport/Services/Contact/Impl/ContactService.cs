@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Services/Contact/Impl/ContactService.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass ContactService
+// ä¸»è¦æˆå“¡ï¼šSearchByMobilePhoneã€CreateContactAsyncã€SetupNewContactAttributesã€SetupRelationshipsã€SetupCommitmentTypeã€SetCommitmentTypeByTextã€SetupDatesã€SetupGenderã€SetupOptionSetsã€SetupAdditionalInfo
+// å¼•ç”¨å‘½åç©ºé–“ï¼šChurchReport.Domain.Constantsã€ChurchReport.Models.CrmTransmitModuleã€ChurchReport.Services.Contactã€ChurchReport.Services.ListManagementã€ChurchReport.Services.PresentRecordã€ChurchReport.Utilitiesã€ChurchReport.WebServiceConnectorã€Microsoft.Extensions.Logging
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆå¾å…¬é–‹å‹åˆ¥ã€å»ºæ§‹å¼æ³¨å…¥ã€ä¸»è¦æ–¹æ³•èˆ‡ä¾‹å¤–è™•ç†è·¯å¾‘æŒæ¡è³‡æ–™æµï¼Œå†é€²è¡Œç¶­è­·ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using ChurchReport.Domain.Constants;
 using ChurchReport.Models.CrmTransmitModule;
 using ChurchReport.Services.Contact;
@@ -15,8 +28,8 @@ using ToolUtilityNameSpace;
 namespace ChurchReport.Services.Contact.Impl
 {
     /// <summary>
-    /// Ápµ¸¤HªA°È¹ê§@
-    /// ¿í´`³æ¤@Â¾³d­ì«h¡A¶È­t³dÁpµ¸¤H¬ÛÃöªº CRUD ¾Ş§@
+    /// è¯çµ¡äººæœå‹™å¯¦ä½œ
+    /// éµå¾ªå–®ä¸€è·è²¬åŸå‰‡ï¼Œåƒ…è² è²¬è¯çµ¡äººç›¸é—œçš„ CRUD æ“ä½œ
     /// </summary>
     public class ContactService : IContactService
     {
@@ -39,30 +52,30 @@ namespace ChurchReport.Services.Contact.Impl
             _lineNotifyUtility = new LineNotifyUtility();
         }
 
-        #region ·j´MÁpµ¸¤H
+        #region æœå°‹è¯çµ¡äºº
 
         /// <summary>
-        /// ®Ú¾Ú¤â¾÷¸¹½X·j´MÁpµ¸¤H
+        /// æ ¹æ“šæ‰‹æ©Ÿè™Ÿç¢¼æœå°‹è¯çµ¡äºº
         /// </summary>
         public Entity SearchByMobilePhone(string fullName, string mobilePhone)
         {
             try
             {
-                _logger.LogInformation("¶}©l·j´MÁpµ¸¤H: ©m¦W={FullName}, ¤â¾÷={MobilePhone}", fullName, mobilePhone);
+                _logger.LogInformation("é–‹å§‹æœå°‹è¯çµ¡äºº: å§“å={FullName}, æ‰‹æ©Ÿ={MobilePhone}", fullName, mobilePhone);
 
-                // ¼Ğ·Ç¤Æ¤â¾÷¸¹½X¡]²¾°£«D¼Æ¦r¦r¤¸¡^
+                // æ¨™æº–åŒ–æ‰‹æ©Ÿè™Ÿç¢¼ï¼ˆç§»é™¤éæ•¸å­—å­—å…ƒï¼‰
                 string normalizedMobilePhone = OptionSetConverter.NormalizePhoneNumber(mobilePhone);
 
-                // ¬d¸ß¦P¦WÁpµ¸¤H
+                // æŸ¥è©¢åŒåè¯çµ¡äºº
                 EntityCollection contactCollection = _toolUtility.RetrieveContactEntityByFullNameCollection(fullName);
 
                 if (contactCollection == null || contactCollection.Entities.Count == 0)
                 {
-                    _logger.LogInformation("¥¼§ä¨ì¦P¦WÁpµ¸¤H: {FullName}", fullName);
+                    _logger.LogInformation("æœªæ‰¾åˆ°åŒåè¯çµ¡äºº: {FullName}", fullName);
                     return null;
                 }
 
-                // ¤ñ¹ï¤â¾÷¸¹½X
+                // æ¯”å°æ‰‹æ©Ÿè™Ÿç¢¼
                 foreach (Entity contactEntity in contactCollection.Entities)
                 {
                     string existingMobilePhone = _toolUtility.GetEntityStringAttribute(contactEntity, "mobilephone");
@@ -70,62 +83,62 @@ namespace ChurchReport.Services.Contact.Impl
 
                     if (normalizedMobilePhone == normalizedExistingPhone && !string.IsNullOrEmpty(normalizedMobilePhone))
                     {
-                        _logger.LogInformation("§ä¨ì¤Ç°tªºÁpµ¸¤H: ContactId={ContactId}", contactEntity.Id);
+                        _logger.LogInformation("æ‰¾åˆ°åŒ¹é…çš„è¯çµ¡äºº: ContactId={ContactId}", contactEntity.Id);
                         return contactEntity;
                     }
                 }
 
-                _logger.LogInformation("¦P¦WÁpµ¸¤H¦s¦b¡A¦ı¤â¾÷¸¹½X¤£¤Ç°t");
+                _logger.LogInformation("åŒåè¯çµ¡äººå­˜åœ¨ï¼Œä½†æ‰‹æ©Ÿè™Ÿç¢¼ä¸åŒ¹é…");
                 return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "·j´MÁpµ¸¤H®Éµo¥Í¿ù»~: ©m¦W={FullName}, ¤â¾÷={MobilePhone}", fullName, mobilePhone);
+                _logger.LogError(ex, "æœå°‹è¯çµ¡äººæ™‚ç™¼ç”ŸéŒ¯èª¤: å§“å={FullName}, æ‰‹æ©Ÿ={MobilePhone}", fullName, mobilePhone);
                 throw;
             }
         }
 
         #endregion
 
-        #region «Ø¥ß·sÁpµ¸¤H
+        #region å»ºç«‹æ–°è¯çµ¡äºº
 
         /// <summary>
-        /// «Ø¥ß·sÁpµ¸¤H
+        /// å»ºç«‹æ–°è¯çµ¡äºº
         /// </summary>
         public async Task<ContactCreationResult> CreateContactAsync(NewContact newContact, AccountPasswordData accountPasswordData)
         {
             try
             {
-                _logger.LogInformation("¶}©l«Ø¥ß·sÁpµ¸¤H: ©m¦W={Name}, ¤p²Õ={GroupName}", newContact.Name, newContact.GroupName);
+                _logger.LogInformation("é–‹å§‹å»ºç«‹æ–°è¯çµ¡äºº: å§“å={Name}, å°çµ„={GroupName}", newContact.Name, newContact.GroupName);
 
-                // 1. ¨ú±oµn¤JªÌ¹êÅé
+                // 1. å–å¾—ç™»å…¥è€…å¯¦é«”
                 Entity loginContact = await GetLoginContactAsync(accountPasswordData);
                 if (loginContact == null)
                 {
-                    return ContactCreationResult.Failure("µLªk¨ú±oµn¤JªÌ¸ê°T");
+                    return ContactCreationResult.Failure("ç„¡æ³•å–å¾—ç™»å…¥è€…è³‡è¨Š");
                 }
 
-                // 2. ¬d¸ß¥Ø¼Ğ¤p²Õ¦W³æ
+                // 2. æŸ¥è©¢ç›®æ¨™å°çµ„åå–®
                 Entity listEntity = _listManagementService.GetListByGroupName(newContact.GroupName, loginContact.Id);
                 if (listEntity == null)
                 {
-                    string errorMsg = $"µLªk§ä¨ì¤p²Õ¦W³æ¡G{newContact.GroupName}¡A½Ğ½T»{¤p²Õ¦WºÙ¬O§_¥¿½T";
+                    string errorMsg = $"ç„¡æ³•æ‰¾åˆ°å°çµ„åå–®ï¼š{newContact.GroupName}ï¼Œè«‹ç¢ºèªå°çµ„åç¨±æ˜¯å¦æ­£ç¢º";
                     _logger.LogWarning(errorMsg);
                     return ContactCreationResult.Failure(errorMsg);
                 }
 
-                // 3. «Ø¥ß·sÁpµ¸¤H¹êÅé
+                // 3. å»ºç«‹æ–°è¯çµ¡äººå¯¦é«”
                 Entity newContactEntity = new Entity("contact");
                 SetupNewContactAttributes(ref newContactEntity, newContact, loginContact, listEntity.Id);
 
-                // 4. ÃöÁp¥D­n¤p²Õ
+                // 4. é—œè¯ä¸»è¦å°çµ„
                 _toolUtility.SetEntityLookUpAttribute(ref newContactEntity, "new_cell_list_contact", "list", listEntity.Id);
 
-                // 5. ¦b CRM ¤¤«Ø¥ßÁpµ¸¤H
+                // 5. åœ¨ CRM ä¸­å»ºç«‹è¯çµ¡äºº
                 Guid newContactId = _toolUtility.CreateEntity(newContactEntity);
-                _logger.LogInformation("¦¨¥\«Ø¥ßÁpµ¸¤H: ContactId={ContactId}", newContactId);
+                _logger.LogInformation("æˆåŠŸå»ºç«‹è¯çµ¡äºº: ContactId={ContactId}", newContactId);
 
-                // 6. «ü¬£­t³d¤H
+                // 6. æŒ‡æ´¾è² è²¬äºº
                 Guid ownerId = _toolUtility.GetOwnerId(loginContact);
                 if (ownerId != Guid.Empty)
                 {
@@ -133,16 +146,16 @@ namespace ChurchReport.Services.Contact.Impl
                     _toolUtility.AssignOwner("contact", createdContact, ownerId);
                 }
 
-                // 7. ±NÁpµ¸¤H¥[¤J¦Ü¤p²Õ¦W³æ
+                // 7. å°‡è¯çµ¡äººåŠ å…¥è‡³å°çµ„åå–®
                 await _listManagementService.AddContactToListAsync(newContactId, listEntity);
 
-                // 8. «Ø¥ß¥X®u°O¿ı
+                // 8. å»ºç«‹å‡ºå¸­è¨˜éŒ„
                 await _presentRecordService.CreatePresentRecordAsync(listEntity, newContactId, newContact.GroupName);
 
-                // 9. µo°e LINE ³qª¾
+                // 9. ç™¼é€ LINE é€šçŸ¥
                 string loginContactName = _toolUtility.GetEntityStringAttribute(loginContact, "fullname");
-                string successMessage = $"{loginContactName} ¦¨¥\«Ø¥ß·s¤H¨Ã¥B¥[¤J {newContact.Name} ¨ì {newContact.GroupName}¤p²Õ¤¤";
-                
+                string successMessage = $"{loginContactName} æˆåŠŸå»ºç«‹æ–°äººä¸¦ä¸”åŠ å…¥ {newContact.Name} åˆ° {newContact.GroupName}å°çµ„ä¸­";
+
                 _lineNotifyUtility.SendAddNewPersonResultLine(successMessage, listEntity);
                 _lineNotifyUtility.SendListMemberLine(listEntity);
 
@@ -150,58 +163,58 @@ namespace ChurchReport.Services.Contact.Impl
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "«Ø¥ß·sÁpµ¸¤H®Éµo¥Í¿ù»~: ©m¦W={Name}", newContact.Name);
-                return ContactCreationResult.Failure($"«Ø¥ß·sÁpµ¸¤H¥¢±Ñ: {ex.Message}");
+                _logger.LogError(ex, "å»ºç«‹æ–°è¯çµ¡äººæ™‚ç™¼ç”ŸéŒ¯èª¤: å§“å={Name}", newContact.Name);
+                return ContactCreationResult.Failure($"å»ºç«‹æ–°è¯çµ¡äººå¤±æ•—: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// ³]©w·sÁpµ¸¤HªºÄİ©Ê
+        /// è¨­å®šæ–°è¯çµ¡äººçš„å±¬æ€§
         /// </summary>
         private void SetupNewContactAttributes(ref Entity newContactEntity, NewContact newContact, Entity loginContact, Guid listEntityId)
         {
-            // °ò¥»¸ê®Æ
+            // åŸºæœ¬è³‡æ–™
             _toolUtility.SetEntityStringAttribute(ref newContactEntity, "lastname", newContact.Name);
             _toolUtility.SetEntityStringAttribute(ref newContactEntity, "mobilephone", newContact.MobilePhone);
             _toolUtility.SetEntityStringAttribute(ref newContactEntity, "telephone2", newContact.HomePhone);
             _toolUtility.SetEntityStringAttribute(ref newContactEntity, "address2_line1", newContact.Address);
 
-            // ÃöÁpÄæ¦ì
+            // é—œè¯æ¬„ä½
             SetupRelationships(ref newContactEntity, loginContact);
 
-            // ©e¨­Ãş«¬
+            // å§”èº«é¡å‹
             SetupCommitmentType(ref newContactEntity, newContact, listEntityId);
 
-            // ¤é´ÁÄæ¦ì
+            // æ—¥æœŸæ¬„ä½
             SetupDates(ref newContactEntity, newContact);
 
-            // ©Ê§O
+            // æ€§åˆ¥
             SetupGender(ref newContactEntity, newContact.Gender);
 
-            // ±B«Ãª¬ºA©M«H¥õª¬ºA¡]¨Ï¥Î OptionSetMetadataService °ÊºA¬d¸ß¡^
+            // å©šå§»ç‹€æ…‹å’Œä¿¡ä»°ç‹€æ…‹ï¼ˆä½¿ç”¨ OptionSetMetadataService å‹•æ…‹æŸ¥è©¢ï¼‰
             SetupOptionSets(ref newContactEntity, newContact);
 
-            // ¨ä¥L¸ê°T
+            // å…¶ä»–è³‡è¨Š
             SetupAdditionalInfo(ref newContactEntity, newContact, loginContact);
         }
 
         private void SetupRelationships(ref Entity newContactEntity, Entity loginContact)
         {
-            // ÃöÁp©ÒÄİ±Ğ·|
+            // é—œè¯æ‰€å±¬æ•™æœƒ
             Guid accountId = _toolUtility.GetEntityLookupAttribute(ref loginContact, "parentcustomerid");
             if (accountId != Guid.Empty)
             {
                 _toolUtility.SetEntityLookUpAttribute(ref newContactEntity, "parentcustomerid", "account", accountId);
             }
 
-            // ÃöÁp±Ú¨t²Õªø
+            // é—œè¯æ—ç³»çµ„é•·
             Guid raceLeaderId = _toolUtility.GetEntityLookupAttribute(ref loginContact, "new_race_leader_contact");
             if (raceLeaderId != Guid.Empty)
             {
                 _toolUtility.SetEntityLookUpAttribute(ref newContactEntity, "new_race_leader_contact", "contact", raceLeaderId);
             }
 
-            // ÃöÁpÁÜ½Ğ¤H
+            // é—œè¯é‚€è«‹äºº
             Guid contactId = loginContact.Id;
             if (contactId != Guid.Empty)
             {
@@ -217,11 +230,11 @@ namespace ChurchReport.Services.Contact.Impl
                 return;
             }
 
-            // ÀË¬d¬O§_¬°©¯ºÖ¤p²Õ
+            // æª¢æŸ¥æ˜¯å¦ç‚ºå¹¸ç¦å°çµ„
             Entity listEntity = _toolUtility.RetrieveEntity("list", listEntityId);
             string listName = _toolUtility.GetEntityStringAttribute(listEntity, "listname");
 
-            if (listName.Contains("©¯ºÖ"))
+            if (listName.Contains("å¹¸ç¦"))
             {
                 _toolUtility.SetOptionSetAttribute(ref newContactEntity, "customertypecode", CommitmentType.HappyBest);
             }
@@ -235,9 +248,9 @@ namespace ChurchReport.Services.Contact.Impl
         {
             int commitmentType = customerTypeText switch
             {
-                string s when s.Contains("¤p²Õ²Õ­û") => CommitmentType.SmallGroupMember,
-                string s when s.Contains("·sªB¤Í") => CommitmentType.NewFriend,
-                _ => CommitmentType.NewFriend // ¹w³]¬°·sªB¤Í
+                string s when s.Contains("å°çµ„çµ„å“¡") => CommitmentType.SmallGroupMember,
+                string s when s.Contains("æ–°æœ‹å‹") => CommitmentType.NewFriend,
+                _ => CommitmentType.NewFriend // é è¨­ç‚ºæ–°æœ‹å‹
             };
 
             _toolUtility.SetOptionSetAttribute(ref newContactEntity, "customertypecode", commitmentType);
@@ -245,19 +258,19 @@ namespace ChurchReport.Services.Contact.Impl
 
         private void SetupDates(ref Entity newContactEntity, NewContact newContact)
         {
-            // ¥Í¤é
+            // ç”Ÿæ—¥
             if (newContact.BirthDate != new DateTime(1919, 1, 1) && newContact.BirthDate.Year != 1919)
             {
                 _toolUtility.SetEntityDateTimeAttribute(ref newContactEntity, "birthdate", newContact.BirthDate);
             }
 
-            // ­º¦¸°Ñ¥[±Ğ·|¥D¤é¤é´Á
+            // é¦–æ¬¡åƒåŠ æ•™æœƒä¸»æ—¥æ—¥æœŸ
             if (newContact.FirstChurchDate.Year > 1000)
             {
                 _toolUtility.SetEntityDateTimeAttribute(ref newContactEntity, "new_enter_church_date", newContact.FirstChurchDate);
             }
 
-            // ­º¦¸°Ñ¥[¬¡°Ê¤é´Á
+            // é¦–æ¬¡åƒåŠ æ´»å‹•æ—¥æœŸ
             if (newContact.FirstActionDate.Year > 1000)
             {
                 _toolUtility.SetEntityDateTimeAttribute(ref newContactEntity, "new_recently_visitchurch_date", newContact.FirstActionDate);
@@ -266,11 +279,11 @@ namespace ChurchReport.Services.Contact.Impl
 
         private void SetupGender(ref Entity newContactEntity, string gender)
         {
-            if (gender == "¨k©Ê")
+            if (gender == "ç”·æ€§")
             {
                 _toolUtility.SetOptionSetAttribute(ref newContactEntity, "gendercode", Gender.Male);
             }
-            else if (gender == "¤k©Ê")
+            else if (gender == "å¥³æ€§")
             {
                 _toolUtility.SetOptionSetAttribute(ref newContactEntity, "gendercode", Gender.Female);
             }
@@ -278,7 +291,7 @@ namespace ChurchReport.Services.Contact.Impl
 
         private void SetupOptionSets(ref Entity newContactEntity, NewContact newContact)
         {
-            // ±B«Ãª¬ºA
+            // å©šå§»ç‹€æ…‹
             if (!string.IsNullOrWhiteSpace(newContact.MerrageState))
             {
                 try
@@ -295,12 +308,12 @@ namespace ChurchReport.Services.Contact.Impl
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "³]©w±B«Ãª¬ºA¥¢±Ñ¡A¨Ï¥Î¹w³]­È");
-                    _toolUtility.SetOptionSetAttribute(ref newContactEntity, "familystatuscode", 100000001); // ¥¼ª¾
+                    _logger.LogWarning(ex, "è¨­å®šå©šå§»ç‹€æ…‹å¤±æ•—ï¼Œä½¿ç”¨é è¨­å€¼");
+                    _toolUtility.SetOptionSetAttribute(ref newContactEntity, "familystatuscode", 100000001); // æœªçŸ¥
                 }
             }
 
-            // «H¥õª¬ºA
+            // ä¿¡ä»°ç‹€æ…‹
             if (!string.IsNullOrWhiteSpace(newContact.FaithStatus))
             {
                 try
@@ -317,90 +330,90 @@ namespace ChurchReport.Services.Contact.Impl
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "³]©w«H¥õª¬ºA¥¢±Ñ¡A¨Ï¥Î¹w³]­È");
-                    _toolUtility.SetOptionSetAttribute(ref newContactEntity, "new_spiriitual_identity", 100000004); // ¥¼ª¾
+                    _logger.LogWarning(ex, "è¨­å®šä¿¡ä»°ç‹€æ…‹å¤±æ•—ï¼Œä½¿ç”¨é è¨­å€¼");
+                    _toolUtility.SetOptionSetAttribute(ref newContactEntity, "new_spiriitual_identity", 100000004); // æœªçŸ¥
                 }
             }
         }
 
         private void SetupAdditionalInfo(ref Entity newContactEntity, NewContact newContact, Entity loginContact)
         {
-            // ¨Ó·½
+            // ä¾†æº
             _toolUtility.SetEntityStringAttribute(ref newContactEntity, "new_coming_reason", newContact.Source);
 
-            // ÁÜ½Ğ¤H¬ÛÃö¸ê°T
+            // é‚€è«‹äººç›¸é—œè³‡è¨Š
             _toolUtility.SetEntityStringAttribute(ref newContactEntity, "new_invitor", newContact.Introducer);
             _toolUtility.SetEntityStringAttribute(ref newContactEntity, "assistantphone", newContact.IntroducerPhone);
             _toolUtility.SetEntityStringAttribute(ref newContactEntity, "new_carers", newContact.IntroducerRelation);
             _toolUtility.SetEntityStringAttribute(ref newContactEntity, "new_invitor_group", newContact.IntroducerGroup);
 
-            // Â¾·~¤Î±Mªø
+            // è·æ¥­åŠå°ˆé•·
             _toolUtility.SetEntityStringAttribute(ref newContactEntity, "new_industry", newContact.Industry);
 
-            // ´y­z¡]°O¿ı«Ø¥ßªÌ¡^
+            // æè¿°ï¼ˆè¨˜éŒ„å»ºç«‹è€…ï¼‰
             string creatorName = _toolUtility.GetEntityStringAttribute(ref loginContact, "fullname");
-            string description = $"{creatorName} ³z¹Lºô­¶¦^³ø«Ø¥ßªº·s¤H{Environment.NewLine}{newContact.Note}";
+            string description = $"{creatorName} é€éç¶²é å›å ±å»ºç«‹çš„æ–°äºº{Environment.NewLine}{newContact.Note}";
             _toolUtility.SetEntityStringAttribute(ref newContactEntity, "description", description);
 
-            // ¸Ë³Æª¬ºA
+            // è£å‚™ç‹€æ…‹
             string equipmentStatus = _toolUtility.GetEntityStringAttribute(ref newContactEntity, "new_equipment_status");
             if (string.IsNullOrEmpty(equipmentStatus))
             {
-                _toolUtility.SetEntityStringAttribute(ref newContactEntity, "new_equipment_status", "©|¥¼¸Ë³Æ");
+                _toolUtility.SetEntityStringAttribute(ref newContactEntity, "new_equipment_status", "å°šæœªè£å‚™");
             }
         }
 
         #endregion
 
-        #region ±N²{¦³Ápµ¸¤H¥[¤J¦W³æ
+        #region å°‡ç¾æœ‰è¯çµ¡äººåŠ å…¥åå–®
 
         /// <summary>
-        /// ±N²{¦³Ápµ¸¤H¥[¤J¨ì«ü©w¦W³æ
+        /// å°‡ç¾æœ‰è¯çµ¡äººåŠ å…¥åˆ°æŒ‡å®šåå–®
         /// </summary>
         public async Task<string> AddContactToListAsync(Entity existingContact, string targetGroupName, AccountPasswordData accountPasswordData)
         {
             try
             {
-                _logger.LogInformation("¶}©l±NÁpµ¸¤H¥[¤J¦W³æ: ContactId={ContactId}, ¥Ø¼Ğ¤p²Õ={GroupName}", 
+                _logger.LogInformation("é–‹å§‹å°‡è¯çµ¡äººåŠ å…¥åå–®: ContactId={ContactId}, ç›®æ¨™å°çµ„={GroupName}",
                     existingContact.Id, targetGroupName);
 
-                // 1. ¨ú±oµn¤JªÌ¹êÅé
+                // 1. å–å¾—ç™»å…¥è€…å¯¦é«”
                 Entity loginContact = await GetLoginContactAsync(accountPasswordData);
                 string loginContactName = _toolUtility.GetEntityStringAttribute(loginContact, "fullname");
                 string existContactName = _toolUtility.GetEntityStringAttribute(existingContact, "fullname");
 
-                // 2. ÀË¬d¬O§_¤w¦b¨ä¥L¤p²Õ
+                // 2. æª¢æŸ¥æ˜¯å¦å·²åœ¨å…¶ä»–å°çµ„
                 Entity currentGroup = GetContactCurrentGroup(existingContact);
 
-                // 3. ¨ú±o¥Ø¼Ğ¤p²Õ
+                // 3. å–å¾—ç›®æ¨™å°çµ„
                 Entity targetList = _listManagementService.GetListByGroupName(targetGroupName, loginContact.Id);
                 if (targetList == null)
                 {
-                    return $"µLªk§ä¨ì¥Ø¼Ğ¤p²Õ¡G{targetGroupName}";
+                    return $"ç„¡æ³•æ‰¾åˆ°ç›®æ¨™å°çµ„ï¼š{targetGroupName}";
                 }
 
-                // 4. ®Ú¾Ú·í«eª¬ºA°õ¦æ¤£¦PÅŞ¿è
+                // 4. æ ¹æ“šç•¶å‰ç‹€æ…‹åŸ·è¡Œä¸åŒé‚è¼¯
                 if (currentGroup == null)
                 {
-                    // ©|¥¼¦b¥ô¦ó¤p²Õ¤¤¡Aª½±µ¥[¤J
+                    // å°šæœªåœ¨ä»»ä½•å°çµ„ä¸­ï¼Œç›´æ¥åŠ å…¥
                     return await AddContactToNewListAsync(existingContact, targetList, targetGroupName, loginContact);
                 }
                 else
                 {
-                    // ¤w¦b¨ä¥L¤p²Õ¤¤¡A»İ­n§PÂ_¬O§_¤¹³\Âà²Õ
+                    // å·²åœ¨å…¶ä»–å°çµ„ä¸­ï¼Œéœ€è¦åˆ¤æ–·æ˜¯å¦å…è¨±è½‰çµ„
                     string currentGroupName = _toolUtility.GetEntityStringAttribute(currentGroup, "listname");
-                    
-                    if (currentGroupName.Contains("·s¤H") || currentGroupName.Contains("ÃöÃh"))
+
+                    if (currentGroupName.Contains("æ–°äºº") || currentGroupName.Contains("é—œæ‡·"))
                     {
-                        // ±q·s¤HÃöÃh¤p²ÕÂà¥X¡A¤¹³\
+                        // å¾æ–°äººé—œæ‡·å°çµ„è½‰å‡ºï¼Œå…è¨±
                         return await TransferContactBetweenListsAsync(existingContact, currentGroup, targetList, targetGroupName, loginContact);
                     }
                     else
                     {
-                        // ¤w¦b¥¿¦¡¤p²Õ¤¤¡A¤£¤¹³\ÀH·NÂà²Õ
-                        string warningMessage = $"{loginContactName} ·Q­n¥[¤J {existContactName} ¨ì {targetGroupName}¤p²Õ¤¤¡A" +
-                                              $"¦ı¬O{existContactName}¤w¸g¦b {currentGroupName} ¤p²Õ¤F!";
-                        
+                        // å·²åœ¨æ­£å¼å°çµ„ä¸­ï¼Œä¸å…è¨±éš¨æ„è½‰çµ„
+                        string warningMessage = $"{loginContactName} æƒ³è¦åŠ å…¥ {existContactName} åˆ° {targetGroupName}å°çµ„ä¸­ï¼Œ" +
+                                              $"ä½†æ˜¯{existContactName}å·²ç¶“åœ¨ {currentGroupName} å°çµ„äº†!";
+
                         _lineNotifyUtility.SendAddNewPersonResultLine(warningMessage, currentGroup);
                         _lineNotifyUtility.SendListMemberLine(currentGroup);
                         _lineNotifyUtility.SendAddNewPersonResultLine(warningMessage, targetList);
@@ -412,80 +425,80 @@ namespace ChurchReport.Services.Contact.Impl
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "±NÁpµ¸¤H¥[¤J¦W³æ®Éµo¥Í¿ù»~");
+                _logger.LogError(ex, "å°‡è¯çµ¡äººåŠ å…¥åå–®æ™‚ç™¼ç”ŸéŒ¯èª¤");
                 throw;
             }
         }
 
         private async Task<string> AddContactToNewListAsync(Entity contact, Entity targetList, string groupName, Entity loginContact)
         {
-            // ¥[¤J·s¦W³æ
+            // åŠ å…¥æ–°åå–®
             await _listManagementService.AddContactToListAsync(contact.Id, targetList);
 
-            // «Ø¥ß¥X®u°O¿ı
+            // å»ºç«‹å‡ºå¸­è¨˜éŒ„
             await _presentRecordService.CreatePresentRecordAsync(targetList, contact.Id, groupName);
 
-            // §ó·sÃöÁp
+            // æ›´æ–°é—œè¯
             _toolUtility.SetEntityLookUpAttribute(ref contact, "new_cell_list_contact", "list", targetList.Id);
             _toolUtility.UpdateEntity(ref contact);
 
-            // «ü¬£­t³d¤H
+            // æŒ‡æ´¾è² è²¬äºº
             Guid ownerId = _toolUtility.GetOwnerId(loginContact);
             if (ownerId != Guid.Empty)
             {
                 _toolUtility.AssignOwner("contact", contact, ownerId);
             }
 
-            // µo°e³qª¾
+            // ç™¼é€é€šçŸ¥
             string loginContactName = _toolUtility.GetEntityStringAttribute(loginContact, "fullname");
             string existContactName = _toolUtility.GetEntityStringAttribute(contact, "fullname");
-            string successMessage = $"{loginContactName} ¤´µM¦¨¥\ªº¥[¤J {existContactName} ¨ì {groupName}¤p²Õ¤¤";
+            string successMessage = $"{loginContactName} ä»ç„¶æˆåŠŸçš„åŠ å…¥ {existContactName} åˆ° {groupName}å°çµ„ä¸­";
 
             _lineNotifyUtility.SendAddNewPersonResultLine(successMessage, targetList);
             _lineNotifyUtility.SendListMemberLine(targetList);
 
-            return $"·s¼Wªº·s¤H¦b¸ê®Æ®w¤w¸g¦s¦b¡A¦ı¬O {successMessage}";
+            return $"æ–°å¢çš„æ–°äººåœ¨è³‡æ–™åº«å·²ç¶“å­˜åœ¨ï¼Œä½†æ˜¯ {successMessage}";
         }
 
         private async Task<string> TransferContactBetweenListsAsync(Entity contact, Entity fromList, Entity toList, string toGroupName, Entity loginContact)
         {
-            // ¥[¤J·s¦W³æ
+            // åŠ å…¥æ–°åå–®
             await _listManagementService.AddContactToListAsync(contact.Id, toList);
 
-            // ±qÂÂ¦W³æ²¾°£
+            // å¾èˆŠåå–®ç§»é™¤
             await _listManagementService.RemoveContactFromListAsync(contact.Id, fromList);
 
-            // «Ø¥ß·sªº¥X®u°O¿ı
+            // å»ºç«‹æ–°çš„å‡ºå¸­è¨˜éŒ„
             await _presentRecordService.CreatePresentRecordAsync(toList, contact.Id, toGroupName);
 
-            // §ó·sÃöÁp
+            // æ›´æ–°é—œè¯
             _toolUtility.SetEntityLookUpAttribute(ref contact, "new_cell_list_contact", "list", toList.Id);
             _toolUtility.UpdateEntity(ref contact);
 
-            // «ü¬£­t³d¤H
+            // æŒ‡æ´¾è² è²¬äºº
             Guid ownerId = _toolUtility.GetOwnerId(loginContact);
             if (ownerId != Guid.Empty)
             {
                 _toolUtility.AssignOwner("contact", contact, ownerId);
             }
 
-            // µo°e³qª¾
+            // ç™¼é€é€šçŸ¥
             string loginContactName = _toolUtility.GetEntityStringAttribute(loginContact, "fullname");
             string existContactName = _toolUtility.GetEntityStringAttribute(contact, "fullname");
-            string successMessage = $"{loginContactName} ¤´µM¦¨¥\ªº¥[¤J {existContactName} ¨ì {toGroupName}¤p²Õ¤¤";
+            string successMessage = $"{loginContactName} ä»ç„¶æˆåŠŸçš„åŠ å…¥ {existContactName} åˆ° {toGroupName}å°çµ„ä¸­";
 
             _lineNotifyUtility.SendAddNewPersonResultLine(successMessage, toList);
             _lineNotifyUtility.SendListMemberLine(toList);
 
-            return $"·s¼Wªº·s¤H¦b¸ê®Æ®w¤w¸g¦s¦b¡A¦ı¬O {successMessage}";
+            return $"æ–°å¢çš„æ–°äººåœ¨è³‡æ–™åº«å·²ç¶“å­˜åœ¨ï¼Œä½†æ˜¯ {successMessage}";
         }
 
         #endregion
 
-        #region »²§U¤èªk
+        #region è¼”åŠ©æ–¹æ³•
 
         /// <summary>
-        /// ¨ú±oµn¤JªÌªºÁpµ¸¤H¹êÅé
+        /// å–å¾—ç™»å…¥è€…çš„è¯çµ¡äººå¯¦é«”
         /// </summary>
         private async Task<Entity> GetLoginContactAsync(AccountPasswordData accountPasswordData)
         {
@@ -521,7 +534,7 @@ namespace ChurchReport.Services.Contact.Impl
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "¬d¸ßÁpµ¸¤H·í«e¤p²Õ®Éµo¥Í¿ù»~");
+                _logger.LogError(ex, "æŸ¥è©¢è¯çµ¡äººç•¶å‰å°çµ„æ™‚ç™¼ç”ŸéŒ¯èª¤");
                 throw;
             }
         }

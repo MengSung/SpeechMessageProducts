@@ -1,176 +1,189 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Services/Caching/CacheKeys.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass CacheKeysã€class Expiration
+// ä¸»è¦æˆå“¡ï¼šMultiGroupListã€WeeklyReportã€ChartDataã€Membersã€Dropdownã€IntegrateDataã€ContactByAccountã€ContactByLineIdã€ContactByIdã€PresentRecord
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystem
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆå¾å…¬é–‹å‹åˆ¥ã€å»ºæ§‹å¼æ³¨å…¥ã€ä¸»è¦æ–¹æ³•èˆ‡ä¾‹å¤–è™•ç†è·¯å¾‘æŒæ¡è³‡æ–™æµï¼Œå†é€²è¡Œç¶­è­·ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 
 namespace ChurchReport.Services.Caching
 {
     /// <summary>
-    /// §Ö¨úÁä±`¼Æ»P«Øºc¾¹
-    /// Phase 2.2: ²Î¤@ºŞ²z©Ò¦³§Ö¨úÁä®æ¦¡¡AÁ×§KÅ]³N¦r¦ê
-    /// 
-    /// §Ö¨úµ¦²¤»¡©ú:
-    /// - MultiGroupList: ¦h¤p²Õ²M³æ¡Aµ´¹ï¹L´Á 30 ¤ÀÄÁ
-    /// - WeeklyReport: ¶g³ø¸ê®Æ¡Aµ´¹ï¹L´Á 15 ¤ÀÄÁ
-    /// - ChartData: ¹Ïªí¸ê®Æ¡A·Æ°Ê¹L´Á 10 ¤ÀÄÁ
-    /// - Members: ·|­û²M³æ¡Aµ´¹ï¹L´Á 10 ¤ÀÄÁ
-    /// - Dropdown: ¤U©Ô¿ï³æ¡Aµ´¹ï¹L´Á 60 ¤ÀÄÁ
+    /// å¿«å–éµå¸¸æ•¸èˆ‡å»ºæ§‹å™¨
+    /// Phase 2.2: çµ±ä¸€ç®¡ç†æ‰€æœ‰å¿«å–éµæ ¼å¼ï¼Œé¿å…é­”è¡“å­—ä¸²
+    ///
+    /// å¿«å–ç­–ç•¥èªªæ˜:
+    /// - MultiGroupList: å¤šå°çµ„æ¸…å–®ï¼Œçµ•å°éæœŸ 30 åˆ†é˜
+    /// - WeeklyReport: é€±å ±è³‡æ–™ï¼Œçµ•å°éæœŸ 15 åˆ†é˜
+    /// - ChartData: åœ–è¡¨è³‡æ–™ï¼Œæ»‘å‹•éæœŸ 10 åˆ†é˜
+    /// - Members: æœƒå“¡æ¸…å–®ï¼Œçµ•å°éæœŸ 10 åˆ†é˜
+    /// - Dropdown: ä¸‹æ‹‰é¸å–®ï¼Œçµ•å°éæœŸ 60 åˆ†é˜
     /// </summary>
     public static class CacheKeys
     {
-        #region §Ö¨ú«eºó
+        #region å¿«å–å‰ç¶´
 
-        /// <summary>¦h¤p²Õ²M³æ«eºó</summary>
+        /// <summary>å¤šå°çµ„æ¸…å–®å‰ç¶´</summary>
         public const string MultiGroupListPrefix = "MultiGroupList_";
 
-        /// <summary>¶g³ø¸ê®Æ«eºó</summary>
+        /// <summary>é€±å ±è³‡æ–™å‰ç¶´</summary>
         public const string WeeklyReportPrefix = "WeeklyReport_";
 
-        /// <summary>¹Ïªí¸ê®Æ«eºó</summary>
+        /// <summary>åœ–è¡¨è³‡æ–™å‰ç¶´</summary>
         public const string ChartDataPrefix = "ChartData_";
 
-        /// <summary>·|­û²M³æ«eºó</summary>
+        /// <summary>æœƒå“¡æ¸…å–®å‰ç¶´</summary>
         public const string MembersPrefix = "Members_";
 
-        /// <summary>¤U©Ô¿ï³æ«eºó</summary>
+        /// <summary>ä¸‹æ‹‰é¸å–®å‰ç¶´</summary>
         public const string DropdownPrefix = "Dropdown_";
 
-        /// <summary>¤p²Õ¾ã¦X¸ê®Æ«eºó</summary>
+        /// <summary>å°çµ„æ•´åˆè³‡æ–™å‰ç¶´</summary>
         public const string IntegrateDataPrefix = "IntegrateData_";
 
-        /// <summary>Ápµ¸¤H¸ê®Æ«eºó</summary>
+        /// <summary>è¯çµ¡äººè³‡æ–™å‰ç¶´</summary>
         public const string ContactPrefix = "Contact_";
 
-        /// <summary>¥X®u°O¿ı«eºó</summary>
+        /// <summary>å‡ºå¸­è¨˜éŒ„å‰ç¶´</summary>
         public const string PresentRecordPrefix = "PresentRecord_";
 
-        /// <summary>²M³æ¸ê®Æ«eºó</summary>
+        /// <summary>æ¸…å–®è³‡æ–™å‰ç¶´</summary>
         public const string ListPrefix = "List_";
 
         #endregion
 
-        #region §Ö¨úÁä«Øºc¤èªk
+        #region å¿«å–éµå»ºæ§‹æ–¹æ³•
 
         /// <summary>
-        /// «Ø¥ß¦h¤p²Õ²M³æ§Ö¨úÁä
+        /// å»ºç«‹å¤šå°çµ„æ¸…å–®å¿«å–éµ
         /// </summary>
-        /// <param name="account">±b¸¹</param>
-        /// <param name="date">¤é´Á</param>
+        /// <param name="account">å¸³è™Ÿ</param>
+        /// <param name="date">æ—¥æœŸ</param>
         public static string MultiGroupList(string account, DateTime date)
             => $"{MultiGroupListPrefix}{account}_{date:yyyyMMdd}";
 
         /// <summary>
-        /// «Ø¥ß¶g³ø¸ê®Æ§Ö¨úÁä
+        /// å»ºç«‹é€±å ±è³‡æ–™å¿«å–éµ
         /// </summary>
-        /// <param name="listId">²M³æID</param>
-        /// <param name="date">¤é´Á</param>
+        /// <param name="listId">æ¸…å–®ID</param>
+        /// <param name="date">æ—¥æœŸ</param>
         public static string WeeklyReport(string listId, DateTime date)
             => $"{WeeklyReportPrefix}{listId}_{date:yyyyMMdd}";
 
         /// <summary>
-        /// «Ø¥ß¹Ïªí¸ê®Æ§Ö¨úÁä
+        /// å»ºç«‹åœ–è¡¨è³‡æ–™å¿«å–éµ
         /// </summary>
-        /// <param name="listId">²M³æID</param>
+        /// <param name="listId">æ¸…å–®ID</param>
         public static string ChartData(string listId)
             => $"{ChartDataPrefix}{listId}";
 
         /// <summary>
-        /// «Ø¥ß·|­û²M³æ§Ö¨úÁä
+        /// å»ºç«‹æœƒå“¡æ¸…å–®å¿«å–éµ
         /// </summary>
-        /// <param name="listId">²M³æID</param>
+        /// <param name="listId">æ¸…å–®ID</param>
         public static string Members(string listId)
             => $"{MembersPrefix}{listId}";
 
         /// <summary>
-        /// «Ø¥ß¤U©Ô¿ï³æ§Ö¨úÁä
+        /// å»ºç«‹ä¸‹æ‹‰é¸å–®å¿«å–éµ
         /// </summary>
-        /// <param name="dropdownType">¤U©Ô¿ï³æÃş«¬</param>
+        /// <param name="dropdownType">ä¸‹æ‹‰é¸å–®é¡å‹</param>
         public static string Dropdown(string dropdownType)
             => $"{DropdownPrefix}{dropdownType}";
 
         /// <summary>
-        /// «Ø¥ß¤p²Õ¾ã¦X¸ê®Æ§Ö¨úÁä
+        /// å»ºç«‹å°çµ„æ•´åˆè³‡æ–™å¿«å–éµ
         /// </summary>
-        /// <param name="listId">²M³æID</param>
-        /// <param name="date">¤é´Á</param>
+        /// <param name="listId">æ¸…å–®ID</param>
+        /// <param name="date">æ—¥æœŸ</param>
         public static string IntegrateData(string listId, DateTime date)
             => $"{IntegrateDataPrefix}{listId}_{date:yyyyMMdd}";
 
         /// <summary>
-        /// «Ø¥ßÁpµ¸¤H§Ö¨úÁä¡]¨Ì±b¸¹±K½X¡^
+        /// å»ºç«‹è¯çµ¡äººå¿«å–éµï¼ˆä¾å¸³è™Ÿå¯†ç¢¼ï¼‰
         /// </summary>
-        /// <param name="account">±b¸¹</param>
+        /// <param name="account">å¸³è™Ÿ</param>
         public static string ContactByAccount(string account)
             => $"{ContactPrefix}Account_{account}";
 
         /// <summary>
-        /// «Ø¥ßÁpµ¸¤H§Ö¨úÁä¡]¨Ì LineId¡^
+        /// å»ºç«‹è¯çµ¡äººå¿«å–éµï¼ˆä¾ LineIdï¼‰
         /// </summary>
         /// <param name="lineId">Line ID</param>
         public static string ContactByLineId(string lineId)
             => $"{ContactPrefix}LineId_{lineId}";
 
         /// <summary>
-        /// «Ø¥ßÁpµ¸¤H§Ö¨úÁä¡]¨Ì EntityId¡^
+        /// å»ºç«‹è¯çµ¡äººå¿«å–éµï¼ˆä¾ EntityIdï¼‰
         /// </summary>
-        /// <param name="contactId">Ápµ¸¤H ID</param>
+        /// <param name="contactId">è¯çµ¡äºº ID</param>
         public static string ContactById(Guid contactId)
             => $"{ContactPrefix}Id_{contactId}";
 
         /// <summary>
-        /// «Ø¥ß¥X®u°O¿ı§Ö¨úÁä
+        /// å»ºç«‹å‡ºå¸­è¨˜éŒ„å¿«å–éµ
         /// </summary>
-        /// <param name="weeklyReportId">¶g³øID</param>
+        /// <param name="weeklyReportId">é€±å ±ID</param>
         public static string PresentRecord(string weeklyReportId)
             => $"{PresentRecordPrefix}{weeklyReportId}";
 
         /// <summary>
-        /// «Ø¥ß²M³æ¹êÅé§Ö¨úÁä
+        /// å»ºç«‹æ¸…å–®å¯¦é«”å¿«å–éµ
         /// </summary>
-        /// <param name="listId">²M³æID</param>
+        /// <param name="listId">æ¸…å–®ID</param>
         public static string ListEntity(string listId)
             => $"{ListPrefix}{listId}";
 
         #endregion
 
-        #region §Ö¨ú¹L´Á®É¶¡±`¼Æ
+        #region å¿«å–éæœŸæ™‚é–“å¸¸æ•¸
 
         /// <summary>
-        /// §Ö¨ú¹L´Á®É¶¡³]©w
+        /// å¿«å–éæœŸæ™‚é–“è¨­å®š
         /// </summary>
         public static class Expiration
         {
-            /// <summary>¦h¤p²Õ²M³æ¡Gµ´¹ï¹L´Á 30 ¤ÀÄÁ</summary>
+            /// <summary>å¤šå°çµ„æ¸…å–®ï¼šçµ•å°éæœŸ 30 åˆ†é˜</summary>
             public static readonly TimeSpan MultiGroupList = TimeSpan.FromMinutes(30);
 
-            /// <summary>¶g³ø¸ê®Æ¡Gµ´¹ï¹L´Á 15 ¤ÀÄÁ</summary>
+            /// <summary>é€±å ±è³‡æ–™ï¼šçµ•å°éæœŸ 15 åˆ†é˜</summary>
             public static readonly TimeSpan WeeklyReport = TimeSpan.FromMinutes(15);
 
-            /// <summary>¹Ïªí¸ê®Æ¡G·Æ°Ê¹L´Á 10 ¤ÀÄÁ</summary>
+            /// <summary>åœ–è¡¨è³‡æ–™ï¼šæ»‘å‹•éæœŸ 10 åˆ†é˜</summary>
             public static readonly TimeSpan ChartData = TimeSpan.FromMinutes(10);
 
-            /// <summary>·|­û²M³æ¡Gµ´¹ï¹L´Á 10 ¤ÀÄÁ</summary>
+            /// <summary>æœƒå“¡æ¸…å–®ï¼šçµ•å°éæœŸ 10 åˆ†é˜</summary>
             public static readonly TimeSpan Members = TimeSpan.FromMinutes(10);
 
-            /// <summary>¤U©Ô¿ï³æ¡Gµ´¹ï¹L´Á 60 ¤ÀÄÁ</summary>
+            /// <summary>ä¸‹æ‹‰é¸å–®ï¼šçµ•å°éæœŸ 60 åˆ†é˜</summary>
             public static readonly TimeSpan Dropdown = TimeSpan.FromMinutes(60);
 
-            /// <summary>¤p²Õ¾ã¦X¸ê®Æ¡Gµ´¹ï¹L´Á 15 ¤ÀÄÁ</summary>
+            /// <summary>å°çµ„æ•´åˆè³‡æ–™ï¼šçµ•å°éæœŸ 15 åˆ†é˜</summary>
             public static readonly TimeSpan IntegrateData = TimeSpan.FromMinutes(15);
 
-            /// <summary>Ápµ¸¤H¸ê®Æ¡Gµ´¹ï¹L´Á 30 ¤ÀÄÁ</summary>
+            /// <summary>è¯çµ¡äººè³‡æ–™ï¼šçµ•å°éæœŸ 30 åˆ†é˜</summary>
             public static readonly TimeSpan Contact = TimeSpan.FromMinutes(30);
 
-            /// <summary>¥X®u°O¿ı¡Gµ´¹ï¹L´Á 10 ¤ÀÄÁ</summary>
+            /// <summary>å‡ºå¸­è¨˜éŒ„ï¼šçµ•å°éæœŸ 10 åˆ†é˜</summary>
             public static readonly TimeSpan PresentRecord = TimeSpan.FromMinutes(10);
 
-            /// <summary>²M³æ¹êÅé¡Gµ´¹ï¹L´Á 30 ¤ÀÄÁ</summary>
+            /// <summary>æ¸…å–®å¯¦é«”ï¼šçµ•å°éæœŸ 30 åˆ†é˜</summary>
             public static readonly TimeSpan ListEntity = TimeSpan.FromMinutes(30);
 
-            /// <summary>µu´Á§Ö¨ú¡G5 ¤ÀÄÁ</summary>
+            /// <summary>çŸ­æœŸå¿«å–ï¼š5 åˆ†é˜</summary>
             public static readonly TimeSpan Short = TimeSpan.FromMinutes(5);
 
-            /// <summary>¤¤´Á§Ö¨ú¡G15 ¤ÀÄÁ</summary>
+            /// <summary>ä¸­æœŸå¿«å–ï¼š15 åˆ†é˜</summary>
             public static readonly TimeSpan Medium = TimeSpan.FromMinutes(15);
 
-            /// <summary>ªø´Á§Ö¨ú¡G60 ¤ÀÄÁ</summary>
+            /// <summary>é•·æœŸå¿«å–ï¼š60 åˆ†é˜</summary>
             public static readonly TimeSpan Long = TimeSpan.FromMinutes(60);
         }
 

@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/WebServiceConnector/UploadIntegrateData.PresentRecord.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass UploadIntegrateData
+// ä¸»è¦æˆå“¡ï¼šCreatePresentRecordListã€ConvertAttributeToExpectedTypeUsingMetadataã€CreatePresentRecordListByListã€CreatePresentRecordã€ConvertAttributeToExpectedTypeã€UpdatePresentRecordã€UpdateSinglePresentRecordã€SetupPresentRecordEntityAttributesã€SetupLeaderReferencesã€SetupAttendanceAttributes
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€System.ServiceModelã€System.Text.RegularExpressionsã€System.Collections.Genericã€ChurchReport.Modelsã€ChurchReport.Models.CrmTransmitModuleã€Microsoft.Xrm.Sdk
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using System.ServiceModel;
 using System.Text.RegularExpressions;
@@ -9,28 +22,28 @@ using Microsoft.Xrm.Sdk;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ¤W¶Ç¾ã¦X¸ê®Æ - ¥X®u°O¿ıºŞ²z (Partial)
-    /// ¥]§t¡G«Ø¥ß/§ó·s Present Record
+    /// ä¸Šå‚³æ•´åˆè³‡æ–™ - å‡ºå¸­è¨˜éŒ„ç®¡ç† (Partial)
+    /// åŒ…å«ï¼šå»ºç«‹/æ›´æ–° Present Record
     /// </summary>
     public partial class UploadIntegrateData
     {
-        #region «Ø¥ß¥X®u°O¿ı
+        #region å»ºç«‹å‡ºå¸­è¨˜éŒ„
 
         private EntityCollection CreatePresentRecordList(
-            SmallGroupData aSmallGroupData, 
-            String GroupName, 
-            ref Entity aListEntity, 
-            ref Guid aWeeklyReportId, 
-            Double ValidNumber, 
-            ref Double aWeeklySundayRate, 
-            ref Double aWeeklySmallGroupRate, 
-            ref int aWeeklySundayNumber, 
-            ref int aWeeklySmallGroupNumber, 
-            ref int ValidSundayMemberNumber, 
-            ref int ValidSmallGroupMemberNumber, 
-            ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, 
-            String HappyWeekIndex, 
-            String HappyWeekTopic, 
+            SmallGroupData aSmallGroupData,
+            String GroupName,
+            ref Entity aListEntity,
+            ref Guid aWeeklyReportId,
+            Double ValidNumber,
+            ref Double aWeeklySundayRate,
+            ref Double aWeeklySmallGroupRate,
+            ref int aWeeklySundayNumber,
+            ref int aWeeklySmallGroupNumber,
+            ref int ValidSundayMemberNumber,
+            ref int ValidSmallGroupMemberNumber,
+            ref GroupWeeklyReportGuid aGroupWeeklyReportGuid,
+            String HappyWeekIndex,
+            String HappyWeekTopic,
             bool PauseCheckBox)
         {
             EntityCollection PresentRecordEntityCollection = new EntityCollection();
@@ -38,9 +51,9 @@ namespace ChurchReport.WebServiceConnector
             foreach (Member aMemberInfomation in aSmallGroupData.Members)
             {
                 Entity aPresentRecord = CreatePresentRecord(
-                    aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, 
-                    ref aWeeklySundayRate, ref aWeeklySmallGroupRate, 
-                    ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, 
+                    aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber,
+                    ref aWeeklySundayRate, ref aWeeklySmallGroupRate,
+                    ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber,
                     ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
                 this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
@@ -120,33 +133,33 @@ namespace ChurchReport.WebServiceConnector
             return null;
         }
         private EntityCollection CreatePresentRecordListByList(
-            SmallGroupData aSmallGroupData, 
-            SmallGroupData aSmallGroupDataFromList, 
-            String GroupName, 
-            ref Entity aListEntity, 
-            ref Guid aWeeklyReportId, 
-            Double ValidNumber, 
-            ref Double aWeeklySundayRate, 
-            ref Double aWeeklySmallGroupRate, 
-            ref int aWeeklySundayNumber, 
-            ref int aWeeklySmallGroupNumber, 
-            ref int ValidSundayMemberNumber, 
-            ref int ValidSmallGroupMemberNumber, 
-            ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, 
-            String HappyWeekIndex, 
-            String HappyWeekTopic, 
+            SmallGroupData aSmallGroupData,
+            SmallGroupData aSmallGroupDataFromList,
+            String GroupName,
+            ref Entity aListEntity,
+            ref Guid aWeeklyReportId,
+            Double ValidNumber,
+            ref Double aWeeklySundayRate,
+            ref Double aWeeklySmallGroupRate,
+            ref int aWeeklySundayNumber,
+            ref int aWeeklySmallGroupNumber,
+            ref int ValidSundayMemberNumber,
+            ref int ValidSmallGroupMemberNumber,
+            ref GroupWeeklyReportGuid aGroupWeeklyReportGuid,
+            String HappyWeekIndex,
+            String HappyWeekTopic,
             bool PauseCheckBox)
         {
             EntityCollection PresentRecordEntityCollection = new EntityCollection();
 
-            if (aSmallGroupData.LoginType == "¤p²Õªø")
+            if (aSmallGroupData.LoginType == "å°çµ„é•·")
             {
                 foreach (Member aMemberInfomation in aSmallGroupData.Members)
                 {
                     Entity aPresentRecord = CreatePresentRecord(
-                        aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, 
-                        ref aWeeklySundayRate, ref aWeeklySmallGroupRate, 
-                        ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, 
+                        aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber,
+                        ref aWeeklySundayRate, ref aWeeklySmallGroupRate,
+                        ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber,
                         ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
                     this.m_ToolUtilityClass.AssignOwner("new_present_record", aPresentRecord, this.m_OwnerId);
@@ -163,17 +176,17 @@ namespace ChurchReport.WebServiceConnector
                     if (aSmallGroupData.Members[0].FullName != aMemberInfomation.FullName)
                     {
                         aPresentRecord = CreatePresentRecord(
-                            aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber, 
-                            ref aWeeklySundayRate, ref aWeeklySmallGroupRate, 
-                            ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, 
+                            aMemberInfomation, ref aListEntity, ref aWeeklyReportId, ValidNumber,
+                            ref aWeeklySundayRate, ref aWeeklySmallGroupRate,
+                            ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber,
                             ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                     }
                     else
                     {
                         aPresentRecord = CreatePresentRecord(
-                            aSmallGroupData.Members[0], ref aListEntity, ref aWeeklyReportId, ValidNumber, 
-                            ref aWeeklySundayRate, ref aWeeklySmallGroupRate, 
-                            ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, 
+                            aSmallGroupData.Members[0], ref aListEntity, ref aWeeklyReportId, ValidNumber,
+                            ref aWeeklySundayRate, ref aWeeklySmallGroupRate,
+                            ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber,
                             ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                     }
 
@@ -189,17 +202,17 @@ namespace ChurchReport.WebServiceConnector
         }
 
         private Entity CreatePresentRecord(
-            Member aMemberInfomation, 
-            ref Entity aListEntity, 
-            ref Guid aWeeklyReportId, 
-            Double ValidNumber, 
-            ref Double aWeeklySundayRate, 
-            ref Double aWeeklySmallGroupRate, 
-            ref int aWeeklySundayNumber, 
-            ref int aWeeklySmallGroupNumber, 
-            ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, 
-            String HappyWeekIndex, 
-            String HappyWeekTopic, 
+            Member aMemberInfomation,
+            ref Entity aListEntity,
+            ref Guid aWeeklyReportId,
+            Double ValidNumber,
+            ref Double aWeeklySundayRate,
+            ref Double aWeeklySmallGroupRate,
+            ref int aWeeklySundayNumber,
+            ref int aWeeklySmallGroupNumber,
+            ref GroupWeeklyReportGuid aGroupWeeklyReportGuid,
+            String HappyWeekIndex,
+            String HappyWeekTopic,
             bool PauseCheckBox)
         {
             Entity aContactEntity = UpdateContactInfomationFromList(aMemberInfomation.FullName, aListEntity.Id);
@@ -213,9 +226,9 @@ namespace ChurchReport.WebServiceConnector
             Entity aPresentRecord = new Entity("new_present_record");
 
             SetupPresentRecordEntityAttributes(
-                aPresentRecord, aMemberInfomation, ref aContactEntity, ref aListEntity, 
-                ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, 
-                ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, 
+                aPresentRecord, aMemberInfomation, ref aContactEntity, ref aListEntity,
+                ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate,
+                ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber,
                 ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
             // Try to create present record robustly: if CRM reports missing attributes, remove them and retry
@@ -250,7 +263,7 @@ namespace ChurchReport.WebServiceConnector
                 if (!supportedAttrs.Contains(key))
                 {
                     aPresentRecord.Attributes.Remove(key);
-                    this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] ©ó«Ø¥ß«e²¾°£¤£¤ä´©Äæ¦ì '{key}'");
+                    this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] æ–¼å»ºç«‹å‰ç§»é™¤ä¸æ”¯æ´æ¬„ä½ '{key}'");
                     continue;
                 }
 
@@ -265,7 +278,7 @@ namespace ChurchReport.WebServiceConnector
                         {
                             // If conversion failed, remove attribute to be safe
                             aPresentRecord.Attributes.Remove(key);
-                            System.Diagnostics.Trace.WriteLine($"[CreatePresentRecord] ²¾°£¦]«¬§O¤£²ÅªºÄæ¦ì '{key}' (metadata)");
+                            System.Diagnostics.Trace.WriteLine($"[CreatePresentRecord] ç§»é™¤å› å‹åˆ¥ä¸ç¬¦çš„æ¬„ä½ '{key}' (metadata)");
                         }
                         else
                         {
@@ -275,7 +288,7 @@ namespace ChurchReport.WebServiceConnector
                     catch (Exception ex)
                     {
                         aPresentRecord.Attributes.Remove(key);
-                        System.Diagnostics.Trace.WriteLine($"[CreatePresentRecord] Âà´«Äæ¦ì '{key}' «¬§O¥¢±Ñ: {ex.Message}");
+                        System.Diagnostics.Trace.WriteLine($"[CreatePresentRecord] è½‰æ›æ¬„ä½ '{key}' å‹åˆ¥å¤±æ•—: {ex.Message}");
                     }
                 }
             }
@@ -308,7 +321,7 @@ namespace ChurchReport.WebServiceConnector
                     if (!string.IsNullOrEmpty(attrName) && aPresentRecord.Attributes.Contains(attrName))
                     {
                         aPresentRecord.Attributes.Remove(attrName);
-                        this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] ²¾°£Äæ¦ì '{attrName}' ¨Ã­«¸Õ (¹Á¸Õ {attempt})");
+                        this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] ç§»é™¤æ¬„ä½ '{attrName}' ä¸¦é‡è©¦ (å˜—è©¦ {attempt})");
                         continue;
                     }
 
@@ -319,7 +332,7 @@ namespace ChurchReport.WebServiceConnector
                         if (aPresentRecord.Attributes.Contains(candidate))
                         {
                             aPresentRecord.Attributes.Remove(candidate);
-                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] ²¾°£Àu¥ı­Ô¿ïÄæ¦ì '{candidate}' ¨Ã­«¸Õ (¹Á¸Õ {attempt})");
+                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] ç§»é™¤å„ªå…ˆå€™é¸æ¬„ä½ '{candidate}' ä¸¦é‡è©¦ (å˜—è©¦ {attempt})");
                             removed = true;
                             break;
                         }
@@ -335,22 +348,22 @@ namespace ChurchReport.WebServiceConnector
                         {
                             removedAttr = key;
                             aPresentRecord.Attributes.Remove(key);
-                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] ²¾°£ Int32 Ãş«¬Äæ¦ì '{key}' ¨Ã­«¸Õ (¹Á¸Õ {attempt})");
+                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] ç§»é™¤ Int32 é¡å‹æ¬„ä½ '{key}' ä¸¦é‡è©¦ (å˜—è©¦ {attempt})");
                             break;
                         }
                     }
                     if (!string.IsNullOrEmpty(removedAttr)) continue;
 
                     // Could not resolve - log and rethrow
-                    this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] µLªk³B²z FaultException: {ex.Message}");
+                    this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"[CreatePresentRecord] ç„¡æ³•è™•ç† FaultException: {ex.Message}");
                     throw;
                 }
             }
 
             if (aPresentRecordId == Guid.Empty)
             {
-                // ³Ì«á¤´µLªk«Ø¥ß¡A°O¿ı¨Ã¦^¶Ç null
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "[CreatePresentRecord] µLªk«Ø¥ß new_present_record (­«¸Õ¦¸¼Æ¹F¤W­­)");
+                // æœ€å¾Œä»ç„¡æ³•å»ºç«‹ï¼Œè¨˜éŒ„ä¸¦å›å‚³ null
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "[CreatePresentRecord] ç„¡æ³•å»ºç«‹ new_present_record (é‡è©¦æ¬¡æ•¸é”ä¸Šé™)");
                 return null;
             }
 
@@ -433,22 +446,22 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region §ó·s¥X®u°O¿ı
+        #region æ›´æ–°å‡ºå¸­è¨˜éŒ„
 
         private void UpdatePresentRecord(
-            List<MemberInfomation> aGroupNamedListMemberInfomation, 
-            EntityCollection PresentRecordCollection, 
-            ref Entity aListEntity, 
-            ref Guid aWeeklyReportId, 
-            Double ValidNumber, 
-            ref Double aWeeklySundayRate, 
-            ref Double aWeeklySmallGroupRate, 
-            ref int aWeeklySundayNumber, 
-            ref int aWeeklySmallGroupNumber, 
-            ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, 
-            SmallGroupData aSmallGroupData, 
-            String HappyWeekIndex, 
-            String HappyWeekTopic, 
+            List<MemberInfomation> aGroupNamedListMemberInfomation,
+            EntityCollection PresentRecordCollection,
+            ref Entity aListEntity,
+            ref Guid aWeeklyReportId,
+            Double ValidNumber,
+            ref Double aWeeklySundayRate,
+            ref Double aWeeklySmallGroupRate,
+            ref int aWeeklySundayNumber,
+            ref int aWeeklySmallGroupNumber,
+            ref GroupWeeklyReportGuid aGroupWeeklyReportGuid,
+            SmallGroupData aSmallGroupData,
+            String HappyWeekIndex,
+            String HappyWeekTopic,
             bool PauseCheckBox)
         {
             try
@@ -460,18 +473,18 @@ namespace ChurchReport.WebServiceConnector
                     if (aMachedPresentRecordEntity != null)
                     {
                         UpdateSinglePresentRecord(
-                            aMember, aMachedPresentRecordEntity, ref aListEntity, 
-                            ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, 
-                            ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, 
+                            aMember, aMachedPresentRecordEntity, ref aListEntity,
+                            ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate,
+                            ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber,
                             HappyWeekTopic, PauseCheckBox);
                     }
                 }
 
-                // ²¾°£¤w«ü¬£©ÎÂà¤¶ªº¦¨­û
+                // ç§»é™¤å·²æŒ‡æ´¾æˆ–è½‰ä»‹çš„æˆå“¡
                 for (int i = aSmallGroupData.Members.Count - 1; i >= 0; i--)
                 {
-                    if (!string.IsNullOrEmpty(aSmallGroupData.Members[i].AssignedGroup) || 
-                        aSmallGroupData.Members[i].FollowUpNextStep == "Âà¤¶")
+                    if (!string.IsNullOrEmpty(aSmallGroupData.Members[i].AssignedGroup) ||
+                        aSmallGroupData.Members[i].FollowUpNextStep == "è½‰ä»‹")
                     {
                         aSmallGroupData.Members.RemoveAt(i);
                     }
@@ -479,7 +492,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -497,7 +510,7 @@ namespace ChurchReport.WebServiceConnector
             String HappyWeekTopic,
             bool PauseCheckBox)
         {
-            // §ó·sÁpµ¸¤H¸ê°T
+            // æ›´æ–°è¯çµ¡äººè³‡è¨Š
             EntityReference aFullNameEntityReference = aMachedPresentRecordEntity.Attributes.Contains("new_contact_new_present_record")
                 ? (EntityReference)aMachedPresentRecordEntity.Attributes["new_contact_new_present_record"]
                 : new EntityReference();
@@ -506,52 +519,52 @@ namespace ChurchReport.WebServiceConnector
             Entity aToUpdateContactEntity = this.m_ToolUtilityClass.RetrieveEntity("contact", aFullNameEntityReference.Id);
             UpdateContactInfomation(aListEntity.Id, aMember, ref aToUpdateContactEntity, HappyWeekTopic);
 
-            // ¨ú±o©e¨­Ãş«¬
+            // å–å¾—å§”èº«é¡å‹
             String ClearIdentity = "";
             bool AccumulateFlag = this.IsValidMember(aMachedPresentRecordEntity, ref ClearIdentity);
 
-            // ³]©w¥D¤é¥X®u
+            // è¨­å®šä¸»æ—¥å‡ºå¸­
             if (aMember.Sunday)
             {
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_sunday_present_this_week", 1);
-                AddToDictionaryByIdentity(aListEntity.Id, "¥D¤é", ref ClearIdentity, ref aContactEntity, true);
+                AddToDictionaryByIdentity(aListEntity.Id, "ä¸»æ—¥", ref ClearIdentity, ref aContactEntity, true);
                 aWeeklySundayNumber += 1;
                 if (ValidNumber > 0 && AccumulateFlag)
                     aWeeklySundayRate += 1 / ValidNumber;
             }
             else
             {
-                AddToDictionaryByIdentity(aListEntity.Id, "¥D¤é", ref ClearIdentity, ref aContactEntity, false);
+                AddToDictionaryByIdentity(aListEntity.Id, "ä¸»æ—¥", ref ClearIdentity, ref aContactEntity, false);
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_sunday_present_this_week", 0);
                 this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_sunday_rate", 0.0);
             }
 
-            // ³]©w¤p²Õ¥X®u
+            // è¨­å®šå°çµ„å‡ºå¸­
             if (aMember.SmallGroup)
             {
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_group_present_this_week", 1);
-                AddToDictionaryByIdentity(aListEntity.Id, "¤p²Õ", ref ClearIdentity, ref aContactEntity, true);
+                AddToDictionaryByIdentity(aListEntity.Id, "å°çµ„", ref ClearIdentity, ref aContactEntity, true);
                 aWeeklySmallGroupNumber += 1;
                 if (ValidNumber > 0 && AccumulateFlag)
                     aWeeklySmallGroupRate += 1 / ValidNumber;
             }
             else
             {
-                AddToDictionaryByIdentity(aListEntity.Id, "¤p²Õ", ref ClearIdentity, ref aContactEntity, false);
+                AddToDictionaryByIdentity(aListEntity.Id, "å°çµ„", ref ClearIdentity, ref aContactEntity, false);
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_group_present_this_week", 0);
                 this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aMachedPresentRecordEntity, "new_small_group_rate", 0);
             }
 
-            // ³]©w©¯ºÖ¤p²Õ»P¨M§Ó
+            // è¨­å®šå¹¸ç¦å°çµ„èˆ‡æ±ºå¿—
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_happy_present", aMember.SmallGroup ? 1 : 0);
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_happy_decision", aMember.Decision ? 1 : 0);
 
-            // ³]©w¥NÃ«¨Æ¶µ»P¸ò¶i
+            // è¨­å®šä»£ç¦±äº‹é …èˆ‡è·Ÿé€²
             this.m_ToolUtilityClass.SetEntityStringAttribute(ref aMachedPresentRecordEntity, "new_explanation", aMember.PrayItem);
             this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_weeks", ConvertFollowUpWeekPickerToIndex(aMember.FollowUpWeek));
             this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_conclusion_choise", ConvertFollowUpResultPickerToIndex(aMember.FollowUpResult));
 
-            // ³]©w±´³X (new_visit OptionSet)
+            // è¨­å®šæ¢è¨ª (new_visit OptionSet)
             int visitOptionValue = ConvertVisitToIndex(aMember.Visit);
             if (visitOptionValue != EMPTY_VALUE)
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aMachedPresentRecordEntity, "new_visit", visitOptionValue);
@@ -567,23 +580,23 @@ namespace ChurchReport.WebServiceConnector
 
             AddToDictionaryFollowByIdentity(ref ClearIdentity, ref aContactEntity, aMember);
 
-            // ³]©wÆF­×¦¸¼Æ
+            // è¨­å®šéˆä¿®æ¬¡æ•¸
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_spiritual_work", aMember.SpiritualWork);
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_morning_pray", aMember.MorningPray);
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aMachedPresentRecordEntity, "new_general_care", aMember.GeneralCare);
 
-            // ³]©w¼È°±»PÅã¥Ü
+            // è¨­å®šæš«åœèˆ‡é¡¯ç¤º
             this.m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_pause", PauseCheckBox);
 
-            if (!string.IsNullOrEmpty(aMember.AssignedGroup) && !aMember.AssignedGroup.Contains("ÃöÃh"))
+            if (!string.IsNullOrEmpty(aMember.AssignedGroup) && !aMember.AssignedGroup.Contains("é—œæ‡·"))
                 m_ToolUtilityClass.SetEntityBoolAttribute(ref aMachedPresentRecordEntity, "new_not_display", true);
 
             this.m_ToolUtilityClass.AssignOwner("new_present_record", aMachedPresentRecordEntity, this.m_OwnerId);
 
-            // ³B²z¤p²Õ«ü¬£
+            // è™•ç†å°çµ„æŒ‡æ´¾
             if (!string.IsNullOrEmpty(aMember.AssignedGroup))
                 AssignNewSmallGroup(aMachedPresentRecordEntity, aMember.AssignedGroup, aListEntity);
-            else if (aMember.FollowUpNextStep == "Âà¤¶")
+            else if (aMember.FollowUpNextStep == "è½‰ä»‹")
                 TerminateNewPersonFollowUp(aMachedPresentRecordEntity, aMember.AssignedGroup, aListEntity);
 
             this.m_ToolUtilityClass.UpdateEntity(ref aMachedPresentRecordEntity);
@@ -591,41 +604,41 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ³]©w¥X®u°O¿ıÄİ©Ê
+        #region è¨­å®šå‡ºå¸­è¨˜éŒ„å±¬æ€§
 
         private void SetupPresentRecordEntityAttributes(
-            Entity aPresentRecord, 
-            Member aMemberInfomation, 
-            ref Entity aContactEntity, 
-            ref Entity aListEntity, 
-            ref Guid aWeeklyReportId, 
-            Double ValidNumber, 
-            ref Double aWeeklySundayRate, 
-            ref Double aWeeklySmallGroupRate, 
-            ref int aWeeklySundayNumber, 
-            ref int aWeeklySmallGroupNumber, 
-            ref GroupWeeklyReportGuid aGroupWeeklyReportGuid, 
-            String HappyWeekIndex, 
-            String HappyWeekTopic, 
+            Entity aPresentRecord,
+            Member aMemberInfomation,
+            ref Entity aContactEntity,
+            ref Entity aListEntity,
+            ref Guid aWeeklyReportId,
+            Double ValidNumber,
+            ref Double aWeeklySundayRate,
+            ref Double aWeeklySmallGroupRate,
+            ref int aWeeklySundayNumber,
+            ref int aWeeklySmallGroupNumber,
+            ref GroupWeeklyReportGuid aGroupWeeklyReportGuid,
+            String HappyWeekIndex,
+            String HappyWeekTopic,
             bool PauseCheckBox)
         {
             try
             {
-                // ³]©w¦WºÙ
-                String PresentRecordName = $"{aMemberInfomation.FullName}-{this.m_Sunday:00}/{this.m_Sunday.Month:00}/{this.m_Sunday.Day:00} ¥X®u¬ö¿ı";
+                // è¨­å®šåç¨±
+                String PresentRecordName = $"{aMemberInfomation.FullName}-{this.m_Sunday:00}/{this.m_Sunday.Month:00}/{this.m_Sunday.Day:00} å‡ºå¸­ç´€éŒ„";
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", PresentRecordName);
 
-                // ³]©wÁpµ¸¤H
+                // è¨­å®šè¯çµ¡äºº
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_new_present_record", "contact", aContactEntity.Id);
 
-                // ÃöÁp¶g³ø
+                // é—œè¯é€±å ±
                 if (aWeeklyReportId != Guid.Empty)
                     this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_group_present_weekly_report_prese", "new_group_present_weekly_report", aWeeklyReportId);
 
-                // ³]©w»â³SÃöÁp
+                // è¨­å®šé ˜è¢–é—œè¯
                 SetupLeaderReferences(ref aPresentRecord, ref aListEntity);
 
-                // ³]©w¤é´Á»P¦aÂI
+                // è¨­å®šæ—¥æœŸèˆ‡åœ°é»
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", this.m_Sunday);
                 if (aGroupWeeklyReportGuid.SmallGroupDate.Year > 1)
                     this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_group_date", aGroupWeeklyReportGuid.SmallGroupDate);
@@ -633,19 +646,19 @@ namespace ChurchReport.WebServiceConnector
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_group_place", m_SmallGroupPlace);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_group_time", m_SmallGroupTime);
 
-                // ¨ú±o©e¨­Ãş«¬
+                // å–å¾—å§”èº«é¡å‹
                 int OptionSetNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 String ClearIdentity = this.ConvertIndexToClearIdentity(OptionSetNumber);
 
-                // ³]©w¥X®u
-                SetupAttendanceAttributes(ref aPresentRecord, aMemberInfomation, ref aListEntity, ValidNumber, 
-                    ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, 
+                // è¨­å®šå‡ºå¸­
+                SetupAttendanceAttributes(ref aPresentRecord, aMemberInfomation, ref aListEntity, ValidNumber,
+                    ref aWeeklySundayRate, ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber,
                     ref ClearIdentity, ref aContactEntity);
 
-                // ³]©w·s¤H¸ò¶i
+                // è¨­å®šæ–°äººè·Ÿé€²
                 SetupFollowUpAttributes(ref aPresentRecord, aMemberInfomation, ref ClearIdentity, ref aContactEntity);
 
-                // ³]©wÆF­×»P¨ä¥L
+                // è¨­å®šéˆä¿®èˆ‡å…¶ä»–
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_spiritual_work", aMemberInfomation.SpiritualWork);
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_morning_pray", aMemberInfomation.MorningPray);
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_general_care", aMemberInfomation.GeneralCare);
@@ -679,22 +692,22 @@ namespace ChurchReport.WebServiceConnector
         }
 
         private void SetupAttendanceAttributes(
-            ref Entity aPresentRecord, 
-            Member aMemberInfomation, 
-            ref Entity aListEntity, 
+            ref Entity aPresentRecord,
+            Member aMemberInfomation,
+            ref Entity aListEntity,
             Double ValidNumber,
-            ref Double aWeeklySundayRate, 
-            ref Double aWeeklySmallGroupRate, 
-            ref int aWeeklySundayNumber, 
+            ref Double aWeeklySundayRate,
+            ref Double aWeeklySmallGroupRate,
+            ref int aWeeklySundayNumber,
             ref int aWeeklySmallGroupNumber,
-            ref String ClearIdentity, 
+            ref String ClearIdentity,
             ref Entity aContactEntity)
         {
-            // ¥D¤é¥X®u
+            // ä¸»æ—¥å‡ºå¸­
             if (aMemberInfomation.Sunday)
             {
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_sunday_present_this_week", 1);
-                AddToDictionaryByIdentity(aListEntity.Id, "¥D¤é", ref ClearIdentity, ref aContactEntity, true);
+                AddToDictionaryByIdentity(aListEntity.Id, "ä¸»æ—¥", ref ClearIdentity, ref aContactEntity, true);
                 aWeeklySundayNumber += 1;
                 if (ValidNumber > 0 && IsValidContact(aContactEntity))
                 {
@@ -704,16 +717,16 @@ namespace ChurchReport.WebServiceConnector
             }
             else
             {
-                AddToDictionaryByIdentity(aListEntity.Id, "¥D¤é", ref ClearIdentity, ref aContactEntity, false);
+                AddToDictionaryByIdentity(aListEntity.Id, "ä¸»æ—¥", ref ClearIdentity, ref aContactEntity, false);
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_sunday_present_this_week", 0);
                 this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aPresentRecord, "new_sunday_rate", 0);
             }
 
-            // ¤p²Õ¥X®u
+            // å°çµ„å‡ºå¸­
             if (aMemberInfomation.SmallGroup)
             {
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_group_present_this_week", 1);
-                AddToDictionaryByIdentity(aListEntity.Id, "¤p²Õ", ref ClearIdentity, ref aContactEntity, true);
+                AddToDictionaryByIdentity(aListEntity.Id, "å°çµ„", ref ClearIdentity, ref aContactEntity, true);
                 aWeeklySmallGroupNumber += 1;
                 if (ValidNumber > 0 && IsValidContact(aContactEntity))
                 {
@@ -723,12 +736,12 @@ namespace ChurchReport.WebServiceConnector
             }
             else
             {
-                AddToDictionaryByIdentity(aListEntity.Id, "¤p²Õ", ref ClearIdentity, ref aContactEntity, false);
+                AddToDictionaryByIdentity(aListEntity.Id, "å°çµ„", ref ClearIdentity, ref aContactEntity, false);
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_group_present_this_week", 0);
                 this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aPresentRecord, "new_small_group_rate", 0);
             }
 
-            // ¨ä¥L»E·|
+            // å…¶ä»–èšæœƒ
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_prayer_meeting_number", aMemberInfomation.PrayerMeeting ? 1 : 0);
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_child_number", aMemberInfomation.Child ? 1 : 0);
             this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_big_disciple_number", aMemberInfomation.BigDisciple ? 1 : 0);
@@ -739,9 +752,9 @@ namespace ChurchReport.WebServiceConnector
         }
 
         private void SetupFollowUpAttributes(
-            ref Entity aPresentRecord, 
-            Member aMemberInfomation, 
-            ref String ClearIdentity, 
+            ref Entity aPresentRecord,
+            Member aMemberInfomation,
+            ref String ClearIdentity,
             ref Entity aContactEntity)
         {
             this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_weeks", ConvertFollowUpWeekPickerToIndex(aMemberInfomation.FollowUpWeek));
@@ -760,7 +773,7 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region »²§U¤èªk
+        #region è¼”åŠ©æ–¹æ³•
 
         private Entity SearchPresentRecordByName(String Name, ref EntityCollection PresentRecordCollection)
         {
@@ -834,8 +847,8 @@ namespace ChurchReport.WebServiceConnector
                 OptionSetValue aCustomerTypeCode = aContactEntity.Attributes["customertypecode"] as OptionSetValue;
                 ClearIdentity = this.ConvertIndexToClearIdentity(aCustomerTypeCode.Value);
 
-                return aCustomerTypeCode.Value != 100000005 && 
-                       aCustomerTypeCode.Value != 10000007 && 
+                return aCustomerTypeCode.Value != 100000005 &&
+                       aCustomerTypeCode.Value != 10000007 &&
                        aCustomerTypeCode.Value != 100000001;
             }
             catch (System.Exception e)
@@ -851,9 +864,9 @@ namespace ChurchReport.WebServiceConnector
             {
                 int aCustomerTypeCodeValue = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
 
-                return aCustomerTypeCodeValue != 100000004 && 
-                       aCustomerTypeCodeValue != 100000000 && 
-                       aCustomerTypeCodeValue != 100000007 && 
+                return aCustomerTypeCodeValue != 100000004 &&
+                       aCustomerTypeCodeValue != 100000000 &&
+                       aCustomerTypeCodeValue != 100000007 &&
                        aCustomerTypeCodeValue != EMPTY_VALUE;
             }
             catch (System.Exception e)
@@ -889,8 +902,8 @@ namespace ChurchReport.WebServiceConnector
                 if (ContactEntity.Attributes.Contains("customertypecode"))
                 {
                     OptionSetValue aCustomerTypeCode = ContactEntity.Attributes["customertypecode"] as OptionSetValue;
-                    if (aCustomerTypeCode.Value != 100000004 && 
-                        aCustomerTypeCode.Value != 100000000 && 
+                    if (aCustomerTypeCode.Value != 100000004 &&
+                        aCustomerTypeCode.Value != 100000000 &&
                         aCustomerTypeCode.Value != 100000007)
                     {
                         EffectiveNumber++;

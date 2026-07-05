@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šToolUtility/ListOperations/MarketingListService.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport å…±ç”¨å·¥å…·èˆ‡æ•´åˆè¼”åŠ©å±¤ï¼ŒåŒ…å«é€šçŸ¥ã€ä»˜æ¬¾ã€CRM æˆ–è·¨æ¨¡çµ„ helperã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šinterface IMarketingListServiceã€class MarketingListService
+// ä¸»è¦æˆå“¡ï¼šRetrieveMembersByListIdã€GetAllMemberDataã€AddMemberã€AddMembersAsyncã€AddMembersUsingSdkAsyncã€RemoveMemberã€RemoveMembersAsync
+// å¼•ç”¨å‘½åç©ºé–“ï¼šMicrosoft.Crm.Sdk.Messagesã€Microsoft.Xrm.Sdkã€Microsoft.Xrm.Sdk.Queryã€Systemã€System.Collectionsã€System.Collections.Genericã€System.Diagnosticsã€System.Linq
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
@@ -13,36 +26,36 @@ using ToolUtilityNameSpace.EntityOperations;
 namespace ToolUtilityNameSpace.ListOperations
 {
     /// <summary>
-    /// ¦æ¾P¦W³æªA°È¤¶­±
-    /// ¿í´` Interface Segregation Principle (ISP)
+    /// è¡ŒéŠ·åå–®æœå‹™ä»‹é¢
+    /// éµå¾ª Interface Segregation Principle (ISP)
     /// </summary>
     public interface IMarketingListService
     {
-        /// <summary>ÀË¯Á¦W³æ¦¨­û¶°¦X</summary>
+        /// <summary>æª¢ç´¢åå–®æˆå“¡é›†åˆ</summary>
         EntityCollection RetrieveMembersByListId(Guid listId);
 
-        /// <summary>¨ú±o¦W³æ©Ò¦³¦¨­û¸ê®Æ</summary>
+        /// <summary>å–å¾—åå–®æ‰€æœ‰æˆå“¡è³‡æ–™</summary>
         ArrayList GetAllMemberData(Guid listId);
 
-        /// <summary>²K¥[¦¨­û¨ì¦W³æ</summary>
+        /// <summary>æ·»åŠ æˆå“¡åˆ°åå–®</summary>
         void AddMember(Guid listGuid, Guid memberGuid);
 
-        /// <summary>§å¦¸²K¥[¦¨­û¨ì¦W³æ («D¦P¨B)</summary>
+        /// <summary>æ‰¹æ¬¡æ·»åŠ æˆå“¡åˆ°åå–® (éåŒæ­¥)</summary>
         Task<int> AddMembersAsync(Guid listGuid, List<Guid> memberGuidList, int batchSize = 50, CancellationToken cancellationToken = default);
 
-        /// <summary>¨Ï¥Î SDK §å¦¸²K¥[¦¨­û (³Ì°ª®Ä)</summary>
+        /// <summary>ä½¿ç”¨ SDK æ‰¹æ¬¡æ·»åŠ æˆå“¡ (æœ€é«˜æ•ˆ)</summary>
         Task<int> AddMembersUsingSdkAsync(Guid listGuid, List<Guid> memberGuidList, IOrganizationService service, int maxBatchSize = 1000, CancellationToken cancellationToken = default);
 
-        /// <summary>²¾°£¦W³æ¦¨­û</summary>
+        /// <summary>ç§»é™¤åå–®æˆå“¡</summary>
         void RemoveMember(Guid listGuid, Guid memberGuid);
 
-        /// <summary>§å¦¸²¾°£¦W³æ¦¨­û («D¦P¨B)</summary>
+        /// <summary>æ‰¹æ¬¡ç§»é™¤åå–®æˆå“¡ (éåŒæ­¥)</summary>
         Task<int> RemoveMembersAsync(Guid listGuid, List<Guid> memberGuidList, int batchSize = 50, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
-    /// ¦æ¾P¦W³æªA°È¹ê²{
-    /// ¨Ï¥Î Repository Pattern + Strategy Pattern Àu¤Æ§å¦¸¾Ş§@
+    /// è¡ŒéŠ·åå–®æœå‹™å¯¦ç¾
+    /// ä½¿ç”¨ Repository Pattern + Strategy Pattern å„ªåŒ–æ‰¹æ¬¡æ“ä½œ
     /// </summary>
     public class MarketingListService : IMarketingListService
     {
@@ -50,7 +63,7 @@ namespace ToolUtilityNameSpace.ListOperations
         private readonly IOrganizationService _organizationService;
 
         /// <summary>
-        /// «Øºc¨ç¼Æ - ª`¤J¨Ì¿à
+        /// å»ºæ§‹å‡½æ•¸ - æ³¨å…¥ä¾è³´
         /// </summary>
         public MarketingListService(IEntityRepository repository, IOrganizationService organizationService)
         {
@@ -59,14 +72,14 @@ namespace ToolUtilityNameSpace.ListOperations
         }
 
         /// <summary>
-        /// ÀË¯Á¦W³æ¦¨­û¶°¦X
+        /// æª¢ç´¢åå–®æˆå“¡é›†åˆ
         /// </summary>
         public EntityCollection RetrieveMembersByListId(Guid listId)
         {
             try
             {
                 if (listId == Guid.Empty)
-                    throw new ArgumentException("List ID ¤£¥i¬°ªÅ", nameof(listId));
+                    throw new ArgumentException("List ID ä¸å¯ç‚ºç©º", nameof(listId));
 
                 Trace.WriteLine($"[MarketingListService] Retrieving members for list: {listId}");
 
@@ -89,12 +102,12 @@ namespace ToolUtilityNameSpace.ListOperations
             catch (Exception ex)
             {
                 Trace.WriteLine($"[MarketingListService] RetrieveMembersByListId failed: {ex.Message}");
-                throw new InvalidOperationException("ÀË¯Á¦W³æ¦¨­û¥¢±Ñ", ex);
+                throw new InvalidOperationException("æª¢ç´¢åå–®æˆå“¡å¤±æ•—", ex);
             }
         }
 
         /// <summary>
-        /// ¨ú±o¦W³æ©Ò¦³¦¨­û¸ê®Æ
+        /// å–å¾—åå–®æ‰€æœ‰æˆå“¡è³‡æ–™
         /// </summary>
         public ArrayList GetAllMemberData(Guid listId)
         {
@@ -116,22 +129,22 @@ namespace ToolUtilityNameSpace.ListOperations
             catch (Exception ex)
             {
                 Trace.WriteLine($"[MarketingListService] GetAllMemberData failed: {ex.Message}");
-                throw new InvalidOperationException("¨ú±o¦W³æ¦¨­û¸ê®Æ¥¢±Ñ", ex);
+                throw new InvalidOperationException("å–å¾—åå–®æˆå“¡è³‡æ–™å¤±æ•—", ex);
             }
         }
 
         /// <summary>
-        /// ²K¥[¦¨­û¨ì¦W³æ
+        /// æ·»åŠ æˆå“¡åˆ°åå–®
         /// </summary>
         public void AddMember(Guid listGuid, Guid memberGuid)
         {
             try
             {
                 if (listGuid == Guid.Empty)
-                    throw new ArgumentException("List GUID ¤£¥i¬°ªÅ", nameof(listGuid));
+                    throw new ArgumentException("List GUID ä¸å¯ç‚ºç©º", nameof(listGuid));
 
                 if (memberGuid == Guid.Empty)
-                    throw new ArgumentException("Member GUID ¤£¥i¬°ªÅ", nameof(memberGuid));
+                    throw new ArgumentException("Member GUID ä¸å¯ç‚ºç©º", nameof(memberGuid));
 
                 Trace.WriteLine($"[MarketingListService] Adding member {memberGuid} to list {listGuid}");
 
@@ -147,12 +160,12 @@ namespace ToolUtilityNameSpace.ListOperations
             catch (Exception ex)
             {
                 Trace.WriteLine($"[MarketingListService] AddMember failed: {ex.Message}");
-                throw new InvalidOperationException("²K¥[¦W³æ¦¨­û¥¢±Ñ", ex);
+                throw new InvalidOperationException("æ·»åŠ åå–®æˆå“¡å¤±æ•—", ex);
             }
         }
 
         /// <summary>
-        /// §å¦¸²K¥[¦¨­û¨ì¦W³æ («D¦P¨B) - Phase 2.3 ®Ä¯àÀu¤Æ
+        /// æ‰¹æ¬¡æ·»åŠ æˆå“¡åˆ°åå–® (éåŒæ­¥) - Phase 2.3 æ•ˆèƒ½å„ªåŒ–
         /// </summary>
         public async Task<int> AddMembersAsync(
             Guid listGuid,
@@ -163,7 +176,7 @@ namespace ToolUtilityNameSpace.ListOperations
             try
             {
                 if (listGuid == Guid.Empty)
-                    throw new ArgumentException("List GUID ¤£¥i¬°ªÅ", nameof(listGuid));
+                    throw new ArgumentException("List GUID ä¸å¯ç‚ºç©º", nameof(listGuid));
 
                 if (memberGuidList == null || memberGuidList.Count == 0)
                     return 0;
@@ -206,12 +219,12 @@ namespace ToolUtilityNameSpace.ListOperations
             catch (Exception ex)
             {
                 Trace.WriteLine($"[MarketingListService] AddMembersAsync failed: {ex.Message}");
-                throw new InvalidOperationException("§å¦¸²K¥[¦W³æ¦¨­û¥¢±Ñ", ex);
+                throw new InvalidOperationException("æ‰¹æ¬¡æ·»åŠ åå–®æˆå“¡å¤±æ•—", ex);
             }
         }
 
         /// <summary>
-        /// ¨Ï¥Î SDK §å¦¸²K¥[¦¨­û (³Ì°ª®Ä) - Phase 2.3 ®Ä¯àÀu¤Æ
+        /// ä½¿ç”¨ SDK æ‰¹æ¬¡æ·»åŠ æˆå“¡ (æœ€é«˜æ•ˆ) - Phase 2.3 æ•ˆèƒ½å„ªåŒ–
         /// </summary>
         public async Task<int> AddMembersUsingSdkAsync(
             Guid listGuid,
@@ -223,7 +236,7 @@ namespace ToolUtilityNameSpace.ListOperations
             try
             {
                 if (listGuid == Guid.Empty)
-                    throw new ArgumentException("List GUID ¤£¥i¬°ªÅ", nameof(listGuid));
+                    throw new ArgumentException("List GUID ä¸å¯ç‚ºç©º", nameof(listGuid));
 
                 if (memberGuidList == null || memberGuidList.Count == 0)
                     return 0;
@@ -268,22 +281,22 @@ namespace ToolUtilityNameSpace.ListOperations
             catch (Exception ex)
             {
                 Trace.WriteLine($"[MarketingListService] AddMembersUsingSdkAsync failed: {ex.Message}");
-                throw new InvalidOperationException("¨Ï¥Î SDK §å¦¸²K¥[¦W³æ¦¨­û¥¢±Ñ", ex);
+                throw new InvalidOperationException("ä½¿ç”¨ SDK æ‰¹æ¬¡æ·»åŠ åå–®æˆå“¡å¤±æ•—", ex);
             }
         }
 
         /// <summary>
-        /// ²¾°£¦W³æ¦¨­û
+        /// ç§»é™¤åå–®æˆå“¡
         /// </summary>
         public void RemoveMember(Guid listGuid, Guid memberGuid)
         {
             try
             {
                 if (listGuid == Guid.Empty)
-                    throw new ArgumentException("List GUID ¤£¥i¬°ªÅ", nameof(listGuid));
+                    throw new ArgumentException("List GUID ä¸å¯ç‚ºç©º", nameof(listGuid));
 
                 if (memberGuid == Guid.Empty)
-                    throw new ArgumentException("Member GUID ¤£¥i¬°ªÅ", nameof(memberGuid));
+                    throw new ArgumentException("Member GUID ä¸å¯ç‚ºç©º", nameof(memberGuid));
 
                 Trace.WriteLine($"[MarketingListService] Removing member {memberGuid} from list {listGuid}");
 
@@ -299,12 +312,12 @@ namespace ToolUtilityNameSpace.ListOperations
             catch (Exception ex)
             {
                 Trace.WriteLine($"[MarketingListService] RemoveMember failed: {ex.Message}");
-                throw new InvalidOperationException("²¾°£¦W³æ¦¨­û¥¢±Ñ", ex);
+                throw new InvalidOperationException("ç§»é™¤åå–®æˆå“¡å¤±æ•—", ex);
             }
         }
 
         /// <summary>
-        /// §å¦¸²¾°£¦W³æ¦¨­û («D¦P¨B)
+        /// æ‰¹æ¬¡ç§»é™¤åå–®æˆå“¡ (éåŒæ­¥)
         /// </summary>
         public async Task<int> RemoveMembersAsync(
             Guid listGuid,
@@ -315,7 +328,7 @@ namespace ToolUtilityNameSpace.ListOperations
             try
             {
                 if (listGuid == Guid.Empty)
-                    throw new ArgumentException("List GUID ¤£¥i¬°ªÅ", nameof(listGuid));
+                    throw new ArgumentException("List GUID ä¸å¯ç‚ºç©º", nameof(listGuid));
 
                 if (memberGuidList == null || memberGuidList.Count == 0)
                     return 0;
@@ -358,7 +371,7 @@ namespace ToolUtilityNameSpace.ListOperations
             catch (Exception ex)
             {
                 Trace.WriteLine($"[MarketingListService] RemoveMembersAsync failed: {ex.Message}");
-                throw new InvalidOperationException("§å¦¸²¾°£¦W³æ¦¨­û¥¢±Ñ", ex);
+                throw new InvalidOperationException("æ‰¹æ¬¡ç§»é™¤åå–®æˆå“¡å¤±æ•—", ex);
             }
         }
     }

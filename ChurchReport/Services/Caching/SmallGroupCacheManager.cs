@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Services/Caching/SmallGroupCacheManager.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass SmallGroupCacheManager
+// ä¸»è¦æˆå“¡ï¼šGetMultiGroupChartCacheKeyã€GetMultiGroupGridCacheKeyã€GetIntegrateCacheKeyã€ClearMultiGroupCacheã€ClearIntegrateCacheã€ClearSmallGroupCacheã€ClearAllSmallGroupCacheã€CacheExistsã€GetCacheStatisticsã€RemoveCacheKey
+// å¼•ç”¨å‘½åç©ºé–“ï¼šMicrosoft.Extensions.Caching.Memoryã€Microsoft.Extensions.Loggingã€Systemã€System.Collections.Concurrent
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆå¾å…¬é–‹å‹åˆ¥ã€å»ºæ§‹å¼æ³¨å…¥ã€ä¸»è¦æ–¹æ³•èˆ‡ä¾‹å¤–è™•ç†è·¯å¾‘æŒæ¡è³‡æ–™æµï¼Œå†é€²è¡Œç¶­è­·ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
@@ -6,34 +19,34 @@ using System.Collections.Concurrent;
 namespace ChurchReport.Services.Caching
 {
     /// <summary>
-    /// ¤p²Õ§Ö¨úºŞ²z¹ê§@
-    /// ´£¨Ñ¤p²Õ¬ÛÃö¸ê®Æªº§Ö¨úºŞ²z¥\¯à
-    /// ¨Ï¥Î IMemoryCache ¶i¦æ§Ö¨úÀx¦s
+    /// å°çµ„å¿«å–ç®¡ç†å¯¦ä½œ
+    /// æä¾›å°çµ„ç›¸é—œè³‡æ–™çš„å¿«å–ç®¡ç†åŠŸèƒ½
+    /// ä½¿ç”¨ IMemoryCache é€²è¡Œå¿«å–å„²å­˜
     /// </summary>
     public class SmallGroupCacheManager : ISmallGroupCacheManager
     {
-        #region ±`¼Æ©w¸q
+        #region å¸¸æ•¸å®šç¾©
 
-        // §Ö¨úÁä«eºó
+        // å¿«å–éµå‰ç¶´
         private const string CACHE_KEY_PREFIX = "SmallGroup_";
         private const string CACHE_KEY_MULTI_CHART = CACHE_KEY_PREFIX + "MultiChart_";
         private const string CACHE_KEY_MULTI_GRID = CACHE_KEY_PREFIX + "MultiGrid_";
         private const string CACHE_KEY_INTEGRATE = CACHE_KEY_PREFIX + "Integrate_";
-        
-        // §Ö¨ú¹L´Á®É¶¡¡]¤ÀÄÁ¡^
+
+        // å¿«å–éæœŸæ™‚é–“ï¼ˆåˆ†é˜ï¼‰
         private const int CACHE_DURATION_MINUTES = 15;
-        
-        // §Ö¨úÀu¥ı¶¶§Ç
+
+        // å¿«å–å„ªå…ˆé †åº
         private static readonly CacheItemPriority CACHE_PRIORITY = CacheItemPriority.Normal;
 
         #endregion
 
-        #region ¨p¦³Äæ¦ì
+        #region ç§æœ‰æ¬„ä½
 
         private readonly IMemoryCache _memoryCache;
         private readonly ILogger<SmallGroupCacheManager> _logger;
-        
-        // §Ö¨ú²Î­p¡]½uµ{¦w¥ş¡^
+
+        // å¿«å–çµ±è¨ˆï¼ˆç·šç¨‹å®‰å…¨ï¼‰
         private readonly ConcurrentDictionary<string, DateTime> _cacheKeys = new();
         private long _hitCount = 0;
         private long _missCount = 0;
@@ -41,13 +54,13 @@ namespace ChurchReport.Services.Caching
 
         #endregion
 
-        #region «Øºc¨ç¦¡
+        #region å»ºæ§‹å‡½å¼
 
         /// <summary>
-        /// «Øºc¨ç¦¡
+        /// å»ºæ§‹å‡½å¼
         /// </summary>
-        /// <param name="memoryCache">°O¾ĞÅé§Ö¨úªA°È</param>
-        /// <param name="logger">¤é»xªA°È</param>
+        /// <param name="memoryCache">è¨˜æ†¶é«”å¿«å–æœå‹™</param>
+        /// <param name="logger">æ—¥èªŒæœå‹™</param>
         public SmallGroupCacheManager(
             IMemoryCache memoryCache,
             ILogger<SmallGroupCacheManager> logger)
@@ -58,10 +71,10 @@ namespace ChurchReport.Services.Caching
 
         #endregion
 
-        #region §Ö¨úÁä¥Í¦¨
+        #region å¿«å–éµç”Ÿæˆ
 
         /// <summary>
-        /// ¨ú±o¦h¤p²Õ¹Ïªí§Ö¨úÁä
+        /// å–å¾—å¤šå°çµ„åœ–è¡¨å¿«å–éµ
         /// </summary>
         public string GetMultiGroupChartCacheKey(DateTime selectedDate, string account = null)
         {
@@ -70,7 +83,7 @@ namespace ChurchReport.Services.Caching
         }
 
         /// <summary>
-        /// ¨ú±o¦h¤p²Õ¦Cªí§Ö¨úÁä
+        /// å–å¾—å¤šå°çµ„åˆ—è¡¨å¿«å–éµ
         /// </summary>
         public string GetMultiGroupGridCacheKey(DateTime selectedDate, string account = null)
         {
@@ -79,7 +92,7 @@ namespace ChurchReport.Services.Caching
         }
 
         /// <summary>
-        /// ¨ú±o¾ã¦Xµø¹Ï§Ö¨úÁä
+        /// å–å¾—æ•´åˆè¦–åœ–å¿«å–éµ
         /// </summary>
         public string GetIntegrateCacheKey(string listId, DateTime selectedDate)
         {
@@ -88,10 +101,10 @@ namespace ChurchReport.Services.Caching
 
         #endregion
 
-        #region §Ö¨ú²M°£
+        #region å¿«å–æ¸…é™¤
 
         /// <summary>
-        /// ²M°£¦h¤p²Õ¬ÛÃöªº©Ò¦³§Ö¨ú
+        /// æ¸…é™¤å¤šå°çµ„ç›¸é—œçš„æ‰€æœ‰å¿«å–
         /// </summary>
         public void ClearMultiGroupCache(DateTime selectedDate, string account = null)
         {
@@ -102,22 +115,22 @@ namespace ChurchReport.Services.Caching
 
                 RemoveCacheKey(chartCacheKey);
                 RemoveCacheKey(gridCacheKey);
-                
+
                 System.Threading.Interlocked.Increment(ref _clearCount);
-                
+
                 _logger.LogInformation(
-                    "[ClearMultiGroupCache] ¤w²M°£§Ö¨úÁä: {ChartKey}, {GridKey}", 
+                    "[ClearMultiGroupCache] å·²æ¸…é™¤å¿«å–éµ: {ChartKey}, {GridKey}",
                     chartCacheKey, gridCacheKey);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, 
-                    "[ClearMultiGroupCache] ²M°£§Ö¨ú¥¢±Ñ: {Message}", ex.Message);
+                _logger.LogError(ex,
+                    "[ClearMultiGroupCache] æ¸…é™¤å¿«å–å¤±æ•—: {Message}", ex.Message);
             }
         }
 
         /// <summary>
-        /// ²M°£¾ã¦Xµø¹Ï¬ÛÃöªº§Ö¨ú
+        /// æ¸…é™¤æ•´åˆè¦–åœ–ç›¸é—œçš„å¿«å–
         /// </summary>
         public void ClearIntegrateCache(string listId, DateTime selectedDate)
         {
@@ -125,78 +138,78 @@ namespace ChurchReport.Services.Caching
             {
                 if (string.IsNullOrEmpty(listId))
                 {
-                    _logger.LogWarning("[ClearIntegrateCache] listId ¬°ªÅ¡A¸õ¹L²M°£");
+                    _logger.LogWarning("[ClearIntegrateCache] listId ç‚ºç©ºï¼Œè·³éæ¸…é™¤");
                     return;
                 }
 
                 var cacheKey = GetIntegrateCacheKey(listId, selectedDate);
                 RemoveCacheKey(cacheKey);
-                
+
                 System.Threading.Interlocked.Increment(ref _clearCount);
-                
+
                 _logger.LogInformation(
-                    "[ClearIntegrateCache] ¤w²M°£§Ö¨úÁä: {CacheKey}", cacheKey);
+                    "[ClearIntegrateCache] å·²æ¸…é™¤å¿«å–éµ: {CacheKey}", cacheKey);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, 
-                    "[ClearIntegrateCache] ²M°£§Ö¨ú¥¢±Ñ: {Message}", ex.Message);
+                _logger.LogError(ex,
+                    "[ClearIntegrateCache] æ¸…é™¤å¿«å–å¤±æ•—: {Message}", ex.Message);
             }
         }
 
         /// <summary>
-        /// ²M°£¯S©w¤p²Õªº©Ò¦³§Ö¨ú
+        /// æ¸…é™¤ç‰¹å®šå°çµ„çš„æ‰€æœ‰å¿«å–
         /// </summary>
         public void ClearSmallGroupCache(string listId, DateTime selectedDate, string account = null)
         {
             ClearMultiGroupCache(selectedDate, account);
             ClearIntegrateCache(listId, selectedDate);
-            
+
             _logger.LogInformation(
-                "[ClearSmallGroupCache] ¤w²M°£¤p²Õ {ListId} ªº©Ò¦³§Ö¨ú", listId);
+                "[ClearSmallGroupCache] å·²æ¸…é™¤å°çµ„ {ListId} çš„æ‰€æœ‰å¿«å–", listId);
         }
 
         /// <summary>
-        /// ²M°£©Ò¦³¤p²Õ¬ÛÃöªº§Ö¨ú
+        /// æ¸…é™¤æ‰€æœ‰å°çµ„ç›¸é—œçš„å¿«å–
         /// </summary>
         public void ClearAllSmallGroupCache()
         {
             try
             {
                 var keysToRemove = System.Linq.Enumerable.ToArray(_cacheKeys.Keys);
-                
+
                 foreach (var key in keysToRemove)
                 {
                     RemoveCacheKey(key);
                 }
-                
+
                 System.Threading.Interlocked.Increment(ref _clearCount);
-                
+
                 _logger.LogInformation(
-                    "[ClearAllSmallGroupCache] ¤w²M°£©Ò¦³§Ö¨ú¡A¦@ {Count} µ§", 
+                    "[ClearAllSmallGroupCache] å·²æ¸…é™¤æ‰€æœ‰å¿«å–ï¼Œå…± {Count} ç­†",
                     keysToRemove.Length);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, 
-                    "[ClearAllSmallGroupCache] ²M°£©Ò¦³§Ö¨ú¥¢±Ñ: {Message}", ex.Message);
+                _logger.LogError(ex,
+                    "[ClearAllSmallGroupCache] æ¸…é™¤æ‰€æœ‰å¿«å–å¤±æ•—: {Message}", ex.Message);
             }
         }
 
         #endregion
 
-        #region §Ö¨úÀË¬d
+        #region å¿«å–æª¢æŸ¥
 
         /// <summary>
-        /// ÀË¬d§Ö¨ú¬O§_¦s¦b
+        /// æª¢æŸ¥å¿«å–æ˜¯å¦å­˜åœ¨
         /// </summary>
         public bool CacheExists(string cacheKey)
         {
             try
             {
                 var exists = _memoryCache.TryGetValue(cacheKey, out _);
-                
-                // §ó·s²Î­p
+
+                // æ›´æ–°çµ±è¨ˆ
                 if (exists)
                 {
                     System.Threading.Interlocked.Increment(ref _hitCount);
@@ -205,23 +218,23 @@ namespace ChurchReport.Services.Caching
                 {
                     System.Threading.Interlocked.Increment(ref _missCount);
                 }
-                
+
                 return exists;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, 
-                    "[CacheExists] ÀË¬d§Ö¨ú¥¢±Ñ: {CacheKey}", cacheKey);
+                _logger.LogError(ex,
+                    "[CacheExists] æª¢æŸ¥å¿«å–å¤±æ•—: {CacheKey}", cacheKey);
                 return false;
             }
         }
 
         #endregion
 
-        #region §Ö¨ú²Î­p
+        #region å¿«å–çµ±è¨ˆ
 
         /// <summary>
-        /// ¨ú±o§Ö¨ú²Î­p¸ê°T
+        /// å–å¾—å¿«å–çµ±è¨ˆè³‡è¨Š
         /// </summary>
         public SmallGroupCacheStatistics GetCacheStatistics()
         {
@@ -236,10 +249,10 @@ namespace ChurchReport.Services.Caching
 
         #endregion
 
-        #region ¨p¦³»²§U¤èªk
+        #region ç§æœ‰è¼”åŠ©æ–¹æ³•
 
         /// <summary>
-        /// ²¾°£§Ö¨úÁä
+        /// ç§»é™¤å¿«å–éµ
         /// </summary>
         private void RemoveCacheKey(string cacheKey)
         {
@@ -248,7 +261,7 @@ namespace ChurchReport.Services.Caching
         }
 
         /// <summary>
-        /// «Ø¥ß§Ö¨ú¿ï¶µ
+        /// å»ºç«‹å¿«å–é¸é …
         /// </summary>
         public MemoryCacheEntryOptions CreateCacheOptions()
         {
@@ -257,7 +270,7 @@ namespace ChurchReport.Services.Caching
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(CACHE_DURATION_MINUTES),
                 Priority = CACHE_PRIORITY,
                 Size = 1,
-                // µù¥U²M°£¦^½Õ
+                // è¨»å†Šæ¸…é™¤å›èª¿
                 PostEvictionCallbacks =
                 {
                     new PostEvictionCallbackRegistration
@@ -268,7 +281,7 @@ namespace ChurchReport.Services.Caching
                             {
                                 _cacheKeys.TryRemove(cacheKey, out _);
                                 _logger.LogDebug(
-                                    "[Cache Evicted] {CacheKey}, Reason: {Reason}", 
+                                    "[Cache Evicted] {CacheKey}, Reason: {Reason}",
                                     cacheKey, reason);
                             }
                         }
@@ -278,7 +291,7 @@ namespace ChurchReport.Services.Caching
         }
 
         /// <summary>
-        /// µù¥U§Ö¨úÁä¡]¥Î©ó°lÂÜ¡^
+        /// è¨»å†Šå¿«å–éµï¼ˆç”¨æ–¼è¿½è¹¤ï¼‰
         /// </summary>
         public void RegisterCacheKey(string cacheKey)
         {

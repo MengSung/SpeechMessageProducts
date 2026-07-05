@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šToolUtility/QueryOperations/FetchXmlQueryService.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport å…±ç”¨å·¥å…·èˆ‡æ•´åˆè¼”åŠ©å±¤ï¼ŒåŒ…å«é€šçŸ¥ã€ä»˜æ¬¾ã€CRM æˆ–è·¨æ¨¡çµ„ helperã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass FetchXmlQueryService
+// ä¸»è¦æˆå“¡ï¼šRetrieveStorLessonsByFetchXmlã€RetrieveStorLessonsByDiscipleLessonsFetchXmlã€RetrieveDedicationBookingByFetchXmlã€RetrieveMeetingStatisticsByFetchXmlã€RetrieveFeeByFetchXmlã€RetrieveListByFetchXmlã€RetrieveSmallGroupListCollectionByFetchXmlã€SafeLogError
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€System.Linqã€Microsoft.Xrm.Sdkã€Microsoft.Xrm.Sdk.Queryã€Microsoft.Xrm.Sdk.Messages
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using System.Linq;
 using Microsoft.Xrm.Sdk;
@@ -7,16 +20,16 @@ using Microsoft.Xrm.Sdk.Messages;
 namespace ToolUtilityNameSpace.QueryOperations
 {
     /// <summary>
-    /// FetchXML ¬d¸ßªA°È¹ê§@
-    /// ±M³d³B²z©Ò¦³ªº FetchXML ¬d¸ß
-    /// ? Phase 3.1: ¬d¸ßÀu¤Æ - ²K¥[ top ­­¨î¡B´î¤Ö link-entity
+    /// FetchXML æŸ¥è©¢æœå‹™å¯¦ä½œ
+    /// å°ˆè²¬è™•ç†æ‰€æœ‰çš„ FetchXML æŸ¥è©¢
+    /// ? Phase 3.1: æŸ¥è©¢å„ªåŒ– - æ·»åŠ  top é™åˆ¶ã€æ¸›å°‘ link-entity
     /// </summary>
     public class FetchXmlQueryService : IFetchXmlQueryService
     {
         private readonly object _logger;
         private readonly IOrganizationService _organizationService;
-        
-        // ? ¹w³]¬d¸ß­­¨î¡A¨¾¤îªğ¦^¹L¦h¸ê®Æ
+
+        // ? é è¨­æŸ¥è©¢é™åˆ¶ï¼Œé˜²æ­¢è¿”å›éå¤šè³‡æ–™
         private const int DEFAULT_TOP_LIMIT = 5000;
         private const int SMALL_QUERY_LIMIT = 1000;
 
@@ -27,8 +40,8 @@ namespace ToolUtilityNameSpace.QueryOperations
         }
 
         /// <summary>
-        /// ®Ú¾ÚÁpµ¸¤H¬d¸ß¾Ç²ß½Ò¬ö¿ı (¨Ï¥Î FetchXML)
-        /// ? Phase 3.1: Àu¤Æ - ²K¥[ top ­­¨î¡BÂ²¤Æ link-entity
+        /// æ ¹æ“šè¯çµ¡äººæŸ¥è©¢å­¸ç¿’èª²ç´€éŒ„ (ä½¿ç”¨ FetchXML)
+        /// ? Phase 3.1: å„ªåŒ– - æ·»åŠ  top é™åˆ¶ã€ç°¡åŒ– link-entity
         /// </summary>
         public EntityCollection RetrieveStorLessonsByFetchXml(string contactName, string contactId)
         {
@@ -37,8 +50,8 @@ namespace ToolUtilityNameSpace.QueryOperations
                 contactName = $"'{contactName}'";
                 contactId = $"'{{{contactId}}}'";
 
-                // ? Àu¤Æ 1: ²K¥[ top='1000' ­­¨î
-                // ? Àu¤Æ 2: ¥u¬d¸ß¥²­nÄæ¦ì¡A²¾°£¤£»İ­nªº link-entity Äæ¦ì
+                // ? å„ªåŒ– 1: æ·»åŠ  top='1000' é™åˆ¶
+                // ? å„ªåŒ– 2: åªæŸ¥è©¢å¿…è¦æ¬„ä½ï¼Œç§»é™¤ä¸éœ€è¦çš„ link-entity æ¬„ä½
                 var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='{SMALL_QUERY_LIMIT}'>
                           <entity name='new_stor_lessons'>
                             <attribute name='createdon' />
@@ -93,9 +106,9 @@ namespace ToolUtilityNameSpace.QueryOperations
                           </entity>
                         </fetch>";
 
-                // ? Àu¤Æ 1: ²K¥[ top='1000' ­­¨î
-                // ? Àu¤Æ 2: ¥u¬d¸ß¥²­nÄæ¦ì¡A²¾°£¤£»İ­nªº link-entity Äæ¦ì
-                // new_classification ¹LÂo¤w²¾°£¡Aªğ¦^©Ò¦³¤ÀÃşªº½Òµ{
+                // ? å„ªåŒ– 1: æ·»åŠ  top='1000' é™åˆ¶
+                // ? å„ªåŒ– 2: åªæŸ¥è©¢å¿…è¦æ¬„ä½ï¼Œç§»é™¤ä¸éœ€è¦çš„ link-entity æ¬„ä½
+                // new_classification éæ¿¾å·²ç§»é™¤ï¼Œè¿”å›æ‰€æœ‰åˆ†é¡çš„èª²ç¨‹
                 var fetchXmlRemoveConstrain = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='{SMALL_QUERY_LIMIT}'>
                           <entity name='new_stor_lessons'>
                             <attribute name='createdon' />
@@ -131,14 +144,14 @@ namespace ToolUtilityNameSpace.QueryOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "RetrieveStorLessonsByFetchXml µo¥Í¿ù»~");
+                SafeLogError(ex, "RetrieveStorLessonsByFetchXml ç™¼ç”ŸéŒ¯èª¤");
                 throw;
             }
         }
 
         /// <summary>
-        /// ®Ú¾Ú½Òµ{¬d¸ß¾Ç²ß½Ò¬ö¿ı (¨Ï¥Î FetchXML)
-        /// ? Phase 3.1: Àu¤Æ - ²K¥[ top ­­¨î¡BÂ²¤Æ¬d¸ß
+        /// æ ¹æ“šèª²ç¨‹æŸ¥è©¢å­¸ç¿’èª²ç´€éŒ„ (ä½¿ç”¨ FetchXML)
+        /// ? Phase 3.1: å„ªåŒ– - æ·»åŠ  top é™åˆ¶ã€ç°¡åŒ–æŸ¥è©¢
         /// </summary>
         public EntityCollection RetrieveStorLessonsByDiscipleLessonsFetchXml(string lessonName, string lessonId)
         {
@@ -147,7 +160,7 @@ namespace ToolUtilityNameSpace.QueryOperations
                 lessonName = $"'{lessonName}'";
                 lessonId = $"'{{{lessonId}}}'";
 
-                // ? Àu¤Æ: ²K¥[ top ­­¨î¡B´î¤Ö¤£¥²­nªºÄæ¦ì
+                // ? å„ªåŒ–: æ·»åŠ  top é™åˆ¶ã€æ¸›å°‘ä¸å¿…è¦çš„æ¬„ä½
                 var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='{SMALL_QUERY_LIMIT}'>
                       <entity name='new_stor_lessons'>
                         <attribute name='createdon' />
@@ -184,14 +197,14 @@ namespace ToolUtilityNameSpace.QueryOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "RetrieveStorLessonsByDiscipleLessonsFetchXml µo¥Í¿ù»~");
+                SafeLogError(ex, "RetrieveStorLessonsByDiscipleLessonsFetchXml ç™¼ç”ŸéŒ¯èª¤");
                 throw;
             }
         }
 
         /// <summary>
-        /// ®Ú¾ÚÁpµ¸¤H¬d¸ß©^Äm¹w¬ù (¨Ï¥Î FetchXML)
-        /// ? Phase 3.1: Àu¤Æ - ²K¥[ top ­­¨î
+        /// æ ¹æ“šè¯çµ¡äººæŸ¥è©¢å¥‰ç»é ç´„ (ä½¿ç”¨ FetchXML)
+        /// ? Phase 3.1: å„ªåŒ– - æ·»åŠ  top é™åˆ¶
         /// </summary>
         public EntityCollection RetrieveDedicationBookingByFetchXml(string contactName, string contactId)
         {
@@ -200,7 +213,7 @@ namespace ToolUtilityNameSpace.QueryOperations
                 contactName = $"'{contactName}'";
                 contactId = $"'{{{contactId}}}'";
 
-                // ? Àu¤Æ: ²K¥[ top ­­¨î¡B«ö³Ğ«Ø¤é´Á­Ë§Ç
+                // ? å„ªåŒ–: æ·»åŠ  top é™åˆ¶ã€æŒ‰å‰µå»ºæ—¥æœŸå€’åº
                 var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='{SMALL_QUERY_LIMIT}'>
                           <entity name='new_dedication_booking'>
                             <attribute name='new_dedication_bookingid' />
@@ -226,14 +239,14 @@ namespace ToolUtilityNameSpace.QueryOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "RetrieveDedicationBookingByFetchXml µo¥Í¿ù»~");
+                SafeLogError(ex, "RetrieveDedicationBookingByFetchXml ç™¼ç”ŸéŒ¯èª¤");
                 throw;
             }
         }
 
         /// <summary>
-        /// ®Ú¾Ú¥D¤é¤é´Á¬d¸ß»E·|²Î­p°O¿ı (¨Ï¥Î FetchXML)
-        /// ? Phase 3.1: Àu¤Æ - ²K¥[ top ­­¨î
+        /// æ ¹æ“šä¸»æ—¥æ—¥æœŸæŸ¥è©¢èšæœƒçµ±è¨ˆè¨˜éŒ„ (ä½¿ç”¨ FetchXML)
+        /// ? Phase 3.1: å„ªåŒ– - æ·»åŠ  top é™åˆ¶
         /// </summary>
         public EntityCollection RetrieveMeetingStatisticsByFetchXml(DateTime sundayDate)
         {
@@ -241,7 +254,7 @@ namespace ToolUtilityNameSpace.QueryOperations
             {
                 string sundayDateString = $"'{sundayDate.Year}-{sundayDate.Month:D2}-{sundayDate.Day:D2}'";
 
-                // ? Àu¤Æ: ²K¥[ top ­­¨î¡]³q±`¥u¦³¤Ö¼Æ°O¿ı¡^
+                // ? å„ªåŒ–: æ·»åŠ  top é™åˆ¶ï¼ˆé€šå¸¸åªæœ‰å°‘æ•¸è¨˜éŒ„ï¼‰
                 var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='100'>
                           <entity name='new_meeting_statistics'>
                             <attribute name='new_meeting_statisticsid' />
@@ -267,14 +280,14 @@ namespace ToolUtilityNameSpace.QueryOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "RetrieveMeetingStatisticsByFetchXml µo¥Í¿ù»~");
+                SafeLogError(ex, "RetrieveMeetingStatisticsByFetchXml ç™¼ç”ŸéŒ¯èª¤");
                 throw;
             }
         }
 
         /// <summary>
-        /// ®Ú¾Ú©^Äm¹w¬ù©M¤w¥I´Á¼Æ¬d¸ß¦¬¶O³æ (¨Ï¥Î FetchXML)
-        /// ? Phase 3.1: Àu¤Æ - ²K¥[ top ­­¨î
+        /// æ ¹æ“šå¥‰ç»é ç´„å’Œå·²ä»˜æœŸæ•¸æŸ¥è©¢æ”¶è²»å–® (ä½¿ç”¨ FetchXML)
+        /// ? Phase 3.1: å„ªåŒ– - æ·»åŠ  top é™åˆ¶
         /// </summary>
         public EntityCollection RetrieveFeeByFetchXml(string dedicationBookingName, string dedicationBookingId, string paidPeriod)
         {
@@ -283,7 +296,7 @@ namespace ToolUtilityNameSpace.QueryOperations
                 dedicationBookingName = $"'{dedicationBookingName}'";
                 dedicationBookingId = $"'{{{dedicationBookingId}}}'";
 
-                // ? Àu¤Æ: ²K¥[ top ­­¨î
+                // ? å„ªåŒ–: æ·»åŠ  top é™åˆ¶
                 var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='500'>
                           <entity name='new_fee'>
                             <attribute name='new_feeid' />
@@ -309,20 +322,20 @@ namespace ToolUtilityNameSpace.QueryOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "RetrieveFeeByFetchXml µo¥Í¿ù»~");
+                SafeLogError(ex, "RetrieveFeeByFetchXml ç™¼ç”ŸéŒ¯èª¤");
                 throw;
             }
         }
 
         /// <summary>
-        /// ¬d¸ß©Ò¦³»İ­nÂI¦Wªº¤p²Õ¦W³æ (¨Ï¥Î FetchXML)
-        /// ? Phase 3.1: Àu¤Æ - ²K¥[ top ­­¨î
+        /// æŸ¥è©¢æ‰€æœ‰éœ€è¦é»åçš„å°çµ„åå–® (ä½¿ç”¨ FetchXML)
+        /// ? Phase 3.1: å„ªåŒ– - æ·»åŠ  top é™åˆ¶
         /// </summary>
         public EntityCollection RetrieveListByFetchXml()
         {
             try
             {
-                // ? Àu¤Æ: ²K¥[ top ­­¨î¡]¤p²Õ¦W³æ³q±`¤£·|¶W¹L 500 ­Ó¡^
+                // ? å„ªåŒ–: æ·»åŠ  top é™åˆ¶ï¼ˆå°çµ„åå–®é€šå¸¸ä¸æœƒè¶…é 500 å€‹ï¼‰
                 var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='500'>
                       <entity name='list'>
                         <attribute name='listname' />
@@ -333,7 +346,7 @@ namespace ToolUtilityNameSpace.QueryOperations
                         <order attribute='listname' descending='false' />
                         <filter type='and'>
                           <condition attribute='statuscode' operator='eq' value='0' />
-                          <condition attribute='purpose' operator='eq' value='¤p²Õ¦W³æ' />
+                          <condition attribute='purpose' operator='eq' value='å°çµ„åå–®' />
                           <condition attribute='new_app_named' operator='eq' value='1' />
                           <condition attribute='statecode' operator='eq' value='0' />
                         </filter>
@@ -350,20 +363,20 @@ namespace ToolUtilityNameSpace.QueryOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "RetrieveListByFetchXml µo¥Í¿ù»~");
+                SafeLogError(ex, "RetrieveListByFetchXml ç™¼ç”ŸéŒ¯èª¤");
                 throw;
             }
         }
 
         /// <summary>
-        /// ¬d¸ß©Ò¦³¤p²Õ¦W³æ¶°¦X (¨Ï¥Î FetchXML)
-        /// ? Phase 3.1: Àu¤Æ - ²K¥[ top ­­¨î¡BÂ²¤Æ¬d¸ß
+        /// æŸ¥è©¢æ‰€æœ‰å°çµ„åå–®é›†åˆ (ä½¿ç”¨ FetchXML)
+        /// ? Phase 3.1: å„ªåŒ– - æ·»åŠ  top é™åˆ¶ã€ç°¡åŒ–æŸ¥è©¢
         /// </summary>
         public EntityCollection RetrieveSmallGroupListCollectionByFetchXml()
         {
             try
             {
-                // ? Àu¤Æ: ²K¥[ top ­­¨î
+                // ? å„ªåŒ–: æ·»åŠ  top é™åˆ¶
                 var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='500'>
                       <entity name='list'>
                         <attribute name='listname' />
@@ -377,8 +390,8 @@ namespace ToolUtilityNameSpace.QueryOperations
                         <filter type='and'>
                           <condition attribute='new_app_named' operator='eq' value='1' />
                           <condition attribute='statuscode' operator='eq' value='0' />
-                          <condition attribute='purpose' operator='eq' value='¤p²Õ¦W³æ' />
-                          <condition attribute='listname' operator='not-like' value='%´ú¸Õ%' />
+                          <condition attribute='purpose' operator='eq' value='å°çµ„åå–®' />
+                          <condition attribute='listname' operator='not-like' value='%æ¸¬è©¦%' />
                           <condition attribute='statecode' operator='eq' value='0' />
                         </filter>
                       </entity>
@@ -394,13 +407,13 @@ namespace ToolUtilityNameSpace.QueryOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "RetrieveSmallGroupListCollectionByFetchXml µo¥Í¿ù»~");
+                SafeLogError(ex, "RetrieveSmallGroupListCollectionByFetchXml ç™¼ç”ŸéŒ¯èª¤");
                 throw;
             }
         }
 
         /// <summary>
-        /// ¦w¥şªº¿ù»~¤é»x°O¿ı
+        /// å®‰å…¨çš„éŒ¯èª¤æ—¥èªŒè¨˜éŒ„
         /// </summary>
         private void SafeLogError(Exception ex, string format, params object[] args)
         {
@@ -433,7 +446,7 @@ namespace ToolUtilityNameSpace.QueryOperations
             }
             catch
             {
-                // swallow - ¤£Åı¤é»x¿ù»~¼vÅT¥D­n¥\¯à
+                // swallow - ä¸è®“æ—¥èªŒéŒ¯èª¤å½±éŸ¿ä¸»è¦åŠŸèƒ½
             }
         }
     }

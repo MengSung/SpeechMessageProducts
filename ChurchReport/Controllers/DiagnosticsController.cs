@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Controllers/DiagnosticsController.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æ§åˆ¶å™¨å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜ HTTP å…¥å£ã€ç”¢å“æµç¨‹é‚Šç•Œã€è¼¸å…¥è¼¸å‡ºèˆ‡å¤–éƒ¨å‰¯ä½œç”¨ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass DiagnosticsController
+// ä¸»è¦æˆå“¡ï¼šIndexã€GetSessionInfoã€GetIdentityAuditã€GetPerformanceInfoã€ResetAuditã€GetCacheHeaders
+// å¼•ç”¨å‘½åç©ºé–“ï¼šMicrosoft.AspNetCore.Authorizationã€Microsoft.AspNetCore.Httpã€Microsoft.AspNetCore.Mvcã€Systemã€System.Collections.Genericã€System.Diagnosticsã€System.Linq
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª action çš„è·¯ç”±ä¾†æºã€æ¬Šé™/Session å‰ç½®æ¢ä»¶ã€å‘¼å«çš„æœå‹™ï¼Œä»¥åŠå›å‚³ Viewã€JSON æˆ– redirect æ™‚å°ä½¿ç”¨è€…æµç¨‹çš„å½±éŸ¿ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,26 +22,26 @@ using System.Linq;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// ¶EÂ_±±¨î¾¹ (Session Bleeding ¨¾Å@ - ¶EÂ_¤u¨ã)
-    /// 
-    /// ³]­p­ì«h:
-    /// - Single Responsibility Principle (SRP): ±Mª`©ó´£¨Ñ¶EÂ_¸ê°T
-    /// - Open/Closed Principle: ³z¹L Action ¤èªkÂX®i¡A¤£»İ­×§ï²{¦³¥N½X
-    /// - Dependency Inversion Principle: ¨Ì¿à©â¶H (Controller base class)
-    /// 
-    /// §@¥Î:
-    /// ´£¨Ñ¶EÂ_ºİÂI¡A¥Î©óÀË¬d Session¡B®Ä¯à¡B¨­¥÷¼f­pµ¥¸ê°T
-    /// 
-    /// ¦w¥ş©Ê:
-    /// ?? ¶È¦b DEBUG ¼Ò¦¡¤U¥i¥Î
-    /// ?? ¶È¤¹³\¤wµn¤J¨Ï¥ÎªÌ¦s¨ú
-    /// ?? ¥Í²£Àô¹Ò¤£À³¥]§t¦¹±±¨î¾¹
-    /// 
-    /// ¨Ï¥Î¤è¦¡:
-    /// - GET /diagnostics/session - ¬d¬İ·í«e Session ¸ê°T
-    /// - GET /diagnostics/identity-audit - ¬d¬İ¨­¥÷¼f­p°lÂÜ¸ê®Æ
-    /// - GET /diagnostics/performance - ¬d¬İ®Ä¯à²Î­p
-    /// - POST /diagnostics/reset-audit - ­«³]¨­¥÷¼f­p¸ê®Æ
+    /// è¨ºæ–·æ§åˆ¶å™¨ (Session Bleeding é˜²è­· - è¨ºæ–·å·¥å…·)
+    ///
+    /// è¨­è¨ˆåŸå‰‡:
+    /// - Single Responsibility Principle (SRP): å°ˆæ³¨æ–¼æä¾›è¨ºæ–·è³‡è¨Š
+    /// - Open/Closed Principle: é€é Action æ–¹æ³•æ“´å±•ï¼Œä¸éœ€ä¿®æ”¹ç¾æœ‰ä»£ç¢¼
+    /// - Dependency Inversion Principle: ä¾è³´æŠ½è±¡ (Controller base class)
+    ///
+    /// ä½œç”¨:
+    /// æä¾›è¨ºæ–·ç«¯é»ï¼Œç”¨æ–¼æª¢æŸ¥ Sessionã€æ•ˆèƒ½ã€èº«ä»½å¯©è¨ˆç­‰è³‡è¨Š
+    ///
+    /// å®‰å…¨æ€§:
+    /// ?? åƒ…åœ¨ DEBUG æ¨¡å¼ä¸‹å¯ç”¨
+    /// ?? åƒ…å…è¨±å·²ç™»å…¥ä½¿ç”¨è€…å­˜å–
+    /// ?? ç”Ÿç”¢ç’°å¢ƒä¸æ‡‰åŒ…å«æ­¤æ§åˆ¶å™¨
+    ///
+    /// ä½¿ç”¨æ–¹å¼:
+    /// - GET /diagnostics/session - æŸ¥çœ‹ç•¶å‰ Session è³‡è¨Š
+    /// - GET /diagnostics/identity-audit - æŸ¥çœ‹èº«ä»½å¯©è¨ˆè¿½è¹¤è³‡æ–™
+    /// - GET /diagnostics/performance - æŸ¥çœ‹æ•ˆèƒ½çµ±è¨ˆ
+    /// - POST /diagnostics/reset-audit - é‡è¨­èº«ä»½å¯©è¨ˆè³‡æ–™
     /// </summary>
 #if DEBUG
     [Authorize]
@@ -36,9 +49,9 @@ namespace ChurchReport.Controllers
     public class DiagnosticsController : Controller
     {
         /// <summary>
-        /// ­º­¶¡G¶EÂ_¤u¨ãÁ`Äı
+        /// é¦–é ï¼šè¨ºæ–·å·¥å…·ç¸½è¦½
         /// </summary>
-        /// <returns>¶EÂ_¤u¨ãÁ`Äı­¶­±</returns>
+        /// <returns>è¨ºæ–·å·¥å…·ç¸½è¦½é é¢</returns>
         [HttpGet("")]
         public IActionResult Index()
         {
@@ -50,11 +63,11 @@ namespace ChurchReport.Controllers
                 IsAuthenticated = User.Identity?.IsAuthenticated ?? false,
                 AvailableEndpoints = new[]
                 {
-                    new { Endpoint = "/diagnostics/session", Description = "¬d¬İ·í«e Session ¸ê°T" },
-                    new { Endpoint = "/diagnostics/identity-audit", Description = "¬d¬İ¨­¥÷¼f­p°lÂÜ¸ê®Æ" },
-                    new { Endpoint = "/diagnostics/performance", Description = "¬d¬İ®Ä¯à²Î­p" },
-                    new { Endpoint = "/diagnostics/reset-audit", Description = "­«³]¨­¥÷¼f­p¸ê®Æ (POST)" },
-                    new { Endpoint = "/diagnostics/cache-headers", Description = "´ú¸Õ§Ö¨ú¼ĞÀY³]©w" }
+                    new { Endpoint = "/diagnostics/session", Description = "æŸ¥çœ‹ç•¶å‰ Session è³‡è¨Š" },
+                    new { Endpoint = "/diagnostics/identity-audit", Description = "æŸ¥çœ‹èº«ä»½å¯©è¨ˆè¿½è¹¤è³‡æ–™" },
+                    new { Endpoint = "/diagnostics/performance", Description = "æŸ¥çœ‹æ•ˆèƒ½çµ±è¨ˆ" },
+                    new { Endpoint = "/diagnostics/reset-audit", Description = "é‡è¨­èº«ä»½å¯©è¨ˆè³‡æ–™ (POST)" },
+                    new { Endpoint = "/diagnostics/cache-headers", Description = "æ¸¬è©¦å¿«å–æ¨™é ­è¨­å®š" }
                 }
             };
 
@@ -62,40 +75,40 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¬d¬İ·í«e Session ¸ê°T
-        /// 
-        /// ¥\¯à:
-        /// - Åã¥Ü Session ID
-        /// - Åã¥Ü Session ¤¤ªº©Ò¦³ Key
-        /// - Åã¥Ü Session ªº­È
-        /// - Åã¥Ü Session Cookie ³]©w
-        /// 
-        /// ¥Î³~:
-        /// - ¶EÂ_ Session ¬O§_¥¿½T«Ø¥ß
-        /// - ÀË¬d Session ¸ê®Æ¬O§_¥¿½T
-        /// - ÅçÃÒ Session Bleeding ¬O§_µo¥Í
+        /// æŸ¥çœ‹ç•¶å‰ Session è³‡è¨Š
+        ///
+        /// åŠŸèƒ½:
+        /// - é¡¯ç¤º Session ID
+        /// - é¡¯ç¤º Session ä¸­çš„æ‰€æœ‰ Key
+        /// - é¡¯ç¤º Session çš„å€¼
+        /// - é¡¯ç¤º Session Cookie è¨­å®š
+        ///
+        /// ç”¨é€”:
+        /// - è¨ºæ–· Session æ˜¯å¦æ­£ç¢ºå»ºç«‹
+        /// - æª¢æŸ¥ Session è³‡æ–™æ˜¯å¦æ­£ç¢º
+        /// - é©—è­‰ Session Bleeding æ˜¯å¦ç™¼ç”Ÿ
         /// </summary>
-        /// <returns>Session ¸ê°T JSON</returns>
+        /// <returns>Session è³‡è¨Š JSON</returns>
         [HttpGet("session")]
         public IActionResult GetSessionInfo()
         {
             var sessionId = HttpContext.Session.Id;
             var sessionKeys = new List<string>();
-            
-            // ¨ú±o Session ¤¤ªº©Ò¦³ Key (»İ­n¤Ï®g©Î¤â°Ê°lÂÜ)
-            // ª`·N¡GASP.NET Core Session ¤£ª½±µ´£¨Ñ Keys ¦CÁ|
+
+            // å–å¾— Session ä¸­çš„æ‰€æœ‰ Key (éœ€è¦åå°„æˆ–æ‰‹å‹•è¿½è¹¤)
+            // æ³¨æ„ï¼šASP.NET Core Session ä¸ç›´æ¥æä¾› Keys åˆ—èˆ‰
             var sessionData = new Dictionary<string, string>();
-            
-            // ¹Á¸Õ¨ú±o±`¨£ªº Session Key
-            var commonKeys = new[] 
-            { 
-                "LoginTimestamp", 
-                "CurrentAccount", 
+
+            // å˜—è©¦å–å¾—å¸¸è¦‹çš„ Session Key
+            var commonKeys = new[]
+            {
+                "LoginTimestamp",
+                "CurrentAccount",
                 "CurrentUserId",
                 "UserName",
                 "UserId"
             };
-            
+
             foreach (var key in commonKeys)
             {
                 var value = HttpContext.Session.GetString(key);
@@ -129,24 +142,24 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¬d¬İ¨­¥÷¼f­p°lÂÜ¸ê®Æ
-        /// 
-        /// ¥\¯à:
-        /// - Åã¥Ü·í«e°lÂÜªº IP »P¨Ï¥ÎªÌ¹ïÀ³Ãö«Y
-        /// - Åã¥Ü³Ì«á¬¡°Ê®É¶¡
-        /// - °»´ú¥i¯àªº Session Bleeding
-        /// 
-        /// ¥Î³~:
-        /// - §Y®ÉºÊ±±¨­¥÷²V²c°İÃD
-        /// - ¶EÂ_ Wi-Fi Àô¹Ò¤Uªº¨Ï¥ÎªÌ¤Á´«
-        /// - ÅçÃÒ¨¾Å@¾÷¨î¬O§_¦³®Ä
+        /// æŸ¥çœ‹èº«ä»½å¯©è¨ˆè¿½è¹¤è³‡æ–™
+        ///
+        /// åŠŸèƒ½:
+        /// - é¡¯ç¤ºç•¶å‰è¿½è¹¤çš„ IP èˆ‡ä½¿ç”¨è€…å°æ‡‰é—œä¿‚
+        /// - é¡¯ç¤ºæœ€å¾Œæ´»å‹•æ™‚é–“
+        /// - åµæ¸¬å¯èƒ½çš„ Session Bleeding
+        ///
+        /// ç”¨é€”:
+        /// - å³æ™‚ç›£æ§èº«ä»½æ··æ·†å•é¡Œ
+        /// - è¨ºæ–· Wi-Fi ç’°å¢ƒä¸‹çš„ä½¿ç”¨è€…åˆ‡æ›
+        /// - é©—è­‰é˜²è­·æ©Ÿåˆ¶æ˜¯å¦æœ‰æ•ˆ
         /// </summary>
-        /// <returns>¨­¥÷¼f­p¸ê®Æ JSON</returns>
+        /// <returns>èº«ä»½å¯©è¨ˆè³‡æ–™ JSON</returns>
         [HttpGet("identity-audit")]
         public IActionResult GetIdentityAudit()
         {
             var trackingData = ChurchReport.Middleware.IdentityAuditMiddleware.GetTrackingSnapshot();
-            
+
             var auditInfo = new
             {
                 TotalTrackedIPs = trackingData.Count,
@@ -166,24 +179,24 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ¬d¬İ®Ä¯à²Î­p
-        /// 
-        /// ¥\¯à:
-        /// - Åã¥Ü·í«e¶iµ{ªº°O¾ĞÅé¨Ï¥Î¶q
-        /// - Åã¥Ü°õ¦æºü¼Æ¶q
-        /// - Åã¥Ü¹B¦æ®É¶¡
-        /// 
-        /// ¥Î³~:
-        /// - ºÊ±±À³¥Îµ{¦¡®Ä¯à
-        /// - °»´ú°O¾ĞÅé¬ªº|
-        /// - ¶EÂ_®Ä¯à°İÃD
+        /// æŸ¥çœ‹æ•ˆèƒ½çµ±è¨ˆ
+        ///
+        /// åŠŸèƒ½:
+        /// - é¡¯ç¤ºç•¶å‰é€²ç¨‹çš„è¨˜æ†¶é«”ä½¿ç”¨é‡
+        /// - é¡¯ç¤ºåŸ·è¡Œç·’æ•¸é‡
+        /// - é¡¯ç¤ºé‹è¡Œæ™‚é–“
+        ///
+        /// ç”¨é€”:
+        /// - ç›£æ§æ‡‰ç”¨ç¨‹å¼æ•ˆèƒ½
+        /// - åµæ¸¬è¨˜æ†¶é«”æ´©æ¼
+        /// - è¨ºæ–·æ•ˆèƒ½å•é¡Œ
         /// </summary>
-        /// <returns>®Ä¯à²Î­p JSON</returns>
+        /// <returns>æ•ˆèƒ½çµ±è¨ˆ JSON</returns>
         [HttpGet("performance")]
         public IActionResult GetPerformanceInfo()
         {
             var process = Process.GetCurrentProcess();
-            
+
             var performanceInfo = new
             {
                 Memory = new
@@ -217,30 +230,30 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ­«³]¨­¥÷¼f­p¸ê®Æ
-        /// 
-        /// ¥\¯à:
-        /// - ²M°£©Ò¦³¨­¥÷¼f­p°lÂÜ¸ê®Æ
-        /// - ÄÀ©ñ°O¾ĞÅé
-        /// 
-        /// ¥Î³~:
-        /// - ¤â°Ê²M²z´ú¸Õ¸ê®Æ
-        /// - ­«¸mºÊ±±ª¬ºA
-        /// 
-        /// ?? ª`·N¡G¶È¦b¥²­n®É¨Ï¥Î¡A·|²M°£©Ò¦³°lÂÜ¾ú¥v
+        /// é‡è¨­èº«ä»½å¯©è¨ˆè³‡æ–™
+        ///
+        /// åŠŸèƒ½:
+        /// - æ¸…é™¤æ‰€æœ‰èº«ä»½å¯©è¨ˆè¿½è¹¤è³‡æ–™
+        /// - é‡‹æ”¾è¨˜æ†¶é«”
+        ///
+        /// ç”¨é€”:
+        /// - æ‰‹å‹•æ¸…ç†æ¸¬è©¦è³‡æ–™
+        /// - é‡ç½®ç›£æ§ç‹€æ…‹
+        ///
+        /// ?? æ³¨æ„ï¼šåƒ…åœ¨å¿…è¦æ™‚ä½¿ç”¨ï¼Œæœƒæ¸…é™¤æ‰€æœ‰è¿½è¹¤æ­·å²
         /// </summary>
-        /// <returns>­«³]µ²ªG JSON</returns>
+        /// <returns>é‡è¨­çµæœ JSON</returns>
         [HttpPost("reset-audit")]
         [ValidateAntiForgeryToken]
         public IActionResult ResetAudit()
         {
             var removedCount = ChurchReport.Middleware.IdentityAuditMiddleware.CleanupOldTracking(TimeSpan.Zero);
-            
+
             var result = new
             {
                 Success = true,
                 RemovedCount = removedCount,
-                Message = $"¤w²M°£ {removedCount} µ§¨­¥÷¼f­p¸ê®Æ",
+                Message = $"å·²æ¸…é™¤ {removedCount} ç­†èº«ä»½å¯©è¨ˆè³‡æ–™",
                 ResetTime = DateTime.UtcNow
             };
 
@@ -248,22 +261,22 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// ´ú¸Õ§Ö¨ú¼ĞÀY³]©w
-        /// 
-        /// ¥\¯à:
-        /// - ÀË¬d¦^À³ªº§Ö¨ú¼ĞÀY¬O§_¥¿½T
-        /// - ÅçÃÒ Session Bleeding ¨¾Å@¬O§_±Ò¥Î
-        /// 
-        /// ¥Î³~:
-        /// - §Ö³tÅçÃÒ§Ö¨ú³]©w
-        /// - ¶EÂ_§Ö¨ú°İÃD
+        /// æ¸¬è©¦å¿«å–æ¨™é ­è¨­å®š
+        ///
+        /// åŠŸèƒ½:
+        /// - æª¢æŸ¥å›æ‡‰çš„å¿«å–æ¨™é ­æ˜¯å¦æ­£ç¢º
+        /// - é©—è­‰ Session Bleeding é˜²è­·æ˜¯å¦å•Ÿç”¨
+        ///
+        /// ç”¨é€”:
+        /// - å¿«é€Ÿé©—è­‰å¿«å–è¨­å®š
+        /// - è¨ºæ–·å¿«å–å•é¡Œ
         /// </summary>
-        /// <returns>§Ö¨ú¼ĞÀY¸ê°T JSON</returns>
+        /// <returns>å¿«å–æ¨™é ­è³‡è¨Š JSON</returns>
         [HttpGet("cache-headers")]
         public IActionResult GetCacheHeaders()
         {
             var headers = HttpContext.Response.Headers;
-            
+
             var cacheInfo = new
             {
                 ResponseHeaders = new
@@ -277,16 +290,16 @@ namespace ChurchReport.Controllers
                 {
                     CacheControl = "no-store, no-cache, must-revalidate, max-age=0",
                     Pragma = "no-cache",
-                    Expires = "0 ©Î -1",
+                    Expires = "0 æˆ– -1",
                     Vary = "Cookie"
                 },
                 ValidationResult = new
                 {
-                    CacheControlCorrect = headers.ContainsKey("Cache-Control") && 
+                    CacheControlCorrect = headers.ContainsKey("Cache-Control") &&
                                          headers["Cache-Control"].ToString().Contains("no-store"),
-                    PragmaCorrect = headers.ContainsKey("Pragma") && 
+                    PragmaCorrect = headers.ContainsKey("Pragma") &&
                                    headers["Pragma"].ToString() == "no-cache",
-                    VaryCookieCorrect = headers.ContainsKey("Vary") && 
+                    VaryCookieCorrect = headers.ContainsKey("Vary") &&
                                        headers["Vary"].ToString().Contains("Cookie")
                 },
                 ServerTime = DateTime.Now

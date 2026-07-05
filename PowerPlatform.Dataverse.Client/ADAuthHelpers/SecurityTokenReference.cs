@@ -1,4 +1,17 @@
-﻿using System;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：PowerPlatform.Dataverse.Client/ADAuthHelpers/SecurityTokenReference.cs
+// 所屬區塊：Power Platform Dataverse Client 與低階連線支援程式庫，包含外部 SDK 或協定相容程式碼。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class SecurityTokenReference
+// 主要成員：Read、ValueType、URI
+// 引用命名空間：System、System.Collections.Generic、System.Text、System.Xml
+// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
+// 維護重點：若此檔案由工具或專案系統產生，後續重新產生時可能覆蓋註解；修改前應先確認來源工具與產生流程。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml;

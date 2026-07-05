@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Utilities/OptionSetConverter.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆæä¾› OptionSetConverter ç›¸é—œåŠŸèƒ½ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜æª”æ¡ˆè²¬ä»»ã€ä¸Šæ¸¸/ä¸‹æ¸¸ä¾è³´èˆ‡ç¶­è­·æ™‚ä¸å¯ç ´å£çš„è¡Œç‚ºå‡è¨­ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass OptionSetConverter
+// ä¸»è¦æˆå“¡ï¼šChineseWeekToOptionSetValueã€OptionSetValueToChineseWeekã€FollowUpResultTextToValueã€FollowUpResultValueToTextã€FollowUpNextStepTextToValueã€FollowUpNextStepValueToTextã€GetSimplifiedCommitmentTypeã€NormalizePhoneNumberã€HasMeaningfulValueã€BuildLabeledString
+// å¼•ç”¨å‘½åç©ºé–“ï¼šChurchReport.Domain.Constantsã€Systemã€System.Text.RegularExpressions
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆå¾å…¬é–‹å‹åˆ¥ã€å»ºæ§‹å¼æ³¨å…¥ã€ä¸»è¦æ–¹æ³•èˆ‡ä¾‹å¤–è™•ç†è·¯å¾‘æŒæ¡è³‡æ–™æµï¼Œå†é€²è¡Œç¶­è­·ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using ChurchReport.Domain.Constants;
 using System;
 using System.Text.RegularExpressions;
@@ -5,48 +18,48 @@ using System.Text.RegularExpressions;
 namespace ChurchReport.Utilities
 {
     /// <summary>
-    /// ¿ï¶µ¶°Âà´«¤u¨ã
-    /// ­t³d±N OptionSet ªº¼Æ­È»P¤å¦r¶i¦æÂù¦VÂà´«
+    /// é¸é …é›†è½‰æ›å·¥å…·
+    /// è² è²¬å°‡ OptionSet çš„æ•¸å€¼èˆ‡æ–‡å­—é€²è¡Œé›™å‘è½‰æ›
     /// </summary>
     public class OptionSetConverter
     {
         private static readonly Regex DigitsOnly = new Regex(@"[^\d]");
 
-        #region ¸ò¶i¶g¦¸Âà´«
+        #region è·Ÿé€²é€±æ¬¡è½‰æ›
 
         /// <summary>
-        /// ±N¤¤¤å¶g¦¸Âà´«¬° OptionSet ­È
+        /// å°‡ä¸­æ–‡é€±æ¬¡è½‰æ›ç‚º OptionSet å€¼
         /// </summary>
         public static int ChineseWeekToOptionSetValue(string chineseWeek)
         {
             return chineseWeek switch
             {
-                "¤@" => FollowUpWeek.Week1,
-                "¤G" => FollowUpWeek.Week2,
-                "¤T" => FollowUpWeek.Week3,
-                "¥|" => FollowUpWeek.Week4,
-                "¤­" => FollowUpWeek.Week5,
-                "¤»" => FollowUpWeek.Week6,
-                "¤C" => FollowUpWeek.Week7,
-                "¤K" => FollowUpWeek.Week8,
-                "¤E" => FollowUpWeek.Week9,
-                "¤Q" => FollowUpWeek.Week10,
-                "¤Q¤@" => FollowUpWeek.Week11,
-                "¤Q¤G" => FollowUpWeek.Week12,
-                "¤Q¤T" => FollowUpWeek.Week13,
-                "¤Q¥|" => FollowUpWeek.Week14,
-                "¤Q¤­" => FollowUpWeek.Week15,
-                "¤Q¤»" => FollowUpWeek.Week16,
-                "¤Q¤C" => FollowUpWeek.Week17,
-                "¤Q¤K" => FollowUpWeek.Week18,
-                "¤Q¤E" => FollowUpWeek.Week19,
-                "¤G¤Q" => FollowUpWeek.Week20,
-                _ => FollowUpWeek.Week8 // ¹w³]²Ä8¶g
+                "ä¸€" => FollowUpWeek.Week1,
+                "äºŒ" => FollowUpWeek.Week2,
+                "ä¸‰" => FollowUpWeek.Week3,
+                "å››" => FollowUpWeek.Week4,
+                "äº”" => FollowUpWeek.Week5,
+                "å…­" => FollowUpWeek.Week6,
+                "ä¸ƒ" => FollowUpWeek.Week7,
+                "å…«" => FollowUpWeek.Week8,
+                "ä¹" => FollowUpWeek.Week9,
+                "å" => FollowUpWeek.Week10,
+                "åä¸€" => FollowUpWeek.Week11,
+                "åäºŒ" => FollowUpWeek.Week12,
+                "åä¸‰" => FollowUpWeek.Week13,
+                "åå››" => FollowUpWeek.Week14,
+                "åäº”" => FollowUpWeek.Week15,
+                "åå…­" => FollowUpWeek.Week16,
+                "åä¸ƒ" => FollowUpWeek.Week17,
+                "åå…«" => FollowUpWeek.Week18,
+                "åä¹" => FollowUpWeek.Week19,
+                "äºŒå" => FollowUpWeek.Week20,
+                _ => FollowUpWeek.Week8 // é è¨­ç¬¬8é€±
             };
         }
 
         /// <summary>
-        /// ±N OptionSet ­ÈÂà´«¬°¤¤¤å¶g¦¸
+        /// å°‡ OptionSet å€¼è½‰æ›ç‚ºä¸­æ–‡é€±æ¬¡
         /// </summary>
         public static string OptionSetValueToChineseWeek(int optionSetValue)
         {
@@ -55,31 +68,31 @@ namespace ChurchReport.Utilities
 
         #endregion
 
-        #region ¸ò¶iµ²ªGÂà´«
+        #region è·Ÿé€²çµæœè½‰æ›
 
         /// <summary>
-        /// ±N¸ò¶iµ²ªG¤å¦rÂà´«¬° OptionSet ­È
+        /// å°‡è·Ÿé€²çµæœæ–‡å­—è½‰æ›ç‚º OptionSet å€¼
         /// </summary>
         public static int FollowUpResultTextToValue(string resultText)
         {
             return resultText switch
             {
-                "½Ğ¿ï¾Ü" => FollowUpResult.PleaseSelect,
-                "¼ö±¡¦^À³" => FollowUpResult.EnthusiasticResponse,
-                "´÷¼}»{ÃÑ«H¥õ" => FollowUpResult.EagerToKnowFaith,
-                "¨SÁpµ¸¤W" => FollowUpResult.NoContact,
-                "¤ÏÀ³§N²H" => FollowUpResult.ColdResponse,
-                "¦Ò¼{¤¤¡AÄ~Äò¸ò¶i" => FollowUpResult.Considering,
-                "¤J¤p²Õ" => FollowUpResult.JoinedSmallGroup,
-                "¨Ó¥D¤é" => FollowUpResult.AttendedSunday,
-                "Âà¤¶" => FollowUpResult.Transferred,
-                "¨ä¥L" => FollowUpResult.Other,
+                "è«‹é¸æ“‡" => FollowUpResult.PleaseSelect,
+                "ç†±æƒ…å›æ‡‰" => FollowUpResult.EnthusiasticResponse,
+                "æ¸´æ…•èªè­˜ä¿¡ä»°" => FollowUpResult.EagerToKnowFaith,
+                "æ²’è¯çµ¡ä¸Š" => FollowUpResult.NoContact,
+                "åæ‡‰å†·æ·¡" => FollowUpResult.ColdResponse,
+                "è€ƒæ…®ä¸­ï¼Œç¹¼çºŒè·Ÿé€²" => FollowUpResult.Considering,
+                "å…¥å°çµ„" => FollowUpResult.JoinedSmallGroup,
+                "ä¾†ä¸»æ—¥" => FollowUpResult.AttendedSunday,
+                "è½‰ä»‹" => FollowUpResult.Transferred,
+                "å…¶ä»–" => FollowUpResult.Other,
                 _ => FollowUpResult.PleaseSelect
             };
         }
 
         /// <summary>
-        /// ±N OptionSet ­ÈÂà´«¬°¸ò¶iµ²ªG¤å¦r
+        /// å°‡ OptionSet å€¼è½‰æ›ç‚ºè·Ÿé€²çµæœæ–‡å­—
         /// </summary>
         public static string FollowUpResultValueToText(int optionSetValue)
         {
@@ -88,24 +101,24 @@ namespace ChurchReport.Utilities
 
         #endregion
 
-        #region ¸ò¶i¤U¤@¨BÆJÂà´«
+        #region è·Ÿé€²ä¸‹ä¸€æ­¥é©Ÿè½‰æ›
 
         /// <summary>
-        /// ±N¸ò¶i¤U¤@¨BÆJ¤å¦rÂà´«¬° OptionSet ­È
+        /// å°‡è·Ÿé€²ä¸‹ä¸€æ­¥é©Ÿæ–‡å­—è½‰æ›ç‚º OptionSet å€¼
         /// </summary>
         public static int FollowUpNextStepTextToValue(string nextStepText)
         {
             return nextStepText switch
             {
-                "½Ğ¿ï¾Ü" => FollowUpNextStep.PleaseSelect,
-                "Ä~Äò¸ò¶i" => FollowUpNextStep.ContinueFollowUp,
-                "Âà¤¶" => FollowUpNextStep.Transfer,
+                "è«‹é¸æ“‡" => FollowUpNextStep.PleaseSelect,
+                "ç¹¼çºŒè·Ÿé€²" => FollowUpNextStep.ContinueFollowUp,
+                "è½‰ä»‹" => FollowUpNextStep.Transfer,
                 _ => FollowUpNextStep.PleaseSelect
             };
         }
 
         /// <summary>
-        /// ±N OptionSet ­ÈÂà´«¬°¸ò¶i¤U¤@¨BÆJ¤å¦r
+        /// å°‡ OptionSet å€¼è½‰æ›ç‚ºè·Ÿé€²ä¸‹ä¸€æ­¥é©Ÿæ–‡å­—
         /// </summary>
         public static string FollowUpNextStepValueToText(int optionSetValue)
         {
@@ -114,30 +127,30 @@ namespace ChurchReport.Utilities
 
         #endregion
 
-        #region ©e¨­Ãş«¬Âà´«
+        #region å§”èº«é¡å‹è½‰æ›
 
         /// <summary>
-        /// ¨ú±o©e¨­Ãş«¬ªºÂ²¤ÆÅã¥Ü¦WºÙ
-        /// ¥Î©ó²Î­p³ø§i¤¤
+        /// å–å¾—å§”èº«é¡å‹çš„ç°¡åŒ–é¡¯ç¤ºåç¨±
+        /// ç”¨æ–¼çµ±è¨ˆå ±å‘Šä¸­
         /// </summary>
         public static string GetSimplifiedCommitmentType(int commitmentTypeCode)
         {
             return commitmentTypeCode switch
             {
-                CommitmentType.NewFriend => "·sªB¤Í",
-                CommitmentType.NotJoinedGroup => "¥¼¤J²Õ",
-                CommitmentType.ExternalChurch => "¥¼¤J²Õ", // ¥~±Ğ·|ÂkÃş¬°¥¼¤J²Õ
-                CommitmentType.SmallGroupMember => "¤p²Õ²Õ­û",
-                _ => "¤p²Õ²Õ­û"
+                CommitmentType.NewFriend => "æ–°æœ‹å‹",
+                CommitmentType.NotJoinedGroup => "æœªå…¥çµ„",
+                CommitmentType.ExternalChurch => "æœªå…¥çµ„", // å¤–æ•™æœƒæ­¸é¡ç‚ºæœªå…¥çµ„
+                CommitmentType.SmallGroupMember => "å°çµ„çµ„å“¡",
+                _ => "å°çµ„çµ„å“¡"
             };
         }
 
         #endregion
 
-        #region ¹q¸Ü¸¹½X³B²z
+        #region é›»è©±è™Ÿç¢¼è™•ç†
 
         /// <summary>
-        /// ²¾°£¹q¸Ü¸¹½X¤¤ªº«D¼Æ¦r¦r¤¸
+        /// ç§»é™¤é›»è©±è™Ÿç¢¼ä¸­çš„éæ•¸å­—å­—å…ƒ
         /// </summary>
         public static string NormalizePhoneNumber(string phoneNumber)
         {
@@ -149,18 +162,18 @@ namespace ChurchReport.Utilities
 
         #endregion
 
-        #region ¤å¦r³B²z
+        #region æ–‡å­—è™•ç†
 
         /// <summary>
-        /// §PÂ_¦r¦ê¬O§_¦³·N¸q¡]«DªÅ¡B«D¹w³]­È¡^
+        /// åˆ¤æ–·å­—ä¸²æ˜¯å¦æœ‰æ„ç¾©ï¼ˆéç©ºã€éé è¨­å€¼ï¼‰
         /// </summary>
         public static bool HasMeaningfulValue(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
                 return false;
 
-            // ±Æ°£±`¨£ªºµL·N¸q¹w³]­È
-            string[] meaninglessValues = { ".", "½Ğ¿ï¾Ü", "µL", "¥¼ª¾", "-" };
+            // æ’é™¤å¸¸è¦‹çš„ç„¡æ„ç¾©é è¨­å€¼
+            string[] meaninglessValues = { ".", "è«‹é¸æ“‡", "ç„¡", "æœªçŸ¥", "-" };
             foreach (var meaningless in meaninglessValues)
             {
                 if (value.Equals(meaningless, StringComparison.OrdinalIgnoreCase))
@@ -171,11 +184,11 @@ namespace ChurchReport.Utilities
         }
 
         /// <summary>
-        /// «Ø¥ß±a¼ĞÃDªº¦r¦ê¡]¶È¦b¦³·N¸q®É¡^
+        /// å»ºç«‹å¸¶æ¨™é¡Œçš„å­—ä¸²ï¼ˆåƒ…åœ¨æœ‰æ„ç¾©æ™‚ï¼‰
         /// </summary>
-        /// <param name="title">¼ĞÃD</param>
-        /// <param name="content">¤º®e</param>
-        /// <returns>®æ¦¡¤Æªº¦r¦ê¡A­Y¤º®eµL·N¸q«hªğ¦^ªÅ¦r¦ê</returns>
+        /// <param name="title">æ¨™é¡Œ</param>
+        /// <param name="content">å…§å®¹</param>
+        /// <returns>æ ¼å¼åŒ–çš„å­—ä¸²ï¼Œè‹¥å…§å®¹ç„¡æ„ç¾©å‰‡è¿”å›ç©ºå­—ä¸²</returns>
         public static string BuildLabeledString(string title, string content)
         {
             if (!HasMeaningfulValue(content))

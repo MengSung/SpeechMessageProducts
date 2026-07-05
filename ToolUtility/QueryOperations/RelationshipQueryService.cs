@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ToolUtility/QueryOperations/RelationshipQueryService.cs
+// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class RelationshipQueryService
+// 主要成員：RetrieveManyToOneRelationship、QueryListsAndOrderedByListName、RetrieveManyToOneWithLinkEntity、QueryWeeklyReportBySunday、QueryManyToMany、QueryListOfContactManyToMany、SafeLogError
+// 引用命名空間：System、System.Linq、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query、Microsoft.Xrm.Sdk.Messages
+// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using System;
 using System.Linq;
 using Microsoft.Xrm.Sdk;
@@ -7,7 +20,7 @@ using Microsoft.Xrm.Sdk.Messages;
 namespace ToolUtilityNameSpace.QueryOperations
 {
     /// <summary>
-    /// N:1 �M N:N ���p�d�ߪA��
+    /// N:1 和 N:N 關聯查詢服務
     /// </summary>
     public class RelationshipQueryService : IRelationshipQueryService
     {
@@ -21,7 +34,7 @@ namespace ToolUtilityNameSpace.QueryOperations
         }
 
         /// <summary>
-        /// �d�� N:1 ���p�����X
+        /// 查詢 N:1 關聯的集合
         /// </summary>
         public EntityCollection RetrieveManyToOneRelationship(string parentEntityName, string parentEntityIdName,
             string parentEntityId, string associationName, string childEntityName)
@@ -55,13 +68,13 @@ namespace ToolUtilityNameSpace.QueryOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "RetrieveManyToOneRelationship �o�Ϳ��~");
+                SafeLogError(ex, "RetrieveManyToOneRelationship 發生錯誤");
                 throw;
             }
         }
 
         /// <summary>
-        /// �d�� N:1 ���p�����X(�ھڦW�ٱƧ�)
+        /// 查詢 N:1 關聯的集合(根據名稱排序)
         /// </summary>
         public EntityCollection QueryListsAndOrderedByListName(string parentEntityName, string parentEntityIdName,
             string parentEntityId, string associationName, string childEntityName)
@@ -96,13 +109,13 @@ namespace ToolUtilityNameSpace.QueryOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "QueryListsAndOrderedByListName �o�Ϳ��~");
+                SafeLogError(ex, "QueryListsAndOrderedByListName 發生錯誤");
                 throw;
             }
         }
 
         /// <summary>
-        /// �d�� N:1 ���p(�ϥ� LinkEntity ���o���p���)
+        /// 查詢 N:1 關聯(使用 LinkEntity 取得關聯資料)
         /// </summary>
         public EntityCollection RetrieveManyToOneWithLinkEntity()
         {
@@ -130,13 +143,13 @@ namespace ToolUtilityNameSpace.QueryOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "RetrieveManyToOneWithLinkEntity �o�Ϳ��~");
+                SafeLogError(ex, "RetrieveManyToOneWithLinkEntity 發生錯誤");
                 throw;
             }
         }
 
         /// <summary>
-        /// �d�߶g��(�ھڥD�����MN:1���p)
+        /// 查詢週報(根據主日日期和N:1關聯)
         /// </summary>
         public EntityCollection QueryWeeklyReportBySunday(DateTime sunday, string parentEntityName,
             string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
@@ -173,13 +186,13 @@ namespace ToolUtilityNameSpace.QueryOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "QueryWeeklyReportBySunday �o�Ϳ��~");
+                SafeLogError(ex, "QueryWeeklyReportBySunday 發生錯誤");
                 throw;
             }
         }
 
         /// <summary>
-        /// �d�� N:N (ManyToMany) �����X
+        /// 查詢 N:N (ManyToMany) 的集合
         /// </summary>
         public EntityCollection QueryManyToMany(string conditionAttributeName, string entityNameToSearch,
             string linkFromEntityName, string linkFromAttributeName, string linkToEntityName,
@@ -229,13 +242,13 @@ namespace ToolUtilityNameSpace.QueryOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "QueryManyToMany �o�Ϳ��~");
+                SafeLogError(ex, "QueryManyToMany 發生錯誤");
                 throw;
             }
         }
 
         /// <summary>
-        /// �s���H�������U���W�� (N:N�d��)
+        /// 連絡人相關的各類名單 (N:N查詢)
         /// </summary>
         public EntityCollection QueryListOfContactManyToMany(Guid contactId)
         {
@@ -283,7 +296,7 @@ namespace ToolUtilityNameSpace.QueryOperations
             }
             catch (Exception ex)
             {
-                SafeLogError(ex, "QueryListOfContactManyToMany �o�Ϳ��~");
+                SafeLogError(ex, "QueryListOfContactManyToMany 發生錯誤");
                 throw;
             }
         }

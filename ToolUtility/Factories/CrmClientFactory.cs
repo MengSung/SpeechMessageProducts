@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ToolUtility/Factories/CrmClientFactory.cs
+// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class CrmClientFactory
+// 主要成員：Create、CreateDataverseClient、CreateDataverse、CreateLegacyClient、CreateLegacy
+// 引用命名空間：Microsoft.Extensions.Configuration、System、ToolUtilityNameSpace.Adapters、ToolUtilityNameSpace.Interfaces
+// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using Microsoft.Extensions.Configuration;
 using System;
 using ToolUtilityNameSpace.Adapters;
@@ -7,19 +20,19 @@ namespace ToolUtilityNameSpace.Factories
 {
     /// <summary>
     /// CRM Client Factory
-    /// �]�p�Ҧ��GFactory Method Pattern
-    /// �γ~�G�ھڰt�m�M�w�إ߭��� ICrmClient ��@
+    /// 設計模式：Factory Method Pattern
+    /// 用途：根據配置決定建立哪種 ICrmClient 實作
     /// </summary>
     /// <remarks>
-    /// �� Factory �ŦX Linus ��h�G
-    /// 1. ²���@ - �u�t�d�إߪ���A���]�t�~���޿�
-    /// 2. �i�t�m - �z�L IConfiguration �`�J�A��K���ջP����
-    /// 3. ��@¾�d - �u������إ�
-    /// 
-    /// �ϥνd�ҡG
+    /// 此 Factory 符合 Linus 原則：
+    /// 1. 簡潔實作 - 只負責建立物件，不包含業務邏輯
+    /// 2. 可配置 - 透過 IConfiguration 注入，方便測試與切換
+    /// 3. 單一職責 - 只做物件建立
+    ///
+    /// 使用範例：
     /// <code>
-    /// // �b Startup.cs / Program.cs ���U
-    /// services.AddScoped&lt;ICrmClient&gt;(sp => 
+    /// // 在 Startup.cs / Program.cs 註冊
+    /// services.AddScoped&lt;ICrmClient&gt;(sp =>
     /// {
     ///     var config = sp.GetRequiredService&lt;IConfiguration&gt;();
     ///     return CrmClientFactory.Create(config);
@@ -29,15 +42,15 @@ namespace ToolUtilityNameSpace.Factories
     public static class CrmClientFactory
     {
         /// <summary>
-        /// �ھڰt�m�إ� ICrmClient
+        /// 根據配置建立 ICrmClient
         /// </summary>
-        /// <param name="configuration">���ε{���t�m</param>
-        /// <returns>ICrmClient ��@</returns>
+        /// <param name="configuration">應用程式配置</param>
+        /// <returns>ICrmClient 實作</returns>
         /// <example>
         /// appsettings.json:
         /// {
         ///   "CrmConnection": {
-        ///     "Type": "Dataverse",  // "Dataverse" �� "Legacy"
+        ///     "Type": "Dataverse",  // "Dataverse" 或 "Legacy"
         ///     "ConnectionString": "AuthType=OAuth;..."
         ///   }
         /// }
@@ -48,7 +61,7 @@ namespace ToolUtilityNameSpace.Factories
                 throw new ArgumentNullException(nameof(configuration));
 
             var crmType = configuration["CrmConnection:Type"] ?? "Legacy";
-            
+
             switch (crmType.ToUpperInvariant())
             {
 #if NETCOREAPP || NET5_0_OR_GREATER
@@ -75,12 +88,12 @@ namespace ToolUtilityNameSpace.Factories
 
 #if NETCOREAPP || NET5_0_OR_GREATER
         /// <summary>
-        /// �إ� Dataverse (Modern) Client
+        /// 建立 Dataverse (Modern) Client
         /// </summary>
         private static ICrmClient CreateDataverseClient(IConfiguration configuration)
         {
             var connectionString = configuration["CrmConnection:ConnectionString"];
-            
+
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new InvalidOperationException(
@@ -91,7 +104,7 @@ namespace ToolUtilityNameSpace.Factories
         }
 
         /// <summary>
-        /// �إ� Dataverse Client�]�������ѳs�u�r��^
+        /// 建立 Dataverse Client（直接提供連線字串）
         /// </summary>
         public static ICrmClient CreateDataverse(string connectionString)
         {
@@ -103,19 +116,19 @@ namespace ToolUtilityNameSpace.Factories
 #endif
 
         /// <summary>
-        /// �إ� Legacy (On-Premise) Client
+        /// 建立 Legacy (On-Premise) Client
         /// </summary>
         private static ICrmClient CreateLegacyClient(IConfiguration configuration)
         {
-            // �覡 1: �ϥγs�u�r��]�Y�����ѡ^
+            // 方式 1: 使用連線字串（若有提供）
             var connectionString = configuration["CrmConnection:ConnectionString"];
             if (!string.IsNullOrWhiteSpace(connectionString))
             {
-                // TODO: �ѪR�s�u�r��ëإ� LegacyAdapter
-                // �ثe LegacyAdapter ���䴩�s�u�r��A�ݭn�ӧO�Ѽ�
+                // TODO: 解析連線字串並建立 LegacyAdapter
+                // 目前 LegacyAdapter 不支援連線字串，需要個別參數
             }
 
-            // �覡 2: �ϥέӧO�Ѽơ]�V��ۮe�^
+            // 方式 2: 使用個別參數（向後相容）
             var serverUrl = configuration["CrmConnection:ServerUrl"];
             var domain = configuration["CrmConnection:Domain"];
             var username = configuration["CrmConnection:Username"];
@@ -131,7 +144,7 @@ namespace ToolUtilityNameSpace.Factories
         }
 
         /// <summary>
-        /// �إ� Legacy Client�]�������ѰѼơ^
+        /// 建立 Legacy Client（直接提供參數）
         /// </summary>
         public static ICrmClient CreateLegacy(string serverUrl, string domain, string username, string password)
         {

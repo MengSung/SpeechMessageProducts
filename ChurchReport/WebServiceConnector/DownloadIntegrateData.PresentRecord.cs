@@ -1,4 +1,17 @@
-﻿using System;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/WebServiceConnector/DownloadIntegrateData.PresentRecord.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class DownloadIntegrateData
+// 主要成員：GetPresentRecordByLoginType、CreatePresentRecordList、CreatePresentRecord、CreateMember、UpdateContactInfomationFromList、SetupPresentRecordEntityAttributes、SetupLeaderReferences、SetupAttendanceData、SetupFollowUpData
+// 引用命名空間：System、ChurchReport.Models、Microsoft.Xrm.Sdk
+// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using System;
 using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
 
@@ -15,15 +28,15 @@ namespace ChurchReport.WebServiceConnector
         /// 根據登入類型取得出席紀錄
         /// </summary>
         private EntityCollection GetPresentRecordByLoginType(
-            string GroupName, 
-            Guid WeeklyReportId, 
+            string GroupName,
+            Guid WeeklyReportId,
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             EntityCollection PresentRecordCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship(
-                "new_group_present_weekly_report", 
-                "new_group_present_weekly_reportid", 
-                WeeklyReportId.ToString(), 
-                "new_group_present_weekly_report_prese", 
+                "new_group_present_weekly_report",
+                "new_group_present_weekly_reportid",
+                WeeklyReportId.ToString(),
+                "new_group_present_weekly_report_prese",
                 "new_present_record");
 
             if (this.m_LoginType == "小組長")
@@ -54,13 +67,13 @@ namespace ChurchReport.WebServiceConnector
         /// 建立出席紀錄清單
         /// </summary>
         private EntityCollection CreatePresentRecordList(
-            string GroupName, 
-            ref Entity aListEntity, 
-            ref Guid aWeeklyReportId, 
-            double ValidNumber, 
-            double aWeeklySundayRate, 
-            double aWeeklySmallGroupRate, 
-            int aWeeklySundayNumber, 
+            string GroupName,
+            ref Entity aListEntity,
+            ref Guid aWeeklyReportId,
+            double ValidNumber,
+            double aWeeklySundayRate,
+            double aWeeklySmallGroupRate,
+            int aWeeklySundayNumber,
             int aWeeklySmallGroupNumber)
         {
             EntityCollection PresentRecordEntityCollection = new EntityCollection();
@@ -82,13 +95,13 @@ namespace ChurchReport.WebServiceConnector
         /// 建立出席紀錄
         /// </summary>
         private Entity CreatePresentRecord(
-            Member aMemberInfomation, 
-            ref Entity aListEntity, 
-            ref Guid aWeeklyReportId, 
-            double ValidNumber, 
-            ref double aWeeklySundayRate, 
-            ref double aWeeklySmallGroupRate, 
-            ref int aWeeklySundayNumber, 
+            Member aMemberInfomation,
+            ref Entity aListEntity,
+            ref Guid aWeeklyReportId,
+            double ValidNumber,
+            ref double aWeeklySundayRate,
+            ref double aWeeklySmallGroupRate,
+            ref int aWeeklySundayNumber,
             ref int aWeeklySmallGroupNumber)
         {
             Entity aContactEntity = UpdateContactInfomationFromList(aMemberInfomation.FullName, aListEntity.Id);
@@ -99,15 +112,15 @@ namespace ChurchReport.WebServiceConnector
             Entity aPresentRecord = new Entity("new_present_record");
 
             SetupPresentRecordEntityAttributes(
-                aPresentRecord, 
-                aMemberInfomation, 
-                ref aContactEntity, 
-                ref aListEntity, 
-                ref aWeeklyReportId, 
-                ValidNumber, 
-                ref aWeeklySundayRate, 
-                ref aWeeklySmallGroupRate, 
-                ref aWeeklySundayNumber, 
+                aPresentRecord,
+                aMemberInfomation,
+                ref aContactEntity,
+                ref aListEntity,
+                ref aWeeklyReportId,
+                ValidNumber,
+                ref aWeeklySundayRate,
+                ref aWeeklySmallGroupRate,
+                ref aWeeklySundayNumber,
                 ref aWeeklySmallGroupNumber);
 
             Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
@@ -129,7 +142,7 @@ namespace ChurchReport.WebServiceConnector
                 ContactId = this.m_ContactEntity.Id.ToString(),
                 Group = GroupName,
                 FullName = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "fullname"),
-                
+
                 Phone = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "mobilephone"), ""),
                 HomePhone = DigitsOnly.Replace(this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "telephone2"), ""),
                 Address = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "address2_line1"),
@@ -138,7 +151,7 @@ namespace ChurchReport.WebServiceConnector
                 EquipmentStatus = this.m_ToolUtilityClass.GetEntityStringAttribute(this.m_ContactEntity, "new_equipment_status"),
                 SpiritualIdentity = ConvertIndexToSpiritualIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(this.m_ContactEntity, "new_spiriitual_identity")),
                 BaptizedSituation = ConvertIndexToBaptizedSituation(this.m_ToolUtilityClass.GetOptionSetAttribute(this.m_ContactEntity, "new_baptized_situation")),
-                
+
                 Status = ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref m_ContactEntity, "customertypecode")),
                 SmallGroupName = GroupName,
                 SectionName = GroupName,
@@ -146,7 +159,7 @@ namespace ChurchReport.WebServiceConnector
                 Sunday = false,
                 SmallGroup = false,
                 Decision = false,
-                
+
                 FollowUpWeek = "未選擇",
                 FollowUpResult = "",
                 FollowUpOption = "",
@@ -154,7 +167,7 @@ namespace ChurchReport.WebServiceConnector
                 FollowUpNextStep = "",
                 FollowUpNote = "",
                 NewComerNote = "",
-                
+
                 SpiritualWork = 0,
                 MorningPray = 0,
                 GeneralCare = 0,
@@ -198,15 +211,15 @@ namespace ChurchReport.WebServiceConnector
         /// 設定出席紀錄實體屬性
         /// </summary>
         private void SetupPresentRecordEntityAttributes(
-            Entity aPresentRecord, 
-            Member aMemberInfomation, 
-            ref Entity aContactEntity, 
-            ref Entity aListEntity, 
-            ref Guid aWeeklyReportId, 
-            double ValidNumber, 
-            ref double aWeeklySundayRate, 
-            ref double aWeeklySmallGroupRate, 
-            ref int aWeeklySundayNumber, 
+            Entity aPresentRecord,
+            Member aMemberInfomation,
+            ref Entity aContactEntity,
+            ref Entity aListEntity,
+            ref Guid aWeeklyReportId,
+            double ValidNumber,
+            ref double aWeeklySundayRate,
+            ref double aWeeklySmallGroupRate,
+            ref int aWeeklySundayNumber,
             ref int aWeeklySmallGroupNumber)
         {
             try
@@ -281,9 +294,9 @@ namespace ChurchReport.WebServiceConnector
         /// 設定出席資料
         /// </summary>
         private void SetupAttendanceData(
-            ref Entity aPresentRecord, 
-            Member aMemberInfomation, 
-            double ValidNumber, 
+            ref Entity aPresentRecord,
+            Member aMemberInfomation,
+            double ValidNumber,
             ref int aWeeklySmallGroupNumber)
         {
             // 主日出席

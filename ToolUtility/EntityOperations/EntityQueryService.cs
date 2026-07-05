@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šToolUtility/EntityOperations/EntityQueryService.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport å…±ç”¨å·¥å…·èˆ‡æ•´åˆè¼”åŠ©å±¤ï¼ŒåŒ…å«é€šçŸ¥ã€ä»˜æ¬¾ã€CRM æˆ–è·¨æ¨¡çµ„ helperã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass EntityQueryService
+// ä¸»è¦æˆå“¡ï¼šRetrieveEntityã€RetrieveEntityByFieldã€RetrieveMultipleã€RetrieveAccountByNameã€RetrieveTaskBySubjectã€ExecuteRetrieveMultipleã€Dispose
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€Microsoft.Xrm.Sdkã€Microsoft.Xrm.Sdk.Queryã€Microsoft.Xrm.Sdk.Messagesã€ToolUtilityNameSpace.Interfaces
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
@@ -7,16 +20,16 @@ using ToolUtilityNameSpace.Interfaces;
 namespace ToolUtilityNameSpace.EntityOperations
 {
     /// <summary>
-    /// ¹êÅé¬d¸ßªA°È
-    /// ? Phase 3.1: ¬d¸ßÀu¤Æ - ¥u¬d¸ß¥²­nÄæ¦ì¡B²K¥[­­¨î
+    /// å¯¦é«”æŸ¥è©¢æœå‹™
+    /// ? Phase 3.1: æŸ¥è©¢å„ªåŒ– - åªæŸ¥è©¢å¿…è¦æ¬„ä½ã€æ·»åŠ é™åˆ¶
     /// </summary>
     public class EntityQueryService : IEntityQueryService, IDisposable
     {
         private readonly object _logger;
         private readonly IOrganizationService _organizationService;
         private bool _disposed = false;
-        
-        // ? ¹w³]¬d¸ß­­¨î
+
+        // ? é è¨­æŸ¥è©¢é™åˆ¶
         private const int DEFAULT_PAGE_SIZE = 5000;
 
         public EntityQueryService(object logger = null, IOrganizationService organizationService = null)
@@ -26,52 +39,52 @@ namespace ToolUtilityNameSpace.EntityOperations
         }
 
         /// <summary>
-        /// ÀË¯Á³æ¤@¹êÅé
-        /// ? Phase 3.1: Àu¤Æ - ¤¹³\«ü©wÄæ¦ì¡AÁ×§K¬d¸ß©Ò¦³Äæ¦ì
+        /// æª¢ç´¢å–®ä¸€å¯¦é«”
+        /// ? Phase 3.1: å„ªåŒ– - å…è¨±æŒ‡å®šæ¬„ä½ï¼Œé¿å…æŸ¥è©¢æ‰€æœ‰æ¬„ä½
         /// </summary>
         public Entity RetrieveEntity(string entityName, Guid entityId)
         {
-            if (_organizationService == null) 
+            if (_organizationService == null)
                 throw new InvalidOperationException("OrganizationService is not initialized.");
-            
-            // ?? ª`·N¡G³o¸Ì¤´¨Ï¥Î new ColumnSet(true) ¦]¬°¬O³æµ§¬d¸ß
-            // ¦p»İÀu¤Æ¡A¥i²K¥[­«¸ü¤èªk±µ¨ü ColumnSet °Ñ¼Æ
+
+            // ?? æ³¨æ„ï¼šé€™è£¡ä»ä½¿ç”¨ new ColumnSet(true) å› ç‚ºæ˜¯å–®ç­†æŸ¥è©¢
+            // å¦‚éœ€å„ªåŒ–ï¼Œå¯æ·»åŠ é‡è¼‰æ–¹æ³•æ¥å— ColumnSet åƒæ•¸
             return _organizationService.Retrieve(entityName, entityId, new ColumnSet(true));
         }
 
         /// <summary>
-        /// ®Ú¾ÚÄæ¦ì­ÈÀË¯Á¹êÅé
-        /// ? Phase 3.1: Àu¤Æ - ²K¥[ TopCount ­­¨î
+        /// æ ¹æ“šæ¬„ä½å€¼æª¢ç´¢å¯¦é«”
+        /// ? Phase 3.1: å„ªåŒ– - æ·»åŠ  TopCount é™åˆ¶
         /// </summary>
         public Entity RetrieveEntityByField(string entityName, string fieldName, string fieldValue)
         {
-            if (_organizationService == null) 
+            if (_organizationService == null)
                 throw new InvalidOperationException("OrganizationService is not initialized.");
-            
-            // ? Àu¤Æ¡G²K¥[ TopCount¡A¥u¨ú²Ä¤@µ§
-            var query = new QueryByAttribute(entityName) 
-            { 
+
+            // ? å„ªåŒ–ï¼šæ·»åŠ  TopCountï¼Œåªå–ç¬¬ä¸€ç­†
+            var query = new QueryByAttribute(entityName)
+            {
                 ColumnSet = new ColumnSet(true),
-                TopCount = 1  // ? ¥u»İ­n²Ä¤@µ§
+                TopCount = 1  // ? åªéœ€è¦ç¬¬ä¸€ç­†
             };
-            
+
             query.Attributes.AddRange(fieldName, "statecode");
             query.Values.AddRange(fieldValue, 0);
-            
+
             var collection = _organizationService.RetrieveMultiple(query);
             return (collection != null && collection.Entities.Count > 0) ? collection.Entities[0] : null;
         }
 
         /// <summary>
-        /// °õ¦æ¦hµ§¬d¸ß
-        /// ? Phase 3.1: «O«ù¼u©Ê¡AÅı½Õ¥ÎªÌ±±¨î¬d¸ß
+        /// åŸ·è¡Œå¤šç­†æŸ¥è©¢
+        /// ? Phase 3.1: ä¿æŒå½ˆæ€§ï¼Œè®“èª¿ç”¨è€…æ§åˆ¶æŸ¥è©¢
         /// </summary>
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
-            if (_organizationService == null) 
+            if (_organizationService == null)
                 throw new InvalidOperationException("OrganizationService is not initialized.");
-            
-            // ? ¦pªG¬O QueryExpression¡A²K¥[¹w³] PageInfo
+
+            // ? å¦‚æœæ˜¯ QueryExpressionï¼Œæ·»åŠ é è¨­ PageInfo
             if (query is QueryExpression qe && qe.PageInfo == null)
             {
                 qe.PageInfo = new PagingInfo
@@ -80,29 +93,29 @@ namespace ToolUtilityNameSpace.EntityOperations
                     PageNumber = 1
                 };
             }
-            
+
             return _organizationService.RetrieveMultiple(query);
         }
 
         /// <summary>
-        /// ®Ú¾Ú±b¤á¦WºÙÀË¯Á±b¤á ID
-        /// ? Phase 3.1: Àu¤Æ - ¥u¬d¸ß ID¡A²K¥[ TopCount
+        /// æ ¹æ“šå¸³æˆ¶åç¨±æª¢ç´¢å¸³æˆ¶ ID
+        /// ? Phase 3.1: å„ªåŒ– - åªæŸ¥è©¢ IDï¼Œæ·»åŠ  TopCount
         /// </summary>
         public Guid RetrieveAccountByName(string accountName)
         {
-            if (_organizationService == null) 
+            if (_organizationService == null)
                 throw new InvalidOperationException("OrganizationService is not initialized.");
-            
-            // ? Àu¤Æ¡G¥u¬d¸ß accountid¡A¤£»İ­n©Ò¦³Äæ¦ì
-            var query = new QueryByAttribute("account") 
-            { 
-                ColumnSet = new ColumnSet("accountid"),  // ? ¥u¬d¸ß ID
-                TopCount = 1  // ? ¥u»İ­n²Ä¤@µ§
+
+            // ? å„ªåŒ–ï¼šåªæŸ¥è©¢ accountidï¼Œä¸éœ€è¦æ‰€æœ‰æ¬„ä½
+            var query = new QueryByAttribute("account")
+            {
+                ColumnSet = new ColumnSet("accountid"),  // ? åªæŸ¥è©¢ ID
+                TopCount = 1  // ? åªéœ€è¦ç¬¬ä¸€ç­†
             };
-            
+
             query.Attributes.AddRange("name", "statecode");
             query.Values.AddRange(accountName, 0);
-            
+
             var collection = _organizationService.RetrieveMultiple(query);
             if (collection != null && collection.Entities.Count > 0)
             {
@@ -112,17 +125,17 @@ namespace ToolUtilityNameSpace.EntityOperations
         }
 
         /// <summary>
-        /// ®Ú¾Ú¥D¦®ÀË¯Á¤u§@
-        /// ? Phase 3.1: Àu¤Æ - ²K¥[ top ­­¨î¡B¥u¬d¸ß¥²­nÄæ¦ì
+        /// æ ¹æ“šä¸»æ—¨æª¢ç´¢å·¥ä½œ
+        /// ? Phase 3.1: å„ªåŒ– - æ·»åŠ  top é™åˆ¶ã€åªæŸ¥è©¢å¿…è¦æ¬„ä½
         /// </summary>
         public EntityCollection RetrieveTaskBySubject(string subject)
         {
-            if (_organizationService == null) 
+            if (_organizationService == null)
                 throw new InvalidOperationException("OrganizationService is not initialized.");
 
             subject = "'" + subject + "'";
-            
-            // ? Àu¤Æ¡G²K¥[ top='100'¡A³q±`¤£·|¦³¤Ó¦h¦P¦W¤u§@
+
+            // ? å„ªåŒ–ï¼šæ·»åŠ  top='100'ï¼Œé€šå¸¸ä¸æœƒæœ‰å¤ªå¤šåŒåå·¥ä½œ
             var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='100'>
                       <entity name='task'>
                         <attribute name='subject' />
@@ -151,14 +164,14 @@ namespace ToolUtilityNameSpace.EntityOperations
         }
 
         /// <summary>
-        /// °õ¦æ RetrieveMultipleRequest ¨Ãªğ¦^µ²ªG
-        /// ? Phase 3.1: «O«ù²{¦³¥\¯à
+        /// åŸ·è¡Œ RetrieveMultipleRequest ä¸¦è¿”å›çµæœ
+        /// ? Phase 3.1: ä¿æŒç¾æœ‰åŠŸèƒ½
         /// </summary>
         public EntityCollection ExecuteRetrieveMultiple(RetrieveMultipleRequest request)
         {
-            if (_organizationService == null) 
+            if (_organizationService == null)
                 throw new InvalidOperationException("OrganizationService is not initialized.");
-            
+
             var response = (RetrieveMultipleResponse)_organizationService.Execute(request);
             return response.EntityCollection;
         }
@@ -168,14 +181,14 @@ namespace ToolUtilityNameSpace.EntityOperations
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed) return;
-            
+
             if (disposing)
             {
                 // Dispose managed resources if any
-                // EntityQueryService ¥»¨­¨S¦³»İ­nÄÀ©ñªº¸ê·½
-                // IOrganizationService ¥Ñ¥~³¡ºŞ²z¡A¤£¦b³o¸ÌÄÀ©ñ
+                // EntityQueryService æœ¬èº«æ²’æœ‰éœ€è¦é‡‹æ”¾çš„è³‡æº
+                // IOrganizationService ç”±å¤–éƒ¨ç®¡ç†ï¼Œä¸åœ¨é€™è£¡é‡‹æ”¾
             }
-            
+
             _disposed = true;
         }
 

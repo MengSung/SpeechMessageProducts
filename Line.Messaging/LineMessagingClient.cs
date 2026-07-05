@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：Line.Messaging/LineMessagingClient.cs
+// 所屬區塊：LINE Messaging SDK 封裝層，定義 LINE API DTO、Client 呼叫與訊息模型。
+// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
+// 主要型別：class LineMessagingClient
+// 主要成員：NormalizeLineApiBaseUri、DeriveDataUri、ApiUrl、DataUrl、ApplyRetryKeyHeader、CombineBaseAndPath、IssueChannelAccessTokenAsync、RevokeChannelAccessTokenAsync、CreateAsync、ReplyMessageAsync
+// 引用命名空間：Newtonsoft.Json、Newtonsoft.Json.Serialization、System、System.Collections.Generic、System.IO、System.Linq、System.Net.Http、System.Net.Http.Headers
+// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
@@ -32,13 +45,13 @@ namespace Line.Messaging
     /// <code>
     /// // 建立客戶端
     /// var client = new LineMessagingClient("YOUR_CHANNEL_ACCESS_TOKEN");
-    /// 
+    ///
     /// // 回覆訊息
     /// await client.ReplyMessageAsync(replyToken, new TextMessage("Hello!"));
-    /// 
+    ///
     /// // 推播訊息
     /// await client.PushMessageAsync(userId, new TextMessage("Hi!"));
-    /// 
+    ///
     /// // 取得使用者資料
     /// var profile = await client.GetUserProfileAsync(userId);
     /// </code>
@@ -336,7 +349,7 @@ namespace Line.Messaging
         ///     "YOUR_CHANNEL_ID",
         ///     "YOUR_CHANNEL_SECRET"
         /// );
-        /// 
+        ///
         /// // 立即使用客戶端
         /// await client.PushMessageAsync(userId, new TextMessage("Hello!"));
         /// </code>
@@ -346,7 +359,7 @@ namespace Line.Messaging
             if (httpClient == null) throw new ArgumentNullException(nameof(httpClient));
             if (string.IsNullOrEmpty(channelId)) throw new ArgumentNullException(nameof(channelId));
             if (string.IsNullOrEmpty(channelSecret)) throw new ArgumentNullException(nameof(channelSecret));
-            
+
             var accessToken = await IssueChannelAccessTokenAsync(httpClient, channelId, channelSecret, uri).ConfigureAwait(false);
             return new LineMessagingClient(httpClient, accessToken.AccessToken, uri);
         }
@@ -405,7 +418,7 @@ namespace Line.Messaging
         /// {
         ///     new TextMessage("感謝您的訊息！")
         /// });
-        /// 
+        ///
         /// // 回覆多則訊息（文字 + 圖片）
         /// await client.ReplyMessageAsync(replyToken, new List&lt;ISendMessage&gt;
         /// {
@@ -446,12 +459,12 @@ namespace Line.Messaging
         /// <code>
         /// // 回覆單一文字訊息
         /// await client.ReplyMessageAsync(replyToken, "謝謝！");
-        /// 
+        ///
         /// // 回覆多則文字訊息
         /// await client.ReplyMessageAsync(replyToken, "第一則訊息", "第二則訊息", "第三則訊息");
         /// </code>
         /// </example>
-        public virtual Task ReplyMessageAsync(string replyToken, params string[] messages) 
+        public virtual Task ReplyMessageAsync(string replyToken, params string[] messages)
             => ReplyMessageAsync(replyToken, messages.Select(m => new TextMessage(m)).ToArray());
 
         /// <summary>
@@ -529,7 +542,7 @@ namespace Line.Messaging
         /// {
         ///     new TextMessage("這是一則推播訊息！")
         /// });
-        /// 
+        ///
         /// // 推播給群組
         /// await client.PushMessageAsync(groupId, new List&lt;ISendMessage&gt;
         /// {
@@ -596,7 +609,7 @@ namespace Line.Messaging
         /// await client.PushMessageAsync(userId, "通知訊息", "第二則訊息");
         /// </code>
         /// </example>
-        public virtual Task PushMessageAsync(string to, params string[] messages) 
+        public virtual Task PushMessageAsync(string to, params string[] messages)
             => PushMessageAsync(to, messages.Select(m => new TextMessage(m)).ToArray());
 
         /// <summary>
@@ -684,7 +697,7 @@ namespace Line.Messaging
         /// 要多播的文字訊息陣列
         /// Array of text messages to multicast
         /// </param>
-        public virtual Task MultiCastMessageAsync(IList<string> to, params string[] messages) 
+        public virtual Task MultiCastMessageAsync(IList<string> to, params string[] messages)
             => MultiCastMessageAsync(to, messages.Select(m => new TextMessage(m)).ToArray());
 
         /// <summary>
@@ -775,7 +788,7 @@ namespace Line.Messaging
         ///     new List&lt;ISendMessage&gt; { new TextMessage("窄播訊息") },
         ///     recipient: new { type = "audience", audienceGroupId = "12345" }
         /// );
-        /// 
+        ///
         /// // 查詢傳送進度
         /// var progress = await client.GetNarrowcastProgressAsync(requestId);
         /// </code>
@@ -842,7 +855,7 @@ namespace Line.Messaging
         /// <code>
         /// // 標記一對一聊天為已讀
         /// await client.MarkAsReadAsync(userId);
-        /// 
+        ///
         /// // 標記群組訊息為已讀
         /// await client.MarkAsReadAsync(groupId);
         /// </code>
@@ -891,7 +904,7 @@ namespace Line.Messaging
         /// <code>
         /// // 顯示預設 20 秒的載入動畫
         /// await client.ShowLoadingAnimationAsync(userId);
-        /// 
+        ///
         /// // 顯示 30 秒的載入動畫
         /// await client.ShowLoadingAnimationAsync(userId, 30);
         /// </code>
@@ -941,7 +954,7 @@ namespace Line.Messaging
         /// {
         ///     var contentType = stream.ContentHeaders.ContentType.MediaType;
         ///     Console.WriteLine($"Content Type: {contentType}");
-        ///     
+        ///
         ///     // 儲存到檔案
         ///     using (var fileStream = File.Create("downloaded_image.jpg"))
         ///     {
@@ -1022,7 +1035,7 @@ namespace Line.Messaging
         /// {
         ///     await Task.Delay(1000); // 等待 1 秒後重試
         /// }
-        /// 
+        ///
         /// // 內容已就緒，可以下載
         /// var content = await client.GetContentStreamAsync(messageId);
         /// </code>
@@ -1270,7 +1283,7 @@ namespace Line.Messaging
         /// {
         ///     Console.WriteLine($"Member ID: {id}");
         /// }
-        /// 
+        ///
         /// // 如果有下一頁
         /// if (memberIds.Next != null)
         /// {
@@ -1720,7 +1733,7 @@ namespace Line.Messaging
         /// // 測試目前設定的端點
         /// var result = await client.TestWebhookEndpointAsync();
         /// Console.WriteLine($"測試結果: {result.Success}");
-        /// 
+        ///
         /// // 測試特定端點
         /// var result2 = await client.TestWebhookEndpointAsync("https://example.com/webhook");
         /// </code>

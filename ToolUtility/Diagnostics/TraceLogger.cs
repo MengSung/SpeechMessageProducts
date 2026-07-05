@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šToolUtility/Diagnostics/TraceLogger.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport å…±ç”¨å·¥å…·èˆ‡æ•´åˆè¼”åŠ©å±¤ï¼ŒåŒ…å«é€šçŸ¥ã€ä»˜æ¬¾ã€CRM æˆ–è·¨æ¨¡çµ„ helperã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šinterface ITraceLoggerã€class TraceLoggerã€class PerformanceMonitor
+// ä¸»è¦æˆå“¡ï¼šWriteã€WriteLineã€WriteErrorã€Disposeã€Stop
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€System.Diagnosticsã€System.IOã€System.Text
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -6,28 +19,28 @@ using System.Text;
 namespace ToolUtilityNameSpace.Diagnostics
 {
     /// <summary>
-    /// °lÂÜ¤é»x¤¶­±
-    /// ¿í´` Interface Segregation Principle (ISP)
+    /// è¿½è¹¤æ—¥èªŒä»‹é¢
+    /// éµå¾ª Interface Segregation Principle (ISP)
     /// </summary>
     public interface ITraceLogger
     {
-        /// <summary>¼g¤J°lÂÜ°T®§</summary>
+        /// <summary>å¯«å…¥è¿½è¹¤è¨Šæ¯</summary>
         void Write(string message);
 
-        /// <summary>¼g¤J°lÂÜ°T®§¨Ã´«¦æ</summary>
+        /// <summary>å¯«å…¥è¿½è¹¤è¨Šæ¯ä¸¦æ›è¡Œ</summary>
         void WriteLine(string message);
 
-        /// <summary>¼g¤J¿ù»~°T®§</summary>
+        /// <summary>å¯«å…¥éŒ¯èª¤è¨Šæ¯</summary>
         void WriteError(Exception exception, string context = null);
 
-        /// <summary>²M²z¸ê·½</summary>
+        /// <summary>æ¸…ç†è³‡æº</summary>
         void Dispose();
     }
 
     /// <summary>
-    /// °lÂÜ¤é»x¹ê²{
-    /// ¨Ï¥Î Lazy<T> ©µ¿ğªì©l¤ÆÀu¤Æ®Ä¯à
-    /// ¿í´` Dispose Pattern ½T«O¸ê·½¥¿½TÄÀ©ñ
+    /// è¿½è¹¤æ—¥èªŒå¯¦ç¾
+    /// ä½¿ç”¨ Lazy<T> å»¶é²åˆå§‹åŒ–å„ªåŒ–æ•ˆèƒ½
+    /// éµå¾ª Dispose Pattern ç¢ºä¿è³‡æºæ­£ç¢ºé‡‹æ”¾
     /// </summary>
     public class TraceLogger : ITraceLogger, IDisposable
     {
@@ -38,35 +51,35 @@ namespace ToolUtilityNameSpace.Diagnostics
         private bool _disposed = false;
 
         /// <summary>
-        /// «Øºc¨ç¼Æ
+        /// å»ºæ§‹å‡½æ•¸
         /// </summary>
-        /// <param name="logFilePath">¤é»xÀÉ®×¸ô®|</param>
-        public TraceLogger(string logFilePath = @"D:\°£¿ù°lÂÜ\CHURCH_REPORT_TRACE.TXT")
+        /// <param name="logFilePath">æ—¥èªŒæª”æ¡ˆè·¯å¾‘</param>
+        public TraceLogger(string logFilePath = @"D:\é™¤éŒ¯è¿½è¹¤\CHURCH_REPORT_TRACE.TXT")
         {
             _logFilePath = logFilePath ?? throw new ArgumentNullException(nameof(logFilePath));
 
-            // ½T«O¥Ø¿ı¦s¦b
+            // ç¢ºä¿ç›®éŒ„å­˜åœ¨
             var directory = Path.GetDirectoryName(_logFilePath);
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
 
-            // Lazy ªì©l¤Æ FileStream
+            // Lazy åˆå§‹åŒ– FileStream
             _lazyFileStream = new Lazy<FileStream>(() =>
                 new FileStream(_logFilePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
 
-            // Lazy ªì©l¤Æ StreamWriter
+            // Lazy åˆå§‹åŒ– StreamWriter
             _lazyStreamWriter = new Lazy<StreamWriter>(() =>
             {
 #if !NET462 && !NETFRAMEWORK
-                // µù¥U½s½X´£¨ÑªÌ¡]¶È¦b .NET 5+ »İ­n¡^
+                // è¨»å†Šç·¨ç¢¼æä¾›è€…ï¼ˆåƒ…åœ¨ .NET 5+ éœ€è¦ï¼‰
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 #endif
                 return new StreamWriter(_lazyFileStream.Value, Encoding.GetEncoding("big5"));
             });
 
-            // Lazy ªì©l¤Æ TraceListener
+            // Lazy åˆå§‹åŒ– TraceListener
             _lazyListener = new Lazy<TextWriterTraceListener>(() =>
             {
                 var listener = new TextWriterTraceListener(_lazyStreamWriter.Value);
@@ -77,7 +90,7 @@ namespace ToolUtilityNameSpace.Diagnostics
         }
 
         /// <summary>
-        /// ¼g¤J°lÂÜ°T®§
+        /// å¯«å…¥è¿½è¹¤è¨Šæ¯
         /// </summary>
         public void Write(string message)
         {
@@ -86,19 +99,19 @@ namespace ToolUtilityNameSpace.Diagnostics
                 if (string.IsNullOrEmpty(message))
                     return;
 
-                // ½T«O Listener ¤wªì©l¤Æ
+                // ç¢ºä¿ Listener å·²åˆå§‹åŒ–
                 var listener = _lazyListener.Value;
                 Trace.Write(message);
             }
             catch (Exception ex)
             {
-                // Á×§K°lÂÜ¥»¨­³y¦¨À³¥Îµ{¦¡±Y¼ì
+                // é¿å…è¿½è¹¤æœ¬èº«é€ æˆæ‡‰ç”¨ç¨‹å¼å´©æ½°
                 Debug.WriteLine($"[TraceLogger] Write failed: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// ¼g¤J°lÂÜ°T®§¨Ã´«¦æ
+        /// å¯«å…¥è¿½è¹¤è¨Šæ¯ä¸¦æ›è¡Œ
         /// </summary>
         public void WriteLine(string message)
         {
@@ -107,9 +120,9 @@ namespace ToolUtilityNameSpace.Diagnostics
                 if (string.IsNullOrEmpty(message))
                     return;
 
-                // ½T«O Listener ¤wªì©l¤Æ
+                // ç¢ºä¿ Listener å·²åˆå§‹åŒ–
                 var listener = _lazyListener.Value;
-                
+
                 var timestampedMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}";
                 Trace.WriteLine(timestampedMessage);
             }
@@ -120,7 +133,7 @@ namespace ToolUtilityNameSpace.Diagnostics
         }
 
         /// <summary>
-        /// ¼g¤J¿ù»~°T®§
+        /// å¯«å…¥éŒ¯èª¤è¨Šæ¯
         /// </summary>
         public void WriteError(Exception exception, string context = null)
         {
@@ -131,24 +144,24 @@ namespace ToolUtilityNameSpace.Diagnostics
 
                 var errorMessage = new StringBuilder();
                 errorMessage.AppendLine("========== ERROR ==========");
-                errorMessage.AppendLine($"®É¶¡: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
-                
+                errorMessage.AppendLine($"æ™‚é–“: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
+
                 if (!string.IsNullOrWhiteSpace(context))
                 {
-                    errorMessage.AppendLine($"¤W¤U¤å: {context}");
+                    errorMessage.AppendLine($"ä¸Šä¸‹æ–‡: {context}");
                 }
-                
-                errorMessage.AppendLine($"¨Ò¥~Ãş«¬: {exception.GetType().FullName}");
-                errorMessage.AppendLine($"¿ù»~°T®§: {exception.Message}");
-                errorMessage.AppendLine($"°ïÅ|°lÂÜ: {exception.StackTrace}");
-                
+
+                errorMessage.AppendLine($"ä¾‹å¤–é¡å‹: {exception.GetType().FullName}");
+                errorMessage.AppendLine($"éŒ¯èª¤è¨Šæ¯: {exception.Message}");
+                errorMessage.AppendLine($"å †ç–Šè¿½è¹¤: {exception.StackTrace}");
+
                 if (exception.InnerException != null)
                 {
                     errorMessage.AppendLine("--- Inner Exception ---");
-                    errorMessage.AppendLine($"Ãş«¬: {exception.InnerException.GetType().FullName}");
-                    errorMessage.AppendLine($"°T®§: {exception.InnerException.Message}");
+                    errorMessage.AppendLine($"é¡å‹: {exception.InnerException.GetType().FullName}");
+                    errorMessage.AppendLine($"è¨Šæ¯: {exception.InnerException.Message}");
                 }
-                
+
                 errorMessage.AppendLine("===========================");
 
                 WriteLine(errorMessage.ToString());
@@ -159,10 +172,10 @@ namespace ToolUtilityNameSpace.Diagnostics
             }
         }
 
-        #region IDisposable ¹ê²{
+        #region IDisposable å¯¦ç¾
 
         /// <summary>
-        /// ÄÀ©ñ¸ê·½
+        /// é‡‹æ”¾è³‡æº
         /// </summary>
         public void Dispose()
         {
@@ -171,7 +184,7 @@ namespace ToolUtilityNameSpace.Diagnostics
         }
 
         /// <summary>
-        /// ÄÀ©ñ¸ê·½¡]«OÅ@¤èªk¡^
+        /// é‡‹æ”¾è³‡æºï¼ˆä¿è­·æ–¹æ³•ï¼‰
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {
@@ -182,7 +195,7 @@ namespace ToolUtilityNameSpace.Diagnostics
             {
                 try
                 {
-                    // ÄÀ©ñ Listener
+                    // é‡‹æ”¾ Listener
                     if (_lazyListener.IsValueCreated)
                     {
                         var listener = _lazyListener.Value;
@@ -190,13 +203,13 @@ namespace ToolUtilityNameSpace.Diagnostics
                         listener.Dispose();
                     }
 
-                    // ÄÀ©ñ StreamWriter
+                    // é‡‹æ”¾ StreamWriter
                     if (_lazyStreamWriter.IsValueCreated)
                     {
                         _lazyStreamWriter.Value.Dispose();
                     }
 
-                    // ÄÀ©ñ FileStream
+                    // é‡‹æ”¾ FileStream
                     if (_lazyFileStream.IsValueCreated)
                     {
                         _lazyFileStream.Value.Dispose();
@@ -212,7 +225,7 @@ namespace ToolUtilityNameSpace.Diagnostics
         }
 
         /// <summary>
-        /// ¸Ñºc¨ç¼Æ
+        /// è§£æ§‹å‡½æ•¸
         /// </summary>
         ~TraceLogger()
         {
@@ -223,8 +236,8 @@ namespace ToolUtilityNameSpace.Diagnostics
     }
 
     /// <summary>
-    /// ®Ä¯àºÊ±±¾¹
-    /// ¥Î©ó´ú¶q¾Ş§@°õ¦æ®É¶¡
+    /// æ•ˆèƒ½ç›£æ§å™¨
+    /// ç”¨æ–¼æ¸¬é‡æ“ä½œåŸ·è¡Œæ™‚é–“
     /// </summary>
     public class PerformanceMonitor : IDisposable
     {
@@ -234,31 +247,31 @@ namespace ToolUtilityNameSpace.Diagnostics
         private bool _disposed = false;
 
         /// <summary>
-        /// «Øºc¨ç¼Æ - ¶}©l­p®É
+        /// å»ºæ§‹å‡½æ•¸ - é–‹å§‹è¨ˆæ™‚
         /// </summary>
         public PerformanceMonitor(string operationName, ITraceLogger logger)
         {
             _operationName = operationName ?? "Unknown Operation";
             _logger = logger;
             _stopwatch = Stopwatch.StartNew();
-            
-            _logger?.WriteLine($"[Performance] {_operationName} - ¶}©l°õ¦æ");
+
+            _logger?.WriteLine($"[Performance] {_operationName} - é–‹å§‹åŸ·è¡Œ");
         }
 
         /// <summary>
-        /// °±¤î­p®É¨Ã°O¿ı
+        /// åœæ­¢è¨ˆæ™‚ä¸¦è¨˜éŒ„
         /// </summary>
         public void Stop()
         {
             if (_stopwatch.IsRunning)
             {
                 _stopwatch.Stop();
-                _logger?.WriteLine($"[Performance] {_operationName} - §¹¦¨°õ¦æ (¯Ó®É: {_stopwatch.ElapsedMilliseconds} ms)");
+                _logger?.WriteLine($"[Performance] {_operationName} - å®ŒæˆåŸ·è¡Œ (è€—æ™‚: {_stopwatch.ElapsedMilliseconds} ms)");
             }
         }
 
         /// <summary>
-        /// ÄÀ©ñ¸ê·½
+        /// é‡‹æ”¾è³‡æº
         /// </summary>
         public void Dispose()
         {

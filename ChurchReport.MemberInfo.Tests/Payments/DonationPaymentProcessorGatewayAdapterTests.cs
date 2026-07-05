@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport.MemberInfo.Tests/Payments/DonationPaymentProcessorGatewayAdapterTests.cs
+// 所屬區塊：ChurchReport 會員、付款與 LINE 共用流程的測試專案，用來固定產品層行為與回歸案例。
+// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
+// 主要型別：class DonationPaymentProcessorGatewayAdapterTests、class RecordingPaymentGateway、class SingleServiceProvider、class TestSession、class ThrowingToolUtilityProvider
+// 主要成員：ChurchReport_controllers_do_not_accept_legacy_ipayment_in_constructors、Donation_payment_processor_does_not_store_legacy_ipayment_provider、Donation_payment_processor_constructors_require_gateway_create_adapter、Qpay_manager_and_context_constructors_accept_gateway_create_adapter、ContextDictionary_passes_gateway_create_adapter_from_request_services、CreateDonationPaymentOrder_uses_gateway_adapter_when_available、CreateOrderATM_uses_gateway_adapter_when_available、Qpay_manager_order_maintenance_fails_closed_without_legacy_toolkit、ChurchReport_assembly_does_not_expose_legacy_payment_toolkits、Donation_product_workflow_processors_do_not_accept_legacy_order_pay_models
+// 引用命名空間：System.Reflection、System.Runtime.CompilerServices、ChurchReport.Models、ChurchReport.Payments、ChurchReport.Tools、ChurchReport.WebServiceConnector、FluentAssertions、Microsoft.AspNetCore.Http
+// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
+// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using ChurchReport.Models;

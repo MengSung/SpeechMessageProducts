@@ -1,4 +1,17 @@
-﻿using ChurchReport.Diagnostics.Profiling;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/Controllers/PersonalController.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
+// 主要型別：class PersonalController
+// 主要成員：PersonalReport、SetupPersonalReportViewModel、SetupPersonalReportViewBag、SetupPersonalGroupPosition、LoadPersonReport、LoadMaintainPersonInfomation、CreateMaintainContactColumnSet、CreateMaintainMemberFromContact、ApplyMaintainContactFields、GetOptionSetMetadataService
+// 引用命名空間：ChurchReport.Diagnostics.Profiling、ChurchReport.Models、ChurchReport.Tools、ChurchReport.ViewModels、DevExtreme.AspNet.Data、DevExtreme.AspNet.Mvc、Microsoft.AspNetCore.Http、Microsoft.AspNetCore.Mvc
+// 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using ChurchReport.Diagnostics.Profiling;
 using ChurchReport.Models;
 using ChurchReport.Tools;
 using ChurchReport.ViewModels;
@@ -179,36 +192,36 @@ namespace ChurchReport.Controllers
             System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] id 參數: [{id ?? "NULL"}]");
             System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] loadOptions 是否為 null: {loadOptions == null}");
             System.Diagnostics.Debug.WriteLine("========================================");
-            
+
             try
             {
                 // ✅ 檢查點 1: InMemoryContext
                 System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] 檢查點 1: 開始檢查 InMemoryContext");
-                
+
                 if (InMemoryContext == null)
                 {
                     System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] ❌ InMemoryContext is null");
                     return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
                 }
-                
+
                 System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] ✅ InMemoryContext 存在");
-                
+
                 // ✅ 檢查點 2: ListManager
                 System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] 檢查點 2: 開始檢查 ListManager");
-                
+
                 if (InMemoryContext.ListManager == null)
                 {
                     System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] ❌ ListManager is null");
                     return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
                 }
-                
+
                 System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] ✅ ListManager 存在");
 
                 var allMembers = new System.Collections.Generic.List<Member>();
 
                 // ✅ 檢查點 3: GetDisplayViewType
                 System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] 檢查點 3: 呼叫 GetDisplayViewType");
-                
+
                 string displayViewType = null;
                 try
                 {
@@ -223,10 +236,10 @@ namespace ChurchReport.Controllers
                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] ❌ GetDisplayViewType 失敗: {ex.Message}");
                     return DataSourceLoader.Load(new System.Collections.Generic.List<Member>(), loadOptions);
                 }
-                
+
                 // ✅ 檢查點 4: IsIntegrateDataLoaded
                 System.Diagnostics.Debug.WriteLine("[LoadMaintainPersonInfomation] 檢查點 4: 呼叫 IsIntegrateDataLoaded");
-                
+
                 bool integrateFlag = false;
                 try
                 {
@@ -251,22 +264,22 @@ namespace ChurchReport.Controllers
 
                     // ✅ 多小組模式：從各小組載入資料
                     var multiGroupList = InMemoryContext.ListManager.m_MultiGroupList;
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 進入多小組模式");
-                    
+
                     if (multiGroupList != null && multiGroupList.m_WeeklyReportRecordListData != null)
                     {
                         System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 小組數量: {multiGroupList.m_WeeklyReportRecordListData.Count}");
-                        
+
                         // 取得 ToolUtility 實例
                         var toolUtility = ToolUtility;
-                        
+
                         int groupIndex = 0;
                         foreach (var groupRecord in multiGroupList.m_WeeklyReportRecordListData)
                         {
                             groupIndex++;
                             System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 處理第 {groupIndex} 個小組: {groupRecord.Name}, ListId: {groupRecord.ListEntityId}");
-                        
+
                             try
                             {
                                 // ✅ 直接從 CRM 查詢該小組的成員
@@ -274,18 +287,18 @@ namespace ChurchReport.Controllers
                                 if (System.Guid.TryParse(groupRecord.ListEntityId, out listGuid))
                                 {
                                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 開始查詢小組 {groupRecord.Name} 的成員...");
-                                    
+
                                     // 查詢名單成員
                                     EntityCollection memberCollection;
                                     using (PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.MultiGroup.RetrieveMemberListCollection"))
                                     {
                                         memberCollection = toolUtility.RetrieveMemberListCollectionByListId(listGuid);
                                     }
-                                    
+
                                     if (memberCollection != null && memberCollection.Entities != null)
                                     {
                                         System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 小組 {groupRecord.Name} 找到 {memberCollection.Entities.Count} 個成員");
-                                        
+
                                         var contactIds = memberCollection.Entities
                                             .Select(memberEntity => toolUtility.GetEntityLookupAttribute(memberEntity, "entityid"))
                                             .Where(contactId => contactId != Guid.Empty)
@@ -324,7 +337,7 @@ namespace ChurchReport.Controllers
                                                 System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 處理成員時發生錯誤: {memberEx.Message}");
                                             }
                                         }
-                                        
+
                                         System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 小組 {groupRecord.Name} 處理完成，累計成員數: {allMembers.Count}");
                                     }
                                     else
@@ -344,7 +357,7 @@ namespace ChurchReport.Controllers
                                 System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 錯誤堆疊: {ex.StackTrace}");
                             }
                         }
-                        
+
                         System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 所有小組處理完成，總成員數: {allMembers.Count}");
                     }
                     else
@@ -357,7 +370,7 @@ namespace ChurchReport.Controllers
                     using var singleGroupPhase = PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.SingleGroup");
 
                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 使用單一小組模式");
-                    
+
                     // ✅ 單一小組模式：改用與多小組相同的查詢邏輯
                     using (PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.SingleGroup.EnsurePersonReportDataLoaded"))
                     {
@@ -365,14 +378,14 @@ namespace ChurchReport.Controllers
                     }
 
                     var weeklyReport = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] weeklyReport is null: {weeklyReport == null}");
-                    
+
                     if (weeklyReport?.m_SmallGroupDataList?.m_AllMemeberData?.Members != null)
                     {
                         var members = weeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members;
                         System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 單一小組模式原有資料: {members.Count} 個成員");
-                        
+
                         // ✅ 修復：為單一小組模式也重新查詢完整欄位
                         var contactIds = members
                             .Where(member => !string.IsNullOrEmpty(member.ContactId) && Guid.TryParse(member.ContactId, out _))
@@ -406,7 +419,7 @@ namespace ChurchReport.Controllers
                                 System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 單一小組模式-處理成員 {member.FullName} 時發生錯誤: {memberEx.Message}");
                             }
                         }
-                        
+
                         // ✅ 修復：正確賦值 allMembers
                         allMembers = members;
                         System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 單一小組模式載入 {allMembers.Count} 個成員（已更新完整欄位）");
@@ -422,7 +435,7 @@ namespace ChurchReport.Controllers
                 }
 
                 System.Diagnostics.Debug.WriteLine($"[LoadMaintainPersonInfomation] 總計返回 {allMembers.Count} 筆資料");
-                
+
                 // 返回資料
                 using (PerfPhase.Measure(HttpContext, "Personal.LoadMaintain.DataSourceLoader"))
                 {
@@ -436,7 +449,7 @@ namespace ChurchReport.Controllers
                 errorDetails.AppendLine($"LoadMaintainPersonInfomation 錯誤: {e.Message}");
                 errorDetails.AppendLine($"錯誤堆疊: {e.StackTrace}");
                 errorDetails.AppendLine($"ListManager is null: {InMemoryContext.ListManager == null}");
-                
+
                 if (InMemoryContext.ListManager != null)
                 {
                     errorDetails.AppendLine($"DisplayViewType: {InMemoryContext.ListManager.GetDisplayViewType()}");
@@ -595,9 +608,9 @@ namespace ChurchReport.Controllers
 
                 // 從 Dynamics 365 取得顯示文字
                 string displayText = optionSetService.GetOptionSetText("contact", "new_spiriitual_identity", optionValue);
-                
+
                 System.Diagnostics.Debug.WriteLine($"[GetSpiritualIdentityText] 輸入值: {optionValue}, 回傳文字: {displayText}");
-                
+
                 return displayText;
             }
             catch (Exception ex)
@@ -621,16 +634,16 @@ namespace ChurchReport.Controllers
 
                 // 從 Dynamics 365 取得顯示文字
                 string displayText = optionSetService.GetOptionSetText("contact", "customertypecode", optionValue);
-                
+
                 System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusText] 輸入值: {optionValue}, 回傳文字: {displayText}");
-                
+
                 return displayText;
             }
             catch (Exception ex)
             {
                 // 如果動態查詢失敗，使用備用的硬編碼對應表
                 System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusText] 動態查詢失敗，使用備用對應表: {ex.Message}");
-                
+
                 return "-未知-";
             }
         }
@@ -825,7 +838,7 @@ namespace ChurchReport.Controllers
             try
             {
                 System.Diagnostics.Debug.WriteLine("[PersonalInfomationView] 開始載入個人資訊頁面");
-                
+
                 SetupPersonalInfoViewBag();
 
                 InMemoryContext.PersonalInfomationModel.SetPersonalInfomationViewModel();
@@ -848,7 +861,7 @@ namespace ChurchReport.Controllers
                 // ✅ 使用新的 View（含大頭照上傳功能）
                 // ========================================
                 System.Diagnostics.Debug.WriteLine("[PersonalInfomationView] 使用 PersonalInfomationViewWithImage View");
-                return View("PersonalInfomationViewWithImage", 
+                return View("PersonalInfomationViewWithImage",
                     InMemoryContext.PersonalInfomationModel.m_PersonalInfomationViewModel);
             }
             catch (Exception e)
@@ -912,7 +925,7 @@ namespace ChurchReport.Controllers
 
                 // 解析 JSON 資料（快速驗證）
                 System.Collections.Generic.List<Member> members = null;
-                
+
                 try
                 {
                     members = Newtonsoft.Json.JsonConvert.DeserializeObject<System.Collections.Generic.List<Member>>(aResult);
@@ -920,7 +933,7 @@ namespace ChurchReport.Controllers
                 catch (Newtonsoft.Json.JsonException jsonEx)
                 {
                     System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] JSON 解析錯誤: {jsonEx.Message}");
-                    
+
                     // 嘗試修復常見的 JSON 格式問題
                     try
                     {
@@ -945,7 +958,7 @@ namespace ChurchReport.Controllers
                 // ✅ 關鍵修復：在進入背景任務前先取得 ToolUtility 實例
                 // 因為在背景執行緒中無法安全訪問 Controller 的實例成員
                 var toolUtility = ToolUtility;
-                
+
                 if (toolUtility == null)
                 {
                     System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] ToolUtility 為 null，無法執行上傳");
@@ -1003,16 +1016,16 @@ namespace ChurchReport.Controllers
                                 bool hasChanges = false;
 
                                 // ✅ 更新行動電話（改進空值處理）
-                                var currentPhone = contactEntity.Contains("mobilephone") 
+                                var currentPhone = contactEntity.Contains("mobilephone")
                                     ? (contactEntity.GetAttributeValue<string>("mobilephone") ?? "")
                                     : "";
                                 var newPhone = member.Phone ?? "";
-                                
+
 
                                 // 移除空白字元後比較
                                 currentPhone = currentPhone.Trim();
                                 newPhone = newPhone.Trim();
-                                
+
                                 if (!string.IsNullOrEmpty(newPhone) && !string.Equals(currentPhone, newPhone, StringComparison.OrdinalIgnoreCase))
                                 {
                                     entityToUpdate["mobilephone"] = newPhone;
@@ -1021,16 +1034,16 @@ namespace ChurchReport.Controllers
                                 }
 
                                 // ✅ 更新地址（改進空值處理）
-                                var currentAddress = contactEntity.Contains("address2_line1") 
+                                var currentAddress = contactEntity.Contains("address2_line1")
                                     ? (contactEntity.GetAttributeValue<string>("address2_line1") ?? "")
                                     : "";
                                 var newAddress = member.Address ?? "";
-                                
+
 
                                 // 移除空白字元後比較
                                 currentAddress = currentAddress.Trim();
                                 newAddress = newAddress.Trim();
-                                
+
                                 if (!string.IsNullOrEmpty(newAddress) && !string.Equals(currentAddress, newAddress, StringComparison.OrdinalIgnoreCase))
                                 {
                                     entityToUpdate["address2_line1"] = newAddress;
@@ -1041,7 +1054,7 @@ namespace ChurchReport.Controllers
                                 // ✅ 更新生日（改進日期比對）
                                 if (member.BirthDate != DateTime.MinValue && member.BirthDate.Year > 1900)
                                 {
-                                    var currentBirthDate = contactEntity.Contains("birthdate") 
+                                    var currentBirthDate = contactEntity.Contains("birthdate")
                                         ? (contactEntity.GetAttributeValue<DateTime?>("birthdate") ?? DateTime.MinValue)
                                         : DateTime.MinValue;
 
@@ -1050,7 +1063,7 @@ namespace ChurchReport.Controllers
                                     {
                                         currentBirthDate = currentBirthDate.ToLocalTime();
                                     }
-                                    
+
                                     if (currentBirthDate == DateTime.MinValue || currentBirthDate.Date != member.BirthDate.Date)
                                     {
                                         entityToUpdate["birthdate"] = member.BirthDate;
@@ -1108,11 +1121,11 @@ namespace ChurchReport.Controllers
                         // 背景任務的錯誤記錄到 Debug 輸出
                         System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 背景上傳失敗: {ex.Message}");
                         System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 錯誤堆疊:\n{ex.StackTrace}");
-                        
+
                         // 記錄到追蹤日誌
                         try
                         {
-                            toolUtility?.TraceByLevel(1, 1, 
+                            toolUtility?.TraceByLevel(1, 1,
                                 $"SaveMaintainPersonInfomation 背景上傳失敗: {ex.Message}\n{ex.StackTrace}");
                         }
                         catch
@@ -1131,20 +1144,20 @@ namespace ChurchReport.Controllers
                 var errorMessage = $"啟動上傳失敗: {e.Message}";
                 System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 發生錯誤: {e.Message}");
                 System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 錯誤堆疊:\n{e.StackTrace}");
-                
+
                 if (e.InnerException != null)
                 {
                     System.Diagnostics.Debug.WriteLine($"[SaveMaintainPersonInfomation] 內部錯誤: {e.InnerException.Message}");
                     errorMessage += $" (內部錯誤: {e.InnerException.Message})";
                 }
-                
+
                 return Json(new { status = "0", message = errorMessage });
             }
         }
 
         /// <summary>
         /// 更新單筆維護個人資訊
-        /// 用於 DataGrid 的儲存按鈕（單筆更新）        
+        /// 用於 DataGrid 的儲存按鈕（單筆更新）
         /// </summary>
         /// <param name="key">ContactId</param>
         /// <param name="values">更新的欄位值(JSON)</param>
@@ -1279,7 +1292,7 @@ namespace ChurchReport.Controllers
                     {
                         // ✅ 單一小組模式：使用實際的 ListId
                         var activeListId = InMemoryContext.ListManager.ActiveListId;
-                        
+
                         if (!string.IsNullOrWhiteSpace(activeListId))
                         {
                             ViewBag.ListId = activeListId;
@@ -1289,8 +1302,8 @@ namespace ChurchReport.Controllers
                         {
                             // ✅ 如果 ActiveListId 為空，嘗試從 MultiGroupList 取得第一個小組的 ListId
                             var multiGroupList = InMemoryContext.ListManager.m_MultiGroupList;
-                            if (multiGroupList != null && 
-                                multiGroupList.m_WeeklyReportRecordListData != null && 
+                            if (multiGroupList != null &&
+                                multiGroupList.m_WeeklyReportRecordListData != null &&
                                 multiGroupList.m_WeeklyReportRecordListData.Count > 0)
                             {
                                 ViewBag.ListId = multiGroupList.m_WeeklyReportRecordListData[0].ListEntityId;
@@ -1350,15 +1363,15 @@ namespace ChurchReport.Controllers
 
                 // 從 Dynamics 365 取得所有選項的對應表
                 var mapping = optionSetService.GetOptionSetMapping("contact", "customertypecode");
-                
+
                 // 提取顯示文字清單
                 var statusList = mapping.Keys.ToList();
-                
+
                 System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusList] 取得 {statusList.Count} 個會員身分選項");
 
-                return Json(new 
-                { 
-                    success = true, 
+                return Json(new
+                {
+                    success = true,
                     data = statusList,
                     count = statusList.Count
                 });
@@ -1366,17 +1379,17 @@ namespace ChurchReport.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusList] 錯誤: {ex.Message}");
-                
+
                 // 備用硬編碼清單
-                var fallbackList = new System.Collections.Generic.List<string> 
-                { 
-                    "牧師師母", "區牧", "小區長", "小組長", "副小組長", 
-                    "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案" 
+                var fallbackList = new System.Collections.Generic.List<string>
+                {
+                    "牧師師母", "區牧", "小區長", "小組長", "副小組長",
+                    "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案"
                 };
-                
-                return Json(new 
-                { 
-                    success = true, 
+
+                return Json(new
+                {
+                    success = true,
                     data = fallbackList,
                     count = fallbackList.Count,
                     warning = "使用備用清單"
@@ -1399,15 +1412,15 @@ namespace ChurchReport.Controllers
 
                 // 從 Dynamics 365 取得所有選項的對應表
                 var mapping = optionSetService.GetOptionSetMapping("contact", "new_spiriitual_identity");
-                
+
                 // 提取顯示文字清單
                 var identityList = mapping.Keys.ToList();
-                
+
                 System.Diagnostics.Debug.WriteLine($"[GetSpiritualIdentityList] 取得 {identityList.Count} 個信仰狀態選項");
 
-                return Json(new 
-                { 
-                    success = true, 
+                return Json(new
+                {
+                    success = true,
                     data = identityList,
                     count = identityList.Count
                 });
@@ -1415,16 +1428,16 @@ namespace ChurchReport.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[GetSpiritualIdentityList] 錯誤: {ex.Message}");
-                
+
                 // 備用硬編碼清單
-                var fallbackList = new System.Collections.Generic.List<string> 
-                { 
-                    "-未知-", "基督徒", "已決志", "慕道友", "未信主" 
+                var fallbackList = new System.Collections.Generic.List<string>
+                {
+                    "-未知-", "基督徒", "已決志", "慕道友", "未信主"
                 };
-                
-                return Json(new 
-                { 
-                    success = true, 
+
+                return Json(new
+                {
+                    success = true,
                     data = fallbackList,
                     count = fallbackList.Count,
                     warning = "使用備用清單"
@@ -1485,15 +1498,15 @@ namespace ChurchReport.Controllers
 
                 // 從 Dynamics 365 取得所有選項的對應表
                 var mapping = optionSetService.GetOptionSetMapping("contact", "familystatuscode");
-                
+
                 // 提取顯示文字清單
                 var statusList = mapping.Keys.ToList();
-                
+
                 System.Diagnostics.Debug.WriteLine($"[GetFamilyStatusList] 取得 {statusList.Count} 個婚姻狀態選項");
 
-                return Json(new 
-                { 
-                    success = true, 
+                return Json(new
+                {
+                    success = true,
                     data = statusList,
                     count = statusList.Count
                 });
@@ -1501,16 +1514,16 @@ namespace ChurchReport.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[GetFamilyStatusList] 錯誤: {ex.Message}");
-                
+
                 // 備用硬編碼清單
-                var fallbackList = new System.Collections.Generic.List<string> 
-                { 
-                    "未知", "已婚", "未婚", "離異", "喪偶", "單身", "單親", "失婚", "婚姻", "離婚" 
+                var fallbackList = new System.Collections.Generic.List<string>
+                {
+                    "未知", "已婚", "未婚", "離異", "喪偶", "單身", "單親", "失婚", "婚姻", "離婚"
                 };
-                
-                return Json(new 
-                { 
-                    success = true, 
+
+                return Json(new
+                {
+                    success = true,
                     data = fallbackList,
                     count = fallbackList.Count,
                     warning = "使用備用清單"

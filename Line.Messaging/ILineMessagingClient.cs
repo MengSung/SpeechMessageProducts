@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：Line.Messaging/ILineMessagingClient.cs
+// 所屬區塊：LINE Messaging SDK 封裝層，定義 LINE API DTO、Client 呼叫與訊息模型。
+// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
+// 主要型別：interface ILineMessagingClient
+// 主要成員：未偵測到公開/受保護成員；維護時請以檔案內的常數、欄位、private helper 或屬性初始化邏輯為主要閱讀入口。
+// 引用命名空間：System、System.Collections.Generic、System.IO、System.Text、System.Threading.Tasks
+// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +24,7 @@ namespace Line.Messaging
     /// </summary>
     public interface ILineMessagingClient
     {
-        #region Message 
+        #region Message
 
         /// <summary>
         /// Respond to events from users, groups, and rooms
@@ -243,7 +256,7 @@ namespace Line.Messaging
 
         /// <summary>
         /// Gets the user profile of a member of a group that the bot is in. This includes user profiles of users who have not added the bot as a friend or have blocked the bot.
-        /// Use the group ID and user ID returned in the source object of webhook event objects. Do not use the LINE ID used in the LINE app. 
+        /// Use the group ID and user ID returned in the source object of webhook event objects. Do not use the LINE ID used in the LINE app.
         /// https://developers.line.biz/en/reference/messaging-api/#get-group-member-profile
         /// </summary>
         /// <param name="groupId">Identifier of the group</param>
@@ -254,8 +267,8 @@ namespace Line.Messaging
         /// <summary>
         /// Gets the user IDs of the members of a group that the bot is in. This includes the user IDs of users who have not added the bot as a friend or has blocked the bot.
         /// This feature is only available for LINE@ Approved accounts or official accounts.
-        /// Use the group Id returned in the source object of webhook event objects. 
-        /// Users who have not agreed to the Official Accounts Terms of Use are not included in memberIds. There is no fixed number of memberIds. 
+        /// Use the group Id returned in the source object of webhook event objects.
+        /// Users who have not agreed to the Official Accounts Terms of Use are not included in memberIds. There is no fixed number of memberIds.
         /// https://developers.line.biz/en/reference/messaging-api/#get-group-member-user-ids
         /// </summary>
         /// <param name="groupId">Identifier of the group</param>
@@ -265,7 +278,7 @@ namespace Line.Messaging
 
         /// <summary>
         /// Gets the user profiles of the members of a group that the bot is in. This includes the user IDs of users who have not added the bot as a friend or has blocked the bot.
-        /// Use the group Id returned in the source object of webhook event objects. 
+        /// Use the group Id returned in the source object of webhook event objects.
         /// This feature is only available for LINE@ Approved accounts or official accounts
         /// </summary>
         /// <param name="groupId">Identifier of the group</param>
@@ -290,7 +303,7 @@ namespace Line.Messaging
 
         /// <summary>
         /// Leave a group.
-        /// Use the ID that is returned via webhook from the source group. 
+        /// Use the ID that is returned via webhook from the source group.
         /// https://developers.line.biz/en/reference/messaging-api/#leave-group
         /// </summary>
         /// <param name="groupId">Group ID</param>
@@ -312,7 +325,7 @@ namespace Line.Messaging
 
         /// <summary>
         /// Gets the user IDs of the members of a room that the bot is in. This includes the user IDs of users who have not added the bot as a friend or has blocked the bot.
-        /// Use the room ID returned in the source object of webhook event objects. 
+        /// Use the room ID returned in the source object of webhook event objects.
         /// This feature is only available for LINE@ Approved accounts or official accounts.
         /// https://developers.line.biz/en/reference/messaging-api/#get-room-member-user-ids
         /// </summary>
@@ -323,7 +336,7 @@ namespace Line.Messaging
 
         /// <summary>
         /// Gets the user profiles of the members of a room that the bot is in. This includes the user IDs of users who have not added the bot as a friend or has blocked the bot.
-        /// Use the room ID returned in the source object of webhook event objects. 
+        /// Use the room ID returned in the source object of webhook event objects.
         /// This feature is only available for LINE@ Approved accounts or official accounts.
         /// </summary>
         /// <param name="roomId">Identifier of the room</param>
@@ -340,7 +353,7 @@ namespace Line.Messaging
 
         /// <summary>
         /// Leave a room.
-        /// Use the ID that is returned via webhook from the source room. 
+        /// Use the ID that is returned via webhook from the source room.
         /// </summary>
         /// <param name="roomId">Room ID</param>
         Task LeaveFromRoomAsync(string roomId);

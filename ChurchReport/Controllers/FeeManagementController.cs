@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/Controllers/FeeManagementController.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
+// 主要型別：class FeeManagementController
+// 主要成員：LessonList、Fee、Present、GetLessons、GetFeeData、UpdateFeeData、SaveBatch、EnsureLessonListLoaded、EnsurePresentFeeListLoaded、InitializeColumnHeaders
+// 引用命名空間：ChurchReport.Diagnostics.Profiling、ChurchReport.Models、ChurchReport.Services、ChurchReport.Tools、DevExtreme.AspNet.Data、DevExtreme.AspNet.Mvc、Microsoft.AspNetCore.Http、Microsoft.AspNetCore.Mvc
+// 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using ChurchReport.Diagnostics.Profiling;
 using ChurchReport.Models;
 using ChurchReport.Services;
@@ -71,7 +84,7 @@ namespace ChurchReport.Controllers
                 ViewBag.DisplayNavigation = "顯示牧養回報項目";
 
                 var lessonCount = InMemoryContext.FeeList.LessonList?.Count ?? 0;
-                
+
                 System.Diagnostics.Debug.WriteLine($"[LessonList] 課程數量: {lessonCount}");
 
                 // ? 智能判斷：根據課程數量決定顯示邏輯
@@ -80,19 +93,19 @@ namespace ChurchReport.Controllers
                     // 只有一門課程：自動載入該課程資料，並顯示「點名」、「繳費」按鈕
                     var singleLesson = InMemoryContext.FeeList.LessonList[0];
                     var discipleLessonsId = singleLesson.DiscipleLessonsId;
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[LessonList] 只有一門課程，自動載入 - DiscipleLessonsId={discipleLessonsId}");
-                    
+
                     // 載入該課程的繳費資料
                     EnsurePresentFeeListLoaded(discipleLessonsId, "FeeManagement.LessonList.SetupPresentFeeList");
-                    
+
                     // 設定 DiscipleLessonsId，讓側邊欄能正確生成連結
                     ViewBag.DiscipleLessonsId = discipleLessonsId;
-                    
+
                     // 設定為「已有資料」，讓「繳費」和「點名」選單顯示
                     var feeDataCount = InMemoryContext.FeeList.FeeDataList?.Count ?? 0;
                     ViewBag.FeeDataListCount = feeDataCount > 0 ? "繳費與點名已有資料" : "繳費與點名無資料";
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[LessonList] 單一課程模式 - 學員數={feeDataCount}, FeeDataListCount={ViewBag.FeeDataListCount}");
                 }
                 else if (lessonCount > 1)
@@ -100,7 +113,7 @@ namespace ChurchReport.Controllers
                     // 多門課程：只顯示「課程清單」按鈕，隱藏「點名」、「繳費」按鈕
                     ViewBag.FeeDataListCount = "繳費與點名無資料";
                     ViewBag.DiscipleLessonsId = null;
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[LessonList] 多課程模式 - 只顯示課程清單按鈕");
                 }
                 else
@@ -108,7 +121,7 @@ namespace ChurchReport.Controllers
                     // 沒有課程
                     ViewBag.FeeDataListCount = "繳費與點名無資料";
                     ViewBag.DiscipleLessonsId = null;
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[LessonList] 無課程");
                 }
 
