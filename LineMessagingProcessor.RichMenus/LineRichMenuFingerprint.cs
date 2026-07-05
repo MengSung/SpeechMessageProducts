@@ -11,6 +11,11 @@ namespace LineMessagingProcessor.RichMenus;
 /// </summary>
 public static class LineRichMenuFingerprint
 {
+    /// <summary>
+    /// 依 catalog definition 與 PNG 內容產生 LINE RichMenu 的可版本化名稱。
+    /// </summary>
+    /// <param name="definition">包含 menu key 與 RichMenu 版面的 catalog definition。</param>
+    /// <param name="pngBytes">即將上傳到 LINE 的 PNG bytes。</param>
     public static string BuildName(LineRichMenuDefinition definition, byte[] pngBytes)
     {
         if (definition == null)
@@ -27,6 +32,11 @@ public static class LineRichMenuFingerprint
         return BuildName(definition, fingerprint);
     }
 
+    /// <summary>
+    /// 將預先計算好的 fingerprint 轉成可放入 LINE RichMenu name 的版本化名稱。
+    /// </summary>
+    /// <param name="definition">提供穩定 menu key 的 catalog definition。</param>
+    /// <param name="fingerprint">完整 SHA-256 fingerprint 字串。</param>
     public static string BuildName(LineRichMenuDefinition definition, string fingerprint)
     {
         if (definition == null)
@@ -47,6 +57,11 @@ public static class LineRichMenuFingerprint
         return baseName + suffix;
     }
 
+    /// <summary>
+    /// 以 RichMenu 版面 JSON 與 PNG 圖片內容建立 SHA-256 fingerprint。
+    /// </summary>
+    /// <param name="richMenu">要佈建的 LINE RichMenu 版面。</param>
+    /// <param name="pngBytes">與該版面配套的 PNG bytes。</param>
     public static string Create(RichMenu richMenu, byte[] pngBytes)
     {
         if (richMenu == null)
@@ -76,6 +91,10 @@ public static class LineRichMenuFingerprint
         return Convert.ToHexString(sha256.ComputeHash(merged)).ToLowerInvariant();
     }
 
+    /// <summary>
+    /// 取得 fingerprint 前段短碼，供 LINE RichMenu 名稱維持可讀且不超過長度限制。
+    /// </summary>
+    /// <param name="fingerprint">完整 fingerprint；必須至少 12 個字元。</param>
     public static string ShortVersion(string fingerprint)
     {
         if (string.IsNullOrWhiteSpace(fingerprint))

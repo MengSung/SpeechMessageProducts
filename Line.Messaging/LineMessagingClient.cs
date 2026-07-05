@@ -8,13 +8,12 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq; // ...added for rich menu list parsing
+using Newtonsoft.Json.Linq; // RichMenu list endpoint 回傳包在 richmenus 陣列中，需用 JObject/JArray 解析。
 
 namespace Line.Messaging
 {
     /// <summary>
-    /// LINE Messaging API 客戶端，處理與 LINE 伺服器的請求和回應
-    /// LINE Messaging API client, which handles request/response to LINE server.
+    /// LINE Messaging API 客戶端，集中處理與 LINE 伺服器的請求和回應。
     /// </summary>
     /// <remarks>
     /// 此類別提供完整的 LINE Messaging API 功能，包括：
@@ -25,17 +24,7 @@ namespace Line.Messaging
     /// - Webhook 設定
     /// - 訊息配額查詢
     /// <para>
-    /// This class provides complete LINE Messaging API functionality including:
-    /// - Message sending (reply, push, multicast, broadcast)
-    /// - User profile management
-    /// - Group and room management
-    /// - Rich Menu management
-    /// - Webhook configuration
-    /// - Message quota inquiry
-    /// </para>
-    /// <para>
     /// 官方文件：https://developers.line.biz/en/reference/messaging-api/
-    /// Official documentation: https://developers.line.biz/en/reference/messaging-api/
     /// </para>
     /// </remarks>
     /// <example>
@@ -58,8 +47,7 @@ namespace Line.Messaging
     public class LineMessagingClient : ILineMessagingClient, IDisposable
     {
         /// <summary>
-        /// LINE API 預設 URI
-        /// Default LINE API URI
+        /// LINE JSON API 預設 URI。
         /// </summary>
         private const string DEFAULT_URI = "https://api.line.me/v2";
 
@@ -70,14 +58,12 @@ namespace Line.Messaging
         private const string DEFAULT_DATA_URI = "https://api-data.line.me/v2";
 
         /// <summary>
-        /// HTTP 客戶端，用於發送 API 請求
-        /// HTTP client for sending API requests
+        /// HTTP 客戶端，用於發送 LINE API 請求。
         /// </summary>
         private readonly HttpClient _client;
 
         /// <summary>
-        /// 是否由此類別負責釋放 HttpClient
-        /// Whether this class is responsible for disposing HttpClient
+        /// 是否由此類別負責釋放 HttpClient。
         /// </summary>
         private readonly bool _disposeClient;
 
@@ -233,7 +219,6 @@ namespace Line.Messaging
         /// <para>
         /// 官方文件：https://developers.line.biz/en/reference/messaging-api/#issue-channel-access-token
         /// Official documentation: https://developers.line.biz/en/reference/messaging-api/#issue-channel-access-token
-        /// </para>
         /// </remarks>
         /// <example>
         /// <code>
@@ -291,7 +276,6 @@ namespace Line.Messaging
         /// <para>
         /// 官方文件：https://developers.line.biz/en/reference/messaging-api/#revoke-channel-access-token
         /// Official documentation: https://developers.line.biz/en/reference/messaging-api/#revoke-channel-access-token
-        /// </para>
         /// </remarks>
         /// <example>
         /// <code>
@@ -344,7 +328,6 @@ namespace Line.Messaging
         /// This method automatically performs the following steps:
         /// 1. Obtains Access Token using Channel ID and Secret
         /// 2. Creates and returns LineMessagingClient instance
-        /// </para>
         /// </remarks>
         /// <example>
         /// <code>
@@ -1756,20 +1739,17 @@ namespace Line.Messaging
 
         #region Rich Menu & Alias & Batch
         /// <summary>
-        /// 取得 Rich Menu 資訊
-        /// Gets a rich menu via a rich menu ID
+        /// 透過 LINE provider 端的 richMenuId 取得 RichMenu 資訊。
+        /// 這個端點回傳版面、chat bar 文字與 action area，不包含圖片 binary。
         /// </summary>
         /// <param name="richMenuId">
-        /// 已上傳的 Rich Menu ID
-        /// ID of an uploaded rich menu
+        /// 已上傳到 LINE 的 provider richMenuId。
         /// </param>
         /// <returns>
-        /// RichMenu 物件，包含 Rich Menu 的完整設定
-        /// RichMenu object containing complete rich menu configuration
+        /// RichMenu 物件，包含 LINE 回傳的選單設定。
         /// </returns>
         /// <remarks>
         /// 官方文件：https://developers.line.biz/en/reference/messaging-api/#get-rich-menu
-        /// Official documentation: https://developers.line.biz/en/reference/messaging-api/#get-rich-menu
         /// </remarks>
         /// <example>
         /// <code>
@@ -1785,16 +1765,14 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 建立 Rich Menu
-        /// Creates a rich menu
+        /// 建立 RichMenu metadata 與可點擊區域設定。
+        /// 建立完成只會得到 provider richMenuId；使用者要看得到選單，還必須另外上傳圖片並綁定使用者或設定預設選單。
         /// </summary>
         /// <param name="richMenu">
-        /// Rich Menu 物件，定義選單的結構和行為
-        /// Rich menu object defining the menu structure and behavior
+        /// RichMenu 物件，定義選單尺寸、chat bar 文字與 action area。
         /// </param>
         /// <returns>
-        /// 建立的 Rich Menu ID
-        /// Created Rich Menu ID
+        /// LINE provider 產生的 richMenuId。
         /// </returns>
         /// <remarks>
         /// 注意事項：
@@ -1802,14 +1780,7 @@ namespace Line.Messaging
         /// - 一個機器人最多可建立 1000 個 Rich Menu
         /// - Rich Menu 以物件形式表示
         /// <para>
-        /// Important notes:
-        /// - Must upload rich menu image and link to user for display
-        /// - Maximum 1000 rich menus per bot
-        /// - Rich menu is represented as an object
-        /// </para>
-        /// <para>
         /// 官方文件：https://developers.line.biz/en/reference/messaging-api/#create-rich-menu
-        /// Official documentation: https://developers.line.biz/en/reference/messaging-api/#create-rich-menu
         /// </para>
         /// </remarks>
         /// <example>
@@ -1843,23 +1814,17 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 驗證 Rich Menu 物件
-        /// Validates a rich menu object
+        /// 驗證 RichMenu 物件是否符合 LINE 建立規則。
+        /// 此方法不會建立遠端選單，適合 provisioning 前先檢查 catalog 定義。
         /// </summary>
         /// <param name="richMenu">
-        /// 要驗證的 Rich Menu 物件
-        /// Rich menu object to validate
+        /// 要驗證的 RichMenu 版面物件。
         /// </param>
         /// <remarks>
         /// 在建立 Rich Menu 前，可先使用此方法驗證設定是否正確。
         /// 驗證不通過會拋出例外。
         /// <para>
-        /// Before creating a rich menu, use this method to validate if the configuration is correct.
-        /// Validation failure will throw an exception.
-        /// </para>
-        /// <para>
         /// 官方文件：https://developers.line.biz/en/reference/messaging-api/#validate-rich-menu-object
-        /// Official documentation: https://developers.line.biz/en/reference/messaging-api/#validate-rich-menu-object
         /// </para>
         /// </remarks>
         /// <example>
@@ -1884,21 +1849,16 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 刪除 Rich Menu
-        /// Deletes a rich menu
+        /// 刪除指定 provider richMenuId 的 RichMenu。
+        /// 呼叫前應確認此選單不是多人共用選單，也沒有仍被 alias 或使用者綁定。
         /// </summary>
         /// <param name="richMenuId">
-        /// 要刪除的 Rich Menu ID
-        /// Rich Menu ID to delete
+        /// 要刪除的 provider richMenuId。
         /// </param>
         /// <remarks>
         /// 刪除後，該 Rich Menu 將無法再使用，且已連結的使用者將不再看到此選單。
         /// <para>
-        /// After deletion, the rich menu cannot be used, and users linked to it will no longer see this menu.
-        /// </para>
-        /// <para>
         /// 官方文件：https://developers.line.biz/en/reference/messaging-api/#delete-rich-menu
-        /// Official documentation: https://developers.line.biz/en/reference/messaging-api/#delete-rich-menu
         /// </para>
         /// </remarks>
         /// <example>
@@ -1914,25 +1874,19 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 建立 Rich Menu 別名
-        /// Creates a rich menu alias
+        /// 建立 RichMenu alias。
+        /// alias 讓應用程式用穩定 ID 指向 LINE 產生的 provider richMenuId，方便未來輪替底層選單。
         /// </summary>
         /// <param name="richMenuId">
-        /// 要關聯的 Rich Menu ID
-        /// Rich menu ID to be associated with the alias
+        /// alias 要關聯的 provider richMenuId。
         /// </param>
         /// <param name="richMenuAliasId">
-        /// Rich Menu 別名 ID（最多 100 字元）
-        /// Rich menu alias ID (maximum 100 characters)
+        /// RichMenu 別名 ID，最多 100 字元。
         /// </param>
         /// <remarks>
         /// Rich Menu 別名可讓您使用自訂 ID 來管理 Rich Menu，而不需要記住系統產生的 Rich Menu ID。
         /// <para>
-        /// Rich menu alias allows you to manage rich menus using custom IDs instead of system-generated rich menu IDs.
-        /// </para>
-        /// <para>
         /// 官方文件：https://developers.line.biz/en/reference/messaging-api/#create-rich-menu-alias
-        /// Official documentation: https://developers.line.biz/en/reference/messaging-api/#create-rich-menu-alias
         /// </para>
         /// </remarks>
         /// <example>
@@ -1950,16 +1904,14 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 刪除 Rich Menu 別名
-        /// Deletes a rich menu alias
+        /// 刪除 RichMenu alias。
+        /// 此操作只移除 alias 對照，不會刪除 alias 原本指向的 provider RichMenu。
         /// </summary>
         /// <param name="richMenuAliasId">
-        /// 要刪除的 Rich Menu 別名 ID
-        /// Rich menu alias ID to delete
+        /// 要刪除的 RichMenu 別名 ID。
         /// </param>
         /// <remarks>
         /// 官方文件：https://developers.line.biz/en/reference/messaging-api/#delete-rich-menu-alias
-        /// Official documentation: https://developers.line.biz/en/reference/messaging-api/#delete-rich-menu-alias
         /// </para>
         /// </remarks>
         /// <example>
@@ -1975,20 +1927,17 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 更新 Rich Menu 別名
-        /// Updates a rich menu alias
+        /// 更新 RichMenu alias 指向的 provider richMenuId。
+        /// provisioning workflow 可用此方法維持 alias 穩定，同時把使用者導向新版圖稿或新版 action。
         /// </summary>
         /// <param name="richMenuAliasId">
-        /// 要更新的 Rich Menu 別名 ID
-        /// Rich menu alias ID to update
+        /// 要更新的 RichMenu 別名 ID。
         /// </param>
         /// <param name="richMenuId">
-        /// 新的 Rich Menu ID
-        /// New rich menu ID to be associated
+        /// alias 新的 provider richMenuId。
         /// </param>
         /// <remarks>
         /// 官方文件：https://developers.line.biz/en/reference/messaging-api/#update-rich-menu-alias
-        /// Official documentation: https://developers.line.biz/en/reference/messaging-api/#update-rich-menu-alias
         /// </para>
         /// </remarks>
         /// <example>
@@ -2006,20 +1955,16 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 取得 Rich Menu 別名資訊
-        /// Gets rich menu alias information
+        /// 取得 RichMenu alias 目前指向資訊。
         /// </summary>
         /// <param name="richMenuAliasId">
-        /// Rich Menu 別名 ID
-        /// Rich menu alias ID
+        /// RichMenu 別名 ID。
         /// </param>
         /// <returns>
-        /// RichMenuAlias 物件，包含別名和關聯的 Rich Menu ID
-        /// RichMenuAlias object containing alias and associated rich menu ID
+        /// RichMenuAlias 物件，包含 alias 與其關聯的 provider richMenuId。
         /// </returns>
         /// <remarks>
         /// 官方文件：https://developers.line.biz/en/reference/messaging-api/#get-rich-menu-alias-information
-        /// Official documentation: https://developers.line.biz/en/reference/messaging-api/#get-rich-menu-alias-information
         /// </para>
         /// </remarks>
         /// <example>
@@ -2036,8 +1981,7 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 取得 Rich Menu 別名清單
-        /// Gets list of rich menu aliases
+        /// 取得官方帳號底下所有 RichMenu alias 清單。
         /// </summary>
         public virtual async Task<RichMenuAliasList> GetRichMenuAliasListAsync()
         {
@@ -2046,8 +1990,8 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 取得使用者目前連結的 Rich Menu ID
-        /// Gets the ID of the rich menu linked to a user
+        /// 取得使用者目前直接綁定的 RichMenu ID。
+        /// 回傳值是 provider richMenuId，不是應用程式 menu key 或 alias。
         /// </summary>
         public virtual async Task<string> GetRichMenuIdOfUserAsync(string userId)
         {
@@ -2056,8 +2000,8 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 設定預設 Rich Menu
-        /// Sets a default rich menu
+        /// 設定官方帳號層級的預設 RichMenu。
+        /// 這會影響沒有個人 RichMenu 綁定的使用者。
         /// </summary>
         public virtual async Task SetDefaultRichMenuAsync(string richMenuId)
         {
@@ -2066,8 +2010,7 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 取得預設 Rich Menu ID
-        /// Gets default rich menu ID
+        /// 取得官方帳號目前設定的預設 RichMenu ID。
         /// </summary>
         public virtual async Task<string> GetDefaultRichMenuIdAsync()
         {
@@ -2076,8 +2019,7 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 取消預設 Rich Menu
-        /// Cancels default rich menu
+        /// 取消官方帳號目前設定的預設 RichMenu。
         /// </summary>
         public virtual async Task CancelDefaultRichMenuAsync()
         {
@@ -2086,8 +2028,8 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 將 Rich Menu 連結到使用者
-        /// Links a rich menu to a user
+        /// 將 RichMenu 直接連結到單一使用者。
+        /// LINE 同一時間只允許一位使用者有一個直接綁定的 RichMenu。
         /// </summary>
         public virtual async Task LinkRichMenuToUserAsync(string userId, string richMenuId)
         {
@@ -2096,8 +2038,7 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 將 Rich Menu 連結到多位使用者
-        /// Links a rich menu to multiple users
+        /// 將同一個 RichMenu 批次連結到多位使用者。
         /// </summary>
         public virtual async Task LinkRichMenuToUsersAsync(string richMenuId, IList<string> userIds)
         {
@@ -2108,8 +2049,7 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 將 Rich Menu 自使用者解除連結
-        /// Unlinks a rich menu from a user
+        /// 解除單一使用者目前直接連結的 RichMenu。
         /// </summary>
         public virtual async Task UnLinkRichMenuFromUserAsync(string userId)
         {
@@ -2118,8 +2058,7 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 將 Rich Menu 自多位使用者解除連結
-        /// Unlinks rich menus from multiple users
+        /// 批次解除多位使用者目前直接連結的 RichMenu。
         /// </summary>
         public virtual async Task UnLinkRichMenuFromUsersAsync(IList<string> userIds)
         {
@@ -2130,8 +2069,8 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 批次控制 Rich Menu (link/unlink/unlinkAll)
-        /// Batch control rich menus
+        /// 批次控制 RichMenu，支援 link、unlink 與 unlinkAll。
+        /// LINE 會非同步處理此請求，呼叫端應使用 progress endpoint 追蹤結果。
         /// </summary>
         public virtual async Task RichMenuBatchOperationAsync(IList<RichMenuBatchOperation> operations)
         {
@@ -2142,8 +2081,7 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 取得批次控制進度
-        /// Gets batch control progress
+        /// 取得 RichMenu batch-control request 的處理進度。
         /// </summary>
         public virtual async Task<RichMenuBatchProgress> GetRichMenuBatchProgressAsync(string requestId)
         {
@@ -2152,8 +2090,7 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 驗證批次控制請求
-        /// Validates batch control request
+        /// 驗證 RichMenu batch-control request 是否符合 LINE 官方格式。
         /// </summary>
         public virtual async Task ValidateRichMenuBatchRequestAsync(IList<RichMenuBatchOperation> operations)
         {
@@ -2164,8 +2101,8 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 下載 Rich Menu 圖片
-        /// Downloads rich menu image
+        /// 下載指定 RichMenu 的圖片內容。
+        /// 圖片端點必須走 api-data.line.me，因此這裡使用 DataUrl。
         /// </summary>
         public virtual async Task<ContentStream> DownloadRichMenuImageAsync(string richMenuId)
         {
@@ -2175,8 +2112,8 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 上傳 JPEG Rich Menu 圖片
-        /// Uploads JPEG rich menu image
+        /// 上傳 JPEG RichMenu 圖片。
+        /// LINE 不允許替換既有圖片；更新圖片時需建立新的 RichMenu。
         /// </summary>
         public virtual async Task UploadRichMenuJpegImageAsync(Stream stream, string richMenuId)
         {
@@ -2187,8 +2124,8 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 上傳 PNG Rich Menu 圖片
-        /// Uploads PNG rich menu image
+        /// 上傳 PNG RichMenu 圖片。
+        /// 共用 provisioning workflow 目前使用 PNG 圖稿時會走此端點。
         /// </summary>
         public virtual async Task UploadRichMenuPngImageAsync(Stream stream, string richMenuId)
         {
@@ -2199,8 +2136,8 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 取得所有 Rich Menu 清單
-        /// Gets list of all uploaded rich menus
+        /// 取得官方帳號底下所有已上傳 RichMenu 清單。
+        /// LINE 回傳 JSON 外層是 richmenus 陣列，因此這裡手動解析每個項目。
         /// </summary>
         public virtual async Task<IList<ResponseRichMenu>> GetRichMenuListAsync()
         {

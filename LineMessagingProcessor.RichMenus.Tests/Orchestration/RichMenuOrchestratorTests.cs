@@ -4,8 +4,15 @@ using Xunit;
 
 namespace LineMessagingProcessor.RichMenus.Tests.Orchestration;
 
+/// <summary>
+/// 驗證 RichMenu orchestrator 如何把 policy 決策轉交給 assignment workflow。
+/// 這些測試避免 orchestrator 被加入產品邏輯；它只應挑選決策並套用結果。
+/// </summary>
 public sealed class RichMenuOrchestratorTests
 {
+    /// <summary>
+    /// 收到文字命中 trigger policy 時，orchestrator 應指派對應 menu key 並透過 cache link 到 provider richMenuId。
+    /// </summary>
     [Fact]
     public async Task ApplyAsync_assigns_menu_when_text_matches_trigger_policy()
     {
@@ -34,6 +41,9 @@ public sealed class RichMenuOrchestratorTests
         processor.LinkedUsers["U123"].Should().Be("rich-menu-001");
     }
 
+    /// <summary>
+    /// 沒有任何 policy 命中時，orchestrator 應回傳 no-change，不應誤呼叫 LINE link/unlink。
+    /// </summary>
     [Fact]
     public async Task ApplyAsync_returns_no_change_when_text_has_no_mapping()
     {

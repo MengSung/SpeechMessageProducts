@@ -26,6 +26,13 @@ public sealed class RichMenuOrchestrator : IRichMenuOrchestrator
     // Orchestrator 只決定「該做什麼」，assignment workflow 負責「怎麼呼叫 LINE」。
     private readonly ILineRichMenuAssignmentWorkflow _assignmentWorkflow;
 
+    /// <summary>
+    /// 建立 RichMenu 協調器，並接收產品端註冊的所有決策 policy。
+    /// </summary>
+    /// <param name="policies">
+    /// 由 DI 註冊進來的決策規則集合；若兩個 policy 回傳相同優先權，會保留先註冊者。
+    /// </param>
+    /// <param name="assignmentWorkflow">真正負責呼叫 LINE link / unlink 的共用指派工作流。</param>
     public RichMenuOrchestrator(
         IEnumerable<IRichMenuPolicy> policies,
         ILineRichMenuAssignmentWorkflow assignmentWorkflow)
@@ -34,6 +41,12 @@ public sealed class RichMenuOrchestrator : IRichMenuOrchestrator
         _assignmentWorkflow = assignmentWorkflow ?? throw new ArgumentNullException(nameof(assignmentWorkflow));
     }
 
+    /// <summary>
+    /// 評估所有 RichMenu policy，選出最高優先權決策並套用到指定 LINE 使用者。
+    /// </summary>
+    /// <param name="context">包含 LINE user id、角色、收到文字、目前選單與產品屬性的決策上下文。</param>
+    /// <param name="cancellationToken">傳遞給 policy 與 assignment workflow 的取消權杖。</param>
+    /// <returns>標準化的指派結果，描述是否成功、是否變更，以及最後套用的 menu key。</returns>
     public async Task<LineRichMenuAssignmentResult> ApplyAsync(RichMenuContext context, CancellationToken cancellationToken = default)
     {
         if (context == null)

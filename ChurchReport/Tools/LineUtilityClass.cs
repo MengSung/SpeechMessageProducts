@@ -68,8 +68,16 @@ namespace ChurchReport.Tools
 
             private ILineReplyWorkflow m_LineReplyWorkflow;
 
+            /// <summary>
+            /// 舊版 RichMenu 建立/上傳/連結 workflow 的相容欄位。
+            /// 目前 legacy-auth 的一般指派改由 <see cref="m_LineRichMenuAssignmentWorkflow"/> 處理，
+            /// 此欄位仍保留給既有建構式與測試替換使用。
+            /// </summary>
             private ILineRichMenuWorkflow m_LineRichMenuWorkflow;
 
+            /// <summary>
+            /// 共用 RichMenu assignment workflow，負責解析 ChurchReport 的 menu key 並呼叫 LINE link/unlink。
+            /// </summary>
             private ILineRichMenuAssignmentWorkflow m_LineRichMenuAssignmentWorkflow;
 
             private readonly bool m_UsesDefaultLineNotificationWorkflow;
@@ -82,6 +90,10 @@ namespace ChurchReport.Tools
 
             private readonly Action<string, string, string> m_CreatePushLineMessage;
 
+            /// <summary>
+            /// ChurchReport 既有認證 RichMenu 的應用程式 menu key。
+            /// 實際 LINE richMenuId 由 <see cref="ChurchReportLegacyRichMenuCatalog"/> 與 provisioning/cache 決定。
+            /// </summary>
             private const string LegacyAuthRichMenuKey = "legacy-auth";
 
             private const String WEB_LINK = @"http://www.speechmessage.com.tw";
@@ -110,13 +122,13 @@ namespace ChurchReport.Tools
 
             if (disposing)
             {
-                // ??? ToolUtilityClass
+                // 釋放 ToolUtilityClass。
                 m_ToolUtilityClass?.Dispose();
                 
-                // ??? LineMessagingClient
+                // 釋放 LineMessagingClient。
                 m_LineMessagingClient?.Dispose();
                 
-                // ??? ReplyUtility
+                // 釋放 ReplyUtility。
                 (m_ReplyUtility as IDisposable)?.Dispose();
             }
 
@@ -131,9 +143,8 @@ namespace ChurchReport.Tools
 
         ~LineUtilityClass()
         {
-            // Do not re-create Dispose clean-up code here.
-            // Calling Dispose(false) is optimal in terms of
-            // readability and maintainability.
+            // 解構函式只呼叫 Dispose(false)，避免重複撰寫清理邏輯。
+            // 實際資源釋放集中在 Dispose(bool)，可讀性與維護性較高。
             Dispose(false);
         }
             #endregion
@@ -265,11 +276,14 @@ namespace ChurchReport.Tools
 
             private static ILineRichMenuWorkflow CreateDefaultRichMenuWorkflow(LineMessagingClient lineMessagingClient)
             {
+                // 保留 create/upload/link workflow 供舊呼叫端相容；目前一般切換 legacy-auth 選單走 assignment workflow。
                 return new LineRichMenuWorkflow(new LineMessagingProcessorRichMenuAdapter(new LineMessagingProcessorClass(lineMessagingClient)));
             }
 
             private static ILineRichMenuAssignmentWorkflow CreateDefaultRichMenuAssignmentWorkflow(LineMessagingClient lineMessagingClient)
             {
+                // 使用產品 catalog 與共用 cache/state store 建立 assignment workflow，
+                // 讓 LineUtilityClass 不需要知道 LINE provider richMenuId 或 alias lifecycle。
                 var processor = new LineMessagingProcessorRichMenuAdapter(new LineMessagingProcessorClass(lineMessagingClient));
                 return new LineRichMenuAssignmentWorkflow(
                     processor,
@@ -293,16 +307,14 @@ namespace ChurchReport.Tools
                     }
                     else
                     {
-                        // 雿輻?身蝯?
+                        // 未指定組織時使用預設組織。
                         string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
                         m_ChannelAccessToken = GetChannelAccessToken(defaultOrg);
                     }
 
-                    // ?????LineMessagingClient
-                    // ?ㄐ?芣??遣?祇??交??? LineMessagingClient??
-                    // 憒??芯???ILineNotificationWorkflow 瘜典?唬?靘陷憭?蝜????澆蝡荔?
-                    // 撖阡???粥 workflow ????processor/client嚗??舫ㄐ?遣??client??
-                    // ?迨甇???亦???workflow 撅支?敹??瑕??詨???蝜?token 頝舐?賢???
+                    // 依目前 channel access token 建立 LineMessagingClient。
+                    // 若沒有外部注入 ILineNotificationWorkflow，後續會用這個 client 建立預設共用 workflow。
+                    // 重新建立預設 workflow 可避免切換 token 後，仍沿用舊 client 或舊 token。
                     m_LineMessagingClient = new LineMessagingClient(m_ChannelAccessToken);
                     RebuildDefaultWorkflowsForCurrentClient();
                     m_ReplyUtility = new ReplyUtility(m_LineMessagingClient, m_LineReplyWorkflow);

@@ -8,6 +8,12 @@ using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.LineSharedWorkflow;
 
+/// <summary>
+/// 驗證 <see cref="LineUtilityClass"/> 與共用 LINE workflow 的整合邊界。
+///
+/// 這個測試類保留舊工具類的建構方式，同時讓通知、回覆與 RichMenu assignment
+/// 都可以被注入測試替身；如此可確認產品工具類只負責轉接，不直接碰 LINE RichMenu provider。
+/// </summary>
 public sealed class LineUtilityClassWorkflowTests
 {
     private const string LineUtilitySubjectPrefix = "\u004C\u0069\u006E\u0065\u63A8\u64AD\u7D71\u8A08:";
@@ -188,6 +194,12 @@ public sealed class LineUtilityClassWorkflowTests
             .WhoseValue.Should().Be("ChurchReport.ReplyUtility.ReplyMessage");
     }
 
+    /// <summary>
+    /// 建立可注入各種共用 workflow 的 LineUtilityClass 測試實例。
+    ///
+    /// <paramref name="lineRichMenuAssignmentWorkflow"/> 參數保留給 RichMenu 指派流程測試：
+    /// 產品工具類只應把使用者與 menu key 傳入共用 workflow，不應在測試中真的建立或刪除 LINE RichMenu。
+    /// </summary>
     private static LineUtilityClass CreateLineUtility(
         HttpClient httpClient,
         ILineNotificationWorkflow? lineNotificationWorkflow,
@@ -202,6 +214,12 @@ public sealed class LineUtilityClassWorkflowTests
         return new TestLineUtility(toolUtility, lineClient, lineNotificationWorkflow, lineReplyWorkflow, lineRichMenuAssignmentWorkflow, pushStatisticCalls);
     }
 
+    /// <summary>
+    /// 暴露受保護建構路徑的測試子類別。
+    ///
+    /// 這個子類別固定不注入舊版 create/upload/link RichMenu workflow，
+    /// 讓測試能專注於新的 assignment workflow 相依性是否正確傳遞到基底類別。
+    /// </summary>
     private sealed class TestLineUtility : LineUtilityClass
     {
         public TestLineUtility(

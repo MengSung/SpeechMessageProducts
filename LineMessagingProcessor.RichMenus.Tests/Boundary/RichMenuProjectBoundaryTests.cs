@@ -3,8 +3,15 @@ using Xunit;
 
 namespace LineMessagingProcessor.RichMenus.Tests.Boundary;
 
+/// <summary>
+/// 驗證共用 RichMenu 專案不依賴任何產品層、資料庫層或 ASP.NET MVC 層型別。
+/// 這是架構邊界測試，確保 RichMenu 共用能力可以被未來多個產品重用。
+/// </summary>
 public sealed class RichMenuProjectBoundaryTests
 {
+    /// <summary>
+    /// 掃描 RichMenu 共用專案原始碼，若出現產品名稱或上層框架關鍵字就視為邊界破壞。
+    /// </summary>
     [Fact]
     public void RichMenu_project_does_not_reference_product_specific_dependencies()
     {
@@ -32,6 +39,9 @@ public sealed class RichMenuProjectBoundaryTests
         hits.Should().BeEmpty();
     }
 
+    /// <summary>
+    /// 從測試輸出目錄往上找 solution root，讓測試可在 IDE、CLI 與 CI 中穩定定位專案檔。
+    /// </summary>
     private static string FindProjectRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

@@ -20,6 +20,7 @@ namespace LineMessagingProcessor.RichMenus.Tests.Support;
 /// </summary>
 internal sealed class CapturingRichMenuProcessor : ILineRichMenuProcessor
 {
+    // 此假物件刻意同時保存 provider 狀態與呼叫順序，讓 RichMenu tests 能驗證 workflow 是否真的走到 LINE 邊界。
     /// <summary>
     /// 建立 RichMenu 時要回傳的 richMenuId 佇列。
     ///

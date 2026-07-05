@@ -4,8 +4,15 @@ using Xunit;
 
 namespace LineMessagingProcessor.RichMenus.Tests.Provisioning;
 
+/// <summary>
+/// 驗證 RichMenu catalog 佈建 workflow 與 LINE provider 狀態同步的核心行為。
+/// 測試重點是 create/upload/alias/default/cache 的順序，以及失敗選單不會中斷後續選單同步。
+/// </summary>
 public sealed class LineRichMenuProvisioningWorkflowTests
 {
+    /// <summary>
+    /// 新選單不存在於 LINE 時，workflow 應建立 RichMenu、上傳圖片、建立 alias、設定 default 並寫入 cache。
+    /// </summary>
     [Fact]
     public async Task SyncAsync_creates_uploads_aliases_defaults_and_caches_new_menu()
     {
@@ -36,6 +43,9 @@ public sealed class LineRichMenuProvisioningWorkflowTests
         processor.UploadedImageCount.Should().Be(1);
     }
 
+    /// <summary>
+    /// 已存在相同 fingerprinted name 時，workflow 應重用 provider richMenuId，仍補齊 alias 與 cache。
+    /// </summary>
     [Fact]
     public async Task SyncAsync_reuses_existing_fingerprinted_menu_and_updates_alias_when_needed()
     {
@@ -70,6 +80,9 @@ public sealed class LineRichMenuProvisioningWorkflowTests
         processor.UploadedImageCount.Should().Be(0);
     }
 
+    /// <summary>
+    /// 單一 definition 失敗時應產生 Failed item 並繼續處理下一個 definition，讓管理端看到完整同步結果。
+    /// </summary>
     [Fact]
     public async Task SyncAsync_records_failed_item_and_continues_with_next_definition()
     {

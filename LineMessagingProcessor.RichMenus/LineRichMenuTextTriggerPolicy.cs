@@ -8,11 +8,20 @@ public sealed class LineRichMenuTextTriggerPolicy : IRichMenuPolicy
 {
     private readonly ILineRichMenuTextTriggerResolver _resolver;
 
+    /// <summary>
+    /// 建立文字觸發 policy。
+    /// </summary>
+    /// <param name="resolver">將收到的 LINE 文字解析成 menu key 的 resolver。</param>
     public LineRichMenuTextTriggerPolicy(ILineRichMenuTextTriggerResolver resolver)
     {
         _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
     }
 
+    /// <summary>
+    /// 若收到的文字命中設定表，回傳高優先權的 RichMenu 指派決策。
+    /// </summary>
+    /// <param name="context">包含 received text 的使用者互動上下文。</param>
+    /// <param name="cancellationToken">此 in-memory policy 目前不使用，保留以符合 policy 介面。</param>
     public Task<RichMenuDecision> DecideAsync(RichMenuContext context, CancellationToken cancellationToken = default)
     {
         if (context == null)

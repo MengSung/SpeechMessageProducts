@@ -6,5 +6,12 @@ namespace LineMessagingProcessor.RichMenus;
 /// </summary>
 public interface ILineRichMenuCatalog
 {
+    /// <summary>
+    /// 載入所有應同步到 LINE 的 RichMenu 定義。
+    /// </summary>
+    /// <param name="cancellationToken">供需要 I/O 的 catalog 實作用的取消權杖。</param>
+    /// <returns>
+    /// 穩定的應用程式 RichMenu 定義清單，包含 menu key、alias、版面與圖片 stream factory。
+    /// </returns>
     Task<IReadOnlyList<LineRichMenuDefinition>> GetDefinitionsAsync(CancellationToken cancellationToken = default);
 }

@@ -338,6 +338,9 @@ namespace LineMessagingProcessor
             await _lineMessagingClient.ReplyMessageAsync(replyToken, messages).ConfigureAwait(false);
         }
 
+        // RichMenu 相關方法是 LINE SDK 的薄封裝，故意不放產品 catalog、alias 決策或狀態儲存邏輯。
+        // 上層共用 workflow 會負責將 ChurchReport 或其他產品的 menu key 轉成這裡需要的 provider richMenuId。
+
         /// <summary>
         /// 建立 LINE RichMenu 並回傳 LINE 產生的 richMenuId。
         /// Processor 只包住 SDK 與必要參數驗證；RichMenu 版面、圖片與產品套用規則由產品端或 workflow 決定。

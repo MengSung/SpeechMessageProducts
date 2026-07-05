@@ -25,6 +25,11 @@ public sealed class RichMenuExpirationSweepWorkflow : IRichMenuExpirationSweepWo
     // 負責實際 Assign / Unassign 的共用工作流。
     private readonly ILineRichMenuAssignmentWorkflow _assignmentWorkflow;
 
+    /// <summary>
+    /// 建立到期掃描工作流。
+    /// </summary>
+    /// <param name="stateStore">保存使用者 RichMenu 狀態與到期時間的儲存抽象。</param>
+    /// <param name="assignmentWorkflow">用來還原前一個選單或解除綁定的共用指派工作流。</param>
     public RichMenuExpirationSweepWorkflow(
         IRichMenuStateStore stateStore,
         ILineRichMenuAssignmentWorkflow assignmentWorkflow)
@@ -33,6 +38,12 @@ public sealed class RichMenuExpirationSweepWorkflow : IRichMenuExpirationSweepWo
         _assignmentWorkflow = assignmentWorkflow ?? throw new ArgumentNullException(nameof(assignmentWorkflow));
     }
 
+    /// <summary>
+    /// 找出已到期的 RichMenu 狀態，並逐一還原到上一個選單或解除個人綁定。
+    /// </summary>
+    /// <param name="now">用來判斷是否到期的目前時間。</param>
+    /// <param name="cancellationToken">背景工作停止或使用者取消時的取消權杖。</param>
+    /// <returns>本次掃描到期筆數與成功還原/解除筆數。</returns>
     public async Task<RichMenuExpirationSweepReport> SweepAsync(DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         // 取得所有到期狀態。

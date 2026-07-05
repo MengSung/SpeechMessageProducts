@@ -7,6 +7,12 @@ using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.LineSharedWorkflow;
 
+/// <summary>
+/// 驗證 <see cref="PushUtility"/> 在導入共用 LINE workflow 後仍維持舊產品語意。
+///
+/// RichMenu 相關測試特別鎖住 ChurchReport 舊版授權選單的 menu key，
+/// 確保產品端不再直接建立、上傳、刪除 RichMenu，而是委派給共用 assignment workflow。
+/// </summary>
 public sealed class PushUtilityWorkflowTests
 {
     [Fact]
@@ -223,6 +229,12 @@ public sealed class PushUtilityWorkflowTests
         workflow.Requests[0].RetryKey.Should().Be("retry-payment-001");
     }
 
+    /// <summary>
+    /// AddRichMenuMessage 應透過共用 assignment workflow 指派舊版授權選單。
+    ///
+    /// 這個測試保護遷移後的邊界：ChurchReport 仍保留原方法名稱與通知行為，
+    /// 但 RichMenu 綁定動作改由 menu key <c>legacy-auth</c> 交給共用層解析。
+    /// </summary>
     [Fact]
     public async Task AddRichMenuMessage_assigns_legacy_auth_menu_through_shared_assignment_workflow()
     {
@@ -244,6 +256,12 @@ public sealed class PushUtilityWorkflowTests
         notificationWorkflow.Requests[0].Metadata["source"].Should().Be("ChurchReport.PushUtility.AddRichMenuMessage");
     }
 
+    /// <summary>
+    /// DeleteRichMenuMessage 應透過共用 assignment workflow 解除使用者 RichMenu 綁定。
+    ///
+    /// 舊實作會取得使用者目前 richMenuId 後直接刪除 provider 資源；
+    /// 新流程只負責 unlink 使用者，避免產品端誤刪仍被其他使用者或環境共用的 RichMenu。
+    /// </summary>
     [Fact]
     public async Task DeleteRichMenuMessage_unassigns_through_shared_assignment_workflow()
     {
@@ -287,6 +305,13 @@ public sealed class PushUtilityWorkflowTests
         }
     }
 
+    /// <summary>
+    /// 捕捉舊版 create/upload/link workflow 請求的測試替身。
+    ///
+    /// 目前 PushUtility 的 RichMenu 指派已改走 assignment workflow；
+    /// 保留這個替身是為了覆蓋其他仍接受舊 workflow 相依性的建構路徑，
+    /// 並確保測試不需要真的呼叫 LINE 建立或刪除 RichMenu。
+    /// </summary>
     private sealed class CapturingRichMenuWorkflow : ILineRichMenuWorkflow
     {
         public List<LineRichMenuCreateUploadAndLinkRequest> CreateRequests { get; } = new();
@@ -318,6 +343,12 @@ public sealed class PushUtilityWorkflowTests
         }
     }
 
+    /// <summary>
+    /// 記錄 RichMenu 指派與解除指派請求的測試替身。
+    ///
+    /// 測試只關心 PushUtility 是否傳入正確的 lineUserId 與 menu key，
+    /// 因此這裡直接回傳成功結果，避免把共用 workflow 本身的行為混進產品整合測試。
+    /// </summary>
     private sealed class CapturingRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWorkflow
     {
         public List<(string UserId, string MenuKey)> Assignments { get; } = new();

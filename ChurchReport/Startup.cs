@@ -494,6 +494,8 @@ namespace ChurchReport
                     Configuration["LINE_CHANNEL_ACCESS_TOKEN"] ??
                     string.Empty;
             });
+            // ChurchReport 的 RichMenu 圖片、alias 與 legacy-auth menu key 屬於產品層設定；
+            // 共用 LineMessagingProcessor.RichMenus 只負責依 catalog 佈建、快取 richMenuId 並執行指派。
             services.AddLineRichMenuProvisioning<ChurchReportLegacyRichMenuCatalog>();
             services.AddScoped<ChurchReport.Services.IChurchReportLineProfileProvider, ChurchReport.Services.ChurchReportLineProfileProvider>();
             services.AddScoped<ChurchReport.Services.IChurchReportLineBindingNotificationService, ChurchReport.Services.ChurchReportLineBindingNotificationService>();

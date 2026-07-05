@@ -9,14 +9,20 @@ namespace LineMessagingProcessor.RichMenus;
 /// </summary>
 public sealed class InMemoryRichMenuStateStore : IRichMenuStateStore
 {
+    /// <summary>
+    /// 以 LINE userId 為 key 的 thread-safe state table。
+    /// 使用不分大小寫 comparer，讓呼叫端 userId 大小寫不同時仍能穩定查詢狀態。
+    /// </summary>
     private readonly ConcurrentDictionary<string, RichMenuUserState> _states = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <inheritdoc />
     public Task<RichMenuUserState?> GetAsync(string lineUserId, CancellationToken cancellationToken = default)
     {
         _states.TryGetValue(Normalize(lineUserId), out var state);
         return Task.FromResult(state);
     }
 
+    /// <inheritdoc />
     public Task SetAsync(RichMenuUserState state, CancellationToken cancellationToken = default)
     {
         if (state == null)
@@ -28,6 +34,7 @@ public sealed class InMemoryRichMenuStateStore : IRichMenuStateStore
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
     public Task RemoveAsync(string lineUserId, CancellationToken cancellationToken = default)
     {
         var key = Normalize(lineUserId);
@@ -39,6 +46,7 @@ public sealed class InMemoryRichMenuStateStore : IRichMenuStateStore
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
     public Task<IReadOnlyList<RichMenuUserState>> GetExpiredAsync(DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         IReadOnlyList<RichMenuUserState> expired = _states.Values
@@ -47,8 +55,14 @@ public sealed class InMemoryRichMenuStateStore : IRichMenuStateStore
         return Task.FromResult(expired);
     }
 
+    /// <summary>
+    /// 正規化選填 key，讓查詢與移除路徑可容忍空值並安全 no-op。
+    /// </summary>
     private static string Normalize(string? value) => value?.Trim() ?? string.Empty;
 
+    /// <summary>
+    /// 正規化寫入路徑的 key；空值會破壞 store，因此必須拒絕。
+    /// </summary>
     private static string NormalizeRequired(string value, string parameterName)
     {
         var normalized = Normalize(value);

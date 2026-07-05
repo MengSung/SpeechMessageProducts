@@ -7,6 +7,14 @@ using Xunit;
 
 namespace Line.Messaging.Tests;
 
+/// <summary>
+/// 鎖定 LINE Messaging Client 對官方 P0 端點的路徑組裝規則。
+///
+/// RichMenu 圖片、批次進度與批次驗證端點在 LINE 官方 API 中分散於
+/// <c>api.line.me</c> 與 <c>api-data.line.me</c> 兩個 host。這些測試刻意只檢查
+/// HTTP method 與 URL，避免 SDK 重構時把 RichMenu 專用端點誤接到一般訊息端點，
+/// 造成上傳圖片或查詢批次狀態時被 LINE 拒絕。
+/// </summary>
 public sealed class LineMessagingClientP0EndpointTests
 {
     [Fact]
@@ -85,6 +93,13 @@ public sealed class LineMessagingClientP0EndpointTests
             .Should().Be("https://api-data.line.me/v2/bot/message/message-123/content/preview");
     }
 
+    /// <summary>
+    /// 驗證 RichMenu 圖片下載與 JPEG/PNG 上傳都走 LINE 的 API data host。
+    ///
+    /// RichMenu 圖片內容不是一般 JSON API；官方要求使用
+    /// <c>https://api-data.line.me/v2/bot/richmenu/{richMenuId}/content</c>。
+    /// 這裡同時覆蓋 GET 與兩種 POST 上傳格式，確保共用 URL 建構邏輯不會只修到其中一條路徑。
+    /// </summary>
     [Fact]
     public async Task Rich_menu_image_download_and_upload_use_api_data_host()
     {
@@ -135,6 +150,12 @@ public sealed class LineMessagingClientP0EndpointTests
         handler.Requests.Should().BeEmpty();
     }
 
+    /// <summary>
+    /// 驗證 RichMenu 批次操作進度查詢使用官方 progress query endpoint。
+    ///
+    /// LINE 的批次進度端點把 requestId 放在 query string，而不是 REST path。
+    /// 這個測試保護批次同步流程，避免 provisioning workflow 查不到 LINE 回報的批次狀態。
+    /// </summary>
     [Fact]
     public async Task Get_rich_menu_batch_progress_uses_progress_query_endpoint()
     {
@@ -148,6 +169,13 @@ public sealed class LineMessagingClientP0EndpointTests
             .Should().Be("https://api.line.me/v2/bot/richmenu/progress/batch?requestId=request-123");
     }
 
+    /// <summary>
+    /// 驗證 RichMenu 批次請求驗證使用官方 validate/batch endpoint。
+    ///
+    /// provisioning 在送出大量 create/link/delete 前可先呼叫此端點做格式驗證；
+    /// 若 URL 多了一層或少了一層 richmenu segment，LINE 會直接拒絕請求，
+    /// 因此這裡把 POST method 與完整路徑一起鎖住。
+    /// </summary>
     [Fact]
     public async Task Validate_rich_menu_batch_uses_official_validate_batch_endpoint()
     {

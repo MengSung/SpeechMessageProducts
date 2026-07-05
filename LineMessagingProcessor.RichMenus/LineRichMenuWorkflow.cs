@@ -22,6 +22,7 @@ namespace LineMessagingProcessor.RichMenus;
 public sealed class LineRichMenuWorkflow : ILineRichMenuWorkflow
 {
     // 對 LINE RichMenu API 的抽象。這裡不直接 new HTTP client，也不直接處理 token。
+    // 這讓舊流程可以沿用 create/upload/link/delete 能力，同時由測試以 processor 假物件精準模擬 provider 回應。
     private readonly ILineRichMenuProcessor _processor;
 
     public LineRichMenuWorkflow(ILineRichMenuProcessor processor)

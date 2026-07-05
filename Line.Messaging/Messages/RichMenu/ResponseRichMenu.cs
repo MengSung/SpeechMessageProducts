@@ -1,27 +1,29 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Line.Messaging
 {
     /// <summary>
-    /// Rich menu response object.
+    /// LINE 回傳的 RichMenu response 物件。
     /// https://developers.line.me/en/docs/messaging-api/reference/#rich-menu-response-object
+    /// 在 <see cref="RichMenu"/> 的版面資料外，額外保存 LINE 建立或查詢後回傳的 provider id。
     /// </summary>
     public class ResponseRichMenu : RichMenu
     {
         /// <summary>
-        /// Rich menu ID
+        /// LINE provider 端的 RichMenu ID。
+        /// link、unlink、alias、default 與 delete 操作都必須使用這個 provider identifier。
         /// </summary>
         public string RichMenuId { get; set; }
 
         /// <summary>
-        /// Constructor
+        /// 從 provider richMenuId 與本機 RichMenu 定義建立 response 物件。
         /// </summary>
         /// <param name="richMenuId">
-        /// Rich menu ID
+        /// LINE provider 端的 RichMenu ID。
         /// </param>
         /// <param name="source">
-        /// Rich menu object
+        /// 本機 RichMenu 版面物件。
         /// </param>
         public ResponseRichMenu(string richMenuId, RichMenu source)
         {
@@ -36,6 +38,8 @@ namespace Line.Messaging
         internal static ResponseRichMenu CreateFrom(dynamic dynamicObject)
         {
 
+            // LINE 會以巢狀 JSON 回傳 action areas。
+            // 將解析集中在這裡，避免呼叫端重複 dynamic access，或不小心與 provider 欄位名稱脫節。
             var areas = new List<ActionArea>();
             foreach (var area in dynamicObject?.areas ?? Enumerable.Empty<dynamic>())
             {
