@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/WebServiceConnector/UploadIntegrateData.Converters.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass UploadIntegrateData
+// ä¸»è¦æˆå“¡ï¼šConvertIdentityToIndexã€ConvertIndexToIdentityã€ConvertIndexToClearIdentityã€ConvertSpiritualIdentityToIndexã€ConvertBaptizedSituationToIndexã€ConvertNumberToFollowUpWeekPickerã€ConvertNumberToWeekIndexã€ConvertFollowUpWeekPickerToIndexã€ConvertFollowUpResultPickerToIndexã€ConvertFollowUpNextStepPickerToIndex
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€System.Collections.Genericã€ChurchReport.Modelsã€Microsoft.Xrm.Sdk
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using System.Collections.Generic;
 using ChurchReport.Models;
@@ -6,12 +19,12 @@ using Microsoft.Xrm.Sdk;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ¤W¶Ç¾ã¦X¸ê®Æ - Âà´«¤u¨ã»P¦r¨å³B²z (Partial)
-    /// ¥]§t¡G¦UºØÂà´«¤èªk¡B¦r¨å¾Ş§@
+    /// ä¸Šå‚³æ•´åˆè³‡æ–™ - è½‰æ›å·¥å…·èˆ‡å­—å…¸è™•ç† (Partial)
+    /// åŒ…å«ï¼šå„ç¨®è½‰æ›æ–¹æ³•ã€å­—å…¸æ“ä½œ
     /// </summary>
     public partial class UploadIntegrateData
     {
-        #region ©e¨­Ãş«¬Âà´«
+        #region å§”èº«é¡å‹è½‰æ›
 
         private int ConvertIdentityToIndex(String Identity)
         {
@@ -27,12 +40,12 @@ namespace ChurchReport.WebServiceConnector
                 string cleanedIdentity = System.Text.RegularExpressions.Regex.Replace(Identity, @"^\d+\.\s*", "");
                 int optionValue = optionSetService.GetOptionSetValue("contact", "customertypecode", cleanedIdentity);
 
-                System.Diagnostics.Debug.WriteLine($"[ConvertIdentityToIndex] ¿é¤J¤å¦r: {Identity}, ²M²z«á: {cleanedIdentity}, ¦^¶Ç­È: {optionValue}");
+                System.Diagnostics.Debug.WriteLine($"[ConvertIdentityToIndex] è¼¸å…¥æ–‡å­—: {Identity}, æ¸…ç†å¾Œ: {cleanedIdentity}, å›å‚³å€¼: {optionValue}");
                 return optionValue;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ConvertIdentityToIndex] °ÊºA¬d¸ß¥¢±Ñ: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ConvertIdentityToIndex] å‹•æ…‹æŸ¥è©¢å¤±æ•—: {ex.Message}");
                 return 100000000;
             }
         }
@@ -49,13 +62,13 @@ namespace ChurchReport.WebServiceConnector
                 );
 
                 string displayText = optionSetService.GetOptionSetText("contact", "customertypecode", Identity);
-                System.Diagnostics.Debug.WriteLine($"[ConvertIndexToIdentity] ¿é¤J­È: {Identity}, ¦^¶Ç¤å¦r: {displayText}");
+                System.Diagnostics.Debug.WriteLine($"[ConvertIndexToIdentity] è¼¸å…¥å€¼: {Identity}, å›å‚³æ–‡å­—: {displayText}");
                 return displayText;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ConvertIndexToIdentity] °ÊºA¬d¸ß¥¢±Ñ: {ex.Message}");
-                return "¥¼ª¾Ãş«¬";
+                System.Diagnostics.Debug.WriteLine($"[ConvertIndexToIdentity] å‹•æ…‹æŸ¥è©¢å¤±æ•—: {ex.Message}");
+                return "æœªçŸ¥é¡å‹";
             }
         }
 
@@ -63,17 +76,17 @@ namespace ChurchReport.WebServiceConnector
         {
             switch (Identity)
             {
-                case 100000000: return "·sªB¤Í";
-                case 100000004: return "¥¼¤J²Õ";
-                case 100000007: return "¥¼¤J²Õ";
-                case 1: return "¤p²Õ²Õ­û";
-                default: return "¤p²Õ²Õ­û";
+                case 100000000: return "æ–°æœ‹å‹";
+                case 100000004: return "æœªå…¥çµ„";
+                case 100000007: return "æœªå…¥çµ„";
+                case 1: return "å°çµ„çµ„å“¡";
+                default: return "å°çµ„çµ„å“¡";
             }
         }
 
         #endregion
 
-        #region ¨ü¬~/¬~Â§ª¬ºAÂà´«
+        #region å—æ´—/æ´—ç¦®ç‹€æ…‹è½‰æ›
 
         private int ConvertSpiritualIdentityToIndex(String SpiritualIdentity)
         {
@@ -101,30 +114,30 @@ namespace ChurchReport.WebServiceConnector
         {
             switch (BaptizedSituation)
             {
-                case "°í«HÂ§(Äy¦b)": return 100000000;
-                case "¦¨¤HÂ§(Äy¦b)": return 100000001;
-                case "ÂàÄy(Äy¦b)": return 100000002;
-                case "¤p¨àÂ§(Äy¤£¦b)": return 100000003;
-                case "¥¼¨ü¬~(Äy¤£¦b)": return 100000004;
+                case "å …ä¿¡ç¦®(ç±åœ¨)": return 100000000;
+                case "æˆäººç¦®(ç±åœ¨)": return 100000001;
+                case "è½‰ç±(ç±åœ¨)": return 100000002;
+                case "å°å…’ç¦®(ç±ä¸åœ¨)": return 100000003;
+                case "æœªå—æ´—(ç±ä¸åœ¨)": return 100000004;
                 default: return -999999999;
             }
         }
 
         #endregion
 
-        #region ¸ò¶i¬ÛÃöÂà´«
+        #region è·Ÿé€²ç›¸é—œè½‰æ›
 
         private String ConvertNumberToFollowUpWeekPicker(int FollowUpWeekIndex)
         {
-            string[] weeks = { "", "¤@", "¤G", "¤T", "¥|", "¤­", "¤»", "¤C", "¤K", "¤E", "¤Q",
-                              "¤Q¤@", "¤Q¤G", "¤Q¤T", "¤Q¥|", "¤Q¤­", "¤Q¤»", "¤Q¤C", "¤Q¤K", "¤Q¤E", "¤G¤Q" };
-            return FollowUpWeekIndex >= 1 && FollowUpWeekIndex <= 20 ? weeks[FollowUpWeekIndex] : "¤G¤Q";
+            string[] weeks = { "", "ä¸€", "äºŒ", "ä¸‰", "å››", "äº”", "å…­", "ä¸ƒ", "å…«", "ä¹", "å",
+                              "åä¸€", "åäºŒ", "åä¸‰", "åå››", "åäº”", "åå…­", "åä¸ƒ", "åå…«", "åä¹", "äºŒå" };
+            return FollowUpWeekIndex >= 1 && FollowUpWeekIndex <= 20 ? weeks[FollowUpWeekIndex] : "äºŒå";
         }
 
         private int ConvertNumberToWeekIndex(int FollowUpWeekIndex)
         {
-            return FollowUpWeekIndex >= 1 && FollowUpWeekIndex <= 20 
-                ? 100000000 + FollowUpWeekIndex - 1 
+            return FollowUpWeekIndex >= 1 && FollowUpWeekIndex <= 20
+                ? 100000000 + FollowUpWeekIndex - 1
                 : 100000007;
         }
 
@@ -132,11 +145,11 @@ namespace ChurchReport.WebServiceConnector
         {
             var weekMap = new Dictionary<String, int>
             {
-                { "¤@", 100000000 }, { "¤G", 100000001 }, { "¤T", 100000002 }, { "¥|", 100000003 },
-                { "¤­", 100000004 }, { "¤»", 100000005 }, { "¤C", 100000006 }, { "¤K", 100000007 },
-                { "¤E", 100000008 }, { "¤Q", 100000009 }, { "¤Q¤@", 100000010 }, { "¤Q¤G", 100000011 },
-                { "¤Q¤T", 100000012 }, { "¤Q¥|", 100000013 }, { "¤Q¤­", 100000014 }, { "¤Q¤»", 100000015 },
-                { "¤Q¤C", 100000016 }, { "¤Q¤K", 100000017 }, { "¤Q¤E", 100000018 }, { "¤G¤Q", 100000019 }
+                { "ä¸€", 100000000 }, { "äºŒ", 100000001 }, { "ä¸‰", 100000002 }, { "å››", 100000003 },
+                { "äº”", 100000004 }, { "å…­", 100000005 }, { "ä¸ƒ", 100000006 }, { "å…«", 100000007 },
+                { "ä¹", 100000008 }, { "å", 100000009 }, { "åä¸€", 100000010 }, { "åäºŒ", 100000011 },
+                { "åä¸‰", 100000012 }, { "åå››", 100000013 }, { "åäº”", 100000014 }, { "åå…­", 100000015 },
+                { "åä¸ƒ", 100000016 }, { "åå…«", 100000017 }, { "åä¹", 100000018 }, { "äºŒå", 100000019 }
             };
             return weekMap.TryGetValue(FollowUpWeek, out int value) ? value : 100000008;
         }
@@ -145,9 +158,9 @@ namespace ChurchReport.WebServiceConnector
         {
             var resultMap = new Dictionary<String, int>
             {
-                { "½Ğ¿ï¾Ü", 100000000 }, { "¼ö±¡¦^À³", 100000001 }, { "´÷¼}»{ÃÑ«H¥õ", 100000002 },
-                { "¨SÁpµ¸¤W", 100000003 }, { "¤ÏÀ³§N²H", 100000004 }, { "¦Ò¼{¤¤¡AÄ~Äò¸ò¶i", 100000005 },
-                { "¤J¤p²Õ", 100000006 }, { "¨Ó¥D¤é", 100000007 }, { "Âà¤¶", 100000008 }, { "¨ä¥L", 100000009 }
+                { "è«‹é¸æ“‡", 100000000 }, { "ç†±æƒ…å›æ‡‰", 100000001 }, { "æ¸´æ…•èªè­˜ä¿¡ä»°", 100000002 },
+                { "æ²’è¯çµ¡ä¸Š", 100000003 }, { "åæ‡‰å†·æ·¡", 100000004 }, { "è€ƒæ…®ä¸­ï¼Œç¹¼çºŒè·Ÿé€²", 100000005 },
+                { "å…¥å°çµ„", 100000006 }, { "ä¾†ä¸»æ—¥", 100000007 }, { "è½‰ä»‹", 100000008 }, { "å…¶ä»–", 100000009 }
             };
             return resultMap.TryGetValue(FollowUpResult, out int value) ? value : 100000000;
         }
@@ -156,7 +169,7 @@ namespace ChurchReport.WebServiceConnector
         {
             var stepMap = new Dictionary<String, int>
             {
-                { "½Ğ¿ï¾Ü", 100000000 }, { "Ä~Äò¸ò¶i", 100000001 }, { "Âà¤¶", 100000002 }
+                { "è«‹é¸æ“‡", 100000000 }, { "ç¹¼çºŒè·Ÿé€²", 100000001 }, { "è½‰ä»‹", 100000002 }
             };
             return stepMap.TryGetValue(FollowUpNextStep, out int value) ? value : 100000000;
         }
@@ -165,9 +178,9 @@ namespace ChurchReport.WebServiceConnector
         {
             var optionMap = new Dictionary<String, int>
             {
-                { "¹q¸Ü", 100000000 }, { "±´³X", 100000001 }, { "Line/FB", 100000002 },
-                { "¥X¹C/¦Y¶º", 100000003 }, { "Ãh¶m/¨ä¥L½Òµ{", 100000004 }, { "¬ù½Í", 100000005 },
-                { "¨S¸ò¶i", 100000006 }, { "¨ä¥L", 100000007 }
+                { "é›»è©±", 100000000 }, { "æ¢è¨ª", 100000001 }, { "Line/FB", 100000002 },
+                { "å‡ºéŠ/åƒé£¯", 100000003 }, { "æ‡·é„‰/å…¶ä»–èª²ç¨‹", 100000004 }, { "ç´„è«‡", 100000005 },
+                { "æ²’è·Ÿé€²", 100000006 }, { "å…¶ä»–", 100000007 }
             };
             return optionMap.TryGetValue(FollowUpOption, out int value) ? value : 100000000;
         }
@@ -176,9 +189,9 @@ namespace ChurchReport.WebServiceConnector
         {
             var resultMap = new Dictionary<int, String>
             {
-                { 100000000, "½Ğ¿ï¾Ü" }, { 100000001, "¼ö±¡¦^À³" }, { 100000002, "´÷¼}»{ÃÑ«H¥õ" },
-                { 100000003, "¨SÁpµ¸¤W" }, { 100000004, "¤ÏÀ³§N²H" }, { 100000005, "¦Ò¼{¤¤¡AÄ~Äò¸ò¶i" },
-                { 100000006, "¤J¤p²Õ" }, { 100000007, "¨Ó¥D¤é" }, { 100000008, "Âà¤¶" }, { 100000009, "¨ä¥L" }
+                { 100000000, "è«‹é¸æ“‡" }, { 100000001, "ç†±æƒ…å›æ‡‰" }, { 100000002, "æ¸´æ…•èªè­˜ä¿¡ä»°" },
+                { 100000003, "æ²’è¯çµ¡ä¸Š" }, { 100000004, "åæ‡‰å†·æ·¡" }, { 100000005, "è€ƒæ…®ä¸­ï¼Œç¹¼çºŒè·Ÿé€²" },
+                { 100000006, "å…¥å°çµ„" }, { 100000007, "ä¾†ä¸»æ—¥" }, { 100000008, "è½‰ä»‹" }, { 100000009, "å…¶ä»–" }
             };
             return resultMap.TryGetValue(FollowUpWeekIndex, out String value) ? value : "";
         }
@@ -187,7 +200,7 @@ namespace ChurchReport.WebServiceConnector
         {
             var stepMap = new Dictionary<int, String>
             {
-                { 100000000, "½Ğ¿ï¾Ü" }, { 100000001, "Ä~Äò¸ò¶i" }, { 100000002, "Âà¤¶" }
+                { 100000000, "è«‹é¸æ“‡" }, { 100000001, "ç¹¼çºŒè·Ÿé€²" }, { 100000002, "è½‰ä»‹" }
             };
             return stepMap.TryGetValue(FollowUpWeekIndex, out String value) ? value : "";
         }
@@ -196,9 +209,9 @@ namespace ChurchReport.WebServiceConnector
         {
             var optionMap = new Dictionary<int, String>
             {
-                { 100000000, "¹q¸Ü" }, { 100000001, "±´³X" }, { 100000002, "Line/FB" },
-                { 100000003, "¥X¹C/¦Y¶º" }, { 100000004, "Ãh¶m/¨ä¥L½Òµ{" }, { 100000005, "¬ù½Í" },
-                { 100000006, "¨S¸ò¶i" }, { 100000007, "¨ä¥L" }
+                { 100000000, "é›»è©±" }, { 100000001, "æ¢è¨ª" }, { 100000002, "Line/FB" },
+                { 100000003, "å‡ºéŠ/åƒé£¯" }, { 100000004, "æ‡·é„‰/å…¶ä»–èª²ç¨‹" }, { 100000005, "ç´„è«‡" },
+                { 100000006, "æ²’è·Ÿé€²" }, { 100000007, "å…¶ä»–" }
             };
             return optionMap.TryGetValue(FollowUpWays, out String value) ? value : "";
         }
@@ -229,38 +242,38 @@ namespace ChurchReport.WebServiceConnector
         {
             var topicMap = new Dictionary<String, int>
             {
-                { "¹w³Æ¶g", 100000000 }, { "¯u©¯ºÖ", 100000001 }, { "¯u¬Û¤j¥Õ", 100000002 },
-                { "¸U¥@¥¨¬P", 100000003 }, { "©¯ºÖ³s½u", 100000004 }, { "·í¤W«Ò¨ÓºVªù", 100000005 },
-                { "¤Q¦r¬[ªº³Ó§Q", 100000006 }, { "ÄÀ©ñ»P¦Û¥Ñ", 100000007 }, { "©¯ºÖªº±Ğ·|", 100000008 }
+                { "é å‚™é€±", 100000000 }, { "çœŸå¹¸ç¦", 100000001 }, { "çœŸç›¸å¤§ç™½", 100000002 },
+                { "è¬ä¸–å·¨æ˜Ÿ", 100000003 }, { "å¹¸ç¦é€£ç·š", 100000004 }, { "ç•¶ä¸Šå¸ä¾†æ•²é–€", 100000005 },
+                { "åå­—æ¶çš„å‹åˆ©", 100000006 }, { "é‡‹æ”¾èˆ‡è‡ªç”±", 100000007 }, { "å¹¸ç¦çš„æ•™æœƒ", 100000008 }
             };
             return topicMap.TryGetValue(Topic, out int value) ? value : 100000000;
         }
 
         #endregion
 
-        #region ¦r¨å³B²z
+        #region å­—å…¸è™•ç†
 
         private void ResetDictionary(DateTime aSunday)
         {
             try
             {
-                AddToDictionary(ref this.m_FeedBackReport, "¥D¤é¥X®u²Î­pªíÀY", 
-                    $"¥D¤é¤é´Á:{aSunday.ToLocalTime().ToShortDateString()}{Environment.NewLine}---------------------------------{Environment.NewLine}");
-                AddToDictionary(ref this.m_FeedBackReport, "¤p²Õ¥X®u²Î­pªíÀY", "¤p²Õ¥X®u²Î­p:");
+                AddToDictionary(ref this.m_FeedBackReport, "ä¸»æ—¥å‡ºå¸­çµ±è¨ˆè¡¨é ­",
+                    $"ä¸»æ—¥æ—¥æœŸ:{aSunday.ToLocalTime().ToShortDateString()}{Environment.NewLine}---------------------------------{Environment.NewLine}");
+                AddToDictionary(ref this.m_FeedBackReport, "å°çµ„å‡ºå¸­çµ±è¨ˆè¡¨é ­", "å°çµ„å‡ºå¸­çµ±è¨ˆ:");
 
-                AddToDictionary(ref this.m_FeedBackReport, "¤p²Õ²Î­p¤p²Õ²Õ­û¥X®u¦r¦ê", "");
-                AddToDictionary(ref this.m_FeedBackReport, "¤p²Õ²Î­p¤p²Õ²Õ­û¥¼¥X®u¦r¦ê", "");
-                AddToDictionary(ref this.m_FeedBackReport, "¤p²Õ²Î­p¥¼¤J²Õ¥X®u¦r¦ê", "");
-                AddToDictionary(ref this.m_FeedBackReport, "¤p²Õ²Î­p¥¼¤J²Õ¥X¥¼®u¦r¦ê", "");
-                AddToDictionary(ref this.m_FeedBackReport, "¤p²Õ²Î­p·s¤H¥X®u¦r¦ê", "");
-                AddToDictionary(ref this.m_FeedBackReport, "¤p²Õ²Î­p·s¤H¥¼¥X®u¦r¦ê", "");
+                AddToDictionary(ref this.m_FeedBackReport, "å°çµ„çµ±è¨ˆå°çµ„çµ„å“¡å‡ºå¸­å­—ä¸²", "");
+                AddToDictionary(ref this.m_FeedBackReport, "å°çµ„çµ±è¨ˆå°çµ„çµ„å“¡æœªå‡ºå¸­å­—ä¸²", "");
+                AddToDictionary(ref this.m_FeedBackReport, "å°çµ„çµ±è¨ˆæœªå…¥çµ„å‡ºå¸­å­—ä¸²", "");
+                AddToDictionary(ref this.m_FeedBackReport, "å°çµ„çµ±è¨ˆæœªå…¥çµ„å‡ºæœªå¸­å­—ä¸²", "");
+                AddToDictionary(ref this.m_FeedBackReport, "å°çµ„çµ±è¨ˆæ–°äººå‡ºå¸­å­—ä¸²", "");
+                AddToDictionary(ref this.m_FeedBackReport, "å°çµ„çµ±è¨ˆæ–°äººæœªå‡ºå¸­å­—ä¸²", "");
 
-                AddToDictionary(ref this.m_FeedBackReport, "¥¼¤J²Õ¸ò¶i²Î­p¤º®e", "");
-                AddToDictionary(ref this.m_FeedBackReport, "·sªB¤Í¸ò¶i²Î­p¤º®e", "");
+                AddToDictionary(ref this.m_FeedBackReport, "æœªå…¥çµ„è·Ÿé€²çµ±è¨ˆå…§å®¹", "");
+                AddToDictionary(ref this.m_FeedBackReport, "æ–°æœ‹å‹è·Ÿé€²çµ±è¨ˆå…§å®¹", "");
 
-                AddToDictionary(ref this.m_FeedBackReport, "¥D¤é²Î­p", "");
-                AddToDictionary(ref this.m_FeedBackReport, "¤p²Õ²Î­p", "");
-                AddToDictionary(ref this.m_FeedBackReport, "·sªB¤Í¸ò¶i", "");
+                AddToDictionary(ref this.m_FeedBackReport, "ä¸»æ—¥çµ±è¨ˆ", "");
+                AddToDictionary(ref this.m_FeedBackReport, "å°çµ„çµ±è¨ˆ", "");
+                AddToDictionary(ref this.m_FeedBackReport, "æ–°æœ‹å‹è·Ÿé€²", "");
             }
             catch { }
         }
@@ -270,9 +283,9 @@ namespace ChurchReport.WebServiceConnector
             try
             {
                 String ContactName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "fullname");
-                String presentCount = $"(¦@¥X®u{GetPresentNumber(aListEntityId, Type, ref aContact)}¦¸) {Environment.NewLine}";
+                String presentCount = $"(å…±å‡ºå¸­{GetPresentNumber(aListEntityId, Type, ref aContact)}æ¬¡) {Environment.NewLine}";
 
-                String key = $"{(Type == "¥D¤é" ? "¥D¤é" : "¤p²Õ")}²Î­p{Identity}{(Presentflag ? "¥X®u" : "¥¼¥X®u")}¦r¦ê";
+                String key = $"{(Type == "ä¸»æ—¥" ? "ä¸»æ—¥" : "å°çµ„")}çµ±è¨ˆ{Identity}{(Presentflag ? "å‡ºå¸­" : "æœªå‡ºå¸­")}å­—ä¸²";
                 AddToDictionary(ref this.m_FeedBackReport, key, ContactName + presentCount);
             }
             catch { }
@@ -287,28 +300,28 @@ namespace ChurchReport.WebServiceConnector
 
                 String FollowUp = !string.IsNullOrEmpty(PersonalFollowUp)
                     ? $"\t\t{ContactName}{Environment.NewLine}{PersonalFollowUp}{Environment.NewLine}"
-                    : $"\t\t{ContactName} : ¨S¦³¸ò¶i¬¡°Ê{Environment.NewLine}";
+                    : $"\t\t{ContactName} : æ²’æœ‰è·Ÿé€²æ´»å‹•{Environment.NewLine}";
 
-                if (Identity == "¥¼¤J²Õ")
-                    AddToDictionary(ref this.m_FeedBackReport, "¥¼¤J²Õ¸ò¶i²Î­p¤º®e", FollowUp);
-                else if (Identity == "·sªB¤Í")
-                    AddToDictionary(ref this.m_FeedBackReport, "·sªB¤Í¸ò¶i²Î­p¤º®e", FollowUp);
+                if (Identity == "æœªå…¥çµ„")
+                    AddToDictionary(ref this.m_FeedBackReport, "æœªå…¥çµ„è·Ÿé€²çµ±è¨ˆå…§å®¹", FollowUp);
+                else if (Identity == "æ–°æœ‹å‹")
+                    AddToDictionary(ref this.m_FeedBackReport, "æ–°æœ‹å‹è·Ÿé€²çµ±è¨ˆå…§å®¹", FollowUp);
             }
             catch { }
         }
 
         private String SetFollowUpString(ref Member aMemberInfomation)
         {
-            return AppendHeadString("\t\t\t¸ò¶i¶g¦¸:", aMemberInfomation.FollowUpWeek) +
-                   AppendHeadString("\t\t\t¸ò¶i¤è¦¡:", aMemberInfomation.FollowUpOption) +
-                   AppendHeadString("\t\t\t¸ò¶iµ²ªG:", aMemberInfomation.FollowUpResult) +
-                   AppendHeadString("\t\t\t¤U¤@¨BÆJ:", aMemberInfomation.FollowUpNextStep) +
-                   AppendHeadString("\t\t\t¸ò¶iºK­n:", aMemberInfomation.FollowUpNote);
+            return AppendHeadString("\t\t\tè·Ÿé€²é€±æ¬¡:", aMemberInfomation.FollowUpWeek) +
+                   AppendHeadString("\t\t\tè·Ÿé€²æ–¹å¼:", aMemberInfomation.FollowUpOption) +
+                   AppendHeadString("\t\t\tè·Ÿé€²çµæœ:", aMemberInfomation.FollowUpResult) +
+                   AppendHeadString("\t\t\tä¸‹ä¸€æ­¥é©Ÿ:", aMemberInfomation.FollowUpNextStep) +
+                   AppendHeadString("\t\t\tè·Ÿé€²æ‘˜è¦:", aMemberInfomation.FollowUpNote);
         }
 
         private String AppendHeadString(String HeadString, String BodyString)
         {
-            return !string.IsNullOrEmpty(BodyString) && BodyString != "." && BodyString != "½Ğ¿ï¾Ü"
+            return !string.IsNullOrEmpty(BodyString) && BodyString != "." && BodyString != "è«‹é¸æ“‡"
                 ? HeadString + BodyString + Environment.NewLine
                 : "";
         }

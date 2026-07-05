@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/Models/ContextDictionary.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於資料模型或 ViewModel 層，註解重點在說明欄位語意、序列化/繫結用途與相容性限制。
+// 主要型別：class ContextDictionary、class ContextEntry
+// 主要成員：GetInMemoryDataContextSmallGroup、CleanupExpiredEntries、RemoveOldestEntries、Remove、Context、LastAccessTime
+// 引用命名空間：ChurchReport.Tools、ChurchReport.Payments、LineMessagingProcessor.Workflows、Microsoft.AspNetCore.Http、Microsoft.Extensions.Caching.Memory、System、System.Collections.Concurrent、System.Collections.Generic
+// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using ChurchReport.Tools;
 using ChurchReport.Payments;
 using LineMessagingProcessor.Workflows;
@@ -18,21 +31,21 @@ namespace ChurchReport.Models
     /// 管理 InMemoryDataContextSmallGroup 的靜態字典
     /// ✅ Phase 4: 增加自動清理機制，避免記憶體洩漏
     /// </summary>
-    public static class ContextDictionary 
+    public static class ContextDictionary
     {
         // ✅ 使用 ConcurrentDictionary 確保執行緒安全
-        private static readonly ConcurrentDictionary<string, ContextEntry> _contextDictionary 
+        private static readonly ConcurrentDictionary<string, ContextEntry> _contextDictionary
             = new ConcurrentDictionary<string, ContextEntry>();
-        
+
         // ✅ 清理計時器
         private static readonly Timer _cleanupTimer;
-        
+
         // ✅ 過期時間（30 分鐘未存取即過期）
         private static readonly TimeSpan _expirationTime = TimeSpan.FromMinutes(30);
-        
+
         // ✅ 清理間隔（每 5 分鐘清理一次）
         private static readonly TimeSpan _cleanupInterval = TimeSpan.FromMinutes(5);
-        
+
         // ✅ 最大項目數限制
         private const int MaxItems = 1000;
 
@@ -48,13 +61,13 @@ namespace ChurchReport.Models
         /// 向後相容的靜態屬性（已標記為過時）
         /// </summary>
         [Obsolete("請使用 GetInMemoryDataContextSmallGroup 方法，此屬性將在未來版本移除")]
-        public static Dictionary<String, InMemoryDataContextSmallGroup> StaticContextDictionary 
+        public static Dictionary<String, InMemoryDataContextSmallGroup> StaticContextDictionary
         {
-            get 
+            get
             {
                 // 轉換為 Dictionary 以保持向後相容
                 return _contextDictionary.ToDictionary(
-                    kvp => kvp.Key, 
+                    kvp => kvp.Key,
                     kvp => kvp.Value.Context
                 );
             }
@@ -64,8 +77,8 @@ namespace ChurchReport.Models
         /// 取得或建立 InMemoryDataContextSmallGroup
         /// </summary>
         public static InMemoryDataContextSmallGroup GetInMemoryDataContextSmallGroup(
-            IHttpContextAccessor httpContextAccessor, 
-            IMemoryCache memoryCache, 
+            IHttpContextAccessor httpContextAccessor,
+            IMemoryCache memoryCache,
             IToolUtilityProvider toolUtilityProvider)
         {
             try
@@ -75,7 +88,7 @@ namespace ChurchReport.Models
                 {
                     throw new InvalidOperationException("Session is not available");
                 }
-                
+
                 var key = session.Id;
                 // 從 ASP.NET Core DI 取得中性的奉獻付款建單 adapter。
                 // ContextDictionary 只負責把每個 session 的 manager 串起來，不應直接依賴 QPay 命名的相容 adapter。
@@ -90,26 +103,26 @@ namespace ChurchReport.Models
                         as ILineReplyWorkflow;
 
                 // ✅ 使用 GetOrAdd 確保執行緒安全
-                var entry = _contextDictionary.GetOrAdd(key, k => 
+                var entry = _contextDictionary.GetOrAdd(key, k =>
                 {
                     // ✅ 檢查是否超過最大項目數
                     if (_contextDictionary.Count >= MaxItems)
                     {
                         // 強制清理過期項目
                         CleanupExpiredEntries(null);
-                        
+
                         // 如果仍然超過限制，清理最舊的項目
                         if (_contextDictionary.Count >= MaxItems)
                         {
                             RemoveOldestEntries(_contextDictionary.Count - MaxItems + 100);
                         }
                     }
-                    
+
                     return new ContextEntry
                     {
                         Context = new InMemoryDataContextSmallGroup(
-                            httpContextAccessor, 
-                            memoryCache, 
+                            httpContextAccessor,
+                            memoryCache,
                             toolUtilityProvider,
                             donationPaymentCreateGatewayAdapter,
                             lineNotificationWorkflow,

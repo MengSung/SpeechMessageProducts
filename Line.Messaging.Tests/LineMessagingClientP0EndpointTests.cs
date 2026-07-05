@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：Line.Messaging.Tests/LineMessagingClientP0EndpointTests.cs
+// 所屬區塊：LINE Messaging SDK 測試專案，驗證 API 端點、序列化與 Client 行為。
+// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
+// 主要型別：class LineMessagingClientP0EndpointTests、class CapturingHttpMessageHandler
+// 主要成員：Get_message_delivery_uses_single_v2_segment、Get_content_stream_uses_api_data_host、Get_content_bytes_uses_api_data_host、Verify_content_preparation_uses_transcoding_endpoint_on_api_data_host、Verify_content_preparation_returns_false_until_transcoding_succeeds、Get_content_preview_uses_api_data_host、Rich_menu_image_download_and_upload_use_api_data_host、Mark_as_read_uses_official_chat_endpoint_and_token_payload、Legacy_mark_as_read_fails_clearly_instead_of_sending_chat_id_as_token、Get_rich_menu_batch_progress_uses_progress_query_endpoint
+// 引用命名空間：FluentAssertions、Line.Messaging、Newtonsoft.Json.Linq、System.Net、System.Text、Xunit
+// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
+// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using FluentAssertions;
 using Line.Messaging;
 using Newtonsoft.Json.Linq;
@@ -7,6 +20,14 @@ using Xunit;
 
 namespace Line.Messaging.Tests;
 
+/// <summary>
+/// 鎖定 LINE Messaging Client 對官方 P0 端點的路徑組裝規則。
+///
+/// RichMenu 圖片、批次進度與批次驗證端點在 LINE 官方 API 中分散於
+/// <c>api.line.me</c> 與 <c>api-data.line.me</c> 兩個 host。這些測試刻意只檢查
+/// HTTP method 與 URL，避免 SDK 重構時把 RichMenu 專用端點誤接到一般訊息端點，
+/// 造成上傳圖片或查詢批次狀態時被 LINE 拒絕。
+/// </summary>
 public sealed class LineMessagingClientP0EndpointTests
 {
     [Fact]
@@ -85,6 +106,13 @@ public sealed class LineMessagingClientP0EndpointTests
             .Should().Be("https://api-data.line.me/v2/bot/message/message-123/content/preview");
     }
 
+    /// <summary>
+    /// 驗證 RichMenu 圖片下載與 JPEG/PNG 上傳都走 LINE 的 API data host。
+    ///
+    /// RichMenu 圖片內容不是一般 JSON API；官方要求使用
+    /// <c>https://api-data.line.me/v2/bot/richmenu/{richMenuId}/content</c>。
+    /// 這裡同時覆蓋 GET 與兩種 POST 上傳格式，確保共用 URL 建構邏輯不會只修到其中一條路徑。
+    /// </summary>
     [Fact]
     public async Task Rich_menu_image_download_and_upload_use_api_data_host()
     {
@@ -135,6 +163,12 @@ public sealed class LineMessagingClientP0EndpointTests
         handler.Requests.Should().BeEmpty();
     }
 
+    /// <summary>
+    /// 驗證 RichMenu 批次操作進度查詢使用官方 progress query endpoint。
+    ///
+    /// LINE 的批次進度端點把 requestId 放在 query string，而不是 REST path。
+    /// 這個測試保護批次同步流程，避免 provisioning workflow 查不到 LINE 回報的批次狀態。
+    /// </summary>
     [Fact]
     public async Task Get_rich_menu_batch_progress_uses_progress_query_endpoint()
     {
@@ -148,6 +182,13 @@ public sealed class LineMessagingClientP0EndpointTests
             .Should().Be("https://api.line.me/v2/bot/richmenu/progress/batch?requestId=request-123");
     }
 
+    /// <summary>
+    /// 驗證 RichMenu 批次請求驗證使用官方 validate/batch endpoint。
+    ///
+    /// provisioning 在送出大量 create/link/delete 前可先呼叫此端點做格式驗證；
+    /// 若 URL 多了一層或少了一層 richmenu segment，LINE 會直接拒絕請求，
+    /// 因此這裡把 POST method 與完整路徑一起鎖住。
+    /// </summary>
     [Fact]
     public async Task Validate_rich_menu_batch_uses_official_validate_batch_endpoint()
     {

@@ -1,4 +1,17 @@
-﻿using System;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/WebServiceConnector/DownloadIntegrateData.Members.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class DownloadIntegrateData、record ContactInfo、record AttendanceInfo、record FollowUpInfoRecord
+// 主要成員：GetAllMemeberDataList、GetAllMemberDataFromPresentRecordOptimized、ExtractContactIdsFromPresentRecords、SplitIntoBatches、ToObjectArray、ProcessPresentRecordEntityWithCache、GetAllMemberDataFromPresentRecord、ProcessPresentRecordEntity、CreateMemberFromPresentRecord、GetAllMemberDataFromListOptimized
+// 引用命名空間：System、System.Collections.Generic、System.Linq、System.Threading.Tasks、ChurchReport.Models、ChurchReport.Models.CrmTransmitModule、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query
+// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -48,8 +61,8 @@ namespace ChurchReport.WebServiceConnector
         /// 取得所有成員資料清單
         /// </summary>
         public void GetAllMemeberDataList(
-            string ListEntityId, 
-            string WeeklyReportEntityId, 
+            string ListEntityId,
+            string WeeklyReportEntityId,
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             // 初始化成員資料 — ? 極速：預配 64 筆容量，避免 List 多次擴容
@@ -63,8 +76,8 @@ namespace ChurchReport.WebServiceConnector
             {
                 // 有週報 -> 從出席紀錄取得成員 (使用批次查詢優化)
                 GetAllMemberDataFromPresentRecordOptimized(
-                    aListSmallGroupWeeklyReport.ListEntityName, 
-                    new Guid(WeeklyReportEntityId), 
+                    aListSmallGroupWeeklyReport.ListEntityName,
+                    new Guid(WeeklyReportEntityId),
                     ref aListSmallGroupWeeklyReport);
             }
             else
@@ -73,14 +86,14 @@ namespace ChurchReport.WebServiceConnector
                 if (m_LoginType == "小組長")
                 {
                     GetAllMemberDataFromListOptimized(
-                        aListSmallGroupWeeklyReport.ListEntityName, 
-                        new Guid(ListEntityId), 
+                        aListSmallGroupWeeklyReport.ListEntityName,
+                        new Guid(ListEntityId),
                         ref aListSmallGroupWeeklyReport);
                 }
                 else
                 {
                     SetAllMemberDataByPersonalReport(
-                        aListSmallGroupWeeklyReport.ListEntityName, 
+                        aListSmallGroupWeeklyReport.ListEntityName,
                         ref aListSmallGroupWeeklyReport);
                 }
             }
@@ -96,8 +109,8 @@ namespace ChurchReport.WebServiceConnector
         /// 優化後：批次查詢所有 Contact，減少 98% 的 CRM 查詢次數
         /// </summary>
         private void GetAllMemberDataFromPresentRecordOptimized(
-            string GroupName, 
-            Guid WeeklyReportId, 
+            string GroupName,
+            Guid WeeklyReportId,
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             // 1. 取得所有出席紀錄
@@ -119,8 +132,8 @@ namespace ChurchReport.WebServiceConnector
             foreach (Entity PresentRecordEntity in PresentRecordCollection.Entities)
             {
                 ProcessPresentRecordEntityWithCache(
-                    GroupName, 
-                    PresentRecordEntity, 
+                    GroupName,
+                    PresentRecordEntity,
                     contactCache,
                     ref aListSmallGroupWeeklyReport);
             }
@@ -248,8 +261,8 @@ namespace ChurchReport.WebServiceConnector
         /// 處理單筆出席紀錄 (使用快取的 Contact)
         /// </summary>
         private void ProcessPresentRecordEntityWithCache(
-            string GroupName, 
-            Entity PresentRecordEntity, 
+            string GroupName,
+            Entity PresentRecordEntity,
             Dictionary<Guid, Entity> contactCache,
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
@@ -293,8 +306,8 @@ namespace ChurchReport.WebServiceConnector
         /// 從出席紀錄取得所有成員資料 (原始版本，保留相容性)
         /// </summary>
         private void GetAllMemberDataFromPresentRecord(
-            string GroupName, 
-            Guid WeeklyReportId, 
+            string GroupName,
+            Guid WeeklyReportId,
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             // 呼叫優化版本
@@ -305,8 +318,8 @@ namespace ChurchReport.WebServiceConnector
         /// 處理單筆出席紀錄 (原始版本，保留相容性)
         /// </summary>
         private void ProcessPresentRecordEntity(
-            string GroupName, 
-            Entity PresentRecordEntity, 
+            string GroupName,
+            Entity PresentRecordEntity,
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             if (!PresentRecordEntity.Attributes.Contains("statecode"))
@@ -343,10 +356,10 @@ namespace ChurchReport.WebServiceConnector
         /// 從出席紀錄建立成員物件
         /// </summary>
         private Member CreateMemberFromPresentRecord(
-            string GroupName, 
-            Entity PresentRecordEntity, 
-            Entity aContactEntity, 
-            string FullName, 
+            string GroupName,
+            Entity PresentRecordEntity,
+            Entity aContactEntity,
+            string FullName,
             string ContactId)
         {
             // 取得聯絡人基本資料
@@ -364,7 +377,7 @@ namespace ChurchReport.WebServiceConnector
                 ContactId = ContactId,
                 Group = GroupName,
                 FullName = FullName,
-                
+
                 // 個人基本資料
                 Phone = KeepDigitsOnly(contactInfo.MobilePhone),
                 HomePhone = KeepDigitsOnly(contactInfo.HomePhone),
@@ -383,7 +396,7 @@ namespace ChurchReport.WebServiceConnector
                 Status = ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode")),
                 SmallGroupName = GroupName,
                 SectionName = GroupName,
-                
+
                 // 出席資料
                 PrayItem = attendanceInfo.Note,
                 Visit = attendanceInfo.Visit,
@@ -395,12 +408,12 @@ namespace ChurchReport.WebServiceConnector
                 LeadershipSmallLecture = attendanceInfo.LeadershipSmallLecture,
                 LeadersGather = attendanceInfo.LeadersGather,
                 Decision = attendanceInfo.Decision,
-                
+
                 // 靈修資料
                 SpiritualWork = attendanceInfo.SpiritualWork,
                 MorningPray = attendanceInfo.MorningPray,
                 GeneralCare = attendanceInfo.GeneralCare,
-                
+
                 // 新人跟進
                 FollowUpWeek = followUpInfo.FollowUpWeek,
                 FollowUpResult = followUpInfo.FollowUpResult,
@@ -420,8 +433,8 @@ namespace ChurchReport.WebServiceConnector
         /// 從名單取得所有成員資料 (批次查詢優化版)
         /// </summary>
         private void GetAllMemberDataFromListOptimized(
-            string GroupName, 
-            Guid ListEntityId, 
+            string GroupName,
+            Guid ListEntityId,
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             Entity ListEntity = RetrieveListTypeEntity(ListEntityId);
@@ -451,7 +464,7 @@ namespace ChurchReport.WebServiceConnector
                     if (IsActiveContact(ContactEntity))
                     {
                         Member member = CreateMemberFromContact(GroupName, ContactEntity, PresentRecordIdCounter++);
-                        
+
                         if (member.Status != "10. 未入組結案")
                         {
                             aListSmallGroupWeeklyReport.m_SmallGroupDataList.m_AllMemeberData.Members.Add(member);
@@ -510,8 +523,8 @@ namespace ChurchReport.WebServiceConnector
         /// 從名單取得所有成員資料 (原始版本，保留相容性)
         /// </summary>
         private void GetAllMemberDataFromList(
-            string GroupName, 
-            Guid ListEntityId, 
+            string GroupName,
+            Guid ListEntityId,
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             // 呼叫優化版本
@@ -585,7 +598,7 @@ namespace ChurchReport.WebServiceConnector
                 ContactId = ContactEntity.Id.ToString(),
                 Group = GroupName,
                 FullName = contactInfo.FullName,
-                
+
                 // 個人基本資料
                 Phone = KeepDigitsOnly(contactInfo.MobilePhone),
                 HomePhone = KeepDigitsOnly(contactInfo.HomePhone),
@@ -599,18 +612,18 @@ namespace ChurchReport.WebServiceConnector
                 BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_introducer"),
                 BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(ContactEntity, "new_best_relationship"),
                 Description = contactInfo.Description,
-                
+
                 // 委身類型
                 Status = ConvertIndexToIdentity(this.m_ToolUtilityClass.GetOptionSetAttribute(ref ContactEntity, "customertypecode")),
                 SmallGroupName = GroupName,
                 SectionName = GroupName,
-                
+
                 // 預設值
                 PrayItem = "",
                 Sunday = false,
                 SmallGroup = false,
                 Decision = false,
-                
+
                 // 新人跟進
                 FollowUpWeek = aFollowUpWeek,
                 FollowUpResult = "",
@@ -619,7 +632,7 @@ namespace ChurchReport.WebServiceConnector
                 FollowUpNextStep = "",
                 FollowUpNote = "",
                 NewComerNote = aNewComerNote,
-                
+
                 // 靈修資料
                 SpiritualWork = 0,
                 MorningPray = 0,
@@ -651,7 +664,7 @@ namespace ChurchReport.WebServiceConnector
                     ContactId = m_ContactEntity.Id.ToString(),
                     Group = GroupName,
                     FullName = contactInfo.FullName,
-                    
+
                     Phone = KeepDigitsOnly(contactInfo.MobilePhone),
                     HomePhone = KeepDigitsOnly(contactInfo.HomePhone),
                     Address = contactInfo.Address,
@@ -664,16 +677,16 @@ namespace ChurchReport.WebServiceConnector
                     BestIntroducer = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ContactEntity, "new_best_introducer"),
                     BestRelationship = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ContactEntity, "new_best_relationship"),
                     Description = contactInfo.Description,
-                    
+
                     Status = aIdentity,
                     SmallGroupName = GroupName,
                     SectionName = GroupName,
-                    
+
                     PrayItem = "",
                     Sunday = false,
                     SmallGroup = false,
                     Decision = false,
-                    
+
                     FollowUpWeek = aFollowUpWeek,
                     FollowUpResult = "",
                     FollowUpOption = "",
@@ -681,7 +694,7 @@ namespace ChurchReport.WebServiceConnector
                     FollowUpNextStep = "",
                     FollowUpNote = "",
                     NewComerNote = aNewComerNote,
-                    
+
                     SpiritualWork = 0,
                     MorningPray = 0,
                     GeneralCare = 0,

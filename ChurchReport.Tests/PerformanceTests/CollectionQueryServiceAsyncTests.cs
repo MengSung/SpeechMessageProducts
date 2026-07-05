@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport.Tests/PerformanceTests/CollectionQueryServiceAsyncTests.cs
+// 所屬區塊：ChurchReport 額外測試專案，用來驗證網站層或效能相關案例。
+// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
+// 主要型別：class CollectionQueryServiceAsyncTests
+// 主要成員：RetrieveEntityCollectionByFieldAsync_ShouldReturnEntities、RetrieveEntityCollectionByConditionAsync_ShouldReturnEntities、RetrieveEntityCollectionByConditionsAsync_ShouldReturnEntities、QueryWeeklyReportBeforeTowMonthOfSundayAsync_ShouldReturnReports、RetrievePagedEntitiesAsync_FirstPage_ShouldReturnPagedResult、RetrievePagedEntitiesAsync_WithFilter_ShouldReturnFilteredResults、RetrieveBatchByIdsAsync_ShouldReturnAllMatchingEntities、RetrieveBatchByIdsAsync_WithLargeSet_ShouldHandleEfficiently、RetrieveEntityCollectionByFieldAsync_WithCancellation_ShouldThrowOperationCanceledException、RetrievePagedEntitiesAsync_WithCancellation_ShouldThrowOperationCanceledException
+// 引用命名空間：Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query、System、System.Collections.Generic、System.Diagnostics、System.Linq、System.Threading、System.Threading.Tasks
+// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
+// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System;
@@ -12,23 +25,23 @@ using Xunit;
 namespace ChurchReport.Tests.PerformanceTests
 {
     /// <summary>
-    /// Phase 2.1 �D�P�B�d�߮į����
-    /// ���ҫD�P�B��k�����T�ʻP�į�
+    /// Phase 2.1 非同步查詢效能測試
+    /// 驗證非同步方法的正確性與效能
     /// </summary>
     public class CollectionQueryServiceAsyncTests
     {
         private readonly ICollectionQueryService _collectionService;
         private readonly IOrganizationService _mockService;
-        
+
         public CollectionQueryServiceAsyncTests()
         {
-            // TODO: ��l�� mock service
+            // TODO: 初始化 mock service
             // _mockService = CreateMockOrganizationService();
             // _collectionService = new CollectionQueryService(null, _mockService);
         }
-        
-        #region �򥻥\�����
-        
+
+        #region 基本功能測試
+
         [Fact]
         public async Task RetrieveEntityCollectionByFieldAsync_ShouldReturnEntities()
         {
@@ -36,18 +49,18 @@ namespace ChurchReport.Tests.PerformanceTests
             var entityName = "contact";
             var fieldName = "new_listid";
             var fieldValue = Guid.NewGuid().ToString();
-            
+
             // Act
             var result = await _collectionService.RetrieveEntityCollectionByFieldAsync(
-                entityName, 
-                fieldName, 
+                entityName,
+                fieldName,
                 fieldValue);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.IsType<EntityCollection>(result);
         }
-        
+
         [Fact]
         public async Task RetrieveEntityCollectionByConditionAsync_ShouldReturnEntities()
         {
@@ -55,19 +68,19 @@ namespace ChurchReport.Tests.PerformanceTests
             var entityName = "contact";
             var fieldName = "new_listid";
             var value = Guid.NewGuid();
-            
+
             // Act
             var result = await _collectionService.RetrieveEntityCollectionByConditionAsync(
                 entityName,
                 fieldName,
                 ConditionOperator.Equal,
                 value);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.IsType<EntityCollection>(result);
         }
-        
+
         [Fact]
         public async Task RetrieveEntityCollectionByConditionsAsync_ShouldReturnEntities()
         {
@@ -78,56 +91,56 @@ namespace ChurchReport.Tests.PerformanceTests
                 { "new_listid", Guid.NewGuid() },
                 { "new_status", "Active" }
             };
-            
+
             // Act
             var result = await _collectionService.RetrieveEntityCollectionByConditionsAsync(
-                entityName, 
+                entityName,
                 conditions);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.IsType<EntityCollection>(result);
         }
-        
+
         [Fact]
         public async Task QueryWeeklyReportBeforeTowMonthOfSundayAsync_ShouldReturnReports()
         {
             // Arrange
             var listId = Guid.NewGuid();
             var sunday = DateTime.Now.Date;
-            
+
             // Act
             var result = await _collectionService.QueryWeeklyReportBeforeTowMonthOfSundayAsync(
-                sunday, 
+                sunday,
                 listId);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.IsType<EntityCollection>(result);
         }
-        
+
         #endregion
-        
-        #region �����d�ߴ���
-        
+
+        #region 分頁查詢測試
+
         [Fact]
         public async Task RetrievePagedEntitiesAsync_FirstPage_ShouldReturnPagedResult()
         {
             // Arrange
             var entityName = "contact";
             var pageSize = 50;
-            
+
             // Act
             var result = await _collectionService.RetrievePagedEntitiesAsync(
                 entityName,
                 pageSize: pageSize);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.IsType<PagedResult<Entity>>(result);
             Assert.True(result.Entities.Count <= pageSize);
         }
-        
+
         [Fact]
         public async Task RetrievePagedEntitiesAsync_WithFilter_ShouldReturnFilteredResults()
         {
@@ -140,44 +153,44 @@ namespace ChurchReport.Tests.PerformanceTests
                     new ConditionExpression("new_status", ConditionOperator.Equal, "Active")
                 }
             };
-            
+
             // Act
             var result = await _collectionService.RetrievePagedEntitiesAsync(
                 entityName,
                 filter: filter,
                 pageSize: 100);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.All(result.Entities, entity =>
             {
-                // ���ҩҦ����G���ŦX�z�����
+                // 驗證所有結果都符合篩選條件
                 Assert.True(entity.Contains("new_status"));
             });
         }
-        
+
         #endregion
-        
-        #region ��q�d�ߴ���
-        
+
+        #region 批量查詢測試
+
         [Fact]
         public async Task RetrieveBatchByIdsAsync_ShouldReturnAllMatchingEntities()
         {
             // Arrange
             var entityName = "contact";
             var ids = Enumerable.Range(1, 10).Select(_ => Guid.NewGuid()).ToList();
-            
+
             // Act
             var result = await _collectionService.RetrieveBatchByIdsAsync(
                 entityName,
                 "contactid",
                 ids);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.True(result.Entities.Count <= ids.Count);
         }
-        
+
         [Fact]
         public async Task RetrieveBatchByIdsAsync_WithLargeSet_ShouldHandleEfficiently()
         {
@@ -185,33 +198,33 @@ namespace ChurchReport.Tests.PerformanceTests
             var entityName = "contact";
             var ids = Enumerable.Range(1, 1000).Select(_ => Guid.NewGuid()).ToList();
             var sw = Stopwatch.StartNew();
-            
+
             // Act
             var result = await _collectionService.RetrieveBatchByIdsAsync(
                 entityName,
                 "contactid",
                 ids);
-            
+
             sw.Stop();
-            
+
             // Assert
             Assert.NotNull(result);
-            // ��q�d�����Ӧb 5 ��������
-            Assert.True(sw.ElapsedMilliseconds < 5000, 
-                $"��q�d�ߪ�O {sw.ElapsedMilliseconds}ms�A�W�L�w���� 5000ms");
+            // 批量查詢應該在 5 秒內完成
+            Assert.True(sw.ElapsedMilliseconds < 5000,
+                $"批量查詢花費 {sw.ElapsedMilliseconds}ms，超過預期的 5000ms");
         }
-        
+
         #endregion
-        
-        #region �����ާ@����
-        
+
+        #region 取消操作測試
+
         [Fact]
         public async Task RetrieveEntityCollectionByFieldAsync_WithCancellation_ShouldThrowOperationCanceledException()
         {
             // Arrange
             var cts = new CancellationTokenSource();
-            cts.Cancel(); // �ߧY����
-            
+            cts.Cancel(); // 立即取消
+
             // Act & Assert
             await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             {
@@ -222,14 +235,14 @@ namespace ChurchReport.Tests.PerformanceTests
                     cts.Token);
             });
         }
-        
+
         [Fact]
         public async Task RetrievePagedEntitiesAsync_WithCancellation_ShouldThrowOperationCanceledException()
         {
             // Arrange
             var cts = new CancellationTokenSource();
-            cts.CancelAfter(100); // 100ms �����
-            
+            cts.CancelAfter(100); // 100ms 後取消
+
             // Act & Assert
             await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             {
@@ -239,11 +252,11 @@ namespace ChurchReport.Tests.PerformanceTests
                     cancellationToken: cts.Token);
             });
         }
-        
+
         #endregion
-        
-        #region �į��Ǵ���
-        
+
+        #region 效能基準測試
+
         [Fact]
         public async Task CompareAsyncVsSyncPerformance()
         {
@@ -251,32 +264,32 @@ namespace ChurchReport.Tests.PerformanceTests
             var entityName = "contact";
             var fieldName = "new_listid";
             var fieldValue = Guid.NewGuid().ToString();
-            
-            // Act - �P�B�d��
+
+            // Act - 同步查詢
             var sw1 = Stopwatch.StartNew();
             var syncResult = _collectionService.RetrieveEntityCollectionByField(
-                entityName, 
-                fieldName, 
+                entityName,
+                fieldName,
                 fieldValue);
             sw1.Stop();
-            
-            // Act - �D�P�B�d��
+
+            // Act - 非同步查詢
             var sw2 = Stopwatch.StartNew();
             var asyncResult = await _collectionService.RetrieveEntityCollectionByFieldAsync(
-                entityName, 
-                fieldName, 
+                entityName,
+                fieldName,
                 fieldValue);
             sw2.Stop();
-            
+
             // Assert
             Assert.Equal(syncResult.Entities.Count, asyncResult.Entities.Count);
-            
-            // ��X�į���
-            Console.WriteLine($"�P�B�d�߮ɶ�: {sw1.ElapsedMilliseconds}ms");
-            Console.WriteLine($"�D�P�B�d�߮ɶ�: {sw2.ElapsedMilliseconds}ms");
-            Console.WriteLine($"�į���: {(double)sw1.ElapsedMilliseconds / sw2.ElapsedMilliseconds:F2}x");
+
+            // 輸出效能比較
+            Console.WriteLine($"同步查詢時間: {sw1.ElapsedMilliseconds}ms");
+            Console.WriteLine($"非同步查詢時間: {sw2.ElapsedMilliseconds}ms");
+            Console.WriteLine($"效能比較: {(double)sw1.ElapsedMilliseconds / sw2.ElapsedMilliseconds:F2}x");
         }
-        
+
         [Fact]
         public async Task ConcurrentAsyncQueries_ShouldNotBlock()
         {
@@ -284,8 +297,8 @@ namespace ChurchReport.Tests.PerformanceTests
             var entityName = "contact";
             var queryCount = 10;
             var sw = Stopwatch.StartNew();
-            
-            // Act - �õo���� 10 �Ӭd��
+
+            // Act - 並發執行 10 個查詢
             var tasks = Enumerable.Range(1, queryCount).Select(async i =>
             {
                 return await _collectionService.RetrieveEntityCollectionByFieldAsync(
@@ -293,18 +306,18 @@ namespace ChurchReport.Tests.PerformanceTests
                     "new_listid",
                     Guid.NewGuid().ToString());
             });
-            
+
             var results = await Task.WhenAll(tasks);
             sw.Stop();
-            
+
             // Assert
             Assert.Equal(queryCount, results.Length);
-            
-            // �õo�d��������ۧ֩󶶧ǰ���
-            Console.WriteLine($"�õo�d�� {queryCount} �ӽШD�`�ɶ�: {sw.ElapsedMilliseconds}ms");
-            Console.WriteLine($"�����C�Ӭd��: {sw.ElapsedMilliseconds / queryCount}ms");
+
+            // 並發查詢應該顯著快於順序執行
+            Console.WriteLine($"並發查詢 {queryCount} 個請求總時間: {sw.ElapsedMilliseconds}ms");
+            Console.WriteLine($"平均每個查詢: {sw.ElapsedMilliseconds / queryCount}ms");
         }
-        
+
         [Fact]
         public async Task PagedQuery_MemoryUsage_ShouldBeLow()
         {
@@ -312,49 +325,49 @@ namespace ChurchReport.Tests.PerformanceTests
             var entityName = "contact";
             var pageSize = 100;
             var maxPages = 10;
-            
+
             var startMemory = GC.GetTotalMemory(true);
-            
-            // Act - �����d�ߦh��
+
+            // Act - 分頁查詢多頁
             string pagingCookie = null;
             int pageCount = 0;
-            
+
             do
             {
                 var result = await _collectionService.RetrievePagedEntitiesAsync(
                     entityName,
                     pageSize: pageSize,
                     pagingCookie: pagingCookie);
-                
+
                 pagingCookie = result.PagingCookie;
                 pageCount++;
-                
-                // �����B�z����ƫ�M�z
+
+                // 模擬處理完資料後清理
                 result.Entities.Clear();
-                
+
             } while (!string.IsNullOrEmpty(pagingCookie) && pageCount < maxPages);
-            
+
             var endMemory = GC.GetTotalMemory(true);
             var memoryDelta = (endMemory - startMemory) / 1024 / 1024; // MB
-            
+
             // Assert
-            Console.WriteLine($"�d�� {pageCount} ���A�O����W�[: {memoryDelta}MB");
-            
-            // �O����W�[���Ӥp�� 50MB
-            Assert.True(memoryDelta < 50, 
-                $"�O����W�[ {memoryDelta}MB�A�W�L�w���� 50MB");
+            Console.WriteLine($"查詢 {pageCount} 頁，記憶體增加: {memoryDelta}MB");
+
+            // 記憶體增加應該小於 50MB
+            Assert.True(memoryDelta < 50,
+                $"記憶體增加 {memoryDelta}MB，超過預期的 50MB");
         }
-        
+
         #endregion
-        
-        #region ���~�B�z����
-        
+
+        #region 錯誤處理測試
+
         [Fact]
         public async Task RetrieveEntityCollectionByFieldAsync_WithInvalidEntityName_ShouldThrowException()
         {
             // Arrange
             var invalidEntityName = "invalid_entity_name";
-            
+
             // Act & Assert
             await Assert.ThrowsAsync<Exception>(async () =>
             {
@@ -364,25 +377,25 @@ namespace ChurchReport.Tests.PerformanceTests
                     "value");
             });
         }
-        
+
         [Fact]
         public async Task RetrieveBatchByIdsAsync_WithEmptyIdList_ShouldReturnEmptyCollection()
         {
             // Arrange
             var entityName = "contact";
             var emptyIds = new List<Guid>();
-            
+
             // Act
             var result = await _collectionService.RetrieveBatchByIdsAsync(
                 entityName,
                 "contactid",
                 emptyIds);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.Empty(result.Entities);
         }
-        
+
         #endregion
     }
 }

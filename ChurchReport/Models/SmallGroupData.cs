@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/Models/SmallGroupData.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於資料模型或 ViewModel 層，註解重點在說明欄位語意、序列化/繫結用途與相容性限制。
+// 主要型別：class SmallGroupData
+// 主要成員：InsertMember、UpdateMember、PopulateObjectAndUpdateEntity、DeleteMember、LoginType、SmallGroupLeaderContactId、SmallGroupLeaderFullName、SundayPrayers、SundayPrayersString、DataStatus
+// 引用命名空間：ChurchReport.Models.CrmTransmitModule、ChurchReport.WebServiceConnector、Newtonsoft.Json、System、System.Collections.Generic、System.Linq、System.Text、System.Threading.Tasks
+// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using ChurchReport.Models.CrmTransmitModule;
 using ChurchReport.WebServiceConnector;
 using Newtonsoft.Json;
@@ -14,7 +27,7 @@ namespace ChurchReport.Models
         public SmallGroupData()
         {
             ModifyFlag = false;
-            DisplayFlag = true; // �w�]�� true�A�T�O��ƺ���|���
+            DisplayFlag = true; // 預設為 true，確保資料網格會顯示
         }
         public String LoginType { get; set; }
         public String SmallGroupLeaderContactId { get; set; }
@@ -23,14 +36,14 @@ namespace ChurchReport.Models
         public String SundayPrayersString { get; set; }
         public String DataStatus { get; set; }
         public bool ModifyFlag { get; set; }
-        public String SundayPeriod { get; set; } // �����p�ժ��^��������
-        public List<Member> Members { get ; set ; } // 
+        public String SundayPeriod { get; set; } // 提醒小組長回報的期間
+        public List<Member> Members { get ; set ; } //
         public bool DisplayFlag { get; set; }
 
         //private readonly object m_MemberDataLocker = new object();
 
         public void InsertMember( string values)
-        { 
+        {
             var aNewMember = new Member();
             JsonConvert.PopulateObject(values, aNewMember);
 
@@ -41,18 +54,18 @@ namespace ChurchReport.Models
             //lock (m_MemberDataLocker)
             //{
 
-            // �ק���
-            ModifyFlag = true; // ���ק�X�Ъ��ܦ��Q��s��
+            // 修改資料
+            ModifyFlag = true; // 先修改旗標表示有被更新到
 
-            // ���ӷ|�ͪ�����
+            // 找到該會友的紀錄
             Member aUpdatedMember = Members.DefaultIfEmpty(null).FirstOrDefault(o => o.PresentRecordId == key);
 
-            // �ӷ|�ͪ��ק�X�г]�w�ߦ��Q�ק�L
+            // 該會友的修改旗標設定唯有被修改過
             aUpdatedMember.ModifyFlag = true;
 
             var settings = new JsonSerializerSettings
             {
-                // �ഫ�����a�ɶ�
+                // 轉換成當地時間
                 DateTimeZoneHandling = DateTimeZoneHandling.Local,
                 //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
 
@@ -60,23 +73,23 @@ namespace ChurchReport.Models
                 MissingMemberHandling = MissingMemberHandling.Ignore
             };
 
-            // �|�͸�ƳQ�ק�
+            // 會友資料被修改
             JsonConvert.PopulateObject(values, aUpdatedMember, settings);
 
         }
         public void PopulateObjectAndUpdateEntity(string key, string values)
         {
-            // �ק���
-            ModifyFlag = true; // ���ק�X�Ъ��ܦ��Q��s��
+            // 修改資料
+            ModifyFlag = true; // 先修改旗標表示有被更新到
 
-            // ���ӷ|�ͪ�����
+            // 找到該會友的紀錄
             Member aUpdatedMember = Members.First(o => o.PresentRecordId == key);
 
             aUpdatedMember.ModifyFlag = true;
 
             var settings = new JsonSerializerSettings
             {
-                // �ഫ�����a�ɶ�
+                // 轉換成當地時間
                 //DateTimeZoneHandling = DateTimeZoneHandling.Local,
                 DateTimeZoneHandling = DateTimeZoneHandling.Utc,
 
@@ -129,7 +142,7 @@ namespace ChurchReport.Models
             }
             catch (System.Exception e)
             {
-                string ErrorString = "���~�T�� : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                string ErrorString = "錯誤訊息 : FullName = " + GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
                 return null;
             }
         }

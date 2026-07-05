@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Middleware/SessionValidationMiddleware.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆæä¾› SessionValidationMiddleware ç›¸é—œåŠŸèƒ½ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜æª”æ¡ˆè²¬ä»»ã€ä¸Šæ¸¸/ä¸‹æ¸¸ä¾è³´èˆ‡ç¶­è­·æ™‚ä¸å¯ç ´å£çš„è¡Œç‚ºå‡è¨­ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass SessionValidationMiddleware
+// ä¸»è¦æˆå“¡ï¼šInvokeAsyncã€ShouldExcludePathã€GetRealClientIpã€ClearSessionAndRedirectToLogin
+// å¼•ç”¨å‘½åç©ºé–“ï¼šMicrosoft.AspNetCore.Httpã€Microsoft.Extensions.Loggingã€Systemã€System.Threading.Tasks
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆå¾å…¬é–‹å‹åˆ¥ã€å»ºæ§‹å¼æ³¨å…¥ã€ä¸»è¦æ–¹æ³•èˆ‡ä¾‹å¤–è™•ç†è·¯å¾‘æŒæ¡è³‡æ–™æµï¼Œå†é€²è¡Œç¶­è­·ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
@@ -6,26 +19,26 @@ using System.Threading.Tasks;
 namespace ChurchReport.Middleware
 {
     /// <summary>
-    /// Session ÅçÃÒ¤¤¶¡¥ó - ¨¾¤î Session Bleeding ©M Session Hijacking
-    /// 
-    /// ³]­p¼Ò¦¡¡G
-    /// - Middleware Pattern: ¦b½Ğ¨DºŞ¹D¤¤ÅçÃÒ Session ¦Xªk©Ê
-    /// - Single Responsibility: ±Mª`©ó Session ¦w¥şÅçÃÒ
-    /// - Fail-Fast Principle: µo²{°İÃD¥ß§Y¤¤Â_½Ğ¨D
-    /// 
-    /// ¥\¯à¡G
-    /// 1. ÅçÃÒ Session ¤¤ªº¥Î¤á¨­¥÷¼ĞÃÑ¬O§_¤@­P
-    /// 2. ÀË¬d User-Agent ¬O§_µo¥ÍÅÜ¤Æ¡]¨¾§T«ù¡^
-    /// 3. ÅçÃÒ IP ¦a§}¬O§_¦X²z¡]¦Ò¼{¥N²z¼Ò¦¡¡^
-    /// 4. ¨¾¤î¸ó¥Î¤á Session ¬ªº|
-    /// 
-    /// ®Ö¤ß¨¾Å@³õ´º¡G
-    /// - A µn¤J WiFi ¡÷ B µn¤J WiFi ¬İ¨ì A ºô­¶ ? ¨¾¤î
-    /// - Session ³Q«áµn¤Jªº¤HÄ~©Ó/¦@¥Î ? ¨¾¤î
-    /// - Session Hijacking¡]·|¸Ü§T«ù¡^ ? ¨¾¤î
-    /// 
-    /// ¨Ï¥Î¤è¦¡¡G
-    /// ¦b Startup.cs ªº Configure ¤èªk¤¤¡A¦b UseSession ¤§«á¥[¤J¡G
+    /// Session é©—è­‰ä¸­é–“ä»¶ - é˜²æ­¢ Session Bleeding å’Œ Session Hijacking
+    ///
+    /// è¨­è¨ˆæ¨¡å¼ï¼š
+    /// - Middleware Pattern: åœ¨è«‹æ±‚ç®¡é“ä¸­é©—è­‰ Session åˆæ³•æ€§
+    /// - Single Responsibility: å°ˆæ³¨æ–¼ Session å®‰å…¨é©—è­‰
+    /// - Fail-Fast Principle: ç™¼ç¾å•é¡Œç«‹å³ä¸­æ–·è«‹æ±‚
+    ///
+    /// åŠŸèƒ½ï¼š
+    /// 1. é©—è­‰ Session ä¸­çš„ç”¨æˆ¶èº«ä»½æ¨™è­˜æ˜¯å¦ä¸€è‡´
+    /// 2. æª¢æŸ¥ User-Agent æ˜¯å¦ç™¼ç”Ÿè®ŠåŒ–ï¼ˆé˜²åŠ«æŒï¼‰
+    /// 3. é©—è­‰ IP åœ°å€æ˜¯å¦åˆç†ï¼ˆè€ƒæ…®ä»£ç†æ¨¡å¼ï¼‰
+    /// 4. é˜²æ­¢è·¨ç”¨æˆ¶ Session æ´©æ¼
+    ///
+    /// æ ¸å¿ƒé˜²è­·å ´æ™¯ï¼š
+    /// - A ç™»å…¥ WiFi â†’ B ç™»å…¥ WiFi çœ‹åˆ° A ç¶²é  ? é˜²æ­¢
+    /// - Session è¢«å¾Œç™»å…¥çš„äººç¹¼æ‰¿/å…±ç”¨ ? é˜²æ­¢
+    /// - Session Hijackingï¼ˆæœƒè©±åŠ«æŒï¼‰ ? é˜²æ­¢
+    ///
+    /// ä½¿ç”¨æ–¹å¼ï¼š
+    /// åœ¨ Startup.cs çš„ Configure æ–¹æ³•ä¸­ï¼Œåœ¨ UseSession ä¹‹å¾ŒåŠ å…¥ï¼š
     /// <code>
     /// app.UseSession();
     /// app.UseMiddleware&lt;SessionValidationMiddleware&gt;();
@@ -37,11 +50,11 @@ namespace ChurchReport.Middleware
         private readonly ILogger<SessionValidationMiddleware> _logger;
 
         /// <summary>
-        /// ±Æ°£²M³æ¡G³o¨Ç¸ô®|¤£»İ­n Session ÅçÃÒ
-        /// - µn¤J¬ÛÃö¸ô®|
-        /// - LINE LIFF ¬ÛÃö¸ô®|¡]­«­n¡I¡^
-        /// - ¤½¶}¸ê·½¸ô®|
-        /// - °·±dÀË¬d¸ô®|
+        /// æ’é™¤æ¸…å–®ï¼šé€™äº›è·¯å¾‘ä¸éœ€è¦ Session é©—è­‰
+        /// - ç™»å…¥ç›¸é—œè·¯å¾‘
+        /// - LINE LIFF ç›¸é—œè·¯å¾‘ï¼ˆé‡è¦ï¼ï¼‰
+        /// - å…¬é–‹è³‡æºè·¯å¾‘
+        /// - å¥åº·æª¢æŸ¥è·¯å¾‘
         /// </summary>
         private static readonly string[] ExcludedPaths = new[]
         {
@@ -51,9 +64,9 @@ namespace ChurchReport.Middleware
             "/authentication/lineidloginview",
             "/authentication/saveuserlineid",
             "/authentication/processlinelogin",
-            "/authentication/linebinding",           // ? LINE ¸j©w¬ÛÃö
+            "/authentication/linebinding",           // ? LINE ç¶å®šç›¸é—œ
             "/authentication/linenotify",            // ? LINE Notify
-            "/liff",                                 // ? LIFF ¬ÛÃö¸ô®|¡]³q¥Î¡^
+            "/liff",                                 // ? LIFF ç›¸é—œè·¯å¾‘ï¼ˆé€šç”¨ï¼‰
             "/logout",
             "/authentication/logout",
             "/health",
@@ -62,12 +75,12 @@ namespace ChurchReport.Middleware
             "/css/",
             "/js/",
             "/lib/",
-            "/images/",                              // ? ¹Ï¤ù¸ê·½
-            "/.well-known/"                          // ? OIDC/OAuth ¬ÛÃö
+            "/images/",                              // ? åœ–ç‰‡è³‡æº
+            "/.well-known/"                          // ? OIDC/OAuth ç›¸é—œ
         };
 
         /// <summary>
-        /// «Øºc¨ç¦¡¡Gª`¤J¤U¤@­Ó¤¤¶¡¥ó©M¤é»xªA°È
+        /// å»ºæ§‹å‡½å¼ï¼šæ³¨å…¥ä¸‹ä¸€å€‹ä¸­é–“ä»¶å’Œæ—¥èªŒæœå‹™
         /// </summary>
         public SessionValidationMiddleware(RequestDelegate next, ILogger<SessionValidationMiddleware> logger)
         {
@@ -76,26 +89,26 @@ namespace ChurchReport.Middleware
         }
 
         /// <summary>
-        /// ¤¤¶¡¥ó®Ö¤ß¤èªk¡GÅçÃÒ¨C­Ó HTTP ½Ğ¨Dªº Session ¦Xªk©Ê
-        /// 
-        /// ÅçÃÒ¬yµ{¡G
-        /// 1. ÀË¬d¸ô®|¬O§_»İ­nÅçÃÒ
-        /// 2. ÀË¬d¬O§_¤wµn¤J¡]¬O§_¦³ Session ¸ê®Æ¡^
-        /// 3. ÅçÃÒ User-Agent ¬O§_¤@­P
-        /// 4. ÅçÃÒ IP ¦a§}¬O§_¦X²z
-        /// 5. ³q¹LÅçÃÒ«áÄ~Äò¤U¤@­Ó¤¤¶¡¥ó
-        /// 
-        /// ¦w¥ş¦Ò¶q¡G
-        /// - ¨Ï¥Îµ²ºc¤Æ¤é»x®æ¦¡¡A«K©óºÊ±±
-        /// - µo²{²§±`¥ß§Y²M°£ Session ¨Ã­«¾É¦Vµn¤J
-        /// - ¨¾¤î¸ê°T¬ªº|¡]¤£¦b¦^À³¤¤¼ÉÅS±Ó·P¸ê°T¡^
+        /// ä¸­é–“ä»¶æ ¸å¿ƒæ–¹æ³•ï¼šé©—è­‰æ¯å€‹ HTTP è«‹æ±‚çš„ Session åˆæ³•æ€§
+        ///
+        /// é©—è­‰æµç¨‹ï¼š
+        /// 1. æª¢æŸ¥è·¯å¾‘æ˜¯å¦éœ€è¦é©—è­‰
+        /// 2. æª¢æŸ¥æ˜¯å¦å·²ç™»å…¥ï¼ˆæ˜¯å¦æœ‰ Session è³‡æ–™ï¼‰
+        /// 3. é©—è­‰ User-Agent æ˜¯å¦ä¸€è‡´
+        /// 4. é©—è­‰ IP åœ°å€æ˜¯å¦åˆç†
+        /// 5. é€šéé©—è­‰å¾Œç¹¼çºŒä¸‹ä¸€å€‹ä¸­é–“ä»¶
+        ///
+        /// å®‰å…¨è€ƒé‡ï¼š
+        /// - ä½¿ç”¨çµæ§‹åŒ–æ—¥èªŒæ ¼å¼ï¼Œä¾¿æ–¼ç›£æ§
+        /// - ç™¼ç¾ç•°å¸¸ç«‹å³æ¸…é™¤ Session ä¸¦é‡å°å‘ç™»å…¥
+        /// - é˜²æ­¢è³‡è¨Šæ´©æ¼ï¼ˆä¸åœ¨å›æ‡‰ä¸­æš´éœ²æ•æ„Ÿè³‡è¨Šï¼‰
         /// </summary>
         public async Task InvokeAsync(HttpContext context)
         {
             var path = context.Request.Path.ToString().ToLowerInvariant();
 
             // ========================================
-            // Step 1: ÀË¬d¬O§_¬°±Æ°£¸ô®|
+            // Step 1: æª¢æŸ¥æ˜¯å¦ç‚ºæ’é™¤è·¯å¾‘
             // ========================================
             if (ShouldExcludePath(path))
             {
@@ -104,46 +117,46 @@ namespace ChurchReport.Middleware
             }
 
             // ========================================
-            // Step 2: ÀË¬d¬O§_¤wµn¤J
+            // Step 2: æª¢æŸ¥æ˜¯å¦å·²ç™»å…¥
             // ========================================
-            // ¦pªG Session ¤¤¨S¦³¥Î¤á ID¡Aªí¥Ü¥¼µn¤J©Î Session ¤w¹L´Á
+            // å¦‚æœ Session ä¸­æ²’æœ‰ç”¨æˆ¶ IDï¼Œè¡¨ç¤ºæœªç™»å…¥æˆ– Session å·²éæœŸ
             var sessionUserId = context.Session.GetString("_SessionUserId");
             if (string.IsNullOrEmpty(sessionUserId))
             {
-                // ¥¼µn¤J¡A¤¹³\Ä~Äò¡]·|³Q¨ä¥LÅçÃÒ¾÷¨î³B²z¡^
+                // æœªç™»å…¥ï¼Œå…è¨±ç¹¼çºŒï¼ˆæœƒè¢«å…¶ä»–é©—è­‰æ©Ÿåˆ¶è™•ç†ï¼‰
                 await _next(context);
                 return;
             }
 
             // ========================================
-            // Step 3: ÅçÃÒ User-Agent¡]¨¾ Session Hijacking¡^
+            // Step 3: é©—è­‰ User-Agentï¼ˆé˜² Session Hijackingï¼‰
             // ========================================
             var currentUserAgent = context.Request.Headers["User-Agent"].ToString();
             var sessionUserAgent = context.Session.GetString("_SessionUserAgent");
 
-            // ? ¯S®í³B²z¡GLINE ¤º«ØÂsÄı¾¹ªº User-Agent ¥i¯àÅÜ¤Æ
-            // LINE ÂsÄı¾¹ªº User-Agent ¥]§t "Line/" ¦r¦ê
+            // ? ç‰¹æ®Šè™•ç†ï¼šLINE å…§å»ºç€è¦½å™¨çš„ User-Agent å¯èƒ½è®ŠåŒ–
+            // LINE ç€è¦½å™¨çš„ User-Agent åŒ…å« "Line/" å­—ä¸²
             bool isLineUserAgent = currentUserAgent.Contains("Line/", StringComparison.OrdinalIgnoreCase);
-            bool wasLineUserAgent = !string.IsNullOrEmpty(sessionUserAgent) && 
+            bool wasLineUserAgent = !string.IsNullOrEmpty(sessionUserAgent) &&
                                    sessionUserAgent.Contains("Line/", StringComparison.OrdinalIgnoreCase);
 
             if (!string.IsNullOrEmpty(sessionUserAgent) && currentUserAgent != sessionUserAgent)
             {
-                // ? ¦pªG¬O LINE ÂsÄı¾¹¡A¤¹³\ User-Agent ÅÜ¤Æ¡]LINE ¤º«ØÂsÄı¾¹¥i¯à¦³ª©¥»§ó·s¡^
+                // ? å¦‚æœæ˜¯ LINE ç€è¦½å™¨ï¼Œå…è¨± User-Agent è®ŠåŒ–ï¼ˆLINE å…§å»ºç€è¦½å™¨å¯èƒ½æœ‰ç‰ˆæœ¬æ›´æ–°ï¼‰
                 if (isLineUserAgent && wasLineUserAgent)
                 {
                     _logger.LogInformation(
-                        "[Session Validation] ?? LINE User-Agent ÅÜ¤Æ¡]¤¹³\¡^ | UserId:{UserId}",
+                        "[Session Validation] ?? LINE User-Agent è®ŠåŒ–ï¼ˆå…è¨±ï¼‰ | UserId:{UserId}",
                         sessionUserId);
-                    
-                    // §ó·s Session ¤¤ªº User-Agent
+
+                    // æ›´æ–° Session ä¸­çš„ User-Agent
                     context.Session.SetString("_SessionUserAgent", currentUserAgent);
                 }
                 else
                 {
-                    // «D LINE ÂsÄı¾¹ªº User-Agent ÅÜ¤Æ ¡÷ ¥i¯à¬O Session Hijacking
+                    // é LINE ç€è¦½å™¨çš„ User-Agent è®ŠåŒ– â†’ å¯èƒ½æ˜¯ Session Hijacking
                     _logger.LogWarning(
-                        "[Session Validation] ?? User-Agent ¤£¤@­P | UserId:{UserId} | Session UA:{SessionUA} | Current UA:{CurrentUA}",
+                        "[Session Validation] ?? User-Agent ä¸ä¸€è‡´ | UserId:{UserId} | Session UA:{SessionUA} | Current UA:{CurrentUA}",
                         sessionUserId, sessionUserAgent, currentUserAgent);
 
                     ClearSessionAndRedirectToLogin(context);
@@ -152,30 +165,30 @@ namespace ChurchReport.Middleware
             }
 
             // ========================================
-            // Step 4: ÅçÃÒ IP ¦a§}¡]¦Ò¼{¥N²z¼Ò¦¡¡A¼eÃPÀË¬d¡^
+            // Step 4: é©—è­‰ IP åœ°å€ï¼ˆè€ƒæ…®ä»£ç†æ¨¡å¼ï¼Œå¯¬é¬†æª¢æŸ¥ï¼‰
             // ========================================
             var currentIp = GetRealClientIp(context);
             var sessionIp = context.Session.GetString("_SessionRealIp");
 
             if (!string.IsNullOrEmpty(sessionIp) && currentIp != sessionIp)
             {
-                // IP ÅÜ¤Æ ¡÷ ¦b¥N²z¼Ò¦¡¤U¥i¯à¥¿±`¡]¨Ò¦p WiFi ¤Á´«¡^¡A°O¿ıÄµ§i¦ı¤£±j¨îµn¥X
+                // IP è®ŠåŒ– â†’ åœ¨ä»£ç†æ¨¡å¼ä¸‹å¯èƒ½æ­£å¸¸ï¼ˆä¾‹å¦‚ WiFi åˆ‡æ›ï¼‰ï¼Œè¨˜éŒ„è­¦å‘Šä½†ä¸å¼·åˆ¶ç™»å‡º
                 _logger.LogInformation(
-                    "[Session Validation] ?? IP ¦a§}ÅÜ¤Æ¡]¥i¯à¥¿±`¡^ | UserId:{UserId} | Session IP:{SessionIP} | Current IP:{CurrentIP}",
+                    "[Session Validation] ?? IP åœ°å€è®ŠåŒ–ï¼ˆå¯èƒ½æ­£å¸¸ï¼‰ | UserId:{UserId} | Session IP:{SessionIP} | Current IP:{CurrentIP}",
                     sessionUserId, sessionIp, currentIp);
 
-                // §ó·s Session ¤¤ªº IP¡]¤¹³\ IP ÅÜ¤Æ¡A¦ı°O¿ı¥H«K¼f­p¡^
+                // æ›´æ–° Session ä¸­çš„ IPï¼ˆå…è¨± IP è®ŠåŒ–ï¼Œä½†è¨˜éŒ„ä»¥ä¾¿å¯©è¨ˆï¼‰
                 context.Session.SetString("_SessionRealIp", currentIp);
             }
 
             // ========================================
-            // Step 5: ÅçÃÒ³q¹L¡AÄ~Äò¤U¤@­Ó¤¤¶¡¥ó
+            // Step 5: é©—è­‰é€šéï¼Œç¹¼çºŒä¸‹ä¸€å€‹ä¸­é–“ä»¶
             // ========================================
             await _next(context);
         }
 
         /// <summary>
-        /// §PÂ_¸ô®|¬O§_À³¸Ó±Æ°£ÅçÃÒ
+        /// åˆ¤æ–·è·¯å¾‘æ˜¯å¦æ‡‰è©²æ’é™¤é©—è­‰
         /// </summary>
         private bool ShouldExcludePath(string path)
         {
@@ -190,37 +203,37 @@ namespace ChurchReport.Middleware
         }
 
         /// <summary>
-        /// ¨ú±o¯u¹ê«È¤áºİ IP¡]¦Ò¼{¥N²z¼Ò¦¡¡^
-        /// 
-        /// Àu¥ı¶¶§Ç¡G
-        /// 1. X-Forwarded-For¡]¤Ï¦V¥N²z¡^
-        /// 2. X-Real-IP¡]Nginx µ¥¡^
-        /// 3. RemoteIpAddress¡]ª½³s¡^
+        /// å–å¾—çœŸå¯¦å®¢æˆ¶ç«¯ IPï¼ˆè€ƒæ…®ä»£ç†æ¨¡å¼ï¼‰
+        ///
+        /// å„ªå…ˆé †åºï¼š
+        /// 1. X-Forwarded-Forï¼ˆåå‘ä»£ç†ï¼‰
+        /// 2. X-Real-IPï¼ˆNginx ç­‰ï¼‰
+        /// 3. RemoteIpAddressï¼ˆç›´é€£ï¼‰
         /// </summary>
         private string GetRealClientIp(HttpContext context)
         {
-            // Àu¥ı¨Ï¥Î X-Forwarded-For¡]¤Ï¦V¥N²zÀô¹Ò¡^
+            // å„ªå…ˆä½¿ç”¨ X-Forwarded-Forï¼ˆåå‘ä»£ç†ç’°å¢ƒï¼‰
             var forwardedFor = context.Request.Headers["X-Forwarded-For"].ToString();
             if (!string.IsNullOrEmpty(forwardedFor))
             {
-                // X-Forwarded-For ¥i¯à¥]§t¦h­Ó IP¡A¨ú²Ä¤@­Ó¡]¯u¹ê«È¤áºİ IP¡^
+                // X-Forwarded-For å¯èƒ½åŒ…å«å¤šå€‹ IPï¼Œå–ç¬¬ä¸€å€‹ï¼ˆçœŸå¯¦å®¢æˆ¶ç«¯ IPï¼‰
                 var ips = forwardedFor.Split(',');
                 return ips[0].Trim();
             }
 
-            // ¨ä¦¸¨Ï¥Î X-Real-IP
+            // å…¶æ¬¡ä½¿ç”¨ X-Real-IP
             var realIp = context.Request.Headers["X-Real-IP"].ToString();
             if (!string.IsNullOrEmpty(realIp))
             {
                 return realIp;
             }
 
-            // ³Ì«á¨Ï¥Î RemoteIpAddress
+            // æœ€å¾Œä½¿ç”¨ RemoteIpAddress
             return context.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         }
 
         /// <summary>
-        /// ²M°£ Session ¨Ã­«¾É¦V¦Üµn¤J­¶­±
+        /// æ¸…é™¤ Session ä¸¦é‡å°å‘è‡³ç™»å…¥é é¢
         /// </summary>
         private void ClearSessionAndRedirectToLogin(HttpContext context)
         {
@@ -228,19 +241,19 @@ namespace ChurchReport.Middleware
             {
                 context.Session.Clear();
 
-                // ? ­×´_¡G¥²¶· Commit ¥H½T«O Session ¥ß§Y¥¢®Ä
-                // ­Y¤£ Commit¡ASession ²M°£¥i¯à¤£·|§Y®É¥Í®Ä¡A
-                // ¦b°ª¨Öµo±¡¹Ò¤U¥i¯à³y¦¨µu¼Èªº Session ¬ªº|
+                // ? ä¿®å¾©ï¼šå¿…é ˆ Commit ä»¥ç¢ºä¿ Session ç«‹å³å¤±æ•ˆ
+                // è‹¥ä¸ Commitï¼ŒSession æ¸…é™¤å¯èƒ½ä¸æœƒå³æ™‚ç”Ÿæ•ˆï¼Œ
+                // åœ¨é«˜ä½µç™¼æƒ…å¢ƒä¸‹å¯èƒ½é€ æˆçŸ­æš«çš„ Session æ´©æ¼
                 context.Session.CommitAsync().GetAwaiter().GetResult();
 
-                _logger.LogInformation("[Session Validation] ? Session ¤w²M°£¨Ã´£¥æ");
+                _logger.LogInformation("[Session Validation] ? Session å·²æ¸…é™¤ä¸¦æäº¤");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[Session Validation] ? ²M°£ Session ¥¢±Ñ");
+                _logger.LogError(ex, "[Session Validation] ? æ¸…é™¤ Session å¤±æ•—");
             }
 
-            // ­«¾É¦V¦Üµn¤J­¶­±
+            // é‡å°å‘è‡³ç™»å…¥é é¢
             context.Response.Redirect("/Login");
         }
     }

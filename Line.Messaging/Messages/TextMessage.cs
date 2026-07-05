@@ -1,4 +1,17 @@
-﻿using System;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：Line.Messaging/Messages/TextMessage.cs
+// 所屬區塊：LINE Messaging SDK 封裝層，定義 LINE API DTO、Client 呼叫與訊息模型。
+// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
+// 主要型別：class TextMessage
+// 主要成員：Type、QuickReply、Text
+// 引用命名空間：System
+// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using System;
 
 namespace Line.Messaging
 {
@@ -23,7 +36,7 @@ namespace Line.Messaging
     /// <code>
     /// // 建立簡單的文字訊息
     /// var message = new TextMessage("您好，歡迎使用 LINE Bot！");
-    /// 
+    ///
     /// // 建立帶有快速回覆的文字訊息
     /// var messageWithQuickReply = new TextMessage("請選擇：", new QuickReply
     /// {
@@ -33,7 +46,7 @@ namespace Line.Messaging
     ///         new QuickReplyItem(new MessageTemplateAction("選項 B", "B"))
     ///     }
     /// });
-    /// 
+    ///
     /// // 傳送訊息
     /// await client.ReplyMessageAsync(replyToken, message);
     /// </code>
@@ -113,17 +126,17 @@ namespace Line.Messaging
         /// <code>
         /// // 基本用法
         /// var message1 = new TextMessage("Hello, LINE!");
-        /// 
+        ///
         /// // 帶有換行的文字
         /// var message2 = new TextMessage("第一行\n第二行\n第三行");
-        /// 
+        ///
         /// // 帶有 emoji
         /// var message3 = new TextMessage("感謝您的訂購！😊");
-        /// 
+        ///
         /// // 帶有快速回覆
         /// var quickReply = new QuickReply { Items = new List&lt;QuickReplyItem&gt; { ... } };
         /// var message4 = new TextMessage("請選擇操作：", quickReply);
-        /// 
+        ///
         /// // 超過 2000 字元會自動截斷
         /// var longText = new string('A', 3000); // 3000 個 'A'
         /// var message5 = new TextMessage(longText); // 實際只會包含 2000 個 'A'

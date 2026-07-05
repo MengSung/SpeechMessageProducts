@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/WebServiceConnector/UploadIntegrateData.WeeklyReport.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass UploadIntegrateData
+// ä¸»è¦æˆå“¡ï¼šCreateWeeklyReportã€SetupWeeklyReortEntityAttributesã€CreateWeeklyReportAndPresentRecordã€UpdateWeeklyReportã€UpdateWeeklyReportProcessã€SetupWeeklyReportStatusã€SetupWeeklyReportResultã€SetupSundayPresentResultã€GetSmallGroupMemberNumberã€CreateWeeklyReportOrNot
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€System.Collections.Genericã€ChurchReport.Modelsã€ChurchReport.Models.CrmTransmitModuleã€Microsoft.Xrm.Sdk
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using System.Collections.Generic;
 using ChurchReport.Models;
@@ -7,12 +20,12 @@ using Microsoft.Xrm.Sdk;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ¤W¶Ç¾ã¦X¸ê®Æ - ¶g³øºŞ²z (Partial)
-    /// ¥]§t¡G«Ø¥ß¶g³ø¡B§ó·s¶g³ø¡B³]©w¶g³øÄİ©Ê
+    /// ä¸Šå‚³æ•´åˆè³‡æ–™ - é€±å ±ç®¡ç† (Partial)
+    /// åŒ…å«ï¼šå»ºç«‹é€±å ±ã€æ›´æ–°é€±å ±ã€è¨­å®šé€±å ±å±¬æ€§
     /// </summary>
     public partial class UploadIntegrateData
     {
-        #region «Ø¥ß¶g³ø
+        #region å»ºç«‹é€±å ±
 
         private Guid CreateWeeklyReport(ref Entity aListEntity, GroupWeeklyReportGuid aGroupWeeklyReportGuid)
         {
@@ -29,56 +42,56 @@ namespace ChurchReport.WebServiceConnector
                 Guid ShepherdLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_list_arealeader");
 
                 SetupWeeklyReortEntityAttributes(
-                    ref aWeeklyReportEntity, 
-                    FamilyLeaderId, 
-                    GroupLeaderId, 
-                    RaceLeaderId, 
-                    ShepherdLeaderId, 
-                    m_DecipleGroupListId, 
-                    aListEntity, 
-                    m_Sunday, 
-                    m_SmallGroupPlace, 
-                    m_SmallGroupTime, 
+                    ref aWeeklyReportEntity,
+                    FamilyLeaderId,
+                    GroupLeaderId,
+                    RaceLeaderId,
+                    ShepherdLeaderId,
+                    m_DecipleGroupListId,
+                    aListEntity,
+                    m_Sunday,
+                    m_SmallGroupPlace,
+                    m_SmallGroupTime,
                     aGroupWeeklyReportGuid);
 
                 Guid CreatedWeeklyReportEntity = this.m_ToolUtilityClass.CreateEntity(aWeeklyReportEntity);
 
                 this.m_ToolUtilityClass.AssignOwner(
-                    "new_group_present_weekly_report", 
-                    this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", CreatedWeeklyReportEntity), 
+                    "new_group_present_weekly_report",
+                    this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", CreatedWeeklyReportEntity),
                     this.m_OwnerId);
 
                 return CreatedWeeklyReportEntity;
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
         }
 
         private void SetupWeeklyReortEntityAttributes(
-            ref Entity aWeeklyReportEntity, 
-            Guid aFamilyLeaderId, 
-            Guid aGroupLeaderId, 
-            Guid aRaceLeaderId, 
-            Guid aShepherdLeaderId, 
-            Guid aDecipleGroupList, 
-            Entity ListEntity, 
-            DateTime aSunday, 
-            String SmallGroupPlace, 
-            String SmallGroupTime, 
+            ref Entity aWeeklyReportEntity,
+            Guid aFamilyLeaderId,
+            Guid aGroupLeaderId,
+            Guid aRaceLeaderId,
+            Guid aShepherdLeaderId,
+            Guid aDecipleGroupList,
+            Entity ListEntity,
+            DateTime aSunday,
+            String SmallGroupPlace,
+            String SmallGroupTime,
             GroupWeeklyReportGuid aGroupWeeklyReportGuid)
         {
             try
             {
-                // ³]©w¶g³ø¦WºÙ
+                // è¨­å®šé€±å ±åç¨±
                 String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref ListEntity, "listname");
                 String WeeklyReportName = GroupName + String.Format("-{0:00}/{1:00}/{2:00}", aSunday.Year, aSunday.Month, aSunday.Day);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_name", WeeklyReportName);
 
-                // ÃöÁp»â³SÄİ©Ê
+                // é—œè¯é ˜è¢–å±¬æ€§
                 if (aFamilyLeaderId != Guid.Empty)
                     this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_contact_weekly_report_parents", "contact", aFamilyLeaderId);
 
@@ -91,19 +104,19 @@ namespace ChurchReport.WebServiceConnector
                 if (aShepherdLeaderId != Guid.Empty)
                     this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_contact_arealeader_weekly_report", "contact", aShepherdLeaderId);
 
-                // ÃöÁp¦W³æ
+                // é—œè¯åå–®
                 if (ListEntity.Id != Guid.Empty)
                     this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_list_group_present_weekly_report", "list", ListEntity.Id);
 
                 if (aDecipleGroupList != Guid.Empty)
                     this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aWeeklyReportEntity, "new_deciple_list_group_present_weekly", "list", aDecipleGroupList);
 
-                // ³]©w¤é´Á
+                // è¨­å®šæ—¥æœŸ
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_sunday_date", aSunday);
-                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", 
+                this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date",
                     aGroupWeeklyReportGuid.SmallGroupDate.Year > 1 ? aGroupWeeklyReportGuid.SmallGroupDate : DateTime.Now);
 
-                // ³]©w»E·|¸ê°T
+                // è¨­å®šèšæœƒè³‡è¨Š
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_place", SmallGroupPlace);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_group_time", SmallGroupTime);
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aWeeklyReportEntity, "new_small_group_member_number", GetSmallGroupMemberNumber(ListEntity.Id));
@@ -111,27 +124,27 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
         }
 
         private Entity CreateWeeklyReportAndPresentRecord(
-            String GroupName, 
-            GroupWeeklyReportGuid aGroupWeeklyReportGuid, 
-            ref String WeeklyReportEntityId, 
-            ref Entity aListEntity, 
-            String UploadCategory, 
-            Double ValidNumber, 
-            ref Double aWeeklySundayRate, 
-            ref Double aWeeklySmallGroupRate, 
-            ref int aWeeklySundayNumber, 
-            ref int aWeeklySmallGroupNumber, 
-            SmallGroupData aSmallGroupData, 
-            String WeeklyReportData, 
-            String HappyWeekIndex, 
-            String HappyWeekTopic, 
+            String GroupName,
+            GroupWeeklyReportGuid aGroupWeeklyReportGuid,
+            ref String WeeklyReportEntityId,
+            ref Entity aListEntity,
+            String UploadCategory,
+            Double ValidNumber,
+            ref Double aWeeklySundayRate,
+            ref Double aWeeklySmallGroupRate,
+            ref int aWeeklySundayNumber,
+            ref int aWeeklySmallGroupNumber,
+            SmallGroupData aSmallGroupData,
+            String WeeklyReportData,
+            String HappyWeekIndex,
+            String HappyWeekTopic,
             bool PauseCheckBox)
         {
             try
@@ -143,13 +156,13 @@ namespace ChurchReport.WebServiceConnector
                 int ValidSmallGroupMemberNumber = 0;
                 EntityCollection aPresentRecordCollection;
 
-                if (aSmallGroupData.LoginType == "¤p²Õªø")
+                if (aSmallGroupData.LoginType == "å°çµ„é•·")
                 {
                     aPresentRecordCollection = CreatePresentRecordList(
-                        aSmallGroupData, GroupName, ref aListEntity, ref aCreatedWeeklyReportId, 
-                        ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate, 
-                        ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, 
-                        ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber, 
+                        aSmallGroupData, GroupName, ref aListEntity, ref aCreatedWeeklyReportId,
+                        ValidNumber, ref aWeeklySundayRate, ref aWeeklySmallGroupRate,
+                        ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber,
+                        ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber,
                         ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                 }
                 else
@@ -158,22 +171,22 @@ namespace ChurchReport.WebServiceConnector
                     SetAllMemberDataByPersonalReport(GroupName, aListEntity.Id, ref aSmallGroupDataFromList);
 
                     aPresentRecordCollection = CreatePresentRecordListByList(
-                        aSmallGroupData, aSmallGroupDataFromList, GroupName, ref aListEntity, 
-                        ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, 
-                        ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, 
-                        ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber, 
+                        aSmallGroupData, aSmallGroupDataFromList, GroupName, ref aListEntity,
+                        ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate,
+                        ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber,
+                        ref ValidSundayMemberNumber, ref ValidSmallGroupMemberNumber,
                         ref aGroupWeeklyReportGuid, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
                 }
 
                 return UpdateWeeklyReport(
-                    aGroupWeeklyReportGuid, aPresentRecordCollection, ref aListEntity, 
-                    ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate, 
-                    ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, 
+                    aGroupWeeklyReportGuid, aPresentRecordCollection, ref aListEntity,
+                    ref aCreatedWeeklyReportId, ValidNumber, ref aWeeklySundayRate,
+                    ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber,
                     aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -181,22 +194,22 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region §ó·s¶g³ø
+        #region æ›´æ–°é€±å ±
 
         private Entity UpdateWeeklyReport(
-            GroupWeeklyReportGuid aGroupWeeklyReportGuid, 
-            EntityCollection PresentRecordCollection, 
-            ref Entity aListEntity, 
-            ref Guid aWeeklyReportId, 
-            Double ValidNumber, 
-            ref Double aWeeklySundayRate, 
-            ref Double aWeeklySmallGroupRate, 
-            ref int aWeeklySundayNumber, 
-            ref int aWeeklySmallGroupNumber, 
-            SmallGroupData aSmallGroupData, 
-            String WeeklyReportData, 
-            String HappyWeekIndex, 
-            String HappyWeekTopic, 
+            GroupWeeklyReportGuid aGroupWeeklyReportGuid,
+            EntityCollection PresentRecordCollection,
+            ref Entity aListEntity,
+            ref Guid aWeeklyReportId,
+            Double ValidNumber,
+            ref Double aWeeklySundayRate,
+            ref Double aWeeklySmallGroupRate,
+            ref int aWeeklySundayNumber,
+            ref int aWeeklySmallGroupNumber,
+            SmallGroupData aSmallGroupData,
+            String WeeklyReportData,
+            String HappyWeekIndex,
+            String HappyWeekTopic,
             bool PauseCheckBox)
         {
             try
@@ -208,7 +221,7 @@ namespace ChurchReport.WebServiceConnector
                 aWeeklySmallGroupNumber = 0;
                 aWeeklySmallGroupRate = 0.0;
 
-                // ­pºâ¥X®u²Î­p
+                // è¨ˆç®—å‡ºå¸­çµ±è¨ˆ
                 foreach (Entity aMachedPresentRecordEntity in PresentRecordCollection.Entities)
                 {
                     if (aMachedPresentRecordEntity != null)
@@ -238,66 +251,66 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
 
-                // §ó·s¶g³ø¹êÅé
+                // æ›´æ–°é€±å ±å¯¦é«”
                 Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aWeeklyReportId);
 
-                // ³]©w¤p²Õ»E·|¤é´Á
+                // è¨­å®šå°çµ„èšæœƒæ—¥æœŸ
                 if (this.m_ContactEntity.Id == this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aWeeklyReportEntity, "new_groupleader_group_present_weekly_"))
                 {
-                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date", 
+                    this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aWeeklyReportEntity, "new_group_date",
                         aGroupWeeklyReportGuid.SmallGroupDate.Year > 1 ? aGroupWeeklyReportGuid.SmallGroupDate : DateTime.Now);
                 }
 
-                this.SetupWeeklyReportStatus("¥D¤éÂI¦W", ref aWeeklyReportEntity);
+                this.SetupWeeklyReportStatus("ä¸»æ—¥é»å", ref aWeeklyReportEntity);
 
-                // ³]©w¥X®u²v¡B¤H¼Æ
+                // è¨­å®šå‡ºå¸­ç‡ã€äººæ•¸
                 this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aWeeklyReportEntity, "new_sunday_present_rate", aWeeklySundayRate);
                 this.m_ToolUtilityClass.SetEntityDoubleAttribute(ref aWeeklyReportEntity, "new_small_group_rate", aWeeklySmallGroupRate);
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aWeeklyReportEntity, "new_sunday_present_number", aWeeklySundayNumber);
                 this.m_ToolUtilityClass.SetEntityIntAttribute(ref aWeeklyReportEntity, "new_small_group_number", aWeeklySmallGroupNumber);
 
-                // ³]©w²Î­p³ø§i
-                AddToDictionary(ref this.m_FeedBackReport, "¥D¤é¥X®u²Î­pªíÀY", 
-                    $"{Environment.NewLine}¹ê¨ì{ValidSundayMemberNumber}¤H/À³¨ì{ValidNumber}¤H¡A¥X®u²v{aWeeklySundayRate:0%}");
-                AddToDictionary(ref this.m_FeedBackReport, "¤p²Õ¥X®u²Î­pªíÀY", 
-                    $"{Environment.NewLine}¹ê¨ì{ValidSmallGroupMemberNumber}¤H/À³¨ì{ValidNumber}¤H¡A¥X®u²v{aWeeklySmallGroupRate:0%}");
+                // è¨­å®šçµ±è¨ˆå ±å‘Š
+                AddToDictionary(ref this.m_FeedBackReport, "ä¸»æ—¥å‡ºå¸­çµ±è¨ˆè¡¨é ­",
+                    $"{Environment.NewLine}å¯¦åˆ°{ValidSundayMemberNumber}äºº/æ‡‰åˆ°{ValidNumber}äººï¼Œå‡ºå¸­ç‡{aWeeklySundayRate:0%}");
+                AddToDictionary(ref this.m_FeedBackReport, "å°çµ„å‡ºå¸­çµ±è¨ˆè¡¨é ­",
+                    $"{Environment.NewLine}å¯¦åˆ°{ValidSmallGroupMemberNumber}äºº/æ‡‰åˆ°{ValidNumber}äººï¼Œå‡ºå¸­ç‡{aWeeklySmallGroupRate:0%}");
 
                 String SmallGroupResult = this.SetupWeeklyReportResult(ref aWeeklyReportEntity);
 
-                // ³]©w¤é»x»P©¯ºÖ¤p²Õ¸ê°T
-                if (WeeklyReportData != "¤£»İ§ó·s¤p²Õ¤é»x")
+                // è¨­å®šæ—¥èªŒèˆ‡å¹¸ç¦å°çµ„è³‡è¨Š
+                if (WeeklyReportData != "ä¸éœ€æ›´æ–°å°çµ„æ—¥èªŒ")
                 {
                     this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_memo", WeeklyReportData);
-                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status", 
+                    this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_weekly_report_status",
                         PauseCheckBox ? 100000002 : 100000001);
                 }
 
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_weekly_index", HappyWeekIndex);
-                
+
                 if (!string.IsNullOrEmpty(HappyWeekTopic))
                     this.m_ToolUtilityClass.SetOptionSetAttribute(ref aWeeklyReportEntity, "new_topic", this.ConvertTopicToIndex(HappyWeekTopic));
                 else
                     this.m_ToolUtilityClass.SetOptionSetAttributeNull(ref aWeeklyReportEntity, "new_topic");
 
-                // ³B²z©¯ºÖ¤p²Õ
-                if (this.m_GroupType == "©¯ºÖ¤p²Õ")
+                // è™•ç†å¹¸ç¦å°çµ„
+                if (this.m_GroupType == "å¹¸ç¦å°çµ„")
                 {
                     ProcessHappyGroupMembers(ref aListEntity, aWeeklyReportEntity, HappyWeekIndex, HappyWeekTopic);
                     CalculateWeeklyReportTotalNumber(ref aWeeklyReportEntity);
                 }
 
-                // LINE ³qª¾
-                if (aSmallGroupData.LoginType == "¤p²Õªø" && WeeklyReportData != "¤£»İ§ó·s¤p²Õ¤é»x")
+                // LINE é€šçŸ¥
+                if (aSmallGroupData.LoginType == "å°çµ„é•·" && WeeklyReportData != "ä¸éœ€æ›´æ–°å°çµ„æ—¥èªŒ")
                 {
                     this.m_LineNotifyUtility.SendSmallGroupResultLine(
-                        this.m_ContactEntity, SmallGroupResult, aGroupWeeklyReportGuid, 
+                        this.m_ContactEntity, SmallGroupResult, aGroupWeeklyReportGuid,
                         aWeeklyReportId, ref aListEntity, ref aSmallGroupData, WeeklyReportData, PauseCheckBox);
                 }
 
                 this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
                 this.m_ToolUtilityClass.AssignOwner("new_group_present_weekly_report", aWeeklyReportEntity, this.m_OwnerId);
 
-                // ¦^¶Ç
+                // å›å‚³
                 aGroupWeeklyReportGuid.WeeklyReportGuid = aWeeklyReportId;
                 aGroupWeeklyReportGuid.SundayPresentRate = aWeeklySundayRate;
                 aGroupWeeklyReportGuid.SmallGroupRate = aWeeklySmallGroupRate;
@@ -306,20 +319,20 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
         }
 
         private Entity UpdateWeeklyReportProcess(
-            GroupWeeklyReportGuid aGroupWeeklyReportGuid, 
-            ref Entity aListEntity, 
-            ref Guid aWeeklyReportId, 
-            SmallGroupData aSmallGroupData, 
-            String WeeklyReportData, 
-            String HappyWeekIndex, 
-            String HappyWeekTopic, 
+            GroupWeeklyReportGuid aGroupWeeklyReportGuid,
+            ref Entity aListEntity,
+            ref Guid aWeeklyReportId,
+            SmallGroupData aSmallGroupData,
+            String WeeklyReportData,
+            String HappyWeekIndex,
+            String HappyWeekTopic,
             bool PauseCheckBox)
         {
             try
@@ -331,27 +344,27 @@ namespace ChurchReport.WebServiceConnector
                 Double ValidNumber = 0.0F;
 
                 EntityCollection aPresentRecordCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship(
-                    "new_group_present_weekly_report", "new_group_present_weekly_reportid", 
+                    "new_group_present_weekly_report", "new_group_present_weekly_reportid",
                     aWeeklyReportId.ToString(), "new_group_present_weekly_report_prese", "new_present_record");
 
                 ValidNumber = GetValidMemberNumber(aPresentRecordCollection);
 
                 UpdatePresentRecord(
-                    this.m_GroupNamedListMemberInfomation, aPresentRecordCollection, 
-                    ref aListEntity, ref aWeeklyReportId, ValidNumber, 
-                    ref aWeeklySundayRate, ref aWeeklySmallGroupRate, 
-                    ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, 
+                    this.m_GroupNamedListMemberInfomation, aPresentRecordCollection,
+                    ref aListEntity, ref aWeeklyReportId, ValidNumber,
+                    ref aWeeklySundayRate, ref aWeeklySmallGroupRate,
+                    ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber,
                     ref aGroupWeeklyReportGuid, aSmallGroupData, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
 
                 return UpdateWeeklyReport(
-                    aGroupWeeklyReportGuid, aPresentRecordCollection, ref aListEntity, 
-                    ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate, 
-                    ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber, 
+                    aGroupWeeklyReportGuid, aPresentRecordCollection, ref aListEntity,
+                    ref aWeeklyReportId, ValidNumber, ref aWeeklySundayRate,
+                    ref aWeeklySmallGroupRate, ref aWeeklySundayNumber, ref aWeeklySmallGroupNumber,
                     aSmallGroupData, WeeklyReportData, HappyWeekIndex, HappyWeekTopic, PauseCheckBox);
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -359,7 +372,7 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ¶g³ø»²§U¤èªk
+        #region é€±å ±è¼”åŠ©æ–¹æ³•
 
         private void SetupWeeklyReportStatus(String UploadCategory, ref Entity aWeeklyReportEntity)
         {
@@ -369,7 +382,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -383,7 +396,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -396,36 +409,36 @@ namespace ChurchReport.WebServiceConnector
                 string Apple = "\uD83C\uDF4F";
                 string Heart = "\uD83D\uDC96";
 
-                String SundayResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "¥D¤é¥X®u²Î­pªíÀY") +
-                    Environment.NewLine + Apple + "¤w¥X®u:(¤K¶g²Ö­p)" + Environment.NewLine +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "¥D¤é²Î­p¤p²Õ²Õ­û¥X®u¦r¦ê") +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "¥D¤é²Î­p¥¼¤J²Õ¥X®u¦r¦ê") +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "¥D¤é²Î­p·s¤H¥X®u¦r¦ê") +
-                    Environment.NewLine + Heart + "¥¼¥X®u:(¤K¶g²Ö­p)" + Environment.NewLine +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "¥D¤é²Î­p¤p²Õ²Õ­û¥¼¥X®u¦r¦ê") +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "¥D¤é²Î­p¥¼¤J²Õ¥X®u¦r¦ê") +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "¥D¤é²Î­p·s¤H¥¼¥X®u¦r¦ê");
+                String SundayResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "ä¸»æ—¥å‡ºå¸­çµ±è¨ˆè¡¨é ­") +
+                    Environment.NewLine + Apple + "å·²å‡ºå¸­:(å…«é€±ç´¯è¨ˆ)" + Environment.NewLine +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "ä¸»æ—¥çµ±è¨ˆå°çµ„çµ„å“¡å‡ºå¸­å­—ä¸²") +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "ä¸»æ—¥çµ±è¨ˆæœªå…¥çµ„å‡ºå¸­å­—ä¸²") +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "ä¸»æ—¥çµ±è¨ˆæ–°äººå‡ºå¸­å­—ä¸²") +
+                    Environment.NewLine + Heart + "æœªå‡ºå¸­:(å…«é€±ç´¯è¨ˆ)" + Environment.NewLine +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "ä¸»æ—¥çµ±è¨ˆå°çµ„çµ„å“¡æœªå‡ºå¸­å­—ä¸²") +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "ä¸»æ—¥çµ±è¨ˆæœªå…¥çµ„å‡ºå¸­å­—ä¸²") +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "ä¸»æ—¥çµ±è¨ˆæ–°äººæœªå‡ºå¸­å­—ä¸²");
 
-                String SmallGroupResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "¤p²Õ¥X®u²Î­pªíÀY") +
-                    Environment.NewLine + Apple + "¤w¥X®u:(¤K¶g²Ö­p)" + Environment.NewLine +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "¤p²Õ²Î­p¤p²Õ²Õ­û¥X®u¦r¦ê") +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "¤p²Õ²Î­p¥¼¤J²Õ¥X®u¦r¦ê") +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "¤p²Õ²Î­p·s¤H¥X®u¦r¦ê") +
-                    Environment.NewLine + Heart + "¥¼¥X®u:(¤K¶g²Ö­p)" + Environment.NewLine +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "¤p²Õ²Î­p¤p²Õ²Õ­û¥¼¥X®u¦r¦ê") +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "¤p²Õ²Î­p¥¼¤J²Õ¥X¥¼®u¦r¦ê") +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "¤p²Õ²Î­p·s¤H¥¼¥X®u¦r¦ê");
+                String SmallGroupResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "å°çµ„å‡ºå¸­çµ±è¨ˆè¡¨é ­") +
+                    Environment.NewLine + Apple + "å·²å‡ºå¸­:(å…«é€±ç´¯è¨ˆ)" + Environment.NewLine +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "å°çµ„çµ±è¨ˆå°çµ„çµ„å“¡å‡ºå¸­å­—ä¸²") +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "å°çµ„çµ±è¨ˆæœªå…¥çµ„å‡ºå¸­å­—ä¸²") +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "å°çµ„çµ±è¨ˆæ–°äººå‡ºå¸­å­—ä¸²") +
+                    Environment.NewLine + Heart + "æœªå‡ºå¸­:(å…«é€±ç´¯è¨ˆ)" + Environment.NewLine +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "å°çµ„çµ±è¨ˆå°çµ„çµ„å“¡æœªå‡ºå¸­å­—ä¸²") +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "å°çµ„çµ±è¨ˆæœªå…¥çµ„å‡ºæœªå¸­å­—ä¸²") +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "", "å°çµ„çµ±è¨ˆæ–°äººæœªå‡ºå¸­å­—ä¸²");
 
-                String FollowUpResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "¸ò¶i²Î­pªíÀY") +
-                    "\t" + "A.¥¼¤J²Õ¸ò¶i²Î­p¤º®e" + Environment.NewLine +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "¥¼¤J²Õ¸ò¶i²Î­p¤º®e") + Environment.NewLine +
-                    "\t" + "B.·sªB¤Í¸ò¶i²Î­p¤º®e" + Environment.NewLine +
-                    this.GetDictionaryValue(ref this.m_FeedBackReport, "·sªB¤Í¸ò¶i²Î­p¤º®e") + Environment.NewLine +
+                String FollowUpResult = this.GetDictionaryValue(ref this.m_FeedBackReport, "è·Ÿé€²çµ±è¨ˆè¡¨é ­") +
+                    "\t" + "A.æœªå…¥çµ„è·Ÿé€²çµ±è¨ˆå…§å®¹" + Environment.NewLine +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "æœªå…¥çµ„è·Ÿé€²çµ±è¨ˆå…§å®¹") + Environment.NewLine +
+                    "\t" + "B.æ–°æœ‹å‹è·Ÿé€²çµ±è¨ˆå…§å®¹" + Environment.NewLine +
+                    this.GetDictionaryValue(ref this.m_FeedBackReport, "æ–°æœ‹å‹è·Ÿé€²çµ±è¨ˆå…§å®¹") + Environment.NewLine +
                     "---------------------------------" + Environment.NewLine;
 
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_sunday_present_report", 
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_sunday_present_report",
                     SundayResult + SmallGroupResult + FollowUpResult);
-                AddToDictionary(ref this.m_FeedBackReport, "¥D¤é²Î­p", SundayResult);
+                AddToDictionary(ref this.m_FeedBackReport, "ä¸»æ—¥çµ±è¨ˆ", SundayResult);
 
                 return SundayResult + Environment.NewLine +
                     "---------------------------------" + Environment.NewLine +
@@ -435,7 +448,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -475,13 +488,13 @@ namespace ChurchReport.WebServiceConnector
                     Guid aSmallGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
                     if (this.m_ContactId == aSmallGroupLeaderId)
                         return true;
-                    return m_LoginType != "¤p²Õªø";
+                    return m_LoginType != "å°çµ„é•·";
                 }
                 return false;
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -498,13 +511,13 @@ namespace ChurchReport.WebServiceConnector
 
                     if (this.m_ContactId == aThisListSmallGroupLeaderId || this.m_ContactId == aThisListCoSmallGroupLeaderId)
                         return true;
-                    return m_LoginType != "¤p²Õªø";
+                    return m_LoginType != "å°çµ„é•·";
                 }
                 return false;
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -522,7 +535,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }

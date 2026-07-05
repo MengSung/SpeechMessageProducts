@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/WebServiceConnector/DownloadIntegrateData.Setup.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass DownloadIntegrateData
+// ä¸»è¦æˆå“¡ï¼šSetupHeaderDataã€SetupShepherdDataã€SortAndCleanMemberStatusã€SetupWeeklyReportDataã€SetupHappyGroupWeeklyDataã€SetupCommonWeeklyDataã€SetupWeeklyReportChartDataã€InitializeChartDataã€SetSmallGroupDataã€SetNewPersonFollowUpData
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€System.Collections.Genericã€System.Linqã€System.Textã€ChurchReport.Modelsã€ChurchReport.Servicesã€Microsoft.Extensions.Caching.Memoryã€Microsoft.Xrm.Sdk
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,35 +23,35 @@ using Microsoft.Xrm.Sdk;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ¾ã¦X¸ê®Æ¤U¸üªA°È - ³]©w¬ÛÃö¤èªk
+    /// æ•´åˆè³‡æ–™ä¸‹è¼‰æœå‹™ - è¨­å®šç›¸é—œæ–¹æ³•
     /// </summary>
     public partial class DownloadIntegrateData
     {
-        #region ¼ĞÀY³]©w
+        #region æ¨™é ­è¨­å®š
 
         /// <summary>
-        /// ³]©w¼ĞÀY¸ê®Æ
+        /// è¨­å®šæ¨™é ­è³‡æ–™
         /// </summary>
         public void SetupHeaderData(
-            string Account, 
-            string Password, 
-            DateTime aDownloadDate, 
-            string ListEntityId, 
-            string WeeklyReportEntityId, 
+            string Account,
+            string Password,
+            DateTime aDownloadDate,
+            string ListEntityId,
+            string WeeklyReportEntityId,
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            // §äµn¤J¨Ï¥ÎªÌ¤Î¨äID
+            // æ‰¾ç™»å…¥ä½¿ç”¨è€…åŠå…¶ID
             FindLoginUser(Account, Password);
             if (m_ContactId == Guid.Empty)
             {
-                return; // ¨S§ä¨ì´N¦^¶Ç
+                return; // æ²’æ‰¾åˆ°å°±å›å‚³
             }
 
             aListSmallGroupWeeklyReport.LoadFlag = true;
             this.m_ListEntity = this.m_ToolUtilityClass.RetrieveEntity("list", new Guid(ListEntityId));
 
             aListSmallGroupWeeklyReport.ListEntityName = this.m_ToolUtilityClass.GetEntityStringAttribute(m_ListEntity, "listname");
-            aListSmallGroupWeeklyReport.GroupType = aListSmallGroupWeeklyReport.ListEntityName.Contains("©¯ºÖ") ? "©¯ºÖ¤p²Õ" : "¤@¯ë¤p²Õ";
+            aListSmallGroupWeeklyReport.GroupType = aListSmallGroupWeeklyReport.ListEntityName.Contains("å¹¸ç¦") ? "å¹¸ç¦å°çµ„" : "ä¸€èˆ¬å°çµ„";
 
             aListSmallGroupWeeklyReport.WeeklyReportEntityId = WeeklyReportEntityId;
             if (!string.IsNullOrEmpty(WeeklyReportEntityId))
@@ -50,15 +63,15 @@ namespace ChurchReport.WebServiceConnector
             aListSmallGroupWeeklyReport.SmallGroupLeaderFullName = m_ToolUtilityClass.GetEntityLookupDisplayName(ref m_ListEntity, "new_contact_family_leader_list");
             aListSmallGroupWeeklyReport.SundayPrayers = aDownloadDate;
 
-            // ¡u¤p²Õ¤é´Á¹ïÀ³¨ì¥D¤é´Á¶¡¡v¤£¯à¦Aµw½s½X¬°¡u¥D¤é«e 6 ¤Ñ¨ì¥D¤é¡v¡A
-            // ¥²¶·¨Ì·Ó appsettings.json ªº WeeklySchedule:¨C¶gªº²Ä¤@¤é °ÊºA¨M©w¡C
-            // ¨Ò¦p¡G
-            // - ¬P´Á¤@°_©l¡G°Ï¶¡¬° ¬P´Á¤@ ~ ¬P´Á¤é
-            // - ¬P´Á¤»°_©l¡G°Ï¶¡¬° ¬P´Á¤» ~ ¬P´Á¤­
-            // - ¬P´Á¤é°_©l¡G°Ï¶¡¬° ¬P´Á¤é ~ ¬P´Á¤»
+            // ã€Œå°çµ„æ—¥æœŸå°æ‡‰åˆ°ä¸»æ—¥æœŸé–“ã€ä¸èƒ½å†ç¡¬ç·¨ç¢¼ç‚ºã€Œä¸»æ—¥å‰ 6 å¤©åˆ°ä¸»æ—¥ã€ï¼Œ
+            // å¿…é ˆä¾ç…§ appsettings.json çš„ WeeklySchedule:æ¯é€±çš„ç¬¬ä¸€æ—¥ å‹•æ…‹æ±ºå®šã€‚
+            // ä¾‹å¦‚ï¼š
+            // - æ˜ŸæœŸä¸€èµ·å§‹ï¼šå€é–“ç‚º æ˜ŸæœŸä¸€ ~ æ˜ŸæœŸæ—¥
+            // - æ˜ŸæœŸå…­èµ·å§‹ï¼šå€é–“ç‚º æ˜ŸæœŸå…­ ~ æ˜ŸæœŸäº”
+            // - æ˜ŸæœŸæ—¥èµ·å§‹ï¼šå€é–“ç‚º æ˜ŸæœŸæ—¥ ~ æ˜ŸæœŸå…­
             DateTime weekStart = SundayCalculator.CalculateWeekStart(m_Sunday, WeeklyScheduleProvider.FirstDayOfWeek);
             DateTime weekEnd = SundayCalculator.CalculateWeekEnd(m_Sunday, WeeklyScheduleProvider.FirstDayOfWeek);
-            aListSmallGroupWeeklyReport.SundayPeriod = $"¤p²Õ¤é´Á¹ïÀ³¨ì¥D¤é´Á¶¡¬O: {weekStart.ToShortDateString()} ~ {weekEnd.ToShortDateString()}";
+            aListSmallGroupWeeklyReport.SundayPeriod = $"å°çµ„æ—¥æœŸå°æ‡‰åˆ°ä¸»æ—¥æœŸé–“æ˜¯: {weekStart.ToShortDateString()} ~ {weekEnd.ToShortDateString()}";
 
             aListSmallGroupWeeklyReport.SmallGroupLeaderContactId = m_ContactId.ToString();
             aListSmallGroupWeeklyReport.SmallGroupLeaderFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ContactEntity, "fullname");
@@ -66,35 +79,35 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ªª¾i¸ê®Æ³]©w
+        #region ç‰§é¤Šè³‡æ–™è¨­å®š
 
         /// <summary>
-        /// ³]©wªª¾i¸ê®Æ
+        /// è¨­å®šç‰§é¤Šè³‡æ–™
         /// </summary>
         public void SetupShepherdData(
-            string ListEntityId, 
-            string WeeklyReportEntityId, 
+            string ListEntityId,
+            string WeeklyReportEntityId,
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            // ªì©l¤Æ SmallGroupDataList
+            // åˆå§‹åŒ– SmallGroupDataList
             aListSmallGroupWeeklyReport.m_SmallGroupDataList = new SmallGroupDataList();
 
-            // ¨ú±o©Ò¦³¦¨­û¸ê®Æ
+            // å–å¾—æ‰€æœ‰æˆå“¡è³‡æ–™
             this.GetAllMemeberDataList(ListEntityId, WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
 
-            // ®Ú¾Ú¤p²ÕÃş«¬³]©w¸ê®Æ
-            if (!aListSmallGroupWeeklyReport.GroupType.Contains("©¯ºÖ"))
+            // æ ¹æ“šå°çµ„é¡å‹è¨­å®šè³‡æ–™
+            if (!aListSmallGroupWeeklyReport.GroupType.Contains("å¹¸ç¦"))
             {
                 this.SetSmallGroupData(ref aListSmallGroupWeeklyReport);
-                // SetNewPersonFollowUpData ¤w¾ã¦X¤J SetSmallGroupData ªº³æ¦¸¹M¾ú
+                // SetNewPersonFollowUpData å·²æ•´åˆå…¥ SetSmallGroupData çš„å–®æ¬¡éæ­·
             }
             else
             {
                 this.SetHappyGroupData(ref aListSmallGroupWeeklyReport);
             }
 
-            // ? ·¥³t¡G©Ò¦³¤p²Õ¦WºÙ²M³æ´X¥G¤£ÅÜ¡A§Ö¨ú 30 ¤ÀÄÁ¬Ù¥h CRM ¬d¸ß
-            // Session ¦w¥ş¡G¤p²Õ¦WºÙ¬°¨t²Î¤½¶}¸ê®Æ¡A©Ò¦³¨Ï¥ÎªÌ¦@¨É¬Û¦P²M³æ
+            // ? æ¥µé€Ÿï¼šæ‰€æœ‰å°çµ„åç¨±æ¸…å–®å¹¾ä¹ä¸è®Šï¼Œå¿«å– 30 åˆ†é˜çœå» CRM æŸ¥è©¢
+            // Session å®‰å…¨ï¼šå°çµ„åç¨±ç‚ºç³»çµ±å…¬é–‹è³‡æ–™ï¼Œæ‰€æœ‰ä½¿ç”¨è€…å…±äº«ç›¸åŒæ¸…å–®
             const string listCacheKey = "AllGroupList_v1";
             if (!_optionSetCache.TryGetValue(listCacheKey, out EntityCollection aListEntityCollection))
             {
@@ -108,23 +121,23 @@ namespace ChurchReport.WebServiceConnector
                 aListSmallGroupWeeklyReport.GroupArray.Add(m_ToolUtilityClass.GetEntityStringAttribute(aList, "listname"));
             }
 
-            // ±Æ§Ç©e¨­Ãş«¬¨Ã²M²z®æ¦¡
+            // æ’åºå§”èº«é¡å‹ä¸¦æ¸…ç†æ ¼å¼
             SortAndCleanMemberStatus(ref aListSmallGroupWeeklyReport);
         }
 
         /// <summary>
-        /// ±Æ§Ç¨Ã²M²z¦¨­ûª¬ºA
-        /// ? ·¥³t¡GList.Sort() ­ì¦a±Æ§Ç¨ú¥N OrderBy().ToList()¡A¬Ù¥h 4 ¦¸ List «Øºc
+        /// æ’åºä¸¦æ¸…ç†æˆå“¡ç‹€æ…‹
+        /// ? æ¥µé€Ÿï¼šList.Sort() åŸåœ°æ’åºå–ä»£ OrderBy().ToList()ï¼Œçœå» 4 æ¬¡ List å»ºæ§‹
         /// </summary>
         private static void SortAndCleanMemberStatus(ref ListSmallGroupWeeklyReport report)
         {
-            // ­ì¦a±Æ§Ç¡AµL»İ«Ø¥ß·s List
+            // åŸåœ°æ’åºï¼Œç„¡éœ€å»ºç«‹æ–° List
             report.m_SmallGroupDataList.m_AllMemeberData?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
             report.m_SmallGroupDataList.m_SmallGroupData?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
             report.m_SmallGroupDataList.m_NewPersonFollowUpData?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
             report.m_SmallGroupDataList.m_HappyGroup?.Members?.Sort(static (a, b) => string.CompareOrdinal(a.Status, b.Status));
 
-            // ¥h°£¼Æ¦r¡BªÅ¥Õ¡B³r¸¹
+            // å»é™¤æ•¸å­—ã€ç©ºç™½ã€é€—è™Ÿ
             RemoveNumericAndBlank(report.m_SmallGroupDataList.m_AllMemeberData?.Members);
             RemoveNumericAndBlank(report.m_SmallGroupDataList.m_SmallGroupData?.Members);
             RemoveNumericAndBlank(report.m_SmallGroupDataList.m_NewPersonFollowUpData?.Members);
@@ -133,14 +146,14 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ¶g³ø¸ê®Æ³]©w
+        #region é€±å ±è³‡æ–™è¨­å®š
 
         /// <summary>
-        /// ³]©w¶g³ø¸ê®Æ
+        /// è¨­å®šé€±å ±è³‡æ–™
         /// </summary>
         public void SetupWeeklyReportData(string WeeklyReportEntityId, ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            if (aListSmallGroupWeeklyReport.GroupType == "©¯ºÖ¤p²Õ")
+            if (aListSmallGroupWeeklyReport.GroupType == "å¹¸ç¦å°çµ„")
             {
                 SetupHappyGroupWeeklyData(WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
             }
@@ -149,7 +162,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ³]©w©¯ºÖ¤p²Õ¶g³ø¸ê®Æ
+        /// è¨­å®šå¹¸ç¦å°çµ„é€±å ±è³‡æ–™
         /// </summary>
         private void SetupHappyGroupWeeklyData(string WeeklyReportEntityId, ref ListSmallGroupWeeklyReport report)
         {
@@ -166,7 +179,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ³]©w³q¥Î¶g³ø¸ê®Æ¡]¤p²Õ¤é»x¡B¤ÀªR¤Î¼È°±¡^
+        /// è¨­å®šé€šç”¨é€±å ±è³‡æ–™ï¼ˆå°çµ„æ—¥èªŒã€åˆ†æåŠæš«åœï¼‰
         /// </summary>
         private void SetupCommonWeeklyData(string WeeklyReportEntityId, ref ListSmallGroupWeeklyReport report)
         {
@@ -186,18 +199,18 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ¶g³ø¹Ïªí¸ê®Æ³]©w
+        #region é€±å ±åœ–è¡¨è³‡æ–™è¨­å®š
 
         /// <summary>
-        /// ³]©w¶g³ø¹Ïªí¸ê®Æ
+        /// è¨­å®šé€±å ±åœ–è¡¨è³‡æ–™
         /// </summary>
         public void SetupWeeklyReportChartData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            // ªì©l¤Æ¹Ïªí¸ê®Æ
+            // åˆå§‹åŒ–åœ–è¡¨è³‡æ–™
             InitializeChartData(ref aListSmallGroupWeeklyReport);
 
-            // ? ·¥³t¡G¹Ïªí¸ê®Æ¨Ì¡u¤p²ÕID + ¥D¤é¡v§Ö¨ú 15 ¤ÀÄÁ¡A©Ò¦³¨Ï¥ÎªÌ¦@¨É
-            // Session ¦w¥ş¡G¹Ïªí¶È§t¥X®u¤H¼Æ²Î­p¡AµL­Ó¤H¸ê®Æ
+            // ? æ¥µé€Ÿï¼šåœ–è¡¨è³‡æ–™ä¾ã€Œå°çµ„ID + ä¸»æ—¥ã€å¿«å– 15 åˆ†é˜ï¼Œæ‰€æœ‰ä½¿ç”¨è€…å…±äº«
+            // Session å®‰å…¨ï¼šåœ–è¡¨åƒ…å«å‡ºå¸­äººæ•¸çµ±è¨ˆï¼Œç„¡å€‹äººè³‡æ–™
             string chartCacheKey = $"WeeklyReportChart_{this.m_ListEntity.Id:N}_{this.m_Sunday:yyyyMMdd}";
             if (!_optionSetCache.TryGetValue(chartCacheKey, out EntityCollection GroupWeeklyReportEntityCollection))
             {
@@ -206,7 +219,7 @@ namespace ChurchReport.WebServiceConnector
                     new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15)));
             }
 
-            // ¶ñ¥R¹Ïªí¸ê®Æ
+            // å¡«å……åœ–è¡¨è³‡æ–™
             foreach (Entity aWeeklyReporEntity in GroupWeeklyReportEntityCollection.Entities)
             {
                 int aSundayNumber = this.m_ToolUtilityClass.GetEntityIntAttribute(aWeeklyReporEntity, "new_sunday_present_number");
@@ -223,7 +236,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ªì©l¤Æ¹Ïªí¸ê®Æµ²ºc
+        /// åˆå§‹åŒ–åœ–è¡¨è³‡æ–™çµæ§‹
         /// </summary>
         private void InitializeChartData(ref ListSmallGroupWeeklyReport report)
         {
@@ -249,11 +262,11 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ¤p²Õ¸ê®Æ¤ÀÃş
+        #region å°çµ„è³‡æ–™åˆ†é¡
 
         /// <summary>
-        /// ³]©w¤p²Õªª¾i¸ê®Æ¡]¹LÂo±¼·sªB¤Í©M¥¼¤J²Õ¡^
-        /// ? ·¥³t¡G»P SetNewPersonFollowUpData ¦X¨Ö¬°³æ¦¸¹M¾ú¡A¬Ù¥h²Ä¤G¦¸­¡¥N
+        /// è¨­å®šå°çµ„ç‰§é¤Šè³‡æ–™ï¼ˆéæ¿¾æ‰æ–°æœ‹å‹å’Œæœªå…¥çµ„ï¼‰
+        /// ? æ¥µé€Ÿï¼šèˆ‡ SetNewPersonFollowUpData åˆä½µç‚ºå–®æ¬¡éæ­·ï¼Œçœå»ç¬¬äºŒæ¬¡è¿­ä»£
         /// </summary>
         private void SetSmallGroupData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
@@ -265,13 +278,13 @@ namespace ChurchReport.WebServiceConnector
 
             foreach (Member aMember in allMembers)
             {
-                bool isNewComer = aMember.Status.Contains("·sªB¤Í") || aMember.Status.Contains("¥¼¤J²Õ");
+                bool isNewComer = aMember.Status.Contains("æ–°æœ‹å‹") || aMember.Status.Contains("æœªå…¥çµ„");
 
                 if (isNewComer)
                 {
                     newPersonMembers.Add(aMember);
                 }
-                else if (!aMember.Status.Contains("¥~±Ğ·|") && !aMember.Status.Contains("µ²®×"))
+                else if (!aMember.Status.Contains("å¤–æ•™æœƒ") && !aMember.Status.Contains("çµæ¡ˆ"))
                 {
                     smallGroupMembers.Add(aMember);
                 }
@@ -282,15 +295,15 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ³]©w·s¤H¸ò¶i¸ê®Æ¡]¤w¾ã¦X¤J SetSmallGroupData¡A«O¯d¥Hºû«ù¬Û®e©Ê¡^
+        /// è¨­å®šæ–°äººè·Ÿé€²è³‡æ–™ï¼ˆå·²æ•´åˆå…¥ SetSmallGroupDataï¼Œä¿ç•™ä»¥ç¶­æŒç›¸å®¹æ€§ï¼‰
         /// </summary>
         private static void SetNewPersonFollowUpData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
-            // ¤w¦b SetSmallGroupData ªº³æ¦¸¹M¾ú¤¤§¹¦¨¡AµL»İ­«½Æ³B²z
+            // å·²åœ¨ SetSmallGroupData çš„å–®æ¬¡éæ­·ä¸­å®Œæˆï¼Œç„¡éœ€é‡è¤‡è™•ç†
         }
 
         /// <summary>
-        /// ³]©w©¯ºÖ¤p²Õ¸ê®Æ¡]¥]§t©Ò¦³¦¨­û¡^
+        /// è¨­å®šå¹¸ç¦å°çµ„è³‡æ–™ï¼ˆåŒ…å«æ‰€æœ‰æˆå“¡ï¼‰
         /// </summary>
         private void SetHappyGroupData(ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {

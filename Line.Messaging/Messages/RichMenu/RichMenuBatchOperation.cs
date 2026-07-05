@@ -1,22 +1,38 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：Line.Messaging/Messages/RichMenu/RichMenuBatchOperation.cs
+// 所屬區塊：LINE Messaging SDK 封裝層，定義 LINE API DTO、Client 呼叫與訊息模型。
+// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
+// 主要型別：class RichMenuBatchRequest、class RichMenuBatchOperation、class RichMenuBatchProgress
+// 主要成員：Operations、ResumeRequestKey、Type、RichMenuId、RichMenuAliasId、UserIds、Phase、AcceptedTime、CompletedTime
+// 引用命名空間：Newtonsoft.Json、System.Collections.Generic
+// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
 namespace Line.Messaging
 {
     /// <summary>
-    /// Request body for replacing or unlinking the linked rich menus in batches
+    /// 批次替換或解除使用者 RichMenu 連結的 request body。
     /// https://developers.line.biz/en/reference/messaging-api/#batch-control-rich-menus
+    /// LINE 會非同步處理此請求；呼叫端應使用 progress endpoint 追蹤已送出的操作最後成功或失敗。
     /// </summary>
     public class RichMenuBatchRequest
     {
         /// <summary>
-        /// Array of operation objects. Max: 1000 objects
+        /// operation 物件集合，LINE 最多接受 1000 筆。
+        /// 每筆 operation 表示一個 link、unlink 或 unlink-all 指令；順序應保留為呼叫端希望 LINE 處理的順序。
         /// </summary>
         [JsonProperty("operations")]
         public List<RichMenuBatchOperation> Operations { get; set; }
 
         /// <summary>
-        /// A key that is used to resume a batch control request.
+        /// 用於恢復 batch control request 的 key。
+        /// 呼叫端重試或恢復先前已被接受的批次操作時會提供此值。
         /// </summary>
         [JsonProperty("resumeRequestKey")]
         public string ResumeRequestKey { get; set; }
@@ -24,66 +40,73 @@ namespace Line.Messaging
 
 
     /// <summary>
-    /// Rich menu batch operation
+    /// RichMenu 批次操作項目。
+    /// 表示 <see cref="RichMenuBatchRequest"/> 中的一個指令；必要欄位會依 <see cref="Type"/> 改變。
+    /// 呼叫端只能組出 LINE API 接受的欄位組合。
     /// </summary>
     public class RichMenuBatchOperation
     {
         /// <summary>
-        /// Operation type. One of:
-        /// - link: Link a rich menu to users
-        /// - unlink: Unlink a rich menu from users
-        /// - unlinkAll: Unlink rich menus from all users
+        /// 操作類型。
+        /// - link：將 RichMenu 綁定到使用者。
+        /// - unlink：解除使用者的 RichMenu 綁定。
+        /// - unlinkAll：解除所有使用者的 RichMenu 綁定。
+        /// 此字串會直接送進 JSON，必須保持 LINE API 要求的小寫格式。
         /// </summary>
         [JsonProperty("type")]
         public string Type { get; set; }
 
         /// <summary>
-        /// Rich menu ID. Required when type is link.
+        /// RichMenu ID；<see cref="Type"/> 為 link 時必填。
+        /// 這是 provider richMenuId，不是 alias id；若要用 alias-based request，請使用 <see cref="RichMenuAliasId"/>。
         /// </summary>
         [JsonProperty("richMenuId")]
         public string RichMenuId { get; set; }
 
         /// <summary>
-        /// Rich menu alias ID.
+        /// RichMenu 別名 ID。
+        /// alias id 讓 client 端切換 action 維持穩定，同時允許 provisioning 輪替底層 richMenuId。
         /// </summary>
         [JsonProperty("richMenuAliasId")]
         public string RichMenuAliasId { get; set; }
 
         /// <summary>
-        /// Array of user IDs. Required when type is link or unlink.
-        /// Use the userId values returned in webhook event objects.
-        /// Max: 500 user IDs
+        /// 使用者 ID 集合；<see cref="Type"/> 為 link 或 unlink 時必填。
+        /// 必須使用 webhook event object 內的 userId，LINE 最多接受 500 筆。
+        /// unlinkAll 是 channel-wide 操作，不應提供此欄位。
         /// </summary>
         [JsonProperty("userIds")]
         public List<string> UserIds { get; set; }
     }
 
     /// <summary>
-    /// Rich menu batch progress response
+    /// RichMenu 批次操作進度 response。
     /// https://developers.line.biz/en/reference/messaging-api/#get-batch-control-rich-menus-progress-status
+    /// LINE 接受 batch-control request 並開始非同步處理後，會透過此物件回傳進度狀態。
     /// </summary>
     public class RichMenuBatchProgress
     {
         /// <summary>
-        /// The current status of the rich menu batch control operation. One of:
-        /// - processing: Processing is in progress
-        /// - succeeded: Processing has succeeded
-        /// - failed: Processing has failed
+        /// RichMenu batch control operation 目前狀態。
+        /// - processing：處理中。
+        /// - succeeded：處理成功。
+        /// - failed：處理失敗。
+        /// LINE 未來可能擴充狀態集合，消費端遇到未知值時應採防禦式處理。
         /// </summary>
         [JsonProperty("phase")]
         public string Phase { get; set; }
 
         /// <summary>
-        /// The accepted time in milliseconds of the request of batch control the rich menu.
-        /// Format: Epoch time (milliseconds)
+        /// batch control request 被 LINE 接受的時間，單位為毫秒。
+        /// 格式為 Epoch time milliseconds；這是 provider 時間，可用於診斷與 polling log，不應作為本機業務排序依據。
         /// </summary>
         [JsonProperty("acceptedTime")]
         public long AcceptedTime { get; set; }
 
         /// <summary>
-        /// The completed time in milliseconds of batch control the rich menu. 
-        /// Returned only when phase is succeeded or failed.
-        /// Format: Epoch time (milliseconds)
+        /// RichMenu batch control 完成時間，單位為毫秒。
+        /// 僅在 phase 為 succeeded 或 failed 時回傳；格式為 Epoch time milliseconds。
+        /// null 代表 LINE 尚未完成非同步操作。
         /// </summary>
         [JsonProperty("completedTime")]
         public long? CompletedTime { get; set; }

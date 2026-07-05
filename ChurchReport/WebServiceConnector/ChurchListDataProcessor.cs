@@ -1,4 +1,17 @@
-﻿using System;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/WebServiceConnector/ChurchListDataProcessor.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class ChurchListDataProcessor
+// 主要成員：GetChurchListData、FindLoginUser、FindListCollection、QueryListByContactIdWithCache、MergeCollectionSmallGroupAhead、ProcessChurchRoot、SetChurchRoot、SetAreaLeader、SetRaceLeader、SetSmallGroupLeader
+// 引用命名空間：System、System.Collections.Generic、System.Linq、System.Threading.Tasks、ChurchReport.Models、Microsoft.Xrm.Sdk、Microsoft.Xrm.Sdk.Query、Microsoft.Xrm.Sdk.Client
+// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,7 +52,7 @@ namespace ChurchReport.WebServiceConnector
         #endregion
 
         #region 建構函式
-        
+
         /// <summary>
         /// 預設建構函式（向後相容）
         /// </summary>
@@ -152,42 +165,42 @@ namespace ChurchReport.WebServiceConnector
                 // 初始化 m_Lists
                 // 小組同工 new_contact_list_vice_family_leader
                 EntityCollection aListEntityCollection = QueryListByContactIdWithCache(
-                    m_ContactId, 
+                    m_ContactId,
                     "new_contact_list_vice_family_leader",
                     "vice_family_leader");
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 小組長/小組同工 new_contact_family_leader_list
                 aListEntityCollection = QueryListByContactIdWithCache(
-                    m_ContactId, 
+                    m_ContactId,
                     "new_contact_family_leader_list",
                     "family_leader");
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 共同區長 new_contact_co_race_leager_list
                 aListEntityCollection = QueryListByContactIdWithCache(
-                    m_ContactId, 
+                    m_ContactId,
                     "new_contact_co_race_leager_list",
                     "co_race_leader");
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 上代組長 new_contact_race_leager_list
                 aListEntityCollection = QueryListByContactIdWithCache(
-                    m_ContactId, 
+                    m_ContactId,
                     "new_contact_race_leager_list",
                     "race_leader");
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 區長 new_contact_list_arealeader
                 aListEntityCollection = QueryListByContactIdWithCache(
-                    m_ContactId, 
+                    m_ContactId,
                     "new_contact_list_arealeader",
                     "area_leader");
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
 
                 // 共同區牧 new_contact_list_co_arealeader
                 aListEntityCollection = QueryListByContactIdWithCache(
-                    m_ContactId, 
+                    m_ContactId,
                     "new_contact_list_co_arealeader",
                     "co_area_leader");
                 MergeCollectionSmallGroupAhead(ref aListEntityCollection);
@@ -216,7 +229,7 @@ namespace ChurchReport.WebServiceConnector
 
             // 使用快取
             string cacheKey = $"list_query_{contactId}_{cacheKeySuffix}";
-            
+
             // 先嘗試從記憶體快取取得
             if (_cacheService.TryGetFromMemory<EntityCollection>(cacheKey, out var cachedResult))
             {
@@ -228,7 +241,7 @@ namespace ChurchReport.WebServiceConnector
 
             // 儲存到快取（10 分鐘絕對過期，2 分鐘滑動過期）
             _cacheService.SetMemory(
-                cacheKey, 
+                cacheKey,
                 result,
                 absoluteExpire: TimeSpan.FromMinutes(10),
                 slidingExpire: TimeSpan.FromMinutes(2)
@@ -370,7 +383,7 @@ namespace ChurchReport.WebServiceConnector
                     Entity aAreaLeaderContact = m_ToolUtilityClass.RetrieveEntity("contact", aArealeaderId);
                     aAreaLeader = SetAreaLeader(aAreaLeaderContact, aAreaLeadersList);
                 }
-                else 
+                else
                 {
                     // 沒有填區牧
                     aAreaLeader = SetAreaLeader( null , aAreaLeadersList);
@@ -609,7 +622,7 @@ namespace ChurchReport.WebServiceConnector
 
             // 使用快取
             string cacheKey = $"member_list_{listId}";
-            
+
             // 先嘗試從記憶體快取取得
             if (_cacheService.TryGetFromMemory<EntityCollection>(cacheKey, out var cachedResult))
             {
@@ -621,7 +634,7 @@ namespace ChurchReport.WebServiceConnector
 
             // 儲存到快取（5 分鐘絕對過期，2 分鐘滑動過期）
             _cacheService.SetMemory(
-                cacheKey, 
+                cacheKey,
                 result,
                 absoluteExpire: TimeSpan.FromMinutes(5),
                 slidingExpire: TimeSpan.FromMinutes(2)
@@ -743,7 +756,7 @@ namespace ChurchReport.WebServiceConnector
 
             // 使用快取
             string cacheKey = "all_small_groups_list";
-            
+
             // 先嘗試從記憶體快取取得
             if (_cacheService.TryGetFromMemory<EntityCollection>(cacheKey, out var cachedResult))
             {
@@ -756,7 +769,7 @@ namespace ChurchReport.WebServiceConnector
             // 儲存到快取（30 分鐘絕對過期，10 分鐘滑動過期）
             // 這是靜態資料，可以快取較長時間
             _cacheService.SetMemory(
-                cacheKey, 
+                cacheKey,
                 result,
                 absoluteExpire: TimeSpan.FromMinutes(30),
                 slidingExpire: TimeSpan.FromMinutes(10)

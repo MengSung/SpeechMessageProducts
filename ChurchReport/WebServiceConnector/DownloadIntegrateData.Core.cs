@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/WebServiceConnector/DownloadIntegrateData.Core.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass DownloadIntegrateData
+// ä¸»è¦æˆå“¡ï¼šSetupIntegrateDataã€CalculateSundayã€FindLoginUserã€RemoveNumericAndBlankã€KeepDigitsOnlyã€CountDigitsã€StripCharsã€ConvertIndexToIdentityã€ConvertIndexToSpiritualIdentityã€ConvertIndexToClearIdentity
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€System.Collections.Genericã€System.Text.RegularExpressionsã€ChurchReport.Modelsã€ChurchReport.Models.CrmTransmitModuleã€ChurchReport.Servicesã€ChurchReport.WebServiceConnector.Convertersã€Microsoft.Extensions.Caching.Memory
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -13,37 +26,37 @@ using ToolUtilityNameSpace.Factory;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ¾ã¦X¸ê®Æ¤U¸üªA°È - ¥DÃş§O¡]¨ó½ÕªÌ¡^
-    /// ¿í´` Linus ¥N½X­ì«h¡G«O«ù¥DÃş§OºëÂ²¡A©e¬£¤u§@µ¹±Mªùªº partial Ãş§O
+    /// æ•´åˆè³‡æ–™ä¸‹è¼‰æœå‹™ - ä¸»é¡åˆ¥ï¼ˆå”èª¿è€…ï¼‰
+    /// éµå¾ª Linus ä»£ç¢¼åŸå‰‡ï¼šä¿æŒä¸»é¡åˆ¥ç²¾ç°¡ï¼Œå§”æ´¾å·¥ä½œçµ¦å°ˆé–€çš„ partial é¡åˆ¥
     /// </summary>
     public partial class DownloadIntegrateData
     {
-        #region Äæ¦ì»P±`¼Æ
+        #region æ¬„ä½èˆ‡å¸¸æ•¸
 
-        // ³z¹L Factory ¨ú±o ToolUtilityClass ³æ¤@¹ê¨Ò
+        // é€é Factory å–å¾— ToolUtilityClass å–®ä¸€å¯¦ä¾‹
         private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
-        // ? ®Ä¯àÀu¤Æ¡G¥[¤J RegexOptions.Compiled¡AJIT ½sÄ¶¥¿«hªí¹F¦¡¥H¥[³t¤Ç°t
+        // ? æ•ˆèƒ½å„ªåŒ–ï¼šåŠ å…¥ RegexOptions.Compiledï¼ŒJIT ç·¨è­¯æ­£å‰‡è¡¨é”å¼ä»¥åŠ é€ŸåŒ¹é…
         private static readonly Regex DigitsOnly = new Regex(@"[^\d]", RegexOptions.Compiled);
 
         private readonly Dictionary<String, String> m_FeedBackReport = new Dictionary<string, string>();
 
         private bool m_SetIdentityFlag = false;
 
-        // ? ®Ä¯à­×´_¡GCRM Ãş«¬±`¼Æ²Î¤@¬° "DYNAMICS365"¡A»P©Ò¦³¤ñ¸û¤@­P
+        // ? æ•ˆèƒ½ä¿®å¾©ï¼šCRM é¡å‹å¸¸æ•¸çµ±ä¸€ç‚º "DYNAMICS365"ï¼Œèˆ‡æ‰€æœ‰æ¯”è¼ƒä¸€è‡´
         private const string CRM_TYPE = "DYNAMICS365";
 
-        // ©e¨­Ãş«¬¦Û°ÊÂà´«ºX¼Ğ
+        // å§”èº«é¡å‹è‡ªå‹•è½‰æ›æ——æ¨™
         private const bool TRANSFER_IDENTITY_FLAG = false;
 
-        // ¹L¥h´X¶g¤º¥X®u¶W¹L¦¹¦¸¼Æ´N·|§ïÅÜ©e¨­Ãş«¬ => ¤p²Õ²Õ­û
+        // éå»å¹¾é€±å…§å‡ºå¸­è¶…éæ­¤æ¬¡æ•¸å°±æœƒæ”¹è®Šå§”èº«é¡å‹ => å°çµ„çµ„å“¡
         private const int WEEK_PERIOD = 8;
         private const int MINIMUM_THRESHOLD = 4;
 
-        // ±Ú¨t²Õªø¯à§_À°¤p²Õªø«Ø¥ß¶g³ø
+        // æ—ç³»çµ„é•·èƒ½å¦å¹«å°çµ„é•·å»ºç«‹é€±å ±
         private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true;
 
-        #region °£¿ù¥Î°Ñ¼Æ
+        #region é™¤éŒ¯ç”¨åƒæ•¸
         private const int TOTAL_LEVEL = 1;
         private const int LEVEL_1 = 1;
         private const int LEVEL_2 = 2;
@@ -54,7 +67,7 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ¤U¸ü¸ê®Æ®É©Ò»İ­nªº°Ñ¼Æ
+        #region ä¸‹è¼‰è³‡æ–™æ™‚æ‰€éœ€è¦çš„åƒæ•¸
 
         private DateTime m_Sunday;
         private Entity m_ListEntity;
@@ -65,7 +78,7 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region Âà´«¾¹¹ê¨Ò
+        #region è½‰æ›å™¨å¯¦ä¾‹
 
         private IdentityConverter _identityConverter;
 
@@ -75,8 +88,8 @@ namespace ChurchReport.WebServiceConnector
             {
                 if (_identityConverter == null)
                 {
-                    // ? ®Ä¯àÀu¤Æ¡G¦@¨ÉÀRºA _optionSetCache¡AÁ×§K¨C­Ó DownloadIntegrateData ¹ê¨Ò¦U¦Û§N±Ò°Ê
-                    // Session ¦w¥ş¡G_optionSetCache ¶È¦s©ñ CRM Schema Metadata¡]¤£§t¨Ï¥ÎªÌ¸ê®Æ¡^
+                    // ? æ•ˆèƒ½å„ªåŒ–ï¼šå…±äº«éœæ…‹ _optionSetCacheï¼Œé¿å…æ¯å€‹ DownloadIntegrateData å¯¦ä¾‹å„è‡ªå†·å•Ÿå‹•
+                    // Session å®‰å…¨ï¼š_optionSetCache åƒ…å­˜æ”¾ CRM Schema Metadataï¼ˆä¸å«ä½¿ç”¨è€…è³‡æ–™ï¼‰
                     _identityConverter = new IdentityConverter(
                         m_ToolUtilityClass.m_Crm2011OrganizationService,
                         _optionSetCache
@@ -88,54 +101,54 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ¥D­n¶i¤JÂI
+        #region ä¸»è¦é€²å…¥é»
 
         /// <summary>
-        /// ³]©w¾ã¦X¸ê®Æ¡]¥D­n¶i¤JÂI¡^
+        /// è¨­å®šæ•´åˆè³‡æ–™ï¼ˆä¸»è¦é€²å…¥é»ï¼‰
         /// </summary>
         public void SetupIntegrateData(
-            string Account, 
-            string Password, 
-            string LoginType, 
-            DateTime aDownloadDate, 
-            string ListEntityId, 
-            string WeeklyReportEntityId, 
+            string Account,
+            string Password,
+            string LoginType,
+            DateTime aDownloadDate,
+            string ListEntityId,
+            string WeeklyReportEntityId,
             ref ListSmallGroupWeeklyReport aListSmallGroupWeeklyReport)
         {
             this.m_LoginType = LoginType;
 
-            // ­pºâ·í¶g¥D¤é¤é´Á
+            // è¨ˆç®—ç•¶é€±ä¸»æ—¥æ—¥æœŸ
             this.m_Sunday = CalculateSunday(aDownloadDate);
 
-            // ³]©w¼ĞÀY¸ê®Æ
+            // è¨­å®šæ¨™é ­è³‡æ–™
             this.SetupHeaderData(Account, Password, aDownloadDate, ListEntityId, WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
 
-            // ³]©wªª¾i¸ê®Æ
+            // è¨­å®šç‰§é¤Šè³‡æ–™
             this.SetupShepherdData(ListEntityId, WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
 
-            // ³]©w¶g³ø¸ê®Æ
+            // è¨­å®šé€±å ±è³‡æ–™
             this.SetupWeeklyReportData(WeeklyReportEntityId, ref aListSmallGroupWeeklyReport);
 
-            // ³]©w¶g³ø¹Ïªí¸ê®Æ
+            // è¨­å®šé€±å ±åœ–è¡¨è³‡æ–™
             this.SetupWeeklyReportChartData(ref aListSmallGroupWeeklyReport);
         }
 
         #endregion
 
-        #region »²§U¤èªk
+        #region è¼”åŠ©æ–¹æ³•
 
         /// <summary>
-        /// ­pºâ·í¶g¥D¤é¤é´Á
+        /// è¨ˆç®—ç•¶é€±ä¸»æ—¥æ—¥æœŸ
         /// </summary>
         private DateTime CalculateSunday(DateTime date)
         {
-            // ¶°¤¤¥Ñ SundayCalculator ¨Ì³]©wÀÉªº¨C¶g²Ä¤@¤é³W«h­pºâ¥D¤é¡A
-            // Á×§K¤£¦PÀÉ®×¦U¦ÛºûÅ@µw½s½XÅŞ¿è¡C
+            // é›†ä¸­ç”± SundayCalculator ä¾è¨­å®šæª”çš„æ¯é€±ç¬¬ä¸€æ—¥è¦å‰‡è¨ˆç®—ä¸»æ—¥ï¼Œ
+            // é¿å…ä¸åŒæª”æ¡ˆå„è‡ªç¶­è­·ç¡¬ç·¨ç¢¼é‚è¼¯ã€‚
             return SundayCalculator.CalculateSunday(date, WeeklyScheduleProvider.FirstDayOfWeek);
         }
 
         /// <summary>
-        /// ´M§äµn¤J¨Ï¥ÎªÌ
+        /// å°‹æ‰¾ç™»å…¥ä½¿ç”¨è€…
         /// </summary>
         private void FindLoginUser(string Account, string Password)
         {
@@ -152,8 +165,8 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ²¾°£¦¨­ûª¬ºA¤¤ªº¼Æ¦r»PªÅ¥Õ
-        /// ? ·¥³tª©¡G¨Ï¥Î char °j°é¨ú¥N Regex¡A¹s Regex ¤ŞÀº¶}¾P
+        /// ç§»é™¤æˆå“¡ç‹€æ…‹ä¸­çš„æ•¸å­—èˆ‡ç©ºç™½
+        /// ? æ¥µé€Ÿç‰ˆï¼šä½¿ç”¨ char è¿´åœˆå–ä»£ Regexï¼Œé›¶ Regex å¼•æ“é–‹éŠ·
         /// </summary>
         private static void RemoveNumericAndBlank(List<Member> aMemberList)
         {
@@ -166,13 +179,13 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ? ·¥³t¡G¥u«O¯d¼Æ¦r¦r¤¸¡]¥Î©ó¹q¸Ü¸¹½X¡^¡A§¹¥şÁ×§K Regex ¶}¾P
+        /// ? æ¥µé€Ÿï¼šåªä¿ç•™æ•¸å­—å­—å…ƒï¼ˆç”¨æ–¼é›»è©±è™Ÿç¢¼ï¼‰ï¼Œå®Œå…¨é¿å… Regex é–‹éŠ·
         /// </summary>
         private static string KeepDigitsOnly(string input)
         {
             if (string.IsNullOrEmpty(input)) return string.Empty;
 
-            // §Ö³t¸ô®|¡G¦pªG¥ş³¡³£¬O¼Æ¦r´Nª½±µ¦^¶Ç
+            // å¿«é€Ÿè·¯å¾‘ï¼šå¦‚æœå…¨éƒ¨éƒ½æ˜¯æ•¸å­—å°±ç›´æ¥å›å‚³
             bool allDigits = true;
             for (int i = 0; i < input.Length; i++)
             {
@@ -204,13 +217,13 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ? ·¥³t¡G¤@¦¸¹M¾ú²¾°£«ü©wÃş«¬¦r¤¸¡AÁ×§K¦h¦¸ String.Replace ³y¦¨¦h¦¸°t¸m
+        /// ? æ¥µé€Ÿï¼šä¸€æ¬¡éæ­·ç§»é™¤æŒ‡å®šé¡å‹å­—å…ƒï¼Œé¿å…å¤šæ¬¡ String.Replace é€ æˆå¤šæ¬¡é…ç½®
         /// </summary>
         private static string StripChars(string input, bool stripDigits, bool stripSpaces, bool stripDots)
         {
             if (string.IsNullOrEmpty(input)) return string.Empty;
 
-            // §Ö³t¸ô®|¡G­pºâ»İ­n«O¯dªº¦r¤¸¼Æ
+            // å¿«é€Ÿè·¯å¾‘ï¼šè¨ˆç®—éœ€è¦ä¿ç•™çš„å­—å…ƒæ•¸
             int keepCount = 0;
             for (int i = 0; i < input.Length; i++)
             {
@@ -221,7 +234,7 @@ namespace ChurchReport.WebServiceConnector
                 if (!skip) keepCount++;
             }
 
-            if (keepCount == input.Length) return input; // µL»İ­×§ï
+            if (keepCount == input.Length) return input; // ç„¡éœ€ä¿®æ”¹
             if (keepCount == 0) return string.Empty;
 
             return string.Create(keepCount, (input, stripDigits, stripSpaces, stripDots), static (span, state) =>
@@ -242,7 +255,7 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region Âà´«¾¹©e¬£¤èªk¡]«O«ù¦V«á¬Û®e¡^
+        #region è½‰æ›å™¨å§”æ´¾æ–¹æ³•ï¼ˆä¿æŒå‘å¾Œç›¸å®¹ï¼‰
 
         private string ConvertIndexToIdentity(int identity) => IdentityConverterInstance.IndexToIdentity(identity);
         private string ConvertIndexToSpiritualIdentity(int spiritualIdentity) => IdentityConverterInstance.IndexToSpiritualIdentity(spiritualIdentity);
@@ -261,27 +274,27 @@ namespace ChurchReport.WebServiceConnector
         private static string ConvertNumberToFollowUpWeekPicker(int weekNumber) => FollowUpConverter.NumberToWeekPicker(weekNumber);
         private static int ConvertNumberToWeekIndex(int weekNumber) => FollowUpConverter.NumberToWeekIndex(weekNumber);
         /// <summary>
-        /// ¶iµ{¯ÅÀRºA§Ö¨ú¡]©Ò¦³¨Ï¥ÎªÌ¦@¨É¦P¤@¥÷¡^
-        /// 
-        /// ? Session Leakage §¹¾ã¼f­p¡]³Ì«á§ó·s¡G2025-06¡^
-        /// ùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùù
-        /// 
-        /// ¡i¤¹³\©ñ¤J¦¹§Ö¨úªº¸ê®ÆÃş«¬¡j
-        /// 1. OptionSet_{entity}_{attr}       ¡÷ CRM Äæ¦ì¤U©Ô¿ï¶µ¡]Schema ©w¸q¡^
-        /// 2. OptionSetReverse_{entity}_{attr} ¡÷ ¤W­z¤Ï¦V¹ïÀ³
-        /// 3. AllGroupList_v1                  ¡÷ ©Ò¦³¤p²Õ¦WºÙ²M³æ¡]¨t²Î¤½¶}¡^
-        /// 4. WeeklyReportChart_{listId}_{date}¡÷ ¥X®u¤H¼Æ²Î­p¡]»E¦X¼Æ¾Ú¡^
-        /// 
-        /// ¡i¸T¤î©ñ¤J¦¹§Ö¨úªº¸ê®ÆÃş«¬¡j
-        /// ? ­Ó¤H¥X®u¬ö¿ı¡]FollowUpHistory_*¡^  ¡÷ §t­Ó¤Hªª¾i¸ê®Æ
-        /// ? ­Ó¤HÁpµ¸¸ê°T¡]Contact Entity¡^      ¡÷ §t©m¦W/¹q¸Ü/¦a§}
-        /// ? ¥ô¦ó Entity §t¨Ï¥ÎªÌ¥i¿ëÃÑ¸ê°T       ¡÷ Session Leakage ­·ÀI
-        /// ? ¥iÅÜªº EntityCollection¡]·|³Q«áÄò­×§ï¡^¡÷ ¸ê®Æ¦Ã¬V­·ÀI
-        /// 
-        /// ¡i§PÂ_·Ç«h¡j
-        /// ¦¹§Ö¨ú¥u¯à¦s©ñ¡u©Ò¦³¨Ï¥ÎªÌ¬İ¨ì§¹¥ş¬Û¦Pµ²ªG¡vªº¨t²Î¯Å¸ê®Æ¡C
-        /// ¦pªG¸ê®Æ·|¦]¨Ï¥ÎªÌ¨­¥÷/Åv­­¤£¦P¦Ó¦³®t²§¡Aµ´¹ï¤£¥i§Ö¨ú¡C
-        /// ùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùù
+        /// é€²ç¨‹ç´šéœæ…‹å¿«å–ï¼ˆæ‰€æœ‰ä½¿ç”¨è€…å…±äº«åŒä¸€ä»½ï¼‰
+        ///
+        /// ? Session Leakage å®Œæ•´å¯©è¨ˆï¼ˆæœ€å¾Œæ›´æ–°ï¼š2025-06ï¼‰
+        /// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        ///
+        /// ã€å…è¨±æ”¾å…¥æ­¤å¿«å–çš„è³‡æ–™é¡å‹ã€‘
+        /// 1. OptionSet_{entity}_{attr}       â†’ CRM æ¬„ä½ä¸‹æ‹‰é¸é …ï¼ˆSchema å®šç¾©ï¼‰
+        /// 2. OptionSetReverse_{entity}_{attr} â†’ ä¸Šè¿°åå‘å°æ‡‰
+        /// 3. AllGroupList_v1                  â†’ æ‰€æœ‰å°çµ„åç¨±æ¸…å–®ï¼ˆç³»çµ±å…¬é–‹ï¼‰
+        /// 4. WeeklyReportChart_{listId}_{date}â†’ å‡ºå¸­äººæ•¸çµ±è¨ˆï¼ˆèšåˆæ•¸æ“šï¼‰
+        ///
+        /// ã€ç¦æ­¢æ”¾å…¥æ­¤å¿«å–çš„è³‡æ–™é¡å‹ã€‘
+        /// ? å€‹äººå‡ºå¸­ç´€éŒ„ï¼ˆFollowUpHistory_*ï¼‰  â†’ å«å€‹äººç‰§é¤Šè³‡æ–™
+        /// ? å€‹äººè¯çµ¡è³‡è¨Šï¼ˆContact Entityï¼‰      â†’ å«å§“å/é›»è©±/åœ°å€
+        /// ? ä»»ä½• Entity å«ä½¿ç”¨è€…å¯è¾¨è­˜è³‡è¨Š       â†’ Session Leakage é¢¨éšª
+        /// ? å¯è®Šçš„ EntityCollectionï¼ˆæœƒè¢«å¾ŒçºŒä¿®æ”¹ï¼‰â†’ è³‡æ–™æ±¡æŸ“é¢¨éšª
+        ///
+        /// ã€åˆ¤æ–·æº–å‰‡ã€‘
+        /// æ­¤å¿«å–åªèƒ½å­˜æ”¾ã€Œæ‰€æœ‰ä½¿ç”¨è€…çœ‹åˆ°å®Œå…¨ç›¸åŒçµæœã€çš„ç³»çµ±ç´šè³‡æ–™ã€‚
+        /// å¦‚æœè³‡æ–™æœƒå› ä½¿ç”¨è€…èº«ä»½/æ¬Šé™ä¸åŒè€Œæœ‰å·®ç•°ï¼Œçµ•å°ä¸å¯å¿«å–ã€‚
+        /// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
         /// </summary>
         private static readonly MemoryCache _optionSetCache = new MemoryCache(new MemoryCacheOptions());
 
@@ -289,7 +302,7 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // ? ®Ä¯àÀu¤Æ¡G­«¥ÎÀRºA§Ö¨ú¡AÁ×§K¨C¦¸©I¥s³£ new MemoryCache (­ì¥»¨C¦¸«Ø¥ß·sªºµLªk§Ö¨ú¥ô¦óªF¦è)
+                // ? æ•ˆèƒ½å„ªåŒ–ï¼šé‡ç”¨éœæ…‹å¿«å–ï¼Œé¿å…æ¯æ¬¡å‘¼å«éƒ½ new MemoryCache (åŸæœ¬æ¯æ¬¡å»ºç«‹æ–°çš„ç„¡æ³•å¿«å–ä»»ä½•æ±è¥¿)
                 var optionSetService = new OptionSetMetadataService(
                     m_ToolUtilityClass.m_Crm2011OrganizationService,
                     null,

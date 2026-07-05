@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šToolUtility/Core/ToolUtilityFacade.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport å…±ç”¨å·¥å…·èˆ‡æ•´åˆè¼”åŠ©å±¤ï¼ŒåŒ…å«é€šçŸ¥ã€ä»˜æ¬¾ã€CRM æˆ–è·¨æ¨¡çµ„ helperã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass ToolUtilityFacade
+// ä¸»è¦æˆå“¡ï¼šDisposeã€InitializeServicesã€ReinitializeServicesIfNeededã€RetrieveEntityã€RetrieveEntityByFieldã€RetrieveEntityCollectionByFieldã€QueryWeeklyReportBeforeTowMonthOfSundayã€CreateEntityã€UpdateEntityã€DeleteEntity
+// å¼•ç”¨å‘½åç©ºé–“ï¼šMicrosoft.Crm.Sdk.Messagesã€Microsoft.Xrm.Sdkã€Microsoft.Xrm.Sdk.Clientã€Microsoft.Xrm.Sdk.Discoveryã€Microsoft.Xrm.Sdk.PluginTelemetryã€Microsoft.Xrm.Sdk.Queryã€Systemã€System.Collections
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
@@ -33,14 +46,14 @@ namespace ToolUtilityNameSpace.Core
     /// Light-weight Facade for ToolUtility functionality.
     /// This is the new Facade introduced in PR-04. It delegates to smaller services.
     /// It intentionally coexists with the legacy ToolUtilityClass during the refactor.
-    /// §¹¾ã©e¬£ ToolUtilityClass-developing.cs ªº©Ò¦³¥\¯à
+    /// å®Œæ•´å§”æ´¾ ToolUtilityClass-developing.cs çš„æ‰€æœ‰åŠŸèƒ½
     /// </summary>
     public partial class ToolUtilityFacade : IDisposable
     {
         private readonly object _logger;
         private readonly ICrmConnectionService _crmConnectionService;
 
-        private IOrganizationService _organizationService; // §ï¬°¥iÅÜ§ó,¥Ñ³s±µªA°È¤èªk³]©w
+        private IOrganizationService _organizationService; // æ”¹ç‚ºå¯è®Šæ›´,ç”±é€£æ¥æœå‹™æ–¹æ³•è¨­å®š
 
         private Lazy<IEntityQueryService> _queryService;
         private Lazy<IEntityCrudService> _crudService;
@@ -65,16 +78,16 @@ namespace ToolUtilityNameSpace.Core
         private bool _disposed = false;
 
         /// <summary>
-        /// «Øºc¦¡: ¶È±µ¨ü logger,organizationService ±N³z¹L³s±µªA°È¤èªk³]©w
+        /// å»ºæ§‹å¼: åƒ…æ¥å— logger,organizationService å°‡é€éé€£æ¥æœå‹™æ–¹æ³•è¨­å®š
         /// </summary>
         public ToolUtilityFacade( IOrganizationService aOrganizationService, object logger = null)
         {
             _logger = logger ?? new object();
 
-            // ªì©l¤Æ³s±µªA°È
+            // åˆå§‹åŒ–é€£æ¥æœå‹™
             //_crmConnectionService = new CrmConnectionService();
 
-            // ¨Ï¥Î³s±µªA°È«Ø¥ß CRM ³s±µ
+            // ä½¿ç”¨é€£æ¥æœå‹™å»ºç«‹ CRM é€£æ¥
             //var adUrl = "https://" + ORGANIZATION + ".speechmessage.com.tw/XRMServices/2011/Organization.svc";
             //var adUsername = @"SPEECHMESSAGE\Administrator";
             //var adPassword = "hu9840";
@@ -123,7 +136,7 @@ namespace ToolUtilityNameSpace.Core
 
         private void InitializeServices()
         {
-            // ¨Ï¥Î Lazy ©µ¿ğ¸ü¤J,½T«O¦b¨Ï¥Î®É _organizationService ¤w³Q³]©w
+            // ä½¿ç”¨ Lazy å»¶é²è¼‰å…¥,ç¢ºä¿åœ¨ä½¿ç”¨æ™‚ _organizationService å·²è¢«è¨­å®š
             _queryService = new Lazy<IEntityQueryService>(() => new EntityQueryService(_logger, _organizationService));
             _crudService = new Lazy<IEntityCrudService>(() => new EntityCrudService(_logger, _organizationService));
             _attributeService = new Lazy<IAttributeService>(() => new AttributeServiceComposite(_logger));
@@ -146,11 +159,11 @@ namespace ToolUtilityNameSpace.Core
         }
 
         /// <summary>
-        /// ­«·sªì©l¤Æ©Ò¦³ªA°È (·í _organizationService §ó·s«á©I¥s)
+        /// é‡æ–°åˆå§‹åŒ–æ‰€æœ‰æœå‹™ (ç•¶ _organizationService æ›´æ–°å¾Œå‘¼å«)
         /// </summary>
         private void ReinitializeServicesIfNeeded()
         {
-            // ¦pªGªA°È¤w¸g³Qªì©l¤Æ¹L,»İ­n­«·s«Ø¥ß Lazy ¹ê¨Ò
+            // å¦‚æœæœå‹™å·²ç¶“è¢«åˆå§‹åŒ–é,éœ€è¦é‡æ–°å»ºç«‹ Lazy å¯¦ä¾‹
             if (_queryService?.IsValueCreated == true || _crudService?.IsValueCreated == true ||
                 _contactService?.IsValueCreated == true || _listService?.IsValueCreated == true ||
                 _attachmentService?.IsValueCreated == true || _lineMessageService?.IsValueCreated == true ||
@@ -165,7 +178,7 @@ namespace ToolUtilityNameSpace.Core
             }
         }
 
-        #region °ò¥»¹êÅé¾Ş§@¤èªk
+        #region åŸºæœ¬å¯¦é«”æ“ä½œæ–¹æ³•
         public Entity RetrieveEntity(string entityName, Guid entityId)
             => _queryService.Value.RetrieveEntity(entityName, entityId);
 
@@ -188,7 +201,7 @@ namespace ToolUtilityNameSpace.Core
             => _crudService.Value.DeleteEntity(entityName, entityId);
         #endregion
 
-        #region Äİ©Ê¾Ş§@¤èªk
+        #region å±¬æ€§æ“ä½œæ–¹æ³•
         public bool GetEntityBoolAttribute(Entity entity, string propertyName)
             => _attributeService.Value.GetBoolAttribute(entity, propertyName);
 
@@ -265,21 +278,21 @@ namespace ToolUtilityNameSpace.Core
             => _attributeService.Value.SetDoubleAttributeToNull(entity, propertyName);
         #endregion
 
-        #region CRM ³s±µªA°È¤èªk (©e¬£µ¹ CrmConnectionService ¨Ã³]©w _organizationService)
+        #region CRM é€£æ¥æœå‹™æ–¹æ³• (å§”æ´¾çµ¦ CrmConnectionService ä¸¦è¨­å®š _organizationService)
         /// <summary>
-        /// ¨ú±o Windows »{ÃÒ¾ÌÃÒ
+        /// å–å¾— Windows èªè­‰æ†‘è­‰
         /// </summary>
         public ClientCredentials GetClientCredentials(string domain, string userName, string password)
             => _connectionService.Value.GetClientCredentials(domain, userName, password);
 
         /// <summary>
-        /// ¨ú±o¹w³]»{ÃÒ¾ÌÃÒ
+        /// å–å¾—é è¨­èªè­‰æ†‘è­‰
         /// </summary>
         public ClientCredentials GetClientCredentials()
             => _connectionService.Value.GetClientCredentials();
 
         /// <summary>
-        /// ¨ú±o CRM Organization Service ¨Ã³]©w¬°¤º³¡ªA°È
+        /// å–å¾— CRM Organization Service ä¸¦è¨­å®šç‚ºå…§éƒ¨æœå‹™
         /// </summary>
         public IOrganizationService GetOrganizationService(string server, string port, string organization, string domain, string userName, string password)
         {
@@ -289,7 +302,7 @@ namespace ToolUtilityNameSpace.Core
         }
 
         /// <summary>
-        /// ³]©w CRM 2011 Organization Service ¨Ã³]©w¬°¤º³¡ªA°È
+        /// è¨­å®š CRM 2011 Organization Service ä¸¦è¨­å®šç‚ºå…§éƒ¨æœå‹™
         /// </summary>
         public IOrganizationService SetOrganizationService(string server, string port, string organization, string domain, string userName, string password)
         {
@@ -299,7 +312,7 @@ namespace ToolUtilityNameSpace.Core
         }
 
         /// <summary>
-        /// ³]©w Claims-Based »{ÃÒªº Organization Service ¨Ã³]©w¬°¤º³¡ªA°È
+        /// è¨­å®š Claims-Based èªè­‰çš„ Organization Service ä¸¦è¨­å®šç‚ºå…§éƒ¨æœå‹™
         /// </summary>
         public IOrganizationService SetClaimsBasedAuthenticationOrganizationService(string organization, string server, string domain, string userName, string password)
         {
@@ -309,30 +322,30 @@ namespace ToolUtilityNameSpace.Core
         }
 
         /// <summary>
-        /// ³]©w Federated Organization Proxy ¨Ã³]©w¬°¤º³¡ªA°È (¥Î©ó Dynamics 365 Online ©M On-Premise IFD Àô¹Ò)
+        /// è¨­å®š Federated Organization Proxy ä¸¦è¨­å®šç‚ºå…§éƒ¨æœå‹™ (ç”¨æ–¼ Dynamics 365 Online å’Œ On-Premise IFD ç’°å¢ƒ)
         /// </summary>
         public OrganizationServiceProxy SetFederatedOrganizationProxy(string discoveryServiceType, string organization, string server, string port, string baseDiscoveryServiceAddress, string userName, string password, string domain)
         {
             var proxy = _connectionService.Value.SetFederatedOrganizationProxy(discoveryServiceType, organization, server, port, baseDiscoveryServiceAddress, userName, password, domain);
-            _organizationService = proxy; // OrganizationServiceProxy ¹ê§@ IOrganizationService
+            _organizationService = proxy; // OrganizationServiceProxy å¯¦ä½œ IOrganizationService
             ReinitializeServicesIfNeeded();
             return proxy;
         }
 
         /// <summary>
-        /// ±´¯Á¨Ï¥ÎªÌ©ÒÄİªº²ÕÂ´
+        /// æ¢ç´¢ä½¿ç”¨è€…æ‰€å±¬çš„çµ„ç¹”
         /// </summary>
         public OrganizationDetailCollection DiscoverOrganizations(IDiscoveryService service)
             => _connectionService.Value.DiscoverOrganizations(service);
 
         /// <summary>
-        /// ¦b²ÕÂ´¦Cªí¤¤´M§ä¯S©w²ÕÂ´
+        /// åœ¨çµ„ç¹”åˆ—è¡¨ä¸­å°‹æ‰¾ç‰¹å®šçµ„ç¹”
         /// </summary>
         public OrganizationDetail FindOrganization(string orgUniqueName, OrganizationDetail[] orgDetails)
             => _connectionService.Value.FindOrganization(orgUniqueName, orgDetails);
         #endregion
 
-        #region Ápµ¸¤H¬ÛÃö¤èªk (©e¬£µ¹ ContactService)
+        #region è¯çµ¡äººç›¸é—œæ–¹æ³• (å§”æ´¾çµ¦ ContactService)
         public Entity RetrieveContactByLineId(string lineId)
             => _contactService.Value.RetrieveByLineId(lineId);
 
@@ -373,7 +386,7 @@ namespace ToolUtilityNameSpace.Core
             {
                 return result.Id.ToString();
             }
-            return "±b¸¹©Î±K½X¿ù»~";
+            return "å¸³è™Ÿæˆ–å¯†ç¢¼éŒ¯èª¤";
         }
 
         public Entity DoesAccountExist(string accountNumber)
@@ -398,7 +411,7 @@ namespace ToolUtilityNameSpace.Core
             => _contactService.Value.QueryContatsByStartedDedicationNumber(dedicationStartNumber);
         #endregion
 
-        #region ¦W³æ¬ÛÃö¤èªk (©e¬£µ¹ ListService ©M CollectionQueryService)
+        #region åå–®ç›¸é—œæ–¹æ³• (å§”æ´¾çµ¦ ListService å’Œ CollectionQueryService)
         public void AddMembersToMarketingList(Guid listGuid, List<Guid> memberGuidList)
             => _listService.Value.AddMembers(listGuid, memberGuidList);
 
@@ -414,7 +427,7 @@ namespace ToolUtilityNameSpace.Core
         public ArrayList GetAllMemberDataFromList(Guid listEntityId)
             => _listService.Value.GetAllMemberDataFromList(listEntityId);
 
-        // ¦¨­û¦W³æ¬d¸ß¤èªk
+        // æˆå“¡åå–®æŸ¥è©¢æ–¹æ³•
         public EntityCollection RetrieveMemberListCollectionByListId(Guid listId)
             => _listService.Value.RetrieveMemberListCollectionByListId(listId);
 
@@ -427,7 +440,7 @@ namespace ToolUtilityNameSpace.Core
         public EntityCollection RetrieveMemberListCollectionByListIdCrm2011(ref IOrganizationService organizationService, Guid listId)
             => _listService.Value.RetrieveMemberListCollectionByListIdUsingService(_organizationService, listId);
 
-        // °ÊºA¦W³æ¬d¸ß¤èªk
+        // å‹•æ…‹åå–®æŸ¥è©¢æ–¹æ³•
         public EntityCollection RetrieveDynamicMemberList(string strList)
             => _listService.Value.RetrieveDynamicMemberList(Guid.Parse(strList));
 
@@ -462,12 +475,12 @@ namespace ToolUtilityNameSpace.Core
             => _listService.Value.RetrieveDynamicMemberListUsingService(service, listId);
         #endregion
 
-        #region «È¤á(Account)²ÕÂ´¤èªk
+        #region å®¢æˆ¶(Account)çµ„ç¹”æ–¹æ³•
         public Guid RetrieveAccountCollectionByName(string accountName)
             => _queryService.Value.RetrieveAccountByName(accountName);
         #endregion
 
-        #region ¬ù·|¬ÛÃö¤èªk (©e¬£µ¹ AppointmentService - ­×¥¿¤èªk¦WºÙ)
+        #region ç´„æœƒç›¸é—œæ–¹æ³• (å§”æ´¾çµ¦ AppointmentService - ä¿®æ­£æ–¹æ³•åç¨±)
         public EntityCollection RetrieveAppointmentsByDate(DateTime selectedDate)
             => _appointmentService.Value.RetrieveByDate(selectedDate);
 
@@ -481,7 +494,7 @@ namespace ToolUtilityNameSpace.Core
             => _appointmentService.Value.RetrieveByDateRangeAndScheduleType(startDate, endDate, scheduleType);
         #endregion
 
-        #region ½Òµ{¬ÛÃö¤èªk (©e¬£µ¹ LessonsService - ­×¥¿¤èªk¦WºÙ)
+        #region èª²ç¨‹ç›¸é—œæ–¹æ³• (å§”æ´¾çµ¦ LessonsService - ä¿®æ­£æ–¹æ³•åç¨±)
         public EntityCollection RetrieveEnrolledLessonsByFetchXml(DateTime startDate, DateTime endDate, string contactName, string contactId)
             => _lessonsService.Value.RetrieveEnrolledLessons(startDate, endDate, contactName, contactId);
 
@@ -492,17 +505,17 @@ namespace ToolUtilityNameSpace.Core
             => _lessonsService.Value.RetrieveStorLessons(lessonName, lessonId, contactName, contactId);
         #endregion
 
-        #region ¤u§@¬ÛÃö¤èªk
+        #region å·¥ä½œç›¸é—œæ–¹æ³•
         public EntityCollection RetrieveTaskByFetchXml(string subject)
             => _queryService.Value.RetrieveTaskBySubject(subject);
         #endregion
 
-        #region ­Ó¤H»E·|»PÆF­×°O¿ı¡B¦¬¶O³æ - ¼È®É«O¯d¬°¥¼¹ê§@
-        // ª`·N: ¥H¤U¤èªk»İ­nÀË¬d¹ê»ÚªA°È¤¶­±ªº¤èªkÃ±¦W
-        // ¼È®É«O¯d¬°µù¸Ñ,¦b ToolUtilityClass-developing.cs ¤¤ª½±µ¹ê§@
+        #region å€‹äººèšæœƒèˆ‡éˆä¿®è¨˜éŒ„ã€æ”¶è²»å–® - æš«æ™‚ä¿ç•™ç‚ºæœªå¯¦ä½œ
+        // æ³¨æ„: ä»¥ä¸‹æ–¹æ³•éœ€è¦æª¢æŸ¥å¯¦éš›æœå‹™ä»‹é¢çš„æ–¹æ³•ç°½å
+        // æš«æ™‚ä¿ç•™ç‚ºè¨»è§£,åœ¨ ToolUtilityClass-developing.cs ä¸­ç›´æ¥å¯¦ä½œ
         #endregion
 
-        #region ¦¬¶O³æ¬ÛÃö¤èªk (©e¬£µ¹ FeeService)
+        #region æ”¶è²»å–®ç›¸é—œæ–¹æ³• (å§”æ´¾çµ¦ FeeService)
         public EntityCollection RetrieveDedicationBookingByFetchXml(string contactName, string contactId)
             => _feeService.Value.RetrieveDedicationBooking(contactName, contactId);
 
@@ -510,12 +523,12 @@ namespace ToolUtilityNameSpace.Core
             => _feeService.Value.RetrieveFee(dedicationBookingName, dedicationBookingId, paidPeriod);
         #endregion
 
-        #region Line °T®§¬ÛÃö¤èªk
+        #region Line è¨Šæ¯ç›¸é—œæ–¹æ³•
         public void CreatePushLineMessage(string userId, string subject, string message)
             => _lineMessageService.Value.CreatePushMessage(userId, subject, message);
         #endregion
 
-        #region ªş¥ó¬ÛÃö¤èªk
+        #region é™„ä»¶ç›¸é—œæ–¹æ³•
         public EntityCollection DownloadAnAttachment(ref IOrganizationService crmService, Guid entityId)
             => _attachmentService.Value.DownloadAttachment(ref crmService, entityId);
 
@@ -523,7 +536,7 @@ namespace ToolUtilityNameSpace.Core
             => _attachmentService.Value.UploadAttachment(ref crmService, entityName, subject, noteText, fileName, mimeType, documentBody, toBeAttachedEntityId);
         #endregion
 
-        #region ¦r¦ê¤u¨ã¤èªk
+        #region å­—ä¸²å·¥å…·æ–¹æ³•
         public static void DeleteLastComma(ref string stringToProcess)
             => StringUtility.DeleteLastComma(ref stringToProcess);
 
@@ -531,7 +544,7 @@ namespace ToolUtilityNameSpace.Core
             => StringUtility.FilterDigit(filteredString);
         #endregion
 
-        #region °£¿ù°lÂÜ¤èªk
+        #region é™¤éŒ¯è¿½è¹¤æ–¹æ³•
         public void TraceByLevel(int totalLevel, int qualifiedLevel, string stringToProcess)
         {
             TraceUtility.TraceByLevel(_logger, totalLevel, qualifiedLevel, stringToProcess);
@@ -543,7 +556,7 @@ namespace ToolUtilityNameSpace.Core
         }
         #endregion
 
-        #region ­Ó¤H»E·|»PÆF­×°O¿ı¤èªk (©e¬£µ¹ MeetingStatisticsService)
+        #region å€‹äººèšæœƒèˆ‡éˆä¿®è¨˜éŒ„æ–¹æ³• (å§”æ´¾çµ¦ MeetingStatisticsService)
         public EntityCollection RetrievePresentRecordByFetchXml(string weeklyReportName, string weeklyReportId, string contactName, string contactId)
             => _meetingStatisticsService.Value.RetrieveByWeeklyReportAndContact(weeklyReportName, weeklyReportId, contactName, contactId);
 
@@ -560,7 +573,7 @@ namespace ToolUtilityNameSpace.Core
             => _meetingStatisticsService.Value.RetrieveByContactSmallGroupAndSundayDate(contactName, contactId, smallGroupName, smallGroupId, sundayDate);
         #endregion
 
-        #region ¦W³æ¬d¸ß¤èªk (©e¬£µ¹ ListService)
+        #region åå–®æŸ¥è©¢æ–¹æ³• (å§”æ´¾çµ¦ ListService)
         public Entity RetrieveListEntityByName(string listName)
             => _listService.Value.RetrieveListEntityByName(listName);
 
@@ -571,7 +584,7 @@ namespace ToolUtilityNameSpace.Core
             => _listService.Value.RetrieveListByRacerLeader(contactName, contactId);
         #endregion
 
-        #region ¦¬¶O³æ¬d¸ß¤èªk (©e¬£µ¹ FeeService)
+        #region æ”¶è²»å–®æŸ¥è©¢æ–¹æ³• (å§”æ´¾çµ¦ FeeService)
         public EntityCollection RetrieveDedicationFeeByFetchXml(string contactName, string contactId)
             => _feeService.Value.RetrieveDedicationFee(contactName, contactId);
 
@@ -579,88 +592,88 @@ namespace ToolUtilityNameSpace.Core
             => _feeService.Value.RetrieveDedicationFeeByDateRange(contactName, contactId, startDate, endDate);
         #endregion
 
-        #region ­Ó¤H»E·|»PÆF­×°O¿ı¬d¸ß¤èªk (©e¬£µ¹ PresentRecordQueryService)
+        #region å€‹äººèšæœƒèˆ‡éˆä¿®è¨˜éŒ„æŸ¥è©¢æ–¹æ³• (å§”æ´¾çµ¦ PresentRecordQueryService)
         /// <summary>
-        /// ·j´M¥D¤é¤é´Á¬O³ÌªñN¶gªºÆF­×³æ
+        /// æœå°‹ä¸»æ—¥æ—¥æœŸæ˜¯æœ€è¿‘Né€±çš„éˆä¿®å–®
         /// </summary>
         public EntityCollection QueryPresentRecordByContactIdAndSunday(Guid listEntityId, Guid contactId, int weekPeriod)
             => _presentRecordQueryService.Value.QueryPresentRecordByContactIdAndSunday(listEntityId, contactId, weekPeriod);
 
         /// <summary>
-        /// ®Ú¾Ú¥D¤é¤é´Á±Æ§Ç¬d¸ß¥X®u°O¿ı
+        /// æ ¹æ“šä¸»æ—¥æ—¥æœŸæ’åºæŸ¥è©¢å‡ºå¸­è¨˜éŒ„
         /// </summary>
         public EntityCollection QueryPresentRecordSortBySunday(string parentEntityName, string parentEntityIdName,
             string parentEntityId, string associationName, string childEntityName)
             => _presentRecordQueryService.Value.QueryPresentRecordSortBySunday(parentEntityName, parentEntityIdName, parentEntityId, associationName, childEntityName);
 
         /// <summary>
-        /// ¨Ï¥Î FetchXML ¬d¸ß³ÌªñN¶gªº¥X®u°O¿ı
+        /// ä½¿ç”¨ FetchXML æŸ¥è©¢æœ€è¿‘Né€±çš„å‡ºå¸­è¨˜éŒ„
         /// </summary>
         public EntityCollection QueryPresentRecordSortBySundayFetchXml(int lastWeeks, string contactName, string contactId)
             => _presentRecordQueryService.Value.QueryPresentRecordSortBySundayFetchXml(lastWeeks, contactName, contactId);
 
         /// <summary>
-        /// ®Ú¾Ú¶g³ø©MÁpµ¸¤HID¬d¸ß¥X®u°O¿ı
+        /// æ ¹æ“šé€±å ±å’Œè¯çµ¡äººIDæŸ¥è©¢å‡ºå¸­è¨˜éŒ„
         /// </summary>
         public EntityCollection QueryPresentRecordInWeeklyReportByContactId(Guid contactId, Guid weeklyReportEntityId)
             => _presentRecordQueryService.Value.QueryPresentRecordInWeeklyReportByContactId(contactId, weeklyReportEntityId);
 
         /// <summary>
-        /// ®Ú¾Ú¤é´Á½d³ò¬d¸ß¹êÅé²M³æ
+        /// æ ¹æ“šæ—¥æœŸç¯„åœæŸ¥è©¢å¯¦é«”æ¸…å–®
         /// </summary>
         public EntityCollection QueryEntityListByDate(string parentEntityName, string parentEntityIdName,
             string parentEntityId, string associationName, string childEntityName)
             => _presentRecordQueryService.Value.QueryEntityListByDate(parentEntityName, parentEntityIdName, parentEntityId, associationName, childEntityName);
 
         /// <summary>
-        /// ¬d¸ß¶g³ø(®Ú¾Ú¥D¤é¤é´Á)
+        /// æŸ¥è©¢é€±å ±(æ ¹æ“šä¸»æ—¥æ—¥æœŸ)
         /// </summary>
         public EntityCollection QueryWeeklyReportBySunday(DateTime sunday, Guid listEntityId)
             => _presentRecordQueryService.Value.QueryWeeklyReportBySunday(sunday, listEntityId);
 
         /// <summary>
-        /// ¬d¸ß¶g³ø(¥D¤é¤é´Á«e¨â­Ó¤ë)
+        /// æŸ¥è©¢é€±å ±(ä¸»æ—¥æ—¥æœŸå‰å…©å€‹æœˆ)
         /// </summary>
         public EntityCollection QueryWeeklyReportBeforeTwoMonthOfSunday(DateTime sunday, Guid listEntityId)
             => _presentRecordQueryService.Value.QueryWeeklyReportBeforeTwoMonthOfSunday(sunday, listEntityId);
 
         /// <summary>
-        /// ®Ú¾ÚÁpµ¸¤HID¬d¸ß¦W³æ
+        /// æ ¹æ“šè¯çµ¡äººIDæŸ¥è©¢åå–®
         /// </summary>
         public EntityCollection QueryListByContactId(Guid contactId, string associationName)
             => _presentRecordQueryService.Value.QueryListByContactId(contactId, associationName);
         #endregion
 
-        #region ÃöÁp¬d¸ß¤èªk (©e¬£µ¹ RelationshipQueryService)
+        #region é—œè¯æŸ¥è©¢æ–¹æ³• (å§”æ´¾çµ¦ RelationshipQueryService)
         /// <summary>
-        /// ¬d¸ß N:1 ÃöÁpªº¶°¦X
+        /// æŸ¥è©¢ N:1 é—œè¯çš„é›†åˆ
         /// </summary>
         public EntityCollection RetrieveManyToOneRelationship(string parentEntityName, string parentEntityIdName,
             string parentEntityId, string associationName, string childEntityName)
             => _relationshipQueryService.Value.RetrieveManyToOneRelationship(parentEntityName, parentEntityIdName, parentEntityId, associationName, childEntityName);
 
         /// <summary>
-        /// ¬d¸ß N:1 ÃöÁpªº¶°¦X(®Ú¾Ú¦WºÙ±Æ§Ç)
+        /// æŸ¥è©¢ N:1 é—œè¯çš„é›†åˆ(æ ¹æ“šåç¨±æ’åº)
         /// </summary>
         public EntityCollection QueryListsAndOrderedByListName(string parentEntityName, string parentEntityIdName,
             string parentEntityId, string associationName, string childEntityName)
             => _relationshipQueryService.Value.QueryListsAndOrderedByListName(parentEntityName, parentEntityIdName, parentEntityId, associationName, childEntityName);
 
         /// <summary>
-        /// ¬d¸ß N:1 ÃöÁp(¨Ï¥Î LinkEntity ¨ú±oÃöÁp¸ê®Æ)
+        /// æŸ¥è©¢ N:1 é—œè¯(ä½¿ç”¨ LinkEntity å–å¾—é—œè¯è³‡æ–™)
         /// </summary>
         public EntityCollection RetrieveManyToOneWithLinkEntity()
             => _relationshipQueryService.Value.RetrieveManyToOneWithLinkEntity();
 
         /// <summary>
-        /// ¬d¸ß¶g³ø(®Ú¾Ú¥D¤é¤é´Á©MN:1ÃöÁp)
+        /// æŸ¥è©¢é€±å ±(æ ¹æ“šä¸»æ—¥æ—¥æœŸå’ŒN:1é—œè¯)
         /// </summary>
         public EntityCollection QueryWeeklyReportBySunday(DateTime sunday, string parentEntityName,
             string parentEntityIdName, string parentEntityId, string associationName, string childEntityName)
             => _relationshipQueryService.Value.QueryWeeklyReportBySunday(sunday, parentEntityName, parentEntityIdName, parentEntityId, associationName, childEntityName);
 
         /// <summary>
-        /// ¬d¸ß N:N (ManyToMany) ªº¶°¦X
+        /// æŸ¥è©¢ N:N (ManyToMany) çš„é›†åˆ
         /// </summary>
         public EntityCollection QueryManyToMany(string conditionAttributeName, string entityNameToSearch,
             string linkFromEntityName, string linkFromAttributeName, string linkToEntityName,
@@ -668,140 +681,140 @@ namespace ToolUtilityNameSpace.Core
             => _relationshipQueryService.Value.QueryManyToMany(conditionAttributeName, entityNameToSearch, linkFromEntityName, linkFromAttributeName, linkToEntityName, linkToAttributeName, attributeName, entityIdValue);
 
         /// <summary>
-        /// ³sµ¸¤H¬ÛÃöªº¦UÃş¦W³æ (N:N¬d¸ß)
+        /// é€£çµ¡äººç›¸é—œçš„å„é¡åå–® (N:NæŸ¥è©¢)
         /// </summary>
         public EntityCollection QueryListOfContactManyToMany(Guid contactId)
             => _relationshipQueryService.Value.QueryListOfContactManyToMany(contactId);
         #endregion
 
-        #region FetchXML ¬d¸ß¤èªk (©e¬£µ¹ FetchXmlQueryService)
+        #region FetchXML æŸ¥è©¢æ–¹æ³• (å§”æ´¾çµ¦ FetchXmlQueryService)
         /// <summary>
-        /// ®Ú¾ÚÁpµ¸¤H¬d¸ß¾Ç­û¤W½Ò°O¿ı (¨Ï¥Î FetchXML)
+        /// æ ¹æ“šè¯çµ¡äººæŸ¥è©¢å­¸å“¡ä¸Šèª²è¨˜éŒ„ (ä½¿ç”¨ FetchXML)
         /// </summary>
         public EntityCollection RetrieveStorLessonsByContact(string contactName, string contactId)
             => _fetchXmlQueryService.Value.RetrieveStorLessonsByFetchXml(contactName, contactId);
 
         /// <summary>
-        /// ®Ú¾Ú½Òµ{¬d¸ß¾Ç­û¤W½Ò°O¿ı (¨Ï¥Î FetchXML)
+        /// æ ¹æ“šèª²ç¨‹æŸ¥è©¢å­¸å“¡ä¸Šèª²è¨˜éŒ„ (ä½¿ç”¨ FetchXML)
         /// </summary>
         public EntityCollection RetrieveStorLessonsByDiscipleLessons(string lessonName, string lessonId)
             => _fetchXmlQueryService.Value.RetrieveStorLessonsByDiscipleLessonsFetchXml(lessonName, lessonId);
 
         /// <summary>
-        /// ®Ú¾ÚÁpµ¸¤H¬d¸ß»{Äm°O¿ı (¨Ï¥Î FetchXML)
+        /// æ ¹æ“šè¯çµ¡äººæŸ¥è©¢èªç»è¨˜éŒ„ (ä½¿ç”¨ FetchXML)
         /// </summary>
         public EntityCollection RetrieveDedicationBooking(string contactName, string contactId)
             => _fetchXmlQueryService.Value.RetrieveDedicationBookingByFetchXml(contactName, contactId);
 
         /// <summary>
-        /// ®Ú¾Ú¥D¤é¤é´Á¬d¸ß»E·|²Î­p°O¿ı (¨Ï¥Î FetchXML)
+        /// æ ¹æ“šä¸»æ—¥æ—¥æœŸæŸ¥è©¢èšæœƒçµ±è¨ˆè¨˜éŒ„ (ä½¿ç”¨ FetchXML)
         /// </summary>
         public EntityCollection RetrieveMeetingStatistics(DateTime sundayDate)
             => _fetchXmlQueryService.Value.RetrieveMeetingStatisticsByFetchXml(sundayDate);
 
         /// <summary>
-        /// ®Ú¾Ú»{Äm¹w¬ù©MÃº¶O´Á¶¡¬d¸ß¦¬¶O³æ (¨Ï¥Î FetchXML)
+        /// æ ¹æ“šèªç»é ç´„å’Œç¹³è²»æœŸé–“æŸ¥è©¢æ”¶è²»å–® (ä½¿ç”¨ FetchXML)
         /// </summary>
         public EntityCollection RetrieveFee(string dedicationBookingName, string dedicationBookingId, string paidPeriod)
             => _fetchXmlQueryService.Value.RetrieveFeeByFetchXml(dedicationBookingName, dedicationBookingId, paidPeriod);
 
         /// <summary>
-        /// ¬d¸ß©Ò¦³»İ­nÂI¦Wªº¤p²Õ¦W³æ (¨Ï¥Î FetchXML)
+        /// æŸ¥è©¢æ‰€æœ‰éœ€è¦é»åçš„å°çµ„åå–® (ä½¿ç”¨ FetchXML)
         /// </summary>
         public EntityCollection RetrieveAllLists()
             => _fetchXmlQueryService.Value.RetrieveListByFetchXml();
 
         /// <summary>
-        /// ¬d¸ß©Ò¦³¤p²Õ¦W³æ¶°¦X (¨Ï¥Î FetchXML)
+        /// æŸ¥è©¢æ‰€æœ‰å°çµ„åå–®é›†åˆ (ä½¿ç”¨ FetchXML)
         /// </summary>
         public EntityCollection RetrieveSmallGroupListCollection()
             => _fetchXmlQueryService.Value.RetrieveSmallGroupListCollectionByFetchXml();
         #endregion
 
-        #region ­t³d¤HºŞ²z¤èªk (©e¬£µ¹ OwnerManagementService)
+        #region è² è²¬äººç®¡ç†æ–¹æ³• (å§”æ´¾çµ¦ OwnerManagementService)
         /// <summary>
-        /// ¨ú±o¹êÅéªº­t³d¤H ID
+        /// å–å¾—å¯¦é«”çš„è² è²¬äºº ID
         /// </summary>
         public Guid GetOwnerId(Entity entity)
             => _ownerManagementService.Value.GetOwnerId(entity);
 
         /// <summary>
-        /// ¨ú±o¹êÅéªº­t³d¤H¦WºÙ
+        /// å–å¾—å¯¦é«”çš„è² è²¬äººåç¨±
         /// </summary>
         public string GetOwnerName(Entity entity)
             => _ownerManagementService.Value.GetOwnerName(entity);
 
         /// <summary>
-        /// «ü¬£­t³d¤Hµ¹¹êÅé
+        /// æŒ‡æ´¾è² è²¬äººçµ¦å¯¦é«”
         /// </summary>
         public void AssignOwner(string entityName, Entity entity, Guid ownerId)
             => _ownerManagementService.Value.AssignOwner(entityName, entity, ownerId);
         #endregion
 
-        #region ¹êÅéÄİ©Ê¤u¨ã¤èªk (©e¬£µ¹ EntityAttributeUtilityService)
+        #region å¯¦é«”å±¬æ€§å·¥å…·æ–¹æ³• (å§”æ´¾çµ¦ EntityAttributeUtilityService)
         /// <summary>
-        /// ¨ú±oÄİ©Ê­È¡]¤ä´© AliasedValue¡^
+        /// å–å¾—å±¬æ€§å€¼ï¼ˆæ”¯æ´ AliasedValueï¼‰
         /// </summary>
         public string GetAttributeValue(Entity targetEntity, string attributeName)
             => _entityAttributeUtilityService.Value.GetAttributeValue(targetEntity, attributeName);
 
         /// <summary>
-        /// ²¾°£¹êÅéªº«ü©wÄİ©Ê
+        /// ç§»é™¤å¯¦é«”çš„æŒ‡å®šå±¬æ€§
         /// </summary>
         public void RemoveAttribute(ref Entity entity, string propertyName)
             => _entityAttributeUtilityService.Value.RemoveAttribute(ref entity, propertyName);
 
         /// <summary>
-        /// ±N¹êÅéªº«ü©wÄİ©Ê³]¬° null
+        /// å°‡å¯¦é«”çš„æŒ‡å®šå±¬æ€§è¨­ç‚º null
         /// </summary>
         public void SetEntityAttributeToNull(ref Entity entity, string propertyName)
             => _entityAttributeUtilityService.Value.SetEntityAttributeToNull(ref entity, propertyName);
         #endregion
 
-        #region ¬¡°Ê¾Ş§@¤èªk (©e¬£µ¹ ActivityService)
+        #region æ´»å‹•æ“ä½œæ–¹æ³• (å§”æ´¾çµ¦ ActivityService)
         /// <summary>
-        /// ¨ú±o¬¡°Êªº°Ñ»PªÌ¦Cªí¡]±H¥ó¤H©Î¦¬¥ó¤H¡^
+        /// å–å¾—æ´»å‹•çš„åƒèˆ‡è€…åˆ—è¡¨ï¼ˆå¯„ä»¶äººæˆ–æ”¶ä»¶äººï¼‰
         /// </summary>
         public void GetActivityPartyList(Entity activityEntity, string fromOrTo, ArrayList partyList, ArrayList partyTypeList)
             => _activityService.Value.GetActivityPartyList(activityEntity, fromOrTo, partyList, partyTypeList);
 
         /// <summary>
-        /// ¨ú±o¬¡°Êªº°Ñ»PªÌ ID ¦Cªí¡]±H¥ó¤H©Î¦¬¥ó¤H¡^
+        /// å–å¾—æ´»å‹•çš„åƒèˆ‡è€… ID åˆ—è¡¨ï¼ˆå¯„ä»¶äººæˆ–æ”¶ä»¶äººï¼‰
         /// </summary>
         public void GetActivityPartyIdList(Entity activityEntity, string fromOrTo, ArrayList partyIdList, ArrayList partyTypeList)
             => _activityService.Value.GetActivityPartyIdList(activityEntity, fromOrTo, partyIdList, partyTypeList);
 
         /// <summary>
-        /// ±N¬¡°Êª¬ºA³]¬°¤w§¹¦¨
+        /// å°‡æ´»å‹•ç‹€æ…‹è¨­ç‚ºå·²å®Œæˆ
         /// </summary>
         public void SetActivityStatusToCompleted(string activityName, Guid activityId)
             => _activityService.Value.SetActivityStatusToCompleted(activityName, activityId);
 
         /// <summary>
-        /// ±N¬¡°Êª¬ºA³]¬°¤w§¹¦¨¡]¨Ï¥Î¥~³¡ªA°È¡^
+        /// å°‡æ´»å‹•ç‹€æ…‹è¨­ç‚ºå·²å®Œæˆï¼ˆä½¿ç”¨å¤–éƒ¨æœå‹™ï¼‰
         /// </summary>
         public void SetActivityStatusToCompleted(string activityName, Guid activityId, IOrganizationService organizationService)
             => _activityService.Value.SetActivityStatusToCompleted(activityName, activityId, organizationService);
 
         /// <summary>
-        /// ±N¬ù·|ª¬ºA³]¬°¤w±Æµ{
+        /// å°‡ç´„æœƒç‹€æ…‹è¨­ç‚ºå·²æ’ç¨‹
         /// </summary>
         public void SetAppointmentStatusToScheduled(Guid activityId)
             => _activityService.Value.SetAppointmentStatusToScheduled(activityId);
 
         /// <summary>
-        /// ±N¬ù·|ª¬ºA³]¬°¤w±Æµ{¡]¨Ï¥Î¥~³¡ªA°È¡^
+        /// å°‡ç´„æœƒç‹€æ…‹è¨­ç‚ºå·²æ’ç¨‹ï¼ˆä½¿ç”¨å¤–éƒ¨æœå‹™ï¼‰
         /// </summary>
         public void SetAppointmentStatusToScheduled(Guid activityId, IOrganizationService organizationService)
             => _activityService.Value.SetAppointmentStatusToScheduled(activityId, organizationService);
         #endregion
 
-        #region §å¶q¨Ã¦æ¾Ş§@ (Phase 2.3 - ·s¼W)
+        #region æ‰¹é‡ä¸¦è¡Œæ“ä½œ (Phase 2.3 - æ–°å¢)
 
         /// <summary>
-        /// §å¶q¨Ã¦æ²K¥[¦¨­û¨ì¦W³æ («D¦P¨B)
-        /// ? Phase 2.3: ¨Ï¥Î ListService ªº§å¦¸¨Ã¦æ¤èªk
-        /// ®Ä¯à´£¤É: 5-10­¿
+        /// æ‰¹é‡ä¸¦è¡Œæ·»åŠ æˆå“¡åˆ°åå–® (éåŒæ­¥)
+        /// ? Phase 2.3: ä½¿ç”¨ ListService çš„æ‰¹æ¬¡ä¸¦è¡Œæ–¹æ³•
+        /// æ•ˆèƒ½æå‡: 5-10å€
         /// </summary>
         public async System.Threading.Tasks.Task<int> AddMembersToMarketingListAsync(
             Guid listGuid,
@@ -817,9 +830,9 @@ namespace ToolUtilityNameSpace.Core
         }
 
         /// <summary>
-        /// ¨Ï¥Î CRM SDK §å¶q²K¥[¦¨­û («D¦P¨B - ³Ì°ª®Ä)
-        /// ? Phase 2.3: ±ÀÂË¥Î©ó¤j§å¶q¾Ş§@ (>100­Ó¦¨­û)
-        /// ®Ä¯à´£¤É: 20-50­¿
+        /// ä½¿ç”¨ CRM SDK æ‰¹é‡æ·»åŠ æˆå“¡ (éåŒæ­¥ - æœ€é«˜æ•ˆ)
+        /// ? Phase 2.3: æ¨è–¦ç”¨æ–¼å¤§æ‰¹é‡æ“ä½œ (>100å€‹æˆå“¡)
+        /// æ•ˆèƒ½æå‡: 20-50å€
         /// </summary>
         public async System.Threading.Tasks.Task<int> AddMembersToMarketingListUsingSdkAsync(
             Guid listGuid,
@@ -837,9 +850,9 @@ namespace ToolUtilityNameSpace.Core
         }
 
         /// <summary>
-        /// §å¶q¨Ã¦æ²¾°£¦W³æ¦¨­û («D¦P¨B)
-        /// ? Phase 2.3: §å¦¸¨Ã¦æ³B²z
-        /// ®Ä¯à´£¤É: 5-10­¿
+        /// æ‰¹é‡ä¸¦è¡Œç§»é™¤åå–®æˆå“¡ (éåŒæ­¥)
+        /// ? Phase 2.3: æ‰¹æ¬¡ä¸¦è¡Œè™•ç†
+        /// æ•ˆèƒ½æå‡: 5-10å€
         /// </summary>
         public async System.Threading.Tasks.Task<int> RemoveMembersFromMarketingListAsync(
             Guid listGuid,

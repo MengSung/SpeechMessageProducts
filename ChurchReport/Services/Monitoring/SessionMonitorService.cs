@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Services/Monitoring/SessionMonitorService.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šinterface ISessionMonitorServiceã€class SessionMonitorServiceã€class SessionRecordã€class SessionStatistics
+// ä¸»è¦æˆå“¡ï¼šRecordSessionActivityã€GetStatisticsã€CleanupExpiredRecordsã€LogStatisticsã€StartAsyncã€StopAsyncã€Disposeã€SessionIdã€CreatedAtã€LastActivityAt
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€System.Collections.Concurrentã€System.Collections.Genericã€System.Linqã€System.Threadingã€System.Threading.Tasksã€Microsoft.AspNetCore.Httpã€Microsoft.Extensions.Hosting
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆå¾å…¬é–‹å‹åˆ¥ã€å»ºæ§‹å¼æ³¨å…¥ã€ä¸»è¦æ–¹æ³•èˆ‡ä¾‹å¤–è™•ç†è·¯å¾‘æŒæ¡è³‡æ–™æµï¼Œå†é€²è¡Œç¶­è­·ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 #if DEBUG
 using System;
 using System.Collections.Concurrent;
@@ -12,32 +25,32 @@ using Microsoft.Extensions.Logging;
 namespace ChurchReport.Services.Monitoring
 {
     /// <summary>
-    /// Session ºÊ±±ªA°È¤¶­±
-    /// ? Phase 8: ¹ê²{ Session ºÊ±±¥\¯à
-    /// ?? ¶È¦b DEBUG ½sÄ¶¼Ò¦¡¤U±Ò¥Î
+    /// Session ç›£æ§æœå‹™ä»‹é¢
+    /// ? Phase 8: å¯¦ç¾ Session ç›£æ§åŠŸèƒ½
+    /// ?? åƒ…åœ¨ DEBUG ç·¨è­¯æ¨¡å¼ä¸‹å•Ÿç”¨
     /// </summary>
     public interface ISessionMonitorService
     {
         /// <summary>
-        /// °O¿ı Session ¬¡°Ê
+        /// è¨˜éŒ„ Session æ´»å‹•
         /// </summary>
         void RecordSessionActivity(string sessionId);
 
         /// <summary>
-        /// ¨ú±o Session ²Î­p¸ê°T
+        /// å–å¾— Session çµ±è¨ˆè³‡è¨Š
         /// </summary>
         SessionStatistics GetStatistics();
 
         /// <summary>
-        /// ²M²z¹L´Áªº Session °O¿ı
+        /// æ¸…ç†éæœŸçš„ Session è¨˜éŒ„
         /// </summary>
         void CleanupExpiredRecords();
     }
 
     /// <summary>
-    /// Session ºÊ±±ªA°È¹ê§@
-    /// ? Phase 8: °lÂÜ¬¡ÅD Session ¼Æ¶q©M°O¾ĞÅé¨Ï¥Î
-    /// ?? ¶È¦b DEBUG ½sÄ¶¼Ò¦¡¤U±Ò¥Î
+    /// Session ç›£æ§æœå‹™å¯¦ä½œ
+    /// ? Phase 8: è¿½è¹¤æ´»èº Session æ•¸é‡å’Œè¨˜æ†¶é«”ä½¿ç”¨
+    /// ?? åƒ…åœ¨ DEBUG ç·¨è­¯æ¨¡å¼ä¸‹å•Ÿç”¨
     /// </summary>
     public class SessionMonitorService : ISessionMonitorService, IHostedService, IDisposable
     {
@@ -45,13 +58,13 @@ namespace ChurchReport.Services.Monitoring
         private readonly ConcurrentDictionary<string, SessionRecord> _activeSessions;
         private readonly Timer _cleanupTimer;
         private readonly Timer _reportTimer;
-        
-        // ³]©w
+
+        // è¨­å®š
         private readonly TimeSpan _sessionTimeout = TimeSpan.FromMinutes(30);
         private readonly TimeSpan _cleanupInterval = TimeSpan.FromMinutes(5);
         private readonly TimeSpan _reportInterval = TimeSpan.FromMinutes(10);
-        
-        // ²Î­p
+
+        // çµ±è¨ˆ
         private long _totalSessionsCreated = 0;
         private long _peakActiveSessions = 0;
         private DateTime _startTime = DateTime.UtcNow;
@@ -60,24 +73,24 @@ namespace ChurchReport.Services.Monitoring
         {
             _logger = logger;
             _activeSessions = new ConcurrentDictionary<string, SessionRecord>();
-            
-            // ²M²z­p®É¾¹
+
+            // æ¸…ç†è¨ˆæ™‚å™¨
             _cleanupTimer = new Timer(
-                _ => CleanupExpiredRecords(), 
-                null, 
-                _cleanupInterval, 
+                _ => CleanupExpiredRecords(),
+                null,
+                _cleanupInterval,
                 _cleanupInterval);
-            
-            // ³ø§i­p®É¾¹
+
+            // å ±å‘Šè¨ˆæ™‚å™¨
             _reportTimer = new Timer(
-                _ => LogStatistics(), 
-                null, 
-                _reportInterval, 
+                _ => LogStatistics(),
+                null,
+                _reportInterval,
                 _reportInterval);
         }
 
         /// <summary>
-        /// °O¿ı Session ¬¡°Ê
+        /// è¨˜éŒ„ Session æ´»å‹•
         /// </summary>
         public void RecordSessionActivity(string sessionId)
         {
@@ -85,10 +98,10 @@ namespace ChurchReport.Services.Monitoring
                 return;
 
             var now = DateTime.UtcNow;
-            
+
             _activeSessions.AddOrUpdate(
                 sessionId,
-                // ·s¼W
+                // æ–°å¢
                 key =>
                 {
                     Interlocked.Increment(ref _totalSessionsCreated);
@@ -100,7 +113,7 @@ namespace ChurchReport.Services.Monitoring
                         RequestCount = 1
                     };
                 },
-                // §ó·s
+                // æ›´æ–°
                 (key, existing) =>
                 {
                     existing.LastActivityAt = now;
@@ -108,7 +121,7 @@ namespace ChurchReport.Services.Monitoring
                     return existing;
                 });
 
-            // §ó·s®p­È
+            // æ›´æ–°å³°å€¼
             var currentCount = _activeSessions.Count;
             long currentPeak;
             do
@@ -121,25 +134,25 @@ namespace ChurchReport.Services.Monitoring
         }
 
         /// <summary>
-        /// ¨ú±o Session ²Î­p¸ê°T
+        /// å–å¾— Session çµ±è¨ˆè³‡è¨Š
         /// </summary>
         public SessionStatistics GetStatistics()
         {
             var now = DateTime.UtcNow;
             var activeSessions = _activeSessions.Values.ToList();
-            
-            // ­pºâ¬¡ÅD Session¡]30 ¤ÀÄÁ¤º¦³¬¡°Ê¡^
+
+            // è¨ˆç®—æ´»èº Sessionï¼ˆ30 åˆ†é˜å…§æœ‰æ´»å‹•ï¼‰
             var activeCount = activeSessions.Count(s => (now - s.LastActivityAt) <= _sessionTimeout);
-            
-            // ­pºâ¶¢¸m Session
+
+            // è¨ˆç®—é–’ç½® Session
             var idleCount = activeSessions.Count - activeCount;
-            
-            // ­pºâ¥­§¡½Ğ¨D¼Æ
-            var avgRequests = activeSessions.Count > 0 
-                ? activeSessions.Average(s => s.RequestCount) 
+
+            // è¨ˆç®—å¹³å‡è«‹æ±‚æ•¸
+            var avgRequests = activeSessions.Count > 0
+                ? activeSessions.Average(s => s.RequestCount)
                 : 0;
 
-            // ¦ôºâ°O¾ĞÅé¨Ï¥Î¡]¨C­Ó Session ¬ù 2KB °òÂ¦ + ÅÜ°Ê¸ê®Æ¡^
+            // ä¼°ç®—è¨˜æ†¶é«”ä½¿ç”¨ï¼ˆæ¯å€‹ Session ç´„ 2KB åŸºç¤ + è®Šå‹•è³‡æ–™ï¼‰
             var estimatedMemoryKB = activeSessions.Count * 2.0;
 
             return new SessionStatistics
@@ -154,17 +167,17 @@ namespace ChurchReport.Services.Monitoring
                 EstimatedMemoryUsageKB = estimatedMemoryKB,
                 UptimeMinutes = (now - _startTime).TotalMinutes,
                 SessionTimeoutMinutes = _sessionTimeout.TotalMinutes,
-                OldestSessionAge = activeSessions.Count > 0 
-                    ? (now - activeSessions.Min(s => s.CreatedAt)).TotalMinutes 
+                OldestSessionAge = activeSessions.Count > 0
+                    ? (now - activeSessions.Min(s => s.CreatedAt)).TotalMinutes
                     : 0,
-                NewestSessionAge = activeSessions.Count > 0 
-                    ? (now - activeSessions.Max(s => s.CreatedAt)).TotalMinutes 
+                NewestSessionAge = activeSessions.Count > 0
+                    ? (now - activeSessions.Max(s => s.CreatedAt)).TotalMinutes
                     : 0
             };
         }
 
         /// <summary>
-        /// ²M²z¹L´Áªº Session °O¿ı
+        /// æ¸…ç†éæœŸçš„ Session è¨˜éŒ„
         /// </summary>
         public void CleanupExpiredRecords()
         {
@@ -188,29 +201,29 @@ namespace ChurchReport.Services.Monitoring
                 if (removedCount > 0)
                 {
                     _logger.LogDebug(
-                        "[Session Monitor] ¤w²M²z {RemovedCount} ­Ó¹L´Á Session °O¿ı¡A¥Ø«e°lÂÜ {CurrentCount} ­Ó",
+                        "[Session Monitor] å·²æ¸…ç† {RemovedCount} å€‹éæœŸ Session è¨˜éŒ„ï¼Œç›®å‰è¿½è¹¤ {CurrentCount} å€‹",
                         removedCount,
                         _activeSessions.Count);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[Session Monitor] ²M²z¹L´Á°O¿ı®Éµo¥Í¿ù»~");
+                _logger.LogError(ex, "[Session Monitor] æ¸…ç†éæœŸè¨˜éŒ„æ™‚ç™¼ç”ŸéŒ¯èª¤");
             }
         }
 
         /// <summary>
-        /// °O¿ı²Î­p¸ê°T¨ì¤é»x
+        /// è¨˜éŒ„çµ±è¨ˆè³‡è¨Šåˆ°æ—¥èªŒ
         /// </summary>
         private void LogStatistics()
         {
             try
             {
                 var stats = GetStatistics();
-                
+
                 _logger.LogInformation(
-                    "[Session Monitor] ¬¡ÅD: {Active}, ¶¢¸m: {Idle}, Á`°lÂÜ: {Total}, " +
-                    "®p­È: {Peak}, ¦ô­p°O¾ĞÅé: {Memory:F2} KB",
+                    "[Session Monitor] æ´»èº: {Active}, é–’ç½®: {Idle}, ç¸½è¿½è¹¤: {Total}, " +
+                    "å³°å€¼: {Peak}, ä¼°è¨ˆè¨˜æ†¶é«”: {Memory:F2} KB",
                     stats.ActiveSessionCount,
                     stats.IdleSessionCount,
                     stats.TotalTrackedSessions,
@@ -219,7 +232,7 @@ namespace ChurchReport.Services.Monitoring
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[Session Monitor] °O¿ı²Î­p¸ê°T®Éµo¥Í¿ù»~");
+                _logger.LogError(ex, "[Session Monitor] è¨˜éŒ„çµ±è¨ˆè³‡è¨Šæ™‚ç™¼ç”ŸéŒ¯èª¤");
             }
         }
 
@@ -227,23 +240,23 @@ namespace ChurchReport.Services.Monitoring
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("[Session Monitor] Session ºÊ±±ªA°È¤w±Ò°Ê");
+            _logger.LogInformation("[Session Monitor] Session ç›£æ§æœå‹™å·²å•Ÿå‹•");
             _startTime = DateTime.UtcNow;
             return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("[Session Monitor] Session ºÊ±±ªA°È¥¿¦b°±¤î...");
-            
-            // °O¿ı³Ì²×²Î­p
+            _logger.LogInformation("[Session Monitor] Session ç›£æ§æœå‹™æ­£åœ¨åœæ­¢...");
+
+            // è¨˜éŒ„æœ€çµ‚çµ±è¨ˆ
             var stats = GetStatistics();
             _logger.LogInformation(
-                "[Session Monitor] ³Ì²×²Î­p - Á`«Ø¥ß: {TotalCreated}, ®p­È: {Peak}, ¹B¦æ®É¶¡: {Uptime:F2} ¤ÀÄÁ",
+                "[Session Monitor] æœ€çµ‚çµ±è¨ˆ - ç¸½å»ºç«‹: {TotalCreated}, å³°å€¼: {Peak}, é‹è¡Œæ™‚é–“: {Uptime:F2} åˆ†é˜",
                 stats.TotalSessionsCreated,
                 stats.PeakActiveSessions,
                 stats.UptimeMinutes);
-            
+
             return Task.CompletedTask;
         }
 
@@ -277,8 +290,8 @@ namespace ChurchReport.Services.Monitoring
     }
 
     /// <summary>
-    /// Session °O¿ı
-    /// ?? ¶È¦b DEBUG ½sÄ¶¼Ò¦¡¤U±Ò¥Î
+    /// Session è¨˜éŒ„
+    /// ?? åƒ…åœ¨ DEBUG ç·¨è­¯æ¨¡å¼ä¸‹å•Ÿç”¨
     /// </summary>
     public class SessionRecord
     {
@@ -289,45 +302,45 @@ namespace ChurchReport.Services.Monitoring
     }
 
     /// <summary>
-    /// Session ²Î­p¸ê°T
-    /// ?? ¶È¦b DEBUG ½sÄ¶¼Ò¦¡¤U±Ò¥Î
+    /// Session çµ±è¨ˆè³‡è¨Š
+    /// ?? åƒ…åœ¨ DEBUG ç·¨è­¯æ¨¡å¼ä¸‹å•Ÿç”¨
     /// </summary>
     public class SessionStatistics
     {
-        /// <summary>²Î­p®É¶¡ÂW</summary>
+        /// <summary>çµ±è¨ˆæ™‚é–“æˆ³</summary>
         public DateTime Timestamp { get; set; }
-        
-        /// <summary>¬¡ÅD Session ¼Æ¶q¡]30 ¤ÀÄÁ¤º¦³¬¡°Ê¡^</summary>
+
+        /// <summary>æ´»èº Session æ•¸é‡ï¼ˆ30 åˆ†é˜å…§æœ‰æ´»å‹•ï¼‰</summary>
         public int ActiveSessionCount { get; set; }
-        
-        /// <summary>¶¢¸m Session ¼Æ¶q</summary>
+
+        /// <summary>é–’ç½® Session æ•¸é‡</summary>
         public int IdleSessionCount { get; set; }
-        
-        /// <summary>Á`°lÂÜ Session ¼Æ¶q</summary>
+
+        /// <summary>ç¸½è¿½è¹¤ Session æ•¸é‡</summary>
         public int TotalTrackedSessions { get; set; }
-        
-        /// <summary>¾ú¥vÁ`«Ø¥ß Session ¼Æ¶q</summary>
+
+        /// <summary>æ­·å²ç¸½å»ºç«‹ Session æ•¸é‡</summary>
         public long TotalSessionsCreated { get; set; }
-        
-        /// <summary>®p­È¬¡ÅD Session ¼Æ¶q</summary>
+
+        /// <summary>å³°å€¼æ´»èº Session æ•¸é‡</summary>
         public long PeakActiveSessions { get; set; }
-        
-        /// <summary>¨C Session ¥­§¡½Ğ¨D¼Æ</summary>
+
+        /// <summary>æ¯ Session å¹³å‡è«‹æ±‚æ•¸</summary>
         public double AverageRequestsPerSession { get; set; }
-        
-        /// <summary>¦ô­p°O¾ĞÅé¨Ï¥Î (KB)</summary>
+
+        /// <summary>ä¼°è¨ˆè¨˜æ†¶é«”ä½¿ç”¨ (KB)</summary>
         public double EstimatedMemoryUsageKB { get; set; }
-        
-        /// <summary>¹B¦æ®É¶¡ (¤ÀÄÁ)</summary>
+
+        /// <summary>é‹è¡Œæ™‚é–“ (åˆ†é˜)</summary>
         public double UptimeMinutes { get; set; }
-        
-        /// <summary>Session ¶W®É³]©w (¤ÀÄÁ)</summary>
+
+        /// <summary>Session è¶…æ™‚è¨­å®š (åˆ†é˜)</summary>
         public double SessionTimeoutMinutes { get; set; }
-        
-        /// <summary>³ÌÂÂ Session ¦~ÄÖ (¤ÀÄÁ)</summary>
+
+        /// <summary>æœ€èˆŠ Session å¹´é½¡ (åˆ†é˜)</summary>
         public double OldestSessionAge { get; set; }
-        
-        /// <summary>³Ì·s Session ¦~ÄÖ (¤ÀÄÁ)</summary>
+
+        /// <summary>æœ€æ–° Session å¹´é½¡ (åˆ†é˜)</summary>
         public double NewestSessionAge { get; set; }
     }
 }

@@ -1,4 +1,17 @@
-﻿using ChurchReport.Diagnostics.Profiling;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/Controllers/EquipmentController.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
+// 主要型別：class EquipmentController
+// 主要成員：EquipmentView、LoadEquipmentList、LoadEquipmentContact、LoadEquipmentStorLessons、UpdateEquipmentStatus、AddEquipmentLesson、ExportEquipmentReport、GetEquipmentSummary
+// 引用命名空間：ChurchReport.Diagnostics.Profiling、ChurchReport.Models、ChurchReport.Tools、DevExtreme.AspNet.Data、DevExtreme.AspNet.Mvc、Microsoft.AspNetCore.Http、Microsoft.AspNetCore.Mvc、Microsoft.Extensions.Caching.Memory
+// 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using ChurchReport.Diagnostics.Profiling;
 using ChurchReport.Models;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
@@ -104,7 +117,7 @@ namespace ChurchReport.Controllers
                 //EnsureCorrectUserData();
 
                 // 確保資料已載入
-                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
+                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null ||
                     !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
                 {
                     using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentList.SetupIntegrateData"))
@@ -181,7 +194,7 @@ namespace ChurchReport.Controllers
                 // 強制重新載入資料以確保正確性
                 // 原因: 多小組切換時，ActiveListId 可能因為非同步請求導致不一致
                 bool needReload = false;
-                
+
                 if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null)
                 {
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 原因: m_ListSmallGroupWeeklyReport 為 null");
@@ -215,7 +228,7 @@ namespace ChurchReport.Controllers
                 }
 
                 var members = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                    ?.m_SmallGroupDataList?.m_AllMemeberData?.Members 
+                    ?.m_SmallGroupDataList?.m_AllMemeberData?.Members
                     ?? new List<Member>();
 
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 取得成員數量: {members.Count}");
@@ -226,18 +239,18 @@ namespace ChurchReport.Controllers
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] ?? 警告: 載入後 ActiveListId 仍不匹配!");
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   目前: {InMemoryContext.ListManager.ActiveListId}");
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact]   預期: {id}");
-                    
+
                     // 再次強制載入
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] >>> 再次強制載入資料 <<<");
                     using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentContact.SetupIntegrateDataRetry"))
                     {
                         InMemoryContext.ListManager.SetupIntegrateData(id);
                     }
-                    
+
                     members = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                        ?.m_SmallGroupDataList?.m_AllMemeberData?.Members 
+                        ?.m_SmallGroupDataList?.m_AllMemeberData?.Members
                         ?? new List<Member>();
-                    
+
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 再次載入後成員數量: {members.Count}");
                 }
 
@@ -254,7 +267,7 @@ namespace ChurchReport.Controllers
 
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 返回聯絡人數量: {equipmentList.Count}");
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentContact] 小組名稱: {InMemoryContext.ListManager.LoginFullName}");
-                
+
                 // 輸出前 3 個成員名稱用於驗證
                 if (equipmentList.Count > 0)
                 {
@@ -307,7 +320,7 @@ namespace ChurchReport.Controllers
                 }
 
                 // 確保資料已載入
-                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null || 
+                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport == null ||
                     !InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.LoadFlag)
                 {
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 資料未載入，id={id}");
@@ -319,11 +332,11 @@ namespace ChurchReport.Controllers
 
                 // 從成員列表中找到對應的聯絡人
                 var members = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
-                    ?.m_SmallGroupDataList?.m_AllMemeberData?.Members 
+                    ?.m_SmallGroupDataList?.m_AllMemeberData?.Members
                     ?? new List<Member>();
 
                 var member = members.FirstOrDefault(m => m.PresentRecordId == id);
-                
+
                 if (member == null)
                 {
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 找不到成員，id={id}");
@@ -362,14 +375,14 @@ namespace ChurchReport.Controllers
                     foreach (var lessonEntity in storLessons.Entities)
                     {
                         var lesson = lessonEntity; // 建立臨時變數以支援 ref 參數
-                        
+
                         // 取得門徒課程的 ID
                         var discipleLessonId = ToolUtility.GetEntityLookupAttribute(ref lesson, "new_new_disciple_lessons_new_stor_les");
-                        
+
                         // 從門徒課程實體取得資料
                         DateTime classStartDate = DateTime.MinValue;
                         string stageName = string.Empty;
-                        
+
                         if (discipleLessonId != Guid.Empty)
                         {
                             try
@@ -379,10 +392,10 @@ namespace ChurchReport.Controllers
                                 {
                                     discipleLesson = ToolUtility.RetrieveEntity("new_disciple_lessons", discipleLessonId);
                                 }
-                                
+
                                 // 取得上課開始日期
                                 classStartDate = ToolUtility.GetEntityDateTimeAttribute(ref discipleLesson, "new_class_start_date");
-                                
+
                                 // 取得階段名稱 (從 new_disciple_lessons 的 new_now_stage_name)
                                 stageName = ToolUtility.GetEntityStringAttribute(ref discipleLesson, "new_now_stage_name");
                             }
@@ -391,7 +404,7 @@ namespace ChurchReport.Controllers
                                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 警告: 無法取得門徒課程資料，DiscipleLessonId={discipleLessonId}, 錯誤={ex.Message}");
                             }
                         }
-                        
+
                         var lessonItem = new EquipmentStorLessons
                         {
                             StorLessonsEntityId = lesson.Id.ToString(),
@@ -400,7 +413,7 @@ namespace ChurchReport.Controllers
                             CurrentComplete = ToolUtility.GetEntityBoolAttribute(ref lesson, "new_current_complete"),
                             DiscipleLessonsDateTime = classStartDate // 從關聯的 new_disciple_lessons.new_class_start_date 取得
                         };
-                        
+
                         System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 課程: {lessonItem.DiscipleLessonsName}, 階段: {lessonItem.StageName}, 日期: {lessonItem.DiscipleLessonsDateTime:yyyy-MM-dd}");
                         lessonsList.Add(lessonItem);
                     }
@@ -457,9 +470,9 @@ namespace ChurchReport.Controllers
         /// <param name="lessonDate">課程日期</param>
         [HttpPost]
         public IActionResult AddEquipmentLesson(
-            string contactId, 
-            string lessonName, 
-            string stageName, 
+            string contactId,
+            string lessonName,
+            string stageName,
             DateTime lessonDate)
         {
             try

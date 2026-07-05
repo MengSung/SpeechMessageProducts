@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Extensions/AsyncEnumerableExtensions.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆæä¾› AsyncEnumerableExtensions ç›¸é—œåŠŸèƒ½ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜æª”æ¡ˆè²¬ä»»ã€ä¸Šæ¸¸/ä¸‹æ¸¸ä¾è³´èˆ‡ç¶­è­·æ™‚ä¸å¯ç ´å£çš„è¡Œç‚ºå‡è¨­ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass AsyncEnumerableExtensions
+// ä¸»è¦æˆå“¡ï¼šæœªåµæ¸¬åˆ°å…¬é–‹/å—ä¿è­·æˆå“¡ï¼›ç¶­è­·æ™‚è«‹ä»¥æª”æ¡ˆå…§çš„å¸¸æ•¸ã€æ¬„ä½ã€private helper æˆ–å±¬æ€§åˆå§‹åŒ–é‚è¼¯ç‚ºä¸»è¦é–±è®€å…¥å£ã€‚
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€System.Collections.Genericã€System.Runtime.CompilerServicesã€System.Threadingã€System.Threading.Tasks
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆå¾å…¬é–‹å‹åˆ¥ã€å»ºæ§‹å¼æ³¨å…¥ã€ä¸»è¦æ–¹æ³•èˆ‡ä¾‹å¤–è™•ç†è·¯å¾‘æŒæ¡è³‡æ–™æµï¼Œå†é€²è¡Œç¶­è­·ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -7,18 +20,18 @@ using System.Threading.Tasks;
 namespace ChurchReport.Extensions
 {
     /// <summary>
-    /// IAsyncEnumerable ÂX¥R¤èªk
-    /// Phase 6.3: ¤ä´©¤j¶q¸ê®Æ¦ê¬y³B²z¡A´î¤Ö°O¾ĞÅé¨Ï¥Î
+    /// IAsyncEnumerable æ“´å……æ–¹æ³•
+    /// Phase 6.3: æ”¯æ´å¤§é‡è³‡æ–™ä¸²æµè™•ç†ï¼Œæ¸›å°‘è¨˜æ†¶é«”ä½¿ç”¨
     /// </summary>
     public static class AsyncEnumerableExtensions
     {
         /// <summary>
-        /// ±N IEnumerable Âà´«¬° IAsyncEnumerable
+        /// å°‡ IEnumerable è½‰æ›ç‚º IAsyncEnumerable
         /// </summary>
-        /// <typeparam name="T">¤¸¯ÀÃş«¬</typeparam>
-        /// <param name="source">¨Ó·½¶°¦X</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        /// <returns>«D¦P¨B¥i¦CÁ|</returns>
+        /// <typeparam name="T">å…ƒç´ é¡å‹</typeparam>
+        /// <param name="source">ä¾†æºé›†åˆ</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        /// <returns>éåŒæ­¥å¯åˆ—èˆ‰</returns>
         public static async IAsyncEnumerable<T> ToAsyncEnumerable<T>(
             this IEnumerable<T> source,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -27,17 +40,17 @@ namespace ChurchReport.Extensions
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 yield return item;
-                // Åı¥X°õ¦æºü¡AÁ×§Kªø®É¶¡ªı¶ë
+                // è®“å‡ºåŸ·è¡Œç·’ï¼Œé¿å…é•·æ™‚é–“é˜»å¡
                 await Task.Yield();
             }
         }
 
         /// <summary>
-        /// ±N IAsyncEnumerable Âà´«¬° List
+        /// å°‡ IAsyncEnumerable è½‰æ›ç‚º List
         /// </summary>
-        /// <typeparam name="T">¤¸¯ÀÃş«¬</typeparam>
-        /// <param name="source">¨Ó·½¶°¦X</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
+        /// <typeparam name="T">å…ƒç´ é¡å‹</typeparam>
+        /// <param name="source">ä¾†æºé›†åˆ</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
         /// <returns>List</returns>
         public static async Task<List<T>> ToListAsync<T>(
             this IAsyncEnumerable<T> source,
@@ -52,13 +65,13 @@ namespace ChurchReport.Extensions
         }
 
         /// <summary>
-        /// ¿z¿ï«D¦P¨B¥i¦CÁ|
+        /// ç¯©é¸éåŒæ­¥å¯åˆ—èˆ‰
         /// </summary>
-        /// <typeparam name="T">¤¸¯ÀÃş«¬</typeparam>
-        /// <param name="source">¨Ó·½¶°¦X</param>
-        /// <param name="predicate">¿z¿ï±ø¥ó</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        /// <returns>¿z¿ï«áªº«D¦P¨B¥i¦CÁ|</returns>
+        /// <typeparam name="T">å…ƒç´ é¡å‹</typeparam>
+        /// <param name="source">ä¾†æºé›†åˆ</param>
+        /// <param name="predicate">ç¯©é¸æ¢ä»¶</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        /// <returns>ç¯©é¸å¾Œçš„éåŒæ­¥å¯åˆ—èˆ‰</returns>
         public static async IAsyncEnumerable<T> WhereAsync<T>(
             this IAsyncEnumerable<T> source,
             Func<T, bool> predicate,
@@ -74,14 +87,14 @@ namespace ChurchReport.Extensions
         }
 
         /// <summary>
-        /// Âà´««D¦P¨B¥i¦CÁ|¤¸¯À
+        /// è½‰æ›éåŒæ­¥å¯åˆ—èˆ‰å…ƒç´ 
         /// </summary>
-        /// <typeparam name="TSource">¨Ó·½¤¸¯ÀÃş«¬</typeparam>
-        /// <typeparam name="TResult">µ²ªG¤¸¯ÀÃş«¬</typeparam>
-        /// <param name="source">¨Ó·½¶°¦X</param>
-        /// <param name="selector">Âà´«¨ç¼Æ</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        /// <returns>Âà´««áªº«D¦P¨B¥i¦CÁ|</returns>
+        /// <typeparam name="TSource">ä¾†æºå…ƒç´ é¡å‹</typeparam>
+        /// <typeparam name="TResult">çµæœå…ƒç´ é¡å‹</typeparam>
+        /// <param name="source">ä¾†æºé›†åˆ</param>
+        /// <param name="selector">è½‰æ›å‡½æ•¸</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        /// <returns>è½‰æ›å¾Œçš„éåŒæ­¥å¯åˆ—èˆ‰</returns>
         public static async IAsyncEnumerable<TResult> SelectAsync<TSource, TResult>(
             this IAsyncEnumerable<TSource> source,
             Func<TSource, TResult> selector,
@@ -94,13 +107,13 @@ namespace ChurchReport.Extensions
         }
 
         /// <summary>
-        /// ¤À§å³B²z«D¦P¨B¥i¦CÁ|
+        /// åˆ†æ‰¹è™•ç†éåŒæ­¥å¯åˆ—èˆ‰
         /// </summary>
-        /// <typeparam name="T">¤¸¯ÀÃş«¬</typeparam>
-        /// <param name="source">¨Ó·½¶°¦X</param>
-        /// <param name="batchSize">§å¦¸¤j¤p</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        /// <returns>§å¦¸ªº«D¦P¨B¥i¦CÁ|</returns>
+        /// <typeparam name="T">å…ƒç´ é¡å‹</typeparam>
+        /// <param name="source">ä¾†æºé›†åˆ</param>
+        /// <param name="batchSize">æ‰¹æ¬¡å¤§å°</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        /// <returns>æ‰¹æ¬¡çš„éåŒæ­¥å¯åˆ—èˆ‰</returns>
         public static async IAsyncEnumerable<List<T>> BatchAsync<T>(
             this IAsyncEnumerable<T> source,
             int batchSize,
@@ -126,13 +139,13 @@ namespace ChurchReport.Extensions
         }
 
         /// <summary>
-        /// ¨ú±o«e N ­Ó¤¸¯À
+        /// å–å¾—å‰ N å€‹å…ƒç´ 
         /// </summary>
-        /// <typeparam name="T">¤¸¯ÀÃş«¬</typeparam>
-        /// <param name="source">¨Ó·½¶°¦X</param>
-        /// <param name="count">¼Æ¶q</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        /// <returns>«e N ­Ó¤¸¯Àªº«D¦P¨B¥i¦CÁ|</returns>
+        /// <typeparam name="T">å…ƒç´ é¡å‹</typeparam>
+        /// <param name="source">ä¾†æºé›†åˆ</param>
+        /// <param name="count">æ•¸é‡</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        /// <returns>å‰ N å€‹å…ƒç´ çš„éåŒæ­¥å¯åˆ—èˆ‰</returns>
         public static async IAsyncEnumerable<T> TakeAsync<T>(
             this IAsyncEnumerable<T> source,
             int count,
@@ -150,13 +163,13 @@ namespace ChurchReport.Extensions
         }
 
         /// <summary>
-        /// ¸õ¹L«e N ­Ó¤¸¯À
+        /// è·³éå‰ N å€‹å…ƒç´ 
         /// </summary>
-        /// <typeparam name="T">¤¸¯ÀÃş«¬</typeparam>
-        /// <param name="source">¨Ó·½¶°¦X</param>
-        /// <param name="count">¼Æ¶q</param>
-        /// <param name="cancellationToken">¨ú®øÅv§ú</param>
-        /// <returns>¸õ¹L«áªº«D¦P¨B¥i¦CÁ|</returns>
+        /// <typeparam name="T">å…ƒç´ é¡å‹</typeparam>
+        /// <param name="source">ä¾†æºé›†åˆ</param>
+        /// <param name="count">æ•¸é‡</param>
+        /// <param name="cancellationToken">å–æ¶ˆæ¬Šæ–</param>
+        /// <returns>è·³éå¾Œçš„éåŒæ­¥å¯åˆ—èˆ‰</returns>
         public static async IAsyncEnumerable<T> SkipAsync<T>(
             this IAsyncEnumerable<T> source,
             int count,

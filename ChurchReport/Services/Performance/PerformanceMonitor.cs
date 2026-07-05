@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/Services/Performance/PerformanceMonitor.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：interface IPerformanceMonitor、class PerformanceMonitor、class OperationScope、class PerformanceReport、class MetricSummary、class SystemInfo、class PerformanceTargets、class ValidationResult
+// 主要成員：BeginScope、RecordMetric、IncrementRequests、IncrementFailedRequests、GetReport、Reset、CalculateAverage、CalculateMedian、CalculatePercentile、Dispose
+// 引用命名空間：System、System.Collections.Generic、System.Diagnostics、System.Threading、System.Threading.Tasks、Microsoft.Extensions.Logging
+// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,36 +22,36 @@ namespace ChurchReport.Services.Performance
 {
 #if DEBUG
     /// <summary>
-    /// �į�ʱ��A��
-    /// �Ω�̲����Ҷ��q�A�ʱ����ε{���į����
-    /// ?? �Ȧb DEBUG �sĶ�Ҧ��U�ҥ�
+    /// 效能監控服務
+    /// 用於最終驗證階段，監控應用程式效能指標
+    /// ?? 僅在 DEBUG 編譯模式下啟用
     /// </summary>
     public interface IPerformanceMonitor
     {
         /// <summary>
-        /// �}�l�p��
+        /// 開始計時
         /// </summary>
         IDisposable BeginScope(string operationName);
 
         /// <summary>
-        /// �O���į����
+        /// 記錄效能指標
         /// </summary>
         void RecordMetric(string name, double value, string unit = "ms");
 
         /// <summary>
-        /// ���o�į���i
+        /// 取得效能報告
         /// </summary>
         PerformanceReport GetReport();
 
         /// <summary>
-        /// ���]�Ҧ�����
+        /// 重設所有指標
         /// </summary>
         void Reset();
     }
 
     /// <summary>
-    /// �į�ʱ��A�ȹ�@
-    /// ?? �Ȧb DEBUG �sĶ�Ҧ��U�ҥ�
+    /// 效能監控服務實作
+    /// ?? 僅在 DEBUG 編譯模式下啟用
     /// </summary>
     public class PerformanceMonitor : IPerformanceMonitor
     {
@@ -69,14 +82,14 @@ namespace ChurchReport.Services.Performance
                 }
                 _metrics[name].Add(value);
 
-                // �O�d�̪� 1000 ���O��
+                // 保留最近 1000 筆記錄
                 if (_metrics[name].Count > 1000)
                 {
                     _metrics[name].RemoveAt(0);
                 }
             }
 
-            _logger.LogDebug("[�į�] {Name}: {Value} {Unit}", name, value, unit);
+            _logger.LogDebug("[效能] {Name}: {Value} {Unit}", name, value, unit);
         }
 
         public void IncrementRequests() => Interlocked.Increment(ref _totalRequests);
@@ -115,7 +128,7 @@ namespace ChurchReport.Services.Performance
                     }
                 }
 
-                // �[�J�t�θ�T
+                // 加入系統資訊
                 var process = Process.GetCurrentProcess();
                 report.SystemInfo = new SystemInfo
                 {
@@ -164,7 +177,7 @@ namespace ChurchReport.Services.Performance
         }
 
         /// <summary>
-        /// �ާ@�d��A�Ω�۰ʭp��
+        /// 操作範圍，用於自動計時
         /// </summary>
         private class OperationScope : IDisposable
         {
@@ -188,7 +201,7 @@ namespace ChurchReport.Services.Performance
     }
 
     /// <summary>
-    /// �į���i
+    /// 效能報告
     /// </summary>
     public class PerformanceReport
     {
@@ -200,47 +213,47 @@ namespace ChurchReport.Services.Performance
         public SystemInfo SystemInfo { get; set; }
 
         /// <summary>
-        /// ���Үį�ؼ�
+        /// 驗證效能目標
         /// </summary>
         public ValidationResult ValidateTargets(PerformanceTargets targets)
         {
             var result = new ValidationResult { Passed = true, Details = new List<string>() };
 
-            // ���ҥ����^���ɶ�
+            // 驗證平均回應時間
             if (Metrics.TryGetValue("RequestDuration", out var requestMetric))
             {
                 if (requestMetric.Average > targets.MaxAverageResponseTimeMs)
                 {
                     result.Passed = false;
-                    result.Details.Add($"? �����^���ɶ� {requestMetric.Average:F2}ms �W�L�ؼ� {targets.MaxAverageResponseTimeMs}ms");
+                    result.Details.Add($"? 平均回應時間 {requestMetric.Average:F2}ms 超過目標 {targets.MaxAverageResponseTimeMs}ms");
                 }
                 else
                 {
-                    result.Details.Add($"? �����^���ɶ� {requestMetric.Average:F2}ms (�ؼ� < {targets.MaxAverageResponseTimeMs}ms)");
+                    result.Details.Add($"? 平均回應時間 {requestMetric.Average:F2}ms (目標 < {targets.MaxAverageResponseTimeMs}ms)");
                 }
             }
 
-            // ���ҰO����ϥ�
+            // 驗證記憶體使用
             if (SystemInfo.WorkingSetMB > targets.MaxWorkingSetMB)
             {
                 result.Passed = false;
-                result.Details.Add($"? �O����ϥ� {SystemInfo.WorkingSetMB:F2}MB �W�L�ؼ� {targets.MaxWorkingSetMB}MB");
+                result.Details.Add($"? 記憶體使用 {SystemInfo.WorkingSetMB:F2}MB 超過目標 {targets.MaxWorkingSetMB}MB");
             }
             else
             {
-                result.Details.Add($"? �O����ϥ� {SystemInfo.WorkingSetMB:F2}MB (�ؼ� < {targets.MaxWorkingSetMB}MB)");
+                result.Details.Add($"? 記憶體使用 {SystemInfo.WorkingSetMB:F2}MB (目標 < {targets.MaxWorkingSetMB}MB)");
             }
 
-            // ���ҿ��~�v
+            // 驗證錯誤率
             var errorRate = TotalRequests > 0 ? (double)FailedRequests / TotalRequests * 100 : 0;
             if (errorRate > targets.MaxErrorRatePercent)
             {
                 result.Passed = false;
-                result.Details.Add($"? ���~�v {errorRate:F2}% �W�L�ؼ� {targets.MaxErrorRatePercent}%");
+                result.Details.Add($"? 錯誤率 {errorRate:F2}% 超過目標 {targets.MaxErrorRatePercent}%");
             }
             else
             {
-                result.Details.Add($"? ���~�v {errorRate:F2}% (�ؼ� < {targets.MaxErrorRatePercent}%)");
+                result.Details.Add($"? 錯誤率 {errorRate:F2}% (目標 < {targets.MaxErrorRatePercent}%)");
             }
 
             return result;
@@ -248,7 +261,7 @@ namespace ChurchReport.Services.Performance
     }
 
     /// <summary>
-    /// ���кK�n
+    /// 指標摘要
     /// </summary>
     public class MetricSummary
     {
@@ -262,7 +275,7 @@ namespace ChurchReport.Services.Performance
     }
 
     /// <summary>
-    /// �t�θ�T
+    /// 系統資訊
     /// </summary>
     public class SystemInfo
     {
@@ -276,33 +289,33 @@ namespace ChurchReport.Services.Performance
     }
 
     /// <summary>
-    /// �į�ؼ�
+    /// 效能目標
     /// </summary>
     public class PerformanceTargets
     {
         /// <summary>
-        /// �̤j�����^���ɶ� (�@��)
+        /// 最大平均回應時間 (毫秒)
         /// </summary>
         public double MaxAverageResponseTimeMs { get; set; } = 500;
 
         /// <summary>
-        /// �̤j�O����ϥ� (MB)
+        /// 最大記憶體使用 (MB)
         /// </summary>
         public double MaxWorkingSetMB { get; set; } = 1024;
 
         /// <summary>
-        /// �̤j���~�v (%)
+        /// 最大錯誤率 (%)
         /// </summary>
         public double MaxErrorRatePercent { get; set; } = 1;
 
         /// <summary>
-        /// �̤p�C���ШD��
+        /// 最小每秒請求數
         /// </summary>
         public double MinRequestsPerSecond { get; set; } = 10;
     }
 
     /// <summary>
-    /// ���ҵ��G
+    /// 驗證結果
     /// </summary>
     public class ValidationResult
     {

@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Middleware/IdentityAuditMiddleware.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆæä¾› IdentityAuditMiddleware ç›¸é—œåŠŸèƒ½ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜æª”æ¡ˆè²¬ä»»ã€ä¸Šæ¸¸/ä¸‹æ¸¸ä¾è³´èˆ‡ç¶­è­·æ™‚ä¸å¯ç ´å£çš„è¡Œç‚ºå‡è¨­ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass IdentityAuditMiddleware
+// ä¸»è¦æˆå“¡ï¼šInvokeAsyncã€CleanupOldTracking
+// å¼•ç”¨å‘½åç©ºé–“ï¼šMicrosoft.AspNetCore.Httpã€Microsoft.Extensions.Loggingã€Systemã€System.Collections.Concurrentã€System.Threading.Tasks
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆå¾å…¬é–‹å‹åˆ¥ã€å»ºæ§‹å¼æ³¨å…¥ã€ä¸»è¦æ–¹æ³•èˆ‡ä¾‹å¤–è™•ç†è·¯å¾‘æŒæ¡è³‡æ–™æµï¼Œå†é€²è¡Œç¶­è­·ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
@@ -7,33 +20,33 @@ using System.Threading.Tasks;
 namespace ChurchReport.Middleware
 {
     /// <summary>
-    /// ¨­¥÷¼f­p¤¤¶¡¥ó (Session Bleeding ¨¾Å@ - ²Ä¤»¼hºÊ±±)
-    /// 
-    /// ³]­p­ì«h:
-    /// - Single Responsibility Principle (SRP): ±Mª`©ó¨­¥÷¤@­P©ÊºÊ±±
-    /// - Open/Closed Principle: ³z¹L¤¤¶¡¥ó¼Ò¦¡ÂX®i¡A¤£»İ­×§ï²{¦³¥N½X
-    /// - Liskov Substitution Principle: ¥i¥H¦w¥ş¦a¥[¤J©Î²¾°£¤¤¶¡¥ó
-    /// - Dependency Inversion Principle: ¨Ì¿à ILogger ©â¶H¡A¤£¨Ì¿à¨ãÅé¤é»x¹ê²{
-    /// 
-    /// §@¥Î:
-    /// §Y®É°»´ú¨Ã°O¿ı¨C­Ó HTTP ½Ğ¨Dªº¨­¥÷¸ê°T¡A¥Î©ó¶EÂ_ Session Bleeding °İÃD¡C
-    /// °lÂÜ TraceId¡BUser¡BIP ªº¹ïÀ³Ãö«Y¡A·íµo²{²§±`®Éµo¥XÄµ§i¡C
-    /// 
-    /// ²§±`±¡ªp:
-    /// - ¦P¤@­Ó IP ¤UÀWÁc¤Á´«¤£¦P¨Ï¥ÎªÌ
-    /// - ¦P¤@­Ó TraceId ¥X²{¤£¦P¨Ï¥ÎªÌ¡]¤£À³¸Óµo¥Í¡^
-    /// - ¥¼µn¤J¨Ï¥ÎªÌ¦s¨ú»İ­n¨­¥÷ÅçÃÒªº¸ê·½
-    /// 
-    /// ¨Ï¥Î¤è¦¡:
-    /// ¦b Startup.cs ªº Configure ¤èªk¤¤¡AUseAuthentication ¤§«áµù¥U:
+    /// èº«ä»½å¯©è¨ˆä¸­é–“ä»¶ (Session Bleeding é˜²è­· - ç¬¬å…­å±¤ç›£æ§)
+    ///
+    /// è¨­è¨ˆåŸå‰‡:
+    /// - Single Responsibility Principle (SRP): å°ˆæ³¨æ–¼èº«ä»½ä¸€è‡´æ€§ç›£æ§
+    /// - Open/Closed Principle: é€éä¸­é–“ä»¶æ¨¡å¼æ“´å±•ï¼Œä¸éœ€ä¿®æ”¹ç¾æœ‰ä»£ç¢¼
+    /// - Liskov Substitution Principle: å¯ä»¥å®‰å…¨åœ°åŠ å…¥æˆ–ç§»é™¤ä¸­é–“ä»¶
+    /// - Dependency Inversion Principle: ä¾è³´ ILogger æŠ½è±¡ï¼Œä¸ä¾è³´å…·é«”æ—¥èªŒå¯¦ç¾
+    ///
+    /// ä½œç”¨:
+    /// å³æ™‚åµæ¸¬ä¸¦è¨˜éŒ„æ¯å€‹ HTTP è«‹æ±‚çš„èº«ä»½è³‡è¨Šï¼Œç”¨æ–¼è¨ºæ–· Session Bleeding å•é¡Œã€‚
+    /// è¿½è¹¤ TraceIdã€Userã€IP çš„å°æ‡‰é—œä¿‚ï¼Œç•¶ç™¼ç¾ç•°å¸¸æ™‚ç™¼å‡ºè­¦å‘Šã€‚
+    ///
+    /// ç•°å¸¸æƒ…æ³:
+    /// - åŒä¸€å€‹ IP ä¸‹é »ç¹åˆ‡æ›ä¸åŒä½¿ç”¨è€…
+    /// - åŒä¸€å€‹ TraceId å‡ºç¾ä¸åŒä½¿ç”¨è€…ï¼ˆä¸æ‡‰è©²ç™¼ç”Ÿï¼‰
+    /// - æœªç™»å…¥ä½¿ç”¨è€…å­˜å–éœ€è¦èº«ä»½é©—è­‰çš„è³‡æº
+    ///
+    /// ä½¿ç”¨æ–¹å¼:
+    /// åœ¨ Startup.cs çš„ Configure æ–¹æ³•ä¸­ï¼ŒUseAuthentication ä¹‹å¾Œè¨»å†Š:
     /// <code>
     /// app.UseAuthentication();
     /// #if DEBUG
     /// app.UseMiddleware&lt;IdentityAuditMiddleware&gt;();
     /// #endif
     /// </code>
-    /// 
-    /// ?? ª`·N: ¦¹¤¤¶¡¥ó¶È¦b DEBUG ¼Ò¦¡¤U±Ò¥Î¡AÁ×§K¥Í²£Àô¹Òªº®Ä¯à¼vÅT
+    ///
+    /// ?? æ³¨æ„: æ­¤ä¸­é–“ä»¶åƒ…åœ¨ DEBUG æ¨¡å¼ä¸‹å•Ÿç”¨ï¼Œé¿å…ç”Ÿç”¢ç’°å¢ƒçš„æ•ˆèƒ½å½±éŸ¿
     /// </summary>
     public class IdentityAuditMiddleware
     {
@@ -41,26 +54,26 @@ namespace ChurchReport.Middleware
         private readonly ILogger<IdentityAuditMiddleware> _logger;
 
         /// <summary>
-        /// ÀRºA°lÂÜ¦r¨å¡G°O¿ı IP »P³Ì«á¤@­Ó¨Ï¥ÎªÌªº¹ïÀ³Ãö«Y
-        /// ¥Î©ó°»´ú¦P¤@ IP ¤Uªº¨Ï¥ÎªÌ¤Á´«
-        /// 
-        /// ³]­p¦Ò¶q:
-        /// - ¨Ï¥Î ConcurrentDictionary ½T«O°õ¦æºü¦w¥ş
-        /// - Key: IP ¦ì§}
-        /// - Value: (LastUser, LastSeen) - ³Ì«á¤@­Ó¨Ï¥ÎªÌ©M®É¶¡
-        /// 
-        /// ?? °O¾ĞÅéºŞ²z:
-        /// ¬°Á×§K°O¾ĞÅé¬ªº|¡AÀ³©w´Á²M²zÂÂ¸ê®Æ
-        /// °Ñ¦Ò IdentityAuditCleanupService ¶i¦æ©w´Á²M²z
+        /// éœæ…‹è¿½è¹¤å­—å…¸ï¼šè¨˜éŒ„ IP èˆ‡æœ€å¾Œä¸€å€‹ä½¿ç”¨è€…çš„å°æ‡‰é—œä¿‚
+        /// ç”¨æ–¼åµæ¸¬åŒä¸€ IP ä¸‹çš„ä½¿ç”¨è€…åˆ‡æ›
+        ///
+        /// è¨­è¨ˆè€ƒé‡:
+        /// - ä½¿ç”¨ ConcurrentDictionary ç¢ºä¿åŸ·è¡Œç·’å®‰å…¨
+        /// - Key: IP ä½å€
+        /// - Value: (LastUser, LastSeen) - æœ€å¾Œä¸€å€‹ä½¿ç”¨è€…å’Œæ™‚é–“
+        ///
+        /// ?? è¨˜æ†¶é«”ç®¡ç†:
+        /// ç‚ºé¿å…è¨˜æ†¶é«”æ´©æ¼ï¼Œæ‡‰å®šæœŸæ¸…ç†èˆŠè³‡æ–™
+        /// åƒè€ƒ IdentityAuditCleanupService é€²è¡Œå®šæœŸæ¸…ç†
         /// </summary>
         private static readonly ConcurrentDictionary<string, (string LastUser, DateTime LastSeen)> _ipUserTracking
             = new ConcurrentDictionary<string, (string, DateTime)>();
 
         /// <summary>
-        /// «Øºc¨ç¦¡¡Gª`¤J¤U¤@­Ó¤¤¶¡¥ó©M¤é»xªA°È
+        /// å»ºæ§‹å‡½å¼ï¼šæ³¨å…¥ä¸‹ä¸€å€‹ä¸­é–“ä»¶å’Œæ—¥èªŒæœå‹™
         /// </summary>
-        /// <param name="next">¤U¤@­Ó¤¤¶¡¥ó©e°U</param>
-        /// <param name="logger">¤é»xªA°È¡A¥Î©ó°O¿ı¼f­p¸ê°T</param>
+        /// <param name="next">ä¸‹ä¸€å€‹ä¸­é–“ä»¶å§”è¨—</param>
+        /// <param name="logger">æ—¥èªŒæœå‹™ï¼Œç”¨æ–¼è¨˜éŒ„å¯©è¨ˆè³‡è¨Š</param>
         public IdentityAuditMiddleware(RequestDelegate next, ILogger<IdentityAuditMiddleware> logger)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
@@ -68,22 +81,22 @@ namespace ChurchReport.Middleware
         }
 
         /// <summary>
-        /// ¤¤¶¡¥ó®Ö¤ß¤èªk¡G³B²z¨C­Ó HTTP ½Ğ¨Dªº¨­¥÷¼f­p
-        /// 
-        /// °õ¦æ¬yµ{:
-        /// 1. ´£¨ú½Ğ¨Dªº¨­¥÷¸ê°T (TraceId, User, IP)
-        /// 2. °O¿ı¼f­p¤é»x
-        /// 3. ÀË¬d²§±`±¡ªp¡]¦P IP ¨Ï¥ÎªÌ¤Á´«¡^
-        /// 4. §ó·s°lÂÜ¦r¨å
-        /// 5. °õ¦æ¤U¤@­Ó¤¤¶¡¥ó
-        /// 
-        /// ®Ä¯à¦Ò¶q:
-        /// - ¶È¦b DEBUG ¼Ò¦¡±Ò¥Î
-        /// - ¨Ï¥Î ConcurrentDictionary Á×§KÂê©w
-        /// - ¤é»x¨Ï¥Îµ²ºc¤Æ®æ¦¡¡A«K©ó¤ÀªR
+        /// ä¸­é–“ä»¶æ ¸å¿ƒæ–¹æ³•ï¼šè™•ç†æ¯å€‹ HTTP è«‹æ±‚çš„èº«ä»½å¯©è¨ˆ
+        ///
+        /// åŸ·è¡Œæµç¨‹:
+        /// 1. æå–è«‹æ±‚çš„èº«ä»½è³‡è¨Š (TraceId, User, IP)
+        /// 2. è¨˜éŒ„å¯©è¨ˆæ—¥èªŒ
+        /// 3. æª¢æŸ¥ç•°å¸¸æƒ…æ³ï¼ˆåŒ IP ä½¿ç”¨è€…åˆ‡æ›ï¼‰
+        /// 4. æ›´æ–°è¿½è¹¤å­—å…¸
+        /// 5. åŸ·è¡Œä¸‹ä¸€å€‹ä¸­é–“ä»¶
+        ///
+        /// æ•ˆèƒ½è€ƒé‡:
+        /// - åƒ…åœ¨ DEBUG æ¨¡å¼å•Ÿç”¨
+        /// - ä½¿ç”¨ ConcurrentDictionary é¿å…é–å®š
+        /// - æ—¥èªŒä½¿ç”¨çµæ§‹åŒ–æ ¼å¼ï¼Œä¾¿æ–¼åˆ†æ
         /// </summary>
-        /// <param name="context">HTTP ¤W¤U¤å</param>
-        /// <returns>«D¦P¨B¥ô°È</returns>
+        /// <param name="context">HTTP ä¸Šä¸‹æ–‡</param>
+        /// <returns>éåŒæ­¥ä»»å‹™</returns>
         public async Task InvokeAsync(HttpContext context)
         {
             if (StaticRequestPathHelper.IsStaticAssetPath(context.Request.Path))
@@ -93,7 +106,7 @@ namespace ChurchReport.Middleware
             }
 
             // ========================================
-            // Step 1: ´£¨ú¨­¥÷¸ê°T
+            // Step 1: æå–èº«ä»½è³‡è¨Š
             // ========================================
             var traceId = context.TraceIdentifier;
             var user = context.User?.Identity?.IsAuthenticated == true
@@ -104,39 +117,39 @@ namespace ChurchReport.Middleware
             var method = context.Request.Method;
 
             // ========================================
-            // Step 2: °O¿ı¼f­p¤é»x
+            // Step 2: è¨˜éŒ„å¯©è¨ˆæ—¥èªŒ
             // ========================================
-            // ¨Ï¥Îµ²ºc¤Æ¤é»x®æ¦¡¡A«K©ó«áÄò¤ÀªR©M¬d¸ß
+            // ä½¿ç”¨çµæ§‹åŒ–æ—¥èªŒæ ¼å¼ï¼Œä¾¿æ–¼å¾ŒçºŒåˆ†æå’ŒæŸ¥è©¢
             _logger.LogInformation(
                 "[Identity Audit] Trace:{TraceId} | IP:{IP} | User:{User} | Path:{Path} | Method:{Method}",
                 traceId, ip, user, path, method);
 
             // ========================================
-            // Step 3: ÀË¬d²§±`±¡ªp - ¦P IP ¨Ï¥ÎªÌ¤Á´«
+            // Step 3: æª¢æŸ¥ç•°å¸¸æƒ…æ³ - åŒ IP ä½¿ç”¨è€…åˆ‡æ›
             // ========================================
             if (user != "Anonymous" && _ipUserTracking.TryGetValue(ip, out var lastRecord))
             {
-                // ¦pªG¦P¤@­Ó IP ¤Á´«¤F¤£¦P¨Ï¥ÎªÌ¡A°O¿ıÄµ§i
+                // å¦‚æœåŒä¸€å€‹ IP åˆ‡æ›äº†ä¸åŒä½¿ç”¨è€…ï¼Œè¨˜éŒ„è­¦å‘Š
                 if (lastRecord.LastUser != user)
                 {
                     var timeSinceLastSeen = DateTime.UtcNow - lastRecord.LastSeen;
-                    
+
                     _logger.LogWarning(
-                        "[Identity Audit] ?? ¨Ï¥ÎªÌ¤Á´«°»´ú | IP:{IP} | «e¤@­Ó¨Ï¥ÎªÌ:{LastUser} | ·í«e¨Ï¥ÎªÌ:{CurrentUser} | ¶¡¹j:{TimeSince}¬í",
+                        "[Identity Audit] ?? ä½¿ç”¨è€…åˆ‡æ›åµæ¸¬ | IP:{IP} | å‰ä¸€å€‹ä½¿ç”¨è€…:{LastUser} | ç•¶å‰ä½¿ç”¨è€…:{CurrentUser} | é–“éš”:{TimeSince}ç§’",
                         ip, lastRecord.LastUser, user, timeSinceLastSeen.TotalSeconds);
-                    
-                    // ¦pªG¤Á´«®É¶¡«Üµu¡]<30¬í¡^¡A¥i¯à¬O Session Bleeding
+
+                    // å¦‚æœåˆ‡æ›æ™‚é–“å¾ˆçŸ­ï¼ˆ<30ç§’ï¼‰ï¼Œå¯èƒ½æ˜¯ Session Bleeding
                     if (timeSinceLastSeen.TotalSeconds < 30)
                     {
                         _logger.LogError(
-                            "[Identity Audit] ?? ºÃ¦ü Session Bleeding! | IP:{IP} | ¤Á´«®É¶¡¹Lµu:{TimeSince}¬í",
+                            "[Identity Audit] ?? ç–‘ä¼¼ Session Bleeding! | IP:{IP} | åˆ‡æ›æ™‚é–“éçŸ­:{TimeSince}ç§’",
                             ip, timeSinceLastSeen.TotalSeconds);
                     }
                 }
             }
 
             // ========================================
-            // Step 4: §ó·s°lÂÜ¦r¨å
+            // Step 4: æ›´æ–°è¿½è¹¤å­—å…¸
             // ========================================
             if (user != "Anonymous")
             {
@@ -144,41 +157,41 @@ namespace ChurchReport.Middleware
             }
 
             // ========================================
-            // Step 5: °õ¦æ¤U¤@­Ó¤¤¶¡¥ó
+            // Step 5: åŸ·è¡Œä¸‹ä¸€å€‹ä¸­é–“ä»¶
             // ========================================
             await _next(context);
         }
 
         /// <summary>
-        /// ¨ú±o·í«e°lÂÜ¸ê®Æ¡]¨Ñ¶EÂ_¨Ï¥Î¡^
-        /// 
-        /// ¨Ï¥Î±¡¹Ò:
-        /// - DiagnosticsController ¥i¥H©I¥s¦¹¤èªk¨ú±o°lÂÜ¸ê®Æ
-        /// - ¥Î©ó§Y®ÉºÊ±±©M°İÃD¶EÂ_
-        /// 
-        /// ¦^¶Ç®æ¦¡:
+        /// å–å¾—ç•¶å‰è¿½è¹¤è³‡æ–™ï¼ˆä¾›è¨ºæ–·ä½¿ç”¨ï¼‰
+        ///
+        /// ä½¿ç”¨æƒ…å¢ƒ:
+        /// - DiagnosticsController å¯ä»¥å‘¼å«æ­¤æ–¹æ³•å–å¾—è¿½è¹¤è³‡æ–™
+        /// - ç”¨æ–¼å³æ™‚ç›£æ§å’Œå•é¡Œè¨ºæ–·
+        ///
+        /// å›å‚³æ ¼å¼:
         /// Dictionary&lt;IP, (LastUser, LastSeen)&gt;
         /// </summary>
-        /// <returns>·í«e°lÂÜ¸ê®Æªº§Ö·Ó</returns>
+        /// <returns>ç•¶å‰è¿½è¹¤è³‡æ–™çš„å¿«ç…§</returns>
         public static System.Collections.Generic.Dictionary<string, (string LastUser, DateTime LastSeen)> GetTrackingSnapshot()
         {
             return new System.Collections.Generic.Dictionary<string, (string, DateTime)>(_ipUserTracking);
         }
 
         /// <summary>
-        /// ²M°£°lÂÜ¸ê®Æ¡]¨Ñ©w´Á²M²z¨Ï¥Î¡^
-        /// 
-        /// ¨Ï¥Î±¡¹Ò:
-        /// - IdentityAuditCleanupService ©w´Á©I¥s¦¹¤èªk
-        /// - ²M°£¶W¹L«ü©w®É¶¡ªºÂÂ¸ê®Æ
-        /// - ¨¾¤î°O¾ĞÅé¬ªº|
-        /// 
-        /// ²M²zµ¦²¤:
-        /// - ²M°£¶W¹L 1 ¤p®É¥¼¬¡°Êªº°O¿ı
-        /// - «O¯d³Ìªñ¬¡°Êªº°O¿ı
+        /// æ¸…é™¤è¿½è¹¤è³‡æ–™ï¼ˆä¾›å®šæœŸæ¸…ç†ä½¿ç”¨ï¼‰
+        ///
+        /// ä½¿ç”¨æƒ…å¢ƒ:
+        /// - IdentityAuditCleanupService å®šæœŸå‘¼å«æ­¤æ–¹æ³•
+        /// - æ¸…é™¤è¶…éæŒ‡å®šæ™‚é–“çš„èˆŠè³‡æ–™
+        /// - é˜²æ­¢è¨˜æ†¶é«”æ´©æ¼
+        ///
+        /// æ¸…ç†ç­–ç•¥:
+        /// - æ¸…é™¤è¶…é 1 å°æ™‚æœªæ´»å‹•çš„è¨˜éŒ„
+        /// - ä¿ç•™æœ€è¿‘æ´»å‹•çš„è¨˜éŒ„
         /// </summary>
-        /// <param name="olderThan">²M°£¶W¹L¦¹®É¶¡ªº°O¿ı¡A¹w³] 1 ¤p®É</param>
-        /// <returns>²M°£ªº°O¿ı¼Æ¶q</returns>
+        /// <param name="olderThan">æ¸…é™¤è¶…éæ­¤æ™‚é–“çš„è¨˜éŒ„ï¼Œé è¨­ 1 å°æ™‚</param>
+        /// <returns>æ¸…é™¤çš„è¨˜éŒ„æ•¸é‡</returns>
         public static int CleanupOldTracking(TimeSpan? olderThan = null)
         {
             var threshold = DateTime.UtcNow - (olderThan ?? TimeSpan.FromHours(1));

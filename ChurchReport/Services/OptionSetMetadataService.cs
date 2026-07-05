@@ -1,6 +1,19 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Services/OptionSetMetadataService.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass OptionSetMetadataService
+// ä¸»è¦æˆå“¡ï¼šGetOptionSetValueã€GetOptionSetTextã€ClearCacheã€GetLocalizedLabelã€GetLanguageCodeId
+// å¼•ç”¨å‘½åç©ºé–“ï¼šMicrosoft.Extensions.Caching.Memoryã€Microsoft.Extensions.Loggingã€Microsoft.Extensions.Logging.Abstractionsã€Microsoft.Xrm.Sdkã€Microsoft.Xrm.Sdk.Messagesã€Microsoft.Xrm.Sdk.Metadataã€Systemã€System.Collections.Generic
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆå¾å…¬é–‹å‹åˆ¥ã€å»ºæ§‹å¼æ³¨å…¥ã€ä¸»è¦æ–¹æ³•èˆ‡ä¾‹å¤–è™•ç†è·¯å¾‘æŒæ¡è³‡æ–™æµï¼Œå†é€²è¡Œç¶­è­·ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions; // ? ·s¼W
+using Microsoft.Extensions.Logging.Abstractions; // ? æ–°å¢
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
@@ -12,15 +25,15 @@ using System.Text.RegularExpressions;
 namespace ChurchReport.Services
 {
     /// <summary>
-    /// OptionSet Metadata ªA°È
-    /// ­t³d±q Dynamics 365 °ÊºA¨ú±o OptionSet ªº§¹¾ã²M³æ¨Ã´£¨Ñ§Ö¨ú¾÷¨î
+    /// OptionSet Metadata æœå‹™
+    /// è² è²¬å¾ Dynamics 365 å‹•æ…‹å–å¾— OptionSet çš„å®Œæ•´æ¸…å–®ä¸¦æä¾›å¿«å–æ©Ÿåˆ¶
     /// </summary>
     public class OptionSetMetadataService
     {
         private readonly IOrganizationService _organizationService;
         private readonly ILogger<OptionSetMetadataService> _logger;
         private readonly IMemoryCache _cache;
-        private const int CACHE_DURATION_HOURS = 24; // §Ö¨ú 24 ¤p®É
+        private const int CACHE_DURATION_HOURS = 24; // å¿«å– 24 å°æ™‚
 
         public OptionSetMetadataService(
             IOrganizationService organizationService,
@@ -28,37 +41,37 @@ namespace ChurchReport.Services
             IMemoryCache cache = null)
         {
             _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
-            
-            // ? ¤¹³\ logger ¬° null¡A¨Ï¥Î NullLogger §@¬°¹w³]­È
+
+            // ? å…è¨± logger ç‚º nullï¼Œä½¿ç”¨ NullLogger ä½œç‚ºé è¨­å€¼
             _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<OptionSetMetadataService>.Instance;
-            
-            // ? ¤¹³\ cache ¬° null¡A¨Ï¥Î MemoryCache §@¬°¹w³]­È
+
+            // ? å…è¨± cache ç‚º nullï¼Œä½¿ç”¨ MemoryCache ä½œç‚ºé è¨­å€¼
             _cache = cache ?? new MemoryCache(new MemoryCacheOptions());
         }
 
         /// <summary>
-        /// ¨ú±o«ü©w¹êÅéªº OptionSet ¹ïÀ³ªí¡]Åã¥Ü¤å¦r ¡÷ ­È¡^
-        /// ¥]§t§Ö¨ú¾÷¨î¡AÁ×§KÀWÁc¬d¸ß Metadata
+        /// å–å¾—æŒ‡å®šå¯¦é«”çš„ OptionSet å°æ‡‰è¡¨ï¼ˆé¡¯ç¤ºæ–‡å­— â†’ å€¼ï¼‰
+        /// åŒ…å«å¿«å–æ©Ÿåˆ¶ï¼Œé¿å…é »ç¹æŸ¥è©¢ Metadata
         /// </summary>
-        /// <param name="entityName">¹êÅé¦WºÙ¡]¨Ò¦p¡Gnew_fee¡^</param>
-        /// <param name="attributeName">Äİ©Ê¦WºÙ¡]¨Ò¦p¡Gnew_category¡^</param>
-        /// <returns>Dictionary&lt;string, int&gt; - Åã¥Ü¤å¦r¹ïÀ³¨ì OptionSet ­È</returns>
+        /// <param name="entityName">å¯¦é«”åç¨±ï¼ˆä¾‹å¦‚ï¼šnew_feeï¼‰</param>
+        /// <param name="attributeName">å±¬æ€§åç¨±ï¼ˆä¾‹å¦‚ï¼šnew_categoryï¼‰</param>
+        /// <returns>Dictionary&lt;string, int&gt; - é¡¯ç¤ºæ–‡å­—å°æ‡‰åˆ° OptionSet å€¼</returns>
         public Dictionary<string, int> GetOptionSetMapping(string entityName, string attributeName)
         {
             try
             {
-                // ²£¥Í§Ö¨úÁä
+                // ç”¢ç”Ÿå¿«å–éµ
                 string cacheKey = $"OptionSet_{entityName}_{attributeName}";
 
-                // ¹Á¸Õ±q§Ö¨ú¨ú±o
+                // å˜—è©¦å¾å¿«å–å–å¾—
                 if (_cache.TryGetValue(cacheKey, out Dictionary<string, int> cachedMapping))
                 {
-                    _logger.LogDebug($"[OptionSetMetadataService] ±q§Ö¨ú¨ú±o {entityName}.{attributeName}");
+                    _logger.LogDebug($"[OptionSetMetadataService] å¾å¿«å–å–å¾— {entityName}.{attributeName}");
                     return cachedMapping;
                 }
 
-                // ±q Dynamics 365 ¬d¸ß Metadata
-                _logger.LogInformation($"[OptionSetMetadataService] ¬d¸ß Metadata: {entityName}.{attributeName}");
+                // å¾ Dynamics 365 æŸ¥è©¢ Metadata
+                _logger.LogInformation($"[OptionSetMetadataService] æŸ¥è©¢ Metadata: {entityName}.{attributeName}");
 
                 var retrieveAttributeRequest = new RetrieveAttributeRequest
                 {
@@ -76,49 +89,49 @@ namespace ChurchReport.Services
 
                     foreach (var option in picklistMetadata.OptionSet.Options)
                     {
-                        // ¨ú±oÅã¥Ü¤å¦r¡]Àu¥ı¨Ï¥ÎÁcÅé¤¤¤å¡^
-                        string displayText = GetLocalizedLabel(option.Label, "zh-TW") ?? 
-                                           GetLocalizedLabel(option.Label, "zh-CN") ?? 
-                                           option.Label.UserLocalizedLabel?.Label ?? 
+                        // å–å¾—é¡¯ç¤ºæ–‡å­—ï¼ˆå„ªå…ˆä½¿ç”¨ç¹é«”ä¸­æ–‡ï¼‰
+                        string displayText = GetLocalizedLabel(option.Label, "zh-TW") ??
+                                           GetLocalizedLabel(option.Label, "zh-CN") ??
+                                           option.Label.UserLocalizedLabel?.Label ??
                                            $"Unknown_{option.Value}";
 
                         if (option.Value.HasValue)
                         {
                             mapping[displayText] = option.Value.Value;
-                            _logger.LogDebug($"  - {displayText} ¡÷ {option.Value.Value}");
+                            _logger.LogDebug($"  - {displayText} â†’ {option.Value.Value}");
                         }
                     }
 
-                    // ¦s¤J§Ö¨ú¡]24 ¤p®É¹L´Á¡^
+                    // å­˜å…¥å¿«å–ï¼ˆ24 å°æ™‚éæœŸï¼‰
                     var cacheOptions = new MemoryCacheEntryOptions()
                         .SetAbsoluteExpiration(TimeSpan.FromHours(CACHE_DURATION_HOURS));
 
                     _cache.Set(cacheKey, mapping, cacheOptions);
 
-                    _logger.LogInformation($"[OptionSetMetadataService] ¦¨¥\¨ú±o {mapping.Count} ­Ó¿ï¶µ¡A¤w§Ö¨ú");
+                    _logger.LogInformation($"[OptionSetMetadataService] æˆåŠŸå–å¾— {mapping.Count} å€‹é¸é …ï¼Œå·²å¿«å–");
                     return mapping;
                 }
                 else
                 {
-                    _logger.LogWarning($"[OptionSetMetadataService] {entityName}.{attributeName} ¤£¬O PicklistAttribute");
+                    _logger.LogWarning($"[OptionSetMetadataService] {entityName}.{attributeName} ä¸æ˜¯ PicklistAttribute");
                     return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[OptionSetMetadataService] ¨ú±o OptionSet ¹ïÀ³ªí¥¢±Ñ: {entityName}.{attributeName}");
+                _logger.LogError(ex, $"[OptionSetMetadataService] å–å¾— OptionSet å°æ‡‰è¡¨å¤±æ•—: {entityName}.{attributeName}");
                 return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             }
         }
 
         /// <summary>
-        /// ®Ú¾ÚÅã¥Ü¤å¦r¨ú±o OptionSet ­È
+        /// æ ¹æ“šé¡¯ç¤ºæ–‡å­—å–å¾— OptionSet å€¼
         /// </summary>
-        /// <param name="entityName">¹êÅé¦WºÙ</param>
-        /// <param name="attributeName">Äİ©Ê¦WºÙ</param>
-        /// <param name="displayText">Åã¥Ü¤å¦r</param>
-        /// <param name="defaultValue">§ä¤£¨ì®Éªº¹w³]­È¡]¿ï¶ñ¡^</param>
-        /// <returns>OptionSet ­È</returns>
+        /// <param name="entityName">å¯¦é«”åç¨±</param>
+        /// <param name="attributeName">å±¬æ€§åç¨±</param>
+        /// <param name="displayText">é¡¯ç¤ºæ–‡å­—</param>
+        /// <param name="defaultValue">æ‰¾ä¸åˆ°æ™‚çš„é è¨­å€¼ï¼ˆé¸å¡«ï¼‰</param>
+        /// <returns>OptionSet å€¼</returns>
         public int GetOptionSetValue(string entityName, string attributeName, string displayText, int? defaultValue = null)
         {
             try
@@ -134,7 +147,7 @@ namespace ChurchReport.Services
                 string Normalize(string text)
                 {
                     if (string.IsNullOrWhiteSpace(text)) return string.Empty;
-                    return Regex.Replace(text.Trim(), "^\\d+\\s*[\\.¡B¡D-]?\\s*", string.Empty);
+                    return Regex.Replace(text.Trim(), "^\\d+\\s*[\\.ã€ï¼-]?\\s*", string.Empty);
                 }
 
                 var normalizedInput = Normalize(displayText);
@@ -145,44 +158,44 @@ namespace ChurchReport.Services
                     return fuzzy.Value;
                 }
 
-                _logger.LogWarning($"[OptionSetMetadataService] §ä¤£¨ì¹ïÀ³­È: {entityName}.{attributeName} = '{displayText}'");
+                _logger.LogWarning($"[OptionSetMetadataService] æ‰¾ä¸åˆ°å°æ‡‰å€¼: {entityName}.{attributeName} = '{displayText}'");
 
                 if (defaultValue.HasValue)
                 {
-                    _logger.LogInformation($"[OptionSetMetadataService] ¨Ï¥Î¹w³]­È: {defaultValue.Value}");
+                    _logger.LogInformation($"[OptionSetMetadataService] ä½¿ç”¨é è¨­å€¼: {defaultValue.Value}");
                     return defaultValue.Value;
                 }
 
-                throw new KeyNotFoundException($"§ä¤£¨ì¹ïÀ³ªº OptionSet ­È: {displayText}");
+                throw new KeyNotFoundException($"æ‰¾ä¸åˆ°å°æ‡‰çš„ OptionSet å€¼: {displayText}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[OptionSetMetadataService] GetOptionSetValue ¥¢±Ñ: {displayText}");
+                _logger.LogError(ex, $"[OptionSetMetadataService] GetOptionSetValue å¤±æ•—: {displayText}");
                 throw;
             }
         }
 
         /// <summary>
-        /// ®Ú¾Ú OptionSet ­È¨ú±oÅã¥Ü¤å¦r¡]¤Ï¦V¬d¸ß¡^
-        /// 
-        /// ? ®Ä¯àÀu¤Æ¡G§Ö¨ú¤Ï¦V¹ïÀ³ªí¡AÁ×§K¨C¦¸©I¥s³£­««Ø Dictionary
-        /// ­ì¥»¨C¦¸©I¥s³£°õ¦æ mapping.ToDictionary() «Ø¥ß·sªº¤Ï¦V¦r¨å¡A
-        /// ­Y¤@­¶¦³ 50 ¦ì¦¨­û¡A¨C¤H¬d 3-4 ­ÓÄæ¦ì¡A´N¬O 150-200 ¦¸¦h¾lªº Dictionary «Øºc¡C
-        /// 
-        /// ? Session ¦w¥ş¡G§Ö¨úÁä¬° "OptionSetReverse_{entityName}_{attributeName}"
-        /// ¤º®e¬° Dictionary&lt;int, string&gt;¡]¾ã¼Æ­È ¡÷ Åã¥Ü¤å¦r¡^¡A
-        /// Äİ©ó CRM Schema Metadata¡A©Ò¦³¨Ï¥ÎªÌ§¹¥ş¬Û¦P¡A¤£§t¥ô¦ó­Ó¤H¸ê®Æ¡C
+        /// æ ¹æ“š OptionSet å€¼å–å¾—é¡¯ç¤ºæ–‡å­—ï¼ˆåå‘æŸ¥è©¢ï¼‰
+        ///
+        /// ? æ•ˆèƒ½å„ªåŒ–ï¼šå¿«å–åå‘å°æ‡‰è¡¨ï¼Œé¿å…æ¯æ¬¡å‘¼å«éƒ½é‡å»º Dictionary
+        /// åŸæœ¬æ¯æ¬¡å‘¼å«éƒ½åŸ·è¡Œ mapping.ToDictionary() å»ºç«‹æ–°çš„åå‘å­—å…¸ï¼Œ
+        /// è‹¥ä¸€é æœ‰ 50 ä½æˆå“¡ï¼Œæ¯äººæŸ¥ 3-4 å€‹æ¬„ä½ï¼Œå°±æ˜¯ 150-200 æ¬¡å¤šé¤˜çš„ Dictionary å»ºæ§‹ã€‚
+        ///
+        /// ? Session å®‰å…¨ï¼šå¿«å–éµç‚º "OptionSetReverse_{entityName}_{attributeName}"
+        /// å…§å®¹ç‚º Dictionary&lt;int, string&gt;ï¼ˆæ•´æ•¸å€¼ â†’ é¡¯ç¤ºæ–‡å­—ï¼‰ï¼Œ
+        /// å±¬æ–¼ CRM Schema Metadataï¼Œæ‰€æœ‰ä½¿ç”¨è€…å®Œå…¨ç›¸åŒï¼Œä¸å«ä»»ä½•å€‹äººè³‡æ–™ã€‚
         /// </summary>
         public string GetOptionSetText(string entityName, string attributeName, int optionSetValue)
         {
             try
             {
-                // ¥ı¹Á¸Õ±q§Ö¨ú¨ú±o¤Ï¦V¹ïÀ³ªí
+                // å…ˆå˜—è©¦å¾å¿«å–å–å¾—åå‘å°æ‡‰è¡¨
                 string reverseCacheKey = $"OptionSetReverse_{entityName}_{attributeName}";
 
                 if (!_cache.TryGetValue(reverseCacheKey, out Dictionary<int, string> reversedMapping))
                 {
-                    // §Ö¨ú¥¼©R¤¤¡G±q¥¿¦V¹ïÀ³ªí«Ø¥ß¤Ï¦V¹ïÀ³ªí
+                    // å¿«å–æœªå‘½ä¸­ï¼šå¾æ­£å‘å°æ‡‰è¡¨å»ºç«‹åå‘å°æ‡‰è¡¨
                     var mapping = GetOptionSetMapping(entityName, attributeName);
                     reversedMapping = new Dictionary<int, string>(mapping.Count);
                     foreach (var kvp in mapping)
@@ -190,7 +203,7 @@ namespace ChurchReport.Services
                         reversedMapping[kvp.Value] = kvp.Key;
                     }
 
-                    // ¦s¤J§Ö¨ú¡]»P¥¿¦V¹ïÀ³ªí¬Û¦Pªº¹L´Áµ¦²¤¡^
+                    // å­˜å…¥å¿«å–ï¼ˆèˆ‡æ­£å‘å°æ‡‰è¡¨ç›¸åŒçš„éæœŸç­–ç•¥ï¼‰
                     var cacheOptions = new MemoryCacheEntryOptions()
                         .SetAbsoluteExpiration(TimeSpan.FromHours(CACHE_DURATION_HOURS));
                     _cache.Set(reverseCacheKey, reversedMapping, cacheOptions);
@@ -201,28 +214,28 @@ namespace ChurchReport.Services
                     return displayText;
                 }
 
-                _logger.LogWarning($"[OptionSetMetadataService] §ä¤£¨ì¹ïÀ³¤å¦r: {entityName}.{attributeName} = {optionSetValue}");
+                _logger.LogWarning($"[OptionSetMetadataService] æ‰¾ä¸åˆ°å°æ‡‰æ–‡å­—: {entityName}.{attributeName} = {optionSetValue}");
                 return $"Unknown_{optionSetValue}";
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[OptionSetMetadataService] GetOptionSetText ¥¢±Ñ: {optionSetValue}");
+                _logger.LogError(ex, $"[OptionSetMetadataService] GetOptionSetText å¤±æ•—: {optionSetValue}");
                 return $"Error_{optionSetValue}";
             }
         }
 
         /// <summary>
-        /// ²M°£«ü©w OptionSet ªº§Ö¨ú
+        /// æ¸…é™¤æŒ‡å®š OptionSet çš„å¿«å–
         /// </summary>
         public void ClearCache(string entityName, string attributeName)
         {
             string cacheKey = $"OptionSet_{entityName}_{attributeName}";
             _cache.Remove(cacheKey);
-            _logger.LogInformation($"[OptionSetMetadataService] ¤w²M°£§Ö¨ú: {cacheKey}");
+            _logger.LogInformation($"[OptionSetMetadataService] å·²æ¸…é™¤å¿«å–: {cacheKey}");
         }
 
         /// <summary>
-        /// ¨ú±o¥»¦a¤Æ¼ĞÅÒ¡]¤ä´©¦h»y¨¥¡^
+        /// å–å¾—æœ¬åœ°åŒ–æ¨™ç±¤ï¼ˆæ”¯æ´å¤šèªè¨€ï¼‰
         /// </summary>
         private string GetLocalizedLabel(Label label, string languageCode)
         {
@@ -236,16 +249,16 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
-        /// ±N»y¨¥¥N½XÂà´«¬° LCID
+        /// å°‡èªè¨€ä»£ç¢¼è½‰æ›ç‚º LCID
         /// </summary>
         private int GetLanguageCodeId(string languageCode)
         {
             switch (languageCode.ToLower())
             {
-                case "zh-tw": return 1028; // ÁcÅé¤¤¤å
-                case "zh-cn": return 2052; // Â²Åé¤¤¤å
-                case "en-us": return 1033; // ­^¤å
-                default: return 1028; // ¹w³]ÁcÅé¤¤¤å
+                case "zh-tw": return 1028; // ç¹é«”ä¸­æ–‡
+                case "zh-cn": return 2052; // ç°¡é«”ä¸­æ–‡
+                case "en-us": return 1033; // è‹±æ–‡
+                default: return 1028; // é è¨­ç¹é«”ä¸­æ–‡
             }
         }
     }

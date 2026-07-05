@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/Services/Caching/CacheService.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class CacheService
+// 主要成員：Remove、RemoveByPrefix、RemoveMultiple、Exists、GetTrackedKeys、GetStatistics、ConfigureCacheEntry、ConfigureCacheEntryOptions、TrackKey、UntrackKey
+// 引用命名空間：System、System.Collections.Concurrent、System.Collections.Generic、System.Linq、System.Threading、System.Threading.Tasks、Microsoft.Extensions.Caching.Memory、Microsoft.Extensions.Logging
+// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,43 +23,43 @@ using Microsoft.Extensions.Logging;
 namespace ChurchReport.Services.Caching
 {
     /// <summary>
-    /// �֨��A�ȹ�@
-    /// Phase 2.2: ���� Memory Cache ���ʸ˻P�޲z�\��
-    /// 
-    /// �\��S��:
-    /// - �䴩�P�B�P�D�P�B�ާ@
-    /// - �l�ܩҦ��֨���]�䴩���e��M���^
-    /// - ���ѧ֨��έp��T
-    /// - ������w��
-    /// - �۰ʳB�z�֨��L��
+    /// 快取服務實作
+    /// Phase 2.2: 提供 Memory Cache 的封裝與管理功能
+    ///
+    /// 功能特性:
+    /// - 支援同步與非同步操作
+    /// - 追蹤所有快取鍵（支援按前綴清除）
+    /// - 提供快取統計資訊
+    /// - 執行緒安全
+    /// - 自動處理快取過期
     /// </summary>
     public class CacheService : ICacheService
     {
-        #region �p�����
+        #region 私有欄位
 
         private readonly IMemoryCache _memoryCache;
         private readonly ILogger<CacheService> _logger;
-        
-        /// <summary>�l�ܩҦ��֨���]������w���^</summary>
+
+        /// <summary>追蹤所有快取鍵（執行緒安全）</summary>
         private readonly ConcurrentDictionary<string, DateTime> _trackedKeys = new();
-        
-        /// <summary>�έp�p�ƾ�</summary>
+
+        /// <summary>統計計數器</summary>
         private long _hitCount;
         private long _missCount;
-        
-        /// <summary>�w�]�L���ɶ�</summary>
+
+        /// <summary>預設過期時間</summary>
         private static readonly TimeSpan DefaultAbsoluteExpiration = TimeSpan.FromMinutes(10);
         private static readonly TimeSpan DefaultSlidingExpiration = TimeSpan.FromMinutes(5);
 
         #endregion
 
-        #region �غc�禡
+        #region 建構函式
 
         /// <summary>
-        /// �إߧ֨��A�ȹ��
+        /// 建立快取服務實例
         /// </summary>
-        /// <param name="memoryCache">�O����֨�</param>
-        /// <param name="logger">��x�O����</param>
+        /// <param name="memoryCache">記憶體快取</param>
+        /// <param name="logger">日誌記錄器</param>
         public CacheService(IMemoryCache memoryCache, ILogger<CacheService> logger)
         {
             _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
@@ -55,12 +68,12 @@ namespace ChurchReport.Services.Caching
 
         #endregion
 
-        #region �P�B��k
+        #region 同步方法
 
         /// <inheritdoc/>
         public T GetOrCreate<T>(
-            string key, 
-            Func<T> factory, 
+            string key,
+            Func<T> factory,
             TimeSpan? absoluteExpiration = null,
             TimeSpan? slidingExpiration = null)
         {
@@ -71,18 +84,18 @@ namespace ChurchReport.Services.Caching
 
             return _memoryCache.GetOrCreate(key, entry =>
             {
-                // �]�w�֨��ﶵ
+                // 設定快取選項
                 ConfigureCacheEntry(entry, absoluteExpiration, slidingExpiration);
-                
-                // �l�ܧ֨���
+
+                // 追蹤快取鍵
                 TrackKey(key);
-                
-                // �O�����R��
+
+                // 記錄未命中
                 Interlocked.Increment(ref _missCount);
-                
-                _logger.LogDebug("[CacheService] �֨��إ�: {Key}", key);
-                
-                // ����u�t��k���o���
+
+                _logger.LogDebug("[CacheService] 快取建立: {Key}", key);
+
+                // 執行工廠方法取得資料
                 return factory();
             });
         }
@@ -97,25 +110,25 @@ namespace ChurchReport.Services.Caching
             }
 
             var found = _memoryCache.TryGetValue(key, out value);
-            
+
             if (found)
             {
                 Interlocked.Increment(ref _hitCount);
-                _logger.LogTrace("[CacheService] �֨��R��: {Key}", key);
+                _logger.LogTrace("[CacheService] 快取命中: {Key}", key);
             }
             else
             {
                 Interlocked.Increment(ref _missCount);
-                _logger.LogTrace("[CacheService] �֨����R��: {Key}", key);
+                _logger.LogTrace("[CacheService] 快取未命中: {Key}", key);
             }
-            
+
             return found;
         }
 
         /// <inheritdoc/>
         public void Set<T>(
-            string key, 
-            T value, 
+            string key,
+            T value,
             TimeSpan? absoluteExpiration = null,
             TimeSpan? slidingExpiration = null)
         {
@@ -124,28 +137,28 @@ namespace ChurchReport.Services.Caching
 
             var options = new MemoryCacheEntryOptions();
             ConfigureCacheEntryOptions(options, absoluteExpiration, slidingExpiration);
-            
-            // ���U�����^�I
+
+            // 註冊移除回呼
             options.RegisterPostEvictionCallback((k, v, reason, state) =>
             {
                 UntrackKey(k.ToString());
-                _logger.LogDebug("[CacheService] �֨�����: {Key}, ��]: {Reason}", k, reason);
+                _logger.LogDebug("[CacheService] 快取移除: {Key}, 原因: {Reason}", k, reason);
             });
 
             _memoryCache.Set(key, value, options);
             TrackKey(key);
-            
-            _logger.LogDebug("[CacheService] �֨��]�w: {Key}", key);
+
+            _logger.LogDebug("[CacheService] 快取設定: {Key}", key);
         }
 
         #endregion
 
-        #region �D�P�B��k
+        #region 非同步方法
 
         /// <inheritdoc/>
         public async Task<T> GetOrCreateAsync<T>(
-            string key, 
-            Func<Task<T>> factory, 
+            string key,
+            Func<Task<T>> factory,
             TimeSpan? absoluteExpiration = null,
             TimeSpan? slidingExpiration = null,
             CancellationToken cancellationToken = default)
@@ -155,27 +168,27 @@ namespace ChurchReport.Services.Caching
             if (factory == null)
                 throw new ArgumentNullException(nameof(factory));
 
-            // �����ձq�֨����o
+            // 先嘗試從快取取得
             if (TryGet<T>(key, out var cachedValue))
             {
                 return cachedValue;
             }
 
-            // �֨����R���A����u�t��k
+            // 快取未命中，執行工廠方法
             cancellationToken.ThrowIfCancellationRequested();
-            
+
             var value = await factory().ConfigureAwait(false);
-            
-            // �]�w�֨�
+
+            // 設定快取
             Set(key, value, absoluteExpiration, slidingExpiration);
-            
+
             return value;
         }
 
         /// <inheritdoc/>
         public Task SetAsync<T>(
-            string key, 
-            T value, 
+            string key,
+            T value,
             TimeSpan? absoluteExpiration = null,
             TimeSpan? slidingExpiration = null,
             CancellationToken cancellationToken = default)
@@ -187,7 +200,7 @@ namespace ChurchReport.Services.Caching
 
         #endregion
 
-        #region �֨��޲z
+        #region 快取管理
 
         /// <inheritdoc/>
         public void Remove(string key)
@@ -197,8 +210,8 @@ namespace ChurchReport.Services.Caching
 
             _memoryCache.Remove(key);
             UntrackKey(key);
-            
-            _logger.LogDebug("[CacheService] �֨��w����: {Key}", key);
+
+            _logger.LogDebug("[CacheService] 快取已移除: {Key}", key);
         }
 
         /// <inheritdoc/>
@@ -216,7 +229,7 @@ namespace ChurchReport.Services.Caching
                 Remove(key);
             }
 
-            _logger.LogDebug("[CacheService] �w���� {Count} �ӫe�� '{Prefix}' ���֨�", 
+            _logger.LogDebug("[CacheService] 已移除 {Count} 個前綴為 '{Prefix}' 的快取",
                 keysToRemove.Count, prefix);
         }
 
@@ -261,10 +274,10 @@ namespace ChurchReport.Services.Caching
 
         #endregion
 
-        #region �p�����U��k
+        #region 私有輔助方法
 
         /// <summary>
-        /// �]�w�֨����ؿﶵ
+        /// 設定快取項目選項
         /// </summary>
         private void ConfigureCacheEntry(
             ICacheEntry entry,
@@ -275,16 +288,16 @@ namespace ChurchReport.Services.Caching
             entry.SlidingExpiration = slidingExpiration ?? DefaultSlidingExpiration;
             entry.Priority = CacheItemPriority.Normal;
 
-            // ���U�����^�I
+            // 註冊移除回呼
             entry.RegisterPostEvictionCallback((key, value, reason, state) =>
             {
                 UntrackKey(key.ToString());
-                _logger.LogDebug("[CacheService] �֨��L������: {Key}, ��]: {Reason}", key, reason);
+                _logger.LogDebug("[CacheService] 快取過期移除: {Key}, 原因: {Reason}", key, reason);
             });
         }
 
         /// <summary>
-        /// �]�w�֨��ﶵ
+        /// 設定快取選項
         /// </summary>
         private void ConfigureCacheEntryOptions(
             MemoryCacheEntryOptions options,
@@ -297,7 +310,7 @@ namespace ChurchReport.Services.Caching
         }
 
         /// <summary>
-        /// �l�ܧ֨���
+        /// 追蹤快取鍵
         /// </summary>
         private void TrackKey(string key)
         {
@@ -305,7 +318,7 @@ namespace ChurchReport.Services.Caching
         }
 
         /// <summary>
-        /// �����l�ܧ֨���
+        /// 取消追蹤快取鍵
         /// </summary>
         private void UntrackKey(string key)
         {

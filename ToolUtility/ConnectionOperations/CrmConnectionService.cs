@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šToolUtility/ConnectionOperations/CrmConnectionService.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport å…±ç”¨å·¥å…·èˆ‡æ•´åˆè¼”åŠ©å±¤ï¼ŒåŒ…å«é€šçŸ¥ã€ä»˜æ¬¾ã€CRM æˆ–è·¨æ¨¡çµ„ helperã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass CrmConnectionService
+// ä¸»è¦æˆå“¡ï¼šGetClientCredentialsã€GetOrganizationServiceã€SetOrganizationServiceã€SetClaimsBasedAuthenticationOrganizationServiceã€SetFederatedOrganizationProxyã€DiscoverOrganizationsã€FindOrganizationã€CreateOnPremiseClientã€ValidateConnectionã€GetCurrentUser
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€System.Linqã€System.Netã€Microsoft.Xrm.Sdkã€Microsoft.Xrm.Sdk.Clientã€Microsoft.Xrm.Sdk.Discoveryã€Microsoft.Xrm.Sdk.Queryã€Microsoft.Crm.Sdk.Messages
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using System.Linq;
 using System.Net;
@@ -7,30 +20,30 @@ using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Crm.Sdk.Messages;
 using System.ServiceModel.Description;
-using PowerPlatform.Dataverse.Client; // ¨Ï¥Î¦Û©w¸q±M®×
+using PowerPlatform.Dataverse.Client; // ä½¿ç”¨è‡ªå®šç¾©å°ˆæ¡ˆ
 
 namespace ToolUtilityNameSpace.ConnectionOperations
 {
     /// <summary>
-    /// CRM ³s½uªA°È¹ê§@
-    /// ´£¨Ñ¦hºØ³s½u¤è¦¡¤ä´© CRM 2011¡BDynamics 365 On-Premise ©M Online
+    /// CRM é€£ç·šæœå‹™å¯¦ä½œ
+    /// æä¾›å¤šç¨®é€£ç·šæ–¹å¼æ”¯æ´ CRM 2011ã€Dynamics 365 On-Premise å’Œ Online
     /// </summary>
     public class CrmConnectionService : ICrmConnectionService
     {
-        #region ±`¼Æ©w¸q
+        #region å¸¸æ•¸å®šç¾©
         private const string CRM_TYPE_DYNAMICS365 = "DYNAMICS365";
         private const int DEFAULT_TIMEOUT_HOURS = 3;
         #endregion
 
-        #region °ò¥»¾ÌÃÒ¤èªk
+        #region åŸºæœ¬æ†‘è­‰æ–¹æ³•
 
         /// <summary>
-        /// ¨ú±o Windows »{ÃÒ¾ÌÃÒ¡]¤T°Ñ¼Æª©¥»¡^
+        /// å–å¾— Windows èªè­‰æ†‘è­‰ï¼ˆä¸‰åƒæ•¸ç‰ˆæœ¬ï¼‰
         /// </summary>
-        /// <param name="domain">ºô°ì¦WºÙ</param>
-        /// <param name="userName">¨Ï¥ÎªÌ¦WºÙ</param>
-        /// <param name="password">±K½X</param>
-        /// <returns>ClientCredentials ª«¥ó</returns>
+        /// <param name="domain">ç¶²åŸŸåç¨±</param>
+        /// <param name="userName">ä½¿ç”¨è€…åç¨±</param>
+        /// <param name="password">å¯†ç¢¼</param>
+        /// <returns>ClientCredentials ç‰©ä»¶</returns>
         public ClientCredentials GetClientCredentials(string domain, string userName, string password)
         {
             try
@@ -42,14 +55,14 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             }
             catch (Exception ex)
             {
-                throw new Exception($"«Ø¥ß ClientCredentials ®Éµo¥Í¿ù»~: {ex.Message}", ex);
+                throw new Exception($"å»ºç«‹ ClientCredentials æ™‚ç™¼ç”ŸéŒ¯èª¤: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// ¨ú±o¹w³] Windows »{ÃÒ¾ÌÃÒ¡]µL°Ñ¼Æª©¥»¡^
+        /// å–å¾—é è¨­ Windows èªè­‰æ†‘è­‰ï¼ˆç„¡åƒæ•¸ç‰ˆæœ¬ï¼‰
         /// </summary>
-        /// <returns>ClientCredentials ª«¥ó</returns>
+        /// <returns>ClientCredentials ç‰©ä»¶</returns>
         public ClientCredentials GetClientCredentials()
         {
             try
@@ -60,24 +73,24 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             }
             catch (Exception ex)
             {
-                throw new Exception($"«Ø¥ß¹w³] ClientCredentials ®Éµo¥Í¿ù»~: {ex.Message}", ex);
+                throw new Exception($"å»ºç«‹é è¨­ ClientCredentials æ™‚ç™¼ç”ŸéŒ¯èª¤: {ex.Message}", ex);
             }
         }
 
         #endregion
 
-        #region CRM 2011 ³s½u¤èªk
+        #region CRM 2011 é€£ç·šæ–¹æ³•
 
         /// <summary>
-        /// ¨ú±o CRM 2011 ²ÕÂ´ªA°È¡]HTTP ³s½u¡^
+        /// å–å¾— CRM 2011 çµ„ç¹”æœå‹™ï¼ˆHTTP é€£ç·šï¼‰
         /// </summary>
-        /// <param name="server">¦øªA¾¹¦ì§}</param>
-        /// <param name="port">³s±µ°ğ</param>
-        /// <param name="organization">²ÕÂ´¦WºÙ</param>
-        /// <param name="domain">ºô°ì</param>
-        /// <param name="userName">¨Ï¥ÎªÌ¦WºÙ</param>
-        /// <param name="password">±K½X</param>
-        /// <returns>IOrganizationService ¹ê¨Ò</returns>
+        /// <param name="server">ä¼ºæœå™¨ä½å€</param>
+        /// <param name="port">é€£æ¥åŸ </param>
+        /// <param name="organization">çµ„ç¹”åç¨±</param>
+        /// <param name="domain">ç¶²åŸŸ</param>
+        /// <param name="userName">ä½¿ç”¨è€…åç¨±</param>
+        /// <param name="password">å¯†ç¢¼</param>
+        /// <returns>IOrganizationService å¯¦ä¾‹</returns>
         public IOrganizationService GetOrganizationService(
             string server,
             string port,
@@ -96,10 +109,10 @@ namespace ToolUtilityNameSpace.ConnectionOperations
 
                 var serviceProxy = new OrganizationServiceProxy(orgConfigInfo, credentials);
 #if NET462 || NETFRAMEWORK
-                // .NET Framework ¨Ï¥Î Behaviors
+                // .NET Framework ä½¿ç”¨ Behaviors
                 serviceProxy.ServiceConfiguration.CurrentServiceEndpoint.EndpointBehaviors.Add(new ProxyTypesBehavior());
 #else
-                // .NET 10 ¨Ï¥Î EnableProxyTypes
+                // .NET 10 ä½¿ç”¨ EnableProxyTypes
                 serviceProxy.EnableProxyTypes();
 #endif
                 return serviceProxy;
@@ -107,13 +120,13 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             catch (Exception ex)
             {
                 throw new Exception(
-                    $"«Ø¥ß²ÕÂ´ªA°È³s½u®Éµo¥Í¿ù»~ (Server: {server}, Port: {port}, Org: {organization}): {ex.Message}",
+                    $"å»ºç«‹çµ„ç¹”æœå‹™é€£ç·šæ™‚ç™¼ç”ŸéŒ¯èª¤ (Server: {server}, Port: {port}, Org: {organization}): {ex.Message}",
                     ex);
             }
         }
 
         /// <summary>
-        /// ³]©w CRM 2011 ²ÕÂ´ªA°È¡]HTTP ³s½u¡^
+        /// è¨­å®š CRM 2011 çµ„ç¹”æœå‹™ï¼ˆHTTP é€£ç·šï¼‰
         /// </summary>
         public IOrganizationService SetOrganizationService(
             string server,
@@ -128,18 +141,18 @@ namespace ToolUtilityNameSpace.ConnectionOperations
 
         #endregion
 
-        #region Claims-Based Authentication ³s½u¤èªk
+        #region Claims-Based Authentication é€£ç·šæ–¹æ³•
 
         /// <summary>
-        /// ³]©w Claims-Based ÅçÃÒªº²ÕÂ´ªA°È¡]HTTPS ³s½u¡^
-        /// ¥Î©ó¤º³¡³¡¸pªº Dynamics 365
+        /// è¨­å®š Claims-Based é©—è­‰çš„çµ„ç¹”æœå‹™ï¼ˆHTTPS é€£ç·šï¼‰
+        /// ç”¨æ–¼å…§éƒ¨éƒ¨ç½²çš„ Dynamics 365
         /// </summary>
-        /// <param name="organization">²ÕÂ´¦WºÙ</param>
-        /// <param name="server">¦øªA¾¹¦ì§}</param>
-        /// <param name="domain">ºô°ì</param>
-        /// <param name="userName">¨Ï¥ÎªÌ¦WºÙ</param>
-        /// <param name="password">±K½X</param>
-        /// <returns>IOrganizationService ¹ê¨Ò</returns>
+        /// <param name="organization">çµ„ç¹”åç¨±</param>
+        /// <param name="server">ä¼ºæœå™¨ä½å€</param>
+        /// <param name="domain">ç¶²åŸŸ</param>
+        /// <param name="userName">ä½¿ç”¨è€…åç¨±</param>
+        /// <param name="password">å¯†ç¢¼</param>
+        /// <returns>IOrganizationService å¯¦ä¾‹</returns>
         public IOrganizationService SetClaimsBasedAuthenticationOrganizationService(
             string organization,
             string server,
@@ -166,28 +179,28 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             catch (Exception ex)
             {
                 throw new Exception(
-                    $"³]©w Claims-Based ÅçÃÒ²ÕÂ´ªA°È®Éµo¥Í¿ù»~ (Org: {organization}, Server: {server}): {ex.Message}",
+                    $"è¨­å®š Claims-Based é©—è­‰çµ„ç¹”æœå‹™æ™‚ç™¼ç”ŸéŒ¯èª¤ (Org: {organization}, Server: {server}): {ex.Message}",
                     ex);
             }
         }
 
         #endregion
 
-        #region Federated ³s½u¤èªk
+        #region Federated é€£ç·šæ–¹æ³•
 
         /// <summary>
-        /// ³]©w Federated (Áp·ù) ²ÕÂ´ªA°È Proxy
-        /// ¤ä´© Dynamics 365 Online ©M On-Premise IFD Àô¹Ò
+        /// è¨­å®š Federated (è¯ç›Ÿ) çµ„ç¹”æœå‹™ Proxy
+        /// æ”¯æ´ Dynamics 365 Online å’Œ On-Premise IFD ç’°å¢ƒ
         /// </summary>
-        /// <param name="discoveryServiceType">ªA°ÈÃş«¬ (DYNAMICS365 ©Î¨ä¥L)</param>
-        /// <param name="organization">²ÕÂ´¦WºÙ</param>
-        /// <param name="server">¦øªA¾¹¦ì§}</param>
-        /// <param name="port">³s±µ°ğ</param>
-        /// <param name="baseDiscoveryServiceAddress">Discovery ªA°È°òÂ¦¸ô®|</param>
-        /// <param name="userName">¨Ï¥ÎªÌ¦WºÙ</param>
-        /// <param name="password">±K½X</param>
-        /// <param name="domain">ºô°ì</param>
-        /// <returns>OrganizationServiceProxy ¹ê¨Ò</returns>
+        /// <param name="discoveryServiceType">æœå‹™é¡å‹ (DYNAMICS365 æˆ–å…¶ä»–)</param>
+        /// <param name="organization">çµ„ç¹”åç¨±</param>
+        /// <param name="server">ä¼ºæœå™¨ä½å€</param>
+        /// <param name="port">é€£æ¥åŸ </param>
+        /// <param name="baseDiscoveryServiceAddress">Discovery æœå‹™åŸºç¤è·¯å¾‘</param>
+        /// <param name="userName">ä½¿ç”¨è€…åç¨±</param>
+        /// <param name="password">å¯†ç¢¼</param>
+        /// <param name="domain">ç¶²åŸŸ</param>
+        /// <returns>OrganizationServiceProxy å¯¦ä¾‹</returns>
         public OrganizationServiceProxy SetFederatedOrganizationProxy(
             string discoveryServiceType,
             string organization,
@@ -200,12 +213,12 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         {
             try
             {
-                // «Ø¥ß Discovery Service ¦ì§}
+                // å»ºç«‹ Discovery Service ä½å€
                 string discoveryAddress = discoveryServiceType == CRM_TYPE_DYNAMICS365
                     ? $"https://{organization}.{server}{baseDiscoveryServiceAddress}"
                     : $"http://{server}:{port}/{organization}/XRMServices/2011/Organization.svc";
 
-                // «Ø¥ß Discovery Service ºŞ²zª«¥ó
+                // å»ºç«‹ Discovery Service ç®¡ç†ç‰©ä»¶
                 IServiceManagement<IDiscoveryService> serviceManagement =
                     ServiceConfigurationFactory.CreateManagement<IDiscoveryService>(new Uri(discoveryAddress));
 
@@ -215,7 +228,7 @@ namespace ToolUtilityNameSpace.ConnectionOperations
 
                 string organizationUri = string.Empty;
 
-                // ³z¹L Discovery Service ¨ú±o²ÕÂ´ºİÂI
+                // é€é Discovery Service å–å¾—çµ„ç¹”ç«¯é»
                 using (var discoveryProxy = GetProxy<IDiscoveryService, DiscoveryServiceProxy>(
                     serviceManagement, authCredentials))
                 {
@@ -233,17 +246,17 @@ namespace ToolUtilityNameSpace.ConnectionOperations
 
                 if (string.IsNullOrWhiteSpace(organizationUri))
                 {
-                    throw new Exception($"§ä¤£¨ì²ÕÂ´ '{organization}' ªºªA°ÈºİÂI");
+                    throw new Exception($"æ‰¾ä¸åˆ°çµ„ç¹” '{organization}' çš„æœå‹™ç«¯é»");
                 }
 
-                // «Ø¥ß²ÕÂ´ªA°ÈºŞ²zª«¥ó
+                // å»ºç«‹çµ„ç¹”æœå‹™ç®¡ç†ç‰©ä»¶
                 IServiceManagement<IOrganizationService> orgServiceManagement =
                     ServiceConfigurationFactory.CreateManagement<IOrganizationService>(new Uri(organizationUri));
 
                 AuthenticationCredentials credentials =
                     GetAuthCredentials(orgServiceManagement, endpointType, userName, password, domain);
 
-                // «Ø¥ß²ÕÂ´ªA°È Proxy
+                // å»ºç«‹çµ„ç¹”æœå‹™ Proxy
                 var orgProxy = GetProxy<IOrganizationService, OrganizationServiceProxy>(
                     orgServiceManagement, credentials);
 
@@ -258,25 +271,25 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             catch (Exception ex)
             {
                 throw new Exception(
-                    $"³]©w Federated ²ÕÂ´ªA°È®Éµo¥Í¿ù»~ (Type: {discoveryServiceType}, Org: {organization}): {ex.Message}",
+                    $"è¨­å®š Federated çµ„ç¹”æœå‹™æ™‚ç™¼ç”ŸéŒ¯èª¤ (Type: {discoveryServiceType}, Org: {organization}): {ex.Message}",
                     ex);
             }
         }
 
         #endregion
 
-        #region Discovery Service ¤èªk
+        #region Discovery Service æ–¹æ³•
 
         /// <summary>
-        /// ±´¯Á¨Ï¥ÎªÌ©ÒÄİªº©Ò¦³²ÕÂ´
+        /// æ¢ç´¢ä½¿ç”¨è€…æ‰€å±¬çš„æ‰€æœ‰çµ„ç¹”
         /// </summary>
-        /// <param name="service">Discovery Service ¹ê¨Ò</param>
-        /// <returns>²ÕÂ´¸Ô²Ó¸ê°T¶°¦X</returns>
+        /// <param name="service">Discovery Service å¯¦ä¾‹</param>
+        /// <returns>çµ„ç¹”è©³ç´°è³‡è¨Šé›†åˆ</returns>
         public OrganizationDetailCollection DiscoverOrganizations(IDiscoveryService service)
         {
             if (service == null)
             {
-                throw new ArgumentNullException(nameof(service), "Discovery Service ¤£¥i¬° null");
+                throw new ArgumentNullException(nameof(service), "Discovery Service ä¸å¯ç‚º null");
             }
 
             try
@@ -287,26 +300,26 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             }
             catch (Exception ex)
             {
-                throw new Exception($"±´¯Á²ÕÂ´®Éµo¥Í¿ù»~: {ex.Message}", ex);
+                throw new Exception($"æ¢ç´¢çµ„ç¹”æ™‚ç™¼ç”ŸéŒ¯èª¤: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// ¦b²ÕÂ´¦Cªí¤¤´M§ä¯S©w²ÕÂ´
+        /// åœ¨çµ„ç¹”åˆ—è¡¨ä¸­å°‹æ‰¾ç‰¹å®šçµ„ç¹”
         /// </summary>
-        /// <param name="orgUniqueName">²ÕÂ´°ß¤@¦WºÙ¡]¤£°Ï¤À¤j¤p¼g¡^</param>
-        /// <param name="orgDetails">²ÕÂ´¸Ô²Ó¸ê°T°}¦C</param>
-        /// <returns>§ä¨ìªº²ÕÂ´¸Ô²Ó¸ê°T¡A­Y§ä¤£¨ì«hªğ¦^ null</returns>
+        /// <param name="orgUniqueName">çµ„ç¹”å”¯ä¸€åç¨±ï¼ˆä¸å€åˆ†å¤§å°å¯«ï¼‰</param>
+        /// <param name="orgDetails">çµ„ç¹”è©³ç´°è³‡è¨Šé™£åˆ—</param>
+        /// <returns>æ‰¾åˆ°çš„çµ„ç¹”è©³ç´°è³‡è¨Šï¼Œè‹¥æ‰¾ä¸åˆ°å‰‡è¿”å› null</returns>
         public OrganizationDetail FindOrganization(string orgUniqueName, OrganizationDetail[] orgDetails)
         {
             if (string.IsNullOrWhiteSpace(orgUniqueName))
             {
-                throw new ArgumentNullException(nameof(orgUniqueName), "²ÕÂ´¦WºÙ¤£¥i¬°ªÅ");
+                throw new ArgumentNullException(nameof(orgUniqueName), "çµ„ç¹”åç¨±ä¸å¯ç‚ºç©º");
             }
 
             if (orgDetails == null)
             {
-                throw new ArgumentNullException(nameof(orgDetails), "²ÕÂ´¸Ô²Ó¸ê°T¤£¥i¬° null");
+                throw new ArgumentNullException(nameof(orgDetails), "çµ„ç¹”è©³ç´°è³‡è¨Šä¸å¯ç‚º null");
             }
 
             try
@@ -316,16 +329,16 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             }
             catch (Exception ex)
             {
-                throw new Exception($"´M§ä²ÕÂ´ '{orgUniqueName}' ®Éµo¥Í¿ù»~: {ex.Message}", ex);
+                throw new Exception($"å°‹æ‰¾çµ„ç¹” '{orgUniqueName}' æ™‚ç™¼ç”ŸéŒ¯èª¤: {ex.Message}", ex);
             }
         }
 
         #endregion
 
-        #region ¨p¦³»²§U¤èªk
+        #region ç§æœ‰è¼”åŠ©æ–¹æ³•
 
         /// <summary>
-        /// ¨ú±oÅçÃÒ¾ÌÃÒ¡]®Ú¾ÚÅçÃÒ´£¨ÑªÌÃş«¬¡^
+        /// å–å¾—é©—è­‰æ†‘è­‰ï¼ˆæ ¹æ“šé©—è­‰æä¾›è€…é¡å‹ï¼‰
         /// </summary>
         private AuthenticationCredentials GetAuthCredentials<TService>(
             IServiceManagement<TService> service,
@@ -361,7 +374,7 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         }
 
         /// <summary>
-        /// ¨ú±oªA°È Proxy¡]ªx«¬¤èªk¡A¤ä´© Discovery ©Î Organization Service¡^
+        /// å–å¾—æœå‹™ Proxyï¼ˆæ³›å‹æ–¹æ³•ï¼Œæ”¯æ´ Discovery æˆ– Organization Serviceï¼‰
         /// </summary>
         private TProxy GetProxy<TService, TProxy>(
             IServiceManagement<TService> serviceManagement,
@@ -371,7 +384,7 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         {
             var classType = typeof(TProxy);
 
-            // «D ActiveDirectory ÅçÃÒ»İ­n¨ú±o Token
+            // é ActiveDirectory é©—è­‰éœ€è¦å–å¾— Token
             if (serviceManagement.AuthenticationType != AuthenticationProviderType.ActiveDirectory)
             {
                 AuthenticationCredentials tokenCredentials = serviceManagement.Authenticate(authCredentials);
@@ -386,7 +399,7 @@ namespace ToolUtilityNameSpace.ConnectionOperations
                     });
             }
 
-            // ActiveDirectory ÅçÃÒª½±µ¨Ï¥Î¾ÌÃÒ
+            // ActiveDirectory é©—è­‰ç›´æ¥ä½¿ç”¨æ†‘è­‰
             return (TProxy)classType
                 .GetConstructor(new Type[] {
                     typeof(IServiceManagement<TService>),
@@ -400,38 +413,38 @@ namespace ToolUtilityNameSpace.ConnectionOperations
 
         #endregion
 
-        #region ÃB¥~¹ê¥Î¤èªk
+        #region é¡å¤–å¯¦ç”¨æ–¹æ³•
 
         /// <summary>
-        /// «Ø¥ß¨Ï¥Î OnPremiseClient ªº³s½u¡]±ÀÂË¥Î©ó·s±M®×¡^
-        /// ¨Ï¥Î¦Û©w¸qªº PowerPlatform.Dataverse.Client.OnPremiseClient
+        /// å»ºç«‹ä½¿ç”¨ OnPremiseClient çš„é€£ç·šï¼ˆæ¨è–¦ç”¨æ–¼æ–°å°ˆæ¡ˆï¼‰
+        /// ä½¿ç”¨è‡ªå®šç¾©çš„ PowerPlatform.Dataverse.Client.OnPremiseClient
         /// </summary>
-        /// <param name="url">²ÕÂ´ªA°È URL¡]¨Ò¦p¡Ghttps://org.crm.contoso.com/XRMServices/2011/Organization.svc¡^</param>
-        /// <param name="userName">¨Ï¥ÎªÌ¦WºÙ¡]®æ¦¡: DOMAIN\Username ©Î username@domain.com¡^</param>
-        /// <param name="password">±K½X</param>
-        /// <returns>IOrganizationService ¹ê¨Ò</returns>
+        /// <param name="url">çµ„ç¹”æœå‹™ URLï¼ˆä¾‹å¦‚ï¼šhttps://org.crm.contoso.com/XRMServices/2011/Organization.svcï¼‰</param>
+        /// <param name="userName">ä½¿ç”¨è€…åç¨±ï¼ˆæ ¼å¼: DOMAIN\Username æˆ– username@domain.comï¼‰</param>
+        /// <param name="password">å¯†ç¢¼</param>
+        /// <returns>IOrganizationService å¯¦ä¾‹</returns>
         /// <remarks>
-        /// ¦¹¤èªk¨Ï¥Î¦Û©w¸qªº PowerPlatform.Dataverse.Client ±M®×¤¤ªº OnPremiseClient Ãş§O¡A
-        /// ¤ä´© WS-Trust ÅçÃÒ¡A¾A¥Î©ó On-Premise IFD ©M AD Àô¹Ò¡C
+        /// æ­¤æ–¹æ³•ä½¿ç”¨è‡ªå®šç¾©çš„ PowerPlatform.Dataverse.Client å°ˆæ¡ˆä¸­çš„ OnPremiseClient é¡åˆ¥ï¼Œ
+        /// æ”¯æ´ WS-Trust é©—è­‰ï¼Œé©ç”¨æ–¼ On-Premise IFD å’Œ AD ç’°å¢ƒã€‚
         /// </remarks>
         public IOrganizationService CreateOnPremiseClient(string url, string userName, string password)
         {
             try
             {
-                // ¨Ï¥Î¦Û©w¸q PowerPlatform.Dataverse.Client.OnPremiseClient
+                // ä½¿ç”¨è‡ªå®šç¾© PowerPlatform.Dataverse.Client.OnPremiseClient
                 return new OnPremiseClient(url, userName, password);
             }
             catch (Exception ex)
             {
-                throw new Exception($"«Ø¥ß OnPremiseClient ³s½u®Éµo¥Í¿ù»~ (URL: {url}): {ex.Message}", ex);
+                throw new Exception($"å»ºç«‹ OnPremiseClient é€£ç·šæ™‚ç™¼ç”ŸéŒ¯èª¤ (URL: {url}): {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// ÅçÃÒ³s½u¬O§_¦³®Ä
+        /// é©—è­‰é€£ç·šæ˜¯å¦æœ‰æ•ˆ
         /// </summary>
-        /// <param name="service">²ÕÂ´ªA°È¹ê¨Ò</param>
-        /// <returns>true ªí¥Ü³s½u¦³®Ä</returns>
+        /// <param name="service">çµ„ç¹”æœå‹™å¯¦ä¾‹</param>
+        /// <returns>true è¡¨ç¤ºé€£ç·šæœ‰æ•ˆ</returns>
         public bool ValidateConnection(IOrganizationService service)
         {
             try
@@ -441,7 +454,7 @@ namespace ToolUtilityNameSpace.ConnectionOperations
                     return false;
                 }
 
-                // °õ¦æ WhoAmI ½Ğ¨D¨ÓÅçÃÒ³s½u
+                // åŸ·è¡Œ WhoAmI è«‹æ±‚ä¾†é©—è­‰é€£ç·š
                 var response = (WhoAmIResponse)service.Execute(new WhoAmIRequest());
                 return response.UserId != Guid.Empty;
             }
@@ -452,15 +465,15 @@ namespace ToolUtilityNameSpace.ConnectionOperations
         }
 
         /// <summary>
-        /// ¨ú±o·í«e¨Ï¥ÎªÌ¸ê°T
+        /// å–å¾—ç•¶å‰ä½¿ç”¨è€…è³‡è¨Š
         /// </summary>
-        /// <param name="service">²ÕÂ´ªA°È¹ê¨Ò</param>
-        /// <returns>¨Ï¥ÎªÌ Entity¡A¥]§t§¹¾ãÄæ¦ì</returns>
+        /// <param name="service">çµ„ç¹”æœå‹™å¯¦ä¾‹</param>
+        /// <returns>ä½¿ç”¨è€… Entityï¼ŒåŒ…å«å®Œæ•´æ¬„ä½</returns>
         public Entity GetCurrentUser(IOrganizationService service)
         {
             if (service == null)
             {
-                throw new ArgumentNullException(nameof(service), "²ÕÂ´ªA°È¤£¥i¬° null");
+                throw new ArgumentNullException(nameof(service), "çµ„ç¹”æœå‹™ä¸å¯ç‚º null");
             }
 
             try
@@ -470,20 +483,20 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             }
             catch (Exception ex)
             {
-                throw new Exception($"¨ú±o·í«e¨Ï¥ÎªÌ¸ê°T®Éµo¥Í¿ù»~: {ex.Message}", ex);
+                throw new Exception($"å–å¾—ç•¶å‰ä½¿ç”¨è€…è³‡è¨Šæ™‚ç™¼ç”ŸéŒ¯èª¤: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// ¨ú±o·í«e¨Ï¥ÎªÌ ID
+        /// å–å¾—ç•¶å‰ä½¿ç”¨è€… ID
         /// </summary>
-        /// <param name="service">²ÕÂ´ªA°È¹ê¨Ò</param>
-        /// <returns>¨Ï¥ÎªÌ GUID</returns>
+        /// <param name="service">çµ„ç¹”æœå‹™å¯¦ä¾‹</param>
+        /// <returns>ä½¿ç”¨è€… GUID</returns>
         public Guid GetCurrentUserId(IOrganizationService service)
         {
             if (service == null)
             {
-                throw new ArgumentNullException(nameof(service), "²ÕÂ´ªA°È¤£¥i¬° null");
+                throw new ArgumentNullException(nameof(service), "çµ„ç¹”æœå‹™ä¸å¯ç‚º null");
             }
 
             try
@@ -493,20 +506,20 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             }
             catch (Exception ex)
             {
-                throw new Exception($"¨ú±o·í«e¨Ï¥ÎªÌ ID ®Éµo¥Í¿ù»~: {ex.Message}", ex);
+                throw new Exception($"å–å¾—ç•¶å‰ä½¿ç”¨è€… ID æ™‚ç™¼ç”ŸéŒ¯èª¤: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// ¨ú±o·í«e²ÕÂ´ ID
+        /// å–å¾—ç•¶å‰çµ„ç¹” ID
         /// </summary>
-        /// <param name="service">²ÕÂ´ªA°È¹ê¨Ò</param>
-        /// <returns>²ÕÂ´ GUID</returns>
+        /// <param name="service">çµ„ç¹”æœå‹™å¯¦ä¾‹</param>
+        /// <returns>çµ„ç¹” GUID</returns>
         public Guid GetCurrentOrganizationId(IOrganizationService service)
         {
             if (service == null)
             {
-                throw new ArgumentNullException(nameof(service), "²ÕÂ´ªA°È¤£¥i¬° null");
+                throw new ArgumentNullException(nameof(service), "çµ„ç¹”æœå‹™ä¸å¯ç‚º null");
             }
 
             try
@@ -516,7 +529,7 @@ namespace ToolUtilityNameSpace.ConnectionOperations
             }
             catch (Exception ex)
             {
-                throw new Exception($"¨ú±o·í«e²ÕÂ´ ID ®Éµo¥Í¿ù»~: {ex.Message}", ex);
+                throw new Exception($"å–å¾—ç•¶å‰çµ„ç¹” ID æ™‚ç™¼ç”ŸéŒ¯èª¤: {ex.Message}", ex);
             }
         }
 

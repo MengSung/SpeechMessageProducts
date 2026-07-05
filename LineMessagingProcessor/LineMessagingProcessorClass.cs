@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：LineMessagingProcessor/LineMessagingProcessorClass.cs
+// 所屬區塊：LINE 訊息處理核心橋接層，將產品 workflow 與 LINE Messaging Client 串接。
+// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
+// 主要型別：class LineMessagingProcessorClass、class UserProfile
+// 主要成員：NormalizeBearerToken、StripBearerPrefix、ResolveDefaultChannelAccessToken、ResolveChannelAccessToken、GetRequiredChannelAccessToken、Dispose、ProcessMessage_TEST、ProcessMessage、SendMessage、SendReliableMessageAsync
+// 引用命名空間：System、System.Collections.Generic、System.IO、System.Linq、System.Text、System.Threading.Tasks、Line.Messaging、Newtonsoft.Json
+// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -337,6 +350,9 @@ namespace LineMessagingProcessor
 
             await _lineMessagingClient.ReplyMessageAsync(replyToken, messages).ConfigureAwait(false);
         }
+
+        // RichMenu 相關方法是 LINE SDK 的薄封裝，故意不放產品 catalog、alias 決策或狀態儲存邏輯。
+        // 上層共用 workflow 會負責將 ChurchReport 或其他產品的 menu key 轉成這裡需要的 provider richMenuId。
 
         /// <summary>
         /// 建立 LINE RichMenu 並回傳 LINE 產生的 richMenuId。

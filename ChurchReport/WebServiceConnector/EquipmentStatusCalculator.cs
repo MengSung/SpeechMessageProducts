@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/WebServiceConnector/EquipmentStatusCalculator.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass EquipmentStatusCalculator
+// ä¸»è¦æˆå“¡ï¼šCalculateEquipmentStatusã€IsKeyStageã€CalculateEquipmentStatusForMembers
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€System.Collections.Genericã€System.Linqã€ChurchReport.Modelsã€ToolUtilityNameSpaceã€ToolUtilityNameSpace.Factory
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,12 +21,12 @@ using ToolUtilityNameSpace.Factory;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ¸Ë³Æª¬ºA­pºâ¾¹
-    /// ­t³d­pºâ¨C­Ó¦¨­ûªº¸Ë³Æª¬ºA¡AÅã¥Ü¥»¶¥¬q¥i¥Hµ²·~ªº½Òµ{
+    /// è£å‚™ç‹€æ…‹è¨ˆç®—å™¨
+    /// è² è²¬è¨ˆç®—æ¯å€‹æˆå“¡çš„è£å‚™ç‹€æ…‹ï¼Œé¡¯ç¤ºæœ¬éšæ®µå¯ä»¥çµæ¥­çš„èª²ç¨‹
     /// </summary>
     public class EquipmentStatusCalculator
     {
-        // ³z¹L Factory ¨ú±o ToolUtilityClass ³æ¤@¹ê¨Ò
+        // é€é Factory å–å¾— ToolUtilityClass å–®ä¸€å¯¦ä¾‹
         private readonly ToolUtilityClass m_ToolUtilityClass;
 
         public EquipmentStatusCalculator()
@@ -22,51 +35,51 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ­pºâ¨Ã¨ú±o¦¨­ûªº¸Ë³Æª¬ºA
-        /// Åã¥Ü¡u¥»¶¥¬q¥i¥Hµ²·~¡v­È¬° TRUE ªº¤W½Ò¬ö¿ı³æ
+        /// è¨ˆç®—ä¸¦å–å¾—æˆå“¡çš„è£å‚™ç‹€æ…‹
+        /// é¡¯ç¤ºã€Œæœ¬éšæ®µå¯ä»¥çµæ¥­ã€å€¼ç‚º TRUE çš„ä¸Šèª²ç´€éŒ„å–®
         /// </summary>
-        /// <param name="contactId">³sµ¸¤HID</param>
-        /// <returns>¸Ë³Æª¬ºA¤å¦r¡]¥iµ²·~ªº½Òµ{²M³æ¡^</returns>
+        /// <param name="contactId">é€£çµ¡äººID</param>
+        /// <returns>è£å‚™ç‹€æ…‹æ–‡å­—ï¼ˆå¯çµæ¥­çš„èª²ç¨‹æ¸…å–®ï¼‰</returns>
         public string CalculateEquipmentStatus(Guid contactId)
         {
             try
             {
-                // ¨ú±o¸Ó³sµ¸¤Hªº©Ò¦³¤W½Ò¬ö¿ı
+                // å–å¾—è©²é€£çµ¡äººçš„æ‰€æœ‰ä¸Šèª²ç´€éŒ„
                 var storLessonsCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship(
-                    "contact", "contactid", contactId.ToString(), 
+                    "contact", "contactid", contactId.ToString(),
                     "new_contact_new_stor_lessons", "new_stor_lessons");
 
                 if (storLessonsCollection == null || storLessonsCollection.Entities.Count == 0)
                 {
-                    return ""; // ¨S¦³¤W½Ò¬ö¿ı
+                    return ""; // æ²’æœ‰ä¸Šèª²ç´€éŒ„
                 }
 
-                // ¦¬¶°¥i¥Hµ²·~ªº½Òµ{
+                // æ”¶é›†å¯ä»¥çµæ¥­çš„èª²ç¨‹
                 var graduatableCourses = new List<string>();
 
                 foreach (var storLessonsEntity in storLessonsCollection.Entities)
                 {
-                    // ¨ú±o§¹¾ãªº¤W½Ò¬ö¿ı¹êÅé
+                    // å–å¾—å®Œæ•´çš„ä¸Šèª²ç´€éŒ„å¯¦é«”
                     var storLesson = m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", storLessonsEntity.Id);
 
-                    // ÀË¬d¡u¥»¶¥¬q¬O§_¥i¥Hµ²·~¡v
+                    // æª¢æŸ¥ã€Œæœ¬éšæ®µæ˜¯å¦å¯ä»¥çµæ¥­ã€
                     bool canGraduate = m_ToolUtilityClass.GetEntityBoolAttribute(storLesson, "new_current_complete");
 
                     if (canGraduate)
                     {
-                        // ¨ú±o½Òµ{¬ÛÃö¸ê°T
+                        // å–å¾—èª²ç¨‹ç›¸é—œè³‡è¨Š
                         var discipleLessonId = m_ToolUtilityClass.GetEntityLookupAttribute(storLesson, "new_new_disciple_lessons_new_stor_les");
-                        
+
                         if (discipleLessonId != null && discipleLessonId != Guid.Empty)
                         {
                             var discipleLessonEntity = m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", discipleLessonId);
-                            
+
                             if (discipleLessonEntity != null)
                             {
                                 string stageName = m_ToolUtilityClass.GetEntityStringAttribute(discipleLessonEntity, "new_now_stage_name");
                                 string courseName = m_ToolUtilityClass.GetEntityLookupDisplayName(storLesson, "new_new_disciple_lessons_new_stor_les");
-                                
-                                // ¥uÅã¥ÜÃöÁä¶¥¬qªº½Òµ{
+
+                                // åªé¡¯ç¤ºé—œéµéšæ®µçš„èª²ç¨‹
                                 if (IsKeyStage(stageName))
                                 {
                                     graduatableCourses.Add($"{stageName}");
@@ -76,55 +89,55 @@ namespace ChurchReport.WebServiceConnector
                     }
                 }
 
-                // ¥h°£­«½Æªº¶¥¬q¨Ã±Æ§Ç
+                // å»é™¤é‡è¤‡çš„éšæ®µä¸¦æ’åº
                 var distinctCourses = graduatableCourses.Distinct().ToList();
 
-                // ²Õ¦X¦¨¸Ë³Æª¬ºA¤å¦r
+                // çµ„åˆæˆè£å‚™ç‹€æ…‹æ–‡å­—
                 if (distinctCourses.Count == 0)
                 {
-                    return ""; // ¨S¦³¥iµ²·~ªº½Òµ{
+                    return ""; // æ²’æœ‰å¯çµæ¥­çš„èª²ç¨‹
                 }
                 else if (distinctCourses.Count <= 3)
                 {
-                    return string.Join("¡B", distinctCourses);
+                    return string.Join("ã€", distinctCourses);
                 }
                 else
                 {
-                    // ¦pªG½Òµ{¤Ó¦h¡A¥uÅã¥Ü«e3­Ó¨Ã¥[¤W¡uµ¥¡v
-                    return string.Join("¡B", distinctCourses.Take(3)) + "µ¥";
+                    // å¦‚æœèª²ç¨‹å¤ªå¤šï¼Œåªé¡¯ç¤ºå‰3å€‹ä¸¦åŠ ä¸Šã€Œç­‰ã€
+                    return string.Join("ã€", distinctCourses.Take(3)) + "ç­‰";
                 }
             }
             catch (Exception ex)
             {
-                // µo¥Í¿ù»~®Éªğ¦^ªÅ¦r¦ê
+                // ç™¼ç”ŸéŒ¯èª¤æ™‚è¿”å›ç©ºå­—ä¸²
                 return "";
             }
         }
 
         /// <summary>
-        /// §PÂ_¬O§_¬°ÃöÁä¶¥¬q
+        /// åˆ¤æ–·æ˜¯å¦ç‚ºé—œéµéšæ®µ
         /// </summary>
-        /// <param name="stageName">¶¥¬q¦WºÙ</param>
-        /// <returns>¬O§_¬°ÃöÁä¶¥¬q</returns>
+        /// <param name="stageName">éšæ®µåç¨±</param>
+        /// <returns>æ˜¯å¦ç‚ºé—œéµéšæ®µ</returns>
         private bool IsKeyStage(string stageName)
         {
             if (string.IsNullOrEmpty(stageName))
                 return false;
 
-            // ÃöÁä½Òµ{¶¥¬q²M³æ
-            string[] keyStages = new string[] 
-            { 
-                "E1", "E2", "E3", "¦¨ªø¯Z", "ªù®{¯Z", "»â³S¯Z", 
-                "ºÖ¤W", "ºÖ¤¤", "ºÖ¤U" 
+            // é—œéµèª²ç¨‹éšæ®µæ¸…å–®
+            string[] keyStages = new string[]
+            {
+                "E1", "E2", "E3", "æˆé•·ç­", "é–€å¾’ç­", "é ˜è¢–ç­",
+                "ç¦ä¸Š", "ç¦ä¸­", "ç¦ä¸‹"
             };
 
             return keyStages.Any(stage => stageName.Contains(stage));
         }
 
         /// <summary>
-        /// §å¦¸­pºâ¦h­Ó¦¨­ûªº¸Ë³Æª¬ºA
+        /// æ‰¹æ¬¡è¨ˆç®—å¤šå€‹æˆå“¡çš„è£å‚™ç‹€æ…‹
         /// </summary>
-        /// <param name="members">¦¨­û¦Cªí</param>
+        /// <param name="members">æˆå“¡åˆ—è¡¨</param>
         public void CalculateEquipmentStatusForMembers(List<Member> members)
         {
             if (members == null || members.Count == 0)
@@ -134,16 +147,16 @@ namespace ChurchReport.WebServiceConnector
             {
                 try
                 {
-                    // ±q PresentRecordId ¨ú±o³sµ¸¤HID»İ­nÃB¥~¬d¸ß
-                    // ³o¸Ì°²³]§Ú­Ì¥i¥H±q member.FullName §ä¨ì¹ïÀ³ªº³sµ¸¤H
+                    // å¾ PresentRecordId å–å¾—é€£çµ¡äººIDéœ€è¦é¡å¤–æŸ¥è©¢
+                    // é€™è£¡å‡è¨­æˆ‘å€‘å¯ä»¥å¾ member.FullName æ‰¾åˆ°å°æ‡‰çš„é€£çµ¡äºº
                     var contactEntity = m_ToolUtilityClass.RetrieveContactEntityByName(member.FullName);
-                    
+
                     if (contactEntity != null)
                     {
-                        // ­pºâ¸Ë³Æª¬ºA
+                        // è¨ˆç®—è£å‚™ç‹€æ…‹
                         string calculatedStatus = CalculateEquipmentStatus(contactEntity.Id);
-                        
-                        // §ó·s member ªº EquipmentStatus
+
+                        // æ›´æ–° member çš„ EquipmentStatus
                         if (!string.IsNullOrEmpty(calculatedStatus))
                         {
                             member.EquipmentStatus = calculatedStatus;
@@ -152,7 +165,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 catch (Exception ex)
                 {
-                    // ³æ­Ó¦¨­û­pºâ¥¢±Ñ¤£¼vÅT¨ä¥L¦¨­û
+                    // å–®å€‹æˆå“¡è¨ˆç®—å¤±æ•—ä¸å½±éŸ¿å…¶ä»–æˆå“¡
                     continue;
                 }
             }

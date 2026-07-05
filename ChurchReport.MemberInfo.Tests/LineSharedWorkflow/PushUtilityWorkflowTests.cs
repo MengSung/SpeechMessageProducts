@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport.MemberInfo.Tests/LineSharedWorkflow/PushUtilityWorkflowTests.cs
+// 所屬區塊：ChurchReport 會員、付款與 LINE 共用流程的測試專案，用來固定產品層行為與回歸案例。
+// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
+// 主要型別：class PushUtilityWorkflowTests、class CapturingWorkflow、class CapturingRichMenuWorkflow、class CapturingRichMenuAssignmentWorkflow、class NoopHttpMessageHandler、class RecordingLineHandler、class ThrowingHttpMessageHandler
+// 主要成員：SendMessage_uses_shared_workflow_when_workflow_is_provided、SendMessage_swallows_workflow_failure_for_legacy_best_effort_behavior、SendMessage_with_sdk_messages_uses_shared_workflow_for_best_effort_path、SendMessage_with_sdk_messages_swallows_workflow_failure_for_legacy_best_effort_behavior、SendImage_uses_shared_workflow_for_best_effort_image_message、SendImage_uses_legacy_line_client_when_workflow_is_not_provided、Safe_best_effort_sdk_methods_use_matching_workflow_sources、SendMessageOrThrowAsync_uses_shared_workflow_and_propagates_failure、SendMessagesOrThrowAsync_uses_shared_workflow_escape_hatch_for_required_sdk_messages、SendReliableMessageAsync_uses_shared_workflow_with_retry_key_and_propagates_failure
+// 引用命名空間：ChurchReport.Tools、FluentAssertions、Line.Messaging、LineMessagingProcessor.RichMenus、LineMessagingProcessor.Workflows、Xunit
+// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
+// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using ChurchReport.Tools;
 using FluentAssertions;
 using Line.Messaging;
@@ -7,6 +20,12 @@ using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.LineSharedWorkflow;
 
+/// <summary>
+/// 驗證 <see cref="PushUtility"/> 在導入共用 LINE workflow 後仍維持舊產品語意。
+///
+/// RichMenu 相關測試特別鎖住 ChurchReport 舊版授權選單的 menu key，
+/// 確保產品端不再直接建立、上傳、刪除 RichMenu，而是委派給共用 assignment workflow。
+/// </summary>
 public sealed class PushUtilityWorkflowTests
 {
     [Fact]
@@ -223,6 +242,12 @@ public sealed class PushUtilityWorkflowTests
         workflow.Requests[0].RetryKey.Should().Be("retry-payment-001");
     }
 
+    /// <summary>
+    /// AddRichMenuMessage 應透過共用 assignment workflow 指派舊版授權選單。
+    ///
+    /// 這個測試保護遷移後的邊界：ChurchReport 仍保留原方法名稱與通知行為，
+    /// 但 RichMenu 綁定動作改由 menu key <c>legacy-auth</c> 交給共用層解析。
+    /// </summary>
     [Fact]
     public async Task AddRichMenuMessage_assigns_legacy_auth_menu_through_shared_assignment_workflow()
     {
@@ -244,6 +269,12 @@ public sealed class PushUtilityWorkflowTests
         notificationWorkflow.Requests[0].Metadata["source"].Should().Be("ChurchReport.PushUtility.AddRichMenuMessage");
     }
 
+    /// <summary>
+    /// DeleteRichMenuMessage 應透過共用 assignment workflow 解除使用者 RichMenu 綁定。
+    ///
+    /// 舊實作會取得使用者目前 richMenuId 後直接刪除 provider 資源；
+    /// 新流程只負責 unlink 使用者，避免產品端誤刪仍被其他使用者或環境共用的 RichMenu。
+    /// </summary>
     [Fact]
     public async Task DeleteRichMenuMessage_unassigns_through_shared_assignment_workflow()
     {
@@ -287,6 +318,13 @@ public sealed class PushUtilityWorkflowTests
         }
     }
 
+    /// <summary>
+    /// 捕捉舊版 create/upload/link workflow 請求的測試替身。
+    ///
+    /// 目前 PushUtility 的 RichMenu 指派已改走 assignment workflow；
+    /// 保留這個替身是為了覆蓋其他仍接受舊 workflow 相依性的建構路徑，
+    /// 並確保測試不需要真的呼叫 LINE 建立或刪除 RichMenu。
+    /// </summary>
     private sealed class CapturingRichMenuWorkflow : ILineRichMenuWorkflow
     {
         public List<LineRichMenuCreateUploadAndLinkRequest> CreateRequests { get; } = new();
@@ -318,6 +356,12 @@ public sealed class PushUtilityWorkflowTests
         }
     }
 
+    /// <summary>
+    /// 記錄 RichMenu 指派與解除指派請求的測試替身。
+    ///
+    /// 測試只關心 PushUtility 是否傳入正確的 lineUserId 與 menu key，
+    /// 因此這裡直接回傳成功結果，避免把共用 workflow 本身的行為混進產品整合測試。
+    /// </summary>
     private sealed class CapturingRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWorkflow
     {
         public List<(string UserId, string MenuKey)> Assignments { get; } = new();

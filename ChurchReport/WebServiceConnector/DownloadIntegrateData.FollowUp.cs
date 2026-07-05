@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/WebServiceConnector/DownloadIntegrateData.FollowUp.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass DownloadIntegrateData
+// ä¸»è¦æˆå“¡ï¼šGetNewComerFollowupInfoã€GetNewComerFollowupInfoWithEntityã€GetNewComerFollowupInfoCoreã€ProcessUnGroupedFollowUpã€VerifyNewComerIdentityã€GetFollowUpWeekã€GetFollowUpWeekForUnGroupã€BuildHistoryHeaderã€ProcessFollowUpRecordã€UpdateWeekIndex
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€System.Textã€ChurchReport.Modelsã€ChurchReport.Models.CrmTransmitModuleã€ChurchReport.WebServiceConnector.Convertersã€Microsoft.Extensions.Caching.Memoryã€Microsoft.Xrm.Sdk
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using System.Text;
 using ChurchReport.Models;
@@ -9,14 +22,14 @@ using Microsoft.Xrm.Sdk;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ¾ã¦X¸ê®Æ¤U¸üªA°È - ·s¤H¸ò¶i³B²z
+    /// æ•´åˆè³‡æ–™ä¸‹è¼‰æœå‹™ - æ–°äººè·Ÿé€²è™•ç†
     /// </summary>
     public partial class DownloadIntegrateData
     {
-        #region ·s¤H¸ò¶i¸ê°T
+        #region æ–°äººè·Ÿé€²è³‡è¨Š
 
         /// <summary>
-        /// ¨ú±o·s¤H¸ò¶i¸ê°T¡]­ìª©¡G¦Û¦æ¬d¸ß Contact¡^
+        /// å–å¾—æ–°äººè·Ÿé€²è³‡è¨Šï¼ˆåŸç‰ˆï¼šè‡ªè¡ŒæŸ¥è©¢ Contactï¼‰
         /// </summary>
         private string GetNewComerFollowupInfo(Guid aNewComerId, ref string aFollowUpWeek)
         {
@@ -27,14 +40,14 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (Exception e)
             {
-                string ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName} , Time = {DateTime.Now} , Description = {e}";
+                string ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName} , Time = {DateTime.Now} , Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
         }
 
         /// <summary>
-        /// ? ·¥³tª©¡G±µ¦¬¤w§Ö¨úªº Contact Entity¡A¬Ù¥h CRM ºô¸ô©¹ªğ¡]¨C¦ì¦¨­û¬Ù ~100-300ms¡^
+        /// ? æ¥µé€Ÿç‰ˆï¼šæ¥æ”¶å·²å¿«å–çš„ Contact Entityï¼Œçœå» CRM ç¶²è·¯å¾€è¿”ï¼ˆæ¯ä½æˆå“¡çœ ~100-300msï¼‰
         /// </summary>
         private string GetNewComerFollowupInfoWithEntity(Entity aContact, ref string aFollowUpWeek)
         {
@@ -44,14 +57,14 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (Exception e)
             {
-                string ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName} , Time = {DateTime.Now} , Description = {e}";
+                string ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName} , Time = {DateTime.Now} , Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
         }
 
         /// <summary>
-        /// ®Ö¤ßÅŞ¿è¡G¤£­t³d¨ú±o Contact¡]¥Ñ©I¥sºİ´£¨Ñ¡^
+        /// æ ¸å¿ƒé‚è¼¯ï¼šä¸è² è²¬å–å¾— Contactï¼ˆç”±å‘¼å«ç«¯æä¾›ï¼‰
         /// </summary>
         private string GetNewComerFollowupInfoCore(Entity aContact, ref string aFollowUpWeek)
         {
@@ -61,11 +74,11 @@ namespace ChurchReport.WebServiceConnector
             {
                 int aIdentityNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(aContact, "customertypecode");
 
-                if (aIdentityNumber == 100000004) // ¥¼¤J²Õ
+                if (aIdentityNumber == 100000004) // æœªå…¥çµ„
                 {
                     aFollowUpHistoryReport = ProcessUnGroupedFollowUp(aContact, ref aFollowUpWeek);
                 }
-                else // ·sªB¤Í
+                else // æ–°æœ‹å‹
                 {
                     aFollowUpHistoryReport = GetFollowUpWeek(aContact, ref aFollowUpWeek);
                 }
@@ -75,7 +88,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ³B²z¥¼¤J²Õªº¸ò¶i¡]¥i¯à¬O¦º¦Ç´_¿U¡^
+        /// è™•ç†æœªå…¥çµ„çš„è·Ÿé€²ï¼ˆå¯èƒ½æ˜¯æ­»ç°å¾©ç‡ƒï¼‰
         /// </summary>
         private string ProcessUnGroupedFollowUp(Entity aContact, ref string aFollowUpWeek)
         {
@@ -94,7 +107,7 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// ÅçÃÒ¬O§_¬°·s¤H©Î¥¼¤J²Õ
+        /// é©—è­‰æ˜¯å¦ç‚ºæ–°äººæˆ–æœªå…¥çµ„
         /// </summary>
         private bool VerifyNewComerIdentity(Entity aContact)
         {
@@ -105,7 +118,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (Exception e)
             {
-                string ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName} , Time = {DateTime.Now} , Description = {e}";
+                string ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName} , Time = {DateTime.Now} , Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -113,28 +126,28 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ¸ò¶i¶g¦¸³B²z
+        #region è·Ÿé€²é€±æ¬¡è™•ç†
 
         /// <summary>
-        /// ¨ú±o¸ò¶i¶g¦¸¡]¤@¯ë·sªB¤Í¡^
+        /// å–å¾—è·Ÿé€²é€±æ¬¡ï¼ˆä¸€èˆ¬æ–°æœ‹å‹ï¼‰
         /// </summary>
         private string GetFollowUpWeek(Entity aContact, ref string MatchedWeekDay)
         {
             try
             {
-                // ?? ¤£¥i§Ö¨ú¡G¥X®u/¸ò¶i¬ö¿ı¥]§t­Ó¤Hªª¾i¸ê®Æ¡]©m¦W¡BÃöÃh´y­z¡B¸ò¶iµ²ªG¡^
-                // ÀRºA§Ö¨ú·|Åı¤£¦P Session ªº¨Ï¥ÎªÌ¦@¨É­Ó¤H¸ê®Æ¡Aºc¦¨ Session Leakage
-                // ¥B EntityCollection ¬°¥iÅÜª«¥ó¡ATransferIdentity ¥i¯à­×§ï¤º®e¾É­P¸ê®Æ¦Ã¬V
+                // ?? ä¸å¯å¿«å–ï¼šå‡ºå¸­/è·Ÿé€²ç´€éŒ„åŒ…å«å€‹äººç‰§é¤Šè³‡æ–™ï¼ˆå§“åã€é—œæ‡·æè¿°ã€è·Ÿé€²çµæœï¼‰
+                // éœæ…‹å¿«å–æœƒè®“ä¸åŒ Session çš„ä½¿ç”¨è€…å…±äº«å€‹äººè³‡æ–™ï¼Œæ§‹æˆ Session Leakage
+                // ä¸” EntityCollection ç‚ºå¯è®Šç‰©ä»¶ï¼ŒTransferIdentity å¯èƒ½ä¿®æ”¹å…§å®¹å°è‡´è³‡æ–™æ±¡æŸ“
                 EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(
                     10,
                     this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"),
                     aContact.Id.ToString());
 
-                // ? ·¥³t¡GStringBuilder ¨ú¥N string +=¡A´î¤Ö¨C¦¸­¡¥Nªº°O¾ĞÅé°t¸m
+                // ? æ¥µé€Ÿï¼šStringBuilder å–ä»£ string +=ï¼Œæ¸›å°‘æ¯æ¬¡è¿­ä»£çš„è¨˜æ†¶é«”é…ç½®
                 var sb = new StringBuilder(BuildHistoryHeader(aContact));
                 sb.Append(PresentRecordCollection.Entities.Count > 0
-                    ? "ÃöÃh¾úµ{°O¿ı:" + Environment.NewLine
-                    : "¨S¦³ÃöÃh¾úµ{°O¿ı!" + Environment.NewLine);
+                    ? "é—œæ‡·æ­·ç¨‹è¨˜éŒ„:" + Environment.NewLine
+                    : "æ²’æœ‰é—œæ‡·æ­·ç¨‹è¨˜éŒ„!" + Environment.NewLine);
 
                 int WeekCounter = 1;
                 MatchedWeekDay = "";
@@ -150,30 +163,30 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (Exception e)
             {
-                string ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName} , Time = {DateTime.Now} , Description = {e}";
+                string ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName} , Time = {DateTime.Now} , Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
         }
 
         /// <summary>
-        /// ¨ú±o¸ò¶i¶g¦¸¡]¥¼¤J²Õ - ¦º¦Ç´_¿U¡^
+        /// å–å¾—è·Ÿé€²é€±æ¬¡ï¼ˆæœªå…¥çµ„ - æ­»ç°å¾©ç‡ƒï¼‰
         /// </summary>
         private string GetFollowUpWeekForUnGroup(Entity aContact, ref string MatchedWeekDay, DateTime aStartTrackingSunday)
         {
             try
             {
-                // ?? ¤£¥i§Ö¨ú¡G¥X®u/¸ò¶i¬ö¿ı¥]§t­Ó¤Hªª¾i¸ê®Æ¡]¦P GetFollowUpWeek¡^
+                // ?? ä¸å¯å¿«å–ï¼šå‡ºå¸­/è·Ÿé€²ç´€éŒ„åŒ…å«å€‹äººç‰§é¤Šè³‡æ–™ï¼ˆåŒ GetFollowUpWeekï¼‰
                 EntityCollection PresentRecordCollection = m_ToolUtilityClass.QueryPresentRecordSortBySundayFetchXml(
                     10,
                     this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname"),
                     aContact.Id.ToString());
 
-                // ? ·¥³t¡GStringBuilder ¨ú¥N string +=
+                // ? æ¥µé€Ÿï¼šStringBuilder å–ä»£ string +=
                 var sb = new StringBuilder(BuildHistoryHeader(aContact));
                 sb.Append(PresentRecordCollection.Entities.Count > 0
-                    ? "ÃöÃh¾úµ{°O¿ı:" + Environment.NewLine
-                    : "¨S¦³ÃöÃh¾úµ{°O¿ı!" + Environment.NewLine);
+                    ? "é—œæ‡·æ­·ç¨‹è¨˜éŒ„:" + Environment.NewLine
+                    : "æ²’æœ‰é—œæ‡·æ­·ç¨‹è¨˜éŒ„!" + Environment.NewLine);
 
                 int WeekCounter = 1;
                 MatchedWeekDay = "";
@@ -205,7 +218,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (Exception e)
             {
-                string ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName} , Time = {DateTime.Now} , Description = {e}";
+                string ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName} , Time = {DateTime.Now} , Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -213,42 +226,42 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ¾úµ{°O¿ı«Øºc
+        #region æ­·ç¨‹è¨˜éŒ„å»ºæ§‹
 
         /// <summary>
-        /// «Øºc¾úµ{°O¿ıªíÀY
+        /// å»ºæ§‹æ­·ç¨‹è¨˜éŒ„è¡¨é ­
         /// </summary>
         private string BuildHistoryHeader(Entity aContact)
         {
-            // ? ·¥³t¡GStringBuilder ¨ú¥N string +=¡A4 ¦¸¦r¦ê¦X¨ÖÅÜ¦¨ 1 ¦¸°t¸m
+            // ? æ¥µé€Ÿï¼šStringBuilder å–ä»£ string +=ï¼Œ4 æ¬¡å­—ä¸²åˆä½µè®Šæˆ 1 æ¬¡é…ç½®
             var sb = new StringBuilder(128);
 
             int Gender = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContact, "gendercode");
-            sb.Append(Gender == 200000 ? "©Ê§O:¨k©Ê" : "©Ê§O:¤k©Ê").Append(Environment.NewLine);
+            sb.Append(Gender == 200000 ? "æ€§åˆ¥:ç”·æ€§" : "æ€§åˆ¥:å¥³æ€§").Append(Environment.NewLine);
 
             try
             {
                 DateTime FirstDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref aContact, "new_enter_church_date").ToLocalTime();
                 if (FirstDate.Year > 0)
-                    sb.Append("­º¦¸¶i¤J±Ğ·|¤é´Á:").Append(FirstDate.ToShortDateString()).Append(Environment.NewLine);
+                    sb.Append("é¦–æ¬¡é€²å…¥æ•™æœƒæ—¥æœŸ:").Append(FirstDate.ToShortDateString()).Append(Environment.NewLine);
             }
             catch { }
 
             string WelcomeRecord = this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContact, "description");
             if (!string.IsNullOrEmpty(WelcomeRecord))
-                sb.Append("Åwªï¬ö¿ı:").Append(Environment.NewLine).Append(WelcomeRecord).Append(Environment.NewLine).Append(Environment.NewLine);
+                sb.Append("æ­¡è¿ç´€éŒ„:").Append(Environment.NewLine).Append(WelcomeRecord).Append(Environment.NewLine).Append(Environment.NewLine);
 
             return sb.ToString();
         }
 
         /// <summary>
-        /// ³B²z³æµ§¸ò¶i°O¿ı
+        /// è™•ç†å–®ç­†è·Ÿé€²è¨˜éŒ„
         /// </summary>
         private string ProcessFollowUpRecord(Entity PresentRecordEntity, ref string MatchedWeekDay, ref int WeekCounter)
         {
             string record = "";
 
-            // ¨M©w¥»¶gªº¶g¦¸
+            // æ±ºå®šæœ¬é€±çš„é€±æ¬¡
             DateTime aSundayDate = DateTime.Now;
             try
             {
@@ -260,60 +273,60 @@ namespace ChurchReport.WebServiceConnector
             }
             catch { }
 
-            // «Øºc°O¿ı¤å¦r
-            record += $"²Ä{ConvertNumberToFollowUpWeekPicker(WeekCounter)}¶g¡A{aSundayDate.Date.ToShortDateString()}¡A";
-            record += $"¤p²Õªø:{this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_groupleader_present_record")}¡A";
+            // å»ºæ§‹è¨˜éŒ„æ–‡å­—
+            record += $"ç¬¬{ConvertNumberToFollowUpWeekPicker(WeekCounter)}é€±ï¼Œ{aSundayDate.Date.ToShortDateString()}ï¼Œ";
+            record += $"å°çµ„é•·:{this.m_ToolUtilityClass.GetEntityLookupDisplayName(PresentRecordEntity, "new_groupleader_present_record")}ï¼Œ";
 
-            // ¸ò¶i¤è¦¡
+            // è·Ÿé€²æ–¹å¼
             int FollowUpOptionValue = this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_followup_ways");
             string aFollowUpOption = ConvertIndexToFollowUpOptionPicker(FollowUpOptionValue);
             string aFollowUpMethod = this.m_ToolUtilityClass.GetEntityStringAttribute(PresentRecordEntity, "new_follow_up");
             if (!string.IsNullOrEmpty(aFollowUpMethod))
             {
-                record += $"¸ò¶i¤è¦¡:{aFollowUpOption}{aFollowUpMethod}¡A";
+                record += $"è·Ÿé€²æ–¹å¼:{aFollowUpOption}{aFollowUpMethod}ï¼Œ";
             }
 
-            // ¸ò¶iµ²ªG
+            // è·Ÿé€²çµæœ
             if (PresentRecordEntity.Attributes.Contains("new_conclusion_choise"))
             {
                 string aFollowUpResult = ConvertIndexToFollowUpResultPicker(
                     this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_conclusion_choise"));
-                if (!string.IsNullOrEmpty(aFollowUpResult) && aFollowUpResult != "½Ğ¿ï¾Ü")
+                if (!string.IsNullOrEmpty(aFollowUpResult) && aFollowUpResult != "è«‹é¸æ“‡")
                 {
-                    record += $"¸ò¶iµ²ªG:{aFollowUpResult}¡A";
+                    record += $"è·Ÿé€²çµæœ:{aFollowUpResult}ï¼Œ";
                 }
             }
 
-            // ¤U¤@¨BÆJ
+            // ä¸‹ä¸€æ­¥é©Ÿ
             if (PresentRecordEntity.Attributes.Contains("new_next_step"))
             {
                 string aFollowUpNextStep = ConvertIndexToFollowUpNextStepPicker(
                     this.m_ToolUtilityClass.GetOptionSetAttribute(PresentRecordEntity, "new_next_step"));
-                if (!string.IsNullOrEmpty(aFollowUpNextStep) && aFollowUpNextStep != "½Ğ¿ï¾Ü")
+                if (!string.IsNullOrEmpty(aFollowUpNextStep) && aFollowUpNextStep != "è«‹é¸æ“‡")
                 {
-                    record += $"¸ò¶i¤U¤@¨BÆJ:{aFollowUpNextStep}¡A";
+                    record += $"è·Ÿé€²ä¸‹ä¸€æ­¥é©Ÿ:{aFollowUpNextStep}ï¼Œ";
                 }
             }
 
-            // ¸ò¶i´y­z
+            // è·Ÿé€²æè¿°
             string aExplanation = this.m_ToolUtilityClass.GetEntityStringAttribute(PresentRecordEntity, "new_explanation");
             if (!string.IsNullOrEmpty(aExplanation))
             {
-                record += $"¸ò¶i´y­z:{aExplanation}{Environment.NewLine}{Environment.NewLine}";
+                record += $"è·Ÿé€²æè¿°:{aExplanation}{Environment.NewLine}{Environment.NewLine}";
             }
             else
             {
                 record += Environment.NewLine + Environment.NewLine;
             }
 
-            // ¦Û°Ê§ó·s¶g¦¸
+            // è‡ªå‹•æ›´æ–°é€±æ¬¡
             UpdateWeekIndex(PresentRecordEntity, WeekCounter);
 
             return record;
         }
 
         /// <summary>
-        /// §ó·s¥X®u¬ö¿ıªº¶g¦¸
+        /// æ›´æ–°å‡ºå¸­ç´€éŒ„çš„é€±æ¬¡
         /// </summary>
         private void UpdateWeekIndex(Entity PresentRecordEntity, int WeekCounter)
         {
@@ -333,7 +346,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"§ó·s¶g¦¸¥¢±Ñ: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"æ›´æ–°é€±æ¬¡å¤±æ•—: {ex.Message}");
             }
         }
 

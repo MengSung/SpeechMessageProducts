@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：LineMessagingProcessor.RichMenus/LineRichMenuAssignmentWorkflow.cs
+// 所屬區塊：LINE RichMenu 共用編排、佈署、指派、狀態與測試流程模組。
+// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
+// 主要型別：class LineRichMenuAssignmentWorkflow
+// 主要成員：AssignAsync、AssignOrThrowAsync、UnassignAsync、UnassignOrThrowAsync、NormalizeRequired、ReadAllBytesAsync、TryExecuteProviderActionAsync、TryMapProviderException
+// 引用命名空間：Line.Messaging
+// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using Line.Messaging;
 
 namespace LineMessagingProcessor.RichMenus;
@@ -22,11 +35,34 @@ namespace LineMessagingProcessor.RichMenus;
 /// </summary>
 public sealed class LineRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWorkflow
 {
+    /// <summary>
+    /// 對 LINE RichMenu API 的抽象；所有 provider link / unlink / list 呼叫都從這裡出去。
+    /// </summary>
     private readonly ILineRichMenuProcessor _processor;
+
+    /// <summary>
+    /// menuKey 到 LINE richMenuId 的快取，避免每次指派都查詢 LINE 遠端清單。
+    /// </summary>
     private readonly ILineRichMenuIdCache _cache;
+
+    /// <summary>
+    /// 本機輔助狀態，用來記錄使用者目前與前一個 menuKey，支援未來還原與到期掃描。
+    /// </summary>
     private readonly IRichMenuStateStore _stateStore;
+
+    /// <summary>
+    /// 選用 catalog。當快取找不到 menuKey 時，workflow 會用 catalog definition 推算 fingerprint，
+    /// 再到 LINE 線上 RichMenu 清單尋找已佈建的同版選單。
+    /// </summary>
     private readonly ILineRichMenuCatalog? _catalog;
 
+    /// <summary>
+    /// 建立完整指派工作流。
+    /// </summary>
+    /// <param name="processor">LINE RichMenu API 抽象。</param>
+    /// <param name="cache">menuKey 到 richMenuId 的快取。</param>
+    /// <param name="stateStore">使用者 RichMenu 狀態儲存。</param>
+    /// <param name="catalog">可選 catalog，用於 cache miss 時嘗試線上解析 richMenuId。</param>
     public LineRichMenuAssignmentWorkflow(
         ILineRichMenuProcessor processor,
         ILineRichMenuIdCache cache,
@@ -39,6 +75,11 @@ public sealed class LineRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWork
         _catalog = catalog;
     }
 
+    /// <summary>
+    /// 建立使用 in-memory state store 的簡化指派工作流。
+    /// </summary>
+    /// <param name="processor">LINE RichMenu API 抽象。</param>
+    /// <param name="cache">menuKey 到 richMenuId 的快取。</param>
     public LineRichMenuAssignmentWorkflow(
         ILineRichMenuProcessor processor,
         ILineRichMenuIdCache cache)
@@ -46,6 +87,13 @@ public sealed class LineRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWork
     {
     }
 
+    /// <summary>
+    /// 將指定 menuKey 對應的 RichMenu 指派給 LINE 使用者。
+    /// </summary>
+    /// <param name="lineUserId">LINE 使用者 id。</param>
+    /// <param name="menuKey">產品端邏輯選單代號。</param>
+    /// <param name="cancellationToken">取消權杖，用於 catalog 與 state store 操作。</param>
+    /// <returns>標準化指派結果，包含 richMenuId、前一個選單與是否真的變更。</returns>
     public async Task<LineRichMenuAssignmentResult> AssignAsync(
         string lineUserId,
         string menuKey,
@@ -104,6 +152,12 @@ public sealed class LineRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWork
         return LineRichMenuAssignmentResult.Linked(previous?.CurrentMenuKey, key, richMenuId, changed: true);
     }
 
+    /// <summary>
+    /// 執行 <see cref="AssignAsync"/>，並在失敗時丟出 <see cref="LineRichMenuException"/>。
+    /// </summary>
+    /// <param name="lineUserId">LINE 使用者 id。</param>
+    /// <param name="menuKey">產品端邏輯選單代號。</param>
+    /// <param name="cancellationToken">取消權杖。</param>
     public async Task AssignOrThrowAsync(
         string lineUserId,
         string menuKey,
@@ -116,6 +170,12 @@ public sealed class LineRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWork
         }
     }
 
+    /// <summary>
+    /// 解除使用者的 LINE RichMenu 個人綁定，並移除本機輔助狀態。
+    /// </summary>
+    /// <param name="lineUserId">LINE 使用者 id。</param>
+    /// <param name="cancellationToken">取消權杖，用於 state store 操作。</param>
+    /// <returns>標準化解除結果，包含前一個 menuKey 與 provider 錯誤分類。</returns>
     public async Task<LineRichMenuAssignmentResult> UnassignAsync(
         string lineUserId,
         CancellationToken cancellationToken = default)
@@ -143,6 +203,11 @@ public sealed class LineRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWork
         return LineRichMenuAssignmentResult.Unlinked(previous?.CurrentMenuKey, changed: true);
     }
 
+    /// <summary>
+    /// 執行 <see cref="UnassignAsync"/>，並在失敗時丟出 <see cref="LineRichMenuException"/>。
+    /// </summary>
+    /// <param name="lineUserId">LINE 使用者 id。</param>
+    /// <param name="cancellationToken">取消權杖。</param>
     public async Task UnassignOrThrowAsync(string lineUserId, CancellationToken cancellationToken = default)
     {
         var result = await UnassignAsync(lineUserId, cancellationToken).ConfigureAwait(false);
@@ -152,6 +217,12 @@ public sealed class LineRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWork
         }
     }
 
+    /// <summary>
+    /// 解析 menuKey 對應的 LINE richMenuId。
+    /// 解析順序是快取優先，其次才用 catalog fingerprint 到 LINE 線上清單尋找已佈建選單。
+    /// </summary>
+    /// <param name="menuKey">產品端邏輯選單代號。</param>
+    /// <param name="cancellationToken">取消權杖，用於 catalog 與圖片 stream 讀取。</param>
     private async Task<(string? RichMenuId, LineRichMenuAssignmentResult? ProviderFailure)> ResolveRichMenuIdAsync(
         string menuKey,
         CancellationToken cancellationToken)
@@ -207,6 +278,9 @@ public sealed class LineRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWork
         return (matched.RichMenuId, null);
     }
 
+    /// <summary>
+    /// 驗證並修剪必要字串，避免空白 userId 或 menuKey 進入 provider 呼叫。
+    /// </summary>
     private static string NormalizeRequired(string value, string parameterName)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -217,6 +291,9 @@ public sealed class LineRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWork
         return value.Trim();
     }
 
+    /// <summary>
+    /// 將任意可讀取 stream 複製為 byte array，以便用於 fingerprint 計算。
+    /// </summary>
     private static async Task<byte[]> ReadAllBytesAsync(Stream stream, CancellationToken cancellationToken)
     {
         if (stream is MemoryStream memoryStream)
@@ -229,6 +306,9 @@ public sealed class LineRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWork
         return copy.ToArray();
     }
 
+    /// <summary>
+    /// 包住單一 LINE provider action，並只把已知 provider 邊界錯誤轉成標準結果。
+    /// </summary>
     private static async Task<LineRichMenuAssignmentResult?> TryExecuteProviderActionAsync(Func<Task> providerAction)
     {
         try
@@ -242,6 +322,9 @@ public sealed class LineRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWork
         }
     }
 
+    /// <summary>
+    /// 包住單一 LINE provider query，並在 provider 失敗時回傳標準失敗結果。
+    /// </summary>
     private static async Task<(T? Value, LineRichMenuAssignmentResult? Failure)> TryExecuteProviderQueryAsync<T>(
         Func<Task<T>> providerQuery)
     {
@@ -255,6 +338,10 @@ public sealed class LineRichMenuAssignmentWorkflow : ILineRichMenuAssignmentWork
         }
     }
 
+    /// <summary>
+    /// 將 LINE / HTTP / timeout 例外轉成產品層可理解的標準指派結果。
+    /// 非 provider 類型的未知例外會回傳 false，讓原始例外直接往外拋。
+    /// </summary>
     private static bool TryMapProviderException(Exception exception, out LineRichMenuAssignmentResult result)
     {
         switch (exception)

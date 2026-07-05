@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Filters/StrictNoCacheFilter.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆæä¾› StrictNoCacheFilter ç›¸é—œåŠŸèƒ½ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜æª”æ¡ˆè²¬ä»»ã€ä¸Šæ¸¸/ä¸‹æ¸¸ä¾è³´èˆ‡ç¶­è­·æ™‚ä¸å¯ç ´å£çš„è¡Œç‚ºå‡è¨­ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass StrictNoCacheFilter
+// ä¸»è¦æˆå“¡ï¼šOnActionExecutingã€OnActionExecuted
+// å¼•ç”¨å‘½åç©ºé–“ï¼šMicrosoft.AspNetCore.Mvc.Filtersã€Systemã€System.Diagnostics
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆå¾å…¬é–‹å‹åˆ¥ã€å»ºæ§‹å¼æ³¨å…¥ã€ä¸»è¦æ–¹æ³•èˆ‡ä¾‹å¤–è™•ç†è·¯å¾‘æŒæ¡è³‡æ–™æµï¼Œå†é€²è¡Œç¶­è­·ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
 using System.Diagnostics;
@@ -5,34 +18,34 @@ using System.Diagnostics;
 namespace ChurchReport.Filters
 {
     /// <summary>
-    /// ¥ş°ìµL§Ö¨ú¹LÂo¾¹ (Session Bleeding ¨¾Å@ - ²Ä¤T¼h)
-    /// 
-    /// ³]­p­ì«h:
-    /// - Single Responsibility Principle (SRP): ±Mª`©ó³]©w HTTP §Ö¨ú¼ĞÀY
-    /// - Open/Closed Principle: ³z¹L IActionFilter ¤¶­±ÂX®i¡A¤£»İ­×§ï²{¦³¥N½X
-    /// - Dependency Inversion Principle: ¨Ì¿à©â¶H IActionFilter¡A¤£¨Ì¿à¨ãÅé¹ê²{
-    /// 
-    /// §@¥Î:
-    /// ¦b¨C­Ó Action °õ¦æ§¹¦¨«á¡A±j¨î³]©w³ÌÄY®æªº HTTP §Ö¨ú¼ĞÀY¡A
-    /// ½T«O¦^À³¤£·|³Q¥ô¦ó¤¤¶¡¼h¥N²z¦øªA¾¹©ÎÂsÄı¾¹§Ö¨ú¡C
-    /// 
-    /// ³o¬O¨¾¤î Session Bleeding¡]·|¸Ü¦ê³s¡^°İÃDªº²Ä¤T¼h¨¾Å@¡C
-    /// 
-    /// ¨¾Å@¬[ºc:
-    /// ²Ä¤@¼h: ¥ş¯¸µL§Ö¨ú¤¤¤¶³nÅé (Middleware)
-    /// ²Ä¤G¼h: ResponseCacheAttribute (MVC Framework)
-    /// ²Ä¤T¼h: StrictNoCacheFilter (Action Filter) ¡ö ¦¹ÀÉ®×
-    /// 
-    /// ¨Ï¥Î¤è¦¡:
-    /// ¦b Startup.cs ªº ConfigureServices ¤¤¥ş°ìµù¥U:
+    /// å…¨åŸŸç„¡å¿«å–éæ¿¾å™¨ (Session Bleeding é˜²è­· - ç¬¬ä¸‰å±¤)
+    ///
+    /// è¨­è¨ˆåŸå‰‡:
+    /// - Single Responsibility Principle (SRP): å°ˆæ³¨æ–¼è¨­å®š HTTP å¿«å–æ¨™é ­
+    /// - Open/Closed Principle: é€é IActionFilter ä»‹é¢æ“´å±•ï¼Œä¸éœ€ä¿®æ”¹ç¾æœ‰ä»£ç¢¼
+    /// - Dependency Inversion Principle: ä¾è³´æŠ½è±¡ IActionFilterï¼Œä¸ä¾è³´å…·é«”å¯¦ç¾
+    ///
+    /// ä½œç”¨:
+    /// åœ¨æ¯å€‹ Action åŸ·è¡Œå®Œæˆå¾Œï¼Œå¼·åˆ¶è¨­å®šæœ€åš´æ ¼çš„ HTTP å¿«å–æ¨™é ­ï¼Œ
+    /// ç¢ºä¿å›æ‡‰ä¸æœƒè¢«ä»»ä½•ä¸­é–“å±¤ä»£ç†ä¼ºæœå™¨æˆ–ç€è¦½å™¨å¿«å–ã€‚
+    ///
+    /// é€™æ˜¯é˜²æ­¢ Session Bleedingï¼ˆæœƒè©±ä¸²é€£ï¼‰å•é¡Œçš„ç¬¬ä¸‰å±¤é˜²è­·ã€‚
+    ///
+    /// é˜²è­·æ¶æ§‹:
+    /// ç¬¬ä¸€å±¤: å…¨ç«™ç„¡å¿«å–ä¸­ä»‹è»Ÿé«” (Middleware)
+    /// ç¬¬äºŒå±¤: ResponseCacheAttribute (MVC Framework)
+    /// ç¬¬ä¸‰å±¤: StrictNoCacheFilter (Action Filter) â† æ­¤æª”æ¡ˆ
+    ///
+    /// ä½¿ç”¨æ–¹å¼:
+    /// åœ¨ Startup.cs çš„ ConfigureServices ä¸­å…¨åŸŸè¨»å†Š:
     /// <code>
-    /// services.AddMvc(options => 
+    /// services.AddMvc(options =>
     /// {
     ///     options.Filters.Add&lt;StrictNoCacheFilter&gt;();
     /// });
     /// </code>
-    /// 
-    /// ©Î¦b¯S©w Controller/Action ¤W¨Ï¥Î:
+    ///
+    /// æˆ–åœ¨ç‰¹å®š Controller/Action ä¸Šä½¿ç”¨:
     /// <code>
     /// [ServiceFilter(typeof(StrictNoCacheFilter))]
     /// public class MyController : Controller { }
@@ -41,57 +54,57 @@ namespace ChurchReport.Filters
     public class StrictNoCacheFilter : IActionFilter
     {
         /// <summary>
-        /// Action °õ¦æ«eªº³B²z¡]¦¹¹LÂo¾¹¤£»İ­n¦b°õ¦æ«e³B²z¡^
+        /// Action åŸ·è¡Œå‰çš„è™•ç†ï¼ˆæ­¤éæ¿¾å™¨ä¸éœ€è¦åœ¨åŸ·è¡Œå‰è™•ç†ï¼‰
         /// </summary>
-        /// <param name="context">Action °õ¦æ«eªº¤W¤U¤å</param>
+        /// <param name="context">Action åŸ·è¡Œå‰çš„ä¸Šä¸‹æ–‡</param>
         public void OnActionExecuting(ActionExecutingContext context)
         {
-            // ¤£»İ­n¦b Action °õ¦æ«e°µ¥ô¦ó³B²z
-            // «O«ù¦¹¤èªk¬°ªÅ¡A²Å¦X¤¶­±­n¨D
+            // ä¸éœ€è¦åœ¨ Action åŸ·è¡Œå‰åšä»»ä½•è™•ç†
+            // ä¿æŒæ­¤æ–¹æ³•ç‚ºç©ºï¼Œç¬¦åˆä»‹é¢è¦æ±‚
         }
 
         /// <summary>
-        /// Action °õ¦æ«áªº³B²z¡G³]©w³ÌÄY®æªº§Ö¨ú±±¨î¼ĞÀY
-        /// 
-        /// ³]©wªº HTTP Headers:
+        /// Action åŸ·è¡Œå¾Œçš„è™•ç†ï¼šè¨­å®šæœ€åš´æ ¼çš„å¿«å–æ§åˆ¶æ¨™é ­
+        ///
+        /// è¨­å®šçš„ HTTP Headers:
         /// 1. Cache-Control: no-store, no-cache, must-revalidate, max-age=0
-        ///    - no-store: §¹¥ş¸T¤î§Ö¨ú¡]³ÌÄY®æ¡^
-        ///    - no-cache: ¨C¦¸³£­n­«·sÅçÃÒ
-        ///    - must-revalidate: ¹L´Á«á¥²¶·­«·sÅçÃÒ
-        ///    - max-age=0: ¥ß§Y¹L´Á
-        /// 
+        ///    - no-store: å®Œå…¨ç¦æ­¢å¿«å–ï¼ˆæœ€åš´æ ¼ï¼‰
+        ///    - no-cache: æ¯æ¬¡éƒ½è¦é‡æ–°é©—è­‰
+        ///    - must-revalidate: éæœŸå¾Œå¿…é ˆé‡æ–°é©—è­‰
+        ///    - max-age=0: ç«‹å³éæœŸ
+        ///
         /// 2. Pragma: no-cache
-        ///    - HTTP/1.0 ªº¦V«á¬Û®e¼ĞÀY
-        /// 
+        ///    - HTTP/1.0 çš„å‘å¾Œç›¸å®¹æ¨™é ­
+        ///
         /// 3. Expires: -1
-        ///    - ªí¥Ü¤º®e¤w¹L´Á¡]HTTP/1.0 ¬Û®e¡^
-        /// 
-        /// ¬°¤°»ò»İ­n¤T­Ó¼ĞÀY?
-        /// - Cache-Control: ²{¥NÂsÄı¾¹©M¥N²z¦øªA¾¹¨Ï¥Î
-        /// - Pragma: ÂÂª© HTTP/1.0 «È¤áºİ¨Ï¥Î
-        /// - Expires: ¦V«á¬Û®e¡A½T«O©Ò¦³«È¤áºİ³£²z¸Ñ
+        ///    - è¡¨ç¤ºå…§å®¹å·²éæœŸï¼ˆHTTP/1.0 ç›¸å®¹ï¼‰
+        ///
+        /// ç‚ºä»€éº¼éœ€è¦ä¸‰å€‹æ¨™é ­?
+        /// - Cache-Control: ç¾ä»£ç€è¦½å™¨å’Œä»£ç†ä¼ºæœå™¨ä½¿ç”¨
+        /// - Pragma: èˆŠç‰ˆ HTTP/1.0 å®¢æˆ¶ç«¯ä½¿ç”¨
+        /// - Expires: å‘å¾Œç›¸å®¹ï¼Œç¢ºä¿æ‰€æœ‰å®¢æˆ¶ç«¯éƒ½ç†è§£
         /// </summary>
-        /// <param name="context">Action °õ¦æ«áªº¤W¤U¤å</param>
+        /// <param name="context">Action åŸ·è¡Œå¾Œçš„ä¸Šä¸‹æ–‡</param>
         public void OnActionExecuted(ActionExecutedContext context)
         {
             var response = context.HttpContext.Response;
 
-            // ³]©w³ÌÄY®æªº§Ö¨úµ¦²¤¡G¸T¤îÂsÄı¾¹»P¥ô¦ó¤¤¶¡¥N²z¦øªA¾¹¦sÀx¤º®e
+            // è¨­å®šæœ€åš´æ ¼çš„å¿«å–ç­–ç•¥ï¼šç¦æ­¢ç€è¦½å™¨èˆ‡ä»»ä½•ä¸­é–“ä»£ç†ä¼ºæœå™¨å­˜å„²å…§å®¹
             response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
             response.Headers["Pragma"] = "no-cache";
             response.Headers["Expires"] = "-1";
 
 #if DEBUG
-            // DEBUG ¼Ò¦¡¤U°O¿ı¸Ô²Ó¸ê°T¡A«K©ó°£¿ù
+            // DEBUG æ¨¡å¼ä¸‹è¨˜éŒ„è©³ç´°è³‡è¨Šï¼Œä¾¿æ–¼é™¤éŒ¯
             var path = context.HttpContext.Request.Path;
             var method = context.HttpContext.Request.Method;
             var traceId = context.HttpContext.TraceIdentifier;
-            
-            Debug.WriteLine($"[StrictNoCacheFilter] Action §¹¦¨");
+
+            Debug.WriteLine($"[StrictNoCacheFilter] Action å®Œæˆ");
             Debug.WriteLine($"  - Path: {path}");
             Debug.WriteLine($"  - Method: {method}");
             Debug.WriteLine($"  - TraceId: {traceId}");
-            Debug.WriteLine($"  - Headers ¤w³]©w:");
+            Debug.WriteLine($"  - Headers å·²è¨­å®š:");
             Debug.WriteLine($"    * Cache-Control: {response.Headers["Cache-Control"]}");
             Debug.WriteLine($"    * Pragma: {response.Headers["Pragma"]}");
             Debug.WriteLine($"    * Expires: {response.Headers["Expires"]}");

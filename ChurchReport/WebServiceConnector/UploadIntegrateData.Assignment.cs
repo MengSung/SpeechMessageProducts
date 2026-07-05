@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/WebServiceConnector/UploadIntegrateData.Assignment.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class UploadIntegrateData
+// 主要成員：AssignNewSmallGroup、GetAssignedContact、AssignContactToList、ConnectNewContactInMemberList、CreateAssignedContactPresentRecord、TerminateNewPersonFollowUp、SetNotRemindFlag、TerminateNewPersonCareWorkflow、SetupPresentRecordEntityAttributes
+// 引用命名空間：System、System.Collections.Generic、ChurchReport.Models、ChurchReport.Models.CrmTransmitModule、Microsoft.Xrm.Sdk
+// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using System;
 using System.Collections.Generic;
 using ChurchReport.Models;
@@ -7,12 +20,12 @@ using Microsoft.Xrm.Sdk;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// �W�Ǿ�X��� - �p�ի��� (Partial)
-    /// �]�t�G�����s�p�աB���׳B�z
+    /// 上傳整合資料 - 小組指派 (Partial)
+    /// 包含：指派新小組、結案處理
     /// </summary>
     public partial class UploadIntegrateData
     {
-        #region �����p��
+        #region 指派小組
 
         public String AssignNewSmallGroup(Entity aPresentRecordEntity, String AssignedSmallGroupName, Entity aActiveListEntity)
         {
@@ -23,17 +36,17 @@ namespace ChurchReport.WebServiceConnector
 
                 AssignContactToList(AssignedSmallGroupName, aAssignedContact, aActiveListEntity, aAssingedSmallGroupEntity);
 
-                if (!AssignedSmallGroupName.Contains("���h"))
+                if (!AssignedSmallGroupName.Contains("關懷"))
                     SetNotRemindFlag(aAssignedContact);
 
                 if (aPresentRecordEntity != null)
                     m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecordEntity, "new_not_display", true);
 
-                return "�����p��";
+                return "指派小組";
             }
             catch (System.Exception e)
             {
-                String ErrorString = $"���~�T�� : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
+                String ErrorString = $"錯誤訊息 : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -48,7 +61,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception e)
             {
-                String ErrorString = $"���~�T�� : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
+                String ErrorString = $"錯誤訊息 : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -68,7 +81,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 catch { }
 
-                if (aAssignedListEntity != null && !AssignedSmallGroupName.Contains("���h"))
+                if (aAssignedListEntity != null && !AssignedSmallGroupName.Contains("關懷"))
                     CreateAssignedContactPresentRecord(aAssignedListEntity, aContactToBeSentToDynamics.Id, AssignedSmallGroupName);
 
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aContactToBeSentToDynamics, "new_cell_list_contact", "list", aAssignedListEntity.Id);
@@ -81,18 +94,18 @@ namespace ChurchReport.WebServiceConnector
                 if (m_OwnerId != Guid.Empty)
                     this.m_ToolUtilityClass.AssignOwner("contact", aAssignedContact, this.m_OwnerId);
 
-                String Result = $"{LoginContactFullName} ���\���[�J {ExistContactFullName} �� {AssignedSmallGroupName}�p�դ�";
+                String Result = $"{LoginContactFullName} 成功的加入 {ExistContactFullName} 到 {AssignedSmallGroupName}小組中";
 
-                this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aAssignedListEntity, "����");
-                this.m_LineNotifyUtility.SendListMemberLine(aAssignedListEntity, "����");
-                this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aActiveListEntity, "����");
-                this.m_LineNotifyUtility.SendListMemberLine(aActiveListEntity, "����");
+                this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aAssignedListEntity, "指派");
+                this.m_LineNotifyUtility.SendListMemberLine(aAssignedListEntity, "指派");
+                this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aActiveListEntity, "指派");
+                this.m_LineNotifyUtility.SendListMemberLine(aActiveListEntity, "指派");
 
                 return Result;
             }
             catch (System.Exception e)
             {
-                String ErrorString = $"���~�T�� : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
+                String ErrorString = $"錯誤訊息 : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -122,7 +135,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception e)
             {
-                String ErrorString = $"���~�T�� : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
+                String ErrorString = $"錯誤訊息 : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -135,7 +148,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aListEntity == null || NewContactEntityId == Guid.Empty)
                     return;
 
-                // �̳]�w�ɪ��C�g�Ĥ@��W�h�A���o���ѩ��ݶg�����D�����C
+                // 依設定檔的每週第一日規則，取得今天所屬週次的主日日期。
                 m_Sunday = ChurchReport.Services.SundayCalculator.CalculateSunday(
                     DateTime.Now,
                     ChurchReport.Services.WeeklyScheduleProvider.FirstDayOfWeek);
@@ -187,7 +200,7 @@ namespace ChurchReport.WebServiceConnector
                 Double DUM_DOUBLE = 0;
                 int DUM_INT = 0;
 
-                SetupPresentRecordEntityAttributes(aPresentRecord, aMemberInfomation, ref aNewContactEntity, ref aListEntity, 
+                SetupPresentRecordEntityAttributes(aPresentRecord, aMemberInfomation, ref aNewContactEntity, ref aListEntity,
                     ref aWeeklyReportId, DUM_DOUBLE, ref DUM_DOUBLE, ref DUM_DOUBLE, ref DUM_INT, ref DUM_INT, ref DUM_INT, ref DUM_INT);
 
                 Guid aPresentRecordId = this.m_ToolUtilityClass.CreateEntity(aPresentRecord);
@@ -196,7 +209,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception e)
             {
-                String ErrorString = $"���~�T�� : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
+                String ErrorString = $"錯誤訊息 : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -204,7 +217,7 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ���׳B�z
+        #region 結案處理
 
         public String TerminateNewPersonFollowUp(Entity aPresentRecordEntity, String AssignedSmallGroupName, Entity aActiveListEntity)
         {
@@ -228,14 +241,14 @@ namespace ChurchReport.WebServiceConnector
                 if (aPresentRecordEntity != null)
                     m_ToolUtilityClass.SetEntityBoolAttribute(ref aPresentRecordEntity, "new_not_display", true);
 
-                String Result = $"{this.m_ToolUtilityClass.GetEntityStringAttribute(aAssignedContact, "fullname")}�q{this.m_ToolUtilityClass.GetEntityStringAttribute(aActiveListEntity, "listname")} �Q���פF";
+                String Result = $"{this.m_ToolUtilityClass.GetEntityStringAttribute(aAssignedContact, "fullname")}從{this.m_ToolUtilityClass.GetEntityStringAttribute(aActiveListEntity, "listname")} 被結案了";
                 this.m_LineNotifyUtility.SendAddNewPersonResultLine(Result, aActiveListEntity);
 
-                return "�����p��";
+                return "指派小組";
             }
             catch (System.Exception e)
             {
-                String ErrorString = $"���~�T�� : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
+                String ErrorString = $"錯誤訊息 : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -257,7 +270,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception e)
             {
-                String ErrorString = $"���~�T�� : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
+                String ErrorString = $"錯誤訊息 : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -272,7 +285,7 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception e)
             {
-                String ErrorString = $"���~�T�� : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
+                String ErrorString = $"錯誤訊息 : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {e}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -280,26 +293,26 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ���U�X�u�O����k (for MemberInfomation)
+        #region 輔助出席記錄方法 (for MemberInfomation)
 
         private void SetupPresentRecordEntityAttributes(
-            Entity aPresentRecord, 
-            MemberInfomation aMemberInfomation, 
-            ref Entity aContactEntity, 
-            ref Entity aListEntity, 
-            ref Guid aWeeklyReportId, 
-            Double ValidNumber, 
-            ref Double aWeeklySundayRate, 
-            ref Double aWeeklySmallGroupRate, 
-            ref int aWeeklySundayNumber, 
-            ref int aWeeklySmallGroupNumber, 
-            ref int ValidSundayMemberNumber, 
+            Entity aPresentRecord,
+            MemberInfomation aMemberInfomation,
+            ref Entity aContactEntity,
+            ref Entity aListEntity,
+            ref Guid aWeeklyReportId,
+            Double ValidNumber,
+            ref Double aWeeklySundayRate,
+            ref Double aWeeklySmallGroupRate,
+            ref int aWeeklySundayNumber,
+            ref int aWeeklySmallGroupNumber,
+            ref int ValidSundayMemberNumber,
             ref int ValidSmallGroupMemberNumber)
         {
             try
             {
-                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name", 
-                    this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "fullname") + "-" + m_Sunday.ToShortDateString() + " �X�u����");
+                this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_name",
+                    this.m_ToolUtilityClass.GetEntityStringAttribute(ref aContactEntity, "fullname") + "-" + m_Sunday.ToShortDateString() + " 出席紀錄");
 
                 Guid aContactEntityId = aContactEntity.Id;
                 this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_contact_new_present_record", "contact", aContactEntityId);
@@ -307,7 +320,7 @@ namespace ChurchReport.WebServiceConnector
                 if (aWeeklyReportId != Guid.Empty)
                     this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_group_present_weekly_report_prese", "new_group_present_weekly_report", aWeeklyReportId);
 
-                // �]�w��S���p
+                // 設定領袖關聯
                 Guid aFamilyLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_familyhead_list");
                 Guid aGroupLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_family_leader_list");
                 Guid aRaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref aListEntity, "new_contact_race_leager_list");
@@ -321,21 +334,21 @@ namespace ChurchReport.WebServiceConnector
                 if (aListEntity.Id != Guid.Empty)
                     this.m_ToolUtilityClass.SetEntityLookUpAttribute(ref aPresentRecord, "new_list_new_present_record", "list", aListEntity.Id);
 
-                // ����P�a�I
+                // 日期與地點
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_sunday_date", this.m_Sunday);
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aPresentRecord, "new_group_date", this.m_Sunday);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_group_place", m_SmallGroupPlace);
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_group_time", m_SmallGroupTime);
 
-                // �e������
+                // 委身類型
                 int OptionSetNumber = this.m_ToolUtilityClass.GetOptionSetAttribute(ref aContactEntity, "customertypecode");
                 String ClearIdentity = this.ConvertIndexToClearIdentity(OptionSetNumber);
 
-                // �X�u�]�w
+                // 出席設定
                 if (aMemberInfomation.SundayPresent)
                 {
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_sunday_present_this_week", 1);
-                    AddToDictionaryByIdentity(aListEntity.Id, "�D��", ref ClearIdentity, ref aContactEntity, true);
+                    AddToDictionaryByIdentity(aListEntity.Id, "主日", ref ClearIdentity, ref aContactEntity, true);
                     aWeeklySundayNumber += 1;
                     if (ValidNumber != 0 && IsValidContact(aContactEntity))
                     {
@@ -345,14 +358,14 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    AddToDictionaryByIdentity(aListEntity.Id, "�D��", ref ClearIdentity, ref aContactEntity, false);
+                    AddToDictionaryByIdentity(aListEntity.Id, "主日", ref ClearIdentity, ref aContactEntity, false);
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_sunday_present_this_week", 0);
                 }
 
                 if (aMemberInfomation.SmallGroupPresent)
                 {
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_group_present_this_week", 1);
-                    AddToDictionaryByIdentity(aListEntity.Id, "�p��", ref ClearIdentity, ref aContactEntity, true);
+                    AddToDictionaryByIdentity(aListEntity.Id, "小組", ref ClearIdentity, ref aContactEntity, true);
                     aWeeklySmallGroupNumber += 1;
                     if (ValidNumber != 0 && IsValidContact(aContactEntity))
                     {
@@ -362,11 +375,11 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    AddToDictionaryByIdentity(aListEntity.Id, "�p��", ref ClearIdentity, ref aContactEntity, false);
+                    AddToDictionaryByIdentity(aListEntity.Id, "小組", ref ClearIdentity, ref aContactEntity, false);
                     this.m_ToolUtilityClass.SetEntityIntAttribute(ref aPresentRecord, "new_group_present_this_week", 0);
                 }
 
-                // ��i�]�w
+                // 跟進設定
                 this.m_ToolUtilityClass.SetEntityStringAttribute(ref aPresentRecord, "new_explanation", aMemberInfomation.Note);
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_weeks", ConvertFollowUpWeekPickerToIndex(aMemberInfomation.FollowUpWeek));
                 this.m_ToolUtilityClass.SetOptionSetAttribute(ref aPresentRecord, "new_conclusion_choise", ConvertFollowUpResultPickerToIndex(aMemberInfomation.FollowUpResult));

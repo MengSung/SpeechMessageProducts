@@ -1,4 +1,17 @@
-﻿using System;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：PowerPlatform.Dataverse.Client/NSspi/Contexts/Context.cs
+// 所屬區塊：Power Platform Dataverse Client 與低階連線支援程式庫，包含外部 SDK 或協定相容程式碼。
+// 檔案責任：此檔案位於資料存取或 CRM 整合層，註解重點在說明查詢條件、資料來源、欄位對應與交易/一致性假設。
+// 主要型別：class Context
+// 主要成員：Initialize、Dispose、GetRemoteIdentity、GetContextToken、Encrypt、Decrypt、MakeSignature、QuerySessionKey、VerifySignature、QueryBufferSizes
+// 引用命名空間：System、System.Runtime.CompilerServices、System.Runtime.InteropServices、System.Security.Principal、NSspi.Buffers、NSspi.Credentials
+// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
@@ -223,7 +236,7 @@ namespace NSspi.Contexts
         /// <remarks>
         /// If <paramref name="stream"/> is <c>false</c>, this is equivalent to calling <see cref="Encrypt(byte[])"/> and
         /// the returned array contains encoded versions of the trailer, message and padding buffers.
-        /// 
+        ///
         /// If <paramref name="stream"/> is <c>true</c> the lengths will be ommitted and the returned array contains only:
         ///  - The trailer buffer
         ///  - The message buffer
@@ -280,7 +293,7 @@ namespace NSspi.Contexts
             result = new byte[(stream ? 0 : (2 + 4 + 2)) + trailerBuffer.Length + dataBuffer.Length + paddingBuffer.Length];
 
             if( !stream )
-            { 
+            {
                 ByteWriter.WriteInt16_BE( (short)trailerBuffer.Length, result, position );
                 position += 2;
 
@@ -328,7 +341,7 @@ namespace NSspi.Contexts
         /// <remarks>
         /// If <paramref name="stream"/> is <c>false</c>, this is equivalent to calling <see cref="Decrypt(byte[])"/> and
         /// the <paramref name="input"/> must contain encoded versions of the trailer, message and padding buffers.
-        /// 
+        ///
         /// If <paramref name="stream"/> is <c>true</c> the lengths should be ommitted and the <paramref name="input"/>
         /// should contain only:
         ///  - The trailer buffer
@@ -341,7 +354,7 @@ namespace NSspi.Contexts
         public byte[] Decrypt( byte[] input, bool stream )
         {
             if( !stream )
-            { 
+            {
                 return Decrypt( input );
             }
 

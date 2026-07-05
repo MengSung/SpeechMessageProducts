@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：Line.Messaging/ILineMessagingClient.cs
+// 所屬區塊：LINE Messaging SDK 封裝層，定義 LINE API DTO、Client 呼叫與訊息模型。
+// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
+// 主要型別：interface ILineMessagingClient
+// 主要成員：未偵測到公開/受保護成員；維護時請以檔案內的常數、欄位、private helper 或屬性初始化邏輯為主要閱讀入口。
+// 引用命名空間：System、System.Collections.Generic、System.IO、System.Text、System.Threading.Tasks
+// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +24,7 @@ namespace Line.Messaging
     /// </summary>
     public interface ILineMessagingClient
     {
-        #region Message 
+        #region Message
 
         /// <summary>
         /// Respond to events from users, groups, and rooms
@@ -243,7 +256,7 @@ namespace Line.Messaging
 
         /// <summary>
         /// Gets the user profile of a member of a group that the bot is in. This includes user profiles of users who have not added the bot as a friend or have blocked the bot.
-        /// Use the group ID and user ID returned in the source object of webhook event objects. Do not use the LINE ID used in the LINE app. 
+        /// Use the group ID and user ID returned in the source object of webhook event objects. Do not use the LINE ID used in the LINE app.
         /// https://developers.line.biz/en/reference/messaging-api/#get-group-member-profile
         /// </summary>
         /// <param name="groupId">Identifier of the group</param>
@@ -254,8 +267,8 @@ namespace Line.Messaging
         /// <summary>
         /// Gets the user IDs of the members of a group that the bot is in. This includes the user IDs of users who have not added the bot as a friend or has blocked the bot.
         /// This feature is only available for LINE@ Approved accounts or official accounts.
-        /// Use the group Id returned in the source object of webhook event objects. 
-        /// Users who have not agreed to the Official Accounts Terms of Use are not included in memberIds. There is no fixed number of memberIds. 
+        /// Use the group Id returned in the source object of webhook event objects.
+        /// Users who have not agreed to the Official Accounts Terms of Use are not included in memberIds. There is no fixed number of memberIds.
         /// https://developers.line.biz/en/reference/messaging-api/#get-group-member-user-ids
         /// </summary>
         /// <param name="groupId">Identifier of the group</param>
@@ -265,7 +278,7 @@ namespace Line.Messaging
 
         /// <summary>
         /// Gets the user profiles of the members of a group that the bot is in. This includes the user IDs of users who have not added the bot as a friend or has blocked the bot.
-        /// Use the group Id returned in the source object of webhook event objects. 
+        /// Use the group Id returned in the source object of webhook event objects.
         /// This feature is only available for LINE@ Approved accounts or official accounts
         /// </summary>
         /// <param name="groupId">Identifier of the group</param>
@@ -290,7 +303,7 @@ namespace Line.Messaging
 
         /// <summary>
         /// Leave a group.
-        /// Use the ID that is returned via webhook from the source group. 
+        /// Use the ID that is returned via webhook from the source group.
         /// https://developers.line.biz/en/reference/messaging-api/#leave-group
         /// </summary>
         /// <param name="groupId">Group ID</param>
@@ -312,7 +325,7 @@ namespace Line.Messaging
 
         /// <summary>
         /// Gets the user IDs of the members of a room that the bot is in. This includes the user IDs of users who have not added the bot as a friend or has blocked the bot.
-        /// Use the room ID returned in the source object of webhook event objects. 
+        /// Use the room ID returned in the source object of webhook event objects.
         /// This feature is only available for LINE@ Approved accounts or official accounts.
         /// https://developers.line.biz/en/reference/messaging-api/#get-room-member-user-ids
         /// </summary>
@@ -323,7 +336,7 @@ namespace Line.Messaging
 
         /// <summary>
         /// Gets the user profiles of the members of a room that the bot is in. This includes the user IDs of users who have not added the bot as a friend or has blocked the bot.
-        /// Use the room ID returned in the source object of webhook event objects. 
+        /// Use the room ID returned in the source object of webhook event objects.
         /// This feature is only available for LINE@ Approved accounts or official accounts.
         /// </summary>
         /// <param name="roomId">Identifier of the room</param>
@@ -340,7 +353,7 @@ namespace Line.Messaging
 
         /// <summary>
         /// Leave a room.
-        /// Use the ID that is returned via webhook from the source room. 
+        /// Use the ID that is returned via webhook from the source room.
         /// </summary>
         /// <param name="roomId">Room ID</param>
         Task LeaveFromRoomAsync(string roomId);
@@ -376,153 +389,156 @@ namespace Line.Messaging
         #region Rich menu
 
         /// <summary>
-        /// Gets a rich menu via a rich menu ID.
+        /// 透過 LINE provider 端的 richMenuId 取得單一 RichMenu 定義。
+        /// 此方法只查詢已建立的 RichMenu metadata / area 設定，不會下載圖片內容。
         /// https://developers.line.biz/en/reference/messaging-api/#get-rich-menu
         /// </summary>
-        /// <param name="richMenuId">ID of an uploaded rich menu</param>
-        /// <returns>RichMenu</returns>
+        /// <param name="richMenuId">LINE 已上傳 RichMenu 的 provider ID。</param>
+        /// <returns>RichMenu 版面與 action 設定。</returns>
         Task<RichMenu> GetRichMenuAsync(string richMenuId);
 
         /// <summary>
-        /// Creates a rich menu. 
-        /// Note: You must upload a rich menu image and link the rich menu to a user for the rich menu to be displayed.You can create up to 1000 rich menus for one bot.
-        /// The rich menu represented as a rich menu object.
+        /// 建立 RichMenu metadata 與可點擊區域設定，並回傳 LINE 產生的 richMenuId。
+        /// 建立後還必須另外上傳圖片，並將 RichMenu 綁定到使用者或設為預設選單，使用者端才會看到。
+        /// LINE 官方帳號最多可建立 1000 個 RichMenu，因此 provisioning 流程需避免重複建立。
         /// https://developers.line.biz/en/reference/messaging-api/#create-rich-menu
         /// </summary>
-        /// <param name="richMenu">RichMenu</param>
-        /// <returns>RichMenu Id</returns>
+        /// <param name="richMenu">要送到 LINE 建立的 RichMenu 版面物件。</param>
+        /// <returns>LINE provider 產生的 richMenuId。</returns>
         Task<string> CreateRichMenuAsync(RichMenu richMenu);
 
         /// <summary>
-        /// Validate a rich menu object.
+        /// 驗證 RichMenu 物件是否符合 LINE 建立規則，但不實際建立。
         /// https://developers.line.biz/en/reference/messaging-api/#validate-rich-menu-object
         /// </summary>
-        /// <param name="richMenu">RichMenu to validate</param>
+        /// <param name="richMenu">要驗證的 RichMenu 版面物件。</param>
         Task ValidateRichMenuAsync(RichMenu richMenu);
 
         /// <summary>
-        /// Deletes a rich menu.
+        /// 刪除指定 provider richMenuId 的 RichMenu。
+        /// 此操作會移除 LINE 端資源；若同一 RichMenu 被多位使用者或 alias 共用，呼叫端必須先確認生命週期。
         /// https://developers.line.biz/en/reference/messaging-api/#delete-rich-menu
         /// </summary>
-        /// <param name="richMenuId">RichMenu Id</param>
+        /// <param name="richMenuId">要刪除的 LINE provider richMenuId。</param>
         Task DeleteRichMenuAsync(string richMenuId);
 
         /// <summary>
-        /// Gets the ID of the rich menu linked to a user.
+        /// 查詢單一使用者目前被直接綁定的 RichMenu ID。
+        /// 回傳值是 provider richMenuId，不是應用程式 menu key 或 alias id。
         /// https://developers.line.biz/en/reference/messaging-api/#get-rich-menu-id-of-user
         /// </summary>
-        /// <param name="userId">ID of the user</param>
-        /// <returns>RichMenu Id</returns>
+        /// <param name="userId">LINE webhook event 中的 userId。</param>
+        /// <returns>使用者目前綁定的 provider richMenuId。</returns>
         Task<string> GetRichMenuIdOfUserAsync(string userId);
 
         /// <summary>
-        /// Sets a default rich menu.
+        /// 設定官方帳號層級的預設 RichMenu。
+        /// 預設 RichMenu 會影響沒有個人綁定選單的使用者，屬於較大範圍的 channel 設定。
         /// https://developers.line.biz/en/reference/messaging-api/#set-default-rich-menu
         /// </summary>
-        /// <param name="richMenuId">ID of an uploaded rich menu</param>
+        /// <param name="richMenuId">要設為預設選單的 provider richMenuId。</param>
         Task SetDefaultRichMenuAsync(string richMenuId);
 
         /// <summary>
-        /// Gets the default rich menu ID.
+        /// 取得官方帳號目前設定的預設 RichMenu ID。
         /// https://developers.line.biz/en/reference/messaging-api/#get-default-rich-menu-id
         /// </summary>
-        /// <returns>Default rich menu ID</returns>
+        /// <returns>目前預設選單的 provider richMenuId。</returns>
         Task<string> GetDefaultRichMenuIdAsync();
 
         /// <summary>
-        /// Cancels the default rich menu set with the Messaging API.
+        /// 取消官方帳號目前設定的預設 RichMenu。
         /// https://developers.line.biz/en/reference/messaging-api/#cancel-default-rich-menu
         /// </summary>
         Task CancelDefaultRichMenuAsync();
 
         /// <summary>
-        /// Links a rich menu to a user.
-        /// Note: Only one rich menu can be linked to a user at one time.
+        /// 將 RichMenu 直接綁定到單一使用者。
+        /// LINE 同一時間只允許一位使用者有一個直接綁定的 RichMenu；再次綁定會覆蓋原本選單。
         /// https://developers.line.biz/en/reference/messaging-api/#link-rich-menu-to-user
         /// </summary>
-        /// <param name="userId">ID of the user</param>
-        /// <param name="richMenuId">ID of an uploaded rich menu</param>
-        /// <returns></returns>
+        /// <param name="userId">LINE webhook event 中的 userId。</param>
+        /// <param name="richMenuId">要綁定的 provider richMenuId。</param>
         Task LinkRichMenuToUserAsync(string userId, string richMenuId);
 
         /// <summary>
-        /// Links a rich menu to multiple users.
+        /// 將同一個 RichMenu 批次綁定到多位使用者。
         /// https://developers.line.biz/en/reference/messaging-api/#link-rich-menu-to-users
         /// </summary>
-        /// <param name="richMenuId">Rich menu ID</param>
-        /// <param name="userIds">Array of user IDs. Max: 500 users</param>
+        /// <param name="richMenuId">要綁定的 provider richMenuId。</param>
+        /// <param name="userIds">LINE userId 清單，最多 500 位使用者。</param>
         Task LinkRichMenuToUsersAsync(string richMenuId, IList<string> userIds);
 
         /// <summary>
-        /// Unlinks a rich menu from a user.
+        /// 解除單一使用者目前直接綁定的 RichMenu。
         /// https://developers.line.biz/en/reference/messaging-api/#unlink-rich-menu-from-user
         /// </summary>
-        /// <param name="userId">ID of the user</param>
-        /// <returns></returns>
+        /// <param name="userId">LINE webhook event 中的 userId。</param>
         Task UnLinkRichMenuFromUserAsync(string userId);
 
         /// <summary>
-        /// Unlinks rich menus from multiple users.
+        /// 批次解除多位使用者目前直接綁定的 RichMenu。
         /// https://developers.line.biz/en/reference/messaging-api/#unlink-rich-menu-from-users
         /// </summary>
-        /// <param name="userIds">Array of user IDs. Max: 500 users</param>
+        /// <param name="userIds">LINE userId 清單，最多 500 位使用者。</param>
         Task UnLinkRichMenuFromUsersAsync(IList<string> userIds);
 
         /// <summary>
-        /// Replace or unlink the linked rich menus in batches.
+        /// 以 batch-control API 批次替換或解除 RichMenu 綁定。
+        /// 此 API 由 LINE 非同步處理，呼叫端需另外查詢 requestId 的進度。
         /// https://developers.line.biz/en/reference/messaging-api/#batch-control-rich-menus
         /// </summary>
-        /// <param name="operations">Array of operation objects. Max: 30 operations</param>
+        /// <param name="operations">RichMenu batch operation 集合，最多 30 筆操作。</param>
         Task RichMenuBatchOperationAsync(IList<RichMenuBatchOperation> operations);
 
         /// <summary>
-        /// Get the status of rich menu batch control.
+        /// 查詢 RichMenu batch-control request 的非同步處理狀態。
         /// https://developers.line.biz/en/reference/messaging-api/#get-batch-control-rich-menus-progress-status
         /// </summary>
-        /// <param name="requestId">Request ID returned by batch control operation</param>
-        /// <returns>Batch progress</returns>
+        /// <param name="requestId">batch-control operation 回傳的 requestId。</param>
+        /// <returns>LINE 回報的 batch 進度。</returns>
         Task<RichMenuBatchProgress> GetRichMenuBatchProgressAsync(string requestId);
 
         /// <summary>
-        /// Validate a request of rich menu batch control.
+        /// 驗證 RichMenu batch-control request 是否符合 LINE 格式要求，但不實際送出。
         /// https://developers.line.biz/en/reference/messaging-api/#validate-batch-control-rich-menus-request
         /// </summary>
-        /// <param name="operations">Array of operation objects to validate</param>
+        /// <param name="operations">要驗證的 batch operation 集合。</param>
         Task ValidateRichMenuBatchRequestAsync(IList<RichMenuBatchOperation> operations);
 
         /// <summary>
-        /// Downloads an image associated with a rich menu.
+        /// 下載指定 RichMenu 目前關聯的圖片內容。
         /// https://developers.line.biz/en/reference/messaging-api/#download-rich-menu-image
         /// </summary>
-        /// <param name="richMenuId">RichMenu Id</param>
-        /// <returns>Image as ContentStream</returns>
+        /// <param name="richMenuId">要下載圖片的 provider richMenuId。</param>
+        /// <returns>RichMenu 圖片內容 stream。</returns>
         Task<ContentStream> DownloadRichMenuImageAsync(string richMenuId);
 
         /// <summary>
-        /// Uploads and attaches a jpeg image to a rich menu.
-        /// Images must have one of the following resolutions: 2500x1686, 2500x843. 
-        /// You cannot replace an image attached to a rich menu.To update your rich menu image, create a new rich menu object and upload another image.
+        /// 上傳 JPEG 圖片並關聯到指定 RichMenu。
+        /// 圖片尺寸必須是 2500x1686 或 2500x843。
+        /// LINE 不允許替換已關聯圖片；若要更新圖片，需建立新的 RichMenu 並重新上傳。
         /// https://developers.line.biz/en/reference/messaging-api/#upload-rich-menu-image
         /// </summary>
-        /// <param name="stream">Jpeg image for the rich menu</param>
-        /// <param name="richMenuId">The ID of the rich menu to attach the image to.</param>
+        /// <param name="stream">要上傳的 JPEG 圖片 stream。</param>
+        /// <param name="richMenuId">要關聯圖片的 provider richMenuId。</param>
         Task UploadRichMenuJpegImageAsync(Stream stream, string richMenuId);
 
         /// <summary>
-        /// Uploads and attaches a png image to a rich menu.
-        /// Images must have one of the following resolutions: 2500x1686, 2500x843. 
-        /// You cannot replace an image attached to a rich menu.To update your rich menu image, create a new rich menu object and upload another image.
+        /// 上傳 PNG 圖片並關聯到指定 RichMenu。
+        /// 圖片尺寸必須是 2500x1686 或 2500x843。
+        /// LINE 不允許替換已關聯圖片；若要更新圖片，需建立新的 RichMenu 並重新上傳。
         /// https://developers.line.biz/en/reference/messaging-api/#upload-rich-menu-image
         /// </summary>
-        /// <param name="stream">Png image for the rich menu</param>
-        /// <param name="richMenuId">The ID of the rich menu to attach the image to.</param>
+        /// <param name="stream">要上傳的 PNG 圖片 stream。</param>
+        /// <param name="richMenuId">要關聯圖片的 provider richMenuId。</param>
         Task UploadRichMenuPngImageAsync(Stream stream, string richMenuId);
 
         /// <summary>
-        /// Gets a list of all uploaded rich menus.
+        /// 取得官方帳號底下所有已上傳 RichMenu 的清單。
         /// https://developers.line.biz/en/reference/messaging-api/#get-rich-menu-list
         /// </summary>
-        /// <returns>List of ResponseRichMenu</returns>
+        /// <returns>LINE 回傳的 ResponseRichMenu 清單。</returns>
         Task<IList<ResponseRichMenu>> GetRichMenuListAsync();
 
         #endregion
@@ -530,41 +546,41 @@ namespace Line.Messaging
         #region Rich menu alias
 
         /// <summary>
-        /// Create a rich menu alias.
+        /// 建立 RichMenu alias，讓應用程式用穩定 alias 指向 provider richMenuId。
         /// https://developers.line.biz/en/reference/messaging-api/#create-rich-menu-alias
         /// </summary>
-        /// <param name="richMenuId">Rich menu ID to be associated with the rich menu alias</param>
-        /// <param name="richMenuAliasId">Rich menu alias ID (Max: 100 characters)</param>
+        /// <param name="richMenuId">alias 要指向的 provider richMenuId。</param>
+        /// <param name="richMenuAliasId">RichMenu 別名 ID，最多 100 字元。</param>
         Task CreateRichMenuAliasAsync(string richMenuId, string richMenuAliasId);
 
         /// <summary>
-        /// Delete a rich menu alias.
+        /// 刪除 RichMenu alias。
         /// https://developers.line.biz/en/reference/messaging-api/#delete-rich-menu-alias
         /// </summary>
-        /// <param name="richMenuAliasId">Rich menu alias ID to delete</param>
+        /// <param name="richMenuAliasId">要刪除的 RichMenu 別名 ID。</param>
         Task DeleteRichMenuAliasAsync(string richMenuAliasId);
 
         /// <summary>
-        /// Update a rich menu alias.
+        /// 更新 RichMenu alias 指向的 provider richMenuId。
         /// https://developers.line.biz/en/reference/messaging-api/#update-rich-menu-alias
         /// </summary>
-        /// <param name="richMenuAliasId">Rich menu alias ID to update</param>
-        /// <param name="richMenuId">New rich menu ID to be associated</param>
+        /// <param name="richMenuAliasId">要更新的 RichMenu 別名 ID。</param>
+        /// <param name="richMenuId">alias 新的 provider richMenuId。</param>
         Task UpdateRichMenuAliasAsync(string richMenuAliasId, string richMenuId);
 
         /// <summary>
-        /// Get rich menu alias information.
+        /// 取得單一 RichMenu alias 的目前指向資訊。
         /// https://developers.line.biz/en/reference/messaging-api/#get-rich-menu-alias-information
         /// </summary>
-        /// <param name="richMenuAliasId">Rich menu alias ID</param>
-        /// <returns>Rich menu alias</returns>
+        /// <param name="richMenuAliasId">RichMenu 別名 ID。</param>
+        /// <returns>RichMenu alias 與其指向的 provider richMenuId。</returns>
         Task<RichMenuAlias> GetRichMenuAliasAsync(string richMenuAliasId);
 
         /// <summary>
-        /// Get list of rich menu aliases.
+        /// 取得官方帳號底下所有 RichMenu alias。
         /// https://developers.line.biz/en/reference/messaging-api/#get-rich-menu-alias-list
         /// </summary>
-        /// <returns>List of rich menu aliases</returns>
+        /// <returns>RichMenu alias 清單。</returns>
         Task<RichMenuAliasList> GetRichMenuAliasListAsync();
 
         #endregion

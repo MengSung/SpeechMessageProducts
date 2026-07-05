@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Models/PayPage.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼è³‡æ–™æ¨¡å‹æˆ– ViewModel å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜æ¬„ä½èªæ„ã€åºåˆ—åŒ–/ç¹«çµç”¨é€”èˆ‡ç›¸å®¹æ€§é™åˆ¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass PayPage
+// ä¸»è¦æˆå“¡ï¼šstore_uidã€user_idã€user_nameã€user_real_nameã€user_zipcodeã€user_addressã€user_sn_typeã€user_snã€user_phoneã€user_cellphone_code
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€System.Collections.Genericã€Newtonsoft.Json
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆå¾å…¬é–‹å‹åˆ¥ã€å»ºæ§‹å¼æ³¨å…¥ã€ä¸»è¦æ–¹æ³•èˆ‡ä¾‹å¤–è™•ç†è·¯å¾‘æŒæ¡è³‡æ–™æµï¼Œå†é€²è¡Œç¶­è­·ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
@@ -5,357 +18,357 @@ using Newtonsoft.Json;
 namespace ChurchReport.Models
 {
     /// <summary>
-    /// PayPage ª÷¬y¥æ©öÃş§O
+    /// PayPage é‡‘æµäº¤æ˜“é¡åˆ¥
     /// </summary>
     public class PayPage
     {
         /// <summary>
-        /// ¯S¬ù°Ó©±¥N½X
+        /// ç‰¹ç´„å•†åº—ä»£ç¢¼
         /// </summary>
         public string store_uid { get; set; }
-        
+
         /// <summary>
-        /// ®ø¶OªÌ±b¸¹ (°O¾Ğ¥d¸¹©M°O¾Ğµo²¼¨Ì¦¹Äæ¦ì¬°°ò·Ç)
+        /// æ¶ˆè²»è€…å¸³è™Ÿ (è¨˜æ†¶å¡è™Ÿå’Œè¨˜æ†¶ç™¼ç¥¨ä¾æ­¤æ¬„ä½ç‚ºåŸºæº–)
         /// </summary>
         public string user_id { get; set; }
-        
+
         /// <summary>
-        /// ®ø¶OªÌ©m¦W¡A¹q¤l¿ú¥]¥æ©ö¥²­nÄæ¦ì
+        /// æ¶ˆè²»è€…å§“åï¼Œé›»å­éŒ¢åŒ…äº¤æ˜“å¿…è¦æ¬„ä½
         /// </summary>
         public string user_name { get; set; }
-        
+
         /// <summary>
-        /// ®ø¶OªÌ¯u¹ê©m¦W¡A¹q¤l¿ú¥]¥æ©ö¥²­nÄæ¦ì
+        /// æ¶ˆè²»è€…çœŸå¯¦å§“åï¼Œé›»å­éŒ¢åŒ…äº¤æ˜“å¿…è¦æ¬„ä½
         /// </summary>
         public string user_real_name { get; set; }
-        
+
         /// <summary>
-        /// ®ø¶OªÌ¶l»¼°Ï¸¹
+        /// æ¶ˆè²»è€…éƒµéå€è™Ÿ
         /// </summary>
         public string user_zipcode { get; set; }
-        
+
         /// <summary>
-        /// ®ø¶OªÌ±b³æ¦a§}
+        /// æ¶ˆè²»è€…å¸³å–®åœ°å€
         /// </summary>
         public string user_address { get; set; }
-        
+
         /// <summary>
-        /// ÃÒ¸¹Ãş«¬
+        /// è­‰è™Ÿé¡å‹
         /// </summary>
         public string user_sn_type { get; set; }
-        
+
         /// <summary>
-        /// ¥I´Ú¤H¨­¤ÀÃÒ/²Î¤@ÃÒ¸¹/Å@·Ó¸¹½X
+        /// ä»˜æ¬¾äººèº«åˆ†è­‰/çµ±ä¸€è­‰è™Ÿ/è­·ç…§è™Ÿç¢¼
         /// </summary>
         public string user_sn { get; set; }
-        
+
         /// <summary>
-        /// ®ø¶OªÌ®a¥Î¹q¸Ü
+        /// æ¶ˆè²»è€…å®¶ç”¨é›»è©±
         /// </summary>
         public string user_phone { get; set; }
-        
+
         /// <summary>
-        /// ®ø¶OªÌ¦æ°Ê¹q¸Ü°ê½X¡A¹q¤l¿ú¥]¥æ©ö¥²­nÄæ¦ì
+        /// æ¶ˆè²»è€…è¡Œå‹•é›»è©±åœ‹ç¢¼ï¼Œé›»å­éŒ¢åŒ…äº¤æ˜“å¿…è¦æ¬„ä½
         /// </summary>
         public string user_cellphone_code { get; set; }
-        
+
         /// <summary>
-        /// ®ø¶OªÌ¦æ°Ê¹q¸Ü¡A¹q¤l¿ú¥]¥æ©ö¥²­nÄæ¦ì
+        /// æ¶ˆè²»è€…è¡Œå‹•é›»è©±ï¼Œé›»å­éŒ¢åŒ…äº¤æ˜“å¿…è¦æ¬„ä½
         /// </summary>
         public string user_cellphone { get; set; }
-        
+
         /// <summary>
-        /// ®ø¶OªÌ E-Mail¡A¹q¤l¿ú¥]¥æ©ö¥²­nÄæ¦ì
+        /// æ¶ˆè²»è€… E-Mailï¼Œé›»å­éŒ¢åŒ…äº¤æ˜“å¿…è¦æ¬„ä½
         /// </summary>
         public string user_email { get; set; }
-        
+
         /// <summary>
-        /// ®ø¶OªÌ¥Í¤é
+        /// æ¶ˆè²»è€…ç”Ÿæ—¥
         /// </summary>
         public string user_birthday { get; set; }
-        
+
         /// <summary>
-        /// ­q³æÁ`ª÷ÃB = ª««~¤§Á`»ù¥[Á` + §é»ù + ¹B¶O(¦p¬°©w´Á©wÃB¥æ©ö¡A¦¹¬°¨C¤@´ÁªºÀ³¦©ª÷ÃB)
+        /// è¨‚å–®ç¸½é‡‘é¡ = ç‰©å“ä¹‹ç¸½åƒ¹åŠ ç¸½ + æŠ˜åƒ¹ + é‹è²»(å¦‚ç‚ºå®šæœŸå®šé¡äº¤æ˜“ï¼Œæ­¤ç‚ºæ¯ä¸€æœŸçš„æ‡‰æ‰£é‡‘é¡)
         /// </summary>
         public string cost { get; set; }
-        
+
         /// <summary>
-        /// ¹w³]¥æ©ö¹ô§O(¹w³]¬°TWD·s¥x¹ô)
+        /// é è¨­äº¤æ˜“å¹£åˆ¥(é è¨­ç‚ºTWDæ–°å°å¹£)
         /// </summary>
         public string currency { get; set; }
-        
+
         /// <summary>
-        /// ±Ò¥Îdcc(¦Û°Ê´«¶×)
+        /// å•Ÿç”¨dcc(è‡ªå‹•æ›åŒ¯)
         /// </summary>
         public int? enable_dcc { get; set; }
-        
+
         /// <summary>
-        /// ­q³æ½s¸¹¡]­q³æ½s¸¹³Ìªø¬°50bytes¡^
+        /// è¨‚å–®ç·¨è™Ÿï¼ˆè¨‚å–®ç·¨è™Ÿæœ€é•·ç‚º50bytesï¼‰
         /// </summary>
         public string order_id { get; set; }
-        
+
         /// <summary>
-        /// ®ø¶OªÌ¨Ó·½ IP(®æ¦¡°È¥²¥¿½T¡A³¡¤Àª÷¬yªA°È°Ó«áÄò³B²z·|ÅçÃÒ)
+        /// æ¶ˆè²»è€…ä¾†æº IP(æ ¼å¼å‹™å¿…æ­£ç¢ºï¼Œéƒ¨åˆ†é‡‘æµæœå‹™å•†å¾ŒçºŒè™•ç†æœƒé©—è­‰)
         /// </summary>
         public string ip { get; set; }
-        
+
         /// <summary>
-        /// ­q³æ¤ºª««~¼Æ
+        /// è¨‚å–®å…§ç‰©å“æ•¸
         /// </summary>
         public string item { get; set; }
-        
+
         /// <summary>
-        /// ­q³æª««~¶µ¥Ø
+        /// è¨‚å–®ç‰©å“é …ç›®
         /// </summary>
         public List<ProductItem> items { get; set; }
-        
+
         /// <summary>
-        /// ©w´Á©wÃB¥I¶O¡A´Á¼Æ³æ¦ì
+        /// å®šæœŸå®šé¡ä»˜è²»ï¼ŒæœŸæ•¸å–®ä½
         /// </summary>
         public string regular { get; set; }
-        
+
         /// <summary>
-        /// Á`´Á¼Æ(¦p¬° 12 ´Á§Y¥N¤J 12¡A¦pªG¤£³]©w²×¤î´Á¡A½Ğ¥N¤J 0)
+        /// ç¸½æœŸæ•¸(å¦‚ç‚º 12 æœŸå³ä»£å…¥ 12ï¼Œå¦‚æœä¸è¨­å®šçµ‚æ­¢æœŸï¼Œè«‹ä»£å…¥ 0)
         /// </summary>
         public string regular_total { get; set; }
-        
+
         /// <summary>
-        /// ©w´Á¦©´Ú°_¦©¤é (¤£±o¤p©ó·í¤é¡A­Y¥¼«ü©w¤é´Á¡A±N§P©w¬°·í¤é¦©´Ú¡A®æ¦¡¬° YYYYMMDD¡A¦p 20090916)
+        /// å®šæœŸæ‰£æ¬¾èµ·æ‰£æ—¥ (ä¸å¾—å°æ–¼ç•¶æ—¥ï¼Œè‹¥æœªæŒ‡å®šæ—¥æœŸï¼Œå°‡åˆ¤å®šç‚ºç•¶æ—¥æ‰£æ¬¾ï¼Œæ ¼å¼ç‚º YYYYMMDDï¼Œå¦‚ 20090916)
         /// </summary>
         public string regular_first_charge_date { get; set; }
-        
+
         /// <summary>
-        /// ©w´Á©wÃB¦¡¦©´Ú½s¸¹
+        /// å®šæœŸå®šé¡å¼æ‰£æ¬¾ç·¨è™Ÿ
         /// </summary>
         public string group_id { get; set; }
-        
+
         /// <summary>
-        /// ¦Û­q¦^¶Ç°Ñ¼Æ 1
+        /// è‡ªè¨‚å›å‚³åƒæ•¸ 1
         /// </summary>
         public string echo_0 { get; set; }
-        
+
         /// <summary>
-        /// ¦Û­q¦^¶Ç°Ñ¼Æ 2
+        /// è‡ªè¨‚å›å‚³åƒæ•¸ 2
         /// </summary>
         public string echo_1 { get; set; }
-        
+
         /// <summary>
-        /// ¦Û­q¦^¶Ç°Ñ¼Æ 3
+        /// è‡ªè¨‚å›å‚³åƒæ•¸ 3
         /// </summary>
         public string echo_2 { get; set; }
-        
+
         /// <summary>
-        /// ¦Û­q¦^¶Ç°Ñ¼Æ 4
+        /// è‡ªè¨‚å›å‚³åƒæ•¸ 4
         /// </summary>
         public string echo_3 { get; set; }
-        
+
         /// <summary>
-        /// ¦Û­q¦^¶Ç°Ñ¼Æ 5
+        /// è‡ªè¨‚å›å‚³åƒæ•¸ 5
         /// </summary>
         public string echo_4 { get; set; }
-        
+
         /// <summary>
-        /// ¹w¿ï¥I¶O¤èªk
+        /// é é¸ä»˜è²»æ–¹æ³•
         /// </summary>
         public string pfn { get; set; }
-        
+
         /// <summary>
-        /// ®ø¶OªÌ¾Ş§@¤¶­±Ãş«¬ pc/app
+        /// æ¶ˆè²»è€…æ“ä½œä»‹é¢é¡å‹ pc/app
         /// </summary>
         public string interface_type { get; set; }
-        
+
         /// <summary>
-        /// §é»ùª÷ÃB (¹w³]0)¡A¦pªG¦³¨Ï¥Îµo²¼¥\¯à¡A«ØÄ³±N§é¦©¸ê°T©ñ¤Jitem¡C
+        /// æŠ˜åƒ¹é‡‘é¡ (é è¨­0)ï¼Œå¦‚æœæœ‰ä½¿ç”¨ç™¼ç¥¨åŠŸèƒ½ï¼Œå»ºè­°å°‡æŠ˜æ‰£è³‡è¨Šæ”¾å…¥itemã€‚
         /// </summary>
         public string discount { get; set; }
-        
+
         /// <summary>
-        /// ¥æ©ö¦¨¥\¾É­¶ºô§}
+        /// äº¤æ˜“æˆåŠŸå°é ç¶²å€
         /// </summary>
         public string success_returl { get; set; }
-        
+
         /// <summary>
-        /// ¥æ©ö¥¢±Ñ¾É­¶ºô§}
+        /// äº¤æ˜“å¤±æ•—å°é ç¶²å€
         /// </summary>
         public string failure_returl { get; set; }
-        
+
         /// <summary>
-        /// µêÀÀ±b¸¹»P¶W°Ó¥N½X¨Ï¥Î¤§¦³®Ä¤Ñ¼Æ
+        /// è™›æ“¬å¸³è™Ÿèˆ‡è¶…å•†ä»£ç¢¼ä½¿ç”¨ä¹‹æœ‰æ•ˆå¤©æ•¸
         /// </summary>
         public int? limit_pay_days { get; set; }
-        
+
         /// <summary>
-        /// ¹B¶O
+        /// é‹è²»
         /// </summary>
         public string shipping_fee { get; set; }
-        
+
         /// <summary>
-        /// ±Ò¥Î§Ö³tµ²±b
+        /// å•Ÿç”¨å¿«é€Ÿçµå¸³
         /// </summary>
         public int? enable_quickpay { get; set; }
-        
+
         /// <summary>
-        /// ±Ò¥Î¹q¤l¿ú¥]
+        /// å•Ÿç”¨é›»å­éŒ¢åŒ…
         /// </summary>
         public int? enable_ewallet { get; set; }
-        
+
         /// <summary>
-        /// ¹q¤l¿ú¥]µêÀÀ¥d¸¹
+        /// é›»å­éŒ¢åŒ…è™›æ“¬å¡è™Ÿ
         /// </summary>
         public string virtual_pan { get; set; }
-        
+
         /// <summary>
-        /// ¹q¤l¿ú¥]°õ¦æÃş«¬
+        /// é›»å­éŒ¢åŒ…åŸ·è¡Œé¡å‹
         /// </summary>
         public int? ewallet_type { get; set; }
-        
+
         /// <summary>
-        /// ¥æ©öÃş«¬
+        /// äº¤æ˜“é¡å‹
         /// </summary>
         public int? transaction_type { get; set; }
-        
+
         /// <summary>
-        /// °ê¤º«H¥Î¥d¤À´ÁÅã¥Ü­­©w¡AJSON®æ¦¡¦p¤U: {"3": ["013", "822", "808"], "6": ["822", "812"]}
+        /// åœ‹å…§ä¿¡ç”¨å¡åˆ†æœŸé¡¯ç¤ºé™å®šï¼ŒJSONæ ¼å¼å¦‚ä¸‹: {"3": ["013", "822", "808"], "6": ["822", "812"]}
         /// </summary>
         public string creditcard_installment { get; set; }
-        
+
         /// <summary>
-        /// µL¥d¤À´Á°Ó«~¥N½X
+        /// ç„¡å¡åˆ†æœŸå•†å“ä»£ç¢¼
         /// </summary>
         public string cardless_code { get; set; }
-        
+
         /// <summary>
-        /// µL¥d¤À´ÁÅã¥Ü®ø¶OªÌ¥i¿ï¾Ü¤§´Á¼Æ¡A®æ¦¡¬°°}¦C¡A¨Ò¡G[3, 6, 9, 12]
+        /// ç„¡å¡åˆ†æœŸé¡¯ç¤ºæ¶ˆè²»è€…å¯é¸æ“‡ä¹‹æœŸæ•¸ï¼Œæ ¼å¼ç‚ºé™£åˆ—ï¼Œä¾‹ï¼š[3, 6, 9, 12]
         /// </summary>
         public string cardless_installment { get; set; }
-        
+
         /// <summary>
-        /// eACH¥æ©ö¥N½X(¦pªG¨Ï¥ÎeACH¥²¶·«ü©w¥æ©ö¥N½X)
+        /// eACHäº¤æ˜“ä»£ç¢¼(å¦‚æœä½¿ç”¨eACHå¿…é ˆæŒ‡å®šäº¤æ˜“ä»£ç¢¼)
         /// </summary>
         public string each_code { get; set; }
-        
+
         /// <summary>
-        /// ¶}¥ßµo²¼
+        /// é–‹ç«‹ç™¼ç¥¨
         /// </summary>
         public int? issue_invoice_state { get; set; }
-        
+
         /// <summary>
-        /// ¹q¤lµo²¼µ|²v§O
+        /// é›»å­ç™¼ç¥¨ç¨…ç‡åˆ¥
         /// </summary>
         public int? invoice_ratetype { get; set; }
-        
+
         /// <summary>
-        /// ¹q¤lµo²¼¶}¥ßÃş«¬
+        /// é›»å­ç™¼ç¥¨é–‹ç«‹é¡å‹
         /// </summary>
         public int? invoice_input_type { get; set; }
-        
+
         /// <summary>
-        /// ¡u¶³ºİµo²¼¡vÃş«¬¡A·íinvoice_input_type¬°1¡A¦¹ª¬ºA¤~¦³®Ä
+        /// ã€Œé›²ç«¯ç™¼ç¥¨ã€é¡å‹ï¼Œç•¶invoice_input_typeç‚º1ï¼Œæ­¤ç‹€æ…‹æ‰æœ‰æ•ˆ
         /// </summary>
         public string invoice_cloud_type { get; set; }
-        
+
         /// <summary>
-        /// ²Î¤@½s¸¹¡A·íinvoice_input_type¬°1¡A¦¹Äæ¦ì¤~¦³®Ä¡A«D¥²­n
+        /// çµ±ä¸€ç·¨è™Ÿï¼Œç•¶invoice_input_typeç‚º1ï¼Œæ­¤æ¬„ä½æ‰æœ‰æ•ˆï¼Œéå¿…è¦
         /// </summary>
         public string invoice_tax_id { get; set; }
-        
+
         /// <summary>
-        /// ¤â¾÷±ø½X¡A·íinvoice_cloud_type¬°2¡A¦¹Äæ¦ì¤~¦³®Ä
+        /// æ‰‹æ©Ÿæ¢ç¢¼ï¼Œç•¶invoice_cloud_typeç‚º2ï¼Œæ­¤æ¬„ä½æ‰æœ‰æ•ˆ
         /// </summary>
         public string invoice_mobile_code { get; set; }
-        
+
         /// <summary>
-        /// ¦ÛµM¤H¾ÌÃÒ±ø½X¡A·íinvoice_cloud_type¬°3¡A¦¹Äæ¦ì¤~¦³®Ä
+        /// è‡ªç„¶äººæ†‘è­‰æ¢ç¢¼ï¼Œç•¶invoice_cloud_typeç‚º3ï¼Œæ­¤æ¬„ä½æ‰æœ‰æ•ˆ
         /// </summary>
         public string invoice_natural_person { get; set; }
-        
+
         /// <summary>
-        /// ·R¤ß½X¡A·íinvoice_input_type¬°2¡A¦¹Äæ¦ì¤~¦³®Ä
+        /// æ„›å¿ƒç¢¼ï¼Œç•¶invoice_input_typeç‚º2ï¼Œæ­¤æ¬„ä½æ‰æœ‰æ•ˆ
         /// </summary>
         public string invoice_love_code { get; set; }
-        
+
         /// <summary>
-        /// µo²¼©ïÀY¡A·íinvoice_input_type¬°3®É¡A¦¹Äæ¦ì¤~¦³®Ä
+        /// ç™¼ç¥¨æŠ¬é ­ï¼Œç•¶invoice_input_typeç‚º3æ™‚ï¼Œæ­¤æ¬„ä½æ‰æœ‰æ•ˆ
         /// </summary>
         public string invoice_b2b_title { get; set; }
-        
+
         /// <summary>
-        /// ²Î¤@½s¸¹¡A·íinvoice_input_type¬°3®É¡A¦¹Äæ¦ì¤~¦³®Ä
+        /// çµ±ä¸€ç·¨è™Ÿï¼Œç•¶invoice_input_typeç‚º3æ™‚ï¼Œæ­¤æ¬„ä½æ‰æœ‰æ•ˆ
         /// </summary>
         public string invoice_b2b_id { get; set; }
-        
+
         /// <summary>
-        /// µo²¼¦a§}¡A·íinvoice_input_type¬°3®É¡A¦¹Äæ¦ì¤~¦³®Ä
+        /// ç™¼ç¥¨åœ°å€ï¼Œç•¶invoice_input_typeç‚º3æ™‚ï¼Œæ­¤æ¬„ä½æ‰æœ‰æ•ˆ
         /// </summary>
         public string invoice_b2b_address { get; set; }
-        
+
         /// <summary>
-        /// ­Y¿ï¾Ü¹êÅéµo²¼®É¡Aµo²¼©ïÀYµLªk²§°Ê¡C
+        /// è‹¥é¸æ“‡å¯¦é«”ç™¼ç¥¨æ™‚ï¼Œç™¼ç¥¨æŠ¬é ­ç„¡æ³•ç•°å‹•ã€‚
         /// </summary>
         public string invoice_b2b_title_force { get; set; }
-        
+
         /// <summary>
-        /// ­Y¿ï¾Ü¹êÅéµo²¼®É¡A²Î¤@½s¸¹µLªk²§°Ê¡C
+        /// è‹¥é¸æ“‡å¯¦é«”ç™¼ç¥¨æ™‚ï¼Œçµ±ä¸€ç·¨è™Ÿç„¡æ³•ç•°å‹•ã€‚
         /// </summary>
         public string invoice_b2b_id_force { get; set; }
-        
+
         /// <summary>
-        /// ­Y¿ï¾Ü¹êÅéµo²¼®É¡A¹w³]¦a§}µLªk²§°Ê¡C
+        /// è‹¥é¸æ“‡å¯¦é«”ç™¼ç¥¨æ™‚ï¼Œé è¨­åœ°å€ç„¡æ³•ç•°å‹•ã€‚
         /// </summary>
         public int? invoice_b2b_address_force { get; set; }
-        
+
         /// <summary>
-        /// µL¥d¤À´Á®ø¶OªÌ¸ê°T
+        /// ç„¡å¡åˆ†æœŸæ¶ˆè²»è€…è³‡è¨Š
         /// </summary>
         public object user_data { get; set; }
-        
+
         /// <summary>
-        /// µL¥d¤À´Á¤W¶ÇÀÉ®×¸ô®| (JSON¦hµ§®æ¦¡)
+        /// ç„¡å¡åˆ†æœŸä¸Šå‚³æª”æ¡ˆè·¯å¾‘ (JSONå¤šç­†æ ¼å¼)
         /// </summary>
         public string files_path { get; set; }
-        
+
         /// <summary>
-        /// Àx­È¥æ©ö¤§¥æ©öª÷ÃB/ÂI¼Æ (Àx­È¥æ©ö¥H¦¹Äæ¦ì¿ëÃÑ¥æ©öª÷ÃB/ÂI¼Æ)
+        /// å„²å€¼äº¤æ˜“ä¹‹äº¤æ˜“é‡‘é¡/é»æ•¸ (å„²å€¼äº¤æ˜“ä»¥æ­¤æ¬„ä½è¾¨è­˜äº¤æ˜“é‡‘é¡/é»æ•¸)
         /// </summary>
         public string price { get; set; }
-        
+
         /// <summary>
-        /// Àx­È¥æ©ö®É¡A¨Ï¥Î·í®ÉÀx­È¤§Àx­È²£«~¥N½X
+        /// å„²å€¼äº¤æ˜“æ™‚ï¼Œä½¿ç”¨ç•¶æ™‚å„²å€¼ä¹‹å„²å€¼ç”¢å“ä»£ç¢¼
         /// </summary>
         public string recharge_code { get; set; }
-        
+
         /// <summary>
-        /// Àx­È¥æ©ö¥Îª««~¸ê°T
+        /// å„²å€¼äº¤æ˜“ç”¨ç‰©å“è³‡è¨Š
         /// </summary>
         public object[] recharge_items { get; set; }
-        
+
         /// <summary>
-        /// ¸g¾P°Ó¥N¦¬¶O¬O§_§tÂ²°T¶O
+        /// ç¶“éŠ·å•†ä»£æ”¶è²»æ˜¯å¦å«ç°¡è¨Šè²»
         /// </summary>
         public int? agent_sms_fee_type { get; set; }
-        
+
         /// <summary>
-        /// ¸g¾P°Ó¥N¦¬¶O¬O§_§t¤âÄò¶O
+        /// ç¶“éŠ·å•†ä»£æ”¶è²»æ˜¯å¦å«æ‰‹çºŒè²»
         /// </summary>
         public int? agent_charge_fee_type { get; set; }
-        
+
         /// <summary>
-        /// ¸g¾P°Ó¥N¦¬¶O
+        /// ç¶“éŠ·å•†ä»£æ”¶è²»
         /// </summary>
         public int? agent_charge_fee { get; set; }
-        
+
         /// <summary>
-        /// ¬O§_¬°¸g¾P°Ó¥N¦¬¶O¼Ò¦¡
+        /// æ˜¯å¦ç‚ºç¶“éŠ·å•†ä»£æ”¶è²»æ¨¡å¼
         /// </summary>
         public int? is_agent_charge { get; set; }
-        
+
         /// <summary>
-        /// °e³f¸ê°T («á¥I´Ú¬°¥²¶ñ)
+        /// é€è²¨è³‡è¨Š (å¾Œä»˜æ¬¾ç‚ºå¿…å¡«)
         /// </summary>
         public object shipping_info { get; set; }
-        
+
         /// <summary>
-        /// «H¥Î¥dÃş¥æ©ö®É¡A¬O§_¨Ï¥Î±ÂÅv½Ğ´Ú¼Ò¦¡(¹w³]¦Û°Ê½Ğ´Ú)
+        /// ä¿¡ç”¨å¡é¡äº¤æ˜“æ™‚ï¼Œæ˜¯å¦ä½¿ç”¨æˆæ¬Šè«‹æ¬¾æ¨¡å¼(é è¨­è‡ªå‹•è«‹æ¬¾)
         /// </summary>
         public string creditcard_is_automatic_payment { get; set; }
     }

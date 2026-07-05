@@ -1,4 +1,17 @@
-﻿using System;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ToolUtility/PushUtility.cs
+// 所屬區塊：ChurchReport 共用工具與整合輔助層，包含通知、付款、CRM 或跨模組 helper。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class PushUtility
+// 主要成員：SendMessage、MultiCastTextMessageAsync、SendImage、SendVideo、SendAudeo、SendLocation、SendSticker、PostSerializedTemplate、PostSerializedConfirm、PostSerializedImageMap
+// 引用命名空間：System、System.Collections.Generic、System.IO、System.Linq、System.Threading.Tasks、Line.Messaging、ToolUtilityNameSpace、ToolUtilityNameSpace.Factory
+// 閱讀路徑：閱讀此檔案時應先確認 CRM entity 名稱、欄位 logical name、查詢條件與外部服務例外如何被轉換或記錄。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -273,10 +286,22 @@ namespace ToolUtility
                 //throw e;
             }
         }
+        /// <summary>
+        /// 舊版直接建立 RichMenu、上傳圖片並綁定到指定使用者的流程。
+        ///
+        /// 這段程式保留在 ToolUtility 舊工具中，描述早期產品直接操作 LINE provider 的生命週期：
+        /// 先建立 RichMenu 取得 provider 產生的 richMenuId，再從本機固定路徑讀取圖片，
+        /// 上傳為 RichMenu 圖片，最後把該 richMenuId link 到使用者並推送成功訊息。
+        ///
+        /// ChurchReport 目前已改由共用 RichMenu workflow / assignment workflow 管理 menu key、
+        /// richMenuId 快取、線上選單同步與解除綁定，避免每次呼叫都建立新 RichMenu 或依賴硬編碼圖片路徑。
+        /// </summary>
         public async Task<String> AddRichMenuMessage(string UserId)
         {
             try
             {
+                // 建立 LINE provider 需要的 RichMenu 定義；這裡只有一個全版面 postback 區塊，
+                // 屬於舊版示範式選單，不具備目前共用 catalog 的版本化命名與 fingerprint 機制。
                 RichMenu richMenu = new RichMenu()
                 {
                     Size = ImagemapSize.RichMenuLong,
@@ -297,6 +322,8 @@ namespace ToolUtility
                 //var image = new MemoryStream(File.ReadAllBytes(HttpContext.Current.Server.MapPath(@"~\Images\richmenu.PNG")));
                 //var image = new MemoryStream(File.ReadAllBytes(@"D:\\LINE 佈署\\Logo\\音訊科技\\SpeechMessage.png"));
 
+                // 舊版流程直接依賴伺服器本機固定路徑；部署環境若沒有這個檔案，
+                // RichMenu 建立後會在圖片讀取或上傳階段失敗，且 provider 端可能留下未使用的 richMenuId。
                 String path = @"D:\暫存區\richmenu.PNG";
 
                 byte[] readText = System.IO.File.ReadAllBytes(path);
@@ -305,11 +332,12 @@ namespace ToolUtility
 
                 //var image = new MemoryStream(byDataValue);
 
-                // Upload Image
+                // 將本機 PNG 圖片上傳到剛建立的 provider richMenuId。
                 await this.m_LineMessagingClient.UploadRichMenuPngImageAsync(image, richMenuId);
-                // Link to user
+                // 將 provider richMenuId 綁定到單一使用者；這裡沒有 menu key 抽象，也沒有快取或重試策略。
                 await this.m_LineMessagingClient.LinkRichMenuToUserAsync(UserId, richMenuId);
 
+                // 舊版方法會額外推送文字與貼圖通知，讓使用者知道選單已被建立並綁定。
                 ISendMessage replyMessage = new TextMessage("Rich menu added");
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
                 {
@@ -329,13 +357,25 @@ namespace ToolUtility
                 throw e;
             }
         }
+        /// <summary>
+        /// 舊版直接解除使用者 RichMenu 並刪除 provider richMenuId 的流程。
+        ///
+        /// 此方法先向 LINE 查詢使用者目前綁定的 richMenuId，接著 unlink 使用者，
+        /// 最後直接刪除該 provider RichMenu。這個做法假設該 richMenuId 只屬於單一使用者；
+        /// 若同一選單被多位使用者或多個流程共用，直接刪除 provider 資源會影響其他人。
+        ///
+        /// 新版 ChurchReport 透過共用 assignment workflow 只處理使用者 unlink，
+        /// provider RichMenu 的建立、版本同步與刪除策略交由共用 provisioning / sweep 流程集中管理。
+        /// </summary>
         public async Task<String> DeleteRichMenuMessage(string UserId)
         {
             try
             {
-                // Get Rich Menu for the user
+                // 取得使用者目前在 LINE provider 端實際綁定的 richMenuId。
                 var richMenuId = await this.m_LineMessagingClient.GetRichMenuIdOfUserAsync(UserId);
+                // 先解除使用者與 RichMenu 的連結，避免刪除 provider 資源時仍有使用者指向它。
                 await m_LineMessagingClient.UnLinkRichMenuFromUserAsync(UserId);
+                // 舊版流程會直接刪除 provider RichMenu；新版共用流程避免在產品工具類中做這件事。
                 await m_LineMessagingClient.DeleteRichMenuAsync(richMenuId);
 
                 return "成功";

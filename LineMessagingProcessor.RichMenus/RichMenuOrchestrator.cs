@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：LineMessagingProcessor.RichMenus/RichMenuOrchestrator.cs
+// 所屬區塊：LINE RichMenu 共用編排、佈署、指派、狀態與測試流程模組。
+// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
+// 主要型別：class RichMenuOrchestrator
+// 主要成員：ApplyAsync
+// 引用命名空間：未宣告 using；請由命名空間、同檔型別或完全限定名稱判讀相依性。
+// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 namespace LineMessagingProcessor.RichMenus;
 
 /// <summary>
@@ -26,6 +39,13 @@ public sealed class RichMenuOrchestrator : IRichMenuOrchestrator
     // Orchestrator 只決定「該做什麼」，assignment workflow 負責「怎麼呼叫 LINE」。
     private readonly ILineRichMenuAssignmentWorkflow _assignmentWorkflow;
 
+    /// <summary>
+    /// 建立 RichMenu 協調器，並接收產品端註冊的所有決策 policy。
+    /// </summary>
+    /// <param name="policies">
+    /// 由 DI 註冊進來的決策規則集合；若兩個 policy 回傳相同優先權，會保留先註冊者。
+    /// </param>
+    /// <param name="assignmentWorkflow">真正負責呼叫 LINE link / unlink 的共用指派工作流。</param>
     public RichMenuOrchestrator(
         IEnumerable<IRichMenuPolicy> policies,
         ILineRichMenuAssignmentWorkflow assignmentWorkflow)
@@ -34,6 +54,12 @@ public sealed class RichMenuOrchestrator : IRichMenuOrchestrator
         _assignmentWorkflow = assignmentWorkflow ?? throw new ArgumentNullException(nameof(assignmentWorkflow));
     }
 
+    /// <summary>
+    /// 評估所有 RichMenu policy，選出最高優先權決策並套用到指定 LINE 使用者。
+    /// </summary>
+    /// <param name="context">包含 LINE user id、角色、收到文字、目前選單與產品屬性的決策上下文。</param>
+    /// <param name="cancellationToken">傳遞給 policy 與 assignment workflow 的取消權杖。</param>
+    /// <returns>標準化的指派結果，描述是否成功、是否變更，以及最後套用的 menu key。</returns>
     public async Task<LineRichMenuAssignmentResult> ApplyAsync(RichMenuContext context, CancellationToken cancellationToken = default)
     {
         if (context == null)

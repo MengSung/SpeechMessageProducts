@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Controllers/SmallGroupController/SmallGroupController.Save.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æ§åˆ¶å™¨å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜ HTTP å…¥å£ã€ç”¢å“æµç¨‹é‚Šç•Œã€è¼¸å…¥è¼¸å‡ºèˆ‡å¤–éƒ¨å‰¯ä½œç”¨ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass SmallGroupController
+// ä¸»è¦æˆå“¡ï¼šSaveIntegrateã€ValidateHappyGroupFieldsã€CleanupTransferredMembersã€RemoveTransferredMembersã€ShouldRemoveMember
+// å¼•ç”¨å‘½åç©ºé–“ï¼šChurchReport.Modelsã€Microsoft.AspNetCore.Mvcã€Systemã€System.Collections.Genericã€System.Threadingã€System.Threading.Tasks
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª action çš„è·¯ç”±ä¾†æºã€æ¬Šé™/Session å‰ç½®æ¢ä»¶ã€å‘¼å«çš„æœå‹™ï¼Œä»¥åŠå›å‚³ Viewã€JSON æˆ– redirect æ™‚å°ä½¿ç”¨è€…æµç¨‹çš„å½±éŸ¿ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using ChurchReport.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -8,14 +21,14 @@ using System.Threading.Tasks;
 namespace ChurchReport.Controllers
 {
     /// <summary>
-    /// ¤p²ÕºŞ²z±±¨î¾¹ - ¸ê®ÆÀx¦s»P²M²z
+    /// å°çµ„ç®¡ç†æ§åˆ¶å™¨ - è³‡æ–™å„²å­˜èˆ‡æ¸…ç†
     /// </summary>
     public partial class SmallGroupController
     {
-        #region ¸ê®ÆÀx¦s
+        #region è³‡æ–™å„²å­˜
 
         /// <summary>
-        /// Àx¦s¾ã¦Xµø¹Ï¶g³ø¸ê®Æ¡]Fire-and-Forget ¼Ò¦¡¡^
+        /// å„²å­˜æ•´åˆè¦–åœ–é€±å ±è³‡æ–™ï¼ˆFire-and-Forget æ¨¡å¼ï¼‰
         /// </summary>
         [HttpPost]
         public IActionResult SaveIntegrate(
@@ -27,63 +40,63 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ¸É¥R»¡©ú¡G¦¹¤èªk±Ä¥Î Fire-and-Forget ¼Ò¦¡¡A¥ß§Y¦^À³¨Ï¥ÎªÌ½Ğ¨D¡A
-                // µM«á¦b­I´º°õ¦æ¸ê®Æ¤W¶Ç©M²M²z¡AÁ×§Kªı¶ë UI ¨Ã´£¤É¨Ï¥ÎªÌÅéÅç¡C
-                // ³oºØ¼Ò¦¡¾A¦X«DÃöÁä©Ê¾Ş§@¡A¦ı»İª`·N¿ù»~³B²z©M¸ê·½ºŞ²z¡C
+                // è£œå……èªªæ˜ï¼šæ­¤æ–¹æ³•æ¡ç”¨ Fire-and-Forget æ¨¡å¼ï¼Œç«‹å³å›æ‡‰ä½¿ç”¨è€…è«‹æ±‚ï¼Œ
+                // ç„¶å¾Œåœ¨èƒŒæ™¯åŸ·è¡Œè³‡æ–™ä¸Šå‚³å’Œæ¸…ç†ï¼Œé¿å…é˜»å¡ UI ä¸¦æå‡ä½¿ç”¨è€…é«”é©—ã€‚
+                // é€™ç¨®æ¨¡å¼é©åˆéé—œéµæ€§æ“ä½œï¼Œä½†éœ€æ³¨æ„éŒ¯èª¤è™•ç†å’Œè³‡æºç®¡ç†ã€‚
 
-                // ¦pªG¬O§Ö¼Ö¤p²Õ¡A«h¶i¦æÄæ¦ìÅçÃÒ
-                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.ListEntityName.Contains("§Ö¼Ö"))
+                // å¦‚æœæ˜¯å¿«æ¨‚å°çµ„ï¼Œå‰‡é€²è¡Œæ¬„ä½é©—è­‰
+                if (InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport.ListEntityName.Contains("å¿«æ¨‚"))
                 {
                     var validationResult = ValidateHappyGroupFields(HappyWeekIndex, HappyWeekTopic);
                     if (validationResult != null) return validationResult;
                 }
 
-                // ±N CheckBox ¦r¦ê­ÈÂà´«¬°¥¬ªL­È
-                // ¸É¥R»¡©ú¡G
-                // - CheckBox °Ñ¼Æ±q«eºİ¶Ç¨Ó®É¬°¦r¦ê«¬§O¡A­È¬° "true" ©Î "false"¡C
-                // - ³o¸ÌªºÅŞ¿è¬O±N¦r¦ê "true" Âà´«¬°¥¬ªL­È true¡A
-                //   ¥ô¦ó¨ä¥L­È¡]¥]¬A¦r¦ê "false"¡^«hÂà´«¬°¥¬ªL­È false¡C
-                // - Âà´««áªº¥¬ªL­È«ü¥Ü¬O§_»İ­n¼È°±¤W¶Ç¬yµ{¤¤ªº¬Y¨Ç¨BÆJ¡C
-                bool pauseCheckBox = CheckBox == "true"; 
+                // å°‡ CheckBox å­—ä¸²å€¼è½‰æ›ç‚ºå¸ƒæ—å€¼
+                // è£œå……èªªæ˜ï¼š
+                // - CheckBox åƒæ•¸å¾å‰ç«¯å‚³ä¾†æ™‚ç‚ºå­—ä¸²å‹åˆ¥ï¼Œå€¼ç‚º "true" æˆ– "false"ã€‚
+                // - é€™è£¡çš„é‚è¼¯æ˜¯å°‡å­—ä¸² "true" è½‰æ›ç‚ºå¸ƒæ—å€¼ trueï¼Œ
+                //   ä»»ä½•å…¶ä»–å€¼ï¼ˆåŒ…æ‹¬å­—ä¸² "false"ï¼‰å‰‡è½‰æ›ç‚ºå¸ƒæ—å€¼ falseã€‚
+                // - è½‰æ›å¾Œçš„å¸ƒæ—å€¼æŒ‡ç¤ºæ˜¯å¦éœ€è¦æš«åœä¸Šå‚³æµç¨‹ä¸­çš„æŸäº›æ­¥é©Ÿã€‚
+                bool pauseCheckBox = CheckBox == "true";
 
-                // ¸É¥R»¡©ú¡G³o¨ÇÅÜ¼Æ¦b­I´º¥ô°È¶}©l«e´N³Q®·Àò¡]captured¡^¡A
-                // Á×§K¦b Task.Run ¤º³¡¦saccess HttpContext ©Î Session¡A¨¾¤î Session Bleeding °İÃD¡C
-                // Cause: ­I´º°õ¦æºü¥i¯à¦b½Ğ¨Dµ²§ô«áÄ~Äò°õ¦æ¡A¦¹®É HttpContext ¤w¤£¥i¥Î¡C
+                // è£œå……èªªæ˜ï¼šé€™äº›è®Šæ•¸åœ¨èƒŒæ™¯ä»»å‹™é–‹å§‹å‰å°±è¢«æ•ç²ï¼ˆcapturedï¼‰ï¼Œ
+                // é¿å…åœ¨ Task.Run å…§éƒ¨å­˜access HttpContext æˆ– Sessionï¼Œé˜²æ­¢ Session Bleeding å•é¡Œã€‚
+                // Cause: èƒŒæ™¯åŸ·è¡Œç·’å¯èƒ½åœ¨è«‹æ±‚çµæŸå¾Œç¹¼çºŒåŸ·è¡Œï¼Œæ­¤æ™‚ HttpContext å·²ä¸å¯ç”¨ã€‚
                 var selectDate = InMemoryContext.ListManager.m_SelectDate;
                 var account = InMemoryContext.ListManager.m_Account;
                 var password = InMemoryContext.ListManager.m_Password;
                 var loginType = InMemoryContext.ListManager.LoginType;
                 var weeklyReportRef = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport;
                 var allMemberData = weeklyReportRef?.m_SmallGroupDataList?.m_AllMemeberData;
-                var activeListId = InMemoryContext.ListManager.ActiveListId; // ®·Àò·í«e¬¡°Ê¦W³æ ID¡A­I´º¥ô°È¤¤¨Ï¥Î
-                // ¸É¥R»¡©ú¡G
-                // - ¦¹¦æ¥N½X±q InMemoryContext ®·Àò·í«e¬¡°Ê¦W³æªº ID¡A¨Ã½á­Èµ¹¥»¦aÅÜ¼Æ activeListId¡C
-                // - ³o¼Ë°µªº¥Øªº¬O¬°¤F¦bÀH«áªº­I´º¥ô°È¤¤¨Ï¥Î¸Ó ID¡A¦ÓµL»İª½±µ³X°İ HttpContext ©Î Session¡C
-                // - ®·Àòªº­È·|¦b Task.Run ªº­I´º°õ¦æºü¤¤¨Ï¥Î¡A½T«O¤£·|¨ü¨ì½Ğ¨Dµ²§ô«á HttpContext ¤£¥i¥Îªº°İÃD¼vÅT¡C
-                // - ¬¡°Ê¦W³æ ID ¥i¯à¥Î©ó¨M©w¸ê®Æ¤W¶Çªº¥Ø¼Ğ©Î¿z¿ï­n³B²zªº¸ê®Æ¡A¨ãÅé¨ú¨M©ó·~°ÈÅŞ¿è¡C
+                var activeListId = InMemoryContext.ListManager.ActiveListId; // æ•ç²ç•¶å‰æ´»å‹•åå–® IDï¼ŒèƒŒæ™¯ä»»å‹™ä¸­ä½¿ç”¨
+                // è£œå……èªªæ˜ï¼š
+                // - æ­¤è¡Œä»£ç¢¼å¾ InMemoryContext æ•ç²ç•¶å‰æ´»å‹•åå–®çš„ IDï¼Œä¸¦è³¦å€¼çµ¦æœ¬åœ°è®Šæ•¸ activeListIdã€‚
+                // - é€™æ¨£åšçš„ç›®çš„æ˜¯ç‚ºäº†åœ¨éš¨å¾Œçš„èƒŒæ™¯ä»»å‹™ä¸­ä½¿ç”¨è©² IDï¼Œè€Œç„¡éœ€ç›´æ¥è¨ªå• HttpContext æˆ– Sessionã€‚
+                // - æ•ç²çš„å€¼æœƒåœ¨ Task.Run çš„èƒŒæ™¯åŸ·è¡Œç·’ä¸­ä½¿ç”¨ï¼Œç¢ºä¿ä¸æœƒå—åˆ°è«‹æ±‚çµæŸå¾Œ HttpContext ä¸å¯ç”¨çš„å•é¡Œå½±éŸ¿ã€‚
+                // - æ´»å‹•åå–® ID å¯èƒ½ç”¨æ–¼æ±ºå®šè³‡æ–™ä¸Šå‚³çš„ç›®æ¨™æˆ–ç¯©é¸è¦è™•ç†çš„è³‡æ–™ï¼Œå…·é«”å–æ±ºæ–¼æ¥­å‹™é‚è¼¯ã€‚
 
-                // ¸É¥R»¡©ú¡G¦b¦¹¨Ï¥Î Task.Run ±Ò°Ê­I´º¤u§@¡C
-                // - ¶Ç¤Jªº cancellationToken ·|¶Ç»¼¨ì Task.Run¡A¥H«K¦b»İ­n®É¹Á¸Õ¨ú®ø­I´º§@·~¡C
-                // - Task.Run ªº lambda ¼Ğ¥Ü¬° async¡A¦ı¤º³¡©I¥sªº UploadIntegrateData ¥i¯à¬°¦P¨B¤èªk¡A
-                //   ¦]¦¹¸Ó©I¥s·|¦b°õ¦æºü¦À°õ¦æºü¤W¦P¨B°õ¦æ¨Ã¥i¯àªı¶ë¡A­Y UploadIntegrateData ¦³ I/O ¤u§@¡A
-                //   «ØÄ³§ï¬°¯u¥¿ªº«D¦P¨B¹ê§@¥HÁ×§Kªı¶ë°õ¦æºü¦À¡C
-                // - ¤£­n¦b­I´º¤u§@¤¤¦saccess HttpContext/Session¡G¦]¦¹¨Æ¥ı®·Àò©Ò»İ¸ê®Æ¨ì°Ï°ìÅÜ¼Æ¡]¤W¤è¡^¡C
+                // è£œå……èªªæ˜ï¼šåœ¨æ­¤ä½¿ç”¨ Task.Run å•Ÿå‹•èƒŒæ™¯å·¥ä½œã€‚
+                // - å‚³å…¥çš„ cancellationToken æœƒå‚³éåˆ° Task.Runï¼Œä»¥ä¾¿åœ¨éœ€è¦æ™‚å˜—è©¦å–æ¶ˆèƒŒæ™¯ä½œæ¥­ã€‚
+                // - Task.Run çš„ lambda æ¨™ç¤ºç‚º asyncï¼Œä½†å…§éƒ¨å‘¼å«çš„ UploadIntegrateData å¯èƒ½ç‚ºåŒæ­¥æ–¹æ³•ï¼Œ
+                //   å› æ­¤è©²å‘¼å«æœƒåœ¨åŸ·è¡Œç·’æ± åŸ·è¡Œç·’ä¸ŠåŒæ­¥åŸ·è¡Œä¸¦å¯èƒ½é˜»å¡ï¼Œè‹¥ UploadIntegrateData æœ‰ I/O å·¥ä½œï¼Œ
+                //   å»ºè­°æ”¹ç‚ºçœŸæ­£çš„éåŒæ­¥å¯¦ä½œä»¥é¿å…é˜»å¡åŸ·è¡Œç·’æ± ã€‚
+                // - ä¸è¦åœ¨èƒŒæ™¯å·¥ä½œä¸­å­˜access HttpContext/Sessionï¼šå› æ­¤äº‹å…ˆæ•ç²æ‰€éœ€è³‡æ–™åˆ°å€åŸŸè®Šæ•¸ï¼ˆä¸Šæ–¹ï¼‰ã€‚
                 _ = Task.Run(async () =>
                 {
                     try
                     {
-                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] ¶}©l­I´º¤W¶Ç...");
-                        // ¶}©l­I´º¤W¶Çªº½Õ¸Õ°T®§
+                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] é–‹å§‹èƒŒæ™¯ä¸Šå‚³...");
+                        // é–‹å§‹èƒŒæ™¯ä¸Šå‚³çš„èª¿è©¦è¨Šæ¯
 
                         // Use captured references to avoid accessing HttpContext/Session inside background thread
-                        // ©I¥s¤W¶Ç¤èªk¡C
-                        // ª`·N¡G¦pªG UploadIntegrateData ¬O¦P¨B¤èªk¡A³o·|¦b­I´º°õ¦æºü¤W¦P¨B°õ¦æ¨Ã¦û¥Î¸Ó°õ¦æºü¡C
-                        // ­Y¤W¶Ç¬yµ{¥]§tºô¸ô©Î I/O¡A½Ğ¦Ò¼{±N UploadIntegrateData §ï¼g¬° Task-based «D¦P¨B¤èªk
-                        //¡]¨Ò¦p UploadIntegrateDataAsync¡^¨Ã¦b¦¹¨Ï¥Î await¡A¥H´£¤É¥i¦ùÁY©Ê»P°õ¦æºü¨Ï¥Î®Ä²v¡C
-                        // ¨Ï¥Î«D¦P¨Bª©¥»¥HÁ×§K¦b°õ¦æºü¦À¦P¨Bªı¶ë
+                        // å‘¼å«ä¸Šå‚³æ–¹æ³•ã€‚
+                        // æ³¨æ„ï¼šå¦‚æœ UploadIntegrateData æ˜¯åŒæ­¥æ–¹æ³•ï¼Œé€™æœƒåœ¨èƒŒæ™¯åŸ·è¡Œç·’ä¸ŠåŒæ­¥åŸ·è¡Œä¸¦ä½”ç”¨è©²åŸ·è¡Œç·’ã€‚
+                        // è‹¥ä¸Šå‚³æµç¨‹åŒ…å«ç¶²è·¯æˆ– I/Oï¼Œè«‹è€ƒæ…®å°‡ UploadIntegrateData æ”¹å¯«ç‚º Task-based éåŒæ­¥æ–¹æ³•
+                        //ï¼ˆä¾‹å¦‚ UploadIntegrateDataAsyncï¼‰ä¸¦åœ¨æ­¤ä½¿ç”¨ awaitï¼Œä»¥æå‡å¯ä¼¸ç¸®æ€§èˆ‡åŸ·è¡Œç·’ä½¿ç”¨æ•ˆç‡ã€‚
+                        // ä½¿ç”¨éåŒæ­¥ç‰ˆæœ¬ä»¥é¿å…åœ¨åŸ·è¡Œç·’æ± åŒæ­¥é˜»å¡
                         if (weeklyReportRef != null)
                         {
-                            // ­I´º¥ô°È¨Ï¥Î CancellationToken.None¡AÁ×§K HTTP ½Ğ¨Dµ²§ô«á­I´º¤W¶Ç³Q¨ú®ø
+                            // èƒŒæ™¯ä»»å‹™ä½¿ç”¨ CancellationToken.Noneï¼Œé¿å… HTTP è«‹æ±‚çµæŸå¾ŒèƒŒæ™¯ä¸Šå‚³è¢«å–æ¶ˆ
                             await weeklyReportRef.UploadIntegrateDataAsync(
                                 selectDate,
                                 account,
@@ -98,15 +111,15 @@ namespace ChurchReport.Controllers
                             ).ConfigureAwait(false);
                         }
 
-                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] ­I´º¤W¶Ç§¹¦¨");
-                        // ¸É¥R»¡©ú¡G­I´º¤W¶Ç§¹¦¨ªº½Õ¸Õ°T®§
+                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] èƒŒæ™¯ä¸Šå‚³å®Œæˆ");
+                        // è£œå……èªªæ˜ï¼šèƒŒæ™¯ä¸Šå‚³å®Œæˆçš„èª¿è©¦è¨Šæ¯
 
-                        // ¸É¥R»¡©ú¡G­I´º²M²zª½±µ¦b¥»¦a weeklyReportRef ¤W°õ¦æ¡AÁ×§K¦A«×³z¹L InMemoryContext ¦saccess Session¡A
-                        // ³o¼Ë¥i¥H´î¤Ö¸ó°õ¦æºü¹ï HttpContext/Session ªº¦s¨ú­·ÀI¡C
-                        // ²M²zÅŞ¿è·|ª½±µ­×§ï°O¾ĞÅé¤¤ªº¦¨­û²M³æ¡]RemoveTransferredMembers¡^¡A
-                        // ¦]¦¹¦pªG¨t²Î¦P®É¦³¨ä¥L°õ¦æºü¤]·|­×§ï¦P¤@¶°¦X¡A½Ğ½T«O¦³¾A·íªº¦P¨B¾÷¨î¡]Âê©w¡^©Î±Ä¥Î thread-safe ªº¶°¦X¡C
-                        // ¦b¥Ø«e³]­p¤¤¡A§Ú­Ì°²³]­I´º¥ô°È¬°°ß¤@¦b¸Ó®É¨è­×§ï²M³æªºµ{¦¡¡A¥B«áÄò·|¦A¥Ñ¨Ï¥ÎªÌ¥D¬yµ{©Î©w´Á¾÷¨î
-                        // ±NÅÜ§ó«ù¤[¤Æ¦Ü¸ê®Æ®w¡]­Y¦³»İ­n¡^¡C
+                        // è£œå……èªªæ˜ï¼šèƒŒæ™¯æ¸…ç†ç›´æ¥åœ¨æœ¬åœ° weeklyReportRef ä¸ŠåŸ·è¡Œï¼Œé¿å…å†åº¦é€é InMemoryContext å­˜access Sessionï¼Œ
+                        // é€™æ¨£å¯ä»¥æ¸›å°‘è·¨åŸ·è¡Œç·’å° HttpContext/Session çš„å­˜å–é¢¨éšªã€‚
+                        // æ¸…ç†é‚è¼¯æœƒç›´æ¥ä¿®æ”¹è¨˜æ†¶é«”ä¸­çš„æˆå“¡æ¸…å–®ï¼ˆRemoveTransferredMembersï¼‰ï¼Œ
+                        // å› æ­¤å¦‚æœç³»çµ±åŒæ™‚æœ‰å…¶ä»–åŸ·è¡Œç·’ä¹Ÿæœƒä¿®æ”¹åŒä¸€é›†åˆï¼Œè«‹ç¢ºä¿æœ‰é©ç•¶çš„åŒæ­¥æ©Ÿåˆ¶ï¼ˆé–å®šï¼‰æˆ–æ¡ç”¨ thread-safe çš„é›†åˆã€‚
+                        // åœ¨ç›®å‰è¨­è¨ˆä¸­ï¼Œæˆ‘å€‘å‡è¨­èƒŒæ™¯ä»»å‹™ç‚ºå”¯ä¸€åœ¨è©²æ™‚åˆ»ä¿®æ”¹æ¸…å–®çš„ç¨‹å¼ï¼Œä¸”å¾ŒçºŒæœƒå†ç”±ä½¿ç”¨è€…ä¸»æµç¨‹æˆ–å®šæœŸæ©Ÿåˆ¶
+                        // å°‡è®Šæ›´æŒä¹…åŒ–è‡³è³‡æ–™åº«ï¼ˆè‹¥æœ‰éœ€è¦ï¼‰ã€‚
                         try
                         {
                             if (weeklyReportRef != null)
@@ -118,114 +131,114 @@ namespace ChurchReport.Controllers
                                     if (smallGroupData?.Members != null)
                                     {
                                         RemoveTransferredMembers(smallGroupData.Members);
-                                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] ¤w²M²z¤p²Õ¸ê®Æ¡A³Ñ¾l {smallGroupData.Members.Count} µ§");
+                                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] å·²æ¸…ç†å°çµ„è³‡æ–™ï¼Œå‰©é¤˜ {smallGroupData.Members.Count} ç­†");
                                     }
 
                                     var newPersonData = dataList.m_NewPersonFollowUpData;
                                     if (newPersonData?.Members != null)
                                     {
                                         RemoveTransferredMembers(newPersonData.Members);
-                                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] ¤w²M²z·s¤H¸ò¶i¸ê®Æ¡A³Ñ¾l {newPersonData.Members.Count} µ§");
+                                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] å·²æ¸…ç†æ–°äººè·Ÿé€²è³‡æ–™ï¼Œå‰©é¤˜ {newPersonData.Members.Count} ç­†");
                                     }
                                 }
                             }
                         }
                         catch (Exception ex)
                         {
-                            System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] ­I´º²M²z¥¢±Ñ: {ex.Message}");
+                            System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] èƒŒæ™¯æ¸…ç†å¤±æ•—: {ex.Message}");
                         }
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] ­I´º¤W¶Ç¥¢±Ñ: {ex.Message}");
-                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] ¿ù»~°ïÅ|:\n{ex.StackTrace}");
-                        
+                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] èƒŒæ™¯ä¸Šå‚³å¤±æ•—: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] éŒ¯èª¤å †ç–Š:\n{ex.StackTrace}");
+
                         try
                         {
-                            ToolUtility?.TraceByLevel(1, 1, 
-                                $"SaveIntegrate ­I´º¤W¶Ç¥¢±Ñ: {ex.Message}\n{ex.StackTrace}"); // °lÂÜ­I´º¤W¶Ç¥¢±Ñªº²Ó¸`
+                            ToolUtility?.TraceByLevel(1, 1,
+                                $"SaveIntegrate èƒŒæ™¯ä¸Šå‚³å¤±æ•—: {ex.Message}\n{ex.StackTrace}"); // è¿½è¹¤èƒŒæ™¯ä¸Šå‚³å¤±æ•—çš„ç´°ç¯€
                         }
                         catch
                         {
-                            // °lÂÜ¥¢±Ñ¤£¼vÅT
+                            // è¿½è¹¤å¤±æ•—ä¸å½±éŸ¿
                         }
                     }
                 });
 
-                System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] ¥ß§Y¦^À³¨Ï¥ÎªÌ¡A­I´º³B²z¤¤...");
-                return Json(new { status = "1", message = "¸ê®Æ¤w°e¥X¡A¥¿¦b­I´º¤W¶Ç¤¤..." });
+                System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] ç«‹å³å›æ‡‰ä½¿ç”¨è€…ï¼ŒèƒŒæ™¯è™•ç†ä¸­...");
+                return Json(new { status = "1", message = "è³‡æ–™å·²é€å‡ºï¼Œæ­£åœ¨èƒŒæ™¯ä¸Šå‚³ä¸­..." });
             }
             catch (OperationCanceledException)
             {
-                // ¸É¥R»¡©ú¡G·í¾Ş§@³Q¨ú®ø®É¡A·|®·®»¨ì¦¹²§±`¡A
-                // ªğ¦^ªí¥Ü¾Ş§@¤w¨ú®øªº JSON µ²ªG¡C
-                return Json(new { status = "0", message = "¾Ş§@¤w¨ú®ø" });
+                // è£œå……èªªæ˜ï¼šç•¶æ“ä½œè¢«å–æ¶ˆæ™‚ï¼Œæœƒæ•æ‰åˆ°æ­¤ç•°å¸¸ï¼Œ
+                // è¿”å›è¡¨ç¤ºæ“ä½œå·²å–æ¶ˆçš„ JSON çµæœã€‚
+                return Json(new { status = "0", message = "æ“ä½œå·²å–æ¶ˆ" });
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] ±Ò°Ê¥¢±Ñ: {e.Message}");
-                // ¸É¥R»¡©ú¡G³B²z¨ä¥L²§±`¡A¨Ãªğ¦^¿ù»~³B²zµ²ªG¡C
-                return HandleError(e, "SaveIntegrate"); // ³q¥Î¿ù»~³B²z
+                System.Diagnostics.Debug.WriteLine($"[SaveIntegrate] å•Ÿå‹•å¤±æ•—: {e.Message}");
+                // è£œå……èªªæ˜ï¼šè™•ç†å…¶ä»–ç•°å¸¸ï¼Œä¸¦è¿”å›éŒ¯èª¤è™•ç†çµæœã€‚
+                return HandleError(e, "SaveIntegrate"); // é€šç”¨éŒ¯èª¤è™•ç†
             }
         }
 
         /// <summary>
-        /// ÅçÃÒ©¯ºÖ¤p²Õ¥²¶ñÄæ¦ì
+        /// é©—è­‰å¹¸ç¦å°çµ„å¿…å¡«æ¬„ä½
         /// </summary>
         private JsonResult ValidateHappyGroupFields(string weekIndex, string topic)
         {
-            // ¸É¥R»¡©ú¡G¦¹¤èªkÀË¬d©¯ºÖ¤p²Õªº¥²¶ñÄæ¦ì¡]²Ä´X¶g©M¥DÃD¡^¡A
-            // ¦pªG¥ô¤@Äæ¦ì¬°ªÅ¡A«hªğ¦^¿ù»~°T®§ªº JsonResult¡C
-            // ªğ¦^ null ªí¥ÜÅçÃÒ³q¹L¡C
-            // ³oºØ³]­p¤¹³\±±¨î¾¹®Ú¾ÚÅçÃÒµ²ªG¨M©w¬O§_Ä~Äò³B²z½Ğ¨D¡C
+            // è£œå……èªªæ˜ï¼šæ­¤æ–¹æ³•æª¢æŸ¥å¹¸ç¦å°çµ„çš„å¿…å¡«æ¬„ä½ï¼ˆç¬¬å¹¾é€±å’Œä¸»é¡Œï¼‰ï¼Œ
+            // å¦‚æœä»»ä¸€æ¬„ä½ç‚ºç©ºï¼Œå‰‡è¿”å›éŒ¯èª¤è¨Šæ¯çš„ JsonResultã€‚
+            // è¿”å› null è¡¨ç¤ºé©—è­‰é€šéã€‚
+            // é€™ç¨®è¨­è¨ˆå…è¨±æ§åˆ¶å™¨æ ¹æ“šé©—è­‰çµæœæ±ºå®šæ˜¯å¦ç¹¼çºŒè™•ç†è«‹æ±‚ã€‚
 
-            // ÀË¬d weekIndex ©M topic ¬O§_¬Ò¬°ªÅ
+            // æª¢æŸ¥ weekIndex å’Œ topic æ˜¯å¦çš†ç‚ºç©º
             if (string.IsNullOrEmpty(weekIndex) && string.IsNullOrEmpty(topic))
             {
-                // ¦pªG¨â­ÓÄæ¦ì³£¨S¦³¶ñ¼g¡Aªğ¦^¿ù»~°T®§¡Aª¬ºA½X¬° 2
-                return Json(new { status = "2", message = "©¯ºÖ¤p²Õ¥²¶·¶ñ¼g²Ä´X¶g©M¥DÃD" });
+                // å¦‚æœå…©å€‹æ¬„ä½éƒ½æ²’æœ‰å¡«å¯«ï¼Œè¿”å›éŒ¯èª¤è¨Šæ¯ï¼Œç‹€æ…‹ç¢¼ç‚º 2
+                return Json(new { status = "2", message = "å¹¸ç¦å°çµ„å¿…é ˆå¡«å¯«ç¬¬å¹¾é€±å’Œä¸»é¡Œ" });
             }
 
-            // ÀË¬d weekIndex ¬O§_¬°ªÅ
+            // æª¢æŸ¥ weekIndex æ˜¯å¦ç‚ºç©º
             if (string.IsNullOrEmpty(weekIndex))
             {
-                // ¦pªG weekIndex ¨S¦³¶ñ¼g¡Aªğ¦^¿ù»~°T®§¡Aª¬ºA½X¬° 2
-                return Json(new { status = "2", message = "©¯ºÖ¤p²Õ¥²¶·¶ñ¼g²Ä´X¶g" });
+                // å¦‚æœ weekIndex æ²’æœ‰å¡«å¯«ï¼Œè¿”å›éŒ¯èª¤è¨Šæ¯ï¼Œç‹€æ…‹ç¢¼ç‚º 2
+                return Json(new { status = "2", message = "å¹¸ç¦å°çµ„å¿…é ˆå¡«å¯«ç¬¬å¹¾é€±" });
             }
 
-            // ÀË¬d topic ¬O§_¬°ªÅ
+            // æª¢æŸ¥ topic æ˜¯å¦ç‚ºç©º
             if (string.IsNullOrEmpty(topic))
             {
-                // ¦pªG topic ¨S¦³¶ñ¼g¡Aªğ¦^¿ù»~°T®§¡Aª¬ºA½X¬° 2
-                return Json(new { status = "2", message = "©¯ºÖ¤p²Õ¥²¶·¶ñ¼g¥DÃD" });
+                // å¦‚æœ topic æ²’æœ‰å¡«å¯«ï¼Œè¿”å›éŒ¯èª¤è¨Šæ¯ï¼Œç‹€æ…‹ç¢¼ç‚º 2
+                return Json(new { status = "2", message = "å¹¸ç¦å°çµ„å¿…é ˆå¡«å¯«ä¸»é¡Œ" });
             }
 
-            // ¦pªG©Ò¦³¥²¶ñÄæ¦ì¬Ò¤w¶ñ¼g¡Aªğ¦^ null¡Aªí¥ÜÅçÃÒ³q¹L
+            // å¦‚æœæ‰€æœ‰å¿…å¡«æ¬„ä½çš†å·²å¡«å¯«ï¼Œè¿”å› nullï¼Œè¡¨ç¤ºé©—è­‰é€šé
             return null;
         }
 
         /// <summary>
-        /// ²M²z¤wÂà¤¶©Î«ü¬£¨ì¨ä¥L¤p²Õªº¦¨­û
+        /// æ¸…ç†å·²è½‰ä»‹æˆ–æŒ‡æ´¾åˆ°å…¶ä»–å°çµ„çš„æˆå“¡
         /// </summary>
         private void CleanupTransferredMembers()
         {
-            // ¸É¥R»¡©ú¡G¦¹¤èªk¥Î©ó²M²z¤wÂà¤¶©Î«ü¬£¨ì¨ä¥L¤p²Õªº¦¨­û¡A
-            // ½T«O¸ê®Æ²M³æ¥u¥]§t·í«e¤p²Õªº¦³®Ä¦¨­û¡C
-            // ³o­Ó²M²z¹Lµ{¦b SaveIntegrate ªº­I´º¥ô°È¤¤°õ¦æ¡A
-            // ¥HÁ×§Kªı¶ë¨Ï¥ÎªÌ¬É­±¨Ã´£¤É¾ãÅé®Ä¯à¡C
+            // è£œå……èªªæ˜ï¼šæ­¤æ–¹æ³•ç”¨æ–¼æ¸…ç†å·²è½‰ä»‹æˆ–æŒ‡æ´¾åˆ°å…¶ä»–å°çµ„çš„æˆå“¡ï¼Œ
+            // ç¢ºä¿è³‡æ–™æ¸…å–®åªåŒ…å«ç•¶å‰å°çµ„çš„æœ‰æ•ˆæˆå“¡ã€‚
+            // é€™å€‹æ¸…ç†éç¨‹åœ¨ SaveIntegrate çš„èƒŒæ™¯ä»»å‹™ä¸­åŸ·è¡Œï¼Œ
+            // ä»¥é¿å…é˜»å¡ä½¿ç”¨è€…ç•Œé¢ä¸¦æå‡æ•´é«”æ•ˆèƒ½ã€‚
             try
             {
                 var weeklyReport = InMemoryContext?.ListManager?.m_ListSmallGroupWeeklyReport;
                 if (weeklyReport == null)
                 {
-                    System.Diagnostics.Debug.WriteLine("[CleanupTransferredMembers] weeklyReport ¬° null¡A¸õ¹L²M²z");
+                    System.Diagnostics.Debug.WriteLine("[CleanupTransferredMembers] weeklyReport ç‚º nullï¼Œè·³éæ¸…ç†");
                     return;
                 }
 
                 var dataList = weeklyReport.m_SmallGroupDataList;
                 if (dataList == null)
                 {
-                    System.Diagnostics.Debug.WriteLine("[CleanupTransferredMembers] m_SmallGroupDataList ¬° null¡A¸õ¹L²M²z");
+                    System.Diagnostics.Debug.WriteLine("[CleanupTransferredMembers] m_SmallGroupDataList ç‚º nullï¼Œè·³éæ¸…ç†");
                     return;
                 }
 
@@ -233,30 +246,30 @@ namespace ChurchReport.Controllers
                 if (smallGroupData?.Members != null)
                 {
                     RemoveTransferredMembers(smallGroupData.Members);
-                    System.Diagnostics.Debug.WriteLine($"[CleanupTransferredMembers] ¤w²M²z¤p²Õ¸ê®Æ¡A³Ñ¾l {smallGroupData.Members.Count} µ§");
+                    System.Diagnostics.Debug.WriteLine($"[CleanupTransferredMembers] å·²æ¸…ç†å°çµ„è³‡æ–™ï¼Œå‰©é¤˜ {smallGroupData.Members.Count} ç­†");
                 }
 
                 var newPersonData = dataList.m_NewPersonFollowUpData;
                 if (newPersonData?.Members != null)
                 {
                     RemoveTransferredMembers(newPersonData.Members);
-                    System.Diagnostics.Debug.WriteLine($"[CleanupTransferredMembers] ¤w²M²z·s¤H¸ò¶i¸ê®Æ¡A³Ñ¾l {newPersonData.Members.Count} µ§");
+                    System.Diagnostics.Debug.WriteLine($"[CleanupTransferredMembers] å·²æ¸…ç†æ–°äººè·Ÿé€²è³‡æ–™ï¼Œå‰©é¤˜ {newPersonData.Members.Count} ç­†");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[CleanupTransferredMembers] ²M²z¥¢±Ñ: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[CleanupTransferredMembers] æ¸…ç†å¤±æ•—: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// ±q²M³æ¤¤²¾°£¤wÂà¤¶ªº¦¨­û
+        /// å¾æ¸…å–®ä¸­ç§»é™¤å·²è½‰ä»‹çš„æˆå“¡
         /// </summary>
         private void RemoveTransferredMembers(List<Member> members)
         {
-            // ¸É¥R»¡©ú¡G¦¹¤èªk¨Ï¥Î¤â°Ê°j°é²¾°£¦¨­û¡A¦Ó¤£¬O¨Ï¥Î LINQ ©Î¨ä¥L¤èªk¡A
-            // ¦]¬°¦b²¾°£¹Lµ{¤¤»İ­n­×§ï­ì©l²M³æ¡A¥BÁ×§K«Ø¥ß·sªº¶°¦X¥H¸`¬Ù°O¾ĞÅé¡C
-            // ³oºØ¤è¦¡¦b²M³æ¸û¤j®É§ó¦³®Ä²v¡A¨Ã¥B¦b²¾°£¹Lµ{¤¤«O«ù¯Á¤Şªº¥¿½T©Ê¡C
+            // è£œå……èªªæ˜ï¼šæ­¤æ–¹æ³•ä½¿ç”¨æ‰‹å‹•è¿´åœˆç§»é™¤æˆå“¡ï¼Œè€Œä¸æ˜¯ä½¿ç”¨ LINQ æˆ–å…¶ä»–æ–¹æ³•ï¼Œ
+            // å› ç‚ºåœ¨ç§»é™¤éç¨‹ä¸­éœ€è¦ä¿®æ”¹åŸå§‹æ¸…å–®ï¼Œä¸”é¿å…å»ºç«‹æ–°çš„é›†åˆä»¥ç¯€çœè¨˜æ†¶é«”ã€‚
+            // é€™ç¨®æ–¹å¼åœ¨æ¸…å–®è¼ƒå¤§æ™‚æ›´æœ‰æ•ˆç‡ï¼Œä¸¦ä¸”åœ¨ç§»é™¤éç¨‹ä¸­ä¿æŒç´¢å¼•çš„æ­£ç¢ºæ€§ã€‚
             if (members == null || members.Count == 0)
             {
                 return;
@@ -265,10 +278,10 @@ namespace ChurchReport.Controllers
             int count = members.Count;
             int index = 0;
 
-            // ¸É¥R»¡©ú¡G¨Ï¥Î¤â°Ê°j°é¦Ó«D LINQ µ¥¤èªk¡A¦]¬°­n¦b°j°é¤¤­×§ï¶°¦X¡]²¾°£¦¨­û¡^¡A
-            // ¨Ï¥Î foreach ·|¾É­P°õ¦æ´Á¿ù»~¡A¦]¬°¥¦¤]¹Á¸Õ¦b°j°é¤¤¹ï¶°¦X¶i¦æ­¡¥N¡C
-            // ¦¹¥~¡A¤â°Ê°j°é´£¨Ñ¹ï¯Á¤Şªº©ú½T±±¨î¡A«K©ó¦b²¾°£¦¨­û®É½Õ¾ã¡C
-            // ³o¬qÅŞ¿è½T«O¦b²¾°£µ{§Ç¤¤¤£·|¦]¬°¶°¦XÅÜ°Ê¦Ó¾É­Pªº°İÃD¡C
+            // è£œå……èªªæ˜ï¼šä½¿ç”¨æ‰‹å‹•è¿´åœˆè€Œé LINQ ç­‰æ–¹æ³•ï¼Œå› ç‚ºè¦åœ¨è¿´åœˆä¸­ä¿®æ”¹é›†åˆï¼ˆç§»é™¤æˆå“¡ï¼‰ï¼Œ
+            // ä½¿ç”¨ foreach æœƒå°è‡´åŸ·è¡ŒæœŸéŒ¯èª¤ï¼Œå› ç‚ºå®ƒä¹Ÿå˜—è©¦åœ¨è¿´åœˆä¸­å°é›†åˆé€²è¡Œè¿­ä»£ã€‚
+            // æ­¤å¤–ï¼Œæ‰‹å‹•è¿´åœˆæä¾›å°ç´¢å¼•çš„æ˜ç¢ºæ§åˆ¶ï¼Œä¾¿æ–¼åœ¨ç§»é™¤æˆå“¡æ™‚èª¿æ•´ã€‚
+            // é€™æ®µé‚è¼¯ç¢ºä¿åœ¨ç§»é™¤ç¨‹åºä¸­ä¸æœƒå› ç‚ºé›†åˆè®Šå‹•è€Œå°è‡´çš„å•é¡Œã€‚
             for (int i = 0; i < count; i++)
             {
                 if (index >= members.Count)
@@ -288,21 +301,21 @@ namespace ChurchReport.Controllers
         }
 
         /// <summary>
-        /// §PÂ_¦¨­û¬O§_À³¸Ó³Q²¾°£
+        /// åˆ¤æ–·æˆå“¡æ˜¯å¦æ‡‰è©²è¢«ç§»é™¤
         /// </summary>
         private bool ShouldRemoveMember(Member member)
         {
-            // ¸É¥R»¡©ú¡G¦¹¤èªk®Ú¾Ú·~°ÈÅŞ¿è§PÂ_¦¨­û¬O§_À³¸Ó±q²M³æ¤¤²¾°£¡C
-            // ±ø¥ó1: AssignedGroup ¤£¬°ªÅ¡Aªí¥Ü¦¨­û¤w³Q«ü¬£¨ì¨ä¥L¤p²Õ¡C
-            // ±ø¥ó2: FollowUpNextStep ¬° "Âà¤¶"¡Aªí¥Ü¦¨­û¤w³QÂà¤¶¨ì¨ä¥L¦a¤è¸ò¶i¡C
-            // ³o¨Ç±ø¥ó½T«O¥u¦³·í«e¤p²Õªº¦³®Ä¦¨­û«O¯d¦b²M³æ¤¤¡C
+            // è£œå……èªªæ˜ï¼šæ­¤æ–¹æ³•æ ¹æ“šæ¥­å‹™é‚è¼¯åˆ¤æ–·æˆå“¡æ˜¯å¦æ‡‰è©²å¾æ¸…å–®ä¸­ç§»é™¤ã€‚
+            // æ¢ä»¶1: AssignedGroup ä¸ç‚ºç©ºï¼Œè¡¨ç¤ºæˆå“¡å·²è¢«æŒ‡æ´¾åˆ°å…¶ä»–å°çµ„ã€‚
+            // æ¢ä»¶2: FollowUpNextStep ç‚º "è½‰ä»‹"ï¼Œè¡¨ç¤ºæˆå“¡å·²è¢«è½‰ä»‹åˆ°å…¶ä»–åœ°æ–¹è·Ÿé€²ã€‚
+            // é€™äº›æ¢ä»¶ç¢ºä¿åªæœ‰ç•¶å‰å°çµ„çš„æœ‰æ•ˆæˆå“¡ä¿ç•™åœ¨æ¸…å–®ä¸­ã€‚
             if (member == null)
             {
                 return false;
             }
 
-            return (!string.IsNullOrEmpty(member.AssignedGroup)) || // ¦pªG¦¨­ûªº AssignedGroup Äæ¦ì¦³­È¡Aªí¥Ü¸Ó¦¨­û¤w³Q«ü¬£¨ì¨ä¥L¤p²Õ¡AÀ³¸Ó³Q²¾°£
-                   (member.FollowUpNextStep == "Âà¤¶"); // FollowUpNextStep ¬° "Âà¤¶" ªí¥Ü¦¨­û¤w³QÂà¤¶
+            return (!string.IsNullOrEmpty(member.AssignedGroup)) || // å¦‚æœæˆå“¡çš„ AssignedGroup æ¬„ä½æœ‰å€¼ï¼Œè¡¨ç¤ºè©²æˆå“¡å·²è¢«æŒ‡æ´¾åˆ°å…¶ä»–å°çµ„ï¼Œæ‡‰è©²è¢«ç§»é™¤
+                   (member.FollowUpNextStep == "è½‰ä»‹"); // FollowUpNextStep ç‚º "è½‰ä»‹" è¡¨ç¤ºæˆå“¡å·²è¢«è½‰ä»‹
         }
 
         #endregion

@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：Trace/BSUStackTrace.cs
+// 所屬區塊：追蹤與診斷相關工具程式。
+// 檔案責任：此檔案提供 BSUStackTrace 相關功能，註解重點在說明檔案責任、上游/下游依賴與維護時不可破壞的行為假設。
+// 主要型別：class BugslayerStackTrace
+// 主要成員：ToString、BuildFrameInfo、LineEnd、SourceIndentString、FunctionIndent
+// 引用命名空間：System、System.Diagnostics、System.Reflection、System.Text、System.Threading
+// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 /*----------------------------------------------------------------------
 Debugging Applications for Microsoft .NET and Microsoft Windows
 Copyright ?1997-2003 John Robbins -- All rights reserved.
@@ -9,7 +22,7 @@ using System.Text ;
 using System.Threading ;
 
 namespace TraceNameSpace
-{ 
+{
 /// <summary>
 /// A stack trace class that actually works to get the source and line
 /// information when you call ToString.  The <see cref="StackTrace "/>
@@ -50,7 +63,7 @@ public class BugslayerStackTrace : StackTrace
         m_sSourceIndentString = null ;
         FunctionIndent = DefaultFunctionIndent ;
     }
-        
+
     /// <summary>
     /// Initializes a new instance of the
     /// <see cref="BugslayerStackTrace"/> class from the current
@@ -67,7 +80,7 @@ public class BugslayerStackTrace : StackTrace
         m_sSourceIndentString = null ;
         FunctionIndent = DefaultFunctionIndent ;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the
     /// <see cref="BugslayerStackTrace"/> class using the provided
@@ -87,7 +100,7 @@ public class BugslayerStackTrace : StackTrace
         m_sSourceIndentString = null ;
         FunctionIndent = DefaultFunctionIndent ;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the
     /// <see cref="BugslayerStackTrace"/> class for another thread,
@@ -103,21 +116,21 @@ public class BugslayerStackTrace : StackTrace
     /// </remarks>
     [Obsolete("StackTrace(Thread) is not supported in .NET Core and .NET 10. Use the parameterless constructor instead.")]
     public BugslayerStackTrace ( Thread targetThread  )
-            : base ( true ) // ? �ץ��G�ϥ� base(true) �Ӥ��O base(targetThread, true)
+            : base ( true ) // ? 修正：使用 base(true) 而不是 base(targetThread, true)
     {
         m_sLineEnd = DefaultLineEnd ;
         m_sSourceIndentString = null ;
         FunctionIndent = DefaultFunctionIndent ;
-        
+
         // ?? Note: In .NET Core/.NET 10, capturing stack traces from other threads
         // is not supported. This constructor now captures the current thread's stack trace.
     }
 
-    
+
     /*/////////////////////////////////////////////////////////////////
     // Overloaded methods.
     /////////////////////////////////////////////////////////////////*/
-    
+
     /// <summary>
     /// Builds a readable representation of the stack trace.
     /// </summary>
@@ -134,7 +147,7 @@ public class BugslayerStackTrace : StackTrace
 
         // First thing on is a line feed.
         StrBld.Append ( DefaultLineEnd ) ;
-            
+
         // Loop'em and do'em!  You can't use foreach here as StackTrace
         // is not derived from IEnumerable.
         for ( int i = 0 ; i < FrameCount ; i++ )
@@ -172,22 +185,22 @@ public class BugslayerStackTrace : StackTrace
         {
             return ;
         }
-        
+
         // Grab the method.
         String StrMethName = Meth.ReflectedType.Name ;
-        
+
         // Slap in the function indent if one is there.
         if ( null != FunctionIndent )
         {
             StrBld.Append ( FunctionIndent ) ;
         }
-        
+
         // Get the class type and name on there.
         StrBld.Append ( StrMethName ) ;
         StrBld.Append ( "." ) ;
         StrBld.Append ( Meth.Name ) ;
         StrBld.Append ( "(" ) ;
-        
+
         // Slap the parameters on, including all param names.
         ParameterInfo[] Params = Meth.GetParameters ( ) ;
         for ( int i = 0 ; i < Params.Length ; i++ )
@@ -204,7 +217,7 @@ public class BugslayerStackTrace : StackTrace
 
         // Close the param list.
         StrBld.Append ( ")" ) ;
-        
+
         // Get the source and line on only if there is one.
         if ( null != StkFrame.GetFileName ( ) )
         {
@@ -220,7 +233,7 @@ public class BugslayerStackTrace : StackTrace
                 // Just add a space.
                 StrBld.Append ( ' ' ) ;
             }
-        
+
             // Get the file and line of the problem on here.
             StrBld.Append ( StkFrame.GetFileName ( ) ) ;
             StrBld.Append ( "(" ) ;
@@ -230,7 +243,7 @@ public class BugslayerStackTrace : StackTrace
         // Always stick a line feed on.
         StrBld.Append ( LineEnd ) ;
     }
-    
+
     /*/////////////////////////////////////////////////////////////////
     // Properties.
     /////////////////////////////////////////////////////////////////*/
@@ -239,7 +252,7 @@ public class BugslayerStackTrace : StackTrace
     /// The private string for the line ending characters.
     /// </summary>
     private string m_sLineEnd ;
-    	
+
     /// <summary>
     /// Sets the characters to use for the end of the line.
     /// </summary>
@@ -259,7 +272,7 @@ public class BugslayerStackTrace : StackTrace
     /// The private string for holding the indent characters.
     /// </summary>
     private string m_sSourceIndentString ;
-    
+
     /// <summary>
     /// Holds the string to use for indenting sourse code.  If this is
     /// null, the default, the source and line is place on the same
@@ -276,13 +289,13 @@ public class BugslayerStackTrace : StackTrace
             m_sSourceIndentString = value ;
         }
     }
-    
+
     /// <summary>
     /// The private string for holding the indent to put on the front
     /// of the function.
     /// </summary>
     private string m_sFunctionIndent ;
-    
+
     /// <summary>
     /// The string to put at the beginning of all functions.  This is
     /// \t\t\t to mimic the default StackTrace.ToString().
@@ -298,7 +311,7 @@ public class BugslayerStackTrace : StackTrace
             m_sFunctionIndent = value ;
         }
     }
-    
+
     /*/////////////////////////////////////////////////////////////////
     // Constants.
     /////////////////////////////////////////////////////////////////*/
@@ -310,8 +323,8 @@ public class BugslayerStackTrace : StackTrace
     /// The default function indent, "\t".
     /// </summary>
     public const string DefaultFunctionIndent = "\t" ;
-    
-    
+
+
 }   // End of BugslayerStackTrace class.
 
 }   // End of Wintellect namespace.

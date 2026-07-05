@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：LineMessagingProcessor.RichMenus/LineRichMenuProvisioningWorkflow.cs
+// 所屬區塊：LINE RichMenu 共用編排、佈署、指派、狀態與測試流程模組。
+// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
+// 主要型別：class LineRichMenuProvisioningWorkflow
+// 主要成員：SyncAsync、SyncDefinitionAsync、UpsertAliasAsync、CloneForProvisioning、ReadAllBytesAsync
+// 引用命名空間：Line.Messaging
+// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using Line.Messaging;
 
 namespace LineMessagingProcessor.RichMenus;
@@ -37,6 +50,12 @@ public sealed class LineRichMenuProvisioningWorkflow : ILineRichMenuProvisioning
     // 注意這不是使用者狀態快取，只保存「某個邏輯選單目前對應 LINE 哪個 richMenuId」。
     private readonly ILineRichMenuIdCache _cache;
 
+    /// <summary>
+    /// 建立 RichMenu catalog synchronization workflow。
+    /// </summary>
+    /// <param name="catalog">產品端宣告的 RichMenu catalog。</param>
+    /// <param name="processor">LINE RichMenu API 抽象。</param>
+    /// <param name="cache">同步完成後寫入的 menuKey 到 richMenuId 快取。</param>
     public LineRichMenuProvisioningWorkflow(
         ILineRichMenuCatalog catalog,
         ILineRichMenuProcessor processor,
@@ -47,6 +66,11 @@ public sealed class LineRichMenuProvisioningWorkflow : ILineRichMenuProvisioning
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
 
+    /// <summary>
+    /// 將 catalog 內所有 RichMenu definition 同步到 LINE provider。
+    /// </summary>
+    /// <param name="cancellationToken">整批同步的取消權杖。</param>
+    /// <returns>包含 created、reused、failed item 與 menu id 對照表的同步報告。</returns>
     public async Task<LineRichMenuSyncReport> SyncAsync(CancellationToken cancellationToken = default)
     {
         // 第一步：從產品 catalog 取得所有要佈建的 RichMenu 定義。
@@ -114,6 +138,10 @@ public sealed class LineRichMenuProvisioningWorkflow : ILineRichMenuProvisioning
         return new LineRichMenuSyncReport(menuIds, created, reused, Array.Empty<string>(), items);
     }
 
+    /// <summary>
+    /// 同步單一 RichMenu definition。
+    /// 這個方法封裝 fingerprint 比對、create/upload、alias upsert、default 設定與 cache 更新。
+    /// </summary>
     private async Task SyncDefinitionAsync(
         LineRichMenuDefinition definition,
         IReadOnlyDictionary<string, ResponseRichMenu> existingByName,
@@ -187,6 +215,11 @@ public sealed class LineRichMenuProvisioningWorkflow : ILineRichMenuProvisioning
         items.Add(new LineRichMenuSyncItem(definition.MenuKey, richMenuId, LineRichMenuSyncOutcome.Created));
     }
 
+    /// <summary>
+    /// 建立或更新 LINE RichMenu alias，使穩定 alias id 指向目前版本的 richMenuId。
+    /// </summary>
+    /// <param name="aliasId">穩定 alias id。</param>
+    /// <param name="richMenuId">目前版本的 provider richMenuId。</param>
     private async Task UpsertAliasAsync(string aliasId, string richMenuId)
     {
         try
@@ -215,6 +248,8 @@ public sealed class LineRichMenuProvisioningWorkflow : ILineRichMenuProvisioning
     /// catalog 內的 RichMenu 是產品宣告資料，workflow 不應直接修改它。
     /// 這裡建立新物件可以避免「同步一次後輸入物件被改名」這類隱性副作用。
     /// </remarks>
+    /// <param name="source">catalog 宣告的原始 RichMenu 版面。</param>
+    /// <param name="name">要寫入 LINE provider 的 versioned name。</param>
     private static RichMenu CloneForProvisioning(RichMenu source, string name)
         => new()
         {
@@ -225,6 +260,11 @@ public sealed class LineRichMenuProvisioningWorkflow : ILineRichMenuProvisioning
             Areas = source.Areas
         };
 
+    /// <summary>
+    /// 將 PNG stream 完整讀成 bytes，以供 fingerprint 計算與後續重新上傳。
+    /// </summary>
+    /// <param name="stream">catalog definition 提供的圖片 stream。</param>
+    /// <param name="cancellationToken">讀取 stream 時的取消權杖。</param>
     private static async Task<byte[]> ReadAllBytesAsync(Stream stream, CancellationToken cancellationToken)
     {
         if (stream is MemoryStream memoryStream)

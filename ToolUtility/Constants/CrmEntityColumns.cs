@@ -1,27 +1,40 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šToolUtility/Constants/CrmEntityColumns.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport å…±ç”¨å·¥å…·èˆ‡æ•´åˆè¼”åŠ©å±¤ï¼ŒåŒ…å«é€šçŸ¥ã€ä»˜æ¬¾ã€CRM æˆ–è·¨æ¨¡çµ„ helperã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass CrmEntityColumnsã€class Contactã€class Listã€class PresentRecordã€class WeeklyReportã€class DedicationBookingã€class Feeã€class StorLessons
+// ä¸»è¦æˆå“¡ï¼šæœªåµæ¸¬åˆ°å…¬é–‹/å—ä¿è­·æˆå“¡ï¼›ç¶­è­·æ™‚è«‹ä»¥æª”æ¡ˆå…§çš„å¸¸æ•¸ã€æ¬„ä½ã€private helper æˆ–å±¬æ€§åˆå§‹åŒ–é‚è¼¯ç‚ºä¸»è¦é–±è®€å…¥å£ã€‚
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystem
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 
 namespace ToolUtilityNameSpace.Constants
 {
     /// <summary>
-    /// CRM ¹êÅé¼Ğ·ÇÄæ¦ì¬M®g
-    /// ? Phase 3.3: ´£¨Ñ¼Ğ·ÇÄæ¦ì¶°¦X¡AÁ×§K­«½Æ©w¸q
-    /// 
-    /// ¨Ï¥Î½d¨Ò:
+    /// CRM å¯¦é«”æ¨™æº–æ¬„ä½æ˜ å°„
+    /// ? Phase 3.3: æä¾›æ¨™æº–æ¬„ä½é›†åˆï¼Œé¿å…é‡è¤‡å®šç¾©
+    ///
+    /// ä½¿ç”¨ç¯„ä¾‹:
     /// var contact = optimizedQuery.RetrieveEntity("contact", id, ContactColumns.Basic);
     /// var contact = optimizedQuery.RetrieveEntity("contact", id, ContactColumns.Extended);
     /// </summary>
     public static class CrmEntityColumns
     {
         /// <summary>
-        /// Contact (³sµ¸¤H) ¼Ğ·ÇÄæ¦ì
+        /// Contact (é€£çµ¡äºº) æ¨™æº–æ¬„ä½
         /// </summary>
         public static class Contact
         {
             /// <summary>
-            /// °ò¥»Äæ¦ì (³Ì±`¥Î)
-            /// ¥Î©ó: ¦CªíÅã¥Ü¡B°ò¥»¸ê°T
+            /// åŸºæœ¬æ¬„ä½ (æœ€å¸¸ç”¨)
+            /// ç”¨æ–¼: åˆ—è¡¨é¡¯ç¤ºã€åŸºæœ¬è³‡è¨Š
             /// </summary>
-            public static readonly string[] Basic = 
+            public static readonly string[] Basic =
             {
                 "contactid",
                 "fullname",
@@ -29,82 +42,82 @@ namespace ToolUtilityNameSpace.Constants
             };
 
             /// <summary>
-            /// ÂX®iÄæ¦ì (¤@¯ë¨Ï¥Î)
-            /// ¥Î©ó: ¸Ô²Ó¸ê°T¡B½s¿è­¶­±
+            /// æ“´å±•æ¬„ä½ (ä¸€èˆ¬ä½¿ç”¨)
+            /// ç”¨æ–¼: è©³ç´°è³‡è¨Šã€ç·¨è¼¯é é¢
             /// </summary>
-            public static readonly string[] Extended = 
+            public static readonly string[] Extended =
             {
                 "contactid",
                 "fullname",
                 "mobilephone",
-                "telephone2",          // ¦í®a¹q¸Ü
-                "emailaddress1",       // ¹q¤l¶l¥ó
-                "address2_line1",      // ¦a§}
-                "customertypecode",    // ©e¨­Ãş«¬
-                "gendercode",          // ©Ê§O
-                "birthdate"            // ¥Í¤é
+                "telephone2",          // ä½å®¶é›»è©±
+                "emailaddress1",       // é›»å­éƒµä»¶
+                "address2_line1",      // åœ°å€
+                "customertypecode",    // å§”èº«é¡å‹
+                "gendercode",          // æ€§åˆ¥
+                "birthdate"            // ç”Ÿæ—¥
             };
 
             /// <summary>
-            /// §¹¾ãÄæ¦ì (¸Ô²Ó¸ê°T)
-            /// ¥Î©ó: §¹¾ã½s¿è¡B¶×¥X
+            /// å®Œæ•´æ¬„ä½ (è©³ç´°è³‡è¨Š)
+            /// ç”¨æ–¼: å®Œæ•´ç·¨è¼¯ã€åŒ¯å‡º
             /// </summary>
-            public static readonly string[] Full = 
+            public static readonly string[] Full =
             {
                 "contactid",
                 "fullname",
                 "lastname",
                 "mobilephone",
                 "telephone2",
-                "company",             // ¤½¥q¹q¸Ü
+                "company",             // å…¬å¸é›»è©±
                 "emailaddress1",
                 "address2_line1",
                 "customertypecode",
                 "gendercode",
                 "birthdate",
-                "familystatuscode",    // ±B«Ãª¬ºA
-                "new_spiriitual_identity", // «H¥õª¬ºA
-                "new_enter_church_date",   // ¶i±Ğ·|¤é´Á
-                "new_industry",        // Â¾·~
+                "familystatuscode",    // å©šå§»ç‹€æ…‹
+                "new_spiriitual_identity", // ä¿¡ä»°ç‹€æ…‹
+                "new_enter_church_date",   // é€²æ•™æœƒæ—¥æœŸ
+                "new_industry",        // è·æ¥­
                 "new_fb_account",      // Facebook
                 "new_ig_account",      // Instagram
-                "new_personal_id",     // ¨­¤ÀÃÒ¦r¸¹
-                "new_last_six_digit",  // »È¦æ±b¤á«á¤»½X
-                "new_ntbt_ornot",      // ¬O§_¤W¶Ç°êµ|§½
-                "description",         // ´y­z
-                "new_invitor",         // ÁÜ½Ğ¤H
-                "new_carers",          // ÁÜ½Ğ¤HÃö«Y
-                "new_cell_list_contact", // ¥D­n¤p²Õ
-                "new_race_leader_contact", // ±Ú¨t²Õªø
-                "parentcustomerid"     // ©ÒÄİ±Ğ·|
+                "new_personal_id",     // èº«åˆ†è­‰å­—è™Ÿ
+                "new_last_six_digit",  // éŠ€è¡Œå¸³æˆ¶å¾Œå…­ç¢¼
+                "new_ntbt_ornot",      // æ˜¯å¦ä¸Šå‚³åœ‹ç¨…å±€
+                "description",         // æè¿°
+                "new_invitor",         // é‚€è«‹äºº
+                "new_carers",          // é‚€è«‹äººé—œä¿‚
+                "new_cell_list_contact", // ä¸»è¦å°çµ„
+                "new_race_leader_contact", // æ—ç³»çµ„é•·
+                "parentcustomerid"     // æ‰€å±¬æ•™æœƒ
             };
 
             /// <summary>
-            /// ·s¤H¸ò¶iÄæ¦ì
-            /// ¥Î©ó: ·s¤HºŞ²z¡B¸ò¶i°O¿ı
+            /// æ–°äººè·Ÿé€²æ¬„ä½
+            /// ç”¨æ–¼: æ–°äººç®¡ç†ã€è·Ÿé€²è¨˜éŒ„
             /// </summary>
-            public static readonly string[] FollowUp = 
+            public static readonly string[] FollowUp =
             {
                 "contactid",
                 "fullname",
                 "mobilephone",
                 "customertypecode",
                 "new_enter_church_date",
-                "new_start_tracking_date", // ¶}©lÃöÃh¤é´Á
+                "new_start_tracking_date", // é–‹å§‹é—œæ‡·æ—¥æœŸ
                 "description",
                 "gendercode"
             };
         }
 
         /// <summary>
-        /// List (¦W³æ) ¼Ğ·ÇÄæ¦ì
+        /// List (åå–®) æ¨™æº–æ¬„ä½
         /// </summary>
         public static class List
         {
             /// <summary>
-            /// °ò¥»Äæ¦ì
+            /// åŸºæœ¬æ¬„ä½
             /// </summary>
-            public static readonly string[] Basic = 
+            public static readonly string[] Basic =
             {
                 "listid",
                 "listname",
@@ -112,45 +125,45 @@ namespace ToolUtilityNameSpace.Constants
             };
 
             /// <summary>
-            /// ÂX®iÄæ¦ì
+            /// æ“´å±•æ¬„ä½
             /// </summary>
-            public static readonly string[] Extended = 
+            public static readonly string[] Extended =
             {
                 "listid",
                 "listname",
                 "purpose",
                 "createdfromcode",
-                "type",                    // ÀRºA/°ÊºA
-                "new_app_named",           // APPÂI¦W
-                "new_contact_family_leader_list",  // ¤p²Õªø
-                "new_contact_race_leager_list",    // ±Ú¨t²Õªø
-                "new_familyhead_list",     // ¤p®aªø
+                "type",                    // éœæ…‹/å‹•æ…‹
+                "new_app_named",           // APPé»å
+                "new_contact_family_leader_list",  // å°çµ„é•·
+                "new_contact_race_leager_list",    // æ—ç³»çµ„é•·
+                "new_familyhead_list",     // å°å®¶é•·
                 "statuscode",
                 "statecode"
             };
         }
 
         /// <summary>
-        /// new_present_record (¥X®u°O¿ı) ¼Ğ·ÇÄæ¦ì
+        /// new_present_record (å‡ºå¸­è¨˜éŒ„) æ¨™æº–æ¬„ä½
         /// </summary>
         public static class PresentRecord
         {
             /// <summary>
-            /// °ò¥»Äæ¦ì
+            /// åŸºæœ¬æ¬„ä½
             /// </summary>
-            public static readonly string[] Basic = 
+            public static readonly string[] Basic =
             {
                 "new_present_recordid",
-                "new_contact_new_present_record",  // Ápµ¸¤H
-                "new_sunday_date",                 // ¥D¤é¤é´Á
-                "new_sunday_present_this_week",    // ¥D¤é¥X®u
-                "new_group_present_this_week"      // ¤p²Õ¥X®u
+                "new_contact_new_present_record",  // è¯çµ¡äºº
+                "new_sunday_date",                 // ä¸»æ—¥æ—¥æœŸ
+                "new_sunday_present_this_week",    // ä¸»æ—¥å‡ºå¸­
+                "new_group_present_this_week"      // å°çµ„å‡ºå¸­
             };
 
             /// <summary>
-            /// ÂX®iÄæ¦ì
+            /// æ“´å±•æ¬„ä½
             /// </summary>
-            public static readonly string[] Extended = 
+            public static readonly string[] Extended =
             {
                 "new_present_recordid",
                 "new_contact_new_present_record",
@@ -158,165 +171,165 @@ namespace ToolUtilityNameSpace.Constants
                 "new_group_date",
                 "new_sunday_present_this_week",
                 "new_group_present_this_week",
-                "new_sunday_rate",            // ¥D¤é¥X®u²v
-                "new_small_group_rate",       // ¤p²Õ¥X®u²v
-                "new_list_new_present_record", // ¦W³æ
-                "new_groupleader_present_record", // ¤p²Õªø
-                "new_explanation",            // ªşµù
-                "new_cell_hpone"              // ¤â¾÷
+                "new_sunday_rate",            // ä¸»æ—¥å‡ºå¸­ç‡
+                "new_small_group_rate",       // å°çµ„å‡ºå¸­ç‡
+                "new_list_new_present_record", // åå–®
+                "new_groupleader_present_record", // å°çµ„é•·
+                "new_explanation",            // é™„è¨»
+                "new_cell_hpone"              // æ‰‹æ©Ÿ
             };
 
             /// <summary>
-            /// ·s¤H¸ò¶iÄæ¦ì
+            /// æ–°äººè·Ÿé€²æ¬„ä½
             /// </summary>
-            public static readonly string[] FollowUp = 
+            public static readonly string[] FollowUp =
             {
                 "new_present_recordid",
                 "new_contact_new_present_record",
                 "new_sunday_date",
-                "new_weeks",              // ¶g¦¸
-                "new_follow_up",          // ¸ò¶i¤è¦¡
-                "new_conclusion_choise",  // ¸ò¶iµ²ªG
-                "new_next_step",          // ¤U¤@¨BÆJ
-                "new_explanation",        // ¸ò¶i´y­z
+                "new_weeks",              // é€±æ¬¡
+                "new_follow_up",          // è·Ÿé€²æ–¹å¼
+                "new_conclusion_choise",  // è·Ÿé€²çµæœ
+                "new_next_step",          // ä¸‹ä¸€æ­¥é©Ÿ
+                "new_explanation",        // è·Ÿé€²æè¿°
                 "new_groupleader_present_record"
             };
         }
 
         /// <summary>
-        /// new_group_present_weekly_report (¶g³ø) ¼Ğ·ÇÄæ¦ì
+        /// new_group_present_weekly_report (é€±å ±) æ¨™æº–æ¬„ä½
         /// </summary>
         public static class WeeklyReport
         {
             /// <summary>
-            /// °ò¥»Äæ¦ì
+            /// åŸºæœ¬æ¬„ä½
             /// </summary>
-            public static readonly string[] Basic = 
+            public static readonly string[] Basic =
             {
                 "new_group_present_weekly_reportid",
                 "new_name",
                 "new_sunday_date",
-                "new_list_group_present_weekly_report"  // ¦W³æ
+                "new_list_group_present_weekly_report"  // åå–®
             };
 
             /// <summary>
-            /// ÂX®iÄæ¦ì
+            /// æ“´å±•æ¬„ä½
             /// </summary>
-            public static readonly string[] Extended = 
+            public static readonly string[] Extended =
             {
                 "new_group_present_weekly_reportid",
                 "new_name",
                 "new_sunday_date",
                 "new_list_group_present_weekly_report",
-                "new_small_group_place",     // ¤p²Õ¦aÂI
-                "new_small_group_time",      // ¤p²Õ®É¶¡
-                "new_sunday_present_rate",   // ¥D¤é¥X®u²v
-                "new_group_present_rate",    // ¤p²Õ¥X®u²v
-                "new_sunday_present_number", // ¥D¤é¥X®u¤H¼Æ
-                "new_group_present_number",  // ¤p²Õ¥X®u¤H¼Æ
+                "new_small_group_place",     // å°çµ„åœ°é»
+                "new_small_group_time",      // å°çµ„æ™‚é–“
+                "new_sunday_present_rate",   // ä¸»æ—¥å‡ºå¸­ç‡
+                "new_group_present_rate",    // å°çµ„å‡ºå¸­ç‡
+                "new_sunday_present_number", // ä¸»æ—¥å‡ºå¸­äººæ•¸
+                "new_group_present_number",  // å°çµ„å‡ºå¸­äººæ•¸
                 "createdon",
                 "statecode"
             };
         }
 
         /// <summary>
-        /// new_dedication_booking (©^Äm¹w¬ù) ¼Ğ·ÇÄæ¦ì
+        /// new_dedication_booking (å¥‰ç»é ç´„) æ¨™æº–æ¬„ä½
         /// </summary>
         public static class DedicationBooking
         {
             /// <summary>
-            /// °ò¥»Äæ¦ì
+            /// åŸºæœ¬æ¬„ä½
             /// </summary>
-            public static readonly string[] Basic = 
+            public static readonly string[] Basic =
             {
                 "new_dedication_bookingid",
                 "new_name",
-                "new_contact_new_dedication_booking",  // Ápµ¸¤H
-                "new_dedication_booking_status",       // ª¬ºA
+                "new_contact_new_dedication_booking",  // è¯çµ¡äºº
+                "new_dedication_booking_status",       // ç‹€æ…‹
                 "createdon"
             };
 
             /// <summary>
-            /// ÂX®iÄæ¦ì
+            /// æ“´å±•æ¬„ä½
             /// </summary>
-            public static readonly string[] Extended = 
+            public static readonly string[] Extended =
             {
                 "new_dedication_bookingid",
                 "new_name",
                 "new_contact_new_dedication_booking",
                 "new_dedication_booking_status",
-                "new_dedication_type",          // ©^ÄmÃş«¬
-                "new_amount",                   // ª÷ÃB
-                "new_start_date",               // ¶}©l¤é´Á
-                "new_end_date",                 // µ²§ô¤é´Á
+                "new_dedication_type",          // å¥‰ç»é¡å‹
+                "new_amount",                   // é‡‘é¡
+                "new_start_date",               // é–‹å§‹æ—¥æœŸ
+                "new_end_date",                 // çµæŸæ—¥æœŸ
                 "createdon",
                 "statecode"
             };
         }
 
         /// <summary>
-        /// new_fee (¶O¥Î) ¼Ğ·ÇÄæ¦ì
+        /// new_fee (è²»ç”¨) æ¨™æº–æ¬„ä½
         /// </summary>
         public static class Fee
         {
             /// <summary>
-            /// °ò¥»Äæ¦ì
+            /// åŸºæœ¬æ¬„ä½
             /// </summary>
-            public static readonly string[] Basic = 
+            public static readonly string[] Basic =
             {
                 "new_feeid",
                 "new_name",
-                "new_dedication_booking_new_fee",  // ©^Äm¹w¬ù
-                "new_paid_period",                 // Ãº¶O´Á¶¡
+                "new_dedication_booking_new_fee",  // å¥‰ç»é ç´„
+                "new_paid_period",                 // ç¹³è²»æœŸé–“
                 "createdon"
             };
 
             /// <summary>
-            /// ÂX®iÄæ¦ì
+            /// æ“´å±•æ¬„ä½
             /// </summary>
-            public static readonly string[] Extended = 
+            public static readonly string[] Extended =
             {
                 "new_feeid",
                 "new_name",
                 "new_dedication_booking_new_fee",
                 "new_paid_period",
-                "new_amount",           // ª÷ÃB
-                "new_payment_status",   // ¥I´Úª¬ºA
-                "new_payment_date",     // ¥I´Ú¤é´Á
-                "new_payment_method",   // ¥I´Ú¤è¦¡
+                "new_amount",           // é‡‘é¡
+                "new_payment_status",   // ä»˜æ¬¾ç‹€æ…‹
+                "new_payment_date",     // ä»˜æ¬¾æ—¥æœŸ
+                "new_payment_method",   // ä»˜æ¬¾æ–¹å¼
                 "createdon",
                 "statecode"
             };
         }
 
         /// <summary>
-        /// new_stor_lessons (½Òµ{°O¿ı) ¼Ğ·ÇÄæ¦ì
+        /// new_stor_lessons (èª²ç¨‹è¨˜éŒ„) æ¨™æº–æ¬„ä½
         /// </summary>
         public static class StorLessons
         {
             /// <summary>
-            /// °ò¥»Äæ¦ì
+            /// åŸºæœ¬æ¬„ä½
             /// </summary>
-            public static readonly string[] Basic = 
+            public static readonly string[] Basic =
             {
                 "new_stor_lessonsid",
-                "new_contact_new_stor_lessons",       // Ápµ¸¤H
-                "new_new_disciple_lessons_new_stor_les", // ½Òµ{
+                "new_contact_new_stor_lessons",       // è¯çµ¡äºº
+                "new_new_disciple_lessons_new_stor_les", // èª²ç¨‹
                 "createdon"
             };
 
             /// <summary>
-            /// ÂX®iÄæ¦ì
+            /// æ“´å±•æ¬„ä½
             /// </summary>
-            public static readonly string[] Extended = 
+            public static readonly string[] Extended =
             {
                 "new_stor_lessonsid",
                 "new_contact_new_stor_lessons",
                 "new_new_disciple_lessons_new_stor_les",
-                "new_fee",              // ¶O¥Î
-                "new_pay_date",         // ¥I´Ú¤é´Á
-                "new_current_complete", // §¹¦¨ª¬ºA
-                "new_enroll_status",    // ³ø¦Wª¬ºA
+                "new_fee",              // è²»ç”¨
+                "new_pay_date",         // ä»˜æ¬¾æ—¥æœŸ
+                "new_current_complete", // å®Œæˆç‹€æ…‹
+                "new_enroll_status",    // å ±åç‹€æ…‹
                 "createdon",
                 "statuscode",
                 "statecode"
@@ -324,23 +337,23 @@ namespace ToolUtilityNameSpace.Constants
         }
 
         /// <summary>
-        /// Account (±Ğ·|) ¼Ğ·ÇÄæ¦ì
+        /// Account (æ•™æœƒ) æ¨™æº–æ¬„ä½
         /// </summary>
         public static class Account
         {
             /// <summary>
-            /// °ò¥»Äæ¦ì
+            /// åŸºæœ¬æ¬„ä½
             /// </summary>
-            public static readonly string[] Basic = 
+            public static readonly string[] Basic =
             {
                 "accountid",
                 "name"
             };
 
             /// <summary>
-            /// ÂX®iÄæ¦ì
+            /// æ“´å±•æ¬„ä½
             /// </summary>
-            public static readonly string[] Extended = 
+            public static readonly string[] Extended =
             {
                 "accountid",
                 "name",
@@ -351,14 +364,14 @@ namespace ToolUtilityNameSpace.Constants
         }
 
         /// <summary>
-        /// Task (¤u§@) ¼Ğ·ÇÄæ¦ì
+        /// Task (å·¥ä½œ) æ¨™æº–æ¬„ä½
         /// </summary>
         public static class Task
         {
             /// <summary>
-            /// °ò¥»Äæ¦ì
+            /// åŸºæœ¬æ¬„ä½
             /// </summary>
-            public static readonly string[] Basic = 
+            public static readonly string[] Basic =
             {
                 "activityid",
                 "subject",
@@ -366,9 +379,9 @@ namespace ToolUtilityNameSpace.Constants
             };
 
             /// <summary>
-            /// ÂX®iÄæ¦ì
+            /// æ“´å±•æ¬„ä½
             /// </summary>
-            public static readonly string[] Extended = 
+            public static readonly string[] Extended =
             {
                 "activityid",
                 "subject",

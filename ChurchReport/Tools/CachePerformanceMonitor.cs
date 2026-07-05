@@ -1,11 +1,24 @@
+// ============================================================================
+// AI-ח¹י«”ה¸­ז–‡ז×”ז¡ˆט¨»ט§£
+// ז×”ז¡ˆט·¯ו¾‘ן¼ChurchReport/Tools/CachePerformanceMonitor.cs
+// ז‰€ו±¬ו€ו¡ן¼ChurchReport ה¸»ח¶²ח«™טˆ‡ו¾ו°ז‡‰ח”¨ח¨‹ו¼ן¼ז‰¿ט¼‰ז§וˆ¶ו™¨ד€ז¨¡ו‹ד€CRM ז•´וˆד€ה»˜ז¬¾זµח¨‹ד€LINE י€ח¥טˆ‡ח”¢ו“ו±₪ו•†ז¥­ט¦ו‰‡ד€‚
+// ז×”ז¡ˆט²¬ה»»ן¼ז­₪ז×”ז¡ˆה½ז–¼זו‹™זˆ–ו·¥ו…·ו±₪ן¼ט¨»ט§£י‡י»ו¨ט××ז˜ו…±ח”¨ט²¬ה»»ד€ו₪–יƒ¨ה¾ט³´ד€י¯ט×₪ו‚³יטˆ‡ו‘¼ו«ח«¯ז‡‰יµו®ˆח„ו‰ח½®ז¢ה»¶ד€‚
+// ה¸»ט¦ו‹וˆ¥ן¼class CachePerformanceMonitor
+// ה¸»ט¦זˆו“¡ן¼StartFirstCallד€EndFirstCallד€StartSecondCallד€EndSecondCallד€GetPerformanceReportד€GetPerformanceLevelד€GetSimpleReportד€MeasureOperation
+// ו¼•ח”¨ו‘½וח©÷י–“ן¼Systemד€System.Diagnostics
+// י–±ט®€ט·¯ו¾‘ן¼י–±ט®€ז­₪ז×”ז¡ˆז™‚ז‡‰ו…ˆו¾ו…¬י–‹ו‹וˆ¥ד€ו»÷ז§‹ו¼ז³¨ו…¥ד€ה¸»ט¦ז–¹ז³•טˆ‡ה¾‹ו₪–ט™•ח†ט·¯ו¾‘זז¡ט³‡ז–™זµן¼ו†י€²ט¡ח¶­ט­·ד€‚
+// ח¶­ט­·י‡י»ן¼ו¾ח÷ה¿®ז”¹ז™‚ז‡‰ו…ˆח†ט§£ז—¢ז‰ו‘¼ו«ח«¯טˆ‡ו₪–יƒ¨ח³»חµ±ו¥‘ח´„ן¼י¿ו…זט¨»ט§£ז•´ח†ט×₪ט®זˆט¡ח‚÷י‡ז§‹ד€‚
+// ט¡ח‚÷ה¿ט­·ן¼ז¬ט¨»ט§£וƒ…ט£ו……ט¨­ט¨ˆז„ו–טˆ‡ח¶­ט­·ט„ˆחµ¡ן¼ה¸ז‡‰ז”¹ט®ה»»ה½•ו·ט¡זµח¨‹ד€ט³‡ז–™ז ¼ו¼ד€ו÷וˆ—ו–חµזזˆ–ו₪–יƒ¨ API ו¥‘ח´„ד€‚
+// ח·¨ח¢¼ט¦ז±‚ן¼ז¬ז×”ז¡ˆי€ח¶­ז UTF-8 without BOM טˆ‡ CRLFן¼ה»¥ח¬¦וˆו°ˆז¡ˆ .editorconfig טˆ‡ Windows/Visual Studio ו·¥ה½זµד€‚
+// ============================================================================
 using System;
 using System.Diagnostics;
 
 namespace ChurchReport.Tools
 {
     /// <summary>
-    /// ? Phase 3.2: §ײ¨ת®ִ¯א÷Ê±±₪u¨ד
-    /// ¥־©ף´ת¶q§ײ¨ת±a¨׃×÷®ִ¯א§ןµ½
+    /// ? Phase 3.2: ו¿«ו–ז•ˆטƒ½ח›£ז§ו·¥ו…·
+    /// ח”¨ז–¼ז¸¬י‡ו¿«ו–ו¸¶ה¾†ח„ז•ˆטƒ½ז”¹ו–„
     /// </summary>
     public class CachePerformanceMonitor
     {
@@ -20,7 +33,7 @@ namespace ChurchReport.Tools
         }
 
         /// <summary>
-        /// ¶}©l÷Ê±±¡]²ִ₪@¦¸©I¥s - Cache Miss¡^
+        /// י–‹ו§‹ח›£ז§ן¼ˆח¬¬ה¸€ז¬¡ו‘¼ו« - Cache Missן¼‰
         /// </summary>
         public void StartFirstCall(string operationName)
         {
@@ -29,7 +42,7 @@ namespace ChurchReport.Tools
         }
 
         /// <summary>
-        /// µ²§פ²ִ₪@¦¸©I¥s
+        /// חµזח¬¬ה¸€ז¬¡ו‘¼ו«
         /// </summary>
         public void EndFirstCall()
         {
@@ -38,7 +51,7 @@ namespace ChurchReport.Tools
         }
 
         /// <summary>
-        /// ¶}©l²ִ₪G¦¸©I¥s¡]Cache Hit¡^
+        /// י–‹ו§‹ח¬¬ה÷ז¬¡ו‘¼ו«ן¼ˆCache Hitן¼‰
         /// </summary>
         public void StartSecondCall()
         {
@@ -46,7 +59,7 @@ namespace ChurchReport.Tools
         }
 
         /// <summary>
-        /// µ²§פ²ִ₪G¦¸©I¥s
+        /// חµזח¬¬ה÷ז¬¡ו‘¼ו«
         /// </summary>
         public void EndSecondCall()
         {
@@ -55,72 +68,72 @@ namespace ChurchReport.Tools
         }
 
         /// <summary>
-        /// ¨ת±o®ִ¯א³ר§i
+        /// ו–ו¾—ז•ˆטƒ½ו ±ו‘
         /// </summary>
         public string GetPerformanceReport()
         {
             if (_firstCallTime == 0 || _secondCallTime == 0)
             {
-                return "©|¥¼§¹¦¨´ת¸ױ";
+                return "ו°ז×ו®זˆז¸¬ט©¦";
             }
 
-            double improvement = _firstCallTime > 0 
-                ? (double)_firstCallTime / _secondCallTime 
+            double improvement = _firstCallTime > 0
+                ? (double)_firstCallTime / _secondCallTime
                 : 0;
 
             return $@"
-שÝשששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששß
-שר         ?? §ײ¨ת®ִ¯א´ת¸ױ³ר§i - {_operationName,-30} שר
-שאשששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששג
-שר ²ִ₪@¦¸©I¥s (Cache Miss): {_firstCallTime,10} ms                    שר
-שר ²ִ₪G¦¸©I¥s (Cache Hit):  {_secondCallTime,10} ms                    שר
-שר ³t«׳´£₪ֹ:                {improvement,10:F1}x ­¿                 שר
-שר ®ֹ¶¡¸`¬Ù:                {_firstCallTime - _secondCallTime,10} ms                    שר
-שאשששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששג
-שר ?? µû¦פ:                                                   שר
-שר   {GetPerformanceLevel(improvement),-56} שר
-שדשששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששששו
+ג•”ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•—
+ג•‘         ?? ו¿«ו–ז•ˆטƒ½ז¸¬ט©¦ו ±ו‘ - {_operationName,-30} ג•‘
+ג• ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•£
+ג•‘ ח¬¬ה¸€ז¬¡ו‘¼ו« (Cache Miss): {_firstCallTime,10} ms                    ג•‘
+ג•‘ ח¬¬ה÷ז¬¡ו‘¼ו« (Cache Hit):  {_secondCallTime,10} ms                    ג•‘
+ג•‘ י€ו÷¦זו‡:                {improvement,10:F1}x ו€                 ג•‘
+ג•‘ ז™‚י–“ח¯€ח:                {_firstCallTime - _secondCallTime,10} ms                    ג•‘
+ג• ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•£
+ג•‘ ?? ט©•ה¼°:                                                   ג•‘
+ג•‘   {GetPerformanceLevel(improvement),-56} ג•‘
+ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
 ";
         }
 
         /// <summary>
-        /// ¨ת±o®ִ¯אµ¥¯ֵµû¦פ
+        /// ו–ו¾—ז•ˆטƒ½ח­‰ח´ט©•ה¼°
         /// </summary>
         private string GetPerformanceLevel(double improvement)
         {
             if (improvement >= 100)
-                return "????? ·¥­Pְu₪ֶ¡I®ִ¯א´£₪ֵֹו₪H¡I";
+                return "????? ז¥µט‡´ו„×ו–ן¼ז•ˆטƒ½זו‡י©ה÷÷ן¼";
             else if (improvement >= 50)
-                return "???? ¨פ¶Vְu₪ֶ¡I®ִ¯א₪j´T§ןµ½¡I";
+                return "???? ו“ט¶ו„×ו–ן¼ז•ˆטƒ½ו₪§ו¹…ז”¹ו–„ן¼";
             else if (improvement >= 20)
-                return "??? ¨}¦nְu₪ֶ¡I®ִ¯א©תֵד´£₪ֹ¡I";
+                return "??? ט‰¯ו¥½ו„×ו–ן¼ז•ˆטƒ½ז˜י¡¯זו‡ן¼";
             else if (improvement >= 5)
-                return "?? ₪₪µ¥ְu₪ֶ¡A®ִ¯א¦³©ׂ§ןµ½";
+                return "?? ה¸­ח­‰ו„×ו–ן¼ז•ˆטƒ½ז‰ז‰€ז”¹ו–„";
             else if (improvement >= 2)
-                return "? »´·Lְu₪ֶ¡A¦³§ןµ½×ֵ¶¡";
+                return "? ט¼•ו¾®ו„×ו–ן¼ז‰ז”¹ו–„ח©÷י–“";
             else
-                return "?? ְu₪ֶ®ִ×G₪£©תֵד¡A«״ִ³ְֻ¬d§ײ¨תµ¦²₪";
+                return "?? ו„×ו–ז•ˆזה¸ז˜י¡¯ן¼ו»÷ט­°ז×¢ז¥ו¿«ו–ח­–ח•¥";
         }
 
         /// <summary>
-        /// ֲ²₪ֶ×©³ר§i¡]³ז¦ז¡^
+        /// ח°¡ו–ח‰ˆו ±ו‘ן¼ˆו–®ט¡ן¼‰
         /// </summary>
         public string GetSimpleReport()
         {
             if (_firstCallTime == 0 || _secondCallTime == 0)
             {
-                return "©|¥¼§¹¦¨´ת¸ױ";
+                return "ו°ז×ו®זˆז¸¬ט©¦";
             }
 
-            double improvement = _firstCallTime > 0 
-                ? (double)_firstCallTime / _secondCallTime 
+            double improvement = _firstCallTime > 0
+                ? (double)_firstCallTime / _secondCallTime
                 : 0;
 
-            return $"[{_operationName}] Cache Miss: {_firstCallTime}ms | Cache Hit: {_secondCallTime}ms | ´£₪ֹ: {improvement:F1}x ­¿";
+            return $"[{_operationName}] Cache Miss: {_firstCallTime}ms | Cache Hit: {_secondCallTime}ms | זו‡: {improvement:F1}x ו€";
         }
 
         /// <summary>
-        /// ´ת¶q³ז¦¸¾Þ§@°ץ¦ז®ֹ¶¡
+        /// ז¸¬י‡ו–®ז¬¡ז“ה½ו·ט¡ז™‚י–“
         /// </summary>
         public static long MeasureOperation(Action operation, out string operationTime)
         {
@@ -132,7 +145,7 @@ namespace ChurchReport.Tools
         }
 
         /// <summary>
-        /// ´ת¶q³ז¦¸¾Þ§@°ץ¦ז®ֹ¶¡¡]«D¦P¨B¡^
+        /// ז¸¬י‡ו–®ז¬¡ז“ה½ו·ט¡ז™‚י–“ן¼ˆיוז­¥ן¼‰
         /// </summary>
         public static async System.Threading.Tasks.Task<(long elapsed, string display)> MeasureOperationAsync(Func<System.Threading.Tasks.Task> operation)
         {

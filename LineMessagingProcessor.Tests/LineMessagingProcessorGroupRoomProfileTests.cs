@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：LineMessagingProcessor.Tests/LineMessagingProcessorGroupRoomProfileTests.cs
+// 所屬區塊：LINE 訊息處理核心測試專案。
+// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
+// 主要型別：class LineMessagingProcessorGroupRoomProfileTests、class CapturingHttpMessageHandler
+// 主要成員：GetGroupMemberProfileAsync_delegates_to_line_sdk_group_member_profile_endpoint、GetRoomMemberProfileAsync_delegates_to_line_sdk_room_member_profile_endpoint、GetGroupMemberProfileAsync_rejects_blank_identifiers_before_http_call、GetRoomMemberProfileAsync_rejects_blank_identifiers_before_http_call、SendAsync、Requests
+// 引用命名空間：System.Net、FluentAssertions、Line.Messaging、Xunit
+// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
+// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using System.Net;
 using FluentAssertions;
 using Line.Messaging;

@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/Middleware/IdentityAuditCleanupService.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆæä¾› IdentityAuditCleanupService ç›¸é—œåŠŸèƒ½ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜æª”æ¡ˆè²¬ä»»ã€ä¸Šæ¸¸/ä¸‹æ¸¸ä¾è³´èˆ‡ç¶­è­·æ™‚ä¸å¯ç ´å£çš„è¡Œç‚ºå‡è¨­ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass IdentityAuditCleanupService
+// ä¸»è¦æˆå“¡ï¼šExecuteAsyncã€StopAsync
+// å¼•ç”¨å‘½åç©ºé–“ï¼šMicrosoft.Extensions.Hostingã€Microsoft.Extensions.Loggingã€Systemã€System.Threadingã€System.Threading.Tasks
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆå¾å…¬é–‹å‹åˆ¥ã€å»ºæ§‹å¼æ³¨å…¥ã€ä¸»è¦æ–¹æ³•èˆ‡ä¾‹å¤–è™•ç†è·¯å¾‘æŒæ¡è³‡æ–™æµï¼Œå†é€²è¡Œç¶­è­·ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -7,35 +20,35 @@ using System.Threading.Tasks;
 namespace ChurchReport.Middleware
 {
     /// <summary>
-    /// ¨­¥÷¼f­p²M²zªA°È (Background Service)
-    /// 
-    /// ³]­p­ì«h:
-    /// - Single Responsibility Principle (SRP): ±Mª`©ó©w´Á²M²z°lÂÜ¸ê®Æ
-    /// - Open/Closed Principle: Ä~©Ó BackgroundService¡AÂX®i¦Ó¤£­×§ï®Ø¬[
-    /// - Dependency Inversion Principle: ¨Ì¿à ILogger ©â¶H
-    /// 
-    /// §@¥Î:
-    /// ©w´Á²M²z IdentityAuditMiddleware ¤¤ªº°lÂÜ¸ê®Æ¡A¨¾¤î°O¾ĞÅé¬ªº|¡C
-    /// 
-    /// ²M²zµ¦²¤:
-    /// - ¨C 30 ¤ÀÄÁ°õ¦æ¤@¦¸
-    /// - ²M°£¶W¹L 1 ¤p®É¥¼¬¡°Êªº°O¿ı
-    /// - °O¿ı²M²zµ²ªG¨ì¤é»x
-    /// 
-    /// °O¾ĞÅéºŞ²z³Ì¨Î¹ê°È:
-    /// - Á×§KµL­­¼WªøªºÀRºA¶°¦X
-    /// - ©w´Á²M²zÂÂ¸ê®Æ
-    /// - ºÊ±±²M²z®ÄªG
-    /// 
-    /// ¨Ï¥Î¤è¦¡:
-    /// ¦b Startup.cs ªº ConfigureServices ¤¤µù¥U¬° HostedService:
+    /// èº«ä»½å¯©è¨ˆæ¸…ç†æœå‹™ (Background Service)
+    ///
+    /// è¨­è¨ˆåŸå‰‡:
+    /// - Single Responsibility Principle (SRP): å°ˆæ³¨æ–¼å®šæœŸæ¸…ç†è¿½è¹¤è³‡æ–™
+    /// - Open/Closed Principle: ç¹¼æ‰¿ BackgroundServiceï¼Œæ“´å±•è€Œä¸ä¿®æ”¹æ¡†æ¶
+    /// - Dependency Inversion Principle: ä¾è³´ ILogger æŠ½è±¡
+    ///
+    /// ä½œç”¨:
+    /// å®šæœŸæ¸…ç† IdentityAuditMiddleware ä¸­çš„è¿½è¹¤è³‡æ–™ï¼Œé˜²æ­¢è¨˜æ†¶é«”æ´©æ¼ã€‚
+    ///
+    /// æ¸…ç†ç­–ç•¥:
+    /// - æ¯ 30 åˆ†é˜åŸ·è¡Œä¸€æ¬¡
+    /// - æ¸…é™¤è¶…é 1 å°æ™‚æœªæ´»å‹•çš„è¨˜éŒ„
+    /// - è¨˜éŒ„æ¸…ç†çµæœåˆ°æ—¥èªŒ
+    ///
+    /// è¨˜æ†¶é«”ç®¡ç†æœ€ä½³å¯¦å‹™:
+    /// - é¿å…ç„¡é™å¢é•·çš„éœæ…‹é›†åˆ
+    /// - å®šæœŸæ¸…ç†èˆŠè³‡æ–™
+    /// - ç›£æ§æ¸…ç†æ•ˆæœ
+    ///
+    /// ä½¿ç”¨æ–¹å¼:
+    /// åœ¨ Startup.cs çš„ ConfigureServices ä¸­è¨»å†Šç‚º HostedService:
     /// <code>
     /// #if DEBUG
     /// services.AddHostedService&lt;IdentityAuditCleanupService&gt;();
     /// #endif
     /// </code>
-    /// 
-    /// ?? ª`·N: ¶È¦b DEBUG ¼Ò¦¡¤U±Ò¥Î
+    ///
+    /// ?? æ³¨æ„: åƒ…åœ¨ DEBUG æ¨¡å¼ä¸‹å•Ÿç”¨
     /// </summary>
     public class IdentityAuditCleanupService : BackgroundService
     {
@@ -44,107 +57,107 @@ namespace ChurchReport.Middleware
         private readonly TimeSpan _dataRetention;
 
         /// <summary>
-        /// «Øºc¨ç¦¡¡Gª`¤J¤é»xªA°È¨Ã³]©w²M²z°Ñ¼Æ
+        /// å»ºæ§‹å‡½å¼ï¼šæ³¨å…¥æ—¥èªŒæœå‹™ä¸¦è¨­å®šæ¸…ç†åƒæ•¸
         /// </summary>
-        /// <param name="logger">¤é»xªA°È</param>
+        /// <param name="logger">æ—¥èªŒæœå‹™</param>
         public IdentityAuditCleanupService(ILogger<IdentityAuditCleanupService> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _cleanupInterval = TimeSpan.FromMinutes(30);  // ¨C 30 ¤ÀÄÁ°õ¦æ¤@¦¸
-            _dataRetention = TimeSpan.FromHours(1);       // «O¯d 1 ¤p®É¤ºªº¸ê®Æ
+            _cleanupInterval = TimeSpan.FromMinutes(30);  // æ¯ 30 åˆ†é˜åŸ·è¡Œä¸€æ¬¡
+            _dataRetention = TimeSpan.FromHours(1);       // ä¿ç•™ 1 å°æ™‚å…§çš„è³‡æ–™
         }
 
         /// <summary>
-        /// ­I´ºªA°È¥D­n°õ¦æ¤èªk
-        /// 
-        /// °õ¦æ¬yµ{:
-        /// 1. ±Ò°Ê¤é»x°O¿ı
-        /// 2. ¶i¤JµL­­°j°é
-        /// 3. ¨C 30 ¤ÀÄÁ°õ¦æ¤@¦¸²M²z
-        /// 4. °O¿ı²M²zµ²ªG
-        /// 5. ³B²z¨ú®ø½Ğ¨D
-        /// 
-        /// ¿ù»~³B²z:
-        /// - ¨Ï¥Î try-catch ½T«OªA°È¤£·|¦]³æ¦¸¿ù»~¦Ó°±¤î
-        /// - °O¿ı¿ù»~¨ì¤é»x
-        /// - Ä~Äò¤U¤@¦¸²M²z¶g´Á
+        /// èƒŒæ™¯æœå‹™ä¸»è¦åŸ·è¡Œæ–¹æ³•
+        ///
+        /// åŸ·è¡Œæµç¨‹:
+        /// 1. å•Ÿå‹•æ—¥èªŒè¨˜éŒ„
+        /// 2. é€²å…¥ç„¡é™è¿´åœˆ
+        /// 3. æ¯ 30 åˆ†é˜åŸ·è¡Œä¸€æ¬¡æ¸…ç†
+        /// 4. è¨˜éŒ„æ¸…ç†çµæœ
+        /// 5. è™•ç†å–æ¶ˆè«‹æ±‚
+        ///
+        /// éŒ¯èª¤è™•ç†:
+        /// - ä½¿ç”¨ try-catch ç¢ºä¿æœå‹™ä¸æœƒå› å–®æ¬¡éŒ¯èª¤è€Œåœæ­¢
+        /// - è¨˜éŒ„éŒ¯èª¤åˆ°æ—¥èªŒ
+        /// - ç¹¼çºŒä¸‹ä¸€æ¬¡æ¸…ç†é€±æœŸ
         /// </summary>
-        /// <param name="stoppingToken">¨ú®ø¥OµP</param>
-        /// <returns>«D¦P¨B¥ô°È</returns>
+        /// <param name="stoppingToken">å–æ¶ˆä»¤ç‰Œ</param>
+        /// <returns>éåŒæ­¥ä»»å‹™</returns>
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("[IdentityAuditCleanup] ªA°È¤w±Ò°Ê");
-            _logger.LogInformation("[IdentityAuditCleanup] ²M²z¶¡¹j: {Interval} ¤ÀÄÁ", _cleanupInterval.TotalMinutes);
-            _logger.LogInformation("[IdentityAuditCleanup] ¸ê®Æ«O¯d: {Retention} ¤p®É", _dataRetention.TotalHours);
+            _logger.LogInformation("[IdentityAuditCleanup] æœå‹™å·²å•Ÿå‹•");
+            _logger.LogInformation("[IdentityAuditCleanup] æ¸…ç†é–“éš”: {Interval} åˆ†é˜", _cleanupInterval.TotalMinutes);
+            _logger.LogInformation("[IdentityAuditCleanup] è³‡æ–™ä¿ç•™: {Retention} å°æ™‚", _dataRetention.TotalHours);
 
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
-                    // ©µ¿ğ¨ì¤U¤@¦¸²M²z®É¶¡
+                    // å»¶é²åˆ°ä¸‹ä¸€æ¬¡æ¸…ç†æ™‚é–“
                     await Task.Delay(_cleanupInterval, stoppingToken);
 
-                    // °õ¦æ²M²z
-                    _logger.LogInformation("[IdentityAuditCleanup] ¶}©l²M²zÂÂ¸ê®Æ...");
-                    
+                    // åŸ·è¡Œæ¸…ç†
+                    _logger.LogInformation("[IdentityAuditCleanup] é–‹å§‹æ¸…ç†èˆŠè³‡æ–™...");
+
                     var removedCount = IdentityAuditMiddleware.CleanupOldTracking(_dataRetention);
-                    
+
                     if (removedCount > 0)
                     {
                         _logger.LogInformation(
-                            "[IdentityAuditCleanup] ? ¤w²M²z {Count} µ§ÂÂ¸ê®Æ",
+                            "[IdentityAuditCleanup] ? å·²æ¸…ç† {Count} ç­†èˆŠè³‡æ–™",
                             removedCount);
                     }
                     else
                     {
-                        _logger.LogDebug("[IdentityAuditCleanup] µL»İ²M²z¡]¨S¦³ÂÂ¸ê®Æ¡^");
+                        _logger.LogDebug("[IdentityAuditCleanup] ç„¡éœ€æ¸…ç†ï¼ˆæ²’æœ‰èˆŠè³‡æ–™ï¼‰");
                     }
 
-                    // ¨ú±o·í«e°lÂÜ¸ê®Æ¼Æ¶q
+                    // å–å¾—ç•¶å‰è¿½è¹¤è³‡æ–™æ•¸é‡
                     var currentCount = IdentityAuditMiddleware.GetTrackingSnapshot().Count;
                     _logger.LogInformation(
-                        "[IdentityAuditCleanup] ·í«e°lÂÜ¸ê®Æ¼Æ¶q: {Count}",
+                        "[IdentityAuditCleanup] ç•¶å‰è¿½è¹¤è³‡æ–™æ•¸é‡: {Count}",
                         currentCount);
                 }
                 catch (OperationCanceledException)
                 {
-                    // ¥¿±`ªº¨ú®ø¾Ş§@¡A¤£»İ­n°O¿ı¿ù»~
-                    _logger.LogInformation("[IdentityAuditCleanup] ªA°È¥¿¦b°±¤î...");
+                    // æ­£å¸¸çš„å–æ¶ˆæ“ä½œï¼Œä¸éœ€è¦è¨˜éŒ„éŒ¯èª¤
+                    _logger.LogInformation("[IdentityAuditCleanup] æœå‹™æ­£åœ¨åœæ­¢...");
                     break;
                 }
                 catch (Exception ex)
                 {
-                    // °O¿ı¿ù»~¦ı¤£¤¤Â_ªA°È
+                    // è¨˜éŒ„éŒ¯èª¤ä½†ä¸ä¸­æ–·æœå‹™
                     _logger.LogError(
                         ex,
-                        "[IdentityAuditCleanup] ? ²M²z¹Lµ{µo¥Í¿ù»~");
+                        "[IdentityAuditCleanup] ? æ¸…ç†éç¨‹ç™¼ç”ŸéŒ¯èª¤");
                 }
             }
 
-            _logger.LogInformation("[IdentityAuditCleanup] ªA°È¤w°±¤î");
+            _logger.LogInformation("[IdentityAuditCleanup] æœå‹™å·²åœæ­¢");
         }
 
         /// <summary>
-        /// ªA°È°±¤î®Éªº²M²z¤èªk
-        /// 
-        /// °õ¦æ³Ì«á¤@¦¸²M²z¡A½T«O¸ê®Æ¤£·|´İ¯d
+        /// æœå‹™åœæ­¢æ™‚çš„æ¸…ç†æ–¹æ³•
+        ///
+        /// åŸ·è¡Œæœ€å¾Œä¸€æ¬¡æ¸…ç†ï¼Œç¢ºä¿è³‡æ–™ä¸æœƒæ®˜ç•™
         /// </summary>
-        /// <param name="cancellationToken">¨ú®ø¥OµP</param>
-        /// <returns>«D¦P¨B¥ô°È</returns>
+        /// <param name="cancellationToken">å–æ¶ˆä»¤ç‰Œ</param>
+        /// <returns>éåŒæ­¥ä»»å‹™</returns>
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("[IdentityAuditCleanup] °õ¦æ³Ì«á¤@¦¸²M²z...");
-            
+            _logger.LogInformation("[IdentityAuditCleanup] åŸ·è¡Œæœ€å¾Œä¸€æ¬¡æ¸…ç†...");
+
             try
             {
                 var removedCount = IdentityAuditMiddleware.CleanupOldTracking(TimeSpan.Zero);
                 _logger.LogInformation(
-                    "[IdentityAuditCleanup] ³Ì«á²M²z§¹¦¨¡A²¾°£ {Count} µ§¸ê®Æ",
+                    "[IdentityAuditCleanup] æœ€å¾Œæ¸…ç†å®Œæˆï¼Œç§»é™¤ {Count} ç­†è³‡æ–™",
                     removedCount);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[IdentityAuditCleanup] ³Ì«á²M²z¥¢±Ñ");
+                _logger.LogError(ex, "[IdentityAuditCleanup] æœ€å¾Œæ¸…ç†å¤±æ•—");
             }
 
             await base.StopAsync(cancellationToken);

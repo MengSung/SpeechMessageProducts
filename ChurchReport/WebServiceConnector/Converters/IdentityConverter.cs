@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/WebServiceConnector/Converters/IdentityConverter.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass IdentityConverter
+// ä¸»è¦æˆå“¡ï¼šIndexToIdentityã€IndexToSpiritualIdentityã€IndexToIdentityFallbackã€IndexToClearIdentityã€IndexToBaptizedSituationã€IsNewComerOrUnGroupedã€IsClosedCase
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€Microsoft.Extensions.Caching.Memoryã€Microsoft.Xrm.Sdk
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Xrm.Sdk;
@@ -5,8 +18,8 @@ using Microsoft.Xrm.Sdk;
 namespace ChurchReport.WebServiceConnector.Converters
 {
     /// <summary>
-    /// ©e¨­Ãş«¬¬ÛÃöªº¼Æ­È»P¤å¦rÂà´«¾¹
-    /// ¿í´` Linus ¥N½X­ì«h¡G³æ¤@Â¾³d¡B¤p«¬¨ç¼Æ
+    /// å§”èº«é¡å‹ç›¸é—œçš„æ•¸å€¼èˆ‡æ–‡å­—è½‰æ›å™¨
+    /// éµå¾ª Linus ä»£ç¢¼åŸå‰‡ï¼šå–®ä¸€è·è²¬ã€å°å‹å‡½æ•¸
     /// </summary>
     public class IdentityConverter
     {
@@ -14,20 +27,20 @@ namespace ChurchReport.WebServiceConnector.Converters
         private readonly IMemoryCache _cache;
 
         /// <summary>
-        /// ªì©l¤Æ©e¨­Ãş«¬Âà´«¾¹
+        /// åˆå§‹åŒ–å§”èº«é¡å‹è½‰æ›å™¨
         /// </summary>
-        /// <param name="organizationService">CRM ªA°È¡]¥Î©ó°ÊºA¬d¸ß¡^</param>
-        /// <param name="cache">§Ö¨úªA°È</param>
+        /// <param name="organizationService">CRM æœå‹™ï¼ˆç”¨æ–¼å‹•æ…‹æŸ¥è©¢ï¼‰</param>
+        /// <param name="cache">å¿«å–æœå‹™</param>
         public IdentityConverter(IOrganizationService organizationService, IMemoryCache cache = null)
         {
             _organizationService = organizationService;
             _cache = cache ?? new MemoryCache(new MemoryCacheOptions());
         }
 
-        #region ©e¨­Ãş«¬Âà´« (°ÊºA¬d¸ß)
+        #region å§”èº«é¡å‹è½‰æ› (å‹•æ…‹æŸ¥è©¢)
 
         /// <summary>
-        /// ±N©e¨­Ãş«¬¼Æ­ÈÂà´«¬°Åã¥Ü¤å¦r¡]¨Ï¥Î°ÊºA¬d¸ß¡^
+        /// å°‡å§”èº«é¡å‹æ•¸å€¼è½‰æ›ç‚ºé¡¯ç¤ºæ–‡å­—ï¼ˆä½¿ç”¨å‹•æ…‹æŸ¥è©¢ï¼‰
         /// </summary>
         public string IndexToIdentity(int identity)
         {
@@ -40,19 +53,19 @@ namespace ChurchReport.WebServiceConnector.Converters
                 );
 
                 string displayText = optionSetService.GetOptionSetText("contact", "customertypecode", identity);
-                System.Diagnostics.Debug.WriteLine($"[IdentityConverter.IndexToIdentity] ¿é¤J­È: {identity}, ¦^¶Ç¤å¦r: {displayText}");
+                System.Diagnostics.Debug.WriteLine($"[IdentityConverter.IndexToIdentity] è¼¸å…¥å€¼: {identity}, å›å‚³æ–‡å­—: {displayText}");
 
                 return displayText;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[IdentityConverter.IndexToIdentity] °ÊºA¬d¸ß¥¢±Ñ: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[IdentityConverter.IndexToIdentity] å‹•æ…‹æŸ¥è©¢å¤±æ•—: {ex.Message}");
                 return IndexToIdentityFallback(identity);
             }
         }
 
         /// <summary>
-        /// ±N¨ü¬~ª¬ºA¼Æ­ÈÂà´«¬°Åã¥Ü¤å¦r¡]¨Ï¥Î°ÊºA¬d¸ß¡^
+        /// å°‡å—æ´—ç‹€æ…‹æ•¸å€¼è½‰æ›ç‚ºé¡¯ç¤ºæ–‡å­—ï¼ˆä½¿ç”¨å‹•æ…‹æŸ¥è©¢ï¼‰
         /// </summary>
         public string IndexToSpiritualIdentity(int spiritualIdentity)
         {
@@ -65,93 +78,93 @@ namespace ChurchReport.WebServiceConnector.Converters
                 );
 
                 string displayText = optionSetService.GetOptionSetText("contact", "new_spiriitual_identity", spiritualIdentity);
-                System.Diagnostics.Debug.WriteLine($"[IdentityConverter.IndexToSpiritualIdentity] ¿é¤J­È: {spiritualIdentity}, ¦^¶Ç¤å¦r: {displayText}");
+                System.Diagnostics.Debug.WriteLine($"[IdentityConverter.IndexToSpiritualIdentity] è¼¸å…¥å€¼: {spiritualIdentity}, å›å‚³æ–‡å­—: {displayText}");
 
                 return displayText;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[IdentityConverter.IndexToSpiritualIdentity] °ÊºA¬d¸ß¥¢±Ñ: {ex.Message}");
-                return "-¥¼ª¾-";
+                System.Diagnostics.Debug.WriteLine($"[IdentityConverter.IndexToSpiritualIdentity] å‹•æ…‹æŸ¥è©¢å¤±æ•—: {ex.Message}");
+                return "-æœªçŸ¥-";
             }
         }
 
         #endregion
 
-        #region ³Æ¥Îªºµw½s½X¹ïÀ³ªí
+        #region å‚™ç”¨çš„ç¡¬ç·¨ç¢¼å°æ‡‰è¡¨
 
         /// <summary>
-        /// ©e¨­Ãş«¬³Æ¥Î¹ïÀ³ªí¡]·í°ÊºA¬d¸ß¥¢±Ñ®É¨Ï¥Î¡^
+        /// å§”èº«é¡å‹å‚™ç”¨å°æ‡‰è¡¨ï¼ˆç•¶å‹•æ…‹æŸ¥è©¢å¤±æ•—æ™‚ä½¿ç”¨ï¼‰
         /// </summary>
         private static string IndexToIdentityFallback(int identity)
         {
             return identity switch
             {
-                100000000 => "08. ·sªB¤Í",
-                100000001 => "10. ¥¼¤J²Õµ²®×",
-                100000002 => "02. ¤p²Õªø",
-                100000003 => "01. ±Ú¨t²Õªø",
-                100000004 => "07. ¥¼¤J²Õ",
-                100000005 => "03. ¨£²ß¤p²Õªø",
-                100000006 => "04. ¤p®aªø",
-                100000007 => "09. ¥~±Ğ·|",
-                1 => "05. ¤p²Õ²Õ­û",
-                2 => "06. ¥¼¦¨¦~",
-                _ => "¥¼ª¾Ãş«¬"
+                100000000 => "08. æ–°æœ‹å‹",
+                100000001 => "10. æœªå…¥çµ„çµæ¡ˆ",
+                100000002 => "02. å°çµ„é•·",
+                100000003 => "01. æ—ç³»çµ„é•·",
+                100000004 => "07. æœªå…¥çµ„",
+                100000005 => "03. è¦‹ç¿’å°çµ„é•·",
+                100000006 => "04. å°å®¶é•·",
+                100000007 => "09. å¤–æ•™æœƒ",
+                1 => "05. å°çµ„çµ„å“¡",
+                2 => "06. æœªæˆå¹´",
+                _ => "æœªçŸ¥é¡å‹"
             };
         }
 
         /// <summary>
-        /// ±N©e¨­Ãş«¬¼Æ­ÈÂà´«¬°Â²¤Æªº©öÀ´¤å¦r
+        /// å°‡å§”èº«é¡å‹æ•¸å€¼è½‰æ›ç‚ºç°¡åŒ–çš„æ˜“æ‡‚æ–‡å­—
         /// </summary>
         public static string IndexToClearIdentity(int identity)
         {
             return identity switch
             {
-                100000000 => "·sªB¤Í",
-                100000004 => "¥¼¤J²Õ",
-                100000007 => "¥¼¤J²Õ", // ¥~±Ğ·|ÂkÃş¬°¥¼¤J²Õ
-                1 => "¤p²Õ²Õ­û",
-                _ => "¤p²Õ²Õ­û"
+                100000000 => "æ–°æœ‹å‹",
+                100000004 => "æœªå…¥çµ„",
+                100000007 => "æœªå…¥çµ„", // å¤–æ•™æœƒæ­¸é¡ç‚ºæœªå…¥çµ„
+                1 => "å°çµ„çµ„å“¡",
+                _ => "å°çµ„çµ„å“¡"
             };
         }
 
         /// <summary>
-        /// ¬~Â§ª¬ºAÂà´«¡]ªø¦Ñ±Ğ·|±M¥Î¡^
+        /// æ´—ç¦®ç‹€æ…‹è½‰æ›ï¼ˆé•·è€æ•™æœƒå°ˆç”¨ï¼‰
         /// </summary>
         public static string IndexToBaptizedSituation(int baptizedSituation)
         {
             return baptizedSituation switch
             {
-                100000000 => "°í«HÂ§(Äy¦b)",
-                100000001 => "¦¨¤HÂ§(Äy¦b)",
-                100000002 => "¦¨¤HÂ§(Äy¦b)",
-                100000003 => "¤p¨àÂ§(Äy¤£¦b)",
-                100000004 => "¥¼¨ü¬~(Äy¤£¦b)",
-                _ => "¥¼¨ü¬~(Äy¤£¦b)"
+                100000000 => "å …ä¿¡ç¦®(ç±åœ¨)",
+                100000001 => "æˆäººç¦®(ç±åœ¨)",
+                100000002 => "æˆäººç¦®(ç±åœ¨)",
+                100000003 => "å°å…’ç¦®(ç±ä¸åœ¨)",
+                100000004 => "æœªå—æ´—(ç±ä¸åœ¨)",
+                _ => "æœªå—æ´—(ç±ä¸åœ¨)"
             };
         }
 
         #endregion
 
-        #region ©e¨­Ãş«¬ÅçÃÒ
+        #region å§”èº«é¡å‹é©—è­‰
 
         /// <summary>
-        /// ÅçÃÒ¬O§_¬°·s¤H©Î¥¼¤J²Õ
+        /// é©—è­‰æ˜¯å¦ç‚ºæ–°äººæˆ–æœªå…¥çµ„
         /// </summary>
         public static bool IsNewComerOrUnGrouped(int identityNumber)
         {
-            // 100000000 = ·sªB¤Í
-            // 100000004 = ¥¼¤J²Õ
+            // 100000000 = æ–°æœ‹å‹
+            // 100000004 = æœªå…¥çµ„
             return identityNumber == 100000000 || identityNumber == 100000004;
         }
 
         /// <summary>
-        /// ÅçÃÒ¬O§_¬°µ²®×ª¬ºA
+        /// é©—è­‰æ˜¯å¦ç‚ºçµæ¡ˆç‹€æ…‹
         /// </summary>
         public static bool IsClosedCase(string identityText)
         {
-            return identityText.Contains("µ²®×");
+            return identityText.Contains("çµæ¡ˆ");
         }
 
         #endregion

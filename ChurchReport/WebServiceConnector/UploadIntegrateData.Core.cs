@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-ç¹é«”ä¸­æ–‡æª”æ¡ˆè¨»è§£
+// æª”æ¡ˆè·¯å¾‘ï¼šChurchReport/WebServiceConnector/UploadIntegrateData.Core.cs
+// æ‰€å±¬å€å¡Šï¼šChurchReport ä¸»ç¶²ç«™èˆ‡å¾Œå°æ‡‰ç”¨ç¨‹å¼ï¼Œæ‰¿è¼‰æ§åˆ¶å™¨ã€æ¨¡å‹ã€CRM æ•´åˆã€ä»˜æ¬¾æµç¨‹ã€LINE é€šçŸ¥èˆ‡ç”¢å“å±¤å•†æ¥­è¦å‰‡ã€‚
+// æª”æ¡ˆè²¬ä»»ï¼šæ­¤æª”æ¡ˆä½æ–¼æœå‹™æˆ–å·¥å…·å±¤ï¼Œè¨»è§£é‡é»åœ¨èªªæ˜å…±ç”¨è²¬ä»»ã€å¤–éƒ¨ä¾è³´ã€éŒ¯èª¤å‚³éèˆ‡å‘¼å«ç«¯æ‡‰éµå®ˆçš„å‰ç½®æ¢ä»¶ã€‚
+// ä¸»è¦å‹åˆ¥ï¼šclass UploadIntegrateData
+// ä¸»è¦æˆå“¡ï¼šUploadDataã€ProcessCreateWeeklyReportã€ProcessUpdateWeeklyReportã€DeleteMemberã€SetupCommonParameter
+// å¼•ç”¨å‘½åç©ºé–“ï¼šSystemã€System.Collections.Genericã€System.Text.RegularExpressionsã€ChurchReport.Modelsã€ChurchReport.Models.CrmTransmitModuleã€Microsoft.Xrm.Sdkã€ToolUtilityNameSpaceã€ToolUtilityNameSpace.Factory
+// é–±è®€è·¯å¾‘ï¼šé–±è®€æ­¤æª”æ¡ˆæ™‚æ‡‰å…ˆç¢ºèª CRM entity åç¨±ã€æ¬„ä½ logical nameã€æŸ¥è©¢æ¢ä»¶èˆ‡å¤–éƒ¨æœå‹™ä¾‹å¤–å¦‚ä½•è¢«è½‰æ›æˆ–è¨˜éŒ„ã€‚
+// ç¶­è­·é‡é»ï¼šå¾ŒçºŒä¿®æ”¹æ™‚æ‡‰å…ˆç†è§£æ—¢æœ‰å‘¼å«ç«¯èˆ‡å¤–éƒ¨ç³»çµ±å¥‘ç´„ï¼Œé¿å…æŠŠè¨»è§£æ•´ç†èª¤è®Šæˆè¡Œç‚ºé‡æ§‹ã€‚
+// è¡Œç‚ºä¿è­·ï¼šæœ¬è¨»è§£åƒ…è£œå……è¨­è¨ˆæ„åœ–èˆ‡ç¶­è­·è„ˆçµ¡ï¼Œä¸æ‡‰æ”¹è®Šä»»ä½•åŸ·è¡Œæµç¨‹ã€è³‡æ–™æ ¼å¼ã€åºåˆ—åŒ–çµæœæˆ–å¤–éƒ¨ API å¥‘ç´„ã€‚
+// ç·¨ç¢¼è¦æ±‚ï¼šæœ¬æª”æ¡ˆéœ€ç¶­æŒ UTF-8 without BOM èˆ‡ CRLFï¼Œä»¥ç¬¦åˆå°ˆæ¡ˆ .editorconfig èˆ‡ Windows/Visual Studio å·¥ä½œæµã€‚
+// ============================================================================
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -10,14 +23,14 @@ using ToolUtilityNameSpace.Factory;
 namespace ChurchReport.WebServiceConnector
 {
     /// <summary>
-    /// ¤W¶Ç¾ã¦X¸ê®Æ - ®Ö¤ßÃş§O (Partial)
-    /// ¥]§t¡GÄæ¦ì©w¸q¡B±`¼Æ¡B¥D­n¤J¤f¤èªk
+    /// ä¸Šå‚³æ•´åˆè³‡æ–™ - æ ¸å¿ƒé¡åˆ¥ (Partial)
+    /// åŒ…å«ï¼šæ¬„ä½å®šç¾©ã€å¸¸æ•¸ã€ä¸»è¦å…¥å£æ–¹æ³•
     /// </summary>
     public partial class UploadIntegrateData
     {
-        #region Äæ¦ì»P±`¼Æ
-        
-        // ³z¹L Factory ¨ú±o ToolUtilityClass ³æ¤@¹ê¨Ò
+        #region æ¬„ä½èˆ‡å¸¸æ•¸
+
+        // é€é Factory å–å¾— ToolUtilityClass å–®ä¸€å¯¦ä¾‹
         private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
         private LineNotifyUtility m_LineNotifyUtility = new LineNotifyUtility();
         private static Regex DigitsOnly = new Regex(@"[^\d]");
@@ -30,7 +43,7 @@ namespace ChurchReport.WebServiceConnector
         private const int MINIMUM_THRESHOLD = 4;
         private const int EMPTY_VALUE = -999999999;
 
-        #region °£¿ù¥Î°Ñ¼Æ
+        #region é™¤éŒ¯ç”¨åƒæ•¸
         private const int TOTAL_LEVEL = 1;
         private const int LEVEL_1 = 1;
         private const int LEVEL_2 = 2;
@@ -41,7 +54,7 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ¤W¶Ç¸ê®Æ®É©Ò»İ­nªº°Ñ¼Æ
+        #region ä¸Šå‚³è³‡æ–™æ™‚æ‰€éœ€è¦çš„åƒæ•¸
 
         MemberInfomationPackage m_MemberInfomationPackage = new MemberInfomationPackage();
         MemberInfomationPackage m_InitializedMemberInfomationPackage = new MemberInfomationPackage();
@@ -65,31 +78,31 @@ namespace ChurchReport.WebServiceConnector
 
         private const bool RACE_LEADER_CAN_CREATE_WEEKLYREPORT = true;
         static readonly object m_UploadDataLocker = new object();
-        private const String SET_IDENTITY_METHOD = "³z¹L¦^³øºô­¶¤â°Ê³]©w";
+        private const String SET_IDENTITY_METHOD = "é€éå›å ±ç¶²é æ‰‹å‹•è¨­å®š";
 
         List<MemberInfomation> m_GroupNamedListMemberInfomation = new List<MemberInfomation>();
 
         #endregion
 
-        #region ¥D­n¤J¤f¤èªk
+        #region ä¸»è¦å…¥å£æ–¹æ³•
 
         /// <summary>
-        /// ¤W¶Ç¤p²Õ¸ê®Æ¥Dµ{¦¡
+        /// ä¸Šå‚³å°çµ„è³‡æ–™ä¸»ç¨‹å¼
         /// </summary>
         public void UploadData(
-            DateTime aSelectedDate, 
-            String Account, 
-            String Password, 
-            String LoginType, 
-            String GroupType, 
-            String ListEntityId, 
-            ref String WeeklyReportEntityId, 
-            DateTime aSmallGroupDate, 
-            SmallGroupData aSmallGroupData, 
-            ref String WeeklyReportData, 
-            ref String WeeklyReportAnalysis, 
-            String HappyWeekIndex, 
-            String HappyWeekTopic, 
+            DateTime aSelectedDate,
+            String Account,
+            String Password,
+            String LoginType,
+            String GroupType,
+            String ListEntityId,
+            ref String WeeklyReportEntityId,
+            DateTime aSmallGroupDate,
+            SmallGroupData aSmallGroupData,
+            ref String WeeklyReportData,
+            ref String WeeklyReportAnalysis,
+            String HappyWeekIndex,
+            String HappyWeekTopic,
             bool PauseCheckBox)
         {
             try
@@ -97,27 +110,27 @@ namespace ChurchReport.WebServiceConnector
                 m_LoginType = LoginType;
                 m_GroupType = GroupType;
 
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "³]©w°Ñ¼Æ");
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "è¨­å®šåƒæ•¸");
                 SetupCommonParameter(aSelectedDate, Account, Password, aSmallGroupDate, ListEntityId, WeeklyReportEntityId);
 
                 Entity aGraceLeaderWeeklyReportEntity = null;
 
-                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "¦^¶Çµ²ªG");
+                this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "å›å‚³çµæœ");
                 this.m_FeedBackReport.Clear();
                 this.ResetDictionary(m_Sunday);
 
                 String GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ListEntity, "listname");
                 String FilteredGroupName = ToolUtilityClass.DeletePresentRate(GroupName);
                 String FilteredOutDigitGroupName = FilteredGroupName.Replace(" ", "");
-                
-                AddToDictionary(ref this.m_FeedBackReport, "¥D¤é¥X®u²Î­pªíÀY", "¥D¤é¥X®u²Î­p:");
+
+                AddToDictionary(ref this.m_FeedBackReport, "ä¸»æ—¥å‡ºå¸­çµ±è¨ˆè¡¨é ­", "ä¸»æ—¥å‡ºå¸­çµ±è¨ˆ:");
 
                 Guid aWeeklyReportId = m_WeeklyReportEntity != null ? m_WeeklyReportEntity.Id : Guid.Empty;
 
-                // ¬ö¿ı¥Ø«eª¬ºA¡A¨ó§U¶EÂ_¬°¦ó·|¨«¨ì«Ø¥ß¬yµ{
+                // ç´€éŒ„ç›®å‰ç‹€æ…‹ï¼Œå”åŠ©è¨ºæ–·ç‚ºä½•æœƒèµ°åˆ°å»ºç«‹æµç¨‹
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"UploadData: ListEntityId={ (m_ListEntity?.Id.ToString() ?? "null") }, PassedWeeklyReportEntityId={WeeklyReportEntityId}, BoundWeeklyReportId={(aWeeklyReportId==Guid.Empty?"Empty":aWeeklyReportId.ToString())}");
 
-                // ½T«O¦pªG m_WeeklyReportEntity ¤w³Q§ä¨ì¡A¨Ï¥Î¨ä Id
+                // ç¢ºä¿å¦‚æœ m_WeeklyReportEntity å·²è¢«æ‰¾åˆ°ï¼Œä½¿ç”¨å…¶ Id
                 if (m_WeeklyReportEntity != null && aWeeklyReportId == Guid.Empty)
                 {
                     aWeeklyReportId = m_WeeklyReportEntity.Id;
@@ -131,7 +144,7 @@ namespace ChurchReport.WebServiceConnector
                     {
                         if (aWeeklyReportId == Guid.Empty)
                         {
-                            // «Ø¥ß¶g³ø
+                            // å»ºç«‹é€±å ±
                             aGraceLeaderWeeklyReportEntity = ProcessCreateWeeklyReport(
                                 GroupName,
                                 ref WeeklyReportEntityId,
@@ -142,19 +155,19 @@ namespace ChurchReport.WebServiceConnector
                                 PauseCheckBox);
                         }
 
-        
 
-        
+
+
 
                         else
                         {
-                            // §ó·s¶g³ø
+                            // æ›´æ–°é€±å ±
                             aGraceLeaderWeeklyReportEntity = ProcessUpdateWeeklyReport(
-                                ref aWeeklyReportId, 
-                                aSmallGroupData, 
-                                WeeklyReportData, 
-                                HappyWeekIndex, 
-                                HappyWeekTopic, 
+                                ref aWeeklyReportId,
+                                aSmallGroupData,
+                                WeeklyReportData,
+                                HappyWeekIndex,
+                                HappyWeekTopic,
                                 PauseCheckBox);
                         }
                     }
@@ -162,14 +175,14 @@ namespace ChurchReport.WebServiceConnector
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
         }
 
         /// <summary>
-        /// ³B²z«Ø¥ß¶g³ø¬yµ{
+        /// è™•ç†å»ºç«‹é€±å ±æµç¨‹
         /// </summary>
         private Entity ProcessCreateWeeklyReport(
             String GroupName,
@@ -180,11 +193,11 @@ namespace ChurchReport.WebServiceConnector
             String HappyWeekTopic,
             bool PauseCheckBox)
         {
-            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "¨Ì¾Ú¦³®Äªº¶g³øªº¤p²Õ²Õ­û¦W³æ·í§@¶g³ø¥X®u²vªº¤À¥À");
+            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "ä¾æ“šæœ‰æ•ˆçš„é€±å ±çš„å°çµ„çµ„å“¡åå–®ç•¶ä½œé€±å ±å‡ºå¸­ç‡çš„åˆ†æ¯");
             Double ValidNumber = this.GetEffecttiveSmallGroupNumber(m_ListEntity.Id);
 
-            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "­n«Ø¥ß¶g³ø");
-            
+            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "è¦å»ºç«‹é€±å ±");
+
             Double aWeeklySundayRate = 0.0;
             Double aWeeklySmallGroupRate = 0.0;
             int aWeeklySundayNumber = 0;
@@ -192,8 +205,8 @@ namespace ChurchReport.WebServiceConnector
 
             GroupWeeklyReportGuid aGroupWeeklyReportGuid = new GroupWeeklyReportGuid
             {
-                WeeklyReportGuid = WeeklyReportEntityId != null && WeeklyReportEntityId != "" 
-                    ? new Guid(WeeklyReportEntityId) 
+                WeeklyReportGuid = WeeklyReportEntityId != null && WeeklyReportEntityId != ""
+                    ? new Guid(WeeklyReportEntityId)
                     : new Guid(),
                 GroupName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref this.m_ListEntity, "listname"),
                 SmallGroupLeaderName = this.m_ToolUtilityClass.GetEntityLookupDisplayName(ref this.m_ListEntity, "new_contact_family_leader_list"),
@@ -203,25 +216,25 @@ namespace ChurchReport.WebServiceConnector
             };
 
             return CreateWeeklyReportAndPresentRecord(
-                GroupName, 
-                aGroupWeeklyReportGuid, 
-                ref WeeklyReportEntityId, 
-                ref m_ListEntity, 
-                "", 
-                ValidNumber, 
-                ref aWeeklySundayRate, 
-                ref aWeeklySmallGroupRate, 
-                ref aWeeklySundayNumber, 
-                ref aWeeklySmallGroupNumber, 
-                aSmallGroupData, 
-                WeeklyReportData, 
-                HappyWeekIndex, 
-                HappyWeekTopic, 
+                GroupName,
+                aGroupWeeklyReportGuid,
+                ref WeeklyReportEntityId,
+                ref m_ListEntity,
+                "",
+                ValidNumber,
+                ref aWeeklySundayRate,
+                ref aWeeklySmallGroupRate,
+                ref aWeeklySundayNumber,
+                ref aWeeklySmallGroupNumber,
+                aSmallGroupData,
+                WeeklyReportData,
+                HappyWeekIndex,
+                HappyWeekTopic,
                 PauseCheckBox);
         }
 
         /// <summary>
-        /// ³B²z§ó·s¶g³ø¬yµ{
+        /// è™•ç†æ›´æ–°é€±å ±æµç¨‹
         /// </summary>
         private Entity ProcessUpdateWeeklyReport(
             ref Guid aWeeklyReportId,
@@ -242,18 +255,18 @@ namespace ChurchReport.WebServiceConnector
             };
 
             return UpdateWeeklyReportProcess(
-                aGroupWeeklyReportGuid, 
-                ref m_ListEntity, 
-                ref aWeeklyReportId, 
-                aSmallGroupData, 
-                WeeklyReportData, 
-                HappyWeekIndex, 
-                HappyWeekTopic, 
+                aGroupWeeklyReportGuid,
+                ref m_ListEntity,
+                ref aWeeklyReportId,
+                aSmallGroupData,
+                WeeklyReportData,
+                HappyWeekIndex,
+                HappyWeekTopic,
                 PauseCheckBox);
         }
 
         /// <summary>
-        /// §R°£¦¨­û
+        /// åˆªé™¤æˆå“¡
         /// </summary>
         public void DeleteMember(String Account, String Password, String ListEntityId, Member aMemberToBeDeleted)
         {
@@ -269,7 +282,7 @@ namespace ChurchReport.WebServiceConnector
 
                 if (PresentRecordEntity != null)
                 {
-                    m_ToolUtilityClass.RemoveMembersToMarketingList(new Guid(ListEntityId), 
+                    m_ToolUtilityClass.RemoveMembersToMarketingList(new Guid(ListEntityId),
                         this.m_ToolUtilityClass.GetEntityLookupAttribute(ref PresentRecordEntity, "new_contact_new_present_record"));
                     m_ToolUtilityClass.DeleteEntity("new_present_record", new Guid(aMemberToBeDeleted.PresentRecordId));
                 }
@@ -289,14 +302,14 @@ namespace ChurchReport.WebServiceConnector
                     : this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(Password);
 
                 String LoginContactFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref LoginContact, "fullname");
-                String Result = $"{LoginContactFullName} ±N {aMemberToBeDeleted.FullName} ±q{aMemberToBeDeleted.Group}²¾°£±¼¤F!";
+                String Result = $"{LoginContactFullName} å°‡ {aMemberToBeDeleted.FullName} å¾{aMemberToBeDeleted.Group}ç§»é™¤æ‰äº†!";
 
                 this.m_LineNotifyUtility.SendResultLine(Result, aListEntity);
                 this.m_LineNotifyUtility.SendListMemberLine(aListEntity);
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }
@@ -304,24 +317,24 @@ namespace ChurchReport.WebServiceConnector
 
         #endregion
 
-        #region ³]©w°Ñ¼Æ¤èªk
+        #region è¨­å®šåƒæ•¸æ–¹æ³•
 
         private void SetupCommonParameter(
-            DateTime aSelectDate, 
-            String Account, 
-            String Password, 
-            DateTime aSmallGroupDate, 
-            String ListEntityId, 
+            DateTime aSelectDate,
+            String Account,
+            String Password,
+            DateTime aSmallGroupDate,
+            String ListEntityId,
             String WeeklyReportEntityId)
         {
             try
             {
-                // ¨Ì¾Ú³]©wÀÉªº¨C¶g²Ä¤@¤é³W«h¡A¶°¤¤­pºâ©ÒÄİ¶g¦¸ªº¥D¤é¤é´Á¡C
+                // ä¾æ“šè¨­å®šæª”çš„æ¯é€±ç¬¬ä¸€æ—¥è¦å‰‡ï¼Œé›†ä¸­è¨ˆç®—æ‰€å±¬é€±æ¬¡çš„ä¸»æ—¥æ—¥æœŸã€‚
                 m_Sunday = ChurchReport.Services.SundayCalculator.CalculateSunday(
                     aSmallGroupDate,
                     ChurchReport.Services.WeeklyScheduleProvider.FirstDayOfWeek);
 
-                // §ä¨ì¾Ş§@¨Ï¥ÎªÌ
+                // æ‰¾åˆ°æ“ä½œä½¿ç”¨è€…
                 this.m_ContactEntity = Account != "LineIdLogin"
                     ? this.m_ToolUtilityClass.RetrieveContactEntityByAccountNumber(Account, Password)
                     : this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(Password);
@@ -329,15 +342,15 @@ namespace ChurchReport.WebServiceConnector
                 m_ContactId = m_ContactEntity.Id;
                 m_OwnerId = this.m_ToolUtilityClass.GetOwnerId(m_ContactEntity);
 
-                // »`¶°«Ø¥ß¶g³ø©Ò»İ­nªºÄİ©Ê
+                // è’é›†å»ºç«‹é€±å ±æ‰€éœ€è¦çš„å±¬æ€§
                 m_DecipleGroupListId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ContactEntity, "new_deciple_group_list_contact");
                 m_RaceLeaderId = this.m_ToolUtilityClass.GetEntityLookupAttribute(ref m_ContactEntity, "new_race_leader_contact");
 
-                this.m_ListEntity = !string.IsNullOrEmpty(ListEntityId) 
-                    ? m_ToolUtilityClass.RetrieveEntity("list", new Guid(ListEntityId)) 
+                this.m_ListEntity = !string.IsNullOrEmpty(ListEntityId)
+                    ? m_ToolUtilityClass.RetrieveEntity("list", new Guid(ListEntityId))
                     : null;
-                    
-                // ¦pªG©I¥sºİ¨S¦³ª½±µ¶Ç¤J¶g³ø Id¡A¹Á¸Õ¨Ì¾Ú¥D¤é»P²M³æ§ä¥X¹ïÀ³ªº¶g³ø
+
+                // å¦‚æœå‘¼å«ç«¯æ²’æœ‰ç›´æ¥å‚³å…¥é€±å ± Idï¼Œå˜—è©¦ä¾æ“šä¸»æ—¥èˆ‡æ¸…å–®æ‰¾å‡ºå°æ‡‰çš„é€±å ±
                 this.m_WeeklyReportEntity = !string.IsNullOrEmpty(WeeklyReportEntityId)
                     ? m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", new Guid(WeeklyReportEntityId))
                     : null;
@@ -349,24 +362,24 @@ namespace ChurchReport.WebServiceConnector
                         var weeklyCollection = m_ToolUtilityClass.QueryWeeklyReportBySunday(m_Sunday, m_ListEntity.Id);
                         if (weeklyCollection != null && weeklyCollection.Entities.Count > 0)
                         {
-                            // ­Y¦³¦hµ§«h¨ú²Ä¤@µ§¡]Á×§K¦]¬°¥¼´£¨Ñ WeeklyReportEntityId ¦Ó­«½Æ«Ø¥ß¡^
+                            // è‹¥æœ‰å¤šç­†å‰‡å–ç¬¬ä¸€ç­†ï¼ˆé¿å…å› ç‚ºæœªæä¾› WeeklyReportEntityId è€Œé‡è¤‡å»ºç«‹ï¼‰
                             this.m_WeeklyReportEntity = weeklyCollection.Entities[0];
-                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"§ä¨ì¬J¦³¶g³ø (count={weeklyCollection.Entities.Count})¡A±Ä¥Î Id = {this.m_WeeklyReportEntity.Id}");
+                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"æ‰¾åˆ°æ—¢æœ‰é€±å ± (count={weeklyCollection.Entities.Count})ï¼Œæ¡ç”¨ Id = {this.m_WeeklyReportEntity.Id}");
                         }
                         else
                         {
-                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "¥¼§ä¨ì¬J¦³¶g³ø¡A±N¥H«Ø¥ß·s¶g³ø³B²z");
+                            this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "æœªæ‰¾åˆ°æ—¢æœ‰é€±å ±ï¼Œå°‡ä»¥å»ºç«‹æ–°é€±å ±è™•ç†");
                         }
                     }
                     catch (Exception ex)
                     {
-                        this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"¬d¸ß¬J¦³¶g³ø®Éµo¥Í¿ù»~: {ex.Message}");
+                        this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, $"æŸ¥è©¢æ—¢æœ‰é€±å ±æ™‚ç™¼ç”ŸéŒ¯èª¤: {ex.Message}");
                     }
                 }
             }
             catch (System.Exception Exception)
             {
-                String ErrorString = $"¿ù»~°T®§ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
+                String ErrorString = $"éŒ¯èª¤è¨Šæ¯ : FullName = {this.GetType().FullName}, Time = {DateTime.Now}, Description = {Exception}";
                 this.m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, ErrorString);
                 throw;
             }

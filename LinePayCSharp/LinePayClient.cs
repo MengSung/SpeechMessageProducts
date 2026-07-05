@@ -1,4 +1,17 @@
-﻿using Line.Pay.Models;
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：LinePayCSharp/LinePayClient.cs
+// 所屬區塊：LINE Pay C# 整合封裝，處理付款 API 模型與呼叫。
+// 檔案責任：此檔案位於 LINE 或 RichMenu 相關流程，註解重點在說明 LINE API 契約、使用者狀態、通知副作用與 workflow 串接方式。
+// 主要型別：class LinePayClient
+// 主要成員：GetPaymentAsync、ReserveAsync、ConfirmAsync、RefundAsync、GetAuthorizationAsync、CaptureAsync、VoidAuthorizationAsync、PreApprovedPayAsync、RegKeyCheckAsync、RegKeyExpireAsync
+// 引用命名空間：Line.Pay.Models、Newtonsoft.Json、System、System.Net.Http、System.Text、System.Threading.Tasks
+// 閱讀路徑：閱讀此檔案時應先確認 LINE userId/groupId/roomId、replyToken、push/reply API、RichMenu alias 與使用者狀態是否保持正確對應。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
+using Line.Pay.Models;
 using Newtonsoft.Json;
 using System;
 using System.Net.Http;
@@ -17,7 +30,7 @@ namespace Line.Pay
         static private Uri realUri = new Uri("https://api-pay.line.me");
         static private Uri sandboxUri = new Uri("https://sandbox-api-pay.line.me");
         private string version;
-       
+
         static private JsonSerializerSettings serializerSettings = new JsonSerializerSettings() {
             DefaultValueHandling = DefaultValueHandling.Ignore
         };
@@ -68,7 +81,7 @@ namespace Line.Pay
         }
 
 
-        #region Message 
+        #region Message
 
         /// <summary>
         /// Get Payment Details AP
@@ -165,7 +178,7 @@ namespace Line.Pay
         /// <param name="refund">Refund</param>
         /// <returns>RefundResponse</returns>
         public async Task<RefundResponse> RefundAsync(Int64 transactionId, Refund refund)
-        {           
+        {
             var response = await client.PostAsync($"/{version}/payments/{transactionId}/refund", new StringContent(JsonConvert.SerializeObject(refund, serializerSettings), Encoding.UTF8, "application/json"));
             if (response.IsSuccessStatusCode)
                 return JsonConvert.DeserializeObject<RefundResponse>(await response.Content.ReadAsStringAsync());
@@ -175,8 +188,8 @@ namespace Line.Pay
 
         /// <summary>
         /// Get Authorization Details API
-        /// Gets the details authorized with LINE Pay. This API only gets data that is authorized or whose authorization is voided; 
-        /// the one that is already captured can be viewed by using "Get Payment Details API”. 
+        /// Gets the details authorized with LINE Pay. This API only gets data that is authorized or whose authorization is voided;
+        /// the one that is already captured can be viewed by using "Get Payment Details API”.
         /// </summary>
         /// <param name="transactionId">Transaction number issued by LINE Pay</param>
         /// <param name="orderId">Order number of Merchant</param>

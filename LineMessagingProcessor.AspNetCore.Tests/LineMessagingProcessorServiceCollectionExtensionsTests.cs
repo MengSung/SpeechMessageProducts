@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：LineMessagingProcessor.AspNetCore.Tests/LineMessagingProcessorServiceCollectionExtensionsTests.cs
+// 所屬區塊：LINE Messaging Processor 的 ASP.NET Core DI 與整合測試區塊。
+// 檔案責任：此檔案屬於測試範圍，註解重點在說明測試意圖、固定的回歸條件，以及避免未來重構時誤改既有契約。
+// 主要型別：class LineMessagingProcessorServiceCollectionExtensionsTests、class FakeRichMenuProcessor、class FakeRichMenuCatalog
+// 主要成員：AddLineMessagingProcessor_registers_client_processor_and_workflow、AddLineRichMenus_updates_text_trigger_options_when_called_after_default_registration、AddLineMessagingProcessor_passes_aspnetcore_validate_on_build、AddLineRichMenuProvisioning_registers_product_catalog_and_provisioning_workflow、CreateRichMenuAsync、UploadRichMenuPngImageAsync、GetRichMenuListAsync、SetDefaultRichMenuAsync、GetDefaultRichMenuIdAsync、CancelDefaultRichMenuAsync
+// 引用命名空間：FluentAssertions、Line.Messaging、LineMessagingProcessor.RichMenus、LineMessagingProcessor.Workflows、Microsoft.Extensions.DependencyInjection、Microsoft.Extensions.DependencyInjection.Extensions、Xunit
+// 閱讀路徑：閱讀此檔案時應先看測試名稱、Arrange/Act/Assert 結構與 mock/fake 設定，因為它們描述了被保護的產品規則與外部契約。
+// 維護重點：測試註解應協助理解案例保護的規則，不應把斷言改成只配合目前實作的描述。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using FluentAssertions;
 using Line.Messaging;
 using LineMessagingProcessor.RichMenus;
@@ -8,8 +21,15 @@ using Xunit;
 
 namespace LineMessagingProcessor.AspNetCore.Tests;
 
+/// <summary>
+/// 驗證 ASP.NET Core DI extension 對 LINE 與 RichMenu 共用工作流的註冊邊界。
+/// 這些測試鎖住「基礎 RichMenu services 可自動註冊，但產品 catalog 必須由產品明確提供」的規則。
+/// </summary>
 public sealed class LineMessagingProcessorServiceCollectionExtensionsTests
 {
+    /// <summary>
+    /// 確認一般 LINE processor 註冊會同時提供 RichMenu workflow、assignment workflow 與文字 trigger policy。
+    /// </summary>
     [Fact]
     public void AddLineMessagingProcessor_registers_client_processor_and_workflow()
     {
@@ -32,6 +52,9 @@ public sealed class LineMessagingProcessorServiceCollectionExtensionsTests
         provider.GetServices<IRichMenuPolicy>().Should().ContainSingle(policy => policy is LineRichMenuTextTriggerPolicy);
     }
 
+    /// <summary>
+    /// 確認產品在預設註冊後仍可覆蓋 RichMenu 文字 trigger 設定，避免 DI 註冊順序讓空設定永久生效。
+    /// </summary>
     [Fact]
     public async Task AddLineRichMenus_updates_text_trigger_options_when_called_after_default_registration()
     {
@@ -46,6 +69,8 @@ public sealed class LineMessagingProcessorServiceCollectionExtensionsTests
         {
             options.ExactTextToMenuKey["member center"] = "member-main";
         });
+        // 測試只關心 orchestrator 能否使用覆蓋後的文字 trigger 設定，
+        // 因此以 fake processor 與可預期 cache 取代真實 LINE API 呼叫。
         services.RemoveAll<ILineRichMenuProcessor>();
         services.RemoveAll<ILineRichMenuIdCache>();
         services.AddSingleton<ILineRichMenuProcessor, FakeRichMenuProcessor>();
@@ -70,6 +95,9 @@ public sealed class LineMessagingProcessorServiceCollectionExtensionsTests
         result.AssignedMenuKey.Should().Be("member-main");
     }
 
+    /// <summary>
+    /// 確認預設註冊在 ASP.NET Core ValidateOnBuild/ValidateScopes 下能被完整解析。
+    /// </summary>
     [Fact]
     public void AddLineMessagingProcessor_passes_aspnetcore_validate_on_build()
     {
@@ -91,6 +119,9 @@ public sealed class LineMessagingProcessorServiceCollectionExtensionsTests
         provider.GetRequiredService<ILineRichMenuWorkflow>().Should().NotBeNull();
     }
 
+    /// <summary>
+    /// 確認 provisioning 註冊必須由產品提供 catalog，並會掛上對應的同步 workflow。
+    /// </summary>
     [Fact]
     public void AddLineRichMenuProvisioning_registers_product_catalog_and_provisioning_workflow()
     {
@@ -113,6 +144,10 @@ public sealed class LineMessagingProcessorServiceCollectionExtensionsTests
         provider.GetRequiredService<ILineRichMenuProvisioningWorkflow>().Should().BeOfType<LineRichMenuProvisioningWorkflow>();
     }
 
+    /// <summary>
+    /// 供 DI 測試使用的 RichMenu processor 假物件。
+    /// 它不呼叫 LINE，只提供可被 assignment/orchestration services 解析的最小行為。
+    /// </summary>
     private sealed class FakeRichMenuProcessor : ILineRichMenuProcessor
     {
         public Task<string> CreateRichMenuAsync(RichMenu richMenu) => Task.FromResult("created-rich-menu");
@@ -152,6 +187,10 @@ public sealed class LineMessagingProcessorServiceCollectionExtensionsTests
             });
     }
 
+    /// <summary>
+    /// 供 provisioning DI 測試使用的產品 catalog 假物件。
+    /// 空清單即可證明 DI 可以解析產品 catalog 型別，不需要真的佈建 LINE RichMenu。
+    /// </summary>
     private sealed class FakeRichMenuCatalog : ILineRichMenuCatalog
     {
         public Task<IReadOnlyList<LineRichMenuDefinition>> GetDefinitionsAsync(CancellationToken cancellationToken = default)

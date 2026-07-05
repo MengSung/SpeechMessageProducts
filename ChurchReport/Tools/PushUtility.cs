@@ -1,3 +1,16 @@
+// ============================================================================
+// AI-繁體中文檔案註解
+// 檔案路徑：ChurchReport/Tools/PushUtility.cs
+// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
+// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
+// 主要型別：class PushUtility
+// 主要成員：CreateDefaultNotificationWorkflow、CreateDefaultRichMenuWorkflow、CreateDefaultRichMenuAssignmentWorkflow、SendBestEffortSdkMessagesAsync、SendMessage、SendMessageOrThrowAsync、SendMessagesOrThrowAsync、SendReliableMessageAsync、SendImage、SendVideo
+// 引用命名空間：Line.Messaging、LineMessagingProcessor、LineMessagingProcessor.RichMenus、LineMessagingProcessor.Workflows、System、System.Collections.Generic、System.IO、System.Threading.Tasks
+// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
+// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
+// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
+// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// ============================================================================
 using Line.Messaging;
 using LineMessagingProcessor;
 using LineMessagingProcessor.RichMenus;
@@ -14,8 +27,19 @@ namespace ChurchReport.Tools
         #region ???身摰?
         private LineMessagingClient m_LineMessagingClient { get; }
         private readonly ILineNotificationWorkflow _lineNotificationWorkflow;
+        /// <summary>
+        /// 舊版 create/upload/link 流程的相容入口；保留欄位是為了不破壞既有建構式注入形狀。
+        /// 目前新增/刪除 legacy-auth RichMenu 主要改走 assignment workflow，避免產品層重複佈建圖片。
+        /// </summary>
         private readonly ILineRichMenuWorkflow _lineRichMenuWorkflow;
+        /// <summary>
+        /// 共用 RichMenu 指派流程，負責把 ChurchReport 使用者切到 catalog 中的 legacy-auth menu key，
+        /// 並將 provider 例外轉成一致的 RichMenu exception/result 語意。
+        /// </summary>
         private readonly ILineRichMenuAssignmentWorkflow _lineRichMenuAssignmentWorkflow;
+        /// <summary>
+        /// ChurchReport 既有認證選單的產品層 menu key；實際 richMenuId 由 catalog/provisioning/cache 解析。
+        /// </summary>
         private const string LegacyAuthRichMenuKey = "legacy-auth";
 
         public PushUtility(LineMessagingClient LineMessagingClient)
@@ -71,11 +95,14 @@ namespace ChurchReport.Tools
 
         private static ILineRichMenuWorkflow CreateDefaultRichMenuWorkflow(LineMessagingClient lineMessagingClient)
         {
+            // 保留舊 workflow factory，讓仍注入 ILineRichMenuWorkflow 的測試或呼叫端可解析；
+            // 新的 legacy-auth 指派行為則由 assignment workflow 處理。
             return new LineRichMenuWorkflow(new LineMessagingProcessorRichMenuAdapter(new LineMessagingProcessorClass(lineMessagingClient)));
         }
 
         private static ILineRichMenuAssignmentWorkflow CreateDefaultRichMenuAssignmentWorkflow(LineMessagingClient lineMessagingClient)
         {
+            // 預設 assignment workflow 使用產品 catalog 解析 legacy-auth，讓 ChurchReport 工具類不再直接操作 provider richMenuId。
             var processor = new LineMessagingProcessorRichMenuAdapter(new LineMessagingProcessorClass(lineMessagingClient));
             return new LineRichMenuAssignmentWorkflow(
                 processor,
@@ -181,22 +208,21 @@ namespace ChurchReport.Tools
         }
 
         /// <summary>
-        /// Sends a required text notification with LINE retry-key semantics.
-        /// This method is intentionally different from <see cref="SendMessage(string, string)"/>:
-        /// SendMessage is the legacy best-effort path and still swallows failures; this method is
-        /// for payment or required notifications where failure must remain visible to the caller.
+        /// 送出需要保留 LINE retry-key 語意的必要文字通知。
+        /// 這個方法刻意不同於 <see cref="SendMessage(string, string)"/>：
+        /// SendMessage 是舊版 best-effort 路徑，仍會吞掉失敗；此方法則用於付款或必要通知，
+        /// 讓傳送失敗必須對呼叫端保持可見。
         ///
-        /// When an ILineNotificationWorkflow is injected, the request is routed through the shared
-        /// product-agnostic LINE workflow with the retry key preserved. ChurchReport-specific CRM,
-        /// payment, donation, and MVC decisions stay in ChurchReport.
+        /// 注入 ILineNotificationWorkflow 時，請求會走共用且不綁定產品的 LINE workflow，
+        /// 並保留 retry key。ChurchReport 專屬的 CRM、付款、奉獻與 MVC 決策仍留在 ChurchReport。
         ///
-        /// The legacy <c>new PushUtility(client)</c> constructor now creates this shared workflow
-        /// automatically, so older call sites also use the same processor-backed path.
+        /// 舊版 <c>new PushUtility(client)</c> 建構式現在會自動建立這個共用 workflow，
+        /// 因此舊呼叫端也會使用同一條 processor-backed 路徑。
         /// </summary>
-        /// <param name="UserId">LINE user id. Required notifications must have an explicit recipient.</param>
-        /// <param name="Message">Text content to send.</param>
+        /// <param name="UserId">LINE 使用者 ID。必要通知必須有明確收件者。</param>
+        /// <param name="Message">要送出的文字內容。</param>
         /// <param name="retryKey">
-        /// LINE retry key used to identify retried sends and reduce duplicate payment notifications.
+        /// LINE retry key，用來識別重試送出並降低付款通知重複送達。
         /// </param>
         public async Task SendReliableMessageAsync(string UserId, string Message, string? retryKey)
         {
