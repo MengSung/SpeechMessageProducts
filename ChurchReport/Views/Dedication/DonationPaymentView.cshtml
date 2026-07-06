@@ -99,6 +99,30 @@
 
   /* 放大 ATM 資訊區域字體 */
   #atmfield { font-size: 150%; }
+
+  /* ATM/匯款資訊複製按鈕：維持醒目對比，方便奉獻者在手機上直接複製虛擬帳號資訊。 */
+  .atm-copy-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: #c2410c;
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 700;
+    margin-top: 10px;
+    padding: 8px 14px;
+  }
+
+  .atm-copy-button:hover {
+    background: #9a3412;
+  }
+
+  .atm-copy-button:focus-visible {
+    outline: 3px solid #fdba74;
+    outline-offset: 2px;
+  }
   
   /* 信用卡列表區域重新設計 */
   .card-list {
@@ -673,6 +697,10 @@
             <!-- ==================== ATM資訊區域 ==================== -->
             <div id="atm-info" class="atm-info" style="display: none;">
                 <h5 id="atmfield"></h5>
+                @* 此按鈕只在 ATM/匯款或後端回傳「虛擬帳號」結果時顯示，避免信用卡錯誤訊息出現無關複製操作。 *@
+                <button id="atm-copy-button" class="atm-copy-button" type="button" style="display: none;" onclick="CopyAtmPaymentInfo()">
+                    複製 ATM/匯款資訊
+                </button>
             </div>
 
                         <!-- ==================== 定期定額清單 ==================== -->
@@ -922,6 +950,7 @@
         var form = getFormInstance();
         document.getElementById('atmfield').innerHTML = "";
         document.getElementById('atm-info').style.display = 'none';  // 隱藏 ATM 資訊
+        setAtmCopyButtonVisible(false);
         form.itemOption('DedicationAmount', { editorOptions: { width: 200 } });
         form.itemOption("DedicationAmount", "label", { text: "奉獻金額" });
         form.itemOption("DedicationAmount", "editorOptions", { placeholder: "請輸入奉獻金額" });
@@ -1109,15 +1138,84 @@
                 ShowToast("金流未回傳信用卡付款頁，請稍後再試或聯絡教會同工。", "error", 3000);
                 document.getElementById('atmfield').innerHTML = data.message || "金流未回傳信用卡付款頁";
                 document.getElementById('atm-info').style.display = 'block';
+                setAtmCopyButtonVisible(false);
             } else {
                 ShowToast(data.message, "success", 2000);
                 document.getElementById('atmfield').innerHTML = data.DedicationResult;
                 document.getElementById('atm-info').style.display = 'block';  // 顯示 ATM 資訊
+                setAtmCopyButtonVisible(payWay == "ATM轉帳/匯款" || payWay == "虛擬帳號");
             }
         } else {
             ShowToast(data.message, "error", 3000);
             document.getElementById('atmfield').innerHTML = data.message;
             document.getElementById('atm-info').style.display = 'block';  // 顯示錯誤訊息
+            setAtmCopyButtonVisible(false);
+        }
+    }
+
+    function setAtmCopyButtonVisible(visible) {
+        // 集中管理按鈕顯示狀態，避免 reset、成功分支、錯誤分支各自操作造成狀態殘留。
+        var button = document.getElementById('atm-copy-button');
+        if (button) {
+            button.style.display = visible ? 'inline-flex' : 'none';
+        }
+    }
+
+    function CopyAtmPaymentInfo() {
+        // 從畫面上的 ATM 資訊區直接取文字，確保複製內容與使用者看到的付款資訊一致。
+        var atmField = document.getElementById('atmfield');
+        if (!atmField) {
+            ShowToast("找不到 ATM/匯款資訊，無法複製。", "error", 2500);
+            return;
+        }
+
+        var text = (atmField.innerText || atmField.textContent || "").trim();
+        // LINE 發送結果是狀態提示，不是匯款必要資訊；複製給奉獻者時只保留付款資訊本體。
+        var lineResultIndex = text.indexOf("LINE 發送結果");
+        if (lineResultIndex >= 0) {
+            text = text.substring(0, lineResultIndex).trim();
+        }
+
+        if (!text) {
+            ShowToast("ATM/匯款資訊是空白，無法複製。", "error", 2500);
+            return;
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text)
+                .then(function () {
+                    ShowToast("已複製 ATM/匯款資訊。", "success", 1800);
+                })
+                .catch(function (error) {
+                    fallbackCopyAtmPaymentInfo(text, error);
+                });
+            return;
+        }
+
+        fallbackCopyAtmPaymentInfo(text);
+    }
+
+    function fallbackCopyAtmPaymentInfo(text, originalError) {
+        // 非 HTTPS 或舊版 WebView 可能沒有 navigator.clipboard；
+        // 使用隱藏 textarea 保留舊瀏覽器與內嵌瀏覽器的複製能力。
+        var textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.setAttribute('readonly', '');
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        textArea.style.top = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            var copied = document.execCommand('copy');
+            ShowToast(copied ? "已複製 ATM/匯款資訊。" : "複製失敗，請手動選取 ATM/匯款資訊。", copied ? "success" : "error", 2500);
+        } catch (error) {
+            var message = originalError && originalError.message ? originalError.message : error.message;
+            ShowToast("複製失敗：" + message, "error", 3000);
+        } finally {
+            document.body.removeChild(textArea);
         }
     }
 

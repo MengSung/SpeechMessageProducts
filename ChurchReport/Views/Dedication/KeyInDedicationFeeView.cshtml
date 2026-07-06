@@ -472,7 +472,8 @@
 </form>
 
 <div id="samenamecontainer" style="font-family:標楷體;font-size:100%; color: darkslateblue; text-align:left;font-weight:bold; display:none;">
-    <h5 id="resultfield"></h5>
+    @* 後端成功訊息會追加 LINE 發送結果；保留換行顯示可避免狀態文字擠成單行。 *@
+    <h5 id="resultfield" style="white-space: pre-line;"></h5>
 
 
     <script>

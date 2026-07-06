@@ -111,10 +111,51 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
             "d2da3967-e0fc-4f01-9efa-414d221e1e11",
             Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
 
-        warning.Should().BeEmpty("備援 LINE ID 成功送出後，頁面不應再顯示 LINE 未送出的警告");
+        warning.Should().Contain("LINE 發送結果：成功發送", "備援 LINE ID 成功送出後，頁面應明確顯示 LINE 發送成功");
         processor.AttemptedLineIds.Should().Equal("UstalePrimary", "UbackupValid");
         processor.LastDeliveredMessage.Should().Be("ATM payment instructions");
         processor.LastDeliveredRetryKey.Should().Be("d2da3967-e0fc-4f01-9efa-414d221e1e11");
+    }
+
+    [Fact]
+    public async Task TrySendAtmPaymentInstructionsAsync_reports_failure_reason_when_all_line_ids_fail()
+    {
+        // 所有候選 LINE ID 都被 provider 拒收時，頁面必須顯示最後一次失敗原因；
+        // 這能避免使用者只看到 ATM 帳號，卻不知道 LINE 推播其實沒有送達。
+        var processor = (AtmNotificationProbeProcessor)RuntimeHelpers.GetUninitializedObject(
+            typeof(AtmNotificationProbeProcessor));
+        processor.RejectAllLineIds = true;
+
+        var result = await InvokeTrySendAtmPaymentInstructionsAsync(
+            processor,
+            new[] { "Uprimary", "Ubackup" },
+            "ATM payment instructions",
+            "d2da3967-e0fc-4f01-9efa-414d221e1e11",
+            Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
+
+        result.Should().Contain("LINE 發送結果：發送失敗");
+        result.Should().Contain("Simulated LINE provider rejection.");
+        processor.AttemptedLineIds.Should().Equal("Uprimary", "Ubackup");
+    }
+
+    [Fact]
+    public async Task TrySendAtmPaymentInstructionsAsync_reports_unbound_line_id()
+    {
+        // 沒有任何 LINE ID 時不應嘗試送出，也不應靜默成功；
+        // 畫面要提示奉獻者尚未綁定 LINE，並提醒保留網頁上的付款資訊。
+        var processor = (AtmNotificationProbeProcessor)RuntimeHelpers.GetUninitializedObject(
+            typeof(AtmNotificationProbeProcessor));
+
+        var result = await InvokeTrySendAtmPaymentInstructionsAsync(
+            processor,
+            Array.Empty<string>(),
+            "ATM payment instructions",
+            "d2da3967-e0fc-4f01-9efa-414d221e1e11",
+            Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
+
+        result.Should().Contain("LINE 發送結果：發送失敗");
+        result.Should().Contain("奉獻者尚未綁定 LINE");
+        processor.AttemptedLineIds.Should().BeEmpty();
     }
 
     private static string InvokeBuildDedicationNotificationLineRetryKey(Guid feeId, DonationPaymentFormModel model)
@@ -177,6 +218,9 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
 
         public string? LineIdToReject { get; set; }
 
+        // 用來模擬主要與備援 LINE ID 全數失敗，固定「每個候選都會被嘗試」的產品規則。
+        public bool RejectAllLineIds { get; set; }
+
         public List<string> AttemptedLineIds => _attemptedLineIds ??= new List<string>();
 
         public string? LastDeliveredMessage { get; private set; }
@@ -186,6 +230,11 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
         protected override Task SendAtmPaymentInstructionsAsync(string lineId, string lineMessage, string retryKey)
         {
             AttemptedLineIds.Add(lineId);
+
+            if (RejectAllLineIds)
+            {
+                throw new InvalidOperationException("Simulated LINE provider rejection.");
+            }
 
             if (lineId == LineIdToReject)
             {
