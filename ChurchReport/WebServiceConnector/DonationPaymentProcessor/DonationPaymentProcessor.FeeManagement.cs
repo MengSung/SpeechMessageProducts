@@ -229,11 +229,11 @@ namespace ChurchReport.WebServiceConnector
 
                 // 發送 LINE 通知給奉獻者
                 var swNotify = System.Diagnostics.Stopwatch.StartNew();
-                await SendDedicationNotificationAsync(contact, DonationPaymentFormModel, feeId);
+                var lineNotificationResult = await SendDedicationNotificationAsync(contact, DonationPaymentFormModel, feeId);
                 swNotify.Stop();
                 System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION] SendDedicationNotificationAsync elapsed = {swNotify.ElapsedMilliseconds} ms");
 
-                return BuildSuccessMessage(contact, DonationPaymentFormModel);
+                return BuildSuccessMessage(contact, DonationPaymentFormModel) + Environment.NewLine + lineNotificationResult;
             }
             catch (Exception ex)
             {
@@ -287,7 +287,7 @@ namespace ChurchReport.WebServiceConnector
         /// 注意：CRM 查詢、奉獻文案、是否允許主流程繼續，都是 ChurchReport 的產品規則；
         /// 共用 LINE 專案只負責真正把訊息送到 LINE，不反向依賴 ChurchReport。
         /// </summary>
-        private async Task SendDedicationNotificationAsync(Entity contact, DonationPaymentFormModel donationPaymentFormModel, Guid feeId)
+        private async Task<string> SendDedicationNotificationAsync(Entity contact, DonationPaymentFormModel donationPaymentFormModel, Guid feeId)
         {
             try
             {
@@ -300,7 +300,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     System.Diagnostics.Trace.WriteLine(
                         $"[DonationPaymentProcessor] 手動輸入奉獻 LINE 通知略過：奉獻者尚未綁定 LINE。ContactId={contact.Id}, FeeId={feeId}");
-                    return;
+                    return "LINE 發送結果：發送失敗。失敗原因：奉獻者尚未綁定 LINE。";
                 }
 
                 // 建立奉獻確認訊息
@@ -320,6 +320,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     System.Diagnostics.Trace.WriteLine(
                         $"[DonationPaymentProcessor] 手動輸入奉獻 LINE 通知發送超時（8秒），略過通知繼續完成上傳。ContactId={contact.Id}, FeeId={feeId}");
+                    return "LINE 發送結果：發送失敗。失敗原因：LINE API 逾時未回應。";
                 }
                 else
                 {
@@ -328,6 +329,7 @@ namespace ChurchReport.WebServiceConnector
                     await sendTask;
                     System.Diagnostics.Trace.WriteLine(
                         $"[DonationPaymentProcessor] 已成功發送手動輸入奉獻通知。ContactId={contact.Id}, FeeId={feeId}");
+                    return "LINE 發送結果：成功發送。";
                 }
             }
             catch (Exception ex)
@@ -335,6 +337,7 @@ namespace ChurchReport.WebServiceConnector
                 // 發送失敗不影響奉獻記錄，只記錄錯誤
                 System.Diagnostics.Trace.WriteLine(
                     $"[DonationPaymentProcessor] 手動輸入奉獻 LINE 通知失敗。ContactId={contact.Id}, FeeId={feeId}, Error={ex}");
+                return $"LINE 發送結果：發送失敗。失敗原因：{FormatLineNotificationFailureReason(ex)}";
             }
         }
 

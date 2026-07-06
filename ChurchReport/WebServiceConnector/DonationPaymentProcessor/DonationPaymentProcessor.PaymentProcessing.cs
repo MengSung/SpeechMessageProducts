@@ -252,13 +252,13 @@ namespace ChurchReport.WebServiceConnector
                 // ATM 虛擬帳號是付款必要資訊，因此不可只嘗試單一 LINE ID。
                 // 若主要欄位 new_lineid 已失效，仍要改試綁定流程保留的 new_lineid_backup。
                 var lineIds = ResolveAtmNotificationLineIds(LineId, LineLoginContact);
-                var notificationWarning = await TrySendAtmPaymentInstructionsAsync(
+                var notificationResult = await TrySendAtmPaymentInstructionsAsync(
                     lineIds,
                     atmInfo.LineMessage,
                     BuildAtmPaymentLineRetryKey(aCreatedFeeId, createdAtmOrder.OrderNo, createdAtmOrder.ATMParam.AtmPayNo),
                     LineLoginContact.Id);
 
-                return atmInfo.HtmlMessage + notificationWarning;
+                return atmInfo.HtmlMessage + notificationResult;
             }
             catch (Exception ex)
             {
@@ -333,7 +333,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 System.Diagnostics.Trace.WriteLine(
                     $"[DonationPaymentProcessor] ATM LINE notification skipped because donor has no LINE id. ContactId={contactId}");
-                return BuildAtmNotificationWarning("LINE 通知未送出：奉獻者尚未綁定 LINE，請保存本頁付款資訊。");
+                return BuildLineNotificationDisplayResult("發送失敗", "奉獻者尚未綁定 LINE，請保存本頁付款資訊。", false);
             }
 
             Exception lastException = null;
@@ -355,7 +355,7 @@ namespace ChurchReport.WebServiceConnector
                             $"[DonationPaymentProcessor] ATM LINE notification sent by fallback LINE id. ContactId={contactId}, AttemptIndex={index + 1}");
                     }
 
-                    return string.Empty;
+                    return BuildLineNotificationDisplayResult("成功發送", "ATM/匯款付款資訊已成功發送 LINE。", true);
                 }
                 catch (Exception ex)
                 {
@@ -367,7 +367,10 @@ namespace ChurchReport.WebServiceConnector
 
             System.Diagnostics.Trace.WriteLine(
                 $"[DonationPaymentProcessor] ATM LINE notification failed for all LINE id candidates. ContactId={contactId}, CandidateCount={lineIds.Count}, LastError={lastException}");
-            return BuildAtmNotificationWarning("LINE 通知未送出，請保存本頁付款資訊。");
+            return BuildLineNotificationDisplayResult(
+                "發送失敗",
+                $"LINE 通知未送出，請保存本頁付款資訊。失敗原因：{FormatLineNotificationFailureReason(lastException)}",
+                false);
         }
 
         private static string BuildAtmPaymentLineRetryKey(Guid feeId, string providerOrderNo, string atmPayNo)
@@ -402,9 +405,26 @@ namespace ChurchReport.WebServiceConnector
             await PushUtility.SendReliableMessageAsync(lineId, lineMessage, retryKey);
         }
 
-        private static string BuildAtmNotificationWarning(string message)
+        private static string BuildLineNotificationDisplayResult(string status, string message, bool isSuccess)
         {
-            return $"{Environment.NewLine}<br/><br/><strong>{message}</strong>";
+            var color = isSuccess ? "#198754" : "#dc3545";
+            return $"{Environment.NewLine}<br/><br/><strong style=\"color:{color};\">LINE 發送結果：{status}</strong><br/><span>{message}</span>";
+        }
+
+        private static string FormatLineNotificationFailureReason(Exception exception)
+        {
+            if (exception == null)
+            {
+                return "未知錯誤";
+            }
+
+            var message = exception.GetBaseException().Message;
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return exception.GetType().Name;
+            }
+
+            return message;
         }
 
         #endregion

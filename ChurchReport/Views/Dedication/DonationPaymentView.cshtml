@@ -230,6 +230,26 @@
     margin-top: 10px;
   }
 
+  .atm-copy-button {
+    margin-top: 12px;
+    border: 1px solid #c2410c;
+    border-radius: 8px;
+    background: #c2410c;
+    color: #fff;
+    font-weight: 700;
+    padding: 8px 14px;
+    cursor: pointer;
+  }
+
+  .atm-copy-button:hover {
+    background: #9a3412;
+  }
+
+  .atm-copy-button:focus-visible {
+    outline: 3px solid #fdba74;
+    outline-offset: 2px;
+  }
+
   .booking-list {
     border: 1px solid #e8eef6;
     border-radius: 12px;
@@ -673,6 +693,9 @@
             <!-- ==================== ATM資訊區域 ==================== -->
             <div id="atm-info" class="atm-info" style="display: none;">
                 <h5 id="atmfield"></h5>
+                <button id="copy-atm-info-button" type="button" class="atm-copy-button" onclick="CopyAtmPaymentInfo()" style="display: none;">
+                    複製 ATM/匯款資訊
+                </button>
             </div>
 
                         <!-- ==================== 定期定額清單 ==================== -->
@@ -922,10 +945,67 @@
         var form = getFormInstance();
         document.getElementById('atmfield').innerHTML = "";
         document.getElementById('atm-info').style.display = 'none';  // 隱藏 ATM 資訊
+        setAtmCopyButtonVisible(false);
         form.itemOption('DedicationAmount', { editorOptions: { width: 200 } });
         form.itemOption("DedicationAmount", "label", { text: "奉獻金額" });
         form.itemOption("DedicationAmount", "editorOptions", { placeholder: "請輸入奉獻金額" });
         form.itemOption("DeductTotalNumberSelectionBox", 'visible', false);
+    }
+
+    function setAtmCopyButtonVisible(isVisible) {
+        var button = document.getElementById('copy-atm-info-button');
+        if (button) {
+            button.style.display = isVisible ? 'inline-block' : 'none';
+        }
+    }
+
+    function getAtmPaymentInfoText() {
+        var atmField = document.getElementById('atmfield');
+        if (!atmField) {
+            return "";
+        }
+
+        return (atmField.innerText || atmField.textContent || "").trim();
+    }
+
+    function CopyAtmPaymentInfo() {
+        var text = getAtmPaymentInfoText();
+        if (!text) {
+            ShowToast("目前沒有可複製的 ATM/匯款資訊", "warning", 3000);
+            return;
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text)
+                .then(function () {
+                    ShowToast("已複製 ATM/匯款資訊", "success", 2000);
+                })
+                .catch(function () {
+                    copyAtmPaymentInfoWithFallback(text);
+                });
+            return;
+        }
+
+        copyAtmPaymentInfoWithFallback(text);
+    }
+
+    function copyAtmPaymentInfoWithFallback(text) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', 'readonly');
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        var copied = false;
+        try {
+            copied = document.execCommand('copy');
+        } finally {
+            document.body.removeChild(textarea);
+        }
+
+        ShowToast(copied ? "已複製 ATM/匯款資訊" : "複製失敗，請手動選取資訊複製", copied ? "success" : "error", copied ? 2000 : 4000);
     }
     
     // 更新 save-button2 文字，根據是否有信用卡決定顯示內容
@@ -1113,11 +1193,13 @@
                 ShowToast(data.message, "success", 2000);
                 document.getElementById('atmfield').innerHTML = data.DedicationResult;
                 document.getElementById('atm-info').style.display = 'block';  // 顯示 ATM 資訊
+                setAtmCopyButtonVisible(payWay == "ATM轉帳/匯款" || payWay == "虛擬帳號");
             }
         } else {
             ShowToast(data.message, "error", 3000);
             document.getElementById('atmfield').innerHTML = data.message;
             document.getElementById('atm-info').style.display = 'block';  // 顯示錯誤訊息
+            setAtmCopyButtonVisible(false);
         }
     }
 

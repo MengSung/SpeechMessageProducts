@@ -1,0 +1,12 @@
+﻿{
+    "id":  "show-line-send-result-for-donations",
+    "title":  "顯示 ATM/匯款奉獻與輸入奉獻 LINE 發送結果",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "backend",
+    "currentPhase":  "completed",
+    "nextAction":  "等待提交與歸檔",
+    "createdAt":  "2026-07-06T02:02:22Z",
+    "branch":  "Jesus_5.1.8.FabelSecurityScan"
+}

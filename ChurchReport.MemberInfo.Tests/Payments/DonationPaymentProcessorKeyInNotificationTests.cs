@@ -111,10 +111,46 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
             "d2da3967-e0fc-4f01-9efa-414d221e1e11",
             Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
 
-        warning.Should().BeEmpty("備援 LINE ID 成功送出後，頁面不應再顯示 LINE 未送出的警告");
+        warning.Should().Contain("LINE 發送結果：成功發送", "備援 LINE ID 成功送出後，頁面應明確顯示 LINE 已成功發送");
         processor.AttemptedLineIds.Should().Equal("UstalePrimary", "UbackupValid");
         processor.LastDeliveredMessage.Should().Be("ATM payment instructions");
         processor.LastDeliveredRetryKey.Should().Be("d2da3967-e0fc-4f01-9efa-414d221e1e11");
+    }
+
+    [Fact]
+    public async Task TrySendAtmPaymentInstructionsAsync_reports_failure_reason_when_all_line_ids_fail()
+    {
+        var processor = (AtmNotificationProbeProcessor)RuntimeHelpers.GetUninitializedObject(
+            typeof(AtmNotificationProbeProcessor));
+        processor.LineIdToReject = "UstalePrimary";
+
+        var warning = await InvokeTrySendAtmPaymentInstructionsAsync(
+            processor,
+            new[] { "UstalePrimary" },
+            "ATM payment instructions",
+            "d2da3967-e0fc-4f01-9efa-414d221e1e11",
+            Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
+
+        warning.Should().Contain("LINE 發送結果：發送失敗");
+        warning.Should().Contain("失敗原因");
+        warning.Should().Contain("Simulated LINE provider rejection");
+    }
+
+    [Fact]
+    public async Task TrySendAtmPaymentInstructionsAsync_reports_unbound_line_id()
+    {
+        var processor = (AtmNotificationProbeProcessor)RuntimeHelpers.GetUninitializedObject(
+            typeof(AtmNotificationProbeProcessor));
+
+        var warning = await InvokeTrySendAtmPaymentInstructionsAsync(
+            processor,
+            Array.Empty<string>(),
+            "ATM payment instructions",
+            "d2da3967-e0fc-4f01-9efa-414d221e1e11",
+            Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
+
+        warning.Should().Contain("LINE 發送結果：發送失敗");
+        warning.Should().Contain("奉獻者尚未綁定 LINE");
     }
 
     private static string InvokeBuildDedicationNotificationLineRetryKey(Guid feeId, DonationPaymentFormModel model)

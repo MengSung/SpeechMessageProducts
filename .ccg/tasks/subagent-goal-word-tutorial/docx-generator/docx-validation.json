@@ -1,0 +1,9 @@
+﻿{
+  "output": "D:\\\u7DB2\u9801APP\u96F2\u7AEF\u7DDA\u4E0A\u7248\u672C\\DevExpressDevExtreme-21.2.7\u7248\u672C\\\u97F3\u8A0A\u7522\u54C1\u7248\u672C\\ChurchReport\\.ccg\\tasks\\subagent-goal-word-tutorial\\docx-generator\\Subagent_Goal_\u4FDD\u6BCD\u7D1A\u6559\u5B78\u624B\u518A.docx",
+  "bytes": 8494,
+  "paragraphCount": 240,
+  "tableCount": 6,
+  "styleCount": 12,
+  "renderQa": "Skipped: Python, LibreOffice, pdftoppm, and usable Word COM were unavailable in this shell.",
+  "structuralQa": "Passed: required DOCX package parts exist and document/styles XML parse successfully."
+}

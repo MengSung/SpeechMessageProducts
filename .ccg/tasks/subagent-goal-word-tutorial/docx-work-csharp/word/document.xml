@@ -1,0 +1,871 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+<w:p>
+  <w:pPr><w:pStyle w:val="Title"/></w:pPr>
+  <w:r><w:t>Subagent 與 Goal 保母級教學手冊</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Subtitle"/></w:pPr>
+  <w:r><w:t>從 brainstorming、writeplan 到 dispatch 的完整實戰指南</w:t></w:r>
+</w:p>
+<w:tbl>
+  <w:tblPr>
+    <w:tblW w:w="9360" w:type="dxa"/>
+    <w:tblInd w:w="120" w:type="dxa"/>
+    <w:tblBorders>
+      <w:top w:val="single" w:sz="8" w:space="0" w:color="B7C2D0"/>
+      <w:left w:val="single" w:sz="8" w:space="0" w:color="B7C2D0"/>
+      <w:bottom w:val="single" w:sz="8" w:space="0" w:color="B7C2D0"/>
+      <w:right w:val="single" w:sz="8" w:space="0" w:color="B7C2D0"/>
+      <w:insideH w:val="single" w:sz="4" w:space="0" w:color="E0E6ED"/>
+      <w:insideV w:val="single" w:sz="4" w:space="0" w:color="E0E6ED"/>
+    </w:tblBorders>
+    <w:tblCellMar>
+      <w:top w:w="120" w:type="dxa"/><w:left w:w="160" w:type="dxa"/>
+      <w:bottom w:w="120" w:type="dxa"/><w:right w:w="160" w:type="dxa"/>
+    </w:tblCellMar>
+  </w:tblPr>
+  <w:tblGrid><w:gridCol w:w="1680"/><w:gridCol w:w="7680"/></w:tblGrid>
+  <w:tr>
+    <w:tc>
+      <w:tcPr><w:tcW w:w="1680" w:type="dxa"/><w:shd w:fill="E8EEF5"/></w:tcPr>
+      <w:p><w:pPr><w:pStyle w:val="CalloutLabel"/></w:pPr><w:r><w:t>核心結論</w:t></w:r></w:p>
+    </w:tc>
+    <w:tc>
+      <w:tcPr><w:tcW w:w="7680" w:type="dxa"/><w:shd w:fill="E8EEF5"/></w:tcPr>
+      <w:p><w:pPr><w:pStyle w:val="CalloutText"/></w:pPr><w:r><w:t xml:space="preserve">Subagent 不是等到要動手時才臨時叫出來的工具。正確做法是在 brainstorming 階段先判斷是否需要代理，在 writeplan 階段把代理的角色、輸入、邊界、驗收標準與回報格式寫清楚，真正 dispatch 時才不會失控。</w:t></w:r></w:p>
+    </w:tc>
+  </w:tr>
+</w:tbl>
+<w:p>
+  <w:pPr><w:pStyle w:val="Heading1"/></w:pPr>
+  <w:r><w:t xml:space="preserve">1. 先建立正確心智模型</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="BodyText"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Subagent 可以理解為「被主會話派出去執行特定工作包的專責代理」。主會話負責判斷方向、拆分任務、整合結果與把關品質；subagent 負責在明確邊界內完成研究、實作、檢查或整理。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="BodyText"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Goal 則是派工契約。Goal 寫得越完整，subagent 越容易做對；Goal 寫得模糊，subagent 很容易偏離範圍、漏讀上下文、做出未授權修改，或交付無法驗證的結果。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+  <w:r><w:t xml:space="preserve">• 主會話是 owner：負責任務定義、風險判斷、最終驗收與整合。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+  <w:r><w:t xml:space="preserve">• Subagent 是 worker / reviewer / researcher：只處理被明確委派的工作包。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+  <w:r><w:t xml:space="preserve">• Goal 是 contract：必須包含目的、上下文、邊界、禁止事項、驗收方式與回報格式。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+  <w:r><w:t xml:space="preserve">• Plan 是 dispatch map：決定哪些工作可並行、哪些工作必須依序完成。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Heading1"/></w:pPr>
+  <w:r><w:t xml:space="preserve">2. 什麼時候該用 subagent</w:t></w:r>
+</w:p>
+<w:tbl>
+  <w:tblPr>
+    <w:tblW w:w="9360" w:type="dxa"/>
+    <w:tblInd w:w="120" w:type="dxa"/>
+    <w:tblBorders>
+      <w:top w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:left w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:bottom w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:right w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:insideH w:val="single" w:sz="4" w:space="0" w:color="D7DEE8"/>
+      <w:insideV w:val="single" w:sz="4" w:space="0" w:color="D7DEE8"/>
+    </w:tblBorders>
+    <w:tblCellMar>
+      <w:top w:w="100" w:type="dxa"/><w:left w:w="120" w:type="dxa"/>
+      <w:bottom w:w="100" w:type="dxa"/><w:right w:w="120" w:type="dxa"/>
+    </w:tblCellMar>
+  </w:tblPr>
+  <w:tblGrid><w:gridCol w:w="1800"/><w:gridCol w:w="7560"/></w:tblGrid>
+  <w:tr><w:tc><w:tcPr><w:tcW w:w="1800" w:type="dxa"/><w:shd w:fill="E8EEF5"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableHeader"/></w:pPr><w:r><w:t>判斷</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7560" w:type="dxa"/><w:shd w:fill="E8EEF5"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableHeader"/></w:pPr><w:r><w:t>說明</w:t></w:r></w:p></w:tc></w:tr>
+  <w:tr><w:tc><w:tcPr><w:tcW w:w="1800" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">適合使用</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7560" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">多個互不重疊的工作包，例如不同模組、不同檔案群、研究與檢查可以分開處理。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="1800" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">適合使用</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7560" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">需要獨立審查或交叉驗證，例如安全、架構、測試覆蓋、規格一致性。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="1800" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">適合使用</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7560" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">上下文很多，主會話容易被細節淹沒，需要代理整理依賴、呼叫點或風險清單。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="1800" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">不適合使用</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7560" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">只改一兩行、問題定位清楚、派出代理的溝通成本比直接做更高。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="1800" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">不適合使用</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7560" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">需求還沒定義清楚，PRD 或設計仍在大幅變動。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="1800" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">不適合使用</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7560" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">多個代理會同時修改同一批檔案，容易產生衝突或互相覆蓋。</w:t></w:r></w:p></w:tc></w:tr>
+
+</w:tbl>
+<w:p>
+  <w:pPr><w:pStyle w:val="Heading1"/></w:pPr>
+  <w:r><w:t xml:space="preserve">3. Brainstorming 階段就要先考慮 subagent 嗎</w:t></w:r>
+</w:p>
+<w:tbl>
+  <w:tblPr>
+    <w:tblW w:w="9360" w:type="dxa"/>
+    <w:tblInd w:w="120" w:type="dxa"/>
+    <w:tblBorders>
+      <w:top w:val="single" w:sz="8" w:space="0" w:color="B7C2D0"/>
+      <w:left w:val="single" w:sz="8" w:space="0" w:color="B7C2D0"/>
+      <w:bottom w:val="single" w:sz="8" w:space="0" w:color="B7C2D0"/>
+      <w:right w:val="single" w:sz="8" w:space="0" w:color="B7C2D0"/>
+      <w:insideH w:val="single" w:sz="4" w:space="0" w:color="E0E6ED"/>
+      <w:insideV w:val="single" w:sz="4" w:space="0" w:color="E0E6ED"/>
+    </w:tblBorders>
+    <w:tblCellMar>
+      <w:top w:w="120" w:type="dxa"/><w:left w:w="160" w:type="dxa"/>
+      <w:bottom w:w="120" w:type="dxa"/><w:right w:w="160" w:type="dxa"/>
+    </w:tblCellMar>
+  </w:tblPr>
+  <w:tblGrid><w:gridCol w:w="1680"/><w:gridCol w:w="7680"/></w:tblGrid>
+  <w:tr>
+    <w:tc>
+      <w:tcPr><w:tcW w:w="1680" w:type="dxa"/><w:shd w:fill="F4F6F9"/></w:tcPr>
+      <w:p><w:pPr><w:pStyle w:val="CalloutLabel"/></w:pPr><w:r><w:t>答案</w:t></w:r></w:p>
+    </w:tc>
+    <w:tc>
+      <w:tcPr><w:tcW w:w="7680" w:type="dxa"/><w:shd w:fill="F4F6F9"/></w:tcPr>
+      <w:p><w:pPr><w:pStyle w:val="CalloutText"/></w:pPr><w:r><w:t xml:space="preserve">要，但不是馬上 dispatch。Brainstorming 階段要先判斷「未來是否可能需要 subagent」，並把可獨立驗收的 deliverables、風險、未知問題與可能的工作包記下來。真正派工要等需求、設計與計畫足夠穩定。</w:t></w:r></w:p>
+    </w:tc>
+  </w:tr>
+</w:tbl>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+  <w:r><w:t xml:space="preserve">1. 先問：這個需求是否能拆成多個獨立驗收的結果？例如研究、設計、實作、測試、文件、審查。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+  <w:r><w:t xml:space="preserve">2. 再問：每個結果是否有明確 owner、輸入資料、修改範圍與完成標準？如果沒有，先補 PRD，不要 dispatch。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+  <w:r><w:t xml:space="preserve">3. 最後問：哪些工作必須依序完成，哪些工作可以並行？依賴關係要寫進需求或計畫，不要只留在腦中。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+  <w:r><w:t xml:space="preserve">• Brainstorming 產物應包含：問題背景、使用者目標、不可做事項、成功標準、可能的 task tree。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+  <w:r><w:t xml:space="preserve">• 若需求跨多個可驗證成果，應考慮 parent / child task，而不是把所有內容丟給一個 agent。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+  <w:r><w:t xml:space="preserve">• 若需要研究第三方 API、既有架構或測試策略，可以先規劃 research agent，但仍要先定義研究問題。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Heading1"/></w:pPr>
+  <w:r><w:t xml:space="preserve">4. Writeplan 階段如何預備 subagent</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="BodyText"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Writeplan 是最適合把 subagent 工作包寫清楚的階段。這時應該已經知道要改什麼、為什麼改、哪些檔案或模組受影響，以及驗收方式。</w:t></w:r>
+</w:p>
+<w:tbl>
+  <w:tblPr>
+    <w:tblW w:w="9360" w:type="dxa"/>
+    <w:tblInd w:w="120" w:type="dxa"/>
+    <w:tblBorders>
+      <w:top w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:left w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:bottom w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:right w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:insideH w:val="single" w:sz="4" w:space="0" w:color="D7DEE8"/>
+      <w:insideV w:val="single" w:sz="4" w:space="0" w:color="D7DEE8"/>
+    </w:tblBorders>
+    <w:tblCellMar>
+      <w:top w:w="100" w:type="dxa"/><w:left w:w="120" w:type="dxa"/>
+      <w:bottom w:w="100" w:type="dxa"/><w:right w:w="120" w:type="dxa"/>
+    </w:tblCellMar>
+  </w:tblPr>
+  <w:tblGrid><w:gridCol w:w="2100"/><w:gridCol w:w="7260"/></w:tblGrid>
+  <w:tr><w:tc><w:tcPr><w:tcW w:w="2100" w:type="dxa"/><w:shd w:fill="E8EEF5"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableHeader"/></w:pPr><w:r><w:t>欄位</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7260" w:type="dxa"/><w:shd w:fill="E8EEF5"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableHeader"/></w:pPr><w:r><w:t>writeplan 必須寫清楚的內容</w:t></w:r></w:p></w:tc></w:tr>
+  <w:tr><w:tc><w:tcPr><w:tcW w:w="2100" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">工作包名稱</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7260" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">例如 Research: 盤點支付模組依賴、Implement: 抽出核心服務、Check: 驗證規格與測試。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2100" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">依賴順序</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7260" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">標明 Layer 1 可並行、Layer 2 必須等 Layer 1 完成。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2100" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">檔案邊界</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7260" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">每個 subagent 可讀哪些資料、可改哪些檔案、不可碰哪些檔案。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2100" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">驗收命令</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7260" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">例如 dotnet build、dotnet test、lint、型別檢查、文件 render QA。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2100" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">回報格式</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7260" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">要求列出 Files Touched、Key Decisions、Verification Result、Open Risks。</w:t></w:r></w:p></w:tc></w:tr>
+
+</w:tbl>
+<w:p>
+  <w:pPr><w:pStyle w:val="BodyText"/></w:pPr>
+  <w:r><w:t xml:space="preserve">如果 writeplan 無法寫出清楚工作包，代表還不適合派 subagent。這時應回到 brainstorming 或 design，把需求與架構補清楚。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Heading1"/></w:pPr>
+  <w:r><w:t xml:space="preserve">5. 一個保母級 Goal 必須包含什麼</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="BodyText"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Goal 的目標不是「描述大方向」，而是讓 subagent 在沒有你腦中背景的情況下，也能安全、精準、可驗證地完成工作。</w:t></w:r>
+</w:p>
+<w:tbl>
+  <w:tblPr>
+    <w:tblW w:w="9360" w:type="dxa"/>
+    <w:tblInd w:w="120" w:type="dxa"/>
+    <w:tblBorders>
+      <w:top w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:left w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:bottom w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:right w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:insideH w:val="single" w:sz="4" w:space="0" w:color="D7DEE8"/>
+      <w:insideV w:val="single" w:sz="4" w:space="0" w:color="D7DEE8"/>
+    </w:tblBorders>
+    <w:tblCellMar>
+      <w:top w:w="100" w:type="dxa"/><w:left w:w="120" w:type="dxa"/>
+      <w:bottom w:w="100" w:type="dxa"/><w:right w:w="120" w:type="dxa"/>
+    </w:tblCellMar>
+  </w:tblPr>
+  <w:tblGrid><w:gridCol w:w="2200"/><w:gridCol w:w="7160"/></w:tblGrid>
+  <w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/><w:shd w:fill="E8EEF5"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableHeader"/></w:pPr><w:r><w:t>Goal 區塊</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7160" w:type="dxa"/><w:shd w:fill="E8EEF5"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableHeader"/></w:pPr><w:r><w:t>應填內容</w:t></w:r></w:p></w:tc></w:tr>
+  <w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">Task Identity</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7160" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">Active task path、任務名稱、代理角色、目前階段。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">Objective</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7160" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">一句話說明這次代理要完成什麼，不要同時塞入多個不相干目標。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">Context</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7160" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">必讀文件、PRD / design / implement、spec、研究資料與相關檔案。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">Scope</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7160" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">允許修改的檔案、允許新增的檔案、允許執行的命令。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">Boundaries</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7160" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">明確禁止 git commit / push、禁止碰非目標檔、禁止改公共契約、禁止用臨時 hack。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">Acceptance Criteria</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7160" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">完成後必須滿足的行為、測試、品質條件與文件條件。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">Verification</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7160" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">必跑命令與期望結果，包含失敗時要如何回報。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">Output Format</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="7160" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">交付格式：摘要、修改檔案、決策、測試結果、風險、後續建議。</w:t></w:r></w:p></w:tc></w:tr>
+
+</w:tbl>
+<w:p>
+  <w:pPr><w:pStyle w:val="Heading1"/></w:pPr>
+  <w:r><w:t xml:space="preserve">6. Goal 撰寫範本：保母級完整版</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Active task: &lt;task path&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Role]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">You are the &lt;agent_type&gt; subagent. You are already inside the delegated role.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Do not spawn another agent.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Objective]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Complete exactly this work package:</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">&lt;single, concrete objective&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Required Context]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Read these files before acting, in this order:</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">1. &lt;task&gt;/prd.md</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">2. &lt;task&gt;/design.md if present</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">3. &lt;task&gt;/implement.md if present</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">4. &lt;specific spec/research files&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Allowed Scope]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">You may read:</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- &lt;paths&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">You may modify only:</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- &lt;file path 1&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- &lt;file path 2&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Forbidden]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Do not run git commit, git push, git reset, or destructive cleanup.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Do not modify files outside the allowed list.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Do not introduce type suppressions, placeholder implementations, or hidden fallbacks.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Do not change public contracts unless explicitly listed above.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Acceptance Criteria]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- &lt;behavioral requirement 1&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- &lt;behavioral requirement 2&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- &lt;test/quality requirement&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Verification]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Before reporting completion, run:</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- &lt;command 1&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- &lt;command 2&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">If a command fails, report the exact failure and stop.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Report Format]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Return:</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Status: PASSED / BLOCKED / NEEDS_REVIEW</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Files Touched</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Key Decisions</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Verification Output</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Risks or Follow-ups</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Heading1"/></w:pPr>
+  <w:r><w:t xml:space="preserve">7. 三種常用 subagent prompt 範本</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Heading2"/></w:pPr>
+  <w:r><w:t xml:space="preserve">7.1 Research / Investigation Agent</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Active task: .trellis/tasks/&lt;TASK_NAME&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Role]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">You are the research subagent for this task.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Objective]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Investigate &lt;specific question&gt; and produce a decision-ready report.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Required Reads]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- .trellis/tasks/&lt;TASK_NAME&gt;/prd.md</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- .trellis/tasks/&lt;TASK_NAME&gt;/design.md if present</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- &lt;relevant spec or source paths&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Scope]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Read-only. Do not edit files.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Focus only on &lt;module/API/workflow&gt;.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Output]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Write findings as:</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">1. Summary</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">2. Evidence with file paths</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">3. Risks</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">4. Recommended next step</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">5. Open questions</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Heading2"/></w:pPr>
+  <w:r><w:t xml:space="preserve">7.2 Implementation Agent</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Active task: .trellis/tasks/&lt;TASK_NAME&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Role]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">You are the implementation subagent. Implement directly; do not spawn other agents.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Objective]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Implement Step &lt;N&gt;: &lt;step description&gt;.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Required Reads]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">1. .trellis/tasks/&lt;TASK_NAME&gt;/prd.md</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">2. .trellis/tasks/&lt;TASK_NAME&gt;/design.md</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">3. .trellis/tasks/&lt;TASK_NAME&gt;/implement.md</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">4. &lt;spec files&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Allowed Edits]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- &lt;file 1&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- &lt;file 2&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Forbidden]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- No git commit or push.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- No edits outside Allowed Edits.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- No unrelated refactors.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Verification]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Run:</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- dotnet build &lt;solution-or-project&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- dotnet test &lt;test-project&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Report]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Files Touched</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Behavior Implemented</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Tests Run</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Remaining Risks</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Heading2"/></w:pPr>
+  <w:r><w:t xml:space="preserve">7.3 Check / Review Agent</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Active task: .trellis/tasks/&lt;TASK_NAME&gt;</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Role]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">You are the quality check subagent.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Objective]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Review the current diff against the task artifacts and project specs.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Required Reads]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- .trellis/tasks/&lt;TASK_NAME&gt;/prd.md</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- .trellis/tasks/&lt;TASK_NAME&gt;/implement.md</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Relevant .trellis/spec indexes</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- git diff</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Checkpoints]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Scope matches the task.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- No forbidden file changes.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Tests and type checks pass.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Error handling, logging, and architecture follow specs.</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve"></w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">[Output]</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">Use this format:</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Status: PASSED / FAILED / NEEDS_REVISION</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Critical Findings</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Warnings</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Info</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Code"/></w:pPr>
+  <w:r><w:t xml:space="preserve">- Verification Commands and Results</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Heading1"/></w:pPr>
+  <w:r><w:t xml:space="preserve">8. 常見錯誤與修正方式</w:t></w:r>
+</w:p>
+<w:tbl>
+  <w:tblPr>
+    <w:tblW w:w="9360" w:type="dxa"/>
+    <w:tblInd w:w="120" w:type="dxa"/>
+    <w:tblBorders>
+      <w:top w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:left w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:bottom w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:right w:val="single" w:sz="4" w:space="0" w:color="C7D0DA"/>
+      <w:insideH w:val="single" w:sz="4" w:space="0" w:color="D7DEE8"/>
+      <w:insideV w:val="single" w:sz="4" w:space="0" w:color="D7DEE8"/>
+    </w:tblBorders>
+    <w:tblCellMar>
+      <w:top w:w="100" w:type="dxa"/><w:left w:w="120" w:type="dxa"/>
+      <w:bottom w:w="100" w:type="dxa"/><w:right w:w="120" w:type="dxa"/>
+    </w:tblCellMar>
+  </w:tblPr>
+  <w:tblGrid><w:gridCol w:w="2200"/><w:gridCol w:w="3600"/><w:gridCol w:w="3560"/></w:tblGrid>
+  <w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/><w:shd w:fill="E8EEF5"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableHeader"/></w:pPr><w:r><w:t>錯誤</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3600" w:type="dxa"/><w:shd w:fill="E8EEF5"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableHeader"/></w:pPr><w:r><w:t>後果</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3560" w:type="dxa"/><w:shd w:fill="E8EEF5"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableHeader"/></w:pPr><w:r><w:t>修正方式</w:t></w:r></w:p></w:tc></w:tr>
+  <w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">Goal 只有一句話</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3600" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">代理不知道邊界與驗收標準，容易亂改。</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3560" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">補上 Objective、Scope、Forbidden、Verification、Report Format。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">多個代理改同一檔案</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3600" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">產生衝突、互相覆蓋或邏輯不一致。</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3560" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">按檔案歸屬拆分；同一檔案同一時間只給一個代理。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">需求未穩定就 dispatch</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3600" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">代理依錯誤方向實作，後續返工成本高。</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3560" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">PRD / design / implement 未確認前只做研究，不做實作。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">沒有驗收命令</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3600" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">看似完成但無法證明品質。</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3560" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">每個 implementation / check goal 都要列命令與期望結果。</w:t></w:r></w:p></w:tc></w:tr>
+<w:tr><w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">沒有回報格式</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3600" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">主會話難以整合結果。</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3560" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:pStyle w:val="TableText"/></w:pPr><w:r><w:t xml:space="preserve">固定要求 Files Touched、Decisions、Verification、Risks。</w:t></w:r></w:p></w:tc></w:tr>
+
+</w:tbl>
+<w:p>
+  <w:pPr><w:pStyle w:val="Heading1"/></w:pPr>
+  <w:r><w:t xml:space="preserve">9. Dispatch 前檢查清單</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+  <w:r><w:t xml:space="preserve">• [ ] 我知道這個 subagent 的單一目標是什麼。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+  <w:r><w:t xml:space="preserve">• [ ] 我已寫清楚 Active task path 與必讀文件順序。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+  <w:r><w:t xml:space="preserve">• [ ] 我已限定可修改檔案，且不同代理不會修改同一檔案。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+  <w:r><w:t xml:space="preserve">• [ ] 我已列出禁止操作，例如 commit、push、reset、改非目標檔。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+  <w:r><w:t xml:space="preserve">• [ ] 我已列出驗收標準與必跑命令。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+  <w:r><w:t xml:space="preserve">• [ ] 我已定義回報格式，方便主會話整合。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+  <w:r><w:t xml:space="preserve">• [ ] 如果需求還不穩定，我只派 research，不派 implementation。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="Heading1"/></w:pPr>
+  <w:r><w:t xml:space="preserve">10. 最佳實務總結</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+  <w:r><w:t xml:space="preserve">1. Brainstorming 階段：先判斷是否需要 subagent，辨識可獨立驗收的 deliverables。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+  <w:r><w:t xml:space="preserve">2. Writeplan 階段：把 subagent 工作包、依賴順序、檔案邊界與驗收命令寫進計畫。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+  <w:r><w:t xml:space="preserve">3. Dispatch 階段：每次只派一個清楚工作包，goal 必須能讓代理獨立完成與回報。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+  <w:r><w:t xml:space="preserve">4. Review 階段：主會話整合代理結果，不盲信代理聲稱，仍要檢查 diff、測試與規格。</w:t></w:r>
+</w:p>
+<w:p>
+  <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+  <w:r><w:t xml:space="preserve">5. 收尾階段：記錄學到的規範、常見坑與可重用 prompt，讓下一次工作更穩。</w:t></w:r>
+</w:p>
+    <w:sectPr>
+      <w:pgSz w:w="12240" w:h="15840"/>
+      <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/>
+    </w:sectPr>
+  </w:body>
+</w:document>

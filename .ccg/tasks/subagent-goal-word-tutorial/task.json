@@ -1,0 +1,12 @@
+﻿{
+    "id":  "subagent-goal-word-tutorial",
+    "title":  "Subagent 與 Goal 保母級 Word 教學",
+    "status":  "in_progress",
+    "complexity":  "M",
+    "risk":  "low",
+    "domain":  "documentation",
+    "currentPhase":  "completed",
+    "nextAction":  "已產出 Word 教學並完成結構驗證",
+    "createdAt":  "2026-07-06T08:53:01.8795114+08:00",
+    "branch":  "Jesus_5.1.8.FabelSecurityScan"
+}
