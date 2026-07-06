@@ -102,7 +102,7 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 使用者: {fullName}");
 
                 System.Diagnostics.Debug.WriteLine("[ProcessLogin] 步驟 3: 初始化使用者 Session");
-                InitializeUserSession(loginContact, aGalleryViewModel);
+                await InitializeUserSessionAsync(loginContact, aGalleryViewModel);
 
                 System.Diagnostics.Debug.WriteLine($"[ProcessLogin] 步驟 4: 設定系統資料 - 開始時間: {DateTime.Now}");
                 SetupSystemData(loginContact, aGalleryViewModel);

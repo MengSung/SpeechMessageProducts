@@ -22,6 +22,7 @@ using Newtonsoft.Json;
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using ToolUtilityNameSpace.ConnectionOperations;
 using ToolUtilityNameSpace.DependencyInjection;
 
@@ -131,7 +132,7 @@ namespace ChurchReport.Controllers
         /// 透過 LINE ID 載入約會資料
         /// </summary>
         [HttpPost]
-        public IActionResult LoadAppointmentByLineId(
+        public async Task<IActionResult> LoadAppointmentByLineId(
             string UserLineId,
             string GroupId,
             string RoomId,
@@ -140,7 +141,7 @@ namespace ChurchReport.Controllers
             try
             {
                 SetupLineBindingContext(UserLineId, GroupId, RoomId, ViewType);
-                SetupAppointmentAccountPassword();
+                await SetupAppointmentAccountPasswordAsync();
                 SetupSchedulerViewBagForLineLogin();
 
                 return Json(new { message = "歡迎登入成功!" });
@@ -181,11 +182,15 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 設定行事曆帳密 (LINE 登入)
         /// </summary>
-        private void SetupAppointmentAccountPassword()
+        private async Task SetupAppointmentAccountPasswordAsync()
         {
+            var lineUserId = InMemoryContext.LineBindingViewModel.LineUserId;
             InMemoryContext.AppointmentsListManager.m_Account = "LineIdLogin";
-            InMemoryContext.AppointmentsListManager.m_Password =
-                InMemoryContext.LineBindingViewModel.LineUserId;
+            InMemoryContext.AppointmentsListManager.m_Password = lineUserId;
+            HttpContext?.Session?.SetString("_LoginAccount", "LineIdLogin");
+            HttpContext?.Session?.SetString("_LoginPassword", lineUserId ?? string.Empty);
+            HttpContext?.Session?.SetString("_SessionUserId", lineUserId ?? string.Empty);
+            await IssueAuthTicketAsync(null, "LineIdLogin", lineUserId ?? string.Empty, "LINE");
         }
 
         /// <summary>

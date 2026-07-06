@@ -11,8 +11,11 @@
 // 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
-using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ChurchReport.Controllers
 {
@@ -27,7 +30,7 @@ namespace ChurchReport.Controllers
         [HttpPost]
         [Route("/Authentication/Logout")]
         [Route("/Logout")]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
             try
             {
@@ -44,7 +47,7 @@ namespace ChurchReport.Controllers
                 // 強制提交清除操作（確保立即生效）
                 try
                 {
-                    HttpContext.Session.CommitAsync().GetAwaiter().GetResult();
+                    await HttpContext.Session.CommitAsync();
                     System.Diagnostics.Debug.WriteLine("[Logout] ? Session 已清除並提交");
                 }
                 catch (Exception ex)
@@ -54,6 +57,10 @@ namespace ChurchReport.Controllers
 
                 System.Diagnostics.Debug.WriteLine("[Logout] ? 登出完成");
                 System.Diagnostics.Debug.WriteLine("========================================");
+
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                Response.Cookies.Delete(".ChurchReport.Session");
+                Response.Cookies.Delete(".ChurchReport.Auth");
 
                 return RedirectToAction("Login");
             }

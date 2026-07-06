@@ -170,7 +170,7 @@ namespace ChurchReport.Controllers
                 try
                 {
                     HttpContext.Session.Clear();
-                    HttpContext.Session.CommitAsync().GetAwaiter().GetResult();
+                    await HttpContext.Session.CommitAsync();
                     System.Diagnostics.Debug.WriteLine("[SaveUserLineId] ? 舊 Session 已清除");
                 }
                 catch (Exception ex)

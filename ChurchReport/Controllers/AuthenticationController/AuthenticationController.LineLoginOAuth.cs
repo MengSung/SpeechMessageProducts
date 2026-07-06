@@ -63,7 +63,14 @@ namespace ChurchReport.Controllers
 
                 if (!string.IsNullOrEmpty(returnUrl))
                 {
-                    HttpContext.Session.SetString("_OAuthReturnUrl", returnUrl);
+                    if (returnUrl == "_BINDING_" || ChurchReport.Security.LocalReturnUrl.IsLocal(returnUrl))
+                    {
+                        HttpContext.Session.SetString("_OAuthReturnUrl", returnUrl);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[LineLoginStart] Rejected non-local returnUrl: {returnUrl}");
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(liffId))
@@ -461,6 +468,17 @@ namespace ChurchReport.Controllers
                         TempData["_PendingLineUserId"] = lineUserId;
                         var bindingPageUrl = GetBindingPageUrl();
                         return Redirect(bindingPageUrl);
+                    }
+
+                    if (!ChurchReport.Security.LocalReturnUrl.IsLocal(returnUrl))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] Rejected non-local returnUrl from session: {returnUrl}");
+                        returnUrl = null;
+                    }
+
+                    if (string.IsNullOrEmpty(returnUrl))
+                    {
+                        return RedirectToAction("Login");
                     }
 
                     IOrganizationService service = null;
