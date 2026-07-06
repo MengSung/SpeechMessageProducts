@@ -1,0 +1,12 @@
+﻿{
+    "id":  "rename-repo-to-speech-message-products",
+    "title":  "Plan repository and solution rename from ChurchReport to SpeechMessageProducts",
+    "status":  "in_progress",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "repo",
+    "currentPhase":  "planning",
+    "nextAction":  "Review approved migration design spec before implementation planning",
+    "createdAt":  "2026-07-06T07:12:32Z",
+    "branch":  "Jesus_5.1.8.FabelSecurityScan"
+}
