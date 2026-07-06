@@ -3,7 +3,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <EnableDefaultContentItems>false</EnableDefaultContentItems>
     <PreserveCompilationContext>true</PreserveCompilationContext>
-    <AssemblyName>ChurchReport</AssemblyName>
+    <AssemblyName>SpeechMessageProducts.ChurchReport</AssemblyName>
+    <RootNamespace>ChurchReport</RootNamespace>
     <OutputType>Exe</OutputType>
     <BuildInParallel>false</BuildInParallel>
     <!-- 移除 RuntimeIdentifier，.NET 10 不支援 win7-x86 -->

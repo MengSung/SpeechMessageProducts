@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.0.11205.157
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChurchReport", "ChurchReport\ChurchReport.csproj", "{DF317563-C44C-4E69-BA7A-AEF73B49BB73}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpeechMessageProducts.ChurchReport", "SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj", "{DF317563-C44C-4E69-BA7A-AEF73B49BB73}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineMessagingProcessor", "LineMessagingProcessor\LineMessagingProcessor.csproj", "{49A3E352-8564-4A14-9814-B655B2A6B202}"
 EndProject

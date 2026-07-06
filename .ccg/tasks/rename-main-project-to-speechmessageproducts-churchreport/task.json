@@ -1,0 +1,12 @@
+﻿{
+    "id":  "rename-main-project-to-speechmessageproducts-churchreport",
+    "title":  "Rename main ChurchReport project to SpeechMessageProducts.ChurchReport",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "backend",
+    "currentPhase":  "completed",
+    "nextAction":  "archive task after commit",
+    "createdAt":  "2026-07-06T08:07:29Z",
+    "branch":  "main"
+}
