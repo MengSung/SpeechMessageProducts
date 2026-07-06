@@ -1,12 +1,12 @@
 ﻿{
     "id":  "fix-atm-copy-excludes-line-result",
     "title":  "修正 ATM 匯款資訊複製時排除 LINE 發送結果",
-    "status":  "in_progress",
+    "status":  "completed",
     "complexity":  "S",
     "risk":  "low",
     "domain":  "frontend",
-    "currentPhase":  "review",
-    "nextAction":  "建置因 IIS Express/Visual Studio 鎖檔失敗，改用獨立輸出目錄重新驗證",
+    "currentPhase":  "completed",
+    "nextAction":  "已修正並歸檔",
     "createdAt":  "2026-07-06T03:28:07Z",
     "branch":  "Jesus_5.1.8.FabelSecurityScan"
 }
