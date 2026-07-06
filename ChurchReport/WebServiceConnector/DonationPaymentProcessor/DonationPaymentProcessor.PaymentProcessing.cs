@@ -35,6 +35,8 @@ namespace ChurchReport.WebServiceConnector
     /// </summary>
     public partial class DonationPaymentProcessor
     {
+        private static readonly TimeSpan AtmLineNotificationDisplayTimeout = TimeSpan.FromSeconds(2);
+
         #region ===== 信用卡付款 =====
 
         /// <summary>
@@ -349,7 +351,31 @@ namespace ChurchReport.WebServiceConnector
 
                 try
                 {
-                    await SendAtmPaymentInstructionsAsync(lineId, lineMessage, retryKey);
+                    var sendTask = SendAtmPaymentInstructionsAsync(lineId, lineMessage, retryKey);
+                    var timeoutTask = Task.Delay(AtmLineNotificationDisplayTimeout);
+                    var completedTask = await Task.WhenAny(sendTask, timeoutTask);
+                    if (completedTask == timeoutTask)
+                    {
+                        System.Diagnostics.Trace.WriteLine(
+                            $"[DonationPaymentProcessor] ATM LINE notification timed out before display response. ContactId={contactId}, AttemptIndex={index + 1}, TimeoutMs={AtmLineNotificationDisplayTimeout.TotalMilliseconds}");
+                        _ = sendTask.ContinueWith(
+                            task =>
+                            {
+                                if (task.IsFaulted)
+                                {
+                                    System.Diagnostics.Trace.WriteLine(
+                                        $"[DonationPaymentProcessor] ATM LINE notification background completion failed. ContactId={contactId}, AttemptIndex={index + 1}, Error={task.Exception}");
+                                }
+                            },
+                            TaskContinuationOptions.ExecuteSynchronously);
+
+                        return BuildLineNotificationDisplayResult(
+                            "發送失敗",
+                            "LINE API 逾時未回應，請保存本頁付款資訊。",
+                            false);
+                    }
+
+                    await sendTask;
 
                     if (index > 0)
                     {
