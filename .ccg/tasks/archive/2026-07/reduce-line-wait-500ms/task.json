@@ -1,0 +1,12 @@
+{
+    "id":  "reduce-line-wait-500ms",
+    "title":  "ATM/匯款與奉獻輸入 LINE 發送結果最多等待 500ms",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "backend",
+    "currentPhase":  "completed",
+    "nextAction":  "已完成並提交",
+    "createdAt":  "2026-07-06T04:59:13Z",
+    "branch":  "Jesus_5.1.8.WorktreeFabelSecurityScan"
+}

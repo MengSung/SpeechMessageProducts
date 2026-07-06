@@ -35,7 +35,7 @@ namespace ChurchReport.WebServiceConnector
     /// </summary>
     public partial class DonationPaymentProcessor
     {
-        private static readonly TimeSpan AtmLineNotificationDisplayTimeout = TimeSpan.FromSeconds(2);
+        private static readonly TimeSpan AtmLineNotificationDisplayTimeout = TimeSpan.FromMilliseconds(500);
 
         #region ===== 信用卡付款 =====
 

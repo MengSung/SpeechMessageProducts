@@ -18,6 +18,7 @@ using ChurchReport.Models;
 using ChurchReport.Payments;
 using ChurchReport.WebServiceConnector;
 using FluentAssertions;
+using Microsoft.Xrm.Sdk;
 using SpeechMessage.Payments.Models;
 using Xunit;
 
@@ -166,7 +167,7 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
         var processor = (AtmNotificationProbeProcessor)RuntimeHelpers.GetUninitializedObject(
             typeof(AtmNotificationProbeProcessor));
         processor.LineIdToDelay = "UslowLineApi";
-        processor.SimulatedDelay = TimeSpan.FromSeconds(3);
+        processor.SimulatedDelay = TimeSpan.FromSeconds(2);
 
         var stopwatch = Stopwatch.StartNew();
         var warning = await InvokeTrySendAtmPaymentInstructionsAsync(
@@ -179,8 +180,43 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
 
         warning.Should().Contain("LINE 發送結果：發送失敗");
         warning.Should().Contain("LINE API 逾時未回應");
-        stopwatch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(3),
+        stopwatch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(1),
             "LINE API 慢於顯示上限時，ATM 付款資訊應先回到畫面，不應等待完整 LINE 呼叫時間");
+        processor.AttemptedLineIds.Should().Equal("UslowLineApi");
+    }
+
+    [Fact]
+    public async Task SendDedicationNotificationAsync_returns_timeout_result_when_line_api_is_slow()
+    {
+        var processor = (DedicationNotificationProbeProcessor)RuntimeHelpers.GetUninitializedObject(
+            typeof(DedicationNotificationProbeProcessor));
+        processor.LineIdToDelay = "UslowLineApi";
+        processor.SimulatedDelay = TimeSpan.FromSeconds(2);
+        var contact = new Entity("contact")
+        {
+            Id = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
+        };
+        contact["new_lineid"] = "UslowLineApi";
+        contact["fullname"] = "測試奉獻者";
+        var formModel = new DonationPaymentFormModel
+        {
+            Amount = 500,
+            Category = "十一奉獻",
+            PayWay = "現金"
+        };
+
+        var stopwatch = Stopwatch.StartNew();
+        var result = await InvokeSendDedicationNotificationAsync(
+            processor,
+            contact,
+            formModel,
+            Guid.Parse("8f992f5a-0a27-4f08-9d0b-420ce5f6b4c1"));
+        stopwatch.Stop();
+
+        result.Should().Contain("LINE 發送結果：發送失敗");
+        result.Should().Contain("LINE API 逾時未回應");
+        stopwatch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(1),
+            "手動輸入奉獻的畫面等待上限應與 ATM 一樣，不應等待完整 LINE 呼叫時間");
         processor.AttemptedLineIds.Should().Equal("UslowLineApi");
     }
 
@@ -230,6 +266,29 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
         return await task!;
     }
 
+    private static async Task<string> InvokeSendDedicationNotificationAsync(
+        DonationPaymentProcessor processor,
+        Entity contact,
+        DonationPaymentFormModel model,
+        Guid feeId)
+    {
+        var method = typeof(DonationPaymentProcessor).GetMethod(
+            "SendDedicationNotificationAsync",
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            types: new[] { typeof(Entity), typeof(DonationPaymentFormModel), typeof(Guid) },
+            modifiers: null);
+
+        method.Should().NotBeNull("手動輸入奉獻 LINE 通知需要有可驗證的畫面等待上限");
+
+        var task = method!.Invoke(
+            processor,
+            new object[] { contact, model, feeId }) as Task<string>;
+
+        task.Should().NotBeNull();
+        return await task!;
+    }
+
     private sealed class AtmNotificationProbeProcessor : DonationPaymentProcessor
     {
         private List<string>? _attemptedLineIds;
@@ -273,6 +332,37 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
         }
     }
 
+    private sealed class DedicationNotificationProbeProcessor : DonationPaymentProcessor
+    {
+        private List<string>? _attemptedLineIds;
+
+        private DedicationNotificationProbeProcessor()
+            : base(new ThrowingDonationPaymentCreateGatewayAdapter())
+        {
+        }
+
+        public string? LineIdToDelay { get; set; }
+
+        public TimeSpan SimulatedDelay { get; set; } = TimeSpan.FromSeconds(3);
+
+        public List<string> AttemptedLineIds => _attemptedLineIds ??= new List<string>();
+
+        protected override string ResolveDedicationNotificationLineId(Entity contact)
+        {
+            return LineIdToDelay ?? string.Empty;
+        }
+
+        protected override async Task SendDedicationNotificationLineAsync(string lineUserId, string message, string retryKey)
+        {
+            AttemptedLineIds.Add(lineUserId);
+
+            if (lineUserId == LineIdToDelay)
+            {
+                await Task.Delay(SimulatedDelay);
+            }
+        }
+    }
+
     private sealed class ThrowingDonationPaymentCreateGatewayAdapter : IDonationPaymentCreateGatewayAdapter
     {
         public Task<PaymentCreateResult> CreateCardPaymentAsync(
@@ -289,4 +379,5 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
             throw new InvalidOperationException("ATM notification fallback test must not create a payment order.");
         }
     }
+
 }

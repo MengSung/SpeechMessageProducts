@@ -289,6 +289,8 @@ namespace ChurchReport.WebServiceConnector
         /// 注意：CRM 查詢、奉獻文案、是否允許主流程繼續，都是 ChurchReport 的產品規則；
         /// 共用 LINE 專案只負責真正把訊息送到 LINE，不反向依賴 ChurchReport。
         /// </summary>
+        private static readonly TimeSpan DedicationLineNotificationDisplayTimeout = TimeSpan.FromMilliseconds(500);
+
         private async Task<string> SendDedicationNotificationAsync(Entity contact, DonationPaymentFormModel donationPaymentFormModel, Guid feeId)
         {
             try
@@ -312,17 +314,28 @@ namespace ChurchReport.WebServiceConnector
                 // 付款/奉獻確認屬於「應送達」通知，不使用會吞例外的 legacy SendMessage。
                 // retry key 固定由 fee id 與內容摘要組成：同一筆補登重試時可讓 LINE API 降低重複通知風險。
                 var retryKey = BuildDedicationNotificationLineRetryKey(feeId, donationPaymentFormModel);
-                var sendTask = m_PushUtility.SendReliableMessageAsync(lineUserId, message, retryKey);
+                var sendTask = SendDedicationNotificationLineAsync(lineUserId, message, retryKey);
 
-                // 加入 8 秒超時：LINE API 若無回應不應卡住上傳主流程。
+                // 只等待短暫顯示回應：LINE API 若無回應不應卡住上傳主流程。
                 // 若超時，仍讓奉獻收費單保存完成，但留下 trace 供維運追查。
-                var timeoutTask = Task.Delay(TimeSpan.FromSeconds(8));
+                var timeoutTask = Task.Delay(DedicationLineNotificationDisplayTimeout);
                 var completed = await Task.WhenAny(sendTask, timeoutTask);
 
                 if (completed == timeoutTask)
                 {
                     System.Diagnostics.Trace.WriteLine(
-                        $"[DonationPaymentProcessor] 手動輸入奉獻 LINE 通知發送超時（8秒），略過通知繼續完成上傳。ContactId={contact.Id}, FeeId={feeId}");
+                        $"[DonationPaymentProcessor] 手動輸入奉獻 LINE 通知發送超時，略過等待繼續完成上傳。ContactId={contact.Id}, FeeId={feeId}, TimeoutMs={DedicationLineNotificationDisplayTimeout.TotalMilliseconds}");
+                    _ = sendTask.ContinueWith(
+                        task =>
+                        {
+                            if (task.IsFaulted)
+                            {
+                                System.Diagnostics.Trace.WriteLine(
+                                    $"[DonationPaymentProcessor] 手動輸入奉獻 LINE 通知背景完成失敗。ContactId={contact.Id}, FeeId={feeId}, Error={task.Exception}");
+                            }
+                        },
+                        TaskContinuationOptions.ExecuteSynchronously);
+
                     // 超時時不阻擋奉獻儲存，但畫面要讓使用者知道 LINE 未確認送達。
                     return BuildDedicationLineNotificationResult("LINE 發送結果：發送失敗。失敗原因：LINE API 逾時未回應。");
                 }
@@ -345,6 +358,11 @@ namespace ChurchReport.WebServiceConnector
             }
         }
 
+        protected virtual async Task SendDedicationNotificationLineAsync(string lineUserId, string message, string retryKey)
+        {
+            await PushUtility.SendReliableMessageAsync(lineUserId, message, retryKey);
+        }
+
         private static string BuildDedicationLineNotificationResult(string message)
         {
             return $"<br/><strong>{message}</strong>";
@@ -355,7 +373,7 @@ namespace ChurchReport.WebServiceConnector
         /// 這個 helper 故意和 ATM 建單通知的解析規則保持一致，避免同一位奉獻者在
         /// 「線上 ATM 建單」可收到通知，但「後台手動輸入 ATM 奉獻」收不到通知。
         /// </summary>
-        private string ResolveDedicationNotificationLineId(Entity contact)
+        protected virtual string ResolveDedicationNotificationLineId(Entity contact)
         {
             var primaryLineId = ToolUtility.GetEntityStringAttribute(ref contact, "new_lineid");
             if (!string.IsNullOrWhiteSpace(primaryLineId))
