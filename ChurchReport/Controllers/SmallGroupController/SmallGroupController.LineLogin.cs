@@ -12,6 +12,7 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,6 +58,11 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
+                    HttpContext?.Session?.SetString("_LoginAccount", "LineIdLogin");
+                    HttpContext?.Session?.SetString("_LoginPassword", lineUserId);
+                    HttpContext?.Session?.SetString("_SessionUserId", lineUserId);
+                    await IssueAuthTicketAsync(contact.Id.ToString(), "LineIdLogin", lineUserId, "LINE");
+
                     var setupDataTask = Task.Run(() =>
                         InMemoryContext.SetupSmallGroupData(
                             fullName, "LineIdLogin", lineUserId, DateTime.Now, true),

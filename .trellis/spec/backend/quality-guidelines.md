@@ -39,6 +39,16 @@ Questions to answer:
 - Before completing a task that touches text files, run a byte-level check for BOM and LF-only lines on the modified files.
 - Do not rely only on the editor warning dialog; fix the file format before reporting completion.
 
+### Authentication Identity Authority
+
+- Authenticated user identity must be established by the server-issued `.ChurchReport.Auth` cookie ticket and its claims.
+- Controllers must not recover LINE identity, account identity, or authorization state from `Referer`, query strings, form fields, or other client-controllable request metadata.
+- Session values may remain a compatibility cache for legacy managers, but they are not the authority for security decisions once an auth ticket exists.
+- Login flows that establish account or LINE identity must issue the auth ticket with `LoginClaimsFactory` and await `IssueAuthTicketAsync`.
+- Logout flows must clear server session state, sign out the cookie auth scheme, and delete both `.ChurchReport.Session` and `.ChurchReport.Auth`.
+- Avoid sync-over-async in authentication/session code; use `await` for `SignInAsync`, `SignOutAsync`, and `Session.CommitAsync`.
+- `Security:EnforceGlobalAuthorization=false` and `Security:AllowSessionIdentityFallback=true` are rollout-only states. Flip them after the anonymous endpoint whitelist and staging matrix pass.
+
 ---
 
 ## Testing Requirements

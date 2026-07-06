@@ -386,6 +386,7 @@ namespace ChurchReport
                     // 防止 Session Bleeding（會話串連）問題
                     // 確保所有 Controller Action 都不會被中間層代理伺服器或瀏覽器快取
                     options.Filters.Add<ChurchReport.Filters.StrictNoCacheFilter>();
+                    options.Filters.Add<ChurchReport.Filters.GlobalAuthorizationFilter>();
 
 #if DEBUG
                     options.Filters.Add<ChurchReport.Filters.PerfTimingActionFilter>();
@@ -551,6 +552,7 @@ namespace ChurchReport
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
+                options.Cookie.Name = ".ChurchReport.Session";
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
 
@@ -718,6 +720,8 @@ namespace ChurchReport
                 // X-Content-Type-Options: nosniff - 防止瀏覽器嗅探內容類型
                 // 這能阻止 CDN/Proxy 將動態 HTML 回應誤判為靜態資源
                 context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+                context.Response.Headers["Referrer-Policy"] = "no-referrer";
+                context.Response.Headers["X-Frame-Options"] = "SAMEORIGIN";
 
                 // ⚠️ 重要：告訴所有 Proxy「不同 Cookie = 不同內容，不准共用」
                 // 這是解決 Session Bleeding 的關鍵設定！

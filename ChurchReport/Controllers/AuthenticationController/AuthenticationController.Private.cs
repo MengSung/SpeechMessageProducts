@@ -168,7 +168,7 @@ namespace ChurchReport.Controllers
             return (loginContact, fullName);
         }
 
-        private void InitializeUserSession(Entity loginContact, GalleryViewModel viewModel)
+        private async Task InitializeUserSessionAsync(Entity loginContact, GalleryViewModel viewModel)
         {
             using var perfPhase = PerfPhase.Measure(HttpContext, "Login.InitializeUserSession");
 
@@ -196,7 +196,7 @@ namespace ChurchReport.Controllers
             {
                 // 使用同步方式提交 Session（確保立即生效）
                 // 這會觸發 ASP.NET Core 產生新的 Session Cookie
-                HttpContext.Session.CommitAsync().GetAwaiter().GetResult();
+                await HttpContext.Session.CommitAsync();
                 System.Diagnostics.Debug.WriteLine("[InitializeUserSession] ? 已強制重新生成 Session ID");
             }
             catch (Exception ex)
@@ -256,6 +256,10 @@ namespace ChurchReport.Controllers
             {
                 System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ?? 寫入登入身分警告: {ex.Message}");
             }
+
+            var loginType = viewModel.Account == "LineIdLogin" ? "LINE" : "ACCOUNT";
+            var passwordKey = loginType == "LINE" ? (viewModel.Password ?? string.Empty) : string.Empty;
+            await IssueAuthTicketAsync(loginContact?.Id.ToString(), viewModel.Account, passwordKey, loginType);
 
             InMemoryContext.PersonalInfomationModel.m_LoginContact = loginContact;
             InMemoryContext.FeeList.SetupLoginUserInfo(
@@ -436,15 +440,12 @@ namespace ChurchReport.Controllers
 
         private IActionResult CreateLoginResponse(string displayViewType, string fullName, GalleryViewModel viewModel)
         {
-            return Json(new
-            {
-                DisplayViewType = displayViewType,
-                ActiveListId = InMemoryContext.ListManager.ActiveListId,
-                message = "歡迎" + fullName + "登入成功!",
-                fullname = fullName,
-                account = viewModel.Account,
-                password = viewModel.Password
-            });
+            var payload = ChurchReport.Security.LoginResponseFactory.Build(
+                displayViewType,
+                InMemoryContext.ListManager.ActiveListId,
+                fullName);
+
+            return Json(payload);
         }
 
         #endregion

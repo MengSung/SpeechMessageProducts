@@ -230,6 +230,7 @@
     margin-top: 10px;
   }
 
+  /* ATM/匯款資訊複製按鈕：維持醒目對比，方便奉獻者在手機上直接複製虛擬帳號資訊。 */
   .atm-copy-button {
     margin-top: 12px;
     border: 1px solid #c2410c;
@@ -693,6 +694,7 @@
             <!-- ==================== ATM資訊區域 ==================== -->
             <div id="atm-info" class="atm-info" style="display: none;">
                 <h5 id="atmfield"></h5>
+                @* 此按鈕只在 ATM/匯款或後端回傳「虛擬帳號」結果時顯示，避免信用卡錯誤訊息出現無關複製操作。 *@
                 <button id="copy-atm-info-button" type="button" class="atm-copy-button" onclick="CopyAtmPaymentInfo()" style="display: none;">
                     複製 ATM/匯款資訊
                 </button>
@@ -953,6 +955,7 @@
     }
 
     function setAtmCopyButtonVisible(isVisible) {
+        // 集中管理按鈕顯示狀態，避免 reset、成功分支、錯誤分支各自操作造成狀態殘留。
         var button = document.getElementById('copy-atm-info-button');
         if (button) {
             button.style.display = isVisible ? 'inline-block' : 'none';
@@ -960,6 +963,7 @@
     }
 
     function getAtmPaymentInfoText() {
+        // 從畫面上的 ATM 資訊區直接取文字，確保複製內容與使用者看到的付款資訊一致。
         var atmField = document.getElementById('atmfield');
         if (!atmField) {
             return "";
@@ -990,6 +994,8 @@
     }
 
     function copyAtmPaymentInfoWithFallback(text) {
+        // 非 HTTPS 或舊版 WebView 可能沒有 navigator.clipboard；
+        // 使用隱藏 textarea 保留舊瀏覽器與內嵌瀏覽器的複製能力。
         var textarea = document.createElement('textarea');
         textarea.value = text;
         textarea.setAttribute('readonly', 'readonly');

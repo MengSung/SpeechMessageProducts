@@ -1,12 +1,16 @@
-請重新審查以下完整變更，這次重點確認前次發現已修正：
-1. ATM/匯款複製按鈕是否在 payWay 為「虛擬帳號」或「ATM轉帳/匯款」時會顯示。
-2. 複製按鈕色彩對比與鍵盤 focus 是否符合基本可用性。
-3. ATM/匯款與輸入奉獻是否會顯示 LINE 發送成功或失敗原因。
-4. LINE 發送失敗是否不會中斷奉獻/付款主流程。
-5. 測試是否覆蓋成功、全部失敗、未綁定 LINE 的回歸案例。
+# Review Task: Show LINE send result for donations and add ATM copy button
 
-請只輸出 Critical / Warning / Info 分級審查報告，若沒有 Critical 請明確寫「Critical: 無」。
+User requirements:
+1. ATM/匯款奉獻 must show LINE send result to the user, including success or failure reason.
+2. 輸入奉獻 must show LINE send result to the user, including success or failure reason.
+3. ATM/匯款 virtual account result information must include a copy-to-clipboard button so donors can copy the ATM/transfer virtual account result info.
 
-```diff
-System.Object[]
-```
+Verification already run locally:
+- dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --filter "FullyQualifiedName~DonationPaymentProcessorKeyInNotificationTests" --no-restore : passed 6/6
+- dotnet build .\ChurchReport\ChurchReport.csproj --no-restore : passed 0 warnings / 0 errors
+- Modified files checked UTF-8 without BOM and CRLF-only line endings.
+
+Review the git diff in this file for correctness, regressions, security, UX, and missing tests:
+D:\網頁APP雲端線上版本\DevExpressDevExtreme-21.2.7版本\音訊產品版本\ChurchReport\.worktrees\Jesus_5.1.8.WorktreeFabelSecurityScan\.ccg\dual-model-runs\show-line-send-result-for-donations-review-diff.patch
+
+Output Critical/Warning/Info findings.

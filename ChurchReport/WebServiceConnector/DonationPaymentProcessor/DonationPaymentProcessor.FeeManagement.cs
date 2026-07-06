@@ -300,6 +300,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     System.Diagnostics.Trace.WriteLine(
                         $"[DonationPaymentProcessor] 手動輸入奉獻 LINE 通知略過：奉獻者尚未綁定 LINE。ContactId={contact.Id}, FeeId={feeId}");
+                    // 未綁定 LINE 不是奉獻建檔失敗，但必須回到畫面提示同工後續人工處理。
                     return "LINE 發送結果：發送失敗。失敗原因：奉獻者尚未綁定 LINE。";
                 }
 
@@ -320,6 +321,7 @@ namespace ChurchReport.WebServiceConnector
                 {
                     System.Diagnostics.Trace.WriteLine(
                         $"[DonationPaymentProcessor] 手動輸入奉獻 LINE 通知發送超時（8秒），略過通知繼續完成上傳。ContactId={contact.Id}, FeeId={feeId}");
+                    // 超時時不阻擋奉獻儲存，但畫面要讓使用者知道 LINE 未確認送達。
                     return "LINE 發送結果：發送失敗。失敗原因：LINE API 逾時未回應。";
                 }
                 else

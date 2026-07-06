@@ -1,0 +1,12 @@
+{
+    "id":  "show-line-send-result-for-donations",
+    "title":  "Show LINE send result for donations and add ATM info copy button",
+    "status":  "completed",
+    "complexity":  "M",
+    "risk":  "medium",
+    "domain":  "backend/frontend",
+    "currentPhase":  "completed",
+    "nextAction":  "Await user confirmation before commit or archive",
+    "updatedAt":  "2026-07-06T03:01:13Z",
+    "branch":  "Jesus_5.1.8.WorktreeFabelSecurityScan"
+}

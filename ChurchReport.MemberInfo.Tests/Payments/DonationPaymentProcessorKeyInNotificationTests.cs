@@ -120,6 +120,8 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
     [Fact]
     public async Task TrySendAtmPaymentInstructionsAsync_reports_failure_reason_when_all_line_ids_fail()
     {
+        // 所有候選 LINE ID 都被 provider 拒收時，頁面必須顯示最後一次失敗原因；
+        // 這能避免使用者只看到 ATM 帳號，卻不知道 LINE 推播其實沒有送達。
         var processor = (AtmNotificationProbeProcessor)RuntimeHelpers.GetUninitializedObject(
             typeof(AtmNotificationProbeProcessor));
         processor.LineIdToReject = "UstalePrimary";
@@ -139,6 +141,8 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
     [Fact]
     public async Task TrySendAtmPaymentInstructionsAsync_reports_unbound_line_id()
     {
+        // 沒有任何 LINE ID 時不應嘗試送出，也不應靜默成功；
+        // 畫面要提示奉獻者尚未綁定 LINE，並提醒保留網頁上的付款資訊。
         var processor = (AtmNotificationProbeProcessor)RuntimeHelpers.GetUninitializedObject(
             typeof(AtmNotificationProbeProcessor));
 

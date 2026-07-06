@@ -329,6 +329,8 @@ namespace ChurchReport.WebServiceConnector
             string retryKey,
             Guid contactId)
         {
+            // ATM 虛擬帳號是奉獻者完成付款的必要資訊；即使 LINE 沒有送出，
+            // 頁面也必須明確告知使用者「付款資訊仍在畫面上」以及 LINE 失敗原因。
             if (lineIds == null || lineIds.Count == 0)
             {
                 System.Diagnostics.Trace.WriteLine(
@@ -355,6 +357,7 @@ namespace ChurchReport.WebServiceConnector
                             $"[DonationPaymentProcessor] ATM LINE notification sent by fallback LINE id. ContactId={contactId}, AttemptIndex={index + 1}");
                     }
 
+                    // 需求要求成功也要顯示給使用者；不可再回傳空字串，否則使用者無法判斷 LINE 是否送達。
                     return BuildLineNotificationDisplayResult("成功發送", "ATM/匯款付款資訊已成功發送 LINE。", true);
                 }
                 catch (Exception ex)
@@ -411,6 +414,8 @@ namespace ChurchReport.WebServiceConnector
             return $"{Environment.NewLine}<br/><br/><strong style=\"color:{color};\">LINE 發送結果：{status}</strong><br/><span>{message}</span>";
         }
 
+        // LINE provider 或 HTTP client 的例外訊息會被串進 innerHTML 顯示；
+        // 這裡統一轉成 HTML 安全文字，避免 provider 回傳內容破壞頁面或形成 XSS。
         private static string FormatLineNotificationFailureReason(Exception exception)
         {
             if (exception == null)

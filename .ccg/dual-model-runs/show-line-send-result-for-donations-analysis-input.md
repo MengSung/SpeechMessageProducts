@@ -1,19 +1,27 @@
-﻿# Analysis request: show LINE send result for donation flows
+# Task: Show LINE send result for donations and add ATM copy button
 
-User request: ATM/匯款奉獻 and 輸入奉獻 must show LINE message sending result to the user. Both successful sending and failed sending reasons must be displayed.
+Repository/worktree: current directory.
 
-Current evidence:
-- LINE quota check showed quota limited=200 and consumption totalUsage=200 for LineMessaging:Jesus:ChannelAccessToken.
-- `ChurchReport/Tools/DonationFeePaymentProcessor.cs` calls `m_PushUtility.SendMessage(UserLineId, successMessage)` for successful payment and `m_PushUtility.SendMessage(UserLineId, failureMessage)` for failed payment, but it does not await/capture the Task and does not expose success/failure result in ViewBag.
-- `ChurchReport/Controllers/DedicationController.cs` `SaveKeyInDedication` calls `DonationPaymentManager.SaveKeyInDedication`.
-- `ChurchReport/Models/DonationPaymentManager.cs` delegates to `DonationKeyInDedicationService.SaveAsync`.
-- `ChurchReport/Services/DonationKeyInDedicationService.cs` currently handles query/update JSON responses and only has `_notifyError` for system errors; no visible payer LINE result in the JSON response.
-- `ToolUtility/PushUtility.cs` throws exceptions from `PushMessageAsync`.
+User requirements:
+1. ATM/匯款奉獻 must show LINE send result to the user, including success or failure reason.
+2. 輸入奉獻 must show LINE send result to the user, including success or failure reason.
+3. ATM/匯款 virtual account result information must include a copy-to-clipboard button so donors can copy the ATM/transfer virtual account result info.
 
-Need analysis:
-1. Minimal code path to surface LINE send success/failure in ATM/匯款 donation payment result page without breaking CRM payment update.
-2. Minimal code path to surface LINE send success/failure in 輸入奉獻 JSON response.
-3. Recommended tests in this repo to verify behavior.
-4. Risks around async SendMessage currently not awaited.
+Relevant files to inspect:
+- ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.PaymentProcessing.cs
+- ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.FeeManagement.cs
+- ChurchReport/Views/Dedication/DonationPaymentView.cshtml
+- ChurchReport/Views/Dedication/KeyInDedicationFeeView.cshtml
+- ChurchReport/Views/Dedication/KeyInDedicationFeeViewWeb.cshtml
+- ChurchReport.MemberInfo.Tests/Payments/DonationPaymentProcessorKeyInNotificationTests.cs
 
-Output: concise implementation guidance with files/methods and any caveats.
+Current known state:
+- Current branch/worktree does not yet contain LINE 發送結果, CopyAtmPaymentInfo, setAtmCopyButtonVisible, or FormatLineNotificationFailureReason.
+- Existing ATM notification method currently returns empty string on success and generic warning on failure.
+- Existing key-in notification method returns Task and does not append a visible send result to BuildSuccessMessage.
+
+Please analyze implementation approach and risks only. Output:
+- Required backend changes
+- Required frontend changes
+- Required tests
+- Edge cases and likely regressions

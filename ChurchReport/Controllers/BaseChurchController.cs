@@ -18,6 +18,7 @@ using ChurchReport.Services.MemberInfo;
 using ChurchReport.Tools;
 using ChurchReport.Services;
 using LineMessagingProcessor.Workflows;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -739,9 +740,14 @@ namespace ChurchReport.Controllers
                 // ========================================
                 if (string.IsNullOrEmpty(sessionPassword))
                 {
-                    var lineUserId = TryGetLineUserIdFromRequest();
+                    var principal = HttpContext?.User;
+                    var loginType = principal?.FindFirst(ChurchReport.Security.LoginClaimsFactory.LoginTypeClaim)?.Value;
+                    var passwordKey = principal?.FindFirst(ChurchReport.Security.LoginClaimsFactory.PasswordKeyClaim)?.Value;
 
-                    if (!string.IsNullOrEmpty(lineUserId) && lineUserId != listManagerPassword)
+                    if (principal?.Identity?.IsAuthenticated == true &&
+                        loginType == "LINE" &&
+                        !string.IsNullOrEmpty(passwordKey) &&
+                        passwordKey != listManagerPassword)
                     {
 #if DEBUG
                         System.Diagnostics.Debug.WriteLine($"[BaseChurch.EnsureCorrectUserData] Session ???箇征嚗蝙??LINE ID ?頛");
@@ -749,16 +755,16 @@ namespace ChurchReport.Controllers
 
                         InMemoryContext.ListManager.SetupListManager(
                             "LineIdLogin",
-                            lineUserId,
+                            passwordKey,
                             InMemoryContext.ListManager.m_SelectDate != default
                                 ? InMemoryContext.ListManager.m_SelectDate
                                 : DateTime.Now);
 
                         HttpContext?.Session?.SetString("_LoginAccount", "LineIdLogin");
-                        HttpContext?.Session?.SetString("_LoginPassword", lineUserId);
+                        HttpContext?.Session?.SetString("_LoginPassword", passwordKey);
 
                         // ?湔敹怠?
-                        var linePasswordHash = GetStableHash(lineUserId);
+                        var linePasswordHash = GetStableHash(passwordKey);
                         var lineCacheKey = $"{sessionId}_{linePasswordHash}";
                         _userValidationCache[lineCacheKey] = (DateTime.UtcNow, true, linePasswordHash);
                     }
@@ -866,28 +872,6 @@ namespace ChurchReport.Controllers
         /// - ??Session ?箏仃???臭誑敺?瘙葉?Ｗ儔?冽頨思遢
         /// - ??蝟餌絞?捆?航??
         /// </summary>
-        protected string TryGetLineUserIdFromRequest()
-        {
-            try
-            {
-                var referer = HttpContext?.Request?.Headers["Referer"].ToString();
-                if (!string.IsNullOrEmpty(referer))
-                {
-                    var match = System.Text.RegularExpressions.Regex.Match(referer, "U[a-zA-Z0-9]{32}");
-                    if (match.Success)
-                    {
-                        return match.Value;
-                    }
-                }
-
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         /// <summary>
         /// 撽??嗅? Session ?臬?? (Validate Current Session)
         ///
@@ -1011,12 +995,29 @@ namespace ChurchReport.Controllers
                     HttpContext.Session.SetString("_SessionRealIp", realIp ?? "");
                 }
 
-                System.Diagnostics.Debug.WriteLine("[RegenerateSessionId] Session ID regenerated.");
+                System.Diagnostics.Debug.WriteLine("[RegenerateSessionId] Session data cleared. ASP.NET Core does not rotate the Session ID here; identity is bound to the auth ticket.");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[RegenerateSessionId] ???憭望?: {ex.Message}");
                 throw;
+            }
+        }
+
+        protected async System.Threading.Tasks.Task IssueAuthTicketAsync(string contactId, string account, string passwordKey, string loginType)
+        {
+            try
+            {
+                var principal = ChurchReport.Security.LoginClaimsFactory.Build(contactId, account, passwordKey, loginType);
+                await HttpContext.SignInAsync(
+                    Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme,
+                    principal);
+
+                System.Diagnostics.Debug.WriteLine($"[IssueAuthTicket] Issued auth ticket. loginType={loginType}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[IssueAuthTicket] Failed to issue auth ticket: {ex.Message}");
             }
         }
 
