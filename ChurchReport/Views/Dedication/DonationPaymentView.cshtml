@@ -969,7 +969,14 @@
             return "";
         }
 
-        return (atmField.innerText || atmField.textContent || "").trim();
+        var text = (atmField.innerText || atmField.textContent || "").trim();
+        // LINE 發送結果是狀態提示，不是匯款必要資訊；複製給奉獻者時只保留付款資訊本體。
+        var lineResultIndex = text.indexOf("LINE 發送結果");
+        if (lineResultIndex >= 0) {
+            text = text.substring(0, lineResultIndex).trim();
+        }
+
+        return text;
     }
 
     function CopyAtmPaymentInfo() {
