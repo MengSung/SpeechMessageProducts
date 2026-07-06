@@ -11,6 +11,7 @@
 // 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using ChurchReport.Models;
@@ -111,7 +112,7 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
             "d2da3967-e0fc-4f01-9efa-414d221e1e11",
             Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
 
-        warning.Should().Contain("LINE 發送結果：成功發送", "備援 LINE ID 成功送出後，頁面應明確顯示 LINE 發送成功");
+        warning.Should().Contain("LINE 發送結果：成功發送", "備援 LINE ID 成功送出後，頁面應明確顯示 LINE 已成功發送");
         processor.AttemptedLineIds.Should().Equal("UstalePrimary", "UbackupValid");
         processor.LastDeliveredMessage.Should().Be("ATM payment instructions");
         processor.LastDeliveredRetryKey.Should().Be("d2da3967-e0fc-4f01-9efa-414d221e1e11");
@@ -124,18 +125,18 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
         // 這能避免使用者只看到 ATM 帳號，卻不知道 LINE 推播其實沒有送達。
         var processor = (AtmNotificationProbeProcessor)RuntimeHelpers.GetUninitializedObject(
             typeof(AtmNotificationProbeProcessor));
-        processor.RejectAllLineIds = true;
+        processor.LineIdToReject = "UstalePrimary";
 
-        var result = await InvokeTrySendAtmPaymentInstructionsAsync(
+        var warning = await InvokeTrySendAtmPaymentInstructionsAsync(
             processor,
-            new[] { "Uprimary", "Ubackup" },
+            new[] { "UstalePrimary" },
             "ATM payment instructions",
             "d2da3967-e0fc-4f01-9efa-414d221e1e11",
             Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
 
-        result.Should().Contain("LINE 發送結果：發送失敗");
-        result.Should().Contain("Simulated LINE provider rejection.");
-        processor.AttemptedLineIds.Should().Equal("Uprimary", "Ubackup");
+        warning.Should().Contain("LINE 發送結果：發送失敗");
+        warning.Should().Contain("失敗原因");
+        warning.Should().Contain("Simulated LINE provider rejection");
     }
 
     [Fact]
@@ -146,16 +147,41 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
         var processor = (AtmNotificationProbeProcessor)RuntimeHelpers.GetUninitializedObject(
             typeof(AtmNotificationProbeProcessor));
 
-        var result = await InvokeTrySendAtmPaymentInstructionsAsync(
+        var warning = await InvokeTrySendAtmPaymentInstructionsAsync(
             processor,
             Array.Empty<string>(),
             "ATM payment instructions",
             "d2da3967-e0fc-4f01-9efa-414d221e1e11",
             Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
 
-        result.Should().Contain("LINE 發送結果：發送失敗");
-        result.Should().Contain("奉獻者尚未綁定 LINE");
-        processor.AttemptedLineIds.Should().BeEmpty();
+        warning.Should().Contain("LINE 發送結果：發送失敗");
+        warning.Should().Contain("奉獻者尚未綁定 LINE");
+    }
+
+    [Fact]
+    public async Task TrySendAtmPaymentInstructionsAsync_returns_timeout_result_when_line_api_is_slow()
+    {
+        // ATM 虛擬帳號已經建立後，LINE API 慢或卡住時不能讓奉獻者長時間停在 Processing。
+        // 此測試鎖住使用者體驗：付款資訊要先回畫面，LINE 狀態顯示逾時失敗即可。
+        var processor = (AtmNotificationProbeProcessor)RuntimeHelpers.GetUninitializedObject(
+            typeof(AtmNotificationProbeProcessor));
+        processor.LineIdToDelay = "UslowLineApi";
+        processor.SimulatedDelay = TimeSpan.FromSeconds(3);
+
+        var stopwatch = Stopwatch.StartNew();
+        var warning = await InvokeTrySendAtmPaymentInstructionsAsync(
+            processor,
+            new[] { "UslowLineApi" },
+            "ATM payment instructions",
+            "d2da3967-e0fc-4f01-9efa-414d221e1e11",
+            Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
+        stopwatch.Stop();
+
+        warning.Should().Contain("LINE 發送結果：發送失敗");
+        warning.Should().Contain("LINE API 逾時未回應");
+        stopwatch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(3),
+            "LINE API 慢於顯示上限時，ATM 付款資訊應先回到畫面，不應等待完整 LINE 呼叫時間");
+        processor.AttemptedLineIds.Should().Equal("UslowLineApi");
     }
 
     private static string InvokeBuildDedicationNotificationLineRetryKey(Guid feeId, DonationPaymentFormModel model)
@@ -218,8 +244,9 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
 
         public string? LineIdToReject { get; set; }
 
-        // 用來模擬主要與備援 LINE ID 全數失敗，固定「每個候選都會被嘗試」的產品規則。
-        public bool RejectAllLineIds { get; set; }
+        public string? LineIdToDelay { get; set; }
+
+        public TimeSpan SimulatedDelay { get; set; } = TimeSpan.FromSeconds(3);
 
         public List<string> AttemptedLineIds => _attemptedLineIds ??= new List<string>();
 
@@ -227,13 +254,13 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
 
         public string? LastDeliveredRetryKey { get; private set; }
 
-        protected override Task SendAtmPaymentInstructionsAsync(string lineId, string lineMessage, string retryKey)
+        protected override async Task SendAtmPaymentInstructionsAsync(string lineId, string lineMessage, string retryKey)
         {
             AttemptedLineIds.Add(lineId);
 
-            if (RejectAllLineIds)
+            if (lineId == LineIdToDelay)
             {
-                throw new InvalidOperationException("Simulated LINE provider rejection.");
+                await Task.Delay(SimulatedDelay);
             }
 
             if (lineId == LineIdToReject)
@@ -243,7 +270,6 @@ public sealed class DonationPaymentProcessorKeyInNotificationTests
 
             LastDeliveredMessage = lineMessage;
             LastDeliveredRetryKey = retryKey;
-            return Task.CompletedTask;
         }
     }
 

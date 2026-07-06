@@ -35,6 +35,8 @@ namespace ChurchReport.WebServiceConnector
     /// </summary>
     public partial class DonationPaymentProcessor
     {
+        private static readonly TimeSpan AtmLineNotificationDisplayTimeout = TimeSpan.FromSeconds(2);
+
         #region ===== 信用卡付款 =====
 
         /// <summary>
@@ -252,13 +254,13 @@ namespace ChurchReport.WebServiceConnector
                 // ATM 虛擬帳號是付款必要資訊，因此不可只嘗試單一 LINE ID。
                 // 若主要欄位 new_lineid 已失效，仍要改試綁定流程保留的 new_lineid_backup。
                 var lineIds = ResolveAtmNotificationLineIds(LineId, LineLoginContact);
-                var notificationWarning = await TrySendAtmPaymentInstructionsAsync(
+                var notificationResult = await TrySendAtmPaymentInstructionsAsync(
                     lineIds,
                     atmInfo.LineMessage,
                     BuildAtmPaymentLineRetryKey(aCreatedFeeId, createdAtmOrder.OrderNo, createdAtmOrder.ATMParam.AtmPayNo),
                     LineLoginContact.Id);
 
-                return atmInfo.HtmlMessage + notificationWarning;
+                return atmInfo.HtmlMessage + notificationResult;
             }
             catch (Exception ex)
             {
@@ -335,7 +337,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 System.Diagnostics.Trace.WriteLine(
                     $"[DonationPaymentProcessor] ATM LINE notification skipped because donor has no LINE id. ContactId={contactId}");
-                return BuildAtmNotificationWarning("LINE 發送結果：發送失敗。失敗原因：奉獻者尚未綁定 LINE，請保存本頁付款資訊。");
+                return BuildLineNotificationDisplayResult("發送失敗", "奉獻者尚未綁定 LINE，請保存本頁付款資訊。", false);
             }
 
             Exception lastException = null;
@@ -349,7 +351,31 @@ namespace ChurchReport.WebServiceConnector
 
                 try
                 {
-                    await SendAtmPaymentInstructionsAsync(lineId, lineMessage, retryKey);
+                    var sendTask = SendAtmPaymentInstructionsAsync(lineId, lineMessage, retryKey);
+                    var timeoutTask = Task.Delay(AtmLineNotificationDisplayTimeout);
+                    var completedTask = await Task.WhenAny(sendTask, timeoutTask);
+                    if (completedTask == timeoutTask)
+                    {
+                        System.Diagnostics.Trace.WriteLine(
+                            $"[DonationPaymentProcessor] ATM LINE notification timed out before display response. ContactId={contactId}, AttemptIndex={index + 1}, TimeoutMs={AtmLineNotificationDisplayTimeout.TotalMilliseconds}");
+                        _ = sendTask.ContinueWith(
+                            task =>
+                            {
+                                if (task.IsFaulted)
+                                {
+                                    System.Diagnostics.Trace.WriteLine(
+                                        $"[DonationPaymentProcessor] ATM LINE notification background completion failed. ContactId={contactId}, AttemptIndex={index + 1}, Error={task.Exception}");
+                                }
+                            },
+                            TaskContinuationOptions.ExecuteSynchronously);
+
+                        return BuildLineNotificationDisplayResult(
+                            "發送失敗",
+                            "LINE API 逾時未回應，請保存本頁付款資訊。",
+                            false);
+                    }
+
+                    await sendTask;
 
                     if (index > 0)
                     {
@@ -358,7 +384,7 @@ namespace ChurchReport.WebServiceConnector
                     }
 
                     // 需求要求成功也要顯示給使用者；不可再回傳空字串，否則使用者無法判斷 LINE 是否送達。
-                    return BuildAtmNotificationResult("LINE 發送結果：成功發送<br/>ATM/匯款付款資訊已成功發送 LINE。");
+                    return BuildLineNotificationDisplayResult("成功發送", "ATM/匯款付款資訊已成功發送 LINE。", true);
                 }
                 catch (Exception ex)
                 {
@@ -370,7 +396,10 @@ namespace ChurchReport.WebServiceConnector
 
             System.Diagnostics.Trace.WriteLine(
                 $"[DonationPaymentProcessor] ATM LINE notification failed for all LINE id candidates. ContactId={contactId}, CandidateCount={lineIds.Count}, LastError={lastException}");
-            return BuildAtmNotificationWarning($"LINE 發送結果：發送失敗。失敗原因：{FormatLineNotificationFailureReason(lastException)}，請保存本頁付款資訊。");
+            return BuildLineNotificationDisplayResult(
+                "發送失敗",
+                $"LINE 通知未送出，請保存本頁付款資訊。失敗原因：{FormatLineNotificationFailureReason(lastException)}",
+                false);
         }
 
         private static string BuildAtmPaymentLineRetryKey(Guid feeId, string providerOrderNo, string atmPayNo)
@@ -405,14 +434,10 @@ namespace ChurchReport.WebServiceConnector
             await PushUtility.SendReliableMessageAsync(lineId, lineMessage, retryKey);
         }
 
-        private static string BuildAtmNotificationWarning(string message)
+        private static string BuildLineNotificationDisplayResult(string status, string message, bool isSuccess)
         {
-            return $"{Environment.NewLine}<br/><br/><strong>{message}</strong>";
-        }
-
-        private static string BuildAtmNotificationResult(string message)
-        {
-            return $"{Environment.NewLine}<br/><br/><strong>{message}</strong>";
+            var color = isSuccess ? "#198754" : "#dc3545";
+            return $"{Environment.NewLine}<br/><br/><strong style=\"color:{color};\">LINE 發送結果：{status}</strong><br/><span>{message}</span>";
         }
 
         // LINE provider 或 HTTP client 的例外訊息會被串進 innerHTML 顯示；
@@ -421,14 +446,16 @@ namespace ChurchReport.WebServiceConnector
         {
             if (exception == null)
             {
-                return "LINE API 未回傳明確錯誤";
+                return "未知錯誤";
             }
 
-            var message = string.IsNullOrWhiteSpace(exception.Message)
-                ? exception.GetType().Name
-                : exception.Message;
+            var message = exception.GetBaseException().Message;
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return exception.GetType().Name;
+            }
 
-            return System.Net.WebUtility.HtmlEncode(message);
+            return message;
         }
 
         #endregion
