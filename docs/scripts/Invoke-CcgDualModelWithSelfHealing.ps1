@@ -32,7 +32,8 @@ function Get-CcgToolPathEntries {
 function Add-UniquePathEntries {
     param(
         [string]$OriginalPath,
-        [string[]]$Entries
+        [string[]]$Entries,
+        [switch]$Prepend
     )
 
     $pathEntries = @()
@@ -41,6 +42,15 @@ function Add-UniquePathEntries {
     }
 
     $changed = $false
+    if ($Prepend) {
+        $newPathEntries = @($Entries + $pathEntries | Where-Object { $_ -and $_.Trim() -ne "" } | Select-Object -Unique)
+        $changed = (($newPathEntries -join ";") -ne ($pathEntries -join ";"))
+        return [pscustomobject]@{
+            Path = ($newPathEntries -join ";")
+            Changed = $changed
+        }
+    }
+
     foreach ($entry in $Entries) {
         if (-not ($pathEntries -contains $entry)) {
             $pathEntries += $entry
@@ -54,10 +64,80 @@ function Add-UniquePathEntries {
     }
 }
 
-function Initialize-CcgToolchainEnvironment {
-    $toolPathEntries = @(Get-CcgToolPathEntries)
+function Resolve-CcgRealClaudeCommand {
+    foreach ($path in @(
+        "C:\Users\Administrator\AppData\Roaming\npm\claude.cmd",
+        "C:\Users\Administrator\.claude\bin\claude.cmd"
+    )) {
+        if (Test-Path -LiteralPath $path) {
+            return $path
+        }
+    }
 
-    $processPath = Add-UniquePathEntries -OriginalPath $env:Path -Entries $toolPathEntries
+    return $null
+}
+
+function New-CcgClaudeModelShim {
+    param([Parameter(Mandatory = $true)][string]$ShimDirectory)
+
+    $realClaudePath = Resolve-CcgRealClaudeCommand
+    if (-not $realClaudePath) {
+        return $null
+    }
+
+    New-DirectoryIfMissing -Path $ShimDirectory
+    $shimPath = Join-Path $ShimDirectory "claude.cmd"
+    $tempShimPath = Join-Path $ShimDirectory ("claude-" + [Guid]::NewGuid().ToString("N") + ".cmd.tmp")
+    $content = @"
+@echo off
+setlocal
+set "CCG_REAL_CLAUDE_CMD=$realClaudePath"
+set "CCG_HAS_MODEL=0"
+for %%A in (%*) do (
+  if /I "%%~A"=="--model" set "CCG_HAS_MODEL=1"
+)
+if "%CLAUDE_MODEL%"=="" set "CCG_HAS_MODEL=1"
+if "%CCG_HAS_MODEL%"=="1" (
+  call "%CCG_REAL_CLAUDE_CMD%" %*
+) else (
+  call "%CCG_REAL_CLAUDE_CMD%" --model "%CLAUDE_MODEL%" %*
+)
+exit /b %ERRORLEVEL%
+"@
+
+    [System.IO.File]::WriteAllText($tempShimPath, $content, [System.Text.UTF8Encoding]::new($false))
+    Move-Item -LiteralPath $tempShimPath -Destination $shimPath -Force
+
+    return [pscustomobject]@{
+        Directory = $ShimDirectory
+        Script = $shimPath
+        RealClaude = $realClaudePath
+    }
+}
+
+function Initialize-CcgToolchainEnvironment {
+    if ([string]::IsNullOrWhiteSpace($env:CLAUDE_MODEL)) {
+        $env:CLAUDE_MODEL = "sonnet"
+    }
+
+    if ([string]::IsNullOrWhiteSpace($env:CCG_CLAUDE_MODEL_SHIM_DIR)) {
+        $env:CCG_CLAUDE_MODEL_SHIM_DIR = Join-Path ([System.IO.Path]::GetTempPath()) ("ccg-claude-model-shim-" + $PID + "-" + [Guid]::NewGuid().ToString("N"))
+    }
+
+    $claudeShim = New-CcgClaudeModelShim -ShimDirectory $env:CCG_CLAUDE_MODEL_SHIM_DIR
+    if ($claudeShim) {
+        $env:CLAUDE_MODEL_SHIM = $claudeShim.Script
+        $env:CCG_CLAUDE_MODEL_SHIM_DIR = $claudeShim.Directory
+    }
+
+    $toolPathEntries = @(Get-CcgToolPathEntries)
+    $processToolPathEntries = @()
+    if ($claudeShim) {
+        $processToolPathEntries += $claudeShim.Directory
+    }
+    $processToolPathEntries += $toolPathEntries
+
+    $processPath = Add-UniquePathEntries -OriginalPath $env:Path -Entries $processToolPathEntries -Prepend
     if ($processPath.Changed) {
         $env:Path = $processPath.Path
     }
@@ -79,6 +159,10 @@ function Initialize-CcgToolchainEnvironment {
         GEMINI_CLI_TRUST_WORKSPACE = $env:GEMINI_CLI_TRUST_WORKSPACE
         CODEAGENT_LITE_MODE = $env:CODEAGENT_LITE_MODE
         PYTHONIOENCODING = $env:PYTHONIOENCODING
+        CLAUDE_MODEL = $env:CLAUDE_MODEL
+        CLAUDE_MODEL_SHIM = $env:CLAUDE_MODEL_SHIM
+        CCG_CLAUDE_MODEL_SHIM_DIR = $env:CCG_CLAUDE_MODEL_SHIM_DIR
+        CLAUDE_REAL_COMMAND = if ($claudeShim) { $claudeShim.RealClaude } else { $null }
     }
 }
 
@@ -150,6 +234,15 @@ function Invoke-ProcessCapture {
     $startInfo.Environment["GEMINI_CLI_TRUST_WORKSPACE"] = "true"
     $startInfo.Environment["CODEAGENT_LITE_MODE"] = "true"
     $startInfo.Environment["PYTHONIOENCODING"] = "utf-8"
+    if (-not [string]::IsNullOrWhiteSpace($env:CLAUDE_MODEL)) {
+        $startInfo.Environment["CLAUDE_MODEL"] = $env:CLAUDE_MODEL
+    }
+    if (-not [string]::IsNullOrWhiteSpace($env:CLAUDE_MODEL_SHIM)) {
+        $startInfo.Environment["CLAUDE_MODEL_SHIM"] = $env:CLAUDE_MODEL_SHIM
+    }
+    if (-not [string]::IsNullOrWhiteSpace($env:CCG_CLAUDE_MODEL_SHIM_DIR)) {
+        $startInfo.Environment["CCG_CLAUDE_MODEL_SHIM_DIR"] = $env:CCG_CLAUDE_MODEL_SHIM_DIR
+    }
     $startInfo.Environment["Path"] = $env:Path
 
     $process = [System.Diagnostics.Process]::new()
@@ -214,7 +307,7 @@ OUTPUT:
 
 function Test-QuotaBlockedText {
     param([string]$Text)
-    return ($Text -match "(?i)(you'?ve hit your session limit|session limit|rate limit|rate_limit|quota exceeded|insufficient_quota|resource_exhausted|usage limit|http\s*429|\b429\b)")
+    return ($Text -match "(?i)(you'?ve hit your session limit|you'?ve reached your .* limit|fable 5 limit|session limit|rate limit|rate_limit|quota exceeded|insufficient_quota|resource_exhausted|usage limit|http\s*429|\b429\b|insufficient balance|balance insufficient|billing account|enable billing|billing required|payment required.*(quota|balance|billing)|\u4f59\u989d\u4e0d\u8db3|\u9918\u984d\u4e0d\u8db3|\u4f59\u989d\u4e0d\u591f)")
 }
 
 function Test-BackendQuotaBlocked {
@@ -265,15 +358,65 @@ function Test-BackendProducedOutput {
     return ($modelOutput.Length -ge 20)
 }
 
+function Get-BackendFailureReason {
+    param(
+        [Parameter(Mandatory = $true)]$Result,
+        [bool]$BackendOk,
+        [bool]$QuotaBlocked,
+        [bool]$ProducedOutput
+    )
+
+    if ($BackendOk) {
+        return "ok"
+    }
+    if ($QuotaBlocked) {
+        return "provider-quota-or-billing-blocked"
+    }
+    if ($Result.TimedOut) {
+        return "timeout"
+    }
+    if (-not $ProducedOutput) {
+        return "no-usable-output"
+    }
+    return "backend-exit-$($Result.ExitCode)"
+}
+
+function Get-ShortDiagnostic {
+    param(
+        [string]$Text,
+        [string]$Fallback
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Text)) {
+        return $Fallback
+    }
+
+    $lines = @(
+        ($Text -replace "`r", "") -split "`n" |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    )
+    $priorityLines = @(
+        $lines | Where-Object {
+            $_ -match "(?i)(error when talking to gemini api|_apierror|api error|api key not valid|invalid_argument|resource_exhausted|insufficient_quota|quota|billing|payment|required|status\s*:?\s*(400|403|429)|exited with status\s+(400|403|429))"
+        }
+    )
+    $normalized = if ($priorityLines.Count -gt 0) {
+        ($priorityLines | Select-Object -First 3) -join " "
+    } else {
+        $lines -join " "
+    }
+    if ($normalized.Length -gt 500) {
+        return $normalized.Substring(0, 500)
+    }
+    return $normalized
+}
+
 function Invoke-ClaudeDirectQuotaProbe {
     param([Parameter(Mandatory = $true)][string]$WorkingDirectory)
 
-    $claudeCandidates = @(
-        "C:\Users\Administrator\AppData\Roaming\npm\claude.cmd",
-        "C:\Users\Administrator\.claude\bin\claude.cmd"
-    )
-
-    $claudePath = $claudeCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+    $claudePath = Resolve-ExecutablePath `
+        -Name "claude.cmd" `
+        -FallbackPaths @("C:\Users\Administrator\AppData\Roaming\npm\claude.cmd", "C:\Users\Administrator\.claude\bin\claude.cmd")
     if (-not $claudePath) {
         return [pscustomobject]@{
             Ran = $false
@@ -282,10 +425,46 @@ function Invoke-ClaudeDirectQuotaProbe {
         }
     }
 
+    $probeArguments = @("-p", "Smoke test only. Reply with exactly: CLAUDE_DIRECT_QUOTA_PROBE_OK")
+    if (-not [string]::IsNullOrWhiteSpace($env:CLAUDE_MODEL)) {
+        $probeArguments += @("--model", $env:CLAUDE_MODEL)
+    }
+    $probeArguments += @("--dangerously-skip-permissions", "--output-format", "text")
+
     $probe = Invoke-ProcessCapture `
         -FilePath $claudePath `
-        -Arguments @("-p", "Smoke test only. Reply with exactly: CLAUDE_DIRECT_QUOTA_PROBE_OK", "--dangerously-skip-permissions", "--output-format", "text") `
+        -Arguments $probeArguments `
         -InputText "" `
+        -WorkingDirectory $WorkingDirectory `
+        -TimeoutSeconds 120
+
+    $combined = (($probe.StdOut + "`n" + $probe.StdErr) -replace "`r", "").Trim()
+
+    return [pscustomobject]@{
+        Ran = $true
+        QuotaBlocked = (Test-QuotaBlockedText -Text $combined)
+        Output = $combined
+    }
+}
+
+function Invoke-GeminiDirectQuotaProbe {
+    param([Parameter(Mandatory = $true)][string]$WorkingDirectory)
+
+    $geminiPath = Resolve-ExecutablePath `
+        -Name "gemini.cmd" `
+        -FallbackPaths @("C:\Users\Administrator\AppData\Roaming\npm\gemini.cmd", "C:\Users\Administrator\.claude\bin\gemini.cmd")
+    if (-not $geminiPath) {
+        return [pscustomobject]@{
+            Ran = $false
+            QuotaBlocked = $false
+            Output = "gemini.cmd not found for direct quota probe."
+        }
+    }
+
+    $probe = Invoke-ProcessCapture `
+        -FilePath $geminiPath `
+        -Arguments @("-o", "stream-json", "-y") `
+        -InputText "Smoke test only. Reply with exactly: GEMINI_DIRECT_QUOTA_PROBE_OK" `
         -WorkingDirectory $WorkingDirectory `
         -TimeoutSeconds 120
 
@@ -431,20 +610,36 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
         $diagnostic = $null
         $quotaBlocked = Test-BackendQuotaBlocked -Result $result -Diagnostic $diagnostic
 
+        if ($backend -eq "gemini" -and -not $quotaBlocked -and $result.ExitCode -ne 0) {
+            # Gemini CLI can return a generic 403 through the wrapper while the
+            # direct CLI stderr exposes the provider message, such as balance
+            # exhaustion. Probe directly so quota/billing blocks are not
+            # misclassified as local toolchain failures.
+            $directProbe = Invoke-GeminiDirectQuotaProbe -WorkingDirectory $repositoryFullPath
+            if ($directProbe.QuotaBlocked) {
+                $quotaBlocked = $true
+                $diagnostic = $directProbe.Output
+            }
+        }
+
         if ($backend -eq "claude" -and -not $quotaBlocked -and $result.ExitCode -ne 0) {
             # Claude Code may expose the real provider/session-limit error only
             # when invoked directly. If wrapper stderr only says exit 1, run a
             # direct probe so the pipeline can stop as "external quota blocked"
             # instead of repeatedly trying local repairs that cannot help.
             $directProbe = Invoke-ClaudeDirectQuotaProbe -WorkingDirectory $repositoryFullPath
-            $diagnostic = $directProbe.Output
             if ($directProbe.QuotaBlocked) {
                 $quotaBlocked = $true
+                $diagnostic = $directProbe.Output
             }
         }
 
         $producedOutput = Test-BackendProducedOutput -Result $result -Role $Role
         $backendOk = ($result.ExitCode -eq 0 -and -not $result.TimedOut -and -not $quotaBlocked -and $producedOutput)
+        $failureReason = Get-BackendFailureReason -Result $result -BackendOk $backendOk -QuotaBlocked $quotaBlocked -ProducedOutput $producedOutput
+        if ($quotaBlocked -and [string]::IsNullOrWhiteSpace($diagnostic)) {
+            $diagnostic = Get-ShortDiagnostic -Text ($result.StdErr + "`n" + $result.StdOut) -Fallback "Provider quota or billing block detected."
+        }
 
         $attemptRecord.backends += [ordered]@{
             backend = $backend
@@ -452,6 +647,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
             exitCode = $result.ExitCode
             timedOut = $result.TimedOut
             quotaBlocked = $quotaBlocked
+            failureReason = $failureReason
             producedOutput = $producedOutput
             outputLength = (Get-ModelResponseText -StdOut $result.StdOut).Length
             diagnostic = $diagnostic

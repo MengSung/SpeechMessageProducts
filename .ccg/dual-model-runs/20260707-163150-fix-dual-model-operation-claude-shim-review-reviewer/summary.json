@@ -1,0 +1,76 @@
+﻿{
+    "runId":  "20260707-163150-fix-dual-model-operation-claude-shim-review-reviewer",
+    "role":  "reviewer",
+    "repositoryPath":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts",
+    "taskFile":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.ccg\\dual-model-runs\\fix-dual-model-operation-claude-shim-review-reviewer.md",
+    "runDirectory":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.\\.ccg\\dual-model-runs\\20260707-163150-fix-dual-model-operation-claude-shim-review-reviewer",
+    "wrapperPath":  "C:\\Users\\Administrator\\.claude\\bin\\codeagent-wrapper.exe",
+    "toolchainEnvironment":  {
+                                 "ToolPathEntries":  [
+                                                         "C:\\Users\\Administrator\\AppData\\Roaming\\npm",
+                                                         "C:\\Users\\Administrator\\.claude\\bin",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314\\Scripts",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314",
+                                                         "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Launcher"
+                                                     ],
+                                 "ChangedProcessPath":  false,
+                                 "ChangedUserPath":  false,
+                                 "GEMINI_CLI_TRUST_WORKSPACE":  "true",
+                                 "CODEAGENT_LITE_MODE":  "true",
+                                 "PYTHONIOENCODING":  "utf-8",
+                                 "CLAUDE_MODEL":  "sonnet",
+                                 "CLAUDE_MODEL_SHIM":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim\\claude.cmd",
+                                 "CLAUDE_REAL_COMMAND":  "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\claude.cmd"
+                             },
+    "healthBackendSmoke":  false,
+    "attempts":  [
+                     {
+                         "attempt":  1,
+                         "healthExitCode":  0,
+                         "healthTimedOut":  false,
+                         "healthOutput":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.\\.ccg\\dual-model-runs\\20260707-163150-fix-dual-model-operation-claude-shim-review-reviewer\\health-attempt-1.json",
+                         "healthStatus":  "passed",
+                         "backends":  [
+                                          {
+                                              "backend":  "gemini",
+                                              "ok":  false,
+                                              "exitCode":  403,
+                                              "timedOut":  false,
+                                              "quotaBlocked":  true,
+                                              "failureReason":  "provider-quota-or-billing-blocked",
+                                              "producedOutput":  false,
+                                              "outputLength":  0,
+                                              "diagnostic":  "Error when talking to Gemini API Full report available at: C:\\Users\\Administrator\\AppData\\Local\\Temp\\gemini-client-error-Turn.run-sendMessageStream-2026-07-07T08-31-55-510Z.json _ApiError: {\"error\":\"余额不足\"}   status: 403 gemini exited with status 403",
+                                              "prompt":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.\\.ccg\\dual-model-runs\\20260707-163150-fix-dual-model-operation-claude-shim-review-reviewer\\gemini-reviewer-attempt-1.prompt.md",
+                                              "stdout":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.\\.ccg\\dual-model-runs\\20260707-163150-fix-dual-model-operation-claude-shim-review-reviewer\\gemini-reviewer-attempt-1.stdout.md",
+                                              "stderr":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.\\.ccg\\dual-model-runs\\20260707-163150-fix-dual-model-operation-claude-shim-review-reviewer\\gemini-reviewer-attempt-1.stderr.md"
+                                          },
+                                          {
+                                              "backend":  "claude",
+                                              "ok":  false,
+                                              "exitCode":  1,
+                                              "timedOut":  false,
+                                              "quotaBlocked":  true,
+                                              "failureReason":  "provider-quota-or-billing-blocked",
+                                              "producedOutput":  false,
+                                              "outputLength":  0,
+                                              "diagnostic":  "You\u0027ve hit your session limit · resets 5:20pm (Asia/Taipei)",
+                                              "prompt":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.\\.ccg\\dual-model-runs\\20260707-163150-fix-dual-model-operation-claude-shim-review-reviewer\\claude-reviewer-attempt-1.prompt.md",
+                                              "stdout":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.\\.ccg\\dual-model-runs\\20260707-163150-fix-dual-model-operation-claude-shim-review-reviewer\\claude-reviewer-attempt-1.stdout.md",
+                                              "stderr":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.\\.ccg\\dual-model-runs\\20260707-163150-fix-dual-model-operation-claude-shim-review-reviewer\\claude-reviewer-attempt-1.stderr.md"
+                                          }
+                                      ]
+                     }
+                 ],
+    "ok":  false,
+    "degradedFallback":  false,
+    "fallbackAccepted":  true,
+    "quotaBlocked":  true,
+    "completedBackends":  [
+
+                          ],
+    "failedBackends":  [
+                           "gemini",
+                           "claude"
+                       ]
+}

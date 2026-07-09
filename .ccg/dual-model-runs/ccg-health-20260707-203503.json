@@ -1,0 +1,48 @@
+﻿{
+    "generatedAt":  "2026-07-07T20:34:52.4493399+08:00",
+    "repositoryPath":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts",
+    "changedUserPath":  false,
+    "environment":  {
+                        "GEMINI_CLI_TRUST_WORKSPACE":  "true",
+                        "CODEAGENT_LITE_MODE":  "true",
+                        "PYTHONIOENCODING":  "utf-8",
+                        "CLAUDE_MODEL":  "sonnet",
+                        "CLAUDE_MODEL_SHIM":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-33112-53d08dbc567143d980499a5c2473ff46\\claude.cmd",
+                        "CCG_CLAUDE_MODEL_SHIM_DIR":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-33112-53d08dbc567143d980499a5c2473ff46",
+                        "CLAUDE_REAL_COMMAND":  "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\claude.cmd"
+                    },
+    "executables":  {
+                        "wrapper":  "C:\\Users\\Administrator\\.claude\\bin\\codeagent-wrapper.exe",
+                        "gemini":  "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\gemini.cmd",
+                        "claude":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-33112-53d08dbc567143d980499a5c2473ff46\\claude.cmd",
+                        "python":  "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314\\python.exe"
+                    },
+    "smoke":  [
+                  {
+                      "Backend":  "gemini",
+                      "Ok":  false,
+                      "ExitCode":  403,
+                      "TimedOut":  false,
+                      "QuotaBlocked":  true,
+                      "FailureReason":  "provider-quota-or-billing-blocked",
+                      "Diagnostic":  "Error when talking to Gemini API Full report available at: C:\\Users\\Administrator\\AppData\\Local\\Temp\\gemini-client-error-Turn.run-sendMessageStream-2026-07-07T12-34-57-159Z.json _ApiError: {\"error\":\"余额不足\"}   status: 403 gemini exited with status 403",
+                      "Output":  "[codeagent-wrapper]\n  Backend: gemini\n  Command: gemini -o stream-json -y --include-directories D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\n  PID: 13764\n  Log: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeagent-wrapper-13764.log\nRipgrep is not available. Falling back to GrepTool.\n  Session-ID: 3db9ec4b-a7a3-4249-87c6-955503b602aa\nError when talking to Gemini API Full report available at: C:\\Users\\Administrator\\AppData\\Local\\Temp\\gemini-client-error-Turn.run-sendMessageStream-2026-07-07T12-34-57-159Z.json _ApiError: {\"error\":\"余额不足\"}\n    at throwErrorIfNotOK (file:///C:/Users/Administrator/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-VLV2BYPM.js:258424:24)\n    at async file:///C:/Users/Administrator/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-VLV2BYPM.js:258187:7\n    at async Models.generateContentStream (file:///C:/Users/Administrator/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-VLV2BYPM.js:259283:16)\n    at async file:///C:/Users/Administrator/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-VLV2BYPM.js:301279:19\n    at async file:///C:/Users/Administrator/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-VLV2BYPM.js:278341:23\n    at async retryWithBackoff (file:///C:/Users/Administrator/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-VLV2BYPM.js:298287:23)\n    at async GeminiChat.makeApiCallAndProcessStream (file:///C:/Users/Administrator/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-VLV2BYPM.js:321564:28)\n    at async GeminiChat.streamWithRetries (file:///C:/Users/Administrator/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-VLV2BYPM.js:321382:29)\n    at async Turn.run (file:///C:/Users/Administrator/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-VLV2BYPM.js:322128:24) {\n  status: 403\n}\n\n=== Recent Errors ===\nUsing stdin mode for task due to: piped input, explicit \"-\", newline, backslash\ngemini exited with status 403\nLog file: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeagent-wrapper-13764.log (deleted)"
+                  },
+                  {
+                      "Backend":  "claude",
+                      "Ok":  true,
+                      "ExitCode":  0,
+                      "TimedOut":  false,
+                      "QuotaBlocked":  false,
+                      "FailureReason":  "ok",
+                      "Diagnostic":  null,
+                      "Output":  "CLAUDE_BACKEND_OK\n\n---\nSESSION_ID: 6cce4d52-e0aa-4d86-9d34-b5adc842d654\n\n[codeagent-wrapper]\n  Backend: claude\n  Command: claude -p --dangerously-skip-permissions --setting-sources  --output-format stream-json --verbose -\n  PID: 30220\n  Log: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeagent-wrapper-30220.log\n  Session-ID: 6cce4d52-e0aa-4d86-9d34-b5adc842d654"
+                  }
+              ],
+    "ok":  false,
+    "repairable":  false,
+    "notes":  [
+                  "At least one backend is blocked by provider quota or session limit. This cannot be repaired locally."
+              ],
+    "wrapperVersion":  "codeagent-wrapper version 5.11.1"
+}

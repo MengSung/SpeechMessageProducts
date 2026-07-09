@@ -105,6 +105,12 @@ Do not use Gemini with `--progress` on Windows unless the wrapper/Gemini crash p
   never call it a completed dual-model review.
 - Health backend smoke is skipped by default to avoid burning quota before the real analysis/review; use `-RunHealthBackendSmoke` only when explicitly diagnosing backend login/provider state.
 
+## Claude Model Selection
+
+`codeagent-wrapper` supports Gemini model selection but does not expose a Claude model flag. Do not assume `CLAUDE_MODEL=sonnet` alone overrides the user-level Claude settings model when the wrapper launches `claude`.
+
+If Claude reports a Fable limit even though the intended CCG model is Sonnet, check the generated summary for `CLAUDE_MODEL_SHIM` and `CLAUDE_REAL_COMMAND`. The project runner should use a process-only `claude.cmd` shim that prepends `--model %CLAUDE_MODEL%` for wrapper-launched Claude calls. Do not fix this by editing the user's global Claude settings or by writing temporary shim paths into User PATH.
+
 ## Mental Model
 
 Treat CCG external review as a multi-layer integration:

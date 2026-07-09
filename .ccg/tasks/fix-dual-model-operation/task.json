@@ -1,0 +1,12 @@
+{
+    "id": "fix-dual-model-operation",
+    "title": "Fix CCG dual-model analyzer and reviewer operation",
+    "status": "in_progress",
+    "complexity": "M",
+    "risk": "medium",
+    "domain": "tooling",
+    "currentPhase": "verification",
+    "nextAction": "Blocked externally: latest health confirms Claude ok but Gemini provider still returns HTTP 403 balance/quota error",
+    "createdAt": "2026-07-07T07:21:24Z",
+    "branch": "main"
+}
