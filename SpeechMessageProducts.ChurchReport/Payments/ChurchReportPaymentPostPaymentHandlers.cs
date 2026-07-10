@@ -81,7 +81,7 @@ public sealed class ChurchReportPaymentPayerNotifier : IPaymentPayerNotifier
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task NotifyAsync(PaymentPostPaymentContext context, CancellationToken cancellationToken = default)
+    public async Task NotifyAsync(PaymentPostPaymentContext context, CancellationToken cancellationToken = default)
     {
         var toolUtility = context.GetRequiredItem<ToolUtilityClass>(ChurchReportPaymentWorkflowContextKeys.ToolUtility);
         var feeEntity = context.GetRequiredItem<Entity>(ChurchReportPaymentWorkflowContextKeys.FeeEntity);
@@ -92,14 +92,14 @@ public sealed class ChurchReportPaymentPayerNotifier : IPaymentPayerNotifier
 
         if (contactEntity is null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         try
         {
             if (isSuccess)
             {
-                _notificationService.SendLineNotificationByType(
+                await _notificationService.SendLineNotificationByTypeAsync(
                     toolUtility,
                     feeEntity,
                     context.Payment,
@@ -109,7 +109,7 @@ public sealed class ChurchReportPaymentPayerNotifier : IPaymentPayerNotifier
             }
             else
             {
-                _notificationService.SendLineFailureNotificationByType(
+                await _notificationService.SendLineFailureNotificationByTypeAsync(
                     toolUtility,
                     feeEntity,
                     context.Payment,
@@ -125,7 +125,5 @@ public sealed class ChurchReportPaymentPayerNotifier : IPaymentPayerNotifier
                 "ChurchReport payment payer notification failed. OrderId: {OrderId}",
                 context.Payment.ProductOrderId);
         }
-
-        return Task.CompletedTask;
     }
 }

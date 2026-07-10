@@ -150,7 +150,7 @@ namespace ChurchReport.Controllers
                     },
                     HttpContext.RequestAborted);
 
-                return _paymentReturnWorkflow.HandleReturn(shopNo, providerOrderRef, statusResult);
+                return await _paymentReturnWorkflow.HandleReturnAsync(shopNo, providerOrderRef, statusResult);
             }
             catch (Exception ex)
             {

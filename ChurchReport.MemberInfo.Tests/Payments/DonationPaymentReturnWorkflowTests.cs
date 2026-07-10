@@ -15,6 +15,7 @@ using ChurchReport.Payments;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using SpeechMessage.Payments.Models;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Payments;
@@ -22,13 +23,13 @@ namespace ChurchReport.MemberInfo.Tests.Payments;
 public sealed class DonationPaymentReturnWorkflowTests
 {
     [Fact]
-    public void HandleReturn_dispatches_fee_category_to_fee_workflow()
+    public async Task HandleReturn_dispatches_fee_category_to_fee_workflow()
     {
         var dispatcher = new RecordingDonationPaymentProductWorkflowDispatcher();
         var workflow = new DonationPaymentReturnWorkflow(dispatcher);
         var statusResult = CreateStatusResult("fee");
 
-        var result = workflow.HandleReturn("NA0149_001", "PAYTOKEN", statusResult);
+        var result = await workflow.HandleReturnAsync("NA0149_001", "PAYTOKEN", statusResult);
 
         dispatcher.FeeCallCount.Should().Be(1);
         dispatcher.DedicationBookingCallCount.Should().Be(0);
@@ -51,13 +52,13 @@ public sealed class DonationPaymentReturnWorkflowTests
     }
 
     [Fact]
-    public void HandleReturn_dispatches_dedication_category_to_dedication_workflow()
+    public async Task HandleReturn_dispatches_dedication_category_to_dedication_workflow()
     {
         var dispatcher = new RecordingDonationPaymentProductWorkflowDispatcher();
         var workflow = new DonationPaymentReturnWorkflow(dispatcher);
         var statusResult = CreateStatusResult("dedication_booking");
 
-        var result = workflow.HandleReturn("NA0149_001", "PAYTOKEN", statusResult);
+        var result = await workflow.HandleReturnAsync("NA0149_001", "PAYTOKEN", statusResult);
 
         dispatcher.FeeCallCount.Should().Be(0);
         dispatcher.DedicationBookingCallCount.Should().Be(1);
@@ -100,24 +101,24 @@ public sealed class DonationPaymentReturnWorkflowTests
         public int DedicationBookingCallCount { get; private set; }
         public DonationPaymentWorkflowResult? LastWorkflowResult { get; private set; }
 
-        public IActionResult HandleFeeReturn(
+        public Task<IActionResult> HandleFeeReturnAsync(
             string shopNo,
             string payToken,
             DonationPaymentWorkflowResult paymentResult)
         {
             FeeCallCount++;
             LastWorkflowResult = paymentResult;
-            return FeeResult;
+            return Task.FromResult(FeeResult);
         }
 
-        public IActionResult HandleDedicationBookingReturn(
+        public Task<IActionResult> HandleDedicationBookingReturnAsync(
             string shopNo,
             string payToken,
             DonationPaymentWorkflowResult paymentResult)
         {
             DedicationBookingCallCount++;
             LastWorkflowResult = paymentResult;
-            return DedicationBookingResult;
+            return Task.FromResult(DedicationBookingResult);
         }
     }
 }

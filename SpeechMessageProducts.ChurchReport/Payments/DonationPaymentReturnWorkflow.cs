@@ -14,6 +14,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
@@ -40,7 +41,7 @@ namespace ChurchReport.Payments;
 /// </summary>
 public interface IDonationPaymentReturnWorkflow
 {
-    IActionResult HandleReturn(
+    Task<IActionResult> HandleReturnAsync(
         string shopNo,
         string payToken,
         PaymentStatusResult statusResult);
@@ -65,7 +66,7 @@ public sealed class DonationPaymentReturnWorkflow : IDonationPaymentReturnWorkfl
         _productWorkflowDispatcher = productWorkflowDispatcher;
     }
 
-    public IActionResult HandleReturn(
+    public async Task<IActionResult> HandleReturnAsync(
         string shopNo,
         string payToken,
         PaymentStatusResult statusResult)
@@ -77,8 +78,8 @@ public sealed class DonationPaymentReturnWorkflow : IDonationPaymentReturnWorkfl
         {
             var workflowResult = CreateWorkflowPaymentResult(shopNo, payToken, statusResult, providerData);
             return IsDedicationBooking(workflowResult.PaymentCategory)
-                ? _productWorkflowDispatcher.HandleDedicationBookingReturn(shopNo, payToken, workflowResult)
-                : _productWorkflowDispatcher.HandleFeeReturn(shopNo, payToken, workflowResult);
+                ? await _productWorkflowDispatcher.HandleDedicationBookingReturnAsync(shopNo, payToken, workflowResult)
+                : await _productWorkflowDispatcher.HandleFeeReturnAsync(shopNo, payToken, workflowResult);
         }
 
         return CreateFallbackViewResult(shopNo, payToken, statusResult, providerData);

@@ -1,0 +1,6 @@
+{"path":"SpeechMessageProducts.ChurchReport/Middleware/SessionValidationMiddleware.cs","reason":"sync-over-async session commit"}
+{"path":"SpeechMessageProducts.ChurchReport/SessionAttribute.cs","reason":"stateful action filter dead code"}
+{"path":"SpeechMessageProducts.ChurchReport/Models/InMemoryDataContextSmallGroup.cs","reason":"per-session cache lifetime and eviction cleanup"}
+{"path":"LineMessagingProcessor/LineMessagingProcessorClass.cs","reason":"LINE client ownership"}
+{"path":"SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs","reason":"cached business object inherits Controller and owns LINE client"}
+{"path":"SpeechMessageProducts.ChurchReport/Controllers/PersonalController.ImageUpload.cs","reason":"contact image object-level authorization"}

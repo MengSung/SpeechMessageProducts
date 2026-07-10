@@ -23,16 +23,18 @@ namespace ChurchReport.MemberInfo.Tests.Payments;
 /// </summary>
 public sealed class PaymentProductServiceNamingTests
 {
+    private const string ChurchReportAssemblyName = "SpeechMessageProducts.ChurchReport";
+
     [Fact]
     public void Product_payment_services_use_provider_neutral_names()
     {
         var expectedServiceNames = new[]
         {
-            "ChurchReport.Services.PaymentCrmService, ChurchReport",
-            "ChurchReport.Services.PaymentFeeTypeHelper, ChurchReport",
-            "ChurchReport.Services.PaymentCallbackLogger, ChurchReport",
-            "ChurchReport.Services.PaymentMessageBuilder, ChurchReport",
-            "ChurchReport.Services.PaymentNotificationService, ChurchReport"
+            $"ChurchReport.Services.PaymentCrmService, {ChurchReportAssemblyName}",
+            $"ChurchReport.Services.PaymentFeeTypeHelper, {ChurchReportAssemblyName}",
+            $"ChurchReport.Services.PaymentCallbackLogger, {ChurchReportAssemblyName}",
+            $"ChurchReport.Services.PaymentMessageBuilder, {ChurchReportAssemblyName}",
+            $"ChurchReport.Services.PaymentNotificationService, {ChurchReportAssemblyName}"
         };
 
         foreach (var expectedServiceName in expectedServiceNames)
@@ -47,11 +49,11 @@ public sealed class PaymentProductServiceNamingTests
     {
         var legacyServiceNames = new[]
         {
-            "ChurchReport.Services.MyPayCrmService, ChurchReport",
-            "ChurchReport.Services.MyPayFeeTypeHelper, ChurchReport",
-            "ChurchReport.Services.MyPayLogger, ChurchReport",
-            "ChurchReport.Services.MyPayMessageBuilder, ChurchReport",
-            "ChurchReport.Services.MyPayNotificationService, ChurchReport"
+            $"ChurchReport.Services.MyPayCrmService, {ChurchReportAssemblyName}",
+            $"ChurchReport.Services.MyPayFeeTypeHelper, {ChurchReportAssemblyName}",
+            $"ChurchReport.Services.MyPayLogger, {ChurchReportAssemblyName}",
+            $"ChurchReport.Services.MyPayMessageBuilder, {ChurchReportAssemblyName}",
+            $"ChurchReport.Services.MyPayNotificationService, {ChurchReportAssemblyName}"
         };
 
         foreach (var legacyServiceName in legacyServiceNames)

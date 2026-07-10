@@ -175,7 +175,7 @@ public sealed class PaymentReturnControllerTests
         public string LastPayToken { get; private set; } = string.Empty;
         public PaymentStatusResult? LastStatusResult { get; private set; }
 
-        public IActionResult HandleReturn(
+        public Task<IActionResult> HandleReturnAsync(
             string shopNo,
             string payToken,
             PaymentStatusResult statusResult)
@@ -184,7 +184,7 @@ public sealed class PaymentReturnControllerTests
             LastShopNo = shopNo;
             LastPayToken = payToken;
             LastStatusResult = statusResult;
-            return new ViewResult { ViewName = "~/Views/PaymentReturn/PaymentResult.cshtml" };
+            return Task.FromResult<IActionResult>(new ViewResult { ViewName = "~/Views/PaymentReturn/PaymentResult.cshtml" });
         }
     }
 }

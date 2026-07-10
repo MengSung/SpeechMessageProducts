@@ -40,6 +40,21 @@ public sealed class ChurchReportLineAdminNotificationServiceTests
     }
 
     [Fact]
+    public async Task NotifyErrorAsync_sends_best_effort_admin_notification_through_workflow()
+    {
+        var workflow = new CapturingWorkflow();
+        var service = new ChurchReportLineAdminNotificationService(workflow, "Uadmin");
+
+        await service.NotifyErrorAsync("Product", "CRM failed");
+
+        workflow.Requests.Should().ContainSingle();
+        workflow.Requests[0].Recipient.PrimaryId.Should().Be("Uadmin");
+        workflow.Requests[0].Content.Text.Should().StartWith("Product:");
+        workflow.Requests[0].Content.Text.Should().EndWith("=> CRM failed");
+        workflow.Requests[0].Metadata.Should().ContainKey("category");
+    }
+
+    [Fact]
     public void NotifyError_keeps_legacy_registration_message_shape_when_category_is_supplied()
     {
         var workflow = new CapturingWorkflow();

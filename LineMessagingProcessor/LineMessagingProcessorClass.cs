@@ -31,6 +31,7 @@ namespace LineMessagingProcessor
         private readonly string _channelAccessToken;
         private readonly LineMessagingClient _lineMessagingClient;
         private readonly bool _requiresChannelAccessToken;
+        private readonly bool _ownsLineMessagingClient;
 
         private static readonly Lazy<string> s_defaultChannelAccessToken = new Lazy<string>(ResolveDefaultChannelAccessToken);
 
@@ -49,6 +50,7 @@ namespace LineMessagingProcessor
 #pragma warning disable CS0618 // 保留既有 token 建構流程；新的測試/DI 路徑可直接注入 LineMessagingClient。
             _lineMessagingClient = new LineMessagingClient(StripBearerPrefix(_channelAccessToken));
 #pragma warning restore CS0618
+            _ownsLineMessagingClient = true;
         }
 
         public LineMessagingProcessorClass(LineMessagingClient lineMessagingClient)
@@ -56,6 +58,7 @@ namespace LineMessagingProcessor
             _lineMessagingClient = lineMessagingClient ?? throw new ArgumentNullException(nameof(lineMessagingClient));
             _channelAccessToken = string.Empty;
             _requiresChannelAccessToken = false;
+            _ownsLineMessagingClient = false;
         }
 
         public LineMessagingProcessorClass(IConfiguration configuration)
@@ -137,7 +140,10 @@ namespace LineMessagingProcessor
 
             if (disposing)
             {
-                // RestClient in v112.x doesn't implement IDisposable
+                if (_ownsLineMessagingClient)
+                {
+                    _lineMessagingClient.Dispose();
+                }
             }
 
             _disposed = true;

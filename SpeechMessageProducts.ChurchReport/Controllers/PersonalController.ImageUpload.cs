@@ -481,6 +481,30 @@ namespace ChurchReport.Controllers
 
 
 
+        private static bool CanViewPersonalContactImage(Entity loginContact, Guid requestedContactId)
+        {
+            return loginContact != null &&
+                   requestedContactId != Guid.Empty &&
+                   loginContact.Id == requestedContactId;
+        }
+
+        private static string BuildPersonalContactImageCacheKey(Guid viewerContactId, Guid requestedContactId, int thumbSize)
+        {
+            return $"personal-contact-image-thumb:{viewerContactId:N}:{requestedContactId:N}:{thumbSize}";
+        }
+
+        public static bool CanViewPersonalContactImageForTesting(Entity loginContact, Guid requestedContactId)
+        {
+            return CanViewPersonalContactImage(loginContact, requestedContactId);
+        }
+
+        public static string BuildPersonalContactImageCacheKeyForTesting(Guid viewerContactId, Guid requestedContactId, int thumbSize)
+        {
+            return BuildPersonalContactImageCacheKey(viewerContactId, requestedContactId, thumbSize);
+        }
+
+
+
         /// <summary>
 
         /// 取得 Contact 大頭照
@@ -523,10 +547,18 @@ namespace ChurchReport.Controllers
                     return GetDefaultImage();
                 }
 
+                var loginContactForAuth = InMemoryContext?.PersonalInfomationModel?.m_LoginContact;
+                if (!CanViewPersonalContactImage(loginContactForAuth, contactGuid))
+                {
+                    Response.Headers["Cache-Control"] = "private, no-store";
+                    return StatusCode(StatusCodes.Status403Forbidden);
+                }
+
+                var viewerContactId = loginContactForAuth.Id;
                 var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
                 var cacheKey = returnOriginal
-                    ? $"contact-image-full:{contactGuid:N}"
-                    : $"contact-image-thumb:{contactGuid:N}:{thumbSize}";
+                    ? $"personal-contact-image-full:{viewerContactId:N}:{contactGuid:N}"
+                    : BuildPersonalContactImageCacheKey(viewerContactId, contactGuid, thumbSize);
 
                 if (memoryCache != null && memoryCache.TryGetValue(cacheKey, out byte[] cachedImageBytes) && cachedImageBytes != null)
                 {

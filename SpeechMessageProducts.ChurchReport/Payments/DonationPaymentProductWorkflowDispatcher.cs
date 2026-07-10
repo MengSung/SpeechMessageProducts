@@ -12,6 +12,7 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using System;
+using System.Threading.Tasks;
 using ChurchReport.Tools;
 using LineMessagingProcessor.Workflows;
 using Microsoft.AspNetCore.Mvc;
@@ -33,12 +34,12 @@ namespace ChurchReport.Payments;
 /// </summary>
 public interface IDonationPaymentProductWorkflowDispatcher
 {
-    IActionResult HandleFeeReturn(
+    Task<IActionResult> HandleFeeReturnAsync(
         string shopNo,
         string payToken,
         DonationPaymentWorkflowResult paymentResult);
 
-    IActionResult HandleDedicationBookingReturn(
+    Task<IActionResult> HandleDedicationBookingReturnAsync(
         string shopNo,
         string payToken,
         DonationPaymentWorkflowResult paymentResult);
@@ -68,7 +69,7 @@ public sealed class DonationPaymentProductWorkflowDispatcher : IDonationPaymentP
         _lineNotificationWorkflow = lineNotificationWorkflow ?? throw new ArgumentNullException(nameof(lineNotificationWorkflow));
     }
 
-    public IActionResult HandleFeeReturn(
+    public async Task<IActionResult> HandleFeeReturnAsync(
         string shopNo,
         string payToken,
         DonationPaymentWorkflowResult paymentResult)
@@ -76,13 +77,13 @@ public sealed class DonationPaymentProductWorkflowDispatcher : IDonationPaymentP
         ArgumentNullException.ThrowIfNull(paymentResult);
 
         using var processor = new DonationFeePaymentProcessor(_toolUtilityProvider, _lineNotificationWorkflow);
-        return processor.HandlePaymentReturn(
+        return await processor.HandlePaymentReturnAsync(
             shopNo,
             payToken,
             paymentResult);
     }
 
-    public IActionResult HandleDedicationBookingReturn(
+    public Task<IActionResult> HandleDedicationBookingReturnAsync(
         string shopNo,
         string payToken,
         DonationPaymentWorkflowResult paymentResult)
@@ -90,9 +91,9 @@ public sealed class DonationPaymentProductWorkflowDispatcher : IDonationPaymentP
         ArgumentNullException.ThrowIfNull(paymentResult);
 
         using var processor = new RecurringDonationPaymentProcessor(_lineNotificationWorkflow);
-        return processor.HandlePaymentReturn(
+        return Task.FromResult<IActionResult>(processor.HandlePaymentReturn(
             shopNo,
             payToken,
-            paymentResult);
+            paymentResult));
     }
 }

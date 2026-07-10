@@ -35,6 +35,7 @@ namespace ChurchReport.MemberInfo.Tests.Payments;
 /// </summary>
 public sealed class DonationPaymentFormModelNamingTests
 {
+    private const string ChurchReportAssemblyName = "SpeechMessageProducts.ChurchReport";
     private static readonly string ProviderBrandToken = "Q" + "Pay";
     private static readonly string LegacyModelToken = "Q" + "pay";
     private static readonly string LowerProviderBrandToken = "q" + "pay";
@@ -42,8 +43,8 @@ public sealed class DonationPaymentFormModelNamingTests
     [Fact]
     public void Donation_payment_form_model_is_the_primary_churchreport_form_state_type()
     {
-        var formModelType = Type.GetType("ChurchReport.Models.DonationPaymentFormModel, ChurchReport");
-        var legacyModelType = Type.GetType($"ChurchReport.Models.{LegacyModelToken}Model, ChurchReport");
+        var formModelType = Type.GetType($"ChurchReport.Models.DonationPaymentFormModel, {ChurchReportAssemblyName}");
+        var legacyModelType = Type.GetType($"ChurchReport.Models.{LegacyModelToken}Model, {ChurchReportAssemblyName}");
 
         formModelType.Should().NotBeNull(
             "奉獻付款表單是 ChurchReport 的產品層狀態，應使用 DonationPaymentFormModel 這種中性名稱，" +
@@ -57,7 +58,7 @@ public sealed class DonationPaymentFormModelNamingTests
     [Fact]
     public void Donation_payment_manager_is_the_only_churchreport_payment_state_manager()
     {
-        Type.GetType($"ChurchReport.Models.{LegacyModelToken}Manager, ChurchReport").Should().BeNull(
+        Type.GetType($"ChurchReport.Models.{LegacyModelToken}Manager, {ChurchReportAssemblyName}").Should().BeNull(
             "DonationPaymentManager 已經是 ChurchReport 奉獻付款 UI 狀態的主要 manager；" +
             "不應再保留舊 provider 形狀的 manager alias，否則後續新增高鉅、台新或其他產品時會誤用");
     }
@@ -70,12 +71,13 @@ public sealed class DonationPaymentFormModelNamingTests
         {
             Path.Combine("SpeechMessage.Payments", "Providers", "Sinopac"),
             Path.Combine("SpeechMessage.Payments.Tests", "Providers", "Sinopac"),
+            Path.Combine("SpeechMessageProducts.ChurchReport", "文件"),
             Path.Combine("ChurchReport", "文件")
         };
 
         var runtimeRoots = new[]
         {
-            Path.Combine(repositoryRoot, "ChurchReport"),
+            Path.Combine(repositoryRoot, "SpeechMessageProducts.ChurchReport"),
             Path.Combine(repositoryRoot, "SpeechMessage.Payments")
         };
 
@@ -114,7 +116,7 @@ public sealed class DonationPaymentFormModelNamingTests
 
         var runtimeRoots = new[]
         {
-            Path.Combine(repositoryRoot, "ChurchReport"),
+            Path.Combine(repositoryRoot, "SpeechMessageProducts.ChurchReport"),
             Path.Combine(repositoryRoot, "SpeechMessage.Payments")
         };
 
@@ -151,12 +153,12 @@ public sealed class DonationPaymentFormModelNamingTests
     private static bool IsAllowedLegacyRouteTemplate(string relativePath, string line)
     {
         var isLegacyRouteOwner =
-            relativePath.Equals(Path.Combine("ChurchReport", "Controllers", "DedicationController.cs"), StringComparison.OrdinalIgnoreCase) ||
-            relativePath.Equals(Path.Combine("ChurchReport", "Controllers", "DonationPaymentLoginController.cs"), StringComparison.OrdinalIgnoreCase) ||
-            relativePath.Equals(Path.Combine("ChurchReport", "Controllers", "HomeController.cs"), StringComparison.OrdinalIgnoreCase) ||
-            relativePath.Equals(Path.Combine("ChurchReport", "Controllers", "PaymentReturnController.cs"), StringComparison.OrdinalIgnoreCase) ||
-            relativePath.Equals(Path.Combine("ChurchReport", "WebServiceConnector", "DonationPaymentProcessor", "DonationPaymentProcessor.Core.cs"), StringComparison.OrdinalIgnoreCase) ||
-            relativePath.Equals(Path.Combine("ChurchReport", "Startup.cs"), StringComparison.OrdinalIgnoreCase);
+            relativePath.Equals(Path.Combine("SpeechMessageProducts.ChurchReport", "Controllers", "DedicationController.cs"), StringComparison.OrdinalIgnoreCase) ||
+            relativePath.Equals(Path.Combine("SpeechMessageProducts.ChurchReport", "Controllers", "DonationPaymentLoginController.cs"), StringComparison.OrdinalIgnoreCase) ||
+            relativePath.Equals(Path.Combine("SpeechMessageProducts.ChurchReport", "Controllers", "HomeController.cs"), StringComparison.OrdinalIgnoreCase) ||
+            relativePath.Equals(Path.Combine("SpeechMessageProducts.ChurchReport", "Controllers", "PaymentReturnController.cs"), StringComparison.OrdinalIgnoreCase) ||
+            relativePath.Equals(Path.Combine("SpeechMessageProducts.ChurchReport", "WebServiceConnector", "DonationPaymentProcessor", "DonationPaymentProcessor.Core.cs"), StringComparison.OrdinalIgnoreCase) ||
+            relativePath.Equals(Path.Combine("SpeechMessageProducts.ChurchReport", "Startup.cs"), StringComparison.OrdinalIgnoreCase);
 
         if (!isLegacyRouteOwner)
         {
@@ -212,7 +214,7 @@ public sealed class DonationPaymentFormModelNamingTests
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory != null)
         {
-            if (File.Exists(Path.Combine(directory.FullName, "ChurchReport.sln")))
+            if (File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln")))
             {
                 return directory.FullName;
             }

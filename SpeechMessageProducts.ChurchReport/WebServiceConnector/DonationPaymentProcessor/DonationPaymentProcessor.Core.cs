@@ -127,7 +127,7 @@ namespace ChurchReport.WebServiceConnector
 
             // 初始化 LINE Bot
             var channelAccessToken = GetLineChannelAccessToken();
-            m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
+            m_LineMessagingClient = LineMessagingProcessor.LineMessagingClientFactory.CreateOwnedClient(channelAccessToken);
             m_PushUtility = new PushUtility(m_LineMessagingClient, lineNotificationWorkflow);
             m_ReplyUtility = new ReplyUtility(m_LineMessagingClient, lineReplyWorkflow);
 

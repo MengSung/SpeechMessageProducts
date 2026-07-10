@@ -23,6 +23,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
 using SpeechMessage.Payments.Workflows;
+using System.Threading.Tasks;
 using ToolUtilityNameSpace;
 using static ChurchReport.Services.PaymentFeeTypeHelper;
 
@@ -105,12 +106,22 @@ namespace ChurchReport.Services
             SendLineMessage(lineId, message, retryKey: null);
         }
 
+        public Task SendLineMessageAsync(string lineId, string message)
+        {
+            return SendLineMessageAsync(lineId, message, retryKey: null);
+        }
+
         /// <summary>
         /// 透過 LINE Messaging API 推播付款通知。
         /// retryKey 有值時走 LineMessagingProcessor 的可重試入口；沒有 retryKey 時保留舊的 PushUtility 路徑，
         /// 讓既有非付款或無穩定識別碼的通知不被本次重構影響。
         /// </summary>
         public void SendLineMessage(string lineId, string message, string? retryKey)
+        {
+            SendLineMessageAsync(lineId, message, retryKey).GetAwaiter().GetResult();
+        }
+
+        public async Task SendLineMessageAsync(string lineId, string message, string? retryKey)
         {
             try
             {
@@ -125,7 +136,7 @@ namespace ChurchReport.Services
                     }
                 };
 
-                _lineNotificationWorkflow.SendOrThrowAsync(request).GetAwaiter().GetResult();
+                await _lineNotificationWorkflow.SendOrThrowAsync(request);
 
                 _logger.LogInformation($"SendLineMessage: 已發送 - LineId: {lineId}, RetryKey: {retryKey ?? "<none>"}");
             }
@@ -142,6 +153,23 @@ namespace ChurchReport.Services
         /// 欄位判斷奉獻、課程或一般繳費，並組出符合教會使用情境的 LINE 文案。
         /// </summary>
         public void SendLineNotificationByType(
+            ToolUtilityClass utility,
+            Entity feeEntity,
+            PaymentWorkflowResult result,
+            string fullName,
+            FeeType feeType,
+            Entity contactEntity)
+        {
+            SendLineNotificationByTypeAsync(
+                utility,
+                feeEntity,
+                result,
+                fullName,
+                feeType,
+                contactEntity).GetAwaiter().GetResult();
+        }
+
+        public async Task SendLineNotificationByTypeAsync(
             ToolUtilityClass utility,
             Entity feeEntity,
             PaymentWorkflowResult result,
@@ -202,7 +230,7 @@ namespace ChurchReport.Services
                     orderId: result?.ProductOrderId,
                     productOrderId: result?.ProductOrderId,
                     status: "paid");
-                SendLineMessage(lineId, message, retryKey);
+                await SendLineMessageAsync(lineId, message, retryKey);
             }
             catch (Exception ex)
             {
@@ -217,6 +245,23 @@ namespace ChurchReport.Services
         /// 若 CRM 尚未提供應付金額，才退回使用標準化金流結果中的金額。
         /// </summary>
         public void SendLineFailureNotificationByType(
+            ToolUtilityClass utility,
+            Entity feeEntity,
+            PaymentWorkflowResult result,
+            string fullName,
+            FeeType feeType,
+            Entity contactEntity)
+        {
+            SendLineFailureNotificationByTypeAsync(
+                utility,
+                feeEntity,
+                result,
+                fullName,
+                feeType,
+                contactEntity).GetAwaiter().GetResult();
+        }
+
+        public async Task SendLineFailureNotificationByTypeAsync(
             ToolUtilityClass utility,
             Entity feeEntity,
             PaymentWorkflowResult result,
@@ -293,7 +338,7 @@ namespace ChurchReport.Services
                     orderId: result?.ProductOrderId,
                     productOrderId: result?.ProductOrderId,
                     status: "failed");
-                SendLineMessage(lineId, message, retryKey);
+                await SendLineMessageAsync(lineId, message, retryKey);
             }
             catch (Exception ex)
             {

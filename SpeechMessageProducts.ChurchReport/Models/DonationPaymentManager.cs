@@ -40,7 +40,7 @@ namespace ChurchReport.Models
     /// 這個類別留在 ChurchReport 專案，負責 UI 表單狀態、CRM 更新、LINE 通知與付款建單前後的產品流程。
     /// 可重用金流核心只處理 provider 協定，因此這裡透過 DonationPaymentProcessor 與 IDonationPaymentCreateGatewayAdapter 接到抽離後的金流模組。
     /// </summary>
-    public class DonationPaymentManager : Controller
+    public class DonationPaymentManager
     {
         #region 資料區
         static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
@@ -130,6 +130,15 @@ namespace ChurchReport.Models
         private readonly ILineNotificationWorkflow? m_LineNotificationWorkflow;
         private readonly ILineReplyWorkflow? m_LineReplyWorkflow;
 
+        private static JsonResult CreateJsonResult(object value)
+        {
+            return new JsonResult(value);
+        }
+
+        private static RedirectToActionResult CreateRedirectToActionResult(string actionName, object routeValues)
+        {
+            return new RedirectToActionResult(actionName, "Home", routeValues);
+        }
         #endregion
         #region 初始化
         public DonationPaymentManager()
@@ -168,7 +177,7 @@ namespace ChurchReport.Models
 
             // 初始化 LINE Messaging Client (從 appsettings.json 取得 Token)
             string channelAccessToken = GetLineChannelAccessToken();
-            this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
+            this.m_LineMessagingClient = LineMessagingProcessor.LineMessagingClientFactory.CreateOwnedClient(channelAccessToken);
             m_LineNotificationWorkflow = lineNotificationWorkflow;
             m_LineReplyWorkflow = lineReplyWorkflow;
 
@@ -188,12 +197,12 @@ namespace ChurchReport.Models
                 m_ToolUtilityClass,
                 m_DonationPaymentFormModel,
                 m_DonationPaymentProcessor,
-                Json,
+                CreateJsonResult,
                 NotifyDonationPaymentError);
             m_DonationContactCreationService = new DonationContactCreationService(
                 m_ToolUtilityClass,
-                Json,
-                RedirectToAction,
+                CreateJsonResult,
+                CreateRedirectToActionResult,
                 NotifyDonationRegistrationError);
             m_DonationPaymentModelAssembler = new DonationPaymentModelAssembler(
                 m_ToolUtilityClass,
@@ -358,7 +367,7 @@ namespace ChurchReport.Models
                 string validationMessage = DonationPaymentSubmissionService.ValidateDonationForm(donationModel);
                 if (!string.IsNullOrWhiteSpace(validationMessage))
                 {
-                    return Json(new { status = "2", message = validationMessage });
+                    return CreateJsonResult(new { status = "2", message = validationMessage });
                 }
 
                 string dedicationResult = await m_DonationPaymentProcessor.CreateFeeAsync(m_Contact, donationModel);
@@ -366,10 +375,10 @@ namespace ChurchReport.Models
 
                 if (classifiedResult.Status == "2")
                 {
-                    return Json(new { status = classifiedResult.Status, message = classifiedResult.Message });
+                    return CreateJsonResult(new { status = classifiedResult.Status, message = classifiedResult.Message });
                 }
 
-                return Json(new
+                return CreateJsonResult(new
                 {
                     status = classifiedResult.Status,
                     message = classifiedResult.Message,

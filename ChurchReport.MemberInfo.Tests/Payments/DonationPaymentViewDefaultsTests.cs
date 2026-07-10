@@ -99,9 +99,9 @@ public sealed class DonationPaymentViewDefaultsTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var loginController = File.ReadAllText(
-            Path.Combine(repositoryRoot, "ChurchReport", "Controllers", "DonationPaymentLoginController.cs"));
+            Path.Combine(repositoryRoot, "SpeechMessageProducts.ChurchReport", "Controllers", "DonationPaymentLoginController.cs"));
         var dedicationController = File.ReadAllText(
-            Path.Combine(repositoryRoot, "ChurchReport", "Controllers", "DedicationController.cs"));
+            Path.Combine(repositoryRoot, "SpeechMessageProducts.ChurchReport", "Controllers", "DedicationController.cs"));
         var contactIdSessionKeyName = nameof(DonationPaymentSessionKeys.WebLoginContactId);
 
         loginController.Should().Contain(contactIdSessionKeyName,
@@ -118,7 +118,7 @@ public sealed class DonationPaymentViewDefaultsTests
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory != null)
         {
-            if (File.Exists(Path.Combine(directory.FullName, "ChurchReport.sln")))
+            if (File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln")))
             {
                 return directory.FullName;
             }

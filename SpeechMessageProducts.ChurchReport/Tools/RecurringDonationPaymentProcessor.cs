@@ -77,7 +77,7 @@ namespace ChurchReport.Tools
         {
             // ✅ 從 appsettings.json 讀取 LINE Channel Access Token
             var channelAccessToken = GetLineChannelAccessToken();
-            this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
+            this.m_LineMessagingClient = LineMessagingProcessor.LineMessagingClientFactory.CreateOwnedClient(channelAccessToken);
 
             // Recurring donation flow stays in ChurchReport; LINE push/reply delivery
             // is delegated to workflow-backed helper classes.

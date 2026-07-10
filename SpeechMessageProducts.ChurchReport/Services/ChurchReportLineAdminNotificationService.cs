@@ -14,6 +14,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using LineMessagingProcessor;
 using LineMessagingProcessor.Workflows;
 using Microsoft.Extensions.Configuration;
@@ -71,9 +72,19 @@ public sealed class ChurchReportLineAdminNotificationService
         s_default.Value.NotifyError(source, errorMessage);
     }
 
+    public static Task NotifyDefaultErrorAsync(string source, string errorMessage)
+    {
+        return s_default.Value.NotifyErrorAsync(source, errorMessage);
+    }
+
     public static void NotifyDefaultError(string source, string category, string errorMessage)
     {
         s_default.Value.NotifyError(source, category, errorMessage);
+    }
+
+    public static Task NotifyDefaultErrorAsync(string source, string category, string errorMessage)
+    {
+        return s_default.Value.NotifyErrorAsync(source, category, errorMessage);
     }
 
     /// <summary>
@@ -85,11 +96,21 @@ public sealed class ChurchReportLineAdminNotificationService
         NotifyError(source, DefaultCategory, errorMessage);
     }
 
+    public Task NotifyErrorAsync(string source, string errorMessage)
+    {
+        return NotifyErrorAsync(source, DefaultCategory, errorMessage);
+    }
+
     /// <summary>
     /// 使用指定分類送出管理者告警。
     /// category 讓「錯誤」、「註冊錯誤」這類 ChurchReport 產品語意留在產品層。
     /// </summary>
     public void NotifyError(string source, string category, string errorMessage)
+    {
+        NotifyErrorAsync(source, category, errorMessage).GetAwaiter().GetResult();
+    }
+
+    public async Task NotifyErrorAsync(string source, string category, string errorMessage)
     {
         try
         {
@@ -97,7 +118,7 @@ public sealed class ChurchReportLineAdminNotificationService
             var normalizedCategory = Normalize(category, DefaultCategory);
             var message = FormatAdminMessage(normalizedSource, normalizedCategory, errorMessage);
 
-            _lineNotificationWorkflow.SendAsync(new LineNotificationRequest
+            await _lineNotificationWorkflow.SendAsync(new LineNotificationRequest
             {
                 Recipient = LineNotificationRecipient.User(_adminLineUserId),
                 Content = LineNotificationContent.TextMessage(message),
@@ -107,7 +128,7 @@ public sealed class ChurchReportLineAdminNotificationService
                     ["productSource"] = normalizedSource,
                     ["category"] = normalizedCategory
                 }
-            }).GetAwaiter().GetResult();
+            });
         }
         catch
         {

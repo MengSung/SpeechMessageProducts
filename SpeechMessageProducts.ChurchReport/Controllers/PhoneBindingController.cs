@@ -13,6 +13,7 @@
 // ============================================================================
 using ChurchReport.Models;
 using ChurchReport.Tools;
+using Line.Messaging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -27,13 +28,17 @@ namespace ChurchReport.Controllers
     /// </summary>
     public class PhoneBindingController : BaseChurchController
     {
+        private readonly LineMessagingClient _lineMessagingClient;
+
         public PhoneBindingController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             IToolUtilityProvider toolUtilityProvider,
-            ICrmConnectionPool connectionPool)
+            ICrmConnectionPool connectionPool,
+            LineMessagingClient lineMessagingClient)
             : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool)
         {
+            _lineMessagingClient = lineMessagingClient ?? throw new ArgumentNullException(nameof(lineMessagingClient));
         }
 
         #region 單獨換手機號碼
@@ -126,7 +131,7 @@ namespace ChurchReport.Controllers
                 TempData["ClassName"] = "從相信到堅信";
 
                 // 使用 QrCodeUtility 處理 QR Code 邏輯
-                QrCodeUtility aQrCodeUtility = new QrCodeUtility();
+                QrCodeUtility aQrCodeUtility = new QrCodeUtility(_lineMessagingClient);
 
                 string UserName = "";
                 string OnboardType = "";

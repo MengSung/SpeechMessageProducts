@@ -80,6 +80,15 @@ public sealed class LineMessagingProcessorSendMessageTests
         handler.Requests.Should().BeEmpty();
     }
 
+    [Fact]
+    public void Dispose_CanBeCalledRepeatedly_WhenProcessorOwnsCompatibilityClient()
+    {
+        using var processor = new LineMessagingProcessorClass("test-token");
+
+        processor.Dispose();
+        processor.Dispose();
+    }
+
     private sealed class CapturingHttpMessageHandler : HttpMessageHandler
     {
         public List<HttpRequestMessage> Requests { get; } = new();

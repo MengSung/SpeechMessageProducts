@@ -159,7 +159,7 @@ namespace ChurchReport.Middleware
                         "[Session Validation] ?? User-Agent 不一致 | UserId:{UserId} | Session UA:{SessionUA} | Current UA:{CurrentUA}",
                         sessionUserId, sessionUserAgent, currentUserAgent);
 
-                    ClearSessionAndRedirectToLogin(context);
+                    await ClearSessionAndRedirectToLoginAsync(context);
                     return;
                 }
             }
@@ -235,7 +235,7 @@ namespace ChurchReport.Middleware
         /// <summary>
         /// 清除 Session 並重導向至登入頁面
         /// </summary>
-        private void ClearSessionAndRedirectToLogin(HttpContext context)
+        private async Task ClearSessionAndRedirectToLoginAsync(HttpContext context)
         {
             try
             {
@@ -244,7 +244,7 @@ namespace ChurchReport.Middleware
                 // ? 修復：必須 Commit 以確保 Session 立即失效
                 // 若不 Commit，Session 清除可能不會即時生效，
                 // 在高併發情境下可能造成短暫的 Session 洩漏
-                context.Session.CommitAsync().GetAwaiter().GetResult();
+                await context.Session.CommitAsync();
 
                 _logger.LogInformation("[Session Validation] ? Session 已清除並提交");
             }

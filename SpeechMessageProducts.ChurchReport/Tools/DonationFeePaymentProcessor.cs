@@ -21,6 +21,7 @@ using ChurchReport.Payments;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -107,7 +108,7 @@ namespace ChurchReport.Tools
             // 從 appsettings.json 讀取 LINE Channel Access Token。
             // PushUtility 需要這個 token 才能把付款結果推播給奉獻者或課程報名者。
             var channelAccessToken = GetLineChannelAccessToken();
-            this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
+            this.m_LineMessagingClient = LineMessagingProcessor.LineMessagingClientFactory.CreateOwnedClient(channelAccessToken);
 
             // PushUtility：主動推播付款成功/失敗訊息。
             // ReplyUtility：保留給舊 LINE callback/回覆流程使用。
@@ -151,7 +152,7 @@ namespace ChurchReport.Tools
 
             // ✅ 從 appsettings.json 讀取 LINE Channel Access Token
             var channelAccessToken = GetLineChannelAccessToken();
-            this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
+            this.m_LineMessagingClient = LineMessagingProcessor.LineMessagingClientFactory.CreateOwnedClient(channelAccessToken);
 
             m_PushUtility = new PushUtility(m_LineMessagingClient, lineNotificationWorkflow);
             m_ReplyUtility = new ReplyUtility(
@@ -309,7 +310,7 @@ namespace ChurchReport.Tools
             };
         }
 
-        private void ExecutePostPaymentWorkflowIfAvailable(
+        private async Task ExecutePostPaymentWorkflowIfAvailableAsync(
             Entity feeEntity,
             PaymentWorkflowResult workflowResult,
             bool isPaymentSuccess)
@@ -334,7 +335,7 @@ namespace ChurchReport.Tools
                 workflowResult,
                 isPaymentSuccess);
 
-            m_PostPaymentWorkflow.ExecuteAsync(context).GetAwaiter().GetResult();
+            await m_PostPaymentWorkflow.ExecuteAsync(context);
         }
 
         /// <summary>
@@ -355,6 +356,11 @@ namespace ChurchReport.Tools
         /// 6. 成功但已處理過時：避免 RETURN_URL / BACKEND_URL 重複回傳造成 CRM 重複入帳，只顯示成功結果頁。
         /// 7. 失敗時：將失敗描述寫回收費單、推播失敗 LINE，並顯示失敗結果頁。
         /// </summary>
+        public Task<ActionResult> HandlePaymentReturnAsync(string ShopNo, String PayToken, DonationPaymentWorkflowResult paymentResult, string correlationId = "", string requestContext = "")
+        {
+            return Task.FromResult(HandlePaymentReturn(ShopNo, PayToken, paymentResult, correlationId, requestContext));
+        }
+
         public ActionResult HandlePaymentReturn(string ShopNo, String PayToken, DonationPaymentWorkflowResult paymentResult, string correlationId = "", string requestContext = "")
         {
             try

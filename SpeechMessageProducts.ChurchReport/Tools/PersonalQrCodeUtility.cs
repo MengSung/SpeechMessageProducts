@@ -71,14 +71,13 @@ namespace ChurchReport.Tools
 
         #region 初始化
         public PersonalQrCodeUtility()
+            : this(LineMessagingProcessor.LineMessagingClientFactory.CreateOwnedClient(GetLineChannelAccessToken()))
         {
-            // 從配置讀取 LINE Channel Access Token
-            string channelAccessToken = GetLineChannelAccessToken();
+        }
 
-            // 初始化 LINE Messaging Client
-            this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
-
-            // 初始化 Push Utility
+        public PersonalQrCodeUtility(LineMessagingClient lineMessagingClient)
+        {
+            m_LineMessagingClient = lineMessagingClient ?? throw new ArgumentNullException(nameof(lineMessagingClient));
             m_PushUtility = new PushUtility(m_LineMessagingClient);
         }
         #endregion

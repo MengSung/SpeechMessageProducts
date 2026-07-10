@@ -28,10 +28,12 @@ namespace ChurchReport.MemberInfo.Tests.Payments;
 /// </summary>
 public sealed class DonationPaymentProcessorNamingTests
 {
+    private const string ChurchReportAssemblyName = "SpeechMessageProducts.ChurchReport";
+
     [Fact]
     public void New_donation_payment_processor_exists_as_primary_product_workflow_processor()
     {
-        var processorType = Type.GetType("ChurchReport.WebServiceConnector.DonationPaymentProcessor, ChurchReport");
+        var processorType = Type.GetType($"ChurchReport.WebServiceConnector.DonationPaymentProcessor, {ChurchReportAssemblyName}");
 
         processorType.Should().NotBeNull(
             "ChurchReport 產品層付款後流程應由 DonationPaymentProcessor 作為主要類別名稱");
@@ -40,7 +42,7 @@ public sealed class DonationPaymentProcessorNamingTests
     [Fact]
     public void Legacy_qpay_processor_alias_should_not_remain()
     {
-        Type.GetType("ChurchReport.WebServiceConnector.QPayProcessor, ChurchReport").Should().BeNull(
+        Type.GetType($"ChurchReport.WebServiceConnector.QPayProcessor, {ChurchReportAssemblyName}").Should().BeNull(
             "QPayProcessor 是產品層舊 alias；重構後應直接使用 DonationPaymentProcessor，" +
             "舊外部 URL 可由 route 保留，但 C# 類別名稱不應再保留 QPay alias");
     }
@@ -48,7 +50,7 @@ public sealed class DonationPaymentProcessorNamingTests
     [Fact]
     public void Donation_payment_processor_constructors_require_neutral_gateway_create_adapter()
     {
-        var processorType = Type.GetType("ChurchReport.WebServiceConnector.DonationPaymentProcessor, ChurchReport");
+        var processorType = Type.GetType($"ChurchReport.WebServiceConnector.DonationPaymentProcessor, {ChurchReportAssemblyName}");
 
         processorType.Should().NotBeNull();
         var adapterParameters = processorType!

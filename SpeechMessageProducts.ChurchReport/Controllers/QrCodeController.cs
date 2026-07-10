@@ -13,6 +13,7 @@
 // ============================================================================
 using ChurchReport.Models;
 using ChurchReport.Tools;
+using Line.Messaging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -29,15 +30,19 @@ namespace ChurchReport.Controllers
     /// </summary>
     public class QrCodeController : BaseChurchController
     {
+        private readonly LineMessagingClient _lineMessagingClient;
+
         #region 建構函式
 
         public QrCodeController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             IToolUtilityProvider toolUtilityProvider,
-            ICrmConnectionPool connectionPool)
+            ICrmConnectionPool connectionPool,
+            LineMessagingClient lineMessagingClient)
             : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool)
         {
+            _lineMessagingClient = lineMessagingClient ?? throw new ArgumentNullException(nameof(lineMessagingClient));
         }
 
         #endregion
@@ -92,7 +97,7 @@ namespace ChurchReport.Controllers
             {
                 SetupLineContext(UserLineId, GroupId, RoomId, ViewType);
 
-                QrCodeUtility qrCodeUtility = new QrCodeUtility();
+                QrCodeUtility qrCodeUtility = new QrCodeUtility(_lineMessagingClient);
 
                 string className = "";
                 string userName = "";
@@ -261,7 +266,7 @@ namespace ChurchReport.Controllers
             {
                 SetupLineContext(UserLineId, GroupId, RoomId, ViewType);
 
-                SmallGroupQrCodeUtility qrCodeUtility = new SmallGroupQrCodeUtility();
+                SmallGroupQrCodeUtility qrCodeUtility = new SmallGroupQrCodeUtility(_lineMessagingClient);
 
                 string smallGroupName = "";
                 string userName = "";
@@ -336,7 +341,7 @@ namespace ChurchReport.Controllers
             {
                 SetupLineContext(UserLineId, GroupId, RoomId, ViewType);
 
-                SundayQrCodeUtility qrCodeUtility = new SundayQrCodeUtility();
+                SundayQrCodeUtility qrCodeUtility = new SundayQrCodeUtility(_lineMessagingClient);
 
                 string sundayName = "";
                 string categoryName = "";
@@ -414,7 +419,7 @@ namespace ChurchReport.Controllers
             {
                 SetupLineContext(UserLineId, GroupId, RoomId, ViewType);
 
-                PersonalQrCodeUtility qrCodeUtility = new PersonalQrCodeUtility();
+                PersonalQrCodeUtility qrCodeUtility = new PersonalQrCodeUtility(_lineMessagingClient);
 
                 string sundayName = "";
                 string categoryName = "";

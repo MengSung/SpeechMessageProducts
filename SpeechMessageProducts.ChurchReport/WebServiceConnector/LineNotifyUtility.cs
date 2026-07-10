@@ -62,7 +62,7 @@ namespace ChurchReport.WebServiceConnector
         {
             // 從配置讀取 LINE Channel Access Token
             string channelAccessToken = GetLineChannelAccessToken();
-            this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
+            this.m_LineMessagingClient = LineMessagingProcessor.LineMessagingClientFactory.CreateOwnedClient(channelAccessToken);
 
             m_PushUtility = new PushUtility(m_LineMessagingClient);
         }

@@ -1,0 +1,12 @@
+{
+  "id": "full-code-quality-audit-and-fix",
+  "title": "Full code quality audit and fix for session leaks, slow paths, memory leaks, and related defects",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "Implement Tasks 5-8: LINE client ownership and async notification/payment paths",
+  "createdAt": "2026-07-10T11:16:11.9992690+08:00",
+  "branch": "1.0.0.0.Initialization.Worktree"
+}

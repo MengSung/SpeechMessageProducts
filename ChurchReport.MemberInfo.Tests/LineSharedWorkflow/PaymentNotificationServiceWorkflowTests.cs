@@ -41,6 +41,22 @@ public sealed class PaymentNotificationServiceWorkflowTests
     }
 
     [Fact]
+    public async Task SendLineMessageAsync_uses_shared_workflow_with_retry_key()
+    {
+        var workflow = new CapturingWorkflow();
+        var service = new PaymentNotificationService(
+            NullLogger<PaymentNotificationService>.Instance,
+            new PaymentMessageBuilder(),
+            new PaymentFeeTypeHelper(NullLogger<PaymentFeeTypeHelper>.Instance),
+            workflow);
+
+        await service.SendLineMessageAsync("Udonor", "payment received", "retry-001");
+
+        workflow.Requests.Should().ContainSingle();
+        workflow.Requests[0].RetryKey.Should().Be("retry-001");
+    }
+
+    [Fact]
     public void SendLineMessage_throws_when_shared_workflow_rejects_notification()
     {
         var workflow = new CapturingWorkflow

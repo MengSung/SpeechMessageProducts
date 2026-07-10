@@ -187,7 +187,7 @@ namespace ChurchReport.Tools
                 string defaultOrg = m_Configuration["LineMessaging:DefaultOrganization"] ?? "Jesus";
                 m_ChannelAccessToken = GetChannelAccessToken(defaultOrg);
 
-                m_LineMessagingClient = new LineMessagingClient(m_ChannelAccessToken);
+                m_LineMessagingClient = LineMessagingProcessor.LineMessagingClientFactory.CreateOwnedClient(m_ChannelAccessToken);
                 m_UsesDefaultLineNotificationWorkflow = lineNotificationWorkflow == null;
                 m_UsesDefaultLineReplyWorkflow = lineReplyWorkflow == null;
                 m_UsesDefaultLineRichMenuWorkflow = true;
@@ -328,7 +328,7 @@ namespace ChurchReport.Tools
                     // 依目前 channel access token 建立 LineMessagingClient。
                     // 若沒有外部注入 ILineNotificationWorkflow，後續會用這個 client 建立預設共用 workflow。
                     // 重新建立預設 workflow 可避免切換 token 後，仍沿用舊 client 或舊 token。
-                    m_LineMessagingClient = new LineMessagingClient(m_ChannelAccessToken);
+                    m_LineMessagingClient = LineMessagingProcessor.LineMessagingClientFactory.CreateOwnedClient(m_ChannelAccessToken);
                     RebuildDefaultWorkflowsForCurrentClient();
                     m_ReplyUtility = new ReplyUtility(m_LineMessagingClient, m_LineReplyWorkflow);
                 }
