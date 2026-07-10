@@ -13,7 +13,10 @@
 // ============================================================================
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Linq;
 
@@ -21,18 +24,95 @@ using ChurchReport.Models;
 using System.Collections.Generic;
 
 using ChurchReport.WebServiceConnector;
+using ToolUtilityNameSpace.ConnectionOperations;
+using ToolUtilityNameSpace.DependencyInjection;
 
 namespace ChurchReport.Controllers.ApiControllers
 {
+    [Authorize]
     [Route("api/[controller]/[action]")]
-    public class SpiritLeaderLookupController : Controller
+    public class SpiritLeaderLookupController : BaseChurchController
     {
+        public SpiritLeaderLookupController(
+            IHttpContextAccessor httpContextAccessor,
+            IMemoryCache memoryCache,
+            IToolUtilityProvider toolUtilityProvider,
+            ICrmConnectionPool connectionPool)
+            : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool)
+        {
+        }
+
         [HttpGet]
         public object Get(String id, DataSourceLoadOptions loadOptions)
         {
+            if (!CanAccessSpiritLeaderList(id))
+            {
+                return Forbid();
+            }
+
             SpiritLeaderList aSpiritLeaderList = SetupSpiritLeaderList(id);
 
             return DataSourceLoader.Load(aSpiritLeaderList.SpiritLeaders, loadOptions);
+        }
+
+        private bool CanAccessSpiritLeaderList(string listEntityId)
+        {
+            EnsureSpiritLeaderListsLoaded();
+            return CanAccessRequestedList(
+                InMemoryContext?.ListManager?.ActiveListId,
+                InMemoryContext?.ListManager?.m_MultiGroupList?.m_WeeklyReportRecordListData?.Select(record => record.ListEntityId),
+                listEntityId);
+        }
+
+        private void EnsureSpiritLeaderListsLoaded()
+        {
+            var listManager = InMemoryContext?.ListManager;
+            if (listManager == null)
+            {
+                return;
+            }
+
+            var loaded = listManager.m_MultiGroupList?.m_WeeklyReportRecordListData;
+            if ((loaded == null || loaded.Count == 0) && !string.IsNullOrEmpty(listManager.m_Password))
+            {
+                listManager.SetupListManager(
+                    listManager.m_Account,
+                    listManager.m_Password,
+                    listManager.m_SelectDate != default ? listManager.m_SelectDate : DateTime.Now);
+            }
+        }
+
+        public static bool CanAccessRequestedListForTesting(
+            string activeListId,
+            IEnumerable<string> groupListIds,
+            string requestedListId)
+        {
+            return CanAccessRequestedList(activeListId, groupListIds, requestedListId);
+        }
+
+        private static bool CanAccessRequestedList(
+            string activeListId,
+            IEnumerable<string> groupListIds,
+            string requestedListId)
+        {
+            if (!Guid.TryParse(requestedListId, out var requestedListGuid) || requestedListGuid == Guid.Empty)
+            {
+                return false;
+            }
+
+            if (Guid.TryParse(activeListId, out var activeListGuid) && activeListGuid == requestedListGuid)
+            {
+                return true;
+            }
+
+            if (groupListIds == null)
+            {
+                return false;
+            }
+
+            return groupListIds.Any(listEntityId =>
+                Guid.TryParse(listEntityId, out var recordListGuid) &&
+                recordListGuid == requestedListGuid);
         }
 
 

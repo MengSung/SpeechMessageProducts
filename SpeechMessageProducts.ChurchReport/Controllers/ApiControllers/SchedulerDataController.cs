@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc;
 using ChurchReport.Models;
 using DevExtreme.AspNet.Mvc;
 using DevExtreme.AspNet.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Caching.Memory;
@@ -26,6 +27,7 @@ using Microsoft.Extensions.Caching.Memory;
 namespace ChurchReport.Controllers
 {
     //[Route("apic/[controller]")]
+    [Authorize]
     public class SchedulerDataController : Controller
     {
         InMemoryAppointmentsDataContext _data;

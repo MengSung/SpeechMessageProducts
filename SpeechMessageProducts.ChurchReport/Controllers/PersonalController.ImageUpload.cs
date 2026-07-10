@@ -700,6 +700,14 @@ namespace ChurchReport.Controllers
                     return Json(new { success = true, images = new Dictionary<string, string>(), sources = new Dictionary<string, string>() });
                 }
 
+                var loginContactForAuth = InMemoryContext?.PersonalInfomationModel?.m_LoginContact;
+                if (loginContactForAuth == null)
+                {
+                    Response.Headers["Cache-Control"] = "private, no-store";
+                    return StatusCode(StatusCodes.Status403Forbidden);
+                }
+
+                var viewerContactId = loginContactForAuth.Id;
                 var thumbSize = Math.Clamp(request.Size > 0 ? request.Size : 48, 32, 256);
                 var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
                 var result = new Dictionary<string, string>();
@@ -718,7 +726,13 @@ namespace ChurchReport.Controllers
                 {
                     if (!Guid.TryParse(idStr, out var guid)) continue;
 
-                    var cacheKey = $"contact-image-thumb:{guid:N}:{thumbSize}";
+                    if (!CanViewPersonalContactImage(loginContactForAuth, guid))
+                    {
+                        Response.Headers["Cache-Control"] = "private, no-store";
+                        return StatusCode(StatusCodes.Status403Forbidden);
+                    }
+
+                    var cacheKey = BuildPersonalContactImageCacheKey(viewerContactId, guid, thumbSize);
                     if (memoryCache != null && memoryCache.TryGetValue(cacheKey, out byte[] cached) && cached != null)
                     {
                         result[idStr] = "data:image/jpeg;base64," + Convert.ToBase64String(cached);
@@ -771,7 +785,7 @@ namespace ChurchReport.Controllers
                             inBytes += originalBytes.Length; outBytes += outputBytes.Length; withPhoto++; // [計時診斷] 原圖/縮圖位元組
 
                             // 寫入 MemoryCache（與 GetContactImage 共用相同 cache key）
-                            var cacheKey = $"contact-image-thumb:{entity.Id:N}:{thumbSize}";
+                            var cacheKey = BuildPersonalContactImageCacheKey(viewerContactId, entity.Id, thumbSize);
                             memoryCache?.Set(cacheKey, outputBytes, new MemoryCacheEntryOptions
                             {
                                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
