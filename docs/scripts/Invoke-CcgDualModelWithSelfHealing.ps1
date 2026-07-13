@@ -10,6 +10,8 @@ param(
     [string]$OutputDirectory = ".\.ccg\dual-model-runs",
     [int]$TimeoutSeconds = 900,
     [int]$MaxAttempts = 2,
+    [ValidateSet("dual", "claude")]
+    [string]$BackendMode = "dual",
     [switch]$RunHealthBackendSmoke,
     [switch]$AllowSingleModelWhenQuotaBlocked
 )
@@ -148,15 +150,16 @@ function Initialize-CcgToolchainEnvironment {
         [Environment]::SetEnvironmentVariable("Path", $userPathResult.Path, "User")
     }
 
-    $env:GEMINI_CLI_TRUST_WORKSPACE = "true"
+    if ($BackendMode -eq 'dual') {
+        $env:GEMINI_CLI_TRUST_WORKSPACE = "true"
+    }
     $env:CODEAGENT_LITE_MODE = "true"
     $env:PYTHONIOENCODING = "utf-8"
 
-    return [pscustomobject]@{
+    $environmentSummary = [ordered]@{
         ToolPathEntries = $toolPathEntries
         ChangedProcessPath = $processPath.Changed
         ChangedUserPath = $userPathResult.Changed
-        GEMINI_CLI_TRUST_WORKSPACE = $env:GEMINI_CLI_TRUST_WORKSPACE
         CODEAGENT_LITE_MODE = $env:CODEAGENT_LITE_MODE
         PYTHONIOENCODING = $env:PYTHONIOENCODING
         CLAUDE_MODEL = $env:CLAUDE_MODEL
@@ -164,6 +167,12 @@ function Initialize-CcgToolchainEnvironment {
         CCG_CLAUDE_MODEL_SHIM_DIR = $env:CCG_CLAUDE_MODEL_SHIM_DIR
         CLAUDE_REAL_COMMAND = if ($claudeShim) { $claudeShim.RealClaude } else { $null }
     }
+
+    if ($BackendMode -eq 'dual') {
+        $environmentSummary.GEMINI_CLI_TRUST_WORKSPACE = $env:GEMINI_CLI_TRUST_WORKSPACE
+    }
+
+    return [pscustomobject]$environmentSummary
 }
 
 function Resolve-ExecutablePath {
@@ -484,6 +493,7 @@ Set-Location -LiteralPath $repositoryFullPath
 
 $resolvedTaskFile = (Resolve-Path -LiteralPath $TaskFile).Path
 $taskText = [System.IO.File]::ReadAllText($resolvedTaskFile, [System.Text.UTF8Encoding]::new($false))
+$selectedBackends = if ($BackendMode -eq 'claude') { @('claude') } else { @('gemini', 'claude') }
 
 $resolvedOutputDirectory = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) {
     $OutputDirectory
@@ -507,6 +517,7 @@ if (-not (Test-Path -LiteralPath $healthScript)) {
 $summary = [ordered]@{
     runId = $runId
     role = $Role
+    backendMode = $BackendMode
     repositoryPath = $repositoryFullPath
     taskFile = $resolvedTaskFile
     runDirectory = $runDirectory
@@ -527,7 +538,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     $summary.toolchainEnvironment = $toolchainEnvironment
 
     $healthOutputPath = Join-Path $runDirectory "health-attempt-$attempt.json"
-    $healthArguments = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $healthScript, "-RepositoryPath", $repositoryFullPath, "-OutputDirectory", $runDirectory)
+    $healthArguments = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $healthScript, "-RepositoryPath", $repositoryFullPath, "-OutputDirectory", $runDirectory, "-BackendMode", $BackendMode)
     if (-not $RunHealthBackendSmoke) {
         $healthArguments += "-SkipBackendSmoke"
     }
@@ -588,7 +599,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
         break
     }
 
-    foreach ($backend in @("gemini", "claude")) {
+    foreach ($backend in $selectedBackends) {
         $prompt = New-BackendPrompt -Backend $backend -Role $Role -TaskText $taskText
         $promptPath = Join-Path $runDirectory "$backend-$Role-attempt-$attempt.prompt.md"
         $stdoutPath = Join-Path $runDirectory "$backend-$Role-attempt-$attempt.stdout.md"
@@ -662,7 +673,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     $failed = @($attemptRecord.backends | Where-Object { -not $_.ok })
     if ($failed.Count -eq 0) {
         $summary.ok = $true
-        $summary.completedBackends = @("gemini", "claude")
+        $summary.completedBackends = @($selectedBackends)
         break
     }
 

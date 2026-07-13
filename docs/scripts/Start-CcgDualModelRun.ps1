@@ -12,6 +12,8 @@ param(
     [string]$OutputDirectory = ".\.ccg\dual-model-runs",
     [int]$TimeoutSeconds = 900,
     [int]$MaxAttempts = 2,
+    [ValidateSet("dual", "claude")]
+    [string]$BackendMode = "dual",
     [switch]$AllowSingleModelWhenQuotaBlocked,
     [switch]$RunHealthBackendSmoke
 )
@@ -70,6 +72,22 @@ $taskFileName = "$safeTitle-$Role.md"
 $taskFile = Join-Path $resolvedOutputDirectory $taskFileName
 $taskFileStem = [System.IO.Path]::GetFileNameWithoutExtension($taskFileName)
 
+$recoveryBehavior = if ($BackendMode -eq 'claude') {
+@"
+- Run through the self-healing Claude-only CCG entrypoint, not direct Claude commands.
+- If Claude or codeagent-wrapper fails before usable output, repair local toolchain issues and retry.
+- Preserve Claude prompts, stdout, stderr, health reports, and summary files under .ccg/dual-model-runs.
+- Do not invoke, probe, or write artifacts for Gemini in Claude-only mode.
+"@
+} else {
+@"
+- Run through the self-healing CCG entrypoint, not direct Gemini/Claude commands.
+- If Gemini, Claude, or codeagent-wrapper fails before usable output, repair local toolchain issues and retry.
+- Preserve prompts, stdout, stderr, health reports, and summary files under .ccg/dual-model-runs.
+- If provider quota/session blocks one backend, classify it as degraded fallback only when `-AllowSingleModelWhenQuotaBlocked` is enabled and the other backend produced usable output.
+"@
+}
+
 $taskBody = @"
 # CCG $Role Task: $Title
 
@@ -80,10 +98,7 @@ $repositoryFullPath
 $promptText
 
 ## Required Recovery Behavior
-- Run through the self-healing CCG entrypoint, not direct Gemini/Claude commands.
-- If Gemini, Claude, or codeagent-wrapper fails before usable output, repair local toolchain issues and retry.
-- Preserve prompts, stdout, stderr, health reports, and summary files under .ccg/dual-model-runs.
-- If provider quota/session blocks one backend, classify it as degraded fallback only when `-AllowSingleModelWhenQuotaBlocked` is enabled and the other backend produced usable output.
+$recoveryBehavior
 "@
 
 [System.IO.File]::WriteAllText($taskFile, $taskBody, [System.Text.UTF8Encoding]::new($false))
@@ -102,7 +117,8 @@ $runnerArgs = @(
     '-RepositoryPath', $repositoryFullPath,
     '-OutputDirectory', $resolvedOutputDirectory,
     '-TimeoutSeconds', $TimeoutSeconds,
-    '-MaxAttempts', $MaxAttempts
+    '-MaxAttempts', $MaxAttempts,
+    '-BackendMode', $BackendMode
 )
 
 if ($AllowSingleModelWhenQuotaBlocked) {
@@ -144,7 +160,8 @@ if ($latestSummaryDirectory) {
         if ($summary.degradedFallback) {
             Write-Warning "CCG completed with DEGRADED FALLBACK. At least one backend succeeded, but this is not a completed dual-model review. Read: $summaryPath"
         } elseif ($summary.ok) {
-            Write-Host "CCG completed with full dual-model success. Read: $summaryPath"
+            $completionMode = if ($summary.backendMode -eq 'claude') { 'Claude-only' } else { 'full dual-model' }
+            Write-Host "CCG completed with $completionMode success. Read: $summaryPath"
         } elseif ($summary.quotaBlocked) {
             Write-Warning "CCG stopped on provider quota/session state and did not produce an accepted fallback. Read: $summaryPath"
         } else {

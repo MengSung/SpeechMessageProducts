@@ -1,6 +1,8 @@
 param(
     [string]$RepositoryPath = (Get-Location).Path,
     [string]$OutputDirectory = ".\.ccg\dual-model-runs",
+    [ValidateSet("dual", "claude")]
+    [string]$BackendMode = "dual",
     [switch]$SkipBackendSmoke
 )
 
@@ -131,7 +133,9 @@ function Invoke-CommandCapture {
 
         $startInfo.Arguments = Join-ProcessArguments -Arguments $Arguments
 
-        $startInfo.Environment["GEMINI_CLI_TRUST_WORKSPACE"] = "true"
+        if ($BackendMode -eq 'dual') {
+            $startInfo.Environment["GEMINI_CLI_TRUST_WORKSPACE"] = "true"
+        }
         $startInfo.Environment["CODEAGENT_LITE_MODE"] = "true"
         $startInfo.Environment["PYTHONIOENCODING"] = "utf-8"
         if (-not [string]::IsNullOrWhiteSpace($env:CLAUDE_MODEL)) {
@@ -314,7 +318,9 @@ $resolvedOutputDirectory = if ([System.IO.Path]::IsPathRooted($OutputDirectory))
 }
 New-DirectoryIfMissing -Path $resolvedOutputDirectory
 
-$env:GEMINI_CLI_TRUST_WORKSPACE = "true"
+if ($BackendMode -eq 'dual') {
+    $env:GEMINI_CLI_TRUST_WORKSPACE = "true"
+}
 $env:CODEAGENT_LITE_MODE = "true"
 $env:PYTHONIOENCODING = "utf-8"
 if ([string]::IsNullOrWhiteSpace($env:CLAUDE_MODEL)) {
@@ -371,9 +377,13 @@ if ($changedUserPath) {
 $wrapperPath = Resolve-ExecutablePath `
     -Name "codeagent-wrapper.exe" `
     -FallbackPaths @("C:\Users\Administrator\.claude\bin\codeagent-wrapper.exe")
-$geminiPath = Resolve-ExecutablePath `
-    -Name "gemini.cmd" `
-    -FallbackPaths @("C:\Users\Administrator\AppData\Roaming\npm\gemini.cmd", "C:\Users\Administrator\.claude\bin\gemini.cmd")
+$geminiPath = if ($BackendMode -eq 'dual') {
+    Resolve-ExecutablePath `
+        -Name "gemini.cmd" `
+        -FallbackPaths @("C:\Users\Administrator\AppData\Roaming\npm\gemini.cmd", "C:\Users\Administrator\.claude\bin\gemini.cmd")
+} else {
+    $null
+}
 $claudePath = Resolve-ExecutablePath `
     -Name "claude.cmd" `
     -FallbackPaths @("C:\Users\Administrator\AppData\Roaming\npm\claude.cmd", "C:\Users\Administrator\.claude\bin\claude.cmd")
@@ -381,25 +391,34 @@ $pythonPath = Resolve-ExecutablePath `
     -Name "python.exe" `
     -FallbackPaths @("C:\Users\Administrator\AppData\Local\Programs\Python\Python314\python.exe")
 
+$environmentSummary = [ordered]@{
+    CODEAGENT_LITE_MODE = $env:CODEAGENT_LITE_MODE
+    PYTHONIOENCODING = $env:PYTHONIOENCODING
+    CLAUDE_MODEL = $env:CLAUDE_MODEL
+    CLAUDE_MODEL_SHIM = $env:CLAUDE_MODEL_SHIM
+    CCG_CLAUDE_MODEL_SHIM_DIR = $env:CCG_CLAUDE_MODEL_SHIM_DIR
+    CLAUDE_REAL_COMMAND = if ($claudeShim) { $claudeShim.RealClaude } else { $null }
+}
+if ($BackendMode -eq 'dual') {
+    $environmentSummary.GEMINI_CLI_TRUST_WORKSPACE = $env:GEMINI_CLI_TRUST_WORKSPACE
+}
+
+$executables = [ordered]@{
+    wrapper = $wrapperPath
+    claude = $claudePath
+    python = $pythonPath
+}
+if ($BackendMode -eq 'dual') {
+    $executables.gemini = $geminiPath
+}
+
 $summary = [ordered]@{
     generatedAt = (Get-Date).ToString("o")
     repositoryPath = $repositoryFullPath
+    backendMode = $BackendMode
     changedUserPath = $changedUserPath
-    environment = [ordered]@{
-        GEMINI_CLI_TRUST_WORKSPACE = $env:GEMINI_CLI_TRUST_WORKSPACE
-        CODEAGENT_LITE_MODE = $env:CODEAGENT_LITE_MODE
-        PYTHONIOENCODING = $env:PYTHONIOENCODING
-        CLAUDE_MODEL = $env:CLAUDE_MODEL
-        CLAUDE_MODEL_SHIM = $env:CLAUDE_MODEL_SHIM
-        CCG_CLAUDE_MODEL_SHIM_DIR = $env:CCG_CLAUDE_MODEL_SHIM_DIR
-        CLAUDE_REAL_COMMAND = if ($claudeShim) { $claudeShim.RealClaude } else { $null }
-    }
-    executables = [ordered]@{
-        wrapper = $wrapperPath
-        gemini = $geminiPath
-        claude = $claudePath
-        python = $pythonPath
-    }
+    environment = $environmentSummary
+    executables = $executables
     smoke = @()
     ok = $false
     repairable = $true
@@ -407,7 +426,7 @@ $summary = [ordered]@{
 }
 
 if (-not $wrapperPath) { $summary.notes += "codeagent-wrapper.exe not found." }
-if (-not $geminiPath) { $summary.notes += "gemini.cmd not found." }
+if ($BackendMode -eq 'dual' -and -not $geminiPath) { $summary.notes += "gemini.cmd not found." }
 if (-not $claudePath) { $summary.notes += "claude.cmd not found." }
 if (-not $pythonPath) { $summary.notes += "python.exe not found." }
 
@@ -416,15 +435,17 @@ if ($wrapperPath) {
     $summary.wrapperVersion = (($wrapperVersion.StdOut + "`n" + $wrapperVersion.StdErr) -replace "`r", "").Trim()
 }
 
-if (-not $SkipBackendSmoke -and $wrapperPath -and $geminiPath -and $claudePath -and $pythonPath) {
-    $geminiRoleFile = "C:\Users\Administrator\.claude\.ccg\prompts\gemini\reviewer.md"
+if (-not $SkipBackendSmoke -and $wrapperPath -and $claudePath -and $pythonPath -and ($BackendMode -eq 'claude' -or $geminiPath)) {
     $claudeRoleFile = "C:\Users\Administrator\.claude\.ccg\prompts\claude\reviewer.md"
 
-    $summary.smoke += Test-BackendSmoke `
-        -Backend "gemini" `
-        -ExpectedText "GEMINI_BACKEND_OK" `
-        -WrapperPath $wrapperPath `
-        -RoleFile $geminiRoleFile
+    if ($BackendMode -eq 'dual') {
+        $geminiRoleFile = "C:\Users\Administrator\.claude\.ccg\prompts\gemini\reviewer.md"
+        $summary.smoke += Test-BackendSmoke `
+            -Backend "gemini" `
+            -ExpectedText "GEMINI_BACKEND_OK" `
+            -WrapperPath $wrapperPath `
+            -RoleFile $geminiRoleFile
+    }
 
     $summary.smoke += Test-BackendSmoke `
         -Backend "claude" `
@@ -435,13 +456,13 @@ if (-not $SkipBackendSmoke -and $wrapperPath -and $geminiPath -and $claudePath -
 
 $summary.ok = (
     $wrapperPath -and
-    $geminiPath -and
     $claudePath -and
     $pythonPath -and
+    ($BackendMode -eq 'claude' -or $geminiPath) -and
     (
         $SkipBackendSmoke -or
         (
-            @($summary.smoke).Count -eq 2 -and
+            @($summary.smoke).Count -eq $(if ($BackendMode -eq 'claude') { 1 } else { 2 }) -and
             -not (@($summary.smoke) | Where-Object { -not $_.Ok })
         )
     )
