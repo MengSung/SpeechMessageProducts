@@ -1,0 +1,12 @@
+{
+  "id": "enable-codex-subagent-dispatch",
+  "title": "啟用 Codex 子代理調度模式",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "tooling",
+  "currentPhase": "completed",
+  "nextAction": "封存任務並提交設定變更",
+  "createdAt": "2026-07-14T07:29:03.4451563Z",
+  "branch": "1.0.0.1.EvenVersion"
+}
