@@ -44,10 +44,10 @@ failures. It contains ten Critical P0 issues across seven workspaces.
 
 | Sequence | Workspace | Issue subset | Status | Local contract |
 |---:|---|---|---|---|
-| 1 | X04A-runtime-configuration-secrets | X04A-SEC-001, X04A-SEC-002 | SELECTED | `wave_2/` not created |
-| 2 | B01-identity-session-access-control | B01-SEC-003 | SELECTED | `wave_2/` not created |
-| 3 | B02-member-contact-profile-onboarding | B02-SEC-001 | SELECTED | `wave_2/` not created |
-| 4 | B04B-appointment-equipment | B04B-SEC-001 | SELECTED | `wave_2/` not created |
+| 1 | X04A-runtime-configuration-secrets | X04A-SEC-001, X04A-SEC-002 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output |
+| 2 | B01-identity-session-access-control | B01-SEC-003 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair retains non-production CRM and caller-inventory gates |
+| 3 | B02-member-contact-profile-onboarding | B02-SEC-001 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair must enforce the pre-hydration Permit Gate |
+| 4 | B04B-appointment-equipment | B04B-SEC-001 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair includes Schedule selector and stateless SchedulerView gates |
 | 5 | B04C-scheduling-qr | B04C-SEC-001, B04C-SEC-002 | SELECTED | `wave_2/` not created |
 | 6 | B04A-attendance-present-record | B04A-SEC-001, B04A-SEC-002 | SELECTED | `wave_2/` not created |
 | 7 | X05Q-churchreport-legacy-boundary-quarantine | X05Q-SEC-001 | SELECTED | `wave_2/` not created |
