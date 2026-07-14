@@ -1,0 +1,12 @@
+{
+  "id": "diagnostic-convergence-first-wave-prioritization",
+  "title": "Diagnostic convergence and first-wave optimization prioritization",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "architecture-governance",
+  "currentPhase": "planning",
+  "nextAction": "Await owner authorization before Step 7 optimization inventory, scoring, and wave planning",
+  "createdAt": "2026-07-13T01:48:33Z",
+  "branch": "1.0.0.1.EvenVersion"
+}

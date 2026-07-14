@@ -1,0 +1,14 @@
+{
+  "id": "line-richmenu-word-manual",
+  "title": "LINE RichMenu 創意、程式修改與調用方式 Word 說明文件",
+  "status": "cancelled",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "documentation",
+  "currentPhase": "closed",
+  "nextAction": "none; task closed by owner before implementation",
+  "createdAt": "2026-07-05T00:00:00+08:00",
+  "branch": "Jesus_5.1.7.RefactorRichMenu",
+  "closedAt": "2026-07-13T10:06:02+08:00",
+  "closeReason": "Owner requested closure so modular diagnostics can be completed first."
+}

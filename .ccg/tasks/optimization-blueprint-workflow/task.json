@@ -1,0 +1,12 @@
+{
+  "id": "optimization-blueprint-workflow",
+  "title": "Optimization blueprint and issue workflow",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "architecture-governance",
+  "currentPhase": "implementation",
+  "nextAction": "Create and review the F01B Wave 1 contract before its zero-trust repair",
+  "createdAt": "2026-07-13T06:07:17Z",
+  "branch": "1.0.0.1.EvenVersion"
+}

@@ -1,0 +1,22 @@
+{
+    "resolvedAt":  "2026-07-13T13:45:48.6258777+08:00",
+    "sourceComparison":  ".trellis/tasks/07-13-diagnostic-convergence-first-wave-prioritization/research/f01a-write-scope-recovery-r1-attempt2-orchestration-metadata-raw.json",
+    "runId":  "20260713-134350-f01a-write-scope-recovery-r1-reviewer",
+    "originalInvalidRunPreserved":  true,
+    "originalInvalidRun":  ".ccg/dual-model-runs/20260710-184735-f01a-issue-review-r1-reviewer/summary.json",
+    "approvedOrchestrationMetadata":  [
+                                          ".ccg/tasks/project-modular-analysis-diagnosis-optimization/.turns.json"
+                                      ],
+    "approvedBoundarySource":  ".trellis/tasks/07-13-diagnostic-convergence-first-wave-prioritization/design.md",
+    "rawUnexpectedDeltaCount":  1,
+    "unexpectedDeltaCountAfterApprovedBoundary":  0,
+    "productDeltaCount":  0,
+    "recoveryWriteScopeClean":  true,
+    "completedBackends":  [
+
+                          ],
+    "providerReviewOutcome":  "PROVIDER_BLOCKED_NO_USABLE_BACKEND",
+    "finalDiagnosticStatus":  "HUMAN_DECISION_REQUIRED",
+    "optimizationEligible":  false,
+    "rationale":  "The only raw exception was CCG task-turn metadata inside the plan\u0027s approved .ccg/tasks boundary. No backend produced a usable review, so clean recovery scope does not promote F01A."
+}

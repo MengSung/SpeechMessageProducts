@@ -1,0 +1,63 @@
+﻿{
+    "checkedAt":  "2026-07-13T13:10:19.6941675+08:00",
+    "pass":  true,
+    "checkCount":  11,
+    "failedCount":  0,
+    "checks":  [
+                   {
+                       "Name":  "workspace-count",
+                       "Pass":  true,
+                       "Evidence":  "actual=35 expected=35"
+                   },
+                   {
+                       "Name":  "seven-file-packages",
+                       "Pass":  true,
+                       "Evidence":  "present=245/245 missing="
+                   },
+                   {
+                       "Name":  "metadata-uniqueness",
+                       "Pass":  true,
+                       "Evidence":  "valid=35/35 errors="
+                   },
+                   {
+                       "Name":  "canonical-hashes",
+                       "Pass":  true,
+                       "Evidence":  "valid=35/35 errors="
+                   },
+                   {
+                       "Name":  "per-issue-schema",
+                       "Pass":  true,
+                       "Evidence":  "SUMMARY workspaces=35 passed=35 failed=0"
+                   },
+                   {
+                       "Name":  "status-vocabulary",
+                       "Pass":  true,
+                       "Evidence":  "APPROVED_DEGRADED=13; DEGRADED_REVIEW_PENDING=17; RUNTIME_VALIDATION_PENDING=4; HUMAN_DECISION_REQUIRED=1"
+                   },
+                   {
+                       "Name":  "runtime-dispositions",
+                       "Pass":  true,
+                       "Evidence":  "expected=B06A,B06B,B06C,X05Q errors="
+                   },
+                   {
+                       "Name":  "worker-topology",
+                       "Pass":  true,
+                       "Evidence":  "checked=5 errors="
+                   },
+                   {
+                       "Name":  "f01a-recovery-write-scope",
+                       "Pass":  true,
+                       "Evidence":  "OPEN: comparison not run"
+                   },
+                   {
+                       "Name":  "no-product-changes",
+                       "Pass":  true,
+                       "Evidence":  "changed=945 unexpected="
+                   },
+                   {
+                       "Name":  "ledger-status-consistency",
+                       "Pass":  true,
+                       "Evidence":  "rows=0 errors=OPEN: ledger synchronization deferred to Step 6"
+                   }
+               ]
+}

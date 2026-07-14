@@ -1,0 +1,12 @@
+{
+  "id": "w1-f01b-ai-agent-workflow-governance",
+  "title": "W1 F01B AI agent workflow governance",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "architecture-governance",
+  "currentPhase": "implementation",
+  "nextAction": "Resume the frozen F01B allowlist repair from the active-task resolver/OpenCode conformance work",
+  "createdAt": "2026-07-13T07:50:00Z",
+  "branch": "1.0.0.1.EvenVersion"
+}

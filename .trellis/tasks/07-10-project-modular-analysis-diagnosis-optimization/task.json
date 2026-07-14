@@ -1,0 +1,29 @@
+{
+  "id": "project-modular-analysis-diagnosis-optimization",
+  "name": "project-modular-analysis-diagnosis-optimization",
+  "title": "Project modular analysis, diagnosis, and optimization",
+  "description": "",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-07-10",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.1.EvenVersion",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "07-13-diagnostic-convergence-first-wave-prioritization",
+    "07-13-optimization-blueprint-workflow"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

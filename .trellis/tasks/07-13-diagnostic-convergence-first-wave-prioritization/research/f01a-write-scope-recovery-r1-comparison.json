@@ -1,0 +1,150 @@
+{
+    "comparedAt":  "2026-07-13T13:44:03.5564585+08:00",
+    "excluded":  [
+                     ".vs/**"
+                 ],
+    "beforeCount":  4664,
+    "afterCount":  4674,
+    "deltaCount":  13,
+    "unexpectedDeltaCount":  1,
+    "writeScopeClean":  false,
+    "runnerExitCode":  3,
+    "runId":  "20260713-134350-f01a-write-scope-recovery-r1-reviewer",
+    "completedBackends":  {
+
+                          },
+    "quotaBlocked":  true,
+    "degradedFallback":  false,
+    "deltas":  [
+                   {
+                       "Classification":  "untracked",
+                       "Path":  ".ccg/dual-model-runs/20260713-134350-f01a-write-scope-recovery-r1-reviewer/ccg-health-20260713-134350.json",
+                       "Change":  "ADDED",
+                       "AllowedRunnerOrManifestArtifact":  true,
+                       "BeforeLength":  null,
+                       "AfterLength":  1648,
+                       "BeforeSha256":  null,
+                       "AfterSha256":  "9a088bece176d9101b37a898449849615521bbb2f12f6d3b5b0006201b681c04"
+                   },
+                   {
+                       "Classification":  "untracked",
+                       "Path":  ".ccg/dual-model-runs/20260713-134350-f01a-write-scope-recovery-r1-reviewer/claude-reviewer-attempt-1.prompt.md",
+                       "Change":  "ADDED",
+                       "AllowedRunnerOrManifestArtifact":  true,
+                       "BeforeLength":  null,
+                       "AfterLength":  3148,
+                       "BeforeSha256":  null,
+                       "AfterSha256":  "9880b6c9becfd6214f1b1ce552bf09318efe5d37a42f0d40171a3c983b9dc8f4"
+                   },
+                   {
+                       "Classification":  "untracked",
+                       "Path":  ".ccg/dual-model-runs/20260713-134350-f01a-write-scope-recovery-r1-reviewer/claude-reviewer-attempt-1.stderr.md",
+                       "Change":  "ADDED",
+                       "AllowedRunnerOrManifestArtifact":  true,
+                       "BeforeLength":  null,
+                       "AfterLength":  547,
+                       "BeforeSha256":  null,
+                       "AfterSha256":  "5ca7fac480c8df222d49ea55d044ca31ab65584abc2c278e81ae5ceb316cf9c2"
+                   },
+                   {
+                       "Classification":  "untracked",
+                       "Path":  ".ccg/dual-model-runs/20260713-134350-f01a-write-scope-recovery-r1-reviewer/claude-reviewer-attempt-1.stdout.md",
+                       "Change":  "ADDED",
+                       "AllowedRunnerOrManifestArtifact":  true,
+                       "BeforeLength":  null,
+                       "AfterLength":  0,
+                       "BeforeSha256":  null,
+                       "AfterSha256":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                   },
+                   {
+                       "Classification":  "untracked",
+                       "Path":  ".ccg/dual-model-runs/20260713-134350-f01a-write-scope-recovery-r1-reviewer/gemini-reviewer-attempt-1.prompt.md",
+                       "Change":  "ADDED",
+                       "AllowedRunnerOrManifestArtifact":  true,
+                       "BeforeLength":  null,
+                       "AfterLength":  3148,
+                       "BeforeSha256":  null,
+                       "AfterSha256":  "79285066245e820bbcc136fafb2a22b80a4b9b71847cb2c8e004e0b51ba78fcc"
+                   },
+                   {
+                       "Classification":  "untracked",
+                       "Path":  ".ccg/dual-model-runs/20260713-134350-f01a-write-scope-recovery-r1-reviewer/gemini-reviewer-attempt-1.stderr.md",
+                       "Change":  "ADDED",
+                       "AllowedRunnerOrManifestArtifact":  true,
+                       "BeforeLength":  null,
+                       "AfterLength":  2193,
+                       "BeforeSha256":  null,
+                       "AfterSha256":  "cbad1107fe9191d38e73056843035f5c586e8710aedf389b0efedfd7221456a0"
+                   },
+                   {
+                       "Classification":  "untracked",
+                       "Path":  ".ccg/dual-model-runs/20260713-134350-f01a-write-scope-recovery-r1-reviewer/gemini-reviewer-attempt-1.stdout.md",
+                       "Change":  "ADDED",
+                       "AllowedRunnerOrManifestArtifact":  true,
+                       "BeforeLength":  null,
+                       "AfterLength":  0,
+                       "BeforeSha256":  null,
+                       "AfterSha256":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                   },
+                   {
+                       "Classification":  "untracked",
+                       "Path":  ".ccg/dual-model-runs/20260713-134350-f01a-write-scope-recovery-r1-reviewer/health-attempt-1.json",
+                       "Change":  "ADDED",
+                       "AllowedRunnerOrManifestArtifact":  true,
+                       "BeforeLength":  null,
+                       "AfterLength":  1845,
+                       "BeforeSha256":  null,
+                       "AfterSha256":  "6fb402d73486248c524e0f291379a048982697d78731567033b3f5fd1cfff034"
+                   },
+                   {
+                       "Classification":  "untracked",
+                       "Path":  ".ccg/dual-model-runs/20260713-134350-f01a-write-scope-recovery-r1-reviewer/summary.json",
+                       "Change":  "ADDED",
+                       "AllowedRunnerOrManifestArtifact":  true,
+                       "BeforeLength":  null,
+                       "AfterLength":  6604,
+                       "BeforeSha256":  null,
+                       "AfterSha256":  "7e3b6170f06dee2d905dbc1a071f6a178155bf83a4af284e7a48b9b330cef7b5"
+                   },
+                   {
+                       "Classification":  "untracked",
+                       "Path":  ".ccg/dual-model-runs/20260713-134350-f01a-write-scope-recovery-r1-reviewer/summary.md",
+                       "Change":  "ADDED",
+                       "AllowedRunnerOrManifestArtifact":  true,
+                       "BeforeLength":  null,
+                       "AfterLength":  717,
+                       "BeforeSha256":  null,
+                       "AfterSha256":  "69b07cae967a024f2f8dc5e7995fe33677418e68dafc8c361d436b1b59758e8d"
+                   },
+                   {
+                       "Classification":  "untracked",
+                       "Path":  ".ccg/dual-model-runs/f01a-write-scope-recovery-r1-reviewer.md",
+                       "Change":  "MODIFIED",
+                       "AllowedRunnerOrManifestArtifact":  true,
+                       "BeforeLength":  2829,
+                       "AfterLength":  2829,
+                       "BeforeSha256":  "99b0a775797c436b8f2cc8aed83b8b54e28051051bbae492064db2c0c32037a0",
+                       "AfterSha256":  "99b0a775797c436b8f2cc8aed83b8b54e28051051bbae492064db2c0c32037a0"
+                   },
+                   {
+                       "Classification":  "untracked",
+                       "Path":  ".ccg/tasks/project-modular-analysis-diagnosis-optimization/.turns.json",
+                       "Change":  "MODIFIED",
+                       "AllowedRunnerOrManifestArtifact":  false,
+                       "BeforeLength":  1101,
+                       "AfterLength":  1101,
+                       "BeforeSha256":  "b496db306066efe4aae36ac9d61052b0f920b68adf64ac370852ec2d31859e68",
+                       "AfterSha256":  "f64223cb57d33a8db7572269722d0baf39f94596c7afd0fbe1a263ad12ea21f0"
+                   },
+                   {
+                       "Classification":  "untracked",
+                       "Path":  ".trellis/tasks/07-13-diagnostic-convergence-first-wave-prioritization/research/f01a-write-scope-recovery-r1-before.csv",
+                       "Change":  "MODIFIED",
+                       "AllowedRunnerOrManifestArtifact":  true,
+                       "BeforeLength":  933738,
+                       "AfterLength":  937617,
+                       "BeforeSha256":  "97c911987cafe6ff819b75cc11d8d46d13a0a671bd9cc157af8780b8dd2b7879",
+                       "AfterSha256":  "912724dd78dd247b5092510c6257fb025efd200b1f6d31d1212f6199a5a16fed"
+                   }
+               ]
+}

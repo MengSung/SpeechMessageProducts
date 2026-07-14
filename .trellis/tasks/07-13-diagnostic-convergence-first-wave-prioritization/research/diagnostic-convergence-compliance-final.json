@@ -1,0 +1,78 @@
+{
+    "checkedAt":  "2026-07-13T13:56:26.8679295+08:00",
+    "pass":  true,
+    "checkCount":  14,
+    "failedCount":  0,
+    "checks":  [
+                   {
+                       "Name":  "workspace-count",
+                       "Pass":  true,
+                       "Evidence":  "actual=35 expected=35"
+                   },
+                   {
+                       "Name":  "seven-file-packages",
+                       "Pass":  true,
+                       "Evidence":  "present=245/245 missing="
+                   },
+                   {
+                       "Name":  "metadata-uniqueness",
+                       "Pass":  true,
+                       "Evidence":  "valid=35/35 errors="
+                   },
+                   {
+                       "Name":  "canonical-hashes",
+                       "Pass":  true,
+                       "Evidence":  "valid=35/35 errors="
+                   },
+                   {
+                       "Name":  "per-issue-schema",
+                       "Pass":  true,
+                       "Evidence":  "SUMMARY workspaces=35 passed=35 failed=0"
+                   },
+                   {
+                       "Name":  "status-vocabulary",
+                       "Pass":  true,
+                       "Evidence":  "APPROVED_DEGRADED=13; DEGRADED_REVIEW_PENDING=17; RUNTIME_VALIDATION_PENDING=4; HUMAN_DECISION_REQUIRED=1"
+                   },
+                   {
+                       "Name":  "step2-pending-review-dispositions",
+                       "Pass":  true,
+                       "Evidence":  "modules=17 direct=1 deferred=16 eligible=0 errors="
+                   },
+                   {
+                       "Name":  "runtime-dispositions",
+                       "Pass":  true,
+                       "Evidence":  "expected=B06A,B06B,B06C,X05Q errors="
+                   },
+                   {
+                       "Name":  "worker-topology",
+                       "Pass":  true,
+                       "Evidence":  "checked=5 errors="
+                   },
+                   {
+                       "Name":  "f01a-recovery-write-scope",
+                       "Pass":  true,
+                       "Evidence":  "run=20260713-134350-f01a-write-scope-recovery-r1-reviewer clean=True rawUnexpected=1 finalUnexpected=0 product=0 status=HUMAN_DECISION_REQUIRED"
+                   },
+                   {
+                       "Name":  "no-product-changes",
+                       "Pass":  true,
+                       "Evidence":  "changed=1002 unexpected="
+                   },
+                   {
+                       "Name":  "ledger-status-consistency",
+                       "Pass":  true,
+                       "Evidence":  "rows=35 errors="
+                   },
+                   {
+                       "Name":  "current-state-count-consistency",
+                       "Pass":  true,
+                       "Evidence":  "total=35 errors="
+                   },
+                   {
+                       "Name":  "governance-task-consistency",
+                       "Pass":  true,
+                       "Evidence":  "trellis=in_progress ccg=planning richmenu=cancelled/closed step7=owner-gate errors="
+                   }
+               ]
+}
