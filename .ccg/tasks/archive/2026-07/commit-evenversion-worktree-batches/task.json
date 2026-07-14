@@ -1,0 +1,13 @@
+{
+  "id": "commit-evenversion-worktree-batches",
+  "title": "Commit all EvenVersion worktree changes in coherent batches",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "medium",
+  "domain": "repository-governance",
+  "currentPhase": "completed",
+  "nextAction": "All worktree changes committed in coherent batches and final verification completed",
+  "createdAt": "2026-07-14T00:00:00+08:00",
+  "completedAt": "2026-07-14T00:00:00+08:00",
+  "branch": "1.0.0.1.EvenVersion"
+}
