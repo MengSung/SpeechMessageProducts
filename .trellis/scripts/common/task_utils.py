@@ -212,53 +212,108 @@ def resolve_task_dir(target_dir: str, repo_root: Path) -> Path:
 
 
 # =============================================================================
-# Lifecycle Hooks
+# Bounded Lifecycle Hooks
 # =============================================================================
 
-def run_task_hooks(event: str, task_json_path: Path, repo_root: Path) -> None:
-    """Run lifecycle hooks for a task event.
+def _normalize_hook(hook: object) -> tuple[str | list[str], float, str]:
+    if isinstance(hook, str):
+        return hook, 30.0, "warn"
+    if not isinstance(hook, dict):
+        raise ValueError("Hook must be a command string or mapping")
 
-    Args:
-        event: Event name (e.g. "after_create").
-        task_json_path: Absolute path to the task's task.json.
-        repo_root: Repository root for cwd and config lookup.
-    """
+    command = hook.get("command")
+    if not isinstance(command, str) and not (
+        isinstance(command, list) and all(isinstance(part, str) for part in command)
+    ):
+        raise ValueError("Hook command must be a string or argv list")
+    timeout_seconds = float(hook.get("timeout_seconds", 30))
+    if timeout_seconds < 0:
+        raise ValueError("Hook timeout_seconds must not be negative")
+    failure_policy = str(hook.get("failure_policy", "warn")).lower()
+    if failure_policy not in {"warn", "block", "ignore"}:
+        raise ValueError("Hook failure_policy must be warn, block, or ignore")
+    return command, timeout_seconds, failure_policy
+
+
+def _hook_command_name(command: str | list[str]) -> str:
+    if isinstance(command, list):
+        return Path(command[0]).name if command else "<empty>"
+    return command.strip().split(maxsplit=1)[0] if command.strip() else "<empty>"
+
+
+def _terminate_process_tree(process: object) -> None:
+    import os
+    import signal
+    import subprocess
+
+    if os.name == "nt":
+        subprocess.run(
+            ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+            capture_output=True,
+            check=False,
+        )
+    else:
+        os.killpg(process.pid, signal.SIGTERM)
+
+
+def _handle_hook_failure(
+    event: str,
+    command_name: str,
+    reason: str,
+    failure_policy: str,
+    colored: object,
+    colors: object,
+) -> None:
+    message = f"Hook {command_name} for {event} {reason}."
+    if failure_policy == "block":
+        raise RuntimeError(message)
+    if failure_policy == "warn":
+        print(colored(f"[WARN] {message}", colors.YELLOW), file=sys.stderr)
+
+
+def run_task_hooks(event: str, task_json_path: Path, repo_root: Path) -> None:
+    """Run lifecycle hooks with an explicit bounded failure contract."""
     import os
     import subprocess
 
     from .config import get_hooks
     from .log import Colors, colored
 
-    commands = get_hooks(event, repo_root)
-    if not commands:
+    hooks = get_hooks(event, repo_root)
+    if not hooks:
         return
 
     env = {**os.environ, "TASK_JSON_PATH": str(task_json_path)}
-
-    for cmd in commands:
+    for hook in hooks:
+        command, timeout_seconds, failure_policy = _normalize_hook(hook)
+        command_name = _hook_command_name(command)
         try:
-            result = subprocess.run(
-                cmd,
-                shell=True,
+            process = subprocess.Popen(
+                command,
+                shell=isinstance(command, str),
                 cwd=repo_root,
                 env=env,
-                capture_output=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
                 encoding="utf-8",
                 errors="replace",
+                start_new_session=os.name != "nt",
+                creationflags=(subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0),
             )
-            if result.returncode != 0:
-                print(
-                    colored(f"[WARN] Hook failed ({event}): {cmd}", Colors.YELLOW),
-                    file=sys.stderr,
-                )
-                if result.stderr.strip():
-                    print(f"  {result.stderr.strip()}", file=sys.stderr)
-        except Exception as e:
-            print(
-                colored(f"[WARN] Hook error ({event}): {cmd} — {e}", Colors.YELLOW),
-                file=sys.stderr,
-            )
+            try:
+                process.communicate(timeout=None if timeout_seconds == 0 else timeout_seconds)
+                if process.returncode == 0:
+                    continue
+                reason = f"exited with status {process.returncode}"
+            except subprocess.TimeoutExpired:
+                _terminate_process_tree(process)
+                process.communicate()
+                reason = "timed out"
+        except OSError:
+            reason = "could not start"
+
+        _handle_hook_failure(event, command_name, reason, failure_policy, colored, Colors)
 
 
 # =============================================================================

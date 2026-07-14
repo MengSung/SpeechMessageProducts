@@ -469,15 +469,15 @@ def resolve_active_task(
     repo_root: Path,
     platform_input: dict[str, Any] | None = None,
     platform: str | None = None,
+    allow_sole_session_fallback: bool = False,
 ) -> ActiveTask:
     """Resolve the active task from session runtime state only.
 
-    A stale session task is returned as stale. Missing context identity or a
-    missing/empty session context falls back to single-session inference: if
-    exactly one session file exists in the runtime, return its task with
-    source_type="session-fallback" — covers class-2 platform sub-agents (codex,
-    copilot, gemini, qoder) that don't inherit the parent's session id. ≥2
-    files or 0 files yield ActiveTask(None) — refuses to guess across windows.
+    A stale session task is returned as stale. Missing context identity and a
+    missing/empty session context fail closed. Interactive recovery may opt in
+    to sole-session inference with ``allow_sole_session_fallback=True``; that
+    path returns ``source_type="session-fallback"`` only when exactly one
+    runtime file exists.
     """
     context_key = resolve_context_key(platform_input, platform)
     if context_key:
@@ -487,9 +487,10 @@ def resolve_active_task(
         if active:
             return active
 
-    fallback = _resolve_single_session_fallback(repo_root)
-    if fallback is not None:
-        return fallback
+    if allow_sole_session_fallback:
+        fallback = _resolve_single_session_fallback(repo_root)
+        if fallback is not None:
+            return fallback
 
     return ActiveTask(None, "none", context_key)
 

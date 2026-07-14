@@ -411,14 +411,9 @@ export default async ({ directory, platform: hostPlatform = process.platform, en
             return
           }
 
-          // Resolve active task in this priority order (only later steps
-          // run when earlier ones miss):
-          //   1. Exact session runtime context lookup for input.sessionID
-          //   2. `Active task: <path>` hint in the dispatch prompt
-          //      (explicit per-dispatch override — beats single-session
-          //      inference so multi-window users can disambiguate)
-          //   3. Single-session fallback — only when exactly 1 session
-          //      runtime file exists locally
+          // Resolve the injected task only from an exact runtime context or an
+          // explicit `Active task: <path>` dispatch hint. It deliberately
+          // never infers a task from the number of local session files.
           let taskDir = null
           let taskSource = null
 
@@ -443,18 +438,6 @@ export default async ({ directory, platform: hostPlatform = process.platform, en
                   taskSource = "prompt-hint"
                   debugLog("inject", "Resolved task from Active task: hint:", hintNormalized)
                 }
-              }
-            }
-          }
-
-          if (!taskDir) {
-            const fallback = ctx._resolveSingleSessionFallback()
-            if (fallback?.taskPath) {
-              const fallbackDir = ctx.resolveTaskDir(fallback.taskPath)
-              if (fallbackDir && existsSync(fallbackDir)) {
-                taskDir = fallback.taskPath
-                taskSource = fallback.source
-                debugLog("inject", "Resolved task via single-session fallback:", taskDir, "source:", taskSource)
               }
             }
           }

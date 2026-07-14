@@ -8,11 +8,13 @@
 import { existsSync, readFileSync, appendFileSync, readdirSync } from "fs"
 import { isAbsolute, join } from "path"
 import { platform } from "os"
-import { execSync } from "child_process"
+import { execFileSync, execSync } from "child_process"
 import { createHash } from "crypto"
 import process from "process"
+import { fileURLToPath } from "url"
 
 const PYTHON_CMD = platform() === "win32" ? "python" : "python"
+const ACTIVE_TASK_CLI = fileURLToPath(new URL("../../.trellis/scripts/active_task_cli.py", import.meta.url))
 // Debug logging
 const DEBUG_LOG = "/tmp/trellis-plugin-debug.log"
 
@@ -129,78 +131,41 @@ export class TrellisContext {
     }
   }
 
-  /**
-   * Get active task from session runtime context.
-   *
-   * Resolution order (mirrors Python `active_task.resolve_active_task`):
-   *   1. Lookup the runtime file for the input-derived context key.
-   *   2. If that misses and exactly one session runtime file exists locally,
-   *      use it (`_resolveSingleSessionFallback`). Refuses to guess when 0 or
-   *      ≥2 files exist so multi-window isolation holds.
-   */
-  getActiveTask(platformInput = null) {
-    const contextKey = this.getContextKey(platformInput)
-    if (contextKey) {
-      const context = this.readContext(contextKey)
-      const taskRef = this.normalizeTaskRef(context?.current_task || "")
-      if (taskRef) {
-        const taskDir = this.resolveTaskDir(taskRef)
-        return {
-          taskPath: taskRef,
-          source: `session:${contextKey}`,
-          stale: !taskDir || !existsSync(taskDir),
-        }
+  /** Resolve active task through the canonical Python policy. */
+  getActiveTask(platformInput = null, options = {}) {
+    const args = [ACTIVE_TASK_CLI, "--repo-root", this.directory, "--platform", "opencode"]
+    if (platformInput && typeof platformInput === "object") {
+      args.push("--platform-input-json", JSON.stringify(platformInput))
+    }
+    if (options.useSoleSession === true) {
+      args.push("--use-sole-session")
+    }
+
+    try {
+      const output = execFileSync(PYTHON_CMD, args, {
+        cwd: this.directory,
+        encoding: "utf-8",
+        stdio: ["ignore", "pipe", "pipe"],
+      })
+      const result = JSON.parse(output)
+      if (
+        !result ||
+        typeof result !== "object" ||
+        typeof result.source !== "string" ||
+        typeof result.stale !== "boolean" ||
+        (result.taskPath !== null && typeof result.taskPath !== "string")
+      ) {
+        return { taskPath: null, source: "none", stale: false }
       }
-    }
-
-    const fallback = this._resolveSingleSessionFallback()
-    if (fallback) {
-      return fallback
-    }
-
-    return { taskPath: null, source: "none", stale: false }
-  }
-
-  /**
-   * Mirror of Python `_resolve_single_session_fallback`. Returns the task
-   * pointed at by the sole session runtime file when exactly one exists,
-   * else null.
-   */
-  _resolveSingleSessionFallback() {
-    const sessionsDir = join(this.directory, ".trellis", ".runtime", "sessions")
-    if (!existsSync(sessionsDir)) return null
-
-    let files
-    try {
-      files = readdirSync(sessionsDir)
-        .filter(name => name.endsWith(".json"))
-        .sort()
-    } catch {
-      return null
-    }
-    if (files.length !== 1) return null
-
-    const sessionFile = join(sessionsDir, files[0])
-    let context
-    try {
-      context = JSON.parse(readFileSync(sessionFile, "utf-8"))
-    } catch {
-      return null
-    }
-    const taskRef = this.normalizeTaskRef(context?.current_task || "")
-    if (!taskRef) return null
-
-    const taskDir = this.resolveTaskDir(taskRef)
-    const fallbackKey = files[0].replace(/\.json$/, "")
-    return {
-      taskPath: taskRef,
-      source: `session-fallback:${fallbackKey}`,
-      stale: !taskDir || !existsSync(taskDir),
+      return result
+    } catch (error) {
+      debugLog("context", "canonical active-task resolver failed", String(error))
+      return { taskPath: null, source: "none", stale: false }
     }
   }
 
-  getCurrentTask(platformInput = null) {
-    return this.getActiveTask(platformInput).taskPath
+  getCurrentTask(platformInput = null, options = {}) {
+    return this.getActiveTask(platformInput, options).taskPath
   }
 
   normalizeTaskRef(taskRef) {

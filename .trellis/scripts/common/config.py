@@ -81,75 +81,108 @@ def parse_simple_yaml(content: str) -> dict:
         Parsed dict (values can be str, list[str], or dict).
     """
     lines = content.splitlines()
+    first_index, first_line = _next_content_line(lines, 0)
+    if first_index >= len(lines):
+        return {}
+
+    first_indent = len(first_line) - len(first_line.lstrip())
+    parsed, _ = _parse_yaml_node(lines, first_index, first_indent)
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def _parse_yaml_node(lines: list[str], start: int, indent: int) -> tuple[object, int]:
+    """Parse one supported YAML mapping or list block."""
+    _, line = _next_content_line(lines, start)
+    if line.strip().startswith("- "):
+        return _parse_yaml_list(lines, start, indent)
+    return _parse_yaml_mapping(lines, start, indent)
+
+
+def _parse_yaml_mapping(
+    lines: list[str], start: int, indent: int
+) -> tuple[dict, int]:
+    """Parse mapping entries at one indentation level."""
     result: dict = {}
-    _parse_yaml_block(lines, 0, 0, result)
-    return result
-
-
-def _parse_yaml_block(
-    lines: list[str], start: int, min_indent: int, target: dict
-) -> int:
-    """Parse a YAML block into target dict, returning next line index."""
     i = start
-    current_list: list | None = None
+    while True:
+        i, line = _next_content_line(lines, i)
+        if i >= len(lines):
+            return result, i
 
-    while i < len(lines):
-        line = lines[i]
+        current_indent = len(line) - len(line.lstrip())
         stripped = line.strip()
+        if current_indent != indent or stripped.startswith("- ") or ":" not in stripped:
+            return result, i
 
-        # Skip empty lines and comments
-        if not stripped or stripped.startswith("#"):
+        key, _, raw_value = stripped.partition(":")
+        value = _unquote(_strip_inline_comment(raw_value).strip())
+        if value:
+            result[key.strip()] = value
             i += 1
             continue
 
-        # Calculate indentation
-        indent = len(line) - len(line.lstrip())
-
-        # If dedented past our block, we're done
-        if indent < min_indent:
-            break
-
-        if stripped.startswith("- "):
-            if current_list is not None:
-                current_list.append(_unquote(stripped[2:].strip()))
+        next_i, next_line = _next_content_line(lines, i + 1)
+        if next_i >= len(lines):
+            result[key.strip()] = {}
+            return result, next_i
+        next_indent = len(next_line) - len(next_line.lstrip())
+        if next_indent <= current_indent:
+            result[key.strip()] = {}
             i += 1
-        elif ":" in stripped:
-            key, _, value = stripped.partition(":")
-            key = key.strip()
-            value = _strip_inline_comment(value).strip()
-            value = _unquote(value)
-            current_list = None
+            continue
 
-            if value:
-                # key: value
-                target[key] = value
-                i += 1
-            else:
-                # key: (no value) — peek ahead to determine list vs nested dict
-                next_i, next_line = _next_content_line(lines, i + 1)
-                if next_i >= len(lines):
-                    target[key] = {}
-                    i = next_i
-                elif next_line.strip().startswith("- "):
-                    # It's a list
-                    current_list = []
-                    target[key] = current_list
-                    i += 1
-                else:
-                    next_indent = len(next_line) - len(next_line.lstrip())
-                    if next_indent > indent:
-                        # It's a nested dict
-                        nested: dict = {}
-                        target[key] = nested
-                        i = _parse_yaml_block(lines, i + 1, next_indent, nested)
-                    else:
-                        # Empty value, same or less indent follows
-                        target[key] = {}
-                        i += 1
+        child, i = _parse_yaml_node(lines, next_i, next_indent)
+        result[key.strip()] = child
+
+
+def _parse_yaml_list(
+    lines: list[str], start: int, indent: int
+) -> tuple[list, int]:
+    """Parse scalar and mapping list entries at one indentation level."""
+    result: list = []
+    i = start
+    while True:
+        i, line = _next_content_line(lines, i)
+        if i >= len(lines):
+            return result, i
+
+        current_indent = len(line) - len(line.lstrip())
+        stripped = line.strip()
+        if current_indent != indent or not stripped.startswith("- "):
+            return result, i
+
+        item_text = _strip_inline_comment(stripped[2:]).strip()
+        if ":" not in item_text or item_text.startswith(("'", '\"')):
+            result.append(_unquote(item_text))
+            i += 1
+            continue
+
+        key, _, raw_value = item_text.partition(":")
+        item: dict = {}
+        value = _unquote(_strip_inline_comment(raw_value).strip())
+        i += 1
+        if value:
+            item[key.strip()] = value
         else:
-            i += 1
+            next_i, next_line = _next_content_line(lines, i)
+            if next_i < len(lines):
+                next_indent = len(next_line) - len(next_line.lstrip())
+                if next_indent > current_indent:
+                    child, i = _parse_yaml_node(lines, next_i, next_indent)
+                    item[key.strip()] = child
+                else:
+                    item[key.strip()] = {}
+            else:
+                item[key.strip()] = {}
 
-    return i
+        continuation_indent = current_indent + 2
+        next_i, next_line = _next_content_line(lines, i)
+        if next_i < len(lines):
+            next_indent = len(next_line) - len(next_line.lstrip())
+            if next_indent == continuation_indent and not next_line.strip().startswith("- "):
+                continuation, i = _parse_yaml_mapping(lines, next_i, continuation_indent)
+                item.update(continuation)
+        result.append(item)
 
 
 def _next_content_line(lines: list[str], start: int) -> tuple[int, str]:
@@ -167,6 +200,8 @@ def _next_content_line(lines: list[str], start: int) -> tuple[int, str]:
 DEFAULT_SESSION_COMMIT_MESSAGE = "chore: record journal"
 DEFAULT_MAX_JOURNAL_LINES = 2000
 DEFAULT_SESSION_AUTO_COMMIT = True
+DEFAULT_HOOK_TIMEOUT_SECONDS = 30.0
+DEFAULT_HOOK_FAILURE_POLICY = "warn"
 
 CONFIG_FILE = "config.yaml"
 
@@ -243,24 +278,77 @@ def get_session_auto_commit(repo_root: Path | None = None) -> bool:
     return DEFAULT_SESSION_AUTO_COMMIT
 
 
-def get_hooks(event: str, repo_root: Path | None = None) -> list[str]:
-    """Get hook commands for a lifecycle event.
+def get_hooks(event: str, repo_root: Path | None = None) -> list[dict[str, object]]:
+    """Get normalized hook specifications for a lifecycle event.
 
     Args:
         event: Event name (e.g. "after_create", "after_archive").
         repo_root: Repository root path.
 
     Returns:
-        List of shell commands to execute, empty if none configured.
+        A list of ``command``, ``timeout_seconds``, and ``failure_policy``
+        mappings, or an empty list if no hook is configured.
     """
     config = _load_config(repo_root)
     hooks = config.get("hooks")
     if not isinstance(hooks, dict):
         return []
-    commands = hooks.get(event)
-    if isinstance(commands, list):
-        return [str(c) for c in commands]
-    return []
+
+    try:
+        default_timeout = float(
+            hooks.get("default_timeout_seconds", DEFAULT_HOOK_TIMEOUT_SECONDS)
+        )
+    except (TypeError, ValueError):
+        default_timeout = DEFAULT_HOOK_TIMEOUT_SECONDS
+    if default_timeout < 0:
+        default_timeout = DEFAULT_HOOK_TIMEOUT_SECONDS
+
+    default_policy = str(
+        hooks.get("default_failure_policy", DEFAULT_HOOK_FAILURE_POLICY)
+    ).lower()
+    if default_policy not in {"warn", "block", "ignore"}:
+        default_policy = DEFAULT_HOOK_FAILURE_POLICY
+
+    configured = hooks.get(event)
+    if isinstance(configured, dict):
+        configured = [configured]
+    if not isinstance(configured, list):
+        return []
+
+    normalized: list[dict[str, object]] = []
+    for hook in configured:
+        if isinstance(hook, str):
+            normalized.append(
+                {
+                    "command": hook,
+                    "timeout_seconds": default_timeout,
+                    "failure_policy": DEFAULT_HOOK_FAILURE_POLICY,
+                }
+            )
+            continue
+        if not isinstance(hook, dict):
+            continue
+
+        command = hook.get("command")
+        if not isinstance(command, str) and not (
+            isinstance(command, list) and all(isinstance(part, str) for part in command)
+        ):
+            continue
+        try:
+            timeout_seconds = float(hook.get("timeout_seconds", default_timeout))
+        except (TypeError, ValueError):
+            timeout_seconds = default_timeout
+        failure_policy = str(
+            hook.get("failure_policy", default_policy)
+        ).lower()
+        normalized.append(
+            {
+                "command": command,
+                "timeout_seconds": timeout_seconds,
+                "failure_policy": failure_policy,
+            }
+        )
+    return normalized
 
 
 # =============================================================================

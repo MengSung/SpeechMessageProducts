@@ -36,19 +36,21 @@ max_journal_lines: 2000
 # Task Lifecycle Hooks
 #-------------------------------------------------------------------------------
 
-# Shell commands to run after task lifecycle events.
 # Each hook receives TASK_JSON_PATH environment variable pointing to task.json.
-# Hook failures print a warning but do not block the main operation.
-#
-# hooks:
-#   after_create:
-#     - "echo 'Task created'"
-#   after_start:
-#     - "echo 'Task started'"
-#   after_finish:
-#     - "echo 'Task finished'"
-#   after_archive:
-#     - "echo 'Task archived'"
+# All hooks have the configured default timeout unless an individual entry
+# overrides it. A legacy command string always retains the historic `warn`
+# behavior; structured entries inherit the configurable policy and can override
+# it with `warn`, `block`, or `ignore`. A timeout of 0 is the explicit legacy
+# opt-out for an unlimited hook.
+hooks:
+  default_timeout_seconds: 30
+  default_failure_policy: warn
+  # after_create:
+  #   - "echo 'Task created'"
+  # after_start:
+  #   - command: "python scripts/verify_task.py"
+  #     timeout_seconds: 60
+  #     failure_policy: block
 
 #-------------------------------------------------------------------------------
 # Monorepo / Packages
