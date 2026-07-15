@@ -44,7 +44,7 @@ failures. It contains ten Critical P0 issues across seven workspaces.
 
 | Sequence | Workspace | Issue subset | Status | Local contract |
 |---:|---|---|---|---|
-| 1 | X04A-runtime-configuration-secrets | X04A-SEC-001, X04A-SEC-002 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output |
+| 1 | X04A-runtime-configuration-secrets | X04A-SEC-001, X04A-SEC-002 | BLOCKED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair review exposed an excluded consumer-migration prerequisite |
 | 2 | B01-identity-session-access-control | B01-SEC-003 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair retains non-production CRM and caller-inventory gates |
 | 3 | B02-member-contact-profile-onboarding | B02-SEC-001 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair must enforce the pre-hydration Permit Gate |
 | 4 | B04B-appointment-equipment | B04B-SEC-001 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair includes Schedule selector and stateless SchedulerView gates |
@@ -66,6 +66,16 @@ REPAIRING -> VALIDATING -> REVIEWING -> COMMITTED
 An unresolved prerequisite uses `BLOCKED`; it does not remove the issue from
 Wave 2 or permit the next workspace to bypass it. Wave 2 is complete only when
 all seven workspaces are `COMMITTED`.
+
+## Wave 2 Execution Record
+
+| Sequence | Workspace | Terminal state | Evidence | Required action before resuming |
+|---:|---|---|---|---|
+| 1 | X04A-runtime-configuration-secrets | `BLOCKED` (2026-07-15) | Claude-only runner produced no usable output; the one permitted read-only Codex fallback found that excluded runtime consumers load only `appsettings.json`, so removing committed secrets would regress their Production behavior. No product repair commit was created. | Approve a new contract that includes the `X04A-PERF-001` consumer migration, or approve another safe compatibility design that preserves externally injected secrets for every affected consumer. |
+
+Wave 2 dispatch is paused at sequence 1. B01 through X05Q remain selected and
+contract-approved, but no repair agent may start until X04A has a committed
+repair or the owner authorizes a revised contract that resolves this blocker.
 
 ## Future Wave Admission
 

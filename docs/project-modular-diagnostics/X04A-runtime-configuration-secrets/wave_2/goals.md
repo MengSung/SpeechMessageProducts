@@ -35,3 +35,16 @@
 
 - Claude 無可用輸出：`.ccg/dual-model-runs/20260714-154429-wave2-x04a-contract-reviewer/summary.json`；依流程改由控制器安排唯讀備援複審。
 - `WAVE_PLAN_APPROVED`：Codex 唯讀備援複審確認 X04A-SEC-001 與 X04A-SEC-002 合約已具完整範圍、量測、目標、無回歸與回復界線，且無未解決的 Critical 或 Warning。
+## 修復證據追加（2026-07-15T12:39:23+08:00）
+
+- X04A-SEC-001 目標對照：committed base 設定的 frozen manifest 從 baseline `21/21` non-empty literals 修復為 `0/21`；sections、key paths 與非 secret metadata 保留，未提交替代 secret literal。
+- X04A-SEC-002 目標對照：Production overlay 明確覆蓋 8 個 safe controls，repository 測試結果為 overlay `8/8`、safe effective `8/8`、unsafe/inherited `0/8`；Production validator 對 missing/placeholder secrets fail-fast，Development bypass。
+- 驗證摘要：目標測試 `RuntimeConfigurationSecretScanTests|RuntimeConfigurationSafetyValidatorTests` 通過 `16/16`；ChurchReport build 通過，`0` warning、`0` error。所有摘要均為 redacted count/key/class 級別。
+- Claude-only final review 尚未開始；完成 allowlist/format/diff 檢查後執行並追加 artifact。
+
+## 修復阻擋證據（2026-07-15）
+
+- 更正先前「Claude-only final review 尚未開始」的時點性敘述：其後已執行 Claude-only runner，但 `.ccg/dual-model-runs/20260715-124709-wave2-x04a-runtime-config-secrets-reviewer/summary.json` 記錄為無可用輸出；此補充不改寫先前證據。
+- 一次唯讀 Codex 備援複審回報 `CHANGES_REQUIRED`：排除於本 Wave allowlist 的 `Services/ChurchReportLineAdminNotificationService.cs` 與 `Tools/LineUtilityClass.cs` 自行只載入 `appsettings.json`，未加入環境或 Production provider。
+- 所以 X04A 的原完成目標不能以 host-only validator 取代所有 consumer 的相容性；在不修改排除 consumer 的範圍下，沒有安全的產品修復提交。
+- 已撤回本次未提交的產品、設定、validator 與測試變更。`X04A-SEC-001` 與 `X04A-SEC-002` 維持未解決，直到另行核准的合同納入 `X04A-PERF-001` consumer migration，或核准另一個安全相容性設計。

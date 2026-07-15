@@ -112,8 +112,18 @@ session must:
 **Contract:**
 `docs/project-modular-diagnostics/X04A-runtime-configuration-secrets/wave_2/`
 
-- [ ] Complete X04A-SEC-001 and X04A-SEC-002 through the sequential repair
-  contract and record `COMMITTED` or a truthful `BLOCKED` result.
+- [x] Reached the truthful `BLOCKED` terminal result on 2026-07-15. No product
+  repair commit was created because the approved allowlist excludes runtime
+  consumers that must migrate before externally injected secrets are safe.
+
+**Blocking evidence:** The Claude-only runner produced no usable output, so the
+single permitted read-only Codex fallback review was used. It confirmed that
+`ChurchReportLineAdminNotificationService` and `LineUtilityClass` load only
+`appsettings.json`; clearing committed secrets would leave those Production
+paths without injected values. The required next action is a separately
+approved X04A contract that includes the `X04A-PERF-001` consumer migration or
+another safe compatibility design. Per the sequential rule, Tasks 4 through 9
+must not start.
 
 ### Task 4: Repair B01 Identity And Login Password Handling
 

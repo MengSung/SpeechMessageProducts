@@ -104,3 +104,16 @@ dotnet build .\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchRe
 
 - Claude 無可用輸出：`.ccg/dual-model-runs/20260714-154429-wave2-x04a-contract-reviewer/summary.json`；依流程改由控制器安排唯讀備援複審。
 - `WAVE_PLAN_APPROVED`：Codex 唯讀備援複審確認 X04A-SEC-001 與 X04A-SEC-002 合約已具完整範圍、量測、目標、無回歸與回復界線，且無未解決的 Critical 或 Warning。
+## 修復證據追加（2026-07-15T12:39:23+08:00）
+
+- X04A-SEC-001：新增 scanner 測試先紅燈，baseline `SecretLiteralCount=21/21`；清空 frozen 21-key manifest 後，目標測試通過並量測 `SecretLiteralCount=0/21`。scanner fixture 使用 synthetic literal 並確認輸出不包含值。
+- X04A-SEC-002：新增 validator/overlay 測試先紅燈；修復後 eight-control matrix 通過，Production overlay/effective 結果為 `ProductionOverlayPresenceCount=8/8`、`SafeEffectiveConditionCount=8/8`、`UnsafeOrInheritedConditionCount=0/8`。
+- 已執行命令：`dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --filter "FullyQualifiedName~RuntimeConfigurationSecretScanTests|FullyQualifiedName~RuntimeConfigurationSafetyValidatorTests" --no-restore`，結果 `16` passed、`0` failed；`dotnet build .\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj --no-restore`，結果 build succeeded、`0` warning、`0` error。
+- 待補：Claude-only final review artifact 於 `.ccg/dual-model-runs/**`，本地驗證完成後追加記錄。
+
+## 修復阻擋證據（2026-07-15）
+
+- 更正先前「Claude-only final review 尚未執行」的時點性敘述：其後已執行 Claude-only runner，但 `.ccg/dual-model-runs/20260715-124709-wave2-x04a-runtime-config-secrets-reviewer/summary.json` 記錄為無可用輸出；此補充不改寫先前證據。
+- 一次唯讀 Codex 備援複審回報 `CHANGES_REQUIRED`：排除於本 Wave allowlist 的 `Services/ChurchReportLineAdminNotificationService.cs` 與 `Tools/LineUtilityClass.cs` 自行只載入 `appsettings.json`，未加入環境或 Production provider。
+- 此繞過路徑使僅清除提交字面值與 host validator 的量測結果不足以代表實際 Production 相容性；在不改動排除 consumer 的前提下，沒有安全的產品修復提交。
+- 已撤回本次未提交的產品、設定、validator 與測試變更。`X04A-SEC-001` 與 `X04A-SEC-002` 維持未解決，直到另行核准的合同納入 `X04A-PERF-001` consumer migration，或核准另一個安全相容性設計。

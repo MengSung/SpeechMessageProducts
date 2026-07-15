@@ -77,3 +77,16 @@ git diff --name-only
 
 - Claude 無可用輸出：`.ccg/dual-model-runs/20260714-154429-wave2-x04a-contract-reviewer/summary.json`；依流程改由控制器安排唯讀備援複審。
 - `WAVE_PLAN_APPROVED`：Codex 唯讀備援複審確認 X04A-SEC-001 與 X04A-SEC-002 合約已具完整範圍、量測、目標、無回歸與回復界線，且無未解決的 Critical 或 Warning。
+## 修復證據追加（2026-07-15T12:39:23+08:00）
+
+- X04A-SEC-001：TDD 紅燈先確認 committed base `appsettings.json` 的 frozen manifest `SecretLiteralCount=21/21`；修復後目標測試通過，結果 `SecretLiteralCount=0/21`。觀測與輸出只包含 key 名稱與 `non-empty` / empty class，未輸出任何值。
+- X04A-SEC-002：修復前 Production overlay 對 8 個 frozen safe controls 的 presence 為 `0/8`，修復後 repository overlay/effective config 測試為 `ProductionOverlayPresenceCount=8/8`、`SafeEffectiveConditionCount=8/8`、`UnsafeOrInheritedConditionCount=0/8`。
+- 本地驗證：`dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --filter "FullyQualifiedName~RuntimeConfigurationSecretScanTests|FullyQualifiedName~RuntimeConfigurationSafetyValidatorTests" --no-restore` 通過 `16/16`；`dotnet build .\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj --no-restore` 通過，`0` warning、`0` error。
+- Claude-only final review 尚未執行；待本地 allowlist、格式與 diff 檢查完成後，以 `.ccg/dual-model-runs/**` artifact 記錄。
+
+## 修復阻擋證據（2026-07-15）
+
+- 更正先前「Claude-only final review 尚未執行」的時點性敘述：其後已執行 Claude-only runner，但 `.ccg/dual-model-runs/20260715-124709-wave2-x04a-runtime-config-secrets-reviewer/summary.json` 記錄為無可用輸出；此補充不改寫先前證據。
+- 一次唯讀 Codex 備援複審回報 `CHANGES_REQUIRED`：排除於本 Wave allowlist 的 `Services/ChurchReportLineAdminNotificationService.cs` 與 `Tools/LineUtilityClass.cs` 自行只載入 `appsettings.json`，未加入環境或 Production provider。
+- 因此，僅清除提交字面值並在 host 啟動時驗證，仍會使上述繞過 host 設定鏈的既有 consumer 發生 Production 行為回歸；本 Wave 沒有安全的產品修復提交。
+- 已撤回本次未提交的產品、設定、validator 與測試變更。`X04A-SEC-001` 與 `X04A-SEC-002` 維持未解決，直到另行核准的合同納入 `X04A-PERF-001` consumer migration，或核准另一個安全相容性設計。
