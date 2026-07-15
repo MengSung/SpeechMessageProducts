@@ -48,9 +48,9 @@ failures. It contains ten Critical P0 issues across seven workspaces.
 | 2 | B01-identity-session-access-control | B01-SEC-003 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair retains non-production CRM and caller-inventory gates |
 | 3 | B02-member-contact-profile-onboarding | B02-SEC-001 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair must enforce the pre-hydration Permit Gate |
 | 4 | B04B-appointment-equipment | B04B-SEC-001 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair includes Schedule selector and stateless SchedulerView gates |
-| 5 | B04C-scheduling-qr | B04C-SEC-001, B04C-SEC-002 | SELECTED | `wave_2/` not created |
-| 6 | B04A-attendance-present-record | B04A-SEC-001, B04A-SEC-002 | SELECTED | `wave_2/` not created |
-| 7 | X05Q-churchreport-legacy-boundary-quarantine | X05Q-SEC-001 | SELECTED | `wave_2/` not created |
+| 5 | B04C-scheduling-qr | B04C-SEC-001, B04C-SEC-002 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair retains explicit B01/B04B/X01/security-platform deployment gates |
+| 6 | B04A-attendance-present-record | B04A-SEC-001, B04A-SEC-002 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair retains route, projection-purity, and staged runtime-proof gates |
+| 7 | X05Q-churchreport-legacy-boundary-quarantine | X05Q-SEC-001 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair retains local, staging, runtime, and deployment-proof gates |
 
 Every selected workspace must first receive an approved `wave_2/plans.md`,
 `measurements.md`, and `goals.md`. Product repair cannot begin until all seven
