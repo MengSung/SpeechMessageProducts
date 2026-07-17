@@ -1,0 +1,12 @@
+{
+  "id": "x04a-safe-configuration-compatibility",
+  "title": "規劃 X04A 安全設定相容性修復合同",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "planning",
+  "nextAction": "等待 owner 檢閱修訂設計，再將其轉成 Wave 2 X04A 合同",
+  "createdAt": "2026-07-15T13:30:00+08:00",
+  "branch": "1.0.0.1.EvenVersion"
+}
