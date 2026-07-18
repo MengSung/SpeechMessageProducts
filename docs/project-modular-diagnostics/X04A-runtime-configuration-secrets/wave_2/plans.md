@@ -217,7 +217,9 @@ managed external configuration source during rollback.
   `20260718-082348-x04a-wave2-revision1-final-reviewer` produced no usable
   output after two healthy attempts; the documented inline Codex fallback found
   no Critical or Warning issue.
-- Current state: `REVIEW_APPROVED_DEGRADED_AWAITING_COMMIT`.
+- Commit: `ab9993e8` (`fix: 修復 X04A 執行期設定相容性與安全閘門`), independently
+  verified as the exact 25-path allowlisted repair with a clean commit diff.
+- Current state: `COMMITTED`.
 
 ## Revision History
 

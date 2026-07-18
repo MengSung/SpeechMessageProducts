@@ -187,7 +187,10 @@ exit code, redacted result, and artifact path.
   contains measurements and counts only, never configuration values.
 - Review gate: Claude-only run `20260718-082348-x04a-wave2-revision1-final-reviewer`
   had no usable output after two healthy attempts; the required inline Codex
-  fallback review found no Critical or Warning issue. Commit is still pending.
+  fallback review found no Critical or Warning issue.
+- Commit: `ab9993e8` contains the 25 allowlisted X04A product/test/configuration
+  and Wave evidence paths; its independently checked diff has no unexpected or
+  missing path and no whitespace error.
 
 ## Revision 0 Archive
 

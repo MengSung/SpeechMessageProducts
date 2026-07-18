@@ -135,9 +135,10 @@ did not start.
   unresolved Critical or Warning. The contract admits `X04A-PERF-001`, freezes
   the 13 consumer migration, and defines bridge lifecycle/source-contract
   measurements.
-- [ ] Complete X04A-SEC-001, X04A-SEC-002, and X04A-PERF-001 through the
-  Revision 1 sequential repair contract and record `COMMITTED` or a truthful
-  `BLOCKED` result.
+- [x] Complete X04A-SEC-001, X04A-SEC-002, and X04A-PERF-001 through the
+  Revision 1 sequential repair contract. `ab9993e8` is the independently
+  allowlist-checked `COMMITTED` repair with passing focused tests, build, and
+  review gate evidence.
 
 ### Task 4: Repair B01 Identity And Login Password Handling
 

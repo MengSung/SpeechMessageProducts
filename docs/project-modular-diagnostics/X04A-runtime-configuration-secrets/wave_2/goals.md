@@ -143,9 +143,9 @@ measurement target in this document:
 
 This is local proof only. Claude-only review produced no usable output after
 two healthy attempts, and the required inline Codex fallback found no Critical
-or Warning issue. The revision remains
-`REVIEW_APPROVED_DEGRADED_AWAITING_COMMIT` until the single Traditional Chinese
-repair commit is created.
+or Warning issue. The single Traditional Chinese repair commit is `ab9993e8`;
+the revision is `COMMITTED` after its 25-path allowlist and clean commit diff
+were independently verified.
 
 ## Deployment Gate Outside Local Completion
 

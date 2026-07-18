@@ -46,7 +46,7 @@ workspaces.
 
 | Sequence | Workspace | Issue subset | Status | Local contract |
 |---:|---|---|---|---|
-| 1 | X04A-runtime-configuration-secrets | X04A-SEC-001, X04A-SEC-002, X04A-PERF-001 | CONTRACT_REVISION_APPROVED_DEGRADED | Revision 1 admits the 13-consumer migration prerequisite; Claude had no usable output and the documented inline Codex fallback approved the contract |
+| 1 | X04A-runtime-configuration-secrets | X04A-SEC-001, X04A-SEC-002, X04A-PERF-001 | COMMITTED | Revision 1 repair committed as `ab9993e8`; Claude had no usable output and the documented inline Codex fallback approved the final review |
 | 2 | B01-identity-session-access-control | B01-SEC-003 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair retains non-production CRM and caller-inventory gates |
 | 3 | B02-member-contact-profile-onboarding | B02-SEC-001 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair must enforce the pre-hydration Permit Gate |
 | 4 | B04B-appointment-equipment | B04B-SEC-001 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair includes Schedule selector and stateless SchedulerView gates |
@@ -73,11 +73,10 @@ all seven workspaces are `COMMITTED`.
 
 | Sequence | Workspace | Terminal state | Evidence | Required action before resuming |
 |---:|---|---|---|---|
-| 1 | X04A-runtime-configuration-secrets | `CONTRACT_REVISION_APPROVED_DEGRADED` (2026-07-18) | The 2026-07-15 blocked repair proved that 13 excluded runtime consumers load only `appsettings.json`; Revision 1 admits X04A-PERF-001 and freezes the bridge contract. Claude had no usable output; the documented inline Codex fallback found no unresolved Critical or Warning. | Complete one allowlisted X04A repair commit, then independently verify it before dispatching B01. |
+| 1 | X04A-runtime-configuration-secrets | `COMMITTED` (2026-07-18, `ab9993e8`) | Revision 1 cleared the frozen committed-literal scan, made all eight Production controls explicit, migrated all 13 frozen consumers to the host bridge, and passed the focused suite and ChurchReport build. Claude had no usable output; the documented inline Codex fallback found no unresolved Critical or Warning. The 25-path repair commit was independently allowlist-checked. | X04A is complete. B01 may be dispatched as sequence 2 when the owner starts the next workspace. |
 
-Wave 2 dispatch is paused at sequence 1. B01 through X05Q remain selected and
-contract-approved, but no repair may start until X04A has a committed Revision 1
-repair.
+Wave 2 sequence 1 is committed. B01 is now eligible for its sequence 2 repair;
+B02 through X05Q remain queued behind B01 and may not bypass that order.
 
 ## Future Wave Admission
 
