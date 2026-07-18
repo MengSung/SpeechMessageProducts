@@ -76,3 +76,25 @@ no product file is changed, and no optimization subagent has been dispatched.
   seven Wave 2 workspaces contain exactly the three approved contract files.
 - The stale Trellis child and CCG task were archived without changing product
   code. The global optimization task remains active for Wave 2.
+
+## B01 ToolUtility Caller Inventory
+
+- Evidence file: `b01-toolutility-caller-inventory.md`.
+- Direct business callers: 17 documented, 17 found, 0 missing, 0 extra.
+- Current account-path classification: all 17 are `RAW`; owner distribution is
+  B02=5, B03=7, B04B=2, B06A=2, and B06B=1.
+- ChurchReport source/package build passed with 0 warnings and 0 errors.
+- This completes only the repository source inventory. B01 remains blocked on
+  external binary-consumer confirmation, non-production CRM row-version proof,
+  and the synthetic `ProcessLogin -> SetupSystemData` route probe.
+
+## X04A Completion Audit Gap
+
+- The frozen scanner covers only 21 active JSON paths and skips comments.
+- Current source contains three commented sensitive literals and six non-empty
+  legacy Sandbox credential paths outside the frozen manifest. One commented
+  CRM value matches the pre-repair active credential; five Sandbox values match
+  values removed from the primary test profile.
+- `X04A-SEC-001` cannot support a repository-wide zero-literal claim until the
+  owner approves and completes a Revision 2 contract covering raw comments and
+  legacy aliases. No secret value is recorded in this evidence.
