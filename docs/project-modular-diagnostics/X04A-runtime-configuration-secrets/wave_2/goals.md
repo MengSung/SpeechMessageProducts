@@ -49,8 +49,8 @@ paths in `plans.md`.
 Claude-only run `20260718-103104-x04a-revision2-final-reviewer` completed two
 healthy attempts but returned no usable findings (`completedBackends=[]`). It
 is not external approval. The permitted inline, value-free review found no
-unresolved Critical or Warning. Execution state is
-`VALIDATED_AWAITING_COMMIT`.
+unresolved Critical or Warning. Repair commit `4dcaf499` was independently
+checked and pushed. Execution state is `COMMITTED`.
 
 ## Failure Conditions
 

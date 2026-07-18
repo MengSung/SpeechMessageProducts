@@ -74,8 +74,9 @@ Inventory all confirmed diagnostic issues, define a scored optimization blueprin
   issues with no assigned wave. No W3, W4, or W5 membership currently exists.
 - W1 contains only the five F01B governance issues and is archived after commit
   `181c9298`. W2 contains eleven issues across seven product workspaces. X04A
-  is committed as `ab9993e8`; B01 is blocked by three external evidence gates,
-  and B02 through X05Q remain queued behind B01.
+  Revision 1 is committed as `ab9993e8` and Revision 2 as `4dcaf499`; B01 is
+  blocked by three external evidence gates, and B02 through X05Q remain queued
+  behind B01.
 
 ## Requirements
 

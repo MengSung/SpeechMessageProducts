@@ -6,7 +6,7 @@
   "risk": "medium",
   "domain": "architecture-governance",
   "currentPhase": "implementation",
-  "nextAction": "X04A-SEC-001 Revision 2 已獲 owner 核准；完成三文件合約審查後執行兩路徑修復，再恢復 B01",
+  "nextAction": "X04A Revision 2 已以 4dcaf499 完成；等待 B01 的 CRM row-version、route probe 與部署 caller 三項證據後重啟修復",
   "createdAt": "2026-07-13T06:07:17Z",
   "branch": "1.0.0.1.EvenVersion"
 }

@@ -121,8 +121,8 @@ without BOM and CRLF-only. Claude-only final review run
 `20260718-103104-x04a-revision2-final-reviewer` returned no usable output after
 two healthy attempts and is not external approval. The permitted inline,
 value-free review reported Critical=0 and Warning=0. The repair commit is
-recorded in the global blueprint after commit creation; no source literal or
-effective runtime value is recorded here.
+`4dcaf499`; its eight-path repair/evidence diff was independently checked and
+pushed. No source literal or effective runtime value is recorded here.
 
 ## Revision 1 Evidence Archive
 

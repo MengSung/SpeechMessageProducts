@@ -46,7 +46,7 @@ workspaces.
 
 | Sequence | Workspace | Issue subset | Status | Local contract |
 |---:|---|---|---|---|
-| 1 | X04A-runtime-configuration-secrets | X04A-SEC-001, X04A-SEC-002, X04A-PERF-001 | READY_FOR_REVISION_2_REPAIR | Revision 1 remains committed as `ab9993e8`; owner approved Revision 2 and its degraded contract review reproduced comments=3, aliases=6, original scanner tests 2/2, and artifact leaks=0 |
+| 1 | X04A-runtime-configuration-secrets | X04A-SEC-001, X04A-SEC-002, X04A-PERF-001 | COMMITTED | Revision 1 remains committed as `ab9993e8`; Revision 2 repair `4dcaf499` retained `0/21`, cleared aliases `6/6 -> 0/6`, and removed sensitive comments `3 -> 0` |
 | 2 | B01-identity-session-access-control | B01-SEC-003 | BLOCKED | `wave_2/` remains contract-approved, but repair is blocked by missing non-production CRM row-version/route-probe evidence and deployed ToolUtility caller inventory |
 | 3 | B02-member-contact-profile-onboarding | B02-SEC-001 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair must enforce the pre-hydration Permit Gate |
 | 4 | B04B-appointment-equipment | B04B-SEC-001 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair includes Schedule selector and stateless SchedulerView gates |
@@ -73,13 +73,11 @@ all seven workspaces are `COMMITTED`.
 
 | Sequence | Workspace | Terminal state | Evidence | Required action before resuming |
 |---:|---|---|---|---|
-| 1 | X04A-runtime-configuration-secrets | `READY_FOR_REVISION_2_REPAIR` (2026-07-18; Revision 1 commit `ab9993e8` retained) | Revision 1 passed its frozen `0/21` scan, eight Production controls, 13-consumer bridge migration, focused suite, and build. The Revision 2 contract now covers the three raw-comment and six legacy-alias residuals with a two-path allowlist. Claude produced no usable contract-review output; owner approval and inline redacted audit found no unresolved Critical or Warning. | Execute the approved two-path repair, verify `0/21`, `0/6`, comments=0, then return X04A to `COMMITTED` before resuming B01. |
+| 1 | X04A-runtime-configuration-secrets | `COMMITTED` (2026-07-18; Revision 1 `ab9993e8`, Revision 2 `4dcaf499`) | Revision 2 retained original manifest `0/21`, cleared legacy aliases `6/6 -> 0/6`, removed sensitive comments `3 -> 0`, passed scanner `5/5`, focused X04A `36/36`, ChurchReport build with 0 warnings/errors, and exact repair allowlist `2/2`. Claude produced no usable final-review output; the permitted value-free inline gate found no Critical or Warning. | X04A is closed. Resume B01 only after its three external evidence gates are supplied. |
 | 2 | B01-identity-session-access-control | `BLOCKED` (2026-07-18, no commit) | The repair agent captured a two-location direct-comparison baseline and a 56-location password-flow baseline. Its isolated verifier tests reached a temporary 12-test green state, but the contract's mandatory non-production CRM row-version conditional-update success/conflict proof, synthetic `ProcessLogin -> SetupSystemData` route probe, and deployed ToolUtility caller inventory were unavailable. No final validation, Claude review, or commit occurred; all uncommitted candidate product/test paths were cleaned. | F03A/CRM and non-production environment owners must supply redacted row-version capability evidence, route-probe evidence, and caller path/owner/key-or-raw inventory. Re-activate B01 only after those prerequisites are available. |
 
-Wave 2 is paused at reopened sequence 1 while X04A Revision 2 closes the
-residual scanner gap. B01 also retains its external evidence blockers. B01 and
-all later workspaces remain queued until X04A returns to `COMMITTED`; B02 through
-X05Q additionally may not bypass B01.
+Wave 2 is paused at sequence 2. X04A is `COMMITTED`; B01 retains its external
+evidence blockers, and B02 through X05Q may not bypass B01.
 
 ## Future Wave Admission
 

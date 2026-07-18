@@ -109,3 +109,18 @@ no product file is changed, and no optimization subagent has been dispatched.
   `3`, aliases `6`, and durable-artifact literal leaks `0`.
 - Verdict: `CONTRACT_REVISION_APPROVED_DEGRADED`, with exactly two authorized
   product/test paths and no unresolved Critical or Warning.
+
+## X04A Revision 2 Repair Completion
+
+- Repair commit: `4dcaf499`, pushed on 2026-07-18.
+- Measurements: original manifest `0/21 -> 0/21`, legacy aliases
+  `6/6 -> 0/6`, and commented sensitive assignments `3 -> 0`.
+- Verification: scanner `5/5`, focused X04A suite `36/36`, ChurchReport build
+  `0` warnings/`0` errors, repair allowlist `2/2`, and `git diff --check` clean.
+- Preservation: JSON paths `303 -> 303`, zero added/removed path, exactly six
+  approved scalar changes, and zero unexpected scalar change.
+- Claude-only final run `20260718-103104-x04a-revision2-final-reviewer`
+  completed two healthy attempts with no usable output. This is not external
+  approval; the permitted value-free inline gate found no Critical or Warning.
+- X04A terminal state: `COMMITTED`. Wave 2 returns to the blocked B01 evidence
+  gate; B02 and later workspaces remain queued.

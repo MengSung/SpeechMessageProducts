@@ -6,7 +6,7 @@
 - Canonical issue: `X04A-SEC-001`
 - Regression-only issues: `X04A-SEC-002`, `X04A-PERF-001`
 - Contract status: `CONTRACT_STATUS: CONTRACT_REVISION_APPROVED_DEGRADED`
-- Execution status: `EXECUTION_STATUS: VALIDATED_AWAITING_COMMIT`
+- Execution status: `EXECUTION_STATUS: COMMITTED`
 - Owner approval: 2026-07-18
 - Design authority: `../revision-2-design.md`
 
@@ -127,6 +127,10 @@ with no usable output (`completedBackends=[]`), so it is not external approval.
 The permitted inline review inspected scanner disclosure behavior, semantic
 configuration preservation, the exact allowlist, and validation results; it
 found Critical=0 and Warning=0.
+
+Repair commit `4dcaf499` contains the two product/test paths plus the approved
+value-free evidence records. Its staged path set and verification evidence were
+independently checked before push.
 
 ## Review And Commit Gate
 

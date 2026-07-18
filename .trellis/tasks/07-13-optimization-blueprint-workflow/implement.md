@@ -10,6 +10,8 @@
 - [x] Freeze W2 with eleven canonical issues across seven workspaces.
 - [x] Approve all seven W2 local contracts.
 - [x] Complete X04A Revision 1 through commit `ab9993e8`.
+- [x] Complete X04A Revision 2 residual-secret closure through commit
+      `4dcaf499` with scanner `5/5`, focused X04A `36/36`, and build 0/0.
 
 ## Active Wave 2 Gate
 

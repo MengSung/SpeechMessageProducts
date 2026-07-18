@@ -145,9 +145,10 @@ did not start.
 - [x] Review and approve the two-path Revision 2 contract. Claude-only review
   produced no usable output; owner approval and the active inline redacted
   contract audit found no unresolved Critical or Warning.
-- [ ] Complete Revision 2 with original manifest `0/21` retained, aliases
-  `6/6 -> 0/6`, commented literals `3 -> 0`, focused tests/build passing, and
-  one independently checked Traditional Chinese commit.
+- [x] Complete Revision 2 with original manifest `0/21` retained, aliases
+  `6/6 -> 0/6`, commented literals `3 -> 0`, scanner tests `5/5`, focused suite
+  `36/36`, ChurchReport build passing, and independently checked Traditional
+  Chinese repair commit `4dcaf499`.
 
 ### Task 4: Repair B01 Identity And Login Password Handling
 
