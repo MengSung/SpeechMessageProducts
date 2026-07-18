@@ -22,6 +22,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ChurchReport.Configuration;
 
 namespace ChurchReport
 {
@@ -41,6 +42,13 @@ namespace ChurchReport
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            if (builder.Environment.IsProduction())
+            {
+                RuntimeConfigurationSafetyValidator.Validate(builder.Configuration, builder.Environment.EnvironmentName);
+            }
+
+            RuntimeConfiguration.Initialize(builder.Configuration);
 
             ConfigureSafeLogging(builder);
 

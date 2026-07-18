@@ -19,6 +19,7 @@ using Line.Messaging;
 using LineMessagingProcessor;
 using LineMessagingProcessor.Workflows;
 using Microsoft.Extensions.Caching.Memory;
+using ChurchReport.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using System;
@@ -46,16 +47,8 @@ namespace ChurchReport.WebServiceConnector
     {
         #region ===== 私有成員 =====
 
-        // 配置管理（延遲初始化，線程安全）
-        private static readonly Lazy<IConfiguration> s_lazyConfiguration = new Lazy<IConfiguration>(() =>
-        {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-            return builder.Build();
-        });
-
-        private static IConfiguration m_Configuration => s_lazyConfiguration.Value;
+        // 配置由應用程式主機初始化，所有 legacy consumer 共用同一個有效設定。
+        private static IConfiguration m_Configuration => RuntimeConfiguration.Current;
 
         // 商店設定
         private string m_ShopNo = string.Empty;

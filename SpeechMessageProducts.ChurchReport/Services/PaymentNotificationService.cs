@@ -19,6 +19,7 @@ using ChurchReport.Tools;
 using Line.Messaging;
 using LineMessagingProcessor;
 using LineMessagingProcessor.Workflows;
+using ChurchReport.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
@@ -40,15 +41,7 @@ namespace ChurchReport.Services
         private readonly PaymentFeeTypeHelper _feeTypeHelper;
         private readonly ILineNotificationWorkflow _lineNotificationWorkflow;
 
-        private static readonly Lazy<IConfiguration> s_lazyConfiguration = new Lazy<IConfiguration>(() =>
-        {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-            return builder.Build();
-        });
-
-        private static IConfiguration Configuration => s_lazyConfiguration.Value;
+        private static IConfiguration Configuration => RuntimeConfiguration.Current;
 
         public PaymentNotificationService(
             ILogger<PaymentNotificationService> logger,

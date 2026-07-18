@@ -30,6 +30,7 @@ using ToolUtility;
 using Line.Messaging;
 using ChurchReport.Models;
 using ChurchReport.Tools;
+using ChurchReport.Configuration;
 using Microsoft.Extensions.Configuration;
 using PushUtility = ToolUtility.PushUtility;
 
@@ -46,10 +47,7 @@ namespace ChurchReport.WebServiceConnector
         private PushUtility m_PushUtility { get; set; }
 
         // 配置管理
-        private static readonly IConfigurationBuilder m_ConfigurationBuilder = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
-        private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
+        private static IConfiguration m_Configuration => RuntimeConfiguration.Current;
         #endregion
         #region 常數參數
         private const String CRM_TYPE = "DYNAMICS365-9.0";

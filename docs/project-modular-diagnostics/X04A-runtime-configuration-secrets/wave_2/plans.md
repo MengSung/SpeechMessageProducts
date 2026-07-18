@@ -201,6 +201,24 @@ legacy configuration access behavior but never reintroduces secret literals to
 committed configuration. A deployment owner must keep required values in a
 managed external configuration source during rollback.
 
+## Execution Evidence
+
+- UTC: `2026-07-18T00:22:14Z`
+- Baseline: focused X04A suite reported `29 passed, 4 failed` exactly for the
+  unresolved `21/21` committed literals, `0/8` Production controls, and
+  `13/13` legacy consumer builder/bridge contracts.
+- Repair result: the same focused suite reported `33 passed, 0 failed`.
+- Build: `dotnet build` for ChurchReport completed with `0 warnings, 0 errors`.
+- Scope: `git diff --check` was clean; `22` changed product/test/configuration
+  paths were all in this Revision 1 allowlist and `0` paths were outside it.
+- Secret handling: evidence records counts and key categories only; neither a
+  command output nor a review artifact contains an old or effective secret value.
+- Review: Claude-only self-healing run
+  `20260718-082348-x04a-wave2-revision1-final-reviewer` produced no usable
+  output after two healthy attempts; the documented inline Codex fallback found
+  no Critical or Warning issue.
+- Current state: `REVIEW_APPROVED_DEGRADED_AWAITING_COMMIT`.
+
 ## Revision History
 
 Revision 0 was correctly stopped after review proved that clearing secrets while

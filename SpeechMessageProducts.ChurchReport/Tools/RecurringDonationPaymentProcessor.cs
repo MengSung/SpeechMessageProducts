@@ -15,6 +15,7 @@ using ChurchReport.WebServiceConnector;
 using Line.Messaging;
 using LineMessagingProcessor.Workflows;
 using Microsoft.AspNetCore.Mvc;
+using ChurchReport.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using ChurchReport.Payments;
@@ -37,15 +38,8 @@ namespace ChurchReport.Tools
         #region 資料區
 
         #region 設定與配置
-        // ✅ 透過 appsettings.json 讀取設定，避免硬編碼
-        private static readonly Lazy<IConfiguration> s_lazyConfiguration = new Lazy<IConfiguration>(() =>
-        {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-            return builder.Build();
-        });
-        private static IConfiguration m_Configuration => s_lazyConfiguration.Value;
+        // 由應用程式主機提供有效設定，避免此舊流程重建 base-only provider。
+        private static IConfiguration m_Configuration => RuntimeConfiguration.Current;
         #endregion
 
         private LineMessagingClient m_LineMessagingClient { get; }

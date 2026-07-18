@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.IO;
 using LineMessagingProcessor;
 using LineMessagingProcessor.Workflows;
+using ChurchReport.Configuration;
 using Microsoft.Extensions.Configuration;
 
 namespace ChurchReport.Services;
@@ -30,12 +31,6 @@ public sealed class ChurchReportLineAdminNotificationService
 
     private const string DefaultProductSource = "ChurchReport";
     private const string DefaultCategory = "錯誤";
-
-    private static readonly Lazy<IConfiguration> s_configuration = new(() =>
-        new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
-            .Build());
 
     private static readonly Lazy<ChurchReportLineAdminNotificationService> s_default = new(() =>
         new ChurchReportLineAdminNotificationService(
@@ -143,7 +138,7 @@ public sealed class ChurchReportLineAdminNotificationService
     {
         try
         {
-            var configuration = s_configuration.Value;
+            var configuration = RuntimeConfiguration.Current;
             var organization = configuration["CrmConnection:Organization"];
             if (!string.IsNullOrWhiteSpace(organization))
             {

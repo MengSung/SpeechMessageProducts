@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using Line.Messaging;
 using System.IO;
 using ToolUtilityNameSpace;
+using ChurchReport.Configuration;
 using Microsoft.Extensions.Configuration;
 using LineMessagingProcessor;
 using LineMessagingProcessor.RichMenus;
@@ -53,10 +54,7 @@ namespace ChurchReport.Tools
             #region Channel Access Token 閮剖?
 
             // ?蔭撱箸??刻?撖虫?
-            private static readonly IConfigurationBuilder m_ConfigurationBuilder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
-            private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
+            private static IConfiguration m_Configuration => RuntimeConfiguration.Current;
 
             // 敺?蝵株???Channel Access Token
             private static string GetChannelAccessToken(string organization)

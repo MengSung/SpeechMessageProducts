@@ -20,6 +20,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
+using ChurchReport.Configuration;
 using Microsoft.Extensions.Configuration;
 
 #region Dynamics 365 Microsoft.Xrm.Sdk.dll
@@ -71,10 +72,7 @@ namespace ChurchReport.Tools
         private const String SAVED_FLAG_FIELD = @"new_saved_flag";
 
         // 配置管理
-        private static readonly IConfigurationBuilder m_ConfigurationBuilder = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
-        private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
+        private static IConfiguration m_Configuration => RuntimeConfiguration.Current;
 
         #endregion
         #endregion

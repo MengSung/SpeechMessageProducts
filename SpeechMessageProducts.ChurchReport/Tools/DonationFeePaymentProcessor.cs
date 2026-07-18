@@ -15,6 +15,7 @@ using ChurchReport.WebServiceConnector;
 using Line.Messaging;
 using LineMessagingProcessor.Workflows;
 using Microsoft.AspNetCore.Mvc;
+using ChurchReport.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using ChurchReport.Payments;
@@ -47,21 +48,8 @@ namespace ChurchReport.Tools
     public class DonationFeePaymentProcessor : Controller, IDisposable
     {
         #region 設定與配置
-        // 使用 Lazy<IConfiguration> 的目的：
-        // 1. 只有第一次真正需要設定時才讀 appsettings.json，避免建構類別時立刻做檔案 I/O。
-        // 2. static 共用同一份設定，避免每次付款回傳都重新建立 IConfiguration。
-        // 3. reloadOnChange: true 讓 appsettings.json 更新後可被組態系統重新載入。
-        private static readonly Lazy<IConfiguration> s_lazyConfiguration = new Lazy<IConfiguration>(() =>
-        {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-            return builder.Build();
-        });
-
-        // 保留原本 m_Configuration 命名是為了降低舊程式變更量。
-        // 它實際上是從 Lazy<IConfiguration> 取出的全域設定入口。
-        private static IConfiguration m_Configuration => s_lazyConfiguration.Value;
+        // 保留原本 m_Configuration 命名，讓舊流程改用主機提供的有效設定。
+        private static IConfiguration m_Configuration => RuntimeConfiguration.Current;
         #endregion
 
         // LINE Messaging SDK 的 client，底層會使用 Channel Access Token 呼叫 LINE API。

@@ -12,6 +12,7 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using ChurchReport.Payments;
+using ChurchReport.Configuration;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Diagnostics;
@@ -27,15 +28,6 @@ namespace ChurchReport.Tools
     internal static class DonationPaymentDebugLogger
     {
         private static readonly object s_writeLock = new object();
-        private static readonly Lazy<IConfiguration> s_lazyConfiguration = new Lazy<IConfiguration>(() =>
-        {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-
-            return builder.Build();
-        });
-
         public static void WritePaymentResult(
             string processorName,
             string branchName,
@@ -240,6 +232,6 @@ namespace ChurchReport.Tools
             return value?.Replace("\r", " ").Replace("\n", " ").Trim() ?? string.Empty;
         }
 
-        private static IConfiguration Configuration => s_lazyConfiguration.Value;
+        private static IConfiguration Configuration => RuntimeConfiguration.Current;
     }
 }

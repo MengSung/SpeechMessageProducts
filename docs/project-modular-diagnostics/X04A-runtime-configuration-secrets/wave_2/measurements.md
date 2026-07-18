@@ -167,6 +167,28 @@ The repair agent may append evidence below this heading only after an approved
 contract starts. Each entry includes UTC time, commit SHA or baseline, command,
 exit code, redacted result, and artifact path.
 
+### 2026-07-18T00:22:14Z - Pre-commit local verification
+
+- Baseline command exit: `1`; `29 passed, 4 failed` from only the four frozen
+  X04A gaps: `21/21` literals, `0/8` Production overlay controls, `13/13`
+  ad-hoc builders, and `0/13` bridge consumers.
+- Repair command exit: `0`; focused suite result: `33 passed, 0 failed`.
+- PERF001-M1: `AdHocConfigurationBuilderConsumerCount=0/13`.
+- PERF001-M2: `BridgeConsumerCount=13/13`.
+- PERF001-M3: bridge lifecycle cases `4/4`.
+- SEC001: `SecretLiteralCount=0/21`; scanner output contains only key paths.
+- SEC002: `UnsafeOrInheritedConditionCount=0/8`,
+  `SafeEffectiveConditionCount=8/8`, and
+  `ProductionOverlayPresenceCount=8/8`.
+- Build command exit: `0`; ChurchReport build reported `0 warnings, 0 errors`.
+- Diff command exit: `0`; `git diff --check` was clean and allowlist comparison
+  reported `22` changed paths with `0` unexpected paths.
+- Artifact: the local terminal transcript is intentionally redacted; this file
+  contains measurements and counts only, never configuration values.
+- Review gate: Claude-only run `20260718-082348-x04a-wave2-revision1-final-reviewer`
+  had no usable output after two healthy attempts; the required inline Codex
+  fallback review found no Critical or Warning issue. Commit is still pending.
+
 ## Revision 0 Archive
 
 The prior X04A contract recorded a transient `21/21 -> 0/21` and `8/8 -> 0/8`

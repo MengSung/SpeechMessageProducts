@@ -20,6 +20,7 @@ using Line.Messaging;
 using LineMessagingProcessor;
 using LineMessagingProcessor.Workflows;
 using Microsoft.AspNetCore.Mvc;
+using ChurchReport.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using System;
@@ -43,8 +44,7 @@ namespace ChurchReport.Models
     public class DonationPaymentManager : Controller
     {
         #region 資料區
-        static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
-        static IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
+        static IConfiguration m_Configuration => RuntimeConfiguration.Current;
 
         // 商店編號
         // SANDBOX 測試用

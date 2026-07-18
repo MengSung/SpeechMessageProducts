@@ -127,6 +127,26 @@ All of the following must be true before X04A becomes `COMMITTED`:
 5. One Traditional Chinese commit contains the complete X04A repair and its
    redacted evidence appendices.
 
+## Execution Evidence
+
+At `2026-07-18T00:22:14Z`, local verification reached every code and
+measurement target in this document:
+
+- SEC001: committed-manifest literal count is `0/21`.
+- SEC002: all `8/8` Production controls are explicit and safe; unsafe or
+  inherited controls count is `0/8`.
+- PERF001: the frozen consumer inventory is `0/13` local builders and `13/13`
+  bridge consumers; bridge lifecycle cases are `4/4`.
+- The focused suite is `33/33` passing; the ChurchReport build has `0` errors;
+  `git diff --check` is clean; all `22` product/test/configuration paths are
+  allowlisted.
+
+This is local proof only. Claude-only review produced no usable output after
+two healthy attempts, and the required inline Codex fallback found no Critical
+or Warning issue. The revision remains
+`REVIEW_APPROVED_DEGRADED_AWAITING_COMMIT` until the single Traditional Chinese
+repair commit is created.
+
 ## Deployment Gate Outside Local Completion
 
 Local completion does not authorize a Production deployment. Before release,
