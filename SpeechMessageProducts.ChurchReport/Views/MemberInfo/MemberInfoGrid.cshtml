@@ -10,6 +10,7 @@
         版面以桌機優先設計，手機時則透過 media query 壓縮間距與改變工具列排列方式，避免視覺擁擠。
     */
     .member-info-page {
+        position: relative;
         padding: 10px 8px 20px;
     }
 
@@ -37,72 +38,369 @@
         white-space: nowrap;
     }
 
-    /* 白色卡片外框把 DevExtreme Grid 包起來，讓整體與頁面背景形成明確層次。 */
-    .member-info-grid-shell {
-        background: #fff;
-        border: 1px solid #d9e2ec;
-        border-radius: 8px;
-        padding: 10px;
-        box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
+    /*
+        搜尋操作列刻意維持單列：輸入框可縮、搜尋與同步按鈕不可縮，也不允許按鈕被擠到下一行。
+        flex 子項的預設 min-width 可能等於內容寬度，因此輸入框必須搭配 min-width: 0；按鈕則以
+        flex: 0 0 auto 與 nowrap 保留完整標籤，窄螢幕再由下方 clamp() 內距縮放來共同騰出空間。
+    */
+    .mi-tree-actions {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: nowrap;
+        margin: 6px 0 10px;
     }
 
-    /* 這顆按鈕用來快速切換「顯示全部 / 顯示照片」的資料模式，並保持與工具列同高。 */
-    .member-info-photo-filter-btn {
+    .mi-search {
         box-sizing: border-box;
+        flex: 1 1 auto;
+        min-width: 0;
+        height: 40px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 0 12px;
+        font-size: 16px;
+    }
+
+    .mi-btn {
+        flex: 0 0 auto;
+        min-height: 40px;
+        border: 0;
+        border-radius: 8px;
+        padding: 0 14px;
+        color: #fff;
+        font-weight: 700;
+        white-space: nowrap;
+        cursor: pointer;
+        touch-action: manipulation;
+    }
+
+    .mi-btn-search {
+        position: relative;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border: none;
-        border-radius: 6px;
-        padding: 0 16px;
-        height: 34px;
-        line-height: 1;
-        white-space: nowrap;
-        font-size: .95rem;
-        font-weight: 700;
-        color: #fff;
-        cursor: pointer;
-        background: #16a34a; /* 預設：綠色「顯示照片」 */
-        transition: background-color .15s ease;
+        gap: 7px;
+        background: linear-gradient(135deg, #2563eb, #0ea5e9);
+        box-shadow: 0 5px 12px rgba(37, 99, 235, .2);
     }
+    /* searching 時按鈕是覆蓋層上唯一可操作的取消入口，z-index 必須比 overlay 高一層。 */
+    .mi-btn-search.mi-btn-stop {
+        z-index: 2401;
+        background: linear-gradient(135deg, #ef4444, #b91c1c);
+        box-shadow: 0 0 0 4px rgba(254, 202, 202, .78), 0 8px 22px rgba(185, 28, 28, .34);
+    }
+    /* results/error 共用返回外觀，表示下一次按下按鈕會回到原本的組織瀏覽畫面。 */
+    .mi-btn-search.mi-btn-return {
+        background: linear-gradient(135deg, #475569, #334155);
+        box-shadow: 0 5px 12px rgba(51, 65, 85, .2);
+    }
+    .mi-search-btn-icon { font-size: 1rem; line-height: 1; }
+    .mi-btn-resync { background: #0ea5e9; }
+    .mi-btn:disabled { cursor: default; opacity: .6; }
+    .mi-resync-status { min-height: 20px; margin: 4px 0; color: #2563eb; font-weight: 700; }
+
+    /* hidden 是搜尋狀態機切換 browse/results/overlay 的唯一顯示契約，需壓過元件本身的 display。 */
+    .mi-search-overlay[hidden],
+    .mi-search-results[hidden],
+    .mi-browse-view[hidden],
+    .mi-search-result-message[hidden] { display: none !important; }
 
     /*
-        DevExtreme 的 toolbar 可能會因為預設 overflow 而裁切自訂按鈕。
-        這裡主動放寬 overflow，確保「顯示照片」與「重新同步LINE」兩顆按鈕都能完整呈現。
+        searching 覆蓋層固定遮住整個 viewport，阻止使用者在請求完成前改動下方 browse/results。
+        停止搜尋按鈕另以 z-index: 2401 浮在本層之上，所以即使請求逾時前也永遠保有取消入口。
     */
-    #MemberInfoGridContainer .dx-datagrid-header-panel {
-        overflow: visible;
-        padding-bottom: 6px;
+    .mi-search-overlay {
+        position: fixed;
+        z-index: 2400;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(241, 245, 249, .88);
+        backdrop-filter: blur(3px);
     }
 
-    /* 讓自訂按鈕模板在工具列的每一層容器中都不被裁切。 */
-    #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar,
-    #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar-items-container,
-    #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar-item {
-        overflow: visible;
+    .mi-search-overlay-card {
+        display: flex;
+        max-width: 360px;
+        align-items: center;
+        gap: 14px;
+        padding: 18px 22px;
+        border: 1px solid #bfdbfe;
+        border-radius: 16px;
+        background: #fff;
+        color: #1e3a8a;
+        box-shadow: 0 18px 44px rgba(37, 99, 235, .2);
     }
 
-    /* 切到「顯示全部」模式時，按鈕改為藍色，讓目前篩選狀態一目了然。 */
-    .member-info-photo-filter-btn.is-photo-only {
-        background: #2563eb; /* 篩選中：藍色「顯示全部」 */
+    .mi-search-spinner {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+        border: 5px solid #dbeafe;
+        border-top-color: #2563eb;
+        border-radius: 50%;
+        animation: mi-search-spin .75s linear infinite;
     }
 
-    /* 按下時做一點下沉效果，增加觸控回饋。 */
-    .member-info-photo-filter-btn:active {
-        transform: translateY(1px);
+    .mi-search-overlay-copy { display: flex; flex-direction: column; gap: 4px; }
+    .mi-search-overlay-copy strong { font-size: 1rem; }
+    .mi-search-overlay-copy span { color: #64748b; font-size: .88rem; line-height: 1.45; }
+
+    @@keyframes mi-search-spin { to { transform: rotate(360deg); } }
+
+    .mi-search-results {
+        min-height: 180px;
+        padding-top: 4px;
     }
 
-    /* 表頭使用較淺的背景色與深色文字，提高欄位辨識度。 */
-    #MemberInfoGridContainer .dx-datagrid-headers .dx-header-row td {
-        background: #eef6f8;
-        color: #1f2937;
-        font-weight: 700;
+    .mi-search-results-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 0 0 10px;
     }
 
-    /* 滑鼠停留時以淡黃色標示整列，幫助使用者快速追蹤目前游標所在列。 */
-    #MemberInfoGridContainer .dx-datagrid-rowsview .dx-data-row:hover > td {
-        background: #fff8db;
+    .mi-search-results-title { color: #1e293b; font-size: 1rem; font-weight: 800; }
+    .mi-search-results-summary { color: #64748b; font-size: .9rem; font-weight: 700; }
+
+    .mi-search-result-message {
+        display: flex;
+        min-height: 180px;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 8px;
+        padding: 22px;
+        border: 1px dashed #cbd5e1;
+        border-radius: 14px;
+        background: #fff;
+        color: #475569;
+        text-align: center;
     }
+
+    .mi-search-result-message-icon {
+        display: inline-flex;
+        width: 52px;
+        height: 52px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #eef2ff;
+        color: #4f46e5;
+        font-size: 26px;
+    }
+
+    .mi-tree { display: flex; flex-direction: column; gap: 10px; }
+    .mi-district {
+        overflow: hidden;
+        border: 1px solid #d9e2ec;
+        border-radius: 10px;
+        background: #fff;
+        box-shadow: 0 6px 14px rgba(15, 23, 42, .06);
+    }
+
+    .mi-district-header,
+    .mi-group-header {
+        box-sizing: border-box;
+        display: flex;
+        width: 100%;
+        min-height: 52px;
+        align-items: center;
+        gap: 10px;
+        border: 0;
+        padding: 12px 14px;
+        background: none;
+        color: #1e293b;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+        touch-action: manipulation;
+    }
+
+    .mi-district-header { background: #eef2ff; font-size: 1.02rem; font-weight: 800; }
+    .mi-group-header { border-top: 1px solid #eef2f6; background: #f8fafc; }
+    .mi-district-header:hover, .mi-group-header:hover { filter: brightness(.98); }
+    .mi-chevron {
+        display: inline-flex;
+        width: 28px;
+        height: 28px;
+        flex: 0 0 28px;
+        align-items: center;
+        justify-content: center;
+        color: #475569;
+        font-size: 20px;
+        transition: transform .15s ease;
+    }
+    .mi-open > .mi-district-header .mi-chevron,
+    .mi-open > .mi-group-header .mi-chevron { transform: rotate(90deg); }
+    /*
+        組織標頭分成兩層閱讀：第一行是牧區/小組名稱，第二行才是區長/小組長與人數徽章。
+        區長使用較大紫色字、小組長使用較小綠色字，讓同一棵樹的管理層級不只靠縮排辨識。
+    */
+    .mi-title {
+        display: flex;
+        min-width: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
+        gap: 4px;
+        overflow-wrap: anywhere;
+    }
+    .mi-node-title { color: #334155; font-size: .94rem; font-weight: 750; }
+    .mi-leader-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .mi-leader-district { color: #4338ca; font-size: 1.12rem; font-weight: 900; }
+    .mi-leader-group { color: #0f766e; font-size: .96rem; font-weight: 800; }
+    .mi-count {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 3px 10px;
+        font-size: .76rem;
+        font-weight: 850;
+    }
+    .mi-leader-district .mi-count { background: #c7d2fe; color: #312e81; }
+    .mi-leader-group .mi-count { background: #ccfbf1; color: #115e59; }
+    .mi-group-meta {
+        display: flex;
+        align-items: center;
+        gap: 6px 14px;
+        flex-wrap: wrap;
+        color: #64748b;
+        font-size: .86rem;
+        font-weight: 650;
+        line-height: 1.45;
+    }
+    .mi-group-meta-item { display: inline-flex; align-items: baseline; }
+    .mi-district-body, .mi-group-body { display: none; }
+    .mi-district.mi-open > .mi-district-body,
+    .mi-group.mi-open > .mi-group-body { display: block; }
+    .mi-group { border-top: 1px solid #eef2f6; }
+    .mi-group-body { padding: 8px 10px 12px; }
+    /*
+        host 本身禁止產生第二條水平捲軸；真正可左右滑動的只有 DevExtreme 內建 dx-scrollable。
+        內層保留原生慣性與 pan-x/pan-y，讓手機能直接拖動寬表格，同時不攔截頁面的垂直手勢。
+    */
+    .mi-grid-host {
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        overflow-x: hidden;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-x pan-y;
+        overscroll-behavior-x: contain;
+    }
+    .mi-wide-member-grid {
+        width: 100%;
+        min-width: 0;
+    }
+    .mi-grid-host .dx-scrollable-container,
+    .mi-grid-host .dx-scrollable-content {
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-x pan-y;
+        overscroll-behavior-x: contain;
+    }
+    /*
+        DevExtreme 22.1.6 將 fixed column 畫在絕對定位的覆蓋表格；固定儲存格本身不是可捲動容器，
+        因此手機若從頭像或姓名起手，瀏覽器不會自然帶動下層的 dx-scrollable。這裡只把固定資料列的
+        原生手勢限制為 pan-y：上下滑仍交給頁面，左右滑則由 miEnableFixedColumnTouchScroll 轉送。
+    */
+    .mi-grid-host .dx-datagrid-rowsview .dx-datagrid-content-fixed .dx-datagrid-table td {
+        touch-action: pan-y;
+    }
+    .mi-message { padding: 16px; color: #475569; }
+    .mi-message-error { color: #b91c1c; }
+    .mi-retry { margin-left: 8px; }
+
+    /*
+        樹、群組與明細 AJAX 共用同一套 Loading 卡片：彩色圓點表示持續工作，背景緩慢流動提供回應感；
+        compact 只改變排列，不建立另一套狀態。動畫純屬提示，稍後會在 reduced-motion 中完全停用。
+    */
+    .mi-loading-card {
+        box-sizing: border-box;
+        display: flex;
+        min-height: 160px;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 14px;
+        overflow: hidden;
+        padding: 24px 18px;
+        border: 1px solid #bfdbfe;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #f0fdf4, #eff6ff, #fefce8, #f0fdf4);
+        background-size: 240% 240%;
+        color: #334155;
+        text-align: center;
+        box-shadow: 0 8px 24px rgba(37, 99, 235, .08);
+        animation: mi-loading-wash 4.5s ease-in-out infinite;
+    }
+
+    .mi-loading-card-compact {
+        min-height: 92px;
+        flex-direction: row;
+        padding: 16px;
+        text-align: left;
+    }
+
+    .mi-loading-dots {
+        display: inline-flex;
+        min-width: 70px;
+        height: 28px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .mi-loading-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #22c55e;
+        box-shadow: 0 4px 10px rgba(34, 197, 94, .25);
+        animation: mi-loading-bounce 1.15s ease-in-out infinite;
+    }
+
+    .mi-loading-dot:nth-child(2) {
+        background: #38bdf8;
+        box-shadow: 0 4px 10px rgba(56, 189, 248, .25);
+        animation-delay: .14s;
+    }
+
+    .mi-loading-dot:nth-child(3) {
+        background: #f59e0b;
+        box-shadow: 0 4px 10px rgba(245, 158, 11, .25);
+        animation-delay: .28s;
+    }
+
+    .mi-loading-copy { display: flex; flex-direction: column; gap: 4px; }
+    .mi-loading-title { color: #1e3a5f; font-size: 1rem; font-weight: 800; }
+    .mi-loading-note { color: #64748b; font-size: .9rem; line-height: 1.5; }
+
+    @@keyframes mi-loading-bounce {
+        0%, 60%, 100% { transform: translateY(0) scale(.82); opacity: .65; }
+        30% { transform: translateY(-9px) scale(1); opacity: 1; }
+    }
+
+    @@keyframes mi-loading-wash {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    /* 尊重減少動態效果偏好：保留靜態色彩與狀態文字，停用本區的 bounce、wash 與搜尋 spinner。 */
+    @@media (prefers-reduced-motion: reduce) {
+        .mi-loading-card,
+        .mi-loading-dot,
+        .mi-search-spinner { animation: none; }
+        .mi-loading-dot { opacity: 1; transform: none; }
+    }
+
+    .mi-pager { display: flex; gap: 8px; justify-content: center; align-items: center; margin: 14px 0; flex-wrap: wrap; }
+    .mi-pager button { min-height: 36px; padding: 0 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; cursor: pointer; }
+    .mi-pager button:disabled { cursor: default; opacity: .5; }
 
     /* 姓名欄位做成可點擊連結樣式，提示可進入明細視窗。 */
     .member-info-name-link {
@@ -212,7 +510,16 @@
 
     /* 手機版縮小頁面外距與卡片 padding，提升可視範圍。 */
     @@media (max-width: 640px) {
+        /*
+            專案仍載入 Bootstrap 3，其全域 html 可能是 10px；因此 1rem 不能用來保證 iOS 的 16px
+            輸入門檻。這些變數只負責非輸入元件的相對層級，原生搜尋框會在下方明確鎖成 16px。
+        */
         .member-info-page {
+            --mi-mobile-district-font: clamp(1.125rem, calc(1rem + .65vw), 1.25rem);
+            --mi-mobile-tree-font: clamp(1rem, calc(.875rem + .65vw), 1.125rem);
+            --mi-mobile-label-font: clamp(.875rem, calc(.8125rem + .3vw), .9375rem);
+            --mi-mobile-grid-font: clamp(.9375rem, calc(.875rem + .3vw), 1rem);
+            --mi-mobile-grid-header-font: clamp(1rem, calc(.9375rem + .32vw), 1.0625rem);
             padding: 8px 4px 14px;
         }
 
@@ -221,16 +528,95 @@
             flex-direction: column;
         }
 
-        .member-info-grid-shell {
-            padding: 6px;
+        .member-info-title { font-size: var(--mi-mobile-district-font); line-height: 1.4; }
+        .member-info-access,
+        .mi-resync-status,
+        .mi-search-results-summary { font-size: var(--mi-mobile-label-font); line-height: 1.4; }
+
+        /* 單列不可換行，故同時縮小 gap/水平 padding；48px 高度仍保留可觸控面積。 */
+        .mi-tree-actions { gap: clamp(3px, 1vw, 6px); }
+        .mi-search {
+            height: 48px;
+            padding: 0 clamp(5px, 1.5vw, 9px);
+            /* 不可改成 1rem：Bootstrap 3 的 html=10px 會觸發 iOS／LINE WebView 聚焦時自動放大。 */
+            font-size: 16px;
+            line-height: 1.5;
         }
+        .mi-btn {
+            min-height: 48px;
+            padding: 0 clamp(5px, 1.5vw, 9px);
+            font-size: var(--mi-mobile-label-font);
+            line-height: 1.4;
+        }
+        .mi-btn-search { gap: clamp(3px, 1vw, 5px); }
+        .mi-search-btn-icon { font-size: clamp(1rem, calc(.875rem + .5vw), 1.125rem); }
+
+        .mi-district-header {
+            min-height: clamp(64px, 12vw, 72px);
+            padding: clamp(10px, 2.5vw, 14px);
+            align-items: center;
+        }
+        .mi-group-header {
+            min-height: clamp(72px, 15vw, 84px);
+            padding: clamp(10px, 2.5vw, 14px);
+            align-items: center;
+        }
+        .mi-chevron {
+            width: 44px;
+            height: 44px;
+            flex-basis: 44px;
+            font-size: 24px;
+        }
+        .mi-title { gap: 6px; }
+        .mi-node-title,
+        .mi-leader-group { font-size: var(--mi-mobile-tree-font); line-height: 1.5; }
+        .mi-leader-district { font-size: var(--mi-mobile-district-font); line-height: 1.4; }
+        .mi-leader-line { gap: clamp(6px, 1.5vw, 10px); }
+        .mi-count {
+            padding: 4px clamp(8px, 2vw, 12px);
+            font-size: var(--mi-mobile-label-font);
+            line-height: 1.4;
+        }
+        .mi-group-meta { gap: 4px 10px; font-size: var(--mi-mobile-label-font); }
+
+        .mi-pager { font-size: var(--mi-mobile-tree-font); line-height: 1.5; }
+        .mi-pager button {
+            min-height: 48px;
+            font-size: var(--mi-mobile-label-font);
+        }
+        .mi-search-results-title { font-size: var(--mi-mobile-tree-font); line-height: 1.5; }
+        .mi-search-results-header { align-items: flex-start; flex-direction: column; }
+
+        #memberInfoPage .dx-datagrid-headers .dx-row > td {
+            padding-top: clamp(10px, 2vw, 13px);
+            padding-bottom: clamp(10px, 2vw, 13px);
+            font-size: var(--mi-mobile-grid-header-font);
+            line-height: 1.4;
+        }
+        #memberInfoPage .dx-datagrid-rowsview .dx-row > td {
+            padding-top: clamp(8px, 2vw, 12px);
+            padding-bottom: clamp(8px, 2vw, 12px);
+            font-size: var(--mi-mobile-grid-font);
+            line-height: 1.5;
+        }
+        #memberInfoPage .member-info-name-link {
+            display: inline-flex;
+            min-height: 44px;
+            align-items: center;
+            font-size: inherit;
+            line-height: inherit;
+        }
+
+        .mi-grid-host { overflow-x: hidden; }
     }
 
     /*
         iOS Safari 會在輸入框字級小於 16px 時自動放大整頁。
-        這裡將所有編輯控制項的輸入字級統一拉高，避免手機操作時畫面被強制縮放。
+        Bootstrap 3 可能把 html 根字級設為 10px，所以 1rem 並不等於安全的 16px；原生 #miTreeSearch
+        也不是 DevExtreme 的 .dx-texteditor-input，必須明列選擇器並使用絕對 16px，避免手機聚焦時整頁縮放。
     */
-    #MemberInfoGridContainer .dx-texteditor-input,
+    #memberInfoPage #miTreeSearch,
+    #memberInfoPage .dx-texteditor-input,
     #memberInfoDetailPopup .dx-texteditor-input {
         font-size: 16px;
     }
@@ -285,11 +671,6 @@
         pointer-events: none;
     }
 
-    /* 載入中訊息保留與實際內容相同的邊距，避免彈窗切換時畫面跳動。 */
-    .member-info-detail-loading {
-        padding: 16px;
-    }
-
     /* 手機版維持同一個原生 popup 內容容器，只調整內距與安全區底部距離。 */
     @@media (max-width: 720px) {
         .member-info-detail-popup-content {
@@ -302,85 +683,56 @@
     }
 </style>
 
-<div class="member-info-page">
-    <!-- 頁面頂部工具列：左側標題、右側權限提示。 -->
+<div id="memberInfoPage" class="member-info-page">
     <div class="member-info-toolbar">
         <h4 class="member-info-title">會友資訊</h4>
         <div class="member-info-access">@ViewBag.MemberInfoAccess</div>
     </div>
 
-    <!-- 主要內容區：以卡片包覆 DevExtreme DataGrid，維持與頁面一致的留白與陰影。 -->
-    <div class="member-info-grid-shell">
-        <!--
-            會友清單使用 DevExtreme DataGrid 呈現：
-            - 伺服器端分頁與排序，減少前端一次載入壓力
-            - 照片欄位使用自訂模板，先顯示佔位圖再批次補圖
-            - 姓名欄位可點擊，進入右側明細彈窗
-        -->
-        @(Html.DevExtreme().DataGrid<MemberInfoListRowViewModel>()
-            .ID("MemberInfoGridContainer")
-            .DataSource(d => d.Mvc()
-                .Controller("MemberInfo")
-                .LoadAction("LoadMemberInfoList")
-                .Key("ContactId"))
-            .ShowBorders(true)
-            .ShowRowLines(true)
-            .ShowColumnLines(true)
-            .RowAlternationEnabled(true)
-            .ColumnAutoWidth(true)
-            .AllowColumnResizing(true)
-            .ColumnResizingMode(ColumnResizingMode.Widget)
-            .ColumnHidingEnabled(true)
-            .RemoteOperations(ro => ro
-                .Filtering(true)
-                .Sorting(true)
-                .Paging(true)
-                .Grouping(false)
-                .Summary(false))
-            .SearchPanel(s => s.Visible(true).Placeholder("搜尋姓名、手機或會員身分"))
-            .Paging(p => p.PageSize(50))
-            .Pager(p => p
-                .ShowPageSizeSelector(true)
-                .AllowedPageSizes(new[] { 25, 50, 100 })
-                .ShowInfo(true))
-            .NoDataText("沒有資料")
-            .LoadPanel(l => l.Enabled(true).Text("載入中..."))
-            .Columns(columns =>
-            {
-                columns.Add()
-                    .DataField("ContactId")
-                    .Caption("照片")
-                    .Width(58)
-                    .MinWidth(58)
-                    .AllowSorting(false)
-                    .AllowFiltering(false)
-                    .AllowEditing(false)
-                    .Fixed(true)
-                    .CellTemplate(new JS("memberInfoAvatarCellTemplate"));
+    @*
+        搜尋框與兩個操作按鈕是一個不可換行的單列；搜尋按鈕文字會依 idle/searching/results/error 改變，
+        同步按鈕則只有具備全教會管理權限時才解除 hidden。
+    *@
+    <div class="mi-tree-actions">
+        <input id="miTreeSearch" class="mi-search" type="search" autocomplete="off"
+               placeholder="搜尋姓名、手機或會員身分" aria-label="搜尋會友" />
+        <button id="miSearchBtn" type="button" class="mi-btn mi-btn-search">
+            <span class="mi-search-btn-icon" aria-hidden="true">⌕</span>
+            <span data-mi-search-label>搜尋</span>
+        </button>
+        <button id="miResyncBtn" type="button" class="mi-btn mi-btn-resync" hidden>重新同步LINE</button>
+    </div>
 
-                columns.AddFor(m => m.FullName)
-                    .Caption("姓名")
-                    .Width(140)
-                    .MinWidth(100)
-                    .Fixed(true)
-                    .CellTemplate(new JS("memberInfoNameCellTemplate"));
+    <div id="miResyncStatus" class="mi-resync-status" aria-live="polite"></div>
+    @* browse 保留原本的區長/小組長樹與分頁；搜尋不在樹內過濾，而是用 results 區塊直接取代整個 browse。 *@
+    <div id="miBrowseView" class="mi-browse-view">
+        <div id="memberInfoTree" class="mi-tree" aria-live="polite"></div>
+        <div id="miTreePager" class="mi-pager" aria-label="小組分頁"></div>
+    </div>
 
-                columns.AddFor(m => m.MembershipStatus)
-                    .Caption("會員身分")
-                    .Width(110)
-                    .MinWidth(90);
+    @* results 同時承載有資料的 DataGrid、零筆提示與錯誤提示；三者由同一個搜尋狀態機互斥顯示。 *@
+    <section id="miSearchResults" class="mi-search-results" aria-live="polite" hidden>
+        <div class="mi-search-results-header">
+            <span class="mi-search-results-title">搜尋結果</span>
+            <span id="miSearchResultsSummary" class="mi-search-results-summary"></span>
+        </div>
+        <div id="miSearchResultGrid" class="mi-grid-host"></div>
+        <div id="miSearchResultMessage" class="mi-search-result-message" hidden>
+            <span class="mi-search-result-message-icon" aria-hidden="true">⌕</span>
+            <strong data-mi-search-message-title></strong>
+            <span data-mi-search-message-note></span>
+        </div>
+    </section>
 
-                columns.AddFor(m => m.Phone)
-                    .Caption("手機")
-                    .Width(150)
-                    .MinWidth(110);
-
-                columns.AddFor(m => m.SmallGroupName)
-                    .Caption("小組")
-                    .MinWidth(160);
-            })
-            .OnContentReady("memberInfoPreloadImages")
-            .OnToolbarPreparing("memberInfoGridToolbarPreparing"))
+    @* searching 期間以全頁 overlay 阻擋重複操作；停止搜尋按鈕的 z-index 高於此層，仍可取消請求。 *@
+    <div id="miSearchOverlay" class="mi-search-overlay" role="status" aria-live="polite" aria-atomic="true" hidden>
+        <div class="mi-search-overlay-card">
+            <span class="mi-search-spinner" aria-hidden="true"></span>
+            <span class="mi-search-overlay-copy">
+                <strong>正在搜尋會友…</strong>
+                <span>按「停止搜尋」可取消並回復搜尋前的畫面。</span>
+            </span>
+        </div>
     </div>
 </div>
 
@@ -429,9 +781,6 @@
         "<path d='M8 64c1.5-17.2 10.9-29.6 24-29.6S54.5 46.8 56 64H8z'/>" +
         "</g></svg>");
 
-    // ── 顯示照片 / 顯示全部 切換 ──
-    // 預設：顯示全部(按鈕綠色、文字「顯示照片」)；按下後只顯示真正有照片者(按鈕變藍、文字「顯示全部」)，再按一次切回。
-    var memberInfoPhotoOnly = false;
     // 僅「全教會」管理者顯示「重新同步LINE」按鈕（由伺服器端 ViewBag 決定）。
     var memberInfoCanResync = @(ViewBag.MemberInfoCanResync == true ? "true" : "false");
 
@@ -493,27 +842,6 @@
         }
     }
 
-    // 自訂工具列按鈕：切換資料表是否只顯示有照片的會友。
-    window.memberInfoTogglePhotoFilter = function () {
-        memberInfoPhotoOnly = !memberInfoPhotoOnly;
-
-        var btn = document.getElementById('memberInfoPhotoFilterBtn');
-        if (btn) {
-            btn.classList.toggle('is-photo-only', memberInfoPhotoOnly);
-            btn.textContent = memberInfoPhotoOnly ? '顯示全部' : '顯示照片';
-        }
-
-        var grid = $('#MemberInfoGridContainer').dxDataGrid('instance');
-        if (!grid) { return; }
-
-        // 換資料來源並帶入 photoOnly 參數；表格會自行保留並重新套用目前的排序/搜尋狀態。
-        grid.option('dataSource', DevExpress.data.AspNet.createStore({
-            key: 'ContactId',
-            loadUrl: '/MemberInfo/LoadMemberInfoList',
-            loadParams: { photoOnly: memberInfoPhotoOnly }
-        }));
-    };
-
     // ── 重新同步 LINE 資料 ──
     // 依 new_lineid 向 LINE Profile API 重新取得大頭貼/狀態/暱稱並覆寫(或清空)CRM 欄位。
     // 已換照/移除照片者其照片網址被清空後，下次載入即顯示性別預設剪影、不再有 LINE 標示。
@@ -524,15 +852,8 @@
         var btn = document.getElementById('memberInfoResyncBtn');
         if (btn) { btn.disabled = true; btn.textContent = '同步中…'; }
 
-        // 進度列：顯示在網格上方，每批持續更新「已處理／成功／失敗」。
-        var statusEl = document.getElementById('memberInfoResyncStatus');
-        if (!statusEl) {
-            statusEl = document.createElement('div');
-            statusEl.id = 'memberInfoResyncStatus';
-            statusEl.style.cssText = 'margin:6px 0;font-weight:700;color:#2563eb;';
-            var host = document.getElementById('MemberInfoGridContainer');
-            if (host && host.parentNode) { host.parentNode.insertBefore(statusEl, host); }
-        }
+        var statusEl = document.getElementById('miResyncStatus');
+        if (!statusEl) { return; }
         statusEl.textContent = '準備中…';
 
         var okValid = 0, updated = 0, cleared = 0, noPhoto = 0, inconclusive = 0, failed = 0, done = 0;
@@ -595,54 +916,24 @@
             }
             alert(msg);
 
-            // 重整網格 + 清前端影像快取，讓頭像以最新來源重新載入。
+            // 清前端影像快取，只重新排入目前樹上可見的頭像。
             memberInfoImageCache = {};
             memberInfoImageSourceCache = {};
-            var grid = $('#MemberInfoGridContainer').dxDataGrid('instance');
-            if (grid) { grid.refresh(); }
+            $('#memberInfoPage .member-info-avatar-img[data-contact-id]').each(function () {
+                var contactId = this.dataset.contactId;
+                if (!contactId) { return; }
+                memberInfoQueuedImageIds[contactId] = true;
+                this.src = memberInfoLoadingAvatar;
+                var wrap = this.closest('.member-info-avatar-wrap');
+                if (wrap) { wrap.classList.add('is-loading'); }
+            });
+            memberInfoScheduleImagePreload(memberInfoPreloadComponent, null);
         } catch (e) {
             var emsg = (e && e.message) ? e.message : (e && e.status ? ('HTTP ' + e.status) : '請稍後再試');
             statusEl.textContent = '同步發生問題：' + emsg;
             alert('同步發生問題：' + emsg);
         } finally {
             if (btn) { btn.disabled = false; btn.textContent = '重新同步LINE'; }
-        }
-    };
-
-    // 把按鈕放進網格工具列(與搜尋框同一列、緊鄰網格上端)；onToolbarPreparing 確保工具列每次重建都依目前狀態正確呈現。
-    // 由於 DataGrid 會在排序、搜尋或重繪時重新建立 toolbar，因此按鈕必須在此處動態插入。
-    window.memberInfoGridToolbarPreparing = function (e) {
-        if (!e || !e.toolbarOptions || !e.toolbarOptions.items) { return; }
-        e.toolbarOptions.items.unshift({
-            location: 'before',
-            locateInMenu: 'never',
-            template: function () {
-                var btn = document.createElement('button');
-                btn.type = 'button';
-                btn.id = 'memberInfoPhotoFilterBtn';
-                btn.className = 'member-info-photo-filter-btn' + (memberInfoPhotoOnly ? ' is-photo-only' : '');
-                btn.textContent = memberInfoPhotoOnly ? '顯示全部' : '顯示照片';
-                btn.onclick = memberInfoTogglePhotoFilter;
-                return btn;
-            }
-        });
-
-        if (memberInfoCanResync) {
-            // 插在「顯示照片」按鈕(index 0)之後，使其顯示在顯示照片的右邊。
-            e.toolbarOptions.items.splice(1, 0, {
-                location: 'before',
-                locateInMenu: 'never',
-                template: function () {
-                    var btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.id = 'memberInfoResyncBtn';
-                    btn.className = 'member-info-photo-filter-btn';
-                    btn.style.background = '#0ea5e9';
-                    btn.textContent = '重新同步LINE';
-                    btn.onclick = memberInfoResyncLineProfiles;
-                    return btn;
-                }
-            });
         }
     };
 
@@ -671,7 +962,7 @@
 
     window.memberInfoAvatarCellTemplate = function (container, options) {
         var data = options.data || {};
-        var contactId = data.ContactId || data.contactId || options.value || '';
+        var contactId = data.ContactId || options.value || '';
         var host = container && container.get ? container.get(0) : container;
         if (!host) return;
         host.textContent = '';
@@ -685,10 +976,8 @@
         var img = document.createElement('img');
         img.className = 'member-info-avatar-img';
         img.alt = '大頭照';
-        // 必須 eager：照片欄位是 Fixed(true)，DevExtreme 會把欄位範本渲染在「絕對定位」的
-        // 固定欄覆蓋層(.dx-datagrid-content-fixed)。瀏覽器原生 loading="lazy" 的
-        // IntersectionObserver 在初次繪製時偵測不到絕對定位/被裁切容器內的圖片，
-        // 導致照片必須滑動後才載入。改為 eager 可在網格初始化後第一時間就顯示照片。
+        // 使用 eager 可在網格初始化後第一時間顯示照片；窄螢幕左右滑動時也不必等欄位
+        // 進入 viewport 才啟動圖片載入，避免滑到資料列時仍看到尚未處理的空白頭像。
         img.loading = 'eager';
         img.decoding = 'async';
         img.dataset.contactId = contactId;
@@ -751,8 +1040,8 @@
     // 姓名欄位模板：使用超連結外觀，但實際上開啟的是明細彈窗而非頁面導轉。
     window.memberInfoNameCellTemplate = function (container, options) {
         var data = options.data || {};
-        var contactId = data.ContactId || data.contactId || '';
-        var fullName = data.FullName || data.fullName || '';
+        var contactId = data.ContactId || '';
+        var fullName = data.FullName || '';
         var host = container && container.get ? container.get(0) : container;
         if (!host) return;
         host.textContent = '';
@@ -807,7 +1096,7 @@
                     });
                 }
                 // 批次已回：有圖就換上並停轉；沒回傳該人(極少數，如無權檢視)也停轉，留綠色剪影。
-                $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]').each(function () {
+                $('#memberInfoPage .member-info-avatar-img[data-contact-id]').each(function () {
                     var cid = this.dataset.contactId;
                     if (cid && memberInfoImageCache[cid]) {
                         memberInfoSettleAvatar(this, memberInfoImageCache[cid], memberInfoImageSourceCache[cid]);
@@ -818,7 +1107,7 @@
             },
             error: function () {
                 // 批次失敗 → 退回逐筆載入(舊行為)；載入完成(或失敗)即停轉，不會卡在轉圈。
-                $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]').each(function () {
+                $('#memberInfoPage .member-info-avatar-img[data-contact-id]').each(function () {
                     var cid = this.dataset.contactId;
                     if (cid && !memberInfoImageCache[cid]) {
                         memberInfoSettleAvatar(this, '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(cid) + '&size=48', '');
@@ -835,6 +1124,770 @@
             }
         });
     };
+
+    /*
+        搜尋狀態機：idle 顯示 browse；searching 顯示 overlay 並保留可取消 XHR；results/error 直接顯示結果區。
+        searchToken 隔離已取消或較舊的 callback，browseScrollY 則讓返回 browse 時恢復搜尋前的閱讀位置。
+    */
+    var miState = {
+        tree: null,
+        page: 0,
+        pageSize: 50,
+        search: '',
+        renderToken: 0,
+        searchXhr: null,
+        searchMode: 'idle',
+        searchToken: 0,
+        browseScrollY: 0
+    };
+
+    function miElement(tagName, className, text) {
+        var element = document.createElement(tagName);
+        if (className) { element.className = className; }
+        if (text != null) { element.textContent = text; }
+        return element;
+    }
+
+    // 產生可重用且帶 aria-live 的 Loading 卡片；compact 僅用於小組內嵌載入，不改變語意與動畫節奏。
+    function miLoadingHtml(compact) {
+        var className = 'mi-loading-card' + (compact ? ' mi-loading-card-compact' : '');
+        return '<div class="' + className + '" role="status" aria-live="polite" aria-atomic="true">' +
+            '<span class="mi-loading-dots" aria-hidden="true">' +
+                '<span class="mi-loading-dot"></span>' +
+                '<span class="mi-loading-dot"></span>' +
+                '<span class="mi-loading-dot"></span>' +
+            '</span>' +
+            '<span class="mi-loading-copy">' +
+                '<strong class="mi-loading-title">正在整理會友資料</strong>' +
+                '<span class="mi-loading-note" data-mi-loading-note>' +
+                    '資料較多時會需要幾秒，完成後會自動顯示。' +
+                '</span>' +
+            '</span>' +
+        '</div>';
+    }
+
+    // 六秒後仍在 DOM 才更新安心文案；已完成或已被替換的卡片不會收到過期訊息。
+    function miScheduleLoadingReassurance(root) {
+        var card = root && root.matches && root.matches('.mi-loading-card')
+            ? root
+            : root && root.querySelector && root.querySelector('.mi-loading-card');
+        if (!card) { return; }
+        var note = card.querySelector('[data-mi-loading-note]');
+        window.setTimeout(function () {
+            if (card.isConnected && note) {
+                note.textContent = '資料還在傳送中，畫面沒有當掉，請再稍候一下。';
+            }
+        }, 6000);
+    }
+
+    function miShowLoading(host, compact) {
+        host.innerHTML = miLoadingHtml(compact);
+        miScheduleLoadingReassurance(host);
+    }
+
+    function miCountGroups(tree) {
+        return ((tree && tree.Districts) || []).reduce(function (total, district) {
+            return total + ((district && district.Groups) || []).length;
+        }, 0);
+    }
+
+    function miPageSlice(tree) {
+        var start = miState.page * miState.pageSize;
+        var end = start + miState.pageSize;
+        var seen = 0;
+        var districts = [];
+        ((tree && tree.Districts) || []).forEach(function (district) {
+            var pageGroups = [];
+            (district.Groups || []).forEach(function (group) {
+                if (seen >= start && seen < end) { pageGroups.push(group); }
+                seen++;
+            });
+            if (pageGroups.length) {
+                districts.push(Object.assign({}, district, { Groups: pageGroups }));
+            }
+        });
+        return { districts: districts, totalGroups: seen };
+    }
+
+    function miSetExpanded(node, expanded) {
+        node.classList.toggle('mi-open', expanded);
+        var header = node.querySelector(':scope > button');
+        if (header) { header.setAttribute('aria-expanded', expanded ? 'true' : 'false'); }
+    }
+
+    /*
+        countTexts 同時支援單一字串與陣列：區標頭可依序顯示「組數」及「本區人數」兩個 badge，
+        既有只傳一個人數的節點仍維持相同輸出；每個非空值都各自建立 mi-count，避免合併後失去辨識度。
+        metadataItems 會先排除空值；小組時間與地點都未填時完全不建立 metadata 列，但小組名稱、組長與人數
+        仍會照常保留，避免空白的第三列占用版面，也不影響標頭原有的展開／收合操作。
+    */
+    function miAppendHeaderText(header, title, leaderText, countTexts, leaderClass, metadataItems) {
+        header.appendChild(miElement('span', 'mi-chevron', '▸'));
+        var titleElement = miElement('span', 'mi-title');
+        if (title) { titleElement.appendChild(miElement('span', 'mi-node-title', title)); }
+        var leaderLine = miElement('span', 'mi-leader-line ' + leaderClass);
+        if (leaderText) { leaderLine.appendChild(miElement('span', 'mi-leader-name', leaderText)); }
+        var normalizedCounts = Array.isArray(countTexts) ? countTexts : [countTexts];
+        normalizedCounts.forEach(function (countText) {
+            if (countText) { leaderLine.appendChild(miElement('span', 'mi-count', countText)); }
+        });
+        titleElement.appendChild(leaderLine);
+        var visibleMetadata = (metadataItems || []).filter(function (item) { return item.value; });
+        if (visibleMetadata.length) {
+            var metadataLine = miElement('span', 'mi-group-meta');
+            visibleMetadata.forEach(function (item) {
+                metadataLine.appendChild(miElement('span', 'mi-group-meta-item', item.label + item.value));
+            });
+            titleElement.appendChild(metadataLine);
+        }
+        header.appendChild(titleElement);
+    }
+
+    // 相容舊版快取／舊 API 可能回傳的「(未填牧區)」佔位字串；現行後端傳入空值時也自然維持空白。
+    function miVisibleAreaName(value) {
+        value = (value || '').trim();
+        return value === '(未填牧區)' ? '' : value;
+    }
+
+    function miDistrictHeader(district) {
+        var header = miElement('button', 'mi-district-header');
+        header.type = 'button';
+        header.setAttribute('aria-expanded', 'true');
+        miAppendHeaderText(header, miVisibleAreaName(district.AreaName),
+            '區長：' + (district.RaceLeaderName || ''),
+            [(district.GroupCount || 0) + ' 組', '本區 ' + (district.MemberCount || 0) + ' 人'],
+            'mi-leader-district');
+        header.addEventListener('click', function () {
+            var node = header.parentNode;
+            miSetExpanded(node, !node.classList.contains('mi-open'));
+        });
+        return header;
+    }
+
+    function miGroupHeader(group) {
+        var header = miElement('button', 'mi-group-header');
+        header.type = 'button';
+        header.setAttribute('aria-expanded', 'false');
+        miAppendHeaderText(header, group.GroupName || '',
+            '小組長：' + (group.LeaderName || ''),
+            (group.MemberCount || 0) + ' 人', 'mi-leader-group', [
+                { label: '小組時間：', value: (group.GroupTime || '').trim() },
+                { label: '小組地點：', value: (group.GroupPlace || '').trim() }
+            ]);
+        header.addEventListener('click', function () { miToggleGroup(header.parentNode); });
+        return header;
+    }
+
+    // BirthDate 是 nullable；空值、無效日期或 CRM 最小日期都顯示空白，避免產生 0001/01/01 之類假生日。
+    function miBirthText(cell) {
+        if (!cell.value) { return ''; }
+        var date = new Date(cell.value);
+        return !isNaN(date.getTime()) && date.getFullYear() > 1
+            ? date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate()
+            : '';
+    }
+
+    /*
+        Gender 已由後端把 OptionSet 數值轉成顯示字串，前端不可再把它當數字代碼解讀；BirthDate 交由
+        miBirthText 做 nullable 格式化。RelationGoals 是後端彙整後的單一顯示字串，固定只佔一欄，
+        不依每段關係拆欄，避免不同會友的欄位結構不一致。
+    */
+    /*
+        一般小組與搜尋結果會把整批 rows 放在瀏覽器內排序，因此 calculateSortValue 必須回傳可比較的
+        metadata rank。MembershipStatusOrder 來自 Dynamics customertypecode 選項集合的客製化排列位置，
+        不是 OptionSet raw 整數，也不是畫面中文文字；例如 raw value 較大的「牧師師母」仍可因 rank=0
+        排在第一個。
+
+        metadata 找不到的舊值與真正未填值都沒有 rank，但兩者不可混為一談：HasMembershipStatusValue=true
+        代表 CRM 確實有值、只是目前 metadata 沒有該選項；false 才是空白。升冪以接近 MAX 的兩個哨兵值
+        置底，降冪則改用接近 MIN 的兩個哨兵值置底；+1／-1 保證未知舊值始終在空白之前。DevExtreme
+        會以目前欄位設定作為 this，因此可依 sortOrder 在使用者反覆點擊表頭時切換方向。
+    */
+    function miMembershipStatusSortValue(row) {
+        var descending = this.sortOrder === 'desc';
+        if (row && row.MembershipStatusOrder != null) {
+            return row.MembershipStatusOrder;
+        }
+        if (row && row.HasMembershipStatusValue) {
+            return descending
+                ? Number.MIN_SAFE_INTEGER + 1
+                : Number.MAX_SAFE_INTEGER - 1;
+        }
+        return descending
+            ? Number.MIN_SAFE_INTEGER
+            : Number.MAX_SAFE_INTEGER;
+    }
+
+    function miMemberColumns(remotePaging) {
+        return [
+            { dataField: 'ContactId', caption: '頭像', width: 72, fixed: true, fixedPosition: 'left',
+              allowResizing: false, allowSorting: false, allowFiltering: false,
+              cellTemplate: memberInfoAvatarCellTemplate },
+            { dataField: 'FullName', caption: '姓名', width: 62,
+              fixed: true, fixedPosition: 'left', cellTemplate: memberInfoNameCellTemplate },
+            { dataField: 'Phone', caption: '行動電話', width: 124, alignment: 'center' },
+            { dataField: 'BirthDate', caption: '生日', dataType: 'date', width: 108,
+              alignment: 'center', customizeText: miBirthText },
+            { dataField: 'Address', caption: '地址', width: 250 },
+            { dataField: 'SpiritualIdentity', caption: '信仰狀態', width: 108, alignment: 'center' },
+            {
+                dataField: 'MembershipStatus',
+                caption: '會員身份',
+                width: 110,
+                alignment: 'center',
+                calculateSortValue: remotePaging
+                    ? 'MembershipStatusOrder'
+                    : miMembershipStatusSortValue,
+                sortOrder: 'asc',
+                sortIndex: 0
+            },
+            { dataField: 'RelationGoals', caption: '關係目標', width: 264,
+              allowSorting: !remotePaging },
+            { dataField: 'Gender', caption: '性別', width: 64, alignment: 'center' }
+        ];
+    }
+
+    /*
+        固定欄觸控轉接器：DevExtreme 的 fixed overlay 會攔住從頭像／姓名開始的 touch gesture，
+        但真正的水平位置仍由同一個 DataGrid scrollable 管理。本函式只在確認是「單指、超過 6px、
+        水平位移大於垂直位移」後才接管，避免斜向小抖動讓頁面上下滑失效。
+
+        onContentReady 可能因分頁或重繪被呼叫多次，所以 marker 掛在實際 fixedContent DOM 上；同一層
+        不重複綁定，DevExtreme 若換掉覆蓋層，新 DOM 則會在下一次 ready 自動取得自己的 handler。
+    */
+    function miEnableFixedColumnTouchScroll(component) {
+        var element = component && typeof component.element === 'function' ? component.element() : null;
+        var root = element && element.jquery ? element.get(0) : element;
+        var fixedContent = root && root.querySelector(
+            '.dx-datagrid-rowsview .dx-datagrid-content-fixed');
+        var scrollable = component && typeof component.getScrollable === 'function'
+            ? component.getScrollable()
+            : null;
+
+        if (!fixedContent || !scrollable || fixedContent.dataset.miTouchScrollBound === '1') { return; }
+        fixedContent.dataset.miTouchScrollBound = '1';
+
+        var gesture = null;
+        var suppressClickUntil = 0;
+
+        fixedContent.addEventListener('touchstart', function (event) {
+            if (!event.touches || event.touches.length !== 1) {
+                gesture = null;
+                return;
+            }
+            var touch = event.touches[0];
+            gesture = {
+                startX: touch.clientX,
+                startY: touch.clientY,
+                lastX: touch.clientX,
+                axis: ''
+            };
+        }, { passive: true });
+
+        fixedContent.addEventListener('touchmove', function (event) {
+            if (!gesture || !event.touches || event.touches.length !== 1) { return; }
+            var touch = event.touches[0];
+            var totalX = touch.clientX - gesture.startX;
+            var totalY = touch.clientY - gesture.startY;
+
+            if (!gesture.axis) {
+                if (Math.max(Math.abs(totalX), Math.abs(totalY)) < 6) { return; }
+                gesture.axis = Math.abs(totalX) > Math.abs(totalY) ? 'x' : 'y';
+            }
+            if (gesture.axis !== 'x') { return; }
+
+            var deltaX = gesture.lastX - touch.clientX;
+            gesture.lastX = touch.clientX;
+            suppressClickUntil = Date.now() + 350;
+            event.preventDefault();
+            scrollable.scrollBy({ left: deltaX, top: 0 });
+        }, { passive: false });
+
+        function endGesture() {
+            gesture = null;
+        }
+
+        fixedContent.addEventListener('touchend', endGesture, { passive: true });
+        fixedContent.addEventListener('touchcancel', endGesture, { passive: true });
+
+        // 手指真的滑動過才擋掉瀏覽器隨後合成的 click；單純輕點姓名仍走既有明細開啟流程。
+        fixedContent.addEventListener('click', function (event) {
+            if (Date.now() > suppressClickUntil) { return; }
+            event.preventDefault();
+            event.stopPropagation();
+        }, true);
+    }
+
+    // 一般小組、搜尋結果與無小組網格共用同一個 ready handler，確保固定欄手勢與照片批次預載一致。
+    function miMemberGridReady(e) {
+        miEnableFixedColumnTouchScroll(e && e.component);
+        window.memberInfoPreloadImages({ component: e.component });
+    }
+
+    // 所有會友網格共用 DevExtreme 的唯一原生水平捲軸；always 也讓觸控裝置清楚知道內容可左右滑動。
+    function miGridScrollingOptions() {
+        return {
+            useNative: true,
+            showScrollbar: 'always',
+            scrollByContent: true,
+            scrollByThumb: true
+        };
+    }
+
+    // 關閉欄位自動隱藏並給定固定寬度，寬表格改由上述單一水平捲軸完整呈現所有欄位。
+    function miMountMemberGrid(host, rows) {
+        host.textContent = '';
+        $(host).dxDataGrid({
+            elementAttr: { class: 'mi-wide-member-grid' },
+            dataSource: rows || [],
+            keyExpr: 'ContactId',
+            showBorders: true,
+            showRowLines: true,
+            showColumnLines: true,
+            allowColumnResizing: true,
+            columnResizingMode: 'widget',
+            sorting: { mode: 'single' },
+            rowAlternationEnabled: true,
+            columnAutoWidth: false,
+            columnHidingEnabled: false,
+            wordWrapEnabled: true,
+            paging: { enabled: false },
+            scrolling: miGridScrollingOptions(),
+            noDataText: '沒有資料',
+            columns: miMemberColumns(false),
+            onContentReady: miMemberGridReady
+        });
+    }
+
+    function miShowLoadFailure(host, groupElement, status) {
+        host.textContent = '';
+        var message = miElement('div', 'mi-message mi-message-error',
+            status === 403 ? '無權檢視此小組' : '載入失敗');
+        if (status !== 403) {
+            var retry = miElement('button', 'mi-retry', '重試');
+            retry.type = 'button';
+            retry.addEventListener('click', function () {
+                delete groupElement.dataset.loadedSearchKey;
+                miLoadGroup(groupElement);
+            });
+            message.appendChild(retry);
+        }
+        host.appendChild(message);
+    }
+
+    // browse 的群組載入永遠不帶搜尋字串；搜尋結果由獨立端點與獨立 DataGrid 直接取代 browse。
+    function miLoadGroup(groupElement) {
+        var host = groupElement.querySelector('.mi-grid-host');
+        var searchKey = '';
+        var renderToken = miState.renderToken;
+        if (groupElement.dataset.loading === '1' || groupElement.dataset.loadedSearchKey === searchKey) { return; }
+        groupElement.dataset.loading = '1';
+        miShowLoading(host, true);
+        var request = $.ajax({
+            url: '/MemberInfo/LoadGroupMembers', type: 'GET',
+            data: { listId: groupElement.dataset.listId, search: searchKey }
+        });
+        groupElement._miRequest = request;
+        request.done(function (response) {
+            if (renderToken !== miState.renderToken || !groupElement.isConnected) { return; }
+            host.textContent = '';
+            groupElement.dataset.loadedSearchKey = searchKey;
+            miMountMemberGrid(host, (response && response.data) || []);
+        }).fail(function (xhr) {
+            if (renderToken !== miState.renderToken || !groupElement.isConnected || (xhr && xhr.statusText === 'abort')) { return; }
+            miShowLoadFailure(host, groupElement, xhr && xhr.status);
+        }).always(function () {
+            if (groupElement._miRequest === request) { groupElement._miRequest = null; }
+            groupElement.dataset.loading = '0';
+        });
+    }
+
+    function miToggleGroup(groupElement, forceOpen) {
+        var open = forceOpen == null ? !groupElement.classList.contains('mi-open') : !!forceOpen;
+        miSetExpanded(groupElement, open);
+        if (open) { miLoadGroup(groupElement); }
+    }
+
+    function miMountUngroupedGrid(host) {
+        host.textContent = '';
+        var store = DevExpress.data.AspNet.createStore({
+            key: 'ContactId',
+            loadUrl: '/MemberInfo/LoadUngroupedMembers',
+            loadParams: { search: '' }
+        });
+        $(host).dxDataGrid({
+            elementAttr: { class: 'mi-wide-member-grid' },
+            dataSource: store,
+            remoteOperations: { paging: true, sorting: true },
+            showBorders: true,
+            showRowLines: true,
+            showColumnLines: true,
+            allowColumnResizing: true,
+            columnResizingMode: 'widget',
+            sorting: { mode: 'single' },
+            rowAlternationEnabled: true,
+            columnAutoWidth: false,
+            columnHidingEnabled: false,
+            wordWrapEnabled: true,
+            scrolling: miGridScrollingOptions(),
+            paging: { pageSize: 50 },
+            pager: { showPageSizeSelector: true, allowedPageSizes: [25, 50, 100], showInfo: true, visible: true },
+            noDataText: '沒有資料',
+            columns: miMemberColumns(true),
+            onContentReady: miMemberGridReady
+        });
+    }
+
+    function miRenderUngroupedNode(ungrouped, autoOpen) {
+        var node = miElement('section', 'mi-district mi-ungrouped');
+        var header = miElement('button', 'mi-district-header');
+        header.type = 'button';
+        header.setAttribute('aria-expanded', 'false');
+        miAppendHeaderText(header, '', '無小組', (ungrouped.MemberCount || 0) + ' 人', 'mi-leader-district');
+        var body = miElement('div', 'mi-district-body');
+        var host = miElement('div', 'mi-grid-host');
+        body.appendChild(host);
+        node.appendChild(header);
+        node.appendChild(body);
+        header.addEventListener('click', function () {
+            var open = !node.classList.contains('mi-open');
+            miSetExpanded(node, open);
+            if (open && node.dataset.loaded !== '1') {
+                node.dataset.loaded = '1';
+                miMountUngroupedGrid(host);
+            }
+        });
+        if (autoOpen) {
+            miSetExpanded(node, true);
+            node.dataset.loaded = '1';
+            miMountUngroupedGrid(host);
+        }
+        return node;
+    }
+
+    function miRenderPager(totalGroups) {
+        var pager = document.getElementById('miTreePager');
+        pager.textContent = '';
+        var pages = Math.max(1, Math.ceil(totalGroups / miState.pageSize));
+        if (pages <= 1) { return; }
+        var previous = miElement('button', '', '上一頁');
+        previous.type = 'button';
+        previous.disabled = miState.page <= 0;
+        previous.addEventListener('click', function () {
+            miState.page--;
+            miRenderCurrent();
+            document.getElementById('memberInfoTree').scrollIntoView({ block: 'start' });
+        });
+        var next = miElement('button', '', '下一頁');
+        next.type = 'button';
+        next.disabled = miState.page >= pages - 1;
+        next.addEventListener('click', function () {
+            miState.page++;
+            miRenderCurrent();
+            document.getElementById('memberInfoTree').scrollIntoView({ block: 'start' });
+        });
+        pager.appendChild(previous);
+        pager.appendChild(miElement('span', '', '第 ' + (miState.page + 1) + ' / ' + pages + ' 頁（共 ' + totalGroups + ' 組）'));
+        pager.appendChild(next);
+    }
+
+    function miRenderTree(tree) {
+        var host = document.getElementById('memberInfoTree');
+        var token = ++miState.renderToken;
+        host.textContent = '';
+        var totalGroups = miCountGroups(tree);
+        var pages = Math.max(1, Math.ceil(totalGroups / miState.pageSize));
+        miState.page = Math.max(0, Math.min(miState.page, pages - 1));
+        var paged = miPageSlice(tree);
+        var autoOpenGroups = totalGroups === 1;
+
+        paged.districts.forEach(function (district) {
+            var districtElement = miElement('section', 'mi-district mi-open');
+            districtElement.dataset.raceLeaderKey = district.RaceLeaderKey || '';
+            districtElement.appendChild(miDistrictHeader(district));
+            var body = miElement('div', 'mi-district-body');
+            (district.Groups || []).forEach(function (group) {
+                var groupElement = miElement('section', 'mi-group');
+                groupElement.dataset.listId = group.ListId || '';
+                groupElement.appendChild(miGroupHeader(group));
+                var groupBody = miElement('div', 'mi-group-body');
+                groupBody.appendChild(miElement('div', 'mi-grid-host'));
+                groupElement.appendChild(groupBody);
+                body.appendChild(groupElement);
+                if (autoOpenGroups && token === miState.renderToken) { miToggleGroup(groupElement, true); }
+            });
+            districtElement.appendChild(body);
+            host.appendChild(districtElement);
+        });
+
+        if (tree && tree.Ungrouped && (totalGroups === 0 || miState.page >= pages - 1)) {
+            host.appendChild(miRenderUngroupedNode(tree.Ungrouped, false));
+        }
+        if (!host.children.length) {
+            host.appendChild(miElement('div', 'mi-message', '沒有資料'));
+        }
+        miRenderPager(paged.totalGroups);
+    }
+
+    function miRenderCurrent() {
+        miRenderTree(miState.tree || { Districts: [], Ungrouped: null, Scope: '' });
+    }
+
+    /*
+        集中切換四態的按鈕文字、圖示、ARIA 與 overlay：
+        idle=搜尋；searching=停止搜尋；results/error=返回會友資訊。其他函式不得各自拼湊半套 UI 狀態。
+    */
+    function miSetSearchMode(mode) {
+        miState.searchMode = mode;
+        var button = document.getElementById('miSearchBtn');
+        var overlay = document.getElementById('miSearchOverlay');
+        if (!button || !overlay) { return; }
+
+        var icon = button.querySelector('.mi-search-btn-icon');
+        var label = button.querySelector('[data-mi-search-label]');
+        button.classList.remove('mi-btn-stop', 'mi-btn-return');
+        overlay.hidden = mode !== 'searching';
+
+        if (mode === 'searching') {
+            button.classList.add('mi-btn-stop');
+            if (icon) { icon.textContent = '■'; }
+            if (label) { label.textContent = '停止搜尋'; }
+            button.setAttribute('aria-label', '停止搜尋並返回搜尋前畫面');
+            return;
+        }
+
+        if (mode === 'results' || mode === 'error') {
+            button.classList.add('mi-btn-return');
+            if (icon) { icon.textContent = '↩'; }
+            if (label) { label.textContent = '返回會友資訊'; }
+            button.setAttribute('aria-label', '返回會友資訊');
+            return;
+        }
+
+        if (icon) { icon.textContent = '⌕'; }
+        if (label) { label.textContent = '搜尋'; }
+        button.setAttribute('aria-label', '搜尋會友');
+    }
+
+    /*
+        DevExtreme 會在 host 上掛事件與元件資料，不能只清 innerHTML。先 dispose 現有 instance，再以乾淨
+        同 id 容器替換；finally 保證即使第三方 dispose 例外，下次搜尋也不會沿用半損壞的 grid host。
+    */
+    function miClearSearchResultGrid() {
+        var gridHost = document.getElementById('miSearchResultGrid');
+        if (!gridHost) { return; }
+        var cleanHost = miElement('div', 'mi-grid-host');
+        cleanHost.id = 'miSearchResultGrid';
+        try {
+            var $gridHost = $(gridHost);
+            var instance = $gridHost.hasClass('dx-datagrid') ? $gridHost.dxDataGrid('instance') : null;
+            if (instance && typeof instance.dispose === 'function') { instance.dispose(); }
+        } catch (error) {
+            if (window.console && typeof window.console.warn === 'function') {
+                window.console.warn('搜尋結果表格清理失敗，已改用乾淨容器返回會友資訊。', error);
+            }
+        } finally {
+            if (gridHost.parentNode) { gridHost.parentNode.replaceChild(cleanHost, gridHost); }
+        }
+        return cleanHost;
+    }
+
+    // 零筆與錯誤都使用訊息卡而非空 DataGrid；isError 只改語意色彩，不另建一套結果畫面。
+    function miShowSearchResultMessage(title, note, isError) {
+        var message = document.getElementById('miSearchResultMessage');
+        var gridHost = document.getElementById('miSearchResultGrid');
+        if (!message || !gridHost) { return; }
+        gridHost.hidden = true;
+        message.hidden = false;
+        message.classList.toggle('mi-message-error', !!isError);
+        var titleElement = message.querySelector('[data-mi-search-message-title]');
+        var noteElement = message.querySelector('[data-mi-search-message-note]');
+        if (titleElement) { titleElement.textContent = title; }
+        if (noteElement) { noteElement.textContent = note || ''; }
+    }
+
+    // 搜尋成功後隱藏整個 browse，結果列直接成為唯一主內容；零筆也仍進入 results 狀態供使用者返回。
+    function miShowSearchResults(rows, term) {
+        rows = rows || [];
+        var browseView = document.getElementById('miBrowseView');
+        var resultsView = document.getElementById('miSearchResults');
+        var summary = document.getElementById('miSearchResultsSummary');
+        var message = document.getElementById('miSearchResultMessage');
+        var gridHost = document.getElementById('miSearchResultGrid');
+        if (!browseView || !resultsView || !summary || !message || !gridHost) { return; }
+
+        gridHost = miClearSearchResultGrid() || gridHost;
+        browseView.hidden = true;
+        resultsView.hidden = false;
+        message.hidden = true;
+        message.classList.remove('mi-message-error');
+        summary.textContent = '搜尋「' + term + '」・共 ' + rows.length + ' 筆';
+
+        if (rows.length > 0) {
+            miMountMemberGrid(gridHost, rows);
+        } else {
+            miShowSearchResultMessage('沒有搜尋到符合的會友', '請更換姓名、手機或會員身分後再試一次。', false);
+        }
+        miSetSearchMode('results');
+    }
+
+    // error 仍取代 browse，並區分權限、30 秒逾時與一般失敗；返回按鈕可無損恢復原樹與捲動位置。
+    function miShowSearchError(term, status, timedOut) {
+        var browseView = document.getElementById('miBrowseView');
+        var resultsView = document.getElementById('miSearchResults');
+        var summary = document.getElementById('miSearchResultsSummary');
+        if (!browseView || !resultsView || !summary) { return; }
+
+        miClearSearchResultGrid();
+        browseView.hidden = true;
+        resultsView.hidden = false;
+        summary.textContent = '搜尋「' + term + '」';
+        var title = status === 403 ? '無權搜尋此範圍' : (timedOut ? '搜尋逾時' : '搜尋失敗');
+        var note = status === 403 ? '請確認目前帳號的會友資訊權限。' : '請稍後返回會友資訊再試一次。';
+        miShowSearchResultMessage(title, note, true);
+        miSetSearchMode('error');
+    }
+
+    /*
+        返回時必須先恢復 browse、隱藏 results 並切回 idle，讓使用者立即拿回可操作 UI；之後才 dispose
+        搜尋 DataGrid。此順序可避免 DevExtreme 清理較慢或拋錯時，畫面仍被困在已失效的結果區。
+    */
+    function miRestoreBrowseView() {
+        var browseView = document.getElementById('miBrowseView');
+        var resultsView = document.getElementById('miSearchResults');
+        miState.searchToken++;
+        miState.search = '';
+        miState.searchXhr = null;
+        if (resultsView) { resultsView.hidden = true; }
+        if (browseView) { browseView.hidden = false; }
+        miSetSearchMode('idle');
+        miClearSearchResultGrid();
+
+        var restoreY = miState.browseScrollY;
+        var schedule = window.requestAnimationFrame || function (callback) {
+            window.setTimeout(callback, 0);
+        };
+        schedule(function () {
+            window.scrollTo(window.pageXOffset || 0, restoreY || 0);
+        });
+    }
+
+    // 停止搜尋同時遞增 token 並 abort XHR；即使舊 callback 競態到達，也因 token 不符而不能覆寫 browse。
+    function miStopSearch() {
+        miState.searchToken++;
+        if (miState.searchXhr) {
+            miState.searchXhr.abort();
+            miState.searchXhr = null;
+        }
+        miRestoreBrowseView();
+    }
+
+    /*
+        只接受非空白關鍵字；開始時保存 browse 捲動位置、取消前一請求、切入 overlay，並設定 30 秒逾時。
+        成功 callback 同時驗證 token 與 searching 狀態；失敗 callback 則以 token／abort 排除過期或取消的請求。
+    */
+    function miStartSearch() {
+        var box = document.getElementById('miTreeSearch');
+        var term = box ? (box.value || '').trim() : '';
+        if (!term) {
+            if (box) {
+                box.setAttribute('aria-invalid', 'true');
+                box.focus();
+            }
+            return;
+        }
+
+        box.removeAttribute('aria-invalid');
+        if (miState.searchMode === 'idle') {
+            miState.browseScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+        }
+        if (miState.searchXhr) {
+            miState.searchXhr.abort();
+            miState.searchXhr = null;
+        }
+
+        miState.search = term;
+        var token = ++miState.searchToken;
+        miSetSearchMode('searching');
+        var request = $.ajax({
+            url: '/MemberInfo/SearchDistrictTree',
+            type: 'GET',
+            data: { search: term },
+            timeout: 30000
+        }).done(function (result) {
+            if (token !== miState.searchToken || miState.searchMode !== 'searching') { return; }
+            miShowSearchResults((result && result.Rows) || [], term);
+        }).fail(function (xhr) {
+            if (token !== miState.searchToken || (xhr && xhr.statusText === 'abort')) { return; }
+            miShowSearchError(term, xhr && xhr.status, xhr && xhr.statusText === 'timeout');
+        }).always(function () {
+            if (miState.searchXhr === request) { miState.searchXhr = null; }
+        });
+        miState.searchXhr = request;
+    }
+
+    // Enter 只在 idle 啟動搜尋；按鈕則依目前狀態分流成開始、取消或返回，避免重複送出請求。
+    function miWireSearch() {
+        var box = document.getElementById('miTreeSearch');
+        var button = document.getElementById('miSearchBtn');
+        if (!box || !button) { return; }
+        box.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter') { return; }
+            event.preventDefault();
+            if (miState.searchMode === 'idle') { miStartSearch(); }
+        });
+        button.addEventListener('click', function () {
+            if (miState.searchMode === 'searching') {
+                miStopSearch();
+            } else if (miState.searchMode === 'results' || miState.searchMode === 'error') {
+                miRestoreBrowseView();
+            } else {
+                miStartSearch();
+            }
+        });
+        miSetSearchMode('idle');
+    }
+
+    function miLoadTree() {
+        var host = document.getElementById('memberInfoTree');
+        miShowLoading(host, false);
+        $.ajax({ url: '/MemberInfo/LoadDistrictTree', type: 'GET', timeout: 30000 })
+            .done(function (tree) {
+                try {
+                    miState.tree = tree || { Districts: [], Ungrouped: null, Scope: '' };
+                    miState.page = 0;
+                    miRenderCurrent();
+                } catch (error) {
+                    host.textContent = '';
+                    host.appendChild(miElement('div', 'mi-message mi-message-error', '樹狀畫面渲染失敗'));
+                }
+            })
+            .fail(function (xhr) {
+                host.textContent = '';
+                var status = xhr && xhr.status;
+                var text = status === 403
+                    ? '無權檢視會友資訊'
+                    : (xhr && xhr.statusText === 'timeout' ? '載入逾時' : '載入失敗');
+                var message = miElement('div', 'mi-message mi-message-error', text);
+                if (status !== 403) {
+                    var retry = miElement('button', 'mi-retry', '重試');
+                    retry.type = 'button';
+                    retry.addEventListener('click', function () { miLoadTree(); });
+                    message.appendChild(retry);
+                }
+                host.appendChild(message);
+            });
+    }
+
+    $(function () {
+        var resyncButton = document.getElementById('miResyncBtn');
+        if (memberInfoCanResync && resyncButton) {
+            resyncButton.hidden = false;
+            resyncButton.addEventListener('click', memberInfoResyncLineProfiles);
+        }
+        miWireSearch();
+        miLoadTree();
+    });
 
     // 從彈窗內容中找出真正的 scroll host，避免 popup 與內層容器互相搶捲動位置。
     function memberInfoFindDetailPopupContent(contentElement) {
@@ -1195,6 +2248,7 @@
         var $scrollHost = $('<div class="member-info-detail-scroll"><div class="member-info-detail-scroll-inner"></div></div>');
         $content.append($scrollHost);
         $scrollHost.find('.member-info-detail-scroll-inner').html('<div class="member-info-detail-top-anchor" aria-hidden="true"></div>' + html);
+        miScheduleLoadingReassurance($content.get(0));
 
         window.memberInfoResetDetailScroll($content);
         memberInfoBindDetailTouchHandling($content, $scrollHost.get(0));
@@ -1235,7 +2289,7 @@
 
         var openToken = ++memberInfoDetailOpenToken;
         memberInfoDetailUserInteracted = false;
-        var loadingHtml = '<div class="member-info-detail-loading">載入中...</div>';
+        var loadingHtml = miLoadingHtml(false);
         var contentElement = popup.content && popup.content();
 
         memberInfoSetDetailPopupContent(contentElement, loadingHtml);
