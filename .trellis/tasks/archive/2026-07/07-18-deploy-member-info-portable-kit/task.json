@@ -1,0 +1,31 @@
+{
+  "id": "deploy-member-info-portable-kit",
+  "name": "deploy-member-info-portable-kit",
+  "title": "Deploy MemberInfo portable kit",
+  "description": "Validate and migrate the user-provided MemberInfo portable deployment kit into branch 1.0.0.1.WorkTreeMemberInfo, then verify, review, commit, and push.",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-07-18",
+  "completedAt": "2026-07-18",
+  "branch": "1.0.0.1.WorkTreeMemberInfo",
+  "base_branch": "1.0.0.1.WorkTreeMemberInfo",
+  "worktree_path": "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.1.WorkTreeMemberInfo",
+  "commit": "16f177c7",
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
+    "SpeechMessageProducts.ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml",
+    "ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs",
+    ".ccg/tasks/deploy-member-info-portable-kit/review.md"
+  ],
+  "notes": "Implementation and inline zero-trust review complete. External Gemini/Claude review was waived by the owner due exhausted quotas. Authenticated CRM/role/LINE/mobile checks remain explicit user-environment gates.",
+  "meta": {}
+}

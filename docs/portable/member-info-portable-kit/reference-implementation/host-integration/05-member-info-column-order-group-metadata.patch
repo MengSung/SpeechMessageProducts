@@ -1,0 +1,438 @@
+diff --git a/ChurchReport.MemberInfo.Tests/DistrictTreeBuilderTests.cs b/ChurchReport.MemberInfo.Tests/DistrictTreeBuilderTests.cs
+index 05efb7e8f1335b0d31b0f4a86a7b286fbc8526e7..907152b955c92604249ae0d30bd465ddf4b4bab5 100644
+--- a/ChurchReport.MemberInfo.Tests/DistrictTreeBuilderTests.cs
++++ b/ChurchReport.MemberInfo.Tests/DistrictTreeBuilderTests.cs
+@@ -35,6 +35,61 @@ public class DistrictTreeBuilderTests
+         tree.Ungrouped!.MemberCount.Should().Be(1);
+     }
+ 
++    [Fact]
++    public void Build_PreservesGroupMetadataAndCountsAllDistrictGroups()
++    {
++        var groups = new[]
++        {
++            Group("L1", "R1", "陳區長", "恩典牧區", "晨光組"),
++            Group("L2", "R1", "陳區長", "恩典牧區", "活泉組"),
++            Group("L3", "R1", "陳區長", "恩典牧區", "平安組")
++        };
++        var descriptorGroupTimeProperty = typeof(SmallGroupDescriptor).GetProperty("GroupTime");
++        var descriptorGroupPlaceProperty = typeof(SmallGroupDescriptor).GetProperty("GroupPlace");
++        descriptorGroupTimeProperty.Should().NotBeNull();
++        descriptorGroupPlaceProperty.Should().NotBeNull();
++        descriptorGroupTimeProperty!.SetValue(groups[0], "  週三 19:30  ");
++        descriptorGroupPlaceProperty!.SetValue(groups[0], "  恩典教室  ");
++        descriptorGroupTimeProperty.SetValue(groups[1], "   ");
++        descriptorGroupPlaceProperty.SetValue(groups[1], null);
++        var memberships = new[]
++        {
++            Member("L1", "C1"),
++            Member("L2", "C2")
++        };
++
++        var tree = DistrictTreeBuilder.Build(groups, memberships, new[] { "C1", "C2", "C3" }, true, "church");
++
++        var district = tree.Districts.Single();
++        var districtGroupCountProperty = typeof(DistrictNodeViewModel).GetProperty("GroupCount");
++        districtGroupCountProperty.Should().NotBeNull();
++        districtGroupCountProperty!.GetValue(district).Should().Be(3);
++        district.MemberCount.Should().Be(2);
++        tree.Ungrouped.Should().NotBeNull();
++        tree.Ungrouped!.MemberCount.Should().Be(1);
++
++        var groupTimeProperty = typeof(GroupNodeViewModel).GetProperty("GroupTime");
++        var groupPlaceProperty = typeof(GroupNodeViewModel).GetProperty("GroupPlace");
++        groupTimeProperty.Should().NotBeNull();
++        groupPlaceProperty.Should().NotBeNull();
++
++        var firstGroup = district.Groups.Single(group => group.ListId == "L1");
++        firstGroup.GroupName.Should().Be("晨光組");
++        firstGroup.MemberCount.Should().Be(1);
++        groupTimeProperty!.GetValue(firstGroup).Should().Be("週三 19:30");
++        groupPlaceProperty!.GetValue(firstGroup).Should().Be("恩典教室");
++
++        var secondGroup = district.Groups.Single(group => group.ListId == "L2");
++        secondGroup.GroupName.Should().Be("活泉組");
++        secondGroup.MemberCount.Should().Be(1);
++        groupTimeProperty.GetValue(secondGroup).Should().Be(string.Empty);
++        groupPlaceProperty.GetValue(secondGroup).Should().Be(string.Empty);
++
++        var thirdGroup = district.Groups.Single(group => group.ListId == "L3");
++        thirdGroup.GroupName.Should().Be("平安組");
++        thirdGroup.MemberCount.Should().Be(0);
++    }
++
+     [Fact]
+     public void Build_ExcludesNonCurrentMembershipsAndSortsNodes()
+     {
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs
+index 38a23a9bba1fffcdfd9dbab9a07b767fc96dd2e0..d1d5b6d82ad96fb5afbef305cf93ddab6f946dbb 100644
+--- a/ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs
+@@ -67,6 +67,32 @@ public class MemberInfoTreeControllerContractTests
+         Source.Should().NotContain("Goal = relation.Goals");
+     }
+ 
++    [Fact]
++    public void Controller_LoadsAndMapsSmallGroupTimeAndPlace()
++    {
++        const string methodStartMarker = "private List<SmallGroupDescriptor> FetchSmallGroupDescriptors";
++        const string methodEndMarker = "private List<GroupMembershipRow> FetchGroupMemberships";
++        var methodStart = Source.IndexOf(methodStartMarker, StringComparison.Ordinal);
++        var methodEnd = Source.IndexOf(methodEndMarker, StringComparison.Ordinal);
++        methodStart.Should().BeGreaterThanOrEqualTo(0);
++        methodEnd.Should().BeGreaterThan(methodStart);
++        var method = Source[methodStart..methodEnd];
++
++        // 小組時間與地點必須沿用既有 list descriptor query 一次載入，禁止逐筆查詢造成 N+1；
++        // 這裡分別鎖住同一方法內的 ColumnSet 與 DTO projection，避免由檔案其他同名字串誤滿足。
++        var columnSetStart = method.IndexOf("ColumnSet = new ColumnSet(", StringComparison.Ordinal);
++        var projectionStart = method.IndexOf("return new SmallGroupDescriptor", StringComparison.Ordinal);
++        columnSetStart.Should().BeGreaterThanOrEqualTo(0);
++        projectionStart.Should().BeGreaterThan(columnSetStart);
++        var columnSet = method[columnSetStart..projectionStart];
++
++        columnSet.Should().Contain("\"new_group_time\"");
++        columnSet.Should().Contain("\"new_group_place\"");
++        method.Should().Contain("GroupTime = entity.GetAttributeValue<string>(\"new_group_time\") ?? string.Empty");
++        method.Should().Contain("GroupPlace = entity.GetAttributeValue<string>(\"new_group_place\") ?? string.Empty");
++        method.Should().NotContain("service.Retrieve(");
++    }
++
+     private static string FindRepositoryRoot()
+     {
+         var directory = new DirectoryInfo(AppContext.BaseDirectory);
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs
+index c26d646e3d80464ff2a984286b7d82e56a4c3214..ac92742a44b4a23873208eff863cb49f6445c78b 100644
+--- a/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs
+@@ -159,17 +159,110 @@ public class MemberInfoTreeViewContractTests
+     }
+ 
+     [Fact]
+-    public void View_UsesCompactResizableNameColumnAndLocksAvatarWidth()
++    public void View_UsesApprovedMemberColumnOrderAndCompactName()
+     {
+-        // 96px 讓 3～4 字姓名保持可讀，同時把 320px 手機的右側可視區增加 34px；80px 是手動縮欄下限。
+-        // 頭像是固定尺寸的圖片識別欄，不提供沒有意義的調寬或排序操作。
++        // 62px 是 96px 的約 65%；只移除應用程式自行設定的 minWidth，原生 DevExtreme resizing 繼續負責拖曳。
++        // 頭像仍固定 72px 且不可調寬／排序，姓名仍 fixed left，其他資料欄順序依產品核准排列。
+         var columns = Slice("function miMemberColumns(remotePaging)", "function miGridScrollingOptions()");
++        var fullNameStart = columns.IndexOf("dataField: 'FullName'", StringComparison.Ordinal);
++        var fullNameEnd = columns.IndexOf("},", fullNameStart, StringComparison.Ordinal);
++        fullNameStart.Should().BeGreaterThanOrEqualTo(0);
++        fullNameEnd.Should().BeGreaterThan(fullNameStart);
++        var fullNameColumn = columns[fullNameStart..(fullNameEnd + 2)];
+ 
+         columns.Should().MatchRegex(
+-            @"(?s)dataField:\s*'ContactId'[^}]*width:\s*72[^}]*allowResizing:\s*false[^}]*allowSorting:\s*false");
+-        columns.Should().MatchRegex(
+-            @"(?s)dataField:\s*'FullName'[^}]*width:\s*96[^}]*minWidth:\s*80[^}]*fixed:\s*true[^}]*fixedPosition:\s*'left'");
++            @"(?s)dataField:\s*'ContactId'[^}]*width:\s*72[^}]*fixed:\s*true[^}]*fixedPosition:\s*'left'[^}]*allowResizing:\s*false[^}]*allowSorting:\s*false");
++        fullNameColumn.Should().Contain("width: 62");
++        fullNameColumn.Should().Contain("fixed: true");
++        fullNameColumn.Should().Contain("fixedPosition: 'left'");
++        fullNameColumn.Should().NotContain("minWidth");
+         columns.Split("allowResizing: false", StringSplitOptions.None).Length.Should().Be(2);
++
++        var expectedFields = new[]
++        {
++            "ContactId", "FullName", "Phone", "BirthDate", "Address",
++            "SpiritualIdentity", "MembershipStatus", "RelationGoals", "Gender"
++        };
++        var positions = expectedFields
++            .Select(field => columns.IndexOf("dataField: '" + field + "'", StringComparison.Ordinal))
++            .ToArray();
++
++        positions.Should().OnlyHaveUniqueItems();
++        positions.Should().BeInAscendingOrder();
++        columns.Split("dataField:", StringSplitOptions.None).Length.Should().Be(10);
++        columns.Should().MatchRegex(
++            @"(?s)dataField:\s*'Phone'[^}]*caption:\s*'行動電話'[^}]*alignment:\s*'center'");
++    }
++
++    [Fact]
++    public void View_RendersDistrictGroupCountsAndConditionalGroupMetadata()
++    {
++        // countTexts 先正規化為陣列，再逐筆建立 badge；這能同時支援區長的兩個統計與無小組的單一統計。
++        var appendHeader = Slice("function miAppendHeaderText", "function miVisibleAreaName");
++        appendHeader.Should().Contain(
++            "var normalizedCounts = Array.isArray(countTexts) ? countTexts : [countTexts];");
++        appendHeader.Should().Contain("normalizedCounts.forEach(function (countText)");
++        var countLoopStart = appendHeader.IndexOf(
++            "normalizedCounts.forEach(function (countText)", StringComparison.Ordinal);
++        var countLoopEnd = appendHeader.IndexOf(
++            "titleElement.appendChild(leaderLine);", StringComparison.Ordinal);
++        countLoopStart.Should().BeGreaterThanOrEqualTo(0);
++        countLoopEnd.Should().BeGreaterThan(countLoopStart);
++        var countLoop = appendHeader[countLoopStart..countLoopEnd];
++        countLoop.Should().Contain(
++            "leaderLine.appendChild(miElement('span', 'mi-count', countText))");
++
++        // metadata 必須逐項過濾空值並逐項渲染；全部為空時不建立摘要列，單項有值時仍可獨立顯示。
++        appendHeader.Should().Contain(
++            "var visibleMetadata = (metadataItems || []).filter(function (item) { return item.value; });");
++        appendHeader.Should().Contain("if (visibleMetadata.length)");
++        appendHeader.Should().Contain("visibleMetadata.forEach(function (item)");
++        appendHeader.Should().Contain("item.label + item.value");
++        appendHeader.Should().Contain("mi-group-meta");
++        var metadataLoopStart = appendHeader.IndexOf(
++            "visibleMetadata.forEach(function (item)", StringComparison.Ordinal);
++        var metadataLoopEnd = appendHeader.IndexOf(
++            "titleElement.appendChild(metadataLine);", StringComparison.Ordinal);
++        metadataLoopStart.Should().BeGreaterThanOrEqualTo(0);
++        metadataLoopEnd.Should().BeGreaterThan(metadataLoopStart);
++        var metadataLoop = appendHeader[metadataLoopStart..metadataLoopEnd];
++        metadataLoop.Should().Contain(
++            "metadataLine.appendChild(miElement('span', 'mi-group-meta-item', item.label + item.value))");
++
++        // 小組名稱、領袖與人數所在的 leader line 必須先加入標頭，不可被 metadata 是否有值所控制。
++        var leaderLineAppend = appendHeader.IndexOf(
++            "titleElement.appendChild(leaderLine);", StringComparison.Ordinal);
++        var metadataCondition = appendHeader.IndexOf(
++            "if (visibleMetadata.length)", StringComparison.Ordinal);
++        leaderLineAppend.Should().BeGreaterThanOrEqualTo(0);
++        metadataCondition.Should().BeGreaterThan(leaderLineAppend);
++
++        var districtHeader = Slice("function miDistrictHeader", "function miGroupHeader");
++        districtHeader.Should().MatchRegex(
++            @"(?s)miAppendHeaderText\(\s*header,\s*miVisibleAreaName\(district\.AreaName\),\s*" +
++            @"'區長：'\s*\+\s*\(district\.RaceLeaderName\s*\|\|\s*''\),\s*\[\s*" +
++            @"\(district\.GroupCount\s*\|\|\s*0\)\s*\+\s*' 組',\s*" +
++            @"'本區 '\s*\+\s*\(district\.MemberCount\s*\|\|\s*0\)\s*\+\s*' 人'\s*" +
++            @"\],\s*'mi-leader-district'\s*\);");
++        districtHeader.Should().Contain("(district.GroupCount || 0) + ' 組'");
++        districtHeader.Should().Contain("'本區 ' + (district.MemberCount || 0) + ' 人'");
++        districtHeader.IndexOf("(district.GroupCount || 0) + ' 組'", StringComparison.Ordinal)
++            .Should().BeLessThan(districtHeader.IndexOf(
++                "'本區 ' + (district.MemberCount || 0) + ' 人'", StringComparison.Ordinal));
++
++        // 小組名稱、LeaderName 與 MemberCount 在 metadata filter 之前無條件傳入；時間／地點則各自 trim 後才顯示。
++        var groupHeader = Slice("function miGroupHeader", "function miBirthText");
++        groupHeader.Should().MatchRegex(
++            @"(?s)miAppendHeaderText\(\s*header,\s*group\.GroupName\s*\|\|\s*'',\s*" +
++            @"'小組長：'\s*\+\s*\(group\.LeaderName\s*\|\|\s*''\),\s*" +
++            @"\(group\.MemberCount\s*\|\|\s*0\)\s*\+\s*' 人',\s*'mi-leader-group',\s*\[\s*" +
++            @"\{\s*label:\s*'小組時間：',\s*value:\s*\(group\.GroupTime\s*\|\|\s*''\)\.trim\(\)\s*\},\s*" +
++            @"\{\s*label:\s*'小組地點：',\s*value:\s*\(group\.GroupPlace\s*\|\|\s*''\)\.trim\(\)\s*\}\s*" +
++            @"\]\s*\);");
++        groupHeader.Should().Contain("label: '小組時間：', value: (group.GroupTime || '').trim()");
++        groupHeader.Should().Contain("label: '小組地點：', value: (group.GroupPlace || '').trim()");
++
++        ViewText.Should().MatchRegex(@"(?s)\.mi-group-meta\s*\{[^}]*display:\s*flex[^}]*flex-wrap:\s*wrap");
+     }
+ 
+     [Fact]
+@@ -177,6 +270,16 @@ public class MemberInfoTreeViewContractTests
+     {
+         // 一般／搜尋共用第一個 mount，Ungrouped 使用第二個 mount；兩處必須採相同 widget resize 與 single sort。
+         // widget 模式只改目前欄與 grid 總寬，不偷壓相鄰欄；禁用 reordering 則保護固定頭像／姓名順序。
++        var memberGridMount = Slice("function miMountMemberGrid(host, rows)", "function miShowLoadFailure");
++        var ungroupedGridMount = Slice("function miMountUngroupedGrid(host)", "function miRenderUngroupedNode");
++
++        memberGridMount.Should().Contain("allowColumnResizing: true");
++        memberGridMount.Should().Contain("columnResizingMode: 'widget'");
++        memberGridMount.Should().Contain("sorting: { mode: 'single' }");
++        ungroupedGridMount.Should().Contain("allowColumnResizing: true");
++        ungroupedGridMount.Should().Contain("columnResizingMode: 'widget'");
++        ungroupedGridMount.Should().Contain("sorting: { mode: 'single' }");
++
+         ViewText.Split("allowColumnResizing: true", StringSplitOptions.None).Length.Should().Be(3);
+         ViewText.Split("columnResizingMode: 'widget'", StringSplitOptions.None).Length.Should().Be(3);
+         ViewText.Split("sorting: { mode: 'single' }", StringSplitOptions.None).Length.Should().Be(3);
+@@ -196,6 +299,7 @@ public class MemberInfoTreeViewContractTests
+             "function miMemberGridReady(e)");
+ 
+         bridge.Should().Contain(".dx-datagrid-rowsview .dx-datagrid-content-fixed");
++        bridge.Should().NotContain(".dx-datagrid-headers");
+         bridge.Should().Contain("component.getScrollable()");
+         bridge.Should().Contain("Math.max(Math.abs(totalX), Math.abs(totalY)) < 6");
+         bridge.Should().Contain("Math.abs(totalX) > Math.abs(totalY) ? 'x' : 'y'");
+diff --git a/ChurchReport/Controllers/MemberInfoController.cs b/ChurchReport/Controllers/MemberInfoController.cs
+index 353285d2a5d0babdec55128b8092107d820c423e..f7e06e0349c047c1df3e2e00cb29c654d0aab54d 100644
+--- a/ChurchReport/Controllers/MemberInfoController.cs
++++ b/ChurchReport/Controllers/MemberInfoController.cs
+@@ -1397,6 +1397,8 @@ namespace ChurchReport.Controllers
+                         "new_area_name",
+                         "new_contact_race_leager_list",
+                         "new_contact_family_leader_list",
++                        "new_group_time",
++                        "new_group_place",
+                         "new_contact_list_arealeader")
+                 };
+                 query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
+@@ -1435,6 +1437,8 @@ namespace ChurchReport.Controllers
+                         AreaName = areaName,
+                         RaceLeaderName = raceLeader?.Name ?? string.Empty,
+                         RaceLeaderKey = raceLeader?.Id.ToString() ?? string.Empty,
++                        GroupTime = entity.GetAttributeValue<string>("new_group_time") ?? string.Empty,
++                        GroupPlace = entity.GetAttributeValue<string>("new_group_place") ?? string.Empty,
+                         LeaderName = groupLeader?.Name ?? string.Empty
+                     };
+                 })
+diff --git a/ChurchReport/Services/MemberInfo/DistrictTreeBuilder.cs b/ChurchReport/Services/MemberInfo/DistrictTreeBuilder.cs
+index 06054beb0224b99b5152bde96ae208c2f59bf780..c16e17cbc5590beafcf305d6508725873d3cce87 100644
+--- a/ChurchReport/Services/MemberInfo/DistrictTreeBuilder.cs
++++ b/ChurchReport/Services/MemberInfo/DistrictTreeBuilder.cs
+@@ -88,6 +88,8 @@ namespace ChurchReport.Services.MemberInfo
+                     LeaderName = string.IsNullOrWhiteSpace(group.LeaderName)
+                         ? MissingGroupLeaderName
+                         : group.LeaderName.Trim(),
++                    GroupTime = (group.GroupTime ?? string.Empty).Trim(),
++                    GroupPlace = (group.GroupPlace ?? string.Empty).Trim(),
+                     MemberCount = groupMembers?.Count ?? 0
+                 });
+ 
+@@ -104,6 +106,9 @@ namespace ChurchReport.Services.MemberInfo
+                     .OrderBy(group => group.GroupName, StringComparer.Ordinal)
+                     .ThenBy(group => group.ListId, StringComparer.OrdinalIgnoreCase)
+                     .ToList();
++                // 此處以送往前端分頁前、已完整建置並排序的群組集合計算總數，
++                // 因此 GroupCount 不受前端分頁影響，也不包含另外呈現的未分組節點。
++                entry.Value.GroupCount = entry.Value.Groups.Count;
+             }
+ 
+             var result = new DistrictTreeViewModel
+diff --git a/ChurchReport/Services/MemberInfo/DistrictTreeInputs.cs b/ChurchReport/Services/MemberInfo/DistrictTreeInputs.cs
+index f5926b1bd82a1c1d5594708f2d90ee3acc952cfc..4ea5c991a4690d799e4b7317de4564adddecc86d 100644
+--- a/ChurchReport/Services/MemberInfo/DistrictTreeInputs.cs
++++ b/ChurchReport/Services/MemberInfo/DistrictTreeInputs.cs
+@@ -8,6 +8,8 @@ namespace ChurchReport.Services.MemberInfo
+         public string RaceLeaderName { get; set; } = string.Empty;
+         public string RaceLeaderKey { get; set; } = string.Empty;
+         public string LeaderName { get; set; } = string.Empty;
++        public string GroupTime { get; set; } = string.Empty;
++        public string GroupPlace { get; set; } = string.Empty;
+     }
+ 
+     public class GroupMembershipRow
+diff --git a/ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs b/ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs
+index f7cfc8557282e5c7a7082edf09e0e197aff86005..076ecda993ca509d6cdfe476ef2071a06ea9d327 100644
+--- a/ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs
++++ b/ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs
+@@ -8,6 +8,8 @@ namespace ChurchReport.ViewModels.MemberInfoTree
+         public string ListId { get; set; } = string.Empty;
+         public string GroupName { get; set; } = string.Empty;
+         public string LeaderName { get; set; } = string.Empty;
++        public string GroupTime { get; set; } = string.Empty;
++        public string GroupPlace { get; set; } = string.Empty;
+         public int MemberCount { get; set; }
+     }
+ 
+@@ -17,6 +19,7 @@ namespace ChurchReport.ViewModels.MemberInfoTree
+         public string AreaName { get; set; } = string.Empty;
+         public string RaceLeaderName { get; set; } = string.Empty;
+         public int MemberCount { get; set; }
++        public int GroupCount { get; set; }
+         public List<GroupNodeViewModel> Groups { get; set; } = new List<GroupNodeViewModel>();
+     }
+ 
+diff --git a/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml b/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
+index 713d201dc8b574432833138b2175f8b231365624..9f1df64aef140175f9021eb0f7ceadebcbf87817 100644
+--- a/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
++++ b/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
+@@ -263,6 +263,17 @@
+     }
+     .mi-leader-district .mi-count { background: #c7d2fe; color: #312e81; }
+     .mi-leader-group .mi-count { background: #ccfbf1; color: #115e59; }
++    .mi-group-meta {
++        display: flex;
++        align-items: center;
++        gap: 6px 14px;
++        flex-wrap: wrap;
++        color: #64748b;
++        font-size: .86rem;
++        font-weight: 650;
++        line-height: 1.45;
++    }
++    .mi-group-meta-item { display: inline-flex; align-items: baseline; }
+     .mi-district-body, .mi-group-body { display: none; }
+     .mi-district.mi-open > .mi-district-body,
+     .mi-group.mi-open > .mi-group-body { display: block; }
+@@ -566,6 +577,7 @@
+             font-size: var(--mi-mobile-label-font);
+             line-height: 1.4;
+         }
++        .mi-group-meta { gap: 4px 10px; font-size: var(--mi-mobile-label-font); }
+ 
+         .mi-pager { font-size: var(--mi-mobile-tree-font); line-height: 1.5; }
+         .mi-pager button {
+@@ -1203,15 +1215,31 @@
+         if (header) { header.setAttribute('aria-expanded', expanded ? 'true' : 'false'); }
+     }
+ 
+-    // 統一建立「節點名稱 → 領袖名稱 + 人數」兩層標頭，leaderClass 決定區長或小組長的視覺權重。
+-    function miAppendHeaderText(header, title, leaderText, countText, leaderClass) {
++    /*
++        countTexts 同時支援單一字串與陣列：區標頭可依序顯示「組數」及「本區人數」兩個 badge，
++        既有只傳一個人數的節點仍維持相同輸出；每個非空值都各自建立 mi-count，避免合併後失去辨識度。
++        metadataItems 會先排除空值；小組時間與地點都未填時完全不建立 metadata 列，但小組名稱、組長與人數
++        仍會照常保留，避免空白的第三列占用版面，也不影響標頭原有的展開／收合操作。
++    */
++    function miAppendHeaderText(header, title, leaderText, countTexts, leaderClass, metadataItems) {
+         header.appendChild(miElement('span', 'mi-chevron', '▸'));
+         var titleElement = miElement('span', 'mi-title');
+         if (title) { titleElement.appendChild(miElement('span', 'mi-node-title', title)); }
+         var leaderLine = miElement('span', 'mi-leader-line ' + leaderClass);
+         if (leaderText) { leaderLine.appendChild(miElement('span', 'mi-leader-name', leaderText)); }
+-        leaderLine.appendChild(miElement('span', 'mi-count', countText));
++        var normalizedCounts = Array.isArray(countTexts) ? countTexts : [countTexts];
++        normalizedCounts.forEach(function (countText) {
++            if (countText) { leaderLine.appendChild(miElement('span', 'mi-count', countText)); }
++        });
+         titleElement.appendChild(leaderLine);
++        var visibleMetadata = (metadataItems || []).filter(function (item) { return item.value; });
++        if (visibleMetadata.length) {
++            var metadataLine = miElement('span', 'mi-group-meta');
++            visibleMetadata.forEach(function (item) {
++                metadataLine.appendChild(miElement('span', 'mi-group-meta-item', item.label + item.value));
++            });
++            titleElement.appendChild(metadataLine);
++        }
+         header.appendChild(titleElement);
+     }
+ 
+@@ -1227,7 +1255,8 @@
+         header.setAttribute('aria-expanded', 'true');
+         miAppendHeaderText(header, miVisibleAreaName(district.AreaName),
+             '區長：' + (district.RaceLeaderName || ''),
+-            '本區 ' + (district.MemberCount || 0) + ' 人', 'mi-leader-district');
++            [(district.GroupCount || 0) + ' 組', '本區 ' + (district.MemberCount || 0) + ' 人'],
++            'mi-leader-district');
+         header.addEventListener('click', function () {
+             var node = header.parentNode;
+             miSetExpanded(node, !node.classList.contains('mi-open'));
+@@ -1241,7 +1270,10 @@
+         header.setAttribute('aria-expanded', 'false');
+         miAppendHeaderText(header, group.GroupName || '',
+             '小組長：' + (group.LeaderName || ''),
+-            (group.MemberCount || 0) + ' 人', 'mi-leader-group');
++            (group.MemberCount || 0) + ' 人', 'mi-leader-group', [
++                { label: '小組時間：', value: (group.GroupTime || '').trim() },
++                { label: '小組地點：', value: (group.GroupPlace || '').trim() }
++            ]);
+         header.addEventListener('click', function () { miToggleGroup(header.parentNode); });
+         return header;
+     }
+@@ -1265,17 +1297,17 @@
+             { dataField: 'ContactId', caption: '頭像', width: 72, fixed: true, fixedPosition: 'left',
+               allowResizing: false, allowSorting: false, allowFiltering: false,
+               cellTemplate: memberInfoAvatarCellTemplate },
+-            { dataField: 'FullName', caption: '姓名', width: 96, minWidth: 80,
++            { dataField: 'FullName', caption: '姓名', width: 62,
+               fixed: true, fixedPosition: 'left', cellTemplate: memberInfoNameCellTemplate },
+-            { dataField: 'Gender', caption: '性別', width: 64, alignment: 'center' },
++            { dataField: 'Phone', caption: '行動電話', width: 124, alignment: 'center' },
+             { dataField: 'BirthDate', caption: '生日', dataType: 'date', width: 108,
+               alignment: 'center', customizeText: miBirthText },
+-            { dataField: 'Phone', caption: '手機', width: 124 },
+-            { dataField: 'SpiritualIdentity', caption: '信仰狀態', width: 108, alignment: 'center' },
+             { dataField: 'Address', caption: '地址', width: 250 },
++            { dataField: 'SpiritualIdentity', caption: '信仰狀態', width: 108, alignment: 'center' },
+             { dataField: 'MembershipStatus', caption: '會員身份', width: 110, alignment: 'center' },
+             { dataField: 'RelationGoals', caption: '關係目標', width: 264,
+-              allowSorting: !remotePaging }
++              allowSorting: !remotePaging },
++            { dataField: 'Gender', caption: '性別', width: 64, alignment: 'center' }
+         ];
+     }
+ 

@@ -1,0 +1,180 @@
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs
+index 7775840ae..96c4bd6a0 100644
+--- a/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs
+@@ -145,6 +145,42 @@ public class MemberInfoTreeViewContractTests
+         ViewText.Should().Contain("touch-action: pan-x pan-y");
+     }
+ 
++    [Fact]
++    public void View_FixesOnlyAvatarAndNameColumnsOnTheLeft()
++    {
++        // 三種會友 DataGrid 共用同一份欄位工廠；只固定前兩欄，使用者滑到右側時仍能辨認目前會友。
++        // 以出現次數限制 fixed 設定，避免性別以後的資料欄被誤固定，壓縮手機真正可滑動的區域。
++        var columns = Slice("function miMemberColumns(remotePaging)", "function miGridScrollingOptions()");
++
++        columns.Should().MatchRegex(@"(?s)dataField:\s*'ContactId'[^}]*fixed:\s*true[^}]*fixedPosition:\s*'left'");
++        columns.Should().MatchRegex(@"(?s)dataField:\s*'FullName'[^}]*fixed:\s*true[^}]*fixedPosition:\s*'left'");
++        columns.Split("fixed: true", StringSplitOptions.None).Length.Should().Be(3);
++        columns.Split("fixedPosition: 'left'", StringSplitOptions.None).Length.Should().Be(3);
++    }
++
++    [Fact]
++    public void View_ForwardsFixedAreaHorizontalTouchToTheSingleGridScrollable()
++    {
++        // DevExtreme 22.1.6 會以覆蓋層呈現 fixed column；固定區必須把明確的水平手勢轉送到同一個 scrollable。
++        // 方向門檻、垂直手勢保留及滑動後 click 抑制缺一不可，否則會造成頁面不能上下滑或誤開會友細節。
++        ViewText.Should().Contain("function miEnableFixedColumnTouchScroll(component)");
++        ViewText.Should().Contain("function miMemberGridReady(e)");
++        var bridge = Slice(
++            "function miEnableFixedColumnTouchScroll(component)",
++            "function miMemberGridReady(e)");
++
++        bridge.Should().Contain(".dx-datagrid-rowsview .dx-datagrid-content-fixed");
++        bridge.Should().Contain("component.getScrollable()");
++        bridge.Should().Contain("Math.max(Math.abs(totalX), Math.abs(totalY)) < 6");
++        bridge.Should().Contain("Math.abs(totalX) > Math.abs(totalY) ? 'x' : 'y'");
++        bridge.Should().Contain("scrollable.scrollBy({ left: deltaX, top: 0 });");
++        bridge.Should().Contain("event.preventDefault();");
++        bridge.Should().Contain("event.stopPropagation();");
++
++        ViewText.Should().Contain("touch-action: pan-y");
++        ViewText.Should().Contain("onContentReady: miMemberGridReady");
++    }
++
+     [Fact]
+     public void View_UsesOnlyTheDevExtremeHorizontalScrollbar()
+     {
+diff --git a/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml b/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
+index 475151cf8..f39ac8474 100644
+--- a/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
++++ b/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
+@@ -292,6 +292,14 @@
+         touch-action: pan-x pan-y;
+         overscroll-behavior-x: contain;
+     }
++    /*
++        DevExtreme 22.1.6 將 fixed column 畫在絕對定位的覆蓋表格；固定儲存格本身不是可捲動容器，
++        因此手機若從頭像或姓名起手，瀏覽器不會自然帶動下層的 dx-scrollable。這裡只把固定資料列的
++        原生手勢限制為 pan-y：上下滑仍交給頁面，左右滑則由 miEnableFixedColumnTouchScroll 轉送。
++    */
++    .mi-grid-host .dx-datagrid-rowsview .dx-datagrid-content-fixed .dx-datagrid-table td {
++        touch-action: pan-y;
++    }
+     .mi-message { padding: 16px; color: #475569; }
+     .mi-message-error { color: #b91c1c; }
+     .mi-retry { margin-left: 8px; }
+@@ -1254,9 +1262,9 @@
+     */
+     function miMemberColumns(remotePaging) {
+         return [
+-            { dataField: 'ContactId', caption: '頭像', width: 72,
++            { dataField: 'ContactId', caption: '頭像', width: 72, fixed: true, fixedPosition: 'left',
+               allowSorting: false, allowFiltering: false, cellTemplate: memberInfoAvatarCellTemplate },
+-            { dataField: 'FullName', caption: '姓名', width: 130,
++            { dataField: 'FullName', caption: '姓名', width: 130, fixed: true, fixedPosition: 'left',
+               cellTemplate: memberInfoNameCellTemplate },
+             { dataField: 'Gender', caption: '性別', width: 64, alignment: 'center' },
+             { dataField: 'BirthDate', caption: '生日', dataType: 'date', width: 108,
+@@ -1270,6 +1278,83 @@
+         ];
+     }
+ 
++    /*
++        固定欄觸控轉接器：DevExtreme 的 fixed overlay 會攔住從頭像／姓名開始的 touch gesture，
++        但真正的水平位置仍由同一個 DataGrid scrollable 管理。本函式只在確認是「單指、超過 6px、
++        水平位移大於垂直位移」後才接管，避免斜向小抖動讓頁面上下滑失效。
++
++        onContentReady 可能因分頁或重繪被呼叫多次，所以 marker 掛在實際 fixedContent DOM 上；同一層
++        不重複綁定，DevExtreme 若換掉覆蓋層，新 DOM 則會在下一次 ready 自動取得自己的 handler。
++    */
++    function miEnableFixedColumnTouchScroll(component) {
++        var element = component && typeof component.element === 'function' ? component.element() : null;
++        var root = element && element.jquery ? element.get(0) : element;
++        var fixedContent = root && root.querySelector(
++            '.dx-datagrid-rowsview .dx-datagrid-content-fixed');
++        var scrollable = component && typeof component.getScrollable === 'function'
++            ? component.getScrollable()
++            : null;
++
++        if (!fixedContent || !scrollable || fixedContent.dataset.miTouchScrollBound === '1') { return; }
++        fixedContent.dataset.miTouchScrollBound = '1';
++
++        var gesture = null;
++        var suppressClickUntil = 0;
++
++        fixedContent.addEventListener('touchstart', function (event) {
++            if (!event.touches || event.touches.length !== 1) {
++                gesture = null;
++                return;
++            }
++            var touch = event.touches[0];
++            gesture = {
++                startX: touch.clientX,
++                startY: touch.clientY,
++                lastX: touch.clientX,
++                axis: ''
++            };
++        }, { passive: true });
++
++        fixedContent.addEventListener('touchmove', function (event) {
++            if (!gesture || !event.touches || event.touches.length !== 1) { return; }
++            var touch = event.touches[0];
++            var totalX = touch.clientX - gesture.startX;
++            var totalY = touch.clientY - gesture.startY;
++
++            if (!gesture.axis) {
++                if (Math.max(Math.abs(totalX), Math.abs(totalY)) < 6) { return; }
++                gesture.axis = Math.abs(totalX) > Math.abs(totalY) ? 'x' : 'y';
++            }
++            if (gesture.axis !== 'x') { return; }
++
++            var deltaX = gesture.lastX - touch.clientX;
++            gesture.lastX = touch.clientX;
++            suppressClickUntil = Date.now() + 350;
++            event.preventDefault();
++            scrollable.scrollBy({ left: deltaX, top: 0 });
++        }, { passive: false });
++
++        function endGesture() {
++            gesture = null;
++        }
++
++        fixedContent.addEventListener('touchend', endGesture, { passive: true });
++        fixedContent.addEventListener('touchcancel', endGesture, { passive: true });
++
++        // 手指真的滑動過才擋掉瀏覽器隨後合成的 click；單純輕點姓名仍走既有明細開啟流程。
++        fixedContent.addEventListener('click', function (event) {
++            if (Date.now() > suppressClickUntil) { return; }
++            event.preventDefault();
++            event.stopPropagation();
++        }, true);
++    }
++
++    // 一般小組、搜尋結果與無小組網格共用同一個 ready handler，確保固定欄手勢與照片批次預載一致。
++    function miMemberGridReady(e) {
++        miEnableFixedColumnTouchScroll(e && e.component);
++        window.memberInfoPreloadImages({ component: e.component });
++    }
++
+     // 所有會友網格共用 DevExtreme 的唯一原生水平捲軸；always 也讓觸控裝置清楚知道內容可左右滑動。
+     function miGridScrollingOptions() {
+         return {
+@@ -1298,7 +1383,7 @@
+             scrolling: miGridScrollingOptions(),
+             noDataText: '沒有資料',
+             columns: miMemberColumns(false),
+-            onContentReady: function (e) { window.memberInfoPreloadImages({ component: e.component }); }
++            onContentReady: miMemberGridReady
+         });
+     }
+ 
+@@ -1374,7 +1459,7 @@
+             pager: { showPageSizeSelector: true, allowedPageSizes: [25, 50, 100], showInfo: true, visible: true },
+             noDataText: '沒有資料',
+             columns: miMemberColumns(true),
+-            onContentReady: function (e) { window.memberInfoPreloadImages({ component: e.component }); }
++            onContentReady: miMemberGridReady
+         });
+     }
+ 

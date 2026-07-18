@@ -224,6 +224,7 @@
         -webkit-appearance: auto;
     }
 
+    /* 關係目標可能有多筆，但在版面上固定合併為一個跨兩欄欄位，避免每個角色各自撐出不規則欄位。 */
     .member-info-relations {
         grid-column: 1 / -1;
     }
@@ -250,7 +251,10 @@
             min-width: 0;
         }
 
-        /* 手機：DataGrid 列區只保留水平溢出；垂直手勢交給外層原生捲動容器。 */
+        /*
+            手機的 DataGrid 列區只保留一條 DevExtreme 水平捲軸，並開啟原生慣性滑動；垂直手勢則繼續
+            交給 popup 外層唯一的原生捲動容器。不要再替 grid host 加 overflow-x，否則會出現雙捲軸。
+        */
         .member-info-subgrid .dx-datagrid-rowsview .dx-scrollable-container {
             -ms-touch-action: pan-x pan-y;
             touch-action: pan-x pan-y;
@@ -373,6 +377,27 @@
                     }
                 </select>
             </div>
+            @*
+                Gender 是後端從 CRM OptionSet 轉好的顯示字串，不在 Razor 解析代碼；空白代表來源未設定，
+                統一顯示「（未設定）」以區別真正的性別文字。
+            *@
+            <div class="member-info-field">
+                <div class="member-info-label">性別</div>
+                <div class="member-info-value">
+                    @(string.IsNullOrWhiteSpace(Model.Gender) ? "（未設定）" : Model.Gender)
+                </div>
+            </div>
+            @* BirthDate 為 nullable；只有 HasValue 才固定輸出 yyyy/MM/dd，未設定時不產生預設或最小日期。 *@
+            <div class="member-info-field">
+                <div class="member-info-label">生日</div>
+                <div class="member-info-value">
+                    @(Model.BirthDate.HasValue ? Model.BirthDate.Value.ToString("yyyy/MM/dd") : "（未設定）")
+                </div>
+            </div>
+            @*
+                RelationGoals 在同一個跨欄 value 中以頓號串接，角色存在時才加「角色: 姓名」；
+                無資料顯示「（無）」。這是單欄摘要，不應依關係筆數動態產生欄位。
+            *@
             <div class="member-info-field member-info-relations">
                 <div class="member-info-label">關係目標</div>
                 <div class="member-info-value">
@@ -488,7 +513,7 @@
                 var v = version || Date.now();
 
                 // 清掉前端影像快取(各頁面命名不同，且 key 大小寫可能不同)，否則關閉彈窗後仍會顯示舊圖。
-                [window.memberInfoImageCache, window.contactImageCache].forEach(function (cache) {
+                [window.memberInfoImageCache, window.memberInfoImageSourceCache, window.contactImageCache].forEach(function (cache) {
                     if (!cache) { return; }
                     Object.keys(cache).forEach(function (k) {
                         if (String(k).toLowerCase() === lid) { delete cache[k]; }
@@ -500,12 +525,15 @@
                         var cid = this.dataset ? (this.dataset.contactId || '') : '';
                         if (cid && cid.toLowerCase() === lid) {
                             this.src = endpoint + '?contactId=' + encodeURIComponent(cid) + '&size=48&v=' + v;
+                            if (endpoint === '/MemberInfo/GetContactImage' && window.memberInfoApplyAvatarSource) {
+                                window.memberInfoApplyAvatarSource(this.closest('.member-info-avatar-wrap'), this, 'primary');
+                            }
                         }
                     });
                 }
 
                 // 會友資訊網格：縮圖來自 /MemberInfo/GetContactImage
-                refreshAvatars('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]', '/MemberInfo/GetContactImage');
+                refreshAvatars('#memberInfoTree .member-info-avatar-img[data-contact-id]', '/MemberInfo/GetContactImage');
                 // 小組回報頁(小組牧養/新人跟進關懷)網格：縮圖來自 /Personal/GetContactImage
                 refreshAvatars('#SmallGroupgridContainer .contact-avatar-img[data-contact-id], #NewPersonGridContainer .contact-avatar-img[data-contact-id]', '/Personal/GetContactImage');
             } catch (e) { }
@@ -573,8 +601,11 @@
         };
         // 依螢幕寬度切換表格的捲動策略與欄位寬度，避免手機版看起來過擁擠。
         var isMobile = window.innerWidth <= 720;
-        // 手機使用原生水平捲動，外層 popup 內容則負責唯一的垂直捲動。
-        // 避免 simulated scrolling 和外層 touch scroll 互相搶手勢。
+        /*
+            手機使用 DevExtreme standard + useNative，讓列區保有唯一水平捲軸與原生觸控慣性；外層 popup
+            內容負責唯一垂直捲動。若改回 simulated scrolling，會和外層 touch handler 互搶手勢。
+            桌機仍可用 simulated 模式與 hover 捲軸，避免常駐捲軸占用閱讀空間。
+        */
         var gridScrollOptions = isMobile ? {
             mode: 'standard',
             scrollByContent: true,

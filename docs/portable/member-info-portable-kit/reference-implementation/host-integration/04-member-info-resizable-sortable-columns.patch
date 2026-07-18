@@ -1,0 +1,75 @@
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs
+index 96c4bd6a..c26d646e 100644
+--- a/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs
+@@ -158,6 +158,32 @@ public class MemberInfoTreeViewContractTests
+         columns.Split("fixedPosition: 'left'", StringSplitOptions.None).Length.Should().Be(3);
+     }
+ 
++    [Fact]
++    public void View_UsesCompactResizableNameColumnAndLocksAvatarWidth()
++    {
++        // 96px 讓 3～4 字姓名保持可讀，同時把 320px 手機的右側可視區增加 34px；80px 是手動縮欄下限。
++        // 頭像是固定尺寸的圖片識別欄，不提供沒有意義的調寬或排序操作。
++        var columns = Slice("function miMemberColumns(remotePaging)", "function miGridScrollingOptions()");
++
++        columns.Should().MatchRegex(
++            @"(?s)dataField:\s*'ContactId'[^}]*width:\s*72[^}]*allowResizing:\s*false[^}]*allowSorting:\s*false");
++        columns.Should().MatchRegex(
++            @"(?s)dataField:\s*'FullName'[^}]*width:\s*96[^}]*minWidth:\s*80[^}]*fixed:\s*true[^}]*fixedPosition:\s*'left'");
++        columns.Split("allowResizing: false", StringSplitOptions.None).Length.Should().Be(2);
++    }
++
++    [Fact]
++    public void View_EnablesNativeColumnResizingAndSingleColumnSortingForEveryMemberGrid()
++    {
++        // 一般／搜尋共用第一個 mount，Ungrouped 使用第二個 mount；兩處必須採相同 widget resize 與 single sort。
++        // widget 模式只改目前欄與 grid 總寬，不偷壓相鄰欄；禁用 reordering 則保護固定頭像／姓名順序。
++        ViewText.Split("allowColumnResizing: true", StringSplitOptions.None).Length.Should().Be(3);
++        ViewText.Split("columnResizingMode: 'widget'", StringSplitOptions.None).Length.Should().Be(3);
++        ViewText.Split("sorting: { mode: 'single' }", StringSplitOptions.None).Length.Should().Be(3);
++        ViewText.Should().NotContain("allowColumnReordering: true");
++        ViewText.Should().Contain("allowSorting: !remotePaging");
++    }
++
+     [Fact]
+     public void View_ForwardsFixedAreaHorizontalTouchToTheSingleGridScrollable()
+     {
+diff --git a/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml b/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
+index f39ac847..713d201d 100644
+--- a/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
++++ b/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
+@@ -1263,9 +1263,10 @@
+     function miMemberColumns(remotePaging) {
+         return [
+             { dataField: 'ContactId', caption: '頭像', width: 72, fixed: true, fixedPosition: 'left',
+-              allowSorting: false, allowFiltering: false, cellTemplate: memberInfoAvatarCellTemplate },
+-            { dataField: 'FullName', caption: '姓名', width: 130, fixed: true, fixedPosition: 'left',
+-              cellTemplate: memberInfoNameCellTemplate },
++              allowResizing: false, allowSorting: false, allowFiltering: false,
++              cellTemplate: memberInfoAvatarCellTemplate },
++            { dataField: 'FullName', caption: '姓名', width: 96, minWidth: 80,
++              fixed: true, fixedPosition: 'left', cellTemplate: memberInfoNameCellTemplate },
+             { dataField: 'Gender', caption: '性別', width: 64, alignment: 'center' },
+             { dataField: 'BirthDate', caption: '生日', dataType: 'date', width: 108,
+               alignment: 'center', customizeText: miBirthText },
+@@ -1375,6 +1376,9 @@
+             showBorders: true,
+             showRowLines: true,
+             showColumnLines: true,
++            allowColumnResizing: true,
++            columnResizingMode: 'widget',
++            sorting: { mode: 'single' },
+             rowAlternationEnabled: true,
+             columnAutoWidth: false,
+             columnHidingEnabled: false,
+@@ -1450,6 +1454,9 @@
+             showBorders: true,
+             showRowLines: true,
+             showColumnLines: true,
++            allowColumnResizing: true,
++            columnResizingMode: 'widget',
++            sorting: { mode: 'single' },
+             rowAlternationEnabled: true,
+             columnAutoWidth: false,
+             columnHidingEnabled: false,

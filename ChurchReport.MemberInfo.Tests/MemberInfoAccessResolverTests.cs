@@ -22,6 +22,7 @@ public class MemberInfoAccessResolverTests
     [Theory]
     [InlineData("牧師傳道")]
     [InlineData("牧養主任")]
+    [InlineData("檢視全教會照片資訊")]
     [InlineData("主任牧師、牧養主任")] // 包含即可
     [InlineData("  牧師傳道  ")]        // 前後空白
     public void PastorRole_ReturnsChurch(string jobTitle)

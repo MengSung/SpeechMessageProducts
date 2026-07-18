@@ -1,0 +1,12 @@
+{
+  "id": "deploy-member-info-portable-kit",
+  "title": "Deploy MemberInfo portable kit",
+  "status": "completed",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "member-info-feature-deployment",
+  "currentPhase": "completed",
+  "nextAction": "Archived after local verification and remote synchronization",
+  "createdAt": "2026-07-18T07:05:45Z",
+  "branch": "1.0.0.1.WorkTreeMemberInfo"
+}
