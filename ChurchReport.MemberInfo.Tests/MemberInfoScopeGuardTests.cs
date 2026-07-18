@@ -46,8 +46,8 @@ public class MemberInfoScopeGuardTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void DeniesMissingId(string requested) =>
-        MemberInfoScopeGuard.IsContactAllowed(MemberInfoAccess.Church, Shepherd, requested).Should().BeFalse();
+    public void DeniesMissingId(string? requested) =>
+        MemberInfoScopeGuard.IsContactAllowed(MemberInfoAccess.Church, Shepherd, requested!).Should().BeFalse();
 
     [Fact]
     public void DeniesNoAccess() =>

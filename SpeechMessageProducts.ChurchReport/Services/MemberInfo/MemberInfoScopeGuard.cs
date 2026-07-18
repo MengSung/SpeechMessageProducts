@@ -53,5 +53,29 @@ namespace ChurchReport.Services.MemberInfo
 
             return false;
         }
+
+        public static bool IsListAllowed(
+            string access,
+            IReadOnlyCollection<string> visibleListIds,
+            string requestedListId)
+        {
+            if (string.IsNullOrWhiteSpace(requestedListId) ||
+                (access != MemberInfoAccess.Church && access != MemberInfoAccess.ShepherdList) ||
+                visibleListIds == null ||
+                visibleListIds.Count == 0)
+            {
+                return false;
+            }
+
+            foreach (var visibleListId in visibleListIds)
+            {
+                if (string.Equals(visibleListId, requestedListId, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

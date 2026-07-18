@@ -21,7 +21,9 @@ namespace ChurchReport.Services.MemberInfo
         {
             var jobTitle = (churchJobTitle ?? string.Empty).Trim();
 
-            if (jobTitle.Contains("牧師傳道") || jobTitle.Contains("牧養主任"))
+            if (jobTitle.Contains("牧師傳道") ||
+                jobTitle.Contains("牧養主任") ||
+                jobTitle.Contains("檢視全教會照片資訊"))
             {
                 return MemberInfoAccess.Church;
             }
