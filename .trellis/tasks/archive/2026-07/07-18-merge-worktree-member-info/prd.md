@@ -18,8 +18,8 @@ Integrate branch `1.0.0.1.WorkTreeMemberInfo` into `1.0.0.1.MemberInfo` and publ
 - [x] The target contains the source commit after merge.
 - [x] MemberInfo focused tests and repository verification complete with results recorded.
 - [x] `git diff --check` reports no whitespace errors.
-- [ ] `1.0.0.1.MemberInfo` is pushed and its remote HEAD equals the local HEAD.
-- [ ] CCG and Trellis bookkeeping for this merge is archived.
+- [x] `1.0.0.1.MemberInfo` is pushed and its remote HEAD equals the local HEAD.
+- [x] CCG and Trellis bookkeeping for this merge is archived.
 
 ## Notes
 
