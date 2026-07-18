@@ -5,8 +5,8 @@
   "complexity": "L+",
   "risk": "high",
   "domain": "member-info-feature-deployment",
-  "currentPhase": "planning",
-  "nextAction": "Validate Trellis planning artifacts, activate the task, load project specs, and begin the TDD migration",
+  "currentPhase": "review",
+  "nextAction": "Commit and push final evidence, then archive the Trellis and CCG task records",
   "createdAt": "2026-07-18T07:05:45Z",
   "branch": "1.0.0.1.WorkTreeMemberInfo"
 }
