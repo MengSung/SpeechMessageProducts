@@ -1,0 +1,12 @@
+{
+  "id": "merge-worktree-member-info",
+  "title": "Merge WorkTreeMemberInfo into MemberInfo",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "repository",
+  "currentPhase": "implementation",
+  "nextAction": "Commit task setup and merge the source branch into the target",
+  "createdAt": "2026-07-18T11:21:12Z",
+  "branch": "1.0.0.1.MemberInfo"
+}
