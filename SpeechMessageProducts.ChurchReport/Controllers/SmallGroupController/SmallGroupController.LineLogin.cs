@@ -35,11 +35,8 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                var contactTask = Task.Run(() =>
-                    ToolUtility.RetrieveContactEntityByLineUserId(lineUserId),
-                    cancellationToken);
-
-                var contact = await contactTask.ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                var contact = ToolUtility.RetrieveContactEntityByLineUserId(lineUserId);
 
                 if (contact == null)
                 {
@@ -63,21 +60,11 @@ namespace ChurchReport.Controllers
                     HttpContext?.Session?.SetString("_SessionUserId", lineUserId);
                     await IssueAuthTicketAsync(contact.Id.ToString(), "LineIdLogin", lineUserId, "LINE");
 
-                    var setupDataTask = Task.Run(() =>
-                        InMemoryContext.SetupSmallGroupData(
-                            fullName, "LineIdLogin", lineUserId, DateTime.Now, true),
-                        cancellationToken);
-
-                    var setupViewBagTask = Task.Run(() =>
-                        SetupViewBagForSmallGroup(),
-                        cancellationToken);
-
-                    var ensureDataTask = Task.Run(() =>
-                        EnsureIntegrateDataLoaded(lineUserId),
-                        cancellationToken);
-
-                    await Task.WhenAll(setupDataTask, setupViewBagTask, ensureDataTask)
-                        .ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    InMemoryContext.SetupSmallGroupData(
+                        fullName, "LineIdLogin", lineUserId, DateTime.Now, true);
+                    SetupViewBagForSmallGroup();
+                    EnsureIntegrateDataLoaded(lineUserId);
 
                     return View("~/Views/Home/IntegrateView.cshtml",
                         InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport);

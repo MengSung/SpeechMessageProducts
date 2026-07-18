@@ -31,10 +31,10 @@ namespace ToolUtility.Tests.Core
             var expected = TestEntityFactory.CreateContact("U123", "測試");
             var collection = new EntityCollection(new[] { expected });
 
-            var mockCrm = MockCrmClientFactory.CreateMockWithCollection(collection);
+            var mockCrm = MockOrganizationServiceFactory.CreateMockWithCollection(collection);
             var mockLogger = MockLoggerFactory.CreateMock<object>();
 
-            var facade = new ToolUtilityFacade(mockLogger.Object, mockCrm.Object);
+            var facade = new ToolUtilityFacade(mockCrm.Object, mockLogger.Object);
 
             // Act
             var result = facade.RetrieveContactByLineId("U123");
@@ -48,10 +48,10 @@ namespace ToolUtility.Tests.Core
         public void SetEntityBoolAttribute_ShouldDelegateToAttributeService()
         {
             // Arrange
-            var mockCrm = MockCrmClientFactory.CreateMock();
+            var mockCrm = MockOrganizationServiceFactory.CreateMock();
             var mockLogger = MockLoggerFactory.CreateMock<object>();
 
-            var facade = new ToolUtilityFacade(mockLogger.Object, mockCrm.Object);
+            var facade = new ToolUtilityFacade(mockCrm.Object, mockLogger.Object);
 
             var entity = new Entity("contact");
 

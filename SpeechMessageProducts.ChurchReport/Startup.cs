@@ -162,6 +162,10 @@ namespace ChurchReport
             // 使用 HttpClientFactory 來管理 HttpClient 實例，避免記憶體洩漏問題。
             // 這是最佳實務，能夠重用連接並自動處理資源清理。
             services.AddHttpClient();
+            services.AddHttpClient("LineLoginOAuth", client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+            });
 
             // ========================================
             // 🔧 修復：MemoryCache 添加過期策略（不限制大小，避免登入卡住）

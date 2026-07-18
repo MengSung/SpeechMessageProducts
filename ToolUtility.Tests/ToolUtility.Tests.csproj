@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -9,21 +9,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- 測試框架 -->
+    <!-- Test framework -->
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.6.6" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    
-    <!-- Mock 框架 -->
+
+    <!-- Mock framework -->
     <PackageReference Include="Moq" Version="4.20.70" />
-    
-    <!-- 斷言庫 -->
+
+    <!-- Assertions -->
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
-    
-    <!-- 程式碼覆蓋率 -->
+
+    <!-- Code coverage -->
     <PackageReference Include="coverlet.collector" Version="6.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -35,14 +35,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- 專案參考 -->
+    <!-- Project reference -->
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- CRM SDK 套件（用於測試） -->
+    <!-- CRM SDK packages for tests -->
     <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="9.0.2.56" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
   </ItemGroup>
 
 </Project>

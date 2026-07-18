@@ -29,6 +29,9 @@ public sealed class RequestPathHotspotScanTests
         source.Should().Contain("IHttpClientFactory");
         source.Should().Contain("CreateClient(\"LineLoginOAuth\")");
         source.Should().NotContain("new HttpClient(");
+
+        var startup = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Startup.cs");
+        startup.Should().Contain("AddHttpClient(\"LineLoginOAuth\"");
     }
 
     [Fact]
@@ -46,6 +49,48 @@ public sealed class RequestPathHotspotScanTests
     }
 
     [Fact]
+    public void Dedication_SetupUserLineId_DoesNotUseTaskRunForCrmOrModelMutation()
+    {
+        var source = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Controllers", "DedicationController.cs");
+        var method = ExtractSourceSection(source, "public async Task<IActionResult> SetupUserLineId", "[Route(\"/Home/DediationLineLoginView");
+
+        method.Should().Contain("ToolUtility.RetrieveContactByLineId(UserLineId)");
+        method.Should().Contain("InMemoryContext.DonationPaymentManager.SetDonationPaymentModel(loginContact);");
+        method.Should().NotContain("Task.Run");
+    }
+
+    [Fact]
+    public void SmallGroupCrud_UpdatePresentRecord_DoesNotUseTaskRunForMutableListUpdates()
+    {
+        var source = ReadRepositoryFile(
+            "SpeechMessageProducts.ChurchReport",
+            "Controllers",
+            "SmallGroupController",
+            "SmallGroupController.Crud.cs");
+        var method = ExtractSourceSection(source, "public IActionResult UpdateSmallGroupPresentRecord", "public IActionResult DeletePresentRecord");
+
+        method.Should().Contain("dataList.m_SmallGroupData.UpdateMember(key, values);");
+        method.Should().Contain("dataList.m_AllMemeberData.UpdateMember(key, values);");
+        method.Should().NotContain("Task.Run");
+        method.Should().NotContain("Task.WhenAll");
+    }
+
+    [Fact]
+    public void ContactService_GetLoginContactAsync_DoesNotWrapSynchronousCrmLookupInTaskRun()
+    {
+        var source = ReadRepositoryFile(
+            "SpeechMessageProducts.ChurchReport",
+            "Services",
+            "Contact",
+            "Impl",
+            "ContactService.cs");
+        var method = ExtractSourceSection(source, "private Task<Entity> GetLoginContactAsync", "public Entity GetContactCurrentGroup");
+
+        method.Should().Contain("return Task.FromResult(loginContact);");
+        method.Should().NotContain("Task.Run");
+    }
+
+    [Fact]
     public void DonationPaymentProcessor_KeyInContactLookup_IsBoundedAndNarrow()
     {
         var source = ReadRepositoryFile(
@@ -56,6 +101,7 @@ public sealed class RequestPathHotspotScanTests
         var method = ExtractSourceSection(source, "private Entity GetContactForKeyIn", "private static readonly TimeSpan");
 
         method.Should().Contain("TopCount = 1");
+        method.Should().Contain("AddOrder(\"contactid\", OrderType.Ascending)");
         method.Should().Contain("new ColumnSet(");
         method.Should().Contain("\"new_lineid_backup\"");
         method.Should().NotContain("new ColumnSet(true)");

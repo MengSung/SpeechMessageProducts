@@ -15,7 +15,6 @@ using Xunit;
 using FluentAssertions;
 using ToolUtilityNameSpace.EntityOperations;
 using ToolUtility.Tests.TestHelpers;
-using ToolUtilityNameSpace.Interfaces;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Moq;
@@ -29,7 +28,7 @@ namespace ToolUtility.Tests.EntityOperations
         public void RetrieveEntity_WhenEntityExists_ShouldReturnEntity()
         {
             var expected = TestEntityFactory.CreateContact("U123", "測試");
-            var mockClient = MockCrmClientFactory.CreateMockWithEntity(expected);
+            var mockClient = MockOrganizationServiceFactory.CreateMockWithEntity(expected);
 
             var mockLogger = MockLoggerFactory.CreateMock<object>();
             var service = new EntityQueryService(mockLogger.Object, mockClient.Object);
@@ -49,7 +48,7 @@ namespace ToolUtility.Tests.EntityOperations
                 TestEntityFactory.CreateContact("U456", "測試2")
             });
 
-            var mockClient = MockCrmClientFactory.CreateMockWithCollection(collection);
+            var mockClient = MockOrganizationServiceFactory.CreateMockWithCollection(collection);
             var mockLogger = MockLoggerFactory.CreateMock<object>();
             var service = new EntityQueryService(mockLogger.Object, mockClient.Object);
 

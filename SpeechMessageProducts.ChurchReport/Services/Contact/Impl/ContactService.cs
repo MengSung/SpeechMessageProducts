@@ -500,19 +500,19 @@ namespace ChurchReport.Services.Contact.Impl
         /// <summary>
         /// 取得登入者的聯絡人實體
         /// </summary>
-        private async Task<Entity> GetLoginContactAsync(AccountPasswordData accountPasswordData)
+        private Task<Entity> GetLoginContactAsync(AccountPasswordData accountPasswordData)
         {
-            return await Task.Run(() =>
+            Entity loginContact;
+            if (accountPasswordData.Account != "LineIdLogin")
             {
-                if (accountPasswordData.Account != "LineIdLogin")
-                {
-                    return _toolUtility.RetrieveContactEntityByAccountNumber(accountPasswordData.Account, accountPasswordData.Password);
-                }
-                else
-                {
-                    return _toolUtility.RetrieveContactEntityByLineUserId(accountPasswordData.Password);
-                }
-            });
+                loginContact = _toolUtility.RetrieveContactEntityByAccountNumber(accountPasswordData.Account, accountPasswordData.Password);
+            }
+            else
+            {
+                loginContact = _toolUtility.RetrieveContactEntityByLineUserId(accountPasswordData.Password);
+            }
+
+            return Task.FromResult(loginContact);
         }
 
         public Entity GetContactCurrentGroup(Entity contact)

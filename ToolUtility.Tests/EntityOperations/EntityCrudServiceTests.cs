@@ -15,7 +15,6 @@ using Xunit;
 using FluentAssertions;
 using ToolUtilityNameSpace.EntityOperations;
 using ToolUtility.Tests.TestHelpers;
-using ToolUtilityNameSpace.Interfaces;
 using Microsoft.Xrm.Sdk;
 using Moq;
 using System;
@@ -28,7 +27,7 @@ namespace ToolUtility.Tests.EntityOperations
         public void CreateEntity_ShouldReturnGuid()
         {
             var entity = TestEntityFactory.CreateEmpty("contact");
-            var mockClient = MockCrmClientFactory.CreateMock();
+            var mockClient = MockOrganizationServiceFactory.CreateMock();
             var mockLogger = MockLoggerFactory.CreateMock<object>();
 
             var service = new EntityCrudService(mockLogger.Object, mockClient.Object);
@@ -44,7 +43,7 @@ namespace ToolUtility.Tests.EntityOperations
             var entity = TestEntityFactory.CreateEmpty("contact");
             entity["fullname"] = "new name";
 
-            var mockClient = MockCrmClientFactory.CreateMock();
+            var mockClient = MockOrganizationServiceFactory.CreateMock();
             var mockLogger = MockLoggerFactory.CreateMock<object>();
 
             var service = new EntityCrudService(mockLogger.Object, mockClient.Object);
@@ -58,7 +57,7 @@ namespace ToolUtility.Tests.EntityOperations
         public void DeleteEntity_ShouldCallClient()
         {
             var id = Guid.NewGuid();
-            var mockClient = MockCrmClientFactory.CreateMock();
+            var mockClient = MockOrganizationServiceFactory.CreateMock();
             var mockLogger = MockLoggerFactory.CreateMock<object>();
 
             var service = new EntityCrudService(mockLogger.Object, mockClient.Object);

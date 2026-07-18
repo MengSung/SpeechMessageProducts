@@ -1,4 +1,4 @@
-<Project ToolsVersion="15.0" Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project ToolsVersion="15.0" Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <EnableDefaultContentItems>false</EnableDefaultContentItems>
@@ -24,6 +24,7 @@
     
     <!-- ✅ 啟用 Ready to Run 編譯，加速冷啟動 -->
     <PublishReadyToRun>true</PublishReadyToRun>
+    <UserSecretsId>c0ce8323-9fa8-46b0-9fea-11e1f62d66fa</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;appsettings.Production.json;web.config">

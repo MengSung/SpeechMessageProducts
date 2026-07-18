@@ -43,7 +43,7 @@ namespace ChurchReport.Models
     public class DonationPaymentManager
     {
         #region 資料區
-        static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
+        static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").AddEnvironmentVariables();
         static IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
 
         // 商店編號

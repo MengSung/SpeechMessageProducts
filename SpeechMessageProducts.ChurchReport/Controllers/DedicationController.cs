@@ -700,20 +700,15 @@ namespace ChurchReport.Controllers
                 InMemoryContext.DonationPaymentManager.LoginType = "Line線上登入";
                 HttpContext.Session.Remove(DonationPaymentSessionKeys.WebLoginContactId);
 
-                // ? 使用非同步查詢載入登入使用者資料
-                var loginContactTask = Task.Run(() =>
-                    ToolUtility.RetrieveContactByLineId(UserLineId),
-                    cancellationToken);
-
-                var loginContact = await loginContactTask.ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                var loginContact = ToolUtility.RetrieveContactByLineId(UserLineId);
 
                 if (loginContact != null)
                 {
-                    await Task.Run(() =>
-                        InMemoryContext.DonationPaymentManager.SetDonationPaymentModel(loginContact),
-                        cancellationToken).ConfigureAwait(false);
+                    InMemoryContext.DonationPaymentManager.SetDonationPaymentModel(loginContact);
                 }
 
+                await Task.CompletedTask.ConfigureAwait(false);
                 return Json(new { status = "1" });
             }
             catch (OperationCanceledException)

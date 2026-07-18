@@ -15,8 +15,6 @@ using Xunit;
 using FluentAssertions;
 using ToolUtilityNameSpace.ContactOperations;
 using ToolUtility.Tests.TestHelpers;
-using ToolUtilityNameSpace.EntityOperations;
-using Moq;
 using System;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
@@ -30,12 +28,11 @@ namespace ToolUtility.Tests.ContactOperations
         {
             var expected = TestEntityFactory.CreateContact("U123456", "測試聯絡人");
 
-            var mockQueryService = new Mock<IEntityQueryService>();
-            mockQueryService.Setup(x => x.RetrieveMultiple(It.IsAny<QueryByAttribute>()))
-                .Returns(new EntityCollection(new[] { expected }));
+            var mockOrganizationService = MockOrganizationServiceFactory.CreateMockWithCollection(
+                new EntityCollection(new[] { expected }));
 
             var mockLogger = MockLoggerFactory.CreateMock<object>();
-            var service = new ContactService(mockLogger.Object, mockQueryService.Object);
+            var service = new ContactService(mockLogger.Object, mockOrganizationService.Object);
 
             var result = service.RetrieveByLineId("U123456");
 
@@ -52,12 +49,10 @@ namespace ToolUtility.Tests.ContactOperations
                 TestEntityFactory.CreateContact("U456", "B")
             });
 
-            var mockQueryService = new Mock<IEntityQueryService>();
-            mockQueryService.Setup(x => x.RetrieveMultiple(It.IsAny<QueryByAttribute>()))
-                .Returns(collection);
+            var mockOrganizationService = MockOrganizationServiceFactory.CreateMockWithCollection(collection);
 
             var mockLogger = MockLoggerFactory.CreateMock<object>();
-            var service = new ContactService(mockLogger.Object, mockQueryService.Object);
+            var service = new ContactService(mockLogger.Object, mockOrganizationService.Object);
 
             var result = service.RetrieveCollectionByName("A");
 

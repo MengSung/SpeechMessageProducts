@@ -16,7 +16,6 @@ using FluentAssertions;
 using ToolUtilityNameSpace.LineMessaging;
 using ToolUtility.Tests.TestHelpers;
 using Moq;
-using ToolUtilityNameSpace.EntityOperations;
 using System;
 using Microsoft.Xrm.Sdk;
 
@@ -27,14 +26,14 @@ namespace ToolUtility.Tests.LineMessaging
         [Fact]
         public void CreatePushMessage_ShouldCallCreateEntity()
         {
-            var mockCrud = new Mock<IEntityCrudService>();
+            var mockCrm = MockOrganizationServiceFactory.CreateMock();
             var mockLogger = MockLoggerFactory.CreateMock<object>();
 
-            var service = new LineMessageService(mockLogger.Object, mockCrud.Object);
+            var service = new LineMessageService(mockLogger.Object, mockCrm.Object);
 
             service.CreatePushMessage("U123", "sub", "hello");
 
-            mockCrud.Verify(x => x.CreateEntity(It.IsAny<Entity>()), Times.Once);
+            mockCrm.Verify(x => x.Create(It.Is<Entity>(e => e.LogicalName == "linemessage" && e["userid"].ToString() == "U123")), Times.Once);
         }
     }
 }

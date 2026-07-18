@@ -27,11 +27,11 @@ namespace ToolUtility.Tests.AttachmentOperations
         public void DownloadAttachment_WhenCalled_ShouldReturnCollection()
         {
             var mockLogger = MockLoggerFactory.CreateMock<object>();
-            var mockCrudClient = MockCrmClientFactory.CreateMock();
+            var mockCrm = MockOrganizationServiceFactory.CreateMock();
 
-            var service = new AttachmentService(mockLogger.Object, mockCrudClient.Object);
+            var service = new AttachmentService(mockLogger.Object, mockCrm.Object);
 
-            var crm = (IOrganizationService)null;
+            var crm = mockCrm.Object;
             var result = service.DownloadAttachment(ref crm, Guid.NewGuid());
 
             result.Should().NotBeNull();
@@ -42,15 +42,15 @@ namespace ToolUtility.Tests.AttachmentOperations
         public void UploadAttachment_WhenCalled_ShouldCreateAnnotation()
         {
             var mockLogger = MockLoggerFactory.CreateMock<object>();
-            var mockCrudClient = MockCrmClientFactory.CreateMock();
+            var mockCrm = MockOrganizationServiceFactory.CreateMock();
 
-            var service = new AttachmentService(mockLogger.Object, mockCrudClient.Object);
+            var service = new AttachmentService(mockLogger.Object, mockCrm.Object);
 
-            var crm = (IOrganizationService)null;
+            var crm = mockCrm.Object;
 
             service.UploadAttachment(ref crm, "contact", "sub", "note", "file.txt", "text/plain", new byte[] {1,2,3}, Guid.NewGuid());
 
-            Assert.True(true);
+            mockCrm.Verify(x => x.Create(It.Is<Entity>(a => a.LogicalName == "annotation" && a["filename"].ToString() == "file.txt")), Times.Once);
         }
     }
 }

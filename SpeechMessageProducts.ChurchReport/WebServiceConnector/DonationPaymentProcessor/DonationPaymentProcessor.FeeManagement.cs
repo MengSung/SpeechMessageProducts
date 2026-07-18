@@ -261,9 +261,29 @@ namespace ChurchReport.WebServiceConnector
                     return null;
                 }
 
-                var query = new QueryByAttribute("contact") { ColumnSet = new ColumnSet(true) };
-                query.Attributes.AddRange("pager", "fullname", "statecode");
-                query.Values.AddRange(DonationPaymentFormModel.DedicationNumber, DonationPaymentFormModel.FullName, 0);
+                var query = new QueryExpression("contact")
+                {
+                    ColumnSet = new ColumnSet(
+                        "contactid",
+                        "fullname",
+                        "pager",
+                        "new_personal_id",
+                        "new_lineid",
+                        "new_lineid_backup",
+                        "parentcustomerid",
+                        "ownerid"),
+                    Criteria = new FilterExpression(LogicalOperator.And)
+                    {
+                        Conditions =
+                        {
+                            new ConditionExpression("pager", ConditionOperator.Equal, DonationPaymentFormModel.DedicationNumber),
+                            new ConditionExpression("fullname", ConditionOperator.Equal, DonationPaymentFormModel.FullName),
+                            new ConditionExpression("statecode", ConditionOperator.Equal, 0)
+                        }
+                    },
+                    TopCount = 1
+                };
+                query.AddOrder("contactid", OrderType.Ascending);
 
                 var matches = m_ToolUtilityClass.m_Crm2011OrganizationService.RetrieveMultiple(query);
                 return matches.Entities.Count > 0 ? matches.Entities[0] : null;

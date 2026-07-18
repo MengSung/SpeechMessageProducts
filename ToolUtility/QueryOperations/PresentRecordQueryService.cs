@@ -291,7 +291,27 @@ namespace ToolUtilityNameSpace.QueryOperations
                 var query = new QueryExpression
                 {
                     EntityName = "list",
-                    ColumnSet = new ColumnSet(true)
+                    ColumnSet = new ColumnSet(
+                        "listid",
+                        "listname",
+                        "purpose",
+                        "new_app_named",
+                        "new_contact_family_leader_list",
+                        "new_contact_race_leager_list",
+                        "new_contact_list_arealeader",
+                        "new_contact_list_vice_family_leader",
+                        "new_contact_co_race_leager_list",
+                        "new_contact_list_co_arealeader",
+                        "new_familyhead_list",
+                        "new_happy_start_date",
+                        "new_happy_end_date",
+                        "statuscode",
+                        "statecode"),
+                    PageInfo = new PagingInfo
+                    {
+                        Count = 5000,
+                        PageNumber = 1
+                    }
                 };
 
                 var filter = new FilterExpression(LogicalOperator.And);

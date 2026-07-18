@@ -18,8 +18,8 @@ using ToolUtility.Tests.TestHelpers;
 using Moq;
 using System;
 using System.Collections.Generic;
-using ToolUtilityNameSpace.EntityOperations;
-using ToolUtilityNameSpace.EntityOperations;
+using Microsoft.Crm.Sdk.Messages;
+using Microsoft.Xrm.Sdk;
 
 namespace ToolUtility.Tests.ListOperations
 {
@@ -28,37 +28,51 @@ namespace ToolUtility.Tests.ListOperations
         [Fact]
         public void AddMembers_ShouldCallCreateForEachMember()
         {
-            var mockQuery = new Mock<IEntityQueryService>();
-            var mockCrudClient = MockCrmClientFactory.CreateMock();
+            var mockCrm = MockOrganizationServiceFactory.CreateMock();
             var mockLogger = MockLoggerFactory.CreateMock<object>();
 
-            var service = new ListService(mockLogger.Object, mockQuery.Object, mockCrudClient.Object);
+            var service = new ListService(mockLogger.Object, mockCrm.Object);
 
             var members = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
             var listId = Guid.NewGuid();
 
             service.AddMembers(listId, members);
 
-            // No exception means success for this simple impl
-            Assert.True(true);
+            mockCrm.Verify(x => x.Execute(It.Is<OrganizationRequest>(request =>
+                IsAddListMembersRequest(request, listId, members.Count))), Times.Once);
         }
 
         [Fact]
         public void RemoveMember_ShouldCallDelete()
         {
-            var mockQuery = new Mock<IEntityQueryService>();
-            var mockCrudClient = MockCrmClientFactory.CreateMock();
+            var mockCrm = MockOrganizationServiceFactory.CreateMock();
             var mockLogger = MockLoggerFactory.CreateMock<object>();
 
-            var service = new ListService(mockLogger.Object, mockQuery.Object, mockCrudClient.Object);
+            var service = new ListService(mockLogger.Object, mockCrm.Object);
 
             var member = Guid.NewGuid();
             var listId = Guid.NewGuid();
 
             service.RemoveMember(listId, member);
 
-            // No exception means success
-            Assert.True(true);
+            mockCrm.Verify(x => x.Execute(It.Is<OrganizationRequest>(request =>
+                IsRemoveMemberRequest(request, listId, member))), Times.Once);
+        }
+
+        private static bool IsAddListMembersRequest(OrganizationRequest request, Guid listId, int memberCount)
+        {
+            var addRequest = request as AddListMembersListRequest;
+            return addRequest != null &&
+                addRequest.ListId == listId &&
+                addRequest.MemberIds.Length == memberCount;
+        }
+
+        private static bool IsRemoveMemberRequest(OrganizationRequest request, Guid listId, Guid memberId)
+        {
+            var removeRequest = request as RemoveMemberListRequest;
+            return removeRequest != null &&
+                removeRequest.ListId == listId &&
+                removeRequest.EntityId == memberId;
         }
     }
 }

@@ -34,7 +34,9 @@ public sealed class PresentRecordQueryServiceTests
             "new_app_named",
             "new_contact_family_leader_list",
             "new_contact_race_leager_list",
-            "new_contact_list_arealeader"
+            "new_contact_list_arealeader",
+            "new_happy_start_date",
+            "new_happy_end_date"
         });
         capturedQuery.PageInfo.Should().NotBeNull();
         capturedQuery.PageInfo.PageNumber.Should().Be(1);

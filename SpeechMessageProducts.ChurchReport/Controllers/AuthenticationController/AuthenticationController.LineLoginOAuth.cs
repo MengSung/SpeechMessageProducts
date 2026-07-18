@@ -372,7 +372,7 @@ namespace ChurchReport.Controllers
                 var callbackUrl = HttpContext.Session.GetString(LineLoginCallbackUrlSessionKey)
                     ?? ResolveLineLoginCallbackUrl(configuration);
 
-                using (var httpClient = new HttpClient())
+                using (var httpClient = CreateLineLoginOAuthHttpClient())
                 {
                     var requestData = new FormUrlEncodedContent(new[]
                     {
@@ -416,7 +416,7 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                using (var httpClient = new HttpClient())
+                using (var httpClient = CreateLineLoginOAuthHttpClient())
                 {
                     httpClient.DefaultRequestHeaders.Authorization =
                         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
@@ -445,6 +445,17 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[GetLineUserProfile] 異常: {ex.Message}");
                 return null;
             }
+        }
+
+        private HttpClient CreateLineLoginOAuthHttpClient()
+        {
+            var httpClientFactory = HttpContext?.RequestServices?.GetService(typeof(IHttpClientFactory)) as IHttpClientFactory;
+            if (httpClientFactory == null)
+            {
+                throw new InvalidOperationException("IHttpClientFactory is required for LINE OAuth HTTP calls.");
+            }
+
+            return httpClientFactory.CreateClient("LineLoginOAuth");
         }
 
         /// <summary>

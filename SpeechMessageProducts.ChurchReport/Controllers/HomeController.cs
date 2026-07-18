@@ -399,7 +399,7 @@ namespace ChurchReport.Controllers
         /// 訪問 URL: /Home/TestCachePerformance
         /// </summary>
         [Route("/Home/TestCachePerformance")]
-        public IActionResult TestCachePerformance()
+        public async Task<IActionResult> TestCachePerformance()
         {
             try
             {
@@ -436,7 +436,10 @@ namespace ChurchReport.Controllers
                 report += "\n\n";
 
                 // 清除快取以進行下一個測試
-                cacheService?.InvalidateAsync($"list_query_{testContactId}_vice_family_leader").Wait();
+                if (cacheService != null)
+                {
+                    await cacheService.InvalidateAsync($"list_query_{testContactId}_vice_family_leader");
+                }
 
                 return Content(report, "text/plain; charset=utf-8");
             }

@@ -50,7 +50,7 @@ namespace ChurchReport.Controllers
         /// 更新小組出席記錄（並行更新兩個資料集）
         /// </summary>
         [HttpPut]
-        public async Task<IActionResult> UpdateSmallGroupPresentRecord(
+        public IActionResult UpdateSmallGroupPresentRecord(
             string key,
             string values,
             CancellationToken cancellationToken = default)
@@ -76,15 +76,11 @@ namespace ChurchReport.Controllers
                 var dataList = InMemoryContext.ListManager.m_ListSmallGroupWeeklyReport
                     .m_SmallGroupDataList;
 
-                var task1 = Task.Run(() =>
-                    dataList.m_SmallGroupData.UpdateMember(key, values),
-                    cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                dataList.m_SmallGroupData.UpdateMember(key, values);
 
-                var task2 = Task.Run(() =>
-                    dataList.m_AllMemeberData.UpdateMember(key, values),
-                    cancellationToken);
-
-                await Task.WhenAll(task1, task2).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                dataList.m_AllMemeberData.UpdateMember(key, values);
 
                 return Ok();
             }

@@ -36,6 +36,7 @@ public sealed class ChurchReportLineAdminNotificationService
         new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+            .AddEnvironmentVariables()
             .Build());
 
     private static readonly Lazy<ChurchReportLineAdminNotificationService> s_default = new(() =>

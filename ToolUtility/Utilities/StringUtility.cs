@@ -35,7 +35,7 @@ namespace ToolUtilityNameSpace.Utilities
             int lastIndexEnglish = stringToProcess.LastIndexOf(',');
             int lastIndex = Math.Max(lastIndexChinese, lastIndexEnglish);
 
-            if (lastIndex > 0)
+            if (lastIndex >= 0)
             {
                 stringToProcess = stringToProcess.Substring(0, lastIndex);
             }

@@ -55,7 +55,8 @@ namespace ChurchReport.Tools
             // ?蔭撱箸??刻?撖虫?
             private static readonly IConfigurationBuilder m_ConfigurationBuilder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+                .AddEnvironmentVariables();
             private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
 
             // 敺?蝵株???Channel Access Token

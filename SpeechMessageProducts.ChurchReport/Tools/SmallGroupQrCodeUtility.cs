@@ -73,7 +73,8 @@ namespace ChurchReport.Tools
         // 配置管理
         private static readonly IConfigurationBuilder m_ConfigurationBuilder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+            .AddEnvironmentVariables();
         private static readonly IConfiguration m_Configuration = m_ConfigurationBuilder.Build();
 
         #endregion
