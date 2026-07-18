@@ -724,58 +724,65 @@ namespace ChurchReport.Controllers
                     var swConn = System.Diagnostics.Stopwatch.StartNew();
                     service = GetConnection();
                     swConn.Stop(); connMs = swConn.ElapsedMilliseconds; // [計時診斷] 連線池取得連線耗時
-                    var query = new QueryExpression("contact")
+                    foreach (var chunk in uncachedGuids.Chunk(CrmInClauseChunkSize))
                     {
-                        ColumnSet = new ColumnSet(
+                        var query = new QueryExpression("contact")
+                        {
+                            ColumnSet = new ColumnSet(
+                                "contactid",
+                                "entityimage",
+                                "gendercode",
+                                ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute)
+                        };
+                        query.Criteria.AddCondition(
                             "contactid",
-                            "entityimage",
-                            "gendercode",
-                            ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute)
-                    };
-                    query.Criteria.AddCondition("contactid", ConditionOperator.In, uncachedGuids.Select(g => (object)g).ToArray());
+                            ConditionOperator.In,
+                            chunk.Select(guid => (object)guid).ToArray());
 
-                    var swCrm = System.Diagnostics.Stopwatch.StartNew();
-                    var contacts = service.RetrieveMultiple(query);
-                    swCrm.Stop(); crmMs = swCrm.ElapsedMilliseconds; // [計時診斷] 單一 RetrieveMultiple(含 entityimage 傳輸) 耗時
-                    foreach (var contact in contacts.Entities)
-                    {
-                        if (contact.Contains("entityimage") && contact["entityimage"] != null)
+                        var swCrm = System.Diagnostics.Stopwatch.StartNew();
+                        var contacts = service.RetrieveMultiple(query);
+                        swCrm.Stop();
+                        crmMs += swCrm.ElapsedMilliseconds; // [計時診斷] 分塊 RetrieveMultiple(含 entityimage 傳輸) 累計耗時
+                        foreach (var contact in contacts.Entities)
                         {
-                            var originalBytes = (byte[])contact["entityimage"];
-                            var _imgStart = System.Diagnostics.Stopwatch.GetTimestamp(); // [計時診斷] 累計解碼/縮圖耗時
-                            var outputBytes = CreateThumbnailIfNeeded(originalBytes, thumbSize);
-                            imgTicks += System.Diagnostics.Stopwatch.GetTimestamp() - _imgStart;
-                            inBytes += originalBytes.Length; outBytes += outputBytes.Length; withPhoto++; // [計時診斷] 原圖/縮圖位元組
-                            var cacheKey = $"member-info-contact-image-thumb:{contact.Id:N}:{thumbSize}";
-
-                            memoryCache?.Set(cacheKey, outputBytes, new MemoryCacheEntryOptions
+                            if (contact.Contains("entityimage") && contact["entityimage"] != null)
                             {
-                                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
-                                SlidingExpiration = TimeSpan.FromMinutes(10),
-                                Size = Math.Max(1, outputBytes.Length / 1024)
-                            });
+                                var originalBytes = (byte[])contact["entityimage"];
+                                var _imgStart = System.Diagnostics.Stopwatch.GetTimestamp(); // [計時診斷] 累計解碼/縮圖耗時
+                                var outputBytes = CreateThumbnailIfNeeded(originalBytes, thumbSize);
+                                imgTicks += System.Diagnostics.Stopwatch.GetTimestamp() - _imgStart;
+                                inBytes += originalBytes.Length; outBytes += outputBytes.Length; withPhoto++; // [計時診斷] 原圖/縮圖位元組
+                                var cacheKey = $"member-info-contact-image-thumb:{contact.Id:N}:{thumbSize}";
 
-                            var key = contact.Id.ToString();
-                            result[key] = "data:image/jpeg;base64," + Convert.ToBase64String(outputBytes);
-                            sources[key] = "primary";
-                        }
-                        else
-                        {
-                            // 無照片：批次直接帶回性別剪影(SVG data URI)，前端就不必再逐筆打 GetContactImage。
-                            var linePictureUrl = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
-                                contact.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
-                            if (!string.IsNullOrEmpty(linePictureUrl))
-                            {
+                                memoryCache?.Set(cacheKey, outputBytes, new MemoryCacheEntryOptions
+                                {
+                                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
+                                    SlidingExpiration = TimeSpan.FromMinutes(10),
+                                    Size = Math.Max(1, outputBytes.Length / 1024)
+                                });
+
                                 var key = contact.Id.ToString();
-                                result[key] = linePictureUrl;
-                                sources[key] = "line";
+                                result[key] = "data:image/jpeg;base64," + Convert.ToBase64String(outputBytes);
+                                sources[key] = "primary";
                             }
                             else
                             {
-                                var gender = contact.GetAttributeValue<OptionSetValue>("gendercode")?.Value;
-                                var key = contact.Id.ToString();
-                                result[key] = ToSvgDataUri(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender));
-                                sources[key] = "fallback";
+                                // 無照片：批次直接帶回性別剪影(SVG data URI)，前端就不必再逐筆打 GetContactImage。
+                                var linePictureUrl = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
+                                    contact.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
+                                if (!string.IsNullOrEmpty(linePictureUrl))
+                                {
+                                    var key = contact.Id.ToString();
+                                    result[key] = linePictureUrl;
+                                    sources[key] = "line";
+                                }
+                                else
+                                {
+                                    var gender = contact.GetAttributeValue<OptionSetValue>("gendercode")?.Value;
+                                    var key = contact.Id.ToString();
+                                    result[key] = ToSvgDataUri(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender));
+                                    sources[key] = "fallback";
+                                }
                             }
                         }
                     }

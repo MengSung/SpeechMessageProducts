@@ -121,6 +121,21 @@ public class MemberInfoTreeControllerContractTests
     }
 
     [Fact]
+    public void Controller_ChunksBatchAvatarCrmQueries()
+    {
+        var action = Slice(
+            "public IActionResult GetContactImagesBatch(",
+            "public IActionResult ResyncLineCandidateIds(");
+
+        action.Should().Contain(
+            "foreach (var chunk in uncachedGuids.Chunk(CrmInClauseChunkSize))");
+        action.Should().Contain(
+            "chunk.Select(guid => (object)guid).ToArray()");
+        action.Should().NotContain(
+            "ConditionOperator.In, uncachedGuids.Select(g => (object)g).ToArray()");
+    }
+
+    [Fact]
     public void Controller_LoadsAndMapsSmallGroupTimeAndPlace()
     {
         const string methodStartMarker = "private List<SmallGroupDescriptor> FetchSmallGroupDescriptors";
