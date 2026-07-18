@@ -139,6 +139,15 @@ did not start.
   Revision 1 sequential repair contract. `ab9993e8` is the independently
   allowlist-checked `COMMITTED` repair with passing focused tests, build, and
   review gate evidence.
+- [x] Reopen X04A-SEC-001 after the completion audit found three commented
+  sensitive literals and six non-empty legacy Sandbox aliases outside the
+  Revision 1 scanner. The owner approved Revision 2 on 2026-07-18.
+- [x] Review and approve the two-path Revision 2 contract. Claude-only review
+  produced no usable output; owner approval and the active inline redacted
+  contract audit found no unresolved Critical or Warning.
+- [ ] Complete Revision 2 with original manifest `0/21` retained, aliases
+  `6/6 -> 0/6`, commented literals `3 -> 0`, focused tests/build passing, and
+  one independently checked Traditional Chinese commit.
 
 ### Task 4: Repair B01 Identity And Login Password Handling
 

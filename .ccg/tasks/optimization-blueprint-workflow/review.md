@@ -98,3 +98,14 @@ no product file is changed, and no optimization subagent has been dispatched.
 - `X04A-SEC-001` cannot support a repository-wide zero-literal claim until the
   owner approves and completes a Revision 2 contract covering raw comments and
   legacy aliases. No secret value is recorded in this evidence.
+
+## X04A Revision 2 Contract Approval
+
+- Owner approved Revision 2 on 2026-07-18.
+- Claude-only run `20260718-102103-x04a-revision2-contract-reviewer` completed
+  two healthy attempts but produced no usable output; it is not external
+  approval.
+- The inline redacted audit reproduced original scanner tests `2/2`, comments
+  `3`, aliases `6`, and durable-artifact literal leaks `0`.
+- Verdict: `CONTRACT_REVISION_APPROVED_DEGRADED`, with exactly two authorized
+  product/test paths and no unresolved Critical or Warning.

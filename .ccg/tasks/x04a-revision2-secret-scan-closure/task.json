@@ -1,0 +1,12 @@
+{
+  "id": "x04a-revision2-secret-scan-closure",
+  "title": "X04A Revision 2 secret scan closure",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "runtime-configuration-security",
+  "currentPhase": "implementation",
+  "nextAction": "Add red scanner tests, prove the 3-comment/6-alias baseline, then clear only the approved appsettings literals",
+  "createdAt": "2026-07-18T00:00:00Z",
+  "branch": "1.0.0.1.EvenVersion"
+}

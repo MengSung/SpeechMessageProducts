@@ -6,7 +6,7 @@
   "risk": "medium",
   "domain": "architecture-governance",
   "currentPhase": "implementation",
-  "nextAction": "等待 owner 核准 X04A-SEC-001 Revision 2；B01 source caller inventory 已完成 17/17，仍缺外部 binary caller 確認、CRM row-version 與 route probe",
+  "nextAction": "X04A-SEC-001 Revision 2 已獲 owner 核准；完成三文件合約審查後執行兩路徑修復，再恢復 B01",
   "createdAt": "2026-07-13T06:07:17Z",
   "branch": "1.0.0.1.EvenVersion"
 }

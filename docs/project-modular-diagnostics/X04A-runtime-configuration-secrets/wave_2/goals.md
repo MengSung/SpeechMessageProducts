@@ -1,160 +1,70 @@
-# Wave 2 修訂目標合同：X04A Runtime Configuration And Secrets
+# Wave 2 Revision 2 Goals: X04A Residual Secrets
 
 - Wave: Wave 2
-- Revision: 1
-- Workspace: `X04A-runtime-configuration-secrets`
-- Canonical issues: `X04A-SEC-001`, `X04A-SEC-002`, `X04A-PERF-001`
+- Revision: 2
+- Canonical issue: `X04A-SEC-001`
 - Contract status: `CONTRACT_STATUS: CONTRACT_REVISION_APPROVED_DEGRADED`
 
-`measurements.md` defines how each result is observed. This document defines
-the non-negotiable completion, no-regression, and rollback conditions.
+This file is the completion authority for Revision 2. Targets may not be
+weakened after repair begins.
 
-## X04A-SEC-001: Committed Runtime Secrets
+## Success Targets
 
-### Completion Target
-
-The frozen 21-key manifest reports `SecretLiteralCount=0/21` in committed
-`appsettings.json`. No alternative credential, encoded secret, or real value may
-be added to any tracked file, test fixture, measurement, log, or review prompt.
-
-### Required Preserved Behavior
-
-All existing configuration sections, key paths, non-secret metadata, and
-endpoint settings remain available. Every frozen legacy consumer obtains its
-effective values through the host configuration bridge, so removing committed
-literals does not turn an externally injected runtime value into an empty value.
-
-### Required Local Evidence
-
-`RuntimeConfigurationSecretScanTests` passes with the unchanged 21-key
-manifest; `RuntimeConfigurationConsumerSourceContractTests` confirms all 13
-consumers use the bridge; the focused suite and ChurchReport build pass.
-
-### Failure And Rollback
-
-The goal fails if any manifest key remains non-empty, any secret leaks into an
-artifact, any original key path disappears, or any consumer still resolves a
-base-only local file configuration. Revert the one X04A repair commit without
-restoring any secret literal; deployment owners maintain managed external
-configuration throughout rollback.
-
-## X04A-SEC-002: Unsafe Production Inheritance
-
-### Completion Target
-
-The committed base-plus-Production measurement is exactly:
+All targets must hold simultaneously:
 
 ```text
-UnsafeOrInheritedConditionCount=0/8
-SafeEffectiveConditionCount=8/8
-ProductionOverlayPresenceCount=8/8
+OriginalManifestLiteralCount=0/21
+LegacyAliasLiteralCount=0/6
+CommentedSensitiveLiteralCount=0
+ScannerDetectedCases=3/3
+ScannerDisclosedFixtureValues=0/3
 ```
 
-The Production validator rejects all frozen unsafe/missing/placeholder fixtures
-before `Startup.ConfigureServices`, while a Development fixture bypasses the
-Production-only gate. `Cash_Environment` uses a positive Production allowlist,
-so `Development`, `Staging`, test, and sandbox classifications cannot pass by
-omission. The placeholder test matrix covers the frozen known marker set without
-logging a marker value.
+The focused X04A suite passes, ChurchReport builds with zero errors,
+`git diff --check` is clean, and the repair changes exactly the two product/test
+paths in `plans.md`.
 
-### Required Preserved Behavior
+## Required Preserved Behavior
 
-No non-Production environment is blocked by the new Production gate. Existing
-global authorization behavior remains protected by its existing tests. Failure
-messages contain only key/category information and never an effective setting
-value.
+- Original configuration key paths and non-secret metadata remain available.
+- The Sandbox section and endpoint configuration remain present.
+- Runtime bridge initialization, all 13 consumer migrations, and Production
+  validation behavior remain unchanged.
+- Development remains free of the Production-only startup gate.
+- No test, error, task, measurement, prompt, or review artifact contains a
+  credential or synthetic fixture value.
 
-### Required Local Evidence
+## Failure Conditions
 
-`RuntimeConfigurationSafetyValidatorTests`, focused X04A tests, and the
-ChurchReport build pass. The `Program.cs` diff proves validation runs before
-Startup construction and bridge initialization uses the validated host
-configuration.
+Revision 2 fails if any of the following occurs:
 
-### Failure And Rollback
+- an original manifest or legacy alias path remains non-empty;
+- a commented sensitive assignment remains;
+- the scanner misses a synthetic class or returns a matched value;
+- any Revision 1 product path changes;
+- a key path, Sandbox section, endpoint, or non-secret setting is removed;
+- focused tests/build fail or the diff exceeds the two-path allowlist;
+- review has an unresolved Critical or Warning finding.
 
-The goal fails if an unsafe control is accepted, a safe Production fixture is
-rejected, a non-Production fixture is blocked, a value is logged, or service
-registration can occur before validation. Revert the one X04A repair commit;
-do not compensate by restoring a committed secret.
+## Review And Commit Gate
 
-## X04A-PERF-001: Ad-Hoc Configuration Lifecycle Bypass
+Claude-only review is attempted through the self-healing runner. A no-output run
+is recorded as unavailable, not approval. Gemini is prohibited. The active
+execution platform's permitted local/fallback review gate must find no unresolved
+Critical or Warning before the repair commit.
 
-### Completion Target
+One Traditional Chinese commit records the baseline, final counts, validation,
+review state, and rollback boundary. X04A returns to `COMMITTED` only after that
+commit is independently checked against the two-path allowlist.
 
-The exact frozen inventory reaches both targets:
+## Rollback
 
-```text
-AdHocConfigurationBuilderConsumerCount=0/13
-BridgeConsumerCount=13/13
-```
+Revert the Revision 2 repair as one unit only when operationally required, but
+never restore removed literals. Managed external configuration remains the only
+source for runtime credentials.
 
-The bridge lifecycle test passes all four cases: fail closed before startup,
-serve synthetic effective host values after startup, preserve a higher-priority
-synthetic overlay, and reject a different second initialization.
+## Revision 1 Preserved Completion
 
-### Required Preserved Behavior
-
-The 13 consumers retain their public constructors, legacy direct construction,
-existing key paths, organization/default-organization lookup, payment/QR/LINE
-business logic, and error semantics except that a pre-host configuration access
-now fails explicitly rather than silently reading base-only configuration.
-
-### Required Local Evidence
-
-`RuntimeConfigurationBridgeTests` and
-`RuntimeConfigurationConsumerSourceContractTests` pass. The bridge has no JSON
-file provider or fallback configuration construction, and no frozen consumer
-contains its previous local builder/cache pattern.
-
-### Failure And Rollback
-
-The goal fails if any listed path retains a local builder, if a consumer can
-bypass host provider ordering, if bridge initialization can be silently
-replaced, or if direct legacy construction requires unrelated caller changes.
-Revert the single X04A repair commit and preserve external deployment secrets.
-
-## Whole-Revision Completion Gate
-
-All of the following must be true before X04A becomes `COMMITTED`:
-
-1. SEC001, SEC002, and PERF001 each meet every target above.
-2. Every changed source/test/configuration path is in `plans.md` allowlist.
-3. Focused tests pass; the ChurchReport build succeeds; `git diff --check` is
-   clean.
-4. Claude-only diff review approves, or its no-output state is documented and
-   exactly one read-only Codex fallback review approves.
-5. One Traditional Chinese commit contains the complete X04A repair and its
-   redacted evidence appendices.
-
-## Execution Evidence
-
-At `2026-07-18T00:22:14Z`, local verification reached every code and
-measurement target in this document:
-
-- SEC001: committed-manifest literal count is `0/21`.
-- SEC002: all `8/8` Production controls are explicit and safe; unsafe or
-  inherited controls count is `0/8`.
-- PERF001: the frozen consumer inventory is `0/13` local builders and `13/13`
-  bridge consumers; bridge lifecycle cases are `4/4`.
-- The focused suite is `33/33` passing; the ChurchReport build has `0` errors;
-  `git diff --check` is clean; all `22` product/test/configuration paths are
-  allowlisted.
-
-This is local proof only. Claude-only review produced no usable output after
-two healthy attempts, and the required inline Codex fallback found no Critical
-or Warning issue. The single Traditional Chinese repair commit is `ab9993e8`;
-the revision is `COMMITTED` after its 25-path allowlist and clean commit diff
-were independently verified.
-
-## Deployment Gate Outside Local Completion
-
-Local completion does not authorize a Production deployment. Before release,
-the deployment owner must prove managed secret injection, credential rotation,
-and the validated effective Production configuration in the target environment.
-
-## Revision 0 Archive
-
-The former two-issue X04A contract correctly reached `BLOCKED`; it did not
-produce a product repair commit. Revision 1 is successful only on its own
-measurements and must not reuse transient results from the reverted attempt.
+`ab9993e8` remains committed for `X04A-SEC-002` and `X04A-PERF-001`. Revision 2
+must preserve its `0/8` unsafe controls, `13/13` bridge consumers, `0/13` local
+builders, and `4/4` lifecycle results.
