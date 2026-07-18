@@ -10,89 +10,89 @@
                   {
                       "path":  "00-START-HERE.md",
                       "role":  "entry_point",
-                      "bytes":  11430,
-                      "sha256":  "35719af1fa58dfc47b4eeead56dd0260ce575fe9f6b45b12ec38fa866ec8c652",
+                      "bytes":  11571,
+                      "sha256":  "3a718dc0f3ff1a98a56375b8923d5e7e01c81626719dfe57e1c290279956d8c2",
                       "utf8":  true
                   },
                   {
                       "path":  "01-INTEGRATED-SPEC.md",
                       "role":  "integrated_spec",
-                      "bytes":  58849,
-                      "sha256":  "e20512b3772dca9c902231db3300059bc0d002a2e761adc06403be0a003738d1",
+                      "bytes":  59034,
+                      "sha256":  "22f115dfa8c35f3ae5b15aacb3960758ed321407ad20fe2d9886d2ecff1249e8",
                       "utf8":  true
                   },
                   {
                       "path":  "02-DEPENDENCY-MATRIX.md",
                       "role":  "dependency_matrix",
-                      "bytes":  30475,
-                      "sha256":  "bdf926c244d4fe9fad779c5e34a6505ceb0b9382340c342077592b062cd44504",
+                      "bytes":  30538,
+                      "sha256":  "64d891fa3cd206a7991f8b22288e4459ce3ef828a22892da8b5d3f336c59c03f",
                       "utf8":  true
                   },
                   {
                       "path":  "03-PROMPT-HISTORY-VERBATIM.md",
                       "role":  "prompt_history",
-                      "bytes":  17947,
-                      "sha256":  "b5bc92be4362545952f061a29cb8687a8388e3ed90cd4afc9310a50a330219de",
+                      "bytes":  18532,
+                      "sha256":  "ade3b2f3cf3cd2e046be530fb876e84e35a59b7eb15feca5434b889ae48936e8",
                       "utf8":  true
                   },
                   {
                       "path":  "04-PROMPT-PLAYBOOK.md",
                       "role":  "prompt_playbook",
-                      "bytes":  69765,
-                      "sha256":  "f95905fa0449916cd6cd5ce1e497094bb8c9059126f834f0282bf665b8d758a3",
+                      "bytes":  70267,
+                      "sha256":  "e89c0c87a8ddc60e0b30c30fc7421697ed57be09cdf48aa9078cfc10fa8cdf89",
                       "utf8":  true
                   },
                   {
                       "path":  "05-MIGRATION-RUNBOOK.md",
                       "role":  "migration_runbook",
-                      "bytes":  24701,
-                      "sha256":  "e640064f4faca4320dfb839224af3f980b317ace8f9f080138c76a44735f5923",
+                      "bytes":  24979,
+                      "sha256":  "0c10be65a0469597a395ddfc7548742ece85a7a808bbaa3a3c4642a9e7994b7f",
                       "utf8":  true
                   },
                   {
                       "path":  "06-ACCEPTANCE-CHECKLIST.md",
                       "role":  "acceptance_checklist",
-                      "bytes":  19248,
-                      "sha256":  "a13b9ff0afe21c3d824f265e25e66cc2957d9fcea1833871ba9a840983301ced",
+                      "bytes":  19390,
+                      "sha256":  "7c0137047131a94af49b431966de3c102c850725e55aee4ccee72fea2475f039",
                       "utf8":  true
                   },
                   {
                       "path":  "07-PRIVACY-REDACTIONS.md",
                       "role":  "privacy_redactions",
-                      "bytes":  8315,
-                      "sha256":  "da6aefada5297d0d1be79ae4235588d2cafa9db53f21d8001b8b7ce13ef5c414",
+                      "bytes":  8358,
+                      "sha256":  "595ecc1d2e3f57c2d63b4add834a8748e395774bf371be36cab9e445a689c448",
                       "utf8":  true
                   },
                   {
                       "path":  "authoritative-context/context.jsonl",
                       "role":  "authoritative_context",
                       "sourcePath":  ".ccg/tasks/archive/2026-07/implement-member-info-district-group-tree/context.jsonl",
-                      "bytes":  1851,
-                      "sha256":  "9fc1b6c92cceed85a018f7fa98c75264b3630712dda5e899de75d42d2ffb7ee2",
+                      "bytes":  1867,
+                      "sha256":  "2ee3fc1f8b54a9c5e2365a989cdc2ff5d5f8a0600b2078f5e75e95c458a9855e",
                       "utf8":  true
                   },
                   {
                       "path":  "authoritative-context/requirements.md",
                       "role":  "authoritative_context",
                       "sourcePath":  ".ccg/tasks/archive/2026-07/implement-member-info-district-group-tree/requirements.md",
-                      "bytes":  7508,
-                      "sha256":  "097839dafb468ea51c3c7f3617021f9ab9602e4efc6f49548ad09dec92ea90fe",
+                      "bytes":  7604,
+                      "sha256":  "6731aca773b0fadd5cbf3b0fdd3918a36b095c7a54063d6d660dcff7741bc072",
                       "utf8":  true
                   },
                   {
                       "path":  "original-plans/2026-07-15-member-info-district-group-tree.md",
                       "role":  "original_plan",
                       "sourcePath":  "docs/superpowers/plans/2026-07-15-member-info-district-group-tree.md",
-                      "bytes":  76393,
-                      "sha256":  "aeb918bb5088fff89ad3be5ecde9efc74a5f2319eeac4d919fcad6bb404497de",
+                      "bytes":  76405,
+                      "sha256":  "21a83218d8d2ad7f5db3954614690e57ba3d06fa41f1825b77aef86de3b28378",
                       "utf8":  true
                   },
                   {
                       "path":  "original-plans/2026-07-15-member-info-loading-animation.md",
                       "role":  "original_plan",
                       "sourcePath":  "docs/superpowers/plans/2026-07-15-member-info-loading-animation.md",
-                      "bytes":  4684,
-                      "sha256":  "4ccdcdaba921ff74d4e6fc5b766981fc6f8d9203b68c0b2881fb4ad39b3db543",
+                      "bytes":  4801,
+                      "sha256":  "97ae53ad51bf22b4fc679b288183582b6ef01e74aa69eb38889cd6cb9e747983",
                       "utf8":  true
                   },
                   {
@@ -107,80 +107,80 @@
                       "path":  "original-plans/2026-07-16-member-info-layout-search.md",
                       "role":  "original_plan",
                       "sourcePath":  "docs/superpowers/plans/2026-07-16-member-info-layout-search.md",
-                      "bytes":  8968,
-                      "sha256":  "33bf90ae45d6328946aa6ffc892c39141f07da0ecfb399e16e140bd438bb90f7",
+                      "bytes":  9204,
+                      "sha256":  "9efd0aafe8c7fb8dc2c8d381d9dfbbb822ba1555b5c07f937881f91653df4280",
                       "utf8":  true
                   },
                   {
                       "path":  "original-plans/2026-07-16-member-info-mobile-responsive-typography.md",
                       "role":  "original_plan",
                       "sourcePath":  "docs/superpowers/plans/2026-07-16-member-info-mobile-responsive-typography.md",
-                      "bytes":  6943,
-                      "sha256":  "de2b0a0ca737eaa1ade8b67e8c97116c5de7dba10191a088337063b82a1ccd13",
+                      "bytes":  7126,
+                      "sha256":  "38d935e2c622af9633ab03a3bb79abae64d60281f63345047732b234b4166638",
                       "utf8":  true
                   },
                   {
                       "path":  "original-plans/2026-07-16-member-info-session-comments-utf8.md",
                       "role":  "original_plan",
                       "sourcePath":  "docs/superpowers/plans/2026-07-16-member-info-session-comments-utf8.md",
-                      "bytes":  4581,
-                      "sha256":  "9eb9f6ee73b596c3ece09b3189bf39f5b36c77e23c435599088d0c65c07cc433",
+                      "bytes":  4661,
+                      "sha256":  "e80f607dac0950d3b2d209dccb1bab2b4a0fbf355d16c56c0843050037194408",
                       "utf8":  true
                   },
                   {
                       "path":  "original-plans/2026-07-16-sort-unassigned-district-last.md",
                       "role":  "original_plan",
                       "sourcePath":  "docs/superpowers/plans/2026-07-16-sort-unassigned-district-last.md",
-                      "bytes":  3305,
-                      "sha256":  "5ba2dd1dacb8872647fc3ea2d6a8ace3cd4e359933abe038017e26e454d1620f",
+                      "bytes":  3406,
+                      "sha256":  "b4d24b2ce88d604ef7589d9213d8f61bc1fc08ec8b595e6764c9cd6ac6529250",
                       "utf8":  true
                   },
                   {
                       "path":  "original-plans/2026-07-17-member-info-column-order-group-metadata.md",
                       "role":  "original_plan",
                       "sourcePath":  "docs/superpowers/plans/2026-07-17-member-info-column-order-group-metadata.md",
-                      "bytes":  32531,
-                      "sha256":  "276acaf00aa27bfbffcd31fd90d9fcda4b9c8d9f9cbfcf84c70901a1ec6eba32",
+                      "bytes":  33278,
+                      "sha256":  "d4df05df254fd4953e5163718f45afb08db1fac88ed800645ddc24be9277b014",
                       "utf8":  true
                   },
                   {
                       "path":  "original-plans/2026-07-17-member-info-fixed-identity-columns.md",
                       "role":  "original_plan",
                       "sourcePath":  "docs/superpowers/plans/2026-07-17-member-info-fixed-identity-columns.md",
-                      "bytes":  11424,
-                      "sha256":  "762ced392e64c064f0ad3cd6395dc97ce8877c11bbe030a99b2d4afe5e1b10b0",
+                      "bytes":  11673,
+                      "sha256":  "056f89bd5d1d7251ea3d24ab5972233d5d679ace676ac35dd02bf3524269a533",
                       "utf8":  true
                   },
                   {
                       "path":  "original-plans/2026-07-17-member-info-resizable-sortable-columns.md",
                       "role":  "original_plan",
                       "sourcePath":  "docs/superpowers/plans/2026-07-17-member-info-resizable-sortable-columns.md",
-                      "bytes":  13052,
-                      "sha256":  "4246b91131c9751179a393a76bdefb33f5a279c9f40c039f67947f5ca4e9b3cb",
+                      "bytes":  13296,
+                      "sha256":  "e16bbc16792a11f5dad4b8c8298e3ab7be5ce7d414fea4b8678b5908416e5ad6",
                       "utf8":  true
                   },
                   {
                       "path":  "original-plans/2026-07-18-member-info-commitment-type-sorting.md",
                       "role":  "original_plan",
                       "sourcePath":  "docs/superpowers/plans/2026-07-18-member-info-commitment-type-sorting.md",
-                      "bytes":  50486,
-                      "sha256":  "56bef9a5860386913e7879e1222760fbbe368316a31ca834baa05941fd7d5765",
+                      "bytes":  51938,
+                      "sha256":  "ccdeb7e466e1418c699d28796e4a5d840f0f568859eef4bd6286251b0decf8ac",
                       "utf8":  true
                   },
                   {
                       "path":  "original-specs/2026-07-15-member-info-district-group-tree-design.md",
                       "role":  "original_spec",
                       "sourcePath":  "docs/superpowers/specs/2026-07-15-member-info-district-group-tree-design.md",
-                      "bytes":  14393,
-                      "sha256":  "f3d8663dd482d6e34012901b2533bd4988091c7f64dc4a499286b4d98bf498a1",
+                      "bytes":  14405,
+                      "sha256":  "36166c0a703aa172602141564e862a4cca4878f737a27403de7e67723ad1a72e",
                       "utf8":  true
                   },
                   {
                       "path":  "original-specs/2026-07-15-member-info-loading-animation-design.md",
                       "role":  "original_spec",
                       "sourcePath":  "docs/superpowers/specs/2026-07-15-member-info-loading-animation-design.md",
-                      "bytes":  1559,
-                      "sha256":  "981be4da1134cffae4786177f52191771e8e7846888388970583286d323b7dd0",
+                      "bytes":  1592,
+                      "sha256":  "eea21a0c0ff47b2dae8c492e6b0f9819bcf90c267b8479f26d51d24a06af666e",
                       "utf8":  true
                   },
                   {
@@ -195,71 +195,71 @@
                       "path":  "original-specs/2026-07-16-member-info-layout-search-design.md",
                       "role":  "original_spec",
                       "sourcePath":  "docs/superpowers/specs/2026-07-16-member-info-layout-search-design.md",
-                      "bytes":  3462,
-                      "sha256":  "b6ec0a63ea4982813f4d6d81b0fb876e68c60608dd8be8ffba93f37a7d1fff70",
+                      "bytes":  3519,
+                      "sha256":  "d6045bbf90e8b340d18ec5a9797b3389dae78182e078b60cab51a72ac61d4ccb",
                       "utf8":  true
                   },
                   {
                       "path":  "original-specs/2026-07-16-member-info-mobile-responsive-typography-design.md",
                       "role":  "original_spec",
                       "sourcePath":  "docs/superpowers/specs/2026-07-16-member-info-mobile-responsive-typography-design.md",
-                      "bytes":  5014,
-                      "sha256":  "b3a0e26c8a76482da3ef72ab87616eafe10f333abb759d20b6fd7e9ec9a31ab4",
+                      "bytes":  5094,
+                      "sha256":  "4b163045b8e81caf13132de6450fe61c5388acde6e7d303922ec6e45fd6ee7c2",
                       "utf8":  true
                   },
                   {
                       "path":  "original-specs/2026-07-16-member-info-session-comments-utf8-design.md",
                       "role":  "original_spec",
                       "sourcePath":  "docs/superpowers/specs/2026-07-16-member-info-session-comments-utf8-design.md",
-                      "bytes":  3077,
-                      "sha256":  "aceb422a89e4f34b7e4c2d7c055fb5acd27516efa3c58b13c29bb28bdd262497",
+                      "bytes":  3125,
+                      "sha256":  "de638f549958edc83a3c03d69df70de36cc1741374be826529260f6f0f68bb4f",
                       "utf8":  true
                   },
                   {
                       "path":  "original-specs/2026-07-16-sort-unassigned-district-last-design.md",
                       "role":  "original_spec",
                       "sourcePath":  "docs/superpowers/specs/2026-07-16-sort-unassigned-district-last-design.md",
-                      "bytes":  1698,
-                      "sha256":  "ef6f00858cf085db0ab7134321d21fab19ebfd7eb4ea725ee71a4831800e1516",
+                      "bytes":  1733,
+                      "sha256":  "ab5e4653c8b8ab2e027b8c357011bf6c56c54fad125f3d7bc2f4f913d4abbb4d",
                       "utf8":  true
                   },
                   {
                       "path":  "original-specs/2026-07-17-member-info-column-order-group-metadata-design.md",
                       "role":  "original_spec",
                       "sourcePath":  "docs/superpowers/specs/2026-07-17-member-info-column-order-group-metadata-design.md",
-                      "bytes":  10309,
-                      "sha256":  "2f7b3d58f891f1c64933d96b8463dd9705b5eaffa157c2d95d360e5f234354af",
+                      "bytes":  10521,
+                      "sha256":  "82cba970e36ff0358819dc4077ac318d3d2bf6d0409dfab0fad1b68a49b90f7d",
                       "utf8":  true
                   },
                   {
                       "path":  "original-specs/2026-07-17-member-info-fixed-identity-columns-design.md",
                       "role":  "original_spec",
                       "sourcePath":  "docs/superpowers/specs/2026-07-17-member-info-fixed-identity-columns-design.md",
-                      "bytes":  5386,
-                      "sha256":  "978dbca18e5af2f4f44083d97eeb2fced566d54ea403a29699b8b9772ec15c5a",
+                      "bytes":  5462,
+                      "sha256":  "28cdd0c0cb494aac8331453cc1e79bfef732d2dccca445d56807383aaa821b29",
                       "utf8":  true
                   },
                   {
                       "path":  "original-specs/2026-07-17-member-info-resizable-sortable-columns-design.md",
                       "role":  "original_spec",
                       "sourcePath":  "docs/superpowers/specs/2026-07-17-member-info-resizable-sortable-columns-design.md",
-                      "bytes":  8409,
-                      "sha256":  "f15788ac0060f0776a34c022fe96e740328cf26421063cb94032298d9714541d",
+                      "bytes":  8531,
+                      "sha256":  "6d05c2103f40629f77bf9eff1d8c0bedecdf3551e4bb7e2328e2c14f82bf6522",
                       "utf8":  true
                   },
                   {
                       "path":  "original-specs/2026-07-18-member-info-commitment-type-sorting-design.md",
                       "role":  "original_spec",
                       "sourcePath":  "docs/superpowers/specs/2026-07-18-member-info-commitment-type-sorting-design.md",
-                      "bytes":  8165,
-                      "sha256":  "704cbc6b08f4e63c0ab8bf70ef52f2c43523080774b352c49e42f379a6850f04",
+                      "bytes":  8382,
+                      "sha256":  "b1cf73e80b69c4c96f634bc25e7b2e3916d5a21e1d95a20c968e62666f5fcfdb",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/README.md",
                       "role":  "reference_documentation",
-                      "bytes":  13436,
-                      "sha256":  "c2f38e69336d8c1e1bec2e036077be9c4f9d0f9bda76ca4392e9550795915204",
+                      "bytes":  13514,
+                      "sha256":  "912d2d008be45b99f9878476532caef643bbd5bc1137df750d2681f5b0fe354c",
                       "utf8":  true
                   },
                   {
@@ -282,16 +282,16 @@
                       "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/DistrictTreeBuilder.cs",
                       "role":  "reference_source",
                       "sourcePath":  "ChurchReport/Services/MemberInfo/DistrictTreeBuilder.cs",
-                      "bytes":  7403,
-                      "sha256":  "e0ade55eaa70ad0a6f64d2ebd8e17d6aa3c02532660adc251afd8a7c6c569500",
+                      "bytes":  7418,
+                      "sha256":  "426f71f156511bb07ca4326a7e44b36d6991eb9db1ddc0434daae2e0d65a8f30",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/DistrictTreeInputs.cs",
                       "role":  "reference_source",
                       "sourcePath":  "ChurchReport/Services/MemberInfo/DistrictTreeInputs.cs",
-                      "bytes":  814,
-                      "sha256":  "c389db6833ab3ee4d87284f034886725c42bb1a4696389a12e5bb4a6108691ba",
+                      "bytes":  835,
+                      "sha256":  "bce438b05782f4fa45385a4da8146e8d9cd0c58a26283c2aab63708e301e95e7",
                       "utf8":  true
                   },
                   {
@@ -314,56 +314,56 @@
                       "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeCountQuery.cs",
                       "role":  "reference_source",
                       "sourcePath":  "ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeCountQuery.cs",
-                      "bytes":  4205,
-                      "sha256":  "48746baa2379db90ee51219ba140bbfbd425718674a33a53b3f4112ea4cc5a97",
+                      "bytes":  4305,
+                      "sha256":  "9ab7d8ab94b15cae3de3adad2351f84f1561e4dc25bc2ccb1249fda915ee2f2a",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeMetadataProvider.cs",
                       "role":  "reference_source",
                       "sourcePath":  "ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeMetadataProvider.cs",
-                      "bytes":  4553,
-                      "sha256":  "e8d5165b4fe48d13272fee9a6d0c2f63d0b54af9ac54e782fe876a9a63c6a834",
+                      "bytes":  4657,
+                      "sha256":  "3c48eb7d5e6c4f5bb3af5792079272406b3092975b82fbc41328e09b9ae21cec",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeSort.cs",
                       "role":  "reference_source",
                       "sourcePath":  "ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeSort.cs",
-                      "bytes":  7133,
-                      "sha256":  "980bfa2bb115f9e0503be78d3e595cc3dcf73c06e8eebf7d0528f089d4ba6303",
+                      "bytes":  7313,
+                      "sha256":  "be80c36b0075343f8348d7b1b8c8296031081b792a0f025f76c48463ff10c99a",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/MemberInfoCurrentContactCounter.cs",
                       "role":  "reference_source",
                       "sourcePath":  "ChurchReport/Services/MemberInfo/MemberInfoCurrentContactCounter.cs",
-                      "bytes":  1615,
-                      "sha256":  "41cb6f33aa78c76521cb9de32d97a30cc8f5f2716b73ae82ebd57cb95da60eb4",
+                      "bytes":  1658,
+                      "sha256":  "253c47e31a4e7ebaede8c00939750e69138a52aa9172dac3214adff357191612",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/MemberInfoScopeGuard.cs",
                       "role":  "reference_source",
                       "sourcePath":  "ChurchReport/Services/MemberInfo/MemberInfoScopeGuard.cs",
-                      "bytes":  1986,
-                      "sha256":  "ced9469a1e27668de899c1483b0df8629da05b922ab732057056c108ed26283d",
+                      "bytes":  2015,
+                      "sha256":  "569aa7d5c59776ee0cd5b1f356b4d849d4614c02d6f8364f9d0d7422c7a65a2c",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs",
                       "role":  "reference_source",
                       "sourcePath":  "ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs",
-                      "bytes":  2915,
-                      "sha256":  "08cab1abe638cdcc9d244b475bb8e255a294d1283564fa11a6000d2172627d83",
+                      "bytes":  2934,
+                      "sha256":  "4e778e3f06c0f0fbbcbe05643e5ede738b19089b4930a86d86c211282a63cc30",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/RelationGoalFormatter.cs",
                       "role":  "reference_source",
                       "sourcePath":  "ChurchReport/Services/MemberInfo/RelationGoalFormatter.cs",
-                      "bytes":  1097,
-                      "sha256":  "2254e6442e7971d65aa15238b369b748f8ead02f31eae190007a1f6ca9e9e3bf",
+                      "bytes":  1136,
+                      "sha256":  "0aaede4b0f53f01cfbe8782a945ec92594c40a51ea493daceb60f9a594ea14f2",
                       "utf8":  true
                   },
                   {
@@ -378,57 +378,57 @@
                       "path":  "reference-implementation/feature-files/ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs",
                       "role":  "reference_source",
                       "sourcePath":  "ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs",
-                      "bytes":  3506,
-                      "sha256":  "c36ea1a53a305bc666e60c507283b84d1857cb1dedf46a9bd965096541a62298",
+                      "bytes":  3535,
+                      "sha256":  "baeb406e70935bfe338b2ffe485d88b56bd3fb25ac84950f2963f7788c801108",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/host-integration/01-photo-prerequisite.patch",
                       "role":  "host_patch",
-                      "bytes":  189018,
-                      "sha256":  "fd8c5c3e1675d851a82a533f85d894b3b0238fbb0782fea72f5e9987b2ce5dc3",
+                      "bytes":  193340,
+                      "sha256":  "9aed384b0962c456033e0f25e162109a8a509b3592b1376b47b4b2a543239aa0",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/host-integration/02-member-info-2026-07-15-plus.patch",
                       "role":  "host_patch",
-                      "bytes":  183706,
-                      "sha256":  "04c97201b1943a86ff2a4fe709143b2180f8118b77a3c045200dffba5b82c176",
+                      "bytes":  187759,
+                      "sha256":  "0d4e481780b4b6e9cb0a92a108a93b9536195e221a35b15fb502cc738846b042",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/host-integration/03-member-info-fixed-identity-columns.patch",
                       "role":  "host_patch",
-                      "bytes":  9205,
-                      "sha256":  "22f255a24af0958c34d55d58be55b1c8d2675c1f365225605fc6dbc53213d312",
+                      "bytes":  9385,
+                      "sha256":  "f8e6181b19db5a9188da812429a8d185b3b4d5f2ab329e90b6c984c0c3e33f8f",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/host-integration/04-member-info-resizable-sortable-columns.patch",
                       "role":  "host_patch",
-                      "bytes":  4324,
-                      "sha256":  "a1a478ed967326e7b3a11977a6e2e84baac21202486d4070e5b1ca0f3f856b64",
+                      "bytes":  4399,
+                      "sha256":  "719d57826879ed9be1602e8cdfb0a5344c767d4ea96b01e95c8abe05b3959e35",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/host-integration/05-member-info-column-order-group-metadata.patch",
                       "role":  "host_patch",
-                      "bytes":  26879,
-                      "sha256":  "56890aeadf06daaa4dd7424ef4aec69f5c2063fd8558981eb398affbcdd68b3b",
+                      "bytes":  27317,
+                      "sha256":  "d3132b5b5a4a25b1da462edf6fe70b96f60beaac2f40175c83ace5379e1163e9",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/host-integration/06-member-info-commitment-type-metadata-order.patch",
                       "role":  "host_patch",
-                      "bytes":  73066,
-                      "sha256":  "45b86e0185329b8db94129f3a1296b426d6c61be90c476e0bfca192c4e611240",
+                      "bytes":  74721,
+                      "sha256":  "8683d25d3d5d46fe928be4c2e283b834f51a4274cea4a62d3ed70ccc2c95a2aa",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/host-integration/SOURCE-MAP.md",
                       "role":  "reference_documentation",
-                      "bytes":  25116,
-                      "sha256":  "2fef7bde4f72b79734a1469033df32c2ee3a6b5bac2d2bd97d47fc5e6bc4ad12",
+                      "bytes":  25339,
+                      "sha256":  "5e38f85c57b1372d870a4a235536c8f83c49d5dfe3cd4952f48e0ea5c54f3a97",
                       "utf8":  true
                   },
                   {
@@ -451,8 +451,8 @@
                       "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/DistrictTreeBuilderTests.cs",
                       "role":  "reference_test",
                       "sourcePath":  "ChurchReport.MemberInfo.Tests/DistrictTreeBuilderTests.cs",
-                      "bytes":  9050,
-                      "sha256":  "c3eff05c59e13938faf27372c42a6f4ceed49c5b93e416a7dc0bb15009650ba9",
+                      "bytes":  9255,
+                      "sha256":  "b87b3d2c44fd168371b189a56441eadbc7e41be1ebc233e52fa7b0cbb0dfd675",
                       "utf8":  true
                   },
                   {
@@ -467,32 +467,32 @@
                       "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeCountQueryTests.cs",
                       "role":  "reference_test",
                       "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeCountQueryTests.cs",
-                      "bytes":  3643,
-                      "sha256":  "385e5f5b6d8bb4995834bfa59cac5a5295d61c304314811059e0b6ddace52eb9",
+                      "bytes":  3747,
+                      "sha256":  "b3f6d30495ed0f419286651cd1d1f9a50d1f01c80432acccb53ab7db70d632aa",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeMetadataProviderTests.cs",
                       "role":  "reference_test",
                       "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeMetadataProviderTests.cs",
-                      "bytes":  5307,
-                      "sha256":  "205317760b5751cc851034d22c6eaa6a77889ec2c9595f195d66d1bbeffae977",
+                      "bytes":  5457,
+                      "sha256":  "9a7de9676443a0ea06eef35d286fb685288d554a02a0f39acaa072dde7241ec5",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeSortTests.cs",
                       "role":  "reference_test",
                       "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeSortTests.cs",
-                      "bytes":  6303,
-                      "sha256":  "1c4c20782fc9d73c0522164d02e25cd0fe46ce4e34c2c1d71c27bd1300a2bfbe",
+                      "bytes":  6498,
+                      "sha256":  "96c10f76ab6965e6ce0600bedbd873deda84ef30d1b30ff1e4ff1fc0f90b6fa5",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoCurrentContactCounterTests.cs",
                       "role":  "reference_test",
                       "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoCurrentContactCounterTests.cs",
-                      "bytes":  2561,
-                      "sha256":  "a170f347d436303df8ad9204220abdfa13e92909abea31eef38af7160befc623",
+                      "bytes":  2619,
+                      "sha256":  "5618455f9038ef3419a261d4db456cc158ad4e1ca5b0d0fd4f8f2fc4e3b08003",
                       "utf8":  true
                   },
                   {
@@ -507,48 +507,48 @@
                       "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardListTests.cs",
                       "role":  "reference_test",
                       "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardListTests.cs",
-                      "bytes":  1385,
-                      "sha256":  "462e0aa5672cb49325d5839d4172b94badcf8923072b67047557f8034f68bcba",
+                      "bytes":  1432,
+                      "sha256":  "5a13ac15b483c510be2a46c0c17578866759858b0ec2023f0496bb527499d703",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardTests.cs",
                       "role":  "reference_test",
                       "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardTests.cs",
-                      "bytes":  1525,
-                      "sha256":  "0e9853f968e56941e8920ae562f074ea58cc30f60cb3be60132a8ce299152d6e",
+                      "bytes":  1527,
+                      "sha256":  "9636da59f4b6426fe4fa91fc0e55c5e1d1e93584d17cc15d2c4621caa17d81d8",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs",
                       "role":  "reference_test",
                       "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs",
-                      "bytes":  8719,
-                      "sha256":  "c31c47b0d915d0047f75a56300ec8451dd64d4c07acf13eb8ba292674e6430ce",
+                      "bytes":  8888,
+                      "sha256":  "31b250126ee528e77d661cabc7c4aa6e508b4f980dfead001dbaba6a7a741449",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoTreeSearchBuilderTests.cs",
                       "role":  "reference_test",
                       "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoTreeSearchBuilderTests.cs",
-                      "bytes":  3581,
-                      "sha256":  "a365b2f0f41184bd042c5339685fa44c920526c6b6eb4f29a1148123a6b993d5",
+                      "bytes":  3676,
+                      "sha256":  "695872aaae98ca590cee30ec6a3b5089b9cb2cb78fbf382f02cffe8285a739e0",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs",
                       "role":  "reference_test",
                       "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs",
-                      "bytes":  25983,
-                      "sha256":  "ed638c2554a479deecb31779dbc5ebebfebd8944b2ba8bc805357e5403528483",
+                      "bytes":  26424,
+                      "sha256":  "20f2ee2b167aaf38779088a733f76c0945dc52ed4e47a9b863cfbc1720235032",
                       "utf8":  true
                   },
                   {
                       "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/RelationGoalFormatterTests.cs",
                       "role":  "reference_test",
                       "sourcePath":  "ChurchReport.MemberInfo.Tests/RelationGoalFormatterTests.cs",
-                      "bytes":  1209,
-                      "sha256":  "fd8f4db5e615376663e2af85a845f00c3062221510a7ee76dc32db979601dffc",
+                      "bytes":  1253,
+                      "sha256":  "b617fc86eeee158013cd3e38fe9d0e08288f8637e74206563e5c2eb99e9391ea",
                       "utf8":  true
                   },
                   {
@@ -570,8 +570,8 @@
                   {
                       "path":  "verify-package.ps1",
                       "role":  "verifier",
-                      "bytes":  40119,
-                      "sha256":  "bf522d4fea4dfc7a5e6fb3106f1f54698e260d773f08ee7f9109db81b53ab621",
+                      "bytes":  41029,
+                      "sha256":  "2756607371efad52a6e74d95f782bee1fd4a653aa0a908c79717d2c222a03e38",
                       "utf8":  true
                   }
               ]
