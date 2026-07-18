@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 1
+- **Total Sessions**: 2
 - **Last Active**: 2026-07-18
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~45 | Active |
+| `journal-1.md` | ~81 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 2 | 2026-07-18 | Merge WorkTreeMemberInfo into MemberInfo | `4ee2a668`, `6e15bc55`, `13e98588`, `b61f3fb1` | `1.0.0.1.MemberInfo` |
 | 1 | 2026-07-18 | Deploy MemberInfo portable kit | `a054c68d`, `85981c74`, `dcd62873`, `eb734d20`, `16f177c7`, `12b37df8` | `1.0.0.1.WorkTreeMemberInfo` |
 <!-- @@@/auto:session-history -->
 

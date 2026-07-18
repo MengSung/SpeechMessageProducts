@@ -43,3 +43,39 @@ Migrated the authorized MemberInfo tree, search, remote paging, metadata orderin
 ### Next Steps
 
 - None - task complete
+
+
+## Session 2: Merge WorkTreeMemberInfo into MemberInfo
+
+**Date**: 2026-07-18
+**Task**: Merge WorkTreeMemberInfo into MemberInfo
+**Branch**: `1.0.0.1.MemberInfo`
+
+### Summary
+
+Merged the MemberInfo feature branch, repaired CRLF-sensitive portable manifest artifacts, verified tests and builds, archived task records, and preserved the source worktree.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4ee2a668` | (see git log) |
+| `6e15bc55` | (see git log) |
+| `13e98588` | (see git log) |
+| `b61f3fb1` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
