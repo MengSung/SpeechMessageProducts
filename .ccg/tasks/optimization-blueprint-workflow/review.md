@@ -42,3 +42,21 @@ no product file is changed, and no optimization subagent has been dispatched.
   non-nested. Verdict: `APPROVE`; Critical: none; Warning: none.
 - Decision: Claude-only review support is approved for W1. Gemini is excluded
   from wave planning, repair, and fallback review paths.
+
+## Wave 2 B01-SEC-003 Block Record
+
+- Dispatch: one zero-trust repair agent, with no nested delegation and no Gemini.
+- Baseline: direct-comparison search reported `2` locations; password-flow
+  search reported `56` locations; existing claims/response baseline exited `0`.
+- Local candidate: the agent demonstrated a red-then-green fake verifier seam
+  with `12` focused cases, but did not run final validation, Claude review, or
+  create a commit.
+- Mandatory external evidence missing: non-production CRM row-version
+  conditional-update success/conflict proof, synthetic
+  `ProcessLogin -> SetupSystemData` route probe, and deployed ToolUtility
+  caller inventory with only path/owner/key-or-raw classification.
+- Result: `BLOCKED`. The agent removed all three uncommitted candidate
+  product/test paths before close; no product change remains in the worktree.
+- Next action: wait for the F03A/CRM and non-production environment owners to
+  supply the redacted prerequisite evidence. Do not dispatch B02 or later Wave
+  2 workspaces.

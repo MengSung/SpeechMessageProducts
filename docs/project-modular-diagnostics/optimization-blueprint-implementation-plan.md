@@ -145,8 +145,11 @@ did not start.
 **Contract:**
 `docs/project-modular-diagnostics/B01-identity-session-access-control/wave_2/`
 
-- [ ] Complete B01-SEC-003 through the sequential repair contract and record
-  `COMMITTED` or a truthful `BLOCKED` result.
+- [x] B01-SEC-003 reached the truthful `BLOCKED` terminal result on 2026-07-18.
+  Baselines were captured, but the required non-production CRM row-version
+  capability/route probe and deployed ToolUtility caller inventory were absent.
+  No review or commit occurred; the repair agent cleaned its three uncommitted
+  candidate paths, and Tasks 5 through 9 did not start.
 
 ### Task 5: Repair B02 Contact Ownership Enforcement
 
