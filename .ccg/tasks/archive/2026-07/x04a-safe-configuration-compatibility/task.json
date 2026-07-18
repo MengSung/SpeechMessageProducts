@@ -1,11 +1,11 @@
 {
   "id": "x04a-safe-configuration-compatibility",
   "title": "規劃 X04A 安全設定相容性修復合同",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "implementation",
+  "currentPhase": "completed",
   "nextAction": "依 Revision 1 allowlist 進行 X04A bridge、consumer migration、secret 與 Production safety repair",
   "createdAt": "2026-07-15T13:30:00+08:00",
   "branch": "1.0.0.1.EvenVersion"

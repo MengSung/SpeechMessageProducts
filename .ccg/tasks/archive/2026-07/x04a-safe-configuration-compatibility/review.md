@@ -75,3 +75,50 @@ marker matrix, and required a synthetic higher-priority overlay test.
 
 The X04A Revision 1 contract is ready for an allowlisted repair. B01 and later
 workspaces remain paused until X04A commits successfully.
+
+## Revision 1 Final Code Review
+
+### Claude-only runner
+
+- Run: `20260718-082348-x04a-wave2-revision1-final-reviewer`
+- Runner: `Start-CcgDualModelRun.ps1 -BackendMode claude`
+- Result: both self-healing attempts passed their local health checks, then
+  ended with `no-usable-output` from Claude.
+- Gemini: not invoked or probed.
+- Data handling: the reviewer prompt prohibited Git diff/history inspection so
+  a deleted configuration literal could not be re-exposed in a review artifact.
+
+### Inline Codex fallback review
+
+The active inline execution mode prohibits dispatching a review subagent, so
+the controller completed one read-only, zero-trust local fallback review using
+the same redacted scope and finding format.
+
+#### Critical
+
+None found.
+
+#### Warning
+
+None found.
+
+#### Info
+
+- Static audit confirmed `0/13` frozen consumers retain a local base-file
+  builder and `13/13` contain an actual `RuntimeConfiguration.Current` access.
+- `Program.Main` validates Production configuration and initializes the bridge
+  before `Startup` construction.
+- The bridge has no fallback provider, fails closed before initialization, and
+  rejects a different second configuration.
+- The local proof remains correctly bounded: managed secret injection,
+  credential rotation, and deployment validation are release gates outside
+  X04A's repository-local completion.
+
+### Conclusion
+
+`APPROVED_DEGRADED_FOR_COMMIT`
+
+The Claude-only external review yielded no usable output after the prescribed
+self-healing attempts. The documented inline Codex fallback found no Critical
+or Warning issue, so the X04A repair may proceed to final verification and its
+single Traditional Chinese commit.
