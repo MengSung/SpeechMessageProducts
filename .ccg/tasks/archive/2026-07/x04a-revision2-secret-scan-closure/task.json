@@ -1,12 +1,12 @@
 {
   "id": "x04a-revision2-secret-scan-closure",
   "title": "X04A Revision 2 secret scan closure",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "M",
   "risk": "high",
   "domain": "runtime-configuration-security",
-  "currentPhase": "review",
-  "nextAction": "Commit the validated two-path repair, record its SHA in the global blueprint, then archive this CCG task",
+  "currentPhase": "completed",
+  "nextAction": "Archived after repair commit 4dcaf499 and global closure commit 6b5e8c77",
   "createdAt": "2026-07-18T00:00:00Z",
   "branch": "1.0.0.1.EvenVersion"
 }

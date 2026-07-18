@@ -53,3 +53,10 @@ test coverage, and rollback constraints. Critical: none. Warning: none.
 
 `REPAIR_VALIDATED_DEGRADED`. The two-path repair may be committed. X04A may
 return to `COMMITTED` only after the global blueprint records that repair SHA.
+
+## Closure
+
+- Repair commit `4dcaf499` was independently checked and pushed.
+- Global closure commit `6b5e8c77` records X04A as `COMMITTED` and Wave 2 as
+  paused at the B01 external-evidence gate.
+- Task status: `completed` at `2026-07-18T02:53:20Z`.
