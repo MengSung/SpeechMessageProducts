@@ -6,6 +6,7 @@
 - Canonical issue: `X04A-SEC-001`
 - Regression-only issues: `X04A-SEC-002`, `X04A-PERF-001`
 - Contract status: `CONTRACT_STATUS: CONTRACT_REVISION_APPROVED_DEGRADED`
+- Execution status: `EXECUTION_STATUS: VALIDATED_AWAITING_COMMIT`
 - Owner approval: 2026-07-18
 - Design authority: `../revision-2-design.md`
 
@@ -98,6 +99,35 @@ git diff --name-only
 Success requires focused tests passing, build exit 0, no whitespace errors, and
 exactly the two allowed product/test paths in the repair diff.
 
+## Execution Record
+
+The approved test-first run reproduced the value-free baseline: original
+manifest `0/21`, legacy aliases `6/6`, and commented sensitive assignments
+`3`. The pre-repair scanner run passed three tests and failed only the two
+expected repository-state tests. After the two-path repair:
+
+```text
+OriginalManifestLiteralCount=0/21
+LegacyAliasLiteralCount=0/6
+CommentedSensitiveLiteralCount=0
+ScannerTests=5/5
+FocusedX04ATests=36/36
+ChurchReportBuild=0 warnings, 0 errors
+RepairAllowlist=2/2
+```
+
+A parsed value-free comparison found `303 -> 303` JSON paths, no added or
+removed path, exactly the six approved alias scalar changes, and no unexpected
+scalar change. The original 21-key manifest retained the same ordered entries.
+`git diff --check`, UTF-8-without-BOM, and CRLF-only checks passed.
+
+Claude-only final review run
+`20260718-103104-x04a-revision2-final-reviewer` completed two healthy attempts
+with no usable output (`completedBackends=[]`), so it is not external approval.
+The permitted inline review inspected scanner disclosure behavior, semantic
+configuration preservation, the exact allowlist, and validation results; it
+found Critical=0 and Warning=0.
+
 ## Review And Commit Gate
 
 Run Claude-only review through the project self-healing entrypoint. Claude
@@ -109,12 +139,12 @@ run an external approval.
 The repair is one Traditional Chinese commit whose body records:
 
 ```text
-波次: Wave 2 / X04A Revision 2
-議題: X04A-SEC-001
-量測: 0/21 maintained; 6/6 -> 0/6; comments 3 -> 0
-驗證: focused tests, build, diff and allowlist
-審核: Claude result or truthful degraded local gate
-回退: Revision 2 two-path repair commit without restoring literals
+批次：Wave 2 / X04A Revision 2
+範圍：X04A-SEC-001
+測量：維持 0/21；6/6 -> 0/6；註解 3 -> 0
+驗證：focused tests、build、diff 與 allowlist
+審查：Claude 結果或如實記錄的降級本機閘門
+回滾：Revision 2 兩路徑修復提交，且不得還原已移除文字值
 ```
 
 ## Rollback

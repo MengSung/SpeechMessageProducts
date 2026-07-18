@@ -94,9 +94,35 @@ contain only the two allowlisted paths.
 
 ## Revision 2 Evidence Record
 
-Append only after the approved repair begins. Record UTC time, baseline/result
-counts, test totals, build result, allowlist result, review state, and commit.
-Never record a source literal or effective runtime value.
+### 2026-07-18T02:40:43Z Repair Result
+
+```text
+OriginalManifestLiteralCount=0/21 -> 0/21
+LegacyAliasLiteralCount=6/6 -> 0/6
+CommentedSensitiveLiteralCount=3 -> 0
+ScannerTests=5/5
+FocusedX04ATests=36/36
+ChurchReportBuildWarnings=0
+ChurchReportBuildErrors=0
+RepairAllowlist=2/2
+UnexpectedRepairPaths=0
+MissingRepairPaths=0
+JsonPaths=303 -> 303
+UnexpectedScalarChanges=0
+```
+
+The original 21-key manifest retained the same ordered entries, all six legacy
+key paths remained present with empty string values, and every non-allowlisted
+parsed scalar remained unchanged. The Sandbox section, endpoints, and
+non-secret metadata therefore remained present.
+
+`git diff --check` passed. Both changed product/test files remained UTF-8
+without BOM and CRLF-only. Claude-only final review run
+`20260718-103104-x04a-revision2-final-reviewer` returned no usable output after
+two healthy attempts and is not external approval. The permitted inline,
+value-free review reported Critical=0 and Warning=0. The repair commit is
+recorded in the global blueprint after commit creation; no source literal or
+effective runtime value is recorded here.
 
 ## Revision 1 Evidence Archive
 

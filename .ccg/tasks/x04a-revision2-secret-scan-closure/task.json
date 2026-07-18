@@ -5,8 +5,8 @@
   "complexity": "M",
   "risk": "high",
   "domain": "runtime-configuration-security",
-  "currentPhase": "implementation",
-  "nextAction": "Add red scanner tests, prove the 3-comment/6-alias baseline, then clear only the approved appsettings literals",
+  "currentPhase": "review",
+  "nextAction": "Commit the validated two-path repair, record its SHA in the global blueprint, then archive this CCG task",
   "createdAt": "2026-07-18T00:00:00Z",
   "branch": "1.0.0.1.EvenVersion"
 }

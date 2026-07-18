@@ -34,6 +34,24 @@ paths in `plans.md`.
 - No test, error, task, measurement, prompt, or review artifact contains a
   credential or synthetic fixture value.
 
+## Revision 2 Execution Evidence
+
+- Evidence time: `2026-07-18T02:40:43Z`.
+- Original manifest remained `0/21`.
+- Legacy aliases changed from `6/6` non-empty to `0/6` non-empty.
+- Commented sensitive assignments changed from `3` to `0`.
+- Scanner cases passed `5/5`; the focused X04A suite passed `36/36`.
+- ChurchReport built with `0` warnings and `0` errors.
+- The product/test allowlist matched `2/2` paths, with no unexpected or
+  missing path; `git diff --check` passed.
+- UTF-8 without BOM and CRLF were retained for both product/test files.
+
+Claude-only run `20260718-103104-x04a-revision2-final-reviewer` completed two
+healthy attempts but returned no usable findings (`completedBackends=[]`). It
+is not external approval. The permitted inline, value-free review found no
+unresolved Critical or Warning. Execution state is
+`VALIDATED_AWAITING_COMMIT`.
+
 ## Failure Conditions
 
 Revision 2 fails if any of the following occurs:

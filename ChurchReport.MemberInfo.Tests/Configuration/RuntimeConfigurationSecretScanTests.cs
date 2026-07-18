@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using FluentAssertions;
 using Xunit;
 
@@ -34,6 +35,20 @@ public sealed class RuntimeConfigurationSecretScanTests
         "Sinopac:XKeyID",
         "MyPay:Key"
     ];
+
+    private static readonly string[] LegacySensitiveAliasManifest =
+    [
+        "Sandbox:ShopNo",
+        "Sandbox:A1",
+        "Sandbox:A2",
+        "Sandbox:B1",
+        "Sandbox:B2",
+        "Sandbox:XKeyID"
+    ];
+
+    private static readonly Regex CommentedSensitiveAssignment = new(
+        "^\\s*//+\\s*\"(?<key>Username|Password|Key|IV|A1|A2|B1|B2|XKeyID|XKeyId|ChannelSecret|ChannelAccessToken|ShopNo|StoreKey|StoreIV)\"\\s*:\\s*\"[^\"]+\"",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Multiline);
 
     [Fact]
     public void Current_repository_has_no_committed_literals_for_the_frozen_manifest()
@@ -73,6 +88,64 @@ public sealed class RuntimeConfigurationSecretScanTests
         literalKeys.Should().NotContain("synthetic-fixture-literal");
     }
 
+    [Fact]
+    public void Current_repository_has_no_committed_literals_for_legacy_aliases()
+    {
+        using var document = ParseAppSettings();
+
+        var literalKeys = ScanNonEmptyLiteralKeys(
+            document.RootElement,
+            LegacySensitiveAliasManifest);
+
+        literalKeys.Should().BeEmpty(
+            $"LegacyAliasLiteralCount={literalKeys.Count}/{LegacySensitiveAliasManifest.Length}; scanner output contains keys only");
+    }
+
+    [Fact]
+    public void Current_repository_has_no_commented_sensitive_assignments()
+    {
+        var findings = ScanCommentedSensitiveAssignments(ReadAppSettingsSource());
+
+        findings.Should().BeEmpty(
+            $"CommentedSensitiveLiteralCount={findings.Count}; scanner output contains line/key/category only");
+    }
+
+    [Fact]
+    public void Scanner_detects_legacy_alias_and_comment_without_returning_values()
+    {
+        const string aliasFixture = "synthetic-alias-fixture";
+        const string commentFixture = "synthetic-comment-fixture";
+        const string source = """
+        {
+          "Sandbox": {
+            "A1": "synthetic-alias-fixture"
+          }
+        }
+        // "Password": "synthetic-comment-fixture"
+        """;
+
+        using var document = JsonDocument.Parse(
+            source,
+            new JsonDocumentOptions
+            {
+                CommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
+            });
+
+        var aliasFindings = ScanNonEmptyLiteralKeys(document.RootElement, ["Sandbox:A1"]);
+        var commentFindings = ScanCommentedSensitiveAssignments(source);
+        var diagnostics = string.Join(
+            "|",
+            aliasFindings.Concat(commentFindings.Select(finding =>
+                $"{finding.LineNumber}:{finding.Key}:{finding.Category}")));
+
+        aliasFindings.Should().Equal("Sandbox:A1");
+        commentFindings.Should().ContainSingle().Which.Should().Be(
+            new SensitiveCommentFinding(6, "Password", "commented-literal"));
+        diagnostics.Should().NotContain(aliasFixture);
+        diagnostics.Should().NotContain(commentFixture);
+    }
+
     private static IReadOnlyList<string> ScanNonEmptyLiteralKeys(
         JsonElement root,
         IEnumerable<string> keyPaths)
@@ -97,6 +170,34 @@ public sealed class RuntimeConfigurationSecretScanTests
         return current.ValueKind == JsonValueKind.String ? current.GetString() : null;
     }
 
+    private static IReadOnlyList<SensitiveCommentFinding> ScanCommentedSensitiveAssignments(
+        string source)
+    {
+        return CommentedSensitiveAssignment
+            .Matches(source)
+            .Select(match => new SensitiveCommentFinding(
+                LineNumber: source.Take(match.Index).Count(character => character == '\n') + 1,
+                Key: match.Groups["key"].Value,
+                Category: "commented-literal"))
+            .ToArray();
+    }
+
+    private static JsonDocument ParseAppSettings()
+    {
+        return JsonDocument.Parse(
+            ReadAppSettingsSource(),
+            new JsonDocumentOptions
+            {
+                CommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
+            });
+    }
+
+    private static string ReadAppSettingsSource()
+    {
+        return File.ReadAllText(Path.Combine(ChurchReportProjectDirectory(), "appsettings.json"));
+    }
+
     private static string ChurchReportProjectDirectory()
     {
         return Path.Combine(ProjectRoot(), "SpeechMessageProducts.ChurchReport");
@@ -111,4 +212,9 @@ public sealed class RuntimeConfigurationSecretScanTests
             "..",
             ".."));
     }
+
+    private sealed record SensitiveCommentFinding(
+        int LineNumber,
+        string Key,
+        string Category);
 }
