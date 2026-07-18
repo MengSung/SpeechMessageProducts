@@ -11,6 +11,7 @@
 // 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
+using System;
 using System.Collections.Generic;
 
 namespace ChurchReport.ViewModels
@@ -21,6 +22,8 @@ namespace ChurchReport.ViewModels
         public string FullName { get; set; }
         public string Phone { get; set; }
         public string Address { get; set; }
+        public string Gender { get; set; }
+        public DateTime? BirthDate { get; set; }
         public string MembershipStatus { get; set; }
         public string SpiritualIdentity { get; set; }
         public string AvatarSource { get; set; }

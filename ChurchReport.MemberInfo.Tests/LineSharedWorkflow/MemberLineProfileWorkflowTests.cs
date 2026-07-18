@@ -27,7 +27,7 @@ public sealed class MemberLineProfileWorkflowTests
             "..",
             "..",
             "..",
-            "ChurchReport",
+            "SpeechMessageProducts.ChurchReport",
             "Controllers",
             "MemberInfoController.cs"));
 

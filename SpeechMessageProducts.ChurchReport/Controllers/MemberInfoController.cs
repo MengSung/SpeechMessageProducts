@@ -4,7 +4,7 @@
 // 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
 // 檔案責任：此檔案位於控制器層，註解重點在說明 HTTP 入口、產品流程邊界、輸入輸出與外部副作用。
 // 主要型別：class MemberInfoController
-// 主要成員：Index、LoadMemberInfoList、Detail、LoadContactPresentRecords、LoadContactStorLessons、GetContactImage、GetContactImagesBatch、ResyncLineCandidateIds、ResyncLineProfiles、GetResyncLineChannelAccessToken
+// 主要成員：Index、LoadDistrictTree、SearchDistrictTree、LoadGroupMembers、LoadUngroupedMembers、Detail、GetContactImage、GetContactImagesBatch、ResyncLineProfiles、UploadContactImage
 // 引用命名空間：ChurchReport.Models、ChurchReport.Services、ChurchReport.Services.MemberInfo、ChurchReport.Tools、ChurchReport.ViewModels、DevExtreme.AspNet.Data、DevExtreme.AspNet.Mvc、Microsoft.AspNetCore.Http
 // 閱讀路徑：閱讀此檔案時應先確認 action 的路由來源、權限/Session 前置條件、呼叫的服務，以及回傳 View、JSON 或 redirect 時對使用者流程的影響。
 // 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
@@ -16,10 +16,12 @@ using ChurchReport.Services;
 using ChurchReport.Services.MemberInfo;
 using ChurchReport.Tools;
 using ChurchReport.ViewModels;
+using ChurchReport.ViewModels.MemberInfoTree;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
@@ -40,6 +42,16 @@ namespace ChurchReport.Controllers
     {
         private const int DefaultPageSize = 50;
         private const int MaxPageSize = 200;
+        private const int CrmInClauseChunkSize = 500;
+        private const string ChurchTreeCacheKey = "member-info-tree:church";
+        private const string ChurchGroupedCurrentIdsCacheKey = "member-info-tree:grouped-current-ids:church";
+        private readonly IMemoryCache memberInfoMemoryCache;
+
+        private sealed class UngroupedContactPage
+        {
+            public List<Entity> Contacts { get; init; } = new List<Entity>();
+            public int TotalCount { get; init; }
+        }
 
         public MemberInfoController(
             IHttpContextAccessor httpContextAccessor,
@@ -48,6 +60,8 @@ namespace ChurchReport.Controllers
             ICrmConnectionPool connectionPool)
             : base(httpContextAccessor, memoryCache, toolUtilityProvider, connectionPool)
         {
+            memberInfoMemoryCache = memoryCache
+                ?? throw new ArgumentNullException(nameof(memoryCache));
         }
 
         [HttpGet]
@@ -67,11 +81,309 @@ namespace ChurchReport.Controllers
 
                 // 只有「全教會」管理者才看得到、用得到「重新同步LINE」按鈕（全教會範圍的批次操作）。
                 ViewBag.MemberInfoCanResync = (access == MemberInfoAccess.Church);
+                ViewBag.MemberInfoScope = access == MemberInfoAccess.Church ? "church" : "shepherd";
                 return View("MemberInfoGrid");
             }
             catch (Exception ex)
             {
                 return HandleError(ex, "MemberInfo.Index");
+            }
+        }
+
+        [HttpGet]
+        [Route("/MemberInfo/LoadDistrictTree")]
+        public IActionResult LoadDistrictTree()
+        {
+            IOrganizationService service = null;
+            var timing = System.Diagnostics.Stopwatch.StartNew();
+
+            try
+            {
+                TraceMemberInfoTreePhase("LoadDistrictTree", "start", timing);
+                EnsureCorrectUserData();
+                TraceMemberInfoTreePhase("LoadDistrictTree", "user-data-ready", timing);
+                var access = GetAccess();
+                TraceMemberInfoTreePhase("LoadDistrictTree", "access=" + (access ?? "none"), timing);
+                if (access != MemberInfoAccess.Church && access != MemberInfoAccess.ShepherdList)
+                {
+                    return Forbid();
+                }
+
+                var memoryCache = GetMemberInfoMemoryCache();
+                if (access == MemberInfoAccess.Church &&
+                    memoryCache != null &&
+                    memoryCache.TryGetValue(ChurchTreeCacheKey, out DistrictTreeViewModel cachedTree) &&
+                    cachedTree != null)
+                {
+                    return Json(cachedTree);
+                }
+
+                TraceMemberInfoTreePhase("LoadDistrictTree", "acquire-connection", timing);
+                service = GetConnection();
+                TraceMemberInfoTreePhase("LoadDistrictTree", "connection-acquired", timing);
+                var closedStatus = GetRequiredClosedCustomerTypeValue(service);
+                TraceMemberInfoTreePhase("LoadDistrictTree", "closed-status-ready", timing);
+                var descriptors = GetVisibleSmallGroupDescriptors(service, access);
+                TraceMemberInfoTreePhase("LoadDistrictTree", "descriptors=" + descriptors.Count, timing);
+                var memberships = FetchGroupMemberships(
+                    service,
+                    descriptors.Select(group => group.ListId).ToList(),
+                    closedStatus);
+                TraceMemberInfoTreePhase("LoadDistrictTree", "memberships=" + memberships.Count, timing);
+                var includeUngrouped = access == MemberInfoAccess.Church;
+                var allCurrentContactCount = includeUngrouped
+                    ? MemberInfoCurrentContactCounter.Count(service, closedStatus)
+                    : 0;
+                TraceMemberInfoTreePhase(
+                    "LoadDistrictTree",
+                    "current-contact-count=" + allCurrentContactCount,
+                    timing);
+
+                var tree = DistrictTreeBuilder.Build(
+                    descriptors,
+                    memberships,
+                    allCurrentContactCount,
+                    includeUngrouped,
+                    includeUngrouped ? "church" : "shepherd");
+                TraceMemberInfoTreePhase("LoadDistrictTree", "tree-built", timing);
+
+                if (includeUngrouped && memoryCache != null)
+                {
+                    var groupedIds = memberships
+                        .Where(row => row.IsCurrent && Guid.TryParse(row.ContactId, out _))
+                        .Select(row => Guid.Parse(row.ContactId))
+                        .ToHashSet();
+                    SetTreeCache(memoryCache, ChurchTreeCacheKey, tree, Math.Max(1, descriptors.Count));
+                    SetTreeCache(
+                        memoryCache,
+                        ChurchGroupedCurrentIdsCacheKey,
+                        groupedIds,
+                        Math.Max(1, groupedIds.Count));
+                }
+
+                TraceMemberInfoTreePhase("LoadDistrictTree", "complete", timing);
+                return Json(tree);
+            }
+            catch (Exception ex)
+            {
+                TraceMemberInfoTreePhase("LoadDistrictTree", "error=" + ex.GetType().Name, timing);
+                return HandleError(ex, "MemberInfo.LoadDistrictTree");
+            }
+            finally
+            {
+                ReleaseConnection(service);
+                TraceMemberInfoTreePhase("LoadDistrictTree", "connection-released", timing);
+            }
+        }
+
+        [HttpGet]
+        [Route("/MemberInfo/SearchDistrictTree")]
+        public IActionResult SearchDistrictTree(string search)
+        {
+            IOrganizationService service = null;
+
+            try
+            {
+                EnsureCorrectUserData();
+                var access = GetAccess();
+                if (access != MemberInfoAccess.Church && access != MemberInfoAccess.ShepherdList)
+                {
+                    return Forbid();
+                }
+
+                if (string.IsNullOrWhiteSpace(search))
+                {
+                    return Json(new MemberInfoTreeSearchResultViewModel());
+                }
+
+                service = GetConnection();
+                var closedStatus = GetRequiredClosedCustomerTypeValue(service);
+                var descriptors = GetVisibleSmallGroupDescriptors(service, access);
+                var memberships = FetchGroupMemberships(
+                    service,
+                    descriptors.Select(group => group.ListId).ToList(),
+                    closedStatus);
+                // 搜尋採三段式安全資料流：先以「在籍且未結案」條件查出候選聯絡人，接著批次授權，
+                // 最後才把通過授權者組成完整資料列。候選資料絕不直接進入回應，避免搜尋功能繞過可見範圍。
+                // 此處一次取齊資料列所需欄位，授權完成後即可沿用同批 Entity，不必再逐人查詢 CRM。
+                var statusValues = GetCustomerTypeValuesMatchingText(service, search);
+                var query = BuildStrictCurrentContactQuery(
+                    GetTreeContactColumns(),
+                    search,
+                    closedStatus,
+                    statusValues);
+                var matchingContacts = RetrieveAllEntities(service, query);
+                var matchingIds = matchingContacts
+                    .Select(contact => contact.Id)
+                    .Where(id => id != Guid.Empty)
+                    .Distinct()
+                    .ToList();
+                // 小組長的批次授權以目前可見小組成員為邊界；全教會權限仍須通過在籍／未結案檢查。
+                // 這一步回傳的 allowedIds 是後續樹節點與列資料唯一可信的聯絡人集合。
+                var visibleMembershipContactIds = memberships
+                    .Select(row => Guid.TryParse(row.ContactId, out var id) ? id : Guid.Empty)
+                    .Where(id => id != Guid.Empty)
+                    .Distinct()
+                    .ToList();
+                var allowedIds = CanViewContactsBatch(
+                    matchingIds,
+                    service,
+                    closedStatus,
+                    visibleMembershipContactIds);
+                // 在補關係文字及建立 DTO 前再次用 allowedIds 收斂候選 Entity，確保完整列不會夾帶未授權資料。
+                matchingContacts = matchingContacts.Where(contact => allowedIds.Contains(contact.Id)).ToList();
+                var relations = BatchRelationGoals(service, matchingContacts.Select(contact => contact.Id).ToList());
+                var rows = BuildMemberRows(service, matchingContacts, relations);
+
+                var result = MemberInfoTreeSearchBuilder.Build(
+                    memberships,
+                    allowedIds.Select(id => id.ToString()).ToList(),
+                    access == MemberInfoAccess.Church,
+                    rows);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex, "MemberInfo.SearchDistrictTree");
+            }
+            finally
+            {
+                ReleaseConnection(service);
+            }
+        }
+
+        [HttpGet]
+        [Route("/MemberInfo/LoadGroupMembers")]
+        public IActionResult LoadGroupMembers(string listId, string search)
+        {
+            IOrganizationService service = null;
+
+            try
+            {
+                EnsureCorrectUserData();
+                var access = GetAccess();
+                if (access != MemberInfoAccess.Church && access != MemberInfoAccess.ShepherdList)
+                {
+                    return Forbid();
+                }
+
+                if (!Guid.TryParse(listId, out var requestedListId))
+                {
+                    return Forbid();
+                }
+
+                service = GetConnection();
+                var closedStatus = GetRequiredClosedCustomerTypeValue(service);
+                var descriptors = GetVisibleSmallGroupDescriptors(service, access);
+                var visibleListIds = descriptors.Select(group => group.ListId).ToList();
+                if (!MemberInfoScopeGuard.IsListAllowed(access, visibleListIds, listId))
+                {
+                    return Forbid();
+                }
+
+                var memberships = FetchGroupMemberships(
+                    service,
+                    new[] { requestedListId.ToString() },
+                    closedStatus);
+                var memberIds = memberships
+                    .Where(row => row.IsCurrent && Guid.TryParse(row.ContactId, out _))
+                    .Select(row => Guid.Parse(row.ContactId))
+                    .Distinct()
+                    .ToList();
+                var contacts = FetchContactsByIds(service, memberIds, search, closedStatus);
+                var allowedIds = CanViewContactsBatch(
+                    contacts.Select(contact => contact.Id).ToList(),
+                    service,
+                    closedStatus,
+                    memberIds);
+                contacts = contacts.Where(contact => allowedIds.Contains(contact.Id)).ToList();
+
+                var relations = BatchRelationGoals(service, contacts.Select(contact => contact.Id).ToList());
+                var rows = MemberInfoCommitmentTypeSort.OrderRows(
+                    BuildMemberRows(service, contacts, relations));
+                return Json(new { data = rows });
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex, "MemberInfo.LoadGroupMembers");
+            }
+            finally
+            {
+                ReleaseConnection(service);
+            }
+        }
+
+        [HttpGet]
+        [Route("/MemberInfo/LoadUngroupedMembers")]
+        public IActionResult LoadUngroupedMembers(DataSourceLoadOptions loadOptions, string search)
+        {
+            IOrganizationService service = null;
+
+            try
+            {
+                EnsureCorrectUserData();
+                var access = GetAccess();
+                if (access != MemberInfoAccess.Church)
+                {
+                    return Forbid();
+                }
+
+                service = GetConnection();
+                var closedStatus = GetRequiredClosedCustomerTypeValue(service);
+                var descriptors = GetVisibleSmallGroupDescriptors(service, access);
+                var groupedIds = GetChurchGroupedCurrentIds(service, descriptors, closedStatus);
+                var statusValues = GetCustomerTypeValuesMatchingText(service, search);
+                UngroupedContactPage contactPage;
+                if (TryGetCommitmentTypeSort(loadOptions, out var commitmentDescending))
+                {
+                    contactPage = LoadUngroupedCommitmentTypePage(
+                        service,
+                        GetTreeContactColumns(),
+                        search,
+                        groupedIds,
+                        closedStatus,
+                        statusValues,
+                        loadOptions,
+                        commitmentDescending);
+                }
+                else
+                {
+                    var query = BuildUngroupedContactQuery(
+                        GetTreeContactColumns(),
+                        search,
+                        groupedIds,
+                        closedStatus,
+                        statusValues,
+                        loadOptions);
+                    var page = service.RetrieveMultiple(query);
+                    var skip = loadOptions?.Skip > 0 ? loadOptions.Skip : 0;
+                    contactPage = new UngroupedContactPage
+                    {
+                        Contacts = page.Entities.ToList(),
+                        TotalCount = page.TotalRecordCount >= 0
+                            ? page.TotalRecordCount
+                            : skip + page.Entities.Count + (page.MoreRecords ? 1 : 0)
+                    };
+                }
+
+                var contacts = contactPage.Contacts;
+                var allowedIds = CanViewContactsBatch(
+                    contacts.Select(contact => contact.Id).ToList(),
+                    service,
+                    closedStatus);
+                contacts = contacts.Where(contact => allowedIds.Contains(contact.Id)).ToList();
+
+                var relations = BatchRelationGoals(service, contacts.Select(contact => contact.Id).ToList());
+                var rows = BuildMemberRows(service, contacts, relations);
+                return Json(new { data = rows, totalCount = contactPage.TotalCount });
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex, "MemberInfo.LoadUngroupedMembers");
+            }
+            finally
+            {
+                ReleaseConnection(service);
             }
         }
 
@@ -117,6 +429,13 @@ namespace ChurchReport.Controllers
 
                 var service = ToolUtility.m_Crm2011OrganizationService;
                 var contact = service.Retrieve("contact", contactGuid, GetContactDetailColumns());
+                // CRM 可能以 DateTime 的 Year=1 表示未填或無效日期；在 ViewModel 邊界正規化為 null，
+                // 讓 Razor 只需處理「有效生日／未設定」兩種狀態，不會顯示 0001/01/01。
+                var birthDate = contact.GetAttributeValue<DateTime?>("birthdate");
+                if (birthDate.HasValue && birthDate.Value.Year <= 1)
+                {
+                    birthDate = null;
+                }
 
                 var model = new MemberInfoDetailViewModel
                 {
@@ -124,6 +443,8 @@ namespace ChurchReport.Controllers
                     FullName = ToolUtility.GetEntityStringAttribute(contact, "fullname"),
                     Phone = ToolUtility.GetEntityStringAttribute(contact, "mobilephone"),
                     Address = ToolUtility.GetEntityStringAttribute(contact, "address2_line1"),
+                    Gender = GetOptionSetText(contact, "gendercode"),
+                    BirthDate = birthDate,
                     MembershipStatus = GetOptionSetText(contact, "customertypecode"),
                     SpiritualIdentity = GetOptionSetText(contact, "new_spiriitual_identity"),
                     RelationGoals = GetRelationGoals(contactGuid),
@@ -967,6 +1288,8 @@ namespace ChurchReport.Controllers
 
             memoryCache.Remove("member-info-church-rows:all:");
             memoryCache.Remove("member-info-church-rows:photo:");
+            memoryCache.Remove(ChurchTreeCacheKey);
+            memoryCache.Remove(ChurchGroupedCurrentIdsCacheKey);
         }
 
         /// <summary>以共用快取的 OptionSet 服務取得某 contact 欄位的全部選項(文字+整數值)，供下拉編輯使用。</summary>
@@ -1015,6 +1338,870 @@ namespace ChurchReport.Controllers
             return access;
         }
 
+        private IMemoryCache GetMemberInfoMemoryCache()
+        {
+            return HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
+        }
+
+        private static void TraceMemberInfoTreePhase(
+            string operation,
+            string phase,
+            System.Diagnostics.Stopwatch timing)
+        {
+            System.Diagnostics.Trace.WriteLine(
+                $"[MemberInfoTree] operation={operation} phase={phase} elapsedMs={timing?.ElapsedMilliseconds ?? -1}");
+        }
+
+        private static void SetTreeCache<T>(IMemoryCache memoryCache, string key, T value, int size)
+        {
+            memoryCache.Set(key, value, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(3),
+                SlidingExpiration = TimeSpan.FromMinutes(1),
+                Size = Math.Max(1, size)
+            });
+        }
+
+        private int GetRequiredClosedCustomerTypeValue(IOrganizationService service)
+        {
+            // GetOptionSetValue 在找不到且 defaultValue=null 時會拋出異常；
+            // 不捕獲該異常，讓新樹狀端點 fail-closed，絕不在無法辨識「結案」時放行資料。
+            return GetSharedOptionSetService(service)
+                .GetOptionSetValue("contact", "customertypecode", "結案", null);
+        }
+
+        private List<SmallGroupDescriptor> GetVisibleSmallGroupDescriptors(
+            IOrganizationService service,
+            string access)
+        {
+            if (access == MemberInfoAccess.Church)
+            {
+                return FetchSmallGroupDescriptors(service, null);
+            }
+
+            if (access == MemberInfoAccess.ShepherdList)
+            {
+                return FetchSmallGroupDescriptors(service, GetShepherdListIds());
+            }
+
+            return new List<SmallGroupDescriptor>();
+        }
+
+        private HashSet<Guid> GetShepherdListIds()
+        {
+            var result = new HashSet<Guid>();
+            EnsureShepherdListsLoaded();
+
+            var groups = InMemoryContext?.ListManager?.m_MultiGroupList?.m_WeeklyReportRecordListData;
+            if (groups == null)
+            {
+                return result;
+            }
+
+            foreach (var group in groups)
+            {
+                if (Guid.TryParse(group.ListEntityId, out var listId) && listId != Guid.Empty)
+                {
+                    result.Add(listId);
+                }
+            }
+
+            return result;
+        }
+
+        private List<SmallGroupDescriptor> FetchSmallGroupDescriptors(
+            IOrganizationService service,
+            IReadOnlyCollection<Guid> onlyListIds)
+        {
+            if (onlyListIds != null && onlyListIds.Count == 0)
+            {
+                return new List<SmallGroupDescriptor>();
+            }
+
+            var entities = new List<Entity>();
+            var chunks = onlyListIds == null
+                ? new List<List<Guid>> { null }
+                : onlyListIds
+                    .Where(id => id != Guid.Empty)
+                    .Distinct()
+                    .Chunk(CrmInClauseChunkSize)
+                    .Select(chunk => chunk.ToList())
+                    .ToList();
+
+            foreach (var chunk in chunks)
+            {
+                var query = new QueryExpression("list")
+                {
+                    ColumnSet = new ColumnSet(
+                        "listid",
+                        "listname",
+                        "new_area_name",
+                        "new_contact_race_leager_list",
+                        "new_contact_family_leader_list",
+                        "new_group_time",
+                        "new_group_place",
+                        "new_contact_list_arealeader")
+                };
+                query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
+                query.Criteria.AddCondition("purpose", ConditionOperator.Equal, "小組名單");
+                query.Criteria.AddCondition("new_app_named", ConditionOperator.Equal, true);
+                if (chunk != null)
+                {
+                    query.Criteria.AddCondition(
+                        "listid",
+                        ConditionOperator.In,
+                        chunk.Select(id => (object)id).ToArray());
+                }
+                query.AddOrder("listname", OrderType.Ascending);
+                entities.AddRange(RetrieveAllEntities(service, query));
+            }
+
+            return entities
+                .Where(entity => entity != null && entity.Id != Guid.Empty)
+                .GroupBy(entity => entity.Id)
+                .Select(group => group.First())
+                .Select(entity =>
+                {
+                    var raceLeader = entity.GetAttributeValue<EntityReference>("new_contact_race_leager_list");
+                    var groupLeader = entity.GetAttributeValue<EntityReference>("new_contact_family_leader_list");
+                    var areaLeader = entity.GetAttributeValue<EntityReference>("new_contact_list_arealeader");
+                    var areaName = entity.GetAttributeValue<string>("new_area_name") ?? string.Empty;
+                    if (string.IsNullOrWhiteSpace(areaName) && !string.IsNullOrWhiteSpace(areaLeader?.Name))
+                    {
+                        areaName = areaLeader.Name.Trim() + "牧區";
+                    }
+
+                    return new SmallGroupDescriptor
+                    {
+                        ListId = entity.Id.ToString(),
+                        GroupName = entity.GetAttributeValue<string>("listname") ?? string.Empty,
+                        AreaName = areaName,
+                        RaceLeaderName = raceLeader?.Name ?? string.Empty,
+                        RaceLeaderKey = raceLeader?.Id.ToString() ?? string.Empty,
+                        GroupTime = entity.GetAttributeValue<string>("new_group_time") ?? string.Empty,
+                        GroupPlace = entity.GetAttributeValue<string>("new_group_place") ?? string.Empty,
+                        LeaderName = groupLeader?.Name ?? string.Empty
+                    };
+                })
+                .ToList();
+        }
+
+        private List<GroupMembershipRow> FetchGroupMemberships(
+            IOrganizationService service,
+            IReadOnlyCollection<string> listIds,
+            int closedStatus)
+        {
+            var validListIds = (listIds ?? Array.Empty<string>())
+                .Select(id => Guid.TryParse(id, out var parsed) ? parsed : Guid.Empty)
+                .Where(id => id != Guid.Empty)
+                .Distinct()
+                .ToList();
+            if (validListIds.Count == 0)
+            {
+                return new List<GroupMembershipRow>();
+            }
+
+            var rows = new Dictionary<string, GroupMembershipRow>(StringComparer.OrdinalIgnoreCase);
+            foreach (var chunk in validListIds.Chunk(CrmInClauseChunkSize))
+            {
+                var query = new QueryExpression("listmember")
+                {
+                    ColumnSet = new ColumnSet("listid", "entityid")
+                };
+                query.Criteria.AddCondition(
+                    "listid",
+                    ConditionOperator.In,
+                    chunk.Select(id => (object)id).ToArray());
+
+                var contactLink = new LinkEntity(
+                    "listmember",
+                    "contact",
+                    "entityid",
+                    "contactid",
+                    JoinOperator.Inner)
+                {
+                    EntityAlias = "member",
+                    Columns = new ColumnSet("contactid", "statecode", "customertypecode")
+                };
+                contactLink.LinkCriteria.AddCondition("statecode", ConditionOperator.Equal, 0);
+                var currentStatus = new FilterExpression(LogicalOperator.Or);
+                currentStatus.AddCondition("customertypecode", ConditionOperator.Null);
+                currentStatus.AddCondition("customertypecode", ConditionOperator.NotEqual, closedStatus);
+                contactLink.LinkCriteria.Filters.Add(currentStatus);
+                query.LinkEntities.Add(contactLink);
+
+                foreach (var entity in RetrieveAllEntities(service, query))
+                {
+                    var listId = GetListMemberListId(entity);
+                    var contactId = GetListMemberContactId(entity);
+                    if (listId == Guid.Empty || contactId == Guid.Empty)
+                    {
+                        continue;
+                    }
+
+                    var key = listId.ToString("N") + ":" + contactId.ToString("N");
+                    rows[key] = new GroupMembershipRow
+                    {
+                        ListId = listId.ToString(),
+                        ContactId = contactId.ToString(),
+                        IsCurrent = true
+                    };
+                }
+            }
+
+            return rows.Values.ToList();
+        }
+
+        private QueryExpression BuildStrictCurrentContactQuery(
+            ColumnSet columns,
+            string search,
+            int closedStatus,
+            IReadOnlyCollection<int> matchingStatusValues)
+        {
+            var query = new QueryExpression("contact")
+            {
+                ColumnSet = columns
+            };
+            query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
+
+            var currentStatus = new FilterExpression(LogicalOperator.Or);
+            currentStatus.AddCondition("customertypecode", ConditionOperator.Null);
+            currentStatus.AddCondition("customertypecode", ConditionOperator.NotEqual, closedStatus);
+            query.Criteria.Filters.Add(currentStatus);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var pattern = "%" + search.Trim() + "%";
+                var searchFilter = new FilterExpression(LogicalOperator.Or);
+                searchFilter.AddCondition("fullname", ConditionOperator.Like, pattern);
+                searchFilter.AddCondition("mobilephone", ConditionOperator.Like, pattern);
+                if (matchingStatusValues != null && matchingStatusValues.Count > 0)
+                {
+                    searchFilter.AddCondition(
+                        "customertypecode",
+                        ConditionOperator.In,
+                        matchingStatusValues.Select(value => (object)value).ToArray());
+                }
+                query.Criteria.Filters.Add(searchFilter);
+            }
+
+            return query;
+        }
+
+        private List<int> GetCustomerTypeValuesMatchingText(IOrganizationService service, string search)
+        {
+            if (string.IsNullOrWhiteSpace(search))
+            {
+                return new List<int>();
+            }
+
+            var term = search.Trim();
+            return GetSharedOptionSetService(service)
+                .GetOptionSetMapping("contact", "customertypecode")
+                .Where(pair => !string.IsNullOrEmpty(pair.Key) &&
+                               pair.Key.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0)
+                .Select(pair => pair.Value)
+                .Distinct()
+                .ToList();
+        }
+
+        private static List<Entity> RetrieveAllEntities(IOrganizationService service, QueryExpression query)
+        {
+            var entities = new List<Entity>();
+            query.PageInfo = new PagingInfo
+            {
+                Count = 2000,
+                PageNumber = 1,
+                PagingCookie = null,
+                ReturnTotalRecordCount = false
+            };
+
+            while (true)
+            {
+                var page = service.RetrieveMultiple(query);
+                if (page?.Entities != null)
+                {
+                    entities.AddRange(page.Entities);
+                }
+                if (page == null || !page.MoreRecords)
+                {
+                    break;
+                }
+
+                query.PageInfo.PageNumber++;
+                query.PageInfo.PagingCookie = page.PagingCookie;
+            }
+
+            return entities;
+        }
+
+        private List<Entity> FetchContactsByIds(
+            IOrganizationService service,
+            IReadOnlyCollection<Guid> contactIds,
+            string search,
+            int closedStatus)
+        {
+            var result = new Dictionary<Guid, Entity>();
+            var ids = (contactIds ?? Array.Empty<Guid>())
+                .Where(id => id != Guid.Empty)
+                .Distinct()
+                .ToList();
+            if (ids.Count == 0)
+            {
+                return new List<Entity>();
+            }
+
+            var statusValues = GetCustomerTypeValuesMatchingText(service, search);
+            foreach (var chunk in ids.Chunk(CrmInClauseChunkSize))
+            {
+                var query = BuildStrictCurrentContactQuery(
+                    GetTreeContactColumns(),
+                    search,
+                    closedStatus,
+                    statusValues);
+                query.Criteria.AddCondition(
+                    "contactid",
+                    ConditionOperator.In,
+                    chunk.Select(id => (object)id).ToArray());
+                foreach (var contact in RetrieveAllEntities(service, query))
+                {
+                    result[contact.Id] = contact;
+                }
+            }
+
+            return result.Values.ToList();
+        }
+
+        private HashSet<Guid> GetChurchGroupedCurrentIds(
+            IOrganizationService service,
+            IReadOnlyCollection<SmallGroupDescriptor> descriptors,
+            int closedStatus)
+        {
+            var memoryCache = GetMemberInfoMemoryCache();
+            if (memoryCache != null &&
+                memoryCache.TryGetValue(
+                    ChurchGroupedCurrentIdsCacheKey,
+                    out HashSet<Guid> cachedIds) &&
+                cachedIds != null)
+            {
+                return new HashSet<Guid>(cachedIds);
+            }
+
+            var memberships = FetchGroupMemberships(
+                service,
+                (descriptors ?? Array.Empty<SmallGroupDescriptor>())
+                    .Select(group => group.ListId)
+                    .ToList(),
+                closedStatus);
+            var groupedIds = memberships
+                .Select(row => Guid.TryParse(row.ContactId, out var id) ? id : Guid.Empty)
+                .Where(id => id != Guid.Empty)
+                .ToHashSet();
+            if (memoryCache != null)
+            {
+                SetTreeCache(
+                    memoryCache,
+                    ChurchGroupedCurrentIdsCacheKey,
+                    groupedIds,
+                    Math.Max(1, groupedIds.Count));
+            }
+
+            return groupedIds;
+        }
+
+        private QueryExpression BuildUngroupedBaseQuery(
+            ColumnSet columns,
+            string search,
+            IReadOnlyCollection<Guid> groupedIds,
+            int closedStatus,
+            IReadOnlyCollection<int> matchingStatusValues)
+        {
+            var query = BuildStrictCurrentContactQuery(
+                columns,
+                search,
+                closedStatus,
+                matchingStatusValues);
+            foreach (var chunk in (groupedIds ?? Array.Empty<Guid>())
+                         .Where(id => id != Guid.Empty)
+                         .Distinct()
+                         .Chunk(CrmInClauseChunkSize))
+            {
+                query.Criteria.AddCondition(
+                    "contactid",
+                    ConditionOperator.NotIn,
+                    chunk.Select(id => (object)id).ToArray());
+            }
+
+            return query;
+        }
+
+        private QueryExpression BuildUngroupedContactQuery(
+            ColumnSet columns,
+            string search,
+            IReadOnlyCollection<Guid> groupedIds,
+            int closedStatus,
+            IReadOnlyCollection<int> matchingStatusValues,
+            DataSourceLoadOptions loadOptions)
+        {
+            var query = BuildUngroupedBaseQuery(
+                columns,
+                search,
+                groupedIds,
+                closedStatus,
+                matchingStatusValues);
+
+            ApplyUngroupedSort(query, loadOptions);
+            var take = loadOptions?.Take > 0
+                ? Math.Min(loadOptions.Take, MaxPageSize)
+                : DefaultPageSize;
+            var skip = loadOptions?.Skip > 0 ? loadOptions.Skip : 0;
+            query.PageInfo = new PagingInfo
+            {
+                Count = take,
+                PageNumber = skip / take + 1,
+                PagingCookie = null,
+                ReturnTotalRecordCount = true
+            };
+            return query;
+        }
+
+        private QueryExpression BuildUngroupedCommitmentSegmentQuery(
+            ColumnSet columns,
+            string search,
+            IReadOnlyCollection<Guid> groupedIds,
+            int closedStatus,
+            IReadOnlyCollection<int> matchingStatusValues,
+            MemberInfoCommitmentTypeSegmentKind kind,
+            int? optionValue,
+            IReadOnlyCollection<int> configuredValues)
+        {
+            var query = BuildUngroupedBaseQuery(
+                columns,
+                search,
+                groupedIds,
+                closedStatus,
+                matchingStatusValues);
+            switch (kind)
+            {
+                case MemberInfoCommitmentTypeSegmentKind.Configured:
+                    if (!optionValue.HasValue)
+                    {
+                        throw new InvalidOperationException(
+                            "Configured commitment segment requires an OptionSet value.");
+                    }
+                    query.Criteria.AddCondition(
+                        "customertypecode",
+                        ConditionOperator.Equal,
+                        optionValue.Value);
+                    break;
+                case MemberInfoCommitmentTypeSegmentKind.Unknown:
+                    query.Criteria.AddCondition(
+                        "customertypecode",
+                        ConditionOperator.NotNull);
+                    var knownValues = (configuredValues ?? Array.Empty<int>())
+                        .Distinct()
+                        .ToArray();
+                    if (knownValues.Length > 0)
+                    {
+                        query.Criteria.AddCondition(
+                            "customertypecode",
+                            ConditionOperator.NotIn,
+                            knownValues.Select(value => (object)value).ToArray());
+                    }
+                    break;
+                case MemberInfoCommitmentTypeSegmentKind.Empty:
+                    query.Criteria.AddCondition(
+                        "customertypecode",
+                        ConditionOperator.Null);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
+            }
+
+            // 每一段的類型順位已由外層 segment sequence 決定；段內只需穩定姓名／ID 排序。
+            query.AddOrder("fullname", OrderType.Ascending);
+            query.AddOrder("contactid", OrderType.Ascending);
+            return query;
+        }
+
+        private int CountUngroupedEmptyCommitmentSegment(
+            IOrganizationService service,
+            string search,
+            IReadOnlyCollection<Guid> groupedIds,
+            int closedStatus,
+            IReadOnlyCollection<int> matchingStatusValues)
+        {
+            var query = BuildUngroupedBaseQuery(
+                new ColumnSet("contactid"),
+                search,
+                groupedIds,
+                closedStatus,
+                matchingStatusValues);
+            query.Criteria.AddCondition("customertypecode", ConditionOperator.Null);
+            query.PageInfo = new PagingInfo
+            {
+                Count = 1,
+                PageNumber = 1,
+                PagingCookie = null,
+                ReturnTotalRecordCount = true
+            };
+
+            var result = service.RetrieveMultiple(query);
+            return result.TotalRecordCount >= 0
+                ? result.TotalRecordCount
+                : result.Entities.Count;
+        }
+
+        /// <summary>
+        /// 以一支 aggregate FetchXML 取得每個非空 raw value 的筆數。raw value 只作為
+        /// metadata segment 的查詢識別鍵，實際先後仍完全由客製化 options sequence 決定。
+        /// </summary>
+        private IReadOnlyDictionary<int, int> CountUngroupedCommitmentValues(
+            IOrganizationService service,
+            string search,
+            IReadOnlyCollection<Guid> groupedIds,
+            int closedStatus,
+            IReadOnlyCollection<int> matchingStatusValues)
+        {
+            var query = BuildUngroupedBaseQuery(
+                new ColumnSet("contactid", "customertypecode"),
+                search,
+                groupedIds,
+                closedStatus,
+                matchingStatusValues);
+            var response = (QueryExpressionToFetchXmlResponse)service.Execute(
+                new QueryExpressionToFetchXmlRequest { Query = query });
+            var countFetch =
+                MemberInfoCommitmentTypeCountQuery.CreateValueCountsFetch(response.FetchXml);
+            var rows = service.RetrieveMultiple(new FetchExpression(countFetch));
+            return MemberInfoCommitmentTypeCountQuery.ReadValueCounts(rows);
+        }
+
+        private List<Entity> RetrieveUngroupedSegmentRange(
+            IOrganizationService service,
+            Func<QueryExpression> createQuery,
+            int skip,
+            int take)
+        {
+            var result = new List<Entity>();
+            if (take <= 0)
+            {
+                return result;
+            }
+
+            var pageSize = Math.Min(Math.Max(1, take), MaxPageSize);
+            var pageNumber = Math.Max(0, skip) / pageSize + 1;
+            var offsetOnFirstPage = Math.Max(0, skip) % pageSize;
+            var remaining = take;
+
+            while (remaining > 0)
+            {
+                var query = createQuery();
+                query.PageInfo = new PagingInfo
+                {
+                    Count = pageSize,
+                    PageNumber = pageNumber,
+                    PagingCookie = null,
+                    ReturnTotalRecordCount = false
+                };
+
+                var page = service.RetrieveMultiple(query);
+                var selected = page.Entities
+                    .Skip(offsetOnFirstPage)
+                    .Take(remaining)
+                    .ToList();
+                result.AddRange(selected);
+                remaining -= selected.Count;
+
+                if (!page.MoreRecords || page.Entities.Count == 0)
+                {
+                    break;
+                }
+
+                pageNumber++;
+                offsetOnFirstPage = 0;
+            }
+
+            return result;
+        }
+
+        private UngroupedContactPage LoadUngroupedCommitmentTypePage(
+            IOrganizationService service,
+            ColumnSet columns,
+            string search,
+            IReadOnlyCollection<Guid> groupedIds,
+            int closedStatus,
+            IReadOnlyCollection<int> matchingStatusValues,
+            DataSourceLoadOptions loadOptions,
+            bool descending)
+        {
+            var options = GetCommitmentTypeOptions(service);
+            var configuredValues = options
+                .OrderBy(option => option.Order)
+                .Select(option => option.Value)
+                .Distinct()
+                .ToArray();
+            var countsByValue = CountUngroupedCommitmentValues(
+                service,
+                search,
+                groupedIds,
+                closedStatus,
+                matchingStatusValues);
+            var emptyCount = CountUngroupedEmptyCommitmentSegment(
+                service,
+                search,
+                groupedIds,
+                closedStatus,
+                matchingStatusValues);
+            var segments = MemberInfoCommitmentTypeSort.BuildSegments(
+                configuredValues,
+                countsByValue,
+                emptyCount,
+                descending);
+            var skip = loadOptions?.Skip > 0 ? loadOptions.Skip : 0;
+            var take = loadOptions?.Take > 0
+                ? Math.Min(loadOptions.Take, MaxPageSize)
+                : DefaultPageSize;
+
+            var contacts = new List<Entity>();
+            foreach (var slice in MemberInfoCommitmentTypeSort.PlanSlices(
+                         skip,
+                         take,
+                         segments))
+            {
+                contacts.AddRange(RetrieveUngroupedSegmentRange(
+                    service,
+                    () => BuildUngroupedCommitmentSegmentQuery(
+                        columns,
+                        search,
+                        groupedIds,
+                        closedStatus,
+                        matchingStatusValues,
+                        slice.Kind,
+                        slice.Value,
+                        configuredValues),
+                    slice.Skip,
+                    slice.Take));
+            }
+
+            return new UngroupedContactPage
+            {
+                Contacts = contacts,
+                TotalCount = segments.Sum(segment => segment.Count)
+            };
+        }
+
+        private static bool TryGetCommitmentTypeSort(
+            DataSourceLoadOptions loadOptions,
+            out bool descending)
+        {
+            descending = false;
+            var sort = loadOptions?.Sort?.FirstOrDefault();
+            if (sort == null)
+            {
+                return true;
+            }
+
+            var isCommitmentType =
+                string.Equals(
+                    sort.Selector,
+                    MemberInfoCommitmentTypeSort.Selector,
+                    StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(
+                    sort.Selector,
+                    "MembershipStatus",
+                    StringComparison.OrdinalIgnoreCase);
+            if (!isCommitmentType)
+            {
+                return false;
+            }
+
+            descending = sort.Desc;
+            return true;
+        }
+
+        private static void ApplyUngroupedSort(QueryExpression query, DataSourceLoadOptions loadOptions)
+        {
+            var applied = false;
+            if (loadOptions?.Sort != null)
+            {
+                foreach (var sort in loadOptions.Sort)
+                {
+                    var attribute = MapUngroupedSortAttribute(sort?.Selector);
+                    if (attribute == null)
+                    {
+                        continue;
+                    }
+                    query.AddOrder(attribute, sort.Desc ? OrderType.Descending : OrderType.Ascending);
+                    applied = true;
+                }
+            }
+
+            if (!applied)
+            {
+                query.AddOrder("fullname", OrderType.Ascending);
+            }
+            query.AddOrder("contactid", OrderType.Ascending);
+        }
+
+        private static string MapUngroupedSortAttribute(string selector)
+        {
+            if (string.IsNullOrWhiteSpace(selector)) return null;
+            if (string.Equals(selector, "FullName", StringComparison.OrdinalIgnoreCase)) return "fullname";
+            if (string.Equals(selector, "Gender", StringComparison.OrdinalIgnoreCase)) return "gendercode";
+            if (string.Equals(selector, "BirthDate", StringComparison.OrdinalIgnoreCase)) return "birthdate";
+            if (string.Equals(selector, "Phone", StringComparison.OrdinalIgnoreCase)) return "mobilephone";
+            if (string.Equals(selector, "SpiritualIdentity", StringComparison.OrdinalIgnoreCase)) return "new_spiriitual_identity";
+            if (string.Equals(selector, "Address", StringComparison.OrdinalIgnoreCase)) return "address2_line1";
+            return null;
+        }
+
+        private Dictionary<Guid, string> BatchRelationGoals(
+            IOrganizationService service,
+            IReadOnlyCollection<Guid> contactIds)
+        {
+            var requestedIds = (contactIds ?? Array.Empty<Guid>())
+                .Where(id => id != Guid.Empty)
+                .Distinct()
+                .ToHashSet();
+            var items = requestedIds.ToDictionary(
+                id => id,
+                _ => new List<(string Role, string TargetName)>());
+
+            foreach (var chunk in requestedIds.Chunk(CrmInClauseChunkSize))
+            {
+                try
+                {
+                    var values = chunk.Select(id => (object)id).ToArray();
+                    var query = new QueryExpression("connection")
+                    {
+                        ColumnSet = new ColumnSet("record1id", "record2id", "record1roleid", "record2roleid")
+                    };
+                    query.Criteria.FilterOperator = LogicalOperator.Or;
+                    query.Criteria.AddCondition("record1id", ConditionOperator.In, values);
+                    query.Criteria.AddCondition("record2id", ConditionOperator.In, values);
+                    query.AddOrder("connectionid", OrderType.Ascending);
+
+                    foreach (var connection in RetrieveAllEntities(service, query))
+                    {
+                        var record1 = connection.GetAttributeValue<EntityReference>("record1id");
+                        var record2 = connection.GetAttributeValue<EntityReference>("record2id");
+                        if (record1 != null && requestedIds.Contains(record1.Id))
+                        {
+                            var role = connection.GetAttributeValue<EntityReference>("record2roleid");
+                            items[record1.Id].Add((role?.Name ?? string.Empty, record2?.Name ?? string.Empty));
+                        }
+                        if (record2 != null && requestedIds.Contains(record2.Id))
+                        {
+                            var role = connection.GetAttributeValue<EntityReference>("record1roleid");
+                            items[record2.Id].Add((role?.Name ?? string.Empty, record1?.Name ?? string.Empty));
+                        }
+                    }
+                }
+                catch
+                {
+                    // 某些 CRM 環境不開放 connection；保留成員列並將關係／目標留空。
+                }
+            }
+
+            return items.ToDictionary(
+                pair => pair.Key,
+                pair => RelationGoalFormatter.Format(pair.Value));
+        }
+
+        private List<GroupMemberRowViewModel> BuildMemberRows(
+            IOrganizationService service,
+            IEnumerable<Entity> contacts,
+            IReadOnlyDictionary<Guid, string> relationGoalsByContact)
+        {
+            var optionService = GetSharedOptionSetService(service);
+            var commitmentOptions = GetCommitmentTypeOptions(service);
+            var commitmentByValue = commitmentOptions
+                .GroupBy(option => option.Value)
+                .ToDictionary(group => group.Key, group => group.First());
+            var rows = new List<GroupMemberRowViewModel>();
+            foreach (var contact in contacts ?? Enumerable.Empty<Entity>())
+            {
+                var relationGoals = string.Empty;
+                relationGoalsByContact?.TryGetValue(contact.Id, out relationGoals);
+                // 搜尋、分組與未分組端點共用此列 DTO；統一把 CRM 的 Year=1 哨兵值轉成 null，
+                // 避免不同入口對同一生日產生不一致的顯示結果。
+                var birthDate = contact.GetAttributeValue<DateTime?>("birthdate");
+                if (birthDate.HasValue && birthDate.Value.Year <= 1)
+                {
+                    birthDate = null;
+                }
+                // raw OptionSet value 只用來查 metadata 對照；真正送到前端的排序鍵是客製化集合順位，
+                // 絕不比較 raw 整數大小。metadata 未知舊值保留 has-value=true、order=null，避免資料遺失。
+                var membershipStatusValue =
+                    contact.GetAttributeValue<OptionSetValue>("customertypecode")?.Value;
+                MemberInfoCommitmentTypeOption commitmentOption = null;
+                if (membershipStatusValue.HasValue)
+                {
+                    commitmentByValue.TryGetValue(
+                        membershipStatusValue.Value,
+                        out commitmentOption);
+                }
+
+                rows.Add(new GroupMemberRowViewModel
+                {
+                    ContactId = contact.Id.ToString(),
+                    FullName = contact.GetAttributeValue<string>("fullname") ?? string.Empty,
+                    Gender = ResolveOptionSetText(optionService, contact, "gendercode"),
+                    BirthDate = birthDate,
+                    Phone = contact.GetAttributeValue<string>("mobilephone") ?? string.Empty,
+                    SpiritualIdentity = ResolveOptionSetText(optionService, contact, "new_spiriitual_identity"),
+                    Address = contact.GetAttributeValue<string>("address2_line1") ?? string.Empty,
+                    MembershipStatusOrder = commitmentOption?.Order,
+                    HasMembershipStatusValue = membershipStatusValue.HasValue,
+                    MembershipStatus = membershipStatusValue.HasValue
+                        ? commitmentOption?.Label
+                            ?? ResolveOptionSetText(optionService, contact, "customertypecode")
+                        : string.Empty,
+                    RelationGoals = relationGoals ?? string.Empty
+                });
+            }
+
+            return rows;
+        }
+
+        private static string ResolveOptionSetText(
+            OptionSetMetadataService optionService,
+            Entity entity,
+            string attributeName)
+        {
+            try
+            {
+                var value = entity?.GetAttributeValue<OptionSetValue>(attributeName)?.Value;
+                return value.HasValue
+                    ? optionService.GetOptionSetText("contact", attributeName, value.Value) ?? string.Empty
+                    : string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// 樹狀成員列與搜尋結果共用的 CRM 投影，集中提供列顯示及頭像呈現所需的識別資料；
+        /// ColumnSet 只決定回傳屬性，在籍／結案資格仍由查詢條件與批次授權流程另行約束。
+        /// 搜尋端點可沿用同一批已授權 Entity 組列，避免為每位候選人再發一次詳細資料查詢。
+        /// </summary>
+        private static ColumnSet GetTreeContactColumns()
+        {
+            return new ColumnSet(
+                "contactid",
+                "fullname",
+                "gendercode",
+                "birthdate",
+                "mobilephone",
+                "new_spiriitual_identity",
+                "address2_line1",
+                "customertypecode",
+                "statecode");
+        }
+
         private bool CanViewContact(Guid contactId)
         {
             if (contactId == Guid.Empty)
@@ -1046,8 +2233,30 @@ namespace ChurchReport.Controllers
         /// </summary>
         private HashSet<Guid> CanViewContactsBatch(IReadOnlyCollection<Guid> contactIds)
         {
+            var closedStatus = TryGetClosedCustomerTypeValue();
+            if (!closedStatus.HasValue)
+            {
+                return new HashSet<Guid>();
+            }
+
+            return CanViewContactsBatch(
+                contactIds,
+                ToolUtility.m_Crm2011OrganizationService,
+                closedStatus.Value);
+        }
+
+        private HashSet<Guid> CanViewContactsBatch(
+            IReadOnlyCollection<Guid> contactIds,
+            IOrganizationService service,
+            int closedStatus,
+            IReadOnlyCollection<Guid> shepherdScopeContactIds = null)
+        {
             var allowed = new HashSet<Guid>();
-            if (contactIds == null || contactIds.Count == 0)
+            var validGuids = (contactIds ?? Array.Empty<Guid>())
+                .Where(id => id != Guid.Empty)
+                .Distinct()
+                .ToList();
+            if (validGuids.Count == 0 || service == null)
             {
                 return allowed;
             }
@@ -1055,66 +2264,52 @@ namespace ChurchReport.Controllers
             var access = GetAccess();
             if (access != MemberInfoAccess.Church && access != MemberInfoAccess.ShepherdList)
             {
-                return allowed; // 無權限：與逐筆版一致，全部拒絕
+                return allowed;
             }
 
-            // 牧養名單：把「我可見的 contactId」集合算一次(in-memory)，不在迴圈內逐人重算
             HashSet<string> shepherdAllowed = null;
             if (access == MemberInfoAccess.ShepherdList)
             {
-                shepherdAllowed = GetShepherdContactIds();
+                shepherdAllowed = shepherdScopeContactIds == null
+                    ? GetShepherdContactIds()
+                    : shepherdScopeContactIds
+                        .Where(id => id != Guid.Empty)
+                        .Select(id => id.ToString())
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
                 if (shepherdAllowed.Count == 0)
                 {
                     return allowed;
                 }
             }
 
-            var validGuids = contactIds.Where(g => g != Guid.Empty).Distinct().ToList();
-            if (validGuids.Count == 0)
-            {
-                return allowed;
-            }
-
-            // 一次撈回在籍判斷欄位，取代逐人 IsCurrentContact 的 N 支 Retrieve
-            var contactsById = new Dictionary<Guid, Entity>();
             try
             {
-                var query = new QueryExpression("contact")
+                foreach (var chunk in validGuids.Chunk(CrmInClauseChunkSize))
                 {
-                    ColumnSet = new ColumnSet("contactid", "statecode", "customertypecode")
-                };
-                query.Criteria.AddCondition("contactid", ConditionOperator.In, validGuids.Select(g => (object)g).ToArray());
+                    var query = BuildStrictCurrentContactQuery(
+                        new ColumnSet("contactid", "statecode", "customertypecode"),
+                        string.Empty,
+                        closedStatus,
+                        Array.Empty<int>());
+                    query.Criteria.AddCondition(
+                        "contactid",
+                        ConditionOperator.In,
+                        chunk.Select(id => (object)id).ToArray());
 
-                var fetched = ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query);
-                foreach (var entity in fetched.Entities)
-                {
-                    contactsById[entity.Id] = entity;
+                    foreach (var contact in service.RetrieveMultiple(query).Entities)
+                    {
+                        if (access == MemberInfoAccess.ShepherdList &&
+                            !shepherdAllowed.Contains(contact.Id.ToString()))
+                        {
+                            continue;
+                        }
+                        allowed.Add(contact.Id);
+                    }
                 }
             }
             catch
             {
-                return allowed; // 查詢失敗：保守地全部拒絕(等同逐筆版 Retrieve 失敗 → false)
-            }
-
-            foreach (var guid in validGuids)
-            {
-                // 查不到該 contact → 拒絕(等同逐筆版 Retrieve 取不到 → false)
-                if (!contactsById.TryGetValue(guid, out var entity))
-                {
-                    continue;
-                }
-
-                // 牧養名單需同時落在「我的牧養名單」內(與逐筆版的 allowed.Contains 相同)
-                if (access == MemberInfoAccess.ShepherdList && !shepherdAllowed.Contains(guid.ToString()))
-                {
-                    continue;
-                }
-
-                // 在籍且非結案 —— 與逐筆版 IsCurrentContactEntity 完全相同的判斷
-                if (IsCurrentContactEntity(entity))
-                {
-                    allowed.Add(guid);
-                }
+                return new HashSet<Guid>();
             }
 
             return allowed;
@@ -1893,8 +3088,26 @@ namespace ChurchReport.Controllers
         /// <summary>建立以「共用」記憶體快取支援的 OptionSetMetadataService（metadata 整個 App 只查一次、快取 24h）。</summary>
         private OptionSetMetadataService GetSharedOptionSetService()
         {
-            var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
-            return new OptionSetMetadataService(ToolUtility.m_Crm2011OrganizationService, null, memoryCache);
+            return new OptionSetMetadataService(
+                ToolUtility.m_Crm2011OrganizationService,
+                null,
+                memberInfoMemoryCache);
+        }
+
+        private OptionSetMetadataService GetSharedOptionSetService(IOrganizationService service)
+        {
+            return new OptionSetMetadataService(service, null, memberInfoMemoryCache);
+        }
+
+        /// <summary>
+        /// 取得 contact.customertypecode 的客製化排列快照；同一個 App 共用 schema metadata 快取。
+        /// </summary>
+        private IReadOnlyList<MemberInfoCommitmentTypeOption> GetCommitmentTypeOptions(
+            IOrganizationService service)
+        {
+            return new MemberInfoCommitmentTypeMetadataProvider(
+                service,
+                memberInfoMemoryCache).GetOptions();
         }
 
         /// <summary>
@@ -2049,6 +3262,10 @@ namespace ChurchReport.Controllers
             return new ColumnSet("contactid", "fullname", "mobilephone", "customertypecode", "statecode");
         }
 
+        /// <summary>
+        /// 詳細彈窗單次 Retrieve 的完整欄位契約。性別與生日刻意併入原查詢，避免為兩個唯讀欄位新增 CRM 往返；
+        /// entityimageid／LINE 圖片網址只用來判斷頭像來源，不在此載入影像位元組。
+        /// </summary>
         private static ColumnSet GetContactDetailColumns()
         {
             return new ColumnSet(
@@ -2056,6 +3273,8 @@ namespace ChurchReport.Controllers
                 "fullname",
                 "mobilephone",
                 "address2_line1",
+                "gendercode",
+                "birthdate",
                 "customertypecode",
                 "new_spiriitual_identity",
                 "entityimageid",
@@ -2094,6 +3313,26 @@ namespace ChurchReport.Controllers
             }
 
             if (listMember["entityid"] is Guid guid)
+            {
+                return guid;
+            }
+
+            return Guid.Empty;
+        }
+
+        private static Guid GetListMemberListId(Entity listMember)
+        {
+            if (listMember == null || !listMember.Contains("listid"))
+            {
+                return Guid.Empty;
+            }
+
+            if (listMember["listid"] is EntityReference entityRef)
+            {
+                return entityRef.Id;
+            }
+
+            if (listMember["listid"] is Guid guid)
             {
                 return guid;
             }
