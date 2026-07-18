@@ -1,12 +1,12 @@
 {
   "id": "deploy-member-info-portable-kit",
   "title": "Deploy MemberInfo portable kit",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L+",
   "risk": "high",
   "domain": "member-info-feature-deployment",
-  "currentPhase": "review",
-  "nextAction": "Commit and push final evidence, then archive the Trellis and CCG task records",
+  "currentPhase": "completed",
+  "nextAction": "Archived after local verification and remote synchronization",
   "createdAt": "2026-07-18T07:05:45Z",
   "branch": "1.0.0.1.WorkTreeMemberInfo"
 }
