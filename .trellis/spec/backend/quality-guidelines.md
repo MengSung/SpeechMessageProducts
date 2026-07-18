@@ -38,6 +38,7 @@ Questions to answer:
 - Windows/Visual Studio text files must use CRLF line endings.
 - Before completing a task that touches text files, run a byte-level check for BOM and LF-only lines on the modified files.
 - Do not rely only on the editor warning dialog; fix the file format before reporting completion.
+- Generate byte/hash manifests and ZIP artifacts from a clean checkout whose line endings already match `.gitattributes`; verify both the source directory and a freshly extracted ZIP before publishing.
 
 ### Authentication Identity Authority
 
