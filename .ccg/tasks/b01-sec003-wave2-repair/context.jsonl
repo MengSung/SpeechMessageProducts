@@ -1,0 +1,5 @@
+{"path":"docs/project-modular-diagnostics/B01-identity-session-access-control/wave_2/plans.md","role":"implementation authority"}
+{"path":"docs/project-modular-diagnostics/B01-identity-session-access-control/wave_2/measurements.md","role":"measurement authority"}
+{"path":"docs/project-modular-diagnostics/B01-identity-session-access-control/wave_2/goals.md","role":"completion authority"}
+{"path":".ccg/tasks/optimization-blueprint-workflow/b01-toolutility-caller-inventory.md","role":"repository source caller baseline"}
+{"path":".ccg/tasks/b01-sec003-wave2-repair/evidence-gate.md","role":"current external evidence gate result"}

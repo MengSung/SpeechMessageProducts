@@ -1,0 +1,12 @@
+{
+  "id": "b01-sec003-wave2-repair",
+  "title": "B01-SEC-003 Wave 2 account credential repair",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "authentication-crm-concurrency",
+  "currentPhase": "analysis",
+  "nextAction": "Await explicit readable paths for the CRM row-version proof, deployed external-binary caller attestation, and non-production probe-readiness artifact; product/test edits remain prohibited",
+  "createdAt": "2026-07-18T03:57:27Z",
+  "branch": "1.0.0.1.EvenVersion"
+}
