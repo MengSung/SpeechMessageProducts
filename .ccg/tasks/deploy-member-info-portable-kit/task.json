@@ -1,0 +1,12 @@
+{
+  "id": "deploy-member-info-portable-kit",
+  "title": "Deploy MemberInfo portable kit",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "member-info-feature-deployment",
+  "currentPhase": "planning",
+  "nextAction": "Validate Trellis planning artifacts, activate the task, load project specs, and begin the TDD migration",
+  "createdAt": "2026-07-18T07:05:45Z",
+  "branch": "1.0.0.1.WorkTreeMemberInfo"
+}

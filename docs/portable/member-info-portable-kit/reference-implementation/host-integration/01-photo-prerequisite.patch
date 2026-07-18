@@ -1,0 +1,4322 @@
+diff --git a/ChurchReport/ChurchReport.csproj b/ChurchReport/ChurchReport.csproj
+index b91b3977..330f5cf8 100644
+--- a/ChurchReport/ChurchReport.csproj
++++ b/ChurchReport/ChurchReport.csproj
+@@ -5,6 +5,7 @@
+     <PreserveCompilationContext>true</PreserveCompilationContext>
+     <AssemblyName>ChurchReport</AssemblyName>
+     <OutputType>Exe</OutputType>
++    <BuildInParallel>false</BuildInParallel>
+     <!-- 移除 RuntimeIdentifier，.NET 10 不支援 win7-x86 -->
+     
+     <!-- ✅ Phase 5.1: GC 優化設定 -->
+@@ -13,7 +14,7 @@
+     <RetainVMGarbageCollection>true</RetainVMGarbageCollection>
+     
+     <!-- 允許套件降級警告不影響建置 -->
+-    <NoWarn>NU1605</NoWarn>
++    <NoWarn>$(NoWarn);NU1605;NU1902;NU1903;ASPDEPR005;CA1416;CA2200;CS0105;CS0108;CS0114;CS0162;CS0168;CS0169;CS0219;CS0414;CS0472;CS0618;CS0649;CS8073;CS8632;CS8981;CS1717;CS4014;MVC1000;SYSLIB0014;SYSLIB0021</NoWarn>
+     
+     <!-- ✅ Phase 5: .NET 10 效能優化設定 -->
+     <TieredPGO>true</TieredPGO>
+@@ -111,4 +112,4 @@
+       <UserProperties DismissedDevExtremeVersion="" />
+     </VisualStudio>
+   </ProjectExtensions>
+-</Project>
+\ No newline at end of file
++</Project>
+diff --git a/ChurchReport/Controllers/MemberInfoController.cs b/ChurchReport/Controllers/MemberInfoController.cs
+new file mode 100644
+index 00000000..d9f9fd47
+--- /dev/null
++++ b/ChurchReport/Controllers/MemberInfoController.cs
+@@ -0,0 +1,2183 @@
++using ChurchReport.Models;
++using ChurchReport.Services;
++using ChurchReport.Services.MemberInfo;
++using ChurchReport.Tools;
++using ChurchReport.ViewModels;
++using DevExtreme.AspNet.Data;
++using DevExtreme.AspNet.Mvc;
++using Microsoft.AspNetCore.Http;
++using Microsoft.AspNetCore.Mvc;
++using Microsoft.Extensions.Caching.Memory;
++using Microsoft.Xrm.Sdk;
++using Microsoft.Xrm.Sdk.Query;
++using SixLabors.ImageSharp;
++using SixLabors.ImageSharp.Formats.Jpeg;
++using SixLabors.ImageSharp.Processing;
++using System;
++using System.Collections.Generic;
++using System.IO;
++using System.Linq;
++using System.Threading.Tasks;
++using ToolUtilityNameSpace.ConnectionOperations;
++using ToolUtilityNameSpace.DependencyInjection;
++
++namespace ChurchReport.Controllers
++{
++    public class MemberInfoController : BaseChurchController
++    {
++        private const int DefaultPageSize = 50;
++        private const int MaxPageSize = 200;
++
++        public MemberInfoController(
++            IHttpContextAccessor httpContextAccessor,
++            IMemoryCache memoryCache,
++            IPayment paymentService,
++            IToolUtilityProvider toolUtilityProvider,
++            ICrmConnectionPool connectionPool)
++            : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool)
++        {
++        }
++
++        [HttpGet]
++        [Route("/MemberInfo/Index")]
++        public IActionResult Index()
++        {
++            try
++            {
++                SetupBasicViewBag();
++                SetMultiGroupLayoutParameter();
++
++                var access = GetAccess();
++                if (string.IsNullOrEmpty(access))
++                {
++                    return Forbid();
++                }
++
++                // 只有「全教會」管理者才看得到、用得到「重新同步LINE」按鈕（全教會範圍的批次操作）。
++                ViewBag.MemberInfoCanResync = (access == MemberInfoAccess.Church);
++                return View("MemberInfoGrid");
++            }
++            catch (Exception ex)
++            {
++                return HandleError(ex, "MemberInfo.Index");
++            }
++        }
++
++        [HttpGet]
++        public object LoadMemberInfoList(DataSourceLoadOptions loadOptions)
++        {
++            try
++            {
++                EnsureCorrectUserData();
++                var access = GetAccess();
++                var photoOnly = IsPhotoOnlyRequested();
++
++                if (access == MemberInfoAccess.Church)
++                {
++                    return LoadChurchMemberRows(loadOptions, photoOnly);
++                }
++
++                if (access == MemberInfoAccess.ShepherdList)
++                {
++                    var rows = LoadShepherdMemberRows(photoOnly);
++                    return DataSourceLoader.Load(rows, loadOptions);
++                }
++
++                return DataSourceLoader.Load(new List<MemberInfoListRowViewModel>(), loadOptions);
++            }
++            catch (Exception ex)
++            {
++                return HandleError(ex, "MemberInfo.LoadMemberInfoList");
++            }
++        }
++
++        [HttpGet]
++        public IActionResult Detail(string contactId)
++        {
++            try
++            {
++                EnsureCorrectUserData();
++
++                if (!Guid.TryParse(contactId, out var contactGuid) || !CanViewContact(contactGuid))
++                {
++                    return Forbid();
++                }
++
++                var service = ToolUtility.m_Crm2011OrganizationService;
++                var contact = service.Retrieve("contact", contactGuid, GetContactDetailColumns());
++
++                var model = new MemberInfoDetailViewModel
++                {
++                    ContactId = contactGuid.ToString(),
++                    FullName = ToolUtility.GetEntityStringAttribute(contact, "fullname"),
++                    Phone = ToolUtility.GetEntityStringAttribute(contact, "mobilephone"),
++                    Address = ToolUtility.GetEntityStringAttribute(contact, "address2_line1"),
++                    MembershipStatus = GetOptionSetText(contact, "customertypecode"),
++                    SpiritualIdentity = GetOptionSetText(contact, "new_spiriitual_identity"),
++                    RelationGoals = GetRelationGoals(contactGuid),
++                    AvatarSource = ResolveContactAvatarSource(contact)
++                };
++
++                // 下拉選項(會員身分/信仰狀態)：用「共用快取」的 OptionSet 服務一次取得全部選項，
++                // 避免每次開細節都打 CRM metadata；目前值以整數送給前端 <select> 預選。
++                var optionSvc = GetSharedOptionSetService();
++                model.MembershipStatusOptions = BuildOptionItems(optionSvc, "customertypecode");
++                model.SpiritualIdentityOptions = BuildOptionItems(optionSvc, "new_spiriitual_identity");
++
++                var membershipValue = ToolUtility.GetOptionSetAttribute(contact, "customertypecode");
++                model.MembershipStatusValue = membershipValue >= 0 ? membershipValue : (int?)null;
++                var spiritualValue = ToolUtility.GetOptionSetAttribute(contact, "new_spiriitual_identity");
++                model.SpiritualIdentityValue = spiritualValue >= 0 ? spiritualValue : (int?)null;
++
++                return PartialView("_MemberDetailPopup", model);
++            }
++            catch (Exception ex)
++            {
++                return HandleError(ex, "MemberInfo.Detail");
++            }
++        }
++
++        [HttpGet]
++        public object LoadContactPresentRecords(string contactId, DataSourceLoadOptions loadOptions)
++        {
++            try
++            {
++                EnsureCorrectUserData();
++
++                if (!Guid.TryParse(contactId, out var contactGuid) || !CanViewContact(contactGuid))
++                {
++                    return DataSourceLoader.Load(new List<ContactPresentRecordRow>(), loadOptions);
++                }
++
++                var service = ToolUtility.m_Crm2011OrganizationService;
++                var contact = service.Retrieve("contact", contactGuid, new ColumnSet("fullname"));
++                var fullName = ToolUtility.GetEntityStringAttribute(contact, "fullname");
++
++                var rows = new List<ContactPresentRecordRow>();
++
++                // ✅ 直接以「聯絡人」lookup 查該連絡人的所有個人聚會與靈修記錄(new_present_record)。
++                // 先前用的 RetrievePresentRecordByFetchXmlAndContainEpiredDate 只會回「有關懷期限」的紀錄
++                // （多為新人跟進單），一般週報出席紀錄沒有關懷期限 → 查不到 → 前台空白。
++                var presentQuery = new QueryExpression("new_present_record")
++                {
++                    ColumnSet = new ColumnSet(
++                        "new_present_recordid",
++                        "new_sunday_present_this_week",
++                        "new_group_present_this_week",
++                        "new_explanation",
++                        "new_sunday_date")
++                };
++                presentQuery.Criteria.AddCondition("new_contact_new_present_record", ConditionOperator.Equal, contactGuid);
++                presentQuery.AddOrder("new_sunday_date", OrderType.Descending);
++
++                var records = service.RetrieveMultiple(presentQuery);
++                foreach (var record in records.Entities)
++                {
++                    rows.Add(new ContactPresentRecordRow
++                    {
++                        PresentRecordId = record.Id.ToString(),
++                        FullName = fullName,
++                        SundayDate = record.GetAttributeValue<DateTime?>("new_sunday_date") is DateTime sd && sd.Year > 1 ? sd : (DateTime?)null,
++                        Sunday = ToolUtility.GetEntityIntAttribute(record, "new_sunday_present_this_week") > 0,
++                        SmallGroup = ToolUtility.GetEntityIntAttribute(record, "new_group_present_this_week") > 0,
++                        PrayItem = ToolUtility.GetEntityStringAttribute(record, "new_explanation")
++                    });
++                }
++
++                return DataSourceLoader.Load(rows, loadOptions);
++            }
++            catch (Exception ex)
++            {
++                return HandleError(ex, "MemberInfo.LoadContactPresentRecords");
++            }
++        }
++
++        [HttpGet]
++        public object LoadContactStorLessons(string contactId, DataSourceLoadOptions loadOptions)
++        {
++            try
++            {
++                EnsureCorrectUserData();
++
++                if (!Guid.TryParse(contactId, out var contactGuid) || !CanViewContact(contactGuid))
++                {
++                    return DataSourceLoader.Load(new List<MemberInfoStorLessonRow>(), loadOptions);
++                }
++
++                var service = ToolUtility.m_Crm2011OrganizationService;
++                var contact = service.Retrieve("contact", contactGuid, new ColumnSet("fullname"));
++                var fullName = ToolUtility.GetEntityStringAttribute(contact, "fullname");
++
++                var rows = new List<MemberInfoStorLessonRow>();
++                var storLessons = ToolUtility.RetrieveStorLessonsByFetchXml(fullName, contactGuid.ToString());
++
++                if (storLessons?.Entities != null)
++                {
++                    foreach (var lessonEntity in storLessons.Entities)
++                    {
++                        var lesson = lessonEntity;
++                        var discipleLessonId = ToolUtility.GetEntityLookupAttribute(ref lesson, "new_new_disciple_lessons_new_stor_les");
++
++                        var classStartDate = DateTime.MinValue;
++                        var stageName = string.Empty;
++
++                        if (discipleLessonId != Guid.Empty)
++                        {
++                            try
++                            {
++                                var discipleLesson = ToolUtility.RetrieveEntity("new_disciple_lessons", discipleLessonId);
++                                classStartDate = ToolUtility.GetEntityDateTimeAttribute(ref discipleLesson, "new_class_start_date");
++                                stageName = ToolUtility.GetEntityStringAttribute(ref discipleLesson, "new_now_stage_name");
++                            }
++                            catch
++                            {
++                                // Keep the lesson row visible even when the linked course cannot be read.
++                            }
++                        }
++
++                        rows.Add(new MemberInfoStorLessonRow
++                        {
++                            StorLessonsEntityId = lesson.Id.ToString(),
++                            DiscipleLessonsName = ToolUtility.GetEntityLookupDisplayName(ref lesson, "new_new_disciple_lessons_new_stor_les"),
++                            StageName = stageName,
++                            CurrentComplete = ToolUtility.GetEntityBoolAttribute(ref lesson, "new_current_complete"),
++                            DiscipleLessonsDateTime = classStartDate
++                        });
++                    }
++                }
++
++                return DataSourceLoader.Load(rows, loadOptions);
++            }
++            catch (Exception ex)
++            {
++                return HandleError(ex, "MemberInfo.LoadContactStorLessons");
++            }
++        }
++
++        [HttpGet]
++        [Route("/MemberInfo/GetContactImage")]
++        public IActionResult GetContactImage(string contactId, int size = 80, bool fit = false)
++        {
++            IOrganizationService service = null;
++
++            try
++            {
++                if (!Guid.TryParse(contactId, out var contactGuid) || !CanViewContact(contactGuid))
++                {
++                    return GetDefaultImage();
++                }
++
++                var returnOriginal = size <= 0;
++                var thumbSize = returnOriginal ? 0 : Math.Clamp(size, 32, 256);
++                var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
++                var cacheKey = returnOriginal
++                    ? $"member-info-contact-image-full:{contactGuid:N}"
++                    : (fit
++                        ? $"member-info-contact-image-fit:{contactGuid:N}:{thumbSize}"
++                        : $"member-info-contact-image-thumb:{contactGuid:N}:{thumbSize}");
++
++                if (memoryCache != null &&
++                    memoryCache.TryGetValue(cacheKey, out byte[] cachedBytes) &&
++                    cachedBytes != null)
++                {
++                    ApplyImageResponseCacheHeaders();
++                    return File(cachedBytes, "image/jpeg");
++                }
++
++                service = GetConnection();
++                var contact = service.Retrieve("contact", contactGuid, new ColumnSet(
++                    "entityimage",
++                    "gendercode",
++                    ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
++                if (contact.Contains("entityimage") && contact["entityimage"] != null)
++                {
++                    var originalBytes = (byte[])contact["entityimage"];
++                    var outputBytes = returnOriginal
++                        ? originalBytes
++                        : (fit ? CreateFitThumbnail(originalBytes, thumbSize) : CreateThumbnailIfNeeded(originalBytes, thumbSize));
++
++                    memoryCache?.Set(cacheKey, outputBytes, new MemoryCacheEntryOptions
++                    {
++                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
++                        SlidingExpiration = TimeSpan.FromMinutes(10),
++                        Size = Math.Max(1, outputBytes.Length / 1024)
++                    });
++
++                    ApplyImageResponseCacheHeaders();
++                    return File(outputBytes, "image/jpeg");
++                }
++
++                // 無照片 → 依性別回傳上半身剪影
++                var linePictureUrl = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
++                    contact.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
++                if (!string.IsNullOrEmpty(linePictureUrl))
++                {
++                    Response.Headers["Cache-Control"] = "private, max-age=300";
++                    return Redirect(linePictureUrl);
++                }
++
++                var gender = contact.GetAttributeValue<OptionSetValue>("gendercode")?.Value;
++                return Content(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender), "image/svg+xml");
++            }
++            catch
++            {
++                return GetDefaultImage();
++            }
++            finally
++            {
++                ReleaseConnection(service);
++            }
++        }
++
++        [HttpPost]
++        [Route("/MemberInfo/GetContactImagesBatch")]
++        public IActionResult GetContactImagesBatch([FromBody] BatchImageRequest request)
++        {
++            IOrganizationService service = null;
++
++            try
++            {
++                if (request?.ContactIds == null || request.ContactIds.Length == 0)
++                {
++                    return Json(new { success = true, images = new Dictionary<string, string>(), sources = new Dictionary<string, string>() });
++                }
++
++                var thumbSize = Math.Clamp(request.Size > 0 ? request.Size : 48, 32, 256);
++                var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
++                var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
++                var sources = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
++                var uncachedGuids = new List<Guid>();
++
++                // [計時診斷] 暫時性效能量測，僅讀取耗時與位元組大小，不影響任何邏輯/安全。確認瓶頸後即可移除。
++                var swTotal = System.Diagnostics.Stopwatch.StartNew();
++                long preMs = 0, connMs = 0, crmMs = 0, imgTicks = 0, inBytes = 0, outBytes = 0;
++                int withPhoto = 0;
++                var swPre = System.Diagnostics.Stopwatch.StartNew(); // [計時診斷] 授權檢查(CanViewContact)+快取查詢迴圈耗時
++
++                // 先一次算出「可檢視」名單，取代迴圈內逐人 CanViewContact 的 N+1 CRM 查詢；授權判斷邏輯與逐筆版完全相同。
++                var parsedGuids = new List<Guid>();
++                foreach (var id in request.ContactIds.Distinct(StringComparer.OrdinalIgnoreCase))
++                {
++                    if (Guid.TryParse(id, out var g)) parsedGuids.Add(g);
++                }
++                var allowedSet = CanViewContactsBatch(parsedGuids);
++
++                foreach (var guid in parsedGuids)
++                {
++                    if (!allowedSet.Contains(guid))
++                    {
++                        continue;
++                    }
++
++                    var cacheKey = $"member-info-contact-image-thumb:{guid:N}:{thumbSize}";
++                    if (memoryCache != null &&
++                        memoryCache.TryGetValue(cacheKey, out byte[] cachedBytes) &&
++                        cachedBytes != null)
++                    {
++                        var key = guid.ToString();
++                        result[key] = "data:image/jpeg;base64," + Convert.ToBase64String(cachedBytes);
++                        sources[key] = "primary";
++                    }
++                    else
++                    {
++                        uncachedGuids.Add(guid);
++                    }
++                }
++                swPre.Stop(); preMs = swPre.ElapsedMilliseconds; // [計時診斷]
++                int cacheHitCount = result.Count; // [計時診斷] 迴圈結束時 result 內全是快取命中
++
++                if (uncachedGuids.Count > 0)
++                {
++                    var swConn = System.Diagnostics.Stopwatch.StartNew();
++                    service = GetConnection();
++                    swConn.Stop(); connMs = swConn.ElapsedMilliseconds; // [計時診斷] 連線池取得連線耗時
++                    var query = new QueryExpression("contact")
++                    {
++                        ColumnSet = new ColumnSet(
++                            "contactid",
++                            "entityimage",
++                            "gendercode",
++                            ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute)
++                    };
++                    query.Criteria.AddCondition("contactid", ConditionOperator.In, uncachedGuids.Select(g => (object)g).ToArray());
++
++                    var swCrm = System.Diagnostics.Stopwatch.StartNew();
++                    var contacts = service.RetrieveMultiple(query);
++                    swCrm.Stop(); crmMs = swCrm.ElapsedMilliseconds; // [計時診斷] 單一 RetrieveMultiple(含 entityimage 傳輸) 耗時
++                    foreach (var contact in contacts.Entities)
++                    {
++                        if (contact.Contains("entityimage") && contact["entityimage"] != null)
++                        {
++                            var originalBytes = (byte[])contact["entityimage"];
++                            var _imgStart = System.Diagnostics.Stopwatch.GetTimestamp(); // [計時診斷] 累計解碼/縮圖耗時
++                            var outputBytes = CreateThumbnailIfNeeded(originalBytes, thumbSize);
++                            imgTicks += System.Diagnostics.Stopwatch.GetTimestamp() - _imgStart;
++                            inBytes += originalBytes.Length; outBytes += outputBytes.Length; withPhoto++; // [計時診斷] 原圖/縮圖位元組
++                            var cacheKey = $"member-info-contact-image-thumb:{contact.Id:N}:{thumbSize}";
++
++                            memoryCache?.Set(cacheKey, outputBytes, new MemoryCacheEntryOptions
++                            {
++                                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
++                                SlidingExpiration = TimeSpan.FromMinutes(10),
++                                Size = Math.Max(1, outputBytes.Length / 1024)
++                            });
++
++                            var key = contact.Id.ToString();
++                            result[key] = "data:image/jpeg;base64," + Convert.ToBase64String(outputBytes);
++                            sources[key] = "primary";
++                        }
++                        else
++                        {
++                            // 無照片：批次直接帶回性別剪影(SVG data URI)，前端就不必再逐筆打 GetContactImage。
++                            var linePictureUrl = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
++                                contact.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
++                            if (!string.IsNullOrEmpty(linePictureUrl))
++                            {
++                                var key = contact.Id.ToString();
++                                result[key] = linePictureUrl;
++                                sources[key] = "line";
++                            }
++                            else
++                            {
++                                var gender = contact.GetAttributeValue<OptionSetValue>("gendercode")?.Value;
++                                var key = contact.Id.ToString();
++                                result[key] = ToSvgDataUri(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.ForGender(gender));
++                                sources[key] = "fallback";
++                            }
++                        }
++                    }
++                }
++
++                // [計時診斷] 一行彙總：total/pre/conn/crm/img 各自耗時 + 原圖(inKB)/縮圖(outKB)大小，用來判定瓶頸在 CRM 傳輸還是本地解碼
++                var imgMs = imgTicks * 1000 / System.Diagnostics.Stopwatch.Frequency;
++                // [計時診斷] 改用 Debug.WriteLine（[Conditional("DEBUG")]）：Release 建置時整行(含字串)會被編譯器移除，
++                // 不會寫入 Logs\Trace.log；僅在 Debug 模式診斷時輸出。Stopwatch 量測仍會跑但不產生任何輸出。
++                System.Diagnostics.Debug.WriteLine(
++                    $"[BatchImg-Timing] ep=MemberInfo total={swTotal.ElapsedMilliseconds}ms pre={preMs}ms conn={connMs}ms crm={crmMs}ms img={imgMs}ms | req={request.ContactIds.Length} cacheHit={cacheHitCount} crmQ={uncachedGuids.Count} photo={withPhoto} inKB={inBytes / 1024} outKB={outBytes / 1024}");
++
++                Response.Headers["Cache-Control"] = "private, no-store";
++                return Json(new { success = true, images = result, sources });
++            }
++            catch
++            {
++                return Json(new { success = false, images = new Dictionary<string, string>(), sources = new Dictionary<string, string>() });
++            }
++            finally
++            {
++                ReleaseConnection(service);
++            }
++        }
++
++        /// <summary>
++        /// 取得「需要重新同步」的候選聯絡人 ID 清單（在籍、且有 new_lineid 者；不論目前有無 new_line_picture_url）。
++        /// 已清空/從未有照片者也要納入，以便偵測對方「解除封鎖/重新加好友/新增照片」後補回。
++        /// 前端據此分批呼叫 ResyncLineProfiles，以便即時顯示進度。僅限「全教會」管理者。
++        /// GET: /MemberInfo/ResyncLineCandidateIds
++        /// </summary>
++        [HttpGet]
++        [Route("/MemberInfo/ResyncLineCandidateIds")]
++        public IActionResult ResyncLineCandidateIds()
++        {
++            IOrganizationService service = null;
++            try
++            {
++                if (GetAccess() != MemberInfoAccess.Church)
++                {
++                    return Forbid();
++                }
++
++                service = GetConnection();
++                var query = new QueryExpression("contact")
++                {
++                    ColumnSet = new ColumnSet("contactid"),
++                    TopCount = 5000
++                };
++                query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
++                query.Criteria.AddCondition("new_lineid", ConditionOperator.NotNull);
++                // 不限制 new_line_picture_url 必須有值：已清空/從未有照片者也要重新檢查，
++                // 因為對方可能已解除封鎖/重新加好友/新增照片，此時要重新向 LINE 取得並補回。
++                query.Orders.Add(new OrderExpression("modifiedon", OrderType.Ascending));
++
++                var contacts = service.RetrieveMultiple(query);
++                var ids = contacts.Entities.Select(c => c.Id.ToString()).ToList();
++                return Json(new { success = true, ids });
++            }
++            catch (Exception ex)
++            {
++                return HandleError(ex, "MemberInfo.ResyncLineCandidateIds");
++            }
++            finally
++            {
++                ReleaseConnection(service);
++            }
++        }
++
++        /// <summary>
++        /// 對「前端傳來的一批聯絡人 ID」重新同步 LINE 資料（供分批/即時進度使用）。
++        /// 有照片網址者先探測該網址能否顯示圖片；「確定失效」或「根本沒有網址」者，皆依 new_lineid 取最新 Profile，
++        /// 更新 new_line_picture_url / new_line_status_message / new_line_displayname（set-or-clear）。
++        /// 取不到 Profile（多半未加官方帳號好友→403/404）：有舊網址者清空失效網址；本來就沒網址者維持無照片(下次再試)。
++        /// 僅限「全教會」管理者。POST: /MemberInfo/ResyncLineProfiles（body: { contactIds: [...] }）
++        /// </summary>
++        [HttpPost]
++        [Route("/MemberInfo/ResyncLineProfiles")]
++        public async Task<IActionResult> ResyncLineProfiles([FromBody] BatchImageRequest request)
++        {
++            IOrganizationService service = null;
++
++            try
++            {
++                if (GetAccess() != MemberInfoAccess.Church)
++                {
++                    return Forbid();
++                }
++
++                var token = GetResyncLineChannelAccessToken();
++                if (string.IsNullOrEmpty(token))
++                {
++                    return Json(new { success = false, message = "未設定 LINE Channel Access Token" });
++                }
++
++                var guids = new List<Guid>();
++                if (request?.ContactIds != null)
++                {
++                    foreach (var raw in request.ContactIds)
++                    {
++                        if (Guid.TryParse(raw, out var g)) { guids.Add(g); }
++                    }
++                }
++                if (guids.Count == 0)
++                {
++                    return Json(new { success = true, scanned = 0, okValid = 0, updated = 0, cleared = 0, noPhoto = 0, inconclusive = 0, reasons = new List<string>() });
++                }
++
++                service = GetConnection();
++
++                var query = new QueryExpression("contact")
++                {
++                    ColumnSet = new ColumnSet(
++                        "contactid",
++                        "new_lineid",
++                        ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute)
++                };
++                query.Criteria.AddCondition("contactid", ConditionOperator.In, guids.Select(g => (object)g).ToArray());
++
++                var contacts = service.RetrieveMultiple(query);
++                var candidates = contacts.Entities
++                    .Where(c => !string.IsNullOrWhiteSpace(c.GetAttributeValue<string>("new_lineid")))
++                    .ToList();
++
++                // 第一步：對「有存照片網址」者，嚴謹判斷該網址是否「真的能顯示圖片」(平行探測、限流)。
++                // 0 = 可顯示(2xx 且 image/*)；1 = 確定無法顯示(有回應但非圖片/非 2xx)；2 = 無法判定(逾時/連線錯誤)；3 = 根本沒有網址(待向 LINE 查詢)。
++                var probe = new System.Collections.Concurrent.ConcurrentDictionary<Guid, int>();
++                using (var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(4) })
++                using (var gate = new System.Threading.SemaphoreSlim(20))
++                {
++                    http.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0");
++                    await Task.WhenAll(candidates.Select(async c =>
++                    {
++                        var url = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
++                            c.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
++                        if (string.IsNullOrEmpty(url)) { probe[c.Id] = 3; return; } // 沒網址 → 直接走 getProfile（不需探測）
++                        await gate.WaitAsync();
++                        try { probe[c.Id] = await ProbeImageDisplayableAsync(http, url); }
++                        finally { gate.Release(); }
++                    }));
++                }
++
++                // 第二步：
++                //  - 可顯示(0) → 不動。
++                //  - 無法判定(2) → 不動，避免誤清。
++                //  - 確定失效(1) 或 沒有網址(3) → 依 new_lineid 取最新 Profile：取到照片就更新(補回)；確認無照片則「有舊網址者清空、本來就沒網址者維持無照片」。
++                //    取不到 Profile(未加好友/封鎖→403/404)：有舊網址者清空失效網址；本來就沒網址者維持(下次再試 → 對方解除封鎖/重新加好友後即可補回)。
++                int okValid = 0, updated = 0, cleared = 0, noPhoto = 0, inconclusive = 0;
++                var reasons = new List<string>();
++                using (var client = new Line.Messaging.LineMessagingClient(token))
++                {
++                    foreach (var contact in candidates)
++                    {
++                        var state = probe.TryGetValue(contact.Id, out var s) ? s : 2;
++                        if (state == 0) { okValid++; continue; }       // 照片正常顯示 → 不動
++                        if (state == 2) { inconclusive++; continue; }  // 暫時無法判定 → 不動，避免誤清
++
++                        var hadUrl = (state == 1); // 1=原有(失效)網址；3=本來就沒網址
++                        var lineId = contact.GetAttributeValue<string>("new_lineid");
++                        try
++                        {
++                            var profile = await client.GetUserProfileAsync(lineId);
++                            if (profile != null && !string.IsNullOrWhiteSpace(profile.UserId))
++                            {
++                                var newPic = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(profile.PictureUrl);
++                                var upd = new Entity("contact") { Id = contact.Id };
++                                // set-or-clear：取回新照片就更新(補回)；LINE 已無照片則寫 null 清空。
++                                upd[ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute] =
++                                    string.IsNullOrEmpty(newPic) ? null : newPic;
++                                upd["new_line_status_message"] =
++                                    string.IsNullOrWhiteSpace(profile.StatusMessage) ? null : profile.StatusMessage;
++                                if (!string.IsNullOrWhiteSpace(profile.DisplayName))
++                                {
++                                    upd["new_line_displayname"] = profile.DisplayName;
++                                }
++                                service.Update(upd);
++                                if (!string.IsNullOrEmpty(newPic)) { updated++; }   // 取到/補回照片
++                                else if (hadUrl) { cleared++; }                     // 原有網址、確認無照片 → 清空
++                                else { noPhoto++; }                                 // 本來無、現仍無
++                                continue;
++                            }
++                            if (reasons.Count < 6) { reasons.Add("profile 回應無 userId"); }
++                        }
++                        catch (Line.Messaging.LineResponseException lre)
++                        {
++                            if (reasons.Count < 6) { reasons.Add($"getProfile {(int)lre.StatusCode}: {lre.Message}"); }
++                        }
++                        catch (Exception ex)
++                        {
++                            if (reasons.Count < 6) { reasons.Add("getProfile " + ex.GetType().Name + ": " + ex.Message); }
++                        }
++
++                        // 取不到 Profile：
++                        if (hadUrl)
++                        {
++                            // 原有網址已確定失效又拿不到新資料 → 清空，改顯示性別剪影、無標示、不計入「顯示照片」。
++                            var clear = new Entity("contact") { Id = contact.Id };
++                            clear[ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute] = null;
++                            service.Update(clear);
++                            cleared++;
++                        }
++                        else
++                        {
++                            // 本來就沒網址、現在也拿不到(多為未加好友/封鎖) → 維持無照片、不寫入。下次再試。
++                            noPhoto++;
++                        }
++                    }
++                }
++
++                return Json(new
++                {
++                    success = true,
++                    scanned = candidates.Count,
++                    okValid,
++                    updated,
++                    cleared,
++                    noPhoto,
++                    inconclusive,
++                    reasons = reasons.Distinct().Take(6).ToList()
++                });
++            }
++            catch (Exception ex)
++            {
++                return HandleError(ex, "MemberInfo.ResyncLineProfiles");
++            }
++            finally
++            {
++                ReleaseConnection(service);
++            }
++        }
++
++        /// <summary>
++        /// 讀取目前組織對應的 LINE Channel Access Token（LineMessaging:{Organization}:ChannelAccessToken，
++        /// 找不到則退回 DefaultOrganization）。供 ResyncLineProfiles 呼叫 LINE Profile API 使用。
++        /// </summary>
++        private string GetResyncLineChannelAccessToken()
++        {
++            try
++            {
++                var config = HttpContext?.RequestServices?
++                    .GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration))
++                    as Microsoft.Extensions.Configuration.IConfiguration;
++                if (config == null) { return string.Empty; }
++
++                var organization = config["CrmConnection:Organization"];
++                if (!string.IsNullOrEmpty(organization))
++                {
++                    var configKey = char.ToUpper(organization[0]) + organization.Substring(1).ToLower();
++                    var token = config[$"LineMessaging:{configKey}:ChannelAccessToken"];
++                    if (!string.IsNullOrEmpty(token)) { return token; }
++                }
++
++                var defaultOrg = config["LineMessaging:DefaultOrganization"] ?? "Jesus";
++                return config[$"LineMessaging:{defaultOrg}:ChannelAccessToken"] ?? string.Empty;
++            }
++            catch
++            {
++                return string.Empty;
++            }
++        }
++
++        /// <summary>
++        /// 嚴謹判斷一個圖片網址是否「真的能顯示圖片」（只讀回應標頭、不下載內容）。
++        /// 回傳 0 = 可顯示（2xx 且 Content-Type 為 image/*）；1 = 確定無法顯示（有回應但非圖片或非 2xx）；2 = 無法判定（逾時／連線錯誤）。
++        /// </summary>
++        private static async Task<int> ProbeImageDisplayableAsync(System.Net.Http.HttpClient http, string url)
++        {
++            try
++            {
++                using (var resp = await http.GetAsync(url, System.Net.Http.HttpCompletionOption.ResponseHeadersRead))
++                {
++                    var contentType = resp.Content?.Headers?.ContentType?.MediaType ?? string.Empty;
++                    var displayable = resp.IsSuccessStatusCode
++                        && contentType.StartsWith("image", StringComparison.OrdinalIgnoreCase);
++                    return displayable ? 0 : 1;
++                }
++            }
++            catch
++            {
++                return 2;
++            }
++        }
++
++        /// <summary>
++        /// 上傳並更新「指定會友」的大頭照（會友細節彈窗用）。
++        /// 與 /Personal/UploadContactImage(只改登入者自己)不同：這裡可改「其他會友」，
++        /// 因此先用 CanViewContact 把關——能在清單看到/開啟該會友細節的人才可變更其照片。
++        /// POST: /MemberInfo/UploadContactImage
++        /// </summary>
++        [HttpPost]
++        [Route("/MemberInfo/UploadContactImage")]
++        public IActionResult UploadContactImage(string contactId, IFormFile imageFile)
++        {
++            IOrganizationService service = null;
++
++            try
++            {
++                EnsureCorrectUserData();
++
++                if (!Guid.TryParse(contactId, out var contactGuid) || !CanViewContact(contactGuid))
++                {
++                    return Json(new { success = false, message = "無權限變更此會友的大頭照" });
++                }
++
++                if (imageFile == null || imageFile.Length == 0)
++                {
++                    return Json(new { success = false, message = "請選擇要上傳的圖片檔案" });
++                }
++
++                const long maxFileSize = 5 * 1024 * 1024; // 5MB
++                if (imageFile.Length > maxFileSize)
++                {
++                    return Json(new { success = false, message = "圖片檔案過大，請選擇小於 5MB 的圖片" });
++                }
++
++                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
++                var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif" };
++                var fileExtension = Path.GetExtension(imageFile.FileName)?.ToLowerInvariant() ?? string.Empty;
++                var contentType = imageFile.ContentType?.ToLowerInvariant() ?? string.Empty;
++
++                if (!allowedExtensions.Contains(fileExtension) || !allowedContentTypes.Contains(contentType))
++                {
++                    return Json(new { success = false, message = "只支援 JPG、PNG、GIF 格式的圖片" });
++                }
++
++                var imageBytes = NormalizeUploadedImage(imageFile);
++
++                service = GetConnection();
++                var contactToUpdate = new Entity("contact", contactGuid);
++                contactToUpdate["entityimage"] = imageBytes;
++                service.Update(contactToUpdate);
++
++                // 清掉本控制器對此會友的影像快取，讓表格縮圖與彈窗大圖都能取得新照片。
++                InvalidateMemberImageCache(contactGuid);
++
++                return Json(new
++                {
++                    success = true,
++                    message = "大頭照上傳成功！",
++                    imageVersion = DateTime.Now.Ticks
++                });
++            }
++            catch (System.ServiceModel.FaultException faultEx)
++            {
++                return Json(new { success = false, message = "CRM 更新失敗：" + faultEx.Message });
++            }
++            catch (Exception ex)
++            {
++                return Json(new { success = false, message = "上傳失敗：" + ex.Message });
++            }
++            finally
++            {
++                ReleaseConnection(service);
++            }
++        }
++
++        /// <summary>
++        /// 更新「指定會友」的手機/地址/會員身分/信仰狀態(會友細節彈窗左上「上傳」鈕)。
++        /// 比照大頭照上傳，以 CanViewContact 把關——能在清單看到/開啟該會友者才可變更其資料。
++        /// 「空白略過不動」：手機/地址留空則不覆寫；下拉選「（未設定）」(空值)則該 OptionSet 不動。
++        /// POST: /MemberInfo/UpdateContactInfo
++        /// </summary>
++        [HttpPost]
++        [Route("/MemberInfo/UpdateContactInfo")]
++        public IActionResult UpdateContactInfo(string contactId, string phone, string address, int? membershipStatusValue, int? spiritualIdentityValue)
++        {
++            IOrganizationService service = null;
++
++            try
++            {
++                EnsureCorrectUserData();
++
++                if (!Guid.TryParse(contactId, out var contactGuid) || !CanViewContact(contactGuid))
++                {
++                    return Json(new { success = false, message = "無權限變更此會友資料" });
++                }
++
++                var contactToUpdate = new Entity("contact", contactGuid);
++                var hasChanges = false;
++
++                if (!string.IsNullOrWhiteSpace(phone))
++                {
++                    contactToUpdate["mobilephone"] = phone.Trim();
++                    hasChanges = true;
++                }
++
++                if (!string.IsNullOrWhiteSpace(address))
++                {
++                    contactToUpdate["address2_line1"] = address.Trim();
++                    hasChanges = true;
++                }
++
++                if (membershipStatusValue.HasValue && membershipStatusValue.Value >= 0)
++                {
++                    contactToUpdate["customertypecode"] = new OptionSetValue(membershipStatusValue.Value);
++                    hasChanges = true;
++                }
++
++                if (spiritualIdentityValue.HasValue && spiritualIdentityValue.Value >= 0)
++                {
++                    contactToUpdate["new_spiriitual_identity"] = new OptionSetValue(spiritualIdentityValue.Value);
++                    hasChanges = true;
++                }
++
++                if (!hasChanges)
++                {
++                    return Json(new { success = true, message = "無變更" });
++                }
++
++                service = GetConnection();
++                service.Update(contactToUpdate);
++
++                // 手機/會員身分也顯示在全教會清單列；清掉未搜尋的清單快取，讓預設清單即時反映變更。
++                InvalidateChurchRowsCache();
++
++                return Json(new { success = true, message = "已更新" });
++            }
++            catch (System.ServiceModel.FaultException faultEx)
++            {
++                return Json(new { success = false, message = "CRM 更新失敗：" + faultEx.Message });
++            }
++            catch (Exception ex)
++            {
++                return Json(new { success = false, message = "更新失敗：" + ex.Message });
++            }
++            finally
++            {
++                ReleaseConnection(service);
++            }
++        }
++
++        /// <summary>
++        /// 讀取上傳圖片並依 EXIF 自動轉正(解決手機直拍旋轉)，再「置中補邊成正方形」(補白、不裁切)，轉存 JPEG。
++        /// 補正方形的原因：CRM 的 entityimage 以正方形顯示大頭照，直接存直式照片會被裁掉頭頂與下方；
++        /// 先補成正方形後，存進 CRM 不會切到上下，完整人像在 CRM、清單、會友細節都看得到。處理失敗時退回原始位元組。
++        /// </summary>
++        private static byte[] NormalizeUploadedImage(IFormFile imageFile)
++        {
++            byte[] raw;
++            using (var read = imageFile.OpenReadStream())
++            using (var buffer = new MemoryStream())
++            {
++                read.CopyTo(buffer);
++                raw = buffer.ToArray();
++            }
++
++            try
++            {
++                using var input = new MemoryStream(raw);
++                using var image = Image.Load(input);
++                image.Mutate(x => x.AutoOrient());
++
++                // 置中補邊成正方形(補白、完全不裁切)，避免 CRM 正方形大頭照裁掉頭頂/下方。
++                if (image.Width != image.Height)
++                {
++                    var side = Math.Max(image.Width, image.Height);
++                    image.Mutate(x => x.Resize(new ResizeOptions
++                    {
++                        Size = new Size(side, side),
++                        Mode = ResizeMode.BoxPad,
++                        PadColor = Color.White
++                    }));
++                }
++
++                using var output = new MemoryStream();
++                image.Save(output, new JpegEncoder { Quality = 90 });
++                return output.ToArray();
++            }
++            catch
++            {
++                // 影像處理失敗 → 至少存原始檔，不讓上傳整個失敗。
++                return raw;
++            }
++        }
++
++        /// <summary>會友照片更新後，清掉本控制器各尺寸的影像快取(全尺寸＋常用縮圖)。</summary>
++        private void InvalidateMemberImageCache(Guid contactGuid)
++        {
++            var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
++            if (memoryCache == null)
++            {
++                return;
++            }
++
++            // 同一張會友照片在兩處各有快取：本控制器(member-info-*)與個人資料頁(contact-image-*)。
++            // 兩種前綴都清，避免改了照片後某一頁仍顯示 30 分鐘的舊圖。
++            foreach (var prefix in new[] { "member-info-contact-image", "contact-image" })
++            {
++                memoryCache.Remove($"{prefix}-full:{contactGuid:N}");
++                foreach (var size in new[] { 48, 80, 256 })
++                {
++                    memoryCache.Remove($"{prefix}-thumb:{contactGuid:N}:{size}");
++                    memoryCache.Remove($"{prefix}-fit:{contactGuid:N}:{size}");
++                }
++            }
++        }
++
++        /// <summary>
++        /// 全教會清單列(含手機/會員身分)以搜尋字分鍵快取。手機/會員身分被改後，
++        /// 至少清掉「未搜尋」的兩個常用變體，讓預設清單即時反映(有搜尋字者最多 3 分鐘後自然過期)。
++        /// IMemoryCache 無法依前綴批次移除，故僅清最常見的未搜尋鍵。
++        /// </summary>
++        private void InvalidateChurchRowsCache()
++        {
++            var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
++            if (memoryCache == null)
++            {
++                return;
++            }
++
++            memoryCache.Remove("member-info-church-rows:all:");
++            memoryCache.Remove("member-info-church-rows:photo:");
++        }
++
++        /// <summary>以共用快取的 OptionSet 服務取得某 contact 欄位的全部選項(文字+整數值)，供下拉編輯使用。</summary>
++        private static List<OptionItem> BuildOptionItems(OptionSetMetadataService optionSvc, string attribute)
++        {
++            try
++            {
++                var mapping = optionSvc.GetOptionSetMapping("contact", attribute); // 文字 → 值
++                return mapping
++                    .Select(kv => new OptionItem { Value = kv.Value, Text = kv.Key })
++                    .OrderBy(o => o.Value)
++                    .ToList();
++            }
++            catch
++            {
++                return new List<OptionItem>();
++            }
++        }
++
++        private string GetAccess()
++        {
++            var cached = HttpContext?.Session?.GetString("_MemberInfoAccess");
++            if (!string.IsNullOrEmpty(cached))
++            {
++                ViewBag.MemberInfoAccess = cached;
++                return cached;
++            }
++
++            var personalModel = InMemoryContext?.PersonalInfomationModel;
++            var loginContact = personalModel?.m_LoginContact;
++            if (loginContact == null)
++            {
++                return null;
++            }
++
++            var jobTitle = ToolUtility.GetEntityStringAttribute(ref loginContact, "new_church_jobtitle") ?? string.Empty;
++            var loginType = InMemoryContext?.ListManager?.LoginType ?? string.Empty;
++            var access = MemberInfoAccessResolver.Resolve(jobTitle, loginType);
++
++            if (!string.IsNullOrEmpty(access))
++            {
++                HttpContext?.Session?.SetString("_MemberInfoAccess", access);
++            }
++
++            ViewBag.MemberInfoAccess = access;
++            return access;
++        }
++
++        private bool CanViewContact(Guid contactId)
++        {
++            if (contactId == Guid.Empty)
++            {
++                return false;
++            }
++
++            var access = GetAccess();
++            if (access == MemberInfoAccess.Church)
++            {
++                return IsCurrentContact(contactId);
++            }
++
++            if (access == MemberInfoAccess.ShepherdList)
++            {
++                var allowed = GetShepherdContactIds();
++                return allowed.Contains(contactId.ToString()) && IsCurrentContact(contactId);
++            }
++
++            return false;
++        }
++
++        /// <summary>
++        /// 批次版授權檢查：與逐筆 <see cref="CanViewContact"/> 的允許/拒絕判斷「完全等價」，
++        /// 但把「逐人各打一支 CRM Retrieve(statecode/customertypecode)」改成「一支 RetrieveMultiple 全部撈回」，
++        /// 消除 N+1 查詢。回傳「可檢視」的 contactId 集合。
++        /// 安全性：沿用同樣的 GetAccess()/GetShepherdContactIds()/IsCurrentContactEntity()，名單與逐筆版相同；
++        /// 不快取授權結果、不放任何使用者專屬資料進共用快取、不碰 session。
++        /// </summary>
++        private HashSet<Guid> CanViewContactsBatch(IReadOnlyCollection<Guid> contactIds)
++        {
++            var allowed = new HashSet<Guid>();
++            if (contactIds == null || contactIds.Count == 0)
++            {
++                return allowed;
++            }
++
++            var access = GetAccess();
++            if (access != MemberInfoAccess.Church && access != MemberInfoAccess.ShepherdList)
++            {
++                return allowed; // 無權限：與逐筆版一致，全部拒絕
++            }
++
++            // 牧養名單：把「我可見的 contactId」集合算一次(in-memory)，不在迴圈內逐人重算
++            HashSet<string> shepherdAllowed = null;
++            if (access == MemberInfoAccess.ShepherdList)
++            {
++                shepherdAllowed = GetShepherdContactIds();
++                if (shepherdAllowed.Count == 0)
++                {
++                    return allowed;
++                }
++            }
++
++            var validGuids = contactIds.Where(g => g != Guid.Empty).Distinct().ToList();
++            if (validGuids.Count == 0)
++            {
++                return allowed;
++            }
++
++            // 一次撈回在籍判斷欄位，取代逐人 IsCurrentContact 的 N 支 Retrieve
++            var contactsById = new Dictionary<Guid, Entity>();
++            try
++            {
++                var query = new QueryExpression("contact")
++                {
++                    ColumnSet = new ColumnSet("contactid", "statecode", "customertypecode")
++                };
++                query.Criteria.AddCondition("contactid", ConditionOperator.In, validGuids.Select(g => (object)g).ToArray());
++
++                var fetched = ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query);
++                foreach (var entity in fetched.Entities)
++                {
++                    contactsById[entity.Id] = entity;
++                }
++            }
++            catch
++            {
++                return allowed; // 查詢失敗：保守地全部拒絕(等同逐筆版 Retrieve 失敗 → false)
++            }
++
++            foreach (var guid in validGuids)
++            {
++                // 查不到該 contact → 拒絕(等同逐筆版 Retrieve 取不到 → false)
++                if (!contactsById.TryGetValue(guid, out var entity))
++                {
++                    continue;
++                }
++
++                // 牧養名單需同時落在「我的牧養名單」內(與逐筆版的 allowed.Contains 相同)
++                if (access == MemberInfoAccess.ShepherdList && !shepherdAllowed.Contains(guid.ToString()))
++                {
++                    continue;
++                }
++
++                // 在籍且非結案 —— 與逐筆版 IsCurrentContactEntity 完全相同的判斷
++                if (IsCurrentContactEntity(entity))
++                {
++                    allowed.Add(guid);
++                }
++            }
++
++            return allowed;
++        }
++
++        private void EnsureShepherdListsLoaded()
++        {
++            var listManager = InMemoryContext?.ListManager;
++            if (listManager == null)
++            {
++                return;
++            }
++
++            var loaded = listManager.m_MultiGroupList?.m_WeeklyReportRecordListData;
++            if ((loaded == null || loaded.Count == 0) && !string.IsNullOrEmpty(listManager.m_Password))
++            {
++                listManager.SetupListManager(
++                    listManager.m_Account,
++                    listManager.m_Password,
++                    listManager.m_SelectDate != default ? listManager.m_SelectDate : DateTime.Now);
++            }
++        }
++
++        private HashSet<string> GetShepherdContactIds()
++        {
++            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
++            EnsureShepherdListsLoaded();
++
++            var groupRecords = InMemoryContext?.ListManager?.m_MultiGroupList?.m_WeeklyReportRecordListData;
++            if (groupRecords == null)
++            {
++                return result;
++            }
++
++            foreach (var group in groupRecords)
++            {
++                if (!Guid.TryParse(group.ListEntityId, out var listGuid))
++                {
++                    continue;
++                }
++
++                EntityCollection members;
++                try
++                {
++                    members = ToolUtility.RetrieveMemberListCollectionByListId(listGuid);
++                }
++                catch
++                {
++                    continue;
++                }
++
++                foreach (var member in members.Entities)
++                {
++                    var contactId = GetListMemberContactId(member);
++                    if (contactId != Guid.Empty)
++                    {
++                        result.Add(contactId.ToString());
++                    }
++                }
++            }
++
++            return result;
++        }
++
++        private List<MemberInfoListRowViewModel> LoadShepherdMemberRows(bool photoOnly)
++        {
++            var rowsByContact = new Dictionary<string, MemberInfoListRowViewModel>(StringComparer.OrdinalIgnoreCase);
++            var groupNamesByContact = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
++            EnsureShepherdListsLoaded();
++
++            var resolveMembershipStatus = CreateMembershipStatusResolver();
++            var service = ToolUtility.m_Crm2011OrganizationService;
++            var groupRecords = InMemoryContext?.ListManager?.m_MultiGroupList?.m_WeeklyReportRecordListData;
++            if (groupRecords == null)
++            {
++                return new List<MemberInfoListRowViewModel>();
++            }
++
++            foreach (var group in groupRecords)
++            {
++                if (!Guid.TryParse(group.ListEntityId, out var listGuid))
++                {
++                    continue;
++                }
++
++                EntityCollection members;
++                try
++                {
++                    members = ToolUtility.RetrieveMemberListCollectionByListId(listGuid);
++                }
++                catch
++                {
++                    continue;
++                }
++
++                foreach (var member in members.Entities)
++                {
++                    var contactId = GetListMemberContactId(member);
++                    if (contactId == Guid.Empty)
++                    {
++                        continue;
++                    }
++
++                    Entity contact;
++                    try
++                    {
++                        contact = service.Retrieve("contact", contactId, GetContactListColumns());
++                    }
++                    catch
++                    {
++                        continue;
++                    }
++
++                    if (!IsCurrentContactEntity(contact))
++                    {
++                        continue;
++                    }
++
++                    var key = contactId.ToString();
++                    if (!rowsByContact.TryGetValue(key, out var row))
++                    {
++                        row = new MemberInfoListRowViewModel
++                        {
++                            ContactId = key,
++                            FullName = ToolUtility.GetEntityStringAttribute(contact, "fullname"),
++                            Phone = ToolUtility.GetEntityStringAttribute(contact, "mobilephone"),
++                            MembershipStatus = resolveMembershipStatus(contact),
++                            SmallGroupName = group.Name ?? string.Empty
++                        };
++                        rowsByContact[key] = row;
++                        groupNamesByContact[key] = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
++                    }
++
++                    if (!string.IsNullOrWhiteSpace(group.Name))
++                    {
++                        groupNamesByContact[key].Add(group.Name);
++                    }
++                }
++            }
++
++            foreach (var pair in rowsByContact)
++            {
++                if (groupNamesByContact.TryGetValue(pair.Key, out var names) && names.Count > 0)
++                {
++                    pair.Value.SmallGroupName = string.Join("、", names.OrderBy(n => n));
++                }
++            }
++
++            var rows = rowsByContact.Values
++                .OrderBy(r => r.SmallGroupName)
++                .ThenBy(r => r.FullName)
++                .ToList();
++
++            if (photoOnly)
++            {
++                var ids = new List<Guid>();
++                foreach (var row in rows)
++                {
++                    if (Guid.TryParse(row.ContactId, out var guid))
++                    {
++                        ids.Add(guid);
++                    }
++                }
++
++                var withPhoto = GetContactIdsWithPhoto(ids);
++                rows = rows
++                    .Where(r => Guid.TryParse(r.ContactId, out var guid) && withPhoto.Contains(guid))
++                    .ToList();
++            }
++
++            return rows;
++        }
++
++        private object LoadChurchMemberRows(DataSourceLoadOptions loadOptions, bool photoOnly)
++        {
++            // 依「計算欄位」(例如小組名稱)排序時，CRM 查詢層無法排序 → 改載入整份(過濾後)清單，
++            // 於記憶體排序+分頁；其餘(姓名/手機/預設)仍走 CRM 伺服器端分頁(較快)。
++            if (ChurchSortRequiresInMemory(loadOptions))
++            {
++                return LoadChurchMemberRowsInMemory(loadOptions, photoOnly);
++            }
++
++            var service = ToolUtility.m_Crm2011OrganizationService;
++            var take = loadOptions?.Take > 0 ? Math.Min(loadOptions.Take, MaxPageSize) : DefaultPageSize;
++            var skip = loadOptions?.Skip > 0 ? loadOptions.Skip : 0;
++            var pageNumber = skip / take + 1;
++            var searchValue = GetSearchTerm(loadOptions);
++
++            var query = BuildCurrentContactQuery(new ColumnSet("contactid", "fullname", "mobilephone", "customertypecode", "statecode"), searchValue, photoOnly);
++            query.PageInfo = new PagingInfo
++            {
++                Count = take,
++                PageNumber = pageNumber,
++                ReturnTotalRecordCount = true
++            };
++            ApplyChurchMemberSort(query, loadOptions);
++
++            var contacts = service.RetrieveMultiple(query);
++            var ids = contacts.Entities.Select(e => e.Id).ToList();
++            var groupMap = GetSmallGroupNamesForContacts(ids);
++
++            var resolveMembershipStatus = CreateMembershipStatusResolver();
++            var rows = contacts.Entities.Select(contact =>
++            {
++                groupMap.TryGetValue(contact.Id, out var groupNames);
++                return new MemberInfoListRowViewModel
++                {
++                    ContactId = contact.Id.ToString(),
++                    FullName = ToolUtility.GetEntityStringAttribute(contact, "fullname"),
++                    Phone = ToolUtility.GetEntityStringAttribute(contact, "mobilephone"),
++                    MembershipStatus = resolveMembershipStatus(contact),
++                    SmallGroupName = groupNames ?? string.Empty
++                };
++            }).ToList();
++
++            var totalCount = contacts.TotalRecordCount >= 0
++                ? contacts.TotalRecordCount
++                : skip + rows.Count + (contacts.MoreRecords ? 1 : 0);
++
++            return new
++            {
++                data = rows,
++                totalCount
++            };
++        }
++
++        /// <summary>
++        /// 全教會清單採「伺服器端分頁」(CRM PageInfo)，排序必須在 CRM 查詢層套用（分頁之前），
++        /// 否則只會排到「當前頁」而看起來像沒排序。這裡把 DataGrid 要求的排序(loadOptions.Sort)
++        /// 轉成 CRM AddOrder。未指定、或欄位無法於 CRM 直接排序(如計算得來的小組名稱)時，
++        /// 退回預設 fullname 遞增。
++        /// </summary>
++        private static void ApplyChurchMemberSort(QueryExpression query, DataSourceLoadOptions loadOptions)
++        {
++            var applied = false;
++            var sort = loadOptions?.Sort;
++
++            if (sort != null)
++            {
++                foreach (var sortInfo in sort)
++                {
++                    var attribute = MapChurchSortAttribute(sortInfo?.Selector);
++                    if (attribute == null)
++                    {
++                        continue;
++                    }
++
++                    query.AddOrder(attribute, sortInfo.Desc ? OrderType.Descending : OrderType.Ascending);
++                    applied = true;
++                }
++            }
++
++            if (!applied)
++            {
++                query.AddOrder("fullname", OrderType.Ascending);
++            }
++        }
++
++        /// <summary>把 DataGrid 欄位 dataField 對應到可在 CRM 排序的 contact 屬性；不可排序者回 null。</summary>
++        private static string MapChurchSortAttribute(string selector)
++        {
++            if (string.IsNullOrWhiteSpace(selector))
++            {
++                return null;
++            }
++
++            if (string.Equals(selector, "FullName", StringComparison.OrdinalIgnoreCase))
++            {
++                return "fullname";
++            }
++
++            if (string.Equals(selector, "Phone", StringComparison.OrdinalIgnoreCase))
++            {
++                return "mobilephone";
++            }
++
++            if (string.Equals(selector, "MembershipStatus", StringComparison.OrdinalIgnoreCase))
++            {
++                return "customertypecode";
++            }
++
++            // 其餘（例如 SmallGroupName 為查詢後計算的小組名稱）CRM 無法直接排序。
++            return null;
++        }
++
++        /// <summary>是否有「CRM 無法排序的欄位」(如計算得來的小組名稱)被要求排序？是則需改走記憶體排序。</summary>
++        private static bool ChurchSortRequiresInMemory(DataSourceLoadOptions loadOptions)
++        {
++            var sort = loadOptions?.Sort;
++            if (sort == null)
++            {
++                return false;
++            }
++
++            foreach (var sortInfo in sort)
++            {
++                if (sortInfo?.Selector == null)
++                {
++                    continue;
++                }
++
++                if (MapChurchSortAttribute(sortInfo.Selector) == null)
++                {
++                    return true;
++                }
++            }
++
++            return false;
++        }
++
++        /// <summary>
++        /// 全教會：取得整份(過濾後)清單(含小組名稱、帶快取)，交給 DataSourceLoader 於記憶體
++        /// 套用排序(含計算欄位 SmallGroupName)與分頁。僅在依計算欄位排序時才走此路徑。
++        /// </summary>
++        private object LoadChurchMemberRowsInMemory(DataSourceLoadOptions loadOptions, bool photoOnly)
++        {
++            var searchValue = GetSearchTerm(loadOptions);
++            var rows = GetChurchMemberRowsCached(searchValue, photoOnly);
++            // 已是記憶體清單 → DataSourceLoader 套用排序(含 SmallGroupName)＋分頁，速度快。
++            return DataSourceLoader.Load(rows, loadOptions);
++        }
++
++        /// <summary>
++        /// 取整份全教會清單(含小組名稱)並快取數分鐘。第一次建立較慢，之後翻頁/改排序皆讀快取，
++        /// 不再每次重打 CRM —— 這是「按小組排序等很久」的主因。依搜尋字＋是否只看有照片分開快取。
++        /// </summary>
++        private List<MemberInfoListRowViewModel> GetChurchMemberRowsCached(string searchValue, bool photoOnly)
++        {
++            var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
++            var cacheKey = "member-info-church-rows:" + (photoOnly ? "photo:" : "all:") + (searchValue ?? string.Empty);
++
++            if (memoryCache != null &&
++                memoryCache.TryGetValue(cacheKey, out List<MemberInfoListRowViewModel> cached) &&
++                cached != null)
++            {
++                return cached;
++            }
++
++            var rows = BuildAllChurchMemberRows(searchValue, photoOnly);
++
++            memoryCache?.Set(cacheKey, rows, new MemoryCacheEntryOptions
++            {
++                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(3),
++                SlidingExpiration = TimeSpan.FromMinutes(1),
++                Size = Math.Max(1, rows.Count)
++            });
++
++            return rows;
++        }
++
++        /// <summary>建立整份全教會清單：一次撈所有(過濾後)聯絡人 ＋ 一次撈所有小組成員，合併為資料列。</summary>
++        private List<MemberInfoListRowViewModel> BuildAllChurchMemberRows(string searchValue, bool photoOnly)
++        {
++            var service = ToolUtility.m_Crm2011OrganizationService;
++
++            var query = BuildCurrentContactQuery(
++                new ColumnSet("contactid", "fullname", "mobilephone", "customertypecode", "statecode"),
++                searchValue,
++                photoOnly);
++            query.AddOrder("fullname", OrderType.Ascending); // 穩定基準次序；真正排序由 DataSourceLoader 套用
++
++            var contacts = RetrieveAllContacts(service, query);
++            var groupMap = GetAllSmallGroupNames(); // 一次撈回所有人的小組名稱，取代逐 200 筆查詢
++
++            var resolveMembershipStatus = CreateMembershipStatusResolver();
++            return contacts.Select(contact =>
++            {
++                groupMap.TryGetValue(contact.Id, out var groupNames);
++                return new MemberInfoListRowViewModel
++                {
++                    ContactId = contact.Id.ToString(),
++                    FullName = ToolUtility.GetEntityStringAttribute(contact, "fullname"),
++                    Phone = ToolUtility.GetEntityStringAttribute(contact, "mobilephone"),
++                    MembershipStatus = resolveMembershipStatus(contact),
++                    SmallGroupName = groupNames ?? string.Empty
++                };
++            }).ToList();
++        }
++
++        /// <summary>分頁迴圈取回查詢的所有資料列（CRM 單次回傳有上限；逐頁累加直到 MoreRecords 為 false）。</summary>
++        private static List<Entity> RetrieveAllContacts(IOrganizationService service, QueryExpression query)
++        {
++            var all = new List<Entity>();
++            query.PageInfo = new PagingInfo
++            {
++                Count = 2000,
++                PageNumber = 1,
++                PagingCookie = null,
++                ReturnTotalRecordCount = false
++            };
++
++            while (true)
++            {
++                var page = service.RetrieveMultiple(query);
++                if (page?.Entities != null)
++                {
++                    all.AddRange(page.Entities);
++                }
++
++                if (page == null || !page.MoreRecords)
++                {
++                    break;
++                }
++
++                query.PageInfo.PageNumber++;
++                query.PageInfo.PagingCookie = page.PagingCookie;
++            }
++
++            return all;
++        }
++
++        /// <summary>一次撈回所有「小組名單」成員 → 小組名稱(以 PagingCookie 逐頁累加)，回傳 contactId → 小組名稱字串。</summary>
++        private Dictionary<Guid, string> GetAllSmallGroupNames()
++        {
++            var names = new Dictionary<Guid, HashSet<string>>();
++            var result = new Dictionary<Guid, string>();
++
++            try
++            {
++                var service = ToolUtility.m_Crm2011OrganizationService;
++                var query = new QueryExpression("listmember")
++                {
++                    ColumnSet = new ColumnSet("entityid", "listid")
++                };
++
++                var listLink = new LinkEntity("listmember", "list", "listid", "listid", JoinOperator.Inner)
++                {
++                    EntityAlias = "list",
++                    Columns = new ColumnSet("listname")
++                };
++                listLink.LinkCriteria.AddCondition("statecode", ConditionOperator.Equal, 0);
++                listLink.LinkCriteria.AddCondition("new_app_named", ConditionOperator.Equal, true);
++                listLink.LinkCriteria.AddCondition("purpose", ConditionOperator.Equal, "小組名單");
++                query.LinkEntities.Add(listLink);
++
++                query.PageInfo = new PagingInfo
++                {
++                    Count = 5000,
++                    PageNumber = 1,
++                    PagingCookie = null,
++                    ReturnTotalRecordCount = false
++                };
++
++                while (true)
++                {
++                    var page = service.RetrieveMultiple(query);
++                    foreach (var listMember in page.Entities)
++                    {
++                        var contactId = GetListMemberContactId(listMember);
++                        if (contactId == Guid.Empty)
++                        {
++                            continue;
++                        }
++
++                        var listName = GetAliasedString(listMember, "list.listname");
++                        if (string.IsNullOrWhiteSpace(listName))
++                        {
++                            continue;
++                        }
++
++                        if (!names.TryGetValue(contactId, out var set))
++                        {
++                            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
++                            names[contactId] = set;
++                        }
++
++                        set.Add(listName);
++                    }
++
++                    if (!page.MoreRecords)
++                    {
++                        break;
++                    }
++
++                    query.PageInfo.PageNumber++;
++                    query.PageInfo.PagingCookie = page.PagingCookie;
++                }
++            }
++            catch
++            {
++                // 取小組名稱失敗時回傳已收集到的部分，不讓整個清單壞掉。
++            }
++
++            foreach (var pair in names)
++            {
++                result[pair.Key] = string.Join("、", pair.Value.OrderBy(n => n));
++            }
++
++            return result;
++        }
++
++        private QueryExpression BuildCurrentContactQuery(ColumnSet columns, string searchValue, bool photoOnly = false)
++        {
++            var query = new QueryExpression("contact")
++            {
++                ColumnSet = columns
++            };
++
++            query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
++
++            // 只看「真正有大頭照」的會友：entityimageid 為影像主鍵，有照片才會有值(輕量、不需抓影像位元組)。
++            if (photoOnly)
++            {
++                var photoFilter = new FilterExpression(LogicalOperator.Or);
++                photoFilter.AddCondition("entityimageid", ConditionOperator.NotNull);
++                photoFilter.AddCondition(
++                    ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute,
++                    ConditionOperator.NotNull);
++                query.Criteria.Filters.Add(photoFilter);
++            }
++
++            var closedStatus = TryGetClosedCustomerTypeValue();
++            if (closedStatus.HasValue)
++            {
++                var currentContactStatusFilter = new FilterExpression(LogicalOperator.Or);
++                currentContactStatusFilter.AddCondition("customertypecode", ConditionOperator.Null);
++                currentContactStatusFilter.AddCondition("customertypecode", ConditionOperator.NotEqual, closedStatus.Value);
++                query.Criteria.Filters.Add(currentContactStatusFilter);
++            }
++
++            if (!string.IsNullOrWhiteSpace(searchValue))
++            {
++                var search = "%" + searchValue.Trim() + "%";
++                var searchFilter = new FilterExpression(LogicalOperator.Or);
++                searchFilter.AddCondition("fullname", ConditionOperator.Like, search);
++                searchFilter.AddCondition("mobilephone", ConditionOperator.Like, search);
++
++                // 會員身分(customertypecode)是 OptionSet(整數)，無法用 Like 比對文字 → 先把搜尋字
++                // 比對到符合的選項值，再用 customertypecode In (...) 一併納入同一組 OR 條件。
++                var statusValues = GetCustomerTypeValuesMatchingText(searchValue);
++                if (statusValues.Count > 0)
++                {
++                    searchFilter.AddCondition("customertypecode", ConditionOperator.In, statusValues.Select(v => (object)v).ToArray());
++                }
++
++                query.Criteria.Filters.Add(searchFilter);
++            }
++
++            return query;
++        }
++
++        /// <summary>
++        /// 從 DevExtreme 載入選項取得搜尋字串。
++        /// DataGrid 搜尋面板 + 遠端篩選時，搜尋字串可能以 SearchValue 或包在 Filter
++        /// （例如 [["FullName","contains","胡"],"or",["Phone","contains","胡"]]）傳來，兩者都處理。
++        /// </summary>
++        private string GetSearchTerm(DataSourceLoadOptions loadOptions)
++        {
++            var fromFilter = ExtractFilterSearchValue(loadOptions?.Filter as System.Collections.IList);
++            if (!string.IsNullOrWhiteSpace(fromFilter))
++            {
++                return fromFilter.Trim();
++            }
++
++            var raw = Request?.Query["searchValue"].FirstOrDefault();
++            return string.IsNullOrWhiteSpace(raw) ? string.Empty : raw.Trim().Trim('"');
++        }
++
++        /// <summary>從 DevExtreme filter 運算式遞迴取出第一個條件值（搜尋面板各欄位用同一搜尋字）。</summary>
++        private static string ExtractFilterSearchValue(System.Collections.IList filter)
++        {
++            if (filter == null || filter.Count == 0)
++            {
++                return null;
++            }
++
++            // 葉節點條件：[field(string), operator(string), value]
++            if (filter.Count == 3 && filter[0] is string && filter[1] is string op &&
++                IsConditionOperator(op) && filter[2] != null)
++            {
++                return filter[2].ToString();
++            }
++
++            // 群組（含 "and"/"or" 連接子）→ 逐一遞迴
++            foreach (var item in filter)
++            {
++                if (item is System.Collections.IList sub)
++                {
++                    var found = ExtractFilterSearchValue(sub);
++                    if (!string.IsNullOrWhiteSpace(found))
++                    {
++                        return found;
++                    }
++                }
++            }
++
++            return null;
++        }
++
++        private static bool IsConditionOperator(string op)
++        {
++            switch (op)
++            {
++                case "contains":
++                case "notcontains":
++                case "startswith":
++                case "endswith":
++                case "=":
++                case "<>":
++                    return true;
++                default:
++                    return false;
++            }
++        }
++
++        /// <summary>讀取前端傳來的「只看有照片」旗標(photoOnly=true)。</summary>
++        private bool IsPhotoOnlyRequested()
++        {
++            var raw = Request?.Query["photoOnly"].FirstOrDefault();
++            return string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase);
++        }
++
++        /// <summary>查出指定聯絡人中「真正有大頭照」者(entityimageid 不為空)。以小批次查詢，失敗回空集合。</summary>
++        private HashSet<Guid> GetContactIdsWithPhoto(IReadOnlyCollection<Guid> contactIds)
++        {
++            var result = new HashSet<Guid>();
++            if (contactIds == null || contactIds.Count == 0)
++            {
++                return result;
++            }
++
++            try
++            {
++                var service = ToolUtility.m_Crm2011OrganizationService;
++                var idList = contactIds.Distinct().ToList();
++                const int batchSize = 200;
++
++                for (var i = 0; i < idList.Count; i += batchSize)
++                {
++                    var chunk = idList.GetRange(i, Math.Min(batchSize, idList.Count - i));
++                    var query = new QueryExpression("contact")
++                    {
++                        ColumnSet = new ColumnSet("contactid")
++                    };
++                    query.Criteria.AddCondition("contactid", ConditionOperator.In, chunk.Select(id => (object)id).ToArray());
++                    var photoFilter = new FilterExpression(LogicalOperator.Or);
++                    photoFilter.AddCondition("entityimageid", ConditionOperator.NotNull);
++                    photoFilter.AddCondition(
++                        ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute,
++                        ConditionOperator.NotNull);
++                    query.Criteria.Filters.Add(photoFilter);
++
++                    foreach (var entity in service.RetrieveMultiple(query).Entities)
++                    {
++                        result.Add(entity.Id);
++                    }
++                }
++            }
++            catch
++            {
++                // entityimageid 不可查時不讓整頁壞掉；photoOnly 牧養名單顯示為空，預設(全部)不受影響。
++            }
++
++            return result;
++        }
++
++        private Dictionary<Guid, string> GetSmallGroupNamesForContacts(IReadOnlyCollection<Guid> contactIds)
++        {
++            var result = new Dictionary<Guid, string>();
++            if (contactIds == null || contactIds.Count == 0)
++            {
++                return result;
++            }
++
++            try
++            {
++                var query = new QueryExpression("listmember")
++                {
++                    ColumnSet = new ColumnSet("entityid", "listid")
++                };
++                query.Criteria.AddCondition("entityid", ConditionOperator.In, contactIds.Select(id => (object)id).ToArray());
++
++                var listLink = new LinkEntity("listmember", "list", "listid", "listid", JoinOperator.Inner)
++                {
++                    EntityAlias = "list",
++                    Columns = new ColumnSet("listname")
++                };
++                listLink.LinkCriteria.AddCondition("statecode", ConditionOperator.Equal, 0);
++                listLink.LinkCriteria.AddCondition("new_app_named", ConditionOperator.Equal, true);
++                listLink.LinkCriteria.AddCondition("purpose", ConditionOperator.Equal, "小組名單");
++                query.LinkEntities.Add(listLink);
++
++                var listMembers = ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query);
++                var names = new Dictionary<Guid, HashSet<string>>();
++
++                foreach (var listMember in listMembers.Entities)
++                {
++                    var contactId = GetListMemberContactId(listMember);
++                    if (contactId == Guid.Empty)
++                    {
++                        continue;
++                    }
++
++                    var listName = GetAliasedString(listMember, "list.listname");
++                    if (string.IsNullOrWhiteSpace(listName))
++                    {
++                        continue;
++                    }
++
++                    if (!names.TryGetValue(contactId, out var set))
++                    {
++                        set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
++                        names[contactId] = set;
++                    }
++
++                    set.Add(listName);
++                }
++
++                foreach (var item in names)
++                {
++                    result[item.Key] = string.Join("、", item.Value.OrderBy(n => n));
++                }
++            }
++            catch
++            {
++                // The group column is supplementary. Leave it blank if the CRM relationship query is unavailable.
++            }
++
++            return result;
++        }
++
++        private bool IsCurrentContact(Guid contactId)
++        {
++            try
++            {
++                var contact = ToolUtility.m_Crm2011OrganizationService.Retrieve(
++                    "contact",
++                    contactId,
++                    new ColumnSet("statecode", "customertypecode"));
++
++                return IsCurrentContactEntity(contact);
++            }
++            catch
++            {
++                return false;
++            }
++        }
++
++        private bool IsCurrentContactEntity(Entity contact)
++        {
++            if (contact == null)
++            {
++                return false;
++            }
++
++            var state = contact.GetAttributeValue<OptionSetValue>("statecode")?.Value ?? -1;
++            if (state != 0)
++            {
++                return false;
++            }
++
++            var closedStatus = TryGetClosedCustomerTypeValue();
++            if (closedStatus.HasValue &&
++                contact.GetAttributeValue<OptionSetValue>("customertypecode")?.Value == closedStatus.Value)
++            {
++                return false;
++            }
++
++            return true;
++        }
++
++        private int? TryGetClosedCustomerTypeValue()
++        {
++            try
++            {
++                // 改用共用快取的 OptionSet 服務：「結案」狀態值整個 App 只查一次 CRM metadata，之後全走快取，
++                // 避免逐人(逐列)各打一支 metadata 查詢。文字→值對照非使用者專屬資料，快取安全。
++                return GetSharedOptionSetService().GetOptionSetValue("contact", "customertypecode", "結案", null);
++            }
++            catch
++            {
++                return null;
++            }
++        }
++
++        /// <summary>建立以「共用」記憶體快取支援的 OptionSetMetadataService（metadata 整個 App 只查一次、快取 24h）。</summary>
++        private OptionSetMetadataService GetSharedOptionSetService()
++        {
++            var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
++            return new OptionSetMetadataService(ToolUtility.m_Crm2011OrganizationService, null, memoryCache);
++        }
++
++        /// <summary>
++        /// 把搜尋字比對到「會員身分(customertypecode)」選項文字(以 contains、不分大小寫)，回傳所有相符的選項值。
++        /// 供全教會伺服器端搜尋使用：OptionSet 無法 Like 文字，需先轉成值再用 In 篩選。
++        /// </summary>
++        private List<int> GetCustomerTypeValuesMatchingText(string searchValue)
++        {
++            var result = new List<int>();
++            if (string.IsNullOrWhiteSpace(searchValue))
++            {
++                return result;
++            }
++
++            try
++            {
++                var mapping = GetSharedOptionSetService().GetOptionSetMapping("contact", "customertypecode"); // 文字→值
++                var term = searchValue.Trim();
++                foreach (var pair in mapping)
++                {
++                    if (!string.IsNullOrEmpty(pair.Key) &&
++                        pair.Key.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0)
++                    {
++                        result.Add(pair.Value);
++                    }
++                }
++            }
++            catch
++            {
++                // 取不到 metadata 時回空集合：搜尋退回只比對姓名/手機，不讓清單壞掉。
++            }
++
++            return result;
++        }
++
++        /// <summary>
++        /// 建一個「會員身分(customertypecode) 值→文字」解析器：以「共用」的記憶體快取建立單一
++        /// OptionSetMetadataService。第一次查一次 CRM Metadata 後，同一份清單(數百~數千列)即全部
++        /// 走快取字典查詢，避免「每列各自 new 服務、各自打 CRM Metadata」造成大量往返。
++        /// </summary>
++        private Func<Entity, string> CreateMembershipStatusResolver()
++        {
++            var metadataService = GetSharedOptionSetService();
++
++            return contact =>
++            {
++                try
++                {
++                    if (contact == null || !contact.Contains("customertypecode"))
++                    {
++                        return string.Empty;
++                    }
++
++                    var value = ToolUtility.GetOptionSetAttribute(contact, "customertypecode");
++                    if (value < 0)
++                    {
++                        return string.Empty;
++                    }
++
++                    return metadataService.GetOptionSetText("contact", "customertypecode", value);
++                }
++                catch
++                {
++                    return string.Empty;
++                }
++            };
++        }
++
++        private string GetOptionSetText(Entity entity, string attributeName)
++        {
++            try
++            {
++                if (entity == null || !entity.Contains(attributeName))
++                {
++                    return string.Empty;
++                }
++
++                var value = ToolUtility.GetOptionSetAttribute(entity, attributeName);
++                if (value < 0)
++                {
++                    return string.Empty;
++                }
++
++                var service = new OptionSetMetadataService(ToolUtility.m_Crm2011OrganizationService);
++                return service.GetOptionSetText(entity.LogicalName, attributeName, value);
++            }
++            catch
++            {
++                return string.Empty;
++            }
++        }
++
++        private List<RelationGoalItem> GetRelationGoals(Guid contactId)
++        {
++            var result = new List<RelationGoalItem>();
++
++            try
++            {
++                var query = new QueryExpression("connection")
++                {
++                    ColumnSet = new ColumnSet("record1id", "record2id", "record1roleid", "record2roleid")
++                };
++                query.Criteria.FilterOperator = LogicalOperator.Or;
++                query.Criteria.AddCondition("record1id", ConditionOperator.Equal, contactId);
++                query.Criteria.AddCondition("record2id", ConditionOperator.Equal, contactId);
++
++                var connections = ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query);
++                var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
++                foreach (var connection in connections.Entities)
++                {
++                    var record1 = connection.GetAttributeValue<EntityReference>("record1id");
++                    var record2 = connection.GetAttributeValue<EntityReference>("record2id");
++                    var isRecord1 = record1 != null && record1.Id == contactId;
++                    var target = isRecord1 ? record2 : record1;
++                    // 顯示「對象（目標）的角色」：對象是 record2 時取 record2roleid，反之取 record1roleid。
++                    // （原本取登入連絡人自己的角色，導致顯示「丈夫」而非對象的「妻子」、且對象角色空白。）
++                    var role = isRecord1
++                        ? connection.GetAttributeValue<EntityReference>("record2roleid")
++                        : connection.GetAttributeValue<EntityReference>("record1roleid");
++
++                    var roleName = role?.Name ?? string.Empty;
++                    var targetName = target?.Name ?? string.Empty;
++                    if (string.IsNullOrWhiteSpace(roleName) && string.IsNullOrWhiteSpace(targetName))
++                    {
++                        continue;
++                    }
++
++                    // 去重：雙向查詢（含 Dynamics 自動建立的反向 connection）會讓同一段關係出現兩次
++                    var dedupKey = roleName + "|" + (target?.Id.ToString() ?? targetName);
++                    if (!seen.Add(dedupKey))
++                    {
++                        continue;
++                    }
++
++                    result.Add(new RelationGoalItem
++                    {
++                        Role = roleName,
++                        TargetName = targetName
++                    });
++                }
++            }
++            catch
++            {
++                // CRM connection may be disabled or inaccessible in some environments.
++            }
++
++            return result;
++        }
++
++        private static ColumnSet GetContactListColumns()
++        {
++            return new ColumnSet("contactid", "fullname", "mobilephone", "customertypecode", "statecode");
++        }
++
++        private static ColumnSet GetContactDetailColumns()
++        {
++            return new ColumnSet(
++                "contactid",
++                "fullname",
++                "mobilephone",
++                "address2_line1",
++                "customertypecode",
++                "new_spiriitual_identity",
++                "entityimageid",
++                ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute,
++                "statecode");
++        }
++
++        private static string ResolveContactAvatarSource(Entity contact)
++        {
++            if (contact == null)
++            {
++                return "fallback";
++            }
++
++            if (contact.Contains("entityimageid") && contact["entityimageid"] != null)
++            {
++                return "primary";
++            }
++
++            var linePictureUrl = ChurchReport.Services.ContactAvatar.ContactAvatarUrl.NormalizeHttpUrl(
++                contact.GetAttributeValue<string>(ChurchReport.Services.ContactAvatar.ContactAvatarUrl.LinePictureUrlAttribute));
++
++            return string.IsNullOrEmpty(linePictureUrl) ? "fallback" : "line";
++        }
++
++        private static Guid GetListMemberContactId(Entity listMember)
++        {
++            if (listMember == null || !listMember.Contains("entityid"))
++            {
++                return Guid.Empty;
++            }
++
++            if (listMember["entityid"] is EntityReference entityRef)
++            {
++                return entityRef.Id;
++            }
++
++            if (listMember["entityid"] is Guid guid)
++            {
++                return guid;
++            }
++
++            return Guid.Empty;
++        }
++
++        private static string GetAliasedString(Entity entity, string alias)
++        {
++            if (entity == null || !entity.Contains(alias))
++            {
++                return string.Empty;
++            }
++
++            if (entity[alias] is AliasedValue aliased)
++            {
++                return aliased.Value?.ToString() ?? string.Empty;
++            }
++
++            return entity[alias]?.ToString() ?? string.Empty;
++        }
++
++        private static byte[] CreateThumbnailIfNeeded(byte[] originalBytes, int size)
++        {
++            try
++            {
++                using var input = new MemoryStream(originalBytes);
++                using var image = Image.Load(input);
++
++                if (image.Width <= size && image.Height <= size)
++                {
++                    return originalBytes;
++                }
++
++                image.Mutate(x => x.Resize(new ResizeOptions
++                {
++                    Size = new Size(size, size),
++                    Mode = ResizeMode.Crop,
++                    Position = AnchorPositionMode.Center
++                }));
++
++                using var output = new MemoryStream();
++                image.Save(output, new JpegEncoder { Quality = 82 });
++                return output.ToArray();
++            }
++            catch
++            {
++                return originalBytes;
++            }
++        }
++
++        /// <summary>等比縮放使整張照片「完整塞入」size×size(不裁切，保留完整頭部)；原圖較小則回原圖。供會友細節大圖使用。</summary>
++        private static byte[] CreateFitThumbnail(byte[] originalBytes, int size)
++        {
++            try
++            {
++                using var input = new MemoryStream(originalBytes);
++                using var image = Image.Load(input);
++
++                if (image.Width <= size && image.Height <= size)
++                {
++                    return originalBytes;
++                }
++
++                image.Mutate(x => x.Resize(new ResizeOptions
++                {
++                    Size = new Size(size, size),
++                    Mode = ResizeMode.Max
++                }));
++
++                using var output = new MemoryStream();
++                image.Save(output, new JpegEncoder { Quality = 85 });
++                return output.ToArray();
++            }
++            catch
++            {
++                return originalBytes;
++            }
++        }
++
++        private void ApplyImageResponseCacheHeaders()
++        {
++            Response.Headers["Cache-Control"] = "private, max-age=1800";
++            Response.Headers["Vary"] = "Accept-Encoding";
++        }
++
++        /// <summary>把 SVG 字串轉成可直接當 img src 的 data URI(base64，避免特殊字元轉義問題)。</summary>
++        private static string ToSvgDataUri(string svg)
++        {
++            return "data:image/svg+xml;base64," + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(svg ?? string.Empty));
++        }
++
++        private IActionResult GetDefaultImage()
++        {
++            // 未授權/查無資料時回傳中性剪影（不洩漏性別）
++            return Content(ChurchReport.Services.ContactAvatar.DefaultAvatarSvg.Neutral, "image/svg+xml");
++        }
++    }
++}
+diff --git a/ChurchReport/Services/ContactAvatar/ContactAvatarUrl.cs b/ChurchReport/Services/ContactAvatar/ContactAvatarUrl.cs
+new file mode 100644
+index 00000000..45ffeb6f
+--- /dev/null
++++ b/ChurchReport/Services/ContactAvatar/ContactAvatarUrl.cs
+@@ -0,0 +1,25 @@
++namespace ChurchReport.Services.ContactAvatar
++{
++    public static class ContactAvatarUrl
++    {
++        public const string LinePictureUrlAttribute = "new_line_picture_url";
++
++        public static string NormalizeHttpUrl(string url)
++        {
++            if (string.IsNullOrWhiteSpace(url))
++            {
++                return null;
++            }
++
++            var trimmed = url.Trim();
++            if (!System.Uri.TryCreate(trimmed, System.UriKind.Absolute, out var uri))
++            {
++                return null;
++            }
++
++            return uri.Scheme == System.Uri.UriSchemeHttps || uri.Scheme == System.Uri.UriSchemeHttp
++                ? trimmed
++                : null;
++        }
++    }
++}
+diff --git a/ChurchReport/Services/ContactAvatar/DefaultAvatarSvg.cs b/ChurchReport/Services/ContactAvatar/DefaultAvatarSvg.cs
+new file mode 100644
+index 00000000..959ae750
+--- /dev/null
++++ b/ChurchReport/Services/ContactAvatar/DefaultAvatarSvg.cs
+@@ -0,0 +1,54 @@
++namespace ChurchReport.Services.ContactAvatar
++{
++    /// <summary>
++    /// Gender-specific default contact avatars for rows without a CRM entity image.
++    /// Dynamics can store gendercode as the standard 1/2 values, while this project
++    /// also writes 200000/200001 from GalleryViewModel.
++    /// </summary>
++    public static class DefaultAvatarSvg
++    {
++        /// <summary>Returns male, female, or neutral SVG based on CRM contact.gendercode.</summary>
++        public static string ForGender(int? genderCode)
++        {
++            if (genderCode == 1 || genderCode == 200000) return Male;
++            if (genderCode == 2 || genderCode == 200001) return Female;
++            return Neutral;
++        }
++
++        /// <summary>Neutral default avatar.</summary>
++        public const string Neutral =
++            "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='64' height='64'>" +
++            "<defs><clipPath id='clp'><circle cx='32' cy='32' r='32'/></clipPath></defs>" +
++            "<circle cx='32' cy='32' r='32' fill='#aeb6bf'/>" +
++            "<g clip-path='url(#clp)' fill='#ffffff'>" +
++            "<circle cx='32' cy='24.2' r='10.2'/>" +
++            "<path d='M8 64c1.5-17.2 10.9-29.6 24-29.6S54.5 46.8 56 64H8z'/>" +
++            "</g></svg>";
++
++        /// <summary>Male default avatar.</summary>
++        public const string Male =
++            "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='64' height='64'>" +
++            "<defs><clipPath id='clp'><circle cx='32' cy='32' r='32'/></clipPath></defs>" +
++            "<circle cx='32' cy='32' r='32' fill='#5b8fd0'/>" +
++            "<g clip-path='url(#clp)' fill='#ffffff'>" +
++            "<circle cx='32' cy='23.8' r='10.4'/>" +
++            "<path d='M7.5 64c1.6-17.6 11.2-29.8 24.5-29.8S54.9 46.4 56.5 64h-49z'/>" +
++            "</g></svg>";
++
++        /// <summary>Female default avatar.</summary>
++        public const string Female =
++            "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='64' height='64'>" +
++            "<defs>" +
++            "<clipPath id='clp'><circle cx='32' cy='32' r='32'/></clipPath>" +
++            "<linearGradient id='fbg' x1='14' y1='8' x2='52' y2='58' gradientUnits='userSpaceOnUse'>" +
++            "<stop offset='0' stop-color='#ee8fba'/>" +
++            "<stop offset='1' stop-color='#c95791'/>" +
++            "</linearGradient>" +
++            "</defs>" +
++            "<circle cx='32' cy='32' r='32' fill='url(#fbg)'/>" +
++            "<g clip-path='url(#clp)'>" +
++            "<circle cx='32' cy='24.2' r='9.7' fill='#ffffff'/>" +
++            "<path d='M8 64c1.5-17.4 10.9-30.1 24-30.1S54.5 46.6 56 64H8z' fill='#ffffff'/>" +
++            "</g></svg>";
++    }
++}
+diff --git a/ChurchReport/ViewModels/MemberInfoDetailViewModel.cs b/ChurchReport/ViewModels/MemberInfoDetailViewModel.cs
+new file mode 100644
+index 00000000..622cb1d5
+--- /dev/null
++++ b/ChurchReport/ViewModels/MemberInfoDetailViewModel.cs
+@@ -0,0 +1,37 @@
++using System.Collections.Generic;
++
++namespace ChurchReport.ViewModels
++{
++    public class MemberInfoDetailViewModel
++    {
++        public string ContactId { get; set; }
++        public string FullName { get; set; }
++        public string Phone { get; set; }
++        public string Address { get; set; }
++        public string MembershipStatus { get; set; }
++        public string SpiritualIdentity { get; set; }
++        public string AvatarSource { get; set; }
++
++        // 會員身分(customertypecode) / 信仰狀態(new_spiriitual_identity) 改為下拉編輯所需：
++        // *Value = 目前選中的 OptionSet 整數值(無值為 null)；*Options = 全部可選項(文字+值)。
++        public int? MembershipStatusValue { get; set; }
++        public int? SpiritualIdentityValue { get; set; }
++        public IReadOnlyList<OptionItem> MembershipStatusOptions { get; set; } = new List<OptionItem>();
++        public IReadOnlyList<OptionItem> SpiritualIdentityOptions { get; set; } = new List<OptionItem>();
++
++        public IReadOnlyList<RelationGoalItem> RelationGoals { get; set; } = new List<RelationGoalItem>();
++    }
++
++    /// <summary>OptionSet 單一選項：以整數值送回後台，顯示文字給使用者看。</summary>
++    public class OptionItem
++    {
++        public int Value { get; set; }
++        public string Text { get; set; }
++    }
++
++    public class RelationGoalItem
++    {
++        public string Role { get; set; }
++        public string TargetName { get; set; }
++    }
++}
+diff --git a/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml b/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
+new file mode 100644
+index 00000000..2b03f3b1
+--- /dev/null
++++ b/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
+@@ -0,0 +1,1262 @@
++@using ChurchReport.ViewModels
++
++@{
++    ViewBag.Title = "會友資訊";
++}
++
++<style>
++    /*
++        本頁為會友清單主畫面：上方工具列提供搜尋與操作按鈕，下方資料表負責呈現清單內容。
++        版面以桌機優先設計，手機時則透過 media query 壓縮間距與改變工具列排列方式，避免視覺擁擠。
++    */
++    .member-info-page {
++        padding: 10px 8px 20px;
++    }
++
++    /* 工具列分成左右兩側：左邊標題、右邊目前權限/提示文字。 */
++    .member-info-toolbar {
++        display: flex;
++        align-items: center;
++        justify-content: space-between;
++        gap: 12px;
++        margin-bottom: 10px;
++    }
++
++    /* 頁面標題維持簡潔強調，讓使用者一眼看出目前是在「會友資訊」頁。 */
++    .member-info-title {
++        margin: 0;
++        color: #1f2937;
++        font-size: 1.15rem;
++        font-weight: 700;
++    }
++
++    /* 權限/說明文字使用較淡的灰色，避免與標題競爭視覺焦點。 */
++    .member-info-access {
++        color: #64748b;
++        font-size: .9rem;
++        white-space: nowrap;
++    }
++
++    /* 白色卡片外框把 DevExtreme Grid 包起來，讓整體與頁面背景形成明確層次。 */
++    .member-info-grid-shell {
++        background: #fff;
++        border: 1px solid #d9e2ec;
++        border-radius: 8px;
++        padding: 10px;
++        box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
++    }
++
++    /* 這顆按鈕用來快速切換「顯示全部 / 顯示照片」的資料模式，並保持與工具列同高。 */
++    .member-info-photo-filter-btn {
++        box-sizing: border-box;
++        display: inline-flex;
++        align-items: center;
++        justify-content: center;
++        border: none;
++        border-radius: 6px;
++        padding: 0 16px;
++        height: 34px;
++        line-height: 1;
++        white-space: nowrap;
++        font-size: .95rem;
++        font-weight: 700;
++        color: #fff;
++        cursor: pointer;
++        background: #16a34a; /* 預設：綠色「顯示照片」 */
++        transition: background-color .15s ease;
++    }
++
++    /*
++        DevExtreme 的 toolbar 可能會因為預設 overflow 而裁切自訂按鈕。
++        這裡主動放寬 overflow，確保「顯示照片」與「重新同步LINE」兩顆按鈕都能完整呈現。
++    */
++    #MemberInfoGridContainer .dx-datagrid-header-panel {
++        overflow: visible;
++        padding-bottom: 6px;
++    }
++
++    /* 讓自訂按鈕模板在工具列的每一層容器中都不被裁切。 */
++    #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar,
++    #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar-items-container,
++    #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar-item {
++        overflow: visible;
++    }
++
++    /* 切到「顯示全部」模式時，按鈕改為藍色，讓目前篩選狀態一目了然。 */
++    .member-info-photo-filter-btn.is-photo-only {
++        background: #2563eb; /* 篩選中：藍色「顯示全部」 */
++    }
++
++    /* 按下時做一點下沉效果，增加觸控回饋。 */
++    .member-info-photo-filter-btn:active {
++        transform: translateY(1px);
++    }
++
++    /* 表頭使用較淺的背景色與深色文字，提高欄位辨識度。 */
++    #MemberInfoGridContainer .dx-datagrid-headers .dx-header-row td {
++        background: #eef6f8;
++        color: #1f2937;
++        font-weight: 700;
++    }
++
++    /* 滑鼠停留時以淡黃色標示整列，幫助使用者快速追蹤目前游標所在列。 */
++    #MemberInfoGridContainer .dx-datagrid-rowsview .dx-data-row:hover > td {
++        background: #fff8db;
++    }
++
++    /* 姓名欄位做成可點擊連結樣式，提示可進入明細視窗。 */
++    .member-info-name-link {
++        color: #2563eb;
++        cursor: pointer;
++        font-weight: 700;
++        text-decoration: underline;
++        text-underline-offset: 2px;
++    }
++
++    /* 圓形大頭照縮圖固定為 40px，搭配邊框與 cover 裁切，確保每列高度一致。 */
++    .member-info-avatar-img {
++        width: 40px;
++        height: 40px;
++        border: 2px solid #dbe4ea;
++        border-radius: 50%;
++        display: block;
++        margin: 0 auto;
++        object-fit: cover;
++        background: #f8fafc;
++    }
++
++    /*
++        大頭照外框同時承載：圖片本體、來源徽章、載入中的旋轉圖示。
++        這樣可避免縮圖載入尚未完成時畫面空白，也能讓使用者知道目前是否仍在抓圖。
++    */
++    .member-info-avatar-wrap {
++        position: relative;
++        width: 40px;
++        height: 40px;
++        margin: 0 auto;
++    }
++
++    /* 讓圖片在包裝器中維持置中並去除預設外距。 */
++    .member-info-avatar-wrap .member-info-avatar-img {
++        margin: 0;
++    }
++
++    /* 取得主要照片或 LINE 圖片時，外框會用不同邊框色區分來源。 */
++    .member-info-avatar-wrap.avatar-source-primary .member-info-avatar-img {
++        border-color: #16a34a;
++    }
++
++    /* LINE 來源則使用藍色邊框，以便與主要照片做出清楚區隔。 */
++    .member-info-avatar-wrap.avatar-source-line .member-info-avatar-img {
++        border-color: #2563eb;
++    }
++
++    /* 來源徽章預設隱藏，只在有明確來源時顯示，以免干擾未標記圖片。 */
++    .member-info-avatar-source-badge {
++        position: absolute;
++        right: -4px;
++        bottom: 0;
++        display: none;
++        min-width: 13px;
++        height: 9px;
++        padding: 0 1px;
++        border: 1px solid #fff;
++        border-radius: 2px;
++        color: #fff;
++        font-size: 5px;
++        font-weight: 700;
++        line-height: 8px;
++        text-align: center;
++        box-shadow: 0 1px 2px rgba(15, 23, 42, .18);
++        pointer-events: none;
++    }
++
++    /* 主要照片時顯示綠底徽章，告訴使用者目前使用的是正式照片。 */
++    .member-info-avatar-wrap.avatar-source-primary .member-info-avatar-source-badge {
++        display: block;
++        min-width: 14px;
++        background: #16a34a;
++    }
++
++    /* LINE 照片時顯示藍底徽章，讓來源在列表中一眼可辨。 */
++    .member-info-avatar-wrap.avatar-source-line .member-info-avatar-source-badge {
++        display: block;
++        min-width: 15px;
++        background: #2563eb;
++    }
++
++    /* 旋轉等待圖示置於縮圖中央，用來表達「照片尚在批次載入」的狀態。 */
++    .member-info-avatar-spinner {
++        position: absolute;
++        inset: 0;
++        margin: auto;
++        width: 22px;
++        height: 22px;
++        border: 3px solid rgba(255, 255, 255, .55);
++        border-top-color: #15803d;
++        border-radius: 50%;
++        animation: member-info-avatar-spin .7s linear infinite;
++        display: none;
++        pointer-events: none;
++    }
++
++    /* 加上 is-loading 時才顯示 spinner；圖片到位後則隱藏，避免長時間卡圈。 */
++    .member-info-avatar-wrap.is-loading .member-info-avatar-spinner {
++        display: block;
++    }
++
++    /* 旋轉動畫只負責輕量提示，不改變版面尺寸。 */
++    @@keyframes member-info-avatar-spin {
++        to { transform: rotate(360deg); }
++    }
++
++    /* 手機版縮小頁面外距與卡片 padding，提升可視範圍。 */
++    @@media (max-width: 640px) {
++        .member-info-page {
++            padding: 8px 4px 14px;
++        }
++
++        .member-info-toolbar {
++            align-items: flex-start;
++            flex-direction: column;
++        }
++
++        .member-info-grid-shell {
++            padding: 6px;
++        }
++    }
++
++    /*
++        iOS Safari 會在輸入框字級小於 16px 時自動放大整頁。
++        這裡將所有編輯控制項的輸入字級統一拉高，避免手機操作時畫面被強制縮放。
++    */
++    #MemberInfoGridContainer .dx-texteditor-input,
++    #memberInfoDetailPopup .dx-texteditor-input {
++        font-size: 16px;
++    }
++
++    /* 明細彈窗內的內容容器，負責建立單一可捲動區塊並禁止超出邊界的內容破版。 */
++    .member-info-detail-popup-content {
++        box-sizing: border-box;
++        height: 100%;
++        min-height: 0;
++        padding: 0 !important;
++        position: relative;
++        overflow: hidden !important;
++        overscroll-behavior: contain;
++        -ms-touch-action: pan-x;
++        touch-action: pan-x;
++    }
++
++    /*
++        手機版明細僅保留一個原生垂直捲動容器。
++        這樣可避免 popup、內層 DataGrid、或外層 touch handler 同時搶捲動權，造成手勢衝突。
++    */
++    .member-info-detail-scroll {
++        box-sizing: border-box;
++        height: 100%;
++        min-height: 0;
++        overflow-x: hidden;
++        overflow-y: auto;
++        position: relative;
++        width: 100%;
++        -webkit-overflow-scrolling: touch;
++        overscroll-behavior: contain;
++        scroll-behavior: auto;
++        -ms-touch-action: pan-x;
++        touch-action: pan-x;
++    }
++
++    /* 內層實際承載 HTML 內容的區塊，將內容與捲動容器分離，方便後續 JS 動態注入。 */
++    .member-info-detail-scroll-inner {
++        box-sizing: border-box;
++        min-height: 100%;
++        padding: 16px;
++        -ms-touch-action: pan-x;
++        touch-action: pan-x;
++    }
++
++    /* 放在最上方的 1px 定位錨點，讓程式能穩定地把明細內容捲回頂部。 */
++    .member-info-detail-top-anchor {
++        display: block;
++        height: 1px;
++        margin-bottom: -1px;
++        overflow: hidden;
++        pointer-events: none;
++    }
++
++    /* 載入中訊息保留與實際內容相同的邊距，避免彈窗切換時畫面跳動。 */
++    .member-info-detail-loading {
++        padding: 16px;
++    }
++
++    /* 手機版維持同一個原生 popup 內容容器，只調整內距與安全區底部距離。 */
++    @@media (max-width: 720px) {
++        .member-info-detail-popup-content {
++            min-height: 0;
++        }
++
++        .member-info-detail-scroll-inner {
++            padding: 12px 10px calc(env(safe-area-inset-bottom, 0px) + 16px);
++        }
++    }
++</style>
++
++<div class="member-info-page">
++    <!-- 頁面頂部工具列：左側標題、右側權限提示。 -->
++    <div class="member-info-toolbar">
++        <h4 class="member-info-title">會友資訊</h4>
++        <div class="member-info-access">@ViewBag.MemberInfoAccess</div>
++    </div>
++
++    <!-- 主要內容區：以卡片包覆 DevExtreme DataGrid，維持與頁面一致的留白與陰影。 -->
++    <div class="member-info-grid-shell">
++        <!--
++            會友清單使用 DevExtreme DataGrid 呈現：
++            - 伺服器端分頁與排序，減少前端一次載入壓力
++            - 照片欄位使用自訂模板，先顯示佔位圖再批次補圖
++            - 姓名欄位可點擊，進入右側明細彈窗
++        -->
++        @(Html.DevExtreme().DataGrid<MemberInfoListRowViewModel>()
++            .ID("MemberInfoGridContainer")
++            .DataSource(d => d.Mvc()
++                .Controller("MemberInfo")
++                .LoadAction("LoadMemberInfoList")
++                .Key("ContactId"))
++            .ShowBorders(true)
++            .ShowRowLines(true)
++            .ShowColumnLines(true)
++            .RowAlternationEnabled(true)
++            .ColumnAutoWidth(true)
++            .AllowColumnResizing(true)
++            .ColumnResizingMode(ColumnResizingMode.Widget)
++            .ColumnHidingEnabled(true)
++            .RemoteOperations(ro => ro
++                .Filtering(true)
++                .Sorting(true)
++                .Paging(true)
++                .Grouping(false)
++                .Summary(false))
++            .SearchPanel(s => s.Visible(true).Placeholder("搜尋姓名、手機或會員身分"))
++            .Paging(p => p.PageSize(50))
++            .Pager(p => p
++                .ShowPageSizeSelector(true)
++                .AllowedPageSizes(new[] { 25, 50, 100 })
++                .ShowInfo(true))
++            .NoDataText("沒有資料")
++            .LoadPanel(l => l.Enabled(true).Text("載入中..."))
++            .Columns(columns =>
++            {
++                columns.Add()
++                    .DataField("ContactId")
++                    .Caption("照片")
++                    .Width(58)
++                    .MinWidth(58)
++                    .AllowSorting(false)
++                    .AllowFiltering(false)
++                    .AllowEditing(false)
++                    .Fixed(true)
++                    .CellTemplate(new JS("memberInfoAvatarCellTemplate"));
++
++                columns.AddFor(m => m.FullName)
++                    .Caption("姓名")
++                    .Width(140)
++                    .MinWidth(100)
++                    .Fixed(true)
++                    .CellTemplate(new JS("memberInfoNameCellTemplate"));
++
++                columns.AddFor(m => m.MembershipStatus)
++                    .Caption("會員身分")
++                    .Width(110)
++                    .MinWidth(90);
++
++                columns.AddFor(m => m.Phone)
++                    .Caption("手機")
++                    .Width(150)
++                    .MinWidth(110);
++
++                columns.AddFor(m => m.SmallGroupName)
++                    .Caption("小組")
++                    .MinWidth(160);
++            })
++            .OnContentReady("memberInfoPreloadImages")
++            .OnToolbarPreparing("memberInfoGridToolbarPreparing"))
++    </div>
++</div>
++
++<!--
++    明細彈窗：使用 DevExtreme Popup 承載會友完整資料。
++    內容本體由 AJAX 載入，因此初始只需建立空彈窗，實際 HTML 會在 openMemberInfoDetailPopup 中注入。
++-->
++@(Html.DevExtreme().Popup()
++    .ID("memberInfoDetailPopup")
++    .Width("90%")
++    .Height("86%")
++    .MaxWidth(980)
++    .ShowTitle(true)
++    .ShowCloseButton(true)
++    .DragEnabled(false)
++    .ResizeEnabled(true)
++    .Shading(true)
++    .OnShown("memberInfoDetailPopupShown")
++    .OnHidden("memberInfoDetailPopupHidden"))
++
++<script>
++    // 圖片批次快取：避免每一列都各自向後端發送單獨請求。
++    var memberInfoImageCache = {};
++    // 紀錄圖片來源，方便在縮圖邊框與徽章上顯示不同來源狀態。
++    var memberInfoImageSourceCache = {};
++    // 用來避免同時間重複發送多個批次請求。
++    var memberInfoBatchPending = false;
++    var memberInfoQueuedImageIds = {};
++    var memberInfoPreloadTimer = null;
++    var memberInfoPreloadComponent = null;
++    // 載入中的本地佔位圖：綠底白色「上半身剪影」(頭與身體相連)。轉圈停止後不可再保留綠底。
++    var memberInfoLoadingAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(
++        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='40' height='40'>" +
++        "<defs><clipPath id='mig'><circle cx='32' cy='32' r='32'/></clipPath></defs>" +
++        "<circle cx='32' cy='32' r='32' fill='#16a34a'/>" +
++        "<g clip-path='url(#mig)' fill='#ffffff'>" +
++        "<circle cx='32' cy='24.2' r='10.2'/>" +
++        "<path d='M8 64c1.5-17.2 10.9-29.6 24-29.6S54.5 46.8 56 64H8z'/>" +
++        "</g></svg>");
++    var memberInfoFinalFallbackAvatar = 'data:image/svg+xml;utf8,' + encodeURIComponent(
++        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='40' height='40'>" +
++        "<defs><clipPath id='migf'><circle cx='32' cy='32' r='32'/></clipPath></defs>" +
++        "<circle cx='32' cy='32' r='32' fill='#aeb6bf'/>" +
++        "<g clip-path='url(#migf)' fill='#ffffff'>" +
++        "<circle cx='32' cy='24.2' r='10.2'/>" +
++        "<path d='M8 64c1.5-17.2 10.9-29.6 24-29.6S54.5 46.8 56 64H8z'/>" +
++        "</g></svg>");
++
++    // ── 顯示照片 / 顯示全部 切換 ──
++    // 預設：顯示全部(按鈕綠色、文字「顯示照片」)；按下後只顯示真正有照片者(按鈕變藍、文字「顯示全部」)，再按一次切回。
++    var memberInfoPhotoOnly = false;
++    // 僅「全教會」管理者顯示「重新同步LINE」按鈕（由伺服器端 ViewBag 決定）。
++    var memberInfoCanResync = @(ViewBag.MemberInfoCanResync == true ? "true" : "false");
++
++    // 將後端或批次 API 回傳的照片來源值正規化，確保前端只處理三種合法狀態。
++    function memberInfoNormalizeAvatarSource(source) {
++        if (source === 'primary' || source === 'line' || source === 'fallback') {
++            return source;
++        }
++        return '';
++    }
++
++    /*
++        這段舊版註解保留下來，主要是方便比對來源文案的演進。
++        實際執行時仍以目前下方的 UTF-8 字串版本為準，避免中文在不同編碼環境中顯示異常。
++    function memberInfoAvatarSourceText(source) {
++        if (source === 'primary') { return '照'; }
++        if (source === 'line') { return 'LINE'; }
++        return '';
++    }
++
++    function memberInfoAvatarSourceTitle(source) {
++        if (source === 'primary') { return '主要頭像'; }
++        if (source === 'line') { return 'LINE 照片'; }
++        if (source === 'fallback') { return '預設剪影'; }
++        return '照片來源未標記';
++    }
++
++    */
++    function memberInfoAvatarSourceText(source) {
++        if (source === 'primary') { return '\u7167\u7247'; }
++        if (source === 'line') { return 'LINE'; }
++        return '';
++    }
++
++    function memberInfoAvatarSourceTitle(source) {
++        if (source === 'primary') { return '\u4e3b\u8981\u7167\u7247'; }
++        if (source === 'line') { return 'LINE \u7167\u7247'; }
++        if (source === 'fallback') { return '\u9810\u8a2d\u526a\u5f71'; }
++        return '\u7167\u7247\u4f86\u6e90\u672a\u6a19\u8a18';
++    }
++
++    function memberInfoApplyAvatarSource(wrap, img, source) {
++        source = memberInfoNormalizeAvatarSource(source);
++        if (!wrap) { return; }
++
++        wrap.classList.remove('avatar-source-primary', 'avatar-source-line', 'avatar-source-fallback');
++        if (source) {
++            wrap.classList.add('avatar-source-' + source);
++        }
++
++        var badge = wrap.querySelector('.member-info-avatar-source-badge');
++        if (badge) {
++            badge.textContent = memberInfoAvatarSourceText(source);
++        }
++
++        if (img) {
++            img.title = memberInfoAvatarSourceTitle(source);
++            img.dataset.imageSource = source || '';
++        }
++    }
++
++    // 自訂工具列按鈕：切換資料表是否只顯示有照片的會友。
++    window.memberInfoTogglePhotoFilter = function () {
++        memberInfoPhotoOnly = !memberInfoPhotoOnly;
++
++        var btn = document.getElementById('memberInfoPhotoFilterBtn');
++        if (btn) {
++            btn.classList.toggle('is-photo-only', memberInfoPhotoOnly);
++            btn.textContent = memberInfoPhotoOnly ? '顯示全部' : '顯示照片';
++        }
++
++        var grid = $('#MemberInfoGridContainer').dxDataGrid('instance');
++        if (!grid) { return; }
++
++        // 換資料來源並帶入 photoOnly 參數；表格會自行保留並重新套用目前的排序/搜尋狀態。
++        grid.option('dataSource', DevExpress.data.AspNet.createStore({
++            key: 'ContactId',
++            loadUrl: '/MemberInfo/LoadMemberInfoList',
++            loadParams: { photoOnly: memberInfoPhotoOnly }
++        }));
++    };
++
++    // ── 重新同步 LINE 資料 ──
++    // 依 new_lineid 向 LINE Profile API 重新取得大頭貼/狀態/暱稱並覆寫(或清空)CRM 欄位。
++    // 已換照/移除照片者其照片網址被清空後，下次載入即顯示性別預設剪影、不再有 LINE 標示。
++    // 這個流程主要提供系統管理員用來修正資料一致性，避免前端長期看到過舊的 LINE 狀態。
++    window.memberInfoResyncLineProfiles = async function () {
++        if (!window.confirm('將依 LINE ID 重新同步聯絡人的 LINE 大頭貼／狀態／暱稱（已換照或移除者會清空照片），可能需要一點時間，是否繼續？')) { return; }
++
++        var btn = document.getElementById('memberInfoResyncBtn');
++        if (btn) { btn.disabled = true; btn.textContent = '同步中…'; }
++
++        // 進度列：顯示在網格上方，每批持續更新「已處理／成功／失敗」。
++        var statusEl = document.getElementById('memberInfoResyncStatus');
++        if (!statusEl) {
++            statusEl = document.createElement('div');
++            statusEl.id = 'memberInfoResyncStatus';
++            statusEl.style.cssText = 'margin:6px 0;font-weight:700;color:#2563eb;';
++            var host = document.getElementById('MemberInfoGridContainer');
++            if (host && host.parentNode) { host.parentNode.insertBefore(statusEl, host); }
++        }
++        statusEl.textContent = '準備中…';
++
++        var okValid = 0, updated = 0, cleared = 0, noPhoto = 0, inconclusive = 0, failed = 0, done = 0;
++        var reasons = [];
++
++        try {
++            // 1) 取得需要同步的候選名單
++            var idsResp = await $.ajax({ url: '/MemberInfo/ResyncLineCandidateIds', type: 'GET' });
++            if (!idsResp || !idsResp.success) { throw new Error((idsResp && idsResp.message) || '取得名單失敗'); }
++            var ids = idsResp.ids || [];
++            var total = ids.length;
++            if (total === 0) { statusEl.textContent = '目前沒有需要同步的聯絡人。'; return; }
++
++            // 2) 分批處理，每批更新進度
++            var batchSize = 20;
++            for (var i = 0; i < total; i += batchSize) {
++                var batch = ids.slice(i, i + batchSize);
++                try {
++                    var res = await $.ajax({
++                        url: '/MemberInfo/ResyncLineProfiles',
++                        type: 'POST',
++                        contentType: 'application/json',
++                        data: JSON.stringify({ contactIds: batch })
++                    });
++                    if (res && res.success) {
++                        okValid += res.okValid || 0;
++                        updated += res.updated || 0;
++                        cleared += res.cleared || 0;
++                        noPhoto += res.noPhoto || 0;
++                        inconclusive += res.inconclusive || 0;
++                        if (res.reasons) {
++                            res.reasons.forEach(function (r) {
++                                if (reasons.indexOf(r) < 0 && reasons.length < 8) { reasons.push(r); }
++                            });
++                        }
++                    } else {
++                        failed += batch.length;
++                    }
++                } catch (be) {
++                    failed += batch.length;
++                }
++                done += batch.length;
++                var ok = okValid + updated + cleared + noPhoto;
++                statusEl.textContent = '同步中… 已處理 ' + done + '/' + total +
++                    '｜成功 ' + ok + '（照片正常 ' + okValid + '、更新 ' + updated + '、清空 ' + cleared + '、無照片 ' + noPhoto + '）、失敗 ' + (failed + inconclusive);
++            }
++
++            // 3) 完成
++            var okFinal = okValid + updated + cleared + noPhoto;
++            statusEl.textContent = '完成：已處理 ' + done + '/' + total + '｜成功 ' + okFinal + '、失敗 ' + (failed + inconclusive) +
++                '（照片正常 ' + okValid + '、更新 ' + updated + '、清空失效 ' + cleared + '、無照片 ' + noPhoto + '、暫時略過 ' + inconclusive + (failed ? ('、批次失敗 ' + failed) : '') + '）';
++            var msg = statusEl.textContent;
++            if (reasons.length) {
++                var friendly = reasons.map(function (r) {
++                    if (/40[34]/.test(r)) { return '未加入官方帳號好友／已封鎖，讀不到其 LINE 資料（維持剪影；原有失效照片者已清除）'; }
++                    return r;
++                });
++                friendly = friendly.filter(function (v, i) { return friendly.indexOf(v) === i; });
++                msg += '\n\n附註（以下為自動處理情形，非錯誤）：部分聯絡人未加官方帳號好友或已封鎖，無法向 LINE 取得其最新資料；原有失效照片者已清除改顯示剪影，本來就沒照片者維持剪影。日後對方若解除封鎖／重新加好友，再次同步即可自動補回照片。\n常見情形：\n- ' + friendly.join('\n- ');
++            }
++            alert(msg);
++
++            // 重整網格 + 清前端影像快取，讓頭像以最新來源重新載入。
++            memberInfoImageCache = {};
++            memberInfoImageSourceCache = {};
++            var grid = $('#MemberInfoGridContainer').dxDataGrid('instance');
++            if (grid) { grid.refresh(); }
++        } catch (e) {
++            var emsg = (e && e.message) ? e.message : (e && e.status ? ('HTTP ' + e.status) : '請稍後再試');
++            statusEl.textContent = '同步發生問題：' + emsg;
++            alert('同步發生問題：' + emsg);
++        } finally {
++            if (btn) { btn.disabled = false; btn.textContent = '重新同步LINE'; }
++        }
++    };
++
++    // 把按鈕放進網格工具列(與搜尋框同一列、緊鄰網格上端)；onToolbarPreparing 確保工具列每次重建都依目前狀態正確呈現。
++    // 由於 DataGrid 會在排序、搜尋或重繪時重新建立 toolbar，因此按鈕必須在此處動態插入。
++    window.memberInfoGridToolbarPreparing = function (e) {
++        if (!e || !e.toolbarOptions || !e.toolbarOptions.items) { return; }
++        e.toolbarOptions.items.unshift({
++            location: 'before',
++            locateInMenu: 'never',
++            template: function () {
++                var btn = document.createElement('button');
++                btn.type = 'button';
++                btn.id = 'memberInfoPhotoFilterBtn';
++                btn.className = 'member-info-photo-filter-btn' + (memberInfoPhotoOnly ? ' is-photo-only' : '');
++                btn.textContent = memberInfoPhotoOnly ? '顯示全部' : '顯示照片';
++                btn.onclick = memberInfoTogglePhotoFilter;
++                return btn;
++            }
++        });
++
++        if (memberInfoCanResync) {
++            // 插在「顯示照片」按鈕(index 0)之後，使其顯示在顯示照片的右邊。
++            e.toolbarOptions.items.splice(1, 0, {
++                location: 'before',
++                locateInMenu: 'never',
++                template: function () {
++                    var btn = document.createElement('button');
++                    btn.type = 'button';
++                    btn.id = 'memberInfoResyncBtn';
++                    btn.className = 'member-info-photo-filter-btn';
++                    btn.style.background = '#0ea5e9';
++                    btn.textContent = '重新同步LINE';
++                    btn.onclick = memberInfoResyncLineProfiles;
++                    return btn;
++                }
++            });
++        }
++    };
++
++    // 縮圖 cell template：先顯示 loading 剪影，再由批次請求補上實際照片。
++    function memberInfoScheduleImagePreload(gridComponent, contactId) {
++        if (contactId) {
++            if (memberInfoImageCache[contactId]) {
++                return;
++            }
++            memberInfoQueuedImageIds[contactId] = true;
++        }
++
++        if (gridComponent) {
++            memberInfoPreloadComponent = gridComponent;
++        }
++
++        if (!memberInfoPreloadComponent || Object.keys(memberInfoQueuedImageIds).length === 0 || memberInfoPreloadTimer) {
++            return;
++        }
++
++        memberInfoPreloadTimer = setTimeout(function () {
++            memberInfoPreloadTimer = null;
++            window.memberInfoPreloadImages({ component: memberInfoPreloadComponent });
++        }, 0);
++    }
++
++    window.memberInfoAvatarCellTemplate = function (container, options) {
++        var data = options.data || {};
++        var contactId = data.ContactId || data.contactId || options.value || '';
++        var host = container && container.get ? container.get(0) : container;
++        if (!host) return;
++        host.textContent = '';
++
++        var cached = contactId && memberInfoImageCache[contactId];
++        var cachedSource = cached ? memberInfoImageSourceCache[contactId] : '';
++
++        var wrap = document.createElement('div');
++        wrap.className = 'member-info-avatar-wrap' + (cached ? '' : ' is-loading');
++
++        var img = document.createElement('img');
++        img.className = 'member-info-avatar-img';
++        img.alt = '大頭照';
++        // 必須 eager：照片欄位是 Fixed(true)，DevExtreme 會把欄位範本渲染在「絕對定位」的
++        // 固定欄覆蓋層(.dx-datagrid-content-fixed)。瀏覽器原生 loading="lazy" 的
++        // IntersectionObserver 在初次繪製時偵測不到絕對定位/被裁切容器內的圖片，
++        // 導致照片必須滑動後才載入。改為 eager 可在網格初始化後第一時間就顯示照片。
++        img.loading = 'eager';
++        img.decoding = 'async';
++        img.dataset.contactId = contactId;
++        // 初始：已快取就直接放照片；否則放綠色剪影佔位 + 轉圈，等 memberInfoPreloadImages 批次一次帶回後再換上。
++        // 不要在這裡指向 /MemberInfo/GetContactImage——否則每列各自發一支請求、各打一次 CRM，會拖慢甚至餓死唯一的批次請求。
++        img.src = cached ? memberInfoImageCache[contactId] : memberInfoLoadingAvatar;
++        img.onerror = function () {
++            if (img.src !== memberInfoFinalFallbackAvatar) { img.src = memberInfoFinalFallbackAvatar; }
++            memberInfoApplyAvatarSource(wrap, img, 'fallback');
++            wrap.classList.remove('is-loading');
++        };
++
++        var spinner = document.createElement('span');
++        spinner.className = 'member-info-avatar-spinner';
++
++        var badge = document.createElement('span');
++        badge.className = 'member-info-avatar-source-badge';
++
++        wrap.appendChild(img);
++        wrap.appendChild(badge);
++        wrap.appendChild(spinner);
++        memberInfoApplyAvatarSource(wrap, img, cachedSource);
++        host.appendChild(wrap);
++
++        if (!cached) {
++            memberInfoScheduleImagePreload(options && options.component, contactId);
++        }
++    };
++
++    // 照片/剪影到位：換上圖並停止轉圈。載入失敗時退回非綠色的最終 fallback。
++    // 這個方法將圖片載入完成與 UI 狀態切換集中處理，避免每個呼叫端重複寫一樣的邏輯。
++    function memberInfoSettleAvatar(img, src, source) {
++        var wrap = img.closest('.member-info-avatar-wrap');
++        img.onload = function () {
++            if (wrap) {
++                wrap.classList.remove('is-loading');
++                memberInfoApplyAvatarSource(wrap, img, source);
++            }
++        };
++        img.onerror = function () {
++            if (img.src !== memberInfoFinalFallbackAvatar) { img.src = memberInfoFinalFallbackAvatar; }
++            if (wrap) {
++                wrap.classList.remove('is-loading');
++                memberInfoApplyAvatarSource(wrap, img, 'fallback');
++            }
++        };
++        img.src = src;
++    }
++
++    // 當未成功拿到任何可顯示圖片時，結束 spinner 並切換到最終 fallback，避免縮圖永遠停留在載入中。
++    function memberInfoStopAvatarSpinner(img) {
++        var wrap = img.closest('.member-info-avatar-wrap');
++        if (img.getAttribute('src') === memberInfoLoadingAvatar) {
++            img.src = memberInfoFinalFallbackAvatar;
++            memberInfoApplyAvatarSource(wrap, img, 'fallback');
++        }
++        if (wrap) { wrap.classList.remove('is-loading'); }
++    }
++
++    // 姓名欄位模板：使用超連結外觀，但實際上開啟的是明細彈窗而非頁面導轉。
++    window.memberInfoNameCellTemplate = function (container, options) {
++        var data = options.data || {};
++        var contactId = data.ContactId || data.contactId || '';
++        var fullName = data.FullName || data.fullName || '';
++        var host = container && container.get ? container.get(0) : container;
++        if (!host) return;
++        host.textContent = '';
++
++        var link = document.createElement('a');
++        link.href = 'javascript:void(0)';
++        link.className = 'member-info-name-link';
++        link.textContent = fullName;
++        link.addEventListener('click', function (e) {
++            e.preventDefault();
++            openMemberInfoDetailPopup(contactId, fullName);
++        });
++        host.appendChild(link);
++    };
++
++    // 針對目前頁面可見的資料列一次批次預載照片，降低首屏後續捲動時的延遲。
++    window.memberInfoPreloadImages = function (e) {
++        if (memberInfoBatchPending || !e || !e.component) return;
++        memberInfoPreloadComponent = e.component;
++
++        var idMap = {};
++        Object.keys(memberInfoQueuedImageIds).forEach(function (id) {
++            if (id && !memberInfoImageCache[id]) {
++                idMap[id] = true;
++            }
++        });
++        memberInfoQueuedImageIds = {};
++
++        var dataSource = e.component.getDataSource ? e.component.getDataSource() : null;
++        var items = dataSource && dataSource.items ? dataSource.items() : [];
++        items.forEach(function (item) {
++            var id = item.ContactId || item.contactId;
++            if (id && !memberInfoImageCache[id]) {
++                idMap[id] = true;
++            }
++        });
++
++        var ids = Object.keys(idMap);
++        if (ids.length === 0) return;
++
++        memberInfoBatchPending = true;
++        $.ajax({
++            url: '/MemberInfo/GetContactImagesBatch',
++            type: 'POST',
++            contentType: 'application/json',
++            data: JSON.stringify({ contactIds: ids, size: 48 }),
++            success: function (response) {
++                if (response && response.success && response.images) {
++                    Object.keys(response.images).forEach(function (id) {
++                        memberInfoImageCache[id] = response.images[id];
++                        memberInfoImageSourceCache[id] = (response.sources && response.sources[id]) || 'fallback';
++                    });
++                }
++                // 批次已回：有圖就換上並停轉；沒回傳該人(極少數，如無權檢視)也停轉，留綠色剪影。
++                $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]').each(function () {
++                    var cid = this.dataset.contactId;
++                    if (cid && memberInfoImageCache[cid]) {
++                        memberInfoSettleAvatar(this, memberInfoImageCache[cid], memberInfoImageSourceCache[cid]);
++                    } else {
++                        memberInfoSettleAvatar(this, memberInfoFinalFallbackAvatar, 'fallback');
++                    }
++                });
++            },
++            error: function () {
++                // 批次失敗 → 退回逐筆載入(舊行為)；載入完成(或失敗)即停轉，不會卡在轉圈。
++                $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]').each(function () {
++                    var cid = this.dataset.contactId;
++                    if (cid && !memberInfoImageCache[cid]) {
++                        memberInfoSettleAvatar(this, '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(cid) + '&size=48', '');
++                    } else {
++                        memberInfoStopAvatarSpinner(this);
++                    }
++                });
++            },
++            complete: function () {
++                memberInfoBatchPending = false;
++                if (Object.keys(memberInfoQueuedImageIds).length > 0) {
++                    memberInfoScheduleImagePreload(memberInfoPreloadComponent, null);
++                }
++            }
++        });
++    };
++
++    // 從彈窗內容中找出真正的 scroll host，避免 popup 與內層容器互相搶捲動位置。
++    function memberInfoFindDetailPopupContent(contentElement) {
++        var $candidate = contentElement ? $(contentElement) : $();
++        var $content = $candidate.hasClass('dx-popup-content')
++            ? $candidate
++            : $candidate.closest('.dx-popup-content');
++
++        if (!$content.length) {
++            var popup = $('#memberInfoDetailPopup').dxPopup('instance');
++            if (popup && typeof popup.content === 'function') {
++                $content = $(popup.content());
++            }
++        }
++
++        if (!$content.length) {
++            $content = $('.member-info-detail-popup-content').last();
++        }
++
++        return $content;
++    }
++
++    // 以下變數負責追蹤明細彈窗的開啟序號、使用者是否已互動，以及 scroll 清理 callback。
++    var memberInfoDetailScrollResetToken = 0;
++    var memberInfoDetailUserInteracted = false;
++    var memberInfoDetailOpenToken = 0;
++    var memberInfoDetailScrollCleanup = null;
++    var memberInfoSupportsPassiveEvents = false;
++
++    // 以被動事件偵測確認目前瀏覽器是否支援 passive listener，方便在 touch/scroll 綁定時做最佳化。
++    try {
++        var memberInfoPassiveProbe = Object.defineProperty({}, 'passive', {
++            get: function () {
++                memberInfoSupportsPassiveEvents = true;
++                return true;
++            }
++        });
++        var memberInfoPassiveNoop = function () { };
++        window.addEventListener('memberInfoPassiveProbe', memberInfoPassiveNoop, memberInfoPassiveProbe);
++        window.removeEventListener('memberInfoPassiveProbe', memberInfoPassiveNoop, memberInfoPassiveProbe);
++    } catch (ex) {
++        memberInfoSupportsPassiveEvents = false;
++    }
++
++    // 關閉瀏覽器的 scroll restoration，避免彈窗開合後瀏覽器自行回復到非預期位置。
++    if (window.history && 'scrollRestoration' in window.history) {
++        window.history.scrollRestoration = 'manual';
++    }
++
++    // 確保同一個 DOM 物件只會被加入一次，避免觸發多重重設滾動。
++    function memberInfoAddUniqueElement(list, element) {
++        if (element && list.indexOf(element) < 0) {
++            list.push(element);
++        }
++    }
++
++    // 依需求產生事件選項：若支援 passive，就盡量保留。
++    function memberInfoGetEventOptions(passive, capture) {
++        return memberInfoSupportsPassiveEvents
++            ? { passive: passive, capture: !!capture }
++            : !!capture;
++    }
++
++    // 統一管理明細彈窗事件監聽與清理，讓 hidden 時可以一次移除。
++    function memberInfoAddDetailListener(cleanups, element, type, handler, options) {
++        if (!element || !element.addEventListener) {
++            return;
++        }
++
++        element.addEventListener(type, handler, options);
++        cleanups.push(function () {
++            element.removeEventListener(type, handler, options);
++        });
++    }
++
++    // 只要使用者開始手動捲動/點擊，就停止後續的自動回頂部機制，避免搶走使用者控制權。
++    function memberInfoStopInitialScrollLock() {
++        memberInfoDetailUserInteracted = true;
++        memberInfoDetailScrollResetToken++;
++    }
++
++    // 取得明細彈窗中可能需要重設捲動的位置：主 content、內層 scroll 容器等。
++    function memberInfoGetDetailScrollTargets(contentElement) {
++        var $content = memberInfoFindDetailPopupContent(contentElement);
++        var targets = [];
++
++        function addFromContent($root) {
++            $root.each(function () {
++                memberInfoAddUniqueElement(targets, this);
++            });
++
++            $root
++                .find('.member-info-detail-scroll')
++                .each(function () {
++                    memberInfoAddUniqueElement(targets, this);
++                });
++        }
++
++        if ($content.length) {
++            addFromContent($content);
++        }
++
++        var popup = $('#memberInfoDetailPopup').dxPopup('instance');
++        if (popup && typeof popup.content === 'function') {
++            addFromContent($(popup.content()));
++        }
++
++        return targets;
++    }
++
++    // 綁定觸控/滑鼠/捲輪相關事件，讓手機上的捲動手勢能穩定落在內容容器上。
++    function memberInfoBindDetailTouchHandling($content, scrollHost) {
++        if (memberInfoDetailScrollCleanup) {
++            memberInfoDetailScrollCleanup();
++            memberInfoDetailScrollCleanup = null;
++        }
++
++        var cleanups = [];
++        var unlock = function () {
++            memberInfoStopInitialScrollLock();
++        };
++
++        $content.add($(scrollHost)).each(function () {
++            memberInfoAddDetailListener(cleanups, this, 'touchstart', unlock, memberInfoGetEventOptions(true, true));
++            memberInfoAddDetailListener(cleanups, this, 'pointerdown', unlock, memberInfoGetEventOptions(true, true));
++            memberInfoAddDetailListener(cleanups, this, 'wheel', unlock, memberInfoGetEventOptions(true, true));
++        });
++
++        var detailPan = {
++            tracking: false,
++            lockedAxis: null,
++            startX: 0,
++            startY: 0,
++            lastY: 0
++        };
++
++        function getTouchPoint(event) {
++            if (event && event.touches && event.touches.length) {
++                return event.touches[0];
++            }
++
++            if (event && typeof event.clientX === 'number' && typeof event.clientY === 'number') {
++                return event;
++            }
++
++            return null;
++        }
++
++        function detailPanStart(event) {
++            if (event && event.pointerType && event.pointerType !== 'touch') {
++                return;
++            }
++
++            var point = getTouchPoint(event);
++            if (!point) {
++                return;
++            }
++
++            memberInfoStopInitialScrollLock();
++            detailPan.tracking = true;
++            detailPan.lockedAxis = null;
++            detailPan.startX = point.clientX;
++            detailPan.startY = point.clientY;
++            detailPan.lastY = point.clientY;
++        }
++
++        function detailPanMove(event) {
++            if (event && event.pointerType && event.pointerType !== 'touch') {
++                return;
++            }
++
++            var point = getTouchPoint(event);
++            if (!point || !detailPan.tracking || !scrollHost) {
++                return;
++            }
++
++            var dx = point.clientX - detailPan.startX;
++            var dy = point.clientY - detailPan.startY;
++            var absX = Math.abs(dx);
++            var absY = Math.abs(dy);
++
++            if (!detailPan.lockedAxis && Math.max(absX, absY) > 3) {
++                detailPan.lockedAxis = absY >= absX ? 'y' : 'x';
++            }
++
++            if (detailPan.lockedAxis !== 'y') {
++                return;
++            }
++
++            var maxScrollTop = Math.max(0, scrollHost.scrollHeight - scrollHost.clientHeight);
++            if (maxScrollTop <= 0) {
++                return;
++            }
++
++            var deltaY = detailPan.lastY - point.clientY;
++            if (deltaY === 0) {
++                return;
++            }
++
++            var nextScrollTop = Math.max(0, Math.min(maxScrollTop, scrollHost.scrollTop + deltaY));
++            scrollHost.scrollTop = nextScrollTop;
++            detailPan.lastY = point.clientY;
++
++            event.preventDefault();
++            event.stopPropagation();
++        }
++
++        function detailPanEnd() {
++            detailPan.tracking = false;
++            detailPan.lockedAxis = null;
++        }
++
++        if (window.PointerEvent) {
++            memberInfoAddDetailListener(cleanups, scrollHost, 'pointerdown', detailPanStart, memberInfoGetEventOptions(true, true));
++            memberInfoAddDetailListener(cleanups, scrollHost, 'pointermove', detailPanMove, memberInfoGetEventOptions(false, true));
++            memberInfoAddDetailListener(cleanups, scrollHost, 'pointerup', detailPanEnd, memberInfoGetEventOptions(true, true));
++            memberInfoAddDetailListener(cleanups, scrollHost, 'pointercancel', detailPanEnd, memberInfoGetEventOptions(true, true));
++            memberInfoAddDetailListener(cleanups, scrollHost, 'pointerleave', detailPanEnd, memberInfoGetEventOptions(true, true));
++        } else {
++            memberInfoAddDetailListener(cleanups, scrollHost, 'touchstart', detailPanStart, memberInfoGetEventOptions(true, true));
++            memberInfoAddDetailListener(cleanups, scrollHost, 'touchmove', detailPanMove, memberInfoGetEventOptions(false, true));
++            memberInfoAddDetailListener(cleanups, scrollHost, 'touchend', detailPanEnd, memberInfoGetEventOptions(true, true));
++            memberInfoAddDetailListener(cleanups, scrollHost, 'touchcancel', detailPanEnd, memberInfoGetEventOptions(true, true));
++        }
++
++        memberInfoDetailScrollCleanup = function () {
++            cleanups.forEach(function (cleanup) {
++                cleanup();
++            });
++        };
++    }
++
++    function memberInfoGetDetailTopAnchor(contentElement) {
++        var $content = memberInfoFindDetailPopupContent(contentElement);
++        return $content
++            .find('.member-info-detail-top-anchor, .member-info-side, .member-info-photo, .member-info-tabs')
++            .filter(':visible')
++            .first()
++            .get(0);
++    }
++
++    // 判斷明細內容是否已回到頂端，避免重複執行不必要的捲動重設。
++    function memberInfoIsDetailTopVisible(contentElement) {
++        var $content = memberInfoFindDetailPopupContent(contentElement);
++        var host = $content.find('.member-info-detail-scroll').get(0) || $content.get(0);
++        var anchor = memberInfoGetDetailTopAnchor(contentElement);
++
++        if (!host || !anchor || !host.getBoundingClientRect || !anchor.getBoundingClientRect) {
++            return true;
++        }
++
++        var hostRect = host.getBoundingClientRect();
++        var anchorRect = anchor.getBoundingClientRect();
++        return anchorRect.top >= hostRect.top - 2 && anchorRect.top <= hostRect.top + 24;
++    }
++
++    // 立即把明細內容捲回頂部，適用於初次開啟或切換內容後的畫面校正。
++    window.memberInfoResetDetailScroll = function (contentElement) {
++        var $content = memberInfoFindDetailPopupContent(contentElement);
++        var scrollTargets = memberInfoGetDetailScrollTargets(contentElement);
++
++        scrollTargets.forEach(function (target) {
++            if (!target) {
++                return;
++            }
++
++            target.scrollTop = 0;
++            target.scrollLeft = 0;
++        });
++
++        $content.each(function () {
++            this.scrollTop = 0;
++            this.scrollLeft = 0;
++        });
++
++        var anchor = memberInfoGetDetailTopAnchor(contentElement);
++        if (!scrollTargets.length && anchor && typeof anchor.scrollIntoView === 'function') {
++            try {
++                anchor.scrollIntoView({ block: 'start', inline: 'nearest' });
++            } catch (ex) {
++                anchor.scrollIntoView(true);
++            }
++        }
++    };
++
++    // 以多次延遲重試的方式重設捲動，因為 popup / DataGrid 可能在數個 reflow 後才完成佈局。
++    window.memberInfoResetDetailScrollSoon = function (contentElement) {
++        var requestFrame = window.requestAnimationFrame || function (callback) {
++            window.setTimeout(callback, 0);
++        };
++        var token = ++memberInfoDetailScrollResetToken;
++
++        function resetIfCurrent() {
++            if (token !== memberInfoDetailScrollResetToken || memberInfoDetailUserInteracted) {
++                return;
++            }
++
++            window.memberInfoResetDetailScroll(contentElement);
++        }
++
++        resetIfCurrent();
++        requestFrame(resetIfCurrent);
++        window.setTimeout(resetIfCurrent, 40);
++        window.setTimeout(resetIfCurrent, 120);
++        window.setTimeout(resetIfCurrent, 260);
++        window.setTimeout(resetIfCurrent, 520);
++        window.setTimeout(resetIfCurrent, 900);
++        window.setTimeout(resetIfCurrent, 1400);
++        window.setTimeout(resetIfCurrent, 2100);
++        window.setTimeout(function () {
++            if (token === memberInfoDetailScrollResetToken && !memberInfoDetailUserInteracted && !memberInfoIsDetailTopVisible(contentElement)) {
++                window.memberInfoResetDetailScroll(contentElement);
++            }
++        }, 2800);
++    };
++
++    // DataGrid can change layout after loading; keep the initial view at the top only before the user interacts.
++    // 這裡不在使用者已經手動操作後重設，以免在閱讀明細時突然跳回最上方。
++    window.memberInfoDetailRefreshScroll = function (contentElement) {
++        if (!memberInfoDetailUserInteracted) {
++            window.memberInfoResetDetailScrollSoon(contentElement);
++        }
++    };
++
++    // Popup 顯示後重新標記為未互動並安排回頂部，讓第一次開啟能直接看到內容起點。
++    window.memberInfoDetailPopupShown = function (e) {
++        memberInfoDetailUserInteracted = false;
++        window.memberInfoResetDetailScrollSoon(e && e.element);
++    };
++
++    // Popup 關閉時清理 touch 監聽與暫存狀態，避免下次開啟殘留舊的事件處理器。
++    window.memberInfoDetailPopupHidden = function (e) {
++        memberInfoDetailOpenToken++;
++        memberInfoDetailUserInteracted = false;
++        if (memberInfoDetailScrollCleanup) {
++            memberInfoDetailScrollCleanup();
++            memberInfoDetailScrollCleanup = null;
++        }
++        window.memberInfoResetDetailScroll(e && e.element);
++        memberInfoFindDetailPopupContent(e && e.element)
++            .empty()
++            .removeClass('member-info-detail-popup-content');
++    };
++
++    // 將 AJAX 回傳的 HTML 注入 popup，並包上一層單一捲動容器與頂部錨點。
++    function memberInfoSetDetailPopupContent(contentElement, html) {
++        var $content = $(contentElement);
++        if (!$content.length) {
++            return;
++        }
++
++        memberInfoDetailUserInteracted = false;
++        $content
++            .addClass('member-info-detail-popup-content')
++            .empty();
++
++        // Keep one native vertical scroll host; do not create a nested dxScrollView in the popup.
++        var $scrollHost = $('<div class="member-info-detail-scroll"><div class="member-info-detail-scroll-inner"></div></div>');
++        $content.append($scrollHost);
++        $scrollHost.find('.member-info-detail-scroll-inner').html('<div class="member-info-detail-top-anchor" aria-hidden="true"></div>' + html);
++
++        window.memberInfoResetDetailScroll($content);
++        memberInfoBindDetailTouchHandling($content, $scrollHost.get(0));
++        window.memberInfoResetDetailScrollSoon($content);
++    }
++
++    // 開啟明細彈窗：先顯示 loading，待 AJAX 載入完成後再置換成實際 HTML。
++    window.openMemberInfoDetailPopup = function (contactId, fullName) {
++        if (!contactId) return;
++        if (document.activeElement && document.activeElement.blur) {
++            document.activeElement.blur();
++        }
++
++        var popup = $('#memberInfoDetailPopup').dxPopup('instance');
++        var isMobile = window.innerWidth <= 720;
++        popup.option({
++            title: (fullName || '') + ' - 會友細節',
++            fullScreen: isMobile,
++            width: isMobile ? '100%' : '90%',
++            height: isMobile ? '100%' : '86%',
++            maxWidth: isMobile ? '100%' : 980,
++            resizeEnabled: !isMobile
++        });
++
++        var openToken = ++memberInfoDetailOpenToken;
++        memberInfoDetailUserInteracted = false;
++        var loadingHtml = '<div class="member-info-detail-loading">載入中...</div>';
++        var contentElement = popup.content && popup.content();
++
++        memberInfoSetDetailPopupContent(contentElement, loadingHtml);
++        popup.show();
++        if (popup.repaint) {
++            popup.repaint();
++        }
++
++        contentElement = popup.content && popup.content();
++        memberInfoSetDetailPopupContent(contentElement, loadingHtml);
++        window.memberInfoResetDetailScrollSoon(contentElement);
++
++        $.ajax({
++            url: '/MemberInfo/Detail',
++            type: 'GET',
++            data: { contactId: contactId },
++            success: function (html) {
++                if (openToken !== memberInfoDetailOpenToken) {
++                    return;
++                }
++
++                var latestContent = popup.content && popup.content();
++                memberInfoSetDetailPopupContent(latestContent, html);
++                window.memberInfoResetDetailScrollSoon(latestContent);
++            },
++            error: function (xhr) {
++                if (openToken !== memberInfoDetailOpenToken) {
++                    return;
++                }
++
++                var text = xhr.status === 403 ? '無權檢視此連絡人' : '載入失敗';
++                var latestContent = popup.content && popup.content();
++                memberInfoSetDetailPopupContent(latestContent, '<div style="padding:16px;color:#b91c1c;">' + text + '</div>');
++                window.memberInfoResetDetailScrollSoon(latestContent);
++            }
++        });
++    };
++</script>
+diff --git a/ChurchReport/Views/MemberInfo/_MemberDetailPopup.cshtml b/ChurchReport/Views/MemberInfo/_MemberDetailPopup.cshtml
+new file mode 100644
+index 00000000..b027e8b5
+--- /dev/null
++++ b/ChurchReport/Views/MemberInfo/_MemberDetailPopup.cshtml
+@@ -0,0 +1,697 @@
++@model ChurchReport.ViewModels.MemberInfoDetailViewModel
++@{
++    // 先在伺服器端整理大頭照來源種類，讓前端只需依這個統一結果切換外觀與標籤，避免 JS 重複判斷。
++    var detailAvatarSource = Model.AvatarSource == "primary" || Model.AvatarSource == "line" || Model.AvatarSource == "fallback"
++        ? Model.AvatarSource
++        : "fallback";
++    // 右上角的小標籤僅用於提示圖片來源，未提供來源時保持空白，避免畫面出現多餘文字。
++    var detailAvatarBadgeText = detailAvatarSource == "primary"
++        ? "\u7167\u7247"
++        : (detailAvatarSource == "line" ? "LINE" : string.Empty);
++    // 滑鼠停留或輔助工具會讀到的標題字串，必須與來源種類一致，方便維護與除錯。
++    var detailAvatarTitle = detailAvatarSource == "primary"
++        ? "\u4e3b\u8981\u7167\u7247"
++        : (detailAvatarSource == "line" ? "LINE \u7167\u7247" : "\u9810\u8a2d\u526a\u5f71");
++}
++
++<style>
++    /* 主要容器採左右雙欄配置：左側放大頭照與切換按鈕，右側放可編輯欄位與資料表。 */
++    .member-info-detail {
++        display: grid;
++        align-content: start;
++        gap: 14px;
++        grid-template-columns: 240px minmax(0, 1fr);
++        min-height: 100%;
++    }
++
++    /* 左側邊欄以分隔線區分內容，讓照片區與資料區在視覺上更清楚。 */
++    .member-info-side {
++        border-right: 1px solid #e2e8f0;
++        padding: 4px 12px 4px 4px;
++    }
++
++    /* 大頭照本體：限制最大尺寸、維持等比縮放，避免圖片過大撐破彈窗版面。 */
++    .member-info-photo {
++        width: auto;
++        height: auto;
++        max-width: 198px;
++        max-height: 198px;
++        border: 3px solid #dbe4ea;
++        border-radius: 10px;
++        display: block;
++        margin: 0 auto 14px;
++        object-fit: contain;
++        background: #f8fafc;
++    }
++
++    /* 大頭照 + 右下角相機圖示(可拍照/選相片，選好即上傳) */
++    .member-info-photo-wrapper {
++        position: relative;
++        width: fit-content;
++        max-width: 198px;
++        margin: 0 auto 14px;
++    }
++
++    .member-info-photo-wrapper.avatar-source-fallback {
++        width: 198px;
++    }
++
++    .member-info-photo-wrapper.avatar-source-fallback .member-info-photo {
++        width: 198px;
++        height: 198px;
++        max-width: none;
++        max-height: none;
++    }
++
++    .member-info-photo-wrapper .member-info-photo {
++        margin: 0;
++        cursor: pointer;
++    }
++
++    .member-info-photo-camera {
++        position: absolute;
++        right: -6px;
++        bottom: -6px;
++        width: 34px;
++        height: 34px;
++        border-radius: 50%;
++        background: #16a34a;
++        border: 2px solid #fff;
++        display: flex;
++        align-items: center;
++        justify-content: center;
++        cursor: pointer;
++        box-shadow: 0 2px 6px rgba(0, 0, 0, .3);
++        transition: background .15s ease;
++    }
++
++    .member-info-photo-camera:hover {
++        background: #15803d;
++    }
++
++    .member-info-photo-camera svg {
++        width: 18px;
++        height: 18px;
++        fill: #fff;
++    }
++
++    /* 來源徽章只在主照片或 LINE 照片時顯示，讓使用者知道目前使用的是哪種影像。 */
++    .member-info-photo-source-badge {
++        position: absolute;
++        top: 6px;
++        right: 6px;
++        display: none;
++        min-width: 17px;
++        height: 10px;
++        padding: 0 2px;
++        border: 1px solid #fff;
++        border-radius: 2px;
++        color: #fff;
++        font-size: 6px;
++        font-weight: 700;
++        line-height: 9px;
++        text-align: center;
++        box-shadow: 0 1px 2px rgba(15, 23, 42, .18);
++        pointer-events: none;
++        z-index: 2;
++    }
++
++    .member-info-photo-wrapper.avatar-source-primary .member-info-photo-source-badge,
++    .member-info-photo-wrapper.avatar-source-line .member-info-photo-source-badge {
++        display: block;
++    }
++
++    .member-info-photo-wrapper.avatar-source-primary .member-info-photo-source-badge {
++        background: #16a34a;
++    }
++
++    .member-info-photo-wrapper.avatar-source-line .member-info-photo-source-badge {
++        min-width: 18px;
++        background: #2563eb;
++    }
++
++    /* 用 ID 選擇器確保蓋過全域 input[type=file] 樣式(與個人資料頁 #imageFileInput 同作法)；
++       以程式 .click() 觸發，display:none 仍可開啟檔案選擇。 */
++    #memberInfoPhotoInput {
++        display: none !important;
++    }
++
++    .member-info-photo-busy {
++        opacity: .6;
++        pointer-events: none;
++    }
++
++    @@media (max-width: 720px) {
++        .member-info-photo-wrapper {
++            max-width: 156px;
++        }
++    }
++
++    .member-info-tabs {
++        display: grid;
++        gap: 8px;
++    }
++
++    .member-info-tab {
++        border: 1px solid #cbd5e1;
++        border-radius: 6px;
++        background: #fff;
++        color: #334155;
++        cursor: pointer;
++        font-weight: 700;
++        min-height: 38px;
++    }
++
++    .member-info-tab.active {
++        border-color: #2563eb;
++        background: #eaf2ff;
++        color: #1d4ed8;
++    }
++
++    .member-info-main {
++        min-width: 0;
++    }
++
++    /* 會員資料編輯區採兩欄排版，方便在桌面版同時檢視多個欄位。 */
++    .member-info-fields {
++        display: grid;
++        gap: 8px 18px;
++        grid-template-columns: repeat(2, minmax(0, 1fr));
++        margin-bottom: 14px;
++    }
++
++    /* 單一欄位用底線與最小高度撐出一致的閱讀節奏。 */
++    .member-info-field {
++        border-bottom: 1px solid #edf2f7;
++        min-height: 38px;
++        padding-bottom: 6px;
++    }
++
++    /* 標籤以較淡的顏色呈現，讓使用者快速辨識欄位名稱而不搶走主要內容注意力。 */
++    .member-info-label {
++        color: #64748b;
++        font-size: 1rem;
++        margin-bottom: 2px;
++    }
++
++    /* 值欄位允許長文字換行，避免地址或關係資料在小螢幕時被截斷。 */
++    .member-info-value {
++        color: #1f2937;
++        font-size: 1.1rem;
++        overflow-wrap: anywhere;
++    }
++
++    /* 可編輯欄位(手機/地址輸入框、信仰狀態/會員身分下拉)。font-size:16px 防 iOS 點擊自動放大。 */
++    .member-info-edit {
++        width: 100%;
++        box-sizing: border-box;
++        border: 1px solid #93c5fd;
++        border-radius: 6px;
++        padding: 7px 9px;
++        font-size: 16px;
++        color: #1f2937;
++        background: #f7fbff;
++    }
++
++    .member-info-edit:focus {
++        outline: none;
++        border-color: #2563eb;
++        box-shadow: 0 0 0 2px rgba(37, 99, 235, .15);
++    }
++
++    select.member-info-edit {
++        appearance: auto;
++        -webkit-appearance: auto;
++    }
++
++    .member-info-relations {
++        grid-column: 1 / -1;
++    }
++
++    .member-info-subgrid {
++        display: none;
++    }
++
++    .member-info-subgrid.active {
++        display: block;
++    }
++
++    .member-info-subgrid .dx-datagrid {
++        max-width: 100%;
++    }
++
++    @@media (max-width: 720px) {
++        .member-info-detail {
++            grid-template-columns: 1fr;
++            min-height: auto;
++        }
++
++        .member-info-subgrid {
++            min-width: 0;
++        }
++
++        /* 手機：DataGrid 列區只保留水平溢出；垂直手勢交給外層原生捲動容器。 */
++        .member-info-subgrid .dx-datagrid-rowsview .dx-scrollable-container {
++            -ms-touch-action: pan-x pan-y;
++            touch-action: pan-x pan-y;
++            overflow-x: scroll;
++            overflow-y: hidden;
++            -webkit-overflow-scrolling: touch;
++        }
++
++        .member-info-subgrid .dx-datagrid-rowsview .dx-scrollable-container::-webkit-scrollbar {
++            height: 12px;
++            -webkit-appearance: none;
++        }
++
++        .member-info-subgrid .dx-datagrid-rowsview .dx-scrollable-container::-webkit-scrollbar-thumb {
++            background: rgba(37, 99, 235, .65);
++            border: 2px solid rgba(255, 255, 255, .7);
++            border-radius: 7px;
++        }
++
++        .member-info-subgrid .dx-datagrid-rowsview .dx-scrollable-container::-webkit-scrollbar-track {
++            background: rgba(15, 23, 42, .1);
++            border-radius: 7px;
++        }
++
++        .member-info-side {
++            border-right: 0;
++            border-bottom: 1px solid #e2e8f0;
++            padding: 0 0 12px;
++        }
++
++        .member-info-photo {
++            max-width: 156px;
++            max-height: 156px;
++        }
++
++        .member-info-photo-wrapper.avatar-source-fallback,
++        .member-info-photo-wrapper.avatar-source-fallback .member-info-photo {
++            width: 156px;
++            height: 156px;
++        }
++
++        .member-info-tabs {
++            grid-template-columns: repeat(2, minmax(0, 1fr));
++        }
++
++        .member-info-fields {
++            grid-template-columns: 1fr;
++        }
++    }
++</style>
++
++<div class="member-info-detail" data-contact-id="@Model.ContactId">
++    <!-- 左側區塊：大頭照、照片來源標籤、相機上傳入口與紀錄分頁按鈕。 -->
++    <aside class="member-info-side">
++        <div class="member-info-photo-wrapper avatar-source-@detailAvatarSource" data-avatar-source="@detailAvatarSource">
++            <img id="memberInfoDetailPhoto"
++                 class="member-info-photo"
++                 src="/MemberInfo/GetContactImage?contactId=@Model.ContactId&size=0"
++                 alt="大頭照"
++                 loading="eager" decoding="async"
++                 onclick="memberInfoTriggerPhotoUpload()" />
++            <span class="member-info-photo-source-badge" title="@detailAvatarTitle">@detailAvatarBadgeText</span>
++            <label class="member-info-photo-camera" title="拍照或選擇相片" onclick="memberInfoTriggerPhotoUpload()">
++                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 7.17 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9zm3 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
++            </label>
++            <input type="file" id="memberInfoPhotoInput" class="member-info-photo-input"
++                   accept="image/jpeg,image/png,image/gif"
++                   onchange="memberInfoUploadPhoto(this)" />
++        </div>
++        <div class="member-info-tabs">
++            <button type="button" class="member-info-tab" data-tab="present" onclick="memberInfoDetailSwitch('present')">聚會紀錄</button>
++            <button type="button" class="member-info-tab" data-tab="equip" onclick="memberInfoDetailSwitch('equip')">裝備紀錄</button>
++        </div>
++    </aside>
++
++    <!-- 右側主內容：先顯示可編輯基本資料，再載入對應的資料表分頁內容。 -->
++    <main class="member-info-main">
++        <section class="member-info-fields">
++            <div class="member-info-field">
++                <div class="member-info-label">手機</div>
++                <input type="text" id="memberInfoPhone" class="member-info-edit"
++                       value="@Model.Phone" inputmode="tel" autocomplete="off" />
++            </div>
++            <div class="member-info-field">
++                <div class="member-info-label">信仰狀態</div>
++                <select id="memberInfoSpiritual" class="member-info-edit">
++                    <option value="">（未設定）</option>
++                    @foreach (var opt in Model.SpiritualIdentityOptions)
++                    {
++                        if (Model.SpiritualIdentityValue.HasValue && Model.SpiritualIdentityValue.Value == opt.Value)
++                        {
++                            <option value="@opt.Value" selected>@opt.Text</option>
++                        }
++                        else
++                        {
++                            <option value="@opt.Value">@opt.Text</option>
++                        }
++                    }
++                </select>
++            </div>
++            <div class="member-info-field">
++                <div class="member-info-label">地址</div>
++                <input type="text" id="memberInfoAddress" class="member-info-edit"
++                       value="@Model.Address" autocomplete="off" />
++            </div>
++            <div class="member-info-field">
++                <div class="member-info-label">會員身分</div>
++                <select id="memberInfoMembership" class="member-info-edit">
++                    <option value="">（未設定）</option>
++                    @foreach (var opt in Model.MembershipStatusOptions)
++                    {
++                        if (Model.MembershipStatusValue.HasValue && Model.MembershipStatusValue.Value == opt.Value)
++                        {
++                            <option value="@opt.Value" selected>@opt.Text</option>
++                        }
++                        else
++                        {
++                            <option value="@opt.Value">@opt.Text</option>
++                        }
++                    }
++                </select>
++            </div>
++            <div class="member-info-field member-info-relations">
++                <div class="member-info-label">關係目標</div>
++                <div class="member-info-value">
++                    @if (Model.RelationGoals != null && Model.RelationGoals.Count > 0)
++                    {
++                        @string.Join("、", Model.RelationGoals.Select(r => string.IsNullOrWhiteSpace(r.Role) ? r.TargetName : $"{r.Role}: {r.TargetName}"))
++                    }
++                    else
++                    {
++                        <span>（無）</span>
++                    }
++                </div>
++            </div>
++        </section>
++
++        <section id="member-subgrid-present-panel" class="member-info-subgrid">
++            <div id="member-subgrid-present"></div>
++        </section>
++        <section id="member-subgrid-equip-panel" class="member-info-subgrid">
++            <div id="member-subgrid-equip"></div>
++        </section>
++    </main>
++</div>
++
++<script>
++    (function () {
++        // 以立即執行函式包住所有細節邏輯，避免汙染全域命名空間，只保留必要的入口函式供彈窗 host 呼叫。
++        var contactId = '@Model.ContactId';
++        window._memberInfoSubGridInit = { present: false, equip: false, contactId: contactId, scrolledTop: false };
++
++        // 依照片來源同步更新外層樣式與徽章文字，讓前端在換圖後不需要重繪整個區塊。
++        function memberInfoSetDetailAvatarSource(source) {
++            source = (source === 'primary' || source === 'line' || source === 'fallback') ? source : 'fallback';
++
++            var wrapper = document.querySelector('.member-info-photo-wrapper');
++            if (!wrapper) { return; }
++
++            wrapper.classList.remove('avatar-source-primary', 'avatar-source-line', 'avatar-source-fallback');
++            wrapper.classList.add('avatar-source-' + source);
++            wrapper.dataset.avatarSource = source;
++
++            var badge = wrapper.querySelector('.member-info-photo-source-badge');
++            if (!badge) { return; }
++
++            if (source === 'primary') {
++                badge.textContent = '\u7167\u7247';
++                badge.title = '\u4e3b\u8981\u7167\u7247';
++            } else if (source === 'line') {
++                badge.textContent = 'LINE';
++                badge.title = 'LINE \u7167\u7247';
++            } else {
++                badge.textContent = '';
++                badge.title = '\u9810\u8a2d\u526a\u5f71';
++            }
++        }
++
++        // ── 大頭照：拍照/選相片 → 立即上傳 ──
++        // 這個入口只負責打開檔案選擇器，真正的驗證與 AJAX 上傳在 memberInfoUploadPhoto 中處理。
++        window.memberInfoTriggerPhotoUpload = function () {
++            var input = document.getElementById('memberInfoPhotoInput');
++            if (input) { input.click(); }
++        };
++
++        // ── 會友細節「上傳」鈕：把手機/地址/信仰狀態/會員身分一次存回後台 ──
++        // 由共用彈窗 host 標題列左上的「上傳」鈕呼叫(全域函式)。以 DOM 的 data-contact-id 取得對象，
++        // 故同一彈窗被不同頁面重用、或切換不同會友時也不會存錯人。
++        window.memberInfoUploadFields = function () {
++            // 先從目前彈窗根節點取出 contactId，確保更新的是當前正在瀏覽的會友。
++            var root = document.querySelector('.member-info-detail[data-contact-id]');
++            var cid = root ? root.getAttribute('data-contact-id') : '';
++            if (!cid) { return; }
++
++            var phoneEl = document.getElementById('memberInfoPhone');
++            var addressEl = document.getElementById('memberInfoAddress');
++            var membershipEl = document.getElementById('memberInfoMembership');
++            var spiritualEl = document.getElementById('memberInfoSpiritual');
++
++            var data = {
++                contactId: cid,
++                phone: phoneEl ? phoneEl.value : '',
++                address: addressEl ? addressEl.value : ''
++            };
++            // 下拉留在「（未設定）」(空字串)時不送，後台即略過不動該 OptionSet。
++            // 這樣可避免使用者只是查看畫面、沒有變更時，仍不小心把原值覆寫成空值。
++            if (membershipEl && membershipEl.value !== '') { data.membershipStatusValue = membershipEl.value; }
++            if (spiritualEl && spiritualEl.value !== '') { data.spiritualIdentityValue = spiritualEl.value; }
++
++            DevExpress.ui.notify('上傳中...', 'info', 1200);
++            $.ajax({
++                url: '/MemberInfo/UpdateContactInfo',
++                type: 'POST',
++                data: data,
++                success: function (response) {
++                    if (response && response.success) {
++                        DevExpress.ui.notify(response.message || '已更新', 'success', 2000);
++                    } else {
++                        DevExpress.ui.notify((response && response.message) || '更新失敗', 'error', 4000);
++                    }
++                },
++                error: function (xhr) {
++                    var msg = (xhr && xhr.status === 403) ? '無權限變更此會友資料' : '更新失敗，請稍後再試';
++                    DevExpress.ui.notify(msg, 'error', 4000);
++                }
++            });
++        };
++
++        // 上傳成功後，立即刷新「所有已知網格」中該會友的縮圖(會友資訊 + 小組回報的小組牧養/新人跟進關懷)。
++        // 以不分大小寫比對 data-contact-id，並用各 img 自身的 id 重建網址，避免 GUID 大小寫差異造成比對不到。
++        function memberInfoRefreshGridThumb(id, version) {
++            try {
++                // 先把快取清掉，再逐一重設 src，才能確保離開彈窗後看到的是最新大頭照。
++                var lid = String(id || '').toLowerCase();
++                var v = version || Date.now();
++
++                // 清掉前端影像快取(各頁面命名不同，且 key 大小寫可能不同)，否則關閉彈窗後仍會顯示舊圖。
++                [window.memberInfoImageCache, window.contactImageCache].forEach(function (cache) {
++                    if (!cache) { return; }
++                    Object.keys(cache).forEach(function (k) {
++                        if (String(k).toLowerCase() === lid) { delete cache[k]; }
++                    });
++                });
++
++                function refreshAvatars(selector, endpoint) {
++                    $(selector).each(function () {
++                        var cid = this.dataset ? (this.dataset.contactId || '') : '';
++                        if (cid && cid.toLowerCase() === lid) {
++                            this.src = endpoint + '?contactId=' + encodeURIComponent(cid) + '&size=48&v=' + v;
++                        }
++                    });
++                }
++
++                // 會友資訊網格：縮圖來自 /MemberInfo/GetContactImage
++                refreshAvatars('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]', '/MemberInfo/GetContactImage');
++                // 小組回報頁(小組牧養/新人跟進關懷)網格：縮圖來自 /Personal/GetContactImage
++                refreshAvatars('#SmallGroupgridContainer .contact-avatar-img[data-contact-id], #NewPersonGridContainer .contact-avatar-img[data-contact-id]', '/Personal/GetContactImage');
++            } catch (e) { }
++        }
++
++        // 檔案上傳流程：先做檔案大小與格式檢查，再立即預覽，最後呼叫後端儲存並同步更新各處縮圖。
++        window.memberInfoUploadPhoto = function (input) {
++            if (!input || !input.files || input.files.length === 0) { return; }
++
++            var file = input.files[0];
++            if (file.size > 5 * 1024 * 1024) {
++                DevExpress.ui.notify('檔案過大，請選擇小於 5MB 的圖片', 'error', 3000);
++                input.value = '';
++                return;
++            }
++            if (['image/jpeg', 'image/png', 'image/gif'].indexOf(file.type) === -1) {
++                DevExpress.ui.notify('只支援 JPG、PNG、GIF 格式', 'error', 3000);
++                input.value = '';
++                return;
++            }
++
++            var photo = document.getElementById('memberInfoDetailPhoto');
++            var wrapper = photo ? photo.closest('.member-info-photo-wrapper') : null;
++
++            // 即時預覽(不等伺服器)
++            var reader = new FileReader();
++            reader.onload = function (e) { if (photo) { photo.src = e.target.result; } };
++            reader.readAsDataURL(file);
++
++            if (wrapper) { wrapper.classList.add('member-info-photo-busy'); }
++            DevExpress.ui.notify('上傳中...', 'info', 1500);
++
++            var formData = new FormData();
++            formData.append('contactId', contactId);
++            formData.append('imageFile', file);
++
++            $.ajax({
++                url: '/MemberInfo/UploadContactImage',
++                type: 'POST',
++                data: formData,
++                processData: false,
++                contentType: false,
++                success: function (response) {
++                    if (wrapper) { wrapper.classList.remove('member-info-photo-busy'); }
++                    if (response && response.success) {
++                        var version = response.imageVersion || Date.now();
++                        if (photo) {
++                            photo.src = '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(contactId) + '&size=0&v=' + version;
++                            memberInfoSetDetailAvatarSource('primary');
++                        }
++                        memberInfoRefreshGridThumb(contactId, version);
++                        DevExpress.ui.notify(response.message || '大頭照上傳成功！', 'success', 2000);
++                    } else {
++                        DevExpress.ui.notify((response && response.message) || '上傳失敗', 'error', 4000);
++                    }
++                },
++                error: function (xhr) {
++                    if (wrapper) { wrapper.classList.remove('member-info-photo-busy'); }
++                    var msg = (xhr && xhr.status === 403) ? '無權限變更此會友的大頭照' : '上傳失敗，請稍後再試';
++                    DevExpress.ui.notify(msg, 'error', 4000);
++                }
++            });
++
++            input.value = '';
++        };
++        // 依螢幕寬度切換表格的捲動策略與欄位寬度，避免手機版看起來過擁擠。
++        var isMobile = window.innerWidth <= 720;
++        // 手機使用原生水平捲動，外層 popup 內容則負責唯一的垂直捲動。
++        // 避免 simulated scrolling 和外層 touch scroll 互相搶手勢。
++        var gridScrollOptions = isMobile ? {
++            mode: 'standard',
++            scrollByContent: true,
++            scrollByThumb: true,
++            useNative: true,
++            showScrollbar: 'always'
++        } : {
++            mode: 'standard',
++            useNative: false,
++            scrollByContent: true,
++            scrollByThumb: true,
++            showScrollbar: 'onHover'
++        };
++
++        function memberInfoGridReady(e) {
++            var node = e && e.element && e.element.get ? e.element.get(0) : (e && e.element);
++            // 網格與照片載入後，若使用者尚未操作，維持畫面在頂端先看到大頭照。
++            if (window.memberInfoDetailRefreshScroll) {
++                window.memberInfoDetailRefreshScroll(node);
++            }
++        }
++
++        $('.member-info-photo').one('load', function () {
++            if (window.memberInfoDetailRefreshScroll) {
++                window.memberInfoDetailRefreshScroll(this);
++            }
++        });
++
++        // 分頁切換只在第一次點擊時初始化對應 DataGrid，減少初次開啟彈窗的負擔。
++        window.memberInfoDetailSwitch = function (tab) {
++            $('.member-info-tab').removeClass('active');
++            $('.member-info-tab[data-tab="' + tab + '"]').addClass('active');
++            $('.member-info-subgrid').removeClass('active');
++            $('#member-subgrid-' + tab + '-panel').addClass('active');
++            initMemberInfoSubGrid(tab, contactId);
++        };
++
++        // 依分頁類型分別初始化不同資料來源，並保留各自的初始化旗標避免重複建立 DataGrid。
++        window.initMemberInfoSubGrid = function (tab, id) {
++            if (tab === 'present' && !window._memberInfoSubGridInit.present) {
++                window._memberInfoSubGridInit.present = true;
++                $('#member-subgrid-present').dxDataGrid({
++                    dataSource: DevExpress.data.AspNet.createStore({
++                        key: 'PresentRecordId',
++                        loadUrl: '/MemberInfo/LoadContactPresentRecords',
++                        loadParams: { contactId: id }
++                    }),
++                    showBorders: true,
++                    showRowLines: true,
++                    showColumnLines: true,
++                    wordWrapEnabled: true,
++                    width: '100%',
++                    columnAutoWidth: false,
++                    focusStateEnabled: false,
++                    focusedRowEnabled: false,
++                    hoverStateEnabled: false,
++                    autoNavigateToFocusedRow: false,
++                    scrolling: gridScrollOptions,
++                    noDataText: '沒有資料',
++                    paging: { pageSize: 10 },
++                    onContentReady: memberInfoGridReady,
++                    columns: isMobile ? [
++                        { dataField: 'FullName', caption: '姓名', width: 96 },
++                        { dataField: 'SundayDate', caption: '主日日期', dataType: 'date', format: 'yyyy/MM/dd', width: 122 },
++                        { dataField: 'Sunday', caption: '主日', dataType: 'boolean', width: 82 },
++                        { dataField: 'SmallGroup', caption: '小組', dataType: 'boolean', width: 92 },
++                        { dataField: 'PrayItem', caption: '代禱', width: 320 }
++                    ] : [
++                        { dataField: 'FullName', caption: '姓名', width: 100 },
++                        { dataField: 'SundayDate', caption: '主日日期', dataType: 'date', format: 'yyyy/MM/dd', width: 120 },
++                        { dataField: 'Sunday', caption: '主日', dataType: 'boolean', width: 70 },
++                        { dataField: 'SmallGroup', caption: '小組', dataType: 'boolean', width: 70 },
++                        { dataField: 'PrayItem', caption: '代禱', width: 460 }
++                    ]
++                });
++            }
++
++            if (tab === 'equip' && !window._memberInfoSubGridInit.equip) {
++                window._memberInfoSubGridInit.equip = true;
++                $('#member-subgrid-equip').dxDataGrid({
++                    dataSource: DevExpress.data.AspNet.createStore({
++                        key: 'StorLessonsEntityId',
++                        loadUrl: '/MemberInfo/LoadContactStorLessons',
++                        loadParams: { contactId: id }
++                    }),
++                    showBorders: true,
++                    showRowLines: true,
++                    showColumnLines: true,
++                    wordWrapEnabled: true,
++                    width: '100%',
++                    columnAutoWidth: false,
++                    focusStateEnabled: false,
++                    focusedRowEnabled: false,
++                    hoverStateEnabled: false,
++                    autoNavigateToFocusedRow: false,
++                    scrolling: gridScrollOptions,
++                    noDataText: '沒有資料',
++                    paging: { pageSize: 10 },
++                    onContentReady: memberInfoGridReady,
++                    columns: isMobile ? [
++                        { dataField: 'DiscipleLessonsName', caption: '課程名稱', width: 240 },
++                        { dataField: 'DiscipleLessonsDateTime', caption: '日期', dataType: 'date', format: 'yyyy/MM/dd', width: 126 },
++                        { dataField: 'StageName', caption: '階段', width: 140 },
++                        { dataField: 'CurrentComplete', caption: '結業', dataType: 'boolean', width: 110 }
++                    ] : [
++                        { dataField: 'DiscipleLessonsName', caption: '課程名稱', width: 280 },
++                        { dataField: 'DiscipleLessonsDateTime', caption: '日期', dataType: 'date', format: 'yyyy/MM/dd', width: 130 },
++                        { dataField: 'StageName', caption: '階段名稱', width: 140 },
++                        { dataField: 'CurrentComplete', caption: '是否結業', dataType: 'boolean', width: 120 }
++                    ]
++                });
++            }
++        };
++
++        // 預設先載入「聚會紀錄」，讓使用者打開彈窗時立刻看到最常用的資料內容。
++        setTimeout(function () {
++            window.memberInfoDetailSwitch('present');
++        }, 180);
++    })();
++</script>

@@ -1,0 +1,578 @@
+{
+    "formatVersion":  1,
+    "kitId":  "member-info-portable-kit",
+    "source":  {
+                   "branch":  "Sunny_5.1.2.WorktreeTuneMemberView",
+                   "commit":  "2406b126e989cc980e8cada9da0e07a2ede1e08d",
+                   "documentRangeStart":  "2026-07-15"
+               },
+    "files":  [
+                  {
+                      "path":  "00-START-HERE.md",
+                      "role":  "entry_point",
+                      "bytes":  11430,
+                      "sha256":  "35719af1fa58dfc47b4eeead56dd0260ce575fe9f6b45b12ec38fa866ec8c652",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "01-INTEGRATED-SPEC.md",
+                      "role":  "integrated_spec",
+                      "bytes":  58849,
+                      "sha256":  "e20512b3772dca9c902231db3300059bc0d002a2e761adc06403be0a003738d1",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "02-DEPENDENCY-MATRIX.md",
+                      "role":  "dependency_matrix",
+                      "bytes":  30475,
+                      "sha256":  "bdf926c244d4fe9fad779c5e34a6505ceb0b9382340c342077592b062cd44504",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "03-PROMPT-HISTORY-VERBATIM.md",
+                      "role":  "prompt_history",
+                      "bytes":  17947,
+                      "sha256":  "b5bc92be4362545952f061a29cb8687a8388e3ed90cd4afc9310a50a330219de",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "04-PROMPT-PLAYBOOK.md",
+                      "role":  "prompt_playbook",
+                      "bytes":  69765,
+                      "sha256":  "f95905fa0449916cd6cd5ce1e497094bb8c9059126f834f0282bf665b8d758a3",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "05-MIGRATION-RUNBOOK.md",
+                      "role":  "migration_runbook",
+                      "bytes":  24701,
+                      "sha256":  "e640064f4faca4320dfb839224af3f980b317ace8f9f080138c76a44735f5923",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "06-ACCEPTANCE-CHECKLIST.md",
+                      "role":  "acceptance_checklist",
+                      "bytes":  19248,
+                      "sha256":  "a13b9ff0afe21c3d824f265e25e66cc2957d9fcea1833871ba9a840983301ced",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "07-PRIVACY-REDACTIONS.md",
+                      "role":  "privacy_redactions",
+                      "bytes":  8315,
+                      "sha256":  "da6aefada5297d0d1be79ae4235588d2cafa9db53f21d8001b8b7ce13ef5c414",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "authoritative-context/context.jsonl",
+                      "role":  "authoritative_context",
+                      "sourcePath":  ".ccg/tasks/archive/2026-07/implement-member-info-district-group-tree/context.jsonl",
+                      "bytes":  1851,
+                      "sha256":  "9fc1b6c92cceed85a018f7fa98c75264b3630712dda5e899de75d42d2ffb7ee2",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "authoritative-context/requirements.md",
+                      "role":  "authoritative_context",
+                      "sourcePath":  ".ccg/tasks/archive/2026-07/implement-member-info-district-group-tree/requirements.md",
+                      "bytes":  7508,
+                      "sha256":  "097839dafb468ea51c3c7f3617021f9ab9602e4efc6f49548ad09dec92ea90fe",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-plans/2026-07-15-member-info-district-group-tree.md",
+                      "role":  "original_plan",
+                      "sourcePath":  "docs/superpowers/plans/2026-07-15-member-info-district-group-tree.md",
+                      "bytes":  76393,
+                      "sha256":  "aeb918bb5088fff89ad3be5ecde9efc74a5f2319eeac4d919fcad6bb404497de",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-plans/2026-07-15-member-info-loading-animation.md",
+                      "role":  "original_plan",
+                      "sourcePath":  "docs/superpowers/plans/2026-07-15-member-info-loading-animation.md",
+                      "bytes":  4684,
+                      "sha256":  "4ccdcdaba921ff74d4e6fc5b766981fc6f8d9203b68c0b2881fb4ad39b3db543",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-plans/2026-07-16-member-detail-gender-birthdate.md",
+                      "role":  "original_plan",
+                      "sourcePath":  "docs/superpowers/plans/2026-07-16-member-detail-gender-birthdate.md",
+                      "bytes":  3322,
+                      "sha256":  "ee77990c9d53d6591997755ef7922892a06a3b416d8f5f7396132bc3aaa2fa7f",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-plans/2026-07-16-member-info-layout-search.md",
+                      "role":  "original_plan",
+                      "sourcePath":  "docs/superpowers/plans/2026-07-16-member-info-layout-search.md",
+                      "bytes":  8968,
+                      "sha256":  "33bf90ae45d6328946aa6ffc892c39141f07da0ecfb399e16e140bd438bb90f7",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-plans/2026-07-16-member-info-mobile-responsive-typography.md",
+                      "role":  "original_plan",
+                      "sourcePath":  "docs/superpowers/plans/2026-07-16-member-info-mobile-responsive-typography.md",
+                      "bytes":  6943,
+                      "sha256":  "de2b0a0ca737eaa1ade8b67e8c97116c5de7dba10191a088337063b82a1ccd13",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-plans/2026-07-16-member-info-session-comments-utf8.md",
+                      "role":  "original_plan",
+                      "sourcePath":  "docs/superpowers/plans/2026-07-16-member-info-session-comments-utf8.md",
+                      "bytes":  4581,
+                      "sha256":  "9eb9f6ee73b596c3ece09b3189bf39f5b36c77e23c435599088d0c65c07cc433",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-plans/2026-07-16-sort-unassigned-district-last.md",
+                      "role":  "original_plan",
+                      "sourcePath":  "docs/superpowers/plans/2026-07-16-sort-unassigned-district-last.md",
+                      "bytes":  3305,
+                      "sha256":  "5ba2dd1dacb8872647fc3ea2d6a8ace3cd4e359933abe038017e26e454d1620f",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-plans/2026-07-17-member-info-column-order-group-metadata.md",
+                      "role":  "original_plan",
+                      "sourcePath":  "docs/superpowers/plans/2026-07-17-member-info-column-order-group-metadata.md",
+                      "bytes":  32531,
+                      "sha256":  "276acaf00aa27bfbffcd31fd90d9fcda4b9c8d9f9cbfcf84c70901a1ec6eba32",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-plans/2026-07-17-member-info-fixed-identity-columns.md",
+                      "role":  "original_plan",
+                      "sourcePath":  "docs/superpowers/plans/2026-07-17-member-info-fixed-identity-columns.md",
+                      "bytes":  11424,
+                      "sha256":  "762ced392e64c064f0ad3cd6395dc97ce8877c11bbe030a99b2d4afe5e1b10b0",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-plans/2026-07-17-member-info-resizable-sortable-columns.md",
+                      "role":  "original_plan",
+                      "sourcePath":  "docs/superpowers/plans/2026-07-17-member-info-resizable-sortable-columns.md",
+                      "bytes":  13052,
+                      "sha256":  "4246b91131c9751179a393a76bdefb33f5a279c9f40c039f67947f5ca4e9b3cb",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-plans/2026-07-18-member-info-commitment-type-sorting.md",
+                      "role":  "original_plan",
+                      "sourcePath":  "docs/superpowers/plans/2026-07-18-member-info-commitment-type-sorting.md",
+                      "bytes":  50486,
+                      "sha256":  "56bef9a5860386913e7879e1222760fbbe368316a31ca834baa05941fd7d5765",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-specs/2026-07-15-member-info-district-group-tree-design.md",
+                      "role":  "original_spec",
+                      "sourcePath":  "docs/superpowers/specs/2026-07-15-member-info-district-group-tree-design.md",
+                      "bytes":  14393,
+                      "sha256":  "f3d8663dd482d6e34012901b2533bd4988091c7f64dc4a499286b4d98bf498a1",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-specs/2026-07-15-member-info-loading-animation-design.md",
+                      "role":  "original_spec",
+                      "sourcePath":  "docs/superpowers/specs/2026-07-15-member-info-loading-animation-design.md",
+                      "bytes":  1559,
+                      "sha256":  "981be4da1134cffae4786177f52191771e8e7846888388970583286d323b7dd0",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-specs/2026-07-16-member-detail-gender-birthdate-design.md",
+                      "role":  "original_spec",
+                      "sourcePath":  "docs/superpowers/specs/2026-07-16-member-detail-gender-birthdate-design.md",
+                      "bytes":  1591,
+                      "sha256":  "f58bd297be8edab1590330d3e1418ba7976d7e6bbceb3331b2a6c2bfbd6fa067",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-specs/2026-07-16-member-info-layout-search-design.md",
+                      "role":  "original_spec",
+                      "sourcePath":  "docs/superpowers/specs/2026-07-16-member-info-layout-search-design.md",
+                      "bytes":  3462,
+                      "sha256":  "b6ec0a63ea4982813f4d6d81b0fb876e68c60608dd8be8ffba93f37a7d1fff70",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-specs/2026-07-16-member-info-mobile-responsive-typography-design.md",
+                      "role":  "original_spec",
+                      "sourcePath":  "docs/superpowers/specs/2026-07-16-member-info-mobile-responsive-typography-design.md",
+                      "bytes":  5014,
+                      "sha256":  "b3a0e26c8a76482da3ef72ab87616eafe10f333abb759d20b6fd7e9ec9a31ab4",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-specs/2026-07-16-member-info-session-comments-utf8-design.md",
+                      "role":  "original_spec",
+                      "sourcePath":  "docs/superpowers/specs/2026-07-16-member-info-session-comments-utf8-design.md",
+                      "bytes":  3077,
+                      "sha256":  "aceb422a89e4f34b7e4c2d7c055fb5acd27516efa3c58b13c29bb28bdd262497",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-specs/2026-07-16-sort-unassigned-district-last-design.md",
+                      "role":  "original_spec",
+                      "sourcePath":  "docs/superpowers/specs/2026-07-16-sort-unassigned-district-last-design.md",
+                      "bytes":  1698,
+                      "sha256":  "ef6f00858cf085db0ab7134321d21fab19ebfd7eb4ea725ee71a4831800e1516",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-specs/2026-07-17-member-info-column-order-group-metadata-design.md",
+                      "role":  "original_spec",
+                      "sourcePath":  "docs/superpowers/specs/2026-07-17-member-info-column-order-group-metadata-design.md",
+                      "bytes":  10309,
+                      "sha256":  "2f7b3d58f891f1c64933d96b8463dd9705b5eaffa157c2d95d360e5f234354af",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-specs/2026-07-17-member-info-fixed-identity-columns-design.md",
+                      "role":  "original_spec",
+                      "sourcePath":  "docs/superpowers/specs/2026-07-17-member-info-fixed-identity-columns-design.md",
+                      "bytes":  5386,
+                      "sha256":  "978dbca18e5af2f4f44083d97eeb2fced566d54ea403a29699b8b9772ec15c5a",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-specs/2026-07-17-member-info-resizable-sortable-columns-design.md",
+                      "role":  "original_spec",
+                      "sourcePath":  "docs/superpowers/specs/2026-07-17-member-info-resizable-sortable-columns-design.md",
+                      "bytes":  8409,
+                      "sha256":  "f15788ac0060f0776a34c022fe96e740328cf26421063cb94032298d9714541d",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "original-specs/2026-07-18-member-info-commitment-type-sorting-design.md",
+                      "role":  "original_spec",
+                      "sourcePath":  "docs/superpowers/specs/2026-07-18-member-info-commitment-type-sorting-design.md",
+                      "bytes":  8165,
+                      "sha256":  "704cbc6b08f4e63c0ab8bf70ef52f2c43523080774b352c49e42f379a6850f04",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/README.md",
+                      "role":  "reference_documentation",
+                      "bytes":  13436,
+                      "sha256":  "c2f38e69336d8c1e1bec2e036077be9c4f9d0f9bda76ca4392e9550795915204",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/Services/ContactAvatar/ContactAvatarUrl.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/Services/ContactAvatar/ContactAvatarUrl.cs",
+                      "bytes":  724,
+                      "sha256":  "6a4880e1c7e6a5fb3ad05e6d9c57d42bd3f4b4e23bca353c5f4637b9e9c4c4fe",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/Services/ContactAvatar/DefaultAvatarSvg.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/Services/ContactAvatar/DefaultAvatarSvg.cs",
+                      "bytes":  2766,
+                      "sha256":  "0a21dceace2fd0fb86f428a041ac08c67ee55597102e54d4655bcd90fe1fff84",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/DistrictTreeBuilder.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/Services/MemberInfo/DistrictTreeBuilder.cs",
+                      "bytes":  7403,
+                      "sha256":  "e0ade55eaa70ad0a6f64d2ebd8e17d6aa3c02532660adc251afd8a7c6c569500",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/DistrictTreeInputs.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/Services/MemberInfo/DistrictTreeInputs.cs",
+                      "bytes":  814,
+                      "sha256":  "c389db6833ab3ee4d87284f034886725c42bb1a4696389a12e5bb4a6108691ba",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/MemberInfoAccess.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/Services/MemberInfo/MemberInfoAccess.cs",
+                      "bytes":  217,
+                      "sha256":  "973dc70860ab21907868ee655095b65478eef7ebd9ac3a3c5b212154bf5af08f",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/MemberInfoAccessResolver.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/Services/MemberInfo/MemberInfoAccessResolver.cs",
+                      "bytes":  1232,
+                      "sha256":  "ff06dae29ece2c2d74a6260b65845c280c399728d5057ee9fbee2a512af9d7a4",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeCountQuery.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeCountQuery.cs",
+                      "bytes":  4205,
+                      "sha256":  "48746baa2379db90ee51219ba140bbfbd425718674a33a53b3f4112ea4cc5a97",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeMetadataProvider.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeMetadataProvider.cs",
+                      "bytes":  4553,
+                      "sha256":  "e8d5165b4fe48d13272fee9a6d0c2f63d0b54af9ac54e782fe876a9a63c6a834",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeSort.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeSort.cs",
+                      "bytes":  7133,
+                      "sha256":  "980bfa2bb115f9e0503be78d3e595cc3dcf73c06e8eebf7d0528f089d4ba6303",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/MemberInfoCurrentContactCounter.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/Services/MemberInfo/MemberInfoCurrentContactCounter.cs",
+                      "bytes":  1615,
+                      "sha256":  "41cb6f33aa78c76521cb9de32d97a30cc8f5f2716b73ae82ebd57cb95da60eb4",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/MemberInfoScopeGuard.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/Services/MemberInfo/MemberInfoScopeGuard.cs",
+                      "bytes":  1986,
+                      "sha256":  "ced9469a1e27668de899c1483b0df8629da05b922ab732057056c108ed26283d",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs",
+                      "bytes":  2915,
+                      "sha256":  "08cab1abe638cdcc9d244b475bb8e255a294d1283564fa11a6000d2172627d83",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/Services/MemberInfo/RelationGoalFormatter.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/Services/MemberInfo/RelationGoalFormatter.cs",
+                      "bytes":  1097,
+                      "sha256":  "2254e6442e7971d65aa15238b369b748f8ead02f31eae190007a1f6ca9e9e3bf",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/ViewModels/MemberInfoDetailViewModel.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/ViewModels/MemberInfoDetailViewModel.cs",
+                      "bytes":  2025,
+                      "sha256":  "581e675435dc0f65b84ad0f91196c93ada3153e946d7a148146503ea4229c510",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/feature-files/ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs",
+                      "role":  "reference_source",
+                      "sourcePath":  "ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs",
+                      "bytes":  3506,
+                      "sha256":  "c36ea1a53a305bc666e60c507283b84d1857cb1dedf46a9bd965096541a62298",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/host-integration/01-photo-prerequisite.patch",
+                      "role":  "host_patch",
+                      "bytes":  189018,
+                      "sha256":  "fd8c5c3e1675d851a82a533f85d894b3b0238fbb0782fea72f5e9987b2ce5dc3",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/host-integration/02-member-info-2026-07-15-plus.patch",
+                      "role":  "host_patch",
+                      "bytes":  183706,
+                      "sha256":  "04c97201b1943a86ff2a4fe709143b2180f8118b77a3c045200dffba5b82c176",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/host-integration/03-member-info-fixed-identity-columns.patch",
+                      "role":  "host_patch",
+                      "bytes":  9205,
+                      "sha256":  "22f255a24af0958c34d55d58be55b1c8d2675c1f365225605fc6dbc53213d312",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/host-integration/04-member-info-resizable-sortable-columns.patch",
+                      "role":  "host_patch",
+                      "bytes":  4324,
+                      "sha256":  "a1a478ed967326e7b3a11977a6e2e84baac21202486d4070e5b1ca0f3f856b64",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/host-integration/05-member-info-column-order-group-metadata.patch",
+                      "role":  "host_patch",
+                      "bytes":  26879,
+                      "sha256":  "56890aeadf06daaa4dd7424ef4aec69f5c2063fd8558981eb398affbcdd68b3b",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/host-integration/06-member-info-commitment-type-metadata-order.patch",
+                      "role":  "host_patch",
+                      "bytes":  73066,
+                      "sha256":  "45b86e0185329b8db94129f3a1296b426d6c61be90c476e0bfca192c4e611240",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/host-integration/SOURCE-MAP.md",
+                      "role":  "reference_documentation",
+                      "bytes":  25116,
+                      "sha256":  "2fef7bde4f72b79734a1469033df32c2ee3a6b5bac2d2bd97d47fc5e6bc4ad12",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj",
+                      "bytes":  1000,
+                      "sha256":  "fbb84198427b35c85661d3cc97289444cf03a3fc9e6abe6d1b6b5fe2ef4bd219",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/DefaultAvatarSvgTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/DefaultAvatarSvgTests.cs",
+                      "bytes":  935,
+                      "sha256":  "c94ca5eb20a5e2ff540804bdcfc2df89979a8e0758ac74f979c52251ab03b184",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/DistrictTreeBuilderTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/DistrictTreeBuilderTests.cs",
+                      "bytes":  9050,
+                      "sha256":  "c3eff05c59e13938faf27372c42a6f4ceed49c5b93e416a7dc0bb15009650ba9",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoAccessResolverTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoAccessResolverTests.cs",
+                      "bytes":  1328,
+                      "sha256":  "d5dd87f11a89e1aded71485ffd9cc9398303220f979d2b32401ecddfbe652a94",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeCountQueryTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeCountQueryTests.cs",
+                      "bytes":  3643,
+                      "sha256":  "385e5f5b6d8bb4995834bfa59cac5a5295d61c304314811059e0b6ddace52eb9",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeMetadataProviderTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeMetadataProviderTests.cs",
+                      "bytes":  5307,
+                      "sha256":  "205317760b5751cc851034d22c6eaa6a77889ec2c9595f195d66d1bbeffae977",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeSortTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeSortTests.cs",
+                      "bytes":  6303,
+                      "sha256":  "1c4c20782fc9d73c0522164d02e25cd0fe46ce4e34c2c1d71c27bd1300a2bfbe",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoCurrentContactCounterTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoCurrentContactCounterTests.cs",
+                      "bytes":  2561,
+                      "sha256":  "a170f347d436303df8ad9204220abdfa13e92909abea31eef38af7160befc623",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoDetailContractTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoDetailContractTests.cs",
+                      "bytes":  3880,
+                      "sha256":  "1cd8b390172c1a5f294b388159a3f3e50ff511931722d0178f25ed67e5c33e3c",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardListTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardListTests.cs",
+                      "bytes":  1385,
+                      "sha256":  "462e0aa5672cb49325d5839d4172b94badcf8923072b67047557f8034f68bcba",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardTests.cs",
+                      "bytes":  1525,
+                      "sha256":  "0e9853f968e56941e8920ae562f074ea58cc30f60cb3be60132a8ce299152d6e",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs",
+                      "bytes":  8719,
+                      "sha256":  "c31c47b0d915d0047f75a56300ec8451dd64d4c07acf13eb8ba292674e6430ce",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoTreeSearchBuilderTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoTreeSearchBuilderTests.cs",
+                      "bytes":  3581,
+                      "sha256":  "a365b2f0f41184bd042c5339685fa44c920526c6b6eb4f29a1148123a6b993d5",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs",
+                      "bytes":  25983,
+                      "sha256":  "ed638c2554a479deecb31779dbc5ebebfebd8944b2ba8bc805357e5403528483",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/RelationGoalFormatterTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/RelationGoalFormatterTests.cs",
+                      "bytes":  1209,
+                      "sha256":  "fd8f4db5e615376663e2af85a845f00c3062221510a7ee76dc32db979601dffc",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/SanityTest.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/SanityTest.cs",
+                      "bytes":  212,
+                      "sha256":  "90d227675385b14a72d25944ebb7f5add93ba421f7b6d3931ae379434d79358d",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "reference-implementation/tests/ChurchReport.MemberInfo.Tests/StaticRequestPathHelperTests.cs",
+                      "role":  "reference_test",
+                      "sourcePath":  "ChurchReport.MemberInfo.Tests/StaticRequestPathHelperTests.cs",
+                      "bytes":  3293,
+                      "sha256":  "1755dde761092752416daf55364db5bcb2e8f2e0bf0a35a76376c13190d68920",
+                      "utf8":  true
+                  },
+                  {
+                      "path":  "verify-package.ps1",
+                      "role":  "verifier",
+                      "bytes":  40119,
+                      "sha256":  "bf522d4fea4dfc7a5e6fb3106f1f54698e260d773f08ee7f9109db81b53ab621",
+                      "utf8":  true
+                  }
+              ]
+}

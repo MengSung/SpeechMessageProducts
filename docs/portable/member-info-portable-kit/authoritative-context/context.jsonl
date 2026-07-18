@@ -1,0 +1,16 @@
+{"path":"docs/superpowers/specs/2026-07-15-member-info-district-group-tree-design.md","role":"authoritative_design"}
+{"path":"docs/superpowers/plans/2026-07-15-member-info-district-group-tree.md","role":"original_plan_with_corrected_gaps"}
+{"path":"ChurchReport/Controllers/MemberInfoController.cs","role":"crm_io_actions_security_cache"}
+{"path":"ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml","role":"tree_ui_avatar_popup_resync"}
+{"path":"ChurchReport/Views/MemberInfo/_MemberDetailPopup.cshtml","role":"avatar_refresh_after_upload"}
+{"path":"ChurchReport/Services/MemberInfo/MemberInfoScopeGuard.cs","role":"scope_guard_pattern"}
+{"path":"ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj","role":"test_project"}
+{"path":"ChurchReport/Startup.cs","line":400,"role":"pascal_case_serializer_contract"}
+{"path":"docs/superpowers/specs/2026-07-18-member-info-commitment-type-sorting-design.md","role":"authoritative_commitment_type_sort_design"}
+{"path":"docs/superpowers/plans/2026-07-18-member-info-commitment-type-sorting.md","role":"commitment_type_sort_implementation_plan"}
+{"path":"ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeMetadataProvider.cs","role":"configured_options_metadata_rank_cache"}
+{"path":"ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeSort.cs","role":"configured_unknown_empty_sort_and_slices"}
+{"path":"ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeCountQuery.cs","role":"filtered_aggregate_value_counts"}
+{"path":"ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs","role":"authorized_search_rows_metadata_sort"}
+{"path":"ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs","role":"member_row_rank_and_has_value_contract"}
+{"path":"ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeSortTests.cs","role":"metadata_sort_regression_tests"}

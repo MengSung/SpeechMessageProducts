@@ -1,0 +1,1655 @@
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeCountQueryTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeCountQueryTests.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..9f15f4d95ca3815ded0f16ac6c132e02a7da0044
+--- /dev/null
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeCountQueryTests.cs
+@@ -0,0 +1,104 @@
++using ChurchReport.Services.MemberInfo;
++using FluentAssertions;
++using Microsoft.Xrm.Sdk;
++using System.Xml;
++using System.Xml.Linq;
++using Xunit;
++
++namespace ChurchReport.MemberInfo.Tests;
++
++public class MemberInfoCommitmentTypeCountQueryTests
++{
++    [Fact]
++    public void CreateValueCountsFetch_PreservesFiltersAndAddsGroupedAggregate()
++    {
++        const string fetch =
++            "<fetch mapping='logical' page='2' count='50' returntotalrecordcount='true'>" +
++            "<entity name='contact'>" +
++            "<attribute name='contactid'/>" +
++            "<attribute name='fullname'/>" +
++            "<order attribute='fullname'/>" +
++            "<filter><condition attribute='statecode' operator='eq' value='0'/></filter>" +
++            "</entity></fetch>";
++
++        var result = MemberInfoCommitmentTypeCountQuery.CreateValueCountsFetch(fetch);
++        var document = XDocument.Parse(result);
++
++        document.Root.Should().NotBeNull();
++        document.Root!.Attribute("aggregate")?.Value.Should().Be("true");
++        document.Root.Attribute("page").Should().BeNull();
++        document.Root.Attribute("count").Should().BeNull();
++        document.Root.Attribute("returntotalrecordcount").Should().BeNull();
++        document.Descendants("condition").Should().ContainSingle();
++        document.Descendants("order").Should().BeEmpty();
++        document.Descendants("attribute")
++            .Single(node => node.Attribute("alias")?.Value == "commitmenttype")
++            .Attribute("groupby")?.Value.Should().Be("true");
++        document.Descendants("attribute")
++            .Single(node => node.Attribute("alias")?.Value == "rowcount")
++            .Attribute("aggregate")?.Value.Should().Be("countcolumn");
++    }
++
++    [Fact]
++    public void ReadValueCounts_HandlesOptionSetAndIntegerAliases()
++    {
++        var rows = new EntityCollection();
++        rows.Entities.Add(AggregateRow(new OptionSetValue(100000006), 7));
++        rows.Entities.Add(AggregateRow(1, 11));
++
++        var result = MemberInfoCommitmentTypeCountQuery.ReadValueCounts(rows);
++
++        result.Should().BeEquivalentTo(new Dictionary<int, int>
++        {
++            [100000006] = 7,
++            [1] = 11
++        });
++    }
++
++    [Fact]
++    public void ReadValueCounts_SkipsMissingAliasesAndSumsDuplicateValues()
++    {
++        var rows = new EntityCollection();
++        rows.Entities.Add(AggregateRow(new OptionSetValue(1), 2L));
++        rows.Entities.Add(AggregateRow(1, 3m));
++        rows.Entities.Add(new Entity("contact"));
++
++        var result = MemberInfoCommitmentTypeCountQuery.ReadValueCounts(rows);
++
++        result.Should().ContainSingle();
++        result[1].Should().Be(5);
++    }
++
++    [Fact]
++    public void ReadValueCounts_NullRowsReturnsEmptyDictionary()
++    {
++        MemberInfoCommitmentTypeCountQuery.ReadValueCounts(null)
++            .Should().BeEmpty();
++    }
++
++    [Fact]
++    public void CreateValueCountsFetch_BlankXmlThrowsArgumentException()
++    {
++        var act = () => MemberInfoCommitmentTypeCountQuery.CreateValueCountsFetch(" ");
++
++        act.Should().Throw<ArgumentException>();
++    }
++
++    [Fact]
++    public void CreateValueCountsFetch_MalformedXmlThrowsXmlException()
++    {
++        var act = () => MemberInfoCommitmentTypeCountQuery.CreateValueCountsFetch("<fetch>");
++
++        act.Should().Throw<XmlException>();
++    }
++
++    private static Entity AggregateRow(object value, object count)
++    {
++        var row = new Entity("contact");
++        row["commitmenttype"] =
++            new AliasedValue("contact", "customertypecode", value);
++        row["rowcount"] =
++            new AliasedValue("contact", "contactid", count);
++        return row;
++    }
++}
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeMetadataProviderTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeMetadataProviderTests.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..8a39f1e72196db402cef295526b533cf4b29a544
+--- /dev/null
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeMetadataProviderTests.cs
+@@ -0,0 +1,150 @@
++using ChurchReport.Services.MemberInfo;
++using FluentAssertions;
++using Microsoft.Extensions.Caching.Memory;
++using Microsoft.Xrm.Sdk;
++using Microsoft.Xrm.Sdk.Messages;
++using Microsoft.Xrm.Sdk.Metadata;
++using Microsoft.Xrm.Sdk.Query;
++using Xunit;
++
++namespace ChurchReport.MemberInfo.Tests;
++
++public class MemberInfoCommitmentTypeMetadataProviderTests
++{
++    [Fact]
++    public void GetOptions_PreservesConfiguredOrderInsteadOfNumericValueOrder()
++    {
++        var service = new RecordingOrganizationService(Metadata(
++            (100000006, "牧師師母"),
++            (1, "小組組員"),
++            (100000000, "新朋友")));
++        using var cache = new MemoryCache(new MemoryCacheOptions());
++        var provider = new MemberInfoCommitmentTypeMetadataProvider(service, cache);
++
++        var options = provider.GetOptions();
++
++        options.Select(option => option.Value)
++            .Should().Equal(100000006, 1, 100000000);
++        options.Select(option => option.Order)
++            .Should().Equal(0, 1, 2);
++        options[0].Label.Should().Be("牧師師母");
++    }
++
++    [Fact]
++    public void GetOptions_UsesSharedCacheAfterFirstMetadataRequest()
++    {
++        var service = new RecordingOrganizationService(Metadata(
++            (100000006, "牧師師母"),
++            (1, "小組組員")));
++        using var cache = new MemoryCache(new MemoryCacheOptions());
++        var provider = new MemberInfoCommitmentTypeMetadataProvider(service, cache);
++
++        provider.GetOptions();
++        provider.GetOptions();
++
++        service.ExecuteCalls.Should().Be(1);
++    }
++
++    [Fact]
++    public void GetOptions_SkipsOptionWithoutValue()
++    {
++        var metadata = Metadata((100000006, "牧師師母"));
++        metadata.OptionSet.Options.Add(new OptionMetadata(
++            new Label("沒有值", 1028),
++            null));
++        using var cache = new MemoryCache(new MemoryCacheOptions());
++
++        var options = new MemberInfoCommitmentTypeMetadataProvider(
++                new RecordingOrganizationService(metadata),
++                cache)
++            .GetOptions();
++
++        options.Should().ContainSingle();
++        options[0].Value.Should().Be(100000006);
++    }
++
++    [Fact]
++    public void GetOptions_MetadataFailureReturnsEmptyWithoutThrowing()
++    {
++        var service = new RecordingOrganizationService(
++            Metadata((100000006, "牧師師母")),
++            throwOnExecute: true);
++        using var cache = new MemoryCache(new MemoryCacheOptions());
++        var provider = new MemberInfoCommitmentTypeMetadataProvider(service, cache);
++
++        var act = () => provider.GetOptions();
++
++        act.Should().NotThrow();
++        act().Should().BeEmpty();
++        provider.GetOptions().Should().BeEmpty();
++        service.ExecuteCalls.Should().Be(1, "短暫失敗也應快取，避免每個表格重複打 metadata API");
++    }
++
++    private static PicklistAttributeMetadata Metadata(
++        params (int Value, string Label)[] options)
++    {
++        var collection = new OptionMetadataCollection();
++        foreach (var option in options)
++        {
++            collection.Add(new OptionMetadata(
++                new Label(option.Label, 1028),
++                option.Value));
++        }
++
++        return new PicklistAttributeMetadata
++        {
++            LogicalName = "customertypecode",
++            OptionSet = new OptionSetMetadata(collection)
++        };
++    }
++
++    private sealed class RecordingOrganizationService : IOrganizationService
++    {
++        private readonly AttributeMetadata metadata;
++        private readonly bool throwOnExecute;
++
++        public RecordingOrganizationService(
++            AttributeMetadata metadata,
++            bool throwOnExecute = false)
++        {
++            this.metadata = metadata;
++            this.throwOnExecute = throwOnExecute;
++        }
++
++        public int ExecuteCalls { get; private set; }
++
++        public OrganizationResponse Execute(OrganizationRequest request)
++        {
++            ExecuteCalls++;
++            request.Should().BeOfType<RetrieveAttributeRequest>();
++            if (throwOnExecute)
++            {
++                throw new InvalidOperationException("metadata unavailable");
++            }
++
++            var response = new RetrieveAttributeResponse();
++            response.Results["AttributeMetadata"] = metadata;
++            return response;
++        }
++
++        public Guid Create(Entity entity) => throw new NotSupportedException();
++        public void Update(Entity entity) => throw new NotSupportedException();
++        public void Delete(string entityName, Guid id) => throw new NotSupportedException();
++        public Entity Retrieve(
++            string entityName,
++            Guid id,
++            ColumnSet columnSet) => throw new NotSupportedException();
++        public EntityCollection RetrieveMultiple(
++            QueryBase query) => throw new NotSupportedException();
++        public void Associate(
++            string entityName,
++            Guid entityId,
++            Relationship relationship,
++            EntityReferenceCollection relatedEntities) => throw new NotSupportedException();
++        public void Disassociate(
++            string entityName,
++            Guid entityId,
++            Relationship relationship,
++            EntityReferenceCollection relatedEntities) => throw new NotSupportedException();
++    }
++}
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeSortTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeSortTests.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..54fbf360aa9a304ee521728737cb206d80264bdc
+--- /dev/null
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoCommitmentTypeSortTests.cs
+@@ -0,0 +1,195 @@
++using ChurchReport.Services.MemberInfo;
++using ChurchReport.ViewModels.MemberInfoTree;
++using FluentAssertions;
++using Xunit;
++
++namespace ChurchReport.MemberInfo.Tests;
++
++public class MemberInfoCommitmentTypeSortTests
++{
++    [Fact]
++    public void OrderRows_Ascending_UsesConfiguredRankThenUnknownThenEmpty()
++    {
++        var rows = new[]
++        {
++            Row("empty", "Empty", null, false),
++            Row("member", "Member", 1, true),
++            Row("pastor", "Pastor", 0, true),
++            Row("unknown", "Unknown", null, true)
++        };
++
++        var result = MemberInfoCommitmentTypeSort.OrderRows(rows);
++
++        MemberInfoCommitmentTypeSort.Selector.Should().Be("MembershipStatusOrder");
++        result.Select(row => row.ContactId)
++            .Should().Equal("pastor", "member", "unknown", "empty");
++    }
++
++    [Fact]
++    public void OrderRows_Descending_ReversesConfiguredRanksOnly()
++    {
++        var rows = new[]
++        {
++            Row("empty", "Empty", null, false),
++            Row("pastor", "Pastor", 0, true),
++            Row("member", "Member", 1, true),
++            Row("unknown", "Unknown", null, true)
++        };
++
++        var result = MemberInfoCommitmentTypeSort.OrderRows(rows, descending: true);
++
++        result.Select(row => row.ContactId)
++            .Should().Equal("member", "pastor", "unknown", "empty");
++    }
++
++    [Fact]
++    public void OrderRows_SameRankUsesOrdinalNameThenCaseInsensitiveContactId()
++    {
++        var rows = new[]
++        {
++            Row("z-id", "alpha", 0, true),
++            Row("B-id", "Same", 0, true),
++            Row("a-id", "Same", 0, true),
++            Row("beta", "Beta", 0, true)
++        };
++
++        var result = MemberInfoCommitmentTypeSort.OrderRows(rows);
++
++        result.Select(row => row.ContactId)
++            .Should().Equal("beta", "a-id", "B-id", "z-id");
++    }
++
++    [Fact]
++    public void OrderRows_NullInputReturnsEmptyList()
++    {
++        MemberInfoCommitmentTypeSort.OrderRows(null).Should().BeEmpty();
++    }
++
++    [Fact]
++    public void BuildSegments_UsesConfiguredSequenceAndKeepsUnknownAndEmptyLast()
++    {
++        var counts = new Dictionary<int, int>
++        {
++            [100000006] = 2,
++            [1] = 3,
++            [777] = 4
++        };
++
++        var result = MemberInfoCommitmentTypeSort.BuildSegments(
++            new[] { 100000006, 100000002, 1 },
++            counts,
++            nullCount: 1,
++            descending: false);
++
++        result.Should().Equal(
++            new MemberInfoCommitmentTypeSegment(
++                MemberInfoCommitmentTypeSegmentKind.Configured, 100000006, 2),
++            new MemberInfoCommitmentTypeSegment(
++                MemberInfoCommitmentTypeSegmentKind.Configured, 1, 3),
++            new MemberInfoCommitmentTypeSegment(
++                MemberInfoCommitmentTypeSegmentKind.Unknown, null, 4),
++            new MemberInfoCommitmentTypeSegment(
++                MemberInfoCommitmentTypeSegmentKind.Empty, null, 1));
++    }
++
++    [Fact]
++    public void BuildSegments_DescendingReversesOnlyConfiguredSegments()
++    {
++        var counts = new Dictionary<int, int>
++        {
++            [100000006] = 2,
++            [1] = 3,
++            [777] = 4
++        };
++
++        var result = MemberInfoCommitmentTypeSort.BuildSegments(
++            new[] { 100000006, 1 },
++            counts,
++            nullCount: 1,
++            descending: true);
++
++        result.Select(segment => segment.Kind).Should().Equal(
++            MemberInfoCommitmentTypeSegmentKind.Configured,
++            MemberInfoCommitmentTypeSegmentKind.Configured,
++            MemberInfoCommitmentTypeSegmentKind.Unknown,
++            MemberInfoCommitmentTypeSegmentKind.Empty);
++        result.Select(segment => segment.Value)
++            .Should().Equal(1, 100000006, null, null);
++    }
++
++    [Fact]
++    public void BuildSegments_DeduplicatesConfiguredValuesAndClampsCounts()
++    {
++        var counts = new Dictionary<int, int>
++        {
++            [100000006] = -2,
++            [1] = 3,
++            [2] = 0,
++            [777] = 4,
++            [888] = -5
++        };
++
++        var result = MemberInfoCommitmentTypeSort.BuildSegments(
++            new[] { 100000006, 1, 100000006, 2 },
++            counts,
++            nullCount: -1);
++
++        result.Should().Equal(
++            new MemberInfoCommitmentTypeSegment(
++                MemberInfoCommitmentTypeSegmentKind.Configured, 1, 3),
++            new MemberInfoCommitmentTypeSegment(
++                MemberInfoCommitmentTypeSegmentKind.Unknown, null, 4));
++    }
++
++    [Fact]
++    public void PlanSlices_CrossesConfiguredUnknownAndEmptySegments()
++    {
++        var segments = new[]
++        {
++            new MemberInfoCommitmentTypeSegment(
++                MemberInfoCommitmentTypeSegmentKind.Configured, 100000006, 3),
++            new MemberInfoCommitmentTypeSegment(
++                MemberInfoCommitmentTypeSegmentKind.Unknown, null, 2),
++            new MemberInfoCommitmentTypeSegment(
++                MemberInfoCommitmentTypeSegmentKind.Empty, null, 4)
++        };
++
++        var result = MemberInfoCommitmentTypeSort.PlanSlices(2, 5, segments);
++
++        result.Should().Equal(
++            new MemberInfoCommitmentTypeSlice(
++                MemberInfoCommitmentTypeSegmentKind.Configured, 100000006, 2, 1),
++            new MemberInfoCommitmentTypeSlice(
++                MemberInfoCommitmentTypeSegmentKind.Unknown, null, 0, 2),
++            new MemberInfoCommitmentTypeSlice(
++                MemberInfoCommitmentTypeSegmentKind.Empty, null, 0, 2));
++    }
++
++    [Theory]
++    [InlineData(-10, 0)]
++    [InlineData(0, -5)]
++    [InlineData(20, 5)]
++    public void PlanSlices_EmptyOrOutOfRangeRequestReturnsNoSlices(int skip, int take)
++    {
++        var segments = new[]
++        {
++            new MemberInfoCommitmentTypeSegment(
++                MemberInfoCommitmentTypeSegmentKind.Configured, 1, 10)
++        };
++
++        MemberInfoCommitmentTypeSort.PlanSlices(skip, take, segments)
++            .Should().BeEmpty();
++    }
++
++    private static GroupMemberRowViewModel Row(
++        string contactId,
++        string fullName,
++        int? membershipStatusOrder,
++        bool hasMembershipStatusValue) => new()
++    {
++        ContactId = contactId,
++        FullName = fullName,
++        MembershipStatusOrder = membershipStatusOrder,
++        HasMembershipStatusValue = hasMembershipStatusValue
++    };
++}
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs
+index d1d5b6d82ad96fb5afbef305cf93ddab6f946dbb..c199446db49264398518df91ff0d64394704e0e5 100644
+--- a/ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs
+@@ -67,6 +67,59 @@ public class MemberInfoTreeControllerContractTests
+         Source.Should().NotContain("Goal = relation.Goals");
+     }
+ 
++    [Fact]
++    public void Controller_MapsConfiguredCommitmentOrderWithoutExposingRawSortValue()
++    {
++        Source.Should().Contain("MemberInfoCommitmentTypeMetadataProvider");
++        Source.Should().Contain("MemberInfoCommitmentTypeSort.OrderRows(");
++
++        // 只檢查會友表格 DTO 的 mapper；詳細彈窗仍合法保留 MembershipStatusValue 供下拉選單預選。
++        // 以行首 regex 辨識真正的屬性指派，避免誤把 HasMembershipStatusValue 視為 raw 欄位。
++        var memberRows = Slice(
++            "private List<GroupMemberRowViewModel> BuildMemberRows(",
++            "private static string ResolveOptionSetText(");
++        memberRows.Should().Contain("var membershipStatusValue =");
++        memberRows.Should().Contain(
++            "contact.GetAttributeValue<OptionSetValue>(\"customertypecode\")?.Value");
++        memberRows.Should().Contain("MembershipStatusOrder = commitmentOption?.Order");
++        memberRows.Should().Contain("HasMembershipStatusValue = membershipStatusValue.HasValue");
++        memberRows.Should().NotMatchRegex(@"(?m)^\s*MembershipStatusValue\s*=");
++    }
++
++    [Fact]
++    public void Controller_UsesConfiguredSegmentsBeforeUngroupedPaging()
++    {
++        Source.Should().Contain("QueryExpressionToFetchXmlRequest");
++        Source.Should().Contain("MemberInfoCommitmentTypeCountQuery.CreateValueCountsFetch");
++        Source.Should().Contain("MemberInfoCommitmentTypeCountQuery.ReadValueCounts");
++        Source.Should().Contain("TryGetCommitmentTypeSort(");
++        Source.Should().Contain("LoadUngroupedCommitmentTypePage(");
++        Source.Should().Contain("MemberInfoCommitmentTypeSort.BuildSegments(");
++        Source.Should().Contain("MemberInfoCommitmentTypeSort.PlanSlices(");
++        Source.Should().NotContain("EnableRawChoiceOrdering");
++        Source.Should().NotContain("useraworderby");
++
++        var segmentQuery = Slice(
++            "private QueryExpression BuildUngroupedCommitmentSegmentQuery(",
++            "private int CountUngroupedEmptyCommitmentSegment(");
++        segmentQuery.Should().Contain("MemberInfoCommitmentTypeSegmentKind.Configured");
++        segmentQuery.Should().Contain("ConditionOperator.Equal");
++        segmentQuery.Should().Contain("ConditionOperator.NotNull");
++        segmentQuery.Should().Contain("ConditionOperator.NotIn");
++        segmentQuery.Should().Contain("ConditionOperator.Null");
++        segmentQuery.Should().NotMatchRegex("query\\.AddOrder\\(\\s*\"customertypecode\"");
++        segmentQuery.Should().Contain("query.AddOrder(\"fullname\", OrderType.Ascending)");
++        segmentQuery.Should().Contain("query.AddOrder(\"contactid\", OrderType.Ascending)");
++        Source.Should().NotContain("rawChoiceOrder");
++
++        var mapper = Slice(
++            "private static string MapUngroupedSortAttribute(",
++            "private Dictionary<Guid, string> BatchRelationGoals(");
++        mapper.Should().NotContain("MembershipStatus\", StringComparison.OrdinalIgnoreCase)) return \"customertypecode\"");
++        mapper.Should().NotContain("return \"MembershipStatusValue\"");
++        mapper.Should().NotContain("return \"MembershipStatusOrder\"");
++    }
++
+     [Fact]
+     public void Controller_LoadsAndMapsSmallGroupTimeAndPlace()
+     {
+@@ -104,4 +157,13 @@ public class MemberInfoTreeControllerContractTests
+         return directory?.FullName
+             ?? throw new DirectoryNotFoundException("Could not locate ChurchReport.sln from test output directory.");
+     }
++
++    private static string Slice(string startMarker, string endMarker)
++    {
++        var start = Source.IndexOf(startMarker, StringComparison.Ordinal);
++        var end = Source.IndexOf(endMarker, start, StringComparison.Ordinal);
++        start.Should().BeGreaterThanOrEqualTo(0);
++        end.Should().BeGreaterThan(start);
++        return Source[start..end];
++    }
+ }
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoTreeSearchBuilderTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoTreeSearchBuilderTests.cs
+index 751e9d084b00206c5ed3d73711569aa79bd0b958..c30cf4c2fc40970214c95e8d22df28e0c702d751 100644
+--- a/ChurchReport.MemberInfo.Tests/MemberInfoTreeSearchBuilderTests.cs
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoTreeSearchBuilderTests.cs
+@@ -48,18 +48,18 @@ public class MemberInfoTreeSearchBuilderTests
+     }
+ 
+     [Fact]
+-    public void Build_ReturnsDistinctAuthorizedRowsSortedByName()
++    public void Build_ReturnsDistinctAuthorizedRowsSortedByCommitmentTypeThenName()
+     {
+         // memberships 保留兩位目前小組成員的樹節點關聯；matching IDs 則代表 Controller 完成聯絡人授權後的白名單。
+         var memberships = new[] { Member("L1", "C1"), Member("L2", "C2") };
+         var rows = new[]
+         {
+             // C1/c1 模擬 CRM GUID 大小寫不一致且重複回列；C9 雖有完整資料列，但未列在授權白名單中。
+-            // 輸入順序也刻意與姓名順序相反，確保結果不是偶然沿用 CRM 的回傳順序。
+-            Row("C2", "會友丙"),
+-            Row("c1", "會友乙"),
+-            Row("C1", "重複列"),
+-            Row("C9", "不可見")
++            // C2 的姓名在 Ordinal 排序較前，但 metadata rank 較後；證明搜尋使用客製化順位而非姓名或 raw 值。
++            Row("C2", "會友甲", 1, true),
++            Row("c1", "會友乙", 0, true),
++            Row("C1", "重複列", 0, true),
++            Row("C9", "不可見", null, false)
+         };
+ 
+         var result = MemberInfoTreeSearchBuilder.Build(
+@@ -68,10 +68,10 @@ public class MemberInfoTreeSearchBuilderTests
+             true,
+             rows);
+ 
+-        // 斷言同時鎖定三個真實安全／一致性需求：ID 不分大小寫去重、未授權 C9 不得外洩、姓名採穩定排序。
++        // 斷言同時鎖定三個真實安全／一致性需求：ID 不分大小寫去重、未授權 C9 不得外洩、metadata rank 優先排序。
+         // 保留第一筆 c1 也避免同一會友在搜尋網格重複出現，或因後來的重複列覆寫正確顯示資料。
+         result.Rows.Select(row => row.ContactId).Should().ContainInOrder("c1", "C2");
+-        result.Rows.Select(row => row.FullName).Should().ContainInOrder("會友乙", "會友丙");
++        result.Rows.Select(row => row.FullName).Should().ContainInOrder("會友乙", "會友甲");
+     }
+ 
+     private static GroupMembershipRow Member(string listId, string contactId, bool current = true) => new()
+@@ -81,9 +81,15 @@ public class MemberInfoTreeSearchBuilderTests
+         IsCurrent = current
+     };
+ 
+-    private static GroupMemberRowViewModel Row(string contactId, string fullName) => new()
++    private static GroupMemberRowViewModel Row(
++        string contactId,
++        string fullName,
++        int? membershipStatusOrder,
++        bool hasMembershipStatusValue) => new()
+     {
+         ContactId = contactId,
+-        FullName = fullName
++        FullName = fullName,
++        MembershipStatusOrder = membershipStatusOrder,
++        HasMembershipStatusValue = hasMembershipStatusValue
+     };
+ }
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs
+index ac92742a44b4a23873208eff863cb49f6445c78b..f156d0ef76b2afc30a7168b5da982dfdc0659b7b 100644
+--- a/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs
+@@ -194,6 +194,29 @@ public class MemberInfoTreeViewContractTests
+             @"(?s)dataField:\s*'Phone'[^}]*caption:\s*'行動電話'[^}]*alignment:\s*'center'");
+     }
+ 
++    [Fact]
++    public void View_SortsVisibleMembershipStatusByConfiguredOrderAndKeepsFallbacksLast()
++    {
++        // 儲存格繼續顯示 CRM 的中文會員身份；一般小組／搜尋結果依 metadata rank 排序，
++        // 無小組遠端分頁把同一個 rank selector 交給後端，未知舊值與真正空白在正反向都置底。
++        var columns = Slice("function miMemberColumns(remotePaging)", "function miGridScrollingOptions()");
++
++        ViewText.Should().Contain("function miMembershipStatusSortValue(row)");
++        ViewText.Should().Contain("row.MembershipStatusOrder");
++        ViewText.Should().Contain("row.HasMembershipStatusValue");
++        ViewText.Should().Contain("this.sortOrder === 'desc'");
++        ViewText.Should().Contain("Number.MIN_SAFE_INTEGER + 1");
++        ViewText.Should().Contain("Number.MAX_SAFE_INTEGER - 1");
++        columns.Should().MatchRegex(
++            @"(?s)dataField:\s*'MembershipStatus'[^}]*caption:\s*'會員身份'[^}]*" +
++            @"calculateSortValue:\s*remotePaging\s*\?\s*'MembershipStatusOrder'\s*:\s*miMembershipStatusSortValue[^}]*" +
++            @"sortOrder:\s*'asc'[^}]*sortIndex:\s*0");
++
++        // metadata rank 只能作為隱藏排序鍵，不能多增加一個使用者看得到的欄位。
++        columns.Should().NotContain("dataField: 'MembershipStatusOrder'");
++        columns.Split("dataField:", StringSplitOptions.None).Length.Should().Be(10);
++    }
++
+     [Fact]
+     public void View_RendersDistrictGroupCountsAndConditionalGroupMetadata()
+     {
+diff --git a/ChurchReport/Controllers/MemberInfoController.cs b/ChurchReport/Controllers/MemberInfoController.cs
+index f7e06e0349c047c1df3e2e00cb29c654d0aab54d..798faa68068939c552d84f521c897b918e107cb0 100644
+--- a/ChurchReport/Controllers/MemberInfoController.cs
++++ b/ChurchReport/Controllers/MemberInfoController.cs
+@@ -8,6 +8,7 @@ using DevExtreme.AspNet.Data;
+ using DevExtreme.AspNet.Mvc;
+ using Microsoft.AspNetCore.Http;
+ using Microsoft.AspNetCore.Mvc;
++using Microsoft.Crm.Sdk.Messages;
+ using Microsoft.Extensions.Caching.Memory;
+ using Microsoft.Xrm.Sdk;
+ using Microsoft.Xrm.Sdk.Query;
+@@ -31,6 +32,13 @@ namespace ChurchReport.Controllers
+         private const int CrmInClauseChunkSize = 500;
+         private const string ChurchTreeCacheKey = "member-info-tree:church";
+         private const string ChurchGroupedCurrentIdsCacheKey = "member-info-tree:grouped-current-ids:church";
++        private readonly IMemoryCache memberInfoMemoryCache;
++
++        private sealed class UngroupedContactPage
++        {
++            public List<Entity> Contacts { get; init; } = new List<Entity>();
++            public int TotalCount { get; init; }
++        }
+ 
+         public MemberInfoController(
+             IHttpContextAccessor httpContextAccessor,
+@@ -40,6 +48,8 @@ namespace ChurchReport.Controllers
+             ICrmConnectionPool connectionPool)
+             : base(httpContextAccessor, memoryCache, paymentService, toolUtilityProvider, connectionPool)
+         {
++            memberInfoMemoryCache = memoryCache
++                ?? throw new ArgumentNullException(nameof(memoryCache));
+         }
+ 
+         [HttpGet]
+@@ -277,10 +287,8 @@ namespace ChurchReport.Controllers
+                 contacts = contacts.Where(contact => allowedIds.Contains(contact.Id)).ToList();
+ 
+                 var relations = BatchRelationGoals(service, contacts.Select(contact => contact.Id).ToList());
+-                var rows = BuildMemberRows(service, contacts, relations)
+-                    .OrderBy(row => row.FullName, StringComparer.Ordinal)
+-                    .ThenBy(row => row.ContactId, StringComparer.OrdinalIgnoreCase)
+-                    .ToList();
++                var rows = MemberInfoCommitmentTypeSort.OrderRows(
++                    BuildMemberRows(service, contacts, relations));
+                 return Json(new { data = rows });
+             }
+             catch (Exception ex)
+@@ -313,15 +321,40 @@ namespace ChurchReport.Controllers
+                 var descriptors = GetVisibleSmallGroupDescriptors(service, access);
+                 var groupedIds = GetChurchGroupedCurrentIds(service, descriptors, closedStatus);
+                 var statusValues = GetCustomerTypeValuesMatchingText(service, search);
+-                var query = BuildUngroupedContactQuery(
+-                    GetTreeContactColumns(),
+-                    search,
+-                    groupedIds,
+-                    closedStatus,
+-                    statusValues,
+-                    loadOptions);
+-                var page = service.RetrieveMultiple(query);
+-                var contacts = page.Entities.ToList();
++                UngroupedContactPage contactPage;
++                if (TryGetCommitmentTypeSort(loadOptions, out var commitmentDescending))
++                {
++                    contactPage = LoadUngroupedCommitmentTypePage(
++                        service,
++                        GetTreeContactColumns(),
++                        search,
++                        groupedIds,
++                        closedStatus,
++                        statusValues,
++                        loadOptions,
++                        commitmentDescending);
++                }
++                else
++                {
++                    var query = BuildUngroupedContactQuery(
++                        GetTreeContactColumns(),
++                        search,
++                        groupedIds,
++                        closedStatus,
++                        statusValues,
++                        loadOptions);
++                    var page = service.RetrieveMultiple(query);
++                    var skip = loadOptions?.Skip > 0 ? loadOptions.Skip : 0;
++                    contactPage = new UngroupedContactPage
++                    {
++                        Contacts = page.Entities.ToList(),
++                        TotalCount = page.TotalRecordCount >= 0
++                            ? page.TotalRecordCount
++                            : skip + page.Entities.Count + (page.MoreRecords ? 1 : 0)
++                    };
++                }
++
++                var contacts = contactPage.Contacts;
+                 var allowedIds = CanViewContactsBatch(
+                     contacts.Select(contact => contact.Id).ToList(),
+                     service,
+@@ -330,11 +363,7 @@ namespace ChurchReport.Controllers
+ 
+                 var relations = BatchRelationGoals(service, contacts.Select(contact => contact.Id).ToList());
+                 var rows = BuildMemberRows(service, contacts, relations);
+-                var skip = loadOptions?.Skip > 0 ? loadOptions.Skip : 0;
+-                var totalCount = page.TotalRecordCount >= 0
+-                    ? page.TotalRecordCount
+-                    : skip + rows.Count + (page.MoreRecords ? 1 : 0);
+-                return Json(new { data = rows, totalCount });
++                return Json(new { data = rows, totalCount = contactPage.TotalCount });
+             }
+             catch (Exception ex)
+             {
+@@ -1668,13 +1697,12 @@ namespace ChurchReport.Controllers
+             return groupedIds;
+         }
+ 
+-        private QueryExpression BuildUngroupedContactQuery(
++        private QueryExpression BuildUngroupedBaseQuery(
+             ColumnSet columns,
+             string search,
+             IReadOnlyCollection<Guid> groupedIds,
+             int closedStatus,
+-            IReadOnlyCollection<int> matchingStatusValues,
+-            DataSourceLoadOptions loadOptions)
++            IReadOnlyCollection<int> matchingStatusValues)
+         {
+             var query = BuildStrictCurrentContactQuery(
+                 columns,
+@@ -1692,6 +1720,24 @@ namespace ChurchReport.Controllers
+                     chunk.Select(id => (object)id).ToArray());
+             }
+ 
++            return query;
++        }
++
++        private QueryExpression BuildUngroupedContactQuery(
++            ColumnSet columns,
++            string search,
++            IReadOnlyCollection<Guid> groupedIds,
++            int closedStatus,
++            IReadOnlyCollection<int> matchingStatusValues,
++            DataSourceLoadOptions loadOptions)
++        {
++            var query = BuildUngroupedBaseQuery(
++                columns,
++                search,
++                groupedIds,
++                closedStatus,
++                matchingStatusValues);
++
+             ApplyUngroupedSort(query, loadOptions);
+             var take = loadOptions?.Take > 0
+                 ? Math.Min(loadOptions.Take, MaxPageSize)
+@@ -1707,6 +1753,261 @@ namespace ChurchReport.Controllers
+             return query;
+         }
+ 
++        private QueryExpression BuildUngroupedCommitmentSegmentQuery(
++            ColumnSet columns,
++            string search,
++            IReadOnlyCollection<Guid> groupedIds,
++            int closedStatus,
++            IReadOnlyCollection<int> matchingStatusValues,
++            MemberInfoCommitmentTypeSegmentKind kind,
++            int? optionValue,
++            IReadOnlyCollection<int> configuredValues)
++        {
++            var query = BuildUngroupedBaseQuery(
++                columns,
++                search,
++                groupedIds,
++                closedStatus,
++                matchingStatusValues);
++            switch (kind)
++            {
++                case MemberInfoCommitmentTypeSegmentKind.Configured:
++                    if (!optionValue.HasValue)
++                    {
++                        throw new InvalidOperationException(
++                            "Configured commitment segment requires an OptionSet value.");
++                    }
++                    query.Criteria.AddCondition(
++                        "customertypecode",
++                        ConditionOperator.Equal,
++                        optionValue.Value);
++                    break;
++                case MemberInfoCommitmentTypeSegmentKind.Unknown:
++                    query.Criteria.AddCondition(
++                        "customertypecode",
++                        ConditionOperator.NotNull);
++                    var knownValues = (configuredValues ?? Array.Empty<int>())
++                        .Distinct()
++                        .ToArray();
++                    if (knownValues.Length > 0)
++                    {
++                        query.Criteria.AddCondition(
++                            "customertypecode",
++                            ConditionOperator.NotIn,
++                            knownValues.Select(value => (object)value).ToArray());
++                    }
++                    break;
++                case MemberInfoCommitmentTypeSegmentKind.Empty:
++                    query.Criteria.AddCondition(
++                        "customertypecode",
++                        ConditionOperator.Null);
++                    break;
++                default:
++                    throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
++            }
++
++            // 每一段的類型順位已由外層 segment sequence 決定；段內只需穩定姓名／ID 排序。
++            query.AddOrder("fullname", OrderType.Ascending);
++            query.AddOrder("contactid", OrderType.Ascending);
++            return query;
++        }
++
++        private int CountUngroupedEmptyCommitmentSegment(
++            IOrganizationService service,
++            string search,
++            IReadOnlyCollection<Guid> groupedIds,
++            int closedStatus,
++            IReadOnlyCollection<int> matchingStatusValues)
++        {
++            var query = BuildUngroupedBaseQuery(
++                new ColumnSet("contactid"),
++                search,
++                groupedIds,
++                closedStatus,
++                matchingStatusValues);
++            query.Criteria.AddCondition("customertypecode", ConditionOperator.Null);
++            query.PageInfo = new PagingInfo
++            {
++                Count = 1,
++                PageNumber = 1,
++                PagingCookie = null,
++                ReturnTotalRecordCount = true
++            };
++
++            var result = service.RetrieveMultiple(query);
++            return result.TotalRecordCount >= 0
++                ? result.TotalRecordCount
++                : result.Entities.Count;
++        }
++
++        /// <summary>
++        /// 以一支 aggregate FetchXML 取得每個非空 raw value 的筆數。raw value 只作為
++        /// metadata segment 的查詢識別鍵，實際先後仍完全由客製化 options sequence 決定。
++        /// </summary>
++        private IReadOnlyDictionary<int, int> CountUngroupedCommitmentValues(
++            IOrganizationService service,
++            string search,
++            IReadOnlyCollection<Guid> groupedIds,
++            int closedStatus,
++            IReadOnlyCollection<int> matchingStatusValues)
++        {
++            var query = BuildUngroupedBaseQuery(
++                new ColumnSet("contactid", "customertypecode"),
++                search,
++                groupedIds,
++                closedStatus,
++                matchingStatusValues);
++            var response = (QueryExpressionToFetchXmlResponse)service.Execute(
++                new QueryExpressionToFetchXmlRequest { Query = query });
++            var countFetch =
++                MemberInfoCommitmentTypeCountQuery.CreateValueCountsFetch(response.FetchXml);
++            var rows = service.RetrieveMultiple(new FetchExpression(countFetch));
++            return MemberInfoCommitmentTypeCountQuery.ReadValueCounts(rows);
++        }
++
++        private List<Entity> RetrieveUngroupedSegmentRange(
++            IOrganizationService service,
++            Func<QueryExpression> createQuery,
++            int skip,
++            int take)
++        {
++            var result = new List<Entity>();
++            if (take <= 0)
++            {
++                return result;
++            }
++
++            var pageSize = Math.Min(Math.Max(1, take), MaxPageSize);
++            var pageNumber = Math.Max(0, skip) / pageSize + 1;
++            var offsetOnFirstPage = Math.Max(0, skip) % pageSize;
++            var remaining = take;
++
++            while (remaining > 0)
++            {
++                var query = createQuery();
++                query.PageInfo = new PagingInfo
++                {
++                    Count = pageSize,
++                    PageNumber = pageNumber,
++                    PagingCookie = null,
++                    ReturnTotalRecordCount = false
++                };
++
++                var page = service.RetrieveMultiple(query);
++                var selected = page.Entities
++                    .Skip(offsetOnFirstPage)
++                    .Take(remaining)
++                    .ToList();
++                result.AddRange(selected);
++                remaining -= selected.Count;
++
++                if (!page.MoreRecords || page.Entities.Count == 0)
++                {
++                    break;
++                }
++
++                pageNumber++;
++                offsetOnFirstPage = 0;
++            }
++
++            return result;
++        }
++
++        private UngroupedContactPage LoadUngroupedCommitmentTypePage(
++            IOrganizationService service,
++            ColumnSet columns,
++            string search,
++            IReadOnlyCollection<Guid> groupedIds,
++            int closedStatus,
++            IReadOnlyCollection<int> matchingStatusValues,
++            DataSourceLoadOptions loadOptions,
++            bool descending)
++        {
++            var options = GetCommitmentTypeOptions(service);
++            var configuredValues = options
++                .OrderBy(option => option.Order)
++                .Select(option => option.Value)
++                .Distinct()
++                .ToArray();
++            var countsByValue = CountUngroupedCommitmentValues(
++                service,
++                search,
++                groupedIds,
++                closedStatus,
++                matchingStatusValues);
++            var emptyCount = CountUngroupedEmptyCommitmentSegment(
++                service,
++                search,
++                groupedIds,
++                closedStatus,
++                matchingStatusValues);
++            var segments = MemberInfoCommitmentTypeSort.BuildSegments(
++                configuredValues,
++                countsByValue,
++                emptyCount,
++                descending);
++            var skip = loadOptions?.Skip > 0 ? loadOptions.Skip : 0;
++            var take = loadOptions?.Take > 0
++                ? Math.Min(loadOptions.Take, MaxPageSize)
++                : DefaultPageSize;
++
++            var contacts = new List<Entity>();
++            foreach (var slice in MemberInfoCommitmentTypeSort.PlanSlices(
++                         skip,
++                         take,
++                         segments))
++            {
++                contacts.AddRange(RetrieveUngroupedSegmentRange(
++                    service,
++                    () => BuildUngroupedCommitmentSegmentQuery(
++                        columns,
++                        search,
++                        groupedIds,
++                        closedStatus,
++                        matchingStatusValues,
++                        slice.Kind,
++                        slice.Value,
++                        configuredValues),
++                    slice.Skip,
++                    slice.Take));
++            }
++
++            return new UngroupedContactPage
++            {
++                Contacts = contacts,
++                TotalCount = segments.Sum(segment => segment.Count)
++            };
++        }
++
++        private static bool TryGetCommitmentTypeSort(
++            DataSourceLoadOptions loadOptions,
++            out bool descending)
++        {
++            descending = false;
++            var sort = loadOptions?.Sort?.FirstOrDefault();
++            if (sort == null)
++            {
++                return true;
++            }
++
++            var isCommitmentType =
++                string.Equals(
++                    sort.Selector,
++                    MemberInfoCommitmentTypeSort.Selector,
++                    StringComparison.OrdinalIgnoreCase) ||
++                string.Equals(
++                    sort.Selector,
++                    "MembershipStatus",
++                    StringComparison.OrdinalIgnoreCase);
++            if (!isCommitmentType)
++            {
++                return false;
++            }
++
++            descending = sort.Desc;
++            return true;
++        }
++
+         private static void ApplyUngroupedSort(QueryExpression query, DataSourceLoadOptions loadOptions)
+         {
+             var applied = false;
+@@ -1740,7 +2041,6 @@ namespace ChurchReport.Controllers
+             if (string.Equals(selector, "Phone", StringComparison.OrdinalIgnoreCase)) return "mobilephone";
+             if (string.Equals(selector, "SpiritualIdentity", StringComparison.OrdinalIgnoreCase)) return "new_spiriitual_identity";
+             if (string.Equals(selector, "Address", StringComparison.OrdinalIgnoreCase)) return "address2_line1";
+-            if (string.Equals(selector, "MembershipStatus", StringComparison.OrdinalIgnoreCase)) return "customertypecode";
+             return null;
+         }
+ 
+@@ -1803,6 +2103,10 @@ namespace ChurchReport.Controllers
+             IReadOnlyDictionary<Guid, string> relationGoalsByContact)
+         {
+             var optionService = GetSharedOptionSetService(service);
++            var commitmentOptions = GetCommitmentTypeOptions(service);
++            var commitmentByValue = commitmentOptions
++                .GroupBy(option => option.Value)
++                .ToDictionary(group => group.Key, group => group.First());
+             var rows = new List<GroupMemberRowViewModel>();
+             foreach (var contact in contacts ?? Enumerable.Empty<Entity>())
+             {
+@@ -1815,6 +2119,17 @@ namespace ChurchReport.Controllers
+                 {
+                     birthDate = null;
+                 }
++                // raw OptionSet value 只用來查 metadata 對照；真正送到前端的排序鍵是客製化集合順位，
++                // 絕不比較 raw 整數大小。metadata 未知舊值保留 has-value=true、order=null，避免資料遺失。
++                var membershipStatusValue =
++                    contact.GetAttributeValue<OptionSetValue>("customertypecode")?.Value;
++                MemberInfoCommitmentTypeOption commitmentOption = null;
++                if (membershipStatusValue.HasValue)
++                {
++                    commitmentByValue.TryGetValue(
++                        membershipStatusValue.Value,
++                        out commitmentOption);
++                }
+ 
+                 rows.Add(new GroupMemberRowViewModel
+                 {
+@@ -1825,7 +2140,12 @@ namespace ChurchReport.Controllers
+                     Phone = contact.GetAttributeValue<string>("mobilephone") ?? string.Empty,
+                     SpiritualIdentity = ResolveOptionSetText(optionService, contact, "new_spiriitual_identity"),
+                     Address = contact.GetAttributeValue<string>("address2_line1") ?? string.Empty,
+-                    MembershipStatus = ResolveOptionSetText(optionService, contact, "customertypecode"),
++                    MembershipStatusOrder = commitmentOption?.Order,
++                    HasMembershipStatusValue = membershipStatusValue.HasValue,
++                    MembershipStatus = membershipStatusValue.HasValue
++                        ? commitmentOption?.Label
++                            ?? ResolveOptionSetText(optionService, contact, "customertypecode")
++                        : string.Empty,
+                     RelationGoals = relationGoals ?? string.Empty
+                 });
+             }
+@@ -2756,14 +3076,26 @@ namespace ChurchReport.Controllers
+         /// <summary>建立以「共用」記憶體快取支援的 OptionSetMetadataService（metadata 整個 App 只查一次、快取 24h）。</summary>
+         private OptionSetMetadataService GetSharedOptionSetService()
+         {
+-            var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
+-            return new OptionSetMetadataService(ToolUtility.m_Crm2011OrganizationService, null, memoryCache);
++            return new OptionSetMetadataService(
++                ToolUtility.m_Crm2011OrganizationService,
++                null,
++                memberInfoMemoryCache);
+         }
+ 
+         private OptionSetMetadataService GetSharedOptionSetService(IOrganizationService service)
+         {
+-            var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
+-            return new OptionSetMetadataService(service, null, memoryCache);
++            return new OptionSetMetadataService(service, null, memberInfoMemoryCache);
++        }
++
++        /// <summary>
++        /// 取得 contact.customertypecode 的客製化排列快照；同一個 App 共用 schema metadata 快取。
++        /// </summary>
++        private IReadOnlyList<MemberInfoCommitmentTypeOption> GetCommitmentTypeOptions(
++            IOrganizationService service)
++        {
++            return new MemberInfoCommitmentTypeMetadataProvider(
++                service,
++                memberInfoMemoryCache).GetOptions();
+         }
+ 
+         /// <summary>
+diff --git a/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeCountQuery.cs b/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeCountQuery.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..bf2ea61d57bca8a03b81dc1a145eab37d096b0c0
+--- /dev/null
++++ b/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeCountQuery.cs
+@@ -0,0 +1,100 @@
++using Microsoft.Xrm.Sdk;
++using System;
++using System.Collections.Generic;
++using System.Linq;
++using System.Xml.Linq;
++
++namespace ChurchReport.Services.MemberInfo
++{
++    /// <summary>
++    /// 把 SDK 產生、已包含搜尋／在籍／無小組範圍條件的 FetchXML，轉成
++    /// customertypecode group-by 計數查詢。所有使用者條件都保留在既有 XML 節點中，
++    /// 本類別只做結構化 DOM 變更，不拼接任何輸入文字。
++    /// </summary>
++    public static class MemberInfoCommitmentTypeCountQuery
++    {
++        public const string ValueAlias = "commitmenttype";
++        public const string CountAlias = "rowcount";
++
++        /// <summary>
++        /// 建立「每個非空 OptionSet 值有幾筆」的 aggregate FetchXML。
++        /// FetchXML aggregate 不計入 null，因此真正空白會由 Controller 另做一次 null count。
++        /// </summary>
++        public static string CreateValueCountsFetch(string fetchXml)
++        {
++            if (string.IsNullOrWhiteSpace(fetchXml))
++            {
++                throw new ArgumentException("FetchXML must not be blank.", nameof(fetchXml));
++            }
++
++            var document = XDocument.Parse(fetchXml, LoadOptions.PreserveWhitespace);
++            var root = document.Root
++                ?? throw new InvalidOperationException("FetchXML must contain a root element.");
++            var entity = root.Elements()
++                .Single(element => element.Name.LocalName == "entity");
++
++            root.SetAttributeValue("aggregate", "true");
++            root.Attributes()
++                .Where(attribute => attribute.Name.LocalName is
++                    "page" or "count" or "paging-cookie" or "returntotalrecordcount")
++                .Remove();
++
++            // 原查詢的 filter／link-entity 必須保留；只替換直接投影欄位及 order。
++            entity.Elements()
++                .Where(element => element.Name.LocalName is "attribute" or "order")
++                .Remove();
++            entity.Add(
++                new XElement(
++                    entity.Name.Namespace + "attribute",
++                    new XAttribute("name", "customertypecode"),
++                    new XAttribute("alias", ValueAlias),
++                    new XAttribute("groupby", "true")),
++                new XElement(
++                    entity.Name.Namespace + "attribute",
++                    new XAttribute("name", "contactid"),
++                    new XAttribute("alias", CountAlias),
++                    new XAttribute("aggregate", "countcolumn")));
++            return document.ToString(SaveOptions.DisableFormatting);
++        }
++
++        /// <summary>
++        /// 將 CRM aggregate rows 轉成 raw OptionSet value → count；raw value 在此只作為
++        /// metadata 分段的識別鍵，不拿來比較大小。重複值會合計，缺少 alias 的異常列會略過。
++        /// </summary>
++        public static IReadOnlyDictionary<int, int> ReadValueCounts(
++            EntityCollection rows)
++        {
++            var result = new Dictionary<int, int>();
++            foreach (var row in rows?.Entities ?? Enumerable.Empty<Entity>())
++            {
++                var valueObject = Unwrap(row, ValueAlias);
++                var countObject = Unwrap(row, CountAlias);
++                var value = valueObject is OptionSetValue optionSetValue
++                    ? optionSetValue.Value
++                    : valueObject is int integerValue
++                        ? integerValue
++                        : (int?)null;
++                if (!value.HasValue || countObject == null)
++                {
++                    continue;
++                }
++
++                var count = Math.Max(0, Convert.ToInt32(countObject));
++                result[value.Value] = result.GetValueOrDefault(value.Value) + count;
++            }
++            return result;
++        }
++
++        private static object Unwrap(Entity row, string alias)
++        {
++            if (row == null || !row.Attributes.TryGetValue(alias, out var value))
++            {
++                return null;
++            }
++
++            return value is AliasedValue aliasedValue
++                ? aliasedValue.Value
++                : value;
++        }
++    }
++}
+diff --git a/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeMetadataProvider.cs b/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeMetadataProvider.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..fe46c0487ca09d961310e0f5f51987601d35657f
+--- /dev/null
++++ b/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeMetadataProvider.cs
+@@ -0,0 +1,104 @@
++using Microsoft.Extensions.Caching.Memory;
++using Microsoft.Xrm.Sdk;
++using Microsoft.Xrm.Sdk.Messages;
++using Microsoft.Xrm.Sdk.Metadata;
++using System;
++using System.Collections.Generic;
++using System.Linq;
++
++namespace ChurchReport.Services.MemberInfo
++{
++    /// <summary>
++    /// Dynamics 客製化畫面中的單一委身類型選項。
++    /// Value 只是 CRM 儲存識別碼；Order 才是 OptionSet.Options 集合中的顯示順位。
++    /// </summary>
++    public sealed record MemberInfoCommitmentTypeOption(
++        int Value,
++        string Label,
++        int Order);
++
++    /// <summary>
++    /// 讀取 contact.customertypecode 的 metadata 客製化順序。
++    /// 本服務刻意保留 CRM 回傳的集合先後，不依數值或中文文字重新排序，讓不同教會／版本
++    /// 可直接沿用各自的系統設定。快取只存 schema metadata，不含任何會友個資。
++    /// </summary>
++    public sealed class MemberInfoCommitmentTypeMetadataProvider
++    {
++        private const string CacheKey =
++            "member-info:metadata:contact:customertypecode:configured-order";
++        private static readonly TimeSpan SuccessCacheDuration = TimeSpan.FromMinutes(30);
++        private static readonly TimeSpan FailureCacheDuration = TimeSpan.FromMinutes(1);
++
++        private readonly IOrganizationService organizationService;
++        private readonly IMemoryCache cache;
++
++        public MemberInfoCommitmentTypeMetadataProvider(
++            IOrganizationService organizationService,
++            IMemoryCache cache)
++        {
++            this.organizationService = organizationService
++                ?? throw new ArgumentNullException(nameof(organizationService));
++            this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
++        }
++
++        /// <summary>
++        /// 取得依 Dynamics 客製化順序排列的選項快照；Order 從零開始且只由集合位置產生。
++        /// metadata 暫時失敗時回傳短期快取的空集合，呼叫端即可採「未知值」穩定排序，
++        /// 不會誤用 raw 整數或硬編碼清單冒充正確順序。
++        /// </summary>
++        public IReadOnlyList<MemberInfoCommitmentTypeOption> GetOptions()
++        {
++            if (cache.TryGetValue(
++                    CacheKey,
++                    out IReadOnlyList<MemberInfoCommitmentTypeOption> cached) &&
++                cached != null)
++            {
++                return cached;
++            }
++
++            try
++            {
++                var response = (RetrieveAttributeResponse)organizationService.Execute(
++                    new RetrieveAttributeRequest
++                    {
++                        EntityLogicalName = "contact",
++                        LogicalName = "customertypecode",
++                        RetrieveAsIfPublished = true
++                    });
++                var metadata = response.AttributeMetadata as PicklistAttributeMetadata;
++                var options = metadata?.OptionSet?.Options ?? new OptionMetadataCollection();
++
++                // Select 的索引就是系統客製化順位；此處禁止加入 OrderBy(value/label)。
++                IReadOnlyList<MemberInfoCommitmentTypeOption> result = options
++                    .Where(option => option.Value.HasValue)
++                    .Select((option, order) => new MemberInfoCommitmentTypeOption(
++                        option.Value.Value,
++                        ResolveLabel(option),
++                        order))
++                    .ToArray();
++                cache.Set(CacheKey, result, SuccessCacheDuration);
++                return result;
++            }
++            catch
++            {
++                IReadOnlyList<MemberInfoCommitmentTypeOption> empty =
++                    Array.Empty<MemberInfoCommitmentTypeOption>();
++                cache.Set(CacheKey, empty, FailureCacheDuration);
++                return empty;
++            }
++        }
++
++        /// <summary>
++        /// 優先使用繁體中文，其次簡體中文及目前使用者語系；完全無標籤時保留可診斷文字。
++        /// </summary>
++        private static string ResolveLabel(OptionMetadata option)
++        {
++            return option.Label?.LocalizedLabels?
++                       .FirstOrDefault(label => label.LanguageCode == 1028)?.Label
++                   ?? option.Label?.LocalizedLabels?
++                       .FirstOrDefault(label => label.LanguageCode == 2052)?.Label
++                   ?? option.Label?.UserLocalizedLabel?.Label
++                   ?? $"Unknown_{option.Value}";
++        }
++    }
++}
+diff --git a/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeSort.cs b/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeSort.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..4e72c5a171c0d2f0ad2a15302b69c8f49e24850c
+--- /dev/null
++++ b/ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeSort.cs
+@@ -0,0 +1,180 @@
++using ChurchReport.ViewModels.MemberInfoTree;
++using System;
++using System.Collections.Generic;
++using System.Linq;
++
++namespace ChurchReport.Services.MemberInfo
++{
++    /// <summary>
++    /// 遠端分頁使用的委身類型區段：已設定選項、metadata 未知舊值、真正空白。
++    /// Unknown 與 Empty 不會因使用者切換反向排序而跑到已設定選項之前。
++    /// </summary>
++    public enum MemberInfoCommitmentTypeSegmentKind
++    {
++        Configured,
++        Unknown,
++        Empty
++    }
++
++    /// <summary>
++    /// 全域排序中的一個連續區段；Configured 才會有 OptionSet Value。
++    /// </summary>
++    public readonly record struct MemberInfoCommitmentTypeSegment(
++        MemberInfoCommitmentTypeSegmentKind Kind,
++        int? Value,
++        int Count);
++
++    /// <summary>
++    /// 某一頁與區段的交集，Skip／Take 均以該區段自身為基準。
++    /// </summary>
++    public readonly record struct MemberInfoCommitmentTypeSlice(
++        MemberInfoCommitmentTypeSegmentKind Kind,
++        int? Value,
++        int Skip,
++        int Take);
++
++    /// <summary>
++    /// 三種會友表格共用的 metadata rank 排序及分段頁面規則。
++    /// </summary>
++    public static class MemberInfoCommitmentTypeSort
++    {
++        public const string Selector = "MembershipStatusOrder";
++
++        /// <summary>
++        /// 已設定選項依 metadata rank 排序；未知值與空白永遠固定在後兩區。
++        /// 同一區段依姓名、ContactId 穩定排序，確保搜尋去重及遠端跨頁結果可重現。
++        /// </summary>
++        public static List<GroupMemberRowViewModel> OrderRows(
++            IEnumerable<GroupMemberRowViewModel> rows,
++            bool descending = false)
++        {
++            var source = (rows ?? Enumerable.Empty<GroupMemberRowViewModel>())
++                .Where(row => row != null)
++                .ToList();
++            var configured = source.Where(row => row.MembershipStatusOrder.HasValue);
++            var orderedConfigured = descending
++                ? configured.OrderByDescending(row => row.MembershipStatusOrder.Value)
++                : configured.OrderBy(row => row.MembershipStatusOrder.Value);
++
++            var stableConfigured = orderedConfigured
++                .ThenBy(row => row.FullName ?? string.Empty, StringComparer.Ordinal)
++                .ThenBy(row => row.ContactId ?? string.Empty, StringComparer.OrdinalIgnoreCase);
++            var unknown = source
++                .Where(row => !row.MembershipStatusOrder.HasValue &&
++                              row.HasMembershipStatusValue)
++                .OrderBy(row => row.FullName ?? string.Empty, StringComparer.Ordinal)
++                .ThenBy(row => row.ContactId ?? string.Empty, StringComparer.OrdinalIgnoreCase);
++            var empty = source
++                .Where(row => !row.MembershipStatusOrder.HasValue &&
++                              !row.HasMembershipStatusValue)
++                .OrderBy(row => row.FullName ?? string.Empty, StringComparer.Ordinal)
++                .ThenBy(row => row.ContactId ?? string.Empty, StringComparer.OrdinalIgnoreCase);
++            return stableConfigured.Concat(unknown).Concat(empty).ToList();
++        }
++
++        /// <summary>
++        /// 依 metadata values 建立遠端查詢區段。Configured 的先後來自輸入序列；
++        /// 未列在 metadata 的所有非空 raw values 合併成 Unknown，null 則是最後的 Empty。
++        /// </summary>
++        public static IReadOnlyList<MemberInfoCommitmentTypeSegment> BuildSegments(
++            IEnumerable<int> configuredValues,
++            IReadOnlyDictionary<int, int> countsByValue,
++            int nullCount,
++            bool descending = false)
++        {
++            var configured = (configuredValues ?? Enumerable.Empty<int>())
++                .Distinct()
++                .ToList();
++            var configuredSet = configured.ToHashSet();
++            if (descending)
++            {
++                configured.Reverse();
++            }
++
++            var counts = countsByValue ?? new Dictionary<int, int>();
++            var segments = new List<MemberInfoCommitmentTypeSegment>();
++            foreach (var value in configured)
++            {
++                var count = counts.TryGetValue(value, out var found)
++                    ? Math.Max(0, found)
++                    : 0;
++                if (count > 0)
++                {
++                    segments.Add(new MemberInfoCommitmentTypeSegment(
++                        MemberInfoCommitmentTypeSegmentKind.Configured,
++                        value,
++                        count));
++                }
++            }
++
++            var unknownCount = counts
++                .Where(pair => !configuredSet.Contains(pair.Key))
++                .Sum(pair => Math.Max(0, pair.Value));
++            if (unknownCount > 0)
++            {
++                segments.Add(new MemberInfoCommitmentTypeSegment(
++                    MemberInfoCommitmentTypeSegmentKind.Unknown,
++                    null,
++                    unknownCount));
++            }
++
++            var normalizedNullCount = Math.Max(0, nullCount);
++            if (normalizedNullCount > 0)
++            {
++                segments.Add(new MemberInfoCommitmentTypeSegment(
++                    MemberInfoCommitmentTypeSegmentKind.Empty,
++                    null,
++                    normalizedNullCount));
++            }
++            return segments;
++        }
++
++        /// <summary>
++        /// 把全域 skip/take 投影到各區段的局部範圍；只回傳真正與頁面相交的正數切片。
++        /// </summary>
++        public static IReadOnlyList<MemberInfoCommitmentTypeSlice> PlanSlices(
++            int skip,
++            int take,
++            IEnumerable<MemberInfoCommitmentTypeSegment> segments)
++        {
++            var remainingSkip = Math.Max(0, skip);
++            var remainingTake = Math.Max(0, take);
++            if (remainingTake == 0)
++            {
++                return Array.Empty<MemberInfoCommitmentTypeSlice>();
++            }
++
++            var slices = new List<MemberInfoCommitmentTypeSlice>();
++            foreach (var segment in segments ??
++                     Enumerable.Empty<MemberInfoCommitmentTypeSegment>())
++            {
++                var count = Math.Max(0, segment.Count);
++                if (remainingSkip >= count)
++                {
++                    remainingSkip -= count;
++                    continue;
++                }
++
++                var localSkip = remainingSkip;
++                var available = count - localSkip;
++                var localTake = Math.Min(remainingTake, available);
++                if (localTake > 0)
++                {
++                    slices.Add(new MemberInfoCommitmentTypeSlice(
++                        segment.Kind,
++                        segment.Value,
++                        localSkip,
++                        localTake));
++                    remainingTake -= localTake;
++                }
++                remainingSkip = 0;
++                if (remainingTake == 0)
++                {
++                    break;
++                }
++            }
++            return slices;
++        }
++
++    }
++}
+diff --git a/ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs b/ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs
+index 894e7b29dbf2edf75dc322fcc4938a8381769137..63472097e120ebe5cbff7b747f52999b60487564 100644
+--- a/ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs
++++ b/ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs
+@@ -24,6 +24,15 @@ namespace ChurchReport.Services.MemberInfo
+                               !string.IsNullOrWhiteSpace(row.ListId) &&
+                               !string.IsNullOrWhiteSpace(row.ContactId))
+                 .ToList();
++            // 先完成 allowed-id 過濾與 ContactId 去重，再套用共用 metadata rank 排序；
++            // 這個順序同時避免未授權列影響排序，也保留同一會友第一筆完整資料列。
++            var authorizedRows = (rows ?? Enumerable.Empty<GroupMemberRowViewModel>())
++                .Where(row => row != null &&
++                              !string.IsNullOrWhiteSpace(row.ContactId) &&
++                              matches.Contains(row.ContactId))
++                .GroupBy(row => row.ContactId, StringComparer.OrdinalIgnoreCase)
++                .Select(group => group.First())
++                .ToList();
+ 
+             var result = new MemberInfoTreeSearchResultViewModel
+             {
+@@ -33,17 +42,7 @@ namespace ChurchReport.Services.MemberInfo
+                     .Distinct(StringComparer.OrdinalIgnoreCase)
+                     .OrderBy(id => id, StringComparer.OrdinalIgnoreCase)
+                     .ToList(),
+-                // 同一聯絡人可同時屬於多個小組，因此完整列先以 ContactId 去重；即使呼叫端誤傳額外列，
+-                // 仍須再次依 allowed ids 過濾。姓名後接 ContactId 的次排序可在同名時保持回應順序穩定。
+-                Rows = (rows ?? Enumerable.Empty<GroupMemberRowViewModel>())
+-                    .Where(row => row != null &&
+-                                  !string.IsNullOrWhiteSpace(row.ContactId) &&
+-                                  matches.Contains(row.ContactId))
+-                    .GroupBy(row => row.ContactId, StringComparer.OrdinalIgnoreCase)
+-                    .Select(group => group.First())
+-                    .OrderBy(row => row.FullName, StringComparer.Ordinal)
+-                    .ThenBy(row => row.ContactId, StringComparer.OrdinalIgnoreCase)
+-                    .ToList()
++                Rows = MemberInfoCommitmentTypeSort.OrderRows(authorizedRows)
+             };
+ 
+             if (includeUngrouped && matches.Count > 0)
+diff --git a/ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs b/ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs
+index 076ecda993ca509d6cdfe476ef2071a06ea9d327..a8a996bcc47894be1f8c5e092e9de4c2299a8f1c 100644
+--- a/ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs
++++ b/ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs
+@@ -48,6 +48,18 @@ namespace ChurchReport.ViewModels.MemberInfoTree
+         public string Phone { get; set; } = string.Empty;
+         public string SpiritualIdentity { get; set; } = string.Empty;
+         public string Address { get; set; } = string.Empty;
++        /// <summary>
++        /// contact.customertypecode 在 Dynamics 客製化選項集合中的零起始順位。
++        /// 這不是 OptionSet 原始整數值；null 代表 metadata 未列出或欄位未填。
++        /// </summary>
++        public int? MembershipStatusOrder { get; set; }
++        /// <summary>
++        /// 表示 CRM 欄位實際有 OptionSet 值，用來區分 metadata 未知舊值與真正空白。
++        /// </summary>
++        public bool HasMembershipStatusValue { get; set; }
++        /// <summary>
++        /// 顯示給使用者的本地化會員身份文字；排序不得使用這個文字欄位。
++        /// </summary>
+         public string MembershipStatus { get; set; } = string.Empty;
+         public string RelationGoals { get; set; } = string.Empty;
+     }
+diff --git a/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml b/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
+index 9f1df64aef140175f9021eb0f7ceadebcbf87817..0a8d3425c51fed56658a29db7e9bde06b7ac160a 100644
+--- a/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
++++ b/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
+@@ -1292,6 +1292,32 @@
+         miBirthText 做 nullable 格式化。RelationGoals 是後端彙整後的單一顯示字串，固定只佔一欄，
+         不依每段關係拆欄，避免不同會友的欄位結構不一致。
+     */
++    /*
++        一般小組與搜尋結果會把整批 rows 放在瀏覽器內排序，因此 calculateSortValue 必須回傳可比較的
++        metadata rank。MembershipStatusOrder 來自 Dynamics customertypecode 選項集合的客製化排列位置，
++        不是 OptionSet raw 整數，也不是畫面中文文字；例如 raw value 較大的「牧師師母」仍可因 rank=0
++        排在第一個。
++
++        metadata 找不到的舊值與真正未填值都沒有 rank，但兩者不可混為一談：HasMembershipStatusValue=true
++        代表 CRM 確實有值、只是目前 metadata 沒有該選項；false 才是空白。升冪以接近 MAX 的兩個哨兵值
++        置底，降冪則改用接近 MIN 的兩個哨兵值置底；+1／-1 保證未知舊值始終在空白之前。DevExtreme
++        會以目前欄位設定作為 this，因此可依 sortOrder 在使用者反覆點擊表頭時切換方向。
++    */
++    function miMembershipStatusSortValue(row) {
++        var descending = this.sortOrder === 'desc';
++        if (row && row.MembershipStatusOrder != null) {
++            return row.MembershipStatusOrder;
++        }
++        if (row && row.HasMembershipStatusValue) {
++            return descending
++                ? Number.MIN_SAFE_INTEGER + 1
++                : Number.MAX_SAFE_INTEGER - 1;
++        }
++        return descending
++            ? Number.MIN_SAFE_INTEGER
++            : Number.MAX_SAFE_INTEGER;
++    }
++
+     function miMemberColumns(remotePaging) {
+         return [
+             { dataField: 'ContactId', caption: '頭像', width: 72, fixed: true, fixedPosition: 'left',
+@@ -1304,7 +1330,17 @@
+               alignment: 'center', customizeText: miBirthText },
+             { dataField: 'Address', caption: '地址', width: 250 },
+             { dataField: 'SpiritualIdentity', caption: '信仰狀態', width: 108, alignment: 'center' },
+-            { dataField: 'MembershipStatus', caption: '會員身份', width: 110, alignment: 'center' },
++            {
++                dataField: 'MembershipStatus',
++                caption: '會員身份',
++                width: 110,
++                alignment: 'center',
++                calculateSortValue: remotePaging
++                    ? 'MembershipStatusOrder'
++                    : miMembershipStatusSortValue,
++                sortOrder: 'asc',
++                sortIndex: 0
++            },
+             { dataField: 'RelationGoals', caption: '關係目標', width: 264,
+               allowSorting: !remotePaging },
+             { dataField: 'Gender', caption: '性別', width: 64, alignment: 'center' }

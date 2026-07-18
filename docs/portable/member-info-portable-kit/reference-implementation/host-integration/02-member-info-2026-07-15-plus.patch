@@ -1,0 +1,4053 @@
+diff --git a/ChurchReport.MemberInfo.Tests/DistrictTreeBuilderTests.cs b/ChurchReport.MemberInfo.Tests/DistrictTreeBuilderTests.cs
+new file mode 100644
+index 00000000..05efb7e8
+--- /dev/null
++++ b/ChurchReport.MemberInfo.Tests/DistrictTreeBuilderTests.cs
+@@ -0,0 +1,150 @@
++using ChurchReport.Services.MemberInfo;
++using ChurchReport.ViewModels.MemberInfoTree;
++using FluentAssertions;
++using Xunit;
++
++namespace ChurchReport.MemberInfo.Tests;
++
++public class DistrictTreeBuilderTests
++{
++    [Fact]
++    public void Build_GroupsByRaceLeaderKeyAndDeduplicatesMembers()
++    {
++        var groups = new[]
++        {
++            Group("L1", "R1", "同名區長", "範例牧區", "甲組"),
++            Group("L2", "R1", "同名區長", "範例牧區", "乙組"),
++            Group("L3", "R2", "同名區長", "範例牧區", "丙組")
++        };
++        var memberships = new[]
++        {
++            Member("L1", "C1"),
++            Member("L1", "c1"),
++            Member("L2", "C1"),
++            Member("L2", "C2"),
++            Member("L3", "C3")
++        };
++
++        var tree = DistrictTreeBuilder.Build(groups, memberships, new[] { "C1", "C2", "C3", "C4" }, true, "church");
++
++        tree.Districts.Should().HaveCount(2);
++        tree.Districts.Single(x => x.RaceLeaderKey == "R1").MemberCount.Should().Be(2);
++        tree.Districts.Single(x => x.RaceLeaderKey == "R1").Groups.Single(x => x.ListId == "L1").MemberCount.Should().Be(1);
++        tree.Districts.Single(x => x.RaceLeaderKey == "R1").Groups.Single(x => x.ListId == "L2").MemberCount.Should().Be(2);
++        tree.Ungrouped.Should().NotBeNull();
++        tree.Ungrouped!.MemberCount.Should().Be(1);
++    }
++
++    [Fact]
++    public void Build_ExcludesNonCurrentMembershipsAndSortsNodes()
++    {
++        var groups = new[]
++        {
++            Group("L2", "R2", "乙", "B牧區", "乙組"),
++            Group("L1", "R1", "甲", "A牧區", "甲組")
++        };
++        var memberships = new[] { Member("L1", "C1", false), Member("L2", "C2") };
++
++        var tree = DistrictTreeBuilder.Build(groups, memberships, Array.Empty<string>(), false, "shepherd");
++
++        tree.Districts.Select(x => x.AreaName).Should().ContainInOrder("A牧區", "B牧區");
++        tree.Districts.Single(x => x.RaceLeaderKey == "R1").MemberCount.Should().Be(0);
++        tree.Ungrouped.Should().BeNull();
++        tree.Scope.Should().Be("shepherd");
++    }
++
++    [Fact]
++    public void Build_SortsUnknownRaceLeaderAfterAssignedDistrictsAndBeforeUngrouped()
++    {
++        // L0 故意使用字典序最前面的 A 牧區；若排序只看牧區名稱，它會錯誤地跑到已指派區長之前。
++        // L1、L2 則代表資料完整的正常區長，用來鎖定「有區長優先、同類別內再照既有欄位排序」的兩階段規則。
++        var groups = new[]
++        {
++            Group("L0", "", "", "A牧區", "未填區長組"),
++            Group("L1", "R1", "區長甲", "B牧區", "張區"),
++            Group("L2", "R2", "區長乙", "Z牧區", "黃區")
++        };
++
++        // church scope 即使沒有任何目前會友，也必須保留獨立的「無小組」節點；畫面會把它接在所有區長節點之後。
++        // 因此這裡同時保留空的 current-contact 集合，避免修正未填區長排序時誤把最後的無小組入口裁掉。
++        var tree = DistrictTreeBuilder.Build(
++            groups,
++            Array.Empty<GroupMembershipRow>(),
++            Array.Empty<string>(),
++            true,
++            "church");
++
++        // 這組斷言防止 UI 再次出現「區長未填」搶在正式區長前面，並確認無小組入口仍可由 View 追加在樹尾。
++        tree.Districts.Select(x => x.RaceLeaderName)
++            .Should().ContainInOrder("區長甲", "區長乙", DistrictTreeBuilder.UnknownRaceLeaderName);
++        tree.Districts.Last().RaceLeaderName.Should().Be(DistrictTreeBuilder.UnknownRaceLeaderName);
++        tree.Ungrouped.Should().NotBeNull();
++    }
++
++    [Fact]
++    public void Build_UsesFallbacksAndKeepsChurchUngroupedNodeWhenEmpty()
++    {
++        // 空白區長、牧區與小組名稱模擬 CRM 階層欄位尚未補齊的真實資料；各欄位的呈現策略並不相同。
++        // 區長與小組長需要可辨識的替代文字，但牧區依產品決策必須保持空白，不能自行顯示「未填」標籤。
++        var groups = new[] { Group("L1", "", "", "", "") };
++
++        var tree = DistrictTreeBuilder.Build(groups, Array.Empty<GroupMembershipRow>(), Array.Empty<string>(), true, "church");
++
++        // 同時檢查常數與實際輸出為空，可防止日後只改了其中一處，讓未填牧區重新在樹節點上冒出提示文字。
++        tree.Districts.Single().RaceLeaderName.Should().Be(DistrictTreeBuilder.UnknownRaceLeaderName);
++        tree.Districts.Single().AreaName.Should().Be(DistrictTreeBuilder.MissingAreaName);
++        tree.Districts.Single().AreaName.Should().BeEmpty("未填牧區時畫面應直接留白");
++        tree.Districts.Single().Groups.Single().LeaderName.Should().Be(DistrictTreeBuilder.MissingGroupLeaderName);
++        tree.Ungrouped.Should().NotBeNull();
++        tree.Ungrouped!.MemberCount.Should().Be(0);
++    }
++
++    [Fact]
++    public void Build_ToleratesNullInputs()
++    {
++        var tree = DistrictTreeBuilder.Build(null, null, null, true, "church");
++
++        tree.Districts.Should().BeEmpty();
++        tree.Ungrouped.Should().NotBeNull();
++    }
++
++    [Fact]
++    public void Build_FromTotalCurrentCount_DeductsDistinctCurrentGroupedContacts()
++    {
++        var groups = new[] { Group("L1", "R1", "甲", "A牧區", "甲組") };
++        var memberships = new[]
++        {
++            Member("L1", "C1"),
++            Member("L1", "c1"),
++            Member("L1", "C2"),
++            Member("L1", "C3", false)
++        };
++
++        var tree = DistrictTreeBuilder.Build(groups, memberships, 4, true, "church");
++
++        tree.Ungrouped.Should().NotBeNull();
++        tree.Ungrouped!.MemberCount.Should().Be(2);
++    }
++
++    private static SmallGroupDescriptor Group(
++        string listId,
++        string raceKey,
++        string raceName,
++        string areaName,
++        string groupName) => new()
++        {
++            ListId = listId,
++            RaceLeaderKey = raceKey,
++            RaceLeaderName = raceName,
++            AreaName = areaName,
++            GroupName = groupName,
++            LeaderName = string.Empty
++        };
++
++    private static GroupMembershipRow Member(string listId, string contactId, bool current = true) => new()
++    {
++        ListId = listId,
++        ContactId = contactId,
++        IsCurrent = current
++    };
++}
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoCurrentContactCounterTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoCurrentContactCounterTests.cs
+new file mode 100644
+index 00000000..6e16573c
+--- /dev/null
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoCurrentContactCounterTests.cs
+@@ -0,0 +1,58 @@
++using ChurchReport.Services.MemberInfo;
++using FluentAssertions;
++using Microsoft.Xrm.Sdk;
++using Microsoft.Xrm.Sdk.Query;
++using Xunit;
++
++namespace ChurchReport.MemberInfo.Tests;
++
++public class MemberInfoCurrentContactCounterTests
++{
++    [Fact]
++    public void Count_UsesOneAggregateFetchAndReturnsTheServerCount()
++    {
++        var result = new EntityCollection();
++        var aggregateRow = new Entity("contact");
++        aggregateRow["currentcontactcount"] = new AliasedValue("contact", "contactid", 321);
++        result.Entities.Add(aggregateRow);
++        var service = new RecordingOrganizationService(result);
++
++        var count = MemberInfoCurrentContactCounter.Count(service, 7);
++
++        count.Should().Be(321);
++        service.RetrieveMultipleCalls.Should().Be(1);
++        var fetch = service.LastQuery.Should().BeOfType<FetchExpression>().Subject.Query;
++        fetch.Should().Contain("aggregate=\"true\"");
++        fetch.Should().Contain("aggregate=\"countcolumn\"");
++        fetch.Should().Contain("attribute=\"statecode\" operator=\"eq\" value=\"0\"");
++        fetch.Should().Contain("attribute=\"customertypecode\" operator=\"ne\" value=\"7\"");
++    }
++
++    private sealed class RecordingOrganizationService : IOrganizationService
++    {
++        private readonly EntityCollection result;
++
++        public RecordingOrganizationService(EntityCollection result)
++        {
++            this.result = result;
++        }
++
++        public QueryBase? LastQuery { get; private set; }
++        public int RetrieveMultipleCalls { get; private set; }
++
++        public EntityCollection RetrieveMultiple(QueryBase query)
++        {
++            LastQuery = query;
++            RetrieveMultipleCalls++;
++            return result;
++        }
++
++        public Guid Create(Entity entity) => throw new NotSupportedException();
++        public void Update(Entity entity) => throw new NotSupportedException();
++        public void Delete(string entityName, Guid id) => throw new NotSupportedException();
++        public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet) => throw new NotSupportedException();
++        public OrganizationResponse Execute(OrganizationRequest request) => throw new NotSupportedException();
++        public void Associate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities) => throw new NotSupportedException();
++        public void Disassociate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities) => throw new NotSupportedException();
++    }
++}
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoDetailContractTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoDetailContractTests.cs
+new file mode 100644
+index 00000000..4569a1e9
+--- /dev/null
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoDetailContractTests.cs
+@@ -0,0 +1,68 @@
++using ChurchReport.ViewModels;
++using FluentAssertions;
++using Xunit;
++
++namespace ChurchReport.MemberInfo.Tests;
++
++public class MemberInfoDetailContractTests
++{
++    // ViewModel 用反射驗證真正的 CLR 契約；Controller 與 Razor 則讀取原始碼，提供不需啟動 CRM 的快速整合護欄。
++    // 這三個層次必須一起存在，否則欄位可能只加在其中一層，編譯仍成功但彈窗會遺漏或無法顯示資料。
++    private static readonly string RepositoryRoot = FindRepositoryRoot();
++    private static readonly string ControllerText = File.ReadAllText(
++        Path.Combine(RepositoryRoot, "ChurchReport", "Controllers", "MemberInfoController.cs"));
++    private static readonly string ViewText = File.ReadAllText(
++        Path.Combine(RepositoryRoot, "ChurchReport", "Views", "MemberInfo", "_MemberDetailPopup.cshtml"));
++
++    [Fact]
++    public void ViewModel_ExposesGenderAndNullableBirthDate()
++    {
++        // 直接按公開屬性名稱取型別，鎖定 Controller 與 Razor 共同依賴的資料契約。
++        // 生日必須可為 null，才能誠實表達 CRM 未填值；若誤改為 DateTime，預設日期會被當成真實生日送到畫面。
++        var genderProperty = typeof(MemberInfoDetailViewModel).GetProperty("Gender");
++        var birthDateProperty = typeof(MemberInfoDetailViewModel).GetProperty("BirthDate");
++
++        genderProperty.Should().NotBeNull();
++        genderProperty!.PropertyType.Should().Be(typeof(string));
++        birthDateProperty.Should().NotBeNull();
++        birthDateProperty!.PropertyType.Should().Be(typeof(DateTime?));
++    }
++
++    [Fact]
++    public void Controller_RetrievesAndMapsGenderAndBirthDate()
++    {
++        // 查詢欄位、CRM 型別轉換與 ViewModel 指派是一條完整資料鏈：性別要解析 OptionSet 顯示文字，不能把數字代碼直接曝光；
++        // birthdate 則要讀成 nullable DateTime，並把 CRM 可能出現的 Year 1 哨兵值正規化成「未設定」。
++        // 這些契約可防止只新增畫面欄位卻忘記 ColumnSet／mapping，造成所有使用者永遠看到空狀態或錯誤日期。
++        ControllerText.Should().Contain("\"gendercode\"");
++        ControllerText.Should().Contain("\"birthdate\"");
++        ControllerText.Should().Contain("Gender = GetOptionSetText(contact, \"gendercode\")");
++        ControllerText.Should().Contain("var birthDate = contact.GetAttributeValue<DateTime?>(\"birthdate\")");
++        ControllerText.Should().Contain("birthDate.Value.Year <= 1");
++        ControllerText.Should().Contain("BirthDate = birthDate");
++    }
++
++    [Fact]
++    public void View_RendersGenderAndFormattedBirthDateWithEmptyStates()
++    {
++        // 彈窗必須同時提供可辨識標籤、固定 yyyy/MM/dd 日期格式，以及缺值時一致的「未設定」文案。
++        // 這避免 nullable 欄位被直接取 Value 而拋錯，也避免性別空字串與生日空白在畫面上看起來像版面壞掉。
++        ViewText.Should().Contain("<div class=\"member-info-label\">性別</div>");
++        ViewText.Should().Contain("<div class=\"member-info-label\">生日</div>");
++        ViewText.Should().Contain("string.IsNullOrWhiteSpace(Model.Gender)");
++        ViewText.Should().Contain("Model.BirthDate.Value.ToString(\"yyyy/MM/dd\")");
++        ViewText.Should().Contain("（未設定）");
++    }
++
++    private static string FindRepositoryRoot()
++    {
++        var directory = new DirectoryInfo(AppContext.BaseDirectory);
++        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "ChurchReport.sln")))
++        {
++            directory = directory.Parent;
++        }
++
++        return directory?.FullName
++            ?? throw new DirectoryNotFoundException("Could not locate ChurchReport.sln from test output directory.");
++    }
++}
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardListTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardListTests.cs
+new file mode 100644
+index 00000000..103bef8a
+--- /dev/null
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardListTests.cs
+@@ -0,0 +1,47 @@
++using ChurchReport.Services.MemberInfo;
++using FluentAssertions;
++using Xunit;
++
++namespace ChurchReport.MemberInfo.Tests;
++
++public class MemberInfoScopeGuardListTests
++{
++    private static readonly string[] VisibleLists = { "L1", "L2" };
++
++    [Theory]
++    [InlineData(MemberInfoAccess.Church)]
++    [InlineData(MemberInfoAccess.ShepherdList)]
++    public void KnownAccess_AllowsVisibleList(string access)
++    {
++        MemberInfoScopeGuard.IsListAllowed(access, VisibleLists, "l2").Should().BeTrue();
++    }
++
++    [Theory]
++    [InlineData(MemberInfoAccess.Church)]
++    [InlineData(MemberInfoAccess.ShepherdList)]
++    public void KnownAccess_DeniesListOutsideAuthoritativeScope(string access)
++    {
++        MemberInfoScopeGuard.IsListAllowed(access, VisibleLists, "L9").Should().BeFalse();
++    }
++
++    [Theory]
++    [InlineData(null)]
++    [InlineData("")]
++    [InlineData("   ")]
++    public void BlankRequestedList_Denied(string? requested)
++    {
++        MemberInfoScopeGuard.IsListAllowed(MemberInfoAccess.Church, VisibleLists, requested!).Should().BeFalse();
++    }
++
++    [Fact]
++    public void MissingVisibleScope_Denied()
++    {
++        MemberInfoScopeGuard.IsListAllowed(MemberInfoAccess.Church, null!, "L1").Should().BeFalse();
++    }
++
++    [Fact]
++    public void UnknownAccess_Denied()
++    {
++        MemberInfoScopeGuard.IsListAllowed("whatever", VisibleLists, "L1").Should().BeFalse();
++    }
++}
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardTests.cs
+index 2905337b..2f4b89a3 100644
+--- a/ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardTests.cs
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoScopeGuardTests.cs
+@@ -33,8 +33,8 @@ public class MemberInfoScopeGuardTests
+     [InlineData(null)]
+     [InlineData("")]
+     [InlineData("   ")]
+-    public void DeniesMissingId(string requested) =>
+-        MemberInfoScopeGuard.IsContactAllowed(MemberInfoAccess.Church, Shepherd, requested).Should().BeFalse();
++    public void DeniesMissingId(string? requested) =>
++        MemberInfoScopeGuard.IsContactAllowed(MemberInfoAccess.Church, Shepherd, requested!).Should().BeFalse();
+ 
+     [Fact]
+     public void DeniesNoAccess() =>
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs
+new file mode 100644
+index 00000000..38a23a9b
+--- /dev/null
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoTreeControllerContractTests.cs
+@@ -0,0 +1,81 @@
++using FluentAssertions;
++using Xunit;
++
++namespace ChurchReport.MemberInfo.Tests;
++
++public class MemberInfoTreeControllerContractTests
++{
++    private static readonly string Source = File.ReadAllText(
++        Path.Combine(FindRepositoryRoot(), "ChurchReport", "Controllers", "MemberInfoController.cs"));
++
++    [Theory]
++    [InlineData("LoadDistrictTree")]
++    [InlineData("SearchDistrictTree")]
++    [InlineData("LoadGroupMembers")]
++    [InlineData("LoadUngroupedMembers")]
++    public void Controller_ExposesRequiredTreeActions(string action)
++    {
++        Source.Should().Contain("public IActionResult " + action + "(");
++    }
++
++    [Fact]
++    public void Controller_UsesAuthoritativeListScopeAndSecondContactGuard()
++    {
++        Source.Should().Contain("MemberInfoScopeGuard.IsListAllowed");
++        Source.Should().Contain("GetVisibleSmallGroupDescriptors");
++        Source.Should().Contain("CanViewContactsBatch");
++        Source.Should().Contain("FetchGroupMemberships");
++    }
++
++    [Fact]
++    public void Controller_ImplementsStrictCurrentSearchAndServerPagedUngroupedQuery()
++    {
++        Source.Should().Contain("GetRequiredClosedCustomerTypeValue");
++        Source.Should().Contain("MemberInfoTreeSearchBuilder.Build");
++        Source.Should().Contain("BuildUngroupedContactQuery");
++        Source.Should().Contain("ReturnTotalRecordCount = true");
++        Source.Should().Contain("totalCount");
++    }
++
++    [Fact]
++    public void Controller_SearchReturnsAuthorizedCompleteMemberRows()
++    {
++        // 搜尋端點不能只回傳用來展開樹節點的 contact ID；它必須先以完整欄位查出候選人，再套用第二層聯絡人授權。
++        // 通過授權的 Entity 才能批次補關係目標並轉成與一般成員網格相同的完整資料列，最後交由 builder 去重與排序。
++        // 這項原始碼契約防止兩種高風險回歸：搜尋結果只剩姓名／ID，以及未授權候選人在 DTO 建構前未被排除而外洩。
++        Source.Should().Contain("BuildStrictCurrentContactQuery(");
++        Source.Should().Contain("GetTreeContactColumns(),");
++        Source.Should().Contain("matchingContacts = matchingContacts.Where(contact => allowedIds.Contains(contact.Id)).ToList();");
++        Source.Should().Contain("BatchRelationGoals(service, matchingContacts.Select");
++        Source.Should().Contain("BuildMemberRows(service, matchingContacts, relations)");
++        Source.Should().Contain("MemberInfoTreeSearchBuilder.Build(");
++    }
++
++    [Fact]
++    public void Controller_ExposesScopeAndInvalidatesTreeCaches()
++    {
++        Source.Should().Contain("ViewBag.MemberInfoScope");
++        Source.Should().Contain("member-info-tree:church");
++        Source.Should().Contain("member-info-tree:grouped-current-ids:church");
++    }
++
++    [Fact]
++    public void Controller_MapsRelationGoalsIntoOneDtoField()
++    {
++        Source.Should().Contain("RelationGoals = relationGoals");
++        Source.Should().NotContain("Relation = relation.Relations");
++        Source.Should().NotContain("Goal = relation.Goals");
++    }
++
++    private static string FindRepositoryRoot()
++    {
++        var directory = new DirectoryInfo(AppContext.BaseDirectory);
++        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "ChurchReport.sln")))
++        {
++            directory = directory.Parent;
++        }
++
++        return directory?.FullName
++            ?? throw new DirectoryNotFoundException("Could not locate ChurchReport.sln from test output directory.");
++    }
++}
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoTreeSearchBuilderTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoTreeSearchBuilderTests.cs
+new file mode 100644
+index 00000000..751e9d08
+--- /dev/null
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoTreeSearchBuilderTests.cs
+@@ -0,0 +1,89 @@
++using ChurchReport.Services.MemberInfo;
++using ChurchReport.ViewModels.MemberInfoTree;
++using FluentAssertions;
++using Xunit;
++
++namespace ChurchReport.MemberInfo.Tests;
++
++public class MemberInfoTreeSearchBuilderTests
++{
++    [Fact]
++    public void Build_ReturnsDistinctListsContainingMatchingCurrentContacts()
++    {
++        var memberships = new[]
++        {
++            Member("L2", "C1"),
++            Member("L1", "c1"),
++            Member("L3", "C2", false),
++            Member("L4", "C3")
++        };
++
++        var result = MemberInfoTreeSearchBuilder.Build(memberships, new[] { "C1", "C2" }, true);
++
++        result.MatchingListIds.Should().ContainInOrder("L1", "L2");
++        result.HasUngrouped.Should().BeTrue("C2 is a matching contact without a current group membership");
++    }
++
++    [Fact]
++    public void Build_ShepherdNeverReturnsUngrouped()
++    {
++        var result = MemberInfoTreeSearchBuilder.Build(
++            new[] { Member("L1", "C1") },
++            new[] { "C2" },
++            false);
++
++        result.MatchingListIds.Should().BeEmpty();
++        result.HasUngrouped.Should().BeFalse();
++    }
++
++    [Fact]
++    public void Build_ToleratesNullInputs()
++    {
++        // Rows 是搜尋回應新增的集合契約；上游查不到資料時應回傳空集合，而不是遺留舊結果或讓序列化端遇到 null。
++        var result = MemberInfoTreeSearchBuilder.Build(null, null, true);
++
++        result.MatchingListIds.Should().BeEmpty();
++        result.HasUngrouped.Should().BeFalse();
++        result.Rows.Should().BeEmpty();
++    }
++
++    [Fact]
++    public void Build_ReturnsDistinctAuthorizedRowsSortedByName()
++    {
++        // memberships 保留兩位目前小組成員的樹節點關聯；matching IDs 則代表 Controller 完成聯絡人授權後的白名單。
++        var memberships = new[] { Member("L1", "C1"), Member("L2", "C2") };
++        var rows = new[]
++        {
++            // C1/c1 模擬 CRM GUID 大小寫不一致且重複回列；C9 雖有完整資料列，但未列在授權白名單中。
++            // 輸入順序也刻意與姓名順序相反，確保結果不是偶然沿用 CRM 的回傳順序。
++            Row("C2", "會友乙"),
++            Row("c1", "會友甲"),
++            Row("C1", "重複列"),
++            Row("C9", "不可見")
++        };
++
++        var result = MemberInfoTreeSearchBuilder.Build(
++            memberships,
++            new[] { "C1", "C2" },
++            true,
++            rows);
++
++        // 斷言同時鎖定三個真實安全／一致性需求：ID 不分大小寫去重、未授權 C9 不得外洩、姓名採穩定排序。
++        // 保留第一筆 c1 也避免同一會友在搜尋網格重複出現，或因後來的重複列覆寫正確顯示資料。
++        result.Rows.Select(row => row.ContactId).Should().ContainInOrder("c1", "C2");
++        result.Rows.Select(row => row.FullName).Should().ContainInOrder("會友甲", "會友乙");
++    }
++
++    private static GroupMembershipRow Member(string listId, string contactId, bool current = true) => new()
++    {
++        ListId = listId,
++        ContactId = contactId,
++        IsCurrent = current
++    };
++
++    private static GroupMemberRowViewModel Row(string contactId, string fullName) => new()
++    {
++        ContactId = contactId,
++        FullName = fullName
++    };
++}
+diff --git a/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs b/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs
+new file mode 100644
+index 00000000..7775840a
+--- /dev/null
++++ b/ChurchReport.MemberInfo.Tests/MemberInfoTreeViewContractTests.cs
+@@ -0,0 +1,252 @@
++using FluentAssertions;
++using Xunit;
++
++namespace ChurchReport.MemberInfo.Tests;
++
++public class MemberInfoTreeViewContractTests
++{
++    private static readonly string ViewText = File.ReadAllText(
++        Path.Combine(FindRepositoryRoot(), "ChurchReport", "Views", "MemberInfo", "MemberInfoGrid.cshtml"));
++
++    [Fact]
++    public void View_UsesTreeEndpointsAndRemovesFlatGrid()
++    {
++        ViewText.Should().Contain("id=\"memberInfoTree\"");
++        ViewText.Should().Contain("/MemberInfo/LoadDistrictTree");
++        ViewText.Should().Contain("/MemberInfo/SearchDistrictTree");
++        ViewText.Should().Contain("/MemberInfo/LoadGroupMembers");
++        ViewText.Should().Contain("/MemberInfo/LoadUngroupedMembers");
++        ViewText.Should().NotContain("LoadMemberInfoList");
++        ViewText.Should().NotContain("memberInfoTogglePhotoFilter");
++        ViewText.Should().NotContain("MemberInfoGridContainer");
++    }
++
++    [Theory]
++    [InlineData("ContactId")]
++    [InlineData("FullName")]
++    [InlineData("Gender")]
++    [InlineData("BirthDate")]
++    [InlineData("Phone")]
++    [InlineData("SpiritualIdentity")]
++    [InlineData("Address")]
++    [InlineData("MembershipStatus")]
++    [InlineData("RelationGoals")]
++    public void View_UsesPascalCaseMemberFields(string field)
++    {
++        ViewText.Should().Contain("dataField: '" + field + "'");
++    }
++
++    [Fact]
++    public void View_UsesOneRelationGoalsColumnInsteadOfSplitColumns()
++    {
++        ViewText.Should().Contain("dataField: 'RelationGoals', caption: '關係目標'");
++        ViewText.Should().NotContain("dataField: 'Relation'");
++        ViewText.Should().NotContain("dataField: 'Goal'");
++    }
++
++    [Fact]
++    public void View_DoesNotUseLowerCamelTreeDtoFields()
++    {
++        ViewText.Should().NotContain("tree.districts");
++        ViewText.Should().NotContain("tree.hasUngrouped");
++        ViewText.Should().NotContain("tree.ungroupedCount");
++        ViewText.Should().NotContain("d.groups");
++        ViewText.Should().NotContain("g.groupName");
++        ViewText.Should().NotContain("data.contactId");
++        ViewText.Should().NotContain("data.fullName");
++    }
++
++    [Fact]
++    public void View_DisablesComputedColumnSortingOnlyForRemoteUngroupedGrid()
++    {
++        ViewText.Should().Contain("function miMemberColumns(remotePaging)");
++        ViewText.Should().Contain("allowSorting: !remotePaging");
++        ViewText.Should().Contain("columns: miMemberColumns(false)");
++        ViewText.Should().Contain("columns: miMemberColumns(true)");
++    }
++
++    [Fact]
++    public void View_TimesOutInitialTreeRequestAndOffersRetry()
++    {
++        ViewText.Should().Contain("$.ajax({ url: '/MemberInfo/LoadDistrictTree', type: 'GET', timeout: 30000 })");
++        ViewText.Should().Contain("xhr && xhr.statusText === 'timeout' ? '載入逾時'");
++        ViewText.Should().Contain("retry.addEventListener('click', function () { miLoadTree(); });");
++    }
++
++    [Fact]
++    public void View_UsesAccessibleAnimatedLoadingCards()
++    {
++        ViewText.Should().Contain("function miLoadingHtml(compact)");
++        ViewText.Should().Contain("role=\"status\" aria-live=\"polite\" aria-atomic=\"true\"");
++        ViewText.Should().Contain("class=\"mi-loading-dots\" aria-hidden=\"true\"");
++        ViewText.Should().Contain("class=\"mi-loading-dot\"");
++        ViewText.Should().Contain("畫面沒有當掉");
++        ViewText.Should().Contain("@@keyframes mi-loading-bounce");
++        ViewText.Should().Contain("@@keyframes mi-loading-wash");
++        ViewText.Should().Contain("@@media (prefers-reduced-motion: reduce)");
++        ViewText.Should().Contain("miShowLoading(host, true);");
++        ViewText.Should().Contain("miShowLoading(host, false);");
++        ViewText.Should().Contain("var loadingHtml = miLoadingHtml(false);");
++        ViewText.Should().NotContain("miElement('div', 'mi-message', '載入中...')");
++        ViewText.Should().NotContain("member-info-detail-loading\">載入中...");
++    }
++
++    [Fact]
++    public void View_UsesApprovedLeaderHierarchyAndKeepsCountsBesideNames()
++    {
++        // 區長與小組長各自使用核准的視覺層級；人數必須附著在姓名列，而非可展開／收合的外層 header。
++        // 這可防止樣式重構後層級難以辨認，或人數被按鈕與箭頭推到另一側而失去與姓名的關聯。
++        ViewText.Should().Contain("mi-leader-district");
++        ViewText.Should().Contain("mi-leader-group");
++        ViewText.Should().Contain("leaderLine.appendChild(miElement('span', 'mi-count', countText));");
++        ViewText.Should().NotContain("header.appendChild(miElement('span', 'mi-count', countText));");
++    }
++
++    [Fact]
++    public void View_UsesExplicitCancelableSearchAndInlineResults()
++    {
++        // 搜尋是明確按鈕啟動的狀態流程：browse、進行中 overlay、結果區與返回動作都要有獨立容器／入口。
++        // 使用者停止搜尋時必須 abort 尚未完成的 XHR；成功後直接掛載完整 member rows，而不是只標示樹節點。
++        // 同時禁止 input 即打 API 的舊模式，避免中文輸入法組字期間連續送出請求，造成結果閃爍與競態覆蓋。
++        ViewText.Should().Contain("id=\"miSearchBtn\"");
++        ViewText.Should().Contain("id=\"miSearchOverlay\"");
++        ViewText.Should().Contain("id=\"miBrowseView\"");
++        ViewText.Should().Contain("id=\"miSearchResults\"");
++        ViewText.Should().Contain("function miStartSearch()");
++        ViewText.Should().Contain("function miStopSearch()");
++        ViewText.Should().Contain("function miRestoreBrowseView()");
++        ViewText.Should().Contain("miState.searchXhr.abort();");
++        ViewText.Should().Contain("停止搜尋");
++        ViewText.Should().Contain("返回會友資訊");
++        ViewText.Should().Contain("miMountMemberGrid(gridHost, rows);");
++        ViewText.Should().NotContain("box.addEventListener('input'");
++    }
++
++    [Fact]
++    public void View_AllMemberGridsUseNativeHorizontalTouchScrollingWithoutAdaptiveDots()
++    {
++        // 所有成員網格共用同一份 DevExtreme 原生捲動設定，欄位維持固定寬度且不折疊成 adaptive dots。
++        // 外層 host 隱藏水平 overflow，把唯一的水平捲動責任交給 DataGrid 內部容器；pan-x/pan-y 則保留手機自然手勢。
++        // 這組正反向契約防止舊的 1230px 外框或自訂 scrollbar 回流，否則手機會同時出現兩條水平捲軸且欄位難以操作。
++        ViewText.Should().Contain("function miGridScrollingOptions()");
++        ViewText.Should().Contain("useNative: true");
++        ViewText.Should().Contain("showScrollbar: 'always'");
++        ViewText.Should().Contain("scrollByContent: true");
++        ViewText.Should().Contain("columnHidingEnabled: false");
++        ViewText.Should().NotContain("columnHidingEnabled: true");
++        ViewText.Should().NotContain("hidingPriority:");
++        ViewText.Should().Contain("columnAutoWidth: false");
++        ViewText.Should().Contain("elementAttr: { class: 'mi-wide-member-grid' }");
++        ViewText.Should().MatchRegex(@"(?s)\.mi-wide-member-grid\s*\{[^}]*min-width:\s*0");
++        ViewText.Should().MatchRegex(@"(?s)\.mi-grid-host\s*\{[^}]*overflow-x:\s*hidden");
++        ViewText.Should().NotContain("min-width: 1230px");
++        ViewText.Should().NotContain(".mi-grid-host::-webkit-scrollbar");
++        ViewText.Should().Contain("-webkit-overflow-scrolling: touch");
++        ViewText.Should().Contain("touch-action: pan-x pan-y");
++    }
++
++    [Fact]
++    public void View_UsesOnlyTheDevExtremeHorizontalScrollbar()
++    {
++        // DataGrid 必須直接初始化在 host；若再建立一層 gridElement，host 與 DevExtreme 容器都可能各自產生水平捲軸。
++        // 這是對上個測試的結構性護欄，確保「單一水平捲軸」不是只靠目前 CSS 恰巧遮住第二條。
++        ViewText.Should().Contain("$(host).dxDataGrid({");
++        ViewText.Should().NotContain("function miCreateMemberGridElement(host)");
++        ViewText.Should().NotContain("$(gridElement).dxDataGrid({");
++    }
++
++    [Fact]
++    public void View_RestoresBrowseUiBeforeSafelyDisposingSearchGrid()
++    {
++        // 只切出清理函式本體，避免檔案其他位置出現 try/finally 就讓測試誤判通過。
++        // dispose 即使因 DevExtreme 生命週期異常而失敗，也必須由 finally 清掉舊 instance，讓下一次搜尋可以重新掛載。
++        var clearGrid = Slice("function miClearSearchResultGrid()", "function miShowSearchResultMessage");
++        clearGrid.Should().Contain("try {");
++        clearGrid.Should().Contain("catch (error)");
++        clearGrid.Should().Contain("finally {");
++
++        // 返回瀏覽狀態必須先恢復 browse、隱藏 results 並把狀態設回 idle，最後才處置搜尋網格。
++        // 這個順序避免 disposal 丟例外時整頁卡在空白搜尋畫面，使用者既看不到樹也無法重新搜尋。
++        var restore = Slice("function miRestoreBrowseView()", "function miStopSearch()");
++        restore.IndexOf("resultsView.hidden = true", StringComparison.Ordinal)
++            .Should().BeLessThan(restore.IndexOf("miClearSearchResultGrid();", StringComparison.Ordinal));
++        restore.IndexOf("browseView.hidden = false", StringComparison.Ordinal)
++            .Should().BeLessThan(restore.IndexOf("miClearSearchResultGrid();", StringComparison.Ordinal));
++        restore.IndexOf("miSetSearchMode('idle');", StringComparison.Ordinal)
++            .Should().BeLessThan(restore.IndexOf("miClearSearchResultGrid();", StringComparison.Ordinal));
++    }
++
++    [Fact]
++    public void View_UsesFluidMobileTypographyAndAccessibleTouchTargets()
++    {
++        // Slice 將檢查限制在 640px 手機 media query，避免桌面樣式中同名 token 讓測試假通過。
++        // 五組 clamp 變數分別服務區長、樹內容、操作標籤、表頭與資料格，讓窄螢幕縮放時仍維持清楚的資訊層級。
++        var mobile = Slice("@@media (max-width: 640px)", "iOS Safari");
++
++        // 48px 操作列與 44x44 圖示按鈕鎖定可觸控面積；表頭／資料格 selector 則確認字級真正套到 DevExtreme 產生的節點。
++        // 這可防止只宣告 CSS 變數卻未使用，或手機版為塞入更多欄位而退回過小、難以閱讀與點擊的版面。
++        mobile.Should().Contain("--mi-mobile-district-font: clamp(");
++        mobile.Should().Contain("--mi-mobile-tree-font: clamp(");
++        mobile.Should().Contain("--mi-mobile-label-font: clamp(");
++        mobile.Should().Contain("--mi-mobile-grid-font: clamp(");
++        mobile.Should().Contain("--mi-mobile-grid-header-font: clamp(");
++        mobile.Should().Contain("min-height: 48px");
++        mobile.Should().Contain("width: 44px");
++        mobile.Should().Contain("height: 44px");
++        mobile.Should().Contain(".dx-datagrid-headers .dx-row > td");
++        mobile.Should().Contain(".dx-datagrid-rowsview .dx-row > td");
++        mobile.Should().Contain("font-size: var(--mi-mobile-grid-header-font)");
++        mobile.Should().Contain("font-size: var(--mi-mobile-grid-font)");
++    }
++
++    [Fact]
++    public void View_KeepsSearchAndResyncActionsOnOneResponsiveRow()
++    {
++        // 操作列不得換行；搜尋框以 min-width: 0 承擔縮小空間，重新同步按鈕則維持可讀字級與 48px 觸控高度。
++        // 這可防止窄螢幕把同步動作擠到第二列，造成樹內容向下跳動或按鈕被誤認為與搜尋無關。
++        ViewText.Should().Contain(".mi-tree-actions");
++        ViewText.Should().Contain("flex-wrap: nowrap");
++        ViewText.Should().Contain(".mi-search {");
++        ViewText.Should().Contain("min-width: 0");
++        ViewText.Should().Contain(".mi-btn-resync");
++        ViewText.Should().Contain("font-size: var(--mi-mobile-label-font)");
++        ViewText.Should().Contain("min-height: 48px");
++    }
++
++    [Fact]
++    public void View_KeepsNativeSearchInputAtIosSafeFontSize()
++    {
++        // iOS Safari 會在聚焦小於 16px 的原生輸入框時自動放大；限制在手機區塊檢查，確保修正不是只存在於桌面樣式。
++        var mobile = Slice("@@media (max-width: 640px)", "iOS Safari");
++
++        // 高特異性 selector 必須涵蓋實際搜尋輸入框，同時絕不能用 viewport 禁止縮放來掩蓋自動 zoom。
++        // 後兩個否定契約保留使用者 pinch-to-zoom 的無障礙能力，避免修好輸入體驗卻犧牲整頁可縮放性。
++        mobile.Should().MatchRegex(@"(?s)\.mi-search\s*\{[^}]*font-size:\s*16px");
++        ViewText.Should().Contain("#memberInfoPage #miTreeSearch,");
++        ViewText.Should().NotContain("user-scalable=no");
++        ViewText.Should().NotContain("maximum-scale=1");
++    }
++
++    private static string FindRepositoryRoot()
++    {
++        var directory = new DirectoryInfo(AppContext.BaseDirectory);
++        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "ChurchReport.sln")))
++        {
++            directory = directory.Parent;
++        }
++
++        return directory?.FullName
++            ?? throw new DirectoryNotFoundException("Could not locate ChurchReport.sln from test output directory.");
++    }
++
++    private static string Slice(string startMarker, string endMarker)
++    {
++        // 以具名標記擷取單一 CSS／函式區段，讓區域性契約不會被檔案其他同名字串誤滿足。
++        // 標記遺失或順序改變時先在這裡提供明確失敗，再回傳半開區間供各測試檢查真正的實作本體。
++        var start = ViewText.IndexOf(startMarker, StringComparison.Ordinal);
++        var end = ViewText.IndexOf(endMarker, start, StringComparison.Ordinal);
++        start.Should().BeGreaterThanOrEqualTo(0);
++        end.Should().BeGreaterThan(start);
++        return ViewText[start..end];
++    }
++}
+diff --git a/ChurchReport.MemberInfo.Tests/RelationGoalFormatterTests.cs b/ChurchReport.MemberInfo.Tests/RelationGoalFormatterTests.cs
+new file mode 100644
+index 00000000..db474f1b
+--- /dev/null
++++ b/ChurchReport.MemberInfo.Tests/RelationGoalFormatterTests.cs
+@@ -0,0 +1,44 @@
++using ChurchReport.Services.MemberInfo;
++using FluentAssertions;
++using Xunit;
++
++namespace ChurchReport.MemberInfo.Tests;
++
++public class RelationGoalFormatterTests
++{
++    [Fact]
++    public void Format_PreservesPairOrderAndDeduplicatesCaseInsensitively()
++    {
++        var items = new[]
++        {
++            (Role: "妻子", TargetName: "小組長甲"),
++            (Role: "門徒", TargetName: "小組長乙"),
++            (Role: "妻子", TargetName: "小組長甲")
++        };
++
++        var result = RelationGoalFormatter.Format(items);
++
++        ((object)result).Should().Be("妻子: 小組長甲、門徒: 小組長乙");
++    }
++
++    [Fact]
++    public void Format_MatchesMemberDetailTextWhenRoleIsBlank()
++    {
++        var result = RelationGoalFormatter.Format(new[]
++        {
++            (Role: "", TargetName: "小組長甲"),
++            (Role: "門徒", TargetName: "小組長乙"),
++            (Role: "", TargetName: "")
++        });
++
++        ((object)result).Should().Be("小組長甲、門徒: 小組長乙");
++    }
++
++    [Fact]
++    public void Format_NullInputReturnsEmptyStrings()
++    {
++        var result = RelationGoalFormatter.Format(null);
++
++        ((object)result).Should().Be(string.Empty);
++    }
++}
+diff --git a/ChurchReport/ChurchReport.csproj b/ChurchReport/ChurchReport.csproj
+index 1d65324a..21c83d76 100644
+--- a/ChurchReport/ChurchReport.csproj
++++ b/ChurchReport/ChurchReport.csproj
+@@ -28,6 +28,14 @@
+     <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;appsettings.Production.json;web.config">
+       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+     </Content>
++    <!--
++      Web SDK 會依預設 glob 自動收錄本 Web 專案內未來可能出現的 Tests/** 檔案；三種 Item 類型
++      都預防性排除，避免測試來源被正式 ChurchReport 編譯或帶入發佈內容。這些規則只作用於
++      ChurchReport/Tests，不影響位於同層目錄、擁有自己 csproj 的 ChurchReport.MemberInfo.Tests。
++    -->
++    <Compile Remove="Tests\**" />
++    <EmbeddedResource Remove="Tests\**" />
++    <None Remove="Tests\**" />
+     <None Remove="Views\Home\BindingResultView.cshtml" />
+     <None Remove="Views\Home\DedicationFeeAuditViewLine.cshtml" />
+     <None Remove="Views\Home\DedicationInofView.cshtml" />
+@@ -90,7 +98,6 @@
+     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
+   </ItemGroup>
+   <ItemGroup>
+-    <Folder Include="Tests\Services\Caching\" />
+     <Folder Include="Views\Dedication\" />
+     <Folder Include="文件\佈署規劃\" />
+     <Folder Include="文件\修正官網奉獻網頁\" />
+diff --git a/ChurchReport/Controllers/MemberInfoController.cs b/ChurchReport/Controllers/MemberInfoController.cs
+index d9f9fd47..353285d2 100644
+--- a/ChurchReport/Controllers/MemberInfoController.cs
++++ b/ChurchReport/Controllers/MemberInfoController.cs
+@@ -3,6 +3,7 @@ using ChurchReport.Services;
+ using ChurchReport.Services.MemberInfo;
+ using ChurchReport.Tools;
+ using ChurchReport.ViewModels;
++using ChurchReport.ViewModels.MemberInfoTree;
+ using DevExtreme.AspNet.Data;
+ using DevExtreme.AspNet.Mvc;
+ using Microsoft.AspNetCore.Http;
+@@ -27,6 +28,9 @@ namespace ChurchReport.Controllers
+     {
+         private const int DefaultPageSize = 50;
+         private const int MaxPageSize = 200;
++        private const int CrmInClauseChunkSize = 500;
++        private const string ChurchTreeCacheKey = "member-info-tree:church";
++        private const string ChurchGroupedCurrentIdsCacheKey = "member-info-tree:grouped-current-ids:church";
+ 
+         public MemberInfoController(
+             IHttpContextAccessor httpContextAccessor,
+@@ -55,6 +59,7 @@ namespace ChurchReport.Controllers
+ 
+                 // 只有「全教會」管理者才看得到、用得到「重新同步LINE」按鈕（全教會範圍的批次操作）。
+                 ViewBag.MemberInfoCanResync = (access == MemberInfoAccess.Church);
++                ViewBag.MemberInfoScope = access == MemberInfoAccess.Church ? "church" : "shepherd";
+                 return View("MemberInfoGrid");
+             }
+             catch (Exception ex)
+@@ -63,6 +68,284 @@ namespace ChurchReport.Controllers
+             }
+         }
+ 
++        [HttpGet]
++        [Route("/MemberInfo/LoadDistrictTree")]
++        public IActionResult LoadDistrictTree()
++        {
++            IOrganizationService service = null;
++            var timing = System.Diagnostics.Stopwatch.StartNew();
++
++            try
++            {
++                TraceMemberInfoTreePhase("LoadDistrictTree", "start", timing);
++                EnsureCorrectUserData();
++                TraceMemberInfoTreePhase("LoadDistrictTree", "user-data-ready", timing);
++                var access = GetAccess();
++                TraceMemberInfoTreePhase("LoadDistrictTree", "access=" + (access ?? "none"), timing);
++                if (access != MemberInfoAccess.Church && access != MemberInfoAccess.ShepherdList)
++                {
++                    return Forbid();
++                }
++
++                var memoryCache = GetMemberInfoMemoryCache();
++                if (access == MemberInfoAccess.Church &&
++                    memoryCache != null &&
++                    memoryCache.TryGetValue(ChurchTreeCacheKey, out DistrictTreeViewModel cachedTree) &&
++                    cachedTree != null)
++                {
++                    return Json(cachedTree);
++                }
++
++                TraceMemberInfoTreePhase("LoadDistrictTree", "acquire-connection", timing);
++                service = GetConnection();
++                TraceMemberInfoTreePhase("LoadDistrictTree", "connection-acquired", timing);
++                var closedStatus = GetRequiredClosedCustomerTypeValue(service);
++                TraceMemberInfoTreePhase("LoadDistrictTree", "closed-status-ready", timing);
++                var descriptors = GetVisibleSmallGroupDescriptors(service, access);
++                TraceMemberInfoTreePhase("LoadDistrictTree", "descriptors=" + descriptors.Count, timing);
++                var memberships = FetchGroupMemberships(
++                    service,
++                    descriptors.Select(group => group.ListId).ToList(),
++                    closedStatus);
++                TraceMemberInfoTreePhase("LoadDistrictTree", "memberships=" + memberships.Count, timing);
++                var includeUngrouped = access == MemberInfoAccess.Church;
++                var allCurrentContactCount = includeUngrouped
++                    ? MemberInfoCurrentContactCounter.Count(service, closedStatus)
++                    : 0;
++                TraceMemberInfoTreePhase(
++                    "LoadDistrictTree",
++                    "current-contact-count=" + allCurrentContactCount,
++                    timing);
++
++                var tree = DistrictTreeBuilder.Build(
++                    descriptors,
++                    memberships,
++                    allCurrentContactCount,
++                    includeUngrouped,
++                    includeUngrouped ? "church" : "shepherd");
++                TraceMemberInfoTreePhase("LoadDistrictTree", "tree-built", timing);
++
++                if (includeUngrouped && memoryCache != null)
++                {
++                    var groupedIds = memberships
++                        .Where(row => row.IsCurrent && Guid.TryParse(row.ContactId, out _))
++                        .Select(row => Guid.Parse(row.ContactId))
++                        .ToHashSet();
++                    SetTreeCache(memoryCache, ChurchTreeCacheKey, tree, Math.Max(1, descriptors.Count));
++                    SetTreeCache(
++                        memoryCache,
++                        ChurchGroupedCurrentIdsCacheKey,
++                        groupedIds,
++                        Math.Max(1, groupedIds.Count));
++                }
++
++                TraceMemberInfoTreePhase("LoadDistrictTree", "complete", timing);
++                return Json(tree);
++            }
++            catch (Exception ex)
++            {
++                TraceMemberInfoTreePhase("LoadDistrictTree", "error=" + ex.GetType().Name, timing);
++                return HandleError(ex, "MemberInfo.LoadDistrictTree");
++            }
++            finally
++            {
++                ReleaseConnection(service);
++                TraceMemberInfoTreePhase("LoadDistrictTree", "connection-released", timing);
++            }
++        }
++
++        [HttpGet]
++        [Route("/MemberInfo/SearchDistrictTree")]
++        public IActionResult SearchDistrictTree(string search)
++        {
++            IOrganizationService service = null;
++
++            try
++            {
++                EnsureCorrectUserData();
++                var access = GetAccess();
++                if (access != MemberInfoAccess.Church && access != MemberInfoAccess.ShepherdList)
++                {
++                    return Forbid();
++                }
++
++                if (string.IsNullOrWhiteSpace(search))
++                {
++                    return Json(new MemberInfoTreeSearchResultViewModel());
++                }
++
++                service = GetConnection();
++                var closedStatus = GetRequiredClosedCustomerTypeValue(service);
++                var descriptors = GetVisibleSmallGroupDescriptors(service, access);
++                var memberships = FetchGroupMemberships(
++                    service,
++                    descriptors.Select(group => group.ListId).ToList(),
++                    closedStatus);
++                // 搜尋採三段式安全資料流：先以「在籍且未結案」條件查出候選聯絡人，接著批次授權，
++                // 最後才把通過授權者組成完整資料列。候選資料絕不直接進入回應，避免搜尋功能繞過可見範圍。
++                // 此處一次取齊資料列所需欄位，授權完成後即可沿用同批 Entity，不必再逐人查詢 CRM。
++                var statusValues = GetCustomerTypeValuesMatchingText(service, search);
++                var query = BuildStrictCurrentContactQuery(
++                    GetTreeContactColumns(),
++                    search,
++                    closedStatus,
++                    statusValues);
++                var matchingContacts = RetrieveAllEntities(service, query);
++                var matchingIds = matchingContacts
++                    .Select(contact => contact.Id)
++                    .Where(id => id != Guid.Empty)
++                    .Distinct()
++                    .ToList();
++                // 小組長的批次授權以目前可見小組成員為邊界；全教會權限仍須通過在籍／未結案檢查。
++                // 這一步回傳的 allowedIds 是後續樹節點與列資料唯一可信的聯絡人集合。
++                var visibleMembershipContactIds = memberships
++                    .Select(row => Guid.TryParse(row.ContactId, out var id) ? id : Guid.Empty)
++                    .Where(id => id != Guid.Empty)
++                    .Distinct()
++                    .ToList();
++                var allowedIds = CanViewContactsBatch(
++                    matchingIds,
++                    service,
++                    closedStatus,
++                    visibleMembershipContactIds);
++                // 在補關係文字及建立 DTO 前再次用 allowedIds 收斂候選 Entity，確保完整列不會夾帶未授權資料。
++                matchingContacts = matchingContacts.Where(contact => allowedIds.Contains(contact.Id)).ToList();
++                var relations = BatchRelationGoals(service, matchingContacts.Select(contact => contact.Id).ToList());
++                var rows = BuildMemberRows(service, matchingContacts, relations);
++
++                var result = MemberInfoTreeSearchBuilder.Build(
++                    memberships,
++                    allowedIds.Select(id => id.ToString()).ToList(),
++                    access == MemberInfoAccess.Church,
++                    rows);
++                return Json(result);
++            }
++            catch (Exception ex)
++            {
++                return HandleError(ex, "MemberInfo.SearchDistrictTree");
++            }
++            finally
++            {
++                ReleaseConnection(service);
++            }
++        }
++
++        [HttpGet]
++        [Route("/MemberInfo/LoadGroupMembers")]
++        public IActionResult LoadGroupMembers(string listId, string search)
++        {
++            IOrganizationService service = null;
++
++            try
++            {
++                EnsureCorrectUserData();
++                var access = GetAccess();
++                if (access != MemberInfoAccess.Church && access != MemberInfoAccess.ShepherdList)
++                {
++                    return Forbid();
++                }
++
++                if (!Guid.TryParse(listId, out var requestedListId))
++                {
++                    return Forbid();
++                }
++
++                service = GetConnection();
++                var closedStatus = GetRequiredClosedCustomerTypeValue(service);
++                var descriptors = GetVisibleSmallGroupDescriptors(service, access);
++                var visibleListIds = descriptors.Select(group => group.ListId).ToList();
++                if (!MemberInfoScopeGuard.IsListAllowed(access, visibleListIds, listId))
++                {
++                    return Forbid();
++                }
++
++                var memberships = FetchGroupMemberships(
++                    service,
++                    new[] { requestedListId.ToString() },
++                    closedStatus);
++                var memberIds = memberships
++                    .Where(row => row.IsCurrent && Guid.TryParse(row.ContactId, out _))
++                    .Select(row => Guid.Parse(row.ContactId))
++                    .Distinct()
++                    .ToList();
++                var contacts = FetchContactsByIds(service, memberIds, search, closedStatus);
++                var allowedIds = CanViewContactsBatch(
++                    contacts.Select(contact => contact.Id).ToList(),
++                    service,
++                    closedStatus,
++                    memberIds);
++                contacts = contacts.Where(contact => allowedIds.Contains(contact.Id)).ToList();
++
++                var relations = BatchRelationGoals(service, contacts.Select(contact => contact.Id).ToList());
++                var rows = BuildMemberRows(service, contacts, relations)
++                    .OrderBy(row => row.FullName, StringComparer.Ordinal)
++                    .ThenBy(row => row.ContactId, StringComparer.OrdinalIgnoreCase)
++                    .ToList();
++                return Json(new { data = rows });
++            }
++            catch (Exception ex)
++            {
++                return HandleError(ex, "MemberInfo.LoadGroupMembers");
++            }
++            finally
++            {
++                ReleaseConnection(service);
++            }
++        }
++
++        [HttpGet]
++        [Route("/MemberInfo/LoadUngroupedMembers")]
++        public IActionResult LoadUngroupedMembers(DataSourceLoadOptions loadOptions, string search)
++        {
++            IOrganizationService service = null;
++
++            try
++            {
++                EnsureCorrectUserData();
++                var access = GetAccess();
++                if (access != MemberInfoAccess.Church)
++                {
++                    return Forbid();
++                }
++
++                service = GetConnection();
++                var closedStatus = GetRequiredClosedCustomerTypeValue(service);
++                var descriptors = GetVisibleSmallGroupDescriptors(service, access);
++                var groupedIds = GetChurchGroupedCurrentIds(service, descriptors, closedStatus);
++                var statusValues = GetCustomerTypeValuesMatchingText(service, search);
++                var query = BuildUngroupedContactQuery(
++                    GetTreeContactColumns(),
++                    search,
++                    groupedIds,
++                    closedStatus,
++                    statusValues,
++                    loadOptions);
++                var page = service.RetrieveMultiple(query);
++                var contacts = page.Entities.ToList();
++                var allowedIds = CanViewContactsBatch(
++                    contacts.Select(contact => contact.Id).ToList(),
++                    service,
++                    closedStatus);
++                contacts = contacts.Where(contact => allowedIds.Contains(contact.Id)).ToList();
++
++                var relations = BatchRelationGoals(service, contacts.Select(contact => contact.Id).ToList());
++                var rows = BuildMemberRows(service, contacts, relations);
++                var skip = loadOptions?.Skip > 0 ? loadOptions.Skip : 0;
++                var totalCount = page.TotalRecordCount >= 0
++                    ? page.TotalRecordCount
++                    : skip + rows.Count + (page.MoreRecords ? 1 : 0);
++                return Json(new { data = rows, totalCount });
++            }
++            catch (Exception ex)
++            {
++                return HandleError(ex, "MemberInfo.LoadUngroupedMembers");
++            }
++            finally
++            {
++                ReleaseConnection(service);
++            }
++        }
++
+         [HttpGet]
+         public object LoadMemberInfoList(DataSourceLoadOptions loadOptions)
+         {
+@@ -105,6 +388,13 @@ namespace ChurchReport.Controllers
+ 
+                 var service = ToolUtility.m_Crm2011OrganizationService;
+                 var contact = service.Retrieve("contact", contactGuid, GetContactDetailColumns());
++                // CRM 可能以 DateTime 的 Year=1 表示未填或無效日期；在 ViewModel 邊界正規化為 null，
++                // 讓 Razor 只需處理「有效生日／未設定」兩種狀態，不會顯示 0001/01/01。
++                var birthDate = contact.GetAttributeValue<DateTime?>("birthdate");
++                if (birthDate.HasValue && birthDate.Value.Year <= 1)
++                {
++                    birthDate = null;
++                }
+ 
+                 var model = new MemberInfoDetailViewModel
+                 {
+@@ -112,6 +402,8 @@ namespace ChurchReport.Controllers
+                     FullName = ToolUtility.GetEntityStringAttribute(contact, "fullname"),
+                     Phone = ToolUtility.GetEntityStringAttribute(contact, "mobilephone"),
+                     Address = ToolUtility.GetEntityStringAttribute(contact, "address2_line1"),
++                    Gender = GetOptionSetText(contact, "gendercode"),
++                    BirthDate = birthDate,
+                     MembershipStatus = GetOptionSetText(contact, "customertypecode"),
+                     SpiritualIdentity = GetOptionSetText(contact, "new_spiriitual_identity"),
+                     RelationGoals = GetRelationGoals(contactGuid),
+@@ -955,6 +1247,8 @@ namespace ChurchReport.Controllers
+ 
+             memoryCache.Remove("member-info-church-rows:all:");
+             memoryCache.Remove("member-info-church-rows:photo:");
++            memoryCache.Remove(ChurchTreeCacheKey);
++            memoryCache.Remove(ChurchGroupedCurrentIdsCacheKey);
+         }
+ 
+         /// <summary>以共用快取的 OptionSet 服務取得某 contact 欄位的全部選項(文字+整數值)，供下拉編輯使用。</summary>
+@@ -1003,6 +1297,575 @@ namespace ChurchReport.Controllers
+             return access;
+         }
+ 
++        private IMemoryCache GetMemberInfoMemoryCache()
++        {
++            return HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
++        }
++
++        private static void TraceMemberInfoTreePhase(
++            string operation,
++            string phase,
++            System.Diagnostics.Stopwatch timing)
++        {
++            System.Diagnostics.Trace.WriteLine(
++                $"[MemberInfoTree] operation={operation} phase={phase} elapsedMs={timing?.ElapsedMilliseconds ?? -1}");
++        }
++
++        private static void SetTreeCache<T>(IMemoryCache memoryCache, string key, T value, int size)
++        {
++            memoryCache.Set(key, value, new MemoryCacheEntryOptions
++            {
++                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(3),
++                SlidingExpiration = TimeSpan.FromMinutes(1),
++                Size = Math.Max(1, size)
++            });
++        }
++
++        private int GetRequiredClosedCustomerTypeValue(IOrganizationService service)
++        {
++            // GetOptionSetValue 在找不到且 defaultValue=null 時會拋出異常；
++            // 不捕獲該異常，讓新樹狀端點 fail-closed，絕不在無法辨識「結案」時放行資料。
++            return GetSharedOptionSetService(service)
++                .GetOptionSetValue("contact", "customertypecode", "結案", null);
++        }
++
++        private List<SmallGroupDescriptor> GetVisibleSmallGroupDescriptors(
++            IOrganizationService service,
++            string access)
++        {
++            if (access == MemberInfoAccess.Church)
++            {
++                return FetchSmallGroupDescriptors(service, null);
++            }
++
++            if (access == MemberInfoAccess.ShepherdList)
++            {
++                return FetchSmallGroupDescriptors(service, GetShepherdListIds());
++            }
++
++            return new List<SmallGroupDescriptor>();
++        }
++
++        private HashSet<Guid> GetShepherdListIds()
++        {
++            var result = new HashSet<Guid>();
++            EnsureShepherdListsLoaded();
++
++            var groups = InMemoryContext?.ListManager?.m_MultiGroupList?.m_WeeklyReportRecordListData;
++            if (groups == null)
++            {
++                return result;
++            }
++
++            foreach (var group in groups)
++            {
++                if (Guid.TryParse(group.ListEntityId, out var listId) && listId != Guid.Empty)
++                {
++                    result.Add(listId);
++                }
++            }
++
++            return result;
++        }
++
++        private List<SmallGroupDescriptor> FetchSmallGroupDescriptors(
++            IOrganizationService service,
++            IReadOnlyCollection<Guid> onlyListIds)
++        {
++            if (onlyListIds != null && onlyListIds.Count == 0)
++            {
++                return new List<SmallGroupDescriptor>();
++            }
++
++            var entities = new List<Entity>();
++            var chunks = onlyListIds == null
++                ? new List<List<Guid>> { null }
++                : onlyListIds
++                    .Where(id => id != Guid.Empty)
++                    .Distinct()
++                    .Chunk(CrmInClauseChunkSize)
++                    .Select(chunk => chunk.ToList())
++                    .ToList();
++
++            foreach (var chunk in chunks)
++            {
++                var query = new QueryExpression("list")
++                {
++                    ColumnSet = new ColumnSet(
++                        "listid",
++                        "listname",
++                        "new_area_name",
++                        "new_contact_race_leager_list",
++                        "new_contact_family_leader_list",
++                        "new_contact_list_arealeader")
++                };
++                query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
++                query.Criteria.AddCondition("purpose", ConditionOperator.Equal, "小組名單");
++                query.Criteria.AddCondition("new_app_named", ConditionOperator.Equal, true);
++                if (chunk != null)
++                {
++                    query.Criteria.AddCondition(
++                        "listid",
++                        ConditionOperator.In,
++                        chunk.Select(id => (object)id).ToArray());
++                }
++                query.AddOrder("listname", OrderType.Ascending);
++                entities.AddRange(RetrieveAllEntities(service, query));
++            }
++
++            return entities
++                .Where(entity => entity != null && entity.Id != Guid.Empty)
++                .GroupBy(entity => entity.Id)
++                .Select(group => group.First())
++                .Select(entity =>
++                {
++                    var raceLeader = entity.GetAttributeValue<EntityReference>("new_contact_race_leager_list");
++                    var groupLeader = entity.GetAttributeValue<EntityReference>("new_contact_family_leader_list");
++                    var areaLeader = entity.GetAttributeValue<EntityReference>("new_contact_list_arealeader");
++                    var areaName = entity.GetAttributeValue<string>("new_area_name") ?? string.Empty;
++                    if (string.IsNullOrWhiteSpace(areaName) && !string.IsNullOrWhiteSpace(areaLeader?.Name))
++                    {
++                        areaName = areaLeader.Name.Trim() + "牧區";
++                    }
++
++                    return new SmallGroupDescriptor
++                    {
++                        ListId = entity.Id.ToString(),
++                        GroupName = entity.GetAttributeValue<string>("listname") ?? string.Empty,
++                        AreaName = areaName,
++                        RaceLeaderName = raceLeader?.Name ?? string.Empty,
++                        RaceLeaderKey = raceLeader?.Id.ToString() ?? string.Empty,
++                        LeaderName = groupLeader?.Name ?? string.Empty
++                    };
++                })
++                .ToList();
++        }
++
++        private List<GroupMembershipRow> FetchGroupMemberships(
++            IOrganizationService service,
++            IReadOnlyCollection<string> listIds,
++            int closedStatus)
++        {
++            var validListIds = (listIds ?? Array.Empty<string>())
++                .Select(id => Guid.TryParse(id, out var parsed) ? parsed : Guid.Empty)
++                .Where(id => id != Guid.Empty)
++                .Distinct()
++                .ToList();
++            if (validListIds.Count == 0)
++            {
++                return new List<GroupMembershipRow>();
++            }
++
++            var rows = new Dictionary<string, GroupMembershipRow>(StringComparer.OrdinalIgnoreCase);
++            foreach (var chunk in validListIds.Chunk(CrmInClauseChunkSize))
++            {
++                var query = new QueryExpression("listmember")
++                {
++                    ColumnSet = new ColumnSet("listid", "entityid")
++                };
++                query.Criteria.AddCondition(
++                    "listid",
++                    ConditionOperator.In,
++                    chunk.Select(id => (object)id).ToArray());
++
++                var contactLink = new LinkEntity(
++                    "listmember",
++                    "contact",
++                    "entityid",
++                    "contactid",
++                    JoinOperator.Inner)
++                {
++                    EntityAlias = "member",
++                    Columns = new ColumnSet("contactid", "statecode", "customertypecode")
++                };
++                contactLink.LinkCriteria.AddCondition("statecode", ConditionOperator.Equal, 0);
++                var currentStatus = new FilterExpression(LogicalOperator.Or);
++                currentStatus.AddCondition("customertypecode", ConditionOperator.Null);
++                currentStatus.AddCondition("customertypecode", ConditionOperator.NotEqual, closedStatus);
++                contactLink.LinkCriteria.Filters.Add(currentStatus);
++                query.LinkEntities.Add(contactLink);
++
++                foreach (var entity in RetrieveAllEntities(service, query))
++                {
++                    var listId = GetListMemberListId(entity);
++                    var contactId = GetListMemberContactId(entity);
++                    if (listId == Guid.Empty || contactId == Guid.Empty)
++                    {
++                        continue;
++                    }
++
++                    var key = listId.ToString("N") + ":" + contactId.ToString("N");
++                    rows[key] = new GroupMembershipRow
++                    {
++                        ListId = listId.ToString(),
++                        ContactId = contactId.ToString(),
++                        IsCurrent = true
++                    };
++                }
++            }
++
++            return rows.Values.ToList();
++        }
++
++        private QueryExpression BuildStrictCurrentContactQuery(
++            ColumnSet columns,
++            string search,
++            int closedStatus,
++            IReadOnlyCollection<int> matchingStatusValues)
++        {
++            var query = new QueryExpression("contact")
++            {
++                ColumnSet = columns
++            };
++            query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
++
++            var currentStatus = new FilterExpression(LogicalOperator.Or);
++            currentStatus.AddCondition("customertypecode", ConditionOperator.Null);
++            currentStatus.AddCondition("customertypecode", ConditionOperator.NotEqual, closedStatus);
++            query.Criteria.Filters.Add(currentStatus);
++
++            if (!string.IsNullOrWhiteSpace(search))
++            {
++                var pattern = "%" + search.Trim() + "%";
++                var searchFilter = new FilterExpression(LogicalOperator.Or);
++                searchFilter.AddCondition("fullname", ConditionOperator.Like, pattern);
++                searchFilter.AddCondition("mobilephone", ConditionOperator.Like, pattern);
++                if (matchingStatusValues != null && matchingStatusValues.Count > 0)
++                {
++                    searchFilter.AddCondition(
++                        "customertypecode",
++                        ConditionOperator.In,
++                        matchingStatusValues.Select(value => (object)value).ToArray());
++                }
++                query.Criteria.Filters.Add(searchFilter);
++            }
++
++            return query;
++        }
++
++        private List<int> GetCustomerTypeValuesMatchingText(IOrganizationService service, string search)
++        {
++            if (string.IsNullOrWhiteSpace(search))
++            {
++                return new List<int>();
++            }
++
++            var term = search.Trim();
++            return GetSharedOptionSetService(service)
++                .GetOptionSetMapping("contact", "customertypecode")
++                .Where(pair => !string.IsNullOrEmpty(pair.Key) &&
++                               pair.Key.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0)
++                .Select(pair => pair.Value)
++                .Distinct()
++                .ToList();
++        }
++
++        private static List<Entity> RetrieveAllEntities(IOrganizationService service, QueryExpression query)
++        {
++            var entities = new List<Entity>();
++            query.PageInfo = new PagingInfo
++            {
++                Count = 2000,
++                PageNumber = 1,
++                PagingCookie = null,
++                ReturnTotalRecordCount = false
++            };
++
++            while (true)
++            {
++                var page = service.RetrieveMultiple(query);
++                if (page?.Entities != null)
++                {
++                    entities.AddRange(page.Entities);
++                }
++                if (page == null || !page.MoreRecords)
++                {
++                    break;
++                }
++
++                query.PageInfo.PageNumber++;
++                query.PageInfo.PagingCookie = page.PagingCookie;
++            }
++
++            return entities;
++        }
++
++        private List<Entity> FetchContactsByIds(
++            IOrganizationService service,
++            IReadOnlyCollection<Guid> contactIds,
++            string search,
++            int closedStatus)
++        {
++            var result = new Dictionary<Guid, Entity>();
++            var ids = (contactIds ?? Array.Empty<Guid>())
++                .Where(id => id != Guid.Empty)
++                .Distinct()
++                .ToList();
++            if (ids.Count == 0)
++            {
++                return new List<Entity>();
++            }
++
++            var statusValues = GetCustomerTypeValuesMatchingText(service, search);
++            foreach (var chunk in ids.Chunk(CrmInClauseChunkSize))
++            {
++                var query = BuildStrictCurrentContactQuery(
++                    GetTreeContactColumns(),
++                    search,
++                    closedStatus,
++                    statusValues);
++                query.Criteria.AddCondition(
++                    "contactid",
++                    ConditionOperator.In,
++                    chunk.Select(id => (object)id).ToArray());
++                foreach (var contact in RetrieveAllEntities(service, query))
++                {
++                    result[contact.Id] = contact;
++                }
++            }
++
++            return result.Values.ToList();
++        }
++
++        private HashSet<Guid> GetChurchGroupedCurrentIds(
++            IOrganizationService service,
++            IReadOnlyCollection<SmallGroupDescriptor> descriptors,
++            int closedStatus)
++        {
++            var memoryCache = GetMemberInfoMemoryCache();
++            if (memoryCache != null &&
++                memoryCache.TryGetValue(
++                    ChurchGroupedCurrentIdsCacheKey,
++                    out HashSet<Guid> cachedIds) &&
++                cachedIds != null)
++            {
++                return new HashSet<Guid>(cachedIds);
++            }
++
++            var memberships = FetchGroupMemberships(
++                service,
++                (descriptors ?? Array.Empty<SmallGroupDescriptor>())
++                    .Select(group => group.ListId)
++                    .ToList(),
++                closedStatus);
++            var groupedIds = memberships
++                .Select(row => Guid.TryParse(row.ContactId, out var id) ? id : Guid.Empty)
++                .Where(id => id != Guid.Empty)
++                .ToHashSet();
++            if (memoryCache != null)
++            {
++                SetTreeCache(
++                    memoryCache,
++                    ChurchGroupedCurrentIdsCacheKey,
++                    groupedIds,
++                    Math.Max(1, groupedIds.Count));
++            }
++
++            return groupedIds;
++        }
++
++        private QueryExpression BuildUngroupedContactQuery(
++            ColumnSet columns,
++            string search,
++            IReadOnlyCollection<Guid> groupedIds,
++            int closedStatus,
++            IReadOnlyCollection<int> matchingStatusValues,
++            DataSourceLoadOptions loadOptions)
++        {
++            var query = BuildStrictCurrentContactQuery(
++                columns,
++                search,
++                closedStatus,
++                matchingStatusValues);
++            foreach (var chunk in (groupedIds ?? Array.Empty<Guid>())
++                         .Where(id => id != Guid.Empty)
++                         .Distinct()
++                         .Chunk(CrmInClauseChunkSize))
++            {
++                query.Criteria.AddCondition(
++                    "contactid",
++                    ConditionOperator.NotIn,
++                    chunk.Select(id => (object)id).ToArray());
++            }
++
++            ApplyUngroupedSort(query, loadOptions);
++            var take = loadOptions?.Take > 0
++                ? Math.Min(loadOptions.Take, MaxPageSize)
++                : DefaultPageSize;
++            var skip = loadOptions?.Skip > 0 ? loadOptions.Skip : 0;
++            query.PageInfo = new PagingInfo
++            {
++                Count = take,
++                PageNumber = skip / take + 1,
++                PagingCookie = null,
++                ReturnTotalRecordCount = true
++            };
++            return query;
++        }
++
++        private static void ApplyUngroupedSort(QueryExpression query, DataSourceLoadOptions loadOptions)
++        {
++            var applied = false;
++            if (loadOptions?.Sort != null)
++            {
++                foreach (var sort in loadOptions.Sort)
++                {
++                    var attribute = MapUngroupedSortAttribute(sort?.Selector);
++                    if (attribute == null)
++                    {
++                        continue;
++                    }
++                    query.AddOrder(attribute, sort.Desc ? OrderType.Descending : OrderType.Ascending);
++                    applied = true;
++                }
++            }
++
++            if (!applied)
++            {
++                query.AddOrder("fullname", OrderType.Ascending);
++            }
++            query.AddOrder("contactid", OrderType.Ascending);
++        }
++
++        private static string MapUngroupedSortAttribute(string selector)
++        {
++            if (string.IsNullOrWhiteSpace(selector)) return null;
++            if (string.Equals(selector, "FullName", StringComparison.OrdinalIgnoreCase)) return "fullname";
++            if (string.Equals(selector, "Gender", StringComparison.OrdinalIgnoreCase)) return "gendercode";
++            if (string.Equals(selector, "BirthDate", StringComparison.OrdinalIgnoreCase)) return "birthdate";
++            if (string.Equals(selector, "Phone", StringComparison.OrdinalIgnoreCase)) return "mobilephone";
++            if (string.Equals(selector, "SpiritualIdentity", StringComparison.OrdinalIgnoreCase)) return "new_spiriitual_identity";
++            if (string.Equals(selector, "Address", StringComparison.OrdinalIgnoreCase)) return "address2_line1";
++            if (string.Equals(selector, "MembershipStatus", StringComparison.OrdinalIgnoreCase)) return "customertypecode";
++            return null;
++        }
++
++        private Dictionary<Guid, string> BatchRelationGoals(
++            IOrganizationService service,
++            IReadOnlyCollection<Guid> contactIds)
++        {
++            var requestedIds = (contactIds ?? Array.Empty<Guid>())
++                .Where(id => id != Guid.Empty)
++                .Distinct()
++                .ToHashSet();
++            var items = requestedIds.ToDictionary(
++                id => id,
++                _ => new List<(string Role, string TargetName)>());
++
++            foreach (var chunk in requestedIds.Chunk(CrmInClauseChunkSize))
++            {
++                try
++                {
++                    var values = chunk.Select(id => (object)id).ToArray();
++                    var query = new QueryExpression("connection")
++                    {
++                        ColumnSet = new ColumnSet("record1id", "record2id", "record1roleid", "record2roleid")
++                    };
++                    query.Criteria.FilterOperator = LogicalOperator.Or;
++                    query.Criteria.AddCondition("record1id", ConditionOperator.In, values);
++                    query.Criteria.AddCondition("record2id", ConditionOperator.In, values);
++                    query.AddOrder("connectionid", OrderType.Ascending);
++
++                    foreach (var connection in RetrieveAllEntities(service, query))
++                    {
++                        var record1 = connection.GetAttributeValue<EntityReference>("record1id");
++                        var record2 = connection.GetAttributeValue<EntityReference>("record2id");
++                        if (record1 != null && requestedIds.Contains(record1.Id))
++                        {
++                            var role = connection.GetAttributeValue<EntityReference>("record2roleid");
++                            items[record1.Id].Add((role?.Name ?? string.Empty, record2?.Name ?? string.Empty));
++                        }
++                        if (record2 != null && requestedIds.Contains(record2.Id))
++                        {
++                            var role = connection.GetAttributeValue<EntityReference>("record1roleid");
++                            items[record2.Id].Add((role?.Name ?? string.Empty, record1?.Name ?? string.Empty));
++                        }
++                    }
++                }
++                catch
++                {
++                    // 某些 CRM 環境不開放 connection；保留成員列並將關係／目標留空。
++                }
++            }
++
++            return items.ToDictionary(
++                pair => pair.Key,
++                pair => RelationGoalFormatter.Format(pair.Value));
++        }
++
++        private List<GroupMemberRowViewModel> BuildMemberRows(
++            IOrganizationService service,
++            IEnumerable<Entity> contacts,
++            IReadOnlyDictionary<Guid, string> relationGoalsByContact)
++        {
++            var optionService = GetSharedOptionSetService(service);
++            var rows = new List<GroupMemberRowViewModel>();
++            foreach (var contact in contacts ?? Enumerable.Empty<Entity>())
++            {
++                var relationGoals = string.Empty;
++                relationGoalsByContact?.TryGetValue(contact.Id, out relationGoals);
++                // 搜尋、分組與未分組端點共用此列 DTO；統一把 CRM 的 Year=1 哨兵值轉成 null，
++                // 避免不同入口對同一生日產生不一致的顯示結果。
++                var birthDate = contact.GetAttributeValue<DateTime?>("birthdate");
++                if (birthDate.HasValue && birthDate.Value.Year <= 1)
++                {
++                    birthDate = null;
++                }
++
++                rows.Add(new GroupMemberRowViewModel
++                {
++                    ContactId = contact.Id.ToString(),
++                    FullName = contact.GetAttributeValue<string>("fullname") ?? string.Empty,
++                    Gender = ResolveOptionSetText(optionService, contact, "gendercode"),
++                    BirthDate = birthDate,
++                    Phone = contact.GetAttributeValue<string>("mobilephone") ?? string.Empty,
++                    SpiritualIdentity = ResolveOptionSetText(optionService, contact, "new_spiriitual_identity"),
++                    Address = contact.GetAttributeValue<string>("address2_line1") ?? string.Empty,
++                    MembershipStatus = ResolveOptionSetText(optionService, contact, "customertypecode"),
++                    RelationGoals = relationGoals ?? string.Empty
++                });
++            }
++
++            return rows;
++        }
++
++        private static string ResolveOptionSetText(
++            OptionSetMetadataService optionService,
++            Entity entity,
++            string attributeName)
++        {
++            try
++            {
++                var value = entity?.GetAttributeValue<OptionSetValue>(attributeName)?.Value;
++                return value.HasValue
++                    ? optionService.GetOptionSetText("contact", attributeName, value.Value) ?? string.Empty
++                    : string.Empty;
++            }
++            catch
++            {
++                return string.Empty;
++            }
++        }
++
++        /// <summary>
++        /// 樹狀成員列與搜尋結果共用的 CRM 投影，集中提供列顯示及頭像呈現所需的識別資料；
++        /// ColumnSet 只決定回傳屬性，在籍／結案資格仍由查詢條件與批次授權流程另行約束。
++        /// 搜尋端點可沿用同一批已授權 Entity 組列，避免為每位候選人再發一次詳細資料查詢。
++        /// </summary>
++        private static ColumnSet GetTreeContactColumns()
++        {
++            return new ColumnSet(
++                "contactid",
++                "fullname",
++                "gendercode",
++                "birthdate",
++                "mobilephone",
++                "new_spiriitual_identity",
++                "address2_line1",
++                "customertypecode",
++                "statecode");
++        }
++
+         private bool CanViewContact(Guid contactId)
+         {
+             if (contactId == Guid.Empty)
+@@ -1033,9 +1896,31 @@ namespace ChurchReport.Controllers
+         /// 不快取授權結果、不放任何使用者專屬資料進共用快取、不碰 session。
+         /// </summary>
+         private HashSet<Guid> CanViewContactsBatch(IReadOnlyCollection<Guid> contactIds)
++        {
++            var closedStatus = TryGetClosedCustomerTypeValue();
++            if (!closedStatus.HasValue)
++            {
++                return new HashSet<Guid>();
++            }
++
++            return CanViewContactsBatch(
++                contactIds,
++                ToolUtility.m_Crm2011OrganizationService,
++                closedStatus.Value);
++        }
++
++        private HashSet<Guid> CanViewContactsBatch(
++            IReadOnlyCollection<Guid> contactIds,
++            IOrganizationService service,
++            int closedStatus,
++            IReadOnlyCollection<Guid> shepherdScopeContactIds = null)
+         {
+             var allowed = new HashSet<Guid>();
+-            if (contactIds == null || contactIds.Count == 0)
++            var validGuids = (contactIds ?? Array.Empty<Guid>())
++                .Where(id => id != Guid.Empty)
++                .Distinct()
++                .ToList();
++            if (validGuids.Count == 0 || service == null)
+             {
+                 return allowed;
+             }
+@@ -1043,66 +1928,52 @@ namespace ChurchReport.Controllers
+             var access = GetAccess();
+             if (access != MemberInfoAccess.Church && access != MemberInfoAccess.ShepherdList)
+             {
+-                return allowed; // 無權限：與逐筆版一致，全部拒絕
++                return allowed;
+             }
+ 
+-            // 牧養名單：把「我可見的 contactId」集合算一次(in-memory)，不在迴圈內逐人重算
+             HashSet<string> shepherdAllowed = null;
+             if (access == MemberInfoAccess.ShepherdList)
+             {
+-                shepherdAllowed = GetShepherdContactIds();
++                shepherdAllowed = shepherdScopeContactIds == null
++                    ? GetShepherdContactIds()
++                    : shepherdScopeContactIds
++                        .Where(id => id != Guid.Empty)
++                        .Select(id => id.ToString())
++                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                 if (shepherdAllowed.Count == 0)
+                 {
+                     return allowed;
+                 }
+             }
+ 
+-            var validGuids = contactIds.Where(g => g != Guid.Empty).Distinct().ToList();
+-            if (validGuids.Count == 0)
+-            {
+-                return allowed;
+-            }
+-
+-            // 一次撈回在籍判斷欄位，取代逐人 IsCurrentContact 的 N 支 Retrieve
+-            var contactsById = new Dictionary<Guid, Entity>();
+             try
+             {
+-                var query = new QueryExpression("contact")
++                foreach (var chunk in validGuids.Chunk(CrmInClauseChunkSize))
+                 {
+-                    ColumnSet = new ColumnSet("contactid", "statecode", "customertypecode")
+-                };
+-                query.Criteria.AddCondition("contactid", ConditionOperator.In, validGuids.Select(g => (object)g).ToArray());
++                    var query = BuildStrictCurrentContactQuery(
++                        new ColumnSet("contactid", "statecode", "customertypecode"),
++                        string.Empty,
++                        closedStatus,
++                        Array.Empty<int>());
++                    query.Criteria.AddCondition(
++                        "contactid",
++                        ConditionOperator.In,
++                        chunk.Select(id => (object)id).ToArray());
+ 
+-                var fetched = ToolUtility.m_Crm2011OrganizationService.RetrieveMultiple(query);
+-                foreach (var entity in fetched.Entities)
+-                {
+-                    contactsById[entity.Id] = entity;
++                    foreach (var contact in service.RetrieveMultiple(query).Entities)
++                    {
++                        if (access == MemberInfoAccess.ShepherdList &&
++                            !shepherdAllowed.Contains(contact.Id.ToString()))
++                        {
++                            continue;
++                        }
++                        allowed.Add(contact.Id);
++                    }
+                 }
+             }
+             catch
+             {
+-                return allowed; // 查詢失敗：保守地全部拒絕(等同逐筆版 Retrieve 失敗 → false)
+-            }
+-
+-            foreach (var guid in validGuids)
+-            {
+-                // 查不到該 contact → 拒絕(等同逐筆版 Retrieve 取不到 → false)
+-                if (!contactsById.TryGetValue(guid, out var entity))
+-                {
+-                    continue;
+-                }
+-
+-                // 牧養名單需同時落在「我的牧養名單」內(與逐筆版的 allowed.Contains 相同)
+-                if (access == MemberInfoAccess.ShepherdList && !shepherdAllowed.Contains(guid.ToString()))
+-                {
+-                    continue;
+-                }
+-
+-                // 在籍且非結案 —— 與逐筆版 IsCurrentContactEntity 完全相同的判斷
+-                if (IsCurrentContactEntity(entity))
+-                {
+-                    allowed.Add(guid);
+-                }
++                return new HashSet<Guid>();
+             }
+ 
+             return allowed;
+@@ -1885,6 +2756,12 @@ namespace ChurchReport.Controllers
+             return new OptionSetMetadataService(ToolUtility.m_Crm2011OrganizationService, null, memoryCache);
+         }
+ 
++        private OptionSetMetadataService GetSharedOptionSetService(IOrganizationService service)
++        {
++            var memoryCache = HttpContext?.RequestServices?.GetService(typeof(IMemoryCache)) as IMemoryCache;
++            return new OptionSetMetadataService(service, null, memoryCache);
++        }
++
+         /// <summary>
+         /// 把搜尋字比對到「會員身分(customertypecode)」選項文字(以 contains、不分大小寫)，回傳所有相符的選項值。
+         /// 供全教會伺服器端搜尋使用：OptionSet 無法 Like 文字，需先轉成值再用 In 篩選。
+@@ -2037,6 +2914,10 @@ namespace ChurchReport.Controllers
+             return new ColumnSet("contactid", "fullname", "mobilephone", "customertypecode", "statecode");
+         }
+ 
++        /// <summary>
++        /// 詳細彈窗單次 Retrieve 的完整欄位契約。性別與生日刻意併入原查詢，避免為兩個唯讀欄位新增 CRM 往返；
++        /// entityimageid／LINE 圖片網址只用來判斷頭像來源，不在此載入影像位元組。
++        /// </summary>
+         private static ColumnSet GetContactDetailColumns()
+         {
+             return new ColumnSet(
+@@ -2044,6 +2925,8 @@ namespace ChurchReport.Controllers
+                 "fullname",
+                 "mobilephone",
+                 "address2_line1",
++                "gendercode",
++                "birthdate",
+                 "customertypecode",
+                 "new_spiriitual_identity",
+                 "entityimageid",
+@@ -2089,6 +2972,26 @@ namespace ChurchReport.Controllers
+             return Guid.Empty;
+         }
+ 
++        private static Guid GetListMemberListId(Entity listMember)
++        {
++            if (listMember == null || !listMember.Contains("listid"))
++            {
++                return Guid.Empty;
++            }
++
++            if (listMember["listid"] is EntityReference entityRef)
++            {
++                return entityRef.Id;
++            }
++
++            if (listMember["listid"] is Guid guid)
++            {
++                return guid;
++            }
++
++            return Guid.Empty;
++        }
++
+         private static string GetAliasedString(Entity entity, string alias)
+         {
+             if (entity == null || !entity.Contains(alias))
+diff --git a/ChurchReport/Services/MemberInfo/DistrictTreeBuilder.cs b/ChurchReport/Services/MemberInfo/DistrictTreeBuilder.cs
+new file mode 100644
+index 00000000..06054beb
+--- /dev/null
++++ b/ChurchReport/Services/MemberInfo/DistrictTreeBuilder.cs
+@@ -0,0 +1,140 @@
++using System;
++using System.Collections.Generic;
++using System.Linq;
++using ChurchReport.ViewModels.MemberInfoTree;
++
++namespace ChurchReport.Services.MemberInfo
++{
++    public static class DistrictTreeBuilder
++    {
++        public const string UnknownRaceLeaderName = "區長未填";
++        // 未填牧區刻意序列化成空字串，避免 UI 顯示人造的「未填牧區」標籤；
++        // UnknownRaceLeaderKey 負責把未填區長的小組歸入同一節點；UnknownRaceLeaderName 則負責顯示文字，
++        // 並作為「未填區長排在最後」的排序判斷。Key 與 Name 的責任不同，不可互換。
++        public const string MissingAreaName = "";
++        public const string MissingGroupLeaderName = "小組長未填";
++        private const string UnknownRaceLeaderKey = "__unknown_race__";
++
++        public static DistrictTreeViewModel Build(
++            IEnumerable<SmallGroupDescriptor>? groups,
++            IEnumerable<GroupMembershipRow>? memberships,
++            IReadOnlyCollection<string>? allCurrentContactIds,
++            bool includeUngrouped,
++            string? scope)
++        {
++            var allCurrentContactCount = (allCurrentContactIds ?? Array.Empty<string>())
++                .Where(id => !string.IsNullOrWhiteSpace(id))
++                .Distinct(StringComparer.OrdinalIgnoreCase)
++                .Count();
++            return Build(groups, memberships, allCurrentContactCount, includeUngrouped, scope);
++        }
++
++        public static DistrictTreeViewModel Build(
++            IEnumerable<SmallGroupDescriptor>? groups,
++            IEnumerable<GroupMembershipRow>? memberships,
++            int allCurrentContactCount,
++            bool includeUngrouped,
++            string? scope)
++        {
++            var groupList = (groups ?? Enumerable.Empty<SmallGroupDescriptor>())
++                .Where(group => group != null && !string.IsNullOrWhiteSpace(group.ListId))
++                .GroupBy(group => group.ListId, StringComparer.OrdinalIgnoreCase)
++                .Select(group => group.First())
++                .ToList();
++            var visibleListIds = new HashSet<string>(groupList.Select(group => group.ListId), StringComparer.OrdinalIgnoreCase);
++            var currentMemberships = (memberships ?? Enumerable.Empty<GroupMembershipRow>())
++                .Where(row => row != null &&
++                              row.IsCurrent &&
++                              visibleListIds.Contains(row.ListId) &&
++                              !string.IsNullOrWhiteSpace(row.ContactId))
++                .ToList();
++
++            var membersByList = currentMemberships
++                .GroupBy(row => row.ListId, StringComparer.OrdinalIgnoreCase)
++                .ToDictionary(
++                    group => group.Key,
++                    group => new HashSet<string>(group.Select(row => row.ContactId), StringComparer.OrdinalIgnoreCase),
++                    StringComparer.OrdinalIgnoreCase);
++
++            var districtNodes = new Dictionary<string, DistrictNodeViewModel>(StringComparer.OrdinalIgnoreCase);
++            var districtMembers = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
++
++            foreach (var group in groupList)
++            {
++                var districtKey = string.IsNullOrWhiteSpace(group.RaceLeaderKey)
++                    ? UnknownRaceLeaderKey
++                    : group.RaceLeaderKey.Trim();
++                if (!districtNodes.TryGetValue(districtKey, out var district))
++                {
++                    district = new DistrictNodeViewModel
++                    {
++                        RaceLeaderKey = districtKey,
++                        RaceLeaderName = string.IsNullOrWhiteSpace(group.RaceLeaderName)
++                            ? UnknownRaceLeaderName
++                            : group.RaceLeaderName.Trim(),
++                        AreaName = string.IsNullOrWhiteSpace(group.AreaName)
++                            ? MissingAreaName
++                            : group.AreaName.Trim()
++                    };
++                    districtNodes[districtKey] = district;
++                    districtMembers[districtKey] = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
++                }
++
++                membersByList.TryGetValue(group.ListId, out var groupMembers);
++                district.Groups.Add(new GroupNodeViewModel
++                {
++                    ListId = group.ListId,
++                    GroupName = (group.GroupName ?? string.Empty).Trim(),
++                    LeaderName = string.IsNullOrWhiteSpace(group.LeaderName)
++                        ? MissingGroupLeaderName
++                        : group.LeaderName.Trim(),
++                    MemberCount = groupMembers?.Count ?? 0
++                });
++
++                if (groupMembers != null)
++                {
++                    districtMembers[districtKey].UnionWith(groupMembers);
++                }
++            }
++
++            foreach (var entry in districtNodes)
++            {
++                entry.Value.MemberCount = districtMembers[entry.Key].Count;
++                entry.Value.Groups = entry.Value.Groups
++                    .OrderBy(group => group.GroupName, StringComparer.Ordinal)
++                    .ThenBy(group => group.ListId, StringComparer.OrdinalIgnoreCase)
++                    .ToList();
++            }
++
++            var result = new DistrictTreeViewModel
++            {
++                Scope = scope ?? string.Empty,
++                // 空白牧區名稱按字典序原本會排在最前；先依區長哨兵分桶，保證有填區長的節點優先，
++                // 再以牧區、區長姓名及唯一鍵收斂成可重現的順序，避免 CRM 回傳順序造成畫面跳動。
++                Districts = districtNodes.Values
++                    .OrderBy(
++                        district => string.Equals(
++                            district.RaceLeaderName,
++                            UnknownRaceLeaderName,
++                            StringComparison.Ordinal)
++                            ? 1
++                            : 0)
++                    .ThenBy(district => district.AreaName, StringComparer.Ordinal)
++                    .ThenBy(district => district.RaceLeaderName, StringComparer.Ordinal)
++                    .ThenBy(district => district.RaceLeaderKey, StringComparer.OrdinalIgnoreCase)
++                    .ToList()
++            };
++
++            if (includeUngrouped)
++            {
++                var groupedContactIds = new HashSet<string>(
++                    currentMemberships.Select(row => row.ContactId),
++                    StringComparer.OrdinalIgnoreCase);
++                var ungroupedCount = Math.Max(0, allCurrentContactCount - groupedContactIds.Count);
++                result.Ungrouped = new UngroupedNodeViewModel { MemberCount = ungroupedCount };
++            }
++
++            return result;
++        }
++    }
++}
+diff --git a/ChurchReport/Services/MemberInfo/DistrictTreeInputs.cs b/ChurchReport/Services/MemberInfo/DistrictTreeInputs.cs
+new file mode 100644
+index 00000000..f5926b1b
+--- /dev/null
++++ b/ChurchReport/Services/MemberInfo/DistrictTreeInputs.cs
+@@ -0,0 +1,19 @@
++namespace ChurchReport.Services.MemberInfo
++{
++    public class SmallGroupDescriptor
++    {
++        public string ListId { get; set; } = string.Empty;
++        public string GroupName { get; set; } = string.Empty;
++        public string AreaName { get; set; } = string.Empty;
++        public string RaceLeaderName { get; set; } = string.Empty;
++        public string RaceLeaderKey { get; set; } = string.Empty;
++        public string LeaderName { get; set; } = string.Empty;
++    }
++
++    public class GroupMembershipRow
++    {
++        public string ListId { get; set; } = string.Empty;
++        public string ContactId { get; set; } = string.Empty;
++        public bool IsCurrent { get; set; }
++    }
++}
+diff --git a/ChurchReport/Services/MemberInfo/MemberInfoAccessResolver.cs b/ChurchReport/Services/MemberInfo/MemberInfoAccessResolver.cs
+index a031c1eb..89fb8fef 100644
+--- a/ChurchReport/Services/MemberInfo/MemberInfoAccessResolver.cs
++++ b/ChurchReport/Services/MemberInfo/MemberInfoAccessResolver.cs
+@@ -1,14 +1,19 @@
+-using System;
++﻿using System;
+ 
+ namespace ChurchReport.Services.MemberInfo
+ {
+     public static class MemberInfoAccessResolver
+     {
++        /// <summary>
++        /// 將 CRM 職稱文字與登入類型收斂成會友資訊的兩級權限。職稱可能包含多個角色片段，故採 Contains；
++        /// 「檢視全教會照片資訊」是授權用特殊職稱，語意上與牧師傳道／牧養主任相同，皆可檢視全教會在籍資料。
++        /// 未命中特殊職稱時才以精確的「小組長」登入類型降階到牧養名單，其他身分一律不授權。
++        /// </summary>
+         public static string Resolve(string churchJobTitle, string loginType)
+         {
+             var jobTitle = (churchJobTitle ?? string.Empty).Trim();
+ 
+-            if (jobTitle.Contains("牧師傳道") || jobTitle.Contains("牧養主任"))
++            if (jobTitle.Contains("牧師傳道") || jobTitle.Contains("牧養主任") || jobTitle.Contains("檢視全教會照片資訊"))
+             {
+                 return MemberInfoAccess.Church;
+             }
+diff --git a/ChurchReport/Services/MemberInfo/MemberInfoCurrentContactCounter.cs b/ChurchReport/Services/MemberInfo/MemberInfoCurrentContactCounter.cs
+new file mode 100644
+index 00000000..a34dce12
+--- /dev/null
++++ b/ChurchReport/Services/MemberInfo/MemberInfoCurrentContactCounter.cs
+@@ -0,0 +1,43 @@
++using System;
++using System.Globalization;
++using System.Linq;
++using Microsoft.Xrm.Sdk;
++using Microsoft.Xrm.Sdk.Query;
++
++namespace ChurchReport.Services.MemberInfo
++{
++    public static class MemberInfoCurrentContactCounter
++    {
++        private const string CountAlias = "currentcontactcount";
++
++        public static int Count(IOrganizationService service, int closedStatus)
++        {
++            if (service == null)
++            {
++                throw new ArgumentNullException(nameof(service));
++            }
++
++            var fetchXml =
++                $"<fetch aggregate=\"true\">" +
++                "<entity name=\"contact\">" +
++                $"<attribute name=\"contactid\" alias=\"{CountAlias}\" aggregate=\"countcolumn\" />" +
++                "<filter type=\"and\">" +
++                "<condition attribute=\"statecode\" operator=\"eq\" value=\"0\" />" +
++                "<filter type=\"or\">" +
++                "<condition attribute=\"customertypecode\" operator=\"null\" />" +
++                $"<condition attribute=\"customertypecode\" operator=\"ne\" value=\"{closedStatus.ToString(CultureInfo.InvariantCulture)}\" />" +
++                "</filter>" +
++                "</filter>" +
++                "</entity>" +
++                "</fetch>";
++
++            var row = service.RetrieveMultiple(new FetchExpression(fetchXml))
++                ?.Entities
++                ?.FirstOrDefault();
++            var value = row?.GetAttributeValue<AliasedValue>(CountAlias)?.Value;
++            return value == null
++                ? 0
++                : Convert.ToInt32(value, CultureInfo.InvariantCulture);
++        }
++    }
++}
+diff --git a/ChurchReport/Services/MemberInfo/MemberInfoScopeGuard.cs b/ChurchReport/Services/MemberInfo/MemberInfoScopeGuard.cs
+index 74a05e3e..d82d0f4a 100644
+--- a/ChurchReport/Services/MemberInfo/MemberInfoScopeGuard.cs
++++ b/ChurchReport/Services/MemberInfo/MemberInfoScopeGuard.cs
+@@ -40,5 +40,29 @@ namespace ChurchReport.Services.MemberInfo
+ 
+             return false;
+         }
++
++        public static bool IsListAllowed(
++            string access,
++            IReadOnlyCollection<string> visibleListIds,
++            string requestedListId)
++        {
++            if (string.IsNullOrWhiteSpace(requestedListId) ||
++                (access != MemberInfoAccess.Church && access != MemberInfoAccess.ShepherdList) ||
++                visibleListIds == null ||
++                visibleListIds.Count == 0)
++            {
++                return false;
++            }
++
++            foreach (var visibleListId in visibleListIds)
++            {
++                if (string.Equals(visibleListId, requestedListId, StringComparison.OrdinalIgnoreCase))
++                {
++                    return true;
++                }
++            }
++
++            return false;
++        }
+     }
+ }
+diff --git a/ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs b/ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs
+new file mode 100644
+index 00000000..894e7b29
+--- /dev/null
++++ b/ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs
+@@ -0,0 +1,60 @@
++using System;
++using System.Collections.Generic;
++using System.Linq;
++using ChurchReport.ViewModels.MemberInfoTree;
++
++namespace ChurchReport.Services.MemberInfo
++{
++    public static class MemberInfoTreeSearchBuilder
++    {
++        public static MemberInfoTreeSearchResultViewModel Build(
++            IEnumerable<GroupMembershipRow>? memberships,
++            IReadOnlyCollection<string>? matchingContactIds,
++            bool includeUngrouped,
++            IEnumerable<GroupMemberRowViewModel>? rows = null)
++        {
++            // matchingContactIds 由控制器完成批次授權後傳入；在 builder 內轉為不分大小寫的集合，
++            // 後續樹節點、未分組旗標及完整列都只認這份 allowed ids，形成最後一道資料邊界。
++            var matches = new HashSet<string>(
++                (matchingContactIds ?? Array.Empty<string>()).Where(id => !string.IsNullOrWhiteSpace(id)),
++                StringComparer.OrdinalIgnoreCase);
++            var currentMemberships = (memberships ?? Enumerable.Empty<GroupMembershipRow>())
++                .Where(row => row != null &&
++                              row.IsCurrent &&
++                              !string.IsNullOrWhiteSpace(row.ListId) &&
++                              !string.IsNullOrWhiteSpace(row.ContactId))
++                .ToList();
++
++            var result = new MemberInfoTreeSearchResultViewModel
++            {
++                MatchingListIds = currentMemberships
++                    .Where(row => matches.Contains(row.ContactId))
++                    .Select(row => row.ListId)
++                    .Distinct(StringComparer.OrdinalIgnoreCase)
++                    .OrderBy(id => id, StringComparer.OrdinalIgnoreCase)
++                    .ToList(),
++                // 同一聯絡人可同時屬於多個小組，因此完整列先以 ContactId 去重；即使呼叫端誤傳額外列，
++                // 仍須再次依 allowed ids 過濾。姓名後接 ContactId 的次排序可在同名時保持回應順序穩定。
++                Rows = (rows ?? Enumerable.Empty<GroupMemberRowViewModel>())
++                    .Where(row => row != null &&
++                                  !string.IsNullOrWhiteSpace(row.ContactId) &&
++                                  matches.Contains(row.ContactId))
++                    .GroupBy(row => row.ContactId, StringComparer.OrdinalIgnoreCase)
++                    .Select(group => group.First())
++                    .OrderBy(row => row.FullName, StringComparer.Ordinal)
++                    .ThenBy(row => row.ContactId, StringComparer.OrdinalIgnoreCase)
++                    .ToList()
++            };
++
++            if (includeUngrouped && matches.Count > 0)
++            {
++                var groupedContacts = new HashSet<string>(
++                    currentMemberships.Select(row => row.ContactId),
++                    StringComparer.OrdinalIgnoreCase);
++                result.HasUngrouped = matches.Any(id => !groupedContacts.Contains(id));
++            }
++
++            return result;
++        }
++    }
++}
+diff --git a/ChurchReport/Services/MemberInfo/RelationGoalFormatter.cs b/ChurchReport/Services/MemberInfo/RelationGoalFormatter.cs
+new file mode 100644
+index 00000000..3cf8ae50
+--- /dev/null
++++ b/ChurchReport/Services/MemberInfo/RelationGoalFormatter.cs
+@@ -0,0 +1,39 @@
++using System;
++using System.Collections.Generic;
++
++namespace ChurchReport.Services.MemberInfo
++{
++    public static class RelationGoalFormatter
++    {
++        public static string Format(
++            IEnumerable<(string Role, string TargetName)>? items)
++        {
++            if (items == null)
++            {
++                return string.Empty;
++            }
++
++            var values = new List<string>();
++            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
++
++            foreach (var item in items)
++            {
++                var role = (item.Role ?? string.Empty).Trim();
++                var targetName = (item.TargetName ?? string.Empty).Trim();
++                if (role.Length == 0 && targetName.Length == 0)
++                {
++                    continue;
++                }
++
++                if (!seen.Add(role + "\u001f" + targetName))
++                {
++                    continue;
++                }
++
++                values.Add(role.Length == 0 ? targetName : role + ": " + targetName);
++            }
++
++            return string.Join("、", values);
++        }
++    }
++}
+diff --git a/ChurchReport/ViewModels/MemberInfoDetailViewModel.cs b/ChurchReport/ViewModels/MemberInfoDetailViewModel.cs
+index 622cb1d5..30c3642b 100644
+--- a/ChurchReport/ViewModels/MemberInfoDetailViewModel.cs
++++ b/ChurchReport/ViewModels/MemberInfoDetailViewModel.cs
+@@ -1,13 +1,21 @@
++using System;
+ using System.Collections.Generic;
+ 
+ namespace ChurchReport.ViewModels
+ {
++    /// <summary>
++    /// 會友詳細彈窗的讀取契約。文字欄位維持既有編輯／顯示用途；性別與生日只提供唯讀資訊，
++    /// 不加入更新端點的輸入，避免新增欄位意外擴張既有上傳行為。
++    /// </summary>
+     public class MemberInfoDetailViewModel
+     {
+         public string ContactId { get; set; }
+         public string FullName { get; set; }
+         public string Phone { get; set; }
+         public string Address { get; set; }
++        // Gender 是 CRM OptionSet 解析後的顯示文字；BirthDate 已將 Year<=1 的 CRM 哨兵值正規化為 null。
++        public string Gender { get; set; }
++        public DateTime? BirthDate { get; set; }
+         public string MembershipStatus { get; set; }
+         public string SpiritualIdentity { get; set; }
+         public string AvatarSource { get; set; }
+diff --git a/ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs b/ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs
+new file mode 100644
+index 00000000..f7cfc855
+--- /dev/null
++++ b/ChurchReport/ViewModels/MemberInfoTree/DistrictTreeViewModels.cs
+@@ -0,0 +1,62 @@
++using System;
++using System.Collections.Generic;
++
++namespace ChurchReport.ViewModels.MemberInfoTree
++{
++    public class GroupNodeViewModel
++    {
++        public string ListId { get; set; } = string.Empty;
++        public string GroupName { get; set; } = string.Empty;
++        public string LeaderName { get; set; } = string.Empty;
++        public int MemberCount { get; set; }
++    }
++
++    public class DistrictNodeViewModel
++    {
++        public string RaceLeaderKey { get; set; } = string.Empty;
++        public string AreaName { get; set; } = string.Empty;
++        public string RaceLeaderName { get; set; } = string.Empty;
++        public int MemberCount { get; set; }
++        public List<GroupNodeViewModel> Groups { get; set; } = new List<GroupNodeViewModel>();
++    }
++
++    public class UngroupedNodeViewModel
++    {
++        public int MemberCount { get; set; }
++    }
++
++    public class DistrictTreeViewModel
++    {
++        public List<DistrictNodeViewModel> Districts { get; set; } = new List<DistrictNodeViewModel>();
++        public UngroupedNodeViewModel? Ungrouped { get; set; }
++        public string Scope { get; set; } = string.Empty;
++    }
++
++    /// <summary>
++    /// 小組、未分組與樹搜尋共用的成員列契約。BirthDate 保留 nullable，讓前端能區分有效日期與未設定；
++    /// Gender、SpiritualIdentity、MembershipStatus 均為 OptionSet 顯示文字，而非可直接回寫 CRM 的整數值。
++    /// </summary>
++    public class GroupMemberRowViewModel
++    {
++        public string ContactId { get; set; } = string.Empty;
++        public string FullName { get; set; } = string.Empty;
++        public string Gender { get; set; } = string.Empty;
++        public DateTime? BirthDate { get; set; }
++        public string Phone { get; set; } = string.Empty;
++        public string SpiritualIdentity { get; set; } = string.Empty;
++        public string Address { get; set; } = string.Empty;
++        public string MembershipStatus { get; set; } = string.Empty;
++        public string RelationGoals { get; set; } = string.Empty;
++    }
++
++    /// <summary>
++    /// MatchingListIds 與 HasUngrouped 保留為相容欄位及節點命中 metadata；現行前端主要使用 Rows
++    /// 直接替換搜尋結果表格，不需按每個命中節點再發請求。Rows 必須由 allowed ids 過濾並去重。
++    /// </summary>
++    public class MemberInfoTreeSearchResultViewModel
++    {
++        public List<string> MatchingListIds { get; set; } = new List<string>();
++        public bool HasUngrouped { get; set; }
++        public List<GroupMemberRowViewModel> Rows { get; set; } = new List<GroupMemberRowViewModel>();
++    }
++}
+diff --git a/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml b/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
+index b00b38e4..475151cf 100644
+--- a/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
++++ b/ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml
+@@ -10,6 +10,7 @@
+         版面以桌機優先設計，手機時則透過 media query 壓縮間距與改變工具列排列方式，避免視覺擁擠。
+     */
+     .member-info-page {
++        position: relative;
+         padding: 10px 8px 20px;
+     }
+ 
+@@ -37,73 +38,351 @@
+         white-space: nowrap;
+     }
+ 
+-    /* 白色卡片外框把 DevExtreme Grid 包起來，讓整體與頁面背景形成明確層次。 */
+-    .member-info-grid-shell {
+-        background: #fff;
+-        border: 1px solid #d9e2ec;
+-        border-radius: 8px;
+-        padding: 10px;
+-        box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
++    /*
++        搜尋操作列刻意維持單列：輸入框可縮、搜尋與同步按鈕不可縮，也不允許按鈕被擠到下一行。
++        flex 子項的預設 min-width 可能等於內容寬度，因此輸入框必須搭配 min-width: 0；按鈕則以
++        flex: 0 0 auto 與 nowrap 保留完整標籤，窄螢幕再由下方 clamp() 內距縮放來共同騰出空間。
++    */
++    .mi-tree-actions {
++        display: flex;
++        gap: 6px;
++        align-items: center;
++        flex-wrap: nowrap;
++        margin: 6px 0 10px;
+     }
+ 
+-    /* 這顆按鈕用來快速切換「顯示全部 / 顯示照片」的資料模式，並保持與工具列同高。 */
+-    .member-info-photo-filter-btn {
++    .mi-search {
+         box-sizing: border-box;
++        flex: 1 1 auto;
++        min-width: 0;
++        height: 40px;
++        border: 1px solid #cbd5e1;
++        border-radius: 8px;
++        padding: 0 12px;
++        font-size: 16px;
++    }
++
++    .mi-btn {
++        flex: 0 0 auto;
++        min-height: 40px;
++        border: 0;
++        border-radius: 8px;
++        padding: 0 14px;
++        color: #fff;
++        font-weight: 700;
++        white-space: nowrap;
++        cursor: pointer;
++        touch-action: manipulation;
++    }
++
++    .mi-btn-search {
++        position: relative;
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+-        border: none;
+-        border-radius: 6px;
+-        padding: 0 16px;
++        gap: 7px;
++        background: linear-gradient(135deg, #2563eb, #0ea5e9);
++        box-shadow: 0 5px 12px rgba(37, 99, 235, .2);
++    }
++    /* searching 時按鈕是覆蓋層上唯一可操作的取消入口，z-index 必須比 overlay 高一層。 */
++    .mi-btn-search.mi-btn-stop {
++        z-index: 2401;
++        background: linear-gradient(135deg, #ef4444, #b91c1c);
++        box-shadow: 0 0 0 4px rgba(254, 202, 202, .78), 0 8px 22px rgba(185, 28, 28, .34);
++    }
++    /* results/error 共用返回外觀，表示下一次按下按鈕會回到原本的組織瀏覽畫面。 */
++    .mi-btn-search.mi-btn-return {
++        background: linear-gradient(135deg, #475569, #334155);
++        box-shadow: 0 5px 12px rgba(51, 65, 85, .2);
++    }
++    .mi-search-btn-icon { font-size: 1rem; line-height: 1; }
++    .mi-btn-resync { background: #0ea5e9; }
++    .mi-btn:disabled { cursor: default; opacity: .6; }
++    .mi-resync-status { min-height: 20px; margin: 4px 0; color: #2563eb; font-weight: 700; }
++
++    /* hidden 是搜尋狀態機切換 browse/results/overlay 的唯一顯示契約，需壓過元件本身的 display。 */
++    .mi-search-overlay[hidden],
++    .mi-search-results[hidden],
++    .mi-browse-view[hidden],
++    .mi-search-result-message[hidden] { display: none !important; }
++
++    /*
++        searching 覆蓋層固定遮住整個 viewport，阻止使用者在請求完成前改動下方 browse/results。
++        停止搜尋按鈕另以 z-index: 2401 浮在本層之上，所以即使請求逾時前也永遠保有取消入口。
++    */
++    .mi-search-overlay {
++        position: fixed;
++        z-index: 2400;
++        inset: 0;
++        display: flex;
++        align-items: center;
++        justify-content: center;
++        padding: 24px;
++        background: rgba(241, 245, 249, .88);
++        backdrop-filter: blur(3px);
++    }
++
++    .mi-search-overlay-card {
++        display: flex;
++        max-width: 360px;
++        align-items: center;
++        gap: 14px;
++        padding: 18px 22px;
++        border: 1px solid #bfdbfe;
++        border-radius: 16px;
++        background: #fff;
++        color: #1e3a8a;
++        box-shadow: 0 18px 44px rgba(37, 99, 235, .2);
++    }
++
++    .mi-search-spinner {
++        width: 34px;
+         height: 34px;
+-        line-height: 1;
+-        white-space: nowrap;
+-        font-size: .95rem;
+-        font-weight: 700;
+-        color: #fff;
++        flex: 0 0 34px;
++        border: 5px solid #dbeafe;
++        border-top-color: #2563eb;
++        border-radius: 50%;
++        animation: mi-search-spin .75s linear infinite;
++    }
++
++    .mi-search-overlay-copy { display: flex; flex-direction: column; gap: 4px; }
++    .mi-search-overlay-copy strong { font-size: 1rem; }
++    .mi-search-overlay-copy span { color: #64748b; font-size: .88rem; line-height: 1.45; }
++
++    @@keyframes mi-search-spin { to { transform: rotate(360deg); } }
++
++    .mi-search-results {
++        min-height: 180px;
++        padding-top: 4px;
++    }
++
++    .mi-search-results-header {
++        display: flex;
++        align-items: center;
++        justify-content: space-between;
++        gap: 12px;
++        margin: 0 0 10px;
++    }
++
++    .mi-search-results-title { color: #1e293b; font-size: 1rem; font-weight: 800; }
++    .mi-search-results-summary { color: #64748b; font-size: .9rem; font-weight: 700; }
++
++    .mi-search-result-message {
++        display: flex;
++        min-height: 180px;
++        align-items: center;
++        justify-content: center;
++        flex-direction: column;
++        gap: 8px;
++        padding: 22px;
++        border: 1px dashed #cbd5e1;
++        border-radius: 14px;
++        background: #fff;
++        color: #475569;
++        text-align: center;
++    }
++
++    .mi-search-result-message-icon {
++        display: inline-flex;
++        width: 52px;
++        height: 52px;
++        align-items: center;
++        justify-content: center;
++        border-radius: 50%;
++        background: #eef2ff;
++        color: #4f46e5;
++        font-size: 26px;
++    }
++
++    .mi-tree { display: flex; flex-direction: column; gap: 10px; }
++    .mi-district {
++        overflow: hidden;
++        border: 1px solid #d9e2ec;
++        border-radius: 10px;
++        background: #fff;
++        box-shadow: 0 6px 14px rgba(15, 23, 42, .06);
++    }
++
++    .mi-district-header,
++    .mi-group-header {
++        box-sizing: border-box;
++        display: flex;
++        width: 100%;
++        min-height: 52px;
++        align-items: center;
++        gap: 10px;
++        border: 0;
++        padding: 12px 14px;
++        background: none;
++        color: #1e293b;
++        font: inherit;
++        text-align: left;
+         cursor: pointer;
+-        background: #16a34a; /* 預設：綠色「顯示照片」 */
+-        transition: background-color .15s ease;
++        touch-action: manipulation;
++    }
++
++    .mi-district-header { background: #eef2ff; font-size: 1.02rem; font-weight: 800; }
++    .mi-group-header { border-top: 1px solid #eef2f6; background: #f8fafc; }
++    .mi-district-header:hover, .mi-group-header:hover { filter: brightness(.98); }
++    .mi-chevron {
++        display: inline-flex;
++        width: 28px;
++        height: 28px;
++        flex: 0 0 28px;
++        align-items: center;
++        justify-content: center;
++        color: #475569;
++        font-size: 20px;
++        transition: transform .15s ease;
++    }
++    .mi-open > .mi-district-header .mi-chevron,
++    .mi-open > .mi-group-header .mi-chevron { transform: rotate(90deg); }
++    /*
++        組織標頭分成兩層閱讀：第一行是牧區/小組名稱，第二行才是區長/小組長與人數徽章。
++        區長使用較大紫色字、小組長使用較小綠色字，讓同一棵樹的管理層級不只靠縮排辨識。
++    */
++    .mi-title {
++        display: flex;
++        min-width: 0;
++        flex: 1 1 auto;
++        flex-direction: column;
++        gap: 4px;
++        overflow-wrap: anywhere;
++    }
++    .mi-node-title { color: #334155; font-size: .94rem; font-weight: 750; }
++    .mi-leader-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
++    .mi-leader-district { color: #4338ca; font-size: 1.12rem; font-weight: 900; }
++    .mi-leader-group { color: #0f766e; font-size: .96rem; font-weight: 800; }
++    .mi-count {
++        display: inline-flex;
++        align-items: center;
++        border-radius: 999px;
++        padding: 3px 10px;
++        font-size: .76rem;
++        font-weight: 850;
++    }
++    .mi-leader-district .mi-count { background: #c7d2fe; color: #312e81; }
++    .mi-leader-group .mi-count { background: #ccfbf1; color: #115e59; }
++    .mi-district-body, .mi-group-body { display: none; }
++    .mi-district.mi-open > .mi-district-body,
++    .mi-group.mi-open > .mi-group-body { display: block; }
++    .mi-group { border-top: 1px solid #eef2f6; }
++    .mi-group-body { padding: 8px 10px 12px; }
++    /*
++        host 本身禁止產生第二條水平捲軸；真正可左右滑動的只有 DevExtreme 內建 dx-scrollable。
++        內層保留原生慣性與 pan-x/pan-y，讓手機能直接拖動寬表格，同時不攔截頁面的垂直手勢。
++    */
++    .mi-grid-host {
++        width: 100%;
++        min-width: 0;
++        min-height: 40px;
++        overflow-x: hidden;
++        overflow-y: hidden;
++        -webkit-overflow-scrolling: touch;
++        touch-action: pan-x pan-y;
++        overscroll-behavior-x: contain;
+     }
++    .mi-wide-member-grid {
++        width: 100%;
++        min-width: 0;
++    }
++    .mi-grid-host .dx-scrollable-container,
++    .mi-grid-host .dx-scrollable-content {
++        -webkit-overflow-scrolling: touch;
++        touch-action: pan-x pan-y;
++        overscroll-behavior-x: contain;
++    }
++    .mi-message { padding: 16px; color: #475569; }
++    .mi-message-error { color: #b91c1c; }
++    .mi-retry { margin-left: 8px; }
+ 
+     /*
+-        DevExtreme 的 toolbar 可能會因為預設 overflow 而裁切自訂按鈕。
+-        這裡主動放寬 overflow，確保「顯示照片」與「重新同步LINE」兩顆按鈕都能完整呈現。
++        樹、群組與明細 AJAX 共用同一套 Loading 卡片：彩色圓點表示持續工作，背景緩慢流動提供回應感；
++        compact 只改變排列，不建立另一套狀態。動畫純屬提示，稍後會在 reduced-motion 中完全停用。
+     */
+-    #MemberInfoGridContainer .dx-datagrid-header-panel {
+-        overflow: visible;
+-        padding-bottom: 6px;
++    .mi-loading-card {
++        box-sizing: border-box;
++        display: flex;
++        min-height: 160px;
++        align-items: center;
++        justify-content: center;
++        flex-direction: column;
++        gap: 14px;
++        overflow: hidden;
++        padding: 24px 18px;
++        border: 1px solid #bfdbfe;
++        border-radius: 14px;
++        background: linear-gradient(135deg, #f0fdf4, #eff6ff, #fefce8, #f0fdf4);
++        background-size: 240% 240%;
++        color: #334155;
++        text-align: center;
++        box-shadow: 0 8px 24px rgba(37, 99, 235, .08);
++        animation: mi-loading-wash 4.5s ease-in-out infinite;
+     }
+ 
+-    /* 讓自訂按鈕模板在工具列的每一層容器中都不被裁切。 */
+-    #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar,
+-    #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar-items-container,
+-    #MemberInfoGridContainer .dx-datagrid-header-panel .dx-toolbar-item {
+-        overflow: visible;
++    .mi-loading-card-compact {
++        min-height: 92px;
++        flex-direction: row;
++        padding: 16px;
++        text-align: left;
+     }
+ 
+-    /* 切到「顯示全部」模式時，按鈕改為藍色，讓目前篩選狀態一目了然。 */
+-    .member-info-photo-filter-btn.is-photo-only {
+-        background: #2563eb; /* 篩選中：藍色「顯示全部」 */
++    .mi-loading-dots {
++        display: inline-flex;
++        min-width: 70px;
++        height: 28px;
++        align-items: center;
++        justify-content: center;
++        gap: 8px;
+     }
+ 
+-    /* 按下時做一點下沉效果，增加觸控回饋。 */
+-    .member-info-photo-filter-btn:active {
+-        transform: translateY(1px);
++    .mi-loading-dot {
++        width: 12px;
++        height: 12px;
++        border-radius: 50%;
++        background: #22c55e;
++        box-shadow: 0 4px 10px rgba(34, 197, 94, .25);
++        animation: mi-loading-bounce 1.15s ease-in-out infinite;
+     }
+ 
+-    /* 表頭使用較淺的背景色與深色文字，提高欄位辨識度。 */
+-    #MemberInfoGridContainer .dx-datagrid-headers .dx-header-row td {
+-        background: #eef6f8;
+-        color: #1f2937;
+-        font-weight: 700;
++    .mi-loading-dot:nth-child(2) {
++        background: #38bdf8;
++        box-shadow: 0 4px 10px rgba(56, 189, 248, .25);
++        animation-delay: .14s;
++    }
++
++    .mi-loading-dot:nth-child(3) {
++        background: #f59e0b;
++        box-shadow: 0 4px 10px rgba(245, 158, 11, .25);
++        animation-delay: .28s;
+     }
+ 
+-    /* 滑鼠停留時以淡黃色標示整列，幫助使用者快速追蹤目前游標所在列。 */
+-    #MemberInfoGridContainer .dx-datagrid-rowsview .dx-data-row:hover > td {
+-        background: #fff8db;
++    .mi-loading-copy { display: flex; flex-direction: column; gap: 4px; }
++    .mi-loading-title { color: #1e3a5f; font-size: 1rem; font-weight: 800; }
++    .mi-loading-note { color: #64748b; font-size: .9rem; line-height: 1.5; }
++
++    @@keyframes mi-loading-bounce {
++        0%, 60%, 100% { transform: translateY(0) scale(.82); opacity: .65; }
++        30% { transform: translateY(-9px) scale(1); opacity: 1; }
++    }
++
++    @@keyframes mi-loading-wash {
++        0%, 100% { background-position: 0% 50%; }
++        50% { background-position: 100% 50%; }
++    }
++
++    /* 尊重減少動態效果偏好：保留靜態色彩與狀態文字，停用本區的 bounce、wash 與搜尋 spinner。 */
++    @@media (prefers-reduced-motion: reduce) {
++        .mi-loading-card,
++        .mi-loading-dot,
++        .mi-search-spinner { animation: none; }
++        .mi-loading-dot { opacity: 1; transform: none; }
+     }
+ 
++    .mi-pager { display: flex; gap: 8px; justify-content: center; align-items: center; margin: 14px 0; flex-wrap: wrap; }
++    .mi-pager button { min-height: 36px; padding: 0 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; cursor: pointer; }
++    .mi-pager button:disabled { cursor: default; opacity: .5; }
++
+     /* 姓名欄位做成可點擊連結樣式，提示可進入明細視窗。 */
+     .member-info-name-link {
+         color: #2563eb;
+@@ -212,7 +491,16 @@
+ 
+     /* 手機版縮小頁面外距與卡片 padding，提升可視範圍。 */
+     @@media (max-width: 640px) {
++        /*
++            專案仍載入 Bootstrap 3，其全域 html 可能是 10px；因此 1rem 不能用來保證 iOS 的 16px
++            輸入門檻。這些變數只負責非輸入元件的相對層級，原生搜尋框會在下方明確鎖成 16px。
++        */
+         .member-info-page {
++            --mi-mobile-district-font: clamp(1.125rem, calc(1rem + .65vw), 1.25rem);
++            --mi-mobile-tree-font: clamp(1rem, calc(.875rem + .65vw), 1.125rem);
++            --mi-mobile-label-font: clamp(.875rem, calc(.8125rem + .3vw), .9375rem);
++            --mi-mobile-grid-font: clamp(.9375rem, calc(.875rem + .3vw), 1rem);
++            --mi-mobile-grid-header-font: clamp(1rem, calc(.9375rem + .32vw), 1.0625rem);
+             padding: 8px 4px 14px;
+         }
+ 
+@@ -221,16 +509,94 @@
+             flex-direction: column;
+         }
+ 
+-        .member-info-grid-shell {
+-            padding: 6px;
++        .member-info-title { font-size: var(--mi-mobile-district-font); line-height: 1.4; }
++        .member-info-access,
++        .mi-resync-status,
++        .mi-search-results-summary { font-size: var(--mi-mobile-label-font); line-height: 1.4; }
++
++        /* 單列不可換行，故同時縮小 gap/水平 padding；48px 高度仍保留可觸控面積。 */
++        .mi-tree-actions { gap: clamp(3px, 1vw, 6px); }
++        .mi-search {
++            height: 48px;
++            padding: 0 clamp(5px, 1.5vw, 9px);
++            /* 不可改成 1rem：Bootstrap 3 的 html=10px 會觸發 iOS／LINE WebView 聚焦時自動放大。 */
++            font-size: 16px;
++            line-height: 1.5;
++        }
++        .mi-btn {
++            min-height: 48px;
++            padding: 0 clamp(5px, 1.5vw, 9px);
++            font-size: var(--mi-mobile-label-font);
++            line-height: 1.4;
++        }
++        .mi-btn-search { gap: clamp(3px, 1vw, 5px); }
++        .mi-search-btn-icon { font-size: clamp(1rem, calc(.875rem + .5vw), 1.125rem); }
++
++        .mi-district-header {
++            min-height: clamp(64px, 12vw, 72px);
++            padding: clamp(10px, 2.5vw, 14px);
++            align-items: center;
++        }
++        .mi-group-header {
++            min-height: clamp(72px, 15vw, 84px);
++            padding: clamp(10px, 2.5vw, 14px);
++            align-items: center;
+         }
++        .mi-chevron {
++            width: 44px;
++            height: 44px;
++            flex-basis: 44px;
++            font-size: 24px;
++        }
++        .mi-title { gap: 6px; }
++        .mi-node-title,
++        .mi-leader-group { font-size: var(--mi-mobile-tree-font); line-height: 1.5; }
++        .mi-leader-district { font-size: var(--mi-mobile-district-font); line-height: 1.4; }
++        .mi-leader-line { gap: clamp(6px, 1.5vw, 10px); }
++        .mi-count {
++            padding: 4px clamp(8px, 2vw, 12px);
++            font-size: var(--mi-mobile-label-font);
++            line-height: 1.4;
++        }
++
++        .mi-pager { font-size: var(--mi-mobile-tree-font); line-height: 1.5; }
++        .mi-pager button {
++            min-height: 48px;
++            font-size: var(--mi-mobile-label-font);
++        }
++        .mi-search-results-title { font-size: var(--mi-mobile-tree-font); line-height: 1.5; }
++        .mi-search-results-header { align-items: flex-start; flex-direction: column; }
++
++        #memberInfoPage .dx-datagrid-headers .dx-row > td {
++            padding-top: clamp(10px, 2vw, 13px);
++            padding-bottom: clamp(10px, 2vw, 13px);
++            font-size: var(--mi-mobile-grid-header-font);
++            line-height: 1.4;
++        }
++        #memberInfoPage .dx-datagrid-rowsview .dx-row > td {
++            padding-top: clamp(8px, 2vw, 12px);
++            padding-bottom: clamp(8px, 2vw, 12px);
++            font-size: var(--mi-mobile-grid-font);
++            line-height: 1.5;
++        }
++        #memberInfoPage .member-info-name-link {
++            display: inline-flex;
++            min-height: 44px;
++            align-items: center;
++            font-size: inherit;
++            line-height: inherit;
++        }
++
++        .mi-grid-host { overflow-x: hidden; }
+     }
+ 
+     /*
+         iOS Safari 會在輸入框字級小於 16px 時自動放大整頁。
+-        這裡將所有編輯控制項的輸入字級統一拉高，避免手機操作時畫面被強制縮放。
++        Bootstrap 3 可能把 html 根字級設為 10px，所以 1rem 並不等於安全的 16px；原生 #miTreeSearch
++        也不是 DevExtreme 的 .dx-texteditor-input，必須明列選擇器並使用絕對 16px，避免手機聚焦時整頁縮放。
+     */
+-    #MemberInfoGridContainer .dx-texteditor-input,
++    #memberInfoPage #miTreeSearch,
++    #memberInfoPage .dx-texteditor-input,
+     #memberInfoDetailPopup .dx-texteditor-input {
+         font-size: 16px;
+     }
+@@ -285,11 +651,6 @@
+         pointer-events: none;
+     }
+ 
+-    /* 載入中訊息保留與實際內容相同的邊距，避免彈窗切換時畫面跳動。 */
+-    .member-info-detail-loading {
+-        padding: 16px;
+-    }
+-
+     /* 手機版維持同一個原生 popup 內容容器，只調整內距與安全區底部距離。 */
+     @@media (max-width: 720px) {
+         .member-info-detail-popup-content {
+@@ -302,85 +663,56 @@
+     }
+ </style>
+ 
+-<div class="member-info-page">
+-    <!-- 頁面頂部工具列：左側標題、右側權限提示。 -->
++<div id="memberInfoPage" class="member-info-page">
+     <div class="member-info-toolbar">
+         <h4 class="member-info-title">會友資訊</h4>
+         <div class="member-info-access">@ViewBag.MemberInfoAccess</div>
+     </div>
+ 
+-    <!-- 主要內容區：以卡片包覆 DevExtreme DataGrid，維持與頁面一致的留白與陰影。 -->
+-    <div class="member-info-grid-shell">
+-        <!--
+-            會友清單使用 DevExtreme DataGrid 呈現：
+-            - 伺服器端分頁與排序，減少前端一次載入壓力
+-            - 照片欄位使用自訂模板，先顯示佔位圖再批次補圖
+-            - 姓名欄位可點擊，進入右側明細彈窗
+-        -->
+-        @(Html.DevExtreme().DataGrid<MemberInfoListRowViewModel>()
+-            .ID("MemberInfoGridContainer")
+-            .DataSource(d => d.Mvc()
+-                .Controller("MemberInfo")
+-                .LoadAction("LoadMemberInfoList")
+-                .Key("ContactId"))
+-            .ShowBorders(true)
+-            .ShowRowLines(true)
+-            .ShowColumnLines(true)
+-            .RowAlternationEnabled(true)
+-            .ColumnAutoWidth(true)
+-            .AllowColumnResizing(true)
+-            .ColumnResizingMode(ColumnResizingMode.Widget)
+-            .ColumnHidingEnabled(true)
+-            .RemoteOperations(ro => ro
+-                .Filtering(true)
+-                .Sorting(true)
+-                .Paging(true)
+-                .Grouping(false)
+-                .Summary(false))
+-            .SearchPanel(s => s.Visible(true).Placeholder("搜尋姓名、手機或會員身分"))
+-            .Paging(p => p.PageSize(50))
+-            .Pager(p => p
+-                .ShowPageSizeSelector(true)
+-                .AllowedPageSizes(new[] { 25, 50, 100 })
+-                .ShowInfo(true))
+-            .NoDataText("沒有資料")
+-            .LoadPanel(l => l.Enabled(true).Text("載入中..."))
+-            .Columns(columns =>
+-            {
+-                columns.Add()
+-                    .DataField("ContactId")
+-                    .Caption("照片")
+-                    .Width(58)
+-                    .MinWidth(58)
+-                    .AllowSorting(false)
+-                    .AllowFiltering(false)
+-                    .AllowEditing(false)
+-                    .Fixed(true)
+-                    .CellTemplate(new JS("memberInfoAvatarCellTemplate"));
+-
+-                columns.AddFor(m => m.FullName)
+-                    .Caption("姓名")
+-                    .Width(140)
+-                    .MinWidth(100)
+-                    .Fixed(true)
+-                    .CellTemplate(new JS("memberInfoNameCellTemplate"));
+-
+-                columns.AddFor(m => m.MembershipStatus)
+-                    .Caption("會員身分")
+-                    .Width(110)
+-                    .MinWidth(90);
+-
+-                columns.AddFor(m => m.Phone)
+-                    .Caption("手機")
+-                    .Width(150)
+-                    .MinWidth(110);
+-
+-                columns.AddFor(m => m.SmallGroupName)
+-                    .Caption("小組")
+-                    .MinWidth(160);
+-            })
+-            .OnContentReady("memberInfoPreloadImages")
+-            .OnToolbarPreparing("memberInfoGridToolbarPreparing"))
++    @*
++        搜尋框與兩個操作按鈕是一個不可換行的單列；搜尋按鈕文字會依 idle/searching/results/error 改變，
++        同步按鈕則只有具備全教會管理權限時才解除 hidden。
++    *@
++    <div class="mi-tree-actions">
++        <input id="miTreeSearch" class="mi-search" type="search" autocomplete="off"
++               placeholder="搜尋姓名、手機或會員身分" aria-label="搜尋會友" />
++        <button id="miSearchBtn" type="button" class="mi-btn mi-btn-search">
++            <span class="mi-search-btn-icon" aria-hidden="true">⌕</span>
++            <span data-mi-search-label>搜尋</span>
++        </button>
++        <button id="miResyncBtn" type="button" class="mi-btn mi-btn-resync" hidden>重新同步LINE</button>
++    </div>
++
++    <div id="miResyncStatus" class="mi-resync-status" aria-live="polite"></div>
++    @* browse 保留原本的區長/小組長樹與分頁；搜尋不在樹內過濾，而是用 results 區塊直接取代整個 browse。 *@
++    <div id="miBrowseView" class="mi-browse-view">
++        <div id="memberInfoTree" class="mi-tree" aria-live="polite"></div>
++        <div id="miTreePager" class="mi-pager" aria-label="小組分頁"></div>
++    </div>
++
++    @* results 同時承載有資料的 DataGrid、零筆提示與錯誤提示；三者由同一個搜尋狀態機互斥顯示。 *@
++    <section id="miSearchResults" class="mi-search-results" aria-live="polite" hidden>
++        <div class="mi-search-results-header">
++            <span class="mi-search-results-title">搜尋結果</span>
++            <span id="miSearchResultsSummary" class="mi-search-results-summary"></span>
++        </div>
++        <div id="miSearchResultGrid" class="mi-grid-host"></div>
++        <div id="miSearchResultMessage" class="mi-search-result-message" hidden>
++            <span class="mi-search-result-message-icon" aria-hidden="true">⌕</span>
++            <strong data-mi-search-message-title></strong>
++            <span data-mi-search-message-note></span>
++        </div>
++    </section>
++
++    @* searching 期間以全頁 overlay 阻擋重複操作；停止搜尋按鈕的 z-index 高於此層，仍可取消請求。 *@
++    <div id="miSearchOverlay" class="mi-search-overlay" role="status" aria-live="polite" aria-atomic="true" hidden>
++        <div class="mi-search-overlay-card">
++            <span class="mi-search-spinner" aria-hidden="true"></span>
++            <span class="mi-search-overlay-copy">
++                <strong>正在搜尋會友…</strong>
++                <span>按「停止搜尋」可取消並回復搜尋前的畫面。</span>
++            </span>
++        </div>
+     </div>
+ </div>
+ 
+@@ -429,9 +761,6 @@
+         "<path d='M8 64c1.5-17.2 10.9-29.6 24-29.6S54.5 46.8 56 64H8z'/>" +
+         "</g></svg>");
+ 
+-    // ── 顯示照片 / 顯示全部 切換 ──
+-    // 預設：顯示全部(按鈕綠色、文字「顯示照片」)；按下後只顯示真正有照片者(按鈕變藍、文字「顯示全部」)，再按一次切回。
+-    var memberInfoPhotoOnly = false;
+     // 僅「全教會」管理者顯示「重新同步LINE」按鈕（由伺服器端 ViewBag 決定）。
+     var memberInfoCanResync = @(ViewBag.MemberInfoCanResync == true ? "true" : "false");
+ 
+@@ -493,27 +822,6 @@
+         }
+     }
+ 
+-    // 自訂工具列按鈕：切換資料表是否只顯示有照片的會友。
+-    window.memberInfoTogglePhotoFilter = function () {
+-        memberInfoPhotoOnly = !memberInfoPhotoOnly;
+-
+-        var btn = document.getElementById('memberInfoPhotoFilterBtn');
+-        if (btn) {
+-            btn.classList.toggle('is-photo-only', memberInfoPhotoOnly);
+-            btn.textContent = memberInfoPhotoOnly ? '顯示全部' : '顯示照片';
+-        }
+-
+-        var grid = $('#MemberInfoGridContainer').dxDataGrid('instance');
+-        if (!grid) { return; }
+-
+-        // 換資料來源並帶入 photoOnly 參數；表格會自行保留並重新套用目前的排序/搜尋狀態。
+-        grid.option('dataSource', DevExpress.data.AspNet.createStore({
+-            key: 'ContactId',
+-            loadUrl: '/MemberInfo/LoadMemberInfoList',
+-            loadParams: { photoOnly: memberInfoPhotoOnly }
+-        }));
+-    };
+-
+     // ── 重新同步 LINE 資料 ──
+     // 依 new_lineid 向 LINE Profile API 重新取得大頭貼/狀態/暱稱並覆寫(或清空)CRM 欄位。
+     // 已換照/移除照片者其照片網址被清空後，下次載入即顯示性別預設剪影、不再有 LINE 標示。
+@@ -524,15 +832,8 @@
+         var btn = document.getElementById('memberInfoResyncBtn');
+         if (btn) { btn.disabled = true; btn.textContent = '同步中…'; }
+ 
+-        // 進度列：顯示在網格上方，每批持續更新「已處理／成功／失敗」。
+-        var statusEl = document.getElementById('memberInfoResyncStatus');
+-        if (!statusEl) {
+-            statusEl = document.createElement('div');
+-            statusEl.id = 'memberInfoResyncStatus';
+-            statusEl.style.cssText = 'margin:6px 0;font-weight:700;color:#2563eb;';
+-            var host = document.getElementById('MemberInfoGridContainer');
+-            if (host && host.parentNode) { host.parentNode.insertBefore(statusEl, host); }
+-        }
++        var statusEl = document.getElementById('miResyncStatus');
++        if (!statusEl) { return; }
+         statusEl.textContent = '準備中…';
+ 
+         var okValid = 0, updated = 0, cleared = 0, noPhoto = 0, inconclusive = 0, failed = 0, done = 0;
+@@ -595,11 +896,18 @@
+             }
+             alert(msg);
+ 
+-            // 重整網格 + 清前端影像快取，讓頭像以最新來源重新載入。
++            // 清前端影像快取，只重新排入目前樹上可見的頭像。
+             memberInfoImageCache = {};
+             memberInfoImageSourceCache = {};
+-            var grid = $('#MemberInfoGridContainer').dxDataGrid('instance');
+-            if (grid) { grid.refresh(); }
++            $('#memberInfoPage .member-info-avatar-img[data-contact-id]').each(function () {
++                var contactId = this.dataset.contactId;
++                if (!contactId) { return; }
++                memberInfoQueuedImageIds[contactId] = true;
++                this.src = memberInfoLoadingAvatar;
++                var wrap = this.closest('.member-info-avatar-wrap');
++                if (wrap) { wrap.classList.add('is-loading'); }
++            });
++            memberInfoScheduleImagePreload(memberInfoPreloadComponent, null);
+         } catch (e) {
+             var emsg = (e && e.message) ? e.message : (e && e.status ? ('HTTP ' + e.status) : '請稍後再試');
+             statusEl.textContent = '同步發生問題：' + emsg;
+@@ -609,43 +917,6 @@
+         }
+     };
+ 
+-    // 把按鈕放進網格工具列(與搜尋框同一列、緊鄰網格上端)；onToolbarPreparing 確保工具列每次重建都依目前狀態正確呈現。
+-    // 由於 DataGrid 會在排序、搜尋或重繪時重新建立 toolbar，因此按鈕必須在此處動態插入。
+-    window.memberInfoGridToolbarPreparing = function (e) {
+-        if (!e || !e.toolbarOptions || !e.toolbarOptions.items) { return; }
+-        e.toolbarOptions.items.unshift({
+-            location: 'before',
+-            locateInMenu: 'never',
+-            template: function () {
+-                var btn = document.createElement('button');
+-                btn.type = 'button';
+-                btn.id = 'memberInfoPhotoFilterBtn';
+-                btn.className = 'member-info-photo-filter-btn' + (memberInfoPhotoOnly ? ' is-photo-only' : '');
+-                btn.textContent = memberInfoPhotoOnly ? '顯示全部' : '顯示照片';
+-                btn.onclick = memberInfoTogglePhotoFilter;
+-                return btn;
+-            }
+-        });
+-
+-        if (memberInfoCanResync) {
+-            // 插在「顯示照片」按鈕(index 0)之後，使其顯示在顯示照片的右邊。
+-            e.toolbarOptions.items.splice(1, 0, {
+-                location: 'before',
+-                locateInMenu: 'never',
+-                template: function () {
+-                    var btn = document.createElement('button');
+-                    btn.type = 'button';
+-                    btn.id = 'memberInfoResyncBtn';
+-                    btn.className = 'member-info-photo-filter-btn';
+-                    btn.style.background = '#0ea5e9';
+-                    btn.textContent = '重新同步LINE';
+-                    btn.onclick = memberInfoResyncLineProfiles;
+-                    return btn;
+-                }
+-            });
+-        }
+-    };
+-
+     // 縮圖 cell template：先顯示 loading 剪影，再由批次請求補上實際照片。
+     function memberInfoScheduleImagePreload(gridComponent, contactId) {
+         if (contactId) {
+@@ -671,7 +942,7 @@
+ 
+     window.memberInfoAvatarCellTemplate = function (container, options) {
+         var data = options.data || {};
+-        var contactId = data.ContactId || data.contactId || options.value || '';
++        var contactId = data.ContactId || options.value || '';
+         var host = container && container.get ? container.get(0) : container;
+         if (!host) return;
+         host.textContent = '';
+@@ -685,10 +956,8 @@
+         var img = document.createElement('img');
+         img.className = 'member-info-avatar-img';
+         img.alt = '大頭照';
+-        // 必須 eager：照片欄位是 Fixed(true)，DevExtreme 會把欄位範本渲染在「絕對定位」的
+-        // 固定欄覆蓋層(.dx-datagrid-content-fixed)。瀏覽器原生 loading="lazy" 的
+-        // IntersectionObserver 在初次繪製時偵測不到絕對定位/被裁切容器內的圖片，
+-        // 導致照片必須滑動後才載入。改為 eager 可在網格初始化後第一時間就顯示照片。
++        // 使用 eager 可在網格初始化後第一時間顯示照片；窄螢幕左右滑動時也不必等欄位
++        // 進入 viewport 才啟動圖片載入，避免滑到資料列時仍看到尚未處理的空白頭像。
+         img.loading = 'eager';
+         img.decoding = 'async';
+         img.dataset.contactId = contactId;
+@@ -751,8 +1020,8 @@
+     // 姓名欄位模板：使用超連結外觀，但實際上開啟的是明細彈窗而非頁面導轉。
+     window.memberInfoNameCellTemplate = function (container, options) {
+         var data = options.data || {};
+-        var contactId = data.ContactId || data.contactId || '';
+-        var fullName = data.FullName || data.fullName || '';
++        var contactId = data.ContactId || '';
++        var fullName = data.FullName || '';
+         var host = container && container.get ? container.get(0) : container;
+         if (!host) return;
+         host.textContent = '';
+@@ -807,7 +1076,7 @@
+                     });
+                 }
+                 // 批次已回：有圖就換上並停轉；沒回傳該人(極少數，如無權檢視)也停轉，留綠色剪影。
+-                $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]').each(function () {
++                $('#memberInfoPage .member-info-avatar-img[data-contact-id]').each(function () {
+                     var cid = this.dataset.contactId;
+                     if (cid && memberInfoImageCache[cid]) {
+                         memberInfoSettleAvatar(this, memberInfoImageCache[cid], memberInfoImageSourceCache[cid]);
+@@ -818,7 +1087,7 @@
+             },
+             error: function () {
+                 // 批次失敗 → 退回逐筆載入(舊行為)；載入完成(或失敗)即停轉，不會卡在轉圈。
+-                $('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]').each(function () {
++                $('#memberInfoPage .member-info-avatar-img[data-contact-id]').each(function () {
+                     var cid = this.dataset.contactId;
+                     if (cid && !memberInfoImageCache[cid]) {
+                         memberInfoSettleAvatar(this, '/MemberInfo/GetContactImage?contactId=' + encodeURIComponent(cid) + '&size=48', '');
+@@ -836,6 +1105,630 @@
+         });
+     };
+ 
++    /*
++        搜尋狀態機：idle 顯示 browse；searching 顯示 overlay 並保留可取消 XHR；results/error 直接顯示結果區。
++        searchToken 隔離已取消或較舊的 callback，browseScrollY 則讓返回 browse 時恢復搜尋前的閱讀位置。
++    */
++    var miState = {
++        tree: null,
++        page: 0,
++        pageSize: 50,
++        search: '',
++        renderToken: 0,
++        searchXhr: null,
++        searchMode: 'idle',
++        searchToken: 0,
++        browseScrollY: 0
++    };
++
++    function miElement(tagName, className, text) {
++        var element = document.createElement(tagName);
++        if (className) { element.className = className; }
++        if (text != null) { element.textContent = text; }
++        return element;
++    }
++
++    // 產生可重用且帶 aria-live 的 Loading 卡片；compact 僅用於小組內嵌載入，不改變語意與動畫節奏。
++    function miLoadingHtml(compact) {
++        var className = 'mi-loading-card' + (compact ? ' mi-loading-card-compact' : '');
++        return '<div class="' + className + '" role="status" aria-live="polite" aria-atomic="true">' +
++            '<span class="mi-loading-dots" aria-hidden="true">' +
++                '<span class="mi-loading-dot"></span>' +
++                '<span class="mi-loading-dot"></span>' +
++                '<span class="mi-loading-dot"></span>' +
++            '</span>' +
++            '<span class="mi-loading-copy">' +
++                '<strong class="mi-loading-title">正在整理會友資料</strong>' +
++                '<span class="mi-loading-note" data-mi-loading-note>' +
++                    '資料較多時會需要幾秒，完成後會自動顯示。' +
++                '</span>' +
++            '</span>' +
++        '</div>';
++    }
++
++    // 六秒後仍在 DOM 才更新安心文案；已完成或已被替換的卡片不會收到過期訊息。
++    function miScheduleLoadingReassurance(root) {
++        var card = root && root.matches && root.matches('.mi-loading-card')
++            ? root
++            : root && root.querySelector && root.querySelector('.mi-loading-card');
++        if (!card) { return; }
++        var note = card.querySelector('[data-mi-loading-note]');
++        window.setTimeout(function () {
++            if (card.isConnected && note) {
++                note.textContent = '資料還在傳送中，畫面沒有當掉，請再稍候一下。';
++            }
++        }, 6000);
++    }
++
++    function miShowLoading(host, compact) {
++        host.innerHTML = miLoadingHtml(compact);
++        miScheduleLoadingReassurance(host);
++    }
++
++    function miCountGroups(tree) {
++        return ((tree && tree.Districts) || []).reduce(function (total, district) {
++            return total + ((district && district.Groups) || []).length;
++        }, 0);
++    }
++
++    function miPageSlice(tree) {
++        var start = miState.page * miState.pageSize;
++        var end = start + miState.pageSize;
++        var seen = 0;
++        var districts = [];
++        ((tree && tree.Districts) || []).forEach(function (district) {
++            var pageGroups = [];
++            (district.Groups || []).forEach(function (group) {
++                if (seen >= start && seen < end) { pageGroups.push(group); }
++                seen++;
++            });
++            if (pageGroups.length) {
++                districts.push(Object.assign({}, district, { Groups: pageGroups }));
++            }
++        });
++        return { districts: districts, totalGroups: seen };
++    }
++
++    function miSetExpanded(node, expanded) {
++        node.classList.toggle('mi-open', expanded);
++        var header = node.querySelector(':scope > button');
++        if (header) { header.setAttribute('aria-expanded', expanded ? 'true' : 'false'); }
++    }
++
++    // 統一建立「節點名稱 → 領袖名稱 + 人數」兩層標頭，leaderClass 決定區長或小組長的視覺權重。
++    function miAppendHeaderText(header, title, leaderText, countText, leaderClass) {
++        header.appendChild(miElement('span', 'mi-chevron', '▸'));
++        var titleElement = miElement('span', 'mi-title');
++        if (title) { titleElement.appendChild(miElement('span', 'mi-node-title', title)); }
++        var leaderLine = miElement('span', 'mi-leader-line ' + leaderClass);
++        if (leaderText) { leaderLine.appendChild(miElement('span', 'mi-leader-name', leaderText)); }
++        leaderLine.appendChild(miElement('span', 'mi-count', countText));
++        titleElement.appendChild(leaderLine);
++        header.appendChild(titleElement);
++    }
++
++    // 相容舊版快取／舊 API 可能回傳的「(未填牧區)」佔位字串；現行後端傳入空值時也自然維持空白。
++    function miVisibleAreaName(value) {
++        value = (value || '').trim();
++        return value === '(未填牧區)' ? '' : value;
++    }
++
++    function miDistrictHeader(district) {
++        var header = miElement('button', 'mi-district-header');
++        header.type = 'button';
++        header.setAttribute('aria-expanded', 'true');
++        miAppendHeaderText(header, miVisibleAreaName(district.AreaName),
++            '區長：' + (district.RaceLeaderName || ''),
++            '本區 ' + (district.MemberCount || 0) + ' 人', 'mi-leader-district');
++        header.addEventListener('click', function () {
++            var node = header.parentNode;
++            miSetExpanded(node, !node.classList.contains('mi-open'));
++        });
++        return header;
++    }
++
++    function miGroupHeader(group) {
++        var header = miElement('button', 'mi-group-header');
++        header.type = 'button';
++        header.setAttribute('aria-expanded', 'false');
++        miAppendHeaderText(header, group.GroupName || '',
++            '小組長：' + (group.LeaderName || ''),
++            (group.MemberCount || 0) + ' 人', 'mi-leader-group');
++        header.addEventListener('click', function () { miToggleGroup(header.parentNode); });
++        return header;
++    }
++
++    // BirthDate 是 nullable；空值、無效日期或 CRM 最小日期都顯示空白，避免產生 0001/01/01 之類假生日。
++    function miBirthText(cell) {
++        if (!cell.value) { return ''; }
++        var date = new Date(cell.value);
++        return !isNaN(date.getTime()) && date.getFullYear() > 1
++            ? date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate()
++            : '';
++    }
++
++    /*
++        Gender 已由後端把 OptionSet 數值轉成顯示字串，前端不可再把它當數字代碼解讀；BirthDate 交由
++        miBirthText 做 nullable 格式化。RelationGoals 是後端彙整後的單一顯示字串，固定只佔一欄，
++        不依每段關係拆欄，避免不同會友的欄位結構不一致。
++    */
++    function miMemberColumns(remotePaging) {
++        return [
++            { dataField: 'ContactId', caption: '頭像', width: 72,
++              allowSorting: false, allowFiltering: false, cellTemplate: memberInfoAvatarCellTemplate },
++            { dataField: 'FullName', caption: '姓名', width: 130,
++              cellTemplate: memberInfoNameCellTemplate },
++            { dataField: 'Gender', caption: '性別', width: 64, alignment: 'center' },
++            { dataField: 'BirthDate', caption: '生日', dataType: 'date', width: 108,
++              alignment: 'center', customizeText: miBirthText },
++            { dataField: 'Phone', caption: '手機', width: 124 },
++            { dataField: 'SpiritualIdentity', caption: '信仰狀態', width: 108, alignment: 'center' },
++            { dataField: 'Address', caption: '地址', width: 250 },
++            { dataField: 'MembershipStatus', caption: '會員身份', width: 110, alignment: 'center' },
++            { dataField: 'RelationGoals', caption: '關係目標', width: 264,
++              allowSorting: !remotePaging }
++        ];
++    }
++
++    // 所有會友網格共用 DevExtreme 的唯一原生水平捲軸；always 也讓觸控裝置清楚知道內容可左右滑動。
++    function miGridScrollingOptions() {
++        return {
++            useNative: true,
++            showScrollbar: 'always',
++            scrollByContent: true,
++            scrollByThumb: true
++        };
++    }
++
++    // 關閉欄位自動隱藏並給定固定寬度，寬表格改由上述單一水平捲軸完整呈現所有欄位。
++    function miMountMemberGrid(host, rows) {
++        host.textContent = '';
++        $(host).dxDataGrid({
++            elementAttr: { class: 'mi-wide-member-grid' },
++            dataSource: rows || [],
++            keyExpr: 'ContactId',
++            showBorders: true,
++            showRowLines: true,
++            showColumnLines: true,
++            rowAlternationEnabled: true,
++            columnAutoWidth: false,
++            columnHidingEnabled: false,
++            wordWrapEnabled: true,
++            paging: { enabled: false },
++            scrolling: miGridScrollingOptions(),
++            noDataText: '沒有資料',
++            columns: miMemberColumns(false),
++            onContentReady: function (e) { window.memberInfoPreloadImages({ component: e.component }); }
++        });
++    }
++
++    function miShowLoadFailure(host, groupElement, status) {
++        host.textContent = '';
++        var message = miElement('div', 'mi-message mi-message-error',
++            status === 403 ? '無權檢視此小組' : '載入失敗');
++        if (status !== 403) {
++            var retry = miElement('button', 'mi-retry', '重試');
++            retry.type = 'button';
++            retry.addEventListener('click', function () {
++                delete groupElement.dataset.loadedSearchKey;
++                miLoadGroup(groupElement);
++            });
++            message.appendChild(retry);
++        }
++        host.appendChild(message);
++    }
++
++    // browse 的群組載入永遠不帶搜尋字串；搜尋結果由獨立端點與獨立 DataGrid 直接取代 browse。
++    function miLoadGroup(groupElement) {
++        var host = groupElement.querySelector('.mi-grid-host');
++        var searchKey = '';
++        var renderToken = miState.renderToken;
++        if (groupElement.dataset.loading === '1' || groupElement.dataset.loadedSearchKey === searchKey) { return; }
++        groupElement.dataset.loading = '1';
++        miShowLoading(host, true);
++        var request = $.ajax({
++            url: '/MemberInfo/LoadGroupMembers', type: 'GET',
++            data: { listId: groupElement.dataset.listId, search: searchKey }
++        });
++        groupElement._miRequest = request;
++        request.done(function (response) {
++            if (renderToken !== miState.renderToken || !groupElement.isConnected) { return; }
++            host.textContent = '';
++            groupElement.dataset.loadedSearchKey = searchKey;
++            miMountMemberGrid(host, (response && response.data) || []);
++        }).fail(function (xhr) {
++            if (renderToken !== miState.renderToken || !groupElement.isConnected || (xhr && xhr.statusText === 'abort')) { return; }
++            miShowLoadFailure(host, groupElement, xhr && xhr.status);
++        }).always(function () {
++            if (groupElement._miRequest === request) { groupElement._miRequest = null; }
++            groupElement.dataset.loading = '0';
++        });
++    }
++
++    function miToggleGroup(groupElement, forceOpen) {
++        var open = forceOpen == null ? !groupElement.classList.contains('mi-open') : !!forceOpen;
++        miSetExpanded(groupElement, open);
++        if (open) { miLoadGroup(groupElement); }
++    }
++
++    function miMountUngroupedGrid(host) {
++        host.textContent = '';
++        var store = DevExpress.data.AspNet.createStore({
++            key: 'ContactId',
++            loadUrl: '/MemberInfo/LoadUngroupedMembers',
++            loadParams: { search: '' }
++        });
++        $(host).dxDataGrid({
++            elementAttr: { class: 'mi-wide-member-grid' },
++            dataSource: store,
++            remoteOperations: { paging: true, sorting: true },
++            showBorders: true,
++            showRowLines: true,
++            showColumnLines: true,
++            rowAlternationEnabled: true,
++            columnAutoWidth: false,
++            columnHidingEnabled: false,
++            wordWrapEnabled: true,
++            scrolling: miGridScrollingOptions(),
++            paging: { pageSize: 50 },
++            pager: { showPageSizeSelector: true, allowedPageSizes: [25, 50, 100], showInfo: true, visible: true },
++            noDataText: '沒有資料',
++            columns: miMemberColumns(true),
++            onContentReady: function (e) { window.memberInfoPreloadImages({ component: e.component }); }
++        });
++    }
++
++    function miRenderUngroupedNode(ungrouped, autoOpen) {
++        var node = miElement('section', 'mi-district mi-ungrouped');
++        var header = miElement('button', 'mi-district-header');
++        header.type = 'button';
++        header.setAttribute('aria-expanded', 'false');
++        miAppendHeaderText(header, '', '無小組', (ungrouped.MemberCount || 0) + ' 人', 'mi-leader-district');
++        var body = miElement('div', 'mi-district-body');
++        var host = miElement('div', 'mi-grid-host');
++        body.appendChild(host);
++        node.appendChild(header);
++        node.appendChild(body);
++        header.addEventListener('click', function () {
++            var open = !node.classList.contains('mi-open');
++            miSetExpanded(node, open);
++            if (open && node.dataset.loaded !== '1') {
++                node.dataset.loaded = '1';
++                miMountUngroupedGrid(host);
++            }
++        });
++        if (autoOpen) {
++            miSetExpanded(node, true);
++            node.dataset.loaded = '1';
++            miMountUngroupedGrid(host);
++        }
++        return node;
++    }
++
++    function miRenderPager(totalGroups) {
++        var pager = document.getElementById('miTreePager');
++        pager.textContent = '';
++        var pages = Math.max(1, Math.ceil(totalGroups / miState.pageSize));
++        if (pages <= 1) { return; }
++        var previous = miElement('button', '', '上一頁');
++        previous.type = 'button';
++        previous.disabled = miState.page <= 0;
++        previous.addEventListener('click', function () {
++            miState.page--;
++            miRenderCurrent();
++            document.getElementById('memberInfoTree').scrollIntoView({ block: 'start' });
++        });
++        var next = miElement('button', '', '下一頁');
++        next.type = 'button';
++        next.disabled = miState.page >= pages - 1;
++        next.addEventListener('click', function () {
++            miState.page++;
++            miRenderCurrent();
++            document.getElementById('memberInfoTree').scrollIntoView({ block: 'start' });
++        });
++        pager.appendChild(previous);
++        pager.appendChild(miElement('span', '', '第 ' + (miState.page + 1) + ' / ' + pages + ' 頁（共 ' + totalGroups + ' 組）'));
++        pager.appendChild(next);
++    }
++
++    function miRenderTree(tree) {
++        var host = document.getElementById('memberInfoTree');
++        var token = ++miState.renderToken;
++        host.textContent = '';
++        var totalGroups = miCountGroups(tree);
++        var pages = Math.max(1, Math.ceil(totalGroups / miState.pageSize));
++        miState.page = Math.max(0, Math.min(miState.page, pages - 1));
++        var paged = miPageSlice(tree);
++        var autoOpenGroups = totalGroups === 1;
++
++        paged.districts.forEach(function (district) {
++            var districtElement = miElement('section', 'mi-district mi-open');
++            districtElement.dataset.raceLeaderKey = district.RaceLeaderKey || '';
++            districtElement.appendChild(miDistrictHeader(district));
++            var body = miElement('div', 'mi-district-body');
++            (district.Groups || []).forEach(function (group) {
++                var groupElement = miElement('section', 'mi-group');
++                groupElement.dataset.listId = group.ListId || '';
++                groupElement.appendChild(miGroupHeader(group));
++                var groupBody = miElement('div', 'mi-group-body');
++                groupBody.appendChild(miElement('div', 'mi-grid-host'));
++                groupElement.appendChild(groupBody);
++                body.appendChild(groupElement);
++                if (autoOpenGroups && token === miState.renderToken) { miToggleGroup(groupElement, true); }
++            });
++            districtElement.appendChild(body);
++            host.appendChild(districtElement);
++        });
++
++        if (tree && tree.Ungrouped && (totalGroups === 0 || miState.page >= pages - 1)) {
++            host.appendChild(miRenderUngroupedNode(tree.Ungrouped, false));
++        }
++        if (!host.children.length) {
++            host.appendChild(miElement('div', 'mi-message', '沒有資料'));
++        }
++        miRenderPager(paged.totalGroups);
++    }
++
++    function miRenderCurrent() {
++        miRenderTree(miState.tree || { Districts: [], Ungrouped: null, Scope: '' });
++    }
++
++    /*
++        集中切換四態的按鈕文字、圖示、ARIA 與 overlay：
++        idle=搜尋；searching=停止搜尋；results/error=返回會友資訊。其他函式不得各自拼湊半套 UI 狀態。
++    */
++    function miSetSearchMode(mode) {
++        miState.searchMode = mode;
++        var button = document.getElementById('miSearchBtn');
++        var overlay = document.getElementById('miSearchOverlay');
++        if (!button || !overlay) { return; }
++
++        var icon = button.querySelector('.mi-search-btn-icon');
++        var label = button.querySelector('[data-mi-search-label]');
++        button.classList.remove('mi-btn-stop', 'mi-btn-return');
++        overlay.hidden = mode !== 'searching';
++
++        if (mode === 'searching') {
++            button.classList.add('mi-btn-stop');
++            if (icon) { icon.textContent = '■'; }
++            if (label) { label.textContent = '停止搜尋'; }
++            button.setAttribute('aria-label', '停止搜尋並返回搜尋前畫面');
++            return;
++        }
++
++        if (mode === 'results' || mode === 'error') {
++            button.classList.add('mi-btn-return');
++            if (icon) { icon.textContent = '↩'; }
++            if (label) { label.textContent = '返回會友資訊'; }
++            button.setAttribute('aria-label', '返回會友資訊');
++            return;
++        }
++
++        if (icon) { icon.textContent = '⌕'; }
++        if (label) { label.textContent = '搜尋'; }
++        button.setAttribute('aria-label', '搜尋會友');
++    }
++
++    /*
++        DevExtreme 會在 host 上掛事件與元件資料，不能只清 innerHTML。先 dispose 現有 instance，再以乾淨
++        同 id 容器替換；finally 保證即使第三方 dispose 例外，下次搜尋也不會沿用半損壞的 grid host。
++    */
++    function miClearSearchResultGrid() {
++        var gridHost = document.getElementById('miSearchResultGrid');
++        if (!gridHost) { return; }
++        var cleanHost = miElement('div', 'mi-grid-host');
++        cleanHost.id = 'miSearchResultGrid';
++        try {
++            var $gridHost = $(gridHost);
++            var instance = $gridHost.hasClass('dx-datagrid') ? $gridHost.dxDataGrid('instance') : null;
++            if (instance && typeof instance.dispose === 'function') { instance.dispose(); }
++        } catch (error) {
++            if (window.console && typeof window.console.warn === 'function') {
++                window.console.warn('搜尋結果表格清理失敗，已改用乾淨容器返回會友資訊。', error);
++            }
++        } finally {
++            if (gridHost.parentNode) { gridHost.parentNode.replaceChild(cleanHost, gridHost); }
++        }
++        return cleanHost;
++    }
++
++    // 零筆與錯誤都使用訊息卡而非空 DataGrid；isError 只改語意色彩，不另建一套結果畫面。
++    function miShowSearchResultMessage(title, note, isError) {
++        var message = document.getElementById('miSearchResultMessage');
++        var gridHost = document.getElementById('miSearchResultGrid');
++        if (!message || !gridHost) { return; }
++        gridHost.hidden = true;
++        message.hidden = false;
++        message.classList.toggle('mi-message-error', !!isError);
++        var titleElement = message.querySelector('[data-mi-search-message-title]');
++        var noteElement = message.querySelector('[data-mi-search-message-note]');
++        if (titleElement) { titleElement.textContent = title; }
++        if (noteElement) { noteElement.textContent = note || ''; }
++    }
++
++    // 搜尋成功後隱藏整個 browse，結果列直接成為唯一主內容；零筆也仍進入 results 狀態供使用者返回。
++    function miShowSearchResults(rows, term) {
++        rows = rows || [];
++        var browseView = document.getElementById('miBrowseView');
++        var resultsView = document.getElementById('miSearchResults');
++        var summary = document.getElementById('miSearchResultsSummary');
++        var message = document.getElementById('miSearchResultMessage');
++        var gridHost = document.getElementById('miSearchResultGrid');
++        if (!browseView || !resultsView || !summary || !message || !gridHost) { return; }
++
++        gridHost = miClearSearchResultGrid() || gridHost;
++        browseView.hidden = true;
++        resultsView.hidden = false;
++        message.hidden = true;
++        message.classList.remove('mi-message-error');
++        summary.textContent = '搜尋「' + term + '」・共 ' + rows.length + ' 筆';
++
++        if (rows.length > 0) {
++            miMountMemberGrid(gridHost, rows);
++        } else {
++            miShowSearchResultMessage('沒有搜尋到符合的會友', '請更換姓名、手機或會員身分後再試一次。', false);
++        }
++        miSetSearchMode('results');
++    }
++
++    // error 仍取代 browse，並區分權限、30 秒逾時與一般失敗；返回按鈕可無損恢復原樹與捲動位置。
++    function miShowSearchError(term, status, timedOut) {
++        var browseView = document.getElementById('miBrowseView');
++        var resultsView = document.getElementById('miSearchResults');
++        var summary = document.getElementById('miSearchResultsSummary');
++        if (!browseView || !resultsView || !summary) { return; }
++
++        miClearSearchResultGrid();
++        browseView.hidden = true;
++        resultsView.hidden = false;
++        summary.textContent = '搜尋「' + term + '」';
++        var title = status === 403 ? '無權搜尋此範圍' : (timedOut ? '搜尋逾時' : '搜尋失敗');
++        var note = status === 403 ? '請確認目前帳號的會友資訊權限。' : '請稍後返回會友資訊再試一次。';
++        miShowSearchResultMessage(title, note, true);
++        miSetSearchMode('error');
++    }
++
++    /*
++        返回時必須先恢復 browse、隱藏 results 並切回 idle，讓使用者立即拿回可操作 UI；之後才 dispose
++        搜尋 DataGrid。此順序可避免 DevExtreme 清理較慢或拋錯時，畫面仍被困在已失效的結果區。
++    */
++    function miRestoreBrowseView() {
++        var browseView = document.getElementById('miBrowseView');
++        var resultsView = document.getElementById('miSearchResults');
++        miState.searchToken++;
++        miState.search = '';
++        miState.searchXhr = null;
++        if (resultsView) { resultsView.hidden = true; }
++        if (browseView) { browseView.hidden = false; }
++        miSetSearchMode('idle');
++        miClearSearchResultGrid();
++
++        var restoreY = miState.browseScrollY;
++        var schedule = window.requestAnimationFrame || function (callback) {
++            window.setTimeout(callback, 0);
++        };
++        schedule(function () {
++            window.scrollTo(window.pageXOffset || 0, restoreY || 0);
++        });
++    }
++
++    // 停止搜尋同時遞增 token 並 abort XHR；即使舊 callback 競態到達，也因 token 不符而不能覆寫 browse。
++    function miStopSearch() {
++        miState.searchToken++;
++        if (miState.searchXhr) {
++            miState.searchXhr.abort();
++            miState.searchXhr = null;
++        }
++        miRestoreBrowseView();
++    }
++
++    /*
++        只接受非空白關鍵字；開始時保存 browse 捲動位置、取消前一請求、切入 overlay，並設定 30 秒逾時。
++        成功 callback 同時驗證 token 與 searching 狀態；失敗 callback 則以 token／abort 排除過期或取消的請求。
++    */
++    function miStartSearch() {
++        var box = document.getElementById('miTreeSearch');
++        var term = box ? (box.value || '').trim() : '';
++        if (!term) {
++            if (box) {
++                box.setAttribute('aria-invalid', 'true');
++                box.focus();
++            }
++            return;
++        }
++
++        box.removeAttribute('aria-invalid');
++        if (miState.searchMode === 'idle') {
++            miState.browseScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
++        }
++        if (miState.searchXhr) {
++            miState.searchXhr.abort();
++            miState.searchXhr = null;
++        }
++
++        miState.search = term;
++        var token = ++miState.searchToken;
++        miSetSearchMode('searching');
++        var request = $.ajax({
++            url: '/MemberInfo/SearchDistrictTree',
++            type: 'GET',
++            data: { search: term },
++            timeout: 30000
++        }).done(function (result) {
++            if (token !== miState.searchToken || miState.searchMode !== 'searching') { return; }
++            miShowSearchResults((result && result.Rows) || [], term);
++        }).fail(function (xhr) {
++            if (token !== miState.searchToken || (xhr && xhr.statusText === 'abort')) { return; }
++            miShowSearchError(term, xhr && xhr.status, xhr && xhr.statusText === 'timeout');
++        }).always(function () {
++            if (miState.searchXhr === request) { miState.searchXhr = null; }
++        });
++        miState.searchXhr = request;
++    }
++
++    // Enter 只在 idle 啟動搜尋；按鈕則依目前狀態分流成開始、取消或返回，避免重複送出請求。
++    function miWireSearch() {
++        var box = document.getElementById('miTreeSearch');
++        var button = document.getElementById('miSearchBtn');
++        if (!box || !button) { return; }
++        box.addEventListener('keydown', function (event) {
++            if (event.key !== 'Enter') { return; }
++            event.preventDefault();
++            if (miState.searchMode === 'idle') { miStartSearch(); }
++        });
++        button.addEventListener('click', function () {
++            if (miState.searchMode === 'searching') {
++                miStopSearch();
++            } else if (miState.searchMode === 'results' || miState.searchMode === 'error') {
++                miRestoreBrowseView();
++            } else {
++                miStartSearch();
++            }
++        });
++        miSetSearchMode('idle');
++    }
++
++    function miLoadTree() {
++        var host = document.getElementById('memberInfoTree');
++        miShowLoading(host, false);
++        $.ajax({ url: '/MemberInfo/LoadDistrictTree', type: 'GET', timeout: 30000 })
++            .done(function (tree) {
++                try {
++                    miState.tree = tree || { Districts: [], Ungrouped: null, Scope: '' };
++                    miState.page = 0;
++                    miRenderCurrent();
++                } catch (error) {
++                    host.textContent = '';
++                    host.appendChild(miElement('div', 'mi-message mi-message-error', '樹狀畫面渲染失敗'));
++                }
++            })
++            .fail(function (xhr) {
++                host.textContent = '';
++                var status = xhr && xhr.status;
++                var text = status === 403
++                    ? '無權檢視會友資訊'
++                    : (xhr && xhr.statusText === 'timeout' ? '載入逾時' : '載入失敗');
++                var message = miElement('div', 'mi-message mi-message-error', text);
++                if (status !== 403) {
++                    var retry = miElement('button', 'mi-retry', '重試');
++                    retry.type = 'button';
++                    retry.addEventListener('click', function () { miLoadTree(); });
++                    message.appendChild(retry);
++                }
++                host.appendChild(message);
++            });
++    }
++
++    $(function () {
++        var resyncButton = document.getElementById('miResyncBtn');
++        if (memberInfoCanResync && resyncButton) {
++            resyncButton.hidden = false;
++            resyncButton.addEventListener('click', memberInfoResyncLineProfiles);
++        }
++        miWireSearch();
++        miLoadTree();
++    });
++
+     // 從彈窗內容中找出真正的 scroll host，避免 popup 與內層容器互相搶捲動位置。
+     function memberInfoFindDetailPopupContent(contentElement) {
+         var $candidate = contentElement ? $(contentElement) : $();
+@@ -1195,6 +2088,7 @@
+         var $scrollHost = $('<div class="member-info-detail-scroll"><div class="member-info-detail-scroll-inner"></div></div>');
+         $content.append($scrollHost);
+         $scrollHost.find('.member-info-detail-scroll-inner').html('<div class="member-info-detail-top-anchor" aria-hidden="true"></div>' + html);
++        miScheduleLoadingReassurance($content.get(0));
+ 
+         window.memberInfoResetDetailScroll($content);
+         memberInfoBindDetailTouchHandling($content, $scrollHost.get(0));
+@@ -1235,7 +2129,7 @@
+ 
+         var openToken = ++memberInfoDetailOpenToken;
+         memberInfoDetailUserInteracted = false;
+-        var loadingHtml = '<div class="member-info-detail-loading">載入中...</div>';
++        var loadingHtml = miLoadingHtml(false);
+         var contentElement = popup.content && popup.content();
+ 
+         memberInfoSetDetailPopupContent(contentElement, loadingHtml);
+diff --git a/ChurchReport/Views/MemberInfo/_MemberDetailPopup.cshtml b/ChurchReport/Views/MemberInfo/_MemberDetailPopup.cshtml
+index b027e8b5..6fd4c795 100644
+--- a/ChurchReport/Views/MemberInfo/_MemberDetailPopup.cshtml
++++ b/ChurchReport/Views/MemberInfo/_MemberDetailPopup.cshtml
+@@ -224,6 +224,7 @@
+         -webkit-appearance: auto;
+     }
+ 
++    /* 關係目標可能有多筆，但在版面上固定合併為一個跨兩欄欄位，避免每個角色各自撐出不規則欄位。 */
+     .member-info-relations {
+         grid-column: 1 / -1;
+     }
+@@ -250,7 +251,10 @@
+             min-width: 0;
+         }
+ 
+-        /* 手機：DataGrid 列區只保留水平溢出；垂直手勢交給外層原生捲動容器。 */
++        /*
++            手機的 DataGrid 列區只保留一條 DevExtreme 水平捲軸，並開啟原生慣性滑動；垂直手勢則繼續
++            交給 popup 外層唯一的原生捲動容器。不要再替 grid host 加 overflow-x，否則會出現雙捲軸。
++        */
+         .member-info-subgrid .dx-datagrid-rowsview .dx-scrollable-container {
+             -ms-touch-action: pan-x pan-y;
+             touch-action: pan-x pan-y;
+@@ -373,6 +377,27 @@
+                     }
+                 </select>
+             </div>
++            @*
++                Gender 是後端從 CRM OptionSet 轉好的顯示字串，不在 Razor 解析代碼；空白代表來源未設定，
++                統一顯示「（未設定）」以區別真正的性別文字。
++            *@
++            <div class="member-info-field">
++                <div class="member-info-label">性別</div>
++                <div class="member-info-value">
++                    @(string.IsNullOrWhiteSpace(Model.Gender) ? "（未設定）" : Model.Gender)
++                </div>
++            </div>
++            @* BirthDate 為 nullable；只有 HasValue 才固定輸出 yyyy/MM/dd，未設定時不產生預設或最小日期。 *@
++            <div class="member-info-field">
++                <div class="member-info-label">生日</div>
++                <div class="member-info-value">
++                    @(Model.BirthDate.HasValue ? Model.BirthDate.Value.ToString("yyyy/MM/dd") : "（未設定）")
++                </div>
++            </div>
++            @*
++                RelationGoals 在同一個跨欄 value 中以頓號串接，角色存在時才加「角色: 姓名」；
++                無資料顯示「（無）」。這是單欄摘要，不應依關係筆數動態產生欄位。
++            *@
+             <div class="member-info-field member-info-relations">
+                 <div class="member-info-label">關係目標</div>
+                 <div class="member-info-value">
+@@ -488,7 +513,7 @@
+                 var v = version || Date.now();
+ 
+                 // 清掉前端影像快取(各頁面命名不同，且 key 大小寫可能不同)，否則關閉彈窗後仍會顯示舊圖。
+-                [window.memberInfoImageCache, window.contactImageCache].forEach(function (cache) {
++                [window.memberInfoImageCache, window.memberInfoImageSourceCache, window.contactImageCache].forEach(function (cache) {
+                     if (!cache) { return; }
+                     Object.keys(cache).forEach(function (k) {
+                         if (String(k).toLowerCase() === lid) { delete cache[k]; }
+@@ -500,12 +525,15 @@
+                         var cid = this.dataset ? (this.dataset.contactId || '') : '';
+                         if (cid && cid.toLowerCase() === lid) {
+                             this.src = endpoint + '?contactId=' + encodeURIComponent(cid) + '&size=48&v=' + v;
++                            if (endpoint === '/MemberInfo/GetContactImage' && window.memberInfoApplyAvatarSource) {
++                                window.memberInfoApplyAvatarSource(this.closest('.member-info-avatar-wrap'), this, 'primary');
++                            }
+                         }
+                     });
+                 }
+ 
+                 // 會友資訊網格：縮圖來自 /MemberInfo/GetContactImage
+-                refreshAvatars('#MemberInfoGridContainer .member-info-avatar-img[data-contact-id]', '/MemberInfo/GetContactImage');
++                refreshAvatars('#memberInfoTree .member-info-avatar-img[data-contact-id]', '/MemberInfo/GetContactImage');
+                 // 小組回報頁(小組牧養/新人跟進關懷)網格：縮圖來自 /Personal/GetContactImage
+                 refreshAvatars('#SmallGroupgridContainer .contact-avatar-img[data-contact-id], #NewPersonGridContainer .contact-avatar-img[data-contact-id]', '/Personal/GetContactImage');
+             } catch (e) { }
+@@ -573,8 +601,11 @@
+         };
+         // 依螢幕寬度切換表格的捲動策略與欄位寬度，避免手機版看起來過擁擠。
+         var isMobile = window.innerWidth <= 720;
+-        // 手機使用原生水平捲動，外層 popup 內容則負責唯一的垂直捲動。
+-        // 避免 simulated scrolling 和外層 touch scroll 互相搶手勢。
++        /*
++            手機使用 DevExtreme standard + useNative，讓列區保有唯一水平捲軸與原生觸控慣性；外層 popup
++            內容負責唯一垂直捲動。若改回 simulated scrolling，會和外層 touch handler 互搶手勢。
++            桌機仍可用 simulated 模式與 hover 捲軸，避免常駐捲軸占用閱讀空間。
++        */
+         var gridScrollOptions = isMobile ? {
+             mode: 'standard',
+             scrollByContent: true,
