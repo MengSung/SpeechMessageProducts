@@ -1,92 +1,210 @@
-# Wave 2 實施合同：X04A Runtime Configuration And Secrets
+# Wave 2 修訂實施合同：X04A Runtime Configuration And Secrets
 
-- Wave：Wave 2
-- 工作區：`X04A-runtime-configuration-secrets`
-- 工作樹：`D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.1.EvenVersion`
-- 正式議題：`X04A-SEC-001`、`X04A-SEC-002`
-- 合同狀態：`CONTRACT_STATUS: WAVE_PLAN_APPROVED`
+- Wave: Wave 2
+- Revision: 1
+- Workspace: `X04A-runtime-configuration-secrets`
+- Worktree: `D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.1.EvenVersion`
+- Canonical issues: `X04A-SEC-001`, `X04A-SEC-002`, `X04A-PERF-001`
+- Contract status: `CONTRACT_STATUS: CONTRACT_REVISION_APPROVED_DEGRADED`
+- Design authority: `../revision-1-design.md`
+- Consumer inventory: `.ccg/tasks/x04a-safe-configuration-compatibility/consumer-configuration-inventory.md`
 
-本文件是後續修復代理的不可變更範圍。修復代理只能依此文件修改列入 allowlist 的產品檔案，並只能在本波三份合同中附加量測證據；不得修改目標、驗收值、範圍或回復條件。
+This Revision 1 contract supersedes the prior X04A Wave 2 repair boundary only
+after it receives the required review approval. Until the status becomes
+`CONTRACT_REVISION_APPROVED`, no product source, test, or runtime configuration
+may be modified under this contract.
 
-## Allowlist
+## Scope And Ownership
 
-後續修復代理只可建立或修改下列路徑：
+`X04A-SEC-001` and `X04A-SEC-002` remain the P0 outcomes. `X04A-PERF-001` is
+now an explicit prerequisite because the 13 listed runtime consumers bypass the
+host configuration lifecycle. The repair must establish one host-owned effective
+configuration path before clearing committed secret literals.
 
+The repair does not claim that deployment secrets exist or that exposed
+credentials have been rotated. Those remain external deployment-owner actions.
+
+## Product Allowlist
+
+The repair may create or modify only these product, configuration, and test
+paths:
+
+- `SpeechMessageProducts.ChurchReport/Program.cs`
 - `SpeechMessageProducts.ChurchReport/appsettings.json`
 - `SpeechMessageProducts.ChurchReport/appsettings.Production.json`
-- `SpeechMessageProducts.ChurchReport/Program.cs`
-- `SpeechMessageProducts.ChurchReport/Configuration/RuntimeConfigurationSafetyValidator.cs`（新建）
-- `ChurchReport.MemberInfo.Tests/Configuration/RuntimeConfigurationSecretScanTests.cs`（新建）
-- `ChurchReport.MemberInfo.Tests/Configuration/RuntimeConfigurationSafetyValidatorTests.cs`（新建）
-- `docs/project-modular-diagnostics/X04A-runtime-configuration-secrets/wave_2/plans.md`、`measurements.md`、`goals.md`（只可附加實測證據，不可改寫合同）
+- `SpeechMessageProducts.ChurchReport/Configuration/RuntimeConfigurationBridge.cs` (new)
+- `SpeechMessageProducts.ChurchReport/Configuration/RuntimeConfigurationSafetyValidator.cs` (new)
+- `SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs`
+- `SpeechMessageProducts.ChurchReport/Services/ChurchReportLineAdminNotificationService.cs`
+- `SpeechMessageProducts.ChurchReport/Services/PaymentNotificationService.cs`
+- `SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs`
+- `SpeechMessageProducts.ChurchReport/Tools/DonationPaymentDebugLogger.cs`
+- `SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs`
+- `SpeechMessageProducts.ChurchReport/Tools/PersonalQrCodeUtility.cs`
+- `SpeechMessageProducts.ChurchReport/Tools/QrCodeUtility.cs`
+- `SpeechMessageProducts.ChurchReport/Tools/RecurringDonationPaymentProcessor.cs`
+- `SpeechMessageProducts.ChurchReport/Tools/SmallGroupQrCodeUtility.cs`
+- `SpeechMessageProducts.ChurchReport/Tools/SundayQrCodeUtility.cs`
+- `SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs`
+- `SpeechMessageProducts.ChurchReport/WebServiceConnector/LineNotifyUtility.cs`
+- `ChurchReport.MemberInfo.Tests/Configuration/RuntimeConfigurationBridgeTests.cs` (new)
+- `ChurchReport.MemberInfo.Tests/Configuration/RuntimeConfigurationConsumerSourceContractTests.cs` (new)
+- `ChurchReport.MemberInfo.Tests/Configuration/RuntimeConfigurationSecretScanTests.cs` (new)
+- `ChurchReport.MemberInfo.Tests/Configuration/RuntimeConfigurationSafetyValidatorTests.cs` (new)
 
-## 明確排除
+The repair may append redacted runtime evidence only to this workspace's
+`wave_2/{plans,measurements,goals}.md`. It must not alter the contract targets,
+allowlist, exclusions, or rollback rules.
 
-- 未選議題：`X04A-SEC-003`、`X04A-PERF-001`、`X04A-EXT-001`。
-- `SpeechMessageProducts.ChurchReport/appsettings.Development.json`、`web.config`、所有 `.csproj`、solution、部署腳本、CI、文件以外的診斷產物。
-- 所有 ad-hoc `ConfigurationBuilder` 消費端，包括 `Services/ChurchReportLineAdminNotificationService.cs`、`Services/PaymentNotificationService.cs`、`Tools/*.cs`、`Models/DonationPaymentManager.cs`、`WebServiceConnector/LineNotifyUtility.cs` 與 `WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs`。其 host 設定生命週期遷移屬 `X04A-PERF-001`，本波不得藉由此修復碰觸。
-- OAuth state 的移除或行為調整；該項屬 `X04A-SEC-003`。
-- 可重用掃描器／跨模組抽取、部署注入、憑據輪替、金流或 LINE/CRM 商業流程變更；其分別屬 `X04A-EXT-001` 或外部所有者責任。
+## Explicit Exclusions
 
-## 最小修復步驟
+- `X04A-SEC-003` and `X04A-EXT-001` remain out of scope.
+- Full constructor injection, typed options migration, controller/call-site
+  refactoring, and changes to `ToolUtilityFactory` are out of scope. The bridge
+  is a compatibility boundary, not a DI redesign.
+- `appsettings.Development.json`, `web.config`, all `.csproj` files, solution
+  files, deployment scripts, CI, and other configuration consumers are out of
+  scope.
+- Credential rotation, secret-store provisioning, IIS/cloud environment setup,
+  and live LINE/CRM/payment verification are deployment-owner work.
+- Any consumer not in the frozen 13-path inventory is out of scope. Discovery
+  of another production `ConfigurationBuilder` requires a new contract review.
 
-### X04A-SEC-001：提交的 runtime secrets
+## Required Repair Sequence
 
-1. 僅在 `appsettings.json` 移除 issue.md 已列舉之 runtime secret 位置的非空字面值；保留區段、非敏感 metadata、端點與既有設定鍵名稱，避免改變既有繫結路徑。
-2. 對應的正式值一律由部署期外部設定提供，使用 .NET 階層式環境變數鍵名（以 `__` 取代 `:`）；不得在任何提交檔、測試 fixture、命令輸出、量測或 Claude prompt 寫入真實值。
-3. 新增純文字、紅遮罩的提交檔掃描契約測試。掃描器只輸出檔案、設定鍵與計數，並以 `measurements.md` 的「X04A-SEC-001 exact sensitive-key manifest（21）」作為唯一輸入；修復前與修復後不得改用不同 manifest。判定 committed `appsettings.json` 中 21 個 named key 均沒有非空字面值。
-4. 不在本波執行憑據輪替。已暴露憑據的停用與替換是外部憑據所有者的必做後續動作，且不得以新值回填 repository。
+### 1. Capture the three frozen baselines
 
-### X04A-SEC-002：Production 繼承不安全 base 設定
+Before modifying product files, run the tests described in `measurements.md`
+and record only redacted counts:
 
-1. 在 `appsettings.Production.json` 顯式覆寫 issue.md 指出的八個安全／繼承控制：`Security:EnforceGlobalAuthorization` 必為 `true`、`Security:AllowSessionIdentityFallback` 必為 `false`、`LinePay:IsSandbox` 必為 `false`、`Cash_Environment` 不可為 test/sandbox classification、`PAY_PROVIDER` 必須是 Production 顯式選擇且可解析到 production profile、`Payment:DefaultProfile` 指向 production profile、被選 profile 的 `Environment` 必為 `Production`、`TSPG:TestMode` 必為 `false`。不得在 Production 檔置入任何 secret 值。
-2. 建立 `RuntimeConfigurationSafetyValidator`，輸入 `IConfiguration` 和 host environment name，輸出不含值的設定鍵錯誤清單。只在 Production 檢查上列有效安全值，並檢查 `X04A-SEC-001` exact sensitive-key manifest 的有效設定均為非空且非已知 placeholder；非 Production 不套用 Production fail-fast 規則。用於檔案層級繼承量測的測試還必須確認八個控制皆在 Production overlay 顯式出現，因 `IConfiguration` 的有效值本身不保留來源 provider 的 provenance。
-3. 在 `Program.Main` 的 `WebApplication.CreateBuilder(args)` 後、任何 `Startup.ConfigureServices` 前，若 `builder.Environment.IsProduction()` 為真則執行 validator，發現錯誤即拋出單一啟動例外。錯誤訊息只列鍵名與失敗類別，禁止列出設定值。
-4. 將 validator 以 in-memory configuration 測試：安全 Production fixture 通過；每個不安全 inheritance case 分別拒絕；Production 缺失／placeholder secret 拒絕；Development fixture 不因 Production 規則失敗。測試用 synthetic sentinel 值只證明驗證邏輯，不可聲稱部署期 secret 已存在。
+- `SecretLiteralCount=21/21` for the exact sensitive-key manifest.
+- `UnsafeOrInheritedConditionCount=8/8`, `SafeEffectiveConditionCount=0/8`,
+  and `ProductionOverlayPresenceCount=0/8`.
+- `AdHocConfigurationBuilderConsumerCount=13/13` and
+  `BridgeConsumerCount=0/13` for the exact consumer inventory.
 
-## 本機驗證與預期證據
+If a baseline differs, stop and return the contract to planning; do not weaken
+the target to fit the observed repository state.
 
-修復前後均執行下列命令；輸出只能保存紅遮罩結果：
+### 2. Establish the host-owned compatibility bridge
+
+Create `RuntimeConfigurationBridge` as the sole compatibility source for the
+listed legacy consumers.
+
+- It accepts the `IConfiguration` created by `WebApplication.CreateBuilder`.
+- It has no JSON file provider, environment probing, reload subscription, or
+  fallback builder.
+- It initializes once. A different second initialization fails with a
+  value-free error instead of replacing the effective configuration.
+- Access before initialization fails closed with a stable, value-free error.
+- It exposes only the effective configuration needed by legacy callers.
+
+In `Program.Main`, build the host configuration, perform the Production safety
+validation when appropriate, initialize the bridge with the validated
+`builder.Configuration`, and only then construct `Startup` or register services.
+
+### 3. Migrate every frozen legacy consumer
+
+For each of the 13 allowlisted consumer files, remove its local
+`ConfigurationBuilder`, `AddJsonFile("appsettings.json")`, and local static/lazy
+configuration cache. Replace the configuration access with the bridge's
+effective host configuration while preserving the current key paths, default
+organization behavior, public constructors, direct legacy `new` call sites,
+and business-flow behavior.
+
+The source contract test must prove all 13 paths use the bridge and none owns
+an ad-hoc builder. It is not sufficient to add environment variables to each
+old builder.
+
+### 4. Remove committed literals and enforce Production safety
+
+For the frozen 21-key manifest:
+
+1. Clear non-empty committed secret literals in `appsettings.json` without
+   deleting sections, key paths, non-secret metadata, or endpoint configuration.
+   Deployment values use normal .NET hierarchical environment-variable names
+   (`__` in place of `:`); no real value may appear in source, tests, evidence,
+   or review prompts.
+2. Add explicit safe Production values for the eight frozen controls in
+   `appsettings.Production.json`; do not put secrets in this file.
+3. Implement `RuntimeConfigurationSafetyValidator` over the host effective
+   configuration. In Production it must reject missing/placeholder sensitive
+   values and every unsafe control; outside Production it must not enforce the
+   Production gate. `Cash_Environment` is accepted only as an explicit positive
+   Production classification (`Production` or the existing `正式環境` label),
+   never merely because it lacks a test/sandbox substring. The known placeholder
+   detector must reject case-insensitive values containing `placeholder`,
+   `replace`, `runtime_secret`, `your_`, `_here`, `todo`, `dummy`, `example`,
+   `sample`, or `changeme`; errors still omit values.
+4. Validator errors may contain a key name and failure category only. They may
+   never contain an effective configuration value.
+
+### 5. Test and validate
+
+Use synthetic in-memory values only. The test suite must cover:
+
+- bridge uninitialized failure, successful initialization, and rejection of a
+  different second initialization;
+- an effective higher-priority synthetic overlay value is visible through the
+  bridge, proving the bridge reads the host result instead of reconstructing a
+  base-only source;
+- all 13 source paths with zero local builders and 13 bridge consumers;
+- the exact 21-key secret scanner baseline and final `0/21` result;
+- eight Production overlay/control cases, safe Production, missing secret,
+  placeholder secret, and Development bypass;
+- no secret value in scanner, validator, or bridge failure output.
+
+Run the focused test command, the ChurchReport build, `git diff --check`, and
+the allowlist path check. Do not contact external services or claim deployment
+secret availability.
+
+## Required Local Verification
 
 ```powershell
-dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --filter "FullyQualifiedName~RuntimeConfigurationSecretScanTests|FullyQualifiedName~RuntimeConfigurationSafetyValidatorTests" --no-restore
+dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --filter "FullyQualifiedName~RuntimeConfigurationBridgeTests|FullyQualifiedName~RuntimeConfigurationConsumerSourceContractTests|FullyQualifiedName~RuntimeConfigurationSecretScanTests|FullyQualifiedName~RuntimeConfigurationSafetyValidatorTests" --no-restore
 ```
 
-預期：修復後兩個新測試類別全部通過；輸出只含通過／失敗數與測試名稱，沒有設定值。
+Expected result: every focused test passes. Output contains test names and
+redacted counts only.
 
 ```powershell
 dotnet build .\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj --no-restore
-```
-
-預期：成功，無新增編譯錯誤。
-
-```powershell
 git diff --check
 git diff --name-only
 ```
 
-預期：無空白錯誤，且產品變更只在本文件的 allowlist。
+Expected result: build succeeds with no new compiler errors; no whitespace
+errors; and every changed product/test/configuration path is in this allowlist.
 
-另以 `RuntimeConfigurationSecretScanTests` 所用的同一 sensitive-key manifest 產生 `X04A-SEC-001` 紅遮罩計數；修復後必為 `0`。本機驗證不得啟動真實 Production、聯絡外部服務或宣稱外部 secret store／環境變數已在部署環境可用。
+## Review And Commit Gate
 
-## 整波回復邊界
+The repair may commit only after all frozen measurements and goals pass and the
+Wave diff/evidence review is approved. Claude is the only external reviewer.
+If its self-healing runner produces no usable output, the controller performs
+one read-only Codex fallback review. Gemini is not permitted.
 
-本 Wave 的回復單位是 allowlist 內的單一 config/startup-validation commit：還原 `appsettings.json`、`appsettings.Production.json`、`Program.cs`、validator 與兩個測試的同一修復變更。回復只撤銷 repository 內的行為，不撤銷外部憑據輪替或部署 secret 注入；若回復後必須恢復服務，部署所有者必須以受管 secret source 補回有效設定，絕不可把秘密重新提交至設定檔。
+The repair commit subject and body must be Traditional Chinese and include:
 
-## 審查終止證據
+```text
+波次: Wave 2 / X04A revision 1
+Issue: X04A-SEC-001、X04A-SEC-002、X04A-PERF-001
+量測: 21/21 -> 0/21；8/8 unsafe -> 0/8；13/13 builders -> 0/13
+驗證: focused tests、build、diff check
+審核: Claude 或 Codex fallback evidence
+回退: 本合同 allowlist 的單一修復 commit
+```
 
-- Claude 無可用輸出：`.ccg/dual-model-runs/20260714-154429-wave2-x04a-contract-reviewer/summary.json`；依流程改由控制器安排唯讀備援複審。
-- `WAVE_PLAN_APPROVED`：Codex 唯讀備援複審確認 X04A-SEC-001 與 X04A-SEC-002 合約已具完整範圍、量測、目標、無回歸與回復界線，且無未解決的 Critical 或 Warning。
-## 修復證據追加（2026-07-15T12:39:23+08:00）
+## Rollback Boundary
 
-- X04A-SEC-001：TDD 紅燈先確認 committed base `appsettings.json` 的 frozen manifest `SecretLiteralCount=21/21`；修復後目標測試通過，結果 `SecretLiteralCount=0/21`。觀測與輸出只包含 key 名稱與 `non-empty` / empty class，未輸出任何值。
-- X04A-SEC-002：修復前 Production overlay 對 8 個 frozen safe controls 的 presence 為 `0/8`，修復後 repository overlay/effective config 測試為 `ProductionOverlayPresenceCount=8/8`、`SafeEffectiveConditionCount=8/8`、`UnsafeOrInheritedConditionCount=0/8`。
-- 本地驗證：`dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --filter "FullyQualifiedName~RuntimeConfigurationSecretScanTests|FullyQualifiedName~RuntimeConfigurationSafetyValidatorTests" --no-restore` 通過 `16/16`；`dotnet build .\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj --no-restore` 通過，`0` warning、`0` error。
-- Claude-only final review 尚未執行；待本地 allowlist、格式與 diff 檢查完成後，以 `.ccg/dual-model-runs/**` artifact 記錄。
+One X04A repair commit is the rollback unit. Reverting it restores the prior
+legacy configuration access behavior but never reintroduces secret literals to
+committed configuration. A deployment owner must keep required values in a
+managed external configuration source during rollback.
 
-## 修復阻擋證據（2026-07-15）
+## Revision History
 
-- 更正先前「Claude-only final review 尚未執行」的時點性敘述：其後已執行 Claude-only runner，但 `.ccg/dual-model-runs/20260715-124709-wave2-x04a-runtime-config-secrets-reviewer/summary.json` 記錄為無可用輸出；此補充不改寫先前證據。
-- 一次唯讀 Codex 備援複審回報 `CHANGES_REQUIRED`：排除於本 Wave allowlist 的 `Services/ChurchReportLineAdminNotificationService.cs` 與 `Tools/LineUtilityClass.cs` 自行只載入 `appsettings.json`，未加入環境或 Production provider。
-- 因此，僅清除提交字面值並在 host 啟動時驗證，仍會使上述繞過 host 設定鏈的既有 consumer 發生 Production 行為回歸；本 Wave 沒有安全的產品修復提交。
-- 已撤回本次未提交的產品、設定、validator 與測試變更。`X04A-SEC-001` 與 `X04A-SEC-002` 維持未解決，直到另行核准的合同納入 `X04A-PERF-001` consumer migration，或核准另一個安全相容性設計。
+Revision 0 was correctly stopped after review proved that clearing secrets while
+the 13 consumers still rebuilt base-only configuration would regress Production
+behavior. Its attempt evidence remains in Git history and in the 2026-07-15
+Wave 2 block record. Revision 1 changes the scope only by admitting the
+necessary X04A-PERF-001 prerequisite and frozen 13-consumer migration.

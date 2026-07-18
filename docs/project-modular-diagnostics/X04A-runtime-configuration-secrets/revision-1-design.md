@@ -1,6 +1,6 @@
 # X04A Wave 2 Revision 1: Safe Runtime Configuration Compatibility
 
-Status: PROPOSED
+Status: CONTRACT_REVISION_APPROVED_DEGRADED
 Date: 2026-07-18
 Scope trigger: X04A Wave 2 was blocked because clearing committed secrets left
 legacy consumers that rebuild base-only configuration unable to read deployment

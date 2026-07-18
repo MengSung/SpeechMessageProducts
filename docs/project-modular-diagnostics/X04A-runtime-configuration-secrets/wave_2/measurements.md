@@ -1,15 +1,19 @@
-# Wave 2 量測合同：X04A Runtime Configuration And Secrets
+# Wave 2 修訂量測合同：X04A Runtime Configuration And Secrets
 
-- Wave：Wave 2
-- 工作區：`X04A-runtime-configuration-secrets`
-- 議題：`X04A-SEC-001`、`X04A-SEC-002`
-- 合同狀態：`CONTRACT_STATUS: WAVE_PLAN_APPROVED`
+- Wave: Wave 2
+- Revision: 1
+- Workspace: `X04A-runtime-configuration-secrets`
+- Canonical issues: `X04A-SEC-001`, `X04A-SEC-002`, `X04A-PERF-001`
+- Contract status: `CONTRACT_STATUS: CONTRACT_REVISION_APPROVED_DEGRADED`
 
-所有結果附加於本文件最後的「修復證據紀錄」，每一筆包含 UTC 時間、commit SHA（或工作樹基線）、命令、退出碼、redacted summary 與證據檔路徑。不得記錄或輸出 secret 值。
+All recorded evidence is redacted. It may contain path, key name, class, count,
+test name, exit code, and commit SHA; it may never contain a secret or effective
+configuration value.
 
-## X04A-SEC-001：提交的 runtime secrets
+## Frozen Sensitive-Key Manifest: X04A-SEC-001
 
-**Exact sensitive-key manifest（21）。** 基線與修復後必須使用下列完全相同、順序固定的 named manifest；不得加入、移除、合併或以 pattern 取代任一鍵。清單只含 key path，沒有值：
+The baseline and final scan use this exact ordered 21-key manifest. No repair
+may add, remove, merge, rename, or replace a named key with a pattern:
 
 1. `LineMessaging:Jesus:ChannelAccessToken`
 2. `LineMessaging:JesusBack:ChannelAccessToken`
@@ -33,87 +37,138 @@
 20. `Sinopac:XKeyID`
 21. `MyPay:Key`
 
-**觀測與基線。** issue.md 指向上述 21 個 `appsettings.json` non-empty sensitive-key 位置。基線使用前述 exact manifest 掃描 committed `appsettings.json`；單位為 `SecretLiteralCount`，每一 named key 最多計 1，預期基線為 `21`。掃描只回報鍵名、行號與總數。
+### Measurement SEC001-M1
 
-**可重現程序。** 修復代理先執行下列 redacted scanner，將輸出寫入工作樹外的受控 CI log 或本文件的 redacted summary；不可把結果另存至未授權 repository 路徑：
+- Observation: committed `appsettings.json` values for the exact manifest.
+- Unit: `SecretLiteralCount / 21`; each named key contributes zero or one.
+- Baseline: `21 / 21` non-empty literals.
+- Target: `0 / 21` non-empty literals.
+- Procedure: `RuntimeConfigurationSecretScanTests` parses the committed JSON
+  source with JSONC-compatible comment skipping and trailing-comma support,
+  reports key name/count only, and rejects any non-empty manifest value.
+- No-regression: all section/key paths and non-secret metadata remain available
+  to the host configuration; no replacement secret literal is committed. The
+  synthetic host fixture proves an environment-style higher-priority value can
+  resolve through the bridge without recording that value.
+
+## Production Safety Matrix: X04A-SEC-002
+
+The test must distinguish an explicit Production overlay from an effective value
+inherited from base configuration. It builds base, Production-only, and
+base-plus-Production roots and evaluates these frozen cases:
+
+| Case | Key or control | Required Production result |
+|---|---|---|
+| SEC002-01 | `Security:EnforceGlobalAuthorization` | explicit `true` |
+| SEC002-02 | `Security:AllowSessionIdentityFallback` | explicit `false` |
+| SEC002-03 | `LinePay:IsSandbox` | explicit `false` |
+| SEC002-04 | `Cash_Environment` | exact `Production` or existing `正式環境` classification |
+| SEC002-05 | `PAY_PROVIDER` | explicit production provider selection |
+| SEC002-06 | `Payment:DefaultProfile` | production profile |
+| SEC002-07 | selected payment profile `Environment` | explicit `Production` |
+| SEC002-08 | `TSPG:TestMode` | explicit `false` |
+
+### Measurement SEC002-M1
+
+- Unit: `UnsafeOrInheritedConditionCount / 8`,
+  `SafeEffectiveConditionCount / 8`, and
+  `ProductionOverlayPresenceCount / 8`.
+- Baseline: `8 / 8`, `0 / 8`, `0 / 8` respectively.
+- Target: `0 / 8`, `8 / 8`, `8 / 8` respectively.
+- Procedure: `RuntimeConfigurationSafetyValidatorTests` loads the two committed
+  configuration files and separately verifies provider presence and effective
+  safe classification without logging values.
+
+### Measurement SEC002-M2
+
+- Observation: Production host safety validator behavior.
+- Fixture: synthetic in-memory configuration only.
+- Required cases: safe Production passes; each of the eight unsafe controls is
+  rejected; `Development`, `Staging`, test, and sandbox `Cash_Environment`
+  fixtures are rejected; missing secret is rejected; placeholder fixtures using
+  the frozen marker set are rejected;
+  Development bypasses the Production-only gate.
+- Error evidence: key name and category only; secret values must be absent.
+
+## Frozen Legacy Consumer Inventory: X04A-PERF-001
+
+The source-contract test freezes these 13 production paths:
+
+1. `Models/DonationPaymentManager.cs`
+2. `Services/ChurchReportLineAdminNotificationService.cs`
+3. `Services/PaymentNotificationService.cs`
+4. `Tools/DonationFeePaymentProcessor.cs`
+5. `Tools/DonationPaymentDebugLogger.cs`
+6. `Tools/LineUtilityClass.cs`
+7. `Tools/PersonalQrCodeUtility.cs`
+8. `Tools/QrCodeUtility.cs`
+9. `Tools/RecurringDonationPaymentProcessor.cs`
+10. `Tools/SmallGroupQrCodeUtility.cs`
+11. `Tools/SundayQrCodeUtility.cs`
+12. `WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs`
+13. `WebServiceConnector/LineNotifyUtility.cs`
+
+The full key-level inventory is preserved in
+`.ccg/tasks/x04a-safe-configuration-compatibility/consumer-configuration-inventory.md`.
+
+### Measurement PERF001-M1
+
+- Unit: `AdHocConfigurationBuilderConsumerCount / 13`.
+- Baseline: `13 / 13` listed paths create `ConfigurationBuilder` and load base
+  `appsettings.json` without host provider ordering.
+- Target: `0 / 13`.
+- Procedure: `RuntimeConfigurationConsumerSourceContractTests` reads only the
+  frozen 13 source files and rejects `new ConfigurationBuilder`, local
+  `AddJsonFile("appsettings.json")`, and local configuration cache declarations.
+
+### Measurement PERF001-M2
+
+- Unit: `BridgeConsumerCount / 13`.
+- Baseline: `0 / 13`.
+- Target: `13 / 13`.
+- Procedure: the same source-contract test requires each frozen path to obtain
+  effective settings through `RuntimeConfigurationBridge`, without inspecting or
+  emitting a configuration value.
+
+### Measurement PERF001-M3
+
+- Unit: lifecycle/effective-configuration cases passed / 4.
+- Target: `4 / 4` for: uninitialized access fails closed; first initialization
+  exposes synthetic host values; a higher-priority synthetic overlay remains
+  visible through the bridge; different second initialization is rejected.
+- Procedure: `RuntimeConfigurationBridgeTests` exercises a fresh bridge
+  instance using in-memory synthetic values. Tests of the process-wide bridge
+  entrypoint use a serialized fixture and never depend on the working directory
+  or process environment variables.
+
+## Focused Commands
 
 ```powershell
-dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --filter "FullyQualifiedName~RuntimeConfigurationSecretScanTests" --no-restore
-```
-
-修復前，此測試可因舊基線失敗；必須以這 21 個 named key 記錄 `SecretLiteralCount=21`。修復後以同一 manifest 執行同一測試，必須通過並回報 `SecretLiteralCount=0`。測試 fixture 必須使用明顯 synthetic 的字串，只驗證掃描規則與 redaction，且不得包含任何 repository 或部署憑據。
-
-**無回歸觀測。** `appsettings.json` 的 sensitive-key 區段與非敏感 metadata 必須仍可由 `IConfiguration` 以原有鍵名解析；掃描器不得掃描或輸出 unrelated config values。`dotnet build` 必須成功。
-
-**證據位置。** `docs/project-modular-diagnostics/X04A-runtime-configuration-secrets/wave_2/measurements.md` 的修復證據紀錄，以及修復 commit 的 `git diff --check`／`git diff --name-only` redacted summary。
-
-**本機證明限制。** 本機只能證明 repository 沒有已列舉 key 的 committed literal，不能證明外部 secret store、CI 或 Production 環境已注入任何值，也不能證明憑據已輪替或仍有效。
-
-## X04A-SEC-002：Production 繼承不安全 base 設定
-
-**可重現基線程序與八個條件。** 在修改任何產品設定前，修復代理先於 `RuntimeConfigurationSafetyValidatorTests` 建立 `CurrentRepositoryProductionOverlayMeasurement`。該測試以 repository root 為 base path，分別用 `ConfigurationBuilder().AddJsonFile("appsettings.json")` 與 `ConfigurationBuilder().AddJsonFile("appsettings.Production.json")` 建立兩個 `IConfigurationRoot`，再以相同順序建立第三個 effective root；對每一 case 同時讀取 Production provider 的 `TryGet` 結果與 effective root，不能只看最終值。所有輸出一律 redacted。
-
-修復前與修復後均執行同一命令，並保存 detailed test output 的 redacted summary：
-
-```powershell
-dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --filter "FullyQualifiedName~CurrentRepositoryProductionOverlayMeasurement" --logger "console;verbosity=detailed" --no-restore
-```
-
-逐一評估下列八個 named unsafe/inherited conditions，並以 `UnsafeOrInheritedConditionCount / 8` 計數：
-
-1. `SEC002-01`：`Security:EnforceGlobalAuthorization` 的 Production overlay 缺失，effective value 繼承 base 的 permissive value，而非 `true`。
-2. `SEC002-02`：`Security:AllowSessionIdentityFallback` 的 Production overlay 缺失，effective value 繼承 base 的 permissive value，而非 `false`。
-3. `SEC002-03`：`LinePay:IsSandbox` 的 Production overlay 缺失，effective value 繼承 base 的 sandbox value，而非 `false`。
-4. `SEC002-04`：`Cash_Environment` 的 Production overlay 缺失，effective value 繼承 base 的 test/sandbox classification。
-5. `SEC002-05`：`PAY_PROVIDER` 的 Production overlay 缺失，effective provider selection 繼承 base，且未由 Production 顯式選擇可解析到 production profile 的 provider。
-6. `SEC002-06`：`Payment:DefaultProfile` 的 Production overlay 缺失，effective value 繼承 base 的 test profile，而非 production profile。
-7. `SEC002-07`：被 `Payment:DefaultProfile` 選取的 `Payment:Profiles:<effective-default-profile>:Environment` 未被 Production overlay 安全覆寫，effective value 繼承 `Sandbox`，而非 `Production`。
-8. `SEC002-08`：`TSPG:TestMode` 的 Production overlay 缺失，effective value 繼承 base 的 test mode，而非 `false`。
-
-預期修復前：八個 case 全部命中，`UnsafeOrInheritedConditionCount=8/8`、`SafeEffectiveConditionCount=0/8`、`ProductionOverlayPresenceCount=0/8`。預期修復後：八個 case 均不命中，`UnsafeOrInheritedConditionCount=0/8`、`SafeEffectiveConditionCount=8/8`、`ProductionOverlayPresenceCount=8/8`。
-
-每次量測以固定格式寫入本文件的修復證據紀錄，且絕不寫 value：
-
-```text
-UTC=<timestamp>; Issue=X04A-SEC-002; Source=base+Production-overlay
-Case=<SEC002-01..SEC002-08>; Key=<configuration-key-path>; Overlay=<missing|present>
-EffectiveClass=<unsafe|safe>; Result=<unsafe-inherited|safe-explicit>; Value=REDACTED
-Summary; UnsafeOrInheritedConditionCount=<n>/8; SafeEffectiveConditionCount=<n>/8; ProductionOverlayPresenceCount=<n>/8
-```
-
-**Fixture、validator case 與命令。** repository baseline 使用上述實際兩檔合併程序。修復後的 validator 邏輯另以 `ConfigurationBuilder().AddInMemoryCollection(...)` 測試：base dictionary 提供八個不安全 defaults，Production dictionary 覆寫八個安全 controls，secret dictionary 僅提供 synthetic non-placeholder 值。另有一個安全 Production fixture 通過、一個 missing/placeholder sensitive-key Production fixture 被拒絕，以及一個 Development fixture 不啟用 Production gate。synthetic fixture 不載入真實 `appsettings`、不使用 process environment，也不讀取外部 secret source。
-
-```powershell
-dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --filter "FullyQualifiedName~RuntimeConfigurationSafetyValidatorTests" --no-restore
+dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --filter "FullyQualifiedName~RuntimeConfigurationBridgeTests|FullyQualifiedName~RuntimeConfigurationConsumerSourceContractTests|FullyQualifiedName~RuntimeConfigurationSecretScanTests|FullyQualifiedName~RuntimeConfigurationSafetyValidatorTests" --no-restore
 dotnet build .\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj --no-restore
+git diff --check
+git diff --name-only
 ```
 
-預期：修復後第一個命令通過八個 named safety/inheritance cases、safe Production case、missing/placeholder rejection case 與 Development bypass case；第二個命令成功。validator 的錯誤輸出僅可含鍵名與分類，不可含有效設定值。
+The focused tests must pass, the build must contain no new compiler errors, and
+the changed paths must be within the revised `plans.md` allowlist.
 
-**無回歸觀測。** `GlobalAuthorizationFilterTests` 仍使用其既有 in-memory config 並通過；Production 以外不應因新 Production-only validator 拒絕啟動。驗證器必須在任何 `Startup.ConfigureServices` 之前執行，防止不安全有效設定進入 service registration。
+## Local Proof Limits
 
-**證據位置。** 同一 `measurements.md` 的修復證據紀錄、測試輸出 redacted summary、以及 `Program.cs` 啟動接線 diff 摘要。
+Local tests prove repository literal removal, host configuration handoff, and
+synthetic behavior only. They do not prove that a production secret store is
+reachable, that deployment variables are present, that exposed credentials have
+been rotated, or that external LINE/CRM/payment calls authenticate successfully.
+Those require X04B/deployment-owner evidence in a managed environment.
 
-**本機證明限制。** synthetic fixture 只證明有效設定合併後的 fail-fast 邏輯；它不證明 Production 部署當下有 secret、雲端／IIS environment variable 名稱正確、secret store 可連線，或外部金流/LINE/CRM 可成功認證。這些是部署 runtime 證據，必須由 X04B／部署所有者在受管環境另行取得。
+## Evidence Record
 
-## 修復證據紀錄
+The repair agent may append evidence below this heading only after an approved
+contract starts. Each entry includes UTC time, commit SHA or baseline, command,
+exit code, redacted result, and artifact path.
 
-修復代理只能在此標題下附加實測結果；不得修改以上基線、case 數、目標、範圍或限制。
+## Revision 0 Archive
 
-## 審查終止證據
-
-- Claude 無可用輸出：`.ccg/dual-model-runs/20260714-154429-wave2-x04a-contract-reviewer/summary.json`；依流程改由控制器安排唯讀備援複審。
-- `WAVE_PLAN_APPROVED`：Codex 唯讀備援複審確認 X04A-SEC-001 與 X04A-SEC-002 合約已具完整範圍、量測、目標、無回歸與回復界線，且無未解決的 Critical 或 Warning。
-## 修復證據追加（2026-07-15T12:39:23+08:00）
-
-- X04A-SEC-001：新增 scanner 測試先紅燈，baseline `SecretLiteralCount=21/21`；清空 frozen 21-key manifest 後，目標測試通過並量測 `SecretLiteralCount=0/21`。scanner fixture 使用 synthetic literal 並確認輸出不包含值。
-- X04A-SEC-002：新增 validator/overlay 測試先紅燈；修復後 eight-control matrix 通過，Production overlay/effective 結果為 `ProductionOverlayPresenceCount=8/8`、`SafeEffectiveConditionCount=8/8`、`UnsafeOrInheritedConditionCount=0/8`。
-- 已執行命令：`dotnet test .\ChurchReport.MemberInfo.Tests\ChurchReport.MemberInfo.Tests.csproj --filter "FullyQualifiedName~RuntimeConfigurationSecretScanTests|FullyQualifiedName~RuntimeConfigurationSafetyValidatorTests" --no-restore`，結果 `16` passed、`0` failed；`dotnet build .\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj --no-restore`，結果 build succeeded、`0` warning、`0` error。
-- 待補：Claude-only final review artifact 於 `.ccg/dual-model-runs/**`，本地驗證完成後追加記錄。
-
-## 修復阻擋證據（2026-07-15）
-
-- 更正先前「Claude-only final review 尚未執行」的時點性敘述：其後已執行 Claude-only runner，但 `.ccg/dual-model-runs/20260715-124709-wave2-x04a-runtime-config-secrets-reviewer/summary.json` 記錄為無可用輸出；此補充不改寫先前證據。
-- 一次唯讀 Codex 備援複審回報 `CHANGES_REQUIRED`：排除於本 Wave allowlist 的 `Services/ChurchReportLineAdminNotificationService.cs` 與 `Tools/LineUtilityClass.cs` 自行只載入 `appsettings.json`，未加入環境或 Production provider。
-- 此繞過路徑使僅清除提交字面值與 host validator 的量測結果不足以代表實際 Production 相容性；在不改動排除 consumer 的前提下，沒有安全的產品修復提交。
-- 已撤回本次未提交的產品、設定、validator 與測試變更。`X04A-SEC-001` 與 `X04A-SEC-002` 維持未解決，直到另行核准的合同納入 `X04A-PERF-001` consumer migration，或核准另一個安全相容性設計。
+The prior X04A contract recorded a transient `21/21 -> 0/21` and `8/8 -> 0/8`
+attempt before its review revealed the un-migrated consumer regression. That
+attempt was fully reverted and is not evidence of this revision's completion.

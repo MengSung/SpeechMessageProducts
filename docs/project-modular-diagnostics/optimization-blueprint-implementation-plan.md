@@ -4,7 +4,8 @@
 > `superpowers:subagent-driven-development` to execute this plan task by task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Complete ten Critical P0 product-runtime security issues across seven
+**Goal:** Complete ten Critical P0 product-runtime security issues plus the
+required X04A-PERF-001 configuration-lifecycle prerequisite across seven
 workspaces without allowing the main session to modify product code.
 
 **Architecture:** The global blueprint owns Wave 2 membership and order. Each
@@ -40,7 +41,7 @@ Codex fallback when Claude has no usable output.
 
 | Sequence | Workspace | Canonical issue IDs |
 |---:|---|---|
-| 1 | X04A-runtime-configuration-secrets | X04A-SEC-001, X04A-SEC-002 |
+| 1 | X04A-runtime-configuration-secrets | X04A-SEC-001, X04A-SEC-002, X04A-PERF-001 |
 | 2 | B01-identity-session-access-control | B01-SEC-003 |
 | 3 | B02-member-contact-profile-onboarding | B02-SEC-001 |
 | 4 | B04B-appointment-equipment | B04B-SEC-001 |
@@ -56,8 +57,11 @@ Codex fallback when Claude has no usable output.
 - Modify: `docs/project-modular-diagnostics/optimization-blueprint.md`
 - Modify: `docs/project-modular-diagnostics/optimization-blueprint-implementation-plan.md`
 
-- [x] Set `ProposedWave=W2` and `Disposition=WAVE_2_SELECTED` for exactly the
+- [x] Set `ProposedWave=W2` and `Disposition=WAVE_2_SELECTED` for the original
   ten manifest issue IDs.
+- [x] Apply X04A Revision 1 admission of `X04A-PERF-001`, changing the manifest
+  to eleven canonical issue IDs, in the same commit as the revised local
+  contract and blueprint status.
 - [x] Record exactly seven selected workspaces and their execution order in the
   blueprint.
 - [x] Exclude AI, CCG, Trellis, documentation, and test-governance issues from
@@ -112,9 +116,10 @@ session must:
 **Contract:**
 `docs/project-modular-diagnostics/X04A-runtime-configuration-secrets/wave_2/`
 
-- [x] Reached the truthful `BLOCKED` terminal result on 2026-07-15. No product
-  repair commit was created because the approved allowlist excludes runtime
-  consumers that must migrate before externally injected secrets are safe.
+- [x] Revision 0 reached the truthful `BLOCKED` terminal result on 2026-07-15.
+  No product repair commit was created because the approved allowlist excluded
+  runtime consumers that must migrate before externally injected secrets are
+  safe.
 
 **Blocking evidence:** The Claude-only runner produced no usable output, so the
 single permitted read-only Codex fallback review was used. It confirmed that
@@ -123,7 +128,16 @@ single permitted read-only Codex fallback review was used. It confirmed that
 paths without injected values. The required next action is a separately
 approved X04A contract that includes the `X04A-PERF-001` consumer migration or
 another safe compatibility design. Per the sequential rule, Tasks 4 through 9
-must not start.
+did not start.
+
+- [x] Review and approve X04A Revision 1 with a degraded Claude-only gate: the
+  runner had no usable output and the documented inline Codex fallback found no
+  unresolved Critical or Warning. The contract admits `X04A-PERF-001`, freezes
+  the 13 consumer migration, and defines bridge lifecycle/source-contract
+  measurements.
+- [ ] Complete X04A-SEC-001, X04A-SEC-002, and X04A-PERF-001 through the
+  Revision 1 sequential repair contract and record `COMMITTED` or a truthful
+  `BLOCKED` result.
 
 ### Task 4: Repair B01 Identity And Login Password Handling
 
@@ -181,7 +195,7 @@ must not start.
 - Read: every selected workspace `wave_2/{plans,measurements,goals}.md`
 - Inspect: all seven workspace commits and validation outputs
 
-- [ ] Verify all ten issue IDs appear exactly once in Wave 2 and no unselected
+- [ ] Verify all eleven issue IDs appear exactly once in Wave 2 and no unselected
   issue entered any local contract or source diff.
 - [ ] Verify all seven workspaces are `COMMITTED`; a `BLOCKED` workspace keeps
   Wave 2 open and prevents later workspace dispatch.

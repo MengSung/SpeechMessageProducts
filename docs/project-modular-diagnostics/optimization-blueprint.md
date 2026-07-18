@@ -40,11 +40,13 @@ F01B-ai-agent-workflow-governance/wave_1/
 ## Wave 2 Selection
 
 Wave 2 addresses the highest-priority confirmed product-runtime security
-failures. It contains ten Critical P0 issues across seven workspaces.
+failures. It contains ten Critical P0 issues plus the required X04A-PERF-001
+configuration-lifecycle prerequisite, for eleven canonical issues across seven
+workspaces.
 
 | Sequence | Workspace | Issue subset | Status | Local contract |
 |---:|---|---|---|---|
-| 1 | X04A-runtime-configuration-secrets | X04A-SEC-001, X04A-SEC-002 | BLOCKED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair review exposed an excluded consumer-migration prerequisite |
+| 1 | X04A-runtime-configuration-secrets | X04A-SEC-001, X04A-SEC-002, X04A-PERF-001 | CONTRACT_REVISION_APPROVED_DEGRADED | Revision 1 admits the 13-consumer migration prerequisite; Claude had no usable output and the documented inline Codex fallback approved the contract |
 | 2 | B01-identity-session-access-control | B01-SEC-003 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair retains non-production CRM and caller-inventory gates |
 | 3 | B02-member-contact-profile-onboarding | B02-SEC-001 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair must enforce the pre-hydration Permit Gate |
 | 4 | B04B-appointment-equipment | B04B-SEC-001 | CONTRACT_APPROVED | `wave_2/` approved through Codex fallback after Claude produced no usable output; repair includes Schedule selector and stateless SchedulerView gates |
@@ -71,11 +73,11 @@ all seven workspaces are `COMMITTED`.
 
 | Sequence | Workspace | Terminal state | Evidence | Required action before resuming |
 |---:|---|---|---|---|
-| 1 | X04A-runtime-configuration-secrets | `BLOCKED` (2026-07-15) | Claude-only runner produced no usable output; the one permitted read-only Codex fallback found that excluded runtime consumers load only `appsettings.json`, so removing committed secrets would regress their Production behavior. No product repair commit was created. | Approve a new contract that includes the `X04A-PERF-001` consumer migration, or approve another safe compatibility design that preserves externally injected secrets for every affected consumer. |
+| 1 | X04A-runtime-configuration-secrets | `CONTRACT_REVISION_APPROVED_DEGRADED` (2026-07-18) | The 2026-07-15 blocked repair proved that 13 excluded runtime consumers load only `appsettings.json`; Revision 1 admits X04A-PERF-001 and freezes the bridge contract. Claude had no usable output; the documented inline Codex fallback found no unresolved Critical or Warning. | Complete one allowlisted X04A repair commit, then independently verify it before dispatching B01. |
 
 Wave 2 dispatch is paused at sequence 1. B01 through X05Q remain selected and
-contract-approved, but no repair agent may start until X04A has a committed
-repair or the owner authorizes a revised contract that resolves this blocker.
+contract-approved, but no repair may start until X04A has a committed Revision 1
+repair.
 
 ## Future Wave Admission
 
