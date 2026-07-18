@@ -1,34 +1,47 @@
 # Optimization Blueprint Execution Plan
 
-## Phase 1: Planning Artifacts
+## Completed Foundation
 
-- [x] Produce the full issue and observation register.
-- [x] Assign canonical issues to global W1-W5 without changing module ownership.
-- [x] Define the local wave document contract and two-subagent sequence.
-- [x] Complete local verification and independent Codex fallback review of the
-      blueprint and workflow.
-- [ ] Review the blueprint and workflow with the owner before activation.
+- [x] Produce the 322-record issue and observation register.
+- [x] Define the three-file local wave contract and sequential repair workflow.
+- [x] Add and verify Claude-only review support plus the single read-only Codex
+      fallback path.
+- [x] Complete and archive W1 F01B through commit `181c9298`.
+- [x] Freeze W2 with eleven canonical issues across seven workspaces.
+- [x] Approve all seven W2 local contracts.
+- [x] Complete X04A Revision 1 through commit `ab9993e8`.
 
-## Phase 2: Review Infrastructure
+## Active Wave 2 Gate
 
-- [ ] Add and verify a self-healing Claude-only review entrypoint that does not
-      invoke Gemini.
-- [ ] Define the main-session read-only Codex fallback review prompt and result
-      format.
+- [x] Record the first B01 repair attempt as truthfully blocked with no retained
+      product or test diff.
+- [ ] Obtain redacted non-production CRM row-version conditional-update success
+      and conflict evidence.
+- [ ] Obtain the synthetic `ProcessLogin -> SetupSystemData` success/failure
+      route probe.
+- [ ] Obtain the deployed ToolUtility caller inventory containing only caller
+      path, owner, and key/raw classification.
+- [ ] Re-run B01-SEC-003 from its frozen `wave_2` contract after all three
+      evidence gates are available.
 
-## Phase 3: Global W1 Activation
+## Remaining Sequential Repairs
 
-- [ ] For F01B, create `wave_1` documents covering the five selected issue IDs.
-- [ ] Obtain Claude or fallback approval of the F01B wave documents.
-- [ ] Repeat sequentially for F01C and F01D, with F01D-EXT-001 excluded.
-- [ ] Run a separate zero-trust repair subagent for each approved local wave.
-- [ ] Require local measurement, review approval, and a Traditional Chinese
-      commit body before moving to the next workspace.
+- [ ] Complete B02-SEC-001.
+- [ ] Complete B04B-SEC-001.
+- [ ] Complete B04C-SEC-001 and B04C-SEC-002.
+- [ ] Complete B04A-SEC-001 and B04A-SEC-002.
+- [ ] Complete X05Q-SEC-001.
 
-## Verification
+Each workspace must reach `COMMITTED` before the next begins. Every repair uses
+its frozen `plans.md`, `measurements.md`, and `goals.md`, passes local evidence
+and Claude or the single Codex fallback review, and creates one independently
+revertible Traditional Chinese commit.
 
-- [ ] Inventory totals remain 322 records: 163 canonical, 13 runtime, and 146
-      non-actionable observations.
-- [ ] Canonical counts remain W1=35, W2=56, W3=32, W4=27, W5=13.
-- [ ] No product file changes during Phase 1.
-- [ ] No local wave exists without `plans.md`, `measurements.md`, and `goals.md`.
+## Wave 2 Closeout
+
+- [ ] Verify W1=5, W2=11, and 147 canonical issues remain unassigned.
+- [ ] Run the broadest validation required by all seven W2 contracts.
+- [ ] Record every W2 workspace commit and deployment-only gate in the global
+      blueprint.
+- [ ] Archive the global tracking tasks only after all seven workspaces are
+      committed and the worktree is clean.

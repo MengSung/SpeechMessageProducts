@@ -68,13 +68,14 @@ Inventory all confirmed diagnostic issues, define a scored optimization blueprin
   Wave 1 shared foundations, Wave 2 identity/core data, Wave 3 integrated
   business flows, and Wave 4 user experience/end-to-end validation. Priority
   must be reconciled with that dependency order rather than replacing it.
-- The full register has been generated with 322 records: 163 canonical
-  confirmed issues, 13 runtime observations, and 146 non-actionable
-  observations. The 163 canonical issues are assigned to five global waves:
-  W1=35, W2=56, W3=32, W4=27, and W5=13.
-- The first executable W1 subset contains 12 draft candidates: five F01B,
-  four F01C, and three F01D issues. F01D-EXT-001 remains excluded because its
-  issue-level gate is blocked.
+- The full register has 322 records: 163 canonical confirmed issues, 13 runtime
+  observations, and 146 non-actionable observations. The current authoritative
+  assignment is W1=5 archived issues, W2=11 selected issues, and 147 canonical
+  issues with no assigned wave. No W3, W4, or W5 membership currently exists.
+- W1 contains only the five F01B governance issues and is archived after commit
+  `181c9298`. W2 contains eleven issues across seven product workspaces. X04A
+  is committed as `ab9993e8`; B01 is blocked by three external evidence gates,
+  and B02 through X05Q remain queued behind B01.
 
 ## Requirements
 
@@ -164,10 +165,13 @@ Inventory all confirmed diagnostic issues, define a scored optimization blueprin
 
 ## Decisions
 
-- Five global waves W1-W5 are used for all canonical confirmed issues; no
-  empty local wave directory is created for deferred work.
-- W1 is the first executable global wave, and only its 12 draft candidates may
-  progress to local wave-document planning after owner approval.
+- A global wave is created only when its exact canonical issue membership is
+  admitted in `optimization-issue-inventory.csv`. Deferred issues remain
+  unassigned; no placeholder W3-W5 membership or empty local wave directory is
+  created.
+- W1 is archived with only F01B. W2 is the active product-security wave and
+  must complete its seven workspaces in the sequence recorded by the current
+  blueprint. A blocked workspace prevents later workspaces from bypassing it.
 - A primary-owner workspace stores each local wave. Consumer paths are explicit
   in `plans.md` when a selected issue requires them.
 - Claude is the sole external reviewer. A main-session read-only Codex review
@@ -190,9 +194,10 @@ Inventory all confirmed diagnostic issues, define a scored optimization blueprin
 - Claude produced no usable analysis output for this task, so the main session
   invoked Codex fallback reviewer Kant (`019f5a4e-74a4-7e30-87d0-092e141b50ba`).
 - Verdict: `APPROVE`; Critical findings: none; Warning findings: none.
-- The reviewer independently confirmed inventory counts, W1-W5 totals, W1's
-  12-item subset, local-wave document contract, Gemini exclusion, and commit
-  gate consistency.
+- The reviewer independently confirmed the inventory and workflow as they
+  existed during the original planning review. Later owner-approved revisions
+  superseded its draft W1-W5 assignment: the current CSV and optimization
+  blueprint are the execution authority.
 
 ## Notes
 

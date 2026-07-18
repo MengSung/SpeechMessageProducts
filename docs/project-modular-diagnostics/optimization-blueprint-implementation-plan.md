@@ -81,17 +81,17 @@ Codex fallback when Claude has no usable output.
 - `docs/project-modular-diagnostics/B04A-attendance-present-record/wave_2/{plans,measurements,goals}.md`
 - `docs/project-modular-diagnostics/X05Q-churchreport-legacy-boundary-quarantine/wave_2/{plans,measurements,goals}.md`
 
-- [ ] Dispatch one fresh planning subagent per workspace, sequentially in
+- [x] Dispatch one fresh planning subagent per workspace, sequentially in
   manifest order, with write access limited to its three local files.
-- [ ] Require each `plans.md` to list exact product/test/configuration paths,
+- [x] Require each `plans.md` to list exact product/test/configuration paths,
   excluded paths, repair boundaries, validation commands, and rollback.
-- [ ] Require each `measurements.md` to define a reproducible security baseline,
+- [x] Require each `measurements.md` to define a reproducible security baseline,
   fixtures, evidence location, and observation method for every selected issue.
-- [ ] Require each `goals.md` to define measurable success, authorized
+- [x] Require each `goals.md` to define measurable success, authorized
   no-regression behavior, and explicit rollback conditions.
-- [ ] Obtain read-only review approval for each contract and close its planning
+- [x] Obtain read-only review approval for each contract and close its planning
   subagent before starting the next one.
-- [ ] Confirm all seven local contracts are approved before Task 3 begins.
+- [x] Confirm all seven local contracts are approved before Task 3 begins.
 
 ## Sequential Repair Contract
 

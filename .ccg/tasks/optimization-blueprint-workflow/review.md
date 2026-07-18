@@ -60,3 +60,19 @@ no product file is changed, and no optimization subagent has been dispatched.
 - Next action: wait for the F03A/CRM and non-production environment owners to
   supply the redacted prerequisite evidence. Do not dispatch B02 or later Wave
   2 workspaces.
+
+## Wave 1 Tracking Closure
+
+- F01B implementation commit: `181c9298`.
+- Fresh closure verification: 15 Python tests and 5 OpenCode tests passed;
+  artifact policy reported zero tracked raw CCG and Serena cache paths; `git
+  diff --check` passed.
+- Claude-only review run:
+  `20260718-095411-wave2-wave1-tracking-close-reviewer`; both healthy attempts
+  produced no usable output. This is not external approval.
+- Local management-diff audit confirmed that the staged paths contain only CCG
+  and Trellis task records plus the Wave 2 implementation checklist. Inventory
+  counts are 322 total, 163 canonical, W1=5, W2=11, and 147 unassigned; all
+  seven Wave 2 workspaces contain exactly the three approved contract files.
+- The stale Trellis child and CCG task were archived without changing product
+  code. The global optimization task remains active for Wave 2.
