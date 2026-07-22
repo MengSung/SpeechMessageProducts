@@ -1,0 +1,12 @@
+{
+  "id": "create-isolate-connector-worktree",
+  "title": "建立 1.0.0.2.IsolateConnector.Worktree 分支與工作樹",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "repository",
+  "currentPhase": "completed",
+  "nextAction": "已建立工作樹；基線測試記錄 22 項既有結構性失敗",
+  "createdAt": "2026-07-22T07:46:03Z",
+  "branch": "1.0.0.2.IsolateConnector"
+}
