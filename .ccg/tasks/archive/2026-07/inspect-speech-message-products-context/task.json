@@ -1,0 +1,12 @@
+{
+  "id": "inspect-speech-message-products-context",
+  "title": "確認 SpeechMessageProducts 目前分支與工作目錄",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "repository",
+  "currentPhase": "completed",
+  "nextAction": "已回報目前 Git 工作上下文",
+  "createdAt": "2026-07-22T07:43:22Z",
+  "branch": "1.0.0.2.IsolateConnector"
+}
