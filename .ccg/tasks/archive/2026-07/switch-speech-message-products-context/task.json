@@ -1,0 +1,12 @@
+{
+  "id": "switch-speech-message-products-context",
+  "title": "切換主要工作目錄與 Git 分支至 SpeechMessageProducts",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "repository",
+  "currentPhase": "completed",
+  "nextAction": "歸檔任務記錄",
+  "createdAt": "2026-07-22T07:14:21Z",
+  "branch": "1.0.0.1.MemberInfo"
+}
