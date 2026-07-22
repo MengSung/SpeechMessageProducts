@@ -1,0 +1,12 @@
+{
+  "id": "global-isolation-memory-leak-guardrails",
+  "title": "Define global session isolation and memory leak guardrails",
+  "status": "in_progress",
+  "complexity": "S",
+  "risk": "high",
+  "domain": "security",
+  "currentPhase": "planning",
+  "nextAction": "Obtain final review of the written design specification",
+  "createdAt": "2026-07-22T07:58:26Z",
+  "branch": "1.0.0.2.IsolateConnector.Worktree"
+}
