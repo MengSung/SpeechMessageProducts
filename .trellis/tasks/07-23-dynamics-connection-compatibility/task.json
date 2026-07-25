@@ -1,0 +1,34 @@
+{
+    "id":  "dynamics-connection-compatibility",
+    "name":  "dynamics-connection-compatibility",
+    "title":  "Design the no-SDK Dynamics 365 access gateway",
+    "description":  "Design a shared, no-SDK Dynamics 365 8.2/9.1 Organization access gateway for five current products and future products, including profile-isolated connection-pool ownership, Web API compatibility, and a complete SDK-removal migration boundary.",
+    "status":  "in_progress",
+    "dev_type":  null,
+    "scope":  null,
+    "package":  null,
+    "priority":  "P1",
+    "creator":  "codex",
+    "assignee":  "codex",
+    "createdAt":  "2026-07-23",
+    "completedAt":  null,
+    "branch":  null,
+    "base_branch":  "1.0.0.2.IsolateConnector.Worktree",
+    "worktree_path":  null,
+    "commit":  null,
+    "pr_url":  null,
+    "subtasks":  [
+
+                 ],
+    "children":  [
+
+                 ],
+    "parent":  null,
+    "relatedFiles":  [
+
+                     ],
+    "notes":  "Phase 0 accepted. Phase 1 scaffolding complete and live no-SDK HTTP execution implemented for WhoAmI + Package 1 fee-read server-owned FetchXML templates. SpeechMessage.Dynamics.Tests: 21 passed. Smoke placeholder: 1 passed. PowerPlatform.Dataverse.Client still present; consumer migration not started. Program.cs UTF-8 comments repaired.",
+    "meta":  {
+
+             }
+}

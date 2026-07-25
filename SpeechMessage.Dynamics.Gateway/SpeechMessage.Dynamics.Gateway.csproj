@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>SpeechMessage.Dynamics.Gateway</RootNamespace>
+    <AssemblyName>SpeechMessage.Dynamics.Gateway</AssemblyName>
+    <Description>Deployable Dynamics Access Gateway. Default production boundary for five current products and future products.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SpeechMessage.Dynamics.Abstractions\SpeechMessage.Dynamics.Abstractions.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Dynamics.WebApi\SpeechMessage.Dynamics.WebApi.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,6 @@
+@SpeechMessage.Dynamics.Gateway_HostAddress = http://localhost:5034
+
+GET {{SpeechMessage.Dynamics.Gateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

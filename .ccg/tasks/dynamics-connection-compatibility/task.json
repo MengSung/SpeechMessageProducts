@@ -1,0 +1,12 @@
+{
+    "id":  "dynamics-connection-compatibility",
+    "title":  "Design the no-SDK Dynamics 365 access gateway",
+    "status":  "in_progress",
+    "complexity":  "L+",
+    "risk":  "high",
+    "domain":  "integration",
+    "currentPhase":  "implementation",
+    "nextAction":  "Live WhoAmI/Package1 fee-read HTTP done with unit tests green; next: capacity/admission runtime and first consumer migration package, still no SDK removal yet",
+    "createdAt":  "2026-07-23T00:00:00Z",
+    "branch":  "1.0.0.2.IsolateConnector.Worktree"
+}

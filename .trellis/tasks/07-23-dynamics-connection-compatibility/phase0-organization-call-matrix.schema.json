@@ -1,0 +1,519 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://speechmessage.local/dynamics/phase0-organization-call-matrix.schema.json",
+  "title": "Dynamics Phase 0 Organization Call Coverage Matrix",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "solutionTopology",
+    "enforcement",
+    "bannedSdkReferenceFindings",
+    "sourceCandidateGroups",
+    "highSignalCandidateFiles",
+    "normalizedCallSites",
+    "operationRegistryAgreementGate"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^2026-07-24\\.phase0\\.v[0-9]+$"
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "solutionTopology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rootSolution",
+        "mandatorySeparateDynamicsSolution",
+        "optionalSeparateSolutionPolicy"
+      ],
+      "properties": {
+        "rootSolution": {
+          "const": "SpeechMessageProducts.sln"
+        },
+        "mandatorySeparateDynamicsSolution": {
+          "const": false
+        },
+        "optionalSeparateSolutionPolicy": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "enforcement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "currentMode",
+        "migratedSourceRoots",
+        "promotionRule"
+      ],
+      "properties": {
+        "currentMode": {
+          "enum": [
+            "report-only",
+            "migrated-roots-fail",
+            "full-solution-fail"
+          ]
+        },
+        "migratedSourceRoots": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "promotionRule": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "bannedSdkReferenceFindings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/bannedSdkReferenceFinding"
+      }
+    },
+    "sourceCandidateGroups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/sourceCandidateGroup"
+      }
+    },
+    "highSignalCandidateFiles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/highSignalCandidateFile"
+      }
+    },
+    "normalizedCallSites": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/normalizedCallSite"
+      }
+    },
+    "operationRegistryAgreementGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "registryArtifact",
+        "comparisonFields"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "planned",
+            "implemented-report-only",
+            "implemented-failing-gate"
+          ]
+        },
+        "registryArtifact": {
+          "type": "string",
+          "minLength": 1
+        },
+        "comparisonFields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "bannedSdkReferenceFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "project",
+        "path",
+        "line",
+        "findingKind",
+        "evidence",
+        "migrationDisposition"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^SDK-[0-9]{3}$"
+        },
+        "project": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "findingKind": {
+          "enum": [
+            "package-reference",
+            "direct-dll-hintpath",
+            "project-reference",
+            "solution-project-inclusion",
+            "sdk-using",
+            "sdk-shaped-interface",
+            "borrowed-connector-project"
+          ]
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "migrationDisposition": {
+          "enum": [
+            "final-removal-required",
+            "temporary-legacy",
+            "test-only-temporary-legacy",
+            "false-positive"
+          ]
+        }
+      }
+    },
+    "sourceCandidateGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "productOrProject",
+        "candidateFileCount",
+        "markers",
+        "triageStatus",
+        "phase0Implication"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^SRC-GRP-[0-9]{3}$"
+        },
+        "productOrProject": {
+          "type": "string"
+        },
+        "candidateFileCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "markers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "triageStatus": {
+          "enum": [
+            "broad-scan-only",
+            "normalization-in-progress",
+            "normalized"
+          ]
+        },
+        "phase0Implication": {
+          "type": "string"
+        }
+      }
+    },
+    "highSignalCandidateFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "productOrProject",
+        "path",
+        "legacyShape",
+        "candidateOperations",
+        "triageStatus"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^CAND-[0-9]{3}$"
+        },
+        "productOrProject": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "legacyShape": {
+          "type": "string"
+        },
+        "candidateOperations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/operationKind"
+          },
+          "uniqueItems": true
+        },
+        "triageStatus": {
+          "enum": [
+            "candidate-only",
+            "needs-member-level-normalization",
+            "normalized"
+          ]
+        }
+      }
+    },
+    "normalizedCallSite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "product",
+        "file",
+        "member",
+        "legacyEntryPoint",
+        "currentRequestShape",
+        "entityOrAction",
+        "operationKind",
+        "dataClassification",
+        "capabilityOperationId",
+        "serverOwnedTemplate",
+        "typedParameters",
+        "encodingContexts",
+        "versionEvidence",
+        "smokeEvidence",
+        "auditRequirement",
+        "idempotencyClass",
+        "migrationStatus",
+        "temporaryLegacyOwner",
+        "temporaryLegacyRemovalDeadline"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^ORG-CALL-[0-9]{5}$"
+        },
+        "product": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "member": {
+          "type": "string"
+        },
+        "legacyEntryPoint": {
+          "type": "string"
+        },
+        "currentRequestShape": {
+          "type": "string"
+        },
+        "entityOrAction": {
+          "type": "string"
+        },
+        "operationKind": {
+          "$ref": "#/$defs/operationKind"
+        },
+        "dataClassification": {
+          "enum": [
+            "public",
+            "internal",
+            "personal-data",
+            "financial-data",
+            "credential-or-secret",
+            "unknown"
+          ]
+        },
+        "capabilityOperationId": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(\\.[a-z0-9]+)+$"
+        },
+        "serverOwnedTemplate": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "templateKind",
+            "templateId",
+            "templateHash"
+          ],
+          "properties": {
+            "templateKind": {
+              "enum": [
+                "odata-route",
+                "odata-function",
+                "odata-action",
+                "fetchxml",
+                "batch"
+              ]
+            },
+            "templateId": {
+              "type": "string"
+            },
+            "templateHash": {
+              "type": "string"
+            }
+          }
+        },
+        "typedParameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/typedParameter"
+          }
+        },
+        "encodingContexts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/encodingContext"
+          },
+          "uniqueItems": true
+        },
+        "versionEvidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "v8_2",
+            "v9_1"
+          ],
+          "properties": {
+            "v8_2": {
+              "$ref": "#/$defs/evidenceRecord"
+            },
+            "v9_1": {
+              "$ref": "#/$defs/evidenceRecord"
+            }
+          }
+        },
+        "smokeEvidence": {
+          "$ref": "#/$defs/evidenceRecord"
+        },
+        "auditRequirement": {
+          "enum": [
+            "none",
+            "read-audit",
+            "write-audit",
+            "financial-audit",
+            "security-audit"
+          ]
+        },
+        "idempotencyClass": {
+          "enum": [
+            "read-only",
+            "non-idempotent-write-blocked",
+            "caller-idempotency-key-required",
+            "server-deduplicated",
+            "crm-native-idempotent"
+          ]
+        },
+        "migrationStatus": {
+          "enum": [
+            "candidate-untriaged",
+            "temporary-legacy",
+            "mapped-pending-evidence",
+            "registry-defined",
+            "migrated-and-gated"
+          ]
+        },
+        "temporaryLegacyOwner": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "temporaryLegacyRemovalDeadline": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "typedParameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "type",
+        "required",
+        "encodingContext"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "string",
+            "guid",
+            "integer",
+            "decimal",
+            "boolean",
+            "date-time",
+            "enum",
+            "string-array",
+            "guid-array",
+            "object"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "encodingContext": {
+          "$ref": "#/$defs/encodingContext"
+        }
+      }
+    },
+    "encodingContext": {
+      "enum": [
+        "none",
+        "odata-uri-segment",
+        "odata-query-option",
+        "odata-filter-literal",
+        "json-body",
+        "fetchxml-attribute-value",
+        "fetchxml-text",
+        "multipart-body"
+      ]
+    },
+    "evidenceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "evidenceId",
+        "notes"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "not-started",
+            "blocked",
+            "metadata-only",
+            "smoke-passed",
+            "passed",
+            "failed",
+            "not-supported"
+          ]
+        },
+        "evidenceId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "operationKind": {
+      "enum": [
+        "read",
+        "write",
+        "action",
+        "function",
+        "metadata",
+        "batch",
+        "connection-runtime"
+      ]
+    }
+  }
+}
