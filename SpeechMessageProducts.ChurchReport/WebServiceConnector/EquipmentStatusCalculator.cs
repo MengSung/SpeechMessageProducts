@@ -15,6 +15,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ChurchReport.Models;
+using ChurchReport.Services;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
 
@@ -28,6 +31,11 @@ namespace ChurchReport.WebServiceConnector
     {
         // 透過 Factory 取得 ToolUtilityClass 單一實例
         private readonly ToolUtilityClass m_ToolUtilityClass;
+
+        private static readonly IConfiguration m_DynamicsConfiguration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+            .Build();
 
         public EquipmentStatusCalculator()
         {
@@ -44,10 +52,11 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
-                // 取得該連絡人的所有上課紀錄
-                var storLessonsCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship(
-                    "contact", "contactid", contactId.ToString(),
-                    "new_contact_new_stor_lessons", "new_stor_lessons");
+                // Package 1 可選：取得該連絡人的所有上課紀錄
+                var storLessonQuery = new StorLessonQueryService(m_ToolUtilityClass, m_DynamicsConfiguration);
+                var storLessonsCollection = storLessonQuery.GetEntityCollectionByContact(
+                    contactName: null,
+                    contactId.ToString());
 
                 if (storLessonsCollection == null || storLessonsCollection.Entities.Count == 0)
                 {

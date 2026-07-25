@@ -18,6 +18,8 @@ using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.IO;
+using Microsoft.Extensions.Configuration;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -42,6 +44,10 @@ namespace ChurchReport.Models
 
         // 神學生預設費用
         private const decimal GOD_STUDENT_FEE = 400;
+        private static readonly IConfiguration m_DynamicsConfiguration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+            .Build();
         #endregion
 
         #region 建構函數
@@ -111,14 +117,18 @@ namespace ChurchReport.Models
         {
             try
             {
-                // 取得與課程相關的上課紀錄
-                //EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aLesson.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
-                EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.RetrieveStorLessonsByFetchXml(LessonName, aLesson.Id.ToString(), UserName, UserId);
+                // Package 1 可選：先找 stor-lesson Id（contact + discipleLesson）
+                var storLessonQuery = new StorLessonQueryService(m_ToolUtilityClass, m_DynamicsConfiguration);
+                Guid? existingStorLessonId = storLessonQuery.FindStorLessonId(
+                    LessonName,
+                    aLesson.Id.ToString(),
+                    UserName,
+                    UserId);
 
-                if (aStorLessonsEntityCollection.Entities.Count > 0)
+                if (existingStorLessonId is Guid foundId && foundId != Guid.Empty)
                 {
                     // 有找到上課紀錄單
-                    return this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsEntityCollection.Entities[0].Id);
+                    return this.m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", foundId);
                 }
                 else
                 {

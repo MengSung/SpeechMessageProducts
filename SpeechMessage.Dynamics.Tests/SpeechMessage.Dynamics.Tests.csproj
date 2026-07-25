@@ -24,6 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SpeechMessage.Dynamics.Abstractions\SpeechMessage.Dynamics.Abstractions.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Dynamics.ProductClient\SpeechMessage.Dynamics.ProductClient.csproj" />
     <ProjectReference Include="..\SpeechMessage.Dynamics.WebApi\SpeechMessage.Dynamics.WebApi.csproj" />
     <ProjectReference Include="..\SpeechMessage.Dynamics.Embedded\SpeechMessage.Dynamics.Embedded.csproj" />
     <ProjectReference Include="..\SpeechMessage.Dynamics.Gateway\SpeechMessage.Dynamics.Gateway.csproj" />

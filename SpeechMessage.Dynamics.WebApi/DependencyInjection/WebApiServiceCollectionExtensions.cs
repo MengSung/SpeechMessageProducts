@@ -1,16 +1,19 @@
 // ============================================================================
 // 檔案：SpeechMessage.Dynamics.WebApi/DependencyInjection/WebApiServiceCollectionExtensions.cs
-// 目的：註冊私有 WebApi transport、client 與受控 executor。
+// 目的：註冊 transport、admission、client、executor。
 //
 // 保母教學：
-// - 產品不要直接呼叫這個 DI 擴充；請走 Gateway 或 Embedded 入口。
-// - transport 是 singleton，對應「一個 profile runtime 一個長壽命 HttpClient」。
+// - 產品不要直接呼叫這個 DI 擴充；請走 Gateway 或 Embedded。
+// - admission manager 是 singleton：同一個 host 共用一份 bounded queue。
 // - 這裡不做 per-user session pool。
 // ============================================================================
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SpeechMessage.Dynamics.Abstractions.Operations;
+using SpeechMessage.Dynamics.WebApi.Capacity;
 using SpeechMessage.Dynamics.WebApi.Runtime;
 
 namespace SpeechMessage.Dynamics.WebApi.DependencyInjection;
@@ -21,7 +24,7 @@ namespace SpeechMessage.Dynamics.WebApi.DependencyInjection;
 public static class WebApiServiceCollectionExtensions
 {
     /// <summary>
-    /// 註冊私有 Dynamics Web API 連線器與受控操作執行器。
+    /// 註冊私有 Dynamics Web API 連線器、admission 與受控操作執行器。
     /// </summary>
     public static IServiceCollection AddSpeechMessageDynamicsWebApi(
         this IServiceCollection services,
@@ -34,7 +37,6 @@ public static class WebApiServiceCollectionExtensions
             .Configure(configure)
             .Validate(options =>
             {
-                // 最小驗證：至少要能推出 ApprovedWebApiRoot，且 auth 形狀合理。
                 if (!ApprovedWebApiRootFactory.TryCreate(options, out _, out _))
                 {
                     return false;
@@ -55,11 +57,28 @@ public static class WebApiServiceCollectionExtensions
                     return false;
                 }
 
-                return true;
+                return OrganizationAdmissionPlan.TryCreate(options, options.Admission, out _, out _);
             }, "DynamicsWebApi options failed validation.")
             .ValidateOnStart();
 
         services.TryAddSingleton<ISecretResolver, EnvironmentSecretResolver>();
+        services.TryAddSingleton<IRuntimeHostSlotCoordinator, InMemoryRuntimeHostSlotCoordinator>();
+
+        services.AddSingleton<IOrganizationAdmissionManager>(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<DynamicsWebApiOptions>>().Value;
+            if (!OrganizationAdmissionPlan.TryCreate(options, options.Admission, out var plan, out var error) ||
+                plan is null)
+            {
+                throw new InvalidOperationException(
+                    error?.ErrorMessage ?? "Invalid organization admission plan.");
+            }
+
+            var coordinator = sp.GetRequiredService<IRuntimeHostSlotCoordinator>();
+            var logger = sp.GetRequiredService<ILogger<OrganizationAdmissionManager>>();
+            return new OrganizationAdmissionManager(plan, coordinator, logger);
+        });
+
         services.AddSingleton<IDynamicsHttpTransport, DynamicsHttpTransport>();
         services.AddSingleton<IDynamicsWebApiClient, DynamicsWebApiClient>();
         services.AddSingleton<IDynamicsOperationExecutor, ControlledOperationExecutor>();

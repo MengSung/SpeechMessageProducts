@@ -59,6 +59,24 @@ builder.Services.AddSpeechMessageDynamicsWebApi(options =>
         builder.Configuration["DynamicsWebApi:FeasibilityEvidenceId"];
     options.TimeoutSeconds = 30;
     options.MaxConnectionsPerServer = 4;
+    options.Admission.ExpectedOrganizationId = Guid.TryParse(
+            builder.Configuration["DynamicsWebApi:Admission:ExpectedOrganizationId"],
+            out var orgId)
+        ? orgId
+        : Guid.Parse("11111111-1111-1111-1111-111111111111");
+    options.Admission.AggregateMaxInFlight = 24;
+    options.Admission.MaximumRuntimeHosts = 6;
+    options.Admission.LocalQueueCapacity = 48;
+    options.Admission.MaxDispatchEnvelopeBytes = 65536;
+    options.Admission.QueueAdmissionTimeoutSeconds = 15;
+    options.Admission.MaxInFlightAndQueuedPerWorkload = 8;
+    options.Admission.AdmissionNamespaceId =
+        builder.Configuration["DynamicsWebApi:Admission:AdmissionNamespaceId"]
+        ?? "gateway-local-admission";
+    options.Admission.LeaseNamespaceId =
+        builder.Configuration["DynamicsWebApi:Admission:LeaseNamespaceId"]
+        ?? "gateway-local-host-lease";
+    options.Admission.RequireDurableHostCoordinator = false;
 
     // 本機 scaffolding 後備值：若完全沒設定，至少給可驗證的 root。
     if (string.IsNullOrWhiteSpace(options.OrganizationWebApiBaseUri) &&

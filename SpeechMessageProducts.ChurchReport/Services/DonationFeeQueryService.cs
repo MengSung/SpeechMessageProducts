@@ -1,39 +1,52 @@
 // ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Services/DonationFeeQueryService.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式，承載控制器、模型、CRM 整合、付款流程、LINE 通知與產品層商業規則。
-// 檔案責任：此檔案位於服務或工具層，註解重點在說明共用責任、外部依賴、錯誤傳遞與呼叫端應遵守的前置條件。
-// 主要型別：class DonationFeeQueryService
-// 主要成員：FillFeeList、ToAjaxRows、ConvertPayWay、MapFee、ConvertCategory
-// 引用命名空間：System、System.Collections.Generic、System.Linq、ChurchReport.Models、Microsoft.Xrm.Sdk、ToolUtilityNameSpace
-// 閱讀路徑：閱讀此檔案時應先從公開型別、建構式注入、主要方法與例外處理路徑掌握資料流，再進行維護。
-// 維護重點：後續修改時應先理解既有呼叫端與外部系統契約，避免把註解整理誤變成行為重構。
-// 行為保護：本註解僅補充設計意圖與維護脈絡，不應改變任何執行流程、資料格式、序列化結果或外部 API 契約。
-// 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
+// 檔案：ChurchReport/Services/DonationFeeQueryService.cs
+// 目的：奉獻收費單查詢與畫面模型轉換。
+//
+// 保母教學：
+// - 預設仍走舊 ToolUtility 路徑，確保現有環境不中斷。
+// - 若注入 IPackage01FeeReadClient 且 DynamicsAccess:Package01FeeReadsEnabled=true，
+//   則改走 no-SDK Package 1 受控操作。
+// - 產品仍只得到 DedicationFee 畫面模型，不直接碰 CRM Entity（新路徑）。
+// - 舊路徑暫時仍依賴 ToolUtility/Entity，這是遷移期兼容，不是最終態。
 // ============================================================================
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using ChurchReport.Models;
+using Microsoft.Extensions.Options;
 using Microsoft.Xrm.Sdk;
+using SpeechMessage.Dynamics.Abstractions.Configuration;
+using SpeechMessage.Dynamics.ProductClient.FeeReads;
 using ToolUtilityNameSpace;
 
 namespace ChurchReport.Services
 {
     /// <summary>
     /// ChurchReport 奉獻收費單查詢與轉換服務。
-    ///
-    /// 這個服務處理的是 CRM <c>new_fee</c> 實體與 ChurchReport 奉獻頁面模型之間的轉換，
-    /// 因此必須留在 ChurchReport。通用金流專案只知道付款結果，不應該知道奉獻收費單欄位、
-    /// OptionSet 值或奉獻類別顯示邏輯。
     /// </summary>
     public sealed class DonationFeeQueryService
     {
         private readonly ToolUtilityClass _utility;
+        private readonly IPackage01FeeReadClient? _package01FeeReadClient;
+        private readonly ProductDynamicsOptions? _dynamicsAccess;
+        private readonly bool _package01Enabled;
 
         public DonationFeeQueryService(ToolUtilityClass utility)
+            : this(utility, package01FeeReadClient: null, dynamicsAccess: null)
+        {
+        }
+
+        public DonationFeeQueryService(
+            ToolUtilityClass utility,
+            IPackage01FeeReadClient? package01FeeReadClient,
+            IOptions<ProductDynamicsOptions>? dynamicsAccess,
+            bool package01FeeReadsEnabled = false)
         {
             _utility = utility ?? throw new ArgumentNullException(nameof(utility));
+            _package01FeeReadClient = package01FeeReadClient;
+            _dynamicsAccess = dynamicsAccess?.Value;
+            _package01Enabled = package01FeeReadsEnabled && package01FeeReadClient is not null;
         }
 
         /// <summary>
@@ -45,15 +58,23 @@ namespace ChurchReport.Services
             ArgumentNullException.ThrowIfNull(contact);
 
             var fullName = model.FullName;
-            var contactId = contact.Id.ToString();
+            var contactId = contact.Id;
+
+            if (_package01Enabled)
+            {
+                FillFeeListViaPackage01(model, contactId, fullName);
+                return;
+            }
+
+            // ---- 舊路徑（遷移期兼容）----
             EntityCollection feeEntities = _utility.RetrieveDedicationFeeByDateFetchXml(
                 fullName,
-                contactId,
+                contactId.ToString(),
                 model.QueryStartDate,
                 model.QueryEndDate);
 
             System.Diagnostics.Trace.WriteLine(
-                $"[DEDQUERY] FullName={fullName} Start={model.QueryStartDate:yyyy-MM-dd} End={model.QueryEndDate:yyyy-MM-dd} Returned={feeEntities.Entities.Count}");
+                $"[DEDQUERY-LEGACY] FullName={fullName} Start={model.QueryStartDate:yyyy-MM-dd} End={model.QueryEndDate:yyyy-MM-dd} Returned={feeEntities.Entities.Count}");
 
             model.TotalAmount = 0;
             model.DedicationFeeList = feeEntities.Entities
@@ -64,6 +85,62 @@ namespace ChurchReport.Services
             {
                 model.TotalAmount += fee.Amount;
             }
+        }
+
+        private void FillFeeListViaPackage01(DonationPaymentFormModel model, Guid contactId, string? fullName)
+        {
+            var profileAlias = _dynamicsAccess?.ProfileAlias;
+            if (string.IsNullOrWhiteSpace(profileAlias))
+            {
+                throw new InvalidOperationException(
+                    "DynamicsAccess:ProfileAlias is required when Package01 fee reads are enabled.");
+            }
+
+            // WorkloadSubjectId 使用產品部署識別，不是終端使用者 LINE/session。
+            const string workloadSubjectId = "church-report-service";
+
+            var rows = _package01FeeReadClient!
+                .RetrieveDedicationFeesByContactDateRangeAsync(
+                    profileAlias,
+                    workloadSubjectId,
+                    contactId,
+                    model.QueryStartDate,
+                    model.QueryEndDate,
+                    fullName)
+                .GetAwaiter()
+                .GetResult();
+
+            System.Diagnostics.Trace.WriteLine(
+                $"[DEDQUERY-P01] FullName={fullName} Start={model.QueryStartDate:yyyy-MM-dd} End={model.QueryEndDate:yyyy-MM-dd} Returned={rows.Count}");
+
+            model.TotalAmount = 0;
+            model.DedicationFeeList = rows.Select(MapFeeDto).ToList();
+            foreach (var fee in model.DedicationFeeList)
+            {
+                model.TotalAmount += fee.Amount;
+            }
+        }
+
+        private static DedicationFee MapFeeDto(SpeechMessage.Dynamics.ProductClient.Models.FeeRecordDto dto)
+        {
+            var amount = dto.Amount;
+            if (amount < int.MinValue) amount = int.MinValue;
+            if (amount > int.MaxValue) amount = int.MaxValue;
+
+            return new DedicationFee
+            {
+                DedicationDate = (dto.CreatedOn ?? DateTimeOffset.MinValue).LocalDateTime,
+                PayDate = (dto.PayDate ?? DateTimeOffset.MinValue).LocalDateTime,
+                Amount = Convert.ToInt32(amount),
+                PayWay = !string.IsNullOrWhiteSpace(dto.PayWayLabel)
+                    ? dto.PayWayLabel!
+                    : ConvertPayWay(dto.PayWayOption ?? -1),
+                Category = !string.IsNullOrWhiteSpace(dto.CategoryLabel)
+                    ? dto.CategoryLabel!
+                    : "十一奉獻",
+                Others = dto.Others ?? string.Empty,
+                PaidPeriod = dto.PaidPeriod ?? string.Empty
+            };
         }
 
         /// <summary>

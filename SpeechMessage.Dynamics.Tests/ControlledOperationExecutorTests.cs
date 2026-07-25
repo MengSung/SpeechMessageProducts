@@ -1,6 +1,6 @@
 // ============================================================================
 // 檔案：SpeechMessage.Dynamics.Tests/ControlledOperationExecutorTests.cs
-// 目的：確認受控 executor 會拒絕未知操作與非法參數，並能轉呼叫 live client。
+// 目的：確認受控 executor 會拒絕未知操作/非法參數，並在 admission 後呼叫 live client。
 // ============================================================================
 
 using System.Net;
@@ -9,6 +9,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SpeechMessage.Dynamics.Abstractions.Operations;
+using SpeechMessage.Dynamics.WebApi.Capacity;
 using SpeechMessage.Dynamics.WebApi.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
@@ -53,7 +54,7 @@ public sealed class ControlledOperationExecutorTests
     }
 
     [Fact]
-    public async Task WhoAmI_live_path_succeeds_with_fake_http()
+    public async Task WhoAmI_live_path_succeeds_with_fake_http_and_admission()
     {
         var executor = CreateExecutor(new StubHandler(request =>
         {
@@ -80,8 +81,28 @@ public sealed class ControlledOperationExecutorTests
             CeVersion = "9.1",
             AuthMode = DynamicsAuthMode.Windows,
             CredentialSource = DynamicsCredentialSource.HostIdentity,
-            TimeoutSeconds = 15
+            TimeoutSeconds = 15,
+            MaxConnectionsPerServer = 2,
+            Admission = new OrganizationAdmissionOptions
+            {
+                ExpectedOrganizationId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                AggregateMaxInFlight = 4,
+                MaximumRuntimeHosts = 2,
+                LocalQueueCapacity = 8,
+                MaxInFlightAndQueuedPerWorkload = 4,
+                QueueAdmissionTimeoutSeconds = 5,
+                AdmissionNamespaceId = "test-admission",
+                LeaseNamespaceId = "test-lease"
+            }
         });
+
+        OrganizationAdmissionPlan.TryCreate(options.Value, options.Value.Admission, out var plan, out _)
+            .Should().BeTrue();
+
+        var admission = new OrganizationAdmissionManager(
+            plan!,
+            new InMemoryRuntimeHostSlotCoordinator(),
+            NullLogger<OrganizationAdmissionManager>.Instance);
 
         var transport = new DynamicsHttpTransport(handler, NullLogger<DynamicsHttpTransport>.Instance, disposeHandler: true);
         var client = new DynamicsWebApiClient(
@@ -89,7 +110,7 @@ public sealed class ControlledOperationExecutorTests
             transport,
             new DictionarySecretResolver(new Dictionary<string, string>()),
             NullLogger<DynamicsWebApiClient>.Instance);
-        return new ControlledOperationExecutor(client);
+        return new ControlledOperationExecutor(client, admission);
     }
 
     private static HttpResponseMessage JsonResponse(string json)

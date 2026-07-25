@@ -53,6 +53,15 @@ public static class EmbeddedServiceCollectionExtensions
             options.CredentialSource = DynamicsCredentialSource.HostIdentity;
             options.SecretReference = embedded.SecretReference;
             options.TimeoutSeconds = 30;
+            options.MaxConnectionsPerServer = 4;
+            options.Admission.ExpectedOrganizationId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            options.Admission.AggregateMaxInFlight = 24;
+            options.Admission.MaximumRuntimeHosts = 6;
+            options.Admission.LocalQueueCapacity = 48;
+            options.Admission.MaxInFlightAndQueuedPerWorkload = 8;
+            options.Admission.AdmissionNamespaceId = "embedded-local-admission";
+            options.Admission.LeaseNamespaceId = "embedded-local-host-lease";
+            options.Admission.RequireDurableHostCoordinator = false;
         });
 
         // 之後這裡會加 manifest/registry fail-closed 驗證。

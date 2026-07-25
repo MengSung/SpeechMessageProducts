@@ -202,7 +202,7 @@ namespace ChurchReport.Models
             m_DonationLoginContactService = new DonationLoginContactService(
                 m_ToolUtilityClass,
                 m_DonationContactService);
-            m_DonationDedicationFeeFormService = new DonationDedicationFeeFormService(m_ToolUtilityClass);
+            m_DonationDedicationFeeFormService = DonationDynamicsAccessBootstrap.CreateFeeFormService(m_ToolUtilityClass, m_Configuration);
 
         }
         #endregion

@@ -6,7 +6,7 @@
     "risk":  "high",
     "domain":  "integration",
     "currentPhase":  "implementation",
-    "nextAction":  "Live WhoAmI/Package1 fee-read HTTP done with unit tests green; next: capacity/admission runtime and first consumer migration package, still no SDK removal yet",
+    "nextAction":  "Next: Package0 metadata option-set wiring or write-path planning; live smoke on credentialed host; keep SDK project until Phase 6",
     "createdAt":  "2026-07-23T00:00:00Z",
     "branch":  "1.0.0.2.IsolateConnector.Worktree"
 }

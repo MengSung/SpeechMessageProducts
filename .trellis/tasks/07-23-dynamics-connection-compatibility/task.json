@@ -27,7 +27,7 @@
     "relatedFiles":  [
 
                      ],
-    "notes":  "Phase 0 accepted. Phase 1 scaffolding complete and live no-SDK HTTP execution implemented for WhoAmI + Package 1 fee-read server-owned FetchXML templates. SpeechMessage.Dynamics.Tests: 21 passed. Smoke placeholder: 1 passed. PowerPlatform.Dataverse.Client still present; consumer migration not started. Program.cs UTF-8 comments repaired.",
+    "notes":  "Phase 3 Package1 ChurchReport read consumers expanded: Donation fee date-range; Equipment/MemberInfo/DownloadEquipment/EquipmentStatusCalculator stor by contact; FeeDownUpLoader present/enroll/process by discipleLesson; Poll/QR find by contact+lesson. Matrix in phase3-package1-consumer-matrix.md. Tests 41 unit. PowerPlatform.Dataverse.Client retained until Phase 6.",
     "meta":  {
 
              }
