@@ -82,6 +82,21 @@ public sealed class DynamicsWebApiOptions
     public bool AllowLocalDevPasswordGrant { get; set; }
 
     /// <summary>
+    /// Optional refresh-token secret name (env / secret store).
+    /// </summary>
+    public string? RefreshTokenSecretName { get; set; }
+
+    /// <summary>
+    /// Local-dev only JSON path for access/refresh tokens obtained via authorization_code.
+    /// </summary>
+    public string? LocalDevTokenStorePath { get; set; }
+
+    /// <summary>
+    /// OAuth redirect URI used by authorization_code exchange (must match ADFS client registration).
+    /// </summary>
+    public string? RedirectUri { get; set; }
+
+    /// <summary>
     /// HTTP 逾時秒數。
     /// </summary>
     [Range(1, 300)]

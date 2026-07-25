@@ -16,6 +16,7 @@ using System.Text;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.WebApi.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
@@ -126,9 +127,59 @@ public sealed class AdfsOAuthTokenProviderTests
 
         var act = async () => await provider.GetAccessTokenAsync();
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*password grant is disabled*");
+            .WithMessage("*no usable token source*");
     }
 
+
+    [Fact]
+    public async Task Refresh_token_grant_posts_expected_form()
+    {
+        HttpRequestMessage? seen = null;
+        string? body = null;
+        var storePath = Path.Combine(Path.GetTempPath(), "adfs-local-token-test-" + Guid.NewGuid().ToString("N") + ".json");
+        try
+        {
+            LocalDevAdfsTokenStore.Save(storePath, new LocalDevAdfsTokenRecord
+            {
+                RefreshToken = "refresh-abc",
+                AccessToken = "old-access",
+                AccessTokenExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(-5)
+            });
+
+            var provider = CreateProvider(
+                options: new DynamicsWebApiOptions
+                {
+                    AuthMode = DynamicsAuthMode.AdfsOAuth,
+                    AuthorityUri = "https://sts.example.local/adfs",
+                    ClientId = "client-xyz",
+                    ResourceUri = "https://jesus.example.local/",
+                    LocalDevTokenStorePath = storePath,
+                    AllowLocalDevPasswordGrant = false,
+                    TimeoutSeconds = 10
+                },
+                secrets: new Dictionary<string, string>(),
+                responder: request =>
+                {
+                    seen = request;
+                    body = request.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+                    return JsonResponse("""{"access_token":"refreshed-001","expires_in":900,"refresh_token":"refresh-abc"}""");
+                });
+
+            var token = await provider.GetAccessTokenAsync();
+            token.Should().Be("refreshed-001");
+            seen!.RequestUri!.AbsoluteUri.Should().Be("https://sts.example.local/adfs/oauth2/token");
+            body.Should().Contain("grant_type=refresh_token");
+            body.Should().Contain("refresh_token=refresh-abc");
+            body.Should().Contain("client_id=client-xyz");
+        }
+        finally
+        {
+            if (File.Exists(storePath))
+            {
+                File.Delete(storePath);
+            }
+        }
+    }
     private static AdfsOAuthTokenProvider CreateProvider(
         DynamicsWebApiOptions options,
         IReadOnlyDictionary<string, string> secrets,

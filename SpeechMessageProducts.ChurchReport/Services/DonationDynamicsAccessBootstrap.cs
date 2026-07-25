@@ -223,6 +223,23 @@ namespace ChurchReport.Services
                 options.Embedded.AllowLocalDevPasswordGrant = true;
             }
 
+
+            options.Embedded.RefreshTokenSecretName = FirstNonEmpty(
+                options.Embedded.RefreshTokenSecretName,
+                configuration["DynamicsAccess:Embedded:RefreshTokenSecretName"]);
+            options.Embedded.LocalDevTokenStorePath = FirstNonEmpty(
+                options.Embedded.LocalDevTokenStorePath,
+                configuration["DynamicsAccess:Embedded:LocalDevTokenStorePath"]);
+            options.Embedded.RedirectUri = FirstNonEmpty(
+                options.Embedded.RedirectUri,
+                configuration["DynamicsAccess:Embedded:RedirectUri"]);
+            if (string.IsNullOrWhiteSpace(options.Embedded.LocalDevTokenStorePath) &&
+                string.Equals(options.Embedded.ManifestOrRegistrySource, "local-dev-manifest", StringComparison.OrdinalIgnoreCase))
+            {
+                // 預設把 refresh token 放專案 Logs，方便本機與診斷端點共用。
+                options.Embedded.LocalDevTokenStorePath = System.IO.Path.GetFullPath(
+                    System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Logs", "adfs-local-token.json"));
+            }
             // 關鍵：用 CrmConnection 對齊缺漏欄位（不複製密碼進 DynamicsAccess JSON）
             AlignFromCrmConnection(configuration, options);
 

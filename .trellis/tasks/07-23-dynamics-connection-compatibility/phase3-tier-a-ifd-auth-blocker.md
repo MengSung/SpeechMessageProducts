@@ -1,80 +1,86 @@
 # Phase 3 Tier A IFD Auth Blocker
 
-Date: 2026-07-25  
-Updated: 2026-07-25 (ADFS wiring in progress)
+Date: 2026-07-25
+Updated: 2026-07-25 (authorization_code attempt)
 
-## Symptom
+## Confirmed facts from operator environment
 
-With Package01 enabled (Embedded + SecretReference Windows credentials + Web API v8.2):
-
-```text
-Package 1 read failed: dynamics.upstream.failure
-Operation 'fee.dedication.retrieve.by.contact.date.range' failed with HTTP 302.
-```
-
-## Root cause
-
-`jesus` is **Dynamics 365 CE 8.2 IFD / claims-based**.
-
-| Path | Auth | Result |
-| --- | --- | --- |
-| Legacy ToolUtility / OnPremiseClient SOAP `Organization.svc` | WS-Trust username/password (claims) | Works (56 fee rows baseline) |
-| Package 1 Web API `.../api/data/v8.2/` | Windows NTLM NetworkCredential | **HTTP 302** redirect (login/ADFS challenge) |
-
-## Operator-confirmed ADFS
-
-- Authority: `https://speechmessagests.speechmessage.com.tw/adfs`
-- Token endpoint: `https://speechmessagests.speechmessage.com.tw/adfs/oauth2/token`
-- Resource (CRM): `https://jesus.speechmessage.com.tw/`
-- Web API root: `https://jesus.speechmessage.com.tw/api/data/v8.2/`
-
-## Engineering progress (this checkpoint)
-
-Implemented end-to-end AdfsOAuth wiring:
-
-1. `AdfsOAuthTokenProvider` (password grant + bearer secret + cache; no factory client dispose leak)
-2. `DynamicsWebApiClient` Authorization: Bearer path
-3. Embedded DI maps `AuthMode/AuthorityUri/ResourceUri/ClientId/AllowLocalDevPasswordGrant`
-4. ChurchReport bootstrap binds ADFS fields; local-dev secret bridge still uses CrmConnection names only
-5. appsettings prepared with `AuthMode=AdfsOAuth` and provisional ClientId
-6. Unit tests for token provider + client constructor fixes
-7. Operator probe script: `docs/scripts/Invoke-AdfsTokenProbe.ps1`
-
-## Current config posture
-
-`Package01FeeReadsEnabled` remains **`false`** until token+WhoAmI is proven under the VS operator identity.
-
-Provisional ClientId currently set to Dynamics CRM well-known id:
+### 1) Password grant is disabled
+Token endpoint returned:
 
 ```text
-2ad88395-b77d-4561-9441-d0e40824f9bc
+HTTP 400 unsupported_grant_type
+MSIS9611: only supports authorization_code or refresh_token
 ```
 
-This may be rejected by ADFS if that client is not registered. If probe fails on invalid_client, replace with the real ADFS application/client id.
+### 2) authorization_code with provisional ClientId fails on ADFS
+Operator opened `/diagnostics/adfs-authorize` and ADFS showed error page:
 
-## Immediate operator next step
+```text
+Relying party: Dynamics 365 對外連線 IFD
+Activity ID: 00000000-0000-0000-67c3-078004000025
+```
 
-In the same Windows account that can F5 ChurchReport / login jesus:
+Trace confirms ChurchReport did redirect with:
+
+```text
+redirectUri=http://localhost:43371/diagnostics/adfs-callback
+clientId=2ad88395-b77d-4561-9441-d0e40824f9bc
+```
+
+Interpretation:
+
+- Relying party name is the **CRM IFD trust**, not a registered OAuth application name.
+- Provisional Dynamics Online sample ClientId is almost certainly **not registered** on this on-prem ADFS.
+- Therefore authorization_code cannot complete until ADFS admin registers a client + redirect URI and grants CRM resource permission.
+
+### 3) Legacy SOAP still works
+`[DEDQUERY-LEGACY] FullName=胡夢嵩 Start=2026-01-01 End=2026-07-25 Returned=56`
+
+Package01 remains **false**.
+
+## Why Web API is blocked
+
+| Path | Status |
+| --- | --- |
+| SOAP / WS-Trust (legacy) | Works |
+| Web API + Windows NTLM | HTTP 302 IFD |
+| Web API + password grant | ADFS rejects grant_type |
+| Web API + auth code (sample client id) | ADFS RP error on CRM IFD trust |
+| Web API + refresh token | No refresh token yet (needs successful auth code once) |
+
+## Required ADFS admin action
+
+On ADFS server (example for classic AdfsClient):
 
 ```powershell
-cd "D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.2.IsolateConnector.Worktree"
-powershell -NoProfile -ExecutionPolicy Bypass -File .\docs\scripts\Invoke-AdfsTokenProbe.ps1
+$clientId = [guid]::NewGuid().Guid
+Add-AdfsClient `
+  -Name "SpeechMessage-ChurchReport-LocalDev" `
+  -ClientId $clientId `
+  -RedirectUri "http://localhost:43371/diagnostics/adfs-callback"
+
+# Put $clientId into ChurchReport appsettings:
+# DynamicsAccess:Embedded:ClientId
 ```
 
-Pass criteria:
+If the farm uses Application Groups, create:
 
-1. TOKEN OK
-2. WhoAmI OK
+1. Native/public client with redirect `http://localhost:43371/diagnostics/adfs-callback`
+2. Permission to the CRM/IFD Web API resource / relying party identifier for jesus
 
-Then enable Package01 and compare fee rows to legacy baseline `Returned=56`.
+Then:
 
-## Tier A status
+1. Update `DynamicsAccess:Embedded:ClientId`
+2. Open `/diagnostics/adfs-authorize?go=1`
+3. Complete login
+4. `/diagnostics/adfs-callback` should save refresh token
+5. `/diagnostics/adfs-token-probe` should WhoAmI ok=true
+6. Only then enable Package01
 
-| Item | Status |
-| --- | --- |
-| Legacy baseline 56 rows | PASS |
-| ADFS authority known | PASS |
-| AdfsOAuth code wiring | PASS (this checkpoint) |
-| Live ADFS token + WhoAmI | PENDING operator probe (agent TLS blocked) |
-| Package01 fee parity 56 | PENDING after token proof |
-| Tier A full pass | NOT YET |
+## Engineering status
+
+- No-SDK Web API stack is ready
+- Package1 fee-read path is ready
+- Auth is the remaining Tier A gate
+- Cannot invent a working ClientId from app code alone

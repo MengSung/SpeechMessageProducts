@@ -158,4 +158,19 @@ public sealed class EmbeddedModeOptions
     /// 正式環境必須 false，改走非密碼服務流程或預先核發的 bearer token。
     /// </summary>
     public bool AllowLocalDevPasswordGrant { get; set; }
+
+    /// <summary>
+    /// Optional refresh-token secret name.
+    /// </summary>
+    public string? RefreshTokenSecretName { get; set; }
+
+    /// <summary>
+    /// Local-dev token store path (authorization_code / refresh_token).
+    /// </summary>
+    public string? LocalDevTokenStorePath { get; set; }
+
+    /// <summary>
+    /// OAuth redirect URI for local-dev authorization_code.
+    /// </summary>
+    public string? RedirectUri { get; set; }
 }

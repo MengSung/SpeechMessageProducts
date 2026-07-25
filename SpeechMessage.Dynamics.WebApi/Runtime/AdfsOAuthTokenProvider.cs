@@ -6,12 +6,12 @@
 // 1. jesus 這類 IFD 環境，Web API 不能靠 Windows NTLM；會拿到 HTTP 302 去 ADFS。
 // 2. 這裡用 OAuth2 token endpoint 取 access_token，再放到 Authorization: Bearer。
 // 3. 正式環境應走非密碼服務流程（client credentials / certificate）。
-// 4. local-dev-manifest 才允許 username/password grant（把既有 CrmConnection 帳密當服務帳號），
-//    這是為了本機 Tier A 打通 IFD，不是瀏覽器登入、也不是 per-user token pool。
-// 5. token 以 profile 維度快取；過期前刷新；不做 cookie/session 持久化。
+// 4. 此環境 ADFS 可能只允許 authorization_code / refresh_token（jesus 實測拒絕 password grant）。
+// 5. local-dev：先瀏覽器授權碼登入一次，把 refresh_token 存 LocalDevTokenStore；之後自動 refresh。
+// 6. token 以 process 快取；過期前刷新；不做 per-user CRM session pool。
 // ============================================================================
 
-using System.Collections.Concurrent;
+using SpeechMessage.Dynamics.Abstractions.Configuration;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
@@ -68,6 +68,18 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
             !string.IsNullOrWhiteSpace(directToken))
         {
             return directToken!;
+        }
+
+        // 1.5) local-dev token store 仍有效的 access_token 可直接用。
+        var storePath = ResolveTokenStorePath();
+        if (LocalDevAdfsTokenStore.TryLoad(storePath, out var stored) &&
+            !string.IsNullOrWhiteSpace(stored?.AccessToken) &&
+            stored!.AccessTokenExpiresAtUtc is not null &&
+            DateTimeOffset.UtcNow < stored.AccessTokenExpiresAtUtc.Value.AddSeconds(-60))
+        {
+            _cachedToken = stored.AccessToken;
+            _expiresAt = stored.AccessTokenExpiresAtUtc.Value;
+            return _cachedToken!;
         }
 
         // 2) 快取未過期直接重用。
@@ -154,7 +166,16 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
                 }
             }
 
-            return new TokenResponse(accessNode.GetString()!, expiresIn);
+            string? newRefresh = null;
+            if (root.TryGetProperty("refresh_token", out var refreshNode) &&
+                refreshNode.ValueKind == JsonValueKind.String)
+            {
+                newRefresh = refreshNode.GetString();
+            }
+
+            var accessToken = accessNode.GetString()!;
+            TryPersistTokens(accessToken, expiresIn, newRefresh);
+            return new TokenResponse(accessToken, expiresIn);
         }
         finally
         {
@@ -167,40 +188,8 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
         var form = new List<KeyValuePair<string, string>>
         {
             new("client_id", clientId),
-            new("resource", resource),
-            new("grant_type", "password")
+            new("resource", resource)
         };
-
-        // local-dev password grant：使用服務帳號（CrmConnection bridge / env secrets）
-        if (!_options.AllowLocalDevPasswordGrant)
-        {
-            throw new InvalidOperationException(
-                "AdfsOAuth password grant is disabled. Provide CredentialReferenceName bearer token " +
-                "or enable AllowLocalDevPasswordGrant only for local-dev-manifest.");
-        }
-
-        if (string.IsNullOrWhiteSpace(_options.UserNameSecretName) ||
-            string.IsNullOrWhiteSpace(_options.PasswordSecretName))
-        {
-            throw new InvalidOperationException(
-                "AdfsOAuth local-dev password grant requires UserNameSecretName and PasswordSecretName.");
-        }
-
-        if (!_secretResolver.TryResolve(_options.UserNameSecretName, out var userName) ||
-            string.IsNullOrWhiteSpace(userName))
-        {
-            throw new InvalidOperationException("Failed to resolve ADFS username secret.");
-        }
-
-        if (!_secretResolver.TryResolve(_options.PasswordSecretName, out var password) ||
-            string.IsNullOrWhiteSpace(password))
-        {
-            throw new InvalidOperationException("Failed to resolve ADFS password secret.");
-        }
-
-        // ADFS 有時要 UPN、有時要 DOMAIN\user；先用秘密原值。
-        form.Add(new("username", userName!));
-        form.Add(new("password", password!));
 
         // 可選 client_secret（confidential client）
         if (!string.IsNullOrWhiteSpace(_options.ClientSecretName) &&
@@ -210,7 +199,107 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
             form.Add(new("client_secret", clientSecret!));
         }
 
-        return form;
+        // 優先 refresh_token：符合 jesus ADFS（只允許 authorization_code / refresh_token）
+        if (TryResolveRefreshToken(out var refreshToken) && !string.IsNullOrWhiteSpace(refreshToken))
+        {
+            form.Add(new("grant_type", "refresh_token"));
+            form.Add(new("refresh_token", refreshToken!));
+            return form;
+        }
+
+        // 次選：本機 local-dev password grant（很多 ADFS 會直接 unsupported_grant_type）
+        if (_options.AllowLocalDevPasswordGrant)
+        {
+            if (string.IsNullOrWhiteSpace(_options.UserNameSecretName) ||
+                string.IsNullOrWhiteSpace(_options.PasswordSecretName))
+            {
+                throw new InvalidOperationException(
+                    "AdfsOAuth local-dev password grant requires UserNameSecretName and PasswordSecretName.");
+            }
+
+            if (!_secretResolver.TryResolve(_options.UserNameSecretName, out var userName) ||
+                string.IsNullOrWhiteSpace(userName))
+            {
+                throw new InvalidOperationException("Failed to resolve ADFS username secret.");
+            }
+
+            if (!_secretResolver.TryResolve(_options.PasswordSecretName, out var password) ||
+                string.IsNullOrWhiteSpace(password))
+            {
+                throw new InvalidOperationException("Failed to resolve ADFS password secret.");
+            }
+
+            form.Add(new("grant_type", "password"));
+            form.Add(new("username", userName!));
+            form.Add(new("password", password!));
+            return form;
+        }
+
+        throw new InvalidOperationException(
+            "AdfsOAuth has no usable token source. " +
+            "For jesus ADFS, open /diagnostics/adfs-authorize once to obtain refresh_token, " +
+            "or provide CredentialReferenceName / RefreshTokenSecretName.");
+    }
+
+    private bool TryResolveRefreshToken(out string? refreshToken)
+    {
+        refreshToken = null;
+
+        if (!string.IsNullOrWhiteSpace(_options.RefreshTokenSecretName) &&
+            _secretResolver.TryResolve(_options.RefreshTokenSecretName, out var fromSecret) &&
+            !string.IsNullOrWhiteSpace(fromSecret))
+        {
+            refreshToken = fromSecret;
+            return true;
+        }
+
+        var storePath = ResolveTokenStorePath();
+        if (LocalDevAdfsTokenStore.TryLoad(storePath, out var record) &&
+            !string.IsNullOrWhiteSpace(record?.RefreshToken))
+        {
+            refreshToken = record!.RefreshToken;
+            return true;
+        }
+
+        return false;
+    }
+
+    private string? ResolveTokenStorePath()
+    {
+        // 只有明確設定路徑才使用 local token store，避免測試/正式誤讀預設檔。
+        return string.IsNullOrWhiteSpace(_options.LocalDevTokenStorePath)
+            ? null
+            : _options.LocalDevTokenStorePath;
+    }
+
+
+    private void TryPersistTokens(string accessToken, int expiresInSeconds, string? refreshToken)
+    {
+        var storePath = ResolveTokenStorePath();
+        if (string.IsNullOrWhiteSpace(storePath))
+        {
+            return;
+        }
+
+        try
+        {
+            LocalDevAdfsTokenStore.TryLoad(storePath, out var existing);
+            var record = existing ?? new LocalDevAdfsTokenRecord();
+            record.AccessToken = accessToken;
+            if (!string.IsNullOrWhiteSpace(refreshToken))
+            {
+                record.RefreshToken = refreshToken;
+            }
+            record.AccessTokenExpiresAtUtc = DateTimeOffset.UtcNow.AddSeconds(Math.Max(60, expiresInSeconds));
+            record.AuthorityUri = ResolveAuthority();
+            record.ResourceUri = ResolveResource();
+            record.ClientId = ResolveClientId();
+            LocalDevAdfsTokenStore.Save(storePath, record);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to persist local-dev ADFS token store at {Path}", storePath);
+        }
     }
 
     private string ResolveAuthority()

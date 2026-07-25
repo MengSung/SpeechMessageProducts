@@ -127,6 +127,9 @@ public static class EmbeddedServiceCollectionExtensions
             options.ClientSecretName = embedded.ClientSecretName;
             options.CredentialReferenceName = embedded.CredentialReferenceName;
             options.AllowLocalDevPasswordGrant = allowLocalDevPasswordGrant;
+            options.RefreshTokenSecretName = embedded.RefreshTokenSecretName;
+            options.LocalDevTokenStorePath = embedded.LocalDevTokenStorePath;
+            options.RedirectUri = embedded.RedirectUri;
             options.TimeoutSeconds = 30;
             options.MaxConnectionsPerServer = 4;
             options.Admission.ExpectedOrganizationId = Guid.Parse("11111111-1111-1111-1111-111111111111");
