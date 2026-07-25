@@ -56,6 +56,32 @@ public sealed class DynamicsWebApiOptions
     public string? FeasibilityEvidenceId { get; set; }
 
     /// <summary>
+    /// ADFS authority URI, e.g. https://sts.example.com/adfs
+    /// </summary>
+    public string? AuthorityUri { get; set; }
+
+    /// <summary>
+    /// OAuth resource / audience for CRM, e.g. https://jesus.example.com/
+    /// </summary>
+    public string? ResourceUri { get; set; }
+
+    /// <summary>
+    /// ADFS application (client) id. Not a secret.
+    /// </summary>
+    public string? ClientId { get; set; }
+
+    /// <summary>
+    /// Optional client secret name for confidential clients.
+    /// </summary>
+    public string? ClientSecretName { get; set; }
+
+    /// <summary>
+    /// Local-dev only: allow username/password grant against ADFS.
+    /// Production should use non-password service flow / pre-issued bearer.
+    /// </summary>
+    public bool AllowLocalDevPasswordGrant { get; set; }
+
+    /// <summary>
     /// HTTP 逾時秒數。
     /// </summary>
     [Range(1, 300)]

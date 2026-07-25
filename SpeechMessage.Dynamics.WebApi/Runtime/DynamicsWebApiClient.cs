@@ -1,13 +1,13 @@
 // ============================================================================
-// 檔案：SpeechMessage.Dynamics.WebApi/Runtime/DynamicsWebApiClient.cs
-// 目的：no-SDK Web API client，負責 WhoAmI 與 Package 1 fee-read 實際 HTTP 執行。
+// 瑼?嚗peechMessage.Dynamics.WebApi/Runtime/DynamicsWebApiClient.cs
+// ?桃?嚗o-SDK Web API client嚗?鞎?WhoAmI ??Package 1 fee-read 撖阡? HTTP ?瑁???
 //
-// 保母教學：
-// 1. 不引用任何 legacy CRM SDK package / namespace。
-// 2. 只用 HttpClient + server-owned template。
-// 3. 不快取 per-user session；只重用 profile 級 transport。
-// 4. 所有外呼 URL 必須落在 ApprovedWebApiRoot。
-// 5. 參數缺失或未知操作要失敗，不可假成功。
+// 靽??飛嚗?
+// 1. 銝??其遙雿?legacy CRM SDK package / namespace??
+// 2. ?芰 HttpClient + server-owned template??
+// 3. 銝翰??per-user session嚗? profile 蝝?transport??
+// 4. ?????URL 敹??賢 ApprovedWebApiRoot??
+// 5. ?蝻箏仃??交?雿?憭望?嚗??臬?????
 // ============================================================================
 
 using System.Net;
@@ -21,7 +21,7 @@ using SpeechMessage.Dynamics.Abstractions.Operations;
 namespace SpeechMessage.Dynamics.WebApi.Runtime;
 
 /// <summary>
-/// 私有 no-SDK Dynamics Web API client（Package 0/1 live execution）。
+/// 蝘? no-SDK Dynamics Web API client嚗ackage 0/1 live execution嚗?
 /// </summary>
 public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
 {
@@ -33,17 +33,20 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
     private readonly DynamicsWebApiOptions _options;
     private readonly IDynamicsHttpTransport _transport;
     private readonly ISecretResolver _secretResolver;
+    private readonly IAdfsOAuthTokenProvider _tokenProvider;
     private readonly ILogger<DynamicsWebApiClient> _logger;
 
     public DynamicsWebApiClient(
         IOptions<DynamicsWebApiOptions> options,
         IDynamicsHttpTransport transport,
         ISecretResolver secretResolver,
+        IAdfsOAuthTokenProvider tokenProvider,
         ILogger<DynamicsWebApiClient> logger)
     {
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         _transport = transport ?? throw new ArgumentNullException(nameof(transport));
         _secretResolver = secretResolver ?? throw new ArgumentNullException(nameof(secretResolver));
+        _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -144,7 +147,7 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
                 "OData relative path is empty.");
         }
 
-        // runtime.pool.validate.connection 需要 logicalProfileId，但實際探測仍用 WhoAmI。
+        // runtime.pool.validate.connection ?閬?logicalProfileId嚗?撖阡??Ｘ葫隞 WhoAmI??
         if (definition.CapabilityOperationId == OperationIds.RuntimePoolValidateConnection)
         {
             _logger.LogDebug(
@@ -187,7 +190,7 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
         var relative = template.EntitySetName.Trim('/') + "?" + query;
         var target = new Uri(approvedRoot.Value, relative);
 
-        // Uri 建構後再檢查 host/base path；query 可含 fetchXml。
+        // Uri 撱箸?敺?瑼Ｘ host/base path嚗uery ?臬 fetchXml??
         if (!string.Equals(target.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
             !string.Equals(target.Host, approvedRoot.Value.Host, StringComparison.OrdinalIgnoreCase) ||
             target.Port != approvedRoot.Value.Port ||
@@ -219,7 +222,7 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
         request.Headers.TryAddWithoutValidation("OData-MaxVersion", "4.0");
         request.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
 
-        var authError = TryApplyAuthorization(request);
+        var authError = await ApplyAuthorizationAsync(request, cancellationToken).ConfigureAwait(false);
         if (authError is not null)
         {
             return authError;
@@ -260,10 +263,25 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
 
             if (!response.IsSuccessStatusCode)
             {
+                var location = response.Headers.Location?.ToString();
                 _logger.LogWarning(
-                    "Upstream returned {StatusCode} for {OperationId}",
+                    "Upstream returned {StatusCode} for {OperationId}. Location={Location}",
                     (int)response.StatusCode,
-                    operationId);
+                    operationId,
+                    location ?? "(none)");
+
+                // IFD/claims environments often return 302 to ADFS instead of 401.
+                // Windows NTLM credentials cannot complete that login redirect path.
+                if ((int)response.StatusCode is >= 300 and < 400)
+                {
+                    return OperationExecutionResult.Failure(
+                        DynamicsErrorCodes.UpstreamFailure,
+                        $"Operation '{operationId}' failed with HTTP {(int)response.StatusCode} redirect" +
+                        (string.IsNullOrWhiteSpace(location) ? "." : $" to '{location}'.") +
+                        " This usually means IFD/claims auth. Windows credentials are not enough for Web API;" +
+                        " configure AdfsOAuth bearer/service flow.");
+                }
+
                 return OperationExecutionResult.Failure(
                     DynamicsErrorCodes.UpstreamFailure,
                     $"Operation '{operationId}' failed with HTTP {(int)response.StatusCode}.");
@@ -293,40 +311,44 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
         }
     }
 
-    private OperationExecutionResult? TryApplyAuthorization(HttpRequestMessage request)
+    private async Task<OperationExecutionResult?> ApplyAuthorizationAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
     {
         if (_options.AuthMode == DynamicsAuthMode.Windows)
         {
-            // Windows 憑證已綁在 handler；request 不放 Authorization header。
+            // Windows auth is attached on the handler; no Authorization header.
             return null;
         }
 
         if (_options.AuthMode == DynamicsAuthMode.AdfsOAuth)
         {
-            var tokenRef = _options.CredentialReferenceName ?? _options.SecretReference;
-            if (string.IsNullOrWhiteSpace(tokenRef))
+            try
             {
-                return OperationExecutionResult.Failure(
-                    DynamicsErrorCodes.InvalidConfiguration,
-                    "AdfsOAuth requires CredentialReferenceName or SecretReference.");
-            }
+                var token = await _tokenProvider.GetAccessTokenAsync(cancellationToken).ConfigureAwait(false);
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    return OperationExecutionResult.Failure(
+                        DynamicsErrorCodes.SecretResolutionFailed,
+                        "AdfsOAuth token provider returned an empty access token.");
+                }
 
-            if (!_secretResolver.TryResolve(tokenRef, out var token) || string.IsNullOrWhiteSpace(token))
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                return null;
+            }
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "AdfsOAuth token acquisition failed.");
                 return OperationExecutionResult.Failure(
-                    DynamicsErrorCodes.SecretResolutionFailed,
-                    "Failed to resolve AdfsOAuth credential reference.");
+                    DynamicsErrorCodes.Unauthorized,
+                    $"AdfsOAuth token acquisition failed: {ex.Message}");
             }
-
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            return null;
         }
 
         return OperationExecutionResult.Failure(
             DynamicsErrorCodes.InvalidConfiguration,
             $"Unsupported AuthMode '{_options.AuthMode}'.");
     }
-
     private static string? BindODataPath(
         string template,
         IReadOnlyDictionary<string, object?> parameters,

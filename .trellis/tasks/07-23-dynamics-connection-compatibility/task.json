@@ -1,4 +1,4 @@
-{
+﻿{
     "id":  "dynamics-connection-compatibility",
     "name":  "dynamics-connection-compatibility",
     "title":  "Design the no-SDK Dynamics 365 access gateway",
@@ -27,7 +27,7 @@
     "relatedFiles":  [
 
                      ],
-    "notes":  "Phase 3 Package1 ChurchReport read consumers expanded: Donation fee date-range; Equipment/MemberInfo/DownloadEquipment/EquipmentStatusCalculator stor by contact; FeeDownUpLoader present/enroll/process by discipleLesson; Poll/QR find by contact+lesson. Matrix in phase3-package1-consumer-matrix.md. Tests 41 unit. PowerPlatform.Dataverse.Client retained until Phase 6.",
+    "notes":  "AdfsOAuth wiring completed (Embedded/Bootstrap/Gateway/tests/probe). Authority=https://speechmessagests.speechmessage.com.tw/adfs. Package01 still false. Next: operator Invoke-AdfsTokenProbe.ps1 then fee parity 56.",
     "meta":  {
 
              }

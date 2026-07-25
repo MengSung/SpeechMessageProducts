@@ -1,4 +1,4 @@
-{
+﻿{
     "id":  "dynamics-connection-compatibility",
     "title":  "Design the no-SDK Dynamics 365 access gateway",
     "status":  "in_progress",
@@ -6,7 +6,7 @@
     "risk":  "high",
     "domain":  "integration",
     "currentPhase":  "implementation",
-    "nextAction":  "Next: Package0 metadata option-set wiring or write-path planning; live smoke on credentialed host; keep SDK project until Phase 6",
+    "nextAction":  "Operator run docs/scripts/Invoke-AdfsTokenProbe.ps1 under VS identity; on TOKEN+WhoAmI OK enable Package01FeeReadsEnabled and compare fee rows=56.",
     "createdAt":  "2026-07-23T00:00:00Z",
     "branch":  "1.0.0.2.IsolateConnector.Worktree"
 }

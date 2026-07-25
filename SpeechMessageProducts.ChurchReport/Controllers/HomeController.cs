@@ -740,5 +740,29 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+
+        /// <summary>
+        /// Display error page. Prefer TempData for long messages.
+        /// Long error text must not be placed in the URL path (causes 404).
+        /// </summary>
+        [HttpGet]
+        [Route("/Home/DisplayErrorView")]
+        [Route("/Home/DisplayErrorView/{*ErrorMessage}")]
+        public IActionResult DisplayErrorView(string? ErrorMessage = null)
+        {
+            var message = TempData["ErrorMessage"] as string;
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                message = ErrorMessage;
+            }
+
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                message = "An unexpected error occurred.";
+            }
+
+            ViewBag.ErrorMessage = message;
+            return View("DisplayErrorView");
+        }
     }
 }

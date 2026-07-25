@@ -361,7 +361,9 @@ namespace ChurchReport.Controllers
             else
             {
                 // 銝?祈?瘙??隤日???
-                return RedirectToAction("DisplayErrorView", "Home", new { ErrorMessage = exception.Message });
+                // 長錯誤訊息不可塞進 route（會 404 / 斷字）。改放 TempData。
+                TempData["ErrorMessage"] = exception.Message;
+                return RedirectToAction("DisplayErrorView", "Home");
             }
         }
 

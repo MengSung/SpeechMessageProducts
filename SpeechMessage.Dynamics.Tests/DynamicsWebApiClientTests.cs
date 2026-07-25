@@ -120,13 +120,21 @@ public sealed class DynamicsWebApiClientTests
             }),
             NullLogger<DynamicsHttpTransport>.Instance);
 
+        // CredentialReferenceName 的 bearer 是由 AdfsOAuthTokenProvider 解析，不是 client 自己讀。
+        var secrets = new DictionarySecretResolver(new Dictionary<string, string>
+        {
+            ["ADFS_TOKEN"] = "test-access-token"
+        });
+        var tokenProvider = new AdfsOAuthTokenProvider(
+            options,
+            secrets,
+            NullLogger<AdfsOAuthTokenProvider>.Instance);
+
         var client = new DynamicsWebApiClient(
             options,
             transport,
-            new DictionarySecretResolver(new Dictionary<string, string>
-            {
-                ["ADFS_TOKEN"] = "test-access-token"
-            }),
+            secrets,
+            tokenProvider,
             NullLogger<DynamicsWebApiClient>.Instance);
 
         var result = await client.WhoAmIAsync();
@@ -157,6 +165,7 @@ public sealed class DynamicsWebApiClientTests
             options,
             transport,
             new DictionarySecretResolver(new Dictionary<string, string>()),
+            new StaticAdfsOAuthTokenProvider("unused-for-windows"),
             NullLogger<DynamicsWebApiClient>.Instance);
     }
 
@@ -200,5 +209,18 @@ public sealed class DynamicsWebApiClientTests
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             => Task.FromResult(_responder(request));
+    }
+
+    /// <summary>
+    /// 測試用固定 token 提供者。Windows 模式不會被呼叫；AdfsOAuth 直接 bearer 秘密時也不會被呼叫。
+    /// </summary>
+    private sealed class StaticAdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
+    {
+        private readonly string _token;
+
+        public StaticAdfsOAuthTokenProvider(string token) => _token = token;
+
+        public Task<string> GetAccessTokenAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(_token);
     }
 }

@@ -95,4 +95,67 @@ public sealed class EmbeddedModeOptions
     /// </summary>
     [Required]
     public string ManifestOrRegistrySource { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Windows credential source for Embedded mode.
+    /// HostIdentity = process identity; SecretReference = resolve username/password via secret names.
+    /// </summary>
+    public string CredentialSource { get; set; } = "HostIdentity";
+
+    /// <summary>
+    /// Secret name for Windows username (env var name or local-dev CrmConnection bridge key).
+    /// Required when CredentialSource=SecretReference.
+    /// </summary>
+    public string? UserNameSecretName { get; set; }
+
+    /// <summary>
+    /// Secret name for Windows password. Never put the password value itself here.
+    /// </summary>
+    public string? PasswordSecretName { get; set; }
+
+    /// <summary>
+    /// Optional secret name for Windows domain.
+    /// </summary>
+    public string? DomainSecretName { get; set; }
+
+    /// <summary>
+    /// Auth mode for Embedded: Windows or AdfsOAuth.
+    /// </summary>
+    public string AuthMode { get; set; } = "Windows";
+
+    /// <summary>
+    /// ADFS authority, e.g. https://speechmessagests.speechmessage.com.tw/adfs
+    /// </summary>
+    public string? AuthorityUri { get; set; }
+
+    /// <summary>
+    /// OAuth resource for CRM org, e.g. https://jesus.speechmessage.com.tw/
+    /// </summary>
+    public string? ResourceUri { get; set; }
+
+    /// <summary>
+    /// ADFS client application id (public).
+    /// </summary>
+    public string? ClientId { get; set; }
+
+    /// <summary>
+    /// Optional client-id secret name if stored outside appsettings.
+    /// </summary>
+    public string? ClientIdSecretName { get; set; }
+
+    /// <summary>
+    /// Optional client-secret secret name for confidential clients.
+    /// </summary>
+    public string? ClientSecretName { get; set; }
+
+    /// <summary>
+    /// Optional pre-issued bearer token secret name.
+    /// </summary>
+    public string? CredentialReferenceName { get; set; }
+
+    /// <summary>
+    /// 本機 local-dev-manifest 專用：允許 ADFS username/password grant。
+    /// 正式環境必須 false，改走非密碼服務流程或預先核發的 bearer token。
+    /// </summary>
+    public bool AllowLocalDevPasswordGrant { get; set; }
 }

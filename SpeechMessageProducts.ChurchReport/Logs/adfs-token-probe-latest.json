@@ -1,0 +1,15 @@
+{
+    "stage":  "token",
+    "username":  "SPEECHMESSAGE\\\\Administrator",
+    "ok":  false,
+    "tokenUrl":  "https://speechmessagests.speechmessage.com.tw/adfs/oauth2/token",
+    "hints":  [
+                  "ADFS may reject this ClientId (invalid_client).",
+                  "ADFS may disable resource-owner password credentials.",
+                  "Username may need UPN form user@domain instead of DOMAIN\\user.",
+                  "Resource may need trailing slash removed or different org URL."
+              ],
+    "error":  "The underlying connection was closed: An unexpected error occurred on a receive.",
+    "clientId":  "2ad88395-b77d-4561-9441-d0e40824f9bc",
+    "resource":  "https://jesus.speechmessage.com.tw/"
+}

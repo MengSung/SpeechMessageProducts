@@ -11,6 +11,7 @@
 // 3. 認證：
 //    - HostIdentity（本機 Windows 服務身分）或
 //    - SecretReference + 環境變數帳密參考
+//    - AdfsOAuth（IFD）：DYNAMICS_SMOKE_AUTH_MODE=AdfsOAuth + Authority/ClientId/password grant
 // 4. 只做 WhoAmI 與可選 fee-read（需要 contactId），不寫入 CRM。
 // ============================================================================
 
@@ -105,12 +106,22 @@ public sealed class LiveDynamicsWebApiSmokeTests
         {
             options.OrganizationWebApiBaseUri = webApiRoot;
             options.CeVersion = ceVersion;
-            options.AuthMode = DynamicsAuthMode.Windows;
+            options.AuthMode = ParseAuthMode(
+                Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_AUTH_MODE"));
             options.CredentialSource = ParseCredentialSource(
                 Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_CREDENTIAL_SOURCE"));
             options.UserNameSecretName = Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_USERNAME_SECRET");
             options.PasswordSecretName = Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_PASSWORD_SECRET");
             options.DomainSecretName = Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_DOMAIN_SECRET");
+            options.AuthorityUri = Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_AUTHORITY");
+            options.ResourceUri = Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_RESOURCE");
+            options.ClientId = Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_CLIENT_ID");
+            options.CredentialReferenceName = Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_BEARER_SECRET");
+            options.SecretReference = Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_SECRET_REFERENCE")
+                ?? "dynamics-smoke-credential";
+            options.AllowLocalDevPasswordGrant =
+                string.Equals(Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_ALLOW_PASSWORD_GRANT"), "1", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_ALLOW_PASSWORD_GRANT"), "true", StringComparison.OrdinalIgnoreCase);
             options.TimeoutSeconds = 30;
             options.MaxConnectionsPerServer = 2;
             options.Admission.ExpectedOrganizationId = Guid.Parse("11111111-1111-1111-1111-111111111111");
@@ -133,5 +144,15 @@ public sealed class LiveDynamicsWebApiSmokeTests
         }
 
         return DynamicsCredentialSource.HostIdentity;
+    }
+
+    private static DynamicsAuthMode ParseAuthMode(string? raw)
+    {
+        if (string.Equals(raw, "AdfsOAuth", StringComparison.OrdinalIgnoreCase))
+        {
+            return DynamicsAuthMode.AdfsOAuth;
+        }
+
+        return DynamicsAuthMode.Windows;
     }
 }

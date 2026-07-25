@@ -2,19 +2,21 @@
 // 檔案：ChurchReport/Services/DonationDynamicsAccessBootstrap.cs
 // 目的：依 appsettings 的 DynamicsAccess（必要時對齊 CrmConnection）建立 Package 1 fee-read 路徑。
 //
-// 保母教學：
+// 保姆級教學：
 // 1. Package01FeeReadsEnabled=false：完全走舊 ToolUtility，行為不變。這是安全預設。
 // 2. =true 且 ExecutionMode=Gateway：產品只打共用 Gateway Web Service。
-// 3. =true 且 ExecutionMode=Embedded：在本產品程序內嵌同一套受控操作（方便 VS 本機除錯）。
+// 3. =true 且 ExecutionMode=Embedded：在本產品行程內嵌同一套受控操作（適合 VS 本機除錯）。
 // 4. DynamicsAccess 可以只寫開關；ProfileAlias / Web API root 可從 CrmConnection 推導。
-// 5. 絕對不把 CrmConnection:Password 複製進 DynamicsAccess。密碼只允許秘密參考名稱。
-// 6. Embedded bootstrap 會以 process-level 快取 ServiceProvider，避免每次建立造成 memory/socket leak。
-// 7. 本檔為 UTF-8（無 BOM）+ 繁體中文保姆級註解。
+// 5. 絕對不把 CrmConnection:Password 複製進 DynamicsAccess JSON。密碼只允許秘密參考名稱。
+// 6. 本機 VS（local-dev-manifest + SecretReference）可用「秘密名稱 -> CrmConnection 欄位」橋接，
+//    讓 Web API 使用與 legacy SOAP 相同帳密，但 DynamicsAccess 仍只存名稱不存密碼。
+// 7. Embedded bootstrap 使用 process-level 快取 ServiceProvider，避免每次新建造成 memory/socket leak。
+// 8. 檔案請維持 UTF-8（無 BOM），註解請寫繁體中文。
 // ============================================================================
 
 using System;
 using System.Collections.Concurrent;
-using System.Net.Http;
+using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -30,19 +32,18 @@ using ToolUtilityNameSpace;
 namespace ChurchReport.Services
 {
     /// <summary>
-    /// DynamicsAccess 啟動組裝器：Package 1 fee-read 第一消費者入口。
+    /// DynamicsAccess 啟動組裝器：Package 1 fee-read 的第一道產品入口。
     /// </summary>
     public static class DonationDynamicsAccessBootstrap
     {
-        // 保母提醒：
-        // Embedded bootstrap 若每次 new ServiceProvider，會造成 handler/socket/timer 無法回收。
-        // 因此以 ProfileAlias + WebApiRoot 當 key，做成 process-level 單例快取。
-        // 這不是 per-user session pool；同一個部署設定只會有一份 host runtime。
+        // Embedded bootstrap 不可每次 new ServiceProvider，否則 handler/socket/timer 容易累積。
+        // 以 ProfileAlias + WebApiRoot + CeVersion + CredentialSource 當 key，快取 process-level provider。
+        // 這不是 per-user session pool；同一個產品行程只共用一份 host runtime。
         private static readonly ConcurrentDictionary<string, IServiceProvider> EmbeddedProviders =
             new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
-        /// 建立奉獻收費單表單服務；若啟用 Package 1，會依 JSON 切換 Gateway / Embedded。
+        /// 建立奉獻收費表單服務；若啟用 Package 1，會依 JSON 走 Gateway / Embedded。
         /// </summary>
         public static DonationDedicationFeeFormService CreateFeeFormService(
             ToolUtilityClass utility,
@@ -59,7 +60,7 @@ namespace ChurchReport.Services
                 return new DonationDedicationFeeFormService(utility);
             }
 
-            // 已由 DI 注入完整依賴時（測試/正式 DI 路徑），直接使用。
+            // 已由 DI 注入完成時（測試/正式 DI 路徑），直接使用。
             if (injectedFeeReadClient is not null)
             {
                 var options = injectedOptions ?? Options.Create(BindOptions(configuration));
@@ -74,7 +75,7 @@ namespace ChurchReport.Services
             IDynamicsOperationExecutor executor = productOptions.ExecutionMode switch
             {
                 DynamicsExecutionMode.Gateway => CreateGatewayExecutor(productOptions),
-                DynamicsExecutionMode.Embedded => CreateEmbeddedExecutor(productOptions),
+                DynamicsExecutionMode.Embedded => CreateEmbeddedExecutor(productOptions, configuration),
                 _ => throw new InvalidOperationException(
                     $"Unsupported DynamicsAccess:ExecutionMode '{productOptions.ExecutionMode}'.")
             };
@@ -91,11 +92,8 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
-        /// 是否啟用 Package 1 fee-read 新路徑。
-        /// </summary>
-        /// <summary>
         /// 嘗試建立 Package 1 client（Gateway / Embedded）。
-        /// 若未啟用或設定不足，回傳 null，呼叫端應走舊路徑。
+        /// 若未啟用或設定不完整，回傳 null，呼叫端應走舊路徑。
         /// </summary>
         public static IPackage01FeeReadClient? TryCreatePackage01Client(IConfiguration configuration)
         {
@@ -109,7 +107,7 @@ namespace ChurchReport.Services
             IDynamicsOperationExecutor executor = productOptions.ExecutionMode switch
             {
                 DynamicsExecutionMode.Gateway => CreateGatewayExecutor(productOptions),
-                DynamicsExecutionMode.Embedded => CreateEmbeddedExecutor(productOptions),
+                DynamicsExecutionMode.Embedded => CreateEmbeddedExecutor(productOptions, configuration),
                 _ => throw new InvalidOperationException(
                     $"Unsupported DynamicsAccess:ExecutionMode '{productOptions.ExecutionMode}'.")
             };
@@ -134,7 +132,7 @@ namespace ChurchReport.Services
             var options = new ProductDynamicsOptions();
             configuration.GetSection(ProductDynamicsOptions.SectionName).Bind(options);
 
-            // 明確字串覆寫，避免 section bind 失敗時靜默空值。
+            // 字串欄位再保險，避免 section bind 失敗時整段空白。
             options.ProfileAlias = FirstNonEmpty(
                 options.ProfileAlias,
                 configuration["DynamicsAccess:ProfileAlias"]) ?? string.Empty;
@@ -163,16 +161,69 @@ namespace ChurchReport.Services
                 options.Embedded.CeVersion,
                 configuration["DynamicsAccess:Embedded:CeVersion"],
                 configuration["DynamicsAccess:CeVersion"],
-                "9.1") ?? "9.1";
+                "8.2") ?? "8.2";
             options.Embedded.SecretReference = FirstNonEmpty(
                 options.Embedded.SecretReference,
                 configuration["DynamicsAccess:Embedded:SecretReference"]) ?? string.Empty;
+            options.Embedded.CredentialSource = FirstNonEmpty(
+                options.Embedded.CredentialSource,
+                configuration["DynamicsAccess:Embedded:CredentialSource"],
+                "HostIdentity") ?? "HostIdentity";
+            options.Embedded.UserNameSecretName = FirstNonEmpty(
+                options.Embedded.UserNameSecretName,
+                configuration["DynamicsAccess:Embedded:UserNameSecretName"]);
+            options.Embedded.PasswordSecretName = FirstNonEmpty(
+                options.Embedded.PasswordSecretName,
+                configuration["DynamicsAccess:Embedded:PasswordSecretName"]);
+            options.Embedded.DomainSecretName = FirstNonEmpty(
+                options.Embedded.DomainSecretName,
+                configuration["DynamicsAccess:Embedded:DomainSecretName"]);
             options.Embedded.ManifestOrRegistrySource = FirstNonEmpty(
                 options.Embedded.ManifestOrRegistrySource,
                 configuration["DynamicsAccess:Embedded:ManifestOrRegistrySource"],
                 "local-dev-manifest") ?? "local-dev-manifest";
 
-            // ---- 關鍵：用 CrmConnection 對齊缺漏欄位（不複製密碼）----
+            // IFD / ADFS OAuth 設定（jesus 需要 AdfsOAuth，不能只用 Windows NTLM）
+            options.Embedded.AuthMode = FirstNonEmpty(
+                options.Embedded.AuthMode,
+                configuration["DynamicsAccess:Embedded:AuthMode"],
+                "Windows") ?? "Windows";
+            options.Embedded.AuthorityUri = FirstNonEmpty(
+                options.Embedded.AuthorityUri,
+                configuration["DynamicsAccess:Embedded:AuthorityUri"]);
+            options.Embedded.ResourceUri = FirstNonEmpty(
+                options.Embedded.ResourceUri,
+                configuration["DynamicsAccess:Embedded:ResourceUri"]);
+            options.Embedded.ClientId = FirstNonEmpty(
+                options.Embedded.ClientId,
+                configuration["DynamicsAccess:Embedded:ClientId"]);
+            options.Embedded.ClientIdSecretName = FirstNonEmpty(
+                options.Embedded.ClientIdSecretName,
+                configuration["DynamicsAccess:Embedded:ClientIdSecretName"]);
+            options.Embedded.ClientSecretName = FirstNonEmpty(
+                options.Embedded.ClientSecretName,
+                configuration["DynamicsAccess:Embedded:ClientSecretName"]);
+            options.Embedded.CredentialReferenceName = FirstNonEmpty(
+                options.Embedded.CredentialReferenceName,
+                configuration["DynamicsAccess:Embedded:CredentialReferenceName"]);
+
+            var allowLocalDevRaw = FirstNonEmpty(
+                configuration["DynamicsAccess:Embedded:AllowLocalDevPasswordGrant"]);
+            if (!string.IsNullOrWhiteSpace(allowLocalDevRaw) &&
+                (string.Equals(allowLocalDevRaw, "true", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(allowLocalDevRaw, "1", StringComparison.OrdinalIgnoreCase)))
+            {
+                options.Embedded.AllowLocalDevPasswordGrant = true;
+            }
+            else if (string.Equals(options.Embedded.AuthMode, "AdfsOAuth", StringComparison.OrdinalIgnoreCase) &&
+                     string.Equals(options.Embedded.ManifestOrRegistrySource, "local-dev-manifest", StringComparison.OrdinalIgnoreCase) &&
+                     string.IsNullOrWhiteSpace(options.Embedded.CredentialReferenceName))
+            {
+                // 本機 Tier A 預設：IFD 沒有預發 bearer 時，允許用 CrmConnection 橋接 password grant。
+                options.Embedded.AllowLocalDevPasswordGrant = true;
+            }
+
+            // 關鍵：用 CrmConnection 對齊缺漏欄位（不複製密碼進 DynamicsAccess JSON）
             AlignFromCrmConnection(configuration, options);
 
             return options;
@@ -192,7 +243,7 @@ namespace ChurchReport.Services
                 options.Embedded?.CeVersion,
                 configuration["DynamicsAccess:Embedded:CeVersion"],
                 configuration["DynamicsAccess:CeVersion"],
-                "9.1") ?? "9.1";
+                "8.2") ?? "8.2";
             var environmentSuffix = FirstNonEmpty(
                 configuration["DynamicsAccess:EnvironmentSuffix"],
                 "prod") ?? "prod";
@@ -216,7 +267,7 @@ namespace ChurchReport.Services
                     out var aligned,
                     out var error))
             {
-                // 只有在 Package 1 需要用到對齊結果時才視為錯誤；此處先記錄，由後續驗證 fail-closed。
+                // 不是每個 Package 1 都需要對齊成功；僅記錄，不在這裡硬 fail-closed。
                 System.Diagnostics.Trace.WriteLine(
                     $"[DynamicsAccess] CrmConnection alignment skipped/failed: {error}");
                 return;
@@ -259,8 +310,8 @@ namespace ChurchReport.Services
                     "DynamicsAccess Gateway mode requires ProfileAlias and Gateway:Endpoint when Package01FeeReadsEnabled=true.");
             }
 
-            // 注意：這裡使用 process-level 共用 HttpClient。
-            // 這是「產品 -> Gateway」連線池，不是 per-user CRM session pool。
+            // 重要：必須使用 process-level 共用 HttpClient。
+            // 這是產品 -> Gateway 的連線池，不是 per-user CRM session pool。
             var httpClient = GatewayHttpClientFactory.GetSharedClient(
                 productOptions.Gateway.Endpoint,
                 TimeSpan.FromSeconds(60));
@@ -271,7 +322,9 @@ namespace ChurchReport.Services
                 NullLogger<GatewayDynamicsOperationExecutor>.Instance);
         }
 
-        private static IDynamicsOperationExecutor CreateEmbeddedExecutor(ProductDynamicsOptions productOptions)
+        private static IDynamicsOperationExecutor CreateEmbeddedExecutor(
+            ProductDynamicsOptions productOptions,
+            IConfiguration configuration)
         {
             if (string.IsNullOrWhiteSpace(productOptions.ProfileAlias))
             {
@@ -289,22 +342,90 @@ namespace ChurchReport.Services
                     "DynamicsAccess Embedded mode requires Embedded:OrganizationWebApiBaseUri, CeVersion, SecretReference, ManifestOrRegistrySource.");
             }
 
+            var credentialSource = productOptions.Embedded.CredentialSource ?? "HostIdentity";
+            if (string.Equals(credentialSource, "SecretReference", StringComparison.OrdinalIgnoreCase) &&
+                (string.IsNullOrWhiteSpace(productOptions.Embedded.UserNameSecretName) ||
+                 string.IsNullOrWhiteSpace(productOptions.Embedded.PasswordSecretName)))
+            {
+                throw new InvalidOperationException(
+                    "DynamicsAccess Embedded SecretReference requires UserNameSecretName and PasswordSecretName.");
+            }
+
+            // cache key 必須包含 auth 維度，避免 Windows / AdfsOAuth 設定互相污染。
             var cacheKey =
                 productOptions.ProfileAlias.Trim() + "|" +
                 productOptions.Embedded.OrganizationWebApiBaseUri.Trim() + "|" +
-                productOptions.Embedded.CeVersion.Trim();
+                productOptions.Embedded.CeVersion.Trim() + "|" +
+                credentialSource.Trim() + "|" +
+                (productOptions.Embedded.AuthMode ?? "Windows").Trim() + "|" +
+                (productOptions.Embedded.AuthorityUri ?? string.Empty).Trim() + "|" +
+                (productOptions.Embedded.ClientId ?? string.Empty).Trim() + "|" +
+                (productOptions.Embedded.UserNameSecretName ?? string.Empty).Trim();
 
             var provider = EmbeddedProviders.GetOrAdd(cacheKey, _ =>
             {
-                // 用迷你 DI 容器組裝 Embedded 執行器。
-                // 產品仍只 reference Embedded 專案，不直接 reference WebApi。
+                // 這層建立 DI 容器與 Embedded 執行器。
+                // 產品只可 reference Embedded 專案，不可直接 reference WebApi。
                 var services = new ServiceCollection();
                 services.AddLogging();
-                services.AddSpeechMessageDynamicsEmbedded(productOptions);
+
+                // 本機 local-dev：把秘密名稱橋接到 CrmConnection 值（不寫進 DynamicsAccess JSON）。
+                var localSecrets = BuildLocalDevSecretMap(configuration, productOptions);
+                services.AddSpeechMessageDynamicsEmbedded(productOptions, localSecrets);
                 return services.BuildServiceProvider(validateScopes: true);
             });
 
             return provider.GetRequiredService<IDynamicsOperationExecutor>();
+        }
+
+        /// <summary>
+        /// 本機 VS / local-dev-manifest 專用：把秘密名稱對應到既有 CrmConnection 值。
+        /// 注意：這不會把密碼寫進 DynamicsAccess JSON；只在行程內記憶體解析。
+        /// </summary>
+        private static IReadOnlyDictionary<string, string> BuildLocalDevSecretMap(
+            IConfiguration configuration,
+            ProductDynamicsOptions productOptions)
+        {
+            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            // 只有 local-dev-manifest 才允許橋接 CrmConnection，避免正式環境誤用。
+            var manifest = productOptions.Embedded?.ManifestOrRegistrySource;
+            if (!string.Equals(manifest, "local-dev-manifest", StringComparison.OrdinalIgnoreCase))
+            {
+                return map;
+            }
+
+            var userName = configuration["CrmConnection:Username"];
+            var password = configuration["CrmConnection:Password"];
+            var domain = configuration["CrmConnection:Domain"];
+
+            void Put(string? secretName, string? value)
+            {
+                if (string.IsNullOrWhiteSpace(secretName) || string.IsNullOrEmpty(value))
+                {
+                    return;
+                }
+
+                map[secretName.Trim()] = value;
+            }
+
+            Put(productOptions.Embedded?.UserNameSecretName, userName);
+            Put(productOptions.Embedded?.PasswordSecretName, password);
+
+            // Domain：若 Username 是 DOMAIN\user 且 Domain 空白，拆出 DOMAIN。
+            if (string.IsNullOrWhiteSpace(domain) &&
+                !string.IsNullOrWhiteSpace(userName) &&
+                userName.Contains('\\'))
+            {
+                domain = userName.Split('\\', 2)[0];
+            }
+
+            Put(productOptions.Embedded?.DomainSecretName, domain);
+
+            System.Diagnostics.Trace.WriteLine(
+                $"[DynamicsAccess] local-dev secret bridge ready for secrets: {string.Join(",", map.Keys)}");
+
+            return map;
         }
 
         private static string? FirstNonEmpty(params string?[] values)

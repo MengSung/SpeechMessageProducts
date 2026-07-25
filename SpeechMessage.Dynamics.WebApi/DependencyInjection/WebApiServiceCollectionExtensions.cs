@@ -50,11 +50,25 @@ public static class WebApiServiceCollectionExtensions
                     return false;
                 }
 
-                if (options.AuthMode == DynamicsAuthMode.AdfsOAuth &&
-                    string.IsNullOrWhiteSpace(options.CredentialReferenceName) &&
-                    string.IsNullOrWhiteSpace(options.SecretReference))
+                if (options.AuthMode == DynamicsAuthMode.AdfsOAuth)
                 {
-                    return false;
+                    var hasBearer = !string.IsNullOrWhiteSpace(options.CredentialReferenceName);
+                    var hasAuthority =
+                        !string.IsNullOrWhiteSpace(options.AuthorityUri) ||
+                        !string.IsNullOrWhiteSpace(options.AuthoritySecretName);
+                    var hasClientId =
+                        !string.IsNullOrWhiteSpace(options.ClientId) ||
+                        !string.IsNullOrWhiteSpace(options.ClientIdSecretName);
+                    var hasPasswordGrantSecrets =
+                        options.AllowLocalDevPasswordGrant &&
+                        !string.IsNullOrWhiteSpace(options.UserNameSecretName) &&
+                        !string.IsNullOrWhiteSpace(options.PasswordSecretName);
+
+                    // 合法：預發 bearer，或 authority+clientId 且（password grant 或另有 secret reference）
+                    if (!hasBearer && !(hasAuthority && hasClientId && (hasPasswordGrantSecrets || !string.IsNullOrWhiteSpace(options.SecretReference))))
+                    {
+                        return false;
+                    }
                 }
 
                 return OrganizationAdmissionPlan.TryCreate(options, options.Admission, out _, out _);
@@ -62,6 +76,8 @@ public static class WebApiServiceCollectionExtensions
             .ValidateOnStart();
 
         services.TryAddSingleton<ISecretResolver, EnvironmentSecretResolver>();
+        services.AddHttpClient("dynamics-adfs-token");
+        services.TryAddSingleton<IAdfsOAuthTokenProvider, AdfsOAuthTokenProvider>();
         services.TryAddSingleton<IRuntimeHostSlotCoordinator, InMemoryRuntimeHostSlotCoordinator>();
 
         services.AddSingleton<IOrganizationAdmissionManager>(sp =>

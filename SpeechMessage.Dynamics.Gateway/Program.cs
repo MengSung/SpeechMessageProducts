@@ -57,6 +57,23 @@ builder.Services.AddSpeechMessageDynamicsWebApi(options =>
         builder.Configuration["DynamicsWebApi:CredentialReferenceName"];
     options.FeasibilityEvidenceId =
         builder.Configuration["DynamicsWebApi:FeasibilityEvidenceId"];
+    options.AuthorityUri =
+        builder.Configuration["DynamicsWebApi:AuthorityUri"];
+    options.ResourceUri =
+        builder.Configuration["DynamicsWebApi:ResourceUri"];
+    options.ClientId =
+        builder.Configuration["DynamicsWebApi:ClientId"];
+    options.ClientSecretName =
+        builder.Configuration["DynamicsWebApi:ClientSecretName"];
+    options.AllowLocalDevPasswordGrant =
+        string.Equals(
+            builder.Configuration["DynamicsWebApi:AllowLocalDevPasswordGrant"],
+            "true",
+            StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(
+            builder.Configuration["DynamicsWebApi:AllowLocalDevPasswordGrant"],
+            "1",
+            StringComparison.OrdinalIgnoreCase);
     options.TimeoutSeconds = 30;
     options.MaxConnectionsPerServer = 4;
     options.Admission.ExpectedOrganizationId = Guid.TryParse(

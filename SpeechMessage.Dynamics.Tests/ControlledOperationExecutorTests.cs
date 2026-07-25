@@ -109,6 +109,7 @@ public sealed class ControlledOperationExecutorTests
             options,
             transport,
             new DictionarySecretResolver(new Dictionary<string, string>()),
+            new StaticAdfsOAuthTokenProvider("unused-for-windows"),
             NullLogger<DynamicsWebApiClient>.Instance);
         return new ControlledOperationExecutor(client, admission);
     }
@@ -130,5 +131,13 @@ public sealed class ControlledOperationExecutorTests
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             => Task.FromResult(_responder(request));
+    }
+
+    private sealed class StaticAdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
+    {
+        private readonly string _token;
+        public StaticAdfsOAuthTokenProvider(string token) => _token = token;
+        public Task<string> GetAccessTokenAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(_token);
     }
 }

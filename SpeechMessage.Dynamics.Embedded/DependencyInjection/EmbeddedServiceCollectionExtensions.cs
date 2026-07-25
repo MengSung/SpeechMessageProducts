@@ -1,12 +1,18 @@
 // ============================================================================
 // 檔案：SpeechMessage.Dynamics.Embedded/DependencyInjection/EmbeddedServiceCollectionExtensions.cs
-// 目的：讓產品在 Visual Studio / 隔離部署中啟用 Embedded 模式。
+// 目的：讓單一產品（Visual Studio / 隔離部署）啟用 Embedded 受控操作。
 //
-// 保母教學：
-// - 產品若選 Embedded，只應 reference 這個專案 + Abstractions。
-// - 絕不要 reference WebApi。
-// - Embedded 內部仍走 IDynamicsOperationExecutor，操作集合與 Gateway 相同。
-// - 產品 JSON 可用 ExecutionMode 在 Gateway / Embedded 間切換。
+// 保姆級教學：
+// - 產品只參考 Embedded + Abstractions，不要直接參考 WebApi。
+// - Embedded 內部會接上 IDynamicsOperationExecutor，語意與 Gateway 相同。
+// - CredentialSource:
+//     HostIdentity    = 用目前 Windows 進程身分（IIS AppPool / gMSA）
+//     SecretReference = 用秘密名稱解析帳密
+// - AuthMode:
+//     Windows   = NTLM/Negotiate（純 AD 環境）
+//     AdfsOAuth = IFD/claims 環境的 Bearer token（jesus 需要這個）
+// - additionalSecrets：本機 local-dev 可傳入「秘密名稱 -> 值」對照表（值來自既有 CrmConnection），
+//   但產品 JSON 仍只存秘密名稱，不存密碼。
 // ============================================================================
 
 using Microsoft.Extensions.DependencyInjection;
@@ -18,16 +24,21 @@ using SpeechMessage.Dynamics.WebApi.Runtime;
 namespace SpeechMessage.Dynamics.Embedded.DependencyInjection;
 
 /// <summary>
-/// Embedded 主機 DI 擴充。
+/// Embedded 模式 DI 註冊。
 /// </summary>
 public static class EmbeddedServiceCollectionExtensions
 {
     /// <summary>
-    /// 以產品 DynamicsAccess 設定啟用 Embedded 受控操作執行器。
+    /// 依產品 DynamicsAccess 設定啟用 Embedded 受控操作執行器。
     /// </summary>
+    /// <param name="additionalSecrets">
+    /// 可選：本機開發用秘密對照表（key=秘密名稱，value=秘密值）。
+    /// 正式環境應改走環境變數 / KeyVault，不要依賴這張表。
+    /// </param>
     public static IServiceCollection AddSpeechMessageDynamicsEmbedded(
         this IServiceCollection services,
-        ProductDynamicsOptions productOptions)
+        ProductDynamicsOptions productOptions,
+        IReadOnlyDictionary<string, string>? additionalSecrets = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(productOptions);
@@ -45,13 +56,77 @@ public static class EmbeddedServiceCollectionExtensions
         }
 
         var embedded = productOptions.Embedded;
+        var credentialSource = ParseCredentialSource(embedded.CredentialSource);
+
+        if (credentialSource == DynamicsCredentialSource.SecretReference)
+        {
+            if (string.IsNullOrWhiteSpace(embedded.UserNameSecretName) ||
+                string.IsNullOrWhiteSpace(embedded.PasswordSecretName))
+            {
+                throw new InvalidOperationException(
+                    "Embedded SecretReference requires UserNameSecretName and PasswordSecretName.");
+            }
+        }
+
+        // 先註冊 secret resolver，讓 WebApi 的 TryAddSingleton 不會蓋掉。
+        if (additionalSecrets is { Count: > 0 })
+        {
+            services.AddSingleton<ISecretResolver>(_ =>
+                new ChainedSecretResolver(
+                    new EnvironmentSecretResolver(),
+                    new DictionarySecretResolver(additionalSecrets)));
+        }
+
+        var authMode = ParseAuthMode(embedded.AuthMode);
+        var isLocalDevManifest = string.Equals(
+            embedded.ManifestOrRegistrySource,
+            "local-dev-manifest",
+            StringComparison.OrdinalIgnoreCase);
+
+        // 本機 local-dev-manifest + AdfsOAuth：允許用 CrmConnection 橋接帳密做 password grant。
+        // 正式環境必須 false，改走 bearer 服務流程。
+        var allowLocalDevPasswordGrant =
+            authMode == DynamicsAuthMode.AdfsOAuth &&
+            isLocalDevManifest &&
+            (embedded.AllowLocalDevPasswordGrant ||
+             string.IsNullOrWhiteSpace(embedded.CredentialReferenceName));
+
+        if (authMode == DynamicsAuthMode.AdfsOAuth)
+        {
+            // 兩條合法路：
+            // A) 已有 bearer token 秘密（CredentialReferenceName）
+            // B) 走 ADFS token endpoint：AuthorityUri + ClientId（本機可再加 password grant）
+            var hasBearerRef = !string.IsNullOrWhiteSpace(embedded.CredentialReferenceName);
+            var hasAuthority = !string.IsNullOrWhiteSpace(embedded.AuthorityUri);
+            var hasClientId =
+                !string.IsNullOrWhiteSpace(embedded.ClientId) ||
+                !string.IsNullOrWhiteSpace(embedded.ClientIdSecretName);
+
+            if (!hasBearerRef && !(hasAuthority && hasClientId))
+            {
+                throw new InvalidOperationException(
+                    "Embedded AdfsOAuth requires either CredentialReferenceName (pre-issued bearer), " +
+                    "or AuthorityUri + ClientId/ClientIdSecretName for ADFS token acquisition.");
+            }
+        }
+
         services.AddSpeechMessageDynamicsWebApi(options =>
         {
             options.OrganizationWebApiBaseUri = embedded.OrganizationWebApiBaseUri;
             options.CeVersion = embedded.CeVersion;
-            options.AuthMode = DynamicsAuthMode.Windows;
-            options.CredentialSource = DynamicsCredentialSource.HostIdentity;
+            options.AuthMode = authMode;
+            options.CredentialSource = credentialSource;
             options.SecretReference = embedded.SecretReference;
+            options.UserNameSecretName = embedded.UserNameSecretName;
+            options.PasswordSecretName = embedded.PasswordSecretName;
+            options.DomainSecretName = embedded.DomainSecretName;
+            options.AuthorityUri = embedded.AuthorityUri;
+            options.ResourceUri = embedded.ResourceUri;
+            options.ClientId = embedded.ClientId;
+            options.ClientIdSecretName = embedded.ClientIdSecretName;
+            options.ClientSecretName = embedded.ClientSecretName;
+            options.CredentialReferenceName = embedded.CredentialReferenceName;
+            options.AllowLocalDevPasswordGrant = allowLocalDevPasswordGrant;
             options.TimeoutSeconds = 30;
             options.MaxConnectionsPerServer = 4;
             options.Admission.ExpectedOrganizationId = Guid.Parse("11111111-1111-1111-1111-111111111111");
@@ -64,8 +139,26 @@ public static class EmbeddedServiceCollectionExtensions
             options.Admission.RequireDurableHostCoordinator = false;
         });
 
-        // 之後這裡會加 manifest/registry fail-closed 驗證。
-        // 現在先把執行器註冊起來，讓產品可先接契約與本機 live HTTP。
         return services;
+    }
+
+    private static DynamicsAuthMode ParseAuthMode(string? raw)
+    {
+        if (string.Equals(raw, "AdfsOAuth", StringComparison.OrdinalIgnoreCase))
+        {
+            return DynamicsAuthMode.AdfsOAuth;
+        }
+
+        return DynamicsAuthMode.Windows;
+    }
+
+    private static DynamicsCredentialSource ParseCredentialSource(string? raw)
+    {
+        if (string.Equals(raw, "SecretReference", StringComparison.OrdinalIgnoreCase))
+        {
+            return DynamicsCredentialSource.SecretReference;
+        }
+
+        return DynamicsCredentialSource.HostIdentity;
     }
 }

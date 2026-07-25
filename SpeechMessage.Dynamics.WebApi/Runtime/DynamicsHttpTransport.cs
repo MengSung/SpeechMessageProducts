@@ -94,7 +94,7 @@ public sealed class DynamicsHttpTransport : IDynamicsHttpTransport
             UseCookies = false,
             AllowAutoRedirect = false,
             UseProxy = false,
-            PreAuthenticate = false,
+            PreAuthenticate = true,
             AutomaticDecompression = DecompressionMethods.None,
             MaxConnectionsPerServer = Math.Clamp(options.MaxConnectionsPerServer, 1, 128),
             PooledConnectionLifetime = TimeSpan.FromMinutes(Math.Clamp(options.PooledConnectionLifetimeMinutes, 1, 240)),
@@ -163,8 +163,37 @@ public sealed class DynamicsHttpTransport : IDynamicsHttpTransport
             }
         }
 
-        handler.Credentials = string.IsNullOrWhiteSpace(domain)
-            ? new NetworkCredential(userName, password)
-            : new NetworkCredential(userName, password, domain);
+        // Parse DOMAIN\user and attach NTLM/Negotiate via CredentialCache.
+        // Note: IFD/claims orgs may still 302 to ADFS; Windows creds alone cannot finish that path.
+        var user = userName.Trim();
+        var dom = domain?.Trim();
+        if (user.Contains('\\', StringComparison.Ordinal))
+        {
+            var parts = user.Split('\\', 2);
+            if (!string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]))
+            {
+                dom = parts[0];
+                user = parts[1];
+            }
+        }
+
+        var credential = string.IsNullOrWhiteSpace(dom)
+            ? new NetworkCredential(user, password)
+            : new NetworkCredential(user, password, dom);
+
+        if (Uri.TryCreate(options.OrganizationWebApiBaseUri, UriKind.Absolute, out var webApiRoot))
+        {
+            var cache = new CredentialCache();
+            cache.Add(webApiRoot, "NTLM", credential);
+            cache.Add(webApiRoot, "Negotiate", credential);
+            var origin = new Uri(webApiRoot.GetLeftPart(UriPartial.Authority) + "/");
+            cache.Add(origin, "NTLM", credential);
+            cache.Add(origin, "Negotiate", credential);
+            handler.Credentials = cache;
+        }
+        else
+        {
+            handler.Credentials = credential;
+        }
     }
 }
