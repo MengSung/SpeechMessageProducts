@@ -6,7 +6,7 @@
     "risk":  "high",
     "domain":  "integration",
     "currentPhase":  "implementation",
-    "nextAction":  "Operator run docs/scripts/Invoke-AdfsTokenProbe.ps1 under VS identity; on TOKEN+WhoAmI OK enable Package01FeeReadsEnabled and compare fee rows=56.",
+    "nextAction":  "Diagnose and fix sunnyvalechback CE 9.1 IFD ID3242 caused before member lookup; validate legacy service identity and align the disabled no-SDK 9.1 profile.",
     "createdAt":  "2026-07-23T00:00:00Z",
     "branch":  "1.0.0.2.IsolateConnector.Worktree"
 }

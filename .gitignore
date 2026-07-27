@@ -269,4 +269,5 @@ __pycache__/
 
 # Local-dev ADFS OAuth tokens (do not commit)
 **/Logs/adfs-local-token.json
+**/Logs/adfs-*-local-token.json
 **/Logs/adfs-token-probe-latest.json
