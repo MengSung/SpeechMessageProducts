@@ -266,6 +266,7 @@ __pycache__/
 .serena/cache/
 .worktrees/
 .ccg/tmp/
+scratch/d365-login-probe/
 
 # Local-dev ADFS OAuth tokens (do not commit)
 **/Logs/adfs-local-token.json

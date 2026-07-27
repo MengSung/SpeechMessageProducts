@@ -32,6 +32,7 @@ namespace ToolUtilityNameSpace
     {
         #region 私有欄位
         private const String CRM_TYPE = "DYNAMICS365-9.0";
+        private const string SecretPlaceholder = "REPLACE_WITH_USER_SECRET_OR_ENVIRONMENT";
         private String m_DiscoveryServiceType = "";
 
         public IOrganizationService m_Crm2011OrganizationService;
@@ -48,9 +49,26 @@ namespace ToolUtilityNameSpace
         private string PORT => _configuration?["CrmConnection:Port"] ?? "7777";
         private string ORGANIZATION => _configuration?["CrmConnection:Organization"] ?? "jesus";
         private string USERNAME => _configuration?["CrmConnection:Username"] ?? "Administrator@speechmessage.com.tw";
-        private string PASSWORD => _configuration?["CrmConnection:Password"] ?? "hu9840";
+        private string PASSWORD => ResolveRequiredSecret("CrmConnection:Password", "CRM_PASSWORD");
         private string DOMAIN => _configuration?["CrmConnection:Domain"] ?? "DYNAMICS-365";
         #endregion
+
+        private string ResolveRequiredSecret(string configurationKey, string environmentVariableName)
+        {
+            var value = _configuration?[configurationKey];
+            if (string.IsNullOrWhiteSpace(value) || string.Equals(value, SecretPlaceholder, StringComparison.Ordinal))
+            {
+                value = Environment.GetEnvironmentVariable(environmentVariableName);
+            }
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new InvalidOperationException(
+                    $"{configurationKey} is not configured. Set it through User Secrets or environment variable {environmentVariableName}.");
+            }
+
+            return value;
+        }
 
         #region 常數
         private DateTime ExpireDate = new DateTime(2013, 3, 30);

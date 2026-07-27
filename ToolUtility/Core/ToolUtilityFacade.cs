@@ -90,7 +90,7 @@ namespace ToolUtilityNameSpace.Core
             // 使用連接服務建立 CRM 連接
             //var adUrl = "https://" + ORGANIZATION + ".speechmessage.com.tw/XRMServices/2011/Organization.svc";
             //var adUsername = @"SPEECHMESSAGE\Administrator";
-            //var adPassword = "hu9840";
+            //var adPassword = "REPLACE_WITH_USER_SECRET_OR_ENVIRONMENT";
 
             //_organizationService = _crmConnectionService.CreateOnPremiseClient(adUrl, adUsername, adPassword);
 
