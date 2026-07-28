@@ -22,6 +22,8 @@ No unresolved merge-specific Critical finding remains in the current product con
 
 - The local merge completed without conflicts using the `ort` strategy.
 - No remote push was performed.
+- The worktree registration was removed and the local source branch was deleted after verifying its tip is contained in the target. The remote source branch was intentionally preserved.
+- Windows kept the now-empty former worktree directory locked by the active Codex workspace, so only that empty directory remains on disk; it is no longer a registered Git worktree and can be deleted after this task releases the directory handle.
 - Product-code/config whitespace checks passed; committed CCG/Trellis evidence retains pre-existing whitespace findings.
 - No new Trellis task was created because task-creation consent was not provided; the CCG task contains the merge audit trail.
 - No new coding convention was learned that warrants a `.ccg/spec` or `.trellis/spec` update.

@@ -38,3 +38,4 @@ These failures are an identical pre-merge target baseline, not additional failur
 - ChurchReport, Dynamics Gateway, and Dynamics ProductClient Release builds passed after restore.
 - Full solution result after merge remained identical to the pre-merge target baseline: 22 ChurchReport.MemberInfo failures and 1 RichMenus boundary failure; no additional failures appeared.
 - A source-added Dynamics test fixture still used a known historical credential string as negative test data. It was replaced with `unit-test-plaintext-password`; the focused test and full Dynamics test project then passed.
+- Cleanup verification: the source tip was confirmed as an ancestor of the target, the worktree registration was removed, and local branch `1.0.0.2.IsolateConnector.Worktree` was deleted. `origin/1.0.0.2.IsolateConnector.Worktree` remains unchanged. The former worktree path is empty but could not be removed while the active Codex workspace held it open.
