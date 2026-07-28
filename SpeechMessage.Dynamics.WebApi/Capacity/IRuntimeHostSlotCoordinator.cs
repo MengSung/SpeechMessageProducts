@@ -50,8 +50,11 @@ public sealed class RuntimeHostSlotLease : IAsyncDisposable, IDisposable
             return;
         }
 
-        _coordinator.ReleaseAsync(this, CancellationToken.None)
-            .AsTask()
+        // `await using` is the normal path. This compatibility path still waits
+        // deterministically, but the release runs off a caller-owned UI/legacy
+        // synchronization context so it cannot deadlock that context.
+        Task.Run(async () =>
+            await _coordinator.ReleaseAsync(this, CancellationToken.None).ConfigureAwait(false))
             .GetAwaiter()
             .GetResult();
     }

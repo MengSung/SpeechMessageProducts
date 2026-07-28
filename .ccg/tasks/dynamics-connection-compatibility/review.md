@@ -151,3 +151,45 @@ artifacts. Before production use, the implementation still needs:
 - Gateway/Embedded mode contract and JSON validation tests;
 - soak/load tests with bounded memory/socket/queue/timer growth;
 - final no-SDK CI enforcement after legacy migration.
+
+---
+
+## 2026-07-28 Phase 4 local isolation-hardening follow-up
+
+### Review evidence
+
+- `20260728-143828-dynamics-phase4-isolation-hardening-reviewer`: Gemini and
+  Claude completed through the self-healing runner with no Critical finding.
+- `20260728-150858-dynamics-phase4-final-isolation-hardening-reviewer`: both
+  backends completed. The bounded ADFS body/handler lifecycle observations were
+  implemented and covered by red/green tests.
+- `20260728-152209-dynamics-phase4-final-buffer-zeroing-reviewer`: both
+  backends completed. It requested deterministic host-slot release ownership.
+- `20260728-153906-dynamics-phase4-final-lease-lifecycle-reviewer`: both
+  backends completed with `ok=true`, `degradedFallback=false`, and
+  `quotaBlocked=false`. No Critical finding; it warned that direct synchronous
+  waiting could capture a caller synchronization context.
+- `20260728-155852-dynamics-phase4-final-completion-reviewer`: both backends
+  completed with `ok=true`, `degradedFallback=false`, and `quotaBlocked=false`.
+  Both reported PASS with no Critical or Warning finding in the local Phase 4
+  hardening scope.
+
+### Resolution
+
+- `RuntimeHostSlotLease.Dispose()` no longer fire-and-forgets slot release. Its
+  compatibility path waits deterministically and runs the asynchronous release
+  off the caller synchronization context; `DisposeAsync()` remains the normal
+  `await using` path.
+- Regression coverage proves blocking release, caller-context isolation, and
+  release-failure propagation.
+- The ADFS successful-token parser now uses the bounded rented buffer directly,
+  zeros it before return, and avoids an extra managed response-body copy.
+- The reusable rule is recorded in
+  `.trellis/spec/backend/quality-guidelines.md` under **Async Capacity Lease
+  Cleanup**.
+
+### Status
+
+No Critical finding remains in the local hardening scope. Full production Phase
+4 remains blocked by the documented durable-coordinator, profile lifecycle,
+workload-authentication, soak, and authenticated CE 8.2/9.1 matrix gates.

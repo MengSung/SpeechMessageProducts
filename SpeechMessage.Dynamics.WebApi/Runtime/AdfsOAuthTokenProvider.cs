@@ -139,17 +139,9 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
                     $"ADFS token request failed HTTP {(int)response.StatusCode} from '{tokenEndpoint}'.");
             }
 
-            var body = await ReadBoundedResponseAsync(response.Content, cancellationToken).ConfigureAwait(false);
-            try
-            {
-                var token = ParseTokenResponse(body);
-                TryPersistTokens(token.AccessToken, token.ExpiresInSeconds, token.RefreshToken);
-                return new TokenResponse(token.AccessToken, token.ExpiresInSeconds);
-            }
-            finally
-            {
-                CryptographicOperations.ZeroMemory(body);
-            }
+            var token = await ReadBoundedTokenResponseAsync(response.Content, cancellationToken).ConfigureAwait(false);
+            TryPersistTokens(token.AccessToken, token.ExpiresInSeconds, token.RefreshToken);
+            return new TokenResponse(token.AccessToken, token.ExpiresInSeconds);
         }
         finally
         {
@@ -362,7 +354,7 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
         return ownedClient;
     }
 
-    private static async Task<byte[]> ReadBoundedResponseAsync(
+    private static async Task<ParsedTokenResponse> ReadBoundedTokenResponseAsync(
         HttpContent content,
         CancellationToken cancellationToken)
     {
@@ -383,7 +375,7 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
                     cancellationToken).ConfigureAwait(false);
                 if (read == 0)
                 {
-                    return buffer.AsSpan(0, totalRead).ToArray();
+                    return ParseTokenResponse(buffer.AsSpan(0, totalRead));
                 }
 
                 totalRead += read;
@@ -393,7 +385,8 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
         }
         finally
         {
-            ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
+            CryptographicOperations.ZeroMemory(buffer);
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 
@@ -426,11 +419,25 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
 
             if (isAccessToken)
             {
-                accessToken = reader.TokenType == JsonTokenType.String ? reader.GetString() : null;
+                if (reader.TokenType == JsonTokenType.String)
+                {
+                    accessToken = reader.GetString();
+                }
+                else
+                {
+                    reader.Skip();
+                }
             }
             else if (isRefreshToken)
             {
-                refreshToken = reader.TokenType == JsonTokenType.String ? reader.GetString() : null;
+                if (reader.TokenType == JsonTokenType.String)
+                {
+                    refreshToken = reader.GetString();
+                }
+                else
+                {
+                    reader.Skip();
+                }
             }
             else if (isExpiresIn)
             {
@@ -442,6 +449,10 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
                          int.TryParse(reader.GetString(), out var stringExpiresIn))
                 {
                     expiresIn = stringExpiresIn;
+                }
+                else
+                {
+                    reader.Skip();
                 }
             }
             else

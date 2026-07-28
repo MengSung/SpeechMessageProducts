@@ -27,7 +27,7 @@
     "relatedFiles":  [
 
                      ],
-    "notes":  "2026-07-28 Phase 4 local hardening verified: ADFS and CRM handlers disable cookies/redirects/proxy/decompression/pre-auth, local admission is atomically bounded, and local host slots are atomic and fail closed after expiry. Package01 remains false. Next: obtain supported operator-side DWS credentials for the single IFD ExternalDomain correction, then complete durable coordination, profile generation/drain, bounded response streaming, workload auth, and live CE 8.2/9.1 verification.",
+    "notes":  "2026-07-28 local Phase 4 hardening verified: ADFS/CRM HTTP isolation disables cookies/redirects/proxy/decompression/pre-auth; local admission is atomically bounded; local slots are atomic and expiry-fenced; token bodies are bounded, in-place parsed, and cleared; deterministic lease cleanup has no fire-and-forget/context-capture path. Fresh Dynamics tests pass 62/62 and Release build has 0 errors. Package01 remains false. Full Phase 4 still requires durable coordination, profile generation/drain, workload authentication, soak tests, and authenticated CE 8.2/9.1 evidence; apply the separate IFD correction only with a supported operator-side DWS credential.",
     "meta":  {
 
              }

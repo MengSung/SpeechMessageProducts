@@ -6,7 +6,7 @@
     "risk":  "high",
     "domain":  "integration",
     "currentPhase":  "implementation",
-    "nextAction":  "Use a supported operator-side DWS credential to apply and verify the single sunnyvalechback CE 9.1 IFD ExternalDomain correction; retain Package01FeeReadsEnabled=false and complete the remaining Phase 4 durable coordination, profile lifecycle, bounded-body, workload-auth, soak, and live-matrix gates.",
+    "nextAction":  "Local Phase 4 isolation hardening is complete and Package01FeeReadsEnabled remains false. Before full Phase 4 sign-off, implement the durable coordinator/profile lifecycle/workload-auth/soak gates and obtain authenticated CE 8.2/9.1 live-matrix evidence; apply the separately authorized IFD correction only with a supported operator-side DWS credential.",
     "createdAt":  "2026-07-23T00:00:00Z",
     "branch":  "1.0.0.3.Gateway&Embedded.Worktree"
 }

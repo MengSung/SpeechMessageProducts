@@ -496,6 +496,49 @@ public sealed class OrganizationAdmissionManagerTests
         await disposeTask.WaitAsync(TimeSpan.FromSeconds(5));
     }
 
+    [Fact]
+    public void Synchronous_host_slot_lease_dispose_does_not_capture_callers_synchronization_context()
+    {
+        var coordinator = new YieldingReleaseHostSlotCoordinator();
+        var lease = new RuntimeHostSlotLease(
+            coordinator,
+            new RuntimeHostSlotLeaseNamespace("synchronous-context"),
+            "host-1",
+            fencingToken: 1,
+            expiresAtUtc: DateTimeOffset.UtcNow.AddMinutes(1));
+        var originalContext = SynchronizationContext.Current;
+        var callerContext = new RecordingSynchronizationContext();
+
+        SynchronizationContext.SetSynchronizationContext(callerContext);
+        try
+        {
+            lease.Dispose();
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(originalContext);
+        }
+
+        callerContext.PostCount.Should().Be(0,
+            "synchronous disposal must run the asynchronous coordinator release off the caller synchronization context");
+    }
+
+    [Fact]
+    public void Synchronous_host_slot_lease_dispose_propagates_release_failure()
+    {
+        var lease = new RuntimeHostSlotLease(
+            new FailingReleaseHostSlotCoordinator(),
+            new RuntimeHostSlotLeaseNamespace("synchronous-release-failure"),
+            "host-1",
+            fencingToken: 1,
+            expiresAtUtc: DateTimeOffset.UtcNow.AddMinutes(1));
+
+        var act = () => lease.Dispose();
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("release-failed");
+    }
+
     private static OrganizationAdmissionManager CreateManager(
         int aggregate,
         int hosts,
@@ -644,5 +687,64 @@ public sealed class OrganizationAdmissionManagerTests
         }
 
         public void AllowRelease() => _allowRelease.TrySetResult();
+    }
+
+    private sealed class YieldingReleaseHostSlotCoordinator : IRuntimeHostSlotCoordinator
+    {
+        public bool IsDurable => false;
+
+        public Task<RuntimeHostSlotLease?> TryAcquireAsync(
+            RuntimeHostSlotLeaseNamespace leaseNamespace,
+            string hostInstanceId,
+            int maximumRuntimeHosts,
+            TimeSpan leaseTtl,
+            CancellationToken cancellationToken)
+            => Task.FromResult<RuntimeHostSlotLease?>(null);
+
+        public Task<bool> TryRenewAsync(
+            RuntimeHostSlotLease lease,
+            TimeSpan leaseTtl,
+            CancellationToken cancellationToken)
+            => Task.FromResult(false);
+
+        public async ValueTask ReleaseAsync(RuntimeHostSlotLease lease, CancellationToken cancellationToken)
+        {
+            await Task.Yield();
+        }
+    }
+
+    private sealed class RecordingSynchronizationContext : SynchronizationContext
+    {
+        private int _postCount;
+
+        public int PostCount => Volatile.Read(ref _postCount);
+
+        public override void Post(SendOrPostCallback callback, object? state)
+        {
+            Interlocked.Increment(ref _postCount);
+            ThreadPool.QueueUserWorkItem(_ => callback(state));
+        }
+    }
+
+    private sealed class FailingReleaseHostSlotCoordinator : IRuntimeHostSlotCoordinator
+    {
+        public bool IsDurable => false;
+
+        public Task<RuntimeHostSlotLease?> TryAcquireAsync(
+            RuntimeHostSlotLeaseNamespace leaseNamespace,
+            string hostInstanceId,
+            int maximumRuntimeHosts,
+            TimeSpan leaseTtl,
+            CancellationToken cancellationToken)
+            => Task.FromResult<RuntimeHostSlotLease?>(null);
+
+        public Task<bool> TryRenewAsync(
+            RuntimeHostSlotLease lease,
+            TimeSpan leaseTtl,
+            CancellationToken cancellationToken)
+            => Task.FromResult(false);
+
+        public ValueTask ReleaseAsync(RuntimeHostSlotLease lease, CancellationToken cancellationToken)
+            => ValueTask.FromException(new InvalidOperationException("release-failed"));
     }
 }

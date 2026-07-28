@@ -20,8 +20,14 @@ Date: 2026-07-28
   still explicitly non-durable. Expired leases cannot be renewed or revived,
   and expired records are purged during coordinator operations.
 - ADFS token endpoint failures no longer read or echo response bodies. Successful
-  token documents are streamed into a fixed 32 KiB maximum buffer that is
-  cleared before return, preventing unbounded body retention.
+  token documents are parsed directly from a fixed 32 KiB maximum rented buffer
+  that is cleared before return, preventing unbounded body retention and an
+  extra managed `byte[]` copy.
+- Runtime host-slot release has one deterministic cleanup owner. `await using`
+  remains the normal path; the synchronous compatibility path waits for release,
+  propagates release errors, and executes off a caller-owned synchronization
+  context so it cannot leave an unobserved background task or deadlock a UI/
+  legacy context.
 
 No Dynamics consumer was enabled. `DynamicsAccess:Package01FeeReadsEnabled`
 remains `false`.
@@ -37,12 +43,15 @@ remains `false`.
 | Manager lease single-flight | Parallel `AcquireAsync` calls entered 16 host-slot acquisition operations for one manager. | Concurrent-manager test allows exactly 1 acquisition. |
 | Shutdown lifecycle | `DisposeAsync` waited indefinitely for a coordinator call that ignored the caller token. | Disposal cancels the linked manager lifetime token and leaves no pending acquisition. |
 | ADFS token retention | Token endpoint errors echoed a 300-character body preview, while successful bodies were read without a size limit. | Error bodies are not read/echoed; a 32 KiB stream limit rejects oversized success responses; factory wrapper is disposed and timeout-bounded. |
+| Synchronous lease release | `RuntimeHostSlotLease.Dispose()` returned before a blocking coordinator release completed. | `Dispose()` waits for release completion and the release work is never fire-and-forget. |
+| Synchronization-context safety | A yielding coordinator posted its release continuation to the caller's synchronization context. | The compatibility release runs on the ThreadPool and is synchronously observed; no caller-context post occurs. |
+| Release-failure ownership | A fire-and-forget coordinator release could fault after the lease owner had returned. | Synchronous disposal surfaces the injected coordinator `InvalidOperationException` to its caller. |
 
 ## Fresh local verification
 
 ```text
 dotnet test SpeechMessage.Dynamics.Tests --no-restore
-  Passed: 59, Failed: 0, Skipped: 0
+  Passed: 62, Failed: 0, Skipped: 0
 
 dotnet build SpeechMessageProducts.sln --configuration Release --no-restore
   Succeeded: 0 errors
@@ -52,16 +61,29 @@ The Release build retains 10 unrelated warnings already present in
 `ToolUtility`, `PowerPlatform.Dataverse.Client`, and `Line.Messaging`; no new
 warning was emitted by the Dynamics hardening files.
 
-`git diff --check` passed. Modified source/test files were checked as UTF-8
+`git diff --check` passed. Modified source/test/spec files were checked as UTF-8
 without BOM and CRLF-only.
+
+The full solution command was also run:
+
+```text
+dotnet test SpeechMessageProducts.sln --configuration Release --no-restore
+  Passed: 304, Failed: 22, Skipped: 0
+```
+
+The 22 failures are pre-existing, unrelated payment/LINE boundary tests. Their
+repository-root helper looks for `ChurchReport.sln`, while this worktree
+contains `SpeechMessageProducts.sln`; the focused failure is reproducible as
+`DirectoryNotFoundException because ChurchReport.sln was not found.` No Phase 4 source or
+test file overlaps those projects, so this increment does not change that
+unrelated test infrastructure.
 
 ## Live baseline, 2026-07-28
 
-- Fresh WinRM probes confirm that `D365DC01` and `D365APP01` are reachable
-  through WSMan 3.0. The local client has the two resolved VM IP addresses in
-  `TrustedHosts`, but its non-Kerberos logon session is no longer valid, so
-  service/app-pool inspection and restart were not attempted. WinRM was not
-  restarted because the health probe already passed.
+- Fresh WinRM probes confirm that `D365DC01` (`192.168.50.10`) and `D365APP01`
+  (`192.168.50.20`) are reachable through WSMan Stack 3.0. No VM restart was
+  needed: both health probes succeeded. No credentials were retrieved or used
+  for remote application/service inspection.
 - The visible in-app browser reaches the configured ADFS login page from the
   organization root. No login, cookie, local-storage, password-store, or
   response-body inspection was performed.
@@ -88,10 +110,15 @@ fresh evidence before any feature enablement:
 6. Authenticated CE 8.2 and CE 9.1 live smoke matrix, same-organization parity,
    and two-replica capacity validation.
 
-The required external Gemini/Claude review completed through the project
-self-healing entrypoint in
-`20260728-143828-dynamics-phase4-isolation-hardening-reviewer`. Both backends
-completed with `ok=true`, `degradedFallback=false`, and `quotaBlocked=false`.
-Neither found a Critical issue. A concurrent manager lease-init warning and
-ADFS response/wrapper lifecycle observations were corrected with new red/green
-regressions before the final local verification.
+Dual-model reviews ran through the project self-healing entrypoint. The latest
+lease-lifecycle review, `20260728-153906-dynamics-phase4-final-lease-lifecycle-reviewer`,
+completed Gemini and Claude with `ok=true`, `degradedFallback=false`, and
+`quotaBlocked=false`. It found no Critical issue. Its synchronous-disposal
+warning was fixed with the three red/green regressions above; successful token
+documents are now parsed in-place from the cleared rented buffer.
+
+The final completion review,
+`20260728-155852-dynamics-phase4-final-completion-reviewer`, then completed
+both Gemini and Claude with `ok=true`, `degradedFallback=false`, and
+`quotaBlocked=false`. Both reported PASS with no Critical or Warning finding in
+this local hardening scope.

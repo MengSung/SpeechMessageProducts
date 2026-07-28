@@ -531,3 +531,92 @@ The page renders only after the product workflow model has been initialized or h
 <!-- What reviewers should check -->
 
 (To be filled by the team)
+
+---
+
+## Async Capacity Lease Cleanup
+
+### 1. Scope / Trigger
+
+- Trigger: code owns a host-slot lease, distributed permit, outbound request
+  lease, handler, timer, stream, or another resource whose release can be
+  asynchronous.
+- This applies to `IRuntimeHostSlotCoordinator.ReleaseAsync` and any future
+  durable coordinator implementation.
+- The goal is deterministic capacity release without leaving background cleanup
+  tasks, session state, or sensitive buffers retained past their owner scope.
+
+### 2. Signatures
+
+- The normal ownership signature is `IAsyncDisposable.DisposeAsync()` and the
+  caller uses `await using`.
+- `RuntimeHostSlotLease.Dispose()` is a compatibility signature only. It must
+  synchronously observe completion or failure of
+  `IRuntimeHostSlotCoordinator.ReleaseAsync(lease, CancellationToken.None)`.
+- Every coordinator implementation returns a `ValueTask` whose completion means
+  the fencing-aware release transition is complete.
+
+### 3. Contracts
+
+- Do not release a capacity lease with `_ = ReleaseAsync(...)`, an unobserved
+  `Task`, a timer callback, or any other fire-and-forget path.
+- `DisposeAsync()` awaits release with `ConfigureAwait(false)`.
+- If a legacy synchronous `Dispose()` is required, it must execute the async
+  release outside a caller-owned synchronization context, wait deterministically
+  for completion, and propagate an exception to the caller. This compatibility
+  path is not the performance-sensitive production path.
+- Release code must not retain raw request/session identifiers, tokens,
+  credentials, or response buffers after the release completes.
+
+### 4. Validation & Error Matrix
+
+- Synchronous disposal returns while `ReleaseAsync` is pending -> capacity may
+  leak or a release error may become unobserved; block until it completes.
+- Synchronous disposal runs a coordinator continuation on a UI or legacy
+  synchronization context -> it can deadlock the caller; dispatch the
+  compatibility release off that context, then wait.
+- `DisposeAsync()` releases without awaiting -> resource lifetime is ambiguous;
+  await with `ConfigureAwait(false)`.
+- Coordinator release faults -> propagate the failure through the owning dispose
+  call; do not swallow it or log-and-continue.
+
+### 5. Good/Base/Bad Cases
+
+- Good: `await using var lease = await coordinator.TryAcquireAsync(...);`
+  releases deterministically without thread-pool scheduling.
+- Base: legacy `using` invokes a synchronous compatibility path that waits for
+  release and is covered by a synchronization-context regression test.
+- Bad: `_ = coordinator.ReleaseAsync(lease, CancellationToken.None).AsTask();`
+  allows unobserved failure and capacity leakage after the owner has returned.
+
+### 6. Tests Required
+
+- A blocking coordinator test proves synchronous dispose has not returned while
+  release is pending.
+- A yielding coordinator under a recording `SynchronizationContext` proves the
+  compatibility path does not post a continuation to the caller context.
+- An async disposal test proves completion is awaited and an injected release
+  exception is observable by the owner.
+- Existing admission/lease contention tests must still prove that released
+  capacity is reusable and that expired leases cannot be resurrected.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+_ = _coordinator.ReleaseAsync(this, CancellationToken.None).AsTask();
+```
+
+The owner returns before capacity is released and any asynchronous failure is
+unobserved.
+
+#### Correct
+
+```csharp
+await _coordinator.ReleaseAsync(this, CancellationToken.None).ConfigureAwait(false);
+```
+
+The normal `await using` path has one deterministic cleanup owner. The separate
+synchronous compatibility path must preserve the same completion guarantee
+without capturing the caller synchronization context.
