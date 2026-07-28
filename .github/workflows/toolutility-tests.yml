@@ -6,11 +6,15 @@ on:
     paths:
       - 'ToolUtility/**'
       - 'ToolUtility.Tests/**'
+      - 'eng/**'
+      - '.github/workflows/toolutility-tests.yml'
   pull_request:
     branches: [ "Sunny_MyPay_2.7_Utility_.Net10", "main" ]
     paths:
       - 'ToolUtility/**'
       - 'ToolUtility.Tests/**'
+      - 'eng/**'
+      - '.github/workflows/toolutility-tests.yml'
 
 jobs:
   test:
@@ -19,12 +23,17 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
+    - name: Report Dynamics SDK references
+      shell: powershell
+      continue-on-error: true
+      run: ./eng/Verify-NoDynamicsSdk.ps1 -ManifestPath ./eng/no-sdk-source-roots.json -SummaryOnly
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
-        
+
     - name: Restore dependencies
       run: dotnet restore ToolUtility.Tests/ToolUtility.Tests.csproj
       

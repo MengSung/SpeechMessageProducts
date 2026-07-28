@@ -1,0 +1,130 @@
+{
+    "schemaVersion":  "2026-07-24.phase0.no-sdk-source-roots.v1",
+    "mode":  "report-only",
+    "description":  "Phase 0 report-only scan roots for removing Microsoft Dynamics CRM/Dataverse SDK dependencies. Promote to failing gate only after source roots migrate.",
+    "solutionFiles":  [
+                          "SpeechMessageProducts.sln"
+                      ],
+    "projectRoots":  [
+                         "ChurchReport.MemberInfo.Tests",
+                         "ChurchReport.Tests",
+                         "Line.Messaging",
+                         "Line.Messaging.Tests",
+                         "LineMessagingProcessor",
+                         "LineMessagingProcessor.AspNetCore",
+                         "LineMessagingProcessor.AspNetCore.Tests",
+                         "LineMessagingProcessor.RichMenus",
+                         "LineMessagingProcessor.RichMenus.Tests",
+                         "LineMessagingProcessor.Tests",
+                         "LineMessagingProcessor.Workflows",
+                         "LineMessagingProcessor.Workflows.Tests",
+                         "PowerPlatform.Dataverse.Client",
+                         "SpeechMessage.Dynamics.Abstractions",
+                         "SpeechMessage.Dynamics.Embedded",
+                         "SpeechMessage.Dynamics.Gateway",
+                         "SpeechMessage.Dynamics.SmokeTests",
+                         "SpeechMessage.Dynamics.Tests",
+                         "SpeechMessage.Dynamics.WebApi",
+                         "SpeechMessage.Payments",
+                         "SpeechMessage.Payments.AspNetCore",
+                         "SpeechMessage.Payments.Tests",
+                         "SpeechMessage.Payments.Workflows",
+                         "SpeechMessageProducts.ChurchReport",
+                         "ToolUtility",
+                         "ToolUtility.Tests"
+                     ],
+    "excludedRelativePaths":  [
+                                  ".git",
+                                  ".ccg",
+                                  ".trellis",
+                                  ".agents",
+                                  ".codex",
+                                  ".github",
+                                  "docs",
+                                  "eng",
+                                  "scratch",
+                                  "tools"
+                              ],
+    "excludedDirectoryNames":  [
+                                   "bin",
+                                   "obj"
+                               ],
+    "scannedFileExtensions":  [
+                                  ".sln",
+                                  ".csproj",
+                                  ".vbproj",
+                                  ".fsproj",
+                                  ".props",
+                                  ".targets",
+                                  ".config",
+                                  ".cs",
+                                  ".vb",
+                                  ".fs",
+                                  ".json"
+                              ],
+    "bannedPatterns":  [
+                           {
+                               "id":  "SDKPATH001",
+                               "kind":  "direct-dll-path",
+                               "pattern":  "Dynamics 365 SDK DLL",
+                               "description":  "External Dynamics 365 SDK DLL folder reference"
+                           },
+                           {
+                               "id":  "SDKPKG001",
+                               "kind":  "package-or-namespace",
+                               "pattern":  "Microsoft.PowerPlatform.Dataverse",
+                               "description":  "Microsoft PowerPlatform Dataverse SDK package or namespace"
+                           },
+                           {
+                               "id":  "SDKPKG002",
+                               "kind":  "package-or-namespace",
+                               "pattern":  "Microsoft.CrmSdk",
+                               "description":  "Microsoft CRM SDK package reference"
+                           },
+                           {
+                               "id":  "SDKASM001",
+                               "kind":  "assembly-or-namespace",
+                               "pattern":  "Microsoft.Crm.Sdk",
+                               "description":  "Microsoft CRM SDK assembly or namespace"
+                           },
+                           {
+                               "id":  "SDKNS001",
+                               "kind":  "namespace-or-type",
+                               "pattern":  "Microsoft.Xrm",
+                               "description":  "Microsoft XRM SDK namespace"
+                           },
+                           {
+                               "id":  "SDKTYPE001",
+                               "kind":  "sdk-shaped-type",
+                               "pattern":  "IOrganizationService",
+                               "description":  "SDK Organization service abstraction"
+                           },
+                           {
+                               "id":  "SDKTYPE002",
+                               "kind":  "sdk-shaped-type",
+                               "pattern":  "OrganizationServiceProxy",
+                               "description":  "SDK OrganizationServiceProxy usage"
+                           },
+                           {
+                               "id":  "SDKTYPE003",
+                               "kind":  "sdk-shaped-type",
+                               "pattern":  "DiscoveryServiceProxy",
+                               "description":  "SDK DiscoveryServiceProxy usage"
+                           },
+                           {
+                               "id":  "LEGACYPROJECT001",
+                               "kind":  "legacy-project",
+                               "pattern":  "PowerPlatform.Dataverse.Client",
+                               "description":  "Legacy borrowed connector project reference or solution inclusion"
+                           }
+                       ],
+    "knownPhase0Findings":  [
+                                "SDK-001",
+                                "SDK-002",
+                                "SDK-003",
+                                "SDK-004",
+                                "SDK-005",
+                                "SDK-006",
+                                "SDK-007"
+                            ]
+}

@@ -17,6 +17,9 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using ChurchReport.Models;
+using ChurchReport.Services;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 
 #region Dynamics 365 Microsoft.Xrm.Sdk.dll
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
@@ -39,6 +42,11 @@ namespace ChurchReport.WebServiceConnector
         #region 資料區
         // 透過 Factory 取得 ToolUtilityClass 單一實例
         private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
+
+        private static readonly IConfiguration m_DynamicsConfiguration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+            .Build();
         #endregion
         #region 下載資料時所需要的參數
         private EquipmentRootClass m_LocalEquipmenRoot;
@@ -337,7 +345,12 @@ namespace ChurchReport.WebServiceConnector
                 //EntityCollection MemberCollection = this.m_ToolUtilityClass.RetrieveMemberListCollectionByListIdDynamics365(aListEntity.Id);
 
                 // 取得幸福小組出席紀錄單
-                EntityCollection StorLessonsCollection = m_ToolUtilityClass.RetrieveManyToOneRelationship("contact", "contactid", aContactEntity.Id.ToString(), "new_contact_new_stor_lessons", "new_stor_lessons");
+                // Package 1 可選：依 contact 取 stor-lessons
+                var storLessonQuery = new StorLessonQueryService(m_ToolUtilityClass, m_DynamicsConfiguration);
+                string contactNameForQuery = this.m_ToolUtilityClass.GetEntityStringAttribute(aContactEntity, "fullname");
+                EntityCollection StorLessonsCollection = storLessonQuery.GetEntityCollectionByContact(
+                    contactNameForQuery,
+                    aContactEntity.Id.ToString());
 
                 foreach (Entity aStorLessons in StorLessonsCollection.Entities)
                 {

@@ -13,11 +13,14 @@
 // ============================================================================
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
 using ChurchReport.Models.CrmTransmitModule;
 using ChurchReport.Models;
+using ChurchReport.Services;
+using Microsoft.Extensions.Configuration;
 
 #region Dynamics 365 Microsoft.Xrm.Sdk.dll
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
@@ -43,6 +46,11 @@ namespace ChurchReport.WebServiceConnector
         private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
         private static Regex DigitsOnly = new Regex(@"[^\d]");
+        // DynamicsAccess 設定：只在 Package01 開關與 profile 對齊時使用。
+        private static readonly IConfiguration m_DynamicsConfiguration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+            .Build();
 
         private Dictionary<String, String> m_FeedBackReport = new Dictionary<string, string>();
 
@@ -225,7 +233,12 @@ namespace ChurchReport.WebServiceConnector
 
             // 取得與課程相關的上課紀錄
             String DiscipleLessonsName = this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessonsEntity, "new_name");
-            EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.RetrieveStorLessonsByDiscipleLessonsFetchXml(m_ToolUtilityClass.GetEntityStringAttribute(ref aDiscipleLessonsEntity, DiscipleLessonsName), DiscipleLessonsId);
+            // Package 1 可選：StorLessonQueryService
+            // 關閉時內部仍呼叫 RetrieveStorLessonsByDiscipleLessonsFetchXml
+            var storLessonQuery = new StorLessonQueryService(m_ToolUtilityClass, m_DynamicsConfiguration);
+            EntityCollection aStorLessonsEntityCollection = storLessonQuery.GetEntityCollectionByDiscipleLesson(
+                DiscipleLessonsName,
+                DiscipleLessonsId);
 
             // 取得所有上課紀錄單
             ProcesseStorLessons(aDiscipleLessonsEntity, ref aStorLessonsEntityCollection, ref Result);
@@ -258,7 +271,11 @@ namespace ChurchReport.WebServiceConnector
                 aLesson.LessonEndDate = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(aDiscipleLessons, "new_class_end_date");
 
                 // 報名人數
-                EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aDiscipleLessons.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
+                // Package 1 可選：用 StorLessonQueryService 取報名人數
+                var storLessonQueryForEnroll = new StorLessonQueryService(m_ToolUtilityClass, m_DynamicsConfiguration);
+                EntityCollection aStorLessonsEntityCollection = storLessonQueryForEnroll.GetEntityCollectionByDiscipleLesson(
+                    aLesson.DiscipleLessonsName,
+                    aDiscipleLessons.Id.ToString());
                 aLesson.EnrolledNumber = aStorLessonsEntityCollection.Entities.Count;
 
                 // 把課程加入到清單中
@@ -279,8 +296,11 @@ namespace ChurchReport.WebServiceConnector
                 if (aDiscipleLessonsEntityCollection.Entities.Count == 1)
                 { ProcesseClassName(aDiscipleLessons, ref aClassName); }
 
-                // 取得與課程相關的上課紀錄
-                EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.QueryEntityList("new_disciple_lessons", "new_disciple_lessonsid", aDiscipleLessons.Id.ToString(), "new_new_disciple_lessons_new_stor_les", "new_stor_lessons");
+                // Package 1 可選：取得與課程相關的上課紀錄
+                var storLessonQueryForFees = new StorLessonQueryService(m_ToolUtilityClass, m_DynamicsConfiguration);
+                EntityCollection aStorLessonsEntityCollection = storLessonQueryForFees.GetEntityCollectionByDiscipleLesson(
+                    this.m_ToolUtilityClass.GetEntityStringAttribute(aDiscipleLessons, "new_name"),
+                    aDiscipleLessons.Id.ToString());
 
                 // 處理一個一個的上課紀錄
                 ProcesseStorLessons(aDiscipleLessons, ref aStorLessonsEntityCollection, ref Result);

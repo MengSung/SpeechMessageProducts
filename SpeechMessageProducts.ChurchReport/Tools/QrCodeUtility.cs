@@ -215,12 +215,18 @@ namespace ChurchReport.Tools
                 System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] >>> SigningLesson 開始 - Line 177");
                 m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "006 : 好牧人: 資訊 => " + m_OnboardType);
 
-                EntityCollection aStorLessonsEntityCollection = m_ToolUtilityClass.RetrieveStorLessonsByFetchXml(LessonName, aLesson.Id.ToString(), UserName, UserId);
-                System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] 查詢到 {aStorLessonsEntityCollection.Entities.Count} 筆課程記錄");
+                // Package 1 可選：contact + discipleLesson 找 stor-lesson
+                var storLessonQuery = new StorLessonQueryService(m_ToolUtilityClass, m_Configuration);
+                Guid? existingStorLessonId = storLessonQuery.FindStorLessonId(
+                    LessonName,
+                    aLesson.Id.ToString(),
+                    UserName,
+                    UserId);
+                System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] 查詢到 stor-lesson id={existingStorLessonId}");
 
-                if (aStorLessonsEntityCollection.Entities.Count > 0)
+                if (existingStorLessonId is Guid foundId && foundId != Guid.Empty)
                 {
-                    Entity retrievedStorLessons = m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", aStorLessonsEntityCollection.Entities[0].Id);
+                    Entity retrievedStorLessons = m_ToolUtilityClass.RetrieveEntity("new_stor_lessons", foundId);
                     m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "007 : 好牧人: 資訊 => SigningProcess( RetrievedStorLessons, ClassIndex, OnboardType );");
 
                     System.Diagnostics.Debug.WriteLine($"[QrCodeUtility] >>> 準備調用 SigningProcess - Line 182 前");

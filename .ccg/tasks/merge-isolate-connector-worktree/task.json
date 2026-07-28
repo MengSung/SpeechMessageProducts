@@ -1,0 +1,12 @@
+{
+  "id": "merge-isolate-connector-worktree",
+  "title": "Merge 1.0.0.2.IsolateConnector.Worktree into 1.0.0.2.IsolateConnector",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "integration",
+  "currentPhase": "implementation",
+  "nextAction": "Commit the merge audit trail and merge the verified source into the local target",
+  "createdAt": "2026-07-28T00:19:44Z",
+  "branch": "1.0.0.2.IsolateConnector.Worktree"
+}

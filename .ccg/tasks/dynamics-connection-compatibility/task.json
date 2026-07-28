@@ -1,0 +1,12 @@
+﻿{
+    "id":  "dynamics-connection-compatibility",
+    "title":  "Design the no-SDK Dynamics 365 access gateway",
+    "status":  "in_progress",
+    "complexity":  "L+",
+    "risk":  "high",
+    "domain":  "integration",
+    "currentPhase":  "implementation",
+    "nextAction":  "Diagnose and fix sunnyvalechback CE 9.1 IFD ID3242 caused before member lookup; validate legacy service identity and align the disabled no-SDK 9.1 profile.",
+    "createdAt":  "2026-07-23T00:00:00Z",
+    "branch":  "1.0.0.2.IsolateConnector.Worktree"
+}

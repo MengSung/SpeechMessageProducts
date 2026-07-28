@@ -315,8 +315,12 @@ namespace ChurchReport
 
                 // 讀取密碼：避免硬編碼預設密碼（Hardcoded secret）。
                 // 建議來源：Environment Variables / Secret Manager / Key Vault
-                var password = crmConfig["Password"]
-                               ?? Environment.GetEnvironmentVariable("CRM_PASSWORD");
+                var password = crmConfig["Password"];
+                if (string.IsNullOrWhiteSpace(password) ||
+                    string.Equals(password, "REPLACE_WITH_USER_SECRET_OR_ENVIRONMENT", StringComparison.Ordinal))
+                {
+                    password = Environment.GetEnvironmentVariable("CRM_PASSWORD");
+                }
                 if (string.IsNullOrWhiteSpace(password))
                 {
                     throw new InvalidOperationException(

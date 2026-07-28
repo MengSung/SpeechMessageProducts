@@ -21,6 +21,8 @@ using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Xrm.Sdk;
@@ -542,41 +544,20 @@ namespace ChurchReport.Controllers
                 var fullName = ToolUtility.GetEntityStringAttribute(contact, "fullname");
 
                 var rows = new List<MemberInfoStorLessonRow>();
-                var storLessons = ToolUtility.RetrieveStorLessonsByFetchXml(fullName, contactGuid.ToString());
+                var configuration = HttpContext.RequestServices.GetService<IConfiguration>();
+                var queryService = new StorLessonQueryService(ToolUtility, configuration ?? new ConfigurationBuilder().Build());
+                var projections = queryService.GetByContact(fullName, contactGuid.ToString());
 
-                if (storLessons?.Entities != null)
+                foreach (var row in projections)
                 {
-                    foreach (var lessonEntity in storLessons.Entities)
+                    rows.Add(new MemberInfoStorLessonRow
                     {
-                        var lesson = lessonEntity;
-                        var discipleLessonId = ToolUtility.GetEntityLookupAttribute(ref lesson, "new_new_disciple_lessons_new_stor_les");
-
-                        var classStartDate = DateTime.MinValue;
-                        var stageName = string.Empty;
-
-                        if (discipleLessonId != Guid.Empty)
-                        {
-                            try
-                            {
-                                var discipleLesson = ToolUtility.RetrieveEntity("new_disciple_lessons", discipleLessonId);
-                                classStartDate = ToolUtility.GetEntityDateTimeAttribute(ref discipleLesson, "new_class_start_date");
-                                stageName = ToolUtility.GetEntityStringAttribute(ref discipleLesson, "new_now_stage_name");
-                            }
-                            catch
-                            {
-                                // Keep the lesson row visible even when the linked course cannot be read.
-                            }
-                        }
-
-                        rows.Add(new MemberInfoStorLessonRow
-                        {
-                            StorLessonsEntityId = lesson.Id.ToString(),
-                            DiscipleLessonsName = ToolUtility.GetEntityLookupDisplayName(ref lesson, "new_new_disciple_lessons_new_stor_les"),
-                            StageName = stageName,
-                            CurrentComplete = ToolUtility.GetEntityBoolAttribute(ref lesson, "new_current_complete"),
-                            DiscipleLessonsDateTime = classStartDate
-                        });
-                    }
+                        StorLessonsEntityId = row.StorLessonsEntityId,
+                        DiscipleLessonsName = row.DiscipleLessonsName,
+                        StageName = row.StageName,
+                        CurrentComplete = row.CurrentComplete,
+                        DiscipleLessonsDateTime = row.DiscipleLessonsDateTime
+                    });
                 }
 
                 return DataSourceLoader.Load(rows, loadOptions);

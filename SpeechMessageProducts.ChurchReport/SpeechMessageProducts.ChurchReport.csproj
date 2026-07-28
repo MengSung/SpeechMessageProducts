@@ -1,6 +1,7 @@
 <Project ToolsVersion="15.0" Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <UserSecretsId>speechmessageproducts-churchreport-local-dynamics</UserSecretsId>
     <EnableDefaultContentItems>false</EnableDefaultContentItems>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>SpeechMessageProducts.ChurchReport</AssemblyName>
@@ -92,6 +93,9 @@
     <ProjectReference Include="..\LineMessagingProcessor.AspNetCore\LineMessagingProcessor.AspNetCore.csproj" />
     <ProjectReference Include="..\LineMessagingProcessor.Workflows\LineMessagingProcessor.Workflows.csproj" />
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Dynamics.Abstractions\SpeechMessage.Dynamics.Abstractions.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Dynamics.ProductClient\SpeechMessage.Dynamics.ProductClient.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Dynamics.Embedded\SpeechMessage.Dynamics.Embedded.csproj" />
     <ProjectReference Include="..\SpeechMessage.Payments\SpeechMessage.Payments.csproj" />
     <ProjectReference Include="..\SpeechMessage.Payments.AspNetCore\SpeechMessage.Payments.AspNetCore.csproj" />
     <ProjectReference Include="..\SpeechMessage.Payments.Workflows\SpeechMessage.Payments.Workflows.csproj" />

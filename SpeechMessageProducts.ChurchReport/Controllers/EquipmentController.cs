@@ -13,11 +13,14 @@
 // ============================================================================
 using ChurchReport.Diagnostics.Profiling;
 using ChurchReport.Models;
+using ChurchReport.Services;
 using ChurchReport.Tools;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
@@ -359,66 +362,36 @@ namespace ChurchReport.Controllers
                 System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 查詢課程記錄: ContactName={member.FullName}, ContactId={member.ContactId}");
 
                 // 從 CRM 查詢該聯絡人的所有課程記錄
-                // 使用2參數版本: RetrieveStorLessonsByFetchXml(ContactName, ContactId)
-                Microsoft.Xrm.Sdk.EntityCollection storLessons;
-                using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.RetrieveStorLessonsByFetchXml"))
+                // Package 1 可選路徑：StorLessonQueryService
+                // - Package01 關閉：內部仍呼叫 RetrieveStorLessonsByFetchXml（舊行為）
+                // - Package01 開啟：主查詢改 no-SDK，再補 disciple lesson 欄位
+                IReadOnlyList<StorLessonProjection> projections;
+                using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.QueryService"))
                 {
-                    storLessons = ToolUtility.RetrieveStorLessonsByFetchXml(member.FullName, member.ContactId);
+                    var configuration = HttpContext.RequestServices.GetService<IConfiguration>();
+                    var queryService = new StorLessonQueryService(ToolUtility, configuration ?? new ConfigurationBuilder().Build());
+                    projections = queryService.GetByContact(member.FullName, member.ContactId);
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 查詢結果: storLessons={storLessons != null}, Count={storLessons?.Entities.Count ?? -1}");
+                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 查詢結果: Count={projections.Count}");
 
                 var lessonsList = new List<EquipmentStorLessons>();
-
-                if (storLessons != null && storLessons.Entities.Count > 0)
+                foreach (var row in projections)
                 {
-                    foreach (var lessonEntity in storLessons.Entities)
+                    var lessonItem = new EquipmentStorLessons
                     {
-                        var lesson = lessonEntity; // 建立臨時變數以支援 ref 參數
+                        StorLessonsEntityId = row.StorLessonsEntityId,
+                        DiscipleLessonsName = row.DiscipleLessonsName,
+                        StageName = row.StageName,
+                        CurrentComplete = row.CurrentComplete,
+                        DiscipleLessonsDateTime = row.DiscipleLessonsDateTime
+                    };
 
-                        // 取得門徒課程的 ID
-                        var discipleLessonId = ToolUtility.GetEntityLookupAttribute(ref lesson, "new_new_disciple_lessons_new_stor_les");
-
-                        // 從門徒課程實體取得資料
-                        DateTime classStartDate = DateTime.MinValue;
-                        string stageName = string.Empty;
-
-                        if (discipleLessonId != Guid.Empty)
-                        {
-                            try
-                            {
-                                Microsoft.Xrm.Sdk.Entity discipleLesson;
-                                using (PerfPhase.Measure(HttpContext, "Equipment.LoadEquipmentStorLessons.RetrieveDiscipleLesson"))
-                                {
-                                    discipleLesson = ToolUtility.RetrieveEntity("new_disciple_lessons", discipleLessonId);
-                                }
-
-                                // 取得上課開始日期
-                                classStartDate = ToolUtility.GetEntityDateTimeAttribute(ref discipleLesson, "new_class_start_date");
-
-                                // 取得階段名稱 (從 new_disciple_lessons 的 new_now_stage_name)
-                                stageName = ToolUtility.GetEntityStringAttribute(ref discipleLesson, "new_now_stage_name");
-                            }
-                            catch (Exception ex)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 警告: 無法取得門徒課程資料，DiscipleLessonId={discipleLessonId}, 錯誤={ex.Message}");
-                            }
-                        }
-
-                        var lessonItem = new EquipmentStorLessons
-                        {
-                            StorLessonsEntityId = lesson.Id.ToString(),
-                            DiscipleLessonsName = ToolUtility.GetEntityLookupDisplayName(ref lesson, "new_new_disciple_lessons_new_stor_les"),
-                            StageName = stageName, // 修正: 從關聯的 new_disciple_lessons.new_now_stage_name 取得
-                            CurrentComplete = ToolUtility.GetEntityBoolAttribute(ref lesson, "new_current_complete"),
-                            DiscipleLessonsDateTime = classStartDate // 從關聯的 new_disciple_lessons.new_class_start_date 取得
-                        };
-
-                        System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 課程: {lessonItem.DiscipleLessonsName}, 階段: {lessonItem.StageName}, 日期: {lessonItem.DiscipleLessonsDateTime:yyyy-MM-dd}");
-                        lessonsList.Add(lessonItem);
-                    }
+                    System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 課程: {lessonItem.DiscipleLessonsName}, 階段: {lessonItem.StageName}, 日期: {lessonItem.DiscipleLessonsDateTime:yyyy-MM-dd}");
+                    lessonsList.Add(lessonItem);
                 }
-                else
+
+                if (lessonsList.Count == 0)
                 {
                     System.Diagnostics.Debug.WriteLine($"[LoadEquipmentStorLessons] 警告: 該聯絡人({member.FullName})沒有課程記錄，或課程的 new_classification 不是 100000000/100000001");
                 }
