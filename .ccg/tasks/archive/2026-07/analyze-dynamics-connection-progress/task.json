@@ -1,0 +1,12 @@
+{
+  "id": "analyze-dynamics-connection-progress",
+  "title": "分析 Dynamics 365 connection 拆分工作的目前進度",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "已完成唯讀進度稽核、雙模型分析與雙模型事實審查",
+  "createdAt": "2026-07-28T01:40:00Z",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}
