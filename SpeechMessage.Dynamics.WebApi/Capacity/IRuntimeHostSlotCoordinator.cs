@@ -50,7 +50,10 @@ public sealed class RuntimeHostSlotLease : IAsyncDisposable, IDisposable
             return;
         }
 
-        _ = _coordinator.ReleaseAsync(this, CancellationToken.None).AsTask();
+        _coordinator.ReleaseAsync(this, CancellationToken.None)
+            .AsTask()
+            .GetAwaiter()
+            .GetResult();
     }
 
     public async ValueTask DisposeAsync()

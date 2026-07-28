@@ -13,6 +13,7 @@
 
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using System.Buffers;
+using System.Security.Cryptography;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -35,11 +36,6 @@ public interface IAdfsOAuthTokenProvider
 public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
 {
     private const int MaxTokenResponseBytes = 32 * 1024;
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
 
     private readonly DynamicsWebApiOptions _options;
     private readonly ISecretResolver _secretResolver;
@@ -144,39 +140,16 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
             }
 
             var body = await ReadBoundedResponseAsync(response.Content, cancellationToken).ConfigureAwait(false);
-            using var doc = JsonDocument.Parse(body);
-            var root = doc.RootElement;
-            if (!root.TryGetProperty("access_token", out var accessNode) ||
-                accessNode.ValueKind != JsonValueKind.String ||
-                string.IsNullOrWhiteSpace(accessNode.GetString()))
+            try
             {
-                throw new InvalidOperationException("ADFS token response missing access_token.");
+                var token = ParseTokenResponse(body);
+                TryPersistTokens(token.AccessToken, token.ExpiresInSeconds, token.RefreshToken);
+                return new TokenResponse(token.AccessToken, token.ExpiresInSeconds);
             }
-
-            var expiresIn = 3600;
-            if (root.TryGetProperty("expires_in", out var expNode))
+            finally
             {
-                if (expNode.ValueKind == JsonValueKind.Number && expNode.TryGetInt32(out var n))
-                {
-                    expiresIn = n;
-                }
-                else if (expNode.ValueKind == JsonValueKind.String &&
-                         int.TryParse(expNode.GetString(), out var s))
-                {
-                    expiresIn = s;
-                }
+                CryptographicOperations.ZeroMemory(body);
             }
-
-            string? newRefresh = null;
-            if (root.TryGetProperty("refresh_token", out var refreshNode) &&
-                refreshNode.ValueKind == JsonValueKind.String)
-            {
-                newRefresh = refreshNode.GetString();
-            }
-
-            var accessToken = accessNode.GetString()!;
-            TryPersistTokens(accessToken, expiresIn, newRefresh);
-            return new TokenResponse(accessToken, expiresIn);
         }
         finally
         {
@@ -424,5 +397,67 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
         }
     }
 
+    private static ParsedTokenResponse ParseTokenResponse(ReadOnlySpan<byte> responseBody)
+    {
+        var reader = new Utf8JsonReader(responseBody);
+        if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
+        {
+            throw new InvalidOperationException("ADFS token response is not a JSON object.");
+        }
+
+        string? accessToken = null;
+        string? refreshToken = null;
+        var expiresIn = 3600;
+
+        while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+        {
+            if (reader.TokenType != JsonTokenType.PropertyName)
+            {
+                throw new InvalidOperationException("ADFS token response is malformed.");
+            }
+
+            var isAccessToken = reader.ValueTextEquals("access_token"u8);
+            var isRefreshToken = reader.ValueTextEquals("refresh_token"u8);
+            var isExpiresIn = reader.ValueTextEquals("expires_in"u8);
+            if (!reader.Read())
+            {
+                throw new InvalidOperationException("ADFS token response is malformed.");
+            }
+
+            if (isAccessToken)
+            {
+                accessToken = reader.TokenType == JsonTokenType.String ? reader.GetString() : null;
+            }
+            else if (isRefreshToken)
+            {
+                refreshToken = reader.TokenType == JsonTokenType.String ? reader.GetString() : null;
+            }
+            else if (isExpiresIn)
+            {
+                if (reader.TokenType == JsonTokenType.Number && reader.TryGetInt32(out var numericExpiresIn))
+                {
+                    expiresIn = numericExpiresIn;
+                }
+                else if (reader.TokenType == JsonTokenType.String &&
+                         int.TryParse(reader.GetString(), out var stringExpiresIn))
+                {
+                    expiresIn = stringExpiresIn;
+                }
+            }
+            else
+            {
+                reader.Skip();
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(accessToken))
+        {
+            throw new InvalidOperationException("ADFS token response missing access_token.");
+        }
+
+        return new ParsedTokenResponse(accessToken, expiresIn, refreshToken);
+    }
+
     private sealed record TokenResponse(string AccessToken, int ExpiresInSeconds);
+    private sealed record ParsedTokenResponse(string AccessToken, int ExpiresInSeconds, string? RefreshToken);
 }

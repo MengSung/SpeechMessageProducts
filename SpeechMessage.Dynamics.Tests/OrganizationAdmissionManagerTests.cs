@@ -475,6 +475,27 @@ public sealed class OrganizationAdmissionManagerTests
         await replacement!.DisposeAsync();
     }
 
+    [Fact]
+    public async Task Synchronous_host_slot_lease_dispose_waits_for_release_completion()
+    {
+        var coordinator = new BlockingReleaseHostSlotCoordinator();
+        var lease = new RuntimeHostSlotLease(
+            coordinator,
+            new RuntimeHostSlotLeaseNamespace("synchronous-release"),
+            "host-1",
+            fencingToken: 1,
+            expiresAtUtc: DateTimeOffset.UtcNow.AddMinutes(1));
+
+        var disposeTask = Task.Run(lease.Dispose);
+        await coordinator.ReleaseEntered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        disposeTask.IsCompleted.Should().BeFalse(
+            "synchronous disposal must not leave an unobserved background slot release");
+
+        coordinator.AllowRelease();
+        await disposeTask.WaitAsync(TimeSpan.FromSeconds(5));
+    }
+
     private static OrganizationAdmissionManager CreateManager(
         int aggregate,
         int hosts,
@@ -593,5 +614,35 @@ public sealed class OrganizationAdmissionManagerTests
             => ValueTask.CompletedTask;
 
         public void ReleaseAcquireWait() => _releaseAcquireWait.TrySetResult();
+    }
+
+    private sealed class BlockingReleaseHostSlotCoordinator : IRuntimeHostSlotCoordinator
+    {
+        private readonly TaskCompletionSource _allowRelease = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public bool IsDurable => false;
+        public TaskCompletionSource ReleaseEntered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public Task<RuntimeHostSlotLease?> TryAcquireAsync(
+            RuntimeHostSlotLeaseNamespace leaseNamespace,
+            string hostInstanceId,
+            int maximumRuntimeHosts,
+            TimeSpan leaseTtl,
+            CancellationToken cancellationToken)
+            => Task.FromResult<RuntimeHostSlotLease?>(null);
+
+        public Task<bool> TryRenewAsync(
+            RuntimeHostSlotLease lease,
+            TimeSpan leaseTtl,
+            CancellationToken cancellationToken)
+            => Task.FromResult(false);
+
+        public async ValueTask ReleaseAsync(RuntimeHostSlotLease lease, CancellationToken cancellationToken)
+        {
+            ReleaseEntered.TrySetResult();
+            await _allowRelease.Task.WaitAsync(cancellationToken);
+        }
+
+        public void AllowRelease() => _allowRelease.TrySetResult();
     }
 }
