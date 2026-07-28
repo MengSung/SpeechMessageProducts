@@ -94,7 +94,7 @@ public sealed class DynamicsHttpTransport : IDynamicsHttpTransport
             UseCookies = false,
             AllowAutoRedirect = false,
             UseProxy = false,
-            PreAuthenticate = true,
+            PreAuthenticate = false,
             AutomaticDecompression = DecompressionMethods.None,
             MaxConnectionsPerServer = Math.Clamp(options.MaxConnectionsPerServer, 1, 128),
             PooledConnectionLifetime = TimeSpan.FromMinutes(Math.Clamp(options.PooledConnectionLifetimeMinutes, 1, 240)),

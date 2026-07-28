@@ -25,6 +25,8 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
     private readonly IRuntimeHostSlotCoordinator _slotCoordinator;
     private readonly ILogger<OrganizationAdmissionManager> _logger;
     private readonly SemaphoreSlim _inFlight;
+    private readonly SemaphoreSlim _totalAdmission;
+    private readonly SemaphoreSlim _hostSlotGate = new(1, 1);
     private readonly object _gate = new();
     private readonly ConcurrentDictionary<string, int> _workloadCounts = new(StringComparer.Ordinal);
     private readonly string _hostInstanceId = Environment.MachineName + ":" + Guid.NewGuid().ToString("N");
@@ -46,6 +48,8 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         _slotCoordinator = slotCoordinator ?? throw new ArgumentNullException(nameof(slotCoordinator));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _inFlight = new SemaphoreSlim(plan.LocalMaxInFlight, plan.LocalMaxInFlight);
+        var totalAdmissionCapacity = checked(plan.LocalMaxInFlight + plan.LocalQueueCapacity);
+        _totalAdmission = new SemaphoreSlim(totalAdmissionCapacity, totalAdmissionCapacity);
     }
 
     public OrganizationAdmissionPlan Plan => _plan;
@@ -53,6 +57,22 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
     public async Task EnsureHostSlotAsync(CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetimeCts.Token);
+        await _hostSlotGate.WaitAsync(linked.Token).ConfigureAwait(false);
+
+        try
+        {
+            ObjectDisposedException.ThrowIf(_disposed != 0, this);
+            await EnsureHostSlotCoreAsync(linked.Token).ConfigureAwait(false);
+        }
+        finally
+        {
+            _hostSlotGate.Release();
+        }
+    }
+
+    private async Task EnsureHostSlotCoreAsync(CancellationToken cancellationToken)
+    {
 
         if (_plan.RequireDurableHostCoordinator && !_slotCoordinator.IsDurable)
         {
@@ -71,7 +91,7 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
                     cancellationToken).ConfigureAwait(false);
                 if (!renewed)
                 {
-                    await DisposeLeaseAsync().ConfigureAwait(false);
+                    await DisposeLeaseUnderHostSlotGateAsync().ConfigureAwait(false);
                 }
             }
 
@@ -137,7 +157,8 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
                 "Runtime host slot is unavailable."));
         }
 
-        if (_lease is null || _lease.ExpiresAtUtc <= DateTimeOffset.UtcNow)
+        var lease = _lease;
+        if (lease is null || lease.ExpiresAtUtc <= DateTimeOffset.UtcNow)
         {
             Interlocked.Increment(ref _rejected);
             return AdmissionAcquireResult.Failure(OperationExecutionResult.Failure(
@@ -148,6 +169,7 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         var workload = NormalizeWorkload(envelope.WorkloadSubjectId);
         var queuedHere = false;
         var workloadReserved = false;
+        var totalAdmissionReserved = false;
 
         lock (_gate)
         {
@@ -160,8 +182,8 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
                     $"Workload '{workload}' exceeded MaxInFlightAndQueuedPerWorkload={_plan.MaxInFlightAndQueuedPerWorkload}."));
             }
 
-            // 若目前拿不到 in-flight，且 queue 已滿，直接拒絕。
-            if (_inFlight.CurrentCount == 0 && _queued >= _plan.LocalQueueCapacity)
+            // Atomically reserve one bounded slot for either in-flight or queued work.
+            if (!_totalAdmission.Wait(0))
             {
                 Interlocked.Increment(ref _rejected);
                 return AdmissionAcquireResult.Failure(OperationExecutionResult.Failure(
@@ -169,6 +191,7 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
                     $"Local admission queue is full (capacity={_plan.LocalQueueCapacity})."));
             }
 
+            totalAdmissionReserved = true;
             _workloadCounts[workload] = workloadCount + 1;
             workloadReserved = true;
             _queued++;
@@ -195,16 +218,21 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         }
         catch (OperationCanceledException)
         {
-            ReleaseReservation(workload, queuedHere, workloadReserved, acquired: false);
+            ReleaseReservation(workload, queuedHere, workloadReserved, totalAdmissionReserved);
             Interlocked.Increment(ref _rejected);
             return AdmissionAcquireResult.Failure(OperationExecutionResult.Failure(
                 DynamicsErrorCodes.AdmissionTimeout,
                 "Admission wait was cancelled."));
         }
+        catch
+        {
+            ReleaseReservation(workload, queuedHere, workloadReserved, totalAdmissionReserved);
+            throw;
+        }
 
         if (!acquired)
         {
-            ReleaseReservation(workload, queuedHere, workloadReserved, acquired: false);
+            ReleaseReservation(workload, queuedHere, workloadReserved, totalAdmissionReserved);
             Interlocked.Increment(ref _timeouts);
             Interlocked.Increment(ref _rejected);
             return AdmissionAcquireResult.Failure(OperationExecutionResult.Failure(
@@ -222,13 +250,21 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
             }
         }
 
-        Interlocked.Increment(ref _accepted);
-        var permit = new AdmissionPermit(
-            this,
-            envelope.CorrelationId,
-            _lease.FencingToken,
-            workload);
-        return AdmissionAcquireResult.Success(permit);
+        try
+        {
+            var permit = new AdmissionPermit(
+                this,
+                envelope.CorrelationId,
+                lease.FencingToken,
+                workload);
+            Interlocked.Increment(ref _accepted);
+            return AdmissionAcquireResult.Success(permit);
+        }
+        catch
+        {
+            ReleasePermit(workload);
+            throw;
+        }
     }
 
     public AdmissionMetricsSnapshot GetSnapshot()
@@ -255,9 +291,19 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         }
 
         _lifetimeCts.Cancel();
+        _hostSlotGate.Wait();
+        try
+        {
+            DisposeLeaseUnderHostSlotGateAsync().AsTask().GetAwaiter().GetResult();
+        }
+        finally
+        {
+            _hostSlotGate.Release();
+        }
+
         _inFlight.Dispose();
+        _totalAdmission.Dispose();
         _lifetimeCts.Dispose();
-        DisposeLeaseAsync().AsTask().GetAwaiter().GetResult();
     }
 
     public async ValueTask DisposeAsync()
@@ -268,9 +314,19 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         }
 
         _lifetimeCts.Cancel();
+        await _hostSlotGate.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            await DisposeLeaseUnderHostSlotGateAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            _hostSlotGate.Release();
+        }
+
         _inFlight.Dispose();
+        _totalAdmission.Dispose();
         _lifetimeCts.Dispose();
-        await DisposeLeaseAsync().ConfigureAwait(false);
     }
 
     internal void ReleasePermit(string workload)
@@ -288,6 +344,8 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
             _logger.LogError("Admission semaphore over-released; possible double free.");
         }
 
+        ReleaseTotalAdmissionReservation();
+
         lock (_gate)
         {
             if (_workloadCounts.TryGetValue(workload, out var count))
@@ -304,7 +362,11 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         }
     }
 
-    private void ReleaseReservation(string workload, bool queuedHere, bool workloadReserved, bool acquired)
+    private void ReleaseReservation(
+        string workload,
+        bool queuedHere,
+        bool workloadReserved,
+        bool totalAdmissionReserved)
     {
         lock (_gate)
         {
@@ -313,7 +375,7 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
                 _queued = Math.Max(0, _queued - 1);
             }
 
-            if (workloadReserved && !acquired)
+            if (workloadReserved)
             {
                 if (_workloadCounts.TryGetValue(workload, out var count))
                 {
@@ -328,9 +390,30 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
                 }
             }
         }
+
+        if (totalAdmissionReserved)
+        {
+            ReleaseTotalAdmissionReservation();
+        }
     }
 
-    private async ValueTask DisposeLeaseAsync()
+    private void ReleaseTotalAdmissionReservation()
+    {
+        try
+        {
+            _totalAdmission.Release();
+        }
+        catch (ObjectDisposedException)
+        {
+            // shutting down
+        }
+        catch (SemaphoreFullException)
+        {
+            _logger.LogError("Total admission semaphore over-released; possible double free.");
+        }
+    }
+
+    private async ValueTask DisposeLeaseUnderHostSlotGateAsync()
     {
         if (_lease is null)
         {

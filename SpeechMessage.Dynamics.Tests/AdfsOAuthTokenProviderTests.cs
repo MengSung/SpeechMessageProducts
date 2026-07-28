@@ -130,6 +130,75 @@ public sealed class AdfsOAuthTokenProviderTests
             .WithMessage("*no usable token source*");
     }
 
+    [Fact]
+    public async Task Token_endpoint_error_does_not_retain_or_echo_response_body()
+    {
+        const string sensitiveResponseMarker = "server-response-must-not-be-retained";
+        var provider = CreateProvider(
+            options: CreatePasswordGrantOptions(),
+            secrets: CreatePasswordGrantSecrets(),
+            responder: _ => new HttpResponseMessage(HttpStatusCode.BadRequest)
+            {
+                Content = new StringContent(sensitiveResponseMarker, Encoding.UTF8, "text/plain")
+            });
+
+        var act = async () => await provider.GetAccessTokenAsync();
+
+        var exception = await act.Should().ThrowAsync<InvalidOperationException>();
+        exception.Which.Message.Should().NotContain(sensitiveResponseMarker);
+        exception.Which.Message.Should().NotContain("BodyPreview");
+    }
+
+    [Fact]
+    public async Task Oversized_token_response_is_rejected_before_unbounded_buffering()
+    {
+        var oversizedJson = "{\"access_token\":\"" + new string('x', 65_536) + "\"}";
+        var provider = CreateProvider(
+            options: CreatePasswordGrantOptions(),
+            secrets: CreatePasswordGrantSecrets(),
+            responder: _ => JsonResponse(oversizedJson));
+
+        var act = async () => await provider.GetAccessTokenAsync();
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*maximum supported size*");
+    }
+
+    [Fact]
+    public async Task Factory_token_client_uses_the_configured_bounded_timeout()
+    {
+        var options = CreatePasswordGrantOptions();
+        options.TimeoutSeconds = 7;
+        var factory = new StubHttpClientFactory(_ => JsonResponse("""{"access_token":"token","expires_in":60}"""));
+        var provider = new AdfsOAuthTokenProvider(
+            Options.Create(options),
+            new DictionarySecretResolver(CreatePasswordGrantSecrets()),
+            NullLogger<AdfsOAuthTokenProvider>.Instance,
+            factory);
+
+        _ = await provider.GetAccessTokenAsync();
+
+        factory.LastClient.Should().NotBeNull();
+        factory.LastClient!.Timeout.Should().Be(TimeSpan.FromSeconds(7));
+    }
+
+    [Fact]
+    public async Task Factory_token_client_wrapper_is_disposed_after_token_request()
+    {
+        var factory = new TrackingHttpClientFactory(
+            _ => JsonResponse("""{"access_token":"token","expires_in":60}"""));
+        var provider = new AdfsOAuthTokenProvider(
+            Options.Create(CreatePasswordGrantOptions()),
+            new DictionarySecretResolver(CreatePasswordGrantSecrets()),
+            NullLogger<AdfsOAuthTokenProvider>.Instance,
+            factory);
+
+        _ = await provider.GetAccessTokenAsync();
+
+        factory.LastClient.Should().NotBeNull();
+        factory.LastClient!.IsDisposed.Should().BeTrue();
+    }
+
 
     [Fact]
     public async Task Refresh_token_grant_posts_expected_form()
@@ -193,6 +262,26 @@ public sealed class AdfsOAuthTokenProviderTests
             factory);
     }
 
+    private static DynamicsWebApiOptions CreatePasswordGrantOptions()
+        => new()
+        {
+            AuthMode = DynamicsAuthMode.AdfsOAuth,
+            AuthorityUri = "https://sts.example.local/adfs",
+            ClientId = "client-xyz",
+            ResourceUri = "https://jesus.example.local/",
+            UserNameSecretName = "USER_SECRET",
+            PasswordSecretName = "PASS_SECRET",
+            AllowLocalDevPasswordGrant = true,
+            TimeoutSeconds = 10
+        };
+
+    private static IReadOnlyDictionary<string, string> CreatePasswordGrantSecrets()
+        => new Dictionary<string, string>
+        {
+            ["USER_SECRET"] = "unit-test-user",
+            ["PASS_SECRET"] = "unit-test-password"
+        };
+
     private static HttpResponseMessage JsonResponse(string json)
         => new(HttpStatusCode.OK)
         {
@@ -211,8 +300,10 @@ public sealed class AdfsOAuthTokenProviderTests
             _handler = new StubHandler(responder);
         }
 
+        public HttpClient? LastClient { get; private set; }
+
         public HttpClient CreateClient(string name)
-            => new(_handler, disposeHandler: false)
+            => LastClient = new(_handler, disposeHandler: false)
             {
                 Timeout = TimeSpan.FromSeconds(10)
             };
@@ -231,5 +322,36 @@ public sealed class AdfsOAuthTokenProviderTests
             HttpRequestMessage request,
             CancellationToken cancellationToken)
             => Task.FromResult(_responder(request));
+    }
+
+    private sealed class TrackingHttpClientFactory : IHttpClientFactory
+    {
+        private readonly HttpMessageHandler _handler;
+
+        public TrackingHttpClientFactory(Func<HttpRequestMessage, HttpResponseMessage> responder)
+        {
+            _handler = new StubHandler(responder);
+        }
+
+        public TrackingHttpClient? LastClient { get; private set; }
+
+        public HttpClient CreateClient(string name)
+            => LastClient = new TrackingHttpClient(_handler);
+    }
+
+    private sealed class TrackingHttpClient : HttpClient
+    {
+        public TrackingHttpClient(HttpMessageHandler handler)
+            : base(handler, disposeHandler: false)
+        {
+        }
+
+        public bool IsDisposed { get; private set; }
+
+        protected override void Dispose(bool disposing)
+        {
+            IsDisposed = true;
+            base.Dispose(disposing);
+        }
     }
 }

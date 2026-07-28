@@ -1,4 +1,4 @@
-﻿{
+{
     "id":  "dynamics-connection-compatibility",
     "title":  "Design the no-SDK Dynamics 365 access gateway",
     "status":  "in_progress",
@@ -6,7 +6,7 @@
     "risk":  "high",
     "domain":  "integration",
     "currentPhase":  "implementation",
-    "nextAction":  "Diagnose and fix sunnyvalechback CE 9.1 IFD ID3242 caused before member lookup; validate legacy service identity and align the disabled no-SDK 9.1 profile.",
+    "nextAction":  "Use a supported operator-side DWS credential to apply and verify the single sunnyvalechback CE 9.1 IFD ExternalDomain correction; retain Package01FeeReadsEnabled=false and complete the remaining Phase 4 durable coordination, profile lifecycle, bounded-body, workload-auth, soak, and live-matrix gates.",
     "createdAt":  "2026-07-23T00:00:00Z",
-    "branch":  "1.0.0.2.IsolateConnector.Worktree"
+    "branch":  "1.0.0.3.Gateway&Embedded.Worktree"
 }

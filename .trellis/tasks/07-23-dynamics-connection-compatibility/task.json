@@ -1,4 +1,4 @@
-﻿{
+{
     "id":  "dynamics-connection-compatibility",
     "name":  "dynamics-connection-compatibility",
     "title":  "Design the no-SDK Dynamics 365 access gateway",
@@ -12,7 +12,7 @@
     "assignee":  "codex",
     "createdAt":  "2026-07-23",
     "completedAt":  null,
-    "branch":  null,
+    "branch":  "1.0.0.3.Gateway&Embedded.Worktree",
     "base_branch":  "1.0.0.2.IsolateConnector.Worktree",
     "worktree_path":  null,
     "commit":  null,
@@ -27,7 +27,7 @@
     "relatedFiles":  [
 
                      ],
-    "notes":  "AdfsOAuth wiring completed (Embedded/Bootstrap/Gateway/tests/probe). Authority=https://speechmessagests.speechmessage.com.tw/adfs. Package01 still false. Next: operator Invoke-AdfsTokenProbe.ps1 then fee parity 56.",
+    "notes":  "2026-07-28 Phase 4 local hardening verified: ADFS and CRM handlers disable cookies/redirects/proxy/decompression/pre-auth, local admission is atomically bounded, and local host slots are atomic and fail closed after expiry. Package01 remains false. Next: obtain supported operator-side DWS credentials for the single IFD ExternalDomain correction, then complete durable coordination, profile generation/drain, bounded response streaming, workload auth, and live CE 8.2/9.1 verification.",
     "meta":  {
 
              }

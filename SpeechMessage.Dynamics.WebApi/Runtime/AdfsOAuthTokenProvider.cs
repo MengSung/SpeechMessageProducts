@@ -12,6 +12,8 @@
 // ============================================================================
 
 using SpeechMessage.Dynamics.Abstractions.Configuration;
+using System.Buffers;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
@@ -32,6 +34,8 @@ public interface IAdfsOAuthTokenProvider
 /// </summary>
 public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
 {
+    private const int MaxTokenResponseBytes = 32 * 1024;
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
@@ -127,23 +131,20 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
         };
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-        // IHttpClientFactory 建立的 HttpClient 不可 Dispose；只有自建 client 才 Dispose，避免 socket 洩漏。
-        HttpClient? ownedClient = null;
-        var http = CreateHttpClient(out ownedClient);
+        // Dispose each short-lived client wrapper; IHttpClientFactory retains ownership of its handler pool.
+        var http = CreateHttpClient();
         try
         {
             using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-
             if (!response.IsSuccessStatusCode)
             {
                 // 不把 body 全量丟到 UI（可能含敏感細節），只留狀態與短摘要。
-                var preview = body.Length <= 300 ? body : body.Substring(0, 300);
                 throw new InvalidOperationException(
-                    $"ADFS token request failed HTTP {(int)response.StatusCode} from '{tokenEndpoint}'. BodyPreview={preview}");
+                    $"ADFS token request failed HTTP {(int)response.StatusCode} from '{tokenEndpoint}'.");
             }
 
-            using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(body) ? "{}" : body);
+            var body = await ReadBoundedResponseAsync(response.Content, cancellationToken).ConfigureAwait(false);
+            using var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
             if (!root.TryGetProperty("access_token", out var accessNode) ||
                 accessNode.ValueKind != JsonValueKind.String ||
@@ -179,7 +180,7 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
         }
         finally
         {
-            ownedClient?.Dispose();
+            http.Dispose();
         }
     }
 
@@ -361,13 +362,14 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
             "Register a public/native client application in ADFS for the CRM resource.");
     }
 
-    private HttpClient CreateHttpClient(out HttpClient? ownedClient)
+    private HttpClient CreateHttpClient()
     {
-        ownedClient = null;
         if (_httpClientFactory is not null)
         {
-            // factory client 由 factory 管理生命週期，呼叫端不可 Dispose。
-            return _httpClientFactory.CreateClient("dynamics-adfs-token");
+            // The factory owns the reusable handler pool; this request owns and disposes its client wrapper.
+            var factoryClient = _httpClientFactory.CreateClient("dynamics-adfs-token");
+            factoryClient.Timeout = TimeSpan.FromSeconds(Math.Clamp(_options.TimeoutSeconds, 5, 120));
+            return factoryClient;
         }
 
         // DI 尚未提供 factory 時（例如部分測試/Embedded 自建 container）用短生命週期 client。
@@ -376,13 +378,50 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
             UseCookies = false,
             AllowAutoRedirect = false,
             UseProxy = false,
+            AutomaticDecompression = DecompressionMethods.None,
+            PreAuthenticate = false,
             PooledConnectionLifetime = TimeSpan.FromMinutes(5)
         };
-        ownedClient = new HttpClient(handler, disposeHandler: true)
+        var ownedClient = new HttpClient(handler, disposeHandler: true)
         {
             Timeout = TimeSpan.FromSeconds(Math.Clamp(_options.TimeoutSeconds, 5, 120))
         };
         return ownedClient;
+    }
+
+    private static async Task<byte[]> ReadBoundedResponseAsync(
+        HttpContent content,
+        CancellationToken cancellationToken)
+    {
+        if (content.Headers.ContentLength is long contentLength && contentLength > MaxTokenResponseBytes)
+        {
+            throw new InvalidOperationException("ADFS token response exceeds the maximum supported size.");
+        }
+
+        await using var stream = await content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        var buffer = ArrayPool<byte>.Shared.Rent(MaxTokenResponseBytes + 1);
+        try
+        {
+            var totalRead = 0;
+            while (totalRead <= MaxTokenResponseBytes)
+            {
+                var read = await stream.ReadAsync(
+                    buffer.AsMemory(totalRead, MaxTokenResponseBytes + 1 - totalRead),
+                    cancellationToken).ConfigureAwait(false);
+                if (read == 0)
+                {
+                    return buffer.AsSpan(0, totalRead).ToArray();
+                }
+
+                totalRead += read;
+            }
+
+            throw new InvalidOperationException("ADFS token response exceeds the maximum supported size.");
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
+        }
     }
 
     private sealed record TokenResponse(string AccessToken, int ExpiresInSeconds);

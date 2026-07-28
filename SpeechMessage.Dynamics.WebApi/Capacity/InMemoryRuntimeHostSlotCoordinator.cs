@@ -18,6 +18,7 @@ namespace SpeechMessage.Dynamics.WebApi.Capacity;
 /// </summary>
 public sealed class InMemoryRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
 {
+    private readonly object _sync = new();
     private readonly ConcurrentDictionary<string, SlotRecord> _slots = new(StringComparer.Ordinal);
     private long _fencing;
 
@@ -37,41 +38,44 @@ public sealed class InMemoryRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordin
             return Task.FromResult<RuntimeHostSlotLease?>(null);
         }
 
-        var now = DateTimeOffset.UtcNow;
-        PurgeExpired(leaseNamespace, now);
-
-        var key = BuildKey(leaseNamespace, hostInstanceId);
-        var token = Interlocked.Increment(ref _fencing);
-        var expires = now.Add(leaseTtl);
-
-        // 既有 host 重入：更新租約。
-        if (_slots.TryGetValue(key, out var existing) && existing.ExpiresAtUtc > now)
+        lock (_sync)
         {
-            existing.FencingToken = token;
-            existing.ExpiresAtUtc = expires;
+            var now = DateTimeOffset.UtcNow;
+            PurgeExpired(now);
+
+            var key = BuildKey(leaseNamespace, hostInstanceId);
+            var token = Interlocked.Increment(ref _fencing);
+            var expires = now.Add(leaseTtl);
+
+            // 既有 host 重入：更新租約。
+            if (_slots.TryGetValue(key, out var existing) && existing.ExpiresAtUtc > now)
+            {
+                existing.FencingToken = token;
+                existing.ExpiresAtUtc = expires;
+                return Task.FromResult<RuntimeHostSlotLease?>(
+                    new RuntimeHostSlotLease(this, leaseNamespace, hostInstanceId, token, expires));
+            }
+
+            var active = _slots.Count(pair =>
+                pair.Value.LeaseNamespace.LeaseNamespaceId == leaseNamespace.LeaseNamespaceId &&
+                pair.Value.ExpiresAtUtc > now);
+
+            if (active >= maximumRuntimeHosts)
+            {
+                return Task.FromResult<RuntimeHostSlotLease?>(null);
+            }
+
+            _slots[key] = new SlotRecord
+            {
+                LeaseNamespace = leaseNamespace,
+                HostInstanceId = hostInstanceId,
+                FencingToken = token,
+                ExpiresAtUtc = expires
+            };
+
             return Task.FromResult<RuntimeHostSlotLease?>(
                 new RuntimeHostSlotLease(this, leaseNamespace, hostInstanceId, token, expires));
         }
-
-        var active = _slots.Count(pair =>
-            pair.Value.LeaseNamespace.LeaseNamespaceId == leaseNamespace.LeaseNamespaceId &&
-            pair.Value.ExpiresAtUtc > now);
-
-        if (active >= maximumRuntimeHosts)
-        {
-            return Task.FromResult<RuntimeHostSlotLease?>(null);
-        }
-
-        _slots[key] = new SlotRecord
-        {
-            LeaseNamespace = leaseNamespace,
-            HostInstanceId = hostInstanceId,
-            FencingToken = token,
-            ExpiresAtUtc = expires
-        };
-
-        return Task.FromResult<RuntimeHostSlotLease?>(
-            new RuntimeHostSlotLease(this, leaseNamespace, hostInstanceId, token, expires));
     }
 
     public Task<bool> TryRenewAsync(
@@ -82,44 +86,53 @@ public sealed class InMemoryRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordin
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(lease);
 
-        var key = BuildKey(lease.LeaseNamespace, lease.HostInstanceId);
-        if (!_slots.TryGetValue(key, out var record))
+        lock (_sync)
         {
-            return Task.FromResult(false);
-        }
+            PurgeExpired(DateTimeOffset.UtcNow);
 
-        // fencing 必須匹配，避免 stale lease 續租。
-        if (record.FencingToken != lease.FencingToken)
-        {
-            return Task.FromResult(false);
-        }
+            var key = BuildKey(lease.LeaseNamespace, lease.HostInstanceId);
+            if (!_slots.TryGetValue(key, out var record))
+            {
+                return Task.FromResult(false);
+            }
 
-        var token = Interlocked.Increment(ref _fencing);
-        var expires = DateTimeOffset.UtcNow.Add(leaseTtl);
-        record.FencingToken = token;
-        record.ExpiresAtUtc = expires;
-        lease.Update(token, expires);
-        return Task.FromResult(true);
+            // fencing 必須匹配，避免 stale lease 續租。
+            if (record.FencingToken != lease.FencingToken)
+            {
+                return Task.FromResult(false);
+            }
+
+            var token = Interlocked.Increment(ref _fencing);
+            var expires = DateTimeOffset.UtcNow.Add(leaseTtl);
+            record.FencingToken = token;
+            record.ExpiresAtUtc = expires;
+            lease.Update(token, expires);
+            return Task.FromResult(true);
+        }
     }
 
     public ValueTask ReleaseAsync(RuntimeHostSlotLease lease, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(lease);
-        var key = BuildKey(lease.LeaseNamespace, lease.HostInstanceId);
-        if (_slots.TryGetValue(key, out var record) && record.FencingToken == lease.FencingToken)
+        lock (_sync)
         {
-            _slots.TryRemove(key, out _);
+            PurgeExpired(DateTimeOffset.UtcNow);
+
+            var key = BuildKey(lease.LeaseNamespace, lease.HostInstanceId);
+            if (_slots.TryGetValue(key, out var record) && record.FencingToken == lease.FencingToken)
+            {
+                _slots.TryRemove(key, out _);
+            }
         }
 
         return ValueTask.CompletedTask;
     }
 
-    private void PurgeExpired(RuntimeHostSlotLeaseNamespace leaseNamespace, DateTimeOffset now)
+    private void PurgeExpired(DateTimeOffset now)
     {
         foreach (var pair in _slots)
         {
-            if (pair.Value.LeaseNamespace.LeaseNamespaceId == leaseNamespace.LeaseNamespaceId &&
-                pair.Value.ExpiresAtUtc <= now)
+            if (pair.Value.ExpiresAtUtc <= now)
             {
                 _slots.TryRemove(pair.Key, out _);
             }

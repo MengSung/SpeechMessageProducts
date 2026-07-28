@@ -8,6 +8,7 @@
 // - 這裡不做 per-user session pool。
 // ============================================================================
 
+using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -76,7 +77,16 @@ public static class WebApiServiceCollectionExtensions
             .ValidateOnStart();
 
         services.TryAddSingleton<ISecretResolver, EnvironmentSecretResolver>();
-        services.AddHttpClient("dynamics-adfs-token");
+        services.AddHttpClient("dynamics-adfs-token")
+            .ConfigurePrimaryHttpMessageHandler(static () => new SocketsHttpHandler
+            {
+                UseCookies = false,
+                AllowAutoRedirect = false,
+                UseProxy = false,
+                AutomaticDecompression = DecompressionMethods.None,
+                PreAuthenticate = false,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+            });
         services.TryAddSingleton<IAdfsOAuthTokenProvider, AdfsOAuthTokenProvider>();
         services.TryAddSingleton<IRuntimeHostSlotCoordinator, InMemoryRuntimeHostSlotCoordinator>();
 
