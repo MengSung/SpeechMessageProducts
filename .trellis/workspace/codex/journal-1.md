@@ -79,3 +79,37 @@ Merged the MemberInfo feature branch, repaired CRLF-sensitive portable manifest 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: Merge IsolateConnector worktree
+
+**Date**: 2026-07-28
+**Task**: Merge IsolateConnector worktree
+**Branch**: `1.0.0.2.IsolateConnector`
+
+### Summary
+
+Merged 1.0.0.2.IsolateConnector.Worktree into 1.0.0.2.IsolateConnector, verified Dynamics and smoke gates, sanitized a historical credential test fixture, archived the CCG task, and removed the local source worktree registration and branch.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f9e544e0` | (see git log) |
+| `cf327dd6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
