@@ -86,7 +86,7 @@ public sealed class DynamicsProfileAlignmentTests
         result.SecretReference.Should().Be("dynamics-jesus-prod-credential");
 
         // 對齊結果不得夾帶任何明文密碼欄位語意。
-        result.SecretReference.Should().NotContain("hu9840");
+        result.SecretReference.Should().NotContain("unit-test-plaintext-password");
         result.OrganizationWebApiBaseUri.Should().NotContain("Organization.svc");
     }
 

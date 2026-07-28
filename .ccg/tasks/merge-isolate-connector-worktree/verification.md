@@ -27,3 +27,14 @@ These failures are an identical pre-merge target baseline, not additional failur
 
 - The report-only no-Dynamics-SDK scanner exited successfully and reported 1,069 legacy findings, consistent with the Phase 0 inventory mode.
 - Restore/build reported existing `NU1903` high-severity advisories for `System.Security.Cryptography.Xml` 10.0.9 through `ToolUtility` and `PowerPlatform.Dataverse.Client`. The source branch does not change the affected package references.
+
+## Merged Target Branch
+
+- Merge commit: `f9e544e05d37b5a56b8816d8d11da175a311e85a`.
+- Merge parents: target tip `82df2440e17708172ee4706c5f54d2932e569e7a` and source audit tip `33f4aa9a7cb70a22d8581648639f41f3f7de33ad`.
+- Source audit tip is an ancestor of the merged target.
+- `SpeechMessage.Dynamics.Tests`: 47 passed, 0 failed after merge.
+- `SpeechMessage.Dynamics.SmokeTests`: 4 passed, 0 failed after merge.
+- ChurchReport, Dynamics Gateway, and Dynamics ProductClient Release builds passed after restore.
+- Full solution result after merge remained identical to the pre-merge target baseline: 22 ChurchReport.MemberInfo failures and 1 RichMenus boundary failure; no additional failures appeared.
+- A source-added Dynamics test fixture still used a known historical credential string as negative test data. It was replaced with `unit-test-plaintext-password`; the focused test and full Dynamics test project then passed.

@@ -5,8 +5,8 @@
   "complexity": "L+",
   "risk": "high",
   "domain": "integration",
-  "currentPhase": "implementation",
-  "nextAction": "Commit the merge audit trail and merge the verified source into the local target",
+  "currentPhase": "review",
+  "nextAction": "Commit the final security cleanup, archive the task, and clean up the merged worktree",
   "createdAt": "2026-07-28T00:19:44Z",
   "branch": "1.0.0.2.IsolateConnector.Worktree"
 }
