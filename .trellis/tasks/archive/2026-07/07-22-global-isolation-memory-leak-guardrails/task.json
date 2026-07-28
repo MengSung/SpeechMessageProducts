@@ -3,7 +3,7 @@
   "name": "global-isolation-memory-leak-guardrails",
   "title": "Define global session and memory leak guardrails",
   "description": "Add durable global Codex instructions that treat cross-session data leakage and memory leaks as zero-tolerance release blockers, while keeping performance guidance subordinate to security and correctness.",
-  "status": "planning",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,8 +11,8 @@
   "creator": "codex",
   "assignee": "codex",
   "createdAt": "2026-07-22",
-  "completedAt": null,
-  "branch": null,
+  "completedAt": "2026-07-28",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree",
   "base_branch": "1.0.0.2.IsolateConnector.Worktree",
   "worktree_path": null,
   "commit": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "Installed and locally verified the personal policy outside the managed CCG block on 2026-07-28. Full Gemini + Claude post-warning review passed in run 20260728-171249-global-isolation-memory-leak-guardrails-postwarning-reviewer with no Critical or Warning findings and no degraded fallback.",
   "meta": {}
 }

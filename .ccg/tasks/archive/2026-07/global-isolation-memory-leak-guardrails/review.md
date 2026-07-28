@@ -39,6 +39,21 @@ The analyzers produced substantive reports and confirmed the proposed personal g
 
 These are planning recommendations and do not indicate a dual-model toolchain failure.
 
-## Current phase
+## Final implementation and closure, 2026-07-28
 
-Remain in planning. Reconcile the non-blocking wording warning and obtain user approval before implementation.
+- The user explicitly approved implementation and requested the guardrails be enforced for all subsequent product work.
+- Installed `Global Session Isolation and Resource Lifecycle Guardrails` after the `CCG:END` marker in the personal `C:\Users\Administrator\.codex\AGENTS.md`. The managed block remains unchanged and contains one start/end marker pair.
+- Reconciled the performance rule across the PRD and requirements so isolation, correctness, deterministic cleanup, verification, and maintainability are all protected.
+- Added cancellation registrations and connections to the explicit lifecycle ownership inventory after validating Gemini's first-pass Warning.
+- Local validation passed for marker placement, required wording, UTF-8 without BOM, and unrelated managed-block preservation.
+
+### Final dual-model review
+
+- Run: `20260728-171249-global-isolation-memory-leak-guardrails-postwarning-reviewer`
+- Overall: `ok=true`, `degradedFallback=false`, `quotaBlocked=false`
+- Gemini: PASS, no Critical or Warning finding.
+- Claude: PASS, no Critical or Warning finding.
+
+## Final phase
+
+Completed and ready for archive.
