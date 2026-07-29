@@ -115,6 +115,49 @@ public sealed class GatewayKestrelNegotiateTests
     }
 
     /// <summary>
+    /// 以同一個真實 HTTPS／Negotiate／DefaultNetworkCredentials 流程驗證「authentication 成功不等於 workload authorization」：
+    /// Factory 將 Development binding 精確替換成另一個有效 SID/name，當前 Windows identity 因未 mapping 必須收到 403，且 executor 呼叫維持零。
+    /// Override 只屬於單一 Factory configuration snapshot，不使用 HTTP identity header、不建立秘密或長生命週期 cache；
+    /// handler、client、Negotiate context、socket 與 Host 均由案例內 using／await using 確定性清理。
+    /// </summary>
+    [Fact]
+    public async Task Development_authenticated_but_unmapped_default_credentials_are_forbidden()
+    {
+        await using var factory = CreateDevelopmentGatewayFactory(
+            useKestrel: true,
+            configurationOverrides: new Dictionary<string, string?>
+            {
+                ["DynamicsGateway:WorkloadBindings:1:WindowsSid"] =
+                    "S-1-5-21-3356955407-2337739315-1638624769-501",
+                ["DynamicsGateway:WorkloadBindings:1:PrincipalName"] =
+                    @"LENOVO-LEGION\UnmappedAdministrator"
+            });
+        using var serverStarter = factory.CreateClient(
+            new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        using var handler = new HttpClientHandler
+        {
+            AllowAutoRedirect = false,
+            Credentials = CredentialCache.DefaultNetworkCredentials,
+            PreAuthenticate = false,
+            ServerCertificateCustomValidationCallback =
+                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+        using var client = new HttpClient(handler)
+        {
+            BaseAddress = new Uri("https://localhost:7244", UriKind.Absolute)
+        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, ProtectedOperationPath)
+        {
+            Content = JsonContent.Create(new { parameters = new Dictionary<string, object?>() })
+        };
+
+        using var response = await client.SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        factory.Services.GetRequiredService<BoundaryRecordingExecutor>().CallCount.Should().Be(0);
+    }
+
+    /// <summary>
     /// 驗證 Development provider 合併基底設定後，仍會把 crm82 的 production URI、ADFS metadata 與所有秘密參考完整替換為不可路由的本機安全邊界。
     /// 這個檢查只讀取 Host 已發布的 configuration snapshot，不解析環境變數中的秘密、不建立 Dynamics transport，也不啟動額外背景工作；
     /// Factory 是 configuration、service provider 與 TestServer 的唯一 owner，案例結束時確定性 Dispose，避免跨測試保留 profile 或 credential reference。
@@ -217,17 +260,35 @@ public sealed class GatewayKestrelNegotiateTests
     /// 並以純記憶體 executor 取代 outbound runtime。Fake scheme 雖被註冊，卻不得成為 Development default；
     /// Factory disposal 是 server、service provider 與所有 request scope 的唯一 cleanup owner。
     /// </summary>
-    private static WebApplicationFactory<Program> CreateDevelopmentGatewayFactory(bool useKestrel)
+    /// <param name="useKestrel">true 建立真實 localhost HTTPS listener；false 使用可注入 connection metadata 的 TestServer。</param>
+    /// <param name="configurationOverrides">單一 Factory 擁有的選用設定覆寫；只供精確負向 binding 與隔離測試，不接受 request 輸入。</param>
+    /// <returns>尚未由 caller 啟動且必須由 caller Dispose 的隔離 Factory。</returns>
+    private static WebApplicationFactory<Program> CreateDevelopmentGatewayFactory(
+        bool useKestrel,
+        IReadOnlyDictionary<string, string?>? configurationOverrides = null)
     {
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Development");
             builder.ConfigureAppConfiguration((_, configuration) =>
-                configuration.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                var values = new Dictionary<string, string?>
                 {
                     // RED 基線刻意要求一個 fake scheme；GREEN 必須由 Program 忽略此值並固定使用 Negotiate。
                     ["DynamicsGateway:AuthenticationScheme"] = HeaderTrustingFakeAuthenticationHandler.SchemeName
-                }));
+                };
+                if (configurationOverrides is not null)
+                {
+                    // 每個 override dictionary 只由單一 Factory setup 擁有，啟動後 configuration/authorizer 會建立唯讀 snapshot；
+                    // 測試不在平行案例間共享或修改集合，避免身分 binding 產生跨案例競態或 retention。
+                    foreach (var pair in configurationOverrides)
+                    {
+                        values[pair.Key] = pair.Value;
+                    }
+                }
+
+                configuration.AddInMemoryCollection(values);
+            });
             builder.ConfigureTestServices(services =>
             {
                 var readinessDescriptors = services
