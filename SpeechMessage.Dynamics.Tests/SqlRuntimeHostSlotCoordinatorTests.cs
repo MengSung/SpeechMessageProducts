@@ -27,6 +27,9 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
     {
         SqlRuntimeHostSlotCoordinator.SchemaSql.Should().Contain("RuntimeHostSlotLease");
         SqlRuntimeHostSlotCoordinator.SchemaSql.Should().Contain("RuntimeHostFencingSequence");
+        SqlRuntimeHostSlotCoordinator.SchemaSql.Should().Contain("RuntimeHostAdmissionEpoch");
+        SqlRuntimeHostSlotCoordinator.SchemaSql.Should().Contain("ConfigurationDigest");
+        SqlRuntimeHostSlotCoordinator.SchemaSql.Should().Contain("AdmissionEpoch");
         SqlRuntimeHostSlotCoordinator.SchemaSql.Should().Contain("SYSUTCDATETIME()");
         SqlRuntimeHostSlotCoordinator.SchemaSql.Should().NotContain("MSCRM_CONFIG");
         SqlRuntimeHostSlotCoordinator.SchemaSql.Should().NotContain("OrganizationBase");
@@ -75,6 +78,32 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
             options,
             NullLogger<SqlRuntimeHostSlotCoordinator>.Instance);
         await coordinator.EnsureSchemaAsync(CancellationToken.None);
+
+        var epochNamespace = new RuntimeHostSlotLeaseNamespace(
+            "epoch-contract-" + Guid.NewGuid().ToString("N"));
+        var epochLease = await coordinator.TryAcquireAsync(
+            new RuntimeHostSlotLeaseRequest(
+                epochNamespace,
+                "epoch-host",
+                MaximumRuntimeHosts: 1,
+                LeaseTtl: TimeSpan.FromSeconds(5),
+                AdmissionEpoch: 7,
+                ConfigurationDigest: new string('A', 64)),
+            CancellationToken.None);
+        epochLease.Should().NotBeNull();
+
+        var drift = async () => await coordinator.TryAcquireAsync(
+            new RuntimeHostSlotLeaseRequest(
+                epochNamespace,
+                "drift-host",
+                MaximumRuntimeHosts: 1,
+                LeaseTtl: TimeSpan.FromSeconds(5),
+                AdmissionEpoch: 7,
+                ConfigurationDigest: new string('B', 64)),
+            CancellationToken.None);
+        await drift.Should().ThrowAsync<SqlException>()
+            .Where(exception => exception.Number == 51003);
+        await epochLease!.DisposeAsync();
 
         var suffix = Guid.NewGuid().ToString("N");
         var ns = new RuntimeHostSlotLeaseNamespace("contract-" + suffix);

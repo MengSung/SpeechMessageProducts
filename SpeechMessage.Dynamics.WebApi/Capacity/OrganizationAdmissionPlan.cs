@@ -9,6 +9,9 @@
 
 using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.WebApi.Runtime;
+using System.Buffers.Binary;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SpeechMessage.Dynamics.WebApi.Capacity;
 
@@ -20,6 +23,8 @@ public sealed class OrganizationAdmissionPlan
     public required CanonicalOrganizationCapacityKey CanonicalKey { get; init; }
     public required OrganizationAdmissionKey AdmissionKey { get; init; }
     public required RuntimeHostSlotLeaseNamespace LeaseNamespace { get; init; }
+    public required long AdmissionEpoch { get; init; }
+    public required string ConfigurationDigest { get; init; }
     public required int AggregateMaxInFlight { get; init; }
     public required int MaximumRuntimeHosts { get; init; }
     public required int LocalMaxInFlight { get; init; }
@@ -120,6 +125,14 @@ public sealed class OrganizationAdmissionPlan
             return false;
         }
 
+        if (admissionOptions.AdmissionEpoch < 1)
+        {
+            error = OperationExecutionResult.Failure(
+                DynamicsErrorCodes.InvalidConfiguration,
+                "AdmissionEpoch must be at least 1.");
+            return false;
+        }
+
         var leaseTtl = TimeSpan.FromSeconds(admissionOptions.RuntimeHostSlotLeaseTtlSeconds);
         var renewalInterval = TimeSpan.FromSeconds(admissionOptions.RuntimeHostSlotRenewalIntervalSeconds);
         var expiryFence = TimeSpan.FromSeconds(admissionOptions.RuntimeHostSlotExpiryFenceSeconds);
@@ -149,13 +162,21 @@ public sealed class OrganizationAdmissionPlan
             normalizedBase += "/";
         }
 
+        var canonicalKey = new CanonicalOrganizationCapacityKey(
+            admissionOptions.ExpectedOrganizationId,
+            normalizedBase.ToLowerInvariant());
+        var configurationDigest = ComputeConfigurationDigest(
+            canonicalKey,
+            admissionOptions,
+            webApiOptions.MaxConnectionsPerServer);
+
         plan = new OrganizationAdmissionPlan
         {
-            CanonicalKey = new CanonicalOrganizationCapacityKey(
-                admissionOptions.ExpectedOrganizationId,
-                normalizedBase.ToLowerInvariant()),
+            CanonicalKey = canonicalKey,
             AdmissionKey = new OrganizationAdmissionKey(admissionOptions.AdmissionNamespaceId.Trim()),
             LeaseNamespace = new RuntimeHostSlotLeaseNamespace(admissionOptions.LeaseNamespaceId.Trim()),
+            AdmissionEpoch = admissionOptions.AdmissionEpoch,
+            ConfigurationDigest = configurationDigest,
             AggregateMaxInFlight = admissionOptions.AggregateMaxInFlight,
             MaximumRuntimeHosts = admissionOptions.MaximumRuntimeHosts,
             LocalMaxInFlight = localMax,
@@ -172,5 +193,44 @@ public sealed class OrganizationAdmissionPlan
             RequireDurableHostCoordinator = admissionOptions.RequireDurableHostCoordinator
         };
         return true;
+    }
+
+    private static string ComputeConfigurationDigest(
+        CanonicalOrganizationCapacityKey canonicalKey,
+        OrganizationAdmissionOptions options,
+        int maxConnectionsPerServer)
+    {
+        var values = new[]
+        {
+            canonicalKey.ExpectedOrganizationId.ToString("D"),
+            canonicalKey.NormalizedOrganizationBaseUri,
+            options.AdmissionNamespaceId.Trim(),
+            options.LeaseNamespaceId.Trim(),
+            options.AdmissionEpoch.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            options.AggregateMaxInFlight.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            options.MaximumRuntimeHosts.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            options.LocalQueueCapacity.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            options.MaxDispatchEnvelopeBytes.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            options.QueueAdmissionTimeoutSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            options.MaxInFlightAndQueuedPerWorkload.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            options.RuntimeHostSlotLeaseTtlSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            options.RuntimeHostSlotRenewalIntervalSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            options.RuntimeHostSlotExpiryFenceSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            options.MaximumOutboundWorkLifetimeSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            options.ShutdownDrainTimeoutSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            maxConnectionsPerServer.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        };
+
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        Span<byte> lengthPrefix = stackalloc byte[4];
+        foreach (var value in values)
+        {
+            var bytes = Encoding.UTF8.GetBytes(value);
+            BinaryPrimitives.WriteInt32BigEndian(lengthPrefix, bytes.Length);
+            hash.AppendData(lengthPrefix);
+            hash.AppendData(bytes);
+        }
+
+        return Convert.ToHexString(hash.GetHashAndReset());
     }
 }

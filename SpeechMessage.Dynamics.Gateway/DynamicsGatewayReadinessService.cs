@@ -19,5 +19,6 @@ public sealed class DynamicsGatewayReadinessService : IHostedService
         await _admissionManager.EnsureHostSlotAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken cancellationToken)
+        => _admissionManager.DisposeAsync().AsTask();
 }

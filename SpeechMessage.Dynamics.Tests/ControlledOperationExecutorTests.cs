@@ -73,6 +73,39 @@ public sealed class ControlledOperationExecutorTests
         result.Data.Should().NotBeNull();
     }
 
+    [Fact]
+    public async Task Lease_loss_cancels_in_flight_web_api_work_and_releases_permit()
+    {
+        var admission = new CancellingAdmissionManager();
+        var webApi = new CancellationObservingWebApiClient();
+        var executor = new ControlledOperationExecutor(webApi, admission);
+        using var callerCts = new CancellationTokenSource();
+
+        var execution = executor.ExecuteAsync(new OperationExecutionRequest
+        {
+            ProfileAlias = "jesus-dev",
+            CapabilityOperationId = OperationIds.RuntimeHealthWhoAmI,
+            WorkloadSubjectId = "test-workload"
+        }, callerCts.Token);
+
+        await webApi.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        try
+        {
+            admission.CancelLease();
+            await Task.Delay(200);
+
+            execution.IsCompleted.Should().BeTrue(
+                "lease loss must cancel CRM traffic without waiting for caller cancellation");
+            (await execution).Succeeded.Should().BeFalse();
+            admission.PermitDisposed.Should().BeTrue();
+        }
+        finally
+        {
+            callerCts.Cancel();
+            await execution.WaitAsync(TimeSpan.FromSeconds(5));
+        }
+    }
+
     private static IDynamicsOperationExecutor CreateExecutor(HttpMessageHandler handler)
     {
         var options = Options.Create(new DynamicsWebApiOptions
@@ -139,5 +172,110 @@ public sealed class ControlledOperationExecutorTests
         public StaticAdfsOAuthTokenProvider(string token) => _token = token;
         public Task<string> GetAccessTokenAsync(CancellationToken cancellationToken = default)
             => Task.FromResult(_token);
+    }
+
+    private sealed class CancellingAdmissionManager : IOrganizationAdmissionManager
+    {
+        private readonly CancellationTokenSource _leaseLost = new();
+
+        public CancellingAdmissionManager()
+        {
+            var options = new DynamicsWebApiOptions
+            {
+                OrganizationWebApiBaseUri = "https://crm.example.local/api/data/v9.1/",
+                MaxConnectionsPerServer = 1,
+                Admission = new OrganizationAdmissionOptions
+                {
+                    ExpectedOrganizationId = Guid.Parse("23232323-2323-2323-2323-232323232323"),
+                    AggregateMaxInFlight = 1,
+                    MaximumRuntimeHosts = 1,
+                    AdmissionNamespaceId = "executor-cancel",
+                    LeaseNamespaceId = "executor-cancel"
+                }
+            };
+            OrganizationAdmissionPlan.TryCreate(options, options.Admission, out var plan, out _)
+                .Should().BeTrue();
+            Plan = plan!;
+        }
+
+        public OrganizationAdmissionPlan Plan { get; }
+        public bool PermitDisposed { get; private set; }
+
+        public void CancelLease() => _leaseLost.Cancel();
+
+        public Task EnsureHostSlotAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task<AdmissionAcquireResult> AcquireAsync(
+            DispatchEnvelope envelope,
+            CancellationToken cancellationToken)
+            => Task.FromResult(AdmissionAcquireResult.Success(new Permit(this, _leaseLost.Token)));
+
+        public AdmissionMetricsSnapshot GetSnapshot() => throw new NotSupportedException();
+
+        public void Dispose() => _leaseLost.Dispose();
+
+        public ValueTask DisposeAsync()
+        {
+            Dispose();
+            return ValueTask.CompletedTask;
+        }
+
+        private sealed class Permit : IAdmissionPermit
+        {
+            private readonly CancellingAdmissionManager _owner;
+            private int _disposed;
+
+            public Permit(CancellingAdmissionManager owner, CancellationToken leaseLostToken)
+            {
+                _owner = owner;
+                LeaseLostToken = leaseLostToken;
+            }
+
+            public Guid CorrelationId { get; } = Guid.NewGuid();
+            public long HostFencingToken => 1;
+            public CancellationToken LeaseLostToken { get; }
+
+            public void Dispose()
+            {
+                if (Interlocked.Exchange(ref _disposed, 1) == 0)
+                {
+                    _owner.PermitDisposed = true;
+                }
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                Dispose();
+                return ValueTask.CompletedTask;
+            }
+        }
+    }
+
+    private sealed class CancellationObservingWebApiClient : IDynamicsWebApiClient
+    {
+        public TaskCompletionSource Entered { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public Task<OperationExecutionResult> WhoAmIAsync(CancellationToken cancellationToken = default)
+            => throw new NotSupportedException();
+
+        public async Task<OperationExecutionResult> ExecuteRegisteredOperationAsync(
+            OperationDefinition definition,
+            IReadOnlyDictionary<string, object?> parameters,
+            CancellationToken cancellationToken = default)
+        {
+            Entered.TrySetResult();
+            try
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+                throw new InvalidOperationException("The cancellation test unexpectedly completed without cancellation.");
+            }
+            catch (OperationCanceledException)
+            {
+                return OperationExecutionResult.Failure(
+                    DynamicsErrorCodes.HostSlotUnavailable,
+                    "Lease lost.");
+            }
+        }
     }
 }

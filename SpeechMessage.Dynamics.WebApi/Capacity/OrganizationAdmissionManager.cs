@@ -87,6 +87,12 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
                 "Durable host-slot coordinator is required, but current coordinator is in-memory only.");
         }
 
+        if (_plan.RequireDurableHostCoordinator && !_slotCoordinator.SupportsAdmissionEpoch)
+        {
+            throw new InvalidOperationException(
+                "Durable host-slot coordinator must enforce AdmissionEpoch and configuration digest fencing.");
+        }
+
         if (Volatile.Read(ref _terminalLeaseFailure) != 0)
         {
             throw new InvalidOperationException("Runtime host slot was fenced or lost and requires process restart.");
@@ -128,10 +134,13 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         }
 
         lease = await _slotCoordinator.TryAcquireAsync(
-            _plan.LeaseNamespace,
-            _hostInstanceId,
-            _plan.MaximumRuntimeHosts,
-            _plan.RuntimeHostSlotLeaseTtl,
+            new RuntimeHostSlotLeaseRequest(
+                _plan.LeaseNamespace,
+                _hostInstanceId,
+                _plan.MaximumRuntimeHosts,
+                _plan.RuntimeHostSlotLeaseTtl,
+                _plan.AdmissionEpoch,
+                _plan.ConfigurationDigest),
             cancellationToken).ConfigureAwait(false);
         if (lease is null)
         {
@@ -600,7 +609,7 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
             leaseLost = _leaseLostCts;
         }
 
-        leaseLost?.Cancel();
+        SafeCancel(leaseLost, "lease-loss callbacks");
         _logger.LogError("{Reason} New Dynamics admission is closed until process restart.", reason);
     }
 
@@ -618,13 +627,42 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
 
         if (lease is not null)
         {
-            await lease.DisposeAsync().ConfigureAwait(false);
+            try
+            {
+                await lease.DisposeAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Runtime host slot fenced release failed; local ownership is still disposed and the coordinator TTL/quarantine remains authoritative.");
+            }
         }
 
         if (leaseLost is not null)
         {
-            leaseLost.Cancel();
+            SafeCancel(leaseLost, "lease disposal callbacks");
             leaseLost.Dispose();
+        }
+    }
+
+    private void SafeCancel(CancellationTokenSource? source, string callbackScope)
+    {
+        if (source is null || source.IsCancellationRequested)
+        {
+            return;
+        }
+
+        try
+        {
+            source.Cancel();
+        }
+        catch (AggregateException ex)
+        {
+            _logger.LogError(
+                ex,
+                "One or more {CallbackScope} threw during cancellation; admission remains fail-closed.",
+                callbackScope);
         }
     }
 

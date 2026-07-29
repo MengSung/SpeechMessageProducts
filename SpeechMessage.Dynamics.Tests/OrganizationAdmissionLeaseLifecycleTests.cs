@@ -76,6 +76,19 @@ public sealed class OrganizationAdmissionLeaseLifecycleTests
     }
 
     [Fact]
+    public async Task Coordinator_release_failure_does_not_leak_owned_renewal_or_local_resources()
+    {
+        var coordinator = new FailingReleaseCoordinator();
+        var manager = CreateManager(coordinator);
+        await manager.EnsureHostSlotAsync(CancellationToken.None);
+
+        await manager.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+
+        coordinator.ReleaseCalls.Should().Be(1);
+        coordinator.ActiveRenewOperations.Should().Be(0);
+    }
+
+    [Fact]
     public async Task Lease_that_cannot_fit_maximum_work_lifetime_is_not_admitted()
     {
         var coordinator = new ShortLeaseCoordinator(TimeSpan.FromSeconds(2));
@@ -259,5 +272,16 @@ public sealed class OrganizationAdmissionLeaseLifecycleTests
                 fencingToken: 1,
                 expiresAtUtc: DateTimeOffset.UtcNow.Add(_actualTtl),
                 slotOrdinal: 0));
+    }
+
+    private sealed class FailingReleaseCoordinator : RecordingCoordinator
+    {
+        public override ValueTask ReleaseAsync(
+            RuntimeHostSlotLease lease,
+            CancellationToken cancellationToken)
+        {
+            base.ReleaseAsync(lease, cancellationToken);
+            return ValueTask.FromException(new InvalidOperationException("release-failed"));
+        }
     }
 }

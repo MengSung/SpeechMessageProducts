@@ -94,18 +94,36 @@ builder.Services.AddSpeechMessageDynamicsWebApi(options =>
             out var orgId)
         ? orgId
         : Guid.Parse("11111111-1111-1111-1111-111111111111");
-    options.Admission.AggregateMaxInFlight = 24;
-    options.Admission.MaximumRuntimeHosts = 6;
-    options.Admission.LocalQueueCapacity = 48;
-    options.Admission.MaxDispatchEnvelopeBytes = 65536;
-    options.Admission.QueueAdmissionTimeoutSeconds = 15;
-    options.Admission.MaxInFlightAndQueuedPerWorkload = 8;
+    options.Admission.AggregateMaxInFlight = builder.Configuration.GetValue(
+        "DynamicsWebApi:Admission:AggregateMaxInFlight", 24);
+    options.Admission.MaximumRuntimeHosts = builder.Configuration.GetValue(
+        "DynamicsWebApi:Admission:MaximumRuntimeHosts", 6);
+    options.Admission.LocalQueueCapacity = builder.Configuration.GetValue(
+        "DynamicsWebApi:Admission:LocalQueueCapacity", 48);
+    options.Admission.MaxDispatchEnvelopeBytes = builder.Configuration.GetValue(
+        "DynamicsWebApi:Admission:MaxDispatchEnvelopeBytes", 65536);
+    options.Admission.QueueAdmissionTimeoutSeconds = builder.Configuration.GetValue(
+        "DynamicsWebApi:Admission:QueueAdmissionTimeoutSeconds", 15);
+    options.Admission.MaxInFlightAndQueuedPerWorkload = builder.Configuration.GetValue(
+        "DynamicsWebApi:Admission:MaxInFlightAndQueuedPerWorkload", 8);
     options.Admission.AdmissionNamespaceId =
         builder.Configuration["DynamicsWebApi:Admission:AdmissionNamespaceId"]
         ?? "gateway-local-admission";
     options.Admission.LeaseNamespaceId =
         builder.Configuration["DynamicsWebApi:Admission:LeaseNamespaceId"]
         ?? "gateway-local-host-lease";
+    options.Admission.AdmissionEpoch = builder.Configuration.GetValue<long>(
+        "DynamicsWebApi:Admission:AdmissionEpoch", 1);
+    options.Admission.RuntimeHostSlotLeaseTtlSeconds = builder.Configuration.GetValue(
+        "DynamicsWebApi:Admission:RuntimeHostSlotLeaseTtlSeconds", 120);
+    options.Admission.RuntimeHostSlotRenewalIntervalSeconds = builder.Configuration.GetValue(
+        "DynamicsWebApi:Admission:RuntimeHostSlotRenewalIntervalSeconds", 30);
+    options.Admission.RuntimeHostSlotExpiryFenceSeconds = builder.Configuration.GetValue(
+        "DynamicsWebApi:Admission:RuntimeHostSlotExpiryFenceSeconds", 10);
+    options.Admission.MaximumOutboundWorkLifetimeSeconds = builder.Configuration.GetValue(
+        "DynamicsWebApi:Admission:MaximumOutboundWorkLifetimeSeconds", 35);
+    options.Admission.ShutdownDrainTimeoutSeconds = builder.Configuration.GetValue(
+        "DynamicsWebApi:Admission:ShutdownDrainTimeoutSeconds", 45);
     options.Admission.RequireDurableHostCoordinator =
         !builder.Environment.IsEnvironment("Testing");
 
@@ -138,7 +156,29 @@ var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "SpeechMessage.Dynamics.Gateway" }));
+app.MapGet("/health", (HttpContext context) =>
+{
+    context.Response.Headers.CacheControl = "no-store";
+    return Results.Ok(new { status = "ok", service = "SpeechMessage.Dynamics.Gateway" });
+});
+app.MapGet("/ready", (HttpContext context, SpeechMessage.Dynamics.WebApi.Capacity.IOrganizationAdmissionManager admissionManager) =>
+{
+    context.Response.Headers.CacheControl = "no-store";
+    var snapshot = admissionManager.GetSnapshot();
+    var body = new
+    {
+        status = snapshot.HostSlotReady ? "ready" : "not-ready",
+        service = "SpeechMessage.Dynamics.Gateway",
+        snapshot.InFlight,
+        snapshot.Queued,
+        snapshot.ActivePermits,
+        snapshot.HostLeaseExpiresAtUtc,
+        snapshot.RenewalLoopActive
+    };
+    return snapshot.HostSlotReady
+        ? Results.Ok(body)
+        : Results.Json(body, statusCode: StatusCodes.Status503ServiceUnavailable);
+});
 
 // 受控操作入口：
 // POST /v1/organizations/{alias}/operations/{capabilityOperationId}

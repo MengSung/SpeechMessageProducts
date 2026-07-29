@@ -9,12 +9,31 @@ IF DB_NAME() IN (N'MSCRM_CONFIG', N'Jesus_MSCRM')
 IF OBJECT_ID(N'dbo.RuntimeHostFencingSequence', N'SO') IS NULL
     EXEC(N'CREATE SEQUENCE dbo.RuntimeHostFencingSequence AS bigint START WITH 1 INCREMENT BY 1 CACHE 1000;');
 
+IF OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.RuntimeHostAdmissionEpoch
+    (
+        LeaseNamespaceId nvarchar(128) NOT NULL,
+        AdmissionEpoch bigint NOT NULL,
+        ConfigurationDigest char(64) NOT NULL,
+        MaximumRuntimeHosts int NOT NULL,
+        LastUpdatedAtUtc datetime2(3) NOT NULL
+            CONSTRAINT DF_RuntimeHostAdmissionEpoch_LastUpdated DEFAULT (SYSUTCDATETIME()),
+        RowVersion rowversion NOT NULL,
+        CONSTRAINT PK_RuntimeHostAdmissionEpoch PRIMARY KEY (LeaseNamespaceId),
+        CONSTRAINT CK_RuntimeHostAdmissionEpoch_Epoch CHECK (AdmissionEpoch >= 1),
+        CONSTRAINT CK_RuntimeHostAdmissionEpoch_MaxHosts CHECK (MaximumRuntimeHosts >= 1)
+    );
+END;
+
 IF OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.RuntimeHostSlotLease
     (
         LeaseNamespaceId nvarchar(128) NOT NULL,
         SlotOrdinal int NOT NULL,
+        AdmissionEpoch bigint NOT NULL,
+        ConfigurationDigest char(64) NOT NULL,
         HostInstanceId nvarchar(128) NULL,
         FencingToken bigint NOT NULL CONSTRAINT DF_RuntimeHostSlotLease_Fencing DEFAULT (0),
         LeaseExpiresAtUtc datetime2(3) NULL,
@@ -27,7 +46,15 @@ BEGIN
     );
 END;
 
+IF COL_LENGTH(N'dbo.RuntimeHostSlotLease', N'AdmissionEpoch') IS NULL
+    ALTER TABLE dbo.RuntimeHostSlotLease ADD AdmissionEpoch bigint NOT NULL
+        CONSTRAINT DF_RuntimeHostSlotLease_AdmissionEpoch DEFAULT (1) WITH VALUES;
+IF COL_LENGTH(N'dbo.RuntimeHostSlotLease', N'ConfigurationDigest') IS NULL
+    ALTER TABLE dbo.RuntimeHostSlotLease ADD ConfigurationDigest char(64) NOT NULL
+        CONSTRAINT DF_RuntimeHostSlotLease_ConfigurationDigest DEFAULT (REPLICATE('0', 64)) WITH VALUES;
+
 SELECT DB_NAME() AS DatabaseName,
        OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U') AS LeaseTableObjectId,
+       OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U') AS AdmissionEpochTableObjectId,
        OBJECT_ID(N'dbo.RuntimeHostFencingSequence', N'SO') AS FencingSequenceObjectId,
        SYSUTCDATETIME() AS ServerUtc;

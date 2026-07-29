@@ -11,12 +11,31 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         IF OBJECT_ID(N'dbo.RuntimeHostFencingSequence', N'SO') IS NULL
             EXEC(N'CREATE SEQUENCE dbo.RuntimeHostFencingSequence AS bigint START WITH 1 INCREMENT BY 1 CACHE 1000;');
 
+        IF OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U') IS NULL
+        BEGIN
+            CREATE TABLE dbo.RuntimeHostAdmissionEpoch
+            (
+                LeaseNamespaceId nvarchar(128) NOT NULL,
+                AdmissionEpoch bigint NOT NULL,
+                ConfigurationDigest char(64) NOT NULL,
+                MaximumRuntimeHosts int NOT NULL,
+                LastUpdatedAtUtc datetime2(3) NOT NULL
+                    CONSTRAINT DF_RuntimeHostAdmissionEpoch_LastUpdated DEFAULT (SYSUTCDATETIME()),
+                RowVersion rowversion NOT NULL,
+                CONSTRAINT PK_RuntimeHostAdmissionEpoch PRIMARY KEY (LeaseNamespaceId),
+                CONSTRAINT CK_RuntimeHostAdmissionEpoch_Epoch CHECK (AdmissionEpoch >= 1),
+                CONSTRAINT CK_RuntimeHostAdmissionEpoch_MaxHosts CHECK (MaximumRuntimeHosts >= 1)
+            );
+        END;
+
         IF OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U') IS NULL
         BEGIN
             CREATE TABLE dbo.RuntimeHostSlotLease
             (
                 LeaseNamespaceId nvarchar(128) NOT NULL,
                 SlotOrdinal int NOT NULL,
+                AdmissionEpoch bigint NOT NULL,
+                ConfigurationDigest char(64) NOT NULL,
                 HostInstanceId nvarchar(128) NULL,
                 FencingToken bigint NOT NULL CONSTRAINT DF_RuntimeHostSlotLease_Fencing DEFAULT (0),
                 LeaseExpiresAtUtc datetime2(3) NULL,
@@ -28,20 +47,51 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
                 CONSTRAINT CK_RuntimeHostSlotLease_SlotOrdinal CHECK (SlotOrdinal >= 0)
             );
         END;
+
+        IF COL_LENGTH(N'dbo.RuntimeHostSlotLease', N'AdmissionEpoch') IS NULL
+            ALTER TABLE dbo.RuntimeHostSlotLease ADD AdmissionEpoch bigint NOT NULL
+                CONSTRAINT DF_RuntimeHostSlotLease_AdmissionEpoch DEFAULT (1) WITH VALUES;
+        IF COL_LENGTH(N'dbo.RuntimeHostSlotLease', N'ConfigurationDigest') IS NULL
+            ALTER TABLE dbo.RuntimeHostSlotLease ADD ConfigurationDigest char(64) NOT NULL
+                CONSTRAINT DF_RuntimeHostSlotLease_ConfigurationDigest DEFAULT (REPLICATE('0', 64)) WITH VALUES;
         """;
 
     private const string AcquireSql = """
         SET NOCOUNT ON;
         SET XACT_ABORT ON;
         DECLARE @lockResult int;
+        DECLARE @lockResource nvarchar(255) = CONCAT(N'SpeechMessageDynamicsLease:', @leaseNamespaceId);
         EXEC @lockResult = sys.sp_getapplock
-            @Resource = CONCAT(N'SpeechMessageDynamicsLease:', @leaseNamespaceId),
+            @Resource = @lockResource,
             @LockMode = N'Exclusive',
             @LockOwner = N'Transaction',
             @LockTimeout = @lockTimeoutMilliseconds;
         IF @lockResult < 0 THROW 51000, 'Unable to acquire the lease namespace lock.', 1;
 
         DECLARE @now datetime2(3) = SYSUTCDATETIME();
+        IF NOT EXISTS
+        (
+            SELECT 1 FROM dbo.RuntimeHostAdmissionEpoch WITH (UPDLOCK, HOLDLOCK)
+            WHERE LeaseNamespaceId = @leaseNamespaceId
+        )
+        BEGIN
+            INSERT dbo.RuntimeHostAdmissionEpoch
+                (LeaseNamespaceId, AdmissionEpoch, ConfigurationDigest, MaximumRuntimeHosts, LastUpdatedAtUtc)
+            VALUES
+                (@leaseNamespaceId, @admissionEpoch, @configurationDigest, @maximumRuntimeHosts, @now);
+        END
+        ELSE IF NOT EXISTS
+        (
+            SELECT 1 FROM dbo.RuntimeHostAdmissionEpoch WITH (UPDLOCK, HOLDLOCK)
+            WHERE LeaseNamespaceId = @leaseNamespaceId
+              AND AdmissionEpoch = @admissionEpoch
+              AND ConfigurationDigest = @configurationDigest
+              AND MaximumRuntimeHosts = @maximumRuntimeHosts
+        )
+        BEGIN
+            THROW 51003, 'AdmissionEpoch or configuration digest mismatch.', 1;
+        END;
+
         DECLARE @slot int = 0;
         WHILE @slot < @maximumRuntimeHosts
         BEGIN
@@ -51,8 +101,10 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
                 WHERE LeaseNamespaceId = @leaseNamespaceId AND SlotOrdinal = @slot
             )
             BEGIN
-                INSERT dbo.RuntimeHostSlotLease (LeaseNamespaceId, SlotOrdinal)
-                VALUES (@leaseNamespaceId, @slot);
+                INSERT dbo.RuntimeHostSlotLease
+                    (LeaseNamespaceId, SlotOrdinal, AdmissionEpoch, ConfigurationDigest)
+                VALUES
+                    (@leaseNamespaceId, @slot, @admissionEpoch, @configurationDigest);
             END;
             SET @slot += 1;
         END;
@@ -70,10 +122,12 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         DECLARE @selectedSlot int;
         SELECT TOP (1) @selectedSlot = SlotOrdinal
         FROM dbo.RuntimeHostSlotLease WITH (UPDLOCK, HOLDLOCK, ROWLOCK)
-        WHERE LeaseNamespaceId = @leaseNamespaceId
-          AND SlotOrdinal < @maximumRuntimeHosts
-          AND HostInstanceId = @hostInstanceId
-          AND LeaseExpiresAtUtc > @now
+            WHERE LeaseNamespaceId = @leaseNamespaceId
+              AND SlotOrdinal < @maximumRuntimeHosts
+              AND HostInstanceId = @hostInstanceId
+              AND AdmissionEpoch = @admissionEpoch
+              AND ConfigurationDigest = @configurationDigest
+              AND LeaseExpiresAtUtc > @now
         ORDER BY SlotOrdinal;
 
         IF @selectedSlot IS NULL
@@ -93,6 +147,8 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
             DECLARE @expires datetime2(3) = DATEADD(millisecond, @leaseTtlMilliseconds, @now);
             UPDATE dbo.RuntimeHostSlotLease
             SET HostInstanceId = @hostInstanceId,
+                AdmissionEpoch = @admissionEpoch,
+                ConfigurationDigest = @configurationDigest,
                 FencingToken = @token,
                 LeaseExpiresAtUtc = @expires,
                 QuarantineUntilUtc = NULL,
@@ -116,9 +172,18 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         WHERE LeaseNamespaceId = @leaseNamespaceId
           AND SlotOrdinal = @slotOrdinal
           AND HostInstanceId = @hostInstanceId
+          AND AdmissionEpoch = @admissionEpoch
+          AND ConfigurationDigest = @configurationDigest
           AND FencingToken = @expectedFencingToken
           AND LeaseExpiresAtUtc > @now
-          AND QuarantineUntilUtc IS NULL;
+          AND QuarantineUntilUtc IS NULL
+          AND EXISTS
+          (
+              SELECT 1 FROM dbo.RuntimeHostAdmissionEpoch
+              WHERE LeaseNamespaceId = @leaseNamespaceId
+                AND AdmissionEpoch = @admissionEpoch
+                AND ConfigurationDigest = @configurationDigest
+          );
         """;
 
     private const string ReleaseSql = """
@@ -133,6 +198,8 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         WHERE LeaseNamespaceId = @leaseNamespaceId
           AND SlotOrdinal = @slotOrdinal
           AND HostInstanceId = @hostInstanceId
+          AND AdmissionEpoch = @admissionEpoch
+          AND ConfigurationDigest = @configurationDigest
           AND FencingToken = @expectedFencingToken;
         """;
 
@@ -150,6 +217,7 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
     }
 
     public bool IsDurable => true;
+    public bool SupportsAdmissionEpoch => true;
     public int ActiveDatabaseOperations => Volatile.Read(ref _activeDatabaseOperations);
 
     public async Task EnsureSchemaAsync(CancellationToken cancellationToken)
@@ -170,7 +238,10 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
             IF DB_NAME() <> N'SpeechMessageDynamicsControlPlane'
                 THROW 51001, 'Unexpected Dynamics control-plane database.', 1;
             IF OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U') IS NULL
+               OR OBJECT_ID(N'dbo.RuntimeHostAdmissionEpoch', N'U') IS NULL
                OR OBJECT_ID(N'dbo.RuntimeHostFencingSequence', N'SO') IS NULL
+               OR COL_LENGTH(N'dbo.RuntimeHostSlotLease', N'AdmissionEpoch') IS NULL
+               OR COL_LENGTH(N'dbo.RuntimeHostSlotLease', N'ConfigurationDigest') IS NULL
                 THROW 51002, 'Dynamics control-plane schema is not provisioned.', 1;
             SELECT 1;
             """;
@@ -190,8 +261,28 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         int maximumRuntimeHosts,
         TimeSpan leaseTtl,
         CancellationToken cancellationToken)
+        => await TryAcquireAsync(
+            new RuntimeHostSlotLeaseRequest(
+                leaseNamespace,
+                hostInstanceId,
+                maximumRuntimeHosts,
+                leaseTtl,
+                AdmissionEpoch: 1,
+                ConfigurationDigest: new string('0', 64)),
+            cancellationToken).ConfigureAwait(false);
+
+    public async Task<RuntimeHostSlotLease?> TryAcquireAsync(
+        RuntimeHostSlotLeaseRequest request,
+        CancellationToken cancellationToken)
     {
-        ValidateLeaseArguments(leaseNamespace, hostInstanceId, maximumRuntimeHosts, leaseTtl);
+        ArgumentNullException.ThrowIfNull(request);
+        ValidateLeaseArguments(
+            request.LeaseNamespace,
+            request.HostInstanceId,
+            request.MaximumRuntimeHosts,
+            request.LeaseTtl,
+            request.AdmissionEpoch,
+            request.ConfigurationDigest);
         return await ExecuteOperationAsync(async () =>
         {
             await using var connection = await OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
@@ -201,10 +292,11 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
             try
             {
                 await using var command = CreateCommand(connection, AcquireSql, transaction);
-                AddCommonParameters(command, leaseNamespace, hostInstanceId);
-                command.Parameters.Add("@maximumRuntimeHosts", SqlDbType.Int).Value = maximumRuntimeHosts;
+                AddCommonParameters(command, request.LeaseNamespace, request.HostInstanceId);
+                AddEpochParameters(command, request.AdmissionEpoch, request.ConfigurationDigest);
+                command.Parameters.Add("@maximumRuntimeHosts", SqlDbType.Int).Value = request.MaximumRuntimeHosts;
                 command.Parameters.Add("@leaseTtlMilliseconds", SqlDbType.Int).Value =
-                    checked((int)leaseTtl.TotalMilliseconds);
+                    checked((int)request.LeaseTtl.TotalMilliseconds);
                 command.Parameters.Add("@quarantineSeconds", SqlDbType.Int).Value = _options.QuarantineSeconds;
                 command.Parameters.Add("@lockTimeoutMilliseconds", SqlDbType.Int).Value =
                     checked(_options.CommandTimeoutSeconds * 1000);
@@ -219,11 +311,13 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
                         DateTime.SpecifyKind(reader.GetDateTime(2), DateTimeKind.Utc));
                     lease = new RuntimeHostSlotLease(
                         this,
-                        leaseNamespace,
-                        hostInstanceId,
+                        request.LeaseNamespace,
+                        request.HostInstanceId,
                         fencingToken,
                         expiresAtUtc,
-                        slotOrdinal);
+                        slotOrdinal,
+                        request.AdmissionEpoch,
+                        request.ConfigurationDigest);
                 }
 
                 await reader.DisposeAsync().ConfigureAwait(false);
@@ -351,13 +445,25 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         AddCommonParameters(command, lease.LeaseNamespace, lease.HostInstanceId);
         command.Parameters.Add("@slotOrdinal", SqlDbType.Int).Value = lease.SlotOrdinal;
         command.Parameters.Add("@expectedFencingToken", SqlDbType.BigInt).Value = lease.FencingToken;
+        AddEpochParameters(command, lease.AdmissionEpoch, lease.ConfigurationDigest);
+    }
+
+    private static void AddEpochParameters(
+        SqlCommand command,
+        long admissionEpoch,
+        string configurationDigest)
+    {
+        command.Parameters.Add("@admissionEpoch", SqlDbType.BigInt).Value = admissionEpoch;
+        command.Parameters.Add("@configurationDigest", SqlDbType.Char, 64).Value = configurationDigest;
     }
 
     private static void ValidateLeaseArguments(
         RuntimeHostSlotLeaseNamespace leaseNamespace,
         string hostInstanceId,
         int maximumRuntimeHosts,
-        TimeSpan leaseTtl)
+        TimeSpan leaseTtl,
+        long admissionEpoch = 1,
+        string? configurationDigest = null)
     {
         if (string.IsNullOrWhiteSpace(leaseNamespace.LeaseNamespaceId) ||
             leaseNamespace.LeaseNamespaceId.Length > 128)
@@ -378,6 +484,20 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         if (leaseTtl <= TimeSpan.Zero || leaseTtl > TimeSpan.FromHours(1))
         {
             throw new ArgumentOutOfRangeException(nameof(leaseTtl));
+        }
+
+        if (admissionEpoch < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(admissionEpoch));
+        }
+
+        if (configurationDigest is null ||
+            configurationDigest.Length != 64 ||
+            configurationDigest.Any(character => !Uri.IsHexDigit(character)))
+        {
+            throw new ArgumentException(
+                "Configuration digest must be exactly 64 hexadecimal characters.",
+                nameof(configurationDigest));
         }
     }
 }

@@ -10,6 +10,14 @@
 
 namespace SpeechMessage.Dynamics.WebApi.Capacity;
 
+public sealed record RuntimeHostSlotLeaseRequest(
+    RuntimeHostSlotLeaseNamespace LeaseNamespace,
+    string HostInstanceId,
+    int MaximumRuntimeHosts,
+    TimeSpan LeaseTtl,
+    long AdmissionEpoch,
+    string ConfigurationDigest);
+
 /// <summary>
 /// runtime host slot 租約。
 /// </summary>
@@ -26,7 +34,9 @@ public sealed class RuntimeHostSlotLease : IAsyncDisposable, IDisposable
         string hostInstanceId,
         long fencingToken,
         DateTimeOffset expiresAtUtc,
-        int slotOrdinal = -1)
+        int slotOrdinal = -1,
+        long admissionEpoch = 1,
+        string? configurationDigest = null)
     {
         _coordinator = coordinator;
         LeaseNamespace = leaseNamespace;
@@ -34,6 +44,8 @@ public sealed class RuntimeHostSlotLease : IAsyncDisposable, IDisposable
         _fencingToken = fencingToken;
         _expiresAtUtcTicks = expiresAtUtc.UtcTicks;
         SlotOrdinal = slotOrdinal;
+        AdmissionEpoch = admissionEpoch;
+        ConfigurationDigest = configurationDigest ?? new string('0', 64);
     }
 
     public RuntimeHostSlotLeaseNamespace LeaseNamespace { get; }
@@ -43,6 +55,8 @@ public sealed class RuntimeHostSlotLease : IAsyncDisposable, IDisposable
         Interlocked.Read(ref _expiresAtUtcTicks),
         TimeSpan.Zero);
     public int SlotOrdinal { get; }
+    public long AdmissionEpoch { get; }
+    public string ConfigurationDigest { get; }
 
     internal void Update(long fencingToken, DateTimeOffset expiresAtUtc)
     {
@@ -86,6 +100,22 @@ public interface IRuntimeHostSlotCoordinator
     /// 是否為 durable 實作。正式多 host 應要求 true。
     /// </summary>
     bool IsDurable { get; }
+
+    /// <summary>
+    /// True only when the durable coordinator atomically validates the global
+    /// admission epoch and immutable configuration digest.
+    /// </summary>
+    bool SupportsAdmissionEpoch => false;
+
+    Task<RuntimeHostSlotLease?> TryAcquireAsync(
+        RuntimeHostSlotLeaseRequest request,
+        CancellationToken cancellationToken)
+        => TryAcquireAsync(
+            request.LeaseNamespace,
+            request.HostInstanceId,
+            request.MaximumRuntimeHosts,
+            request.LeaseTtl,
+            cancellationToken);
 
     /// <summary>
     /// 嘗試取得 host slot。

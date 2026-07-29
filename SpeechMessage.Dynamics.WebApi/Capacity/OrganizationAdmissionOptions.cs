@@ -73,6 +73,13 @@ public sealed class OrganizationAdmissionOptions
     public string LeaseNamespaceId { get; set; } = "default-host-lease";
 
     /// <summary>
+    /// Globally coordinated immutable capacity/configuration epoch. Changes to
+    /// aggregate capacity or lease policy require a new epoch.
+    /// </summary>
+    [Range(1, long.MaxValue)]
+    public long AdmissionEpoch { get; set; } = 1;
+
+    /// <summary>
     /// Coordinator-issued runtime host slot lifetime.
     /// </summary>
     [Range(5, 3600)]
