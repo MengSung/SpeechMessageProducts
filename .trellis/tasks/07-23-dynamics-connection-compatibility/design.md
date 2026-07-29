@@ -1,5 +1,13 @@
 # Design: profile-isolated Dynamics Access Gateway and embedded host
 
+## 2026-07-29 hosting and compatibility amendment
+
+The current recommendation is Central Gateway for production plus Local Gateway for Visual Studio/development or an explicitly isolated deployment. Both are deployments of the same `Gateway` execution mode and differ by `Gateway.Endpoint`; the current enum remains `Gateway | Embedded`.
+
+Embedded is not removed, but further Embedded rollout is deferred. CE 8.2 and CE 9.1 share the product-facing REST/operation contract, not one universal transport, SDK version, authentication state, or physical connection pool. Microsoft official SDKs are permitted only behind Gateway adapters or process-isolated compatibility workers. The third-party Data8 client remains a temporary CE 8.2 IFD bridge and must not become the permanent Gateway pool foundation.
+
+Where the older no-SDK-only sections conflict with this amendment, use `.trellis/spec/backend/dynamics-gateway-hosting-version-routing.md` as the executable contract and `docs/dynamics-gateway-central-local-82-91-guide.zh-TW.md` as the explanatory decision record.
+
 ## 1. Decision
 
 Add a new Dynamics integration project group to the existing

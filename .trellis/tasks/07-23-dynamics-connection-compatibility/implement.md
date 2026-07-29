@@ -1,5 +1,18 @@
 # Implementation plan: no-SDK Dynamics Access Gateway
 
+## 2026-07-29 execution amendment
+
+- Preserve completed Phase 4/5 abstractions, operation registry, ProductClient, admission, isolation, and lifecycle work; do not restart the implementation from zero.
+- Validate Local Gateway first by running the existing Gateway host beside ChurchReport and pointing `ExecutionMode=Gateway` to localhost.
+- Central Gateway remains the production deployment topology using the same REST contract.
+- Do not add `CentralGateway` or `LocalGateway` enum values unless a separate contract change is approved; endpoint topology selects Central versus Local.
+- Keep Embedded code but defer further Embedded rollout.
+- Keep Data8 temporarily for the known-working CE 8.2 path, but isolate it behind a bounded/recyclable worker boundary before treating it as a Gateway runtime dependency.
+- Evaluate proven Web API v8.2 and an official .NET Framework 4.8 `CrmServiceClient` worker as Data8 replacements. Keep 8.2 and 9.1 SDK workers separately version-pinned until real-server evidence proves consolidation safe.
+- `Package01FeeReadsEnabled` remains false until the existing rollout gates pass.
+
+The implementation must follow `.trellis/spec/backend/dynamics-gateway-hosting-version-routing.md` and the decision explanation in `docs/dynamics-gateway-central-local-82-91-guide.zh-TW.md`.
+
 ## Status
 
 This is an execution plan only. The task remains in planning. No production

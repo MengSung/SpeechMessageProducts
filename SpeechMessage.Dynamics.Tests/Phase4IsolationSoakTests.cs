@@ -12,10 +12,22 @@ using SpeechMessage.Dynamics.WebApi.Runtime;
 namespace SpeechMessage.Dynamics.Tests;
 
 /// <summary>
+/// 將 process-global 記憶體、handle 與 thread 基線測試設為不可平行執行。
+/// 若其他 xUnit collection 同時建立 TestServer、SQL connection 或 HttpClient，整個 testhost 的資源計數會被外部 fixture 污染，
+/// 造成與本測試 runtime 無關的假陽性；禁止平行化不會放寬任何資源上限，只是確保量測期間的擁有者範圍可證明。
+/// </summary>
+[CollectionDefinition(Name, DisableParallelization = true)]
+public sealed class Phase4ResourceSoakCollection
+{
+    public const string Name = "Phase4ResourceSoak";
+}
+
+/// <summary>
 /// Phase 4 隔離與資源浸泡測試。
 /// 以多 workload、多設定檔世代及兩個實體 endpoint 的高併發流量，驗證容量不倍增、Authorization/Cookie 不串流、
 /// queue/permit/workload counter 排空，以及 handler、記憶體、handle、thread 與強參考在 Dispose 後回到有界基線。
 /// </summary>
+[Collection(Phase4ResourceSoakCollection.Name)]
 public sealed class Phase4IsolationSoakTests
 {
     /// <summary>

@@ -20,6 +20,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
 | [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels | To fill |
 | [MemberInfo Tree And Grid Contract](./member-info-tree-contract.md) | Cross-layer MemberInfo authorization, DTO, paging, sorting, cache, and CRM batching rules | Established |
+| [Dynamics Gateway Hosting and CE 8.2/9.1 Routing](./dynamics-gateway-hosting-version-routing.md) | Central/Local Gateway topology, version-specific adapters, pool isolation, temporary Data8 boundary, and removal gates | Established |
 
 ---
 

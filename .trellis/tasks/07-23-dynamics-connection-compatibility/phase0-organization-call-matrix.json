@@ -4442,7 +4442,7 @@
                                 }
                             ],
     "operationRegistryAgreementGate":  {
-                                           "status":  "planned",
+                                           "status":  "enforced",
                                            "registryArtifact":  "Phase 1 operation registry under the SpeechMessage.Dynamics project group added to SpeechMessageProducts.sln.",
                                            "comparisonFields":  [
                                                                     "capabilityOperationId",

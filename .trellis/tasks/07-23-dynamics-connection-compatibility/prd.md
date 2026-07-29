@@ -1,5 +1,19 @@
 # No-SDK Dynamics 365 access gateway
 
+## 2026-07-29 direction amendment
+
+This amendment supersedes the strict no-SDK requirement wherever the older text conflicts with it.
+
+- Central Gateway remains the production target for the multi-product estate.
+- Local Gateway is the immediate Visual Studio/development and isolated-deployment path. It is the same `Gateway` execution mode pointed at a localhost endpoint, not a new execution-mode enum value.
+- Embedded is retained but deferred until Central/Local, CE 8.2/9.1, isolation, and lifecycle validation passes.
+- Microsoft official SDK components are allowed only behind a Gateway adapter or out-of-process compatibility worker. Products still must not reference CRM/Dataverse SDK components directly.
+- CE 9.1 prefers direct Web API or official `ServiceClient` when its authentication path is proven.
+- CE 8.2 may temporarily use the checked-in Data8 WS-Trust bridge because the current IFD OAuth path is not proven. The preferred replacements are proven Web API v8.2 or a .NET Framework 4.8 worker using Microsoft's official `CrmServiceClient`.
+- Data8 remains temporary and removable only after replacement, real-server, lifecycle, isolation, rollback, and dependency-removal gates pass.
+
+The executable contract is `.trellis/spec/backend/dynamics-gateway-hosting-version-routing.md`. The full Traditional Chinese decision history and explanation is `docs/dynamics-gateway-central-local-82-91-guide.zh-TW.md`.
+
 ## Goal
 
 Design the future shared Dynamics 365 Organization integration solution for five
