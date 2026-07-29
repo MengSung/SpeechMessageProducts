@@ -1,0 +1,3 @@
+{"type":"artifact","path":"C:/Users/Administrator/.codex/visualizations/2026/07/29/019fab98-842e-78a1-9b65-ee684c875612/dynamics-local-gateway-decision.html","purpose":"Interactive Local Gateway versus Embedded decision diagram"}
+{"type":"evidence","path":".ccg/dual-model-runs/20260729-105839-dynamics-local-vs-embedded-architect/summary.json","purpose":"Successful Gemini and Claude architecture analysis"}
+{"type":"design","path":"docs/superpowers/specs/2026-07-23-dynamics-access-gateway-design.md","purpose":"Current architecture baseline that remains unchanged pending user approval"}

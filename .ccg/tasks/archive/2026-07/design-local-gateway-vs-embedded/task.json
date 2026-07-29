@@ -1,0 +1,12 @@
+{
+  "id": "design-local-gateway-vs-embedded",
+  "title": "Clarify Local Gateway and Embedded architecture direction",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "architecture",
+  "currentPhase": "completed",
+  "nextAction": "Await user approval before revising the project architecture or implementation",
+  "createdAt": "2026-07-29T11:15:00+08:00",
+  "branch": "1.0.0.3.Gateway&Embedded.Worktree"
+}
