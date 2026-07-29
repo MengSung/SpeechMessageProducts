@@ -13,6 +13,7 @@
 // ============================================================================
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ChurchReport.Models;
 using ChurchReport.WebServiceConnector;
@@ -121,7 +122,10 @@ namespace ChurchReport.Services
             }
         }
 
-        public async Task<IActionResult> AuditQueryAsync(DonationPaymentFormModel donationPaymentFormModel, Action<Entity> fillFeeList)
+        public async Task<IActionResult> AuditQueryAsync(
+            DonationPaymentFormModel donationPaymentFormModel,
+            Func<Entity, CancellationToken, Task> fillFeeListAsync,
+            CancellationToken cancellationToken = default)
         {
             try
             {
@@ -143,7 +147,7 @@ namespace ChurchReport.Services
                     string lastSixDigit = _utility.GetEntityStringAttribute(contact, "new_last_six_digit");
                     string phoneNumber = ResolvePhoneNumber(mobile, homePhone);
 
-                    fillFeeList(contact);
+                    await fillFeeListAsync(contact, cancellationToken).ConfigureAwait(false);
                     var feeList = DonationFeeQueryService.ToAjaxRows(_formModel.DedicationFeeList);
 
                     return _json(new

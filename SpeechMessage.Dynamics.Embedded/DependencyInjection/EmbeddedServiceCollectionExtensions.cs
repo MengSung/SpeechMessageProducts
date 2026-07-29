@@ -133,6 +133,8 @@ public static class EmbeddedServiceCollectionExtensions
             options.TimeoutSeconds = 30;
             options.MaxConnectionsPerServer = 4;
             options.MaxResponseBytes = 2_097_152;
+            options.MaxRetryAttempts = 2;
+            options.MaxRetryDelaySeconds = 5;
             options.Admission.ExpectedOrganizationId = Guid.Parse("11111111-1111-1111-1111-111111111111");
             options.Admission.AggregateMaxInFlight = 24;
             options.Admission.MaximumRuntimeHosts = 6;

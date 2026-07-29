@@ -399,14 +399,15 @@ namespace ChurchReport.Controllers
         /// 奉獻收費清單頁面 (LINE 登入)
         /// </summary>
         [Route("/Dedication/DedicationFeeView")]
-        public IActionResult DedicationFeeView()
+        public async Task<IActionResult> DedicationFeeView()
         {
             try
             {
                 SetupDedicationFeeViewBag(false);
 
-                return View(InMemoryContext.DonationPaymentManager.SetDedicationFeeList(
-                    InMemoryContext.LineBindingViewModel.LineUserId));
+                return View(await InMemoryContext.DonationPaymentManager.SetDedicationFeeListAsync(
+                    InMemoryContext.LineBindingViewModel.LineUserId,
+                    HttpContext.RequestAborted));
             }
             catch (Exception e)
             {
@@ -418,7 +419,7 @@ namespace ChurchReport.Controllers
         /// 奉獻收費清單頁面 (網頁登入)
         /// </summary>
         [Route("/Dedication/DedicationFeeViewWeb")]
-        public IActionResult DedicationFeeViewWeb()
+        public async Task<IActionResult> DedicationFeeViewWeb()
         {
             try
             {
@@ -428,8 +429,9 @@ namespace ChurchReport.Controllers
                 // 必須在 SetDedicationFeeList 之前還原，才能依「收費日期(new_pay_date)」正確過濾跨年度紀錄。
                 RestoreDedicationQueryDatesFromSession();
 
-                return View(InMemoryContext.DonationPaymentManager.SetDedicationFeeList(
-                    InMemoryContext.DonationPaymentManager.m_Contact));
+                return View(await InMemoryContext.DonationPaymentManager.SetDedicationFeeListAsync(
+                    InMemoryContext.DonationPaymentManager.m_Contact,
+                    HttpContext.RequestAborted));
             }
             catch (Exception e)
             {
@@ -518,14 +520,15 @@ namespace ChurchReport.Controllers
         /// 行政人員手動輸入奉獻頁面 (LINE)
         /// </summary>
         [Route("/Dedication/KeyInDedicationFeeView")]
-        public IActionResult KeyInDedicationFeeView()
+        public async Task<IActionResult> KeyInDedicationFeeView()
         {
             try
             {
                 SetupKeyInViewBag(false);
 
-                return View(InMemoryContext.DonationPaymentManager.SetDedicationFeeList(
-                    InMemoryContext.LineBindingViewModel.LineUserId));
+                return View(await InMemoryContext.DonationPaymentManager.SetDedicationFeeListAsync(
+                    InMemoryContext.LineBindingViewModel.LineUserId,
+                    HttpContext.RequestAborted));
             }
             catch (Exception e)
             {

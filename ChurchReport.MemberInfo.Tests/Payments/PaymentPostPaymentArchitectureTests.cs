@@ -59,7 +59,7 @@ public sealed class PaymentPostPaymentArchitectureTests
     [Fact]
     public void ChurchReport_specific_handlers_do_not_move_to_reusable_workflow_project()
     {
-        typeof(ChurchReportPaymentRecordUpdater).Assembly.GetName().Name.Should().Be("ChurchReport");
-        typeof(ChurchReportPaymentPayerNotifier).Assembly.GetName().Name.Should().Be("ChurchReport");
+        typeof(ChurchReportPaymentRecordUpdater).Assembly.GetName().Name.Should().Be("SpeechMessageProducts.ChurchReport");
+        typeof(ChurchReportPaymentPayerNotifier).Assembly.GetName().Name.Should().Be("SpeechMessageProducts.ChurchReport");
     }
 }

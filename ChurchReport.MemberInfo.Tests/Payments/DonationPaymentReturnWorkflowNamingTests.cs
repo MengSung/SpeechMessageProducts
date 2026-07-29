@@ -23,7 +23,7 @@ public sealed class DonationPaymentReturnWorkflowNamingTests
     {
         // CRM 更新與 LINE 通知流程已經改用 DonationPaymentWorkflowResult。
         // 舊 QPayWorkflowPaymentResult 不應再保留成 alias，避免未來高鉅、台新或新金流看起來也在依賴永豐名稱。
-        var resultType = Type.GetType("ChurchReport.Payments.QPayWorkflowPaymentResult, ChurchReport");
+        var resultType = Type.GetType("ChurchReport.Payments.QPayWorkflowPaymentResult, SpeechMessageProducts.ChurchReport");
 
         resultType.Should().BeNull();
     }
@@ -32,7 +32,7 @@ public sealed class DonationPaymentReturnWorkflowNamingTests
     public void New_donation_payment_workflow_result_exists_after_rename()
     {
         // ChurchReport 產品流程應該使用 DonationPaymentWorkflowResult，而不是使用永豐專屬的 QPay 名稱。
-        var resultType = Type.GetType("ChurchReport.Payments.DonationPaymentWorkflowResult, ChurchReport");
+        var resultType = Type.GetType("ChurchReport.Payments.DonationPaymentWorkflowResult, SpeechMessageProducts.ChurchReport");
 
         resultType.Should().NotBeNull("新的產品中性 DTO 會成為 ChurchReport 付款回傳流程的主要型別");
     }

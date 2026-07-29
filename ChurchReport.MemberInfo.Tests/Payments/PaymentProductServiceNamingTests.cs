@@ -28,11 +28,11 @@ public sealed class PaymentProductServiceNamingTests
     {
         var expectedServiceNames = new[]
         {
-            "ChurchReport.Services.PaymentCrmService, ChurchReport",
-            "ChurchReport.Services.PaymentFeeTypeHelper, ChurchReport",
-            "ChurchReport.Services.PaymentCallbackLogger, ChurchReport",
-            "ChurchReport.Services.PaymentMessageBuilder, ChurchReport",
-            "ChurchReport.Services.PaymentNotificationService, ChurchReport"
+            "ChurchReport.Services.PaymentCrmService, SpeechMessageProducts.ChurchReport",
+            "ChurchReport.Services.PaymentFeeTypeHelper, SpeechMessageProducts.ChurchReport",
+            "ChurchReport.Services.PaymentCallbackLogger, SpeechMessageProducts.ChurchReport",
+            "ChurchReport.Services.PaymentMessageBuilder, SpeechMessageProducts.ChurchReport",
+            "ChurchReport.Services.PaymentNotificationService, SpeechMessageProducts.ChurchReport"
         };
 
         foreach (var expectedServiceName in expectedServiceNames)
@@ -47,11 +47,11 @@ public sealed class PaymentProductServiceNamingTests
     {
         var legacyServiceNames = new[]
         {
-            "ChurchReport.Services.MyPayCrmService, ChurchReport",
-            "ChurchReport.Services.MyPayFeeTypeHelper, ChurchReport",
-            "ChurchReport.Services.MyPayLogger, ChurchReport",
-            "ChurchReport.Services.MyPayMessageBuilder, ChurchReport",
-            "ChurchReport.Services.MyPayNotificationService, ChurchReport"
+            "ChurchReport.Services.MyPayCrmService, SpeechMessageProducts.ChurchReport",
+            "ChurchReport.Services.MyPayFeeTypeHelper, SpeechMessageProducts.ChurchReport",
+            "ChurchReport.Services.MyPayLogger, SpeechMessageProducts.ChurchReport",
+            "ChurchReport.Services.MyPayMessageBuilder, SpeechMessageProducts.ChurchReport",
+            "ChurchReport.Services.MyPayNotificationService, SpeechMessageProducts.ChurchReport"
         };
 
         foreach (var legacyServiceName in legacyServiceNames)

@@ -8,8 +8,10 @@
 // ============================================================================
 
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SpeechMessage.Dynamics.Abstractions.Operations;
@@ -239,9 +241,94 @@ public sealed class DynamicsWebApiClientTests
         result.ErrorMessage.Should().Be("AdfsOAuth token acquisition failed.");
     }
 
+    [Fact]
+    public async Task Transport_exception_details_are_not_logged_or_returned()
+    {
+        const string sensitiveText = "https://crm.example.local/?token=sensitive-fragment";
+        var logger = new CapturingLogger<DynamicsWebApiClient>();
+        var client = CreateClient(
+            _ => throw new HttpRequestException(sensitiveText),
+            logger: logger);
+
+        var result = await client.WhoAmIAsync();
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorMessage.Should().NotContain(sensitiveText);
+        logger.Exception.Should().BeNull("upstream exceptions can contain URLs, credentials, or tokens");
+        logger.Message.Should().NotContain(sensitiveText);
+    }
+
+    [Fact]
+    public async Task Redirect_location_details_are_not_logged_or_returned()
+    {
+        const string sensitiveLocation = "https://adfs.example.local/adfs/ls/?wctx=sensitive-context";
+        var logger = new CapturingLogger<DynamicsWebApiClient>();
+        var client = CreateClient(
+            _ => new HttpResponseMessage(HttpStatusCode.Redirect)
+            {
+                Headers = { Location = new Uri(sensitiveLocation) }
+            },
+            logger: logger);
+
+        var result = await client.WhoAmIAsync();
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorMessage.Should().NotContain(sensitiveLocation);
+        logger.Message.Should().NotContain(sensitiveLocation);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task Retryable_read_honors_bounded_retry_and_disposes_previous_response(
+        HttpStatusCode retryStatus)
+    {
+        var attempts = 0;
+        var firstContent = new TrackingDisposeContent("retry-body-must-not-be-read");
+        var client = CreateClient(request =>
+        {
+            if (Interlocked.Increment(ref attempts) == 1)
+            {
+                var retry = new HttpResponseMessage(retryStatus) { Content = firstContent };
+                retry.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.Zero);
+                return retry;
+            }
+
+            return JsonResponse("{\"UserId\":\"33333333-3333-3333-3333-333333333333\"}");
+        }, options =>
+        {
+            options.MaxRetryAttempts = 1;
+            options.MaxRetryDelaySeconds = 1;
+        });
+
+        var result = await client.WhoAmIAsync();
+
+        result.Succeeded.Should().BeTrue();
+        attempts.Should().Be(2);
+        firstContent.Disposed.Should().BeTrue();
+        firstContent.ReadAttempted.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Non_retryable_failure_is_not_replayed()
+    {
+        var attempts = 0;
+        var client = CreateClient(_ =>
+        {
+            Interlocked.Increment(ref attempts);
+            return new HttpResponseMessage(HttpStatusCode.BadRequest);
+        }, options => options.MaxRetryAttempts = 3);
+
+        var result = await client.WhoAmIAsync();
+
+        result.Succeeded.Should().BeFalse();
+        attempts.Should().Be(1);
+    }
+
     private static DynamicsWebApiClient CreateClient(
         Func<HttpRequestMessage, HttpResponseMessage> responder,
-        Action<DynamicsWebApiOptions>? configure = null)
+        Action<DynamicsWebApiOptions>? configure = null,
+        ILogger<DynamicsWebApiClient>? logger = null)
     {
         var configured = new DynamicsWebApiOptions
         {
@@ -263,7 +350,7 @@ public sealed class DynamicsWebApiClientTests
             transport,
             new DictionarySecretResolver(new Dictionary<string, string>()),
             new StaticAdfsOAuthTokenProvider("unused-for-windows"),
-            NullLogger<DynamicsWebApiClient>.Instance);
+            logger ?? NullLogger<DynamicsWebApiClient>.Instance);
     }
 
     private static string? ExtractFetchXml(Uri requestUri)
@@ -392,6 +479,56 @@ public sealed class DynamicsWebApiClientTests
         {
             Disposed = true;
             base.Dispose(disposing);
+        }
+    }
+
+    private sealed class TrackingDisposeContent : StringContent
+    {
+        private int _disposed;
+        private int _readAttempted;
+
+        public TrackingDisposeContent(string content) : base(content, Encoding.UTF8, "text/plain")
+        {
+        }
+
+        public bool Disposed => Volatile.Read(ref _disposed) == 1;
+        public bool ReadAttempted => Volatile.Read(ref _readAttempted) == 1;
+
+        protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context)
+        {
+            Volatile.Write(ref _readAttempted, 1);
+            return base.SerializeToStreamAsync(stream, context);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Volatile.Write(ref _disposed, 1);
+            }
+
+            base.Dispose(disposing);
+        }
+    }
+
+    private sealed class CapturingLogger<T> : ILogger<T>
+    {
+        public Exception? Exception { get; private set; }
+        public string Message { get; private set; } = string.Empty;
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            Exception = exception;
+            Message = formatter(state, exception);
         }
     }
 }

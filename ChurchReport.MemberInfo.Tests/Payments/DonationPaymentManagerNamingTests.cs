@@ -27,7 +27,7 @@ public sealed class DonationPaymentManagerNamingTests
     [Fact]
     public void New_donation_payment_manager_exists_as_primary_ui_payment_state_manager()
     {
-        var managerType = Type.GetType("ChurchReport.Models.DonationPaymentManager, ChurchReport");
+        var managerType = Type.GetType("ChurchReport.Models.DonationPaymentManager, SpeechMessageProducts.ChurchReport");
 
         managerType.Should().NotBeNull(
             "ChurchReport 奉獻付款的 UI 狀態管理應以 DonationPaymentManager 作為主要名稱");
@@ -37,7 +37,7 @@ public sealed class DonationPaymentManagerNamingTests
     [Fact]
     public void Legacy_qpay_manager_remains_as_compatibility_alias()
     {
-        var managerType = Type.GetType("ChurchReport.Models.DonationPaymentManager, ChurchReport");
+        var managerType = Type.GetType("ChurchReport.Models.DonationPaymentManager, SpeechMessageProducts.ChurchReport");
         var legacyType = typeof(DonationPaymentManager);
 
         managerType.Should().NotBeNull();

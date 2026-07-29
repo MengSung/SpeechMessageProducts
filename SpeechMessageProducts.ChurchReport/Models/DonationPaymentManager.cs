@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
@@ -116,6 +117,7 @@ namespace ChurchReport.Models
         /// 這個服務負責 contact 欄位投影與 new_fee 清單刷新，避免 manager 直接組裝表單欄位。
         /// </summary>
         private readonly DonationDedicationFeeFormService m_DonationDedicationFeeFormService;
+        private readonly SemaphoreSlim _feeRefreshLock = new(1, 1);
 
         // 登入的連絡人
         public Entity m_LoginContact;
@@ -280,11 +282,14 @@ namespace ChurchReport.Models
             return await m_DonationKeyInDedicationService.QueryAsync(DonationPaymentFormModel);
         }
 
-        public async Task<IActionResult> AuditQueryDedication(DonationPaymentFormModel DonationPaymentFormModel)
+        public async Task<IActionResult> AuditQueryDedication(
+            DonationPaymentFormModel DonationPaymentFormModel,
+            CancellationToken cancellationToken = default)
         {
             return await m_DonationKeyInDedicationService.AuditQueryAsync(
                 DonationPaymentFormModel,
-                contact => SetDedicationFeeList(contact));
+                SetDedicationFeeListAsync,
+                cancellationToken);
         }
 
         public async Task<IActionResult> UpdateKeyInDedication(DonationPaymentFormModel DonationPaymentFormModel)
@@ -292,33 +297,40 @@ namespace ChurchReport.Models
             return await m_DonationKeyInDedicationService.UpdateAsync(DonationPaymentFormModel);
         }
 
-        public DonationPaymentFormModel SetDedicationFeeList(String UserLineId)
+        public async Task<DonationPaymentFormModel> SetDedicationFeeListAsync(
+            String UserLineId,
+            CancellationToken cancellationToken = default)
         {
+            await _feeRefreshLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                return m_DonationDedicationFeeFormService.FillFromLineId(
+                return await m_DonationDedicationFeeFormService.FillFromLineIdAsync(
                     m_DonationPaymentFormModel,
                     UserLineId,
-                    this.m_Contact);
+                    this.m_Contact,
+                    cancellationToken).ConfigureAwait(false);
             }
-            catch (System.Exception e)
+            finally
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
+                _feeRefreshLock.Release();
             }
         }
-        public DonationPaymentFormModel SetDedicationFeeList(Entity LineLoginContact)
+
+        public async Task<DonationPaymentFormModel> SetDedicationFeeListAsync(
+            Entity LineLoginContact,
+            CancellationToken cancellationToken = default)
         {
+            await _feeRefreshLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                return m_DonationDedicationFeeFormService.FillFromContact(
+                return await m_DonationDedicationFeeFormService.FillFromContactAsync(
                     m_DonationPaymentFormModel,
-                    LineLoginContact);
+                    LineLoginContact,
+                    cancellationToken).ConfigureAwait(false);
             }
-            catch (System.Exception e)
+            finally
             {
-                String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
-                throw e;
+                _feeRefreshLock.Release();
             }
         }
         #endregion
@@ -665,15 +677,29 @@ namespace ChurchReport.Models
         /// </summary>
         /// <param name="contactId">contact 實體 Id (string GUID)</param>
         /// <returns>List of anonymous objects serializable to JSON</returns>
-        public List<object> GetDedicationFeesByContactId(string contactId)
+        public async Task<List<object>> GetDedicationFeesByContactIdAsync(
+            string contactId,
+            CancellationToken cancellationToken = default)
         {
+            await _feeRefreshLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                return m_DonationDedicationFeeFormService.GetFeesByContactId(contactId, m_DonationPaymentFormModel);
+                return await m_DonationDedicationFeeFormService.GetFeesByContactIdAsync(
+                    contactId,
+                    m_DonationPaymentFormModel,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception)
             {
                 return new List<object>();
+            }
+            finally
+            {
+                _feeRefreshLock.Release();
             }
         }
         private DateTime ParseDateTime(string dateString)

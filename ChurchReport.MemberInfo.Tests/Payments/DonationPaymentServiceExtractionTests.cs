@@ -189,7 +189,7 @@ public sealed class DonationPaymentServiceExtractionTests
         string keyInSection = ExtractSourceSection(
             managerSource,
             "public async Task<IActionResult> SaveKeyInDedication",
-            "public DonationPaymentFormModel SetDedicationFeeList");
+            "public async Task<DonationPaymentFormModel> SetDedicationFeeListAsync");
 
         keyInSection.Should().Contain("m_DonationKeyInDedicationService");
         keyInSection.Should().NotContain("QueryDediccationContatsByFetchXml");
@@ -267,12 +267,32 @@ public sealed class DonationPaymentServiceExtractionTests
         string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string feeListSection = ExtractSourceSection(
             managerSource,
-            "public DonationPaymentFormModel SetDedicationFeeList(String UserLineId)",
+            "public async Task<DonationPaymentFormModel> SetDedicationFeeListAsync(",
             "#endregion\r\n        #region 電腦網頁或是LINE登入");
 
         feeListSection.Should().Contain("m_DonationDedicationFeeFormService");
         feeListSection.Should().NotContain("RetrieveContactByLineId");
         feeListSection.Should().NotContain("new DonationFeeQueryService");
+    }
+
+    [Fact]
+    public void Package01_fee_read_path_must_be_async_and_must_not_log_personal_names()
+    {
+        string source = ReadRepositoryFile(
+            "SpeechMessageProducts.ChurchReport",
+            "Services",
+            "DonationFeeQueryService.cs");
+
+        source.Should().Contain("public async Task FillFeeListAsync(");
+        source.Should().NotContain(".GetAwaiter().GetResult()");
+        source.Should().NotContain("FullName={fullName}");
+
+        string managerSource = ReadRepositoryFile(
+            "SpeechMessageProducts.ChurchReport",
+            "Models",
+            "DonationPaymentManager.cs");
+        managerSource.Should().Contain(
+            "catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)");
     }
 
     private static string ReadRepositoryFile(params string[] pathSegments)

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -82,6 +83,114 @@ public sealed class Phase4IsolationSoakTests
         runtimes.Should().OnlyContain(runtime => runtime.Handler.DisposeCount == 1);
         runtimes.Should().OnlyContain(runtime => runtime.Handler.CrossTalkCount == 0);
         stopwatch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(30));
+    }
+
+    [Fact]
+    public async Task Repeated_generation_cycles_return_memory_handles_threads_and_owned_objects_to_baseline()
+    {
+        await RunGenerationCyclesAsync(cycleCount: 2, operationsPerCycle: 100);
+        ForceFullCollection();
+
+        using var process = Process.GetCurrentProcess();
+        process.Refresh();
+        var baselineMemory = GC.GetTotalMemory(forceFullCollection: true);
+        var baselineHandles = OperatingSystem.IsWindows() ? process.HandleCount : 0;
+        var baselineThreads = process.Threads.Count;
+
+        var retired = await RunGenerationCyclesAsync(cycleCount: 16, operationsPerCycle: 250);
+        _ = await RunSingleGenerationCycleAsync(cycle: int.MaxValue, operationsPerCycle: 1);
+        ForceFullCollection();
+        process.Refresh();
+
+        retired.Should().OnlyContain(reference => !reference.IsAlive,
+            "disposed profile generations must not remain strongly reachable");
+        GC.GetTotalMemory(forceFullCollection: true).Should().BeLessThanOrEqualTo(
+            baselineMemory + 8 * 1024 * 1024,
+            "managed memory must return to a bounded post-warm-up baseline");
+        process.Threads.Count.Should().BeLessThanOrEqualTo(
+            baselineThreads + 8,
+            "renewal and request work must not leak thread-pool workers");
+
+        if (OperatingSystem.IsWindows())
+        {
+            process.HandleCount.Should().BeLessThanOrEqualTo(
+                baselineHandles + 8,
+                "handlers, cancellation registrations, and timers must be deterministically released");
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static async Task<IReadOnlyList<WeakReference>> RunGenerationCyclesAsync(
+        int cycleCount,
+        int operationsPerCycle)
+    {
+        var retired = new List<WeakReference>(cycleCount * 4);
+
+        for (var cycle = 0; cycle < cycleCount; cycle++)
+        {
+            retired.AddRange(await RunSingleGenerationCycleAsync(cycle, operationsPerCycle));
+        }
+
+        return retired;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static async Task<IReadOnlyList<WeakReference>> RunSingleGenerationCycleAsync(
+        int cycle,
+        int operationsPerCycle)
+    {
+        var coordinator = new InMemoryRuntimeHostSlotCoordinator();
+        var concurrency = new SharedConcurrencyCounter();
+        RuntimeFixture? runtime = CreateRuntime(
+            "https://crm-soak.example.local/org/api/data/v9.1/",
+            $"soak-{cycle}",
+            coordinator,
+            concurrency);
+
+        await Parallel.ForEachAsync(
+            Enumerable.Range(0, operationsPerCycle),
+            new ParallelOptions { MaxDegreeOfParallelism = 32 },
+            async (index, cancellationToken) =>
+            {
+                var result = await runtime.Executor.ExecuteAsync(
+                    new OperationExecutionRequest
+                    {
+                        ProfileAlias = "soak",
+                        CapabilityOperationId = OperationIds.RuntimeHealthWhoAmI,
+                        WorkloadSubjectId = $"workload-{index % 5}"
+                    },
+                    cancellationToken);
+                result.Succeeded.Should().BeTrue();
+            });
+
+        var snapshot = runtime.Manager.GetSnapshot();
+        snapshot.InFlight.Should().Be(0);
+        snapshot.Queued.Should().Be(0);
+        snapshot.ActivePermits.Should().Be(0);
+        snapshot.TrackedWorkloadCount.Should().Be(0);
+
+        var retired = new[]
+        {
+            new WeakReference(runtime.Manager),
+            new WeakReference(runtime.Transport),
+            new WeakReference(runtime.Executor),
+            new WeakReference(runtime.Handler)
+        };
+
+        await runtime.DisposeAsync();
+        runtime.Handler.DisposeCount.Should().Be(1);
+        runtime.Handler.CrossTalkCount.Should().Be(0);
+        runtime = null;
+        return retired;
+    }
+
+    private static void ForceFullCollection()
+    {
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
+            GC.WaitForPendingFinalizers();
+        }
     }
 
     private static RuntimeFixture CreateRuntime(

@@ -13,6 +13,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using ChurchReport.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.Xrm.Sdk;
@@ -52,7 +54,10 @@ namespace ChurchReport.Services
         /// <summary>
         /// 將 CRM 查出的奉獻收費單填入表單模型，並同步更新總金額。
         /// </summary>
-        public void FillFeeList(DonationPaymentFormModel model, Entity contact)
+        public async Task FillFeeListAsync(
+            DonationPaymentFormModel model,
+            Entity contact,
+            CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(model);
             ArgumentNullException.ThrowIfNull(contact);
@@ -62,7 +67,8 @@ namespace ChurchReport.Services
 
             if (_package01Enabled)
             {
-                FillFeeListViaPackage01(model, contactId, fullName);
+                await FillFeeListViaPackage01Async(model, contactId, fullName, cancellationToken)
+                    .ConfigureAwait(false);
                 return;
             }
 
@@ -74,7 +80,7 @@ namespace ChurchReport.Services
                 model.QueryEndDate);
 
             System.Diagnostics.Trace.WriteLine(
-                $"[DEDQUERY-LEGACY] FullName={fullName} Start={model.QueryStartDate:yyyy-MM-dd} End={model.QueryEndDate:yyyy-MM-dd} Returned={feeEntities.Entities.Count}");
+                $"[DEDQUERY-LEGACY] ContactId={contactId:D} Start={model.QueryStartDate:yyyy-MM-dd} End={model.QueryEndDate:yyyy-MM-dd} Returned={feeEntities.Entities.Count}");
 
             model.TotalAmount = 0;
             model.DedicationFeeList = feeEntities.Entities
@@ -87,7 +93,11 @@ namespace ChurchReport.Services
             }
         }
 
-        private void FillFeeListViaPackage01(DonationPaymentFormModel model, Guid contactId, string? fullName)
+        private async Task FillFeeListViaPackage01Async(
+            DonationPaymentFormModel model,
+            Guid contactId,
+            string? fullName,
+            CancellationToken cancellationToken)
         {
             var profileAlias = _dynamicsAccess?.ProfileAlias;
             if (string.IsNullOrWhiteSpace(profileAlias))
@@ -99,19 +109,19 @@ namespace ChurchReport.Services
             // WorkloadSubjectId 使用產品部署識別，不是終端使用者 LINE/session。
             const string workloadSubjectId = "church-report-service";
 
-            var rows = _package01FeeReadClient!
+            var rows = await _package01FeeReadClient!
                 .RetrieveDedicationFeesByContactDateRangeAsync(
                     profileAlias,
                     workloadSubjectId,
                     contactId,
                     model.QueryStartDate,
                     model.QueryEndDate,
-                    fullName)
-                .GetAwaiter()
-                .GetResult();
+                    fullName,
+                    cancellationToken)
+                .ConfigureAwait(false);
 
             System.Diagnostics.Trace.WriteLine(
-                $"[DEDQUERY-P01] FullName={fullName} Start={model.QueryStartDate:yyyy-MM-dd} End={model.QueryEndDate:yyyy-MM-dd} Returned={rows.Count}");
+                $"[DEDQUERY-P01] ContactId={contactId:D} Start={model.QueryStartDate:yyyy-MM-dd} End={model.QueryEndDate:yyyy-MM-dd} Returned={rows.Count}");
 
             model.TotalAmount = 0;
             model.DedicationFeeList = rows.Select(MapFeeDto).ToList();

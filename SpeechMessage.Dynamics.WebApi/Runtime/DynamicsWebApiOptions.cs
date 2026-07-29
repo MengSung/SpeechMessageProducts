@@ -123,6 +123,20 @@ public sealed class DynamicsWebApiOptions
     public int MaxResponseBytes { get; set; } = 2_097_152;
 
     /// <summary>
+    /// Number of bounded retries for idempotent read operations after HTTP
+    /// 429 or 503. The original attempt is not included in this count.
+    /// </summary>
+    [Range(0, 5)]
+    public int MaxRetryAttempts { get; set; } = 2;
+
+    /// <summary>
+    /// Maximum delay for one Retry-After or exponential-backoff interval.
+    /// The overall operation remains bounded by <see cref="TimeoutSeconds"/>.
+    /// </summary>
+    [Range(0, 30)]
+    public int MaxRetryDelaySeconds { get; set; } = 5;
+
+    /// <summary>
     /// Organization 級 admission / capacity 設定。
     /// </summary>
     public OrganizationAdmissionOptions Admission { get; set; } = new();

@@ -6,7 +6,7 @@
     "risk":  "high",
     "domain":  "integration",
     "currentPhase":  "implementation",
-    "nextAction":  "Local Phase 4 isolation hardening is complete and Package01FeeReadsEnabled remains false. Before full Phase 4 sign-off, implement the durable coordinator/profile lifecycle/workload-auth/soak gates and obtain authenticated CE 8.2/9.1 live-matrix evidence; apply the separately authorized IFD correction only with a supported operator-side DWS credential.",
+    "nextAction":  "Inventory every C# file added or modified by the Dynamics task, add meaningful Traditional Chinese comments without behavior changes, normalize all included files to UTF-8 without BOM plus CRLF, then resume the remaining Phase 4-6 gates. Package01FeeReadsEnabled remains false.",
     "createdAt":  "2026-07-23T00:00:00Z",
     "branch":  "1.0.0.3.Gateway&Embedded.Worktree"
 }

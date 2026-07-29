@@ -28,7 +28,7 @@ public sealed class DonationPaymentReturnProcessorNamingTests
     [Fact]
     public void New_donation_fee_payment_processor_exists_as_primary_fee_return_processor()
     {
-        var processorType = Type.GetType("ChurchReport.Tools.DonationFeePaymentProcessor, ChurchReport");
+        var processorType = Type.GetType("ChurchReport.Tools.DonationFeePaymentProcessor, SpeechMessageProducts.ChurchReport");
 
         processorType.Should().NotBeNull("收費單付款完成流程應由 DonationFeePaymentProcessor 作為主要入口");
         processorType!.IsAssignableTo(typeof(Controller)).Should().BeTrue();
@@ -37,7 +37,7 @@ public sealed class DonationPaymentReturnProcessorNamingTests
     [Fact]
     public void New_recurring_donation_payment_processor_exists_as_primary_recurring_return_processor()
     {
-        var processorType = Type.GetType("ChurchReport.Tools.RecurringDonationPaymentProcessor, ChurchReport");
+        var processorType = Type.GetType("ChurchReport.Tools.RecurringDonationPaymentProcessor, SpeechMessageProducts.ChurchReport");
 
         processorType.Should().NotBeNull("定期定額付款完成流程應由 RecurringDonationPaymentProcessor 作為主要入口");
         processorType!.IsAssignableTo(typeof(Controller)).Should().BeTrue();
@@ -46,9 +46,9 @@ public sealed class DonationPaymentReturnProcessorNamingTests
     [Fact]
     public void New_payment_result_helper_and_debug_logger_exist()
     {
-        Type.GetType("ChurchReport.Tools.DonationPaymentResultHelper, ChurchReport")
+        Type.GetType("ChurchReport.Tools.DonationPaymentResultHelper, SpeechMessageProducts.ChurchReport")
             .Should().NotBeNull("付款結果判斷 helper 應使用中性命名");
-        Type.GetType("ChurchReport.Tools.DonationPaymentDebugLogger, ChurchReport")
+        Type.GetType("ChurchReport.Tools.DonationPaymentDebugLogger, SpeechMessageProducts.ChurchReport")
             .Should().NotBeNull("付款除錯記錄 helper 應使用中性命名");
     }
 

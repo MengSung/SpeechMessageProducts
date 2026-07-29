@@ -51,14 +51,15 @@ namespace ChurchReport.Controllers
         /// 供行政人員查詢與稽核奉獻記錄
         /// </summary>
         [Route("/DedicationAudit/AuditViewLine")]
-        public IActionResult DedicationFeeAuditViewLine()
+        public async Task<IActionResult> DedicationFeeAuditViewLine()
         {
             try
             {
                 SetupAuditViewBag(false);
 
-                return View(InMemoryContext.DonationPaymentManager.SetDedicationFeeList(
-                    InMemoryContext.LineBindingViewModel.LineUserId));
+                return View(await InMemoryContext.DonationPaymentManager.SetDedicationFeeListAsync(
+                    InMemoryContext.LineBindingViewModel.LineUserId,
+                    HttpContext.RequestAborted));
             }
             catch (Exception e)
             {
@@ -71,14 +72,15 @@ namespace ChurchReport.Controllers
         /// 供行政人員查詢與稽核奉獻記錄
         /// </summary>
         [Route("/DedicationAudit/AuditViewWeb")]
-        public IActionResult DedicationFeeAuditViewWeb()
+        public async Task<IActionResult> DedicationFeeAuditViewWeb()
         {
             try
             {
                 SetupAuditViewBag(true);
 
-                return View(InMemoryContext.DonationPaymentManager.SetDedicationFeeList(
-                    InMemoryContext.DonationPaymentManager.m_Contact));
+                return View(await InMemoryContext.DonationPaymentManager.SetDedicationFeeListAsync(
+                    InMemoryContext.DonationPaymentManager.m_Contact,
+                    HttpContext.RequestAborted));
             }
             catch (Exception e)
             {
@@ -128,7 +130,9 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                return await InMemoryContext.DonationPaymentManager.AuditQueryDedication(DonationPaymentFormModel);
+                return await InMemoryContext.DonationPaymentManager.AuditQueryDedication(
+                    DonationPaymentFormModel,
+                    HttpContext.RequestAborted);
             }
             catch (Exception e)
             {
@@ -344,14 +348,16 @@ namespace ChurchReport.Controllers
         /// </summary>
         /// <param name="id">contact Id (GUID)</param>
         [HttpGet]
-        public IActionResult GetFeesByContactId(string id)
+        public async Task<IActionResult> GetFeesByContactId(string id)
         {
             try
             {
                 if (string.IsNullOrEmpty(id))
                     return Json(new { status = "0", message = "missing id", DedicationFeeList = new object[] { } });
 
-                var feeList = InMemoryContext.DonationPaymentManager.GetDedicationFeesByContactId(id);
+                var feeList = await InMemoryContext.DonationPaymentManager.GetDedicationFeesByContactIdAsync(
+                    id,
+                    HttpContext.RequestAborted);
 
                 // GetDedicationFeesByContactId 內部已透過 SetDedicationFeeList 算好總金額
                 return Json(new { status = "1", DedicationFeeList = feeList, TotalAmount = InMemoryContext.DonationPaymentManager.m_DonationPaymentFormModel.TotalAmount });

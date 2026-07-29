@@ -36,6 +36,7 @@ Questions to answer:
 
 - Source, view, configuration, script, and Markdown files must be saved as UTF-8 without BOM.
 - Windows/Visual Studio text files must use CRLF line endings.
+- Newly written or substantially revised source-code comments must use clear Traditional Chinese and explain the relevant intent, security boundary, lifecycle ownership, failure behavior, or performance tradeoff instead of merely restating the code.
 - Before completing a task that touches text files, run a byte-level check for BOM and LF-only lines on the modified files.
 - Do not rely only on the editor warning dialog; fix the file format before reporting completion.
 - Generate byte/hash manifests and ZIP artifacts from a clean checkout whose line endings already match `.gitattributes`; verify both the source directory and a freshly extracted ZIP before publishing.

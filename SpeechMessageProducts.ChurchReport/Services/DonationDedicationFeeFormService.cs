@@ -10,6 +10,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using ChurchReport.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.Xrm.Sdk;
@@ -46,10 +48,11 @@ namespace ChurchReport.Services
                 package01FeeReadsEnabled);
         }
 
-        public DonationPaymentFormModel FillFromLineId(
+        public async Task<DonationPaymentFormModel> FillFromLineIdAsync(
             DonationPaymentFormModel model,
             string userLineId,
-            Entity fallbackContact)
+            Entity fallbackContact,
+            CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(model);
 
@@ -64,11 +67,15 @@ namespace ChurchReport.Services
             model.DedicationDate = DateTime.Now;
             model.DedicateLocation = "好牧人";
 
-            _feeQueryService.FillFeeList(model, lineLoginContact);
+            await _feeQueryService.FillFeeListAsync(model, lineLoginContact, cancellationToken)
+                .ConfigureAwait(false);
             return model;
         }
 
-        public DonationPaymentFormModel FillFromContact(DonationPaymentFormModel model, Entity lineLoginContact)
+        public async Task<DonationPaymentFormModel> FillFromContactAsync(
+            DonationPaymentFormModel model,
+            Entity lineLoginContact,
+            CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(model);
             ArgumentNullException.ThrowIfNull(lineLoginContact);
@@ -78,14 +85,18 @@ namespace ChurchReport.Services
                 lineLoginContact,
                 overwriteWhenClickTypeExists: model.ClickType == null);
 
-            _feeQueryService.FillFeeList(model, lineLoginContact);
+            await _feeQueryService.FillFeeListAsync(model, lineLoginContact, cancellationToken)
+                .ConfigureAwait(false);
             return model;
         }
 
         /// <summary>
         /// 取得指定 contact 的奉獻收費單 AJAX rows。
         /// </summary>
-        public List<object> GetFeesByContactId(string contactId, DonationPaymentFormModel model)
+        public async Task<List<object>> GetFeesByContactIdAsync(
+            string contactId,
+            DonationPaymentFormModel model,
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(contactId))
             {
@@ -103,7 +114,7 @@ namespace ChurchReport.Services
                 return new List<object>();
             }
 
-            FillFromContact(model, contactEntity);
+            await FillFromContactAsync(model, contactEntity, cancellationToken).ConfigureAwait(false);
             return DonationFeeQueryService.ToAjaxRows(model.DedicationFeeList);
         }
 

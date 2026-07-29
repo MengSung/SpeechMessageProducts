@@ -1,13 +1,14 @@
 // ============================================================================
-// File: SpeechMessage.Dynamics.WebApi/Runtime/DynamicsWebApiClient.cs
-// Purpose: No-SDK Web API client for WhoAmI and Package 1 fee-read HTTP operations.
+// 檔案：SpeechMessage.Dynamics.WebApi/Runtime/DynamicsWebApiClient.cs
+// 用途：提供不依賴 Dynamics CRM SDK 的 Web API 用戶端，負責 WhoAmI 與 Package 1 費用查詢等唯讀 HTTP 作業。
 //
-// Security boundaries:
-// 1. Do not reference legacy CRM SDK packages or namespaces.
-// 2. Use the profile-owned HttpClient and server-owned operation templates.
-// 3. Do not create per-user sessions; the transport is owned by the profile generation.
-// 4. Every resolved URL must remain under the approved Web API root.
-// 5. Never include credentials, tokens, response bodies, or user identity in logs or errors.
+// 安全與生命週期邊界：
+// 1. 不得參考舊版 CRM SDK 套件、組件或命名空間，避免重新引入 SOAP/WCF 與版本耦合。
+// 2. HTTP 傳輸只能使用設定檔世代所擁有的共用 HttpClient；查詢形狀必須來自伺服器端核准範本。
+// 3. 不建立或快取每位使用者的 CRM 工作階段，也不得以帳號、LINE ID、瀏覽器 Session 或 Token 作為連線池索引鍵。
+// 4. 所有組合完成的 URI 都必須留在 ApprovedWebApiRoot 的 HTTPS 來源、連接埠與基底路徑之下。
+// 5. 記錄與錯誤訊息不得包含密碼、權杖、授權標頭、完整回應內容、重新導向位置或可識別使用者的資料。
+// 6. 要求、回應、串流、取消來源與租用緩衝區都必須有明確擁有者，並在成功、失敗、重試及取消路徑確定釋放。
 // ============================================================================
 
 using System.Buffers;
@@ -23,7 +24,8 @@ using SpeechMessage.Dynamics.Abstractions.Operations;
 namespace SpeechMessage.Dynamics.WebApi.Runtime;
 
 /// <summary>
-/// Profile-scoped no-SDK Dynamics Web API client for Package 0/1 live execution.
+/// 設定檔世代範圍內的不依賴 SDK Dynamics Web API 用戶端，執行 Package 0/1 已登錄且受控的即時作業。
+/// 此型別不保存使用者工作階段或要求內容；可重用狀態僅限於由外部設定檔世代管理的 HTTP 傳輸。
 /// </summary>
 public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
 {
@@ -149,7 +151,8 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
                 "OData relative path is empty.");
         }
 
-        // The validation operation records only the bounded logical profile ID and reuses WhoAmI.
+        // 連線驗證沿用唯讀 WhoAmI，避免為探測另外開放任意查詢能力。
+        // 記錄欄位只接受受限長度的 logicalProfileId，不保留使用者識別、權杖或認證內容。
         if (definition.CapabilityOperationId == OperationIds.RuntimePoolValidateConnection)
         {
             _logger.LogDebug(
@@ -192,7 +195,8 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
         var relative = template.EntitySetName.Trim('/') + "?" + query;
         var target = new Uri(approvedRoot.Value, relative);
 
-        // Uri construction must preserve the approved scheme, host, port, and base path.
+        // FetchXML 參數完成編碼後仍須再次檢查最終 URI，確保 scheme、host、port 與 API 基底路徑沒有逸出。
+        // 這項檢查不可只依賴範本來源可信，因為實際 URI 還包含資料繫結與 Uri 正規化結果。
         if (!string.Equals(target.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
             !string.Equals(target.Host, approvedRoot.Value.Host, StringComparison.OrdinalIgnoreCase) ||
             target.Port != approvedRoot.Value.Port ||
@@ -218,119 +222,176 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
         string operationId,
         CancellationToken cancellationToken)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, target);
-        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        request.Headers.TryAddWithoutValidation("OData-Version", "4.0");
-        request.Headers.TryAddWithoutValidation("OData-MaxVersion", "4.0");
-        request.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
-
-        var authError = await ApplyAuthorizationAsync(request, cancellationToken).ConfigureAwait(false);
-        if (authError is not null)
-        {
-            return authError;
-        }
-
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutCts.CancelAfter(TimeSpan.FromSeconds(Math.Clamp(_options.TimeoutSeconds, 1, 300)));
+        var retryAttempts = Math.Clamp(_options.MaxRetryAttempts, 0, 5);
 
-        HttpResponseMessage response;
-        try
+        // 每次嘗試都建立新的 HttpRequestMessage，上一輪的要求與回應會在下一輪前確定 Dispose，
+        // 避免重送已送出的要求物件、累積回應串流，或讓授權標頭跨嘗試與跨設定檔外洩。
+        // 只重試唯讀 GET 的 429/503；所有等待都受同一個總逾時與呼叫端取消權杖約束。
+        for (var attempt = 0; ; attempt++)
         {
-            response = await _transport.SendAsync(request, timeoutCts.Token).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            return OperationExecutionResult.Failure(
-                DynamicsErrorCodes.UpstreamTimeout,
-                $"Operation '{operationId}' timed out.");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Upstream transport failure for {OperationId}", operationId);
-            return OperationExecutionResult.Failure(
-                DynamicsErrorCodes.UpstreamFailure,
-                $"Operation '{operationId}' transport failure.");
-        }
-
-        using (response)
-        {
-            if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            using var request = CreateJsonGetRequest(target);
+            var authError = await ApplyAuthorizationAsync(request, timeoutCts.Token).ConfigureAwait(false);
+            if (authError is not null)
             {
-                return OperationExecutionResult.Failure(
-                    DynamicsErrorCodes.Unauthorized,
-                    $"Operation '{operationId}' was not authorized by upstream.");
+                return authError;
             }
 
-            if (!response.IsSuccessStatusCode)
-            {
-                var location = response.Headers.Location?.ToString();
-                _logger.LogWarning(
-                    "Upstream returned {StatusCode} for {OperationId}. Location={Location}",
-                    (int)response.StatusCode,
-                    operationId,
-                    location ?? "(none)");
-
-                // IFD/claims environments often return 302 to ADFS instead of 401.
-                // Windows NTLM credentials cannot complete that login redirect path.
-                if ((int)response.StatusCode is >= 300 and < 400)
-                {
-                    return OperationExecutionResult.Failure(
-                        DynamicsErrorCodes.UpstreamFailure,
-                        $"Operation '{operationId}' failed with HTTP {(int)response.StatusCode} redirect" +
-                        (string.IsNullOrWhiteSpace(location) ? "." : $" to '{location}'.") +
-                        " This usually means IFD/claims auth. Windows credentials are not enough for Web API;" +
-                        " configure AdfsOAuth bearer/service flow.");
-                }
-
-                return OperationExecutionResult.Failure(
-                    DynamicsErrorCodes.UpstreamFailure,
-                    $"Operation '{operationId}' failed with HTTP {(int)response.StatusCode}.");
-            }
-
-            if (response.Content.Headers.ContentEncoding.Count > 0)
-            {
-                return OperationExecutionResult.Failure(
-                    DynamicsErrorCodes.UpstreamFailure,
-                    $"Operation '{operationId}' returned unsupported Content-Encoding.");
-            }
-
-            JsonElement? data;
+            HttpResponseMessage response;
             try
             {
-                var read = await ReadBoundedJsonAsync(
-                    response.Content,
-                    Math.Clamp(_options.MaxResponseBytes, 1024, 67_108_864),
-                    timeoutCts.Token).ConfigureAwait(false);
-                if (read.TooLarge)
-                {
-                    return OperationExecutionResult.Failure(
-                        DynamicsErrorCodes.UpstreamFailure,
-                        $"Operation '{operationId}' response exceeded the configured byte limit.");
-                }
-
-                data = read.Data;
-            }
-            catch (JsonException)
-            {
-                return OperationExecutionResult.Failure(
-                    DynamicsErrorCodes.UpstreamFailure,
-                    $"Operation '{operationId}' returned non-JSON payload.");
+                response = await _transport.SendAsync(request, timeoutCts.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 return OperationExecutionResult.Failure(
                     DynamicsErrorCodes.UpstreamTimeout,
-                    $"Operation '{operationId}' timed out while reading the response.");
+                    $"Operation '{operationId}' timed out.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    "Upstream transport failure for {OperationId}. ExceptionType={ExceptionType}",
+                    operationId,
+                    ex.GetType().Name);
+                return OperationExecutionResult.Failure(
+                    DynamicsErrorCodes.UpstreamFailure,
+                    $"Operation '{operationId}' transport failure.");
             }
 
-            return OperationExecutionResult.Success(new
+            using (response)
             {
-                operationId,
-                ceVersion = approvedRoot.CeVersion,
-                approvedWebApiRoot = approvedRoot.Value.ToString(),
-                data
-            });
+                if (IsRetryableReadStatus(response.StatusCode) && attempt < retryAttempts)
+                {
+                    var delay = ResolveRetryDelay(response, attempt);
+                    _logger.LogWarning(
+                        "Retrying read operation {OperationId} after HTTP {StatusCode}. Attempt={Attempt} DelayMs={DelayMs}",
+                        operationId,
+                        (int)response.StatusCode,
+                        attempt + 1,
+                        (long)delay.TotalMilliseconds);
+                    try
+                    {
+                        await Task.Delay(delay, timeoutCts.Token).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                    {
+                        return OperationExecutionResult.Failure(
+                            DynamicsErrorCodes.UpstreamTimeout,
+                            $"Operation '{operationId}' timed out while waiting to retry.");
+                    }
+
+                    continue;
+                }
+
+                if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                {
+                    return OperationExecutionResult.Failure(
+                        DynamicsErrorCodes.Unauthorized,
+                        $"Operation '{operationId}' was not authorized by upstream.");
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning(
+                        "Upstream returned {StatusCode} for {OperationId}. HasLocation={HasLocation}",
+                        (int)response.StatusCode,
+                        operationId,
+                        response.Headers.Location is not null);
+
+                    // IFD/claims 環境常以 302 導向 ADFS 登入頁，而不是直接回傳 401。
+                    // Windows NTLM 認證無法完成這條瀏覽器登入導向；此處不跟隨導向，也不記錄 Location，
+                    // 避免把內部 ADFS 位址、查詢參數或可能含狀態值的 URL 洩漏到記錄與呼叫端。
+                    if ((int)response.StatusCode is >= 300 and < 400)
+                    {
+                        return OperationExecutionResult.Failure(
+                            DynamicsErrorCodes.UpstreamFailure,
+                            $"Operation '{operationId}' failed with HTTP {(int)response.StatusCode} redirect." +
+                            " This usually means IFD/claims auth. Windows credentials are not enough for Web API;" +
+                            " configure AdfsOAuth bearer/service flow.");
+                    }
+
+                    return OperationExecutionResult.Failure(
+                        DynamicsErrorCodes.UpstreamFailure,
+                        $"Operation '{operationId}' failed with HTTP {(int)response.StatusCode}.");
+                }
+
+                if (response.Content.Headers.ContentEncoding.Count > 0)
+                {
+                    return OperationExecutionResult.Failure(
+                        DynamicsErrorCodes.UpstreamFailure,
+                        $"Operation '{operationId}' returned unsupported Content-Encoding.");
+                }
+
+                JsonElement? data;
+                try
+                {
+                    var read = await ReadBoundedJsonAsync(
+                        response.Content,
+                        Math.Clamp(_options.MaxResponseBytes, 1024, 67_108_864),
+                        timeoutCts.Token).ConfigureAwait(false);
+                    if (read.TooLarge)
+                    {
+                        return OperationExecutionResult.Failure(
+                            DynamicsErrorCodes.UpstreamFailure,
+                            $"Operation '{operationId}' response exceeded the configured byte limit.");
+                    }
+
+                    data = read.Data;
+                }
+                catch (JsonException)
+                {
+                    return OperationExecutionResult.Failure(
+                        DynamicsErrorCodes.UpstreamFailure,
+                        $"Operation '{operationId}' returned non-JSON payload.");
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                {
+                    return OperationExecutionResult.Failure(
+                        DynamicsErrorCodes.UpstreamTimeout,
+                        $"Operation '{operationId}' timed out while reading the response.");
+                }
+
+                return OperationExecutionResult.Success(new
+                {
+                    operationId,
+                    ceVersion = approvedRoot.CeVersion,
+                    approvedWebApiRoot = approvedRoot.Value.ToString(),
+                    data
+                });
+            }
         }
+    }
+
+    private HttpRequestMessage CreateJsonGetRequest(Uri target)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, target);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        request.Headers.TryAddWithoutValidation("OData-Version", "4.0");
+        request.Headers.TryAddWithoutValidation("OData-MaxVersion", "4.0");
+        request.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
+        return request;
+    }
+
+    private static bool IsRetryableReadStatus(HttpStatusCode statusCode)
+        => statusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.ServiceUnavailable;
+
+    private TimeSpan ResolveRetryDelay(HttpResponseMessage response, int attempt)
+    {
+        var maximumDelay = TimeSpan.FromSeconds(Math.Clamp(_options.MaxRetryDelaySeconds, 0, 30));
+        var retryAfter = response.Headers.RetryAfter;
+        var requestedDelay = retryAfter?.Delta ??
+            (retryAfter?.Date is DateTimeOffset date
+                ? date - DateTimeOffset.UtcNow
+                : TimeSpan.FromMilliseconds(100 * Math.Pow(2, attempt)));
+
+        if (requestedDelay < TimeSpan.Zero)
+        {
+            return TimeSpan.Zero;
+        }
+
+        return requestedDelay > maximumDelay ? maximumDelay : requestedDelay;
     }
 
     private async Task<OperationExecutionResult?> ApplyAuthorizationAsync(
@@ -339,7 +400,8 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
     {
         if (_options.AuthMode == DynamicsAuthMode.Windows)
         {
-            // Windows auth is attached on the handler; no Authorization header.
+            // Windows/IWA 認證由設定檔世代擁有的 HttpMessageHandler 綁定主機身分；
+            // 此處不得額外建立 Authorization 標頭，避免認證資料進入要求物件或跨要求殘留。
             return null;
         }
 
@@ -389,6 +451,8 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
         var totalRead = 0;
         try
         {
+            // 多租用一個位元組可在不建立第二份完整 payload 的情況下判斷是否超過上限。
+            // 解析完成後只 Clone JsonElement；JsonDocument、串流與租用緩衝區均在本方法內確定釋放。
             while (totalRead <= maximumBytes)
             {
                 var read = await stream.ReadAsync(
@@ -413,6 +477,8 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
         }
         finally
         {
+            // 回傳 ArrayPool 前清除實際寫入範圍，避免下一位租用者讀到前一個組織的回應片段。
+            // 僅清除已使用區段可兼顧跨租戶隔離與高吞吐量，並避免對整個大型租用陣列做不必要寫入。
             CryptographicOperations.ZeroMemory(buffer.AsSpan(0, Math.Min(totalRead, buffer.Length)));
             ArrayPool<byte>.Shared.Return(buffer);
         }
@@ -483,7 +549,8 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
 
         var bound = CollapseWhitespace(template);
 
-        // optional uiname attributes
+        // uiname 是選用顯示名稱屬性；只有在值通過 XML 屬性編碼且非空白時才輸出，
+        // 否則移除整個屬性片段，避免留下未繫結 placeholder 或產生格式不完整的 FetchXML。
         bound = BindOptionalNameAttribute(bound, parameters, "contactName", "contactNameAttr");
         bound = BindOptionalNameAttribute(bound, parameters, "dedicationBookingName", "dedicationBookingNameAttr");
         bound = BindOptionalNameAttribute(bound, parameters, "lessonName", "lessonNameAttr");

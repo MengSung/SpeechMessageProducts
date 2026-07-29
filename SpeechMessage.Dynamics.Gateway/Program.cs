@@ -91,6 +91,10 @@ builder.Services.AddSpeechMessageDynamicsWebApi(options =>
     options.MaxConnectionsPerServer = 4;
     options.MaxResponseBytes = builder.Configuration.GetValue(
         "DynamicsWebApi:MaxResponseBytes", 2_097_152);
+    options.MaxRetryAttempts = builder.Configuration.GetValue(
+        "DynamicsWebApi:MaxRetryAttempts", 2);
+    options.MaxRetryDelaySeconds = builder.Configuration.GetValue(
+        "DynamicsWebApi:MaxRetryDelaySeconds", 5);
     options.Admission.ExpectedOrganizationId = Guid.TryParse(
             builder.Configuration["DynamicsWebApi:Admission:ExpectedOrganizationId"],
             out var orgId)

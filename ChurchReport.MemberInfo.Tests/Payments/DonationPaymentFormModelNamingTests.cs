@@ -42,8 +42,8 @@ public sealed class DonationPaymentFormModelNamingTests
     [Fact]
     public void Donation_payment_form_model_is_the_primary_churchreport_form_state_type()
     {
-        var formModelType = Type.GetType("ChurchReport.Models.DonationPaymentFormModel, ChurchReport");
-        var legacyModelType = Type.GetType($"ChurchReport.Models.{LegacyModelToken}Model, ChurchReport");
+        var formModelType = Type.GetType("ChurchReport.Models.DonationPaymentFormModel, SpeechMessageProducts.ChurchReport");
+        var legacyModelType = Type.GetType($"ChurchReport.Models.{LegacyModelToken}Model, SpeechMessageProducts.ChurchReport");
 
         formModelType.Should().NotBeNull(
             "奉獻付款表單是 ChurchReport 的產品層狀態，應使用 DonationPaymentFormModel 這種中性名稱，" +
@@ -57,7 +57,7 @@ public sealed class DonationPaymentFormModelNamingTests
     [Fact]
     public void Donation_payment_manager_is_the_only_churchreport_payment_state_manager()
     {
-        Type.GetType($"ChurchReport.Models.{LegacyModelToken}Manager, ChurchReport").Should().BeNull(
+        Type.GetType($"ChurchReport.Models.{LegacyModelToken}Manager, SpeechMessageProducts.ChurchReport").Should().BeNull(
             "DonationPaymentManager 已經是 ChurchReport 奉獻付款 UI 狀態的主要 manager；" +
             "不應再保留舊 provider 形狀的 manager alias，否則後續新增高鉅、台新或其他產品時會誤用");
     }
@@ -212,7 +212,7 @@ public sealed class DonationPaymentFormModelNamingTests
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory != null)
         {
-            if (File.Exists(Path.Combine(directory.FullName, "ChurchReport.sln")))
+            if (File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln")))
             {
                 return directory.FullName;
             }
@@ -220,6 +220,6 @@ public sealed class DonationPaymentFormModelNamingTests
             directory = directory.Parent;
         }
 
-        throw new DirectoryNotFoundException("找不到 ChurchReport.sln，無法判斷 repository root。");
+        throw new DirectoryNotFoundException("找不到 SpeechMessageProducts.sln，無法判斷 repository root。");
     }
 }
