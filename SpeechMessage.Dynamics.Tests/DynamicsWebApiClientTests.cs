@@ -273,6 +273,38 @@ public sealed class DynamicsWebApiClientTests
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
+    /// <summary>
+    /// Token provider 若超過整體要求逾時，對外應回傳 UpstreamTimeout，而不是把內部 linked token 的取消例外洩漏給呼叫端。
+    /// 這與呼叫端主動取消不同：前者是可觀測的上游逾時結果，後者必須保留 OperationCanceledException。
+    /// </summary>
+    [Fact]
+    public async Task Token_acquisition_timeout_returns_bounded_upstream_timeout()
+    {
+        var options = Options.Create(new DynamicsWebApiOptions
+        {
+            OrganizationBaseUri = "https://crm.example.local/org/",
+            CeVersion = "9.1",
+            AuthMode = DynamicsAuthMode.AdfsOAuth,
+            CredentialReferenceName = "ADFS_TOKEN",
+            TimeoutSeconds = 1
+        });
+        var transport = new DynamicsHttpTransport(
+            new StubHandler(_ => throw new InvalidOperationException("transport must not run after token timeout")),
+            NullLogger<DynamicsHttpTransport>.Instance);
+        var client = new DynamicsWebApiClient(
+            options,
+            transport,
+            new DictionarySecretResolver(new Dictionary<string, string>()),
+            new BlockingTokenProvider(),
+            NullLogger<DynamicsWebApiClient>.Instance);
+
+        var result = await client.WhoAmIAsync(CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorCode.Should().Be(DynamicsErrorCodes.UpstreamTimeout);
+        result.ErrorMessage.Should().Contain("timed out");
+    }
+
     [Fact]
     public async Task Transport_exception_details_are_not_logged_or_returned()
     {
@@ -457,6 +489,18 @@ public sealed class DynamicsWebApiClientTests
     {
         public Task<string> GetAccessTokenAsync(CancellationToken cancellationToken = default)
             => Task.FromCanceled<string>(cancellationToken);
+    }
+
+    /// <summary>
+    /// 模擬永不自行完成、只接受取消的 Token I/O；取消後 Task 立即結束，不會留下背景工作或 timer。
+    /// </summary>
+    private sealed class BlockingTokenProvider : IAdfsOAuthTokenProvider
+    {
+        public async Task<string> GetAccessTokenAsync(CancellationToken cancellationToken = default)
+        {
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            return "unreachable";
+        }
     }
 
     private sealed class ThrowOnReadContent : HttpContent

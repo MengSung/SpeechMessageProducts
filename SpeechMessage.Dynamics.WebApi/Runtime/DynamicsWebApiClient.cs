@@ -232,7 +232,20 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
         for (var attempt = 0; ; attempt++)
         {
             using var request = CreateJsonGetRequest(target);
-            var authError = await ApplyAuthorizationAsync(request, timeoutCts.Token).ConfigureAwait(false);
+            OperationExecutionResult? authError;
+            try
+            {
+                authError = await ApplyAuthorizationAsync(request, timeoutCts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // linked token 已取消、但呼叫端 token 尚未取消，代表整體要求逾時；
+                // 對外回傳有界 timeout 結果，同時保留呼叫端主動取消時的 OperationCanceledException。
+                return OperationExecutionResult.Failure(
+                    DynamicsErrorCodes.UpstreamTimeout,
+                    $"Operation '{operationId}' timed out while acquiring authorization.");
+            }
+
             if (authError is not null)
             {
                 return authError;
@@ -419,6 +432,12 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
 
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 return null;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // 取消屬於要求生命週期訊號，不是認證失敗；保留原 CancellationToken 語意，
+                // 讓外層區分呼叫端取消與整體逾時，並避免產生誤導性的 Unauthorized 記錄。
+                throw;
             }
             catch (Exception ex)
             {
