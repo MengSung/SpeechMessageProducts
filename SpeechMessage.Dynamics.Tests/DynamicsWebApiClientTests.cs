@@ -241,6 +241,38 @@ public sealed class DynamicsWebApiClientTests
         result.ErrorMessage.Should().Be("AdfsOAuth token acquisition failed.");
     }
 
+    /// <summary>
+    /// 呼叫端取消不是認證失敗；Token provider 觀察到同一 CancellationToken 後，取消必須原樣向上傳播，
+    /// 不能被轉換成 Unauthorized，否則上層會錯誤記錄登入失敗並失去要求中止語意。
+    /// </summary>
+    [Fact]
+    public async Task Caller_cancellation_during_token_acquisition_is_propagated()
+    {
+        var options = Options.Create(new DynamicsWebApiOptions
+        {
+            OrganizationBaseUri = "https://crm.example.local/org/",
+            CeVersion = "9.1",
+            AuthMode = DynamicsAuthMode.AdfsOAuth,
+            CredentialReferenceName = "ADFS_TOKEN",
+            TimeoutSeconds = 10
+        });
+        var transport = new DynamicsHttpTransport(
+            new StubHandler(_ => throw new InvalidOperationException("transport must not run after cancellation")),
+            NullLogger<DynamicsHttpTransport>.Instance);
+        var client = new DynamicsWebApiClient(
+            options,
+            transport,
+            new DictionarySecretResolver(new Dictionary<string, string>()),
+            new CancellationObservingTokenProvider(),
+            NullLogger<DynamicsWebApiClient>.Instance);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        Func<Task> act = () => client.WhoAmIAsync(cancellation.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
     [Fact]
     public async Task Transport_exception_details_are_not_logged_or_returned()
     {
@@ -416,6 +448,15 @@ public sealed class DynamicsWebApiClientTests
 
         public Task<string> GetAccessTokenAsync(CancellationToken cancellationToken = default)
             => Task.FromException<string>(new InvalidOperationException(_message));
+    }
+
+    /// <summary>
+    /// 測試用 provider 只回傳由呼叫端權杖建立的取消 Task，不保存 Token、要求或其他跨測試狀態。
+    /// </summary>
+    private sealed class CancellationObservingTokenProvider : IAdfsOAuthTokenProvider
+    {
+        public Task<string> GetAccessTokenAsync(CancellationToken cancellationToken = default)
+            => Task.FromCanceled<string>(cancellationToken);
     }
 
     private sealed class ThrowOnReadContent : HttpContent
