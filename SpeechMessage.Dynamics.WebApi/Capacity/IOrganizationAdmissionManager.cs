@@ -58,7 +58,7 @@ public sealed class AdmissionMetricsSnapshot
 }
 
 /// <summary>
-/// Organization admission manager。
+/// 組織層級 admission manager；以有界 queue、workload 配額與 host-slot lease 控制 outbound Dynamics 併發。
 /// </summary>
 public interface IOrganizationAdmissionManager : IAsyncDisposable, IDisposable
 {

@@ -5,10 +5,10 @@
 // 保姆級教學：
 // - 產品只參考 Embedded + Abstractions，不要直接參考 WebApi。
 // - Embedded 內部會接上 IDynamicsOperationExecutor，語意與 Gateway 相同。
-// - CredentialSource:
+// - CredentialSource（Windows 認證來源）：
 //     HostIdentity    = 用目前 Windows 進程身分（IIS AppPool / gMSA）
 //     SecretReference = 用秘密名稱解析帳密
-// - AuthMode:
+// - AuthMode（啟動時固定的認證模式）：
 //     Windows   = NTLM/Negotiate（純 AD 環境）
 //     AdfsOAuth = IFD/claims 環境的 Bearer token（jesus 需要這個）
 // - additionalSecrets：本機 local-dev 可傳入「秘密名稱 -> 值」對照表（值來自既有 CrmConnection），

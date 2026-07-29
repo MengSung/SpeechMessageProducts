@@ -371,7 +371,8 @@ namespace ChurchReport.Services
             // cache key 必須包含 auth 維度，避免 Windows / AdfsOAuth 設定互相污染。
             var localSecrets = BuildLocalDevSecretMap(configuration, productOptions);
 
-            // Legacy unbounded provider cache removed.
+    // 舊版無界 ServiceProvider 快取已移除；此類別只保留單一 process generation，設定改變必須重啟並先 Dispose 舊世代，
+    // 防止每個要求建立新的 handler、socket pool、timer 或 token cache 而造成資源與跨設定檔狀態洩漏。
                 // 這層建立 DI 容器與 Embedded 執行器。
                 // 產品只可 reference Embedded 專案，不可直接 reference WebApi。
 

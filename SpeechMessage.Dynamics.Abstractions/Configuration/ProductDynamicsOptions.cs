@@ -97,59 +97,59 @@ public sealed class EmbeddedModeOptions
     public string ManifestOrRegistrySource { get; set; } = string.Empty;
 
     /// <summary>
-    /// Windows credential source for Embedded mode.
-    /// HostIdentity = process identity; SecretReference = resolve username/password via secret names.
+    /// Embedded 模式的 Windows 認證來源。
+    /// HostIdentity 使用目前服務行程身分；SecretReference 只保存使用者名稱/密碼的秘密名稱，實際值由秘密提供者解析。
     /// </summary>
     public string CredentialSource { get; set; } = "HostIdentity";
 
     /// <summary>
-    /// Secret name for Windows username (env var name or local-dev CrmConnection bridge key).
-    /// Required when CredentialSource=SecretReference.
+    /// Windows 使用者名稱的秘密名稱，可對應環境變數或 local-dev CrmConnection bridge key。
+    /// CredentialSource=SecretReference 時必填；不得直接填入帳號值。
     /// </summary>
     public string? UserNameSecretName { get; set; }
 
     /// <summary>
-    /// Secret name for Windows password. Never put the password value itself here.
+    /// Windows 密碼的秘密名稱；此欄位絕對不可放入密碼本體。
     /// </summary>
     public string? PasswordSecretName { get; set; }
 
     /// <summary>
-    /// Optional secret name for Windows domain.
+    /// 選用的 Windows 網域秘密名稱；未設定時由帳號格式或執行環境決定。
     /// </summary>
     public string? DomainSecretName { get; set; }
 
     /// <summary>
-    /// Auth mode for Embedded: Windows or AdfsOAuth.
+    /// Embedded 認證模式，只允許 Windows 或 AdfsOAuth；必須在啟動時固定，不能由使用者要求切換。
     /// </summary>
     public string AuthMode { get; set; } = "Windows";
 
     /// <summary>
-    /// ADFS authority, e.g. https://speechmessagests.speechmessage.com.tw/adfs
+    /// ADFS authority，例如 https://speechmessagests.speechmessage.com.tw/adfs；不得包含使用者資訊或動態 query。
     /// </summary>
     public string? AuthorityUri { get; set; }
 
     /// <summary>
-    /// OAuth resource for CRM org, e.g. https://jesus.speechmessage.com.tw/
+    /// CRM 組織的 OAuth resource/audience，例如 https://jesus.speechmessage.com.tw/。
     /// </summary>
     public string? ResourceUri { get; set; }
 
     /// <summary>
-    /// ADFS client application id (public).
+    /// ADFS client application ID；此識別碼本身不是秘密，但仍必須由部署設定固定。
     /// </summary>
     public string? ClientId { get; set; }
 
     /// <summary>
-    /// Optional client-id secret name if stored outside appsettings.
+    /// Client ID 存放於外部設定來源時使用的選用秘密名稱；不得在此欄位放入 client secret。
     /// </summary>
     public string? ClientIdSecretName { get; set; }
 
     /// <summary>
-    /// Optional client-secret secret name for confidential clients.
+    /// confidential client 使用的選用 client-secret 秘密名稱；只保存參考，不保存秘密值。
     /// </summary>
     public string? ClientSecretName { get; set; }
 
     /// <summary>
-    /// Optional pre-issued bearer token secret name.
+    /// 選用的預先核發 bearer token 秘密名稱；Token 不得寫入 JSON、記錄或例外。
     /// </summary>
     public string? CredentialReferenceName { get; set; }
 
@@ -160,17 +160,17 @@ public sealed class EmbeddedModeOptions
     public bool AllowLocalDevPasswordGrant { get; set; }
 
     /// <summary>
-    /// Optional refresh-token secret name.
+    /// 選用的 refresh token 秘密名稱；Token 本體由秘密提供者或受控本機 token store 擁有。
     /// </summary>
     public string? RefreshTokenSecretName { get; set; }
 
     /// <summary>
-    /// Local-dev token store path (authorization_code / refresh_token).
+    /// local-dev 專用 token store 路徑，保存 authorization_code 流程取得的 access/refresh token；正式環境不得使用。
     /// </summary>
     public string? LocalDevTokenStorePath { get; set; }
 
     /// <summary>
-    /// OAuth redirect URI for local-dev authorization_code.
+    /// local-dev authorization_code 流程使用的 OAuth redirect URI，必須與 ADFS client registration 完全一致。
     /// </summary>
     public string? RedirectUri { get; set; }
 }

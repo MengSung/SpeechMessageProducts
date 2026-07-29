@@ -16,8 +16,13 @@ using SpeechMessage.Dynamics.Abstractions.Operations;
 
 namespace SpeechMessage.Dynamics.Tests;
 
+/// <summary>
+/// 驗證 Gateway workload 身分的唯一權威是伺服器驗證後的 service principal mapping。
+/// 未驗證、未 mapping 或企圖在 JSON 本文夾帶 workloadSubjectId 的呼叫，必須在 executor 與 Dynamics outbound 流量之前被拒絕。
+/// </summary>
 public sealed class GatewayWorkloadBoundaryTests
 {
+    /// <summary>未驗證呼叫不得進入 executor，避免匿名要求消耗 admission 或接觸任何 profile。</summary>
     [Fact]
     public async Task Unauthenticated_caller_is_rejected_before_executor()
     {
@@ -33,6 +38,7 @@ public sealed class GatewayWorkloadBoundaryTests
         executor.CallCount.Should().Be(0);
     }
 
+    /// <summary>已驗證但未授權 mapping 的 principal 仍須 fail-closed，不能從 alias 或本文推導權限。</summary>
     [Fact]
     public async Task Authenticated_but_unmapped_caller_is_rejected_before_executor()
     {
@@ -51,6 +57,7 @@ public sealed class GatewayWorkloadBoundaryTests
         executor.CallCount.Should().Be(0);
     }
 
+    /// <summary>惡意本文欄位不得覆寫 server-mapped workload，防止跨產品/租戶容量與稽核歸屬污染。</summary>
     [Fact]
     public async Task Hostile_body_identity_cannot_override_server_mapped_workload()
     {
@@ -68,6 +75,7 @@ public sealed class GatewayWorkloadBoundaryTests
         executor.CallCount.Should().Be(0);
     }
 
+    /// <summary>只有伺服器 mapping 的固定 workloadSubjectId 可以送入 executor。</summary>
     [Fact]
     public async Task Mapped_server_principal_is_the_only_workload_authority()
     {

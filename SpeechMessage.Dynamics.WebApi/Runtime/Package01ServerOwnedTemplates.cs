@@ -49,7 +49,7 @@ public static class Package01ServerOwnedTemplates
 
     private static IEnumerable<ServerOwnedTemplate> Build()
     {
-        // WhoAmI：OData function。
+        // WhoAmI：OData function，用於唯讀身分/連線驗證，不開放任意 function 名稱。
         yield return new ServerOwnedTemplate
         {
             TemplateId = "WhoAmI",
@@ -66,7 +66,7 @@ public static class Package01ServerOwnedTemplates
                 "EntityDefinitions(LogicalName='{{entityLogicalName}}')/Attributes(LogicalName='{{attributeLogicalName}}')"
         };
 
-        // fee.dedication.bycontact.v1
+        // fee.dedication.bycontact.v1：依 contact ID 查詢奉獻費用，所有欄位與關聯由伺服器範本固定。
         yield return new ServerOwnedTemplate
         {
             TemplateId = "fee.dedication.bycontact.v1",
@@ -95,7 +95,7 @@ public static class Package01ServerOwnedTemplates
                 """
         };
 
-        // fee.dedication.bycontactdaterange.v1
+        // fee.dedication.bycontactdaterange.v1：在 contact 邊界內加入有界日期範圍，避免任意 FetchXML。
         yield return new ServerOwnedTemplate
         {
             TemplateId = "fee.dedication.bycontactdaterange.v1",
@@ -134,7 +134,7 @@ public static class Package01ServerOwnedTemplates
                 """
         };
 
-        // fees.by.dedication.period.v1
+        // fees.by.dedication.period.v1：以 dedication booking 與繳費期別查詢，輸入按 XML 屬性情境編碼。
         yield return new ServerOwnedTemplate
         {
             TemplateId = "fees.by.dedication.period.v1",
@@ -159,7 +159,7 @@ public static class Package01ServerOwnedTemplates
                 """
         };
 
-        // fees.editor.load.disciplelesson.v1
+        // fees.editor.load.disciplelesson.v1：只載入費用編輯器需要的核准欄位與排序。
         // 第一版把 fee editor 需要的 stor lessons 投影收斂成單一 FetchXML。
         yield return new ServerOwnedTemplate
         {
@@ -190,7 +190,7 @@ public static class Package01ServerOwnedTemplates
                 """
         };
 
-        // lessons.stor.by.contact.v1
+        // lessons.stor.by.contact.v1：依 contact 查詢儲值課程，不允許 caller 自訂 link-entity 或欄位。
         yield return new ServerOwnedTemplate
         {
             TemplateId = "lessons.stor.by.contact.v1",
@@ -230,7 +230,7 @@ public static class Package01ServerOwnedTemplates
                 """
         };
 
-        // lessons.stor.by.disciplelesson.v1
+        // lessons.stor.by.disciplelesson.v1：依 disciple lesson 查詢儲值課程，範本版本固定為 v1。
         yield return new ServerOwnedTemplate
         {
             TemplateId = "lessons.stor.by.disciplelesson.v1",

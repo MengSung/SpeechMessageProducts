@@ -12,8 +12,15 @@ using SpeechMessage.Dynamics.WebApi.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
 
+/// <summary>
+/// 驗證 Gateway `/ready` 只反映能安全容納 outbound 工作的 host-slot lease 狀態。
+/// readiness 回應同時必須 NoStore，避免代理或瀏覽器快取過期的可用狀態而把流量送往已失去 lease 的主機。
+/// </summary>
 public sealed class GatewayReadinessTests
 {
+    /// <summary>
+    /// 使用 stub snapshot 同時覆蓋 Ready/NotReady，並證明 endpoint 不自行猜測或延長 lease 狀態。
+    /// </summary>
     [Theory]
     [InlineData(true, HttpStatusCode.OK)]
     [InlineData(false, HttpStatusCode.ServiceUnavailable)]

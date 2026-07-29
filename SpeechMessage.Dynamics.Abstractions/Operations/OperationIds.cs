@@ -15,7 +15,7 @@ namespace SpeechMessage.Dynamics.Abstractions.Operations;
 /// </summary>
 public static class OperationIds
 {
-    // -------- Package 0: runtime foundation --------
+    // -------- Package 0：runtime 基礎能力，僅包含健康檢查、設定檔與連線池控制作業 --------
 
     /// <summary>對應 ORG-CALL-00003：WhoAmI 健康檢查。</summary>
     public const string RuntimeHealthWhoAmI = "runtime.health.whoami";
@@ -26,7 +26,7 @@ public static class OperationIds
     /// <summary>對應 ORG-CALL-00040：option-set metadata 讀取。</summary>
     public const string MetadataOptionSetByAttribute = "metadata.optionset.retrieve.by.attribute";
 
-    // -------- Package 1: fee reads --------
+    // -------- Package 1：費用唯讀能力；正式流量在 Phase 4 證據完成前維持 feature flag 關閉 --------
 
     /// <summary>對應 ORG-CALL-00005：依 contact 讀取 dedication fee。</summary>
     public const string FeeDedicationRetrieveByContact = "fee.dedication.retrieve.by.contact";

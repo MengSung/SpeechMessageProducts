@@ -71,9 +71,8 @@ public sealed class RuntimeHostSlotLease : IAsyncDisposable, IDisposable
             return;
         }
 
-        // `await using` is the normal path. This compatibility path still waits
-        // deterministically, but the release runs off a caller-owned UI/legacy
-        // synchronization context so it cannot deadlock that context.
+        // 正常路徑應使用 await using。同步相容路徑仍會確定等待 ReleaseAsync 完成，
+        // 但把非同步釋放放到 ThreadPool 執行，避免沿用呼叫端 UI/legacy SynchronizationContext 而形成死鎖。
         Task.Run(async () =>
             await _coordinator.ReleaseAsync(this, CancellationToken.None).ConfigureAwait(false))
             .GetAwaiter()
@@ -102,8 +101,8 @@ public interface IRuntimeHostSlotCoordinator
     bool IsDurable { get; }
 
     /// <summary>
-    /// True only when the durable coordinator atomically validates the global
-    /// admission epoch and immutable configuration digest.
+    /// 只有 durable coordinator 能原子驗證全域 AdmissionEpoch 與不可變設定摘要時才為 true；
+    /// 僅能持久化租約但無法 fencing 舊設定的實作，不具備安全的跨主機容量保證。
     /// </summary>
     bool SupportsAdmissionEpoch => false;
 

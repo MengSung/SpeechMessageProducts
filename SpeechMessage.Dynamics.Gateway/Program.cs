@@ -187,7 +187,8 @@ app.MapGet("/ready", (HttpContext context, SpeechMessage.Dynamics.WebApi.Capacit
 });
 
 // 受控操作入口：
-// POST /v1/organizations/{alias}/operations/{capabilityOperationId}
+// 受控操作端點：POST /v1/organizations/{alias}/operations/{capabilityOperationId}。
+// alias 與 capabilityOperationId 必須通過伺服器端 mapping/registry；要求本文不能改寫目標 URI、認證或 workload 身分。
 app.MapPost(
     "/v1/organizations/{alias}/operations/{capabilityOperationId}",
     async Task<IResult> (

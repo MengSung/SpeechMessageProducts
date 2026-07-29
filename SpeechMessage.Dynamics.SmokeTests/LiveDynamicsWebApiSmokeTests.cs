@@ -5,13 +5,13 @@
 // 保母教學：
 // 1. 預設不打外部系統，避免 CI / 無環境機器失敗。
 // 2. 只有同時滿足以下條件才會真正外呼：
-//    - DYNAMICS_SMOKE_ENABLED=1
-//    - DYNAMICS_SMOKE_WEBAPI_ROOT=https://.../api/data/v9.1/
+//    - 明確啟用非生產 smoke：DYNAMICS_SMOKE_ENABLED=1
+//    - 指定核准的 Web API root：DYNAMICS_SMOKE_WEBAPI_ROOT=https://.../api/data/v9.1/
 //    - DYNAMICS_SMOKE_CE_VERSION=9.1 或 8.2
 // 3. 認證：
 //    - HostIdentity（本機 Windows 服務身分）或
 //    - SecretReference + 環境變數帳密參考
-//    - AdfsOAuth（IFD）：DYNAMICS_SMOKE_AUTH_MODE=AdfsOAuth + Authority/ClientId/password grant
+//    - AdfsOAuth（IFD）：DYNAMICS_SMOKE_AUTH_MODE=AdfsOAuth，並提供 Authority/ClientId 與經核准的非密碼流程；password grant 僅限明確 local-dev 證據。
 // 4. 只做 WhoAmI 與可選 fee-read（需要 contactId），不寫入 CRM。
 // ============================================================================
 

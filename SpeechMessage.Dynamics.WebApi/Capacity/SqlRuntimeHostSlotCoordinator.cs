@@ -4,8 +4,16 @@ using Microsoft.Extensions.Logging;
 
 namespace SpeechMessage.Dynamics.WebApi.Capacity;
 
+/// <summary>
+/// 以獨立 SQL control-plane 資料庫協調跨 Gateway、Embedded 與設定檔世代的 runtime-host slot。
+/// SQL transaction、application lock、AdmissionEpoch、設定摘要與單調遞增 fencing token 共同形成原子邊界，
+/// 確保舊主機、過期租約或不同容量設定無法在同一實體 Dynamics 組織上重複取得容量。
+/// 每次資料庫作業都自行擁有並確定釋放連線、交易、命令與 reader；此型別不保存要求或認證狀態。
+/// </summary>
 public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
 {
+    // Schema 僅建立在專用 control-plane database。AdmissionEpoch 與 ConfigurationDigest 阻擋設定漂移，
+    // rowversion 保留資料列併發版本，而全域 sequence 產生永不回退的 fencing token。
     public const string SchemaSql = """
         SET XACT_ABORT ON;
         IF OBJECT_ID(N'dbo.RuntimeHostFencingSequence', N'SO') IS NULL
@@ -56,6 +64,8 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
                 CONSTRAINT DF_RuntimeHostSlotLease_ConfigurationDigest DEFAULT (REPLICATE('0', 64)) WITH VALUES;
         """;
 
+    // 取得槽位必須在同一 serializable transaction 內完成：sp_getapplock 序列化同一 namespace，
+    // XACT_ABORT 保證 SQL 錯誤時整筆回滾；過期槽位先進入 quarantine，避免仍在網路中的舊工作與替代主機重疊。
     private const string AcquireSql = """
         SET NOCOUNT ON;
         SET XACT_ABORT ON;
@@ -158,6 +168,8 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         END;
         """;
 
+    // 續租以 expected fencing token、host、epoch 與設定摘要做 compare-and-swap；任何一項不符即回傳失敗，
+    // 呼叫端必須將租約視為失效，不得以本機時間或快取狀態延長所有權。
     private const string RenewSql = """
         SET NOCOUNT ON;
         SET XACT_ABORT ON;
@@ -186,6 +198,7 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
           );
         """;
 
+    // 釋放只接受目前 fencing token，並先設定 quarantine 而非立即重用槽位，防止延遲中的舊 outbound 工作撞上新持有者。
     private const string ReleaseSql = """
         SET NOCOUNT ON;
         SET XACT_ABORT ON;
@@ -222,6 +235,7 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
 
     public async Task EnsureSchemaAsync(CancellationToken cancellationToken)
     {
+        // 僅供明確的佈署/測試 provisioning 使用；正式 readiness 走 VerifySchemaAsync，避免應用程式暗中修改錯誤資料庫。
         await ExecuteOperationAsync(async () =>
         {
             await using var connection = await OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
@@ -233,6 +247,7 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
 
     public async Task VerifySchemaAsync(CancellationToken cancellationToken)
     {
+        // readiness 必須同時確認固定資料庫名稱、資料表、sequence 與 fencing 欄位；缺任何一項即 fail-closed。
         const string verifySql = """
             SET NOCOUNT ON;
             IF DB_NAME() <> N'SpeechMessageDynamicsControlPlane'
@@ -286,6 +301,7 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         return await ExecuteOperationAsync(async () =>
         {
             await using var connection = await OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+            // Serializable transaction 與 namespace application lock 讓「找空位、標記舊租約、寫入新租約」成為不可分割操作。
             await using var transaction = (SqlTransaction)await connection
                 .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
                 .ConfigureAwait(false);
@@ -326,6 +342,7 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
             }
             catch
             {
+                // 即使呼叫端已取消，也使用 CancellationToken.None 完成 rollback，避免把未決交易留給 connection pool 清理。
                 await transaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
                 throw;
             }
@@ -387,6 +404,7 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
 
     private async Task<T> ExecuteOperationAsync<T>(Func<Task<T>> operation)
     {
+        // ActiveDatabaseOperations 是資源生命週期哨兵；任何成功、SQL 失敗、逾時或取消路徑都必須在 finally 回到基線。
         Interlocked.Increment(ref _activeDatabaseOperations);
         try
         {
@@ -415,6 +433,7 @@ public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
         }
         catch
         {
+            // OpenAsync 失敗時 SqlConnection 尚未交給 await using 擁有，因此必須在此方法內立即 DisposeAsync。
             await connection.DisposeAsync().ConfigureAwait(false);
             throw;
         }

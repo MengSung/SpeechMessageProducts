@@ -5,8 +5,13 @@ using SpeechMessage.Dynamics.WebApi.Capacity;
 
 namespace SpeechMessage.Dynamics.Tests;
 
+/// <summary>
+/// 驗證 SQL durable host-slot coordinator 的設定界線、schema 隔離、故障關閉與真實資料庫原子契約。
+/// Live contract 只在明確提供非生產連線字串時執行，且使用唯一 namespace，避免測試彼此或生產租約互相污染。
+/// </summary>
 public sealed class SqlRuntimeHostSlotCoordinatorTests
 {
+    /// <summary>不允許零或無界 timeout/quarantine，避免資料庫故障造成忙迴圈或永久容量凍結。</summary>
     [Fact]
     public void Options_reject_unbounded_or_unsafe_values()
     {
@@ -22,6 +27,7 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
         act.Should().Throw<InvalidOperationException>();
     }
 
+    /// <summary>schema 必須位於獨立 control-plane，不得接觸 MSCRM_CONFIG 或 OrganizationBase。</summary>
     [Fact]
     public void Schema_is_scoped_to_the_standalone_control_plane_database()
     {
@@ -35,6 +41,7 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
         SqlRuntimeHostSlotCoordinator.SchemaSql.Should().NotContain("OrganizationBase");
     }
 
+    /// <summary>注入無法連線的 SQL endpoint，證明錯誤向上傳播且 ActiveDatabaseOperations 必定回到零。</summary>
     [Fact]
     public async Task Coordinator_outage_fails_closed_without_retained_connection_or_task()
     {
@@ -58,6 +65,10 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
         coordinator.ActiveDatabaseOperations.Should().Be(0);
     }
 
+    /// <summary>
+    /// 在明確 live LocalDB/SQL 上證明 epoch drift 拒絕、同 namespace 槽位上限、fencing token 單調遞增、
+    /// stale renew/release 無效、不同 namespace 隔離及 quarantine 到期前不可重用。
+    /// </summary>
     [Fact]
     public async Task Live_sql_contract_is_atomic_fenced_quarantined_and_namespace_isolated()
     {

@@ -56,43 +56,43 @@ public sealed class DynamicsWebApiOptions
     public string? FeasibilityEvidenceId { get; set; }
 
     /// <summary>
-    /// ADFS authority URI, e.g. https://sts.example.com/adfs
+    /// ADFS authority URI，例如 https://sts.example.com/adfs；必須是部署固定的 HTTPS 端點。
     /// </summary>
     public string? AuthorityUri { get; set; }
 
     /// <summary>
-    /// OAuth resource / audience for CRM, e.g. https://jesus.example.com/
+    /// CRM 的 OAuth resource/audience，例如 https://jesus.example.com/；不得由要求內容覆寫。
     /// </summary>
     public string? ResourceUri { get; set; }
 
     /// <summary>
-    /// ADFS application (client) id. Not a secret.
+    /// ADFS application/client ID；不是秘密，但仍屬設定檔世代的一部分，變更時必須 replace-and-drain。
     /// </summary>
     public string? ClientId { get; set; }
 
     /// <summary>
-    /// Optional client secret name for confidential clients.
+    /// confidential client 使用的選用 client-secret 秘密名稱；只存參考，不存秘密值。
     /// </summary>
     public string? ClientSecretName { get; set; }
 
     /// <summary>
-    /// Local-dev only: allow username/password grant against ADFS.
-    /// Production should use non-password service flow / pre-issued bearer.
+    /// 僅 local-dev 允許對 ADFS 使用 username/password grant。
+    /// 正式環境必須使用經核准的非密碼服務流程或預先核發 bearer，避免保存人類帳號密碼。
     /// </summary>
     public bool AllowLocalDevPasswordGrant { get; set; }
 
     /// <summary>
-    /// Optional refresh-token secret name (env / secret store).
+    /// 選用的 refresh-token 秘密名稱，可由環境變數或秘密庫解析；不得記錄 Token 本體。
     /// </summary>
     public string? RefreshTokenSecretName { get; set; }
 
     /// <summary>
-    /// Local-dev only JSON path for access/refresh tokens obtained via authorization_code.
+    /// 僅 local-dev 使用的 JSON token store 路徑，保存 authorization_code 流程取得的 access/refresh token。
     /// </summary>
     public string? LocalDevTokenStorePath { get; set; }
 
     /// <summary>
-    /// OAuth redirect URI used by authorization_code exchange (must match ADFS client registration).
+    /// authorization_code 交換使用的 OAuth redirect URI，必須與 ADFS client registration 完全一致。
     /// </summary>
     public string? RedirectUri { get; set; }
 
@@ -115,23 +115,22 @@ public sealed class DynamicsWebApiOptions
     public int PooledConnectionLifetimeMinutes { get; set; } = 15;
 
     /// <summary>
-    /// Hard cap for one uncompressed CRM JSON response. Responses are streamed
-    /// into a pooled buffer and rejected before parsing when this limit is
-    /// exceeded.
+    /// 單一未壓縮 CRM JSON 回應的硬上限。回應以串流讀入共用緩衝區，超過上限時在 JSON 解析前拒絕，
+    /// 避免惡意或異常回應造成大型配置與記憶體壓力；租用緩衝區歸還前會清除已使用範圍。
     /// </summary>
     [Range(1024, 67_108_864)]
     public int MaxResponseBytes { get; set; } = 2_097_152;
 
     /// <summary>
-    /// Number of bounded retries for idempotent read operations after HTTP
-    /// 429 or 503. The original attempt is not included in this count.
+    /// 冪等唯讀作業遇到 HTTP 429 或 503 時的有界重試次數，不包含第一次嘗試。
+    /// 寫入與其他狀態碼不會自動重送，避免重複副作用。
     /// </summary>
     [Range(0, 5)]
     public int MaxRetryAttempts { get; set; } = 2;
 
     /// <summary>
-    /// Maximum delay for one Retry-After or exponential-backoff interval.
-    /// The overall operation remains bounded by <see cref="TimeoutSeconds"/>.
+    /// 單次 Retry-After 或指數退避的最長等待秒數；所有重試仍共用 <see cref="TimeoutSeconds"/> 的總逾時，
+    /// 因此不會因連續等待而形成無界背景工作。
     /// </summary>
     [Range(0, 30)]
     public int MaxRetryDelaySeconds { get; set; } = 5;

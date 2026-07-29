@@ -5,8 +5,15 @@ using SpeechMessage.Dynamics.WebApi.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
 
+/// <summary>
+/// 驗證 AdmissionEpoch 與不可變 configuration digest 的 fencing 契約。
+/// 容量或 lease 政策改變必須產生不同摘要；宣稱 durable 卻無法原子驗證 epoch 的 coordinator 必須阻擋 readiness。
+/// </summary>
 public sealed class AdmissionEpochTests
 {
+    /// <summary>
+    /// 相同輸入必須產生穩定摘要，任何容量/epoch 漂移則必須產生不同摘要，避免舊主機靜默共用新容量。
+    /// </summary>
     [Fact]
     public void Admission_configuration_digest_is_stable_and_capacity_sensitive()
     {
@@ -20,6 +27,9 @@ public sealed class AdmissionEpochTests
         changed.ConfigurationDigest.Should().NotBe(first.ConfigurationDigest);
     }
 
+    /// <summary>
+    /// 注入只能持久化租約、卻不支援 epoch fencing 的 coordinator，預期 manager fail-closed 而不是降級上線。
+    /// </summary>
     [Fact]
     public async Task Durable_readiness_rejects_coordinator_without_epoch_fencing()
     {

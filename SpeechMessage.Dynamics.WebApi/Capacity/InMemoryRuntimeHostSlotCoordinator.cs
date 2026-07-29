@@ -3,7 +3,7 @@
 // 目的：單機/測試用 host-slot coordinator。
 //
 // 保母教學：
-// - IsDurable = false。
+// - IsDurable=false，代表它不能提供跨行程、跨主機或重啟後仍成立的容量保證。
 // - 只能保證「同一個進程內」不會超過 MaximumRuntimeHosts。
 // - 多 Gateway 正式部署不可把它當最終方案；要換成 durable store。
 // - 這裡不保存任何使用者、LINE、token、CRM session。

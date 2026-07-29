@@ -61,54 +61,50 @@ public sealed class OrganizationAdmissionOptions
     public int MaxInFlightAndQueuedPerWorkload { get; set; } = 8;
 
     /// <summary>
-    /// admission namespace id（queue/permit key）。
+    /// admission namespace ID，作為 queue/permit 的容量隔離鍵；不同實體組織不得誤用相同鍵。
     /// </summary>
     [Required]
     public string AdmissionNamespaceId { get; set; } = "default-admission";
 
     /// <summary>
-    /// host slot lease namespace id。
+    /// host-slot lease namespace ID；Gateway、Embedded 與重疊世代若指向同一實體組織，必須共用此鍵。
     /// </summary>
     [Required]
     public string LeaseNamespaceId { get; set; } = "default-host-lease";
 
     /// <summary>
-    /// Globally coordinated immutable capacity/configuration epoch. Changes to
-    /// aggregate capacity or lease policy require a new epoch.
+    /// 全域協調且不可變的容量/設定 epoch。Aggregate capacity、host 上限或 lease 政策改變時必須遞增，
+    /// durable coordinator 會拒絕仍持有舊 epoch 或不同設定摘要的主機。
     /// </summary>
     [Range(1, long.MaxValue)]
     public long AdmissionEpoch { get; set; } = 1;
 
     /// <summary>
-    /// Coordinator-issued runtime host slot lifetime.
+    /// Coordinator 核發的 runtime-host slot 租約生命週期；必須長於續租間隔、最大 outbound 工作與 expiry fence 總和。
     /// </summary>
     [Range(5, 3600)]
     public int RuntimeHostSlotLeaseTtlSeconds { get; set; } = 120;
 
     /// <summary>
-    /// Background renewal cadence. This must leave enough lease time for a
-    /// maximum outbound operation and the expiry fence.
+    /// 背景續租週期。續租完成後仍須保留足夠時間容納最大 outbound 作業與 expiry fence，否則 readiness 失敗。
     /// </summary>
     [Range(1, 600)]
     public int RuntimeHostSlotRenewalIntervalSeconds { get; set; } = 30;
 
     /// <summary>
-    /// No work may be admitted or remain active beyond this margin before the
-    /// coordinator lease expiry.
+    /// Coordinator lease 到期前的安全邊界；新工作不得跨越此 margin，已執行工作在 lease lost 時也會收到取消訊號。
     /// </summary>
     [Range(1, 300)]
     public int RuntimeHostSlotExpiryFenceSeconds { get; set; } = 10;
 
     /// <summary>
-    /// Maximum request plus cleanup/cancellation lifetime for one admitted CRM
-    /// operation.
+    /// 單一已 admission CRM 作業的「要求 + 取消/清理」最大生命週期，用來判斷租約是否足以完整容納工作。
     /// </summary>
     [Range(1, 600)]
     public int MaximumOutboundWorkLifetimeSeconds { get; set; } = 35;
 
     /// <summary>
-    /// Maximum graceful stop drain interval before active work is cancelled at
-    /// the lease-loss boundary.
+    /// 優雅停止時等待現有工作排空的最長時間；逾時後會進入 lease-loss 邊界並取消尚未完成的工作，絕不無限等待。
     /// </summary>
     [Range(1, 900)]
     public int ShutdownDrainTimeoutSeconds { get; set; } = 45;

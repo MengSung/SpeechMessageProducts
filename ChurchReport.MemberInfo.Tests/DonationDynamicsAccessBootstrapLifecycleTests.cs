@@ -6,8 +6,16 @@ using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests;
 
+/// <summary>
+/// 驗證 ChurchReport Dynamics bootstrap 的行程級世代生命週期。
+/// 測試鎖定兩項 release blocker：相同設定只能重用一個 ServiceProvider/HTTP pool，設定變更必須先重啟與 Dispose；
+/// 靜態狀態不得以無界 dictionary 按使用者、Session 或 profile 累積 provider，避免跨要求狀態與資源洩漏。
+/// </summary>
 public sealed class DonationDynamicsAccessBootstrapLifecycleTests
 {
+    /// <summary>
+    /// 證明同一設定重用既有世代，而不同 Gateway endpoint 不會在行程內熱切換或與舊世代並存。
+    /// </summary>
     [Fact]
     public async Task Process_bootstrap_reuses_one_generation_and_requires_restart_for_configuration_changes()
     {
@@ -35,6 +43,9 @@ public sealed class DonationDynamicsAccessBootstrapLifecycleTests
         }
     }
 
+    /// <summary>
+    /// 以反射防止回歸成無界靜態 provider cache；這類集合會同時保留 handler、socket、timer 與設定檔狀態。
+    /// </summary>
     [Fact]
     public void Bootstrap_does_not_retain_an_unbounded_static_provider_dictionary()
     {

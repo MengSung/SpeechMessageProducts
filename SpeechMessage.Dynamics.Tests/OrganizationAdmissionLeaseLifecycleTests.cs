@@ -6,8 +6,16 @@ using SpeechMessage.Dynamics.WebApi.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
 
+/// <summary>
+/// 驗證 runtime-host lease 從取得、續租、故障、排空到釋放的完整生命週期。
+/// 測試特別覆蓋暫時性 coordinator 錯誤、明確 fencing、阻塞續租、釋放失敗與過短 lease，
+/// 確保背景 Task、permit、取消註冊與 host slot 都能在有界時間回到基線。
+/// </summary>
 public sealed class OrganizationAdmissionLeaseLifecycleTests
 {
+    /// <summary>
+    /// 暫時性續租例外不會竄改尚有效的 coordinator lease；明確拒絕後則立即取消 permit 並停止新 admission。
+    /// </summary>
     [Fact]
     public async Task Transient_renewal_failure_keeps_valid_lease_until_explicit_rejection()
     {
@@ -36,6 +44,7 @@ public sealed class OrganizationAdmissionLeaseLifecycleTests
         await permit.DisposeAsync();
     }
 
+    /// <summary>Dispose 必須等待現有 permit 歸還後才釋放 fenced slot，避免替代主機與舊 outbound 工作重疊。</summary>
     [Fact]
     public async Task Dispose_waits_for_in_flight_permits_before_fenced_release()
     {
@@ -61,6 +70,7 @@ public sealed class OrganizationAdmissionLeaseLifecycleTests
         coordinator.ActiveRenewOperations.Should().Be(0);
     }
 
+    /// <summary>注入永遠阻塞的續租，證明 shutdown 會取消並 await 自己擁有的背景工作。</summary>
     [Fact]
     public async Task Dispose_cancels_and_awaits_owned_renewal_operation()
     {
@@ -75,6 +85,7 @@ public sealed class OrganizationAdmissionLeaseLifecycleTests
         coordinator.ReleaseCalls.Should().Be(1);
     }
 
+    /// <summary>coordinator 釋放失敗時仍須清除本機續租與資源；遠端安全由 TTL/quarantine 接手。</summary>
     [Fact]
     public async Task Coordinator_release_failure_does_not_leak_owned_renewal_or_local_resources()
     {
@@ -88,6 +99,7 @@ public sealed class OrganizationAdmissionLeaseLifecycleTests
         coordinator.ActiveRenewOperations.Should().Be(0);
     }
 
+    /// <summary>無法容納最大工作生命週期的短 lease 不得進入 Ready 或派送任何工作。</summary>
     [Fact]
     public async Task Lease_that_cannot_fit_maximum_work_lifetime_is_not_admitted()
     {

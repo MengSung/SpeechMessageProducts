@@ -5,10 +5,11 @@ using SpeechMessage.Dynamics.Abstractions.Operations;
 namespace SpeechMessage.Dynamics.WebApi.Capacity;
 
 /// <summary>
-/// Owns one bounded local admission budget and one renewable runtime-host slot.
-/// The manager never retains request, user, session, token, cookie, or credential
-/// state. Every background operation has this singleton as its explicit owner and
-/// is cancelled and awaited during disposal.
+/// 擁有單一組織設定檔的本機有界 admission 預算，以及一個可續租的 runtime-host slot。
+/// 此管理器只保存容量計數、不可變計畫與租約狀態，不保存要求本文、使用者、Session、Token、Cookie 或認證資料，
+/// 因此不同 workload 與設定檔世代不會透過共用可變身分狀態互相污染。
+/// 所有續租背景工作、取消來源、Semaphore 與租約都以本 singleton 為明確擁有者，關閉時必須先停止 admission、
+/// 等待已保留工作排空，再取消並 await 背景工作，最後才釋放協調器租約與本機資源。
 /// </summary>
 public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
 {
@@ -81,6 +82,8 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
 
     private async Task EnsureHostSlotCoreAsync(CancellationToken cancellationToken)
     {
+        // 生產容量保證同時依賴「跨行程持久化」與「AdmissionEpoch/設定摘要 fencing」。
+        // 只符合其中一項仍可能讓舊設定主機與新設定主機同時取得容量，因此必須 fail-closed。
         if (_plan.RequireDurableHostCoordinator && !_slotCoordinator.IsDurable)
         {
             throw new InvalidOperationException(
@@ -101,6 +104,8 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         var lease = GetLease();
         if (lease is not null)
         {
+            // 新工作只能在 lease expiry fence 之前完整容納其最大宣告生命週期；
+            // 這可避免工作尚未結束時槽位已被協調器回收並交給另一個主機，造成總容量瞬間倍增。
             if (CanFitMaximumWork(lease, DateTimeOffset.UtcNow))
             {
                 return;
@@ -206,6 +211,8 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         var queuedHere = false;
         var workloadReserved = false;
         var totalAdmissionReserved = false;
+        // admission 依序保留三層資源：每 workload 上限、總排隊/執行容量、實際 in-flight permit。
+        // 任一後續步驟失敗都必須用對稱旗標精確回收已取得的層級，避免計數永久占用或雙重 Release。
         lock (_gate)
         {
             if (_accepting == 0 || _terminalLeaseFailure != 0)
@@ -362,7 +369,8 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         }
         catch (ObjectDisposedException)
         {
-            // Shutdown completed after the bounded operation ended.
+            // 有界工作可能恰好在關閉完成後才回傳 permit；Semaphore 已釋放代表其擁有者已完成終止流程，
+            // 此競態不需要再次釋放，但 workload 與 reservation 計數仍會在下方走完對稱清理。
         }
         catch (SemaphoreFullException)
         {
@@ -464,7 +472,8 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // Owned shutdown path.
+            // 這是管理器擁有的正常關閉取消路徑；finally 仍會清除 RenewalLoopActive，
+            // ShutdownCoreAsync 也會 await 此工作，確保沒有背景 Task 在資源 Dispose 後繼續執行。
         }
         finally
         {
@@ -490,6 +499,8 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         Interlocked.Exchange(ref _accepting, 0);
         _admissionStopCts.Cancel();
 
+        // 第一階段提供設定內的優雅排空期限；逾時後先標記 lease lost，強制取消仍在等待或執行的工作，
+        // 再以「最大 outbound 生命週期 + expiry fence」作最後有界等待。未真正排空時絕不提前交還 host slot。
         var drained = await WaitForReservationsToDrainAsync(_plan.ShutdownDrainTimeout).ConfigureAwait(false);
         if (!drained)
         {
@@ -611,6 +622,8 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         }
 
         SafeCancel(leaseLost, "lease-loss callbacks");
+        // lease 一旦被拒絕、過期或 fencing，行程不得自行恢復 admission；重啟才能建立新的不可變世代與 host 身分。
+        // 這項終局狀態避免短暫錯誤後舊主機在未知租約所有權下繼續送出 CRM 流量。
         _logger.LogError("{Reason} New Dynamics admission is closed until process restart.", reason);
     }
 
@@ -630,6 +643,7 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         {
             try
             {
+                // 本地釋放是盡力而為；跨主機的真正安全界線仍由 coordinator 的 fencing token、TTL 與 quarantine 維持。
                 await lease.DisposeAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -773,7 +787,8 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
         }
         catch (ObjectDisposedException)
         {
-            // Shutdown completed after a bounded waiter observed cancellation.
+            // 等待者在 shutdown 取消後可能比 Semaphore.Dispose 更晚進入回收路徑；
+            // reservation 計數仍已對稱扣除，因此此處只忽略已完成擁有者生命週期的 Semaphore。
         }
         catch (SemaphoreFullException)
         {
@@ -825,6 +840,7 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
 
         public void Dispose()
         {
+            // permit 採冪等釋放，防止同步 Dispose 與 await using/例外清理同時執行時重複增加 Semaphore 容量。
             if (Interlocked.Exchange(ref _disposed, 1) != 0)
             {
                 return;

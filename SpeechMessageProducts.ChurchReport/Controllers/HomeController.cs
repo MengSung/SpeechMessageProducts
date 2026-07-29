@@ -742,8 +742,7 @@ namespace ChurchReport.Controllers
         #endregion
 
         /// <summary>
-        /// Display error page. Prefer TempData for long messages.
-        /// Long error text must not be placed in the URL path (causes 404).
+    /// 顯示錯誤頁。長訊息應透過 TempData 傳遞，不得放進 URL path，避免超長路由造成 404 或洩漏內部錯誤內容。
         /// </summary>
         [HttpGet]
         [Route("/Home/DisplayErrorView")]

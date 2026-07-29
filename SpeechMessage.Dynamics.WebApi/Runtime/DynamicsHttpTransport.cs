@@ -163,8 +163,8 @@ public sealed class DynamicsHttpTransport : IDynamicsHttpTransport
             }
         }
 
-        // Parse DOMAIN\user and attach NTLM/Negotiate via CredentialCache.
-        // Note: IFD/claims orgs may still 302 to ADFS; Windows creds alone cannot finish that path.
+        // 將 DOMAIN\user 拆成明確網域與帳號，並透過 CredentialCache 只對核准的 Web API root/origin 提供 NTLM/Negotiate。
+        // IFD/claims 組織仍可能回傳 302 到 ADFS；Windows 認證無法完成該登入流程，呼叫端必須改用經核准的 AdfsOAuth。
         var user = userName.Trim();
         var dom = domain?.Trim();
         if (user.Contains('\\', StringComparison.Ordinal))

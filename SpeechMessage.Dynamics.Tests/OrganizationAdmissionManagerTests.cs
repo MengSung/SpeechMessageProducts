@@ -53,18 +53,18 @@ public sealed class OrganizationAdmissionManagerTests
         var first = await manager.AcquireAsync(CreateEnvelope("w1"), CancellationToken.None);
         first.Succeeded.Should().BeTrue();
 
-        // second waits in queue (capacity 1)
+        // 第二個要求只能進入容量為 1 的 queue，不能繞過 in-flight 上限。
         using var secondCts = new CancellationTokenSource();
         var secondTask = manager.AcquireAsync(CreateEnvelope("w2"), secondCts.Token);
 
-        // give second a moment to enter queue
+        // 等待第二個要求實際進入 queue，再讀 snapshot；只用於建立可觀測狀態，不代表產品使用固定延遲同步。
         await Task.Delay(50);
 
         var third = await manager.AcquireAsync(CreateEnvelope("w3"), CancellationToken.None);
         third.Succeeded.Should().BeFalse();
         third.Error!.ErrorCode.Should().Be(DynamicsErrorCodes.QueueFull);
 
-        // cleanup
+        // 先歸還第一個 permit 才能讓第二個要求完成，最後逐一 Dispose 以驗證計數對稱回收。
         secondCts.Cancel();
         var second = await secondTask;
         second.Succeeded.Should().BeFalse();
@@ -253,9 +253,9 @@ public sealed class OrganizationAdmissionManagerTests
         p3.Succeeded.Should().BeFalse();
         p3.Error!.ErrorCode.Should().Be(DynamicsErrorCodes.WorkloadCapExceeded);
 
-        // other workload can still enter
+        // 另一個 workload 仍可競爭共享容量，單一 noisy workload 不得壟斷整條 queue。
         var other = await manager.AcquireAsync(CreateEnvelope("other-product"), CancellationToken.None);
-        // may queue/timeout depending on in-flight; at least should not be workload-cap for other
+        // 依當下 in-flight 狀態可能排隊或逾時，但其他 workload 絕不能被錯誤歸類為 workload-cap 超限。
         if (!other.Succeeded)
         {
             other.Error!.ErrorCode.Should().NotBe(DynamicsErrorCodes.WorkloadCapExceeded);

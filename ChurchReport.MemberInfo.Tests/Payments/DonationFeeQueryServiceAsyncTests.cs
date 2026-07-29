@@ -11,8 +11,15 @@ using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Payments;
 
+/// <summary>
+/// 驗證 Package 01 費用查詢的真正非同步與取消隔離契約。
+/// 測試使用可控制完成時點的 fake client，確保要求執行緒不會 sync-over-async，且取消時不會把半成品寫回共用表單模型。
+/// </summary>
 public sealed class DonationFeeQueryServiceAsyncTests
 {
+    /// <summary>
+    /// I/O 尚未完成時服務方法也必須維持未完成狀態，證明沒有 GetAwaiter().GetResult() 或其他同步阻塞。
+    /// </summary>
     [Fact]
     public async Task Package01_fee_read_does_not_block_the_request_thread()
     {
@@ -58,6 +65,9 @@ public sealed class DonationFeeQueryServiceAsyncTests
         client.ObservedCancellationToken.CanBeCanceled.Should().BeFalse();
     }
 
+    /// <summary>
+    /// 呼叫端 CancellationToken 必須原封不動傳到產品 client；取消例外向上傳播，原模型內容保持原子不變。
+    /// </summary>
     [Fact]
     public async Task Package01_fee_read_propagates_cancellation_without_mutating_the_model()
     {
@@ -90,6 +100,7 @@ public sealed class DonationFeeQueryServiceAsyncTests
 
     private sealed class DeferredFeeReadClient : IPackage01FeeReadClient
     {
+        // 此 fake 只記錄本次呼叫的取消權杖，不使用 static 或共享狀態，避免測試彼此污染。
         private readonly Task<IReadOnlyList<FeeRecordDto>> _result;
 
         public DeferredFeeReadClient(Task<IReadOnlyList<FeeRecordDto>> result) => _result = result;

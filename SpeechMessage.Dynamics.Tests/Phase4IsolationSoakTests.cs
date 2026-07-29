@@ -11,8 +11,17 @@ using SpeechMessage.Dynamics.WebApi.Runtime;
 
 namespace SpeechMessage.Dynamics.Tests;
 
+/// <summary>
+/// Phase 4 隔離與資源浸泡測試。
+/// 以多 workload、多設定檔世代及兩個實體 endpoint 的高併發流量，驗證容量不倍增、Authorization/Cookie 不串流、
+/// queue/permit/workload counter 排空，以及 handler、記憶體、handle、thread 與強參考在 Dispose 後回到有界基線。
+/// </summary>
 public sealed class Phase4IsolationSoakTests
 {
+    /// <summary>
+    /// 6,000 次操作跨五個 workload 與三個 runtime，證明同組織雙世代共用 aggregate 上限、不同組織互相隔離，
+    /// 並在 finally 中逐一驗證 counter 歸零與 handler 僅 Dispose 一次。
+    /// </summary>
     [Fact]
     public async Task Five_workloads_two_generations_and_two_endpoints_drain_without_cross_talk()
     {
@@ -85,6 +94,10 @@ public sealed class Phase4IsolationSoakTests
         stopwatch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(30));
     }
 
+    /// <summary>
+    /// 先暖機固定 JIT/快取基線，再重複建立、排空與銷毀設定檔世代；WeakReference、GC、handle 與 thread 界線
+    /// 用來阻擋 manager/transport/executor/handler 的持續強參考或背景工作洩漏。
+    /// </summary>
     [Fact]
     public async Task Repeated_generation_cycles_return_memory_handles_threads_and_owned_objects_to_baseline()
     {
@@ -186,6 +199,7 @@ public sealed class Phase4IsolationSoakTests
 
     private static void ForceFullCollection()
     {
+        // 多輪完整 GC 與 finalizer 等待只用於受控測試，以排除延遲 finalization；產品路徑不得主動強迫 GC。
         for (var attempt = 0; attempt < 3; attempt++)
         {
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);

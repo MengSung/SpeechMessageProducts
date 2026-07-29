@@ -20,7 +20,7 @@ public interface IPackage01FeeReadClient
 {
     /// <summary>
     /// 依聯絡人 + 日期區間查奉獻收費單。
-    /// capability：fee.dedication.retrieve.by.contact.date.range
+    /// 對應受控 capability：fee.dedication.retrieve.by.contact.date.range；日期與 contact ID 由具型別參數編碼。
     /// </summary>
     Task<IReadOnlyList<FeeRecordDto>> RetrieveDedicationFeesByContactDateRangeAsync(
         string profileAlias,
@@ -33,7 +33,7 @@ public interface IPackage01FeeReadClient
 
     /// <summary>
     /// 依聯絡人查奉獻收費單（不分日期）。
-    /// capability：fee.dedication.retrieve.by.contact
+    /// 對應受控 capability：fee.dedication.retrieve.by.contact；不接受呼叫端提供的 FetchXML。
     /// </summary>
     Task<IReadOnlyList<FeeRecordDto>> RetrieveDedicationFeesByContactAsync(
         string profileAlias,
@@ -44,7 +44,7 @@ public interface IPackage01FeeReadClient
 
     /// <summary>
     /// 依 dedication booking + paid period 查 fee。
-    /// capability：fees.retrieve.by.dedication.period
+    /// 對應受控 capability：fees.retrieve.by.dedication.period；paidPeriod 會依伺服器範本的字串情境編碼。
     /// </summary>
     Task<IReadOnlyList<FeeRecordDto>> RetrieveFeesByDedicationPeriodAsync(
         string profileAlias,
@@ -56,7 +56,7 @@ public interface IPackage01FeeReadClient
 
     /// <summary>
     /// fee editor 依 disciple lesson 載入 stor lessons。
-    /// capability：fees.editor.load.by.disciplelesson
+    /// 對應受控 capability：fees.editor.load.by.disciplelesson；僅回傳費用編輯器核准欄位。
     /// </summary>
     Task<IReadOnlyList<StorLessonRecordDto>> RetrieveFeeEditorRowsByDiscipleLessonAsync(
         string profileAlias,
@@ -66,7 +66,7 @@ public interface IPackage01FeeReadClient
 
     /// <summary>
     /// 依 contact 讀取 stor lessons。
-    /// capability：lessons.stor.retrieve.by.contact
+    /// 對應受控 capability：lessons.stor.retrieve.by.contact；profile 與 workload 由產品啟動設定固定。
     /// </summary>
     Task<IReadOnlyList<StorLessonRecordDto>> RetrieveStorLessonsByContactAsync(
         string profileAlias,
@@ -77,7 +77,7 @@ public interface IPackage01FeeReadClient
 
     /// <summary>
     /// 依 disciple lesson 讀取 stor lessons。
-    /// capability：lessons.stor.retrieve.by.disciplelesson
+    /// 對應受控 capability：lessons.stor.retrieve.by.disciplelesson；呼叫端不能改寫 Dynamics 路由。
     /// </summary>
     Task<IReadOnlyList<StorLessonRecordDto>> RetrieveStorLessonsByDiscipleLessonAsync(
         string profileAlias,

@@ -40,7 +40,7 @@ public static class Package01OperationRegistry
 
     private static IEnumerable<OperationDefinition> Build()
     {
-        // Package 0
+        // Package 0：註冊 runtime 基礎作業；operation ID、參數與稽核分類均為伺服器端不可變契約。
         yield return Def(
             OperationIds.RuntimeHealthWhoAmI,
             package: "package-0-runtime",
@@ -80,7 +80,7 @@ public static class Package01OperationRegistry
                 Param("attributeLogicalName", "string", required: true, encoding: "odata-uri-segment")
             ]);
 
-        // Package 1
+        // Package 1：註冊費用唯讀作業；呼叫端只能提交具型別參數，不能提供任意 OData 或 FetchXML。
         yield return Def(
             OperationIds.FeeDedicationRetrieveByContact,
             package: "package-1-fee-reads",

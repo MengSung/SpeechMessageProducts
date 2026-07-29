@@ -127,7 +127,7 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
         };
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-        // Dispose each short-lived client wrapper; IHttpClientFactory retains ownership of its handler pool.
+        // 每次取得 Token 的 HttpClient wrapper 由本次要求 Dispose；可重用的 handler/socket pool 仍由 IHttpClientFactory 擁有。
         var http = CreateHttpClient();
         try
         {
@@ -331,7 +331,7 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
     {
         if (_httpClientFactory is not null)
         {
-            // The factory owns the reusable handler pool; this request owns and disposes its client wrapper.
+        // IHttpClientFactory 擁有可重用 handler pool；本次要求只擁有短生命週期 client wrapper，完成交換後立即 Dispose。
             var factoryClient = _httpClientFactory.CreateClient("dynamics-adfs-token");
             factoryClient.Timeout = TimeSpan.FromSeconds(Math.Clamp(_options.TimeoutSeconds, 5, 120));
             return factoryClient;
