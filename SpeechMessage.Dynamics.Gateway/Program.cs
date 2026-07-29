@@ -14,6 +14,7 @@ using SpeechMessage.Dynamics.Gateway.Security;
 using SpeechMessage.Dynamics.WebApi.Capacity;
 using SpeechMessage.Dynamics.WebApi.DependencyInjection;
 using SpeechMessage.Dynamics.WebApi.Runtime;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Server.IISIntegration;
 using System.Net;
@@ -37,13 +38,29 @@ if (builder.Environment.IsDevelopment())
 }
 else
 {
-    // Production 保留既有 Central/IIS Windows Authentication 邊界；Testing 才允許每個 TestServer
-    // 明確選擇私有 fake scheme。Production 不接受 configuration 任意改寫 scheme，避免繞過 IIS principal authority。
-    var authenticationScheme = builder.Environment.IsEnvironment("Testing")
-        ? builder.Configuration["DynamicsGateway:AuthenticationScheme"]
-            ?? IISDefaults.AuthenticationScheme
-        : IISDefaults.AuthenticationScheme;
-    builder.Services.AddAuthentication(authenticationScheme);
+    if (builder.Environment.IsEnvironment("Testing"))
+    {
+        // WebApplicationFactory 的 ConfigureAppConfiguration provider 可能在 Program 建立 service descriptors 後才加入；
+        // Testing default scheme 必須延後到 AuthenticationOptions materialization 時讀取最終 IConfiguration snapshot，
+        // 否則 Program 會錯用基底 Windows scheme，而測試 DI 若再指定 default 就會遮蔽這個 production-path 漂移。
+        // Delegate 只讀一個 bounded scheme name，不保留 IConfiguration、request 或 handler reference；Options singleton
+        // 由 DI 唯一擁有，沒有 timer、subscription、背景 Task 或 cleanup，且只允許 Testing 使用可覆寫 scheme。
+        builder.Services.AddAuthentication();
+        builder.Services.AddOptions<AuthenticationOptions>()
+            .Configure<IConfiguration>((options, configuration) =>
+            {
+                var configuredScheme = configuration["DynamicsGateway:AuthenticationScheme"];
+                options.DefaultScheme = string.IsNullOrWhiteSpace(configuredScheme)
+                    ? IISDefaults.AuthenticationScheme
+                    : configuredScheme;
+            });
+    }
+    else
+    {
+        // Production 固定由 Central/IIS Windows Authentication 建立 principal；configuration 即使宣告已註冊的 fake scheme
+        // 也不能改寫 default，避免 caller-controlled header handler 或測試 handler 進入正式 trust boundary。
+        builder.Services.AddAuthentication(IISDefaults.AuthenticationScheme);
+    }
 }
 
 builder.Services.AddAuthorization();
@@ -186,14 +203,33 @@ app.MapPost(
 
 app.MapGet(
     "/v1/operations",
-    () => Results.Ok(Package01OperationRegistry.All.Select(x => new
+    IResult (
+        HttpContext httpContext,
+        IGatewayOperationAuthorizer operationAuthorizer) =>
     {
-        x.CapabilityOperationId,
-        x.Package,
-        x.OperationKind,
-        x.TemplateKind,
-        x.DataClassification
-    })))
+        var authorization = operationAuthorizer.AuthorizeOperationCatalog(httpContext.User);
+        if (!authorization.Succeeded)
+        {
+            return Results.Forbid();
+        }
+
+        // Catalog 與 execution 共用同一份 immutable principal→workload binding；只投影 binding 明列的 operation，
+        // 不因 authenticated 就發布整個 registry。Registry 與白名單都是啟動期 bounded 唯讀集合，這裡刻意不建立
+        // 跨 request cache、principal-keyed dictionary 或背景 refresh；request 結束後匿名投影即可回收，且不觸發 executor／transport。
+        var operations = Package01OperationRegistry.All
+            .Where(definition => authorization.CapabilityOperationIds.Contains(
+                definition.CapabilityOperationId,
+                StringComparer.OrdinalIgnoreCase))
+            .Select(static definition => new
+            {
+                definition.CapabilityOperationId,
+                definition.Package,
+                definition.OperationKind,
+                definition.TemplateKind,
+                definition.DataClassification
+            });
+        return Results.Ok(operations);
+    })
     .RequireAuthorization();
 
 /// <summary>

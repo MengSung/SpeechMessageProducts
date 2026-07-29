@@ -146,17 +146,7 @@ public sealed class ConfigurationGatewayOperationAuthorizer : IGatewayOperationA
             return GatewayOperationAuthorization.Denied("not-authenticated");
         }
 
-        GatewayWorkloadBinding? binding = null;
-        var windowsSid = TryGetAuthenticatedWindowsSid(principal);
-        if (windowsSid is not null)
-        {
-            _bindingsByWindowsSid.TryGetValue(windowsSid, out binding);
-        }
-
-        if (binding is null && !string.IsNullOrWhiteSpace(principal.Identity.Name))
-        {
-            _bindingsByPrincipalName.TryGetValue(principal.Identity.Name, out binding);
-        }
+        var binding = ResolveAuthenticatedBinding(principal);
 
         if (binding is null)
         {
@@ -183,6 +173,48 @@ public sealed class ConfigurationGatewayOperationAuthorizer : IGatewayOperationA
             binding.WorkloadSubjectId,
             canonicalProfileAlias,
             canonicalOperationId);
+    }
+
+    /// <summary>
+    /// 驗證 catalog caller 的 authentication 與 exact principal binding，成功時只發布該 workload 啟動期核准的 immutable operation IDs。
+    /// 方法不接受 alias、query、header 或 body，因此 caller 無法利用 catalog route 擴張權限；失敗結果為空集合且不揭露 mapping 是否存在。
+    /// 熱路徑只做 SID/name frozen dictionary lookup，不加鎖、不掃描 configuration、不建立 mutable cache，也不接觸 executor、admission 或 outbound transport。
+    /// </summary>
+    public GatewayOperationCatalogAuthorization AuthorizeOperationCatalog(ClaimsPrincipal principal)
+    {
+        ArgumentNullException.ThrowIfNull(principal);
+
+        if (principal.Identity?.IsAuthenticated != true)
+        {
+            return GatewayOperationCatalogAuthorization.Denied("not-authenticated");
+        }
+
+        var binding = ResolveAuthenticatedBinding(principal);
+        return binding is null
+            ? GatewayOperationCatalogAuthorization.Denied("unmapped-principal")
+            : GatewayOperationCatalogAuthorization.Success(binding);
+    }
+
+    /// <summary>
+    /// 從已驗證 principal 解析唯一 immutable binding。語法有效的 SID 先查穩定 Windows authority；只有 SID 未命中時
+    /// 才以完整 principal name fallback，既不把無效 SID 視為 wildcard，也不讓 name 覆寫已命中的 SID binding。
+    /// 方法不快取 principal／claims、不配置 collection 且只讀 frozen dictionaries，可由並行 request 無鎖共享；null 代表 fail-closed 未 mapping。
+    /// </summary>
+    private GatewayWorkloadBinding? ResolveAuthenticatedBinding(ClaimsPrincipal principal)
+    {
+        GatewayWorkloadBinding? binding = null;
+        var windowsSid = TryGetAuthenticatedWindowsSid(principal);
+        if (windowsSid is not null)
+        {
+            _bindingsByWindowsSid.TryGetValue(windowsSid, out binding);
+        }
+
+        if (binding is null && !string.IsNullOrWhiteSpace(principal.Identity?.Name))
+        {
+            _bindingsByPrincipalName.TryGetValue(principal.Identity.Name, out binding);
+        }
+
+        return binding;
     }
 
     /// <summary>

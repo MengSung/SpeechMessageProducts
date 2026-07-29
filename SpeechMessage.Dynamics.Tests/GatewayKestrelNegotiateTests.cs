@@ -70,6 +70,51 @@ public sealed class GatewayKestrelNegotiateTests
     }
 
     /// <summary>
+    /// 以真實 Kestrel HTTPS listener 與 <see cref="CredentialCache.DefaultNetworkCredentials"/> 驗證目前核准的
+    /// <c>LENOVO-LEGION\Administrator</c> Windows identity 可經 Negotiate、exact SID/name binding 與 operation 白名單取得 200；
+    /// client 不送 X-Principal／X-Workload 等 caller identity header，因此成功只能來自 OS credential authority。
+    /// 測試專用 handler 唯一擁有連線池與憑證握手狀態，僅對 WebApplicationFactory 的 ephemeral development certificate 放寬驗證；
+    /// handler、client 與 Factory 依反向 ownership 順序 Dispose，確保 socket、Negotiate context 與 request scope 不跨案例留存。
+    /// </summary>
+    [Fact]
+    public async Task Development_default_network_credentials_reach_permitted_operation()
+    {
+        await using var factory = CreateDevelopmentGatewayFactory(useKestrel: true);
+        using var serverStarter = factory.CreateClient(
+            new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        factory.Services
+            .GetRequiredService<IServer>()
+            .Features
+            .Get<IServerAddressesFeature>()!
+            .Addresses
+            .Should().Contain("https://localhost:7244");
+
+        // 只對目前 Factory 擁有的 localhost development certificate 放寬鏈驗證；URI、listener 與 Windows credential
+        // 仍固定為 server-owned 7244／DefaultNetworkCredentials，不能由 request header 改寫或跨測試共享 handler pool。
+        using var handler = new HttpClientHandler
+        {
+            AllowAutoRedirect = false,
+            Credentials = CredentialCache.DefaultNetworkCredentials,
+            PreAuthenticate = false,
+            ServerCertificateCustomValidationCallback =
+                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+        using var client = new HttpClient(handler)
+        {
+            BaseAddress = new Uri("https://localhost:7244", UriKind.Absolute)
+        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, ProtectedOperationPath)
+        {
+            Content = JsonContent.Create(new { parameters = new Dictionary<string, object?>() })
+        };
+
+        using var response = await client.SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        factory.Services.GetRequiredService<BoundaryRecordingExecutor>().CallCount.Should().Be(1);
+    }
+
+    /// <summary>
     /// 驗證 Development provider 合併基底設定後，仍會把 crm82 的 production URI、ADFS metadata 與所有秘密參考完整替換為不可路由的本機安全邊界。
     /// 這個檢查只讀取 Host 已發布的 configuration snapshot，不解析環境變數中的秘密、不建立 Dynamics transport，也不啟動額外背景工作；
     /// Factory 是 configuration、service provider 與 TestServer 的唯一 owner，案例結束時確定性 Dispose，避免跨測試保留 profile 或 credential reference。

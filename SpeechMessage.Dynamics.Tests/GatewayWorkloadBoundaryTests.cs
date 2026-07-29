@@ -2,14 +2,17 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
+using System.Text.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SpeechMessage.Dynamics.Abstractions.Operations;
@@ -51,7 +54,11 @@ public sealed class GatewayWorkloadBoundaryTests
         await using var factory = CreateFactory(
             executor,
             principalName: @"SPEECHMESSAGE\UnmappedService$",
-            mapped: false);
+            mapped: false,
+            configurationOverrides: new Dictionary<string, string?>
+            {
+                ["DynamicsGateway:TestWindowsSid"] = "S-1-5-21-1000-2000-3000-4999"
+            });
         using var client = factory.CreateClient();
 
         using var response = await client.PostAsync(
@@ -136,6 +143,34 @@ public sealed class GatewayWorkloadBoundaryTests
     }
 
     /// <summary>
+    /// 驗證 authenticated principal 提供語法有效但未 mapping 的 SID 時，authorizer 仍可回退到完整 exact principal name binding；
+    /// fallback 不接受 wildcard、prefix 或 caller header，且只在 SID lookup 沒有命中時執行，避免一個已 mapping SID 被名稱 binding 覆寫。
+    /// 測試 executor 只記錄單一 request snapshot，不建立 admission、transport、token 或背景工作，Factory disposal 是所有 request scope 的唯一 cleanup owner。
+    /// </summary>
+    [Fact]
+    public async Task Valid_unmapped_sid_falls_back_to_exact_principal_name_binding()
+    {
+        var executor = new RecordingExecutor();
+        await using var factory = CreateFactory(
+            executor,
+            DefaultPrincipalName,
+            mapped: true,
+            configurationOverrides: new Dictionary<string, string?>
+            {
+                ["DynamicsGateway:TestWindowsSid"] = "S-1-5-21-1000-2000-3000-4888"
+            });
+        using var client = factory.CreateClient();
+
+        using var response = await client.PostAsync(
+            $"/v1/organizations/{DefaultProfileAlias}/operations/{DefaultOperationId}",
+            Json("{\"parameters\":{}}"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        executor.CallCount.Should().Be(1);
+        executor.LastRequest!.WorkloadSubjectId.Should().Be("church-report-service");
+    }
+
+    /// <summary>
     /// 驗證 principal mapping 不是 alias 的萬用通行證；即使 caller 已驗證且 workload 已綁定，
     /// 未列入同一個伺服器 binding 的 Profile Alias 仍必須在建立執行要求、取得 admission permit 或接觸 executor 前拒絕。
     /// </summary>
@@ -150,6 +185,11 @@ public sealed class GatewayWorkloadBoundaryTests
             allowedAlias: DefaultProfileAlias,
             allowedOperation: "fee.dedication.retrieve.by.contact.date.range");
         using var client = factory.CreateClient();
+
+        factory.Services.GetRequiredService<IConfiguration>()
+            .GetSection("DynamicsProfiles:Profiles:crm91")
+            .Exists()
+            .Should().BeTrue("crm91 必須是已載入的 known profile，才能證明拒絕來自 binding 而不是 catalog miss");
 
         using var response = await client.PostAsync(
             "/v1/organizations/crm91/operations/fee.dedication.retrieve.by.contact.date.range",
@@ -197,6 +237,95 @@ public sealed class GatewayWorkloadBoundaryTests
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         executor.CallCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// Operation catalog 會揭露已部署能力，即使 caller 已通過 authentication，只要沒有 server-owned workload binding 仍必須回傳 403；
+    /// endpoint 不得建立 executor request、取得 admission permit 或觸發 transport，避免未 mapping Windows 帳號列舉產品能力面。
+    /// </summary>
+    [Fact]
+    public async Task Operation_catalog_rejects_authenticated_unmapped_principal()
+    {
+        var executor = new RecordingExecutor();
+        await using var factory = CreateFactory(
+            executor,
+            principalName: @"SPEECHMESSAGE\CatalogBrowser$",
+            mapped: false,
+            configurationOverrides: new Dictionary<string, string?>
+            {
+                ["DynamicsGateway:TestWindowsSid"] = "S-1-5-21-1000-2000-3000-4777"
+            });
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync("/v1/operations");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        executor.CallCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 已 mapping workload 只能看到同一 immutable binding 明列的 operation subset；registry 其他現在或未來能力不得因 authentication 成功而自動曝光。
+    /// 回應只投影非秘密 metadata，不保留 principal、credential、token 或 request reference，且 catalog 查詢不得呼叫 executor 或建立 outbound resource。
+    /// </summary>
+    [Fact]
+    public async Task Operation_catalog_returns_only_mapped_workload_authorized_subset()
+    {
+        const string allowedOperation = "fee.dedication.retrieve.by.contact.date.range";
+        var executor = new RecordingExecutor();
+        await using var factory = CreateFactory(
+            executor,
+            DefaultPrincipalName,
+            mapped: true,
+            allowedOperation: allowedOperation);
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync("/v1/operations");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var operationIds = payload.RootElement
+            .EnumerateArray()
+            .Select(static element => element.GetProperty("capabilityOperationId").GetString())
+            .ToArray();
+        operationIds.Should().Equal(allowedOperation);
+        executor.CallCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// Testing environment 必須由 Program 讀取每個隔離 Factory 提供的 configured scheme；測試 DI 只註冊 handler 而不能自行指定 default，
+    /// 因此此斷言直接證明 Host 選擇路徑。Options snapshot 由 DI singleton 管理，測試只讀取且不建立跨案例 subscription 或 mutable cache。
+    /// </summary>
+    [Fact]
+    public async Task Testing_environment_selects_configured_authentication_scheme()
+    {
+        await using var factory = CreateFactory(
+            new RecordingExecutor(),
+            DefaultPrincipalName,
+            mapped: true);
+        using var client = factory.CreateClient();
+
+        var options = factory.Services
+            .GetRequiredService<IOptions<AuthenticationOptions>>()
+            .Value;
+
+        options.DefaultScheme.Should().Be(TestAuthenticationHandler.SchemeName);
+    }
+
+    /// <summary>
+    /// Production 即使 configuration 宣告已註冊的惡意 fake scheme，Program 仍必須固定使用 IIS Windows authentication authority；
+    /// Factory 移除會接觸 SQL／CRM 的 readiness hosted service，只檢查 authentication options，並由 Factory disposal 確定性回收 Host 與 service provider。
+    /// </summary>
+    [Fact]
+    public async Task Production_environment_ignores_configured_authentication_scheme_override()
+    {
+        await using var factory = CreateProductionAuthenticationFactory();
+        using var client = factory.CreateClient();
+
+        var options = factory.Services
+            .GetRequiredService<IOptions<AuthenticationOptions>>()
+            .Value;
+
+        options.DefaultScheme.Should().Be(IISDefaults.AuthenticationScheme);
     }
 
     /// <summary>
@@ -326,6 +455,16 @@ public sealed class GatewayWorkloadBoundaryTests
                     ["DynamicsWebApi:OrganizationWebApiBaseUri"] = "https://crm.example.test/api/data/v9.1/",
                     ["DynamicsWebApi:CeVersion"] = "9.1",
                     ["DynamicsWebApi:Admission:ExpectedOrganizationId"] = "11111111-1111-1111-1111-111111111111",
+                    // 第二個 profile 使用保留測試網域與獨立 organization identity，只用來證明 crm91 是 known catalog entry；
+                    // readiness 已移除且 executor 被記憶體 double 取代，因此不建立 transport、credential、host-slot renewal 或背景 cleanup owner。
+                    ["DynamicsProfiles:Profiles:crm91:WarmUpOnActivation"] = "false",
+                    ["DynamicsProfiles:Profiles:crm91:OrganizationWebApiBaseUri"] =
+                        "https://crm91.example.test/api/data/v9.1/",
+                    ["DynamicsProfiles:Profiles:crm91:CeVersion"] = "9.1",
+                    ["DynamicsProfiles:Profiles:crm91:AuthMode"] = "Windows",
+                    ["DynamicsProfiles:Profiles:crm91:CredentialSource"] = "HostIdentity",
+                    ["DynamicsProfiles:Profiles:crm91:Admission:ExpectedOrganizationId"] =
+                        "22222222-2222-2222-2222-222222222222",
                     ["DynamicsGateway:AuthenticationScheme"] = TestAuthenticationHandler.SchemeName,
                     ["DynamicsGateway:TestPrincipalName"] = principalName
                 };
@@ -357,7 +496,7 @@ public sealed class GatewayWorkloadBoundaryTests
             });
             builder.ConfigureTestServices(services =>
             {
-                services.AddAuthentication(TestAuthenticationHandler.SchemeName)
+                services.AddAuthentication()
                     .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
                         TestAuthenticationHandler.SchemeName,
                         _ => { });
@@ -366,6 +505,39 @@ public sealed class GatewayWorkloadBoundaryTests
             });
         });
     }
+
+    /// <summary>
+    /// 建立 Production authentication 選擇測試 Host。Configuration 刻意要求 header-trusting fake scheme，但測試 DI 只註冊 handler、絕不指定 default；
+    /// 同時移除唯一會連 durable SQL control-plane 的 readiness service，確保案例沒有外部 I/O、timer 或背景 renewal owner。
+    /// Factory 是 Host、service provider 與 handler registration 的唯一 owner，Dispose 後不留下跨測試認證狀態。
+    /// </summary>
+    private static WebApplicationFactory<Program> CreateProductionAuthenticationFactory()
+        => new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Production");
+            builder.ConfigureAppConfiguration((_, configuration) =>
+                configuration.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["DynamicsGateway:AuthenticationScheme"] = TestAuthenticationHandler.SchemeName
+                }));
+            builder.ConfigureTestServices(services =>
+            {
+                var readinessDescriptors = services
+                    .Where(static descriptor =>
+                        descriptor.ServiceType == typeof(IHostedService) &&
+                        descriptor.ImplementationType == typeof(DynamicsGatewayReadinessService))
+                    .ToArray();
+                foreach (var descriptor in readinessDescriptors)
+                {
+                    services.Remove(descriptor);
+                }
+
+                services.AddAuthentication()
+                    .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
+                        TestAuthenticationHandler.SchemeName,
+                        _ => { });
+            });
+        });
 
     /// <summary>
     /// 產生一筆配置 provider 可讀的 binding snapshot；回傳的新 Dictionary 由單一 Factory setup 擁有，

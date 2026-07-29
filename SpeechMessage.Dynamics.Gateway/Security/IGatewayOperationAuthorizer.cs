@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Security.Claims;
 
 namespace SpeechMessage.Dynamics.Gateway.Security;
@@ -23,6 +24,15 @@ public interface IGatewayOperationAuthorizer
         ClaimsPrincipal principal,
         string profileAlias,
         string capabilityOperationId);
+
+    /// <summary>
+    /// 驗證目前 authenticated principal 是否具有 server-owned workload binding，並回傳該 binding 的 immutable operation subset。
+    /// Catalog 授權不接受 route、query、header 或 body 參數，因此 caller 不能選擇 workload 或擴張白名單；
+    /// 成功結果只含非秘密 canonical ID，不含 principal、credential、token 或可變 collection，呼叫為同步、無 I/O 且不產生 cleanup ownership。
+    /// </summary>
+    /// <param name="principal">ASP.NET Core authentication middleware 產生的 request-scoped principal。</param>
+    /// <returns>成功時含 workload 的 authorized operation IDs；失敗時為空且供 endpoint 統一回傳 403。</returns>
+    GatewayOperationCatalogAuthorization AuthorizeOperationCatalog(ClaimsPrincipal principal);
 }
 
 /// <summary>
@@ -64,4 +74,41 @@ public sealed record GatewayOperationAuthorization(
     /// </summary>
     public static GatewayOperationAuthorization Denied(string failureCode)
         => new(false, string.Empty, string.Empty, string.Empty, failureCode);
+}
+
+/// <summary>
+/// 表示一次 operation catalog 授權的不可變結果。成功時 operation IDs 直接引用啟動期已防禦性複製的 immutable binding snapshot，
+/// 可安全供並行 request 唯讀列舉；失敗時集合為空，避免 endpoint 因誤用結果而洩漏 registry。
+/// 結果不保留 <see cref="ClaimsPrincipal"/>、<c>HttpContext</c>、token、credential、stream、cancellation registration 或背景工作，
+/// request 完成後可直接回收且沒有額外 cleanup owner。
+/// </summary>
+/// <param name="Succeeded">是否通過 authentication 與 exact principal binding。</param>
+/// <param name="WorkloadSubjectId">成功時的 server-owned workload subject；失敗時為空。</param>
+/// <param name="CapabilityOperationIds">成功時 binding 允許的 canonical operation IDs；失敗時為空。</param>
+/// <param name="FailureCode">內部穩定失敗分類；HTTP endpoint 統一以 403 呈現，不形成 principal mapping oracle。</param>
+public sealed record GatewayOperationCatalogAuthorization(
+    bool Succeeded,
+    string WorkloadSubjectId,
+    ImmutableArray<string> CapabilityOperationIds,
+    string FailureCode)
+{
+    /// <summary>
+    /// 建立成功 catalog 結果；呼叫端只能傳入 authorizer 已解析的 binding snapshot，不重新配置 List 或 mutable HashSet，
+    /// 因此每次 request 的額外成本固定且不會建立跨 request cache。
+    /// </summary>
+    public static GatewayOperationCatalogAuthorization Success(GatewayWorkloadBinding binding)
+    {
+        ArgumentNullException.ThrowIfNull(binding);
+        return new(
+            true,
+            binding.WorkloadSubjectId,
+            binding.CapabilityOperationIds,
+            string.Empty);
+    }
+
+    /// <summary>
+    /// 建立不含 workload 或 operation metadata 的失敗結果；failure code 只供 server-side 分類，不應直接回傳給 caller。
+    /// </summary>
+    public static GatewayOperationCatalogAuthorization Denied(string failureCode)
+        => new(false, string.Empty, ImmutableArray<string>.Empty, failureCode);
 }
