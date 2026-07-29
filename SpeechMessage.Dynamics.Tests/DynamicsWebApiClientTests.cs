@@ -146,16 +146,113 @@ public sealed class DynamicsWebApiClientTests
         seen.RequestUri!.AbsoluteUri.Should().Be("https://crm.example.local/org/api/data/v9.1/WhoAmI");
     }
 
-    private static DynamicsWebApiClient CreateClient(Func<HttpRequestMessage, HttpResponseMessage> responder)
+    [Fact]
+    public async Task Content_length_over_response_limit_is_rejected_before_body_read()
     {
+        var content = new ThrowOnReadContent(contentLength: 2048);
+        var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = content
+        }, options => options.MaxResponseBytes = 1024);
+
+        var result = await client.WhoAmIAsync();
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorCode.Should().Be(DynamicsErrorCodes.UpstreamFailure);
+        content.ReadAttempted.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Chunked_response_over_limit_is_rejected_and_stream_is_disposed()
+    {
+        var content = new TrackingStreamContent(new byte[2048]);
+        var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = content
+        }, options => options.MaxResponseBytes = 1024);
+
+        var result = await client.WhoAmIAsync();
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorCode.Should().Be(DynamicsErrorCodes.UpstreamFailure);
+        content.StreamDisposed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Compressed_response_is_rejected_before_parsing()
+    {
+        var content = new StringContent("{}", Encoding.UTF8, "application/json");
+        content.Headers.ContentEncoding.Add("gzip");
+        var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = content
+        });
+
+        var result = await client.WhoAmIAsync();
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorCode.Should().Be(DynamicsErrorCodes.UpstreamFailure);
+    }
+
+    [Fact]
+    public async Task Upstream_error_body_is_not_buffered_or_exposed()
+    {
+        var content = new ThrowOnReadContent(contentLength: null);
+        var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.InternalServerError)
+        {
+            Content = content
+        });
+
+        var result = await client.WhoAmIAsync();
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorMessage.Should().NotContain("upstream-sensitive-body");
+        content.ReadAttempted.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Token_provider_exception_text_is_not_returned_to_caller()
+    {
+        const string sensitiveText = "secret-token-fragment-should-never-leave-host";
         var options = Options.Create(new DynamicsWebApiOptions
+        {
+            OrganizationBaseUri = "https://crm.example.local/org/",
+            CeVersion = "9.1",
+            AuthMode = DynamicsAuthMode.AdfsOAuth,
+            CredentialReferenceName = "ADFS_TOKEN",
+            TimeoutSeconds = 10
+        });
+        var transport = new DynamicsHttpTransport(
+            new StubHandler(_ => JsonResponse("{}")),
+            NullLogger<DynamicsHttpTransport>.Instance);
+        var client = new DynamicsWebApiClient(
+            options,
+            transport,
+            new DictionarySecretResolver(new Dictionary<string, string>()),
+            new ThrowingTokenProvider(sensitiveText),
+            NullLogger<DynamicsWebApiClient>.Instance);
+
+        var result = await client.WhoAmIAsync();
+
+        result.Succeeded.Should().BeFalse();
+        result.ErrorMessage.Should().NotContain(sensitiveText);
+        result.ErrorMessage.Should().Be("AdfsOAuth token acquisition failed.");
+    }
+
+    private static DynamicsWebApiClient CreateClient(
+        Func<HttpRequestMessage, HttpResponseMessage> responder,
+        Action<DynamicsWebApiOptions>? configure = null)
+    {
+        var configured = new DynamicsWebApiOptions
         {
             OrganizationBaseUri = "https://crm.example.local/org/",
             CeVersion = "8.2",
             AuthMode = DynamicsAuthMode.Windows,
             CredentialSource = DynamicsCredentialSource.HostIdentity,
             TimeoutSeconds = 10
-        });
+        };
+        configure?.Invoke(configured);
+        var options = Options.Create(configured);
 
         var transport = new DynamicsHttpTransport(
             new StubHandler(responder),
@@ -222,5 +319,79 @@ public sealed class DynamicsWebApiClientTests
 
         public Task<string> GetAccessTokenAsync(CancellationToken cancellationToken = default)
             => Task.FromResult(_token);
+    }
+
+    private sealed class ThrowingTokenProvider : IAdfsOAuthTokenProvider
+    {
+        private readonly string _message;
+
+        public ThrowingTokenProvider(string message) => _message = message;
+
+        public Task<string> GetAccessTokenAsync(CancellationToken cancellationToken = default)
+            => Task.FromException<string>(new InvalidOperationException(_message));
+    }
+
+    private sealed class ThrowOnReadContent : HttpContent
+    {
+        private bool _readAttempted;
+
+        public ThrowOnReadContent(long? contentLength)
+        {
+            Headers.ContentLength = contentLength;
+        }
+
+        public bool ReadAttempted => Volatile.Read(ref _readAttempted);
+
+        protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context)
+        {
+            Volatile.Write(ref _readAttempted, true);
+            return Task.FromException(new InvalidOperationException("upstream-sensitive-body"));
+        }
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = Headers.ContentLength ?? 0;
+            return Headers.ContentLength.HasValue;
+        }
+    }
+
+    private sealed class TrackingStreamContent : HttpContent
+    {
+        private readonly byte[] _bytes;
+        private TrackingMemoryStream? _stream;
+
+        public TrackingStreamContent(byte[] bytes) => _bytes = bytes;
+
+        public bool StreamDisposed => _stream?.Disposed == true;
+
+        protected override Task<Stream> CreateContentReadStreamAsync()
+        {
+            _stream = new TrackingMemoryStream(_bytes);
+            return Task.FromResult<Stream>(_stream);
+        }
+
+        protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context)
+            => stream.WriteAsync(_bytes).AsTask();
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = 0;
+            return false;
+        }
+    }
+
+    private sealed class TrackingMemoryStream : MemoryStream
+    {
+        public TrackingMemoryStream(byte[] bytes) : base(bytes, writable: false)
+        {
+        }
+
+        public bool Disposed { get; private set; }
+
+        protected override void Dispose(bool disposing)
+        {
+            Disposed = true;
+            base.Dispose(disposing);
+        }
     }
 }

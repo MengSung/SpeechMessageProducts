@@ -54,6 +54,7 @@ public sealed class AdmissionMetricsSnapshot
     public required DateTimeOffset? HostLeaseExpiresAtUtc { get; init; }
     public required int ActivePermits { get; init; }
     public required bool RenewalLoopActive { get; init; }
+    public int TrackedWorkloadCount { get; init; }
 }
 
 /// <summary>

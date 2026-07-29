@@ -1,17 +1,19 @@
 // ============================================================================
-// 瑼?嚗peechMessage.Dynamics.WebApi/Runtime/DynamicsWebApiClient.cs
-// ?桃?嚗o-SDK Web API client嚗?鞎?WhoAmI ??Package 1 fee-read 撖阡? HTTP ?瑁???
+// File: SpeechMessage.Dynamics.WebApi/Runtime/DynamicsWebApiClient.cs
+// Purpose: No-SDK Web API client for WhoAmI and Package 1 fee-read HTTP operations.
 //
-// 靽??飛嚗?
-// 1. 銝??其遙雿?legacy CRM SDK package / namespace??
-// 2. ?芰 HttpClient + server-owned template??
-// 3. 銝翰??per-user session嚗? profile 蝝?transport??
-// 4. ?????URL 敹??賢 ApprovedWebApiRoot??
-// 5. ?蝻箏仃??交?雿?憭望?嚗??臬?????
+// Security boundaries:
+// 1. Do not reference legacy CRM SDK packages or namespaces.
+// 2. Use the profile-owned HttpClient and server-owned operation templates.
+// 3. Do not create per-user sessions; the transport is owned by the profile generation.
+// 4. Every resolved URL must remain under the approved Web API root.
+// 5. Never include credentials, tokens, response bodies, or user identity in logs or errors.
 // ============================================================================
 
+using System.Buffers;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
@@ -21,7 +23,7 @@ using SpeechMessage.Dynamics.Abstractions.Operations;
 namespace SpeechMessage.Dynamics.WebApi.Runtime;
 
 /// <summary>
-/// 蝘? no-SDK Dynamics Web API client嚗ackage 0/1 live execution嚗?
+/// Profile-scoped no-SDK Dynamics Web API client for Package 0/1 live execution.
 /// </summary>
 public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
 {
@@ -147,7 +149,7 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
                 "OData relative path is empty.");
         }
 
-        // runtime.pool.validate.connection ?閬?logicalProfileId嚗?撖阡??Ｘ葫隞 WhoAmI??
+        // The validation operation records only the bounded logical profile ID and reuses WhoAmI.
         if (definition.CapabilityOperationId == OperationIds.RuntimePoolValidateConnection)
         {
             _logger.LogDebug(
@@ -190,7 +192,7 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
         var relative = template.EntitySetName.Trim('/') + "?" + query;
         var target = new Uri(approvedRoot.Value, relative);
 
-        // Uri 撱箸?敺?瑼Ｘ host/base path嚗uery ?臬 fetchXml??
+        // Uri construction must preserve the approved scheme, host, port, and base path.
         if (!string.Equals(target.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
             !string.Equals(target.Host, approvedRoot.Value.Host, StringComparison.OrdinalIgnoreCase) ||
             target.Port != approvedRoot.Value.Port ||
@@ -252,8 +254,6 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
 
         using (response)
         {
-            var body = await response.Content.ReadAsStringAsync(timeoutCts.Token).ConfigureAwait(false);
-
             if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
             {
                 return OperationExecutionResult.Failure(
@@ -287,18 +287,40 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
                     $"Operation '{operationId}' failed with HTTP {(int)response.StatusCode}.");
             }
 
-            object? data;
+            if (response.Content.Headers.ContentEncoding.Count > 0)
+            {
+                return OperationExecutionResult.Failure(
+                    DynamicsErrorCodes.UpstreamFailure,
+                    $"Operation '{operationId}' returned unsupported Content-Encoding.");
+            }
+
+            JsonElement? data;
             try
             {
-                data = string.IsNullOrWhiteSpace(body)
-                    ? null
-                    : JsonSerializer.Deserialize<JsonElement>(body, JsonOptions);
+                var read = await ReadBoundedJsonAsync(
+                    response.Content,
+                    Math.Clamp(_options.MaxResponseBytes, 1024, 67_108_864),
+                    timeoutCts.Token).ConfigureAwait(false);
+                if (read.TooLarge)
+                {
+                    return OperationExecutionResult.Failure(
+                        DynamicsErrorCodes.UpstreamFailure,
+                        $"Operation '{operationId}' response exceeded the configured byte limit.");
+                }
+
+                data = read.Data;
             }
             catch (JsonException)
             {
                 return OperationExecutionResult.Failure(
                     DynamicsErrorCodes.UpstreamFailure,
                     $"Operation '{operationId}' returned non-JSON payload.");
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                return OperationExecutionResult.Failure(
+                    DynamicsErrorCodes.UpstreamTimeout,
+                    $"Operation '{operationId}' timed out while reading the response.");
             }
 
             return OperationExecutionResult.Success(new
@@ -338,16 +360,77 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "AdfsOAuth token acquisition failed.");
+                _logger.LogWarning(
+                    "AdfsOAuth token acquisition failed. ExceptionType={ExceptionType}",
+                    ex.GetType().Name);
                 return OperationExecutionResult.Failure(
                     DynamicsErrorCodes.Unauthorized,
-                    $"AdfsOAuth token acquisition failed: {ex.Message}");
+                    "AdfsOAuth token acquisition failed.");
             }
         }
 
         return OperationExecutionResult.Failure(
             DynamicsErrorCodes.InvalidConfiguration,
             $"Unsupported AuthMode '{_options.AuthMode}'.");
+    }
+
+    private static async Task<BoundedJsonReadResult> ReadBoundedJsonAsync(
+        HttpContent content,
+        int maximumBytes,
+        CancellationToken cancellationToken)
+    {
+        if (content.Headers.ContentLength is long contentLength && contentLength > maximumBytes)
+        {
+            return new BoundedJsonReadResult(null, TooLarge: true);
+        }
+
+        await using var stream = await content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        var buffer = ArrayPool<byte>.Shared.Rent(maximumBytes + 1);
+        var totalRead = 0;
+        try
+        {
+            while (totalRead <= maximumBytes)
+            {
+                var read = await stream.ReadAsync(
+                    buffer.AsMemory(totalRead, maximumBytes + 1 - totalRead),
+                    cancellationToken).ConfigureAwait(false);
+                if (read == 0)
+                {
+                    var payload = buffer.AsSpan(0, totalRead);
+                    if (payload.IsEmpty || IsAsciiWhitespaceOnly(payload))
+                    {
+                        return new BoundedJsonReadResult(null, TooLarge: false);
+                    }
+
+                    using var document = JsonDocument.Parse(buffer.AsMemory(0, totalRead));
+                    return new BoundedJsonReadResult(document.RootElement.Clone(), TooLarge: false);
+                }
+
+                totalRead += read;
+            }
+
+            return new BoundedJsonReadResult(null, TooLarge: true);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(buffer.AsSpan(0, Math.Min(totalRead, buffer.Length)));
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+    }
+
+    private sealed record BoundedJsonReadResult(JsonElement? Data, bool TooLarge);
+
+    private static bool IsAsciiWhitespaceOnly(ReadOnlySpan<byte> value)
+    {
+        foreach (var character in value)
+        {
+            if (character is not (byte)' ' and not (byte)'\t' and not (byte)'\r' and not (byte)'\n')
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
     private static string? BindODataPath(
         string template,

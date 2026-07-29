@@ -115,6 +115,14 @@ public sealed class DynamicsWebApiOptions
     public int PooledConnectionLifetimeMinutes { get; set; } = 15;
 
     /// <summary>
+    /// Hard cap for one uncompressed CRM JSON response. Responses are streamed
+    /// into a pooled buffer and rejected before parsing when this limit is
+    /// exceeded.
+    /// </summary>
+    [Range(1024, 67_108_864)]
+    public int MaxResponseBytes { get; set; } = 2_097_152;
+
+    /// <summary>
     /// Organization 級 admission / capacity 設定。
     /// </summary>
     public OrganizationAdmissionOptions Admission { get; set; } = new();

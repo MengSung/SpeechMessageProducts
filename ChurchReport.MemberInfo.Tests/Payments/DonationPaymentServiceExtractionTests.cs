@@ -165,7 +165,7 @@ public sealed class DonationPaymentServiceExtractionTests
         // 這個測試刻意檢查原始碼結構，而不是測 CRM 行為。
         // 目的在於鎖住本次重構邊界：DonationPaymentManager 只能協調流程，
         // ChurchReport CRM contact 的建立、比對、補欄位細節必須集中在 DonationContactService。
-        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string contactSection = ExtractSourceSection(
             managerSource,
             "public Entity CreateDonationContact",
@@ -185,7 +185,7 @@ public sealed class DonationPaymentServiceExtractionTests
     {
         // 手動奉獻查詢/更新是 ChurchReport 產品流程，manager 應只保留公開入口，
         // CRM 查詢與 JSON payload 組裝要集中在 DonationKeyInDedicationService。
-        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string keyInSection = ExtractSourceSection(
             managerSource,
             "public async Task<IActionResult> SaveKeyInDedication",
@@ -200,7 +200,7 @@ public sealed class DonationPaymentServiceExtractionTests
     {
         // 認獻清單與取消認獻會碰 CRM、LINE 與舊金流取消流程，
         // 這些流程應移到 ChurchReport service，不能留在大型 manager 裡。
-        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string bookingSection = ExtractSourceSection(
             managerSource,
             "public void ProcessDedicationBooking()",
@@ -216,7 +216,7 @@ public sealed class DonationPaymentServiceExtractionTests
     {
         // 查無新人時建立 contact 以及奉獻編號規則是 ChurchReport 資料規則，
         // manager 不應直接建立 contact 或計算 pager 編號。
-        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string creationSection = ExtractSourceSection(
             managerSource,
             "public async Task<IActionResult> CreateContact",
@@ -232,7 +232,7 @@ public sealed class DonationPaymentServiceExtractionTests
     {
         // 奉獻表單初始化牽涉 CRM 欄位、OptionSet、信用卡清單與認獻清單，
         // manager 應把組裝細節交給 assembler，避免 UI model 規則散在大型協調器。
-        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string modelSection = ExtractSourceSection(
             managerSource,
             "public DonationPaymentFormModel SetDonationPaymentModel",
@@ -248,7 +248,7 @@ public sealed class DonationPaymentServiceExtractionTests
     {
         // 官網奉獻登入會處理身分證、姓名、同名資料與新 contact 建立，
         // 這是 ChurchReport contact workflow，manager 不應保留大段 CRM 查詢判斷。
-        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string loginSection = ExtractSourceSection(
             managerSource,
             "public Entity GetDonationPaymentLoginContact",
@@ -264,7 +264,7 @@ public sealed class DonationPaymentServiceExtractionTests
     {
         // 奉獻查詢表單刷新包含 contact 欄位投影與 new_fee 查詢，屬於 ChurchReport 產品表單流程。
         // manager 只應保留 public wrapper，讓 service 負責欄位填值與 fee list refresh。
-        string managerSource = ReadRepositoryFile("ChurchReport", "Models", "DonationPaymentManager.cs");
+        string managerSource = ReadRepositoryFile("SpeechMessageProducts.ChurchReport", "Models", "DonationPaymentManager.cs");
         string feeListSection = ExtractSourceSection(
             managerSource,
             "public DonationPaymentFormModel SetDedicationFeeList(String UserLineId)",

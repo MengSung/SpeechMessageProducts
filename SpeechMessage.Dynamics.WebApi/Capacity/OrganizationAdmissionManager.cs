@@ -342,7 +342,8 @@ public sealed class OrganizationAdmissionManager : IOrganizationAdmissionManager
             HostFencingToken = lease?.FencingToken ?? 0,
             HostLeaseExpiresAtUtc = lease?.ExpiresAtUtc,
             ActivePermits = activePermits,
-            RenewalLoopActive = Volatile.Read(ref _renewalLoopActive) != 0
+            RenewalLoopActive = Volatile.Read(ref _renewalLoopActive) != 0,
+            TrackedWorkloadCount = _workloadCounts.Count
         };
     }
 
