@@ -73,6 +73,40 @@ public sealed class OrganizationAdmissionOptions
     public string LeaseNamespaceId { get; set; } = "default-host-lease";
 
     /// <summary>
+    /// Coordinator-issued runtime host slot lifetime.
+    /// </summary>
+    [Range(5, 3600)]
+    public int RuntimeHostSlotLeaseTtlSeconds { get; set; } = 120;
+
+    /// <summary>
+    /// Background renewal cadence. This must leave enough lease time for a
+    /// maximum outbound operation and the expiry fence.
+    /// </summary>
+    [Range(1, 600)]
+    public int RuntimeHostSlotRenewalIntervalSeconds { get; set; } = 30;
+
+    /// <summary>
+    /// No work may be admitted or remain active beyond this margin before the
+    /// coordinator lease expiry.
+    /// </summary>
+    [Range(1, 300)]
+    public int RuntimeHostSlotExpiryFenceSeconds { get; set; } = 10;
+
+    /// <summary>
+    /// Maximum request plus cleanup/cancellation lifetime for one admitted CRM
+    /// operation.
+    /// </summary>
+    [Range(1, 600)]
+    public int MaximumOutboundWorkLifetimeSeconds { get; set; } = 35;
+
+    /// <summary>
+    /// Maximum graceful stop drain interval before active work is cancelled at
+    /// the lease-loss boundary.
+    /// </summary>
+    [Range(1, 900)]
+    public int ShutdownDrainTimeoutSeconds { get; set; } = 45;
+
+    /// <summary>
     /// 是否要求 durable host-slot coordinator。
     /// 開發/單機可 false；正式多 host 應 true，否則 readiness 應失敗。
     /// </summary>

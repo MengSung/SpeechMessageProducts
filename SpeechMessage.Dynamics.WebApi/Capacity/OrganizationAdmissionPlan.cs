@@ -28,6 +28,11 @@ public sealed class OrganizationAdmissionPlan
     public required int QueueAdmissionTimeoutSeconds { get; init; }
     public required int MaxInFlightAndQueuedPerWorkload { get; init; }
     public required int MaxConnectionsPerServer { get; init; }
+    public required TimeSpan RuntimeHostSlotLeaseTtl { get; init; }
+    public required TimeSpan RuntimeHostSlotRenewalInterval { get; init; }
+    public required TimeSpan RuntimeHostSlotExpiryFence { get; init; }
+    public required TimeSpan MaximumOutboundWorkLifetime { get; init; }
+    public required TimeSpan ShutdownDrainTimeout { get; init; }
     public required bool RequireDurableHostCoordinator { get; init; }
 
     public static bool TryCreate(
@@ -115,6 +120,27 @@ public sealed class OrganizationAdmissionPlan
             return false;
         }
 
+        var leaseTtl = TimeSpan.FromSeconds(admissionOptions.RuntimeHostSlotLeaseTtlSeconds);
+        var renewalInterval = TimeSpan.FromSeconds(admissionOptions.RuntimeHostSlotRenewalIntervalSeconds);
+        var expiryFence = TimeSpan.FromSeconds(admissionOptions.RuntimeHostSlotExpiryFenceSeconds);
+        var maximumWorkLifetime = TimeSpan.FromSeconds(admissionOptions.MaximumOutboundWorkLifetimeSeconds);
+        var shutdownDrainTimeout = TimeSpan.FromSeconds(admissionOptions.ShutdownDrainTimeoutSeconds);
+        if (leaseTtl <= renewalInterval + expiryFence + maximumWorkLifetime)
+        {
+            error = OperationExecutionResult.Failure(
+                DynamicsErrorCodes.InvalidConfiguration,
+                "RuntimeHostSlotLeaseTtlSeconds must exceed renewal interval plus maximum outbound work lifetime and expiry fence.");
+            return false;
+        }
+
+        if (shutdownDrainTimeout < maximumWorkLifetime)
+        {
+            error = OperationExecutionResult.Failure(
+                DynamicsErrorCodes.InvalidConfiguration,
+                "ShutdownDrainTimeoutSeconds must be at least MaximumOutboundWorkLifetimeSeconds.");
+            return false;
+        }
+
         // 用 OrganizationBaseUri 或 WebApi root 的 origin+base path 正規化。
         var normalizedBase = root.Value.GetLeftPart(UriPartial.Authority)
             + root.Value.AbsolutePath.Replace($"/api/data/{root.ApiVersionSegment}/", "/", StringComparison.OrdinalIgnoreCase);
@@ -138,6 +164,11 @@ public sealed class OrganizationAdmissionPlan
             QueueAdmissionTimeoutSeconds = admissionOptions.QueueAdmissionTimeoutSeconds,
             MaxInFlightAndQueuedPerWorkload = Math.Max(1, admissionOptions.MaxInFlightAndQueuedPerWorkload),
             MaxConnectionsPerServer = webApiOptions.MaxConnectionsPerServer,
+            RuntimeHostSlotLeaseTtl = leaseTtl,
+            RuntimeHostSlotRenewalInterval = renewalInterval,
+            RuntimeHostSlotExpiryFence = expiryFence,
+            MaximumOutboundWorkLifetime = maximumWorkLifetime,
+            ShutdownDrainTimeout = shutdownDrainTimeout,
             RequireDurableHostCoordinator = admissionOptions.RequireDurableHostCoordinator
         };
         return true;

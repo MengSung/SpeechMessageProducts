@@ -18,6 +18,7 @@ public interface IAdmissionPermit : IAsyncDisposable, IDisposable
 {
     Guid CorrelationId { get; }
     long HostFencingToken { get; }
+    CancellationToken LeaseLostToken { get; }
 }
 
 /// <summary>
@@ -50,6 +51,9 @@ public sealed class AdmissionMetricsSnapshot
     public required long TimeoutCount { get; init; }
     public required bool HostSlotReady { get; init; }
     public required long HostFencingToken { get; init; }
+    public required DateTimeOffset? HostLeaseExpiresAtUtc { get; init; }
+    public required int ActivePermits { get; init; }
+    public required bool RenewalLoopActive { get; init; }
 }
 
 /// <summary>

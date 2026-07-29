@@ -12,10 +12,23 @@
 using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.WebApi.DependencyInjection;
 using SpeechMessage.Dynamics.WebApi.Runtime;
+using Microsoft.AspNetCore.Server.IISIntegration;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow);
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow);
+
+var workloadAuthenticationScheme =
+    builder.Configuration["DynamicsGateway:AuthenticationScheme"]
+    ?? IISDefaults.AuthenticationScheme;
+var authentication = builder.Services.AddAuthentication(workloadAuthenticationScheme);
+builder.Services.AddAuthorization();
+builder.Services.AddSingleton<IWorkloadSubjectResolver, ConfigurationWorkloadSubjectResolver>();
 
 // 保母提醒：
 // WebApi 設定應來自設定檔或秘密庫，不可把密碼寫死在程式碼。
@@ -93,7 +106,8 @@ builder.Services.AddSpeechMessageDynamicsWebApi(options =>
     options.Admission.LeaseNamespaceId =
         builder.Configuration["DynamicsWebApi:Admission:LeaseNamespaceId"]
         ?? "gateway-local-host-lease";
-    options.Admission.RequireDurableHostCoordinator = false;
+    options.Admission.RequireDurableHostCoordinator =
+        !builder.Environment.IsEnvironment("Testing");
 
     // 本機 scaffolding 後備值：若完全沒設定，至少給可驗證的 root。
     if (string.IsNullOrWhiteSpace(options.OrganizationWebApiBaseUri) &&
@@ -103,7 +117,26 @@ builder.Services.AddSpeechMessageDynamicsWebApi(options =>
     }
 });
 
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    var coordinatorConnection =
+        builder.Configuration.GetConnectionString("DynamicsControlPlane")
+        ?? throw new InvalidOperationException(
+            "ConnectionStrings:DynamicsControlPlane is required outside Testing.");
+    builder.Services.AddSqlRuntimeHostSlotCoordinator(options =>
+    {
+        options.ConnectionString = coordinatorConnection;
+        options.CommandTimeoutSeconds = builder.Configuration.GetValue(
+            "DynamicsHostCoordinator:CommandTimeoutSeconds", 5);
+        options.QuarantineSeconds = builder.Configuration.GetValue(
+            "DynamicsHostCoordinator:QuarantineSeconds", 180);
+    });
+    builder.Services.AddHostedService<DynamicsGatewayReadinessService>();
+}
+
 var app = builder.Build();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "SpeechMessage.Dynamics.Gateway" }));
 
@@ -115,9 +148,16 @@ app.MapPost(
         string alias,
         string capabilityOperationId,
         OperationHttpRequest body,
+        HttpContext httpContext,
+        IWorkloadSubjectResolver workloadResolver,
         IDynamicsOperationExecutor executor,
         CancellationToken cancellationToken) =>
     {
+        if (!workloadResolver.TryResolve(httpContext.User, out var workloadSubjectId))
+        {
+            return Results.Forbid();
+        }
+
         // 保母提醒：
         // 正式環境的 WorkloadSubjectId 必須來自已驗證的 workload identity。
         // scaffolding 先允許 body 傳入，方便契約測試；不可當成安全模型。
@@ -125,9 +165,7 @@ app.MapPost(
         {
             ProfileAlias = alias,
             CapabilityOperationId = capabilityOperationId,
-            WorkloadSubjectId = string.IsNullOrWhiteSpace(body.WorkloadSubjectId)
-                ? "anonymous-scaffold"
-                : body.WorkloadSubjectId!,
+            WorkloadSubjectId = workloadSubjectId,
             Parameters = body.Parameters ?? new Dictionary<string, object?>(),
             IdempotencyKey = body.IdempotencyKey
         };
@@ -136,7 +174,8 @@ app.MapPost(
         return result.Succeeded
             ? Results.Ok(result)
             : Results.BadRequest(result);
-    });
+    })
+    .RequireAuthorization();
 
 app.MapGet(
     "/v1/operations",
@@ -156,7 +195,6 @@ app.Run();
 /// </summary>
 public sealed class OperationHttpRequest
 {
-    public string? WorkloadSubjectId { get; set; }
     public string? IdempotencyKey { get; set; }
     public Dictionary<string, object?>? Parameters { get; set; }
 }
@@ -165,3 +203,45 @@ public sealed class OperationHttpRequest
 /// 給 WebApplicationFactory / 測試參考 Program。
 /// </summary>
 public partial class Program;
+
+public interface IWorkloadSubjectResolver
+{
+    bool TryResolve(System.Security.Claims.ClaimsPrincipal principal, out string workloadSubjectId);
+}
+
+public sealed class ConfigurationWorkloadSubjectResolver : IWorkloadSubjectResolver
+{
+    private readonly IReadOnlyDictionary<string, string> _mappings;
+
+    public ConfigurationWorkloadSubjectResolver(IConfiguration configuration)
+    {
+        var mappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var entry in configuration.GetSection("DynamicsGateway:WorkloadMappings").GetChildren())
+        {
+            var principal = entry.Key.Trim();
+            var subject = entry.Value?.Trim();
+            if (principal.Length == 0 || string.IsNullOrWhiteSpace(subject) || subject.Length > 128)
+            {
+                continue;
+            }
+
+            mappings[principal] = subject;
+        }
+
+        _mappings = mappings;
+    }
+
+    public bool TryResolve(
+        System.Security.Claims.ClaimsPrincipal principal,
+        out string workloadSubjectId)
+    {
+        workloadSubjectId = string.Empty;
+        if (principal.Identity?.IsAuthenticated != true ||
+            string.IsNullOrWhiteSpace(principal.Identity.Name))
+        {
+            return false;
+        }
+
+        return _mappings.TryGetValue(principal.Identity.Name.Trim(), out workloadSubjectId!);
+    }
+}

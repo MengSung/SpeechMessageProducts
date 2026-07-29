@@ -24,6 +24,25 @@ namespace SpeechMessage.Dynamics.WebApi.DependencyInjection;
 /// </summary>
 public static class WebApiServiceCollectionExtensions
 {
+    public static IServiceCollection AddSqlRuntimeHostSlotCoordinator(
+        this IServiceCollection services,
+        Action<SqlRuntimeHostSlotCoordinatorOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        var options = new SqlRuntimeHostSlotCoordinatorOptions();
+        configure(options);
+        options.Validate();
+
+        services.RemoveAll<IRuntimeHostSlotCoordinator>();
+        services.AddSingleton(options);
+        services.AddSingleton<SqlRuntimeHostSlotCoordinator>();
+        services.AddSingleton<IRuntimeHostSlotCoordinator>(sp =>
+            sp.GetRequiredService<SqlRuntimeHostSlotCoordinator>());
+        return services;
+    }
+
     /// <summary>
     /// 註冊私有 Dynamics Web API 連線器、admission 與受控操作執行器。
     /// </summary>

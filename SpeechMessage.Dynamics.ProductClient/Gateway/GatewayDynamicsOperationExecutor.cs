@@ -77,7 +77,6 @@ public sealed class GatewayDynamicsOperationExecutor : IDynamicsOperationExecuto
 
         var body = new GatewayOperationHttpBody
         {
-            WorkloadSubjectId = request.WorkloadSubjectId,
             IdempotencyKey = request.IdempotencyKey,
             Parameters = request.Parameters.ToDictionary(x => x.Key, x => x.Value)
         };
@@ -139,7 +138,6 @@ public sealed class GatewayDynamicsOperationExecutor : IDynamicsOperationExecuto
 
     private sealed class GatewayOperationHttpBody
     {
-        public string? WorkloadSubjectId { get; set; }
         public string? IdempotencyKey { get; set; }
         public Dictionary<string, object?>? Parameters { get; set; }
     }

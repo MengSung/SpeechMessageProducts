@@ -15,16 +15,22 @@
 // ============================================================================
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Execution;
 using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.Embedded.DependencyInjection;
+using SpeechMessage.Dynamics.ProductClient.DependencyInjection;
 using SpeechMessage.Dynamics.ProductClient.FeeReads;
 using SpeechMessage.Dynamics.ProductClient.Gateway;
 using ToolUtilityNameSpace;
@@ -39,8 +45,9 @@ namespace ChurchReport.Services
         // Embedded bootstrap 不可每次 new ServiceProvider，否則 handler/socket/timer 容易累積。
         // 以 ProfileAlias + WebApiRoot + CeVersion + CredentialSource 當 key，快取 process-level provider。
         // 這不是 per-user session pool；同一個產品行程只共用一份 host runtime。
-        private static readonly ConcurrentDictionary<string, IServiceProvider> EmbeddedProviders =
-            new(StringComparer.OrdinalIgnoreCase);
+        private static readonly DonationDynamicsAccessProcessHost ProcessHost = new();
+
+        public static ValueTask DisposeAsync() => ProcessHost.DisposeAsync();
 
         /// <summary>
         /// 建立奉獻收費表單服務；若啟用 Package 1，會依 JSON 走 Gateway / Embedded。
@@ -329,14 +336,7 @@ namespace ChurchReport.Services
 
             // 重要：必須使用 process-level 共用 HttpClient。
             // 這是產品 -> Gateway 的連線池，不是 per-user CRM session pool。
-            var httpClient = GatewayHttpClientFactory.GetSharedClient(
-                productOptions.Gateway.Endpoint,
-                TimeSpan.FromSeconds(60));
-
-            return new GatewayDynamicsOperationExecutor(
-                httpClient,
-                Options.Create(productOptions),
-                NullLogger<GatewayDynamicsOperationExecutor>.Instance);
+            return ProcessHost.GetOrCreateGatewayExecutor(productOptions);
         }
 
         private static IDynamicsOperationExecutor CreateEmbeddedExecutor(
@@ -369,30 +369,15 @@ namespace ChurchReport.Services
             }
 
             // cache key 必須包含 auth 維度，避免 Windows / AdfsOAuth 設定互相污染。
-            var cacheKey =
-                productOptions.ProfileAlias.Trim() + "|" +
-                productOptions.Embedded.OrganizationWebApiBaseUri.Trim() + "|" +
-                productOptions.Embedded.CeVersion.Trim() + "|" +
-                credentialSource.Trim() + "|" +
-                (productOptions.Embedded.AuthMode ?? "Windows").Trim() + "|" +
-                (productOptions.Embedded.AuthorityUri ?? string.Empty).Trim() + "|" +
-                (productOptions.Embedded.ClientId ?? string.Empty).Trim() + "|" +
-                (productOptions.Embedded.UserNameSecretName ?? string.Empty).Trim();
+            var localSecrets = BuildLocalDevSecretMap(configuration, productOptions);
 
-            var provider = EmbeddedProviders.GetOrAdd(cacheKey, _ =>
-            {
+            // Legacy unbounded provider cache removed.
                 // 這層建立 DI 容器與 Embedded 執行器。
                 // 產品只可 reference Embedded 專案，不可直接 reference WebApi。
-                var services = new ServiceCollection();
-                services.AddLogging();
 
                 // 本機 local-dev：把秘密名稱橋接到 CrmConnection 值（不寫進 DynamicsAccess JSON）。
-                var localSecrets = BuildLocalDevSecretMap(configuration, productOptions);
-                services.AddSpeechMessageDynamicsEmbedded(productOptions, localSecrets);
-                return services.BuildServiceProvider(validateScopes: true);
-            });
 
-            return provider.GetRequiredService<IDynamicsOperationExecutor>();
+            return ProcessHost.GetOrCreateEmbeddedExecutor(productOptions, localSecrets);
         }
 
         /// <summary>
@@ -456,6 +441,164 @@ namespace ChurchReport.Services
             }
 
             return null;
+        }
+
+        private sealed class DonationDynamicsAccessProcessHost : IAsyncDisposable
+        {
+            private readonly SemaphoreSlim _gate = new(1, 1);
+            private ServiceProvider? _provider;
+            private string? _generationKey;
+
+            public IDynamicsOperationExecutor GetOrCreateGatewayExecutor(ProductDynamicsOptions options)
+            {
+                var key = ComputeGenerationKey(
+                    "gateway",
+                    options.ProfileAlias,
+                    options.Gateway?.Endpoint,
+                    options.Gateway?.ApiPrefix);
+
+                return GetOrCreate(key, services =>
+                {
+                    services.AddSpeechMessageDynamicsGatewayProductClient(configured =>
+                    {
+                        configured.ExecutionMode = DynamicsExecutionMode.Gateway;
+                        configured.ProfileAlias = options.ProfileAlias;
+                        configured.Gateway = new GatewayModeOptions
+                        {
+                            Endpoint = options.Gateway!.Endpoint,
+                            ApiPrefix = options.Gateway.ApiPrefix
+                        };
+                    });
+                });
+            }
+
+            public IDynamicsOperationExecutor GetOrCreateEmbeddedExecutor(
+                ProductDynamicsOptions options,
+                IReadOnlyDictionary<string, string> localSecrets)
+            {
+                var embedded = options.Embedded!;
+                var keyParts = new List<string?>
+                {
+                    "embedded",
+                    options.ProfileAlias,
+                    embedded.OrganizationWebApiBaseUri,
+                    embedded.CeVersion,
+                    embedded.SecretReference,
+                    embedded.ManifestOrRegistrySource,
+                    embedded.CredentialSource,
+                    embedded.UserNameSecretName,
+                    embedded.PasswordSecretName,
+                    embedded.DomainSecretName,
+                    embedded.AuthMode,
+                    embedded.AuthorityUri,
+                    embedded.ResourceUri,
+                    embedded.ClientId,
+                    embedded.ClientIdSecretName,
+                    embedded.ClientSecretName,
+                    embedded.CredentialReferenceName,
+                    embedded.AllowLocalDevPasswordGrant.ToString(),
+                    embedded.RefreshTokenSecretName,
+                    embedded.LocalDevTokenStorePath,
+                    embedded.RedirectUri
+                };
+
+                foreach (var secret in localSecrets.OrderBy(entry => entry.Key, StringComparer.Ordinal))
+                {
+                    keyParts.Add(secret.Key);
+                    keyParts.Add(secret.Value);
+                }
+
+                var key = ComputeGenerationKey(keyParts.ToArray());
+                return GetOrCreate(key, services =>
+                    services.AddSpeechMessageDynamicsEmbedded(options, localSecrets));
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                await _gate.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    if (_provider is not null)
+                    {
+                        await _provider.DisposeAsync().ConfigureAwait(false);
+                        _provider = null;
+                        _generationKey = null;
+                    }
+                }
+                finally
+                {
+                    _gate.Release();
+                }
+            }
+
+            private IDynamicsOperationExecutor GetOrCreate(
+                string generationKey,
+                Action<IServiceCollection> configureServices)
+            {
+                _gate.Wait();
+                try
+                {
+                    if (_provider is not null)
+                    {
+                        if (!string.Equals(_generationKey, generationKey, StringComparison.Ordinal))
+                        {
+                            throw new InvalidOperationException(
+                                "DynamicsAccess process configuration changed. Restart the host to replace and drain the active generation.");
+                        }
+
+                        return _provider.GetRequiredService<IDynamicsOperationExecutor>();
+                    }
+
+                    var services = new ServiceCollection();
+                    services.AddLogging();
+                    configureServices(services);
+
+                    var provider = services.BuildServiceProvider(validateScopes: true);
+                    try
+                    {
+                        var executor = provider.GetRequiredService<IDynamicsOperationExecutor>();
+                        _provider = provider;
+                        _generationKey = generationKey;
+                        return executor;
+                    }
+                    catch
+                    {
+                        provider.Dispose();
+                        throw;
+                    }
+                }
+                finally
+                {
+                    _gate.Release();
+                }
+            }
+
+            private static string ComputeGenerationKey(params string?[] fields)
+            {
+                using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+                Span<byte> length = stackalloc byte[4];
+
+                foreach (var field in fields)
+                {
+                    var bytes = Encoding.UTF8.GetBytes(field ?? string.Empty);
+                    System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(length, bytes.Length);
+                    hash.AppendData(length);
+                    hash.AppendData(bytes);
+                    CryptographicOperations.ZeroMemory(bytes);
+                }
+
+                return Convert.ToHexString(hash.GetHashAndReset());
+            }
+        }
+    }
+
+    public sealed class DonationDynamicsAccessBootstrapLifetime : IHostedService
+    {
+        public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await DonationDynamicsAccessBootstrap.DisposeAsync().ConfigureAwait(false);
         }
     }
 }

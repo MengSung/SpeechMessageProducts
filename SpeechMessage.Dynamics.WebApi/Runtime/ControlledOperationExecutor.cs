@@ -92,10 +92,25 @@ public sealed class ControlledOperationExecutor : IDynamicsOperationExecutor
 
         await using (admission.Permit.ConfigureAwait(false))
         {
+            using var outboundCts = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken,
+                admission.Permit.LeaseLostToken);
+            var remainingToDeadline = envelope.DeadlineUtc - DateTimeOffset.UtcNow;
+            var maximumLifetime = remainingToDeadline < _admissionManager.Plan.MaximumOutboundWorkLifetime
+                ? remainingToDeadline
+                : _admissionManager.Plan.MaximumOutboundWorkLifetime;
+            if (maximumLifetime <= TimeSpan.Zero)
+            {
+                return OperationExecutionResult.Failure(
+                    DynamicsErrorCodes.AdmissionTimeout,
+                    "Outbound operation deadline expired before dispatch.");
+            }
+
+            outboundCts.CancelAfter(maximumLifetime);
             return await _webApiClient.ExecuteRegisteredOperationAsync(
                 definition,
                 request.Parameters,
-                cancellationToken).ConfigureAwait(false);
+                outboundCts.Token).ConfigureAwait(false);
         }
     }
 

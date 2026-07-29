@@ -12,6 +12,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using System.Net;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Execution;
 using SpeechMessage.Dynamics.Abstractions.Operations;
@@ -60,7 +61,21 @@ public static class ProductClientServiceCollectionExtensions
             }
 
             client.Timeout = TimeSpan.FromSeconds(60);
-        });
+        })
+        .ConfigurePrimaryHttpMessageHandler(static () => new SocketsHttpHandler
+        {
+            UseCookies = false,
+            AllowAutoRedirect = false,
+            UseProxy = false,
+            AutomaticDecompression = DecompressionMethods.None,
+            Credentials = CredentialCache.DefaultNetworkCredentials,
+            PreAuthenticate = false,
+            MaxConnectionsPerServer = 8,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
+            ConnectTimeout = TimeSpan.FromSeconds(10)
+        })
+        .SetHandlerLifetime(TimeSpan.FromMinutes(10));
 
         services.TryAddSingleton<IPackage01FeeReadClient, Package01FeeReadClient>();
         return services;

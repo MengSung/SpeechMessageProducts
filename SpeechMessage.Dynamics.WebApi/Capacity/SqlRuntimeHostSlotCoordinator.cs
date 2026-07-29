@@ -1,0 +1,383 @@
+using System.Data;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
+
+namespace SpeechMessage.Dynamics.WebApi.Capacity;
+
+public sealed class SqlRuntimeHostSlotCoordinator : IRuntimeHostSlotCoordinator
+{
+    public const string SchemaSql = """
+        SET XACT_ABORT ON;
+        IF OBJECT_ID(N'dbo.RuntimeHostFencingSequence', N'SO') IS NULL
+            EXEC(N'CREATE SEQUENCE dbo.RuntimeHostFencingSequence AS bigint START WITH 1 INCREMENT BY 1 CACHE 1000;');
+
+        IF OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U') IS NULL
+        BEGIN
+            CREATE TABLE dbo.RuntimeHostSlotLease
+            (
+                LeaseNamespaceId nvarchar(128) NOT NULL,
+                SlotOrdinal int NOT NULL,
+                HostInstanceId nvarchar(128) NULL,
+                FencingToken bigint NOT NULL CONSTRAINT DF_RuntimeHostSlotLease_Fencing DEFAULT (0),
+                LeaseExpiresAtUtc datetime2(3) NULL,
+                QuarantineUntilUtc datetime2(3) NULL,
+                LastTouchedAtUtc datetime2(3) NOT NULL
+                    CONSTRAINT DF_RuntimeHostSlotLease_LastTouched DEFAULT (SYSUTCDATETIME()),
+                RowVersion rowversion NOT NULL,
+                CONSTRAINT PK_RuntimeHostSlotLease PRIMARY KEY (LeaseNamespaceId, SlotOrdinal),
+                CONSTRAINT CK_RuntimeHostSlotLease_SlotOrdinal CHECK (SlotOrdinal >= 0)
+            );
+        END;
+        """;
+
+    private const string AcquireSql = """
+        SET NOCOUNT ON;
+        SET XACT_ABORT ON;
+        DECLARE @lockResult int;
+        EXEC @lockResult = sys.sp_getapplock
+            @Resource = CONCAT(N'SpeechMessageDynamicsLease:', @leaseNamespaceId),
+            @LockMode = N'Exclusive',
+            @LockOwner = N'Transaction',
+            @LockTimeout = @lockTimeoutMilliseconds;
+        IF @lockResult < 0 THROW 51000, 'Unable to acquire the lease namespace lock.', 1;
+
+        DECLARE @now datetime2(3) = SYSUTCDATETIME();
+        DECLARE @slot int = 0;
+        WHILE @slot < @maximumRuntimeHosts
+        BEGIN
+            IF NOT EXISTS
+            (
+                SELECT 1 FROM dbo.RuntimeHostSlotLease WITH (UPDLOCK, HOLDLOCK)
+                WHERE LeaseNamespaceId = @leaseNamespaceId AND SlotOrdinal = @slot
+            )
+            BEGIN
+                INSERT dbo.RuntimeHostSlotLease (LeaseNamespaceId, SlotOrdinal)
+                VALUES (@leaseNamespaceId, @slot);
+            END;
+            SET @slot += 1;
+        END;
+
+        UPDATE dbo.RuntimeHostSlotLease WITH (UPDLOCK, ROWLOCK)
+        SET HostInstanceId = NULL,
+            LeaseExpiresAtUtc = NULL,
+            QuarantineUntilUtc = DATEADD(second, @quarantineSeconds, @now),
+            LastTouchedAtUtc = @now
+        WHERE LeaseNamespaceId = @leaseNamespaceId
+          AND SlotOrdinal < @maximumRuntimeHosts
+          AND HostInstanceId IS NOT NULL
+          AND LeaseExpiresAtUtc <= @now;
+
+        DECLARE @selectedSlot int;
+        SELECT TOP (1) @selectedSlot = SlotOrdinal
+        FROM dbo.RuntimeHostSlotLease WITH (UPDLOCK, HOLDLOCK, ROWLOCK)
+        WHERE LeaseNamespaceId = @leaseNamespaceId
+          AND SlotOrdinal < @maximumRuntimeHosts
+          AND HostInstanceId = @hostInstanceId
+          AND LeaseExpiresAtUtc > @now
+        ORDER BY SlotOrdinal;
+
+        IF @selectedSlot IS NULL
+        BEGIN
+            SELECT TOP (1) @selectedSlot = SlotOrdinal
+            FROM dbo.RuntimeHostSlotLease WITH (UPDLOCK, HOLDLOCK, ROWLOCK)
+            WHERE LeaseNamespaceId = @leaseNamespaceId
+              AND SlotOrdinal < @maximumRuntimeHosts
+              AND HostInstanceId IS NULL
+              AND (QuarantineUntilUtc IS NULL OR QuarantineUntilUtc <= @now)
+            ORDER BY SlotOrdinal;
+        END;
+
+        IF @selectedSlot IS NOT NULL
+        BEGIN
+            DECLARE @token bigint = NEXT VALUE FOR dbo.RuntimeHostFencingSequence;
+            DECLARE @expires datetime2(3) = DATEADD(millisecond, @leaseTtlMilliseconds, @now);
+            UPDATE dbo.RuntimeHostSlotLease
+            SET HostInstanceId = @hostInstanceId,
+                FencingToken = @token,
+                LeaseExpiresAtUtc = @expires,
+                QuarantineUntilUtc = NULL,
+                LastTouchedAtUtc = @now
+            WHERE LeaseNamespaceId = @leaseNamespaceId AND SlotOrdinal = @selectedSlot;
+            SELECT @selectedSlot AS SlotOrdinal, @token AS FencingToken, @expires AS ExpiresAtUtc;
+        END;
+        """;
+
+    private const string RenewSql = """
+        SET NOCOUNT ON;
+        SET XACT_ABORT ON;
+        DECLARE @now datetime2(3) = SYSUTCDATETIME();
+        DECLARE @token bigint = NEXT VALUE FOR dbo.RuntimeHostFencingSequence;
+        DECLARE @expires datetime2(3) = DATEADD(millisecond, @leaseTtlMilliseconds, @now);
+        UPDATE dbo.RuntimeHostSlotLease WITH (UPDLOCK, ROWLOCK)
+        SET FencingToken = @token,
+            LeaseExpiresAtUtc = @expires,
+            LastTouchedAtUtc = @now
+        OUTPUT INSERTED.FencingToken, INSERTED.LeaseExpiresAtUtc
+        WHERE LeaseNamespaceId = @leaseNamespaceId
+          AND SlotOrdinal = @slotOrdinal
+          AND HostInstanceId = @hostInstanceId
+          AND FencingToken = @expectedFencingToken
+          AND LeaseExpiresAtUtc > @now
+          AND QuarantineUntilUtc IS NULL;
+        """;
+
+    private const string ReleaseSql = """
+        SET NOCOUNT ON;
+        SET XACT_ABORT ON;
+        DECLARE @now datetime2(3) = SYSUTCDATETIME();
+        UPDATE dbo.RuntimeHostSlotLease WITH (UPDLOCK, ROWLOCK)
+        SET HostInstanceId = NULL,
+            LeaseExpiresAtUtc = NULL,
+            QuarantineUntilUtc = DATEADD(second, @quarantineSeconds, @now),
+            LastTouchedAtUtc = @now
+        WHERE LeaseNamespaceId = @leaseNamespaceId
+          AND SlotOrdinal = @slotOrdinal
+          AND HostInstanceId = @hostInstanceId
+          AND FencingToken = @expectedFencingToken;
+        """;
+
+    private readonly SqlRuntimeHostSlotCoordinatorOptions _options;
+    private readonly ILogger<SqlRuntimeHostSlotCoordinator> _logger;
+    private int _activeDatabaseOperations;
+
+    public SqlRuntimeHostSlotCoordinator(
+        SqlRuntimeHostSlotCoordinatorOptions options,
+        ILogger<SqlRuntimeHostSlotCoordinator> logger)
+    {
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+        _options.Validate();
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    public bool IsDurable => true;
+    public int ActiveDatabaseOperations => Volatile.Read(ref _activeDatabaseOperations);
+
+    public async Task EnsureSchemaAsync(CancellationToken cancellationToken)
+    {
+        await ExecuteOperationAsync(async () =>
+        {
+            await using var connection = await OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = CreateCommand(connection, SchemaSql);
+            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            return true;
+        }).ConfigureAwait(false);
+    }
+
+    public async Task VerifySchemaAsync(CancellationToken cancellationToken)
+    {
+        const string verifySql = """
+            SET NOCOUNT ON;
+            IF DB_NAME() <> N'SpeechMessageDynamicsControlPlane'
+                THROW 51001, 'Unexpected Dynamics control-plane database.', 1;
+            IF OBJECT_ID(N'dbo.RuntimeHostSlotLease', N'U') IS NULL
+               OR OBJECT_ID(N'dbo.RuntimeHostFencingSequence', N'SO') IS NULL
+                THROW 51002, 'Dynamics control-plane schema is not provisioned.', 1;
+            SELECT 1;
+            """;
+
+        await ExecuteOperationAsync(async () =>
+        {
+            await using var connection = await OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = CreateCommand(connection, verifySql);
+            await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return true;
+        }).ConfigureAwait(false);
+    }
+
+    public async Task<RuntimeHostSlotLease?> TryAcquireAsync(
+        RuntimeHostSlotLeaseNamespace leaseNamespace,
+        string hostInstanceId,
+        int maximumRuntimeHosts,
+        TimeSpan leaseTtl,
+        CancellationToken cancellationToken)
+    {
+        ValidateLeaseArguments(leaseNamespace, hostInstanceId, maximumRuntimeHosts, leaseTtl);
+        return await ExecuteOperationAsync(async () =>
+        {
+            await using var connection = await OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+            await using var transaction = (SqlTransaction)await connection
+                .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
+                .ConfigureAwait(false);
+            try
+            {
+                await using var command = CreateCommand(connection, AcquireSql, transaction);
+                AddCommonParameters(command, leaseNamespace, hostInstanceId);
+                command.Parameters.Add("@maximumRuntimeHosts", SqlDbType.Int).Value = maximumRuntimeHosts;
+                command.Parameters.Add("@leaseTtlMilliseconds", SqlDbType.Int).Value =
+                    checked((int)leaseTtl.TotalMilliseconds);
+                command.Parameters.Add("@quarantineSeconds", SqlDbType.Int).Value = _options.QuarantineSeconds;
+                command.Parameters.Add("@lockTimeoutMilliseconds", SqlDbType.Int).Value =
+                    checked(_options.CommandTimeoutSeconds * 1000);
+
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                RuntimeHostSlotLease? lease = null;
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var slotOrdinal = reader.GetInt32(0);
+                    var fencingToken = reader.GetInt64(1);
+                    var expiresAtUtc = new DateTimeOffset(
+                        DateTime.SpecifyKind(reader.GetDateTime(2), DateTimeKind.Utc));
+                    lease = new RuntimeHostSlotLease(
+                        this,
+                        leaseNamespace,
+                        hostInstanceId,
+                        fencingToken,
+                        expiresAtUtc,
+                        slotOrdinal);
+                }
+
+                await reader.DisposeAsync().ConfigureAwait(false);
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                return lease;
+            }
+            catch
+            {
+                await transaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+                throw;
+            }
+        }).ConfigureAwait(false);
+    }
+
+    public async Task<bool> TryRenewAsync(
+        RuntimeHostSlotLease lease,
+        TimeSpan leaseTtl,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(lease);
+        if (lease.SlotOrdinal < 0 || leaseTtl <= TimeSpan.Zero || leaseTtl > TimeSpan.FromHours(1))
+        {
+            return false;
+        }
+
+        return await ExecuteOperationAsync(async () =>
+        {
+            await using var connection = await OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = CreateCommand(connection, RenewSql);
+            AddLeaseParameters(command, lease);
+            command.Parameters.Add("@leaseTtlMilliseconds", SqlDbType.Int).Value =
+                checked((int)leaseTtl.TotalMilliseconds);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return false;
+            }
+
+            var fencingToken = reader.GetInt64(0);
+            var expiresAtUtc = new DateTimeOffset(
+                DateTime.SpecifyKind(reader.GetDateTime(1), DateTimeKind.Utc));
+            lease.Update(fencingToken, expiresAtUtc);
+            return true;
+        }).ConfigureAwait(false);
+    }
+
+    public async ValueTask ReleaseAsync(
+        RuntimeHostSlotLease lease,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(lease);
+        if (lease.SlotOrdinal < 0)
+        {
+            return;
+        }
+
+        await ExecuteOperationAsync(async () =>
+        {
+            await using var connection = await OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = CreateCommand(connection, ReleaseSql);
+            AddLeaseParameters(command, lease);
+            command.Parameters.Add("@quarantineSeconds", SqlDbType.Int).Value = _options.QuarantineSeconds;
+            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            return true;
+        }).ConfigureAwait(false);
+    }
+
+    private async Task<T> ExecuteOperationAsync<T>(Func<Task<T>> operation)
+    {
+        Interlocked.Increment(ref _activeDatabaseOperations);
+        try
+        {
+            return await operation().ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is SqlException or TimeoutException)
+        {
+            _logger.LogWarning(
+                ex,
+                "Dynamics durable host-slot coordinator operation failed closed.");
+            throw;
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _activeDatabaseOperations);
+        }
+    }
+
+    private async Task<SqlConnection> OpenConnectionAsync(CancellationToken cancellationToken)
+    {
+        var connection = new SqlConnection(_options.ConnectionString);
+        try
+        {
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            return connection;
+        }
+        catch
+        {
+            await connection.DisposeAsync().ConfigureAwait(false);
+            throw;
+        }
+    }
+
+    private SqlCommand CreateCommand(
+        SqlConnection connection,
+        string commandText,
+        SqlTransaction? transaction = null)
+        => new(commandText, connection, transaction)
+        {
+            CommandType = CommandType.Text,
+            CommandTimeout = _options.CommandTimeoutSeconds
+        };
+
+    private static void AddCommonParameters(
+        SqlCommand command,
+        RuntimeHostSlotLeaseNamespace leaseNamespace,
+        string hostInstanceId)
+    {
+        command.Parameters.Add("@leaseNamespaceId", SqlDbType.NVarChar, 128).Value =
+            leaseNamespace.LeaseNamespaceId;
+        command.Parameters.Add("@hostInstanceId", SqlDbType.NVarChar, 128).Value = hostInstanceId;
+    }
+
+    private static void AddLeaseParameters(SqlCommand command, RuntimeHostSlotLease lease)
+    {
+        AddCommonParameters(command, lease.LeaseNamespace, lease.HostInstanceId);
+        command.Parameters.Add("@slotOrdinal", SqlDbType.Int).Value = lease.SlotOrdinal;
+        command.Parameters.Add("@expectedFencingToken", SqlDbType.BigInt).Value = lease.FencingToken;
+    }
+
+    private static void ValidateLeaseArguments(
+        RuntimeHostSlotLeaseNamespace leaseNamespace,
+        string hostInstanceId,
+        int maximumRuntimeHosts,
+        TimeSpan leaseTtl)
+    {
+        if (string.IsNullOrWhiteSpace(leaseNamespace.LeaseNamespaceId) ||
+            leaseNamespace.LeaseNamespaceId.Length > 128)
+        {
+            throw new ArgumentException("Lease namespace must contain 1-128 characters.", nameof(leaseNamespace));
+        }
+
+        if (string.IsNullOrWhiteSpace(hostInstanceId) || hostInstanceId.Length > 128)
+        {
+            throw new ArgumentException("Host instance ID must contain 1-128 characters.", nameof(hostInstanceId));
+        }
+
+        if (maximumRuntimeHosts is < 1 or > 1000)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maximumRuntimeHosts));
+        }
+
+        if (leaseTtl <= TimeSpan.Zero || leaseTtl > TimeSpan.FromHours(1))
+        {
+            throw new ArgumentOutOfRangeException(nameof(leaseTtl));
+        }
+    }
+}

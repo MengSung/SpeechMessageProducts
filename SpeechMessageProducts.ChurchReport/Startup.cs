@@ -274,6 +274,7 @@ namespace ChurchReport
             // ========================================
             // 減少字串處理時的記憶體分配
             services.AddSingleton<ChurchReport.Services.Performance.IStringBuilderPool, ChurchReport.Services.Performance.StringBuilderPool>();
+            services.AddHostedService<ChurchReport.Services.DonationDynamicsAccessBootstrapLifetime>();
 
 #if DEBUG
             // ========================================

@@ -17,30 +17,37 @@ public sealed class RuntimeHostSlotLease : IAsyncDisposable, IDisposable
 {
     private readonly IRuntimeHostSlotCoordinator _coordinator;
     private int _disposed;
+    private long _fencingToken;
+    private long _expiresAtUtcTicks;
 
     public RuntimeHostSlotLease(
         IRuntimeHostSlotCoordinator coordinator,
         RuntimeHostSlotLeaseNamespace leaseNamespace,
         string hostInstanceId,
         long fencingToken,
-        DateTimeOffset expiresAtUtc)
+        DateTimeOffset expiresAtUtc,
+        int slotOrdinal = -1)
     {
         _coordinator = coordinator;
         LeaseNamespace = leaseNamespace;
         HostInstanceId = hostInstanceId;
-        FencingToken = fencingToken;
-        ExpiresAtUtc = expiresAtUtc;
+        _fencingToken = fencingToken;
+        _expiresAtUtcTicks = expiresAtUtc.UtcTicks;
+        SlotOrdinal = slotOrdinal;
     }
 
     public RuntimeHostSlotLeaseNamespace LeaseNamespace { get; }
     public string HostInstanceId { get; }
-    public long FencingToken { get; private set; }
-    public DateTimeOffset ExpiresAtUtc { get; private set; }
+    public long FencingToken => Interlocked.Read(ref _fencingToken);
+    public DateTimeOffset ExpiresAtUtc => new(
+        Interlocked.Read(ref _expiresAtUtcTicks),
+        TimeSpan.Zero);
+    public int SlotOrdinal { get; }
 
     internal void Update(long fencingToken, DateTimeOffset expiresAtUtc)
     {
-        FencingToken = fencingToken;
-        ExpiresAtUtc = expiresAtUtc;
+        Interlocked.Exchange(ref _fencingToken, fencingToken);
+        Interlocked.Exchange(ref _expiresAtUtcTicks, expiresAtUtc.UtcTicks);
     }
 
     public void Dispose()
