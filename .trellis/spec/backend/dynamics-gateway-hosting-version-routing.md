@@ -165,6 +165,14 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 - Embedded development resumes only after Central/Local contract equivalence, real CE 8.2/9.1 validation, aggregate admission, secret isolation, and lifecycle baselines pass.
 - Removing Embedded is a separate reviewed decision; it is not implied by choosing Local Gateway first.
 
+### Source documentation and text encoding
+
+- Every newly added production or test C# type must contain detailed Traditional Chinese XML documentation that explains its responsibility, trust boundary, ownership model, lifecycle, concurrency behavior, failure behavior, and the reason the type exists.
+- Every newly added public or internal method that performs routing, admission, authentication, generation replacement, cancellation, draining, disposal, worker control, or resource ownership must contain detailed Traditional Chinese XML documentation. Non-obvious branches and ordering constraints require nearby Traditional Chinese implementation comments that explain why the order is safety-critical.
+- Comments must explain design intent and invariants rather than merely translate the syntax. In particular, they must identify the unique owner and deterministic cleanup path for clients, handlers, streams, timers, cancellation registrations, semaphores, background tasks, admission permits, runtime leases, and worker processes.
+- Newly added or modified source, configuration, test, script, and documentation files are stored as UTF-8. The repository `.editorconfig` is authoritative and currently requires UTF-8 without BOM plus CRLF for these file types.
+- A missing or superficial comment on a new lifecycle/concurrency/security boundary, invalid UTF-8, or mixed encoding is a verification failure and blocks review completion.
+
 ## 4. Validation & Error Matrix
 
 | Condition | Required behavior |
@@ -181,6 +189,8 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 | Central or Local host loses its runtime-host lease | Stop admitting new work, become NotReady, and drain/cancel within the configured fence. |
 | Profile endpoint/version/organization identity does not match expected evidence | Profile remains NotReady; never auto-upgrade or auto-switch versions. |
 | Embedded is selected before its trust/admission/lifecycle gates are approved | Startup remains NotReady. |
+| A new C# type or lifecycle/concurrency/security method lacks detailed Traditional Chinese documentation | Review fails; add the missing intent, ownership, failure, and cleanup explanation before merge. |
+| A changed source/config/test/script/document file is not valid UTF-8 or violates repository encoding rules | Verification fails before build/release completion. |
 
 ## 5. Good / Base / Bad Cases
 
@@ -239,6 +249,12 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 - No source construction of `OnPremiseClient`.
 - No solution entry or reachable WCF/WS-Trust dependency retained solely for Data8.
 - All CE 8.2 and 9.1 real-server, isolation, lifecycle, rollback, and operation-coverage gates pass through replacement adapters.
+
+### Documentation and encoding gates
+
+- Enumerate every newly added C# type and every new routing/admission/authentication/lifecycle method; assert each has substantive Traditional Chinese XML documentation and that critical ordering branches have explanatory Traditional Chinese comments.
+- Decode every added or modified source/config/test/script/document file with a strict UTF-8 decoder; fail on invalid byte sequences.
+- Verify `.editorconfig` still applies `charset = utf-8` to the changed file types and run `git diff --check` to reject whitespace/line-ending damage.
 
 ## 7. Wrong vs Correct
 
@@ -300,6 +316,25 @@ Product -> Gateway contract -> crm82 adapter -> recyclable Data8 Legacy Worker -
 ```
 
 The Data8 dependency is retained only while the current CE 8.2 IFD replacement is not yet proven.
+
+### Wrong: comment only what the syntax already says
+
+```csharp
+// 釋放資源
+await runtime.DisposeAsync();
+```
+
+This does not explain the owner, required ordering, or failure consequence.
+
+### Correct: document the lifecycle invariant in Traditional Chinese
+
+```csharp
+// 必須先等待目前 Generation 的執行租約歸零，才能回收 Handler 與 Token Provider；
+// 若提早 Dispose，仍在執行的要求可能使用已釋放的 Socket、Token 或 CancellationTokenSource。
+await runtime.DrainAndDisposeAsync(cancellationToken);
+```
+
+The comment records the safety contract that future maintainers must preserve, and the containing method/type also carries complete Traditional Chinese XML documentation.
 
 ## Design Decisions
 

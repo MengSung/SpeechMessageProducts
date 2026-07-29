@@ -9,12 +9,16 @@
 // - WorkloadSubjectId 應來自部署設定/服務身分，不是終端使用者任意輸入。
 // ============================================================================
 
+using System.Buffers;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Operations;
+using SpeechMessage.Dynamics.ProductClient.Configuration;
 
 namespace SpeechMessage.Dynamics.ProductClient.Gateway;
 
@@ -23,10 +27,16 @@ namespace SpeechMessage.Dynamics.ProductClient.Gateway;
 /// </summary>
 public sealed class GatewayDynamicsOperationExecutor : IDynamicsOperationExecutor
 {
+    private const int MaximumReadBufferBytes = 16 * 1024;
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
+
+    private static readonly Encoding StrictUtf8 = new UTF8Encoding(
+        encoderShouldEmitUTF8Identifier: false,
+        throwOnInvalidBytes: true);
 
     private readonly HttpClient _httpClient;
     private readonly ProductDynamicsOptions _options;
@@ -56,15 +66,33 @@ public sealed class GatewayDynamicsOperationExecutor : IDynamicsOperationExecuto
                 "Gateway endpoint is not configured.");
         }
 
-        var alias = string.IsNullOrWhiteSpace(request.ProfileAlias)
-            ? _options.ProfileAlias
-            : request.ProfileAlias;
-
-        if (string.IsNullOrWhiteSpace(alias))
+        var configuredAlias = _options.ProfileAlias?.Trim();
+        if (string.IsNullOrWhiteSpace(configuredAlias))
         {
             return OperationExecutionResult.Failure(
                 DynamicsErrorCodes.InvalidParameter,
                 "ProfileAlias is required.");
+        }
+
+        var requestedAlias = request.ProfileAlias?.Trim();
+        if (!string.IsNullOrWhiteSpace(requestedAlias)
+            && !string.Equals(requestedAlias, configuredAlias, StringComparison.OrdinalIgnoreCase))
+        {
+            return OperationExecutionResult.Failure(
+                DynamicsErrorCodes.InvalidParameter,
+                "The request ProfileAlias cannot override the configured Gateway profile.");
+        }
+
+        var maximumResponseBytes = _options.Gateway.MaxResponseBytes;
+        if (maximumResponseBytes is
+            < GatewayProductClientLimits.MinimumResponseBytes or
+            > GatewayProductClientLimits.MaximumResponseBytes)
+        {
+            return OperationExecutionResult.Failure(
+                DynamicsErrorCodes.InvalidConfiguration,
+                $"Gateway MaxResponseBytes must be between " +
+                $"{GatewayProductClientLimits.MinimumResponseBytes} and " +
+                $"{GatewayProductClientLimits.MaximumResponseBytes}.");
         }
 
         var prefix = string.IsNullOrWhiteSpace(_options.Gateway.ApiPrefix)
@@ -72,7 +100,7 @@ public sealed class GatewayDynamicsOperationExecutor : IDynamicsOperationExecuto
             : _options.Gateway.ApiPrefix.TrimEnd('/');
 
         var baseUri = _options.Gateway.Endpoint.TrimEnd('/') + "/";
-        var relative = $"{prefix.TrimStart('/')}/organizations/{Uri.EscapeDataString(alias)}/operations/{Uri.EscapeDataString(request.CapabilityOperationId)}";
+        var relative = $"{prefix.TrimStart('/')}/organizations/{Uri.EscapeDataString(configuredAlias)}/operations/{Uri.EscapeDataString(request.CapabilityOperationId)}";
         var target = new Uri(new Uri(baseUri, UriKind.Absolute), relative);
 
         var body = new GatewayOperationHttpBody
@@ -90,11 +118,21 @@ public sealed class GatewayDynamicsOperationExecutor : IDynamicsOperationExecuto
         HttpResponseMessage response;
         try
         {
-            response = await _httpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
+            response = await _httpClient.SendAsync(
+                message,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Gateway transport failure for {OperationId}", request.CapabilityOperationId);
+            _logger.LogWarning(
+                "Gateway transport failure for {OperationId}. ExceptionType={ExceptionType}",
+                request.CapabilityOperationId,
+                ex.GetType().Name);
             return OperationExecutionResult.Failure(
                 DynamicsErrorCodes.UpstreamFailure,
                 "Gateway transport failure.");
@@ -102,7 +140,37 @@ public sealed class GatewayDynamicsOperationExecutor : IDynamicsOperationExecuto
 
         using (response)
         {
-            var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            BoundedPayloadReadResult read;
+            try
+            {
+                read = await ReadBoundedPayloadAsync(
+                    response.Content,
+                    maximumResponseBytes,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    "Gateway response read failure for {OperationId}. ExceptionType={ExceptionType}",
+                    request.CapabilityOperationId,
+                    ex.GetType().Name);
+                return OperationExecutionResult.Failure(
+                    DynamicsErrorCodes.UpstreamFailure,
+                    "Gateway response read failure.");
+            }
+
+            if (read.TooLarge)
+            {
+                return OperationExecutionResult.Failure(
+                    DynamicsErrorCodes.UpstreamFailure,
+                    "Gateway response exceeded the configured byte limit.");
+            }
+
+            var payload = read.Payload;
             if (string.IsNullOrWhiteSpace(payload))
             {
                 return OperationExecutionResult.Failure(
@@ -116,9 +184,11 @@ public sealed class GatewayDynamicsOperationExecutor : IDynamicsOperationExecuto
                 parsed = JsonSerializer.Deserialize<OperationExecutionResultDto>(payload, JsonOptions)
                     ?.ToResult();
             }
-            catch (JsonException ex)
+            catch (JsonException)
             {
-                _logger.LogWarning(ex, "Gateway returned non-JSON body for {OperationId}", request.CapabilityOperationId);
+                _logger.LogWarning(
+                    "Gateway returned non-JSON body for {OperationId}",
+                    request.CapabilityOperationId);
                 return OperationExecutionResult.Failure(
                     DynamicsErrorCodes.UpstreamFailure,
                     "Gateway returned non-JSON body.");
@@ -135,6 +205,72 @@ public sealed class GatewayDynamicsOperationExecutor : IDynamicsOperationExecuto
             return parsed;
         }
     }
+
+    private static async Task<BoundedPayloadReadResult> ReadBoundedPayloadAsync(
+        HttpContent content,
+        int maximumBytes,
+        CancellationToken cancellationToken)
+    {
+        if (content.Headers.ContentLength is long contentLength && contentLength > maximumBytes)
+        {
+            return new BoundedPayloadReadResult(null, TooLarge: true);
+        }
+
+        var initialCapacity = content.Headers.ContentLength is > 0 and <= int.MaxValue
+            ? (int)content.Headers.ContentLength.Value
+            : Math.Min(maximumBytes, MaximumReadBufferBytes);
+        using var payloadBuffer = new MemoryStream(initialCapacity);
+        await using var contentStream = await content
+            .ReadAsStreamAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var rentedBuffer = ArrayPool<byte>.Shared.Rent(
+            Math.Min(MaximumReadBufferBytes, maximumBytes + 1));
+        try
+        {
+            while (true)
+            {
+                var remaining = maximumBytes - checked((int)payloadBuffer.Length);
+                var requestedRead = Math.Min(rentedBuffer.Length, remaining + 1);
+                var bytesRead = await contentStream.ReadAsync(
+                    rentedBuffer.AsMemory(0, requestedRead),
+                    cancellationToken).ConfigureAwait(false);
+                if (bytesRead == 0)
+                {
+                    var payloadBytes = payloadBuffer.GetBuffer()
+                        .AsSpan(0, checked((int)payloadBuffer.Length));
+                    return new BoundedPayloadReadResult(
+                        StrictUtf8.GetString(payloadBytes),
+                        TooLarge: false);
+                }
+
+                if (bytesRead > remaining)
+                {
+                    return new BoundedPayloadReadResult(null, TooLarge: true);
+                }
+
+                await payloadBuffer.WriteAsync(
+                    rentedBuffer.AsMemory(0, bytesRead),
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            // Gateway 回應可能含有受保護資料；陣列池與暫存區在釋放前都必須清除，
+            // 避免後續租用者或較長的 GC 生命週期保留前一個回應內容。
+            CryptographicOperations.ZeroMemory(rentedBuffer.AsSpan());
+            ArrayPool<byte>.Shared.Return(rentedBuffer);
+
+            if (payloadBuffer.TryGetBuffer(out var payloadSegment)
+                && payloadBuffer.Length > 0)
+            {
+                CryptographicOperations.ZeroMemory(
+                    payloadSegment.AsSpan(0, checked((int)payloadBuffer.Length)));
+            }
+        }
+    }
+
+    private sealed record BoundedPayloadReadResult(string? Payload, bool TooLarge);
 
     private sealed class GatewayOperationHttpBody
     {

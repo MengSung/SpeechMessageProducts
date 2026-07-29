@@ -61,6 +61,13 @@ public sealed class GatewayModeOptions
     /// 可選的 API 路徑前綴。預設 /v1。
     /// </summary>
     public string ApiPrefix { get; set; } = "/v1";
+
+    /// <summary>
+    /// Gateway 回應內容可被產品端緩衝的最大位元組數。
+    /// 必須同時限制已宣告的 Content-Length 與未知長度的 chunked 回應，
+    /// 避免上游錯誤或惡意回應在產品 Process 內造成無上限記憶體保留。
+    /// </summary>
+    public int MaxResponseBytes { get; set; } = 2_097_152;
 }
 
 /// <summary>

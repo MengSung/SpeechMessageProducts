@@ -1,12 +1,12 @@
 {
     "id":  "dynamics-connection-compatibility",
-    "title":  "Design the no-SDK Dynamics 365 access gateway",
+    "title":  "Design Central and Local Dynamics 365 gateways with CE 8.2 and 9.1 compatibility",
     "status":  "in_progress",
     "complexity":  "L+",
     "risk":  "high",
     "domain":  "integration",
     "currentPhase":  "implementation",
-    "nextAction":  "Inventory every C# file added or modified by the Dynamics task, add meaningful Traditional Chinese comments without behavior changes, normalize all included files to UTF-8 without BOM plus CRLF, then resume the remaining Phase 4-6 gates. Package01FeeReadsEnabled remains false.",
+    "nextAction":  "Local/Central Gateway product boundary is green: strict startup validation, profile pinning, bounded response streaming, cleared buffers, clean NuGet audit, 125 Dynamics tests, and 0-warning solution build. Continue with immutable crm82/crm91 multi-profile runtime generations, replace-and-drain, and shared organization admission before the CE 8.2 Legacy Worker and authenticated VM validation.",
     "createdAt":  "2026-07-23T00:00:00Z",
     "branch":  "1.0.0.3.Gateway&Embedded.Worktree"
 }

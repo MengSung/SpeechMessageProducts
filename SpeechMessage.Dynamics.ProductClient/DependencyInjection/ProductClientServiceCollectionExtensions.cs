@@ -16,6 +16,7 @@ using System.Net;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
 using SpeechMessage.Dynamics.Abstractions.Execution;
 using SpeechMessage.Dynamics.Abstractions.Operations;
+using SpeechMessage.Dynamics.ProductClient.Configuration;
 using SpeechMessage.Dynamics.ProductClient.FeeReads;
 using SpeechMessage.Dynamics.ProductClient.Gateway;
 
@@ -36,19 +37,13 @@ public static class ProductClientServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configure);
 
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<
+                IValidateOptions<ProductDynamicsOptions>,
+                GatewayProductDynamicsOptionsValidator>());
+
         services.AddOptions<ProductDynamicsOptions>()
             .Configure(configure)
-            .Validate(options =>
-            {
-                if (options.ExecutionMode != DynamicsExecutionMode.Gateway)
-                {
-                    return false;
-                }
-
-                return !string.IsNullOrWhiteSpace(options.ProfileAlias)
-                       && options.Gateway is not null
-                       && !string.IsNullOrWhiteSpace(options.Gateway.Endpoint);
-            }, "ProductDynamicsOptions Gateway mode validation failed.")
             .ValidateOnStart();
 
         services.AddHttpClient<IDynamicsOperationExecutor, GatewayDynamicsOperationExecutor>((sp, client) =>

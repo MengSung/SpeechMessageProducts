@@ -6,6 +6,19 @@
 
 可開啟的彩色互動圖：`docs/dynamics-gateway-central-local-82-91-architecture.html`
 
+本說明書已把本次討論的完整脈絡整理進來，包含：
+
+- 舊 CRM SDK 是否真的比新 Web API／`ServiceClient` 差。
+- 為什麼不能只用「新舊」或「有沒有 SDK」判斷方案好壞。
+- Repository 內 Data8 `PowerPlatform.Dataverse.Client` 與 Microsoft 官方套件的差異。
+- 官方 NuGet 仍然是網路下載時，如何做到來源正規、版本可控與可稽核。
+- 依目前 ASP.NET Core／.NET 10、D365 8.2 IFD 與 D365 9.1 的建議選項。
+- Central Gateway、Local Gateway、Embedded 的用途與取捨。
+- 每一個產品 JSON、Gateway Profile 設定及中央設定各自負責什麼。
+- Connection Pool 是中央共用、Local 個別持有，還是兩者混合。
+- Phase 4、Phase 5、Phase 6 是否需要推翻重做。
+- `PowerPlatform.Dataverse.Client.csproj` 現在應保留或刪除，以及最終移除條件。
+
 ## 1. 先講最後結論
 
 目前建議採用以下方向：
@@ -177,7 +190,7 @@ Embedded
 Central／Local 都屬於 `Gateway` 模式，差異在 Endpoint：
 
 - Central：`https://dynamics-gateway.internal/`
-- Local：`https://localhost:7443/`（範例埠）
+- Local：目前專案為 `https://localhost:7244/`；日後若啟動設定變更，以 `SpeechMessage.Dynamics.Gateway/Properties/launchSettings.json` 為準。
 
 這樣可以避免為部署位置增加不必要的程式分支。
 
@@ -435,12 +448,14 @@ LegacyWorker91 -> 只有真的需要 Legacy SDK 時才建立，鎖定 9.1 版本
     "ExecutionMode": "Gateway",
     "ProfileAlias": "crm91",
     "Gateway": {
-      "Endpoint": "https://localhost:7443/",
+      "Endpoint": "https://localhost:7244/",
       "ApiPrefix": "/v1"
     }
   }
 }
 ```
+
+上例的 `7244` 是目前工作區 `SpeechMessage.Dynamics.Gateway/Properties/launchSettings.json` 所設定的 HTTPS 埠。這個埠號不是 Gateway REST Contract 的固定部分；若日後啟動設定或部署綁定位址改變，產品 JSON 必須跟著使用該環境實際核准的 Endpoint。
 
 ### 9.3 為什麼不是 `CentralGateway`／`LocalGateway`
 
@@ -676,6 +691,248 @@ crm91 generation 3 runtime
 | 產品 JSON | Gateway＋Alias＋Endpoint | 不允許 Secret／CRM URL／Transport |
 | Connection Pool | Central 或 Local Process 內分 Profile | 同一 CRM 總容量跨 Host 協調 |
 
-## 18. 一句話總結
+## 18. 本次討論逐題決策紀錄
+
+本章依照實際討論順序，把每一個問題、判斷理由與最後決策放在一起。前面章節偏向「設計是什麼」，本章偏向「為什麼最後這樣決定」。
+
+### 18.1 「不得參考舊版 CRM SDK」時，原先呼叫要改成什麼
+
+舊程式常見的呼叫方式包括：
+
+- `IOrganizationService.Create`／`Update`／`Delete`／`Retrieve`／`RetrieveMultiple`。
+- `QueryExpression`、`ColumnSet`、`Entity`、`EntityReference`。
+- `OrganizationRequest`、`ExecuteMultipleRequest`、`AssignRequest`、`SetStateRequest`。
+- `OrganizationServiceProxy`、`CrmServiceClient`、WCF／SOAP／WS-Trust。
+
+如果完全不使用 SDK，對應做法是透過 Microsoft 官方 Dynamics Web API，以 HTTPS、OData v4 與 JSON 呼叫：
+
+| 舊 SDK 概念 | Web API 對應概念 |
+| --- | --- |
+| `Create(Entity)` | `POST /api/data/vX.X/{entityset}` |
+| `Retrieve`／`RetrieveMultiple` | `GET`＋`$select`／`$filter`／`$expand` |
+| `Update(Entity)` | `PATCH /api/data/vX.X/{entityset}({id})` |
+| `Delete` | `DELETE /api/data/vX.X/{entityset}({id})` |
+| `QueryExpression` | 受控 OData Query 或 Gateway 內固定 FetchXML Template |
+| `OrganizationRequest` | 對應的 Web API Action／Function／Batch |
+| `IOrganizationService` | 產品端的 Typed ProductClient／`IDynamicsOperationExecutor` |
+
+但目前最後方案不是要求所有人立刻把熟悉的 SDK 語法全部手工改成 OData。產品端改成呼叫穩定的 ProductClient／Gateway Contract，Gateway 內部再依 8.2 或 9.1 選擇 Web API、Microsoft 官方 SDK Adapter 或暫時 Legacy Worker。
+
+### 18.2 舊方式真的比較差嗎
+
+不是。舊方式有實際優點：
+
+- 團隊熟悉，開發速度快。
+- `Entity`、`QueryExpression`、`OrganizationRequest` 等型別已把很多底層細節包裝好。
+- 對舊版 D365 On-Premises、IFD、WS-Trust 的相容經驗較完整。
+- 現有大量產品程式已經驗證過，直接重寫有回歸風險。
+
+它的問題主要不是語法，而是放在目前多產品與 .NET 10 架構中的責任分散：
+
+- 每個產品都可能持有 SDK、帳密、Token、Retry 與 Pool。
+- 8.2、9.1 的 SDK／Authentication／Assembly Binding 可能互相衝突。
+- 舊 .NET Framework 或 WCF 相依不一定適合直接載入 .NET 10 產品 Process。
+- SDK 更新、資安修補、連線回收與問題排查會散落在四到十個產品。
+- 很難證明跨產品沒有 Session、Credential、Token、Cache 或 Connection Leakage。
+
+所以本設計不把舊 SDK 判定為「不好」，而是把它視為需要隔離與集中治理的 Transport 實作。
+
+### 18.3 新方式有什麼好處，為什麼值得改
+
+新架構的好處不在於把一行 SDK 語法換成一行 HTTP，而在於責任邊界：
+
+| 改變 | 實際好處 |
+| --- | --- |
+| 產品只依賴 ProductClient／REST Contract | 產品不用理解 8.2、9.1、SOAP、OData、SDK 版本與 Token 細節。 |
+| Central Gateway 集中正式環境 | Secret、Authentication、Pool、Retry、Audit、Health 與版本更新只治理一個邊界。 |
+| Local Gateway 使用同一契約 | VS 開發方便，同時保有獨立 Process、Console、Health、Pool 與 Crash 邊界。 |
+| 8.2／9.1 使用不同 Adapter | 不必為了表面統一而混用 SDK、Token、WCF Channel 或 Metadata。 |
+| Profile Generation＋replace-and-drain | 設定或密碼更換時不原地污染正在使用的 Runtime。 |
+| Organization Admission | Central、Local、未來 Embedded 對同一 CRM 的總併發不會被重複放大。 |
+| Transport 可替換 | Data8、官方 Worker、Web API 或 `ServiceClient` 的替換不需要重寫產品業務流程。 |
+
+需要承認的成本則包括 Gateway 網路 Hop、部署與監控工作，以及 ProductClient Contract 的設計成本。是否值得，取決於產品數量與治理需求；對目前四到十個產品、同時支援 8.2／9.1 的環境，收益大於成本。
+
+### 18.4 「從網路下載」和「Microsoft 官方」要怎麼區分
+
+不能只用「是不是從網路下載」判斷品質，因為 Microsoft 官方 NuGet 套件本身也是從套件來源下載。真正的差異是來源、維護與供應鏈治理：
+
+| 類型 | 例子 | 判斷 |
+| --- | --- | --- |
+| Microsoft 官方文件／Web API | Microsoft Learn 所定義的 D365 Web API | 官方支援介面，仍需依實際 CE 版本與 Authentication 驗證。 |
+| Microsoft 官方 NuGet | `Microsoft.PowerPlatform.Dataverse.Client`、`Microsoft.CrmSdk.XrmTooling.CoreAssembly` | 可採用，但要鎖版本、保留 Package Lock、掃描弱點並做實機測試。 |
+| Repository 內第三方原始碼 | Data8 `PowerPlatform.Dataverse.Client.csproj` | 可作暫時相容橋接，但支援、生命週期與修補責任落在本專案。 |
+| 未知網站下載 DLL／Source | 無可信發行者、版本與雜湊 | 不應作為正式依賴。 |
+
+特別注意：Repository 內名稱為 `PowerPlatform.Dataverse.Client` 的 Data8 專案，與 Microsoft 官方 NuGet 套件 `Microsoft.PowerPlatform.Dataverse.Client` 不是同一個來源；不能因為名稱接近，就把本機第三方專案視為 Microsoft 官方原始碼。
+
+如果正式建置環境不允許直接連 Internet，正規做法不是把第三方原始碼複製進 Repository，而是：
+
+1. 只允許核准的 Microsoft／NuGet.org 套件來源。
+2. 由公司內部 NuGet Feed／Artifact Proxy 鏡像核准套件。
+3. 固定 Package Version 與 Lock File。
+4. 保存套件雜湊、SBOM、License 與弱點掃描結果。
+5. 升版先在 8.2／9.1 測試環境驗證，再進正式環境。
+
+因此「官方管道」和「完全不經網路」不是同一件事。真正正規的目標是可信來源、可重現建置、版本受控、能追蹤安全更新，而不是來源檔案永遠不經過網路。
+
+### 18.5 依目前程式環境，官方選項選哪個
+
+目前環境是 ASP.NET Core／.NET 10 產品、同時連接 D365 CE 8.2 IFD 與 D365 CE 9.1，且團隊已熟悉舊 CRM SDK。因此建議不是只選一個全域 SDK，而是按版本分流：
+
+| 目標 | 建議 |
+| --- | --- |
+| 產品 A～10 | 一律呼叫 Gateway ProductClient，不直接參考任何 CRM SDK。 |
+| D365 9.1 | 優先 Direct Web API v9.1；若實際 OAuth／IFD 驗證適合，Gateway 內可使用 Microsoft 官方 `ServiceClient`。 |
+| D365 8.2 | 目前保留 Data8 路徑維持服務；正式替代優先驗證 Web API v8.2 OAuth，或採用獨立 net48 Worker＋Microsoft 官方 `CrmServiceClient`。 |
+| VS 開發 | 先使用 Local Gateway，與 ChurchReport 設為 Multiple Startup Projects。 |
+| 正式多產品部署 | 使用 Central Gateway。 |
+| Embedded | 保留程式，但暫緩擴大與正式化。 |
+
+一句話建議是：
+
+> 在目前 .NET 10、D365 8.2 IFD 與 D365 9.1 並存的環境中，產品端統一使用 Gateway Contract；9.1 優先 Web API／官方 `ServiceClient`，8.2 暫時隔離 Data8 並以官方 net48 `CrmServiceClient` Worker 或已驗證的 Web API 作為替代目標。
+
+### 18.6 SDK 到底是不是重要方向
+
+「一定要有 SDK」與「一定不能有 SDK」都不應成為最高層設計目標。真正重要的是：
+
+- 是否為 Microsoft 支援或經核准的相容路徑。
+- 是否能對實際 8.2／9.1 Server 通過功能與 Authentication 驗證。
+- 是否不讓 SDK 型別與版本散入產品業務碼。
+- 是否能確定 Token、Credential、WCF Channel、Socket、Timer 與 Cache 有明確擁有者及回收路徑。
+- 是否能讓未來 Transport 替換時，產品端不必重新改寫。
+
+因此 SDK 可以存在，但它的位置必須在 Gateway Adapter 或獨立 Worker 內，而不是成為所有產品共同直接依賴的公開程式介面。
+
+### 18.7 Central Gateway、Local Gateway 與 Embedded 的完整差異
+
+| 比較項目 | Central Gateway | Local Gateway | Embedded |
+| --- | --- | --- | --- |
+| 執行位置 | 內部中央服務／多 Replica | 產品旁邊的獨立 localhost Process | 產品 Process 內 |
+| 產品模式 | `ExecutionMode=Gateway` | `ExecutionMode=Gateway` | `ExecutionMode=Embedded` |
+| 選擇方式 | Gateway Endpoint 指向中央網址 | Gateway Endpoint 指向 localhost | 啟用 Embedded Branch |
+| REST Hop | 有內部網路 Hop | 有 localhost Hop | 無 HTTP Hop，或使用同 Process Adapter |
+| 實體 Pool | 中央 Process 內按 Profile／Generation | 每個 Local Process 自己持有 | 每個產品 Process 自己持有 |
+| SDK／WCF 隔離 | 可藏在 Gateway／Worker | 可藏在 Local Gateway／Worker | 會進入產品生命週期，隔離最弱 |
+| Crash 影響 | Gateway Profile／Replica 範圍 | Local Gateway 範圍 | 可能影響產品本身 |
+| VS 觀察性 | 需連遠端或另外啟動 | 最方便，可同時看兩個 Console | 單 Process Debug 最直接 |
+| 正式環境建議 | 預設 | 特殊隔離部署才使用 | 目前不建議 |
+| 現在決策 | 正式終極目標 | 第一個要完成的實作／驗證 | 保留、暫緩 |
+
+目前只需要先把 Local Gateway 做好，不必立即刪除 Embedded。等 Local Gateway 已能滿足 VS 開發、除錯、效能與部署需求後，再根據實際證據決定 Embedded 是繼續、保持停用或移除。
+
+### 18.8 每個產品的 JSON 與中央設定如何分工
+
+建議分成兩個層級，不是把所有設定都放進每一個產品：
+
+```mermaid
+flowchart LR
+    PJ["產品 appsettings\nExecutionMode／ProfileAlias／Gateway Endpoint"] --> PC["ProductClient"]
+    PC --> GH["Central 或 Local Gateway Host"]
+    GC["Gateway 部署設定／中央 Registry\nProfile／Version／Auth／Secret Ref／Transport／Capacity"] --> GH
+    SP["Secret Provider\n實際密碼／Token／Certificate"] --> GH
+    GH --> CRM["D365 8.2 或 9.1"]
+```
+
+產品 JSON 各自存在，因為 ChurchReport、產品 B、產品 C 可能需要不同 Alias 或不同 Gateway Endpoint；但它只表達「我要透過哪個 Gateway、使用哪個被允許的邏輯 Profile」。
+
+真正的 CRM URL、Authentication、Secret Reference、Transport、Pool 上限與 SDK／Worker 版本屬於 Gateway 部署設定或中央 Registry。Local Gateway 可以載入同一份 Profile Manifest 模型，但仍建立自己的 Process-local Runtime，且正式 Secret 不能複製進產品 JSON。
+
+Central 與 Local 的切換是部署設定切換：更新 Endpoint，通過設定驗證，再重新啟動或 replace-and-drain。不可由登入使用者或單一 Request 隨時切換。
+
+### 18.9 Connection Pool 是集中式還是個別式
+
+答案是「實體連線池個別持有，治理與容量集中協調」：
+
+```text
+Central Gateway Process
+  ├─ crm82 generation N pool／worker proxy
+  └─ crm91 generation M HttpClient／ServiceClient runtime
+
+ChurchReport Local Gateway Process
+  ├─ crm82 local pool／worker proxy
+  └─ crm91 local HttpClient／ServiceClient runtime
+
+產品 B Local Gateway Process
+  └─ 自己的 process-local pool
+
+以上所有 Host 若指向同一實體 Organization
+  └─ 共用同一 Organization Admission Budget
+```
+
+不能跨 Process 共用同一個 `HttpClient`、WCF Channel 或 SDK Client 物件；但也不能讓每個 Local Gateway 都把自己當成唯一使用者。中央協調的是最大 Host 數、最大併發、Queue、Retry 與 Rollout 容量，不是把所有 Socket 物件放進一個跨 Process Pool。
+
+### 18.10 目前改變方向會不會太晚，Phase 4／5 怎麼辦
+
+現在改不算太晚，也不需要推翻前面工作。應保留並繼續驗證：
+
+- ProductClient 與 `IDynamicsOperationExecutor`。
+- Gateway REST Contract。
+- Operation Registry 與 Typed Parameters。
+- Profile Runtime／Generation。
+- Organization Admission／Host Lease。
+- Isolation、Lifecycle、Soak、Fault、Performance Test。
+- 8.2／9.1 Capability Matrix 與實機 Smoke Test。
+
+調整後的階段定義是：
+
+| Phase | 現在的工作 |
+| --- | --- |
+| Phase 4 | 驗證 Local／Central、8.2／9.1、Worker、隔離、回收、Soak 與效能；不因改方向而取消。 |
+| Phase 5 | 產品逐步改走 Gateway Contract；先搬一個可回滾的 ChurchReport Use Case，再逐產品遷移。 |
+| Phase 6 | 所有替代路徑與實機 Gate 通過後，移除 Data8、舊 SDK、WCF 與直接 ProjectReference。 |
+
+真正要避免的是為了保留舊語法，把 Data8／`IOrganizationService` 再擴散到新的產品程式碼。相容性應封裝在 Adapter／Worker 內。
+
+### 18.11 `PowerPlatform.Dataverse.Client.csproj` 現在要移除還是保留
+
+目前要保留，理由不是 D365 8.2 天生需要這個專案，而是現在已知可工作的 8.2 IFD 路徑仍經過它，而且 `ToolUtility` 與既有程式仍有直接相依。現在刪除會造成建置或現場連線中斷。
+
+本次討論所指的實際專案是：
+
+```text
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.3.Gateway&Embedded.Worktree\PowerPlatform.Dataverse.Client\PowerPlatform.Dataverse.Client.csproj
+```
+
+它在新架構中的定位必須降級為：
+
+```text
+TemporaryData8LegacyWorker
+```
+
+也就是暫時、受限制、可回收、可觀察，而且有明確退出條件的 Legacy 邊界。它不應再新增產品呼叫、不應成為 9.1 的共同底層，也不應直接放進長生命週期 Central Gateway Pool 而沒有 WCF Channel／Socket／Handle 回收證據。
+
+### 18.12 完成後能不能刪除該專案
+
+可以，而且最終目標仍是刪除，但「完成」必須具體定義。至少要同時滿足：
+
+1. 所有產品已改走 ProductClient／Gateway Contract。
+2. `ToolUtility` 與其他專案不再 `ProjectReference` 該 csproj。
+3. Source 不再建立 Data8 `OnPremiseClient`。
+4. D365 8.2 已有 Web API v8.2 或官方 net48 `CrmServiceClient` Worker 替代。
+5. 替代路徑通過實際 8.2 的 WhoAmI、CRUD、Query／FetchXML、Paging、Action／Function／OrganizationRequest 驗證。
+6. Authentication Renewal、Gateway／Worker Restart 與 Rollback 通過。
+7. 長時間 Memory、Socket、Handle、Timer、Cancellation Registration Soak 回到基準，沒有持續成長。
+8. D365 9.1 路徑完全不依賴 Data8。
+9. Solution、Project、Package 與 Source 掃描沒有可達相依。
+10. 刪除後 Release Build、全部 Tests、8.2／9.1 Smoke Test 都通過。
+
+刪除順序應該是先讓所有呼叫不可達，再移除 ProjectReference，接著移除 Solution Entry，最後刪除或移出 buildable source；不要先刪資料夾再回頭修斷掉的產品。
+
+### 18.13 Session Leakage、Memory Leakage 與效能的共同底線
+
+不論最終 Transport 是 Web API、`ServiceClient`、`CrmServiceClient` 或暫時 Data8，以下都是發布阻擋條件：
+
+- 不可用帳號、LINE ID、瀏覽器 Session、JWT、使用者 Token 當 Pool Key。
+- `crm82` 與 `crm91` 不可共用可變 Credential、Token Cache、WCF Channel、SDK Client 或 Metadata State。
+- 每一個 Handler、Client、Worker Proxy、Timer、Cancellation Registration、Stream 與 Background Task 都要有唯一擁有者與可驗證的 Dispose／Drain 路徑。
+- Reload 後舊 Generation 必須在期限內回到零引用或基準值。
+- Retry、Queue、Cache、Audit 與 Response Size 必須有上限。
+- 效能最佳化只能來自安全的 Connection Reuse、Bounded Concurrency、Metadata Cache 與 Warm-up，不能靠取消隔離、無限平行或延長未回收 Session。
+
+因此最終追求的是「最大安全持續效能」，而不是短時間內最多連線數。
+
+## 19. 一句話總結
 
 > 產品 A～10 永遠只學一種 Dynamics 呼叫方式；Central Gateway 與 Local Gateway 負責部署差異，`crm82` 與 `crm91` 負責版本差異，Web API／官方 SDK／暫時 Data8 Worker 負責 Transport 差異，而這些差異全部不能滲透回產品業務程式。

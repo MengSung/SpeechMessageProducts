@@ -193,3 +193,92 @@ artifacts. Before production use, the implementation still needs:
 No Critical finding remains in the local hardening scope. Full production Phase
 4 remains blocked by the documented durable-coordinator, profile lifecycle,
 workload-authentication, soak, and authenticated CE 8.2/9.1 matrix gates.
+
+---
+
+## 2026-07-29 Traditional Chinese discussion-guide consolidation
+
+### Scope
+
+Expanded `docs/dynamics-gateway-central-local-82-91-guide.zh-TW.md` so the
+explanation manual records the complete user discussion, not only the final
+architecture. The new decision record covers:
+
+- legacy CRM SDK strengths and limitations;
+- direct Web API and official SDK replacement choices;
+- official NuGet provenance versus the checked-in third-party Data8 project;
+- Central Gateway, Local Gateway, and deferred Embedded responsibilities;
+- product JSON, Gateway profile/registry, and secret-provider ownership;
+- process-local physical pools versus organization-wide admission;
+- preserved Phase 4/5/6 work and explicit Data8 removal gates;
+- session/resource isolation and safe sustained-performance requirements.
+
+### Review evidence
+
+The review ran through the required self-healing CCG entrypoint:
+
+- Run: `20260729-131330-dynamics-gateway-discussion-guide-reviewer`
+- Gemini: completed with usable output.
+- Claude: provider session quota blocked; no usable output.
+- Runner state: `degradedFallback=true`, `fallbackAccepted=true`,
+  `quotaBlocked=true`.
+
+This is a single-model degraded review, not a successful dual-model review.
+Gemini reported no Critical findings and one Warning: the localhost Gateway
+port example could conflict with the workspace's actual launch settings.
+
+### Resolution
+
+- Replaced the guide's localhost HTTPS example with the current
+  `SpeechMessage.Dynamics.Gateway/Properties/launchSettings.json` value,
+  `https://localhost:7244/`.
+- Added an explicit note that the port is deployment configuration rather than
+  part of the REST contract and that `launchSettings.json` is authoritative for
+  the current local workspace.
+- Did not adopt the reviewer's speculative ADFS registration explanation;
+  the guide retains only evidence already established by the project probes.
+
+No Critical or known Warning remains in the updated explanation-guide scope.
+
+---
+
+## 2026-07-29 Local/Central Gateway product-boundary implementation
+
+### Scope and result
+
+Implemented the first Local/Central Gateway milestone without changing product
+traffic or adding a new execution-mode enum:
+
+- strict startup validation for Gateway topology, alias, API prefix, inactive
+  Embedded configuration, and bounded response size;
+- deployment-configured profile pinning before HTTP send;
+- `ResponseHeadersRead` plus one hard Content-Length/chunked response limit;
+- deterministic response/stream disposal and cleared rented/temporary buffers;
+- preserved caller cancellation and sanitized transport/read logging;
+- minimal `System.Security.Cryptography.Xml 10.0.9 -> 10.0.10` security patch.
+
+Fresh local evidence:
+
+- `ProductModeOptionsTests`: 26/26 passed after the recorded RED stage.
+- `GatewayProductClientTests`: 7/7 passed after the recorded RED stage.
+- complete Dynamics test project: 125/125 passed.
+- solution Release build: 0 warnings, 0 errors.
+- Data8 NuGet audit: no vulnerable package reported after the patch.
+- UTF-8/no-BOM/CRLF, `git diff --check`, added-line secret scan, and shared
+  mutable session/token/client scan passed.
+
+### External review
+
+- Run: `20260729-135309-dynamics-local-central-boundary-implementation-reviewer`
+- Gemini: completed, no Critical finding, recommended PASS.
+- Claude: provider session quota blocked, no usable output.
+- Result: degraded single-model fallback; this is not full dual-model success.
+
+Gemini's only Warning was the known Data8/WS-Trust legacy debt. It remains valid
+and is already constrained by the executable SPEC: Data8 is temporary, must be
+isolated behind a recyclable worker before load, and is removed only through the
+Phase 6 gates. No implementation-specific Critical or unresolved Warning was
+reported.
+
+Detailed evidence is recorded in
+`.trellis/tasks/07-23-dynamics-connection-compatibility/phase4-local-central-boundary-verification.md`.
