@@ -282,3 +282,85 @@ reported.
 
 Detailed evidence is recorded in
 `.trellis/tasks/07-23-dynamics-connection-compatibility/phase4-local-central-boundary-verification.md`.
+
+---
+
+## 2026-07-29 Multi-Profile Runtime drain recovery closure
+
+### Initial implementation review
+
+The formal self-healing dual-model run completed without fallback:
+
+- Run: `20260729-161900-dynamics-multi-profile-runtime-reviewer`
+- Gemini: PASS, no Critical or Warning.
+- Claude: one valid Critical in `DynamicsProfileRuntimeManager.ReplaceCoreAsync`.
+
+The Critical was that a published replacement whose old runtime threw from
+`DrainAndDisposeAsync` could leave `slot.Draining` permanently populated. Later
+replacements were rejected forever. Clearing the reference unconditionally was
+also unsafe because caller cancellation or timeout can leave the old runtime
+still live and holding execution/resource ownership.
+
+### Dual-model analysis and TDD resolution
+
+The repair was designed through a second full dual-model run:
+
+- Run: `20260729-163834-dynamics-multi-profile-runtime-drain-recovery-analyzer`
+- Result: `ok=true`, `degradedFallback=false`, both Gemini and Claude completed.
+
+The manager now:
+
+- uses `ReplacementInProgress` as the single alias-level asynchronous owner;
+- retries a prior unfinished Draining runtime before generation allocation or
+  factory invocation;
+- clears only the exact `slot.Draining` reference whose runtime state is
+  `Disposed`, while still propagating cleanup errors;
+- retains unfinished Draining ownership after cancellation/timeout;
+- uses caller plus manager-shutdown linked cancellation for published drain;
+- delays generation numbering and third runtime allocation until the previous
+  Draining runtime has converged.
+
+RED-to-GREEN regressions cover disposed cleanup failure, unfinished drain
+recovery, and manager-shutdown cancellation of a published replacement owner.
+
+### Re-review and real-runtime coverage warning
+
+The first repair re-review also completed with both backends and no fallback:
+
+- Run: `20260729-170800-dynamics-multi-profile-runtime-drain-recovery-reviewer`
+- Gemini: PASS, no Critical or Warning.
+- Claude: no Critical; one valid Warning that manager tests used a fake runtime
+  without production `_drainTask` caching/reset semantics.
+
+The Warning was resolved with
+`Manager_retries_the_real_runtime_after_cancelled_drain_without_allocating_a_third_generation_early`,
+which composes the real `DynamicsProfileRuntimeFactory` and
+`DynamicsProfileRuntime`. Removing production `_drainTask = null` failure reset
+made the test RED with Aggregate/TaskCanceled failure; restoring it made the
+test GREEN and returned the admission registry entry count to zero.
+
+### Final closure review
+
+- Run: `20260729-172452-dynamics-production-runtime-retry-integration-reviewer`
+- Result: `ok=true`, `degradedFallback=false`, `quotaBlocked=false`.
+- Gemini: PASS, no Critical or Warning.
+- Claude: PASS, no Critical or Warning.
+
+Gemini included an Info-only suggestion to use UTF-8 with BOM. It was not
+adopted because the user requirement and repository `.editorconfig` require
+UTF-8 without BOM plus CRLF. The final local encoding gate enforces that
+contract strictly.
+
+### Final local evidence for this increment
+
+- Dynamics tests: 159 passed, 0 failed, 0 skipped.
+- Focused Multi-Profile/Registry/Factory/Readiness/Phase4 soak: 36 passed.
+- Solution Release build: 0 warnings, 0 errors.
+- Data8 NuGet vulnerability audit: no known vulnerable packages reported.
+- Changed-file scoped format, strict UTF-8/no-BOM/CRLF, Traditional Chinese
+  documentation scan, and `git diff --check`: passed.
+
+This closes the local Multi-Profile drain-recovery Critical and review Warning.
+It does not close the overall task or Phase 4: real Local Gateway/ChurchReport,
+authenticated CE 8.2/9.1, durable cross-process coordination, fault/soak/
+performance, Phase 5 migration, and Phase 6 Data8/SDK removal remain open.

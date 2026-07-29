@@ -24,6 +24,8 @@
 - If the alias resolves to a different canonical organization while a request waits, or runtime acquisition fails after admission, the admission permit is released and the request fails before outbound traffic.
 - A third replacement while one replacement is constructing, warming, or draining fails closed; it does not allocate another generation.
 - Every timer, `CancellationTokenSource`, `SemaphoreSlim`, HTTP handler/client, admission registration, execution lease, and background task has one bounded owner and an idempotent cleanup path.
+- Every newly added production or test C# type and every new routing/admission/authentication/lifecycle method has complete, in-depth Traditional Chinese XML documentation. Safety-critical ordering and non-obvious branches have nearby Traditional Chinese implementation comments that explain ownership, isolation, failure consequences, and deterministic cleanup rather than restating syntax.
+- Every added or modified source, test, configuration, script, and documentation file is valid UTF-8 and follows the repository `.editorconfig` (`charset = utf-8`, CRLF).
 - Phase 4 remains the verification phase, Phase 5 remains strangler migration, and Phase 6 remains final SDK/Data8 removal.
 
 ## File responsibility map
@@ -184,6 +186,8 @@ dotnet test SpeechMessage.Dynamics.Tests --configuration Release --no-restore --
 ```
 
 Expected: FAIL because the new registry/runtime/manager contracts do not exist and the token provider is not disposable. Record the compile/test failure in the task notes before production implementation.
+
+All four RED test files must themselves use UTF-8 and include detailed Traditional Chinese XML documentation for every newly added test class and test/helper method, including what invariant the test proves and why a failure is release-blocking.
 
 ---
 
@@ -564,7 +568,11 @@ Expected: all tests pass, build has zero errors, no vulnerable package is report
 
 Search new runtime files for static/shared mutable session, token, credential, client, handler, `AsyncLocal`, and `ThreadLocal` state. Search added lines for credential values, connection strings, access tokens, passwords, and private keys. Any finding is a release blocker unless it is a type/property name in a documented allowlist.
 
-- [ ] **Step 6: Record evidence**
+- [ ] **Step 6: Verify Traditional Chinese documentation and UTF-8 encoding**
+
+Enumerate every added C# type and new routing/admission/authentication/lifecycle method. Reject the change if any lacks substantive Traditional Chinese XML documentation or if a safety-critical branch lacks an explanatory Traditional Chinese comment. Strictly decode every added or modified source/test/config/script/document file as UTF-8, verify `.editorconfig` coverage, and reject invalid or mixed encoding.
+
+- [ ] **Step 7: Record evidence**
 
 Write exact RED/GREEN commands, test counts, build output, object/resource baseline results, known limitations, and rollback shape to `phase4-multi-profile-runtime-verification.md`.
 

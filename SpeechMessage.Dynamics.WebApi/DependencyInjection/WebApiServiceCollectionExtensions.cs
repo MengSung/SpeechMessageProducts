@@ -24,6 +24,71 @@ namespace SpeechMessage.Dynamics.WebApi.DependencyInjection;
 /// </summary>
 public static class WebApiServiceCollectionExtensions
 {
+    /// <summary>
+    /// 註冊 Local／Central Gateway 共用的 Multi-Profile Runtime ownership graph。
+    /// 每個 Profile Generation 由 Factory 建立獨立 Client、Transport、Token Provider 與 Handler；
+    /// 程序內只透過 <see cref="IOrganizationAdmissionRegistry"/> 共享 Canonical Organization 容量。
+    /// </summary>
+    /// <param name="services">Gateway Host 的服務集合。</param>
+    /// <param name="profiles">
+    /// 部署設定建立的不可變 Profile Definitions；集合會在註冊時複製與驗證，後續呼叫端修改原集合不會改變 Catalog。
+    /// </param>
+    /// <returns>同一服務集合，供 Host 繼續註冊驗證、授權與 ASP.NET 端點。</returns>
+    /// <remarks>
+    /// 此 overload 刻意不註冊全域 <see cref="IDynamicsWebApiClient"/>、<see cref="IDynamicsHttpTransport"/>
+    /// 或 <see cref="IAdfsOAuthTokenProvider"/>，避免 crm82／crm91 共用可變連線、Token 或 Credential 狀態。
+    /// 既有 <see cref="AddSpeechMessageDynamicsWebApi"/> 保持不變，供單一 Profile Embedded／Smoke Test 相容路徑使用。
+    /// </remarks>
+    public static IServiceCollection AddSpeechMessageDynamicsProfiles(
+        this IServiceCollection services,
+        IReadOnlyCollection<DynamicsProfileDefinition> profiles)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(profiles);
+        if (profiles.Count == 0)
+        {
+            throw new ArgumentException(
+                "At least one Dynamics profile definition is required.",
+                nameof(profiles));
+        }
+
+        var profileSnapshot = profiles.ToArray();
+        foreach (var profile in profileSnapshot)
+        {
+            ArgumentNullException.ThrowIfNull(profile);
+            var options = profile.CreateOptionsSnapshot();
+            if (!ValidateDynamicsOptions(options))
+            {
+                throw new ArgumentException(
+                    $"Dynamics profile '{profile.ProfileAlias}' failed configuration validation.",
+                    nameof(profiles));
+            }
+        }
+
+        // Runtime Factory 直接建立兩組 Generation-local HTTP ownership graph（CRM 與 ADFS Token），
+        // 因此這裡不使用 IHttpClientFactory 的 named handler pool，也不建立可跨 Generation 共用的 Client singleton。
+        services.TryAddSingleton<ISecretResolver, EnvironmentSecretResolver>();
+        services.TryAddSingleton<IRuntimeHostSlotCoordinator, InMemoryRuntimeHostSlotCoordinator>();
+        services.TryAddSingleton<IOrganizationAdmissionRegistry, OrganizationAdmissionRegistry>();
+        services.TryAddSingleton<IDynamicsProfileRuntimeFactory, DynamicsProfileRuntimeFactory>();
+        services.TryAddSingleton<IDynamicsProfileRuntimeManager>(serviceProvider =>
+            new DynamicsProfileRuntimeManager(
+                profileSnapshot,
+                serviceProvider.GetRequiredService<IDynamicsProfileRuntimeFactory>()));
+        services.TryAddSingleton<IProfileExecutionLeaseProvider>(serviceProvider =>
+            serviceProvider.GetRequiredService<IDynamicsProfileRuntimeManager>());
+        services.TryAddSingleton<ProfileRoutedOperationExecutor>(serviceProvider =>
+            new ProfileRoutedOperationExecutor(
+                serviceProvider.GetRequiredService<IProfileExecutionLeaseProvider>()));
+
+        // Gateway 的正式執行邊界必須指向 Profile-aware Executor；先移除可能由其他單一 Profile
+        // scaffolding 留下的 executor descriptor，但不移除其 Client／Transport，以免此方法暗中接管外部資源 ownership。
+        services.RemoveAll<IDynamicsOperationExecutor>();
+        services.AddSingleton<IDynamicsOperationExecutor>(serviceProvider =>
+            serviceProvider.GetRequiredService<ProfileRoutedOperationExecutor>());
+        return services;
+    }
+
     public static IServiceCollection AddSqlRuntimeHostSlotCoordinator(
         this IServiceCollection services,
         Action<SqlRuntimeHostSlotCoordinatorOptions> configure)
@@ -55,44 +120,7 @@ public static class WebApiServiceCollectionExtensions
 
         services.AddOptions<DynamicsWebApiOptions>()
             .Configure(configure)
-            .Validate(options =>
-            {
-                if (!ApprovedWebApiRootFactory.TryCreate(options, out _, out _))
-                {
-                    return false;
-                }
-
-                if (options.AuthMode == DynamicsAuthMode.Windows &&
-                    options.CredentialSource == DynamicsCredentialSource.SecretReference &&
-                    (string.IsNullOrWhiteSpace(options.UserNameSecretName) ||
-                     string.IsNullOrWhiteSpace(options.PasswordSecretName)))
-                {
-                    return false;
-                }
-
-                if (options.AuthMode == DynamicsAuthMode.AdfsOAuth)
-                {
-                    var hasBearer = !string.IsNullOrWhiteSpace(options.CredentialReferenceName);
-                    var hasAuthority =
-                        !string.IsNullOrWhiteSpace(options.AuthorityUri) ||
-                        !string.IsNullOrWhiteSpace(options.AuthoritySecretName);
-                    var hasClientId =
-                        !string.IsNullOrWhiteSpace(options.ClientId) ||
-                        !string.IsNullOrWhiteSpace(options.ClientIdSecretName);
-                    var hasPasswordGrantSecrets =
-                        options.AllowLocalDevPasswordGrant &&
-                        !string.IsNullOrWhiteSpace(options.UserNameSecretName) &&
-                        !string.IsNullOrWhiteSpace(options.PasswordSecretName);
-
-                    // 合法：預發 bearer，或 authority+clientId 且（password grant 或另有 secret reference）
-                    if (!hasBearer && !(hasAuthority && hasClientId && (hasPasswordGrantSecrets || !string.IsNullOrWhiteSpace(options.SecretReference))))
-                    {
-                        return false;
-                    }
-                }
-
-                return OrganizationAdmissionPlan.TryCreate(options, options.Admission, out _, out _);
-            }, "DynamicsWebApi options failed validation.")
+            .Validate(ValidateDynamicsOptions, "DynamicsWebApi options failed validation.")
             .ValidateOnStart();
 
         services.TryAddSingleton<ISecretResolver, EnvironmentSecretResolver>();
@@ -128,5 +156,57 @@ public static class WebApiServiceCollectionExtensions
         services.AddSingleton<IDynamicsWebApiClient, DynamicsWebApiClient>();
         services.AddSingleton<IDynamicsOperationExecutor, ControlledOperationExecutor>();
         return services;
+    }
+
+    /// <summary>
+    /// 驗證單一 Profile 的 Web API root、Authentication tagged union 與 Admission Plan。
+    /// 方法只檢查非秘密設定形狀與 Secret Reference 是否存在，不解析或記錄秘密值，也不建立 Client、Handler 或 Host Slot。
+    /// 單一 Profile 與 Multi-Profile DI 共用此判斷，避免兩條註冊路徑對相同設定產生漂移。
+    /// </summary>
+    private static bool ValidateDynamicsOptions(DynamicsWebApiOptions options)
+    {
+        if (!ApprovedWebApiRootFactory.TryCreate(options, out _, out _))
+        {
+            return false;
+        }
+
+        if (options.AuthMode == DynamicsAuthMode.Windows &&
+            options.CredentialSource == DynamicsCredentialSource.SecretReference &&
+            (string.IsNullOrWhiteSpace(options.UserNameSecretName) ||
+             string.IsNullOrWhiteSpace(options.PasswordSecretName)))
+        {
+            return false;
+        }
+
+        if (options.AuthMode == DynamicsAuthMode.AdfsOAuth)
+        {
+            var hasBearer = !string.IsNullOrWhiteSpace(options.CredentialReferenceName);
+            var hasAuthority =
+                !string.IsNullOrWhiteSpace(options.AuthorityUri) ||
+                !string.IsNullOrWhiteSpace(options.AuthoritySecretName);
+            var hasClientId =
+                !string.IsNullOrWhiteSpace(options.ClientId) ||
+                !string.IsNullOrWhiteSpace(options.ClientIdSecretName);
+            var hasPasswordGrantSecrets =
+                options.AllowLocalDevPasswordGrant &&
+                !string.IsNullOrWhiteSpace(options.UserNameSecretName) &&
+                !string.IsNullOrWhiteSpace(options.PasswordSecretName);
+
+            // 合法形狀只有預先核發 bearer，或已核准的 authority+clientId 搭配 Secret Reference／local-dev password grant。
+            // 驗證只接受參考名稱，不在此解析 Token 或 Credential，避免 DI 註冊階段形成秘密快取。
+            if (!hasBearer &&
+                !(hasAuthority &&
+                  hasClientId &&
+                  (hasPasswordGrantSecrets || !string.IsNullOrWhiteSpace(options.SecretReference))))
+            {
+                return false;
+            }
+        }
+
+        return OrganizationAdmissionPlan.TryCreate(
+            options,
+            options.Admission,
+            out _,
+            out _);
     }
 }

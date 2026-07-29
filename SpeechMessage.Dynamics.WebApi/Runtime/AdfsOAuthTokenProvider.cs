@@ -31,9 +31,13 @@ public interface IAdfsOAuthTokenProvider
 }
 
 /// <summary>
-/// 以 ADFS oauth2/token 取得並快取 access token。
+/// 以 ADFS oauth2/token 取得並快取 access token，並由單一 Profile Generation 確定性擁有其快取、
+/// single-flight Semaphore、取消來源與選用的 HTTP Handler／Client。
+/// Provider 不保存終端使用者 Session，也不以 User、LINE ID、JWT 或 Request 身分建立 Token Pool Key；
+/// 一個實例只服務一份不可變的 Profile Generation 設定。Generation 退休時必須先取消並等待進行中的
+/// Token 工作，再清除 Token 引用並 Dispose HTTP 與同步資源，避免舊 Credential／Socket／Semaphore 被保留。
 /// </summary>
-public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
+public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider, IDisposable, IAsyncDisposable
 {
     private const int MaxTokenResponseBytes = 32 * 1024;
 
@@ -42,10 +46,23 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
     private readonly IHttpClientFactory? _httpClientFactory;
     private readonly ILogger<AdfsOAuthTokenProvider> _logger;
     private readonly SemaphoreSlim _gate = new(1, 1);
+    private readonly CancellationTokenSource _disposeCts = new();
+    private readonly object _disposeGate = new();
+    private readonly SocketsHttpHandler? _ownedHttpHandler;
+    private readonly HttpClient? _ownedHttpClient;
 
     private string? _cachedToken;
     private DateTimeOffset _expiresAt = DateTimeOffset.MinValue;
+    private Task? _disposeTask;
+    private int _disposeStarted;
 
+    /// <summary>
+    /// 建立一個 Generation-local ADFS Token Provider。
+    /// 有 <paramref name="httpClientFactory"/> 時，每次要求只擁有短生命週期 HttpClient wrapper，底層 handler pool 由 DI Host 擁有；
+    /// 未提供 Factory 時，Provider 會建立並長期重用一組禁用 Cookie、Redirect、Proxy、Decompression 與 PreAuthenticate 的
+    /// SocketsHttpHandler／HttpClient，並在 Provider Dispose 時一併回收，確保不同 Profile Generation 不共用 Token Socket 狀態。
+    /// Constructor 不解析 Secret、不送 HTTP，也不啟動背景工作。
+    /// </summary>
     public AdfsOAuthTokenProvider(
         IOptions<DynamicsWebApiOptions> options,
         ISecretResolver secretResolver,
@@ -56,55 +73,64 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
         _secretResolver = secretResolver ?? throw new ArgumentNullException(nameof(secretResolver));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _httpClientFactory = httpClientFactory;
+
+        if (_httpClientFactory is null)
+        {
+            _ownedHttpHandler = CreateOwnedHandler();
+            _ownedHttpClient = new HttpClient(_ownedHttpHandler, disposeHandler: true)
+            {
+                Timeout = TimeSpan.FromSeconds(Math.Clamp(_options.TimeoutSeconds, 5, 120))
+            };
+        }
     }
 
     /// <inheritdoc />
     public async Task<string> GetAccessTokenAsync(CancellationToken cancellationToken = default)
     {
-        // 1) 若外部已直接提供 bearer token 秘密，優先使用（正式可接 secret store）。
-        var directTokenRef = _options.CredentialReferenceName;
-        if (!string.IsNullOrWhiteSpace(directTokenRef) &&
-            _secretResolver.TryResolve(directTokenRef, out var directToken) &&
-            !string.IsNullOrWhiteSpace(directToken))
-        {
-            return directToken!;
-        }
-
-        // 1.5) local-dev token store 仍有效的 access_token 可直接用。
-        var storePath = ResolveTokenStorePath();
-        if (LocalDevAdfsTokenStore.TryLoad(storePath, out var stored) &&
-            !string.IsNullOrWhiteSpace(stored?.AccessToken) &&
-            stored!.AccessTokenExpiresAtUtc is not null &&
-            DateTimeOffset.UtcNow < stored.AccessTokenExpiresAtUtc.Value.AddSeconds(-60))
-        {
-            _cachedToken = stored.AccessToken;
-            _expiresAt = stored.AccessTokenExpiresAtUtc.Value;
-            return _cachedToken!;
-        }
-
-        // 2) 快取未過期直接重用。
-        if (!string.IsNullOrWhiteSpace(_cachedToken) &&
-            DateTimeOffset.UtcNow < _expiresAt.AddSeconds(-60))
-        {
-            return _cachedToken!;
-        }
-
-        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        ThrowIfDisposed();
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken,
+            _disposeCts.Token);
+        await _gate.WaitAsync(linkedCts.Token).ConfigureAwait(false);
         try
         {
+            // Dispose 會先設定狀態再取消 waiter；成功取得 Gate 後重查，確保退休 Generation 不會開始新的 Secret／HTTP 工作。
+            ThrowIfDisposed();
+
+            // 1) 若外部已直接提供 bearer token 秘密，優先使用（正式可接 secret store）。
+            var directTokenRef = _options.CredentialReferenceName;
+            if (!string.IsNullOrWhiteSpace(directTokenRef) &&
+                _secretResolver.TryResolve(directTokenRef, out var directToken) &&
+                !string.IsNullOrWhiteSpace(directToken))
+            {
+                return directToken!;
+            }
+
+            // 1.5) local-dev token store 仍有效的 access_token 可直接用；正式 multi-profile 設定會另外禁止此路徑。
+            var storePath = ResolveTokenStorePath();
+            if (LocalDevAdfsTokenStore.TryLoad(storePath, out var stored) &&
+                !string.IsNullOrWhiteSpace(stored?.AccessToken) &&
+                stored!.AccessTokenExpiresAtUtc is not null &&
+                DateTimeOffset.UtcNow < stored.AccessTokenExpiresAtUtc.Value.AddSeconds(-60))
+            {
+                _cachedToken = stored.AccessToken;
+                _expiresAt = stored.AccessTokenExpiresAtUtc.Value;
+                return _cachedToken!;
+            }
+
+            // 2) 快取未過期直接重用。所有讀寫都在 Gate 內，Dispose 因此能等待唯一 owner 完成後安全清除引用。
             if (!string.IsNullOrWhiteSpace(_cachedToken) &&
                 DateTimeOffset.UtcNow < _expiresAt.AddSeconds(-60))
             {
                 return _cachedToken!;
             }
 
-            var token = await RequestNewTokenAsync(cancellationToken).ConfigureAwait(false);
+            var token = await RequestNewTokenAsync(linkedCts.Token).ConfigureAwait(false);
             _cachedToken = token.AccessToken;
             _expiresAt = DateTimeOffset.UtcNow.AddSeconds(Math.Max(60, token.ExpiresInSeconds));
             _logger.LogInformation(
-                "ADFS access token acquired. ExpiresIn={ExpiresIn}s Authority={Authority}",
-                token.ExpiresInSeconds,
-                ResolveAuthority());
+                "ADFS access token acquired. ExpiresIn={ExpiresIn}s",
+                token.ExpiresInSeconds);
             return _cachedToken!;
         }
         finally
@@ -127,11 +153,10 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
         };
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-        // 每次取得 Token 的 HttpClient wrapper 由本次要求 Dispose；可重用的 handler/socket pool 仍由 IHttpClientFactory 擁有。
-        var http = CreateHttpClient();
+        var httpLease = CreateHttpClientLease();
         try
         {
-            using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            using var response = await httpLease.Client.SendAsync(request, cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
                 // 不把 body 全量丟到 UI（可能含敏感細節），只留狀態與短摘要。
@@ -145,7 +170,11 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
         }
         finally
         {
-            http.Dispose();
+            // Factory 路徑的 wrapper 屬於單次要求；Generation-owned client 則跨 refresh 重用，直到 Provider Dispose。
+            if (httpLease.DisposeAfterUse)
+            {
+                httpLease.Client.Dispose();
+            }
         }
     }
 
@@ -327,18 +356,33 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
             "Register a public/native client application in ADFS for the CRM resource.");
     }
 
-    private HttpClient CreateHttpClient()
+    /// <summary>
+    /// 取得本次 Token Request 應使用的 HttpClient 與 ownership 標記。
+    /// Factory 路徑的 wrapper 由單次要求 Dispose；沒有 Factory 時回傳 Generation-owned Client，
+    /// 此 Client 不可由單次要求釋放，必須等 Provider／Generation 完成 drain 後統一 Dispose。
+    /// </summary>
+    private HttpClientLease CreateHttpClientLease()
     {
         if (_httpClientFactory is not null)
         {
-        // IHttpClientFactory 擁有可重用 handler pool；本次要求只擁有短生命週期 client wrapper，完成交換後立即 Dispose。
+            // IHttpClientFactory 擁有可重用 handler pool；本次要求只擁有短生命週期 client wrapper，完成交換後立即 Dispose。
             var factoryClient = _httpClientFactory.CreateClient("dynamics-adfs-token");
             factoryClient.Timeout = TimeSpan.FromSeconds(Math.Clamp(_options.TimeoutSeconds, 5, 120));
-            return factoryClient;
+            return new HttpClientLease(factoryClient, DisposeAfterUse: true);
         }
 
-        // DI 尚未提供 factory 時（例如部分測試/Embedded 自建 container）用短生命週期 client。
-        var handler = new SocketsHttpHandler
+        return new HttpClientLease(
+            _ownedHttpClient ?? throw new InvalidOperationException("Owned ADFS token HttpClient is unavailable."),
+            DisposeAfterUse: false);
+    }
+
+    /// <summary>
+    /// 建立只屬於此 Profile Generation 的 Token Handler。
+    /// Cookie、Redirect、Proxy、Decompression 與 PreAuthenticate 全部停用，避免跨要求 Session 狀態、
+    /// Proxy Credential 或隱性導向被保存；PooledConnectionLifetime 有界，兼顧安全重用與 DNS／端點更新。
+    /// </summary>
+    private static SocketsHttpHandler CreateOwnedHandler()
+        => new()
         {
             UseCookies = false,
             AllowAutoRedirect = false,
@@ -347,11 +391,65 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
             PreAuthenticate = false,
             PooledConnectionLifetime = TimeSpan.FromMinutes(5)
         };
-        var ownedClient = new HttpClient(handler, disposeHandler: true)
+
+    /// <summary>
+    /// 若 Provider 已開始 Dispose，立即在 Secret Resolver、Token Store 或 HTTP I/O 前失敗。
+    /// 使用 Volatile 讀取可讓所有執行緒看見退休狀態，不需要取得已可能被 Dispose 的 Semaphore。
+    /// </summary>
+    private void ThrowIfDisposed()
+        => ObjectDisposedException.ThrowIf(
+            Volatile.Read(ref _disposeStarted) != 0,
+            this);
+
+    /// <summary>
+    /// 同步釋放 Provider 並確定性等待非同步取消、Gate 排空與 HTTP 資源回收完成。
+    /// Task.Run 用來隔離呼叫端 SynchronizationContext，但仍同步觀察所有清理例外，不留下 fire-and-forget Task。
+    /// </summary>
+    public void Dispose()
+        => Task.Run(async () => await DisposeAsync().ConfigureAwait(false))
+            .GetAwaiter()
+            .GetResult();
+
+    /// <summary>
+    /// 啟動或加入唯一的 Provider Dispose 工作。第一個呼叫會先發布 disposed 狀態並取消所有進行中／等待中的 Token 工作，
+    /// 接著等待 single-flight Gate，確定沒有程式仍讀寫 Token Cache 後才清除 Token 引用、Dispose Generation-owned Client／Handler、
+    /// CancellationTokenSource 與 Semaphore。後續呼叫共享同一 Task，不會重複釋放或產生 ObjectDisposed race。
+    /// </summary>
+    public ValueTask DisposeAsync()
+    {
+        lock (_disposeGate)
         {
-            Timeout = TimeSpan.FromSeconds(Math.Clamp(_options.TimeoutSeconds, 5, 120))
-        };
-        return ownedClient;
+            if (_disposeTask is not null)
+            {
+                return new ValueTask(_disposeTask);
+            }
+
+            Volatile.Write(ref _disposeStarted, 1);
+            _disposeCts.Cancel();
+            _disposeTask = DisposeCoreAsync();
+            return new ValueTask(_disposeTask);
+        }
+    }
+
+    /// <summary>
+    /// 執行唯一的清理核心。必須先取得 Gate 才能清除 Cache 與 Dispose Client，
+    /// 否則進行中的 Request 可能仍使用已釋放的 Handler、Token 字串或 CancellationTokenSource。
+    /// </summary>
+    private async Task DisposeCoreAsync()
+    {
+        await _gate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+        try
+        {
+            _cachedToken = null;
+            _expiresAt = DateTimeOffset.MinValue;
+            _ownedHttpClient?.Dispose();
+        }
+        finally
+        {
+            _gate.Release();
+            _gate.Dispose();
+            _disposeCts.Dispose();
+        }
     }
 
     private static async Task<ParsedTokenResponse> ReadBoundedTokenResponseAsync(
@@ -469,6 +567,18 @@ public sealed class AdfsOAuthTokenProvider : IAdfsOAuthTokenProvider
         return new ParsedTokenResponse(accessToken, expiresIn, refreshToken);
     }
 
+    /// <summary>
+    /// 描述一次 Token Request 借用的 HttpClient 及其釋放責任；不保存 Token、Credential 或 Request Body。
+    /// </summary>
+    private readonly record struct HttpClientLease(HttpClient Client, bool DisposeAfterUse);
+
+    /// <summary>
+    /// Provider 內部最小 Token 結果，只在 single-flight Gate 內短暫存在並立即寫入 Generation-local Cache。
+    /// </summary>
     private sealed record TokenResponse(string AccessToken, int ExpiresInSeconds);
+
+    /// <summary>
+    /// 有界 JSON Parser 的結果；Refresh Token 只用於選用的 local-dev store，正式設定不得啟用該路徑。
+    /// </summary>
     private sealed record ParsedTokenResponse(string AccessToken, int ExpiresInSeconds, string? RefreshToken);
 }

@@ -199,6 +199,35 @@ public sealed class AdfsOAuthTokenProviderTests
         factory.LastClient!.IsDisposed.Should().BeTrue();
     }
 
+    /// <summary>
+    /// 驗證 Token Provider 的生命週期由 Profile Generation 明確擁有：重複同步／非同步 Dispose 必須安全，
+    /// Dispose 後的新要求必須在解析 Secret 或建立 HTTP Client 之前拋出 ObjectDisposedException。
+    /// 這個順序可避免已退休 Generation 繼續保留 Token、Semaphore、Handler 或 Socket Pool。
+    /// </summary>
+    [Fact]
+    public async Task Disposed_provider_rejects_new_token_work_and_releases_owned_http_resources()
+    {
+        var secretResolver = new CountingSecretResolver();
+        var clientFactory = new CountingHttpClientFactory();
+        var provider = new AdfsOAuthTokenProvider(
+            Options.Create(CreatePasswordGrantOptions()),
+            secretResolver,
+            NullLogger<AdfsOAuthTokenProvider>.Instance,
+            clientFactory);
+
+        provider.Dispose();
+        await provider.DisposeAsync();
+        provider.Dispose();
+
+        var act = async () => await provider.GetAccessTokenAsync();
+
+        await act.Should().ThrowAsync<ObjectDisposedException>();
+        secretResolver.ResolveCalls.Should().Be(0,
+            "退休 Generation 不可在 Dispose 後重新讀取 Credential 或 Token");
+        clientFactory.CreateCalls.Should().Be(0,
+            "Dispose 後必須在建立 HTTP wrapper 或接觸 handler/socket pool 前失敗");
+    }
+
 
     [Fact]
     public async Task Refresh_token_grant_posts_expected_form()
@@ -352,6 +381,49 @@ public sealed class AdfsOAuthTokenProviderTests
         {
             IsDisposed = true;
             base.Dispose(disposing);
+        }
+    }
+
+    /// <summary>
+    /// 計數型 Secret Resolver，用來證明 Dispose 後的 Token 要求會在任何 Credential／Token 解析前失敗。
+    /// 實作不保存真實秘密，避免測試本身形成 Credential retention 或記錄敏感內容。
+    /// </summary>
+    private sealed class CountingSecretResolver : ISecretResolver
+    {
+        /// <summary>
+        /// 取得目前解析次數；測試要求 Dispose 後維持為零。
+        /// </summary>
+        public int ResolveCalls { get; private set; }
+
+        /// <summary>
+        /// 記錄解析嘗試並固定回傳找不到；若生命週期防護正確，本方法不應被呼叫。
+        /// </summary>
+        public bool TryResolve(string secretReference, out string? secretValue)
+        {
+            ResolveCalls++;
+            secretValue = null;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 計數型 HttpClientFactory，用來證明已 Dispose 的 Provider 不會重新取得 HTTP wrapper，
+    /// 因而不會重新連結到長生命週期 handler pool 或建立新的 Socket 使用者。
+    /// </summary>
+    private sealed class CountingHttpClientFactory : IHttpClientFactory
+    {
+        /// <summary>
+        /// 取得目前建立 HttpClient wrapper 的次數；正確的 Dispose 防護必須讓此值保持零。
+        /// </summary>
+        public int CreateCalls { get; private set; }
+
+        /// <summary>
+        /// 建立不會連線的測試 HttpClient；若生命週期防護正確，本方法不應被呼叫。
+        /// </summary>
+        public HttpClient CreateClient(string name)
+        {
+            CreateCalls++;
+            return new HttpClient(new StubHandler(_ => JsonResponse("{}")), disposeHandler: true);
         }
     }
 }

@@ -36,10 +36,32 @@ Questions to answer:
 
 - Source, view, configuration, script, and Markdown files must be saved as UTF-8 without BOM.
 - Windows/Visual Studio text files must use CRLF line endings.
-- Newly written or substantially revised source-code comments must use clear Traditional Chinese and explain the relevant intent, security boundary, lifecycle ownership, failure behavior, or performance tradeoff instead of merely restating the code.
 - Before completing a task that touches text files, run a byte-level check for BOM and LF-only lines on the modified files.
 - Do not rely only on the editor warning dialog; fix the file format before reporting completion.
 - Generate byte/hash manifests and ZIP artifacts from a clean checkout whose line endings already match `.gitattributes`; verify both the source directory and a freshly extracted ZIP before publishing.
+
+### 新增程式的繁體中文文件契約
+
+- 任何新增或實質修改的 Production、Test、Tool、Script 程式，都必須具備完整、深入、詳細且可維護的繁體中文註解；不得只為類別或方法補上一句名稱翻譯，也不得以 `<inheritdoc />` 取代此專案要求的實質說明。
+- 新增的公開／內部型別、介面、建構式、方法、重要屬性與具生命週期責任的測試替身，必須使用適合該語言的文件格式，例如 C# XML 文件註解或 PowerShell comment-based help。
+- 非直觀的實作區塊必須加上繁體中文實作註解，說明「為什麼必須這樣做」以及不可破壞的不變量；註解不能只是逐行複述語法。
+- 依程式責任，註解必須明確涵蓋適用的信任邊界、輸入驗證、唯一資源 owner、並行與競爭條件、取消與逾時、失敗與 fail-closed 行為、rollback／drain／dispose／cleanup 順序，以及效能與記憶體取捨。
+- 涉及 Session、Token、Credential、Cache、Connection Pool、Queue、Timer、Subscription、Stream、Handle 或背景工作的程式，註解必須指出資料與資源的最長存活範圍、確定性釋放路徑，以及如何避免跨要求／跨使用者／跨租戶狀態與資源洩漏。
+- 測試註解必須說明它保護的契約、故障注入方式與主要 assertion，讓後續維護者能判斷測試失敗代表哪一項安全、隔離、生命週期或相容性保證被破壞。
+- 所有新增或修改的程式與其註解均須保存為 UTF-8 without BOM，並遵守 repository `.editorconfig` 的 CRLF 規則；亂碼、無效 UTF-8、混合換行、缺少實質繁體中文註解或註解內容與行為不一致，全部視為 review／release blocker。
+
+#### 錯誤與正確示例
+
+```csharp
+// 錯誤：只重述語法，沒有說明資源 owner、競爭條件與釋放保證。
+// 釋放連線。
+await connection.DisposeAsync();
+
+// 正確：說明此處為唯一 cleanup owner，以及等待釋放對隔離與容量回收的必要性。
+// 此 finally 區塊是本次要求所租用連線的唯一釋放者；必須等待非同步釋放完成，
+// 才能讓 Pool 容量確定回收，並避免帶有前一個使用者狀態的連線被下一個要求提早重用。
+await connection.DisposeAsync().ConfigureAwait(false);
+```
 
 ### Authentication Identity Authority
 

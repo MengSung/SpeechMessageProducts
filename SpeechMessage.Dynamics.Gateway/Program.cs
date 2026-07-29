@@ -10,9 +10,13 @@
 // ============================================================================
 
 using SpeechMessage.Dynamics.Abstractions.Operations;
+using SpeechMessage.Dynamics.Gateway.Security;
+using SpeechMessage.Dynamics.WebApi.Capacity;
 using SpeechMessage.Dynamics.WebApi.DependencyInjection;
 using SpeechMessage.Dynamics.WebApi.Runtime;
+using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Server.IISIntegration;
+using System.Net;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,123 +27,39 @@ builder.Services.AddControllers()
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow);
 
-var workloadAuthenticationScheme =
-    builder.Configuration["DynamicsGateway:AuthenticationScheme"]
-    ?? IISDefaults.AuthenticationScheme;
-var authentication = builder.Services.AddAuthentication(workloadAuthenticationScheme);
-builder.Services.AddAuthorization();
-builder.Services.AddSingleton<IWorkloadSubjectResolver, ConfigurationWorkloadSubjectResolver>();
-
-// 保母提醒：
-// WebApi 設定應來自設定檔或秘密庫，不可把密碼寫死在程式碼。
-// 預設 HostIdentity 方便本機開發；正式環境請改成對應 profile。
-builder.Services.AddSpeechMessageDynamicsWebApi(options =>
+if (builder.Environment.IsDevelopment())
 {
-    options.OrganizationWebApiBaseUri =
-        builder.Configuration["DynamicsWebApi:OrganizationWebApiBaseUri"];
-    options.OrganizationBaseUri =
-        builder.Configuration["DynamicsWebApi:OrganizationBaseUri"];
-    options.CeVersion =
-        builder.Configuration["DynamicsWebApi:CeVersion"]
-        ?? "9.1";
-    options.AuthMode = Enum.TryParse<DynamicsAuthMode>(
-            builder.Configuration["DynamicsWebApi:AuthMode"],
-            ignoreCase: true,
-            out var authMode)
-        ? authMode
-        : DynamicsAuthMode.Windows;
-    options.CredentialSource = Enum.TryParse<DynamicsCredentialSource>(
-            builder.Configuration["DynamicsWebApi:CredentialSource"],
-            ignoreCase: true,
-            out var credentialSource)
-        ? credentialSource
-        : DynamicsCredentialSource.HostIdentity;
-    options.SecretReference =
-        builder.Configuration["DynamicsWebApi:SecretReference"];
-    options.UserNameSecretName =
-        builder.Configuration["DynamicsWebApi:UserNameSecretName"];
-    options.PasswordSecretName =
-        builder.Configuration["DynamicsWebApi:PasswordSecretName"];
-    options.DomainSecretName =
-        builder.Configuration["DynamicsWebApi:DomainSecretName"];
-    options.AuthoritySecretName =
-        builder.Configuration["DynamicsWebApi:AuthoritySecretName"];
-    options.ClientIdSecretName =
-        builder.Configuration["DynamicsWebApi:ClientIdSecretName"];
-    options.CredentialReferenceName =
-        builder.Configuration["DynamicsWebApi:CredentialReferenceName"];
-    options.FeasibilityEvidenceId =
-        builder.Configuration["DynamicsWebApi:FeasibilityEvidenceId"];
-    options.AuthorityUri =
-        builder.Configuration["DynamicsWebApi:AuthorityUri"];
-    options.ResourceUri =
-        builder.Configuration["DynamicsWebApi:ResourceUri"];
-    options.ClientId =
-        builder.Configuration["DynamicsWebApi:ClientId"];
-    options.ClientSecretName =
-        builder.Configuration["DynamicsWebApi:ClientSecretName"];
-    options.AllowLocalDevPasswordGrant =
-        string.Equals(
-            builder.Configuration["DynamicsWebApi:AllowLocalDevPasswordGrant"],
-            "true",
-            StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(
-            builder.Configuration["DynamicsWebApi:AllowLocalDevPasswordGrant"],
-            "1",
-            StringComparison.OrdinalIgnoreCase);
-    options.TimeoutSeconds = 30;
-    options.MaxConnectionsPerServer = 4;
-    options.MaxResponseBytes = builder.Configuration.GetValue(
-        "DynamicsWebApi:MaxResponseBytes", 2_097_152);
-    options.MaxRetryAttempts = builder.Configuration.GetValue(
-        "DynamicsWebApi:MaxRetryAttempts", 2);
-    options.MaxRetryDelaySeconds = builder.Configuration.GetValue(
-        "DynamicsWebApi:MaxRetryDelaySeconds", 5);
-    options.Admission.ExpectedOrganizationId = Guid.TryParse(
-            builder.Configuration["DynamicsWebApi:Admission:ExpectedOrganizationId"],
-            out var orgId)
-        ? orgId
-        : Guid.Parse("11111111-1111-1111-1111-111111111111");
-    options.Admission.AggregateMaxInFlight = builder.Configuration.GetValue(
-        "DynamicsWebApi:Admission:AggregateMaxInFlight", 24);
-    options.Admission.MaximumRuntimeHosts = builder.Configuration.GetValue(
-        "DynamicsWebApi:Admission:MaximumRuntimeHosts", 6);
-    options.Admission.LocalQueueCapacity = builder.Configuration.GetValue(
-        "DynamicsWebApi:Admission:LocalQueueCapacity", 48);
-    options.Admission.MaxDispatchEnvelopeBytes = builder.Configuration.GetValue(
-        "DynamicsWebApi:Admission:MaxDispatchEnvelopeBytes", 65536);
-    options.Admission.QueueAdmissionTimeoutSeconds = builder.Configuration.GetValue(
-        "DynamicsWebApi:Admission:QueueAdmissionTimeoutSeconds", 15);
-    options.Admission.MaxInFlightAndQueuedPerWorkload = builder.Configuration.GetValue(
-        "DynamicsWebApi:Admission:MaxInFlightAndQueuedPerWorkload", 8);
-    options.Admission.AdmissionNamespaceId =
-        builder.Configuration["DynamicsWebApi:Admission:AdmissionNamespaceId"]
-        ?? "gateway-local-admission";
-    options.Admission.LeaseNamespaceId =
-        builder.Configuration["DynamicsWebApi:Admission:LeaseNamespaceId"]
-        ?? "gateway-local-host-lease";
-    options.Admission.AdmissionEpoch = builder.Configuration.GetValue<long>(
-        "DynamicsWebApi:Admission:AdmissionEpoch", 1);
-    options.Admission.RuntimeHostSlotLeaseTtlSeconds = builder.Configuration.GetValue(
-        "DynamicsWebApi:Admission:RuntimeHostSlotLeaseTtlSeconds", 120);
-    options.Admission.RuntimeHostSlotRenewalIntervalSeconds = builder.Configuration.GetValue(
-        "DynamicsWebApi:Admission:RuntimeHostSlotRenewalIntervalSeconds", 30);
-    options.Admission.RuntimeHostSlotExpiryFenceSeconds = builder.Configuration.GetValue(
-        "DynamicsWebApi:Admission:RuntimeHostSlotExpiryFenceSeconds", 10);
-    options.Admission.MaximumOutboundWorkLifetimeSeconds = builder.Configuration.GetValue(
-        "DynamicsWebApi:Admission:MaximumOutboundWorkLifetimeSeconds", 35);
-    options.Admission.ShutdownDrainTimeoutSeconds = builder.Configuration.GetValue(
-        "DynamicsWebApi:Admission:ShutdownDrainTimeoutSeconds", 45);
-    options.Admission.RequireDurableHostCoordinator =
-        !builder.Environment.IsEnvironment("Testing");
+    // Development 的 Local Gateway 直接由 Kestrel 擁有 HTTP connection，因此必須註冊真正的 Negotiate handler；
+    // 不讀取可覆寫的 AuthenticationScheme 設定，避免 Testing fake scheme 或 header-based handler 外洩到開發執行個體。
+    builder.Services
+        .AddAuthentication(NegotiateDefaults.AuthenticationScheme)
+        .AddNegotiate();
+}
+else
+{
+    // Production 保留既有 Central/IIS Windows Authentication 邊界；Testing 才允許每個 TestServer
+    // 明確選擇私有 fake scheme。Production 不接受 configuration 任意改寫 scheme，避免繞過 IIS principal authority。
+    var authenticationScheme = builder.Environment.IsEnvironment("Testing")
+        ? builder.Configuration["DynamicsGateway:AuthenticationScheme"]
+            ?? IISDefaults.AuthenticationScheme
+        : IISDefaults.AuthenticationScheme;
+    builder.Services.AddAuthentication(authenticationScheme);
+}
 
-    // 本機 scaffolding 後備值：若完全沒設定，至少給可驗證的 root。
-    if (string.IsNullOrWhiteSpace(options.OrganizationWebApiBaseUri) &&
-        string.IsNullOrWhiteSpace(options.OrganizationBaseUri))
-    {
-        options.OrganizationWebApiBaseUri = "https://localhost/api/data/v9.1/";
-    }
-});
+builder.Services.AddAuthorization();
+
+// Gateway 從部署擁有的 Alias Catalog 建立多 Profile Runtime；產品 Request 只能提供已授權 Alias，
+// 不能傳入 CRM Endpoint、Transport、Credential 或 Secret Reference。Central／Local Gateway 使用同一段程式，
+// 差異只在產品端 Gateway.Endpoint 指向中央服務或 localhost。
+var dynamicsProfiles = LoadDynamicsProfileDefinitions(
+    builder.Configuration,
+    builder.Environment);
+builder.Services.AddSpeechMessageDynamicsProfiles(dynamicsProfiles);
+builder.Services.AddSingleton<IGatewayOperationAuthorizer>(serviceProvider =>
+    new ConfigurationGatewayOperationAuthorizer(
+        serviceProvider.GetRequiredService<IConfiguration>(),
+        dynamicsProfiles.Select(static profile => profile.ProfileAlias)));
+builder.Services.AddHostedService<GatewayOperationAuthorizationStartupValidator>();
 
 if (!builder.Environment.IsEnvironment("Testing"))
 {
@@ -159,6 +79,25 @@ if (!builder.Environment.IsEnvironment("Testing"))
 }
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.Use(async (context, next) =>
+    {
+        if (context.Request.Path.StartsWithSegments("/v1") &&
+            !IsDevelopmentHttpsLoopbackRequest(context))
+        {
+            // Transport 檢查必須位於 authentication、authorization 與 Minimal API body binding 前：
+            // 非 HTTPS loopback caller 在 Negotiate handshake、配置 OperationHttpRequest、取得 admission permit
+            // 或接觸 executor 前直接 403；只有 HTTPS loopback request 才能進入標準 Negotiate 401 challenge／authentication。
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return;
+        }
+
+        await next(context).ConfigureAwait(false);
+    });
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -167,21 +106,39 @@ app.MapGet("/health", (HttpContext context) =>
     context.Response.Headers.CacheControl = "no-store";
     return Results.Ok(new { status = "ok", service = "SpeechMessage.Dynamics.Gateway" });
 });
-app.MapGet("/ready", (HttpContext context, SpeechMessage.Dynamics.WebApi.Capacity.IOrganizationAdmissionManager admissionManager) =>
+app.MapGet("/ready", (HttpContext context, IDynamicsProfileRuntimeManager runtimeManager) =>
 {
     context.Response.Headers.CacheControl = "no-store";
-    var snapshot = admissionManager.GetSnapshot();
+    var snapshot = runtimeManager.GetSnapshot();
+    var profiles = snapshot.Profiles
+        .Select(profile => new
+        {
+            alias = profile.Key.ProfileAlias,
+            generation = profile.Key.Generation,
+            ceVersion = profile.Key.CeVersion,
+            state = profile.State.ToString(),
+            activeExecutions = profile.ActiveExecutionCount,
+            inFlight = profile.Admission.InFlight,
+            queued = profile.Admission.Queued,
+            activePermits = profile.Admission.ActivePermits,
+            hostSlotReady = profile.Admission.HostSlotReady,
+            hostLeaseExpiresAtUtc = profile.Admission.HostLeaseExpiresAtUtc,
+            renewalLoopActive = profile.Admission.RenewalLoopActive
+        })
+        .ToArray();
+    var activeProfiles = snapshot.Profiles
+        .Where(static profile => profile.State == DynamicsProfileRuntimeState.Active)
+        .ToArray();
+    var isReady = snapshot.IsReady &&
+        activeProfiles.Length > 0 &&
+        activeProfiles.All(static profile => profile.Admission.HostSlotReady);
     var body = new
     {
-        status = snapshot.HostSlotReady ? "ready" : "not-ready",
+        status = isReady ? "ready" : "not-ready",
         service = "SpeechMessage.Dynamics.Gateway",
-        snapshot.InFlight,
-        snapshot.Queued,
-        snapshot.ActivePermits,
-        snapshot.HostLeaseExpiresAtUtc,
-        snapshot.RenewalLoopActive
+        profiles
     };
-    return snapshot.HostSlotReady
+    return isReady
         ? Results.Ok(body)
         : Results.Json(body, statusCode: StatusCodes.Status503ServiceUnavailable);
 });
@@ -196,23 +153,26 @@ app.MapPost(
         string capabilityOperationId,
         OperationHttpRequest body,
         HttpContext httpContext,
-        IWorkloadSubjectResolver workloadResolver,
+        IGatewayOperationAuthorizer operationAuthorizer,
         IDynamicsOperationExecutor executor,
         CancellationToken cancellationToken) =>
     {
-        if (!workloadResolver.TryResolve(httpContext.User, out var workloadSubjectId))
+        var authorization = operationAuthorizer.Authorize(
+            httpContext.User,
+            alias,
+            capabilityOperationId);
+        if (!authorization.Succeeded)
         {
             return Results.Forbid();
         }
 
-        // 保母提醒：
-        // 正式環境的 WorkloadSubjectId 必須來自已驗證的 workload identity。
-        // scaffolding 先允許 body 傳入，方便契約測試；不可當成安全模型。
+        // 必須完整通過 principal→workload→alias→operation 後才建立 request；三個 routing/security 欄位
+        // 全部採 server canonical 值，caller body 只能提供 registry 後續仍會驗證的 bounded parameters。
         var request = new OperationExecutionRequest
         {
-            ProfileAlias = alias,
-            CapabilityOperationId = capabilityOperationId,
-            WorkloadSubjectId = workloadSubjectId,
+            ProfileAlias = authorization.ProfileAlias,
+            CapabilityOperationId = authorization.CapabilityOperationId,
+            WorkloadSubjectId = authorization.WorkloadSubjectId,
             Parameters = body.Parameters ?? new Dictionary<string, object?>(),
             IdempotencyKey = body.IdempotencyKey
         };
@@ -233,16 +193,114 @@ app.MapGet(
         x.OperationKind,
         x.TemplateKind,
         x.DataClassification
-    })));
+    })))
+    .RequireAuthorization();
+
+/// <summary>
+/// 驗證 Development 受保護端點是否由 HTTPS loopback peer 呼叫。
+/// 只信任 Kestrel/TestServer 寫入的 connection metadata，不讀取 X-Forwarded-For、Forwarded、Host 或其他 caller header；
+/// <see cref="HttpConnectionInfo.RemoteIpAddress"/> 缺失時 fail closed。方法無配置、無 I/O、無 allocation-heavy parsing，
+/// 可在所有 Development <c>/v1</c> request 的 authentication 前置 middleware 執行，且不持有 request scope 之外的 reference。
+/// </summary>
+static bool IsDevelopmentHttpsLoopbackRequest(HttpContext context)
+{
+    var remoteIpAddress = context.Connection.RemoteIpAddress;
+    return context.Request.IsHttps &&
+        remoteIpAddress is not null &&
+        IPAddress.IsLoopback(remoteIpAddress);
+}
+
+/// <summary>
+/// 從部署設定建立不可變 Profile Definitions。
+/// 優先讀取 <c>DynamicsProfiles:Profiles:{alias}</c>；若尚未遷移則讀取舊 <c>DynamicsWebApi</c> 區段，
+/// 並依明確 CE 版本衍生 crm82／crm91 Alias。方法只綁定 Secret Reference 名稱，不解析秘密值或建立網路資源。
+/// </summary>
+static IReadOnlyCollection<DynamicsProfileDefinition> LoadDynamicsProfileDefinitions(
+    IConfiguration configuration,
+    IHostEnvironment environment)
+{
+    var definitions = new List<DynamicsProfileDefinition>();
+    var profileSections = configuration
+        .GetSection("DynamicsProfiles:Profiles")
+        .GetChildren()
+        .ToArray();
+
+    if (profileSections.Length > 0)
+    {
+        foreach (var profileSection in profileSections)
+        {
+            var options = new DynamicsWebApiOptions();
+            profileSection.Bind(options);
+            ApplyTestingEndpointFallback(options, environment);
+            definitions.Add(new DynamicsProfileDefinition(
+                profileSection.Key,
+                options,
+                profileSection.GetValue("WarmUpOnActivation", false)));
+        }
+
+        return definitions;
+    }
+
+    // 舊區段只作為遷移相容入口；它仍必須是單一明確版本，不能在 Request 失敗後自動切換 8.2／9.1。
+    var legacyOptions = new DynamicsWebApiOptions();
+    configuration.GetSection(DynamicsWebApiOptions.SectionName).Bind(legacyOptions);
+    ApplyTestingEndpointFallback(legacyOptions, environment);
+    var legacyAlias = legacyOptions.CeVersion.Trim() switch
+    {
+        "8.2" => "crm82",
+        "9.1" => "crm91",
+        _ => throw new InvalidOperationException(
+            "Legacy DynamicsWebApi:CeVersion must be exactly 8.2 or 9.1.")
+    };
+    definitions.Add(new DynamicsProfileDefinition(
+        legacyAlias,
+        legacyOptions,
+        configuration.GetValue("DynamicsProfiles:LegacyWarmUpOnActivation", false)));
+    return definitions;
+}
+
+/// <summary>
+/// 只在 Testing 環境為完全缺少 Endpoint 的測試 Host 補上 localhost Web API root。
+/// 非 Testing 環境必須 fail closed，避免 Central／Local Gateway 因設定遺漏而猜測或誤連 CRM 目標。
+/// </summary>
+static void ApplyTestingEndpointFallback(
+    DynamicsWebApiOptions options,
+    IHostEnvironment environment)
+{
+    if (!string.IsNullOrWhiteSpace(options.OrganizationWebApiBaseUri) ||
+        !string.IsNullOrWhiteSpace(options.OrganizationBaseUri))
+    {
+        return;
+    }
+
+    if (!environment.IsEnvironment("Testing"))
+    {
+        throw new InvalidOperationException(
+            "Every Dynamics profile requires OrganizationBaseUri or OrganizationWebApiBaseUri.");
+    }
+
+    var version = options.CeVersion.Trim();
+    if (version is not ("8.2" or "9.1"))
+    {
+        throw new InvalidOperationException(
+            "Testing Dynamics profile CeVersion must be exactly 8.2 or 9.1.");
+    }
+
+    options.OrganizationWebApiBaseUri = $"https://localhost/api/data/v{version}/";
+}
 
 app.Run();
 
 /// <summary>
-/// Gateway HTTP body 模型（scaffolding）。
+/// Gateway HTTP body 模型。它只接受冪等鍵與受 Operation Registry 約束的命名參數，
+/// 不接受 CRM Endpoint、Profile Transport、Credential、Token、Authorization Header 或任意 FetchXML。
 /// </summary>
 public sealed class OperationHttpRequest
 {
+    /// <summary>取得或設定寫入型 Operation 使用的 bounded 冪等鍵；唯讀操作可省略。</summary>
     public string? IdempotencyKey { get; set; }
+
+    /// <summary>取得或設定 Operation Definition 已宣告的命名參數；未知參數會在外呼 CRM 前被拒絕。</summary>
     public Dictionary<string, object?>? Parameters { get; set; }
 }
 
@@ -250,45 +308,3 @@ public sealed class OperationHttpRequest
 /// 給 WebApplicationFactory / 測試參考 Program。
 /// </summary>
 public partial class Program;
-
-public interface IWorkloadSubjectResolver
-{
-    bool TryResolve(System.Security.Claims.ClaimsPrincipal principal, out string workloadSubjectId);
-}
-
-public sealed class ConfigurationWorkloadSubjectResolver : IWorkloadSubjectResolver
-{
-    private readonly IReadOnlyDictionary<string, string> _mappings;
-
-    public ConfigurationWorkloadSubjectResolver(IConfiguration configuration)
-    {
-        var mappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var entry in configuration.GetSection("DynamicsGateway:WorkloadMappings").GetChildren())
-        {
-            var principal = entry.Key.Trim();
-            var subject = entry.Value?.Trim();
-            if (principal.Length == 0 || string.IsNullOrWhiteSpace(subject) || subject.Length > 128)
-            {
-                continue;
-            }
-
-            mappings[principal] = subject;
-        }
-
-        _mappings = mappings;
-    }
-
-    public bool TryResolve(
-        System.Security.Claims.ClaimsPrincipal principal,
-        out string workloadSubjectId)
-    {
-        workloadSubjectId = string.Empty;
-        if (principal.Identity?.IsAuthenticated != true ||
-            string.IsNullOrWhiteSpace(principal.Identity.Name))
-        {
-            return false;
-        }
-
-        return _mappings.TryGetValue(principal.Identity.Name.Trim(), out workloadSubjectId!);
-    }
-}

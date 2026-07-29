@@ -81,7 +81,7 @@ Local deployment:
     "ExecutionMode": "Gateway",
     "ProfileAlias": "crm91",
     "Gateway": {
-      "Endpoint": "https://localhost:7443/",
+      "Endpoint": "https://localhost:7244/",
       "ApiPrefix": "/v1"
     }
   }
@@ -276,7 +276,7 @@ This contradicts the current `DynamicsExecutionMode` contract and duplicates dep
   "ExecutionMode": "Gateway",
   "ProfileAlias": "crm91",
   "Gateway": {
-    "Endpoint": "https://localhost:7443/",
+    "Endpoint": "https://localhost:7244/",
     "ApiPrefix": "/v1"
   }
 }
@@ -335,6 +335,137 @@ await runtime.DrainAndDisposeAsync(cancellationToken);
 ```
 
 The comment records the safety contract that future maintainers must preserve, and the containing method/type also carries complete Traditional Chinese XML documentation.
+
+## Scenario: Multi-Profile Runtime Admission, Publication, and Rollback
+
+### 1. Scope / Trigger
+
+This scenario applies whenever Local or Central Gateway initializes multiple profile aliases, replaces an immutable profile generation, admits queued work, or rolls back partially acquired runtime/admission resources.
+
+### 2. Signatures
+
+```csharp
+Task InitializeAsync(CancellationToken cancellationToken = default);
+
+Task ReplaceAsync(
+    DynamicsProfileDefinition definition,
+    CancellationToken cancellationToken = default);
+
+Task<ProfileExecutionLeaseAcquireResult> AcquireAsync(
+    DispatchEnvelope envelope,
+    CancellationToken cancellationToken);
+```
+
+The acquired execution boundary is one `IProfileExecutionLease` that owns both the selected runtime execution lease and the organization admission permit.
+
+### 3. Contracts
+
+- Alias resolution occurs before secret, factory, token, admission, or transport I/O. Unknown or unavailable aliases fail closed.
+- Queue wait may retain only the bounded dispatch envelope, the entry-resolved admission manager, and its immutable plan. It must not retain an active runtime, client, handler, token provider, credential, user/session state, or generation reference.
+- After admission succeeds, the manager resolves the current active runtime and verifies the same admission-manager identity, canonical organization key, and configuration digest before acquiring a runtime execution lease.
+- A runtime is publishable and Gateway may report it Ready only after `EnsureHostSlotAsync` completes successfully for that runtime's canonical organization plan.
+- Initialization publishes the catalog only after every candidate runtime is validated. Failure disposes all candidates, clears any partially published slot, marks the manager NotReady, resets the initialization task, and permits a later retry.
+- A replacement publishes the new runtime and calls `BeginDrain` on the old runtime atomically under the catalog lock. A third active/draining generation is rejected before factory allocation.
+- `ReplacementInProgress` is the single asynchronous lifecycle owner for one alias. A later `ReplaceAsync` may adopt a Draining runtime left by a completed/failed prior owner, but it must finish or retry that exact runtime's cleanup before incrementing the generation or invoking the factory.
+- Draining-reference cleanup is determined by the runtime's terminal state and exact object identity, not by whether `DrainAndDisposeAsync` returned successfully. If the runtime reached `Disposed`, clear the exact slot reference even when cleanup reports an error, and propagate that error. If it remains `Draining`, retain the reference for a later replacement or manager shutdown; never orphan it.
+- Replacement drain waits use the caller plus manager-shutdown linked cancellation token. Shutdown ends the current replacement owner promptly, then the manager's final dispose owner takes over every still-owned Active/Draining runtime without disposing resources that still have execution leases.
+- Rollback follows reverse ownership order. Every acquired resource is attempted even if an earlier cleanup fails. The original operation failure remains the first reported cause; cleanup failures are aggregated rather than replacing it.
+- Combined execution-lease disposal releases runtime execution ownership before returning organization capacity. Both releases are attempted and observed.
+- Initialization must publish its task ownership before synchronously completing factories or test doubles can enter failure/reset logic. An implementation may use an explicit initial asynchronous boundary or another proven task-publication mechanism; it must have a regression test for retry after synchronous failure.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Unknown alias | Return sanitized NotReady before admission/factory/token/transport work. |
+| Admission succeeds but active runtime cannot be acquired | Dispose the permit before returning sanitized NotReady. |
+| Runtime acquisition throws after creating a lease | Attempt runtime-lease disposal, then permit disposal; aggregate cleanup failures with the original acquisition failure. |
+| Initial profile N fails after earlier candidates were created | Dispose every candidate, clear partial catalog state, reset initialization ownership, remain NotReady, and allow retry. |
+| Candidate disposal also throws | Preserve the initialization failure and every cleanup failure; state rollback still completes. |
+| Host slot cannot be acquired | Candidate is never published and Gateway remains NotReady. |
+| Replacement already in progress or one generation is draining | Reject before creating another client/token/handler graph. |
+| A concurrent replacement owner is active | Reject before factory allocation. Do not allow two replacement owners to drain or publish the same alias concurrently. |
+| A prior replacement owner exited while its old runtime remains `Draining` | The next replacement first retries that exact drain. Generation allocation and factory creation remain blocked until the slot no longer owns it. |
+| Drain cleanup throws after the runtime reached `Disposed` | Remove only the exact disposed `slot.Draining` reference, propagate the cleanup error, retain the new Active runtime, and allow a later replacement. |
+| Drain wait is cancelled or times out while the runtime remains `Draining` | Preserve the slot reference and report the failure. A later replacement or manager shutdown must be able to retry cleanup before any third runtime graph is allocated. |
+| Manager shutdown begins during a published replacement drain | Linked cancellation ends the replacement lifecycle owner; final manager disposal retains ownership and completes cleanup after active leases are released. |
+| Queue wait overlaps generation replacement | Resolve and use the new compatible active generation after dequeue; never keep the old runtime alive through the queue. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: a queued `crm91` request waits only on the shared admission manager, `crm91` is replaced, and the request acquires generation 2 after the permit becomes available.
+- Base: one initialization factory fails, all earlier candidate runtimes dispose successfully, the original error is preserved, and a later operator retry initializes a new generation.
+- Good failure handling: runtime-lease cleanup throws, permit cleanup still executes, active execution count and active permits both return to zero, and the caller receives an aggregate containing both causes.
+- Good recovery: generation 1 reaches `Disposed` but reports a cleanup error after generation 2 is published; the caller observes the error, the catalog retains only generation 2, and a later replacement can create generation 3.
+- Base recovery: generation 1 remains `Draining` after caller cancellation; a later replacement waits for generation 1 to finish, does not call the factory while it is pending, then creates generation 3 and drains generation 2.
+- Bad: queueing captures `slot.Active` or `IDynamicsWebApiClient`; the old generation cannot drain until queued work dispatches or times out.
+- Bad: a catch block awaits runtime-lease disposal and exits on that exception before returning the admission permit.
+- Bad: candidate cleanup throws before `_ready` and initialization-task ownership are reset, permanently pinning a failed initialization task.
+- Bad: a catch/finally block always clears `slot.Draining`; caller cancellation can orphan a still-live handler/token graph. The inverse is also bad: clearing only after a successful await permanently retains a runtime that reached `Disposed` but reported cleanup failure.
+
+### 6. Tests Required
+
+- Assert unknown aliases do not increase factory, admission, token, or transport invocation counts.
+- Assert every initial profile completes host-slot acquisition before manager readiness becomes true.
+- Hold a queue permit, replace the runtime, release the blocker, and assert the queued request executes only on the new generation.
+- Inject runtime acquisition failure after lease creation plus runtime-lease disposal failure; assert the original error and cleanup error are both reported, runtime active count is zero, and admission active permits are zero.
+- Inject a later-profile factory failure plus an earlier-candidate disposal failure; assert both errors are reported, the snapshot is NotReady and empty, and a second initialization succeeds with new generations.
+- Inject a drain cleanup failure after the old runtime reaches `Disposed`; assert the error is reported, the disposed generation disappears from the manager snapshot, and a later replacement creates the next generation successfully.
+- Cancel a published replacement while the old runtime still has an execution lease; assert the old runtime remains `Draining`, a later replacement does not increase factory creation count while waiting, and factory allocation occurs only after the lease is released and cleanup completes.
+- Repeat the cancelled-drain retry through the production `DynamicsProfileRuntimeFactory` and `DynamicsProfileRuntime`, not only a fake. The test must prove a faulted/cancelled cached drain task is cleared while state remains `Draining`, so the manager's next retry creates a new drain attempt and eventually releases transport, token-provider, and admission-registration ownership.
+- Begin manager shutdown while a published replacement is waiting on an old execution lease; assert the replacement observes shutdown cancellation promptly, manager disposal remains pending until the lease is released, and every runtime disposes exactly once.
+- Repeatedly replace and dispose under load; assert at most active plus one draining runtime exists and retired runtime/handler/token/registration weak references return to baseline.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+var runtime = slot.Active;
+var permit = await admission.AcquireAsync(envelope, cancellationToken);
+// The queued state machine now strongly retains the old runtime.
+```
+
+```csharp
+catch
+{
+    await runtimeLease.DisposeAsync();
+    await permit.DisposeAsync(); // skipped if the first cleanup throws
+    throw;
+}
+```
+
+#### Correct
+
+```csharp
+var permit = await admission.AcquireAsync(envelope, cancellationToken);
+// Resolve current active runtime only after queue admission succeeds.
+```
+
+```csharp
+catch (Exception originalFailure)
+{
+    var failures = new List<Exception> { originalFailure };
+    await CaptureCleanupFailureAsync(runtimeLease, DisposeRuntimeLeaseAsync, failures);
+    await CaptureCleanupFailureAsync(permit, DisposePermitAsync, failures);
+    ThrowOriginalOrAggregate(failures);
+}
+```
+
+```csharp
+try
+{
+    await runtime.DrainAndDisposeAsync(linkedCancellationToken);
+}
+finally
+{
+    // Only a terminal runtime may leave the catalog. Preserve unfinished draining ownership.
+    if (runtime.State == DynamicsProfileRuntimeState.Disposed)
+    {
+        ClearExactDrainingReference(runtime);
+    }
+}
+```
 
 ## Design Decisions
 

@@ -8,6 +8,10 @@
     <Description>Deployable Dynamics Access Gateway. Default production boundary for five current products and future products.</Description>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Development Kestrel 的唯一 workload authentication handler；Production 仍由 IIS Windows Authentication 擁有。 -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="10.0.10" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\SpeechMessage.Dynamics.Abstractions\SpeechMessage.Dynamics.Abstractions.csproj" />
     <ProjectReference Include="..\SpeechMessage.Dynamics.WebApi\SpeechMessage.Dynamics.WebApi.csproj" />
   </ItemGroup>

@@ -6,7 +6,7 @@
     "risk":  "high",
     "domain":  "integration",
     "currentPhase":  "implementation",
-    "nextAction":  "Local/Central Gateway product boundary is green: strict startup validation, profile pinning, bounded response streaming, cleared buffers, clean NuGet audit, 125 Dynamics tests, and 0-warning solution build. Continue with immutable crm82/crm91 multi-profile runtime generations, replace-and-drain, and shared organization admission before the CE 8.2 Legacy Worker and authenticated VM validation.",
+    "nextAction":  "Execute docs/superpowers/plans/2026-07-29-local-gateway-security-foundation.md with TDD and CCG worker ownership: Gateway Negotiate and exact workload/alias/operation authorization, hard HTTP/canonical queue byte bounds, CRM endpoint redaction, and explicit LocalDB durable coordinator proof. All added code requires substantive Traditional Chinese documentation and UTF-8 without BOM plus CRLF.",
     "createdAt":  "2026-07-23T00:00:00Z",
     "branch":  "1.0.0.3.Gateway&Embedded.Worktree"
 }

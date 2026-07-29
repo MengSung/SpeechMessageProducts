@@ -11,6 +11,7 @@ using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SpeechMessage.Dynamics.Abstractions.Configuration;
+using SpeechMessage.Dynamics.Abstractions.Operations;
 using SpeechMessage.Dynamics.WebApi.Capacity;
 using SpeechMessage.Dynamics.WebApi.DependencyInjection;
 using SpeechMessage.Dynamics.WebApi.Runtime;
@@ -19,6 +20,39 @@ namespace SpeechMessage.Dynamics.Tests;
 
 public sealed class WebApiServiceCollectionExtensionsTests
 {
+    /// <summary>
+    /// 證明 Multi-Profile DI 只註冊 Runtime Manager／Factory／Admission Registry，
+    /// 不建立可被所有 Alias 共用的全域 Client、Transport 或 Token Provider；如此 crm82 與 crm91
+    /// 只能由各自 Generation 擁有連線與身分狀態，而相同 Organization 只共享容量權威。
+    /// </summary>
+    [Fact]
+    public async Task Multi_profile_registration_uses_manager_without_global_mutable_client_state()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSpeechMessageDynamicsProfiles(
+        [
+            CreateProfileDefinition(
+                "crm82",
+                "8.2",
+                Guid.Parse("82828282-8282-8282-8282-828282828282")),
+            CreateProfileDefinition(
+                "crm91",
+                "9.1",
+                Guid.Parse("91919191-9191-9191-9191-919191919191"))
+        ]);
+
+        await using var provider = services.BuildServiceProvider(validateScopes: true);
+        var manager = provider.GetRequiredService<IDynamicsProfileRuntimeManager>();
+
+        provider.GetRequiredService<IProfileExecutionLeaseProvider>().Should().BeSameAs(manager);
+        provider.GetRequiredService<IDynamicsOperationExecutor>()
+            .Should().BeOfType<ProfileRoutedOperationExecutor>();
+        provider.GetService<IDynamicsWebApiClient>().Should().BeNull();
+        provider.GetService<IDynamicsHttpTransport>().Should().BeNull();
+        provider.GetService<IAdfsOAuthTokenProvider>().Should().BeNull();
+    }
+
     [Fact]
     public void Adfs_token_client_uses_a_non_session_primary_handler()
     {
@@ -75,6 +109,34 @@ public sealed class WebApiServiceCollectionExtensionsTests
         ConfigureValidAdfsOptions(options);
         return options;
     }
+
+    /// <summary>
+    /// 建立不解析 Secret、不連真實 CRM 的測試 Profile Definition；Alias、版本、Organization 與 Namespace
+    /// 都是固定測試資料，讓 DI 測試只驗證 ownership graph，不啟動 Runtime 或 Host Slot。
+    /// </summary>
+    private static DynamicsProfileDefinition CreateProfileDefinition(
+        string alias,
+        string ceVersion,
+        Guid organizationId)
+        => new(
+            alias,
+            new DynamicsWebApiOptions
+            {
+                OrganizationWebApiBaseUri =
+                    $"https://{alias}.example.test/api/data/v{ceVersion}/",
+                CeVersion = ceVersion,
+                MaxConnectionsPerServer = 1,
+                Admission = new OrganizationAdmissionOptions
+                {
+                    ExpectedOrganizationId = organizationId,
+                    AggregateMaxInFlight = 2,
+                    MaximumRuntimeHosts = 2,
+                    AdmissionNamespaceId = alias + "-admission",
+                    LeaseNamespaceId = alias + "-lease",
+                    RequireDurableHostCoordinator = false
+                }
+            },
+            warmUpOnActivation: false);
 
     private static SocketsHttpHandler GetOwnedHandler(DynamicsHttpTransport transport)
     {

@@ -19,15 +19,26 @@ namespace SpeechMessage.Dynamics.WebApi.Runtime;
 /// </summary>
 public sealed class ControlledOperationExecutor : IDynamicsOperationExecutor
 {
-    private readonly IDynamicsWebApiClient _webApiClient;
-    private readonly IOrganizationAdmissionManager _admissionManager;
+    private readonly IProfileExecutionLeaseProvider _leaseProvider;
 
+    /// <summary>
+    /// 保留既有單一 Profile 建構方式。此建構式把固定 Client 與 Admission Manager 包裝成一個合併租約 Provider，
+    /// 因此既有呼叫仍只取得一次 Admission Permit，並沿用與 Multi-Profile 相同的取消與確定性釋放路徑。
+    /// </summary>
     public ControlledOperationExecutor(
         IDynamicsWebApiClient webApiClient,
         IOrganizationAdmissionManager admissionManager)
+        : this(new FixedProfileExecutionLeaseProvider(webApiClient, admissionManager))
     {
-        _webApiClient = webApiClient ?? throw new ArgumentNullException(nameof(webApiClient));
-        _admissionManager = admissionManager ?? throw new ArgumentNullException(nameof(admissionManager));
+    }
+
+    /// <summary>
+    /// 建立 Profile-aware 受控操作執行器。Provider 負責 Alias、Admission Queue 與當下 Active Runtime；
+    /// Executor 不擁有或 Dispose Provider，避免 Runtime Manager／DI Container 的生命週期被重複終止。
+    /// </summary>
+    public ControlledOperationExecutor(IProfileExecutionLeaseProvider leaseProvider)
+    {
+        _leaseProvider = leaseProvider ?? throw new ArgumentNullException(nameof(leaseProvider));
     }
 
     /// <inheritdoc />
@@ -59,6 +70,15 @@ public sealed class ControlledOperationExecutor : IDynamicsOperationExecutor
                 $"Operation '{request.CapabilityOperationId}' is not registered in Package 0/1.");
         }
 
+        var normalizedAlias = request.ProfileAlias.Trim();
+        if (!_leaseProvider.TryGetAdmissionPlan(normalizedAlias, out var admissionPlan) ||
+            admissionPlan is null)
+        {
+            return OperationExecutionResult.Failure(
+                DynamicsErrorCodes.NotReady,
+                "The requested Dynamics profile is not ready.");
+        }
+
         // 參數名稱白名單：不在 registry 的參數直接拒絕。
         var allowed = definition.Parameters.Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
         var unknown = request.Parameters.Keys.Where(k => !allowed.Contains(k)).ToArray();
@@ -71,34 +91,37 @@ public sealed class ControlledOperationExecutor : IDynamicsOperationExecutor
 
         var envelope = new DispatchEnvelope
         {
-            ProfileAlias = request.ProfileAlias.Trim(),
+            ProfileAlias = normalizedAlias,
             CapabilityOperationId = definition.CapabilityOperationId,
             WorkloadSubjectId = request.WorkloadSubjectId.Trim(),
             TemplateId = definition.TemplateId,
             TemplateHash = definition.TemplateHash,
             IdempotencyKey = request.IdempotencyKey,
             DeadlineUtc = DateTimeOffset.UtcNow.AddSeconds(
-                Math.Max(1, _admissionManager.Plan.QueueAdmissionTimeoutSeconds + 30)),
+                Math.Max(1, admissionPlan.QueueAdmissionTimeoutSeconds + 30)),
             EstimatedEnvelopeBytes = EstimateEnvelopeBytes(request)
         };
 
-        var admission = await _admissionManager.AcquireAsync(envelope, cancellationToken).ConfigureAwait(false);
-        if (!admission.Succeeded || admission.Permit is null)
+        var acquisition = await _leaseProvider
+            .AcquireAsync(envelope, cancellationToken)
+            .ConfigureAwait(false);
+        if (!acquisition.Succeeded || acquisition.Lease is null)
         {
-            return admission.Error ?? OperationExecutionResult.Failure(
+            return acquisition.Error ?? OperationExecutionResult.Failure(
                 DynamicsErrorCodes.CapacityRejected,
-                "Admission was rejected.");
+                "Dynamics profile execution lease was rejected.");
         }
 
-        await using (admission.Permit.ConfigureAwait(false))
+        await using (acquisition.Lease.ConfigureAwait(false))
         {
             using var outboundCts = CancellationTokenSource.CreateLinkedTokenSource(
                 cancellationToken,
-                admission.Permit.LeaseLostToken);
+                acquisition.Lease.LeaseLostToken,
+                acquisition.Lease.RetirementToken);
             var remainingToDeadline = envelope.DeadlineUtc - DateTimeOffset.UtcNow;
-            var maximumLifetime = remainingToDeadline < _admissionManager.Plan.MaximumOutboundWorkLifetime
+            var maximumLifetime = remainingToDeadline < acquisition.Lease.AdmissionPlan.MaximumOutboundWorkLifetime
                 ? remainingToDeadline
-                : _admissionManager.Plan.MaximumOutboundWorkLifetime;
+                : acquisition.Lease.AdmissionPlan.MaximumOutboundWorkLifetime;
             if (maximumLifetime <= TimeSpan.Zero)
             {
                 return OperationExecutionResult.Failure(
@@ -107,7 +130,7 @@ public sealed class ControlledOperationExecutor : IDynamicsOperationExecutor
             }
 
             outboundCts.CancelAfter(maximumLifetime);
-            return await _webApiClient.ExecuteRegisteredOperationAsync(
+            return await acquisition.Lease.Client.ExecuteRegisteredOperationAsync(
                 definition,
                 request.Parameters,
                 outboundCts.Token).ConfigureAwait(false);

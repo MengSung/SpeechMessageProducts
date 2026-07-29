@@ -933,6 +933,91 @@ TemporaryData8LegacyWorker
 
 因此最終追求的是「最大安全持續效能」，而不是短時間內最多連線數。
 
+### 18.14 新增程式的繁體中文註解與 UTF-8 規則
+
+本次後續所有新增程式都必須符合以下規則：
+
+- 每個新增的 Production／Test C# 型別都要有完整、深入的繁體中文 XML 註解。
+- 每個涉及 Routing、Admission、Authentication、Connection Pool、Generation、Reload、Drain、Cancellation、Dispose、Worker 與資源擁有權的方法，都要說明設計目的、信任邊界、併發行為、失敗結果及回收順序。
+- 重要的程式分支要在附近加入繁體中文實作註解，特別是「為什麼一定要先做 A 再做 B」，不能只寫「建立物件」「釋放資源」這類重複語法的表面註解。
+- 註解必須明確指出 Handler、Client、Token Provider、Stream、Timer、Cancellation Registration、Semaphore、Background Task、Admission Permit、Runtime Lease 與 Worker Process 的唯一擁有者及確定性清理路徑。
+- 所有新增或修改的原始碼、測試、設定、Script 與文件均以 UTF-8 儲存；目前 Repository `.editorconfig` 規定為 UTF-8 without BOM 與 CRLF。
+- 驗證階段會逐檔使用嚴格 UTF-8 Decoder 檢查，並盤點新增型別及生命週期方法的繁體中文註解。缺漏或編碼錯誤都視為發布阻擋問題。
+
+這項規則不是為了增加註解數量，而是確保未來維護者可以直接從程式中理解為什麼不會發生 Session Leakage、Token Leakage、Memory Leakage 或資源提前釋放。
+
+### 18.15 目前 Phase 4 已實作到哪裡
+
+目前已經不是只有架構圖或介面，Local／Central Gateway 共用的 Multi-Profile Runtime 基礎已進入可執行驗證階段：
+
+```mermaid
+flowchart LR
+    RQ["產品受控 Operation Request"] --> AL["Alias Catalog"]
+    AL --> AQ["Organization Admission Queue"]
+    AQ --> PM["Admission Permit"]
+    PM --> AR["排隊完成後解析當下 Active Runtime"]
+    AR --> RL["Runtime Execution Lease"]
+    RL --> CL["Generation-owned Client／Transport／Token Provider"]
+    CL --> D8["D365 8.2 Adapter／暫時 Worker"]
+    CL --> D9["D365 9.1 Web API／官方 Adapter"]
+```
+
+這個順序有三個重要意義：
+
+1. Queue 等待期間不保存 Runtime、Client、Handler 或 Token Provider，所以舊 Generation 可以正常 drain，不會被尚未 dispatch 的工作強引用。
+2. Admission 成功後才取得「當下」Active Generation，所以設定替換期間排隊的工作可使用新 Generation，而不是黏住舊連線狀態。
+3. 每個 Runtime 在發布及 Gateway Ready 前都必須先完成 Host Slot 驗證，避免尚未受到跨 Host Aggregate Budget／Fencing 保護就先接受產品流量。
+
+目前 Runtime Manager 已具備以下生命週期限制：
+
+- `crm82` 與 `crm91` 使用不同 Profile Runtime Key、Client、Transport、Token／Credential State。
+- 相同實體 Organization 只共享 Canonical Admission Manager 與容量權威，不共享可變連線物件。
+- 每個 Alias 同時最多一個 Active 加一個 Draining Generation。
+- 平行 replacement 在建立 Factory 資源前就會被拒絕；若前一個 owner 已離開但仍留有 Draining，下一次 Replace 會先重試該舊 Runtime，完成前不建立第三套資源。
+- 新 Generation 驗證完成後原子發布，舊 Generation 同時停止取得新 Lease。
+- 已 Disposed 的舊 Runtime 即使 cleanup 回報錯誤，也只清除精確的 Draining reference 並把錯誤交還操作者；尚未 Disposed 的 Runtime 則繼續由 Catalog 擁有，不能成為孤兒。
+- Shutdown 會先停止新路由、以 linked cancellation 結束 Replace owner，再等待既有 Execution Lease，最後由唯一 Dispose owner 清空 Alias Catalog。
+- Readiness 會彙整所有 Active Profile 的 Host Slot 狀態，只輸出 Alias、Generation、狀態與 bounded Admission 指標，不輸出 Endpoint、Credential、Token 或 Namespace。
+
+本次又針對兩個非典型但高風險的錯誤路徑完成 RED→GREEN 驗證：
+
+| 錯誤路徑 | 舊風險 | 現在的契約 |
+| --- | --- | --- |
+| Runtime Lease 已取得，但後續 acquisition 與 Lease Dispose 都失敗 | 第一個 Dispose error 可能讓 Admission Permit 永久不歸還，並遮蔽原始錯誤。 | Runtime Lease 與 Permit 都會被獨立嘗試清理；原始 acquisition failure 排第一，cleanup failures 一起 Aggregate 回報。 |
+| 初始 Profile N 建立失敗，而且先前候選 Runtime 的 Dispose 也失敗 | `_ready`／`_initializationTask` 可能沒有重設，Gateway 永遠拿到同一個失敗 Task，不能重新初始化。 | 全部候選都會嘗試清理，Catalog 狀態無條件回滾，原始與 cleanup 錯誤一起保留，暫時故障排除後可重新初始化新 Generation。 |
+| 舊 Runtime 已 Disposed，但 cleanup 結尾回報錯誤 | `slot.Draining` 可能永久保留幽靈強引用，後續所有 Replace 都被拒絕。 | 錯誤仍向上回報；只要 State 已是 Disposed 且 reference identity 相同，就從 Catalog 清除，讓後續 Replace 可繼續。 |
+| 第一次 Replace 因 caller cancellation 離開，舊 Runtime 仍在 Draining | 若直接清除會遺失 Handler／Token／Lease owner；若入口永遠拒絕則無法自行恢復。 | 下一個唯一 replacement owner 先重試舊 Draining；Lease 歸零前 Factory 不增加，完成後才建立下一代。 |
+| Manager Shutdown 發生在發布後 drain wait | 裸 caller token 不能反映 Host 已關閉，Replace lifecycle 可能拖到完整 timeout。 | Drain 使用 caller＋Manager shutdown linked token；Replace owner 先結束，最終 Dispose owner 保留 Runtime 到 Lease 歸還。 |
+
+第二個測試也揭露了一個容易忽略的同步完成競態：測試 Factory 或某些快速實作可能在 `InitializeAsync` 尚未發布 `_initializationTask` 前就同步失敗。現在初始化核心會先建立明確的非同步邊界，確保 Task ownership 已發布後，失敗路徑才可以安全清空它。這是一次性啟動成本，不影響正常 Dynamics Request 的效能。
+
+這次 Drain recovery 修正的核心不是「遇到例外就清掉」或「遇到例外就永遠保留」二選一，而是看 Runtime 真正走到哪個生命週期狀態：`Disposed` 代表 cleanup 已完成全部嘗試，可以移除 Catalog reference 但仍須回報錯誤；`Draining` 代表尚有 Lease 或等待被取消，Manager 必須保留 reference，讓下一次 Replace 或 Shutdown 繼續清理。Generation 編號與 Factory allocation 都延後到舊 Draining 收斂後，才能實際守住 Active＋最多一個 Draining 的上限。
+
+外部 re-review 進一步要求不能只相信測試 Fake，因此又加入 Manager＋真正 `DynamicsProfileRuntimeFactory`＋真正 `DynamicsProfileRuntime` 的整合測試。它實際證明第一次取消後，Production Runtime 會清除已 fault/cancel 的 `_drainTask` 快取，但仍保持 Draining ownership；第二次 Replace 才能建立新的 drain attempt，並在舊 Lease 歸還後完整釋放 Transport、Token Provider 與 Admission Registration。刻意移除這個重設動作時，測試會因永遠重用同一個已取消 Task 而失敗。
+
+截至 2026-07-29 的本地驗證結果：
+
+```text
+SpeechMessage.Dynamics.Tests 全部測試
+  Passed 159 / Failed 0 / Skipped 0
+
+Multi-Profile／Registry／Factory／Readiness／Phase4 Soak focused suite
+  Passed 36 / Failed 0 / Skipped 0
+
+SpeechMessageProducts.sln Release Build
+  0 warnings / 0 errors
+
+PowerPlatform.Dataverse.Client NuGet vulnerability audit
+  未發現已知易受攻擊套件
+
+Changed-file scoped dotnet format verification
+  WebApi／Gateway／Tests 全部通過
+```
+
+外部審查也已完成收斂：原始雙模型 review 找到 `slot.Draining` 永久鎖死 Critical；修正後 re-review 確認 Critical 已關閉，但要求補真實 Production Runtime `_drainTask` 測試；加入該整合測試後，最後一輪 Gemini 與 Claude 都回報 PASS、無 Critical／Warning，且沒有 quota fallback。Gemini 的 UTF-8 with BOM Info 建議未採用，因本專案與使用者明確要求 UTF-8 without BOM＋CRLF。
+
+這些結果代表「Multi-Profile Runtime 的本地 deterministic isolation／lifecycle 基礎已通過目前測試」，不代表整個 Phase 4 或最終遷移已完成。仍然需要真實 Local Gateway 啟動、產品 localhost 串接、WinRM／D365 VM、瀏覽器 E2E、CE 8.2／9.1 實機 Authentication 與 Operation Matrix、跨 Process Capacity、Fault／Soak／Performance，以及 Phase 5 Consumer Migration 與 Phase 6 Data8／SDK Removal Gate。
+
 ## 19. 一句話總結
 
 > 產品 A～10 永遠只學一種 Dynamics 呼叫方式；Central Gateway 與 Local Gateway 負責部署差異，`crm82` 與 `crm91` 負責版本差異，Web API／官方 SDK／暫時 Data8 Worker 負責 Transport 差異，而這些差異全部不能滲透回產品業務程式。

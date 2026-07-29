@@ -154,21 +154,24 @@ public sealed class OrganizationAdmissionPlan
             return false;
         }
 
-        // 用 OrganizationBaseUri 或 WebApi root 的 origin+base path 正規化。
-        var normalizedBase = root.Value.GetLeftPart(UriPartial.Authority)
-            + root.Value.AbsolutePath.Replace($"/api/data/{root.ApiVersionSegment}/", "/", StringComparison.OrdinalIgnoreCase);
-        if (!normalizedBase.EndsWith('/'))
+        // Canonical Key 必須由專用 Factory 產生：只移除路徑尾端的 Web API 版本片段，
+        // 保留 Virtual Directory 結構，避免 Replace 誤刪中間路徑或 ToLowerInvariant 改變具大小寫語意的 Path。
+        if (!CanonicalOrganizationCapacityKey.TryCreate(
+                admissionOptions.ExpectedOrganizationId,
+                root.Value,
+                root.ApiVersionSegment,
+                out var canonicalKey,
+                out var canonicalError))
         {
-            normalizedBase += "/";
+            error = OperationExecutionResult.Failure(
+                DynamicsErrorCodes.InvalidConfiguration,
+                canonicalError);
+            return false;
         }
 
-        var canonicalKey = new CanonicalOrganizationCapacityKey(
-            admissionOptions.ExpectedOrganizationId,
-            normalizedBase.ToLowerInvariant());
         var configurationDigest = ComputeConfigurationDigest(
             canonicalKey,
-            admissionOptions,
-            webApiOptions.MaxConnectionsPerServer);
+            admissionOptions);
 
         plan = new OrganizationAdmissionPlan
         {
@@ -197,9 +200,11 @@ public sealed class OrganizationAdmissionPlan
 
     private static string ComputeConfigurationDigest(
         CanonicalOrganizationCapacityKey canonicalKey,
-        OrganizationAdmissionOptions options,
-        int maxConnectionsPerServer)
+        OrganizationAdmissionOptions options)
     {
+        // Digest 只描述「Organization 共用容量與 Host Slot 租約」；MaxConnectionsPerServer 屬於
+        // 單一 Profile Generation 的 Transport 上限，已在 TryCreate 中驗證不得超過 LocalMaxInFlight，
+        // 但不能進入共享 Digest，否則 crm82／crm91 使用不同 Socket 上限時會被錯誤視為兩份容量設定。
         var values = new[]
         {
             canonicalKey.ExpectedOrganizationId.ToString("D"),
@@ -217,8 +222,7 @@ public sealed class OrganizationAdmissionPlan
             options.RuntimeHostSlotRenewalIntervalSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
             options.RuntimeHostSlotExpiryFenceSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
             options.MaximumOutboundWorkLifetimeSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            options.ShutdownDrainTimeoutSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            maxConnectionsPerServer.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            options.ShutdownDrainTimeoutSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture)
         };
 
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
