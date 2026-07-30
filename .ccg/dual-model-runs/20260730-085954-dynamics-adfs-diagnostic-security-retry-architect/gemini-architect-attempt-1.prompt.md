@@ -1,6 +1,12 @@
-# Dynamics AD FS 診斷安全切片：雙模型分析輸入
+ROLE_FILE: C:\Users\Administrator\.claude\.ccg\prompts\gemini\architect.md
+<TASK>
+# CCG architect Task: dynamics-adfs-diagnostic-security-retry
 
-> 只執行靜態架構與安全分析並直接輸出報告。不要啟動任何工具、runner、子程序、外部模型、背景工作或重試流程；不要回報「已開始執行」，必須在本次回答內完成下列全部分析章節。
+## Repository
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.3.Gateway&Embedded.Worktree
+
+## Request
+# Dynamics AD FS 診斷安全切片：雙模型分析輸入
 
 ## 任務背景
 
@@ -61,3 +67,16 @@
 - Critical／Warning／Info findings
 
 不得輸出或要求任何實際密碼、Token、ClientId、SID、Credential、完整內部端點或 Session identifier。
+
+
+## Required Recovery Behavior
+- Run through the self-healing CCG entrypoint, not direct Gemini/Claude commands.
+- If Gemini, Claude, or codeagent-wrapper fails before usable output, repair local toolchain issues and retry.
+- Preserve prompts, stdout, stderr, health reports, and summary files under .ccg/dual-model-runs.
+- If provider quota/session blocks one backend, classify it as degraded fallback only when -AllowSingleModelWhenQuotaBlocked is enabled and the other backend produced usable output.
+</TASK>
+OUTPUT:
+- Use Traditional Chinese when possible.
+- Return concrete findings and decisions.
+- For reviewer role, classify findings as Critical / Warning / Info.
+- If the task cannot be completed, explain the exact blocker.
