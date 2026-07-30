@@ -41,7 +41,7 @@ namespace ChurchReport.Models
     /// 這個類別留在 ChurchReport 專案，負責 UI 表單狀態、CRM 更新、LINE 通知與付款建單前後的產品流程。
     /// 可重用金流核心只處理 provider 協定，因此這裡透過 DonationPaymentProcessor 與 IDonationPaymentCreateGatewayAdapter 接到抽離後的金流模組。
     /// </summary>
-    public class DonationPaymentManager : Controller
+    public class DonationPaymentManager : Controller, IDisposable
     {
         #region 資料區
         static ConfigurationBuilder m_ConfigurationBuilder = (ConfigurationBuilder)new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
@@ -119,6 +119,14 @@ namespace ChurchReport.Models
         private readonly DonationDedicationFeeFormService m_DonationDedicationFeeFormService;
         private readonly SemaphoreSlim _feeRefreshLock = new(1, 1);
 
+        /// <summary>
+        /// Manager 最終釋放狀態：0 代表尚未開始，1 代表已有唯一 caller 取得清理權。
+        /// <see cref="Interlocked.Exchange(ref int, int)"/> 提供跨執行緒原子邊界，避免 cache eviction、logout 與 host drain
+        /// 同時觸發時重複關閉 LINE transport 或 <see cref="SemaphoreSlim"/>。此旗標不追蹤 active caller；正式 coordinator
+        /// 必須先停止新 lease 並等待既有 lease 歸零，才可呼叫最終 <see cref="Dispose"/>。
+        /// </summary>
+        private int _disposeState;
+
         // 登入的連絡人
         public Entity m_LoginContact;
 
@@ -157,7 +165,7 @@ namespace ChurchReport.Models
             ILineReplyWorkflow? lineReplyWorkflow)
         {
             // 商店編號
-            if( m_Configuration["Cash_Environment"] == "正式環境" )
+            if (m_Configuration["Cash_Environment"] == "正式環境")
             {
                 // 永豐金流正式環境
                 m_ShopNo = m_Configuration["Sinopac:ShopNo"];
@@ -667,7 +675,7 @@ namespace ChurchReport.Models
                 ShopNo = m_ShopNo ?? string.Empty,
                 Command = aCommand ?? string.Empty,
                 Status = "F",
-                        Description = "Payment order maintenance is not part of the reusable payment core first release."
+                Description = "Payment order maintenance is not part of the reusable payment core first release."
             });
         }
         #endregion
@@ -705,6 +713,58 @@ namespace ChurchReport.Models
         private DateTime ParseDateTime(string dateString)
         {
             return DonationPaymentFormBuilder.ParseDateTime(dateString);
+        }
+
+        /// <summary>
+        /// 釋放此 Manager 唯一擁有的 LINE client 與費用刷新 semaphore。
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// 信任與 ownership 邊界：<c>m_LineMessagingClient</c> 與 <c>_feeRefreshLock</c> 由本 instance 建立，因此由本 instance 關閉；
+        /// <c>m_ToolUtilityClass</c> 來自 Factory，LINE workflow 由呼叫端注入，<c>DonationPaymentProcessor</c>、PushUtility 與 ReplyUtility
+        /// 只借用同一個 LINE client，皆不得在這裡另行 Dispose，否則會造成共享 CRM/DI 資源跨 session 失效或同一 transport 重複釋放。
+        /// </para>
+        /// <para>
+        /// 併發與 race：第一個 caller 透過 <see cref="Interlocked.Exchange(ref int, int)"/> 取得唯一清理權，其餘 caller 立即返回。
+        /// 本方法刻意不等待進行中的業務操作，也沒有 cancellation/timeout；上層 session coordinator 必須先完成 lease drain，
+        /// 保證不再有方法持有 semaphore 或使用 LINE client，再執行此同步且常數時間的最終清理。
+        /// </para>
+        /// <para>
+        /// 失敗與順序：先關閉可能持有 HTTP socket 的 LINE client，再關閉純記憶體同步閘門；以巢狀 finally 保證前一步丟例外時，
+        /// 後續 owned resource 與 MVC base cleanup 仍會執行。狀態在清理前即設為 terminal，避免失敗後由另一執行緒重複關閉部分資源。
+        /// Manager 會隨 cache entry 移除而變成不可達，因此不額外把多個借用欄位設為 null；這避免不必要寫入與 race，同時讓 GC 回收整張物件圖。
+        /// </para>
+        /// </remarks>
+        [NonAction]
+        public new void Dispose()
+        {
+            if (Interlocked.Exchange(ref _disposeState, 1) != 0)
+            {
+                return;
+            }
+
+            try
+            {
+                m_LineMessagingClient?.Dispose();
+            }
+            finally
+            {
+                try
+                {
+                    _feeRefreshLock?.Dispose();
+                }
+                finally
+                {
+                    base.Dispose();
+                }
+            }
+        }
+
+        // Controller 已提供非 virtual 的 IDisposable 實作；這裡明確重新映射 interface，確保 coordinator
+        // 以 IDisposable 參考清理時會進入本類別的 owner-safe Dispose，而不是落到 MVC base 的空實作。
+        void IDisposable.Dispose()
+        {
+            Dispose();
         }
     }
 }

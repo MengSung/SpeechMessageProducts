@@ -177,15 +177,11 @@ namespace ChurchReport.Controllers
             // ========================================
             // 在登入前先清除舊的 Session，防止 Session Fixation 攻擊
             // 這是防止「A 登入 → B 登入看到 A 網頁」的關鍵步驟
-            try
-            {
-                HttpContext.Session.Clear();
-                System.Diagnostics.Debug.WriteLine("[InitializeUserSession] ? 已清除舊 Session");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[InitializeUserSession] ?? 清除 Session 警告: {ex.Message}");
-            }
+            // 先由主 DI singleton coordinator 撤銷舊 Donation generation，再清除 Session。
+            // 任何 scope 驗證、host shutdown 或 owner wiring 失敗都必須在 Clear 前向上傳遞，
+            // 由 ProcessLogin 的統一錯誤處理阻止登入；不能吞掉錯誤後讓新身份沿用舊 Manager 資源圖。
+            DrainCurrentDonationSessionResourcesAndClearSession();
+            System.Diagnostics.Debug.WriteLine("[InitializeUserSession] 已撤銷舊 Donation 資源並清除 Session");
 
             // ========================================
             // ? Session Fixation 防護 - Step 2: 強制重新生成 Session ID

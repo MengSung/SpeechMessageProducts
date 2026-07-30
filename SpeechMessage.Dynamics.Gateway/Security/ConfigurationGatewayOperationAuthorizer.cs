@@ -10,8 +10,9 @@ namespace SpeechMessage.Dynamics.Gateway.Security;
 
 /// <summary>
 /// 從 deployment-owned configuration 建立 fail-closed Gateway operation authorizer。
-/// Constructor 在 Host 接收流量前一次性驗證 binding：拒絕 wildcard、前後空白、重複 principal／SID／白名單值、
-/// 未知 Profile Alias 與未知 Operation ID，然後發布 frozen dictionaries；因此 request 熱路徑只做有限次 O(1) 唯讀查找，
+/// Constructor 只讀取 <c>ActiveWorkloadBindingSet</c> 選到的具名集合，並在 Host 接收流量前一次性驗證 selector 與 binding：
+/// 拒絕空白／未知／空集合、wildcard、前後空白、重複 principal／SID／白名單值、未知 Profile Alias 與未知 Operation ID，
+/// 然後發布 frozen dictionaries；因此 request 熱路徑只做有限次 O(1) 唯讀查找，
 /// 不重新掃描 configuration、不配置 mutable cache、不加鎖，也不接觸 SQL、CRM、Token、Credential 或網路。
 /// Singleton service 是所有 binding collection 的唯一 owner；集合只含非秘密字串且沒有 disposable resource、timer、subscription、
 /// cancellation registration 或背景 Task，Host disposal 不需額外 cleanup。任何設定歧義都在 Constructor 拋出
@@ -21,7 +22,11 @@ public sealed class ConfigurationGatewayOperationAuthorizer : IGatewayOperationA
 {
     private const int MaximumPrincipalLength = 256;
     private const int MaximumWorkloadSubjectLength = 128;
+    private const int MaximumBindingSetNameLength = 64;
     private const string WindowsSidPattern = "^S-[0-9]+-[0-9]+(?:-[0-9]+)+$";
+    private const string ActiveBindingSetSelectorPath =
+        "DynamicsGateway:ActiveWorkloadBindingSet";
+    private const string BindingSetsPath = "DynamicsGateway:WorkloadBindingSets";
 
     private readonly FrozenDictionary<string, GatewayWorkloadBinding> _bindingsByWindowsSid;
     private readonly FrozenDictionary<string, GatewayWorkloadBinding> _bindingsByPrincipalName;
@@ -31,7 +36,8 @@ public sealed class ConfigurationGatewayOperationAuthorizer : IGatewayOperationA
     /// <summary>
     /// 建立 configuration-backed singleton authorizer。Profile Alias 由已通過 <c>DynamicsProfileDefinition</c>
     /// 驗證的 catalog 提供，Operation ID 由 <see cref="Package01OperationRegistry"/> 提供；configuration 只能縮小這兩個集合，
-    /// 不能創造新 alias／operation。所有 enumerable 都會立即 materialize，之後不保留 configuration child section、
+    /// 不能創造新 alias／operation。具名 binding set selector 會先解析成唯一且非空的 child collection，
+    /// 所以 Development／Testing 不會因 .NET Configuration 的逐葉合併而繼承 Central 權限。所有 enumerable 都會立即 materialize，之後不保留 configuration child section、
     /// profile collection 或 registry collection 的可變 reference，避免 reload 或並行 request 改寫授權語意。
     /// </summary>
     /// <param name="configuration">Host 啟動時的 deployment configuration snapshot。</param>
@@ -56,9 +62,7 @@ public sealed class ConfigurationGatewayOperationAuthorizer : IGatewayOperationA
         var bindingsByPrincipalName = new Dictionary<string, GatewayWorkloadBinding>(
             StringComparer.OrdinalIgnoreCase);
 
-        foreach (var bindingSection in configuration
-            .GetSection("DynamicsGateway:WorkloadBindings")
-            .GetChildren())
+        foreach (var bindingSection in ReadActiveBindingSections(configuration))
         {
             var windowsSid = ReadOptionalExactValue(
                 bindingSection["WindowsSid"],
@@ -129,8 +133,58 @@ public sealed class ConfigurationGatewayOperationAuthorizer : IGatewayOperationA
     }
 
     /// <summary>
+    /// 將 deployment-owned selector 解析成唯一具名 binding set，並在建立任何授權索引前防禦性複製其 child sections。
+    /// 解析刻意列舉 <c>WorkloadBindingSets</c> 的直接 children 再做 exact case-insensitive equality，而不是把 selector
+    /// 串進 configuration path；因此含冒號的值不能穿越 section 邊界，其他環境的 Central／Local／Testing 集合也不會被聯集讀取。
+    /// 空白、wildcard、未知、歧義、scalar-only 或沒有 binding child 的集合一律同步拋出，讓 startup validator 在 listener、
+    /// secret resolution、admission 與 outbound connection 之前 fail closed。回傳陣列只由 constructor 短暫擁有，
+    /// 建立 frozen dictionaries 後即不再保存 <see cref="IConfigurationSection"/>，也不建立 reload subscription、timer 或 cleanup owner。
+    /// </summary>
+    /// <param name="configuration">Host 啟動時合併完成的 deployment configuration snapshot。</param>
+    /// <returns>只屬於目前 active set 的非空 binding section snapshot。</returns>
+    private static IReadOnlyList<IConfigurationSection> ReadActiveBindingSections(
+        IConfiguration configuration)
+    {
+        var activeBindingSetName = ReadRequiredExactValue(
+            configuration[ActiveBindingSetSelectorPath],
+            "active workload binding set",
+            MaximumBindingSetNameLength);
+        var matchingBindingSets = configuration
+            .GetSection(BindingSetsPath)
+            .GetChildren()
+            .Where(section => string.Equals(
+                section.Key,
+                activeBindingSetName,
+                StringComparison.OrdinalIgnoreCase))
+            .Take(2)
+            .ToArray();
+        if (matchingBindingSets.Length != 1)
+        {
+            throw new InvalidOperationException(
+                "Active workload binding set must identify exactly one configured set.");
+        }
+
+        var activeBindingSet = matchingBindingSets[0];
+        if (activeBindingSet.Value is not null)
+        {
+            throw new InvalidOperationException(
+                "Active workload binding set must be a binding collection, not a scalar value.");
+        }
+
+        var bindingSections = activeBindingSet.GetChildren().ToArray();
+        if (bindingSections.Length == 0)
+        {
+            throw new InvalidOperationException(
+                "Active workload binding set must contain at least one binding.");
+        }
+
+        return bindingSections;
+    }
+
+    /// <summary>
     /// 依 authentication→principal binding→alias→operation 的固定順序授權 request。
-    /// Windows SID mapping 優先於 principal name，可抵抗帳號顯示名稱變更；只有沒有 SID mapping 時才以完整 Name fallback。
+    /// Windows SID 優先於 principal name，可抵抗帳號顯示名稱變更；有效 SID 未 mapping 時立即拒絕，
+    /// 只有 authenticated principal 完全沒有可用 SID 時才以完整 Name fallback。
     /// 成功前不建立 <c>OperationExecutionRequest</c>、不取得 admission permit、不解析 secret 且不做 outbound I/O；
     /// 失敗一律回傳不含 route 值的 denied result，使 caller 無法利用差異回應列舉有效權限。
     /// </summary>
@@ -196,25 +250,28 @@ public sealed class ConfigurationGatewayOperationAuthorizer : IGatewayOperationA
     }
 
     /// <summary>
-    /// 從已驗證 principal 解析唯一 immutable binding。語法有效的 SID 先查穩定 Windows authority；只有 SID 未命中時
-    /// 才以完整 principal name fallback，既不把無效 SID 視為 wildcard，也不讓 name 覆寫已命中的 SID binding。
-    /// 方法不快取 principal／claims、不配置 collection 且只讀 frozen dictionaries，可由並行 request 無鎖共享；null 代表 fail-closed 未 mapping。
+    /// 從已驗證 principal 解析唯一 immutable binding。語法有效的 SID 是穩定 Windows security authority：
+    /// 一旦 principal 提供有效 SID，只能以該 SID 查找，未命中就立即 fail closed，不得回退到可能被重用或重新指派的帳號名稱。
+    /// 只有 authentication principal 完全沒有可用 SID 時，才以完整 principal name 提供舊部署相容路徑。這個分支順序防止同名不同 SID 繼承舊 workload 權限。
+    /// 方法不快取 principal／claims、不配置 collection 且只讀 frozen dictionaries，可由並行 request 無鎖共享；
+    /// 它不建立 timer、Task、cancellation registration 或 disposable resource，因此沒有額外 cleanup owner；null 代表 fail-closed 未 mapping。
     /// </summary>
     private GatewayWorkloadBinding? ResolveAuthenticatedBinding(ClaimsPrincipal principal)
     {
-        GatewayWorkloadBinding? binding = null;
         var windowsSid = TryGetAuthenticatedWindowsSid(principal);
         if (windowsSid is not null)
         {
-            _bindingsByWindowsSid.TryGetValue(windowsSid, out binding);
+            _bindingsByWindowsSid.TryGetValue(windowsSid, out var sidBinding);
+            return sidBinding;
         }
 
-        if (binding is null && !string.IsNullOrWhiteSpace(principal.Identity?.Name))
+        if (!string.IsNullOrWhiteSpace(principal.Identity?.Name))
         {
-            _bindingsByPrincipalName.TryGetValue(principal.Identity.Name, out binding);
+            _bindingsByPrincipalName.TryGetValue(principal.Identity.Name, out var nameBinding);
+            return nameBinding;
         }
 
-        return binding;
+        return null;
     }
 
     /// <summary>

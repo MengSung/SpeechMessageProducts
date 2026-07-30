@@ -278,6 +278,34 @@ public sealed class AdfsOAuthTokenProviderTests
             }
         }
     }
+
+    /// <summary>
+    /// 驗證歷史 ADFS probe 已成為純 fail-closed 的退役入口，不再從產品 appsettings 擷取帳密、接受
+    /// username/password 參數、執行 Resource Owner Password Credential grant、呼叫 WhoAmI，或把 token／identity／
+    /// endpoint 結果寫入檔案與 console。測試只讀 checked-in script 文字，不啟動 PowerShell、不建立 process、
+    /// HTTP client、token cache 或 file watcher；主要 assertion 保護操作者只能轉往既有 Public Client authorization-code
+    /// 診斷流程，且所有 Local Gateway／CE／browser gate 通過前仍明確維持 Package 1 consumer 關閉。
+    /// </summary>
+    [Fact]
+    public void Legacy_adfs_token_probe_is_retired_without_password_or_result_output_paths()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var scriptPath = Path.Combine(repositoryRoot, "docs", "scripts", "Invoke-AdfsTokenProbe.ps1");
+        var script = File.ReadAllText(scriptPath);
+
+        script.Should().Contain("RETIRED");
+        script.Should().Contain("/diagnostics/adfs-authorize");
+        script.Should().Contain("Package01FeeReadsEnabled=false");
+        script.Should().Contain("throw");
+        script.Should().NotMatchRegex(@"(?im)^\s*\[string\]\s*\$(UserName|Password)\b");
+        script.Should().NotContain("Read-AppSettingsCrmConnection");
+        script.Should().NotContain("grant_type");
+        script.Should().NotContain("Invoke-RestMethod");
+        script.Should().NotContain("WriteAllText");
+        script.Should().NotContain("access_token");
+        script.Should().NotContain("WhoAmI");
+    }
+
     private static AdfsOAuthTokenProvider CreateProvider(
         DynamicsWebApiOptions options,
         IReadOnlyDictionary<string, string> secrets,
@@ -316,6 +344,28 @@ public sealed class AdfsOAuthTokenProviderTests
         {
             Content = new StringContent(json, Encoding.UTF8, "application/json")
         };
+
+    /// <summary>
+    /// 從目前測試輸出向上尋找同時包含 Dynamics tests 與受管 scripts 的 worktree root。
+    /// 這個 fail-closed 探索不依賴 process working directory，避免測試誤讀另一個 checkout；方法只建立短命
+    /// <see cref="DirectoryInfo"/>，不持有檔案 handle、背景工作或共享 cache，找不到唯一可信根目錄時立即失敗。
+    /// </summary>
+    private static string FindRepositoryRoot()
+    {
+        for (var current = new DirectoryInfo(AppContext.BaseDirectory);
+             current is not null;
+             current = current.Parent)
+        {
+            if (Directory.Exists(Path.Combine(current.FullName, "SpeechMessage.Dynamics.Tests")) &&
+                File.Exists(Path.Combine(current.FullName, "docs", "scripts", "Invoke-AdfsTokenProbe.ps1")))
+            {
+                return current.FullName;
+            }
+        }
+
+        throw new DirectoryNotFoundException(
+            "找不到包含 Dynamics tests 與 ADFS probe script 的目前 repository root。");
+    }
 
     /// <summary>
     /// 測試用 IHttpClientFactory：固定回傳帶 stub handler 的 HttpClient。

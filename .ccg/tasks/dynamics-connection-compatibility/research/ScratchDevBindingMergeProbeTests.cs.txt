@@ -1,0 +1,43 @@
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using SpeechMessage.Dynamics.Abstractions.Operations;
+
+namespace SpeechMessage.Dynamics.Tests;
+
+public sealed class ScratchDevBindingMergeProbeTests
+{
+    [Fact]
+    public async Task Probe_development_workload_bindings_merge()
+    {
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Development");
+            builder.ConfigureTestServices(services =>
+            {
+                var readinessDescriptors = services
+                    .Where(static descriptor =>
+                        descriptor.ServiceType == typeof(IHostedService) &&
+                        descriptor.ImplementationType == typeof(DynamicsGatewayReadinessService))
+                    .ToArray();
+                foreach (var descriptor in readinessDescriptors)
+                {
+                    services.Remove(descriptor);
+                }
+            });
+        });
+        using var client = factory.CreateClient();
+
+        var section = factory.Services.GetRequiredService<IConfiguration>()
+            .GetSection("DynamicsGateway:WorkloadBindings");
+        var children = section.GetChildren().ToArray();
+        var report = string.Join(
+            " | ",
+            children.Select(c => $"key={c.Key} principal={c["PrincipalName"]} sid={c["WindowsSid"]} ops=[{string.Join(",", c.GetSection("CapabilityOperationIds").GetChildren().Select(x => x.Value))}]"));
+
+        children.Length.Should().Be(-999, $"PROBE RESULT (children count={children.Length}): {report}");
+    }
+}

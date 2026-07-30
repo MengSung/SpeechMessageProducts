@@ -366,11 +366,15 @@ public sealed class DynamicsWebApiClient : IDynamicsWebApiClient
                         $"Operation '{operationId}' timed out while reading the response.");
                 }
 
+                // ApprovedWebApiRoot 是設定檔世代內部的 outbound 路由與 SSRF 防護資料，唯一 owner 是
+                // Dynamics Web API runtime；產品只需要 operation ID、CE 版本與受控作業資料。這裡不得把
+                // hostname 或 /api/data/ 路徑放入可序列化結果，否則 Gateway 會原樣跨信任邊界回傳。
+                // 移除輸出欄位不改變前面已完成的 URI allowlist、取消、重試與 response Dispose 順序，
+                // 同時減少每次成功回應的一個字串配置與 JSON 傳輸成本。
                 return OperationExecutionResult.Success(new
                 {
                     operationId,
                     ceVersion = approvedRoot.CeVersion,
-                    approvedWebApiRoot = approvedRoot.Value.ToString(),
                     data
                 });
             }

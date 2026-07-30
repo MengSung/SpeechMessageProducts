@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpeechMessage.Dynamics.WebApi.Capacity;
 
@@ -115,6 +116,43 @@ public sealed class SqlRuntimeHostSlotCoordinatorTests
                 script,
                 @"(?im)^\s*GRANT\s+|sysadmin|db_owner|GRANT\s+CONTROL")
             .Should().BeFalse("LocalDB 開發驗證不需要也不得擴張登入或資料庫權限");
+    }
+
+    /// <summary>
+    /// 驗證 Gateway 的 Development configuration 會在標準 ASP.NET Core precedence 下，把基底的網路 SQL
+    /// target 覆寫為同一 Windows 使用者擁有的固定 LocalDB instance 與專用 control-plane database。
+    /// 測試只解析 checked-in JSON 與連線字串欄位，不開啟 SQL connection、不啟動 LocalDB，也不讀取環境變數或秘密；
+    /// 主要 assertion 同時保護 durable coordinator 的實際可啟動性、整合式驗證、bounded pool/timeout，以及
+    /// Development CRM target 仍維持不可路由的 fail-closed 位址，避免本機啟動意外碰觸正式 CE 組織。
+    /// </summary>
+    [Fact]
+    public void Gateway_development_configuration_uses_dedicated_localdb_and_fail_closed_crm_target()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var gatewayRoot = Path.Combine(repositoryRoot, "SpeechMessage.Dynamics.Gateway");
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(gatewayRoot)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+            .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: false)
+            .Build();
+
+        var connectionString = configuration.GetConnectionString("DynamicsControlPlane");
+        connectionString.Should().NotBeNullOrWhiteSpace(
+            "非 Testing Gateway 必須在接流量前取得明確 durable coordinator 設定");
+
+        var connection = new SqlConnectionStringBuilder(connectionString);
+        connection.DataSource.Should().Be(@"(localdb)\MSSQLLocalDB");
+        connection.InitialCatalog.Should().Be("SpeechMessageDynamicsControlPlane");
+        connection.IntegratedSecurity.Should().BeTrue();
+        connection.UserID.Should().BeNullOrEmpty();
+        connection.Password.Should().BeNullOrEmpty();
+        connection.Pooling.Should().BeTrue();
+        connection.MaxPoolSize.Should().BeInRange(1, 32);
+        connection.ConnectTimeout.Should().BeInRange(1, 5);
+        connection.ApplicationName.Should().Be("SpeechMessage.Dynamics.Gateway.Development");
+
+        configuration["DynamicsProfiles:Profiles:crm82:OrganizationWebApiBaseUri"]
+            .Should().Be("https://dynamics-local.invalid/api/data/v8.2/");
     }
 
     /// <summary>

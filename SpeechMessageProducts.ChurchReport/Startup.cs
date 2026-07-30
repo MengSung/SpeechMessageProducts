@@ -274,7 +274,13 @@ namespace ChurchReport
             // ========================================
             // 減少字串處理時的記憶體分配
             services.AddSingleton<ChurchReport.Services.Performance.IStringBuilderPool, ChurchReport.Services.Performance.StringBuilderPool>();
+
+            // Dynamics provider／executor／HttpClient handler generation 由主 DI singleton 唯一擁有；
+            // lifecycle 先發佈舊 static facade 再由 preflight 借用同一 executor，確保不建立第二個 HttpClient pool。
+            // Generic Host 會依註冊反序停止：preflight 先停止、lifecycle 再撤銷 facade 並等待 provider cleanup。
+            services.AddSingleton<ChurchReport.Services.IDonationDynamicsAccessProcessHost, ChurchReport.Services.DonationDynamicsAccessProcessHost>();
             services.AddHostedService<ChurchReport.Services.DonationDynamicsAccessBootstrapLifetime>();
+            services.AddHostedService<ChurchReport.Services.DynamicsGatewayPreflightHostedService>();
 
 #if DEBUG
             // ========================================
@@ -640,6 +646,11 @@ namespace ChurchReport
             // ========================================
             // 註冊為 Scoped，確保每個請求有獨立的記憶體上下文
             // 避免靜態依賴，提升可測試性和可維護性
+            // DonationPaymentManager 的 cache generation／request lease／drain 必須由主 DI singleton 唯一擁有。
+            // 多數 legacy Controller 雖仍手動建立 InMemoryDataContext，但會從目前 RequestServices 取得此同一實例；
+            // host shutdown 時 DI 先停止新 acquire，再讓既有 lease 歸還後完成 Manager、LINE client 與 Semaphore cleanup。
+            // 不提供 static fallback，避免第二套 owner 脫離 host disposal 而長期保留 Session 資源圖。
+            services.AddSingleton<ChurchReport.Services.Caching.SessionScopedResourceDisposalCoordinator<ChurchReport.Models.DonationPaymentManager>>();
             services.AddScoped<ChurchReport.Models.IInMemoryDataContext, ChurchReport.Models.InMemoryDataContextSmallGroup>();
 
             // ========================================

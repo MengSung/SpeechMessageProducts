@@ -127,9 +127,9 @@ public sealed class GatewayKestrelNegotiateTests
             useKestrel: true,
             configurationOverrides: new Dictionary<string, string?>
             {
-                ["DynamicsGateway:WorkloadBindings:1:WindowsSid"] =
+                ["DynamicsGateway:WorkloadBindingSets:Local:0:WindowsSid"] =
                     "S-1-5-21-3356955407-2337739315-1638624769-501",
-                ["DynamicsGateway:WorkloadBindings:1:PrincipalName"] =
+                ["DynamicsGateway:WorkloadBindingSets:Local:0:PrincipalName"] =
                     @"LENOVO-LEGION\UnmappedAdministrator"
             });
         using var serverStarter = factory.CreateClient(

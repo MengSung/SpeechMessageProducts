@@ -5,8 +5,8 @@
     "complexity":  "L+",
     "risk":  "high",
     "domain":  "integration",
-    "currentPhase":  "implementation",
-    "nextAction":  "Execute docs/superpowers/plans/2026-07-29-local-gateway-security-foundation.md with TDD and CCG worker ownership: Gateway Negotiate and exact workload/alias/operation authorization, hard HTTP/canonical queue byte bounds, CRM endpoint redaction, and explicit LocalDB durable coordinator proof. All added code requires substantive Traditional Chinese documentation and UTF-8 without BOM plus CRLF.",
+    "currentPhase":  "analysis",
+    "nextAction":  "Analyze and remove the Phase 4 plaintext local ADFS token persistence, tracked token-store backup, unsanitized diagnostic artifact, and OAuth state-lifecycle defects before any interactive ADFS browser validation. Keep Package01FeeReadsEnabled=false and retain Embedded, Data8, and PowerPlatform.Dataverse.Client.",
     "createdAt":  "2026-07-23T00:00:00Z",
     "branch":  "1.0.0.3.Gateway&Embedded.Worktree"
 }

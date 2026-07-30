@@ -80,7 +80,17 @@ public sealed class GatewayReadinessTests
                 {
                     ["DynamicsWebApi:OrganizationWebApiBaseUri"] = "https://crm.example.test/api/data/v9.1/",
                     ["DynamicsWebApi:CeVersion"] = "9.1",
-                    ["DynamicsWebApi:Admission:ExpectedOrganizationId"] = "11111111-1111-1111-1111-111111111111"
+                    ["DynamicsWebApi:Admission:ExpectedOrganizationId"] = "11111111-1111-1111-1111-111111111111",
+                    // Readiness route 不需 workload authorization，但 startup validator 仍必須驗證一個隔離、非空的 Testing set；
+                    // reserved principal 不會由任何 handler 建立，也不接觸 executor、admission、secret 或外部 socket。
+                    ["DynamicsGateway:ActiveWorkloadBindingSet"] = "Testing",
+                    ["DynamicsGateway:WorkloadBindingSets:Testing:0:PrincipalName"] =
+                        @"SPEECHMESSAGE\ReadinessBaseline$",
+                    ["DynamicsGateway:WorkloadBindingSets:Testing:0:WorkloadSubjectId"] =
+                        "readiness-baseline-service",
+                    ["DynamicsGateway:WorkloadBindingSets:Testing:0:ProfileAliases:0"] = "crm82",
+                    ["DynamicsGateway:WorkloadBindingSets:Testing:0:CapabilityOperationIds:0"] =
+                        "runtime.health.whoami"
                 }));
             builder.ConfigureTestServices(services =>
             {

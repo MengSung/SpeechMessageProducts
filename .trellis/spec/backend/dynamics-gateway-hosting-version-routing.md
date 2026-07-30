@@ -45,6 +45,10 @@ Authorization: <authenticated product workload>
 Content-Type: application/json
 ```
 
+Operation endpoint 是封閉的 JSON-only 契約：只接受不分大小寫的 `application/json`，可省略參數，
+或只宣告一個 `charset=utf-8`／`charset=UTF-8`。缺少 Content-Type、無法解析的 header、
+`application/*+json`、未知或重複參數，以及非 UTF-8 charset 全部回傳 `415 Unsupported Media Type`。
+
 ```json
 {
   "idempotencyKey": "optional-bounded-key",
@@ -109,8 +113,19 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 
 - Products know `ExecutionMode`, `ProfileAlias`, Gateway endpoint, API prefix, and typed operation parameters only.
 - Product JSON must not contain a CRM organization-service URL, raw CRM Web API URL, username, password, client secret, access token, refresh token, certificate private key, SDK DLL path, or transport kind.
+- Gateway-owned success envelopes must not serialize `ApprovedWebApiRoot`, CRM hostname, `/api/data/` base path, credential, token, or other internal routing metadata. The validated root remains owned by the profile runtime and is used only for outbound URI allowlisting and server-side paging validation.
+- Raw upstream OData annotations that can contain absolute CRM URLs, including `@odata.context` and `@odata.nextLink`, are not automatically product-safe. Before a production operation can return them, the connector must project them into a typed product contract or consume a validated nextLink server-side without exposing the absolute URL.
 - The same ProductClient and REST contract are used for Central and Local Gateway deployments.
 - Changing between Central and Local requires configuration replacement plus restart/replace-and-drain. It is not a request-time switch.
+
+### Gateway request Content-Type boundary
+
+- Authentication 與 server-owned principal→workload→alias→operation authorization 必須先完成；未授權 caller 固定取得 401/403，不得利用 Content-Type 探測 body contract。
+- 已授權要求必須在任何 request-body I/O、`ArrayPool<byte>.Rent`、JSON parser 或 executor request 建立之前驗證 Content-Type。
+- 唯一核准的媒體型別是 `application/json`；比較不分大小寫。可省略參數，或只宣告一個值為 UTF-8 的 `charset`。
+- `application/*+json` 不在目前契約內。未來若有 vendor media type 需求，必須以明確 allowlist、契約測試與版本化 API 變更另行審查，不得因為 suffix 是 `+json` 就自動接受。
+- 415 response 只包含固定 status，不得回顯 caller-controlled Content-Type、body、principal、credential、token 或 session。
+- Header validator 必須是無 I/O、無共享 mutable state 的 bounded 操作；不得建立 stream、buffer、timer、subscription、cache、cancellation registration 或 background work。
 
 ### Central Gateway ownership
 
@@ -167,11 +182,12 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 
 ### Source documentation and text encoding
 
-- Every newly added production or test C# type must contain detailed Traditional Chinese XML documentation that explains its responsibility, trust boundary, ownership model, lifecycle, concurrency behavior, failure behavior, and the reason the type exists.
-- Every newly added public or internal method that performs routing, admission, authentication, generation replacement, cancellation, draining, disposal, worker control, or resource ownership must contain detailed Traditional Chinese XML documentation. Non-obvious branches and ordering constraints require nearby Traditional Chinese implementation comments that explain why the order is safety-critical.
-- Comments must explain design intent and invariants rather than merely translate the syntax. In particular, they must identify the unique owner and deterministic cleanup path for clients, handlers, streams, timers, cancellation registrations, semaphores, background tasks, admission permits, runtime leases, and worker processes.
-- Newly added or modified source, configuration, test, script, and documentation files are stored as UTF-8. The repository `.editorconfig` is authoritative and currently requires UTF-8 without BOM plus CRLF for these file types.
-- A missing or superficial comment on a new lifecycle/concurrency/security boundary, invalid UTF-8, or mixed encoding is a verification failure and blocks review completion.
+- Every newly added or substantively modified Production, Test, Tool, or Script type and file must contain complete, in-depth, maintainable Traditional Chinese documentation. C# uses XML documentation; PowerShell uses comment-based help plus nearby Traditional Chinese block comments where Windows PowerShell 5.1 parsing makes single-line comments unsafe.
+- Every newly added or substantively modified public or internal method and lifecycle member that performs routing, admission, authentication, generation replacement, cancellation, timeout handling, rollback, draining, disposal, worker control, or resource ownership must contain detailed Traditional Chinese documentation. Non-obvious branches and ordering constraints require nearby Traditional Chinese implementation comments that explain why the order is safety-critical.
+- Comments must explain responsibility, trust boundary, the unique owner, concurrency invariants, fail-closed behavior, cancellation and timeout propagation, rollback/drain/dispose/cleanup ordering, and performance/memory trade-offs rather than merely translate the syntax or rely only on `<inheritdoc />`.
+- The documentation must identify the deterministic cleanup path for clients, handlers, streams, timers, cancellation registrations, semaphores, background tasks, admission permits, runtime leases, worker processes, and every other retained or disposable resource. Missing ownership or cleanup documentation is treated as a possible resource-leak defect, not as a cosmetic documentation issue.
+- Newly added or modified source, configuration, test, script, SPEC, and documentation files are stored as UTF-8. The repository `.editorconfig` is authoritative and currently requires UTF-8 without BOM, CRLF-only line endings, and a final CRLF for these file types.
+- A missing, superficial, or behavior-inconsistent Traditional Chinese comment on a lifecycle/concurrency/security boundary, invalid UTF-8, a BOM where forbidden, mixed line endings, or a missing final CRLF is a verification failure and blocks review completion.
 
 ## 4. Validation & Error Matrix
 
@@ -180,7 +196,12 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 | `ExecutionMode` is `CentralGateway` or `LocalGateway` with the current enum | Startup validation fails. Use `Gateway` and select the deployment by endpoint. |
 | `ExecutionMode=Gateway` without `ProfileAlias` or absolute HTTPS `Gateway.Endpoint` | Startup fails closed. No outbound CRM traffic. |
 | Product JSON contains CRM credentials, token, raw CRM URL, or SDK path | Configuration is rejected and secret scanning fails the build/release gate. |
+| Gateway-owned success payload includes `ApprovedWebApiRoot`, CRM hostname, or `/api/data/` base path | Review and release fail. Remove the internal routing metadata while preserving the runtime-owned URI allowlist. |
+| Upstream OData payload contains an absolute `@odata.context` or `@odata.nextLink` intended for a product response | Project or consume it server-side through a typed contract; do not pass the absolute CRM URL through by default. |
 | Product requests an unknown or unauthorized alias/operation | Reject before profile resolution or outbound Dynamics traffic. |
+| Authenticated but unauthorized request uses an invalid Content-Type | Return 403 before media-type validation and before body read. |
+| Authorized operation request omits Content-Type or uses a non-approved media type/parameter/charset | Return 415 before request-body I/O, pooled-buffer rent, JSON parsing, executor invocation, or outbound Dynamics traffic. |
+| Authorized operation request uses case-insensitive `application/json` with no parameters or one UTF-8 charset | Continue to the existing bounded byte/JSON validation path. |
 | CE 8.2 profile selects `WebApi` without successful ADFS OAuth and operation evidence | Profile remains NotReady. No silent Data8 fallback. |
 | CE 9.1 profile selects `ServiceClient` without a supported target authentication proof | Profile remains NotReady. |
 | Data8 is loaded as an unbounded long-lived Gateway pool client without deterministic disposal proof | Release blocker. Isolate it in a recyclable worker or fix lifecycle ownership first. |
@@ -199,11 +220,13 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 - Ten products use the same ProductClient. Production points to the Central Gateway endpoint; ChurchReport development points to localhost. Both send the same operation request and receive the same result contract.
 - `crm82` uses a temporary isolated Data8 worker while `crm91` uses Web API v9.1. Their clients, credentials, token/WCF state, and pools are separate, while aggregate organization admission is enforced by physical organization identity.
 - A future `crm82` profile generation changes from `TemporaryData8LegacyWorker` to `OfficialLegacyWorker` only after real-server validation. The old generation drains and is disposed before removal.
+- An authorized caller sends `Content-Type: application/json; charset=UTF-8`; Gateway validates the header before renting a body buffer, then applies the configured byte/depth/member limits.
 
 ### Base
 
 - Only Central Gateway is deployed in production. Local Gateway is used by a developer with non-production secret references. Embedded remains compiled but unused.
 - CE 8.2 continues through the current SOAP route while the ADFS OAuth proof is incomplete. This is an explicit temporary state with an owner and removal gate.
+- An unauthorized caller sends `Content-Type: text/plain`; Gateway returns 403 without reading the stream, so media-type behavior does not become an authorization oracle.
 
 ### Bad
 
@@ -212,6 +235,7 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 - One singleton pool contains clients for CE 8.2 and CE 9.1 or for multiple credentials/organizations.
 - Each Local Gateway assumes its local maximum is independent and collectively overloads the same Dynamics organization.
 - A Local Gateway reads production credentials directly from product-owned JSON.
+- Gateway accepts `text/plain` or arbitrary `application/*+json` merely because the body happens to parse as JSON, or reads the body before deciding to return 415.
 
 ## 6. Tests Required
 
@@ -221,7 +245,13 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 - Assert only `Gateway` and `Embedded` are accepted `DynamicsExecutionMode` values.
 - Assert `Gateway` requires a non-empty `ProfileAlias`, absolute HTTPS endpoint, and bounded API prefix.
 - Assert product configuration rejects secrets, raw CRM URLs, authorization headers, and transport selection.
+- Assert a successful operation envelope preserves only the approved product fields and does not add `ApprovedWebApiRoot`, CRM hostname, or `/api/data/` routing metadata.
+- Assert absolute OData context/nextLink annotations are either removed/projected from product payloads or validated and consumed only by the server-side paging implementation.
 - Assert unknown/unauthorized aliases and operation IDs fail before outbound transport invocation.
+- Assert missing Content-Type, `text/plain`, `application/*+json`, unknown/repeated parameters, and non-UTF-8 charset return 415 with zero body reads and zero executor calls.
+- Assert unauthorized/unmapped caller with an invalid Content-Type still returns 403 with zero body reads, proving authorization precedes media-type validation.
+- Assert `application/json` comparison is case-insensitive and accepts either no parameter or exactly one UTF-8 charset parameter.
+- Assert 415 paths do not rent or return pooled body buffers because ownership never begins, and do not dispose the ASP.NET Core-owned request stream.
 
 ### Isolation and capacity
 
@@ -252,9 +282,9 @@ The transport kind is fixed for one immutable profile generation. It cannot swit
 
 ### Documentation and encoding gates
 
-- Enumerate every newly added C# type and every new routing/admission/authentication/lifecycle method; assert each has substantive Traditional Chinese XML documentation and that critical ordering branches have explanatory Traditional Chinese comments.
-- Decode every added or modified source/config/test/script/document file with a strict UTF-8 decoder; fail on invalid byte sequences.
-- Verify `.editorconfig` still applies `charset = utf-8` to the changed file types and run `git diff --check` to reject whitespace/line-ending damage.
+- Enumerate every newly added or substantively modified Production/Test/Tool/Script file, type, method, and lifecycle member. Assert that C# uses substantive Traditional Chinese XML documentation, PowerShell uses comment-based help, and critical ordering branches contain explanatory Traditional Chinese comments covering ownership and failure consequences.
+- Decode every added or modified source/config/test/script/SPEC/document file with a strict UTF-8 decoder; fail on invalid byte sequences, UTF-8 BOM, bare LF, bare CR, a missing final CRLF, or Unicode replacement characters.
+- Verify `.editorconfig` still applies `charset = utf-8` and CRLF to the changed file types, run the changed-program Traditional Chinese comment audit, and run `git diff --check` to reject whitespace or line-ending damage.
 
 ## 7. Wrong vs Correct
 
@@ -335,6 +365,32 @@ await runtime.DrainAndDisposeAsync(cancellationToken);
 ```
 
 The comment records the safety contract that future maintainers must preserve, and the containing method/type also carries complete Traditional Chinese XML documentation.
+
+### Wrong: parse JSON regardless of the declared media type
+
+```csharp
+var body = await JsonDocument.ParseAsync(request.Body, cancellationToken: cancellationToken);
+```
+
+This accepts caller-controlled non-JSON media types, begins stream/buffer ownership before the HTTP contract is validated, and can expose different body-parser behavior before the intended boundary.
+
+### Correct: authorize first, then validate Content-Type before body I/O
+
+```csharp
+var authorization = operationAuthorizer.Authorize(httpContext.User, alias, operationId);
+if (!authorization.Succeeded)
+{
+    return Results.Forbid();
+}
+
+var bodyRead = await bodyReader.ReadAsync(httpContext.Request, cancellationToken);
+if (bodyRead.Status == GatewayOperationRequestBodyReadStatus.UnsupportedMediaType)
+{
+    return Results.StatusCode(StatusCodes.Status415UnsupportedMediaType);
+}
+```
+
+The reader performs the strict JSON-only header check before `Request.Body.ReadAsync` or `ArrayPool<byte>.Rent`; therefore unauthorized callers still receive 403, while authorized invalid media types fail with 415 without acquiring body-lifecycle resources.
 
 ## Scenario: Multi-Profile Runtime Admission, Publication, and Rollback
 
@@ -466,6 +522,325 @@ finally
     }
 }
 ```
+
+## Scenario: ChurchReport Session-Owned Donation Resource Lifecycle
+
+### 1. Scope / Trigger
+
+This scenario applies when ChurchReport creates or reuses `DonationPaymentManager` from ASP.NET Session state, when logout/re-login resets identity, when `IMemoryCache` evicts a generation, or when the ChurchReport host stops. It also applies when Local Gateway preflight is enabled from the ChurchReport primary DI container.
+
+### 2. Signatures
+
+```csharp
+SessionScopedResourceLease<TResource> AcquireForSessionRequest(
+    HttpContext httpContext,
+    ISession session,
+    Func<TResource> factory,
+    TimeSpan absoluteExpiration,
+    TimeSpan slidingExpiration);
+
+bool DrainSessionResourceScope(ISession session);
+
+int ActiveEntryCount { get; }
+int OutstandingLeaseCount { get; }
+int CleanupFailureCount { get; }
+```
+
+ChurchReport obtains `DonationPaymentManager` only through `InMemoryDataContextSmallGroup.DonationPaymentManager`. The context must call `AcquireForSessionRequest`; it must not separately read the scope and later call `AcquireForRequest`.
+
+### 3. Contracts
+
+- The Session stores one random 256-bit Base64Url scope. The scope is not a Session ID, user ID, LINE ID, account, token, credential, endpoint, or pool key.
+- Scope creation, scope lookup, generation publication, and request-lease publication use the same bounded stripe as `DrainSessionResourceScope`. Once logout/re-login acquires that stripe, an earlier request cannot later publish a generation under the retired scope.
+- A cache entry owns visibility; a request lease owns in-flight use. Eviction or identity reset removes visibility first. The last lease return becomes the unique cleanup owner.
+- Cache invalidation detected before the framework eviction callback completes must remove the stale slot and restart acquisition on a newly registered slot. Publishing on a removed slot is forbidden.
+- A no-slot drain is a linearized no-op. It must not call `IMemoryCache.Remove`, because a later generation may already have been published after the no-slot observation.
+- `DonationPaymentManager` disposes only its self-created LINE client and semaphore. Factory/DI-owned CRM utilities and workflows remain owned by their original containers.
+- If resource cleanup throws, the entry remains strongly owned in `CleanupFailed`, `ActiveEntryCount` does not decrease, and `CleanupFailureCount` increases. A later serialized host `Dispose` may retry that exact entry. Active reaches zero only after cleanup succeeds.
+- ChurchReport legacy controllers may construct `InMemoryDataContextSmallGroup` manually. Therefore the approved lease-return contract is response `OnCompleted` plus `RegisterForDispose`, both targeting one idempotent lease. The context itself is not the authoritative lease owner and must not release a request-shared lease early.
+- `DynamicsGatewayPreflightHostedService` executes bounded `runtime.health.whoami` only when `DynamicsAccess:Package01FeeReadsEnabled=true` and mode is `Gateway`. Disabled and Embedded paths are strict no-ops. The process host is a primary-DI singleton and owns the only ProductClient provider/HTTP generation.
+- Other legacy `InMemoryDataContextSmallGroup` Session cache properties currently hold data managers that do not implement `IDisposable`; several managers reference the same process-wide `ToolUtilityFactory` singleton. Their eviction callbacks must not dispose `subValue` or the shared `ToolUtilityClass`, because that would allow one Session eviction to invalidate CRM state used by other Sessions.
+- The process-wide legacy `ToolUtilityFactory` currently has only an internal test reset and no proven Production host-shutdown owner. This is a pre-existing Phase 6 lifecycle/removal blocker: either retire the singleton behind Gateway or add one host-owned deterministic cleanup path before final release. Session cache modernization must not pretend to solve that process owner by disposing shared dependencies from an eviction callback.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Scope is not 43-character Base64Url | Fail before factory, Session clear, cache publication, or logging identity data. |
+| Logout sees no slot while a later request publishes | Logout no-op does not remove the later cache generation. Session-bound acquisition prevents earlier requests from publishing after identity reset linearizes. |
+| Cache value is gone but callback is delayed | Old entry enters Draining; acquisition restarts from `_slots.GetOrAdd`; no orphan generation is published. |
+| Host stop begins after factory returns but before cache publication | Reject publication, place the created resource into the normal cleanup state machine, and retain failed cleanup for retry. |
+| Resource `Dispose` fails | Propagate or trace the failure according to caller context, keep Active nonzero, retain the exact entry, and retry only through a serialized cleanup owner. |
+| Main-DI coordinator is missing | Fail closed before constructing Donation manager/LINE/CRM resources. No static or `ConditionalWeakTable` fallback. |
+| Gateway feature flag is false | Do not bind/resolve executor, create provider/HTTP resources, or send preflight traffic. |
+| Gateway WhoAmI fails or times out | Block host readiness with a sanitized exception; do not fall back to Embedded, Central Gateway, Data8, or another profile. |
+| A legacy Session cache entry referencing shared `ToolUtilityClass` is evicted | Drop only the Session-owned wrapper/data reference. Do not dispose the process-wide singleton from the callback. |
+| Host stops while the legacy `ToolUtilityFactory` singleton is initialized | Final Phase 6 readiness must prove one process owner deterministically disposes or removes that shared CRM/file/trace graph; finalizer/process exit alone is insufficient. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: a request holds a Donation lease, logout removes the opaque scope and drains visibility, the request completes, and only the final lease return disposes the manager.
+- Good: cleanup fails once, Active remains one, and a later host drain retries the same resource successfully before Active becomes zero.
+- Base: a legacy controller manually creates a context; response completion returns the request lease even though scoped DI disposal never runs.
+- Bad: read the scope, release the identity-reset lock, then publish the resource. Logout can complete in the gap and the old scope can reappear.
+- Bad: decrement Active in a `finally` even when `resource.Dispose()` throws. This produces a false clean baseline and loses deterministic ownership.
+- Bad: create a fallback coordinator outside the primary DI container. Host shutdown cannot prove that its cache entries and callbacks were drained.
+- Bad: change every legacy eviction callback to `(subValue as IDisposable)?.Dispose()`. Some cached managers reference the same process-wide ToolUtility singleton, so one Session could break every other Session.
+- Base debt: legacy cache `Get`-then-`Set` may duplicate short-lived wrapper/data creation under concurrency, but the entries are bounded by Session-key expiry and do not create a distinct ToolUtility connection graph. Migrate them only with explicit ownership tests.
+
+### 6. Tests Required
+
+- Race a no-slot drain with a later cache publication and assert factory count stays one.
+- Remove cache visibility while delaying eviction callbacks; assert the next two acquisitions share generation two and no generation three is created.
+- Hold the Session-bound factory, start identity reset, and assert reset cannot complete until generation/lease publication finishes.
+- Inject cleanup failure on final lease return; assert Active remains one, failure count increments, and later host drain retries the same resource.
+- Stop the host after factory creation but before publication; assert failed pre-publication cleanup remains owned and retryable.
+- Execute the real `Logout` action and real re-login initialization method; assert both call drain before `Session.Clear`, preserve in-flight leases, and return to baseline.
+- Run the full ChurchReport tests, Dynamics non-live tests, Release solution build, scoped format verification, UTF-8/no-BOM/CRLF/final-CRLF gate, `git diff --check`, and added-line sensitive-data scan.
+- Before migrating another legacy Session cache property, assert whether its value owns disposable resources or only references a process/DI-owned dependency. Cover concurrent first access, eviction, logout, and host stop without cross-Session use-after-dispose.
+- Before Phase 6 completion, add a Production host-shutdown assertion proving the legacy ToolUtility singleton is deterministically disposed exactly once, or prove the singleton and its direct product references have been removed.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```csharp
+var scope = coordinator.GetOrCreateResourceScopeId(session);
+// Logout can clear the Session here.
+return coordinator.AcquireForRequest(httpContext, scope, factory, absolute, sliding);
+```
+
+```csharp
+try
+{
+    resource.Dispose();
+}
+finally
+{
+    Interlocked.Decrement(ref _activeEntryCount);
+}
+```
+
+#### Correct
+
+```csharp
+return coordinator.AcquireForSessionRequest(
+    httpContext,
+    session,
+    factory,
+    absolute,
+    sliding);
+```
+
+```csharp
+try
+{
+    resource.Dispose();
+    MarkDisposedAndDecrementActive();
+}
+catch
+{
+    RetainFailedCleanupOwner();
+    throw;
+}
+```
+
+```csharp
+// Legacy Session cache eviction may release only Session-owned wrapper/data state.
+// It must not Dispose ToolUtilityFactory.GetInstance(), which is shared across Sessions.
+RemoveSessionOwnedReferenceOnly();
+
+// The separate process/host owner must retire or deterministically dispose the shared legacy graph.
+await processLifetimeOwner.DisposeSharedLegacyRuntimeAsync().ConfigureAwait(false);
+```
+
+## Scenario: Local Gateway Development Configuration And Safe Runtime Verification
+
+### 1. Scope / Trigger
+
+This scenario applies when Visual Studio starts `SpeechMessage.Dynamics.Gateway` and ChurchReport under the `Development` environment. It defines the fail-closed Local Gateway configuration, durable single-machine control-plane ownership, product-to-Gateway boundary, browser smoke evidence, and the exact limit of what that evidence proves. It does not authorize real CE traffic or Phase 5 consumer migration.
+
+### 2. Signatures
+
+```text
+SpeechMessage.Dynamics.Gateway/appsettings.Development.json
+  ConnectionStrings:DynamicsControlPlane
+  DynamicsGateway:Profiles[*]:ApprovedWebApiRoot
+  DynamicsGateway:ActiveWorkloadBindingSet = Local
+  DynamicsGateway:WorkloadBindingSets:Local[*]
+
+SpeechMessage.Dynamics.Gateway/appsettings.json
+  DynamicsGateway:ActiveWorkloadBindingSet = Central
+  DynamicsGateway:WorkloadBindingSets:Central[*]
+
+SpeechMessageProducts.ChurchReport/appsettings.Development.json
+  DynamicsAccess:ExecutionMode
+  DynamicsAccess:ProfileAlias
+  DynamicsAccess:CeVersion
+  DynamicsAccess:Gateway:Endpoint
+  DynamicsAccess:Gateway:ApiPrefix
+  DynamicsAccess:Package01FeeReadsEnabled
+
+GET /health
+GET /ready
+POST /v1/{profileAlias}/operations/{operationId}
+```
+
+### 3. Contracts
+
+- Development Gateway durable coordination uses the explicitly provisioned same-Windows-user LocalDB instance and a dedicated `SpeechMessageDynamicsControlPlane` database. The connection uses integrated authentication, bounded pool size, and bounded connect timeout. Gateway startup validates the schema; it does not connect to Dynamics native SQL, auto-create the database, or fall back to in-memory coordination.
+- The checked-in Development CRM target remains deliberately non-routable. A permitted operation against it must fail in a controlled, sanitized way without falling back to Central Gateway, Embedded, Data8, another alias, or a production endpoint.
+- ChurchReport Development uses `ExecutionMode=Gateway`, `ProfileAlias=crm82`, `CeVersion=8.2`, HTTPS loopback, and API prefix `/v1`. `Package01FeeReadsEnabled=false` remains the authoritative consumer-traffic gate.
+- Feature-disabled ChurchReport startup must not create ProductClient, HTTP handler/pool, token cache, timer, or Dynamics preflight/operation traffic. Development configuration alignment alone does not enable Package 1.
+- Local Gateway authentication uses server-established Windows Negotiate identity plus server-owned workload bindings. Client JSON and spoofable headers never select principal, workload, alias permission, or operation permission.
+- A syntactically valid authenticated Windows SID is authoritative. When it is present, authorization performs only the SID lookup; an unmapped SID fails closed and must not fall back to a matching principal name. Exact principal-name fallback is allowed only when the authenticated principal has no usable SID at all. This prevents a newly created account with the same name but a different SID from inheriting the retired account's workload permissions.
+- `DynamicsGateway:ActiveWorkloadBindingSet` is the deployment-owned selector and is mandatory. The authorizer enumerates direct children under `DynamicsGateway:WorkloadBindingSets`, resolves exactly one case-insensitive matching set, and materializes only that set. It must not concatenate the selector into a configuration path or enumerate all sets.
+- Central, Local, and Testing binding sets may coexist in the merged configuration because they are separate named subtrees. `appsettings.Development.json` changes only the selector to `Local`; therefore .NET configuration's numeric-array and nested-leaf merge behavior cannot import a Central principal or Central operation into the Local frozen authorization snapshot.
+- An empty, whitespace, wildcard, unknown, ambiguous, scalar-only, or childless active set is a startup failure before the listener, secret resolution, admission, executor, or outbound transport. There is no fallback to `Central`, the first set, the base provider, or the union of all sets.
+- The retired `Invoke-AdfsTokenProbe.ps1` is a fixed fail-closed compatibility entrypoint. It accepts no credential/token/result parameters, reads no appsettings, performs no network or file output, and directs operators to the existing Public Client authorization-code diagnostic flow.
+- Runtime verification artifacts may record HTTP status categories, test counts, readiness state, JavaScript error count, and sanitized policy outcomes. They must not persist credentials, tokens, passwords, Session identifiers, client identifiers, callback values, private VM addresses, complete AD FS/CRM endpoints, or secret-reference values.
+- Raw workload-binding arrays at one shared configuration path are forbidden. .NET configuration merges arrays and nested lists by numeric leaf key; changing index `1` to `0` can still retain base `CapabilityOperationIds:1..N`. Named sets plus one strict selector are the required replacement boundary.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| LocalDB schema/database is absent or inaccessible | `/ready` remains unavailable; no in-memory or Dynamics-SQL fallback. |
+| Anonymous request reaches `/v1` | Return 401 before body parsing, CRM work, token acquisition, or queue allocation. |
+| Authenticated principal has no workload binding | Return 403 without alias/operation execution. |
+| Authenticated principal supplies a valid SID that has no binding, while its principal name matches a configured binding | Return 403 `unmapped-principal`; do not fall back to the name and do not create executor, admission, secret, token, or outbound transport work. |
+| Authenticated principal has no usable SID and its exact principal name has a binding | Permit the existing name-compatibility path, subject to the same alias and operation allowlists. |
+| Workload requests an unbound alias or unauthorized operation | Return 403 before connector/token/transport work. |
+| Authorized operation reaches the non-routable Development CRM target | Return controlled sanitized 4xx; do not fall back to any other transport or endpoint. |
+| `Package01FeeReadsEnabled=false` | ChurchReport root may run, but no Package 1 Dynamics traffic or preflight resources are created. |
+| Retired AD FS probe is invoked | Fail immediately with fixed guidance; allocate no network, file, timer, background, credential, or token resource. |
+| `ActiveWorkloadBindingSet` is missing, blank, contains wildcard text, names no direct child set, names a scalar/empty set, or is otherwise ambiguous | Host startup fails closed; do not start the listener or fall back to another set. |
+| A Central principal authenticates against a Development Host whose selector is `Local` | Return 403 `unmapped-principal`; do not resolve an alias, operation, secret, admission permit, executor request, or outbound connection. |
+
+### 5. Good / Base / Bad Cases
+
+- Good: Gateway `/health` and durable `/ready` return 200, anonymous `/v1` returns 401, the current Windows workload catalog is authorized, wrong alias and unauthorized operation return 403, and the sole allowed operation fails against the non-routable target with a sanitized controlled response.
+- Good: ChurchReport and Local Gateway run concurrently; the ChurchReport login page reaches `readyState=complete`, JavaScript error count is zero, and both processes stop with their listeners released.
+- Good: Base and Development JSON both remain loaded, but `ActiveWorkloadBindingSet=Local` causes the authorizer to materialize only `WorkloadBindingSets:Local`; a Central principal and every Central-only data operation remain unavailable.
+- Good: a principal presents SID-B and name X while only SID-A/name X was previously authorized; SID-B is unmapped, so the request receives 403 and cannot inherit the old workload by name.
+- Base: Central, Local, and Testing sets coexist as deployment data, while exactly one selector is active for one Host generation. Changing the selector requires configuration replacement plus Host restart/replace-and-drain; it is never a request-time switch.
+- Base: a legacy authenticated principal has no usable SID claim but has an exact configured principal name; name fallback remains available without wildcard, prefix, substring, or caller-header matching.
+- Base: read-only AD FS administration proves exactly one Public Client and callback plus approved description markers without printing their actual values.
+- Bad: replace the Development CRM target with a routable production URL merely to make a smoke test green.
+- Bad: set `Package01FeeReadsEnabled=true` to force preflight evidence before real CE 8.2/9.1 and rollback gates exist.
+- Bad: define Central and Local entries under one `WorkloadBindings` array and assume a later provider replaces the collection; numeric leaf merging can preserve both entire bindings and nested operation entries.
+- Bad: a valid but unmapped SID is allowed to continue into principal-name lookup. Account-name reuse can then grant a different Windows security authority the old account's alias, operation, capacity, and audit identity.
+
+### 6. Tests Required
+
+- Configuration precedence tests assert the LocalDB instance, dedicated control-plane database, integrated authentication, bounded pool, bounded timeout, non-routable CRM target, ChurchReport Local Gateway alias/version/prefix, and Package 1 false state.
+- Load real base plus Development JSON, authenticate with the Central binding principal, and assert Local authorization returns `unmapped-principal` with zero executor/outbound work. This regression must fail against a shared `WorkloadBindings` array implementation.
+- Authenticate with a syntactically valid but unmapped SID plus a principal name that otherwise matches an authorized binding. Assert 403, `unmapped-principal`, zero executor calls, and no materialized execution request. Separately assert a principal with no usable SID still succeeds through the exact principal-name compatibility binding.
+- Assert a missing selector, leading/trailing whitespace, `*` and `?` wildcard text, an unknown name, a delimiter-bearing value such as `Local:0`, scalar-only, scalar-plus-children, and a true childless JSON set all fail Host startup. Assert exact set selection is case-insensitive. Testing factories must select an explicit nonempty `Testing` set rather than inheriting `Central`.
+- Execute the opt-in live LocalDB durable coordinator contract against the explicitly provisioned database and assert lease/fencing behavior without auto-provisioning.
+- Start the real Development Gateway and verify `/health`, `/ready`, 401 anonymous, authorized workload catalog, 403 wrong alias, 403 unauthorized operation, and controlled no-fallback connector failure.
+- Start ChurchReport and Gateway together, use a browser to assert the login page completes with zero JavaScript errors, then stop both hosts and assert both listeners are released.
+- Verify the AD FS Public Client/callback/description markers read-only without writing or printing sensitive values.
+- Parse the retired PowerShell entrypoint, assert it has no secret/result parameters or network/file code path, and verify it fails closed.
+- Run Dynamics tests, ChurchReport tests, Release solution build, changed-file format, strict UTF-8/no-BOM/CRLF/final-CRLF, `git diff --check`, and added-line sensitive-literal scans.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```json
+{
+  "DynamicsAccess": {
+    "Package01FeeReadsEnabled": true
+  }
+}
+```
+
+This couples deployment readiness to consumer migration and can move multiple ChurchReport read paths before real CE, parity, rollback, and soak evidence exists.
+
+#### Correct
+
+```json
+{
+  "DynamicsAccess": {
+    "ExecutionMode": "Gateway",
+    "ProfileAlias": "crm82",
+    "CeVersion": "8.2",
+    "Gateway": {
+      "Endpoint": "https://localhost:7244",
+      "ApiPrefix": "/v1"
+    },
+    "Package01FeeReadsEnabled": false
+  }
+}
+```
+
+This configures the Local Gateway boundary for development while keeping consumer traffic fail closed until Phase 4 and Phase 5 evidence explicitly unlock it.
+
+#### Wrong: array overlay for authorization
+
+```json
+{
+  "DynamicsGateway": {
+    "WorkloadBindings": {
+      "1": {
+        "PrincipalName": "LOCAL-PRINCIPAL",
+        "CapabilityOperationIds": ["runtime.health.whoami"]
+      }
+    }
+  }
+}
+```
+
+This appends or partially overwrites numeric leaf keys. It does not prove that base index `0` or nested operation indices were removed.
+
+#### Correct: named sets with one strict selector
+
+```json
+{
+  "DynamicsGateway": {
+    "ActiveWorkloadBindingSet": "Local",
+    "WorkloadBindingSets": {
+      "Local": [
+        {
+          "PrincipalName": "LOCAL-PRINCIPAL",
+          "WorkloadSubjectId": "local-workload",
+          "ProfileAliases": ["crm82"],
+          "CapabilityOperationIds": ["runtime.health.whoami"]
+        }
+      ]
+    }
+  }
+}
+```
+
+The Host validates the selector once, materializes only the Local subtree into frozen dictionaries, and fails startup if the selected set is invalid or empty.
+
+#### Wrong: treat an unmapped valid SID as permission to try the account name
+
+```csharp
+if (!_bindingsByWindowsSid.TryGetValue(windowsSid, out var binding))
+{
+    _bindingsByPrincipalName.TryGetValue(principal.Identity.Name, out binding);
+}
+```
+
+This changes identity authority after a SID lookup failure. A replacement account can reuse the same name while having a different SID and incorrectly inherit the previous workload binding.
+
+#### Correct: a present valid SID is the only lookup authority
+
+```csharp
+var windowsSid = TryGetAuthenticatedWindowsSid(principal);
+if (windowsSid is not null)
+{
+    _bindingsByWindowsSid.TryGetValue(windowsSid, out var sidBinding);
+    return sidBinding;
+}
+
+// Exact name compatibility is available only when the principal has no usable SID.
+```
+
+An unmapped SID returns `null`, so authorization fails before alias/operation execution. The name path remains available only for authenticated environments that genuinely provide no usable SID.
 
 ## Design Decisions
 

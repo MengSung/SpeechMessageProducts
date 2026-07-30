@@ -22,7 +22,7 @@ public sealed class GatewayWorkloadBinding
     /// 本 constructor 再複製一次，確保 configuration provider 或暫存 List 後續變更不會改寫已發布授權。
     /// </summary>
     /// <param name="windowsSid">可選的 canonical Windows SID；存在時 authorizer 優先使用。</param>
-    /// <param name="principalName">可選的完整 Windows principal name；只在沒有可用 SID mapping 時 fallback。</param>
+    /// <param name="principalName">可選的完整 Windows principal name；只在 authenticated principal 沒有可用 SID 時 fallback，不用於覆蓋未 mapping 的有效 SID。</param>
     /// <param name="workloadSubjectId">伺服器擁有的 bounded workload subject，供 admission 與稽核使用。</param>
     /// <param name="profileAliases">此 workload 可呼叫的 canonical Profile Alias 白名單。</param>
     /// <param name="capabilityOperationIds">此 workload 可呼叫的 canonical Operation ID 白名單。</param>
@@ -66,7 +66,10 @@ public sealed class GatewayWorkloadBinding
             StringComparer.OrdinalIgnoreCase);
     }
 
-    /// <summary>取得 canonical Windows SID；未設定時由完整 principal name fallback。</summary>
+    /// <summary>
+    /// 取得 canonical Windows SID；設定後它是穩定的安全主體鍵。只有 request principal 本身沒有可用 SID 時，
+    /// authorizer 才可使用同一 binding 的完整 principal name 相容路徑；有效 SID 未命中必須 fail closed。
+    /// </summary>
     public string? WindowsSid { get; }
 
     /// <summary>取得不可部分比對、不可 wildcard 的完整 authenticated principal name。</summary>

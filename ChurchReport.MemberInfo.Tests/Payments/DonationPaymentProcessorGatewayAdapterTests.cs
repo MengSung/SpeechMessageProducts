@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using ChurchReport.Models;
 using ChurchReport.Payments;
+using ChurchReport.Services.Caching;
 using ChurchReport.Tools;
 using ChurchReport.WebServiceConnector;
 using FluentAssertions;
@@ -113,23 +114,27 @@ public sealed class DonationPaymentProcessorGatewayAdapterTests
         ConstructorHasAdapter(typeof(InMemoryDataContextSmallGroup)).Should().BeTrue();
     }
 
+    /// <summary>
+    /// 驗證 legacy ContextDictionary 從同一個 request service provider 取得付款 adapter 與主 DI coordinator。
+    /// 測試 host 明確擁有並釋放 coordinator／MemoryCache，不使用 production 禁止的靜態 fallback，也不建立 LINE/CRM 資源。
+    /// </summary>
     [Fact]
     public void ContextDictionary_passes_gateway_create_adapter_from_request_services()
     {
         const string sessionId = "payment-adapter-session";
         ContextDictionary.Remove(sessionId);
         var adapter = CreateAdapter(new RecordingPaymentGateway(new PaymentCreateResult()));
+        using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+        using var coordinator = new SessionScopedResourceDisposalCoordinator<DonationPaymentManager>(memoryCache);
         var httpContext = new DefaultHttpContext
         {
             Session = new TestSession(sessionId),
-            RequestServices = new SingleServiceProvider(adapter)
+            RequestServices = new SingleServiceProvider(adapter, coordinator)
         };
         var accessor = new HttpContextAccessor
         {
             HttpContext = httpContext
         };
-        using var memoryCache = new MemoryCache(new MemoryCacheOptions());
-
         var context = ContextDictionary.GetInMemoryDataContextSmallGroup(
             accessor,
             memoryCache,
@@ -435,16 +440,33 @@ public sealed class DonationPaymentProcessorGatewayAdapterTests
     private sealed class SingleServiceProvider : IServiceProvider
     {
         private readonly IDonationPaymentCreateGatewayAdapter _adapter;
+        private readonly SessionScopedResourceDisposalCoordinator<DonationPaymentManager> _coordinator;
 
-        public SingleServiceProvider(IDonationPaymentCreateGatewayAdapter adapter)
+        /// <summary>
+        /// 建立只公開本測試所需兩個 request-scoped lookup 的最小 service provider；
+        /// adapter 與 coordinator 的真正 owner 都在測試方法，provider 本身不 Dispose 或快取其他 DI graph。
+        /// </summary>
+        public SingleServiceProvider(
+            IDonationPaymentCreateGatewayAdapter adapter,
+            SessionScopedResourceDisposalCoordinator<DonationPaymentManager> coordinator)
         {
             _adapter = adapter;
+            _coordinator = coordinator;
         }
 
+        /// <summary>
+        /// 只回傳 production 手動建構路徑允許解析的 adapter 與主 coordinator；其他服務一律回傳 null，
+        /// 確保測試不會意外從完整網站 DI 取得 Credential、HttpClient、CRM pool 或外部 workflow。
+        /// </summary>
         public object? GetService(Type serviceType)
         {
-            return serviceType == typeof(IDonationPaymentCreateGatewayAdapter)
-                ? _adapter
+            if (serviceType == typeof(IDonationPaymentCreateGatewayAdapter))
+            {
+                return _adapter;
+            }
+
+            return serviceType == typeof(SessionScopedResourceDisposalCoordinator<DonationPaymentManager>)
+                ? _coordinator
                 : null;
         }
     }

@@ -10,7 +10,8 @@
 // 5. 絕對不把 CrmConnection:Password 複製進 DynamicsAccess JSON。密碼只允許秘密參考名稱。
 // 6. 本機 VS（local-dev-manifest + SecretReference）可用「秘密名稱 -> CrmConnection 欄位」橋接，
 //    讓 Web API 使用與 legacy SOAP 相同帳密，但 DynamicsAccess 仍只存名稱不存密碼。
-// 7. Embedded bootstrap 使用 process-level 快取 ServiceProvider，避免每次新建造成 memory/socket leak。
+// 7. Gateway／Embedded bootstrap 由 ChurchReport 主 DI singleton 擁有 process-level ServiceProvider，
+//    避免每次新建造成 memory/socket leak；host shutdown 後此 owner 為 terminal，不可重建 transport generation。
 // 8. 檔案請維持 UTF-8（無 BOM），註解請寫繁體中文。
 // ============================================================================
 
@@ -38,16 +39,17 @@ using ToolUtilityNameSpace;
 namespace ChurchReport.Services
 {
     /// <summary>
-    /// DynamicsAccess 啟動組裝器：Package 1 fee-read 的第一道產品入口。
+    /// DynamicsAccess 的舊呼叫點相容 facade 與純設定綁定入口。
+    /// 此 static 類別不擁有 ServiceProvider、HttpClient、handler、timer 或 executor；真正的 process generation
+    /// 由 ChurchReport 主 DI 註冊的 <see cref="IDonationDynamicsAccessProcessHost"/> singleton 唯一持有。
+    /// hosted lifecycle 只在網站啟動期間發佈該 singleton 的非 owner 參考，讓尚未完成 DI 遷移的 manager／service
+    /// 保持編譯相容；網站停止時先撤銷 facade，再由 singleton 完成確定性 Dispose，避免跨 host 世代洩漏。
     /// </summary>
     public static class DonationDynamicsAccessBootstrap
     {
-        // Embedded bootstrap 不可每次 new ServiceProvider，否則 handler/socket/timer 容易累積。
-        // 以 ProfileAlias + WebApiRoot + CeVersion + CredentialSource 當 key，快取 process-level provider。
-        // 這不是 per-user session pool；同一個產品行程只共用一份 host runtime。
-        private static readonly DonationDynamicsAccessProcessHost ProcessHost = new();
-
-        public static ValueTask DisposeAsync() => ProcessHost.DisposeAsync();
+        // 這個欄位只是舊 static callsite 的過渡路由，不是 provider／executor owner；它只在 hosted lifecycle
+        // Start 與 Stop 間存在。使用 Interlocked 發佈可避免多 host／多測試競爭覆蓋彼此的 process generation。
+        private static IDonationDynamicsAccessProcessHost? _compatibilityProcessHost;
 
         /// <summary>
         /// 建立奉獻收費表單服務；若啟用 Package 1，會依 JSON 走 Gateway / Embedded。
@@ -79,10 +81,11 @@ namespace ChurchReport.Services
             }
 
             var productOptions = BindOptions(configuration);
+            var processHost = GetStartedProcessHost();
             IDynamicsOperationExecutor executor = productOptions.ExecutionMode switch
             {
-                DynamicsExecutionMode.Gateway => CreateGatewayExecutor(productOptions),
-                DynamicsExecutionMode.Embedded => CreateEmbeddedExecutor(productOptions, configuration),
+                DynamicsExecutionMode.Gateway => CreateGatewayExecutor(productOptions, processHost),
+                DynamicsExecutionMode.Embedded => CreateEmbeddedExecutor(productOptions, configuration, processHost),
                 _ => throw new InvalidOperationException(
                     $"Unsupported DynamicsAccess:ExecutionMode '{productOptions.ExecutionMode}'.")
             };
@@ -111,10 +114,11 @@ namespace ChurchReport.Services
             }
 
             var productOptions = BindOptions(configuration);
+            var processHost = GetStartedProcessHost();
             IDynamicsOperationExecutor executor = productOptions.ExecutionMode switch
             {
-                DynamicsExecutionMode.Gateway => CreateGatewayExecutor(productOptions),
-                DynamicsExecutionMode.Embedded => CreateEmbeddedExecutor(productOptions, configuration),
+                DynamicsExecutionMode.Gateway => CreateGatewayExecutor(productOptions, processHost),
+                DynamicsExecutionMode.Embedded => CreateEmbeddedExecutor(productOptions, configuration, processHost),
                 _ => throw new InvalidOperationException(
                     $"Unsupported DynamicsAccess:ExecutionMode '{productOptions.ExecutionMode}'.")
             };
@@ -324,7 +328,9 @@ namespace ChurchReport.Services
             }
         }
 
-        private static IDynamicsOperationExecutor CreateGatewayExecutor(ProductDynamicsOptions productOptions)
+        private static IDynamicsOperationExecutor CreateGatewayExecutor(
+            ProductDynamicsOptions productOptions,
+            IDonationDynamicsAccessProcessHost processHost)
         {
             if (productOptions.Gateway is null ||
                 string.IsNullOrWhiteSpace(productOptions.Gateway.Endpoint) ||
@@ -334,14 +340,15 @@ namespace ChurchReport.Services
                     "DynamicsAccess Gateway mode requires ProfileAlias and Gateway:Endpoint when Package01FeeReadsEnabled=true.");
             }
 
-            // 重要：必須使用 process-level 共用 HttpClient。
-            // 這是產品 -> Gateway 的連線池，不是 per-user CRM session pool。
-            return ProcessHost.GetOrCreateGatewayExecutor(productOptions);
+            // 重要：舊 facade 只能借用主 DI singleton 的 process-level executor；不得在 static 類別另建 provider。
+            // 這是產品 -> Gateway 的連線池，不是 per-user CRM session pool，亦不得保存 caller/session 身份。
+            return processHost.GetOrCreateGatewayExecutor(productOptions);
         }
 
         private static IDynamicsOperationExecutor CreateEmbeddedExecutor(
             ProductDynamicsOptions productOptions,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IDonationDynamicsAccessProcessHost processHost)
         {
             if (string.IsNullOrWhiteSpace(productOptions.ProfileAlias))
             {
@@ -371,14 +378,14 @@ namespace ChurchReport.Services
             // cache key 必須包含 auth 維度，避免 Windows / AdfsOAuth 設定互相污染。
             var localSecrets = BuildLocalDevSecretMap(configuration, productOptions);
 
-    // 舊版無界 ServiceProvider 快取已移除；此類別只保留單一 process generation，設定改變必須重啟並先 Dispose 舊世代，
-    // 防止每個要求建立新的 handler、socket pool、timer 或 token cache 而造成資源與跨設定檔狀態洩漏。
-                // 這層建立 DI 容器與 Embedded 執行器。
-                // 產品只可 reference Embedded 專案，不可直接 reference WebApi。
+            // 舊版無界 ServiceProvider 快取已移除；此類別只保留單一 process generation，設定改變必須重啟並先 Dispose 舊世代，
+            // 防止每個要求建立新的 handler、socket pool、timer 或 token cache 而造成資源與跨設定檔狀態洩漏。
+            // 這層建立 DI 容器與 Embedded 執行器。
+            // 產品只可 reference Embedded 專案，不可直接 reference WebApi。
 
-                // 本機 local-dev：把秘密名稱橋接到 CrmConnection 值（不寫進 DynamicsAccess JSON）。
+            // 本機 local-dev：把秘密名稱橋接到 CrmConnection 值（不寫進 DynamicsAccess JSON）。
 
-            return ProcessHost.GetOrCreateEmbeddedExecutor(productOptions, localSecrets);
+            return processHost.GetOrCreateEmbeddedExecutor(productOptions, localSecrets);
         }
 
         /// <summary>
@@ -444,162 +451,408 @@ namespace ChurchReport.Services
             return null;
         }
 
-        private sealed class DonationDynamicsAccessProcessHost : IAsyncDisposable
+        /// <summary>
+        /// 在 Generic Host 啟動時發佈主 DI singleton 給尚未完成建構式注入的舊呼叫點。
+        /// 發佈只允許空值或同一物件重入；若另一個 host 尚未停止，立即 fail-closed，避免兩個 provider generation
+        /// 透過 static facade 混用 endpoint、credential source、handler 或 token cache。
+        /// </summary>
+        /// <param name="processHost">由 ChurchReport 主 DI 建立並擁有的 process host。</param>
+        internal static void AttachProcessHost(IDonationDynamicsAccessProcessHost processHost)
         {
-            private readonly SemaphoreSlim _gate = new(1, 1);
-            private ServiceProvider? _provider;
-            private string? _generationKey;
-
-            public IDynamicsOperationExecutor GetOrCreateGatewayExecutor(ProductDynamicsOptions options)
+            ArgumentNullException.ThrowIfNull(processHost);
+            var current = Interlocked.CompareExchange(
+                ref _compatibilityProcessHost,
+                processHost,
+                comparand: null);
+            if (current is not null && !ReferenceEquals(current, processHost))
             {
-                var key = ComputeGenerationKey(
-                    "gateway",
-                    options.ProfileAlias,
-                    options.Gateway?.Endpoint,
-                    options.Gateway?.ApiPrefix);
-
-                return GetOrCreate(key, services =>
-                {
-                    services.AddSpeechMessageDynamicsGatewayProductClient(configured =>
-                    {
-                        configured.ExecutionMode = DynamicsExecutionMode.Gateway;
-                        configured.ProfileAlias = options.ProfileAlias;
-                        configured.Gateway = new GatewayModeOptions
-                        {
-                            Endpoint = options.Gateway!.Endpoint,
-                            ApiPrefix = options.Gateway.ApiPrefix
-                        };
-                    });
-                });
+                throw new InvalidOperationException(
+                    "A different DynamicsAccess host is already started. Stop it before starting another host.");
             }
+        }
 
-            public IDynamicsOperationExecutor GetOrCreateEmbeddedExecutor(
-                ProductDynamicsOptions options,
-                IReadOnlyDictionary<string, string> localSecrets)
-            {
-                var embedded = options.Embedded!;
-                var keyParts = new List<string?>
-                {
-                    "embedded",
-                    options.ProfileAlias,
-                    embedded.OrganizationWebApiBaseUri,
-                    embedded.CeVersion,
-                    embedded.SecretReference,
-                    embedded.ManifestOrRegistrySource,
-                    embedded.CredentialSource,
-                    embedded.UserNameSecretName,
-                    embedded.PasswordSecretName,
-                    embedded.DomainSecretName,
-                    embedded.AuthMode,
-                    embedded.AuthorityUri,
-                    embedded.ResourceUri,
-                    embedded.ClientId,
-                    embedded.ClientIdSecretName,
-                    embedded.ClientSecretName,
-                    embedded.CredentialReferenceName,
-                    embedded.AllowLocalDevPasswordGrant.ToString(),
-                    embedded.RefreshTokenSecretName,
-                    embedded.LocalDevTokenStorePath,
-                    embedded.RedirectUri
-                };
+        /// <summary>
+        /// 在關機時只撤銷與指定 singleton 完全相同的 facade 參考；不 Dispose 資源，因為 cleanup 仍由
+        /// <see cref="DonationDynamicsAccessBootstrapLifetime"/> 所持有的主 DI singleton 執行。
+        /// 精確物件比較避免舊 host 的遲到 Stop 將新 host 的相容路由清空。
+        /// </summary>
+        /// <param name="processHost">目前正在停止、且預期已被發佈的主 DI singleton。</param>
+        internal static void DetachProcessHost(IDonationDynamicsAccessProcessHost processHost)
+        {
+            ArgumentNullException.ThrowIfNull(processHost);
+            Interlocked.CompareExchange(
+                ref _compatibilityProcessHost,
+                value: null,
+                comparand: processHost);
+        }
 
-                foreach (var secret in localSecrets.OrderBy(entry => entry.Key, StringComparer.Ordinal))
-                {
-                    keyParts.Add(secret.Key);
-                    keyParts.Add(secret.Value);
-                }
-
-                var key = ComputeGenerationKey(keyParts.ToArray());
-                return GetOrCreate(key, services =>
-                    services.AddSpeechMessageDynamicsEmbedded(options, localSecrets));
-            }
-
-            public async ValueTask DisposeAsync()
-            {
-                await _gate.WaitAsync().ConfigureAwait(false);
-                try
-                {
-                    if (_provider is not null)
-                    {
-                        await _provider.DisposeAsync().ConfigureAwait(false);
-                        _provider = null;
-                        _generationKey = null;
-                    }
-                }
-                finally
-                {
-                    _gate.Release();
-                }
-            }
-
-            private IDynamicsOperationExecutor GetOrCreate(
-                string generationKey,
-                Action<IServiceCollection> configureServices)
-            {
-                _gate.Wait();
-                try
-                {
-                    if (_provider is not null)
-                    {
-                        if (!string.Equals(_generationKey, generationKey, StringComparison.Ordinal))
-                        {
-                            throw new InvalidOperationException(
-                                "DynamicsAccess process configuration changed. Restart the host to replace and drain the active generation.");
-                        }
-
-                        return _provider.GetRequiredService<IDynamicsOperationExecutor>();
-                    }
-
-                    var services = new ServiceCollection();
-                    services.AddLogging();
-                    configureServices(services);
-
-                    var provider = services.BuildServiceProvider(validateScopes: true);
-                    try
-                    {
-                        var executor = provider.GetRequiredService<IDynamicsOperationExecutor>();
-                        _provider = provider;
-                        _generationKey = generationKey;
-                        return executor;
-                    }
-                    catch
-                    {
-                        provider.Dispose();
-                        throw;
-                    }
-                }
-                finally
-                {
-                    _gate.Release();
-                }
-            }
-
-            private static string ComputeGenerationKey(params string?[] fields)
-            {
-                using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-                Span<byte> length = stackalloc byte[4];
-
-                foreach (var field in fields)
-                {
-                    var bytes = Encoding.UTF8.GetBytes(field ?? string.Empty);
-                    System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(length, bytes.Length);
-                    hash.AppendData(length);
-                    hash.AppendData(bytes);
-                    CryptographicOperations.ZeroMemory(bytes);
-                }
-
-                return Convert.ToHexString(hash.GetHashAndReset());
-            }
+        /// <summary>
+        /// 取得已由 hosted lifecycle 發佈的 process host；未啟動或關機已開始時立即 fail-closed，
+        /// 不自行建立 fallback provider，避免舊 static 呼叫在 DI ownership 邊界之外產生第二個 HTTP pool。
+        /// </summary>
+        /// <returns>由 ChurchReport 主 DI 唯一擁有的 process host。</returns>
+        /// <exception cref="InvalidOperationException">Generic Host 尚未 Start 或已開始 Stop。</exception>
+        private static IDonationDynamicsAccessProcessHost GetStartedProcessHost()
+        {
+            return Volatile.Read(ref _compatibilityProcessHost)
+                   ?? throw new InvalidOperationException(
+                       "DynamicsAccess host has not started or is already stopping.");
         }
     }
 
+    /// <summary>
+    /// ChurchReport 行程內 Dynamics executor generation 的唯一可注入擁有權邊界。
+    /// 實作必須把 Gateway／Embedded provider、HttpClient handler、timer、socket pool 與 token cache 的最長
+    /// 存活範圍限制在 Generic Host lifetime，並以單一不可變 generation 防止不同 endpoint、profile、
+    /// credential source 或 CE 版本共用 mutable transport state。此介面不接受 session／user identity，
+    /// 因此不能被誤用為跨要求的身份或租戶 cache。
+    /// </summary>
+    public interface IDonationDynamicsAccessProcessHost : IAsyncDisposable
+    {
+        /// <summary>
+        /// 在 host StartAsync 階段，以與 Dispose 共用的 lifecycle gate 發佈舊 static facade。若 disposal 已開始
+        /// 則 fail-closed，不允許已 terminal owner 被重新發佈；此方法只發佈非 owner 參考，不建立 executor。
+        /// </summary>
+        void PublishCompatibilityFacade();
+
+        /// <summary>
+        /// 在 host StopAsync 階段撤銷舊 static facade。實作必須只清除精確相同的 owner，避免遲到的舊 host
+        /// Stop 影響新的 host；此方法不 Dispose provider，cleanup 仍由 <see cref="IAsyncDisposable.DisposeAsync"/> 負責。
+        /// </summary>
+        void UnpublishCompatibilityFacade();
+
+        /// <summary>
+        /// 取得或建立目前唯一的 Gateway executor generation；相同設定重用同一 executor，設定變更則
+        /// fail-closed 並要求 host restart／Dispose，避免在舊 handler 尚未 drain 時建立第二個連線池。
+        /// </summary>
+        /// <param name="options">已綁定、但仍會由正式 ProductClient options validator 驗證的產品設定。</param>
+        /// <returns>由本 process host 擁有、不得由呼叫者 Dispose 的正式 operation executor。</returns>
+        IDynamicsOperationExecutor GetOrCreateGatewayExecutor(ProductDynamicsOptions options);
+
+        /// <summary>
+        /// 取得或建立目前唯一的 Embedded executor generation；local secret 值只在此 process 記憶體內
+        /// 交給 Embedded provider，不能寫入 log、例外、static cache 或 product JSON。設定世代改變時同樣
+        /// 必須先 Dispose，避免 CE 版本、credential 或 token state 交叉污染。
+        /// </summary>
+        /// <param name="options">已完成 legacy 對齊的 Embedded 產品設定。</param>
+        /// <param name="localSecrets">local-dev manifest 使用的 process-memory secret bridge。</param>
+        /// <returns>由本 process host 擁有、不得由呼叫者 Dispose 的正式 operation executor。</returns>
+        IDynamicsOperationExecutor GetOrCreateEmbeddedExecutor(
+            ProductDynamicsOptions options,
+            IReadOnlyDictionary<string, string> localSecrets);
+    }
+
+    /// <summary>
+    /// ChurchReport 主 DI 擁有的 Dynamics process host singleton。
+    /// 內部只允許一個 provider／executor generation，使用短生命週期 monitor 序列化第一次建立、設定衝突與關機；
+    /// 這項短而低頻的同步成本只發生在啟動或舊 facade 第一次解析，換取不會重複建立 handler、socket pool、
+    /// timer、token cache 的記憶體與生命週期安全。DisposeAsync 與 GetOrCreate 共用同一 gate，確保關機時
+    /// 沒有半建立或半釋放 generation，且多個 shutdown caller 會觀察到冪等、確定完成的 cleanup。
+    /// </summary>
+    public sealed class DonationDynamicsAccessProcessHost : IDonationDynamicsAccessProcessHost
+    {
+        private readonly object _lifecycleGate = new();
+        private ServiceProvider? _provider;
+        private IDynamicsOperationExecutor? _executor;
+        private string? _generationKey;
+        private Task? _disposeTask;
+        private bool _disposeStarted;
+
+        /// <summary>
+        /// 建立尚未擁有 provider generation 的 process host。建構式不解析設定、不建立 ServiceProvider、
+        /// HttpClient、handler、timer、socket 或 token cache；只有 feature flag 啟用後的正式 executor 解析
+        /// 才會開始資源 ownership，之後由本物件的 <see cref="DisposeAsync"/> 唯一且 terminal 地釋放。
+        /// </summary>
+        public DonationDynamicsAccessProcessHost()
+        {
+        }
+
+        /// <summary>
+        /// 在 process lifecycle monitor 內發佈非 owner static facade。與 Dispose 使用同一把 lock 可封閉
+        /// Start／shutdown 競爭：一旦 terminal flag 設定，任何遲到 Start 都只能收到 ObjectDisposedException，
+        /// 不會把已釋放的 provider owner 再掛回 static 路由。
+        /// </summary>
+        public void PublishCompatibilityFacade()
+        {
+            lock (_lifecycleGate)
+            {
+                ObjectDisposedException.ThrowIf(_disposeStarted, this);
+                DonationDynamicsAccessBootstrap.AttachProcessHost(this);
+            }
+        }
+
+        /// <summary>
+        /// 在 process lifecycle monitor 內撤銷精確相同的 static facade；此動作是冪等 no-op，且不等待
+        /// provider cleanup，因此正常 Stop 可先封閉新 static 呼叫，再由 DisposeAsync 完成 transport 回收。
+        /// </summary>
+        public void UnpublishCompatibilityFacade()
+        {
+            lock (_lifecycleGate)
+            {
+                DonationDynamicsAccessBootstrap.DetachProcessHost(this);
+            }
+        }
+
+        /// <summary>
+        /// 取得或建立 Gateway executor。正式 ProductClient DI 擴充會建立唯一 HttpClientFactory-owned handler；
+        /// 本方法不增加 caller identity header，也不直接送 HTTP。options 驗證在 executor 解析時執行，
+        /// 因而無效 HTTPS endpoint、alias 或 API prefix 會在 host StartAsync preflight 階段 fail-closed。
+        /// </summary>
+        public IDynamicsOperationExecutor GetOrCreateGatewayExecutor(ProductDynamicsOptions options)
+        {
+            ArgumentNullException.ThrowIfNull(options);
+            var key = ComputeGenerationKey(
+                "gateway",
+                options.ProfileAlias,
+                options.Gateway?.Endpoint,
+                options.Gateway?.ApiPrefix,
+                options.Gateway?.MaxResponseBytes.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture));
+
+            return GetOrCreate(key, services =>
+            {
+                services.AddSpeechMessageDynamicsGatewayProductClient(configured =>
+                {
+                    configured.ExecutionMode = DynamicsExecutionMode.Gateway;
+                    configured.ProfileAlias = options.ProfileAlias;
+                    configured.Gateway = options.Gateway is null
+                        ? null
+                        : new GatewayModeOptions
+                        {
+                            Endpoint = options.Gateway.Endpoint,
+                            ApiPrefix = options.Gateway.ApiPrefix,
+                            MaxResponseBytes = options.Gateway.MaxResponseBytes
+                        };
+                });
+            });
+        }
+
+        /// <summary>
+        /// 取得或建立 Embedded executor。generation digest 涵蓋所有 routing／authentication 維度與 local
+        /// secret 值，但 digest 計算用的暫存 UTF-8 bytes 會立即清零；原始值不寫入例外或 log。
+        /// 相同 process 不允許在未 Dispose 前切換 CE 版本或 credential，避免跨設定檔狀態洩漏。
+        /// </summary>
+        public IDynamicsOperationExecutor GetOrCreateEmbeddedExecutor(
+            ProductDynamicsOptions options,
+            IReadOnlyDictionary<string, string> localSecrets)
+        {
+            ArgumentNullException.ThrowIfNull(options);
+            ArgumentNullException.ThrowIfNull(localSecrets);
+            var embedded = options.Embedded
+                           ?? throw new InvalidOperationException(
+                               "DynamicsAccess Embedded options are required.");
+            var keyParts = new List<string?>
+            {
+                "embedded",
+                options.ProfileAlias,
+                embedded.OrganizationWebApiBaseUri,
+                embedded.CeVersion,
+                embedded.SecretReference,
+                embedded.ManifestOrRegistrySource,
+                embedded.CredentialSource,
+                embedded.UserNameSecretName,
+                embedded.PasswordSecretName,
+                embedded.DomainSecretName,
+                embedded.AuthMode,
+                embedded.AuthorityUri,
+                embedded.ResourceUri,
+                embedded.ClientId,
+                embedded.ClientIdSecretName,
+                embedded.ClientSecretName,
+                embedded.CredentialReferenceName,
+                embedded.AllowLocalDevPasswordGrant.ToString(),
+                embedded.RefreshTokenSecretName,
+                embedded.LocalDevTokenStorePath,
+                embedded.RedirectUri
+            };
+
+            foreach (var secret in localSecrets.OrderBy(entry => entry.Key, StringComparer.Ordinal))
+            {
+                keyParts.Add(secret.Key);
+                keyParts.Add(secret.Value);
+            }
+
+            var key = ComputeGenerationKey(keyParts.ToArray());
+            return GetOrCreate(key, services =>
+                services.AddSpeechMessageDynamicsEmbedded(options, localSecrets));
+        }
+
+        /// <summary>
+        /// 確定性釋放目前 provider generation。多個 StopAsync／DI DisposeAsync caller 會取得同一個 cleanup task，
+        /// 因此都觀察相同完成或失敗結果，且 provider 只 Dispose 一次。第一個 caller 在 monitor 內把 host 標成
+        /// terminal、取走 owner 欄位並發佈 cleanup task；之後的 GetOrCreate 一律丟出 ObjectDisposedException，
+        /// 避免 shutdown 開始後由遲到要求重建 handler、timer、socket 或 token cache。
+        /// </summary>
+        public ValueTask DisposeAsync()
+        {
+            lock (_lifecycleGate)
+            {
+                if (_disposeTask is null)
+                {
+                    _disposeStarted = true;
+                    // Generic Host 啟動失敗時可能直接 Dispose DI singleton，而不先呼叫 hosted StopAsync；
+                    // 同一 gate 內撤銷 facade，才能避免 concurrent Start 把已 terminal owner 重新發佈。
+                    DonationDynamicsAccessBootstrap.DetachProcessHost(this);
+                    var provider = _provider;
+                    _provider = null;
+                    _executor = null;
+                    _generationKey = null;
+                    _disposeTask = provider is null
+                        ? Task.CompletedTask
+                        : DisposeProviderAsync(provider);
+                }
+
+                return new ValueTask(_disposeTask);
+            }
+        }
+
+        /// <summary>
+        /// 在 lifecycle gate 內建立或重用唯一 generation。provider 只在全部服務註冊完成後才解析 executor；
+        /// 解析失敗時先釋放尚未發佈的 provider，再把原始錯誤交回啟動流程，避免部分 handler graph 被遺留。
+        /// </summary>
+        private IDynamicsOperationExecutor GetOrCreate(
+            string generationKey,
+            Action<IServiceCollection> configureServices)
+        {
+            lock (_lifecycleGate)
+            {
+                ObjectDisposedException.ThrowIf(_disposeStarted, this);
+
+                if (_provider is not null)
+                {
+                    if (!string.Equals(_generationKey, generationKey, StringComparison.Ordinal))
+                    {
+                        throw new InvalidOperationException(
+                            "DynamicsAccess process configuration changed. Restart the host to replace and drain the active generation.");
+                    }
+
+                    return _executor
+                           ?? throw new InvalidOperationException(
+                               "DynamicsAccess process generation has no executor.");
+                }
+
+                var services = new ServiceCollection();
+                services.AddLogging();
+                configureServices(services);
+
+                var provider = services.BuildServiceProvider(validateScopes: true);
+                try
+                {
+                    var executor = provider.GetRequiredService<IDynamicsOperationExecutor>();
+                    _provider = provider;
+                    _executor = executor;
+                    _generationKey = generationKey;
+                    return executor;
+                }
+                catch (Exception originalFailure)
+                {
+                    try
+                    {
+                        provider.Dispose();
+                    }
+                    catch (Exception cleanupFailure)
+                    {
+                        throw new AggregateException(
+                            "DynamicsAccess provider initialization and rollback both failed.",
+                            originalFailure,
+                            cleanupFailure);
+                    }
+
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 等待 ServiceProvider 完成非同步 cleanup。此 helper 會把 provider DisposeAsync 在同步前段發生的例外
+        /// 也封裝進共享 Task，確保所有併行 Dispose caller 觀察相同失敗，而不是只有第一個 owner 看見例外。
+        /// </summary>
+        private static async Task DisposeProviderAsync(ServiceProvider provider)
+        {
+            await provider.DisposeAsync().ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 將 generation 欄位以長度前綴的 SHA-256 digest 正規化，避免簡單串接碰撞造成不同 profile／endpoint
+        /// 誤判為同一世代。每個欄位的暫存 UTF-8 bytes 在加入 hash 後立即清零，降低 local secret 在額外
+        /// managed buffer 中的停留時間；digest 只用於同 process 相等比較，不會記錄或跨程序持久化。
+        /// </summary>
+        private static string ComputeGenerationKey(params string?[] fields)
+        {
+            using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            Span<byte> length = stackalloc byte[4];
+
+            foreach (var field in fields)
+            {
+                var bytes = Encoding.UTF8.GetBytes(field ?? string.Empty);
+                System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(length, bytes.Length);
+                hash.AppendData(length);
+                hash.AppendData(bytes);
+                CryptographicOperations.ZeroMemory(bytes);
+            }
+
+            return Convert.ToHexString(hash.GetHashAndReset());
+        }
+    }
+
+    /// <summary>
+    /// 將主 DI singleton 發佈給舊 static facade，並在 host shutdown 時成為明確的 process generation
+    /// cleanup 協調者。StartAsync 不解析 executor／provider／HttpClient，因此 feature flag=false 的網站啟動
+    /// 仍是嚴格零資源；StopAsync 先撤銷新 static 呼叫，再等待 singleton Dispose，避免關機競爭建立新世代。
+    /// DI container 之後可能再次呼叫 DisposeAsync，所以 process host 必須提供併行冪等保證。
+    /// </summary>
     public sealed class DonationDynamicsAccessBootstrapLifetime : IHostedService
     {
-        public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        private readonly IDonationDynamicsAccessProcessHost _processHost;
+        private int _started;
 
+        /// <summary>
+        /// 建立只持有主 DI singleton 參考的 hosted lifecycle；建構式不建立任何外部資源。
+        /// </summary>
+        /// <param name="processHost">ChurchReport 主 DI 唯一擁有的 Dynamics process host。</param>
+        public DonationDynamicsAccessBootstrapLifetime(
+            IDonationDynamicsAccessProcessHost processHost)
+        {
+            _processHost = processHost ?? throw new ArgumentNullException(nameof(processHost));
+        }
+
+        /// <summary>
+        /// 發佈 legacy facade 路由。若 caller 已取消則在發佈前停止；重複 Start 為冪等 no-op，
+        /// 不解析 executor 或啟動 HTTP，讓真正的 preflight 仍由獨立 hosted service 控制。
+        /// </summary>
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (Interlocked.Exchange(ref _started, 1) == 0)
+            {
+                try
+                {
+                    _processHost.PublishCompatibilityFacade();
+                }
+                catch
+                {
+                    Volatile.Write(ref _started, 0);
+                    throw;
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// 先阻止舊 static 呼叫取得 owner，再等待 provider cleanup 完成。此方法刻意不把 host shutdown token
+        /// 傳入 provider disposal，因為中途取消 cleanup 會遺留 handler、timer、socket 或 token cache；
+        /// Stop 重入為 no-op，而 cleanup 例外會傳回 Generic Host，不能靜默視為成功。
+        /// </summary>
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            await DonationDynamicsAccessBootstrap.DisposeAsync().ConfigureAwait(false);
+            if (Interlocked.Exchange(ref _started, 0) == 0)
+            {
+                return;
+            }
+
+            _processHost.UnpublishCompatibilityFacade();
+            await _processHost.DisposeAsync().ConfigureAwait(false);
         }
     }
 }

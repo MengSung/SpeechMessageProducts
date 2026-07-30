@@ -13,8 +13,11 @@
 // ============================================================================
 using System;
 using System.Threading.Tasks;
+using ChurchReport.Models;
+using ChurchReport.Services.Caching;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChurchReport.Controllers
@@ -42,7 +45,7 @@ namespace ChurchReport.Controllers
                 // ========================================
                 // 不僅清除 Session 內容，還要確保 Session ID 被完全銷毀
                 // 防止登出後 Session 被重用
-                HttpContext.Session.Clear();
+                DrainCurrentDonationSessionResourcesAndClearSession();
 
                 // 強制提交清除操作（確保立即生效）
                 try
@@ -72,6 +75,46 @@ namespace ChurchReport.Controllers
         }
 
         #endregion
+
+        /// <summary>
+        /// 從目前 request 的主 DI container 解析 DonationPaymentManager coordinator，並執行身份重設前的唯一 drain/clear 順序。
+        /// </summary>
+        /// <remarks>
+        /// 多數 legacy Controller 仍由 BaseChurchController 手動建立 InMemoryDataContext，因此此處不能依賴 scoped context Dispose。
+        /// RequestServices 必須回傳 Startup 註冊的 singleton；遺漏時立即 fail closed，不建立 fallback owner，也不先清 Session。
+        /// 方法不讀取、記錄或回傳 opaque scope、Session ID、使用者 ID、Token、Credential 或任何 CRM/LINE 資料。
+        /// </remarks>
+        private void DrainCurrentDonationSessionResourcesAndClearSession()
+        {
+            var coordinator = HttpContext.RequestServices.GetService(
+                    typeof(SessionScopedResourceDisposalCoordinator<DonationPaymentManager>))
+                as SessionScopedResourceDisposalCoordinator<DonationPaymentManager>
+                ?? throw new InvalidOperationException(
+                    "Session resource coordinator 尚未由 ChurchReport 主 DI 註冊；拒絕清除 Session 後遺留資源。");
+
+            DrainDonationSessionResourcesAndClearSession(HttpContext.Session, coordinator);
+        }
+
+        /// <summary>
+        /// 先撤銷舊 Donation generation 的新 request 可見性，再清除 Session 的唯一排序實作。
+        /// </summary>
+        /// <param name="session">尚未 Clear、仍可取得舊 opaque resource scope 的目前 Session。</param>
+        /// <param name="coordinator">由主 DI singleton 唯一擁有的 DonationPaymentManager coordinator。</param>
+        /// <remarks>
+        /// <see cref="SessionScopedResourceDisposalCoordinator{TResource}.DrainSessionResourceScope"/> 只阻止新 lease；
+        /// 已在執行的 request 可繼續使用 Manager，最後 lease 歸還後才 Dispose LINE client 與 Semaphore。
+        /// 若 scope 受污染或 coordinator 已停止，例外會在 <see cref="ISession.Clear"/> 前傳出，確保身份重設 fail closed。
+        /// </remarks>
+        private static void DrainDonationSessionResourcesAndClearSession(
+            ISession session,
+            SessionScopedResourceDisposalCoordinator<DonationPaymentManager> coordinator)
+        {
+            ArgumentNullException.ThrowIfNull(session);
+            ArgumentNullException.ThrowIfNull(coordinator);
+
+            coordinator.DrainSessionResourceScope(session);
+            session.Clear();
+        }
 
         #region Session 管理
 

@@ -10,6 +10,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -38,6 +39,37 @@ public sealed class DynamicsWebApiClientTests
         seen!.Method.Should().Be(HttpMethod.Get);
         seen.RequestUri!.AbsoluteUri.Should().Be("https://crm.example.local/org/api/data/v8.2/WhoAmI");
         seen.Headers.Accept.ToString().Should().Contain("application/json");
+    }
+
+    /// <summary>
+    /// 驗證成功結果只能向產品呼叫端公開受控 operation ID、CE 版本與上游資料，不能把
+    /// <c>ApprovedWebApiRoot</c> 的 CRM hostname 或 <c>/api/data/</c> 路徑跨越 Gateway 信任邊界。
+    /// 測試刻意使用可辨識的假主機與 v8.2 路徑，並序列化真實 <see cref="OperationExecutionResult.Data"/>，
+    /// 因為 HTTP Gateway 會把這個物件直接寫入回應；若內部路由中繼資料再次被加入匿名 payload，
+    /// 鍵名與實際 URI 內容的雙重 assertion 都會立即失敗。Fake transport 不建立背景工作、Timer、
+    /// Stream 或共用 Session，要求與回應仍由 Production Client 的既有 using／Dispose 路徑負責回收，
+    /// 因此本測試只保護資訊揭露契約，不改變取消、連線池或資源 owner 的行為。
+    /// </summary>
+    [Fact]
+    public async Task Successful_result_does_not_disclose_internal_web_api_root()
+    {
+        var client = CreateClient(_ =>
+            JsonResponse("""{"BusinessUnitId":"22222222-2222-2222-2222-222222222222"}"""));
+
+        var result = await client.WhoAmIAsync();
+
+        result.Succeeded.Should().BeTrue();
+        result.Data.Should().NotBeNull();
+
+        var serializedData = JsonSerializer.Serialize(result.Data);
+        using var document = JsonDocument.Parse(serializedData);
+        document.RootElement.TryGetProperty("approvedWebApiRoot", out _).Should().BeFalse();
+        serializedData.Contains("crm.example.local", StringComparison.OrdinalIgnoreCase).Should().BeFalse();
+        serializedData.Contains("/api/data/", StringComparison.OrdinalIgnoreCase).Should().BeFalse();
+        document.RootElement.GetProperty("operationId").GetString()
+            .Should().Be(OperationIds.RuntimeHealthWhoAmI);
+        document.RootElement.GetProperty("ceVersion").GetString().Should().Be("8.2");
+        document.RootElement.TryGetProperty("data", out _).Should().BeTrue();
     }
 
     [Fact]

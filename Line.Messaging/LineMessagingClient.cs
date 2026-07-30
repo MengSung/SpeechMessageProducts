@@ -834,30 +834,23 @@ namespace Line.Messaging
         }
 
         /// <summary>
-        /// 將來自使用者的訊息標記為已讀
-        /// Marks messages from users as read
+        /// 使用 LINE Webhook 事件提供的官方已讀權杖，標記該權杖所代表的訊息為已讀。
         /// </summary>
-        /// <param name="chatId">
-        /// 聊天識別碼 - 可以是 userId（一對一聊天）、groupId（群組）或 roomId（聊天室）
-        /// Chat identifier - Can be userId (one-on-one chat), groupId (group), or roomId (room)
+        /// <param name="markAsReadToken">
+        /// LINE Webhook 事件內的 <c>markAsReadToken</c>。此值是本次事件授予的短期能力權杖，
+        /// 不是 userId、groupId、roomId，也不得由應用程式根據聊天識別碼自行推導。
         /// </param>
         /// <remarks>
-        /// 標記為已讀後，使用者端會顯示訊息已讀取。
-        /// <para>
-        /// After marking as read, the user will see the message as read.
-        /// </para>
-        /// <para>
-        /// 官方文件：https://developers.line.biz/en/reference/messaging-api/#mark-messages-as-read
-        /// Official documentation: https://developers.line.biz/en/reference/messaging-api/#mark-messages-as-read
-        /// </para>
+        /// 呼叫端只能傳入目前 Webhook 事件取得的權杖，不得將它保存到 Session、靜態快取、
+        /// 背景佇列或跨使用者共用狀態，避免過期權杖被重播或不同使用者的事件狀態互相污染。
+        /// 本方法只擁有本次 HTTP request／response 的生命週期；底層共用 HttpClient 仍由
+        /// <see cref="LineMessagingClient"/> 的外部 DI owner 管理，不會在每次呼叫建立新的連線池。
+        /// 官方契約：https://developers.line.biz/en/reference/messaging-api/#mark-messages-as-read
         /// </remarks>
         /// <example>
         /// <code>
-        /// // 標記一對一聊天為已讀
-        /// await client.MarkAsReadAsync(userId);
-        ///
-        /// // 標記群組訊息為已讀
-        /// await client.MarkAsReadAsync(groupId);
+        /// // 權杖必須直接來自正在處理的 Webhook 事件，使用完畢後不可快取。
+        /// await client.MarkAsReadByTokenAsync(webhookEvent.MarkAsReadToken);
         /// </code>
         /// </example>
         public virtual async Task MarkAsReadByTokenAsync(string markAsReadToken)
@@ -2445,7 +2438,7 @@ namespace Line.Messaging
         /// </example>
         public virtual async Task<MessageQuota> GetMessageQuotaAsync()
         {
-            var json = await GetStringAsync($"{_uri}/bot/message/quota"). ConfigureAwait(false);
+            var json = await GetStringAsync($"{_uri}/bot/message/quota").ConfigureAwait(false);
             return JsonConvert.DeserializeObject<MessageQuota>(json);
         }
 
@@ -2469,7 +2462,7 @@ namespace Line.Messaging
         /// </example>
         public virtual async Task<MessageQuotaConsumption> GetMessageQuotaConsumptionAsync()
         {
-            var json = await GetStringAsync($"{_uri}/bot/message/quota/consumption"). ConfigureAwait(false);
+            var json = await GetStringAsync($"{_uri}/bot/message/quota/consumption").ConfigureAwait(false);
             return JsonConvert.DeserializeObject<MessageQuotaConsumption>(json);
         }
         #endregion

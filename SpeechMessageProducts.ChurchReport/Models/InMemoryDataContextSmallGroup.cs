@@ -12,6 +12,7 @@
 // 編碼要求：本檔案需維持 UTF-8 without BOM 與 CRLF，以符合專案 .editorconfig 與 Windows/Visual Studio 工作流。
 // ============================================================================
 using ChurchReport.Payments;
+using ChurchReport.Services.Caching;
 using ChurchReport.Tools;
 using ChurchReport.ViewModel;
 using LineMessagingProcessor.Workflows;
@@ -161,6 +162,13 @@ namespace ChurchReport.Models
         /// 所以分開注入，讓未來 ASP.NET Core 產品也能重用同一套 reply adapter。
         /// </summary>
         private readonly ILineReplyWorkflow? _lineReplyWorkflow;
+
+        /// <summary>
+        /// DonationPaymentManager cache generation 的唯一生命週期 owner。正常 host 由主 DI 提供 singleton；
+        /// legacy 手動建構路徑也只能從目前 request 的 RequestServices 解析同一實例，不能建立第二個靜態 fallback。
+        /// Coordinator 不保存 HttpContext、Session、Controller、Credential 或 Token，只保存 bounded cache key 與可釋放資源。
+        /// </summary>
+        private readonly SessionScopedResourceDisposalCoordinator<DonationPaymentManager> _sessionResourceCoordinator;
 
         /// <summary>
         /// ToolUtility 提供者，用於依賴注入
@@ -514,7 +522,8 @@ namespace ChurchReport.Models
             IToolUtilityProvider toolUtilityProvider,
             IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter = null,
             ILineNotificationWorkflow? lineNotificationWorkflow = null,
-            ILineReplyWorkflow? lineReplyWorkflow = null)
+            ILineReplyWorkflow? lineReplyWorkflow = null,
+            SessionScopedResourceDisposalCoordinator<DonationPaymentManager> sessionResourceCoordinator = null)
         {
             _memoryCache = memoryCache;
 
@@ -529,6 +538,12 @@ namespace ChurchReport.Models
             _toolUtilityProvider = toolUtilityProvider ?? throw new ArgumentNullException(nameof(toolUtilityProvider));
             _lineNotificationWorkflow = lineNotificationWorkflow;
             _lineReplyWorkflow = lineReplyWorkflow;
+            _sessionResourceCoordinator = sessionResourceCoordinator
+                ?? contextAccessor.HttpContext?.RequestServices?.GetService(
+                    typeof(SessionScopedResourceDisposalCoordinator<DonationPaymentManager>))
+                    as SessionScopedResourceDisposalCoordinator<DonationPaymentManager>
+                ?? throw new InvalidOperationException(
+                    "Session resource coordinator 尚未由 ChurchReport 主 DI 註冊；拒絕建立第二個 fallback owner。");
 
             System.Diagnostics.Debug.WriteLine("[InMemoryDataContext] ✅ 建構完成（Session Bleeding 修復版本）");
         }
@@ -1171,54 +1186,53 @@ namespace ChurchReport.Models
         /// <summary>
         /// ChurchReport 奉獻付款管理器屬性。
         ///
-        /// 使用記憶體快取管理 DonationPaymentManager 實例，
-        /// 快取鍵為 Session ID + "_DonationPaymentManager"，
-        /// 快取過期：絕對 30 分鐘，滑動 30 分鐘。
+        /// 使用 singleton coordinator 管理 DonationPaymentManager cache generation，
+        /// key 改為 Session 內保存的 256-bit 隨機 opaque scope ID，不包含 Session ID、user ID、指紋或時間戳，
+        /// 可見性過期仍是絕對 30 分鐘與滑動 30 分鐘。
         ///
-        /// 若快取不存在，則注入中性的付款建單 adapter 建立新實例並設定快取選項。
+        /// 第一個 request 存取時建立 lease；正常 response completion 與中止 disposal 都會歸還同一個冪等 lease。
+        /// 因此即使 Controller 手動 new context、未由 DI scope Dispose，in-flight request 仍會在 response 結束後讓 ref-count 回零。
+        /// Cache eviction、logout/re-login 顯式 drain 與 host stop 先讓 generation 不可再租用，最後 lease 歸還後才 Dispose Manager，
+        /// 避免奉獻/LINE 工作執行途中被提前關閉；callback state 不捕捉本 context、HttpContext、Session 或 caller identity。
         /// </summary>
         public DonationPaymentManager DonationPaymentManager
         {
             get
             {
-                var key = GetCurrentSessionId() + "_DonationPaymentManager";
-
-                if (_memoryCache.Get(key) == null)
-                //if (!_memoryCache.TryGetValue(key, out m_ListManager))
+                var httpContext = m_ContextAccessor.HttpContext;
+                if (httpContext == null)
                 {
-                    var options = new MemoryCacheEntryOptions();
-                    options.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-                    {
-                        EvictionCallback = (subkey, subValue, reason, state) =>
-                        {
-                            // 這裡執行某一個動作
-                            // ....
-                            if (state != null)
-                            {
-                                var localCallbackInvoked = (ManualResetEvent)state;
+                    // 沒有 request/response owner 就無法保證 lease 一定歸還；寧可 fail closed，也不建立無界長壽命 Manager。
+                    throw new InvalidOperationException(
+                        "DonationPaymentManager 必須在有效的 HTTP request 生命週期中使用。");
+                }
 
-                                localCallbackInvoked.Set();
-                            }
+                var session = CurrentSession
+                    ?? throw new InvalidOperationException(
+                        "DonationPaymentManager 必須在可用的 ASP.NET Session request 中使用。");
 
-                            //_memoryCache.Remove(key);
-
-                        },
-                    });
-                    options.SetAbsoluteExpiration(DateTime.Now.AddMinutes(30));
-                    options.SetSlidingExpiration(TimeSpan.FromMinutes(30));
-                    //options.SetSize(1);
-                    //options.Size = 1024;
-
+                DonationPaymentManager CreateManager()
+                {
                     m_DonationPaymentManager = new DonationPaymentManager(
                         m_DonationPaymentCreateGatewayAdapter,
                         _lineNotificationWorkflow,
                         _lineReplyWorkflow);
-                    _memoryCache.Set<DonationPaymentManager>(key, m_DonationPaymentManager, options);
-
                     SetSessionDirtyFlag();
+                    return m_DonationPaymentManager;
                 }
 
-                return _memoryCache.Get<DonationPaymentManager>(key);
+                // Session-bound acquire 會把 scope 讀取／建立到 generation+lease publication 放在與 logout 相同的 stripe lock；
+                // 因此身份重設一旦完成，就不可能有較早 request 再用舊 scope 發佈新 Manager。HttpContext 只用於
+                // request-local completion callback，coordinator 絕不保存它、Session、Controller 或 caller identity。
+                var lease = _sessionResourceCoordinator.AcquireForSessionRequest(
+                    httpContext,
+                    session,
+                    CreateManager,
+                    TimeSpan.FromMinutes(30),
+                    TimeSpan.FromMinutes(30));
+                m_DonationPaymentManager = lease.Value;
+
+                return m_DonationPaymentManager;
             }
         }
 

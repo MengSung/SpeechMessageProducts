@@ -9,24 +9,68 @@
 // - 生產部署時請把 AuthMode / 秘密參考改成真實 profile 設定。
 // ============================================================================
 
+using System.Buffers;
+using System.Net;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Negotiate;
+using Microsoft.AspNetCore.Server.IIS;
+using Microsoft.AspNetCore.Server.IISIntegration;
+using Microsoft.Extensions.Options;
 using SpeechMessage.Dynamics.Abstractions.Operations;
+using SpeechMessage.Dynamics.Gateway.RequestLimits;
 using SpeechMessage.Dynamics.Gateway.Security;
 using SpeechMessage.Dynamics.WebApi.Capacity;
 using SpeechMessage.Dynamics.WebApi.DependencyInjection;
 using SpeechMessage.Dynamics.WebApi.Runtime;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Negotiate;
-using Microsoft.AspNetCore.Server.IISIntegration;
-using System.Net;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-        options.JsonSerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow);
-builder.Services.ConfigureHttpJsonOptions(options =>
-    options.SerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow);
+builder.Services.AddOptions<GatewayRequestBodyLimitOptions>()
+    .BindConfiguration(GatewayRequestBodyLimitOptions.SectionName)
+    .Validate(options =>
+    {
+        try
+        {
+            options.Validate();
+            return true;
+        }
+        catch (InvalidOperationException)
+        {
+            return false;
+        }
+    }, "Gateway request body maximum or JSON depth is outside the hard deployment boundary.")
+    .ValidateOnStart();
+
+// Kestrel 必須在 listener 啟動前使用相同 deployment section 與 hard validator；transport 最多允許 configured wire bytes，
+// 不建立獨立 fallback/default。Callback 只建立短生命週期整數 snapshot，不保存 IConfiguration、request 或 buffer reference。
+builder.WebHost.ConfigureKestrel((context, options) =>
+{
+    var limits = GatewayRequestBodyLimitOptions.BindAndValidate(context.Configuration);
+    options.Limits.MaxRequestBodySize = limits.MaxRequestBodyBytes;
+});
+
+// IIS in-process/out-of-process hosting 由 DI Options 取得同一個已驗證 limit；IISServerOptions 與 Gateway options 都由 Host 唯一擁有，
+// 沒有 reload subscription、timer 或 cleanup。若設定無效，ValidateOnStart 在接流量前中止，而不是讓 IIS/Kestrel 產生不同邊界。
+builder.Services.AddOptions<IISServerOptions>()
+    .Configure<IOptions<GatewayRequestBodyLimitOptions>>((options, limits) =>
+        options.MaxRequestBodySize = limits.Value.MaxRequestBodyBytes);
+
+builder.Services.AddSingleton(ArrayPool<byte>.Shared);
+builder.Services.AddSingleton<GatewayOperationRequestBodyReader>();
+builder.Services.AddControllers();
+builder.Services.AddOptions<Microsoft.AspNetCore.Mvc.JsonOptions>()
+    .Configure<IOptions<GatewayRequestBodyLimitOptions>>((options, limits) =>
+    {
+        options.JsonSerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
+        options.JsonSerializerOptions.MaxDepth = limits.Value.JsonMaxDepth;
+    });
+builder.Services.AddOptions<Microsoft.AspNetCore.Http.Json.JsonOptions>()
+    .Configure<IOptions<GatewayRequestBodyLimitOptions>>((options, limits) =>
+    {
+        options.SerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
+        options.SerializerOptions.MaxDepth = limits.Value.JsonMaxDepth;
+    });
 
 if (builder.Environment.IsDevelopment())
 {
@@ -168,9 +212,9 @@ app.MapPost(
     async Task<IResult> (
         string alias,
         string capabilityOperationId,
-        OperationHttpRequest body,
         HttpContext httpContext,
         IGatewayOperationAuthorizer operationAuthorizer,
+        GatewayOperationRequestBodyReader bodyReader,
         IDynamicsOperationExecutor executor,
         CancellationToken cancellationToken) =>
     {
@@ -182,6 +226,32 @@ app.MapPost(
         {
             return Results.Forbid();
         }
+
+        // Body reader 只能在 authentication 與 principal→workload→alias→operation 全部成功後執行；
+        // unsupported media type、declared oversize、chunked limit+1、malformed/deep/unknown/duplicate JSON
+        // 都在建立 executor request 前轉成受控 415/413/400。
+        // Reader 不 Dispose ASP.NET request stream，且在 return/throw/cancel 前清零並歸還唯一 pooled buffer。
+        var bodyRead = await bodyReader.ReadAsync(
+            httpContext.Request,
+            cancellationToken).ConfigureAwait(false);
+        if (bodyRead.Status == GatewayOperationRequestBodyReadStatus.UnsupportedMediaType)
+        {
+            // 只回傳固定 415，不回顯 Content-Type 或 body；此時 reader 尚未讀 stream、租 buffer 或建立 executor request。
+            return Results.StatusCode(StatusCodes.Status415UnsupportedMediaType);
+        }
+
+        if (bodyRead.Status == GatewayOperationRequestBodyReadStatus.PayloadTooLarge)
+        {
+            return Results.StatusCode(StatusCodes.Status413PayloadTooLarge);
+        }
+
+        if (bodyRead.Status != GatewayOperationRequestBodyReadStatus.Success ||
+            bodyRead.Request is null)
+        {
+            return Results.BadRequest();
+        }
+
+        var body = bodyRead.Request;
 
         // 必須完整通過 principal→workload→alias→operation 後才建立 request；三個 routing/security 欄位
         // 全部採 server canonical 值，caller body 只能提供 registry 後續仍會驗證的 bounded parameters。
@@ -326,19 +396,6 @@ static void ApplyTestingEndpointFallback(
 }
 
 app.Run();
-
-/// <summary>
-/// Gateway HTTP body 模型。它只接受冪等鍵與受 Operation Registry 約束的命名參數，
-/// 不接受 CRM Endpoint、Profile Transport、Credential、Token、Authorization Header 或任意 FetchXML。
-/// </summary>
-public sealed class OperationHttpRequest
-{
-    /// <summary>取得或設定寫入型 Operation 使用的 bounded 冪等鍵；唯讀操作可省略。</summary>
-    public string? IdempotencyKey { get; set; }
-
-    /// <summary>取得或設定 Operation Definition 已宣告的命名參數；未知參數會在外呼 CRM 前被拒絕。</summary>
-    public Dictionary<string, object?>? Parameters { get; set; }
-}
 
 /// <summary>
 /// 給 WebApplicationFactory / 測試參考 Program。

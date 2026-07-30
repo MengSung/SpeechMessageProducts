@@ -21,6 +21,7 @@ using ChurchReport.Payments;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Factory;
 using ToolUtilityNameSpace.DependencyInjection;
@@ -189,33 +190,46 @@ namespace ChurchReport.Tools
         #endregion
 
         #region 釋放記憶體
-        private bool _disposed = false;
+        /// <summary>
+        /// 0 代表尚未釋放，1 代表已有唯一 caller 取得 LINE client 清理權。
+        /// 使用整數而非一般 bool，才能透過 <see cref="Interlocked.Exchange(ref int, int)"/> 在多執行緒 Dispose 競爭下保持原子性。
+        /// </summary>
+        private int _disposeState;
 
+        /// <summary>
+        /// 執行此 processor 擁有的 managed-resource cleanup。
+        /// </summary>
+        /// <param name="disposing">
+        /// 只有明確的 managed Dispose 路徑才會是 <see langword="true"/>；本類別沒有 unmanaged handle，也不需要 finalizer。
+        /// </param>
+        /// <remarks>
+        /// LINE client 由本類別建構式自行建立，是唯一需要關閉的資源。ToolUtilityClass 來自 Factory，付款 workflow、context builder
+        /// 與 presenter 由 DI/呼叫端提供，PushUtility、ReplyUtility 也只是借用同一個 LINE client，因此一律不在此越權釋放。
+        /// 此方法不執行網路、CRM、等待、cancellation 或 timeout；呼叫端必須先停止新的付款工作並 drain 既有 caller。
+        /// </remarks>
         protected virtual void Dispose(bool disposing)
         {
-            if (_disposed) return;
-
-            if (disposing)
+            if (!disposing || Interlocked.Exchange(ref _disposeState, 1) != 0)
             {
-                // 不需要手動 Dispose ToolUtilityClass，由 Factory 統一管理生命週期
-                // m_ToolUtilityClass.Dispose();
+                return;
             }
 
-            _disposed = true;
+            // 狀態先切到 terminal，確保 concurrent/double Dispose 不會重複關閉底層 HttpClient 與 socket handler。
+            // 若 LINE client cleanup 丟出例外，例外會回傳給唯一 owner caller，其他競爭 caller 不會重試部分清理。
+            m_LineMessagingClient?.Dispose();
         }
 
+        /// <summary>
+        /// 以併發冪等方式釋放此 processor 自行建立的 LINE client。
+        /// </summary>
+        /// <remarks>
+        /// 清理成本為常數時間且不配置背景工作。類別只持有 managed resource，移除 finalizer 可避免每個付款 processor 進入 finalization queue，
+        /// 降低高流量時的記憶體滯留與 GC 成本；確定性回收責任由 session/request owner 明確呼叫本方法承擔。
+        /// </remarks>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        ~DonationFeePaymentProcessor()
-        {
-            // Do not re-create Dispose clean-up code here.
-            // Calling Dispose(false) is optimal in terms of
-            // readability and maintainability.
-            Dispose(false);
         }
         #endregion
 

@@ -1,0 +1,32 @@
+{
+    "generatedAt":  "2026-07-30T03:18:42.7621661+08:00",
+    "repositoryPath":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree",
+    "changedUserPath":  false,
+    "environment":  {
+                        "GEMINI_CLI_TRUST_WORKSPACE":  "true",
+                        "CODEAGENT_LITE_MODE":  "true",
+                        "PYTHONIOENCODING":  "utf-8",
+                        "CLAUDE_MODEL":  "sonnet",
+                        "CLAUDE_MODEL_SHIM":  "C:\\Users\\[LOCAL_PROFILE_REDACTED]\\AppData\\Local\\Temp\\ccg-claude-model-shim-39456-5a3cae4f3b0a46caab767be95e154ce7\\claude.cmd",
+                        "CCG_CLAUDE_MODEL_SHIM_DIR":  "C:\\Users\\[LOCAL_PROFILE_REDACTED]\\AppData\\Local\\Temp\\ccg-claude-model-shim-39456-5a3cae4f3b0a46caab767be95e154ce7",
+                        "CLAUDE_REAL_COMMAND":  "C:\\Users\\[LOCAL_PROFILE_REDACTED]\\AppData\\Roaming\\npm\\claude.cmd"
+                    },
+    "executables":  {
+                        "wrapper":  "C:\\Users\\[LOCAL_PROFILE_REDACTED]\\.claude\\bin\\codeagent-wrapper.exe",
+                        "gemini":  "C:\\Users\\[LOCAL_PROFILE_REDACTED]\\AppData\\Roaming\\npm\\gemini.cmd",
+                        "claude":  "C:\\Users\\[LOCAL_PROFILE_REDACTED]\\AppData\\Local\\Temp\\ccg-claude-model-shim-39456-5a3cae4f3b0a46caab767be95e154ce7\\claude.cmd",
+                        "python":  "C:\\Users\\[LOCAL_PROFILE_REDACTED]\\AppData\\Local\\Programs\\Python\\Python314\\python.exe"
+                    },
+    "smoke":  [
+
+              ],
+    "ok":  true,
+    "repairable":  true,
+    "notes":  [
+
+              ],
+    "wrapperVersion":  "codeagent-wrapper version 5.11.1",
+    "healthReport":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree\\.\\.ccg\\dual-model-runs\\20260730-031842-development-workload-binding-replacement-analysis-architect\\ccg-health-20260730-031842.json"
+}
+
+

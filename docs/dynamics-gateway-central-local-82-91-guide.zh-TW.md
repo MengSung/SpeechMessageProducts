@@ -935,13 +935,14 @@ TemporaryData8LegacyWorker
 
 ### 18.14 新增程式的繁體中文註解與 UTF-8 規則
 
-本次後續所有新增程式都必須符合以下規則：
+本次後續所有新增或實質修改的程式都必須符合以下規則：
 
-- 每個新增的 Production／Test C# 型別都要有完整、深入的繁體中文 XML 註解。
+- 每個新增或實質修改的 Production／Test／Tool／Script 型別、方法與生命週期成員，都要有完整、深入、詳細且可維護的繁體中文註解；C# 使用 XML 文件，PowerShell 使用 comment-based help，不能只用 `<inheritdoc />` 取代實質說明。
 - 每個涉及 Routing、Admission、Authentication、Connection Pool、Generation、Reload、Drain、Cancellation、Dispose、Worker 與資源擁有權的方法，都要說明設計目的、信任邊界、併發行為、失敗結果及回收順序。
 - 重要的程式分支要在附近加入繁體中文實作註解，特別是「為什麼一定要先做 A 再做 B」，不能只寫「建立物件」「釋放資源」這類重複語法的表面註解。
 - 註解必須明確指出 Handler、Client、Token Provider、Stream、Timer、Cancellation Registration、Semaphore、Background Task、Admission Permit、Runtime Lease 與 Worker Process 的唯一擁有者及確定性清理路徑。
-- 所有新增或修改的原始碼、測試、設定、Script 與文件均以 UTF-8 儲存；目前 Repository `.editorconfig` 規定為 UTF-8 without BOM 與 CRLF。
+- 測試註解必須交代它保護的契約、故障注入時序與主要 assertion，讓後續維護者知道測試失敗代表哪一項隔離、生命週期、安全或相容性保證被破壞。
+- 所有新增或修改的原始碼、測試、設定、Script、SPEC 與文件均以 UTF-8 儲存；目前 Repository `.editorconfig` 規定為 UTF-8 without BOM、CRLF 與 final CRLF。
 - 驗證階段會逐檔使用嚴格 UTF-8 Decoder 檢查，並盤點新增型別及生命週期方法的繁體中文註解。缺漏或編碼錯誤都視為發布阻擋問題。
 
 這項規則不是為了增加註解數量，而是確保未來維護者可以直接從程式中理解為什麼不會發生 Session Leakage、Token Leakage、Memory Leakage 或資源提前釋放。
@@ -1016,7 +1017,469 @@ Changed-file scoped dotnet format verification
 
 外部審查也已完成收斂：原始雙模型 review 找到 `slot.Draining` 永久鎖死 Critical；修正後 re-review 確認 Critical 已關閉，但要求補真實 Production Runtime `_drainTask` 測試；加入該整合測試後，最後一輪 Gemini 與 Claude 都回報 PASS、無 Critical／Warning，且沒有 quota fallback。Gemini 的 UTF-8 with BOM Info 建議未採用，因本專案與使用者明確要求 UTF-8 without BOM＋CRLF。
 
-這些結果代表「Multi-Profile Runtime 的本地 deterministic isolation／lifecycle 基礎已通過目前測試」，不代表整個 Phase 4 或最終遷移已完成。仍然需要真實 Local Gateway 啟動、產品 localhost 串接、WinRM／D365 VM、瀏覽器 E2E、CE 8.2／9.1 實機 Authentication 與 Operation Matrix、跨 Process Capacity、Fault／Soak／Performance，以及 Phase 5 Consumer Migration 與 Phase 6 Data8／SDK Removal Gate。
+這些結果代表「Multi-Profile Runtime 的本地 deterministic isolation／lifecycle 基礎已通過目前測試」，不代表整個 Phase 4 或最終遷移已完成。後續已再完成真實 Development Local Gateway、LocalDB readiness、ChurchReport localhost 與瀏覽器登入頁的 fail-closed 切片；但仍然需要真實 CE 8.2／9.1 WhoAmI、Authentication、Operation Matrix、rollback、跨 Process Capacity、Fault／Soak／Performance、OData 安全投影，以及 Phase 5 Consumer Migration 與 Phase 6 Data8／SDK Removal Gate。
+
+### 18.16 為什麼成功回應也不能顯示 CRM 真實位址
+
+Gateway 不只是把呼叫轉送出去，它同時是一道資訊信任邊界。產品只需要知道 Local／Central Gateway 的位址、Profile Alias、Operation ID 與業務資料；CRM 真正 hostname、Organization base path 與 `/api/data/v8.2|v9.1/` 都是 Gateway 內部路由資料。
+
+先前 `DynamicsWebApiClient` 在成功結果主動加入 `approvedWebApiRoot`。這雖然方便除錯，卻會讓所有已授權產品看到後端 CRM 拓撲，並鼓勵產品逐漸依賴內部位置。現在這個欄位已移除，成功 envelope 只保留：
+
+```text
+operationId + ceVersion + data
+```
+
+內部 `ApprovedWebApiRoot` 並沒有被刪除；它仍由每個 Profile Generation 擁有，負責檢查 HTTPS、host、port、Organization base path 與 API version，防止要求或 nextLink 逸出核准範圍。差別只在於「內部可以用來保護路由，但不能序列化給產品」。
+
+這個修正已用 RED→GREEN 測試驗證，並完成 Gemini＋Claude 雙模型審查，兩者都沒有 Critical 或 Warning。新增測試與 Production 註解也依本文件 18.14 的規則，說明信任邊界、資源 owner、取消／釋放不變量及效能取捨，檔案為 UTF-8 without BOM＋CRLF。
+
+仍要注意：真實 OData 回應本身可能帶有 `@odata.context` 或 `@odata.nextLink` 絕對 URL。因此「移除 `approvedWebApiRoot`」只完成 Gateway 自己造成的洩露點；正式啟用產品 operation 前，後續分頁應由 Gateway 驗證後在伺服器端繼續，或將資料投影成不含 CRM 絕對 URL 的 typed contract，不能把原始 OData annotation 當成產品資料直接傳出。
+
+### 18.17 ChurchReport 現在如何接 Local Gateway，以及 Session 資源怎麼回收
+
+這次實作把前面討論的架構真正接到 ChurchReport 的主生命週期，但仍然維持安全開關：
+
+```text
+DynamicsAccess:Package01FeeReadsEnabled = false
+```
+
+也就是程式結構、DI owner、preflight 與回收路徑已經存在，但目前不會把真實 ChurchReport 奉獻讀取流量切到 Local Gateway。Local Gateway 與 ChurchReport 瀏覽器的本機 fail-closed 啟動證據已完成；仍必須等真實 CE 8.2／9.1、單一 workflow parity、rollback、跨程序容量與 soak 證據完成後，才能另行核准開啟。
+
+#### 18.17.1 Local Gateway 連線在 ChurchReport 裡由誰擁有
+
+```mermaid
+flowchart LR
+    CR["ChurchReport 主 Host／主 DI"] --> PH["DonationDynamicsAccessProcessHost Singleton"]
+    PH --> PC["唯一 ProductClient／HttpClient Generation"]
+    PC --> LG["Local Gateway localhost Endpoint"]
+    LG --> R82["crm82 獨立 Runtime／暫時 Legacy Worker"]
+    LG --> R91["crm91 獨立 Runtime／Web API 或官方 Adapter"]
+    PF["Startup WhoAmI Preflight"] --> PH
+```
+
+重點不是 ChurchReport 自己建立 Connection Pool，而是：
+
+- ChurchReport 主 DI 只擁有一個 Dynamics process host。
+- process host 只允許一個不可變的 ProductClient／HTTP generation。
+- 相同設定重用同一 generation；設定不同時要求重啟並 drain，不能在同一 Process 偷偷建立第二個 pool。
+- `runtime.health.whoami` preflight 走正式 ProductClient pipeline，不另建第二個 `HttpClient`。
+- flag=false 與 Embedded mode 都不解析 Gateway executor，維持嚴格 no-op。
+- WhoAmI 失敗、逾時或設定無效會阻止 Host Ready，不會自動改走 Embedded、Central Gateway、Data8 或其他 Profile。
+
+這代表 Local Gateway 與 Central Gateway 的差別仍然只是部署 Endpoint；ChurchReport 的呼叫契約與 ProductClient 不需要改寫。
+
+#### 18.17.2 DonationPaymentManager 為什麼不能只靠 MemoryCache TTL
+
+以前的 Donation Manager 以 Session 衍生 key 放入 `IMemoryCache`，但沒有可證明的唯一 Dispose owner。登出、重新登入、TTL callback、host stop 與正在執行的 request 可能互相競爭，造成：
+
+- Manager 在 request 尚未完成時被提前 Dispose。
+- 登出後舊 Session scope 又被遲到 request 建立回來。
+- cache callback 尚未執行時，新 generation 被發佈在 dictionary 看不到的舊 slot，成為孤兒。
+- `Dispose()` 丟例外後 Active 計數仍歸零，健康檢查出現假綠燈。
+
+現在的狀態機如下：
+
+```mermaid
+stateDiagram-v2
+    [*] --> Live
+    Live --> Draining: "Logout／re-login／eviction／host stop"
+    Draining --> CleanupInProgress: "最後一個 request lease 歸還"
+    CleanupInProgress --> Disposed: "資源 cleanup 成功"
+    CleanupInProgress --> CleanupFailed: "Dispose 丟例外"
+    CleanupFailed --> CleanupInProgress: "後續 host drain 取得唯一 retry owner"
+    Disposed --> [*]
+```
+
+具體契約是：
+
+1. Session 只保存 256-bit 隨機 Base64Url scope，不使用 Session ID、帳號、LINE ID、Token 或 Credential 當 cache／pool key。
+2. 每個 request 取得一個 ref-counted lease；eviction 只先停止新 lease，不會中止已在執行的奉獻或 LINE 流程。
+3. Logout 與 re-login 使用與 scope 建立相同的固定 stripe lock。scope 讀取／建立、generation 發佈與 lease 發佈在同一線性化區段，所以身份重設完成後，較早 request 不能再用舊 scope 建立 Manager。
+4. 沒有 slot 的 drain 是 no-op，不能再呼叫 `cache.Remove`；否則會誤刪線性化點之後才建立的新世代。
+5. cache 已失效但 callback 尚未執行時，Acquire 必須回到 `_slots.GetOrAdd` 取得新的 registered slot，不能在已移除的 slot 發佈孤兒資源。
+6. `DonationPaymentManager` 只 Dispose 自己建立的 LINE client 與 `SemaphoreSlim`；Factory／DI 擁有的 CRM utility 與 workflow 不越權清理。
+7. cleanup 失敗時，entry 仍由 coordinator 強參考；`ActiveEntryCount` 保持非零，`CleanupFailureCount` 增加，後續 host drain 可重試。只有實際成功才回到零基準。
+
+#### 18.17.3 為什麼沒有強迫 InMemoryDataContextSmallGroup 實作 IDisposable
+
+原始計畫曾寫成「Scoped context Dispose 歸還 lease」，但實際盤點發現大量 legacy Controller 是手動 `new InMemoryDataContextSmallGroup`，不一定受 DI scoped disposal 管理。如果只依賴 context Dispose，正常 HTTP 回應或中止 request 都可能漏掉 lease。
+
+現在核准的做法是：
+
+- 第一個存取把 lease 放在 `HttpContext.Items` 的 request-local holder。
+- 同一 request、同一 coordinator、同一 scope 只建立一個 lease。
+- 同時註冊 `Response.OnCompleted` 與 `Response.RegisterForDispose`。
+- 兩條 cleanup 路徑共用同一個 `Interlocked` 冪等 lease，所以同時觸發也只歸還一次。
+- context 本身不是 lease owner，避免某個手動 context 先 Dispose，卻讓同 request 的其他 legacy context 提前失去 Manager。
+
+這不是忽略原計畫，而是依實際 ChurchReport 建構模式修正 owner 契約；SPEC 與測試已同步改成以 response lifecycle 為權威。
+
+#### 18.17.4 本次新增的競爭與故障測試
+
+本次測試不只驗證正常 Dispose，還刻意固定下列時序：
+
+| 故障注入 | 必須證明的結果 |
+| --- | --- |
+| 無 slot drain 與稍後 cache publication 競爭 | 不誤刪新世代，Factory 只執行一次。 |
+| cache 已移除、callback 延後 | 第二與第三個 request 共用新的 registered generation，不建立孤兒第三代。 |
+| factory 尚未 publish 時開始 logout | logout 等待 publication 線性化，之後確實 drain 該世代。 |
+| 最後 lease cleanup 第一次失敗 | Active 不歸零、failure count 增加、後續 host drain 重試同一資源。 |
+| host stop 發生在 factory 完成與 cache publish 之間 | 禁止 publish；失敗的 pre-publication cleanup 仍保有 owner 並可重試。 |
+| 真正執行 Logout action 與 re-login 初始化 | 兩條 production 呼叫點都在 `Session.Clear` 前 drain，in-flight lease 完成後回到基準。 |
+
+截至本次本地驗證：
+
+```text
+ChurchReport.MemberInfo.Tests
+  Passed 367 / Failed 0 / Skipped 0
+
+SpeechMessage.Dynamics.Tests（一般執行）
+  Passed 230 / Failed 0 / Skipped 1
+
+被略過的 LocalDB durable live contract
+  另行明確啟用後通過
+
+SpeechMessageProducts.sln Release Build
+  0 warnings / 0 errors
+```
+
+這些證據加上下一節的實機啟動結果，代表 Local Gateway／ChurchReport Development fail-closed 邊界與 deterministic lifecycle 已通過；仍不代表真實 Dynamics operation 或正式 consumer 已可啟用。仍待完成：CE 8.2／9.1 真實 WhoAmI、Authentication 與 Operation Matrix、rollback、OData annotation 安全投影、跨 Process 容量、Fault／Soak／Performance、Phase 5 單一產品 workflow 遷移，以及 Phase 6 Data8／SDK 移除 Gate。
+
+#### 18.17.5 對 PowerPlatform.Dataverse.Client 的結論沒有改變
+
+這次完成的是 ChurchReport → ProductClient → Local／Central Gateway 的 host 與 Session 資源邊界，沒有證明 CE 8.2 已能移除 Data8。因此：
+
+- `PowerPlatform.Dataverse.Client.csproj` 目前繼續保留。
+- 9.1 不應把 Data8 當共同底層。
+- 8.2 Data8 應逐步移到 bounded、可回收 Legacy Worker 邊界。
+- Embedded 保留但延後，不因 Local Gateway 優先而立即刪除。
+- `Package01FeeReadsEnabled` 繼續維持 `false`。
+
+### 18.18 Development Local Gateway、ChurchReport 瀏覽器與 AD FS 實機證據
+
+這一輪已把「只存在於圖上的 Local Gateway」推進到真正可啟動、可觀察、可停止的 Development 切片，但刻意使用不可路由的 CRM 目標，避免本機驗證意外碰到正式 Dynamics：
+
+```mermaid
+flowchart LR
+    VS["Visual Studio／開發者"] --> CR["ChurchReport Development"]
+    CR -->|"Gateway mode；Package 1 關閉"| LG["Local Gateway HTTPS loopback"]
+    LG --> AUTH["Windows Negotiate＋server-owned workload policy"]
+    LG --> DB["LocalDB 專用 Control Plane"]
+    LG --> FP["不可路由 CRM Development Target"]
+    ADFS["AD FS 唯讀管理驗證"] --> PC["既有 Public Client／單一 Callback"]
+    FP -->|"受控失敗；禁止 fallback"| STOP["400 sanitized response"]
+```
+
+#### 18.18.1 Development 設定的責任分工
+
+- Gateway 的 Development control plane 使用同一 Windows 使用者可擁有的 `(localdb)\\MSSQLLocalDB` 與專用 `SpeechMessageDynamicsControlPlane` 資料庫，採 Integrated Security、有界 pool 32 及 5 秒 connect timeout。
+- Gateway startup 只驗證已由操作者 provision 的 schema；不連接 Dynamics 原生 SQL、不自行建資料庫，也不在失敗時退回 in-memory coordinator。
+- ChurchReport Development 固定為 `ExecutionMode=Gateway`、`ProfileAlias=crm82`、`CeVersion=8.2`、HTTPS localhost、`/v1`，但 `Package01FeeReadsEnabled=false`，所以設定對齊不等於已切換奉獻讀取。
+- CRM Development target 保持不可路由；即使授權 operation 真的執行，也只能得到受控、已清理的失敗，不會自動改走 Central Gateway、Embedded、Data8、其他 alias 或正式 endpoint。
+
+#### 18.18.2 真實 Local Gateway 驗收矩陣
+
+| 驗收項目 | 實際結果 | 代表意義 |
+| --- | --- | --- |
+| `/health` | 200 | Process 活著。 |
+| `/ready` | 200 | LocalDB durable control-plane 契約與 Gateway readiness 通過。 |
+| anonymous `/v1` | 401 | 未驗證要求在 body／CRM／token／queue 工作前被拒絕。 |
+| 正確 Windows workload catalog | 200 | Server-issued Windows identity 能映射到核准 workload。 |
+| 錯誤 alias | 403 | 產品不能只靠 JSON 選取未授權 Profile。 |
+| 未授權 operation | 403 | Operation Registry／Policy 在 transport 前 fail closed。 |
+| 唯一允許 operation＋不可路由 target | 受控 400 | Connector 失敗沒有 fallback，也沒有洩露私密 endpoint。 |
+
+#### 18.18.3 ChurchReport 與瀏覽器結果
+
+Local Gateway 與 ChurchReport 曾同時啟動；ChurchReport root 回 200，Codex 內建瀏覽器登入頁到達 `readyState=complete`，JavaScript error 為 0。畫面只有兩個既有 DevExtreme deprecated warning，與本次 Gateway 切片無關。測試結束後兩個 Process 都已停止，localhost 5080 與 7244 listener 都已釋放，沒有留下測試 Host 或 Socket owner。
+
+這個結果證明 Visual Studio 開發時可以採用「ChurchReport＋獨立 Local Gateway」模式，不需要先把 Embedded 變成主要路徑。Embedded 仍可保留作未來離線／單檔部署實驗，但現在沒有必要讓 ChurchReport 同時建立第二套 Embedded transport／pool。
+
+#### 18.18.4 AD FS 與舊 Probe 的處理
+
+- 透過 WinRM／Negotiate 進行唯讀管理驗證，已確認唯一 Public Client、單一 callback，以及 shared IFD／Gateway／fail-closed 描述 marker；驗證過程沒有輸出 ClientId、callback、Relying Party identifiers、完整 endpoint 或 description。
+- 舊 `docs/scripts/Invoke-AdfsTokenProbe.ps1` 已改成退役的 fail-closed 入口：不接受帳密／Token／結果參數、不讀 appsettings、不呼叫 AD FS／CRM、不寫結果檔，也不建立背景或計時資源。
+- 支援的互動式本機路徑是既有 ChurchReport Public Client authorization-code 診斷流程；不再維護第二套 token probe、token cache 或 credential owner。
+
+#### 18.18.5 審查結果與仍開放的 Gate
+
+Development 設定與退役 probe 的 CCG 終審 `20260730-022825-local-gateway-development-config-adfs-probe-final-review-reviewer` 已由 Gemini 與 Claude 完整通過，`ok=true`、`degradedFallback=false`、`quotaBlocked=false`。Dynamics 測試 230 passed、ChurchReport 測試 367 passed、方案 Release build 0 warning／0 error，格式、UTF-8 without BOM、CRLF、final CRLF、`git diff --check` 與新增行敏感值掃描均通過。
+
+ChurchReport lifecycle 與本說明書的補充終審 `20260730-024616-churchreport-local-gateway-documentation-lifecycle-final-review-reviewer` 也已由 Gemini 與 Claude 都完成，runner 為 `ok=true`、`degradedFallback=false`、`quotaBlocked=false`。Claude 逐檔判定 PASS、沒有 lifecycle Critical；Gemini 唯一的 Critical 是把繁體中文檔案錯誤解碼成 mojibake。針對審查範圍中的 18 個 Production／Test／Config／Script 檔案（包含 Gemini 明列的 12 檔）重新執行 strict UTF-8 decoder、BOM、CRLF、final CRLF 與常見亂碼 pattern 檢查後，全部通過且 mojibake match 為 0，因此該項是 reviewer 工具解碼誤判，不是實際檔案損壞。兩者當時共同留下的實質 Warning 是 workload binding 的 index merge hardening；該 Warning 後續已由 18.19 節的具名 binding set 設計關閉。
+
+最後的文件整合終審 `20260730-030439-dynamics-gateway-documentation-reconciliation-final-review-reviewer` 再由 Gemini 與 Claude 同時 PASS，沒有 quota 或 degraded fallback。兩者確認本 SPEC、Phase 4 證據與繁體中文說明書可以作為後續 Phase 4～6 的權威文件；該次審查時唯一持續 Warning 仍是 Development workload binding 的 index merge，並未被錯寫成已修正。18.19 節記錄的是其後完成的修正與新證據，不能反向改寫當時審查的歷史結果。
+
+但 Phase 4 仍有以下未完成項目：
+
+1. 真實 CE 8.2 與 CE 9.1 的 WhoAmI、Authentication、Operation Matrix 與 rollback。
+2. 第一個真實資料 operation 前，必須由 Gateway 安全消費或投影 `@odata.context`／`@odata.nextLink`，不能把絕對 CRM URL 傳給產品。
+3. Central／Local 跨 Process aggregate capacity、durable coordinator outage、fault／soak／performance 與 shutdown resource baseline。
+4. 將 deployment readiness preflight 與 `Package01FeeReadsEnabled` 解耦的設計評估；在此之前 consumer flag 仍維持 false。
+5. Phase 5 只能先遷移一個可比較、可快速回滾的 ChurchReport workflow，不能一次打開多條 Package 1 read path。
+6. Phase 6 仍是 report-only；Data8、Embedded 與 `PowerPlatform.Dataverse.Client` 都不得因本機 Gateway 成功而刪除。
+7. 舊 `ToolUtilityFactory` 是 process-wide singleton，內含可釋放的 CRM／trace 資源，但目前只有測試用 reset，尚未證明 Production host stop 由唯一 owner 確定性清理。其他 Session cache manager 只引用這個共享 singleton，eviction 不能自行 Dispose，否則會造成跨 Session use-after-dispose；此 process owner／移除問題是 Phase 6 前的既有 lifecycle blocker。
+
+先前的 Development hardening Warning 已在 18.19 節關閉：授權設定不再使用同一路徑的陣列覆寫，而是使用 `ActiveWorkloadBindingSet` 加上 `WorkloadBindingSets:Central／Local／Testing`。Local Host 只 materialize `Local`，即使 base configuration 仍包含 Central subtree，Central principal 與 Central-only operation 也不會進入 Local 的 frozen authorization lookup。
+
+Claude 另指出其他 legacy Session cache manager 使用 `Get` 後 `Set` 的非原子模式，而且 eviction callback 沒有有效 state。根因盤點確認這些 manager 本身不是 `IDisposable`，由 provider 取得的 `ToolUtilityClass` 也是同一個 process-wide singleton，因此目前主要風險是並行首取時重複建立短命 wrapper／資料並可能覆蓋狀態，而不是每個 Session 另建一套 CRM connection。後續可以逐個 manager 現代化，但必須先判斷 owner；禁止用「eviction 時 Dispose subValue」的一刀切方式破壞共享 singleton。
+
+## 18.19 Development workload binding 具名集合隔離
+
+### 18.19.1 為什麼原本的陣列覆寫不安全
+
+.NET Configuration 並不是把後載入的 JSON 物件整段取代前一份 JSON，而是把所有 provider 展平成以冒號分隔的 leaf key，再由後面的 provider 覆寫相同 leaf。JSON array 的 index 也只是 key 的一部分。因此：
+
+```text
+base:        DynamicsGateway:WorkloadBindings:0:...
+Development DynamicsGateway:WorkloadBindings:1:...
+結果:        index 0 與 index 1 同時存在
+```
+
+這表示 Development 原本新增 index `1` 時，base 的 Central binding index `0` 仍會被 authorizer 一起讀取。更重要的是，只把 Development 改成 index `0` 也不夠安全：如果 base 的 `CapabilityOperationIds` 有 index `1..N`，Development 只覆寫 index `0`，後面的 operation leaf 仍可能殘留。授權設定不能依賴「陣列看起來像被覆寫」這種假設。
+
+### 18.19.2 最終採用的設計
+
+現在把授權資料分成具名 subtree，再以一個部署擁有的 selector 選出唯一 active set：
+
+```json
+{
+  "DynamicsGateway": {
+    "ActiveWorkloadBindingSet": "Central",
+    "WorkloadBindingSets": {
+      "Central": [
+        {
+          "PrincipalName": "CENTRAL-SERVICE-PRINCIPAL",
+          "WorkloadSubjectId": "church-report-service",
+          "ProfileAliases": ["crm82"],
+          "CapabilityOperationIds": ["runtime.health.whoami"]
+        }
+      ]
+    }
+  }
+}
+```
+
+Development 檔案只把 selector 切換為 `Local`，並在另一個 subtree 定義 Local binding：
+
+```json
+{
+  "DynamicsGateway": {
+    "ActiveWorkloadBindingSet": "Local",
+    "WorkloadBindingSets": {
+      "Local": [
+        {
+          "PrincipalName": "LOCAL-DEVELOPER-PRINCIPAL",
+          "WorkloadSubjectId": "church-report-development",
+          "ProfileAliases": ["crm82"],
+          "CapabilityOperationIds": ["runtime.health.whoami"]
+        }
+      ]
+    }
+  }
+}
+```
+
+Central 與 Local subtree 可以同時存在於最後的 `IConfiguration`，但這已經不構成權限聯集，因為 authorizer 不再列舉 `WorkloadBindings` 的全部 children；它先解析 selector，只複製選定 subtree 的 binding，最後發布兩個 immutable／frozen lookup。
+
+```mermaid
+flowchart LR
+    B["base appsettings.json<br/>Central set"] --> M["合併後 IConfiguration"]
+    D["appsettings.Development.json<br/>Local set + selector=Local"] --> M
+    M --> S["嚴格解析 ActiveWorkloadBindingSet"]
+    S --> L["只讀 WorkloadBindingSets:Local"]
+    M -. "Central subtree 仍存在但不被選取" .-> C["Central set"]
+    L --> F["Frozen SID／Principal lookup"]
+    F --> R["Local request authorization"]
+    C -. "不能進入 Local lookup" .-> R
+```
+
+### 18.19.3 Fail-closed 規則
+
+`ActiveWorkloadBindingSet` 是部署設定，不是 request、使用者、瀏覽器 Session 或產品 JSON 可以切換的欄位。Host 啟動時必須滿足以下條件：
+
+1. selector 必須存在、非空白、無 wildcard，而且只能對應一個直接 child set。
+2. 被選到的 set 必須是 collection，不能是 scalar，也不能沒有任何 binding。
+3. 每個 binding 仍要通過既有 SID／principal、workload、alias、operation、重複值與 wildcard 驗證。
+4. 任何失敗都由 startup validator 在 listener 接流量前中止；不能回退到 `Central`、第一組、base provider 或所有集合聯集。
+5. selector 與 binding 只在 constructor materialize 一次。request 熱路徑仍是 frozen dictionary 的有限次 O(1) 唯讀查找，不新增 lock、reload subscription、principal cache、timer、Task、socket 或 disposal owner。
+
+Testing 也必須明確選 `Testing` set。這可避免測試 Host 因為載入 base JSON 而默默使用 Central binding，並使每個 Factory 擁有自己的 immutable configuration／authorization snapshot。
+
+### 18.19.4 驗證結果
+
+先新增 regression 並確認 RED：base＋Development JSON 載入後，原實作會讓 Central principal 在 Development 得到 `Succeeded=true`。完成具名集合後，同一案例改為 `unmapped-principal`；空白、wildcard、未知與 scalar-only selector 也都在 Host startup 失敗。當時名為 empty 的案例實際使用 scalar provider value，不得當成真實 JSON childless object 的證據；後者已在 18.20 節補上獨立測試。
+
+當時完整驗證結果：
+
+```text
+GatewayWorkloadBoundaryTests                 23 passed
+GatewayRequestBodyBoundaryTests              24 passed
+GatewayKestrelNegotiateTests                  7 passed
+GatewayReadinessTests                         4 passed
+SpeechMessage.Dynamics.Tests ordinary run   235 passed / 0 failed / 1 skipped
+ChurchReport.MemberInfo.Tests               367 passed / 0 failed
+SpeechMessageProducts.sln Release build       0 warnings / 0 errors
+```
+
+真實 Development Local Gateway 重新啟動後的狀態矩陣為：
+
+```text
+/health                                      200
+/ready                                       200
+anonymous operation                          401
+authorized operation catalog                 200
+wrong alias                                  403
+unauthorized data operation                  403
+allowed WhoAmI against non-routable target   controlled 400
+```
+
+驗證後 Gateway parent／child process 均停止，7244 listener 回到 0，臨時 stdout／stderr 檔案也已移除。這項修正只關閉 Development authorization inheritance；它不代表 CE 8.2／9.1 真實伺服器 Gate、跨 Process aggregate capacity、soak、Phase 5 migration 或 Phase 6 SDK/Data8 removal 已完成。`Package01FeeReadsEnabled=false`、Embedded 延後、Data8 與 `PowerPlatform.Dataverse.Client` 暫時保留的決策全部不變。
+
+### 18.19.5 外部審查先前狀態
+
+Gemini reviewer 已在多次正式 runner attempt 中回報 PASS，沒有 Development→Central inheritance、selector fallback／path injection、Testing→Central inheritance、lifecycle/resource leak、繁體中文註解或 UTF-8 Critical／Warning。Claude provider CLI 則連續以 status 1 結束且沒有模型輸出；正式 retry `20260730-040201-development-workload-binding-set-final-review-retry-reviewer` 的 summary 是：
+
+```text
+ok=false
+completedBackends=gemini
+failedBackends=claude
+quotaBlocked=false
+degradedFallback=false
+```
+
+因此這不是完整 Gemini＋Claude 審查，也不是專案允許的 quota single-model fallback。正確結論是：本地 TDD、完整測試、建置與真實 Local Gateway 證據均通過，Gemini 沒有 finding，但外部雙模型 review gate 仍待 Claude 可用時重試。Generated artifacts 中的 provider Session marker、本機 profile path、設定 identity／SID／secret-reference 值均已遮罩，runner 中斷留下的 temporary shim 也已清除。
+
+這一段保留的是當時真實歷史狀態；其後完整 Gemini＋Claude 補審已在 18.20.6 節完成，不能把早期失敗 attempt 改寫成成功，也不能再用早期限制否定後續正式 PASS。
+
+## 18.20 Windows SID 才是穩定身分：同名帳號不得繼承舊權限
+
+### 18.20.1 審查發現的真實問題
+
+原先 `ConfigurationGatewayOperationAuthorizer.ResolveAuthenticatedBinding` 的邏輯是：
+
+```text
+先查 Windows SID
+  → SID 命中：使用 SID binding
+  → SID 未命中：繼續查 principal name
+```
+
+看起來像是「SID 優先」，但安全上並不足夠。Windows 帳號名稱可能被刪除後重新建立，新帳號可以取得相同名稱，但 SID 會不同。若新帳號的 SID 沒有 binding，程式卻因為名稱相同而 fallback，就會讓新帳號錯誤取得舊 workload 的 Profile Alias、Capability Operation、Organization Admission 容量身分與 Audit `WorkloadSubjectId`。
+
+這不是單純的顯示名稱問題，而是把不同 Windows security authority 當成同一個身分。
+
+### 18.20.2 現在的嚴格契約
+
+```mermaid
+flowchart TD
+    P["Authentication 已驗證的 Principal"] --> Q{"有語法有效的 Windows SID？"}
+    Q -->|"有"| S["只查 Frozen SID Binding"]
+    S -->|"命中"| A["繼續 Alias／Operation 白名單"]
+    S -->|"未命中"| D["403 unmapped-principal"]
+    Q -->|"沒有可用 SID"| N["查 Exact Principal Name Binding"]
+    N -->|"命中"| A
+    N -->|"未命中"| D
+    D --> Z["不建立 Executor／Admission／Secret／Transport"]
+```
+
+重點是：
+
+1. 一旦 principal 帶有語法有效的 SID，SID 就是唯一權威，未命中必須直接拒絕。
+2. Principal name 只是舊環境相容路徑；只有 authentication 根本沒有可用 SID 時才能使用。
+3. Name fallback 仍只允許完整、不分大小寫的 exact equality，不允許 prefix、substring、wildcard 或 caller header。
+4. 這個改法沒有新增共用 mutable state、lock、cache、timer、Task、socket 或 disposable owner；request 熱路徑仍只做有限次 FrozenDictionary 查找。
+
+### 18.20.3 TDD 如何證明這不是紙上推測
+
+先把舊測試「有效但未 mapping SID 可 fallback 到同名 principal」改成正確要求：
+
+```text
+預期 HTTP 403
+executor.CallCount == 0
+executor.LastRequest == null
+```
+
+在修改 Production 程式前，測試實際回傳 200，因此準確 RED。這證明測試真的抓到原缺陷，不是對已存在行為寫一個立即通過的斷言。
+
+最小 GREEN 修正是：有效 SID 分支無論命中與否都直接回傳 SID lookup 結果，不再落入名稱查找。同時重跑「完全沒有 SID」的既有名稱相容案例，確認並沒有把舊部署全部破壞。
+
+### 18.20.4 Selector 測試證據也同時校正
+
+原先名為 `Selected_empty_workload_binding_set_fails_host_startup` 的測試，其實是將 section 設為 scalar 字串，只能證明 scalar-only 失敗，不能證明真實 JSON 的 `{}` childless object 失敗。現在已拆成不同案例：
+
+- scalar-only；
+- 真實 JSON childless object；
+- scalar 與 children 同時存在的歧義 provider 形狀；
+- selector 缺少、前後空白、`*`、`?`、未知名稱與 `Local:0`；
+- `tEsTiNg` 可大小寫不敏感地精確選到 `Testing`。
+
+`Local:0` 是特別重要的邊界：authorizer 不能把 selector 直接串到 configuration path，否則含冒號的值會改變 section 階層。現在程式是先列舉 `WorkloadBindingSets` 的直接 children，再做 exact case-insensitive equality，所以 selector 不能穿越具名集合邊界。
+
+### 18.20.5 本次 fresh 驗證
+
+```text
+GatewayWorkloadBoundaryTests                 31 passed / 0 failed
+SpeechMessage.Dynamics.Tests ordinary run   243 passed / 0 failed / 1 skipped
+ChurchReport.MemberInfo.Tests               367 passed / 0 failed
+SpeechMessageProducts.sln Release build       0 warnings / 0 errors
+```
+
+所有新增或實質修改的 Production／Test 程式註解都依 18.14 節規則，使用繁體中文說明信任邊界、唯一 owner、並行特性、fail-closed 順序、cleanup 邊界與效能／記憶體取捨。檔案仍必須通過 UTF-8 without BOM、CRLF 與 final CRLF Gate。
+
+這個修正只關閉同名不同 SID 的授權漏洞，並讓 selector 證據更精確。它不改變整體架構決策：Central Gateway 仍是正式目標，Local Gateway 仍是目前開發路徑，Embedded 保留且延後，Data8 與 `PowerPlatform.Dataverse.Client` 在 Phase 6 Gate 前保留，`Package01FeeReadsEnabled=false` 也不變。
+
+### 18.20.6 完整雙模型補審與審查產物清理
+
+本次授權隔離增量最後透過專案規定的 self-healing runner 完成正式補審：
+
+```text
+20260730-045814-valid-unmapped-sid-selector-final-review-reviewer
+ok=true
+degradedFallback=false
+quotaBlocked=false
+completedBackends=gemini,claude
+Gemini=PASS / Critical 0 / Warning 0
+Claude=PASS / Critical 0 / Warning 0
+```
+
+兩個模型共同確認：
+
+1. authenticated principal 只要帶有語法有效的 SID，SID 就是唯一 authority；未 mapping 必須立即 403，不得因 principal name 相同而回復舊權限。
+2. principal 完全沒有可用 SID 時，才保留 exact、case-insensitive principal-name 相容路徑；它不是 request header、瀏覽器 Session 或 caller 可控制的替代身分。
+3. selector 只與 `WorkloadBindingSets` 的直接 child name 做 exact、case-insensitive 比對；缺少、空白、wildcard、未知、scalar-only、childless、scalar-plus-children 與 `Local:0` 都 fail closed。
+4. 拒絕發生在 executor、admission、secret、token 與 outbound transport 之前；request 熱路徑只讀既有 FrozenDictionary，不新增共用 mutable state、lock、cache、timer、Task、socket 或需要回收的新 owner。
+5. 新增與實質修改的 Production／Test 程式註解已使用繁體中文說明 trust boundary、唯一 owner、並行不變量、fail-closed 順序、cleanup 與效能／記憶體取捨。往後 Tool／Script 也適用同一硬性規則，不能只有語法翻譯或 `<inheritdoc />`。
+
+Claude stdout／stderr 原先帶有 provider Session marker，prompt／stderr 也帶有本機 profile path。這些值只存在於 generated review artifacts，已以固定占位符遮罩，未改寫 reviewer 的 PASS／finding。Runner 本次建立且經絕對路徑確認位於系統 Temp 的唯一 Claude shim 檔案與空目錄也已刪除；沒有終止 Claude Desktop 的既有 GUI process。清理後證據：
+
+```text
+SESSION_LEAKS=0
+PROFILE_LEAKS=0
+SID_LEAKS=0
+CONFIG_VALUE_LEAKS=0
+RECENT_SHIM_DIRECTORIES=0
+LISTENER_7244=0
+```
+
+文件與審查產物完成正規化後，最後一輪本地品質證據為：
+
+```text
+GatewayWorkloadBoundaryTests       31 passed / 0 failed / 0 skipped
+SpeechMessage.Dynamics.Tests      243 passed / 0 failed / 1 opt-in live SQL skipped
+ChurchReport.MemberInfo.Tests     367 passed / 0 failed / 0 skipped
+SpeechMessageProducts.sln Release   0 warnings / 0 errors
+Scoped dotnet format               35 C# files / passed
+Traditional Chinese comment audit  36 program files / passed
+Strict text encoding               60 delivery files / passed
+git diff --check                   passed
+```
+
+這裡的 strict text gate 不是只看編輯器顯示正常，而是用會拒絕無效位元組的 UTF-8 decoder 逐檔讀取，
+並拒絕 BOM、bare LF、bare CR、缺少 final CRLF 與 Unicode replacement character。註解 Gate 涵蓋全部
+變更或新增的 `.cs`／`.ps1` 程式檔；未來新增檔案也必須走相同檢查，不能只依人工目視判定。
+
+因此，本次 valid-unmapped-SID／selector 增量的強制雙模型 review Gate 已關閉；整體 Phase 4 仍然是 in progress。真實 CE 8.2／9.1、OData 安全投影、跨 Process 容量、coordinator fault、soak／performance、shutdown baseline、Phase 5 與 Phase 6 都沒有因此完成。`Package01FeeReadsEnabled=false`、Embedded 延後、Data8 與 `PowerPlatform.Dataverse.Client` 保留的決策完全不變。
+
+所有新增或修改的 source、test、tool、script、configuration、SPEC 與文件都必須通過 strict UTF-8 decoder，並維持 UTF-8 without BOM、CRLF-only 與 final CRLF。註解或編碼不合格不是排版小問題，而是會阻擋交付的規格違反。
 
 ## 19. 一句話總結
 

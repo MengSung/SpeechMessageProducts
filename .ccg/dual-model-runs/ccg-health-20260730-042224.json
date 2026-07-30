@@ -1,0 +1,48 @@
+﻿{
+    "generatedAt":  "2026-07-30T04:15:47.8804467+08:00",
+    "repositoryPath":  "D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree",
+    "changedUserPath":  false,
+    "environment":  {
+                        "GEMINI_CLI_TRUST_WORKSPACE":  "true",
+                        "CODEAGENT_LITE_MODE":  "true",
+                        "PYTHONIOENCODING":  "utf-8",
+                        "CLAUDE_MODEL":  "sonnet",
+                        "CLAUDE_MODEL_SHIM":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-47572-79f4608eb81245658aebaa2db9f38360\\claude.cmd",
+                        "CCG_CLAUDE_MODEL_SHIM_DIR":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-47572-79f4608eb81245658aebaa2db9f38360",
+                        "CLAUDE_REAL_COMMAND":  "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\claude.cmd"
+                    },
+    "executables":  {
+                        "wrapper":  "C:\\Users\\Administrator\\.claude\\bin\\codeagent-wrapper.exe",
+                        "gemini":  "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\gemini.cmd",
+                        "claude":  "C:\\Users\\Administrator\\AppData\\Local\\Temp\\ccg-claude-model-shim-47572-79f4608eb81245658aebaa2db9f38360\\claude.cmd",
+                        "python":  "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python314\\python.exe"
+                    },
+    "smoke":  [
+                  {
+                      "Backend":  "gemini",
+                      "Ok":  true,
+                      "ExitCode":  0,
+                      "TimedOut":  false,
+                      "QuotaBlocked":  false,
+                      "FailureReason":  "ok",
+                      "Diagnostic":  null,
+                      "Output":  "GEMINI_BACKEND_OK\n\n[codeagent-wrapper]\n  Backend: gemini\n  Command: gemini -o stream-json -y --include-directories D:\\音訊科技產品\\系統平台\\SpeechMessageProducts\\.worktrees\\1.0.0.3.Gateway\u0026Embedded.Worktree -p ﻿ROLE_FILE: C:\\Users\\Administrator\\.claude\\.ccg\\prompts\\gemini\\reviewer.md\n\u003cTASK\u003e\nSmoke test only. Reply with exactly: GEMINI_BACKEND_OK\n\u003c/TASK\u003e\nOUTPUT: one line only\n  PID: 48204\n  Log: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeagent-wrapper-48204.log"
+                  },
+                  {
+                      "Backend":  "claude",
+                      "Ok":  false,
+                      "ExitCode":  124,
+                      "TimedOut":  true,
+                      "QuotaBlocked":  false,
+                      "FailureReason":  "timeout",
+                      "Diagnostic":  "API Error: 529 Overloaded. This is a server-side issue, usually temporary — try again in a moment. If it persists, check https://status.claude.com.",
+                      "Output":  "[codeagent-wrapper]\n  Backend: claude\n  Command: claude -p --dangerously-skip-permissions --setting-sources  --output-format stream-json --verbose -\n  PID: 44340\n  Log: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeagent-wrapper-44340.log\n  Session-ID: 6a696ded-fe88-4e8b-b0a6-e7e0325064f6\n\n=== Recent Errors ===\nUsing stdin mode for task due to: piped input, explicit \"-\", newline, backslash\nclaude exited with status 1\nLog file: C:\\Users\\Administrator\\AppData\\Local\\Temp\\codeagent-wrapper-44340.log (deleted)"
+                  }
+              ],
+    "ok":  false,
+    "repairable":  true,
+    "notes":  [
+
+              ],
+    "wrapperVersion":  "codeagent-wrapper version 5.11.1"
+}
