@@ -11,7 +11,8 @@ Public Client Authorization Code 設計。此退役入口不接受任何參數�
 token cache、不建立結果檔，也不啟動背景工作；執行後只會立即以固定 ASCII 訊息 fail closed。
 
 本機開發若要驗證互動式 ADFS，必須先啟動 ChurchReport，再由 /diagnostics/adfs-authorize 進入既有 Public Client
-流程。該流程的 callback、token store、逾時與 cleanup 由應用程式既有生命週期負責；本腳本不再複製第二套 owner。
+流程。該流程的 callback 只在單一 request 內完成 code exchange 與受控連線驗證，token 不落盤、不進 Session 或共享 cache，
+所有逾時與 cleanup 由該 request 的確定性生命週期負責；本腳本不再複製第二套 owner。
 在 Local Gateway、AD FS、CE 8.2／9.1、operation matrix、browser E2E 與 soak gate 全部通過前，
 Package01FeeReadsEnabled=false 必須保持不變，且不得因診斷成功自動修改任何產品設定。
 

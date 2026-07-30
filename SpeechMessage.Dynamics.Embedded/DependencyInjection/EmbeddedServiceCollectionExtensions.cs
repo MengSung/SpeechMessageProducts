@@ -56,9 +56,11 @@ public static class EmbeddedServiceCollectionExtensions
         }
 
         var embedded = productOptions.Embedded;
+        var authMode = ParseAuthMode(embedded.AuthMode);
         var credentialSource = ParseCredentialSource(embedded.CredentialSource);
 
-        if (credentialSource == DynamicsCredentialSource.SecretReference)
+        if (authMode == DynamicsAuthMode.Windows &&
+            credentialSource == DynamicsCredentialSource.SecretReference)
         {
             if (string.IsNullOrWhiteSpace(embedded.UserNameSecretName) ||
                 string.IsNullOrWhiteSpace(embedded.PasswordSecretName))
@@ -77,36 +79,39 @@ public static class EmbeddedServiceCollectionExtensions
                     new DictionarySecretResolver(additionalSecrets)));
         }
 
-        var authMode = ParseAuthMode(embedded.AuthMode);
-        var isLocalDevManifest = string.Equals(
-            embedded.ManifestOrRegistrySource,
-            "local-dev-manifest",
-            StringComparison.OrdinalIgnoreCase);
-
-        // 本機 local-dev-manifest + AdfsOAuth：允許用 CrmConnection 橋接帳密做 password grant。
-        // 正式環境必須 false，改走 bearer 服務流程。
-        var allowLocalDevPasswordGrant =
-            authMode == DynamicsAuthMode.AdfsOAuth &&
-            isLocalDevManifest &&
-            (embedded.AllowLocalDevPasswordGrant ||
-             string.IsNullOrWhiteSpace(embedded.CredentialReferenceName));
-
         if (authMode == DynamicsAuthMode.AdfsOAuth)
         {
-            // 兩條合法路：
-            // A) 已有 bearer token 秘密（CredentialReferenceName）
-            // B) 走 ADFS token endpoint：AuthorityUri + ClientId（本機可再加 password grant）
+            // Embedded 與 Local/Central Gateway 使用相同的 ADFS fail-closed 契約：禁止 ROPC/password grant
+            // 與未經證明的 client-secret exchange。驗證發生在 DI 建立 provider、handler 或 socket 之前，
+            // 因此錯誤設定不會啟動任何 token work，也不會把人類帳密保留在 generation cache。
+            if (embedded.AllowLocalDevPasswordGrant)
+            {
+                throw new InvalidOperationException(
+                    "Embedded ADFS password grant is disabled. Use a controlled bearer or refresh-token secret reference.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(embedded.ClientSecretName))
+            {
+                throw new InvalidOperationException(
+                    "Embedded ADFS client-secret exchange is disabled until a supported service-identity flow is proven.");
+            }
+
+            // 合法路徑只有：
+            // A) CredentialReferenceName 指向預先核發 bearer；
+            // B) Authority＋ClientId＋RefreshTokenSecretName，由 generation-owned provider 做 single-flight refresh。
             var hasBearerRef = !string.IsNullOrWhiteSpace(embedded.CredentialReferenceName);
             var hasAuthority = !string.IsNullOrWhiteSpace(embedded.AuthorityUri);
             var hasClientId =
                 !string.IsNullOrWhiteSpace(embedded.ClientId) ||
                 !string.IsNullOrWhiteSpace(embedded.ClientIdSecretName);
+            var hasRefreshTokenReference =
+                !string.IsNullOrWhiteSpace(embedded.RefreshTokenSecretName);
 
-            if (!hasBearerRef && !(hasAuthority && hasClientId))
+            if (!hasBearerRef && !(hasAuthority && hasClientId && hasRefreshTokenReference))
             {
                 throw new InvalidOperationException(
                     "Embedded AdfsOAuth requires either CredentialReferenceName (pre-issued bearer), " +
-                    "or AuthorityUri + ClientId/ClientIdSecretName for ADFS token acquisition.");
+                    "or AuthorityUri + ClientId/ClientIdSecretName + RefreshTokenSecretName.");
             }
         }
 
@@ -124,11 +129,10 @@ public static class EmbeddedServiceCollectionExtensions
             options.ResourceUri = embedded.ResourceUri;
             options.ClientId = embedded.ClientId;
             options.ClientIdSecretName = embedded.ClientIdSecretName;
-            options.ClientSecretName = embedded.ClientSecretName;
+            options.ClientSecretName = null;
             options.CredentialReferenceName = embedded.CredentialReferenceName;
-            options.AllowLocalDevPasswordGrant = allowLocalDevPasswordGrant;
+            options.AllowLocalDevPasswordGrant = false;
             options.RefreshTokenSecretName = embedded.RefreshTokenSecretName;
-            options.LocalDevTokenStorePath = embedded.LocalDevTokenStorePath;
             options.RedirectUri = embedded.RedirectUri;
             options.TimeoutSeconds = 30;
             options.MaxConnectionsPerServer = 4;

@@ -71,13 +71,14 @@ public sealed class DynamicsWebApiOptions
     public string? ClientId { get; set; }
 
     /// <summary>
-    /// confidential client 使用的選用 client-secret 秘密名稱；只存參考，不存秘密值。
+    /// 舊設定相容欄位。現行 ADFS provider 不接受 client-secret exchange；非空值會在 DI validation 階段
+    /// fail closed，直到正式支援且完成實機安全證明的 service-identity flow 另案導入。
     /// </summary>
     public string? ClientSecretName { get; set; }
 
     /// <summary>
-    /// 僅 local-dev 允許對 ADFS 使用 username/password grant。
-    /// 正式環境必須使用經核准的非密碼服務流程或預先核發 bearer，避免保存人類帳號密碼。
+    /// 舊設定相容的 fail-closed migration trap。現行值必須為 false；true 會在任何秘密解析或 HTTP 資源建立前
+    /// 拒絕啟動，永久阻止 ROPC/password grant 與人類帳密進入 token generation。
     /// </summary>
     public bool AllowLocalDevPasswordGrant { get; set; }
 
@@ -85,11 +86,6 @@ public sealed class DynamicsWebApiOptions
     /// 選用的 refresh-token 秘密名稱，可由環境變數或秘密庫解析；不得記錄 Token 本體。
     /// </summary>
     public string? RefreshTokenSecretName { get; set; }
-
-    /// <summary>
-    /// 僅 local-dev 使用的 JSON token store 路徑，保存 authorization_code 流程取得的 access/refresh token。
-    /// </summary>
-    public string? LocalDevTokenStorePath { get; set; }
 
     /// <summary>
     /// authorization_code 交換使用的 OAuth redirect URI，必須與 ADFS client registration 完全一致。

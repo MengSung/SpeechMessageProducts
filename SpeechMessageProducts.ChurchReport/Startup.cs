@@ -32,6 +32,8 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -162,6 +164,29 @@ namespace ChurchReport
             // 使用 HttpClientFactory 來管理 HttpClient 實例，避免記憶體洩漏問題。
             // 這是最佳實務，能夠重用連接並自動處理資源清理。
             services.AddHttpClient();
+
+            // LINE OAuth 使用獨立的 host-owned handler pool。每個 controller action 只取得短生命週期 HttpClient wrapper，
+            // handler、DNS/socket pool 與 cleanup 由 HttpClientFactory 唯一擁有；禁用 Cookie、Redirect、Proxy、預先認證與
+            // 自動解壓縮，避免不同登入 Session 共享隱含狀態或接收壓縮炸彈。連線數、handler lifetime 與 timeout 均有界，
+            // 在維持連線重用效能的同時，不以 static client、無界 queue 或每 request 新 handler 換取速度。
+            services.AddHttpClient("line-login-oauth", client =>
+                {
+                    client.Timeout = TimeSpan.FromSeconds(30);
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+                })
+                .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+                {
+                    UseCookies = false,
+                    AllowAutoRedirect = false,
+                    UseProxy = false,
+                    AutomaticDecompression = DecompressionMethods.None,
+                    PreAuthenticate = false,
+                    MaxConnectionsPerServer = 8,
+                    PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                    PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
+                })
+                .SetHandlerLifetime(TimeSpan.FromMinutes(10));
 
             // ========================================
             // 🔧 修復：MemoryCache 添加過期策略（不限制大小，避免登入卡住）

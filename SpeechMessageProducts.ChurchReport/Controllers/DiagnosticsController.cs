@@ -1,589 +1,548 @@
 // ============================================================================
-// AI-繁體中文檔案註解
-// 檔案路徑：ChurchReport/Controllers/DiagnosticsController.cs
-// 所屬區塊：ChurchReport 主網站與後台應用程式
-// 檔案責任：DEBUG 診斷端點（Session / 效能 / ADFS OAuth 授權碼與 token 探測）
-// 主要型別：class DiagnosticsController
-// 主要成員：Index、AdfsAuthorize、AdfsCallback、AdfsTokenProbe
-// 編碼要求：UTF-8 without BOM + CRLF
+// 檔案：SpeechMessageProducts.ChurchReport/Controllers/DiagnosticsController.cs
+// 目的：僅在 DEBUG 組態提供最小、無持久化的 Local Gateway／ADFS 診斷資訊。
+//
+// 安全設計：
+// 1. 所有回應強制 private, no-store；不得讓瀏覽器、Proxy 或 shared cache 保存診斷訊號。
+// 2. OAuth state 只存在目前 HTTP Session，callback 讀取後立即移除，所有成功與失敗路徑均為一次性消費。
+// 3. authorization code、access token、refresh token、上游 body、endpoint、client ID 與 Session ID 都不寫檔、不寫 log、不回顯。
+// 4. HttpClient、handler、request、response、content、stream、buffer 由單一 action scope 確定性擁有並釋放。
+// 5. 診斷失敗只回傳固定 category／status，避免 exception 或部署細節成為資料外洩通道。
 // ============================================================================
+
+using System.Buffers;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using SpeechMessage.Dynamics.Abstractions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace ChurchReport.Controllers
 {
-    /// <summary>
-    /// 診斷控制器（僅 DEBUG）。
-    /// jesus ADFS 只允許 authorization_code / refresh_token，不允許 password grant。
-    /// 本機請先開 /diagnostics/adfs-authorize 完成一次瀏覽器授權。
-    /// </summary>
 #if DEBUG
+    /// <summary>
+    /// DEBUG-only 診斷控制器。這不是一般應用程式 API，也不是 token broker；它只協助已登入的本機開發者確認
+    /// authorization-code callback 與 WhoAmI 是否可達。每個 action 都維持最小回應，禁止以診斷便利性換取
+    /// token、Session、部署設定或上游 response 的 retention。Release 編譯不包含這個型別。
+    /// </summary>
     [Authorize]
     [Route("diagnostics")]
-    public class DiagnosticsController : Controller
+    public sealed class DiagnosticsController : Controller
     {
         private const string AdfsOAuthStateSessionKey = "Diagnostics.AdfsOAuth.State";
+        private const string AdfsOAuthStateIssuedAtSessionKey = "Diagnostics.AdfsOAuth.IssuedAtUtcTicks";
+        private const int MaxTokenResponseBytes = 32 * 1024;
+        private const int MaxWhoAmIResponseBytes = 32 * 1024;
+        private static readonly TimeSpan OAuthStateLifetime = TimeSpan.FromMinutes(5);
         private readonly IConfiguration _configuration;
 
+        /// <summary>
+        /// 建立 controller。建構式只保留不可變設定 root，不解析秘密、不建立 HTTP client、socket、timer、
+        /// cache 或 Session state；這些資源只會在對應 action 的短生命週期 scope 中建立。
+        /// </summary>
+        /// <param name="configuration">已由 Host 建立的部署設定；action 不會把其中任何值回傳給 caller。</param>
         public DiagnosticsController(IConfiguration configuration)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
+        /// <summary>
+        /// 回傳最小診斷入口狀態。結果刻意不含使用者名稱、Session ID、authority、resource、client ID 或 URL。
+        /// response headers 由本 action 的唯一 owner 設定為不可儲存，沒有額外資源或 cleanup 責任。
+        /// </summary>
         [HttpGet("")]
         public IActionResult Index()
         {
-            return Json(new
+            ApplyNoStoreHeaders();
+            return Json(new Dictionary<string, object?>
             {
-                ServerTime = DateTime.Now,
-                Environment = "DEBUG",
-                User = User.Identity?.Name ?? "Anonymous",
-                IsAuthenticated = User.Identity?.IsAuthenticated ?? false,
-                AvailableEndpoints = new[]
-                {
-                    new { Endpoint = "/diagnostics/adfs-authorize", Description = "ADFS 授權預覽（先看 JSON）" },
-                    new { Endpoint = "/diagnostics/adfs-authorize?go=1", Description = "確認 ClientId 已註冊後才真正導向 ADFS" },
-                    new { Endpoint = "/diagnostics/adfs-token-probe", Description = "用 refresh_token / 現有 token 探測 WhoAmI" },
-                    new { Endpoint = "/diagnostics/session", Description = "查看當前 Session 資訊" },
-                    new { Endpoint = "/diagnostics/performance", Description = "查看效能統計" }
-                },
-                Note = "jesus ADFS rejects password grant (unsupported_grant_type). Use adfs-authorize first."
+                ["ok"] = true,
+                ["stage"] = "diagnostics",
+                ["adfsAuthorizeAvailable"] = true,
+                ["sessionAvailable"] = HttpContext.Session.IsAvailable
             });
         }
 
         /// <summary>
-        /// ADFS authorization_code 入口。
-        ///
-        /// 保姆級教學：
-        /// 1. 預設只顯示「授權預覽 JSON」，不立刻 redirect，避免用未註冊 ClientId 盲導向 ADFS 錯誤頁。
-        /// 2. 確認 ClientId / RedirectUri 已在 ADFS 註冊後，再打開：
-        ///    /diagnostics/adfs-authorize?go=1
-        /// 3. jesus 這台 ADFS 已證實：
-        ///    - 不支援 password grant
-        ///    - 未註冊 client 時，authorize 會落到 CRM IFD Relying Party 並顯示「發生錯誤」
+        /// 顯示不含部署資料的 authorize preview；只有明確 <c>go=1</c> 才建立 session-owned state 並導向 ADFS。
+        /// preview 不配置 state，避免單純 GET 造成 Session retention；真正導向時 state 只保存在同一 Session，並由
+        /// callback 的 read-and-remove 路徑唯一消費。state 使用隨機 256-bit 值，不進入 log、response 或檔案。
         /// </summary>
+        /// <param name="go">只有值為 1 或 true 才執行 authorization redirect。</param>
         [HttpGet("adfs-authorize")]
-        public async Task<IActionResult> AdfsAuthorize(string? go = null)
+        public Task<IActionResult> AdfsAuthorize(string? go = null)
         {
-            var authority = GetAuthority();
-            var resource = GetResource();
-            var clientId = GetClientId();
-            var redirectUri = GetRedirectUri();
-            var state = Guid.NewGuid().ToString("N");
-            HttpContext.Session.SetString(AdfsOAuthStateSessionKey, state);
-
-            var authorizeUrl =
-                authority.TrimEnd('/') + "/oauth2/authorize" +
-                "?response_type=code" +
-                "&client_id=" + Uri.EscapeDataString(clientId) +
-                "&resource=" + Uri.EscapeDataString(resource) +
-                "&redirect_uri=" + Uri.EscapeDataString(redirectUri) +
-                "&response_mode=query" +
-                "&state=" + Uri.EscapeDataString(state);
-
-            var preview = new Dictionary<string, object?>
-            {
-                ["ok"] = false,
-                ["stage"] = "authorize-preview",
-                ["serverTime"] = DateTime.Now.ToString("o"),
-                ["authority"] = authority,
-                ["resource"] = resource,
-                ["clientId"] = clientId,
-                ["redirectUri"] = redirectUri,
-                ["authorizeUrl"] = authorizeUrl,
-                ["knownFacts"] = new[]
-                {
-                    "Password grant is disabled on this ADFS (unsupported_grant_type).",
-                    "Previous authorize attempt failed with Relying party = 'Dynamics 365 對外連線 IFD'.",
-                    "That RP name is the CRM IFD trust, which usually means OAuth client is not registered/permitted.",
-                    "Provisional ClientId 2ad88395-... is a Dynamics Online sample id and is likely NOT registered on this on-prem ADFS."
-                },
-                ["adfsAdminRequired"] = new
-                {
-                    goal = "Register a public/native OAuth client on ADFS and permit it for CRM IFD resource",
-                    samplePowerShell = new[]
-                    {
-                        "$clientId = [guid]::NewGuid().Guid",
-                        "Add-AdfsClient -Name 'SpeechMessage-ChurchReport-LocalDev' -ClientId $clientId -RedirectUri 'http://localhost:43371/diagnostics/adfs-callback'",
-                        "# Then put $clientId into DynamicsAccess:Embedded:ClientId",
-                        "# If using Application Group model, also grant permission to CRM Web API / IFD relying party identifier."
-                    }
-                },
-                ["nextStep"] = "After ADFS client is registered, open /diagnostics/adfs-authorize?go=1"
-            };
-
-            await WriteProbeResultAsync(preview).ConfigureAwait(false);
-            Trace.WriteLine("[ADFS-AUTH] preview authorizeUrl=" + authorizeUrl);
-
-            var shouldGo =
-                string.Equals(go, "1", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(go, "true", StringComparison.OrdinalIgnoreCase);
+            ApplyNoStoreHeaders();
+            var shouldGo = string.Equals(go, "1", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(go, "true", StringComparison.OrdinalIgnoreCase);
 
             if (!shouldGo)
             {
-                return Json(preview);
+                return Task.FromResult<IActionResult>(Json(new Dictionary<string, object?>
+                {
+                    ["ok"] = true,
+                    ["stage"] = "authorize-preview",
+                    ["redirectStarted"] = false
+                }));
             }
 
-            Trace.WriteLine("[ADFS-AUTH] redirect to authorize. redirectUri=" + redirectUri + " clientId=" + clientId);
-            return Redirect(authorizeUrl);
+            var stateBytes = RandomNumberGenerator.GetBytes(32);
+            string state = string.Empty;
+            try
+            {
+                state = Convert.ToHexString(stateBytes);
+                HttpContext.Session.SetString(AdfsOAuthStateSessionKey, state);
+                HttpContext.Session.SetString(
+                    AdfsOAuthStateIssuedAtSessionKey,
+                    DateTimeOffset.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture));
+                var authorizeUrl = BuildAuthorizeUrl(state);
+                return Task.FromResult<IActionResult>(Redirect(authorizeUrl));
+            }
+            finally
+            {
+                // 隨機 byte[] 可確定清零；state 字串無法可靠清零，但離開 action 後沒有欄位、cache、logging 或
+                // response reference 保留它。Session 中 state／issued-at 由 callback 的 read-and-remove 唯一擁有。
+                CryptographicOperations.ZeroMemory(stateBytes);
+                state = string.Empty;
+            }
         }
 
         /// <summary>
-        /// ADFS authorization_code callback：用 code 換 access/refresh token 並存檔。
+        /// 消費一次性的 authorization-code callback。方法一開始先讀取並移除 expected state，因此 error、mismatch、
+        /// missing code、上游失敗與成功皆不能重播。token 與 WhoAmI response 均只在 action scope 內使用；成功也不
+        /// 建立 refresh-token persistence 或跨 request cache。
         /// </summary>
+        /// <param name="code">ADFS authorization code；只用於本次 token exchange。</param>
+        /// <param name="state">回傳 state；只與剛移除的 session state 比較。</param>
+        /// <param name="error">ADFS error 指示；不回顯其原始內容。</param>
+        /// <param name="errorDescription">保留路由相容性，但不讀取或輸出其內容。</param>
         [HttpGet("adfs-callback")]
-        public async Task<IActionResult> AdfsCallback(string? code, string? state, string? error, string? error_description)
+        public async Task<IActionResult> AdfsCallback(
+            string? code,
+            string? state,
+            string? error,
+            string? errorDescription)
         {
-            var result = new Dictionary<string, object?>
+            ApplyNoStoreHeaders();
+            _ = errorDescription;
+
+            // State 的 read-and-remove 必須早於任何 early return、HTTP client 或設定解析。把 expectedState 移出
+            // Session 後，無論比較結果如何，該 nonce 都沒有第二個 consumer。
+            var expectedState = HttpContext.Session.GetString(AdfsOAuthStateSessionKey);
+            var issuedAtTicks = HttpContext.Session.GetString(AdfsOAuthStateIssuedAtSessionKey);
+            HttpContext.Session.Remove(AdfsOAuthStateSessionKey);
+            HttpContext.Session.Remove(AdfsOAuthStateIssuedAtSessionKey);
+
+            if (string.IsNullOrWhiteSpace(state) ||
+                string.IsNullOrWhiteSpace(expectedState) ||
+                !FixedTimeEquals(state, expectedState) ||
+                !IsFreshOAuthState(issuedAtTicks))
             {
-                ["ok"] = false,
-                ["stage"] = "callback",
-                ["serverTime"] = DateTime.Now.ToString("o"),
-                ["processUser"] = Environment.UserName
-            };
+                return DiagnosticError("Invalid or missing OAuth state.");
+            }
 
             if (!string.IsNullOrWhiteSpace(error))
             {
-                result["error"] = error;
-                result["errorDescription"] = error_description;
-                await WriteProbeResultAsync(result).ConfigureAwait(false);
-                return Json(result);
-            }
-
-            var expectedState = HttpContext.Session.GetString(AdfsOAuthStateSessionKey);
-            if (string.IsNullOrWhiteSpace(state) ||
-                string.IsNullOrWhiteSpace(expectedState) ||
-                !string.Equals(state, expectedState, StringComparison.Ordinal))
-            {
-                result["error"] = "Invalid or missing OAuth state.";
-                await WriteProbeResultAsync(result).ConfigureAwait(false);
-                return Json(result);
+                return DiagnosticError("adfs-error");
             }
 
             if (string.IsNullOrWhiteSpace(code))
             {
-                result["error"] = "Missing authorization code.";
-                await WriteProbeResultAsync(result).ConfigureAwait(false);
-                return Json(result);
+                return DiagnosticError("missing-code");
             }
-
-            var authority = GetAuthority();
-            var resource = GetResource();
-            var clientId = GetClientId();
-            var redirectUri = GetRedirectUri();
-            var tokenUrl = authority.TrimEnd('/') + "/oauth2/token";
-            result["tokenUrl"] = tokenUrl;
-            result["redirectUri"] = redirectUri;
-            result["clientId"] = clientId;
-            result["resource"] = resource;
 
             try
             {
                 using var http = CreateHttpClient();
-                using var content = new FormUrlEncodedContent(new Dictionary<string, string>
+                var token = await ExchangeAuthorizationCodeAsync(http, code).ConfigureAwait(false);
+                try
                 {
-                    ["client_id"] = clientId,
-                    ["grant_type"] = "authorization_code",
-                    ["code"] = code,
-                    ["redirect_uri"] = redirectUri,
-                    ["resource"] = resource
-                });
-
-                using var response = await http.PostAsync(tokenUrl, content).ConfigureAwait(false);
-                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                result["tokenHttpStatus"] = (int)response.StatusCode;
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    result["error"] = "authorization_code exchange failed HTTP " + (int)response.StatusCode;
-                    result["bodyPreview"] = TrimBody(body);
-                    await WriteProbeResultAsync(result).ConfigureAwait(false);
-                    return Json(result);
-                }
-
-                using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(body) ? "{}" : body);
-                var root = doc.RootElement;
-                if (!root.TryGetProperty("access_token", out var accessNode) ||
-                    accessNode.ValueKind != JsonValueKind.String ||
-                    string.IsNullOrWhiteSpace(accessNode.GetString()))
-                {
-                    result["error"] = "Token response missing access_token.";
-                    result["bodyPreview"] = TrimBody(body);
-                    await WriteProbeResultAsync(result).ConfigureAwait(false);
-                    return Json(result);
-                }
-
-                var accessToken = accessNode.GetString()!;
-                string? refreshToken = null;
-                if (root.TryGetProperty("refresh_token", out var refreshNode) &&
-                    refreshNode.ValueKind == JsonValueKind.String)
-                {
-                    refreshToken = refreshNode.GetString();
-                }
-
-                var expiresIn = 3600;
-                if (root.TryGetProperty("expires_in", out var expNode))
-                {
-                    if (expNode.ValueKind == JsonValueKind.Number && expNode.TryGetInt32(out var n))
+                    var whoAmIOk = await CallWhoAmIAsync(http, token).ConfigureAwait(false);
+                    return Json(new Dictionary<string, object?>
                     {
-                        expiresIn = n;
-                    }
-                    else if (expNode.ValueKind == JsonValueKind.String &&
-                             int.TryParse(expNode.GetString(), out var s))
-                    {
-                        expiresIn = s;
-                    }
+                        ["ok"] = whoAmIOk,
+                        ["stage"] = whoAmIOk ? "whoami" : "whoami-failed"
+                    });
                 }
-
-                var storePath = GetTokenStorePath();
-                LocalDevAdfsTokenStore.Save(storePath, new LocalDevAdfsTokenRecord
+                finally
                 {
-                    AccessToken = accessToken,
-                    RefreshToken = refreshToken,
-                    AccessTokenExpiresAtUtc = DateTimeOffset.UtcNow.AddSeconds(Math.Max(60, expiresIn)),
-                    AuthorityUri = authority,
-                    ResourceUri = resource,
-                    ClientId = clientId
-                });
-
-                result["ok"] = !string.IsNullOrWhiteSpace(refreshToken) || !string.IsNullOrWhiteSpace(accessToken);
-                result["stage"] = "token-saved";
-                result["tokenStorePath"] = storePath;
-                result["hasRefreshToken"] = !string.IsNullOrWhiteSpace(refreshToken);
-                result["expiresIn"] = expiresIn;
-                result["nextStep"] = "Open /diagnostics/adfs-token-probe to verify WhoAmI";
-
-                // 立刻 WhoAmI 驗證
-                var who = await CallWhoAmIAsync(http, accessToken).ConfigureAwait(false);
-                result["whoAmIHttpStatus"] = who.StatusCode;
-                result["whoAmIOk"] = who.Ok;
-                result["whoAmIBody"] = who.BodyPreview;
-                if (who.Ok)
-                {
-                    result["ok"] = true;
-                    result["stage"] = "whoami";
+                    // token 僅有 action-local string reference；不寫 Session、static cache、檔案或 response。
+                    token = string.Empty;
                 }
-
-                await WriteProbeResultAsync(result).ConfigureAwait(false);
-                return Json(result);
             }
-            catch (Exception ex)
+            catch (DiagnosticUpstreamException)
             {
-                result["stage"] = "exception";
-                result["error"] = ex.GetType().Name + ": " + ex.Message;
-                if (ex.InnerException is not null)
-                {
-                    result["innerError"] = ex.InnerException.GetType().Name + ": " + ex.InnerException.Message;
-                }
-                await WriteProbeResultAsync(result).ConfigureAwait(false);
-                return Json(result);
+                return DiagnosticError("upstream-error");
+            }
+            catch (HttpRequestException)
+            {
+                return DiagnosticError("upstream-error");
+            }
+            catch (OperationCanceledException)
+            {
+                return DiagnosticError("upstream-error");
+            }
+            catch (JsonException)
+            {
+                return DiagnosticError("upstream-error");
+            }
+            catch (InvalidOperationException)
+            {
+                // 包含缺少或無效部署設定；不把設定值或例外訊息回傳。
+                return DiagnosticError("upstream-error");
+            }
+            catch (ArgumentException)
+            {
+                return DiagnosticError("upstream-error");
+            }
+            catch (FormatException)
+            {
+                return DiagnosticError("upstream-error");
             }
         }
 
         /// <summary>
-        /// 探測：優先用 local token store / refresh_token，再試 WhoAmI。
+        /// 回傳最小 Session 可用性而非 Session identifier。Session ID 是 server-side correlation/security boundary，
+        /// 即使 DEBUG 與已授權使用者也不能變成 API contract。
         /// </summary>
-        [HttpGet("adfs-token-probe")]
-        public async Task<IActionResult> AdfsTokenProbe()
-        {
-            var authority = GetAuthority();
-            var resource = GetResource();
-            var clientId = GetClientId();
-            var whoAmI = GetWhoAmIUrl();
-            var storePath = GetTokenStorePath();
-
-            var result = new Dictionary<string, object?>
-            {
-                ["ok"] = false,
-                ["stage"] = "init",
-                ["serverTime"] = DateTime.Now.ToString("o"),
-                ["processUser"] = Environment.UserName,
-                ["authority"] = authority,
-                ["resource"] = resource,
-                ["clientId"] = clientId,
-                ["whoAmI"] = whoAmI,
-                ["tokenStorePath"] = storePath
-            };
-
-            try
-            {
-                using var http = CreateHttpClient();
-                string? accessToken = null;
-
-                if (LocalDevAdfsTokenStore.TryLoad(storePath, out var stored) && stored is not null)
-                {
-                    result["storeLoaded"] = true;
-                    result["storeHasRefreshToken"] = !string.IsNullOrWhiteSpace(stored.RefreshToken);
-                    result["storeHasAccessToken"] = !string.IsNullOrWhiteSpace(stored.AccessToken);
-                    result["storeExpiresAtUtc"] = stored.AccessTokenExpiresAtUtc?.ToString("o");
-
-                    if (!string.IsNullOrWhiteSpace(stored.AccessToken) &&
-                        stored.AccessTokenExpiresAtUtc is not null &&
-                        DateTimeOffset.UtcNow < stored.AccessTokenExpiresAtUtc.Value.AddSeconds(-60))
-                    {
-                        accessToken = stored.AccessToken;
-                        result["tokenSource"] = "local-store-access-token";
-                    }
-                    else if (!string.IsNullOrWhiteSpace(stored.RefreshToken))
-                    {
-                        var tokenUrl = authority.TrimEnd('/') + "/oauth2/token";
-                        result["tokenUrl"] = tokenUrl;
-                        using var content = new FormUrlEncodedContent(new Dictionary<string, string>
-                        {
-                            ["client_id"] = clientId,
-                            ["grant_type"] = "refresh_token",
-                            ["refresh_token"] = stored.RefreshToken!,
-                            ["resource"] = resource
-                        });
-                        using var tokenResponse = await http.PostAsync(tokenUrl, content).ConfigureAwait(false);
-                        var tokenBody = await tokenResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                        result["tokenHttpStatus"] = (int)tokenResponse.StatusCode;
-                        if (!tokenResponse.IsSuccessStatusCode)
-                        {
-                            result["stage"] = "refresh";
-                            result["error"] = "refresh_token failed HTTP " + (int)tokenResponse.StatusCode;
-                            result["bodyPreview"] = TrimBody(tokenBody);
-                            result["hint"] = "Open /diagnostics/adfs-authorize to login again.";
-                            await WriteProbeResultAsync(result).ConfigureAwait(false);
-                            return Json(result);
-                        }
-
-                        using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(tokenBody) ? "{}" : tokenBody);
-                        var root = doc.RootElement;
-                        accessToken = root.GetProperty("access_token").GetString();
-                        var expiresIn = 3600;
-                        if (root.TryGetProperty("expires_in", out var expNode) &&
-                            expNode.ValueKind == JsonValueKind.Number &&
-                            expNode.TryGetInt32(out var n))
-                        {
-                            expiresIn = n;
-                        }
-                        string? newRefresh = stored.RefreshToken;
-                        if (root.TryGetProperty("refresh_token", out var rn) && rn.ValueKind == JsonValueKind.String)
-                        {
-                            newRefresh = rn.GetString();
-                        }
-
-                        LocalDevAdfsTokenStore.Save(storePath, new LocalDevAdfsTokenRecord
-                        {
-                            AccessToken = accessToken,
-                            RefreshToken = newRefresh,
-                            AccessTokenExpiresAtUtc = DateTimeOffset.UtcNow.AddSeconds(expiresIn),
-                            AuthorityUri = authority,
-                            ResourceUri = resource,
-                            ClientId = clientId
-                        });
-                        result["tokenSource"] = "refresh_token";
-                    }
-                }
-                else
-                {
-                    result["storeLoaded"] = false;
-                }
-
-                if (string.IsNullOrWhiteSpace(accessToken))
-                {
-                    // password grant 在 jesus 會 unsupported_grant_type；這裡只回指引，不再誤導重試密碼。
-                    result["stage"] = "need-authorize";
-                    result["error"] = "No local ADFS token. jesus ADFS only supports authorization_code/refresh_token.";
-                    result["nextStep"] = "Open /diagnostics/adfs-authorize while logged into ChurchReport.";
-                    await WriteProbeResultAsync(result).ConfigureAwait(false);
-                    return Json(result);
-                }
-
-                var who = await CallWhoAmIAsync(http, accessToken!).ConfigureAwait(false);
-                result["stage"] = "whoami";
-                result["whoAmIHttpStatus"] = who.StatusCode;
-                result["whoAmIBody"] = who.BodyPreview;
-                result["ok"] = who.Ok;
-                if (!who.Ok)
-                {
-                    result["error"] = "WhoAmI failed HTTP " + who.StatusCode;
-                    result["location"] = who.Location;
-                }
-                else
-                {
-                    result["nextStep"] = "Set DynamicsAccess:Package01FeeReadsEnabled=true and retest fee list Returned=56";
-                }
-
-                await WriteProbeResultAsync(result).ConfigureAwait(false);
-                return Json(result);
-            }
-            catch (Exception ex)
-            {
-                result["stage"] = "exception";
-                result["error"] = ex.GetType().Name + ": " + ex.Message;
-                if (ex.InnerException is not null)
-                {
-                    result["innerError"] = ex.InnerException.GetType().Name + ": " + ex.InnerException.Message;
-                }
-                await WriteProbeResultAsync(result).ConfigureAwait(false);
-                return Json(result);
-            }
-        }
-
         [HttpGet("session")]
         public IActionResult GetSessionInfo()
         {
-            return Json(new
+            ApplyNoStoreHeaders();
+            return Json(new Dictionary<string, object?>
             {
-                SessionId = HttpContext.Session.Id,
-                IsAvailable = HttpContext.Session.IsAvailable,
-                User = User.Identity?.Name ?? "Anonymous",
-                IsAuthenticated = User.Identity?.IsAuthenticated ?? false
+                ["ok"] = true,
+                ["stage"] = "session",
+                ["available"] = HttpContext.Session.IsAvailable
             });
         }
 
+        /// <summary>
+        /// 回傳 process 層級、無身份資料的效能快照。<see cref="Process"/> 是本 action 唯一 owner，使用 using
+        /// 確定釋放 OS handle；結果禁止包含 process user、command line、endpoint、Session 或 token。
+        /// </summary>
         [HttpGet("performance")]
         public IActionResult GetPerformanceInfo()
         {
-            var process = Process.GetCurrentProcess();
-            return Json(new
+            ApplyNoStoreHeaders();
+            using var process = Process.GetCurrentProcess();
+            return Json(new Dictionary<string, object?>
             {
-                WorkingSetMB = process.WorkingSet64 / 1024 / 1024,
-                PrivateMemoryMB = process.PrivateMemorySize64 / 1024 / 1024,
-                ThreadCount = process.Threads.Count,
-                ServerTime = DateTime.Now
+                ["ok"] = true,
+                ["stage"] = "performance",
+                ["workingSetMb"] = process.WorkingSet64 / 1024 / 1024,
+                ["privateMemoryMb"] = process.PrivateMemorySize64 / 1024 / 1024,
+                ["threadCount"] = process.Threads.Count
             });
         }
 
-        private string GetAuthority()
-            => _configuration["DynamicsAccess:Embedded:AuthorityUri"]
-               ?? "https://speechmessagests.speechmessage.com.tw/adfs";
-
-        private string GetResource()
-            => _configuration["DynamicsAccess:Embedded:ResourceUri"]
-               ?? "https://jesus.speechmessage.com.tw/";
-
-        private string GetClientId()
-            => _configuration["DynamicsAccess:Embedded:ClientId"]
-               ?? "2ad88395-b77d-4561-9441-d0e40824f9bc";
-
-        private string GetWhoAmIUrl()
-            => (_configuration["DynamicsAccess:Embedded:OrganizationWebApiBaseUri"]
-                ?? "https://jesus.speechmessage.com.tw/api/data/v8.2/").TrimEnd('/') + "/WhoAmI";
-
-        private string GetRedirectUri()
+        /// <summary>
+        /// 設定所有診斷回應的不可儲存策略。這個固定 header 組合在 action 一開始執行，包含 redirect、early error
+        /// 與成功路徑；不建立 cache entry、timer 或任何長生命週期 resource。
+        /// </summary>
+        private void ApplyNoStoreHeaders()
         {
-            var configured = _configuration["DynamicsAccess:Embedded:RedirectUri"];
-            if (!string.IsNullOrWhiteSpace(configured))
-            {
-                return configured!;
-            }
-
-            // 依目前 IIS Express 實際 host 組 redirect
-            var request = HttpContext.Request;
-            return $"{request.Scheme}://{request.Host}/diagnostics/adfs-callback";
+            Response.Headers.CacheControl = "private, no-store";
+            Response.Headers.Pragma = "no-cache";
+            Response.Headers.Expires = "0";
         }
 
-        private string GetTokenStorePath()
-        {
-            var configured = _configuration["DynamicsAccess:Embedded:LocalDevTokenStorePath"];
-            if (!string.IsNullOrWhiteSpace(configured))
+        /// <summary>
+        /// 建立只含固定 category 的 JSON 錯誤，避免 ADFS error、exception message、state、code、URL 或 body
+        /// 跨 trust boundary。字串是固定常數，沒有可持久化或需要 Dispose 的資料。
+        /// </summary>
+        private IActionResult DiagnosticError(string category)
+            => Json(new Dictionary<string, object?>
             {
-                return configured!;
+                ["ok"] = false,
+                ["stage"] = "callback",
+                ["error"] = category
+            });
+
+        /// <summary>
+        /// 建立固定 ADFS authorize URI。authority/resource/client/redirect 都由部署設定決定，不能由 request 覆寫；
+        /// URI 只用於 redirect header，不會寫 log、檔案或 JSON response。
+        /// </summary>
+        private string BuildAuthorizeUrl(string state)
+        {
+            var authority = GetRequiredSetting("DynamicsAccess:Embedded:AuthorityUri");
+            var resource = GetRequiredSetting("DynamicsAccess:Embedded:ResourceUri");
+            var clientId = GetRequiredSetting("DynamicsAccess:Embedded:ClientId");
+            var redirectUri = GetRequiredRedirectUri();
+
+            return authority.TrimEnd('/') + "/oauth2/authorize" +
+                   "?response_type=code" +
+                   "&client_id=" + Uri.EscapeDataString(clientId) +
+                   "&resource=" + Uri.EscapeDataString(resource) +
+                   "&redirect_uri=" + Uri.EscapeDataString(redirectUri) +
+                   "&response_mode=query" +
+                   "&state=" + Uri.EscapeDataString(state);
+        }
+
+        /// <summary>
+        /// 以 authorization code 取得 action-local access token。response header 與實際 stream 都有硬上限；
+        /// parser 直接略過 refresh token，絕不把它建成 managed string 或寫入任何 store。
+        /// </summary>
+        private async Task<string> ExchangeAuthorizationCodeAsync(HttpClient http, string code)
+        {
+            var authority = GetRequiredSetting("DynamicsAccess:Embedded:AuthorityUri");
+            var resource = GetRequiredSetting("DynamicsAccess:Embedded:ResourceUri");
+            var clientId = GetRequiredSetting("DynamicsAccess:Embedded:ClientId");
+            var redirectUri = GetRequiredRedirectUri();
+            var tokenUrl = authority.TrimEnd('/') + "/oauth2/token";
+
+            using var content = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("client_id", clientId),
+                new KeyValuePair<string, string>("grant_type", "authorization_code"),
+                new KeyValuePair<string, string>("code", code),
+                new KeyValuePair<string, string>("redirect_uri", redirectUri),
+                new KeyValuePair<string, string>("resource", resource)
+            });
+            using var request = new HttpRequestMessage(HttpMethod.Post, tokenUrl)
+            {
+                Content = content
+            };
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            using var response = await http.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                HttpContext.RequestAborted).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new DiagnosticUpstreamException();
             }
 
-            // 優先寫到專案 Logs，方便 Codex 讀檔
-            var projectLogs = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "Logs", "adfs-local-token.json"));
+            var responseBytes = await ReadBoundedContentAsync(
+                response.Content,
+                MaxTokenResponseBytes,
+                HttpContext.RequestAborted).ConfigureAwait(false);
             try
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(projectLogs)!);
-                return projectLogs;
+                return ParseAccessToken(responseBytes);
             }
-            catch
+            finally
             {
-                return Path.Combine(Path.GetTempPath(), "adfs-local-token.json");
+                CryptographicOperations.ZeroMemory(responseBytes);
             }
         }
 
+        /// <summary>
+        /// 對固定 CRM Web API root 的 WhoAmI 發出一次 action-local bearer request。成功與否只回傳布林；
+        /// body 仍會在有界讀取後清零，避免 identity JSON、錯誤頁或 token-related metadata 留在記憶體。
+        /// </summary>
+        private async Task<bool> CallWhoAmIAsync(HttpClient http, string accessToken)
+        {
+            var webApiRoot = GetRequiredSetting("DynamicsAccess:Embedded:OrganizationWebApiBaseUri");
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                webApiRoot.TrimEnd('/') + "/WhoAmI");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.TryAddWithoutValidation("OData-Version", "4.0");
+            request.Headers.TryAddWithoutValidation("OData-MaxVersion", "4.0");
+
+            using var response = await http.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                HttpContext.RequestAborted).ConfigureAwait(false);
+            var responseBytes = await ReadBoundedContentAsync(
+                response.Content,
+                MaxWhoAmIResponseBytes,
+                HttpContext.RequestAborted).ConfigureAwait(false);
+            CryptographicOperations.ZeroMemory(responseBytes);
+            return response.IsSuccessStatusCode;
+        }
+
+        /// <summary>
+        /// 以不共享的 handler/client 建立一次診斷 HTTP scope。禁用 Cookie、Redirect、Proxy、預先認證與自動解壓縮，
+        /// 讓 callback 不會把 request identity、cookie 或 redirect state 帶到後續 action；caller using 是唯一 Dispose owner。
+        /// </summary>
         private static HttpClient CreateHttpClient()
-            => new HttpClient(new SocketsHttpHandler
+            => new(new SocketsHttpHandler
             {
                 UseCookies = false,
                 AllowAutoRedirect = false,
-                UseProxy = false
-            })
+                UseProxy = false,
+                AutomaticDecompression = DecompressionMethods.None,
+                PreAuthenticate = false,
+                MaxConnectionsPerServer = 1,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(1)
+            }, disposeHandler: true)
             {
                 Timeout = TimeSpan.FromSeconds(30)
             };
 
-        private async Task<(bool Ok, int StatusCode, string BodyPreview, string? Location)> CallWhoAmIAsync(
-            HttpClient http,
-            string accessToken)
+        /// <summary>
+        /// 從 HTTP content 讀取最多 <paramref name="maximumBytes"/> 個位元組。caller 是回傳陣列的唯一 owner，
+        /// 無論 parser 成功或失敗都必須清零；方法不使用 static buffer 或 MemoryStream，避免跨 request retention。
+        /// </summary>
+        private static async Task<byte[]> ReadBoundedContentAsync(
+            HttpContent content,
+            int maximumBytes,
+            CancellationToken cancellationToken)
         {
-            using var whoRequest = new HttpRequestMessage(HttpMethod.Get, GetWhoAmIUrl());
-            whoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            whoRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            whoRequest.Headers.TryAddWithoutValidation("OData-Version", "4.0");
-            whoRequest.Headers.TryAddWithoutValidation("OData-MaxVersion", "4.0");
+            if (content.Headers.ContentLength is long contentLength && contentLength > maximumBytes)
+            {
+                throw new DiagnosticUpstreamException();
+            }
 
-            using var whoResponse = await http.SendAsync(whoRequest).ConfigureAwait(false);
-            var whoBody = await whoResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return (
-                whoResponse.IsSuccessStatusCode,
-                (int)whoResponse.StatusCode,
-                TrimBody(whoBody),
-                whoResponse.Headers.Location?.ToString());
-        }
-
-        private static string TrimBody(string body)
-            => body.Length <= 500 ? body : body.Substring(0, 500);
-
-        private static async Task WriteProbeResultAsync(IDictionary<string, object?> result)
-        {
+            await using var stream = await content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            var rented = ArrayPool<byte>.Shared.Rent(maximumBytes + 1);
             try
             {
-                var candidates = new List<string>
+                var totalRead = 0;
+                while (totalRead <= maximumBytes)
                 {
-                    Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "Logs")),
-                    Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "SpeechMessageProducts.ChurchReport", "Logs")),
-                    Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Logs")),
-                    Path.Combine(AppContext.BaseDirectory, "Logs")
-                };
+                    var read = await stream.ReadAsync(
+                        rented.AsMemory(totalRead, maximumBytes + 1 - totalRead),
+                        cancellationToken).ConfigureAwait(false);
+                    if (read == 0)
+                    {
+                        var exact = new byte[totalRead];
+                        rented.AsSpan(0, totalRead).CopyTo(exact);
+                        return exact;
+                    }
 
-                string? logsDir = null;
-                foreach (var candidate in candidates)
-                {
-                    try
-                    {
-                        Directory.CreateDirectory(candidate);
-                        logsDir = candidate;
-                        break;
-                    }
-                    catch
-                    {
-                    }
+                    totalRead += read;
                 }
 
-                if (logsDir is null)
-                {
-                    result["resultFileError"] = "Unable to create Logs directory.";
-                    return;
-                }
-
-                var path = Path.Combine(logsDir, "adfs-token-probe-latest.json");
-                var json = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
-                await System.IO.File.WriteAllTextAsync(path, json).ConfigureAwait(false);
-                result["resultFile"] = path;
-                Trace.WriteLine("[ADFS-PROBE] wrote " + path + " ok=" + result["ok"] + " stage=" + result["stage"]);
+                throw new DiagnosticUpstreamException();
             }
-            catch (Exception writeEx)
+            finally
             {
-                result["resultFileError"] = writeEx.Message;
+                CryptographicOperations.ZeroMemory(rented);
+                ArrayPool<byte>.Shared.Return(rented);
             }
+        }
+
+        /// <summary>
+        /// 從已受大小限制的 UTF-8 JSON 解析 access token。只有 access_token 轉成 action-local string；
+        /// refresh_token 與未知欄位直接 Skip，避免額外敏感字串配置。格式不符時映射成固定 upstream failure。
+        /// </summary>
+        private static string ParseAccessToken(ReadOnlySpan<byte> responseBody)
+        {
+            var reader = new Utf8JsonReader(responseBody);
+            if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
+            {
+                throw new DiagnosticUpstreamException();
+            }
+
+            string? accessToken = null;
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+            {
+                if (reader.TokenType != JsonTokenType.PropertyName)
+                {
+                    throw new DiagnosticUpstreamException();
+                }
+
+                var isAccessToken = reader.ValueTextEquals("access_token"u8);
+                if (!reader.Read())
+                {
+                    throw new DiagnosticUpstreamException();
+                }
+
+                if (isAccessToken && reader.TokenType == JsonTokenType.String)
+                {
+                    accessToken = reader.GetString();
+                }
+                else
+                {
+                    reader.Skip();
+                }
+            }
+
+            return string.IsNullOrWhiteSpace(accessToken)
+                ? throw new DiagnosticUpstreamException()
+                : accessToken;
+        }
+
+        /// <summary>
+        /// 使用固定時間比較 session state，避免直接字串比較提供不必要的比對時間訊號。UTF-8 bytes 在 finally 清零；
+        /// 此 helper 不保留 caller state，也不建立 cache、timer 或 background work。
+        /// </summary>
+        private static bool FixedTimeEquals(string suppliedState, string expectedState)
+        {
+            var suppliedBytes = Encoding.UTF8.GetBytes(suppliedState);
+            var expectedBytes = Encoding.UTF8.GetBytes(expectedState);
+            try
+            {
+                return CryptographicOperations.FixedTimeEquals(suppliedBytes, expectedBytes);
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(suppliedBytes);
+                CryptographicOperations.ZeroMemory(expectedBytes);
+            }
+        }
+
+        /// <summary>
+        /// 驗證 OAuth state 的 server-issued timestamp 仍在五分鐘有效窗內。未解析、過期或超過一分鐘未來偏移皆
+        /// fail closed；timestamp 在 callback 一開始已從 Session 移除，不會因驗證失敗延長 retention。
+        /// </summary>
+        private static bool IsFreshOAuthState(string? issuedAtTicks)
+        {
+            if (!long.TryParse(
+                    issuedAtTicks,
+                    NumberStyles.None,
+                    CultureInfo.InvariantCulture,
+                    out var ticks))
+            {
+                return false;
+            }
+
+            DateTimeOffset issuedAt;
+            try
+            {
+                issuedAt = new DateTimeOffset(ticks, TimeSpan.Zero);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return false;
+            }
+
+            var now = DateTimeOffset.UtcNow;
+            return issuedAt <= now.AddMinutes(1) &&
+                   now - issuedAt <= OAuthStateLifetime;
+        }
+
+        /// <summary>
+        /// 取得非空白的部署固定設定。錯誤不帶出 key 或值給 HTTP response；外層統一映射成固定 upstream category。
+        /// </summary>
+        private string GetRequiredSetting(string key)
+            => !string.IsNullOrWhiteSpace(_configuration[key])
+                ? _configuration[key]!.Trim()
+                : throw new InvalidOperationException();
+
+        /// <summary>
+        /// 取得已註冊的 redirect URI；未設定時使用目前 request host 組成 callback，值只會送往 ADFS redirect request，
+        /// 不會寫入 log 或回應。
+        /// </summary>
+        private string GetRequiredRedirectUri()
+        {
+            var configured = _configuration["DynamicsAccess:Embedded:RedirectUri"];
+            return !string.IsNullOrWhiteSpace(configured)
+                ? configured.Trim()
+                : $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}/diagnostics/adfs-callback";
+        }
+
+        /// <summary>
+        /// 表示可安全映射為固定 <c>upstream-error</c> 的診斷上游失敗。型別不保存 URL、body、token 或原始 exception，
+        /// 因此離開 action 後不會擴大敏感資料生命週期。
+        /// </summary>
+        private sealed class DiagnosticUpstreamException : Exception
+        {
         }
     }
 #endif

@@ -17,12 +17,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
+using System.Buffers;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -41,7 +46,14 @@ namespace ChurchReport.Controllers
     /// </summary>
     public partial class AuthenticationController
     {
+        // OAuth state、callback URL、nonce 與 bearer token 都是單一瀏覽器登入流程的 request/Session 邊界資料。
+        // Session 僅保存完成 callback 驗證所需的最小值；callback 一開始即 read-and-remove，後續 HTTP、CRM、
+        // redirect 或錯誤分支都不得再次從 Session 取得。上游 socket/handler pool 由 DI host 的具名
+        // IHttpClientFactory 唯一擁有，action 只 Dispose 短生命週期 wrapper/request/response/stream。
         private const string LineLoginCallbackUrlSessionKey = "_LineLoginCallbackUrl";
+        private const string LineLoginStateIssuedAtSessionKey = "_LineLoginStateIssuedAtUtcTicks";
+        private const int MaxLineOAuthResponseBytes = 64 * 1024;
+        private static readonly TimeSpan LineLoginStateLifetime = TimeSpan.FromMinutes(5);
 
         #region LINE Login Server-side OAuth 2.0
 
@@ -58,8 +70,6 @@ namespace ChurchReport.Controllers
             try
             {
                 System.Diagnostics.Debug.WriteLine("[LineLoginStart] ========== 開始 LINE Login OAuth 流程 ==========");
-                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] ReturnUrl: {returnUrl}");
-                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] LiffId: {liffId}");
 
                 if (!string.IsNullOrEmpty(returnUrl))
                 {
@@ -69,7 +79,7 @@ namespace ChurchReport.Controllers
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"[LineLoginStart] Rejected non-local returnUrl: {returnUrl}");
+                        System.Diagnostics.Debug.WriteLine("[LineLoginStart] 已拒絕非本機 ReturnUrl。");
                     }
                 }
 
@@ -88,9 +98,6 @@ namespace ChurchReport.Controllers
                 var callbackUrl = ResolveLineLoginCallbackUrl(configuration);
                 var scope = configuration["LineLogin:Scope"] ?? "profile openid";
 
-                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] ChannelId: {channelId}");
-                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] CallbackUrl: {callbackUrl}");
-
                 if (string.IsNullOrEmpty(channelId))
                 {
                     return Json(new { success = false, message = "LINE Login Channel ID 未設定" });
@@ -103,6 +110,9 @@ namespace ChurchReport.Controllers
 
                 var state = GenerateRandomState();
                 HttpContext.Session.SetString("_LineLoginState", state);
+                HttpContext.Session.SetString(
+                    LineLoginStateIssuedAtSessionKey,
+                    DateTimeOffset.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture));
 
                 var nonce = GenerateRandomNonce();
                 HttpContext.Session.SetString("_LineLoginNonce", nonce);
@@ -116,14 +126,14 @@ namespace ChurchReport.Controllers
                              $"&scope={Uri.EscapeDataString(scope)}" +
                              $"&nonce={Uri.EscapeDataString(nonce)}";
 
-                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] 授權 URL: {authUrl}");
-
                 return Redirect(authUrl);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"[LineLoginStart] 錯誤: {e.Message}");
-                return HandleError(e, "LineLoginStart");
+                System.Diagnostics.Debug.WriteLine("[LineLoginStart] OAuth 啟動失敗。");
+                // 共用 HandleError 會記錄完整 Exception 並送出通知；OAuth 邊界禁止讓 configuration、
+                // callback 或 framework 例外細節離開 request，因此只回傳固定錯誤分類。
+                return Json(new { success = false, message = "LINE 登入目前無法啟動，請稍後再試" });
             }
         }
 
@@ -138,28 +148,35 @@ namespace ChurchReport.Controllers
             try
             {
                 System.Diagnostics.Debug.WriteLine("[LineCallback] ========== LINE OAuth Callback ==========");
-                System.Diagnostics.Debug.WriteLine($"[LineCallback] Code: {code?.Substring(0, Math.Min(20, code?.Length ?? 0))}...");
-                System.Diagnostics.Debug.WriteLine($"[LineCallback] State: {state}");
-                System.Diagnostics.Debug.WriteLine($"[LineCallback] Error: {error}");
+
+                // callback 是 OAuth Session material 的唯一 terminal consumer。必須在 error/mismatch/missing-code 等
+                // 所有 early return 之前 read-and-remove，避免 state、nonce 或 callback URL 被下一個 request 重播或長期保留。
+                var sessionState = HttpContext.Session.GetString("_LineLoginState");
+                var stateIssuedAtTicks = HttpContext.Session.GetString(LineLoginStateIssuedAtSessionKey);
+                var callbackUrl = HttpContext.Session.GetString(LineLoginCallbackUrlSessionKey);
+                HttpContext.Session.Remove("_LineLoginState");
+                HttpContext.Session.Remove(LineLoginStateIssuedAtSessionKey);
+                HttpContext.Session.Remove(LineLoginCallbackUrlSessionKey);
+                HttpContext.Session.Remove("_LineLoginNonce");
 
                 if (!string.IsNullOrEmpty(error))
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LineCallback] LINE OAuth 錯誤: {error} - {error_description}");
-                    return RedirectToAction("Login", new { error = $"LINE 登入失敗: {error_description}" });
+                    System.Diagnostics.Debug.WriteLine("[LineCallback] LINE OAuth 回傳固定錯誤分類。");
+                    return RedirectToAction("Login", new { error = "LINE 登入失敗，請重新嘗試" });
                 }
 
-                var sessionState = HttpContext.Session.GetString("_LineLoginState");
-                if (string.IsNullOrEmpty(sessionState) || sessionState != state)
+                if (string.IsNullOrEmpty(sessionState) ||
+                    string.IsNullOrEmpty(state) ||
+                    string.IsNullOrWhiteSpace(code) ||
+                    string.IsNullOrWhiteSpace(callbackUrl) ||
+                    !FixedTimeEquals(sessionState, state) ||
+                    !IsFreshLineLoginState(stateIssuedAtTicks))
                 {
                     System.Diagnostics.Debug.WriteLine("[LineCallback] State 驗證失敗！可能是 CSRF 攻擊");
                     return RedirectToAction("Login", new { error = "State 驗證失敗，請重新登入" });
                 }
 
-                HttpContext.Session.Remove("_LineLoginState");
-
-                var tokenResponse = await ExchangeCodeForToken(code);
-                HttpContext.Session.Remove(LineLoginCallbackUrlSessionKey);
-                HttpContext.Session.Remove("_LineLoginNonce");
+                var tokenResponse = await ExchangeCodeForToken(code, callbackUrl);
 
                 if (tokenResponse == null || string.IsNullOrEmpty(tokenResponse.access_token))
                 {
@@ -167,28 +184,42 @@ namespace ChurchReport.Controllers
                     return RedirectToAction("Login", new { error = "取得 LINE Access Token 失敗" });
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[LineCallback] Access Token 前20字: {tokenResponse.access_token.Substring(0, Math.Min(20, tokenResponse.access_token.Length))}...");
+                LineUserProfile userProfile;
+                var accessToken = tokenResponse.access_token;
+                try
+                {
+                    userProfile = await GetLineUserProfile(accessToken);
+                }
+                finally
+                {
+                    // managed string 無法保證原地清零；立即斷開所有 action-local owner reference，可縮短 bearer token
+                    // retention，且 token 從未進入 Session、static cache、log、exception 或 response。
+                    tokenResponse.access_token = string.Empty;
+                    accessToken = string.Empty;
+                }
 
-                var userProfile = await GetLineUserProfile(tokenResponse.access_token);
                 if (userProfile == null || string.IsNullOrEmpty(userProfile.userId))
                 {
                     System.Diagnostics.Debug.WriteLine("[LineCallback] 取得用戶 Profile 失敗");
                     return RedirectToAction("Login", new { error = "取得 LINE 用戶資料失敗" });
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[LineCallback] 用戶 ID: {userProfile.userId}");
-                System.Diagnostics.Debug.WriteLine($"[LineCallback] 用戶名稱: {userProfile.displayName}");
-
                 InMemoryContext.LineBindingViewModel.LineUserId = userProfile.userId;
                 InMemoryContext.LineBindingViewModel.DisplayId = userProfile.userId;
 
                 return await ProcessLineUserLogin(userProfile.userId);
             }
-            catch (Exception e)
+            catch (OperationCanceledException) when (HttpContext.RequestAborted.IsCancellationRequested)
             {
-                System.Diagnostics.Debug.WriteLine($"[LineCallback] 錯誤: {e.Message}");
-                System.Diagnostics.Debug.WriteLine($"[LineCallback] 堆疊追蹤: {e.StackTrace}");
-                return HandleError(e, "LineCallback");
+                // 瀏覽器已中斷 request 時不建立新的背景工作或重試；所有 using owner 仍會同步進入 Dispose。
+                return StatusCode(499);
+            }
+            catch (Exception)
+            {
+                System.Diagnostics.Debug.WriteLine("[LineCallback] OAuth callback 發生未分類錯誤。");
+                // 不把原始 Exception 交給會輸出完整內容的共用 HandleError，避免授權碼、token endpoint
+                // 或上游 body 經由 exception/inner exception 進入 log 與 LINE 通知。
+                return RedirectToAction("Login", new { error = "LINE 登入失敗，請重新嘗試" });
             }
         }
 
@@ -221,7 +252,7 @@ namespace ChurchReport.Controllers
                  !string.Equals(configuredUri.Scheme, requestUri.Scheme, StringComparison.OrdinalIgnoreCase)))
             {
                 System.Diagnostics.Debug.WriteLine(
-                    $"[ResolveLineLoginCallbackUrl] Configured callback ({configuredCallbackUrl}) differs from current request ({requestCallbackUrl}); using current request URL.");
+                    "[ResolveLineLoginCallbackUrl] 設定與目前 request callback 不一致，已採用目前 request URL。");
                 return requestCallbackUrl;
             }
 
@@ -268,9 +299,9 @@ namespace ChurchReport.Controllers
 
                 return liffId;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetBindingLiffId] 讀取設定錯誤: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine("[GetBindingLiffId] 讀取設定失敗，使用固定 fallback。");
                 return "1653819697-YkPyPkr6";
             }
         }
@@ -293,9 +324,9 @@ namespace ChurchReport.Controllers
 
                 return liffId;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetLoginLiffId] 讀取設定錯誤: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine("[GetLoginLiffId] 讀取設定失敗，使用固定 fallback。");
                 return "2007621061-Exd9BGv8";
             }
         }
@@ -328,83 +359,154 @@ namespace ChurchReport.Controllers
         /// <summary>
         /// 產生隨機 state 用於 CSRF 防護
         /// </summary>
-        private string GenerateRandomState()
-        {
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                var bytes = new byte[32];
-                rng.GetBytes(bytes);
-                return Convert.ToBase64String(bytes)
-                    .Replace("+", "-")
-                    .Replace("/", "_")
-                    .Replace("=", "");
-            }
-        }
+        private static string GenerateRandomState() => GenerateRandomUrlSafeValue();
 
         /// <summary>
         /// 產生隨機 nonce 用於 ID Token 驗證
         /// </summary>
-        private string GenerateRandomNonce()
+        private static string GenerateRandomNonce() => GenerateRandomUrlSafeValue();
+
+        /// <summary>
+        /// 建立 256-bit URL-safe 隨機值。byte array 是本方法唯一 owner，轉成 managed string 後立即於
+        /// finally 清零；不使用 static RNG state、cache 或背景工作，因此平行登入不會共享可變資料。
+        /// </summary>
+        private static string GenerateRandomUrlSafeValue()
         {
-            using (var rng = RandomNumberGenerator.Create())
+            var bytes = new byte[32];
+            try
             {
-                var bytes = new byte[32];
-                rng.GetBytes(bytes);
+                RandomNumberGenerator.Fill(bytes);
                 return Convert.ToBase64String(bytes)
-                    .Replace("+", "-")
-                    .Replace("/", "_")
-                    .Replace("=", "");
+                    .Replace("+", "-", StringComparison.Ordinal)
+                    .Replace("/", "_", StringComparison.Ordinal)
+                    .Replace("=", string.Empty, StringComparison.Ordinal);
             }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(bytes);
+            }
+        }
+
+        /// <summary>
+        /// 以 UTF-8 bytes 做固定時間 state 比較。兩個暫存 byte array 均為方法唯一 owner，無論成功或失敗
+        /// 都清零；state 長度由 256-bit generator 固定，長度不符直接 fail closed。
+        /// </summary>
+        private static bool FixedTimeEquals(string expected, string supplied)
+        {
+            var expectedBytes = Encoding.UTF8.GetBytes(expected);
+            var suppliedBytes = Encoding.UTF8.GetBytes(supplied);
+            try
+            {
+                return expectedBytes.Length == suppliedBytes.Length &&
+                       CryptographicOperations.FixedTimeEquals(expectedBytes, suppliedBytes);
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(expectedBytes);
+                CryptographicOperations.ZeroMemory(suppliedBytes);
+            }
+        }
+
+        /// <summary>
+        /// 驗證一次性 state 的簽發時間仍在五分鐘生命週期內。無法解析、超出 DateTimeOffset 範圍、
+        /// 未來時間或逾期一律 fail closed；不建立 timer 或 cache，故沒有跨 Session retention 或 cleanup race。
+        /// </summary>
+        private static bool IsFreshLineLoginState(string issuedAtTicks)
+        {
+            if (!long.TryParse(
+                    issuedAtTicks,
+                    NumberStyles.None,
+                    CultureInfo.InvariantCulture,
+                    out var ticks))
+            {
+                return false;
+            }
+
+            DateTimeOffset issuedAt;
+            try
+            {
+                issuedAt = new DateTimeOffset(ticks, TimeSpan.Zero);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return false;
+            }
+
+            var now = DateTimeOffset.UtcNow;
+            return issuedAt <= now && now - issuedAt <= LineLoginStateLifetime;
         }
 
         /// <summary>
         /// 以授權碼換取 Access Token
         /// </summary>
-        private async Task<LineTokenResponse> ExchangeCodeForToken(string code)
+        private async Task<LineTokenResponse> ExchangeCodeForToken(string code, string callbackUrl)
         {
             try
             {
                 var configuration = HttpContext.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
-                if (configuration == null) return null;
+                var httpClientFactory = HttpContext.RequestServices.GetService(typeof(IHttpClientFactory)) as IHttpClientFactory;
+                if (configuration == null || httpClientFactory == null)
+                {
+                    return null;
+                }
 
                 var channelId = configuration["LineLogin:ChannelId"];
                 var channelSecret = configuration["LineLogin:ChannelSecret"];
-                var callbackUrl = HttpContext.Session.GetString(LineLoginCallbackUrlSessionKey)
-                    ?? ResolveLineLoginCallbackUrl(configuration);
-
-                using (var httpClient = new HttpClient())
+                if (string.IsNullOrWhiteSpace(code) ||
+                    string.IsNullOrWhiteSpace(callbackUrl) ||
+                    string.IsNullOrWhiteSpace(channelId) ||
+                    string.IsNullOrWhiteSpace(channelSecret))
                 {
-                    var requestData = new FormUrlEncodedContent(new[]
+                    return null;
+                }
+
+                // factory 擁有 handler/socket pool；action 僅擁有 wrapper。request 是 FormUrlEncodedContent 的
+                // 唯一 Dispose owner，response/stream/body 也都在本 scope 內確定釋放或清零。
+                using var httpClient = httpClientFactory.CreateClient("line-login-oauth");
+                using var request = new HttpRequestMessage(
+                    HttpMethod.Post,
+                    "https://api.line.me/oauth2/v2.1/token")
+                {
+                    Content = new FormUrlEncodedContent(new[]
                     {
                         new KeyValuePair<string, string>("grant_type", "authorization_code"),
                         new KeyValuePair<string, string>("code", code),
                         new KeyValuePair<string, string>("redirect_uri", callbackUrl),
                         new KeyValuePair<string, string>("client_id", channelId),
                         new KeyValuePair<string, string>("client_secret", channelSecret)
-                    });
+                    })
+                };
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                    var response = await httpClient.PostAsync("https://api.line.me/oauth2/v2.1/token", requestData);
-                    var responseBody = await response.Content.ReadAsStringAsync();
-
-                    System.Diagnostics.Debug.WriteLine($"[ExchangeCodeForToken] Response: {responseBody}");
-
-                    if (response.IsSuccessStatusCode)
+                using var response = await httpClient.SendAsync(
+                    request,
+                    HttpCompletionOption.ResponseHeadersRead,
+                    HttpContext.RequestAborted).ConfigureAwait(false);
+                var responseBytes = await ReadBoundedLineOAuthContentAsync(
+                    response.Content,
+                    HttpContext.RequestAborted).ConfigureAwait(false);
+                try
+                {
+                    if (!response.IsSuccessStatusCode)
                     {
-                        return JsonSerializer.Deserialize<LineTokenResponse>(responseBody, new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        });
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[ExchangeCodeForToken] 錯誤: {response.StatusCode} - {responseBody}");
+                        System.Diagnostics.Debug.WriteLine("[ExchangeCodeForToken] LINE token endpoint 回傳失敗分類。");
                         return null;
                     }
+
+                    return ParseLineTokenResponse(responseBytes);
+                }
+                finally
+                {
+                    CryptographicOperations.ZeroMemory(responseBytes);
                 }
             }
-            catch (Exception ex)
+            catch (OperationCanceledException) when (HttpContext.RequestAborted.IsCancellationRequested)
             {
-                System.Diagnostics.Debug.WriteLine($"[ExchangeCodeForToken] 異常: {ex.Message}");
+                throw;
+            }
+            catch (Exception)
+            {
+                System.Diagnostics.Debug.WriteLine("[ExchangeCodeForToken] LINE token 交換失敗。");
                 return null;
             }
         }
@@ -416,35 +518,186 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                using (var httpClient = new HttpClient())
+                var httpClientFactory = HttpContext.RequestServices.GetService(typeof(IHttpClientFactory)) as IHttpClientFactory;
+                if (httpClientFactory == null || string.IsNullOrWhiteSpace(accessToken))
                 {
-                    httpClient.DefaultRequestHeaders.Authorization =
-                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                    return null;
+                }
 
-                    var response = await httpClient.GetAsync("https://api.line.me/v2/profile");
-                    var responseBody = await response.Content.ReadAsStringAsync();
+                // Authorization 僅放在 request header，不修改共享 client defaults；request Dispose 後即釋放
+                // bearer token reference，避免同一 handler pool 的下一個 Session 繼承認證資料。
+                using var httpClient = httpClientFactory.CreateClient("line-login-oauth");
+                using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.line.me/v2/profile");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                    System.Diagnostics.Debug.WriteLine($"[GetLineUserProfile] Response: {responseBody}");
-
-                    if (response.IsSuccessStatusCode)
+                using var response = await httpClient.SendAsync(
+                    request,
+                    HttpCompletionOption.ResponseHeadersRead,
+                    HttpContext.RequestAborted).ConfigureAwait(false);
+                var responseBytes = await ReadBoundedLineOAuthContentAsync(
+                    response.Content,
+                    HttpContext.RequestAborted).ConfigureAwait(false);
+                try
+                {
+                    if (!response.IsSuccessStatusCode)
                     {
-                        return JsonSerializer.Deserialize<LineUserProfile>(responseBody, new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        });
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[GetLineUserProfile] 錯誤: {response.StatusCode} - {responseBody}");
+                        System.Diagnostics.Debug.WriteLine("[GetLineUserProfile] LINE profile endpoint 回傳失敗分類。");
                         return null;
                     }
+
+                    return ParseLineUserProfile(responseBytes);
+                }
+                finally
+                {
+                    CryptographicOperations.ZeroMemory(responseBytes);
                 }
             }
-            catch (Exception ex)
+            catch (OperationCanceledException) when (HttpContext.RequestAborted.IsCancellationRequested)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetLineUserProfile] 異常: {ex.Message}");
+                throw;
+            }
+            catch (Exception)
+            {
+                System.Diagnostics.Debug.WriteLine("[GetLineUserProfile] LINE profile 取得失敗。");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// 有界讀取 LINE OAuth JSON。Content-Length 與實際串流量都不得超過 64 KiB；caller 是回傳
+        /// exact array 的唯一 owner，必須在解析完成後清零。租用 buffer 與 stream 由本方法在 finally/
+        /// await using 確定清理，RequestAborted 則保證瀏覽器中斷後不留下懸掛讀取工作。
+        /// </summary>
+        private static async Task<byte[]> ReadBoundedLineOAuthContentAsync(
+            HttpContent content,
+            CancellationToken cancellationToken)
+        {
+            if (content.Headers.ContentLength is long contentLength &&
+                contentLength > MaxLineOAuthResponseBytes)
+            {
+                throw new InvalidOperationException("LINE OAuth response exceeds the configured limit.");
+            }
+
+            await using var stream = await content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            var rented = ArrayPool<byte>.Shared.Rent(MaxLineOAuthResponseBytes + 1);
+            try
+            {
+                var totalRead = 0;
+                while (totalRead <= MaxLineOAuthResponseBytes)
+                {
+                    var read = await stream.ReadAsync(
+                        rented.AsMemory(totalRead, MaxLineOAuthResponseBytes + 1 - totalRead),
+                        cancellationToken).ConfigureAwait(false);
+                    if (read == 0)
+                    {
+                        var exact = new byte[totalRead];
+                        rented.AsSpan(0, totalRead).CopyTo(exact);
+                        return exact;
+                    }
+
+                    totalRead += read;
+                }
+
+                throw new InvalidOperationException("LINE OAuth response exceeds the configured limit.");
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(rented);
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
+
+        /// <summary>
+        /// 從已受大小限制的 UTF-8 JSON 只解析 access_token；refresh_token、id_token 與未知欄位直接
+        /// Skip，不建立額外 managed string。格式不正確或缺少必要欄位時 fail closed 回傳 null。
+        /// </summary>
+        private static LineTokenResponse ParseLineTokenResponse(ReadOnlySpan<byte> responseBody)
+        {
+            var reader = new Utf8JsonReader(responseBody);
+            if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
+            {
+                return null;
+            }
+
+            string accessToken = null;
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+            {
+                if (reader.TokenType != JsonTokenType.PropertyName)
+                {
+                    return null;
+                }
+
+                var isAccessToken = reader.ValueTextEquals("access_token");
+                if (!reader.Read())
+                {
+                    return null;
+                }
+
+                if (isAccessToken)
+                {
+                    if (reader.TokenType != JsonTokenType.String || accessToken != null)
+                    {
+                        return null;
+                    }
+
+                    accessToken = reader.GetString();
+                }
+                else
+                {
+                    reader.Skip();
+                }
+            }
+
+            return string.IsNullOrWhiteSpace(accessToken)
+                ? null
+                : new LineTokenResponse { access_token = accessToken };
+        }
+
+        /// <summary>
+        /// 從已受大小限制的 profile JSON 只解析後續 CRM 查詢必要的 userId；display name、picture URL
+        /// 與 status message 不配置、不記錄，避免個資在 action 之外滯留。重複或缺少 userId 時 fail closed。
+        /// </summary>
+        private static LineUserProfile ParseLineUserProfile(ReadOnlySpan<byte> responseBody)
+        {
+            var reader = new Utf8JsonReader(responseBody);
+            if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
+            {
+                return null;
+            }
+
+            string userId = null;
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+            {
+                if (reader.TokenType != JsonTokenType.PropertyName)
+                {
+                    return null;
+                }
+
+                var isUserId = reader.ValueTextEquals("userId");
+                if (!reader.Read())
+                {
+                    return null;
+                }
+
+                if (isUserId)
+                {
+                    if (reader.TokenType != JsonTokenType.String || userId != null)
+                    {
+                        return null;
+                    }
+
+                    userId = reader.GetString();
+                }
+                else
+                {
+                    reader.Skip();
+                }
+            }
+
+            return string.IsNullOrWhiteSpace(userId)
+                ? null
+                : new LineUserProfile { userId = userId };
         }
 
         /// <summary>
@@ -454,12 +707,12 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 開始處理 LINE 用戶登入: {lineUserId}");
+                System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 開始處理 LINE 用戶登入。");
 
                 var returnUrl = HttpContext.Session.GetString("_OAuthReturnUrl");
                 if (!string.IsNullOrEmpty(returnUrl))
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 偵測到自訂 ReturnUrl: {returnUrl}");
+                    System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 偵測到已驗證的本機 ReturnUrl。");
                     HttpContext.Session.Remove("_OAuthReturnUrl");
 
                     if (returnUrl == "_BINDING_")
@@ -472,7 +725,7 @@ namespace ChurchReport.Controllers
 
                     if (!ChurchReport.Security.LocalReturnUrl.IsLocal(returnUrl))
                     {
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] Rejected non-local returnUrl from session: {returnUrl}");
+                        System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 已拒絕 Session 中的非本機 ReturnUrl。");
                         returnUrl = null;
                     }
 
@@ -505,7 +758,7 @@ namespace ChurchReport.Controllers
                             System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 此 LINE ID 尚未綁定，重導向至綁定頁面");
                             return Redirect(GetBindingPageUrl());
                         }
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 找到聯絡人: {results.Entities[0].GetAttributeValue<string>("fullname")}");
+                        System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 已找到綁定聯絡人。");
                     }
                     finally
                     {
@@ -519,15 +772,15 @@ namespace ChurchReport.Controllers
                         await HttpContext.Session.CommitAsync();
                         returnUrl = tempReturnUrl;
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 清除 Session 警告: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] Session 清除或提交失敗。");
                     }
 
                     InMemoryContext.LineBindingViewModel.LineUserId = lineUserId;
                     await ProcessLogin(new GalleryViewModel { Account = "", Password = lineUserId });
 
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 使用自訂 ReturnUrl 重導向: {returnUrl}/{lineUserId}");
+                    System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 使用已驗證的本機 ReturnUrl 重導向。");
                     return Redirect($"{returnUrl}/{lineUserId}");
                 }
 
@@ -558,7 +811,7 @@ namespace ChurchReport.Controllers
                         return Redirect(GetBindingPageUrl());
                     }
                     foundContact2 = results.Entities[0];
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 找到聯絡人: {foundContact2.GetAttributeValue<string>("fullname")}");
+                    System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 已找到綁定聯絡人。");
                 }
                 finally
                 {
@@ -570,9 +823,9 @@ namespace ChurchReport.Controllers
                     HttpContext.Session.Clear();
                     await HttpContext.Session.CommitAsync();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 清除 Session 警告: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] Session 清除或提交失敗。");
                 }
 
                 InMemoryContext.LineBindingViewModel.LineUserId = lineUserId;
@@ -591,7 +844,7 @@ namespace ChurchReport.Controllers
                         var displayViewType = displayViewTypeProperty.GetValue(resultValue)?.ToString();
                         var activeListId = activeListIdProperty.GetValue(resultValue)?.ToString();
 
-                        System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] DisplayViewType: {displayViewType}, ActiveListId: {activeListId}");
+                        System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 已解析固定登入導向分類。");
 
                         if (displayViewType == "MultiGroupView")
                             return Redirect($"/SmallGroup/MultiGroupView/{activeListId}");
@@ -610,14 +863,13 @@ namespace ChurchReport.Controllers
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] ProcessLogin 返回類型: {loginResult2?.GetType().Name}");
+                    System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] ProcessLogin 回傳非 JSON 結果。");
                     return loginResult2;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 錯誤: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[ProcessLineUserLogin] 堆疊追蹤: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine("[ProcessLineUserLogin] 登入處理失敗。");
                 var loginPageUrl = GetLineIdLoginPageUrl();
                 var separator = loginPageUrl.Contains("?") ? "&" : "?";
                 return Redirect($"{loginPageUrl}{separator}error={Uri.EscapeDataString("登入失敗，請稍後再試")}");
@@ -634,11 +886,6 @@ namespace ChurchReport.Controllers
         private class LineTokenResponse
         {
             public string access_token { get; set; }
-            public string token_type { get; set; }
-            public string refresh_token { get; set; }
-            public int expires_in { get; set; }
-            public string scope { get; set; }
-            public string id_token { get; set; }
         }
 
         /// <summary>
@@ -647,9 +894,6 @@ namespace ChurchReport.Controllers
         private class LineUserProfile
         {
             public string userId { get; set; }
-            public string displayName { get; set; }
-            public string pictureUrl { get; set; }
-            public string statusMessage { get; set; }
         }
 
         #endregion

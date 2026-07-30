@@ -1,7 +1,0 @@
-{
-  "ok": false,
-  "stage": "callback",
-  "serverTime": "2026-07-25T20:07:44.9420073\u002B08:00",
-  "processUser": "Administrator",
-  "error": "Invalid or missing OAuth state."
-}

@@ -60,13 +60,10 @@ namespace ChurchReport.Controllers
                 // ========================================
                 // ✅ 診斷日誌：記錄所有傳入參數
                 // ========================================
-                System.Diagnostics.Debug.WriteLine($"[UpdateSmallGroupPresentRecord] ===== 開始處理更新請求 =====");
-                System.Diagnostics.Debug.WriteLine($"[UpdateSmallGroupPresentRecord] Session ID: {HttpContext.Session.Id}");
-                System.Diagnostics.Debug.WriteLine($"[UpdateSmallGroupPresentRecord] Key: {key ?? "(null)"}");
-                System.Diagnostics.Debug.WriteLine($"[UpdateSmallGroupPresentRecord] Values: {values ?? "(null)"}");
-                System.Diagnostics.Debug.WriteLine($"[UpdateSmallGroupPresentRecord] Request Method: {HttpContext.Request.Method}");
-                System.Diagnostics.Debug.WriteLine($"[UpdateSmallGroupPresentRecord] Request Path: {HttpContext.Request.Path}");
-                System.Diagnostics.Debug.WriteLine($"[UpdateSmallGroupPresentRecord] Content-Type: {HttpContext.Request.ContentType ?? "(null)"}");
+                // Session ID、member key 與 update values 都跨越瀏覽器 Session／產品資料信任邊界，
+                // 絕不可進入 Debug、Trace 或例外文字。只保留固定事件分類，讓診斷仍可確認 action 已進入，
+                // 同時避免 request 結束後由 IDE output、log buffer 或外部 sink 長期保留敏感資料。
+                System.Diagnostics.Debug.WriteLine("[UpdateSmallGroupPresentRecord] 已接收更新要求。");
 
                 // ========================================
                 // ✅ 關鍵修復：驗證 Session 並確保資料正確

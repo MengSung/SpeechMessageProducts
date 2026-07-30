@@ -117,11 +117,13 @@ public sealed class LiveDynamicsWebApiSmokeTests
             options.ResourceUri = Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_RESOURCE");
             options.ClientId = Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_CLIENT_ID");
             options.CredentialReferenceName = Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_BEARER_SECRET");
+            options.RefreshTokenSecretName = Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_REFRESH_TOKEN_SECRET");
             options.SecretReference = Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_SECRET_REFERENCE")
                 ?? "dynamics-smoke-credential";
-            options.AllowLocalDevPasswordGrant =
-                string.Equals(Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_ALLOW_PASSWORD_GRANT"), "1", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(Environment.GetEnvironmentVariable("DYNAMICS_SMOKE_ALLOW_PASSWORD_GRANT"), "true", StringComparison.OrdinalIgnoreCase);
+            // Live smoke 與正式 Gateway 使用相同的 fail-closed authentication boundary：禁止從環境開關重新啟用
+            // ROPC/password grant。ADFS 測試只能提供預先核發 bearer 或 refresh-token secret reference；秘密值由
+            // EnvironmentSecretResolver 在 generation 內解析，provider Dispose 後不保留檔案、Session 或跨測試 cache。
+            options.AllowLocalDevPasswordGrant = false;
             options.TimeoutSeconds = 30;
             options.MaxConnectionsPerServer = 2;
             options.Admission.ExpectedOrganizationId = Guid.Parse("11111111-1111-1111-1111-111111111111");

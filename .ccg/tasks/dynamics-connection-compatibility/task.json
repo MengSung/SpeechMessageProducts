@@ -5,8 +5,8 @@
     "complexity":  "L+",
     "risk":  "high",
     "domain":  "integration",
-    "currentPhase":  "analysis",
-    "nextAction":  "Analyze and remove the Phase 4 plaintext local ADFS token persistence, tracked token-store backup, unsanitized diagnostic artifact, and OAuth state-lifecycle defects before any interactive ADFS browser validation. Keep Package01FeeReadsEnabled=false and retain Embedded, Data8, and PowerPlatform.Dataverse.Client.",
+    "currentPhase":  "implementation",
+    "nextAction":  "Use TDD to remove the Phase 4 plaintext local ADFS token persistence, tracked token-store backup, unsanitized diagnostic artifact, and OAuth state-lifecycle defects before any interactive ADFS browser validation. Keep Package01FeeReadsEnabled=false and retain Embedded, Data8, and PowerPlatform.Dataverse.Client.",
     "createdAt":  "2026-07-23T00:00:00Z",
     "branch":  "1.0.0.3.Gateway&Embedded.Worktree"
 }

@@ -8,8 +8,8 @@
 // 3. =true 且 ExecutionMode=Embedded：在本產品行程內嵌同一套受控操作（適合 VS 本機除錯）。
 // 4. DynamicsAccess 可以只寫開關；ProfileAlias / Web API root 可從 CrmConnection 推導。
 // 5. 絕對不把 CrmConnection:Password 複製進 DynamicsAccess JSON。密碼只允許秘密參考名稱。
-// 6. 本機 VS（local-dev-manifest + SecretReference）可用「秘密名稱 -> CrmConnection 欄位」橋接，
-//    讓 Web API 使用與 legacy SOAP 相同帳密，但 DynamicsAccess 仍只存名稱不存密碼。
+// 6. 本機 VS 只有 Windows Auth 可用「秘密名稱 -> CrmConnection 欄位」的行程內橋接；ADFS OAuth 永久禁止
+//    人類帳密／password grant，只接受受控 bearer 或 refresh-token secret reference。
 // 7. Gateway／Embedded bootstrap 由 ChurchReport 主 DI singleton 擁有 process-level ServiceProvider，
 //    避免每次新建造成 memory/socket leak；host shutdown 後此 owner 為 terminal，不可重建 transport generation。
 // 8. 檔案請維持 UTF-8（無 BOM），註解請寫繁體中文。
@@ -218,39 +218,16 @@ namespace ChurchReport.Services
                 options.Embedded.CredentialReferenceName,
                 configuration["DynamicsAccess:Embedded:CredentialReferenceName"]);
 
-            var allowLocalDevRaw = FirstNonEmpty(
-                configuration["DynamicsAccess:Embedded:AllowLocalDevPasswordGrant"]);
-            if (!string.IsNullOrWhiteSpace(allowLocalDevRaw) &&
-                (string.Equals(allowLocalDevRaw, "true", StringComparison.OrdinalIgnoreCase) ||
-                 string.Equals(allowLocalDevRaw, "1", StringComparison.OrdinalIgnoreCase)))
-            {
-                options.Embedded.AllowLocalDevPasswordGrant = true;
-            }
-            else if (string.Equals(options.Embedded.AuthMode, "AdfsOAuth", StringComparison.OrdinalIgnoreCase) &&
-                     string.Equals(options.Embedded.ManifestOrRegistrySource, "local-dev-manifest", StringComparison.OrdinalIgnoreCase) &&
-                     string.IsNullOrWhiteSpace(options.Embedded.CredentialReferenceName))
-            {
-                // 本機 Tier A 預設：IFD 沒有預發 bearer 時，允許用 CrmConnection 橋接 password grant。
-                options.Embedded.AllowLocalDevPasswordGrant = true;
-            }
-
-
             options.Embedded.RefreshTokenSecretName = FirstNonEmpty(
                 options.Embedded.RefreshTokenSecretName,
                 configuration["DynamicsAccess:Embedded:RefreshTokenSecretName"]);
-            options.Embedded.LocalDevTokenStorePath = FirstNonEmpty(
-                options.Embedded.LocalDevTokenStorePath,
-                configuration["DynamicsAccess:Embedded:LocalDevTokenStorePath"]);
             options.Embedded.RedirectUri = FirstNonEmpty(
                 options.Embedded.RedirectUri,
                 configuration["DynamicsAccess:Embedded:RedirectUri"]);
-            if (string.IsNullOrWhiteSpace(options.Embedded.LocalDevTokenStorePath) &&
-                string.Equals(options.Embedded.ManifestOrRegistrySource, "local-dev-manifest", StringComparison.OrdinalIgnoreCase))
-            {
-                // 預設把 refresh token 放專案 Logs，方便本機與診斷端點共用。
-                options.Embedded.LocalDevTokenStorePath = System.IO.Path.GetFullPath(
-                    System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Logs", "adfs-local-token.json"));
-            }
+
+            // AllowLocalDevPasswordGrant 只保留為舊設定的 fail-closed migration trap；不在 bootstrap 自動打開，
+            // 也不因 local-dev-manifest 或缺少 bearer 而回退。值若為 true，Embedded DI validation 會在建立
+            // provider／handler／socket 前拒絕啟動。refresh token 只能由上述秘密參考解析，永不建立檔案路徑。
             // 關鍵：用 CrmConnection 對齊缺漏欄位（不複製密碼進 DynamicsAccess JSON）
             AlignFromCrmConnection(configuration, options);
 
@@ -367,7 +344,12 @@ namespace ChurchReport.Services
             }
 
             var credentialSource = productOptions.Embedded.CredentialSource ?? "HostIdentity";
-            if (string.Equals(credentialSource, "SecretReference", StringComparison.OrdinalIgnoreCase) &&
+            var isWindowsAuth = !string.Equals(
+                productOptions.Embedded.AuthMode,
+                "AdfsOAuth",
+                StringComparison.OrdinalIgnoreCase);
+            if (isWindowsAuth &&
+                string.Equals(credentialSource, "SecretReference", StringComparison.OrdinalIgnoreCase) &&
                 (string.IsNullOrWhiteSpace(productOptions.Embedded.UserNameSecretName) ||
                  string.IsNullOrWhiteSpace(productOptions.Embedded.PasswordSecretName)))
             {
@@ -389,8 +371,9 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
-        /// 本機 VS / local-dev-manifest 專用：把秘密名稱對應到既有 CrmConnection 值。
-        /// 注意：這不會把密碼寫進 DynamicsAccess JSON；只在行程內記憶體解析。
+        /// 本機 VS / local-dev-manifest 的 Windows Auth 專用：把秘密名稱對應到既有 CrmConnection 值。
+        /// ADFS OAuth 一律回傳空 map，避免人類帳密進入 OAuth provider generation；Windows 路徑也只在目前
+        /// process generation 記憶體保存，並由 process host Dispose 時整體釋放，不寫入 JSON、Session 或 static cache。
         /// </summary>
         private static IReadOnlyDictionary<string, string> BuildLocalDevSecretMap(
             IConfiguration configuration,
@@ -401,6 +384,14 @@ namespace ChurchReport.Services
             // 只有 local-dev-manifest 才允許橋接 CrmConnection，避免正式環境誤用。
             var manifest = productOptions.Embedded?.ManifestOrRegistrySource;
             if (!string.Equals(manifest, "local-dev-manifest", StringComparison.OrdinalIgnoreCase))
+            {
+                return map;
+            }
+
+            if (string.Equals(
+                    productOptions.Embedded?.AuthMode,
+                    "AdfsOAuth",
+                    StringComparison.OrdinalIgnoreCase))
             {
                 return map;
             }
@@ -431,9 +422,6 @@ namespace ChurchReport.Services
             }
 
             Put(productOptions.Embedded?.DomainSecretName, domain);
-
-            System.Diagnostics.Trace.WriteLine(
-                $"[DynamicsAccess] local-dev secret bridge ready for secrets: {string.Join(",", map.Keys)}");
 
             return map;
         }
@@ -662,7 +650,6 @@ namespace ChurchReport.Services
                 embedded.CredentialReferenceName,
                 embedded.AllowLocalDevPasswordGrant.ToString(),
                 embedded.RefreshTokenSecretName,
-                embedded.LocalDevTokenStorePath,
                 embedded.RedirectUri
             };
 

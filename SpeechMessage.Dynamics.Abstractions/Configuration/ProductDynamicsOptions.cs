@@ -151,7 +151,8 @@ public sealed class EmbeddedModeOptions
     public string? ClientIdSecretName { get; set; }
 
     /// <summary>
-    /// confidential client 使用的選用 client-secret 秘密名稱；只保存參考，不保存秘密值。
+    /// 舊設定相容欄位。現行 ADFS provider 不支援 client-secret exchange；非空值會在 Embedded 啟動驗證
+    /// 階段 fail closed，不會解析秘密或建立 token HTTP 資源。
     /// </summary>
     public string? ClientSecretName { get; set; }
 
@@ -161,20 +162,16 @@ public sealed class EmbeddedModeOptions
     public string? CredentialReferenceName { get; set; }
 
     /// <summary>
-    /// 本機 local-dev-manifest 專用：允許 ADFS username/password grant。
-    /// 正式環境必須 false，改走非密碼服務流程或預先核發的 bearer token。
+    /// 舊設定相容的 fail-closed migration trap。所有環境都必須 false；true 會在 provider、handler、socket
+    /// 或秘密解析前被拒絕，禁止以 local-dev-manifest 回退到 ROPC/password grant。
     /// </summary>
     public bool AllowLocalDevPasswordGrant { get; set; }
 
     /// <summary>
-    /// 選用的 refresh token 秘密名稱；Token 本體由秘密提供者或受控本機 token store 擁有。
+    /// 選用的 refresh token 秘密名稱；Token 本體只能由受控秘密提供者擁有，不得寫入檔案、Session、
+    /// static cache 或產品 JSON。access token 只在單一 Profile Generation 記憶體內短暫快取。
     /// </summary>
     public string? RefreshTokenSecretName { get; set; }
-
-    /// <summary>
-    /// local-dev 專用 token store 路徑，保存 authorization_code 流程取得的 access/refresh token；正式環境不得使用。
-    /// </summary>
-    public string? LocalDevTokenStorePath { get; set; }
 
     /// <summary>
     /// local-dev authorization_code 流程使用的 OAuth redirect URI，必須與 ADFS client registration 完全一致。

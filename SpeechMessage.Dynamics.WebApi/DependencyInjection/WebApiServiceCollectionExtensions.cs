@@ -180,6 +180,15 @@ public static class WebApiServiceCollectionExtensions
 
         if (options.AuthMode == DynamicsAuthMode.AdfsOAuth)
         {
+            // ROPC/password grant 與未經實機證明的 client-secret token exchange 都是明確禁止的設定形狀。
+            // 在 Options validation 階段 fail closed，可保證 Host 尚未建立 Token Provider、Handler、Socket 或
+            // secret-resolution 工作就停止，避免錯誤設定形成跨 Generation credential retention。
+            if (options.AllowLocalDevPasswordGrant ||
+                !string.IsNullOrWhiteSpace(options.ClientSecretName))
+            {
+                return false;
+            }
+
             var hasBearer = !string.IsNullOrWhiteSpace(options.CredentialReferenceName);
             var hasAuthority =
                 !string.IsNullOrWhiteSpace(options.AuthorityUri) ||
@@ -187,17 +196,16 @@ public static class WebApiServiceCollectionExtensions
             var hasClientId =
                 !string.IsNullOrWhiteSpace(options.ClientId) ||
                 !string.IsNullOrWhiteSpace(options.ClientIdSecretName);
-            var hasPasswordGrantSecrets =
-                options.AllowLocalDevPasswordGrant &&
-                !string.IsNullOrWhiteSpace(options.UserNameSecretName) &&
-                !string.IsNullOrWhiteSpace(options.PasswordSecretName);
+            var hasRefreshTokenReference =
+                !string.IsNullOrWhiteSpace(options.RefreshTokenSecretName);
 
-            // 合法形狀只有預先核發 bearer，或已核准的 authority+clientId 搭配 Secret Reference／local-dev password grant。
-            // 驗證只接受參考名稱，不在此解析 Token 或 Credential，避免 DI 註冊階段形成秘密快取。
+            // 合法形狀只有預先核發 bearer，或 authority＋clientId＋refresh-token secret reference。
+            // 這裡只驗證參考名稱，不解析 Token，也不建立共用 cache；實際秘密只在 generation-owned provider
+            // 的單次 acquisition 內解析，並由 provider Dispose 統一清除 access-token cache。
             if (!hasBearer &&
                 !(hasAuthority &&
                   hasClientId &&
-                  (hasPasswordGrantSecrets || !string.IsNullOrWhiteSpace(options.SecretReference))))
+                  hasRefreshTokenReference))
             {
                 return false;
             }

@@ -122,7 +122,6 @@ public sealed class DynamicsProfileDefinition
             ClientSecretName = source.ClientSecretName,
             AllowLocalDevPasswordGrant = source.AllowLocalDevPasswordGrant,
             RefreshTokenSecretName = source.RefreshTokenSecretName,
-            LocalDevTokenStorePath = source.LocalDevTokenStorePath,
             RedirectUri = source.RedirectUri,
             TimeoutSeconds = source.TimeoutSeconds,
             MaxConnectionsPerServer = source.MaxConnectionsPerServer,
