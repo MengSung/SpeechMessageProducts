@@ -113,3 +113,36 @@ Merged 1.0.0.2.IsolateConnector.Worktree into 1.0.0.2.IsolateConnector, verified
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: Diagnostics operator and runtime security closure
+
+**Date**: 2026-07-30
+**Task**: Diagnostics operator and runtime security closure
+**Branch**: `1.0.0.3.Gateway&Embedded.Worktree`
+
+### Summary
+
+Completed fail-closed diagnostics operator authorization, bounded factory-owned diagnostics HTTP lifecycle, owned-handler disposal and LINE replay regression coverage, full local test/build/runtime/browser verification, sanitized dual-model artifacts, and full Gemini+Claude PASS. WinRM VM mutation remains gated on an existing approved Kerberos/Negotiate administrative identity; real CE 8.2/9.1, soak/performance, Phase 5, and Phase 6 remain open.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4321eb71` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
